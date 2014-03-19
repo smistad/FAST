@@ -2,10 +2,10 @@
 using namespace fast;
 
 void PipelineObject::update() {
-    if(parentPipelineObject != NULL)
-        parentPipelineObject->update();
+    for(int i = 0; i < mParentPipelineObjects.size(); i++)
+        mParentPipelineObjects[i]->update();
 
-    if(this->isModified) {
+    if(this->mIsModified) {
         this->execute();
     }
 }

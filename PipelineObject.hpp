@@ -2,6 +2,7 @@
 #define PIPELINE_OBJECT_HPP
 
 #include <boost/shared_ptr.hpp>
+#include <vector>
 
 namespace fast {
 
@@ -10,15 +11,15 @@ typedef boost::shared_ptr<PipelineObject> PipelineObjectPtr;
 
 class PipelineObject {
     public:
-        PipelineObject() : parentPipelineObject(NULL), isModified(false) {};
+        PipelineObject() : mIsModified(false) {};
         void update();
     protected:
         // Pointer to the parent pipeline object
-        PipelineObjectPtr parentPipelineObject;
+        std::vector<PipelineObjectPtr> mParentPipelineObjects;
 
         // Flag to indicate whether the object has been modified
         // and should be executed again
-        bool isModified;
+        bool mIsModified;
 
         // Pure virtual method for executing the pipeline object
         virtual void execute()=0;
