@@ -23,6 +23,8 @@ class PipelineObject {
 
         // Pure virtual method for executing the pipeline object
         virtual void execute()=0;
+
+        virtual ~PipelineObject();
 };
 
 }; // end namespace fast
