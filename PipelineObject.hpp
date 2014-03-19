@@ -3,11 +3,14 @@
 
 #include <boost/shared_ptr.hpp>
 
+namespace fast {
+
 class PipelineObject;
 typedef boost::shared_ptr<PipelineObject> PipelineObjectPtr;
 
 class PipelineObject {
     public:
+        PipelineObject() : parentPipelineObject(NULL), isModified(false) {};
         void update();
     protected:
         // Pointer to the parent pipeline object
@@ -20,5 +23,7 @@ class PipelineObject {
         // Pure virtual method for executing the pipeline object
         virtual void execute()=0;
 };
+
+}; // end namespace fast
 
 #endif
