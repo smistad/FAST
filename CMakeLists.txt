@@ -12,11 +12,22 @@ set(SOURCES
     Data/Image2D.hpp
     Data/Image2Dt.cpp
     Data/Image2Dt.hpp
+    Data/DataTypes.hpp
     Streamers/Streamer.cpp
     Streamers/Streamer.hpp
     Streamers/ImageStreamer2D.cpp
     Streamers/ImageStreamer2D.hpp
+    Importers/ImageImporter2D.cpp
+    Importers/ImageImporter2D.hpp
+    Importers/Importer.hpp
 )
+
+include_directories(
+    Data/
+    Importers/
+    Streamers/
+)
+
 # Headers for Qt objects
 set(HEADERS 
 )

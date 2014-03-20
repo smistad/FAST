@@ -15,7 +15,7 @@ class PipelineObject {
         void update();
     protected:
         // Pointer to the parent pipeline object
-        std::vector<PipelineObjectPtr> mParentPipelineObjects;
+        std::vector<PipelineObject *> mParentPipelineObjects;
 
         // Flag to indicate whether the object has been modified
         // and should be executed again
@@ -24,7 +24,7 @@ class PipelineObject {
         // Pure virtual method for executing the pipeline object
         virtual void execute()=0;
 
-        virtual ~PipelineObject();
+        virtual ~PipelineObject() {};
 };
 
 }; // end namespace fast
