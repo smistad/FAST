@@ -4,13 +4,12 @@
 #include "ImageData.hpp"
 namespace fast {
 
-class Image2D;
-typedef boost::shared_ptr<Image2D> Image2DPtr;
-
 class Image2D : public ImageData {
     private:
         void execute();
 };
+
+typedef boost::shared_ptr<Image2D> Image2DPtr;
 
 }; // end namespace fast
 

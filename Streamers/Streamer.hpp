@@ -5,6 +5,8 @@
 namespace fast {
 
 class Streamer : public PipelineObject {
+    private:
+        virtual void producerStream() = 0;
 
 };
 
