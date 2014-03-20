@@ -7,14 +7,20 @@ namespace fast {
 
 class Image2D: public ImageData {
     public:
-        Image2D(
-                PipelineObject * parent,
-                oul::Context context,
-                cl::Image2D clImage,
-                unsigned int width,
-                unsigned int height,
-                DataType type);
+        typedef boost::shared_ptr<Image2D> Ptr;
+        static Image2D::Ptr New() {
+            Image2D * ptr = new Image2D();
+            Image2D::Ptr smartPtr(ptr);
+            ptr->setPtr(smartPtr);
+
+            return smartPtr;
+        }
+        void addParent(PipelineObject::Ptr parent);
+        void setOpenCLImage(cl::Image2D clImage, oul::Context context);
     private:
+        Image2D() {};
+        void setPtr(Image2D::Ptr ptr) {mPtr = ptr;};
+        Image2D::Ptr mPtr;
         // These two vectors should be equal in size and have entries
         // that correspond to eachother
         std::vector<cl::Image2D> mCLImages;

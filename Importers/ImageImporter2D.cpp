@@ -3,14 +3,8 @@
 #include "DataTypes.hpp"
 using namespace fast;
 
-ImageImporter2D::ImageImporter2D(oul::Context context, std::string filename) :
-        mContext(context), mFilename(filename) {
-
-}
-
-Image2DPtr ImageImporter2D::getOutput() {
-
-    // TODO: This should all probably be moved to execute
+void ImageImporter2D::execute() {
+    // TODO check that all parameters needed are present
 
     // Load image from disk using Qt
     QImage image;
@@ -44,14 +38,25 @@ Image2DPtr ImageImporter2D::getOutput() {
             convertedPixelData
     );
     delete[] convertedPixelData;
+    mOutput->setOpenCLImage(clImage, mContext);
+}
 
-    Image2DPtr image2D = Image2DPtr(new Image2D(
-            this,
-            mContext,
-            clImage,
-            image.width(),
-            image.height(),
-            TYPE_FLOAT));
+ImageImporter2D::ImageImporter2D() {
+    mOutput = Image2D::New();
+}
 
-    return image2D;
+Image2D::Ptr ImageImporter2D::getOutput() {
+    mOutput->addParent(mPtr);
+
+    return mOutput;
+}
+
+void ImageImporter2D::setFilename(std::string filename) {
+    mFilename = filename;
+    mIsModified = true;
+}
+
+void ImageImporter2D::setContext(oul::Context context) {
+    mContext = context;
+    mIsModified = true;
 }

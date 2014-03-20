@@ -10,16 +10,29 @@ namespace fast {
 
 class ImageImporter2D : public Importer {
     public:
-        ImageImporter2D(oul::Context context, std::string filename);
         Image2DPtr getOutput();
+        typedef boost::shared_ptr<ImageImporter2D> Ptr;
+        static ImageImporter2D::Ptr New() {
+            ImageImporter2D * ptr = new ImageImporter2D();
+            ImageImporter2D::Ptr smartPtr(ptr);
+            ptr->setPtr(smartPtr);
+
+            return smartPtr;
+        }
+
+        void setFilename(std::string filename);
+        void setContext(oul::Context context);
     private:
+        void setPtr(ImageImporter2D::Ptr ptr) {mPtr = ptr;};
+        ImageImporter2D();
+        ImageImporter2D::Ptr mPtr;
+        Image2D::Ptr mOutput;
         std::string mFilename;
         oul::Context mContext;
-        void execute() {};
+        void execute();
 
 };
 
-typedef boost::shared_ptr<ImageImporter2D> ImageImporter2DPtr;
 
 } // end namespace fast
 

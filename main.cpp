@@ -11,7 +11,11 @@ int main(int argc, char ** argv) {
     oul::OpenCLManager * manager = oul::OpenCLManager::getInstance();
     oul::Context context = manager->createContext(criteria);
 
-    ImageImporter2D * test = new ImageImporter2D(context, "lena.jpg");
-    ImageImporter2DPtr importer = ImageImporter2DPtr(test);
-    Image2DPtr image = importer->getOutput();
+    ImageImporter2D::Ptr importer = ImageImporter2D::New();
+    importer->setFilename("lena.jpg");
+    importer->setContext(context);
+    Image2D::Ptr image = importer->getOutput();
+    std::cout << "Pipeline setup finished" << std::endl;
+    image->update();
+    std::cout << "Pipeline finished execution" << std::endl;
 }
