@@ -4,6 +4,7 @@
 #include "PipelineObject.hpp"
 #include "Image2D.hpp"
 #include <vector>
+#include "Streamer.hpp"
 
 namespace fast {
 
@@ -24,6 +25,9 @@ class Image2Dt : public PipelineObject {
         unsigned long mCurrentFrame;
 
         void execute();
+
+        // Pointer to the streamer used to drive this object
+        StreamerPtr mStreamer;
 };
 
 typedef boost::shared_ptr<Image2Dt> Image2DtPtr;
