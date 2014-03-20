@@ -5,9 +5,20 @@ project(FAST)
 set(SOURCES 
     main.cpp
     PipelineObject.cpp
-)
-set(HEADERS 
     PipelineObject.hpp
+    Data/ImageData.cpp
+    Data/ImageData.hpp
+    Data/Image2D.cpp
+    Data/Image2D.hpp
+    Data/Image2Dt.cpp
+    Data/Image2Dt.hpp
+    Streamers/Streamer.cpp
+    Streamers/Streamer.hpp
+    Streamers/ImageStreamer2D.cpp
+    Streamers/ImageStreamer2D.hpp
+)
+# Headers for Qt objects
+set(HEADERS 
 )
 
 
