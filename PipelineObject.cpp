@@ -1,4 +1,5 @@
 #include "PipelineObject.hpp"
+#include "Exception.hpp"
 using namespace fast;
 
 void PipelineObject::update() {
@@ -11,6 +12,9 @@ void PipelineObject::update() {
 }
 
 void PipelineObject::addParent(PipelineObject::Ptr parent) {
+    if(parent == NULL)
+        throw Exception("Trying to add a NULL pointer as a parent object");
+
     // Check that it doesn't already exist
     bool exist = false;
     for(int i = 0; i < mParentPipelineObjects.size(); i++) {

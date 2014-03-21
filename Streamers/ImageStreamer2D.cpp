@@ -12,6 +12,7 @@ Image2Dt::Ptr ImageStreamer2D::getOutput() {
 ImageStreamer2D::ImageStreamer2D() {
     mOutput = Image2Dt::New();
     mStreamIsStarted = false;
+    mIsModified = true;
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
 }
 /**
@@ -46,12 +47,14 @@ void ImageStreamer2D::producerStream() {
     int i = 0;
     while(true) {
         std::string filename = mFilenameFormat.replace(mFilenameFormat.find("#"), 1, intToString(i));
+        std::cout << filename << std::endl;
         try {
             ImageImporter2D::Ptr importer = ImageImporter2D::New();
             importer->setFilename(filename);
             importer->setDevice(mDevice);
-            importer->update();
-            mOutput->addFrame(importer->getOutput());
+            Image2D::Ptr image = importer->getOutput();
+            image->update();
+            mOutput->addFrame(image);
             i++;
         } catch(FileNotFoundException &e) {
             // Reached end of stream

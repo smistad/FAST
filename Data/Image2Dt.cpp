@@ -12,6 +12,7 @@ Image2D::Ptr Image2Dt::getNextFrame() {
 
 void Image2Dt::addFrame(Image2D::Ptr frame) {
     mStreamer->getStreamMutex().lock();
+    mIsModified = true;
     if(!mKeepAllFrames) {
         mFrames.clear();
     }
@@ -22,6 +23,7 @@ void Image2Dt::addFrame(Image2D::Ptr frame) {
 Image2Dt::Image2Dt() {
     mCurrentFrame = 0;
     mKeepAllFrames = false;
+    mIsModified = true;
 }
 
 void Image2Dt::execute() {

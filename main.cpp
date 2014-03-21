@@ -18,7 +18,7 @@ int main(int argc, char ** argv) {
 
     // Example of streaming 2D images
     ImageStreamer2D::Ptr streamer = ImageStreamer2D::New();
-    streamer->setFilenameFormat("test_#.png");
+    streamer->setFilenameFormat("test_#.jpg");
     Image2Dt::Ptr dynamicImage = streamer->getOutput();
     dynamicImage->update();
 }
