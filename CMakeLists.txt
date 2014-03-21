@@ -9,6 +9,8 @@ set(SOURCES
     ExecutionDevice.hpp
     DeviceManager.cpp
     DeviceManager.hpp
+    Exception.cpp
+    Exception.hpp
     Data/ImageData.cpp
     Data/ImageData.hpp
     Data/Image2D.cpp

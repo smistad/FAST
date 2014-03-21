@@ -15,6 +15,8 @@ class Image2Dt : public PipelineObject {
         Image2D::Ptr getNextFrame();
         void addFrame(Image2D::Ptr frame);
     private:
+        Image2Dt();
+
         // Flag whether to keep and store all frames or only use the current
         bool mKeepAllFrames;
 

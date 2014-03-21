@@ -6,7 +6,7 @@
 
 namespace fast {
 
-#define FAST_OBJECT(className)                              \
+#define FAST_OBJECT(className)                                  \
     public:                                                     \
         typedef boost::shared_ptr<className> Ptr;               \
         static className::Ptr New() {                           \

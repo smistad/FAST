@@ -2,6 +2,7 @@
 #include <QImage>
 #include "DataTypes.hpp"
 #include "DeviceManager.hpp"
+#include "Exception.hpp"
 using namespace fast;
 
 void ImageImporter2D::execute() {
@@ -10,7 +11,7 @@ void ImageImporter2D::execute() {
     // Load image from disk using Qt
     QImage image;
     if(!image.load(mFilename.c_str())) {
-        std::cout << "Failed to load the file " << mFilename << std::endl;
+        throw FileNotFoundException(mFilename);
     }
     std::cout << "Loaded image with size " << image.width() << " "  << image.height() << std::endl;
 
