@@ -3,6 +3,7 @@
 
 #include "ImageData.hpp"
 #include "OpenCLManager.hpp"
+#include "ExecutionDevice.hpp"
 namespace fast {
 
 class Image2D: public ImageData {
@@ -16,7 +17,7 @@ class Image2D: public ImageData {
             return smartPtr;
         }
         void addParent(PipelineObject::Ptr parent);
-        void setOpenCLImage(cl::Image2D clImage, oul::Context context);
+        void setOpenCLImage(cl::Image2D clImage, OpenCLDevice::Ptr device);
     private:
         Image2D() {};
         void setPtr(Image2D::Ptr ptr) {mPtr = ptr;};
@@ -24,7 +25,7 @@ class Image2D: public ImageData {
         // These two vectors should be equal in size and have entries
         // that correspond to eachother
         std::vector<cl::Image2D> mCLImages;
-        std::vector<oul::Context> mCLContexes;
+        std::vector<OpenCLDevice::Ptr> mCLDevices;
         void execute(){};
 };
 

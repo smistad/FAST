@@ -1,6 +1,7 @@
 #include "ImageImporter2D.hpp"
 #include <QImage>
 #include "DataTypes.hpp"
+#include "DeviceManager.hpp"
 using namespace fast;
 
 void ImageImporter2D::execute() {
@@ -29,20 +30,25 @@ void ImageImporter2D::execute() {
     }
 
     // Transfer to texture(if OpenCL) or copy raw pixel data (if host)
-    cl::Image2D clImage = cl::Image2D(
-            mContext.getContext(),
-            CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-            cl::ImageFormat(CL_R, CL_FLOAT),
-            image.width(), image.height(),
-            0,
-            convertedPixelData
-    );
-    delete[] convertedPixelData;
-    mOutput->setOpenCLImage(clImage, mContext);
+    if(mDevice->isHost()) {
+    } else {
+        OpenCLDevice::Ptr device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
+        cl::Image2D clImage = cl::Image2D(
+                device->getContext(),
+                CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                cl::ImageFormat(CL_R, CL_FLOAT),
+                image.width(), image.height(),
+                0,
+                convertedPixelData
+        );
+        delete[] convertedPixelData;
+        mOutput->setOpenCLImage(clImage, device);
+    }
 }
 
 ImageImporter2D::ImageImporter2D() {
     mOutput = Image2D::New();
+    mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
 }
 
 Image2D::Ptr ImageImporter2D::getOutput() {
@@ -56,7 +62,7 @@ void ImageImporter2D::setFilename(std::string filename) {
     mIsModified = true;
 }
 
-void ImageImporter2D::setContext(oul::Context context) {
-    mContext = context;
+void ImageImporter2D::setDevice(ExecutionDevice::Ptr device) {
+    mDevice = device;
     mIsModified = true;
 }

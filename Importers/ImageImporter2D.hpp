@@ -21,14 +21,14 @@ class ImageImporter2D : public Importer {
         }
 
         void setFilename(std::string filename);
-        void setContext(oul::Context context);
+        void setDevice(ExecutionDevice::Ptr device);
     private:
         void setPtr(ImageImporter2D::Ptr ptr) {mPtr = ptr;};
         ImageImporter2D();
         ImageImporter2D::Ptr mPtr;
         Image2D::Ptr mOutput;
         std::string mFilename;
-        oul::Context mContext;
+        ExecutionDevice::Ptr mDevice;
         void execute();
 
 };

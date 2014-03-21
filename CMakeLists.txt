@@ -6,6 +6,9 @@ set(SOURCES
     main.cpp
     PipelineObject.cpp
     PipelineObject.hpp
+    ExecutionDevice.hpp
+    DeviceManager.cpp
+    DeviceManager.hpp
     Data/ImageData.cpp
     Data/ImageData.hpp
     Data/Image2D.cpp
