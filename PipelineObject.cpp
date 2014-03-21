@@ -11,5 +11,12 @@ void PipelineObject::update() {
 }
 
 void PipelineObject::addParent(PipelineObject::Ptr parent) {
-    mParentPipelineObjects.push_back(parent);
+    // Check that it doesn't already exist
+    bool exist = false;
+    for(int i = 0; i < mParentPipelineObjects.size(); i++) {
+        if(parent == mParentPipelineObjects[i])
+            exist = true;
+    }
+    if(!exist)
+        mParentPipelineObjects.push_back(parent);
 }
