@@ -25,6 +25,7 @@ class PipelineObject {
         PipelineObject() : mIsModified(false) {};
         void update();
         typedef boost::shared_ptr<PipelineObject> Ptr;
+        void addParent(PipelineObject::Ptr parent);
     protected:
         // Pointer to the parent pipeline object
         std::vector<PipelineObject::Ptr> mParentPipelineObjects;

@@ -9,7 +9,6 @@ namespace fast {
 class Image2D: public ImageData {
     FAST_OBJECT(Image2D)
     public:
-        void addParent(PipelineObject::Ptr parent);
         void setOpenCLImage(cl::Image2D clImage, OpenCLDevice::Ptr device);
     private:
         Image2D() {};

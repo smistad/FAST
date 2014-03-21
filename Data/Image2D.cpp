@@ -1,9 +1,7 @@
 #include "Image2D.hpp"
 using namespace fast;
 
-void Image2D::addParent(PipelineObject::Ptr parent) {
-    mParentPipelineObjects.push_back(parent);
-}
+
 
 void Image2D::setOpenCLImage(cl::Image2D clImage, OpenCLDevice::Ptr device) {
     mCLImages.push_back(clImage);

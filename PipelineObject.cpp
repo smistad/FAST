@@ -9,3 +9,7 @@ void PipelineObject::update() {
         this->execute();
     }
 }
+
+void PipelineObject::addParent(PipelineObject::Ptr parent) {
+    mParentPipelineObjects.push_back(parent);
+}

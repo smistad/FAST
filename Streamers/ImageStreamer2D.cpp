@@ -5,6 +5,7 @@
 using namespace fast;
 
 Image2Dt::Ptr ImageStreamer2D::getOutput() {
+    mOutput->addParent(mPtr);
     return mOutput;
 }
 
