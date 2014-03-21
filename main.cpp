@@ -1,4 +1,3 @@
-#include "OpenCLManager.hpp"
 #include "ImageImporter2D.hpp"
 #include "DeviceManager.hpp"
 using namespace fast;
@@ -6,6 +5,7 @@ using namespace fast;
 
 int main(int argc, char ** argv) {
 
+    // Get a GPU device and set it as the default device
     DeviceManager& deviceManager = DeviceManager::getInstance();
     deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice());
 
