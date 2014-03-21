@@ -3,15 +3,17 @@
 
 #include "Streamer.hpp"
 #include "Image2Dt.hpp"
+#include <boost/shared_ptr.hpp>
 
 namespace fast {
 
 class ImageStreamer2D : public Streamer {
+    FAST_OBJECT(ImageStreamer2D)
     public:
-        Image2DtPtr getOutput();
+        Image2Dt::Ptr getOutput();
     private:
         // A reference to the output object used to update its next frame
-        Image2DtPtr mOutput;
+        Image2Dt::Ptr mOutput;
 
         // Update the streamer if any parameters have changed
         void execute();
@@ -22,8 +24,6 @@ class ImageStreamer2D : public Streamer {
 
 };
 
-typedef boost::shared_ptr<ImageStreamer2D> ImageStreamer2DPtr;
-
-}; // end namespace fast
+} // end namespace fast
 
 #endif

@@ -10,7 +10,7 @@ namespace fast {
 
 class ImageImporter2D : public Importer {
     public:
-        Image2DPtr getOutput();
+        Image2D::Ptr getOutput();
         typedef boost::shared_ptr<ImageImporter2D> Ptr;
         static ImageImporter2D::Ptr New() {
             ImageImporter2D * ptr = new ImageImporter2D();

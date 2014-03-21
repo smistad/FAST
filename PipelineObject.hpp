@@ -6,8 +6,19 @@
 
 namespace fast {
 
-class PipelineObject;
-typedef boost::shared_ptr<PipelineObject> PipelineObjectPtr;
+#define FAST_OBJECT(className)                              \
+    public:                                                     \
+        typedef boost::shared_ptr<className> Ptr;               \
+        static className::Ptr New() {                           \
+            className * ptr = new className();                  \
+            className::Ptr smartPtr(ptr);                       \
+            ptr->setPtr(smartPtr);                              \
+                                                                \
+            return smartPtr;                                    \
+        }                                                       \
+    private:                                                    \
+        void setPtr(className::Ptr ptr) {mPtr = ptr;};          \
+        className::Ptr mPtr;                                    \
 
 class PipelineObject {
     public:

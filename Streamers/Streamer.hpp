@@ -9,17 +9,16 @@ namespace fast {
 
 class Streamer : public PipelineObject {
     public:
+        typedef boost::shared_ptr<Streamer> Ptr;
         boost::mutex getStreamMutex();
     private:
         virtual void producerStream() = 0;
 
         // Mutex used to synchronize the producer running in a secondary thread,
         // and the consumers working in the main thread
-        boost::mutex streamMutex;
+        boost::mutex mStreamMutex;
 
 };
-
-typedef boost::shared_ptr<Streamer> StreamerPtr;
 
 } // end namespace fast
 
