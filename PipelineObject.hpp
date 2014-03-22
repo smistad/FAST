@@ -12,23 +12,20 @@ namespace fast {
         static className::Ptr New() {                           \
             className * ptr = new className();                  \
             className::Ptr smartPtr(ptr);                       \
-            ptr->setPtr(smartPtr);                              \
                                                                 \
             return smartPtr;                                    \
         }                                                       \
-    private:                                                    \
-        void setPtr(className::Ptr ptr) {mPtr = ptr;};          \
-        className::Ptr mPtr;                                    \
 
 class PipelineObject {
     public:
         PipelineObject() : mIsModified(false) {};
         void update();
         typedef boost::shared_ptr<PipelineObject> Ptr;
-        void addParent(PipelineObject::Ptr parent);
+        void addParent(PipelineObject *parent);
+        virtual ~PipelineObject() {};
     protected:
         // Pointer to the parent pipeline object
-        std::vector<PipelineObject::Ptr> mParentPipelineObjects;
+        std::vector<PipelineObject*> mParentPipelineObjects;
 
         // Flag to indicate whether the object has been modified
         // and should be executed again
@@ -37,7 +34,6 @@ class PipelineObject {
         // Pure virtual method for executing the pipeline object
         virtual void execute()=0;
 
-        virtual ~PipelineObject() {};
 };
 
 }; // end namespace fast

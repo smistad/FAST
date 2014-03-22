@@ -14,6 +14,7 @@ class Image2Dt : public PipelineObject {
     public:
         Image2D::Ptr getNextFrame();
         void addFrame(Image2D::Ptr frame);
+        void setStreamer(Streamer *streamer);
     private:
         Image2Dt();
 
@@ -31,7 +32,7 @@ class Image2Dt : public PipelineObject {
         void execute();
 
         // Pointer to the streamer used to drive this object
-        Streamer::Ptr mStreamer;
+        Streamer *mStreamer;
 };
 
 } // end namespace fast

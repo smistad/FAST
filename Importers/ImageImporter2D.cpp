@@ -10,6 +10,7 @@ void ImageImporter2D::execute() {
 
     // Load image from disk using Qt
     QImage image;
+    std::cout << "Trying to load image..." << std::endl;
     if(!image.load(mFilename.c_str())) {
         throw FileNotFoundException(mFilename);
     }
@@ -53,7 +54,7 @@ ImageImporter2D::ImageImporter2D() {
 }
 
 Image2D::Ptr ImageImporter2D::getOutput() {
-    mOutput->addParent(mPtr);
+    mOutput->addParent(this);
 
     return mOutput;
 }

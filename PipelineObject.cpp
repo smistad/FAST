@@ -11,7 +11,7 @@ void PipelineObject::update() {
     }
 }
 
-void PipelineObject::addParent(PipelineObject::Ptr parent) {
+void PipelineObject::addParent(PipelineObject *parent) {
     if(parent == NULL)
         throw Exception("Trying to add a NULL pointer as a parent object");
 

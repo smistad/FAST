@@ -5,7 +5,8 @@
 using namespace fast;
 
 Image2Dt::Ptr ImageStreamer2D::getOutput() {
-    mOutput->addParent(mPtr);
+    mOutput->addParent(this);
+    mOutput->setStreamer(this);
     return mOutput;
 }
 
@@ -13,6 +14,7 @@ ImageStreamer2D::ImageStreamer2D() {
     mOutput = Image2Dt::New();
     mStreamIsStarted = false;
     mIsModified = true;
+    thread = NULL;
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
 }
 /**
@@ -21,10 +23,11 @@ ImageStreamer2D::ImageStreamer2D() {
 void stubStreamThread(ImageStreamer2D * streamer) {
     streamer->producerStream();
 }
+
 void ImageStreamer2D::execute() {
     if(!mStreamIsStarted) {
         mStreamIsStarted = true;
-        thread = boost::thread(&stubStreamThread, this);
+        thread = new boost::thread(&stubStreamThread, this);
     }
 }
 
@@ -42,11 +45,14 @@ inline std::string intToString(int number) {
     return ss.str();//return a string with the contents of the stream
 }
 
-
 void ImageStreamer2D::producerStream() {
     int i = 0;
     while(true) {
-        std::string filename = mFilenameFormat.replace(mFilenameFormat.find("#"), 1, intToString(i));
+        std::string filename = mFilenameFormat;
+        filename.replace(
+                filename.find("#"),
+                1,
+                intToString(i));
         std::cout << filename << std::endl;
         try {
             ImageImporter2D::Ptr importer = ImageImporter2D::New();
@@ -57,8 +63,16 @@ void ImageStreamer2D::producerStream() {
             mOutput->addFrame(image);
             i++;
         } catch(FileNotFoundException &e) {
+            std::cout << "Reached end of stream" << std::endl;
             // Reached end of stream
             break;
         }
     }
+}
+
+ImageStreamer2D::~ImageStreamer2D() {
+    std::cout << "Joining the thread" << std::endl;
+    // TODO stop thread as well
+    thread->join();
+    delete thread;
 }

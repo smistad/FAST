@@ -16,6 +16,8 @@ class ImageStreamer2D : public Streamer {
         // This method runs in a separate thread and adds frames to the
         // output object
         void producerStream();
+
+        ~ImageStreamer2D();
     private:
         ImageStreamer2D();
 
@@ -26,7 +28,7 @@ class ImageStreamer2D : public Streamer {
         void execute();
 
 
-        boost::thread thread;
+        boost::thread *thread;
 
         bool mStreamIsStarted;
 

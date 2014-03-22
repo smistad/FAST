@@ -26,5 +26,9 @@ Image2Dt::Image2Dt() {
     mIsModified = true;
 }
 
+void Image2Dt::setStreamer(Streamer *streamer) {
+    mStreamer = streamer;
+}
+
 void Image2Dt::execute() {
 }
