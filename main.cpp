@@ -3,7 +3,6 @@
 #include "DeviceManager.hpp"
 using namespace fast;
 
-
 int main(int argc, char ** argv) {
 
     // Get a GPU device and set it as the default device

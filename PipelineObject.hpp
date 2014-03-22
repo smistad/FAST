@@ -2,6 +2,7 @@
 #define PIPELINE_OBJECT_HPP
 
 #include <boost/shared_ptr.hpp>
+#include <boost/weak_ptr.hpp>
 #include <vector>
 
 namespace fast {
@@ -12,8 +13,14 @@ namespace fast {
         static className::Ptr New() {                           \
             className * ptr = new className();                  \
             className::Ptr smartPtr(ptr);                       \
+            ptr->setPtr(smartPtr);                              \
                                                                 \
             return smartPtr;                                    \
+        }                                                       \
+    private:                                                    \
+        boost::weak_ptr<className> mPtr;                        \
+        void setPtr(className::Ptr ptr) {                       \
+            mPtr = ptr;                                         \
         }                                                       \
 
 class PipelineObject {
@@ -21,11 +28,11 @@ class PipelineObject {
         PipelineObject() : mIsModified(false) {};
         void update();
         typedef boost::shared_ptr<PipelineObject> Ptr;
-        void addParent(PipelineObject *parent);
+        void addParent(boost::weak_ptr<PipelineObject> parent);
         virtual ~PipelineObject() {};
     protected:
         // Pointer to the parent pipeline object
-        std::vector<PipelineObject*> mParentPipelineObjects;
+        std::vector<boost::weak_ptr<PipelineObject> > mParentPipelineObjects;
 
         // Flag to indicate whether the object has been modified
         // and should be executed again

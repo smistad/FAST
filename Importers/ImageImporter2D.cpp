@@ -54,7 +54,7 @@ ImageImporter2D::ImageImporter2D() {
 }
 
 Image2D::Ptr ImageImporter2D::getOutput() {
-    mOutput->addParent(this);
+    mOutput->addParent(mPtr);
 
     return mOutput;
 }
