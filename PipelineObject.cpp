@@ -5,8 +5,9 @@ using namespace fast;
 void PipelineObject::update() {
     for(int i = 0; i < mParentPipelineObjects.size(); i++) {
         // Check that object has not been deleted
-        if(!mParentPipelineObjects[i].expired())
-            mParentPipelineObjects[i].lock()->update();
+        // TODO maybe throw exception here?
+        if(mParentPipelineObjects[i] != NULL)
+            mParentPipelineObjects[i]->update();
     }
 
     if(this->mIsModified) {
@@ -14,14 +15,14 @@ void PipelineObject::update() {
     }
 }
 
-void PipelineObject::addParent(boost::weak_ptr<PipelineObject> parent) {
-    if(parent.expired())
+void PipelineObject::addParent(PipelineObject::Ptr parent) {
+    if(parent == NULL)
         throw Exception("Trying to add an expired/NULL pointer as a parent object");
 
     // Check that it doesn't already exist
     bool exist = false;
     for(int i = 0; i < mParentPipelineObjects.size(); i++) {
-        if(parent.lock() == mParentPipelineObjects[i].lock())
+        if(parent == mParentPipelineObjects[i])
             exist = true;
     }
     if(!exist)

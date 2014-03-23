@@ -9,6 +9,7 @@ class ImageData : public PipelineObject {
     protected:
         unsigned int mWidth, mHeight;
         DataType mType;
+        virtual ~ImageData() {};
 
 };
 

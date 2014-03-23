@@ -5,13 +5,22 @@
 using namespace fast;
 
 Image2Dt::Ptr ImageStreamer2D::getOutput() {
-    mOutput->addParent(mPtr);
-    mOutput->setStreamer(this);
-    return mOutput;
+    if(mOutput != NULL) {
+        mOutput->addParent(mPtr.lock());
+        mOutput->setStreamer(this);
+
+        Image2Dt::Ptr newSmartPtr;
+        newSmartPtr.swap(mOutput);
+
+        return newSmartPtr;
+    } else {
+        return mOutput2.lock();
+    }
 }
 
 ImageStreamer2D::ImageStreamer2D() {
     mOutput = Image2Dt::New();
+    mOutput2 = mOutput;
     mStreamIsStarted = false;
     mIsModified = true;
     thread = NULL;
@@ -24,7 +33,7 @@ void stubStreamThread(ImageStreamer2D * streamer) {
     streamer->producerStream();
 }
 
-void ImageStreamer2D::execute() {
+inline void ImageStreamer2D::execute() {
     if(!mStreamIsStarted) {
         mStreamIsStarted = true;
         thread = new boost::thread(&stubStreamThread, this);
@@ -60,7 +69,13 @@ void ImageStreamer2D::producerStream() {
             importer->setDevice(mDevice);
             Image2D::Ptr image = importer->getOutput();
             image->update();
-            mOutput->addFrame(image);
+            Image2Dt::Ptr ptr = mOutput2.lock();
+            if(ptr != NULL) {
+                ptr->addFrame(image);
+            } else {
+                std::cout << "Image2Dt object destroyed, stream can stop." << std::endl;
+                break;
+            }
             i++;
         } catch(FileNotFoundException &e) {
             std::cout << "Reached end of stream" << std::endl;

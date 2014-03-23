@@ -15,6 +15,7 @@ class Image2Dt : public PipelineObject {
         Image2D::Ptr getNextFrame();
         void addFrame(Image2D::Ptr frame);
         void setStreamer(Streamer *streamer);
+        ~Image2Dt() {};
     private:
         Image2Dt();
 

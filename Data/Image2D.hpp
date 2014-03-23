@@ -10,6 +10,7 @@ class Image2D: public ImageData {
     FAST_OBJECT(Image2D)
     public:
         void setOpenCLImage(cl::Image2D clImage, OpenCLDevice::Ptr device);
+        ~Image2D() {};
     private:
         Image2D() {};
         // These two vectors should be equal in size and have entries

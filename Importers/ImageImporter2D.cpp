@@ -44,19 +44,27 @@ void ImageImporter2D::execute() {
                 convertedPixelData
         );
         delete[] convertedPixelData;
-        mOutput->setOpenCLImage(clImage, device);
+        mOutput2.lock()->setOpenCLImage(clImage, device);
     }
 }
 
 ImageImporter2D::ImageImporter2D() {
     mOutput = Image2D::New();
+    mOutput2 = mOutput;
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
 }
 
 Image2D::Ptr ImageImporter2D::getOutput() {
-    mOutput->addParent(mPtr);
+    if(mOutput != NULL) {
+        mOutput->addParent(mPtr.lock());
 
-    return mOutput;
+        Image2D::Ptr newSmartPtr;
+        newSmartPtr.swap(mOutput);
+
+        return newSmartPtr;
+    } else {
+        return mOutput2.lock();
+    }
 }
 
 void ImageImporter2D::setFilename(std::string filename) {

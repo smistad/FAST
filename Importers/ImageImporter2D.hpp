@@ -14,9 +14,11 @@ class ImageImporter2D : public Importer {
         Image2D::Ptr getOutput();
         void setFilename(std::string filename);
         void setDevice(ExecutionDevice::Ptr device);
+        ~ImageImporter2D() {};
     private:
         ImageImporter2D();
         Image2D::Ptr mOutput;
+        boost::weak_ptr<Image2D> mOutput2;
         std::string mFilename;
         ExecutionDevice::Ptr mDevice;
         void execute();

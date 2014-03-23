@@ -28,11 +28,11 @@ class PipelineObject {
         PipelineObject() : mIsModified(false) {};
         void update();
         typedef boost::shared_ptr<PipelineObject> Ptr;
-        void addParent(boost::weak_ptr<PipelineObject> parent);
+        void addParent(PipelineObject::Ptr parent);
         virtual ~PipelineObject() {};
     protected:
         // Pointer to the parent pipeline object
-        std::vector<boost::weak_ptr<PipelineObject> > mParentPipelineObjects;
+        std::vector<PipelineObject::Ptr> mParentPipelineObjects;
 
         // Flag to indicate whether the object has been modified
         // and should be executed again
