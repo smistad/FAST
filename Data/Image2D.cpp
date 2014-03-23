@@ -1,4 +1,5 @@
 #include "Image2D.hpp"
+#include "HelperFunctions.hpp"
 using namespace fast;
 
 
@@ -30,4 +31,30 @@ Image2D::~Image2D() {
     for(int i = 0; i < mCLImages.size(); i++) {
         delete mCLImages[i];
     }
+
+    delete[] (float*)mHostData;
+}
+
+Image2D::Image2D() {
+    mHostData = NULL;
+}
+
+ImageAccess2D Image2D::getImageAccess(accessType type) {
+    // TODO: this method is currently just a fixed hack
+    // TODO: Check for write access
+
+    // TODO Check to see if data exist on host
+    mHostData = new float[mWidth*mHeight];
+
+    // If not retrieve it
+    mCLDevices[0]->getCommandQueue().enqueueReadImage(
+            *mCLImages[0],
+            CL_TRUE,
+            oul::createOrigoRegion(),
+            oul::createRegion(mWidth,mHeight,1),
+            0,0,
+            mHostData
+            );
+
+    return ImageAccess2D(mHostData);
 }

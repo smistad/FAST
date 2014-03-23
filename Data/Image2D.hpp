@@ -16,11 +16,12 @@ class Image2D: public ImageData {
         ImageAccess2D getImageAccess(accessType type);
         ~Image2D();
     private:
-        Image2D() {};
+        Image2D();
         // These two vectors should be equal in size and have entries
         // that correspond to eachother
         std::vector<cl::Image2D*> mCLImages;
         std::vector<OpenCLDevice::Ptr> mCLDevices;
+        void * mHostData;
         void execute(){};
 };
 

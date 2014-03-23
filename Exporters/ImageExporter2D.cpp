@@ -1,24 +1,32 @@
 #include "ImageExporter2D.hpp"
 #include <QImage>
+#include "Exception.hpp"
 using namespace fast;
 
 void ImageExporter2D::setInput(Image2D::Ptr image) {
     mStaticInput = image;
+    addParent(mStaticInput);
+    mIsModified = true;
 }
 
 void ImageExporter2D::setInput(Image2Dt::Ptr image) {
     mDynamicInput = image;
+    addParent(mDynamicInput);
+    mIsModified = true;
 }
 
 void ImageExporter2D::setFilename(std::string filename) {
     mFilename = filename;
+    mIsModified = true;
 }
 
 ImageExporter2D::ImageExporter2D() {
     mFilename = "";
+    mIsModified = true;
 }
 
 void ImageExporter2D::execute() {
+    std::cout << "Trying to save image!!!!!!!!" << std::endl;
     if(mStaticInput == NULL)
         throw Exception("No input image given to ImageExporter2D");
 
@@ -35,12 +43,12 @@ void ImageExporter2D::execute() {
     float * inputData = (float *)access.get();
 
     for(int i = 0; i < input->getWidth()*input->getHeight(); i++) {
-        pixelData[i*4] = 255;
-        pixelData[i*4+1] = std::round(inputData[i]*255.0f);
-        pixelData[i*4+2] = pixelData[i*4+1];
-        pixelData[i*4+3] = pixelData[i*4+1];
+        pixelData[i*4] = round(inputData[i]*255.0f);
+        pixelData[i*4+1] = pixelData[i*4];
+        pixelData[i*4+2] = pixelData[i*4];
+        pixelData[i*4+3] = 255; // Alpha
     }
 
-    image.save(mFilename);
+    image.save(QString(mFilename.c_str()));
 
 }

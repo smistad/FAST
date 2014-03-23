@@ -22,13 +22,13 @@ void ImageImporter2D::execute() {
     // Get pixel data
     const unsigned char * pixelData = convertedImage.constBits();
     // The pixel data array should contain one uchar value for the
-    // A, R, G, B components for each pixel
+    // R, G, B, A components for each pixel
 
     // TODO: do some conversion to requested output format, also color vs. no color
     float * convertedPixelData = new float[image.width()*image.height()];
     for(int i = 0; i < image.width()*image.height(); i++) {
         // Converted to grayscale
-        convertedPixelData[i] = (1.0f/255.0f)*(float)(pixelData[i*4+1]+pixelData[i*4+2]+pixelData[i*4+3])/3.0f;
+        convertedPixelData[i] = (1.0f/255.0f)*(float)(pixelData[i*4]+pixelData[i*4+1]+pixelData[i*4+2])/3.0f;
     }
 
     // Transfer to texture(if OpenCL) or copy raw pixel data (if host)

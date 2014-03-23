@@ -24,6 +24,8 @@ set(SOURCES
     Data/Access/Access.hpp
     Data/Access/OpenCLImageAccess2D.cpp
     Data/Access/OpenCLImageAccess2D.hpp
+    Data/Access/ImageAccess2D.cpp
+    Data/Access/ImageAccess2D.hpp
     Streamers/Streamer.cpp
     Streamers/Streamer.hpp
     Streamers/ImageStreamer2D.cpp
@@ -31,11 +33,14 @@ set(SOURCES
     Importers/ImageImporter2D.cpp
     Importers/ImageImporter2D.hpp
     Importers/Importer.hpp
+    Exporters/ImageExporter2D.cpp
+    Exporters/ImageExporter2D.hpp
 )
 
 include_directories(
     Data/
     Importers/
+    Exporters/
     Streamers/
     Algorithms/
     Data/Access/
