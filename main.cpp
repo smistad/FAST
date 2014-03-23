@@ -7,8 +7,6 @@ Image2D::Ptr create() {
     // Example of importing one 2D image
     ImageImporter2D::Ptr importer = ImageImporter2D::New();
     importer->setFilename("lena.jpg");
-    Image2D::Ptr image = importer->getOutput();
-    importer->getOutput();
     return importer->getOutput();
 }
 
