@@ -1,6 +1,7 @@
 #include "ImageImporter2D.hpp"
 #include "ImageStreamer2D.hpp"
 #include "DeviceManager.hpp"
+#include "GaussianSmoothingFilter2D.hpp"
 using namespace fast;
 
 Image2D::Ptr create() {
@@ -10,18 +11,20 @@ Image2D::Ptr create() {
     return importer->getOutput();
 }
 
-
 int main(int argc, char ** argv) {
 
     // Get a GPU device and set it as the default device
     DeviceManager& deviceManager = DeviceManager::getInstance();
     deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice());
 
-    // Example of importing one 2D image
+    // Example of importing one 2D image and processing it
     ImageImporter2D::Ptr importer = ImageImporter2D::New();
     importer->setFilename("lena.jpg");
     Image2D::Ptr image = importer->getOutput();
-    image->update();
+    GaussianSmoothingFilter2D::Ptr filter = GaussianSmoothingFilter2D::New();
+    filter->setInput(image);
+    Image2D::Ptr filteredImage = filter->getOutput();
+    filter->update();
 
     // Example of creating a pipeline in another scope and updating afterwards
     Image2D::Ptr image2 = create();

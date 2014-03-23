@@ -6,8 +6,13 @@
 namespace fast {
 
 class ImageData : public PipelineObject {
+    public:
+        unsigned int getWidth() const;
+        unsigned int getHeight() const;
+        unsigned char getDimensions() const;
     protected:
         unsigned int mWidth, mHeight;
+        unsigned char mDimensions;
         DataType mType;
         virtual ~ImageData() {};
 

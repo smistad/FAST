@@ -6,11 +6,14 @@ set(SOURCES
     main.cpp
     PipelineObject.cpp
     PipelineObject.hpp
+    ExecutionDevice.cpp
     ExecutionDevice.hpp
     DeviceManager.cpp
     DeviceManager.hpp
     Exception.cpp
     Exception.hpp
+    Algorithms/GaussianSmoothingFilter2D.cpp
+    Algorithms/GaussianSmoothingFilter2D.hpp
     Data/ImageData.cpp
     Data/ImageData.hpp
     Data/Image2D.cpp
@@ -18,6 +21,9 @@ set(SOURCES
     Data/Image2Dt.cpp
     Data/Image2Dt.hpp
     Data/DataTypes.hpp
+    Data/Access/Access.hpp
+    Data/Access/OpenCLImageAccess2D.cpp
+    Data/Access/OpenCLImageAccess2D.hpp
     Streamers/Streamer.cpp
     Streamers/Streamer.hpp
     Streamers/ImageStreamer2D.cpp
@@ -31,12 +37,15 @@ include_directories(
     Data/
     Importers/
     Streamers/
+    Algorithms/
+    Data/Access/
 )
 
 # Headers for Qt objects
 set(HEADERS 
 )
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFAST_ROOT_DIR=\\\"${PROJECT_SOURCE_DIR}/\\\"")
 
 
 add_subdirectory(OpenCLUtilityLibrary)

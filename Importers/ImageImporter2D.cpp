@@ -35,7 +35,7 @@ void ImageImporter2D::execute() {
     if(mDevice->isHost()) {
     } else {
         OpenCLDevice::Ptr device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
-        cl::Image2D clImage = cl::Image2D(
+        cl::Image2D* clImage = new cl::Image2D(
                 device->getContext(),
                 CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                 cl::ImageFormat(CL_R, CL_FLOAT),
