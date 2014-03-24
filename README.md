@@ -15,6 +15,7 @@ cd FAST
 git submodule init
 git submodule update
 mkdir build
+cd build
 cmake ../ -DVTK_INTEROP=ON -DITK_INTEROP=ON
 make -j8
 ./test
