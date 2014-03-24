@@ -11,16 +11,23 @@ namespace fast {
 
 template<class TImage>
 class ITKImageExporter: public itk::ImageSource<TImage>, public PipelineObject {
-    FAST_OBJECT(ITKImageExporter)
     public:
-        void setInput(Image2D::Ptr image);
+        /** Standard class typedefs. */
+        typedef ITKImageExporter Self;
+        typedef itk::ImageSource<TImage> Superclass;
+        typedef itk::SmartPointer<Self> Pointer;
+
+        /** Method for creation through the object factory. */
+        itkNewMacro(Self);
+
+        /** Run-time type information (and related methods). */
+        itkTypeMacro(MyImageSource, ImageSource);
+        void SetInput(Image2D::Ptr image);
     private:
         Image2D::Ptr mInput;
 
         ITKImageExporter();
-        void execute() {
-        }
-        ;
+        void execute() {};
 
         // Is called by ITK
         void GenerateData();
@@ -30,7 +37,7 @@ class ITKImageExporter: public itk::ImageSource<TImage>, public PipelineObject {
 } // end namespace fast
 
 template<class TImage>
-inline void fast::ITKImageExporter<TImage>::setInput(Image2D::Ptr image) {
+inline void fast::ITKImageExporter<TImage>::SetInput(Image2D::Ptr image) {
     mInput = image;
 }
 
@@ -68,7 +75,7 @@ inline void fast::ITKImageExporter<TImage>::GenerateData() {
     while (!imageIterator.IsAtEnd()) {
         unsigned int x = imageIterator.GetIndex()[0];
         unsigned int y = imageIterator.GetIndex()[1];
-        unsigned int z = imageIterator.GetIndex()[2];
+        //unsigned int z = imageIterator.GetIndex()[2];
         imageIterator.Set(fastPixelData[x + y * width]);
 
         ++imageIterator;

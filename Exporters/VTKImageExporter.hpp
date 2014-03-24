@@ -8,9 +8,10 @@
 namespace fast {
 
 class VTKImageExporter : public vtkImageAlgorithm, public PipelineObject {
-    FAST_OBJECT(VTKImageExporter)
     public:
-        void setInput(Image2D::Ptr image);
+        vtkTypeMacro(VTKImageExporter,vtkImageAlgorithm);
+        static VTKImageExporter *New();
+        void SetInput(Image2D::Ptr image);
     private:
         Image2D::Ptr mInput;
         VTKImageExporter();

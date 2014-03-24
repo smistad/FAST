@@ -57,8 +57,8 @@ int main(int argc, char ** argv) {
     dynamicImage->update();
 
     // VTK Export and render example
-    VTKImageExporter::Ptr vtkExporter = VTKImageExporter::New();
-    vtkExporter->setInput(filteredImage);
+    vtkSmartPointer<VTKImageExporter> vtkExporter = VTKImageExporter::New();
+    vtkExporter->SetInput(filteredImage);
     vtkSmartPointer<vtkImageData> vtkImage = vtkExporter->GetOutput();
     vtkExporter->Update();
 
@@ -93,8 +93,8 @@ int main(int argc, char ** argv) {
 
     // ITK Export example
     typedef itk::Image<float, 2> ImageType;
-    ITKImageExporter<ImageType>::Ptr itkExporter = ITKImageExporter<ImageType>::New();
-    itkExporter->setInput(filteredImage);
+    ITKImageExporter<ImageType>::Pointer itkExporter = ITKImageExporter<ImageType>::New();
+    itkExporter->SetInput(filteredImage);
     ImageType::Pointer itkImage = itkExporter->GetOutput();
     itkExporter->Update();
 }
