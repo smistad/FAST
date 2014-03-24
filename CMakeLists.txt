@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(FAST)
 
+option(VTK_INTEROP "Enable interoperability with VTK" OFF)
 
 set(SOURCES 
     main.cpp
@@ -37,6 +38,13 @@ set(SOURCES
     Exporters/ImageExporter2D.hpp
 )
 
+if(VTK_INTEROP)
+set(SOURCES ${SOURCES}
+    Exporters/VTKImageExporter.cpp
+    Exporters/VTKImageExporter.hpp
+)
+endif()
+
 include_directories(
     Data/
     Importers/
@@ -70,4 +78,11 @@ link_directories(${Boost_LIBRARY_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(test ${SOURCES} ${HEADERS_MOC})
+if(VTK_INTEROP)
+find_package(VTK REQUIRED)
+include(${VTK_USE_FILE})
+message("-- Enabling VTK interoperability")
+target_link_libraries(test OpenCLUtilityLibrary ${QT_LIBRARIES} ${Boost_LIBRARIES} ${VTK_LIBRARIES})
+else()
 target_link_libraries(test OpenCLUtilityLibrary ${QT_LIBRARIES} ${Boost_LIBRARIES})
+endif()

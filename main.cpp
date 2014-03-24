@@ -1,8 +1,20 @@
 #include "ImageImporter2D.hpp"
 #include "ImageExporter2D.hpp"
+#include "VTKImageExporter.hpp"
 #include "ImageStreamer2D.hpp"
 #include "DeviceManager.hpp"
 #include "GaussianSmoothingFilter2D.hpp"
+
+#include <vtkVersion.h>
+#include <vtkImageData.h>
+#include <vtkSmartPointer.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkInteractorStyleImage.h>
+#include <vtkRenderer.h>
+#include <vtkImageMapper.h>
+#include <vtkActor2D.h>
+
 using namespace fast;
 
 Image2D::Ptr create() {
@@ -42,4 +54,48 @@ int main(int argc, char ** argv) {
     streamer->setFilenameFormat("test_#.jpg");
     Image2Dt::Ptr dynamicImage = streamer->getOutput();
     dynamicImage->update();
+
+    // VTK Export and render example
+    VTKImageExporter::Ptr vtkExporter = VTKImageExporter::New();
+    vtkExporter->setInput(filteredImage);
+    vtkSmartPointer<vtkImageData> vtkImage = vtkExporter->GetOutput();
+    vtkExporter->Update();
+
+    // VTK mess for getting the image on screen
+    vtkSmartPointer<vtkImageMapper> imageMapper = vtkSmartPointer<vtkImageMapper>::New();
+#if VTK_MAJOR_VERSION <= 5
+    imageMapper->SetInputConnection(vtkImage->GetProducerPort());
+#else
+    imageMapper->SetInputData(vtkImage);
+#endif
+    imageMapper->SetColorWindow(1);
+    imageMapper->SetColorLevel(0.5);
+
+    vtkSmartPointer<vtkActor2D> imageActor = vtkSmartPointer<vtkActor2D>::New();
+    imageActor->SetMapper(imageMapper);
+
+    // Setup renderers
+    vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
+
+    // Setup render window
+    vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
+
+    renderWindow->AddRenderer(renderer);
+    renderWindow->SetSize(filteredImage->getWidth(), filteredImage->getHeight());
+
+    // Setup render window interactor
+    vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+
+    vtkSmartPointer<vtkInteractorStyleImage> style = vtkSmartPointer<vtkInteractorStyleImage>::New();
+
+    renderWindowInteractor->SetInteractorStyle(style);
+
+    // Render and start interaction
+    renderWindowInteractor->SetRenderWindow(renderWindow);
+
+    //renderer->AddViewProp(imageActor);
+    renderer->AddActor2D(imageActor);
+
+    renderWindow->Render();
+    renderWindowInteractor->Start();
 }
