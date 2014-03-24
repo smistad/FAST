@@ -1,6 +1,7 @@
 #include "ImageImporter2D.hpp"
 #include "ImageExporter2D.hpp"
 #include "VTKImageExporter.hpp"
+#include "ITKImageExporter.hpp"
 #include "ImageStreamer2D.hpp"
 #include "DeviceManager.hpp"
 #include "GaussianSmoothingFilter2D.hpp"
@@ -89,4 +90,11 @@ int main(int argc, char ** argv) {
     renderer->AddActor2D(imageActor);
     renderWindow->Render();
     renderWindowInteractor->Start();
+
+    // ITK Export example
+    typedef itk::Image<float, 2> ImageType;
+    ITKImageExporter<ImageType>::Ptr itkExporter = ITKImageExporter<ImageType>::New();
+    itkExporter->setInput(filteredImage);
+    ImageType::Pointer itkImage = itkExporter->GetOutput();
+    itkExporter->Update();
 }
