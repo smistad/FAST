@@ -74,12 +74,9 @@ int main(int argc, char ** argv) {
     vtkSmartPointer<vtkActor2D> imageActor = vtkSmartPointer<vtkActor2D>::New();
     imageActor->SetMapper(imageMapper);
 
-    // Setup renderers
+    // Setup renderers and render window
     vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
-
-    // Setup render window
     vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
-
     renderWindow->AddRenderer(renderer);
     renderWindow->SetSize(filteredImage->getWidth(), filteredImage->getHeight());
 
@@ -87,15 +84,9 @@ int main(int argc, char ** argv) {
     vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
 
     vtkSmartPointer<vtkInteractorStyleImage> style = vtkSmartPointer<vtkInteractorStyleImage>::New();
-
     renderWindowInteractor->SetInteractorStyle(style);
-
-    // Render and start interaction
     renderWindowInteractor->SetRenderWindow(renderWindow);
-
-    //renderer->AddViewProp(imageActor);
     renderer->AddActor2D(imageActor);
-
     renderWindow->Render();
     renderWindowInteractor->Start();
 }
