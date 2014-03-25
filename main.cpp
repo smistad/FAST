@@ -1,6 +1,7 @@
 #include "ImageImporter2D.hpp"
 #include "ImageExporter2D.hpp"
 #include "VTKImageExporter.hpp"
+#include "VTKImageImporter.hpp"
 #include "ITKImageExporter.hpp"
 #include "ImageStreamer2D.hpp"
 #include "DeviceManager.hpp"
@@ -97,4 +98,10 @@ int main(int argc, char ** argv) {
     itkExporter->SetInput(filteredImage);
     ImageType::Pointer itkImage = itkExporter->GetOutput();
     itkExporter->Update();
+
+    // VTK Import example
+    VTKImageImporter::Ptr vtkImporter = VTKImageImporter::New();
+    vtkImporter->setInput(vtkImage);
+    Image2D::Ptr importedImage = vtkImporter->getOutput();
+    vtkImporter->update();
 }

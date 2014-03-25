@@ -43,6 +43,8 @@ if(VTK_INTEROP)
     set(SOURCES ${SOURCES}
         Exporters/VTKImageExporter.cpp
         Exporters/VTKImageExporter.hpp
+        Importers/VTKImageImporter.cpp
+        Importers/VTKImageImporter.hpp
     )
 endif()
 

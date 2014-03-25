@@ -46,6 +46,7 @@ ImageAccess2D Image2D::getImageAccess(accessType type) {
     // TODO Check to see if data exist on host
     mHostData = new float[mWidth*mHeight];
 
+    if(mCLImages.size() > 0) {
     // If not retrieve it
     mCLDevices[0]->getCommandQueue().enqueueReadImage(
             *mCLImages[0],
@@ -55,6 +56,12 @@ ImageAccess2D Image2D::getImageAccess(accessType type) {
             0,0,
             mHostData
             );
+    }
 
     return ImageAccess2D(mHostData);
+}
+
+void Image2D::createImage(unsigned int width, unsigned int height) {
+    mWidth = width;
+    mHeight = height;
 }

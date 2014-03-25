@@ -11,6 +11,7 @@ namespace fast {
 class Image2D: public ImageData {
     FAST_OBJECT(Image2D)
     public:
+        void createImage(unsigned int width, unsigned int height);
         void setOpenCLImage(cl::Image2D* clImage, OpenCLDevice::Ptr device);
         OpenCLImageAccess2D getOpenCLImageAccess(accessType type, OpenCLDevice::Ptr);
         ImageAccess2D getImageAccess(accessType type);
