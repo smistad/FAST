@@ -6,7 +6,8 @@
 using namespace fast;
 
 void ImageImporter2D::execute() {
-    // TODO check that all parameters needed are present
+    if(mFilename == "")
+        throw Exception("No filename was supplied to the ImageImporter2D");
 
     // Load image from disk using Qt
     QImage image;
