@@ -6,7 +6,7 @@ void PipelineObject::update() {
     for(int i = 0; i < mParentPipelineObjects.size(); i++) {
         // Check that object has not been deleted
         // TODO maybe throw exception here?
-        if(mParentPipelineObjects[i] != NULL)
+        if(mParentPipelineObjects[i].isValid())
             mParentPipelineObjects[i]->update();
     }
 

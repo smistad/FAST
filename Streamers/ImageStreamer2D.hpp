@@ -23,7 +23,7 @@ class ImageStreamer2D : public Streamer {
 
         // A reference to the output object used to update its next frame
         Image2Dt::Ptr mOutput;
-        boost::weak_ptr<Image2Dt> mOutput2;
+        WeakPointer<Image2Dt> mOutput2;
 
         // Update the streamer if any parameters have changed
         void execute();

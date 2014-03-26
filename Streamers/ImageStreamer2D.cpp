@@ -5,7 +5,7 @@
 using namespace fast;
 
 Image2Dt::Ptr ImageStreamer2D::getOutput() {
-    if(mOutput != NULL) {
+    if(mOutput.isValid()) {
         mOutput->addParent(mPtr.lock());
         mOutput->setStreamer(this);
 
@@ -70,7 +70,7 @@ void ImageStreamer2D::producerStream() {
             Image2D::Ptr image = importer->getOutput();
             image->update();
             Image2Dt::Ptr ptr = mOutput2.lock();
-            if(ptr != NULL) {
+            if(ptr.isValid()) {
                 ptr->addFrame(image);
             } else {
                 std::cout << "Image2Dt object destroyed, stream can stop." << std::endl;

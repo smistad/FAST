@@ -6,6 +6,7 @@ option(ITK_INTEROP "Enable interoperability with ITK" OFF)
 
 set(SOURCES 
     main.cpp
+    SmartPointers.hpp
     PipelineObject.cpp
     PipelineObject.hpp
     ExecutionDevice.cpp

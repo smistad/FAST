@@ -27,7 +27,7 @@ ImageExporter2D::ImageExporter2D() {
 
 void ImageExporter2D::execute() {
     std::cout << "Trying to save image!!!!!!!!" << std::endl;
-    if(mStaticInput == NULL)
+    if(!mStaticInput.isValid())
         throw Exception("No input image given to ImageExporter2D");
 
     if(mFilename == "")

@@ -1,15 +1,14 @@
 #ifndef PIPELINE_OBJECT_HPP
 #define PIPELINE_OBJECT_HPP
 
-#include <boost/shared_ptr.hpp>
-#include <boost/weak_ptr.hpp>
+#include "SmartPointers.hpp"
 #include <vector>
 
 namespace fast {
 
 #define FAST_OBJECT(className)                                  \
     public:                                                     \
-        typedef boost::shared_ptr<className> Ptr;               \
+        typedef SharedPointer<className> Ptr;                   \
         static className::Ptr New() {                           \
             className * ptr = new className();                  \
             className::Ptr smartPtr(ptr);                       \
@@ -18,7 +17,7 @@ namespace fast {
             return smartPtr;                                    \
         }                                                       \
     private:                                                    \
-        boost::weak_ptr<className> mPtr;                        \
+        WeakPointer<className> mPtr;                            \
         void setPtr(className::Ptr ptr) {                       \
             mPtr = ptr;                                         \
         }                                                       \
@@ -27,7 +26,7 @@ class PipelineObject {
     public:
         PipelineObject() : mIsModified(false) {};
         void update();
-        typedef boost::shared_ptr<PipelineObject> Ptr;
+        typedef SharedPointer<PipelineObject> Ptr;
         void addParent(PipelineObject::Ptr parent);
         virtual ~PipelineObject() {};
     protected:

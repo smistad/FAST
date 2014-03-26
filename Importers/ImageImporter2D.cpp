@@ -55,7 +55,7 @@ ImageImporter2D::ImageImporter2D() {
 }
 
 Image2D::Ptr ImageImporter2D::getOutput() {
-    if(mOutput != NULL) {
+    if(mOutput.isValid()) {
         mOutput->addParent(mPtr.lock());
 
         Image2D::Ptr newSmartPtr;

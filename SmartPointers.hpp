@@ -8,10 +8,14 @@
 namespace fast {
 
 template <class T>
+class SharedPointer;
+
+template <class T>
 class WeakPointer {
     public:
-        boost::shared_ptr<T> lock() { return weakPtr.lock(); };
+        SharedPointer<T> lock() { return SharedPointer<T>(weakPtr.lock()); };
         boost::weak_ptr<T> getPtr() { return weakPtr; };
+        WeakPointer<T> &operator=(const SharedPointer<T> &other);
     private:
         boost::weak_ptr<T> weakPtr;
 
@@ -22,9 +26,19 @@ class PipelineObject;
 template <class T>
 class SharedPointer {
     public:
+        SharedPointer() {
+
+        }
+
         SharedPointer(PipelineObject * object) {
             smartPtr = boost::shared_ptr<T>(dynamic_cast<T*>(object));
         }
+
+        template <class U>
+        SharedPointer(boost::shared_ptr<U> sharedPtr) {
+            smartPtr = boost::dynamic_pointer_cast<T>(sharedPtr);
+        }
+
         template <class U>
         SharedPointer(SharedPointer<U> object) {
             boost::shared_ptr<T> ptr = boost::dynamic_pointer_cast<T>(object.getPtr());
@@ -53,17 +67,32 @@ class SharedPointer {
 
         template <class U>
         void swap(SharedPointer<U> &other) {
-            smartPtr.swap(other.getPtr());
+            smartPtr.swap(other.getReferenceToPointer());
+        }
+
+        bool isValid() {
+            return smartPtr != NULL;
+        }
+
+        bool operator==(const SharedPointer<T> &other) {
+            return this->getPtr() == other.getPtr();
         }
 
         boost::shared_ptr<T> operator->() {
             return smartPtr;
         }
-        boost::shared_ptr<T> getPtr() { return smartPtr; };
+        boost::shared_ptr<T> getPtr() const { return smartPtr; };
+        boost::shared_ptr<T> & getReferenceToPointer() { return smartPtr; };
     private:
         boost::shared_ptr<T> smartPtr;
 
 };
+
+template <class T>
+WeakPointer<T> &WeakPointer<T>::operator=(const SharedPointer<T> &other) {
+    weakPtr = other.getPtr();
+    return *this;
+}
 
 } // end namespace fast
 

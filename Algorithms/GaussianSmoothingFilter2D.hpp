@@ -24,7 +24,7 @@ class GaussianSmoothingFilter2D : public PipelineObject {
 
         Image2D::Ptr mStaticInput;
         Image2Dt::Ptr mDynamicInput;
-        boost::weak_ptr<Image2D> mOutput;
+        WeakPointer<Image2D> mOutput;
         Image2D::Ptr mTempOutput;
         ExecutionDevice::Ptr mDevice;
         unsigned char mMaskSize;

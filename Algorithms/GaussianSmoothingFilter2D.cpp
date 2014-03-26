@@ -47,7 +47,7 @@ void GaussianSmoothingFilter2D::setStandardDeviation(float stdDev) {
 }
 
 Image2D::Ptr GaussianSmoothingFilter2D::getOutput() {
-    if(mTempOutput != NULL) {
+    if(mTempOutput.isValid()) {
         mTempOutput->addParent(mPtr.lock());
 
         Image2D::Ptr newSmartPtr;
@@ -91,9 +91,9 @@ float * GaussianSmoothingFilter2D::createMask() {
 void GaussianSmoothingFilter2D::execute() {
 
     Image2D::Ptr input;
-    if(mStaticInput == NULL && mDynamicInput == NULL) {
+    if(!mStaticInput.isValid() && !mDynamicInput.isValid()) {
         throw Exception("No input supplied to GaussianSmoothingFilter2D");
-    } else if(mStaticInput != NULL) {
+    } else if(mStaticInput.isValid()) {
         input = mStaticInput;
     } else {
         input = mDynamicInput->getNextFrame();

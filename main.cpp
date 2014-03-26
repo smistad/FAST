@@ -1,3 +1,5 @@
+#include "SmartPointers.hpp"
+#include "Exception.hpp"
 #include "ImageImporter2D.hpp"
 #include "ImageExporter2D.hpp"
 #include "VTKImageExporter.hpp"
@@ -36,6 +38,7 @@ int main(int argc, char ** argv) {
     ImageImporter2D::Ptr importer = ImageImporter2D::New();
     importer->setFilename("lena.jpg");
     Image2D::Ptr image = importer->getOutput();
+    image->update();
     GaussianSmoothingFilter2D::Ptr filter = GaussianSmoothingFilter2D::New();
     filter->setMaskSize(7);
     filter->setStandardDeviation(10);

@@ -7,7 +7,7 @@ void VTKImageImporter::setInput(vtkSmartPointer<vtkImageData> image) {
 }
 
 Image2D::Ptr VTKImageImporter::getOutput() {
-    if(mTempOutput != NULL) {
+    if(mTempOutput.isValid()) {
         mTempOutput->addParent(mPtr.lock());
 
         Image2D::Ptr newSmartPtr;

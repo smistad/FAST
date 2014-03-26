@@ -15,7 +15,7 @@ class VTKImageImporter : public PipelineObject {
         Image2D::Ptr getOutput();
     private:
         vtkSmartPointer<vtkImageData> mInput;
-        boost::weak_ptr<Image2D> mOutput;
+        WeakPointer<Image2D> mOutput;
         Image2D::Ptr mTempOutput;
 
         VTKImageImporter();
