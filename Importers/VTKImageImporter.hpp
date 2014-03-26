@@ -12,11 +12,11 @@ class VTKImageImporter : public PipelineObject {
     FAST_OBJECT(VTKImageImporter)
     public:
         void setInput(vtkSmartPointer<vtkImageData> image);
-        Image2D::pointer getOutput();
+        ImageData::pointer getOutput();
     private:
         vtkSmartPointer<vtkImageData> mInput;
-        WeakPointer<Image2D> mOutput;
-        Image2D::pointer mTempOutput;
+        WeakPointer<ImageData> mOutput;
+        ImageData::pointer mTempOutput;
 
         VTKImageImporter();
         void execute();
