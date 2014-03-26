@@ -128,6 +128,9 @@ void Image2D::updateHostData() {
 }
 
 void Image2D::setOpenCLImage(cl::Image2D *clImage, OpenCLDevice::pointer device) {
+    if(isInitialized()) {
+        throw Exception("Can not use setOpenCLImage on an object that is already initialized");
+    }
     mCLImages[device] = clImage;
     mCLImagesIsUpToDate[device] = true;
     mCLImagesAccess[device] = false;
@@ -199,6 +202,13 @@ ImageAccess2D Image2D::getImageAccess(accessType type) {
 }
 
 void Image2D::createImage(unsigned int width, unsigned int height) {
+    if(isInitialized()) {
+        throw Exception("Can not use createImage on an object that is already initialized.");
+    }
     mWidth = width;
     mHeight = height;
+}
+
+bool Image2D::isInitialized() {
+    return mCLImages.size() > 0 || mHostHasData;
 }

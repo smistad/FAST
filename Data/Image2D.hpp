@@ -36,6 +36,7 @@ class Image2D: public ImageData {
         bool isAnyDataBeingAccessed();
         void transferCLImageFromHost(OpenCLDevice::pointer device);
         void transferCLImageToHost(OpenCLDevice::pointer device);
+        bool isInitialized();
 };
 
 } // end namespace fast
