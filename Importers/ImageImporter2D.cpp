@@ -33,6 +33,7 @@ void ImageImporter2D::execute() {
 
     // Transfer to texture(if OpenCL) or copy raw pixel data (if host)
     if(mDevice->isHost()) {
+        mOutput2.lock()->createImage(image.width(), image.height(), convertedPixelData);
     } else {
         OpenCLDevice::pointer device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
         cl::Image2D* clImage = new cl::Image2D(
@@ -44,7 +45,7 @@ void ImageImporter2D::execute() {
                 convertedPixelData
         );
         delete[] convertedPixelData;
-        mOutput2.lock()->setOpenCLImage(clImage, device);
+        mOutput2.lock()->createImage(clImage, device);
     }
 }
 

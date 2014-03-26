@@ -14,7 +14,8 @@ class Image2D: public ImageData {
     FAST_OBJECT(Image2D)
     public:
         void createImage(unsigned int width, unsigned int height);
-        void setOpenCLImage(cl::Image2D* clImage, OpenCLDevice::pointer device);
+        void createImage(unsigned int width, unsigned int height, const float * data);
+        void createImage(cl::Image2D* clImage, OpenCLDevice::pointer device);
         OpenCLImageAccess2D getOpenCLImageAccess(accessType type, OpenCLDevice::pointer);
         ImageAccess2D getImageAccess(accessType type);
         ~Image2D();

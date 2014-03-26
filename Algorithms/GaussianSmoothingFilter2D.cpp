@@ -14,7 +14,7 @@ void GaussianSmoothingFilter2D::setInput(Image2D::pointer input) {
             cl::ImageFormat(CL_R, CL_FLOAT),
             input->getWidth(), input->getHeight()
             );
-    mOutput.lock()->setOpenCLImage(clImage,device);
+    mOutput.lock()->createImage(clImage,device);
     addParent(input);
 }
 
