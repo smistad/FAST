@@ -3,9 +3,12 @@ FAST - Framework for Heterogeneous Medical Image Computing
 
 Dependencies
 ----------------------------------------------------------
+These libraries have to be installed on the system to use FAST:
+
 * OpenCL
-* ITK (Optional)
-* VTK (Optional)
+* Boost
+* ITK (Optional, however currently needed to run the examples so far)
+* VTK (Optional, however currently needed to run the examples so far)
 
 Compile and run examples
 ----------------------------------------------------------
