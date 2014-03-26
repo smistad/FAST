@@ -13,11 +13,11 @@ class SharedPointer;
 template <class T>
 class WeakPointer {
     public:
-        SharedPointer<T> lock() { return SharedPointer<T>(weakPtr.lock()); };
-        boost::weak_ptr<T> getPtr() { return weakPtr; };
+        SharedPointer<T> lock() { return SharedPointer<T>(mWeakPtr.lock()); };
+        boost::weak_ptr<T> getPtr() { return mWeakPtr; };
         WeakPointer<T> &operator=(const SharedPointer<T> &other);
     private:
-        boost::weak_ptr<T> weakPtr;
+        boost::weak_ptr<T> mWeakPtr;
 
 };
 
@@ -31,47 +31,44 @@ class SharedPointer {
         }
 
         SharedPointer(PipelineObject * object) {
-            smartPtr = boost::shared_ptr<T>(dynamic_cast<T*>(object));
+            mSmartPtr = boost::shared_ptr<T>(dynamic_cast<T*>(object));
         }
 
         template <class U>
         SharedPointer(boost::shared_ptr<U> sharedPtr) {
-            smartPtr = boost::dynamic_pointer_cast<T>(sharedPtr);
+            mSmartPtr = boost::dynamic_pointer_cast<T>(sharedPtr);
         }
 
         template <class U>
         SharedPointer(SharedPointer<U> object) {
             boost::shared_ptr<T> ptr = boost::dynamic_pointer_cast<T>(object.getPtr());
-            std::cout << "asd" << std::endl;
             if(ptr == NULL)
                 throw Exception("Illegal cast");
-            smartPtr = boost::shared_ptr<T>(ptr);
+            mSmartPtr = boost::shared_ptr<T>(ptr);
         }
         template <class U>
         SharedPointer(WeakPointer<U> object) {
             boost::shared_ptr<T> ptr = boost::dynamic_pointer_cast<T>(object.getPtr().lock());
-            std::cout << "asd3" << std::endl;
             if(ptr == NULL)
                 throw Exception("Illegal cast");
-            smartPtr = boost::shared_ptr<T>(ptr);
+            mSmartPtr = boost::shared_ptr<T>(ptr);
         }
 
         template <class U>
         SharedPointer<T> &operator=(const SharedPointer<U> &other) {
             boost::shared_ptr<T> ptr = boost::dynamic_pointer_cast<T>(other.getPtr());
-            std::cout << "asd2" << std::endl;
             if(ptr == NULL)
                 throw Exception("Illegal cast");
-            smartPtr = boost::shared_ptr<T>(ptr);
+            mSmartPtr = boost::shared_ptr<T>(ptr);
         }
 
         template <class U>
         void swap(SharedPointer<U> &other) {
-            smartPtr.swap(other.getReferenceToPointer());
+            mSmartPtr.swap(other.getReferenceToPointer());
         }
 
         bool isValid() {
-            return smartPtr != NULL;
+            return mSmartPtr != NULL;
         }
 
         bool operator==(const SharedPointer<T> &other) {
@@ -79,18 +76,18 @@ class SharedPointer {
         }
 
         boost::shared_ptr<T> operator->() {
-            return smartPtr;
+            return mSmartPtr;
         }
-        boost::shared_ptr<T> getPtr() const { return smartPtr; };
-        boost::shared_ptr<T> & getReferenceToPointer() { return smartPtr; };
+        boost::shared_ptr<T> getPtr() const { return mSmartPtr; };
+        boost::shared_ptr<T> & getReferenceToPointer() { return mSmartPtr; };
     private:
-        boost::shared_ptr<T> smartPtr;
+        boost::shared_ptr<T> mSmartPtr;
 
 };
 
 template <class T>
 WeakPointer<T> &WeakPointer<T>::operator=(const SharedPointer<T> &other) {
-    weakPtr = other.getPtr();
+    mWeakPtr = other.getPtr();
     return *this;
 }
 
