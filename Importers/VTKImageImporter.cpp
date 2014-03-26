@@ -35,8 +35,8 @@ void VTKImageImporter::execute() {
     output->createImage(size[0]-1, size[1]-1);
     ImageAccess2D access = output->getImageAccess(ACCESS_READ);
     float * fastPixelData = (float *)access.get();
-    for(int x = 0; x < output->getWidth(); x++) {
-    for(int y = 0; y < output->getHeight(); y++) {
+    for(unsigned int x = 0; x < output->getWidth(); x++) {
+    for(unsigned int y = 0; y < output->getHeight(); y++) {
         float * pixel = static_cast<float*>(mInput->GetScalarPointer(x,output->getHeight()-y,0));
         fastPixelData[x+y*output->getWidth()] = pixel[0];
     }}
