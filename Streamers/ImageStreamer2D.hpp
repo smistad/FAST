@@ -10,9 +10,9 @@ namespace fast {
 class ImageStreamer2D : public Streamer {
     FAST_OBJECT(ImageStreamer2D)
     public:
-        Image2Dt::Ptr getOutput();
+        Image2Dt::pointer getOutput();
         void setFilenameFormat(std::string str);
-        void setDevice(ExecutionDevice::Ptr device);
+        void setDevice(ExecutionDevice::pointer device);
         // This method runs in a separate thread and adds frames to the
         // output object
         void producerStream();
@@ -22,7 +22,7 @@ class ImageStreamer2D : public Streamer {
         ImageStreamer2D();
 
         // A reference to the output object used to update its next frame
-        Image2Dt::Ptr mOutput;
+        Image2Dt::pointer mOutput;
         WeakPointer<Image2Dt> mOutput2;
 
         // Update the streamer if any parameters have changed
@@ -35,7 +35,7 @@ class ImageStreamer2D : public Streamer {
 
         std::string mFilenameFormat;
 
-        ExecutionDevice::Ptr mDevice;
+        ExecutionDevice::pointer mDevice;
 
 };
 

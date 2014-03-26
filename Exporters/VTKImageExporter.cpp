@@ -13,7 +13,7 @@ using namespace fast;
 
 vtkStandardNewMacro(VTKImageExporter);
 
-void VTKImageExporter::SetInput(Image2D::Ptr image) {
+void VTKImageExporter::SetInput(Image2D::pointer image) {
     mInput = image;
 }
 

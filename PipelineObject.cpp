@@ -15,7 +15,7 @@ void PipelineObject::update() {
     }
 }
 
-void PipelineObject::addParent(PipelineObject::Ptr parent) {
+void PipelineObject::addParent(PipelineObject::pointer parent) {
     if(parent == NULL)
         throw Exception("Trying to add an expired/NULL pointer as a parent object");
 

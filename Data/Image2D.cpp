@@ -4,7 +4,7 @@ using namespace fast;
 
 
 
-void Image2D::setOpenCLImage(cl::Image2D *clImage, OpenCLDevice::Ptr device) {
+void Image2D::setOpenCLImage(cl::Image2D *clImage, OpenCLDevice::pointer device) {
     mCLImages.push_back(clImage);
     mCLDevices.push_back(device);
     mWidth = clImage->getImageInfo<CL_IMAGE_WIDTH>();
@@ -13,7 +13,7 @@ void Image2D::setOpenCLImage(cl::Image2D *clImage, OpenCLDevice::Ptr device) {
 
 OpenCLImageAccess2D Image2D::getOpenCLImageAccess(
         accessType type,
-        OpenCLDevice::Ptr device) {
+        OpenCLDevice::pointer device) {
     // TODO: Check for write access
 
     // Check to see if image exist on the device

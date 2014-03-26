@@ -11,9 +11,9 @@ class VTKImageExporter : public vtkImageAlgorithm, public PipelineObject {
     public:
         vtkTypeMacro(VTKImageExporter,vtkImageAlgorithm);
         static VTKImageExporter *New();
-        void SetInput(Image2D::Ptr image);
+        void SetInput(Image2D::pointer image);
     private:
-        Image2D::Ptr mInput;
+        Image2D::pointer mInput;
         VTKImageExporter();
         int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
         void execute() {};

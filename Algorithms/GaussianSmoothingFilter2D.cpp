@@ -3,10 +3,10 @@
 #include "DeviceManager.hpp"
 using namespace fast;
 
-void GaussianSmoothingFilter2D::setInput(Image2D::Ptr input) {
+void GaussianSmoothingFilter2D::setInput(Image2D::pointer input) {
     mStaticInput = input;
     mIsModified = true;
-    OpenCLDevice::Ptr device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
+    OpenCLDevice::pointer device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
     input->update(); // Need to run update to get the width and height, could maybe be moved into getWidth?
     cl::Image2D* clImage = new cl::Image2D(
             device->getContext(),
@@ -18,14 +18,14 @@ void GaussianSmoothingFilter2D::setInput(Image2D::Ptr input) {
     addParent(input);
 }
 
-void GaussianSmoothingFilter2D::setInput(Image2Dt::Ptr input) {
+void GaussianSmoothingFilter2D::setInput(Image2Dt::pointer input) {
     mDynamicInput = input;
     mIsModified = true;
     // TODO finish
     addParent(input);
 }
 
-void GaussianSmoothingFilter2D::setDevice(ExecutionDevice::Ptr device) {
+void GaussianSmoothingFilter2D::setDevice(ExecutionDevice::pointer device) {
     mDevice = device;
     mIsModified = true;
 }
@@ -46,11 +46,11 @@ void GaussianSmoothingFilter2D::setStandardDeviation(float stdDev) {
     mIsModified = true;
 }
 
-ImageData::Ptr GaussianSmoothingFilter2D::getOutput() {
+ImageData::pointer GaussianSmoothingFilter2D::getOutput() {
     if(mTempOutput.isValid()) {
         mTempOutput->addParent(mPtr.lock());
 
-        Image2D::Ptr newSmartPtr;
+        Image2D::pointer newSmartPtr;
         newSmartPtr.swap(mTempOutput);
 
         return newSmartPtr;
@@ -90,7 +90,7 @@ float * GaussianSmoothingFilter2D::createMask() {
 
 void GaussianSmoothingFilter2D::execute() {
 
-    Image2D::Ptr input;
+    Image2D::pointer input;
     if(!mStaticInput.isValid() && !mDynamicInput.isValid()) {
         throw Exception("No input supplied to GaussianSmoothingFilter2D");
     } else if(mStaticInput.isValid()) {
@@ -99,7 +99,7 @@ void GaussianSmoothingFilter2D::execute() {
         input = mDynamicInput->getNextFrame();
     }
 
-    Image2D::Ptr output = mOutput.lock();
+    Image2D::pointer output = mOutput.lock();
     if(output == NULL) {
         // output object is no longer valid
         return;
@@ -110,7 +110,7 @@ void GaussianSmoothingFilter2D::execute() {
         // TODO: create host code
 
     } else {
-        OpenCLDevice::Ptr device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
+        OpenCLDevice::pointer device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
 
         float * mask = createMask();
         cl::Buffer clMask = cl::Buffer(

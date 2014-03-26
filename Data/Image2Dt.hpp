@@ -12,8 +12,8 @@ namespace fast {
 class Image2Dt : public PipelineObject {
     FAST_OBJECT(Image2Dt)
     public:
-        Image2D::Ptr getNextFrame();
-        void addFrame(Image2D::Ptr frame);
+        Image2D::pointer getNextFrame();
+        void addFrame(Image2D::pointer frame);
         void setStreamer(Streamer *streamer);
         ~Image2Dt() {};
     private:
@@ -24,7 +24,7 @@ class Image2Dt : public PipelineObject {
 
         // If the flag mKeepAllFrames is set to false, this vector will have
         // a max size of 1
-        std::vector<Image2D::Ptr> mFrames;
+        std::vector<Image2D::pointer> mFrames;
 
         // Keep track of which frame is next, only used when mKeepAllFrames is
         // set to true

@@ -34,7 +34,7 @@ void ImageImporter2D::execute() {
     // Transfer to texture(if OpenCL) or copy raw pixel data (if host)
     if(mDevice->isHost()) {
     } else {
-        OpenCLDevice::Ptr device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
+        OpenCLDevice::pointer device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
         cl::Image2D* clImage = new cl::Image2D(
                 device->getContext(),
                 CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
@@ -54,11 +54,11 @@ ImageImporter2D::ImageImporter2D() {
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
 }
 
-Image2D::Ptr ImageImporter2D::getOutput() {
+Image2D::pointer ImageImporter2D::getOutput() {
     if(mOutput.isValid()) {
         mOutput->addParent(mPtr.lock());
 
-        Image2D::Ptr newSmartPtr;
+        Image2D::pointer newSmartPtr;
         newSmartPtr.swap(mOutput);
 
         return newSmartPtr;
@@ -72,7 +72,7 @@ void ImageImporter2D::setFilename(std::string filename) {
     mIsModified = true;
 }
 
-void ImageImporter2D::setDevice(ExecutionDevice::Ptr device) {
+void ImageImporter2D::setDevice(ExecutionDevice::pointer device) {
     mDevice = device;
     mIsModified = true;
 }

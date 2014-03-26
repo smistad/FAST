@@ -8,7 +8,7 @@ namespace fast {
 
 class ExecutionDevice {
     public:
-        typedef boost::shared_ptr<ExecutionDevice> Ptr;
+        typedef boost::shared_ptr<ExecutionDevice> pointer;
         bool isHost() {return mIsHost;};
     protected:
         bool mIsHost;
@@ -17,26 +17,26 @@ class ExecutionDevice {
 
 class Host : public ExecutionDevice {
     public:
-        typedef boost::shared_ptr<Host> Ptr;
-        static Host::Ptr New() {
+        typedef boost::shared_ptr<Host> pointer;
+        static Host::pointer New() {
             Host * ptr = new Host();
-            Host::Ptr smartPtr(ptr);
+            Host::pointer smartPtr(ptr);
             ptr->setPtr(smartPtr);
 
             return smartPtr;
         }
     private:
         Host() {mIsHost = true;};
-        Host::Ptr mPtr;
-        void setPtr(Host::Ptr ptr) {mPtr = ptr;};
+        Host::pointer mPtr;
+        void setPtr(Host::pointer ptr) {mPtr = ptr;};
 };
 
 class OpenCLDevice : public ExecutionDevice, public oul::Context {
     public:
-        typedef boost::shared_ptr<OpenCLDevice> Ptr;
-        static OpenCLDevice::Ptr New() {
+        typedef boost::shared_ptr<OpenCLDevice> pointer;
+        static OpenCLDevice::pointer New() {
             OpenCLDevice * ptr = new OpenCLDevice();
-            OpenCLDevice::Ptr smartPtr(ptr);
+            OpenCLDevice::pointer smartPtr(ptr);
             ptr->setPtr(smartPtr);
 
             return smartPtr;
@@ -48,8 +48,8 @@ class OpenCLDevice : public ExecutionDevice, public oul::Context {
         {mIsHost = false;};
     private:
         OpenCLDevice() {mIsHost = false;};
-        OpenCLDevice::Ptr mPtr;
-        void setPtr(OpenCLDevice::Ptr ptr) {mPtr = ptr;};
+        OpenCLDevice::pointer mPtr;
+        void setPtr(OpenCLDevice::pointer ptr) {mPtr = ptr;};
 
 };
 

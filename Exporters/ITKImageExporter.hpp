@@ -22,9 +22,9 @@ class ITKImageExporter: public itk::ImageSource<TImage>, public PipelineObject {
 
         /** Run-time type information (and related methods). */
         itkTypeMacro(MyImageSource, ImageSource);
-        void SetInput(Image2D::Ptr image);
+        void SetInput(Image2D::pointer image);
     private:
-        Image2D::Ptr mInput;
+        Image2D::pointer mInput;
 
         ITKImageExporter();
         void execute() {};
@@ -37,7 +37,7 @@ class ITKImageExporter: public itk::ImageSource<TImage>, public PipelineObject {
 } // end namespace fast
 
 template<class TImage>
-inline void fast::ITKImageExporter<TImage>::SetInput(Image2D::Ptr image) {
+inline void fast::ITKImageExporter<TImage>::SetInput(Image2D::pointer image) {
     mInput = image;
 }
 

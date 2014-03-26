@@ -11,16 +11,16 @@ namespace fast {
 class ImageExporter2D : public PipelineObject {
     FAST_OBJECT(ImageExporter2D)
     public:
-        void setInput(Image2D::Ptr image);
-        void setInput(Image2Dt::Ptr image);
+        void setInput(Image2D::pointer image);
+        void setInput(Image2Dt::pointer image);
         void setFilename(std::string filename);
     private:
         ImageExporter2D();
         void execute();
 
         std::string mFilename;
-        Image2D::Ptr mStaticInput;
-        Image2Dt::Ptr mDynamicInput;
+        Image2D::pointer mStaticInput;
+        Image2Dt::pointer mDynamicInput;
 
 };
 

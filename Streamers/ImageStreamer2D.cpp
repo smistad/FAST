@@ -4,12 +4,12 @@
 #include "Exception.hpp"
 using namespace fast;
 
-Image2Dt::Ptr ImageStreamer2D::getOutput() {
+Image2Dt::pointer ImageStreamer2D::getOutput() {
     if(mOutput.isValid()) {
         mOutput->addParent(mPtr.lock());
         mOutput->setStreamer(this);
 
-        Image2Dt::Ptr newSmartPtr;
+        Image2Dt::pointer newSmartPtr;
         newSmartPtr.swap(mOutput);
 
         return newSmartPtr;
@@ -44,7 +44,7 @@ void ImageStreamer2D::setFilenameFormat(std::string str) {
     mFilenameFormat = str;
 }
 
-void ImageStreamer2D::setDevice(ExecutionDevice::Ptr device) {
+void ImageStreamer2D::setDevice(ExecutionDevice::pointer device) {
     mDevice = device;
 }
 
@@ -64,12 +64,12 @@ void ImageStreamer2D::producerStream() {
                 intToString(i));
         std::cout << filename << std::endl;
         try {
-            ImageImporter2D::Ptr importer = ImageImporter2D::New();
+            ImageImporter2D::pointer importer = ImageImporter2D::New();
             importer->setFilename(filename);
             importer->setDevice(mDevice);
-            Image2D::Ptr image = importer->getOutput();
+            Image2D::pointer image = importer->getOutput();
             image->update();
-            Image2Dt::Ptr ptr = mOutput2.lock();
+            Image2Dt::pointer ptr = mOutput2.lock();
             if(ptr.isValid()) {
                 ptr->addFrame(image);
             } else {

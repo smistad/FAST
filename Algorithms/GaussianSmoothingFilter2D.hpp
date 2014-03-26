@@ -11,22 +11,22 @@ namespace fast {
 class GaussianSmoothingFilter2D : public PipelineObject {
     FAST_OBJECT(GaussianSmoothingFilter2D)
     public:
-        void setInput(Image2D::Ptr input);
-        void setInput(Image2Dt::Ptr input);
-        void setDevice(ExecutionDevice::Ptr device);
+        void setInput(Image2D::pointer input);
+        void setInput(Image2Dt::pointer input);
+        void setDevice(ExecutionDevice::pointer device);
         void setMaskSize(unsigned char maskSize);
         void setStandardDeviation(float stdDev);
-        ImageData::Ptr getOutput();
+        ImageData::pointer getOutput();
     private:
         GaussianSmoothingFilter2D();
         void execute();
         float * createMask();
 
-        Image2D::Ptr mStaticInput;
-        Image2Dt::Ptr mDynamicInput;
+        Image2D::pointer mStaticInput;
+        Image2Dt::pointer mDynamicInput;
         WeakPointer<Image2D> mOutput;
-        Image2D::Ptr mTempOutput;
-        ExecutionDevice::Ptr mDevice;
+        Image2D::pointer mTempOutput;
+        ExecutionDevice::pointer mDevice;
         unsigned char mMaskSize;
         float mStdDev;
 };
