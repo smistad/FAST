@@ -1,64 +1,201 @@
 #include "Image2D.hpp"
 #include "HelperFunctions.hpp"
+#include "Exception.hpp"
 using namespace fast;
 
+bool Image2D::isDataModified() {
+    if(!mHostDataIsUpToDate)
+        return true;
 
-
-void Image2D::setOpenCLImage(cl::Image2D *clImage, OpenCLDevice::pointer device) {
-    mCLImages.push_back(clImage);
-    mCLDevices.push_back(device);
-    mWidth = clImage->getImageInfo<CL_IMAGE_WIDTH>();
-    mHeight = clImage->getImageInfo<CL_IMAGE_HEIGHT>();
-}
-
-OpenCLImageAccess2D Image2D::getOpenCLImageAccess(
-        accessType type,
-        OpenCLDevice::pointer device) {
-    // TODO: Check for write access
-
-    // Check to see if image exist on the device
-    for(unsigned int i = 0; i < mCLDevices.size(); i++) {
-        if(mCLDevices[i] == device) {
-            return OpenCLImageAccess2D(mCLImages[i]);
-        }
+    boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+    for(it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end(); it++) {
+        if(it->second == false)
+            return true;
     }
 
-    // TODO: Transfer data to a new device
+    return false;
 }
 
-Image2D::~Image2D() {
-    // Delete all images
-    for(unsigned int i = 0; i < mCLImages.size(); i++) {
-        delete mCLImages[i];
+bool Image2D::isAnyDataBeingAccessed() {
+    if(mHostDataIsBeingAccessed)
+        return true;
+
+    boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+    for(it = mCLImagesAccess.begin(); it != mCLImagesAccess.end(); it++) {
+        if(it->second)
+            return true;
     }
 
-    delete[] (float*)mHostData;
+    return false;
 }
 
-Image2D::Image2D() {
-    mHostData = NULL;
-}
-
-ImageAccess2D Image2D::getImageAccess(accessType type) {
-    // TODO: this method is currently just a fixed hack
-    // TODO: Check for write access
-
-    // TODO Check to see if data exist on host
-    mHostData = new float[mWidth*mHeight];
-
-    if(mCLImages.size() > 0) {
-    // If not retrieve it
-    mCLDevices[0]->getCommandQueue().enqueueReadImage(
-            *mCLImages[0],
+void Image2D::transferCLImageFromHost(OpenCLDevice::pointer device) {
+     device->getCommandQueue().enqueueWriteImage(
+            *mCLImages[device],
             CL_TRUE,
             oul::createOrigoRegion(),
             oul::createRegion(mWidth,mHeight,1),
             0,0,
             mHostData
+    );
+}
+
+void Image2D::transferCLImageToHost(OpenCLDevice::pointer device) {
+    device->getCommandQueue().enqueueReadImage(
+                *mCLImages[device],
+                CL_TRUE,
+                oul::createOrigoRegion(),
+                oul::createRegion(mWidth,mHeight,1),
+                0,0,
+                mHostData
             );
+}
+
+void Image2D::updateOpenCLImageData(OpenCLDevice::pointer device) {
+
+    // If data exist on device and is up to date do nothing
+    if(mCLImagesIsUpToDate.count(device) > 0 && mCLImagesIsUpToDate[device] == true)
+        return;
+
+    if(mCLImagesIsUpToDate.count(device) == 0) {
+        // Data is not on device, create it
+        // TODO type support
+        cl::Image2D * newImage = new cl::Image2D(
+                device->getContext(),
+                CL_MEM_READ_WRITE,
+                cl::ImageFormat(CL_R, CL_FLOAT),
+                mWidth, mHeight
+        );
+
+        mCLImages[device] = newImage;
+        mCLImagesIsUpToDate[device] = true;
+        mCLImagesAccess[device] = true;
+        mCLDevices.push_back(device);
     }
 
-    return ImageAccess2D(mHostData);
+    // Find which data is up to date
+    bool updated = false;
+    if(mHostDataIsUpToDate) {
+        // Transfer host data to this device
+        transferCLImageFromHost(device);
+        updated = true;
+    } else {
+        boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+        for(it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end(); it++) {
+            if(it->second == true) {
+                // TODO: Transfer from this device(it->first) to device
+                transferCLImageToHost(it->first);
+                transferCLImageFromHost(device);
+                mHostDataIsUpToDate = true;
+                updated = true;
+                break;
+            }
+        }
+    }
+
+    if(!updated)
+        throw Exception("Data was not updated because no data was marked as up to date");
+}
+
+void Image2D::updateHostData() {
+    // It is the host data that has been modified, no need to update
+    if(mHostDataIsUpToDate)
+        return;
+
+    if(!mHostHasData) {
+        // Data is not initialized, do that first
+        // TODO type support here
+        mHostData = new float[mWidth*mHeight];
+    }
+
+    if(mCLImages.size() > 0) {
+        // Find which data is up to date
+        bool updated = false;
+        boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+        for(it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end(); it++) {
+            if(it->second == true) {
+                // TODO: transfer from this device to host
+                transferCLImageToHost(it->first);
+
+                updated = true;
+                break;
+            }
+        }
+
+        if(!updated)
+            throw Exception("Data was not updated because no data was marked as up to date");
+    }
+}
+
+void Image2D::setOpenCLImage(cl::Image2D *clImage, OpenCLDevice::pointer device) {
+    mCLImages[device] = clImage;
+    mCLImagesIsUpToDate[device] = true;
+    mCLImagesAccess[device] = false;
+    mCLDevices.push_back(device);
+    mWidth = clImage->getImageInfo<CL_IMAGE_WIDTH>();
+    mHeight = clImage->getImageInfo<CL_IMAGE_HEIGHT>();
+}
+
+void Image2D::setAllDataToOutOfDate() {
+    mHostDataIsUpToDate = false;
+    boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+    for(it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end(); it++) {
+        it->second = false;
+    }
+}
+
+OpenCLImageAccess2D Image2D::getOpenCLImageAccess(
+        accessType type,
+        OpenCLDevice::pointer device) {
+    // Check for write access
+    if(type == ACCESS_READ_WRITE) {
+        if(isAnyDataBeingAccessed()) {
+            throw Exception("Trying to get write access to an object that is already being accessed");
+        }
+        setAllDataToOutOfDate();
+        mCLImagesIsUpToDate[device] = true;
+    }
+    mCLImagesAccess[device] = true;
+    updateOpenCLImageData(device);
+
+    // Now it is guaranteed that the data is on the device and that it is up to date
+
+    return OpenCLImageAccess2D(mCLImages[device], &mCLImagesAccess[device]);
+}
+
+Image2D::~Image2D() {
+    // Delete all images
+    boost::unordered_map<OpenCLDevice::pointer, cl::Image2D*>::iterator it;
+    for(it = mCLImages.begin(); it != mCLImages.end(); it++) {
+        delete it->second;
+    }
+
+    // TODO: type support needed here
+    delete[] (float*)mHostData;
+}
+
+Image2D::Image2D() {
+    mHostData = NULL;
+    mHostHasData = false;
+    mHostDataIsUpToDate = false;
+    mHostDataIsBeingAccessed = false;
+}
+
+ImageAccess2D Image2D::getImageAccess(accessType type) {
+    // TODO: this method is currently just a fixed hack
+
+    if(type == ACCESS_READ_WRITE) {
+        if(isAnyDataBeingAccessed()) {
+            throw Exception("Trying to get write access to an object that is already being accessed");
+        }
+        // Set modified to true since it wants write access
+        setAllDataToOutOfDate();
+        mHostDataIsUpToDate = true;
+        mHostDataIsBeingAccessed = true;
+    }
+    updateHostData();
+
+    return ImageAccess2D(mHostData, &mHostDataIsBeingAccessed);
 }
 
 void Image2D::createImage(unsigned int width, unsigned int height) {

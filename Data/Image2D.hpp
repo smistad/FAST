@@ -6,6 +6,8 @@
 #include "ExecutionDevice.hpp"
 #include "OpenCLImageAccess2D.hpp"
 #include "ImageAccess2D.hpp"
+#include <boost/unordered_map.hpp>
+#include <boost/unordered_set.hpp>
 namespace fast {
 
 class Image2D: public ImageData {
@@ -18,12 +20,22 @@ class Image2D: public ImageData {
         ~Image2D();
     private:
         Image2D();
-        // These two vectors should be equal in size and have entries
-        // that correspond to eachother
-        std::vector<cl::Image2D*> mCLImages;
+        boost::unordered_map<OpenCLDevice::pointer, cl::Image2D*> mCLImages;
+        boost::unordered_map<OpenCLDevice::pointer, bool> mCLImagesIsUpToDate;
+        boost::unordered_map<OpenCLDevice::pointer, bool> mCLImagesAccess;
         std::vector<OpenCLDevice::pointer> mCLDevices;
         void * mHostData;
+        bool mHostHasData;
+        bool mHostDataIsUpToDate;
+        bool mHostDataIsBeingAccessed;
         void execute(){};
+        bool isDataModified();
+        void updateOpenCLImageData(OpenCLDevice::pointer device);
+        void updateHostData();
+        void setAllDataToOutOfDate();
+        bool isAnyDataBeingAccessed();
+        void transferCLImageFromHost(OpenCLDevice::pointer device);
+        void transferCLImageToHost(OpenCLDevice::pointer device);
 };
 
 } // end namespace fast
