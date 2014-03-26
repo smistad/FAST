@@ -46,7 +46,7 @@ void GaussianSmoothingFilter2D::setStandardDeviation(float stdDev) {
     mIsModified = true;
 }
 
-Image2D::Ptr GaussianSmoothingFilter2D::getOutput() {
+ImageData::Ptr GaussianSmoothingFilter2D::getOutput() {
     if(mTempOutput.isValid()) {
         mTempOutput->addParent(mPtr.lock());
 

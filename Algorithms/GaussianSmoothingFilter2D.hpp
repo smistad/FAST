@@ -16,7 +16,7 @@ class GaussianSmoothingFilter2D : public PipelineObject {
         void setDevice(ExecutionDevice::Ptr device);
         void setMaskSize(unsigned char maskSize);
         void setStandardDeviation(float stdDev);
-        Image2D::Ptr getOutput();
+        ImageData::Ptr getOutput();
     private:
         GaussianSmoothingFilter2D();
         void execute();
