@@ -182,6 +182,7 @@ Image2D::Image2D() {
     mHostHasData = false;
     mHostDataIsUpToDate = false;
     mHostDataIsBeingAccessed = false;
+    mDimensions = 2;
 }
 
 ImageAccess2D Image2D::getImageAccess(accessType type) {
