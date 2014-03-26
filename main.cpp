@@ -34,25 +34,34 @@ int main(int argc, char ** argv) {
     DeviceManager& deviceManager = DeviceManager::getInstance();
     deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice());
 
+
+
+
     // Example of importing, processing and exporting a 2D image
     ImageImporter2D::pointer importer = ImageImporter2D::New();
     importer->setFilename("lena.jpg");
-    Image2D::pointer image = importer->getOutput();
-    image->update();
     GaussianSmoothingFilter2D::pointer filter = GaussianSmoothingFilter2D::New();
+    filter->setInput(importer->getOutput());
     filter->setMaskSize(7);
     filter->setStandardDeviation(10);
-    filter->setInput(image);
     Image2D::pointer filteredImage = filter->getOutput();
     ImageExporter2D::pointer exporter = ImageExporter2D::New();
     exporter->setFilename("test.jpg");
     exporter->setInput(filteredImage);
     exporter->update();
 
+
+
+
+
     // Example of creating a pipeline in another scope and updating afterwards
     Image2D::pointer image2 = create();
     std::cout << "after create" << std::endl;
     image2->update();
+
+
+
+
 
     // Example of streaming 2D images
     ImageStreamer2D::pointer streamer = ImageStreamer2D::New();
@@ -60,11 +69,19 @@ int main(int argc, char ** argv) {
     Image2Dt::pointer dynamicImage = streamer->getOutput();
     dynamicImage->update();
 
+
+
+
+
     // VTK Export and render example
     vtkSmartPointer<VTKImageExporter> vtkExporter = VTKImageExporter::New();
     vtkExporter->SetInput(filteredImage);
     vtkSmartPointer<vtkImageData> vtkImage = vtkExporter->GetOutput();
     vtkExporter->Update();
+
+
+
+
 
     // VTK mess for getting the image on screen
     vtkSmartPointer<vtkImageMapper> imageMapper = vtkSmartPointer<vtkImageMapper>::New();
@@ -95,12 +112,19 @@ int main(int argc, char ** argv) {
     renderWindow->Render();
     renderWindowInteractor->Start();
 
+
+
+
+
     // ITK Export example
     typedef itk::Image<float, 2> ImageType;
     ITKImageExporter<ImageType>::Pointer itkExporter = ITKImageExporter<ImageType>::New();
     itkExporter->SetInput(filteredImage);
     ImageType::Pointer itkImage = itkExporter->GetOutput();
     itkExporter->Update();
+
+
+
 
     // VTK Import example
     VTKImageImporter::pointer vtkImporter = VTKImageImporter::New();
