@@ -60,6 +60,7 @@ class SharedPointer {
             if(ptr == NULL)
                 throw Exception("Illegal cast");
             mSmartPtr = boost::shared_ptr<T>(ptr);
+            return *this;
         }
 
         template <class U>
