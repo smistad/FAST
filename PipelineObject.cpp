@@ -12,6 +12,7 @@ void PipelineObject::update() {
 
     if(this->mIsModified) {
         this->execute();
+        this->mIsModified = false;
     }
 }
 
