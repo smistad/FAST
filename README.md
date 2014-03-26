@@ -7,8 +7,8 @@ These libraries have to be installed on the system to use FAST:
 
 * OpenCL
 * Boost
-* ITK (Optional, however currently needed to run the examples so far)
-* VTK (Optional, however currently needed to run the examples so far)
+* ITK (Optional, however, currently needed to run the examples)
+* VTK (Optional, however, currently needed to run the examples)
 
 Compile and run examples
 ----------------------------------------------------------
