@@ -17,7 +17,7 @@ OpenCLImageAccess2D Image2D::getOpenCLImageAccess(
     // TODO: Check for write access
 
     // Check to see if image exist on the device
-    for(int i = 0; i < mCLDevices.size(); i++) {
+    for(unsigned int i = 0; i < mCLDevices.size(); i++) {
         if(mCLDevices[i] == device) {
             return OpenCLImageAccess2D(mCLImages[i]);
         }
@@ -28,7 +28,7 @@ OpenCLImageAccess2D Image2D::getOpenCLImageAccess(
 
 Image2D::~Image2D() {
     // Delete all images
-    for(int i = 0; i < mCLImages.size(); i++) {
+    for(unsigned int i = 0; i < mCLImages.size(); i++) {
         delete mCLImages[i];
     }
 

@@ -3,7 +3,7 @@
 using namespace fast;
 
 void PipelineObject::update() {
-    for(int i = 0; i < mParentPipelineObjects.size(); i++) {
+    for(unsigned int i = 0; i < mParentPipelineObjects.size(); i++) {
         // Check that object has not been deleted
         // TODO maybe throw exception here?
         if(mParentPipelineObjects[i].isValid())
@@ -21,7 +21,7 @@ void PipelineObject::addParent(PipelineObject::pointer parent) {
 
     // Check that it doesn't already exist
     bool exist = false;
-    for(int i = 0; i < mParentPipelineObjects.size(); i++) {
+    for(unsigned int i = 0; i < mParentPipelineObjects.size(); i++) {
         if(parent == mParentPipelineObjects[i])
             exist = true;
     }

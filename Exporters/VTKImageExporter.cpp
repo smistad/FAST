@@ -45,8 +45,8 @@ int VTKImageExporter::RequestData(
     mInput->update(); // Make sure input is up to date
     ImageAccess2D access = mInput->getImageAccess(ACCESS_READ);
     float * fastPixelData = (float *)access.get();
-    for(int x = 0; x < mInput->getWidth(); x++) {
-    for(int y = 0; y < mInput->getHeight(); y++) {
+    for(unsigned int x = 0; x < mInput->getWidth(); x++) {
+    for(unsigned int y = 0; y < mInput->getHeight(); y++) {
         float * pixel = static_cast<float*>(image->GetScalarPointer(x,mInput->getHeight()-y,0));
         pixel[0] = fastPixelData[x+y*mInput->getWidth()];
     }}

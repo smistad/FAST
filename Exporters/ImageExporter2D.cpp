@@ -42,7 +42,7 @@ void ImageExporter2D::execute() {
     ImageAccess2D access = input->getImageAccess(ACCESS_READ);
     float * inputData = (float *)access.get();
 
-    for(int i = 0; i < input->getWidth()*input->getHeight(); i++) {
+    for(unsigned int i = 0; i < input->getWidth()*input->getHeight(); i++) {
         pixelData[i*4] = round(inputData[i]*255.0f);
         pixelData[i*4+1] = pixelData[i*4];
         pixelData[i*4+2] = pixelData[i*4];
