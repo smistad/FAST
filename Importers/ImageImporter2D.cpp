@@ -33,21 +33,14 @@ void ImageImporter2D::execute() {
     }
 
     // Transfer to texture(if OpenCL) or copy raw pixel data (if host)
-    if(mDevice->isHost()) {
-        mOutput2.lock()->createImage(image.width(), image.height(), convertedPixelData);
-    } else {
-        OpenCLDevice::pointer device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
-        cl::Image2D* clImage = new cl::Image2D(
-                device->getContext(),
-                CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-                cl::ImageFormat(CL_R, CL_FLOAT),
-                image.width(), image.height(),
-                0,
-                convertedPixelData
-        );
-        delete[] convertedPixelData;
-        mOutput2.lock()->createImage(clImage, device);
-    }
+    mOutput2.lock()->createImage(image.width(),
+            image.height(),
+            TYPE_FLOAT,
+            1,
+            mDevice,
+            convertedPixelData);
+    delete[] convertedPixelData;
+
     mOutput2.lock()->updateModifiedTimestamp();
 }
 

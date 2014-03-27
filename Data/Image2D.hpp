@@ -14,9 +14,8 @@ namespace fast {
 class Image2D: public ImageData {
     FAST_OBJECT(Image2D)
     public:
-        void createImage(unsigned int width, unsigned int height);
-        void createImage(unsigned int width, unsigned int height, const float * data);
-        void createImage(cl::Image2D* clImage, OpenCLDevice::pointer device);
+        void createImage(unsigned int width, unsigned int height, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device);
+        void createImage(unsigned int width, unsigned int height, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device, const void * data);
         OpenCLImageAccess2D getOpenCLImageAccess(accessType type, OpenCLDevice::pointer);
         ImageAccess2D getImageAccess(accessType type);
         ~Image2D();
@@ -25,7 +24,6 @@ class Image2D: public ImageData {
         boost::unordered_map<OpenCLDevice::pointer, cl::Image2D*> mCLImages;
         boost::unordered_map<OpenCLDevice::pointer, bool> mCLImagesIsUpToDate;
         boost::unordered_map<OpenCLDevice::pointer, bool> mCLImagesAccess;
-        std::vector<OpenCLDevice::pointer> mCLDevices;
         void * mHostData;
         bool mHostHasData;
         bool mHostDataIsUpToDate;

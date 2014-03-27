@@ -10,10 +10,13 @@ class ImageData : public DataObject {
         unsigned int getWidth() const;
         unsigned int getHeight() const;
         unsigned char getDimensions() const;
+        DataType getDataType() const;
+        unsigned int getNrOfComponents() const;
     protected:
         unsigned int mWidth, mHeight;
         unsigned char mDimensions;
         DataType mType;
+        unsigned int mComponents;
         virtual ~ImageData() {};
 
 };

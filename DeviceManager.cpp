@@ -12,8 +12,8 @@ std::vector<OpenCLDevice::pointer> getDevices(oul::DeviceCriteria criteria) {
     std::vector<oul::PlatformDevices> platformDevices = manager->getDevices(criteria);
 
     std::vector<OpenCLDevice::pointer> executionDevices;
-    for(int i = 0; i < platformDevices.size(); i++) {
-    for(int j = 0; j < platformDevices[i].second.size(); j++) {
+    for(unsigned int i = 0; i < platformDevices.size(); i++) {
+    for(unsigned int j = 0; j < platformDevices[i].second.size(); j++) {
         std::vector<cl::Device> deviceVector;
         deviceVector.push_back(platformDevices[i].second[j]);
         OpenCLDevice * device = new OpenCLDevice(deviceVector);

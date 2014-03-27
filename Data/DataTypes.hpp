@@ -6,9 +6,15 @@
 
 namespace fast {
 
+typedef unsigned char uchar;
+typedef unsigned short ushort;
+
+
 enum DataType { TYPE_FLOAT, TYPE_UINT8, TYPE_INT8, TYPE_UINT16, TYPE_INT16 };
 
-cl::ImageFormat createOpenCLImageFormat(DataType type, int components);
+cl::ImageFormat getOpenCLImageFormat(DataType type, unsigned int components);
+
+size_t getSizeOfDataType(DataType type, unsigned int nrOfComponents);
 
 } // end namespace
 

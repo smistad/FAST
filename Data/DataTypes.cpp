@@ -1,7 +1,7 @@
 #include "DataTypes.hpp"
 using namespace fast;
 
-cl::ImageFormat createOpenCLImageFormat(DataType type, int components) {
+cl::ImageFormat fast::getOpenCLImageFormat(DataType type, unsigned int components) {
     cl_channel_order channelOrder;
     cl_channel_type channelType;
 
@@ -43,4 +43,23 @@ cl::ImageFormat createOpenCLImageFormat(DataType type, int components) {
     }
 
     return cl::ImageFormat(channelOrder, channelType);
+}
+
+size_t fast::getSizeOfDataType(DataType type, unsigned int nrOfComponents) {
+    size_t bytes;
+    switch(type) {
+    case TYPE_FLOAT:
+        bytes = sizeof(float);
+        break;
+    case TYPE_UINT8:
+    case TYPE_INT8:
+        bytes = sizeof(char);
+        break;
+    case TYPE_UINT16:
+    case TYPE_INT16:
+        bytes = sizeof(short);
+        break;
+    }
+
+    return nrOfComponents*bytes;
 }

@@ -6,15 +6,7 @@ using namespace fast;
 void GaussianSmoothingFilter2D::setInput(Image2D::pointer input) {
     mStaticInput = input;
     mIsModified = true;
-    OpenCLDevice::pointer device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
     input->update(); // Need to run update to get the width and height, could maybe be moved into getWidth?
-    cl::Image2D* clImage = new cl::Image2D(
-            device->getContext(),
-            CL_MEM_WRITE_ONLY,
-            cl::ImageFormat(CL_R, CL_FLOAT),
-            input->getWidth(), input->getHeight()
-            );
-    mOutput.lock()->createImage(clImage,device);
     addParent(input);
 }
 
@@ -104,6 +96,13 @@ void GaussianSmoothingFilter2D::execute() {
         // output object is no longer valid
         return;
     }
+
+    // Initialize output image
+    output->createImage(input->getWidth(),
+            input->getHeight(),
+            input->getDataType(),
+            input->getNrOfComponents(),
+            mDevice);
 
     if(mDevice->isHost()) {
 

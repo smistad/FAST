@@ -32,7 +32,7 @@ void VTKImageImporter::execute() {
 
     Image2D::pointer output = mOutput.lock();
 
-    output->createImage(size[0]-1, size[1]-1);
+    output->createImage(size[0]-1, size[1]-1,TYPE_FLOAT,1,Host::New());
     ImageAccess2D access = output->getImageAccess(ACCESS_READ);
     float * fastPixelData = (float *)access.get();
     for(unsigned int x = 0; x < output->getWidth(); x++) {

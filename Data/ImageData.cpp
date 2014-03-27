@@ -12,3 +12,11 @@ unsigned int ImageData::getHeight() const {
 unsigned char ImageData::getDimensions() const {
     return mDimensions;
 }
+
+DataType ImageData::getDataType() const {
+    return mType;
+}
+
+unsigned int ImageData::getNrOfComponents() const {
+    return mComponents;
+}

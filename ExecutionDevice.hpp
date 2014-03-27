@@ -10,6 +10,7 @@ class ExecutionDevice {
     public:
         typedef boost::shared_ptr<ExecutionDevice> pointer;
         bool isHost() {return mIsHost;};
+        virtual ~ExecutionDevice() {};
     protected:
         bool mIsHost;
 
