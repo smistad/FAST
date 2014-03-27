@@ -26,6 +26,7 @@ set(SOURCES
     Data/Image2D.hpp
     Data/Image2Dt.cpp
     Data/Image2Dt.hpp
+    Data/DataTypes.cpp
     Data/DataTypes.hpp
     Data/Access/Access.hpp
     Data/Access/OpenCLImageAccess2D.cpp
