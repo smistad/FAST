@@ -6,7 +6,7 @@ using namespace fast;
 
 Image2Dt::pointer ImageStreamer2D::getOutput() {
     if(mOutput.isValid()) {
-        mOutput->addParent(mPtr.lock());
+        mOutput->setParent(mPtr.lock());
         mOutput->setStreamer(this);
 
         Image2Dt::pointer newSmartPtr;

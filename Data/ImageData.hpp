@@ -1,11 +1,11 @@
 #ifndef IMAGE_DATA_HPP
 #define IMAGE_DATA_HPP
 
-#include "PipelineObject.hpp"
+#include "DataObject.hpp"
 #include "DataTypes.hpp"
 namespace fast {
 
-class ImageData : public PipelineObject {
+class ImageData : public DataObject {
     public:
         unsigned int getWidth() const;
         unsigned int getHeight() const;

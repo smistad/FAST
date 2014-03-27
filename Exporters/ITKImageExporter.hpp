@@ -1,7 +1,7 @@
 #ifndef ITKIMAGEEXPORTER_HPP_
 #define ITKIMAGEEXPORTER_HPP_
 
-#include "PipelineObject.hpp"
+#include "ProcessObject.hpp"
 #include "Image2D.hpp"
 
 #include <itkImageSource.h>
@@ -10,7 +10,7 @@
 namespace fast {
 
 template<class TImage>
-class ITKImageExporter: public itk::ImageSource<TImage>, public PipelineObject {
+class ITKImageExporter: public itk::ImageSource<TImage>, public ProcessObject {
     public:
         /** Standard class typedefs. */
         typedef ITKImageExporter Self;

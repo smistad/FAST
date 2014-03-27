@@ -1,6 +1,7 @@
 #ifndef IMAGE_STREAMER_2D_HPP
 #define IMAGE_STREAMER_2D_HPP
 
+#include "SmartPointers.hpp"
 #include "Streamer.hpp"
 #include "Image2Dt.hpp"
 #include <boost/thread.hpp>

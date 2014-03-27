@@ -1,14 +1,14 @@
 #ifndef GAUSSIANSMOOTHINGFILTER_HPP_
 #define GAUSSIANSMOOTHINGFILTER_HPP_
 
-#include "PipelineObject.hpp"
+#include "ProcessObject.hpp"
 #include "ExecutionDevice.hpp"
 #include "Image2D.hpp"
 #include "Image2Dt.hpp"
 
 namespace fast {
 
-class GaussianSmoothingFilter2D : public PipelineObject {
+class GaussianSmoothingFilter2D : public ProcessObject {
     FAST_OBJECT(GaussianSmoothingFilter2D)
     public:
         void setInput(Image2D::pointer input);

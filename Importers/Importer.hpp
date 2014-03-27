@@ -1,11 +1,11 @@
 #ifndef IMPORTER_HPP_
 #define IMPORTER_HPP_
 
-#include "PipelineObject.hpp"
+#include "ProcessObject.hpp"
 
 namespace fast {
 
-class Importer : public PipelineObject {
+class Importer : public ProcessObject {
 
 };
 

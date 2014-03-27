@@ -6,9 +6,10 @@ option(ITK_INTEROP "Enable interoperability with ITK" OFF)
 
 set(SOURCES 
     main.cpp
+    Object.hpp
     SmartPointers.hpp
-    PipelineObject.cpp
-    PipelineObject.hpp
+    ProcessObject.cpp
+    ProcessObject.hpp
     ExecutionDevice.cpp
     ExecutionDevice.hpp
     DeviceManager.cpp
@@ -17,6 +18,8 @@ set(SOURCES
     Exception.hpp
     Algorithms/GaussianSmoothingFilter2D.cpp
     Algorithms/GaussianSmoothingFilter2D.hpp
+    Data/DataObject.cpp
+    Data/DataObject.hpp
     Data/ImageData.cpp
     Data/ImageData.hpp
     Data/Image2D.cpp

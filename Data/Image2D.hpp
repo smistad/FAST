@@ -1,6 +1,7 @@
 #ifndef IMAGE2D_HPP
 #define IMAGE2D_HPP
 
+#include "SmartPointers.hpp"
 #include "ImageData.hpp"
 #include "OpenCLManager.hpp"
 #include "ExecutionDevice.hpp"
@@ -29,7 +30,6 @@ class Image2D: public ImageData {
         bool mHostHasData;
         bool mHostDataIsUpToDate;
         bool mHostDataIsBeingAccessed;
-        void execute(){};
         bool isDataModified();
         void updateOpenCLImageData(OpenCLDevice::pointer device);
         void updateHostData();

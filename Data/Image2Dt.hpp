@@ -1,15 +1,14 @@
 #ifndef IMAGE2DT_HPP
 #define IMAGE2DT_HPP
 
-#include "PipelineObject.hpp"
+#include "DataObject.hpp"
 #include "Image2D.hpp"
 #include <vector>
 #include "Streamer.hpp"
-#include <boost/shared_ptr.hpp>
 
 namespace fast {
 
-class Image2Dt : public PipelineObject {
+class Image2Dt : public DataObject {
     FAST_OBJECT(Image2Dt)
     public:
         Image2D::pointer getNextFrame();
@@ -29,8 +28,6 @@ class Image2Dt : public PipelineObject {
         // Keep track of which frame is next, only used when mKeepAllFrames is
         // set to true
         unsigned long mCurrentFrame;
-
-        void execute();
 
         // Pointer to the streamer used to drive this object
         Streamer *mStreamer;

@@ -5,6 +5,23 @@
 #include <boost/weak_ptr.hpp>
 #include "Exception.hpp"
 
+#define FAST_OBJECT(className)                                  \
+    public:                                                     \
+        typedef SharedPointer<className> pointer;               \
+        static className::pointer New() {                       \
+            className * ptr = new className();                  \
+            className::pointer smartPtr(ptr);                   \
+            ptr->setPtr(smartPtr);                              \
+                                                                \
+            return smartPtr;                                    \
+        }                                                       \
+    private:                                                    \
+        WeakPointer<className> mPtr;                            \
+        void setPtr(className::pointer ptr) {                   \
+            mPtr = ptr;                                         \
+        }                                                       \
+
+
 namespace fast {
 
 template <class T>
@@ -21,7 +38,7 @@ class WeakPointer {
 
 };
 
-class PipelineObject;
+class Object;
 
 template <class T>
 class SharedPointer {
@@ -30,7 +47,7 @@ class SharedPointer {
 
         }
 
-        SharedPointer(PipelineObject * object) {
+        SharedPointer(Object * object) {
             mSmartPtr = boost::shared_ptr<T>(dynamic_cast<T*>(object));
         }
 

@@ -48,6 +48,7 @@ void ImageImporter2D::execute() {
         delete[] convertedPixelData;
         mOutput2.lock()->createImage(clImage, device);
     }
+    mOutput2.lock()->updateModifiedTimestamp();
 }
 
 ImageImporter2D::ImageImporter2D() {
@@ -58,7 +59,7 @@ ImageImporter2D::ImageImporter2D() {
 
 Image2D::pointer ImageImporter2D::getOutput() {
     if(mOutput.isValid()) {
-        mOutput->addParent(mPtr.lock());
+        mOutput->setParent(mPtr.lock());
 
         Image2D::pointer newSmartPtr;
         newSmartPtr.swap(mOutput);

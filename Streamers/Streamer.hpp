@@ -1,13 +1,13 @@
 #ifndef STREAMER_HPP_
 #define STREAMER_HPP_
 
-#include "PipelineObject.hpp"
+#include "ProcessObject.hpp"
 #include <boost/thread/mutex.hpp>
 #include <boost/shared_ptr.hpp>
 
 namespace fast {
 
-class Streamer : public PipelineObject {
+class Streamer : public ProcessObject {
     public:
         typedef boost::shared_ptr<Streamer> Ptr;
         boost::mutex& getStreamMutex() {return mStreamMutex;};

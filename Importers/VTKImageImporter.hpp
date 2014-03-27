@@ -1,14 +1,14 @@
 #ifndef VTKIMAGEIMPORTER_HPP_
 #define VTKIMAGEIMPORTER_HPP_
 
-#include "PipelineObject.hpp"
+#include "ProcessObject.hpp"
 #include <vtkImageData.h>
 #include <vtkSmartPointer.h>
 #include "Image2D.hpp"
 
 namespace fast {
 
-class VTKImageImporter : public PipelineObject {
+class VTKImageImporter : public ProcessObject {
     FAST_OBJECT(VTKImageImporter)
     public:
         void setInput(vtkSmartPointer<vtkImageData> image);

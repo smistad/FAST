@@ -48,7 +48,7 @@ void GaussianSmoothingFilter2D::setStandardDeviation(float stdDev) {
 
 ImageData::pointer GaussianSmoothingFilter2D::getOutput() {
     if(mTempOutput.isValid()) {
-        mTempOutput->addParent(mPtr.lock());
+        mTempOutput->setParent(mPtr.lock());
 
         Image2D::pointer newSmartPtr;
         newSmartPtr.swap(mTempOutput);
@@ -139,4 +139,7 @@ void GaussianSmoothingFilter2D::execute() {
         );
 
     }
+
+    // Update the timestamp of the output data
+    output->updateModifiedTimestamp();
 }

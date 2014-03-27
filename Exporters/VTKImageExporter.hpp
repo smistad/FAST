@@ -2,12 +2,12 @@
 #define VTKIMAGEEXPORTER_HPP_
 
 #include <vtkImageAlgorithm.h>
-#include "PipelineObject.hpp"
+#include "ProcessObject.hpp"
 #include "Image2D.hpp"
 
 namespace fast {
 
-class VTKImageExporter : public vtkImageAlgorithm, public PipelineObject {
+class VTKImageExporter : public vtkImageAlgorithm, public ProcessObject {
     public:
         vtkTypeMacro(VTKImageExporter,vtkImageAlgorithm);
         static VTKImageExporter *New();

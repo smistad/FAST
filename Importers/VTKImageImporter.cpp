@@ -6,11 +6,11 @@ void VTKImageImporter::setInput(vtkSmartPointer<vtkImageData> image) {
     mIsModified = true;
 }
 
-Image2D::pointer VTKImageImporter::getOutput() {
+ImageData::pointer VTKImageImporter::getOutput() {
     if(mTempOutput.isValid()) {
-        mTempOutput->addParent(mPtr.lock());
+        mTempOutput->setParent(mPtr.lock());
 
-        Image2D::pointer newSmartPtr;
+        ImageData::pointer newSmartPtr;
         newSmartPtr.swap(mTempOutput);
 
         return newSmartPtr;
@@ -40,4 +40,5 @@ void VTKImageImporter::execute() {
         float * pixel = static_cast<float*>(mInput->GetScalarPointer(x,output->getHeight()-y,0));
         fastPixelData[x+y*output->getWidth()] = pixel[0];
     }}
+    output->updateModifiedTimestamp();
 }

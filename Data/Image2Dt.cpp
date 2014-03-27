@@ -12,7 +12,7 @@ Image2D::pointer Image2Dt::getNextFrame() {
 
 void Image2Dt::addFrame(Image2D::pointer frame) {
     mStreamer->getStreamMutex().lock();
-    mIsModified = true;
+    updateModifiedTimestamp();
     if(!mKeepAllFrames) {
         mFrames.clear();
     }
@@ -23,12 +23,9 @@ void Image2Dt::addFrame(Image2D::pointer frame) {
 Image2Dt::Image2Dt() {
     mCurrentFrame = 0;
     mKeepAllFrames = false;
-    mIsModified = true;
+    updateModifiedTimestamp();
 }
 
 void Image2Dt::setStreamer(Streamer *streamer) {
     mStreamer = streamer;
-}
-
-void Image2Dt::execute() {
 }

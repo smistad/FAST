@@ -1,14 +1,14 @@
 #ifndef IMAGEEXPORTER2D_HPP_
 #define IMAGEEXPORTER2D_HPP_
 
-#include "PipelineObject.hpp"
+#include "ProcessObject.hpp"
 #include "Image2D.hpp"
 #include "Image2Dt.hpp"
 #include <string>
 
 namespace fast {
 
-class ImageExporter2D : public PipelineObject {
+class ImageExporter2D : public ProcessObject {
     FAST_OBJECT(ImageExporter2D)
     public:
         void setInput(Image2D::pointer image);
