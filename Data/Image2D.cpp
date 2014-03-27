@@ -147,17 +147,6 @@ OpenCLImageAccess2D Image2D::getOpenCLImageAccess(
     return OpenCLImageAccess2D(mCLImages[device], &mCLImagesAccess[device]);
 }
 
-Image2D::~Image2D() {
-    // Delete all images
-    boost::unordered_map<OpenCLDevice::pointer, cl::Image2D*>::iterator it;
-    for (it = mCLImages.begin(); it != mCLImages.end(); it++) {
-        delete it->second;
-    }
-
-    // TODO: type support needed here
-    delete[] (float*) mHostData;
-}
-
 Image2D::Image2D() {
     mHostData = NULL;
     mHostHasData = false;
@@ -270,4 +259,48 @@ void Image2D::createImage(
 
 bool Image2D::isInitialized() {
     return mCLImages.size() > 0 || mHostHasData;
+}
+
+void Image2D::free(ExecutionDevice::pointer device) {
+    // Delete data on a specific device
+    if(device->isHost()) {
+        switch(mType) {
+        case TYPE_FLOAT:
+            delete[] (float *)mHostData;
+            break;
+        case TYPE_UINT8:
+            delete[] (uchar *)mHostData;
+            break;
+        case TYPE_INT8:
+            delete[] (char *)mHostData;
+            break;
+        case TYPE_UINT16:
+            delete[] (ushort *)mHostData;
+            break;
+        case TYPE_INT16:
+            delete[] (short *)mHostData;
+            break;
+        }
+        mHostHasData = false;
+    } else {
+        OpenCLDevice::pointer clDevice = boost::dynamic_pointer_cast<OpenCLDevice>(device);
+        delete mCLImages[clDevice];
+        mCLImages.erase(clDevice);
+        mCLImagesIsUpToDate.erase(clDevice);
+        mCLImagesAccess.erase(clDevice);
+    }
+}
+
+void Image2D::freeAll() {
+    boost::unordered_map<OpenCLDevice::pointer, cl::Image2D*>::iterator it;
+    for (it = mCLImages.begin(); it != mCLImages.end(); it++) {
+        delete it->second;
+    }
+    mCLImages.clear();
+    mCLImagesIsUpToDate.clear();
+    mCLImagesAccess.clear();
+
+    if(mHostHasData) {
+        this->free(Host::New());
+    }
 }

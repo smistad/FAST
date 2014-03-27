@@ -31,6 +31,10 @@ class Image2Dt : public DataObject {
 
         // Pointer to the streamer used to drive this object
         Streamer *mStreamer;
+
+        // TODO not implemented yet
+        void free(ExecutionDevice::pointer device) {};
+        void freeAll() {};
 };
 
 } // end namespace fast

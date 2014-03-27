@@ -18,7 +18,7 @@ class Image2D: public ImageData {
         void createImage(unsigned int width, unsigned int height, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device, const void * data);
         OpenCLImageAccess2D getOpenCLImageAccess(accessType type, OpenCLDevice::pointer);
         ImageAccess2D getImageAccess(accessType type);
-        ~Image2D();
+        ~Image2D() { freeAll(); };
     private:
         Image2D();
         boost::unordered_map<OpenCLDevice::pointer, cl::Image2D*> mCLImages;
@@ -36,6 +36,8 @@ class Image2D: public ImageData {
         void transferCLImageFromHost(OpenCLDevice::pointer device);
         void transferCLImageToHost(OpenCLDevice::pointer device);
         bool isInitialized();
+        void free(ExecutionDevice::pointer device);
+        void freeAll();
 };
 
 } // end namespace fast

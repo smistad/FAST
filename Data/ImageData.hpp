@@ -17,7 +17,6 @@ class ImageData : public DataObject {
         unsigned char mDimensions;
         DataType mType;
         unsigned int mComponents;
-        virtual ~ImageData() {};
 
 };
 

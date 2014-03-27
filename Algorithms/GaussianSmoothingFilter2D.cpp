@@ -6,7 +6,7 @@ using namespace fast;
 void GaussianSmoothingFilter2D::setInput(Image2D::pointer input) {
     mStaticInput = input;
     mIsModified = true;
-    input->update(); // Need to run update to get the width and height, could maybe be moved into getWidth?
+    input->retain(mDevice);
     addParent(input);
 }
 
@@ -136,8 +136,9 @@ void GaussianSmoothingFilter2D::execute() {
                 cl::NDRange(input->getWidth(),input->getHeight()),
                 cl::NullRange
         );
-
     }
+
+    input->release(mDevice);
 
     // Update the timestamp of the output data
     output->updateModifiedTimestamp();
