@@ -6,11 +6,11 @@ void VTKImageImporter::setInput(vtkSmartPointer<vtkImageData> image) {
     mIsModified = true;
 }
 
-ImageData::pointer VTKImageImporter::getOutput() {
+StaticImage::pointer VTKImageImporter::getOutput() {
     if(mTempOutput.isValid()) {
         mTempOutput->setParent(mPtr.lock());
 
-        ImageData::pointer newSmartPtr;
+        StaticImage::pointer newSmartPtr;
         newSmartPtr.swap(mTempOutput);
 
         return newSmartPtr;

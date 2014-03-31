@@ -23,6 +23,7 @@ void Image2Dt::addFrame(Image2D::pointer frame) {
 Image2Dt::Image2Dt() {
     mCurrentFrame = 0;
     mKeepAllFrames = false;
+    mIsDynamicData = true;
     updateModifiedTimestamp();
 }
 

@@ -1,25 +1,23 @@
-#ifndef IMAGE_DATA_HPP
-#define IMAGE_DATA_HPP
+#ifndef IMAGEDATA_HPP_
+#define IMAGEDATA_HPP_
 
 #include "DataObject.hpp"
-#include "DataTypes.hpp"
+
 namespace fast {
 
 class ImageData : public DataObject {
     public:
-        unsigned int getWidth() const;
-        unsigned int getHeight() const;
-        unsigned char getDimensions() const;
-        DataType getDataType() const;
-        unsigned int getNrOfComponents() const;
+        typedef SharedPointer<ImageData> pointer;
+        virtual ~ImageData() {};
+        bool isDynamicData();
     protected:
-        unsigned int mWidth, mHeight;
-        unsigned char mDimensions;
-        DataType mType;
-        unsigned int mComponents;
+        bool mIsDynamicData;
 
 };
 
-}; // end namespace fast
+}
 
-#endif
+
+
+
+#endif /* IMAGEDATA_HPP_ */

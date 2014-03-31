@@ -1,14 +1,14 @@
 #ifndef IMAGE2DT_HPP
 #define IMAGE2DT_HPP
 
-#include "DataObject.hpp"
+#include "DynamicImage.hpp"
 #include "Image2D.hpp"
 #include <vector>
 #include "Streamer.hpp"
 
 namespace fast {
 
-class Image2Dt : public DataObject {
+class Image2Dt : public DynamicImage {
     FAST_OBJECT(Image2Dt)
     public:
         Image2D::pointer getNextFrame();

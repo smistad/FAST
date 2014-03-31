@@ -1,21 +1,23 @@
 #include "GaussianSmoothingFilter2D.hpp"
 #include "Exception.hpp"
 #include "DeviceManager.hpp"
+#include "Image2D.hpp"
+#include "Image2Dt.hpp"
 using namespace fast;
 
-void GaussianSmoothingFilter2D::setInput(Image2D::pointer input) {
-    mStaticInput = input;
+void GaussianSmoothingFilter2D::setInput(ImageData::pointer input) {
+    mInput = input;
     mIsModified = true;
     input->retain(mDevice);
     addParent(input);
+    if(input->isDynamicData()) {
+        mTempOutput = Image2Dt::New();
+    } else {
+        mTempOutput = Image2D::New();
+    }
+    mOutput = mTempOutput;
 }
 
-void GaussianSmoothingFilter2D::setInput(Image2Dt::pointer input) {
-    mDynamicInput = input;
-    mIsModified = true;
-    // TODO finish
-    addParent(input);
-}
 
 void GaussianSmoothingFilter2D::setDevice(ExecutionDevice::pointer device) {
     mDevice = device;
@@ -39,10 +41,13 @@ void GaussianSmoothingFilter2D::setStandardDeviation(float stdDev) {
 }
 
 ImageData::pointer GaussianSmoothingFilter2D::getOutput() {
+    if(!mInput.isValid()) {
+        throw Exception("Must call setInput before getOutput in GaussianSmoothingFilter2D");
+    }
     if(mTempOutput.isValid()) {
         mTempOutput->setParent(mPtr.lock());
 
-        Image2D::pointer newSmartPtr;
+        ImageData::pointer newSmartPtr;
         newSmartPtr.swap(mTempOutput);
 
         return newSmartPtr;
@@ -52,10 +57,7 @@ ImageData::pointer GaussianSmoothingFilter2D::getOutput() {
 }
 
 GaussianSmoothingFilter2D::GaussianSmoothingFilter2D() {
-    mTempOutput = Image2D::New();
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
-
-    mOutput = mTempOutput;
     mStdDev = 1.0f;
     mMaskSize = 3;
     mIsModified = true;
@@ -83,18 +85,27 @@ float * GaussianSmoothingFilter2D::createMask() {
 void GaussianSmoothingFilter2D::execute() {
 
     Image2D::pointer input;
-    if(!mStaticInput.isValid() && !mDynamicInput.isValid()) {
+    if(!mInput.isValid()) {
         throw Exception("No input supplied to GaussianSmoothingFilter2D");
-    } else if(mStaticInput.isValid()) {
-        input = mStaticInput;
+    }
+    if(mInput->isDynamicData()) {
+        input = Image2Dt::pointer(mInput)->getNextFrame();
     } else {
-        input = mDynamicInput->getNextFrame();
+        input = mInput;
     }
 
-    Image2D::pointer output = mOutput.lock();
-    if(output == NULL) {
-        // output object is no longer valid
-        return;
+    Image2D::pointer output;
+    if(input->isDynamicData()) {
+        output = Image2D::New();
+        output->createImage(input->getWidth(),input->getHeight(),input->getDataType(),input->getNrOfComponents(),mDevice);
+        Image2Dt::pointer(mOutput)->addFrame(output);
+    } else {
+        output = mOutput.lock();
+
+        if(output == NULL) {
+            // output object is no longer valid
+            return;
+        }
     }
 
     // Initialize output image

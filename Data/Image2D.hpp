@@ -2,7 +2,7 @@
 #define IMAGE2D_HPP
 
 #include "SmartPointers.hpp"
-#include "ImageData.hpp"
+#include "StaticImage.hpp"
 #include "OpenCLManager.hpp"
 #include "ExecutionDevice.hpp"
 #include "OpenCLImageAccess2D.hpp"
@@ -11,7 +11,7 @@
 #include <boost/unordered_set.hpp>
 namespace fast {
 
-class Image2D: public ImageData {
+class Image2D: public StaticImage {
     FAST_OBJECT(Image2D)
     public:
         void createImage(unsigned int width, unsigned int height, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device);
