@@ -88,6 +88,10 @@ void GaussianSmoothingFilter2D::execute() {
     if(!mInput.isValid()) {
         throw Exception("No input supplied to GaussianSmoothingFilter2D");
     }
+    if(!mOutput.lock().isValid()) {
+        // output object is no longer valid
+        return;
+    }
     if(mInput->isDynamicData()) {
         input = Image2Dt::pointer(mInput)->getNextFrame();
         std::cout << "processing a new frame" << std::endl;
@@ -98,32 +102,17 @@ void GaussianSmoothingFilter2D::execute() {
     Image2D::pointer output;
     if(mInput->isDynamicData()) {
         output = Image2D::New();
-
-        // Initialize output image
-        output->createImage(input->getWidth(),
-            input->getHeight(),
-            input->getDataType(),
-            input->getNrOfComponents(),
-            mDevice);
-
         Image2Dt::pointer(mOutput)->addFrame(output);
     } else {
         output = Image2D::pointer(mOutput);
-
-
-        if(output == NULL) {
-            // output object is no longer valid
-            return;
-        }
-
-        // Initialize output image
-        output->createImage(input->getWidth(),
-                input->getHeight(),
-                input->getDataType(),
-                input->getNrOfComponents(),
-                mDevice);
-
     }
+
+    // Initialize output image
+    output->createImage(input->getWidth(),
+        input->getHeight(),
+        input->getDataType(),
+        input->getNrOfComponents(),
+        mDevice);
 
     if(mDevice->isHost()) {
 
