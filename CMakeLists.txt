@@ -85,7 +85,7 @@ include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 QT4_WRAP_CPP(HEADERS_MOC ${HEADERS})
 
-find_package(Boost COMPONENTS thread iostreams REQUIRED)
+find_package(Boost COMPONENTS system thread iostreams REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS} ${PROJECT_BINARY_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
 
