@@ -12,6 +12,7 @@ class StaticImage : public ImageData {
         unsigned char getDimensions() const;
         DataType getDataType() const;
         unsigned int getNrOfComponents() const;
+        virtual ~StaticImage() {};
     protected:
         unsigned int mWidth, mHeight;
         unsigned char mDimensions;

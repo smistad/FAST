@@ -13,7 +13,7 @@ class Image2Dt : public DynamicImage {
     public:
         Image2D::pointer getNextFrame();
         void addFrame(Image2D::pointer frame);
-        void setStreamer(Streamer *streamer);
+        unsigned int getSize() const;
         ~Image2Dt() {};
     private:
         Image2Dt();
@@ -29,12 +29,11 @@ class Image2Dt : public DynamicImage {
         // set to true
         unsigned long mCurrentFrame;
 
-        // Pointer to the streamer used to drive this object
-        Streamer *mStreamer;
-
         // TODO not implemented yet
         void free(ExecutionDevice::pointer device) {};
         void freeAll() {};
+
+        boost::mutex mStreamMutex;
 };
 
 } // end namespace fast

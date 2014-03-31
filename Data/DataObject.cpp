@@ -3,8 +3,10 @@
 using namespace fast;
 
 void DataObject::update() {
-    ProcessObject::pointer object = mParentObject;
-    object->update();
+    if(mParentObject.isValid()) {
+        ProcessObject::pointer object = mParentObject;
+        object->update();
+    }
 }
 
 void DataObject::setParent(Object::pointer parent) {

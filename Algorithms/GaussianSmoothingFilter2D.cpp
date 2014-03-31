@@ -8,12 +8,12 @@ using namespace fast;
 void GaussianSmoothingFilter2D::setInput(ImageData::pointer input) {
     mInput = input;
     mIsModified = true;
-    input->retain(mDevice);
     addParent(input);
     if(input->isDynamicData()) {
         mTempOutput = Image2Dt::New();
     } else {
         mTempOutput = Image2D::New();
+        input->retain(mDevice);
     }
     mOutput = mTempOutput;
 }
@@ -90,30 +90,40 @@ void GaussianSmoothingFilter2D::execute() {
     }
     if(mInput->isDynamicData()) {
         input = Image2Dt::pointer(mInput)->getNextFrame();
+        std::cout << "processing a new frame" << std::endl;
     } else {
         input = mInput;
     }
 
     Image2D::pointer output;
-    if(input->isDynamicData()) {
+    if(mInput->isDynamicData()) {
         output = Image2D::New();
-        output->createImage(input->getWidth(),input->getHeight(),input->getDataType(),input->getNrOfComponents(),mDevice);
+
+        // Initialize output image
+        output->createImage(input->getWidth(),
+            input->getHeight(),
+            input->getDataType(),
+            input->getNrOfComponents(),
+            mDevice);
+
         Image2Dt::pointer(mOutput)->addFrame(output);
     } else {
-        output = mOutput.lock();
+        output = Image2D::pointer(mOutput);
+
 
         if(output == NULL) {
             // output object is no longer valid
             return;
         }
-    }
 
-    // Initialize output image
-    output->createImage(input->getWidth(),
-            input->getHeight(),
-            input->getDataType(),
-            input->getNrOfComponents(),
-            mDevice);
+        // Initialize output image
+        output->createImage(input->getWidth(),
+                input->getHeight(),
+                input->getDataType(),
+                input->getNrOfComponents(),
+                mDevice);
+
+    }
 
     if(mDevice->isHost()) {
 
@@ -149,7 +159,8 @@ void GaussianSmoothingFilter2D::execute() {
         );
     }
 
-    input->release(mDevice);
+    if(!mInput->isDynamicData())
+        mInput->release(mDevice);
 
     // Update the timestamp of the output data
     output->updateModifiedTimestamp();

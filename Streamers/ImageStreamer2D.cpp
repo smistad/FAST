@@ -4,10 +4,25 @@
 #include "Exception.hpp"
 using namespace fast;
 
+/**
+ * Dummy function to get into the class again
+ */
+void stubStreamThread(ImageStreamer2D * streamer) {
+    streamer->producerStream();
+}
+
 Image2Dt::pointer ImageStreamer2D::getOutput() {
+    if(!mStreamIsStarted) {
+        mStreamIsStarted = true;
+        thread = new boost::thread(&stubStreamThread, this);
+    }
+
+    // Wait here for first frame
+    // TODO use condition variable instead
+    while(!mFirstFrameIsInserted);
+
     if(mOutput.isValid()) {
         mOutput->setParent(mPtr.lock());
-        mOutput->setStreamer(this);
 
         Image2Dt::pointer newSmartPtr;
         newSmartPtr.swap(mOutput);
@@ -24,20 +39,20 @@ ImageStreamer2D::ImageStreamer2D() {
     mStreamIsStarted = false;
     mIsModified = true;
     thread = NULL;
+    mFirstFrameIsInserted = false;
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
 }
-/**
- * Dummy function to get into the class again
- */
-void stubStreamThread(ImageStreamer2D * streamer) {
-    streamer->producerStream();
-}
+
 
 inline void ImageStreamer2D::execute() {
     if(!mStreamIsStarted) {
         mStreamIsStarted = true;
         thread = new boost::thread(&stubStreamThread, this);
     }
+
+    // Wait here for first frame
+    // TODO use condition variable instead
+    while(!mFirstFrameIsInserted);
 }
 
 void ImageStreamer2D::setFilenameFormat(std::string str) {
@@ -72,6 +87,7 @@ void ImageStreamer2D::producerStream() {
             Image2Dt::pointer ptr = mOutput2.lock();
             if(ptr.isValid()) {
                 ptr->addFrame(image);
+                mFirstFrameIsInserted = true;
             } else {
                 std::cout << "Image2Dt object destroyed, stream can stop." << std::endl;
                 break;

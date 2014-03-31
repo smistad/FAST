@@ -33,6 +33,7 @@ class ImageStreamer2D : public Streamer {
         boost::thread *thread;
 
         bool mStreamIsStarted;
+        bool mFirstFrameIsInserted;
 
         std::string mFilenameFormat;
 

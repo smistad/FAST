@@ -66,8 +66,17 @@ int main(int argc, char ** argv) {
     // Example of streaming 2D images
     ImageStreamer2D::pointer streamer = ImageStreamer2D::New();
     streamer->setFilenameFormat("test_#.jpg");
-    Image2Dt::pointer dynamicImage = streamer->getOutput();
-    dynamicImage->update();
+    GaussianSmoothingFilter2D::pointer filter2 = GaussianSmoothingFilter2D::New();
+    filter2->setInput(streamer->getOutput());
+    filter2->setMaskSize(7);
+    filter2->setStandardDeviation(10);
+    Image2Dt::pointer dynamicImage = filter2->getOutput();
+    // Call update 4 times
+    int i = 4;
+    while(--i) {
+        dynamicImage->update();
+    }
+
 
 
 

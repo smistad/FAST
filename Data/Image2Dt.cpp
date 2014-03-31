@@ -2,22 +2,25 @@
 using namespace fast;
 
 Image2D::pointer Image2Dt::getNextFrame() {
-    mStreamer->getStreamMutex().lock();
+    mStreamMutex.lock();
+    // If no frame is available the method should wait
+    if(mFrames.size() == 0)
+        throw Exception("No frames available");
     Image2D::pointer ret = mFrames[mCurrentFrame];
-    mStreamer->getStreamMutex().unlock();
+    mStreamMutex.unlock();
     if(mKeepAllFrames)
         mCurrentFrame++;
     return ret;
 }
 
 void Image2Dt::addFrame(Image2D::pointer frame) {
-    mStreamer->getStreamMutex().lock();
+    mStreamMutex.lock();
     updateModifiedTimestamp();
     if(!mKeepAllFrames) {
         mFrames.clear();
     }
     mFrames.push_back(frame);
-    mStreamer->getStreamMutex().unlock();
+    mStreamMutex.unlock();
 }
 
 Image2Dt::Image2Dt() {
@@ -27,6 +30,7 @@ Image2Dt::Image2Dt() {
     updateModifiedTimestamp();
 }
 
-void Image2Dt::setStreamer(Streamer *streamer) {
-    mStreamer = streamer;
+
+unsigned int Image2Dt::getSize() const {
+    return mFrames.size();
 }
