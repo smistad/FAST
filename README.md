@@ -1,6 +1,8 @@
 FAST - Framework for Heterogeneous Medical Image Computing
 ==========================================================
 
+Will currently only compile on linux due to OpenGL interoperability not implemented for Apple/Windows.
+
 Dependencies
 ----------------------------------------------------------
 These libraries have to be installed on the system to use FAST:

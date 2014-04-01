@@ -3,6 +3,8 @@
 #include "DeviceManager.hpp"
 #include "HelperFunctions.hpp"
 #include <GL/glx.h>
+#include "Image2D.hpp"
+#include "Image2Dt.hpp"
 
 
 using namespace fast;
@@ -12,16 +14,21 @@ void ImageRenderer::execute() {
     if(!mInput.isValid())
         throw Exception("No input was given to ImageRenderer");
 
+    Image2D::pointer input;
+    if(mInput->isDynamicData()) {
+        input = Image2Dt::pointer(mInput)->getNextFrame();
+        std::cout << "processing a new frame" << std::endl;
+    } else {
+        input = mInput;
+    }
+
     bool success = glXMakeCurrent(XOpenDisplay(0),glXGetCurrentDrawable(),(GLXContext)mDevice->getGLContext());
     if(!success)
         throw Exception("failed to switch to window");
-    std::cout << "Current GL context: " << glXGetCurrentContext() << std::endl;
 
-    OpenCLImageAccess2D access = mInput->getOpenCLImageAccess(ACCESS_READ, mDevice);
-
+    OpenCLImageAccess2D access = input->getOpenCLImageAccess(ACCESS_READ, mDevice);
     cl::Image2D* clImage = access.get();
 
-    std::cout << mTexture << std::endl;
     // Create OpenGL texture
     glEnable(GL_TEXTURE_2D);
     glGenTextures(1, &mTexture);
@@ -31,7 +38,6 @@ void ImageRenderer::execute() {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, clImage->getImageInfo<CL_IMAGE_WIDTH>(), clImage->getImageInfo<CL_IMAGE_HEIGHT>(), 0, GL_RGBA, GL_FLOAT, 0);
     glBindTexture(GL_TEXTURE_2D, 0);
     glFinish();
-    std::cout << mTexture << std::endl;
 
     // Create CL-GL image
 #if defined(CL_VERSION_1_2)
@@ -74,10 +80,14 @@ void ImageRenderer::execute() {
     mTextureIsCreated = true;
 }
 
-void ImageRenderer::setInput(Image2D::pointer image) {
+void ImageRenderer::setInput(ImageData::pointer image) {
     mInput = image;
     addParent(mInput);
     mIsModified = true;
+    /*
+    if(image->getNrOfComponents() != 2)
+        throw Exception("The ImageRenderer only supports 2D images");
+    */
 }
 
 ImageRenderer::ImageRenderer() {

@@ -54,10 +54,14 @@ int main(int argc, char ** argv) {
     exporter->setInput(filteredImage);
     exporter->update();
 
+
+
+
+    // Example of displaying an image on screen using ImageRenderer (2D) and SimpleWindow
+    // TODO The QApplication part should be hid away in the SimpleWindow class
     QApplication app(argc,argv);
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->setInput(filteredImage);
-    //renderer->update();
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->resize(512,512);
