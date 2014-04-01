@@ -3,7 +3,7 @@ using namespace fast;
 
 Image2D::pointer Image2Dt::getNextFrame() {
     mStreamMutex.lock();
-    // If no frame is available the method should wait
+    // TODO: If no frame is available the method should maybe wait?
     if(mFrames.size() == 0)
         throw Exception("No frames available");
     Image2D::pointer ret = mFrames[mCurrentFrame];

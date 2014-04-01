@@ -45,6 +45,10 @@ set(SOURCES
     Importers/Importer.hpp
     Exporters/ImageExporter2D.cpp
     Exporters/ImageExporter2D.hpp
+    Visualization/SimpleWindow.hpp
+    Visualization/View.hpp
+    Visualization/Renderer.hpp
+    Visualization/ImageRenderer.hpp
 )
 
 if(VTK_INTEROP)
@@ -69,10 +73,13 @@ include_directories(
     Streamers/
     Algorithms/
     Data/Access/
+    Visualiation/
 )
 
 # Headers for Qt objects
 set(HEADERS 
+    Visualization/SimpleWindow.hpp
+    Visualization/View.hpp
 )
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFAST_ROOT_DIR=\\\"${PROJECT_SOURCE_DIR}/\\\"")
