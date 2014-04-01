@@ -9,7 +9,7 @@ namespace fast {
 class Renderer : public ProcessObject {
     public:
         typedef SharedPointer<Renderer> pointer;
-        void draw();
+        virtual void draw() = 0;
 
 };
 

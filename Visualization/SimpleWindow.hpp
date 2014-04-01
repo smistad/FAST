@@ -8,7 +8,7 @@
 
 namespace fast {
 
-class SimpleWindow : public Object, QWidget {
+class SimpleWindow : public QWidget, public Object {
     Q_OBJECT
     FAST_OBJECT(SimpleWindow)
     public:

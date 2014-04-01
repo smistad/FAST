@@ -8,7 +8,7 @@
 
 namespace fast {
 
-class View : public ProcessObject {
+class View : public QGLWidget, public ProcessObject {
     Q_OBJECT
     FAST_OBJECT(View)
     public:
@@ -17,11 +17,7 @@ class View : public ProcessObject {
         View();
         std::vector<Renderer::pointer> mRenderers;
         void execute();
-#if defined(CL_VERSION_1_2)
-        cl::ImageGL mImageGL;
-#else
-        cl::Image2DGL mImageGL;
-#endif
+
     protected:
         void initializeGL();
         void paintGL();

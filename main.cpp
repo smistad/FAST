@@ -8,6 +8,8 @@
 #include "ImageStreamer2D.hpp"
 #include "DeviceManager.hpp"
 #include "GaussianSmoothingFilter2D.hpp"
+#include "SimpleWindow.hpp"
+#include "ImageRenderer.hpp"
 
 #include <vtkVersion.h>
 #include <vtkImageData.h>
@@ -18,6 +20,8 @@
 #include <vtkRenderer.h>
 #include <vtkImageMapper.h>
 #include <vtkActor2D.h>
+
+#include <QApplication>
 
 using namespace fast;
 
@@ -32,7 +36,7 @@ int main(int argc, char ** argv) {
 
     // Get a GPU device and set it as the default device
     DeviceManager& deviceManager = DeviceManager::getInstance();
-    deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice());
+    deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(true));
 
 
 
@@ -50,6 +54,15 @@ int main(int argc, char ** argv) {
     exporter->setInput(filteredImage);
     exporter->update();
 
+    QApplication app(argc,argv);
+    ImageRenderer::pointer renderer = ImageRenderer::New();
+    renderer->setInput(filteredImage);
+    //renderer->update();
+    SimpleWindow::pointer window = SimpleWindow::New();
+    window->addRenderer(renderer);
+    window->resize(512,512);
+    window->show();
+    QApplication::exec();
 
 
 
@@ -106,9 +119,9 @@ int main(int argc, char ** argv) {
     imageActor->SetMapper(imageMapper);
 
     // Setup renderers and render window
-    vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
+    vtkSmartPointer<vtkRenderer> renderer2 = vtkSmartPointer<vtkRenderer>::New();
     vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
-    renderWindow->AddRenderer(renderer);
+    renderWindow->AddRenderer(renderer2);
     renderWindow->SetSize(filteredImage->getWidth(), filteredImage->getHeight());
 
     // Setup render window interactor
@@ -117,7 +130,7 @@ int main(int argc, char ** argv) {
     vtkSmartPointer<vtkInteractorStyleImage> style = vtkSmartPointer<vtkInteractorStyleImage>::New();
     renderWindowInteractor->SetInteractorStyle(style);
     renderWindowInteractor->SetRenderWindow(renderWindow);
-    renderer->AddActor2D(imageActor);
+    renderer2->AddActor2D(imageActor);
     renderWindow->Render();
     renderWindowInteractor->Start();
 

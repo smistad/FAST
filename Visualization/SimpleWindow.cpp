@@ -14,7 +14,7 @@ SimpleWindow::SimpleWindow() {
     mFramerate = 25;
     mView = View::New();
     QHBoxLayout *mainLayout = new QHBoxLayout;
-    mainLayout->addWidget(mView);
+    mainLayout->addWidget(mView.getPtr().get());
     setLayout(mainLayout);
     setWindowTitle(tr("FAST"));
 }

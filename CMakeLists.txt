@@ -45,9 +45,12 @@ set(SOURCES
     Importers/Importer.hpp
     Exporters/ImageExporter2D.cpp
     Exporters/ImageExporter2D.hpp
+    Visualization/SimpleWindow.cpp
     Visualization/SimpleWindow.hpp
+    Visualization/View.cpp
     Visualization/View.hpp
     Visualization/Renderer.hpp
+    Visualization/ImageRenderer.cpp
     Visualization/ImageRenderer.hpp
 )
 
@@ -73,7 +76,7 @@ include_directories(
     Streamers/
     Algorithms/
     Data/Access/
-    Visualiation/
+    Visualization/
 )
 
 # Headers for Qt objects

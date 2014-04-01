@@ -45,12 +45,14 @@ class OpenCLDevice : public ExecutionDevice, public oul::Context {
         cl::CommandQueue getCommandQueue();
         cl::Device getDevice();
 
-        OpenCLDevice(std::vector<cl::Device> devices) : oul::Context(devices, NULL, false)
-        {mIsHost = false;};
+        OpenCLDevice(std::vector<cl::Device> devices, unsigned long * glContext = NULL) : oul::Context(devices, glContext, false)
+        {mIsHost = false;mGLContext = glContext;};
+        unsigned long * getGLContext() { return mGLContext; };
     private:
         OpenCLDevice() {mIsHost = false;};
         OpenCLDevice::pointer mPtr;
         void setPtr(OpenCLDevice::pointer ptr) {mPtr = ptr;};
+        unsigned long * mGLContext;
 
 };
 
