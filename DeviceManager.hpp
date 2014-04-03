@@ -24,7 +24,7 @@ class DeviceManager {
         ExecutionDevice::pointer getDefaultComputationDevice();
         ExecutionDevice::pointer getDefaultVisualizationDevice();
     private:
-        DeviceManager() {};
+        DeviceManager();
         DeviceManager(DeviceManager const&); // Don't implement
         void operator=(DeviceManager const&); // Don't implement
         ExecutionDevice::pointer mDefaultComputationDevice;

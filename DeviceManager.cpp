@@ -1,6 +1,18 @@
 #include "DeviceManager.hpp"
 #include "OpenCLManager.hpp"
-#include "GL/glx.h"
+
+#if defined(__APPLE__) || defined(__MACOSX)
+#include <OpenCL/cl_gl.h>
+#include <OpenGL/OpenGL.h>
+#else
+#if _WIN32
+#include <CL/cl_gl.h>
+#else
+#include <GL/glx.h>
+#include <CL/cl_gl.h>
+#endif
+#endif
+
 using namespace fast;
 
 DeviceManager& DeviceManager::getInstance() {
@@ -12,6 +24,17 @@ std::vector<OpenCLDevice::pointer> getDevices(oul::DeviceCriteria criteria, bool
     unsigned long * glContext = NULL;
     if(enableVisualization) {
         // Create GL context
+#if defined(__APPLE__) || defined(__MACOSX)
+        CGLPixelFormatAttribute attribs[] = {};
+        CGLPixelFormatObj pix;
+        CGLChoosePixelFormat(attribs, &pix, NULL);
+        CGLContextObj appleGLContext;
+        CGLCreateContext(pix, NULL, &appleGLContext);
+        glContext = (unsigned long *)appleGLContext;
+#else
+#if _WIN32
+        // TODO implement windows OpenGL stuff
+#else
         int sngBuf[] = { GLX_RGBA,
                          GLX_DOUBLEBUFFER,
                          GLX_RED_SIZE, 1,
@@ -23,6 +46,8 @@ std::vector<OpenCLDevice::pointer> getDevices(oul::DeviceCriteria criteria, bool
         Display * display = XOpenDisplay(0);
         XVisualInfo* vi = glXChooseVisual(display, DefaultScreen(display), sngBuf);
         glContext = (unsigned long *)glXCreateContext(display, vi, 0, GL_TRUE);
+#endif
+#endif
         criteria.setCapabilityCriteria(oul::DEVICE_CAPABILITY_OPENGL_INTEROP);
     }
     oul::OpenCLManager * manager = oul::OpenCLManager::getInstance();
@@ -105,4 +130,7 @@ ExecutionDevice::pointer DeviceManager::getDefaultComputationDevice() {
 
 ExecutionDevice::pointer DeviceManager::getDefaultVisualizationDevice() {
     return mDefaultVisualizationDevice;
+}
+
+DeviceManager::DeviceManager() {
 }
