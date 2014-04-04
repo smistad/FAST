@@ -9,6 +9,13 @@ set(EXECUTABLE_SOURCE_FILES
     CatchMain.cpp
 )
 
+if(VTK_INTEROP)
+set(EXECUTABLE_SOURCE_FILES
+    ${EXECUTABLE_SOURCE_FILES} 
+    VTKInteropTests.cpp
+)
+endif()
+
 set(FAST_LINK_LIBRARIES
     ${FAST}
 )
