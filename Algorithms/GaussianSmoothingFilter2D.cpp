@@ -130,7 +130,15 @@ void GaussianSmoothingFilter2D::execute() {
         );
         delete[] mask;
 
-        int programNr = device->createProgramFromSource(std::string(FAST_ROOT_DIR) + "Algorithms/GaussianSmoothingFilter2D.cl");
+        std::string buildOptions = "";
+        if(input->getDataType() == TYPE_FLOAT) {
+            buildOptions = "-DTYPE_FLOAT";
+        } else if(input->getDataType() == TYPE_INT8 || input->getDataType() == TYPE_INT16) {
+            buildOptions = "-DTYPE_INT";
+        } else {
+            buildOptions = "-DTYPE_UINT";
+        }
+        int programNr = device->createProgramFromSource(std::string(FAST_ROOT_DIR) + "Algorithms/GaussianSmoothingFilter2D.cl", buildOptions);
         cl::Kernel kernel(device->getProgram(programNr), "gaussianSmoothing");
 
         OpenCLImageAccess2D inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
