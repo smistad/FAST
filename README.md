@@ -10,8 +10,8 @@ These libraries have to be installed on the system to use FAST:
 * OpenCL
 * Boost
 * Qt 4
-* ITK (Optional, however, currently needed to run the examples)
-* VTK (Optional, however, currently needed to run the examples)
+* ITK (Optional, off by default, use `-DITK_INTEREOP=ON` on cmake to turn on)
+* VTK (Optional, off by default, use `-DVTK_INTEREOP=ON` on cmake to turn on)
 
 Compile and run examples
 ----------------------------------------------------------

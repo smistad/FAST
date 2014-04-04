@@ -2,24 +2,11 @@
 #include "Exception.hpp"
 #include "ImageImporter2D.hpp"
 #include "ImageExporter2D.hpp"
-#include "VTKImageExporter.hpp"
-#include "VTKImageImporter.hpp"
-#include "ITKImageExporter.hpp"
 #include "ImageStreamer2D.hpp"
 #include "DeviceManager.hpp"
 #include "GaussianSmoothingFilter2D.hpp"
 #include "SimpleWindow.hpp"
 #include "ImageRenderer.hpp"
-
-#include <vtkVersion.h>
-#include <vtkImageData.h>
-#include <vtkSmartPointer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkInteractorStyleImage.h>
-#include <vtkRenderer.h>
-#include <vtkImageMapper.h>
-#include <vtkActor2D.h>
 
 #include <QApplication>
 
