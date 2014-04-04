@@ -7,6 +7,7 @@ namespace fast {
 
 class StaticImage : public ImageData {
     public:
+        typedef SharedPointer<StaticImage> pointer;
         unsigned int getWidth() const;
         unsigned int getHeight() const;
         unsigned char getDimensions() const;

@@ -40,6 +40,8 @@ set(SOURCES
     Streamers/Streamer.hpp
     Streamers/ImageStreamer2D.cpp
     Streamers/ImageStreamer2D.hpp
+    Importers/MetaImageImporter.cpp
+    Importers/MetaImageImporter.hpp
     Importers/ImageImporter2D.cpp
     Importers/ImageImporter2D.hpp
     Importers/Importer.hpp

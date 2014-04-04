@@ -7,6 +7,7 @@
 #include "GaussianSmoothingFilter2D.hpp"
 #include "SimpleWindow.hpp"
 #include "ImageRenderer.hpp"
+#include "MetaImageImporter.hpp"
 
 #include <QApplication>
 
@@ -52,7 +53,7 @@ int main(int argc, char ** argv) {
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->resize(512,512);
-    window->runMainLoop();
+    //window->runMainLoop();
 
 
 
@@ -79,5 +80,20 @@ int main(int argc, char ** argv) {
     while(--i) {
         dynamicImage->update();
     }
+
+    MetaImageImporter::pointer importer2 = MetaImageImporter::New();
+    importer2->setFilename("US-Acq_01_20140320T105851_cxOpenCV.mask.mhd");
+    Image2D::pointer image3 = importer2->getOutput();
+    image3->update();
+
+    GaussianSmoothingFilter2D::pointer filter3 = GaussianSmoothingFilter2D::New();
+    filter3->setInput(image3);
+    filter3->setMaskSize(7);
+    filter3->setStandardDeviation(10);
+    Image2D::pointer image4 = filter3->getOutput();
+    ImageExporter2D::pointer exporter2 = ImageExporter2D::New();
+    exporter2->setInput(image4);
+    exporter2->setFilename("asd.jpg");
+    exporter2->update();
 
 }
