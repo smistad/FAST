@@ -16,6 +16,13 @@ set(EXECUTABLE_SOURCE_FILES
 )
 endif()
 
+if(ITK_INTEROP)
+set(EXECUTABLE_SOURCE_FILES
+    ${EXECUTABLE_SOURCE_FILES} 
+    ITKInteropTests.cpp
+)
+endif()
+
 set(FAST_LINK_LIBRARIES
     ${FAST}
 )
