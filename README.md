@@ -9,6 +9,7 @@ These libraries have to be installed on the system to use FAST:
 
 * OpenCL
 * Boost
+* Qt 4
 * ITK (Optional, however, currently needed to run the examples)
 * VTK (Optional, however, currently needed to run the examples)
 
@@ -23,5 +24,5 @@ mkdir build
 cd build
 cmake ../ -DVTK_INTEROP=ON -DITK_INTEROP=ON
 make -j8
-./test
+./Tests/test
 ```
