@@ -41,7 +41,7 @@ TEST_CASE("Import an image from VTK to FAST", "[fast][VTK]") {
 
 TEST_CASE("Export an image from FAST to VTK", "[fast][VTK]") {
     ImageImporter2D::pointer importer = ImageImporter2D::New();
-    importer->setFilename("lena.jpg");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "lena.jpg");
     Image2D::pointer fastImage = importer->getOutput();
 
     CHECK_NOTHROW(
@@ -61,7 +61,7 @@ TEST_CASE("Export an image from FAST to VTK", "[fast][VTK]") {
 TEST_CASE("Export an image from FAST to VTK and visualize", "[fast][VTK]") {
 
     ImageImporter2D::pointer importer = ImageImporter2D::New();
-    importer->setFilename("lena.jpg");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "lena.jpg");
     Image2D::pointer fastImage = importer->getOutput();
 
     // VTK Export and render example
