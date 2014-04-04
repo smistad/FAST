@@ -104,7 +104,9 @@ link_directories(${Boost_LIBRARY_DIRS})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
-add_executable(test ${SOURCES} ${HEADERS_MOC})
+add_executable(examples ${SOURCES} ${HEADERS_MOC})
+add_library(FAST ${SOURCES} ${HEADERS_MOC})
+
 set(LIBRARIES
     OpenCLUtilityLibrary
     ${QT_LIBRARIES}
@@ -125,4 +127,7 @@ if(ITK_INTEROP)
     set(LIBRARIES ${LIBRARIES} ${ITK_LIBRARIES})
 endif()
 
-target_link_libraries(test ${LIBRARIES})
+target_link_libraries(examples ${LIBRARIES})
+target_link_libraries(FAST ${LIBRARIES})
+
+add_subdirectory(Tests)
