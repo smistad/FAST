@@ -18,10 +18,6 @@
 using namespace fast;
 
 TEST_CASE("Import an image from VTK to FAST", "[fast]") {
-    // Get a GPU device and set it as the default device
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(false));
-
     ImageImporter2D::pointer importer = ImageImporter2D::New();
     importer->setFilename("lena.jpg");
     Image2D::pointer fastImage = importer->getOutput();
@@ -44,10 +40,6 @@ TEST_CASE("Import an image from VTK to FAST", "[fast]") {
 
 
 TEST_CASE("Export an image from FAST to VTK", "[fast]") {
-    // Get a GPU device and set it as the default device
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(false));
-
     ImageImporter2D::pointer importer = ImageImporter2D::New();
     importer->setFilename("lena.jpg");
     Image2D::pointer fastImage = importer->getOutput();
@@ -67,10 +59,6 @@ TEST_CASE("Export an image from FAST to VTK", "[fast]") {
 }
 
 TEST_CASE("Export an image from FAST to VTK and visualize", "[fast]") {
-
-    // Get a GPU device and set it as the default device
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(false));
 
     ImageImporter2D::pointer importer = ImageImporter2D::New();
     importer->setFilename("lena.jpg");
