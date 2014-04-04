@@ -96,6 +96,24 @@ OpenCLDevice::pointer DeviceManager::getOneGPUDevice(
     return devices[0];
 }
 
+OpenCLDevice::pointer DeviceManager::getOneOpenCLDevice(
+        bool enableVisualization) {
+
+    oul::DeviceCriteria criteria;
+
+    // Check if a GPU is available first, if not choose any
+    criteria.setTypeCriteria(oul::DEVICE_TYPE_GPU);
+    criteria.setDeviceCountCriteria(1);
+    std::vector<OpenCLDevice::pointer> devices = getDevices(criteria,enableVisualization);
+    if(devices.size() > 0) {
+        return devices[0];
+    } else {
+        criteria.setTypeCriteria(oul::DEVICE_TYPE_ANY);
+        std::vector<OpenCLDevice::pointer> devices = getDevices(criteria,enableVisualization);
+        return devices[0];
+    }
+}
+
 OpenCLDevice::pointer DeviceManager::getOneCPUDevice(
         bool enableVisualization) {
     oul::DeviceCriteria criteria;
@@ -133,4 +151,6 @@ ExecutionDevice::pointer DeviceManager::getDefaultVisualizationDevice() {
 }
 
 DeviceManager::DeviceManager() {
+    // Set one random device as default device
+    setDefaultDevice(getOneOpenCLDevice());
 }

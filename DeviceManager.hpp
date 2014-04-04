@@ -15,6 +15,7 @@ class DeviceManager {
         std::vector<OpenCLDevice::pointer> getAllDevices(bool enableVisualization = false);
         std::vector<OpenCLDevice::pointer> getAllGPUDevices(bool enableVisualization = false);
         std::vector<OpenCLDevice::pointer> getAllCPUDevices(bool enableVisualization = false);
+        OpenCLDevice::pointer getOneOpenCLDevice(bool enableVisualization = false);
         OpenCLDevice::pointer getOneGPUDevice(bool enableVisualization = false);
         OpenCLDevice::pointer getOneCPUDevice(bool enableVisualization = false);
         Host::pointer getHostDevice();
