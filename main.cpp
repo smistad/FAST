@@ -96,6 +96,51 @@ int main(int argc, char ** argv) {
 
 
 
+
+
+    // VTK Export and render example
+    vtkSmartPointer<VTKImageExporter> vtkExporter = VTKImageExporter::New();
+    vtkExporter->SetInput(filteredImage);
+    vtkSmartPointer<vtkImageData> vtkImage = vtkExporter->GetOutput();
+    vtkExporter->Update();
+
+
+
+
+
+    // VTK mess for getting the image on screen
+    vtkSmartPointer<vtkImageMapper> imageMapper = vtkSmartPointer<vtkImageMapper>::New();
+#if VTK_MAJOR_VERSION <= 5
+    imageMapper->SetInputConnection(vtkImage->GetProducerPort());
+#else
+    imageMapper->SetInputData(vtkImage);
+#endif
+    imageMapper->SetColorWindow(1);
+    imageMapper->SetColorLevel(0.5);
+
+    vtkSmartPointer<vtkActor2D> imageActor = vtkSmartPointer<vtkActor2D>::New();
+    imageActor->SetMapper(imageMapper);
+
+    // Setup renderers and render window
+    vtkSmartPointer<vtkRenderer> renderer2 = vtkSmartPointer<vtkRenderer>::New();
+    vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
+    renderWindow->AddRenderer(renderer2);
+    renderWindow->SetSize(filteredImage->getWidth(), filteredImage->getHeight());
+
+    // Setup render window interactor
+    vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+
+    vtkSmartPointer<vtkInteractorStyleImage> style = vtkSmartPointer<vtkInteractorStyleImage>::New();
+    renderWindowInteractor->SetInteractorStyle(style);
+    renderWindowInteractor->SetRenderWindow(renderWindow);
+    renderer2->AddActor2D(imageActor);
+    renderWindow->Render();
+    renderWindowInteractor->Start();
+
+
+
+
+
     // ITK Export example
     typedef itk::Image<float, 2> ImageType;
     ITKImageExporter<ImageType>::Pointer itkExporter = ITKImageExporter<ImageType>::New();
