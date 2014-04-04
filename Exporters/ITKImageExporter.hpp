@@ -47,6 +47,7 @@ inline fast::ITKImageExporter<TImage>::ITKImageExporter() {
 
 template<class TImage>
 inline void fast::ITKImageExporter<TImage>::GenerateData() {
+    mInput->update();
     typename TImage::Pointer output = this->GetOutput();
     typename TImage::RegionType region;
     typename TImage::IndexType start;
@@ -64,7 +65,6 @@ inline void fast::ITKImageExporter<TImage>::GenerateData() {
     output->Allocate();
 
     // TODO support different data types
-    mInput->update();
     ImageAccess2D access = mInput->getImageAccess(ACCESS_READ);
     float * fastPixelData = (float *) access.get();
 
