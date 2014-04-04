@@ -17,7 +17,7 @@
 
 using namespace fast;
 
-TEST_CASE("Import an image from VTK to FAST", "[fast]") {
+TEST_CASE("Import an image from VTK to FAST", "[fast][VTK]") {
     ImageImporter2D::pointer importer = ImageImporter2D::New();
     importer->setFilename("lena.jpg");
     Image2D::pointer fastImage = importer->getOutput();
@@ -39,7 +39,7 @@ TEST_CASE("Import an image from VTK to FAST", "[fast]") {
 }
 
 
-TEST_CASE("Export an image from FAST to VTK", "[fast]") {
+TEST_CASE("Export an image from FAST to VTK", "[fast][VTK]") {
     ImageImporter2D::pointer importer = ImageImporter2D::New();
     importer->setFilename("lena.jpg");
     Image2D::pointer fastImage = importer->getOutput();
@@ -58,7 +58,7 @@ TEST_CASE("Export an image from FAST to VTK", "[fast]") {
     );
 }
 
-TEST_CASE("Export an image from FAST to VTK and visualize", "[fast]") {
+TEST_CASE("Export an image from FAST to VTK and visualize", "[fast][VTK]") {
 
     ImageImporter2D::pointer importer = ImageImporter2D::New();
     importer->setFilename("lena.jpg");
