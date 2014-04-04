@@ -18,7 +18,28 @@
 using namespace fast;
 
 TEST_CASE("Import an image from VTK to FAST", "[fast]") {
+    // Get a GPU device and set it as the default device
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(false));
 
+    ImageImporter2D::pointer importer = ImageImporter2D::New();
+    importer->setFilename("lena.jpg");
+    Image2D::pointer fastImage = importer->getOutput();
+
+    // VTK Export
+    vtkSmartPointer<VTKImageExporter> vtkExporter = VTKImageExporter::New();
+    vtkExporter->SetInput(fastImage);
+    vtkSmartPointer<vtkImageData> vtkImage = vtkExporter->GetOutput();
+    vtkExporter->Update();
+
+    // VTK Import example
+    VTKImageImporter::pointer vtkImporter = VTKImageImporter::New();
+    vtkImporter->setInput(vtkImage);
+    Image2D::pointer importedImage = vtkImporter->getOutput();
+    vtkImporter->update();
+
+    CHECK(fastImage->getWidth() == importedImage->getWidth());
+    CHECK(fastImage->getHeight() == importedImage->getHeight());
 }
 
 
