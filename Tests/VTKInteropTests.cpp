@@ -19,7 +19,7 @@ using namespace fast;
 
 TEST_CASE("Import an image from VTK to FAST", "[fast][VTK]") {
     ImageImporter2D::pointer importer = ImageImporter2D::New();
-    importer->setFilename("lena.jpg");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "lena.jpg");
     Image2D::pointer fastImage = importer->getOutput();
 
     // VTK Export

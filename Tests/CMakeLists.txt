@@ -35,6 +35,9 @@ set(FAST_LINK_LIBRARIES
 #    PARENT_SCOPE
 #)
 
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFAST_TEST_DATA_DIR=\\\"${PROJECT_SOURCE_DIR}/Tests/TestData/\\\"")
+
 add_executable (test ${EXECUTABLE_SOURCE_FILES} ${SOURCE_FILES})
 target_link_libraries(test FAST ${FAST_LINK_LIBRARIES})
 

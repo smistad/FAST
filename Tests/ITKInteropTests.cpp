@@ -7,7 +7,7 @@ using namespace fast;
 TEST_CASE("Export image to ITK from FAST", "[fast][ITK]") {
 
     ImageImporter2D::pointer importer = ImageImporter2D::New();
-    importer->setFilename("lena.jpg");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "lena.jpg");
     Image2D::pointer fastImage = importer->getOutput();
 
     // ITK Export example
