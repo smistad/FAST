@@ -6,6 +6,7 @@
 #include <OpenGL/OpenGL.h>
 #else
 #if _WIN32
+#include <GL/gl.h>
 #include <CL/cl_gl.h>
 #else
 #include <GL/glx.h>
@@ -34,6 +35,16 @@ std::vector<OpenCLDevice::pointer> getDevices(oul::DeviceCriteria criteria, bool
 #else
 #if _WIN32
         // TODO implement windows OpenGL stuff
+        // http://msdn.microsoft.com/en-us/library/windows/desktop/dd374379%28v=vs.85%29.aspx
+        HDC    hdc; 
+        HGLRC  hglrc; 
+         
+        // create a rendering context  
+        hglrc = wglCreateContext (hdc); 
+        glContext = (unsigned long *)hglrc;
+         
+        // make it the calling thread's current rendering context 
+        wglMakeCurrent (hdc, hglrc);
 #else
         int sngBuf[] = { GLX_RGBA,
                          GLX_DOUBLEBUFFER,
