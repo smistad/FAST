@@ -182,8 +182,8 @@ void MetaImageImporter::execute() {
     std::cout << "image of size " << width << " " << height << " " << depth << " read " << std::endl;
 
     if(imageIs3D) {
-
+        Image::pointer(mOutput.lock())->create3DImage(width,height,depth,type,1,mDevice,data);
     } else {
-        Image::pointer(mOutput.lock())->createImage(width,height,type,1,mDevice,data);
+        Image::pointer(mOutput.lock())->create2DImage(width,height,type,1,mDevice,data);
     }
 }

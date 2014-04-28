@@ -173,9 +173,36 @@ ImageAccess2D Image::getImageAccess(accessType type) {
     return ImageAccess2D(mHostData, &mHostDataIsBeingAccessed);
 }
 
+void Image::create3DImage(
+        unsigned int width,
+        unsigned int height,
+        unsigned int depth,
+        DataType type,
+        unsigned int nrOfComponents,
+        ExecutionDevice::pointer device) {
+    if (isInitialized())
+        throw Exception(
+                "Can not use createImage on an object that is already initialized.");
 
+    // TODO implement
+}
 
-void Image::createImage(
+void Image::create3DImage(
+        unsigned int width,
+        unsigned int height,
+        unsigned int depth,
+        DataType type,
+        unsigned int nrOfComponents,
+        ExecutionDevice::pointer device,
+        const void* data) {
+    if (isInitialized())
+        throw Exception(
+                "Can not use createImage on an object that is already initialized.");
+
+    // TODO implement
+}
+
+void Image::create2DImage(
         unsigned int width,
         unsigned int height,
         DataType type,
@@ -224,7 +251,7 @@ void Image::createImage(
     }
 }
 
-void Image::createImage(
+void Image::create2DImage(
         unsigned int width,
         unsigned int height,
         DataType type,

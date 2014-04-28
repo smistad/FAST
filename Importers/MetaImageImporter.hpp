@@ -6,9 +6,6 @@
 
 namespace fast {
 
-/**
- * TODO Currently only supports 2D
- */
 class MetaImageImporter : public Importer {
     FAST_OBJECT(MetaImageImporter)
     public:

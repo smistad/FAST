@@ -108,7 +108,7 @@ void GaussianSmoothingFilter2D::execute() {
     }
 
     // Initialize output image
-    output->createImage(input->getWidth(),
+    output->create2DImage(input->getWidth(),
         input->getHeight(),
         input->getDataType(),
         input->getNrOfComponents(),

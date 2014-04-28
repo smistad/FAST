@@ -33,7 +33,7 @@ void ImageImporter2D::execute() {
     }
 
     // Transfer to texture(if OpenCL) or copy raw pixel data (if host)
-    mOutput2.lock()->createImage(image.width(),
+    mOutput2.lock()->create2DImage(image.width(),
             image.height(),
             TYPE_FLOAT,
             1,
