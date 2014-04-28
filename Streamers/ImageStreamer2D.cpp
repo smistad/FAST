@@ -82,7 +82,7 @@ void ImageStreamer2D::producerStream() {
             ImageImporter2D::pointer importer = ImageImporter2D::New();
             importer->setFilename(filename);
             importer->setDevice(mDevice);
-            Image2D::pointer image = importer->getOutput();
+            Image::pointer image = importer->getOutput();
             image->update();
             Image2Dt::pointer ptr = mOutput2.lock();
             if(ptr.isValid()) {

@@ -1,8 +1,9 @@
 #ifndef IMAGE2D_HPP
 #define IMAGE2D_HPP
 
+#include "ImageData.hpp"
+#include "DataTypes.hpp"
 #include "SmartPointers.hpp"
-#include "StaticImage.hpp"
 #include "OpenCLManager.hpp"
 #include "ExecutionDevice.hpp"
 #include "OpenCLImageAccess2D.hpp"
@@ -11,16 +12,23 @@
 #include <boost/unordered_set.hpp>
 namespace fast {
 
-class Image2D: public StaticImage {
-    FAST_OBJECT(Image2D)
+class Image: public ImageData {
+    FAST_OBJECT(Image)
     public:
         void createImage(unsigned int width, unsigned int height, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device);
         void createImage(unsigned int width, unsigned int height, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device, const void * data);
         OpenCLImageAccess2D getOpenCLImageAccess(accessType type, OpenCLDevice::pointer);
         ImageAccess2D getImageAccess(accessType type);
-        ~Image2D() { freeAll(); };
+        ~Image() { freeAll(); };
+
+        unsigned int getWidth() const;
+        unsigned int getHeight() const;
+        unsigned int getDepth() const;
+        unsigned char getDimensions() const;
+        DataType getDataType() const;
+        unsigned int getNrOfComponents() const;
     private:
-        Image2D();
+        Image();
         boost::unordered_map<OpenCLDevice::pointer, cl::Image2D*> mCLImages;
         boost::unordered_map<OpenCLDevice::pointer, bool> mCLImagesIsUpToDate;
         boost::unordered_map<OpenCLDevice::pointer, bool> mCLImagesAccess;
@@ -38,6 +46,11 @@ class Image2D: public StaticImage {
         bool isInitialized();
         void free(ExecutionDevice::pointer device);
         void freeAll();
+
+        unsigned int mWidth, mHeight, mDepth;
+        unsigned char mDimensions;
+        DataType mType;
+        unsigned int mComponents;
 };
 
 } // end namespace fast

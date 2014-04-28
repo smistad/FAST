@@ -3,7 +3,7 @@
 
 #include <vtkImageAlgorithm.h>
 #include "ProcessObject.hpp"
-#include "Image2D.hpp"
+#include "Image.hpp"
 
 namespace fast {
 
@@ -11,9 +11,9 @@ class VTKImageExporter : public vtkImageAlgorithm, public ProcessObject {
     public:
         vtkTypeMacro(VTKImageExporter,vtkImageAlgorithm);
         static VTKImageExporter *New();
-        void SetInput(Image2D::pointer image);
+        void SetInput(Image::pointer image);
     private:
-        Image2D::pointer mInput;
+        Image::pointer mInput;
         VTKImageExporter();
         int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
         void execute() {};

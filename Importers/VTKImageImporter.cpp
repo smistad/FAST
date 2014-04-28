@@ -6,11 +6,11 @@ void VTKImageImporter::setInput(vtkSmartPointer<vtkImageData> image) {
     mIsModified = true;
 }
 
-StaticImage::pointer VTKImageImporter::getOutput() {
+Image::pointer VTKImageImporter::getOutput() {
     if(mTempOutput.isValid()) {
         mTempOutput->setParent(mPtr.lock());
 
-        StaticImage::pointer newSmartPtr;
+        Image::pointer newSmartPtr;
         newSmartPtr.swap(mTempOutput);
 
         return newSmartPtr;
@@ -20,7 +20,7 @@ StaticImage::pointer VTKImageImporter::getOutput() {
 }
 
 VTKImageImporter::VTKImageImporter() {
-    mTempOutput = Image2D::New();
+    mTempOutput = Image::New();
     mOutput = mTempOutput;
 }
 
@@ -30,7 +30,7 @@ void VTKImageImporter::execute() {
 
     int * size = mInput->GetDimensions();
 
-    Image2D::pointer output = mOutput.lock();
+    Image::pointer output = mOutput.lock();
 
     output->createImage(size[0]-1, size[1]-1,TYPE_FLOAT,1,Host::New());
     ImageAccess2D access = output->getImageAccess(ACCESS_READ);

@@ -1,4 +1,4 @@
-#include "Image2D.hpp"
+#include "Image.hpp"
 using namespace fast;
 
 ImageAccess2D::ImageAccess2D(void* data, bool* accessFlag) {

@@ -3,7 +3,7 @@
 
 #include "Importer.hpp"
 #include <string>
-#include "Image2D.hpp"
+#include "Image.hpp"
 #include "OpenCLManager.hpp"
 
 namespace fast {
@@ -11,14 +11,14 @@ namespace fast {
 class ImageImporter2D : public Importer {
     FAST_OBJECT(ImageImporter2D)
     public:
-        Image2D::pointer getOutput();
+        Image::pointer getOutput();
         void setFilename(std::string filename);
         void setDevice(ExecutionDevice::pointer device);
         ~ImageImporter2D() {};
     private:
         ImageImporter2D();
-        Image2D::pointer mOutput;
-        WeakPointer<Image2D> mOutput2;
+        Image::pointer mOutput;
+        WeakPointer<Image> mOutput2;
         std::string mFilename;
         ExecutionDevice::pointer mDevice;
         void execute();

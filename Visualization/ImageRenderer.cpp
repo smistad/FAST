@@ -3,7 +3,7 @@
 #include "DeviceManager.hpp"
 #include "HelperFunctions.hpp"
 #include <GL/glx.h>
-#include "Image2D.hpp"
+#include "Image.hpp"
 #include "Image2Dt.hpp"
 
 
@@ -14,7 +14,7 @@ void ImageRenderer::execute() {
     if(!mInput.isValid())
         throw Exception("No input was given to ImageRenderer");
 
-    Image2D::pointer input;
+    Image::pointer input;
     if(mInput->isDynamicData()) {
         input = Image2Dt::pointer(mInput)->getNextFrame();
         std::cout << "processing a new frame" << std::endl;

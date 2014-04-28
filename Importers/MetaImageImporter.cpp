@@ -1,16 +1,15 @@
 #include "MetaImageImporter.hpp"
 #include "DeviceManager.hpp"
-#include "Image2D.hpp"
 #include "Exception.hpp"
 #include <fstream>
 #include <boost/iostreams/device/mapped_file.hpp>
 using namespace fast;
 
-StaticImage::pointer MetaImageImporter::getOutput() {
+Image::pointer MetaImageImporter::getOutput() {
     if(mTempOutput.isValid()) {
         mTempOutput->setParent(mPtr.lock());
 
-        StaticImage::pointer newSmartPtr;
+        Image::pointer newSmartPtr;
         newSmartPtr.swap(mTempOutput);
 
         return newSmartPtr;
@@ -32,7 +31,7 @@ void MetaImageImporter::setDevice(ExecutionDevice::pointer device) {
 MetaImageImporter::MetaImageImporter() {
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
     mFilename = "";
-    mTempOutput = Image2D::New();
+    mTempOutput = Image::New();
     mOutput = mTempOutput;
 }
 
@@ -185,6 +184,6 @@ void MetaImageImporter::execute() {
     if(imageIs3D) {
 
     } else {
-        Image2D::pointer(mOutput.lock())->createImage(width,height,type,1,mDevice,data);
+        Image::pointer(mOutput.lock())->createImage(width,height,type,1,mDevice,data);
     }
 }

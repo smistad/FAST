@@ -3,7 +3,7 @@
 #include "Exception.hpp"
 using namespace fast;
 
-void ImageExporter2D::setInput(Image2D::pointer image) {
+void ImageExporter2D::setInput(Image::pointer image) {
     mStaticInput = image;
     addParent(mStaticInput);
     mIsModified = true;
@@ -33,7 +33,7 @@ void ImageExporter2D::execute() {
     if(mFilename == "")
         throw Exception("No filename given to ImageExporter2D");
 
-    Image2D::pointer input = mStaticInput;
+    Image::pointer input = mStaticInput;
     input->update();
 
     QImage image(input->getWidth(), input->getHeight(), QImage::Format_RGB32);

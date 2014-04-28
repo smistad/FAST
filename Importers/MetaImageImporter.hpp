@@ -2,7 +2,7 @@
 #define META_IMAGE_IMPORTER_HPP_
 
 #include "Importer.hpp"
-#include "StaticImage.hpp"
+#include "Image.hpp"
 
 namespace fast {
 
@@ -12,13 +12,13 @@ namespace fast {
 class MetaImageImporter : public Importer {
     FAST_OBJECT(MetaImageImporter)
     public:
-        StaticImage::pointer getOutput();
+        Image::pointer getOutput();
         void setFilename(std::string filename);
         void setDevice(ExecutionDevice::pointer device);
     private:
         MetaImageImporter();
-        StaticImage::pointer mTempOutput;
-        WeakPointer<StaticImage> mOutput;
+        Image::pointer mTempOutput;
+        WeakPointer<Image> mOutput;
         std::string mFilename;
         ExecutionDevice::pointer mDevice;
         void execute();

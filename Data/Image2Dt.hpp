@@ -2,7 +2,7 @@
 #define IMAGE2DT_HPP
 
 #include "DynamicImage.hpp"
-#include "Image2D.hpp"
+#include "Image.hpp"
 #include <vector>
 #include "Streamer.hpp"
 
@@ -11,8 +11,8 @@ namespace fast {
 class Image2Dt : public DynamicImage {
     FAST_OBJECT(Image2Dt)
     public:
-        Image2D::pointer getNextFrame();
-        void addFrame(Image2D::pointer frame);
+        Image::pointer getNextFrame();
+        void addFrame(Image::pointer frame);
         unsigned int getSize() const;
         ~Image2Dt() {};
     private:
@@ -23,7 +23,7 @@ class Image2Dt : public DynamicImage {
 
         // If the flag mKeepAllFrames is set to false, this vector will have
         // a max size of 1
-        std::vector<Image2D::pointer> mFrames;
+        std::vector<Image::pointer> mFrames;
 
         // Keep track of which frame is next, only used when mKeepAllFrames is
         // set to true

@@ -13,7 +13,7 @@
 
 using namespace fast;
 
-Image2D::pointer create() {
+Image::pointer create() {
     // Example of importing one 2D image
     ImageImporter2D::pointer importer = ImageImporter2D::New();
     importer->setFilename("lena.jpg");
@@ -36,7 +36,7 @@ int main(int argc, char ** argv) {
     filter->setInput(importer->getOutput());
     filter->setMaskSize(7);
     filter->setStandardDeviation(10);
-    Image2D::pointer filteredImage = filter->getOutput();
+    Image::pointer filteredImage = filter->getOutput();
     ImageExporter2D::pointer exporter = ImageExporter2D::New();
     exporter->setFilename("test.jpg");
     exporter->setInput(filteredImage);
@@ -53,13 +53,13 @@ int main(int argc, char ** argv) {
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->resize(512,512);
-    //window->runMainLoop();
+    window->runMainLoop();
 
 
 
 
     // Example of creating a pipeline in another scope and updating afterwards
-    Image2D::pointer image2 = create();
+    Image::pointer image2 = create();
     std::cout << "after create" << std::endl;
     image2->update();
 
@@ -83,14 +83,14 @@ int main(int argc, char ** argv) {
 
     MetaImageImporter::pointer importer2 = MetaImageImporter::New();
     importer2->setFilename("US-Acq_01_20140320T105851_cxOpenCV.mask.mhd");
-    Image2D::pointer image3 = importer2->getOutput();
+    Image::pointer image3 = importer2->getOutput();
     image3->update();
 
     GaussianSmoothingFilter2D::pointer filter3 = GaussianSmoothingFilter2D::New();
     filter3->setInput(image3);
     filter3->setMaskSize(7);
     filter3->setStandardDeviation(10);
-    Image2D::pointer image4 = filter3->getOutput();
+    Image::pointer image4 = filter3->getOutput();
     ImageExporter2D::pointer exporter2 = ImageExporter2D::New();
     exporter2->setInput(image4);
     exporter2->setFilename("asd.jpg");

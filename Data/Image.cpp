@@ -1,9 +1,9 @@
-#include "Image2D.hpp"
+#include "Image.hpp"
 #include "HelperFunctions.hpp"
 #include "Exception.hpp"
 using namespace fast;
 
-bool Image2D::isDataModified() {
+bool Image::isDataModified() {
     if (!mHostDataIsUpToDate)
         return true;
 
@@ -17,7 +17,7 @@ bool Image2D::isDataModified() {
     return false;
 }
 
-bool Image2D::isAnyDataBeingAccessed() {
+bool Image::isAnyDataBeingAccessed() {
     if (mHostDataIsBeingAccessed)
         return true;
 
@@ -30,19 +30,19 @@ bool Image2D::isAnyDataBeingAccessed() {
     return false;
 }
 
-void Image2D::transferCLImageFromHost(OpenCLDevice::pointer device) {
+void Image::transferCLImageFromHost(OpenCLDevice::pointer device) {
     device->getCommandQueue().enqueueWriteImage(*mCLImages[device],
     CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, 1), 0,
             0, mHostData);
 }
 
-void Image2D::transferCLImageToHost(OpenCLDevice::pointer device) {
+void Image::transferCLImageToHost(OpenCLDevice::pointer device) {
     device->getCommandQueue().enqueueReadImage(*mCLImages[device],
     CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, 1), 0,
             0, mHostData);
 }
 
-void Image2D::updateOpenCLImageData(OpenCLDevice::pointer device) {
+void Image::updateOpenCLImageData(OpenCLDevice::pointer device) {
 
     // If data exist on device and is up to date do nothing
     if (mCLImagesIsUpToDate.count(device) > 0 && mCLImagesIsUpToDate[device]
@@ -86,7 +86,7 @@ void Image2D::updateOpenCLImageData(OpenCLDevice::pointer device) {
                 "Data was not updated because no data was marked as up to date");
 }
 
-void Image2D::updateHostData() {
+void Image::updateHostData() {
     // It is the host data that has been modified, no need to update
     if (mHostDataIsUpToDate)
         return;
@@ -118,7 +118,7 @@ void Image2D::updateHostData() {
     }
 }
 
-void Image2D::setAllDataToOutOfDate() {
+void Image::setAllDataToOutOfDate() {
     mHostDataIsUpToDate = false;
     boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
     for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
@@ -127,7 +127,7 @@ void Image2D::setAllDataToOutOfDate() {
     }
 }
 
-OpenCLImageAccess2D Image2D::getOpenCLImageAccess(
+OpenCLImageAccess2D Image::getOpenCLImageAccess(
         accessType type,
         OpenCLDevice::pointer device) {
     // Check for write access
@@ -147,16 +147,15 @@ OpenCLImageAccess2D Image2D::getOpenCLImageAccess(
     return OpenCLImageAccess2D(mCLImages[device], &mCLImagesAccess[device]);
 }
 
-Image2D::Image2D() {
+Image::Image() {
     mHostData = NULL;
     mHostHasData = false;
     mHostDataIsUpToDate = false;
     mHostDataIsBeingAccessed = false;
-    mDimensions = 2;
     mIsDynamicData = false;
 }
 
-ImageAccess2D Image2D::getImageAccess(accessType type) {
+ImageAccess2D Image::getImageAccess(accessType type) {
     // TODO: this method is currently just a fixed hack
 
     if (type == ACCESS_READ_WRITE) {
@@ -176,7 +175,7 @@ ImageAccess2D Image2D::getImageAccess(accessType type) {
 
 
 
-void Image2D::createImage(
+void Image::createImage(
         unsigned int width,
         unsigned int height,
         DataType type,
@@ -188,6 +187,8 @@ void Image2D::createImage(
 
     mWidth = width;
     mHeight = height;
+    mDepth = 1;
+    mDimensions = 2;
     mType = type;
     mComponents = nrOfComponents;
     if(device->isHost()) {
@@ -223,7 +224,7 @@ void Image2D::createImage(
     }
 }
 
-void Image2D::createImage(
+void Image::createImage(
         unsigned int width,
         unsigned int height,
         DataType type,
@@ -236,6 +237,8 @@ void Image2D::createImage(
 
     mWidth = width;
     mHeight = height;
+    mDepth = 1;
+    mDimensions = 2;
     mType = type;
     mComponents = nrOfComponents;
     if(device->isHost()) {
@@ -258,11 +261,11 @@ void Image2D::createImage(
     }
 }
 
-bool Image2D::isInitialized() {
+bool Image::isInitialized() {
     return mCLImages.size() > 0 || mHostHasData;
 }
 
-void Image2D::free(ExecutionDevice::pointer device) {
+void Image::free(ExecutionDevice::pointer device) {
     // Delete data on a specific device
     if(device->isHost()) {
         switch(mType) {
@@ -292,7 +295,7 @@ void Image2D::free(ExecutionDevice::pointer device) {
     }
 }
 
-void Image2D::freeAll() {
+void Image::freeAll() {
     boost::unordered_map<OpenCLDevice::pointer, cl::Image2D*>::iterator it;
     for (it = mCLImages.begin(); it != mCLImages.end(); it++) {
         delete it->second;
@@ -304,4 +307,28 @@ void Image2D::freeAll() {
     if(mHostHasData) {
         this->free(Host::New());
     }
+}
+
+unsigned int Image::getWidth() const {
+    return mWidth;
+}
+
+unsigned int Image::getHeight() const {
+    return mHeight;
+}
+
+unsigned int Image::getDepth() const {
+    return mDepth;
+}
+
+unsigned char Image::getDimensions() const {
+    return mDimensions;
+}
+
+DataType Image::getDataType() const {
+    return mType;
+}
+
+unsigned int Image::getNrOfComponents() const {
+    return mComponents;
 }

@@ -1,7 +1,7 @@
 #include "GaussianSmoothingFilter2D.hpp"
 #include "Exception.hpp"
 #include "DeviceManager.hpp"
-#include "Image2D.hpp"
+#include "Image.hpp"
 #include "Image2Dt.hpp"
 using namespace fast;
 
@@ -12,7 +12,7 @@ void GaussianSmoothingFilter2D::setInput(ImageData::pointer input) {
     if(input->isDynamicData()) {
         mTempOutput = Image2Dt::New();
     } else {
-        mTempOutput = Image2D::New();
+        mTempOutput = Image::New();
         input->retain(mDevice);
     }
     mOutput = mTempOutput;
@@ -84,7 +84,7 @@ float * GaussianSmoothingFilter2D::createMask() {
 
 void GaussianSmoothingFilter2D::execute() {
 
-    Image2D::pointer input;
+    Image::pointer input;
     if(!mInput.isValid()) {
         throw Exception("No input supplied to GaussianSmoothingFilter2D");
     }
@@ -99,12 +99,12 @@ void GaussianSmoothingFilter2D::execute() {
         input = mInput;
     }
 
-    Image2D::pointer output;
+    Image::pointer output;
     if(mInput->isDynamicData()) {
-        output = Image2D::New();
+        output = Image::New();
         Image2Dt::pointer(mOutput)->addFrame(output);
     } else {
-        output = Image2D::pointer(mOutput);
+        output = Image::pointer(mOutput);
     }
 
     // Initialize output image
