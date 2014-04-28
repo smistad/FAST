@@ -9,7 +9,7 @@ void ImageExporter2D::setInput(Image::pointer image) {
     mIsModified = true;
 }
 
-void ImageExporter2D::setInput(Image2Dt::pointer image) {
+void ImageExporter2D::setInput(DynamicImage::pointer image) {
     mDynamicInput = image;
     addParent(mDynamicInput);
     mIsModified = true;

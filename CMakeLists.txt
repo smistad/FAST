@@ -22,11 +22,10 @@ set(SOURCES
     Data/DataObject.hpp
     Data/ImageData.cpp
     Data/ImageData.hpp
+    Data/DynamicImage.cpp
     Data/DynamicImage.hpp
     Data/Image.cpp
     Data/Image.hpp
-    Data/Image2Dt.cpp
-    Data/Image2Dt.hpp
     Data/DataTypes.cpp
     Data/DataTypes.hpp
     Data/Access/Access.hpp

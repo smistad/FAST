@@ -11,7 +11,7 @@ void stubStreamThread(ImageStreamer2D * streamer) {
     streamer->producerStream();
 }
 
-Image2Dt::pointer ImageStreamer2D::getOutput() {
+DynamicImage::pointer ImageStreamer2D::getOutput() {
     if(!mStreamIsStarted) {
         mStreamIsStarted = true;
         thread = new boost::thread(&stubStreamThread, this);
@@ -24,7 +24,7 @@ Image2Dt::pointer ImageStreamer2D::getOutput() {
     if(mOutput.isValid()) {
         mOutput->setParent(mPtr.lock());
 
-        Image2Dt::pointer newSmartPtr;
+        DynamicImage::pointer newSmartPtr;
         newSmartPtr.swap(mOutput);
 
         return newSmartPtr;
@@ -34,7 +34,7 @@ Image2Dt::pointer ImageStreamer2D::getOutput() {
 }
 
 ImageStreamer2D::ImageStreamer2D() {
-    mOutput = Image2Dt::New();
+    mOutput = DynamicImage::New();
     mOutput2 = mOutput;
     mStreamIsStarted = false;
     mIsModified = true;
@@ -84,12 +84,12 @@ void ImageStreamer2D::producerStream() {
             importer->setDevice(mDevice);
             Image::pointer image = importer->getOutput();
             image->update();
-            Image2Dt::pointer ptr = mOutput2.lock();
+            DynamicImage::pointer ptr = mOutput2.lock();
             if(ptr.isValid()) {
                 ptr->addFrame(image);
                 mFirstFrameIsInserted = true;
             } else {
-                std::cout << "Image2Dt object destroyed, stream can stop." << std::endl;
+                std::cout << "DynamicImage object destroyed, stream can stop." << std::endl;
                 break;
             }
             i++;

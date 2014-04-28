@@ -3,7 +3,7 @@
 
 #include "SmartPointers.hpp"
 #include "Streamer.hpp"
-#include "Image2Dt.hpp"
+#include "DynamicImage.hpp"
 #include <boost/thread.hpp>
 
 namespace fast {
@@ -11,7 +11,7 @@ namespace fast {
 class ImageStreamer2D : public Streamer {
     FAST_OBJECT(ImageStreamer2D)
     public:
-        Image2Dt::pointer getOutput();
+        DynamicImage::pointer getOutput();
         void setFilenameFormat(std::string str);
         void setDevice(ExecutionDevice::pointer device);
         // This method runs in a separate thread and adds frames to the
@@ -23,8 +23,8 @@ class ImageStreamer2D : public Streamer {
         ImageStreamer2D();
 
         // A reference to the output object used to update its next frame
-        Image2Dt::pointer mOutput;
-        WeakPointer<Image2Dt> mOutput2;
+        DynamicImage::pointer mOutput;
+        WeakPointer<DynamicImage> mOutput2;
 
         // Update the streamer if any parameters have changed
         void execute();

@@ -4,7 +4,7 @@
 #include "HelperFunctions.hpp"
 #include <GL/glx.h>
 #include "Image.hpp"
-#include "Image2Dt.hpp"
+#include "DynamicImage.hpp"
 
 
 using namespace fast;
@@ -16,7 +16,7 @@ void ImageRenderer::execute() {
 
     Image::pointer input;
     if(mInput->isDynamicData()) {
-        input = Image2Dt::pointer(mInput)->getNextFrame();
+        input = DynamicImage::pointer(mInput)->getNextFrame();
         std::cout << "processing a new frame" << std::endl;
     } else {
         input = mInput;

@@ -2,7 +2,7 @@
 #include "Exception.hpp"
 #include "DeviceManager.hpp"
 #include "Image.hpp"
-#include "Image2Dt.hpp"
+#include "DynamicImage.hpp"
 using namespace fast;
 
 void GaussianSmoothingFilter2D::setInput(ImageData::pointer input) {
@@ -10,7 +10,7 @@ void GaussianSmoothingFilter2D::setInput(ImageData::pointer input) {
     mIsModified = true;
     addParent(input);
     if(input->isDynamicData()) {
-        mTempOutput = Image2Dt::New();
+        mTempOutput = DynamicImage::New();
     } else {
         mTempOutput = Image::New();
         input->retain(mDevice);
@@ -93,7 +93,7 @@ void GaussianSmoothingFilter2D::execute() {
         return;
     }
     if(mInput->isDynamicData()) {
-        input = Image2Dt::pointer(mInput)->getNextFrame();
+        input = DynamicImage::pointer(mInput)->getNextFrame();
         std::cout << "processing a new frame" << std::endl;
     } else {
         input = mInput;
@@ -102,7 +102,7 @@ void GaussianSmoothingFilter2D::execute() {
     Image::pointer output;
     if(mInput->isDynamicData()) {
         output = Image::New();
-        Image2Dt::pointer(mOutput)->addFrame(output);
+        DynamicImage::pointer(mOutput)->addFrame(output);
     } else {
         output = Image::pointer(mOutput);
     }

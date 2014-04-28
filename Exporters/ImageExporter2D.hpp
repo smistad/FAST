@@ -3,7 +3,7 @@
 
 #include "ProcessObject.hpp"
 #include "Image.hpp"
-#include "Image2Dt.hpp"
+#include "DynamicImage.hpp"
 #include <string>
 
 namespace fast {
@@ -12,7 +12,7 @@ class ImageExporter2D : public ProcessObject {
     FAST_OBJECT(ImageExporter2D)
     public:
         void setInput(Image::pointer image);
-        void setInput(Image2Dt::pointer image);
+        void setInput(DynamicImage::pointer image);
         void setFilename(std::string filename);
     private:
         ImageExporter2D();
@@ -20,7 +20,7 @@ class ImageExporter2D : public ProcessObject {
 
         std::string mFilename;
         Image::pointer mStaticInput;
-        Image2Dt::pointer mDynamicInput;
+        DynamicImage::pointer mDynamicInput;
 
 };
 

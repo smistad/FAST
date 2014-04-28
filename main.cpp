@@ -74,7 +74,7 @@ int main(int argc, char ** argv) {
     filter2->setInput(streamer->getOutput());
     filter2->setMaskSize(7);
     filter2->setStandardDeviation(10);
-    Image2Dt::pointer dynamicImage = filter2->getOutput();
+    DynamicImage::pointer dynamicImage = filter2->getOutput();
     // Call update 4 times
     int i = 4;
     while(--i) {

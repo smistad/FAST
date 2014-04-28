@@ -1,7 +1,7 @@
-#include "Image2Dt.hpp"
+#include "DynamicImage.hpp"
 using namespace fast;
 
-Image::pointer Image2Dt::getNextFrame() {
+Image::pointer DynamicImage::getNextFrame() {
     mStreamMutex.lock();
     // TODO: If no frame is available the method should maybe wait?
     if(mFrames.size() == 0)
@@ -13,7 +13,7 @@ Image::pointer Image2Dt::getNextFrame() {
     return ret;
 }
 
-void Image2Dt::addFrame(Image::pointer frame) {
+void DynamicImage::addFrame(Image::pointer frame) {
     mStreamMutex.lock();
     updateModifiedTimestamp();
     if(!mKeepAllFrames) {
@@ -23,7 +23,7 @@ void Image2Dt::addFrame(Image::pointer frame) {
     mStreamMutex.unlock();
 }
 
-Image2Dt::Image2Dt() {
+DynamicImage::DynamicImage() {
     mCurrentFrame = 0;
     mKeepAllFrames = false;
     mIsDynamicData = true;
@@ -31,6 +31,6 @@ Image2Dt::Image2Dt() {
 }
 
 
-unsigned int Image2Dt::getSize() const {
+unsigned int DynamicImage::getSize() const {
     return mFrames.size();
 }
