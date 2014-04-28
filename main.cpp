@@ -8,6 +8,7 @@
 #include "SimpleWindow.hpp"
 #include "ImageRenderer.hpp"
 #include "MetaImageImporter.hpp"
+#include "MetaImageStreamer.hpp"
 
 #include <QApplication>
 
@@ -53,7 +54,7 @@ int main(int argc, char ** argv) {
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->resize(512,512);
-    window->runMainLoop();
+    //window->runMainLoop();
 
 
 
@@ -95,5 +96,16 @@ int main(int argc, char ** argv) {
     exporter2->setInput(image4);
     exporter2->setFilename("asd.jpg");
     exporter2->update();
+
+    /*
+    MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
+    mhdStreamer->setFilenameFormat("/home/smistad/Dropbox/Share_FAST/Data/Patient/US-Acq_01_20140320T105851/US-Acq_01_20140320T105851_cxOpenCV_#.mhd");
+    DynamicImage::pointer dynamicImage2 = mhdStreamer->getOutput();
+    i = 50;
+    while(--i) {
+        dynamicImage->update();
+    }
+    */
+
 
 }

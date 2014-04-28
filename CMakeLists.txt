@@ -37,6 +37,8 @@ set(SOURCES
     Streamers/Streamer.hpp
     Streamers/ImageStreamer2D.cpp
     Streamers/ImageStreamer2D.hpp
+    Streamers/MetaImageStreamer.cpp
+    Streamers/MetaImageStreamer.hpp
     Importers/MetaImageImporter.cpp
     Importers/MetaImageImporter.hpp
     Importers/ImageImporter2D.cpp

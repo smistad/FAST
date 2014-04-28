@@ -39,8 +39,11 @@ template <class T>
 void * readRawData(std::string rawFilename, unsigned int width, unsigned int height, unsigned int depth) {
     boost::iostreams::mapped_file_source file;
     file.open(rawFilename, width*height*depth*sizeof(T));
+    if(!file.is_open())
+        throw FileNotFoundException(rawFilename);
     T * data = new T[width*height*depth];
-    memcpy(data,file.data(),width*height*depth*sizeof(T));
+    T * fileData = (T*)file.data();
+    memcpy(data,fileData,width*height*depth*sizeof(T));
     file.close();
     return data;
 }
