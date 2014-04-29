@@ -1,11 +1,11 @@
-#include "GaussianSmoothingFilter2D.hpp"
+#include "GaussianSmoothingFilter.hpp"
 #include "Exception.hpp"
 #include "DeviceManager.hpp"
 #include "Image.hpp"
 #include "DynamicImage.hpp"
 using namespace fast;
 
-void GaussianSmoothingFilter2D::setInput(ImageData::pointer input) {
+void GaussianSmoothingFilter::setInput(ImageData::pointer input) {
     mInput = input;
     mIsModified = true;
     addParent(input);
@@ -19,12 +19,12 @@ void GaussianSmoothingFilter2D::setInput(ImageData::pointer input) {
 }
 
 
-void GaussianSmoothingFilter2D::setDevice(ExecutionDevice::pointer device) {
+void GaussianSmoothingFilter::setDevice(ExecutionDevice::pointer device) {
     mDevice = device;
     mIsModified = true;
 }
 
-void GaussianSmoothingFilter2D::setMaskSize(unsigned char maskSize) {
+void GaussianSmoothingFilter::setMaskSize(unsigned char maskSize) {
     if(maskSize % 2 != 1)
         throw Exception("Mask size of GaussianSmoothingFilter must be odd.");
 
@@ -32,7 +32,7 @@ void GaussianSmoothingFilter2D::setMaskSize(unsigned char maskSize) {
     mIsModified = true;
 }
 
-void GaussianSmoothingFilter2D::setStandardDeviation(float stdDev) {
+void GaussianSmoothingFilter::setStandardDeviation(float stdDev) {
     if(stdDev <= 0)
         throw Exception("Standard deviation of GaussianSmoothingFilter can't be less than 0.");
 
@@ -40,9 +40,9 @@ void GaussianSmoothingFilter2D::setStandardDeviation(float stdDev) {
     mIsModified = true;
 }
 
-ImageData::pointer GaussianSmoothingFilter2D::getOutput() {
+ImageData::pointer GaussianSmoothingFilter::getOutput() {
     if(!mInput.isValid()) {
-        throw Exception("Must call setInput before getOutput in GaussianSmoothingFilter2D");
+        throw Exception("Must call setInput before getOutput in GaussianSmoothingFilter");
     }
     if(mTempOutput.isValid()) {
         mTempOutput->setParent(mPtr.lock());
@@ -56,37 +56,53 @@ ImageData::pointer GaussianSmoothingFilter2D::getOutput() {
     }
 }
 
-GaussianSmoothingFilter2D::GaussianSmoothingFilter2D() {
+GaussianSmoothingFilter::GaussianSmoothingFilter() {
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
     mStdDev = 1.0f;
     mMaskSize = 3;
     mIsModified = true;
 }
 
-float * GaussianSmoothingFilter2D::createMask() {
-    float * mask = new float[mMaskSize*mMaskSize];
-
+float * GaussianSmoothingFilter::createMask(Image::pointer input) {
+    float * mask;
     unsigned char halfSize = (mMaskSize-1)/2;
     float sum = 0.0f;
 
-    for(int x = -halfSize; x <= halfSize; x++) {
-    for(int y = -halfSize; y <= halfSize; y++) {
-        float value = exp(-(float)(x*x+y*y)/(2.0f*mStdDev*mStdDev));
-        mask[x+halfSize+(y+halfSize)*mMaskSize] = value;
-        sum += value;
-    }}
+    if(input->getDimensions() == 2) {
+        mask = new float[mMaskSize*mMaskSize];
 
-    for(int i = 0; i < mMaskSize*mMaskSize; i++)
-        mask[i] /= sum;
+        for(int x = -halfSize; x <= halfSize; x++) {
+        for(int y = -halfSize; y <= halfSize; y++) {
+            float value = exp(-(float)(x*x+y*y)/(2.0f*mStdDev*mStdDev));
+            mask[x+halfSize+(y+halfSize)*mMaskSize] = value;
+            sum += value;
+        }}
+
+        for(int i = 0; i < mMaskSize*mMaskSize; i++)
+            mask[i] /= sum;
+    } else if(input->getDimensions() == 3) {
+         mask = new float[mMaskSize*mMaskSize*mMaskSize];
+
+        for(int x = -halfSize; x <= halfSize; x++) {
+        for(int y = -halfSize; y <= halfSize; y++) {
+        for(int z = -halfSize; z <= halfSize; z++) {
+            float value = exp(-(float)(x*x+y*y+z*z)/(2.0f*mStdDev*mStdDev));
+            mask[x+halfSize+(y+halfSize)*mMaskSize+(z+halfSize)*mMaskSize*mMaskSize] = value;
+            sum += value;
+        }}}
+
+        for(int i = 0; i < mMaskSize*mMaskSize*mMaskSize; i++)
+            mask[i] /= sum;
+    }
 
     return mask;
 }
 
-void GaussianSmoothingFilter2D::execute() {
+void GaussianSmoothingFilter::execute() {
 
     Image::pointer input;
     if(!mInput.isValid()) {
-        throw Exception("No input supplied to GaussianSmoothingFilter2D");
+        throw Exception("No input supplied to GaussianSmoothingFilter");
     }
     if(!mOutput.lock().isValid()) {
         // output object is no longer valid
@@ -108,11 +124,21 @@ void GaussianSmoothingFilter2D::execute() {
     }
 
     // Initialize output image
-    output->create2DImage(input->getWidth(),
-        input->getHeight(),
-        input->getDataType(),
-        input->getNrOfComponents(),
-        mDevice);
+    if(input->getDimensions() == 2) {
+        output->create2DImage(input->getWidth(),
+            input->getHeight(),
+            input->getDataType(),
+            input->getNrOfComponents(),
+            mDevice);
+    } else {
+        throw Exception("The GaussianSmoothinFilter is not implemented for 3D yet.");
+         output->create3DImage(input->getWidth(),
+            input->getHeight(),
+            input->getDepth(),
+            input->getDataType(),
+            input->getNrOfComponents(),
+            mDevice);
+    }
 
     if(mDevice->isHost()) {
 
@@ -121,7 +147,7 @@ void GaussianSmoothingFilter2D::execute() {
     } else {
         OpenCLDevice::pointer device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
 
-        float * mask = createMask();
+        float * mask = createMask(input);
         cl::Buffer clMask = cl::Buffer(
                 device->getContext(),
                 CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,

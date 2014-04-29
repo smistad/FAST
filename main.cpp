@@ -4,7 +4,7 @@
 #include "ImageExporter2D.hpp"
 #include "ImageStreamer2D.hpp"
 #include "DeviceManager.hpp"
-#include "GaussianSmoothingFilter2D.hpp"
+#include "GaussianSmoothingFilter.hpp"
 #include "SimpleWindow.hpp"
 #include "ImageRenderer.hpp"
 #include "MetaImageImporter.hpp"
@@ -33,7 +33,7 @@ int main(int argc, char ** argv) {
     // Example of importing, processing and exporting a 2D image
     ImageImporter2D::pointer importer = ImageImporter2D::New();
     importer->setFilename("lena.jpg");
-    GaussianSmoothingFilter2D::pointer filter = GaussianSmoothingFilter2D::New();
+    GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
     filter->setInput(importer->getOutput());
     filter->setMaskSize(7);
     filter->setStandardDeviation(10);
@@ -46,15 +46,7 @@ int main(int argc, char ** argv) {
 
 
 
-    // Example of displaying an image on screen using ImageRenderer (2D) and SimpleWindow
-    // TODO The QApplication part should ideally be hid away
-    QApplication app(argc,argv);
-    ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->setInput(filteredImage);
-    SimpleWindow::pointer window = SimpleWindow::New();
-    window->addRenderer(renderer);
-    window->resize(512,512);
-    //window->runMainLoop();
+;
 
 
 
@@ -71,7 +63,7 @@ int main(int argc, char ** argv) {
     // Example of streaming 2D images
     ImageStreamer2D::pointer streamer = ImageStreamer2D::New();
     streamer->setFilenameFormat("test_#.jpg");
-    GaussianSmoothingFilter2D::pointer filter2 = GaussianSmoothingFilter2D::New();
+    GaussianSmoothingFilter::pointer filter2 = GaussianSmoothingFilter::New();
     filter2->setInput(streamer->getOutput());
     filter2->setMaskSize(7);
     filter2->setStandardDeviation(10);
@@ -87,7 +79,7 @@ int main(int argc, char ** argv) {
     Image::pointer image3 = importer2->getOutput();
     image3->update();
 
-    GaussianSmoothingFilter2D::pointer filter3 = GaussianSmoothingFilter2D::New();
+    GaussianSmoothingFilter::pointer filter3 = GaussianSmoothingFilter::New();
     filter3->setInput(image3);
     filter3->setMaskSize(7);
     filter3->setStandardDeviation(10);
@@ -97,15 +89,22 @@ int main(int argc, char ** argv) {
     exporter2->setFilename("asd.jpg");
     exporter2->update();
 
-    /*
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
-    mhdStreamer->setFilenameFormat("/home/smistad/Dropbox/Share_FAST/Data/Patient/US-Acq_01_20140320T105851/US-Acq_01_20140320T105851_cxOpenCV_#.mhd");
-    DynamicImage::pointer dynamicImage2 = mhdStreamer->getOutput();
-    i = 50;
-    while(--i) {
-        dynamicImage->update();
-    }
-    */
+    mhdStreamer->setFilenameFormat("/home/smistad/US-Acq_01_20140320T105851/US-Acq_01_20140320T105851_cxOpenCV_#.mhd");
+    GaussianSmoothingFilter::pointer filter4 = GaussianSmoothingFilter::New();
+    filter4->setInput(mhdStreamer->getOutput());
+    filter4->setMaskSize(7);
+    filter4->setStandardDeviation(10);
+    DynamicImage::pointer dynamicImage2 = filter4->getOutput();
 
+    // Example of displaying an image on screen using ImageRenderer (2D) and SimpleWindow
+    // TODO The QApplication part should ideally be hid away
+    QApplication app(argc,argv);
+    ImageRenderer::pointer renderer = ImageRenderer::New();
+    renderer->setInput(dynamicImage2);
+    SimpleWindow::pointer window = SimpleWindow::New();
+    window->addRenderer(renderer);
+    window->resize(512,512);
+    window->runMainLoop();
 
 }

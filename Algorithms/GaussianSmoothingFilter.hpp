@@ -3,12 +3,12 @@
 
 #include "ProcessObject.hpp"
 #include "ExecutionDevice.hpp"
-#include "ImageData.hpp"
+#include "Image.hpp"
 
 namespace fast {
 
-class GaussianSmoothingFilter2D : public ProcessObject {
-    FAST_OBJECT(GaussianSmoothingFilter2D)
+class GaussianSmoothingFilter : public ProcessObject {
+    FAST_OBJECT(GaussianSmoothingFilter)
     public:
         void setInput(ImageData::pointer input);
         void setDevice(ExecutionDevice::pointer device);
@@ -16,9 +16,9 @@ class GaussianSmoothingFilter2D : public ProcessObject {
         void setStandardDeviation(float stdDev);
         ImageData::pointer getOutput();
     private:
-        GaussianSmoothingFilter2D();
+        GaussianSmoothingFilter();
         void execute();
-        float * createMask();
+        float * createMask(Image::pointer input);
 
         ImageData::pointer mInput;
         WeakPointer<ImageData> mOutput;
