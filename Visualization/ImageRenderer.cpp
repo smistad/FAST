@@ -105,7 +105,16 @@ void ImageRenderer::draw() {
     if(!mTextureIsCreated)
         return;
 
+#if defined(__APPLE__) || defined(__MACOSX)
+    // Returns 0 on success
+    bool success = CGLSetCurrentContext((CGLContextObj)mDevice->getGLContext()) == 0;
+#else
+#if _WIN32
+    bool success = wglMakeCurrent(wglGetCurrentDC(), (HGLRC)mDevice->getGLContext());
+#else
     bool success = glXMakeCurrent(XOpenDisplay(0),glXGetCurrentDrawable(),(GLXContext)mDevice->getGLContext());
+#endif
+#endif
     if(!success)
         throw Exception("failed to switch to window");
 

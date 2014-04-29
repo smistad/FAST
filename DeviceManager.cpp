@@ -36,7 +36,7 @@ std::vector<OpenCLDevice::pointer> getDevices(oul::DeviceCriteria criteria, bool
 #if _WIN32
         // TODO implement windows OpenGL stuff
         // http://msdn.microsoft.com/en-us/library/windows/desktop/dd374379%28v=vs.85%29.aspx
-        HDC    hdc; 
+        HDC    hdc = wglGetCurrentDC();
         HGLRC  hglrc; 
          
         // create a rendering context  
