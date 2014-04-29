@@ -32,7 +32,7 @@ class Image: public ImageData {
         unsigned int getNrOfComponents() const;
     private:
         Image();
-        boost::unordered_map<OpenCLDevice::pointer, cl::Image2D*> mCLImages;
+        boost::unordered_map<OpenCLDevice::pointer, cl::Image*> mCLImages;
         boost::unordered_map<OpenCLDevice::pointer, bool> mCLImagesIsUpToDate;
         boost::unordered_map<OpenCLDevice::pointer, bool> mCLImagesAccess;
         void * mHostData;

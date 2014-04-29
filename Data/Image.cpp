@@ -31,15 +31,27 @@ bool Image::isAnyDataBeingAccessed() {
 }
 
 void Image::transferCLImageFromHost(OpenCLDevice::pointer device) {
-    device->getCommandQueue().enqueueWriteImage(*mCLImages[device],
-    CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, 1), 0,
-            0, mHostData);
+    if(mDimensions == 2) {
+        device->getCommandQueue().enqueueWriteImage(*(cl::Image2D*)mCLImages[device],
+        CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, 1), 0,
+                0, mHostData);
+    } else {
+        device->getCommandQueue().enqueueWriteImage(*(cl::Image3D*)mCLImages[device],
+        CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
+                0, mHostData);
+    }
 }
 
 void Image::transferCLImageToHost(OpenCLDevice::pointer device) {
-    device->getCommandQueue().enqueueReadImage(*mCLImages[device],
-    CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, 1), 0,
-            0, mHostData);
+    if(mDimensions == 2) {
+        device->getCommandQueue().enqueueReadImage(*(cl::Image2D*)mCLImages[device],
+        CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, 1), 0,
+                0, mHostData);
+    } else {
+        device->getCommandQueue().enqueueReadImage(*(cl::Image3D*)mCLImages[device],
+        CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
+                0, mHostData);
+    }
 }
 
 void Image::updateOpenCLImageData(OpenCLDevice::pointer device) {
@@ -52,6 +64,7 @@ void Image::updateOpenCLImageData(OpenCLDevice::pointer device) {
     if (mCLImagesIsUpToDate.count(device) == 0) {
         // Data is not on device, create it
         // TODO type support
+        // TODO dimension support
         cl::Image2D * newImage = new cl::Image2D(device->getContext(),
         CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), mWidth, mHeight);
 
@@ -94,6 +107,7 @@ void Image::updateHostData() {
     if (!mHostHasData) {
         // Data is not initialized, do that first
         // TODO type support here
+        // TODO dimension support here
         mHostData = new float[mWidth * mHeight];
     }
 
@@ -144,7 +158,7 @@ OpenCLImageAccess2D Image::getOpenCLImageAccess(
 
     // Now it is guaranteed that the data is on the device and that it is up to date
 
-    return OpenCLImageAccess2D(mCLImages[device], &mCLImagesAccess[device]);
+    return OpenCLImageAccess2D((cl::Image2D*)mCLImages[device], &mCLImagesAccess[device]);
 }
 
 Image::Image() {
@@ -218,7 +232,7 @@ void Image::create3DImage(
             getOpenCLImageFormat(type, nrOfComponents),
             width, height, depth
             );
-        //mCLImages[clDevice] = clImage; // TODO this has to contain a base class instead
+        mCLImages[clDevice] = clImage; // TODO this has to contain a base class instead
         mCLImagesIsUpToDate[clDevice] = true;
         mCLImagesAccess[clDevice] = false;
     }
@@ -256,7 +270,7 @@ void Image::create3DImage(
             0, 0,
             (void *)data
             );
-        //mCLImages[clDevice] = clImage; // TODO this has to contain a base class instead
+        mCLImages[clDevice] = clImage; // TODO this has to contain a base class instead
         mCLImagesIsUpToDate[clDevice] = true;
         mCLImagesAccess[clDevice] = false;
     }
@@ -383,7 +397,7 @@ void Image::free(ExecutionDevice::pointer device) {
 }
 
 void Image::freeAll() {
-    boost::unordered_map<OpenCLDevice::pointer, cl::Image2D*>::iterator it;
+    boost::unordered_map<OpenCLDevice::pointer, cl::Image*>::iterator it;
     for (it = mCLImages.begin(); it != mCLImages.end(); it++) {
         delete it->second;
     }
