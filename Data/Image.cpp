@@ -232,7 +232,7 @@ void Image::create3DImage(
             getOpenCLImageFormat(type, nrOfComponents),
             width, height, depth
             );
-        mCLImages[clDevice] = clImage; // TODO this has to contain a base class instead
+        mCLImages[clDevice] = clImage;
         mCLImagesIsUpToDate[clDevice] = true;
         mCLImagesAccess[clDevice] = false;
     }
@@ -270,7 +270,7 @@ void Image::create3DImage(
             0, 0,
             (void *)data
             );
-        mCLImages[clDevice] = clImage; // TODO this has to contain a base class instead
+        mCLImages[clDevice] = clImage;
         mCLImagesIsUpToDate[clDevice] = true;
         mCLImagesAccess[clDevice] = false;
     }

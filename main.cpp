@@ -45,8 +45,15 @@ int main(int argc, char ** argv) {
 
 
 
-
-;
+    // Example of displaying an image on screen using ImageRenderer (2D) and SimpleWindow
+    // TODO The QApplication part should ideally be hid away
+    QApplication app(argc,argv);
+    ImageRenderer::pointer renderer = ImageRenderer::New();
+    renderer->setInput(filteredImage);
+    SimpleWindow::pointer window = SimpleWindow::New();
+    window->addRenderer(renderer);
+    window->resize(512,512);
+    window->runMainLoop();
 
 
 
@@ -97,14 +104,5 @@ int main(int argc, char ** argv) {
     filter4->setStandardDeviation(10);
     DynamicImage::pointer dynamicImage2 = filter4->getOutput();
 
-    // Example of displaying an image on screen using ImageRenderer (2D) and SimpleWindow
-    // TODO The QApplication part should ideally be hid away
-    QApplication app(argc,argv);
-    ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->setInput(dynamicImage2);
-    SimpleWindow::pointer window = SimpleWindow::New();
-    window->addRenderer(renderer);
-    window->resize(512,512);
-    window->runMainLoop();
 
 }

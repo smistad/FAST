@@ -20,8 +20,10 @@ class Image: public ImageData {
         void create3DImage(unsigned int width, unsigned int height, unsigned int depth, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device);
         void create3DImage(unsigned int width, unsigned int height, unsigned int depth, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device, const void * data);
 
+        // TODO add 3D support to these methods
         OpenCLImageAccess2D getOpenCLImageAccess(accessType type, OpenCLDevice::pointer);
         ImageAccess2D getImageAccess(accessType type);
+
         ~Image() { freeAll(); };
 
         unsigned int getWidth() const;
@@ -32,6 +34,8 @@ class Image: public ImageData {
         unsigned int getNrOfComponents() const;
     private:
         Image();
+
+        // TODO add support for OpenCL buffers as well
         boost::unordered_map<OpenCLDevice::pointer, cl::Image*> mCLImages;
         boost::unordered_map<OpenCLDevice::pointer, bool> mCLImagesIsUpToDate;
         boost::unordered_map<OpenCLDevice::pointer, bool> mCLImagesAccess;
