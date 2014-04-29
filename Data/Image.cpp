@@ -184,7 +184,44 @@ void Image::create3DImage(
         throw Exception(
                 "Can not use createImage on an object that is already initialized.");
 
-    // TODO implement
+    mWidth = width;
+    mHeight = height;
+    mDepth = depth;
+    mDimensions = 3;
+    mType = type;
+    mComponents = nrOfComponents;
+    if(device->isHost()) {
+        mHostHasData = true;
+        unsigned int size = width*height*depth*nrOfComponents;
+        switch(type) {
+        case TYPE_FLOAT:
+            mHostData = new float[size];
+            break;
+        case TYPE_UINT8:
+            mHostData = new uchar[size];
+            break;
+        case TYPE_INT8:
+            mHostData = new char[size];
+            break;
+        case TYPE_UINT16:
+            mHostData = new ushort[size];
+            break;
+        case TYPE_INT16:
+            mHostData = new short[size];
+            break;
+        }
+    } else {
+        OpenCLDevice::pointer clDevice = boost::dynamic_pointer_cast<OpenCLDevice>(device);
+        cl::Image3D* clImage = new cl::Image3D(
+            clDevice->getContext(),
+            CL_MEM_READ_WRITE,
+            getOpenCLImageFormat(type, nrOfComponents),
+            width, height, depth
+            );
+        //mCLImages[clDevice] = clImage; // TODO this has to contain a base class instead
+        mCLImagesIsUpToDate[clDevice] = true;
+        mCLImagesAccess[clDevice] = false;
+    }
 }
 
 void Image::create3DImage(
@@ -199,7 +236,30 @@ void Image::create3DImage(
         throw Exception(
                 "Can not use createImage on an object that is already initialized.");
 
-    // TODO implement
+    mWidth = width;
+    mHeight = height;
+    mDepth = depth;
+    mDimensions = 3;
+    mType = type;
+    mComponents = nrOfComponents;
+    if(device->isHost()) {
+        memcpy(mHostData, data, getSizeOfDataType(type, nrOfComponents)*width*height*depth);
+        mHostHasData = true;
+        mHostDataIsUpToDate = true;
+    } else {
+        OpenCLDevice::pointer clDevice = boost::dynamic_pointer_cast<OpenCLDevice>(device);
+        cl::Image3D* clImage = new cl::Image3D(
+            clDevice->getContext(),
+            CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+            getOpenCLImageFormat(type, nrOfComponents),
+            width, height, depth,
+            0, 0,
+            (void *)data
+            );
+        //mCLImages[clDevice] = clImage; // TODO this has to contain a base class instead
+        mCLImagesIsUpToDate[clDevice] = true;
+        mCLImagesAccess[clDevice] = false;
+    }
 }
 
 void Image::create2DImage(
@@ -241,7 +301,7 @@ void Image::create2DImage(
         OpenCLDevice::pointer clDevice = boost::dynamic_pointer_cast<OpenCLDevice>(device);
         cl::Image2D* clImage = new cl::Image2D(
             clDevice->getContext(),
-            CL_MEM_WRITE_ONLY,
+            CL_MEM_READ_WRITE,
             getOpenCLImageFormat(type, nrOfComponents),
             width, height
             );
@@ -276,7 +336,7 @@ void Image::create2DImage(
         OpenCLDevice::pointer clDevice = boost::dynamic_pointer_cast<OpenCLDevice>(device);
         cl::Image2D* clImage = new cl::Image2D(
             clDevice->getContext(),
-            CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,
+            CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
             getOpenCLImageFormat(type, nrOfComponents),
             width, height,
             0,
