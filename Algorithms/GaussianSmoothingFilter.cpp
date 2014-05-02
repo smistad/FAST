@@ -22,6 +22,7 @@ void GaussianSmoothingFilter::setInput(ImageData::pointer input) {
 void GaussianSmoothingFilter::setDevice(ExecutionDevice::pointer device) {
     mDevice = device;
     mIsModified = true;
+    mRecreateMask = true;
 }
 
 void GaussianSmoothingFilter::setMaskSize(unsigned char maskSize) {
@@ -30,6 +31,7 @@ void GaussianSmoothingFilter::setMaskSize(unsigned char maskSize) {
 
     mMaskSize = maskSize;
     mIsModified = true;
+    mRecreateMask = true;
 }
 
 void GaussianSmoothingFilter::setStandardDeviation(float stdDev) {
@@ -38,6 +40,7 @@ void GaussianSmoothingFilter::setStandardDeviation(float stdDev) {
 
     mStdDev = stdDev;
     mIsModified = true;
+    mRecreateMask = true;
 }
 
 ImageData::pointer GaussianSmoothingFilter::getOutput() {
@@ -61,41 +64,60 @@ GaussianSmoothingFilter::GaussianSmoothingFilter() {
     mStdDev = 1.0f;
     mMaskSize = 3;
     mIsModified = true;
+    mRecreateMask = true;
 }
 
-float * GaussianSmoothingFilter::createMask(Image::pointer input) {
-    float * mask;
+GaussianSmoothingFilter::~GaussianSmoothingFilter() {
+    delete[] mMask;
+}
+
+// TODO have to set mRecreateMask to true if input change dimension
+void GaussianSmoothingFilter::createMask(Image::pointer input) {
+    if(!mRecreateMask)
+        return;
+
     unsigned char halfSize = (mMaskSize-1)/2;
     float sum = 0.0f;
 
     if(input->getDimensions() == 2) {
-        mask = new float[mMaskSize*mMaskSize];
+        mMask = new float[mMaskSize*mMaskSize];
 
         for(int x = -halfSize; x <= halfSize; x++) {
         for(int y = -halfSize; y <= halfSize; y++) {
             float value = exp(-(float)(x*x+y*y)/(2.0f*mStdDev*mStdDev));
-            mask[x+halfSize+(y+halfSize)*mMaskSize] = value;
+            mMask[x+halfSize+(y+halfSize)*mMaskSize] = value;
             sum += value;
         }}
 
         for(int i = 0; i < mMaskSize*mMaskSize; i++)
-            mask[i] /= sum;
+            mMask[i] /= sum;
     } else if(input->getDimensions() == 3) {
-         mask = new float[mMaskSize*mMaskSize*mMaskSize];
+         mMask = new float[mMaskSize*mMaskSize*mMaskSize];
 
         for(int x = -halfSize; x <= halfSize; x++) {
         for(int y = -halfSize; y <= halfSize; y++) {
         for(int z = -halfSize; z <= halfSize; z++) {
             float value = exp(-(float)(x*x+y*y+z*z)/(2.0f*mStdDev*mStdDev));
-            mask[x+halfSize+(y+halfSize)*mMaskSize+(z+halfSize)*mMaskSize*mMaskSize] = value;
+            mMask[x+halfSize+(y+halfSize)*mMaskSize+(z+halfSize)*mMaskSize*mMaskSize] = value;
             sum += value;
         }}}
 
         for(int i = 0; i < mMaskSize*mMaskSize*mMaskSize; i++)
-            mask[i] /= sum;
+            mMask[i] /= sum;
     }
 
-    return mask;
+    if(!mDevice->isHost()) {
+        OpenCLDevice::pointer device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
+        unsigned int bufferSize = input->getDimensions() == 2 ? mMaskSize*mMaskSize : mMaskSize*mMaskSize*mMaskSize;
+        mCLMask = cl::Buffer(
+                device->getContext(),
+                CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                sizeof(float)*bufferSize,
+                mMask
+        );
+    }
+
+    mRecreateMask = false;
 }
 
 void GaussianSmoothingFilter::execute() {
@@ -138,22 +160,15 @@ void GaussianSmoothingFilter::execute() {
             mDevice);
     }
 
+
+    createMask(input);
+
     if(mDevice->isHost()) {
 
         // TODO: create host code
 
     } else {
         OpenCLDevice::pointer device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
-
-        float * mask = createMask(input);
-        unsigned int bufferSize = input->getDimensions() == 2 ? mMaskSize*mMaskSize : mMaskSize*mMaskSize*mMaskSize;
-        cl::Buffer clMask = cl::Buffer(
-                device->getContext(),
-                CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                sizeof(float)*bufferSize,
-                mask
-        );
-        delete[] mask;
 
         std::string buildOptions = "";
         if(input->getDataType() == TYPE_FLOAT) {
@@ -186,7 +201,7 @@ void GaussianSmoothingFilter::execute() {
             kernel.setArg(2, *outputAccess.get());
         }
 
-        kernel.setArg(1, clMask);
+        kernel.setArg(1, mCLMask);
         kernel.setArg(3, mMaskSize);
 
         device->getCommandQueue().enqueueNDRangeKernel(

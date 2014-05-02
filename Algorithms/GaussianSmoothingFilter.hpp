@@ -15,10 +15,11 @@ class GaussianSmoothingFilter : public ProcessObject {
         void setMaskSize(unsigned char maskSize);
         void setStandardDeviation(float stdDev);
         ImageData::pointer getOutput();
+        ~GaussianSmoothingFilter();
     private:
         GaussianSmoothingFilter();
         void execute();
-        float * createMask(Image::pointer input);
+        void createMask(Image::pointer input);
 
         ImageData::pointer mInput;
         WeakPointer<ImageData> mOutput;
@@ -26,6 +27,11 @@ class GaussianSmoothingFilter : public ProcessObject {
         ExecutionDevice::pointer mDevice;
         unsigned char mMaskSize;
         float mStdDev;
+
+        cl::Buffer mCLMask;
+        float * mMask;
+        float mRecreateMask;
+
 };
 
 } // end namespace fast
