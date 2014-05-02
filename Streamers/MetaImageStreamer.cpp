@@ -94,9 +94,13 @@ void MetaImageStreamer::producerStream() {
             }
             i++;
         } catch(FileNotFoundException &e) {
-            std::cout << "Reached end of stream" << std::endl;
-            // Reached end of stream
-            break;
+            if(i > 0) {
+                std::cout << "Reached end of stream" << std::endl;
+                // Reached end of stream
+                break;
+            } else {
+                throw e;
+            }
         }
     }
 }

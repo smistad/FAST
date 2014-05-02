@@ -131,7 +131,6 @@ void GaussianSmoothingFilter::execute() {
             input->getNrOfComponents(),
             mDevice);
     } else {
-        throw Exception("The GaussianSmoothinFilter is not implemented for 3D yet.");
          output->create3DImage(input->getWidth(),
             input->getHeight(),
             input->getDepth(),
@@ -164,20 +163,36 @@ void GaussianSmoothingFilter::execute() {
         } else {
             buildOptions = "-DTYPE_UINT";
         }
-        int programNr = device->createProgramFromSource(std::string(FAST_ROOT_DIR) + "Algorithms/GaussianSmoothingFilter2D.cl", buildOptions);
-        cl::Kernel kernel(device->getProgram(programNr), "gaussianSmoothing");
+        int programNr;
+        cl::NDRange globalSize;
+        cl::Kernel kernel;
+        if(input->getDimensions() == 2) {
+            programNr = device->createProgramFromSource(std::string(FAST_ROOT_DIR) + "Algorithms/GaussianSmoothingFilter2D.cl", buildOptions);
+            kernel = cl::Kernel(device->getProgram(programNr), "gaussianSmoothing");
+            globalSize = cl::NDRange(input->getWidth(),input->getHeight());
 
-        OpenCLImageAccess2D inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
-        OpenCLImageAccess2D outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
-        kernel.setArg(0, *inputAccess.get());
+            OpenCLImageAccess2D inputAccess = input->getOpenCLImageAccess2D(ACCESS_READ, device);
+            OpenCLImageAccess2D outputAccess = output->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
+            kernel.setArg(0, *inputAccess.get());
+            kernel.setArg(2, *outputAccess.get());
+        } else {
+            programNr = device->createProgramFromSource(std::string(FAST_ROOT_DIR) + "Algorithms/GaussianSmoothingFilter3D.cl", buildOptions);
+            kernel = cl::Kernel(device->getProgram(programNr), "gaussianSmoothing");
+            globalSize = cl::NDRange(input->getWidth(),input->getHeight(),input->getDepth());
+
+            OpenCLImageAccess3D inputAccess = input->getOpenCLImageAccess3D(ACCESS_READ, device);
+            OpenCLImageAccess3D outputAccess = output->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
+            kernel.setArg(0, *inputAccess.get());
+            kernel.setArg(2, *outputAccess.get());
+        }
+
         kernel.setArg(1, clMask);
-        kernel.setArg(2, *outputAccess.get());
         kernel.setArg(3, mMaskSize);
 
         device->getCommandQueue().enqueueNDRangeKernel(
                 kernel,
                 cl::NullRange,
-                cl::NDRange(input->getWidth(),input->getHeight()),
+                globalSize,
                 cl::NullRange
         );
     }

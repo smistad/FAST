@@ -141,9 +141,13 @@ void Image::setAllDataToOutOfDate() {
     }
 }
 
-OpenCLImageAccess2D Image::getOpenCLImageAccess(
+OpenCLImageAccess2D Image::getOpenCLImageAccess2D(
         accessType type,
         OpenCLDevice::pointer device) {
+
+    if(mDimensions != 2)
+        throw Exception("Trying to get OpenCL Image2D access to an Image that is not 2D");
+
     // Check for write access
     if (type == ACCESS_READ_WRITE) {
         if (isAnyDataBeingAccessed()) {
@@ -159,6 +163,30 @@ OpenCLImageAccess2D Image::getOpenCLImageAccess(
     // Now it is guaranteed that the data is on the device and that it is up to date
 
     return OpenCLImageAccess2D((cl::Image2D*)mCLImages[device], &mCLImagesAccess[device]);
+}
+
+OpenCLImageAccess3D Image::getOpenCLImageAccess3D(
+        accessType type,
+        OpenCLDevice::pointer device) {
+
+    if(mDimensions != 3)
+        throw Exception("Trying to get OpenCL Image3D access to an Image that is not 3D");
+
+    // Check for write access
+    if (type == ACCESS_READ_WRITE) {
+        if (isAnyDataBeingAccessed()) {
+            throw Exception(
+                    "Trying to get write access to an object that is already being accessed");
+        }
+        setAllDataToOutOfDate();
+        mCLImagesIsUpToDate[device] = true;
+    }
+    mCLImagesAccess[device] = true;
+    updateOpenCLImageData(device);
+
+    // Now it is guaranteed that the data is on the device and that it is up to date
+
+    return OpenCLImageAccess3D((cl::Image3D*)mCLImages[device], &mCLImagesAccess[device]);
 }
 
 Image::Image() {

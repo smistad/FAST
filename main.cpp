@@ -53,7 +53,7 @@ int main(int argc, char ** argv) {
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->resize(512,512);
-    window->runMainLoop();
+    //window->runMainLoop();
 
 
 
@@ -97,12 +97,16 @@ int main(int argc, char ** argv) {
     exporter2->update();
 
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
-    mhdStreamer->setFilenameFormat("/home/smistad/US-Acq_01_20140320T105851/US-Acq_01_20140320T105851_cxOpenCV_#.mhd");
+    mhdStreamer->setFilenameFormat("/home/smistad/US4D/HjerteOpptak/Acq_03_20131212T110116_ScanConverted_#.mhd");
     GaussianSmoothingFilter::pointer filter4 = GaussianSmoothingFilter::New();
     filter4->setInput(mhdStreamer->getOutput());
     filter4->setMaskSize(7);
     filter4->setStandardDeviation(10);
     DynamicImage::pointer dynamicImage2 = filter4->getOutput();
+    i = 5000;
+    while(--i) {
+        dynamicImage2->update();
+    }
 
 
 }

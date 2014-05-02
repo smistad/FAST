@@ -7,6 +7,7 @@
 #include "OpenCLManager.hpp"
 #include "ExecutionDevice.hpp"
 #include "OpenCLImageAccess2D.hpp"
+#include "OpenCLImageAccess3D.hpp"
 #include "ImageAccess2D.hpp"
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
@@ -21,7 +22,8 @@ class Image: public ImageData {
         void create3DImage(unsigned int width, unsigned int height, unsigned int depth, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device, const void * data);
 
         // TODO add 3D support to these methods
-        OpenCLImageAccess2D getOpenCLImageAccess(accessType type, OpenCLDevice::pointer);
+        OpenCLImageAccess2D getOpenCLImageAccess2D(accessType type, OpenCLDevice::pointer);
+        OpenCLImageAccess3D getOpenCLImageAccess3D(accessType type, OpenCLDevice::pointer);
         ImageAccess2D getImageAccess(accessType type);
 
         ~Image() { freeAll(); };

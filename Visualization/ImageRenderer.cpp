@@ -26,7 +26,7 @@ void ImageRenderer::execute() {
     if(!success)
         throw Exception("failed to switch to window");
 
-    OpenCLImageAccess2D access = input->getOpenCLImageAccess(ACCESS_READ, mDevice);
+    OpenCLImageAccess2D access = input->getOpenCLImageAccess2D(ACCESS_READ, mDevice);
     cl::Image2D* clImage = access.get();
 
     // Create OpenGL texture
