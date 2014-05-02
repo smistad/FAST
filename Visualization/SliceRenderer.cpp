@@ -26,7 +26,6 @@ void SliceRenderer::execute() {
     Image::pointer input;
     if(mInput->isDynamicData()) {
         input = DynamicImage::pointer(mInput)->getNextFrame();
-        std::cout << "processing a new frame" << std::endl;
     } else {
         input = mInput;
     }

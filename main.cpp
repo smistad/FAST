@@ -112,7 +112,6 @@ int main(int argc, char ** argv) {
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->resize(512,512);
-    std::cout << "window set up!!!!!!!!!!!" << std::endl;
     window->runMainLoop();
 
 }
