@@ -2,10 +2,20 @@
 #include "Exception.hpp"
 #include "DeviceManager.hpp"
 #include "HelperFunctions.hpp"
-#include <GL/glx.h>
 #include "Image.hpp"
 #include "DynamicImage.hpp"
-
+#if defined(__APPLE__) || defined(__MACOSX)
+#include <OpenCL/cl_gl.h>
+#include <OpenGL/OpenGL.h>
+#else
+#if _WIN32
+#include <GL/gl.h>
+#include <CL/cl_gl.h>
+#else
+#include <GL/glx.h>
+#include <CL/cl_gl.h>
+#endif
+#endif
 
 using namespace fast;
 
@@ -21,7 +31,16 @@ void SliceRenderer::execute() {
         input = mInput;
     }
 
+#if defined(__APPLE__) || defined(__MACOSX)
+    // Returns 0 on success
+    bool success = CGLSetCurrentContext((CGLContextObj)mDevice->getGLContext()) == 0;
+#else
+#if _WIN32
+    bool success = wglMakeCurrent(wglGetCurrentDC(), (HGLRC)mDevice->getGLContext());
+#else
     bool success = glXMakeCurrent(XOpenDisplay(0),glXGetCurrentDrawable(),(GLXContext)mDevice->getGLContext());
+#endif
+#endif
     if(!success)
         throw Exception("failed to switch to window");
 
