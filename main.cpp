@@ -102,15 +102,13 @@ int main(int argc, char ** argv) {
 
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
     mhdStreamer->setFilenameFormat("/home/smistad/Patients/2013-08-22_10-36_Lab_4DTrack.cx3/US_Acq/US-Acq_01_20130822T111033/US-Acq_01_20130822T111033_ScanConverted_#.mhd");
-    /*
     GaussianSmoothingFilter::pointer filter4 = GaussianSmoothingFilter::New();
     filter4->setInput(mhdStreamer->getOutput());
     filter4->setMaskSize(7);
     filter4->setStandardDeviation(10);
-    */
 
     SliceRenderer::pointer renderer = SliceRenderer::New();
-    renderer->setInput(mhdStreamer->getOutput());
+    renderer->setInput(filter4->getOutput());
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->resize(512,512);
