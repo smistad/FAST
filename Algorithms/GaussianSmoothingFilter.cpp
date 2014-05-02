@@ -147,10 +147,11 @@ void GaussianSmoothingFilter::execute() {
         OpenCLDevice::pointer device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
 
         float * mask = createMask(input);
+        unsigned int bufferSize = input->getDimensions() == 2 ? mMaskSize*mMaskSize : mMaskSize*mMaskSize*mMaskSize;
         cl::Buffer clMask = cl::Buffer(
                 device->getContext(),
                 CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                sizeof(float)*mMaskSize*mMaskSize,
+                sizeof(float)*bufferSize,
                 mask
         );
         delete[] mask;
