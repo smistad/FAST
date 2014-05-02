@@ -10,6 +10,10 @@ void View::addRenderer(Renderer::pointer renderer) {
 }
 
 View::View() {
+    timer = new QTimer(this);
+    timer->start(100); // in milliseconds
+    timer->setSingleShot(false);
+    connect(timer,SIGNAL(timeout()),this,SLOT(update()));
 }
 
 void View::execute() {
@@ -27,8 +31,6 @@ void View::paintGL() {
         mRenderers[i]->update(); // TODO should not run update so often..
         mRenderers[i]->draw();
     }
-
-
 }
 
 void View::resizeGL(int width, int height) {

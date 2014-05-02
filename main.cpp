@@ -7,6 +7,7 @@
 #include "GaussianSmoothingFilter.hpp"
 #include "SimpleWindow.hpp"
 #include "ImageRenderer.hpp"
+#include "SliceRenderer.hpp"
 #include "MetaImageImporter.hpp"
 #include "MetaImageStreamer.hpp"
 
@@ -48,12 +49,15 @@ int main(int argc, char ** argv) {
     // Example of displaying an image on screen using ImageRenderer (2D) and SimpleWindow
     // TODO The QApplication part should ideally be hid away
     QApplication app(argc,argv);
+    app.setAttribute(Qt::AA_X11InitThreads);
+    /*
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->setInput(filteredImage);
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->resize(512,512);
     //window->runMainLoop();
+     */
 
 
 
@@ -97,16 +101,20 @@ int main(int argc, char ** argv) {
     exporter2->update();
 
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
-    mhdStreamer->setFilenameFormat("/home/smistad/US4D/HjerteOpptak/Acq_03_20131212T110116_ScanConverted_#.mhd");
+    mhdStreamer->setFilenameFormat("/home/smistad/Patients/2013-08-22_10-36_Lab_4DTrack.cx3/US_Acq/US-Acq_01_20130822T111033/US-Acq_01_20130822T111033_ScanConverted_#.mhd");
+    /*
     GaussianSmoothingFilter::pointer filter4 = GaussianSmoothingFilter::New();
     filter4->setInput(mhdStreamer->getOutput());
     filter4->setMaskSize(7);
     filter4->setStandardDeviation(10);
-    DynamicImage::pointer dynamicImage2 = filter4->getOutput();
-    i = 5000;
-    while(--i) {
-        dynamicImage2->update();
-    }
+    */
 
+    SliceRenderer::pointer renderer = SliceRenderer::New();
+    renderer->setInput(mhdStreamer->getOutput());
+    SimpleWindow::pointer window = SimpleWindow::New();
+    window->addRenderer(renderer);
+    window->resize(512,512);
+    std::cout << "window set up!!!!!!!!!!!" << std::endl;
+    window->runMainLoop();
 
 }

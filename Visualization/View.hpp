@@ -5,6 +5,7 @@
 #include "Renderer.hpp"
 #include <vector>
 #include <QtOpenGL/QGLWidget>
+#include <QTimer>
 
 namespace fast {
 
@@ -17,6 +18,7 @@ class View : public QGLWidget, public ProcessObject {
         View();
         std::vector<Renderer::pointer> mRenderers;
         void execute();
+        QTimer* timer;
 
     protected:
         void initializeGL();

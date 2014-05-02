@@ -55,6 +55,8 @@ set(SOURCES
     Visualization/Renderer.hpp
     Visualization/ImageRenderer.cpp
     Visualization/ImageRenderer.hpp
+    Visualization/SliceRenderer.cpp
+    Visualization/SliceRenderer.hpp
 )
 
 if(VTK_INTEROP)

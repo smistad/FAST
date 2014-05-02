@@ -182,7 +182,6 @@ void MetaImageImporter::execute() {
         type = TYPE_FLOAT;
         data = readRawData<float>(rawFilename, width, height, depth);
     }
-    std::cout << "image of size " << width << " " << height << " " << depth << " read " << std::endl;
 
     if(imageIs3D) {
         Image::pointer(mOutput.lock())->create3DImage(width,height,depth,type,1,mDevice,data);

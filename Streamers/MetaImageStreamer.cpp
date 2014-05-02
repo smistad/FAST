@@ -12,15 +12,6 @@ void stubStreamThread(MetaImageStreamer * streamer) {
 }
 
 DynamicImage::pointer MetaImageStreamer::getOutput() {
-    if(!mStreamIsStarted) {
-        mStreamIsStarted = true;
-        thread = new boost::thread(&stubStreamThread, this);
-    }
-
-    // Wait here for first frame
-    // TODO use condition variable instead
-    while(!mFirstFrameIsInserted);
-
     if(mOutput.isValid()) {
         mOutput->setParent(mPtr.lock());
 
@@ -77,7 +68,6 @@ void MetaImageStreamer::producerStream() {
                 filename.find("#"),
                 1,
                 intToString(i));
-        std::cout << filename << std::endl;
         try {
             MetaImageImporter::pointer importer = MetaImageImporter::New();
             importer->setFilename(filename);
