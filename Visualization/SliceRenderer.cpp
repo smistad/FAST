@@ -10,7 +10,6 @@
 using namespace fast;
 
 void SliceRenderer::execute() {
-    std::cout << "calling execute() on SliceRenderer" << std::endl;
     if(!mInput.isValid())
         throw Exception("No input was given to SliceRenderer");
 
@@ -79,7 +78,6 @@ void SliceRenderer::execute() {
     queue.finish();
 
     mTextureIsCreated = true;
-    std::cout << "finished execute on slice renderer" << std::endl;
 }
 
 void SliceRenderer::setInput(ImageData::pointer image) {
@@ -102,7 +100,6 @@ SliceRenderer::SliceRenderer() {
 
 void SliceRenderer::draw() {
     std::cout << "calling draw()" << std::endl;
-
 
     if(!mTextureIsCreated)
         return;
