@@ -3,6 +3,10 @@
 #include "Exception.hpp"
 using namespace fast;
 
+double round(double number) {
+	return number < 0.0 ? ceil(number-0.5) : floor(number + 0.5);
+}
+
 void ImageExporter2D::setInput(Image2D::pointer image) {
     mStaticInput = image;
     addParent(mStaticInput);

@@ -75,7 +75,7 @@ TEST_CASE("Export an image from FAST to VTK and visualize", "[fast][VTK]") {
     CHECK(fastImage->getWidth() == size[0]-1);
     CHECK(fastImage->getHeight() == size[1]-1);
 
-    CHECK_NOTHROW(
+    
     // VTK mess for getting the image on screen
     vtkSmartPointer<vtkImageMapper> imageMapper = vtkSmartPointer<vtkImageMapper>::New();
 #if VTK_MAJOR_VERSION <= 5
@@ -83,6 +83,7 @@ TEST_CASE("Export an image from FAST to VTK and visualize", "[fast][VTK]") {
 #else
     imageMapper->SetInputData(vtkImage);
 #endif
+	CHECK_NOTHROW(
     imageMapper->SetColorWindow(1);
     imageMapper->SetColorLevel(0.5);
 
