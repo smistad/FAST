@@ -17,6 +17,10 @@
 #endif
 #endif
 
+#ifndef GL_RGBA32F
+#define GL_RGBA32F 34838
+#endif
+
 using namespace fast;
 
 void ImageRenderer::execute() {

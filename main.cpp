@@ -49,7 +49,6 @@ int main(int argc, char ** argv) {
     // Example of displaying an image on screen using ImageRenderer (2D) and SimpleWindow
     // TODO The QApplication part should ideally be hid away
     QApplication app(argc,argv);
-    app.setAttribute(Qt::AA_X11InitThreads);
     /*
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->setInput(filteredImage);

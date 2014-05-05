@@ -1,7 +1,18 @@
 #include "View.hpp"
 #include "Exception.hpp"
 
+#if defined(__APPLE__) || defined(__MACOSX)
+#include <OpenCL/cl_gl.h>
+#include <OpenGL/OpenGL.h>
+#else
+#if _WIN32
+#include <GL/gl.h>
+#include <CL/cl_gl.h>
+#else
 #include <GL/glx.h>
+#include <CL/cl_gl.h>
+#endif
+#endif
 
 using namespace fast;
 
