@@ -15,13 +15,6 @@
 
 using namespace fast;
 
-Image::pointer create() {
-    // Example of importing one 2D image
-    ImageImporter2D::pointer importer = ImageImporter2D::New();
-    importer->setFilename("lena.jpg");
-    return importer->getOutput();
-}
-
 int main(int argc, char ** argv) {
 
     // Get a GPU device and set it as the default device
@@ -58,18 +51,6 @@ int main(int argc, char ** argv) {
     //window->runMainLoop();
      */
 
-
-
-
-    // Example of creating a pipeline in another scope and updating afterwards
-    Image::pointer image2 = create();
-    std::cout << "after create" << std::endl;
-    image2->update();
-
-
-
-
-
     // Example of streaming 2D images
     ImageStreamer2D::pointer streamer = ImageStreamer2D::New();
     streamer->setFilenameFormat("test_#.jpg");
@@ -84,27 +65,16 @@ int main(int argc, char ** argv) {
         dynamicImage->update();
     }
 
-    MetaImageImporter::pointer importer2 = MetaImageImporter::New();
-    importer2->setFilename("US-Acq_01_20140320T105851_cxOpenCV.mask.mhd");
-    Image::pointer image3 = importer2->getOutput();
-    image3->update();
 
-    GaussianSmoothingFilter::pointer filter3 = GaussianSmoothingFilter::New();
-    filter3->setInput(image3);
-    filter3->setMaskSize(7);
-    filter3->setStandardDeviation(10);
-    Image::pointer image4 = filter3->getOutput();
-    ImageExporter2D::pointer exporter2 = ImageExporter2D::New();
-    exporter2->setInput(image4);
-    exporter2->setFilename("asd.jpg");
-    exporter2->update();
+
 
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
     mhdStreamer->setFilenameFormat("/home/smistad/Patients/2013-08-22_10-36_Lab_4DTrack.cx3/US_Acq/US-Acq_01_20130822T111033/US-Acq_01_20130822T111033_ScanConverted_#.mhd");
     GaussianSmoothingFilter::pointer filter4 = GaussianSmoothingFilter::New();
     filter4->setInput(mhdStreamer->getOutput());
-    filter4->setMaskSize(7);
+    filter4->setMaskSize(5);
     filter4->setStandardDeviation(10);
+    filter4->enableRuntimeMeasurements();
 
     SliceRenderer::pointer renderer = SliceRenderer::New();
     renderer->setInput(filter4->getOutput());
@@ -113,4 +83,5 @@ int main(int argc, char ** argv) {
     window->resize(512,512);
     window->runMainLoop();
 
+    filter4->getRuntime()->print();
 }

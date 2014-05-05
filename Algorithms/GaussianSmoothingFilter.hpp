@@ -19,6 +19,7 @@ class GaussianSmoothingFilter : public ProcessObject {
     private:
         GaussianSmoothingFilter();
         void execute();
+        void waitToFinish();
         void createMask(Image::pointer input);
 
         ImageData::pointer mInput;

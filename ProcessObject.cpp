@@ -21,7 +21,11 @@ void ProcessObject::update() {
     // If this process object itself has been modified or a parent object (input)
     // has been modified, execute is called
     if(this->mIsModified || aParentHasBeenModified) {
+        this->mRuntimeManager->startRegularTimer("execute");
         this->execute();
+        if(this->mRuntimeManager->isEnabled())
+            this->waitToFinish();
+        this->mRuntimeManager->stopRegularTimer("execute");
         this->mIsModified = false;
     }
 }
@@ -42,6 +46,14 @@ void ProcessObject::addParent(DataObject::pointer parent) {
     }
 }
 
+void ProcessObject::enableRuntimeMeasurements() {
+    mRuntimeManager->enable();
+}
+
+void ProcessObject::disableRuntimeMeasurements() {
+    mRuntimeManager->disable();
+}
+
 void ProcessObject::setTimestamp(
         DataObject::pointer object,
         unsigned long timestamp) {
@@ -52,4 +64,8 @@ void ProcessObject::setTimestamp(
             break;
         }
     }
+}
+
+oul::RuntimeMeasurementPtr ProcessObject::getRuntime() {
+    return mRuntimeManager->getTiming("execute");
 }

@@ -218,3 +218,10 @@ void GaussianSmoothingFilter::execute() {
     // Update the timestamp of the output data
     output->updateModifiedTimestamp();
 }
+
+void GaussianSmoothingFilter::waitToFinish() {
+    if(!mDevice->isHost()) {
+        OpenCLDevice::pointer device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
+        device->getCommandQueue().finish();
+    }
+}

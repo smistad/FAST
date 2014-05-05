@@ -23,7 +23,7 @@ void View::addRenderer(Renderer::pointer renderer) {
 View::View() {
     // Set up a timer that will call update on this object at a regular interval
     timer = new QTimer(this);
-    timer->start(100); // in milliseconds
+    timer->start(50); // in milliseconds
     timer->setSingleShot(false);
     connect(timer,SIGNAL(timeout()),this,SLOT(update()));
 }
