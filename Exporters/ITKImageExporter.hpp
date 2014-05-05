@@ -2,7 +2,7 @@
 #define ITKIMAGEEXPORTER_HPP_
 
 #include "ProcessObject.hpp"
-#include "Image2D.hpp"
+#include "Image.hpp"
 
 #include <itkImageSource.h>
 #include <itkImageRegionIterator.h>
@@ -22,9 +22,9 @@ class ITKImageExporter: public itk::ImageSource<TImage>, public ProcessObject {
 
         /** Run-time type information (and related methods). */
         itkTypeMacro(MyImageSource, ImageSource);
-        void SetInput(Image2D::pointer image);
+        void SetInput(Image::pointer image);
     private:
-        Image2D::pointer mInput;
+        Image::pointer mInput;
 
         ITKImageExporter();
         void execute() {};
@@ -37,7 +37,7 @@ class ITKImageExporter: public itk::ImageSource<TImage>, public ProcessObject {
 } // end namespace fast
 
 template<class TImage>
-inline void fast::ITKImageExporter<TImage>::SetInput(Image2D::pointer image) {
+inline void fast::ITKImageExporter<TImage>::SetInput(Image::pointer image) {
     mInput = image;
 }
 

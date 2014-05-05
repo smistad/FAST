@@ -1,4 +1,4 @@
-#include "ImageRenderer.hpp"
+#include "SliceRenderer.hpp"
 #include "Exception.hpp"
 #include "DeviceManager.hpp"
 #include "HelperFunctions.hpp"
@@ -19,15 +19,13 @@
 
 using namespace fast;
 
-void ImageRenderer::execute() {
-    std::cout << "calling execute() on ImageRenderer" << std::endl;
+void SliceRenderer::execute() {
     if(!mInput.isValid())
-        throw Exception("No input was given to ImageRenderer");
+        throw Exception("No input was given to SliceRenderer");
 
     Image::pointer input;
     if(mInput->isDynamicData()) {
         input = DynamicImage::pointer(mInput)->getNextFrame();
-        std::cout << "processing a new frame" << std::endl;
     } else {
         input = mInput;
     }
@@ -45,8 +43,8 @@ void ImageRenderer::execute() {
     if(!success)
         throw Exception("failed to switch to window");
 
-    OpenCLImageAccess2D access = input->getOpenCLImageAccess2D(ACCESS_READ, mDevice);
-    cl::Image2D* clImage = access.get();
+    OpenCLImageAccess3D access = input->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+    cl::Image3D* clImage = access.get();
 
     // Create OpenGL texture
     glEnable(GL_TEXTURE_2D);
@@ -86,6 +84,7 @@ void ImageRenderer::execute() {
     cl::Kernel kernel(mProgram, "renderToTexture");
     kernel.setArg(0, *clImage);
     kernel.setArg(1, mImageGL);
+    kernel.setArg(2, (int)(clImage->getImageInfo<CL_IMAGE_DEPTH>()/2));
     queue.enqueueNDRangeKernel(
             kernel,
             cl::NullRange,
@@ -99,27 +98,26 @@ void ImageRenderer::execute() {
     mTextureIsCreated = true;
 }
 
-void ImageRenderer::setInput(ImageData::pointer image) {
+void SliceRenderer::setInput(ImageData::pointer image) {
     mInput = image;
     addParent(mInput);
     mIsModified = true;
     /*
-    if(image->getNrOfComponents() != 2)
-        throw Exception("The ImageRenderer only supports 2D images");
-    */
+    if(image->getNrOfDimensions() != 3)
+        throw Exception("The SliceRenderer only supports 3D images");
+        */
 }
 
-ImageRenderer::ImageRenderer() {
+SliceRenderer::SliceRenderer() {
     mDevice = boost::static_pointer_cast<OpenCLDevice>(DeviceManager::getInstance().getDefaultVisualizationDevice());
-    int i = mDevice->createProgramFromSource(std::string(FAST_ROOT_DIR) + "/Visualization/ImageRenderer.cl");
+    int i = mDevice->createProgramFromSource(std::string(FAST_ROOT_DIR) + "/Visualization/SliceRenderer.cl");
     mProgram = mDevice->getProgram(i);
     mTextureIsCreated = false;
     mIsModified = true;
 }
 
-void ImageRenderer::draw() {
+void SliceRenderer::draw() {
     std::cout << "calling draw()" << std::endl;
-
 
     if(!mTextureIsCreated)
         return;

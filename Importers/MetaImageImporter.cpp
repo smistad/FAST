@@ -1,16 +1,15 @@
 #include "MetaImageImporter.hpp"
 #include "DeviceManager.hpp"
-#include "Image2D.hpp"
 #include "Exception.hpp"
 #include <fstream>
 #include <boost/iostreams/device/mapped_file.hpp>
 using namespace fast;
 
-StaticImage::pointer MetaImageImporter::getOutput() {
+Image::pointer MetaImageImporter::getOutput() {
     if(mTempOutput.isValid()) {
         mTempOutput->setParent(mPtr.lock());
 
-        StaticImage::pointer newSmartPtr;
+        Image::pointer newSmartPtr;
         newSmartPtr.swap(mTempOutput);
 
         return newSmartPtr;
@@ -32,7 +31,7 @@ void MetaImageImporter::setDevice(ExecutionDevice::pointer device) {
 MetaImageImporter::MetaImageImporter() {
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
     mFilename = "";
-    mTempOutput = Image2D::New();
+    mTempOutput = Image::New();
     mOutput = mTempOutput;
 }
 
@@ -40,8 +39,11 @@ template <class T>
 void * readRawData(std::string rawFilename, unsigned int width, unsigned int height, unsigned int depth) {
     boost::iostreams::mapped_file_source file;
     file.open(rawFilename, width*height*depth*sizeof(T));
+    if(!file.is_open())
+        throw FileNotFoundException(rawFilename);
     T * data = new T[width*height*depth];
-    memcpy(data,file.data(),width*height*depth*sizeof(T));
+    T * fileData = (T*)file.data();
+    memcpy(data,fileData,width*height*depth*sizeof(T));
     file.close();
     return data;
 }
@@ -180,11 +182,10 @@ void MetaImageImporter::execute() {
         type = TYPE_FLOAT;
         data = readRawData<float>(rawFilename, width, height, depth);
     }
-    std::cout << "image of size " << width << " " << height << " " << depth << " read " << std::endl;
 
     if(imageIs3D) {
-
+        Image::pointer(mOutput.lock())->create3DImage(width,height,depth,type,1,mDevice,data);
     } else {
-        Image2D::pointer(mOutput.lock())->createImage(width,height,type,1,mDevice,data);
+        Image::pointer(mOutput.lock())->create2DImage(width,height,type,1,mDevice,data);
     }
 }

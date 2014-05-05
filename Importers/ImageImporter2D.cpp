@@ -33,7 +33,7 @@ void ImageImporter2D::execute() {
     }
 
     // Transfer to texture(if OpenCL) or copy raw pixel data (if host)
-    mOutput2.lock()->createImage(image.width(),
+    mOutput2.lock()->create2DImage(image.width(),
             image.height(),
             TYPE_FLOAT,
             1,
@@ -45,16 +45,16 @@ void ImageImporter2D::execute() {
 }
 
 ImageImporter2D::ImageImporter2D() {
-    mOutput = Image2D::New();
+    mOutput = Image::New();
     mOutput2 = mOutput;
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
 }
 
-Image2D::pointer ImageImporter2D::getOutput() {
+Image::pointer ImageImporter2D::getOutput() {
     if(mOutput.isValid()) {
         mOutput->setParent(mPtr.lock());
 
-        Image2D::pointer newSmartPtr;
+        Image::pointer newSmartPtr;
         newSmartPtr.swap(mOutput);
 
         return newSmartPtr;

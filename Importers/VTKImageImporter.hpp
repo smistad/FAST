@@ -4,7 +4,7 @@
 #include "ProcessObject.hpp"
 #include <vtkImageData.h>
 #include <vtkSmartPointer.h>
-#include "Image2D.hpp"
+#include "Image.hpp"
 
 namespace fast {
 
@@ -12,11 +12,11 @@ class VTKImageImporter : public ProcessObject {
     FAST_OBJECT(VTKImageImporter)
     public:
         void setInput(vtkSmartPointer<vtkImageData> image);
-        StaticImage::pointer getOutput();
+        Image::pointer getOutput();
     private:
         vtkSmartPointer<vtkImageData> mInput;
-        WeakPointer<StaticImage> mOutput;
-        StaticImage::pointer mTempOutput;
+        WeakPointer<Image> mOutput;
+        Image::pointer mTempOutput;
 
         VTKImageImporter();
         void execute();

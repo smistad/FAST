@@ -1,5 +1,5 @@
-#include "ImageStreamer2D.hpp"
-#include "ImageImporter2D.hpp"
+#include "MetaImageStreamer.hpp"
+#include "MetaImageImporter.hpp"
 #include "DeviceManager.hpp"
 #include "Exception.hpp"
 using namespace fast;
@@ -7,20 +7,11 @@ using namespace fast;
 /**
  * Dummy function to get into the class again
  */
-void stubStreamThread(ImageStreamer2D * streamer) {
+void stubStreamThread(MetaImageStreamer * streamer) {
     streamer->producerStream();
 }
 
-DynamicImage::pointer ImageStreamer2D::getOutput() {
-    if(!mStreamIsStarted) {
-        mStreamIsStarted = true;
-        thread = new boost::thread(&stubStreamThread, this);
-    }
-
-    // Wait here for first frame
-    // TODO use condition variable instead
-    while(!mFirstFrameIsInserted);
-
+DynamicImage::pointer MetaImageStreamer::getOutput() {
     if(mOutput.isValid()) {
         mOutput->setParent(mPtr.lock());
 
@@ -33,7 +24,7 @@ DynamicImage::pointer ImageStreamer2D::getOutput() {
     }
 }
 
-ImageStreamer2D::ImageStreamer2D() {
+MetaImageStreamer::MetaImageStreamer() {
     mOutput = DynamicImage::New();
     mOutput2 = mOutput;
     mStreamIsStarted = false;
@@ -44,7 +35,7 @@ ImageStreamer2D::ImageStreamer2D() {
 }
 
 
-inline void ImageStreamer2D::execute() {
+inline void MetaImageStreamer::execute() {
     if(!mStreamIsStarted) {
         mStreamIsStarted = true;
         thread = new boost::thread(&stubStreamThread, this);
@@ -55,11 +46,11 @@ inline void ImageStreamer2D::execute() {
     while(!mFirstFrameIsInserted);
 }
 
-void ImageStreamer2D::setFilenameFormat(std::string str) {
+void MetaImageStreamer::setFilenameFormat(std::string str) {
     mFilenameFormat = str;
 }
 
-void ImageStreamer2D::setDevice(ExecutionDevice::pointer device) {
+void MetaImageStreamer::setDevice(ExecutionDevice::pointer device) {
     mDevice = device;
 }
 
@@ -69,7 +60,7 @@ inline std::string intToString(int number) {
     return ss.str();//return a string with the contents of the stream
 }
 
-void ImageStreamer2D::producerStream() {
+void MetaImageStreamer::producerStream() {
     int i = 0;
     while(true) {
         std::string filename = mFilenameFormat;
@@ -77,9 +68,8 @@ void ImageStreamer2D::producerStream() {
                 filename.find("#"),
                 1,
                 intToString(i));
-        std::cout << filename << std::endl;
         try {
-            ImageImporter2D::pointer importer = ImageImporter2D::New();
+            MetaImageImporter::pointer importer = MetaImageImporter::New();
             importer->setFilename(filename);
             importer->setDevice(mDevice);
             Image::pointer image = importer->getOutput();
@@ -94,14 +84,18 @@ void ImageStreamer2D::producerStream() {
             }
             i++;
         } catch(FileNotFoundException &e) {
-            std::cout << "Reached end of stream" << std::endl;
-            // Reached end of stream
-            break;
+            if(i > 0) {
+                std::cout << "Reached end of stream" << std::endl;
+                // Reached end of stream
+                break;
+            } else {
+                throw e;
+            }
         }
     }
 }
 
-ImageStreamer2D::~ImageStreamer2D() {
+MetaImageStreamer::~MetaImageStreamer() {
     std::cout << "Joining the thread" << std::endl;
     // TODO stop thread as well
     thread->join();
