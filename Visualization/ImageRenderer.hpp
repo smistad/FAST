@@ -10,6 +10,10 @@ class ImageRenderer : public Renderer {
     FAST_OBJECT(ImageRenderer)
     public:
         void setInput(ImageData::pointer image);
+        void setIntensityLevel(float level);
+        float getIntensityLevel();
+        void setIntensityWindow(float window);
+        float getIntensityWindow();
     private:
         ImageRenderer();
         void execute();
@@ -25,6 +29,10 @@ class ImageRenderer : public Renderer {
         GLuint mTexture;
         cl::Program mProgram;
         bool mTextureIsCreated;
+
+        // Level and window intensities
+        float mWindow;
+        float mLevel;
 
 };
 

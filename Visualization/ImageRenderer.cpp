@@ -34,6 +34,17 @@ void ImageRenderer::execute() {
         input = mInput;
     }
 
+    // Determine level and window
+    float window = mWindow;
+    float level = mLevel;
+    // If mWindow/mLevel is equal to -1 use default level/window values
+    if(window == -1) {
+        window = getDefaultIntensityWindow(input->getDataType());
+    }
+    if(level == -1) {
+        level = getDefaultIntensityLevel(input->getDataType());
+    }
+
 #if defined(__APPLE__) || defined(__MACOSX)
     // Returns 0 on success
     bool success = CGLSetCurrentContext((CGLContextObj)mDevice->getGLContext()) == 0;
@@ -88,6 +99,8 @@ void ImageRenderer::execute() {
     cl::Kernel kernel(mProgram, "renderToTexture");
     kernel.setArg(0, *clImage);
     kernel.setArg(1, mImageGL);
+    kernel.setArg(2, level);
+    kernel.setArg(3, window);
     queue.enqueueNDRangeKernel(
             kernel,
             cl::NullRange,
@@ -117,11 +130,12 @@ ImageRenderer::ImageRenderer() {
     mProgram = mDevice->getProgram(i);
     mTextureIsCreated = false;
     mIsModified = true;
+    mLevel = -1;
+    mWindow = -1;
 }
 
 void ImageRenderer::draw() {
     std::cout << "calling draw()" << std::endl;
-
 
     if(!mTextureIsCreated)
         return;
@@ -153,4 +167,22 @@ void ImageRenderer::draw() {
     glEnd();
 
     glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void ImageRenderer::setIntensityLevel(float level) {
+    mLevel = level;
+}
+
+float ImageRenderer::getIntensityLevel() {
+    return mLevel;
+}
+
+void ImageRenderer::setIntensityWindow(float window) {
+    if(window <= 0)
+        throw Exception("Intensity window has to be above 0.");
+    mWindow = window;
+}
+
+float ImageRenderer::getIntensityWindow() {
+    return mWindow;
 }

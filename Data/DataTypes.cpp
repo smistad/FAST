@@ -63,3 +63,47 @@ size_t fast::getSizeOfDataType(DataType type, unsigned int nrOfComponents) {
 
     return nrOfComponents*bytes;
 }
+
+float fast::getDefaultIntensityLevel(DataType type) {
+    float level;
+    switch(type) {
+    case TYPE_FLOAT:
+        level = 0.5;
+        break;
+    case TYPE_UINT8:
+        level = 128;
+        break;
+    case TYPE_INT8:
+        level = 0;
+        break;
+    case TYPE_UINT16:
+        level = 128;
+        break;
+    case TYPE_INT16:
+        level = 0;
+        break;
+    }
+    return level;
+}
+
+float fast::getDefaultIntensityWindow(DataType type) {
+    float window;
+    switch(type) {
+    case TYPE_FLOAT:
+        window = 1.0;
+        break;
+    case TYPE_UINT8:
+        window = 255;
+        break;
+    case TYPE_INT8:
+        window = 255;
+        break;
+    case TYPE_UINT16:
+        window = 255;
+        break;
+    case TYPE_INT16:
+        window = 255;
+        break;
+    }
+    return window;
+}

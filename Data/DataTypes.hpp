@@ -16,6 +16,9 @@ cl::ImageFormat getOpenCLImageFormat(DataType type, unsigned int components);
 
 size_t getSizeOfDataType(DataType type, unsigned int nrOfComponents);
 
+float getDefaultIntensityLevel(DataType type);
+float getDefaultIntensityWindow(DataType type);
+
 } // end namespace
 
 #endif
