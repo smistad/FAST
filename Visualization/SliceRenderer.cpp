@@ -23,6 +23,14 @@
 
 using namespace fast;
 
+#if defined(__APPLE__) || defined(__MACOSX)
+#else
+#if _WIN32
+#else
+static Display * mXDisplay;
+#endif
+#endif
+
 void SliceRenderer::execute() {
     if(!mInput.isValid())
         throw Exception("No input was given to SliceRenderer");
@@ -52,7 +60,7 @@ void SliceRenderer::execute() {
 #if _WIN32
     bool success = wglMakeCurrent(wglGetCurrentDC(), (HGLRC)mDevice->getGLContext());
 #else
-    bool success = glXMakeCurrent(XOpenDisplay(0),glXGetCurrentDrawable(),(GLXContext)mDevice->getGLContext());
+    bool success = glXMakeCurrent(mXDisplay,glXGetCurrentDrawable(),(GLXContext)mDevice->getGLContext());
 #endif
 #endif
     if(!success)
@@ -131,6 +139,14 @@ SliceRenderer::SliceRenderer() {
     mProgram = mDevice->getProgram(i);
     mTextureIsCreated = false;
     mIsModified = true;
+#if defined(__APPLE__) || defined(__MACOSX)
+#else
+#if _WIN32
+#else
+    // Open the display here to avoid getting maximum number of clients error
+    mXDisplay = XOpenDisplay(NULL);
+#endif
+#endif
 }
 
 void SliceRenderer::draw() {
@@ -146,7 +162,7 @@ void SliceRenderer::draw() {
 #if _WIN32
     bool success = wglMakeCurrent(wglGetCurrentDC(), (HGLRC)mDevice->getGLContext());
 #else
-    bool success = glXMakeCurrent(XOpenDisplay(0),glXGetCurrentDrawable(),(GLXContext)mDevice->getGLContext());
+    bool success = glXMakeCurrent(mXDisplay,glXGetCurrentDrawable(),(GLXContext)mDevice->getGLContext());
 #endif
 #endif
     if(!success)
