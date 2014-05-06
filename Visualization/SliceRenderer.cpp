@@ -69,8 +69,13 @@ void SliceRenderer::execute() {
     OpenCLImageAccess3D access = input->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
     cl::Image3D* clImage = access.get();
 
-    // Create OpenGL texture
     glEnable(GL_TEXTURE_2D);
+    if(mTextureIsCreated) {
+        // Delete old texture
+        glDeleteTextures(1, &mTexture);
+    }
+
+    // Create OpenGL texture
     glGenTextures(1, &mTexture);
     glBindTexture(GL_TEXTURE_2D, mTexture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
