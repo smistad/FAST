@@ -182,6 +182,7 @@ void GaussianSmoothingFilter::execute() {
         cl::NDRange globalSize;
         cl::Kernel kernel;
         if(input->getDimensions() == 2) {
+            // TODO: unnecessary to compile each time
             programNr = device->createProgramFromSource(std::string(FAST_ROOT_DIR) + "Algorithms/GaussianSmoothingFilter2D.cl", buildOptions);
             kernel = cl::Kernel(device->getProgram(programNr), "gaussianSmoothing");
             globalSize = cl::NDRange(input->getWidth(),input->getHeight());
@@ -191,6 +192,7 @@ void GaussianSmoothingFilter::execute() {
             kernel.setArg(0, *inputAccess.get());
             kernel.setArg(2, *outputAccess.get());
         } else {
+            // TODO: unnecessary to compile each time
             programNr = device->createProgramFromSource(std::string(FAST_ROOT_DIR) + "Algorithms/GaussianSmoothingFilter3D.cl", buildOptions);
             kernel = cl::Kernel(device->getProgram(programNr), "gaussianSmoothing");
             globalSize = cl::NDRange(input->getWidth(),input->getHeight(),input->getDepth());
