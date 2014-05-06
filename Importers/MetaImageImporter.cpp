@@ -198,4 +198,9 @@ void MetaImageImporter::execute() {
     } else {
         Image::pointer(mOutput.lock())->create2DImage(width,height,type,nrOfComponents,mDevice,data);
     }
+
+    // Clean up
+    if(!mDevice->isHost()) {
+        deleteArray(data, type);
+    }
 }
