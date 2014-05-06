@@ -71,7 +71,7 @@ class Image: public ImageData {
 
         void updateHostData();
 
-        unsigned int getBufferSize(unsigned char dimensions, DataType type) const;
+        unsigned int getBufferSize() const;
 
         unsigned int mWidth, mHeight, mDepth;
         unsigned char mDimensions;

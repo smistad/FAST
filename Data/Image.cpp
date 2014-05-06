@@ -74,15 +74,13 @@ void Image::updateOpenCLImageData(OpenCLDevice::pointer device) {
 
     if (mCLImagesIsUpToDate.count(device) == 0) {
         // Data is not on device, create it
-        // TODO type support
-        // TODO components support
         cl::Image * newImage;
         if(mDimensions == 2) {
             newImage = new cl::Image2D(device->getContext(),
-            CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), mWidth, mHeight);
+            CL_MEM_READ_WRITE, getOpenCLImageFormat(mType,mComponents), mWidth, mHeight);
         } else {
             newImage = new cl::Image3D(device->getContext(),
-            CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), mWidth, mHeight, mDepth);
+            CL_MEM_READ_WRITE, getOpenCLImageFormat(mType,mComponents), mWidth, mHeight, mDepth);
         }
 
         mCLImages[device] = newImage;
@@ -101,7 +99,7 @@ void Image::updateOpenCLImageData(OpenCLDevice::pointer device) {
         for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
                 it++) {
             if (it->second == true) {
-                // TODO: Transfer from this device(it->first) to device
+                // Transfer from this device(it->first) to device
                 transferCLImageToHost(it->first);
                 transferCLImageFromHost(device);
                 mHostDataIsUpToDate = true;
@@ -147,12 +145,12 @@ OpenCLBufferAccess Image::getOpenCLBufferAccess(
     return OpenCLBufferAccess(mCLBuffers[device], &mCLBuffersAccess[device]);
 }
 
-unsigned int Image::getBufferSize(unsigned char dimensions, DataType type) const {
-    unsigned int bufferSize = mWidth*mHeight;
-    if(dimensions == 3) {
+unsigned int Image::getBufferSize() const {
+    unsigned int bufferSize = mComponents*mWidth*mHeight;
+    if(mDimensions == 3) {
         bufferSize *= mDepth;
     }
-    switch(type) {
+    switch(mType) {
     case TYPE_FLOAT:
         bufferSize *= sizeof(float);
         break;
@@ -178,7 +176,7 @@ void Image::updateOpenCLBufferData(OpenCLDevice::pointer device) {
 
     if (mCLBuffersIsUpToDate.count(device) == 0) {
         // Data is not on device, create it
-        unsigned int bufferSize = getBufferSize(mDimensions, mType);
+        unsigned int bufferSize = getBufferSize();
         cl::Buffer * newBuffer = new cl::Buffer(device->getContext(),
         CL_MEM_READ_WRITE, bufferSize);
 
@@ -225,13 +223,13 @@ void Image::updateOpenCLBufferData(OpenCLDevice::pointer device) {
 }
 
 void Image::transferCLBufferFromHost(OpenCLDevice::pointer device) {
-    unsigned int bufferSize = getBufferSize(mDimensions, mType);
+    unsigned int bufferSize = getBufferSize();
     device->getCommandQueue().enqueueWriteBuffer(*mCLBuffers[device],
         CL_TRUE, 0, bufferSize, mHostData);
 }
 
 void Image::transferCLBufferToHost(OpenCLDevice::pointer device) {
-    unsigned int bufferSize = getBufferSize(mDimensions, mType);
+    unsigned int bufferSize = getBufferSize();
     device->getCommandQueue().enqueueReadBuffer(*mCLBuffers[device],
         CL_TRUE, 0, bufferSize, mHostData);
 }
@@ -243,9 +241,26 @@ void Image::updateHostData() {
 
     if (!mHostHasData) {
         // Data is not initialized, do that first
-        // TODO type support here
-        // TODO dimension support here
-        mHostData = new float[mWidth * mHeight];
+        unsigned int size = mWidth*mHeight*mComponents;
+        if(mDimensions == 3)
+            size *= mDepth;
+        switch(mType) {
+        case TYPE_FLOAT:
+            mHostData = new float[size];
+            break;
+        case TYPE_UINT8:
+            mHostData = new uchar[size];
+            break;
+        case TYPE_INT8:
+            mHostData = new char[size];
+            break;
+        case TYPE_UINT16:
+            mHostData = new ushort[size];
+            break;
+        case TYPE_INT16:
+            mHostData = new short[size];
+            break;
+        }
     }
 
     if (mCLImages.size() > 0) {
@@ -255,9 +270,17 @@ void Image::updateHostData() {
         for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
                 it++) {
             if (it->second == true) {
-                // TODO: transfer from this device to host
+                // transfer from this device to host
                 transferCLImageToHost(it->first);
-
+                updated = true;
+                break;
+            }
+        }
+        for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end();
+                it++) {
+            if (it->second == true) {
+                // transfer from this device to host
+                transferCLBufferToHost(it->first);
                 updated = true;
                 break;
             }
