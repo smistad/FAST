@@ -171,6 +171,9 @@ void MetaImageImporter::execute() {
     if(!sizeFound || !rawFilenameFound || !typeFound || !dimensionsFound)
         throw Exception("Error reading the mhd file", __LINE__, __FILE__);
 
+    if(rawFilename.substr(rawFilename.length()-5) == ".zraw")
+        throw Exception("Error reading MetaImage. Compressed raw files (.zraw) currently not supported.");
+
     void * data;
     DataType type;
     if(typeName == "MET_SHORT") {
