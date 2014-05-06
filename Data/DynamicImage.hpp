@@ -2,8 +2,8 @@
 #define DynamicImage_HPP
 
 #include "Image.hpp"
-#include <vector>
 #include "Streamer.hpp"
+#include <vector>
 
 namespace fast {
 
@@ -14,11 +14,12 @@ class DynamicImage : public ImageData {
         void addFrame(Image::pointer frame);
         unsigned int getSize() const;
         ~DynamicImage() {};
+        void setStreamingMode(StreamingMode mode);
+        StreamingMode getStreamingMode() const;
     private:
         DynamicImage();
 
-        // Flag whether to keep and store all frames or only use the current
-        bool mKeepAllFrames;
+        StreamingMode mStreamingMode;
 
         // If the flag mKeepAllFrames is set to false, this vector will have
         // a max size of 1

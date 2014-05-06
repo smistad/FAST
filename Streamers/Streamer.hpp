@@ -7,12 +7,17 @@
 
 namespace fast {
 
+enum StreamingMode { STREAMING_MODE_NEWEST_FRAME_ONLY, STREAMING_MODE_KEEP_ALL_FRAMES };
+
 class Streamer : public ProcessObject {
     public:
-        typedef boost::shared_ptr<Streamer> Ptr;
         virtual void producerStream() = 0;
         virtual ~Streamer() {};
+        void setStreamingMode(StreamingMode mode);
+        StreamingMode getStreamingMode() const;
     protected:
+        StreamingMode mStreamingMode;
+        Streamer();
 
 
 };

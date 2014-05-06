@@ -8,15 +8,16 @@ Image::pointer DynamicImage::getNextFrame() {
         throw Exception("No frames available");
     Image::pointer ret = mFrames[mCurrentFrame];
     mStreamMutex.unlock();
-    if(mKeepAllFrames)
+    if(mStreamingMode == STREAMING_MODE_KEEP_ALL_FRAMES) {
         mCurrentFrame++;
+    }
     return ret;
 }
 
 void DynamicImage::addFrame(Image::pointer frame) {
     mStreamMutex.lock();
     updateModifiedTimestamp();
-    if(!mKeepAllFrames) {
+    if(mStreamingMode == STREAMING_MODE_NEWEST_FRAME_ONLY) {
         mFrames.clear();
     }
     mFrames.push_back(frame);
@@ -25,7 +26,7 @@ void DynamicImage::addFrame(Image::pointer frame) {
 
 DynamicImage::DynamicImage() {
     mCurrentFrame = 0;
-    mKeepAllFrames = false;
+    mStreamingMode = STREAMING_MODE_NEWEST_FRAME_ONLY;
     mIsDynamicData = true;
     updateModifiedTimestamp();
 }
@@ -33,4 +34,12 @@ DynamicImage::DynamicImage() {
 
 unsigned int DynamicImage::getSize() const {
     return mFrames.size();
+}
+
+void DynamicImage::setStreamingMode(StreamingMode mode) {
+    mStreamingMode = mode;
+}
+
+StreamingMode DynamicImage::getStreamingMode() const {
+    return mStreamingMode;
 }
