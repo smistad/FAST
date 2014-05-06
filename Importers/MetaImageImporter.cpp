@@ -3,6 +3,7 @@
 #include "Exception.hpp"
 #include <fstream>
 #include <boost/iostreams/device/mapped_file.hpp>
+#include <boost/algorithm/string.hpp>
 using namespace fast;
 
 Image::pointer MetaImageImporter::getOutput() {
@@ -36,14 +37,14 @@ MetaImageImporter::MetaImageImporter() {
 }
 
 template <class T>
-void * readRawData(std::string rawFilename, unsigned int width, unsigned int height, unsigned int depth) {
+void * readRawData(std::string rawFilename, unsigned int width, unsigned int height, unsigned int depth, unsigned int nrOfComponents) {
     boost::iostreams::mapped_file_source file;
-    file.open(rawFilename, width*height*depth*sizeof(T));
+    file.open(rawFilename, width*height*depth*nrOfComponents*sizeof(T));
     if(!file.is_open())
         throw FileNotFoundException(rawFilename);
-    T * data = new T[width*height*depth];
+    T * data = new T[width*height*depth*nrOfComponents];
     T * fileData = (T*)file.data();
-    memcpy(data,fileData,width*height*depth*sizeof(T));
+    memcpy(data,fileData,width*height*depth*nrOfComponents*sizeof(T));
     file.close();
     return data;
 }
@@ -87,9 +88,11 @@ void MetaImageImporter::execute() {
     mhdFile.seekg(0);
 
     unsigned int width, height, depth = 1;
+    unsigned int nrOfComponents = 1;
 
     do{
         std::getline(mhdFile, line);
+        boost::trim(line);
         if(!mhdFile.eof()) {
             int firstSpace = line.find(" ");
             std::string key = line.substr(0, firstSpace);
@@ -142,6 +145,10 @@ void MetaImageImporter::execute() {
             } else {
                 throw Exception("Trying to read volume of unsupported data type", __LINE__, __FILE__);
             }
+        } else if(line.substr(0,23) == "ElementNumberOfChannels") {
+            nrOfComponents = atoi(line.substr(23+3).c_str());
+            if(nrOfComponents <= 0)
+                throw Exception("Error in reading the number of components in the MetaImageImporter");
         } else if(line.substr(0, 14) == "ElementSpacing") {
             /*
             std::string sizeString = line.substr(14+3);
@@ -168,24 +175,24 @@ void MetaImageImporter::execute() {
     DataType type;
     if(typeName == "MET_SHORT") {
         type = TYPE_INT16;
-        data = readRawData<short>(rawFilename, width, height, depth);
+        data = readRawData<short>(rawFilename, width, height, depth, nrOfComponents);
     } else if(typeName == "MET_USHORT") {
         type = TYPE_UINT16;
-        data = readRawData<unsigned short>(rawFilename, width, height, depth);
+        data = readRawData<unsigned short>(rawFilename, width, height, depth, nrOfComponents);
     } else if(typeName == "MET_CHAR") {
         type = TYPE_INT8;
-        data = readRawData<char>(rawFilename, width, height, depth);
+        data = readRawData<char>(rawFilename, width, height, depth, nrOfComponents);
     } else if(typeName == "MET_UCHAR") {
         type = TYPE_UINT8;
-        data = readRawData<unsigned char>(rawFilename, width, height, depth);
+        data = readRawData<unsigned char>(rawFilename, width, height, depth, nrOfComponents);
     } else if(typeName == "MET_FLOAT") {
         type = TYPE_FLOAT;
-        data = readRawData<float>(rawFilename, width, height, depth);
+        data = readRawData<float>(rawFilename, width, height, depth, nrOfComponents);
     }
 
     if(imageIs3D) {
-        Image::pointer(mOutput.lock())->create3DImage(width,height,depth,type,1,mDevice,data);
+        Image::pointer(mOutput.lock())->create3DImage(width,height,depth,type,nrOfComponents,mDevice,data);
     } else {
-        Image::pointer(mOutput.lock())->create2DImage(width,height,type,1,mDevice,data);
+        Image::pointer(mOutput.lock())->create2DImage(width,height,type,nrOfComponents,mDevice,data);
     }
 }

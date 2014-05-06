@@ -42,6 +42,7 @@ bool Image::isAnyDataBeingAccessed() {
 }
 
 void Image::transferCLImageFromHost(OpenCLDevice::pointer device) {
+    // TODO components support needed here
     if(mDimensions == 2) {
         device->getCommandQueue().enqueueWriteImage(*(cl::Image2D*)mCLImages[device],
         CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, 1), 0,
@@ -54,6 +55,7 @@ void Image::transferCLImageFromHost(OpenCLDevice::pointer device) {
 }
 
 void Image::transferCLImageToHost(OpenCLDevice::pointer device) {
+    // TODO components support needed here
     if(mDimensions == 2) {
         device->getCommandQueue().enqueueReadImage(*(cl::Image2D*)mCLImages[device],
         CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, 1), 0,
@@ -146,23 +148,11 @@ OpenCLBufferAccess Image::getOpenCLBufferAccess(
 }
 
 unsigned int Image::getBufferSize() const {
-    unsigned int bufferSize = mComponents*mWidth*mHeight;
+    unsigned int bufferSize = mWidth*mHeight;
     if(mDimensions == 3) {
         bufferSize *= mDepth;
     }
-    switch(mType) {
-    case TYPE_FLOAT:
-        bufferSize *= sizeof(float);
-        break;
-    case TYPE_UINT8:
-    case TYPE_INT8:
-        bufferSize *= sizeof(char);
-        break;
-    case TYPE_UINT16:
-    case TYPE_INT16:
-        bufferSize *= sizeof(short);
-        break;
-    }
+    bufferSize *= getSizeOfDataType(mType,mComponents);
 
     return bufferSize;
 }
@@ -517,6 +507,45 @@ void Image::create2DImage(
     }
 }
 
+
+// Pad data with 3 channels to 4 channels with 0
+template <class T>
+void * padData(T * data, unsigned int size) {
+    T * newData = new T[size*4];
+    for(unsigned int i = 0; i < size; i++) {
+        newData[i*4] = data[i*3];
+        newData[i*4+1] = data[i*3+1];
+        newData[i*4+2] = data[i*3+2];
+        newData[i*4+3] = 0;
+    }
+    return (void *)newData;
+}
+
+void * adaptDataToImage(void * data, unsigned int size, DataType type, unsigned int nrOfComponents) {
+    // Because no OpenCL images support 3 channels,
+    // the data has to be padded to 4 channels if the nr of components is 3
+    if(nrOfComponents == 3) {
+        switch(type) {
+        case TYPE_FLOAT:
+            return padData<float>((float*)data, size);
+            break;
+        case TYPE_UINT8:
+            return padData<unsigned char>((unsigned char*)data, size);
+            break;
+        case TYPE_INT8:
+            return padData<char>((char*)data, size);
+            break;
+        case TYPE_UINT16:
+            return padData<unsigned short>((unsigned short*)data, size);
+            break;
+        case TYPE_INT16:
+            return padData<short>((short*)data, size);
+            break;
+        }
+    }
+    return data;
+}
+
 void Image::create2DImage(
         unsigned int width,
         unsigned int height,
@@ -546,8 +575,8 @@ void Image::create2DImage(
             getOpenCLImageFormat(type, nrOfComponents),
             width, height,
             0,
-            (void *)data
-            );
+            adaptDataToImage((void *)data, width*height, type, nrOfComponents)
+        );
         mCLImages[clDevice] = clImage;
         mCLImagesIsUpToDate[clDevice] = true;
         mCLImagesAccess[clDevice] = false;

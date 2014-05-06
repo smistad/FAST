@@ -7,7 +7,7 @@ __kernel void renderToTexture(
     const int x = get_global_id(0);
     const int y = get_global_id(1);
 
-    float value = read_imagef(image, sampler, (int2)(x,y)).x;
+    float value = (float)read_imageui(image, sampler, (int2)(x,y)).x/255;
     //printf("value: %f\n", value);
     write_imagef(texture, (int2)(x,get_global_size(1)-y-1), (float4)(value,value,value,1.0));
 }
