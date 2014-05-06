@@ -709,7 +709,7 @@ void Image::create2DImage(
 }
 
 bool Image::isInitialized() {
-    return mCLImages.size() > 0 || mHostHasData;
+    return mCLImages.size() > 0 || mCLBuffers.size() > 0 || mHostHasData;
 }
 
 void Image::free(ExecutionDevice::pointer device) {

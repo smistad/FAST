@@ -66,15 +66,40 @@ int main(int argc, char ** argv) {
     }
 
 
-
-
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
-    mhdStreamer->setFilenameFormat("/home/smistad/Patients/2013-08-22_10-36_Lab_4DTrack.cx3/US_Acq/US-Acq_01_20130822T111033/US-Acq_01_20130822T111033_ScanConverted_#.mhd");
+    mhdStreamer->setFilenameFormat("/home/smistad/US-Acq_01_20140320T105851/US-Acq_01_20140320T105851_cxOpenCV_#.mhd");
+    mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     GaussianSmoothingFilter::pointer filter4 = GaussianSmoothingFilter::New();
     filter4->setInput(mhdStreamer->getOutput());
+    mhdStreamer->getOutput()->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     filter4->setMaskSize(5);
     filter4->setStandardDeviation(10);
     filter4->enableRuntimeMeasurements();
+    DynamicImage::pointer asd = filter4->getOutput();
+    asd->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+
+    ImageRenderer::pointer renderer = ImageRenderer::New();
+    renderer->setIntensityLevel(50);
+    renderer->setIntensityWindow(100);
+    renderer->setInput(filter4->getOutput());
+    renderer->enableRuntimeMeasurements();
+    SimpleWindow::pointer window = SimpleWindow::New();
+    window->addRenderer(renderer);
+    window->resize(512,512);
+    window->runMainLoop();
+
+    /*
+    MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
+    mhdStreamer->setFilenameFormat("/home/smistad/Patients/2013-08-22_10-36_Lab_4DTrack.cx3/US_Acq/US-Acq_01_20130822T111033/US-Acq_01_20130822T111033_ScanConverted_#.mhd");
+    mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+    GaussianSmoothingFilter::pointer filter4 = GaussianSmoothingFilter::New();
+    filter4->setInput(mhdStreamer->getOutput());
+    mhdStreamer->getOutput()->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+    filter4->setMaskSize(5);
+    filter4->setStandardDeviation(10);
+    filter4->enableRuntimeMeasurements();
+    DynamicImage::pointer asd = filter4->getOutput();
+    asd->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
     SliceRenderer::pointer renderer = SliceRenderer::New();
     renderer->setInput(filter4->getOutput());
@@ -83,6 +108,7 @@ int main(int argc, char ** argv) {
     window->addRenderer(renderer);
     window->resize(512,512);
     window->runMainLoop();
+    */
 
     renderer->getRuntime()->print();
     filter4->getRuntime()->print();
