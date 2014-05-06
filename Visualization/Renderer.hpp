@@ -10,7 +10,15 @@ class Renderer : public ProcessObject {
     public:
         typedef SharedPointer<Renderer> pointer;
         virtual void draw() = 0;
-
+        void setIntensityLevel(float level);
+        float getIntensityLevel();
+        void setIntensityWindow(float window);
+        float getIntensityWindow();
+    protected:
+        Renderer();
+        // Level and window intensities
+        float mWindow;
+        float mLevel;
 };
 
 }

@@ -168,21 +168,3 @@ void ImageRenderer::draw() {
 
     glBindTexture(GL_TEXTURE_2D, 0);
 }
-
-void ImageRenderer::setIntensityLevel(float level) {
-    mLevel = level;
-}
-
-float ImageRenderer::getIntensityLevel() {
-    return mLevel;
-}
-
-void ImageRenderer::setIntensityWindow(float window) {
-    if(window <= 0)
-        throw Exception("Intensity window has to be above 0.");
-    mWindow = window;
-}
-
-float ImageRenderer::getIntensityWindow() {
-    return mWindow;
-}

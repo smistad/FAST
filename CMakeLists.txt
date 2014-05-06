@@ -54,6 +54,7 @@ set(SOURCES
     Visualization/SimpleWindow.hpp
     Visualization/View.cpp
     Visualization/View.hpp
+    Visualization/Renderer.cpp
     Visualization/Renderer.hpp
     Visualization/ImageRenderer.cpp
     Visualization/ImageRenderer.hpp

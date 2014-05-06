@@ -34,6 +34,17 @@ void SliceRenderer::execute() {
         input = mInput;
     }
 
+    // Determine level and window
+    float window = mWindow;
+    float level = mLevel;
+    // If mWindow/mLevel is equal to -1 use default level/window values
+    if(window == -1) {
+        window = getDefaultIntensityWindow(input->getDataType());
+    }
+    if(level == -1) {
+        level = getDefaultIntensityLevel(input->getDataType());
+    }
+
 #if defined(__APPLE__) || defined(__MACOSX)
     // Returns 0 on success
     bool success = CGLSetCurrentContext((CGLContextObj)mDevice->getGLContext()) == 0;
@@ -89,6 +100,8 @@ void SliceRenderer::execute() {
     kernel.setArg(0, *clImage);
     kernel.setArg(1, mImageGL);
     kernel.setArg(2, (int)(clImage->getImageInfo<CL_IMAGE_DEPTH>()/2));
+    kernel.setArg(3, level);
+    kernel.setArg(4, window);
     queue.enqueueNDRangeKernel(
             kernel,
             cl::NullRange,
