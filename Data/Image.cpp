@@ -141,25 +141,7 @@ void * adaptImageDataToHostData(void * data, unsigned int size, DataType type, u
     return data;
 }
 
-void deleteArray(void * data, DataType type) {
-    switch(type) {
-        case TYPE_FLOAT:
-            delete[] (float*)data;
-            break;
-        case TYPE_UINT8:
-            delete[] (uchar*)data;
-            break;
-        case TYPE_INT8:
-            delete[] (char*)data;
-            break;
-        case TYPE_UINT16:
-            delete[] (ushort*)data;
-            break;
-        case TYPE_INT16:
-            delete[] (short*)data;
-            break;
-    }
-}
+
 
 void Image::transferCLImageFromHost(OpenCLDevice::pointer device) {
     // Special treatment for images with 3 components because an OpenCL image can only have 1, 2 or 4 channels

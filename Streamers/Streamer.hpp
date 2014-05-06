@@ -7,7 +7,7 @@
 
 namespace fast {
 
-enum StreamingMode { STREAMING_MODE_NEWEST_FRAME_ONLY, STREAMING_MODE_KEEP_ALL_FRAMES };
+enum StreamingMode { STREAMING_MODE_NEWEST_FRAME_ONLY, STREAMING_MODE_STORE_ALL_FRAMES, STREAMING_MODE_PROCESS_ALL_FRAMES };
 
 class Streamer : public ProcessObject {
     public:

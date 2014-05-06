@@ -19,6 +19,8 @@ size_t getSizeOfDataType(DataType type, unsigned int nrOfComponents);
 float getDefaultIntensityLevel(DataType type);
 float getDefaultIntensityWindow(DataType type);
 
+void deleteArray(void * data, DataType type);
+
 } // end namespace
 
 #endif

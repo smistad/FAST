@@ -6,10 +6,23 @@ Image::pointer DynamicImage::getNextFrame() {
     // TODO: If no frame is available the method should maybe wait?
     if(mFrames.size() == 0)
         throw Exception("No frames available");
-    Image::pointer ret = mFrames[mCurrentFrame];
-    mStreamMutex.unlock();
-    if(mStreamingMode == STREAMING_MODE_KEEP_ALL_FRAMES) {
+    Image::pointer ret;
+    if(mStreamingMode == STREAMING_MODE_STORE_ALL_FRAMES) {
+        // Get the next one
+        ret = mFrames[mCurrentFrame];
         mCurrentFrame++;
+    } else {
+        // Always get the one in front
+        ret = mFrames[0];
+    }
+    mStreamMutex.unlock();
+
+    if(mStreamingMode == STREAMING_MODE_STORE_ALL_FRAMES || mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES) {
+        updateModifiedTimestamp();
+    }
+    if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES) {
+        // Remove the frame that was read, the one in the front
+        mFrames.erase(mFrames.begin());
     }
     return ret;
 }
