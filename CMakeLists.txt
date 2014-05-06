@@ -29,6 +29,8 @@ set(SOURCES
     Data/DataTypes.cpp
     Data/DataTypes.hpp
     Data/Access/Access.hpp
+    Data/Access/OpenCLBufferAccess.cpp
+    Data/Access/OpenCLBufferAccess.hpp
     Data/Access/OpenCLImageAccess2D.cpp
     Data/Access/OpenCLImageAccess2D.hpp
     Data/Access/OpenCLImageAccess3D.cpp

@@ -78,10 +78,12 @@ int main(int argc, char ** argv) {
 
     SliceRenderer::pointer renderer = SliceRenderer::New();
     renderer->setInput(filter4->getOutput());
+    renderer->enableRuntimeMeasurements();
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->resize(512,512);
     window->runMainLoop();
 
+    renderer->getRuntime()->print();
     filter4->getRuntime()->print();
 }
