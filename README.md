@@ -19,9 +19,9 @@ Linux instructions
 
 **Install dependencies:**
 
-First install OpenCL. This is done by download the latest display drivers and AMD APP SDK (if you have a AMD card) and CUDA Toolkit (if you have an NVIDIA card).
+First install OpenCL. This is done by downloading the latest display drivers and AMD APP SDK (if you have a AMD card) or CUDA Toolkit (if you have an NVIDIA card).
 
-Next install the other dependencies (these instructions are for Ubuntu 12.04):
+Next, install the other dependencies (these instructions are for Ubuntu 12.04):
 ```bash
 # First install boost, note that the version number in the package names may be different on your system
 sudo apt-get install libboost-system1.48-dev libboost-thread1.48-dev libboost-iostreams1.48-dev libboost-chrono1.48-dev
@@ -44,7 +44,8 @@ git submodule init
 git submodule update
 mkdir build
 cd build
-cmake ../ -DVTK_INTEROP=ON -DITK_INTEROP=ON # Change ON to OFF if VTK and ITK interop is not desired
+# Change ON to OFF if VTK and ITK interop is not desired
+cmake ../ -DVTK_INTEROP=ON -DITK_INTEROP=ON 
 make -j8
 ./Tests/test
 ```
