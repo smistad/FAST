@@ -1,7 +1,7 @@
 #pragma OPENCL EXTENSION cl_khr_3d_image_writes : enable
 __constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
 
-_kernel void gaussianSmoothing(
+__kernel void gaussianSmoothing(
         __read_only image3d_t input,
         __constant float * mask,
         __write_only image3d_t output,
