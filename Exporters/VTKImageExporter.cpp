@@ -43,7 +43,7 @@ int VTKImageExporter::RequestData(
     // TODO support different data types
     //float * vtkPixelData = (float *)image->GetScalarPointer();
 
-    ImageAccess2D access = mInput->getImageAccess(ACCESS_READ);
+    ImageAccess access = mInput->getImageAccess(ACCESS_READ);
     float * fastPixelData = (float *)access.get();
     for(unsigned int x = 0; x < mInput->getWidth(); x++) {
     for(unsigned int y = 0; y < mInput->getHeight(); y++) {
