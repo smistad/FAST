@@ -106,6 +106,52 @@ void SliceRenderer::execute() {
     );
 #endif
 
+    unsigned int sliceNr;
+    if(mSliceNr == -1) {
+        switch(mSlicePlane) {
+        case PLANE_X:
+            sliceNr = input->getWidth()/2;
+            break;
+        case PLANE_Y:
+            sliceNr = input->getHeight()/2;
+            break;
+        case PLANE_Z:
+            sliceNr = input->getDepth()/2;
+            break;
+        }
+    } else if(mSliceNr >= 0) {
+        // Check that mSliceNr is valid
+        sliceNr = mSliceNr;
+        switch(mSlicePlane) {
+        case PLANE_X:
+            if(mSliceNr >= input->getWidth())
+                sliceNr = input->getWidth()-1;
+            break;
+        case PLANE_Y:
+            if(mSliceNr >= input->getHeight())
+                sliceNr = input->getHeight()-1;
+            break;
+        case PLANE_Z:
+            if(mSliceNr >= input->getDepth())
+                sliceNr = input->getDepth()-1;
+            break;
+        }
+    } else {
+        throw Exception("Slice to render was below 0 in SliceRenderer");
+    }
+    unsigned int slicePlaneNr;
+    switch(mSlicePlane) {
+        case PLANE_X:
+            slicePlaneNr = 0;
+            break;
+        case PLANE_Y:
+            slicePlaneNr = 1;
+            break;
+        case PLANE_Z:
+            slicePlaneNr = 2;
+            break;
+    }
+
     // Run kernel to fill the texture
     cl::CommandQueue queue = mDevice->getCommandQueue();
     std::vector<cl::Memory> v;
@@ -115,9 +161,10 @@ void SliceRenderer::execute() {
     recompileOpenCLCode(input);
     mKernel.setArg(0, *clImage);
     mKernel.setArg(1, mImageGL);
-    mKernel.setArg(2, (int)(clImage->getImageInfo<CL_IMAGE_DEPTH>()/2));
+    mKernel.setArg(2, sliceNr);
     mKernel.setArg(3, level);
     mKernel.setArg(4, window);
+    mKernel.setArg(5, slicePlaneNr);
     queue.enqueueNDRangeKernel(
             mKernel,
             cl::NullRange,
@@ -167,6 +214,8 @@ SliceRenderer::SliceRenderer() {
     mDevice = boost::static_pointer_cast<OpenCLDevice>(DeviceManager::getInstance().getDefaultVisualizationDevice());
     mTextureIsCreated = false;
     mIsModified = true;
+    mSlicePlane = PLANE_Z;
+    mSliceNr = -1;
 #if defined(__APPLE__) || defined(__MACOSX)
 #else
 #if _WIN32
@@ -210,4 +259,14 @@ void SliceRenderer::draw() {
     glEnd();
 
     glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void SliceRenderer::setSliceToRender(int sliceNr) {
+    mSliceNr = sliceNr;
+    mIsModified = true;
+}
+
+void SliceRenderer::setSlicePlane(PlaneType plane) {
+    mSlicePlane = plane;
+    mIsModified = true;
 }
