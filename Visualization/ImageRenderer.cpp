@@ -42,6 +42,9 @@ void ImageRenderer::execute() {
         input = mInput;
     }
 
+    if(input->getDimensions() != 2)
+        throw Exception("The ImageRenderer only supports 2D images");
+
     // Determine level and window
     float window = mWindow;
     float level = mLevel;
@@ -110,13 +113,12 @@ void ImageRenderer::execute() {
     queue.enqueueAcquireGLObjects(&v);
 
     recompileOpenCLCode(input);
-    cl::Kernel kernel(mProgram, "renderToTexture");
-    kernel.setArg(0, *clImage);
-    kernel.setArg(1, mImageGL);
-    kernel.setArg(2, level);
-    kernel.setArg(3, window);
+    mKernel.setArg(0, *clImage);
+    mKernel.setArg(1, mImageGL);
+    mKernel.setArg(2, level);
+    mKernel.setArg(3, window);
     queue.enqueueNDRangeKernel(
-            kernel,
+            mKernel,
             cl::NullRange,
             cl::NDRange(clImage->getImageInfo<CL_IMAGE_WIDTH>(), clImage->getImageInfo<CL_IMAGE_HEIGHT>()),
             cl::NullRange
@@ -132,15 +134,19 @@ void ImageRenderer::setInput(ImageData::pointer image) {
     mInput = image;
     addParent(mInput);
     mIsModified = true;
-    /*
-    if(image->getNrOfComponents() != 2)
-        throw Exception("The ImageRenderer only supports 2D images");
-    */
+
 }
 
 void ImageRenderer::recompileOpenCLCode(Image::pointer input) {
     // Check if code has to be recompiled
-    if(!mTextureIsCreated && mTypeCLCodeCompiledFor == input->getDataType())
+    bool recompile = false;
+    if(!mTextureIsCreated) {
+        recompile = true;
+    } else {
+        if(mTypeCLCodeCompiledFor != input->getDataType())
+            recompile = true;
+    }
+    if(!recompile)
         return;
     std::string buildOptions = "";
     if(input->getDataType() == TYPE_FLOAT) {
@@ -151,9 +157,8 @@ void ImageRenderer::recompileOpenCLCode(Image::pointer input) {
         buildOptions = "-DTYPE_UINT";
     }
     int i = mDevice->createProgramFromSource(std::string(FAST_ROOT_DIR) + "/Visualization/ImageRenderer.cl", buildOptions);
-    mProgram = mDevice->getProgram(i);
+    mKernel = cl::Kernel(mDevice->getProgram(i), "renderToTexture");
     mTypeCLCodeCompiledFor = input->getDataType();
-
 }
 
 ImageRenderer::ImageRenderer() {

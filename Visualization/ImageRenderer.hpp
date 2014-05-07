@@ -25,10 +25,10 @@ class ImageRenderer : public Renderer {
         cl::Image2DGL mImageGL;
 #endif
         GLuint mTexture;
-        cl::Program mProgram;
         bool mTextureIsCreated;
 
         DataType mTypeCLCodeCompiledFor;
+        cl::Kernel mKernel;
 
 
 };
