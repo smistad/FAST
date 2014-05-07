@@ -112,14 +112,14 @@ void SliceRenderer::execute() {
     v.push_back(mImageGL);
     queue.enqueueAcquireGLObjects(&v);
 
-    cl::Kernel kernel(mProgram, "renderToTexture");
-    kernel.setArg(0, *clImage);
-    kernel.setArg(1, mImageGL);
-    kernel.setArg(2, (int)(clImage->getImageInfo<CL_IMAGE_DEPTH>()/2));
-    kernel.setArg(3, level);
-    kernel.setArg(4, window);
+    recompileOpenCLCode(input);
+    mKernel.setArg(0, *clImage);
+    mKernel.setArg(1, mImageGL);
+    mKernel.setArg(2, (int)(clImage->getImageInfo<CL_IMAGE_DEPTH>()/2));
+    mKernel.setArg(3, level);
+    mKernel.setArg(4, window);
     queue.enqueueNDRangeKernel(
-            kernel,
+            mKernel,
             cl::NullRange,
             cl::NDRange(clImage->getImageInfo<CL_IMAGE_WIDTH>(), clImage->getImageInfo<CL_IMAGE_HEIGHT>()),
             cl::NullRange
@@ -135,16 +135,36 @@ void SliceRenderer::setInput(ImageData::pointer image) {
     mInput = image;
     addParent(mInput);
     mIsModified = true;
-    /*
-    if(image->getNrOfDimensions() != 3)
-        throw Exception("The SliceRenderer only supports 3D images");
-        */
 }
+
+
+void SliceRenderer::recompileOpenCLCode(Image::pointer input) {
+    // Check if code has to be recompiled
+    bool recompile = false;
+    if(!mTextureIsCreated) {
+        recompile = true;
+    } else {
+        if(mTypeCLCodeCompiledFor != input->getDataType())
+            recompile = true;
+    }
+    if(!recompile)
+        return;
+    std::string buildOptions = "";
+    if(input->getDataType() == TYPE_FLOAT) {
+        buildOptions = "-DTYPE_FLOAT";
+    } else if(input->getDataType() == TYPE_INT8 || input->getDataType() == TYPE_INT16) {
+        buildOptions = "-DTYPE_INT";
+    } else {
+        buildOptions = "-DTYPE_UINT";
+    }
+    int i = mDevice->createProgramFromSource(std::string(FAST_ROOT_DIR) + "/Visualization/SliceRenderer.cl", buildOptions);
+    mKernel = cl::Kernel(mDevice->getProgram(i), "renderToTexture");
+    mTypeCLCodeCompiledFor = input->getDataType();
+}
+
 
 SliceRenderer::SliceRenderer() {
     mDevice = boost::static_pointer_cast<OpenCLDevice>(DeviceManager::getInstance().getDefaultVisualizationDevice());
-    int i = mDevice->createProgramFromSource(std::string(FAST_ROOT_DIR) + "/Visualization/SliceRenderer.cl");
-    mProgram = mDevice->getProgram(i);
     mTextureIsCreated = false;
     mIsModified = true;
 #if defined(__APPLE__) || defined(__MACOSX)

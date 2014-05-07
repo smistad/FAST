@@ -9,7 +9,7 @@ __kernel void renderToTexture(
     const int x = get_global_id(0);
     const int y = get_global_id(1);
 
-    // TODO type and components support
+    // TODO components support
 #ifdef TYPE_FLOAT
     float value = read_imagef(image, sampler, (int2)(x,y)).x;
 #elif TYPE_UINT

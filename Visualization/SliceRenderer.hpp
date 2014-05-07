@@ -2,7 +2,7 @@
 #define SLICERENDERER_HPP_
 
 #include "Renderer.hpp"
-#include "ImageData.hpp"
+#include "Image.hpp"
 
 namespace fast {
 
@@ -14,6 +14,7 @@ class SliceRenderer : public Renderer {
         SliceRenderer();
         void execute();
         void draw();
+        void recompileOpenCLCode(Image::pointer input);
 
         OpenCLDevice::pointer mDevice;
         ImageData::pointer mInput;
@@ -26,6 +27,8 @@ class SliceRenderer : public Renderer {
         cl::Program mProgram;
         bool mTextureIsCreated;
 
+        cl::Kernel mKernel;
+        DataType mTypeCLCodeCompiledFor;
 };
 
 }
