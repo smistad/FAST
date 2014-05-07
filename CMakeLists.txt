@@ -50,6 +50,8 @@ set(SOURCES
     Importers/Importer.hpp
     Exporters/ImageExporter2D.cpp
     Exporters/ImageExporter2D.hpp
+    Exporters/MetaImageExporter.cpp
+    Exporters/MetaImageExporter.hpp
     Visualization/SimpleWindow.cpp
     Visualization/SimpleWindow.hpp
     Visualization/View.cpp
