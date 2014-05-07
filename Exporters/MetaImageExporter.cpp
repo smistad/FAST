@@ -1,8 +1,6 @@
 #include "MetaImageExporter.hpp"
 #include "Image.hpp"
 #include "DynamicImage.hpp"
-#include <boost/iostreams/device/mapped_file.hpp>
-#include <boost/algorithm/string.hpp>
 #include <fstream>
 using namespace fast;
 
@@ -16,18 +14,21 @@ void MetaImageExporter::setFilename(std::string filename) {
     mIsModified = true;
 }
 
+MetaImageExporter::MetaImageExporter() {
+
+}
+
 template <class T>
 void writeToRawFile(std::string filename, T * data, unsigned int numberOfElements) {
-    boost::iostreams::mapped_file_sink file;
-    file.open(filename, numberOfElements*sizeof(T));
-    if(!file.is_open()) {
+    // TODO use mapped_file_sink form boost instead
+    FILE* file = fopen(filename.c_str(), "wb");
+    if(file == NULL) {
         throw Exception("Could not open file " + filename + " for writing");
     }
 
-    T* fileData = (T*)file.data();
-    memcpy(fileData,data,numberOfElements*sizeof(T));
+    fwrite(data, sizeof(T), numberOfElements, file);
 
-    file.close();
+    fclose(file);
 }
 
 void MetaImageExporter::execute() {
