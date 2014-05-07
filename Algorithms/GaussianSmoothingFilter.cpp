@@ -16,7 +16,6 @@ void GaussianSmoothingFilter::setInput(ImageData::pointer input) {
         input->retain(mDevice);
     }
     mOutput = mTempOutput;
-    mRecompileNeeded = true;
 }
 
 
@@ -66,7 +65,7 @@ GaussianSmoothingFilter::GaussianSmoothingFilter() {
     mMaskSize = 3;
     mIsModified = true;
     mRecreateMask = true;
-    mRecompileNeeded = true;
+    mDimensionCLCodeCompiledFor = 0;
 }
 
 GaussianSmoothingFilter::~GaussianSmoothingFilter() {
@@ -123,6 +122,11 @@ void GaussianSmoothingFilter::createMask(Image::pointer input) {
 }
 
 void GaussianSmoothingFilter::recompileOpenCLCode(Image::pointer input) {
+    // Check if there is a need to recompile OpenCL code
+    if(input->getDimensions() == mDimensionCLCodeCompiledFor &&
+            input->getDataType() == mTypeCLCodeCompiledFor)
+        return;
+
     OpenCLDevice::pointer device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
     std::string buildOptions = "";
     if(input->getDataType() == TYPE_FLOAT) {
@@ -140,7 +144,8 @@ void GaussianSmoothingFilter::recompileOpenCLCode(Image::pointer input) {
     }
     int programNr = device->createProgramFromSource(std::string(FAST_ROOT_DIR) + filename, buildOptions);
     mKernel = cl::Kernel(device->getProgram(programNr), "gaussianSmoothing");
-    mRecompileNeeded = false;
+    mDimensionCLCodeCompiledFor = input->getDimensions();
+    mTypeCLCodeCompiledFor = input->getDataType();
 }
 
 void GaussianSmoothingFilter::execute() {

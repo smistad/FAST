@@ -35,7 +35,8 @@ class GaussianSmoothingFilter : public ProcessObject {
         bool mRecreateMask;
 
         cl::Kernel mKernel;
-        bool mRecompileNeeded;
+        unsigned char mDimensionCLCodeCompiledFor;
+        DataType mTypeCLCodeCompiledFor;
 
 };
 
