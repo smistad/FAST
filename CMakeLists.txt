@@ -35,8 +35,8 @@ set(SOURCES
     Data/Access/OpenCLImageAccess2D.hpp
     Data/Access/OpenCLImageAccess3D.cpp
     Data/Access/OpenCLImageAccess3D.hpp
-    Data/Access/ImageAccess2D.cpp
-    Data/Access/ImageAccess2D.hpp
+    Data/Access/ImageAccess.cpp
+    Data/Access/ImageAccess.hpp
     Streamers/Streamer.cpp
     Streamers/Streamer.hpp
     Streamers/ImageStreamer2D.cpp

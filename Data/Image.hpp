@@ -9,7 +9,7 @@
 #include "OpenCLImageAccess2D.hpp"
 #include "OpenCLImageAccess3D.hpp"
 #include "OpenCLBufferAccess.hpp"
-#include "ImageAccess2D.hpp"
+#include "ImageAccess.hpp"
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
 namespace fast {
@@ -25,7 +25,7 @@ class Image: public ImageData {
         OpenCLImageAccess2D getOpenCLImageAccess2D(accessType type, OpenCLDevice::pointer);
         OpenCLImageAccess3D getOpenCLImageAccess3D(accessType type, OpenCLDevice::pointer);
         OpenCLBufferAccess getOpenCLBufferAccess(accessType type, OpenCLDevice::pointer);
-        ImageAccess2D getImageAccess(accessType type);
+        ImageAccess getImageAccess(accessType type);
 
         ~Image() { freeAll(); };
 

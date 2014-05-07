@@ -482,7 +482,7 @@ Image::Image() {
     mIsDynamicData = false;
 }
 
-ImageAccess2D Image::getImageAccess(accessType type) {
+ImageAccess Image::getImageAccess(accessType type) {
     // TODO: this method is currently just a fixed hack
 
     if (type == ACCESS_READ_WRITE) {
@@ -497,7 +497,7 @@ ImageAccess2D Image::getImageAccess(accessType type) {
     }
     updateHostData();
 
-    return ImageAccess2D(mHostData, &mHostDataIsBeingAccessed);
+    return ImageAccess(mHostData, &mHostDataIsBeingAccessed);
 }
 
 void Image::create3DImage(

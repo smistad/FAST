@@ -44,7 +44,7 @@ void ImageExporter2D::execute() {
 
     // TODO have to do some type conversion here, assuming float for now
     unsigned char * pixelData = image.bits();
-    ImageAccess2D access = input->getImageAccess(ACCESS_READ);
+    ImageAccess access = input->getImageAccess(ACCESS_READ);
     void * inputData = access.get();
 
     for(unsigned int i = 0; i < input->getWidth()*input->getHeight(); i++) {
