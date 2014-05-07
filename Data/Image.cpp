@@ -570,6 +570,7 @@ void Image::create3DImage(
     mType = type;
     mComponents = nrOfComponents;
     if(device->isHost()) {
+        mHostData = allocateDataArray(width*height*depth, type, nrOfComponents);
         memcpy(mHostData, data, getSizeOfDataType(type, nrOfComponents)*width*height*depth);
         mHostHasData = true;
         mHostDataIsUpToDate = true;
@@ -674,6 +675,7 @@ void Image::create2DImage(
     mType = type;
     mComponents = nrOfComponents;
     if(device->isHost()) {
+        mHostData = allocateDataArray(width*height, type, nrOfComponents);
         memcpy(mHostData, data, getSizeOfDataType(type, nrOfComponents) * width * height);
         mHostHasData = true;
         mHostDataIsUpToDate = true;
