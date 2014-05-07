@@ -19,11 +19,16 @@ Linux instructions
 
 **Install dependencies:**
 
-First install OpenCL. This is done by downloading the latest display drivers and AMD APP SDK (if you have a AMD card) or CUDA Toolkit (if you have an NVIDIA card).
+First, make sure you have all the tools necessary to download and compile the code:
+```bash
+sudo apt-get install cmake g++ git
+```
+
+Install OpenCL. This is done by downloading the latest display drivers and AMD APP SDK (if you have a AMD card) or CUDA Toolkit (if you have an NVIDIA card).
 
 Next, install the other dependencies (these instructions are for Ubuntu 12.04):
 ```bash
-# First install boost, note that the version number in the package names may be different on your system
+# Install boost, note that the version number in the package names may be different on your system
 sudo apt-get install libboost-system1.48-dev libboost-thread1.48-dev libboost-iostreams1.48-dev libboost-chrono1.48-dev
 
 # Install Qt 4
@@ -37,6 +42,7 @@ sudo apt-get install libvtk5-dev
 ```
 
 **Compile and run tests:**
+
 ```bash
 git clone https://github.com/smistad/FAST.git
 cd FAST
