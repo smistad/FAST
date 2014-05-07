@@ -109,6 +109,7 @@ void ImageRenderer::execute() {
     v.push_back(mImageGL);
     queue.enqueueAcquireGLObjects(&v);
 
+    recompileOpenCLCode(input);
     cl::Kernel kernel(mProgram, "renderToTexture");
     kernel.setArg(0, *clImage);
     kernel.setArg(1, mImageGL);
@@ -137,10 +138,26 @@ void ImageRenderer::setInput(ImageData::pointer image) {
     */
 }
 
+void ImageRenderer::recompileOpenCLCode(Image::pointer input) {
+    // Check if code has to be recompiled
+    if(!mTextureIsCreated && mTypeCLCodeCompiledFor == input->getDataType())
+        return;
+    std::string buildOptions = "";
+    if(input->getDataType() == TYPE_FLOAT) {
+        buildOptions = "-DTYPE_FLOAT";
+    } else if(input->getDataType() == TYPE_INT8 || input->getDataType() == TYPE_INT16) {
+        buildOptions = "-DTYPE_INT";
+    } else {
+        buildOptions = "-DTYPE_UINT";
+    }
+    int i = mDevice->createProgramFromSource(std::string(FAST_ROOT_DIR) + "/Visualization/ImageRenderer.cl", buildOptions);
+    mProgram = mDevice->getProgram(i);
+    mTypeCLCodeCompiledFor = input->getDataType();
+
+}
+
 ImageRenderer::ImageRenderer() {
     mDevice = boost::static_pointer_cast<OpenCLDevice>(DeviceManager::getInstance().getDefaultVisualizationDevice());
-    int i = mDevice->createProgramFromSource(std::string(FAST_ROOT_DIR) + "/Visualization/ImageRenderer.cl");
-    mProgram = mDevice->getProgram(i);
     mTextureIsCreated = false;
     mIsModified = true;
     mLevel = -1;

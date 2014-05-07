@@ -2,7 +2,7 @@
 #define IMAGERENDERER_HPP_
 
 #include "Renderer.hpp"
-#include "ImageData.hpp"
+#include "Image.hpp"
 
 namespace fast {
 
@@ -15,6 +15,7 @@ class ImageRenderer : public Renderer {
         ImageRenderer();
         void execute();
         void draw();
+        void recompileOpenCLCode(Image::pointer input);
 
         OpenCLDevice::pointer mDevice;
         ImageData::pointer mInput;
@@ -27,6 +28,7 @@ class ImageRenderer : public Renderer {
         cl::Program mProgram;
         bool mTextureIsCreated;
 
+        DataType mTypeCLCodeCompiledFor;
 
 
 };
