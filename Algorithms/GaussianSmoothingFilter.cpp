@@ -16,6 +16,7 @@ void GaussianSmoothingFilter::setInput(ImageData::pointer input) {
         input->retain(mDevice);
     }
     mOutput = mTempOutput;
+    mRecompileNeeded = true;
 }
 
 
@@ -65,6 +66,7 @@ GaussianSmoothingFilter::GaussianSmoothingFilter() {
     mMaskSize = 3;
     mIsModified = true;
     mRecreateMask = true;
+    mRecompileNeeded = true;
 }
 
 GaussianSmoothingFilter::~GaussianSmoothingFilter() {
@@ -120,6 +122,27 @@ void GaussianSmoothingFilter::createMask(Image::pointer input) {
     mRecreateMask = false;
 }
 
+void GaussianSmoothingFilter::recompileOpenCLCode(Image::pointer input) {
+    OpenCLDevice::pointer device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
+    std::string buildOptions = "";
+    if(input->getDataType() == TYPE_FLOAT) {
+        buildOptions = "-DTYPE_FLOAT";
+    } else if(input->getDataType() == TYPE_INT8 || input->getDataType() == TYPE_INT16) {
+        buildOptions = "-DTYPE_INT";
+    } else {
+        buildOptions = "-DTYPE_UINT";
+    }
+    std::string filename;
+    if(input->getDimensions() == 2) {
+        filename = "Algorithms/GaussianSmoothingFilter2D.cl";
+    } else {
+        filename = "Algorithms/GaussianSmoothingFilter3D.cl";
+    }
+    int programNr = device->createProgramFromSource(std::string(FAST_ROOT_DIR) + filename, buildOptions);
+    mKernel = cl::Kernel(device->getProgram(programNr), "gaussianSmoothing");
+    mRecompileNeeded = false;
+}
+
 void GaussianSmoothingFilter::execute() {
 
     Image::pointer input;
@@ -170,44 +193,29 @@ void GaussianSmoothingFilter::execute() {
     } else {
         OpenCLDevice::pointer device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
 
-        std::string buildOptions = "";
-        if(input->getDataType() == TYPE_FLOAT) {
-            buildOptions = "-DTYPE_FLOAT";
-        } else if(input->getDataType() == TYPE_INT8 || input->getDataType() == TYPE_INT16) {
-            buildOptions = "-DTYPE_INT";
-        } else {
-            buildOptions = "-DTYPE_UINT";
-        }
-        int programNr;
+        recompileOpenCLCode(input);
         cl::NDRange globalSize;
-        cl::Kernel kernel;
         if(input->getDimensions() == 2) {
-            // TODO: unnecessary to compile each time
-            programNr = device->createProgramFromSource(std::string(FAST_ROOT_DIR) + "Algorithms/GaussianSmoothingFilter2D.cl", buildOptions);
-            kernel = cl::Kernel(device->getProgram(programNr), "gaussianSmoothing");
             globalSize = cl::NDRange(input->getWidth(),input->getHeight());
 
             OpenCLImageAccess2D inputAccess = input->getOpenCLImageAccess2D(ACCESS_READ, device);
             OpenCLImageAccess2D outputAccess = output->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
-            kernel.setArg(0, *inputAccess.get());
-            kernel.setArg(2, *outputAccess.get());
+            mKernel.setArg(0, *inputAccess.get());
+            mKernel.setArg(2, *outputAccess.get());
         } else {
-            // TODO: unnecessary to compile each time
-            programNr = device->createProgramFromSource(std::string(FAST_ROOT_DIR) + "Algorithms/GaussianSmoothingFilter3D.cl", buildOptions);
-            kernel = cl::Kernel(device->getProgram(programNr), "gaussianSmoothing");
             globalSize = cl::NDRange(input->getWidth(),input->getHeight(),input->getDepth());
 
             OpenCLImageAccess3D inputAccess = input->getOpenCLImageAccess3D(ACCESS_READ, device);
             OpenCLImageAccess3D outputAccess = output->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
-            kernel.setArg(0, *inputAccess.get());
-            kernel.setArg(2, *outputAccess.get());
+            mKernel.setArg(0, *inputAccess.get());
+            mKernel.setArg(2, *outputAccess.get());
         }
 
-        kernel.setArg(1, mCLMask);
-        kernel.setArg(3, mMaskSize);
+        mKernel.setArg(1, mCLMask);
+        mKernel.setArg(3, mMaskSize);
 
         device->getCommandQueue().enqueueNDRangeKernel(
-                kernel,
+                mKernel,
                 cl::NullRange,
                 globalSize,
                 cl::NullRange

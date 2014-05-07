@@ -21,6 +21,7 @@ class GaussianSmoothingFilter : public ProcessObject {
         void execute();
         void waitToFinish();
         void createMask(Image::pointer input);
+        void recompileOpenCLCode(Image::pointer input);
 
         ImageData::pointer mInput;
         WeakPointer<ImageData> mOutput;
@@ -31,7 +32,10 @@ class GaussianSmoothingFilter : public ProcessObject {
 
         cl::Buffer mCLMask;
         float * mMask;
-        float mRecreateMask;
+        bool mRecreateMask;
+
+        cl::Kernel mKernel;
+        bool mRecompileNeeded;
 
 };
 
