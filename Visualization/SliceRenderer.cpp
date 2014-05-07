@@ -42,6 +42,9 @@ void SliceRenderer::execute() {
         input = mInput;
     }
 
+    if(input->getDimensions() != 3)
+        throw Exception("The SliceRenderer only supports 3D images");
+
     // Determine level and window
     float window = mWindow;
     float level = mLevel;
