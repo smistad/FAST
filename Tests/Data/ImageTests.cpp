@@ -1,5 +1,6 @@
 #include "catch.hpp"
 #include "Image.hpp"
+#include "DeviceManager.hpp"
 #include <ctime>
 #include <cmath>
 
@@ -20,6 +21,37 @@ TEST_CASE("Create a 2D image on host", "[fast][image]") {
     CHECK(image->getNrOfComponents() == nrOfComponents);
     CHECK(image->getDataType() == type);
     CHECK(image->getDimensions() == 2);
+}
+
+TEST_CASE("Create a 2D image on an OpenCL device", "[fast][image]") {
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+
+    unsigned int width = 256;
+    unsigned int height = 512;
+    // Test for having components 1 to 4 and for all data types
+    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+        for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
+            Image::pointer image = Image::New();
+            CHECK_NOTHROW(image->create2DImage(width, height, (DataType)typeNr, nrOfComponents, device));
+        }
+    }
+}
+
+TEST_CASE("Create a 3D image on an OpenCL device", "[fast][image]") {
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+
+    unsigned int width = 256;
+    unsigned int height = 512;
+    unsigned int depth = 45;
+    // Test for having components 1 to 4 and for all data types
+    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+        for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
+            Image::pointer image = Image::New();
+            CHECK_NOTHROW(image->create3DImage(width, height, depth, (DataType)typeNr, nrOfComponents, device));
+        }
+    }
 }
 
 TEST_CASE("Create a 3D image on host", "[fast][image]") {
