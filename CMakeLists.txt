@@ -76,6 +76,7 @@ endif()
 if(ITK_INTEROP)
     set(SOURCES ${SOURCES}
         Exporters/ITKImageExporter.hpp
+        Importers/ITKImageImporter.hpp
     )
 endif()
 
