@@ -23,14 +23,6 @@
 
 using namespace fast;
 
-#if defined(__APPLE__) || defined(__MACOSX)
-#else
-#if _WIN32
-#else
-static Display * mXDisplay;
-#endif
-#endif
-
 void ImageRenderer::execute() {
     if(!mInput.isValid())
         throw Exception("No input was given to ImageRenderer");
@@ -56,18 +48,7 @@ void ImageRenderer::execute() {
         level = getDefaultIntensityLevel(input->getDataType());
     }
 
-#if defined(__APPLE__) || defined(__MACOSX)
-    // Returns 0 on success
-    bool success = CGLSetCurrentContext((CGLContextObj)mDevice->getGLContext()) == 0;
-#else
-#if _WIN32
-    bool success = wglMakeCurrent(wglGetCurrentDC(), (HGLRC)mDevice->getGLContext());
-#else
-    bool success = glXMakeCurrent(mXDisplay,glXGetCurrentDrawable(),(GLXContext)mDevice->getGLContext());
-#endif
-#endif
-    if(!success)
-        throw Exception("failed to switch to window");
+    setOpenGLContext(mDevice->getGLContext());
 
     OpenCLImageAccess2D access = input->getOpenCLImageAccess2D(ACCESS_READ, mDevice);
     cl::Image2D* clImage = access.get();
@@ -161,38 +142,17 @@ void ImageRenderer::recompileOpenCLCode(Image::pointer input) {
     mTypeCLCodeCompiledFor = input->getDataType();
 }
 
-ImageRenderer::ImageRenderer() {
+ImageRenderer::ImageRenderer() : Renderer() {
     mDevice = boost::static_pointer_cast<OpenCLDevice>(DeviceManager::getInstance().getDefaultVisualizationDevice());
     mTextureIsCreated = false;
     mIsModified = true;
-    mLevel = -1;
-    mWindow = -1;
-#if defined(__APPLE__) || defined(__MACOSX)
-#else
-#if _WIN32
-#else
-    // Open the display here to avoid getting maximum number of clients error
-    mXDisplay = XOpenDisplay(NULL);
-#endif
-#endif
 }
 
 void ImageRenderer::draw() {
     if(!mTextureIsCreated)
         return;
 
-#if defined(__APPLE__) || defined(__MACOSX)
-    // Returns 0 on success
-    bool success = CGLSetCurrentContext((CGLContextObj)mDevice->getGLContext()) == 0;
-#else
-#if _WIN32
-    bool success = wglMakeCurrent(wglGetCurrentDC(), (HGLRC)mDevice->getGLContext());
-#else
-    bool success = glXMakeCurrent(mXDisplay,glXGetCurrentDrawable(),(GLXContext)mDevice->getGLContext());
-#endif
-#endif
-    if(!success)
-        throw Exception("failed to switch to window");
+    setOpenGLContext(mDevice->getGLContext());
 
     glBindTexture(GL_TEXTURE_2D, mTexture);
 

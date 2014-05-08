@@ -16,6 +16,8 @@ class Renderer : public ProcessObject {
         float getIntensityWindow();
     protected:
         Renderer();
+        void setOpenGLContext(unsigned long* OpenGLContext);
+
         // Level and window intensities
         float mWindow;
         float mLevel;
