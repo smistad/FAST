@@ -17,13 +17,16 @@ Image::pointer DynamicImage::getNextFrame() {
     }
     mStreamMutex.unlock();
 
-    if(mStreamingMode == STREAMING_MODE_STORE_ALL_FRAMES || mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES) {
-        updateModifiedTimestamp();
-    }
     if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES) {
         // Remove the frame that was read, the one in the front
         mFrames.erase(mFrames.begin());
     }
+
+    if(mStreamingMode == STREAMING_MODE_STORE_ALL_FRAMES || mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES) {
+        if(mFrames.size() > 0)
+            updateModifiedTimestamp();
+    }
+
     return ret;
 }
 
