@@ -62,6 +62,8 @@ set(SOURCES
     Visualization/ImageRenderer.hpp
     Visualization/SliceRenderer.cpp
     Visualization/SliceRenderer.hpp
+    Visualization/SurfaceRenderer.cpp
+    Visualization/SurfaceRenderer.hpp
 )
 
 if(VTK_INTEROP)
