@@ -53,9 +53,6 @@ int VTKImageExporter::RequestData(
         vtkInformationVector** inputVector,
         vtkInformationVector* outputVector) {
 
-    if(!mInput.isValid()) {
-        throw Exception("No input supplied to GaussianSmoothingFilter");
-    }
     mInput->update(); // Make sure input is up to date
 
     if(mInput->getNrOfComponents() != 1) {
