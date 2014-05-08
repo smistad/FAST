@@ -124,15 +124,15 @@ void SliceRenderer::execute() {
         sliceNr = mSliceNr;
         switch(mSlicePlane) {
         case PLANE_X:
-            if(mSliceNr >= input->getWidth())
+            if(sliceNr >= input->getWidth())
                 sliceNr = input->getWidth()-1;
             break;
         case PLANE_Y:
-            if(mSliceNr >= input->getHeight())
+            if(sliceNr >= input->getHeight())
                 sliceNr = input->getHeight()-1;
             break;
         case PLANE_Z:
-            if(mSliceNr >= input->getDepth())
+            if(sliceNr >= input->getDepth())
                 sliceNr = input->getDepth()-1;
             break;
         }

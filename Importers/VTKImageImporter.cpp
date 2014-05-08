@@ -29,8 +29,8 @@ template <class T>
 void* readVTKData(vtkSmartPointer<vtkImageData> image) {
     // TODO component support
     int * size = image->GetDimensions();
-    int width = size[0]-1;
-    int height = size[1]-1;
+    unsigned int width = size[0]-1;
+    unsigned int height = size[1]-1;
     if(image->GetDataDimension() == 2) {
         T* fastPixelData = new T[width*height];
         for(unsigned int x = 0; x < width; x++) {
@@ -40,7 +40,7 @@ void* readVTKData(vtkSmartPointer<vtkImageData> image) {
         }}
         return (void*)fastPixelData;
     } else if(image->GetDataDimension() == 3) {
-        int depth = size[2]-1;
+        unsigned int depth = size[2]-1;
         T* fastPixelData = new T[width*height*depth];
         for(unsigned int x = 0; x < width; x++) {
         for(unsigned int y = 0; y < height; y++) {
