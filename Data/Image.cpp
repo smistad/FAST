@@ -45,22 +45,9 @@ void * allocateDataArray(unsigned int voxels, DataType type, unsigned int nrOfCo
     unsigned int size = voxels*nrOfComponents;
     void * data;
     switch(type) {
-    case TYPE_FLOAT:
-        data = new float[size];
-        break;
-    case TYPE_UINT8:
-        data = new uchar[size];
-        break;
-    case TYPE_INT8:
-        data = new char[size];
-        break;
-    case TYPE_UINT16:
-        data = new ushort[size];
-        break;
-    case TYPE_INT16:
-        data = new short[size];
-        break;
+        fastSwitchTypeMacro(data = new FAST_TYPE[size])
     }
+
     return data;
 }
 
@@ -82,21 +69,7 @@ void * adaptDataToImage(void * data, unsigned int size, DataType type, unsigned 
     // the data has to be padded to 4 channels if the nr of components is 3
     if(nrOfComponents == 3) {
         switch(type) {
-        case TYPE_FLOAT:
-            return padData<float>((float*)data, size);
-            break;
-        case TYPE_UINT8:
-            return padData<unsigned char>((unsigned char*)data, size);
-            break;
-        case TYPE_INT8:
-            return padData<char>((char*)data, size);
-            break;
-        case TYPE_UINT16:
-            return padData<unsigned short>((unsigned short*)data, size);
-            break;
-        case TYPE_INT16:
-            return padData<short>((short*)data, size);
-            break;
+            fastSwitchTypeMacro(return padData<FAST_TYPE>((FAST_TYPE*)data, size))
         }
     }
 
@@ -121,21 +94,7 @@ void * adaptImageDataToHostData(void * data, unsigned int size, DataType type, u
     // This function removes that padding
     if(nrOfComponents == 3) {
         switch(type) {
-        case TYPE_FLOAT:
-            return removePadding<float>((float*)data, size);
-            break;
-        case TYPE_UINT8:
-            return removePadding<unsigned char>((unsigned char*)data, size);
-            break;
-        case TYPE_INT8:
-            return removePadding<char>((char*)data, size);
-            break;
-        case TYPE_UINT16:
-            return removePadding<unsigned short>((unsigned short*)data, size);
-            break;
-        case TYPE_INT16:
-            return removePadding<short>((short*)data, size);
-            break;
+            fastSwitchTypeMacro(return removePadding<FAST_TYPE>((FAST_TYPE*)data, size))
         }
     }
     return data;
@@ -365,23 +324,7 @@ void Image::updateHostData() {
         unsigned int size = mWidth*mHeight*mComponents;
         if(mDimensions == 3)
             size *= mDepth;
-        switch(mType) {
-        case TYPE_FLOAT:
-            mHostData = new float[size];
-            break;
-        case TYPE_UINT8:
-            mHostData = new uchar[size];
-            break;
-        case TYPE_INT8:
-            mHostData = new char[size];
-            break;
-        case TYPE_UINT16:
-            mHostData = new ushort[size];
-            break;
-        case TYPE_INT16:
-            mHostData = new short[size];
-            break;
-        }
+        mHostData = allocateDataArray(mWidth*mHeight*mDepth,mType,mComponents);
     }
 
     if (mCLImages.size() > 0) {
@@ -519,24 +462,7 @@ void Image::create3DImage(
     mComponents = nrOfComponents;
     if(device->isHost()) {
         mHostHasData = true;
-        unsigned int size = width*height*depth*nrOfComponents;
-        switch(type) {
-        case TYPE_FLOAT:
-            mHostData = new float[size];
-            break;
-        case TYPE_UINT8:
-            mHostData = new uchar[size];
-            break;
-        case TYPE_INT8:
-            mHostData = new char[size];
-            break;
-        case TYPE_UINT16:
-            mHostData = new ushort[size];
-            break;
-        case TYPE_INT16:
-            mHostData = new short[size];
-            break;
-        }
+        mHostData = allocateDataArray(mWidth*mHeight*mDepth,mType,mComponents);
     } else {
         OpenCLDevice::pointer clDevice = boost::dynamic_pointer_cast<OpenCLDevice>(device);
         cl::Image3D* clImage = new cl::Image3D(
@@ -623,23 +549,7 @@ void Image::create2DImage(
     mComponents = nrOfComponents;
     if(device->isHost()) {
         mHostHasData = true;
-        switch(type) {
-        case TYPE_FLOAT:
-            mHostData = new float[width*height*nrOfComponents];
-            break;
-        case TYPE_UINT8:
-            mHostData = new uchar[width*height*nrOfComponents];
-            break;
-        case TYPE_INT8:
-            mHostData = new char[width*height*nrOfComponents];
-            break;
-        case TYPE_UINT16:
-            mHostData = new ushort[width*height*nrOfComponents];
-            break;
-        case TYPE_INT16:
-            mHostData = new short[width*height*nrOfComponents];
-            break;
-        }
+        mHostData = allocateDataArray(mWidth*mHeight,mType,mComponents);
     } else {
         OpenCLDevice::pointer clDevice = boost::dynamic_pointer_cast<OpenCLDevice>(device);
         cl::Image2D* clImage = new cl::Image2D(
