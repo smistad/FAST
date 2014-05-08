@@ -28,7 +28,6 @@ class SliceRenderer : public Renderer {
         cl::Image2DGL mImageGL;
 #endif
         GLuint mTexture;
-        cl::Program mProgram;
         bool mTextureIsCreated;
 
         cl::Kernel mKernel;
