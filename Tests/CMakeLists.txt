@@ -7,6 +7,11 @@ set(SOURCE_FILES
 set(EXECUTABLE_SOURCE_FILES
     catch.hpp
     CatchMain.cpp
+    Data/ImageTests.cpp
+)
+
+include_directories(
+    ./
 )
 
 if(VTK_INTEROP)
