@@ -173,7 +173,7 @@ void Image::transferCLImageFromHost(OpenCLDevice::pointer device) {
 void Image::transferCLImageToHost(OpenCLDevice::pointer device) {
     // Special treatment for images with 3 components because an OpenCL image can only have 1, 2 or 4 channels
     if(mComponents == 3) {
-        void * tempData = allocateDataArray(mWidth*mHeight*mDepth,mType,mComponents);
+        void * tempData = allocateDataArray(mWidth*mHeight*mDepth,mType,mComponents+1);
         if(mDimensions == 2) {
             device->getCommandQueue().enqueueReadImage(*(cl::Image2D*)mCLImages[device],
             CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, 1), 0,
