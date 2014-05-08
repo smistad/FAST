@@ -150,9 +150,8 @@ void GaussianSmoothingFilter::recompileOpenCLCode(Image::pointer input) {
 
 template <class T>
 void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, float * mask, unsigned char maskSize) {
+    // TODO: this method currently only processes the first component
     unsigned int nrOfComponents = input->getNrOfComponents();
-    if(nrOfComponents != 1)
-        throw Exception("Running the gaussian smoothing filter on an image with more than 1 component on the host is currently not supported.");
     ImageAccess inputAccess = input->getImageAccess(ACCESS_READ);
     ImageAccess outputAccess = output->getImageAccess(ACCESS_READ_WRITE);
 
@@ -173,9 +172,9 @@ void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, float *
             for(int b = -halfSize; b <= halfSize; b++) {
             for(int a = -halfSize; a <= halfSize; a++) {
                 sum += mask[a+halfSize+(b+halfSize)*maskSize+(c+halfSize)*maskSize*maskSize]*
-                        inputData[x+a+(y+b)*width+(z+c)*width*height];
+                        inputData[(x+a)*nrOfComponents+(y+b)*nrOfComponents*width+(z+c)*nrOfComponents*width*height];
             }}}
-            outputData[x+y*width+z*width*height] = (T)sum;
+            outputData[x*nrOfComponents+y*nrOfComponents*width+z*nrOfComponents*width*height] = (T)sum;
         }}}
     } else {
         for(unsigned int y = halfSize; y < height-halfSize; y++) {
@@ -185,9 +184,9 @@ void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, float *
             for(int b = -halfSize; b <= halfSize; b++) {
             for(int a = -halfSize; a <= halfSize; a++) {
                 sum += mask[a+halfSize+(b+halfSize)*maskSize]*
-                        inputData[x+a+(y+b)*width];
+                        inputData[(x+a)*nrOfComponents+(y+b)*nrOfComponents*width];
             }}
-            outputData[x+y*width] = (T)sum;
+            outputData[x*nrOfComponents+y*nrOfComponents*width] = (T)sum;
         }}
     }
 }
