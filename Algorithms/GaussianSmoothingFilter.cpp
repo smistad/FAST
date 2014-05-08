@@ -148,6 +148,50 @@ void GaussianSmoothingFilter::recompileOpenCLCode(Image::pointer input) {
     mTypeCLCodeCompiledFor = input->getDataType();
 }
 
+template <class T>
+void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, float * mask, unsigned char maskSize) {
+    unsigned int nrOfComponents = input->getNrOfComponents();
+    if(nrOfComponents != 1)
+        throw Exception("Running the gaussian smoothing filter on an image with more than 1 component on the host is currently not supported.");
+    ImageAccess inputAccess = input->getImageAccess(ACCESS_READ);
+    ImageAccess outputAccess = output->getImageAccess(ACCESS_READ_WRITE);
+
+    T * inputData = (T*)inputAccess.get();
+    T * outputData = (T*)outputAccess.get();
+
+    const unsigned char halfSize = (maskSize-1)/2;
+    unsigned int width = input->getWidth();
+    unsigned int height = input->getHeight();
+    if(input->getDimensions() == 3) {
+        unsigned int depth = input->getDepth();
+        for(unsigned int z = halfSize; z < depth-halfSize; z++) {
+        for(unsigned int y = halfSize; y < height-halfSize; y++) {
+        for(unsigned int x = halfSize; x < width-halfSize; x++) {
+
+            double sum = 0.0;
+            for(int c = -halfSize; c <= halfSize; c++) {
+            for(int b = -halfSize; b <= halfSize; b++) {
+            for(int a = -halfSize; a <= halfSize; a++) {
+                sum += mask[a+halfSize+(b+halfSize)*maskSize+(c+halfSize)*maskSize*maskSize]*
+                        inputData[x+a+(y+b)*width+(z+c)*width*height];
+            }}}
+            outputData[x+y*width+z*width*height] = (T)sum;
+        }}}
+    } else {
+        for(unsigned int y = halfSize; y < height-halfSize; y++) {
+        for(unsigned int x = halfSize; x < width-halfSize; x++) {
+
+            double sum = 0.0;
+            for(int b = -halfSize; b <= halfSize; b++) {
+            for(int a = -halfSize; a <= halfSize; a++) {
+                sum += mask[a+halfSize+(b+halfSize)*maskSize]*
+                        inputData[x+a+(y+b)*width];
+            }}
+            outputData[x+y*width] = (T)sum;
+        }}
+    }
+}
+
 void GaussianSmoothingFilter::execute() {
 
     Image::pointer input;
@@ -192,9 +236,9 @@ void GaussianSmoothingFilter::execute() {
     createMask(input);
 
     if(mDevice->isHost()) {
-
-        // TODO: create host code
-
+        switch(input->getDataType()) {
+            fastSwitchTypeMacro(executeAlgorithmOnHost<FAST_TYPE>(input, output, mMask, mMaskSize));
+        }
     } else {
         OpenCLDevice::pointer device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
 
