@@ -23,33 +23,82 @@ VTKImageExporter::VTKImageExporter() {
     this->SetNumberOfInputPorts(0);
 }
 
+template <class T>
+void transferDataToVTKImage(Image::pointer input, vtkSmartPointer<vtkImageData> output) {
+    ImageAccess access = input->getImageAccess(ACCESS_READ);
+    T* fastPixelData = (T*)access.get();
+
+    unsigned int width = input->getWidth();
+    unsigned int height = input->getHeight();
+    if(input->getDimensions() == 2) {
+        for(unsigned int x = 0; x < width; x++) {
+        for(unsigned int y = 0; y < height; y++) {
+            T * pixel = static_cast<T*>(output->GetScalarPointer(x,height-y,0));
+            pixel[0] = fastPixelData[x+y*width];
+        }}
+    } else {
+        unsigned int depth = input->getDepth();
+        for(unsigned int x = 0; x < width; x++) {
+        for(unsigned int y = 0; y < height; y++) {
+        for(unsigned int z = 0; z < depth; z++) {
+            // TODO check the addressing here
+            T * pixel = static_cast<T*>(output->GetScalarPointer(x,height-y,z));
+            pixel[0] = fastPixelData[x+y*width+z*width*height];
+        }}}
+    }
+}
+
 int VTKImageExporter::RequestData(
         vtkInformation* vtkNotUsed(request),
         vtkInformationVector** inputVector,
         vtkInformationVector* outputVector) {
 
+    if(!mInput.isValid()) {
+        throw Exception("No input supplied to GaussianSmoothingFilter");
+    }
     mInput->update(); // Make sure input is up to date
+
+    if(mInput->getNrOfComponents() != 1) {
+        throw Exception("The VTKImageExporter currently doesn't support images with multiple components.");
+    }
+
     vtkInformation *outInfo = outputVector->GetInformationObject(0);
 
     vtkImageData *output = vtkImageData::SafeDownCast(
             outInfo->Get(vtkDataObject::DATA_OBJECT()));
 
     vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
-    //image->SetDimensions(2,3,1);
-    image->SetExtent(0, mInput->getWidth(), 0, mInput->getHeight(), 0, 0);
-    image->SetScalarType(VTK_FLOAT);
 
-    // Transfer data from mInput to image
-    // TODO support different data types
-    //float * vtkPixelData = (float *)image->GetScalarPointer();
+    // Set size
+    if(mInput->getDimensions() == 2) {
+        image->SetExtent(0, mInput->getWidth(), 0, mInput->getHeight(), 0, 0);
+    } else {
+        image->SetExtent(0, mInput->getWidth(), 0, mInput->getHeight(), 0, mInput->getDepth());
+    }
 
-    ImageAccess access = mInput->getImageAccess(ACCESS_READ);
-    float * fastPixelData = (float *)access.get();
-    for(unsigned int x = 0; x < mInput->getWidth(); x++) {
-    for(unsigned int y = 0; y < mInput->getHeight(); y++) {
-        float * pixel = static_cast<float*>(image->GetScalarPointer(x,mInput->getHeight()-y,0));
-        pixel[0] = fastPixelData[x+y*mInput->getWidth()];
-    }}
+    // Set type
+    switch(mInput->getDataType()) {
+    case TYPE_FLOAT:
+        image->SetScalarType(VTK_FLOAT);
+        break;
+    case TYPE_INT8:
+        image->SetScalarType(VTK_CHAR);
+        break;
+    case TYPE_UINT8:
+        image->SetScalarType(VTK_UNSIGNED_CHAR);
+        break;
+    case TYPE_INT16:
+        image->SetScalarType(VTK_SHORT);
+        break;
+    case TYPE_UINT16:
+        image->SetScalarType(VTK_UNSIGNED_SHORT);
+        break;
+    }
+
+    // Transfer data from mInput to vtk image
+    switch(mInput->getDataType()) {
+        fastSwitchTypeMacro(transferDataToVTKImage<FAST_TYPE>(mInput, image))
+    }
 
     output->ShallowCopy(image);
 
