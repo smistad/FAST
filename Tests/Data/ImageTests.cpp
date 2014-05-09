@@ -109,7 +109,7 @@ bool compareDataArrays(void* data1, void* data2, unsigned int nrOfVoxels, DataTy
         fastSwitchTypeMacro(
         FAST_TYPE* data1c = (FAST_TYPE*)data1;
         FAST_TYPE* data2c = (FAST_TYPE*)data2;
-        for(unsigned int i = 0; nrOfVoxels; i++) {
+        for(unsigned int i = 0; i < nrOfVoxels; i++) {
             if(data1c[i] != data2c[i]) {
                 success = false;
                 break;
