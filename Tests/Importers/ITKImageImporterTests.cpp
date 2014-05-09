@@ -23,4 +23,6 @@ TEST_CASE("Import image from ITK to FAST", "[fast][ITK]") {
 
     CHECK(fastImage->getWidth() == region.GetSize()[0]);
     CHECK(fastImage->getHeight() == region.GetSize()[1]);
+    CHECK(fastImage->getDimensions() == 2);
+    CHECK(fastImage->getDataType() == TYPE_FLOAT);
 }
