@@ -94,7 +94,7 @@ Value: True
 Make the following entries are correctly set:
 1) OPENCL_LIBRARY -> your 64bit version of OpenCL.lib (example: C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v5.5/lib/x64/OpenCL.lib)
 2) _OPENCL_CPP_INCLUDE_DIRS  -> the OpenCLUtilityLibrary in the provided project (example: C:/FAST/OpenCLUtilityLibrary)
-3) ITK_INTEROP and ITK_ITEROP are optional and could be leave empty if not needed
+3) ITK_INTEROP and ITK_INTEROP are optional and could be leave empty if not needed
 
 Then by pushing first 'Configuer' and next 'Generate' bottom of CMake, your solution file to the Visual Stadio will be ready (FAST.sln)
 
