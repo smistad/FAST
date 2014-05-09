@@ -34,6 +34,7 @@ MetaImageImporter::MetaImageImporter() {
     mFilename = "";
     mTempOutput = Image::New();
     mOutput = mTempOutput;
+    mIsModified = true;
 }
 
 template <class T>

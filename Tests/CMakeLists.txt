@@ -1,4 +1,3 @@
-
 set(SOURCE_FILES
 #    TestFixture.hpp
 #    TestFixture.cpp
@@ -8,6 +7,7 @@ set(EXECUTABLE_SOURCE_FILES
     catch.hpp
     CatchMain.cpp
     Data/ImageTests.cpp
+    Importers/MetaImageImporterTests.cpp
 )
 
 include_directories(
