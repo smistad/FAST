@@ -185,28 +185,14 @@ TEST_CASE("Create a 3D image on host with input data", "[fast][image]") {
     unsigned int depth = 45;
 
     // Create a data array with random data
-    uchar* data = new uchar[width*height*depth];
-    srand(time(NULL));
-    for(unsigned int i = 0; i < width*height*depth; i++) {
-        data[i] = rand() % 255;
-    }
+    void* data = allocateRandomData(width*height*depth, TYPE_UINT8);
 
     image->create3DImage(width, height, depth, TYPE_UINT8, 1, Host::New(), data);
 
     ImageAccess access = image->getImageAccess(ACCESS_READ);
-    uchar* returnData = (uchar*)access.get();
+    CHECK(compareDataArrays(data, access.get(), width*height*depth, TYPE_UINT8) == true);
 
-    bool success = true;
-    for(unsigned int i = 0; i < width*height*depth; i++) {
-        if(data[i] != returnData[i]) {
-            success = false;
-            break;
-        }
-    }
-
-    CHECK(success == true);
-
-    delete[] data;
+    deleteArray(data, TYPE_UINT8);
 }
 
 TEST_CASE("Create an image twice", "[fast][image]") {
