@@ -4,6 +4,9 @@
 #include "ProcessObject.hpp"
 #include "Image.hpp"
 
+#include <itkImageSource.h>
+#include <itkImageRegionIterator.h>
+
 namespace fast {
 
 template <class TImage>

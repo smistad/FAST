@@ -4,12 +4,12 @@
 
 using namespace fast;
 
-TEST_CASE("No filename", "[fast][MetaImageImporter]") {
+TEST_CASE("No filename set to MetaImageImporter", "[fast][MetaImageImporter]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     CHECK_THROWS(importer->update());
 }
 
-TEST_CASE("Import non-existing file", "[fast][MetaImageImporter]") {
+TEST_CASE("Import non-existing file to MetaImageImporter", "[fast][MetaImageImporter]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename("asdasdasdsad");
     CHECK_THROWS_AS(importer->update(), FileNotFoundException);

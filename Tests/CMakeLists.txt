@@ -26,6 +26,7 @@ if(ITK_INTEROP)
 set(EXECUTABLE_SOURCE_FILES
     ${EXECUTABLE_SOURCE_FILES} 
     ITKInteropTests.cpp
+    Importers/ITKImageImporterTests.cpp
 )
 endif()
 
