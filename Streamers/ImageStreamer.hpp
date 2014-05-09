@@ -8,8 +8,8 @@
 
 namespace fast {
 
-class ImageStreamer2D : public Streamer {
-    FAST_OBJECT(ImageStreamer2D)
+class ImageStreamer : public Streamer {
+    FAST_OBJECT(ImageStreamer)
     public:
         DynamicImage::pointer getOutput();
         void setFilenameFormat(std::string str);
@@ -18,9 +18,9 @@ class ImageStreamer2D : public Streamer {
         // output object
         void producerStream();
 
-        ~ImageStreamer2D();
+        ~ImageStreamer();
     private:
-        ImageStreamer2D();
+        ImageStreamer();
 
         // A reference to the output object used to update its next frame
         DynamicImage::pointer mOutput;

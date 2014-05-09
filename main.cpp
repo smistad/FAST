@@ -1,8 +1,8 @@
 #include "SmartPointers.hpp"
 #include "Exception.hpp"
-#include "ImageImporter2D.hpp"
-#include "ImageExporter2D.hpp"
-#include "ImageStreamer2D.hpp"
+#include "ImageImporter.hpp"
+#include "ImageExporter.hpp"
+#include "ImageStreamer.hpp"
 #include "DeviceManager.hpp"
 #include "GaussianSmoothingFilter.hpp"
 #include "SimpleWindow.hpp"
@@ -10,6 +10,7 @@
 #include "SliceRenderer.hpp"
 #include "MetaImageImporter.hpp"
 #include "MetaImageStreamer.hpp"
+#include "MetaImageExporter.hpp"
 
 #include <QApplication>
 
@@ -25,17 +26,21 @@ int main(int argc, char ** argv) {
 
 
     // Example of importing, processing and exporting a 2D image
-    ImageImporter2D::pointer importer = ImageImporter2D::New();
+    ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename("lena.jpg");
     GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
     filter->setInput(importer->getOutput());
     filter->setMaskSize(7);
     filter->setStandardDeviation(10);
     Image::pointer filteredImage = filter->getOutput();
-    ImageExporter2D::pointer exporter = ImageExporter2D::New();
+    ImageExporter::pointer exporter = ImageExporter::New();
     exporter->setFilename("test.jpg");
     exporter->setInput(filteredImage);
     exporter->update();
+    MetaImageExporter::pointer exporter2 = MetaImageExporter::New();
+    exporter2->setFilename("test.mhd");
+    exporter2->setInput(filteredImage);
+    exporter2->update();
 
 
 
@@ -48,11 +53,11 @@ int main(int argc, char ** argv) {
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->resize(512,512);
-    //window->runMainLoop();
-     */
+    window->runMainLoop();
+    */
 
     // Example of streaming 2D images
-    ImageStreamer2D::pointer streamer = ImageStreamer2D::New();
+    ImageStreamer::pointer streamer = ImageStreamer::New();
     streamer->setFilenameFormat("test_#.jpg");
     GaussianSmoothingFilter::pointer filter2 = GaussianSmoothingFilter::New();
     filter2->setInput(streamer->getOutput());
@@ -72,7 +77,8 @@ int main(int argc, char ** argv) {
     GaussianSmoothingFilter::pointer filter4 = GaussianSmoothingFilter::New();
     filter4->setInput(mhdStreamer->getOutput());
     mhdStreamer->getOutput()->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
-    filter4->setMaskSize(5);
+    filter4->setDevice(Host::New());
+    filter4->setMaskSize(3);
     filter4->setStandardDeviation(10);
     filter4->enableRuntimeMeasurements();
     DynamicImage::pointer asd = filter4->getOutput();
@@ -87,15 +93,18 @@ int main(int argc, char ** argv) {
     window->addRenderer(renderer);
     window->resize(512,512);
     window->runMainLoop();
+    filter4->getRuntime()->print();
+    renderer->getRuntime()->print();
 
     /*
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
     mhdStreamer->setFilenameFormat("/home/smistad/Patients/2013-08-22_10-36_Lab_4DTrack.cx3/US_Acq/US-Acq_01_20130822T111033/US-Acq_01_20130822T111033_ScanConverted_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     GaussianSmoothingFilter::pointer filter4 = GaussianSmoothingFilter::New();
+    filter4->setDevice(Host::New());
     filter4->setInput(mhdStreamer->getOutput());
     mhdStreamer->getOutput()->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
-    filter4->setMaskSize(5);
+    filter4->setMaskSize(3);
     filter4->setStandardDeviation(10);
     filter4->enableRuntimeMeasurements();
     DynamicImage::pointer asd = filter4->getOutput();
@@ -108,8 +117,9 @@ int main(int argc, char ** argv) {
     window->addRenderer(renderer);
     window->resize(512,512);
     window->runMainLoop();
+
+    filter4->getRuntime()->print();
+    renderer->getRuntime()->print();
     */
 
-    renderer->getRuntime()->print();
-    filter4->getRuntime()->print();
 }

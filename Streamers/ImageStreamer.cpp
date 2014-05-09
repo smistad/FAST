@@ -1,4 +1,4 @@
-#include "ImageStreamer2D.hpp"
+#include "ImageStreamer.hpp"
 #include "ImageImporter.hpp"
 #include "DeviceManager.hpp"
 #include "Exception.hpp"
@@ -7,11 +7,11 @@ using namespace fast;
 /**
  * Dummy function to get into the class again
  */
-void stubStreamThread(ImageStreamer2D * streamer) {
+void stubStreamThread(ImageStreamer * streamer) {
     streamer->producerStream();
 }
 
-DynamicImage::pointer ImageStreamer2D::getOutput() {
+DynamicImage::pointer ImageStreamer::getOutput() {
     if(!mStreamIsStarted) {
         mStreamIsStarted = true;
         thread = new boost::thread(&stubStreamThread, this);
@@ -33,7 +33,7 @@ DynamicImage::pointer ImageStreamer2D::getOutput() {
     }
 }
 
-ImageStreamer2D::ImageStreamer2D() {
+ImageStreamer::ImageStreamer() {
     mOutput = DynamicImage::New();
     mOutput2 = mOutput;
     mStreamIsStarted = false;
@@ -44,7 +44,7 @@ ImageStreamer2D::ImageStreamer2D() {
 }
 
 
-inline void ImageStreamer2D::execute() {
+inline void ImageStreamer::execute() {
     if(!mStreamIsStarted) {
         mStreamIsStarted = true;
         thread = new boost::thread(&stubStreamThread, this);
@@ -55,11 +55,11 @@ inline void ImageStreamer2D::execute() {
     while(!mFirstFrameIsInserted);
 }
 
-void ImageStreamer2D::setFilenameFormat(std::string str) {
+void ImageStreamer::setFilenameFormat(std::string str) {
     mFilenameFormat = str;
 }
 
-void ImageStreamer2D::setDevice(ExecutionDevice::pointer device) {
+void ImageStreamer::setDevice(ExecutionDevice::pointer device) {
     mDevice = device;
 }
 
@@ -69,7 +69,7 @@ inline std::string intToString(int number) {
     return ss.str();//return a string with the contents of the stream
 }
 
-void ImageStreamer2D::producerStream() {
+void ImageStreamer::producerStream() {
     int i = 0;
     while(true) {
         std::string filename = mFilenameFormat;
@@ -101,7 +101,7 @@ void ImageStreamer2D::producerStream() {
     }
 }
 
-ImageStreamer2D::~ImageStreamer2D() {
+ImageStreamer::~ImageStreamer() {
     std::cout << "Joining the thread" << std::endl;
     // TODO stop thread as well
     thread->join();
