@@ -55,3 +55,48 @@ cmake ../ -DVTK_INTEROP=ON -DITK_INTEROP=ON
 make -j8
 ./Tests/test
 ```
+
+Windows instructions
+----------------------------------------------------------
+
+The instuction is for building and compiling the project on Visual Stadio 2010 - 64bit; installing for the other version of Visual Stadio and/or platform models should be the same:
+
+**Install dependencies:**
+
+Install OpenCL. This is done by downloading the latest display drivers and AMD APP SDK (if you have a AMD card) or CUDA Toolkit (if you have an NVIDIA card).
+
+* Boost C++ Libraries:
+```bash
+# 1)Download and unzip the file (we download and used boost_1_47_0.zip)
+# 2)On the command line, go to the root of the unpacked folder and run the foowing commands:
+bootstrap.bat
+b2 --toolset=msvc-10.0 address-model=64 --build-type=complete
+# then your liberery would be ready on stage\lib folder
+# preferable move the content of this folder to another folder like \lib\x64
+```
+* Qt Library:
+```bash
+# 1)Download and install the Qt file (we downloaded and run qt-everywhere-opensource-src-4.7.4.zip)
+# 2)On the VISUAL STADIO x64 COMMAND PROMPT, go to the root of the unpacked folder and run the foowing commands:
+configure.exe
+nmake
+```
+
+**Compile and run tests:**
+```bash
+Download the FAST project and open CMake-gui (we used CMake 2.8.7)
+
+Add the following entry by clicking on Add Entry bottom:
+Name: Boost_USE_STATIC_LIBS
+Type: Bool
+Value: True
+
+Make the following entries are correctly set:
+1) OPENCL_LIBRARY -> your 64bit version of OpenCL.lib (example: C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v5.5/lib/x64/OpenCL.lib)
+2) _OPENCL_CPP_INCLUDE_DIRS  -> the OpenCLUtilityLibrary in the provided project (example: C:/FAST/OpenCLUtilityLibrary)
+3) ITK_INTEROP and ITK_ITEROP are optional and could be leave empty if not needed
+
+Then by pushing first 'Configuer' and next 'Generate' bottom of CMake, your solution file to the Visual Stadio will be ready (FAST.sln)
+
+Finally you can compile and run the project from inside Visual Stadio
+```
