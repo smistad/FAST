@@ -23,6 +23,24 @@ TEST_CASE("Create a 2D image on host", "[fast][image]") {
     CHECK(image->getDimensions() == 2);
 }
 
+TEST_CASE("Create a 3D image on host", "[fast][image]") {
+    Image::pointer image = Image::New();
+
+    unsigned int width = 256;
+    unsigned int height = 512;
+    unsigned int depth = 45;
+    unsigned int nrOfComponents = 2;
+    DataType type = TYPE_INT8;
+    image->create3DImage(width, height, depth, type, nrOfComponents, Host::New());
+
+    CHECK(image->getWidth() == width);
+    CHECK(image->getHeight() == height);
+    CHECK(image->getDepth() == depth);
+    CHECK(image->getNrOfComponents() == nrOfComponents);
+    CHECK(image->getDataType() == type);
+    CHECK(image->getDimensions() == 3);
+}
+
 TEST_CASE("Create a 2D image on an OpenCL device", "[fast][image]") {
     DeviceManager& deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
@@ -97,10 +115,8 @@ void* allocateRandomData(unsigned int nrOfVoxels, DataType type) {
         return (void*)data;
     }
         break;
-    default:
-        return NULL;
-        break;
     }
+    return NULL;
 }
 
 bool compareDataArrays(void* data1, void* data2, unsigned int nrOfVoxels, DataType type) {
@@ -140,59 +156,74 @@ TEST_CASE("Create a 2D image on an OpenCL device with data", "[fast][image]") {
     }
 }
 
-TEST_CASE("Create a 3D image on host", "[fast][image]") {
-    Image::pointer image = Image::New();
+TEST_CASE("Create a 3D image on an OpenCL device with data", "[fast][image]") {
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
 
-    unsigned int width = 256;
-    unsigned int height = 512;
-    unsigned int depth = 45;
-    unsigned int nrOfComponents = 2;
-    DataType type = TYPE_INT8;
-    image->create3DImage(width, height, depth, type, nrOfComponents, Host::New());
-
-    CHECK(image->getWidth() == width);
-    CHECK(image->getHeight() == height);
-    CHECK(image->getDepth() == depth);
-    CHECK(image->getNrOfComponents() == nrOfComponents);
-    CHECK(image->getDataType() == type);
-    CHECK(image->getDimensions() == 3);
+    unsigned int width = 40;
+    unsigned int height = 64;
+    unsigned int depth = 64;
+    // Test for having components 1 to 4 and for all data types
+    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+        for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
+            DataType type = (DataType)typeNr;
+            void* data = allocateRandomData(width*height*depth*nrOfComponents, type);
+            Image::pointer image = Image::New();
+            CHECK_NOTHROW(image->create3DImage(width, height, depth, type, nrOfComponents, device, data));
+            ImageAccess access = image->getImageAccess(ACCESS_READ);
+            CHECK(compareDataArrays(data, access.get(), width*height*depth*nrOfComponents, type) == true);
+            deleteArray(data, type);
+        }
+    }
 }
 
 TEST_CASE("Create a 2D image on host with input data", "[fast][image]") {
 
-    Image::pointer image = Image::New();
 
     unsigned int width = 256;
     unsigned int height = 512;
 
-    // Create a data array with random data
-    void* data = allocateRandomData(width*height, TYPE_UINT8);
+    // Test for having components 1 to 4 and for all data types
+    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+        for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
+            DataType type = (DataType)typeNr;
 
-    image->create2DImage(width, height, TYPE_UINT8, 1, Host::New(), data);
+            // Create a data array with random data
+            void* data = allocateRandomData(width*height*nrOfComponents, type);
 
-    ImageAccess access = image->getImageAccess(ACCESS_READ);
-    CHECK(compareDataArrays(data, access.get(), width*height, TYPE_UINT8) == true);
+            Image::pointer image = Image::New();
+            image->create2DImage(width, height, type, nrOfComponents, Host::New(), data);
 
-    deleteArray(data, TYPE_UINT8);
+            ImageAccess access = image->getImageAccess(ACCESS_READ);
+            CHECK(compareDataArrays(data, access.get(), width*height*nrOfComponents, type) == true);
+
+            deleteArray(data, type);
+        }
+    }
 }
 
 TEST_CASE("Create a 3D image on host with input data", "[fast][image]") {
-
-    Image::pointer image = Image::New();
-
-    unsigned int width = 256;
-    unsigned int height = 512;
+    unsigned int width = 64;
+    unsigned int height = 128;
     unsigned int depth = 45;
 
-    // Create a data array with random data
-    void* data = allocateRandomData(width*height*depth, TYPE_UINT8);
+    // Test for having components 1 to 4 and for all data types
+    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+        for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
+            DataType type = (DataType)typeNr;
 
-    image->create3DImage(width, height, depth, TYPE_UINT8, 1, Host::New(), data);
+            // Create a data array with random data
+            void* data = allocateRandomData(width*height*depth*nrOfComponents, type);
 
-    ImageAccess access = image->getImageAccess(ACCESS_READ);
-    CHECK(compareDataArrays(data, access.get(), width*height*depth, TYPE_UINT8) == true);
+            Image::pointer image = Image::New();
+            image->create3DImage(width, height, depth, type, nrOfComponents, Host::New(), data);
 
-    deleteArray(data, TYPE_UINT8);
+            ImageAccess access = image->getImageAccess(ACCESS_READ);
+            CHECK(compareDataArrays(data, access.get(), width*height*depth*nrOfComponents, type) == true);
+
+            deleteArray(data, type);
+        }
+    }
 }
 
 TEST_CASE("Create an image twice", "[fast][image]") {
