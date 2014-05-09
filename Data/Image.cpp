@@ -117,7 +117,7 @@ void Image::transferCLImageFromHost(OpenCLDevice::pointer device) {
         }
         deleteArray(tempData, mType);
     } else {
-         if(mDimensions == 2) {
+        if(mDimensions == 2) {
             device->getCommandQueue().enqueueWriteImage(*(cl::Image2D*)mCLImages[device],
             CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, 1), 0,
                     0, mHostData);
@@ -145,6 +145,10 @@ void Image::transferCLImageToHost(OpenCLDevice::pointer device) {
         mHostData = adaptImageDataToHostData(tempData,mWidth*mHeight*mDepth,mType,mComponents);
         deleteArray(tempData, mType);
     } else {
+        if(!mHostHasData) {
+            // Must allocate memory for host data
+            mHostData = allocateDataArray(mWidth*mHeight*mDepth,mType,mComponents);
+        }
         if(mDimensions == 2) {
             device->getCommandQueue().enqueueReadImage(*(cl::Image2D*)mCLImages[device],
             CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, 1), 0,
