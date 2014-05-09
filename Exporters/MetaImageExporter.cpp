@@ -15,7 +15,8 @@ void MetaImageExporter::setFilename(std::string filename) {
 }
 
 MetaImageExporter::MetaImageExporter() {
-
+    mFilename = "";
+    mIsModified = true;
 }
 
 template <class T>
@@ -32,6 +33,12 @@ void writeToRawFile(std::string filename, T * data, unsigned int numberOfElement
 }
 
 void MetaImageExporter::execute() {
+
+    if(!mInput.isValid())
+        throw Exception("No input was given to the MetaImageExporter");
+
+    if(mFilename == "")
+        throw Exception("No filename was given to the MetaImageExporter");
 
     Image::pointer input;
     if(mInput->isDynamicData()) {
