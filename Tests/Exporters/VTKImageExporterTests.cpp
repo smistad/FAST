@@ -52,7 +52,7 @@ TEST_CASE("Export an image from FAST to VTK and visualize", "[fast][VTK]") {
     CHECK(fastImage->getWidth() == size[0]-1);
     CHECK(fastImage->getHeight() == size[1]-1);
 
-    
+
     // VTK mess for getting the image on screen
     vtkSmartPointer<vtkImageMapper> imageMapper = vtkSmartPointer<vtkImageMapper>::New();
 #if VTK_MAJOR_VERSION <= 5

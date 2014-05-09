@@ -18,16 +18,16 @@ include_directories(
 if(VTK_INTEROP)
 set(EXECUTABLE_SOURCE_FILES
     ${EXECUTABLE_SOURCE_FILES} 
-    VTKInteropTests.cpp
     Importers/VTKImageImporterTests.cpp
+    Exporters/VTKImageExporterTests.cpp
 )
 endif()
 
 if(ITK_INTEROP)
 set(EXECUTABLE_SOURCE_FILES
     ${EXECUTABLE_SOURCE_FILES} 
-    ITKInteropTests.cpp
     Importers/ITKImageImporterTests.cpp
+    Exporters/ITKImageExporterTests.cpp
 )
 endif()
 
