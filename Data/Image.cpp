@@ -505,7 +505,7 @@ void Image::create3DImage(
         cl::Image3D* clImage;
         // Special treatment for images with 3 components because an OpenCL image can only have 1, 2 or 4 channels
         if(mComponents == 3) {
-            void * tempData = adaptDataToImage((void *)data, width*height, type, nrOfComponents);
+            void * tempData = adaptDataToImage((void *)data, width*height*depth, type, nrOfComponents);
             clImage = new cl::Image3D(
                 clDevice->getContext(),
                 CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
