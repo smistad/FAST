@@ -2,7 +2,6 @@
 
 #include "DeviceManager.hpp"
 #include "ImageImporter2D.hpp"
-#include "VTKImageImporter.hpp"
 #include "VTKImageExporter.hpp"
 
 #include <vtkVersion.h>
@@ -16,28 +15,6 @@
 #include <vtkActor2D.h>
 
 using namespace fast;
-
-TEST_CASE("Import an image from VTK to FAST", "[fast][VTK]") {
-    ImageImporter2D::pointer importer = ImageImporter2D::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "lena.jpg");
-    Image::pointer fastImage = importer->getOutput();
-
-    // VTK Export
-    vtkSmartPointer<VTKImageExporter> vtkExporter = VTKImageExporter::New();
-    vtkExporter->SetInput(fastImage);
-    vtkSmartPointer<vtkImageData> vtkImage = vtkExporter->GetOutput();
-    vtkExporter->Update();
-
-    // VTK Import example
-    VTKImageImporter::pointer vtkImporter = VTKImageImporter::New();
-    vtkImporter->setInput(vtkImage);
-    Image::pointer importedImage = vtkImporter->getOutput();
-    vtkImporter->update();
-
-    CHECK(fastImage->getWidth() == importedImage->getWidth());
-    CHECK(fastImage->getHeight() == importedImage->getHeight());
-}
-
 
 TEST_CASE("Export an image from FAST to VTK", "[fast][VTK]") {
     ImageImporter2D::pointer importer = ImageImporter2D::New();

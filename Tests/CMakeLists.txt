@@ -19,6 +19,7 @@ if(VTK_INTEROP)
 set(EXECUTABLE_SOURCE_FILES
     ${EXECUTABLE_SOURCE_FILES} 
     VTKInteropTests.cpp
+    Importers/VTKImageImporterTests.cpp
 )
 endif()
 
