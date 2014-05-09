@@ -48,6 +48,7 @@ ImageImporter2D::ImageImporter2D() {
     mOutput = Image::New();
     mOutput2 = mOutput;
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
+    mIsModified = true;
 }
 
 Image::pointer ImageImporter2D::getOutput() {

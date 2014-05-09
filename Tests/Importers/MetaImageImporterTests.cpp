@@ -1,5 +1,6 @@
 #include "catch.hpp"
 #include "MetaImageImporter.hpp"
+#include "DeviceManager.hpp"
 
 using namespace fast;
 
@@ -30,8 +31,12 @@ TEST_CASE("Import MetaImage file to host", "[fast][MetaImageImporter]") {
 }
 
 TEST_CASE("Import MetaImage file to OpenCL device", "[fast][MetaImageImporter]") {
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename("/home/smistad/Patients/2013-08-22_10-36_Lab_4DTrack.cx3/US_Acq/US-Acq_01_20130822T111033/US-Acq_01_20130822T111033_ScanConverted_0.mhd");
+    importer->setDevice(device);
     Image::pointer image = importer->getOutput();
     image->update();
 
