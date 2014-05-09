@@ -25,4 +25,7 @@ TEST_CASE("Import an image from VTK to FAST", "[fast][VTK]") {
 
     CHECK(fastImage->getWidth() == importedImage->getWidth());
     CHECK(fastImage->getHeight() == importedImage->getHeight());
+    CHECK(fastImage->getDepth() == 1);
+    CHECK(fastImage->getDimensions() == 2);
+    CHECK(fastImage->getDataType() == TYPE_FLOAT);
 }
