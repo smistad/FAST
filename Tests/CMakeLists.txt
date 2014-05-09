@@ -9,9 +9,7 @@ set(EXECUTABLE_SOURCE_FILES
     Data/ImageTests.cpp
     Importers/ImageImporterTests.cpp
     Importers/MetaImageImporterTests.cpp
-    Exporters/ITKImageExporterTests.cpp
     Exporters/MetaImageExporterTests.cpp
-    Exporters/VTKImageExporterTests.cpp
 )
 
 include_directories(
