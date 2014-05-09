@@ -1,12 +1,12 @@
 #include "catch.hpp"
 #include "ITKImageExporter.hpp"
-#include "ImageImporter2D.hpp"
+#include "ImageImporter.hpp"
 
 using namespace fast;
 
 TEST_CASE("Export image to ITK from FAST", "[fast][ITK]") {
 
-    ImageImporter2D::pointer importer = ImageImporter2D::New();
+    ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "lena.jpg");
     Image::pointer fastImage = importer->getOutput();
 

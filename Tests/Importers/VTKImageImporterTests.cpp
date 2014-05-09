@@ -1,13 +1,13 @@
 #include "catch.hpp"
 #include "VTKImageImporter.hpp"
 #include "VTKImageExporter.hpp"
-#include "ImageImporter2D.hpp"
+#include "ImageImporter.hpp"
 
 using namespace fast;
 
 // TODO rewrite this test so that it doesn't use the vtk exporter
 TEST_CASE("Import an image from VTK to FAST", "[fast][VTK]") {
-    ImageImporter2D::pointer importer = ImageImporter2D::New();
+    ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "lena.jpg");
     Image::pointer fastImage = importer->getOutput();
 

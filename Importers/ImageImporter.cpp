@@ -1,13 +1,13 @@
-#include "ImageImporter2D.hpp"
+#include "ImageImporter.hpp"
 #include <QImage>
 #include "DataTypes.hpp"
 #include "DeviceManager.hpp"
 #include "Exception.hpp"
 using namespace fast;
 
-void ImageImporter2D::execute() {
+void ImageImporter::execute() {
     if(mFilename == "")
-        throw Exception("No filename was supplied to the ImageImporter2D");
+        throw Exception("No filename was supplied to the ImageImporter");
 
     // Load image from disk using Qt
     QImage image;
@@ -44,14 +44,14 @@ void ImageImporter2D::execute() {
     mOutput2.lock()->updateModifiedTimestamp();
 }
 
-ImageImporter2D::ImageImporter2D() {
+ImageImporter::ImageImporter() {
     mOutput = Image::New();
     mOutput2 = mOutput;
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
     mIsModified = true;
 }
 
-Image::pointer ImageImporter2D::getOutput() {
+Image::pointer ImageImporter::getOutput() {
     if(mOutput.isValid()) {
         mOutput->setParent(mPtr.lock());
 
@@ -64,12 +64,12 @@ Image::pointer ImageImporter2D::getOutput() {
     }
 }
 
-void ImageImporter2D::setFilename(std::string filename) {
+void ImageImporter::setFilename(std::string filename) {
     mFilename = filename;
     mIsModified = true;
 }
 
-void ImageImporter2D::setDevice(ExecutionDevice::pointer device) {
+void ImageImporter::setDevice(ExecutionDevice::pointer device) {
     mDevice = device;
     mIsModified = true;
 }

@@ -1,5 +1,5 @@
-#ifndef IMAGEEXPORTER2D_HPP_
-#define IMAGEEXPORTER2D_HPP_
+#ifndef ImageExporter_HPP_
+#define ImageExporter_HPP_
 
 #include "ProcessObject.hpp"
 #include "Image.hpp"
@@ -8,14 +8,14 @@
 
 namespace fast {
 
-class ImageExporter2D : public ProcessObject {
-    FAST_OBJECT(ImageExporter2D)
+class ImageExporter : public ProcessObject {
+    FAST_OBJECT(ImageExporter)
     public:
         void setInput(Image::pointer image);
         void setInput(DynamicImage::pointer image);
         void setFilename(std::string filename);
     private:
-        ImageExporter2D();
+        ImageExporter();
         void execute();
 
         std::string mFilename;
@@ -30,4 +30,4 @@ class ImageExporter2D : public ProcessObject {
 
 
 
-#endif /* IMAGEEXPORTER2D_HPP_ */
+#endif /* ImageExporter_HPP_ */

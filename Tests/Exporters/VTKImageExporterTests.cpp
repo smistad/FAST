@@ -1,7 +1,7 @@
 #include "catch.hpp"
 
 #include "DeviceManager.hpp"
-#include "ImageImporter2D.hpp"
+#include "ImageImporter.hpp"
 #include "VTKImageExporter.hpp"
 
 #include <vtkVersion.h>
@@ -17,7 +17,7 @@
 using namespace fast;
 
 TEST_CASE("Export an image from FAST to VTK", "[fast][VTK]") {
-    ImageImporter2D::pointer importer = ImageImporter2D::New();
+    ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "lena.jpg");
     Image::pointer fastImage = importer->getOutput();
 
@@ -37,7 +37,7 @@ TEST_CASE("Export an image from FAST to VTK", "[fast][VTK]") {
 
 TEST_CASE("Export an image from FAST to VTK and visualize", "[fast][VTK]") {
 
-    ImageImporter2D::pointer importer = ImageImporter2D::New();
+    ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "lena.jpg");
     Image::pointer fastImage = importer->getOutput();
 

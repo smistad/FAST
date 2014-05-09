@@ -1,4 +1,4 @@
-#include "ImageExporter2D.hpp"
+#include "ImageExporter.hpp"
 #include <QImage>
 #include "Exception.hpp"
 using namespace fast;
@@ -7,35 +7,35 @@ double round(double number) {
 	return number < 0.0 ? ceil(number-0.5) : floor(number + 0.5);
 }
 
-void ImageExporter2D::setInput(Image::pointer image) {
+void ImageExporter::setInput(Image::pointer image) {
     mStaticInput = image;
     addParent(mStaticInput);
     mIsModified = true;
 }
 
-void ImageExporter2D::setInput(DynamicImage::pointer image) {
+void ImageExporter::setInput(DynamicImage::pointer image) {
     mDynamicInput = image;
     addParent(mDynamicInput);
     mIsModified = true;
 }
 
-void ImageExporter2D::setFilename(std::string filename) {
+void ImageExporter::setFilename(std::string filename) {
     mFilename = filename;
     mIsModified = true;
 }
 
-ImageExporter2D::ImageExporter2D() {
+ImageExporter::ImageExporter() {
     mFilename = "";
     mIsModified = true;
 }
 
-void ImageExporter2D::execute() {
+void ImageExporter::execute() {
     std::cout << "Trying to save image!!!!!!!!" << std::endl;
     if(!mStaticInput.isValid())
-        throw Exception("No input image given to ImageExporter2D");
+        throw Exception("No input image given to ImageExporter");
 
     if(mFilename == "")
-        throw Exception("No filename given to ImageExporter2D");
+        throw Exception("No filename given to ImageExporter");
 
     Image::pointer input = mStaticInput;
     input->update();

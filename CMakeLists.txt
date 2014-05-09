@@ -45,11 +45,11 @@ set(SOURCES
     Streamers/MetaImageStreamer.hpp
     Importers/MetaImageImporter.cpp
     Importers/MetaImageImporter.hpp
-    Importers/ImageImporter2D.cpp
-    Importers/ImageImporter2D.hpp
+    Importers/ImageImporter.cpp
+    Importers/ImageImporter.hpp
     Importers/Importer.hpp
-    Exporters/ImageExporter2D.cpp
-    Exporters/ImageExporter2D.hpp
+    Exporters/ImageExporter.cpp
+    Exporters/ImageExporter.hpp
     Exporters/MetaImageExporter.cpp
     Exporters/MetaImageExporter.hpp
     Visualization/SimpleWindow.cpp

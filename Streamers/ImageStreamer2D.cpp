@@ -1,5 +1,5 @@
 #include "ImageStreamer2D.hpp"
-#include "ImageImporter2D.hpp"
+#include "ImageImporter.hpp"
 #include "DeviceManager.hpp"
 #include "Exception.hpp"
 using namespace fast;
@@ -79,7 +79,7 @@ void ImageStreamer2D::producerStream() {
                 intToString(i));
         std::cout << filename << std::endl;
         try {
-            ImageImporter2D::pointer importer = ImageImporter2D::New();
+            ImageImporter::pointer importer = ImageImporter::New();
             importer->setFilename(filename);
             importer->setDevice(mDevice);
             Image::pointer image = importer->getOutput();

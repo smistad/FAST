@@ -1,5 +1,5 @@
-#ifndef IMAGEIMPORTER2D_HPP_
-#define IMAGEIMPORTER2D_HPP_
+#ifndef ImageImporter_HPP_
+#define ImageImporter_HPP_
 
 #include "Importer.hpp"
 #include <string>
@@ -8,15 +8,15 @@
 
 namespace fast {
 
-class ImageImporter2D : public Importer {
-    FAST_OBJECT(ImageImporter2D)
+class ImageImporter : public Importer {
+    FAST_OBJECT(ImageImporter)
     public:
         Image::pointer getOutput();
         void setFilename(std::string filename);
         void setDevice(ExecutionDevice::pointer device);
-        ~ImageImporter2D() {};
+        ~ImageImporter() {};
     private:
-        ImageImporter2D();
+        ImageImporter();
         Image::pointer mOutput;
         WeakPointer<Image> mOutput2;
         std::string mFilename;
@@ -30,4 +30,4 @@ class ImageImporter2D : public Importer {
 
 
 
-#endif /* IMAGEIMPORTER2D_HPP_ */
+#endif /* ImageImporter_HPP_ */
