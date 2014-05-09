@@ -398,6 +398,61 @@ TEST_CASE("Create a 3D image on host and request access to OpenCL Image", "[fast
     }
 }
 
+TEST_CASE("Create a 2D image on a CL device and request access to OpenCL buffer", "[fast][image]") {
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+
+    unsigned int width = 256;
+    unsigned int height = 512;
+
+    // Test for having components 1 to 4 and for all data types
+    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+        for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
+            DataType type = (DataType)typeNr;
+
+            // Create a data array with random data
+            void* data = allocateRandomData(width*height*nrOfComponents, type);
+
+            Image::pointer image = Image::New();
+            image->create2DImage(width, height, type, nrOfComponents, device, data);
+
+            OpenCLBufferAccess access = image->getOpenCLBufferAccess(ACCESS_READ, device);
+            cl::Buffer* buffer = access.get();
+            CHECK(compareBufferWithDataArray(*buffer, device, data, width*height*nrOfComponents, type) == true);
+
+            deleteArray(data, type);
+        }
+    }
+}
+
+TEST_CASE("Create a 3D image on CL device and request access to OpenCL buffer", "[fast][image]") {
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+
+    unsigned int width = 40;
+    unsigned int height = 64;
+    unsigned int depth = 64;
+
+    // Test for having components 1 to 4 and for all data types
+    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+        for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
+            DataType type = (DataType)typeNr;
+
+            // Create a data array with random data
+            void* data = allocateRandomData(width*height*depth*nrOfComponents, type);
+
+            Image::pointer image = Image::New();
+            image->create3DImage(width, height, depth, type, nrOfComponents, device, data);
+
+            OpenCLBufferAccess access = image->getOpenCLBufferAccess(ACCESS_READ, device);
+            cl::Buffer* buffer = access.get();
+            CHECK(compareBufferWithDataArray(*buffer, device, data, width*height*depth*nrOfComponents, type) == true);
+
+            deleteArray(data, type);
+        }
+    }
+}
+
 TEST_CASE("Create an image twice", "[fast][image]") {
     Image::pointer image = Image::New();
 
