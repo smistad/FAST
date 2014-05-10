@@ -511,11 +511,6 @@ TEST_CASE("Create a 2D image and change host data", "[fast][image]") {
             // Create a data array with random data
             void* data = allocateRandomData(width*height*nrOfComponents, type);
 
-            /*
-            std::cout << "new run: " << std::endl;
-            std::cout << "components: " << nrOfComponents << std::endl;
-            std::cout << "type: " << typeNr << std::endl;
-            */
             Image::pointer image = Image::New();
             image->create2DImage(width, height, type, nrOfComponents, device, data);
             deleteArray(data, type);
@@ -612,11 +607,6 @@ TEST_CASE("Create a 2D image and change buffer data", "[fast][image]") {
             // Create a data array with random data
             void* data = allocateRandomData(width*height*nrOfComponents, type);
 
-            /*
-            std::cout << "new run: " << std::endl;
-            std::cout << "components: " << nrOfComponents << std::endl;
-            std::cout << "type: " << typeNr << std::endl;
-            */
             Image::pointer image = Image::New();
             image->create2DImage(width, height, type, nrOfComponents, device, data);
 
@@ -694,11 +684,7 @@ TEST_CASE("Create a 3D image and change buffer data", "[fast][image]") {
             // Create a data array with random data
             void* data = allocateRandomData(width*height*depth*nrOfComponents, type);
 
-            /*
-            std::cout << "new run: " << std::endl;
-            std::cout << "components: " << nrOfComponents << std::endl;
-            std::cout << "type: " << typeNr << std::endl;
-            */
+
             Image::pointer image = Image::New();
             image->create3DImage(width, height, depth, type, nrOfComponents, device, data);
 
@@ -755,6 +741,143 @@ TEST_CASE("Create a 3D image and change buffer data", "[fast][image]") {
             CHECK(compareImage3DWithDataArray(*clImage, device, data, width, height, depth, nrOfComponents, type) == true);
             deleteArray(data, type);
 
+        }
+    }
+}
+
+TEST_CASE("Create a 2D image and change image data", "[fast][image]") {
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+
+    unsigned int width = 256;
+    unsigned int height = 512;
+
+
+    // Test for having components 1 to 4 and for all data types
+    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+        for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
+            DataType type = (DataType)typeNr;
+
+            // Create a data array with random data
+            void* data = allocateRandomData(width*height*nrOfComponents, type);
+
+            Image::pointer image = Image::New();
+            image->create2DImage(width, height, type, nrOfComponents, device, data);
+
+            // Change image data
+            OpenCLImageAccess2D access3 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
+            cl::Image2D* clImage = access3.get();
+
+            // Create kernel for changing image data
+            int i;
+            if(type == TYPE_FLOAT) {
+                i = device->createProgramFromString("__kernel void changeData(__write_only image2d_t image) {"
+                        "int2 pos = {get_global_id(0), get_global_id(1)};"
+                        "write_imagef(image, pos, (float4)(1,1,1,1));"
+                        "}");
+            } else {
+                i = device->createProgramFromString("__kernel void changeData(__write_only image2d_t image) {"
+                        "int2 pos = {get_global_id(0), get_global_id(1)};"
+                        "write_imagei(image, pos, (int4)(1,1,1,1));"
+                        "}");
+            }
+            cl::Kernel kernel(device->getProgram(i), "changeData");
+            kernel.setArg(0, *clImage);
+            device->getCommandQueue().enqueueNDRangeKernel(
+                    kernel,
+                    cl::NullRange,
+                    cl::NDRange(width, height),
+                    cl::NullRange
+            );
+            access3.release();
+
+            switch(type) {
+                fastSwitchTypeMacro(
+                    FAST_TYPE* changedData2 = (FAST_TYPE*)data;
+                    for(int i = 0; i < width*height*nrOfComponents; i++) {
+                        changedData2[i] = 1;
+                    }
+                )
+            }
+
+            ImageAccess access2 = image->getImageAccess(ACCESS_READ);
+            CHECK(compareDataArrays(access2.get(), data, width*height*nrOfComponents, type) == true);
+
+            OpenCLBufferAccess access = image->getOpenCLBufferAccess(ACCESS_READ, device);
+            cl::Buffer* buffer = access.get();
+            CHECK(compareBufferWithDataArray(*buffer, device, data, width*height*nrOfComponents, type) == true);
+            deleteArray(data, type);
+        }
+    }
+}
+
+TEST_CASE("Create a 3D image and change image data", "[fast][image]") {
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+
+    // check if device has 3D write capabilities, if not abort test
+    if(device->getDevice().getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") == std::string::npos) {
+        return;
+    }
+
+    unsigned int width = 32;
+    unsigned int height = 32;
+    unsigned int depth = 32;
+
+    // Test for having components 1 to 4 and for all data types
+    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+        for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
+            DataType type = (DataType)typeNr;
+
+            // Create a data array with random data
+            void* data = allocateRandomData(width*height*depth*nrOfComponents, type);
+
+            Image::pointer image = Image::New();
+            image->create3DImage(width, height, depth, type, nrOfComponents, device, data);
+
+            // Change image data
+            OpenCLImageAccess3D access3 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
+            cl::Image3D* clImage = access3.get();
+
+            // Create kernel for changing image data
+            int i;
+            if(type == TYPE_FLOAT) {
+                i = device->createProgramFromString("__kernel void changeData(__write_only image3d_t image) {"
+                        "int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};"
+                        "write_imagef(image, pos, (float4)(1,1,1,1));"
+                        "}");
+            } else {
+                i = device->createProgramFromString("__kernel void changeData(__write_only image3d_t image) {"
+                        "int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};"
+                        "write_imagei(image, pos, (int4)(1,1,1,1));"
+                        "}");
+            }
+            cl::Kernel kernel(device->getProgram(i), "changeData");
+            kernel.setArg(0, *clImage);
+            device->getCommandQueue().enqueueNDRangeKernel(
+                    kernel,
+                    cl::NullRange,
+                    cl::NDRange(width, height, depth),
+                    cl::NullRange
+            );
+            access3.release();
+
+            switch(type) {
+                fastSwitchTypeMacro(
+                    FAST_TYPE* changedData2 = (FAST_TYPE*)data;
+                    for(int i = 0; i < width*height*depth*nrOfComponents; i++) {
+                        changedData2[i] = 1;
+                    }
+                )
+            }
+
+            ImageAccess access2 = image->getImageAccess(ACCESS_READ);
+            CHECK(compareDataArrays(access2.get(), data, width*height*depth*nrOfComponents, type) == true);
+
+            OpenCLBufferAccess access = image->getOpenCLBufferAccess(ACCESS_READ, device);
+            cl::Buffer* buffer = access.get();
+            CHECK(compareBufferWithDataArray(*buffer, device, data, width*height*depth*nrOfComponents, type) == true);
+            deleteArray(data, type);
         }
     }
 }
