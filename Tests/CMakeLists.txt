@@ -9,7 +9,6 @@ set(EXECUTABLE_SOURCE_FILES
     Data/ImageTests.cpp
     Importers/ImageImporterTests.cpp
     Importers/MetaImageImporterTests.cpp
-    Exporters/ImageExporterTests.cpp
     Exporters/MetaImageExporterTests.cpp
 )
 
