@@ -525,17 +525,14 @@ TEST_CASE("Create a 2D image and change host data", "[fast][image]") {
             void* changedData = access2.get();
 
             // Now change host data
-            /*
             switch(type) {
                 fastSwitchTypeMacro(
                     FAST_TYPE* changedData2 = (FAST_TYPE*)changedData;
                     for(int i = 0; i < width*height*nrOfComponents; i++) {
-                        //std::cout << changedData2[i] << std::endl;
-                        //changedData2[i] = changedData2[i]*2;
+                        changedData2[i] = changedData2[i]*2;
                     }
                 )
             }
-            */
             access2.release();
 
             OpenCLBufferAccess access = image->getOpenCLBufferAccess(ACCESS_READ, device);
@@ -546,6 +543,59 @@ TEST_CASE("Create a 2D image and change host data", "[fast][image]") {
             OpenCLImageAccess2D access3 = image->getOpenCLImageAccess2D(ACCESS_READ, device);
             cl::Image2D* clImage = access3.get();
             CHECK(compareImage2DWithDataArray(*clImage, device, changedData, width, height, nrOfComponents, type) == true);
+
+        }
+    }
+}
+
+TEST_CASE("Create a 3D image and change host data", "[fast][image]") {
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+
+    unsigned int width = 40;
+    unsigned int height = 40;
+    unsigned int depth = 40;
+
+    // Test for having components 1 to 4 and for all data types
+    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+        for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
+            DataType type = (DataType)typeNr;
+
+            // Create a data array with random data
+            void* data = allocateRandomData(width*height*depth*nrOfComponents, type);
+
+            /*
+            std::cout << "new run: " << std::endl;
+            std::cout << "components: " << nrOfComponents << std::endl;
+            std::cout << "type: " << typeNr << std::endl;
+            */
+            Image::pointer image = Image::New();
+            image->create3DImage(width, height, depth, type, nrOfComponents, device, data);
+            deleteArray(data, type);
+
+            // Put the data as buffer and host data as well
+            ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE);
+            void* changedData = access2.get();
+
+            // Now change host data
+            switch(type) {
+                fastSwitchTypeMacro(
+                    FAST_TYPE* changedData2 = (FAST_TYPE*)changedData;
+                    for(int i = 0; i < width*height*depth*nrOfComponents; i++) {
+                        changedData2[i] = changedData2[i]*2;
+                    }
+                )
+            }
+            access2.release();
+
+            OpenCLBufferAccess access = image->getOpenCLBufferAccess(ACCESS_READ, device);
+            cl::Buffer* buffer = access.get();
+            CHECK(compareBufferWithDataArray(*buffer, device, changedData, width*height*depth*nrOfComponents, type) == true);
+            access.release();
+
+            OpenCLImageAccess3D access3 = image->getOpenCLImageAccess3D(ACCESS_READ, device);
+            cl::Image3D* clImage = access3.get();
+            CHECK(compareImage3DWithDataArray(*clImage, device, changedData, width, height, depth, nrOfComponents, type) == true);
 
         }
     }
