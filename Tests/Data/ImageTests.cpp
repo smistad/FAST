@@ -128,6 +128,11 @@ bool compareDataArrays(void* data1, void* data2, unsigned int nrOfVoxels, DataTy
         FAST_TYPE* data2c = (FAST_TYPE*)data2;
         for(unsigned int i = 0; i < nrOfVoxels; i++) {
             if(data1c[i] != data2c[i]) {
+                /*
+                std::cout << i << std::endl;
+                std::cout << data1c[i] << std::endl;
+                std::cout << data2c[i] << std::endl;
+                */
                 success = false;
                 break;
             }
@@ -152,6 +157,18 @@ bool compareBufferWithDataArray(cl::Buffer buffer, OpenCLDevice::pointer device,
     return compareDataArrays(bufferData, data, nrOfVoxels, type);
 }
 
+// Remove padding from a 3 channel data array created by padData
+template <class T>
+void * removePadding(T * data, unsigned int size) {
+     T * newData = new T[size*3];
+    for(unsigned int i = 0; i < size; i++) {
+        newData[i*3] = data[i*4];
+        newData[i*3+1] = data[i*4+1];
+        newData[i*3+2] = data[i*4+2];
+    }
+    return (void *)newData;
+}
+
 bool compareImage2DWithDataArray(
         cl::Image2D image,
         OpenCLDevice::pointer device,
@@ -162,7 +179,12 @@ bool compareImage2DWithDataArray(
         DataType type) {
     // First, transfer data from image
     void* bufferData;
-    unsigned int nrOfVoxels = width*height*nrOfComponents;
+    unsigned int nrOfVoxels = width*height;
+    if(nrOfComponents == 3) {
+        nrOfVoxels *= 4;
+    } else {
+        nrOfVoxels *= nrOfComponents;
+    }
     switch(type) {
         fastSwitchTypeMacro(
             bufferData = new FAST_TYPE[nrOfVoxels];
@@ -170,7 +192,18 @@ bool compareImage2DWithDataArray(
     }
     device->getCommandQueue().enqueueReadImage(image, CL_TRUE, oul::createOrigoRegion(), oul::createRegion(width, height, 1), 0, 0, bufferData);
 
-    return compareDataArrays(bufferData, data, nrOfVoxels, type);
+    if(nrOfComponents == 3) {
+        // Since OpenCL images doesn't support 3 channels, 4 channel image is used and we must remove the padding
+        switch(type) {
+            fastSwitchTypeMacro(
+                void * newbufferData = removePadding((FAST_TYPE*)bufferData, width*height);
+                deleteArray(bufferData, type);
+                bufferData = newbufferData;
+            );
+        }
+    }
+
+    return compareDataArrays(bufferData, data, width*height*nrOfComponents, type);
 }
 
 bool compareImage3DWithDataArray(
@@ -184,7 +217,12 @@ bool compareImage3DWithDataArray(
         DataType type) {
     // First, transfer data from image
     void* bufferData;
-    unsigned int nrOfVoxels = width*height*depth*nrOfComponents;
+    unsigned int nrOfVoxels = width*height*depth;
+    if(nrOfComponents == 3) {
+        nrOfVoxels *= 4;
+    } else {
+        nrOfVoxels *= nrOfComponents;
+    }
     switch(type) {
         fastSwitchTypeMacro(
             bufferData = new FAST_TYPE[nrOfVoxels];
@@ -192,7 +230,18 @@ bool compareImage3DWithDataArray(
     }
     device->getCommandQueue().enqueueReadImage(image, CL_TRUE, oul::createOrigoRegion(), oul::createRegion(width, height, depth), 0, 0, bufferData);
 
-    return compareDataArrays(bufferData, data, nrOfVoxels, type);
+    if(nrOfComponents == 3) {
+        // Since OpenCL images doesn't support 3 channels, 4 channel image is used and we must remove the padding
+        switch(type) {
+            fastSwitchTypeMacro(
+                void * newbufferData = removePadding((FAST_TYPE*)bufferData, width*height*depth);
+                deleteArray(bufferData, type);
+                bufferData = newbufferData;
+            );
+        }
+    }
+
+    return compareDataArrays(bufferData, data, width*height*depth*nrOfComponents, type);
 }
 
 TEST_CASE("Create a 2D image on an OpenCL device with data", "[fast][image]") {
@@ -346,9 +395,6 @@ TEST_CASE("Create a 2D image on host and request access to OpenCL Image", "[fast
 
     // Test for having components 1 to 4 and for all data types
     for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
-        // Skip 3 components because an OpenCL image can't have 3 channels
-        if(nrOfComponents == 3)
-            continue;
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
 
@@ -377,9 +423,6 @@ TEST_CASE("Create a 3D image on host and request access to OpenCL Image", "[fast
 
     // Test for having components 1 to 4 and for all data types
     for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
-        // Skip 3 components because an OpenCL image can't have 3 channels
-        if(nrOfComponents == 3)
-            continue;
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
 
@@ -449,6 +492,61 @@ TEST_CASE("Create a 3D image on CL device and request access to OpenCL buffer", 
             CHECK(compareBufferWithDataArray(*buffer, device, data, width*height*depth*nrOfComponents, type) == true);
 
             deleteArray(data, type);
+        }
+    }
+}
+
+TEST_CASE("Create a 2D image and change host data", "[fast][image]") {
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+
+    unsigned int width = 256;
+    unsigned int height = 512;
+
+    // Test for having components 1 to 4 and for all data types
+    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+        for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
+            DataType type = (DataType)typeNr;
+
+            // Create a data array with random data
+            void* data = allocateRandomData(width*height*nrOfComponents, type);
+
+            /*
+            std::cout << "new run: " << std::endl;
+            std::cout << "components: " << nrOfComponents << std::endl;
+            std::cout << "type: " << typeNr << std::endl;
+            */
+            Image::pointer image = Image::New();
+            image->create2DImage(width, height, type, nrOfComponents, device, data);
+            deleteArray(data, type);
+
+            // Put the data as buffer and host data as well
+            ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE);
+            void* changedData = access2.get();
+
+            // Now change host data
+            /*
+            switch(type) {
+                fastSwitchTypeMacro(
+                    FAST_TYPE* changedData2 = (FAST_TYPE*)changedData;
+                    for(int i = 0; i < width*height*nrOfComponents; i++) {
+                        //std::cout << changedData2[i] << std::endl;
+                        //changedData2[i] = changedData2[i]*2;
+                    }
+                )
+            }
+            */
+            access2.release();
+
+            OpenCLBufferAccess access = image->getOpenCLBufferAccess(ACCESS_READ, device);
+            cl::Buffer* buffer = access.get();
+            CHECK(compareBufferWithDataArray(*buffer, device, changedData, width*height*nrOfComponents, type) == true);
+            access.release();
+
+            OpenCLImageAccess2D access3 = image->getOpenCLImageAccess2D(ACCESS_READ, device);
+            cl::Image2D* clImage = access3.get();
+            CHECK(compareImage2DWithDataArray(*clImage, device, changedData, width, height, nrOfComponents, type) == true);
+
         }
     }
 }
