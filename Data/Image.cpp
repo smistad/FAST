@@ -181,7 +181,6 @@ void Image::updateOpenCLImageData(OpenCLDevice::pointer device) {
 
         mCLImages[device] = newImage;
         mCLImagesIsUpToDate[device] = true;
-        mCLImagesAccess[device] = true;
     }
 
     // Find which data is up to date
@@ -224,6 +223,8 @@ void Image::updateOpenCLImageData(OpenCLDevice::pointer device) {
 OpenCLBufferAccess Image::getOpenCLBufferAccess(
         accessType type,
         OpenCLDevice::pointer device) {
+
+    updateOpenCLBufferData(device);
     // Check for write access
     if (type == ACCESS_READ_WRITE) {
         if (isAnyDataBeingAccessed()) {
@@ -233,9 +234,7 @@ OpenCLBufferAccess Image::getOpenCLBufferAccess(
         setAllDataToOutOfDate();
     }
     mCLBuffersAccess[device] = true;
-
-    updateOpenCLBufferData(device);
-
+    mCLBuffersIsUpToDate[device] = true;
 
     // Now it is guaranteed that the data is on the device and that it is up to date
 
@@ -267,7 +266,6 @@ void Image::updateOpenCLBufferData(OpenCLDevice::pointer device) {
 
         mCLBuffers[device] = newBuffer;
         mCLBuffersIsUpToDate[device] = false;
-        mCLBuffersAccess[device] = true;
     }
 
 
@@ -387,7 +385,6 @@ OpenCLImageAccess2D Image::getOpenCLImageAccess2D(
 
     // Check for write access
 
-    mCLImagesAccess[device] = true;
     updateOpenCLImageData(device);
     if (type == ACCESS_READ_WRITE) {
         if (isAnyDataBeingAccessed()) {
@@ -396,6 +393,7 @@ OpenCLImageAccess2D Image::getOpenCLImageAccess2D(
         }
         setAllDataToOutOfDate();
     }
+    mCLImagesAccess[device] = true;
     mCLImagesIsUpToDate[device] = true;
 
     // Now it is guaranteed that the data is on the device and that it is up to date
