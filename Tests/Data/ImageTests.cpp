@@ -564,11 +564,6 @@ TEST_CASE("Create a 3D image and change host data", "[fast][image]") {
             // Create a data array with random data
             void* data = allocateRandomData(width*height*depth*nrOfComponents, type);
 
-            /*
-            std::cout << "new run: " << std::endl;
-            std::cout << "components: " << nrOfComponents << std::endl;
-            std::cout << "type: " << typeNr << std::endl;
-            */
             Image::pointer image = Image::New();
             image->create3DImage(width, height, depth, type, nrOfComponents, device, data);
             deleteArray(data, type);
@@ -596,6 +591,87 @@ TEST_CASE("Create a 3D image and change host data", "[fast][image]") {
             OpenCLImageAccess3D access3 = image->getOpenCLImageAccess3D(ACCESS_READ, device);
             cl::Image3D* clImage = access3.get();
             CHECK(compareImage3DWithDataArray(*clImage, device, changedData, width, height, depth, nrOfComponents, type) == true);
+
+        }
+    }
+}
+
+TEST_CASE("Create a 2D image and change buffer data", "[fast][image]") {
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+
+    unsigned int width = 256;
+    unsigned int height = 512;
+
+    // Create kernel for changing buffer data
+
+    // Test for having components 1 to 4 and for all data types
+    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+        for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
+            DataType type = (DataType)typeNr;
+
+            // Create a data array with random data
+            void* data = allocateRandomData(width*height*nrOfComponents, type);
+
+            /*
+            std::cout << "new run: " << std::endl;
+            std::cout << "components: " << nrOfComponents << std::endl;
+            std::cout << "type: " << typeNr << std::endl;
+            */
+            Image::pointer image = Image::New();
+            image->create2DImage(width, height, type, nrOfComponents, device, data);
+
+            // Change buffer data
+            OpenCLBufferAccess access = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+            cl::Buffer* buffer = access.get();
+
+            std::string typeDef;
+            switch(type) {
+            case TYPE_FLOAT:
+                typeDef = "-D FAST_TYPE=float";
+                break;
+            case TYPE_INT8:
+                typeDef = "-D FAST_TYPE=char";
+                break;
+            case TYPE_UINT8:
+                typeDef = "-D FAST_TYPE=uchar";
+                break;
+            case TYPE_INT16:
+                typeDef = "-D FAST_TYPE=short";
+                break;
+            case TYPE_UINT16:
+                typeDef = "-D FAST_TYPE=ushort";
+                break;
+            }
+            int i = device->createProgramFromString("__kernel void changeData(__global FAST_TYPE* buffer) {"
+                    "buffer[get_global_id(0)] = buffer[get_global_id(0)]*2; "
+                    "}", typeDef);
+            cl::Kernel kernel(device->getProgram(i), "changeData");
+            kernel.setArg(0, *buffer);
+            device->getCommandQueue().enqueueNDRangeKernel(
+                    kernel,
+                    cl::NullRange,
+                    cl::NDRange(width*height*nrOfComponents),
+                    cl::NullRange
+            );
+            access.release();
+
+            switch(type) {
+                fastSwitchTypeMacro(
+                    FAST_TYPE* changedData2 = (FAST_TYPE*)data;
+                    for(int i = 0; i < width*height*nrOfComponents; i++) {
+                        changedData2[i] = changedData2[i]*2;
+                    }
+                )
+            }
+
+            ImageAccess access2 = image->getImageAccess(ACCESS_READ);
+            CHECK(compareDataArrays(access2.get(), data, width*height*nrOfComponents, type) == true);
+
+            OpenCLImageAccess2D access3 = image->getOpenCLImageAccess2D(ACCESS_READ, device);
+            cl::Image2D* clImage = access3.get();
+            CHECK(compareImage2DWithDataArray(*clImage, device, data, width, height, nrOfComponents, type) == true);
+            deleteArray(data, type);
 
         }
     }
