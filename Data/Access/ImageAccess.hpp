@@ -7,6 +7,7 @@ class ImageAccess {
     public:
         ImageAccess(void * data, bool * accessFlag);
         void * get();
+        void release();
         ~ImageAccess();
     private:
         void * mData;

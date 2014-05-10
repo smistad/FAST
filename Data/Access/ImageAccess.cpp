@@ -7,6 +7,10 @@ ImageAccess::ImageAccess(void* data, bool* accessFlag) {
     mAccessFlag = accessFlag;
 }
 
+void ImageAccess::release() {
+    *mAccessFlag = false;
+}
+
 ImageAccess::~ImageAccess() {
     *mAccessFlag = false;
 }

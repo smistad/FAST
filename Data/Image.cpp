@@ -231,10 +231,11 @@ OpenCLBufferAccess Image::getOpenCLBufferAccess(
                     "Trying to get write access to an object that is already being accessed");
         }
         setAllDataToOutOfDate();
-        mCLBuffersIsUpToDate[device] = true;
     }
     mCLBuffersAccess[device] = true;
+
     updateOpenCLBufferData(device);
+
 
     // Now it is guaranteed that the data is on the device and that it is up to date
 
@@ -258,16 +259,17 @@ void Image::updateOpenCLBufferData(OpenCLDevice::pointer device) {
             == true)
         return;
 
-    if (mCLBuffersIsUpToDate.count(device) == 0) {
+    if (mCLBuffers.count(device) == 0) {
         // Data is not on device, create it
         unsigned int bufferSize = getBufferSize();
         cl::Buffer * newBuffer = new cl::Buffer(device->getContext(),
         CL_MEM_READ_WRITE, bufferSize);
 
         mCLBuffers[device] = newBuffer;
-        mCLBuffersIsUpToDate[device] = true;
+        mCLBuffersIsUpToDate[device] = false;
         mCLBuffersAccess[device] = true;
     }
+
 
     // Find which data is up to date
     bool updated = false;
@@ -304,6 +306,8 @@ void Image::updateOpenCLBufferData(OpenCLDevice::pointer device) {
     if (!updated)
         throw Exception(
                 "Data was not updated because no data was marked as up to date");
+
+    mCLBuffersIsUpToDate[device] = true;
 }
 
 void Image::transferCLBufferFromHost(OpenCLDevice::pointer device) {
@@ -329,6 +333,7 @@ void Image::updateHostData() {
         if(mDimensions == 3)
             size *= mDepth;
         mHostData = allocateDataArray(mWidth*mHeight*mDepth,mType,mComponents);
+        mHostHasData = true;
     }
 
     if (mCLImages.size() > 0) {
@@ -381,16 +386,17 @@ OpenCLImageAccess2D Image::getOpenCLImageAccess2D(
         throw Exception("Trying to get OpenCL Image2D access to an Image that is not 2D");
 
     // Check for write access
+
+    mCLImagesAccess[device] = true;
+    updateOpenCLImageData(device);
     if (type == ACCESS_READ_WRITE) {
         if (isAnyDataBeingAccessed()) {
             throw Exception(
                     "Trying to get write access to an object that is already being accessed");
         }
         setAllDataToOutOfDate();
-        mCLImagesIsUpToDate[device] = true;
     }
-    mCLImagesAccess[device] = true;
-    updateOpenCLImageData(device);
+    mCLImagesIsUpToDate[device] = true;
 
     // Now it is guaranteed that the data is on the device and that it is up to date
 
@@ -430,19 +436,20 @@ Image::Image() {
 }
 
 ImageAccess Image::getImageAccess(accessType type) {
-    // TODO: this method is currently just a fixed hack
-
     if (type == ACCESS_READ_WRITE) {
         if (isAnyDataBeingAccessed()) {
             throw Exception(
                     "Trying to get write access to an object that is already being accessed");
         }
-        // Set modified to true since it wants write access
-        setAllDataToOutOfDate();
-        mHostDataIsUpToDate = true;
-        mHostDataIsBeingAccessed = true;
     }
     updateHostData();
+    if(type == ACCESS_READ_WRITE) {
+        // Set modified to true since it wants write access
+        setAllDataToOutOfDate();
+    }
+
+    mHostDataIsUpToDate = true;
+    mHostDataIsBeingAccessed = true;
 
     return ImageAccess(mHostData, &mHostDataIsBeingAccessed);
 }
