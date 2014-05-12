@@ -988,6 +988,74 @@ TEST_CASE("Requesting access to a 3D image that is being written to should throw
     }
 }
 
+TEST_CASE("Requesting access to a 2D image that has been released should not throw exception", "[fast][image]") {
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    Image::pointer image = Image::New();
+    image->create2DImage(256, 256, TYPE_FLOAT, 1, Host::New());
+
+    {
+        ImageAccess access1 = image->getImageAccess(ACCESS_READ_WRITE);
+        access1.release();
+        CHECK_NOTHROW(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ, device));
+        CHECK_NOTHROW(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
+        CHECK_NOTHROW(OpenCLImageAccess2D access2 = image->getOpenCLImageAccess2D(ACCESS_READ, device));
+        CHECK_NOTHROW(OpenCLImageAccess2D access2 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device));
+    }
+
+    {
+        OpenCLBufferAccess access1 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+        access1.release();
+        CHECK_NOTHROW(ImageAccess access2 = image->getImageAccess(ACCESS_READ));
+        CHECK_NOTHROW(ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE));
+        CHECK_NOTHROW(OpenCLImageAccess2D access2 = image->getOpenCLImageAccess2D(ACCESS_READ, device));
+        CHECK_NOTHROW(OpenCLImageAccess2D access2 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device));
+    }
+
+    {
+        OpenCLImageAccess2D access1 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
+        access1.release();
+        CHECK_NOTHROW(ImageAccess access2 = image->getImageAccess(ACCESS_READ));
+        CHECK_NOTHROW(ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE));
+        CHECK_NOTHROW(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ, device));
+        CHECK_NOTHROW(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
+    }
+}
+
+TEST_CASE("Requesting access to a 3D image that has been released should not throw exception", "[fast][image]") {
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    Image::pointer image = Image::New();
+    image->create3DImage(32,32,32, TYPE_FLOAT, 1, Host::New());
+
+    {
+        ImageAccess access1 = image->getImageAccess(ACCESS_READ_WRITE);
+        access1.release();
+        CHECK_NOTHROW(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ, device));
+        CHECK_NOTHROW(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
+        CHECK_NOTHROW(OpenCLImageAccess3D access2 = image->getOpenCLImageAccess3D(ACCESS_READ, device));
+        CHECK_NOTHROW(OpenCLImageAccess3D access2 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device));
+    }
+
+    {
+        OpenCLBufferAccess access1 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+        access1.release();
+        CHECK_NOTHROW(ImageAccess access2 = image->getImageAccess(ACCESS_READ));
+        CHECK_NOTHROW(ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE));
+        CHECK_NOTHROW(OpenCLImageAccess3D access2 = image->getOpenCLImageAccess3D(ACCESS_READ, device));
+        CHECK_NOTHROW(OpenCLImageAccess3D access2 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device));
+    }
+
+    {
+        OpenCLImageAccess3D access1 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
+        access1.release();
+        CHECK_NOTHROW(ImageAccess access2 = image->getImageAccess(ACCESS_READ));
+        CHECK_NOTHROW(ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE));
+        CHECK_NOTHROW(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ, device));
+        CHECK_NOTHROW(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
+    }
+}
+
 TEST_CASE("Requesting write access to a 2D image that is being read from should throw exception", "[fast][image]") {
     DeviceManager& deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
@@ -1035,6 +1103,62 @@ TEST_CASE("Requesting write access to a 3D image that is being read from should 
         OpenCLImageAccess3D access1 = image->getOpenCLImageAccess3D(ACCESS_READ, device);
         CHECK_THROWS(ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE));
         CHECK_THROWS(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
+    }
+}
+
+TEST_CASE("Requesting write access to a 2D image that has been released should not throw exception", "[fast][image]") {
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    Image::pointer image = Image::New();
+    image->create2DImage(256, 256, TYPE_FLOAT, 1, Host::New());
+
+    {
+        ImageAccess access1 = image->getImageAccess(ACCESS_READ);
+        access1.release();
+        CHECK_NOTHROW(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
+        CHECK_NOTHROW(OpenCLImageAccess2D access2 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device));
+    }
+
+    {
+        OpenCLBufferAccess access1 = image->getOpenCLBufferAccess(ACCESS_READ, device);
+        access1.release();
+        CHECK_NOTHROW(ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE));
+        CHECK_NOTHROW(OpenCLImageAccess2D access2 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device));
+    }
+
+    {
+        OpenCLImageAccess2D access1 = image->getOpenCLImageAccess2D(ACCESS_READ, device);
+        access1.release();
+        CHECK_NOTHROW(ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE));
+        CHECK_NOTHROW(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
+    }
+}
+
+TEST_CASE("Requesting write access to a 3D image that has been released should not throw exception", "[fast][image]") {
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    Image::pointer image = Image::New();
+    image->create3DImage(32,32,32, TYPE_FLOAT, 1, Host::New());
+
+    {
+        ImageAccess access1 = image->getImageAccess(ACCESS_READ);
+        access1.release();
+        CHECK_NOTHROW(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
+        CHECK_NOTHROW(OpenCLImageAccess3D access2 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device));
+    }
+
+    {
+        OpenCLBufferAccess access1 = image->getOpenCLBufferAccess(ACCESS_READ, device);
+        access1.release();
+        CHECK_NOTHROW(ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE));
+        CHECK_NOTHROW(OpenCLImageAccess3D access2 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device));
+    }
+
+    {
+        OpenCLImageAccess3D access1 = image->getOpenCLImageAccess3D(ACCESS_READ, device);
+        access1.release();
+        CHECK_NOTHROW(ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE));
+        CHECK_NOTHROW(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
     }
 }
 
