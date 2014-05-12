@@ -9,6 +9,7 @@ set(EXECUTABLE_SOURCE_FILES
     DummyObjects.hpp
     ProcessObjectTests.cpp
     DataObjectTests.cpp
+    Algorithms/GaussianSmoothingFilterTests.cpp
     Data/ImageTests.cpp
     Importers/ImageImporterTests.cpp
     Exporters/ImageExporterTests.cpp
