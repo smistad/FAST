@@ -26,3 +26,19 @@ void SimpleWindow::runMainLoop() {
     show();
     QApplication::exec();
 }
+
+void SimpleWindow::keyPressEvent(QKeyEvent* event) {
+    mView->keyPressEvent(event);
+}
+
+void SimpleWindow::mouseMoveEvent(QMouseEvent* event) {
+    mView->mouseMoveEvent(event);
+}
+
+void SimpleWindow::mousePressEvent(QMouseEvent* event) {
+    mView->mousePressEvent(event);
+}
+
+void SimpleWindow::mouseReleaseEvent(QMouseEvent* event) {
+    mView->mouseReleaseEvent(event);
+}

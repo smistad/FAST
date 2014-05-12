@@ -19,6 +19,11 @@ class SimpleWindow : public QWidget, public Object {
         SimpleWindow();
         View::pointer mView;
         unsigned char mFramerate;
+    protected:
+        void keyPressEvent(QKeyEvent* event);
+        void mouseMoveEvent(QMouseEvent* event);
+        void mousePressEvent(QMouseEvent* event);
+        void mouseReleaseEvent(QMouseEvent* event);
 };
 
 } // end namespace fast

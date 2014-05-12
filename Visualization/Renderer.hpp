@@ -3,6 +3,8 @@
 
 #include "SmartPointers.hpp"
 #include "ProcessObject.hpp"
+#include <QKeyEvent>
+#include <QMouseEvent>
 
 namespace fast {
 
@@ -14,6 +16,10 @@ class Renderer : public ProcessObject {
         float getIntensityLevel();
         void setIntensityWindow(float window);
         float getIntensityWindow();
+        virtual void keyPressEvent(QKeyEvent* event) {};
+        virtual void mouseMoveEvent(QMouseEvent* event) {};
+        virtual void mousePressEvent(QMouseEvent* event) {};
+        virtual void mouseReleaseEvent(QMouseEvent* event) {};
     protected:
         Renderer();
         void setOpenGLContext(unsigned long* OpenGLContext);

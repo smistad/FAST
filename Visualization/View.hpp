@@ -14,6 +14,10 @@ class View : public QGLWidget, public ProcessObject {
     FAST_OBJECT(View)
     public:
         void addRenderer(Renderer::pointer renderer);
+        void keyPressEvent(QKeyEvent* event);
+        void mouseMoveEvent(QMouseEvent* event);
+        void mousePressEvent(QMouseEvent* event);
+        void mouseReleaseEvent(QMouseEvent* event);
     private:
         View();
         std::vector<Renderer::pointer> mRenderers;
