@@ -11,6 +11,7 @@ void GaussianSmoothingFilter::setInput(ImageData::pointer input) {
     addParent(input);
     if(input->isDynamicData()) {
         mTempOutput = DynamicImage::New();
+        DynamicImage::pointer(mTempOutput)->setStreamingMode(DynamicImage::pointer(mInput)->getStreamingMode());
     } else {
         mTempOutput = Image::New();
         input->retain(mDevice);
@@ -26,6 +27,8 @@ void GaussianSmoothingFilter::setDevice(ExecutionDevice::pointer device) {
 }
 
 void GaussianSmoothingFilter::setMaskSize(unsigned char maskSize) {
+    if(maskSize <= 0)
+        throw Exception("Mask size of GaussianSmoothingFilter can't be less than 0.");
     if(maskSize % 2 != 1)
         throw Exception("Mask size of GaussianSmoothingFilter must be odd.");
 
@@ -66,6 +69,7 @@ GaussianSmoothingFilter::GaussianSmoothingFilter() {
     mIsModified = true;
     mRecreateMask = true;
     mDimensionCLCodeCompiledFor = 0;
+    mMask = NULL;
 }
 
 GaussianSmoothingFilter::~GaussianSmoothingFilter() {
