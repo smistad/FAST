@@ -775,12 +775,17 @@ TEST_CASE("Create a 2D image and change image data", "[fast][image]") {
                         "int2 pos = {get_global_id(0), get_global_id(1)};"
                         "write_imagef(image, pos, (float4)(1,1,1,1));"
                         "}");
-            } else {
+            } else if(type == TYPE_INT8 || type == TYPE_INT16) {
                 i = device->createProgramFromString("__kernel void changeData(__write_only image2d_t image) {"
                         "int2 pos = {get_global_id(0), get_global_id(1)};"
                         "write_imagei(image, pos, (int4)(1,1,1,1));"
                         "}");
-            }
+            } else {
+				i = device->createProgramFromString("__kernel void changeData(__write_only image2d_t image) {"
+                        "int2 pos = {get_global_id(0), get_global_id(1)};"
+                        "write_imageui(image, pos, (uint4)(1,1,1,1));"
+                        "}");
+			}
             cl::Kernel kernel(device->getProgram(i), "changeData");
             kernel.setArg(0, *clImage);
             device->getCommandQueue().enqueueNDRangeKernel(
