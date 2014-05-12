@@ -54,3 +54,31 @@ TEST_CASE("Calling update on a data object with modified process object does exe
     data->update();
     CHECK(process->hasExecuted() == true);
 }
+
+TEST_CASE("Calling update on a process object which has a unmodified parent data object is not executed", "[fast][ProcessObject]") {
+    DummyDataObject::pointer data = DummyDataObject::New();
+    DummyProcessObject::pointer process = DummyProcessObject::New();
+    process->addParent(data);
+    process->update();
+    CHECK(process->hasExecuted() == false);
+}
+
+TEST_CASE("Calling update on a process object which has a modified parent data object is executed", "[fast][ProcessObject]") {
+    DummyDataObject::pointer data = DummyDataObject::New();
+    DummyProcessObject::pointer process = DummyProcessObject::New();
+    process->addParent(data);
+    data->updateModifiedTimestamp();
+    process->update();
+    CHECK(process->hasExecuted() == true);
+}
+
+TEST_CASE("Calling update on a process object which has a modified parent data object an one unmodified parent data object is executed", "[fast][ProcessObject]") {
+    DummyDataObject::pointer data = DummyDataObject::New();
+    DummyDataObject::pointer data2 = DummyDataObject::New();
+    DummyProcessObject::pointer process = DummyProcessObject::New();
+    process->addParent(data);
+    process->addParent(data2);
+    data2->updateModifiedTimestamp();
+    process->update();
+    CHECK(process->hasExecuted() == true);
+}
