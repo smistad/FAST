@@ -57,7 +57,7 @@ class Image: public ImageData {
         bool isDataModified();
         void setAllDataToOutOfDate();
         bool isAnyDataBeingAccessed();
-        bool isInitialized();
+        bool isInitialized() const;
         void free(ExecutionDevice::pointer device);
         void freeAll();
 

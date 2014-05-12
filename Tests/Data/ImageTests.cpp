@@ -882,7 +882,25 @@ TEST_CASE("Create a 3D image and change image data", "[fast][image]") {
     }
 }
 
-TEST_CASE("Create an image twice", "[fast][image]") {
+TEST_CASE("Uninitialized image throws exception", "[fast][image]") {
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    Image::pointer image = Image::New();
+
+    CHECK_THROWS(image->getImageAccess(ACCESS_READ));
+    CHECK_THROWS(image->getOpenCLBufferAccess(ACCESS_READ, device));
+    CHECK_THROWS(image->getOpenCLImageAccess2D(ACCESS_READ, device));
+    CHECK_THROWS(image->getOpenCLImageAccess3D(ACCESS_READ, device));
+
+    CHECK_THROWS(image->getWidth());
+    CHECK_THROWS(image->getHeight());
+    CHECK_THROWS(image->getDepth());
+    CHECK_THROWS(image->getDimensions());
+    CHECK_THROWS(image->getNrOfComponents());
+    CHECK_THROWS(image->getDataType());
+}
+
+TEST_CASE("Initialize an image twice throws exception", "[fast][image]") {
     Image::pointer image = Image::New();
 
     image->create2DImage(256, 256, TYPE_FLOAT, 1, Host::New());

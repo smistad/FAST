@@ -224,6 +224,9 @@ OpenCLBufferAccess Image::getOpenCLBufferAccess(
         accessType type,
         OpenCLDevice::pointer device) {
 
+    if(!isInitialized())
+        throw Exception("Image has not been initialized.");
+
     updateOpenCLBufferData(device);
     // Check for write access
     if (type == ACCESS_READ_WRITE) {
@@ -380,6 +383,8 @@ OpenCLImageAccess2D Image::getOpenCLImageAccess2D(
         accessType type,
         OpenCLDevice::pointer device) {
 
+    if(!isInitialized())
+        throw Exception("Image has not been initialized.");
     if(mDimensions != 2)
         throw Exception("Trying to get OpenCL Image2D access to an Image that is not 2D");
 
@@ -405,6 +410,8 @@ OpenCLImageAccess3D Image::getOpenCLImageAccess3D(
         accessType type,
         OpenCLDevice::pointer device) {
 
+    if(!isInitialized())
+        throw Exception("Image has not been initialized.");
     if(mDimensions != 3)
         throw Exception("Trying to get OpenCL Image3D access to an Image that is not 3D");
 
@@ -434,6 +441,8 @@ Image::Image() {
 }
 
 ImageAccess Image::getImageAccess(accessType type) {
+    if(!isInitialized())
+        throw Exception("Image has not been initialized.");
     if (type == ACCESS_READ_WRITE) {
         if (isAnyDataBeingAccessed()) {
             throw Exception(
@@ -629,7 +638,7 @@ void Image::create2DImage(
     }
 }
 
-bool Image::isInitialized() {
+bool Image::isInitialized() const {
     return mCLImages.size() > 0 || mCLBuffers.size() > 0 || mHostHasData;
 }
 
@@ -679,25 +688,37 @@ void Image::freeAll() {
 }
 
 unsigned int Image::getWidth() const {
+    if(!isInitialized())
+        throw Exception("Image has not been initialized.");
     return mWidth;
 }
 
 unsigned int Image::getHeight() const {
+    if(!isInitialized())
+        throw Exception("Image has not been initialized.");
     return mHeight;
 }
 
 unsigned int Image::getDepth() const {
+    if(!isInitialized())
+        throw Exception("Image has not been initialized.");
     return mDepth;
 }
 
 unsigned char Image::getDimensions() const {
+    if(!isInitialized())
+        throw Exception("Image has not been initialized.");
     return mDimensions;
 }
 
 DataType Image::getDataType() const {
+    if(!isInitialized())
+        throw Exception("Image has not been initialized.");
     return mType;
 }
 
 unsigned int Image::getNrOfComponents() const {
+    if(!isInitialized())
+        throw Exception("Image has not been initialized.");
     return mComponents;
 }
