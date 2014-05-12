@@ -1,5 +1,6 @@
 #include "catch.hpp"
 #include "GaussianSmoothingFilter.hpp"
+#include "DeviceManager.hpp"
 
 namespace fast {
 
@@ -21,6 +22,180 @@ TEST_CASE("Even input as mask size throws exception in GaussianSmoothingFilter",
     GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
 
     CHECK_THROWS(filter->setMaskSize(2));
+}
+
+TEST_CASE("Correct output with small 3x3 2D image as input to GaussianSmoothingFilter on OpenCLDevice", "[fast][GaussianSmoothingFilter]") {
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
+    filter->setMaskSize(3);
+    filter->setStandardDeviation(1.0);
+
+    Image::pointer image = Image::New();
+    image->create2DImage(3,3,TYPE_FLOAT,1,device);
+    ImageAccess access = image->getImageAccess(ACCESS_READ_WRITE);
+    float* data = (float*)access.get();
+    for(unsigned int i = 0; i < 9; i++) {
+        data[i] = 1.0f;
+    }
+    access.release();
+    filter->setInput(image);
+    Image::pointer output = filter->getOutput();
+    filter->update();
+
+    access = output->getImageAccess(ACCESS_READ);
+    data = (float*)access.get();
+
+    bool success = true;
+    for(unsigned int x = 0; x < 3; x++) {
+    for(unsigned int y = 0; y < 3; y++) {
+        float truth;
+        unsigned int distance = abs(x-1)+abs(y-1);
+        if(distance == 2) {
+            truth = 0.526976f;
+        } else if(distance == 1) {
+            truth = 0.725931f;
+        } else {
+            truth = 1.0f;
+        }
+        if(fabs(data[x+y*3] - truth) > 0.00001) {
+            success = false;
+            break;
+        }
+    }}
+
+    CHECK(success == true);
+}
+
+TEST_CASE("Correct output with small 3x3 2D image as input to GaussianSmoothingFilter on Host", "[fast][GaussianSmoothingFilter]") {
+    GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
+    filter->setMaskSize(3);
+    filter->setStandardDeviation(1.0);
+
+    Image::pointer image = Image::New();
+    image->create2DImage(3,3,TYPE_FLOAT,1,Host::New());
+    ImageAccess access = image->getImageAccess(ACCESS_READ_WRITE);
+    float* data = (float*)access.get();
+    for(unsigned int i = 0; i < 9; i++) {
+        data[i] = 1.0f;
+    }
+    access.release();
+    filter->setInput(image);
+    Image::pointer output = filter->getOutput();
+    filter->update();
+
+    access = output->getImageAccess(ACCESS_READ);
+    data = (float*)access.get();
+
+    bool success = true;
+    for(unsigned int x = 0; x < 3; x++) {
+    for(unsigned int y = 0; y < 3; y++) {
+        float truth;
+        unsigned int distance = abs(x-1)+abs(y-1);
+        if(distance == 2) {
+            truth = 0.526976f;
+        } else if(distance == 1) {
+            truth = 0.725931f;
+        } else {
+            truth = 1.0f;
+        }
+        if(fabs(data[x+y*3] - truth) > 0.00001) {
+            success = false;
+            break;
+        }
+    }}
+
+    CHECK(success == true);
+}
+
+TEST_CASE("Correct output with small 3x3 3D image as input to GaussianSmoothingFilter on OpenCLDevice", "[fast][GaussianSmoothingFilter]") {
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
+    filter->setMaskSize(3);
+    filter->setStandardDeviation(1.0);
+
+    Image::pointer image = Image::New();
+    image->create3DImage(3,3,3,TYPE_FLOAT,1,device);
+    ImageAccess access = image->getImageAccess(ACCESS_READ_WRITE);
+    float* data = (float*)access.get();
+    for(unsigned int i = 0; i < 3*3*3; i++) {
+        data[i] = 1.0f;
+    }
+    access.release();
+    filter->setInput(image);
+    Image::pointer output = filter->getOutput();
+    filter->update();
+
+    access = output->getImageAccess(ACCESS_READ);
+    data = (float*)access.get();
+
+    bool success = true;
+    for(unsigned int x = 0; x < 3; x++) {
+    for(unsigned int y = 0; y < 3; y++) {
+    for(unsigned int z = 0; z < 3; z++) {
+        float truth;
+        unsigned int distance = abs(x-1)+abs(y-1)+abs(z-1);
+        if(distance == 3) {
+            truth = 0.382549;
+        } else if(distance == 2) {
+            truth = 0.526976f;
+        } else if(distance == 1) {
+            truth = 0.725931f;
+        } else {
+            truth = 1.0f;
+        }
+        if(fabs(data[x+y*3+z*3*3] - truth) > 0.00001) {
+            success = false;
+            break;
+        }
+    }}}
+
+    CHECK(success == true);
+}
+
+TEST_CASE("Correct output with small 3x3 3D image as input to GaussianSmoothingFilter on Host", "[fast][GaussianSmoothingFilter]") {
+    GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
+    filter->setMaskSize(3);
+    filter->setStandardDeviation(1.0);
+
+    Image::pointer image = Image::New();
+    image->create3DImage(3,3,3,TYPE_FLOAT,1,Host::New());
+    ImageAccess access = image->getImageAccess(ACCESS_READ_WRITE);
+    float* data = (float*)access.get();
+    for(unsigned int i = 0; i < 3*3*3; i++) {
+        data[i] = 1.0f;
+    }
+    access.release();
+    filter->setInput(image);
+    Image::pointer output = filter->getOutput();
+    filter->update();
+
+    access = output->getImageAccess(ACCESS_READ);
+    data = (float*)access.get();
+
+    bool success = true;
+    for(unsigned int x = 0; x < 3; x++) {
+    for(unsigned int y = 0; y < 3; y++) {
+    for(unsigned int z = 0; z < 3; z++) {
+        float truth;
+        unsigned int distance = abs(x-1)+abs(y-1)+abs(z-1);
+        if(distance == 3) {
+            truth = 0.382549;
+        } else if(distance == 2) {
+            truth = 0.526976f;
+        } else if(distance == 1) {
+            truth = 0.725931f;
+        } else {
+            truth = 1.0f;
+        }
+        if(fabs(data[x+y*3+z*3*3] - truth) > 0.00001) {
+            success = false;
+            break;
+        }
+    }}}
+
+    CHECK(success == true);
 }
 
 } // end namespace fast
