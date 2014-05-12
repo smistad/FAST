@@ -6,8 +6,10 @@ set(SOURCE_FILES
 set(EXECUTABLE_SOURCE_FILES
     catch.hpp
     CatchMain.cpp
+    ProcessObjectTests.cpp
     Data/ImageTests.cpp
     Importers/ImageImporterTests.cpp
+    Exporters/ImageExporterTests.cpp
     Importers/MetaImageImporterTests.cpp
     Exporters/MetaImageExporterTests.cpp
 )
