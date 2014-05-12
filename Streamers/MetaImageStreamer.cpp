@@ -14,6 +14,7 @@ void stubStreamThread(MetaImageStreamer * streamer) {
 DynamicImage::pointer MetaImageStreamer::getOutput() {
     if(mOutput.isValid()) {
         mOutput->setParent(mPtr.lock());
+        mOutput->setStreamingMode(this->getStreamingMode());
 
         DynamicImage::pointer newSmartPtr;
         newSmartPtr.swap(mOutput);
@@ -75,6 +76,7 @@ void MetaImageStreamer::producerStream() {
             Image::pointer image = importer->getOutput();
             image->update();
             DynamicImage::pointer ptr = mOutput2.lock();
+            ptr->setStreamingMode(this->getStreamingMode());
             if(ptr.isValid()) {
                 ptr->addFrame(image);
                 mFirstFrameIsInserted = true;
