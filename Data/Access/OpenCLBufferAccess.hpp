@@ -8,13 +8,14 @@ namespace fast {
 class OpenCLBufferAccess {
     public:
         cl::Buffer* get() const;
-        OpenCLBufferAccess(cl::Buffer* buffer, bool* accessFlag);
+        OpenCLBufferAccess(cl::Buffer* buffer, bool* accessFlag, bool* accessFlag2);
         void release();
         ~OpenCLBufferAccess();
     private:
         cl::Buffer* mBuffer;
         bool mIsDeleted;
         bool* mAccessFlag;
+        bool* mAccessFlag2;
 };
 
 } // end namespace fast

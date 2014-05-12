@@ -77,6 +77,7 @@ class Image: public ImageData {
         unsigned char mDimensions;
         DataType mType;
         unsigned int mComponents;
+        bool mImageIsBeingWrittenTo;
 };
 
 } // end namespace fast

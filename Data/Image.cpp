@@ -227,13 +227,17 @@ OpenCLBufferAccess Image::getOpenCLBufferAccess(
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
 
-    updateOpenCLBufferData(device);
-    // Check for write access
+    if(mImageIsBeingWrittenTo)
+        throw Exception("Requesting access to an image that is already being written to.");
     if (type == ACCESS_READ_WRITE) {
         if (isAnyDataBeingAccessed()) {
             throw Exception(
                     "Trying to get write access to an object that is already being accessed");
         }
+        mImageIsBeingWrittenTo = true;
+    }
+    updateOpenCLBufferData(device);
+    if (type == ACCESS_READ_WRITE) {
         setAllDataToOutOfDate();
     }
     mCLBuffersAccess[device] = true;
@@ -241,7 +245,7 @@ OpenCLBufferAccess Image::getOpenCLBufferAccess(
 
     // Now it is guaranteed that the data is on the device and that it is up to date
 
-    return OpenCLBufferAccess(mCLBuffers[device], &mCLBuffersAccess[device]);
+    return OpenCLBufferAccess(mCLBuffers[device], &mCLBuffersAccess[device], &mImageIsBeingWrittenTo);
 }
 
 unsigned int Image::getBufferSize() const {
@@ -385,17 +389,21 @@ OpenCLImageAccess2D Image::getOpenCLImageAccess2D(
 
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
+    if(mImageIsBeingWrittenTo)
+        throw Exception("Requesting access to an image that is already being written to.");
     if(mDimensions != 2)
         throw Exception("Trying to get OpenCL Image2D access to an Image that is not 2D");
 
     // Check for write access
-
-    updateOpenCLImageData(device);
     if (type == ACCESS_READ_WRITE) {
         if (isAnyDataBeingAccessed()) {
             throw Exception(
                     "Trying to get write access to an object that is already being accessed");
         }
+        mImageIsBeingWrittenTo = true;
+    }
+    updateOpenCLImageData(device);
+    if (type == ACCESS_READ_WRITE) {
         setAllDataToOutOfDate();
     }
     mCLImagesAccess[device] = true;
@@ -403,7 +411,7 @@ OpenCLImageAccess2D Image::getOpenCLImageAccess2D(
 
     // Now it is guaranteed that the data is on the device and that it is up to date
 
-    return OpenCLImageAccess2D((cl::Image2D*)mCLImages[device], &mCLImagesAccess[device]);
+    return OpenCLImageAccess2D((cl::Image2D*)mCLImages[device], &mCLImagesAccess[device], &mImageIsBeingWrittenTo);
 }
 
 OpenCLImageAccess3D Image::getOpenCLImageAccess3D(
@@ -412,6 +420,8 @@ OpenCLImageAccess3D Image::getOpenCLImageAccess3D(
 
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
+    if(mImageIsBeingWrittenTo)
+        throw Exception("Requesting access to an image that is already being written to.");
     if(mDimensions != 3)
         throw Exception("Trying to get OpenCL Image3D access to an Image that is not 3D");
 
@@ -421,15 +431,18 @@ OpenCLImageAccess3D Image::getOpenCLImageAccess3D(
             throw Exception(
                     "Trying to get write access to an object that is already being accessed");
         }
+        mImageIsBeingWrittenTo = true;
+    }
+    updateOpenCLImageData(device);
+    if (type == ACCESS_READ_WRITE) {
         setAllDataToOutOfDate();
-        mCLImagesIsUpToDate[device] = true;
     }
     mCLImagesAccess[device] = true;
-    updateOpenCLImageData(device);
+    mCLImagesIsUpToDate[device] = true;
 
     // Now it is guaranteed that the data is on the device and that it is up to date
 
-    return OpenCLImageAccess3D((cl::Image3D*)mCLImages[device], &mCLImagesAccess[device]);
+    return OpenCLImageAccess3D((cl::Image3D*)mCLImages[device], &mCLImagesAccess[device], &mImageIsBeingWrittenTo);
 }
 
 Image::Image() {
@@ -438,16 +451,21 @@ Image::Image() {
     mHostDataIsUpToDate = false;
     mHostDataIsBeingAccessed = false;
     mIsDynamicData = false;
+    mImageIsBeingWrittenTo = false;
 }
 
 ImageAccess Image::getImageAccess(accessType type) {
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
+    if(mImageIsBeingWrittenTo)
+        throw Exception("Requesting access to an image that is already being written to.");
+
     if (type == ACCESS_READ_WRITE) {
         if (isAnyDataBeingAccessed()) {
             throw Exception(
                     "Trying to get write access to an object that is already being accessed");
         }
+        mImageIsBeingWrittenTo = true;
     }
     updateHostData();
     if(type == ACCESS_READ_WRITE) {
@@ -458,7 +476,7 @@ ImageAccess Image::getImageAccess(accessType type) {
     mHostDataIsUpToDate = true;
     mHostDataIsBeingAccessed = true;
 
-    return ImageAccess(mHostData, &mHostDataIsBeingAccessed);
+    return ImageAccess(mHostData, &mHostDataIsBeingAccessed, &mImageIsBeingWrittenTo);
 }
 
 void Image::create3DImage(
