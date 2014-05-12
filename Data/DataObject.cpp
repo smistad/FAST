@@ -26,7 +26,11 @@ void DataObject::updateModifiedTimestamp() {
 }
 
 void DataObject::retain(ExecutionDevice::pointer device) {
-    mReferenceCount[device]++;
+    if(mReferenceCount.count(device) == 0) {
+        mReferenceCount[device] = 1;
+    } else {
+        mReferenceCount[device]++;
+    }
 }
 
 void DataObject::release(ExecutionDevice::pointer device) {
@@ -37,7 +41,6 @@ void DataObject::release(ExecutionDevice::pointer device) {
     // TODO: if there is data left for a data object it must be marked as modified somehow so that it will call update on itself
     // when someone request access on it
     if(mReferenceCount[device] == 0) {
-        free(device);
-        std::cout << "Deleting some data on a specific device" << std::endl;
+        this->free(device);
     }
 }
