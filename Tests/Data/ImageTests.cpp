@@ -523,7 +523,7 @@ TEST_CASE("Create a 2D image and change host data", "[fast][image]") {
             switch(type) {
                 fastSwitchTypeMacro(
                     FAST_TYPE* changedData2 = (FAST_TYPE*)changedData;
-                    for(int i = 0; i < width*height*nrOfComponents; i++) {
+                    for(unsigned int i = 0; i < width*height*nrOfComponents; i++) {
                         changedData2[i] = changedData2[i]*2;
                     }
                 )
@@ -571,7 +571,7 @@ TEST_CASE("Create a 3D image and change host data", "[fast][image]") {
             switch(type) {
                 fastSwitchTypeMacro(
                     FAST_TYPE* changedData2 = (FAST_TYPE*)changedData;
-                    for(int i = 0; i < width*height*depth*nrOfComponents; i++) {
+                    for(unsigned int i = 0; i < width*height*depth*nrOfComponents; i++) {
                         changedData2[i] = changedData2[i]*2;
                     }
                 )
@@ -649,7 +649,7 @@ TEST_CASE("Create a 2D image and change buffer data", "[fast][image]") {
             switch(type) {
                 fastSwitchTypeMacro(
                     FAST_TYPE* changedData2 = (FAST_TYPE*)data;
-                    for(int i = 0; i < width*height*nrOfComponents; i++) {
+                    for(unsigned int i = 0; i < width*height*nrOfComponents; i++) {
                         changedData2[i] = changedData2[i]*2;
                     }
                 )
@@ -727,7 +727,7 @@ TEST_CASE("Create a 3D image and change buffer data", "[fast][image]") {
             switch(type) {
                 fastSwitchTypeMacro(
                     FAST_TYPE* changedData2 = (FAST_TYPE*)data;
-                    for(int i = 0; i < width*height*depth*nrOfComponents; i++) {
+                    for(unsigned int i = 0; i < width*height*depth*nrOfComponents; i++) {
                         changedData2[i] = changedData2[i]*2;
                     }
                 )
@@ -794,7 +794,7 @@ TEST_CASE("Create a 2D image and change image data", "[fast][image]") {
             switch(type) {
                 fastSwitchTypeMacro(
                     FAST_TYPE* changedData2 = (FAST_TYPE*)data;
-                    for(int i = 0; i < width*height*nrOfComponents; i++) {
+                    for(unsigned int i = 0; i < width*height*nrOfComponents; i++) {
                         changedData2[i] = 1;
                     }
                 )
@@ -865,7 +865,7 @@ TEST_CASE("Create a 3D image and change image data", "[fast][image]") {
             switch(type) {
                 fastSwitchTypeMacro(
                     FAST_TYPE* changedData2 = (FAST_TYPE*)data;
-                    for(int i = 0; i < width*height*depth*nrOfComponents; i++) {
+                    for(unsigned int i = 0; i < width*height*depth*nrOfComponents; i++) {
                         changedData2[i] = 1;
                     }
                 )
