@@ -42,3 +42,7 @@ void SimpleWindow::mousePressEvent(QMouseEvent* event) {
 void SimpleWindow::mouseReleaseEvent(QMouseEvent* event) {
     mView->mouseReleaseEvent(event);
 }
+
+void SimpleWindow::setWindowSize(unsigned int w, unsigned int h) {
+    this->resize(w,h);
+}

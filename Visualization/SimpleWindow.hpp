@@ -15,6 +15,7 @@ class SimpleWindow : public QWidget, public Object {
         void addRenderer(Renderer::pointer renderer);
         void setMaximumFramerate(unsigned char framerate);
         void runMainLoop();
+        void setWindowSize(unsigned int w, unsigned int h);
     private:
         SimpleWindow();
         View::pointer mView;
