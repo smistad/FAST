@@ -19,6 +19,7 @@ SimpleWindow::SimpleWindow() {
     mainLayout->addWidget(mView.getPtr().get());
     setLayout(mainLayout);
     setWindowTitle(tr("FAST"));
+    resize(512,512); // default window size
 }
 
 void SimpleWindow::runMainLoop() {
