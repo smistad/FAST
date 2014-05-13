@@ -52,43 +52,7 @@ void SliceRenderer::execute() {
 
     setOpenGLContext(mDevice->getGLContext());
 
-    OpenCLImageAccess3D access = input->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
-    cl::Image3D* clImage = access.get();
-
-    glEnable(GL_TEXTURE_2D);
-    if(mTextureIsCreated) {
-        // Delete old texture
-        glDeleteTextures(1, &mTexture);
-    }
-
-    // Create OpenGL texture
-    glGenTextures(1, &mTexture);
-    glBindTexture(GL_TEXTURE_2D, mTexture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, clImage->getImageInfo<CL_IMAGE_WIDTH>(), clImage->getImageInfo<CL_IMAGE_HEIGHT>(), 0, GL_RGBA, GL_FLOAT, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glFinish();
-
-    // Create CL-GL image
-#if defined(CL_VERSION_1_2)
-    mImageGL = cl::ImageGL(
-            mDevice->getContext(),
-            CL_MEM_READ_WRITE,
-            GL_TEXTURE_2D,
-            0,
-            mTexture
-    );
-#else
-    mImageGL = cl::Image2DGL(
-            mDevice->getContext(),
-            CL_MEM_READ_WRITE,
-            GL_TEXTURE_2D,
-            0,
-            mTexture
-    );
-#endif
-
+    // Determine slice nr and width and height of the texture to render to
     unsigned int sliceNr;
     if(mSliceNr == -1) {
         switch(mSlicePlane) {
@@ -122,18 +86,65 @@ void SliceRenderer::execute() {
     } else {
         throw Exception("Slice to render was below 0 in SliceRenderer");
     }
-    unsigned int slicePlaneNr;
+    unsigned int slicePlaneNr, width, height;
     switch(mSlicePlane) {
         case PLANE_X:
             slicePlaneNr = 0;
+            width = input->getDepth();
+            height = input->getHeight();
             break;
         case PLANE_Y:
             slicePlaneNr = 1;
+            width = input->getWidth();
+            height = input->getDepth();
             break;
         case PLANE_Z:
             slicePlaneNr = 2;
+            width = input->getWidth();
+            height = input->getHeight();
             break;
     }
+
+    glViewport(0,0,width,height);
+
+    OpenCLImageAccess3D access = input->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+    cl::Image3D* clImage = access.get();
+
+    glEnable(GL_TEXTURE_2D);
+    if(mTextureIsCreated) {
+        // Delete old texture
+        glDeleteTextures(1, &mTexture);
+    }
+
+    // Create OpenGL texture
+    glGenTextures(1, &mTexture);
+    glBindTexture(GL_TEXTURE_2D, mTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glFinish();
+
+    // Create CL-GL image
+#if defined(CL_VERSION_1_2)
+    mImageGL = cl::ImageGL(
+            mDevice->getContext(),
+            CL_MEM_READ_WRITE,
+            GL_TEXTURE_2D,
+            0,
+            mTexture
+    );
+#else
+    mImageGL = cl::Image2DGL(
+            mDevice->getContext(),
+            CL_MEM_READ_WRITE,
+            GL_TEXTURE_2D,
+            0,
+            mTexture
+    );
+#endif
+
+
 
     // Run kernel to fill the texture
     cl::CommandQueue queue = mDevice->getCommandQueue();
@@ -151,7 +162,7 @@ void SliceRenderer::execute() {
     queue.enqueueNDRangeKernel(
             mKernel,
             cl::NullRange,
-            cl::NDRange(clImage->getImageInfo<CL_IMAGE_WIDTH>(), clImage->getImageInfo<CL_IMAGE_HEIGHT>()),
+            cl::NDRange(width, height),
             cl::NullRange
     );
 
@@ -197,7 +208,7 @@ SliceRenderer::SliceRenderer() : Renderer() {
     mDevice = boost::static_pointer_cast<OpenCLDevice>(DeviceManager::getInstance().getDefaultVisualizationDevice());
     mTextureIsCreated = false;
     mIsModified = true;
-    mSlicePlane = PLANE_Z;
+    mSlicePlane = PLANE_Y;
     mSliceNr = -1;
 
 }
@@ -234,4 +245,21 @@ void SliceRenderer::setSliceToRender(int sliceNr) {
 void SliceRenderer::setSlicePlane(PlaneType plane) {
     mSlicePlane = plane;
     mIsModified = true;
+}
+
+void SliceRenderer::keyPressEvent(QKeyEvent* event) {
+    switch(event->key()) {
+    case Qt::Key_X:
+        mSlicePlane = PLANE_X;
+        mIsModified = true;
+        break;
+    case Qt::Key_Y:
+        mSlicePlane = PLANE_Y;
+        mIsModified = true;
+        break;
+    case Qt::Key_Z:
+        mSlicePlane = PLANE_Z;
+        mIsModified = true;
+        break;
+    }
 }
