@@ -33,6 +33,7 @@ int main(int argc, char ** argv) {
     filter->setMaskSize(7);
     filter->setStandardDeviation(10);
     Image::pointer filteredImage = filter->getOutput();
+	
     ImageExporter::pointer exporter = ImageExporter::New();
     exporter->setFilename("test.jpg");
     exporter->setInput(filteredImage);
@@ -43,19 +44,17 @@ int main(int argc, char ** argv) {
     exporter2->update();
 
 
-
     // Example of displaying an image on screen using ImageRenderer (2D) and SimpleWindow
     // TODO The QApplication part should ideally be hid away
     QApplication app(argc,argv);
-    /*
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->setInput(filteredImage);
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->resize(512,512);
     window->runMainLoop();
-    */
 
+	/*
     // Example of streaming 2D images
     ImageStreamer::pointer streamer = ImageStreamer::New();
     streamer->setFilenameFormat("test_#.jpg");
@@ -95,6 +94,7 @@ int main(int argc, char ** argv) {
     window->runMainLoop();
     filter4->getRuntime()->print();
     renderer->getRuntime()->print();
+	*/
 
     /*
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
