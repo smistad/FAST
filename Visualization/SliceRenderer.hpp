@@ -36,6 +36,10 @@ class SliceRenderer : public Renderer {
 
         int mSliceNr;
         PlaneType mSlicePlane;
+
+        float mScale;
+        unsigned int mWidth;
+        unsigned int mHeight;
 };
 
 }

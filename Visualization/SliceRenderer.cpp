@@ -86,26 +86,26 @@ void SliceRenderer::execute() {
     } else {
         throw Exception("Slice to render was below 0 in SliceRenderer");
     }
-    unsigned int slicePlaneNr, width, height;
+    unsigned int slicePlaneNr;
     switch(mSlicePlane) {
         case PLANE_X:
             slicePlaneNr = 0;
-            width = input->getDepth();
-            height = input->getHeight();
+            mWidth = input->getDepth();
+            mHeight = input->getHeight();
             break;
         case PLANE_Y:
             slicePlaneNr = 1;
-            width = input->getWidth();
-            height = input->getDepth();
+            mWidth = input->getWidth();
+            mHeight = input->getDepth();
             break;
         case PLANE_Z:
             slicePlaneNr = 2;
-            width = input->getWidth();
-            height = input->getHeight();
+            mWidth = input->getWidth();
+            mHeight = input->getHeight();
             break;
     }
 
-    glViewport(0,0,width,height);
+    glViewport(0,0,mWidth*mScale,mHeight*mScale);
 
     OpenCLImageAccess3D access = input->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
     cl::Image3D* clImage = access.get();
@@ -121,7 +121,7 @@ void SliceRenderer::execute() {
     glBindTexture(GL_TEXTURE_2D, mTexture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mWidth, mHeight, 0, GL_RGBA, GL_FLOAT, 0);
     glBindTexture(GL_TEXTURE_2D, 0);
     glFinish();
 
@@ -162,7 +162,7 @@ void SliceRenderer::execute() {
     queue.enqueueNDRangeKernel(
             mKernel,
             cl::NullRange,
-            cl::NDRange(width, height),
+            cl::NDRange(mWidth, mHeight),
             cl::NullRange
     );
 
@@ -210,7 +210,7 @@ SliceRenderer::SliceRenderer() : Renderer() {
     mIsModified = true;
     mSlicePlane = PLANE_Y;
     mSliceNr = -1;
-
+    mScale = 1.0;
 }
 
 void SliceRenderer::draw() {
@@ -260,6 +260,14 @@ void SliceRenderer::keyPressEvent(QKeyEvent* event) {
     case Qt::Key_Z:
         mSlicePlane = PLANE_Z;
         mIsModified = true;
+        break;
+    case Qt::Key_Plus:
+        mScale = mScale*1.5;
+        glViewport(0,0,mWidth*mScale,mHeight*mScale);
+        break;
+    case Qt::Key_Minus:
+        mScale = mScale/1.5;
+        glViewport(0,0,mWidth*mScale,mHeight*mScale);
         break;
     }
 }
