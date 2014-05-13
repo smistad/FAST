@@ -1,5 +1,6 @@
 #include "DeviceManager.hpp"
 #include "OpenCLManager.hpp"
+#include "Exception.hpp"
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
@@ -104,6 +105,8 @@ OpenCLDevice::pointer DeviceManager::getOneGPUDevice(
     criteria.setTypeCriteria(oul::DEVICE_TYPE_GPU);
     criteria.setDeviceCountCriteria(1);
     std::vector<OpenCLDevice::pointer> devices = getDevices(criteria,enableVisualization);
+	if(devices.size() == 0)
+		throw Exception("No compatible OpenCL devices found");
     return devices[0];
 }
 
@@ -121,6 +124,8 @@ OpenCLDevice::pointer DeviceManager::getOneOpenCLDevice(
     } else {
         criteria.setTypeCriteria(oul::DEVICE_TYPE_ANY);
         std::vector<OpenCLDevice::pointer> devices = getDevices(criteria,enableVisualization);
+		if(devices.size() == 0)
+			throw Exception("No compatible OpenCL devices found");
         return devices[0];
     }
 }
@@ -131,6 +136,8 @@ OpenCLDevice::pointer DeviceManager::getOneCPUDevice(
     criteria.setTypeCriteria(oul::DEVICE_TYPE_CPU);
     criteria.setDeviceCountCriteria(1);
     std::vector<OpenCLDevice::pointer> devices = getDevices(criteria,enableVisualization);
+	if(devices.size() == 0)
+		throw Exception("No compatible OpenCL devices found");
     return devices[0];
 }
 
