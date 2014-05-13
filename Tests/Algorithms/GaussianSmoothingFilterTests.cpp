@@ -47,8 +47,8 @@ TEST_CASE("Correct output with small 3x3 2D image as input to GaussianSmoothingF
     data = (float*)access.get();
 
     bool success = true;
-    for(unsigned int x = 0; x < 3; x++) {
-    for(unsigned int y = 0; y < 3; y++) {
+    for(int x = 0; x < 3; x++) {
+    for(int y = 0; y < 3; y++) {
         float truth;
         unsigned int distance = abs(x-1)+abs(y-1);
         if(distance == 2) {
@@ -88,8 +88,8 @@ TEST_CASE("Correct output with small 3x3 2D image as input to GaussianSmoothingF
     data = (float*)access.get();
 
     bool success = true;
-    for(unsigned int x = 0; x < 3; x++) {
-    for(unsigned int y = 0; y < 3; y++) {
+    for(int x = 0; x < 3; x++) {
+    for(int y = 0; y < 3; y++) {
         float truth;
         unsigned int distance = abs(x-1)+abs(y-1);
         if(distance == 2) {
@@ -131,9 +131,9 @@ TEST_CASE("Correct output with small 3x3 3D image as input to GaussianSmoothingF
     data = (float*)access.get();
 
     bool success = true;
-    for(unsigned int x = 0; x < 3; x++) {
-    for(unsigned int y = 0; y < 3; y++) {
-    for(unsigned int z = 0; z < 3; z++) {
+    for(int x = 0; x < 3; x++) {
+    for(int y = 0; y < 3; y++) {
+    for(int z = 0; z < 3; z++) {
         float truth;
         unsigned int distance = abs(x-1)+abs(y-1)+abs(z-1);
         if(distance == 3) {
@@ -175,9 +175,9 @@ TEST_CASE("Correct output with small 3x3 3D image as input to GaussianSmoothingF
     data = (float*)access.get();
 
     bool success = true;
-    for(unsigned int x = 0; x < 3; x++) {
-    for(unsigned int y = 0; y < 3; y++) {
-    for(unsigned int z = 0; z < 3; z++) {
+    for(int x = 0; x < 3; x++) {
+    for(int y = 0; y < 3; y++) {
+    for(int z = 0; z < 3; z++) {
         float truth;
         unsigned int distance = abs(x-1)+abs(y-1)+abs(z-1);
         if(distance == 3) {
