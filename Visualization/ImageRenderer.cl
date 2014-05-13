@@ -17,8 +17,7 @@ __kernel void renderToTexture(
 #else
     float value = read_imagei(image, sampler, (int2)(x,y)).x;
 #endif
-    //printf("value: %f\n", value);
-    value = (value - level + window*0.5f) / window;
+    value = (value - level + window/2) / window;
     value = clamp(value, 0.0f, 1.0f);
     write_imagef(texture, (int2)(x,get_global_size(1)-y-1), (float4)(value,value,value,1.0));
 }
