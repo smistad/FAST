@@ -18,11 +18,13 @@ class View : public QGLWidget, public ProcessObject {
         void mouseMoveEvent(QMouseEvent* event);
         void mousePressEvent(QMouseEvent* event);
         void mouseReleaseEvent(QMouseEvent* event);
+        void setMaximumFramerate(unsigned int framerate);
     private:
         View();
         std::vector<Renderer::pointer> mRenderers;
         void execute();
         QTimer* timer;
+        unsigned int mFramerate;
 
     protected:
         void initializeGL();

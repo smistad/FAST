@@ -21,11 +21,22 @@ void View::addRenderer(Renderer::pointer renderer) {
 }
 
 View::View() {
+    mFramerate = 25;
     // Set up a timer that will call update on this object at a regular interval
     timer = new QTimer(this);
-    timer->start(50); // in milliseconds
+    timer->start(1000/mFramerate); // in milliseconds
     timer->setSingleShot(false);
     connect(timer,SIGNAL(timeout()),this,SLOT(update()));
+}
+
+void View::setMaximumFramerate(unsigned int framerate) {
+    if(framerate == 0)
+        throw Exception("Framerate cannot be 0.");
+
+    mFramerate = framerate;
+    timer->stop();
+    timer->start(1000/mFramerate); // in milliseconds
+    timer->setSingleShot(false);
 }
 
 void View::execute() {

@@ -13,13 +13,12 @@ class SimpleWindow : public QWidget, public Object {
     FAST_OBJECT(SimpleWindow)
     public:
         void addRenderer(Renderer::pointer renderer);
-        void setMaximumFramerate(unsigned char framerate);
+        void setMaximumFramerate(unsigned int framerate);
         void runMainLoop();
         void setWindowSize(unsigned int w, unsigned int h);
     private:
         SimpleWindow();
         View::pointer mView;
-        unsigned char mFramerate;
     protected:
         void keyPressEvent(QKeyEvent* event);
         void mouseMoveEvent(QMouseEvent* event);

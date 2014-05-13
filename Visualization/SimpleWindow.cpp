@@ -7,12 +7,11 @@ void SimpleWindow::addRenderer(Renderer::pointer renderer) {
     mView->addRenderer(renderer);
 }
 
-void SimpleWindow::setMaximumFramerate(unsigned char framerate) {
-    mFramerate = framerate;
+void SimpleWindow::setMaximumFramerate(unsigned int framerate) {
+    mView->setMaximumFramerate(framerate);
 }
 
 SimpleWindow::SimpleWindow() {
-    mFramerate = 25;
     mView = View::New();
 
     QHBoxLayout *mainLayout = new QHBoxLayout;
