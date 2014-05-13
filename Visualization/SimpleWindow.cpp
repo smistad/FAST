@@ -12,19 +12,26 @@ void SimpleWindow::setMaximumFramerate(unsigned int framerate) {
 }
 
 SimpleWindow::SimpleWindow() {
+    // Create some dummy argc and argv options as QApplication requires it
+    int* argc = new int[1];
+    *argc = 1;
+    char * argv = "asd";
+    QApplication* app = new QApplication(*argc,&argv);
+
+    mWidget = new QWidget;
     mView = View::New();
 
     QHBoxLayout* mainLayout = new QHBoxLayout;
     mainLayout->addWidget(mView.getPtr().get());
-    setLayout(mainLayout);
-    setWindowTitle("FAST");
-    setContentsMargins(0, 0, 0, 0);
+    mWidget->setLayout(mainLayout);
+    mWidget->setWindowTitle("FAST");
+    mWidget->setContentsMargins(0, 0, 0, 0);
     mainLayout->setContentsMargins(0, 0, 0, 0);
     setWindowSize(512,512); // default window size
 }
 
 void SimpleWindow::runMainLoop() {
-    show();
+    mWidget->show();
     QApplication::exec();
 }
 
@@ -45,6 +52,6 @@ void SimpleWindow::mouseReleaseEvent(QMouseEvent* event) {
 }
 
 void SimpleWindow::setWindowSize(unsigned int w, unsigned int h) {
-    this->resize(w,h);
+    mWidget->resize(w,h);
     mView->resize(w,h);
 }

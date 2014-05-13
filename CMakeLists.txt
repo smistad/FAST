@@ -94,7 +94,7 @@ include_directories(
 
 # Headers for Qt objects
 set(HEADERS 
-    Visualization/SimpleWindow.hpp
+    #Visualization/SimpleWindow.hpp
     Visualization/View.hpp
 )
 

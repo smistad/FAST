@@ -8,8 +8,7 @@
 
 namespace fast {
 
-class SimpleWindow : private QWidget, public Object {
-    Q_OBJECT
+class SimpleWindow : public Object {
     FAST_OBJECT(SimpleWindow)
     public:
         void addRenderer(Renderer::pointer renderer);
@@ -19,12 +18,14 @@ class SimpleWindow : private QWidget, public Object {
     private:
         SimpleWindow();
         View::pointer mView;
+        QWidget* mWidget;
     protected:
         void keyPressEvent(QKeyEvent* event);
         void mouseMoveEvent(QMouseEvent* event);
         void mousePressEvent(QMouseEvent* event);
         void mouseReleaseEvent(QMouseEvent* event);
 };
+
 
 } // end namespace fast
 

@@ -45,8 +45,6 @@ int main(int argc, char ** argv) {
 
 
     // Example of displaying an image on screen using ImageRenderer (2D) and SimpleWindow
-    // TODO The QApplication part should ideally be hid away
-    QApplication app(argc,argv);
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->setInput(filteredImage);
     SimpleWindow::pointer window = SimpleWindow::New();
@@ -110,12 +108,12 @@ int main(int argc, char ** argv) {
     DynamicImage::pointer asd = filter4->getOutput();
     //asd->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
-    SliceRenderer::pointer renderer = SliceRenderer::New();
-    renderer->setInput(filter4->getOutput());
-    renderer->enableRuntimeMeasurements();
-    SimpleWindow::pointer window = SimpleWindow::New();
-    window->addRenderer(renderer);
-    window->runMainLoop();
+    SliceRenderer::pointer renderer2 = SliceRenderer::New();
+    renderer2->setInput(filter4->getOutput());
+    renderer2->enableRuntimeMeasurements();
+    SimpleWindow::pointer window2 = SimpleWindow::New();
+    window2->addRenderer(renderer2);
+    window2->runMainLoop();
 
     filter4->getRuntime()->print();
     renderer->getRuntime()->print();
