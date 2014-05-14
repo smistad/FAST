@@ -68,6 +68,8 @@ set(SOURCES
     Visualization/SliceRenderer/SliceRenderer.hpp
     Visualization/SurfaceRenderer/SurfaceRenderer.cpp
     Visualization/SurfaceRenderer/SurfaceRenderer.hpp
+    Visualization/VolumeRenderer/VolumeRenderer.cpp
+    Visualization/VolumeRenderer/VolumeRenderer.hpp
 )
 
 if(VTK_INTEROP)
@@ -97,6 +99,7 @@ include_directories(
     Visualization/ImageRenderer/
     Visualization/SliceRenderer/
     Visualization/SurfaceRenderer/
+    Visualization/VolumeRenderer/
 )
 
 # Headers for Qt objects
@@ -128,6 +131,7 @@ link_directories(${Boost_LIBRARY_DIRS})
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 find_package(GLEW REQUIRED)
 include_directories(${GLEW_INCLUDE_DIR})
+include_directories(${GLEW_INCLUDE_PATH})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
