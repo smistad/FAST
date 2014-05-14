@@ -66,6 +66,8 @@ set(SOURCES
     Visualization/SliceRenderer/SliceRenderer.hpp
     Visualization/SurfaceRenderer/SurfaceRenderer.cpp
     Visualization/SurfaceRenderer/SurfaceRenderer.hpp
+    Visualization/VolumeRenderer/VolumeRenderer.cpp
+    Visualization/VolumeRenderer/VolumeRenderer.hpp
 )
 
 if(VTK_INTEROP)
@@ -95,6 +97,7 @@ include_directories(
     Visualization/ImageRenderer/
     Visualization/SliceRenderer/
     Visualization/SurfaceRenderer/
+    Visualization/VolumeRenderer/
 )
 
 # Headers for Qt objects
