@@ -30,6 +30,11 @@ class SurfaceRenderer : public Renderer {
         //unsigned int windowWidth, windowHeight;
         float scalingFactorx, scalingFactory, scalingFactorz;
         float translationx, translationy, translationz;
+        unsigned int HPSize;
+        cl::Program program;
+        // HP
+        std::vector<cl::Image3D> images;
+        std::vector<cl::Buffer> buffers;
 };
 
 } // namespace fast

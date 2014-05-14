@@ -32,6 +32,7 @@ SurfaceRenderer::SurfaceRenderer() : Renderer() {
     rotationX = 0.0f;
     rotationY = 0.0f;
     mThreshold = 0.0f;
+    HPSize = 0;
 }
 
 unsigned int getRequiredHistogramPyramidSize(Image::pointer input) {
@@ -92,8 +93,6 @@ void SurfaceRenderer::execute() {
     const bool writingTo3DTextures = mDevice->getDevice().getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") != std::string::npos;
     cl::Context clContext = mDevice->getContext();
     const unsigned int SIZE = getRequiredHistogramPyramidSize(input);
-    std::vector<cl::Image3D> images;
-    std::vector<cl::Buffer> buffers;
     cl::Buffer cubeIndexesBuffer;
     cl::Image3D cubeIndexesImage;
     float spacingX = 0.3, spacingY = 0.24, spacingZ = 0.43;
@@ -105,63 +104,68 @@ void SurfaceRenderer::execute() {
     translationy = -(float)input->getHeight()/2.0f;
     translationz = -(float)input->getDepth()/2.0f;
 
+    if(HPSize != SIZE) {
+        // Have to recreate the HP
+        std::cout << "creating HP" << std::endl;
+        images.clear();
+        buffers.clear();
+        // create new HP (if necessary)
+        if(writingTo3DTextures) {
+            // Create images for the HistogramPyramid
+            int bufferSize = SIZE;
 
-
-    std::cout << "creating HP" << std::endl;
-    // create new HP (if necessary)
-    if(writingTo3DTextures) {
-        // Create images for the HistogramPyramid
-        int bufferSize = SIZE;
-
-        // Make the two first buffers use INT8
-        images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_RGBA, CL_UNSIGNED_INT8), bufferSize, bufferSize, bufferSize));
-        bufferSize /= 2;
-        images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_UNSIGNED_INT8), bufferSize, bufferSize, bufferSize));
-        bufferSize /= 2;
-        // And the third, fourth and fifth INT16
-        images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_UNSIGNED_INT16), bufferSize, bufferSize, bufferSize));
-        bufferSize /= 2;
-        images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_UNSIGNED_INT16), bufferSize, bufferSize, bufferSize));
-        bufferSize /= 2;
-        images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_UNSIGNED_INT16), bufferSize, bufferSize, bufferSize));
-        bufferSize /= 2;
-        // The rest will use INT32
-        for(int i = 5; i < (log2((float)SIZE)); i ++) {
-            if(bufferSize == 1)
-                bufferSize = 2; // Image cant be 1x1x1
-            images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_UNSIGNED_INT32), bufferSize, bufferSize, bufferSize));
+            // Make the two first buffers use INT8
+            images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_RGBA, CL_UNSIGNED_INT8), bufferSize, bufferSize, bufferSize));
             bufferSize /= 2;
-        }
+            images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_UNSIGNED_INT8), bufferSize, bufferSize, bufferSize));
+            bufferSize /= 2;
+            // And the third, fourth and fifth INT16
+            images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_UNSIGNED_INT16), bufferSize, bufferSize, bufferSize));
+            bufferSize /= 2;
+            images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_UNSIGNED_INT16), bufferSize, bufferSize, bufferSize));
+            bufferSize /= 2;
+            images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_UNSIGNED_INT16), bufferSize, bufferSize, bufferSize));
+            bufferSize /= 2;
+            // The rest will use INT32
+            for(int i = 5; i < (log2((float)SIZE)); i ++) {
+                if(bufferSize == 1)
+                    bufferSize = 2; // Image cant be 1x1x1
+                images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_UNSIGNED_INT32), bufferSize, bufferSize, bufferSize));
+                bufferSize /= 2;
+            }
 
-        // If writing to 3D textures is not supported we to create buffers to write to
-   } else {
-        int bufferSize = SIZE*SIZE*SIZE;
-        buffers.push_back(cl::Buffer(clContext, CL_MEM_READ_WRITE, sizeof(char)*bufferSize));
-        bufferSize /= 8;
-        buffers.push_back(cl::Buffer(clContext, CL_MEM_READ_WRITE, sizeof(char)*bufferSize));
-        bufferSize /= 8;
-        buffers.push_back(cl::Buffer(clContext, CL_MEM_READ_WRITE, sizeof(short)*bufferSize));
-        bufferSize /= 8;
-        buffers.push_back(cl::Buffer(clContext, CL_MEM_READ_WRITE, sizeof(short)*bufferSize));
-        bufferSize /= 8;
-        buffers.push_back(cl::Buffer(clContext, CL_MEM_READ_WRITE, sizeof(short)*bufferSize));
-        bufferSize /= 8;
-        for(int i = 5; i < (log2((float)SIZE)); i ++) {
-            buffers.push_back(cl::Buffer(clContext, CL_MEM_READ_WRITE, sizeof(int)*bufferSize));
+            // If writing to 3D textures is not supported we to create buffers to write to
+       } else {
+            int bufferSize = SIZE*SIZE*SIZE;
+            buffers.push_back(cl::Buffer(clContext, CL_MEM_READ_WRITE, sizeof(char)*bufferSize));
             bufferSize /= 8;
-        }
+            buffers.push_back(cl::Buffer(clContext, CL_MEM_READ_WRITE, sizeof(char)*bufferSize));
+            bufferSize /= 8;
+            buffers.push_back(cl::Buffer(clContext, CL_MEM_READ_WRITE, sizeof(short)*bufferSize));
+            bufferSize /= 8;
+            buffers.push_back(cl::Buffer(clContext, CL_MEM_READ_WRITE, sizeof(short)*bufferSize));
+            bufferSize /= 8;
+            buffers.push_back(cl::Buffer(clContext, CL_MEM_READ_WRITE, sizeof(short)*bufferSize));
+            bufferSize /= 8;
+            for(int i = 5; i < (log2((float)SIZE)); i ++) {
+                buffers.push_back(cl::Buffer(clContext, CL_MEM_READ_WRITE, sizeof(int)*bufferSize));
+                bufferSize /= 8;
+            }
 
-        cubeIndexesBuffer = cl::Buffer(clContext, CL_MEM_WRITE_ONLY, sizeof(char)*SIZE*SIZE*SIZE);
-        cubeIndexesImage = cl::Image3D(clContext, CL_MEM_READ_ONLY,
-                cl::ImageFormat(CL_R, CL_UNSIGNED_INT8),
-                SIZE, SIZE, SIZE);
+            cubeIndexesBuffer = cl::Buffer(clContext, CL_MEM_WRITE_ONLY, sizeof(char)*SIZE*SIZE*SIZE);
+            cubeIndexesImage = cl::Image3D(clContext, CL_MEM_READ_ONLY,
+                    cl::ImageFormat(CL_R, CL_UNSIGNED_INT8),
+                    SIZE, SIZE, SIZE);
+        }
+        HPSize = SIZE;
+        char buffer[255];
+        sprintf(buffer,"-D SIZE=%d", SIZE);
+        std::string str(buffer);
+        int programNr = mDevice->createProgramFromSource(std::string(FAST_ROOT_DIR) + "/Visualization/SurfaceRenderer.cl", str);
+        program = mDevice->getProgram(programNr);
     }
 
-    char buffer[255];
-    sprintf(buffer,"-D SIZE=%d", SIZE);
-    std::string str(buffer);
-    int programNr = mDevice->createProgramFromSource(std::string(FAST_ROOT_DIR) + "/Visualization/SurfaceRenderer.cl", str);
-    cl::Program program = mDevice->getProgram(programNr);
+
 
     cl::Kernel constructHPLevelKernel = cl::Kernel(program, "constructHPLevel");
     cl::Kernel classifyCubesKernel = cl::Kernel(program, "classifyCubes");
@@ -401,8 +405,8 @@ void SurfaceRenderer::draw() {
     //reshape(windowWidth,windowHeight);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glViewport(0, 0, 512, 512);
-    gluPerspective(45.0f, (GLfloat)512/(GLfloat)512, 0.5f, 10.0f);
+    glViewport(0, 0, 512, 512); // TODO the width and height here has to come from an resize event
+    gluPerspective(45.0f, (GLfloat)512/(GLfloat)512, 0.1f, 10.0f);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
@@ -413,8 +417,6 @@ void SurfaceRenderer::draw() {
 
     glPushMatrix();
     glColor3f(1.0f, 1.0f, 1.0f);
-    std::cout << translationx << " " << translationy << " " << translationz << std::endl;
-    std::cout << scalingFactorx << " " << scalingFactory << " " << scalingFactorz << std::endl;
     glScalef(scalingFactorx, scalingFactory, scalingFactorz);
     glTranslatef(translationx, translationy, translationz);
 
@@ -453,16 +455,16 @@ void SurfaceRenderer::keyPressEvent(QKeyEvent* event) {
     break;
     //WASD movement
     case Qt::Key_W:
-        camZ -= 0.1f;
+        camZ -= 0.05f;
     break;
     case Qt::Key_S:
-        camZ += 0.1f;
+        camZ += 0.05f;
     break;
     case Qt::Key_A:
-        camX -= 0.1f;
+        camX -= 0.05f;
     break;
     case Qt::Key_D:
-        camX += 0.1f;
+        camX += 0.05f;
     break;
     }
 }
