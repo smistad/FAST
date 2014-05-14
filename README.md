@@ -9,6 +9,7 @@ These libraries have to be installed on the system to use FAST:
 
 * OpenCL
 * OpenGL
+* GLEW
 * Boost (modules needed: system, thread, iostreams and chrono)
 * Qt 4
 * ITK (Optional, off by default, use `-DITK_INTEROP=ON` on cmake to turn on)
@@ -33,6 +34,9 @@ sudo apt-get install libboost-system1.48-dev libboost-thread1.48-dev libboost-io
 
 # Install Qt 4
 sduo apt-get install libqt4-dev libqt4-opengl-dev
+
+# Install GLEW (in newer versions the package might be called just libglew-dev)
+sudo apt-get install libglew1.6-dev 
 
 # Install ITK (Optional)
 sudo apt-get install libinsighttoolkit3-dev
