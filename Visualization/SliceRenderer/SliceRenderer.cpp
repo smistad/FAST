@@ -11,14 +11,13 @@
 #if _WIN32
 #include <GL/gl.h>
 #include <CL/cl_gl.h>
+#ifndef GL_RGBA32F // this is missing on windows for some reason
+#define GL_RGBA32F 0x8814
+#endif
 #else
 #include <GL/glx.h>
 #include <CL/cl_gl.h>
 #endif
-#endif
-
-#ifndef GL_RGBA32F
-#define GL_RGBA32F 34838
 #endif
 
 using namespace fast;
