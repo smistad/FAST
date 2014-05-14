@@ -61,7 +61,6 @@ void View::resizeGL(int width, int height) {
 }
 
 void View::keyPressEvent(QKeyEvent* event) {
-    std::cout << "keyboard used" << std::endl;
     // Relay keyboard event info to renderers
     for(unsigned int i = 0; i < mRenderers.size(); i++) {
         mRenderers[i]->keyPressEvent(event);
@@ -69,7 +68,6 @@ void View::keyPressEvent(QKeyEvent* event) {
 }
 
 void View::mouseMoveEvent(QMouseEvent* event) {
-    std::cout << "mouse moved" << std::endl;
     // Relay mouse event info to renderers
     for(unsigned int i = 0; i < mRenderers.size(); i++) {
         mRenderers[i]->mouseMoveEvent(event, this);
@@ -77,7 +75,6 @@ void View::mouseMoveEvent(QMouseEvent* event) {
 }
 
 void View::mousePressEvent(QMouseEvent* event) {
-    std::cout << "mouse used" << std::endl;
     // Relay mouse event info to renderers
     for(unsigned int i = 0; i < mRenderers.size(); i++) {
         mRenderers[i]->mousePressEvent(event);

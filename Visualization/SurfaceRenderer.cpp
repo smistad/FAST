@@ -174,7 +174,6 @@ void SurfaceRenderer::execute() {
     OpenCLImageAccess3D access = input->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
     cl::Image3D* clImage = access.get();
 
-    std::cout << "updating scalar field" << std::endl;
     // update scalar field
     if(writingTo3DTextures) {
         classifyCubesKernel.setArg(0, images[0]);
@@ -214,7 +213,6 @@ void SurfaceRenderer::execute() {
     // Construct HP
     cl::CommandQueue queue = mDevice->getCommandQueue();
 
-    std::cout << "constructing HP" << std::endl;
     if(writingTo3DTextures) {
         // Run base to first level
         constructHPLevelKernel.setArg(0, images[0]);
@@ -321,7 +319,6 @@ void SurfaceRenderer::execute() {
         }
     }
 
-    std::cout << "retrieving sum" << std::endl;
     // Create VBO using the sum
     // Read top of histoPyramid an use this size to allocate VBO below
     int * sum = new int[8];
@@ -341,7 +338,6 @@ void SurfaceRenderer::execute() {
     }
     std::cout << "Sum of triangles is " << totalSum << std::endl;
 
-    std::cout << "creating VBO" << std::endl;
     if(mHasCreatedTriangles)
         glDeleteBuffers(1, &VBO_ID);
     // Create new VBO
@@ -351,7 +347,6 @@ void SurfaceRenderer::execute() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glFinish();
 
-    std::cout << "traverse HP" << std::endl;
     // Traverse HP to create triangles and put them in the VBO
     // Make OpenCL buffer from OpenGL buffer
     unsigned int i = 0;
@@ -400,7 +395,7 @@ void SurfaceRenderer::draw() {
     setOpenGLContext(mDevice->getGLContext());
 
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-    std::cout << "rendering " << totalSum << " triangles" << std::endl;
+    //std::cout << "rendering " << totalSum << " triangles" << std::endl;
     // Render VBO
     //reshape(windowWidth,windowHeight);
     glMatrixMode(GL_PROJECTION);
