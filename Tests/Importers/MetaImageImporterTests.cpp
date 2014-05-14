@@ -17,7 +17,7 @@ TEST_CASE("Import non-existing file to MetaImageImporter", "[fast][MetaImageImpo
 
 TEST_CASE("Import MetaImage file to host", "[fast][MetaImageImporter]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
-    importer->setFilename("/home/smistad/Patients/2013-08-22_10-36_Lab_4DTrack.cx3/US_Acq/US-Acq_01_20130822T111033/US-Acq_01_20130822T111033_ScanConverted_0.mhd");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_0.mhd");
     importer->setDevice(Host::New());
     Image::pointer image = importer->getOutput();
     image->update();
@@ -35,7 +35,7 @@ TEST_CASE("Import MetaImage file to OpenCL device", "[fast][MetaImageImporter]")
     OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
 
     MetaImageImporter::pointer importer = MetaImageImporter::New();
-    importer->setFilename("/home/smistad/Patients/2013-08-22_10-36_Lab_4DTrack.cx3/US_Acq/US-Acq_01_20130822T111033/US-Acq_01_20130822T111033_ScanConverted_0.mhd");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_0.mhd");
     importer->setDevice(device);
     Image::pointer image = importer->getOutput();
     image->update();

@@ -28,7 +28,7 @@ int main(int argc, char ** argv) {
 
     // Example of importing, processing and exporting a 2D image
     ImageImporter::pointer importer = ImageImporter::New();
-    importer->setFilename("lena.jpg");
+    importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/lena.jpg");
     GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
     filter->setInput(importer->getOutput());
     filter->setMaskSize(7);
@@ -54,7 +54,7 @@ int main(int argc, char ** argv) {
     window->runMainLoop();
     */
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
-    mhdStreamer->setFilenameFormat("/home/smistad/US-Acq_01_20130822T111033/US-Acq_01_20130822T111033_ScanConverted_#.mhd");
+    mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
     SurfaceRenderer::pointer surfaceRenderer = SurfaceRenderer::New();
     surfaceRenderer->setInput(mhdStreamer->getOutput());
     surfaceRenderer->setThreshold(200);
