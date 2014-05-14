@@ -3,19 +3,19 @@
 
 #include "Renderer.hpp"
 #include "ImageData.hpp"
-/*
+
 namespace fast {
 
-class SurfaceRenderer : public Renderer {
-    FAST_OBJECT(SurfaceRenderer)
+class VolumeRenderer : public Renderer {
+    FAST_OBJECT(VolumeRenderer)
     public:
         void setInput(ImageData::pointer image);
-        void setThreshold(float threshold);
-        void keyPressEvent(QKeyEvent* event);
-        void mouseMoveEvent(QMouseEvent* event, View* view);
-        void resizeEvent(QResizeEvent* event);
+        //void setThreshold(float threshold);
+        //void keyPressEvent(QKeyEvent* event);
+        //void mouseMoveEvent(QMouseEvent* event, View* view);
+        //void resizeEvent(QResizeEvent* event);
     private:
-        SurfaceRenderer();
+        VolumeRenderer();
         void execute();
         void draw();
 
@@ -43,6 +43,6 @@ class SurfaceRenderer : public Renderer {
 } // namespace fast
 
 
-*/
+
 
 #endif /* SURFACERENDERER_HPP_ */

@@ -1,6 +1,5 @@
-
 #include <GL/glew.h>
-#include "SurfaceRenderer.hpp"
+#include "VolumeRenderer.hpp"
 #include "Image.hpp"
 #include "DynamicImage.hpp"
 #include "HelperFunctions.hpp"
@@ -12,18 +11,19 @@
 
 namespace fast {
 
-void SurfaceRenderer::setInput(ImageData::pointer image) {
+void VolumeRenderer::setInput(ImageData::pointer image) {
     mInput = image;
     addParent(mInput);
     mIsModified = true;
 }
 
-void SurfaceRenderer::setThreshold(float threshold) {
+/*
+void VolumeRenderer::setThreshold(float threshold) {
     mThreshold = threshold;
     mIsModified = true;
 }
-
-SurfaceRenderer::SurfaceRenderer() : Renderer() {
+*/
+VolumeRenderer::VolumeRenderer() : Renderer() {
     mDevice = boost::static_pointer_cast<OpenCLDevice>(DeviceManager::getInstance().getDefaultVisualizationDevice());
     mHasCreatedTriangles = false;
     camX = 0.0f;
@@ -35,6 +35,9 @@ SurfaceRenderer::SurfaceRenderer() : Renderer() {
     HPSize = 0;
 }
 
+
+}
+/*
 unsigned int getRequiredHistogramPyramidSize(Image::pointer input) {
     unsigned int largestSize = std::max(std::max(input->getWidth(), input->getHeight()), input->getDepth());
     int i = 1;
@@ -485,3 +488,4 @@ void SurfaceRenderer::resizeEvent(QResizeEvent* event) {
 }
 
 } // namespace fast
+*/
