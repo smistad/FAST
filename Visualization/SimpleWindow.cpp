@@ -23,6 +23,8 @@ SimpleWindow::SimpleWindow() {
     // default window size
     mWidth = 512;
     mHeight = 512;
+
+    mTimeout = 0;
 }
 
 void SimpleWindow::runMainLoop() {
@@ -38,13 +40,22 @@ void SimpleWindow::runMainLoop() {
     mWidget->resize(mWidth,mHeight);
     mView->resize(mWidth,mHeight);
 
+    if(mTimeout > 0) {
+        QTimer* timer = new QTimer(mWidget);
+        timer->start(mTimeout);
+        timer->setSingleShot(true);
+        mWidget->connect(timer,SIGNAL(timeout()),mWidget,SLOT(close()));
+    }
+
     mWidget->show();
     QApplication::exec();
 }
 
-
-
 void SimpleWindow::setWindowSize(unsigned int w, unsigned int h) {
     mWidth = w;
     mHeight = h;
+}
+
+void SimpleWindow::setTimeout(unsigned int milliseconds) {
+    mTimeout = milliseconds;
 }
