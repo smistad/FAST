@@ -1,6 +1,7 @@
 #include "SimpleWindow.hpp"
 #include <QHBoxLayout>
 #include <QApplication>
+#include "WindowWidget.hpp"
 using namespace fast;
 
 void SimpleWindow::addRenderer(Renderer::pointer renderer) {
@@ -17,9 +18,16 @@ SimpleWindow::SimpleWindow() {
     *argc = 1;
     char * argv = "asd";
     QApplication* app = new QApplication(*argc,&argv);
-
-    mWidget = new QWidget;
     mView = View::New();
+
+    // default window size
+    mWidth = 512;
+    mHeight = 512;
+}
+
+void SimpleWindow::runMainLoop() {
+
+    mWidget = new WindowWidget(mView);
 
     QHBoxLayout* mainLayout = new QHBoxLayout;
     mainLayout->addWidget(mView.getPtr().get());
@@ -27,31 +35,16 @@ SimpleWindow::SimpleWindow() {
     mWidget->setWindowTitle("FAST");
     mWidget->setContentsMargins(0, 0, 0, 0);
     mainLayout->setContentsMargins(0, 0, 0, 0);
-    setWindowSize(512,512); // default window size
-}
+    mWidget->resize(mWidth,mHeight);
+    mView->resize(mWidth,mHeight);
 
-void SimpleWindow::runMainLoop() {
     mWidget->show();
     QApplication::exec();
 }
 
-void SimpleWindow::keyPressEvent(QKeyEvent* event) {
-    mView->keyPressEvent(event);
-}
 
-void SimpleWindow::mouseMoveEvent(QMouseEvent* event) {
-    mView->mouseMoveEvent(event);
-}
-
-void SimpleWindow::mousePressEvent(QMouseEvent* event) {
-    mView->mousePressEvent(event);
-}
-
-void SimpleWindow::mouseReleaseEvent(QMouseEvent* event) {
-    mView->mouseReleaseEvent(event);
-}
 
 void SimpleWindow::setWindowSize(unsigned int w, unsigned int h) {
-    mWidget->resize(w,h);
-    mView->resize(w,h);
+    mWidth = w;
+    mHeight = h;
 }

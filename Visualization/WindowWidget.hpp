@@ -1,0 +1,30 @@
+/*
+ * WindowWidget.hpp
+ *
+ *  Created on: May 14, 2014
+ *      Author: smistad
+ */
+
+#ifndef WINDOWWIDGET_HPP_
+#define WINDOWWIDGET_HPP_
+
+#include <QWidget>
+#include "View.hpp"
+
+namespace fast {
+
+class WindowWidget : public QWidget {
+    Q_OBJECT
+    public:
+        void keyPressEvent(QKeyEvent* event);
+        void mouseMoveEvent(QMouseEvent* event);
+        void mousePressEvent(QMouseEvent* event);
+        void mouseReleaseEvent(QMouseEvent* event);
+        WindowWidget(View::pointer view) : mView(view) {};
+    private:
+        View::pointer mView;
+};
+}; // end namespace fast
+
+
+#endif /* WINDOWWIDGET_HPP_ */

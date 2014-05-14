@@ -54,6 +54,8 @@ set(SOURCES
     Exporters/MetaImageExporter.hpp
     Visualization/SimpleWindow.cpp
     Visualization/SimpleWindow.hpp
+    Visualization/WindowWidget.cpp
+    Visualization/WindowWidget.hpp
     Visualization/View.cpp
     Visualization/View.hpp
     Visualization/Renderer.cpp
@@ -94,8 +96,8 @@ include_directories(
 
 # Headers for Qt objects
 set(HEADERS 
-    #Visualization/SimpleWindow.hpp
     Visualization/View.hpp
+    Visualization/WindowWidget.hpp
 )
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFAST_ROOT_DIR=\\\"${PROJECT_SOURCE_DIR}/\\\"")
@@ -105,15 +107,22 @@ add_subdirectory(OpenCLUtilityLibrary)
 find_package(OpenCLUtilityLibrary PATHS "${FAST_BINARY_DIR}/OpenCLUtilityLibrary" REQUIRED)
 include(${OpenCLUtilityLibrary_USE_FILE})
 
+## Qt
 set(QT_USE_QTOPENGL TRUE)
 find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 QT4_WRAP_CPP(HEADERS_MOC ${HEADERS})
 
+## Boost
 find_package(Boost COMPONENTS system thread iostreams REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS} ${PROJECT_BINARY_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
+
+## GLEW
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
+find_package(GLEW REQUIRED)
+include_directories(${GLEW_INCLUDE_DIR})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
@@ -124,6 +133,7 @@ set(LIBRARIES
     OpenCLUtilityLibrary
     ${QT_LIBRARIES}
     ${Boost_LIBRARIES}
+    ${GLEW_LIBRARY}
 )
 
 if(VTK_INTEROP)

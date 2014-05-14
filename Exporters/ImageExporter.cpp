@@ -1,7 +1,7 @@
 #include "ImageExporter.hpp"
 #include <QImage>
 #include "Exception.hpp"
-using namespace fast;
+namespace fast {
 
 double round(double number) {
 	return number < 0.0 ? ceil(number-0.5) : floor(number + 0.5);
@@ -76,3 +76,5 @@ void ImageExporter::execute() {
     image.save(QString(mFilename.c_str()));
 
 }
+
+}; // end namespace fast

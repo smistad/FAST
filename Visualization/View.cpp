@@ -54,6 +54,7 @@ void View::paintGL() {
         mRenderers[i]->update();
         mRenderers[i]->draw();
     }
+    //swapBuffers();
 }
 
 void View::resizeGL(int width, int height) {

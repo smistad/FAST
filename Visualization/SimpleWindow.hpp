@@ -4,7 +4,7 @@
 #include "Object.hpp"
 #include "View.hpp"
 #include "Renderer.hpp"
-#include <QWidget>
+#include "WindowWidget.hpp"
 
 namespace fast {
 
@@ -18,12 +18,10 @@ class SimpleWindow : public Object {
     private:
         SimpleWindow();
         View::pointer mView;
-        QWidget* mWidget;
-    protected:
-        void keyPressEvent(QKeyEvent* event);
-        void mouseMoveEvent(QMouseEvent* event);
-        void mousePressEvent(QMouseEvent* event);
-        void mouseReleaseEvent(QMouseEvent* event);
+
+        WindowWidget* mWidget;
+
+        unsigned int mWidth, mHeight;
 };
 
 
