@@ -116,7 +116,7 @@ void SurfaceRenderer::execute() {
             int bufferSize = SIZE;
 
             // Make the two first buffers use INT8
-            images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_RGBA, CL_UNSIGNED_INT8), bufferSize, bufferSize, bufferSize));
+            images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_RGBA, CL_UNSIGNED_INT8), input->getWidth(), input->getHeight(), input->getDepth()));
             bufferSize /= 2;
             images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_UNSIGNED_INT8), bufferSize, bufferSize, bufferSize));
             bufferSize /= 2;
@@ -137,6 +137,7 @@ void SurfaceRenderer::execute() {
 
             // If writing to 3D textures is not supported we to create buffers to write to
        } else {
+            throw Exception("The Surface renderer does currently not support devices without 3d image write support");
             int bufferSize = SIZE*SIZE*SIZE;
             buffers.push_back(cl::Buffer(clContext, CL_MEM_READ_WRITE, sizeof(char)*bufferSize));
             bufferSize /= 8;
@@ -158,6 +159,8 @@ void SurfaceRenderer::execute() {
                     cl::ImageFormat(CL_R, CL_UNSIGNED_INT8),
                     SIZE, SIZE, SIZE);
         }
+
+        // Compile program
         HPSize = SIZE;
         char buffer[255];
         sprintf(buffer,"-D SIZE=%d", SIZE);
