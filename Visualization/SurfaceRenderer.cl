@@ -398,7 +398,7 @@ __kernel void traverseHP(
         __read_only image3d_t hp9,
         #endif
         __global float * VBOBuffer,
-        __private int isolevel,
+        __private float isolevel,
         __private int sum
         ) {
 
@@ -452,14 +452,13 @@ __kernel void traverseHP(
             );
 
         const int value0 = read_imagei(hp0, sampler, (int4)(point0.x, point0.y, point0.z, 0)).z;
-        const float diff = native_divide(
+        float diff = native_divide(
             (float)(isolevel-value0),
             (float)(read_imagei(hp0, sampler, (int4)(point1.x, point1.y, point1.z, 0)).z - value0));
 
         const float3 vertex = mix((float3)(point0.x, point0.y, point0.z), (float3)(point1.x, point1.y, point1.z), diff);
 
         const float3 normal = mix(forwardDifference0, forwardDifference1, diff);
-
 
         vstore3(vertex, target*6 + vertexNr*2, VBOBuffer);
         vstore3(normal, target*6 + vertexNr*2 + 1, VBOBuffer);
@@ -474,7 +473,7 @@ __constant uchar nrOfTriangles[256] = {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3,
 __kernel void classifyCubes(
         __write_only image3d_t histoPyramid,
         __read_only image3d_t rawData,
-        __private int isolevel
+        __private float isolevel
         ) {
     int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
 
@@ -490,6 +489,7 @@ __kernel void classifyCubes(
     ((read_imagei(rawData, sampler, pos + cubeOffsets[5]).x > isolevel) << 5) |
     ((read_imagei(rawData, sampler, pos + cubeOffsets[7]).x > isolevel) << 6) |
     ((read_imagei(rawData, sampler, pos + cubeOffsets[6]).x > isolevel) << 7);
+
 
     // Store number of triangles
     write_imageui(histoPyramid, pos, (uint4)(nrOfTriangles[cubeindex], cubeindex, first, 0));

@@ -11,6 +11,8 @@ class SurfaceRenderer : public Renderer {
     public:
         void setInput(ImageData::pointer image);
         void setThreshold(float threshold);
+        void keyPressEvent(QKeyEvent* event);
+        void mouseMoveEvent(QMouseEvent* event);
     private:
         SurfaceRenderer();
         void execute();
@@ -18,6 +20,16 @@ class SurfaceRenderer : public Renderer {
 
         OpenCLDevice::pointer mDevice;
         ImageData::pointer mInput;
+
+        float mThreshold;
+        GLuint VBO_ID;
+        bool mHasCreatedTriangles;
+        unsigned int totalSum;
+        float camX,camY,camZ;
+        float rotationX,rotationY;
+        //unsigned int windowWidth, windowHeight;
+        float scalingFactorx, scalingFactory, scalingFactorz;
+        float translationx, translationy, translationz;
 };
 
 } // namespace fast
