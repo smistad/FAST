@@ -16,8 +16,8 @@ SimpleWindow::SimpleWindow() {
     // Create some dummy argc and argv options as QApplication requires it
     int* argc = new int[1];
     *argc = 1;
-    char * argv = "asd";
-    QApplication* app = new QApplication(*argc,&argv);
+    const char * argv = "asd";
+    QApplication* app = new QApplication(*argc,(char**)&argv);
     mView = View::New();
 
     // default window size
