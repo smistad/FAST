@@ -3,6 +3,7 @@ using namespace fast;
 
 
 void WindowWidget::keyPressEvent(QKeyEvent* event) {
+    // Close window if user presses Q or escape
     switch(event->key()) {
     case Qt::Key_Q:
     case Qt::Key_Escape:
