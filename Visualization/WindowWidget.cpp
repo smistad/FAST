@@ -3,6 +3,12 @@ using namespace fast;
 
 
 void WindowWidget::keyPressEvent(QKeyEvent* event) {
+    switch(event->key()) {
+    case Qt::Key_Q:
+    case Qt::Key_Escape:
+        close();
+        break;
+    }
     mView->keyPressEvent(event);
 }
 
