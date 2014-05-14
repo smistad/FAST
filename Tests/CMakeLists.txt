@@ -17,6 +17,7 @@ set(EXECUTABLE_SOURCE_FILES
     Exporters/MetaImageExporterTests.cpp
     Streamers/MetaImageStreamerTests.cpp
     Visualization/SliceRendererTests.cpp
+    Visualization/SurfaceRendererTests.cpp
 )
 
 include_directories(
