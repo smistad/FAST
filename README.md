@@ -1,12 +1,13 @@
 FAST - Framework for Heterogeneous Medical Image Computing
 ==========================================================
 
-Apple currently not supported
+Apple is currently not supported.
 
-Test data
+Download and install test data
 ----------------------------------------------------------
 To be able to run all the tests you must download the public test data from:
-[http://www.idi.ntnu.no/~smistad/upload/FAST_Test_Data.zip](http://www.idi.ntnu.no/~smistad/upload/FAST_Test_Data.zip)
+
+[http://www.idi.ntnu.no/~smistad/FAST_Test_Data.zip](http://www.idi.ntnu.no/~smistad/FAST_Test_Data.zip)
 
 Extract the folder TestData into the FAST folder so that you have /somepath/FAST/TestData/.
 
