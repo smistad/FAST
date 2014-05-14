@@ -4,6 +4,7 @@
 #include "DynamicImage.hpp"
 #include "HelperFunctions.hpp"
 #include "DeviceManager.hpp"
+#include <QCursor>
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
@@ -470,6 +471,16 @@ void SurfaceRenderer::keyPressEvent(QKeyEvent* event) {
 }
 
 void SurfaceRenderer::mouseMoveEvent(QMouseEvent* event) {
+    int cx = 512/2;
+    int cy = 512/2;
+    int x = event->pos().x();
+    int y = event->pos().y();
+
+    int diffx=x-cx; //check the difference between the current x and the last x position
+    int diffy=y-cy; //check the difference between the current y and the last y position
+    rotationX += (float)diffy/2; //set the xrot to xrot with the addition of the difference in the y position
+    rotationY += (float)diffx/2;// set the xrot to yrot with the addition of the difference in the x position
+    QCursor::setPos(QPoint(cx,cy));
 }
 
 } // namespace fast
