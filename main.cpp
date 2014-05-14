@@ -8,6 +8,7 @@
 #include "SimpleWindow.hpp"
 #include "ImageRenderer.hpp"
 #include "SliceRenderer.hpp"
+#include "SurfaceRenderer.hpp"
 #include "MetaImageImporter.hpp"
 #include "MetaImageStreamer.hpp"
 #include "MetaImageExporter.hpp"
@@ -45,11 +46,23 @@ int main(int argc, char ** argv) {
 
 
     // Example of displaying an image on screen using ImageRenderer (2D) and SimpleWindow
+    /*
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->setInput(filteredImage);
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->runMainLoop();
+    */
+    MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
+    mhdStreamer->setFilenameFormat("/home/smistad/US-Acq_01_20130822T111033/US-Acq_01_20130822T111033_ScanConverted_#.mhd");
+    SurfaceRenderer::pointer surfaceRenderer = SurfaceRenderer::New();
+    surfaceRenderer->setInput(mhdStreamer->getOutput());
+    surfaceRenderer->setThreshold(200);
+    SimpleWindow::pointer window = SimpleWindow::New();
+    window->setMaximumFramerate(25);
+    window->addRenderer(surfaceRenderer);
+    window->runMainLoop();
+
 
     /*
     // Example of streaming 2D images

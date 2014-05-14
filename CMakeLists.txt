@@ -60,12 +60,12 @@ set(SOURCES
     Visualization/View.hpp
     Visualization/Renderer.cpp
     Visualization/Renderer.hpp
-    Visualization/ImageRenderer.cpp
-    Visualization/ImageRenderer.hpp
-    Visualization/SliceRenderer.cpp
-    Visualization/SliceRenderer.hpp
-    Visualization/SurfaceRenderer.cpp
-    Visualization/SurfaceRenderer.hpp
+    Visualization/ImageRenderer/ImageRenderer.cpp
+    Visualization/ImageRenderer/ImageRenderer.hpp
+    Visualization/SliceRenderer/SliceRenderer.cpp
+    Visualization/SliceRenderer/SliceRenderer.hpp
+    Visualization/SurfaceRenderer/SurfaceRenderer.cpp
+    Visualization/SurfaceRenderer/SurfaceRenderer.hpp
 )
 
 if(VTK_INTEROP)
@@ -92,6 +92,9 @@ include_directories(
     Algorithms/
     Data/Access/
     Visualization/
+    Visualization/ImageRenderer/
+    Visualization/SliceRenderer/
+    Visualization/SurfaceRenderer/
 )
 
 # Headers for Qt objects

@@ -163,7 +163,7 @@ void SurfaceRenderer::execute() {
         char buffer[255];
         sprintf(buffer,"-D SIZE=%d", SIZE);
         std::string str(buffer);
-        int programNr = mDevice->createProgramFromSource(std::string(FAST_ROOT_DIR) + "/Visualization/SurfaceRenderer.cl", str);
+        int programNr = mDevice->createProgramFromSource(std::string(FAST_ROOT_DIR) + "/Visualization/SurfaceRenderer/SurfaceRenderer.cl", str);
         program = mDevice->getProgram(programNr);
     }
 

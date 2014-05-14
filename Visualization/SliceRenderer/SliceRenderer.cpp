@@ -198,7 +198,7 @@ void SliceRenderer::recompileOpenCLCode(Image::pointer input) {
     } else {
         buildOptions = "-DTYPE_UINT";
     }
-    int i = mDevice->createProgramFromSource(std::string(FAST_ROOT_DIR) + "/Visualization/SliceRenderer.cl", buildOptions);
+    int i = mDevice->createProgramFromSource(std::string(FAST_ROOT_DIR) + "/Visualization/SliceRenderer/SliceRenderer.cl", buildOptions);
     mKernel = cl::Kernel(mDevice->getProgram(i), "renderToTexture");
     mTypeCLCodeCompiledFor = input->getDataType();
 }
