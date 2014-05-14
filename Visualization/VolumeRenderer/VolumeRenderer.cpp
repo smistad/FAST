@@ -8,6 +8,7 @@
 #include "View.hpp"
 #include <QCursor>
 
+/*
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
 namespace fast {
@@ -485,3 +486,5 @@ void SurfaceRenderer::resizeEvent(QResizeEvent* event) {
 }
 
 } // namespace fast
+
+*/
