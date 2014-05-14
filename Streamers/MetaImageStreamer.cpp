@@ -32,11 +32,15 @@ MetaImageStreamer::MetaImageStreamer() {
     mIsModified = true;
     thread = NULL;
     mFirstFrameIsInserted = false;
+    mHasReachedEnd = false;
+    mFilenameFormat = "";
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
 }
 
 
-inline void MetaImageStreamer::execute() {
+void MetaImageStreamer::execute() {
+    if(mFilenameFormat == "")
+        throw Exception("No filename format was given to the MetaImageStreamer");
     if(!mStreamIsStarted) {
         mStreamIsStarted = true;
         thread = new boost::thread(&stubStreamThread, this);
@@ -48,6 +52,8 @@ inline void MetaImageStreamer::execute() {
 }
 
 void MetaImageStreamer::setFilenameFormat(std::string str) {
+    if(str.find("#") == std::string::npos)
+        throw Exception("Filename format must include a hash tag # which will be replaced by a integer starting from 0.");
     mFilenameFormat = str;
 }
 
@@ -88,6 +94,7 @@ void MetaImageStreamer::producerStream() {
         } catch(FileNotFoundException &e) {
             if(i > 0) {
                 std::cout << "Reached end of stream" << std::endl;
+                mHasReachedEnd = true;
                 // Reached end of stream
                 break;
             } else {
@@ -98,8 +105,14 @@ void MetaImageStreamer::producerStream() {
 }
 
 MetaImageStreamer::~MetaImageStreamer() {
-    std::cout << "Joining the thread" << std::endl;
-    // TODO stop thread as well
-    thread->join();
-    delete thread;
+    if(mStreamIsStarted) {
+        std::cout << "Joining the thread" << std::endl;
+        // TODO stop thread as well
+        thread->join();
+        delete thread;
+    }
+}
+
+bool MetaImageStreamer::hasReachedEnd() const {
+    return mHasReachedEnd;
 }
