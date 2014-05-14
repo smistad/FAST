@@ -5,8 +5,12 @@
 #include "ProcessObject.hpp"
 #include <QKeyEvent>
 #include <QMouseEvent>
+#include <QResizeEvent>
+
 
 namespace fast {
+
+class View;
 
 class Renderer : public ProcessObject {
     public:
@@ -17,9 +21,10 @@ class Renderer : public ProcessObject {
         void setIntensityWindow(float window);
         float getIntensityWindow();
         virtual void keyPressEvent(QKeyEvent* event) {};
-        virtual void mouseMoveEvent(QMouseEvent* event) {};
+        virtual void mouseMoveEvent(QMouseEvent* event, View* view) {};
         virtual void mousePressEvent(QMouseEvent* event) {};
         virtual void mouseReleaseEvent(QMouseEvent* event) {};
+        virtual void resizeEvent(QResizeEvent* event) {};
     protected:
         Renderer();
         void setOpenGLContext(unsigned long* OpenGLContext);

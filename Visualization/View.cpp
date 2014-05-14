@@ -72,7 +72,7 @@ void View::mouseMoveEvent(QMouseEvent* event) {
     std::cout << "mouse moved" << std::endl;
     // Relay mouse event info to renderers
     for(unsigned int i = 0; i < mRenderers.size(); i++) {
-        mRenderers[i]->mouseMoveEvent(event);
+        mRenderers[i]->mouseMoveEvent(event, this);
     }
 }
 
@@ -88,5 +88,11 @@ void View::mouseReleaseEvent(QMouseEvent* event) {
     // Relay mouse event info to renderers
     for(unsigned int i = 0; i < mRenderers.size(); i++) {
         mRenderers[i]->mouseReleaseEvent(event);
+    }
+}
+void View::resizeEvent(QResizeEvent* event) {
+    // Relay mouse event info to renderers
+    for(unsigned int i = 0; i < mRenderers.size(); i++) {
+        mRenderers[i]->resizeEvent(event);
     }
 }

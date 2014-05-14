@@ -12,7 +12,8 @@ class SurfaceRenderer : public Renderer {
         void setInput(ImageData::pointer image);
         void setThreshold(float threshold);
         void keyPressEvent(QKeyEvent* event);
-        void mouseMoveEvent(QMouseEvent* event);
+        void mouseMoveEvent(QMouseEvent* event, View* view);
+        void resizeEvent(QResizeEvent* event);
     private:
         SurfaceRenderer();
         void execute();
@@ -35,6 +36,8 @@ class SurfaceRenderer : public Renderer {
         // HP
         std::vector<cl::Image3D> images;
         std::vector<cl::Buffer> buffers;
+
+        unsigned int mWidth, mHeight;
 };
 
 } // namespace fast

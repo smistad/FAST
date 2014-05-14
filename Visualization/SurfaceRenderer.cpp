@@ -4,6 +4,7 @@
 #include "DynamicImage.hpp"
 #include "HelperFunctions.hpp"
 #include "DeviceManager.hpp"
+#include "View.hpp"
 #include <QCursor>
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
@@ -23,9 +24,6 @@ void SurfaceRenderer::setThreshold(float threshold) {
 
 SurfaceRenderer::SurfaceRenderer() : Renderer() {
     mDevice = boost::static_pointer_cast<OpenCLDevice>(DeviceManager::getInstance().getDefaultVisualizationDevice());
-
-
-
     mHasCreatedTriangles = false;
     camX = 0.0f;
     camY = 0.0f;
@@ -168,8 +166,6 @@ void SurfaceRenderer::execute() {
         int programNr = mDevice->createProgramFromSource(std::string(FAST_ROOT_DIR) + "/Visualization/SurfaceRenderer.cl", str);
         program = mDevice->getProgram(programNr);
     }
-
-
 
     cl::Kernel constructHPLevelKernel = cl::Kernel(program, "constructHPLevel");
     cl::Kernel classifyCubesKernel = cl::Kernel(program, "classifyCubes");
@@ -409,8 +405,8 @@ void SurfaceRenderer::draw() {
     //reshape(windowWidth,windowHeight);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glViewport(0, 0, 512, 512); // TODO the width and height here has to come from an resize event
-    gluPerspective(45.0f, (GLfloat)512/(GLfloat)512, 0.1f, 10.0f);
+    glViewport(0, 0, mWidth, mHeight); // TODO the width and height here has to come from an resize event
+    gluPerspective(45.0f, (GLfloat)mWidth/(GLfloat)mHeight, 0.1f, 10.0f);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
@@ -473,9 +469,9 @@ void SurfaceRenderer::keyPressEvent(QKeyEvent* event) {
     }
 }
 
-void SurfaceRenderer::mouseMoveEvent(QMouseEvent* event) {
-    int cx = 512/2;
-    int cy = 512/2;
+void SurfaceRenderer::mouseMoveEvent(QMouseEvent* event, View* view) {
+    int cx = mWidth/2;
+    int cy = mHeight/2;
     int x = event->pos().x();
     int y = event->pos().y();
 
@@ -483,7 +479,13 @@ void SurfaceRenderer::mouseMoveEvent(QMouseEvent* event) {
     int diffy=y-cy; //check the difference between the current y and the last y position
     rotationX += (float)diffy/2; //set the xrot to xrot with the addition of the difference in the y position
     rotationY += (float)diffx/2;// set the xrot to yrot with the addition of the difference in the x position
-    QCursor::setPos(QPoint(cx,cy));
+    QCursor::setPos(view->mapToGlobal(QPoint(cx,cy)));
+}
+
+void SurfaceRenderer::resizeEvent(QResizeEvent* event) {
+    QSize size = event->size();
+    mWidth = size.width();
+    mHeight = size.height();
 }
 
 } // namespace fast
