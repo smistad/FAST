@@ -126,6 +126,7 @@ link_directories(${Boost_LIBRARY_DIRS})
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 find_package(GLEW REQUIRED)
 include_directories(${GLEW_INCLUDE_DIR})
+include_directories(${GLEW_INCLUDE_PATH})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
