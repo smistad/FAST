@@ -16,6 +16,11 @@ TEST_CASE("No hash tag in filename format given to MetaImageStreamer", "[fast][M
     CHECK_THROWS(mhdStreamer->setFilenameFormat("asd"));
 }
 
+TEST_CASE("Default streaming mode is NEWEST_FRAME_ONLY", "[fast][MetaImageStreamer]") {
+    MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
+    CHECK(mhdStreamer->getStreamingMode() == STREAMING_MODE_NEWEST_FRAME_ONLY);
+}
+
 /*
 // TODO fix this, will not work because it is another thread that throws the exception
 TEST_CASE("Wrong filename format given to MetaImageStreamer", "[fast][MetaImageStreamer]") {
@@ -27,9 +32,10 @@ TEST_CASE("Wrong filename format given to MetaImageStreamer", "[fast][MetaImageS
 }
 */
 
-TEST_CASE("MetaImageStreamer streaming to host with no streaming mode set", "[fast][MetaImageStreamer]") {
+TEST_CASE("MetaImageStreamer streaming to host with streaming mode NEWEST set", "[fast][MetaImageStreamer]") {
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
+    mhdStreamer->setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     mhdStreamer->setDevice(Host::New());
     DynamicImage::pointer image = mhdStreamer->getOutput();
     unsigned long currentTimestamp = image->getTimestamp();
@@ -42,7 +48,7 @@ TEST_CASE("MetaImageStreamer streaming to host with no streaming mode set", "[fa
             Image::pointer frame = image->getNextFrame();
         }
         // Must make this thread sleep a little so that streamer will get a chance to import data
-        boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+        boost::this_thread::sleep(boost::posix_time::milliseconds(20));
     }
     );
 }
@@ -63,7 +69,7 @@ TEST_CASE("MetaImageStreamer streaming to host with streaming mode PROCESS_ALL s
             Image::pointer frame = image->getNextFrame();
         }
         // Must make this thread sleep a little so that streamer will get a chance to import data
-        boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+        boost::this_thread::sleep(boost::posix_time::milliseconds(20));
     }
     );
 }
@@ -84,15 +90,16 @@ TEST_CASE("MetaImageStreamer streaming to host with streaming mode STORE_ALL set
             Image::pointer frame = image->getNextFrame();
         }
         // Must make this thread sleep a little so that streamer will get a chance to import data
-        boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+        boost::this_thread::sleep(boost::posix_time::milliseconds(20));
     }
     );
 }
 
-TEST_CASE("MetaImageStreamer streaming to OpenCL device with no streaming mode set", "[fast][MetaImageStreamer]") {
+TEST_CASE("MetaImageStreamer streaming to OpenCL device with streaming mode NEWEST set", "[fast][MetaImageStreamer]") {
     DeviceManager& deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
+    mhdStreamer->setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setDevice(device);
     DynamicImage::pointer image = mhdStreamer->getOutput();
@@ -106,7 +113,7 @@ TEST_CASE("MetaImageStreamer streaming to OpenCL device with no streaming mode s
             Image::pointer frame = image->getNextFrame();
         }
         // Must make this thread sleep a little so that streamer will get a chance to import data
-        boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+        boost::this_thread::sleep(boost::posix_time::milliseconds(20));
     }
     );
 }
@@ -129,7 +136,7 @@ TEST_CASE("MetaImageStreamer streaming to OpenCL device with streaming mode PROC
             Image::pointer frame = image->getNextFrame();
         }
         // Must make this thread sleep a little so that streamer will get a chance to import data
-        boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+        boost::this_thread::sleep(boost::posix_time::milliseconds(20));
     }
     );
 }
@@ -152,7 +159,7 @@ TEST_CASE("MetaImageStreamer streaming to OpenCL device with streaming mode STOR
             Image::pointer frame = image->getNextFrame();
         }
         // Must make this thread sleep a little so that streamer will get a chance to import data
-        boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+        boost::this_thread::sleep(boost::posix_time::milliseconds(20));
     }
     );
 }
