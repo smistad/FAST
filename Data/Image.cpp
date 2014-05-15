@@ -452,6 +452,9 @@ Image::Image() {
     mHostDataIsBeingAccessed = false;
     mIsDynamicData = false;
     mImageIsBeingWrittenTo = false;
+    mSpacing[0] = 1;
+    mSpacing[1] = 1;
+    mSpacing[2] = 1;
 }
 
 ImageAccess Image::getImageAccess(accessType type) {

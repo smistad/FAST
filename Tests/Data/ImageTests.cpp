@@ -22,6 +22,9 @@ TEST_CASE("Create a 2D image on host", "[fast][image]") {
     CHECK(image->getNrOfComponents() == nrOfComponents);
     CHECK(image->getDataType() == type);
     CHECK(image->getDimensions() == 2);
+    CHECK(image->getSpacing().x() == Approx(1));
+    CHECK(image->getSpacing().y() == Approx(1));
+    CHECK(image->getSpacing().z() == Approx(1));
 }
 
 TEST_CASE("Create a 3D image on host", "[fast][image]") {
@@ -40,6 +43,9 @@ TEST_CASE("Create a 3D image on host", "[fast][image]") {
     CHECK(image->getNrOfComponents() == nrOfComponents);
     CHECK(image->getDataType() == type);
     CHECK(image->getDimensions() == 3);
+    CHECK(image->getSpacing().x() == Approx(1));
+    CHECK(image->getSpacing().y() == Approx(1));
+    CHECK(image->getSpacing().z() == Approx(1));
 }
 
 TEST_CASE("Create a 2D image on an OpenCL device", "[fast][image]") {
