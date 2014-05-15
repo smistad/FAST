@@ -11,6 +11,7 @@ set(EXECUTABLE_SOURCE_FILES
     DataObjectTests.cpp
     Algorithms/GaussianSmoothingFilterTests.cpp
     Data/ImageTests.cpp
+    Data/DynamicImageTests.cpp
     Importers/ImageImporterTests.cpp
     Exporters/ImageExporterTests.cpp
     Importers/MetaImageImporterTests.cpp

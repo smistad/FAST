@@ -5,13 +5,13 @@ Image::pointer DynamicImage::getNextFrame() {
     mStreamMutex.lock();
 
     // Check if no frames are available
-    if(mFrames.size() == 0) {
+    if(mFrames.size() == 0 || mFrames.size() <= mCurrentFrame) {
         if(mStreamer.lock()->hasReachedEnd()) {
             mStreamMutex.unlock();
             throw Exception("Streamer has reached the end.");
         } else {
             mStreamMutex.unlock();
-            throw Exception("This exception should not have occured. There is a bug somewhere in the streamer or dynamic image objects.");
+            throw Exception("This exception should not have occured. There is a bug somewhere in which getNextFrame is called more than once for the same timestamp.");
         }
     }
 
@@ -59,6 +59,8 @@ Image::pointer DynamicImage::getNextFrame() {
 }
 
 void DynamicImage::addFrame(Image::pointer frame) {
+    if(!mStreamer.lock().isValid())
+        throw Exception("A DynamicImage must have a streamer set before it can be used.");
     mStreamMutex.lock();
     updateModifiedTimestamp();
     if(mStreamer.lock()->getStreamingMode() == STREAMING_MODE_NEWEST_FRAME_ONLY) {
