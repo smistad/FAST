@@ -12,7 +12,7 @@ class SliceRenderer : public Renderer {
     FAST_OBJECT(SliceRenderer)
     public:
         void setInput(ImageData::pointer image);
-        void setSliceToRender(int sliceNr);
+        void setSliceToRender(unsigned int sliceNr);
         void setSlicePlane(PlaneType plane);
         void keyPressEvent(QKeyEvent* event);
     private:
@@ -34,7 +34,7 @@ class SliceRenderer : public Renderer {
         cl::Kernel mKernel;
         DataType mTypeCLCodeCompiledFor;
 
-        int mSliceNr;
+        unsigned int mSliceNr;
         PlaneType mSlicePlane;
 
         float mScale;

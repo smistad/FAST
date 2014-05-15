@@ -213,8 +213,6 @@ SliceRenderer::SliceRenderer() : Renderer() {
 }
 
 void SliceRenderer::draw() {
-    std::cout << "calling draw()" << std::endl;
-
     if(!mTextureIsCreated)
         return;
 
@@ -236,7 +234,7 @@ void SliceRenderer::draw() {
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void SliceRenderer::setSliceToRender(int sliceNr) {
+void SliceRenderer::setSliceToRender(unsigned int sliceNr) {
     mSliceNr = sliceNr;
     mIsModified = true;
 }
