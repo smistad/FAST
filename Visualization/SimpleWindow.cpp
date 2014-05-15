@@ -17,7 +17,7 @@ SimpleWindow::SimpleWindow() {
     int* argc = new int[1];
     *argc = 1;
     const char * argv = "asd";
-    QApplication* app = new QApplication(*argc,(char**)&argv);
+    mApp = new QApplication(*argc,(char**)&argv);
     mView = View::New();
 
     // default window size
@@ -49,6 +49,8 @@ void SimpleWindow::runMainLoop() {
 
     mWidget->show();
     QApplication::exec();
+    // TODO because we are deleting the QApplication after it has been created runMainLoop can not be called more than once
+    delete mApp;
 }
 
 void SimpleWindow::setWindowSize(unsigned int w, unsigned int h) {
