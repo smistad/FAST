@@ -153,6 +153,8 @@ ImageRenderer::ImageRenderer() : Renderer() {
     mTextureIsCreated = false;
     mIsModified = true;
     mScale = 1.0f;
+    mWidth = 0;
+    mHeight = 0;
 }
 
 void ImageRenderer::draw() {
