@@ -10,7 +10,9 @@ class DummyStreamer : public Streamer {
     public:
         void producerStream() {};
         bool hasReachedEnd() const {return mHasReachedEnd;};
+        void setReachedEnd() {mHasReachedEnd = true;};
     private:
+        DummyStreamer() : mHasReachedEnd(false) {};
         void execute() {};
         bool mHasReachedEnd;
 
@@ -21,13 +23,13 @@ class DummyStreamer : public Streamer {
 TEST_CASE("New dynamic image has size 0 and has not reached end", "[fast][DynamicImage]") {
     DynamicImage::pointer image = DynamicImage::New();
     CHECK(image->getSize() == 0);
-    CHECK(image->hasReachedEnd() == false);
 }
 
 TEST_CASE("Dynamic image must have streamer set before it can be used", "[fast][DynamicImage]") {
     DynamicImage::pointer image = DynamicImage::New();
     Image::pointer frame = Image::New();
     CHECK_THROWS(image->addFrame(frame));
+    CHECK_THROWS(image->hasReachedEnd());
 }
 
 TEST_CASE("Dynamic image can get and set streamer", "[fast][DynamicImage]") {
@@ -231,5 +233,154 @@ TEST_CASE("Dynamic image with streaming mode STORE_ALL throws exception when all
     CHECK_THROWS(image->getNextFrame());
 }
 
-// TODO test that hasReachedEnd works and test that timestamp is updated properly with getNextFrame
+TEST_CASE("Dynamic image with streaming mode NEWEST_FRAME_ONLY does not update timestamp after getNextFrame is called", "[fast][DynamicImage]") {
+    DynamicImage::pointer image = DynamicImage::New();
+    DummyStreamer::pointer streamer = DummyStreamer::New();
+    streamer->setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
+    image->setStreamer(streamer);
 
+    Image::pointer frame1 = Image::New();
+    Image::pointer frame2 = Image::New();
+    image->addFrame(frame1);
+    image->addFrame(frame2);
+    unsigned long timestamp = image->getTimestamp();
+    image->getNextFrame();
+    CHECK(image->getTimestamp() == timestamp);
+    image->getNextFrame();
+    CHECK(image->getTimestamp() == timestamp);
+}
+
+TEST_CASE("Dynamic image with streaming mode PROCESS_ALL does update timestamp after getNextFrame is called and there is more than one frame left", "[fast][DynamicImage]") {
+    DynamicImage::pointer image = DynamicImage::New();
+    DummyStreamer::pointer streamer = DummyStreamer::New();
+    streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+    image->setStreamer(streamer);
+
+    Image::pointer frame1 = Image::New();
+    Image::pointer frame2 = Image::New();
+    Image::pointer frame3 = Image::New();
+    image->addFrame(frame1);
+    image->addFrame(frame2);
+    image->addFrame(frame3);
+    unsigned long timestamp = image->getTimestamp();
+    image->getNextFrame();
+    CHECK(image->getTimestamp() != timestamp);
+    timestamp = image->getTimestamp();
+    image->getNextFrame();
+    CHECK(image->getTimestamp() != timestamp);
+    timestamp = image->getTimestamp();
+    image->getNextFrame();
+    CHECK(image->getTimestamp() == timestamp);
+}
+
+TEST_CASE("Dynamic image with streaming mode STORE_ALL does update timestamp after getNextFrame is called and it has not reached the end", "[fast][DynamicImage]") {
+    DynamicImage::pointer image = DynamicImage::New();
+    DummyStreamer::pointer streamer = DummyStreamer::New();
+    streamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
+    image->setStreamer(streamer);
+
+    Image::pointer frame1 = Image::New();
+    Image::pointer frame2 = Image::New();
+    Image::pointer frame3 = Image::New();
+    image->addFrame(frame1);
+    image->addFrame(frame2);
+    image->addFrame(frame3);
+    unsigned long timestamp = image->getTimestamp();
+    image->getNextFrame();
+    CHECK(image->getTimestamp() != timestamp);
+    timestamp = image->getTimestamp();
+    image->getNextFrame();
+    CHECK(image->getTimestamp() != timestamp);
+    timestamp = image->getTimestamp();
+    image->getNextFrame();
+    CHECK(image->getTimestamp() == timestamp);
+}
+
+TEST_CASE("Dynamic image with streaming mode NEWEST_FRAME_ONLY is marked as has reached end when streamer is marked as has reached end", "[fast][DynamicImage]") {
+    DynamicImage::pointer image = DynamicImage::New();
+    DummyStreamer::pointer streamer = DummyStreamer::New();
+    streamer->setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
+    image->setStreamer(streamer);
+
+    CHECK(image->hasReachedEnd() == false);
+    streamer->setReachedEnd();
+    CHECK(image->hasReachedEnd() == true);
+}
+
+TEST_CASE("Dynamic image with streaming mode PROCESS_ALL is marked as has reached end when streamer is marked as has reached end and there are no more frames left", "[fast][DynamicImage]") {
+    {
+        DynamicImage::pointer image = DynamicImage::New();
+        DummyStreamer::pointer streamer = DummyStreamer::New();
+        streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+        image->setStreamer(streamer);
+
+        Image::pointer frame1 = Image::New();
+        Image::pointer frame2 = Image::New();
+        image->addFrame(frame1);
+        image->addFrame(frame2);
+        CHECK(image->hasReachedEnd() == false);
+        streamer->setReachedEnd();
+        CHECK(image->hasReachedEnd() == false);
+        image->getNextFrame();
+        CHECK(image->hasReachedEnd() == false);
+        image->getNextFrame();
+        CHECK(image->hasReachedEnd() == true);
+    }
+    {
+        DynamicImage::pointer image = DynamicImage::New();
+        DummyStreamer::pointer streamer = DummyStreamer::New();
+        streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+        image->setStreamer(streamer);
+
+        Image::pointer frame1 = Image::New();
+        Image::pointer frame2 = Image::New();
+        image->addFrame(frame1);
+        image->addFrame(frame2);
+        CHECK(image->hasReachedEnd() == false);
+        image->getNextFrame();
+        CHECK(image->hasReachedEnd() == false);
+        image->getNextFrame();
+        CHECK(image->hasReachedEnd() == false);
+        streamer->setReachedEnd();
+        CHECK(image->hasReachedEnd() == true);
+    }
+}
+
+TEST_CASE("Dynamic image with streaming mode STORE_ALL is marked as has reached end when streamer is marked as has reached end and there are no more frames left", "[fast][DynamicImage]") {
+    {
+        DynamicImage::pointer image = DynamicImage::New();
+        DummyStreamer::pointer streamer = DummyStreamer::New();
+        streamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
+        image->setStreamer(streamer);
+
+        Image::pointer frame1 = Image::New();
+        Image::pointer frame2 = Image::New();
+        image->addFrame(frame1);
+        image->addFrame(frame2);
+        CHECK(image->hasReachedEnd() == false);
+        streamer->setReachedEnd();
+        CHECK(image->hasReachedEnd() == false);
+        image->getNextFrame();
+        CHECK(image->hasReachedEnd() == false);
+        image->getNextFrame();
+        CHECK(image->hasReachedEnd() == true);
+    }
+    {
+        DynamicImage::pointer image = DynamicImage::New();
+        DummyStreamer::pointer streamer = DummyStreamer::New();
+        streamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
+        image->setStreamer(streamer);
+
+        Image::pointer frame1 = Image::New();
+        Image::pointer frame2 = Image::New();
+        image->addFrame(frame1);
+        image->addFrame(frame2);
+        CHECK(image->hasReachedEnd() == false);
+        image->getNextFrame();
+        CHECK(image->hasReachedEnd() == false);
+        image->getNextFrame();
+        CHECK(image->hasReachedEnd() == false);
+        streamer->setReachedEnd();
+        CHECK(image->hasReachedEnd() == true);
+    }
+}
