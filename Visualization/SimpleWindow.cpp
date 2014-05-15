@@ -12,12 +12,17 @@ void SimpleWindow::setMaximumFramerate(unsigned int framerate) {
     mView->setMaximumFramerate(framerate);
 }
 
+QApplication* SimpleWindow::QtApp = NULL;
+
 SimpleWindow::SimpleWindow() {
-    // Create some dummy argc and argv options as QApplication requires it
-    int* argc = new int[1];
-    *argc = 1;
-    const char * argv = "asd";
-    mApp = new QApplication(*argc,(char**)&argv);
+    // Make sure only one QApplication is created
+    if(QtApp == NULL) {
+        // Create some dummy argc and argv options as QApplication requires it
+        int* argc = new int[1];
+        *argc = 1;
+        const char * argv = "asd";
+        SimpleWindow::QtApp = new QApplication(*argc,(char**)&argv);
+    }
     mView = View::New();
 
     // default window size
@@ -49,8 +54,6 @@ void SimpleWindow::runMainLoop() {
 
     mWidget->show();
     QApplication::exec();
-    // TODO because we are deleting the QApplication after it has been created runMainLoop can not be called more than once
-    delete mApp;
 }
 
 void SimpleWindow::setWindowSize(unsigned int w, unsigned int h) {

@@ -32,7 +32,7 @@ int main(int argc, char ** argv) {
     filter->setMaskSize(7);
     filter->setStandardDeviation(10);
     Image::pointer filteredImage = filter->getOutput();
-	
+
     ImageExporter::pointer exporter = ImageExporter::New();
     exporter->setFilename("test.jpg");
     exporter->setInput(filteredImage);
@@ -44,13 +44,11 @@ int main(int argc, char ** argv) {
 
 
     // Example of displaying an image on screen using ImageRenderer (2D) and SimpleWindow
-    /*
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->setInput(filteredImage);
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->runMainLoop();
-    */
 
 
 

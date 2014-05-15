@@ -23,14 +23,12 @@ class SimpleWindow : public Object {
 
         WindowWidget* mWidget;
 
-        QApplication* mApp;
-
         unsigned int mWidth, mHeight;
 
         unsigned int mTimeout;
 
+        static QApplication* QtApp;
 };
-
 
 } // end namespace fast
 
