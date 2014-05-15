@@ -37,3 +37,94 @@ TEST_CASE("Dynamic image can get and set streamer", "[fast][DynamicImage]") {
     CHECK(image->getStreamer() == streamer);
 }
 
+TEST_CASE("Adding frames to dynamic image does not change size for streaming mode NEWEST_FRAME_ONLY", "[fast][DynamicImage]") {
+    DynamicImage::pointer image = DynamicImage::New();
+    DummyStreamer::pointer streamer = DummyStreamer::New();
+    streamer->setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
+    image->setStreamer(streamer);
+
+    Image::pointer frame = Image::New();
+    Image::pointer frame2 = Image::New();
+    image->addFrame(frame);
+    CHECK(image->getSize() == 1);
+    image->addFrame(frame2);
+    CHECK(image->getSize() == 1);
+}
+
+TEST_CASE("Adding frames to dynamic image changes size for streaming mode PROCESS_ALL", "[fast][DynamicImage]") {
+    DynamicImage::pointer image = DynamicImage::New();
+    DummyStreamer::pointer streamer = DummyStreamer::New();
+    streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+    image->setStreamer(streamer);
+
+    Image::pointer frame = Image::New();
+    Image::pointer frame2 = Image::New();
+    image->addFrame(frame);
+    CHECK(image->getSize() == 1);
+    image->addFrame(frame2);
+    CHECK(image->getSize() == 2);
+}
+
+TEST_CASE("Adding frames to dynamic image changes size for streaming mode STORE_ALL", "[fast][DynamicImage]") {
+    DynamicImage::pointer image = DynamicImage::New();
+    DummyStreamer::pointer streamer = DummyStreamer::New();
+    streamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
+    image->setStreamer(streamer);
+
+    Image::pointer frame = Image::New();
+    Image::pointer frame2 = Image::New();
+    image->addFrame(frame);
+    CHECK(image->getSize() == 1);
+    image->addFrame(frame2);
+    CHECK(image->getSize() == 2);
+}
+
+TEST_CASE("Dynamic image with streaming mode NEWEST_FRAME_ONLY always keeps the last frame", "[fast][DynamicImage]") {
+    DynamicImage::pointer image = DynamicImage::New();
+    DummyStreamer::pointer streamer = DummyStreamer::New();
+    streamer->setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
+    image->setStreamer(streamer);
+
+    CHECK(image->getSize() == 0);
+    Image::pointer frame = Image::New();
+    image->addFrame(frame);
+    Image::pointer frame2 = image->getNextFrame();
+    CHECK(image->getSize() == 1);
+}
+
+TEST_CASE("Getting next frame changes size with streaming mode PROCESS_ALL", "[fast][DynamicImage]") {
+    DynamicImage::pointer image = DynamicImage::New();
+    DummyStreamer::pointer streamer = DummyStreamer::New();
+    streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+    image->setStreamer(streamer);
+
+    Image::pointer frame = Image::New();
+    Image::pointer frame2 = Image::New();
+    image->addFrame(frame);
+    image->addFrame(frame2);
+    CHECK(image->getSize() == 2);
+    image->getNextFrame();
+    CHECK(image->getSize() == 1);
+    image->getNextFrame();
+    CHECK(image->getSize() == 0);
+}
+
+TEST_CASE("Getting next frame does not change size with streaming mode STORE_ALL", "[fast][DynamicImage]") {
+    DynamicImage::pointer image = DynamicImage::New();
+    DummyStreamer::pointer streamer = DummyStreamer::New();
+    streamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
+    image->setStreamer(streamer);
+
+    Image::pointer frame = Image::New();
+    Image::pointer frame2 = Image::New();
+    image->addFrame(frame);
+    image->addFrame(frame2);
+    CHECK(image->getSize() == 2);
+    image->getNextFrame();
+    CHECK(image->getSize() == 2);
+    image->getNextFrame();
+    CHECK(image->getSize() == 2);
+}
+
+
+
