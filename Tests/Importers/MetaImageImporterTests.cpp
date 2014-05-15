@@ -30,6 +30,12 @@ TEST_CASE("Import MetaImage file to host", "[fast][MetaImageImporter]") {
     CHECK(image->getSpacing().x() == Approx(0.309894));
     CHECK(image->getSpacing().y() == Approx(0.241966));
     CHECK(image->getSpacing().z() == Approx(0.430351));
+    CHECK(image->getOffset().x() == Approx(-20.2471));
+    CHECK(image->getOffset().y() == Approx(-191.238));
+    CHECK(image->getOffset().z() == Approx(-65.9711));
+    CHECK(image->getCenterOfRotation().x() == Approx(0));
+    CHECK(image->getCenterOfRotation().y() == Approx(0));
+    CHECK(image->getCenterOfRotation().z() == Approx(0));
     CHECK(image->getDataType() == TYPE_UINT8);
 }
 

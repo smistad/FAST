@@ -90,7 +90,7 @@ void MetaImageImporter::execute() {
 
     unsigned int width, height, depth = 1;
     unsigned int nrOfComponents = 1;
-    Float<3> spacing;
+    Float<3> spacing, centerOfRotation, offset;
     spacing[0] = 1;
     spacing[1] = 1;
     spacing[2] = 1;
@@ -156,6 +156,7 @@ void MetaImageImporter::execute() {
                 throw Exception("Error in reading the number of components in the MetaImageImporter");
         } else if(line.substr(0, 14) == "ElementSpacing") {
             std::string sizeString = line.substr(14+3);
+            boost::trim(sizeString);
             std::string sizeX = sizeString.substr(0,sizeString.find(" "));
             sizeString = sizeString.substr(sizeString.find(" ")+1);
             std::string sizeY = sizeString.substr(0,sizeString.find(" "));
@@ -168,6 +169,36 @@ void MetaImageImporter::execute() {
             spacing[0] = atof(sizeX.c_str());
             spacing[1] = atof(sizeY.c_str());
             spacing[2] = atof(sizeZ.c_str());
+        } else if(line.substr(0, 16) == "CenterOfRotation") {
+            std::string sizeString = line.substr(16+3);
+            boost::trim(sizeString);
+            std::string sizeX = sizeString.substr(0,sizeString.find(" "));
+            sizeString = sizeString.substr(sizeString.find(" ")+1);
+            std::string sizeY = sizeString.substr(0,sizeString.find(" "));
+            std::string sizeZ = "0";
+            if(imageIs3D) {
+                sizeString = sizeString.substr(sizeString.find(" ")+1);
+                sizeZ = sizeString.substr(0,sizeString.find(" "));
+            }
+
+            centerOfRotation[0] = atof(sizeX.c_str());
+            centerOfRotation[1] = atof(sizeY.c_str());
+            centerOfRotation[2] = atof(sizeZ.c_str());
+        } else if(line.substr(0, 6) == "Offset") {
+            std::string sizeString = line.substr(6+3);
+            boost::trim(sizeString);
+            std::string sizeX = sizeString.substr(0,sizeString.find(" "));
+            sizeString = sizeString.substr(sizeString.find(" ")+1);
+            std::string sizeY = sizeString.substr(0,sizeString.find(" "));
+            std::string sizeZ = "0";
+            if(imageIs3D) {
+                sizeString = sizeString.substr(sizeString.find(" ")+1);
+                sizeZ = sizeString.substr(0,sizeString.find(" "));
+            }
+
+            offset[0] = atof(sizeX.c_str());
+            offset[1] = atof(sizeY.c_str());
+            offset[2] = atof(sizeZ.c_str());
         }
 
     } while(!mhdFile.eof());
@@ -208,6 +239,8 @@ void MetaImageImporter::execute() {
 
     // Set any metadata
     output->setSpacing(spacing);
+    output->setOffset(offset);
+    output->setCenterOfRotation(centerOfRotation);
 
     // Clean up
     if(!mDevice->isHost()) {
