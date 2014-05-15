@@ -90,6 +90,10 @@ void MetaImageImporter::execute() {
 
     unsigned int width, height, depth = 1;
     unsigned int nrOfComponents = 1;
+    Float<3> spacing;
+    spacing[0] = 1;
+    spacing[1] = 1;
+    spacing[2] = 1;
 
     do{
         std::getline(mhdFile, line);
@@ -151,18 +155,19 @@ void MetaImageImporter::execute() {
             if(nrOfComponents <= 0)
                 throw Exception("Error in reading the number of components in the MetaImageImporter");
         } else if(line.substr(0, 14) == "ElementSpacing") {
-            /*
             std::string sizeString = line.substr(14+3);
             std::string sizeX = sizeString.substr(0,sizeString.find(" "));
             sizeString = sizeString.substr(sizeString.find(" ")+1);
             std::string sizeY = sizeString.substr(0,sizeString.find(" "));
-            sizeString = sizeString.substr(sizeString.find(" ")+1);
-            std::string sizeZ = sizeString.substr(0,sizeString.find(" "));
+            std::string sizeZ = "1";
+            if(imageIs3D) {
+                sizeString = sizeString.substr(sizeString.find(" ")+1);
+                sizeZ = sizeString.substr(0,sizeString.find(" "));
+            }
 
-            this->spacing.x = atof(sizeX.c_str());
-            this->spacing.y = atof(sizeY.c_str());
-            this->spacing.z = atof(sizeZ.c_str());
-            */
+            spacing[0] = atof(sizeX.c_str());
+            spacing[1] = atof(sizeY.c_str());
+            spacing[2] = atof(sizeZ.c_str());
         }
 
     } while(!mhdFile.eof());
@@ -194,11 +199,15 @@ void MetaImageImporter::execute() {
         data = readRawData<float>(rawFilename, width, height, depth, nrOfComponents);
     }
 
+    Image::pointer output = mOutput.lock();
     if(imageIs3D) {
-        Image::pointer(mOutput.lock())->create3DImage(width,height,depth,type,nrOfComponents,mDevice,data);
+        output->create3DImage(width,height,depth,type,nrOfComponents,mDevice,data);
     } else {
-        Image::pointer(mOutput.lock())->create2DImage(width,height,type,nrOfComponents,mDevice,data);
+        output->create2DImage(width,height,type,nrOfComponents,mDevice,data);
     }
+
+    // Set any metadata
+    output->setSpacing(spacing);
 
     // Clean up
     if(!mDevice->isHost()) {

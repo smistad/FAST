@@ -27,6 +27,9 @@ TEST_CASE("Import MetaImage file to host", "[fast][MetaImageImporter]") {
     CHECK(image->getHeight() == 249);
     CHECK(image->getDepth() == 200);
     CHECK(image->getDimensions() == 3);
+    CHECK(image->getSpacing().x() == Approx(0.309894));
+    CHECK(image->getSpacing().y() == Approx(0.241966));
+    CHECK(image->getSpacing().z() == Approx(0.430351));
     CHECK(image->getDataType() == TYPE_UINT8);
 }
 
@@ -44,6 +47,9 @@ TEST_CASE("Import MetaImage file to OpenCL device", "[fast][MetaImageImporter]")
     CHECK(image->getWidth() == 276);
     CHECK(image->getHeight() == 249);
     CHECK(image->getDepth() == 200);
+    CHECK(image->getSpacing().x() == Approx(0.309894));
+    CHECK(image->getSpacing().y() == Approx(0.241966));
+    CHECK(image->getSpacing().z() == Approx(0.430351));
     CHECK(image->getDimensions() == 3);
     CHECK(image->getDataType() == TYPE_UINT8);
 }

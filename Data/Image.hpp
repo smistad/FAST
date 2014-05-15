@@ -35,6 +35,17 @@ class Image: public ImageData {
         unsigned char getDimensions() const;
         DataType getDataType() const;
         unsigned int getNrOfComponents() const;
+
+        Float<3> getSpacing() const;
+        Float<3> getOffset() const;
+        Float<3> getCenterOfRotation() const;
+        Float<4> getTransformMatrix2D() const;
+        Float<9> getTransformMatrix3D() const;
+        void setSpacing(Float<3> spacing);
+        void setOffset(Float<3> offset);
+        void setCenterOfRotation(Float<3> rotation);
+        void setTransformMatrix2D(Float<4> transformMatrix);
+        void setTransformMatrix3D(Float<9> transformMatrix);
     private:
         Image();
 
@@ -78,6 +89,10 @@ class Image: public ImageData {
         DataType mType;
         unsigned int mComponents;
         bool mImageIsBeingWrittenTo;
+
+        Float<3> mSpacing, mOffset, mCenterOfRotation;
+        Float<4> mTransformMatrix2D;
+        Float<9> mTransformMatrix3D;
 };
 
 } // end namespace fast

@@ -740,3 +740,43 @@ unsigned int Image::getNrOfComponents() const {
         throw Exception("Image has not been initialized.");
     return mComponents;
 }
+
+Float<3> fast::Image::getSpacing() const {
+    return mSpacing;
+}
+
+Float<3> fast::Image::getOffset() const {
+    return mOffset;
+}
+
+Float<3> fast::Image::getCenterOfRotation() const {
+    return mCenterOfRotation;
+}
+
+Float<4> fast::Image::getTransformMatrix2D() const {
+    return mTransformMatrix2D;
+}
+
+Float<9> fast::Image::getTransformMatrix3D() const {
+    return mTransformMatrix3D;
+}
+
+void fast::Image::setSpacing(Float<3> spacing) {
+    mSpacing = spacing;
+}
+
+void fast::Image::setOffset(Float<3> offset) {
+    mOffset = offset;
+}
+
+void fast::Image::setCenterOfRotation(Float<3> rotation) {
+    mCenterOfRotation = rotation;
+}
+
+void fast::Image::setTransformMatrix2D(Float<4> transformMatrix) {
+    mTransformMatrix2D = transformMatrix;
+}
+
+void fast::Image::setTransformMatrix3D(Float<9> transformMatrix) {
+    mTransformMatrix3D = transformMatrix;
+}
