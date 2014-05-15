@@ -23,6 +23,7 @@ DynamicImage::pointer ImageStreamer::getOutput() {
 
     if(mOutput.isValid()) {
         mOutput->setParent(mPtr.lock());
+        mOutput->setStreamer(mPtr.lock());
 
         DynamicImage::pointer newSmartPtr;
         newSmartPtr.swap(mOutput);
@@ -40,6 +41,7 @@ ImageStreamer::ImageStreamer() {
     mIsModified = true;
     thread = NULL;
     mFirstFrameIsInserted = false;
+    mHasReachedEnd = false;
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
 }
 
@@ -95,6 +97,7 @@ void ImageStreamer::producerStream() {
             i++;
         } catch(FileNotFoundException &e) {
             std::cout << "Reached end of stream" << std::endl;
+            mHasReachedEnd = true;
             // Reached end of stream
             break;
         }
@@ -106,4 +109,7 @@ ImageStreamer::~ImageStreamer() {
     // TODO stop thread as well
     thread->join();
     delete thread;
+}
+bool ImageStreamer::hasReachedEnd() const {
+    return mHasReachedEnd;
 }

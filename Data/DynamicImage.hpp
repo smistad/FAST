@@ -14,12 +14,13 @@ class DynamicImage : public ImageData {
         void addFrame(Image::pointer frame);
         unsigned int getSize() const;
         ~DynamicImage() {};
-        void setStreamingMode(StreamingMode mode);
-        StreamingMode getStreamingMode() const;
+        void setStreamer(Streamer::pointer streamer);
+        Streamer::pointer getStreamer() const;
+        bool hasReachedEnd() const;
     private:
         DynamicImage();
 
-        StreamingMode mStreamingMode;
+        WeakPointer<Streamer> mStreamer;
 
         // If the flag mKeepAllFrames is set to false, this vector will have
         // a max size of 1
@@ -34,6 +35,8 @@ class DynamicImage : public ImageData {
         void freeAll() {};
 
         boost::mutex mStreamMutex;
+
+        bool mHasReachedEnd;
 };
 
 } // end namespace fast

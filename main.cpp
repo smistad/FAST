@@ -13,8 +13,6 @@
 #include "MetaImageStreamer.hpp"
 #include "MetaImageExporter.hpp"
 
-#include <QApplication>
-
 using namespace fast;
 
 int main(int argc, char ** argv) {
@@ -53,6 +51,10 @@ int main(int argc, char ** argv) {
     window->addRenderer(renderer);
     window->runMainLoop();
     */
+
+
+
+    /*
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
     SurfaceRenderer::pointer surfaceRenderer = SurfaceRenderer::New();
@@ -62,6 +64,7 @@ int main(int argc, char ** argv) {
     window->setMaximumFramerate(25);
     window->addRenderer(surfaceRenderer);
     window->runMainLoop();
+    */
 
 
     /*
@@ -88,7 +91,7 @@ int main(int argc, char ** argv) {
     GaussianSmoothingFilter::pointer filter4 = GaussianSmoothingFilter::New();
     filter4->setInput(mhdStreamer->getOutput());
     mhdStreamer->getOutput()->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
-    filter4->setDevice(Host::New());
+    //filter4->setDevice(Host::New());
     filter4->setMaskSize(3);
     filter4->setStandardDeviation(10);
     filter4->enableRuntimeMeasurements();
@@ -96,30 +99,24 @@ int main(int argc, char ** argv) {
     asd->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
     ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->setIntensityLevel(50);
-    renderer->setIntensityWindow(100);
     renderer->setInput(filter4->getOutput());
     renderer->enableRuntimeMeasurements();
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
-    window->resize(512,512);
     window->runMainLoop();
     filter4->getRuntime()->print();
     renderer->getRuntime()->print();
     */
 
-    /*
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
-    mhdStreamer->setFilenameFormat("/home/smistad/Patients/2013-08-22_10-36_Lab_4DTrack.cx3/US_Acq/US-Acq_01_20130822T111033/US-Acq_01_20130822T111033_ScanConverted_#.mhd");
-    //mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+    mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR) + "TestData/US-3Dt/US-3Dt_#.mhd");
+    mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     GaussianSmoothingFilter::pointer filter4 = GaussianSmoothingFilter::New();
     filter4->setInput(mhdStreamer->getOutput());
-    //mhdStreamer->getOutput()->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     filter4->setMaskSize(3);
     filter4->setStandardDeviation(10);
     filter4->enableRuntimeMeasurements();
     DynamicImage::pointer asd = filter4->getOutput();
-    //asd->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
     SliceRenderer::pointer renderer2 = SliceRenderer::New();
     renderer2->setInput(filter4->getOutput());
@@ -129,7 +126,6 @@ int main(int argc, char ** argv) {
     window2->runMainLoop();
 
     filter4->getRuntime()->print();
-    renderer->getRuntime()->print();
-    */
+    renderer2->getRuntime()->print();
 
 }

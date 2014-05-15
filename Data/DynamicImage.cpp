@@ -3,11 +3,21 @@ using namespace fast;
 
 Image::pointer DynamicImage::getNextFrame() {
     mStreamMutex.lock();
-    // TODO: If no frame is available the method should maybe wait?
-    if(mFrames.size() == 0)
-        throw Exception("No frames available");
+
+    // Check if no frames are available
+    if(mFrames.size() == 0) {
+        if(mStreamer.lock()->hasReachedEnd()) {
+            mStreamMutex.unlock();
+            throw Exception("Streamer has reached the end.");
+        } else {
+            mStreamMutex.unlock();
+            throw Exception("This exception should not have occured. There is a bug somewhere in the streamer or dynamic image objects.");
+        }
+    }
+
+    // Get the frame
     Image::pointer ret;
-    if(mStreamingMode == STREAMING_MODE_STORE_ALL_FRAMES) {
+    if(mStreamer.lock()->getStreamingMode() == STREAMING_MODE_STORE_ALL_FRAMES) {
         // Get the next one
         ret = mFrames[mCurrentFrame];
         mCurrentFrame++;
@@ -15,17 +25,35 @@ Image::pointer DynamicImage::getNextFrame() {
         // Always get the one in front
         ret = mFrames[0];
     }
-    mStreamMutex.unlock();
 
-    if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES) {
+    // Remove the frame from collection if necessary
+    if(mStreamer.lock()->getStreamingMode() == STREAMING_MODE_PROCESS_ALL_FRAMES) {
         // Remove the frame that was read, the one in the front
         mFrames.erase(mFrames.begin());
     }
 
-    if(mStreamingMode == STREAMING_MODE_STORE_ALL_FRAMES || mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES) {
+    // Check if dynamic image has reached the end
+    if(mStreamer.lock()->getStreamingMode() == STREAMING_MODE_NEWEST_FRAME_ONLY) {
+        if(mStreamer.lock()->hasReachedEnd())
+            mHasReachedEnd = true;
+    } else if(mStreamer.lock()->getStreamingMode() == STREAMING_MODE_PROCESS_ALL_FRAMES) {
+        if(mStreamer.lock()->hasReachedEnd() && mFrames.size() == 0)
+            mHasReachedEnd = true;
+    } else { // store all
+        if(mStreamer.lock()->hasReachedEnd() && mCurrentFrame == mFrames.size())
+            mHasReachedEnd = true;
+    }
+
+    // Update modified timestamp so that a process object will read the next frame
+    if(mStreamer.lock()->getStreamingMode() == STREAMING_MODE_STORE_ALL_FRAMES) {
+        if(mCurrentFrame < mFrames.size())
+            updateModifiedTimestamp();
+    } else if(mStreamer.lock()->getStreamingMode() == STREAMING_MODE_PROCESS_ALL_FRAMES) {
         if(mFrames.size() > 0)
             updateModifiedTimestamp();
     }
+
+    mStreamMutex.unlock();
 
     return ret;
 }
@@ -33,7 +61,7 @@ Image::pointer DynamicImage::getNextFrame() {
 void DynamicImage::addFrame(Image::pointer frame) {
     mStreamMutex.lock();
     updateModifiedTimestamp();
-    if(mStreamingMode == STREAMING_MODE_NEWEST_FRAME_ONLY) {
+    if(mStreamer.lock()->getStreamingMode() == STREAMING_MODE_NEWEST_FRAME_ONLY) {
         mFrames.clear();
     }
     mFrames.push_back(frame);
@@ -42,8 +70,8 @@ void DynamicImage::addFrame(Image::pointer frame) {
 
 DynamicImage::DynamicImage() {
     mCurrentFrame = 0;
-    mStreamingMode = STREAMING_MODE_NEWEST_FRAME_ONLY;
     mIsDynamicData = true;
+    mHasReachedEnd = false;
     updateModifiedTimestamp();
 }
 
@@ -52,10 +80,15 @@ unsigned int DynamicImage::getSize() const {
     return mFrames.size();
 }
 
-void DynamicImage::setStreamingMode(StreamingMode mode) {
-    mStreamingMode = mode;
+void DynamicImage::setStreamer(Streamer::pointer streamer) {
+    mStreamer = streamer;
 }
 
-StreamingMode DynamicImage::getStreamingMode() const {
-    return mStreamingMode;
+Streamer::pointer DynamicImage::getStreamer() const {
+    return mStreamer;
+}
+
+
+bool DynamicImage::hasReachedEnd() const {
+    return mHasReachedEnd;
 }
