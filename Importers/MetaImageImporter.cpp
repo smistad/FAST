@@ -37,6 +37,24 @@ MetaImageImporter::MetaImageImporter() {
     mIsModified = true;
 }
 
+std::vector<std::string> stringSplit(std::string str, std::string delimiter) {
+    std::vector<std::string> values;
+    int startPosition = 0;
+    int endPosition = str.find(delimiter, startPosition+1);
+    while(true) {
+        if(endPosition == std::string::npos) {
+            endPosition = str.size();
+            values.push_back(str.substr(startPosition, endPosition-startPosition-1));
+            break;
+        } else {
+            values.push_back(str.substr(startPosition, endPosition-startPosition-1));
+            startPosition = endPosition+1;
+            endPosition = str.find(delimiter, startPosition+1);
+        }
+    }
+    return values;
+}
+
 template <class T>
 void * readRawData(std::string rawFilename, unsigned int width, unsigned int height, unsigned int depth, unsigned int nrOfComponents) {
     boost::iostreams::mapped_file_source file;
@@ -90,10 +108,7 @@ void MetaImageImporter::execute() {
 
     unsigned int width, height, depth = 1;
     unsigned int nrOfComponents = 1;
-    Float<3> spacing, centerOfRotation, offset;
-    spacing[0] = 1;
-    spacing[1] = 1;
-    spacing[2] = 1;
+    Image::pointer output = mOutput.lock();
 
     do{
         std::getline(mhdFile, line);
@@ -166,9 +181,11 @@ void MetaImageImporter::execute() {
                 sizeZ = sizeString.substr(0,sizeString.find(" "));
             }
 
+            Float<3> spacing;
             spacing[0] = atof(sizeX.c_str());
             spacing[1] = atof(sizeY.c_str());
             spacing[2] = atof(sizeZ.c_str());
+            output->setSpacing(spacing);
         } else if(line.substr(0, 16) == "CenterOfRotation") {
             std::string sizeString = line.substr(16+3);
             boost::trim(sizeString);
@@ -181,9 +198,11 @@ void MetaImageImporter::execute() {
                 sizeZ = sizeString.substr(0,sizeString.find(" "));
             }
 
+            Float<3> centerOfRotation;
             centerOfRotation[0] = atof(sizeX.c_str());
             centerOfRotation[1] = atof(sizeY.c_str());
             centerOfRotation[2] = atof(sizeZ.c_str());
+            output->setCenterOfRotation(centerOfRotation);
         } else if(line.substr(0, 6) == "Offset") {
             std::string sizeString = line.substr(6+3);
             boost::trim(sizeString);
@@ -196,9 +215,34 @@ void MetaImageImporter::execute() {
                 sizeZ = sizeString.substr(0,sizeString.find(" "));
             }
 
+            Float<3> offset;
             offset[0] = atof(sizeX.c_str());
             offset[1] = atof(sizeY.c_str());
             offset[2] = atof(sizeZ.c_str());
+            output->setOffset(offset);
+        } else if(line.substr(0, 15) == "TransformMatrix") {
+            std::string string = line.substr(15+3);
+            boost::trim(string);
+
+            if(imageIs3D) {
+                std::vector<std::string> values = stringSplit(string, " ");
+                if(values.size() != 9)
+                    throw Exception("Encountered a transform matrix with incorrect number of elements in the MetaImageImporter");
+
+                Float<9> matrix;
+                for(unsigned int i = 0; i < 9; i++)
+                    matrix[i] = atof(values[i].c_str());
+                output->setTransformMatrix3D(matrix);
+            } else {
+                std::vector<std::string> values = stringSplit(string, " ");
+                if(values.size() != 4)
+                    throw Exception("Encountered a transform matrix with incorrect number of elements in the MetaImageImporter");
+
+                Float<4> matrix;
+                for(unsigned int i = 0; i < 4; i++)
+                    matrix[i] = atof(values[i].c_str());
+                output->setTransformMatrix2D(matrix);
+            }
         }
 
     } while(!mhdFile.eof());
@@ -230,17 +274,11 @@ void MetaImageImporter::execute() {
         data = readRawData<float>(rawFilename, width, height, depth, nrOfComponents);
     }
 
-    Image::pointer output = mOutput.lock();
     if(imageIs3D) {
         output->create3DImage(width,height,depth,type,nrOfComponents,mDevice,data);
     } else {
         output->create2DImage(width,height,type,nrOfComponents,mDevice,data);
     }
-
-    // Set any metadata
-    output->setSpacing(spacing);
-    output->setOffset(offset);
-    output->setCenterOfRotation(centerOfRotation);
 
     // Clean up
     if(!mDevice->isHost()) {
