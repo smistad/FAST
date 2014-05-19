@@ -8,6 +8,7 @@
 #include "SimpleWindow.hpp"
 #include "ImageRenderer.hpp"
 #include "SliceRenderer.hpp"
+#include "VolumeRenderer.hpp"
 #include "SurfaceRenderer.hpp"
 #include "MetaImageImporter.hpp"
 #include "MetaImageStreamer.hpp"
@@ -22,7 +23,7 @@ int main(int argc, char ** argv) {
     deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(true));
 
 
-
+	/*
 
     // Example of importing, processing and exporting a 2D image
     ImageImporter::pointer importer = ImageImporter::New();
@@ -42,17 +43,18 @@ int main(int argc, char ** argv) {
     exporter2->setInput(filteredImage);
     exporter2->update();
 
-
+	*/
     // Example of displaying an image on screen using ImageRenderer (2D) and SimpleWindow
+
+	/*
+
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->setInput(filteredImage);
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->runMainLoop();
+    
 
-
-
-    /*
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
     SurfaceRenderer::pointer surfaceRenderer = SurfaceRenderer::New();
@@ -62,8 +64,18 @@ int main(int argc, char ** argv) {
     window->setMaximumFramerate(25);
     window->addRenderer(surfaceRenderer);
     window->runMainLoop();
-    */
+	*/
 
+	// Example of using VolumeRenderer (3D) and SimpleWindow
+	MetaImageImporter::pointer mhdImporter = MetaImageImporter::New();
+    mhdImporter->setFilename("skull.mhd");
+	VolumeRenderer::pointer VolumeRenderer = VolumeRenderer::New();
+    VolumeRenderer->setInput(mhdImporter->getOutput());
+    SimpleWindow::pointer window = SimpleWindow::New();
+    window->setMaximumFramerate(25);
+    window->addRenderer(VolumeRenderer);
+    window->runMainLoop();
+	
 
     /*
     // Example of streaming 2D images
@@ -105,7 +117,7 @@ int main(int argc, char ** argv) {
     filter4->getRuntime()->print();
     renderer->getRuntime()->print();
     */
-
+	/*
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR) + "TestData/US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
@@ -125,5 +137,6 @@ int main(int argc, char ** argv) {
 
     filter4->getRuntime()->print();
     renderer2->getRuntime()->print();
+	*/
 
 }
