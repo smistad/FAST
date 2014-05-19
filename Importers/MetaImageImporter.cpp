@@ -44,10 +44,10 @@ std::vector<std::string> stringSplit(std::string str, std::string delimiter) {
     while(true) {
         if(endPosition == std::string::npos) {
             endPosition = str.size();
-            values.push_back(str.substr(startPosition, endPosition-startPosition-1));
+            values.push_back(str.substr(startPosition, endPosition-startPosition));
             break;
         } else {
-            values.push_back(str.substr(startPosition, endPosition-startPosition-1));
+            values.push_back(str.substr(startPosition, endPosition-startPosition));
             startPosition = endPosition+1;
             endPosition = str.find(delimiter, startPosition+1);
         }
@@ -192,11 +192,8 @@ void MetaImageImporter::execute() {
             std::string sizeX = sizeString.substr(0,sizeString.find(" "));
             sizeString = sizeString.substr(sizeString.find(" ")+1);
             std::string sizeY = sizeString.substr(0,sizeString.find(" "));
-            std::string sizeZ = "0";
-            if(imageIs3D) {
-                sizeString = sizeString.substr(sizeString.find(" ")+1);
-                sizeZ = sizeString.substr(0,sizeString.find(" "));
-            }
+            sizeString = sizeString.substr(sizeString.find(" ")+1);
+            std::string sizeZ = sizeString.substr(0,sizeString.find(" "));
 
             Float<3> centerOfRotation;
             centerOfRotation[0] = atof(sizeX.c_str());
@@ -209,11 +206,8 @@ void MetaImageImporter::execute() {
             std::string sizeX = sizeString.substr(0,sizeString.find(" "));
             sizeString = sizeString.substr(sizeString.find(" ")+1);
             std::string sizeY = sizeString.substr(0,sizeString.find(" "));
-            std::string sizeZ = "0";
-            if(imageIs3D) {
-                sizeString = sizeString.substr(sizeString.find(" ")+1);
-                sizeZ = sizeString.substr(0,sizeString.find(" "));
-            }
+            sizeString = sizeString.substr(sizeString.find(" ")+1);
+            std::string sizeZ = sizeString.substr(0,sizeString.find(" "));
 
             Float<3> offset;
             offset[0] = atof(sizeX.c_str());
@@ -229,8 +223,9 @@ void MetaImageImporter::execute() {
                 throw Exception("Encountered a transform matrix with incorrect number of elements in the MetaImageImporter");
 
             Float<9> matrix;
-            for(unsigned int i = 0; i < 9; i++)
+            for(unsigned int i = 0; i < 9; i++) {
                 matrix[i] = atof(values[i].c_str());
+            }
             output->setTransformMatrix(matrix);
         }
 
