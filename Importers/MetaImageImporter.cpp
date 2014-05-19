@@ -224,25 +224,14 @@ void MetaImageImporter::execute() {
             std::string string = line.substr(15+3);
             boost::trim(string);
 
-            if(imageIs3D) {
-                std::vector<std::string> values = stringSplit(string, " ");
-                if(values.size() != 9)
-                    throw Exception("Encountered a transform matrix with incorrect number of elements in the MetaImageImporter");
+            std::vector<std::string> values = stringSplit(string, " ");
+            if(values.size() != 9)
+                throw Exception("Encountered a transform matrix with incorrect number of elements in the MetaImageImporter");
 
-                Float<9> matrix;
-                for(unsigned int i = 0; i < 9; i++)
-                    matrix[i] = atof(values[i].c_str());
-                output->setTransformMatrix3D(matrix);
-            } else {
-                std::vector<std::string> values = stringSplit(string, " ");
-                if(values.size() != 4)
-                    throw Exception("Encountered a transform matrix with incorrect number of elements in the MetaImageImporter");
-
-                Float<4> matrix;
-                for(unsigned int i = 0; i < 4; i++)
-                    matrix[i] = atof(values[i].c_str());
-                output->setTransformMatrix2D(matrix);
-            }
+            Float<9> matrix;
+            for(unsigned int i = 0; i < 9; i++)
+                matrix[i] = atof(values[i].c_str());
+            output->setTransformMatrix(matrix);
         }
 
     } while(!mhdFile.eof());

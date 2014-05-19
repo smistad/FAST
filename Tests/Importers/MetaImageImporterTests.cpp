@@ -36,15 +36,15 @@ TEST_CASE("Import MetaImage file to host", "[fast][MetaImageImporter]") {
     CHECK(image->getCenterOfRotation().x() == Approx(0));
     CHECK(image->getCenterOfRotation().y() == Approx(0));
     CHECK(image->getCenterOfRotation().z() == Approx(0));
-    CHECK(image->getTransformMatrix3D()[0] == Approx(0.0784201));
-    CHECK(image->getTransformMatrix3D()[1] == Approx(0.0356554));
-    CHECK(image->getTransformMatrix3D()[2] == Approx(-0.996283));
-    CHECK(image->getTransformMatrix3D()[3] == Approx(-0.0697932));
-    CHECK(image->getTransformMatrix3D()[4] == Approx(0.997105));
-    CHECK(image->getTransformMatrix3D()[5] == Approx(0.0301913));
-    CHECK(image->getTransformMatrix3D()[6] == Approx(0.994474));
-    CHECK(image->getTransformMatrix3D()[7] == Approx(0.0671661));
-    CHECK(image->getTransformMatrix3D()[8] == Approx(0.0806815));
+    CHECK(image->getTransformMatrix()[0] == Approx(0.0784201));
+    CHECK(image->getTransformMatrix()[1] == Approx(0.0356554));
+    CHECK(image->getTransformMatrix()[2] == Approx(-0.996283));
+    CHECK(image->getTransformMatrix()[3] == Approx(-0.0697932));
+    CHECK(image->getTransformMatrix()[4] == Approx(0.997105));
+    CHECK(image->getTransformMatrix()[5] == Approx(0.0301913));
+    CHECK(image->getTransformMatrix()[6] == Approx(0.994474));
+    CHECK(image->getTransformMatrix()[7] == Approx(0.0671661));
+    CHECK(image->getTransformMatrix()[8] == Approx(0.0806815));
     CHECK(image->getDataType() == TYPE_UINT8);
 }
 

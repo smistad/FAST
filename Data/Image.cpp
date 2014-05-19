@@ -455,6 +455,10 @@ Image::Image() {
     mSpacing[0] = 1;
     mSpacing[1] = 1;
     mSpacing[2] = 1;
+    // Identity matrix
+    mTransformMatrix[0] = 1;
+    mTransformMatrix[4] = 1;
+    mTransformMatrix[8] = 1;
 }
 
 ImageAccess Image::getImageAccess(accessType type) {
@@ -756,12 +760,8 @@ Float<3> fast::Image::getCenterOfRotation() const {
     return mCenterOfRotation;
 }
 
-Float<4> fast::Image::getTransformMatrix2D() const {
-    return mTransformMatrix2D;
-}
-
-Float<9> fast::Image::getTransformMatrix3D() const {
-    return mTransformMatrix3D;
+Float<9> fast::Image::getTransformMatrix() const {
+    return mTransformMatrix;
 }
 
 void fast::Image::setSpacing(Float<3> spacing) {
@@ -776,10 +776,6 @@ void fast::Image::setCenterOfRotation(Float<3> rotation) {
     mCenterOfRotation = rotation;
 }
 
-void fast::Image::setTransformMatrix2D(Float<4> transformMatrix) {
-    mTransformMatrix2D = transformMatrix;
-}
-
-void fast::Image::setTransformMatrix3D(Float<9> transformMatrix) {
-    mTransformMatrix3D = transformMatrix;
+void fast::Image::setTransformMatrix(Float<9> transformMatrix) {
+    mTransformMatrix = transformMatrix;
 }
