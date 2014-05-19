@@ -1,5 +1,5 @@
-#ifndef SURFACERENDERER_HPP_
-#define SURFACERENDERER_HPP_
+#ifndef VOLUMERENDERER_HPP_
+#define VOLUMERENDERER_HPP_
 
 #include "Renderer.hpp"
 #include "ImageData.hpp"
@@ -11,33 +11,47 @@ class VolumeRenderer : public Renderer {
     public:
         void setInput(ImageData::pointer image);
         //void setThreshold(float threshold);
-        //void keyPressEvent(QKeyEvent* event);
-        //void mouseMoveEvent(QMouseEvent* event, View* view);
-        //void resizeEvent(QResizeEvent* event);
+        void keyPressEvent(QKeyEvent* event);
+        void mouseMoveEvent(QMouseEvent* event, View* view);
+        void resizeEvent(QResizeEvent* event);
+		void motion(int , int);
     private:
         VolumeRenderer();
         void execute();
         void draw();
+		
 
         OpenCLDevice::pointer mDevice;
         ImageData::pointer mInput;
 
-        float mThreshold;
-        GLuint VBO_ID;
-        bool mHasCreatedTriangles;
-        unsigned int totalSum;
-        float camX,camY,camZ;
-        float rotationX,rotationY;
+        bool mOutputIsCreated;
+
         //unsigned int windowWidth, windowHeight;
-        float scalingFactorx, scalingFactory, scalingFactorz;
-        float translationx, translationy, translationz;
-        unsigned int HPSize;
+
         cl::Program program;
-        // HP
-        std::vector<cl::Image3D> images;
-        std::vector<cl::Buffer> buffers;
+
 
         unsigned int mWidth, mHeight;
+
+
+		GLuint pbo;
+		cl::BufferGL pbo_cl;
+		cl::Sampler volumeSamplerLinear;
+		cl::Image2D d_transferFuncArray;
+		cl::Sampler transferFuncSampler;
+		cl::Buffer d_invViewMatrix;
+		float invViewMatrix[12];
+
+		cl::Kernel renderKernel;
+		cl::Image3D* d_volumeArray;
+		bool updated;
+
+		int ox, oy;
+
+		GLfloat viewRotation[3];
+		GLfloat viewTranslation[3];
+
+		cl::Image3D xx;
 };
 
 } // namespace fast
@@ -45,4 +59,4 @@ class VolumeRenderer : public Renderer {
 
 
 
-#endif /* SURFACERENDERER_HPP_ */
+#endif /* VOLUMERENDERER_HPP_ */
