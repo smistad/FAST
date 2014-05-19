@@ -8,6 +8,7 @@
 #include "SimpleWindow.hpp"
 #include "ImageRenderer.hpp"
 #include "SliceRenderer.hpp"
+#include "VolumeRenderer.hpp"
 #include "SurfaceRenderer.hpp"
 #include "MetaImageImporter.hpp"
 #include "MetaImageStreamer.hpp"
@@ -24,7 +25,7 @@ int main(int argc, char ** argv) {
     deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(true));
 
 
-
+	/*
 
     // Example of importing, processing and exporting a 2D image
     ImageImporter::pointer importer = ImageImporter::New();
@@ -44,7 +45,7 @@ int main(int argc, char ** argv) {
     exporter2->setInput(filteredImage);
     exporter2->update();
 
-
+	*/
     // Example of displaying an image on screen using ImageRenderer (2D) and SimpleWindow
     /*
     ImageRenderer::pointer renderer = ImageRenderer::New();
@@ -52,7 +53,7 @@ int main(int argc, char ** argv) {
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->runMainLoop();
-    */
+    *//*
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
     mhdStreamer->setFilenameFormat("/home/smistad/US-Acq_01_20130822T111033/US-Acq_01_20130822T111033_ScanConverted_#.mhd");
     SurfaceRenderer::pointer surfaceRenderer = SurfaceRenderer::New();
@@ -62,8 +63,18 @@ int main(int argc, char ** argv) {
     window->setMaximumFramerate(25);
     window->addRenderer(surfaceRenderer);
     window->runMainLoop();
-
-
+	*/
+	MetaImageImporter::pointer mhdImporter = MetaImageImporter::New();
+    mhdImporter->setFilename("skull.mhd");
+	VolumeRenderer::pointer VolumeRenderer = VolumeRenderer::New();
+    VolumeRenderer->setInput(mhdImporter->getOutput());
+    //VolumeRenderer->setThreshold(200);
+	
+    SimpleWindow::pointer window = SimpleWindow::New();
+    window->setMaximumFramerate(25);
+    window->addRenderer(VolumeRenderer);
+    window->runMainLoop();
+	
     /*
     // Example of streaming 2D images
     ImageStreamer::pointer streamer = ImageStreamer::New();
