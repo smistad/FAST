@@ -83,8 +83,6 @@ void MetaImageExporter::execute() {
         mhdFile << " " << input->getTransformMatrix()[i];
     mhdFile << "\n";
 
-    // TODO write spacing, transform matrix and other important data
-
     // Save to raw file
     // set rawFilename, by removing the end .mhd from mFilename and add .raw
     std::string rawFilename = mFilename.substr(0,mFilename.length()-4) + ".raw";
