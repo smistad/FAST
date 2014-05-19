@@ -45,7 +45,9 @@ int main(int argc, char ** argv) {
 
 	*/
     // Example of displaying an image on screen using ImageRenderer (2D) and SimpleWindow
+
 	/*
+
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->setInput(filteredImage);
     SimpleWindow::pointer window = SimpleWindow::New();
@@ -64,7 +66,7 @@ int main(int argc, char ** argv) {
     window->runMainLoop();
 	*/
 
-
+	// Example of using VolumeRenderer (3D) and SimpleWindow
 	MetaImageImporter::pointer mhdImporter = MetaImageImporter::New();
     mhdImporter->setFilename("skull.mhd");
 	VolumeRenderer::pointer VolumeRenderer = VolumeRenderer::New();
@@ -115,7 +117,7 @@ int main(int argc, char ** argv) {
     filter4->getRuntime()->print();
     renderer->getRuntime()->print();
     */
-
+	/*
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR) + "TestData/US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
@@ -135,5 +137,6 @@ int main(int argc, char ** argv) {
 
     filter4->getRuntime()->print();
     renderer2->getRuntime()->print();
+	*/
 
 }
