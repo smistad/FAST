@@ -10,6 +10,7 @@
 
 namespace fast {
 
+
 void VolumeRenderer::setInput(ImageData::pointer image) {
     mInput = image;
     addParent(mInput);
@@ -22,6 +23,7 @@ VolumeRenderer::VolumeRenderer() : Renderer() {
 	
     mDevice = boost::static_pointer_cast<OpenCLDevice>(DeviceManager::getInstance().getDefaultVisualizationDevice());
 
+
 	updated=false;
 
 	viewTranslation[0] = 0.0f;
@@ -33,6 +35,8 @@ VolumeRenderer::VolumeRenderer() : Renderer() {
 	viewRotation[2] = 0.0f;
 
 	mOutputIsCreated=false;
+
+
 }
 
 
@@ -165,7 +169,7 @@ void VolumeRenderer::execute() {
 		renderKernel.setArg(10, volumeSamplerLinear);
 		renderKernel.setArg(11, transferFuncSampler);
 
-		//updated=true;
+		updated=true;
 
 		}
 
@@ -257,3 +261,4 @@ void VolumeRenderer::resizeEvent(QResizeEvent* event) {
 }
 
 } // namespace fast
+

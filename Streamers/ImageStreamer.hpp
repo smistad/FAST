@@ -14,6 +14,7 @@ class ImageStreamer : public Streamer {
         DynamicImage::pointer getOutput();
         void setFilenameFormat(std::string str);
         void setDevice(ExecutionDevice::pointer device);
+        bool hasReachedEnd() const;
         // This method runs in a separate thread and adds frames to the
         // output object
         void producerStream();
@@ -34,6 +35,7 @@ class ImageStreamer : public Streamer {
 
         bool mStreamIsStarted;
         bool mFirstFrameIsInserted;
+        bool mHasReachedEnd;
 
         std::string mFilenameFormat;
 

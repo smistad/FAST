@@ -15,6 +15,7 @@ class Streamer : public ProcessObject {
         virtual ~Streamer() {};
         void setStreamingMode(StreamingMode mode);
         StreamingMode getStreamingMode() const;
+        virtual bool hasReachedEnd() const = 0;
     protected:
         StreamingMode mStreamingMode;
         Streamer();

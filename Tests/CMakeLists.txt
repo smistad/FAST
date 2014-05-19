@@ -11,10 +11,15 @@ set(EXECUTABLE_SOURCE_FILES
     DataObjectTests.cpp
     Algorithms/GaussianSmoothingFilterTests.cpp
     Data/ImageTests.cpp
+    Data/DynamicImageTests.cpp
     Importers/ImageImporterTests.cpp
     Exporters/ImageExporterTests.cpp
     Importers/MetaImageImporterTests.cpp
     Exporters/MetaImageExporterTests.cpp
+    Streamers/MetaImageStreamerTests.cpp
+    Visualization/ImageRendererTests.cpp
+    Visualization/SliceRendererTests.cpp
+    Visualization/SurfaceRendererTests.cpp
 )
 
 include_directories(
@@ -50,7 +55,7 @@ set(FAST_LINK_LIBRARIES
 #)
 
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFAST_TEST_DATA_DIR=\\\"${PROJECT_SOURCE_DIR}/Tests/TestData/\\\"")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFAST_TEST_DATA_DIR=\\\"${PROJECT_SOURCE_DIR}/TestData/\\\"")
 
 add_executable (test ${EXECUTABLE_SOURCE_FILES} ${SOURCE_FILES})
 target_link_libraries(test FAST ${FAST_LINK_LIBRARIES})

@@ -11,7 +11,7 @@ void GaussianSmoothingFilter::setInput(ImageData::pointer input) {
     addParent(input);
     if(input->isDynamicData()) {
         mTempOutput = DynamicImage::New();
-        DynamicImage::pointer(mTempOutput)->setStreamingMode(DynamicImage::pointer(mInput)->getStreamingMode());
+        DynamicImage::pointer(mTempOutput)->setStreamer(DynamicImage::pointer(mInput)->getStreamer());
     } else {
         mTempOutput = Image::New();
         input->retain(mDevice);

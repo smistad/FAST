@@ -19,7 +19,7 @@ class VolumeRenderer : public Renderer {
         VolumeRenderer();
         void execute();
         void draw();
-		
+
 
         OpenCLDevice::pointer mDevice;
         ImageData::pointer mInput;
@@ -57,6 +57,6 @@ class VolumeRenderer : public Renderer {
 } // namespace fast
 
 
-
-
 #endif /* VOLUMERENDERER_HPP_ */
+
+

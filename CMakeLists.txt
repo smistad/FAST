@@ -16,6 +16,8 @@ set(SOURCES
     DeviceManager.hpp
     Exception.cpp
     Exception.hpp
+    Utility.cpp
+    Utility.hpp
     Algorithms/GaussianSmoothingFilter.cpp
     Algorithms/GaussianSmoothingFilter.hpp
     Data/DataObject.cpp
