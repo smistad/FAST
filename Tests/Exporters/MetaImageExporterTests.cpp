@@ -27,6 +27,7 @@ TEST_CASE("Write an empty 2D image with the MetaImageExporter", "[fast][MetaImag
     Float<3> offset;
     offset[0] = 2.2;
     offset[1] = 3.3;
+    offset[2] = 3.1;
     Float<3> centerOfRotation;
     centerOfRotation[0] = 3.2;
     centerOfRotation[1] = 4.3;
@@ -79,4 +80,69 @@ TEST_CASE("Write an empty 2D image with the MetaImageExporter", "[fast][MetaImag
     CHECK(image2->getDataType() == TYPE_UINT8);
     CHECK(image2->getNrOfComponents() == 2);
     CHECK(image2->getDimensions() == 2);
+}
+
+
+TEST_CASE("Write an empty 3D image with the MetaImageExporter", "[fast][MetaImageExporter]") {
+    // Create some metadata
+    Float<3> spacing;
+    spacing[0] = 1.2;
+    spacing[1] = 2.3;
+    spacing[2] = 1.1;
+    Float<3> offset;
+    offset[0] = 2.2;
+    offset[1] = 3.3;
+    offset[2] = 3.1;
+    Float<3> centerOfRotation;
+    centerOfRotation[0] = 3.2;
+    centerOfRotation[1] = 4.3;
+    centerOfRotation[2] = 5.0;
+    Float<9> transformMatrix;
+    transformMatrix[0] = 0.2;
+    transformMatrix[1] = 1.3;
+    transformMatrix[2] = 2.0;
+    transformMatrix[3] = 3.0;
+    transformMatrix[4] = 4.0;
+    transformMatrix[5] = 5.0;
+    transformMatrix[6] = 6.0;
+    transformMatrix[7] = 7.0;
+    transformMatrix[8] = 8.0;
+
+    Image::pointer image = Image::New();
+    image->create3DImage(32, 32, 24, TYPE_FLOAT, 1, Host::New());
+
+    // Set metadata
+    image->setSpacing(spacing);
+    image->setOffset(offset);
+    image->setCenterOfRotation(centerOfRotation);
+    image->setTransformMatrix(transformMatrix);
+
+    // Export image
+    MetaImageExporter::pointer exporter = MetaImageExporter::New();
+    exporter->setFilename("MetaImageExporterTest3D.mhd");
+    exporter->setInput(image);
+    exporter->update();
+
+    // Import image back again
+    MetaImageImporter::pointer importer = MetaImageImporter::New();
+    importer->setFilename("MetaImageExporterTest3D.mhd");
+    Image::pointer image2 = importer->getOutput();
+    importer->update();
+
+    // Check that the image properties are correct
+    for(unsigned int i = 0; i < 3; i++) {
+        CHECK(spacing[i] == Approx(image2->getSpacing()[i]));
+        CHECK(offset[i] == Approx(image2->getOffset()[i]));
+        CHECK(centerOfRotation[i] == Approx(image2->getCenterOfRotation()[i]));
+    }
+    for(unsigned int i = 0; i < 9; i++) {
+        CHECK(transformMatrix[i] == Approx(image2->getTransformMatrix()[i]));
+    }
+
+    CHECK(image2->getWidth() == 32);
+    CHECK(image2->getHeight() == 32);
+    CHECK(image2->getDepth() == 24);
+    CHECK(image2->getDataType() == TYPE_FLOAT);
+    CHECK(image2->getNrOfComponents() == 1);
+    CHECK(image2->getDimensions() == 3);
 }
