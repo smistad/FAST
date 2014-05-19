@@ -72,6 +72,16 @@ void MetaImageExporter::execute() {
     mhdFile << "BinaryData = True\n";
     mhdFile << "CompressedData = False\n";
     mhdFile << "ElementNumberOfChannels = " << input->getNrOfComponents() << "\n";
+    mhdFile << "ElementSpacing = " << input->getSpacing()[0] << " " << input->getSpacing()[1];
+    if(input->getDimensions() == 3)
+        mhdFile << " " << input->getSpacing()[2];
+    mhdFile << "\n";
+    mhdFile << "Offset = " << input->getOffset()[0] << " " << input->getOffset()[1] << " " << input->getOffset()[2] << "\n";
+    mhdFile << "CenterOfRotation = " << input->getCenterOfRotation()[0] << " " << input->getCenterOfRotation()[1] << " " << input->getCenterOfRotation()[2] << "\n";
+    mhdFile << "TransformMatrix =";
+    for(unsigned int i = 0; i < 9; i++)
+        mhdFile << " " << input->getTransformMatrix()[i];
+    mhdFile << "\n";
 
     // TODO write spacing, transform matrix and other important data
 
