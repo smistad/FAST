@@ -10,7 +10,7 @@ class ImageRenderer : public Renderer {
     FAST_OBJECT(ImageRenderer)
     public:
         void setInput(ImageData::pointer image);
-
+        void keyPressEvent(QKeyEvent* event);
     private:
         ImageRenderer();
         void execute();
@@ -30,6 +30,8 @@ class ImageRenderer : public Renderer {
         DataType mTypeCLCodeCompiledFor;
         cl::Kernel mKernel;
 
+        float mScale;
+        unsigned int mWidth, mHeight;
 
 };
 

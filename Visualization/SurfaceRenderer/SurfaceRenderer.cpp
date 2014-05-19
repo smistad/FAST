@@ -5,6 +5,7 @@
 #include "HelperFunctions.hpp"
 #include "DeviceManager.hpp"
 #include "View.hpp"
+#include "Utility.hpp"
 #include <QCursor>
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
@@ -35,7 +36,7 @@ SurfaceRenderer::SurfaceRenderer() : Renderer() {
 }
 
 unsigned int getRequiredHistogramPyramidSize(Image::pointer input) {
-    unsigned int largestSize = std::max(std::max(input->getWidth(), input->getHeight()), input->getDepth());
+    unsigned int largestSize = fast::max(fast::max(input->getWidth(), input->getHeight()), input->getDepth());
     int i = 1;
     while(largestSize > pow(2,i)) {
         i++;

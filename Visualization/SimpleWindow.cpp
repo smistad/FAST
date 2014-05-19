@@ -12,17 +12,24 @@ void SimpleWindow::setMaximumFramerate(unsigned int framerate) {
     mView->setMaximumFramerate(framerate);
 }
 
+QApplication* SimpleWindow::QtApp = NULL;
+
 SimpleWindow::SimpleWindow() {
-    // Create some dummy argc and argv options as QApplication requires it
-    int* argc = new int[1];
-    *argc = 1;
-    char * argv = "asd";
-    QApplication* app = new QApplication(*argc,&argv);
+    // Make sure only one QApplication is created
+    if(QtApp == NULL) {
+        // Create some dummy argc and argv options as QApplication requires it
+        int* argc = new int[1];
+        *argc = 1;
+        const char * argv = "asd";
+        SimpleWindow::QtApp = new QApplication(*argc,(char**)&argv);
+    }
     mView = View::New();
 
     // default window size
     mWidth = 512;
     mHeight = 512;
+
+    mTimeout = 0;
 }
 
 void SimpleWindow::runMainLoop() {
@@ -38,13 +45,22 @@ void SimpleWindow::runMainLoop() {
     mWidget->resize(mWidth,mHeight);
     mView->resize(mWidth,mHeight);
 
+    if(mTimeout > 0) {
+        QTimer* timer = new QTimer(mWidget);
+        timer->start(mTimeout);
+        timer->setSingleShot(true);
+        mWidget->connect(timer,SIGNAL(timeout()),mWidget,SLOT(close()));
+    }
+
     mWidget->show();
     QApplication::exec();
 }
 
-
-
 void SimpleWindow::setWindowSize(unsigned int w, unsigned int h) {
     mWidth = w;
     mHeight = h;
+}
+
+void SimpleWindow::setTimeout(unsigned int milliseconds) {
+    mTimeout = milliseconds;
 }

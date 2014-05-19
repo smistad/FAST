@@ -22,6 +22,7 @@ VolumeRenderer::VolumeRenderer() : Renderer() {
 	
     mDevice = boost::static_pointer_cast<OpenCLDevice>(DeviceManager::getInstance().getDefaultVisualizationDevice());
 
+
 	updated=false;
 
 	viewTranslation[0] = 0.0f;
@@ -33,6 +34,8 @@ VolumeRenderer::VolumeRenderer() : Renderer() {
 	viewRotation[2] = 0.0f;
 
 	mOutputIsCreated=false;
+
+
 }
 
 
@@ -257,3 +260,4 @@ void VolumeRenderer::resizeEvent(QResizeEvent* event) {
 }
 
 } // namespace fast
+

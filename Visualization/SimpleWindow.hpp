@@ -15,6 +15,8 @@ class SimpleWindow : public Object {
         void setMaximumFramerate(unsigned int framerate);
         void runMainLoop();
         void setWindowSize(unsigned int w, unsigned int h);
+        // Makes the window close after a specific number of ms
+        void setTimeout(unsigned int milliseconds);
     private:
         SimpleWindow();
         View::pointer mView;
@@ -22,8 +24,11 @@ class SimpleWindow : public Object {
         WindowWidget* mWidget;
 
         unsigned int mWidth, mHeight;
-};
 
+        unsigned int mTimeout;
+
+        static QApplication* QtApp;
+};
 
 } // end namespace fast
 

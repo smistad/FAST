@@ -48,8 +48,6 @@ void ImageRenderer::execute() {
     if(level == -1) {
         level = getDefaultIntensityLevel(input->getDataType());
     }
-
-	
 	
     setOpenGLContext(mDevice->getGLContext());
 
@@ -63,7 +61,9 @@ void ImageRenderer::execute() {
     }
 
 	// Resize window to image
-	glViewport(0,0,input->getWidth(), input->getHeight());
+    mWidth = input->getWidth();
+    mHeight = input->getWidth();
+	glViewport(0,0,mScale*mWidth, mScale*mHeight);
 
     // Create OpenGL texture
     glGenTextures(1, &mTexture);
@@ -152,6 +152,9 @@ ImageRenderer::ImageRenderer() : Renderer() {
     mDevice = boost::static_pointer_cast<OpenCLDevice>(DeviceManager::getInstance().getDefaultVisualizationDevice());
     mTextureIsCreated = false;
     mIsModified = true;
+    mScale = 1.0f;
+    mWidth = 0;
+    mHeight = 0;
 }
 
 void ImageRenderer::draw() {
@@ -174,4 +177,17 @@ void ImageRenderer::draw() {
     glEnd();
 
     glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void ImageRenderer::keyPressEvent(QKeyEvent* event) {
+    switch(event->key()) {
+    case Qt::Key_Plus:
+        mScale = mScale*1.5;
+        glViewport(0,0,mWidth*mScale,mHeight*mScale);
+        break;
+    case Qt::Key_Minus:
+        mScale = mScale/1.5;
+        glViewport(0,0,mWidth*mScale,mHeight*mScale);
+        break;
+    }
 }

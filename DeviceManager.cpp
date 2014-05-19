@@ -172,5 +172,5 @@ ExecutionDevice::pointer DeviceManager::getDefaultVisualizationDevice() {
 
 DeviceManager::DeviceManager() {
     // Set one random device as default device
-    setDefaultDevice(getOneOpenCLDevice());
+    setDefaultDevice(getOneOpenCLDevice(true));
 }

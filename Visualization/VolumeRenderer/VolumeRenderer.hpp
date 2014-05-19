@@ -9,7 +9,7 @@ namespace fast {
 class VolumeRenderer : public Renderer {
     FAST_OBJECT(VolumeRenderer)
     public:
-        void setInput(ImageData::pointer image);
+        //void setInput(ImageData::pointer image);
         //void setThreshold(float threshold);
         void keyPressEvent(QKeyEvent* event);
         void mouseMoveEvent(QMouseEvent* event, View* view);
@@ -19,7 +19,7 @@ class VolumeRenderer : public Renderer {
         VolumeRenderer();
         void execute();
         void draw();
-		
+
 
         OpenCLDevice::pointer mDevice;
         ImageData::pointer mInput;
@@ -57,6 +57,6 @@ class VolumeRenderer : public Renderer {
 } // namespace fast
 
 
-
-
 #endif /* VOLUMERENDERER_HPP_ */
+
+

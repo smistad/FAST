@@ -30,6 +30,85 @@ float getDefaultIntensityWindow(DataType type);
 
 void deleteArray(void * data, DataType type);
 
-} // end namespace
+template <class T, int N>
+class Vector {
+    public:
+        T x();
+        T y();
+        T z();
+        T& operator[](unsigned int index); // lvalue
+        Vector<T,N>& operator=(const Vector<T,N>& other);
+        T get(unsigned int index) const;
+        int getSize() const;
+        Vector(const Vector<T,N>& other);
+        Vector();
+        ~Vector();
+    protected:
+        T* data;
+};
 
+template <int N>
+class Float : public Vector<float, N> {
+};
+
+// TODO: add out of bounds checks
+
+template<class T, int N>
+inline T Vector<T,N>::x() {
+    return data[0];
+}
+
+template<class T, int N>
+inline T Vector<T,N>::y() {
+    return data[1];
+}
+
+template<class T, int N>
+inline T Vector<T,N>::z() {
+    return data[2];
+}
+
+template<class T, int N>
+inline T& Vector<T,N>::operator [](const unsigned int index) {
+    return data[index];
+}
+
+template<class T, int N>
+inline int Vector<T,N>::getSize() const {
+    return N;
+}
+
+template<class T, int N>
+inline T Vector<T,N>::get(unsigned int i) const {
+    return data[i];
+}
+
+template<class T, int N>
+inline Vector<T,N>::Vector(const Vector<T,N>& other) {
+    data = new T[N];
+    for(unsigned int i = 0; i < N; i++)
+        data[i] = other.get(i);
+}
+
+template<class T, int N>
+inline Vector<T,N>::Vector() {
+    data = new T[N];
+    for(unsigned int i = 0; i < N; i++)
+        data[i] = 0;
+}
+
+template<class T, int N>
+inline Vector<T,N>& Vector<T,N>::operator=(const Vector<T,N>& other) {
+    data = new T[N];
+    for(unsigned int i = 0; i < N; i++)
+        data[i] = other.get(i);
+    return *this;
+}
+
+template<class T, int N>
+inline Vector<T,N>::~Vector() {
+    delete[] data;
+}
+
+} // end namespace
 #endif
