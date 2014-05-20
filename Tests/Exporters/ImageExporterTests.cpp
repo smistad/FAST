@@ -8,7 +8,7 @@ using namespace fast;
 
 TEST_CASE("No filename given to the ImageExporter", "[fast][ImageExporter]") {
     Image::pointer image = Image::New();
-ImageExporter::pointer exporter = ImageExporter::New();
+    ImageExporter::pointer exporter = ImageExporter::New();
     exporter->setInput(image);
     CHECK_THROWS(exporter->update());
 }
@@ -16,6 +16,16 @@ ImageExporter::pointer exporter = ImageExporter::New();
 TEST_CASE("No input given to the ImageExporter", "[fast][ImageExporter]") {
     ImageExporter::pointer exporter = ImageExporter::New();
     exporter->setFilename("asd");
+    CHECK_THROWS(exporter->update());
+}
+
+
+TEST_CASE("If 3D image is given as input to ImageExporter it throws exception", "[fast][ImageExporter]") {
+    Image::pointer image = Image::New();
+    image->create3DImage(16,16,16,TYPE_INT8,1,Host::New());
+    ImageExporter::pointer exporter = ImageExporter::New();
+    exporter->setFilename("asd");
+    exporter->setInput(image);
     CHECK_THROWS(exporter->update());
 }
 

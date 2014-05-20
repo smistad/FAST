@@ -2,8 +2,7 @@
 #define ImageExporter_HPP_
 
 #include "ProcessObject.hpp"
-#include "Image.hpp"
-#include "DynamicImage.hpp"
+#include "ImageData.hpp"
 #include <string>
 
 namespace fast {
@@ -11,16 +10,14 @@ namespace fast {
 class ImageExporter : public ProcessObject {
     FAST_OBJECT(ImageExporter)
     public:
-        void setInput(Image::pointer image);
-        void setInput(DynamicImage::pointer image);
+        void setInput(ImageData::pointer image);
         void setFilename(std::string filename);
     private:
         ImageExporter();
         void execute();
 
         std::string mFilename;
-        Image::pointer mStaticInput;
-        DynamicImage::pointer mDynamicInput;
+        ImageData::pointer mInput;
 
 };
 

@@ -2,17 +2,14 @@
 #include <QImage>
 #include "Exception.hpp"
 #include "Utility.hpp"
+#include "DynamicImage.hpp"
+#include "Image.hpp"
+
 namespace fast {
 
-void ImageExporter::setInput(Image::pointer image) {
-    mStaticInput = image;
-    addParent(mStaticInput);
-    mIsModified = true;
-}
-
-void ImageExporter::setInput(DynamicImage::pointer image) {
-    mDynamicInput = image;
-    addParent(mDynamicInput);
+void ImageExporter::setInput(ImageData::pointer image) {
+    mInput = image;
+    addParent(mInput);
     mIsModified = true;
 }
 
@@ -27,15 +24,22 @@ ImageExporter::ImageExporter() {
 }
 
 void ImageExporter::execute() {
-    std::cout << "Trying to save image!!!!!!!!" << std::endl;
-    if(!mStaticInput.isValid())
+    if(!mInput.isValid())
         throw Exception("No input image given to ImageExporter");
 
     if(mFilename == "")
         throw Exception("No filename given to ImageExporter");
 
-    Image::pointer input = mStaticInput;
-    input->update();
+    Image::pointer input;
+
+    if(mInput->isDynamicData()) {
+        input = DynamicImage::pointer(mInput)->getNextFrame();
+    } else {
+        input = mInput;
+    }
+
+    if(input->getDimensions() != 2)
+        throw Exception("Input image to ImageExporter must be 2D.");
 
     QImage image(input->getWidth(), input->getHeight(), QImage::Format_RGB32);
 
