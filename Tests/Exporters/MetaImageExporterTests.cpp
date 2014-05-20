@@ -2,6 +2,7 @@
 #include "MetaImageExporter.hpp"
 #include "MetaImageImporter.hpp"
 #include "Image.hpp"
+#include "DataComparison.hpp"
 
 using namespace fast;
 
@@ -18,7 +19,7 @@ TEST_CASE("No input given to the MetaImageExporter", "[fast][MetaImageExporter]"
     CHECK_THROWS(exporter->update());
 }
 
-TEST_CASE("Write an empty 2D image with the MetaImageExporter", "[fast][MetaImageExporter]") {
+TEST_CASE("Write a 2D image with the MetaImageExporter", "[fast][MetaImageExporter]") {
     // Create some metadata
     Float<3> spacing;
     spacing[0] = 1.2;
@@ -42,9 +43,14 @@ TEST_CASE("Write an empty 2D image with the MetaImageExporter", "[fast][MetaImag
     transformMatrix[6] = 6.0;
     transformMatrix[7] = 7.0;
     transformMatrix[8] = 8.0;
+    unsigned int width = 32;
+    unsigned int height = 46;
+    unsigned int components = 2;
+    DataType type = TYPE_UINT8;
 
     Image::pointer image = Image::New();
-    image->create2DImage(32, 46, TYPE_UINT8, 2, Host::New());
+    void* data = allocateRandomData(width*height*components, type);
+    image->create2DImage(width, height, type, components, Host::New(), data);
 
     // Set metadata
     image->setSpacing(spacing);
@@ -74,21 +80,26 @@ TEST_CASE("Write an empty 2D image with the MetaImageExporter", "[fast][MetaImag
         CHECK(transformMatrix[i] == Approx(image2->getTransformMatrix()[i]));
     }
 
-    CHECK(image2->getWidth() == 32);
-    CHECK(image2->getHeight() == 46);
+    CHECK(image2->getWidth() == width);
+    CHECK(image2->getHeight() == height);
     CHECK(image2->getDepth() == 1);
-    CHECK(image2->getDataType() == TYPE_UINT8);
-    CHECK(image2->getNrOfComponents() == 2);
+    CHECK(image2->getDataType() == type);
+    CHECK(image2->getNrOfComponents() == components);
     CHECK(image2->getDimensions() == 2);
+
+    ImageAccess access = image2->getImageAccess(ACCESS_READ);
+    void* data2 = access.get();
+    CHECK(compareDataArrays(data, data2, width*height*components, type) == true);
+    deleteArray(data, type);
 }
 
 
-TEST_CASE("Write an empty 3D image with the MetaImageExporter", "[fast][MetaImageExporter]") {
+TEST_CASE("Write a 3D image with the MetaImageExporter", "[fast][MetaImageExporter]") {
     // Create some metadata
     Float<3> spacing;
     spacing[0] = 1.2;
     spacing[1] = 2.3;
-    spacing[2] = 1.1;
+    spacing[2] = 1;
     Float<3> offset;
     offset[0] = 2.2;
     offset[1] = 3.3;
@@ -107,9 +118,15 @@ TEST_CASE("Write an empty 3D image with the MetaImageExporter", "[fast][MetaImag
     transformMatrix[6] = 6.0;
     transformMatrix[7] = 7.0;
     transformMatrix[8] = 8.0;
+    unsigned int width = 32;
+    unsigned int height = 22;
+    unsigned int depth = 20;
+    unsigned int components = 1;
+    DataType type = TYPE_UINT16;
 
     Image::pointer image = Image::New();
-    image->create3DImage(32, 32, 24, TYPE_FLOAT, 1, Host::New());
+    void* data = allocateRandomData(width*height*depth*components, type);
+    image->create3DImage(width, height, depth, type, components, Host::New(), data);
 
     // Set metadata
     image->setSpacing(spacing);
@@ -139,10 +156,15 @@ TEST_CASE("Write an empty 3D image with the MetaImageExporter", "[fast][MetaImag
         CHECK(transformMatrix[i] == Approx(image2->getTransformMatrix()[i]));
     }
 
-    CHECK(image2->getWidth() == 32);
-    CHECK(image2->getHeight() == 32);
-    CHECK(image2->getDepth() == 24);
-    CHECK(image2->getDataType() == TYPE_FLOAT);
-    CHECK(image2->getNrOfComponents() == 1);
+    CHECK(image2->getWidth() == width);
+    CHECK(image2->getHeight() == height);
+    CHECK(image2->getDepth() == depth);
+    CHECK(image2->getDataType() == type);
+    CHECK(image2->getNrOfComponents() == components);
     CHECK(image2->getDimensions() == 3);
+
+    ImageAccess access = image2->getImageAccess(ACCESS_READ);
+    void* data2 = access.get();
+    CHECK(compareDataArrays(data, data2, width*height*depth*components, type) == true);
+    deleteArray(data, type);
 }

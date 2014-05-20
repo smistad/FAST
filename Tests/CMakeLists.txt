@@ -6,6 +6,8 @@ set(SOURCE_FILES
 set(EXECUTABLE_SOURCE_FILES
     catch.hpp
     CatchMain.cpp
+    DataComparison.cpp
+    DataComparison.hpp
     DummyObjects.hpp
     ProcessObjectTests.cpp
     DataObjectTests.cpp
