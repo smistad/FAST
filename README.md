@@ -1,6 +1,3 @@
-FAST - Framework for Heterogeneous Medical Image Computing
-==========================================================
-
 ![](http://idi.ntnu.no/~smistad/fast_logo.png)
 
 FAST (Framework for Heterogeneous Medical Image Computing) is an open-source cross-platform framework with the main goal of making it easier to do processing and visualization of medical images on heterogeneous systems (CPU+GPU).
