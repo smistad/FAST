@@ -22,6 +22,7 @@ set(EXECUTABLE_SOURCE_FILES
     Visualization/ImageRendererTests.cpp
     Visualization/SliceRendererTests.cpp
     Visualization/SurfaceRendererTests.cpp
+    SystemTests.cpp
 )
 
 include_directories(
