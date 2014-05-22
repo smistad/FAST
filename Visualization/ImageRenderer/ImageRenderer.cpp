@@ -62,7 +62,7 @@ void ImageRenderer::execute() {
 
 	// Resize window to image
     mWidth = input->getWidth();
-    mHeight = input->getWidth();
+    mHeight = input->getHeight();
 	glViewport(0,0,mScale*mWidth, mScale*mHeight);
 
     // Create OpenGL texture
