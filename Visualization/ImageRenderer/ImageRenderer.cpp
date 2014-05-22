@@ -6,23 +6,23 @@
 #include "DynamicImage.hpp"
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
+#include <OpenGL/gl.h>
 #include <OpenGL/OpenGL.h>
 #else
 #if _WIN32
 #include <GL/gl.h>
 #include <CL/cl_gl.h>
-#ifndef GL_RGBA32F // this is missing on windows for some reason
-#define GL_RGBA32F 0x8814 
-#endif
 #else
 #include <GL/glx.h>
 #include <CL/cl_gl.h>
 #endif
 #endif
 
-
-
 using namespace fast;
+
+#ifndef GL_RGBA32F // this is missing on windows and mac for some reason
+#define GL_RGBA32F 0x8814 
+#endif
 
 void ImageRenderer::execute() {
     if(!mInput.isValid())

@@ -27,12 +27,26 @@ std::vector<OpenCLDevice::pointer> getDevices(oul::DeviceCriteria criteria, bool
     if(enableVisualization) {
         // Create GL context
 #if defined(__APPLE__) || defined(__MACOSX)
-        CGLPixelFormatAttribute attribs[] = {};
+	std::cout << "trying to create a MAC os X GL context" << std::endl;
+CGLPixelFormatAttribute attribs[13] = {
+    kCGLPFAOpenGLProfile, (CGLPixelFormatAttribute)kCGLOGLPVersion_3_2_Core, // This sets the context to 3.2
+    kCGLPFAColorSize,     (CGLPixelFormatAttribute)24,
+    kCGLPFAAlphaSize,     (CGLPixelFormatAttribute)8,
+    kCGLPFAAccelerated,
+    kCGLPFADoubleBuffer,
+    kCGLPFASampleBuffers, (CGLPixelFormatAttribute)1,
+    kCGLPFASamples,       (CGLPixelFormatAttribute)4,
+    (CGLPixelFormatAttribute)0
+};
         CGLPixelFormatObj pix;
-        CGLChoosePixelFormat(attribs, &pix, NULL);
+GLint npix;
+        CGLChoosePixelFormat(attribs, &pix, &npix);
         CGLContextObj appleGLContext;
+std::cout << "asd" << std::endl;
         CGLCreateContext(pix, NULL, &appleGLContext);
+std::cout << "asd" << std::endl;
         glContext = (unsigned long *)appleGLContext;
+std::cout << "the device manager created the GL context " << glContext << std::endl;
 #else
 #if _WIN32
         // TODO implement windows OpenGL stuff
