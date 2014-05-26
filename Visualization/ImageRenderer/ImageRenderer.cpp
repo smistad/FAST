@@ -161,10 +161,14 @@ void ImageRenderer::draw() {
     if(!mTextureIsCreated)
         return;
 
-    setOpenGLContext(mDevice->getGLContext());
+    //setOpenGLContext(mDevice->getGLContext());
+//CGLSetCurrentContext((CGLContextObj)(mDevice->getGLContext()));
+std::cout << "in image renderer(device): " << mDevice->getGLContext() << std::endl;
+std::cout << "in image renderer: " << CGLGetCurrentContext() << std::endl;
 
     glBindTexture(GL_TEXTURE_2D, mTexture);
 
+//glColor3f(1.0,0,0);
     glBegin(GL_QUADS);
         glTexCoord2i(0, 1);
         glVertex3f(-1.0f, 1.0f, 0.0f);

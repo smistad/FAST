@@ -24,7 +24,9 @@ class DeviceManager {
         void setDefaultVisualizationDevice(ExecutionDevice::pointer device);
         ExecutionDevice::pointer getDefaultComputationDevice();
         ExecutionDevice::pointer getDefaultVisualizationDevice();
+	void setGLContext(unsigned long * glContext) { mGLContext = glContext;};
     private:
+	unsigned long * mGLContext;
         DeviceManager();
         DeviceManager(DeviceManager const&); // Don't implement
         void operator=(DeviceManager const&); // Don't implement

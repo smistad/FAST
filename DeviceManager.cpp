@@ -22,7 +22,7 @@ DeviceManager& DeviceManager::getInstance() {
     return instance;
 }
 
-std::vector<OpenCLDevice::pointer> getDevices(oul::DeviceCriteria criteria, bool enableVisualization) {
+std::vector<OpenCLDevice::pointer> getDevices(oul::DeviceCriteria criteria, bool enableVisualization, unsigned long * mGLContext = NULL) {
     unsigned long * glContext = NULL;
     if(enableVisualization) {
         // Create GL context
@@ -38,6 +38,7 @@ CGLPixelFormatAttribute attribs[13] = {
     kCGLPFASamples,       (CGLPixelFormatAttribute)4,
     (CGLPixelFormatAttribute)0
 };
+/*
         CGLPixelFormatObj pix;
 GLint npix;
         CGLChoosePixelFormat(attribs, &pix, &npix);
@@ -47,6 +48,7 @@ std::cout << "asd" << std::endl;
 std::cout << "asd" << std::endl;
         glContext = (unsigned long *)appleGLContext;
 std::cout << "the device manager created the GL context " << glContext << std::endl;
+*/
 #else
 #if _WIN32
         // TODO implement windows OpenGL stuff
@@ -86,7 +88,8 @@ std::cout << "the device manager created the GL context " << glContext << std::e
     for(unsigned int j = 0; j < platformDevices[i].second.size(); j++) {
         std::vector<cl::Device> deviceVector;
         deviceVector.push_back(platformDevices[i].second[j]);
-        OpenCLDevice * device = new OpenCLDevice(deviceVector, glContext);
+std::cout << "creating a device using GL context: " << CGLGetCurrentContext() << std::endl;
+        OpenCLDevice * device = new OpenCLDevice(deviceVector, mGLContext);
         executionDevices.push_back(OpenCLDevice::pointer(device));
     }}
 
@@ -120,7 +123,7 @@ OpenCLDevice::pointer DeviceManager::getOneGPUDevice(
     oul::DeviceCriteria criteria;
     criteria.setTypeCriteria(oul::DEVICE_TYPE_GPU);
     criteria.setDeviceCountCriteria(1);
-    std::vector<OpenCLDevice::pointer> devices = getDevices(criteria,enableVisualization);
+    std::vector<OpenCLDevice::pointer> devices = getDevices(criteria,enableVisualization,mGLContext);
 	if(devices.size() == 0)
 		throw Exception("No compatible OpenCL devices found");
     return devices[0];

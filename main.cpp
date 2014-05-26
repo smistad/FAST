@@ -18,12 +18,17 @@ using namespace fast;
 
 int main(int argc, char ** argv) {
 
+    SimpleWindow::pointer window = SimpleWindow::New();
+window->setTimeout(10);
+window->runMainLoop();
+std::cout << "Qt GL context: " << CGLGetCurrentContext() << std::endl;
+
     // Get a GPU device and set it as the default device
     DeviceManager& deviceManager = DeviceManager::getInstance();
+deviceManager.setGLContext((unsigned long *)CGLGetCurrentContext());
     deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(true));
 
 
-	/*
 
     // Example of importing, processing and exporting a 2D image
     ImageImporter::pointer importer = ImageImporter::New();
@@ -43,17 +48,16 @@ int main(int argc, char ** argv) {
     exporter2->setInput(filteredImage);
     exporter2->update();
 
-	*/
     // Example of displaying an image on screen using ImageRenderer (2D) and SimpleWindow
 
-	/*
 
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->setInput(filteredImage);
-    SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
+window->setTimeout(10*1000);
     window->runMainLoop();
     
+	/*
 
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
@@ -64,7 +68,6 @@ int main(int argc, char ** argv) {
     window->setMaximumFramerate(25);
     window->addRenderer(surfaceRenderer);
     window->runMainLoop();
-	*/
 
 	// Example of using VolumeRenderer (3D) and SimpleWindow
 	MetaImageImporter::pointer mhdImporter = MetaImageImporter::New();
@@ -75,6 +78,7 @@ int main(int argc, char ** argv) {
     window->setMaximumFramerate(25);
     window->addRenderer(VolumeRenderer);
     window->runMainLoop();
+	*/
 	
 
     /*
