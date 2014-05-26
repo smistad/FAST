@@ -38,7 +38,6 @@ CGLPixelFormatAttribute attribs[13] = {
     kCGLPFASamples,       (CGLPixelFormatAttribute)4,
     (CGLPixelFormatAttribute)0
 };
-/*
         CGLPixelFormatObj pix;
 GLint npix;
         CGLChoosePixelFormat(attribs, &pix, &npix);
@@ -47,8 +46,8 @@ std::cout << "asd" << std::endl;
         CGLCreateContext(pix, NULL, &appleGLContext);
 std::cout << "asd" << std::endl;
         glContext = (unsigned long *)appleGLContext;
+//CGLSetCurrentContext(appleGLContext);
 std::cout << "the device manager created the GL context " << glContext << std::endl;
-*/
 #else
 #if _WIN32
         // TODO implement windows OpenGL stuff
