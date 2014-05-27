@@ -22,7 +22,6 @@ void View::addRenderer(Renderer::pointer renderer) {
 
 View::View(QGLContext *context) : QGLWidget(context) {
 makeCurrent();
-std::cout << "context set in View is: " << CGLGetCurrentContext() << std::endl;
     mFramerate = 25;
     // Set up a timer that will call update on this object at a regular interval
     timer = new QTimer(this);
