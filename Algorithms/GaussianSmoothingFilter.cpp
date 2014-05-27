@@ -167,9 +167,17 @@ void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, float *
     unsigned int height = input->getHeight();
     if(input->getDimensions() == 3) {
         unsigned int depth = input->getDepth();
-        for(unsigned int z = halfSize; z < depth-halfSize; z++) {
-        for(unsigned int y = halfSize; y < height-halfSize; y++) {
-        for(unsigned int x = halfSize; x < width-halfSize; x++) {
+        for(unsigned int z = 0; z < depth; z++) {
+        for(unsigned int y = 0; y < height; y++) {
+        for(unsigned int x = 0; x < width; x++) {
+
+            if(x < halfSize || x >= width-halfSize ||
+            y < halfSize || y >= height-halfSize ||
+            z < halfSize || z >= depth-halfSize) {
+                // on border only copy values
+                outputData[x*nrOfComponents+y*nrOfComponents*width+z*nrOfComponents*width*height] = inputData[x*nrOfComponents+y*nrOfComponents*width+z*nrOfComponents*width*height];
+                continue;
+            }
 
             double sum = 0.0;
             for(int c = -halfSize; c <= halfSize; c++) {
@@ -184,6 +192,13 @@ void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, float *
         for(unsigned int y = halfSize; y < height-halfSize; y++) {
         for(unsigned int x = halfSize; x < width-halfSize; x++) {
 
+            if(x < halfSize || x >= width-halfSize ||
+            y < halfSize || y >= height-halfSize) {
+                // on border only copy values
+                outputData[x*nrOfComponents+y*nrOfComponents*width] = inputData[x*nrOfComponents+y*nrOfComponents*width];
+                continue;
+            }
+
             double sum = 0.0;
             for(int b = -halfSize; b <= halfSize; b++) {
             for(int a = -halfSize; a <= halfSize; a++) {
@@ -193,6 +208,7 @@ void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, float *
             outputData[x*nrOfComponents+y*nrOfComponents*width] = (T)sum;
         }}
     }
+    std::cout << "finished processing one frame" << std::endl;
 }
 
 void GaussianSmoothingFilter::execute() {
