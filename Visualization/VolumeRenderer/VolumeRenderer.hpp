@@ -3,13 +3,14 @@
 
 #include "Renderer.hpp"
 #include "ImageData.hpp"
+#include "Image.hpp"
 
 namespace fast {
 
 class VolumeRenderer : public Renderer {
     FAST_OBJECT(VolumeRenderer)
     public:
-        void setInput(ImageData::pointer image);
+        void addInput(ImageData::pointer image);
         //void setThreshold(float threshold);
         void keyPressEvent(QKeyEvent* event);
         void mouseMoveEvent(QMouseEvent* event, View* view);
@@ -22,7 +23,7 @@ class VolumeRenderer : public Renderer {
 
 
         OpenCLDevice::pointer mDevice;
-        ImageData::pointer mInput;
+        
 
         bool mOutputIsCreated;
 
@@ -43,7 +44,7 @@ class VolumeRenderer : public Renderer {
 		float invViewMatrix[12];
 
 		cl::Kernel renderKernel;
-		cl::Image3D* d_volumeArray;
+
 		bool updated;
 
 		int ox, oy;
@@ -51,7 +52,12 @@ class VolumeRenderer : public Renderer {
 		GLfloat viewRotation[3];
 		GLfloat viewTranslation[3];
 
-		cl::Image3D xx;
+		
+		unsigned int numberOfVolumes;
+
+		std::vector<ImageData::pointer> mInputs;
+		std::vector<Image::pointer> inputs;
+		static const unsigned int maxNumberOfVolumes=5;
 };
 
 } // namespace fast

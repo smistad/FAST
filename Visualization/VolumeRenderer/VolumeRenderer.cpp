@@ -11,10 +11,20 @@
 namespace fast {
 
 
-void VolumeRenderer::setInput(ImageData::pointer image) {
-    mInput = image;
-    addParent(mInput);
-    mIsModified = true;
+void VolumeRenderer::addInput(ImageData::pointer image) {
+
+	if(numberOfVolumes<0)
+        throw Exception("Not a correct number of volumes is given to VolumeRenderer");
+	if(numberOfVolumes<maxNumberOfVolumes)
+	{
+		mInputs.push_back(image);
+		addParent(mInputs[numberOfVolumes]);
+		numberOfVolumes++;
+		mIsModified = true;
+	}
+	else
+		printf("\n Warning: Volume Renderer currently supports only up to %d volumes. Extera inputs are denied. \n", maxNumberOfVolumes);
+	
 }
 
 
@@ -36,27 +46,48 @@ VolumeRenderer::VolumeRenderer() : Renderer() {
 
 	mOutputIsCreated=false;
 
+	numberOfVolumes=0;
+
+	mInputs.clear();
+	inputs.clear();
 
 }
 
 
 void VolumeRenderer::execute() {
 
-    if(!mInput.isValid())
-        throw Exception("No input was given to VolumeRenderer");
-	
-    Image::pointer input;
-    if(mInput->isDynamicData()) {
-        input = DynamicImage::pointer(mInput)->getNextFrame();
-    } else {
-        input = mInput;
-    }
+	if(numberOfVolumes<0)
+        throw Exception("Not a correct number of volumes is given to VolumeRenderer.");
+	if(numberOfVolumes>maxNumberOfVolumes)
+		printf("Warning: Volume Renderer currently supports only up to %d volumes. Extera inputs are denied. \n", maxNumberOfVolumes);
 
-    if(input->getDimensions() != 3)
-        throw Exception("The VolumeRenderer only supports 3D images");
-	
-	if(input->getNrOfComponents() !=1)
-		throw Exception("The VolumeRenderer currentlt only supports single chanel images");
+	for(unsigned int i=0;i<numberOfVolumes;i++)
+	{
+		if(!mInputs[i].isValid())
+		{
+			char errorMessage[255];
+			sprintf(errorMessage, "No input was given to VolumeRenderer; check input number %d.", i);
+			throw Exception(errorMessage);
+		}
+		if(mInputs[i]->isDynamicData()) {
+			inputs.push_back( DynamicImage::pointer(mInputs[i])->getNextFrame());
+		} else {
+			inputs.push_back( mInputs[i]);
+		}
+
+		if(inputs[i]->getDimensions() != 3)
+		{
+			char errorMessage[255];
+			sprintf(errorMessage, "The VolumeRenderer only supports 3D images; check input number %d.", i);
+			throw Exception(errorMessage);
+		}
+		if(inputs[i]->getNrOfComponents() !=1)
+		{
+			char errorMessage[255];
+			sprintf(errorMessage, "The VolumeRenderer currentlt only supports single chanel images; check input volume number %d.", i);
+			throw Exception(errorMessage);
+		}
+	}
 
 	mOutputIsCreated=false;
 
@@ -112,14 +143,33 @@ void VolumeRenderer::execute() {
 		   
 		d_transferFuncArray=cl::Image2D(clContext, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, cl::ImageFormat(CL_RGBA, CL_FLOAT), 9, 1, 0, transferFunc, 0);
 		transferFuncSampler=cl::Sampler(clContext, true, CL_ADDRESS_CLAMP_TO_EDGE, CL_FILTER_LINEAR);
-		volumeSamplerLinear=cl::Sampler(clContext, true, CL_ADDRESS_REPEAT, CL_FILTER_LINEAR);
+		volumeSamplerLinear=cl::Sampler(clContext, true, CL_ADDRESS_CLAMP_TO_EDGE, CL_FILTER_LINEAR);
 		d_invViewMatrix= cl::Buffer(clContext, CL_MEM_READ_WRITE, 12*sizeof(float));
         
 		
         // Compile program
        
         char buffer[255];
-        sprintf(buffer," %s ", "-cl-fast-relaxed-math -DIMAGE_SUPPORT");
+        sprintf(buffer,"-cl-fast-relaxed-math -D VOL%d ", numberOfVolumes);
+		for(unsigned int i=0; i<numberOfVolumes;i++)
+		{
+			char dataTypeBuffer[255];
+			unsigned int volumeDataType = inputs[i]->getDataType();
+			
+			if (volumeDataType==fast::TYPE_FLOAT)
+				sprintf(dataTypeBuffer, " -D TYPE_FLOAT%d ", i+1);
+			else
+			{
+				if( (volumeDataType==fast::TYPE_UINT8) || (volumeDataType==fast::TYPE_UINT16) )
+					sprintf(dataTypeBuffer, " -D TYPE_UINT%d ", i+1);
+				else
+					sprintf(dataTypeBuffer, " -D TYPE_INT%d ", i+1);
+			}
+			strcat(buffer, dataTypeBuffer);
+		}
+
+		printf("\n%s\n",buffer);
+
         std::string str(buffer);
         int programNr = mDevice->createProgramFromSource(std::string(FAST_ROOT_DIR) + "/Visualization/VolumeRenderer/VolumeRenderer.cl", str);
         program = mDevice->getProgram(programNr);
@@ -150,11 +200,11 @@ void VolumeRenderer::execute() {
         pbo
 		);
 
-		xx=cl::Image3D(clContext,CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, cl::ImageFormat(CL_R, CL_UNORM_INT8), 256, 256,256, 0,0, input->getImageAccess(ACCESS_READ).get(), 0);
-
-		unsigned int width=256;
-		unsigned int height=256;
+		//for(int i=0;i<numberOfVolumes;i++)
+		//	d_volumeArray.push_back(cl::Image3D(clContext,CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, cl::ImageFormat(CL_R, CL_UNORM_INT8), inputs[i]->getWidth(), inputs[i]->getHeight(), inputs[i]->getDepth(), 0, 0, inputs[i]->getImageAccess(ACCESS_READ).get(), 0));
 		
+		OpenCLImageAccess3D access = inputs[0]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+		cl::Image3D* clImage = access.get();
 
 		renderKernel.setArg(0, pbo_cl);
 		renderKernel.setArg(1, mWidth);
@@ -164,11 +214,45 @@ void VolumeRenderer::execute() {
         renderKernel.setArg(5, transferOffset);
         renderKernel.setArg(6, transferScale);
 		renderKernel.setArg(7, d_invViewMatrix);
-		renderKernel.setArg(8, xx);
+		//renderKernel.setArg(8, d_volumeArray[0]);
+		renderKernel.setArg(8, *clImage);
 		renderKernel.setArg(9, d_transferFuncArray);
 		renderKernel.setArg(10, volumeSamplerLinear);
 		renderKernel.setArg(11, transferFuncSampler);
+		if (numberOfVolumes>1)
+		{
+			OpenCLImageAccess3D access2 = inputs[1]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+//			std::cout<<inputs[1]->getDataType()<<std::endl;
+			cl::Image3D* clImage2 = access2.get();
+			renderKernel.setArg(12, *clImage2);
+			renderKernel.setArg(13, d_transferFuncArray);
 
+			if (numberOfVolumes>2)
+			{
+				OpenCLImageAccess3D access3 = inputs[2]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+				cl::Image3D* clImage3 = access3.get();
+				renderKernel.setArg(14, *clImage3);
+				renderKernel.setArg(15, d_transferFuncArray);
+
+				if (numberOfVolumes>3)
+				{
+					OpenCLImageAccess3D access4 = inputs[3]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+					cl::Image3D* clImage4 = access4.get();
+					renderKernel.setArg(16, *clImage4);
+					renderKernel.setArg(17, d_transferFuncArray);
+
+					if (numberOfVolumes>4)
+					{	
+						OpenCLImageAccess3D access5 = inputs[4]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+						cl::Image3D* clImage5 = access5.get();
+						renderKernel.setArg(18, *clImage5);
+						renderKernel.setArg(19, d_transferFuncArray);
+					}
+				}
+
+			}
+
+		}
 		updated=true;
 
 		}

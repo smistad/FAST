@@ -55,6 +55,22 @@ d_render(__global uint *d_output,
           __read_only image2d_t transferFunc,
           sampler_t volumeSampler,
           sampler_t transferFuncSampler
+#if defined(VOL2) || defined(VOL3) || defined(VOL4) || defined(VOL5)
+		  ,__read_only image3d_t volume2
+		  ,__read_only image2d_t transferFunc2
+#endif
+#if defined(VOL3) || defined(VOL4) || defined(VOL5)
+		  ,__read_only image3d_t volume3
+		  ,__read_only image2d_t transferFunc3
+#endif
+#if defined(VOL4) || defined(VOL5)
+		  ,__read_only image3d_t volume4
+		  ,__read_only image2d_t transferFunc4
+#endif
+#if defined(VOL5)
+		  ,__read_only image3d_t volume5
+		  ,__read_only image2d_t transferFunc5
+#endif
          )
 
 {	
@@ -100,23 +116,107 @@ d_render(__global uint *d_output,
     for(uint i=0; i<maxSteps*5; i++) {		
         float4 pos = eyeRay_o + eyeRay_d*t;
         pos = pos*0.5f+0.5f;    // map position to [0, 1] coordinates
-
         // read from 3D texture        
-//#ifdef IMAGE_SUPPORT        
-        float4 sample = read_imagef(volume, volumeSampler, pos);
-        
+  
+        //float sample = (float)(read_imageui(volume, volumeSampler, pos).x)/255;
+#ifdef TYPE_FLOAT1
+		float sample = read_imagef(volume, volumeSampler, pos).x;
+#elif TYPE_UINT1
+		float sample = (float)(read_imageui(volume, volumeSampler, pos).x)/255;
+#elif TYPE_INT1
+		float sample = (float)(read_imagei(volume, volumeSampler, pos).x)/255;
+#endif
         // lookup in transfer function texture
-        float2 transfer_pos = (float2)((sample.x-transferOffset)*transferScale, 0.5f);
+        float2 transfer_pos = (float2)((sample-transferOffset)*transferScale, 0.5f);
         float4 col = read_imagef(transferFunc, transferFuncSampler, transfer_pos);
-//#else
-  //      float4 col = (float4)(pos.x,pos.y,pos.z,0.1f);
-//#endif
-
-
         // accumulate result
         float a = col.w*density;
         temp = mix(temp, col, (float4)(a, a, a, a));
+		
+#if defined(VOL2) || defined(VOL3) || defined(VOL4) || defined(VOL5)
+		pos= (float4)(eyeRay_o.x+0.0f, eyeRay_o.y+0.0f, eyeRay_o.z, eyeRay_o.w+0.0f) + eyeRay_d*t; //Mehdi
+		if( (pos.x>=-1.0f) && (pos.x<=1.0f) && (pos.y>=-1.0f) && (pos.y<=1.0f) )
+		{
+			pos= pos*0.5f+0.5f; //Mehdi
 
+#ifdef TYPE_FLOAT2
+			float sample = read_imagef(volume2, volumeSampler, pos).x;
+#elif TYPE_UINT2
+			float sample = (float)(read_imageui(volume2, volumeSampler, pos).x)/255;
+#elif TYPE_INT2
+			float sample = (float)(read_imagei(volume2, volumeSampler, pos).x)/255;
+#endif
+
+			transfer_pos = (float2)((sample-transferOffset)*transferScale, 0.5f); //Mehdi
+			col = read_imagef(transferFunc, transferFuncSampler, transfer_pos); //Mehdi
+			a = col.w*density; //Mehdi
+			temp = mix(temp, col, (float4)(a, a, a, a)); //Mehdi
+		}
+#endif //VOL2
+		
+#if defined(VOL3) || defined(VOL4) || defined(VOL5)
+		pos= (float4)(eyeRay_o.x+0.0f, eyeRay_o.y+0.0f, eyeRay_o.z, eyeRay_o.w+0.0f) + eyeRay_d*t; //Mehdi
+		if( (pos.x>=-1.0f) && (pos.x<=1.0f) && (pos.y>=-1.0f) && (pos.y<=1.0f) )
+		{
+			pos= pos*0.5f+0.5f; //Mehdi
+
+#ifdef TYPE_FLOAT3
+			float sample = read_imagef(volume3, volumeSampler, pos).x;
+#elif TYPE_UINT3
+			float sample = (float)(read_imageui(volume3, volumeSampler, pos).x)/255;
+#elif TYPE_INT3
+			float sample = (float)(read_imagei(volume3, volumeSampler, pos).x)/255;
+#endif
+
+			transfer_pos = (float2)((sample-transferOffset)*transferScale, 0.5f); //Mehdi
+			col = read_imagef(transferFunc, transferFuncSampler, transfer_pos); //Mehdi
+			a = col.w*density; //Mehdi
+			temp = mix(temp, col, (float4)(a, a, a, a)); //Mehdi
+		}
+#endif //VOL3
+
+#if defined(VOL4) || defined(VOL5)
+		pos= (float4)(eyeRay_o.x+0.0f, eyeRay_o.y+0.0f, eyeRay_o.z, eyeRay_o.w+0.0f) + eyeRay_d*t; //Mehdi
+		if( (pos.x>=-1.0f) && (pos.x<=1.0f) && (pos.y>=-1.0f) && (pos.y<=1.0f) )
+		{
+			pos= pos*0.5f+0.5f; //Mehdi
+
+#ifdef TYPE_FLOAT4
+			float sample = read_imagef(volume4, volumeSampler, pos).x;
+#elif TYPE_UINT4
+			float sample = (float)(read_imageui(volume4, volumeSampler, pos).x)/255;
+#elif TYPE_INT4
+			float sample = (float)(read_imagei(volume4, volumeSampler, pos).x)/255;
+#endif
+
+			transfer_pos = (float2)((sample-transferOffset)*transferScale, 0.5f); //Mehdi
+			col = read_imagef(transferFunc, transferFuncSampler, transfer_pos); //Mehdi
+			a = col.w*density; //Mehdi
+			temp = mix(temp, col, (float4)(a, a, a, a)); //Mehdi
+		}
+#endif //VOL4
+
+#if defined(VOL5)
+		pos= (float4)(eyeRay_o.x+0.0f, eyeRay_o.y+0.0f, eyeRay_o.z, eyeRay_o.w+0.0f) + eyeRay_d*t; //Mehdi
+		if( (pos.x>=-1.0f) && (pos.x<=1.0f) && (pos.y>=-1.0f) && (pos.y<=1.0f) )
+		{
+			pos= pos*0.5f+0.5f; //Mehdi
+
+#ifdef TYPE_FLOAT5
+			float sample = read_imagef(volume5, volumeSampler, pos).x;
+#elif TYPE_UINT5
+			float sample = (float)(read_imageui(volume5, volumeSampler, pos).x)/255;
+#elif TYPE_INT5
+			float sample = (float)(read_imagei(volume5, volumeSampler, pos).x)/255;
+#endif
+
+			transfer_pos = (float2)((sample-transferOffset)*transferScale, 0.5f); //Mehdi
+			col = read_imagef(transferFunc, transferFuncSampler, transfer_pos); //Mehdi
+			a = col.w*density; //Mehdi
+			temp = mix(temp, col, (float4)(a, a, a, a)); //Mehdi
+		}		
+#endif //VOL5
+		
         t -= tstep;
         if (t < tnear) break;
     }
