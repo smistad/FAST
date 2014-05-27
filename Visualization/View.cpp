@@ -20,16 +20,6 @@ void View::addRenderer(Renderer::pointer renderer) {
     mRenderers.push_back(renderer);
 }
 
-View::View(QGLContext *context) : QGLWidget(context) {
-makeCurrent();
-    mFramerate = 25;
-    // Set up a timer that will call update on this object at a regular interval
-    timer = new QTimer(this);
-    timer->start(1000/mFramerate); // in milliseconds
-    timer->setSingleShot(false);
-    connect(timer,SIGNAL(timeout()),this,SLOT(update()));
-}
-
 View::View() {
     mFramerate = 25;
     // Set up a timer that will call update on this object at a regular interval

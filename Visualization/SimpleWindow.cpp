@@ -18,26 +18,27 @@ QGLContext* SimpleWindow::mGLContext = NULL;
 SimpleWindow::SimpleWindow() {
     // Make sure only one QApplication is created
     if(SimpleWindow::QtApp == NULL) {
-std::cout << "creating qt app in SimpleWindow" << std::endl;
+        std::cout << "creating qt app in SimpleWindow" << std::endl;
         // Create some dummy argc and argv options as QApplication requires it
         int* argc = new int[1];
         *argc = 1;
         const char * argv = "asd";
         SimpleWindow::QtApp = new QApplication(*argc,(char**)&argv);
     }
-mView = new View;
-if(mGLContext != NULL){
-    QGLContext* context2 = new QGLContext(QGLFormat::defaultFormat(), mView);
-    context2->create(mGLContext);
-mView->setContext(context2);
-    if(!context2->isValid()) {
-        std::cout << "QGL context 2 is invalid!" << std::endl;
-        exit(-1);
+
+    mView = View::New();
+    if(mGLContext != NULL){
+        QGLContext* context2 = new QGLContext(QGLFormat::defaultFormat(), mView.getPtr().get());
+        context2->create(mGLContext);
+        mView->setContext(context2);
+        if(!context2->isValid()) {
+            std::cout << "QGL context 2 is invalid!" << std::endl;
+            exit(-1);
+        }
+        if(context2->isSharing()) {
+            std::cout << "context 2 is sharing" << std::endl;
+        }
     }
-    if(context2->isSharing()) {
-        std::cout << "context 2 is sharing" << std::endl;
-    }
-}
 
 
     // default window size
@@ -52,7 +53,7 @@ void SimpleWindow::runMainLoop() {
     mWidget = new WindowWidget(mView);
 
     QHBoxLayout* mainLayout = new QHBoxLayout;
-    mainLayout->addWidget(mView);
+    mainLayout->addWidget(mView.getPtr().get());
     mWidget->setLayout(mainLayout);
     mWidget->setWindowTitle("FAST");
     mWidget->setContentsMargins(0, 0, 0, 0);

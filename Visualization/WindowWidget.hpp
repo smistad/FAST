@@ -20,9 +20,9 @@ class WindowWidget : public QWidget {
         void mouseMoveEvent(QMouseEvent* event);
         void mousePressEvent(QMouseEvent* event);
         void mouseReleaseEvent(QMouseEvent* event);
-        WindowWidget(View* view) : mView(view) {};
+        WindowWidget(View::pointer view) : mView(view) {};
     private:
-        View* mView;
+        View::pointer mView;
 };
 }; // end namespace fast
 
