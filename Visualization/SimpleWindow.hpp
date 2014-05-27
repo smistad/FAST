@@ -19,7 +19,7 @@ class SimpleWindow : public Object {
         // Makes the window close after a specific number of ms
         void setTimeout(unsigned int milliseconds);
         static QGLContext *mGLContext;
-        static QApplication* QtApp;
+        static void initializeQtApp();
     private:
         SimpleWindow();
         View::pointer mView;

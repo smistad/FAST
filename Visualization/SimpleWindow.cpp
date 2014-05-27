@@ -2,6 +2,7 @@
 #include <QHBoxLayout>
 #include <QApplication>
 #include "WindowWidget.hpp"
+#include <boost/thread.hpp>
 using namespace fast;
 
 void SimpleWindow::addRenderer(Renderer::pointer renderer) {
@@ -12,22 +13,32 @@ void SimpleWindow::setMaximumFramerate(unsigned int framerate) {
     mView->setMaximumFramerate(framerate);
 }
 
-QApplication* SimpleWindow::QtApp = NULL;
-QGLContext* SimpleWindow::mGLContext = NULL;
-
-SimpleWindow::SimpleWindow() {
-    // Make sure only one QApplication is created
-    if(SimpleWindow::QtApp == NULL) {
+// Make sure only one QApplication is created
+void SimpleWindow::initializeQtApp() {
+    static boost::thread_specific_ptr<bool> QtAppIsCreated;
+    if(QtAppIsCreated.get() == NULL) {
+        // Qt Application has not been created, do it now
         std::cout << "creating qt app in SimpleWindow" << std::endl;
         // Create some dummy argc and argv options as QApplication requires it
         int* argc = new int[1];
         *argc = 1;
         const char * argv = "asd";
-        SimpleWindow::QtApp = new QApplication(*argc,(char**)&argv);
+        QApplication* app = new QApplication(*argc,(char**)&argv);
+        bool* flag = QtAppIsCreated.get();
+        flag = new bool;
+        *flag = true;
     }
+}
+
+QGLContext* SimpleWindow::mGLContext = NULL;
+
+SimpleWindow::SimpleWindow() {
+    initializeQtApp();
 
     mView = View::New();
+    // TODO unglobalize mGLContext
     if(mGLContext != NULL){
+        std::cout << "Creating custom QGLContext" << std::endl;
         QGLContext* context2 = new QGLContext(QGLFormat::defaultFormat(), mView.getPtr().get());
         context2->create(mGLContext);
         mView->setContext(context2);

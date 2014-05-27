@@ -32,14 +32,7 @@ std::vector<OpenCLDevice::pointer> getDevices(oul::DeviceCriteria criteria, bool
 #if defined(__APPLE__) || defined(__MACOSX)
 	std::cout << "trying to create a MAC os X GL context" << std::endl;
     // Make sure only one QApplication is created
-    if(SimpleWindow::QtApp == NULL) {
-std::cout << "creating qt app in DeviceManager" << std::endl;
-        // Create some dummy argc and argv options as QApplication requires it
-        int* argc = new int[1];
-        *argc = 1;
-        const char * argv = "asd";
-        SimpleWindow::QtApp = new QApplication(*argc,(char**)&argv);
-    }
+    SimpleWindow::initializeQtApp();
 
     QGLWidget* widget = new QGLWidget;
 
