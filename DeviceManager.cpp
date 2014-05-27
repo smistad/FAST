@@ -27,6 +27,7 @@ DeviceManager& DeviceManager::getInstance() {
 std::vector<OpenCLDevice::pointer> getDevices(oul::DeviceCriteria criteria, bool enableVisualization) {
     unsigned long * glContext = NULL;
     if(enableVisualization) {
+        // TODO: this can be simplified to just use the QGLContext class instead
         // Create GL context
 #if defined(__APPLE__) || defined(__MACOSX)
 	std::cout << "trying to create a MAC os X GL context" << std::endl;
