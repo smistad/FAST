@@ -18,17 +18,9 @@ using namespace fast;
 
 int main(int argc, char ** argv) {
 
-    SimpleWindow::pointer window = SimpleWindow::New();
-window->setTimeout(10);
-window->runMainLoop();
-std::cout << "Qt GL context: " << CGLGetCurrentContext() << std::endl;
-
     // Get a GPU device and set it as the default device
     DeviceManager& deviceManager = DeviceManager::getInstance();
-deviceManager.setGLContext((unsigned long *)CGLGetCurrentContext());
     deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(true));
-
-
 
     // Example of importing, processing and exporting a 2D image
     ImageImporter::pointer importer = ImageImporter::New();
@@ -51,6 +43,7 @@ deviceManager.setGLContext((unsigned long *)CGLGetCurrentContext());
     // Example of displaying an image on screen using ImageRenderer (2D) and SimpleWindow
 
 
+    SimpleWindow::pointer window = SimpleWindow::New();
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->setInput(filteredImage);
     window->addRenderer(renderer);

@@ -1,6 +1,8 @@
 #include "DeviceManager.hpp"
 #include "OpenCLManager.hpp"
 #include "Exception.hpp"
+#include "SimpleWindow.hpp"
+#include <QApplication>
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
@@ -22,30 +24,40 @@ DeviceManager& DeviceManager::getInstance() {
     return instance;
 }
 
-std::vector<OpenCLDevice::pointer> getDevices(oul::DeviceCriteria criteria, bool enableVisualization, unsigned long * mGLContext = NULL) {
+std::vector<OpenCLDevice::pointer> getDevices(oul::DeviceCriteria criteria, bool enableVisualization) {
     unsigned long * glContext = NULL;
     if(enableVisualization) {
         // Create GL context
 #if defined(__APPLE__) || defined(__MACOSX)
 	std::cout << "trying to create a MAC os X GL context" << std::endl;
-CGLPixelFormatAttribute attribs[13] = {
-    kCGLPFAOpenGLProfile, (CGLPixelFormatAttribute)kCGLOGLPVersion_3_2_Core, // This sets the context to 3.2
-    kCGLPFAColorSize,     (CGLPixelFormatAttribute)24,
-    kCGLPFAAlphaSize,     (CGLPixelFormatAttribute)8,
-    kCGLPFAAccelerated,
-    kCGLPFADoubleBuffer,
-    kCGLPFASampleBuffers, (CGLPixelFormatAttribute)1,
-    kCGLPFASamples,       (CGLPixelFormatAttribute)4,
-    (CGLPixelFormatAttribute)0
-};
-        CGLPixelFormatObj pix;
-GLint npix;
-        CGLChoosePixelFormat(attribs, &pix, &npix);
-        CGLContextObj appleGLContext;
-std::cout << "asd" << std::endl;
-        CGLCreateContext(pix, NULL, &appleGLContext);
-std::cout << "asd" << std::endl;
-        glContext = (unsigned long *)appleGLContext;
+    // Make sure only one QApplication is created
+    if(SimpleWindow::QtApp == NULL) {
+std::cout << "creating qt app in DeviceManager" << std::endl;
+        // Create some dummy argc and argv options as QApplication requires it
+        int* argc = new int[1];
+        *argc = 1;
+        const char * argv = "asd";
+        SimpleWindow::QtApp = new QApplication(*argc,(char**)&argv);
+    }
+
+    QGLWidget* widget = new QGLWidget;
+
+    // Create GL context
+    QGLContext* context = new QGLContext(QGLFormat::defaultFormat(), widget); // by including widget here the context becomes valid
+    context->create();
+    if(!context->isValid()) {
+        throw Exception("QGL context is invalid!");
+    }
+
+    context->makeCurrent();
+CGLContextObj appleContext = CGLGetCurrentContext();
+    std::cout << "Initial GL context: " << CGLGetCurrentContext() << std::endl;
+    std::cout << "Initial GL share group: " << CGLGetShareGroup(CGLGetCurrentContext()) << std::endl;
+
+SimpleWindow::mGLContext = context;
+
+
+        glContext = (unsigned long *)appleContext;
 //CGLSetCurrentContext(appleGLContext);
 std::cout << "the device manager created the GL context " << glContext << std::endl;
 #else
@@ -87,8 +99,7 @@ std::cout << "the device manager created the GL context " << glContext << std::e
     for(unsigned int j = 0; j < platformDevices[i].second.size(); j++) {
         std::vector<cl::Device> deviceVector;
         deviceVector.push_back(platformDevices[i].second[j]);
-std::cout << "creating a device using GL context: " << CGLGetCurrentContext() << std::endl;
-        OpenCLDevice * device = new OpenCLDevice(deviceVector, mGLContext);
+        OpenCLDevice * device = new OpenCLDevice(deviceVector, glContext);
         executionDevices.push_back(OpenCLDevice::pointer(device));
     }}
 
@@ -122,7 +133,7 @@ OpenCLDevice::pointer DeviceManager::getOneGPUDevice(
     oul::DeviceCriteria criteria;
     criteria.setTypeCriteria(oul::DEVICE_TYPE_GPU);
     criteria.setDeviceCountCriteria(1);
-    std::vector<OpenCLDevice::pointer> devices = getDevices(criteria,enableVisualization,mGLContext);
+    std::vector<OpenCLDevice::pointer> devices = getDevices(criteria,enableVisualization);
 	if(devices.size() == 0)
 		throw Exception("No compatible OpenCL devices found");
     return devices[0];

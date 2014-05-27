@@ -11,7 +11,6 @@ namespace fast {
 
 class View : public QGLWidget, public ProcessObject {
     Q_OBJECT
-    FAST_OBJECT(View)
     public:
         void addRenderer(Renderer::pointer renderer);
         void keyPressEvent(QKeyEvent* event);
@@ -20,8 +19,9 @@ class View : public QGLWidget, public ProcessObject {
         void mouseReleaseEvent(QMouseEvent* event);
         void resizeEvent(QResizeEvent* event);
         void setMaximumFramerate(unsigned int framerate);
-    private:
+        View(QGLContext * context);
         View();
+    private:
         std::vector<Renderer::pointer> mRenderers;
         void execute();
         QTimer* timer;

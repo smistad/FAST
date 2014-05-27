@@ -20,6 +20,17 @@ void View::addRenderer(Renderer::pointer renderer) {
     mRenderers.push_back(renderer);
 }
 
+View::View(QGLContext *context) : QGLWidget(context) {
+makeCurrent();
+std::cout << "context set in View is: " << CGLGetCurrentContext() << std::endl;
+    mFramerate = 25;
+    // Set up a timer that will call update on this object at a regular interval
+    timer = new QTimer(this);
+    timer->start(1000/mFramerate); // in milliseconds
+    timer->setSingleShot(false);
+    connect(timer,SIGNAL(timeout()),this,SLOT(update()));
+}
+
 View::View() {
     mFramerate = 25;
     // Set up a timer that will call update on this object at a regular interval
@@ -28,6 +39,8 @@ View::View() {
     timer->setSingleShot(false);
     connect(timer,SIGNAL(timeout()),this,SLOT(update()));
 }
+
+
 
 void View::setMaximumFramerate(unsigned int framerate) {
     if(framerate == 0)
@@ -54,7 +67,6 @@ void View::paintGL() {
         mRenderers[i]->update();
         mRenderers[i]->draw();
     }
-    //swapBuffers();
 }
 
 void View::resizeGL(int width, int height) {

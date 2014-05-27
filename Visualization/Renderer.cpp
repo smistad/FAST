@@ -53,7 +53,9 @@ float Renderer::getIntensityWindow() {
 void Renderer::setOpenGLContext(unsigned long* OpenGLContext) {
 #if defined(__APPLE__) || defined(__MACOSX)
     // Returns 0 on success
-    bool success = CGLSetCurrentContext((CGLContextObj)OpenGLContext) == 0;
+    //bool success = CGLSetCurrentContext((CGLContextObj)OpenGLContext) == 0;
+	// Do nothing for apple
+	bool success = true;
 #else
 #if _WIN32
     bool success = wglMakeCurrent(wglGetCurrentDC(), (HGLRC)OpenGLContext);

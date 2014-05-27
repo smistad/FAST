@@ -5,6 +5,7 @@
 #include "View.hpp"
 #include "Renderer.hpp"
 #include "WindowWidget.hpp"
+#include <QGLContext>
 
 namespace fast {
 
@@ -17,9 +18,13 @@ class SimpleWindow : public Object {
         void setWindowSize(unsigned int w, unsigned int h);
         // Makes the window close after a specific number of ms
         void setTimeout(unsigned int milliseconds);
+	void setGLContext(QGLContext *context) {mGLContext = context;};
+	View* getView() { return mView; };
+	static QGLContext *mGLContext;
+        static QApplication* QtApp;
     private:
         SimpleWindow();
-        View::pointer mView;
+        View* mView;
 
         WindowWidget* mWidget;
 
@@ -27,7 +32,7 @@ class SimpleWindow : public Object {
 
         unsigned int mTimeout;
 
-        static QApplication* QtApp;
+
 };
 
 } // end namespace fast

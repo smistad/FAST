@@ -393,6 +393,7 @@ void SurfaceRenderer::draw() {
     // Draw the triangles in the VBO
     if(!mHasCreatedTriangles)
         return;
+
     setOpenGLContext(mDevice->getGLContext());
 
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
