@@ -14,10 +14,4 @@ To setup and build the framework, see the instructions for your operating system
 To start using the framework, see the [Getting started with FAST](https://github.com/smistad/FAST/wiki/Getting-started-with-FAST) guide.
 
 
-Download and install test data
-----------------------------------------------------------
-To be able to run all the tests you must download the public test data from:
 
-[http://www.idi.ntnu.no/~smistad/FAST_Test_Data.zip](http://www.idi.ntnu.no/~smistad/FAST_Test_Data.zip)
-
-Extract the folder TestData into the FAST folder so that you have /somepath/FAST/TestData/.
