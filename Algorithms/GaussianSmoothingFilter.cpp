@@ -140,6 +140,23 @@ void GaussianSmoothingFilter::recompileOpenCLCode(Image::pointer input) {
     } else {
         buildOptions = "-DTYPE_UINT";
     }
+    switch(input->getDataType()) {
+        case TYPE_FLOAT:
+            buildOptions += " -DTYPE=float";
+            break;
+        case TYPE_INT8:
+            buildOptions += " -DTYPE=char";
+            break;
+        case TYPE_UINT8:
+            buildOptions += " -DTYPE=uchar";
+            break;
+        case TYPE_INT16:
+            buildOptions += " -DTYPE=short";
+            break;
+        case TYPE_UINT16:
+            buildOptions += " -DTYPE=ushort";
+            break;
+        }
     std::string filename;
     if(input->getDimensions() == 2) {
         filename = "Algorithms/GaussianSmoothingFilter2D.cl";
@@ -273,10 +290,16 @@ void GaussianSmoothingFilter::execute() {
         } else {
             globalSize = cl::NDRange(input->getWidth(),input->getHeight(),input->getDepth());
 
+            const bool writingTo3DTextures = device->getDevice().getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") != std::string::npos;
             OpenCLImageAccess3D inputAccess = input->getOpenCLImageAccess3D(ACCESS_READ, device);
-            OpenCLImageAccess3D outputAccess = output->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
             mKernel.setArg(0, *inputAccess.get());
-            mKernel.setArg(2, *outputAccess.get());
+            if(writingTo3DTextures) {
+                OpenCLImageAccess3D outputAccess = output->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
+                mKernel.setArg(2, *outputAccess.get());
+            } else {
+                OpenCLBufferAccess outputAccess = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+                mKernel.setArg(2, *outputAccess.get());
+            }
         }
 
         mKernel.setArg(1, mCLMask);
