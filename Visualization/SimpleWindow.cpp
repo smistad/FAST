@@ -2,7 +2,6 @@
 #include <QHBoxLayout>
 #include <QApplication>
 #include "WindowWidget.hpp"
-#include <QEventLoop>
 
 using namespace fast;
 
@@ -56,33 +55,38 @@ SimpleWindow::SimpleWindow() {
     mHeight = 512;
 
     mTimeout = 0;
-}
-
-void SimpleWindow::runMainLoop() {
 
     mWidget = new WindowWidget(mView);
-
     QHBoxLayout* mainLayout = new QHBoxLayout;
     mainLayout->addWidget(mView.getPtr().get());
     mWidget->setLayout(mainLayout);
     mWidget->setWindowTitle("FAST");
     mWidget->setContentsMargins(0, 0, 0, 0);
     mainLayout->setContentsMargins(0, 0, 0, 0);
+}
+
+void SimpleWindow::runMainLoop() {
+
     mWidget->resize(mWidth,mHeight);
     mView->resize(mWidth,mHeight);
 
     mWidget->show();
     //QApplication::exec();
-    QEventLoop* loop = new QEventLoop;
+    mEventLoop = new QEventLoop;
     if(mTimeout > 0) {
         QTimer* timer = new QTimer(mWidget);
         timer->start(mTimeout);
         timer->setSingleShot(true);
         mWidget->connect(timer,SIGNAL(timeout()),mWidget,SLOT(close()));
-        mWidget->connect(timer,SIGNAL(timeout()),loop,SLOT(quit()));
+        mWidget->connect(timer,SIGNAL(timeout()),mEventLoop,SLOT(quit()));
     }
 
-    loop->exec();
+    mEventLoop->exec();
+}
+
+SimpleWindow::~SimpleWindow() {
+    // Cleanup
+    delete mEventLoop;
 }
 
 void SimpleWindow::setWindowSize(unsigned int w, unsigned int h) {

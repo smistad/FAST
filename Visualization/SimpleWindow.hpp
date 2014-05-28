@@ -6,6 +6,7 @@
 #include "Renderer.hpp"
 #include "WindowWidget.hpp"
 #include <QGLContext>
+#include <QEventLoop>
 
 namespace fast {
 
@@ -20,6 +21,7 @@ class SimpleWindow : public Object {
         void setTimeout(unsigned int milliseconds);
         static QGLContext *mGLContext;
         static void initializeQtApp();
+        ~SimpleWindow();
     private:
         SimpleWindow();
         View::pointer mView;
@@ -29,6 +31,8 @@ class SimpleWindow : public Object {
         unsigned int mWidth, mHeight;
 
         unsigned int mTimeout;
+
+        QEventLoop* mEventLoop;
 
 
 };
