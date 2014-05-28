@@ -37,6 +37,9 @@ class SurfaceRenderer : public Renderer {
         std::vector<cl::Image3D> images;
         std::vector<cl::Buffer> buffers;
 
+        cl::Buffer cubeIndexesBuffer;
+        cl::Image3D cubeIndexesImage;
+
         unsigned int mWidth, mHeight;
 };
 

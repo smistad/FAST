@@ -46,7 +46,7 @@ unsigned int getRequiredHistogramPyramidSize(Image::pointer input) {
 
 void SurfaceRenderer::execute() {
     if(!mInput.isValid())
-        throw Exception("No input was given to SliceRenderer");
+        throw Exception("No input was given to SurfaceRenderer");
 
     Image::pointer input;
     if(mInput->isDynamicData()) {
@@ -55,8 +55,11 @@ void SurfaceRenderer::execute() {
         input = mInput;
     }
 
+    if(input->getDataType() != TYPE_UINT8)
+        throw Exception("The SurfaceRenderer currently only supports images of type 8 bit unsigned integer");
+
     if(input->getDimensions() != 3)
-        throw Exception("The SliceRenderer only supports 3D images");
+        throw Exception("The SurfaceRenderer only supports 3D images");
 
     setOpenGLContext(mDevice->getGLContext());
     glewInit();
@@ -93,8 +96,6 @@ void SurfaceRenderer::execute() {
     const bool writingTo3DTextures = mDevice->getDevice().getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") != std::string::npos;
     cl::Context clContext = mDevice->getContext();
     const unsigned int SIZE = getRequiredHistogramPyramidSize(input);
-    cl::Buffer cubeIndexesBuffer;
-    cl::Image3D cubeIndexesImage;
     float spacingX = 0.3, spacingY = 0.24, spacingZ = 0.43;
     scalingFactorx = spacingX*1.5f/SIZE;
     scalingFactory = spacingY*1.5f/SIZE;
@@ -109,8 +110,10 @@ void SurfaceRenderer::execute() {
         std::cout << "creating HP" << std::endl;
         images.clear();
         buffers.clear();
+        std::string kernelFilename;
         // create new HP (if necessary)
         if(writingTo3DTextures) {
+            kernelFilename = "SurfaceRenderer.cl";
             // Create images for the HistogramPyramid
             int bufferSize = SIZE;
 
@@ -136,7 +139,7 @@ void SurfaceRenderer::execute() {
 
             // If writing to 3D textures is not supported we to create buffers to write to
        } else {
-            throw Exception("The Surface renderer does currently not support devices without 3d image write support");
+            kernelFilename = "SurfaceRenderer_no_3d_write.cl";
             int bufferSize = SIZE*SIZE*SIZE;
             buffers.push_back(cl::Buffer(clContext, CL_MEM_READ_WRITE, sizeof(char)*bufferSize));
             bufferSize /= 8;
@@ -164,7 +167,7 @@ void SurfaceRenderer::execute() {
         char buffer[255];
         sprintf(buffer,"-D SIZE=%d", SIZE);
         std::string str(buffer);
-        int programNr = mDevice->createProgramFromSource(std::string(FAST_ROOT_DIR) + "/Visualization/SurfaceRenderer/SurfaceRenderer.cl", str);
+        int programNr = mDevice->createProgramFromSource(std::string(FAST_ROOT_DIR) + "/Visualization/SurfaceRenderer/" + kernelFilename, str);
         program = mDevice->getProgram(programNr);
     }
 
@@ -240,10 +243,10 @@ void SurfaceRenderer::execute() {
             );
         }
     } else {
-        cl::Kernel constructHPLevelCharCharKernel;
-        cl::Kernel constructHPLevelCharShortKernel;
-        cl::Kernel constructHPLevelShortShortKernel;
-        cl::Kernel constructHPLevelShortIntKernel;
+        cl::Kernel constructHPLevelCharCharKernel(program, "constructHPLevelCharChar");
+        cl::Kernel constructHPLevelCharShortKernel(program, "constructHPLevelCharShort");
+        cl::Kernel constructHPLevelShortShortKernel(program, "constructHPLevelShortShort");
+        cl::Kernel constructHPLevelShortIntKernel(program, "constructHPLevelShortInt");
 
         // Run base to first level
         constructHPLevelCharCharKernel.setArg(0, buffers[0]);
@@ -323,9 +326,9 @@ void SurfaceRenderer::execute() {
     // Create VBO using the sum
     // Read top of histoPyramid an use this size to allocate VBO below
     int * sum = new int[8];
-    cl::size_t<3> origin = oul::createOrigoRegion();
-    cl::size_t<3> region = oul::createRegion(2,2,2);
     if(writingTo3DTextures) {
+        cl::size_t<3> origin = oul::createOrigoRegion();
+        cl::size_t<3> region = oul::createRegion(2,2,2);
         queue.enqueueReadImage(images[images.size()-1], CL_TRUE, origin, region, 0, 0, sum);
     } else {
         queue.enqueueReadBuffer(buffers[buffers.size()-1], CL_TRUE, 0, sizeof(int)*8, sum);
