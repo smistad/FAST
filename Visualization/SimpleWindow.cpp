@@ -2,7 +2,8 @@
 #include <QHBoxLayout>
 #include <QApplication>
 #include "WindowWidget.hpp"
-#include <boost/thread.hpp>
+#include <QEventLoop>
+
 using namespace fast;
 
 void SimpleWindow::addRenderer(Renderer::pointer renderer) {
@@ -15,8 +16,8 @@ void SimpleWindow::setMaximumFramerate(unsigned int framerate) {
 
 // Make sure only one QApplication is created
 void SimpleWindow::initializeQtApp() {
-    static boost::thread_specific_ptr<bool> QtAppIsCreated;
-    if(QtAppIsCreated.get() == NULL) {
+    static bool QtAppIsCreated = false;
+    if(!QtAppIsCreated) {
         // Qt Application has not been created, do it now
         std::cout << "creating qt app in SimpleWindow" << std::endl;
         // Create some dummy argc and argv options as QApplication requires it
@@ -24,9 +25,7 @@ void SimpleWindow::initializeQtApp() {
         *argc = 1;
         const char * argv = "asd";
         QApplication* app = new QApplication(*argc,(char**)&argv);
-        bool* flag = QtAppIsCreated.get();
-        flag = new bool;
-        *flag = true;
+        QtAppIsCreated = true;
     }
 }
 
@@ -72,15 +71,18 @@ void SimpleWindow::runMainLoop() {
     mWidget->resize(mWidth,mHeight);
     mView->resize(mWidth,mHeight);
 
+    mWidget->show();
+    //QApplication::exec();
+    QEventLoop* loop = new QEventLoop;
     if(mTimeout > 0) {
         QTimer* timer = new QTimer(mWidget);
         timer->start(mTimeout);
         timer->setSingleShot(true);
         mWidget->connect(timer,SIGNAL(timeout()),mWidget,SLOT(close()));
+        mWidget->connect(timer,SIGNAL(timeout()),loop,SLOT(quit()));
     }
 
-    mWidget->show();
-    QApplication::exec();
+    loop->exec();
 }
 
 void SimpleWindow::setWindowSize(unsigned int w, unsigned int h) {
