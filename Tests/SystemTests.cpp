@@ -49,7 +49,6 @@ TEST_CASE("Simple pipeline with MetaImageStreamer, GaussianSmoothingFilter and S
     );
 }
 
-/*
 TEST_CASE("Simple pipeline with MetaImageStreamer, GaussianSmoothingFilter and SurfaceRenderer on OpenCL device", "[fast][SystemTests]") {
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US-3Dt/US-3Dt_#.mhd");
@@ -118,4 +117,3 @@ TEST_CASE("Simple pipeline with MetaImageStreamer, GaussianSmoothingFilter and S
     window->runMainLoop();
     );
 }
-*/
