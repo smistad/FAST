@@ -43,6 +43,10 @@ Image::pointer DoubleFilter::getOutput() {
     }
 }
 
+/*
+ * This function performs the filter serially on the Host using plain old C++.
+ * It is templated so that it can support images of different data types.
+ */
 template<class T>
 void executeAlgorithmOnHost(Image::pointer input, Image::pointer output) {
     ImageAccess inputAccess = input->getImageAccess(ACCESS_READ);
@@ -87,6 +91,7 @@ void DoubleFilter::execute() {
     if(mDevice->isHost()) {
         // Execution device is Host, use the executeAlgorithmOnHost function with the given data type
         switch(input->getDataType()) {
+            // This macro creates a case statement for each data type and sets FAST_TYPE to the correct C++ data type
             fastSwitchTypeMacro(executeAlgorithmOnHost<FAST_TYPE>(input, output));
         }
     } else {
