@@ -15,16 +15,13 @@ void SimpleWindow::setMaximumFramerate(unsigned int framerate) {
 
 // Make sure only one QApplication is created
 void SimpleWindow::initializeQtApp() {
-    static bool QtAppIsCreated = false;
-    if(!QtAppIsCreated) {
+    if(!QApplication::instance()) {
         // Qt Application has not been created, do it now
         std::cout << "creating qt app in SimpleWindow" << std::endl;
         // Create some dummy argc and argv options as QApplication requires it
         int* argc = new int[1];
-        *argc = 1;
-        const char * argv = "asd";
-        QApplication* app = new QApplication(*argc,(char**)&argv);
-        QtAppIsCreated = true;
+        *argc = 0;
+        QApplication* app = new QApplication(*argc,NULL);
     }
 }
 
