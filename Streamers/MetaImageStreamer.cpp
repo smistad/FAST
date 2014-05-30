@@ -7,7 +7,7 @@ using namespace fast;
 /**
  * Dummy function to get into the class again
  */
-void stubStreamThread(MetaImageStreamer * streamer) {
+inline void stubStreamThread(MetaImageStreamer * streamer) {
     streamer->producerStream();
 }
 

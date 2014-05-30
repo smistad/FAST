@@ -7,20 +7,11 @@ using namespace fast;
 /**
  * Dummy function to get into the class again
  */
-void stubStreamThread(ImageStreamer * streamer) {
+inline void stubStreamThread(ImageStreamer * streamer) {
     streamer->producerStream();
 }
 
 DynamicImage::pointer ImageStreamer::getOutput() {
-    if(!mStreamIsStarted) {
-        mStreamIsStarted = true;
-        thread = new boost::thread(&stubStreamThread, this);
-    }
-
-    // Wait here for first frame
-    // TODO use condition variable instead
-    while(!mFirstFrameIsInserted);
-
     if(mOutput.isValid()) {
         mOutput->setParent(mPtr.lock());
         mOutput->setStreamer(mPtr.lock());
@@ -43,10 +34,13 @@ ImageStreamer::ImageStreamer() {
     mFirstFrameIsInserted = false;
     mHasReachedEnd = false;
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
+    mFilenameFormat = "";
 }
 
 
-inline void ImageStreamer::execute() {
+void ImageStreamer::execute() {
+    if(mFilenameFormat == "")
+        throw Exception("No filename format was given to the ImageStreamer");
     if(!mStreamIsStarted) {
         mStreamIsStarted = true;
         thread = new boost::thread(&stubStreamThread, this);
@@ -58,6 +52,8 @@ inline void ImageStreamer::execute() {
 }
 
 void ImageStreamer::setFilenameFormat(std::string str) {
+    if(str.find("#") == std::string::npos)
+        throw Exception("Filename format must include a hash tag # which will be replaced by a integer starting from 0.");
     mFilenameFormat = str;
 }
 
@@ -105,10 +101,12 @@ void ImageStreamer::producerStream() {
 }
 
 ImageStreamer::~ImageStreamer() {
-    std::cout << "Joining the thread" << std::endl;
-    // TODO stop thread as well
-    thread->join();
-    delete thread;
+    if(mStreamIsStarted) {
+        std::cout << "Joining the thread" << std::endl;
+        // TODO stop thread as well
+        thread->join();
+        delete thread;
+    }
 }
 bool ImageStreamer::hasReachedEnd() const {
     return mHasReachedEnd;

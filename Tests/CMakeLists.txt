@@ -22,6 +22,7 @@ set(EXECUTABLE_SOURCE_FILES
     Importers/MetaImageImporterTests.cpp
     Exporters/MetaImageExporterTests.cpp
     Streamers/MetaImageStreamerTests.cpp
+    Streamers/ImageStreamerTests.cpp
     Visualization/ImageRendererTests.cpp
     Visualization/SliceRendererTests.cpp
     Visualization/SurfaceRendererTests.cpp
