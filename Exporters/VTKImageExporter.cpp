@@ -90,6 +90,9 @@ int VTKImageExporter::RequestData(
     case TYPE_UINT16:
         image->SetScalarType(VTK_UNSIGNED_SHORT);
         break;
+    default:
+        throw Exception("Unknown type");
+        break;
     }
 
     // Transfer data from mInput to vtk image
