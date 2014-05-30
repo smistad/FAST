@@ -45,52 +45,55 @@ TEST_CASE("Write a 2D image with the MetaImageExporter", "[fast][MetaImageExport
     transformMatrix[8] = 8.0;
     unsigned int width = 32;
     unsigned int height = 46;
-    unsigned int components = 2;
-    DataType type = TYPE_UINT8;
+    for(unsigned int components = 1; components <= 4; components++) {
+        for(unsigned int typeNr = 0; typeNr < 5; typeNr++) { // for all types
+            DataType type = (DataType)typeNr;
 
-    Image::pointer image = Image::New();
-    void* data = allocateRandomData(width*height*components, type);
-    image->create2DImage(width, height, type, components, Host::New(), data);
+            Image::pointer image = Image::New();
+            void* data = allocateRandomData(width*height*components, type);
+            image->create2DImage(width, height, type, components, Host::New(), data);
 
-    // Set metadata
-    image->setSpacing(spacing);
-    image->setOffset(offset);
-    image->setCenterOfRotation(centerOfRotation);
-    image->setTransformMatrix(transformMatrix);
+            // Set metadata
+            image->setSpacing(spacing);
+            image->setOffset(offset);
+            image->setCenterOfRotation(centerOfRotation);
+            image->setTransformMatrix(transformMatrix);
 
-    // Export image
-    MetaImageExporter::pointer exporter = MetaImageExporter::New();
-    exporter->setFilename("MetaImageExporterTest2D.mhd");
-    exporter->setInput(image);
-    exporter->update();
+            // Export image
+            MetaImageExporter::pointer exporter = MetaImageExporter::New();
+            exporter->setFilename("MetaImageExporterTest2D.mhd");
+            exporter->setInput(image);
+            exporter->update();
 
-    // Import image back again
-    MetaImageImporter::pointer importer = MetaImageImporter::New();
-    importer->setFilename("MetaImageExporterTest2D.mhd");
-    Image::pointer image2 = importer->getOutput();
-    importer->update();
+            // Import image back again
+            MetaImageImporter::pointer importer = MetaImageImporter::New();
+            importer->setFilename("MetaImageExporterTest2D.mhd");
+            Image::pointer image2 = importer->getOutput();
+            importer->update();
 
-    // Check that the image properties are correct
-    for(unsigned int i = 0; i < 3; i++) {
-        CHECK(spacing[i] == Approx(image2->getSpacing()[i]));
-        CHECK(offset[i] == Approx(image2->getOffset()[i]));
-        CHECK(centerOfRotation[i] == Approx(image2->getCenterOfRotation()[i]));
+            // Check that the image properties are correct
+            for(unsigned int i = 0; i < 3; i++) {
+                CHECK(spacing[i] == Approx(image2->getSpacing()[i]));
+                CHECK(offset[i] == Approx(image2->getOffset()[i]));
+                CHECK(centerOfRotation[i] == Approx(image2->getCenterOfRotation()[i]));
+            }
+            for(unsigned int i = 0; i < 9; i++) {
+                CHECK(transformMatrix[i] == Approx(image2->getTransformMatrix()[i]));
+            }
+
+            CHECK(image2->getWidth() == width);
+            CHECK(image2->getHeight() == height);
+            CHECK(image2->getDepth() == 1);
+            CHECK(image2->getDataType() == type);
+            CHECK(image2->getNrOfComponents() == components);
+            CHECK(image2->getDimensions() == 2);
+
+            ImageAccess access = image2->getImageAccess(ACCESS_READ);
+            void* data2 = access.get();
+            CHECK(compareDataArrays(data, data2, width*height*components, type) == true);
+            deleteArray(data, type);
+        }
     }
-    for(unsigned int i = 0; i < 9; i++) {
-        CHECK(transformMatrix[i] == Approx(image2->getTransformMatrix()[i]));
-    }
-
-    CHECK(image2->getWidth() == width);
-    CHECK(image2->getHeight() == height);
-    CHECK(image2->getDepth() == 1);
-    CHECK(image2->getDataType() == type);
-    CHECK(image2->getNrOfComponents() == components);
-    CHECK(image2->getDimensions() == 2);
-
-    ImageAccess access = image2->getImageAccess(ACCESS_READ);
-    void* data2 = access.get();
-    CHECK(compareDataArrays(data, data2, width*height*components, type) == true);
-    deleteArray(data, type);
 }
 
 
@@ -121,50 +124,53 @@ TEST_CASE("Write a 3D image with the MetaImageExporter", "[fast][MetaImageExport
     unsigned int width = 32;
     unsigned int height = 22;
     unsigned int depth = 20;
-    unsigned int components = 1;
-    DataType type = TYPE_UINT16;
+    for(unsigned int components = 1; components <= 4; components++) {
+        for(unsigned int typeNr = 0; typeNr < 5; typeNr++) { // for all types
+            DataType type = (DataType)typeNr;
 
-    Image::pointer image = Image::New();
-    void* data = allocateRandomData(width*height*depth*components, type);
-    image->create3DImage(width, height, depth, type, components, Host::New(), data);
+            Image::pointer image = Image::New();
+            void* data = allocateRandomData(width*height*depth*components, type);
+            image->create3DImage(width, height, depth, type, components, Host::New(), data);
 
-    // Set metadata
-    image->setSpacing(spacing);
-    image->setOffset(offset);
-    image->setCenterOfRotation(centerOfRotation);
-    image->setTransformMatrix(transformMatrix);
+            // Set metadata
+            image->setSpacing(spacing);
+            image->setOffset(offset);
+            image->setCenterOfRotation(centerOfRotation);
+            image->setTransformMatrix(transformMatrix);
 
-    // Export image
-    MetaImageExporter::pointer exporter = MetaImageExporter::New();
-    exporter->setFilename("MetaImageExporterTest3D.mhd");
-    exporter->setInput(image);
-    exporter->update();
+            // Export image
+            MetaImageExporter::pointer exporter = MetaImageExporter::New();
+            exporter->setFilename("MetaImageExporterTest3D.mhd");
+            exporter->setInput(image);
+            exporter->update();
 
-    // Import image back again
-    MetaImageImporter::pointer importer = MetaImageImporter::New();
-    importer->setFilename("MetaImageExporterTest3D.mhd");
-    Image::pointer image2 = importer->getOutput();
-    importer->update();
+            // Import image back again
+            MetaImageImporter::pointer importer = MetaImageImporter::New();
+            importer->setFilename("MetaImageExporterTest3D.mhd");
+            Image::pointer image2 = importer->getOutput();
+            importer->update();
 
-    // Check that the image properties are correct
-    for(unsigned int i = 0; i < 3; i++) {
-        CHECK(spacing[i] == Approx(image2->getSpacing()[i]));
-        CHECK(offset[i] == Approx(image2->getOffset()[i]));
-        CHECK(centerOfRotation[i] == Approx(image2->getCenterOfRotation()[i]));
+            // Check that the image properties are correct
+            for(unsigned int i = 0; i < 3; i++) {
+                CHECK(spacing[i] == Approx(image2->getSpacing()[i]));
+                CHECK(offset[i] == Approx(image2->getOffset()[i]));
+                CHECK(centerOfRotation[i] == Approx(image2->getCenterOfRotation()[i]));
+            }
+            for(unsigned int i = 0; i < 9; i++) {
+                CHECK(transformMatrix[i] == Approx(image2->getTransformMatrix()[i]));
+            }
+
+            CHECK(image2->getWidth() == width);
+            CHECK(image2->getHeight() == height);
+            CHECK(image2->getDepth() == depth);
+            CHECK(image2->getDataType() == type);
+            CHECK(image2->getNrOfComponents() == components);
+            CHECK(image2->getDimensions() == 3);
+
+            ImageAccess access = image2->getImageAccess(ACCESS_READ);
+            void* data2 = access.get();
+            CHECK(compareDataArrays(data, data2, width*height*depth*components, type) == true);
+            deleteArray(data, type);
+        }
     }
-    for(unsigned int i = 0; i < 9; i++) {
-        CHECK(transformMatrix[i] == Approx(image2->getTransformMatrix()[i]));
-    }
-
-    CHECK(image2->getWidth() == width);
-    CHECK(image2->getHeight() == height);
-    CHECK(image2->getDepth() == depth);
-    CHECK(image2->getDataType() == type);
-    CHECK(image2->getNrOfComponents() == components);
-    CHECK(image2->getDimensions() == 3);
-
-    ImageAccess access = image2->getImageAccess(ACCESS_READ);
-    void* data2 = access.get();
-    CHECK(compareDataArrays(data, data2, width*height*depth*components, type) == true);
-    deleteArray(data, type);
 }
