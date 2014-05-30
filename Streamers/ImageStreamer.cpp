@@ -75,7 +75,6 @@ void ImageStreamer::producerStream() {
                 filename.find("#"),
                 1,
                 intToString(i));
-        std::cout << filename << std::endl;
         try {
             ImageImporter::pointer importer = ImageImporter::New();
             importer->setFilename(filename);
