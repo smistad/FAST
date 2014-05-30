@@ -94,7 +94,6 @@ TEST_CASE("Export a 2D image from FAST to VTK", "[fast][VTK]") {
         CHECK(vtkImage->GetScalarType() == getVTKTypeFromDataType(type));
 
         // Check that vtk image has correct data
-        void* vtkData = vtkImage->GetScalarPointer();
         bool success;
         switch(fastImage->getDataType()) {
             fastSwitchTypeMacro(success = compareVTKDataWithFASTData<FAST_TYPE>(vtkImage, data))
@@ -127,7 +126,6 @@ TEST_CASE("Export a 3D image from FAST to VTK", "[fast][VTK]") {
         CHECK(vtkImage->GetScalarType() == getVTKTypeFromDataType(type));
 
         // Check that vtk image has correct data
-        void* vtkData = vtkImage->GetScalarPointer();
         bool success;
         switch(fastImage->getDataType()) {
             fastSwitchTypeMacro(success = compareVTKDataWithFASTData<FAST_TYPE>(vtkImage, data))
