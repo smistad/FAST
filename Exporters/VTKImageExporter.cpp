@@ -53,11 +53,13 @@ int VTKImageExporter::RequestData(
         vtkInformationVector** inputVector,
         vtkInformationVector* outputVector) {
 
+    if(!mInput.isValid())
+        throw Exception("No input was given to the VTKImageExporter");
+
     mInput->update(); // Make sure input is up to date
 
-    if(mInput->getNrOfComponents() != 1) {
+    if(mInput->getNrOfComponents() != 1)
         throw Exception("The VTKImageExporter currently doesn't support images with multiple components.");
-    }
 
     vtkInformation *outInfo = outputVector->GetInformationObject(0);
 

@@ -102,6 +102,10 @@ inline void fast::ITKImageExporter<TImage>::transferDataToITKImage() {
 
 template<class TImage>
 inline void fast::ITKImageExporter<TImage>::GenerateData() {
+
+    if(!mInput.isValid())
+        throw Exception("No input was given to the ITKImageExporter");
+
     mInput->update();
 
     if(mInput->getDimensions() != TImage::ImageDimension)

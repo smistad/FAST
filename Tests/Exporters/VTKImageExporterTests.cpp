@@ -72,6 +72,12 @@ inline bool compareVTKDataWithFASTData(vtkSmartPointer<vtkImageData> vtkImage, v
     return true;
 }
 
+TEST_CASE("No input given to the VTKImageExporter", "[fast][VTK]") {
+    vtkSmartPointer<VTKImageExporter> vtkExporter = VTKImageExporter::New();
+    vtkSmartPointer<vtkImageData> vtkImage = vtkExporter->GetOutput();
+    CHECK_THROWS(vtkExporter->Update());
+}
+
 TEST_CASE("Export a 2D image from FAST to VTK", "[fast][VTK]") {
     unsigned int width = 32;
     unsigned int height = 40;

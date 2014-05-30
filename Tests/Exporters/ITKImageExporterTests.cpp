@@ -14,6 +14,27 @@ bool compareITKDataWithFASTData(void* itkPixelData, void* fastPixelData, unsigne
     return true;
 }
 
+TEST_CASE("No input given to the ITKImageExporter", "[fast][ITK]") {
+    typedef itk::Image<float, 2> ImageType;
+    ITKImageExporter<ImageType>::Pointer itkExporter = ITKImageExporter<ImageType>::New();
+    ImageType::Pointer itkImage = itkExporter->GetOutput();
+    CHECK_THROWS(itkExporter->Update());
+}
+
+TEST_CASE("Different dimensions in input and output image throws exception in the ITKImageExporter", "[fast][ITK]") {
+    unsigned int width = 32;
+    unsigned int height = 40;
+    DataType type = TYPE_FLOAT;
+    typedef itk::Image<float, 3> ImageType;
+
+    Image::pointer fastImage = Image::New();
+    fastImage->create2DImage(width, height, type, 1, Host::New());
+    ITKImageExporter<ImageType>::Pointer itkExporter = ITKImageExporter<ImageType>::New();
+    itkExporter->SetInput(fastImage);
+    ImageType::Pointer itkImage = itkExporter->GetOutput();
+    CHECK_THROWS(itkExporter->Update());
+}
+
 TEST_CASE("Export a float 2D image to ITK from FAST", "[fast][ITK]") {
     unsigned int width = 32;
     unsigned int height = 40;
