@@ -219,6 +219,16 @@ void SliceRenderer::draw() {
 
     setOpenGLContext(mDevice->getGLContext());
 
+    // Reset OpenGL
+    glDisable(GL_LIGHTING);
+    glDisable(GL_NORMALIZE);
+    glDisable(GL_DEPTH_TEST);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glViewport(0,0,mWidth*mScale,mHeight*mScale);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
     glBindTexture(GL_TEXTURE_2D, mTexture);
 
     glBegin(GL_QUADS);

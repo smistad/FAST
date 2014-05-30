@@ -161,12 +161,17 @@ void ImageRenderer::draw() {
     if(!mTextureIsCreated)
         return;
 
-//std::cout << "in image renderer(device): " << mDevice->getGLContext() << std::endl;
-//std::cout << "in image renderer: " << CGLGetCurrentContext() << std::endl;
-    //setOpenGLContext(mDevice->getGLContext());
-//CGLSetCurrentContext((CGLContextObj)(mDevice->getGLContext()));
-
     setOpenGLContext(mDevice->getGLContext());
+
+    // Reset OpenGL
+    glDisable(GL_LIGHTING);
+    glDisable(GL_NORMALIZE);
+    glDisable(GL_DEPTH_TEST);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glViewport(0,0,mWidth*mScale,mHeight*mScale);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 
     glBindTexture(GL_TEXTURE_2D, mTexture);
 
@@ -183,6 +188,7 @@ void ImageRenderer::draw() {
     glEnd();
 
     glBindTexture(GL_TEXTURE_2D, 0);
+
 }
 
 void ImageRenderer::keyPressEvent(QKeyEvent* event) {
