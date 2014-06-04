@@ -68,8 +68,8 @@ void SimpleWindow::runMainLoop() {
     mView->resize(mWidth,mHeight);
 
     mWidget->show();
-    //QApplication::exec();
-    mEventLoop = new QEventLoop;
+
+    mEventLoop = new QEventLoop(mWidget);
     if(mTimeout > 0) {
         QTimer* timer = new QTimer(mWidget);
         timer->start(mTimeout);
@@ -78,6 +78,7 @@ void SimpleWindow::runMainLoop() {
         mWidget->connect(timer,SIGNAL(timeout()),mEventLoop,SLOT(quit()));
     }
 
+    mWidget->setEventLoop(mEventLoop);
     mEventLoop->exec();
 }
 

@@ -9,6 +9,7 @@
 #define WINDOWWIDGET_HPP_
 
 #include <QWidget>
+#include <QEventLoop>
 #include "View.hpp"
 
 namespace fast {
@@ -20,9 +21,11 @@ class WindowWidget : public QWidget {
         void mouseMoveEvent(QMouseEvent* event);
         void mousePressEvent(QMouseEvent* event);
         void mouseReleaseEvent(QMouseEvent* event);
-        WindowWidget(View::pointer view) : mView(view) {};
+        WindowWidget(View::pointer view) : mView(view) {mEventLoop = NULL;};
+        void setEventLoop(QEventLoop* eventLoop) { mEventLoop = eventLoop; };
     private:
         View::pointer mView;
+        QEventLoop *mEventLoop;
 };
 }; // end namespace fast
 
