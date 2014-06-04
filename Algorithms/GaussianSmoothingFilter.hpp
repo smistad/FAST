@@ -24,8 +24,7 @@ class GaussianSmoothingFilter : public ProcessObject {
         void recompileOpenCLCode(Image::pointer input);
 
         ImageData::pointer mInput;
-        WeakPointer<ImageData> mOutput;
-        ImageData::pointer mTempOutput;
+        ImageData::pointer mOutput;
         ExecutionDevice::pointer mDevice;
         unsigned char mMaskSize;
         float mStdDev;

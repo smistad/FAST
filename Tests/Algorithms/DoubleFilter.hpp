@@ -26,9 +26,7 @@ class DoubleFilter : public ProcessObject {
         Image::pointer mInput;
 
         // This is a pointer to the image which will be the output
-        // Note that we here need both a WeakPointer and a regular pointer (::pointer)
-        WeakPointer<Image> mOutput;
-        Image::pointer mOutputTemp;
+        Image::pointer mOutput;
 
         // This is the device to execute the algorithm on
         ExecutionDevice::pointer mDevice;

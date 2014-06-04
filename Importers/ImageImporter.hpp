@@ -18,7 +18,6 @@ class ImageImporter : public Importer {
     private:
         ImageImporter();
         Image::pointer mOutput;
-        WeakPointer<Image> mOutput2;
         std::string mFilename;
         ExecutionDevice::pointer mDevice;
         void execute();

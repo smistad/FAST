@@ -10,13 +10,13 @@ void GaussianSmoothingFilter::setInput(ImageData::pointer input) {
     mIsModified = true;
     addParent(input);
     if(input->isDynamicData()) {
-        mTempOutput = DynamicImage::New();
-        DynamicImage::pointer(mTempOutput)->setStreamer(DynamicImage::pointer(mInput)->getStreamer());
+        mOutput = DynamicImage::New();
+        DynamicImage::pointer(mOutput)->setStreamer(DynamicImage::pointer(mInput)->getStreamer());
     } else {
-        mTempOutput = Image::New();
+        mOutput = Image::New();
         input->retain(mDevice);
     }
-    mOutput = mTempOutput;
+    mOutput->setSource(mPtr.lock());
 }
 
 
@@ -47,19 +47,10 @@ void GaussianSmoothingFilter::setStandardDeviation(float stdDev) {
 }
 
 ImageData::pointer GaussianSmoothingFilter::getOutput() {
-    if(!mInput.isValid()) {
+    if(!mOutput.isValid()) {
         throw Exception("Must call setInput before getOutput in GaussianSmoothingFilter");
     }
-    if(mTempOutput.isValid()) {
-        mTempOutput->setParent(mPtr.lock());
-
-        ImageData::pointer newSmartPtr;
-        newSmartPtr.swap(mTempOutput);
-
-        return newSmartPtr;
-    } else {
-        return mOutput.lock();
-    }
+    return mOutput;
 }
 
 GaussianSmoothingFilter::GaussianSmoothingFilter() {
@@ -234,7 +225,7 @@ void GaussianSmoothingFilter::execute() {
     if(!mInput.isValid()) {
         throw Exception("No input supplied to GaussianSmoothingFilter");
     }
-    if(!mOutput.lock().isValid()) {
+    if(!mOutput.isValid()) {
         // output object is no longer valid
         return;
     }

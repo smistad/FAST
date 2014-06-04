@@ -15,7 +15,7 @@ class DynamicImage : public ImageData {
         unsigned int getSize() const;
         ~DynamicImage() {};
         void setStreamer(Streamer::pointer streamer);
-        Streamer::pointer getStreamer() const;
+        Streamer::pointer getStreamer();
         bool hasReachedEnd();
     private:
         DynamicImage();

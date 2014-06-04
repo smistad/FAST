@@ -8,8 +8,7 @@ DoubleFilter::DoubleFilter() {
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
 
     // Create output data
-    mOutputTemp = Image::New();
-    mOutput = mOutputTemp;
+    mOutput= Image::New();
 }
 
 void DoubleFilter::setInput(Image::pointer image) {
@@ -30,17 +29,8 @@ void DoubleFilter::setDevice(ExecutionDevice::pointer device) {
 }
 
 Image::pointer DoubleFilter::getOutput() {
-    // If output has not been returned yet, create a smart pointer and return it
-    if(mOutputTemp.isValid()) {
-        mOutputTemp->setParent(mPtr.lock());
-
-        Image::pointer newSmartPtr;
-        newSmartPtr.swap(mOutputTemp);
-
-        return newSmartPtr;
-    } else {
-        return mOutput.lock();
-    }
+    mOutput->setSource(mPtr.lock());
+    return mOutput;
 }
 
 /*
@@ -64,10 +54,6 @@ void executeAlgorithmOnHost(Image::pointer input, Image::pointer output) {
 void DoubleFilter::execute() {
     if(!mInput.isValid()) {
         throw Exception("No input supplied to GaussianSmoothingFilter");
-    }
-    if(!mOutput.lock().isValid()) {
-        // output object is no longer valid, do nothing
-        return;
     }
 
     Image::pointer input = mInput;

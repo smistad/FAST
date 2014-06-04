@@ -13,7 +13,7 @@ class DataObject : public Object {
         DataObject() : mTimestampModified(0) {};
         typedef SharedPointer<DataObject> pointer;
         void update();
-        void setParent(Object::pointer parent);
+        void setSource(Object::pointer source);
         unsigned long getTimestamp();
         void updateModifiedTimestamp();
         void retain(ExecutionDevice::pointer device);
@@ -24,7 +24,9 @@ class DataObject : public Object {
         virtual void freeAll() = 0;
     private:
         boost::unordered_map<ExecutionDevice::pointer, unsigned int> mReferenceCount;
-        Object::pointer mParentObject;
+        // The souce object is the process object that created this data object
+        // It is defined as a weak pointer to break a cyclic dependency on the process objects
+        WeakPointer<Object> mSourceObject;
         unsigned long mTimestampModified;
 };
 

@@ -74,8 +74,8 @@ void DynamicImage::setStreamer(Streamer::pointer streamer) {
     mStreamer = streamer;
 }
 
-Streamer::pointer DynamicImage::getStreamer() const {
-    return mStreamer;
+Streamer::pointer DynamicImage::getStreamer() {
+    return mStreamer.lock();
 }
 
 

@@ -12,22 +12,13 @@ inline void stubStreamThread(ImageStreamer * streamer) {
 }
 
 DynamicImage::pointer ImageStreamer::getOutput() {
-    if(mOutput.isValid()) {
-        mOutput->setParent(mPtr.lock());
-        mOutput->setStreamer(mPtr.lock());
-
-        DynamicImage::pointer newSmartPtr;
-        newSmartPtr.swap(mOutput);
-
-        return newSmartPtr;
-    } else {
-        return mOutput2.lock();
-    }
+    mOutput->setSource(mPtr.lock());
+    mOutput->setStreamer(mPtr.lock());
+    return mOutput;
 }
 
 ImageStreamer::ImageStreamer() {
     mOutput = DynamicImage::New();
-    mOutput2 = mOutput;
     mStreamIsStarted = false;
     mIsModified = true;
     thread = NULL;
@@ -39,6 +30,8 @@ ImageStreamer::ImageStreamer() {
 
 
 void ImageStreamer::execute() {
+    mOutput->setSource(mPtr.lock());
+    mOutput->setStreamer(mPtr.lock());
     if(mFilenameFormat == "")
         throw Exception("No filename format was given to the ImageStreamer");
     if(!mStreamIsStarted) {
@@ -81,7 +74,7 @@ void ImageStreamer::producerStream() {
             importer->setDevice(mDevice);
             Image::pointer image = importer->getOutput();
             image->update();
-            DynamicImage::pointer ptr = mOutput2.lock();
+            DynamicImage::pointer ptr = mOutput;
             if(ptr.isValid()) {
                 ptr->addFrame(image);
                 mFirstFrameIsInserted = true;

@@ -12,22 +12,13 @@ inline void stubStreamThread(MetaImageStreamer * streamer) {
 }
 
 DynamicImage::pointer MetaImageStreamer::getOutput() {
-    if(mOutput.isValid()) {
-        mOutput->setParent(mPtr.lock());
-        mOutput->setStreamer(mPtr.lock());
-
-        DynamicImage::pointer newSmartPtr;
-        newSmartPtr.swap(mOutput);
-
-        return newSmartPtr;
-    } else {
-        return mOutput2.lock();
-    }
+    mOutput->setSource(mPtr.lock());
+    mOutput->setStreamer(mPtr.lock());
+    return mOutput;
 }
 
 MetaImageStreamer::MetaImageStreamer() {
     mOutput = DynamicImage::New();
-    mOutput2 = mOutput;
     mStreamIsStarted = false;
     mIsModified = true;
     thread = NULL;
@@ -39,6 +30,8 @@ MetaImageStreamer::MetaImageStreamer() {
 
 
 void MetaImageStreamer::execute() {
+    mOutput->setSource(mPtr.lock());
+    mOutput->setStreamer(mPtr.lock());
     if(mFilenameFormat == "")
         throw Exception("No filename format was given to the MetaImageStreamer");
     if(!mStreamIsStarted) {
@@ -81,9 +74,14 @@ void MetaImageStreamer::producerStream() {
             importer->setDevice(mDevice);
             Image::pointer image = importer->getOutput();
             image->update();
-            DynamicImage::pointer ptr = mOutput2.lock();
+            DynamicImage::pointer ptr = mOutput;
             if(ptr.isValid()) {
-                ptr->addFrame(image);
+                try {
+                    ptr->addFrame(image);
+                } catch(Exception &e) {
+                    std::cout << "streamer has been deleted, stop" << std::endl;
+                    break;
+                }
                 mFirstFrameIsInserted = true;
             } else {
                 std::cout << "DynamicImage object destroyed, stream can stop." << std::endl;

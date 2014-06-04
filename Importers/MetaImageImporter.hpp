@@ -14,8 +14,7 @@ class MetaImageImporter : public Importer {
         void setDevice(ExecutionDevice::pointer device);
     private:
         MetaImageImporter();
-        Image::pointer mTempOutput;
-        WeakPointer<Image> mOutput;
+        Image::pointer mOutput;
         std::string mFilename;
         ExecutionDevice::pointer mDevice;
         void execute();

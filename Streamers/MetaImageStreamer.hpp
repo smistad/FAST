@@ -25,7 +25,6 @@ class MetaImageStreamer : public Streamer {
 
         // A reference to the output object used to update its next frame
         DynamicImage::pointer mOutput;
-        WeakPointer<DynamicImage> mOutput2;
 
         // Update the streamer if any parameters have changed
         void execute();

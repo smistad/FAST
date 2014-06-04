@@ -3,17 +3,17 @@
 using namespace fast;
 
 void DataObject::update() {
-    if(mParentObject.isValid()) {
-        ProcessObject::pointer object = mParentObject;
+    if(mSourceObject.lock().isValid()) {
+        ProcessObject::pointer object = mSourceObject.lock();
         object->update();
     }
 }
 
-void DataObject::setParent(Object::pointer parent) {
-    if(parent == NULL)
+void DataObject::setSource(Object::pointer source) {
+    if(source == NULL)
         throw Exception("Trying to add an expired/NULL pointer as a parent object");
 
-    mParentObject = parent;
+    mSourceObject = source;
 }
 
 unsigned long DataObject::getTimestamp() {

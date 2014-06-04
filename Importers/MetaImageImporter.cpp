@@ -7,16 +7,8 @@
 using namespace fast;
 
 Image::pointer MetaImageImporter::getOutput() {
-    if(mTempOutput.isValid()) {
-        mTempOutput->setParent(mPtr.lock());
-
-        Image::pointer newSmartPtr;
-        newSmartPtr.swap(mTempOutput);
-
-        return newSmartPtr;
-    } else {
-        return mOutput.lock();
-    }
+    mOutput->setSource(mPtr.lock());
+    return mOutput;
 }
 
 void MetaImageImporter::setFilename(std::string filename) {
@@ -32,8 +24,7 @@ void MetaImageImporter::setDevice(ExecutionDevice::pointer device) {
 MetaImageImporter::MetaImageImporter() {
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
     mFilename = "";
-    mTempOutput = Image::New();
-    mOutput = mTempOutput;
+    mOutput = Image::New();
     mIsModified = true;
 }
 
@@ -108,7 +99,7 @@ void MetaImageImporter::execute() {
 
     unsigned int width, height, depth = 1;
     unsigned int nrOfComponents = 1;
-    Image::pointer output = mOutput.lock();
+    Image::pointer output = mOutput;
 
     do{
         std::getline(mhdFile, line);
