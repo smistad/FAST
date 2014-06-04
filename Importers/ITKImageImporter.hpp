@@ -22,8 +22,7 @@ class ITKImageImporter : public ProcessObject {
 
         typename TImage::Pointer mInput;
 
-        WeakPointer<Image> mOutput;
-        Image::pointer mTempOutput;
+        Image::pointer mOutput;
 };
 
 } // end namespace fast
@@ -38,22 +37,13 @@ inline void fast::ITKImageImporter<TImage>::setInput(
 
 template<class TImage>
 inline fast::Image::pointer fast::ITKImageImporter<TImage>::getOutput() {
-    if(mTempOutput.isValid()) {
-        mTempOutput->setParent(mPtr.lock());
-
-        Image::pointer newSmartPtr;
-        newSmartPtr.swap(mTempOutput);
-
-        return newSmartPtr;
-    } else {
-        return mOutput.lock();
-    }
+    mOutput->setSource(mPtr.lock());
+    return mOutput;
 }
 
 template<class TImage>
 inline fast::ITKImageImporter<TImage>::ITKImageImporter() {
-    mTempOutput = Image::New();
-    mOutput = mTempOutput;
+    mOutput = Image::New();
 }
 
 template<class TImage>
@@ -118,10 +108,10 @@ inline void fast::ITKImageImporter<TImage>::execute() {
     unsigned int width = region.GetSize()[0];
     unsigned int height = region.GetSize()[1];
     if(TImage::ImageDimension == 2) {
-        mOutput.lock()->create2DImage(width, height, type, 1, Host::New(), data);
+        mOutput->create2DImage(width, height, type, 1, Host::New(), data);
     } else if(TImage::ImageDimension == 3) {
         unsigned int depth = region.GetSize()[3];
-        mOutput.lock()->create3DImage(width, height, depth, type, 1, Host::New(), data);
+        mOutput->create3DImage(width, height, depth, type, 1, Host::New(), data);
     } else {
         throw Exception("The ITKImageImporter only supports 2D and 3D images.");
     }

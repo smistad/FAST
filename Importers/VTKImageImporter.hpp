@@ -15,8 +15,7 @@ class VTKImageImporter : public ProcessObject {
         Image::pointer getOutput();
     private:
         vtkSmartPointer<vtkImageData> mInput;
-        WeakPointer<Image> mOutput;
-        Image::pointer mTempOutput;
+        Image::pointer mOutput;
 
         VTKImageImporter();
         void execute();

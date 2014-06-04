@@ -8,21 +8,12 @@ void VTKImageImporter::setInput(vtkSmartPointer<vtkImageData> image) {
 }
 
 Image::pointer VTKImageImporter::getOutput() {
-    if(mTempOutput.isValid()) {
-        mTempOutput->setParent(mPtr.lock());
-
-        Image::pointer newSmartPtr;
-        newSmartPtr.swap(mTempOutput);
-
-        return newSmartPtr;
-    } else {
-        return mOutput.lock();
-    }
+    mOutput->setSource(mPtr.lock());
+    return mOutput;
 }
 
 VTKImageImporter::VTKImageImporter() {
-    mTempOutput = Image::New();
-    mOutput = mTempOutput;
+    mOutput = Image::New();
 }
 
 template <class T>
@@ -102,6 +93,6 @@ void VTKImageImporter::execute() {
     // Make sure VTK data is up to date
     mInput->Update();
 
-    transferVTKDataToFAST(mInput, mOutput.lock());
+    transferVTKDataToFAST(mInput, mOutput);
 
 }
