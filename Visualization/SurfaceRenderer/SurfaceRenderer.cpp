@@ -55,9 +55,6 @@ void SurfaceRenderer::execute() {
         input = mInput;
     }
 
-    if(input->getDataType() != TYPE_UINT8)
-        throw Exception("The SurfaceRenderer currently only supports images of type 8 bit unsigned integer");
-
     if(input->getDimensions() != 3)
         throw Exception("The SurfaceRenderer only supports 3D images");
 
@@ -96,7 +93,9 @@ void SurfaceRenderer::execute() {
     const bool writingTo3DTextures = mDevice->getDevice().getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") != std::string::npos;
     cl::Context clContext = mDevice->getContext();
     const unsigned int SIZE = getRequiredHistogramPyramidSize(input);
-    float spacingX = 0.3, spacingY = 0.24, spacingZ = 0.43;
+    float spacingX = input->getSpacing().x();
+    float spacingY = input->getSpacing().y();
+    float spacingZ = input->getSpacing().z();
     scalingFactorx = spacingX*1.5f/SIZE;
     scalingFactory = spacingY*1.5f/SIZE;
     scalingFactorz = spacingZ*1.5f/SIZE;
@@ -118,7 +117,7 @@ void SurfaceRenderer::execute() {
             int bufferSize = SIZE;
 
             // Make the two first buffers use INT8
-            images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_RGBA, CL_UNSIGNED_INT8), input->getWidth(), input->getHeight(), input->getDepth()));
+            images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_RG, CL_UNSIGNED_INT8), input->getWidth(), input->getHeight(), input->getDepth()));
             bufferSize /= 2;
             images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_UNSIGNED_INT8), bufferSize, bufferSize, bufferSize));
             bufferSize /= 2;
@@ -165,9 +164,16 @@ void SurfaceRenderer::execute() {
         // Compile program
         HPSize = SIZE;
         char buffer[255];
-        sprintf(buffer,"-D SIZE=%d", SIZE);
-        std::string str(buffer);
-        int programNr = mDevice->createProgramFromSource(std::string(FAST_ROOT_DIR) + "/Visualization/SurfaceRenderer/" + kernelFilename, str);
+        sprintf(buffer,"-DSIZE=%d", SIZE);
+        std::string buildOptions(buffer);
+        if(input->getDataType() == TYPE_FLOAT) {
+            buildOptions += " -DTYPE_FLOAT";
+        } else if(input->getDataType() == TYPE_INT8 || input->getDataType() == TYPE_INT16) {
+            buildOptions += " -DTYPE_INT";
+        } else {
+            buildOptions += " -DTYPE_UINT";
+        }
+        int programNr = mDevice->createProgramFromSource(std::string(FAST_ROOT_DIR) + "/Visualization/SurfaceRenderer/" + kernelFilename, buildOptions);
         program = mDevice->getProgram(programNr);
     }
 
@@ -355,11 +361,13 @@ void SurfaceRenderer::execute() {
     // Make OpenCL buffer from OpenGL buffer
     unsigned int i = 0;
     if(writingTo3DTextures) {
+        traverseHPKernel.setArg(0, *clImage);
         for(i = 0; i < images.size(); i++) {
-            traverseHPKernel.setArg(i, images[i]);
+            traverseHPKernel.setArg(i+1, images[i]);
         }
+        i += 1;
     } else {
-        traverseHPKernel.setArg(0, *clImage); // TODO: why is this here????
+        traverseHPKernel.setArg(0, *clImage);
         traverseHPKernel.setArg(1, cubeIndexesImage);
         for(i = 0; i < buffers.size(); i++) {
             traverseHPKernel.setArg(i+2, buffers[i]);

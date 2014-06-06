@@ -378,7 +378,17 @@ __constant char triTable[4096] =
 0, 3, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 
+
+#ifdef TYPE_UINT
+#define READ_RAW_DATA read_imageui
+#elif TYPE_INT
+#define READ_RAW_DATA read_imagei
+#else
+#define READ_RAW_DATA read_imagef
+#endif
+
 __kernel void traverseHP(
+        __read_only image3d_t rawData,
         __read_only image3d_t hp0, // Largest HP
         __read_only image3d_t hp1,
         __read_only image3d_t hp2,
@@ -430,31 +440,31 @@ __kernel void traverseHP(
     cubePosition.z = cubePosition.z / 2;
 
     char vertexNr = 0;
-    const int4 cubeData = read_imagei(hp0, sampler, cubePosition);
+    const uint cubeindex = read_imageui(hp0, sampler, cubePosition).y;
 
     // max 5 triangles
     for(int i = (target-cubePosition.s3)*3; i < (target-cubePosition.s3+1)*3; i++) { // for each vertex in triangle
-        const uchar edge = triTable[cubeData.y*16 + i];
+        const uchar edge = triTable[cubeindex*16 + i];
         const int3 point0 = (int3)(cubePosition.x + offsets3[edge*6], cubePosition.y + offsets3[edge*6+1], cubePosition.z + offsets3[edge*6+2]);
         const int3 point1 = (int3)(cubePosition.x + offsets3[edge*6+3], cubePosition.y + offsets3[edge*6+4], cubePosition.z + offsets3[edge*6+5]);
 
         // Store vertex in VBO
 
         const float3 forwardDifference0 = (float3)(
-                (float)(-read_imagei(hp0, sampler, (int4)(point0.x+1, point0.y, point0.z, 0)).z+read_imagei(hp0, sampler, (int4)(point0.x-1, point0.y, point0.z, 0)).z),
-                (float)(-read_imagei(hp0, sampler, (int4)(point0.x, point0.y+1, point0.z, 0)).z+read_imagei(hp0, sampler, (int4)(point0.x, point0.y-1, point0.z, 0)).z),
-                (float)(-read_imagei(hp0, sampler, (int4)(point0.x, point0.y, point0.z+1, 0)).z+read_imagei(hp0, sampler, (int4)(point0.x, point0.y, point0.z-1, 0)).z)
+                (float)(-READ_RAW_DATA(rawData, sampler, (int4)(point0.x+1, point0.y, point0.z, 0)).x+READ_RAW_DATA(rawData, sampler, (int4)(point0.x-1, point0.y, point0.z, 0)).x),
+                (float)(-READ_RAW_DATA(rawData, sampler, (int4)(point0.x, point0.y+1, point0.z, 0)).x+READ_RAW_DATA(rawData, sampler, (int4)(point0.x, point0.y-1, point0.z, 0)).x),
+                (float)(-READ_RAW_DATA(rawData, sampler, (int4)(point0.x, point0.y, point0.z+1, 0)).x+READ_RAW_DATA(rawData, sampler, (int4)(point0.x, point0.y, point0.z-1, 0)).x)
             );
         const float3 forwardDifference1 = (float3)(
-                (float)(-read_imagei(hp0, sampler, (int4)(point1.x+1, point1.y, point1.z, 0)).z+read_imagei(hp0, sampler, (int4)(point1.x-1, point1.y, point1.z, 0)).z),
-                (float)(-read_imagei(hp0, sampler, (int4)(point1.x, point1.y+1, point1.z, 0)).z+read_imagei(hp0, sampler, (int4)(point1.x, point1.y-1, point1.z, 0)).z),
-                (float)(-read_imagei(hp0, sampler, (int4)(point1.x, point1.y, point1.z+1, 0)).z+read_imagei(hp0, sampler, (int4)(point1.x, point1.y, point1.z-1, 0)).z)
+                (float)(-READ_RAW_DATA(rawData, sampler, (int4)(point1.x+1, point1.y, point1.z, 0)).x+READ_RAW_DATA(rawData, sampler, (int4)(point1.x-1, point1.y, point1.z, 0)).x),
+                (float)(-READ_RAW_DATA(rawData, sampler, (int4)(point1.x, point1.y+1, point1.z, 0)).x+READ_RAW_DATA(rawData, sampler, (int4)(point1.x, point1.y-1, point1.z, 0)).x),
+                (float)(-READ_RAW_DATA(rawData, sampler, (int4)(point1.x, point1.y, point1.z+1, 0)).x+READ_RAW_DATA(rawData, sampler, (int4)(point1.x, point1.y, point1.z-1, 0)).x)
             );
 
-        const int value0 = read_imagei(hp0, sampler, (int4)(point0.x, point0.y, point0.z, 0)).z;
+        const float value0 = READ_RAW_DATA(rawData, sampler, (int4)(point0.x, point0.y, point0.z, 0)).x;
         float diff = native_divide(
             (float)(isolevel-value0),
-            (float)(read_imagei(hp0, sampler, (int4)(point1.x, point1.y, point1.z, 0)).z - value0));
+            (float)(READ_RAW_DATA(rawData, sampler, (int4)(point1.x, point1.y, point1.z, 0)).x - value0));
 
         const float3 vertex = mix((float3)(point0.x, point0.y, point0.z), (float3)(point1.x, point1.y, point1.z), diff);
 
@@ -477,8 +487,7 @@ __kernel void classifyCubes(
         ) {
     int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
 
-    // Find cube class nr
-    const uchar first = read_imagei(rawData, sampler, pos).x;
+    const float first = READ_RAW_DATA(rawData, sampler, pos).x;
 
     const uchar cubeindex =
     ((first > isolevel)) |
@@ -491,6 +500,6 @@ __kernel void classifyCubes(
     ((read_imagei(rawData, sampler, pos + cubeOffsets[6]).x > isolevel) << 7);
 
 
-    // Store number of triangles
-    write_imageui(histoPyramid, pos, (uint4)(nrOfTriangles[cubeindex], cubeindex, first, 0));
+    // Store number of triangles and cube index
+    write_imageui(histoPyramid, pos, (uint4)(nrOfTriangles[cubeindex], cubeindex, 0, 0));
 }
