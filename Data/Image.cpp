@@ -916,6 +916,9 @@ inline void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2
 }
 
 inline void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D image, DataType type, float* min, float* max) {
+
+
+
    // Get power of two size
     unsigned int powerOfTwoSize = getPowerOfTwoSize(std::max(image.getImageInfo<CL_IMAGE_DEPTH>(), std::max(
             image.getImageInfo<CL_IMAGE_WIDTH>(),
@@ -1039,6 +1042,7 @@ void Image::calculateMaxAndMinIntensity() {
                 break;
             }
         } else {
+            // TODO the logic here can be improved. For instance choose the best device
             // Find some OpenCL image data or buffer data that is up to date
             bool found = false;
             boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
@@ -1050,9 +1054,17 @@ void Image::calculateMaxAndMinIntensity() {
                         cl::Image2D* clImage = access.get();
                         getMaxAndMinFromOpenCLImage(device, *clImage, mType, &mMinimumIntensity, &mMaximumIntensity);
                     } else {
-                        OpenCLImageAccess3D access = getOpenCLImageAccess3D(ACCESS_READ, device);
-                        cl::Image3D* clImage = access.get();
-                        getMaxAndMinFromOpenCLImage(device, *clImage, mType, &mMinimumIntensity, &mMaximumIntensity);
+                        if(device->getDevice().getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") == std::string::npos) {
+                            // Writing to 3D images is not supported on this device
+                            // Copy data to buffer instead and do the max min calculation on the buffer instead
+                            OpenCLBufferAccess access = getOpenCLBufferAccess(ACCESS_READ, device);
+                            cl::Buffer* buffer = access.get();
+                            getMaxAndMinFromOpenCLBuffer(device, *buffer, &mMinimumIntensity, &mMaximumIntensity);
+                        } else {
+                            OpenCLImageAccess3D access = getOpenCLImageAccess3D(ACCESS_READ, device);
+                            cl::Image3D* clImage = access.get();
+                            getMaxAndMinFromOpenCLImage(device, *clImage, mType, &mMinimumIntensity, &mMaximumIntensity);
+                        }
                     }
                     found = true;
                 }
