@@ -44,6 +44,9 @@ class Image: public ImageData {
         void setOffset(Float<3> offset);
         void setCenterOfRotation(Float<3> rotation);
         void setTransformMatrix(Float<9> transformMatrix);
+
+        float calculateMaximumIntensity();
+        float calculateMinimumIntensity();
     private:
         Image();
 
@@ -90,6 +93,11 @@ class Image: public ImageData {
 
         Float<3> mSpacing, mOffset, mCenterOfRotation;
         Float<9> mTransformMatrix;
+
+        float mMaximumIntensity, mMinimumIntensity;
+        unsigned long mMaxMinTimestamp;
+        bool mMaxMinInitialized;
+        void calculateMaxAndMinIntensity();
 };
 
 } // end namespace fast

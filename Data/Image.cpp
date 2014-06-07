@@ -1,7 +1,8 @@
 #include "Image.hpp"
 #include "HelperFunctions.hpp"
 #include "Exception.hpp"
-using namespace fast;
+
+namespace fast {
 
 bool Image::isDataModified() {
     if (!mHostDataIsUpToDate)
@@ -459,6 +460,8 @@ Image::Image() {
     mTransformMatrix[0] = 1;
     mTransformMatrix[4] = 1;
     mTransformMatrix[8] = 1;
+
+    mMaxMinInitialized = false;
 }
 
 ImageAccess Image::getImageAccess(accessType type) {
@@ -779,3 +782,314 @@ void fast::Image::setCenterOfRotation(Float<3> rotation) {
 void fast::Image::setTransformMatrix(Float<9> transformMatrix) {
     mTransformMatrix = transformMatrix;
 }
+
+template <class T>
+inline void getMaxAndMinFromData(void* voidData, unsigned int nrOfElements, float* min, float* max) {
+    T* data = (T*)voidData;
+
+    *min = std::numeric_limits<float>::max();
+    *max = std::numeric_limits<float>::min();
+    for(unsigned int i = 0; i < nrOfElements; i++) {
+        if((float)data[i] < *min) {
+            *min = (float)data[i];
+        }
+        if((float)data[i] > *max) {
+            *max = (float)data[i];
+        }
+    }
+}
+
+unsigned int getPowerOfTwoSize(unsigned int size) {
+    int i = 1;
+    while(pow(2, i) < size)
+        i++;
+
+    return (unsigned int)pow(2,i);
+}
+
+template <class T>
+inline void getMaxAndMinFromOpenCLImageResult(void* voidData, unsigned int size, float* min, float* max) {
+    T* data = (T*)voidData;
+    *min = data[0];
+    *max = data[1];
+    for(unsigned int i = 2; i < size*2; i += 2) {
+        //std::cout << "min: " << data[i] << std::endl;
+        //std::cout << "max: " << data[i+1] << std::endl;
+        if(data[i] < *min) {
+            *min = data[i];
+        }
+        if(data[i+1] > *max) {
+            *max = data[i+1];
+        }
+    }
+}
+
+inline void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image, DataType type, float* min, float* max) {
+    // Get power of two size
+    unsigned int powerOfTwoSize = getPowerOfTwoSize(std::max(image.getImageInfo<CL_IMAGE_WIDTH>(), image.getImageInfo<CL_IMAGE_HEIGHT>()));
+
+    // Create image levels
+    unsigned int size = powerOfTwoSize;
+    size /= 2;
+    std::vector<cl::Image2D> levels;
+    while(size >= 4) {
+        cl::Image2D level = cl::Image2D(device->getContext(), CL_MEM_READ_WRITE, getOpenCLImageFormat(type, 2), size, size);
+        levels.push_back(level);
+        size /= 2;
+    }
+
+    // Compile OpenCL code
+    std::string buildOptions = "";
+    switch(type) {
+    case TYPE_FLOAT:
+        buildOptions = "-DTYPE_FLOAT";
+        break;
+    case TYPE_UINT8:
+        buildOptions = "-DTYPE_UINT8";
+        break;
+    case TYPE_INT8:
+        buildOptions = "-DTYPE_INT8";
+        break;
+    case TYPE_UINT16:
+        buildOptions = "-DTYPE_UINT16";
+        break;
+    case TYPE_INT16:
+        buildOptions = "-DTYPE_INT16";
+        break;
+    }
+    int programNr = device->createProgramFromSource(std::string(FAST_ROOT_DIR) + "/Data/ImageMinMax.cl", buildOptions);
+    cl::Program program = device->getProgram(programNr);
+    cl::CommandQueue queue = device->getCommandQueue();
+
+    // Fill first level
+    size = powerOfTwoSize/2;
+    cl::Kernel firstLevel(program, "createFirstMinMaxImage2DLevel");
+    firstLevel.setArg(0, image);
+    firstLevel.setArg(1, levels[0]);
+
+    queue.enqueueNDRangeKernel(
+            firstLevel,
+            cl::NullRange,
+            cl::NDRange(size,size),
+            cl::NullRange
+    );
+
+    // Fill all other levels
+    cl::Kernel createLevel(program, "createMinMaxImage2DLevel");
+    int i = 0;
+    size /= 2;
+    while(size >= 4) {
+        createLevel.setArg(0, levels[i]);
+        createLevel.setArg(1, levels[i+1]);
+        queue.enqueueNDRangeKernel(
+                createLevel,
+                cl::NullRange,
+                cl::NDRange(size,size),
+                cl::NullRange
+        );
+        i++;
+        size /= 2;
+    }
+
+    // Get result from the last level
+    unsigned int nrOfElements = 4*4;
+    void* result = allocateDataArray(nrOfElements,type,2);
+    queue.enqueueReadImage(levels[levels.size()-1],CL_TRUE,oul::createOrigoRegion(),oul::createRegion(4,4,1),0,0,result);
+    switch(type) {
+    case TYPE_FLOAT:
+        getMaxAndMinFromOpenCLImageResult<float>(result, nrOfElements, min, max);
+        break;
+    case TYPE_INT8:
+        getMaxAndMinFromOpenCLImageResult<char>(result, nrOfElements, min, max);
+        break;
+    case TYPE_UINT8:
+        getMaxAndMinFromOpenCLImageResult<uchar>(result, nrOfElements, min, max);
+        break;
+    case TYPE_INT16:
+        getMaxAndMinFromOpenCLImageResult<short>(result, nrOfElements, min, max);
+        break;
+    case TYPE_UINT16:
+        getMaxAndMinFromOpenCLImageResult<ushort>(result, nrOfElements, min, max);
+        break;
+    }
+
+}
+
+inline void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D image, DataType type, float* min, float* max) {
+   // Get power of two size
+    unsigned int powerOfTwoSize = getPowerOfTwoSize(std::max(image.getImageInfo<CL_IMAGE_DEPTH>(), std::max(
+            image.getImageInfo<CL_IMAGE_WIDTH>(),
+            image.getImageInfo<CL_IMAGE_HEIGHT>())));
+
+    // Create image levels
+    unsigned int size = powerOfTwoSize;
+    size /= 2;
+    std::vector<cl::Image3D> levels;
+    while(size >= 4) {
+        cl::Image3D level = cl::Image3D(device->getContext(), CL_MEM_READ_WRITE, getOpenCLImageFormat(type, 2), size, size, size);
+        levels.push_back(level);
+        size /= 2;
+    }
+
+    // Compile OpenCL code
+    std::string buildOptions = "";
+    switch(type) {
+    case TYPE_FLOAT:
+        buildOptions = "-DTYPE_FLOAT";
+        break;
+    case TYPE_UINT8:
+        buildOptions = "-DTYPE_UINT8";
+        break;
+    case TYPE_INT8:
+        buildOptions = "-DTYPE_INT8";
+        break;
+    case TYPE_UINT16:
+        buildOptions = "-DTYPE_UINT16";
+        break;
+    case TYPE_INT16:
+        buildOptions = "-DTYPE_INT16";
+        break;
+    }
+    int programNr = device->createProgramFromSource(std::string(FAST_ROOT_DIR) + "/Data/ImageMinMax.cl", buildOptions);
+    cl::Program program = device->getProgram(programNr);
+    cl::CommandQueue queue = device->getCommandQueue();
+
+    // Fill first level
+    size = powerOfTwoSize/2;
+    cl::Kernel firstLevel(program, "createFirstMinMaxImage3DLevel");
+    firstLevel.setArg(0, image);
+    firstLevel.setArg(1, levels[0]);
+
+    queue.enqueueNDRangeKernel(
+            firstLevel,
+            cl::NullRange,
+            cl::NDRange(size,size,size),
+            cl::NullRange
+    );
+
+    // Fill all other levels
+    cl::Kernel createLevel(program, "createMinMaxImage3DLevel");
+    int i = 0;
+    size /= 2;
+    while(size >= 4) {
+        createLevel.setArg(0, levels[i]);
+        createLevel.setArg(1, levels[i+1]);
+        queue.enqueueNDRangeKernel(
+                createLevel,
+                cl::NullRange,
+                cl::NDRange(size,size,size),
+                cl::NullRange
+        );
+        i++;
+        size /= 2;
+    }
+
+    // Get result from the last level
+    unsigned int nrOfElements = 4*4*4;
+    void* result = allocateDataArray(nrOfElements,type,2);
+    queue.enqueueReadImage(levels[levels.size()-1],CL_TRUE,oul::createOrigoRegion(),oul::createRegion(4,4,4),0,0,result);
+    switch(type) {
+    case TYPE_FLOAT:
+        getMaxAndMinFromOpenCLImageResult<float>(result, nrOfElements, min, max);
+        break;
+    case TYPE_INT8:
+        getMaxAndMinFromOpenCLImageResult<char>(result, nrOfElements, min, max);
+        break;
+    case TYPE_UINT8:
+        getMaxAndMinFromOpenCLImageResult<uchar>(result, nrOfElements, min, max);
+        break;
+    case TYPE_INT16:
+        getMaxAndMinFromOpenCLImageResult<short>(result, nrOfElements, min, max);
+        break;
+    case TYPE_UINT16:
+        getMaxAndMinFromOpenCLImageResult<ushort>(result, nrOfElements, min, max);
+        break;
+    }
+
+}
+
+inline void getMaxAndMinFromOpenCLBuffer(OpenCLDevice::pointer device, cl::Buffer buffer, float* min, float* max) {
+
+}
+
+void Image::calculateMaxAndMinIntensity() {
+    // Calculate max and min if image has changed or it is the first time
+    if(!mMaxMinInitialized || mMaxMinTimestamp != getTimestamp()) {
+
+        if(mHostHasData && mHostDataIsUpToDate) {
+            // Host data is up to date, calculate min and max on host
+            unsigned int nrOfElements = mWidth*mHeight*mDepth*mComponents;
+            ImageAccess access = getImageAccess(ACCESS_READ);
+            void* data = access.get();
+            switch(mType) {
+            case TYPE_FLOAT:
+                getMaxAndMinFromData<float>(data,nrOfElements,&mMinimumIntensity,&mMaximumIntensity);
+                break;
+            case TYPE_INT8:
+                getMaxAndMinFromData<char>(data,nrOfElements,&mMinimumIntensity,&mMaximumIntensity);
+                break;
+            case TYPE_UINT8:
+                getMaxAndMinFromData<uchar>(data,nrOfElements,&mMinimumIntensity,&mMaximumIntensity);
+                break;
+            case TYPE_INT16:
+                getMaxAndMinFromData<short>(data,nrOfElements,&mMinimumIntensity,&mMaximumIntensity);
+                break;
+            case TYPE_UINT16:
+                getMaxAndMinFromData<ushort>(data,nrOfElements,&mMinimumIntensity,&mMaximumIntensity);
+                break;
+            }
+        } else {
+            // Find some OpenCL image data or buffer data that is up to date
+            bool found = false;
+            boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+            for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end(); it++) {
+                if(it->second == true) {
+                    OpenCLDevice::pointer device = it->first;
+                    if(mDimensions == 2) {
+                        OpenCLImageAccess2D access = getOpenCLImageAccess2D(ACCESS_READ, device);
+                        cl::Image2D* clImage = access.get();
+                        getMaxAndMinFromOpenCLImage(device, *clImage, mType, &mMinimumIntensity, &mMaximumIntensity);
+                    } else {
+                        OpenCLImageAccess3D access = getOpenCLImageAccess3D(ACCESS_READ, device);
+                        cl::Image3D* clImage = access.get();
+                        getMaxAndMinFromOpenCLImage(device, *clImage, mType, &mMinimumIntensity, &mMaximumIntensity);
+                    }
+                    found = true;
+                }
+            }
+
+            if(!found) {
+                for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end(); it++) {
+                    if(it->second == true) {
+                        OpenCLDevice::pointer device = it->first;
+                        OpenCLBufferAccess access = getOpenCLBufferAccess(ACCESS_READ, device);
+                        cl::Buffer* buffer = access.get();
+                        getMaxAndMinFromOpenCLBuffer(device, *buffer, &mMinimumIntensity, &mMaximumIntensity);
+                        found = true;
+                    }
+                }
+            }
+        }
+
+        // Update timestamp
+        mMaxMinTimestamp = getTimestamp();
+    }
+}
+
+float Image::calculateMaximumIntensity() {
+    if(!isInitialized())
+        throw Exception("Image has not been initialized.");
+    calculateMaxAndMinIntensity();
+
+    return mMaximumIntensity;
+}
+
+float Image::calculateMinimumIntensity() {
+    if(!isInitialized())
+        throw Exception("Image has not been initialized.");
+    calculateMaxAndMinIntensity();
+
+    return mMinimumIntensity;
+}
+
+} // end namespace fast;

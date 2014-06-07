@@ -2,6 +2,7 @@
 #include "Image.hpp"
 #include "DeviceManager.hpp"
 #include "DataComparison.hpp"
+#include <limits>
 
 using namespace fast;
 
@@ -1006,3 +1007,157 @@ TEST_CASE("Initialize an image twice throws exception", "[fast][image]") {
     image->create2DImage(256, 256, TYPE_FLOAT, 1, Host::New());
     CHECK_THROWS(image->create2DImage(256, 256, TYPE_FLOAT, 1, Host::New()));
 }
+
+TEST_CASE("Calling calculate max or min intensity on uninitialized image throws an exception", "[fast][image]") {
+    Image::pointer image = Image::New();
+    CHECK_THROWS(image->calculateMaximumIntensity());
+    CHECK_THROWS(image->calculateMinimumIntensity());
+}
+
+template <class T>
+inline void getMaxAndMinFromData(void* voidData, unsigned int nrOfElements, float* min, float* max) {
+    T* data = (T*)voidData;
+
+    *min = std::numeric_limits<float>::max();
+    *max = std::numeric_limits<float>::min();
+    for(unsigned int i = 0; i < nrOfElements; i++) {
+        if((float)data[i] < *min) {
+            *min = (float)data[i];
+        }
+        if((float)data[i] > *max) {
+            *max = (float)data[i];
+        }
+    }
+}
+
+inline void getMaxAndMinFromData(void* data, unsigned int nrOfElements, float* min, float* max, DataType type) {
+    switch(type) {
+    case TYPE_FLOAT:
+        getMaxAndMinFromData<float>(data,nrOfElements,min,max);
+        break;
+    case TYPE_INT8:
+        getMaxAndMinFromData<char>(data,nrOfElements,min,max);
+        break;
+    case TYPE_UINT8:
+        getMaxAndMinFromData<uchar>(data,nrOfElements,min,max);
+        break;
+    case TYPE_INT16:
+        getMaxAndMinFromData<short>(data,nrOfElements,min,max);
+        break;
+    case TYPE_UINT16:
+        getMaxAndMinFromData<ushort>(data,nrOfElements,min,max);
+        break;
+    }
+}
+
+TEST_CASE("calculateMaximum/MinimumIntensity returns the maximum/minimum intensity of a 2D image stored as OpenCL image" , "[fast][image]") {
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    unsigned int width = 31;
+    unsigned int height = 64;
+
+    // Test for having components 1 to 4 and for all data types
+    unsigned int nrOfComponents = 1;
+    //for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+        for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
+            DataType type = (DataType)typeNr;
+
+            // Create a data array with random data
+            void* data = allocateRandomData(width*height*nrOfComponents, type);
+
+            Image::pointer image = Image::New();
+            image->create2DImage(width, height, type, nrOfComponents, device, data);
+
+            float min,max;
+            getMaxAndMinFromData(data, width*height*nrOfComponents, &min, &max, type);
+            CHECK(image->calculateMaximumIntensity() == Approx(max));
+            CHECK(image->calculateMinimumIntensity() == Approx(min));
+        }
+    //}
+}
+
+TEST_CASE("calculateMaximum/MinimumIntensity returns the maximum/minimum intensity of a 3D image stored as OpenCL image" , "[fast][image]") {
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    unsigned int width = 32;
+    unsigned int height = 43;
+    unsigned int depth = 11;
+
+    // Test for having components 1 to 4 and for all data types
+    unsigned int nrOfComponents = 1;
+    //for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+        for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
+            DataType type = (DataType)typeNr;
+
+            // Create a data array with random data
+            void* data = allocateRandomData(width*height*depth*nrOfComponents, type);
+
+            Image::pointer image = Image::New();
+            image->create3DImage(width, height, depth, type, nrOfComponents, device, data);
+
+            float min,max;
+            getMaxAndMinFromData(data, width*height*depth*nrOfComponents, &min, &max, type);
+            CHECK(image->calculateMaximumIntensity() == Approx(max));
+            CHECK(image->calculateMinimumIntensity() == Approx(min));
+        }
+    //}
+}
+
+TEST_CASE("calculateMaximum/MinimumIntensity returns the maximum/minimum intensity of a 2D image stored as OpenCL buffer" , "[fast][image]") {
+
+}
+
+TEST_CASE("calculateMaximum/MinimumIntensity returns the maximum/minimum intensity of a 3D image stored as OpenCL buffer" , "[fast][image]") {
+
+}
+
+TEST_CASE("calculateMaximum/MinimumIntensity returns the maximum/minimum intensity of a 2D image stored as host array" , "[fast][image]") {
+    unsigned int width = 32;
+    unsigned int height = 32;
+
+    // Test for having components 1 to 4 and for all data types
+    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+        for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
+            DataType type = (DataType)typeNr;
+
+            // Create a data array with random data
+            void* data = allocateRandomData(width*height*nrOfComponents, type);
+
+            Image::pointer image = Image::New();
+            image->create2DImage(width, height, type, nrOfComponents, Host::New(), data);
+
+            float min,max;
+            getMaxAndMinFromData(data, width*height*nrOfComponents, &min, &max, type);
+            CHECK(image->calculateMaximumIntensity() == Approx(max));
+            CHECK(image->calculateMinimumIntensity() == Approx(min));
+        }
+    }
+}
+
+TEST_CASE("calculateMaximum/MinimumIntensity returns the maximum/minimum intensity of a 3D image stored as host array" , "[fast][image]") {
+    unsigned int width = 32;
+    unsigned int height = 32;
+    unsigned int depth = 32;
+
+    // Test for having components 1 to 4 and for all data types
+    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+        for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
+            DataType type = (DataType)typeNr;
+
+            // Create a data array with random data
+            void* data = allocateRandomData(width*height*depth*nrOfComponents, type);
+
+            Image::pointer image = Image::New();
+            image->create3DImage(width, height, depth, type, nrOfComponents, Host::New(), data);
+
+            float min,max;
+            getMaxAndMinFromData(data, width*height*depth*nrOfComponents, &min, &max, type);
+            CHECK(image->calculateMaximumIntensity() == Approx(max));
+            CHECK(image->calculateMinimumIntensity() == Approx(min));
+        }
+    }
+}
+
+
+
+
