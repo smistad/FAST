@@ -380,9 +380,9 @@ __constant char triTable[4096] =
 
 
 #ifdef TYPE_UINT
-#define READ_RAW_DATA read_imageui
+#define READ_RAW_DATA (float)read_imageui
 #elif TYPE_INT
-#define READ_RAW_DATA read_imagei
+#define READ_RAW_DATA (float)read_imagei
 #else
 #define READ_RAW_DATA read_imagef
 #endif
@@ -451,20 +451,20 @@ __kernel void traverseHP(
         // Store vertex in VBO
 
         const float3 forwardDifference0 = (float3)(
-                (float)(-READ_RAW_DATA(rawData, sampler, (int4)(point0.x+1, point0.y, point0.z, 0)).x+READ_RAW_DATA(rawData, sampler, (int4)(point0.x-1, point0.y, point0.z, 0)).x),
-                (float)(-READ_RAW_DATA(rawData, sampler, (int4)(point0.x, point0.y+1, point0.z, 0)).x+READ_RAW_DATA(rawData, sampler, (int4)(point0.x, point0.y-1, point0.z, 0)).x),
-                (float)(-READ_RAW_DATA(rawData, sampler, (int4)(point0.x, point0.y, point0.z+1, 0)).x+READ_RAW_DATA(rawData, sampler, (int4)(point0.x, point0.y, point0.z-1, 0)).x)
+                (-READ_RAW_DATA(rawData, sampler, (int4)(point0.x+1, point0.y, point0.z, 0)).x+READ_RAW_DATA(rawData, sampler, (int4)(point0.x-1, point0.y, point0.z, 0)).x),
+                (-READ_RAW_DATA(rawData, sampler, (int4)(point0.x, point0.y+1, point0.z, 0)).x+READ_RAW_DATA(rawData, sampler, (int4)(point0.x, point0.y-1, point0.z, 0)).x),
+                (-READ_RAW_DATA(rawData, sampler, (int4)(point0.x, point0.y, point0.z+1, 0)).x+READ_RAW_DATA(rawData, sampler, (int4)(point0.x, point0.y, point0.z-1, 0)).x)
             );
         const float3 forwardDifference1 = (float3)(
-                (float)(-READ_RAW_DATA(rawData, sampler, (int4)(point1.x+1, point1.y, point1.z, 0)).x+READ_RAW_DATA(rawData, sampler, (int4)(point1.x-1, point1.y, point1.z, 0)).x),
-                (float)(-READ_RAW_DATA(rawData, sampler, (int4)(point1.x, point1.y+1, point1.z, 0)).x+READ_RAW_DATA(rawData, sampler, (int4)(point1.x, point1.y-1, point1.z, 0)).x),
-                (float)(-READ_RAW_DATA(rawData, sampler, (int4)(point1.x, point1.y, point1.z+1, 0)).x+READ_RAW_DATA(rawData, sampler, (int4)(point1.x, point1.y, point1.z-1, 0)).x)
+                (-READ_RAW_DATA(rawData, sampler, (int4)(point1.x+1, point1.y, point1.z, 0)).x+READ_RAW_DATA(rawData, sampler, (int4)(point1.x-1, point1.y, point1.z, 0)).x),
+                (-READ_RAW_DATA(rawData, sampler, (int4)(point1.x, point1.y+1, point1.z, 0)).x+READ_RAW_DATA(rawData, sampler, (int4)(point1.x, point1.y-1, point1.z, 0)).x),
+                (-READ_RAW_DATA(rawData, sampler, (int4)(point1.x, point1.y, point1.z+1, 0)).x+READ_RAW_DATA(rawData, sampler, (int4)(point1.x, point1.y, point1.z-1, 0)).x)
             );
 
         const float value0 = READ_RAW_DATA(rawData, sampler, (int4)(point0.x, point0.y, point0.z, 0)).x;
         float diff = native_divide(
-            (float)(isolevel-value0),
-            (float)(READ_RAW_DATA(rawData, sampler, (int4)(point1.x, point1.y, point1.z, 0)).x - value0));
+            isolevel-value0,
+            READ_RAW_DATA(rawData, sampler, (int4)(point1.x, point1.y, point1.z, 0)).x - value0);
 
         const float3 vertex = mix((float3)(point0.x, point0.y, point0.z), (float3)(point1.x, point1.y, point1.z), diff);
 
