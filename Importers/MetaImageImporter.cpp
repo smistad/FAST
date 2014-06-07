@@ -4,6 +4,7 @@
 #include <fstream>
 #include <boost/iostreams/device/mapped_file.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 using namespace fast;
 
 Image::pointer MetaImageImporter::getOutput() {
@@ -115,12 +116,12 @@ void MetaImageImporter::execute() {
             std::string sizeX = sizeString.substr(0,sizeString.find(" "));
             sizeString = sizeString.substr(sizeString.find(" ")+1);
             std::string sizeY = sizeString.substr(0,sizeString.find(" "));
-            width = atoi(sizeX.c_str());
-            height = atoi(sizeY.c_str());
+            width = boost::lexical_cast<int>(sizeX.c_str());
+            height = boost::lexical_cast<int>(sizeY.c_str());
             if(imageIs3D) {
                 sizeString = sizeString.substr(sizeString.find(" ")+1);
                 std::string sizeZ = sizeString.substr(0,sizeString.find(" "));
-                depth = atoi(sizeZ.c_str());
+                depth = boost::lexical_cast<int>(sizeZ.c_str());
             }
 
             sizeFound = true;
@@ -157,7 +158,7 @@ void MetaImageImporter::execute() {
                 throw Exception("Trying to read volume of unsupported data type", __LINE__, __FILE__);
             }
         } else if(line.substr(0,23) == "ElementNumberOfChannels") {
-            nrOfComponents = atoi(line.substr(23+3).c_str());
+            nrOfComponents = boost::lexical_cast<int>(line.substr(23+3).c_str());
             if(nrOfComponents <= 0)
                 throw Exception("Error in reading the number of components in the MetaImageImporter");
         } else if(line.substr(0, 14) == "ElementSpacing") {
@@ -173,9 +174,9 @@ void MetaImageImporter::execute() {
             }
 
             Float<3> spacing;
-            spacing[0] = atof(sizeX.c_str());
-            spacing[1] = atof(sizeY.c_str());
-            spacing[2] = atof(sizeZ.c_str());
+            spacing[0] = boost::lexical_cast<float>(sizeX.c_str());
+            spacing[1] = boost::lexical_cast<float>(sizeY.c_str());
+            spacing[2] = boost::lexical_cast<float>(sizeZ.c_str());
             output->setSpacing(spacing);
         } else if(line.substr(0, 16) == "CenterOfRotation") {
             std::string sizeString = line.substr(16+3);
@@ -187,9 +188,9 @@ void MetaImageImporter::execute() {
             std::string sizeZ = sizeString.substr(0,sizeString.find(" "));
 
             Float<3> centerOfRotation;
-            centerOfRotation[0] = atof(sizeX.c_str());
-            centerOfRotation[1] = atof(sizeY.c_str());
-            centerOfRotation[2] = atof(sizeZ.c_str());
+            centerOfRotation[0] = boost::lexical_cast<float>(sizeX.c_str());
+            centerOfRotation[1] = boost::lexical_cast<float>(sizeY.c_str());
+            centerOfRotation[2] = boost::lexical_cast<float>(sizeZ.c_str());
             output->setCenterOfRotation(centerOfRotation);
         } else if(line.substr(0, 6) == "Offset") {
             std::string sizeString = line.substr(6+3);
@@ -201,9 +202,9 @@ void MetaImageImporter::execute() {
             std::string sizeZ = sizeString.substr(0,sizeString.find(" "));
 
             Float<3> offset;
-            offset[0] = atof(sizeX.c_str());
-            offset[1] = atof(sizeY.c_str());
-            offset[2] = atof(sizeZ.c_str());
+            offset[0] = boost::lexical_cast<float>(sizeX.c_str());
+            offset[1] = boost::lexical_cast<float>(sizeY.c_str());
+            offset[2] = boost::lexical_cast<float>(sizeZ.c_str());
             output->setOffset(offset);
         } else if(line.substr(0, 15) == "TransformMatrix") {
             std::string string = line.substr(15+3);
@@ -215,7 +216,7 @@ void MetaImageImporter::execute() {
 
             Float<9> matrix;
             for(unsigned int i = 0; i < 9; i++) {
-                matrix[i] = atof(values[i].c_str());
+                matrix[i] = boost::lexical_cast<float>(values[i].c_str());
             }
             output->setTransformMatrix(matrix);
         }
