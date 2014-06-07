@@ -93,9 +93,11 @@ void SurfaceRenderer::execute() {
     const bool writingTo3DTextures = mDevice->getDevice().getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") != std::string::npos;
     cl::Context clContext = mDevice->getContext();
     const unsigned int SIZE = getRequiredHistogramPyramidSize(input);
+
     float spacingX = input->getSpacing().x();
     float spacingY = input->getSpacing().y();
     float spacingZ = input->getSpacing().z();
+
     scalingFactorx = spacingX*1.5f/SIZE;
     scalingFactory = spacingY*1.5f/SIZE;
     scalingFactorz = spacingZ*1.5f/SIZE;
