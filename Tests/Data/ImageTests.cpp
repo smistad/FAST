@@ -6,6 +6,10 @@
 
 using namespace fast;
 
+// Undefine windows crap
+#undef min
+#undef max
+
 TEST_CASE("Create a 2D image on host", "[fast][image]") {
     Image::pointer image = Image::New();
 

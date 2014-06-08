@@ -1,6 +1,7 @@
 #include "Image.hpp"
 #include "HelperFunctions.hpp"
 #include "Exception.hpp"
+#include "Utility.hpp"
 
 namespace fast {
 
