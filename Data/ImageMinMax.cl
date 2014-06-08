@@ -1,30 +1,35 @@
 
 #ifdef TYPE_FLOAT
 #define TYPE float4
+#define BUFFER_TYPE float
 #define READ_IMAGE read_imagef
 #define WRITE_IMAGE write_imagef
 #define MAX_VALUE FLT_MAX
 #define MIN_VALUE FLT_MIN
 #elif TYPE_UINT8
 #define TYPE uint4
+#define BUFFER_TYPE uchar
 #define READ_IMAGE read_imageui
 #define WRITE_IMAGE write_imageui
 #define MAX_VALUE UCHAR_MAX
 #define MIN_VALUE 0
 #elif TYPE_INT8
 #define TYPE int4
+#define BUFFER_TYPE char
 #define READ_IMAGE read_imagei
 #define WRITE_IMAGE write_imagei
 #define MAX_VALUE CHAR_MAX
 #define MIN_VALUE CHAR_MIN
 #elif TYPE_UINT16
 #define TYPE uint4
+#define BUFFER_TYPE ushort
 #define READ_IMAGE read_imageui
 #define WRITE_IMAGE write_imageui
 #define MAX_VALUE USHRT_MAX
 #define MIN_VALUE 0
 #else
 #define TYPE int4
+#define BUFFER_TYPE short
 #define READ_IMAGE read_imagei
 #define WRITE_IMAGE write_imagei
 #define MAX_VALUE SHRT_MAX
@@ -132,4 +137,45 @@ __kernel void createMinMaxImage3DLevel(
 
 
     WRITE_IMAGE(writeLevel, pos, result);
+}
+
+__kernel void reduce(
+        __global BUFFER_TYPE* buffer,
+        __local BUFFER_TYPE* minScratch,
+        __local BUFFER_TYPE* maxScratch,
+        __private int length,
+        __private int X,
+        __global BUFFER_TYPE* result) {
+
+    int global_index = get_global_id(0)*X;
+    BUFFER_TYPE minAccumulator = MAX_VALUE;
+    BUFFER_TYPE maxAccumulator = MIN_VALUE;
+    // Loop sequentially over chunks of input vector
+    for(int i = 0; i < X && global_index < length; i++) {
+        float element = buffer[global_index];
+        minAccumulator = (minAccumulator < element) ? minAccumulator : element;
+        maxAccumulator = (maxAccumulator > element) ? maxAccumulator : element;
+        global_index += 1;
+    }
+
+    // Perform parallel reduction
+    int local_index = get_local_id(0);
+    minScratch[local_index] = minAccumulator;
+    maxScratch[local_index] = maxAccumulator;
+    barrier(CLK_LOCAL_MEM_FENCE);
+    for(int offset = get_local_size(0) / 2; offset > 0; offset = offset / 2) {
+        if(local_index < offset) {
+          BUFFER_TYPE other = minScratch[local_index + offset];
+          BUFFER_TYPE mine = minScratch[local_index];
+          minScratch[local_index] = (mine < other) ? mine : other;
+          other = maxScratch[local_index + offset];
+          mine = maxScratch[local_index];
+          maxScratch[local_index] = (mine > other) ? mine : other;
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
+    }
+    if(local_index == 0) {
+        result[get_group_id(0)*2] = minScratch[0];
+        result[get_group_id(0)*2+1] = maxScratch[0];
+    }
 }

@@ -1011,17 +1011,88 @@ inline void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3
 
 }
 
-inline void getMaxAndMinFromOpenCLBuffer(OpenCLDevice::pointer device, cl::Buffer buffer, float* min, float* max) {
+inline void getMaxAndMinFromOpenCLBuffer(OpenCLDevice::pointer device, cl::Buffer buffer, unsigned int size, DataType type, float* min, float* max) {
+    // Compile OpenCL code
+    std::string buildOptions = "";
+    switch(type) {
+    case TYPE_FLOAT:
+        buildOptions = "-DTYPE_FLOAT";
+        break;
+    case TYPE_UINT8:
+        buildOptions = "-DTYPE_UINT8";
+        break;
+    case TYPE_INT8:
+        buildOptions = "-DTYPE_INT8";
+        break;
+    case TYPE_UINT16:
+        buildOptions = "-DTYPE_UINT16";
+        break;
+    case TYPE_INT16:
+        buildOptions = "-DTYPE_INT16";
+        break;
+    }
+    int programNr = device->createProgramFromSource(std::string(FAST_ROOT_DIR) + "/Data/ImageMinMax.cl", buildOptions);
+    cl::Program program = device->getProgram(programNr);
+    cl::CommandQueue queue = device->getCommandQueue();
 
+    // Nr of work groups must be set so that work-group size does not exceed max work-group size (256 on AMD)
+    int length = size;
+    cl::Kernel reduce(program, "reduce");
+
+    cl::Buffer current = buffer;
+    cl::Buffer clResult;
+    int workGroupSize = 256;
+    int workGroups = 256;
+    int X = ceil((float)length / (workGroups*workGroupSize));
+
+    std::cout << "number of work groups is: " << workGroups << std::endl;
+    std::cout << "X is: " << X << std::endl;
+    clResult = cl::Buffer(device->getContext(), CL_MEM_READ_WRITE, getSizeOfDataType(type,1)*workGroups*2);
+    reduce.setArg(0, current);
+    reduce.setArg(1, workGroupSize * getSizeOfDataType(type,1), NULL);
+    reduce.setArg(2, workGroupSize * getSizeOfDataType(type,1), NULL);
+    reduce.setArg(3, size);
+    reduce.setArg(4, X);
+    reduce.setArg(5, clResult);
+
+    queue.enqueueNDRangeKernel(
+            reduce,
+            cl::NullRange,
+            cl::NDRange(workGroups*workGroupSize),
+            cl::NDRange(workGroupSize)
+    );
+
+    length = workGroups;
+
+    void* result = allocateDataArray(length, type, 2);
+    unsigned int nrOfElements = length;
+    queue.enqueueReadBuffer(clResult,CL_TRUE,0,getSizeOfDataType(type,1)*workGroups*2,result);
+    switch(type) {
+    case TYPE_FLOAT:
+        getMaxAndMinFromOpenCLImageResult<float>(result, nrOfElements, min, max);
+        break;
+    case TYPE_INT8:
+        getMaxAndMinFromOpenCLImageResult<char>(result, nrOfElements, min, max);
+        break;
+    case TYPE_UINT8:
+        getMaxAndMinFromOpenCLImageResult<uchar>(result, nrOfElements, min, max);
+        break;
+    case TYPE_INT16:
+        getMaxAndMinFromOpenCLImageResult<short>(result, nrOfElements, min, max);
+        break;
+    case TYPE_UINT16:
+        getMaxAndMinFromOpenCLImageResult<ushort>(result, nrOfElements, min, max);
+        break;
+    }
 }
 
 void Image::calculateMaxAndMinIntensity() {
     // Calculate max and min if image has changed or it is the first time
     if(!mMaxMinInitialized || mMaxMinTimestamp != getTimestamp()) {
 
+        unsigned int nrOfElements = mWidth*mHeight*mDepth*mComponents;
         if(mHostHasData && mHostDataIsUpToDate) {
             // Host data is up to date, calculate min and max on host
-            unsigned int nrOfElements = mWidth*mHeight*mDepth*mComponents;
             ImageAccess access = getImageAccess(ACCESS_READ);
             void* data = access.get();
             switch(mType) {
@@ -1059,7 +1130,7 @@ void Image::calculateMaxAndMinIntensity() {
                             // Copy data to buffer instead and do the max min calculation on the buffer instead
                             OpenCLBufferAccess access = getOpenCLBufferAccess(ACCESS_READ, device);
                             cl::Buffer* buffer = access.get();
-                            getMaxAndMinFromOpenCLBuffer(device, *buffer, &mMinimumIntensity, &mMaximumIntensity);
+                            getMaxAndMinFromOpenCLBuffer(device, *buffer, nrOfElements, mType, &mMinimumIntensity, &mMaximumIntensity);
                         } else {
                             OpenCLImageAccess3D access = getOpenCLImageAccess3D(ACCESS_READ, device);
                             cl::Image3D* clImage = access.get();
@@ -1076,7 +1147,7 @@ void Image::calculateMaxAndMinIntensity() {
                         OpenCLDevice::pointer device = it->first;
                         OpenCLBufferAccess access = getOpenCLBufferAccess(ACCESS_READ, device);
                         cl::Buffer* buffer = access.get();
-                        getMaxAndMinFromOpenCLBuffer(device, *buffer, &mMinimumIntensity, &mMaximumIntensity);
+                        getMaxAndMinFromOpenCLBuffer(device, *buffer, nrOfElements, mType, &mMinimumIntensity, &mMaximumIntensity);
                         found = true;
                     }
                 }
