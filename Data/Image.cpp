@@ -1157,6 +1157,7 @@ void Image::calculateMaxAndMinIntensity() {
 
         // Update timestamp
         mMaxMinTimestamp = getTimestamp();
+        mMaxMinInitialized = true;
     }
 }
 
