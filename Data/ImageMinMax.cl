@@ -65,7 +65,6 @@ __kernel void createFirstMinMaxImage2DLevel(
     const int2 size = {get_image_width(image), get_image_height(image)};
 
     TYPE result = {MAX_VALUE, MIN_VALUE,0,0};
-    // Check if in bounds
     for(int i = 0; i < 4; i++) {
         TYPE temp;
         temp = READ_IMAGE(image, sampler, select((int2)(0,0), readPos+offset2D[i], readPos+offset2D[i] < size));
