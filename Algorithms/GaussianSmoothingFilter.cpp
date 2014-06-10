@@ -216,7 +216,6 @@ void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, float *
             outputData[x*nrOfComponents+y*nrOfComponents*width] = (T)sum;
         }}
     }
-    std::cout << "finished processing one frame" << std::endl;
 }
 
 void GaussianSmoothingFilter::execute() {
