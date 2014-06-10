@@ -1176,4 +1176,36 @@ float Image::calculateMinimumIntensity() {
     return mMinimumIntensity;
 }
 
+void Image::createFromImage(
+        Image::pointer image,
+        ExecutionDevice::pointer device) {
+    // Create image first
+    if(image->getDimensions() == 2) {
+        create2DImage(
+                image->getWidth(),
+                image->getHeight(),
+                image->getDataType(),
+                image->getNrOfComponents(),
+                device
+        );
+    } else {
+        create3DImage(
+                image->getWidth(),
+                image->getHeight(),
+                image->getDepth(),
+                image->getDataType(),
+                image->getNrOfComponents(),
+                device
+        );
+    }
+
+    // Copy metadata
+    setSpacing(image->getSpacing());
+    setOffset(image->getOffset());
+    setCenterOfRotation(image->getCenterOfRotation());
+    setTransformMatrix(image->getTransformMatrix());
+}
+
 } // end namespace fast;
+
+

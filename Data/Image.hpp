@@ -17,6 +17,7 @@ namespace fast {
 class Image: public ImageData {
     FAST_OBJECT(Image)
     public:
+        void createFromImage(Image::pointer image, ExecutionDevice::pointer device);
         void create2DImage(unsigned int width, unsigned int height, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device);
         void create2DImage(unsigned int width, unsigned int height, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device, const void * data);
         void create3DImage(unsigned int width, unsigned int height, unsigned int depth, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device);
