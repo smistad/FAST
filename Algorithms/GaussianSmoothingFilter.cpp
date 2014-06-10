@@ -244,21 +244,7 @@ void GaussianSmoothingFilter::execute() {
     }
 
     // Initialize output image
-    if(input->getDimensions() == 2) {
-        output->create2DImage(input->getWidth(),
-            input->getHeight(),
-            input->getDataType(),
-            input->getNrOfComponents(),
-            mDevice);
-    } else {
-         output->create3DImage(input->getWidth(),
-            input->getHeight(),
-            input->getDepth(),
-            input->getDataType(),
-            input->getNrOfComponents(),
-            mDevice);
-    }
-
+    output->createFromImage(input, mDevice);
 
     createMask(input);
 

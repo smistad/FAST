@@ -29,7 +29,9 @@ void DoubleFilter::setDevice(ExecutionDevice::pointer device) {
 }
 
 Image::pointer DoubleFilter::getOutput() {
+    // Set the source of the output image to be this double filter
     mOutput->setSource(mPtr.lock());
+
     return mOutput;
 }
 
@@ -58,21 +60,9 @@ void DoubleFilter::execute() {
 
     Image::pointer input = mInput;
     Image::pointer output = mOutput;
+
     // Initialize output image
-    if(input->getDimensions() == 2) {
-        output->create2DImage(input->getWidth(),
-            input->getHeight(),
-            input->getDataType(),
-            input->getNrOfComponents(),
-            mDevice);
-    } else {
-         output->create3DImage(input->getWidth(),
-            input->getHeight(),
-            input->getDepth(),
-            input->getDataType(),
-            input->getNrOfComponents(),
-            mDevice);
-    }
+    output->createFromImage(input, mDevice);
 
     if(mDevice->isHost()) {
         // Execution device is Host, use the executeAlgorithmOnHost function with the given data type
