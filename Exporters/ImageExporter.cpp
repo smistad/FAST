@@ -9,7 +9,7 @@ namespace fast {
 
 void ImageExporter::setInput(ImageData::pointer image) {
     mInput = image;
-    addParent(mInput);
+    setParent(mInput);
     mIsModified = true;
 }
 

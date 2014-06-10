@@ -6,6 +6,7 @@ using namespace fast;
 
 void MetaImageExporter::setInput(ImageData::pointer input) {
     mInput = input;
+    setParent(input);
     mIsModified = true;
 }
 

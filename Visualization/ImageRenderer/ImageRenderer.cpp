@@ -119,9 +119,8 @@ void ImageRenderer::execute() {
 
 void ImageRenderer::setInput(ImageData::pointer image) {
     mInput = image;
-    addParent(mInput);
+    setParent(mInput);
     mIsModified = true;
-
 }
 
 void ImageRenderer::recompileOpenCLCode(Image::pointer input) {

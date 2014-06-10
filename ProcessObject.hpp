@@ -18,6 +18,14 @@ class ProcessObject : public Object {
         typedef SharedPointer<ProcessObject> pointer;
         oul::RuntimeMeasurementPtr getRuntime();
         void addParent(DataObject::pointer parent);
+        /**
+         * Remove any old parent objects and set the input as the parent object
+         */
+        void setParent(DataObject::pointer parent);
+        /**
+         * Remove all parent objects
+         */
+        void removeParents();
         virtual ~ProcessObject() {};
         void enableRuntimeMeasurements();
         void disableRuntimeMeasurements();

@@ -15,7 +15,7 @@ void DoubleFilter::setInput(Image::pointer image) {
     mInput = image;
 
     // Add input as a parent to the DoubleFilter
-    addParent(mInput);
+    setParent(mInput);
 
     // Because a parameter now has changed we mark the object as modified
     mIsModified = true;

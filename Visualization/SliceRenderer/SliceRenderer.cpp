@@ -174,7 +174,7 @@ void SliceRenderer::execute() {
 
 void SliceRenderer::setInput(ImageData::pointer image) {
     mInput = image;
-    addParent(mInput);
+    setParent(mInput);
     mIsModified = true;
 }
 

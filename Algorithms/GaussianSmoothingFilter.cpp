@@ -8,7 +8,7 @@ using namespace fast;
 void GaussianSmoothingFilter::setInput(ImageData::pointer input) {
     mInput = input;
     mIsModified = true;
-    addParent(input);
+    setParent(input);
     if(input->isDynamicData()) {
         mOutput = DynamicImage::New();
         DynamicImage::pointer(mOutput)->setStreamer(DynamicImage::pointer(mInput)->getStreamer());

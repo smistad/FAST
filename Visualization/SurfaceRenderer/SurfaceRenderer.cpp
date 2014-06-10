@@ -14,7 +14,7 @@ namespace fast {
 
 void SurfaceRenderer::setInput(ImageData::pointer image) {
     mInput = image;
-    addParent(mInput);
+    setParent(mInput);
     mIsModified = true;
 }
 

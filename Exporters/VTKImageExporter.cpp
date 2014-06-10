@@ -15,6 +15,8 @@ vtkStandardNewMacro(VTKImageExporter);
 
 void VTKImageExporter::SetInput(Image::pointer image) {
     mInput = image;
+    setParent(image);
+    mIsModified = true;
 }
 
 VTKImageExporter::VTKImageExporter() {

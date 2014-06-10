@@ -69,3 +69,12 @@ void ProcessObject::setTimestamp(
 oul::RuntimeMeasurementPtr ProcessObject::getRuntime() {
     return mRuntimeManager->getTiming("execute");
 }
+
+void ProcessObject::setParent(DataObject::pointer parent) {
+    removeParents();
+    addParent(parent);
+}
+
+void ProcessObject::removeParents() {
+    mParentDataObjects.clear();
+}

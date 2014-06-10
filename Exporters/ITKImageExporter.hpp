@@ -42,6 +42,8 @@ class ITKImageExporter: public itk::ImageSource<TImage>, public ProcessObject {
 template<class TImage>
 inline void fast::ITKImageExporter<TImage>::SetInput(Image::pointer image) {
     mInput = image;
+    setParent(image);
+    mIsModified = true;
 }
 
 template<class TImage>
