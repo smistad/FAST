@@ -47,8 +47,13 @@ class Vector {
         T* data;
 };
 
-template <int N>
+template <unsigned int N>
 class Float : public Vector<float, N> {
+};
+
+template <unsigned int N>
+class Uint : public Vector<unsigned int, N> {
+
 };
 
 // TODO: add out of bounds checks
