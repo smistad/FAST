@@ -30,6 +30,9 @@ set(SOURCES
     Data/Image.hpp
     Data/DataTypes.cpp
     Data/DataTypes.hpp
+    Data/Surface.cpp
+    Data/Surface.hpp
+    Data/SurfaceVertex.hpp
     Data/Access/Access.hpp
     Data/Access/OpenCLBufferAccess.cpp
     Data/Access/OpenCLBufferAccess.hpp
@@ -39,6 +42,10 @@ set(SOURCES
     Data/Access/OpenCLImageAccess3D.hpp
     Data/Access/ImageAccess.cpp
     Data/Access/ImageAccess.hpp
+    Data/Access/VertexBufferObjectAccess.cpp
+    Data/Access/VertexBufferObjectAccess.hpp
+    Data/Access/SurfacePointerAccess.cpp
+    Data/Access/SurfacePointerAccess.hpp
     Streamers/Streamer.cpp
     Streamers/Streamer.hpp
     Streamers/ImageStreamer.cpp
