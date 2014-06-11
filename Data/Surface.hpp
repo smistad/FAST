@@ -10,8 +10,6 @@
 
 namespace fast {
 
-
-
 class Surface : public DataObject {
     FAST_OBJECT(Surface)
     public:
@@ -26,13 +24,13 @@ class Surface : public DataObject {
         void free(ExecutionDevice::pointer device);
 
         bool mIsInitialized;
-        unsigned int nrOfTriangles;
+        unsigned int mNrOfTriangles;
 
         // VBO data
         bool mVBOHasData;
         bool mVBODataIsUpToDate;
         bool mVBODataIsBeingAccessed;
-        GLuint VBO_ID;
+        GLuint mVBOID;
 
         // Host data
         bool mHostHasData;
@@ -40,6 +38,9 @@ class Surface : public DataObject {
         bool mHostDataIsBeingAccessed;
         std::vector<SurfaceVertex> mVertices;
         std::vector<Uint<3> > mTriangles;
+
+        bool mSurfaceIsBeingWrittenTo;
+        bool isAnyDataBeingAccessed();
 };
 
 } // end namespace fast

@@ -12,11 +12,11 @@ namespace fast {
 class VertexBufferObjectAccess {
     public:
         GLuint* get() const;
-        VertexBufferObjectAccess(GLuint* VBO, bool* accessFlag, bool* accessFlag2);
+        VertexBufferObjectAccess(GLuint VBOID, bool* accessFlag, bool* accessFlag2);
         void release();
         ~VertexBufferObjectAccess();
     private:
-        GLuint* mVBO;
+        GLuint* mVBOID;
         bool mIsDeleted;
         bool* mAccessFlag;
         bool* mAccessFlag2;
