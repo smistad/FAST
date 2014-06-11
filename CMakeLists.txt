@@ -20,6 +20,8 @@ set(SOURCES
     Utility.hpp
     Algorithms/GaussianSmoothingFilter.cpp
     Algorithms/GaussianSmoothingFilter.hpp
+    Algorithms/SurfaceExtraction/SurfaceExtraction.cpp
+    Algorithms/SurfaceExtraction/SurfaceExtraction.hpp
     Data/DataObject.cpp
     Data/DataObject.hpp
     Data/ImageData.cpp

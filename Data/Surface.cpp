@@ -1,3 +1,4 @@
+#include <GL/glew.h>
 #include "Surface.hpp"
 
 namespace fast {
@@ -50,6 +51,11 @@ VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
     }
     if(!mVBOHasData) {
         // TODO create VBO
+        glGenBuffers(1, &mVBOID);
+        glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
+        glBufferData(GL_ARRAY_BUFFER, mNrOfTriangles*18*sizeof(cl_float), NULL, GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glFinish();
 
         // TODO Transfer data if any exist
 
@@ -76,6 +82,7 @@ Surface::~Surface() {
 }
 
 Surface::Surface() {
+    glewInit();
     mIsInitialized = false;
     mVBOHasData = false;
     mHostHasData = false;
