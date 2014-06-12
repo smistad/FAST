@@ -103,6 +103,7 @@ include_directories(
     Exporters/
     Streamers/
     Algorithms/
+    Algorithms/SurfaceExtraction/
     Data/Access/
     Visualization/
     Visualization/ImageRenderer/

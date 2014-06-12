@@ -23,6 +23,13 @@ class SurfaceExtraction : public ProcessObject {
         float mThreshold;
         OpenCLDevice::pointer mDevice;
         unsigned int mHPSize;
+        cl::Program program;
+        // HP
+        std::vector<cl::Image3D> images;
+        std::vector<cl::Buffer> buffers;
+
+        cl::Buffer cubeIndexesBuffer;
+        cl::Image3D cubeIndexesImage;
 };
 
 } // end namespace fast

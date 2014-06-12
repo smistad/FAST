@@ -15,8 +15,9 @@ class Surface : public DataObject {
     public:
         void create(std::vector<Float<3> > vertices, std::vector<Float<3> > normals, std::vector<Uint<3> > triangles);
         void create(unsigned int nrOfTriangles);
-        VertexBufferObjectAccess getVertexBufferObjectAccess(accessType access, ExecutionDevice::pointer device);
+        VertexBufferObjectAccess getVertexBufferObjectAccess(accessType access, OpenCLDevice::pointer device);
         SurfacePointerAccess getSurfacePointerAccess(accessType access);
+        unsigned int getNrOfTriangles() const;
         ~Surface();
     private:
         Surface();

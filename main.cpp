@@ -13,6 +13,7 @@
 #include "MetaImageImporter.hpp"
 #include "MetaImageStreamer.hpp"
 #include "MetaImageExporter.hpp"
+#include "SurfaceExtraction.hpp"
 
 using namespace fast;
 
@@ -22,6 +23,21 @@ int main(int argc, char ** argv) {
     DeviceManager& deviceManager = DeviceManager::getInstance();
     deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(true));
 
+    MetaImageImporter::pointer importer = MetaImageImporter::New();
+    importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_0.mhd");
+    SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
+    extractor->setInput(importer->getOutput());
+    extractor->setThreshold(200);
+    Surface::pointer surface = extractor->getOutput();
+    extractor->update();
+
+    SurfaceRenderer::pointer surfaceRenderer = SurfaceRenderer::New();
+    surfaceRenderer->setInput(surface);
+    SimpleWindow::pointer window = SimpleWindow::New();
+    window->addRenderer(surfaceRenderer);
+    window->runMainLoop();
+
+    /*
     // Example of importing, processing and exporting a 2D image
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/lena.jpg");
@@ -49,6 +65,7 @@ int main(int argc, char ** argv) {
     window->addRenderer(renderer);
 window->setTimeout(10*1000);
     window->runMainLoop();
+    */
     
 	/*
 

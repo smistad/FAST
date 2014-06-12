@@ -81,6 +81,7 @@ std::cout << "the device manager created the GL context " << glContext << std::e
         Display * display = XOpenDisplay(0);
         XVisualInfo* vi = glXChooseVisual(display, DefaultScreen(display), sngBuf);
         glContext = (unsigned long *)glXCreateContext(display, vi, 0, GL_TRUE);
+        std::cout << "created GLX context " << glContext << std::endl;
 #endif
 #endif
         criteria.setCapabilityCriteria(oul::DEVICE_CAPABILITY_OPENGL_INTEROP);

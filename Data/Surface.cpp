@@ -1,4 +1,5 @@
 #include <GL/glew.h>
+#include <GL/glx.h>
 #include "Surface.hpp"
 
 namespace fast {
@@ -7,6 +8,10 @@ void Surface::create(
         std::vector<Float<3> > vertices,
         std::vector<Float<3> > normals,
         std::vector<Uint<3> > triangles) {
+    if(mIsInitialized) {
+        // Delete old data
+        freeAll();
+    }
     mIsInitialized = true;
 
     for(unsigned int i = 0; i < vertices.size(); i++) {
@@ -26,6 +31,10 @@ void Surface::create(
 }
 
 void Surface::create(unsigned int nrOfTriangles) {
+    if(mIsInitialized) {
+        // Delete old data
+        freeAll();
+    }
     mIsInitialized = true;
     mNrOfTriangles = nrOfTriangles;
 }
@@ -36,7 +45,7 @@ bool Surface::isAnyDataBeingAccessed() {
 
 VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
         accessType type,
-        ExecutionDevice::pointer device) {
+        OpenCLDevice::pointer device) {
     if(!mIsInitialized)
         throw Exception("Surface has not been initialized.");
 
@@ -51,6 +60,32 @@ VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
     }
     if(!mVBOHasData) {
         // TODO create VBO
+        // Have to have a drawable available before glewInit and glGenBuffers
+        if(glXGetCurrentDrawable() == 0) {
+            int sngBuf[] = { GLX_RGBA,
+                             GLX_DOUBLEBUFFER,
+                             GLX_RED_SIZE, 1,
+                             GLX_GREEN_SIZE, 1,
+                             GLX_BLUE_SIZE, 1,
+                             GLX_DEPTH_SIZE, 12,
+                             None
+            };
+            Display * display = XOpenDisplay(NULL);
+            //Window w = XCreateSimpleWindow(display,NULL,0,0,256,256,0,0,0);
+            XWindowAttributes attribs;
+            XGetWindowAttributes(display, XDefaultRootWindow(display), &attribs);
+            Pixmap pixmap = XCreatePixmap(display,XDefaultRootWindow(display),256,256,attribs.depth);
+            XVisualInfo* vi = glXChooseVisual(display, DefaultScreen(display), sngBuf);
+            GLXPixmap glxPixmap = glXCreateGLXPixmap(display, vi, pixmap);
+            bool success = glXMakeCurrent(XOpenDisplay(NULL),glxPixmap,(GLXContext)device->getGLContext());
+            std::cout << "Current drawable: " << glXGetCurrentDrawable() << std::endl;
+            std::cout << device->getGLContext() << std::endl;
+            if(!success)
+                std::cout << "iiik" << std::endl;
+        }
+        GLenum err = glewInit();
+        if(err != GLEW_OK)
+            std::cout << "GLEW error" << std::endl;
         glGenBuffers(1, &mVBOID);
         glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
         glBufferData(GL_ARRAY_BUFFER, mNrOfTriangles*18*sizeof(cl_float), NULL, GL_STATIC_DRAW);
@@ -58,6 +93,8 @@ VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
         glFinish();
 
         // TODO Transfer data if any exist
+        mVBOHasData = true;
+        mVBODataIsUpToDate = true;
 
     } else {
         if(!mVBODataIsUpToDate) {
@@ -82,17 +119,28 @@ Surface::~Surface() {
 }
 
 Surface::Surface() {
-    glewInit();
     mIsInitialized = false;
     mVBOHasData = false;
     mHostHasData = false;
     mSurfaceIsBeingWrittenTo = false;
+    mVBODataIsBeingAccessed = false;
+    mHostDataIsBeingAccessed = false;
 }
 
 void Surface::freeAll() {
+    // TODO finish
+    if(mVBOHasData)
+        glDeleteBuffers(1, &mVBOID);
 }
 
 void Surface::free(ExecutionDevice::pointer device) {
+    // TODO
+}
+
+unsigned int Surface::getNrOfTriangles() const {
+    return mNrOfTriangles;
 }
 
 } // end namespace fast
+
+
