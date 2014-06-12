@@ -10,6 +10,11 @@
 
 namespace fast {
 
+struct BoundingBox {
+    Float<3> offset;
+    Float<3> size;
+};
+
 class Surface : public DataObject {
     FAST_OBJECT(Surface)
     public:
@@ -18,6 +23,8 @@ class Surface : public DataObject {
         VertexBufferObjectAccess getVertexBufferObjectAccess(accessType access, OpenCLDevice::pointer device);
         SurfacePointerAccess getSurfacePointerAccess(accessType access);
         unsigned int getNrOfTriangles() const;
+        BoundingBox getBoundingBox() const;
+        void setBoundingBox(BoundingBox box);
         ~Surface();
     private:
         Surface();
@@ -42,6 +49,8 @@ class Surface : public DataObject {
 
         bool mSurfaceIsBeingWrittenTo;
         bool isAnyDataBeingAccessed();
+
+        BoundingBox mBoundingBox;
 };
 
 } // end namespace fast

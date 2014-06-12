@@ -67,24 +67,25 @@ void SurfaceRenderer::draw() {
     glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight);
     glLightfv(GL_LIGHT0, GL_POSITION, position);
 
-    float spacingX = 0.31;//input->getSpacing().x();
-    float spacingY = 0.24;//input->getSpacing().y();
-    float spacingZ = 0.43;//input->getSpacing().z();
+    float spacingX = 1;//0.31;
+    float spacingY = 1;//0.24;
+    float spacingZ = 1;//0.43;
 
-    int SIZE = 512;
+    BoundingBox box = mInput->getBoundingBox();
+    int SIZE = max(max(box.size.x(), box.size.y()), box.size.z());
 
-    scalingFactorx = spacingX*1.5f/SIZE;
-    scalingFactory = spacingY*1.5f/SIZE;
-    scalingFactorz = spacingZ*1.5f/SIZE;
+    scalingFactorx = spacingX*1.0f/SIZE;
+    scalingFactory = spacingY*1.0f/SIZE;
+    scalingFactorz = spacingZ*1.0f/SIZE;
 
     /*
     translationx = (float)input->getWidth()/2.0f;
     translationy = -(float)input->getHeight()/2.0f;
     translationz = -(float)input->getDepth()/2.0f;
     */
-    translationx = (float)276.0f/2.0f;
-    translationy = -(float)249.0f/2.0f;
-    translationz = -(float)200.0f/2.0f;
+    translationx = (float)box.size.x()/2.0f;
+    translationy = -(float)box.size.y()/2.0f;
+    translationz = -(float)box.size.z()/2.0f;
 
     VertexBufferObjectAccess access = mInput->getVertexBufferObjectAccess(ACCESS_READ, mDevice);
     GLuint* VBO_ID = access.get();

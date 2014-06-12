@@ -133,6 +133,13 @@ unsigned int Surface::getNrOfTriangles() const {
     return mNrOfTriangles;
 }
 
-} // end namespace fast
+BoundingBox Surface::getBoundingBox() const {
+    return mBoundingBox;
+}
 
+void Surface::setBoundingBox(BoundingBox box) {
+    mBoundingBox = box;
+}
+
+} // end namespace fast
 

@@ -298,6 +298,11 @@ void SurfaceExtraction::execute() {
     std::cout << "Sum of triangles is " << totalSum << std::endl;
 
     mOutput->create(totalSum);
+    BoundingBox box;
+    box.size[0] = input->getWidth();
+    box.size[1] = input->getHeight();
+    box.size[2] = input->getDepth();
+    mOutput->setBoundingBox(box);
 
     /*
     if(mHasCreatedTriangles)
