@@ -33,11 +33,8 @@ void SurfaceRenderer::execute() {
 }
 
 void SurfaceRenderer::draw() {
-    std::cout << "calling draw on surface renderer" << std::endl;
     // Draw the triangles in the VBO
     setOpenGLContext(mDevice->getGLContext());
-    std::cout << "GLX context is " << glXGetCurrentContext() << std::endl;
-    std::cout << "Current drawable: " << glXGetCurrentDrawable() << std::endl;
 
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -85,9 +82,9 @@ void SurfaceRenderer::draw() {
     translationy = -(float)input->getHeight()/2.0f;
     translationz = -(float)input->getDepth()/2.0f;
     */
-    translationx = (float)276/2.0f;
-    translationy = -(float)249/2.0f;
-    translationz = -(float)200/2.0f;
+    translationx = (float)276.0f/2.0f;
+    translationy = -(float)249.0f/2.0f;
+    translationz = -(float)200.0f/2.0f;
 
     VertexBufferObjectAccess access = mInput->getVertexBufferObjectAccess(ACCESS_READ, mDevice);
     GLuint* VBO_ID = access.get();
@@ -103,7 +100,6 @@ void SurfaceRenderer::draw() {
     glLoadIdentity();
 
 
-    /*
     glTranslatef(-camX, -camY, -camZ);
     glRotatef(rotationX,1.0,0.0,0.0);
     glRotatef(rotationY,0.0, 1.0, 0.0);
@@ -123,7 +119,6 @@ void SurfaceRenderer::draw() {
     glNormalPointer(GL_FLOAT, 24, BUFFER_OFFSET(12));
 
     //glWaitSync(traversalSync, 0, GL_TIMEOUT_IGNORED);
-    std::cout << "rendering:  " << mInput->getNrOfTriangles() << " triangles" << std::endl;
     glDrawArrays(GL_TRIANGLES, 0, mInput->getNrOfTriangles()*3);
 
     // Release buffer
@@ -132,7 +127,6 @@ void SurfaceRenderer::draw() {
     glDisableClientState(GL_NORMAL_ARRAY);
 
     glPopMatrix();
-    */
 
 
     //glutSwapBuffers();

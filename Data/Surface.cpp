@@ -1,6 +1,8 @@
 #include <GL/glew.h>
-#include <GL/glx.h>
 #include "Surface.hpp"
+#include "SimpleWindow.hpp"
+#include <QApplication>
+#include <GL/glx.h>
 
 namespace fast {
 
@@ -62,37 +64,27 @@ VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
         // TODO create VBO
         // Have to have a drawable available before glewInit and glGenBuffers
         if(glXGetCurrentDrawable() == 0) {
-            int sngBuf[] = { GLX_RGBA,
-                             GLX_DOUBLEBUFFER,
-                             GLX_RED_SIZE, 1,
-                             GLX_GREEN_SIZE, 1,
-                             GLX_BLUE_SIZE, 1,
-                             GLX_DEPTH_SIZE, 12,
-                             None
-            };
-            Display * display = XOpenDisplay(NULL);
-            //Window w = XCreateSimpleWindow(display,NULL,0,0,256,256,0,0,0);
-            XWindowAttributes attribs;
-            XGetWindowAttributes(display, XDefaultRootWindow(display), &attribs);
-            Pixmap pixmap = XCreatePixmap(display,XDefaultRootWindow(display),256,256,attribs.depth);
-            XVisualInfo* vi = glXChooseVisual(display, DefaultScreen(display), sngBuf);
-            GLXPixmap glxPixmap = glXCreateGLXPixmap(display, vi, pixmap);
-            bool success = glXMakeCurrent(XOpenDisplay(NULL),glxPixmap,(GLXContext)device->getGLContext());
-            std::cout << "Current drawable: " << glXGetCurrentDrawable() << std::endl;
-            std::cout << device->getGLContext() << std::endl;
+            SimpleWindow::initializeQtApp();
+
+            // Need a drawable for this to work
+            QGLWidget* widget = new QGLWidget;
+            widget->show();
+
+            bool success = glXMakeCurrent(XOpenDisplay(NULL),glXGetCurrentDrawable(),(GLXContext)device->getGLContext());
+            widget->hide(); // TODO should probably delete widget as well
             if(!success)
-                std::cout << "iiik" << std::endl;
+                throw Exception("Error setting GL context");
         }
         GLenum err = glewInit();
         if(err != GLEW_OK)
-            std::cout << "GLEW error" << std::endl;
+            throw Exception("GLEW init error");
         glGenBuffers(1, &mVBOID);
         glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
         glBufferData(GL_ARRAY_BUFFER, mNrOfTriangles*18*sizeof(cl_float), NULL, GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glFinish();
-
         // TODO Transfer data if any exist
+
         mVBOHasData = true;
         mVBODataIsUpToDate = true;
 
