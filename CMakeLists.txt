@@ -6,6 +6,7 @@ option(ITK_INTEROP "Enable interoperability with ITK" OFF)
 
 set(SOURCES 
     main.cpp
+    Object.cpp
     Object.hpp
     SmartPointers.hpp
     ProcessObject.cpp

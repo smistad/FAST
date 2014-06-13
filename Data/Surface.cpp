@@ -70,10 +70,9 @@ VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
             QGLWidget* widget = new QGLWidget;
             widget->show();
 
-            bool success = glXMakeCurrent(XOpenDisplay(NULL),glXGetCurrentDrawable(),(GLXContext)device->getGLContext());
+            setOpenGLContext(device->getGLContext());
             widget->hide(); // TODO should probably delete widget as well
-            if(!success)
-                throw Exception("Error setting GL context");
+            std::cout << "created a drawable" << std::endl;
         }
         GLenum err = glewInit();
         if(err != GLEW_OK)

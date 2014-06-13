@@ -40,6 +40,7 @@ void SurfaceRenderer::draw() {
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
     glEnable(GL_NORMALIZE);
+
     glEnable(GL_DEPTH_TEST);
     // Set background color
     glShadeModel(GL_SMOOTH);
@@ -78,11 +79,6 @@ void SurfaceRenderer::draw() {
     scalingFactory = spacingY*1.0f/SIZE;
     scalingFactorz = spacingZ*1.0f/SIZE;
 
-    /*
-    translationx = (float)input->getWidth()/2.0f;
-    translationy = -(float)input->getHeight()/2.0f;
-    translationz = -(float)input->getDepth()/2.0f;
-    */
     translationx = (float)box.size.x()/2.0f;
     translationy = -(float)box.size.y()/2.0f;
     translationz = -(float)box.size.z()/2.0f;
@@ -90,15 +86,23 @@ void SurfaceRenderer::draw() {
     VertexBufferObjectAccess access = mInput->getVertexBufferObjectAccess(ACCESS_READ, mDevice);
     GLuint* VBO_ID = access.get();
 
-    //std::cout << "rendering " << totalSum << " triangles" << std::endl;
     // Render VBO
-    //reshape(windowWidth,windowHeight);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glViewport(0, 0, mWidth, mHeight); // TODO the width and height here has to come from an resize event
     gluPerspective(45.0f, (GLfloat)mWidth/(GLfloat)mHeight, 0.1f, 10.0f);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+
+    /*
+    glColor3f(1.0f,0.0f,0.0f);
+    glBegin(GL_QUADS);
+        glVertex3f(-1.0f, 1.0f, -5.0f);
+        glVertex3f( 1.0f, 1.0f, -5.0f);
+        glVertex3f( 1.0f,-1.0f, -5.0f);
+        glVertex3f(-1.0f,-1.0f, -5.0f);
+    glEnd();
+    */
 
 
     glTranslatef(-camX, -camY, -camZ);
@@ -119,7 +123,6 @@ void SurfaceRenderer::draw() {
     glVertexPointer(3, GL_FLOAT, 24, BUFFER_OFFSET(0));
     glNormalPointer(GL_FLOAT, 24, BUFFER_OFFSET(12));
 
-    //glWaitSync(traversalSync, 0, GL_TIMEOUT_IGNORED);
     glDrawArrays(GL_TRIANGLES, 0, mInput->getNrOfTriangles()*3);
 
     // Release buffer
@@ -128,7 +131,6 @@ void SurfaceRenderer::draw() {
     glDisableClientState(GL_NORMAL_ARRAY);
 
     glPopMatrix();
-
 
     //glutSwapBuffers();
 }

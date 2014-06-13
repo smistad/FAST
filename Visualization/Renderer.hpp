@@ -27,7 +27,6 @@ class Renderer : public ProcessObject {
         virtual void resizeEvent(QResizeEvent* event) {};
     protected:
         Renderer();
-        void setOpenGLContext(unsigned long* OpenGLContext);
 
         // Level and window intensities
         float mWindow;

@@ -304,17 +304,6 @@ void SurfaceExtraction::execute() {
     box.size[2] = input->getDepth();
     mOutput->setBoundingBox(box);
 
-    /*
-    if(mHasCreatedTriangles)
-        glDeleteBuffers(1, &VBO_ID);
-    // Create new VBO
-    glGenBuffers(1, &VBO_ID);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO_ID);
-    glBufferData(GL_ARRAY_BUFFER, totalSum*18*sizeof(cl_float), NULL, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glFinish();
-    */
-
     // Traverse HP to create triangles and put them in the VBO
     // Make OpenCL buffer from OpenGL buffer
     unsigned int i = 0;
