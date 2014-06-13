@@ -26,7 +26,6 @@ SurfaceRenderer::SurfaceRenderer() : Renderer() {
     camZ = 1.0f;
     rotationX = 0.0f;
     rotationY = 0.0f;
-    glewInit();
 }
 
 void SurfaceRenderer::execute() {

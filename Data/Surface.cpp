@@ -70,10 +70,10 @@ VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
             QGLWidget* widget = new QGLWidget;
             widget->show();
 
-            setOpenGLContext(device->getGLContext());
             widget->hide(); // TODO should probably delete widget as well
             std::cout << "created a drawable" << std::endl;
         }
+        setOpenGLContext(device->getGLContext());
         GLenum err = glewInit();
         if(err != GLEW_OK)
             throw Exception("GLEW init error");
@@ -82,6 +82,7 @@ VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
         glBufferData(GL_ARRAY_BUFFER, mNrOfTriangles*18*sizeof(cl_float), NULL, GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glFinish();
+        std::cout << "Created VBO with ID " << mVBOID << std::endl;
         // TODO Transfer data if any exist
 
         mVBOHasData = true;
