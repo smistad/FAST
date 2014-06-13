@@ -23,8 +23,11 @@ int main(int argc, char ** argv) {
     DeviceManager& deviceManager = DeviceManager::getInstance();
     deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(true));
 
-    MetaImageImporter::pointer importer = MetaImageImporter::New();
-    importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_0.mhd");
+    //MetaImageImporter::pointer importer = MetaImageImporter::New();
+    //importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_0.mhd");
+
+    MetaImageStreamer::pointer importer = MetaImageStreamer::New();
+    importer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
     SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
     extractor->setInput(importer->getOutput());
     extractor->setThreshold(200);

@@ -19,6 +19,7 @@ void SurfaceExtraction::setInput(ImageData::pointer input) {
 }
 
 Surface::pointer SurfaceExtraction::getOutput() {
+    mOutput->setSource(mPtr.lock());
     return mOutput;
 }
 
@@ -347,6 +348,7 @@ void SurfaceExtraction::execute() {
     queue.enqueueReleaseGLObjects(&v, 0, &traversalEvent);
 //  traversalSync = glCreateSyncFromCLeventARB((cl_context)context(), (cl_event)traversalEvent(), 0); // Need the GL_ARB_cl_event extension
     queue.finish();
+    mOutput->updateModifiedTimestamp();
 }
 
 SurfaceExtraction::SurfaceExtraction() {

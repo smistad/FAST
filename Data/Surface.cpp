@@ -63,7 +63,7 @@ VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
     if(!mVBOHasData) {
         // TODO create VBO
         // Have to have a drawable available before glewInit and glGenBuffers
-        if(glXGetCurrentDrawable() == 0) {
+        if(glXGetCurrentDrawable() == 0) { // TODO make this work on all platforms
             SimpleWindow::initializeQtApp();
 
             // Need a drawable for this to work
