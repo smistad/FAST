@@ -2,7 +2,16 @@
 #include "Surface.hpp"
 #include "SimpleWindow.hpp"
 #include <QApplication>
+
+#if defined(__APPLE__) || defined(__MACOSX)
+#include <OpenGL/OpenGL.h>
+#else
+#if _WIN32
+#include <GL/gl.h>
+#else
 #include <GL/glx.h>
+#endif
+#endif
 
 namespace fast {
 
