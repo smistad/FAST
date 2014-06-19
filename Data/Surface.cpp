@@ -63,6 +63,10 @@ VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
     if(!mVBOHasData) {
         // TODO create VBO
         // Have to have a drawable available before glewInit and glGenBuffers
+#if defined(__APPLE__) || defined(__MACOSX)
+#else
+#if _WIN32
+#else
         if(glXGetCurrentDrawable() == 0) { // TODO make this work on all platforms
             SimpleWindow::initializeQtApp();
 
@@ -73,6 +77,8 @@ VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
             widget->hide(); // TODO should probably delete widget as well
             std::cout << "created a drawable" << std::endl;
         }
+#endif
+#endif
         setOpenGLContext(device->getGLContext());
         GLenum err = glewInit();
         if(err != GLEW_OK)
