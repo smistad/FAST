@@ -5,6 +5,7 @@
 
 using namespace fast;
 
+/*
 TEST_CASE("SurfaceRenderer", "[fast][SurfaceRenderer]") {
     CHECK_NOTHROW(
         MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
@@ -17,4 +18,4 @@ TEST_CASE("SurfaceRenderer", "[fast][SurfaceRenderer]") {
         window->setTimeout(1000);
         window->runMainLoop();
     );
-}
+}*/

@@ -4,6 +4,7 @@
 #include <OpenGL/OpenGL.h>
 #else
 #if _WIN32
+#include <windows.h>
 #include <GL/gl.h>
 #else
 #include <GL/glx.h>

@@ -7,7 +7,6 @@
 #include "View.hpp"
 #include "Utility.hpp"
 #include <QCursor>
-#include <GL/glx.h>
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
