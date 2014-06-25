@@ -1,0 +1,32 @@
+# Find the OpenCLUtilityLibrary includes and library
+#
+# OpenCLUtilityLibrary_INCLUDE_DIRS- where to find include files.
+# OpenCLUtilityLibrary_LIBRARIES - List of fully qualified libraries to link against.
+# OpenCLUtilityLibrary_FOUND - set to 1 if found.
+#
+# Usage:
+# OpenCLUtilityLibrary
+#----------
+# option(USE_OpenCLUtilityLibrary "Use OpenCLUtilityLibrary" OFF)
+# if (USE_OpenCLUtilityLibrary)
+#    ADD_DEFINITIONS(-DUSE_OpenCLUtilityLibrary)
+#    find_package(OpenCLUtilityLibrary REQUIRED)
+#    include(${OpenCLUtilityLibrary_USE_FILE})
+# endif()
+#
+
+set (OpenCLUtilityLibrary_FOUND 1)
+
+set (OpenCLUtilityLibrary_SOURCE_DIR "@OpenCLUtilityLibrary_SOURCE_DIR@")
+
+set (OpenCLUtilityLibrary_INCLUDE_DIRS "@OpenCLUtilityLibrary_INCLUDE_DIRS@")
+
+set (OpenCLUtilityLibrary_LIBRARY_DIRS "@OpenCLUtilityLibrary_LIBRARY_DIRS@")
+set (OpenCLUtilityLibrary_LIBRARY "@OpenCLUtilityLibrary_LIBRARY@")
+set (TestOpenCLUtilityLibrary_LIBRARY "@TestOpenCLUtilityLibrary_LIBRARY@")
+set (OPENCL_LIBRARIES "@OPENCL_LIBRARIES@")
+
+set (OpenCLUtilityLibrary_USE_FILE "@OpenCLUtilityLibrary_SOURCE_DIR@/CMake/OpenCLUtilityLibraryUse.cmake")
+
+set (OpenCLUtilityLibrary_KERNELS_DIR "@OUL_DIR@")
+

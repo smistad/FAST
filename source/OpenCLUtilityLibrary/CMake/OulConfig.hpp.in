@@ -1,0 +1,3 @@
+// directory containing tests
+#define TEST_DIR "@TEST_DIR@"
+#define OUL_DIR "@OUL_DIR@"
