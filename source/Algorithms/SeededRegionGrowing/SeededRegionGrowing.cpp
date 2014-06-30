@@ -80,23 +80,6 @@ void SeededRegionGrowing::recompileOpenCLCode(Image::pointer input) {
     } else {
         buildOptions = "-DTYPE_UINT";
     }
-    switch(input->getDataType()) {
-        case TYPE_FLOAT:
-            buildOptions += " -DTYPE=float";
-            break;
-        case TYPE_INT8:
-            buildOptions += " -DTYPE=char";
-            break;
-        case TYPE_UINT8:
-            buildOptions += " -DTYPE=uchar";
-            break;
-        case TYPE_INT16:
-            buildOptions += " -DTYPE=short";
-            break;
-        case TYPE_UINT16:
-            buildOptions += " -DTYPE=ushort";
-            break;
-        }
     std::string filename;
     if(input->getDimensions() == 2) {
         filename = "Algorithms/SeededRegionGrowing/SeededRegionGrowing2D.cl";
@@ -127,6 +110,9 @@ void SeededRegionGrowing::execute() {
     } else {
         input = mInput;
     }
+
+    if(input->getNrOfComponents() != 1)
+        throw Exception("Seeded region growing currently doesn't support images with several components.");
 
     Image::pointer output;
     if(mInput->isDynamicData()) {
@@ -163,23 +149,40 @@ void SeededRegionGrowing::execute() {
 
         recompileOpenCLCode(input);
 
-        // add seeds
         ImageAccess access = output->getImageAccess(ACCESS_READ_WRITE);
         uchar* outputData = (uchar*)access.get();
+        // Initialize to all 0s
+        for(int i = 0; i < output->getWidth()*output->getHeight()*output->getDepth(); i++)
+            outputData[i] = 0;
+        // Add sedd points
         for(int i = 0; i < mSeedPoints.size(); i++) {
             Uint<3> pos = mSeedPoints[i];
+
+            // Check if seed point is in bounds
+            if(pos.x() < 0 || pos.y() < 0 || pos.z() < 0 ||
+                pos.x() >= output->getWidth() || pos.y() >= output->getHeight() || pos.z() >= output->getDepth())
+                throw Exception("One of the seed points given to SeededRegionGrowing was out of bounds.");
+
             outputData[pos.x() + pos.y()*output->getWidth() + pos.z()*output->getWidth()*output->getHeight()] = 2;
         }
         access.release();
 
-        OpenCLImageAccess2D inputAccess = input->getOpenCLImageAccess2D(ACCESS_READ, device);
-        OpenCLBufferAccess outputAccess = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+        cl::NDRange globalSize;
+        if(output->getDimensions() == 2) {
+            globalSize = cl::NDRange(input->getWidth(),input->getHeight());
+            OpenCLImageAccess2D inputAccess = input->getOpenCLImageAccess2D(ACCESS_READ, device);
+            mKernel.setArg(0, *inputAccess.get());
+        } else {
+            globalSize = cl::NDRange(input->getWidth(),input->getHeight(), input->getDepth());
+            OpenCLImageAccess3D inputAccess = input->getOpenCLImageAccess3D(ACCESS_READ, device);
+            mKernel.setArg(0, *inputAccess.get());
+        }
 
+        OpenCLBufferAccess outputAccess = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
         cl::Buffer stopGrowingBuffer = cl::Buffer(
                 device->getContext(),
                 CL_MEM_READ_WRITE,
                 sizeof(char));
-        mKernel.setArg(0, *inputAccess.get());
         mKernel.setArg(1, *outputAccess.get());
         mKernel.setArg(2, stopGrowingBuffer);
         mKernel.setArg(3, mMinimumIntensity);
@@ -194,9 +197,6 @@ void SeededRegionGrowing::execute() {
             iterations++;
             queue.enqueueWriteBuffer(stopGrowingBuffer, CL_TRUE, 0, sizeof(char), &stopGrowingInit);
 
-            std::cout << "iteration" << std::endl;
-            cl::NDRange globalSize;
-            globalSize = cl::NDRange(input->getWidth(),input->getHeight());
             queue.enqueueNDRangeKernel(
                     mKernel,
                     cl::NullRange,
@@ -208,7 +208,6 @@ void SeededRegionGrowing::execute() {
             if(*stopGrowingResult == 1)
                 stopGrowing = true;
         } while(!stopGrowing);
-        std::cout << "total iterations: " << iterations << std::endl;
     }
 
     if(!mInput->isDynamicData())
