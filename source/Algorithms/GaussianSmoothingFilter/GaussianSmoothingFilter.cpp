@@ -150,9 +150,9 @@ void GaussianSmoothingFilter::recompileOpenCLCode(Image::pointer input) {
         }
     std::string filename;
     if(input->getDimensions() == 2) {
-        filename = "Algorithms/GaussianSmoothingFilter2D.cl";
+        filename = "Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter2D.cl";
     } else {
-        filename = "Algorithms/GaussianSmoothingFilter3D.cl";
+        filename = "Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter3D.cl";
     }
     int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + filename, buildOptions);
     mKernel = cl::Kernel(device->getProgram(programNr), "gaussianSmoothing");

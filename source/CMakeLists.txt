@@ -19,8 +19,8 @@ set(SOURCES
     Exception.hpp
     Utility.cpp
     Utility.hpp
-    Algorithms/GaussianSmoothingFilter.cpp
-    Algorithms/GaussianSmoothingFilter.hpp
+    Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.cpp
+    Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp
     Algorithms/SurfaceExtraction/SurfaceExtraction.cpp
     Algorithms/SurfaceExtraction/SurfaceExtraction.hpp
     Data/DataObject.cpp
@@ -106,6 +106,7 @@ include_directories(
     Streamers/
     Algorithms/
     Algorithms/SurfaceExtraction/
+    Algorithms/GaussianSmoothingFilter/
     Data/Access/
     Visualization/
     Visualization/ImageRenderer/
