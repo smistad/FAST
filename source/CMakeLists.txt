@@ -21,6 +21,8 @@ set(SOURCES
     Utility.hpp
     Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.cpp
     Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp
+    Algorithms/SeededRegionGrowing/SeededRegionGrowing.cpp
+    Algorithms/SeededRegionGrowing/SeededRegionGrowing.hpp
     Algorithms/SurfaceExtraction/SurfaceExtraction.cpp
     Algorithms/SurfaceExtraction/SurfaceExtraction.hpp
     Data/DataObject.cpp
@@ -107,6 +109,7 @@ include_directories(
     Algorithms/
     Algorithms/SurfaceExtraction/
     Algorithms/GaussianSmoothingFilter/
+    Algorithms/SeededRegionGrowing/
     Data/Access/
     Visualization/
     Visualization/ImageRenderer/

@@ -12,6 +12,7 @@ set(EXECUTABLE_SOURCE_FILES
     ProcessObjectTests.cpp
     DataObjectTests.cpp
     Algorithms/GaussianSmoothingFilterTests.cpp
+    Algorithms/SeededRegionGrowingTests.cpp
     Algorithms/DoubleFilter.cpp
     Algorithms/DoubleFilter.hpp
     Algorithms/DoubleFilterTests.cpp
