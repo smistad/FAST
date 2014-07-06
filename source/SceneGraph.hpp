@@ -9,6 +9,7 @@ namespace fast {
 class LinearTransformation : public boost::numeric::ublas::matrix<float> {
     public:
         LinearTransformation() : boost::numeric::ublas::matrix(4,4) {};
+        LinearTransformation getInverse();
 };
 
 class SceneGraphNode {
@@ -20,8 +21,9 @@ class SceneGraphNode {
         SceneGraphNode();
         DataObject::pointer mData;
         bool mIsDataNode;
+        bool mIsRootNode;
 
-        LinearTransformation transformation;
+        LinearTransformation mTransformation;
 };
 
 class SceneGraph {
