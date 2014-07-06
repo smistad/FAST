@@ -2,21 +2,26 @@
 #define SCENEGRAPH_HPP_
 
 #include "DataObject.hpp"
+#include <boost/numeric/ublas/matrix.hpp>
 
 namespace fast {
+
+class LinearTransformation : public boost::numeric::ublas::matrix<float> {
+    public:
+        LinearTransformation() : boost::numeric::ublas::matrix(4,4) {};
+};
 
 class SceneGraphNode {
     FAST_OBJECT(SceneGraphNode)
     public:
         void setDataObject(DataObject::pointer data);
-        //void setTransformation();
+        void setTransformation(LinearTransformation transformation);
     private:
         SceneGraphNode();
         DataObject::pointer mData;
         bool mIsDataNode;
 
-        // LinearTransformation transformation
-
+        LinearTransformation transformation;
 };
 
 class SceneGraph {
@@ -28,6 +33,8 @@ class SceneGraph {
         SceneGraphNode::pointer getDataNode(DataObject::pointer data);
         void removeDataNode(SceneGraphNode::pointer node);
         void removeNode(SceneGraphNode::pointer node);
+        LinearTransformation getLinearTransformationBetweenNodes(SceneGraphNode::pointer nodeA, SceneGraphNode::pointer nodeB);
+        LinearTransformation getLinearTransformationFromNode(SceneGraphNode::pointer node);
     private:
         SceneGraph();
         SceneGraph(SceneGraph const&); // Don't implement
