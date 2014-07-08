@@ -48,6 +48,7 @@ class SceneGraph {
         void removeNode(SceneGraphNode::pointer node);
         LinearTransformation getLinearTransformationBetweenNodes(SceneGraphNode::pointer nodeA, SceneGraphNode::pointer nodeB);
         LinearTransformation getLinearTransformationFromNode(SceneGraphNode::pointer node);
+        void deleteGraph();
     private:
         SceneGraph();
         SceneGraph(SceneGraph const&); // Don't implement

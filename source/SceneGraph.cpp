@@ -7,8 +7,11 @@ namespace fast {
  * Initializes linear transformation object to identity matrix
  */
 LinearTransformation::LinearTransformation() : boost::numeric::ublas::matrix<float>(4,4) {
-    for(int i = 0; i < 4; i++)
-        this->operator()(i,i) = 1;
+    for(int i = 0; i < 4; i++) {
+        for(int j = 0; j < 4; j++) {
+            this->operator()(i,j) = i == j ? 1 : 0;
+        }
+    }
 }
 
 LinearTransformation LinearTransformation::getInverse() {
@@ -116,7 +119,6 @@ LinearTransformation SceneGraph::getLinearTransformationBetweenNodes(
 
 LinearTransformation SceneGraph::getLinearTransformationFromNode(
         SceneGraphNode::pointer node) {
-    // TODO traverse the graph from node to root
     SceneGraphNode::pointer currentNode = node;
     LinearTransformation transformation;
     while(!currentNode->isRootNode()) {
@@ -125,6 +127,14 @@ LinearTransformation SceneGraph::getLinearTransformationFromNode(
     }
 
     return transformation;
+}
+
+/**
+ * Deletes the scene graph
+ */
+void SceneGraph::deleteGraph() {
+    mNodes.clear();
+    mDataToNodesMap.clear();
 }
 
 SceneGraph::SceneGraph() {
