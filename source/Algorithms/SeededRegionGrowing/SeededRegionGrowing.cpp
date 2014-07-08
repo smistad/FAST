@@ -71,7 +71,7 @@ void SeededRegionGrowing::recompileOpenCLCode(Image::pointer input) {
             input->getDataType() == mTypeCLCodeCompiledFor)
         return;
 
-    OpenCLDevice::pointer device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
+    OpenCLDevice::pointer device = mDevice;
     std::string buildOptions = "";
     if(input->getDataType() == TYPE_FLOAT) {
         buildOptions = "-DTYPE_FLOAT";
@@ -145,7 +145,7 @@ void SeededRegionGrowing::execute() {
     if(mDevice->isHost()) {
         throw Exception("SeededRegionGrowing not implemented for host yet");
     } else {
-        OpenCLDevice::pointer device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
+        OpenCLDevice::pointer device = mDevice;
 
         recompileOpenCLCode(input);
 
@@ -219,7 +219,7 @@ void SeededRegionGrowing::execute() {
 
 void SeededRegionGrowing::waitToFinish() {
     if(!mDevice->isHost()) {
-        OpenCLDevice::pointer device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
+        OpenCLDevice::pointer device = mDevice;
         device->getCommandQueue().finish();
     }
 }

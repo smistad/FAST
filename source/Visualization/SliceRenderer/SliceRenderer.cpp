@@ -205,7 +205,7 @@ void SliceRenderer::recompileOpenCLCode(Image::pointer input) {
 
 
 SliceRenderer::SliceRenderer() : Renderer() {
-    mDevice = boost::static_pointer_cast<OpenCLDevice>(DeviceManager::getInstance().getDefaultVisualizationDevice());
+    mDevice = DeviceManager::getInstance().getDefaultVisualizationDevice();
     mTextureIsCreated = false;
     mIsModified = true;
     mSlicePlane = PLANE_Y;

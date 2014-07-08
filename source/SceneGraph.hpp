@@ -9,18 +9,22 @@ namespace fast {
 
 class LinearTransformation : public boost::numeric::ublas::matrix<float> {
     public:
-        LinearTransformation() : boost::numeric::ublas::matrix(4,4) {};
+        LinearTransformation();
         LinearTransformation getInverse();
+        LinearTransformation& operator*(const LinearTransformation &other);
 };
 
-class SceneGraphNode {
+class SceneGraphNode : public Object {
     FAST_OBJECT(SceneGraphNode)
     public:
         void setDataObject(DataObject::pointer data);
         void setTransformation(LinearTransformation transformation);
         void setParent(SceneGraphNode::pointer parent);
         DataObject::pointer getData() const;
+        SceneGraphNode::pointer getParent() const;
+        LinearTransformation getLinearTransformation() const;
         bool isDataNode() const;
+        bool isRootNode() const;
     private:
         SceneGraphNode();
 

@@ -19,7 +19,7 @@ void SurfaceRenderer::setInput(Surface::pointer image) {
 }
 
 SurfaceRenderer::SurfaceRenderer() : Renderer() {
-    mDevice = boost::static_pointer_cast<OpenCLDevice>(DeviceManager::getInstance().getDefaultVisualizationDevice());
+    mDevice = DeviceManager::getInstance().getDefaultVisualizationDevice();
     camX = 0.0f;
     camY = 0.0f;
     camZ = 1.0f;

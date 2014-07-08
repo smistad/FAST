@@ -1,6 +1,15 @@
 #include "SceneGraph.hpp"
+#include <boost/numeric/ublas/operation.hpp>
 
 namespace fast {
+
+/**
+ * Initializes linear transformation object to identity matrix
+ */
+LinearTransformation::LinearTransformation() : boost::numeric::ublas::matrix<float>(4,4) {
+    for(int i = 0; i < 4; i++)
+        this->operator()(i,i) = 1;
+}
 
 LinearTransformation LinearTransformation::getInverse() {
 }
@@ -28,6 +37,20 @@ DataObject::pointer SceneGraphNode::getData() const {
 
 bool SceneGraphNode::isDataNode() const {
     return mIsDataNode;
+}
+
+SceneGraphNode::pointer SceneGraphNode::getParent() const {
+    if(mIsRootNode)
+        throw Exception("Can't getParent from a SceneGraphNode that is a root node");
+    return mParent;
+}
+
+bool SceneGraphNode::isRootNode() const {
+    return mIsRootNode;
+}
+
+LinearTransformation SceneGraphNode::getLinearTransformation() const {
+    return mTransformation;
 }
 
 SceneGraphNode::SceneGraphNode() {
@@ -94,9 +117,23 @@ LinearTransformation SceneGraph::getLinearTransformationBetweenNodes(
 LinearTransformation SceneGraph::getLinearTransformationFromNode(
         SceneGraphNode::pointer node) {
     // TODO traverse the graph from node to root
+    SceneGraphNode::pointer currentNode = node;
+    LinearTransformation transformation;
+    while(!currentNode->isRootNode()) {
+        //transformation = transformation*currentNode->getLinearTransformation();
+        currentNode = currentNode->getParent();
+    }
+
+    return transformation;
 }
 
 SceneGraph::SceneGraph() {
+}
+
+LinearTransformation& LinearTransformation::operator *(
+        const LinearTransformation& other) {
+    //LinearTransformation T = boost::numeric::ublas::prod((boost::numeric::ublas::matrix<float>)*this, (boost::numeric::ublas::matrix<float>)other);
+    //return T;
 }
 
 } // end namespace fast

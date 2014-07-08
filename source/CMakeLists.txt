@@ -19,6 +19,8 @@ set(SOURCES
     Exception.hpp
     Utility.cpp
     Utility.hpp
+    SceneGraph.cpp
+    SceneGraph.hpp
     Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.cpp
     Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp
     Algorithms/SeededRegionGrowing/SeededRegionGrowing.cpp

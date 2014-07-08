@@ -148,7 +148,7 @@ void ImageRenderer::recompileOpenCLCode(Image::pointer input) {
 }
 
 ImageRenderer::ImageRenderer() : Renderer() {
-    mDevice = boost::static_pointer_cast<OpenCLDevice>(DeviceManager::getInstance().getDefaultVisualizationDevice());
+    mDevice = DeviceManager::getInstance().getDefaultVisualizationDevice();
     mTextureIsCreated = false;
     mIsModified = true;
     mScale = 1.0f;

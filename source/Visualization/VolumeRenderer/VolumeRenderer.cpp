@@ -31,7 +31,7 @@ void VolumeRenderer::addInput(ImageData::pointer image) {
 VolumeRenderer::VolumeRenderer() : Renderer() {
 
 	
-    mDevice = boost::static_pointer_cast<OpenCLDevice>(DeviceManager::getInstance().getDefaultVisualizationDevice());
+    mDevice = DeviceManager::getInstance().getDefaultVisualizationDevice();
 
 
 	updated=false;

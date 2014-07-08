@@ -511,7 +511,7 @@ void Image::create3DImage(
         mHostHasData = true;
         mHostData = allocateDataArray(mWidth*mHeight*mDepth,mType,mComponents);
     } else {
-        OpenCLDevice::pointer clDevice = boost::dynamic_pointer_cast<OpenCLDevice>(device);
+        OpenCLDevice::pointer clDevice = device;
         cl::Image3D* clImage = new cl::Image3D(
             clDevice->getContext(),
             CL_MEM_READ_WRITE,
@@ -548,7 +548,7 @@ void Image::create3DImage(
         mHostHasData = true;
         mHostDataIsUpToDate = true;
     } else {
-        OpenCLDevice::pointer clDevice = boost::dynamic_pointer_cast<OpenCLDevice>(device);
+        OpenCLDevice::pointer clDevice = device;
         cl::Image3D* clImage;
         // Special treatment for images with 3 components because an OpenCL image can only have 1, 2 or 4 channels
         if(mComponents == 3) {
@@ -598,7 +598,7 @@ void Image::create2DImage(
         mHostHasData = true;
         mHostData = allocateDataArray(mWidth*mHeight,mType,mComponents);
     } else {
-        OpenCLDevice::pointer clDevice = boost::dynamic_pointer_cast<OpenCLDevice>(device);
+        OpenCLDevice::pointer clDevice = device;
         cl::Image2D* clImage = new cl::Image2D(
             clDevice->getContext(),
             CL_MEM_READ_WRITE,
@@ -637,7 +637,7 @@ void Image::create2DImage(
         mHostHasData = true;
         mHostDataIsUpToDate = true;
     } else {
-        OpenCLDevice::pointer clDevice = boost::dynamic_pointer_cast<OpenCLDevice>(device);
+        OpenCLDevice::pointer clDevice = device;
         cl::Image2D* clImage;
         // Special treatment for images with 3 components because an OpenCL image can only have 1, 2 or 4 channels
         if(mComponents == 3) {
@@ -677,7 +677,7 @@ void Image::free(ExecutionDevice::pointer device) {
         deleteArray(mHostData, mType);
         mHostHasData = false;
     } else {
-        OpenCLDevice::pointer clDevice = boost::dynamic_pointer_cast<OpenCLDevice>(device);
+        OpenCLDevice::pointer clDevice = device;
         // Delete any OpenCL images
         delete mCLImages[clDevice];
         mCLImages.erase(clDevice);

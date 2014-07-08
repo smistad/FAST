@@ -352,7 +352,7 @@ void SurfaceExtraction::execute() {
 }
 
 SurfaceExtraction::SurfaceExtraction() {
-    mDevice = boost::static_pointer_cast<OpenCLDevice>(DeviceManager::getInstance().getDefaultComputationDevice());
+    mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
     mThreshold = 0.0f;
     mHPSize = 0;
     mOutput = Surface::New();

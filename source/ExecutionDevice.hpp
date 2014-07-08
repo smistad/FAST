@@ -1,14 +1,15 @@
 #ifndef EXECUTIONDEVICE_HPP_
 #define EXECUTIONDEVICE_HPP_
 
-#include <boost/shared_ptr.hpp>
+#include "Object.hpp"
+#include "SmartPointers.hpp"
 #include "Context.hpp"
 
 namespace fast {
 
-class ExecutionDevice {
+class ExecutionDevice : public Object {
     public:
-        typedef boost::shared_ptr<ExecutionDevice> pointer;
+        typedef SharedPointer<ExecutionDevice> pointer;
         bool isHost() {return mIsHost;};
         virtual ~ExecutionDevice() {};
     protected:
@@ -17,31 +18,14 @@ class ExecutionDevice {
 };
 
 class Host : public ExecutionDevice {
-    public:
-        typedef boost::shared_ptr<Host> pointer;
-        static Host::pointer New() {
-            Host * ptr = new Host();
-            Host::pointer smartPtr(ptr);
-            ptr->setPtr(smartPtr);
-
-            return smartPtr;
-        }
+    FAST_OBJECT(Host)
     private:
         Host() {mIsHost = true;};
-        Host::pointer mPtr;
-        void setPtr(Host::pointer ptr) {mPtr = ptr;};
 };
 
 class OpenCLDevice : public ExecutionDevice, public oul::Context {
+    FAST_OBJECT(OpenCLDevice)
     public:
-        typedef boost::shared_ptr<OpenCLDevice> pointer;
-        static OpenCLDevice::pointer New() {
-            OpenCLDevice * ptr = new OpenCLDevice();
-            OpenCLDevice::pointer smartPtr(ptr);
-            ptr->setPtr(smartPtr);
-
-            return smartPtr;
-        }
         cl::CommandQueue getCommandQueue();
         cl::Device getDevice();
 
@@ -50,8 +34,6 @@ class OpenCLDevice : public ExecutionDevice, public oul::Context {
         unsigned long * getGLContext() { return mGLContext; };
     private:
         OpenCLDevice() {mIsHost = false;};
-        OpenCLDevice::pointer mPtr;
-        void setPtr(OpenCLDevice::pointer ptr) {mPtr = ptr;};
         unsigned long * mGLContext;
 
 };

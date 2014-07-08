@@ -103,7 +103,7 @@ void GaussianSmoothingFilter::createMask(Image::pointer input) {
     }
 
     if(!mDevice->isHost()) {
-        OpenCLDevice::pointer device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
+        OpenCLDevice::pointer device = mDevice;
         unsigned int bufferSize = input->getDimensions() == 2 ? mMaskSize*mMaskSize : mMaskSize*mMaskSize*mMaskSize;
         mCLMask = cl::Buffer(
                 device->getContext(),
@@ -122,7 +122,7 @@ void GaussianSmoothingFilter::recompileOpenCLCode(Image::pointer input) {
             input->getDataType() == mTypeCLCodeCompiledFor)
         return;
 
-    OpenCLDevice::pointer device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
+    OpenCLDevice::pointer device = mDevice;
     std::string buildOptions = "";
     if(input->getDataType() == TYPE_FLOAT) {
         buildOptions = "-DTYPE_FLOAT";
@@ -252,7 +252,7 @@ void GaussianSmoothingFilter::execute() {
             fastSwitchTypeMacro(executeAlgorithmOnHost<FAST_TYPE>(input, output, mMask, mMaskSize));
         }
     } else {
-        OpenCLDevice::pointer device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
+        OpenCLDevice::pointer device = mDevice;
 
         recompileOpenCLCode(input);
         cl::NDRange globalSize;
@@ -298,7 +298,7 @@ void GaussianSmoothingFilter::execute() {
 
 void GaussianSmoothingFilter::waitToFinish() {
     if(!mDevice->isHost()) {
-        OpenCLDevice::pointer device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
+        OpenCLDevice::pointer device = mDevice;
         device->getCommandQueue().finish();
     }
 }

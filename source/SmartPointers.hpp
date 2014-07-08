@@ -89,6 +89,10 @@ class SharedPointer {
             return mSmartPtr != NULL;
         }
 
+        operator unsigned long int() const {
+            (unsigned long int)mSmartPtr.get();
+        }
+
         bool operator==(const SharedPointer<T> &other) {
             return this->getPtr() == other.getPtr();
         }
