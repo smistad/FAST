@@ -3,6 +3,7 @@
 
 #include "DataObject.hpp"
 #include <boost/numeric/ublas/matrix.hpp>
+#include <boost/unordered_set.hpp>
 
 namespace fast {
 
@@ -17,12 +18,16 @@ class SceneGraphNode {
     public:
         void setDataObject(DataObject::pointer data);
         void setTransformation(LinearTransformation transformation);
+        void setParent(SceneGraphNode::pointer parent);
+        DataObject::pointer getData() const;
+        bool isDataNode() const;
     private:
         SceneGraphNode();
+
+        SceneGraphNode::pointer mParent;
         DataObject::pointer mData;
         bool mIsDataNode;
         bool mIsRootNode;
-
         LinearTransformation mTransformation;
 };
 
@@ -33,7 +38,7 @@ class SceneGraph {
         SceneGraphNode::pointer addDataNodeToNewRoot(DataObject::pointer data);
         SceneGraphNode::pointer addNode(SceneGraphNode::pointer parent);
         SceneGraphNode::pointer getDataNode(DataObject::pointer data);
-        void removeDataNode(SceneGraphNode::pointer node);
+        void removeDataNode(DataObject::pointer data);
         void removeNode(SceneGraphNode::pointer node);
         LinearTransformation getLinearTransformationBetweenNodes(SceneGraphNode::pointer nodeA, SceneGraphNode::pointer nodeB);
         LinearTransformation getLinearTransformationFromNode(SceneGraphNode::pointer node);
@@ -42,7 +47,8 @@ class SceneGraph {
         SceneGraph(SceneGraph const&); // Don't implement
         void operator=(SceneGraph const&); // Don't implement
 
-        std::vector<SceneGraphNode::pointer> mNodes;
+        boost::unordered_set<SceneGraphNode::pointer> mNodes;
+        boost::unordered_map<DataObject::pointer, SceneGraphNode::pointer> mDataToNodesMap;
 };
 
 } // end namespace fast
