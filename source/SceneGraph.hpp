@@ -10,8 +10,10 @@ namespace fast {
 class LinearTransformation : public boost::numeric::ublas::matrix<float> {
     public:
         LinearTransformation();
+        // Copy
+        LinearTransformation(boost::numeric::ublas::matrix<float> m) : boost::numeric::ublas::matrix<float>(m) {};
         LinearTransformation getInverse();
-        LinearTransformation& operator*(const LinearTransformation &other);
+        LinearTransformation operator*(const LinearTransformation &other);
 };
 
 class SceneGraphNode : public Object {

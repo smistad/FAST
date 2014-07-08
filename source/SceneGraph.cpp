@@ -120,7 +120,7 @@ LinearTransformation SceneGraph::getLinearTransformationFromNode(
     SceneGraphNode::pointer currentNode = node;
     LinearTransformation transformation;
     while(!currentNode->isRootNode()) {
-        //transformation = transformation*currentNode->getLinearTransformation();
+        transformation = transformation*currentNode->getLinearTransformation();
         currentNode = currentNode->getParent();
     }
 
@@ -130,10 +130,10 @@ LinearTransformation SceneGraph::getLinearTransformationFromNode(
 SceneGraph::SceneGraph() {
 }
 
-LinearTransformation& LinearTransformation::operator *(
+LinearTransformation LinearTransformation::operator *(
         const LinearTransformation& other) {
-    //LinearTransformation T = boost::numeric::ublas::prod((boost::numeric::ublas::matrix<float>)*this, (boost::numeric::ublas::matrix<float>)other);
-    //return T;
+    LinearTransformation T(boost::numeric::ublas::prod((boost::numeric::ublas::matrix<float>)*this, (boost::numeric::ublas::matrix<float>)other));
+    return T;
 }
 
 } // end namespace fast
