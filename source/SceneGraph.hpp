@@ -14,6 +14,7 @@ class LinearTransformation : public boost::numeric::ublas::matrix<float> {
         LinearTransformation(boost::numeric::ublas::matrix<float> m) : boost::numeric::ublas::matrix<float>(m) {};
         LinearTransformation getInverse();
         LinearTransformation operator*(const LinearTransformation &other);
+        boost::numeric::ublas::matrix<float> getMatrix() const;
 };
 
 class SceneGraphNode : public Object {

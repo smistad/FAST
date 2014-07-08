@@ -23,6 +23,10 @@ TEST_CASE("LinearTransformation object is initialized to 4x4 identity matrix", "
     CHECK(correctValues == true);
 }
 
+TEST_CASE("Inversion of linear transformation") {
+    // TODO
+}
+
 TEST_CASE("Add data node to new root", "[fast][SceneGraph]") {
     SceneGraph& graph = SceneGraph::getInstance();
 
@@ -78,5 +82,6 @@ TEST_CASE("Get linear transformation from node to its parent root", "[fast][Scen
 
     graph.deleteGraph();
 }
+
 
 } // end namespace fast

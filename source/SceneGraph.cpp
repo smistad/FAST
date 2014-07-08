@@ -1,5 +1,9 @@
 #include "SceneGraph.hpp"
 #include <boost/numeric/ublas/operation.hpp>
+#include <boost/numeric/ublas/lu.hpp>
+#include <boost/numeric/ublas/io.hpp>
+
+using namespace boost::numeric::ublas;
 
 namespace fast {
 
@@ -15,6 +19,27 @@ LinearTransformation::LinearTransformation() : boost::numeric::ublas::matrix<flo
 }
 
 LinearTransformation LinearTransformation::getInverse() {
+    typedef permutation_matrix<std::size_t> pmatrix;
+
+    // create a working copy
+    matrix<float> A = getMatrix();
+
+    // create a permutation matrix for the LU-factorization
+    pmatrix pm(A.size1());
+
+    // perform LU-factorization
+    int res = lu_factorize(A, pm);
+    if (res != 0)
+        throw Exception("Unable to invert matrix");
+
+    // create identity matrix of "inverse"
+    LinearTransformation inverse;
+    inverse.assign(identity_matrix<float> (A.size1()));
+
+    // backsubstitute to get the inverse
+    lu_substitute(A, pm, inverse);
+
+    return inverse;
 }
 
 void SceneGraphNode::setDataObject(DataObject::pointer data) {
@@ -144,6 +169,10 @@ LinearTransformation LinearTransformation::operator *(
         const LinearTransformation& other) {
     LinearTransformation T(boost::numeric::ublas::prod((boost::numeric::ublas::matrix<float>)*this, (boost::numeric::ublas::matrix<float>)other));
     return T;
+}
+
+boost::numeric::ublas::matrix<float> LinearTransformation::getMatrix() const {
+    return matrix<float>(*this);
 }
 
 } // end namespace fast
