@@ -13,16 +13,21 @@
 #include "MetaImageImporter.hpp"
 #include "MetaImageStreamer.hpp"
 #include "MetaImageExporter.hpp"
+#include "ColorTransferFunction.hpp"
+#include "OpacityTransferFunction.hpp"
 #include "SurfaceExtraction.hpp"
 
 using namespace fast;
 
 int main(int argc, char ** argv) {
 
+	
     // Get a GPU device and set it as the default device
     DeviceManager& deviceManager = DeviceManager::getInstance();
     deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(true));
 
+
+	/*
     //MetaImageImporter::pointer importer = MetaImageImporter::New();
     //importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_0.mhd");
 
@@ -58,10 +63,10 @@ int main(int argc, char ** argv) {
     exporter2->setFilename("test.mhd");
     exporter2->setInput(filteredImage);
     exporter2->update();
-
+	*/
     // Example of displaying an image on screen using ImageRenderer (2D) and SimpleWindow
 
-
+/*
     SimpleWindow::pointer window = SimpleWindow::New();
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->setInput(filteredImage);
@@ -70,8 +75,8 @@ window->setTimeout(10*1000);
     window->runMainLoop();
     */
     
-	/*
-
+	
+/*
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
     SurfaceRenderer::pointer surfaceRenderer = SurfaceRenderer::New();
@@ -81,79 +86,53 @@ window->setTimeout(10*1000);
     window->setMaximumFramerate(25);
     window->addRenderer(surfaceRenderer);
     window->runMainLoop();
-
+*/
 	// Example of using VolumeRenderer (3D) and SimpleWindow
+
 	MetaImageImporter::pointer mhdImporter = MetaImageImporter::New();
     mhdImporter->setFilename("skull.mhd");
+	MetaImageImporter::pointer mhdImporter2 = MetaImageImporter::New();
+    mhdImporter2->setFilename("stent256.mhd");
+	
+	
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+	ColorTransferFunction::pointer ctf2 = ColorTransferFunction::New();
+	ctf2->addRGBPoint(000.0, 0.0, 1.0, 0.0);
+	ctf2->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf2->addRGBPoint(255.0, 1.0, 0.0, 0.0);
+
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+	
+	OpacityTransferFunction::pointer otf2 = OpacityTransferFunction::New();
+	otf2->addAlphaPoint(000.0, 0.0);
+	otf2->addAlphaPoint(255.0, 1.0);
+
+
+
 	VolumeRenderer::pointer VolumeRenderer = VolumeRenderer::New();
-    VolumeRenderer->setInput(mhdImporter->getOutput());
-    SimpleWindow::pointer window = SimpleWindow::New();
-    window->setMaximumFramerate(25);
+    VolumeRenderer->addInput(mhdImporter->getOutput());
+	VolumeRenderer->addInput(mhdImporter2->getOutput());
+	
+	
+	VolumeRenderer->setColorTransferFunction(0, ctf1);
+	VolumeRenderer->setColorTransferFunction(1, ctf2);
+
+	VolumeRenderer->setOpacityTransferFunction(0, otf1);
+	VolumeRenderer->setOpacityTransferFunction(1, otf2);
+
+    VolumeRenderer->enableRuntimeMeasurements();
+	SimpleWindow::pointer window = SimpleWindow::New();
+    window->setMaximumFramerate(2500);
     window->addRenderer(VolumeRenderer);
     window->runMainLoop();
-	*/
+	VolumeRenderer->getRuntime()->print();
 	
 
-    /*
-    // Example of streaming 2D images
-    ImageStreamer::pointer streamer = ImageStreamer::New();
-    streamer->setFilenameFormat("test_#.jpg");
-    GaussianSmoothingFilter::pointer filter2 = GaussianSmoothingFilter::New();
-    filter2->setInput(streamer->getOutput());
-    filter2->setMaskSize(7);
-    filter2->setStandardDeviation(10);
-    DynamicImage::pointer dynamicImage = filter2->getOutput();
-    // Call update 4 times
-    int i = 4;
-    while(--i) {
-        dynamicImage->update();
-    }
-    */
-
-
-    /*
-    MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
-    mhdStreamer->setFilenameFormat("/home/smistad/US-Acq_01_20140320T105851/US-Acq_01_20140320T105851_cxOpenCV_#.mhd");
-    mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
-    GaussianSmoothingFilter::pointer filter4 = GaussianSmoothingFilter::New();
-    filter4->setInput(mhdStreamer->getOutput());
-    mhdStreamer->getOutput()->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
-    //filter4->setDevice(Host::New());
-    filter4->setMaskSize(3);
-    filter4->setStandardDeviation(10);
-    filter4->enableRuntimeMeasurements();
-    DynamicImage::pointer asd = filter4->getOutput();
-    asd->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
-
-    ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->setInput(filter4->getOutput());
-    renderer->enableRuntimeMeasurements();
-    SimpleWindow::pointer window = SimpleWindow::New();
-    window->addRenderer(renderer);
-    window->runMainLoop();
-    filter4->getRuntime()->print();
-    renderer->getRuntime()->print();
-    */
-	/*
-    MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
-    mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR) + "TestData/US-3Dt/US-3Dt_#.mhd");
-    mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
-    GaussianSmoothingFilter::pointer filter4 = GaussianSmoothingFilter::New();
-    filter4->setInput(mhdStreamer->getOutput());
-    filter4->setMaskSize(3);
-    filter4->setStandardDeviation(10);
-    filter4->enableRuntimeMeasurements();
-    DynamicImage::pointer asd = filter4->getOutput();
-
-    SliceRenderer::pointer renderer2 = SliceRenderer::New();
-    renderer2->setInput(filter4->getOutput());
-    renderer2->enableRuntimeMeasurements();
-    SimpleWindow::pointer window2 = SimpleWindow::New();
-    window2->addRenderer(renderer2);
-    window2->runMainLoop();
-
-    filter4->getRuntime()->print();
-    renderer2->getRuntime()->print();
-	*/
 
 }

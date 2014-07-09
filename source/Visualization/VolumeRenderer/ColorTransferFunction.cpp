@@ -1,98 +1,49 @@
-#include <GL/glew.h>
-#include "VolumeRenderer.hpp"
-#include "Image.hpp"
-#include "DynamicImage.hpp"
-#include "HelperFunctions.hpp"
-#include "DeviceManager.hpp"
-#include "View.hpp"
-#include <QCursor>
+//#include <GL/glew.h>
 #include "ColorTransferFunction.hpp"
-#include "OpacityTransferFunction.hpp"
+#include "Image.hpp"
+#include <limits.h>
+//#include "DynamicImage.hpp"
+//#include "HelperFunctions.hpp"
+//#include "DeviceManager.hpp"
+//#include "View.hpp"
+//#include <QCursor>
+
 
 namespace fast {
 
+ColorTransferFunction::ColorTransferFunction(){
+#undef min
+#undef max
+	XMax = std::numeric_limits<double>::min();
+	XMin = std::numeric_limits<double>::max();
+#define min(a,b) (((a) < (b)) ? (a) : (b))
+#define max(a,b) (((a) > (b)) ? (a) : (b))
+}
+void ColorTransferFunction::addRGBPoint(double x, double r, double g, double b) {
 
-void VolumeRenderer::addInput(ImageData::pointer image) {
-
-
-	if(numberOfVolumes<0)
-        throw Exception("Not a correct number of volumes is given to VolumeRenderer");
-	if(numberOfVolumes<maxNumberOfVolumes)
-	{
-		mInputs.push_back(image);
-		addParent(mInputs[numberOfVolumes]);
-		numberOfVolumes++;
-		mIsModified = true;
-	}
-	else
-		printf("\n Warning: Volume Renderer currently supports only up to %d volumes. Extera inputs are denied. \n", maxNumberOfVolumes);
+	v.push_back(RGBPoint(x, r, g, b));
+	XMin = min(x, XMin);
+	XMax = max(x, XMax);
+}
+void ColorTransferFunction::addRGBSegment(double x1, double r1, double g1, double b1, double x2, double r2, double g2, double b2){
 	
 }
 
-void VolumeRenderer::setOpacityTransferFunction(int volumeIndex, OpacityTransferFunction::pointer otf) {
-
-	unsigned int XDef = static_cast<unsigned int>(otf->getXMax() - otf->getXMin());
-
-	opacityFunc=(float *)(malloc(sizeof(float)*XDef));
+double ColorTransferFunction::getXMax(){
 	
-	for (unsigned int c=0; c<otf->v.size()-1; c++)
-	{
-		int   S=otf->v[c+0].X;
-		int   E=otf->v[c+1].X;
-		float A1=otf->v[c].A;
-		float A= (otf->v[c+1].A) - A1;
-		float D=E-S;
-
-		unsigned int index=0;
-		for(unsigned int i=S; i<E; i++, index++)
-		{
-			opacityFunc[i]=A1+A*index/D;//A
-			
-		}
-	}
-
-	d_opacityFuncArray[volumeIndex]=cl::Image2D(clContext, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, cl::ImageFormat(CL_A, CL_FLOAT), XDef, 1, 0, opacityFunc, 0);
-
+	return XMax;
 }
 
-void VolumeRenderer::setColorTransferFunction(int volumeIndex, ColorTransferFunction::pointer ctf) {
-
-
-	unsigned int XDef = static_cast<unsigned int>(ctf->getXMax() - ctf->getXMin());
-
-	transferFunc=(float *)(malloc(sizeof(float)*4*XDef));
+double ColorTransferFunction::getXMin(){
 	
-	for (unsigned int c=0; c<ctf->v.size()-1; c++)
-	{
-		int   S=ctf->v[c+0].X;
-		int   E=ctf->v[c+1].X;
-		float R1=ctf->v[c].R;
-		float G1=ctf->v[c].G;
-		float B1=ctf->v[c].B;
-		float R= (ctf->v[c+1].R) - R1;
-		float G= (ctf->v[c+1].G) - G1;
-		float B= (ctf->v[c+1].B) - B1;
-		float D=E-S;
-
-		unsigned int index=0;
-		for(unsigned int i=S; i<E; i++, index++)
-		{
-			transferFunc[i*4+0]=R1+R*index/D;//R
-			transferFunc[i*4+1]=G1+G*index/D;//G
-			transferFunc[i*4+2]=B1+B*index/D;//B
-			transferFunc[i*4+3]=1.0f;//A
-		}
-	}
-
-	d_transferFuncArray[volumeIndex]=cl::Image2D(clContext, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, cl::ImageFormat(CL_RGBA, CL_FLOAT), XDef, 1, 0, transferFunc, 0);
-
+	return XMin;
 }
-
+/*
 VolumeRenderer::VolumeRenderer() : Renderer() {
 
 	
     mDevice = boost::static_pointer_cast<OpenCLDevice>(DeviceManager::getInstance().getDefaultVisualizationDevice());
-	clContext = mDevice->getContext();
+
 
 	updated=false;
 
@@ -186,7 +137,8 @@ void VolumeRenderer::execute() {
 
 	if(!updated)	
 	{
-		/*
+		
+		cl::Context clContext = mDevice->getContext();
 		float transferFunc[] = 
 		{
 			0.0, 0.0, 0.0, 0.0, 
@@ -200,8 +152,7 @@ void VolumeRenderer::execute() {
 			0.0, 0.0, 0.0, 0.0, 
 		};
 		   
-		d_transferFuncArray[1]=cl::Image2D(clContext, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, cl::ImageFormat(CL_RGBA, CL_FLOAT), 9, 1, 0, transferFunc, 0);
-		*/
+		d_transferFuncArray=cl::Image2D(clContext, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, cl::ImageFormat(CL_RGBA, CL_FLOAT), 9, 1, 0, transferFunc, 0);
 		transferFuncSampler=cl::Sampler(clContext, true, CL_ADDRESS_CLAMP_TO_EDGE, CL_FILTER_LINEAR);
 		volumeSamplerLinear=cl::Sampler(clContext, true, CL_ADDRESS_CLAMP_TO_EDGE, CL_FILTER_LINEAR);
 		d_invViewMatrix= cl::Buffer(clContext, CL_MEM_READ_WRITE, 12*sizeof(float));
@@ -231,7 +182,7 @@ void VolumeRenderer::execute() {
 		printf("\n%s\n",buffer);
 
         std::string str(buffer);
-        int programNr = mDevice->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/VolumeRenderer/VolumeRenderer.cl", str);
+        int programNr = mDevice->createProgramFromSource(std::string(FAST_ROOT_DIR) + "/Visualization/VolumeRenderer/VolumeRenderer.cl", str);
         program = mDevice->getProgram(programNr);
 	
 	
@@ -274,42 +225,39 @@ void VolumeRenderer::execute() {
         renderKernel.setArg(5, transferOffset);
         renderKernel.setArg(6, transferScale);
 		renderKernel.setArg(7, d_invViewMatrix);
+		//renderKernel.setArg(8, d_volumeArray[0]);
 		renderKernel.setArg(8, *clImage);
-		renderKernel.setArg(9, d_transferFuncArray[0]);
-		renderKernel.setArg(10, d_opacityFuncArray[0]);
-		renderKernel.setArg(11, volumeSamplerLinear);
-		renderKernel.setArg(12, transferFuncSampler);
+		renderKernel.setArg(9, d_transferFuncArray);
+		renderKernel.setArg(10, volumeSamplerLinear);
+		renderKernel.setArg(11, transferFuncSampler);
 		if (numberOfVolumes>1)
 		{
 			OpenCLImageAccess3D access2 = inputs[1]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+//			std::cout<<inputs[1]->getDataType()<<std::endl;
 			cl::Image3D* clImage2 = access2.get();
-			renderKernel.setArg(13, *clImage2);
-			renderKernel.setArg(14, d_transferFuncArray[1]);
-			renderKernel.setArg(15, d_opacityFuncArray[1]);
+			renderKernel.setArg(12, *clImage2);
+			renderKernel.setArg(13, d_transferFuncArray);
 
 			if (numberOfVolumes>2)
 			{
 				OpenCLImageAccess3D access3 = inputs[2]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
 				cl::Image3D* clImage3 = access3.get();
-				renderKernel.setArg(16, *clImage3);
-				renderKernel.setArg(17, d_transferFuncArray[2]);
-				renderKernel.setArg(18, d_opacityFuncArray[2]);
-				
+				renderKernel.setArg(14, *clImage3);
+				renderKernel.setArg(15, d_transferFuncArray);
+
 				if (numberOfVolumes>3)
 				{
 					OpenCLImageAccess3D access4 = inputs[3]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
 					cl::Image3D* clImage4 = access4.get();
-					renderKernel.setArg(19, *clImage4);
-					renderKernel.setArg(20, d_transferFuncArray[3]);
-					renderKernel.setArg(21, d_opacityFuncArray[3]);
+					renderKernel.setArg(16, *clImage4);
+					renderKernel.setArg(17, d_transferFuncArray);
 
 					if (numberOfVolumes>4)
 					{	
 						OpenCLImageAccess3D access5 = inputs[4]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
 						cl::Image3D* clImage5 = access5.get();
-						renderKernel.setArg(22, *clImage5);
-						renderKernel.setArg(23, d_transferFuncArray[4]);
-						renderKernel.setArg(24, d_opacityFuncArray[4]);
+						renderKernel.setArg(18, *clImage5);
+						renderKernel.setArg(19, d_transferFuncArray);
 					}
 				}
 
@@ -355,9 +303,8 @@ void VolumeRenderer::draw() {
     glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 	
 }
-
 void VolumeRenderer::keyPressEvent(QKeyEvent* event) {
-	/*
+	
     switch(event->key()) {
     case Qt::Key_Plus:
         mThreshold++;
@@ -380,7 +327,7 @@ void VolumeRenderer::keyPressEvent(QKeyEvent* event) {
     case Qt::Key_D:
         camX += 0.05f;
     break;
-    }*/
+    }
 }
 
 void VolumeRenderer::mouseMoveEvent(QMouseEvent* event, View* view) {
@@ -406,6 +353,6 @@ void VolumeRenderer::resizeEvent(QResizeEvent* event) {
     mHeight = size.height();
 	mIsModified = true;
 }
-
+*/
 } // namespace fast
 
