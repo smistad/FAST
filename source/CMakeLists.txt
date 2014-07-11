@@ -27,6 +27,8 @@ set(SOURCES
     Algorithms/SeededRegionGrowing/SeededRegionGrowing.hpp
     Algorithms/SurfaceExtraction/SurfaceExtraction.cpp
     Algorithms/SurfaceExtraction/SurfaceExtraction.hpp
+    Data/BoundingBox.cpp
+    Data/BoundingBox.hpp
     Data/DataObject.cpp
     Data/DataObject.hpp
     Data/ImageData.cpp

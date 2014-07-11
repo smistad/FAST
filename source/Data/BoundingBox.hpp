@@ -9,7 +9,7 @@ class BoundingBox {
     public:
         BoundingBox(Float3 pos, Float3 size);
         BoundingBox(Float3 size);
-        BoundingBox(Float3 corners[8]);
+        BoundingBox(Vector<Float3, 8> corners);
         BoundingBox();
         Vector<Float3, 8> getCorners();
     private:
