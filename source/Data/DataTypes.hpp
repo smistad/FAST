@@ -8,6 +8,7 @@ namespace fast {
 
 typedef unsigned char uchar;
 typedef unsigned short ushort;
+typedef unsigned int uint;
 
 
 enum DataType { TYPE_FLOAT, TYPE_UINT8, TYPE_INT8, TYPE_UINT16, TYPE_INT16 };
@@ -47,14 +48,30 @@ class Vector {
         T* data;
 };
 
-template <unsigned int N>
-class Float : public Vector<float, N> {
-};
+// Some useful macros for creating several vector classes
+#define createDefaultVectorClassMacro(name, type)   \
+template <unsigned int N>                           \
+class name : public Vector<type, N> {               \
+};                                                  \
 
-template <unsigned int N>
-class Uint : public Vector<unsigned int, N> {
+#define createNumberedVectorClassMacro(name, N)     \
+class name##N : public name<N> {                    \
+};                                                  \
 
-};
+
+#define createVectorTypesMacro(name, type)          \
+    createDefaultVectorClassMacro(name, type)       \
+    createNumberedVectorClassMacro(name, 2)         \
+    createNumberedVectorClassMacro(name, 3)         \
+    createNumberedVectorClassMacro(name, 4)         \
+
+createVectorTypesMacro(Float, float);
+createVectorTypesMacro(Double, double);
+createVectorTypesMacro(Uint, uint);
+createVectorTypesMacro(Int, int);
+createVectorTypesMacro(Uchar, uchar);
+createVectorTypesMacro(Char, char);
+
 
 // TODO: add out of bounds checks
 
