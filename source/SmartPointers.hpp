@@ -90,7 +90,7 @@ class SharedPointer {
         }
 
         operator unsigned long int() const {
-            (unsigned long int)mSmartPtr.get();
+            return (unsigned long int)mSmartPtr.get();
         }
 
         bool operator==(const SharedPointer<T> &other) {
@@ -107,6 +107,8 @@ class SharedPointer {
 
 };
 
+;
+
 template <class T>
 WeakPointer<T> &WeakPointer<T>::operator=(const SharedPointer<T> &other) {
     mWeakPtr = other.getPtr();
@@ -115,6 +117,14 @@ WeakPointer<T> &WeakPointer<T>::operator=(const SharedPointer<T> &other) {
 
 } // end namespace fast
 
+// A custum boost hashing function for the SharedPointers so that they can be used
+// in unordered data structures. TODO verify that this works
+namespace boost {
+template <class U>
+std::size_t hash_value(fast::SharedPointer<U> const& obj) {
+    return (std::size_t)obj.getPtr().get();
+}
+}
 
 
 #endif /* SMARTPOINTERS_HPP_ */
