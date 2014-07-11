@@ -41,7 +41,7 @@ class Vector {
         Vector<T,N>& operator=(const Vector<T,N>& other);
         T get(unsigned int index) const;
         int getSize() const;
-        Vector(const Vector<T,N>& other);
+        Vector(const Vector<T,N>& other); // copy constructor
         Vector();
         ~Vector();
     protected:
@@ -116,7 +116,7 @@ template<class T, int N>
 inline Vector<T,N>::Vector() {
     data = new T[N];
     for(unsigned int i = 0; i < N; i++)
-        data[i] = 0;
+        data[i] = T();
 }
 
 template<class T, int N>
