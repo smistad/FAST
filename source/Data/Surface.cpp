@@ -149,11 +149,11 @@ unsigned int Surface::getNrOfTriangles() const {
     return mNrOfTriangles;
 }
 
-BoundingBox Surface::getBoundingBox() const {
+SurfaceBoundingBox Surface::getBoundingBox() const {
     return mBoundingBox;
 }
 
-void Surface::setBoundingBox(BoundingBox box) {
+void Surface::setBoundingBox(SurfaceBoundingBox box) {
     mBoundingBox = box;
 }
 

@@ -10,7 +10,7 @@
 
 namespace fast {
 
-struct BoundingBox {
+struct SurfaceBoundingBox {
     Float<3> offset;
     Float<3> size;
 };
@@ -23,8 +23,8 @@ class Surface : public DataObject {
         VertexBufferObjectAccess getVertexBufferObjectAccess(accessType access, OpenCLDevice::pointer device);
         SurfacePointerAccess getSurfacePointerAccess(accessType access);
         unsigned int getNrOfTriangles() const;
-        BoundingBox getBoundingBox() const;
-        void setBoundingBox(BoundingBox box);
+        SurfaceBoundingBox getBoundingBox() const;
+        void setBoundingBox(SurfaceBoundingBox box);
         ~Surface();
     private:
         Surface();
@@ -50,7 +50,7 @@ class Surface : public DataObject {
         bool mSurfaceIsBeingWrittenTo;
         bool isAnyDataBeingAccessed();
 
-        BoundingBox mBoundingBox;
+        SurfaceBoundingBox mBoundingBox;
 };
 
 } // end namespace fast

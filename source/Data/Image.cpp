@@ -504,6 +504,7 @@ void Image::create3DImage(
     mWidth = width;
     mHeight = height;
     mDepth = depth;
+    mBoundingBox = BoundingBox(Float3(width, height, depth));
     mDimensions = 3;
     mType = type;
     mComponents = nrOfComponents;
@@ -539,6 +540,7 @@ void Image::create3DImage(
     mWidth = width;
     mHeight = height;
     mDepth = depth;
+    mBoundingBox = BoundingBox(Float3(width, height, depth));
     mDimensions = 3;
     mType = type;
     mComponents = nrOfComponents;
@@ -590,6 +592,7 @@ void Image::create2DImage(
 
     mWidth = width;
     mHeight = height;
+    mBoundingBox = BoundingBox(Float3(width, height, 0));
     mDepth = 1;
     mDimensions = 2;
     mType = type;
@@ -628,6 +631,7 @@ void Image::create2DImage(
     mWidth = width;
     mHeight = height;
     mDepth = 1;
+    mBoundingBox = BoundingBox(Float3(width, height, 0));
     mDimensions = 2;
     mType = type;
     mComponents = nrOfComponents;

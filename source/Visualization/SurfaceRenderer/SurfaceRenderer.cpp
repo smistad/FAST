@@ -70,7 +70,7 @@ void SurfaceRenderer::draw() {
     float spacingY = 1;//0.24;
     float spacingZ = 1;//0.43;
 
-    BoundingBox box = mInput->getBoundingBox();
+    SurfaceBoundingBox box = mInput->getBoundingBox();
     int SIZE = max(max(box.size.x(), box.size.y()), box.size.z());
 
     scalingFactorx = spacingX*1.0f/SIZE;

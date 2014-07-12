@@ -5,6 +5,7 @@
 #include "Object.hpp"
 #include "ExecutionDevice.hpp"
 #include <boost/unordered_map.hpp>
+#include "BoundingBox.hpp"
 
 namespace fast {
 
@@ -22,6 +23,7 @@ class DataObject : public Object {
     protected:
         virtual void free(ExecutionDevice::pointer device) = 0;
         virtual void freeAll() = 0;
+        BoundingBox mBoundingBox;
     private:
         boost::unordered_map<ExecutionDevice::pointer, unsigned int> mReferenceCount;
         // The souce object is the process object that created this data object
