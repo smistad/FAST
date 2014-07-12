@@ -54,16 +54,48 @@ template <unsigned int N>                           \
 class name : public Vector<type, N> {               \
 };                                                  \
 
-#define createNumberedVectorClassMacro(name, N)     \
-class name##N : public name<N> {                    \
+#define createNumberedVectorClassMacro2(name,type)       \
+class name##2 : public name<2> {                    \
+    public:                                         \
+        name##2() : name<2>() {};\
+        name##2(type x, type y) {                   \
+            data = new type[2];\
+            data[0] = x;\
+            data[1] = y;\
+        };\
 };                                                  \
+
+#define createNumberedVectorClassMacro3(name,type)       \
+class name##3 : public name<3> {                    \
+    public:                                         \
+        name##3() : name<3>() {};\
+        name##3(type x, type y, type z) {                   \
+            data = new type[3];\
+            data[0] = x;\
+            data[1] = y;\
+            data[2] = z;\
+        };\
+};                                                  \
+
+#define createNumberedVectorClassMacro4(name,type)       \
+class name##4 : public name<4> {                    \
+    public:                                         \
+        name##4() : name<4>() {};\
+        name##4(type x, type y, type z, type w) {                   \
+            data = new type[4];\
+            data[0] = x;\
+            data[1] = y;\
+            data[2] = z;\
+            data[3] = w;\
+        };\
+};\
 
 
 #define createVectorTypesMacro(name, type)          \
     createDefaultVectorClassMacro(name, type)       \
-    createNumberedVectorClassMacro(name, 2)         \
-    createNumberedVectorClassMacro(name, 3)         \
-    createNumberedVectorClassMacro(name, 4)         \
+    createNumberedVectorClassMacro2(name,type)         \
+    createNumberedVectorClassMacro3(name,type)         \
+    createNumberedVectorClassMacro4(name,type)         \
 
 createVectorTypesMacro(Float, float);
 createVectorTypesMacro(Double, double);
