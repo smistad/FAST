@@ -7,6 +7,7 @@
 #include "View.hpp"
 #include "Utility.hpp"
 #include <QCursor>
+#include "SceneGraph.hpp"
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
@@ -181,7 +182,12 @@ void SurfaceRenderer::resizeEvent(QResizeEvent* event) {
 }
 
 BoundingBox SurfaceRenderer::getBoundingBox() {
-    return mInput->getBoundingBox();
+    SceneGraph& graph = SceneGraph::getInstance();
+    SceneGraphNode::pointer node = graph.getDataNode(mInput);
+    LinearTransformation transform = node->getLinearTransformation();
+    BoundingBox inputBoundingBox = mInput->getBoundingBox();
+    BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
+    return transformedBoundingBox;
 }
 
 } // namespace fast
