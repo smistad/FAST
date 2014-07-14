@@ -51,7 +51,7 @@ void SliceRenderer::execute() {
         level = getDefaultIntensityLevel(input->getDataType());
     }
 
-    setOpenGLContext(mDevice->getGLContext());
+    //setOpenGLContext(mDevice->getGLContext());
 
     // Determine slice nr and width and height of the texture to render to
     unsigned int sliceNr;
@@ -222,8 +222,10 @@ void SliceRenderer::draw() {
     glBindTexture(GL_TEXTURE_2D, mTexture);
 
     // Draw slice in voxel coordinates
+    glColor3f(1.0,0.0,0.0);
     glBegin(GL_QUADS);
-    if(mSlicePlane == PLANE_Z) {
+    switch(mSlicePlane) {
+    case PLANE_Z:
         glTexCoord2i(0, 1);
         glVertex3f(0, mHeight, mSliceNr);
         glTexCoord2i(1, 1);
@@ -232,6 +234,27 @@ void SliceRenderer::draw() {
         glVertex3f( mWidth,0, mSliceNr);
         glTexCoord2i(0, 0);
         glVertex3f(0,0, mSliceNr);
+        break;
+    case PLANE_Y:
+        glTexCoord2i(0, 1);
+        glVertex3f(0, mSliceNr, mHeight);
+        glTexCoord2i(1, 1);
+        glVertex3f(mWidth, mSliceNr, mHeight);
+        glTexCoord2i(1, 0);
+        glVertex3f( mWidth,mSliceNr, 0 );
+        glTexCoord2i(0, 0);
+        glVertex3f(0,mSliceNr,0 );
+        break;
+    case PLANE_X:
+        glTexCoord2i(0, 1);
+        glVertex3f(mSliceNr, 0 , mWidth);
+        glTexCoord2i(1, 1);
+        glVertex3f(mSliceNr, mHeight, mWidth);
+        glTexCoord2i(1, 0);
+        glVertex3f( mSliceNr, mHeight, 0 );
+        glTexCoord2i(0, 0);
+        glVertex3f(mSliceNr,0,0 );
+        break;
     }
     glEnd();
 

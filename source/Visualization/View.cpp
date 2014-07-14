@@ -32,6 +32,7 @@ View::View() {
     fieldOfViewY = 45;
     isIn2DMode = false;
     mLeftMouseButtonIsPressed = false;
+    mMiddleMouseButtonIsPressed = false;
 
     mFramerate = 25;
     // Set up a timer that will call update on this object at a regular interval
@@ -66,6 +67,7 @@ void View::initializeGL() {
     gluPerspective(fieldOfViewY, aspect, zNear, zFar);
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_TEXTURE_2D);
 
     // Initialize camera
 
@@ -196,7 +198,20 @@ void View::keyPressEvent(QKeyEvent* event) {
 }
 
 void View::mouseMoveEvent(QMouseEvent* event) {
-    if(mLeftMouseButtonIsPressed) {
+
+    if(mMiddleMouseButtonIsPressed) {
+        float deltaX = event->x() - previousX;
+        float deltaY = event->y() - previousY;
+
+        float viewportWidth = tan((fieldOfViewX*M_PI/180)*0.5) * (-cameraPosition.z()) * 2;
+        float viewportHeight = tan((fieldOfViewY*M_PI/180)*0.5) * (-cameraPosition.z()) * 2;
+        float actualMovementX = (deltaX * (viewportWidth/width()));
+        float actualMovementY = (deltaY * (viewportHeight/height()));
+        cameraPosition[0] += actualMovementX;
+        cameraPosition[1] -= actualMovementY;
+        previousX = event->x();
+        previousY = event->y();
+    } else if(mLeftMouseButtonIsPressed) {
         int cx = width()/2;
         int cy = height()/2;
 
@@ -219,6 +234,10 @@ void View::mouseMoveEvent(QMouseEvent* event) {
 void View::mousePressEvent(QMouseEvent* event) {
     if(event->button() == Qt::LeftButton) {
         mLeftMouseButtonIsPressed = true;
+    } else if(event->button() == Qt::MiddleButton) {
+        previousX = event->x();
+        previousY = event->y();
+        mMiddleMouseButtonIsPressed = true;
     }
     // Relay mouse event info to renderers
     for(unsigned int i = 0; i < mRenderers.size(); i++) {
@@ -227,9 +246,10 @@ void View::mousePressEvent(QMouseEvent* event) {
 }
 
 void View::wheelEvent(QWheelEvent* event) {
+    std::cout << event->delta() << std::endl;
     if(event->delta() > 0) {
         cameraPosition[2] += 10;
-    } else {
+    } else if(event->delta() < 0) {
         cameraPosition[2] += -10;
     }
 }
@@ -237,6 +257,8 @@ void View::wheelEvent(QWheelEvent* event) {
 void View::mouseReleaseEvent(QMouseEvent* event) {
     if(event->button() == Qt::LeftButton) {
         mLeftMouseButtonIsPressed = false;
+    } else if(event->button() == Qt::MiddleButton) {
+        mMiddleMouseButtonIsPressed = false;
     }
     // Relay mouse event info to renderers
     for(unsigned int i = 0; i < mRenderers.size(); i++) {

@@ -37,6 +37,9 @@ class View : public QGLWidget, public ProcessObject {
         bool isIn2DMode;
 
         bool mLeftMouseButtonIsPressed;
+        bool mMiddleMouseButtonIsPressed;
+
+        int previousX, previousY;
 
     protected:
         void initializeGL();
