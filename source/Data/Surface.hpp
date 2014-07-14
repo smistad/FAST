@@ -23,8 +23,7 @@ class Surface : public DataObject {
         VertexBufferObjectAccess getVertexBufferObjectAccess(accessType access, OpenCLDevice::pointer device);
         SurfacePointerAccess getSurfacePointerAccess(accessType access);
         unsigned int getNrOfTriangles() const;
-        SurfaceBoundingBox getSurfaceBoundingBox() const;
-        void setBoundingBox(SurfaceBoundingBox box);
+        void setBoundingBox(BoundingBox box);
         ~Surface();
     private:
         Surface();
@@ -49,8 +48,6 @@ class Surface : public DataObject {
 
         bool mSurfaceIsBeingWrittenTo;
         bool isAnyDataBeingAccessed();
-
-        SurfaceBoundingBox mBoundingBox;
 };
 
 } // end namespace fast

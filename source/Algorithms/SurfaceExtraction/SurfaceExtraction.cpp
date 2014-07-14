@@ -299,11 +299,6 @@ void SurfaceExtraction::execute() {
     std::cout << "Sum of triangles is " << totalSum << std::endl;
 
     mOutput->create(totalSum);
-    SurfaceBoundingBox box;
-    box.size[0] = input->getWidth();
-    box.size[1] = input->getHeight();
-    box.size[2] = input->getDepth();
-    mOutput->setBoundingBox(box);
 
     // Traverse HP to create triangles and put them in the VBO
     // Make OpenCL buffer from OpenGL buffer
@@ -350,6 +345,7 @@ void SurfaceExtraction::execute() {
     queue.finish();
     mOutput->updateModifiedTimestamp();
     mOutput->setParentSceneGraphNode(mInput);
+    mOutput->setBoundingBox(mInput->getBoundingBox());
 }
 
 SurfaceExtraction::SurfaceExtraction() {

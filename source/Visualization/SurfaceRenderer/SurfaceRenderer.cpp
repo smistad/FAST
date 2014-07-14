@@ -71,6 +71,7 @@ void SurfaceRenderer::draw() {
     float spacingY = 1;//0.24;
     float spacingZ = 1;//0.43;
 
+    /*
     SurfaceBoundingBox box = mInput->getSurfaceBoundingBox();
     int SIZE = max(max(box.size.x(), box.size.y()), box.size.z());
 
@@ -81,6 +82,7 @@ void SurfaceRenderer::draw() {
     translationx = (float)box.size.x()/2.0f;
     translationy = -(float)box.size.y()/2.0f;
     translationz = -(float)box.size.z()/2.0f;
+    */
 
     VertexBufferObjectAccess access = mInput->getVertexBufferObjectAccess(ACCESS_READ, mDevice);
     GLuint* VBO_ID = access.get();
