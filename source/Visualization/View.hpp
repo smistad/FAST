@@ -26,6 +26,14 @@ class View : public QGLWidget, public ProcessObject {
         void execute();
         QTimer* timer;
         unsigned int mFramerate;
+        Float3 cameraPosition;
+        Float3 originalCameraPosition;
+        Float3 rotationPoint;
+        Float2 rotation;
+        float zNear, zFar;
+        float fieldOfViewX, fieldOfViewY;
+        float aspect;
+        bool isIn2DMode;
 
     protected:
         void initializeGL();
