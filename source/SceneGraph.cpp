@@ -42,7 +42,7 @@ LinearTransformation LinearTransformation::getInverse() {
     return inverse;
 }
 
-void SceneGraphNode::setDataObject(DataObject::pointer data) {
+void SceneGraphNode::setDataObject(WeakPointer<DataObject> data) {
     mData = data;
     mIsDataNode = true;
 }
@@ -57,7 +57,7 @@ void SceneGraphNode::setParent(SceneGraphNode::pointer parent) {
     mIsRootNode = false;
 }
 
-DataObject::pointer SceneGraphNode::getData() const {
+WeakPointer<DataObject> SceneGraphNode::getData() const {
     if(!mIsDataNode)
         throw Exception("SceneGraphNode is not a data node");
     return mData;
@@ -91,7 +91,7 @@ SceneGraph& SceneGraph::getInstance() {
     return instance;
 }
 
-SceneGraphNode::pointer SceneGraph::addDataNode(DataObject::pointer data,
+SceneGraphNode::pointer SceneGraph::addDataNode(WeakPointer<DataObject> data,
         SceneGraphNode::pointer parent) {
     SceneGraphNode::pointer newNode = SceneGraphNode::New();
     newNode->setDataObject(data);
@@ -101,11 +101,33 @@ SceneGraphNode::pointer SceneGraph::addDataNode(DataObject::pointer data,
     return newNode;
 }
 
+SceneGraphNode::pointer SceneGraph::addDataNode(DataObject::pointer data,
+        SceneGraphNode::pointer parent) {
+    SceneGraphNode::pointer newNode = SceneGraphNode::New();
+    newNode->setDataObject(WeakPointer<DataObject>(data));
+    newNode->setParent(parent);
+    mNodes.insert(newNode);
+    mDataToNodesMap[data] = newNode;
+    return newNode;
+}
+
+SceneGraphNode::pointer SceneGraph::addDataNodeToNewRoot(
+        WeakPointer<DataObject> data) {
+    SceneGraphNode::pointer newRootNode = SceneGraphNode::New();
+    SceneGraphNode::pointer newNode = SceneGraphNode::New();
+    newNode->setDataObject(data);
+    newNode->setParent(newRootNode);
+    mNodes.insert(newRootNode);
+    mNodes.insert(newNode);
+    mDataToNodesMap[data] = newNode;
+    return newNode;
+}
+
 SceneGraphNode::pointer SceneGraph::addDataNodeToNewRoot(
         DataObject::pointer data) {
     SceneGraphNode::pointer newRootNode = SceneGraphNode::New();
     SceneGraphNode::pointer newNode = SceneGraphNode::New();
-    newNode->setDataObject(data);
+    newNode->setDataObject(WeakPointer<DataObject>(data));
     newNode->setParent(newRootNode);
     mNodes.insert(newRootNode);
     mNodes.insert(newNode);
@@ -122,11 +144,11 @@ SceneGraphNode::pointer SceneGraph::addNode(
 }
 
 SceneGraphNode::pointer SceneGraph::getDataNode(
-        DataObject::pointer data) {
+        WeakPointer<DataObject> data) {
     return mDataToNodesMap[data];
 }
 
-void SceneGraph::removeDataNode(DataObject::pointer data) {
+void SceneGraph::removeDataNode(WeakPointer<DataObject> data) {
     removeNode(getDataNode(data));
 }
 

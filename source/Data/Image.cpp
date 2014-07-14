@@ -2,6 +2,7 @@
 #include "HelperFunctions.hpp"
 #include "Exception.hpp"
 #include "Utility.hpp"
+#include "SceneGraph.hpp"
 
 namespace fast {
 
@@ -505,6 +506,8 @@ void Image::create3DImage(
     mHeight = height;
     mDepth = depth;
     mBoundingBox = BoundingBox(Float3(width, height, depth));
+    SceneGraph &graph = SceneGraph::getInstance();
+    SceneGraphNode node = graph.addDataNodeToNewRoot(mPtr);
     mDimensions = 3;
     mType = type;
     mComponents = nrOfComponents;
@@ -541,6 +544,8 @@ void Image::create3DImage(
     mHeight = height;
     mDepth = depth;
     mBoundingBox = BoundingBox(Float3(width, height, depth));
+    SceneGraph &graph = SceneGraph::getInstance();
+    SceneGraphNode node = graph.addDataNodeToNewRoot(mPtr);
     mDimensions = 3;
     mType = type;
     mComponents = nrOfComponents;
@@ -593,6 +598,8 @@ void Image::create2DImage(
     mWidth = width;
     mHeight = height;
     mBoundingBox = BoundingBox(Float3(width, height, 0));
+    SceneGraph &graph = SceneGraph::getInstance();
+    SceneGraphNode node = graph.addDataNodeToNewRoot(mPtr);
     mDepth = 1;
     mDimensions = 2;
     mType = type;
@@ -632,6 +639,8 @@ void Image::create2DImage(
     mHeight = height;
     mDepth = 1;
     mBoundingBox = BoundingBox(Float3(width, height, 0));
+    SceneGraph &graph = SceneGraph::getInstance();
+    SceneGraphNode node = graph.addDataNodeToNewRoot(mPtr);
     mDimensions = 2;
     mType = type;
     mComponents = nrOfComponents;

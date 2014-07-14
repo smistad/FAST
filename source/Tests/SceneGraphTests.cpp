@@ -33,7 +33,7 @@ TEST_CASE("Add data node to new root", "[fast][SceneGraph]") {
     DummyDataObject::pointer dummy = DummyDataObject::New();
     SceneGraphNode::pointer node = graph.addDataNodeToNewRoot(dummy);
 
-    CHECK(node->getData() == dummy);
+    CHECK(node->getData().lock() == dummy);
     CHECK(node->isDataNode() == true);
     CHECK(node->isRootNode() == false);
 
@@ -53,7 +53,7 @@ TEST_CASE("Add data node with parent", "[fast][SceneGraph]") {
     SceneGraphNode::pointer node1 = graph.addDataNodeToNewRoot(dummy1);
     SceneGraphNode::pointer node2 = graph.addDataNode(dummy2, node1);
 
-    CHECK(node2->getData() == dummy2);
+    CHECK(node2->getData().lock() == dummy2);
     CHECK(node2->isDataNode() == true);
     CHECK(node2->isRootNode() == false);
     CHECK(node2->getParent() == node1);

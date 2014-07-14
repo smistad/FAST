@@ -20,10 +20,10 @@ class LinearTransformation : public boost::numeric::ublas::matrix<float> {
 class SceneGraphNode : public Object {
     FAST_OBJECT(SceneGraphNode)
     public:
-        void setDataObject(DataObject::pointer data);
+        void setDataObject(WeakPointer<DataObject> data);
         void setTransformation(LinearTransformation transformation);
         void setParent(SceneGraphNode::pointer parent);
-        DataObject::pointer getData() const;
+        WeakPointer<DataObject> getData() const;
         SceneGraphNode::pointer getParent() const;
         LinearTransformation getLinearTransformation() const;
         bool isDataNode() const;
@@ -32,7 +32,7 @@ class SceneGraphNode : public Object {
         SceneGraphNode();
 
         SceneGraphNode::pointer mParent;
-        DataObject::pointer mData;
+        WeakPointer<DataObject> mData;
         bool mIsDataNode;
         bool mIsRootNode;
         LinearTransformation mTransformation;
@@ -41,11 +41,13 @@ class SceneGraphNode : public Object {
 class SceneGraph {
     public:
         static SceneGraph& getInstance();
+        SceneGraphNode::pointer addDataNode(WeakPointer<DataObject> data, SceneGraphNode::pointer parent);
         SceneGraphNode::pointer addDataNode(DataObject::pointer data, SceneGraphNode::pointer parent);
+        SceneGraphNode::pointer addDataNodeToNewRoot(WeakPointer<DataObject> data);
         SceneGraphNode::pointer addDataNodeToNewRoot(DataObject::pointer data);
         SceneGraphNode::pointer addNode(SceneGraphNode::pointer parent);
-        SceneGraphNode::pointer getDataNode(DataObject::pointer data);
-        void removeDataNode(DataObject::pointer data);
+        SceneGraphNode::pointer getDataNode(WeakPointer<DataObject> data);
+        void removeDataNode(WeakPointer<DataObject> data);
         void removeNode(SceneGraphNode::pointer node);
         LinearTransformation getLinearTransformationBetweenNodes(SceneGraphNode::pointer nodeA, SceneGraphNode::pointer nodeB);
         LinearTransformation getLinearTransformationFromNode(SceneGraphNode::pointer node);
@@ -56,7 +58,7 @@ class SceneGraph {
         void operator=(SceneGraph const&); // Don't implement
 
         boost::unordered_set<SceneGraphNode::pointer> mNodes;
-        boost::unordered_map<DataObject::pointer, SceneGraphNode::pointer> mDataToNodesMap;
+        boost::unordered_map<WeakPointer<DataObject>, SceneGraphNode::pointer> mDataToNodesMap;
 };
 
 } // end namespace fast

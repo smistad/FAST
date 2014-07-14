@@ -30,9 +30,18 @@ class SharedPointer;
 template <class T>
 class WeakPointer {
     public:
-        SharedPointer<T> lock() { return SharedPointer<T>(mWeakPtr.lock()); };
+        WeakPointer() {};
+        WeakPointer(const SharedPointer<T> object) {
+            mWeakPtr = object.getPtr();
+        }
+        SharedPointer<T> lock() const {
+            return SharedPointer<T>(mWeakPtr.lock());
+        };
         boost::weak_ptr<T> getPtr() { return mWeakPtr; };
         WeakPointer<T> &operator=(const SharedPointer<T> &other);
+        bool operator==(const WeakPointer<T> &other) const {
+            return mWeakPtr.lock() == other.lock().getPtr();
+        }
     private:
         boost::weak_ptr<T> mWeakPtr;
 
@@ -123,6 +132,10 @@ namespace boost {
 template <class U>
 std::size_t hash_value(fast::SharedPointer<U> const& obj) {
     return (std::size_t)obj.getPtr().get();
+}
+template <class U>
+std::size_t hash_value(fast::WeakPointer<U> const& obj) {
+    return (std::size_t)obj.lock().getPtr().get();
 }
 }
 
