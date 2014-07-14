@@ -11,6 +11,7 @@ class ImageRenderer : public Renderer {
     public:
         void setInput(ImageData::pointer image);
         void keyPressEvent(QKeyEvent* event);
+        BoundingBox getBoundingBox() {};
     private:
         ImageRenderer();
         void execute();

@@ -349,6 +349,7 @@ void SurfaceExtraction::execute() {
 //  traversalSync = glCreateSyncFromCLeventARB((cl_context)context(), (cl_event)traversalEvent(), 0); // Need the GL_ARB_cl_event extension
     queue.finish();
     mOutput->updateModifiedTimestamp();
+    mOutput->setParentSceneGraphNode(mInput);
 }
 
 SurfaceExtraction::SurfaceExtraction() {

@@ -14,6 +14,7 @@ class SurfaceRenderer : public Renderer {
         void keyPressEvent(QKeyEvent* event);
         void mouseMoveEvent(QMouseEvent* event, View* view);
         void resizeEvent(QResizeEvent* event);
+        BoundingBox getBoundingBox();
     private:
         SurfaceRenderer();
         void execute();

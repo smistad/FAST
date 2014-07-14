@@ -2,20 +2,11 @@
 #define SCENEGRAPH_HPP_
 
 #include "DataObject.hpp"
-#include <boost/numeric/ublas/matrix.hpp>
+#include "LinearTransformation.hpp"
 #include <boost/unordered_set.hpp>
 
 namespace fast {
 
-class LinearTransformation : public boost::numeric::ublas::matrix<float> {
-    public:
-        LinearTransformation();
-        // Copy
-        LinearTransformation(boost::numeric::ublas::matrix<float> m) : boost::numeric::ublas::matrix<float>(m) {};
-        LinearTransformation getInverse();
-        LinearTransformation operator*(const LinearTransformation &other);
-        boost::numeric::ublas::matrix<float> getMatrix() const;
-};
 
 class SceneGraphNode : public Object {
     FAST_OBJECT(SceneGraphNode)
@@ -46,6 +37,7 @@ class SceneGraph {
         SceneGraphNode::pointer addDataNodeToNewRoot(WeakPointer<DataObject> data);
         SceneGraphNode::pointer addDataNodeToNewRoot(DataObject::pointer data);
         SceneGraphNode::pointer addNode(SceneGraphNode::pointer parent);
+        SceneGraphNode::pointer getDataNode(DataObject::pointer data);
         SceneGraphNode::pointer getDataNode(WeakPointer<DataObject> data);
         void removeDataNode(WeakPointer<DataObject> data);
         void removeNode(SceneGraphNode::pointer node);

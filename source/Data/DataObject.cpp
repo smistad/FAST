@@ -1,5 +1,6 @@
 #include "DataObject.hpp"
 #include "ProcessObject.hpp"
+#include "SceneGraph.hpp"
 using namespace fast;
 
 void DataObject::update() {
@@ -43,4 +44,15 @@ void DataObject::release(ExecutionDevice::pointer device) {
     if(mReferenceCount[device] == 0) {
         this->free(device);
     }
+}
+
+void DataObject::setParentSceneGraphNode(DataObject::pointer data) {
+    SceneGraph& graph = SceneGraph::getInstance();
+    SceneGraphNode::pointer thisNode = graph.getDataNode(DataObject::pointer(this));
+    SceneGraphNode::pointer parentNode = graph.getDataNode(data);
+    thisNode->setParent(parentNode);
+}
+
+BoundingBox DataObject::getBoundingBox() const {
+    return mBoundingBox;
 }

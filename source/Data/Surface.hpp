@@ -23,7 +23,7 @@ class Surface : public DataObject {
         VertexBufferObjectAccess getVertexBufferObjectAccess(accessType access, OpenCLDevice::pointer device);
         SurfacePointerAccess getSurfacePointerAccess(accessType access);
         unsigned int getNrOfTriangles() const;
-        SurfaceBoundingBox getBoundingBox() const;
+        SurfaceBoundingBox getSurfaceBoundingBox() const;
         void setBoundingBox(SurfaceBoundingBox box);
         ~Surface();
     private:

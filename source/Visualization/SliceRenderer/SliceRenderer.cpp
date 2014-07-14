@@ -4,6 +4,7 @@
 #include "HelperFunctions.hpp"
 #include "Image.hpp"
 #include "DynamicImage.hpp"
+#include "SceneGraph.hpp"
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
 #include <OpenGL/gl.h>
@@ -278,4 +279,13 @@ void SliceRenderer::keyPressEvent(QKeyEvent* event) {
         glViewport(0,0,mWidth*mScale,mHeight*mScale);
         break;
     }
+}
+
+BoundingBox SliceRenderer::getBoundingBox() {
+    SceneGraph& graph = SceneGraph::getInstance();
+    SceneGraphNode::pointer node = graph.getDataNode(mInput);
+    LinearTransformation transform = node->getLinearTransformation();
+    BoundingBox inputBoundingBox = mInput->getBoundingBox();
+    BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
+    return transformedBoundingBox;
 }

@@ -21,6 +21,8 @@ set(SOURCES
     Utility.hpp
     SceneGraph.cpp
     SceneGraph.hpp
+    LinearTransformation.cpp
+    LinearTransformation.hpp
     Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.cpp
     Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp
     Algorithms/SeededRegionGrowing/SeededRegionGrowing.cpp

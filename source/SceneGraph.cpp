@@ -3,44 +3,10 @@
 #include <boost/numeric/ublas/lu.hpp>
 #include <boost/numeric/ublas/io.hpp>
 
-using namespace boost::numeric::ublas;
 
 namespace fast {
 
-/**
- * Initializes linear transformation object to identity matrix
- */
-LinearTransformation::LinearTransformation() : boost::numeric::ublas::matrix<float>(4,4) {
-    for(int i = 0; i < 4; i++) {
-        for(int j = 0; j < 4; j++) {
-            this->operator()(i,j) = i == j ? 1 : 0;
-        }
-    }
-}
 
-LinearTransformation LinearTransformation::getInverse() {
-    typedef permutation_matrix<std::size_t> pmatrix;
-
-    // create a working copy
-    matrix<float> A = getMatrix();
-
-    // create a permutation matrix for the LU-factorization
-    pmatrix pm(A.size1());
-
-    // perform LU-factorization
-    int res = lu_factorize(A, pm);
-    if (res != 0)
-        throw Exception("Unable to invert matrix");
-
-    // create identity matrix of "inverse"
-    LinearTransformation inverse;
-    inverse.assign(identity_matrix<float> (A.size1()));
-
-    // backsubstitute to get the inverse
-    lu_substitute(A, pm, inverse);
-
-    return inverse;
-}
 
 void SceneGraphNode::setDataObject(WeakPointer<DataObject> data) {
     mData = data;
@@ -148,6 +114,11 @@ SceneGraphNode::pointer SceneGraph::getDataNode(
     return mDataToNodesMap[data];
 }
 
+SceneGraphNode::pointer SceneGraph::getDataNode(
+        DataObject::pointer data) {
+    return mDataToNodesMap[WeakPointer<DataObject>(data)];
+}
+
 void SceneGraph::removeDataNode(WeakPointer<DataObject> data) {
     removeNode(getDataNode(data));
 }
@@ -163,7 +134,6 @@ LinearTransformation SceneGraph::getLinearTransformationBetweenNodes(
         SceneGraphNode::pointer nodeA, SceneGraphNode::pointer nodeB) {
     // TODO traverse the graph from node A to node B
 }
-
 LinearTransformation SceneGraph::getLinearTransformationFromNode(
         SceneGraphNode::pointer node) {
     SceneGraphNode::pointer currentNode = node;
@@ -187,14 +157,6 @@ void SceneGraph::deleteGraph() {
 SceneGraph::SceneGraph() {
 }
 
-LinearTransformation LinearTransformation::operator *(
-        const LinearTransformation& other) {
-    LinearTransformation T(boost::numeric::ublas::prod((boost::numeric::ublas::matrix<float>)*this, (boost::numeric::ublas::matrix<float>)other));
-    return T;
-}
 
-boost::numeric::ublas::matrix<float> LinearTransformation::getMatrix() const {
-    return matrix<float>(*this);
-}
 
 } // end namespace fast

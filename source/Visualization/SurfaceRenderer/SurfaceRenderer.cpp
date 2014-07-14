@@ -70,7 +70,7 @@ void SurfaceRenderer::draw() {
     float spacingY = 1;//0.24;
     float spacingZ = 1;//0.43;
 
-    SurfaceBoundingBox box = mInput->getBoundingBox();
+    SurfaceBoundingBox box = mInput->getSurfaceBoundingBox();
     int SIZE = max(max(box.size.x(), box.size.y()), box.size.z());
 
     scalingFactorx = spacingX*1.0f/SIZE;
@@ -178,6 +178,10 @@ void SurfaceRenderer::resizeEvent(QResizeEvent* event) {
     QSize size = event->size();
     mWidth = size.width();
     mHeight = size.height();
+}
+
+BoundingBox SurfaceRenderer::getBoundingBox() {
+    return mInput->getBoundingBox();
 }
 
 } // namespace fast

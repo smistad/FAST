@@ -46,6 +46,37 @@ Vector<Float3, 8> BoundingBox::getCorners() {
     return mCorners;
 }
 
-} // end namespace fast
+BoundingBox::BoundingBox(std::vector<Float3> coordinates) {
+    // Find min and max of all the coordinates
+    Float3 minimum(coordinates[0].x(), coordinates[0].y(), coordinates[0].z());
+    Float3 maximum(coordinates[0].x(), coordinates[0].y(), coordinates[0].z());
+    for(uint i = 1; i < coordinates.size(); i++) {
+        Float3 coordinate = coordinates[0];
+        for(uint j = 0; j < 4; j++) {
+            if(coordinate[j] < minimum[j]) {
+                minimum[j] = coordinate[j];
+            }
+            if(coordinate[j] > maximum[j]) {
+                maximum[j] = coordinate[j];
+            }
+        }
+    }
 
+    // Make new bounding box
+    Float3 size(maximum.x()-minimum.x(), maximum.y()-minimum.y(), maximum.z()-minimum.z());
+    BoundingBox(minimum, size);
+}
+
+BoundingBox BoundingBox::getTransformedBoundingBox(
+        LinearTransformation transform) {
+    Vector<Float3, 8> newCorners;
+    for(uint i = 0; i < 8; i++) {
+        Float3 vertex = mCorners[i];
+        Float3 transformedVertex = transform*vertex;
+        newCorners[i] = transformedVertex;
+    }
+    return BoundingBox(newCorners);
+}
+
+} // end namespace fast
 

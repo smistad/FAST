@@ -19,6 +19,8 @@ class DataObject : public Object {
         void updateModifiedTimestamp();
         void retain(ExecutionDevice::pointer device);
         void release(ExecutionDevice::pointer device);
+        void setParentSceneGraphNode(DataObject::pointer data);
+        BoundingBox getBoundingBox() const;
         virtual ~DataObject() { };
     protected:
         virtual void free(ExecutionDevice::pointer device) = 0;
