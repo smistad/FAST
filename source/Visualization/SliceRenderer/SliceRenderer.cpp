@@ -105,8 +105,7 @@ void SliceRenderer::execute() {
             mHeight = input->getHeight();
             break;
     }
-
-    glViewport(0,0,mWidth*mScale,mHeight*mScale);
+    mSliceNr = sliceNr;
 
     OpenCLImageAccess3D access = input->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
     cl::Image3D* clImage = access.get();
@@ -209,7 +208,7 @@ SliceRenderer::SliceRenderer() : Renderer() {
     mDevice = DeviceManager::getInstance().getDefaultVisualizationDevice();
     mTextureIsCreated = false;
     mIsModified = true;
-    mSlicePlane = PLANE_Y;
+    mSlicePlane = PLANE_Z;
     mSliceNr = -1;
     mScale = 1.0;
 }
@@ -218,29 +217,22 @@ void SliceRenderer::draw() {
     if(!mTextureIsCreated)
         return;
 
-    setOpenGLContext(mDevice->getGLContext());
-
-    // Reset OpenGL
-    glDisable(GL_LIGHTING);
-    glDisable(GL_NORMALIZE);
-    glDisable(GL_DEPTH_TEST);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glViewport(0,0,mWidth*mScale,mHeight*mScale);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    //setOpenGLContext(mDevice->getGLContext());
 
     glBindTexture(GL_TEXTURE_2D, mTexture);
 
+    // Draw slice in voxel coordinates
     glBegin(GL_QUADS);
+    if(mSlicePlane == PLANE_Z) {
         glTexCoord2i(0, 1);
-        glVertex3f(-1.0f, 1.0f, 0.0f);
+        glVertex3f(0, mHeight, mSliceNr);
         glTexCoord2i(1, 1);
-        glVertex3f( 1.0f, 1.0f, 0.0f);
+        glVertex3f(mWidth, mHeight, mSliceNr);
         glTexCoord2i(1, 0);
-        glVertex3f( 1.0f,-1.0f, 0.0f);
+        glVertex3f( mWidth,0, mSliceNr);
         glTexCoord2i(0, 0);
-        glVertex3f(-1.0f,-1.0f, 0.0f);
+        glVertex3f(0,0, mSliceNr);
+    }
     glEnd();
 
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -257,28 +249,7 @@ void SliceRenderer::setSlicePlane(PlaneType plane) {
 }
 
 void SliceRenderer::keyPressEvent(QKeyEvent* event) {
-    switch(event->key()) {
-    case Qt::Key_X:
-        mSlicePlane = PLANE_X;
-        mIsModified = true;
-        break;
-    case Qt::Key_Y:
-        mSlicePlane = PLANE_Y;
-        mIsModified = true;
-        break;
-    case Qt::Key_Z:
-        mSlicePlane = PLANE_Z;
-        mIsModified = true;
-        break;
-    case Qt::Key_Plus:
-        mScale = mScale*1.5;
-        glViewport(0,0,mWidth*mScale,mHeight*mScale);
-        break;
-    case Qt::Key_Minus:
-        mScale = mScale/1.5;
-        glViewport(0,0,mWidth*mScale,mHeight*mScale);
-        break;
-    }
+
 }
 
 BoundingBox SliceRenderer::getBoundingBox() {

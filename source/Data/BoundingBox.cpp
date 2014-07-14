@@ -2,8 +2,7 @@
 
 namespace fast {
 
-BoundingBox::BoundingBox(Float3 pos, Float3 size) {
-    mIsInitialized = true;
+void BoundingBox::createCorners(Float3 pos, Float3 size) {
     // Create corners
     float corners[8][3] = {
         {pos.x(),pos.y(),pos.z()},
@@ -17,9 +16,15 @@ BoundingBox::BoundingBox(Float3 pos, Float3 size) {
     };
 
     for(int c = 0; c < 8; c++) {
-        for(int i = 0; i < 3; i++)
+        for(int i = 0; i < 3; i++) {
             mCorners[c][i] = corners[c][i];
+        }
     }
+}
+
+BoundingBox::BoundingBox(Float3 pos, Float3 size) {
+    mIsInitialized = true;
+    createCorners(pos, size);
 }
 
 BoundingBox::BoundingBox(Float3 size) {
@@ -28,7 +33,7 @@ BoundingBox::BoundingBox(Float3 size) {
     pos[0] = 0;
     pos[1] = 0;
     pos[2] = 0;
-    BoundingBox(pos, size);
+    createCorners(pos, size);
 }
 
 BoundingBox::BoundingBox(Vector<Float3, 8> corners) {
@@ -76,6 +81,19 @@ BoundingBox BoundingBox::getTransformedBoundingBox(
         newCorners[i] = transformedVertex;
     }
     return BoundingBox(newCorners);
+}
+
+std::ostream &operator<<(std::ostream &os, BoundingBox &object) {
+    os << std::endl << "Bounding box" << std::endl;
+
+    Vector<Float3, 8> corners = object.getCorners();
+
+    for(uint i = 0; i < 8; i++) {
+        os << "Corner " << i << ": " << corners[i][0] << ", " << corners[i][1] << ", " << corners[i][2] << std::endl;
+    }
+
+    return os;
+
 }
 
 } // end namespace fast

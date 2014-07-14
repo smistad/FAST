@@ -88,6 +88,7 @@ void SurfaceRenderer::draw() {
     GLuint* VBO_ID = access.get();
 
     // Render VBO
+    /*
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glViewport(0, 0, mWidth, mHeight); // TODO the width and height here has to come from an resize event
@@ -95,7 +96,6 @@ void SurfaceRenderer::draw() {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    /*
     glColor3f(1.0f,0.0f,0.0f);
     glBegin(GL_QUADS);
         glVertex3f(-1.0f, 1.0f, -5.0f);
@@ -103,7 +103,6 @@ void SurfaceRenderer::draw() {
         glVertex3f( 1.0f,-1.0f, -5.0f);
         glVertex3f(-1.0f,-1.0f, -5.0f);
     glEnd();
-    */
 
 
     glTranslatef(-camX, -camY, -camZ);
@@ -116,6 +115,7 @@ void SurfaceRenderer::draw() {
     glTranslatef(translationx, translationy, translationz);
 
     glRotatef(90.0f, 0.0f, 0.0f, 1.0f);
+    */
     // Normal Buffer
     glBindBuffer(GL_ARRAY_BUFFER, *VBO_ID);
     glEnableClientState(GL_VERTEX_ARRAY);

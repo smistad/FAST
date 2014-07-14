@@ -19,6 +19,7 @@ class View : public QGLWidget, public ProcessObject {
         void mousePressEvent(QMouseEvent* event);
         void mouseReleaseEvent(QMouseEvent* event);
         void resizeEvent(QResizeEvent* event);
+        void wheelEvent(QWheelEvent* event);
         void setMaximumFramerate(unsigned int framerate);
     private:
         View();
@@ -34,6 +35,8 @@ class View : public QGLWidget, public ProcessObject {
         float fieldOfViewX, fieldOfViewY;
         float aspect;
         bool isIn2DMode;
+
+        bool mLeftMouseButtonIsPressed;
 
     protected:
         void initializeGL();

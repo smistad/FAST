@@ -1,6 +1,7 @@
 #include <GL/glew.h>
 #include "Surface.hpp"
 #include "SimpleWindow.hpp"
+#include "SceneGraph.hpp"
 #include <QApplication>
 
 #if defined(__APPLE__) || defined(__MACOSX)
@@ -40,6 +41,8 @@ void Surface::create(
     }
 
     mNrOfTriangles = triangles.size();
+    SceneGraph& graph = SceneGraph::getInstance();
+    graph.addDataNodeToNewRoot(mPtr);
 }
 
 void Surface::create(unsigned int nrOfTriangles) {
@@ -49,6 +52,8 @@ void Surface::create(unsigned int nrOfTriangles) {
     }
     mIsInitialized = true;
     mNrOfTriangles = nrOfTriangles;
+    SceneGraph& graph = SceneGraph::getInstance();
+    graph.addDataNodeToNewRoot(mPtr);
 }
 
 bool Surface::isAnyDataBeingAccessed() {

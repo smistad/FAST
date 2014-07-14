@@ -37,7 +37,7 @@ int main(int argc, char ** argv) {
     SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
     sliceRenderer->setInput(image);
     SimpleWindow::pointer window = SimpleWindow::New();
-    window->addRenderer(surfaceRenderer);
+    //window->addRenderer(surfaceRenderer);
     window->addRenderer(sliceRenderer);
     window->runMainLoop();
 

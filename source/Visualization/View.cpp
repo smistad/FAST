@@ -1,5 +1,6 @@
 #include "View.hpp"
 #include "Exception.hpp"
+#include "DeviceManager.hpp"
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
@@ -16,6 +17,8 @@
 #endif
 #endif
 
+#include <QCursor>
+
 using namespace fast;
 
 void View::addRenderer(Renderer::pointer renderer) {
@@ -28,6 +31,7 @@ View::View() {
     zFar = 1000;
     fieldOfViewY = 45;
     isIn2DMode = false;
+    mLeftMouseButtonIsPressed = false;
 
     mFramerate = 25;
     // Set up a timer that will call update on this object at a regular interval
@@ -53,12 +57,14 @@ void View::execute() {
 }
 
 void View::initializeGL() {
+    setOpenGLContext(OpenCLDevice::pointer(DeviceManager::getInstance().getDefaultVisualizationDevice())->getGLContext());
     // Set up viewport and projection transformation
     glMatrixMode(GL_PROJECTION);
     aspect = (float)this->width() / this->height();
+    fieldOfViewX = aspect*fieldOfViewY;
     glViewport(0, 0, this->width(), this->height());
     gluPerspective(fieldOfViewY, aspect, zNear, zFar);
-    glClearColor(0.0f,0.0f,0.0f,0.0f);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glEnable(GL_DEPTH_TEST);
 
     // Initialize camera
@@ -67,6 +73,7 @@ void View::initializeGL() {
     Float3 min, max;
     Float3 centroid;
     BoundingBox box = mRenderers[0]->getBoundingBox();
+    std::cout << box << std::endl;
     Float3 corner = box.getCorners()[0];
     min[0] = corner[0];
     max[0] = corner[0];
@@ -95,6 +102,8 @@ void View::initializeGL() {
     centroid[1] = (max.y()-min.y())*0.5;
     centroid[2] = (max.z()-min.z())*0.5;
 
+    std::cout << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << std::endl;
+
     // Initialize rotation point to centroid of object
     rotationPoint = centroid;
 
@@ -116,6 +125,7 @@ void View::initializeGL() {
 }
 
 void View::paintGL() {
+    setOpenGLContext(OpenCLDevice::pointer(DeviceManager::getInstance().getDefaultVisualizationDevice())->getGLContext());
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
@@ -156,6 +166,12 @@ void View::paintGL() {
     glVertex3f(0.0,0.0,1000.0);
     glEnd();
 
+    // Draw rotation point
+    glPointSize(10);
+    glBegin(GL_POINTS);
+    glVertex3f(rotationPoint.x(), rotationPoint.y(), rotationPoint.z());
+    glEnd();
+
     for(unsigned int i = 0; i < mRenderers.size(); i++) {
         mRenderers[i]->update();
         mRenderers[i]->draw();
@@ -163,10 +179,12 @@ void View::paintGL() {
 }
 
 void View::resizeGL(int width, int height) {
+    setOpenGLContext(OpenCLDevice::pointer(DeviceManager::getInstance().getDefaultVisualizationDevice())->getGLContext());
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glViewport(0, 0, width, height);
     aspect = (float)width/height;
+    fieldOfViewX = aspect*fieldOfViewY;
     gluPerspective(fieldOfViewY, aspect, zNear, zFar);
 }
 
@@ -178,6 +196,20 @@ void View::keyPressEvent(QKeyEvent* event) {
 }
 
 void View::mouseMoveEvent(QMouseEvent* event) {
+    if(mLeftMouseButtonIsPressed) {
+        int cx = width()/2;
+        int cy = height()/2;
+
+        if(event->x() == cx && event->y() == cy){ //The if cursor is in the middle
+            return;
+        }
+
+        int diffx=event->x()-cx; //check the difference between the current x and the last x position
+        int diffy=event->y()-cy; //check the difference between the current y and the last y position
+        rotation[0] += (float)diffy/2; //set the xrot to xrot with the addition of the difference in the y position
+        rotation[1] += (float)diffx/2;// set the xrot to yrot with the addition of the difference in the x position
+        QCursor::setPos(mapToGlobal(QPoint(cx,cy)));
+    }
     // Relay mouse event info to renderers
     for(unsigned int i = 0; i < mRenderers.size(); i++) {
         mRenderers[i]->mouseMoveEvent(event, this);
@@ -185,13 +217,27 @@ void View::mouseMoveEvent(QMouseEvent* event) {
 }
 
 void View::mousePressEvent(QMouseEvent* event) {
+    if(event->button() == Qt::LeftButton) {
+        mLeftMouseButtonIsPressed = true;
+    }
     // Relay mouse event info to renderers
     for(unsigned int i = 0; i < mRenderers.size(); i++) {
         mRenderers[i]->mousePressEvent(event);
     }
 }
 
+void View::wheelEvent(QWheelEvent* event) {
+    if(event->delta() > 0) {
+        cameraPosition[2] += 10;
+    } else {
+        cameraPosition[2] += -10;
+    }
+}
+
 void View::mouseReleaseEvent(QMouseEvent* event) {
+    if(event->button() == Qt::LeftButton) {
+        mLeftMouseButtonIsPressed = false;
+    }
     // Relay mouse event info to renderers
     for(unsigned int i = 0; i < mRenderers.size(); i++) {
         mRenderers[i]->mouseReleaseEvent(event);

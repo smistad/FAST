@@ -17,10 +17,14 @@ class BoundingBox {
         Vector<Float3, 8> getCorners();
         BoundingBox getTransformedBoundingBox(LinearTransformation transform);
     private:
+        void createCorners(Float3 pos, Float3 size);
         Vector<Float3, 8> mCorners;
         bool mIsInitialized;
 
 };
+
+
+std::ostream &operator<<(std::ostream &os, BoundingBox &object);
 
 } // end namespace fast
 
