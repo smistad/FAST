@@ -23,9 +23,25 @@ int main(int argc, char ** argv) {
     DeviceManager& deviceManager = DeviceManager::getInstance();
     deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(true));
 
-    //MetaImageImporter::pointer importer = MetaImageImporter::New();
-    //importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_0.mhd");
+    MetaImageImporter::pointer importer = MetaImageImporter::New();
+    importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_0.mhd");
+    Image::pointer image = importer->getOutput();
+    SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
+    extractor->setInput(image);
+    extractor->setThreshold(200);
+    Surface::pointer surface = extractor->getOutput();
+    extractor->update();
 
+    SurfaceRenderer::pointer surfaceRenderer = SurfaceRenderer::New();
+    surfaceRenderer->setInput(surface);
+    SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+    sliceRenderer->setInput(image);
+    SimpleWindow::pointer window = SimpleWindow::New();
+    window->addRenderer(surfaceRenderer);
+    window->addRenderer(sliceRenderer);
+    window->runMainLoop();
+
+    /*
     MetaImageStreamer::pointer importer = MetaImageStreamer::New();
     importer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
     SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
@@ -39,6 +55,7 @@ int main(int argc, char ** argv) {
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(surfaceRenderer);
     window->runMainLoop();
+    */
 
     /*
     // Example of importing, processing and exporting a 2D image
