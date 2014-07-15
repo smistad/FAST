@@ -45,7 +45,7 @@ void SurfaceRenderer::draw() {
 
 
     // Set material properties which will be assigned by glColor
-    GLfloat color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    GLfloat color[] = { 0.0f, 1.0f, 0.0f, 1.0f };
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, color);
     GLfloat specReflection[] = { 0.8f, 0.8f, 0.8f, 1.0f };
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specReflection);
