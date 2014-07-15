@@ -54,6 +54,7 @@ void Surface::create(unsigned int nrOfTriangles) {
     mNrOfTriangles = nrOfTriangles;
     SceneGraph& graph = SceneGraph::getInstance();
     graph.addDataNodeToNewRoot(mPtr);
+    std::cout << "NODE ADDED!" << std::endl;
 }
 
 bool Surface::isAnyDataBeingAccessed() {

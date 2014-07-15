@@ -35,9 +35,6 @@ void SurfaceRenderer::draw() {
     // Draw the triangles in the VBO
     setOpenGLContext(mDevice->getGLContext());
 
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
     glEnable(GL_NORMALIZE);
 
     glEnable(GL_DEPTH_TEST);
@@ -131,50 +128,17 @@ void SurfaceRenderer::draw() {
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
 
-    glPopMatrix();
+    //glPopMatrix();
 
     //glutSwapBuffers();
 }
 
 void SurfaceRenderer::keyPressEvent(QKeyEvent* event) {
-    switch(event->key()) {
-    /*
-    case Qt::Key_Plus:
-        mThreshold++;
-        mIsModified = true;
-    break;
-    case Qt::Key_Minus:
-        mThreshold--;
-        mIsModified = true;
-    break;
-    */
-    //WASD movement
-    case Qt::Key_W:
-        camZ -= 0.05f;
-    break;
-    case Qt::Key_S:
-        camZ += 0.05f;
-    break;
-    case Qt::Key_A:
-        camX -= 0.05f;
-    break;
-    case Qt::Key_D:
-        camX += 0.05f;
-    break;
-    }
+
 }
 
 void SurfaceRenderer::mouseMoveEvent(QMouseEvent* event, View* view) {
-    int cx = mWidth/2;
-    int cy = mHeight/2;
-    int x = event->pos().x();
-    int y = event->pos().y();
 
-    int diffx=x-cx; //check the difference between the current x and the last x position
-    int diffy=y-cy; //check the difference between the current y and the last y position
-    rotationX += (float)diffy/2; //set the xrot to xrot with the addition of the difference in the y position
-    rotationY += (float)diffx/2;// set the xrot to yrot with the addition of the difference in the x position
-    QCursor::setPos(view->mapToGlobal(QPoint(cx,cy)));
 }
 
 void SurfaceRenderer::resizeEvent(QResizeEvent* event) {
@@ -188,6 +152,7 @@ BoundingBox SurfaceRenderer::getBoundingBox() {
     SceneGraphNode::pointer node = graph.getDataNode(mInput);
     LinearTransformation transform = node->getLinearTransformation();
     BoundingBox inputBoundingBox = mInput->getBoundingBox();
+    std::cout << inputBoundingBox << std::endl;
     BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
     return transformedBoundingBox;
 }

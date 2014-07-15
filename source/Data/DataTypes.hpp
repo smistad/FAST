@@ -57,7 +57,7 @@ class name : public Vector<type, N> {               \
 #define createNumberedVectorClassMacro2(name,type)       \
 class name##2 : public name<2> {                    \
     public:                                         \
-        name##2() : name<2>() {};\
+        name##2() : name<2>() {data = new type[2];};\
         name##2(type x, type y) {                   \
             data = new type[2];\
             data[0] = x;\
@@ -68,7 +68,7 @@ class name##2 : public name<2> {                    \
 #define createNumberedVectorClassMacro3(name,type)       \
 class name##3 : public name<3> {                    \
     public:                                         \
-        name##3() : name<3>() {};\
+        name##3() : name<3>() {data = new type[3];};\
         name##3(type x, type y, type z) {                   \
             data = new type[3];\
             data[0] = x;\
@@ -80,7 +80,7 @@ class name##3 : public name<3> {                    \
 #define createNumberedVectorClassMacro4(name,type)       \
 class name##4 : public name<4> {                    \
     public:                                         \
-        name##4() : name<4>() {};\
+        name##4() : name<4>() {data = new type[4];};\
         name##4(type x, type y, type z, type w) {                   \
             data = new type[4];\
             data[0] = x;\

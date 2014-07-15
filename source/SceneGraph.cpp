@@ -108,11 +108,15 @@ SceneGraphNode::pointer SceneGraph::addNode(
 
 SceneGraphNode::pointer SceneGraph::getDataNode(
         WeakPointer<DataObject> data) {
+    if(mDataToNodesMap.count(data) == 0)
+        throw Exception("Data node not found");
     return mDataToNodesMap[data];
 }
 
 SceneGraphNode::pointer SceneGraph::getDataNode(
         DataObject::pointer data) {
+    if(mDataToNodesMap.count(WeakPointer<DataObject>(data)) == 0)
+        throw Exception("Data node not found");
     return mDataToNodesMap[WeakPointer<DataObject>(data)];
 }
 

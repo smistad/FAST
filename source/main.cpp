@@ -30,7 +30,7 @@ int main(int argc, char ** argv) {
     extractor->setInput(image);
     extractor->setThreshold(200);
     Surface::pointer surface = extractor->getOutput();
-    extractor->update();
+    //extractor->update();
 
     SurfaceRenderer::pointer surfaceRenderer = SurfaceRenderer::New();
     surfaceRenderer->setInput(surface);

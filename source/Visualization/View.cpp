@@ -58,6 +58,10 @@ void View::execute() {
 }
 
 void View::initializeGL() {
+    // Update all renderes
+    for(unsigned int i = 0; i < mRenderers.size(); i++) {
+        mRenderers[i]->update();
+    }
     setOpenGLContext(OpenCLDevice::pointer(DeviceManager::getInstance().getDefaultVisualizationDevice())->getGLContext());
     // Set up viewport and projection transformation
     glMatrixMode(GL_PROJECTION);
@@ -246,7 +250,6 @@ void View::mousePressEvent(QMouseEvent* event) {
 }
 
 void View::wheelEvent(QWheelEvent* event) {
-    std::cout << event->delta() << std::endl;
     if(event->delta() > 0) {
         cameraPosition[2] += 10;
     } else if(event->delta() < 0) {
@@ -266,6 +269,8 @@ void View::mouseReleaseEvent(QMouseEvent* event) {
     }
 }
 void View::resizeEvent(QResizeEvent* event) {
+    this->resize(event->size().width(), event->size().height());
+    //this->resizeGL(event->size().width(), event->size().height());
     // Relay mouse event info to renderers
     for(unsigned int i = 0; i < mRenderers.size(); i++) {
         mRenderers[i]->resizeEvent(event);

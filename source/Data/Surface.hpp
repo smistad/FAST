@@ -10,11 +10,6 @@
 
 namespace fast {
 
-struct SurfaceBoundingBox {
-    Float<3> offset;
-    Float<3> size;
-};
-
 class Surface : public DataObject {
     FAST_OBJECT(Surface)
     public:

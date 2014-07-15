@@ -74,6 +74,8 @@ BoundingBox::BoundingBox(std::vector<Float3> coordinates) {
 
 BoundingBox BoundingBox::getTransformedBoundingBox(
         LinearTransformation transform) {
+    if(!mIsInitialized)
+        throw Exception("Cannot getTransformedBoundingBox because bounding box was not initialized.");
     Vector<Float3, 8> newCorners;
     for(uint i = 0; i < 8; i++) {
         Float3 vertex = mCorners[i];
