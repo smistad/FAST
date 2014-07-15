@@ -108,8 +108,6 @@ void SliceRenderer::execute() {
     }
     mSliceNr = sliceNr;
 
-    glViewport(0,0,512,512);
-
     OpenCLImageAccess3D access = input->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
     cl::Image3D* clImage = access.get();
 
