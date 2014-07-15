@@ -285,11 +285,3 @@ void View::mouseReleaseEvent(QMouseEvent* event) {
         mRenderers[i]->mouseReleaseEvent(event);
     }
 }
-void View::resizeEvent(QResizeEvent* event) {
-    this->resize(event->size().width(), event->size().height());
-    //this->resizeGL(event->size().width(), event->size().height());
-    // Relay mouse event info to renderers
-    for(unsigned int i = 0; i < mRenderers.size(); i++) {
-        mRenderers[i]->resizeEvent(event);
-    }
-}
