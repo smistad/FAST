@@ -33,7 +33,7 @@ class View : public QGLWidget, public ProcessObject {
         float zNear, zFar;
         float fieldOfViewX, fieldOfViewY;
         float aspect;
-        bool isIn2DMode;
+        bool mIsIn2DMode;
 
         bool mLeftMouseButtonIsPressed;
         bool mMiddleMouseButtonIsPressed;

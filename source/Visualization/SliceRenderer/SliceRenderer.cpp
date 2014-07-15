@@ -126,6 +126,7 @@ void SliceRenderer::execute() {
     glBindTexture(GL_TEXTURE_2D, 0);
     glFinish();
 
+    std::cout << "jahddddd " << std::endl;
     // Create CL-GL image
 #if defined(CL_VERSION_1_2)
     mImageGL = cl::ImageGL(
@@ -144,6 +145,7 @@ void SliceRenderer::execute() {
             mTexture
     );
 #endif
+    std::cout << "jahddddd " << std::endl;
 
     // Run kernel to fill the texture
     cl::CommandQueue queue = mDevice->getCommandQueue();
@@ -270,10 +272,11 @@ void SliceRenderer::setSlicePlane(PlaneType plane) {
 }
 
 BoundingBox SliceRenderer::getBoundingBox() {
-    SceneGraph& graph = SceneGraph::getInstance();
-    SceneGraphNode::pointer node = graph.getDataNode(mInput);
-    LinearTransformation transform = node->getLinearTransformation();
+    //SceneGraph& graph = SceneGraph::getInstance();
+    //SceneGraphNode::pointer node = graph.getDataNode(mInput);
+    //LinearTransformation transform = node->getLinearTransformation();
     BoundingBox inputBoundingBox = mInput->getBoundingBox();
-    BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
-    return transformedBoundingBox;
+    //BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
+    //return transformedBoundingBox;
+    return inputBoundingBox;
 }

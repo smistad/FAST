@@ -27,6 +27,9 @@ int main(int argc, char ** argv) {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_0.mhd");
     Image::pointer image = importer->getOutput();
+    //MetaImageStreamer::pointer importer = MetaImageStreamer::New();
+    //importer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
+    //DynamicImage::pointer image = importer->getOutput();
     SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
     extractor->setInput(image);
     extractor->setThreshold(200);

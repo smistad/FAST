@@ -63,13 +63,13 @@ void SurfaceRenderer::draw() {
 }
 
 BoundingBox SurfaceRenderer::getBoundingBox() {
-    SceneGraph& graph = SceneGraph::getInstance();
-    SceneGraphNode::pointer node = graph.getDataNode(mInput);
-    LinearTransformation transform = node->getLinearTransformation();
+    //SceneGraph& graph = SceneGraph::getInstance();
+    //SceneGraphNode::pointer node = graph.getDataNode(mInput);
+    //LinearTransformation transform = node->getLinearTransformation();
     BoundingBox inputBoundingBox = mInput->getBoundingBox();
-    std::cout << inputBoundingBox << std::endl;
-    BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
-    return transformedBoundingBox;
+    //BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
+    //return transformedBoundingBox;
+    return inputBoundingBox;
 }
 
 } // namespace fast

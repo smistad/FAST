@@ -43,6 +43,8 @@ Image::pointer DynamicImage::getNextFrame() {
 
     mStreamMutex.unlock();
 
+    mBoundingBox = ret->getBoundingBox();
+
     return ret;
 }
 
@@ -77,7 +79,6 @@ void DynamicImage::setStreamer(Streamer::pointer streamer) {
 Streamer::pointer DynamicImage::getStreamer() {
     return mStreamer.lock();
 }
-
 
 bool DynamicImage::hasReachedEnd() {
     mStreamMutex.lock();

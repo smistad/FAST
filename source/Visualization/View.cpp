@@ -30,7 +30,7 @@ View::View() {
     zNear = 0.1;
     zFar = 1000;
     fieldOfViewY = 45;
-    isIn2DMode = false;
+    mIsIn2DMode = false;
     mLeftMouseButtonIsPressed = false;
     mMiddleMouseButtonIsPressed = false;
 
@@ -58,77 +58,90 @@ void View::execute() {
 }
 
 void View::initializeGL() {
-    // Update all renderes
-    setOpenGLContext(OpenCLDevice::pointer(DeviceManager::getInstance().getDefaultVisualizationDevice())->getGLContext());
-
-    // Set up viewport and projection transformation
-    glMatrixMode(GL_PROJECTION);
-    aspect = (float)this->width() / this->height();
-    fieldOfViewX = aspect*fieldOfViewY;
-    glViewport(0, 0, this->width(), this->height());
-    gluPerspective(fieldOfViewY, aspect, zNear, zFar);
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_TEXTURE_2D);
     for(unsigned int i = 0; i < mRenderers.size(); i++) {
         mRenderers[i]->update();
     }
 
-    // Initialize camera
+    // Update all renderes
+    setOpenGLContext(OpenCLDevice::pointer(DeviceManager::getInstance().getDefaultVisualizationDevice())->getGLContext());
 
-    // Get bounding boxes of all objects
-    Float3 min, max;
-    Float3 centroid;
-    BoundingBox box = mRenderers[0]->getBoundingBox();
-    std::cout << box << std::endl;
-    Float3 corner = box.getCorners()[0];
-    min[0] = corner[0];
-    max[0] = corner[0];
-    min[1] = corner[1];
-    max[1] = corner[1];
-    min[2] = corner[2];
-    max[2] = corner[2];
-    for(int i = 0; i < mRenderers.size(); i++) {
-        // Apply transformation to all b boxes
-        // Get max and min of x and y coordinates of the transformed b boxes
-        // Calculate centroid of all b boxes
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-        BoundingBox box = mRenderers[i]->getBoundingBox();
-        Vector<Float3, 8> corners = box.getCorners();
+    // Set up viewport and projection transformation
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glViewport(0, 0, this->width(), this->height());
 
-        for(int j = 0; j < 8; j++) {
-            for(uint k = 0; k < 3; k++) {
-                if(corners[j][k] < min[k])
-                    min[k] = corners[j][k];
-                if(corners[j][k] > max[k])
-                    max[k] = corners[j][k];
+    if(mIsIn2DMode) {
+        gluOrtho2D(0,1,0,1);
+        glEnable(GL_TEXTURE_2D);
+
+        // Have to find out rotation and scaling so to fit into the box
+
+    } else {
+        aspect = (float)this->width() / this->height();
+        fieldOfViewX = aspect*fieldOfViewY;
+        gluPerspective(fieldOfViewY, aspect, zNear, zFar);
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_TEXTURE_2D);
+
+
+        // Initialize camera
+
+        // Get bounding boxes of all objects
+        Float3 min, max;
+        Float3 centroid;
+        BoundingBox box = mRenderers[0]->getBoundingBox();
+        Float3 corner = box.getCorners()[0];
+        min[0] = corner[0];
+        max[0] = corner[0];
+        min[1] = corner[1];
+        max[1] = corner[1];
+        min[2] = corner[2];
+        max[2] = corner[2];
+        for(int i = 0; i < mRenderers.size(); i++) {
+            // Apply transformation to all b boxes
+            // Get max and min of x and y coordinates of the transformed b boxes
+            // Calculate centroid of all b boxes
+
+            std::cout << "jkhad " << std::endl;
+            BoundingBox box = mRenderers[i]->getBoundingBox();
+            Vector<Float3, 8> corners = box.getCorners();
+
+            for(int j = 0; j < 8; j++) {
+                for(uint k = 0; k < 3; k++) {
+                    if(corners[j][k] < min[k])
+                        min[k] = corners[j][k];
+                    if(corners[j][k] > max[k])
+                        max[k] = corners[j][k];
+                }
             }
         }
+        centroid[0] = (max.x()-min.x())*0.5;
+        centroid[1] = (max.y()-min.y())*0.5;
+        centroid[2] = (max.z()-min.z())*0.5;
+
+        std::cout << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << std::endl;
+
+        // Initialize rotation point to centroid of object
+        rotationPoint = centroid;
+
+        // Calculate initiali translation of camera
+        // Move centroid to z axis
+        cameraPosition[0] = -centroid.x();
+        cameraPosition[1] = -centroid.y();
+
+        // Calculate z distance from origo
+        float z_width = (max.x()-min.x())*0.5 / tan(fieldOfViewX*0.5);
+        float z_height = (max.y()-min.y())*0.5 / tan(fieldOfViewY*0.5);
+        cameraPosition[2] = -(z_width < z_height ? z_height : z_width) // minimum translation to see entire object
+                -(max.z()-min.z()) // depth of the bounding box
+                -50; // border
+
+        originalCameraPosition = cameraPosition;
+
+        std::cout << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << std::endl;
     }
-    centroid[0] = (max.x()-min.x())*0.5;
-    centroid[1] = (max.y()-min.y())*0.5;
-    centroid[2] = (max.z()-min.z())*0.5;
-
-    std::cout << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << std::endl;
-
-    // Initialize rotation point to centroid of object
-    rotationPoint = centroid;
-
-    // Calculate initiali translation of camera
-    // Move centroid to z axis
-    cameraPosition[0] = -centroid.x();
-    cameraPosition[1] = -centroid.y();
-
-    // Calculate z distance from origo
-    float z_width = (max.x()-min.x())*0.5 / tan(fieldOfViewX*0.5);
-    float z_height = (max.y()-min.y())*0.5 / tan(fieldOfViewY*0.5);
-    cameraPosition[2] = -(z_width < z_height ? z_height : z_width) // minimum translation to see entire object
-            -(max.z()-min.z()) // depth of the bounding box
-            -50; // border
-
-    originalCameraPosition = cameraPosition;
-
-    std::cout << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << std::endl;
 }
 
 void View::paintGL() {
@@ -138,6 +151,9 @@ void View::paintGL() {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
+    if(mIsIn2DMode) {
+
+    } else {
     // Create headlight
     glEnable(GL_LIGHT0);
     // Create light components
@@ -194,6 +210,7 @@ void View::paintGL() {
     glVertex3f(rotationPoint.x(), rotationPoint.y(), rotationPoint.z());
     glEnd();
     */
+    }
 
     for(unsigned int i = 0; i < mRenderers.size(); i++) {
         mRenderers[i]->update();
@@ -206,9 +223,13 @@ void View::resizeGL(int width, int height) {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glViewport(0, 0, width, height);
-    aspect = (float)width/height;
-    fieldOfViewX = aspect*fieldOfViewY;
-    gluPerspective(fieldOfViewY, aspect, zNear, zFar);
+    if(mIsIn2DMode) {
+
+    } else {
+        aspect = (float)width/height;
+        fieldOfViewX = aspect*fieldOfViewY;
+        gluPerspective(fieldOfViewY, aspect, zNear, zFar);
+    }
 }
 
 void View::keyPressEvent(QKeyEvent* event) {
