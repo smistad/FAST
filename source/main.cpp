@@ -37,9 +37,14 @@ int main(int argc, char ** argv) {
     surfaceRenderer->setInput(surface);
     SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
     sliceRenderer->setInput(image);
+    SliceRenderer::pointer sliceRenderer2 = SliceRenderer::New();
+    sliceRenderer2->setInput(image);
+    sliceRenderer2->setSlicePlane(PLANE_X);
+    //sliceRenderer2->setSliceToRender(200);
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(surfaceRenderer);
     window->addRenderer(sliceRenderer);
+    window->addRenderer(sliceRenderer2);
     window->runMainLoop();
 
     /*

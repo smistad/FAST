@@ -14,7 +14,7 @@ __kernel void renderToTexture(
     // TODO make sure that these positions are correct
     int4 pos;
     if(slicePlane == 0) {
-        pos = (int4)(slice,y,x,0);
+        pos = (int4)(slice,x,y,0);
     } else if(slicePlane == 1) {
         pos = (int4)(x,slice,y,0);
     } else {

@@ -92,8 +92,8 @@ void SliceRenderer::execute() {
     switch(mSlicePlane) {
         case PLANE_X:
             slicePlaneNr = 0;
-            mWidth = input->getDepth();
-            mHeight = input->getHeight();
+            mWidth = input->getHeight();
+            mHeight = input->getDepth();
             break;
         case PLANE_Y:
             slicePlaneNr = 1;
@@ -144,9 +144,6 @@ void SliceRenderer::execute() {
             mTexture
     );
 #endif
-
-
-    std::cout << "creating texture!!!!!!!!!!" << std::endl;
 
     // Run kernel to fill the texture
     cl::CommandQueue queue = mDevice->getCommandQueue();
@@ -249,11 +246,11 @@ void SliceRenderer::draw() {
         break;
     case PLANE_X:
         glTexCoord2i(0, 1);
-        glVertex3f(mSliceNr, 0 , mWidth);
+        glVertex3f(mSliceNr, 0 , mHeight);
         glTexCoord2i(1, 1);
-        glVertex3f(mSliceNr, mHeight, mWidth);
+        glVertex3f(mSliceNr, mWidth, mHeight);
         glTexCoord2i(1, 0);
-        glVertex3f( mSliceNr, mHeight, 0 );
+        glVertex3f( mSliceNr, mWidth, 0 );
         glTexCoord2i(0, 0);
         glVertex3f(mSliceNr,0,0 );
     break;
