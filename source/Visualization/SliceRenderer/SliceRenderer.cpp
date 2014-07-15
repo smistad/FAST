@@ -209,7 +209,7 @@ SliceRenderer::SliceRenderer() : Renderer() {
     mDevice = DeviceManager::getInstance().getDefaultVisualizationDevice();
     mTextureIsCreated = false;
     mIsModified = true;
-    mSlicePlane = PLANE_Z;
+    mSlicePlane = PLANE_Y;
     mSliceNr = -1;
     mScale = 1.0;
 }
