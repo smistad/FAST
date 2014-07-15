@@ -52,7 +52,7 @@ void SliceRenderer::execute() {
         level = getDefaultIntensityLevel(input->getDataType());
     }
 
-    setOpenGLContext(mDevice->getGLContext());
+    //setOpenGLContext(mDevice->getGLContext());
 
     // Determine slice nr and width and height of the texture to render to
     unsigned int sliceNr;
@@ -146,6 +146,7 @@ void SliceRenderer::execute() {
 #endif
 
 
+    std::cout << "creating texture!!!!!!!!!!" << std::endl;
 
     // Run kernel to fill the texture
     cl::CommandQueue queue = mDevice->getCommandQueue();
@@ -209,7 +210,7 @@ SliceRenderer::SliceRenderer() : Renderer() {
     mDevice = DeviceManager::getInstance().getDefaultVisualizationDevice();
     mTextureIsCreated = false;
     mIsModified = true;
-    mSlicePlane = PLANE_Y;
+    mSlicePlane = PLANE_Z;
     mSliceNr = -1;
     mScale = 1.0;
 }
@@ -218,8 +219,7 @@ void SliceRenderer::draw() {
     if(!mTextureIsCreated)
         return;
 
-    setOpenGLContext(mDevice->getGLContext());
-
+    //setOpenGLContext(mDevice->getGLContext());
 
     glBindTexture(GL_TEXTURE_2D, mTexture);
 
@@ -256,7 +256,7 @@ void SliceRenderer::draw() {
         glVertex3f( mSliceNr, mHeight, 0 );
         glTexCoord2i(0, 0);
         glVertex3f(mSliceNr,0,0 );
-        break;
+    break;
     }
     glEnd();
 

@@ -59,10 +59,8 @@ void View::execute() {
 
 void View::initializeGL() {
     // Update all renderes
-    for(unsigned int i = 0; i < mRenderers.size(); i++) {
-        mRenderers[i]->update();
-    }
     setOpenGLContext(OpenCLDevice::pointer(DeviceManager::getInstance().getDefaultVisualizationDevice())->getGLContext());
+
     // Set up viewport and projection transformation
     glMatrixMode(GL_PROJECTION);
     aspect = (float)this->width() / this->height();
@@ -72,6 +70,9 @@ void View::initializeGL() {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_2D);
+    for(unsigned int i = 0; i < mRenderers.size(); i++) {
+        mRenderers[i]->update();
+    }
 
     // Initialize camera
 

@@ -19,9 +19,10 @@ using namespace fast;
 
 int main(int argc, char ** argv) {
 
+    // TODO this causes problem for some reason??
     // Get a GPU device and set it as the default device
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(true));
+    //DeviceManager& deviceManager = DeviceManager::getInstance();
+    //deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(true));
 
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_0.mhd");
@@ -37,7 +38,7 @@ int main(int argc, char ** argv) {
     SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
     sliceRenderer->setInput(image);
     SimpleWindow::pointer window = SimpleWindow::New();
-    //window->addRenderer(surfaceRenderer);
+    window->addRenderer(surfaceRenderer);
     window->addRenderer(sliceRenderer);
     window->runMainLoop();
 
