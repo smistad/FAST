@@ -14,7 +14,6 @@ class SliceRenderer : public Renderer {
         void setInput(ImageData::pointer image);
         void setSliceToRender(unsigned int sliceNr);
         void setSlicePlane(PlaneType plane);
-        void keyPressEvent(QKeyEvent* event);
         BoundingBox getBoundingBox();
     private:
         SliceRenderer();

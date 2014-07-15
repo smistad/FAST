@@ -177,7 +177,6 @@ void SliceRenderer::setInput(ImageData::pointer image) {
     mIsModified = true;
 }
 
-
 void SliceRenderer::recompileOpenCLCode(Image::pointer input) {
     // Check if code has to be recompiled
     bool recompile = false;
@@ -268,10 +267,6 @@ void SliceRenderer::setSliceToRender(unsigned int sliceNr) {
 void SliceRenderer::setSlicePlane(PlaneType plane) {
     mSlicePlane = plane;
     mIsModified = true;
-}
-
-void SliceRenderer::keyPressEvent(QKeyEvent* event) {
-
 }
 
 BoundingBox SliceRenderer::getBoundingBox() {

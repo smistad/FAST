@@ -21,11 +21,6 @@ void SurfaceRenderer::setInput(Surface::pointer image) {
 
 SurfaceRenderer::SurfaceRenderer() : Renderer() {
     mDevice = DeviceManager::getInstance().getDefaultVisualizationDevice();
-    camX = 0.0f;
-    camY = 0.0f;
-    camZ = 1.0f;
-    rotationX = 0.0f;
-    rotationY = 0.0f;
 }
 
 void SurfaceRenderer::execute() {
@@ -33,7 +28,6 @@ void SurfaceRenderer::execute() {
 
 void SurfaceRenderer::draw() {
     // Draw the triangles in the VBO
-    setOpenGLContext(mDevice->getGLContext());
 
     glEnable(GL_NORMALIZE);
     glShadeModel(GL_SMOOTH);
@@ -66,20 +60,6 @@ void SurfaceRenderer::draw() {
     glDisableClientState(GL_NORMAL_ARRAY);
 
     glDisable(GL_LIGHTING);
-}
-
-void SurfaceRenderer::keyPressEvent(QKeyEvent* event) {
-
-}
-
-void SurfaceRenderer::mouseMoveEvent(QMouseEvent* event, View* view) {
-
-}
-
-void SurfaceRenderer::resizeEvent(QResizeEvent* event) {
-    QSize size = event->size();
-    mWidth = size.width();
-    mHeight = size.height();
 }
 
 BoundingBox SurfaceRenderer::getBoundingBox() {
