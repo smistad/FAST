@@ -344,8 +344,10 @@ void SurfaceExtraction::execute() {
 //  traversalSync = glCreateSyncFromCLeventARB((cl_context)context(), (cl_event)traversalEvent(), 0); // Need the GL_ARB_cl_event extension
     queue.finish();
     mOutput->updateModifiedTimestamp();
-    mOutput->setParentSceneGraphNode(mInput);
-    mOutput->setBoundingBox(mInput->getBoundingBox());
+    //mOutput->setParentSceneGraphNode(mInput);
+    BoundingBox box = mInput->getBoundingBox();
+    mOutput->setBoundingBox(box);
+    std::cout << "execute in surface extraction reached end" << std::endl;
 }
 
 SurfaceExtraction::SurfaceExtraction() {

@@ -111,7 +111,6 @@ void SurfaceRenderer::draw() {
     glScalef(scalingFactorx, scalingFactory, scalingFactorz);
     glTranslatef(translationx, translationy, translationz);
 
-    glRotatef(90.0f, 0.0f, 0.0f, 1.0f);
     */
     // Normal Buffer
     glBindBuffer(GL_ARRAY_BUFFER, *VBO_ID);
@@ -128,9 +127,7 @@ void SurfaceRenderer::draw() {
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
 
-    //glPopMatrix();
-
-    //glutSwapBuffers();
+    glDisable(GL_LIGHTING);
 }
 
 void SurfaceRenderer::keyPressEvent(QKeyEvent* event) {

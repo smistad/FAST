@@ -32,6 +32,7 @@ __kernel void renderToTexture(
     value = (value - level + window/2) / window;
     value = clamp(value, 0.0f, 1.0f);
     //printf("value: %f\n", value);
-    write_imagef(texture, (int2)(x,get_global_size(1)-y-1), (float4)(value,value,value,1.0));
+    //write_imagef(texture, (int2)(x,get_global_size(1)-y-1), (float4)(value,value,value,1.0));
+    write_imagef(texture, (int2)(x,y), (float4)(value,value,value,1.0));
     //write_imagef(texture, (int2)(x,get_global_size(1)-y-1), (float4)(1.0,0.0,0.0,1.0));
 }
