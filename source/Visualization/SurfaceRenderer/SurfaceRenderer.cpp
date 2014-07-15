@@ -36,13 +36,8 @@ void SurfaceRenderer::draw() {
     setOpenGLContext(mDevice->getGLContext());
 
     glEnable(GL_NORMALIZE);
-
-    glEnable(GL_DEPTH_TEST);
-    // Set background color
     glShadeModel(GL_SMOOTH);
-    glEnable(GL_LIGHT0);
     glEnable(GL_LIGHTING);
-
 
     // Set material properties which will be assigned by glColor
     GLfloat color[] = { 0.0f, 1.0f, 0.0f, 1.0f };
@@ -52,66 +47,9 @@ void SurfaceRenderer::draw() {
     GLfloat shininess[] = { 16.0f };
     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
 
-    // Create light components
-    GLfloat ambientLight[] = { 0.3f, 0.3f, 0.3f, 1.0f };
-    GLfloat diffuseLight[] = { 0.7f, 0.7f, 0.7f, 1.0f };
-    GLfloat specularLight[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    GLfloat position[] = { -0.0f, 4.0f, 1.0f, 1.0f };
-
-    // Assign created components to GL_LIGHT0
-    glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight);
-    glLightfv(GL_LIGHT0, GL_POSITION, position);
-
-    float spacingX = 1;//0.31;
-    float spacingY = 1;//0.24;
-    float spacingZ = 1;//0.43;
-
-    /*
-    SurfaceBoundingBox box = mInput->getSurfaceBoundingBox();
-    int SIZE = max(max(box.size.x(), box.size.y()), box.size.z());
-
-    scalingFactorx = spacingX*1.0f/SIZE;
-    scalingFactory = spacingY*1.0f/SIZE;
-    scalingFactorz = spacingZ*1.0f/SIZE;
-
-    translationx = (float)box.size.x()/2.0f;
-    translationy = -(float)box.size.y()/2.0f;
-    translationz = -(float)box.size.z()/2.0f;
-    */
-
     VertexBufferObjectAccess access = mInput->getVertexBufferObjectAccess(ACCESS_READ, mDevice);
     GLuint* VBO_ID = access.get();
 
-    // Render VBO
-    /*
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glViewport(0, 0, mWidth, mHeight); // TODO the width and height here has to come from an resize event
-    gluPerspective(45.0f, (GLfloat)mWidth/(GLfloat)mHeight, 0.1f, 10.0f);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    glColor3f(1.0f,0.0f,0.0f);
-    glBegin(GL_QUADS);
-        glVertex3f(-1.0f, 1.0f, -5.0f);
-        glVertex3f( 1.0f, 1.0f, -5.0f);
-        glVertex3f( 1.0f,-1.0f, -5.0f);
-        glVertex3f(-1.0f,-1.0f, -5.0f);
-    glEnd();
-
-
-    glTranslatef(-camX, -camY, -camZ);
-    glRotatef(rotationX,1.0,0.0,0.0);
-    glRotatef(rotationY,0.0, 1.0, 0.0);
-
-    glPushMatrix();
-    glColor3f(1.0f, 1.0f, 1.0f);
-    glScalef(scalingFactorx, scalingFactory, scalingFactorz);
-    glTranslatef(translationx, translationy, translationz);
-
-    */
     // Normal Buffer
     glBindBuffer(GL_ARRAY_BUFFER, *VBO_ID);
     glEnableClientState(GL_VERTEX_ARRAY);

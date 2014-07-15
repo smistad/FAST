@@ -138,6 +138,20 @@ void View::paintGL() {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
+    // Create headlight
+    glEnable(GL_LIGHT0);
+    // Create light components
+    GLfloat ambientLight[] = { 0.3f, 0.3f, 0.3f, 1.0f };
+    GLfloat diffuseLight[] = { 0.7f, 0.7f, 0.7f, 1.0f };
+    GLfloat specularLight[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    GLfloat position[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+    // Assign created components to GL_LIGHT0
+    glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight);
+    glLightfv(GL_LIGHT0, GL_POSITION, position);
+
     // Apply camera movement
     glTranslatef(cameraPosition.x(), cameraPosition.y(), cameraPosition.z());
 
@@ -160,6 +174,7 @@ void View::paintGL() {
     glRotatef(rotation.y(), 0.0, 1.0, 0.0);
     glTranslatef(-rotationPoint.x(),-rotationPoint.y(),-rotationPoint.z());
 
+    /*
     // Draw x, y and z axis
     glBegin(GL_LINES);
     glColor3f(1.0,0.0,0.0);
@@ -178,6 +193,7 @@ void View::paintGL() {
     glBegin(GL_POINTS);
     glVertex3f(rotationPoint.x(), rotationPoint.y(), rotationPoint.z());
     glEnd();
+    */
 
     for(unsigned int i = 0; i < mRenderers.size(); i++) {
         mRenderers[i]->update();
