@@ -4,6 +4,7 @@
 #include "DynamicImage.hpp"
 #include "Utility.hpp"
 #include "HelperFunctions.hpp"
+#include "SceneGraph.hpp"
 
 namespace fast {
 
@@ -344,8 +345,7 @@ void SurfaceExtraction::execute() {
 //  traversalSync = glCreateSyncFromCLeventARB((cl_context)context(), (cl_event)traversalEvent(), 0); // Need the GL_ARB_cl_event extension
     queue.finish();
     mOutput->updateModifiedTimestamp();
-    // TODO: Uncommenting this line creates some problems:
-    //mOutput->setParentSceneGraphNode(mInput);
+    SceneGraph::getInstance().setParentNode(mOutput, mInput);
     BoundingBox box = mInput->getBoundingBox();
     mOutput->setBoundingBox(box);
     std::cout << "execute in surface extraction reached end" << std::endl;

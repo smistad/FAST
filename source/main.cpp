@@ -32,7 +32,7 @@ int main(int argc, char ** argv) {
     //DynamicImage::pointer image = importer->getOutput();
     SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
     extractor->setInput(image);
-    extractor->setThreshold(200);
+    extractor->setThreshold(150);
     Surface::pointer surface = extractor->getOutput();
     //extractor->update();
 

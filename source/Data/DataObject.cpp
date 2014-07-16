@@ -46,13 +46,6 @@ void DataObject::release(ExecutionDevice::pointer device) {
     }
 }
 
-void DataObject::setParentSceneGraphNode(DataObject::pointer data) {
-    SceneGraph& graph = SceneGraph::getInstance();
-    SceneGraphNode::pointer thisNode = graph.getDataNode(DataObject::pointer(this));
-    SceneGraphNode::pointer parentNode = graph.getDataNode(data);
-    thisNode->setParent(parentNode);
-}
-
 BoundingBox DataObject::getBoundingBox() const {
     return mBoundingBox;
 }

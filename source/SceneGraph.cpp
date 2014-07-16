@@ -158,6 +158,11 @@ void SceneGraph::deleteGraph() {
 SceneGraph::SceneGraph() {
 }
 
-
+void SceneGraph::setParentNode(DataObject::pointer child,
+        DataObject::pointer parent) {
+    SceneGraphNode::pointer thisNode = getDataNode(child);
+    SceneGraphNode::pointer parentNode = getDataNode(parent);
+    thisNode->setParent(parentNode);
+}
 
 } // end namespace fast
