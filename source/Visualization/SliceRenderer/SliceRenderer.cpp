@@ -52,7 +52,7 @@ void SliceRenderer::execute() {
         level = getDefaultIntensityLevel(input->getDataType());
     }
 
-    //setOpenGLContext(mDevice->getGLContext());
+    setOpenGLContext(mDevice->getGLContext());
 
     // Determine slice nr and width and height of the texture to render to
     unsigned int sliceNr;
