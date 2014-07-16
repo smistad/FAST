@@ -54,7 +54,6 @@ void Surface::create(unsigned int nrOfTriangles) {
     mNrOfTriangles = nrOfTriangles;
     SceneGraph& graph = SceneGraph::getInstance();
     graph.addDataNodeToNewRoot(mPtr);
-    std::cout << "NODE ADDED!" << std::endl;
 }
 
 bool Surface::isAnyDataBeingAccessed() {
@@ -145,6 +144,7 @@ void Surface::freeAll() {
     // TODO finish
     if(mVBOHasData)
         glDeleteBuffers(1, &mVBOID);
+    mVBOHasData = false;
 }
 
 void Surface::free(ExecutionDevice::pointer device) {
