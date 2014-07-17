@@ -345,7 +345,7 @@ void SurfaceExtraction::execute() {
 //  traversalSync = glCreateSyncFromCLeventARB((cl_context)context(), (cl_event)traversalEvent(), 0); // Need the GL_ARB_cl_event extension
     queue.finish();
     mOutput->updateModifiedTimestamp();
-    SceneGraph::getInstance().setParentNode(mOutput, mInput);
+    SceneGraph::getInstance().setParentNode(mOutput, input);
     BoundingBox box = mInput->getBoundingBox();
     mOutput->setBoundingBox(box);
 }

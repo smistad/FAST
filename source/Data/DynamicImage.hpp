@@ -17,6 +17,7 @@ class DynamicImage : public ImageData {
         void setStreamer(Streamer::pointer streamer);
         Streamer::pointer getStreamer();
         bool hasReachedEnd();
+        Image::pointer getCurrentFrame();
     private:
         DynamicImage();
 

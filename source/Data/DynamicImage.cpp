@@ -48,6 +48,16 @@ Image::pointer DynamicImage::getNextFrame() {
     return ret;
 }
 
+Image::pointer DynamicImage::getCurrentFrame() {
+    if(mFrames.size() == 0) {
+        throw Exception("Streamer has reached the end.");
+    }
+    mStreamMutex.lock();
+    Image::pointer ret = mFrames[mCurrentFrame];
+    mStreamMutex.unlock();
+    return ret;
+}
+
 void DynamicImage::addFrame(Image::pointer frame) {
     if(!mStreamer.lock().isValid())
         throw Exception("A DynamicImage must have a streamer set before it can be used.");
