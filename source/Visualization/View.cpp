@@ -116,9 +116,57 @@ void View::initializeGL() {
                 }
             }
         }
-        centroid[0] = max.x() - (max.x()-min.x())*0.5;
-        centroid[1] = max.y() - (max.y()-min.y())*0.5;
-        centroid[2] = max.z() - (max.z()-min.z())*0.5;
+
+        // Calculate area of each side of the resulting bounding box
+        float area[3] = {
+                (max[0]-min[0])*(max[1]-min[1]),
+                (max[1]-min[1])*(max[2]-min[2]),
+                (max[2]-min[2])*(max[0]-min[0])
+        };
+        uint maxArea = 0;
+        for(uint i = 1; i < 3; i++) {
+            if(area[i] > area[maxArea])
+                maxArea = i;
+        }
+
+        // Find rotation needed
+        float angleX, angleY;
+        uint xDirection;
+        uint yDirection;
+        uint zDirection;
+        switch(maxArea) {
+            case 0:
+                xDirection = 0;
+                yDirection = 1;
+                zDirection = 2;
+                angleX = 0;
+                angleY = 0;
+                break;
+            case 1:
+                // Rotate 90 degres around Y axis
+                xDirection = 2;
+                yDirection = 1;
+                zDirection = 0;
+                angleX = 0;
+                angleY = 90;
+                break;
+            case 2:
+                // Rotate 90 degres around X axis
+                xDirection = 0;
+                yDirection = 2;
+                zDirection = 1;
+                angleX = 90;
+                angleY = 0;
+                break;
+        }
+
+        // Rotate object if needed
+        rotation[0] = angleX;
+        rotation[1] = angleY;
+
+        centroid[0] = max[xDirection] - (max[xDirection]-min[xDirection])*0.5;
+        centroid[1] = max[yDirection] - (max[yDirection]-min[yDirection])*0.5;
+        centroid[2] = max[zDirection] - (max[zDirection]-min[zDirection])*0.5;
 
         std::cout << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << std::endl;
 
@@ -131,10 +179,10 @@ void View::initializeGL() {
         cameraPosition[1] = -centroid.y();
 
         // Calculate z distance from origo
-        float z_width = (max.x()-min.x())*0.5 / tan(fieldOfViewX*0.5);
-        float z_height = (max.y()-min.y())*0.5 / tan(fieldOfViewY*0.5);
+        float z_width = (max[xDirection]-min[xDirection])*0.5 / tan(fieldOfViewX*0.5);
+        float z_height = (max[yDirection]-min[yDirection])*0.5 / tan(fieldOfViewY*0.5);
         cameraPosition[2] = -(z_width < z_height ? z_height : z_width) // minimum translation to see entire object
-                -(max.z()-min.z()) // depth of the bounding box
+                -(max[zDirection]-min[zDirection]) // depth of the bounding box
                 -50; // border
 
         originalCameraPosition = cameraPosition;

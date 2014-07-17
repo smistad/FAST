@@ -45,8 +45,8 @@ int main(int argc, char ** argv) {
     sliceRenderer2->setSlicePlane(PLANE_X);
     //sliceRenderer2->setSliceToRender(200);
     SimpleWindow::pointer window = SimpleWindow::New();
-    window->addRenderer(surfaceRenderer);
-    window->addRenderer(sliceRenderer);
+    //window->addRenderer(surfaceRenderer);
+    //window->addRenderer(sliceRenderer);
     window->addRenderer(sliceRenderer2);
     window->runMainLoop();
 
