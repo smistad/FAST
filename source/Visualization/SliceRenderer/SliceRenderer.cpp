@@ -305,6 +305,5 @@ BoundingBox SliceRenderer::getBoundingBox() {
     }
     BoundingBox shrinkedBox(corners);
     BoundingBox transformedBoundingBox = shrinkedBox.getTransformedBoundingBox(transform);
-    std::cout << transformedBoundingBox << std::endl;
     return transformedBoundingBox;
 }

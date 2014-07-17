@@ -81,7 +81,6 @@ BoundingBox SurfaceRenderer::getBoundingBox() {
     LinearTransformation transform = graph.getLinearTransformationFromNode(node);
     BoundingBox inputBoundingBox = mInput->getBoundingBox();
     BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
-    std::cout << transformedBoundingBox << std::endl;
     return transformedBoundingBox;
 }
 
