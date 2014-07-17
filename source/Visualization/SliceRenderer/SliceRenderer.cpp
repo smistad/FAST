@@ -126,7 +126,6 @@ void SliceRenderer::execute() {
     glBindTexture(GL_TEXTURE_2D, 0);
     glFinish();
 
-    std::cout << "jahddddd " << std::endl;
     // Create CL-GL image
 #if defined(CL_VERSION_1_2)
     mImageGL = cl::ImageGL(
@@ -145,7 +144,6 @@ void SliceRenderer::execute() {
             mTexture
     );
 #endif
-    std::cout << "jahddddd " << std::endl;
 
     // Run kernel to fill the texture
     cl::CommandQueue queue = mDevice->getCommandQueue();

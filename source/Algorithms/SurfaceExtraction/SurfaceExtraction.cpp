@@ -348,7 +348,6 @@ void SurfaceExtraction::execute() {
     SceneGraph::getInstance().setParentNode(mOutput, mInput);
     BoundingBox box = mInput->getBoundingBox();
     mOutput->setBoundingBox(box);
-    std::cout << "execute in surface extraction reached end" << std::endl;
 }
 
 SurfaceExtraction::SurfaceExtraction() {

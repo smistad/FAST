@@ -104,7 +104,6 @@ void View::initializeGL() {
             // Get max and min of x and y coordinates of the transformed b boxes
             // Calculate centroid of all b boxes
 
-            std::cout << "jkhad " << std::endl;
             BoundingBox box = mRenderers[i]->getBoundingBox();
             Vector<Float3, 8> corners = box.getCorners();
 
