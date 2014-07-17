@@ -119,9 +119,9 @@ void View::initializeGL() {
 
         // Calculate area of each side of the resulting bounding box
         float area[3] = {
-                (max[0]-min[0])*(max[1]-min[1]),
-                (max[1]-min[1])*(max[2]-min[2]),
-                (max[2]-min[2])*(max[0]-min[0])
+                (max[0]-min[0])*(max[1]-min[1]), // XY plane
+                (max[1]-min[1])*(max[2]-min[2]), // YZ plane
+                (max[2]-min[2])*(max[0]-min[0])  // XZ plane
         };
         uint maxArea = 0;
         for(uint i = 1; i < 3; i++) {
@@ -164,9 +164,9 @@ void View::initializeGL() {
         rotation[0] = angleX;
         rotation[1] = angleY;
 
-        centroid[0] = max[xDirection] - (max[xDirection]-min[xDirection])*0.5;
-        centroid[1] = max[yDirection] - (max[yDirection]-min[yDirection])*0.5;
-        centroid[2] = max[zDirection] - (max[zDirection]-min[zDirection])*0.5;
+        centroid[0] = max[0] - (max[0]-min[0])*0.5;
+        centroid[1] = max[1] - (max[1]-min[1])*0.5;
+        centroid[2] = max[2] - (max[2]-min[2])*0.5;
 
         std::cout << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << std::endl;
 
