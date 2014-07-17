@@ -29,6 +29,19 @@ void SurfaceRenderer::execute() {
 void SurfaceRenderer::draw() {
     // Draw the triangles in the VBO
 
+    SceneGraph& graph = SceneGraph::getInstance();
+    SceneGraphNode::pointer node = graph.getDataNode(mInput);
+    LinearTransformation transform = graph.getLinearTransformationFromNode(node);
+
+    float matrix[16] = {
+            transform(0,0), transform(1,0), transform(2,0), transform(3,0),
+            transform(0,1), transform(1,1), transform(2,1), transform(3,1),
+            transform(0,2), transform(1,2), transform(2,2), transform(3,2),
+            transform(0,3), transform(1,3), transform(2,3), transform(3,3)
+    };
+
+    glMultMatrixf(matrix);
+
     glEnable(GL_NORMALIZE);
     glShadeModel(GL_SMOOTH);
     glEnable(GL_LIGHTING);
@@ -65,9 +78,10 @@ void SurfaceRenderer::draw() {
 BoundingBox SurfaceRenderer::getBoundingBox() {
     SceneGraph& graph = SceneGraph::getInstance();
     SceneGraphNode::pointer node = graph.getDataNode(mInput);
-    LinearTransformation transform = node->getLinearTransformation();
+    LinearTransformation transform = graph.getLinearTransformationFromNode(node);
     BoundingBox inputBoundingBox = mInput->getBoundingBox();
     BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
+    std::cout << transformedBoundingBox << std::endl;
     return transformedBoundingBox;
 }
 

@@ -783,10 +783,12 @@ Float<9> fast::Image::getTransformMatrix() const {
 
 void fast::Image::setSpacing(Float<3> spacing) {
     mSpacing = spacing;
+    updateSceneGraphTransformation();
 }
 
 void fast::Image::setOffset(Float<3> offset) {
     mOffset = offset;
+    updateSceneGraphTransformation();
 }
 
 void fast::Image::setCenterOfRotation(Float<3> rotation) {
@@ -795,6 +797,30 @@ void fast::Image::setCenterOfRotation(Float<3> rotation) {
 
 void fast::Image::setTransformMatrix(Float<9> transformMatrix) {
     mTransformMatrix = transformMatrix;
+    updateSceneGraphTransformation();
+}
+
+void Image::updateSceneGraphTransformation() const {
+    if(!isInitialized())
+        throw Exception("Image has not been initialized.");
+
+    // Create linear transformation matrix
+    LinearTransformation transformation;
+    transformation(0,0) = mTransformMatrix[0]*mSpacing[0];
+    transformation(0,1) = mTransformMatrix[3]*mSpacing[1];
+    transformation(0,2) = mTransformMatrix[6]*mSpacing[2];
+    transformation(0,3) = mOffset[0];
+    transformation(1,0) = mTransformMatrix[1]*mSpacing[0];
+    transformation(1,1) = mTransformMatrix[4]*mSpacing[1];
+    transformation(1,2) = mTransformMatrix[7]*mSpacing[2];
+    transformation(1,3) = mOffset[1];
+    transformation(2,0) = mTransformMatrix[2]*mSpacing[0];
+    transformation(2,1) = mTransformMatrix[5]*mSpacing[1];
+    transformation(2,2) = mTransformMatrix[8]*mSpacing[2];
+    transformation(2,3) = mOffset[2];
+
+    SceneGraphNode::pointer node = SceneGraph::getInstance().getDataNode(mPtr);
+    node->setTransformation(transformation);
 }
 
 template <class T>

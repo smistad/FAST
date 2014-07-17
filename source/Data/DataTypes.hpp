@@ -37,7 +37,7 @@ class Vector {
         T x();
         T y();
         T z();
-        T& operator[](unsigned int index); // lvalue
+        T& operator[](unsigned int index) const; // lvalue
         Vector<T,N>& operator=(const Vector<T,N>& other);
         T get(unsigned int index) const;
         int getSize() const;
@@ -123,7 +123,7 @@ inline T Vector<T,N>::z() {
 }
 
 template<class T, int N>
-inline T& Vector<T,N>::operator [](const unsigned int index) {
+inline T& Vector<T,N>::operator [](const unsigned int index) const {
     return data[index];
 }
 

@@ -84,6 +84,8 @@ class Image: public ImageData {
 
         void updateHostData();
 
+        void updateSceneGraphTransformation() const;
+
         unsigned int getBufferSize() const;
 
         unsigned int mWidth, mHeight, mDepth;

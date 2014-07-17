@@ -140,7 +140,7 @@ LinearTransformation SceneGraph::getLinearTransformationFromNode(
     SceneGraphNode::pointer currentNode = node;
     LinearTransformation transformation;
     while(!currentNode->isRootNode()) {
-        transformation = transformation*currentNode->getLinearTransformation();
+        transformation = currentNode->getLinearTransformation()*transformation;
         currentNode = currentNode->getParent();
     }
 

@@ -116,9 +116,9 @@ void View::initializeGL() {
                 }
             }
         }
-        centroid[0] = (max.x()-min.x())*0.5;
-        centroid[1] = (max.y()-min.y())*0.5;
-        centroid[2] = (max.z()-min.z())*0.5;
+        centroid[0] = max.x() - (max.x()-min.x())*0.5;
+        centroid[1] = max.y() - (max.y()-min.y())*0.5;
+        centroid[2] = max.z() - (max.z()-min.z())*0.5;
 
         std::cout << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << std::endl;
 
@@ -153,67 +153,72 @@ void View::paintGL() {
     if(mIsIn2DMode) {
 
     } else {
-    // Create headlight
-    glEnable(GL_LIGHT0);
-    // Create light components
-    GLfloat ambientLight[] = { 0.3f, 0.3f, 0.3f, 1.0f };
-    GLfloat diffuseLight[] = { 0.7f, 0.7f, 0.7f, 1.0f };
-    GLfloat specularLight[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    GLfloat position[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+        // Create headlight
+        glEnable(GL_LIGHT0);
+        // Create light components
+        GLfloat ambientLight[] = { 0.3f, 0.3f, 0.3f, 1.0f };
+        GLfloat diffuseLight[] = { 0.7f, 0.7f, 0.7f, 1.0f };
+        GLfloat specularLight[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+        GLfloat position[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
-    // Assign created components to GL_LIGHT0
-    glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight);
-    glLightfv(GL_LIGHT0, GL_POSITION, position);
+        // Assign created components to GL_LIGHT0
+        glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
+        glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight);
+        glLightfv(GL_LIGHT0, GL_POSITION, position);
 
-    // Apply camera movement
-    glTranslatef(cameraPosition.x(), cameraPosition.y(), cameraPosition.z());
+        // Apply camera movement
+        glTranslatef(cameraPosition.x(), cameraPosition.y(), cameraPosition.z());
 
-    // Draw x, y and z axis
-    glBegin(GL_LINES);
-    glColor3f(1.0,0.0,0.0);
-    glVertex3f(0.0,0.0,0.0);
-    glVertex3f(1000.0,0.0,0.0);
-    glColor3f(0.0,1.0,0.0);
-    glVertex3f(0.0,0.0,0.0);
-    glVertex3f(0.0,1000.0,0.0);
-    glColor3f(0.0,0.0,1.0);
-    glVertex3f(0.0,0.0,0.0);
-    glVertex3f(0.0,0.0,1000.0);
-    glEnd();
+        /*
+        // Draw x, y and z axis
+        glBegin(GL_LINES);
+        glColor3f(1.0,0.0,0.0);
+        glVertex3f(0.0,0.0,0.0);
+        glVertex3f(1000.0,0.0,0.0);
+        glColor3f(0.0,1.0,0.0);
+        glVertex3f(0.0,0.0,0.0);
+        glVertex3f(0.0,1000.0,0.0);
+        glColor3f(0.0,0.0,1.0);
+        glVertex3f(0.0,0.0,0.0);
+        glVertex3f(0.0,0.0,1000.0);
+        glEnd();
+        */
 
-    // Apply global rotation
-    glTranslatef(rotationPoint.x(),rotationPoint.y(),rotationPoint.z());
-    glRotatef(rotation.x(), 1.0, 0.0, 0.0);
-    glRotatef(rotation.y(), 0.0, 1.0, 0.0);
-    glTranslatef(-rotationPoint.x(),-rotationPoint.y(),-rotationPoint.z());
+        // Apply global rotation
+        glTranslatef(rotationPoint.x(),rotationPoint.y(),rotationPoint.z());
+        // TODO make this rotation better
+        glRotatef(rotation.x(), 1.0, 0.0, 0.0);
+        glRotatef(rotation.y(), 0.0, 1.0, 0.0);
+        glTranslatef(-rotationPoint.x(),-rotationPoint.y(),-rotationPoint.z());
 
-    /*
-    // Draw x, y and z axis
-    glBegin(GL_LINES);
-    glColor3f(1.0,0.0,0.0);
-    glVertex3f(0.0,0.0,0.0);
-    glVertex3f(1000.0,0.0,0.0);
-    glColor3f(0.0,1.0,0.0);
-    glVertex3f(0.0,0.0,0.0);
-    glVertex3f(0.0,1000.0,0.0);
-    glColor3f(0.0,0.0,1.0);
-    glVertex3f(0.0,0.0,0.0);
-    glVertex3f(0.0,0.0,1000.0);
-    glEnd();
+        /*
+        // Draw x, y and z axis
+        glBegin(GL_LINES);
+        glColor3f(1.0,0.0,0.0);
+        glVertex3f(0.0,0.0,0.0);
+        glVertex3f(1000.0,0.0,0.0);
+        glColor3f(0.0,1.0,0.0);
+        glVertex3f(0.0,0.0,0.0);
+        glVertex3f(0.0,1000.0,0.0);
+        glColor3f(0.0,0.0,1.0);
+        glVertex3f(0.0,0.0,0.0);
+        glVertex3f(0.0,0.0,1000.0);
+        glEnd();
 
-    // Draw rotation point
-    glPointSize(10);
-    glBegin(GL_POINTS);
-    glVertex3f(rotationPoint.x(), rotationPoint.y(), rotationPoint.z());
-    glEnd();
-    */
+        // Draw rotation point
+        glPointSize(10);
+        glBegin(GL_POINTS);
+        glVertex3f(rotationPoint.x(), rotationPoint.y(), rotationPoint.z());
+        glEnd();
+        */
     }
 
     for(unsigned int i = 0; i < mRenderers.size(); i++) {
         mRenderers[i]->update();
+        glPushMatrix();
         mRenderers[i]->draw();
+        glPopMatrix();
     }
 }
 
@@ -232,6 +237,13 @@ void View::resizeGL(int width, int height) {
 }
 
 void View::keyPressEvent(QKeyEvent* event) {
+    switch(event->key()) {
+        case Qt::Key_R:
+            // Set camera to original position and rotation
+            cameraPosition = originalCameraPosition;
+            rotation = Float2(0,0);
+            break;
+    }
     // Relay keyboard event info to renderers
     for(unsigned int i = 0; i < mRenderers.size(); i++) {
         mRenderers[i]->keyPressEvent(event);

@@ -102,6 +102,9 @@ void MetaImageImporter::execute() {
     unsigned int nrOfComponents = 1;
     Image::pointer output = mOutput;
 
+    Float3 spacing(1,1,1), offset, centerOfRotation;
+    Float<9> transformMatrix;
+
     do{
         std::getline(mhdFile, line);
         boost::trim(line);
@@ -173,11 +176,9 @@ void MetaImageImporter::execute() {
                 sizeZ = sizeString.substr(0,sizeString.find(" "));
             }
 
-            Float<3> spacing;
             spacing[0] = boost::lexical_cast<float>(sizeX.c_str());
             spacing[1] = boost::lexical_cast<float>(sizeY.c_str());
             spacing[2] = boost::lexical_cast<float>(sizeZ.c_str());
-            output->setSpacing(spacing);
         } else if(line.substr(0, 16) == "CenterOfRotation") {
             std::string sizeString = line.substr(16+3);
             boost::trim(sizeString);
@@ -187,11 +188,9 @@ void MetaImageImporter::execute() {
             sizeString = sizeString.substr(sizeString.find(" ")+1);
             std::string sizeZ = sizeString.substr(0,sizeString.find(" "));
 
-            Float<3> centerOfRotation;
             centerOfRotation[0] = boost::lexical_cast<float>(sizeX.c_str());
             centerOfRotation[1] = boost::lexical_cast<float>(sizeY.c_str());
             centerOfRotation[2] = boost::lexical_cast<float>(sizeZ.c_str());
-            output->setCenterOfRotation(centerOfRotation);
         } else if(line.substr(0, 6) == "Offset") {
             std::string sizeString = line.substr(6+3);
             boost::trim(sizeString);
@@ -201,11 +200,9 @@ void MetaImageImporter::execute() {
             sizeString = sizeString.substr(sizeString.find(" ")+1);
             std::string sizeZ = sizeString.substr(0,sizeString.find(" "));
 
-            Float<3> offset;
             offset[0] = boost::lexical_cast<float>(sizeX.c_str());
             offset[1] = boost::lexical_cast<float>(sizeY.c_str());
             offset[2] = boost::lexical_cast<float>(sizeZ.c_str());
-            output->setOffset(offset);
         } else if(line.substr(0, 15) == "TransformMatrix") {
             std::string string = line.substr(15+3);
             boost::trim(string);
@@ -214,11 +211,9 @@ void MetaImageImporter::execute() {
             if(values.size() != 9)
                 throw Exception("Encountered a transform matrix with incorrect number of elements in the MetaImageImporter");
 
-            Float<9> matrix;
             for(unsigned int i = 0; i < 9; i++) {
-                matrix[i] = boost::lexical_cast<float>(values[i].c_str());
+                transformMatrix[i] = boost::lexical_cast<float>(values[i].c_str());
             }
-            output->setTransformMatrix(matrix);
         }
 
     } while(!mhdFile.eof());
@@ -255,6 +250,11 @@ void MetaImageImporter::execute() {
     } else {
         output->create2DImage(width,height,type,nrOfComponents,mDevice,data);
     }
+
+    output->setOffset(offset);
+    output->setSpacing(spacing);
+    output->setCenterOfRotation(centerOfRotation);
+    output->setTransformMatrix(transformMatrix);
 
     // Clean up
     if(!mDevice->isHost()) {
