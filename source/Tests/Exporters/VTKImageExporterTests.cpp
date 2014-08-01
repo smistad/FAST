@@ -143,7 +143,7 @@ TEST_CASE("Export a 3D image from FAST to VTK", "[fast][VTK]") {
 TEST_CASE("Export an image from FAST to VTK and visualize", "[fast][VTK]") {
 
     ImageImporter::pointer importer = ImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "lena.jpg");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-2D.jpg");
     Image::pointer fastImage = importer->getOutput();
 
     // VTK Export and render example

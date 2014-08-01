@@ -48,7 +48,7 @@ int main(int argc, char ** argv) {
     /*
     // Example of importing, processing and exporting a 2D image
     ImageImporter::pointer importer = ImageImporter::New();
-    importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/lena.jpg");
+    importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-2D.jpg");
     GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
     filter->setInput(importer->getOutput());
     filter->setMaskSize(7);
