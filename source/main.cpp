@@ -55,8 +55,10 @@ int main(int argc, char ** argv) {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_0.mhd");
     SliceRenderer::pointer renderer = SliceRenderer::New();
+    renderer->setSlicePlane(PLANE_Z);
     renderer->setInput(importer->getOutput());
     SimpleWindow::pointer window = SimpleWindow::New();
+    window->set2DMode();
     window->addRenderer(renderer);
     window->runMainLoop();
 

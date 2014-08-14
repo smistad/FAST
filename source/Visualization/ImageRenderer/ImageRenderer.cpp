@@ -151,6 +151,7 @@ ImageRenderer::ImageRenderer() : Renderer() {
     mDevice = DeviceManager::getInstance().getDefaultVisualizationDevice();
     mTextureIsCreated = false;
     mIsModified = true;
+    mDoTransformations = true;
     mScale = 1.0f;
     mWidth = 0;
     mHeight = 0;
@@ -201,4 +202,8 @@ void ImageRenderer::keyPressEvent(QKeyEvent* event) {
         glViewport(0,0,mWidth*mScale,mHeight*mScale);
         break;
     }
+}
+
+void ImageRenderer::turnOffTransformations() {
+    mDoTransformations = false;
 }

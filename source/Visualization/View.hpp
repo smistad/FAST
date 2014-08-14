@@ -20,6 +20,8 @@ class View : public QGLWidget, public ProcessObject {
         void mouseReleaseEvent(QMouseEvent* event);
         void wheelEvent(QWheelEvent* event);
         void setMaximumFramerate(unsigned int framerate);
+        void set2DMode();
+        void set3DMode();
     private:
         View();
         std::vector<Renderer::pointer> mRenderers;
