@@ -208,6 +208,7 @@ SliceRenderer::SliceRenderer() : Renderer() {
     mSlicePlane = PLANE_Z;
     mSliceNr = -1;
     mScale = 1.0;
+    mDoTransformations = true;
 }
 
 void SliceRenderer::draw() {
@@ -216,18 +217,20 @@ void SliceRenderer::draw() {
 
     //setOpenGLContext(mDevice->getGLContext());
 
-    SceneGraph& graph = SceneGraph::getInstance();
-    SceneGraphNode::pointer node = graph.getDataNode(mImageToRender);
-    LinearTransformation transform = graph.getLinearTransformationFromNode(node);
+    if(mDoTransformations) {
+        SceneGraph& graph = SceneGraph::getInstance();
+        SceneGraphNode::pointer node = graph.getDataNode(mImageToRender);
+        LinearTransformation transform = graph.getLinearTransformationFromNode(node);
 
-    float matrix[16] = {
-            transform(0,0), transform(1,0), transform(2,0), transform(3,0),
-            transform(0,1), transform(1,1), transform(2,1), transform(3,1),
-            transform(0,2), transform(1,2), transform(2,2), transform(3,2),
-            transform(0,3), transform(1,3), transform(2,3), transform(3,3)
-    };
+        float matrix[16] = {
+                transform(0,0), transform(1,0), transform(2,0), transform(3,0),
+                transform(0,1), transform(1,1), transform(2,1), transform(3,1),
+                transform(0,2), transform(1,2), transform(2,2), transform(3,2),
+                transform(0,3), transform(1,3), transform(2,3), transform(3,3)
+        };
 
-    glMultMatrixf(matrix);
+        glMultMatrixf(matrix);
+    }
 
     glBindTexture(GL_TEXTURE_2D, mTexture);
 
@@ -282,14 +285,7 @@ void SliceRenderer::setSlicePlane(PlaneType plane) {
 }
 
 BoundingBox SliceRenderer::getBoundingBox() {
-    SceneGraph& graph = SceneGraph::getInstance();
-    SceneGraphNode::pointer node;
-    if(mInput->isDynamicData()) {
-        node = graph.getDataNode(DynamicImage::pointer(mInput)->getCurrentFrame());
-    } else {
-        node = graph.getDataNode(mInput);
-    }
-    LinearTransformation transform = graph.getLinearTransformationFromNode(node);
+
     BoundingBox inputBoundingBox = mInput->getBoundingBox();
     Vector<Float3, 8> corners = inputBoundingBox.getCorners();
     // Shrink bounding box so that it covers the slice and not the entire data
@@ -308,6 +304,22 @@ BoundingBox SliceRenderer::getBoundingBox() {
             break;
     }
     BoundingBox shrinkedBox(corners);
-    BoundingBox transformedBoundingBox = shrinkedBox.getTransformedBoundingBox(transform);
-    return transformedBoundingBox;
+    if(mDoTransformations) {
+        SceneGraph& graph = SceneGraph::getInstance();
+        SceneGraphNode::pointer node;
+        if(mInput->isDynamicData()) {
+            node = graph.getDataNode(DynamicImage::pointer(mInput)->getCurrentFrame());
+        } else {
+            node = graph.getDataNode(mInput);
+        }
+        LinearTransformation transform = graph.getLinearTransformationFromNode(node);
+        BoundingBox transformedBoundingBox = shrinkedBox.getTransformedBoundingBox(transform);
+        return transformedBoundingBox;
+    } else {
+        return shrinkedBox;
+    }
+}
+
+void SliceRenderer::turnOffTransformations() {
+    mDoTransformations = false;
 }

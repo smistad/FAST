@@ -1,6 +1,7 @@
 #include "View.hpp"
 #include "Exception.hpp"
 #include "DeviceManager.hpp"
+#include "SliceRenderer.hpp"
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
@@ -30,7 +31,8 @@ View::View() {
     zNear = 0.1;
     zFar = 1000;
     fieldOfViewY = 45;
-    mIsIn2DMode = false;
+    mIsIn2DMode = true;
+    mScale2D = 1.0f;
     mLeftMouseButtonIsPressed = false;
     mMiddleMouseButtonIsPressed = false;
 
@@ -73,10 +75,119 @@ void View::initializeGL() {
     glViewport(0, 0, this->width(), this->height());
 
     if(mIsIn2DMode) {
-        gluOrtho2D(0,1,0,1);
         glEnable(GL_TEXTURE_2D);
 
+        if(mRenderers.size() > 1)
+            throw Exception("The 2D mode is currently only able to use one renderer");
+
         // Have to find out rotation and scaling so to fit into the box
+        // Get bounding boxes of all objects
+        Float3 min, max;
+        Float3 centroid;
+        SliceRenderer::pointer sliceRenderer = mRenderers[0];
+        sliceRenderer->turnOffTransformations();
+        BoundingBox box = sliceRenderer->getBoundingBox();
+        Float3 corner = box.getCorners()[0];
+        min[0] = corner[0];
+        max[0] = corner[0];
+        min[1] = corner[1];
+        max[1] = corner[1];
+        min[2] = corner[2];
+        max[2] = corner[2];
+        for(int i = 0; i < mRenderers.size(); i++) {
+            // Apply transformation to all b boxes
+            // Get max and min of x and y coordinates of the transformed b boxes
+            // Calculate centroid of all b boxes
+
+            BoundingBox box =  mRenderers[i]->getBoundingBox();
+            std::cout << box << std::endl;
+            Vector<Float3, 8> corners = box.getCorners();
+
+            for(int j = 0; j < 8; j++) {
+                for(uint k = 0; k < 3; k++) {
+                    if(corners[j][k] < min[k])
+                        min[k] = corners[j][k];
+                    if(corners[j][k] > max[k])
+                        max[k] = corners[j][k];
+                }
+            }
+        }
+
+        // Calculate area of each side of the resulting bounding box
+        float area[3] = {
+                (max[0]-min[0])*(max[1]-min[1]), // XY plane
+                (max[1]-min[1])*(max[2]-min[2]), // YZ plane
+                (max[2]-min[2])*(max[0]-min[0])  // XZ plane
+        };
+        uint maxArea = 0;
+        for(uint i = 1; i < 3; i++) {
+            if(area[i] > area[maxArea])
+                maxArea = i;
+        }
+
+        // Find rotation needed
+        float angleX, angleY;
+        uint xDirection;
+        uint yDirection;
+        uint zDirection;
+        switch(maxArea) {
+            case 0:
+                xDirection = 0;
+                yDirection = 1;
+                zDirection = 2;
+                angleX = 0;
+                angleY = 0;
+                break;
+            case 1:
+                // Rotate 90 degres around Y axis
+                xDirection = 2;
+                yDirection = 1;
+                zDirection = 0;
+                angleX = 0;
+                angleY = 90;
+                break;
+            case 2:
+                // Rotate 90 degres around X axis
+                xDirection = 0;
+                yDirection = 2;
+                zDirection = 1;
+                angleX = 90;
+                angleY = 0;
+                break;
+        }
+
+        // Rotate object if needed
+        rotation[0] = angleX;
+        rotation[1] = angleY;
+
+        centroid[0] = max[0] - (max[0]-min[0])*0.5;
+        centroid[1] = max[1] - (max[1]-min[1])*0.5;
+        centroid[2] = max[2] - (max[2]-min[2])*0.5;
+
+        std::cout << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << std::endl;
+
+        // Initialize rotation point to centroid of object
+        rotationPoint = centroid;
+
+        std::cout << "rotation: " << angleX << " " << angleY << std::endl;
+        // Calculate initiali translation of camera
+        // Move centroid to z axis
+        cameraPosition[0] = 0;//-centroid.x();
+        cameraPosition[1] = 0;//-centroid.y();
+
+        // Calculate z distance from origo
+        cameraPosition[2] = -centroid.z();
+        mMinX2D = min[0];
+        mMaxX2D = max[0];
+        mMinY2D = min[1];
+        mMaxY2D = max[1];
+        mPosX2D = (max[0]-min[0])*0.5;
+        mPosY2D = (max[1]-min[1])*0.5;
+        gluOrtho2D(min[0],max[0],min[1],max[1]);
+
+        originalCameraPosition = cameraPosition;
+
+        std::cout << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << std::endl;
 
     } else {
         aspect = (float)this->width() / this->height();
@@ -200,6 +311,8 @@ void View::paintGL() {
 
     if(mIsIn2DMode) {
 
+        // Apply camera movement
+        glTranslatef(cameraPosition.x(), cameraPosition.y(), cameraPosition.z());
     } else {
         // Create headlight
         glEnable(GL_LIGHT0);
@@ -274,10 +387,11 @@ void View::resizeGL(int width, int height) {
     setOpenGLContext(OpenCLDevice::pointer(DeviceManager::getInstance().getDefaultVisualizationDevice())->getGLContext());
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glViewport(0, 0, width, height);
     if(mIsIn2DMode) {
-
+        glViewport(mPosX2D, mPosY2D, (mMaxX2D-mMinX2D)*mScale2D, (mMaxY2D-mMinY2D)*mScale2D);
+        gluOrtho2D(mMinX2D, mMaxX2D, mMinY2D, mMaxY2D);
     } else {
+        glViewport(0, 0, width, height);
         aspect = (float)width/height;
         fieldOfViewX = aspect*fieldOfViewY;
         gluPerspective(fieldOfViewY, aspect, zNear, zFar);
@@ -301,15 +415,23 @@ void View::keyPressEvent(QKeyEvent* event) {
 void View::mouseMoveEvent(QMouseEvent* event) {
 
     if(mMiddleMouseButtonIsPressed) {
-        float deltaX = event->x() - previousX;
-        float deltaY = event->y() - previousY;
+        if(mIsIn2DMode) {
+            float deltaX = event->x() - previousX;
+            float deltaY = event->y() - previousY;
+            mPosX2D += deltaX;
+            mPosY2D -= deltaY;
+            glViewport(mPosX2D, mPosY2D, (mMaxX2D-mMinX2D)*mScale2D, (mMaxY2D-mMinY2D)*mScale2D);
+        } else {
+            float deltaX = event->x() - previousX;
+            float deltaY = event->y() - previousY;
 
-        float viewportWidth = tan((fieldOfViewX*M_PI/180)*0.5) * (-cameraPosition.z()) * 2;
-        float viewportHeight = tan((fieldOfViewY*M_PI/180)*0.5) * (-cameraPosition.z()) * 2;
-        float actualMovementX = (deltaX * (viewportWidth/width()));
-        float actualMovementY = (deltaY * (viewportHeight/height()));
-        cameraPosition[0] += actualMovementX;
-        cameraPosition[1] -= actualMovementY;
+            float viewportWidth = tan((fieldOfViewX*M_PI/180)*0.5) * (-cameraPosition.z()) * 2;
+            float viewportHeight = tan((fieldOfViewY*M_PI/180)*0.5) * (-cameraPosition.z()) * 2;
+            float actualMovementX = (deltaX * (viewportWidth/width()));
+            float actualMovementY = (deltaY * (viewportHeight/height()));
+            cameraPosition[0] += actualMovementX;
+            cameraPosition[1] -= actualMovementY;
+        }
         previousX = event->x();
         previousY = event->y();
     } else if(mLeftMouseButtonIsPressed) {
@@ -347,10 +469,19 @@ void View::mousePressEvent(QMouseEvent* event) {
 }
 
 void View::wheelEvent(QWheelEvent* event) {
-    if(event->delta() > 0) {
-        cameraPosition[2] += 10;
-    } else if(event->delta() < 0) {
-        cameraPosition[2] += -10;
+    if(mIsIn2DMode) {
+        if(event->delta() > 0) {
+            mScale2D += 0.1;
+        } else if(event->delta() < 0) {
+            mScale2D -= 0.1;
+        }
+        glViewport(mPosX2D, mPosY2D, (mMaxX2D-mMinX2D)*mScale2D, (mMaxY2D-mMinY2D)*mScale2D);
+    } else {
+        if(event->delta() > 0) {
+            cameraPosition[2] += 10;
+        } else if(event->delta() < 0) {
+            cameraPosition[2] += -10;
+        }
     }
 }
 

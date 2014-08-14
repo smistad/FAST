@@ -15,6 +15,7 @@ class SliceRenderer : public Renderer {
         void setSliceToRender(unsigned int sliceNr);
         void setSlicePlane(PlaneType plane);
         BoundingBox getBoundingBox();
+        void turnOffTransformations();
     private:
         SliceRenderer();
         void execute();
@@ -41,6 +42,8 @@ class SliceRenderer : public Renderer {
         float mScale;
         unsigned int mWidth;
         unsigned int mHeight;
+
+        bool mDoTransformations;
 };
 
 }

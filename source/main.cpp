@@ -24,6 +24,7 @@ int main(int argc, char ** argv) {
     //DeviceManager& deviceManager = DeviceManager::getInstance();
     //deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(true));
 
+    /*
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_0.mhd");
     Image::pointer image = importer->getOutput();
@@ -49,6 +50,16 @@ int main(int argc, char ** argv) {
     window->addRenderer(sliceRenderer);
     window->addRenderer(sliceRenderer2);
     window->runMainLoop();
+    */
+
+    MetaImageImporter::pointer importer = MetaImageImporter::New();
+    importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_0.mhd");
+    SliceRenderer::pointer renderer = SliceRenderer::New();
+    renderer->setInput(importer->getOutput());
+    SimpleWindow::pointer window = SimpleWindow::New();
+    window->addRenderer(renderer);
+    window->runMainLoop();
+
 
     /*
     MetaImageStreamer::pointer importer = MetaImageStreamer::New();
