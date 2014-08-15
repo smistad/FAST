@@ -193,8 +193,8 @@ void View::initializeGL() {
         mMaxX2D = rotationPoint[0] + (max[xDirection]-min[xDirection])*0.5;
         mMinY2D = rotationPoint[1] - (max[yDirection]-min[yDirection])*0.5;
         mMaxY2D = rotationPoint[1] + (max[yDirection]-min[yDirection])*0.5;
-        mPosX2D = (max[xDirection]-min[xDirection])*0.5;
-        mPosY2D = (max[yDirection]-min[yDirection])*0.5;
+        mPosX2D = 0;
+        mPosY2D = 0;
 
         std::cout << "min x: " << mMinX2D << std::endl;
         std::cout << "max x: " << mMaxX2D << std::endl;
@@ -412,7 +412,7 @@ void View::resizeGL(int width, int height) {
     glLoadIdentity();
     if(mIsIn2DMode) {
         glViewport(mPosX2D, mPosY2D, (mMaxX2D-mMinX2D)*mScale2D, (mMaxY2D-mMinY2D)*mScale2D);
-        glOrtho(mMinX2D, mMaxX2D, mMinY2D, mMaxY2D,-100,100);
+        glOrtho(mMinX2D, mMaxX2D, mMinY2D, mMaxY2D,-1,1);
     } else {
         glViewport(0, 0, width, height);
         aspect = (float)width/height;

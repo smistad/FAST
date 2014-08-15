@@ -62,6 +62,16 @@ int main(int argc, char ** argv) {
     window->addRenderer(renderer);
     window->runMainLoop();
 
+    ImageImporter::pointer importer2 = ImageImporter::New();
+    importer2->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-2D.jpg");
+    ImageRenderer::pointer renderer2 = ImageRenderer::New();
+    renderer2->setInput(importer2->getOutput());
+    SimpleWindow::pointer window2 = SimpleWindow::New();
+    window2->set2DMode();
+    window2->addRenderer(renderer2);
+    window2->runMainLoop();
+
+
 
     /*
     MetaImageStreamer::pointer importer = MetaImageStreamer::New();
