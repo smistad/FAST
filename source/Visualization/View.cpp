@@ -74,9 +74,10 @@ void View::initializeGL() {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glViewport(0, 0, this->width(), this->height());
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_TEXTURE_2D);
 
     if(mIsIn2DMode) {
-        glEnable(GL_TEXTURE_2D);
 
         if(mRenderers.size() > 1)
             throw Exception("The 2D mode is currently only able to use one renderer");
@@ -185,14 +186,20 @@ void View::initializeGL() {
         cameraPosition[0] = 0;//-centroid.x();
         cameraPosition[1] = 0;//-centroid.y();
 
+
         // Calculate z distance from origo
-        cameraPosition[2] = -centroid[zDirection];
-        mMinX2D = min[xDirection];
-        mMaxX2D = max[xDirection];
-        mMinY2D = min[yDirection];
-        mMaxY2D = max[yDirection];
+        cameraPosition[2] = -centroid[2];
+        mMinX2D = rotationPoint[0] - (max[xDirection]-min[xDirection])*0.5;
+        mMaxX2D = rotationPoint[0] + (max[xDirection]-min[xDirection])*0.5;
+        mMinY2D = rotationPoint[1] - (max[yDirection]-min[yDirection])*0.5;
+        mMaxY2D = rotationPoint[1] + (max[yDirection]-min[yDirection])*0.5;
         mPosX2D = (max[xDirection]-min[xDirection])*0.5;
         mPosY2D = (max[yDirection]-min[yDirection])*0.5;
+
+        std::cout << "min x: " << mMinX2D << std::endl;
+        std::cout << "max x: " << mMaxX2D << std::endl;
+        std::cout << "min y: " << mMinY2D << std::endl;
+        std::cout << "max y: " << mMaxY2D << std::endl;
 
         originalCameraPosition = cameraPosition;
 
@@ -203,8 +210,6 @@ void View::initializeGL() {
         aspect = (float)this->width() / this->height();
         fieldOfViewX = aspect*fieldOfViewY;
         gluPerspective(fieldOfViewY, aspect, zNear, zFar);
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_TEXTURE_2D);
 
 
         // Initialize camera
@@ -324,6 +329,7 @@ void View::paintGL() {
         // Apply camera movement
         glTranslatef(cameraPosition.x(), cameraPosition.y(), cameraPosition.z());
 
+        //std::cout << "rotation point: " << rotationPoint.x() << " " << rotationPoint.y() << " " << rotationPoint.z() << std::endl;
         // Apply global rotation
         glTranslatef(rotationPoint.x(),rotationPoint.y(),rotationPoint.z());
         // TODO make this rotation better
@@ -406,7 +412,7 @@ void View::resizeGL(int width, int height) {
     glLoadIdentity();
     if(mIsIn2DMode) {
         glViewport(mPosX2D, mPosY2D, (mMaxX2D-mMinX2D)*mScale2D, (mMaxY2D-mMinY2D)*mScale2D);
-        gluOrtho2D(mMinX2D, mMaxX2D, mMinY2D, mMaxY2D);
+        glOrtho(mMinX2D, mMaxX2D, mMinY2D, mMaxY2D,-100,100);
     } else {
         glViewport(0, 0, width, height);
         aspect = (float)width/height;
@@ -451,7 +457,7 @@ void View::mouseMoveEvent(QMouseEvent* event) {
         }
         previousX = event->x();
         previousY = event->y();
-    } else if(mLeftMouseButtonIsPressed) {
+    } else if(mLeftMouseButtonIsPressed && !mIsIn2DMode) {
         int cx = width()/2;
         int cy = height()/2;
 
