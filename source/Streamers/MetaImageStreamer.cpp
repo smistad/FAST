@@ -42,6 +42,7 @@ void MetaImageStreamer::execute() {
     // Wait here for first frame
     // TODO use condition variable instead
     while(!mFirstFrameIsInserted);
+    std::cout << "A frame has been inserted into the stream" << std::endl;
 }
 
 void MetaImageStreamer::setFilenameFormat(std::string str) {

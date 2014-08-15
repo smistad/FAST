@@ -286,7 +286,7 @@ void SliceRenderer::setSlicePlane(PlaneType plane) {
 
 BoundingBox SliceRenderer::getBoundingBox() {
 
-    BoundingBox inputBoundingBox = mInput->getBoundingBox();
+    BoundingBox inputBoundingBox = mImageToRender->getBoundingBox();
     Vector<Float3, 8> corners = inputBoundingBox.getCorners();
     // Shrink bounding box so that it covers the slice and not the entire data
     switch(mSlicePlane) {
@@ -307,11 +307,7 @@ BoundingBox SliceRenderer::getBoundingBox() {
     if(mDoTransformations) {
         SceneGraph& graph = SceneGraph::getInstance();
         SceneGraphNode::pointer node;
-        if(mInput->isDynamicData()) {
-            node = graph.getDataNode(DynamicImage::pointer(mInput)->getCurrentFrame());
-        } else {
-            node = graph.getDataNode(mInput);
-        }
+        node = graph.getDataNode(mImageToRender);
         LinearTransformation transform = graph.getLinearTransformationFromNode(node);
         BoundingBox transformedBoundingBox = shrinkedBox.getTransformedBoundingBox(transform);
         return transformedBoundingBox;

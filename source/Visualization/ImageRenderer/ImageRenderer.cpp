@@ -206,15 +206,10 @@ void ImageRenderer::turnOffTransformations() {
 }
 
 BoundingBox ImageRenderer::getBoundingBox() {
-    BoundingBox inputBoundingBox = mInput->getBoundingBox();
+    BoundingBox inputBoundingBox = mImageToRender->getBoundingBox();
     if(mDoTransformations) {
         SceneGraph& graph = SceneGraph::getInstance();
-        SceneGraphNode::pointer node;
-        if(mInput->isDynamicData()) {
-            node = graph.getDataNode(DynamicImage::pointer(mInput)->getCurrentFrame());
-        } else {
-            node = graph.getDataNode(mInput);
-        }
+        SceneGraphNode::pointer node = graph.getDataNode(mImageToRender);
         LinearTransformation transform = graph.getLinearTransformationFromNode(node);
         BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
         return transformedBoundingBox;

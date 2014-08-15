@@ -49,10 +49,16 @@ Image::pointer DynamicImage::getNextFrame() {
 }
 
 Image::pointer DynamicImage::getCurrentFrame() {
-    if(mFrames.size() == 0) {
-        throw Exception("Streamer has reached the end.");
-    }
     mStreamMutex.lock();
+    if(mFrames.size() == 0 || mFrames.size() <= mCurrentFrame) {
+        if(mStreamer.lock()->hasReachedEnd()) {
+            mStreamMutex.unlock();
+            throw Exception("Streamer has reached the end.");
+        } else {
+            mStreamMutex.unlock();
+            throw Exception("This exception should not have occured. ");
+        }
+    }
     Image::pointer ret = mFrames[mCurrentFrame];
     mStreamMutex.unlock();
     return ret;
