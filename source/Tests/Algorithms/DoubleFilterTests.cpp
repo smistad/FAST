@@ -6,7 +6,7 @@ using namespace fast;
 
 TEST_CASE("DoubleFilter on OpenCL device", "[fast][DoubleFilter]") {
     ImageImporter::pointer importer = ImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"lena.jpg");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US-2D.jpg");
     Image::pointer input = importer->getOutput();
 
     DoubleFilter::pointer filter = DoubleFilter::New();
@@ -31,7 +31,7 @@ TEST_CASE("DoubleFilter on OpenCL device", "[fast][DoubleFilter]") {
 
 TEST_CASE("DoubleFilter on Host", "[fast][DoubleFilter]") {
     ImageImporter::pointer importer = ImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"lena.jpg");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US-2D.jpg");
     Image::pointer input = importer->getOutput();
 
     DoubleFilter::pointer filter = DoubleFilter::New();

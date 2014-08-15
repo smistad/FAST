@@ -8,7 +8,7 @@ using namespace fast;
 // TODO rewrite this test so that it doesn't use the vtk exporter
 TEST_CASE("Import an image from VTK to FAST", "[fast][VTK]") {
     ImageImporter::pointer importer = ImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "lena.jpg");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-2D.jpg");
     Image::pointer fastImage = importer->getOutput();
 
     // VTK Export

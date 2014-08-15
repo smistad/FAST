@@ -17,7 +17,7 @@ TEST_CASE("Import non-existing file to ImageImporter", "[fast][ImageImporter]") 
 
 TEST_CASE("Import Image file to host", "[fast][ImageImporter]") {
     ImageImporter::pointer importer = ImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "lena.jpg");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-2D.jpg");
     importer->setDevice(Host::New());
     Image::pointer image = importer->getOutput();
     image->update();
@@ -35,7 +35,7 @@ TEST_CASE("Import Image file to OpenCL device", "[fast][MetaImageImporter]") {
     OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
 
     ImageImporter::pointer importer = ImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "lena.jpg");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-2D.jpg");
     importer->setDevice(device);
     Image::pointer image = importer->getOutput();
     image->update();

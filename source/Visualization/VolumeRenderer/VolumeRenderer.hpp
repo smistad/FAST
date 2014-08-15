@@ -1,9 +1,13 @@
 #ifndef VOLUMERENDERER_HPP_
 #define VOLUMERENDERER_HPP_
 
+#define maxNumberOfVolumes 5
+
 #include "Renderer.hpp"
 #include "ImageData.hpp"
 #include "Image.hpp"
+#include "ColorTransferFunction.hpp"
+#include "OpacityTransferFunction.hpp"
 
 namespace fast {
 
@@ -11,6 +15,8 @@ class VolumeRenderer : public Renderer {
     FAST_OBJECT(VolumeRenderer)
     public:
         void addInput(ImageData::pointer image);
+		void setColorTransferFunction(int volumeIndex, ColorTransferFunction::pointer ctf);
+		void setOpacityTransferFunction(int volumeIndex, OpacityTransferFunction::pointer otf);
         //void setThreshold(float threshold);
         void keyPressEvent(QKeyEvent* event);
         void mouseMoveEvent(QMouseEvent* event, View* view);
@@ -31,7 +37,7 @@ class VolumeRenderer : public Renderer {
         //unsigned int windowWidth, windowHeight;
 
         cl::Program program;
-
+		cl::Context clContext;
 
         unsigned int mWidth, mHeight;
 
@@ -39,7 +45,8 @@ class VolumeRenderer : public Renderer {
 		GLuint pbo;
 		cl::BufferGL pbo_cl;
 		cl::Sampler volumeSamplerLinear;
-		cl::Image2D d_transferFuncArray;
+		cl::Image2D d_transferFuncArray[maxNumberOfVolumes];
+		cl::Image2D d_opacityFuncArray[maxNumberOfVolumes];
 		cl::Sampler transferFuncSampler;
 		cl::Buffer d_invViewMatrix;
 		float invViewMatrix[12];
@@ -58,7 +65,11 @@ class VolumeRenderer : public Renderer {
 
 		std::vector<ImageData::pointer> mInputs;
 		std::vector<Image::pointer> inputs;
-		static const unsigned int maxNumberOfVolumes=5;
+
+		
+
+		float* transferFunc;
+		float* opacityFunc;
 };
 
 } // namespace fast

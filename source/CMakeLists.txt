@@ -88,6 +88,10 @@ set(SOURCES
     Visualization/SurfaceRenderer/SurfaceRenderer.hpp
     Visualization/VolumeRenderer/VolumeRenderer.cpp
     Visualization/VolumeRenderer/VolumeRenderer.hpp
+    Visualization/VolumeRenderer/ColorTransferFunction.cpp
+    Visualization/VolumeRenderer/ColorTransferFunction.hpp
+    Visualization/VolumeRenderer/OpacityTransferFunction.cpp
+    Visualization/VolumeRenderer/OpacityTransferFunction.hpp
 )
 
 if(VTK_INTEROP)

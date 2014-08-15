@@ -8,7 +8,7 @@ using namespace fast;
 
 TEST_CASE("ImageRenderer with single 2D image", "[fast][ImageRenderer]") {
     ImageImporter::pointer importer = ImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"lena.jpg");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US-2D.jpg");
     CHECK_NOTHROW(
         ImageRenderer::pointer renderer = ImageRenderer::New();
         renderer->setInput(importer->getOutput());

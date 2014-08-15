@@ -10,14 +10,13 @@ namespace fast {
 
 TEST_CASE("2D Seeded region growing on OpenCL device", "[fast][SeededRegionGrowing]") {
     ImageImporter::pointer importer = ImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "lena.jpg");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-2D.jpg");
     
     SeededRegionGrowing::pointer algorithm = SeededRegionGrowing::New();
     algorithm->setInput(importer->getOutput());
-    algorithm->addSeedPoint(200,200);
-    algorithm->addSeedPoint(100,100);
-    algorithm->addSeedPoint(300,300);
-    algorithm->setIntensityRange(0.3,0.7);
+    algorithm->addSeedPoint(45,248);
+    algorithm->addSeedPoint(321,181);
+    algorithm->setIntensityRange(0.1,1.0);
     Image::pointer result = algorithm->getOutput();
     result->update();
     
@@ -30,7 +29,7 @@ TEST_CASE("2D Seeded region growing on OpenCL device", "[fast][SeededRegionGrowi
         if(data[i] == 1)
             sum++;
     }
-    CHECK(181191 == sum);
+    CHECK(17893 == sum);
 }
 
 TEST_CASE("3D Seeded region growing on OpenCL device", "[fast][SeededRegionGrowing]") {

@@ -53,23 +53,28 @@ d_render(__global uint *d_output,
          __constant float* invViewMatrix
           ,__read_only image3d_t volume,
           __read_only image2d_t transferFunc,
+		  __read_only image2d_t opacityFunc,
           sampler_t volumeSampler,
           sampler_t transferFuncSampler
 #if defined(VOL2) || defined(VOL3) || defined(VOL4) || defined(VOL5)
 		  ,__read_only image3d_t volume2
 		  ,__read_only image2d_t transferFunc2
+		  ,__read_only image2d_t opacityFunc2
 #endif
 #if defined(VOL3) || defined(VOL4) || defined(VOL5)
 		  ,__read_only image3d_t volume3
 		  ,__read_only image2d_t transferFunc3
+		  ,__read_only image2d_t opacityFunc3
 #endif
 #if defined(VOL4) || defined(VOL5)
 		  ,__read_only image3d_t volume4
 		  ,__read_only image2d_t transferFunc4
+		  ,__read_only image2d_t opacityFunc4
 #endif
 #if defined(VOL5)
 		  ,__read_only image3d_t volume5
 		  ,__read_only image2d_t transferFunc5
+		  ,__read_only image2d_t opacityFunc5
 #endif
          )
 
@@ -128,7 +133,9 @@ d_render(__global uint *d_output,
 #endif
         // lookup in transfer function texture
         float2 transfer_pos = (float2)((sample-transferOffset)*transferScale, 0.5f);
-        float4 col = read_imagef(transferFunc, transferFuncSampler, transfer_pos);
+        float4 col =  read_imagef(transferFunc, transferFuncSampler, transfer_pos);
+		float4 alpha= read_imagef(opacityFunc, transferFuncSampler, transfer_pos);
+		col.w=alpha.w;
         // accumulate result
         float a = col.w*density;
         temp = mix(temp, col, (float4)(a, a, a, a));
@@ -148,7 +155,9 @@ d_render(__global uint *d_output,
 #endif
 
 			transfer_pos = (float2)((sample-transferOffset)*transferScale, 0.5f); //Mehdi
-			col = read_imagef(transferFunc, transferFuncSampler, transfer_pos); //Mehdi
+			col = read_imagef(transferFunc2, transferFuncSampler, transfer_pos); //Mehdi
+			float4 alpha= read_imagef(opacityFunc2, transferFuncSampler, transfer_pos);
+			col.w=alpha.w;
 			a = col.w*density; //Mehdi
 			temp = mix(temp, col, (float4)(a, a, a, a)); //Mehdi
 		}
@@ -169,7 +178,9 @@ d_render(__global uint *d_output,
 #endif
 
 			transfer_pos = (float2)((sample-transferOffset)*transferScale, 0.5f); //Mehdi
-			col = read_imagef(transferFunc, transferFuncSampler, transfer_pos); //Mehdi
+			col = read_imagef(transferFunc3, transferFuncSampler, transfer_pos); //Mehdi
+			float4 alpha= read_imagef(opacityFunc3, transferFuncSampler, transfer_pos);
+			col.w=alpha.w;
 			a = col.w*density; //Mehdi
 			temp = mix(temp, col, (float4)(a, a, a, a)); //Mehdi
 		}
@@ -190,7 +201,9 @@ d_render(__global uint *d_output,
 #endif
 
 			transfer_pos = (float2)((sample-transferOffset)*transferScale, 0.5f); //Mehdi
-			col = read_imagef(transferFunc, transferFuncSampler, transfer_pos); //Mehdi
+			col = read_imagef(transferFunc4, transferFuncSampler, transfer_pos); //Mehdi
+			float4 alpha= read_imagef(opacityFunc4, transferFuncSampler, transfer_pos);
+			col.w=alpha.w;
 			a = col.w*density; //Mehdi
 			temp = mix(temp, col, (float4)(a, a, a, a)); //Mehdi
 		}
@@ -211,7 +224,9 @@ d_render(__global uint *d_output,
 #endif
 
 			transfer_pos = (float2)((sample-transferOffset)*transferScale, 0.5f); //Mehdi
-			col = read_imagef(transferFunc, transferFuncSampler, transfer_pos); //Mehdi
+			col = read_imagef(transferFunc5, transferFuncSampler, transfer_pos); //Mehdi
+			float4 alpha= read_imagef(opacityFunc5, transferFuncSampler, transfer_pos);
+			col.w=alpha.w;
 			a = col.w*density; //Mehdi
 			temp = mix(temp, col, (float4)(a, a, a, a)); //Mehdi
 		}		
