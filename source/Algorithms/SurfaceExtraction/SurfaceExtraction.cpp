@@ -1,7 +1,6 @@
 #include "SurfaceExtraction.hpp"
 #include "DeviceManager.hpp"
 #include "Image.hpp"
-#include "DynamicImage.hpp"
 #include "Utility.hpp"
 #include "HelperFunctions.hpp"
 #include "SceneGraph.hpp"

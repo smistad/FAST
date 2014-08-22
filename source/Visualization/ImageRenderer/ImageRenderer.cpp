@@ -3,7 +3,6 @@
 #include "DeviceManager.hpp"
 #include "HelperFunctions.hpp"
 #include "Image.hpp"
-#include "DynamicImage.hpp"
 #include "SceneGraph.hpp"
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>

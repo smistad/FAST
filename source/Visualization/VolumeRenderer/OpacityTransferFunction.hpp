@@ -2,7 +2,6 @@
 #define OPACITYTRANSFERFUNCTION_HPP_
 
 //#include "Renderer.hpp"
-#include "ImageData.hpp"
 #include "Image.hpp"
 #include "Object.hpp"
 

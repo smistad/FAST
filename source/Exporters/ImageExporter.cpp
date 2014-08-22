@@ -2,7 +2,6 @@
 #include <QImage>
 #include "Exception.hpp"
 #include "Utility.hpp"
-#include "DynamicImage.hpp"
 #include "Image.hpp"
 
 namespace fast {

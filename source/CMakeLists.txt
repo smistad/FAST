@@ -33,10 +33,7 @@ set(SOURCES
     Data/BoundingBox.hpp
     Data/DataObject.cpp
     Data/DataObject.hpp
-    Data/ImageData.cpp
-    Data/ImageData.hpp
-    Data/DynamicImage.cpp
-    Data/DynamicImage.hpp
+    Data/DynamicData.hpp
     Data/Image.cpp
     Data/Image.hpp
     Data/DataTypes.cpp

@@ -2,6 +2,7 @@
 #define SURFACE_HPP_
 
 #include "DataObject.hpp"
+#include "DynamicData.hpp"
 #include "Access.hpp"
 #include <vector>
 #include "DataTypes.hpp"
@@ -10,7 +11,13 @@
 
 namespace fast {
 
-class Surface : public DataObject {
+class SurfaceData : public virtual DataObject {
+    public:
+        typedef SharedPointer<SurfaceData> pointer;
+        virtual ~SurfaceData() {};
+};
+
+class Surface : public SurfaceData {
     FAST_OBJECT(Surface)
     public:
         void create(std::vector<Float<3> > vertices, std::vector<Float<3> > normals, std::vector<Uint<3> > triangles);
@@ -43,6 +50,10 @@ class Surface : public DataObject {
 
         bool mSurfaceIsBeingWrittenTo;
         bool isAnyDataBeingAccessed();
+};
+
+class DynamicSurface : public SurfaceData, public DynamicData<Surface> {
+    FAST_OBJECT(DynamicSurface)
 };
 
 } // end namespace fast

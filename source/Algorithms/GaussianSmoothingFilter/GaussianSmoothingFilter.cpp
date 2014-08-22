@@ -2,7 +2,6 @@
 #include "Exception.hpp"
 #include "DeviceManager.hpp"
 #include "Image.hpp"
-#include "DynamicImage.hpp"
 using namespace fast;
 
 void GaussianSmoothingFilter::setInput(ImageData::pointer input) {

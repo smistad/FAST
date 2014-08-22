@@ -1,7 +1,6 @@
 #include <GL/glew.h>
 #include "SurfaceRenderer.hpp"
 #include "Image.hpp"
-#include "DynamicImage.hpp"
 #include "HelperFunctions.hpp"
 #include "DeviceManager.hpp"
 #include "View.hpp"

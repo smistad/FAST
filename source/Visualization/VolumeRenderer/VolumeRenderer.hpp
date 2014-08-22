@@ -4,7 +4,6 @@
 #define maxNumberOfVolumes 5
 
 #include "Renderer.hpp"
-#include "ImageData.hpp"
 #include "Image.hpp"
 #include "ColorTransferFunction.hpp"
 #include "OpacityTransferFunction.hpp"

@@ -11,7 +11,7 @@ namespace fast {
 
 class DataObject : public Object {
     public:
-        DataObject() : mTimestampModified(0) {};
+        DataObject() : mTimestampModified(0),mIsDynamicData(false) {};
         typedef SharedPointer<DataObject> pointer;
         void update();
         void setSource(Object::pointer source);
@@ -21,10 +21,12 @@ class DataObject : public Object {
         void release(ExecutionDevice::pointer device);
         BoundingBox getBoundingBox() const;
         virtual ~DataObject() { };
+        bool isDynamicData();
     protected:
         virtual void free(ExecutionDevice::pointer device) = 0;
         virtual void freeAll() = 0;
         BoundingBox mBoundingBox;
+        bool mIsDynamicData;
     private:
         boost::unordered_map<ExecutionDevice::pointer, unsigned int> mReferenceCount;
         // The souce object is the process object that created this data object

@@ -1,5 +1,4 @@
 #include "SeededRegionGrowing.hpp"
-#include "DynamicImage.hpp"
 #include "DeviceManager.hpp"
 
 namespace fast {

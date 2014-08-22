@@ -1,7 +1,7 @@
 #ifndef IMAGE2D_HPP
 #define IMAGE2D_HPP
 
-#include "ImageData.hpp"
+#include "DynamicData.hpp"
 #include "DataTypes.hpp"
 #include "SmartPointers.hpp"
 #include "OpenCLManager.hpp"
@@ -14,7 +14,13 @@
 #include <boost/unordered_set.hpp>
 namespace fast {
 
-class Image: public ImageData {
+class ImageData : public virtual DataObject {
+    public:
+        typedef SharedPointer<ImageData> pointer;
+        virtual ~ImageData() {};
+};
+
+class Image : public ImageData {
     FAST_OBJECT(Image)
     public:
         void createFromImage(Image::pointer image, ExecutionDevice::pointer device);
@@ -101,6 +107,10 @@ class Image: public ImageData {
         unsigned long mMaxMinTimestamp;
         bool mMaxMinInitialized;
         void calculateMaxAndMinIntensity();
+};
+
+class DynamicImage : public ImageData, public DynamicData<Image> {
+    FAST_OBJECT(DynamicImage)
 };
 
 } // end namespace fast

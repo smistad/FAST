@@ -3,6 +3,10 @@
 #include "SceneGraph.hpp"
 using namespace fast;
 
+bool DataObject::isDynamicData() {
+    return mIsDynamicData;
+}
+
 void DataObject::update() {
     if(mSourceObject.lock().isValid()) {
         ProcessObject::pointer object = mSourceObject.lock();
