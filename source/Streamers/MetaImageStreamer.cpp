@@ -42,6 +42,7 @@ void MetaImageStreamer::execute() {
     // Wait here for first frame
     // TODO use condition variable instead
     while(!mFirstFrameIsInserted);
+    std::cout << "A frame has been inserted into the stream" << std::endl;
 }
 
 void MetaImageStreamer::setFilenameFormat(std::string str) {
@@ -62,6 +63,7 @@ inline std::string intToString(int number) {
 
 void MetaImageStreamer::producerStream() {
     int i = 0;
+    bool loop = false;
     while(true) {
         std::string filename = mFilenameFormat;
         filename.replace(
@@ -91,6 +93,11 @@ void MetaImageStreamer::producerStream() {
         } catch(FileNotFoundException &e) {
             if(i > 0) {
                 std::cout << "Reached end of stream" << std::endl;
+                if(loop) {
+                    // Restart stream
+                    i = 0;
+                    continue;
+                }
                 mHasReachedEnd = true;
                 // Reached end of stream
                 break;

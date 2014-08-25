@@ -22,6 +22,8 @@ class SimpleWindow : public Object {
         static QGLContext *mGLContext;
         static void initializeQtApp();
         ~SimpleWindow();
+        void set2DMode();
+        void set3DMode();
     private:
         SimpleWindow();
         View::pointer mView;

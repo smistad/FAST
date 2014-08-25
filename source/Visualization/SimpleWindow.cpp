@@ -95,3 +95,11 @@ void SimpleWindow::setWindowSize(unsigned int w, unsigned int h) {
 void SimpleWindow::setTimeout(unsigned int milliseconds) {
     mTimeout = milliseconds;
 }
+
+void SimpleWindow::set2DMode() {
+    mView->set2DMode();
+}
+
+void SimpleWindow::set3DMode() {
+    mView->set3DMode();
+}

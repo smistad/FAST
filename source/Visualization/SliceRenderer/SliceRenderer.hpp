@@ -14,7 +14,8 @@ class SliceRenderer : public Renderer {
         void setInput(ImageData::pointer image);
         void setSliceToRender(unsigned int sliceNr);
         void setSlicePlane(PlaneType plane);
-        void keyPressEvent(QKeyEvent* event);
+        BoundingBox getBoundingBox();
+        void turnOffTransformations();
     private:
         SliceRenderer();
         void execute();
@@ -23,6 +24,7 @@ class SliceRenderer : public Renderer {
 
         OpenCLDevice::pointer mDevice;
         ImageData::pointer mInput;
+        Image::pointer mImageToRender;
 #if defined(CL_VERSION_1_2)
         cl::ImageGL mImageGL;
 #else
@@ -40,6 +42,8 @@ class SliceRenderer : public Renderer {
         float mScale;
         unsigned int mWidth;
         unsigned int mHeight;
+
+        bool mDoTransformations;
 };
 
 }

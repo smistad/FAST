@@ -25,3 +25,7 @@ void WindowWidget::mousePressEvent(QMouseEvent* event) {
 void WindowWidget::mouseReleaseEvent(QMouseEvent* event) {
     mView->mouseReleaseEvent(event);
 }
+
+void WindowWidget::wheelEvent(QWheelEvent* event) {
+    mView->wheelEvent(event);
+}

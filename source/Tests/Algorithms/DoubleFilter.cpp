@@ -72,7 +72,7 @@ void DoubleFilter::execute() {
         }
     } else {
         // Execution device is an OpenCL device
-        OpenCLDevice::pointer device = boost::static_pointer_cast<OpenCLDevice>(mDevice);
+        OpenCLDevice::pointer device = mDevice;
 
         // Set build options based on the data type of the data
         std::string buildOptions = "";

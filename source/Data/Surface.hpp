@@ -2,6 +2,7 @@
 #define SURFACE_HPP_
 
 #include "DataObject.hpp"
+#include "DynamicData.hpp"
 #include "Access.hpp"
 #include <vector>
 #include "DataTypes.hpp"
@@ -10,12 +11,13 @@
 
 namespace fast {
 
-struct BoundingBox {
-    Float<3> offset;
-    Float<3> size;
+class SurfaceData : public virtual DataObject {
+    public:
+        typedef SharedPointer<SurfaceData> pointer;
+        virtual ~SurfaceData() {};
 };
 
-class Surface : public DataObject {
+class Surface : public SurfaceData {
     FAST_OBJECT(Surface)
     public:
         void create(std::vector<Float<3> > vertices, std::vector<Float<3> > normals, std::vector<Uint<3> > triangles);
@@ -23,7 +25,6 @@ class Surface : public DataObject {
         VertexBufferObjectAccess getVertexBufferObjectAccess(accessType access, OpenCLDevice::pointer device);
         SurfacePointerAccess getSurfacePointerAccess(accessType access);
         unsigned int getNrOfTriangles() const;
-        BoundingBox getBoundingBox() const;
         void setBoundingBox(BoundingBox box);
         ~Surface();
     private:
@@ -49,8 +50,10 @@ class Surface : public DataObject {
 
         bool mSurfaceIsBeingWrittenTo;
         bool isAnyDataBeingAccessed();
+};
 
-        BoundingBox mBoundingBox;
+class DynamicSurface : public SurfaceData, public DynamicData<Surface> {
+    FAST_OBJECT(DynamicSurface)
 };
 
 } // end namespace fast

@@ -10,6 +10,7 @@ typedef unsigned char uchar;
 typedef unsigned short ushort;
 typedef unsigned int uint;
 
+
 enum DataType { TYPE_FLOAT, TYPE_UINT8, TYPE_INT8, TYPE_UINT16, TYPE_INT16 };
 
 #define fastCaseTypeMacro(fastType, cType, call) case fastType: {typedef cType FAST_TYPE; call;} break;
@@ -36,25 +37,73 @@ class Vector {
         T x();
         T y();
         T z();
-        T& operator[](unsigned int index); // lvalue
+        T& operator[](unsigned int index) const; // lvalue
         Vector<T,N>& operator=(const Vector<T,N>& other);
         T get(unsigned int index) const;
         int getSize() const;
-        Vector(const Vector<T,N>& other);
+        Vector(const Vector<T,N>& other); // copy constructor
         Vector();
         ~Vector();
     protected:
         T* data;
 };
 
-template <unsigned int N>
-class Float : public Vector<float, N> {
-};
+// Some useful macros for creating several vector classes
+#define createDefaultVectorClassMacro(name, type)   \
+template <unsigned int N>                           \
+class name : public Vector<type, N> {               \
+};                                                  \
 
-template <unsigned int N>
-class Uint : public Vector<unsigned int, N> {
+#define createNumberedVectorClassMacro2(name,type)       \
+class name##2 : public name<2> {                    \
+    public:                                         \
+        name##2() : name<2>() {data = new type[2];};\
+        name##2(type x, type y) {                   \
+            data = new type[2];\
+            data[0] = x;\
+            data[1] = y;\
+        };\
+};                                                  \
 
-};
+#define createNumberedVectorClassMacro3(name,type)       \
+class name##3 : public name<3> {                    \
+    public:                                         \
+        name##3() : name<3>() {data = new type[3];};\
+        name##3(type x, type y, type z) {                   \
+            data = new type[3];\
+            data[0] = x;\
+            data[1] = y;\
+            data[2] = z;\
+        };\
+};                                                  \
+
+#define createNumberedVectorClassMacro4(name,type)       \
+class name##4 : public name<4> {                    \
+    public:                                         \
+        name##4() : name<4>() {data = new type[4];};\
+        name##4(type x, type y, type z, type w) {                   \
+            data = new type[4];\
+            data[0] = x;\
+            data[1] = y;\
+            data[2] = z;\
+            data[3] = w;\
+        };\
+};\
+
+
+#define createVectorTypesMacro(name, type)          \
+    createDefaultVectorClassMacro(name, type)       \
+    createNumberedVectorClassMacro2(name,type)         \
+    createNumberedVectorClassMacro3(name,type)         \
+    createNumberedVectorClassMacro4(name,type)         \
+
+createVectorTypesMacro(Float, float);
+createVectorTypesMacro(Double, double);
+createVectorTypesMacro(Uint, uint);
+createVectorTypesMacro(Int, int);
+createVectorTypesMacro(Uchar, uchar);
+createVectorTypesMacro(Char, char);
+
 
 // TODO: add out of bounds checks
 
@@ -74,7 +123,7 @@ inline T Vector<T,N>::z() {
 }
 
 template<class T, int N>
-inline T& Vector<T,N>::operator [](const unsigned int index) {
+inline T& Vector<T,N>::operator [](const unsigned int index) const {
     return data[index];
 }
 
@@ -99,7 +148,7 @@ template<class T, int N>
 inline Vector<T,N>::Vector() {
     data = new T[N];
     for(unsigned int i = 0; i < N; i++)
-        data[i] = 0;
+        data[i] = T();
 }
 
 template<class T, int N>

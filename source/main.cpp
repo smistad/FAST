@@ -21,16 +21,61 @@ using namespace fast;
 
 int main(int argc, char ** argv) {
 
-	
+    // TODO this causes problem for some reason??
     // Get a GPU device and set it as the default device
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(true));
+    //DeviceManager& deviceManager = DeviceManager::getInstance();
+    //deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(true));
 
+    /*
+    MetaImageImporter::pointer importer = MetaImageImporter::New();
+    importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_0.mhd");
+    Image::pointer image = importer->getOutput();
+    //MetaImageStreamer::pointer importer = MetaImageStreamer::New();
+    //importer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
+    //DynamicImage::pointer image = importer->getOutput();
+    SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
+    extractor->setInput(image);
+    extractor->setThreshold(150);
+    Surface::pointer surface = extractor->getOutput();
+    //extractor->update();
 
+    SurfaceRenderer::pointer surfaceRenderer = SurfaceRenderer::New();
+    surfaceRenderer->setInput(surface);
+    SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+    sliceRenderer->setInput(image);
+    SliceRenderer::pointer sliceRenderer2 = SliceRenderer::New();
+    sliceRenderer2->setInput(image);
+    sliceRenderer2->setSlicePlane(PLANE_X);
+    //sliceRenderer2->setSliceToRender(200);
+    SimpleWindow::pointer window = SimpleWindow::New();
+    window->addRenderer(surfaceRenderer);
+    window->addRenderer(sliceRenderer);
+    window->addRenderer(sliceRenderer2);
+    window->runMainLoop();
+    */
 	/*
-    //MetaImageImporter::pointer importer = MetaImageImporter::New();
-    //importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_0.mhd");
+    MetaImageImporter::pointer importer = MetaImageImporter::New();
+    importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_0.mhd");
+    SliceRenderer::pointer renderer = SliceRenderer::New();
+    renderer->setSlicePlane(PLANE_Y);
+    renderer->setInput(importer->getOutput());
+    SimpleWindow::pointer window = SimpleWindow::New();
+    window->set2DMode();
+    window->addRenderer(renderer);
+    window->runMainLoop();
 
+    ImageImporter::pointer importer2 = ImageImporter::New();
+    importer2->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-2D.jpg");
+    ImageRenderer::pointer renderer2 = ImageRenderer::New();
+    renderer2->setInput(importer2->getOutput());
+    SimpleWindow::pointer window2 = SimpleWindow::New();
+    window2->set2DMode();
+    window2->addRenderer(renderer2);
+    window2->runMainLoop();
+	*/
+
+
+    /*
     MetaImageStreamer::pointer importer = MetaImageStreamer::New();
     importer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
     SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
@@ -44,6 +89,7 @@ int main(int argc, char ** argv) {
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(surfaceRenderer);
     window->runMainLoop();
+    */
 
     /*
     // Example of importing, processing and exporting a 2D image
@@ -89,11 +135,17 @@ window->setTimeout(10*1000);
 */
 	// Example of using VolumeRenderer (3D) and SimpleWindow
 
+
 	//MetaImageImporter::pointer mhdImporter = MetaImageImporter::New();
     //mhdImporter->setFilename("skull.mhd");
 	
 	MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
+
+    
+	MetaImageImporter::pointer mhdImporter = MetaImageImporter::New();
+    mhdImporter->setFilename("skull.mhd");
+
 	MetaImageImporter::pointer mhdImporter2 = MetaImageImporter::New();
     mhdImporter2->setFilename("stent256.mhd");
 	
@@ -136,6 +188,7 @@ window->setTimeout(10*1000);
     window->addRenderer(VolumeRenderer);
     window->runMainLoop();
 	VolumeRenderer->getRuntime()->print();
+	
 	
 
 

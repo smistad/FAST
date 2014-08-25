@@ -1,5 +1,5 @@
 #include "catch.hpp"
-#include "DynamicImage.hpp"
+#include "Image.hpp"
 
 using namespace fast;
 

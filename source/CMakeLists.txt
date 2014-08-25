@@ -19,18 +19,21 @@ set(SOURCES
     Exception.hpp
     Utility.cpp
     Utility.hpp
+    SceneGraph.cpp
+    SceneGraph.hpp
+    LinearTransformation.cpp
+    LinearTransformation.hpp
     Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.cpp
     Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp
     Algorithms/SeededRegionGrowing/SeededRegionGrowing.cpp
     Algorithms/SeededRegionGrowing/SeededRegionGrowing.hpp
     Algorithms/SurfaceExtraction/SurfaceExtraction.cpp
     Algorithms/SurfaceExtraction/SurfaceExtraction.hpp
+    Data/BoundingBox.cpp
+    Data/BoundingBox.hpp
     Data/DataObject.cpp
     Data/DataObject.hpp
-    Data/ImageData.cpp
-    Data/ImageData.hpp
-    Data/DynamicImage.cpp
-    Data/DynamicImage.hpp
+    Data/DynamicData.hpp
     Data/Image.cpp
     Data/Image.hpp
     Data/DataTypes.cpp

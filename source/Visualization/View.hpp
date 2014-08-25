@@ -18,14 +18,33 @@ class View : public QGLWidget, public ProcessObject {
         void mouseMoveEvent(QMouseEvent* event);
         void mousePressEvent(QMouseEvent* event);
         void mouseReleaseEvent(QMouseEvent* event);
-        void resizeEvent(QResizeEvent* event);
+        void wheelEvent(QWheelEvent* event);
         void setMaximumFramerate(unsigned int framerate);
+        void set2DMode();
+        void set3DMode();
     private:
         View();
         std::vector<Renderer::pointer> mRenderers;
         void execute();
         QTimer* timer;
         unsigned int mFramerate;
+        Float3 cameraPosition;
+        Float3 originalCameraPosition;
+        Float3 rotationPoint;
+        Float2 rotation;
+        float zNear, zFar;
+        float fieldOfViewX, fieldOfViewY;
+        float aspect;
+        bool mIsIn2DMode;
+
+        bool mLeftMouseButtonIsPressed;
+        bool mMiddleMouseButtonIsPressed;
+
+        int previousX, previousY;
+
+        float mMinX2D, mMaxX2D, mMinY2D, mMaxY2D;
+        uint mPosX2D, mPosY2D;
+        float mScale2D;
 
     protected:
         void initializeGL();

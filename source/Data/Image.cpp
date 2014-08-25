@@ -2,6 +2,7 @@
 #include "HelperFunctions.hpp"
 #include "Exception.hpp"
 #include "Utility.hpp"
+#include "SceneGraph.hpp"
 
 namespace fast {
 
@@ -504,6 +505,9 @@ void Image::create3DImage(
     mWidth = width;
     mHeight = height;
     mDepth = depth;
+    mBoundingBox = BoundingBox(Float3(width, height, depth));
+    SceneGraph &graph = SceneGraph::getInstance();
+    SceneGraphNode::pointer node = graph.addDataNodeToNewRoot(mPtr);
     mDimensions = 3;
     mType = type;
     mComponents = nrOfComponents;
@@ -511,7 +515,7 @@ void Image::create3DImage(
         mHostHasData = true;
         mHostData = allocateDataArray(mWidth*mHeight*mDepth,mType,mComponents);
     } else {
-        OpenCLDevice::pointer clDevice = boost::dynamic_pointer_cast<OpenCLDevice>(device);
+        OpenCLDevice::pointer clDevice = device;
         cl::Image3D* clImage = new cl::Image3D(
             clDevice->getContext(),
             CL_MEM_READ_WRITE,
@@ -539,6 +543,9 @@ void Image::create3DImage(
     mWidth = width;
     mHeight = height;
     mDepth = depth;
+    mBoundingBox = BoundingBox(Float3(width, height, depth));
+    SceneGraph &graph = SceneGraph::getInstance();
+    SceneGraphNode::pointer node = graph.addDataNodeToNewRoot(mPtr);
     mDimensions = 3;
     mType = type;
     mComponents = nrOfComponents;
@@ -548,7 +555,7 @@ void Image::create3DImage(
         mHostHasData = true;
         mHostDataIsUpToDate = true;
     } else {
-        OpenCLDevice::pointer clDevice = boost::dynamic_pointer_cast<OpenCLDevice>(device);
+        OpenCLDevice::pointer clDevice = device;
         cl::Image3D* clImage;
         // Special treatment for images with 3 components because an OpenCL image can only have 1, 2 or 4 channels
         if(mComponents == 3) {
@@ -590,6 +597,9 @@ void Image::create2DImage(
 
     mWidth = width;
     mHeight = height;
+    mBoundingBox = BoundingBox(Float3(width, height, 0));
+    SceneGraph &graph = SceneGraph::getInstance();
+    SceneGraphNode::pointer node = graph.addDataNodeToNewRoot(mPtr);
     mDepth = 1;
     mDimensions = 2;
     mType = type;
@@ -598,7 +608,7 @@ void Image::create2DImage(
         mHostHasData = true;
         mHostData = allocateDataArray(mWidth*mHeight,mType,mComponents);
     } else {
-        OpenCLDevice::pointer clDevice = boost::dynamic_pointer_cast<OpenCLDevice>(device);
+        OpenCLDevice::pointer clDevice = device;
         cl::Image2D* clImage = new cl::Image2D(
             clDevice->getContext(),
             CL_MEM_READ_WRITE,
@@ -628,6 +638,9 @@ void Image::create2DImage(
     mWidth = width;
     mHeight = height;
     mDepth = 1;
+    mBoundingBox = BoundingBox(Float3(width, height, 0));
+    SceneGraph &graph = SceneGraph::getInstance();
+    SceneGraphNode::pointer node = graph.addDataNodeToNewRoot(mPtr);
     mDimensions = 2;
     mType = type;
     mComponents = nrOfComponents;
@@ -637,7 +650,7 @@ void Image::create2DImage(
         mHostHasData = true;
         mHostDataIsUpToDate = true;
     } else {
-        OpenCLDevice::pointer clDevice = boost::dynamic_pointer_cast<OpenCLDevice>(device);
+        OpenCLDevice::pointer clDevice = device;
         cl::Image2D* clImage;
         // Special treatment for images with 3 components because an OpenCL image can only have 1, 2 or 4 channels
         if(mComponents == 3) {
@@ -677,7 +690,7 @@ void Image::free(ExecutionDevice::pointer device) {
         deleteArray(mHostData, mType);
         mHostHasData = false;
     } else {
-        OpenCLDevice::pointer clDevice = boost::dynamic_pointer_cast<OpenCLDevice>(device);
+        OpenCLDevice::pointer clDevice = device;
         // Delete any OpenCL images
         delete mCLImages[clDevice];
         mCLImages.erase(clDevice);
@@ -770,10 +783,12 @@ Float<9> fast::Image::getTransformMatrix() const {
 
 void fast::Image::setSpacing(Float<3> spacing) {
     mSpacing = spacing;
+    updateSceneGraphTransformation();
 }
 
 void fast::Image::setOffset(Float<3> offset) {
     mOffset = offset;
+    updateSceneGraphTransformation();
 }
 
 void fast::Image::setCenterOfRotation(Float<3> rotation) {
@@ -782,6 +797,30 @@ void fast::Image::setCenterOfRotation(Float<3> rotation) {
 
 void fast::Image::setTransformMatrix(Float<9> transformMatrix) {
     mTransformMatrix = transformMatrix;
+    updateSceneGraphTransformation();
+}
+
+void Image::updateSceneGraphTransformation() const {
+    if(!isInitialized())
+        throw Exception("Image has not been initialized.");
+
+    // Create linear transformation matrix
+    LinearTransformation transformation;
+    transformation(0,0) = mTransformMatrix[0]*mSpacing[0];
+    transformation(0,1) = mTransformMatrix[3]*mSpacing[1];
+    transformation(0,2) = mTransformMatrix[6]*mSpacing[2];
+    transformation(0,3) = mOffset[0];
+    transformation(1,0) = mTransformMatrix[1]*mSpacing[0];
+    transformation(1,1) = mTransformMatrix[4]*mSpacing[1];
+    transformation(1,2) = mTransformMatrix[7]*mSpacing[2];
+    transformation(1,3) = mOffset[1];
+    transformation(2,0) = mTransformMatrix[2]*mSpacing[0];
+    transformation(2,1) = mTransformMatrix[5]*mSpacing[1];
+    transformation(2,2) = mTransformMatrix[8]*mSpacing[2];
+    transformation(2,3) = mOffset[2];
+
+    SceneGraphNode::pointer node = SceneGraph::getInstance().getDataNode(mPtr);
+    node->setTransformation(transformation);
 }
 
 template <class T>

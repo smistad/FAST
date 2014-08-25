@@ -31,7 +31,7 @@ void ProcessObject::update() {
 }
 
 void ProcessObject::addParent(DataObject::pointer parent) {
-    if(parent == NULL)
+    if(!parent.isValid())
         throw Exception("Trying to add an expired/NULL pointer as a parent object");
 
     // Check that it doesn't already exist

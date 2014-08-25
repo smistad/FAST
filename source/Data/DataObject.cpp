@@ -1,6 +1,11 @@
 #include "DataObject.hpp"
 #include "ProcessObject.hpp"
+#include "SceneGraph.hpp"
 using namespace fast;
+
+bool DataObject::isDynamicData() {
+    return mIsDynamicData;
+}
 
 void DataObject::update() {
     if(mSourceObject.lock().isValid()) {
@@ -10,7 +15,7 @@ void DataObject::update() {
 }
 
 void DataObject::setSource(Object::pointer source) {
-    if(source == NULL)
+    if(!source.isValid())
         throw Exception("Trying to add an expired/NULL pointer as a parent object");
 
     mSourceObject = source;
@@ -43,4 +48,8 @@ void DataObject::release(ExecutionDevice::pointer device) {
     if(mReferenceCount[device] == 0) {
         this->free(device);
     }
+}
+
+BoundingBox DataObject::getBoundingBox() const {
+    return mBoundingBox;
 }

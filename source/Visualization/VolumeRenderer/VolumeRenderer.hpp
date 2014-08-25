@@ -4,7 +4,6 @@
 #define maxNumberOfVolumes 5
 
 #include "Renderer.hpp"
-#include "ImageData.hpp"
 #include "Image.hpp"
 #include "ColorTransferFunction.hpp"
 #include "OpacityTransferFunction.hpp"
@@ -22,6 +21,7 @@ class VolumeRenderer : public Renderer {
         void mouseMoveEvent(QMouseEvent* event, View* view);
         void resizeEvent(QResizeEvent* event);
 		void motion(int , int);
+        BoundingBox getBoundingBox() {};
     private:
         VolumeRenderer();
         void execute();

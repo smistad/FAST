@@ -1,6 +1,5 @@
 #include "MetaImageExporter.hpp"
 #include "Image.hpp"
-#include "DynamicImage.hpp"
 #include <fstream>
 using namespace fast;
 

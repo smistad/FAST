@@ -1,13 +1,13 @@
 #include <GL/glew.h>
 #include "VolumeRenderer.hpp"
 #include "Image.hpp"
-#include "DynamicImage.hpp"
 #include "HelperFunctions.hpp"
 #include "DeviceManager.hpp"
 #include "View.hpp"
 #include <QCursor>
 #include "ColorTransferFunction.hpp"
 #include "OpacityTransferFunction.hpp"
+#include "DynamicImage.hpp"
 
 namespace fast {
 
@@ -93,7 +93,8 @@ VolumeRenderer::VolumeRenderer() : Renderer() {
 
 	
 
-    mDevice = boost::static_pointer_cast<OpenCLDevice>(DeviceManager::getInstance().getDefaultVisualizationDevice());
+    mDevice = DeviceManager::getInstance().getDefaultVisualizationDevice();
+
 	clContext = mDevice->getContext();
 
 		GLuint depthText;

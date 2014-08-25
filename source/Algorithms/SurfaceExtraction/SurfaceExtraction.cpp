@@ -1,9 +1,9 @@
 #include "SurfaceExtraction.hpp"
 #include "DeviceManager.hpp"
 #include "Image.hpp"
-#include "DynamicImage.hpp"
 #include "Utility.hpp"
 #include "HelperFunctions.hpp"
+#include "SceneGraph.hpp"
 
 namespace fast {
 
@@ -299,11 +299,6 @@ void SurfaceExtraction::execute() {
     std::cout << "Sum of triangles is " << totalSum << std::endl;
 
     mOutput->create(totalSum);
-    BoundingBox box;
-    box.size[0] = input->getWidth();
-    box.size[1] = input->getHeight();
-    box.size[2] = input->getDepth();
-    mOutput->setBoundingBox(box);
 
     // Traverse HP to create triangles and put them in the VBO
     // Make OpenCL buffer from OpenGL buffer
@@ -349,10 +344,13 @@ void SurfaceExtraction::execute() {
 //  traversalSync = glCreateSyncFromCLeventARB((cl_context)context(), (cl_event)traversalEvent(), 0); // Need the GL_ARB_cl_event extension
     queue.finish();
     mOutput->updateModifiedTimestamp();
+    SceneGraph::getInstance().setParentNode(mOutput, input);
+    BoundingBox box = mInput->getBoundingBox();
+    mOutput->setBoundingBox(box);
 }
 
 SurfaceExtraction::SurfaceExtraction() {
-    mDevice = boost::static_pointer_cast<OpenCLDevice>(DeviceManager::getInstance().getDefaultComputationDevice());
+    mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
     mThreshold = 0.0f;
     mHPSize = 0;
     mOutput = Surface::New();

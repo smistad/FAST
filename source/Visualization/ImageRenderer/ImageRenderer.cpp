@@ -3,7 +3,7 @@
 #include "DeviceManager.hpp"
 #include "HelperFunctions.hpp"
 #include "Image.hpp"
-#include "DynamicImage.hpp"
+#include "SceneGraph.hpp"
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
 #include <OpenGL/gl.h>
@@ -38,6 +38,7 @@ void ImageRenderer::execute() {
     if(input->getDimensions() != 2)
         throw Exception("The ImageRenderer only supports 2D images");
 
+    mImageToRender = input;
     // Determine level and window
     float window = mWindow;
     float level = mLevel;
@@ -63,7 +64,6 @@ void ImageRenderer::execute() {
 	// Resize window to image
     mWidth = input->getWidth();
     mHeight = input->getHeight();
-	glViewport(0,0,mScale*mWidth, mScale*mHeight);
 
     // Create OpenGL texture
     glGenTextures(1, &mTexture);
@@ -148,9 +148,10 @@ void ImageRenderer::recompileOpenCLCode(Image::pointer input) {
 }
 
 ImageRenderer::ImageRenderer() : Renderer() {
-    mDevice = boost::static_pointer_cast<OpenCLDevice>(DeviceManager::getInstance().getDefaultVisualizationDevice());
+    mDevice = DeviceManager::getInstance().getDefaultVisualizationDevice();
     mTextureIsCreated = false;
     mIsModified = true;
+    mDoTransformations = true;
     mScale = 1.0f;
     mWidth = 0;
     mHeight = 0;
@@ -160,30 +161,35 @@ void ImageRenderer::draw() {
     if(!mTextureIsCreated)
         return;
 
-    setOpenGLContext(mDevice->getGLContext());
+    //setOpenGLContext(mDevice->getGLContext());
 
-    // Reset OpenGL
-    glDisable(GL_LIGHTING);
-    glDisable(GL_NORMALIZE);
-    glDisable(GL_DEPTH_TEST);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glViewport(0,0,mWidth*mScale,mHeight*mScale);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    if(mDoTransformations) {
+        SceneGraph& graph = SceneGraph::getInstance();
+        SceneGraphNode::pointer node = graph.getDataNode(mImageToRender);
+        LinearTransformation transform = graph.getLinearTransformationFromNode(node);
+
+        float matrix[16] = {
+                transform(0,0), transform(1,0), transform(2,0), transform(3,0),
+                transform(0,1), transform(1,1), transform(2,1), transform(3,1),
+                transform(0,2), transform(1,2), transform(2,2), transform(3,2),
+                transform(0,3), transform(1,3), transform(2,3), transform(3,3)
+        };
+
+        glMultMatrixf(matrix);
+    }
 
     glBindTexture(GL_TEXTURE_2D, mTexture);
 
 //glColor3f(1.0,0,0);
     glBegin(GL_QUADS);
         glTexCoord2i(0, 1);
-        glVertex3f(-1.0f, 1.0f, 0.0f);
+        glVertex3f(0, mHeight, 0.0f);
         glTexCoord2i(1, 1);
-        glVertex3f( 1.0f, 1.0f, 0.0f);
+        glVertex3f(mWidth, mHeight, 0.0f);
         glTexCoord2i(1, 0);
-        glVertex3f( 1.0f,-1.0f, 0.0f);
+        glVertex3f(mWidth, 0, 0.0f);
         glTexCoord2i(0, 0);
-        glVertex3f(-1.0f,-1.0f, 0.0f);
+        glVertex3f(0, 0, 0.0f);
     glEnd();
 
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -191,14 +197,22 @@ void ImageRenderer::draw() {
 }
 
 void ImageRenderer::keyPressEvent(QKeyEvent* event) {
-    switch(event->key()) {
-    case Qt::Key_Plus:
-        mScale = mScale*1.5;
-        glViewport(0,0,mWidth*mScale,mHeight*mScale);
-        break;
-    case Qt::Key_Minus:
-        mScale = mScale/1.5;
-        glViewport(0,0,mWidth*mScale,mHeight*mScale);
-        break;
+
+}
+
+void ImageRenderer::turnOffTransformations() {
+    mDoTransformations = false;
+}
+
+BoundingBox ImageRenderer::getBoundingBox() {
+    BoundingBox inputBoundingBox = mImageToRender->getBoundingBox();
+    if(mDoTransformations) {
+        SceneGraph& graph = SceneGraph::getInstance();
+        SceneGraphNode::pointer node = graph.getDataNode(mImageToRender);
+        LinearTransformation transform = graph.getLinearTransformationFromNode(node);
+        BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
+        return transformedBoundingBox;
+    } else {
+        return inputBoundingBox;
     }
 }

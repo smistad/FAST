@@ -11,6 +11,8 @@ class ImageRenderer : public Renderer {
     public:
         void setInput(ImageData::pointer image);
         void keyPressEvent(QKeyEvent* event);
+        BoundingBox getBoundingBox();
+        void turnOffTransformations();
     private:
         ImageRenderer();
         void execute();
@@ -32,6 +34,9 @@ class ImageRenderer : public Renderer {
 
         float mScale;
         unsigned int mWidth, mHeight;
+
+        bool mDoTransformations;
+        Image::pointer mImageToRender;
 
 };
 

@@ -3,7 +3,7 @@
 #include "DeviceManager.hpp"
 #include "HelperFunctions.hpp"
 #include "Image.hpp"
-#include "DynamicImage.hpp"
+#include "SceneGraph.hpp"
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
 #include <OpenGL/gl.h>
@@ -15,6 +15,7 @@
 #else
 #include <GL/glx.h>
 #include <CL/cl_gl.h>
+#include <GL/glu.h>
 #endif
 #endif
 
@@ -29,14 +30,13 @@ void SliceRenderer::execute() {
     if(!mInput.isValid())
         throw Exception("No input was given to SliceRenderer");
 
-    Image::pointer input;
     if(mInput->isDynamicData()) {
-        input = DynamicImage::pointer(mInput)->getNextFrame();
+        mImageToRender = DynamicImage::pointer(mInput)->getNextFrame();
     } else {
-        input = mInput;
+        mImageToRender = mInput;
     }
 
-    if(input->getDimensions() != 3)
+    if(mImageToRender->getDimensions() != 3)
         throw Exception("The SliceRenderer only supports 3D images");
 
     // Determine level and window
@@ -44,10 +44,10 @@ void SliceRenderer::execute() {
     float level = mLevel;
     // If mWindow/mLevel is equal to -1 use default level/window values
     if(window == -1) {
-        window = getDefaultIntensityWindow(input->getDataType());
+        window = getDefaultIntensityWindow(mImageToRender->getDataType());
     }
     if(level == -1) {
-        level = getDefaultIntensityLevel(input->getDataType());
+        level = getDefaultIntensityLevel(mImageToRender->getDataType());
     }
 
     setOpenGLContext(mDevice->getGLContext());
@@ -57,13 +57,13 @@ void SliceRenderer::execute() {
     if(mSliceNr == -1) {
         switch(mSlicePlane) {
         case PLANE_X:
-            sliceNr = input->getWidth()/2;
+            sliceNr = mImageToRender->getWidth()/2;
             break;
         case PLANE_Y:
-            sliceNr = input->getHeight()/2;
+            sliceNr = mImageToRender->getHeight()/2;
             break;
         case PLANE_Z:
-            sliceNr = input->getDepth()/2;
+            sliceNr = mImageToRender->getDepth()/2;
             break;
         }
     } else if(mSliceNr >= 0) {
@@ -71,16 +71,16 @@ void SliceRenderer::execute() {
         sliceNr = mSliceNr;
         switch(mSlicePlane) {
         case PLANE_X:
-            if(sliceNr >= input->getWidth())
-                sliceNr = input->getWidth()-1;
+            if(sliceNr >= mImageToRender->getWidth())
+                sliceNr = mImageToRender->getWidth()-1;
             break;
         case PLANE_Y:
-            if(sliceNr >= input->getHeight())
-                sliceNr = input->getHeight()-1;
+            if(sliceNr >= mImageToRender->getHeight())
+                sliceNr = mImageToRender->getHeight()-1;
             break;
         case PLANE_Z:
-            if(sliceNr >= input->getDepth())
-                sliceNr = input->getDepth()-1;
+            if(sliceNr >= mImageToRender->getDepth())
+                sliceNr = mImageToRender->getDepth()-1;
             break;
         }
     } else {
@@ -90,24 +90,23 @@ void SliceRenderer::execute() {
     switch(mSlicePlane) {
         case PLANE_X:
             slicePlaneNr = 0;
-            mWidth = input->getDepth();
-            mHeight = input->getHeight();
+            mWidth = mImageToRender->getHeight();
+            mHeight = mImageToRender->getDepth();
             break;
         case PLANE_Y:
             slicePlaneNr = 1;
-            mWidth = input->getWidth();
-            mHeight = input->getDepth();
+            mWidth = mImageToRender->getWidth();
+            mHeight = mImageToRender->getDepth();
             break;
         case PLANE_Z:
             slicePlaneNr = 2;
-            mWidth = input->getWidth();
-            mHeight = input->getHeight();
+            mWidth = mImageToRender->getWidth();
+            mHeight = mImageToRender->getHeight();
             break;
     }
+    mSliceNr = sliceNr;
 
-    glViewport(0,0,mWidth*mScale,mHeight*mScale);
-
-    OpenCLImageAccess3D access = input->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+    OpenCLImageAccess3D access = mImageToRender->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
     cl::Image3D* clImage = access.get();
 
     glEnable(GL_TEXTURE_2D);
@@ -144,15 +143,13 @@ void SliceRenderer::execute() {
     );
 #endif
 
-
-
     // Run kernel to fill the texture
     cl::CommandQueue queue = mDevice->getCommandQueue();
     std::vector<cl::Memory> v;
     v.push_back(mImageGL);
     queue.enqueueAcquireGLObjects(&v);
 
-    recompileOpenCLCode(input);
+    recompileOpenCLCode(mImageToRender);
     mKernel.setArg(0, *clImage);
     mKernel.setArg(1, mImageGL);
     mKernel.setArg(2, sliceNr);
@@ -177,7 +174,6 @@ void SliceRenderer::setInput(ImageData::pointer image) {
     setParent(mInput);
     mIsModified = true;
 }
-
 
 void SliceRenderer::recompileOpenCLCode(Image::pointer input) {
     // Check if code has to be recompiled
@@ -205,41 +201,73 @@ void SliceRenderer::recompileOpenCLCode(Image::pointer input) {
 
 
 SliceRenderer::SliceRenderer() : Renderer() {
-    mDevice = boost::static_pointer_cast<OpenCLDevice>(DeviceManager::getInstance().getDefaultVisualizationDevice());
+    mDevice = DeviceManager::getInstance().getDefaultVisualizationDevice();
     mTextureIsCreated = false;
     mIsModified = true;
-    mSlicePlane = PLANE_Y;
+    mSlicePlane = PLANE_Z;
     mSliceNr = -1;
     mScale = 1.0;
+    mDoTransformations = true;
 }
 
 void SliceRenderer::draw() {
     if(!mTextureIsCreated)
         return;
 
-    setOpenGLContext(mDevice->getGLContext());
+    //setOpenGLContext(mDevice->getGLContext());
 
-    // Reset OpenGL
-    glDisable(GL_LIGHTING);
-    glDisable(GL_NORMALIZE);
-    glDisable(GL_DEPTH_TEST);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glViewport(0,0,mWidth*mScale,mHeight*mScale);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    if(mDoTransformations) {
+        SceneGraph& graph = SceneGraph::getInstance();
+        SceneGraphNode::pointer node = graph.getDataNode(mImageToRender);
+        LinearTransformation transform = graph.getLinearTransformationFromNode(node);
+
+        float matrix[16] = {
+                transform(0,0), transform(1,0), transform(2,0), transform(3,0),
+                transform(0,1), transform(1,1), transform(2,1), transform(3,1),
+                transform(0,2), transform(1,2), transform(2,2), transform(3,2),
+                transform(0,3), transform(1,3), transform(2,3), transform(3,3)
+        };
+
+        glMultMatrixf(matrix);
+    }
 
     glBindTexture(GL_TEXTURE_2D, mTexture);
 
+    // Draw slice in voxel coordinates
+    glColor3f(1,1,1);
     glBegin(GL_QUADS);
+    switch(mSlicePlane) {
+    case PLANE_Z:
         glTexCoord2i(0, 1);
-        glVertex3f(-1.0f, 1.0f, 0.0f);
+        glVertex3f(0, mHeight, mSliceNr);
         glTexCoord2i(1, 1);
-        glVertex3f( 1.0f, 1.0f, 0.0f);
+        glVertex3f(mWidth, mHeight, mSliceNr);
         glTexCoord2i(1, 0);
-        glVertex3f( 1.0f,-1.0f, 0.0f);
+        glVertex3f( mWidth,0, mSliceNr);
         glTexCoord2i(0, 0);
-        glVertex3f(-1.0f,-1.0f, 0.0f);
+        glVertex3f(0,0, mSliceNr);
+        break;
+    case PLANE_Y:
+        glTexCoord2i(0, 1);
+        glVertex3f(0, mSliceNr, mHeight);
+        glTexCoord2i(1, 1);
+        glVertex3f(mWidth, mSliceNr, mHeight);
+        glTexCoord2i(1, 0);
+        glVertex3f( mWidth,mSliceNr, 0 );
+        glTexCoord2i(0, 0);
+        glVertex3f(0,mSliceNr,0 );
+        break;
+    case PLANE_X:
+        glTexCoord2i(0, 1);
+        glVertex3f(mSliceNr, 0 , mHeight);
+        glTexCoord2i(1, 1);
+        glVertex3f(mSliceNr, mWidth, mHeight);
+        glTexCoord2i(1, 0);
+        glVertex3f( mSliceNr, mWidth, 0 );
+        glTexCoord2i(0, 0);
+        glVertex3f(mSliceNr,0,0 );
+    break;
+    }
     glEnd();
 
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -255,27 +283,38 @@ void SliceRenderer::setSlicePlane(PlaneType plane) {
     mIsModified = true;
 }
 
-void SliceRenderer::keyPressEvent(QKeyEvent* event) {
-    switch(event->key()) {
-    case Qt::Key_X:
-        mSlicePlane = PLANE_X;
-        mIsModified = true;
-        break;
-    case Qt::Key_Y:
-        mSlicePlane = PLANE_Y;
-        mIsModified = true;
-        break;
-    case Qt::Key_Z:
-        mSlicePlane = PLANE_Z;
-        mIsModified = true;
-        break;
-    case Qt::Key_Plus:
-        mScale = mScale*1.5;
-        glViewport(0,0,mWidth*mScale,mHeight*mScale);
-        break;
-    case Qt::Key_Minus:
-        mScale = mScale/1.5;
-        glViewport(0,0,mWidth*mScale,mHeight*mScale);
-        break;
+BoundingBox SliceRenderer::getBoundingBox() {
+
+    BoundingBox inputBoundingBox = mImageToRender->getBoundingBox();
+    Vector<Float3, 8> corners = inputBoundingBox.getCorners();
+    // Shrink bounding box so that it covers the slice and not the entire data
+    switch(mSlicePlane) {
+        case PLANE_X:
+            for(uint i = 0; i < 8; i++)
+                corners[i][0] = mSliceNr;
+            break;
+        case PLANE_Y:
+            for(uint i = 0; i < 8; i++)
+                corners[i][1] = mSliceNr;
+            break;
+        case PLANE_Z:
+            for(uint i = 0; i < 8; i++)
+                corners[i][2] = mSliceNr;
+            break;
     }
+    BoundingBox shrinkedBox(corners);
+    if(mDoTransformations) {
+        SceneGraph& graph = SceneGraph::getInstance();
+        SceneGraphNode::pointer node;
+        node = graph.getDataNode(mImageToRender);
+        LinearTransformation transform = graph.getLinearTransformationFromNode(node);
+        BoundingBox transformedBoundingBox = shrinkedBox.getTransformedBoundingBox(transform);
+        return transformedBoundingBox;
+    } else {
+        return shrinkedBox;
+    }
+}
+
+void SliceRenderer::turnOffTransformations() {
+    mDoTransformations = false;
 }

@@ -2,7 +2,7 @@
 #define ImageExporter_HPP_
 
 #include "ProcessObject.hpp"
-#include "ImageData.hpp"
+#include "Image.hpp"
 #include <string>
 
 namespace fast {

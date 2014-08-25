@@ -2,7 +2,7 @@
 #define SURFACEEXTRACTION_HPP_
 
 #include "ProcessObject.hpp"
-#include "ImageData.hpp"
+#include "Image.hpp"
 #include "Surface.hpp"
 
 namespace fast {

@@ -25,6 +25,7 @@ TEST_CASE("Simple pipeline with MetaImageStreamer, GaussianSmoothingFilter and I
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->setTimeout(10*1000);
+    window->set2DMode();
     CHECK_NOTHROW(
         window->runMainLoop();
     );

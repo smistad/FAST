@@ -3,7 +3,7 @@
 
 #include "SmartPointers.hpp"
 #include "Streamer.hpp"
-#include "DynamicImage.hpp"
+#include "Image.hpp"
 #include <boost/thread.hpp>
 
 namespace fast {
