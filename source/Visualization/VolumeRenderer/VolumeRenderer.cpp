@@ -7,7 +7,6 @@
 #include <QCursor>
 #include "ColorTransferFunction.hpp"
 #include "OpacityTransferFunction.hpp"
-#include "DynamicImage.hpp"
 
 namespace fast {
 

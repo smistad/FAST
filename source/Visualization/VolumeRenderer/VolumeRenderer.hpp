@@ -21,7 +21,7 @@ class VolumeRenderer : public Renderer {
         void mouseMoveEvent(QMouseEvent* event, View* view);
         void resizeEvent(QResizeEvent* event);
 		void motion(int , int);
-        BoundingBox getBoundingBox() {};
+        BoundingBox getBoundingBox() { return BoundingBox(); };
     private:
         VolumeRenderer();
         void execute();

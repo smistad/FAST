@@ -134,6 +134,8 @@ void SceneGraph::removeNode(SceneGraphNode::pointer node) {
 LinearTransformation SceneGraph::getLinearTransformationBetweenNodes(
         SceneGraphNode::pointer nodeA, SceneGraphNode::pointer nodeB) {
     // TODO traverse the graph from node A to node B
+
+			return LinearTransformation();
 }
 LinearTransformation SceneGraph::getLinearTransformationFromNode(
         SceneGraphNode::pointer node) {

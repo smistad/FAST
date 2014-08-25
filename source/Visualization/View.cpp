@@ -1,3 +1,5 @@
+#define _USE_MATH_DEFINES
+
 #include "View.hpp"
 #include "Exception.hpp"
 #include "DeviceManager.hpp"
