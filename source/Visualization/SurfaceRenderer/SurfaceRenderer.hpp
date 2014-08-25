@@ -9,7 +9,7 @@ namespace fast {
 class SurfaceRenderer : public Renderer {
     FAST_OBJECT(SurfaceRenderer)
     public:
-        void setInput(Surface::pointer image);
+        void setInput(SurfaceData::pointer image);
         void setThreshold(float threshold){};
         BoundingBox getBoundingBox();
     private:
@@ -18,7 +18,8 @@ class SurfaceRenderer : public Renderer {
         void draw();
 
         OpenCLDevice::pointer mDevice;
-        Surface::pointer mInput;
+        SurfaceData::pointer mInput;
+        Surface::pointer mSurfaceToRender;
 };
 
 } // namespace fast

@@ -12,7 +12,7 @@
 
 namespace fast {
 
-void SurfaceRenderer::setInput(Surface::pointer image) {
+void SurfaceRenderer::setInput(SurfaceData::pointer image) {
     mInput = image;
     setParent(mInput);
     mIsModified = true;
@@ -23,13 +23,18 @@ SurfaceRenderer::SurfaceRenderer() : Renderer() {
 }
 
 void SurfaceRenderer::execute() {
+    if(mInput->isDynamicData()) {
+        mSurfaceToRender = DynamicSurface::pointer(mInput)->getNextFrame();
+    } else {
+        mSurfaceToRender = mInput;
+    }
 }
 
 void SurfaceRenderer::draw() {
     // Draw the triangles in the VBO
 
     SceneGraph& graph = SceneGraph::getInstance();
-    SceneGraphNode::pointer node = graph.getDataNode(mInput);
+    SceneGraphNode::pointer node = graph.getDataNode(mSurfaceToRender);
     LinearTransformation transform = graph.getLinearTransformationFromNode(node);
 
     float matrix[16] = {
@@ -53,7 +58,7 @@ void SurfaceRenderer::draw() {
     GLfloat shininess[] = { 16.0f };
     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
 
-    VertexBufferObjectAccess access = mInput->getVertexBufferObjectAccess(ACCESS_READ, mDevice);
+    VertexBufferObjectAccess access = mSurfaceToRender->getVertexBufferObjectAccess(ACCESS_READ, mDevice);
     GLuint* VBO_ID = access.get();
 
     // Normal Buffer
@@ -64,7 +69,7 @@ void SurfaceRenderer::draw() {
     glVertexPointer(3, GL_FLOAT, 24, BUFFER_OFFSET(0));
     glNormalPointer(GL_FLOAT, 24, BUFFER_OFFSET(12));
 
-    glDrawArrays(GL_TRIANGLES, 0, mInput->getNrOfTriangles()*3);
+    glDrawArrays(GL_TRIANGLES, 0, mSurfaceToRender->getNrOfTriangles()*3);
 
     // Release buffer
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -76,9 +81,9 @@ void SurfaceRenderer::draw() {
 
 BoundingBox SurfaceRenderer::getBoundingBox() {
     SceneGraph& graph = SceneGraph::getInstance();
-    SceneGraphNode::pointer node = graph.getDataNode(mInput);
+    SceneGraphNode::pointer node = graph.getDataNode(mSurfaceToRender);
     LinearTransformation transform = graph.getLinearTransformationFromNode(node);
-    BoundingBox inputBoundingBox = mInput->getBoundingBox();
+    BoundingBox inputBoundingBox = mSurfaceToRender->getBoundingBox();
     BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
     return transformedBoundingBox;
 }

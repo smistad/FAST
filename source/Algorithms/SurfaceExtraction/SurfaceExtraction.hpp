@@ -13,13 +13,13 @@ class SurfaceExtraction : public ProcessObject {
         void setThreshold(float threshold);
         void setInput(ImageData::pointer input);
         void setDevice(OpenCLDevice::pointer device);
-        Surface::pointer getOutput();
+        SurfaceData::pointer getOutput();
     private:
         SurfaceExtraction();
         void execute();
 
         ImageData::pointer mInput;
-        Surface::pointer mOutput;
+        SurfaceData::pointer mOutput;
         float mThreshold;
         OpenCLDevice::pointer mDevice;
         unsigned int mHPSize;

@@ -15,11 +15,21 @@ void SurfaceExtraction::setThreshold(float threshold) {
 void SurfaceExtraction::setInput(ImageData::pointer input) {
     mInput = input;
     setParent(mInput);
+    if(input->isDynamicData()) {
+        mOutput = DynamicSurface::New();
+        DynamicSurface::pointer(mOutput)->setStreamer(DynamicImage::pointer(mInput)->getStreamer());
+    } else {
+        mOutput = Surface::New();
+        input->retain(mDevice);
+    }
+    mOutput->setSource(mPtr.lock());
     mIsModified = true;
 }
 
-Surface::pointer SurfaceExtraction::getOutput() {
-    mOutput->setSource(mPtr.lock());
+SurfaceData::pointer SurfaceExtraction::getOutput() {
+    if(!mOutput.isValid()) {
+        throw Exception("Must call setInput before getOutput in GaussianSmoothingFilter");
+    }
     return mOutput;
 }
 
@@ -298,7 +308,14 @@ void SurfaceExtraction::execute() {
     }
     std::cout << "Sum of triangles is " << totalSum << std::endl;
 
-    mOutput->create(totalSum);
+    Surface::pointer output;
+    if(mInput->isDynamicData()) {
+        output = Surface::New();
+        DynamicSurface::pointer(mOutput)->addFrame(output);
+    } else {
+        output = Surface::pointer(mOutput);
+    }
+    output->create(totalSum);
 
     // Traverse HP to create triangles and put them in the VBO
     // Make OpenCL buffer from OpenGL buffer
@@ -318,7 +335,7 @@ void SurfaceExtraction::execute() {
         i += 2;
     }
 
-    VertexBufferObjectAccess VBOaccess = mOutput->getVertexBufferObjectAccess(ACCESS_READ_WRITE, mDevice);
+    VertexBufferObjectAccess VBOaccess = output->getVertexBufferObjectAccess(ACCESS_READ_WRITE, mDevice);
     GLuint* VBO_ID = VBOaccess.get();
     cl::BufferGL VBOBuffer = cl::BufferGL(mDevice->getContext(), CL_MEM_WRITE_ONLY, *VBO_ID);
     traverseHPKernel.setArg(i, VBOBuffer);
@@ -344,9 +361,12 @@ void SurfaceExtraction::execute() {
 //  traversalSync = glCreateSyncFromCLeventARB((cl_context)context(), (cl_event)traversalEvent(), 0); // Need the GL_ARB_cl_event extension
     queue.finish();
     mOutput->updateModifiedTimestamp();
-    SceneGraph::getInstance().setParentNode(mOutput, input);
+    SceneGraph::getInstance().setParentNode(output, input);
     BoundingBox box = mInput->getBoundingBox();
-    mOutput->setBoundingBox(box);
+    output->setBoundingBox(box);
+
+    if(!mInput->isDynamicData())
+        mInput->release(mDevice);
 }
 
 SurfaceExtraction::SurfaceExtraction() {
