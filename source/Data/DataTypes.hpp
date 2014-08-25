@@ -8,7 +8,7 @@ namespace fast {
 
 typedef unsigned char uchar;
 typedef unsigned short ushort;
-typedef unsigned int uint;
+
 
 
 enum DataType { TYPE_FLOAT, TYPE_UINT8, TYPE_INT8, TYPE_UINT16, TYPE_INT16 };
