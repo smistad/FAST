@@ -90,9 +90,23 @@ void VolumeRenderer::setColorTransferFunction(int volumeIndex, ColorTransferFunc
 
 VolumeRenderer::VolumeRenderer() : Renderer() {
 
+
 	
+
     mDevice = boost::static_pointer_cast<OpenCLDevice>(DeviceManager::getInstance().getDefaultVisualizationDevice());
 	clContext = mDevice->getContext();
+
+		GLuint depthText;
+		glGenTextures(1,&depthText);
+		glBindTexture(GL_TEXTURE_2D,depthText);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_LUMINANCE);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, 512,512, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
+
+		glCopyTexSubImage2D(GL_TEXTURE_2D,0,0,0, 0, 0, 512, 512);
 
 	updated=false;
 
@@ -116,6 +130,8 @@ VolumeRenderer::VolumeRenderer() : Renderer() {
 
 void VolumeRenderer::execute() {
 
+
+
 	if(numberOfVolumes<0)
         throw Exception("Not a correct number of volumes is given to VolumeRenderer.");
 	if(numberOfVolumes>maxNumberOfVolumes)
@@ -129,19 +145,32 @@ void VolumeRenderer::execute() {
 			sprintf(errorMessage, "No input was given to VolumeRenderer; check input number %d.", i);
 			throw Exception(errorMessage);
 		}
-		if(mInputs[i]->isDynamicData()) {
+		if(mInputs[i]->isDynamicData()) 
+		{
+		
 			inputs.push_back( DynamicImage::pointer(mInputs[i])->getNextFrame());
-		} else {
+			//inputs.assign(0, DynamicImage::pointer(mInputs[i])->getNextFrame());
+			//inputs[0]= DynamicImage::pointer(mInputs[i])->getNextFrame();
+
+			//inputs2[i]=DynamicImage::pointer(mInputs[i])->getNextFrame();
+			//inputs.insert(inputs.begin(),DynamicImage::pointer(mInputs[i])->getNextFrame());
+			
+		} 
+		else 
+		{
+			//inputs2[i] = mInputs[i];
 			inputs.push_back( mInputs[i]);
 		}
 
 		if(inputs[i]->getDimensions() != 3)
+		//if(inputs2[i]->getDimensions() != 3)
 		{
 			char errorMessage[255];
 			sprintf(errorMessage, "The VolumeRenderer only supports 3D images; check input number %d.", i);
 			throw Exception(errorMessage);
 		}
 		if(inputs[i]->getNrOfComponents() !=1)
+		//if(inputs2[i]->getNrOfComponents() !=1)
 		{
 			char errorMessage[255];
 			sprintf(errorMessage, "The VolumeRenderer currentlt only supports single chanel images; check input volume number %d.", i);
@@ -184,24 +213,12 @@ void VolumeRenderer::execute() {
 	invViewMatrix[4] = modelView[1]; invViewMatrix[5] = modelView[5]; invViewMatrix[6] = modelView[9]; invViewMatrix[7] = modelView[13];
 	invViewMatrix[8] = modelView[2]; invViewMatrix[9] = modelView[6]; invViewMatrix[10] = modelView[10]; invViewMatrix[11] = modelView[14];
 
-	if(!updated)	
+
+
+//if(!updated)	
 	{
-		/*
-		float transferFunc[] = 
-		{
-			0.0, 0.0, 0.0, 0.0, 
-			1.0, 0.0, 0.0, 1.0, 
-			1.0, 0.5, 0.0, 1.0, 
-			1.0, 1.0, 0.0, 1.0, 
-			0.0, 1.0, 0.0, 1.0, 
-			0.0, 1.0, 1.0, 1.0, 
-			0.0, 0.0, 1.0, 1.0, 
-			1.0, 0.0, 1.0, 1.0, 
-			0.0, 0.0, 0.0, 0.0, 
-		};
-		   
-		d_transferFuncArray[1]=cl::Image2D(clContext, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, cl::ImageFormat(CL_RGBA, CL_FLOAT), 9, 1, 0, transferFunc, 0);
-		*/
+
+
 		transferFuncSampler=cl::Sampler(clContext, true, CL_ADDRESS_CLAMP_TO_EDGE, CL_FILTER_LINEAR);
 		volumeSamplerLinear=cl::Sampler(clContext, true, CL_ADDRESS_CLAMP_TO_EDGE, CL_FILTER_LINEAR);
 		d_invViewMatrix= cl::Buffer(clContext, CL_MEM_READ_WRITE, 12*sizeof(float));
@@ -228,7 +245,7 @@ void VolumeRenderer::execute() {
 			strcat(buffer, dataTypeBuffer);
 		}
 
-		printf("\n%s\n",buffer);
+		//printf("\n%s\n",buffer);
 
         std::string str(buffer);
         int programNr = mDevice->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/VolumeRenderer/VolumeRenderer.cl", str);
@@ -262,6 +279,7 @@ void VolumeRenderer::execute() {
 
 		//for(int i=0;i<numberOfVolumes;i++)
 		//	d_volumeArray.push_back(cl::Image3D(clContext,CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, cl::ImageFormat(CL_R, CL_UNORM_INT8), inputs[i]->getWidth(), inputs[i]->getHeight(), inputs[i]->getDepth(), 0, 0, inputs[i]->getImageAccess(ACCESS_READ).get(), 0));
+		
 		
 		OpenCLImageAccess3D access = inputs[0]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
 		cl::Image3D* clImage = access.get();
@@ -337,6 +355,8 @@ void VolumeRenderer::execute() {
 	
     mOutputIsCreated=true;
 
+	if (!inputs.empty())
+		inputs.clear();
 }
 
 void VolumeRenderer::draw() {

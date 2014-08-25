@@ -65,7 +65,6 @@ class VolumeRenderer : public Renderer {
 		std::vector<ImageData::pointer> mInputs;
 		std::vector<Image::pointer> inputs;
 
-		
 
 		float* transferFunc;
 		float* opacityFunc;

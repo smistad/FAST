@@ -89,8 +89,11 @@ window->setTimeout(10*1000);
 */
 	// Example of using VolumeRenderer (3D) and SimpleWindow
 
-	MetaImageImporter::pointer mhdImporter = MetaImageImporter::New();
-    mhdImporter->setFilename("skull.mhd");
+	//MetaImageImporter::pointer mhdImporter = MetaImageImporter::New();
+    //mhdImporter->setFilename("skull.mhd");
+	
+	MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
+    mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
 	MetaImageImporter::pointer mhdImporter2 = MetaImageImporter::New();
     mhdImporter2->setFilename("stent256.mhd");
 	
@@ -116,19 +119,20 @@ window->setTimeout(10*1000);
 
 
 	VolumeRenderer::pointer VolumeRenderer = VolumeRenderer::New();
-    VolumeRenderer->addInput(mhdImporter->getOutput());
+    //VolumeRenderer->addInput(mhdImporter->getOutput());
+	//VolumeRenderer->addInput(mhdStreamer->getOutput());
 	VolumeRenderer->addInput(mhdImporter2->getOutput());
 	
 	
 	VolumeRenderer->setColorTransferFunction(0, ctf1);
-	VolumeRenderer->setColorTransferFunction(1, ctf2);
+	//VolumeRenderer->setColorTransferFunction(1, ctf2);
 
 	VolumeRenderer->setOpacityTransferFunction(0, otf1);
-	VolumeRenderer->setOpacityTransferFunction(1, otf2);
+	//VolumeRenderer->setOpacityTransferFunction(1, otf2);
 
     VolumeRenderer->enableRuntimeMeasurements();
 	SimpleWindow::pointer window = SimpleWindow::New();
-    window->setMaximumFramerate(2500);
+    window->setMaximumFramerate(100);
     window->addRenderer(VolumeRenderer);
     window->runMainLoop();
 	VolumeRenderer->getRuntime()->print();
