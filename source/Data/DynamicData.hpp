@@ -10,7 +10,7 @@ namespace fast {
 template <class T>
 class DynamicData : public virtual DataObject {
     public:                                                     
-        typedef typename SharedPointer<DynamicData<T> > pointer;               
+        typedef SharedPointer<DynamicData<T> > pointer;
         static typename DynamicData<T>::pointer New() {                       
             DynamicData<T> * ptr = new DynamicData<T>();                  
             typename DynamicData<T>::pointer smartPtr(ptr);                   
@@ -19,7 +19,7 @@ class DynamicData : public virtual DataObject {
             return smartPtr;                                    
         }                                                       
     private:                                                    
-        typename WeakPointer<DynamicData<T> > mPtr;                            
+        WeakPointer<DynamicData<T> > mPtr;
         void setPtr(typename DynamicData<T>::pointer ptr) {                   
             mPtr = ptr;                                         
         }                                                       
