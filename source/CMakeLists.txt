@@ -124,10 +124,12 @@ if(ITK_INTEROP)
     set(LIBRARIES ${LIBRARIES} ${ITK_LIBRARIES})
 endif()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/Tests)
+set(FAST_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR})
 
 #### Add all subdirs
 fast_add_subdirectories(Algorithms Data Streamers Importers Exporters Visualization Tests)
+
+#### Set include dirs
 include_directories(${FAST_INCLUDE_DIRS})
 
 #### Create FAST library and executables
