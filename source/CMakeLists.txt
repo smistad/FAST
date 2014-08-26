@@ -4,7 +4,7 @@ project(FAST)
 option(VTK_INTEROP "Enable interoperability with VTK" OFF)
 option(ITK_INTEROP "Enable interoperability with ITK" OFF)
 
-#### Macro for adding source files
+#### Macro for adding source files and directories
 macro (fast_add_sources)
     file (RELATIVE_PATH _relPath "${CMAKE_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
     foreach (_src ${ARGN})
@@ -33,6 +33,21 @@ macro (fast_add_test_sources)
         set (FAST_TEST_SOURCE_FILES ${FAST_TEST_SOURCE_FILES} PARENT_SCOPE)
     endif()
 endmacro()
+macro (fast_add_subdirectories)
+    file (RELATIVE_PATH _relPath "${CMAKE_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
+    foreach (_src ${ARGN})
+        if (_relPath)
+            list (APPEND FAST_INCLUDE_DIRS "${_relPath}/${_src}")
+        else()
+            list (APPEND FAST_INCLUDE_DIRS "${_src}")
+        endif()
+        add_subdirectory(${_src})
+    endforeach()
+    if (_relPath)
+        # propagate FAST_INCLUDE_DIRS to parent directory
+        set (FAST_INCLUDE_DIRS ${FAST_INCLUDE_DIRS} PARENT_SCOPE)
+    endif()
+endmacro()
 
 fast_add_sources(
     main.cpp
@@ -53,41 +68,6 @@ fast_add_sources(
     SceneGraph.hpp
     LinearTransformation.cpp
     LinearTransformation.hpp
-)
-
-
-
-if(VTK_INTEROP)
-    fast_add_sources(
-        Exporters/VTKImageExporter.cpp
-        Exporters/VTKImageExporter.hpp
-        Importers/VTKImageImporter.cpp
-        Importers/VTKImageImporter.hpp
-    )
-endif()
-
-if(ITK_INTEROP)
-    fast_add_sources(
-        Exporters/ITKImageExporter.hpp
-        Importers/ITKImageImporter.hpp
-    )
-endif()
-
-include_directories(
-    Data/
-    Importers/
-    Exporters/
-    Streamers/
-    Algorithms/
-    Algorithms/SurfaceExtraction/
-    Algorithms/GaussianSmoothingFilter/
-    Algorithms/SeededRegionGrowing/
-    Data/Access/
-    Visualization/
-    Visualization/ImageRenderer/
-    Visualization/SliceRenderer/
-    Visualization/SurfaceRenderer/
-    Visualization/VolumeRenderer/
 )
 
 # Headers for Qt objects
@@ -147,13 +127,8 @@ endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/Tests)
 
 #### Add all subdirs
-add_subdirectory(Algorithms)
-add_subdirectory(Data)
-add_subdirectory(Streamers)
-add_subdirectory(Importers)
-add_subdirectory(Exporters)
-add_subdirectory(Visualization)
-add_subdirectory(Tests)
+fast_add_subdirectories(Algorithms Data Streamers Importers Exporters Visualization Tests)
+include_directories(${FAST_INCLUDE_DIRS})
 
 #### Create FAST library and executables
 add_library(FAST ${FAST_SOURCE_FILES} ${HEADERS_MOC})

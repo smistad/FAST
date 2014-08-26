@@ -4,3 +4,14 @@ fast_add_sources(
     MetaImageExporter.cpp
     MetaImageExporter.hpp
 )
+if(VTK_INTEROP)
+    fast_add_sources(
+        VTKImageExporter.cpp
+        VTKImageExporter.hpp
+    )
+endif()
+if(ITK_INTEROP)
+    fast_add_sources(
+        ITKImageExporter.hpp
+    )
+endif()

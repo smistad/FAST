@@ -5,3 +5,14 @@ fast_add_sources(
     ImageImporter.hpp
     Importer.hpp
 )
+if(VTK_INTEROP)
+    fast_add_sources(
+        VTKImageImporter.cpp
+        VTKImageImporter.hpp
+    )
+endif()
+if(ITK_INTEROP)
+    fast_add_sources(
+        ITKImageImporter.hpp
+    )
+endif()

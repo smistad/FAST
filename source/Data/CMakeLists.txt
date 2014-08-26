@@ -1,4 +1,4 @@
-add_subdirectory(Access)
+fast_add_subdirectories(Access)
 fast_add_sources(
     BoundingBox.cpp
     BoundingBox.hpp
