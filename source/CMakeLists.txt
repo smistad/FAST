@@ -159,7 +159,7 @@ include_directories(${GLEW_INCLUDE_PATH})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
-add_executable(examples ${SOURCES} ${HEADERS_MOC})
+add_executable(examples main.cpp ${HEADERS_MOC})
 add_library(FAST ${SOURCES} ${HEADERS_MOC})
 
 set(LIBRARIES
@@ -183,7 +183,7 @@ if(ITK_INTEROP)
     set(LIBRARIES ${LIBRARIES} ${ITK_LIBRARIES})
 endif()
 
-target_link_libraries(examples ${LIBRARIES})
 target_link_libraries(FAST ${LIBRARIES})
+target_link_libraries(examples FAST)
 
 add_subdirectory(Tests)
