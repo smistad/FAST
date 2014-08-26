@@ -1,0 +1,15 @@
+fast_add_sources(
+    Access.hpp
+    OpenCLBufferAccess.cpp
+    OpenCLBufferAccess.hpp
+    OpenCLImageAccess2D.cpp
+    OpenCLImageAccess2D.hpp
+    OpenCLImageAccess3D.cpp
+    OpenCLImageAccess3D.hpp
+    ImageAccess.cpp
+    ImageAccess.hpp
+    VertexBufferObjectAccess.cpp
+    VertexBufferObjectAccess.hpp
+    SurfacePointerAccess.cpp
+    SurfacePointerAccess.hpp
+)

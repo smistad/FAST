@@ -1,0 +1,14 @@
+add_subdirectory(ImageRenderer)
+add_subdirectory(SliceRenderer)
+add_subdirectory(SurfaceRenderer)
+add_subdirectory(VolumeRenderer)
+fast_add_sources(
+    SimpleWindow.cpp
+    SimpleWindow.hpp
+    WindowWidget.cpp
+    WindowWidget.hpp
+    View.cpp
+    View.hpp
+    Renderer.cpp
+    Renderer.hpp
+) 

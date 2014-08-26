@@ -4,7 +4,37 @@ project(FAST)
 option(VTK_INTEROP "Enable interoperability with VTK" OFF)
 option(ITK_INTEROP "Enable interoperability with ITK" OFF)
 
-set(SOURCES 
+#### Macro for adding source files
+macro (fast_add_sources)
+    file (RELATIVE_PATH _relPath "${CMAKE_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
+    foreach (_src ${ARGN})
+        if (_relPath)
+            list (APPEND FAST_SOURCE_FILES "${_relPath}/${_src}")
+        else()
+            list (APPEND FAST_SOURCE_FILES "${_src}")
+        endif()
+    endforeach()
+    if (_relPath)
+        # propagate FAST_SOURCE_FILES to parent directory
+        set (FAST_SOURCE_FILES ${FAST_SOURCE_FILES} PARENT_SCOPE)
+    endif()
+endmacro()
+macro (fast_add_test_sources)
+    file (RELATIVE_PATH _relPath "${CMAKE_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
+    foreach (_src ${ARGN})
+        if (_relPath)
+            list (APPEND FAST_TEST_SOURCE_FILES "${_relPath}/${_src}")
+        else()
+            list (APPEND FAST_TEST_SOURCE_FILES "${_src}")
+        endif()
+    endforeach()
+    if (_relPath)
+        # propagate FAST_TEST_SOURCE_FILES to parent directory
+        set (FAST_TEST_SOURCE_FILES ${FAST_TEST_SOURCE_FILES} PARENT_SCOPE)
+    endif()
+endmacro()
+
+fast_add_sources(
     main.cpp
     Object.cpp
     Object.hpp
@@ -23,76 +53,12 @@ set(SOURCES
     SceneGraph.hpp
     LinearTransformation.cpp
     LinearTransformation.hpp
-    Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.cpp
-    Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp
-    Algorithms/SeededRegionGrowing/SeededRegionGrowing.cpp
-    Algorithms/SeededRegionGrowing/SeededRegionGrowing.hpp
-    Algorithms/SurfaceExtraction/SurfaceExtraction.cpp
-    Algorithms/SurfaceExtraction/SurfaceExtraction.hpp
-    Data/BoundingBox.cpp
-    Data/BoundingBox.hpp
-    Data/DataObject.cpp
-    Data/DataObject.hpp
-    Data/DynamicData.hpp
-    Data/Image.cpp
-    Data/Image.hpp
-    Data/DataTypes.cpp
-    Data/DataTypes.hpp
-    Data/Surface.cpp
-    Data/Surface.hpp
-    Data/SurfaceVertex.hpp
-    Data/Access/Access.hpp
-    Data/Access/OpenCLBufferAccess.cpp
-    Data/Access/OpenCLBufferAccess.hpp
-    Data/Access/OpenCLImageAccess2D.cpp
-    Data/Access/OpenCLImageAccess2D.hpp
-    Data/Access/OpenCLImageAccess3D.cpp
-    Data/Access/OpenCLImageAccess3D.hpp
-    Data/Access/ImageAccess.cpp
-    Data/Access/ImageAccess.hpp
-    Data/Access/VertexBufferObjectAccess.cpp
-    Data/Access/VertexBufferObjectAccess.hpp
-    Data/Access/SurfacePointerAccess.cpp
-    Data/Access/SurfacePointerAccess.hpp
-    Streamers/Streamer.cpp
-    Streamers/Streamer.hpp
-    Streamers/ImageStreamer.cpp
-    Streamers/ImageStreamer.hpp
-    Streamers/MetaImageStreamer.cpp
-    Streamers/MetaImageStreamer.hpp
-    Importers/MetaImageImporter.cpp
-    Importers/MetaImageImporter.hpp
-    Importers/ImageImporter.cpp
-    Importers/ImageImporter.hpp
-    Importers/Importer.hpp
-    Exporters/ImageExporter.cpp
-    Exporters/ImageExporter.hpp
-    Exporters/MetaImageExporter.cpp
-    Exporters/MetaImageExporter.hpp
-    Visualization/SimpleWindow.cpp
-    Visualization/SimpleWindow.hpp
-    Visualization/WindowWidget.cpp
-    Visualization/WindowWidget.hpp
-    Visualization/View.cpp
-    Visualization/View.hpp
-    Visualization/Renderer.cpp
-    Visualization/Renderer.hpp
-    Visualization/ImageRenderer/ImageRenderer.cpp
-    Visualization/ImageRenderer/ImageRenderer.hpp
-    Visualization/SliceRenderer/SliceRenderer.cpp
-    Visualization/SliceRenderer/SliceRenderer.hpp
-    Visualization/SurfaceRenderer/SurfaceRenderer.cpp
-    Visualization/SurfaceRenderer/SurfaceRenderer.hpp
-    Visualization/VolumeRenderer/VolumeRenderer.cpp
-    Visualization/VolumeRenderer/VolumeRenderer.hpp
-    Visualization/VolumeRenderer/ColorTransferFunction.cpp
-    Visualization/VolumeRenderer/ColorTransferFunction.hpp
-    Visualization/VolumeRenderer/OpacityTransferFunction.cpp
-    Visualization/VolumeRenderer/OpacityTransferFunction.hpp
 )
 
+
+
 if(VTK_INTEROP)
-    set(SOURCES ${SOURCES}
+    fast_add_sources(
         Exporters/VTKImageExporter.cpp
         Exporters/VTKImageExporter.hpp
         Importers/VTKImageImporter.cpp
@@ -101,14 +67,13 @@ if(VTK_INTEROP)
 endif()
 
 if(ITK_INTEROP)
-    set(SOURCES ${SOURCES}
+    fast_add_sources(
         Exporters/ITKImageExporter.hpp
         Importers/ITKImageImporter.hpp
     )
 endif()
 
 include_directories(
-    
     Data/
     Importers/
     Exporters/
@@ -134,6 +99,7 @@ set(QT_HEADERS
 # Set up some directory defines
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFAST_ROOT_DIR=\\\"${PROJECT_SOURCE_DIR}/../\\\"")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFAST_SOURCE_DIR=\\\"${PROJECT_SOURCE_DIR}/\\\"")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFAST_TEST_DATA_DIR=\\\"${PROJECT_SOURCE_DIR}/TestData/\\\"")
 
 #### Set up library dependencies
 
@@ -178,14 +144,24 @@ if(ITK_INTEROP)
     set(LIBRARIES ${LIBRARIES} ${ITK_LIBRARIES})
 endif()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/Tests)
 
+#### Add all subdirs
+add_subdirectory(Algorithms)
+add_subdirectory(Data)
+add_subdirectory(Streamers)
+add_subdirectory(Importers)
+add_subdirectory(Exporters)
+add_subdirectory(Visualization)
+add_subdirectory(Tests)
+
+#### Create FAST library and executables
+add_library(FAST ${FAST_SOURCE_FILES} ${HEADERS_MOC})
 add_executable(examples main.cpp)
-add_library(FAST ${SOURCES} ${HEADERS_MOC})
+add_executable(test ${FAST_TEST_SOURCE_FILES})
 
-# Link everything
+## Link everything
 target_link_libraries(FAST ${LIBRARIES})
 qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
 target_link_libraries(examples FAST)
-
-add_subdirectory(Tests)
+target_link_libraries(test FAST)

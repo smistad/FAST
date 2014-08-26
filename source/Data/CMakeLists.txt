@@ -1,0 +1,15 @@
+add_subdirectory(Access)
+fast_add_sources(
+    BoundingBox.cpp
+    BoundingBox.hpp
+    DataObject.cpp
+    DataObject.hpp
+    DynamicData.hpp
+    Image.cpp
+    Image.hpp
+    DataTypes.cpp
+    DataTypes.hpp
+    Surface.cpp
+    Surface.hpp
+    SurfaceVertex.hpp
+)
