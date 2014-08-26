@@ -145,7 +145,6 @@ set(LIBRARIES ${LIBRARIES} OpenCLUtilityLibrary)
 
 ## Qt
 find_package(Qt5Widgets)
-find_package(Qt5Core)
 find_package(Qt5OpenGL)
 qt5_wrap_cpp(HEADERS_MOC ${QT_HEADERS})
 set(LIBRARIES ${LIBRARIES} ${QT_LIBRARIES})
@@ -186,7 +185,7 @@ add_library(FAST ${SOURCES} ${HEADERS_MOC})
 
 # Link everything
 target_link_libraries(FAST ${LIBRARIES})
-qt5_use_modules(FAST Core Widgets OpenGL) # Add Qt 5 modules
+qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
 target_link_libraries(examples FAST)
 
 add_subdirectory(Tests)
