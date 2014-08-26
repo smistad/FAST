@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.9)
 project(FAST)
 
 option(VTK_INTEROP "Enable interoperability with VTK" OFF)
@@ -126,49 +126,44 @@ include_directories(
 )
 
 # Headers for Qt objects
-set(HEADERS 
+set(QT_HEADERS
     Visualization/View.hpp
     Visualization/WindowWidget.hpp
 )
 
+# Set up some directory defines
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFAST_ROOT_DIR=\\\"${PROJECT_SOURCE_DIR}/../\\\"")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFAST_SOURCE_DIR=\\\"${PROJECT_SOURCE_DIR}/\\\"")
 
+#### Set up library dependencies
 
+## OpenCL Utility Library
 add_subdirectory(OpenCLUtilityLibrary)
 find_package(OpenCLUtilityLibrary PATHS "${FAST_BINARY_DIR}/OpenCLUtilityLibrary" REQUIRED)
 include(${OpenCLUtilityLibrary_USE_FILE})
+set(LIBRARIES ${LIBRARIES} OpenCLUtilityLibrary)
 
 ## Qt
-set(QT_USE_QTOPENGL TRUE)
-find_package(Qt4 REQUIRED)
-include(${QT_USE_FILE})
-add_definitions(${QT_DEFINITIONS})
-QT4_WRAP_CPP(HEADERS_MOC ${HEADERS})
+find_package(Qt5Widgets)
+find_package(Qt5Core)
+find_package(Qt5OpenGL)
+qt5_wrap_cpp(HEADERS_MOC ${QT_HEADERS})
+set(LIBRARIES ${LIBRARIES} ${QT_LIBRARIES})
 
 ## Boost
 find_package(Boost COMPONENTS system thread iostreams REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS} ${PROJECT_BINARY_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
+set(LIBRARIES ${LIBRARIES} ${Boost_LIBRARIES})
 
 ## GLEW
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 find_package(GLEW REQUIRED)
 include_directories(${GLEW_INCLUDE_DIR})
 include_directories(${GLEW_INCLUDE_PATH})
+set(LIBRARIES ${LIBRARIES} ${GLEW_LIBRARY})
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-
-add_executable(examples main.cpp ${HEADERS_MOC})
-add_library(FAST ${SOURCES} ${HEADERS_MOC})
-
-set(LIBRARIES
-    OpenCLUtilityLibrary
-    ${QT_LIBRARIES}
-    ${Boost_LIBRARIES}
-    ${GLEW_LIBRARY}
-)
-
+## VTK
 if(VTK_INTEROP)
     find_package(VTK REQUIRED)
     include(${VTK_USE_FILE})
@@ -176,6 +171,7 @@ if(VTK_INTEROP)
     set(LIBRARIES ${LIBRARIES} ${VTK_LIBRARIES})
 endif()
 
+## ITK
 if(ITK_INTEROP)
     find_package(ITK REQUIRED)
     include(${ITK_USE_FILE})
@@ -183,7 +179,14 @@ if(ITK_INTEROP)
     set(LIBRARIES ${LIBRARIES} ${ITK_LIBRARIES})
 endif()
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(examples main.cpp)
+add_library(FAST ${SOURCES} ${HEADERS_MOC})
+
+# Link everything
 target_link_libraries(FAST ${LIBRARIES})
+qt5_use_modules(FAST Core Widgets OpenGL) # Add Qt 5 modules
 target_link_libraries(examples FAST)
 
 add_subdirectory(Tests)
