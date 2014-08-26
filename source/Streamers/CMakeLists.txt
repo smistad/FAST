@@ -6,3 +6,7 @@ fast_add_sources(
     MetaImageStreamer.cpp
     MetaImageStreamer.hpp
 )
+fast_add_test_sources(
+    Tests/MetaImageStreamerTests.cpp
+    Tests/ImageStreamerTests.cpp
+)

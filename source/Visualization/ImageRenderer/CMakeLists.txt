@@ -2,3 +2,6 @@ fast_add_sources(
     ImageRenderer.cpp
     ImageRenderer.hpp
 )
+fast_add_test_sources(
+    ImageRendererTests.cpp
+)

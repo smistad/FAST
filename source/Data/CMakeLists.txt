@@ -13,3 +13,8 @@ fast_add_sources(
     Surface.hpp
     SurfaceVertex.hpp
 )
+fast_add_test_sources(
+    Tests/DataObjectTests.cpp
+    Tests/ImageTests.cpp
+    Tests/DynamicImageTests.cpp
+)

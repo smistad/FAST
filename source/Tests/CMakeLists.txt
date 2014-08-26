@@ -1,4 +1,3 @@
-
 fast_add_test_sources(
     catch.hpp
     CatchMain.cpp
@@ -6,35 +5,9 @@ fast_add_test_sources(
     DataComparison.hpp
     DummyObjects.hpp
     ProcessObjectTests.cpp
-    DataObjectTests.cpp
     SceneGraphTests.cpp
     Algorithms/DoubleFilter.cpp
     Algorithms/DoubleFilter.hpp
     Algorithms/DoubleFilterTests.cpp
-    Data/ImageTests.cpp
-    Data/DynamicImageTests.cpp
-    Importers/ImageImporterTests.cpp
-    Exporters/ImageExporterTests.cpp
-    Importers/MetaImageImporterTests.cpp
-    Exporters/MetaImageExporterTests.cpp
-    Streamers/MetaImageStreamerTests.cpp
-    Streamers/ImageStreamerTests.cpp
-    Visualization/ImageRendererTests.cpp
-    Visualization/SliceRendererTests.cpp
-    Visualization/SurfaceRendererTests.cpp
     SystemTests.cpp
 )
-
-if(VTK_INTEROP)
-    fast_add_test_sources(
-        Importers/VTKImageImporterTests.cpp
-        Exporters/VTKImageExporterTests.cpp
-    )
-endif()
-
-if(ITK_INTEROP)
-    fast_add_test_sources(
-        Importers/ITKImageImporterTests.cpp
-        Exporters/ITKImageExporterTests.cpp
-    )
-endif()

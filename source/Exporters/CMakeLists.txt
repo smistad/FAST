@@ -4,14 +4,24 @@ fast_add_sources(
     MetaImageExporter.cpp
     MetaImageExporter.hpp
 )
+fast_add_test_sources(
+    Tests/ImageExporterTests.cpp
+    Tests/MetaImageExporterTests.cpp
+)
 if(VTK_INTEROP)
     fast_add_sources(
         VTKImageExporter.cpp
         VTKImageExporter.hpp
     )
+    fast_add_test_sources(
+        Tests/VTKImageExporterTests.cpp
+    )
 endif()
 if(ITK_INTEROP)
     fast_add_sources(
         ITKImageExporter.hpp
+    )
+    fast_add_test_sources(
+        Tests/ITKImageExporterTests.cpp
     )
 endif()
