@@ -310,8 +310,8 @@ void View::initializeGL() {
         float z_width = (max[xDirection]-min[xDirection])*0.5 / tan(fieldOfViewX*0.5);
         float z_height = (max[yDirection]-min[yDirection])*0.5 / tan(fieldOfViewY*0.5);
         cameraPosition[2] = -(z_width < z_height ? z_height : z_width) // minimum translation to see entire object
-                -(max[zDirection]-min[zDirection]) // depth of the bounding box
-                -50; // border
+                -(max[zDirection]-min[zDirection]); // depth of the bounding box
+//                -50; // border
 
         originalCameraPosition = cameraPosition;
 

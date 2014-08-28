@@ -123,7 +123,7 @@ VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
                 }
             }
             glBufferData(GL_ARRAY_BUFFER, mNrOfTriangles*18*sizeof(float), data, GL_STATIC_DRAW);
-            //delete[] data;
+            delete[] data;
         } else {
             glBufferData(GL_ARRAY_BUFFER, mNrOfTriangles*18*sizeof(float), NULL, GL_STATIC_DRAW);
         }
