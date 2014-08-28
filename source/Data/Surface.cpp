@@ -42,6 +42,9 @@ void Surface::create(
 
     mBoundingBox = BoundingBox(vertices);
     mNrOfTriangles = triangles.size();
+    mTriangles = triangles;
+    mHostHasData = true;
+    mHostDataIsUpToDate = true;
     SceneGraph& graph = SceneGraph::getInstance();
     graph.addDataNodeToNewRoot(mPtr);
 }
@@ -101,7 +104,29 @@ VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
             throw Exception("GLEW init error");
         glGenBuffers(1, &mVBOID);
         glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
-        glBufferData(GL_ARRAY_BUFFER, mNrOfTriangles*18*sizeof(cl_float), NULL, GL_STATIC_DRAW);
+        if(mHostHasData) {
+            // If host has data, transfer it.
+            // Create data arrays with vertices and normals interleaved
+            uint counter = 0;
+            float* data = new float[mNrOfTriangles*18];
+            for(uint i = 0; i < mNrOfTriangles; i++) {
+                Uint3 triangle = mTriangles[i];
+                for(uint j = 0; j < 3; j++) {
+                    SurfaceVertex vertex = mVertices[triangle[j]];
+                    for(uint k = 0; k < 3; k++) {
+                        data[counter+k] = vertex.position[k];
+                        //std::cout << data[counter+k] << std::endl;
+                        data[counter+3+k] = vertex.normal[k];
+                    }
+                    //std::cout << "...." << std::endl;
+                    counter += 6;
+                }
+            }
+            glBufferData(GL_ARRAY_BUFFER, mNrOfTriangles*18*sizeof(float), data, GL_STATIC_DRAW);
+            //delete[] data;
+        } else {
+            glBufferData(GL_ARRAY_BUFFER, mNrOfTriangles*18*sizeof(float), NULL, GL_STATIC_DRAW);
+        }
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glFinish();
         std::cout << "Created VBO with ID " << mVBOID << std::endl;
@@ -143,8 +168,9 @@ Surface::Surface() {
 
 void Surface::freeAll() {
     // TODO finish
-    if(mVBOHasData)
+    if(mVBOHasData) {
         glDeleteBuffers(1, &mVBOID);
+    }
     mVBOHasData = false;
 }
 
