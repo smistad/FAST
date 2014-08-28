@@ -14,3 +14,4 @@ fast_add_sources(
     Renderer.cpp
     Renderer.hpp
 ) 
+fast_add_test_sources()

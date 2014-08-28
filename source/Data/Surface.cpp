@@ -18,9 +18,9 @@
 namespace fast {
 
 void Surface::create(
-        std::vector<Float<3> > vertices,
-        std::vector<Float<3> > normals,
-        std::vector<Uint<3> > triangles) {
+        std::vector<Float3> vertices,
+        std::vector<Float3> normals,
+        std::vector<Uint3> triangles) {
     if(mIsInitialized) {
         // Delete old data
         freeAll();
@@ -40,6 +40,7 @@ void Surface::create(
         mVertices[triangles[i].z()].triangles.push_back(i);
     }
 
+    mBoundingBox = BoundingBox(vertices);
     mNrOfTriangles = triangles.size();
     SceneGraph& graph = SceneGraph::getInstance();
     graph.addDataNodeToNewRoot(mPtr);
@@ -153,6 +154,10 @@ void Surface::free(ExecutionDevice::pointer device) {
 
 unsigned int Surface::getNrOfTriangles() const {
     return mNrOfTriangles;
+}
+
+unsigned int Surface::getNrOfVertices() const {
+    return mVertices.size();
 }
 
 void Surface::setBoundingBox(BoundingBox box) {
