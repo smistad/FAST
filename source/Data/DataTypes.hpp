@@ -4,11 +4,14 @@
 #include "Exception.hpp"
 #include "OpenCL.hpp"
 
-namespace fast {
-
+// These have to be outside of fast namespace or it will not compile with Qt on Windows. Why?
 typedef unsigned char uchar;
 typedef unsigned short ushort;
 typedef unsigned int uint;
+
+namespace fast {
+
+
 
 
 enum DataType { TYPE_FLOAT, TYPE_UINT8, TYPE_INT8, TYPE_UINT16, TYPE_INT16 };
