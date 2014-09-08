@@ -23,8 +23,8 @@ int main(int argc, char ** argv) {
 
     // TODO this causes problem for some reason??
     // Get a GPU device and set it as the default device
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(true));
+    //DeviceManager& deviceManager = DeviceManager::getInstance();
+    //deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(true));
 
     /*
     MetaImageImporter::pointer importer = MetaImageImporter::New();
@@ -60,9 +60,11 @@ int main(int argc, char ** argv) {
     renderer->setSlicePlane(PLANE_Y);
     renderer->setInput(importer->getOutput());
     SimpleWindow::pointer window = SimpleWindow::New();
-    window->set2DMode();
+
     window->addRenderer(renderer);
     window->runMainLoop();
+	*/
+	/*
 
     ImageImporter::pointer importer2 = ImageImporter::New();
     importer2->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-2D.jpg");
@@ -136,13 +138,28 @@ window->setTimeout(10*1000);
 	// Example of using VolumeRenderer (3D) and SimpleWindow
 
 
-	//MetaImageImporter::pointer mhdImporter = MetaImageImporter::New();
-    //mhdImporter->setFilename("skull.mhd");
+//	MetaImageImporter::pointer mhdImporter = MetaImageImporter::New();
+//    mhdImporter->setFilename("skull.mhd");
 	
+
 	MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
 
-    
+    SliceRenderer::pointer sRenderer = SliceRenderer::New();
+    sRenderer->setSlicePlane(PLANE_Y);
+    sRenderer->setInput(mhdStreamer->getOutput());
+
+
+
+
+    //SimpleWindow::pointer window = SimpleWindow::New();
+	//window->addRenderer(sRenderer);
+    //window->runMainLoop();
+	
+
+	
+
+
 	MetaImageImporter::pointer mhdImporter = MetaImageImporter::New();
     mhdImporter->setFilename("skull.mhd");
 
@@ -162,6 +179,7 @@ window->setTimeout(10*1000);
 
 	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
 	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(050.0, 1.0);
 	otf1->addAlphaPoint(255.0, 1.0);
 	
 	OpacityTransferFunction::pointer otf2 = OpacityTransferFunction::New();
@@ -170,26 +188,27 @@ window->setTimeout(10*1000);
 
 
 
-	VolumeRenderer::pointer VolumeRenderer = VolumeRenderer::New();
+	VolumeRenderer::pointer vRenderer = VolumeRenderer::New();
     //VolumeRenderer->addInput(mhdImporter->getOutput());
-	//VolumeRenderer->addInput(mhdStreamer->getOutput());
-	VolumeRenderer->addInput(mhdImporter2->getOutput());
+	vRenderer->addInput(mhdStreamer->getOutput());
+	//VolumeRenderer->addInput(mhdImporter2->getOutput());
 	
 	
-	VolumeRenderer->setColorTransferFunction(0, ctf1);
+	vRenderer->setColorTransferFunction(0, ctf1);
 	//VolumeRenderer->setColorTransferFunction(1, ctf2);
 
-	VolumeRenderer->setOpacityTransferFunction(0, otf1);
+	vRenderer->setOpacityTransferFunction(0, otf1);
 	//VolumeRenderer->setOpacityTransferFunction(1, otf2);
 
-    VolumeRenderer->enableRuntimeMeasurements();
+    vRenderer->enableRuntimeMeasurements();
 	SimpleWindow::pointer window = SimpleWindow::New();
     window->setMaximumFramerate(100);
-    window->addRenderer(VolumeRenderer);
+    window->addRenderer(vRenderer);
+	window->addRenderer(sRenderer);
     window->runMainLoop();
-	VolumeRenderer->getRuntime()->print();
+	vRenderer->getRuntime()->print();
 	
-	
+	getchar();
 
 
 }

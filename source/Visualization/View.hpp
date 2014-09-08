@@ -23,8 +23,21 @@ class View : public QGLWidget, public ProcessObject {
         void set2DMode();
         void set3DMode();
     private:
+
+		std::vector<Renderer::pointer> mNonVolumeRenderers;
+		std::vector<Renderer::pointer> mVolumeRenderers;
+		bool NonVolumesTurn;
+		GLuint renderedDepthText;
+		GLuint fbo, fbo2, render_buf;
+		GLuint renderedTexture0, renderedTexture1;
+		GLuint programGLSL;
+		void initShader();
+		void getDepthBufferFromGeo();
+		void renderVolumes();
+
+
         View();
-        std::vector<Renderer::pointer> mRenderers;
+
         void execute();
         QTimer* timer;
         unsigned int mFramerate;

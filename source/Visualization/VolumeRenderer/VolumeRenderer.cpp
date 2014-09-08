@@ -8,6 +8,10 @@
 #include "ColorTransferFunction.hpp"
 #include "OpacityTransferFunction.hpp"
 
+
+#define mHeight 512
+#define mWidth 512
+
 namespace fast {
 
 
@@ -87,26 +91,27 @@ void VolumeRenderer::setColorTransferFunction(int volumeIndex, ColorTransferFunc
 
 }
 
+
+void VolumeRenderer::addGeometryColorTexture(GLuint geoColorTex)
+{
+	mGeoColorTex= geoColorTex;
+}
+void VolumeRenderer::addGeometryDepthTexture(GLuint geoDepthTex)
+{
+	mGeoDepthTex= geoDepthTex;
+}
+
+
 VolumeRenderer::VolumeRenderer() : Renderer() {
 
 
 	
 
     mDevice = DeviceManager::getInstance().getDefaultVisualizationDevice();
-
 	clContext = mDevice->getContext();
+	
+	setOpenGLContext(mDevice->getGLContext());
 
-		GLuint depthText;
-		glGenTextures(1,&depthText);
-		glBindTexture(GL_TEXTURE_2D,depthText);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_LUMINANCE);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, 512,512, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
-
-		glCopyTexSubImage2D(GL_TEXTURE_2D,0,0,0, 0, 0, 512, 512);
 
 	updated=false;
 
@@ -127,9 +132,11 @@ VolumeRenderer::VolumeRenderer() : Renderer() {
 
 }
 
-
+BoundingBox VolumeRenderer::getBoundingBox()
+{
+	return BoundingBox();
+}
 void VolumeRenderer::execute() {
-
 
 
 	if(numberOfVolumes<0)
@@ -149,28 +156,21 @@ void VolumeRenderer::execute() {
 		{
 		
 			inputs.push_back( DynamicImage::pointer(mInputs[i])->getNextFrame());
-			//inputs.assign(0, DynamicImage::pointer(mInputs[i])->getNextFrame());
-			//inputs[0]= DynamicImage::pointer(mInputs[i])->getNextFrame();
-
-			//inputs2[i]=DynamicImage::pointer(mInputs[i])->getNextFrame();
-			//inputs.insert(inputs.begin(),DynamicImage::pointer(mInputs[i])->getNextFrame());
 			
 		} 
 		else 
 		{
-			//inputs2[i] = mInputs[i];
 			inputs.push_back( mInputs[i]);
 		}
 
 		if(inputs[i]->getDimensions() != 3)
-		//if(inputs2[i]->getDimensions() != 3)
 		{
 			char errorMessage[255];
 			sprintf(errorMessage, "The VolumeRenderer only supports 3D images; check input number %d.", i);
 			throw Exception(errorMessage);
 		}
+
 		if(inputs[i]->getNrOfComponents() !=1)
-		//if(inputs2[i]->getNrOfComponents() !=1)
 		{
 			char errorMessage[255];
 			sprintf(errorMessage, "The VolumeRenderer currentlt only supports single chanel images; check input volume number %d.", i);
@@ -189,16 +189,14 @@ void VolumeRenderer::execute() {
 
     setOpenGLContext(mDevice->getGLContext());
 
-    glewInit();
+   
     glEnable(GL_NORMALIZE);
     glEnable(GL_DEPTH_TEST);
     // Set background color
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-		
-	// create new Images (if necessary)
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
 
+	//Update Camera Matrix
 	GLfloat modelView[16];
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
@@ -245,7 +243,6 @@ void VolumeRenderer::execute() {
 			strcat(buffer, dataTypeBuffer);
 		}
 
-		//printf("\n%s\n",buffer);
 
         std::string str(buffer);
         int programNr = mDevice->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/VolumeRenderer/VolumeRenderer.cl", str);
@@ -269,17 +266,39 @@ void VolumeRenderer::execute() {
 		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pbo);
 		glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, mHeight * mWidth * sizeof(GLubyte) * 4, 0, GL_STREAM_DRAW_ARB);
 		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
-		
 		// Create CL-GL image
-		pbo_cl = cl::BufferGL(
-        mDevice->getContext(),
-        CL_MEM_WRITE_ONLY,
-        pbo
-		);
+		pbo_cl = cl::BufferGL(mDevice->getContext(), CL_MEM_WRITE_ONLY, pbo);
+		
+		
+		
 
+		
+		
+		/*
+		
+		//glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, colorDepthText, 0);
+		
+		
+		cl::Image2DGL(mDevice->getContext(), CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0,colorDepthText, NULL);
+		
+		
+		glUseProgram(programGLSL);
+
+		int loc = glGetUniformLocation(programGLSL, "texture1");
+		glUniform1i(loc, colorDepthText);
+
+		//glUseProgram(0);
+
+		*/
+
+		
 		//for(int i=0;i<numberOfVolumes;i++)
 		//	d_volumeArray.push_back(cl::Image3D(clContext,CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, cl::ImageFormat(CL_R, CL_UNORM_INT8), inputs[i]->getWidth(), inputs[i]->getHeight(), inputs[i]->getDepth(), 0, 0, inputs[i]->getImageAccess(ACCESS_READ).get(), 0));
 		
+		mImageGLGeoColor = cl::Image2DGL( mDevice->getContext(), CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mGeoColorTex);
+		mImageGLGeoDepth = cl::Image2DGL( mDevice->getContext(), CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mGeoDepthTex);
+
+
 		
 		OpenCLImageAccess3D access = inputs[0]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
 		cl::Image3D* clImage = access.get();
@@ -297,6 +316,8 @@ void VolumeRenderer::execute() {
 		renderKernel.setArg(10, d_opacityFuncArray[0]);
 		renderKernel.setArg(11, volumeSamplerLinear);
 		renderKernel.setArg(12, transferFuncSampler);
+		renderKernel.setArg(13, mImageGLGeoColor);
+		renderKernel.setArg(14, mImageGLGeoDepth);
 		if (numberOfVolumes>1)
 		{
 			OpenCLImageAccess3D access2 = inputs[1]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
@@ -340,6 +361,8 @@ void VolumeRenderer::execute() {
 
 		std::vector<cl::Memory> v;
 		v.push_back(pbo_cl);
+		v.push_back(mImageGLGeoColor);
+		v.push_back(mImageGLGeoDepth);
 		mDevice->getCommandQueue().enqueueAcquireGLObjects(&v);
 		mDevice->getCommandQueue().enqueueWriteBuffer(d_invViewMatrix, CL_FALSE, 0, sizeof(invViewMatrix), invViewMatrix);
 		
@@ -352,7 +375,6 @@ void VolumeRenderer::execute() {
 		
 		mDevice->getCommandQueue().enqueueReleaseGLObjects(&v);
 		mDevice->getCommandQueue().finish();
-	
     mOutputIsCreated=true;
 
 	if (!inputs.empty())
@@ -363,18 +385,26 @@ void VolumeRenderer::draw() {
 	
 	if(!mOutputIsCreated)
         return;
-
+	
 	setOpenGLContext(mDevice->getGLContext());
 
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glViewport(0,0,512,512);
+	glOrtho(0, 512, 0, 512, 0, 512);
     // draw image from PBO
     glClear(GL_COLOR_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
+	glDisable(GL_TEXTURE_2D);
     glRasterPos2i(0, 0);
     glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pbo);
 	glDrawPixels(mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, 0);
     glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 	
 }
+
 
 void VolumeRenderer::keyPressEvent(QKeyEvent* event) {
 	/*
@@ -403,7 +433,9 @@ void VolumeRenderer::keyPressEvent(QKeyEvent* event) {
     }*/
 }
 
-void VolumeRenderer::mouseMoveEvent(QMouseEvent* event, View* view) {
+void VolumeRenderer::mouseMoveEvent(QMouseEvent* event, View* view) 
+{
+	/*
     
 	int cx = mWidth/2;
     int cy = mHeight/2;
@@ -416,14 +448,15 @@ void VolumeRenderer::mouseMoveEvent(QMouseEvent* event, View* view) {
     viewRotation[0] += (float)diffx/2;// set the xrot to yrot with the addition of the difference in the x position
 	
     QCursor::setPos(view->mapToGlobal(QPoint(cx,cy)));
+	*/
 	mIsModified = true;
 
 }
 
 void VolumeRenderer::resizeEvent(QResizeEvent* event) {
     QSize size = event->size();
-    mWidth = size.width();
-    mHeight = size.height();
+   // mWidth = size.width();
+   // mHeight = size.height();
 	mIsModified = true;
 }
 

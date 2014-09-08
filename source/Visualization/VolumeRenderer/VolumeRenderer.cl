@@ -9,9 +9,12 @@
  *
  */
 
-#define maxSteps 500
+#define maxSteps 400
 #define tstep 0.005f
 
+const sampler_t samplerA = CLK_NORMALIZED_COORDS_FALSE |
+                           CLK_ADDRESS_REPEAT          |
+                           CLK_FILTER_NEAREST;
 // intersect ray with a box
 // http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm
 
@@ -55,7 +58,9 @@ d_render(__global uint *d_output,
           __read_only image2d_t transferFunc,
 		  __read_only image2d_t opacityFunc,
           sampler_t volumeSampler,
-          sampler_t transferFuncSampler
+          sampler_t transferFuncSampler,
+		  __read_only image2d_t geoColorTexture,
+		  __read_only image2d_t geoDepthTexture
 #if defined(VOL2) || defined(VOL3) || defined(VOL4) || defined(VOL5)
 		  ,__read_only image3d_t volume2
 		  ,__read_only image2d_t transferFunc2
@@ -81,13 +86,22 @@ d_render(__global uint *d_output,
 {	
     uint x = get_global_id(0);
     uint y = get_global_id(1);
+	
 
     float u = (x / (float) imageW)*2.0f-1.0f;
     float v = (y / (float) imageH)*2.0f-1.0f;
 
     //float tstep = 0.01f;
-    float4 boxMin = (float4)(-1.0f, -1.0f, -1.0f,1.0f);
-    float4 boxMax = (float4)(1.0f, 1.0f, 1.0f,1.0f);
+    float4 boxMin = (float4)(-1.0f, -1.0f, -1.0f, 1.0f);
+    float4 boxMax = (float4)(1.0f, 1.0f, 1.0f, 1.0f);
+	
+	if ((x < imageW) && (y < imageH)) 
+		{
+			uint i =(y * imageW) + x; //MEHDI NEW
+			float mfar= read_imagef(geoDepthTexture, samplerA, (int2)(x,y)).x; //MEHDI NEW
+			if(mfar<1.0f)
+				boxMax = (float4)(1.0f, 1.0f, mfar*2.0f-1.0f, 1.0f);			
+		}
 
     // calculate eye ray in world space
     float4 eyeRay_o;
@@ -104,13 +118,15 @@ d_render(__global uint *d_output,
     // find intersection with box
 	float tnear, tfar;
 	int hit = intersectBox(eyeRay_o, eyeRay_d, boxMin, boxMax, &tnear, &tfar);
-    if (!hit) {
-        if ((x < imageW) && (y < imageH)) {
-            // write output color
-            uint i =(y * imageW) + x;
-            d_output[i] = 0;
-        }
+    if (!hit) 
+	{	
+		if ((x < imageW) && (y < imageH)) 
+		{
+			uint i =(y * imageW) + x;
+			d_output[i] = rgbaFloatToInt(read_imagef(geoColorTexture, samplerA, (int2)(x,y)));
+		}
         return;
+		
     }
 	if (tnear < 0.0f) tnear = 0.0f;     // clamp to near plane
 
@@ -236,7 +252,9 @@ d_render(__global uint *d_output,
         if (t < tnear) break;
     }
     temp *= brightness;
-
+	float4 temp2=read_imagef(geoColorTexture, samplerA, (int2)(x,y));
+	temp = mix (temp2, temp ,temp.w);
+	temp.w=1.0f;
     if ((x < imageW) && (y < imageH)) {
         // write output color
         uint i =(y * imageW) + x;

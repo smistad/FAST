@@ -21,13 +21,22 @@ class VolumeRenderer : public Renderer {
         void mouseMoveEvent(QMouseEvent* event, View* view);
         void resizeEvent(QResizeEvent* event);
 		void motion(int , int);
-        BoundingBox getBoundingBox() { return BoundingBox(); };
+		BoundingBox getBoundingBox();
+
+		void addGeometryColorTexture(GLuint geoColorTex);
+		void addGeometryDepthTexture(GLuint geoDepthTex);
+        
     private:
         VolumeRenderer();
         void execute();
         void draw();
 
 
+		GLuint mGeoColorTex;
+		GLuint mGeoDepthTex;
+		cl::Image2DGL mImageGLGeoColor;
+		cl::Image2DGL mImageGLGeoDepth;
+		
         OpenCLDevice::pointer mDevice;
         
 
