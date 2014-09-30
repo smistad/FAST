@@ -6,7 +6,7 @@ option(ITK_INTEROP "Enable interoperability with ITK" OFF)
 
 #### Macro for adding source files and directories
 macro (fast_add_sources)
-    file (RELATIVE_PATH _relPath "${CMAKE_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
+    file (RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
     foreach (_src ${ARGN})
         if (_relPath)
             list (APPEND FAST_SOURCE_FILES "${_relPath}/${_src}")
@@ -20,7 +20,7 @@ macro (fast_add_sources)
     endif()
 endmacro()
 macro (fast_add_test_sources)
-    file (RELATIVE_PATH _relPath "${CMAKE_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
+    file (RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
     foreach (_src ${ARGN})
         if (_relPath)
             list (APPEND FAST_TEST_SOURCE_FILES "${_relPath}/${_src}")
@@ -34,7 +34,7 @@ macro (fast_add_test_sources)
     endif()
 endmacro()
 macro (fast_add_subdirectories)
-    file (RELATIVE_PATH _relPath "${CMAKE_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
+    file (RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
     foreach (_src ${ARGN})
         if (_relPath)
             list (APPEND FAST_INCLUDE_DIRS "${_relPath}/${_src}")
@@ -49,8 +49,8 @@ macro (fast_add_subdirectories)
     endif()
 endmacro()
 
+
 fast_add_sources(
-    main.cpp
     Object.cpp
     Object.hpp
     SmartPointers.hpp
