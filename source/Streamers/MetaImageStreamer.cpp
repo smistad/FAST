@@ -2,8 +2,9 @@
 #include "MetaImageImporter.hpp"
 #include "DeviceManager.hpp"
 #include "Exception.hpp"
-using namespace fast;
+#include <boost/lexical_cast.hpp>
 
+namespace fast {
 /**
  * Dummy function to get into the class again
  */
@@ -21,6 +22,9 @@ MetaImageStreamer::MetaImageStreamer() {
     mOutput = DynamicImage::New();
     mStreamIsStarted = false;
     mIsModified = true;
+    mLoop = false;
+    mStartNumber = 0;
+    mZeroFillDigits = 0;
     thread = NULL;
     mFirstFrameIsInserted = false;
     mHasReachedEnd = false;
@@ -55,21 +59,24 @@ void MetaImageStreamer::setDevice(ExecutionDevice::pointer device) {
     mDevice = device;
 }
 
-inline std::string intToString(int number) {
-    std::stringstream ss;//create a stringstream
-    ss << number;//add number to the stream
-    return ss.str();//return a string with the contents of the stream
-}
 
 void MetaImageStreamer::producerStream() {
-    int i = 0;
-    bool loop = false;
+    uint i = mStartNumber;
     while(true) {
         std::string filename = mFilenameFormat;
+        std::string frameNumber = boost::lexical_cast<std::string>(i);
+        if(mZeroFillDigits > 0 && frameNumber.size() < mZeroFillDigits) {
+            std::string zeroFilling = "";
+            for(uint z = 0; z < mZeroFillDigits-frameNumber.size(); z++) {
+                zeroFilling += "0";
+            }
+            frameNumber = zeroFilling + frameNumber;
+        }
         filename.replace(
                 filename.find("#"),
                 1,
-                intToString(i));
+                frameNumber
+                );
         try {
             MetaImageImporter::pointer importer = MetaImageImporter::New();
             importer->setFilename(filename);
@@ -93,9 +100,9 @@ void MetaImageStreamer::producerStream() {
         } catch(FileNotFoundException &e) {
             if(i > 0) {
                 std::cout << "Reached end of stream" << std::endl;
-                if(loop) {
+                if(mLoop) {
                     // Restart stream
-                    i = 0;
+                    i = mStartNumber;
                     continue;
                 }
                 mHasReachedEnd = true;
@@ -120,3 +127,21 @@ MetaImageStreamer::~MetaImageStreamer() {
 bool MetaImageStreamer::hasReachedEnd() const {
     return mHasReachedEnd;
 }
+
+void MetaImageStreamer::setStartNumber(uint startNumber) {
+    mStartNumber = startNumber;
+}
+
+void MetaImageStreamer::setZeroFilling(uint digits) {
+    mZeroFillDigits = digits;
+}
+
+void MetaImageStreamer::enableLooping() {
+    mLoop = true;
+}
+
+void MetaImageStreamer::disableLooping() {
+    mLoop = false;
+}
+
+} // end namespace fast

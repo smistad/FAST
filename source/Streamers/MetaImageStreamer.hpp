@@ -14,6 +14,10 @@ class MetaImageStreamer : public Streamer {
         DynamicImage::pointer getOutput();
         void setFilenameFormat(std::string str);
         void setDevice(ExecutionDevice::pointer device);
+        void setStartNumber(uint startNumber);
+        void setZeroFilling(uint digits);
+        void enableLooping();
+        void disableLooping();
         bool hasReachedEnd() const;
         // This method runs in a separate thread and adds frames to the
         // output object
@@ -29,6 +33,9 @@ class MetaImageStreamer : public Streamer {
         // Update the streamer if any parameters have changed
         void execute();
 
+        bool mLoop;
+        uint mZeroFillDigits;
+        uint mStartNumber;
 
         boost::thread *thread;
 
