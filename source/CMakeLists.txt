@@ -36,11 +36,7 @@ endmacro()
 macro (fast_add_subdirectories)
     file (RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
     foreach (_src ${ARGN})
-        if (_relPath)
-            list (APPEND FAST_INCLUDE_DIRS "${_relPath}/${_src}")
-        else()
-            list (APPEND FAST_INCLUDE_DIRS "${_src}")
-        endif()
+        list (APPEND FAST_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/${_src}")
         add_subdirectory(${_src})
     endforeach()
     if (_relPath)
@@ -82,18 +78,22 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFAST_SOURCE_DIR=\\\"${PROJECT_SOURCE_D
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFAST_TEST_DATA_DIR=\\\"${PROJECT_SOURCE_DIR}/../TestData/\\\"")
 
 #### Set up library dependencies
+set(FAST_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR})
 
 ## OpenCL Utility Library
 add_subdirectory(OpenCLUtilityLibrary)
 find_package(OpenCLUtilityLibrary PATHS "${FAST_BINARY_DIR}/OpenCLUtilityLibrary" REQUIRED)
 include(${OpenCLUtilityLibrary_USE_FILE})
 set(LIBRARIES ${LIBRARIES} OpenCLUtilityLibrary)
+list (APPEND FAST_INCLUDE_DIRS "${OpenCLUtilityLibrary_INCLUDE_DIRS}")
 
 ## Qt
 find_package(Qt5Widgets)
 find_package(Qt5OpenGL)
 qt5_wrap_cpp(HEADERS_MOC ${QT_HEADERS})
 set(LIBRARIES ${LIBRARIES} ${QT_LIBRARIES})
+list (APPEND FAST_INCLUDE_DIRS "${Qt5Widgets_INCLUDE_DIRS}")
+list (APPEND FAST_INCLUDE_DIRS "${Qt5OpenGL_INCLUDE_DIRS}")
 
 ## Boost
 find_package(Boost COMPONENTS system thread iostreams REQUIRED)
@@ -124,13 +124,13 @@ if(ITK_INTEROP)
     set(LIBRARIES ${LIBRARIES} ${ITK_LIBRARIES})
 endif()
 
-set(FAST_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR})
 
 #### Add all subdirs
 fast_add_subdirectories(Algorithms Data Streamers Importers Exporters Visualization Tests)
 
 #### Set include dirs
 include_directories(${FAST_INCLUDE_DIRS})
+set (FAST_INCLUDE_DIRS ${FAST_INCLUDE_DIRS} PARENT_SCOPE)
 
 #### Create FAST library and executables
 add_library(FAST ${FAST_SOURCE_FILES} ${HEADERS_MOC})

@@ -58,7 +58,11 @@ void SurfaceRenderer::draw() {
     GLfloat shininess[] = { 16.0f };
     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
 
+    std::cout << "asdasd" << std::endl;
+    releaseOpenGLContext();
     VertexBufferObjectAccess access = mSurfaceToRender->getVertexBufferObjectAccess(ACCESS_READ, mDevice);
+    setOpenGLContext(mDevice->getGLContext());
+    std::cout << "asdasd4" << std::endl;
     GLuint* VBO_ID = access.get();
 
     // Normal Buffer

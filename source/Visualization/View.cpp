@@ -35,6 +35,7 @@ View::View() {
     zFar = 1000;
     fieldOfViewY = 45;
     mIsIn2DMode = false;
+    mUpdateIsRunning = false;
     mScale2D = 1.0f;
     mLeftMouseButtonIsPressed = false;
     mMiddleMouseButtonIsPressed = false;
@@ -63,6 +64,7 @@ void View::execute() {
 }
 
 void View::initializeGL() {
+    Object::currentDrawable = glXGetCurrentDrawable();
     for(unsigned int i = 0; i < mRenderers.size(); i++) {
         mRenderers[i]->update();
     }
@@ -317,6 +319,21 @@ void View::initializeGL() {
 
         std::cout << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << std::endl;
     }
+    releaseOpenGLContext();
+    std::cout << "released" << std::endl;
+}
+/**
+ * Dummy function to get into the class again
+ */
+inline void stubStreamThread(View* view) {
+    view->updateAllRenderers();
+}
+
+void View::updateAllRenderers() {
+    for(unsigned int i = 0; i < mRenderers.size(); i++) {
+        mRenderers[i]->update();
+    }
+    mUpdateIsRunning = false;
 }
 
 void View::paintGL() {
@@ -401,10 +418,19 @@ void View::paintGL() {
     }
 
     for(unsigned int i = 0; i < mRenderers.size(); i++) {
-        mRenderers[i]->update();
         glPushMatrix();
+        std::cout << "drawing" << std::endl;
         mRenderers[i]->draw();
         glPopMatrix();
+    }
+    std::cout << "asdasd" << std::endl;
+    releaseOpenGLContext();
+    std::cout << "asdasd2" << std::endl;
+
+    if(!mUpdateIsRunning) {
+        // Spawn a new thread
+        mUpdateIsRunning = true;
+        thread = new boost::thread(&stubStreamThread, this);
     }
 }
 
@@ -421,6 +447,7 @@ void View::resizeGL(int width, int height) {
         fieldOfViewX = aspect*fieldOfViewY;
         gluPerspective(fieldOfViewY, aspect, zNear, zFar);
     }
+    releaseOpenGLContext();
 }
 
 void View::keyPressEvent(QKeyEvent* event) {

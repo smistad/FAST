@@ -17,6 +17,8 @@ class LinearTransformation : public boost::numeric::ublas::matrix<float> {
         Float3 operator*(Float3 vertex);
 };
 
+Float3 operator*(const Float3& vertex, const LinearTransformation& transform);
+
 } // end namespace fast
 
 #endif /* LINEARTRANSFORMATION_HPP_ */

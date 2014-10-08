@@ -3,6 +3,8 @@
 
 #include "Exception.hpp"
 #include "OpenCL.hpp"
+#include <cmath>
+#include <iostream>
 
 // These have to be outside of fast namespace or it will not compile with Qt on Windows. Why?
 typedef unsigned char uchar;
@@ -34,6 +36,9 @@ float getDefaultIntensityWindow(DataType type);
 
 void deleteArray(void * data, DataType type);
 
+// TODO fix the operator casting for vector
+class Float3;
+
 template <class T, int N>
 class Vector {
     public:
@@ -46,6 +51,17 @@ class Vector {
         int getSize() const;
         Vector(const Vector<T,N>& other); // copy constructor
         Vector();
+        template<class U>
+        Vector<T,N> operator*(const U& scalar) const;
+        template<class U>
+        Vector<T,N> operator/(const U& scalar) const;
+        Vector<T,N> operator+(const Vector<T,N>& vector) const;
+        Vector<T,N> operator-(const Vector<T,N>& vector) const;
+        T dot(const Vector<T,N>& vector) const;
+        float distance(const Vector<T,N>& vector) const;
+        Vector<T,N> normalize() const;
+        operator Float3();
+        void print() const;
         ~Vector();
     protected:
         T* data;
@@ -107,6 +123,14 @@ createVectorTypesMacro(Int, int);
 createVectorTypesMacro(Uchar, uchar);
 createVectorTypesMacro(Char, char);
 
+template<class T, int N>
+Vector<T,N>::operator Float3() {
+    Float3 result;
+    result[0] = data[0];
+    result[1] = data[1];
+    result[2] = data[2];
+    return result;
+}
 
 // TODO: add out of bounds checks
 
@@ -166,6 +190,79 @@ template<class T, int N>
 inline Vector<T,N>::~Vector() {
     delete[] data;
 }
+
+template<class T, int N>
+template<class U>
+Vector<T,N> Vector<T,N>::operator*(const U& scalar) const {
+    Vector<T, N> result;
+    for(unsigned int i = 0; i < N; i++)
+        result[i] = data[i]*scalar;
+    return result;
+}
+
+template<class T, int N>
+template<class U>
+Vector<T,N> Vector<T,N>::operator/(const U& scalar) const {
+    Vector<T, N> result;
+    for(unsigned int i = 0; i < N; i++)
+        result[i] = data[i]/scalar;
+    return result;
+}
+
+template<class T, int N>
+Vector<T,N> Vector<T,N>::operator+(const Vector<T,N>& vector) const {
+    Vector<T, N> result;
+    for(unsigned int i = 0; i < N; i++)
+        result[i] = data[i]+vector[i];
+    return result;
+}
+
+template<class T, int N>
+Vector<T,N> Vector<T,N>::operator-(const Vector<T,N>& vector) const {
+    Vector<T, N> result;
+    for(unsigned int i = 0; i < N; i++)
+        result[i] = data[i]-vector[i];
+    return result;
+}
+
+template<class T, int N>
+T Vector<T,N>::dot(const Vector<T,N>& vector) const {
+    T result = 0;
+    for(unsigned int i = 0; i < N; i++)
+        result += data[i]*vector[i];
+    return result;
+}
+
+template<class T, int N>
+Vector<T,N> Vector<T,N>::normalize() const {
+    Vector<T,N> result;
+
+    double sum = 0.0;
+    for(unsigned int i = 0; i < N; i++)
+        sum += data[i]*data[i];
+    for(unsigned int i = 0; i < N; i++)
+        result[i] = (double)data[i] / sqrt(sum);
+
+    return result;
+}
+
+template<class T, int N>
+float Vector<T,N>::distance(const Vector<T,N>& vector) const {
+    float sum = 0.0;
+    for(unsigned int i = 0; i < N; i++) {
+        sum += (data[i]-vector[i])*(data[i]-vector[i]);
+    }
+
+    return sqrt(sum);
+}
+
+template<class T, int N>
+void Vector<T, N>::print() const {
+    for(unsigned int i = 0; i < N; i++) {
+        std::cout << data[i] << std::endl;
+    }
+}
+
 
 } // end namespace
 #endif

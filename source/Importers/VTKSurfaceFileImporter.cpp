@@ -114,33 +114,38 @@ void VTKSurfaceFileImporter::execute() {
     // Read normals (if any)
     std::vector<Float3> normals;
     if(!gotoLineWithString(file, "NORMALS")) {
-        throw Exception("Found no normals in the VTK surface file");
-    }
-    while(getline(file, line)) {
-        boost::trim(line);
-        if(line.size() == 0)
-            break;
+        // Create dummy normals
+        for(uint i = 0; i < vertices.size(); i++) {
+            Float3 dummyNormal;
+            normals.push_back(dummyNormal);
+        }
+    } else {
+        while(getline(file, line)) {
+            boost::trim(line);
+            if(line.size() == 0)
+                break;
 
-        if(!(isdigit(line[0]) || line[0] == '-')) {
-            // Has reached end
-            break;
+            if(!(isdigit(line[0]) || line[0] == '-')) {
+                // Has reached end
+                break;
+            }
+
+            std::vector<std::string> tokens;
+            boost::split(tokens, line, boost::is_any_of(" "));
+
+            for(int i = 0; i < tokens.size(); i += 3) {
+                Float3 v;
+                v[0] = boost::lexical_cast<float>(tokens[i]);
+                v[1] = boost::lexical_cast<float>(tokens[i+1]);
+                v[2] = boost::lexical_cast<float>(tokens[i+2]);
+                normals.push_back(v);
+            }
         }
 
-        std::vector<std::string> tokens;
-        boost::split(tokens, line, boost::is_any_of(" "));
-
-        for(int i = 0; i < tokens.size(); i += 3) {
-            Float3 v;
-            v[0] = boost::lexical_cast<float>(tokens[i]);
-            v[1] = boost::lexical_cast<float>(tokens[i+1]);
-            v[2] = boost::lexical_cast<float>(tokens[i+2]);
-            normals.push_back(v);
+        if(normals.size() != vertices.size()) {
+            std::string message = "Read different amount of vertices (" + boost::lexical_cast<std::string>(vertices.size()) + ") and normals (" + boost::lexical_cast<std::string>(normals.size()) + ").";
+            throw Exception(message);
         }
-    }
-
-    if(normals.size() != vertices.size()) {
-        std::string message = "Read different amount of vertices (" + boost::lexical_cast<std::string>(vertices.size()) + ") and normals (" + boost::lexical_cast<std::string>(normals.size()) + ").";
-        throw Exception(message);
     }
 
     // Add data to mOutput

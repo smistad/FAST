@@ -49,6 +49,28 @@ void Surface::create(
     graph.addDataNodeToNewRoot(mPtr);
 }
 
+
+void Surface::create(std::vector<SurfaceVertex> vertices, std::vector<Uint3> triangles) {
+     if(mIsInitialized) {
+        // Delete old data
+        freeAll();
+    }
+    mIsInitialized = true;
+    mVertices = vertices;
+    std::vector<Float3> positions;
+    for(unsigned int i = 0; i < vertices.size(); i++) {
+        Float3 pos = vertices[i].position;
+        positions.push_back(pos);
+    }
+    mBoundingBox = BoundingBox(positions);
+    mNrOfTriangles = triangles.size();
+    mTriangles = triangles;
+    mHostHasData = true;
+    mHostDataIsUpToDate = true;
+    SceneGraph& graph = SceneGraph::getInstance();
+    graph.addDataNodeToNewRoot(mPtr);
+}
+
 void Surface::create(unsigned int nrOfTriangles) {
     if(mIsInitialized) {
         // Delete old data
@@ -71,7 +93,7 @@ VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
         throw Exception("Surface has not been initialized.");
 
     if(mSurfaceIsBeingWrittenTo)
-        throw Exception("Requesting access to an image that is already being written to.");
+        throw Exception("Requesting access to a surface that is already being written to.");
     if (type == ACCESS_READ_WRITE) {
         if (isAnyDataBeingAccessed()) {
             throw Exception(
@@ -129,6 +151,7 @@ VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
         }
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glFinish();
+        releaseOpenGLContext();
         std::cout << "Created VBO with ID " << mVBOID << std::endl;
         // TODO Transfer data if any exist
 
@@ -146,11 +169,30 @@ VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
     return VertexBufferObjectAccess(mVBOID, &mVBODataIsBeingAccessed, &mSurfaceIsBeingWrittenTo);
 }
 
-SurfacePointerAccess Surface::getSurfacePointerAccess(accessType access) {
+SurfacePointerAccess Surface::getSurfacePointerAccess(accessType type) {
+    this->update();
     if(!mIsInitialized)
         throw Exception("Surface has not been initialized.");
 
-    throw Exception("Not implemented yet!");
+    if(mSurfaceIsBeingWrittenTo)
+        throw Exception("Requesting access to a surface that is already being written to.");
+    if (type == ACCESS_READ_WRITE) {
+        if (isAnyDataBeingAccessed()) {
+            throw Exception(
+                    "Trying to get write access to an object that is already being accessed");
+        }
+        mSurfaceIsBeingWrittenTo = true;
+    }
+    if(!mHostHasData) {
+        throw Exception("Not implemented yet!");
+    } else {
+        if(!mHostDataIsUpToDate) {
+            throw Exception("Not implemented yet!");
+        }
+    }
+
+    mHostDataIsBeingAccessed = true;
+    return SurfacePointerAccess(&mVertices,&mTriangles,&mHostDataIsBeingAccessed,&mSurfaceIsBeingWrittenTo);
 }
 
 Surface::~Surface() {

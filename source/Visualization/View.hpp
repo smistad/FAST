@@ -6,6 +6,7 @@
 #include <vector>
 #include <QtOpenGL/QGLWidget>
 #include <QTimer>
+#include <boost/thread.hpp>
 
 namespace fast {
 
@@ -22,6 +23,7 @@ class View : public QGLWidget, public ProcessObject {
         void setMaximumFramerate(unsigned int framerate);
         void set2DMode();
         void set3DMode();
+        void updateAllRenderers();
     private:
         View();
         std::vector<Renderer::pointer> mRenderers;
@@ -36,6 +38,7 @@ class View : public QGLWidget, public ProcessObject {
         float fieldOfViewX, fieldOfViewY;
         float aspect;
         bool mIsIn2DMode;
+        bool mUpdateIsRunning;
 
         bool mLeftMouseButtonIsPressed;
         bool mMiddleMouseButtonIsPressed;
@@ -45,6 +48,8 @@ class View : public QGLWidget, public ProcessObject {
         float mMinX2D, mMaxX2D, mMinY2D, mMaxY2D;
         uint mPosX2D, mPosY2D;
         float mScale2D;
+
+        boost::thread *thread;
 
     protected:
         void initializeGL();

@@ -50,6 +50,7 @@ void SliceRenderer::execute() {
         level = getDefaultIntensityLevel(mImageToRender->getDataType());
     }
 
+    std::cout << "SLICE RENDERER EXEC" << std::endl;
     setOpenGLContext(mDevice->getGLContext());
 
     // Determine slice nr and width and height of the texture to render to
@@ -165,6 +166,7 @@ void SliceRenderer::execute() {
 
     queue.enqueueReleaseGLObjects(&v);
     queue.finish();
+    releaseOpenGLContext();
 
     mTextureIsCreated = true;
 }

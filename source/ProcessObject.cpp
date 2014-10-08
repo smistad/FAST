@@ -70,6 +70,10 @@ oul::RuntimeMeasurementPtr ProcessObject::getRuntime() {
     return mRuntimeManager->getTiming("execute");
 }
 
+oul::RuntimeMeasurementPtr ProcessObject::getRuntime(std::string name) {
+    return mRuntimeManager->getTiming(name);
+}
+
 void ProcessObject::setParent(DataObject::pointer parent) {
     removeParents();
     addParent(parent);

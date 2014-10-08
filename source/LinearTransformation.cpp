@@ -53,11 +53,24 @@ boost::numeric::ublas::matrix<float> LinearTransformation::getMatrix() const {
 }
 
 
+Float3 operator*(const Float3& vertex, const LinearTransformation& transform) {
+    vector<float> boostVertex(4);
+    boostVertex(0) = vertex[0];
+    boostVertex(1) = vertex[1];
+    boostVertex(2) = vertex[2];
+    boostVertex(3) = 1;
+    boostVertex = prod((matrix<float>)transform, boostVertex);
+    Float3 result;
+    result[0] = boostVertex(0);
+    result[1] = boostVertex(1);
+    result[2] = boostVertex(2);
+    return result;
+}
 Float3 LinearTransformation::operator*(Float3 vertex) {
     vector<float> boostVertex(4);
-    boostVertex(0) = vertex.x();
-    boostVertex(1) = vertex.y();
-    boostVertex(2) = vertex.z();
+    boostVertex(0) = vertex[0];
+    boostVertex(1) = vertex[1];
+    boostVertex(2) = vertex[2];
     boostVertex(3) = 1;
     boostVertex = prod((matrix<float>)*this, boostVertex);
     Float3 result;

@@ -21,6 +21,7 @@ class Surface : public SurfaceData {
     FAST_OBJECT(Surface)
     public:
         void create(std::vector<Float3> vertices, std::vector<Float3> normals, std::vector<Uint3> triangles);
+        void create(std::vector<SurfaceVertex> vertices, std::vector<Uint3> triangles);
         void create(unsigned int nrOfTriangles);
         VertexBufferObjectAccess getVertexBufferObjectAccess(accessType access, OpenCLDevice::pointer device);
         SurfacePointerAccess getSurfacePointerAccess(accessType access);

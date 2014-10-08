@@ -17,6 +17,7 @@ class ProcessObject : public Object {
         void update();
         typedef SharedPointer<ProcessObject> pointer;
         oul::RuntimeMeasurementPtr getRuntime();
+        oul::RuntimeMeasurementPtr getRuntime(std::string name);
         void addParent(DataObject::pointer parent);
         /**
          * Remove any old parent objects and set the input as the parent object
