@@ -1,5 +1,6 @@
 #include "SeededRegionGrowing.hpp"
 #include "DeviceManager.hpp"
+#include "SceneGraph.hpp"
 
 namespace fast {
 
@@ -214,6 +215,7 @@ void SeededRegionGrowing::execute() {
 
     // Update the timestamp of the output data
     output->updateModifiedTimestamp();
+    SceneGraph::getInstance().setParentNode(output, input);
 }
 
 void SeededRegionGrowing::waitToFinish() {
