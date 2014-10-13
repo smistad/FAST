@@ -44,9 +44,10 @@ void MetaImageStreamer::execute() {
     }
 
     // Wait here for first frame
-    // TODO use condition variable instead
-    while(!mFirstFrameIsInserted);
-    std::cout << "A frame has been inserted into the stream" << std::endl;
+    boost::unique_lock<boost::mutex> lock(mFirstFrameMutex);
+    while(!mFirstFrameIsInserted) {
+        mFirstFrameCondition.wait(lock);
+    }
 }
 
 void MetaImageStreamer::setFilenameFormat(std::string str) {
@@ -91,7 +92,11 @@ void MetaImageStreamer::producerStream() {
                     std::cout << "streamer has been deleted, stop" << std::endl;
                     break;
                 }
-                mFirstFrameIsInserted = true;
+                {
+                    boost::lock_guard<boost::mutex> lock(mFirstFrameMutex);
+                    mFirstFrameIsInserted = true;
+                }
+                mFirstFrameCondition.notify_one();
             } else {
                 std::cout << "DynamicImage object destroyed, stream can stop." << std::endl;
                 break;

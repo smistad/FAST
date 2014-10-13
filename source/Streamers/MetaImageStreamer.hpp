@@ -39,6 +39,9 @@ class MetaImageStreamer : public Streamer {
 
         boost::thread *thread;
 
+        boost::mutex mFirstFrameMutex;
+        boost::condition_variable mFirstFrameCondition;
+
         bool mStreamIsStarted;
         bool mFirstFrameIsInserted;
         bool mHasReachedEnd;
