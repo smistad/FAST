@@ -77,9 +77,9 @@ set(QT_HEADERS
 )
 
 # Set up some directory defines
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFAST_ROOT_DIR=\\\"${PROJECT_SOURCE_DIR}/../\\\"")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFAST_SOURCE_DIR=\\\"${PROJECT_SOURCE_DIR}/\\\"")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFAST_TEST_DATA_DIR=\\\"${PROJECT_SOURCE_DIR}/../TestData/\\\"")
+add_definitions("-DFAST_ROOT_DIR=\"${PROJECT_SOURCE_DIR}/../\"")
+add_definitions("-DFAST_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}/\"")
+add_definitions("-DFAST_TEST_DATA_DIR=\"${PROJECT_SOURCE_DIR}/../TestData/\"")
 
 #### Set up library dependencies
 
