@@ -108,6 +108,11 @@ include_directories(${GLEW_INCLUDE_DIR})
 include_directories(${GLEW_INCLUDE_PATH})
 set(LIBRARIES ${LIBRARIES} ${GLEW_LIBRARY})
 
+## Eigen
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR})
+find_package(Eigen3 REQUIRED)
+include_directories(${EIGEN3_INCLUDE_DIR})
+
 ## VTK
 if(VTK_INTEROP)
     find_package(VTK REQUIRED)
