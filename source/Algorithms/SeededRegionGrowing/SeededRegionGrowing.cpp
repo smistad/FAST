@@ -1,6 +1,7 @@
 #include "SeededRegionGrowing.hpp"
 #include "DeviceManager.hpp"
 #include "SceneGraph.hpp"
+#include <stack>
 
 namespace fast {
 
@@ -29,7 +30,7 @@ void SeededRegionGrowing::setIntensityRange(float min, float max) {
 }
 
 void SeededRegionGrowing::addSeedPoint(uint x, uint y) {
-    Uint<3> pos;
+    Uint3 pos;
     pos[0] = x;
     pos[1] = y;
     pos[2] = 0;
@@ -37,18 +38,22 @@ void SeededRegionGrowing::addSeedPoint(uint x, uint y) {
 }
 
 void SeededRegionGrowing::addSeedPoint(uint x, uint y, uint z) {
-    Uint<3> pos;
+    Uint3 pos;
     pos[0] = x;
     pos[1] = y;
     pos[2] = z;
     addSeedPoint(pos);
 }
 
-void SeededRegionGrowing::addSeedPoint(Uint<3> position) {
+void SeededRegionGrowing::addSeedPoint(Uint3 position) {
     mSeedPoints.push_back(position);
 }
 
 void SeededRegionGrowing::setDevice(ExecutionDevice::pointer device) {
+    if(mInput.isValid() && !mInput->isDynamicData()) {
+        Image::pointer(mInput)->release(mDevice);
+        Image::pointer(mInput)->retain(device);
+    }
     mDevice = device;
     mIsModified = true;
 }
@@ -90,6 +95,60 @@ void SeededRegionGrowing::recompileOpenCLCode(Image::pointer input) {
     mKernel = cl::Kernel(device->getProgram(programNr), "seededRegionGrowing");
     mDimensionCLCodeCompiledFor = input->getDimensions();
     mTypeCLCodeCompiledFor = input->getDataType();
+}
+
+template <class T>
+void SeededRegionGrowing::executeOnHost(T* input, Image::pointer output) {
+    ImageAccess outputAccess = output->getImageAccess(ACCESS_READ_WRITE);
+    uchar* outputData = (uchar*)outputAccess.get();
+    // initialize output to all zero
+    memset(outputData, 0, output->getWidth()*output->getHeight()*output->getDepth());
+    std::stack<Uint3> queue;
+
+    // Add seeds to queue
+    for(int i = 0; i < mSeedPoints.size(); i++) {
+        Uint3 pos = mSeedPoints[i];
+
+        // Check if seed point is in bounds
+        if(pos.x() < 0 || pos.y() < 0 || pos.z() < 0 ||
+            pos.x() >= output->getWidth() || pos.y() >= output->getHeight() || pos.z() >= output->getDepth())
+            throw Exception("One of the seed points given to SeededRegionGrowing was out of bounds.");
+
+        queue.push(pos);
+    }
+
+    // Process queue
+    while(!queue.empty()) {
+        Uint3 pos = queue.top();
+        queue.pop();
+
+        // Add neighbors to queue
+        for(int a = -1; a < 2; a++) {
+        for(int b = -1; b < 2; b++) {
+        for(int c = -1; c < 2; c++) {
+            if(abs(a)+abs(b)+abs(c) != 1) // connectivity
+                continue;
+            Uint3 neighbor(pos.x()+a,pos.y()+b,pos.z()+c);
+            // Check for out of bounds
+            if(neighbor.x() < 0 || neighbor.y() < 0 || neighbor.z() < 0 ||
+                neighbor.x() >= output->getWidth() || neighbor.y() >= output->getHeight() || neighbor.z() >= output->getDepth())
+                continue;
+
+            // Check that voxel is not already segmented
+            if(outputData[neighbor.x()+neighbor.y()*output->getWidth()+neighbor.z()*output->getWidth()*output->getHeight()] == 1)
+                continue;
+
+            // Check condition
+            T value = input[neighbor.x()+neighbor.y()*output->getWidth()+neighbor.z()*output->getWidth()*output->getHeight()];
+            if(value >= mMinimumIntensity && value <= mMaximumIntensity) {
+                // add it to segmentation
+                outputData[neighbor.x()+neighbor.y()*output->getWidth()+neighbor.z()*output->getWidth()*output->getHeight()] = 1;
+
+                // Add to queue
+                queue.push(neighbor);
+            }
+        }}}
+    }
 }
 
 void SeededRegionGrowing::execute() {
@@ -143,7 +202,11 @@ void SeededRegionGrowing::execute() {
     }
 
     if(mDevice->isHost()) {
-        throw Exception("SeededRegionGrowing not implemented for host yet");
+        ImageAccess inputAccess = input->getImageAccess(ACCESS_READ);
+        void* inputData = inputAccess.get();
+        switch(input->getDataType()) {
+            fastSwitchTypeMacro(executeOnHost<FAST_TYPE>((FAST_TYPE*)inputData, output));
+        }
     } else {
         OpenCLDevice::pointer device = mDevice;
 
@@ -152,11 +215,11 @@ void SeededRegionGrowing::execute() {
         ImageAccess access = output->getImageAccess(ACCESS_READ_WRITE);
         uchar* outputData = (uchar*)access.get();
         // Initialize to all 0s
-        for(int i = 0; i < output->getWidth()*output->getHeight()*output->getDepth(); i++)
-            outputData[i] = 0;
+        memset(outputData,0,sizeof(uchar)*output->getWidth()*output->getHeight()*output->getDepth());
+
         // Add sedd points
         for(int i = 0; i < mSeedPoints.size(); i++) {
-            Uint<3> pos = mSeedPoints[i];
+            Uint3 pos = mSeedPoints[i];
 
             // Check if seed point is in bounds
             if(pos.x() < 0 || pos.y() < 0 || pos.z() < 0 ||
@@ -183,12 +246,12 @@ void SeededRegionGrowing::execute() {
                 device->getContext(),
                 CL_MEM_READ_WRITE,
                 sizeof(char));
+        cl::CommandQueue queue = device->getCommandQueue();
         mKernel.setArg(1, *outputAccess.get());
         mKernel.setArg(2, stopGrowingBuffer);
         mKernel.setArg(3, mMinimumIntensity);
         mKernel.setArg(4, mMaximumIntensity);
 
-        cl::CommandQueue queue = device->getCommandQueue();
         bool stopGrowing = false;
         char stopGrowingInit = 1;
         char * stopGrowingResult = new char;
