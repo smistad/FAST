@@ -183,7 +183,7 @@ void Image::updateOpenCLImageData(OpenCLDevice::pointer device) {
         }
 
         mCLImages[device] = newImage;
-        mCLImagesIsUpToDate[device] = true;
+        mCLImagesIsUpToDate[device] = false;
     }
 
     // Find which data is up to date
