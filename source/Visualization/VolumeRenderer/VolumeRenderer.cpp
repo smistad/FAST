@@ -1,20 +1,40 @@
+#define _USE_MATH_DEFINES
+
 #include <GL/glew.h>
 #include "VolumeRenderer.hpp"
 #include "Image.hpp"
 #include "HelperFunctions.hpp"
 #include "DeviceManager.hpp"
 #include "View.hpp"
+#include "SceneGraph.hpp"
 #include <QCursor>
 #include "ColorTransferFunction.hpp"
 #include "OpacityTransferFunction.hpp"
 
 
-#define mHeight 512
-#define mWidth 512
-
 namespace fast {
 
+void VolumeRenderer::resize(GLuint height, GLuint width){
+	mHeight = height;
+	mWidth = width;
+	mIsModified = true;
 
+	//delete old pbo if exist any
+	if (pbo)
+		glDeleteBuffersARB(1, &pbo);
+	pbo = 0;
+}
+void VolumeRenderer::setProjectionParameters(float fov, float aspect, float nearPlane, float farPlane){
+	zNear = nearPlane;
+	zFar = farPlane;
+
+	topOfViewPlane=abs(zNear)*tan(M_PI*fov/360);
+	rightOfViewPlane=topOfViewPlane*aspect;
+
+	projectionMatrix10 = (zFar+zNear)/(zFar-zNear);
+	projectionMatrix14= (-2.0*zFar*zNear) / (zFar-zNear);
+	mIsModified = true;
+}
 void VolumeRenderer::addInput(ImageData::pointer image) {
 
 
@@ -26,12 +46,12 @@ void VolumeRenderer::addInput(ImageData::pointer image) {
 		addParent(mInputs[numberOfVolumes]);
 		numberOfVolumes++;
 		mIsModified = true;
+		mInputIsModified=true;
 	}
 	else
 		printf("\n Warning: Volume Renderer currently supports only up to %d volumes. Extera inputs are denied. \n", maxNumberOfVolumes);
 	
 }
-
 void VolumeRenderer::setOpacityTransferFunction(int volumeIndex, OpacityTransferFunction::pointer otf) {
 
 	unsigned int XDef = static_cast<unsigned int>(otf->getXMax() - otf->getXMin());
@@ -55,9 +75,9 @@ void VolumeRenderer::setOpacityTransferFunction(int volumeIndex, OpacityTransfer
 	}
 
 	d_opacityFuncArray[volumeIndex]=cl::Image2D(clContext, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, cl::ImageFormat(CL_A, CL_FLOAT), XDef, 1, 0, opacityFunc, 0);
-
+	
+	mIsModified = true;
 }
-
 void VolumeRenderer::setColorTransferFunction(int volumeIndex, ColorTransferFunction::pointer ctf) {
 
 
@@ -89,23 +109,119 @@ void VolumeRenderer::setColorTransferFunction(int volumeIndex, ColorTransferFunc
 
 	d_transferFuncArray[volumeIndex]=cl::Image2D(clContext, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, cl::ImageFormat(CL_RGBA, CL_FLOAT), XDef, 1, 0, transferFunc, 0);
 
+	mIsModified = true;
 }
-
-
 void VolumeRenderer::addGeometryColorTexture(GLuint geoColorTex)
 {
-	mGeoColorTex= geoColorTex;
+	mImageGLGeoColor = cl::Image2DGL( clContext, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, geoColorTex);
 }
 void VolumeRenderer::addGeometryDepthTexture(GLuint geoDepthTex)
 {
-	mGeoDepthTex= geoDepthTex;
+	mImageGLGeoDepth = cl::Image2DGL( clContext, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, geoDepthTex);
 }
+void VolumeRenderer::turnOffTransformations() {
+    mDoTransformations = false;
+}
+//this returns the boundingbox of the FIRST volume
+BoundingBox VolumeRenderer::getBoundingBox()
+{
+	Image::pointer mImageToRender;
+	if(mInputs[0]->isDynamicData()) 
+		mImageToRender = (DynamicImage::pointer(mInputs[0])->getCurrentFrame());
+	else 
+		mImageToRender = mInputs[0];
+		
+	
+	float tr[16];
+
+	BoundingBox inputBoundingBox = mImageToRender->getBoundingBox();
+
+    if(mDoTransformations) {
+        SceneGraph& graph = SceneGraph::getInstance();
+        SceneGraphNode::pointer node;
+        node = graph.getDataNode(mImageToRender);
+        LinearTransformation transform = graph.getLinearTransformationFromNode(node);
+
+		BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
+        
+		return transformedBoundingBox;
+
+		/*
+		glPushMatrix();
+		glLoadIdentity();
+	
+		
+
+		float matrix[16] = {
+                transform(0,0), transform(1,0), transform(2,0), transform(3,0),
+                transform(0,1), transform(1,1), transform(2,1), transform(3,1),
+                transform(0,2), transform(1,2), transform(2,2), transform(3,2),
+                transform(0,3), transform(1,3), transform(2,3), transform(3,3)
+        };
+
+        glMultMatrixf(matrix);
+		
+		if (doUserTransforms[0])
+			glMultMatrixf(mUserTransform0);
+
+		glGetFloatv(GL_MODELVIEW_MATRIX, tr);
+
+		glPopMatrix();
+	
+		fast::LinearTransformation a;
+		a(0,0)=tr[0];a(0,1)=tr[4];a(0,2)=tr[8];a(0,3)=tr[12];
+		a(1,0)=tr[1];a(1,1)=tr[5];a(1,2)=tr[9];a(1,3)=tr[13];
+		a(2,0)=tr[2];a(2,1)=tr[6];a(2,2)=tr[10];a(2,3)=tr[14];
+		a(3,0)=tr[3];a(3,1)=tr[7];a(3,2)=tr[11];a(3,3)=tr[15];
 
 
+
+        return inputBoundingBox.getTransformedBoundingBox(a);
+
+
+		*/
+
+    } else {
+        return inputBoundingBox;
+    }
+
+
+}
+void VolumeRenderer::setUserTransform(int volumeIndex, const float userTransform[16]){
+	
+	for(int i=0; i<16; i++)
+		mUserTransforms[volumeIndex*i]=userTransform[i];
+
+	switch (volumeIndex)
+	{
+	case 0: 
+		for(int i=0; i<16; i++)
+			mUserTransform0[i]=userTransform[i];
+		break;
+	case 1: 
+		for(int i=0; i<16; i++)
+			mUserTransform1[i]=userTransform[i]; 
+		break;
+	case 2: 
+		for(int i=0; i<16; i++)
+			mUserTransform2[i]=userTransform[i]; 
+		break;
+	case 3: 
+		for(int i=0; i<16; i++)
+			mUserTransform3[i]=userTransform[i]; 
+		break;
+	case 4: 
+		for(int i=0; i<16; i++)
+			mUserTransform4[i]=userTransform[i]; 
+		break;
+
+	}
+
+	doUserTransforms[volumeIndex]=true;
+	
+}
 VolumeRenderer::VolumeRenderer() : Renderer() {
 
-
-	
 
     mDevice = DeviceManager::getInstance().getDefaultVisualizationDevice();
 	clContext = mDevice->getContext();
@@ -113,16 +229,9 @@ VolumeRenderer::VolumeRenderer() : Renderer() {
 	setOpenGLContext(mDevice->getGLContext());
 
 
-	updated=false;
-
-	viewTranslation[0] = 0.0f;
-	viewTranslation[1] = 0.0f;
-	viewTranslation[2] = -4.0f;
-
-	viewRotation[0] = 0.0f;
-	viewRotation[1] = 0.0f;
-	viewRotation[2] = 0.0f;
-
+	mInputIsModified = true;
+	mIsModified = true;
+	mDoTransformations = true;
 	mOutputIsCreated=false;
 
 	numberOfVolumes=0;
@@ -130,12 +239,26 @@ VolumeRenderer::VolumeRenderer() : Renderer() {
 	mInputs.clear();
 	inputs.clear();
 
+	//Default window size
+	mHeight = 512;
+	mWidth = 512;
+
+	d_invViewMatrix= cl::Buffer(clContext, CL_MEM_READ_WRITE, 16*sizeof(float));
+	d_invProjectionModelView= cl::Buffer(clContext, CL_MEM_READ_WRITE, 16*sizeof(float));
+
+	includeGeometry=false;
+
+	pbo=0;
+
+	for (int i=0; i<maxNumberOfVolumes; i++)
+		doUserTransforms[i]=false;
+
+}
+void VolumeRenderer::setIncludeGeometry(bool p){
+	
+	includeGeometry=p;
 }
 
-BoundingBox VolumeRenderer::getBoundingBox()
-{
-	return BoundingBox();
-}
 void VolumeRenderer::execute() {
 
 
@@ -182,53 +305,94 @@ void VolumeRenderer::execute() {
 
 	float density = 0.05f;
 	float brightness = 1.0f;
-	float transferOffset = 0.0f;
-	float transferScale = 1.0f;
 
-
+	
 
     setOpenGLContext(mDevice->getGLContext());
 
    
     glEnable(GL_NORMALIZE);
     glEnable(GL_DEPTH_TEST);
+
     // Set background color
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-
-
+	
+	
 	//Update Camera Matrix
 	GLfloat modelView[16];
 	glMatrixMode(GL_MODELVIEW);
+	glGetFloatv(GL_MODELVIEW_MATRIX, modelView);
+
+	glPushMatrix();
+
+	for(int i=0; i<1; i++)
+	{
+		glLoadIdentity();
+		glMultMatrixf(modelView);
+
+		if(mDoTransformations) 
+		{
+			SceneGraph& graph = SceneGraph::getInstance();
+			SceneGraphNode::pointer node = graph.getDataNode(inputs[i]);
+			LinearTransformation transform = graph.getLinearTransformationFromNode(node);
+
+			float transformMatrix[16] = {
+					transform(0,0), transform(1,0), transform(2,0), transform(3,0),
+					transform(0,1), transform(1,1), transform(2,1), transform(3,1),
+					transform(0,2), transform(1,2), transform(2,2), transform(3,2),
+					transform(0,3), transform(1,3), transform(2,3), transform(3,3)
+			};
+
+			glMultMatrixf(transformMatrix);
+		}
+		/*
+		if (doUserTransforms[i])
+			switch(i)
+		{
+			case 0: glMultMatrixf(mUserTransform0); break;
+			case 1: glMultMatrixf(mUserTransform1); break;
+			case 2: glMultMatrixf(mUserTransform2); break;
+			case 3: glMultMatrixf(mUserTransform3); break;
+			case 4: glMultMatrixf(mUserTransform4); break;
+		
+		}
+		*/
+
+		GLfloat modelViewMatrix[16];
+		glGetFloatv(GL_MODELVIEW_MATRIX, modelViewMatrix);
+		gluInvertMatrix(modelViewMatrix,invViewMatrix);
+	
+	}
+	
+	glPopMatrix();
+
+
+	
+
+
+	GLfloat ProjectionModelView[16];
+	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
-	glRotatef(viewRotation[0], 1.0, 0.0, 0.0);
-	glRotatef(viewRotation[1], 0.0, 1.0, 0.0);
-	glTranslatef(-viewTranslation[0], -viewTranslation[1], -viewTranslation[2]);
-	glGetFloatv(GL_MODELVIEW_MATRIX, modelView);
+	
+
+	glMultMatrixf(modelView);
+	
+
+	glGetFloatv(GL_MODELVIEW_MATRIX, ProjectionModelView);
 	glPopMatrix();
-    
-	invViewMatrix[0] = modelView[0]; invViewMatrix[1] = modelView[4]; invViewMatrix[2] = modelView[8]; invViewMatrix[3] = modelView[12];
-	invViewMatrix[4] = modelView[1]; invViewMatrix[5] = modelView[5]; invViewMatrix[6] = modelView[9]; invViewMatrix[7] = modelView[13];
-	invViewMatrix[8] = modelView[2]; invViewMatrix[9] = modelView[6]; invViewMatrix[10] = modelView[10]; invViewMatrix[11] = modelView[14];
+
+	gluInvertMatrix(ProjectionModelView,invProjectionModelView);
 
 
-
-//if(!updated)	
+	if(mInputIsModified)   
 	{
-
-
-		transferFuncSampler=cl::Sampler(clContext, true, CL_ADDRESS_CLAMP_TO_EDGE, CL_FILTER_LINEAR);
-		volumeSamplerLinear=cl::Sampler(clContext, true, CL_ADDRESS_CLAMP_TO_EDGE, CL_FILTER_LINEAR);
-		d_invViewMatrix= cl::Buffer(clContext, CL_MEM_READ_WRITE, 12*sizeof(float));
-        
-		
-        // Compile program
-       
-        char buffer[255];
-        sprintf(buffer,"-cl-fast-relaxed-math -D VOL%d ", numberOfVolumes);
+		// Compile program
+		char buffer[128];
+		sprintf(buffer,"-cl-fast-relaxed-math -D VOL%d ", numberOfVolumes);
 		for(unsigned int i=0; i<numberOfVolumes;i++)
 		{
-			char dataTypeBuffer[255];
+			char dataTypeBuffer[128];
 			unsigned int volumeDataType = inputs[i]->getDataType();
 			
 			if (volumeDataType==fast::TYPE_FLOAT)
@@ -243,63 +407,34 @@ void VolumeRenderer::execute() {
 			strcat(buffer, dataTypeBuffer);
 		}
 
-
         std::string str(buffer);
-        int programNr = mDevice->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/VolumeRenderer/VolumeRenderer.cl", str);
+		int programNr;
+		if (includeGeometry)
+			programNr = mDevice->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/VolumeRenderer/VolumeRendererWithGeo.cl", str);
+		else
+			programNr = mDevice->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/VolumeRenderer/VolumeRendererNoGeo.cl", str);
         program = mDevice->getProgram(programNr);
-	
-	
 		renderKernel = cl::Kernel(program, "d_render");
-
+	}
     
-		
-
-		//glEnable(GL_TEXTURE_2D);
-		if(pbo) 
-		{
-			// delete old buffer
-			glDeleteBuffersARB(1, &pbo);
-		}
-
+	if(!pbo) 
+	{
 		// create pixel buffer object for display
 		glGenBuffersARB(1, &pbo);
 		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pbo);
 		glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, mHeight * mWidth * sizeof(GLubyte) * 4, 0, GL_STREAM_DRAW_ARB);
 		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
+			
 		// Create CL-GL image
-		pbo_cl = cl::BufferGL(mDevice->getContext(), CL_MEM_WRITE_ONLY, pbo);
-		
-		
-		
+		pbo_cl = cl::BufferGL(clContext, CL_MEM_WRITE_ONLY, pbo);
 
+		// delete old buffer
+		//glDeleteBuffersARB(1, &pbo);
+	}
 		
 		
-		/*
-		
-		//glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, colorDepthText, 0);
-		
-		
-		cl::Image2DGL(mDevice->getContext(), CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0,colorDepthText, NULL);
-		
-		
-		glUseProgram(programGLSL);
-
-		int loc = glGetUniformLocation(programGLSL, "texture1");
-		glUniform1i(loc, colorDepthText);
-
-		//glUseProgram(0);
-
-		*/
-
-		
-		//for(int i=0;i<numberOfVolumes;i++)
-		//	d_volumeArray.push_back(cl::Image3D(clContext,CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, cl::ImageFormat(CL_R, CL_UNORM_INT8), inputs[i]->getWidth(), inputs[i]->getHeight(), inputs[i]->getDepth(), 0, 0, inputs[i]->getImageAccess(ACCESS_READ).get(), 0));
-		
-		mImageGLGeoColor = cl::Image2DGL( mDevice->getContext(), CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mGeoColorTex);
-		mImageGLGeoDepth = cl::Image2DGL( mDevice->getContext(), CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mGeoDepthTex);
-
-
-		
+	if (includeGeometry)
+	{
 		OpenCLImageAccess3D access = inputs[0]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
 		cl::Image3D* clImage = access.get();
 
@@ -308,75 +443,140 @@ void VolumeRenderer::execute() {
 		renderKernel.setArg(2, mHeight);
         renderKernel.setArg(3, density);
         renderKernel.setArg(4, brightness);
-        renderKernel.setArg(5, transferOffset);
-        renderKernel.setArg(6, transferScale);
-		renderKernel.setArg(7, d_invViewMatrix);
-		renderKernel.setArg(8, *clImage);
-		renderKernel.setArg(9, d_transferFuncArray[0]);
-		renderKernel.setArg(10, d_opacityFuncArray[0]);
-		renderKernel.setArg(11, volumeSamplerLinear);
-		renderKernel.setArg(12, transferFuncSampler);
-		renderKernel.setArg(13, mImageGLGeoColor);
-		renderKernel.setArg(14, mImageGLGeoDepth);
+        renderKernel.setArg(5, zNear);
+        renderKernel.setArg(6, zFar);
+		renderKernel.setArg(7, topOfViewPlane);
+        renderKernel.setArg(8, rightOfViewPlane);
+		renderKernel.setArg(9, projectionMatrix10);
+		renderKernel.setArg(10, projectionMatrix14);
+		renderKernel.setArg(11, d_invViewMatrix);
+		renderKernel.setArg(12, *clImage);
+		renderKernel.setArg(13, d_transferFuncArray[0]);
+		renderKernel.setArg(14, d_opacityFuncArray[0]);
+		renderKernel.setArg(15, mImageGLGeoColor);
+		renderKernel.setArg(16, mImageGLGeoDepth);
+		renderKernel.setArg(17, d_invProjectionModelView);
 		if (numberOfVolumes>1)
 		{
 			OpenCLImageAccess3D access2 = inputs[1]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
 			cl::Image3D* clImage2 = access2.get();
-			renderKernel.setArg(13, *clImage2);
-			renderKernel.setArg(14, d_transferFuncArray[1]);
-			renderKernel.setArg(15, d_opacityFuncArray[1]);
+			renderKernel.setArg(18, *clImage2);
+			renderKernel.setArg(19, d_transferFuncArray[1]);
+			renderKernel.setArg(20, d_opacityFuncArray[1]);
 
 			if (numberOfVolumes>2)
 			{
 				OpenCLImageAccess3D access3 = inputs[2]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
 				cl::Image3D* clImage3 = access3.get();
-				renderKernel.setArg(16, *clImage3);
-				renderKernel.setArg(17, d_transferFuncArray[2]);
-				renderKernel.setArg(18, d_opacityFuncArray[2]);
+				renderKernel.setArg(21, *clImage3);
+				renderKernel.setArg(22, d_transferFuncArray[2]);
+				renderKernel.setArg(23, d_opacityFuncArray[2]);
 				
 				if (numberOfVolumes>3)
 				{
 					OpenCLImageAccess3D access4 = inputs[3]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
 					cl::Image3D* clImage4 = access4.get();
-					renderKernel.setArg(19, *clImage4);
-					renderKernel.setArg(20, d_transferFuncArray[3]);
-					renderKernel.setArg(21, d_opacityFuncArray[3]);
+					renderKernel.setArg(24, *clImage4);
+					renderKernel.setArg(25, d_transferFuncArray[3]);
+					renderKernel.setArg(26, d_opacityFuncArray[3]);
 
 					if (numberOfVolumes>4)
 					{	
 						OpenCLImageAccess3D access5 = inputs[4]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
 						cl::Image3D* clImage5 = access5.get();
-						renderKernel.setArg(22, *clImage5);
-						renderKernel.setArg(23, d_transferFuncArray[4]);
-						renderKernel.setArg(24, d_opacityFuncArray[4]);
+						renderKernel.setArg(27, *clImage5);
+						renderKernel.setArg(28, d_transferFuncArray[4]);
+						renderKernel.setArg(29, d_opacityFuncArray[4]);
 					}
 				}
 
 			}
 
 		}
-		updated=true;
+		
+
+	}
+	else
+	{
+		OpenCLImageAccess3D access = inputs[0]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+		cl::Image3D* clImage = access.get();
+
+		renderKernel.setArg(0, pbo_cl);
+		renderKernel.setArg(1, mWidth);
+		renderKernel.setArg(2, mHeight);
+        renderKernel.setArg(3, density);
+        renderKernel.setArg(4, brightness);
+        renderKernel.setArg(5, zNear);
+        renderKernel.setArg(6, zFar);
+		renderKernel.setArg(7, topOfViewPlane);
+        renderKernel.setArg(8, rightOfViewPlane);
+		renderKernel.setArg(9, projectionMatrix10);
+		renderKernel.setArg(10, projectionMatrix14);
+		renderKernel.setArg(11, d_invViewMatrix);
+		renderKernel.setArg(12, *clImage);
+		renderKernel.setArg(13, d_transferFuncArray[0]);
+		renderKernel.setArg(14, d_opacityFuncArray[0]);
+		renderKernel.setArg(15, d_invProjectionModelView);
+		if (numberOfVolumes>1)
+		{
+			OpenCLImageAccess3D access2 = inputs[1]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+			cl::Image3D* clImage2 = access2.get();
+			renderKernel.setArg(16, *clImage2);
+			renderKernel.setArg(17, d_transferFuncArray[1]);
+			renderKernel.setArg(18, d_opacityFuncArray[1]);
+
+			if (numberOfVolumes>2)
+			{
+				OpenCLImageAccess3D access3 = inputs[2]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+				cl::Image3D* clImage3 = access3.get();
+				renderKernel.setArg(19, *clImage3);
+				renderKernel.setArg(20, d_transferFuncArray[2]);
+				renderKernel.setArg(21, d_opacityFuncArray[2]);
+				
+				if (numberOfVolumes>3)
+				{
+					OpenCLImageAccess3D access4 = inputs[3]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+					cl::Image3D* clImage4 = access4.get();
+					renderKernel.setArg(22, *clImage4);
+					renderKernel.setArg(23, d_transferFuncArray[3]);
+					renderKernel.setArg(24, d_opacityFuncArray[3]);
+
+					if (numberOfVolumes>4)
+					{	
+						OpenCLImageAccess3D access5 = inputs[4]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+						cl::Image3D* clImage5 = access5.get();
+						renderKernel.setArg(25, *clImage5);
+						renderKernel.setArg(26, d_transferFuncArray[4]);
+						renderKernel.setArg(27, d_opacityFuncArray[4]);
+					}
+				}
+
+			}
 
 		}
-
-		std::vector<cl::Memory> v;
-		v.push_back(pbo_cl);
+	}
+	std::vector<cl::Memory> v;
+	v.push_back(pbo_cl);
+	if (includeGeometry)
+	{
 		v.push_back(mImageGLGeoColor);
 		v.push_back(mImageGLGeoDepth);
-		mDevice->getCommandQueue().enqueueAcquireGLObjects(&v);
-		mDevice->getCommandQueue().enqueueWriteBuffer(d_invViewMatrix, CL_FALSE, 0, sizeof(invViewMatrix), invViewMatrix);
-		
-        mDevice->getCommandQueue().enqueueNDRangeKernel(
-                renderKernel,
-                cl::NullRange,
-                cl::NDRange(mWidth, mHeight), //Mehdi
-                cl::NullRange
-        );
-		
-		mDevice->getCommandQueue().enqueueReleaseGLObjects(&v);
-		mDevice->getCommandQueue().finish();
-    mOutputIsCreated=true;
+	}
+	mDevice->getCommandQueue().enqueueAcquireGLObjects(&v);
+	mDevice->getCommandQueue().enqueueWriteBuffer(d_invViewMatrix, CL_FALSE, 0, sizeof(invViewMatrix), invViewMatrix);
+	mDevice->getCommandQueue().enqueueWriteBuffer(d_invProjectionModelView, CL_FALSE, 0, sizeof(invProjectionModelView), invProjectionModelView);
 
+    mDevice->getCommandQueue().enqueueNDRangeKernel(
+            renderKernel,
+            cl::NullRange,
+            cl::NDRange(mWidth, mHeight),
+            cl::NullRange
+    );
+		
+	mDevice->getCommandQueue().enqueueReleaseGLObjects(&v);
+	mDevice->getCommandQueue().finish();
+    
+	mOutputIsCreated=true;
 	if (!inputs.empty())
 		inputs.clear();
 }
@@ -392,8 +592,8 @@ void VolumeRenderer::draw() {
 	glLoadIdentity();
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glViewport(0,0,512,512);
-	glOrtho(0, 512, 0, 512, 0, 512);
+	glViewport(0,0,mWidth,mHeight);
+	glOrtho(0, mWidth, 0, mHeight, 0, 512);
     // draw image from PBO
     glClear(GL_COLOR_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
@@ -406,59 +606,140 @@ void VolumeRenderer::draw() {
 }
 
 
-void VolumeRenderer::keyPressEvent(QKeyEvent* event) {
-	/*
-    switch(event->key()) {
-    case Qt::Key_Plus:
-        mThreshold++;
-        mIsModified = true;
-    break;
-    case Qt::Key_Minus:
-        mThreshold--;
-        mIsModified = true;
-    break;
-    //WASD movement
-    case Qt::Key_W:
-        camZ -= 0.05f;
-    break;
-    case Qt::Key_S:
-        camZ += 0.05f;
-    break;
-    case Qt::Key_A:
-        camX -= 0.05f;
-    break;
-    case Qt::Key_D:
-        camX += 0.05f;
-    break;
-    }*/
-}
-
-void VolumeRenderer::mouseMoveEvent(QMouseEvent* event, View* view) 
+void VolumeRenderer::mouseEvents() 
 {
-	/*
-    
-	int cx = mWidth/2;
-    int cy = mHeight/2;
-    int x = event->pos().x();
-    int y = event->pos().y();
-
-    int diffx=x-cx; //check the difference between the current x and the last x position
-    int diffy=y-cy; //check the difference between the current y and the last y position
-    viewRotation[1] += (float)diffy/2; //set the xrot to xrot with the addition of the difference in the y position
-    viewRotation[0] += (float)diffx/2;// set the xrot to yrot with the addition of the difference in the x position
-	
-    QCursor::setPos(view->mapToGlobal(QPoint(cx,cy)));
-	*/
-	mIsModified = true;
-
-}
-
-void VolumeRenderer::resizeEvent(QResizeEvent* event) {
-    QSize size = event->size();
-   // mWidth = size.width();
-   // mHeight = size.height();
 	mIsModified = true;
 }
+bool VolumeRenderer::gluInvertMatrix(const float m[16], float invOut[16])
+{
+    float inv[16], det;
+    int i;
+
+    inv[0] = m[5]  * m[10] * m[15] - 
+             m[5]  * m[11] * m[14] - 
+             m[9]  * m[6]  * m[15] + 
+             m[9]  * m[7]  * m[14] +
+             m[13] * m[6]  * m[11] - 
+             m[13] * m[7]  * m[10];
+
+    inv[4] = -m[4]  * m[10] * m[15] + 
+              m[4]  * m[11] * m[14] + 
+              m[8]  * m[6]  * m[15] - 
+              m[8]  * m[7]  * m[14] - 
+              m[12] * m[6]  * m[11] + 
+              m[12] * m[7]  * m[10];
+
+    inv[8] = m[4]  * m[9] * m[15] - 
+             m[4]  * m[11] * m[13] - 
+             m[8]  * m[5] * m[15] + 
+             m[8]  * m[7] * m[13] + 
+             m[12] * m[5] * m[11] - 
+             m[12] * m[7] * m[9];
+
+    inv[12] = -m[4]  * m[9] * m[14] + 
+               m[4]  * m[10] * m[13] +
+               m[8]  * m[5] * m[14] - 
+               m[8]  * m[6] * m[13] - 
+               m[12] * m[5] * m[10] + 
+               m[12] * m[6] * m[9];
+
+    inv[1] = -m[1]  * m[10] * m[15] + 
+              m[1]  * m[11] * m[14] + 
+              m[9]  * m[2] * m[15] - 
+              m[9]  * m[3] * m[14] - 
+              m[13] * m[2] * m[11] + 
+              m[13] * m[3] * m[10];
+
+    inv[5] = m[0]  * m[10] * m[15] - 
+             m[0]  * m[11] * m[14] - 
+             m[8]  * m[2] * m[15] + 
+             m[8]  * m[3] * m[14] + 
+             m[12] * m[2] * m[11] - 
+             m[12] * m[3] * m[10];
+
+    inv[9] = -m[0]  * m[9] * m[15] + 
+              m[0]  * m[11] * m[13] + 
+              m[8]  * m[1] * m[15] - 
+              m[8]  * m[3] * m[13] - 
+              m[12] * m[1] * m[11] + 
+              m[12] * m[3] * m[9];
+
+    inv[13] = m[0]  * m[9] * m[14] - 
+              m[0]  * m[10] * m[13] - 
+              m[8]  * m[1] * m[14] + 
+              m[8]  * m[2] * m[13] + 
+              m[12] * m[1] * m[10] - 
+              m[12] * m[2] * m[9];
+
+    inv[2] = m[1]  * m[6] * m[15] - 
+             m[1]  * m[7] * m[14] - 
+             m[5]  * m[2] * m[15] + 
+             m[5]  * m[3] * m[14] + 
+             m[13] * m[2] * m[7] - 
+             m[13] * m[3] * m[6];
+
+    inv[6] = -m[0]  * m[6] * m[15] + 
+              m[0]  * m[7] * m[14] + 
+              m[4]  * m[2] * m[15] - 
+              m[4]  * m[3] * m[14] - 
+              m[12] * m[2] * m[7] + 
+              m[12] * m[3] * m[6];
+
+    inv[10] = m[0]  * m[5] * m[15] - 
+              m[0]  * m[7] * m[13] - 
+              m[4]  * m[1] * m[15] + 
+              m[4]  * m[3] * m[13] + 
+              m[12] * m[1] * m[7] - 
+              m[12] * m[3] * m[5];
+
+    inv[14] = -m[0]  * m[5] * m[14] + 
+               m[0]  * m[6] * m[13] + 
+               m[4]  * m[1] * m[14] - 
+               m[4]  * m[2] * m[13] - 
+               m[12] * m[1] * m[6] + 
+               m[12] * m[2] * m[5];
+
+    inv[3] = -m[1] * m[6] * m[11] + 
+              m[1] * m[7] * m[10] + 
+              m[5] * m[2] * m[11] - 
+              m[5] * m[3] * m[10] - 
+              m[9] * m[2] * m[7] + 
+              m[9] * m[3] * m[6];
+
+    inv[7] = m[0] * m[6] * m[11] - 
+             m[0] * m[7] * m[10] - 
+             m[4] * m[2] * m[11] + 
+             m[4] * m[3] * m[10] + 
+             m[8] * m[2] * m[7] - 
+             m[8] * m[3] * m[6];
+
+    inv[11] = -m[0] * m[5] * m[11] + 
+               m[0] * m[7] * m[9] + 
+               m[4] * m[1] * m[11] - 
+               m[4] * m[3] * m[9] - 
+               m[8] * m[1] * m[7] + 
+               m[8] * m[3] * m[5];
+
+    inv[15] = m[0] * m[5] * m[10] - 
+              m[0] * m[6] * m[9] - 
+              m[4] * m[1] * m[10] + 
+              m[4] * m[2] * m[9] + 
+              m[8] * m[1] * m[6] - 
+              m[8] * m[2] * m[5];
+
+    det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
+
+    if (det == 0)
+        return false;
+
+    det = 1.0 / det;
+
+    for (i = 0; i < 16; i++)
+        invOut[i] = inv[i] * det;
+
+    return true;
+}
+
 
 } // namespace fast
 

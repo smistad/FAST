@@ -131,19 +131,23 @@ void View::execute() {
 
 void View::initializeGL() {
 	
-	
-	if (mNonVolumeRenderers.size()>0)
+	setOpenGLContext(OpenCLDevice::pointer(DeviceManager::getInstance().getDefaultVisualizationDevice())->getGLContext());
+
+	if (mNonVolumeRenderers.size()>0) //it can be "only nonVolume renderers" or "nonVolume + Volume renderes" together
 	{
-		setOpenGLContext(OpenCLDevice::pointer(DeviceManager::getInstance().getDefaultVisualizationDevice())->getGLContext());
+		
 		if (mVolumeRenderers.size()>0)
+		{	((VolumeRenderer::pointer)mVolumeRenderers[0])->setIncludeGeometry(true);
 			glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+		}
 		else
+		{
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		}
 		// Update all renderes
 		for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) 
 			mNonVolumeRenderers[i]->update();
 
-		// Update all renderes
 		
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
@@ -290,8 +294,6 @@ void View::initializeGL() {
 				aspect = (float)this->width() / this->height();
 				fieldOfViewX = aspect*fieldOfViewY;
 				gluPerspective(fieldOfViewY, aspect, zNear, zFar);
-
-
 				// Initialize camera
 
 				// Get bounding boxes of all objects
@@ -398,16 +400,164 @@ void View::initializeGL() {
 			}
 		}
 	}
+	else
+	{
+		if (mVolumeRenderers.size()>0)
+		{
+			((VolumeRenderer::pointer)mVolumeRenderers[0])->setIncludeGeometry(false);
+
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
+			glMatrixMode(GL_PROJECTION);
+			glPushMatrix();
+
+			mVolumeRenderers[0]->update();
+
+			glMatrixMode(GL_MODELVIEW);
+			glPopMatrix();
+			glMatrixMode(GL_PROJECTION);
+			glPopMatrix();
+
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+			// Set up viewport and projection transformation
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			glViewport(0, 0, this->width(), this->height());
+			glEnable(GL_DEPTH_TEST);
+			glEnable(GL_TEXTURE_2D);
+
+			if(mIsIn2DMode)
+			{
+				throw Exception("\nThe 2D mode cann not be used for volume rendering");
+			}
+			else //3D Mode
+			{
+				if(mVolumeRenderers.size() > 1)
+					throw Exception("\nThe volume renderer is currently only able to use one renderer with multible inputs (volumes)");
+
+
+				aspect = (float)this->width() / this->height();
+				fieldOfViewX = aspect*fieldOfViewY;
+				gluPerspective(fieldOfViewY, aspect, zNear, zFar);
+				// Initialize camera
+
+				// Get bounding boxes of all objects
+				Float3 min, max;
+				Float3 centroid;
+				BoundingBox box = mVolumeRenderers[0]->getBoundingBox();
+				Vector<Float3, 8> corners = box.getCorners();
+
+				min[0] = corners[0][0];
+				max[0] = corners[0][0];
+				min[1] = corners[0][1];
+				max[1] = corners[0][1];
+				min[2] = corners[0][2];
+				max[2] = corners[0][2];
+
+				for(int j = 1; j < 8; j++) 
+				{
+					for(uint k = 0; k < 3; k++) 
+					{
+						if(corners[j][k] < min[k])
+							min[k] = corners[j][k];
+						if(corners[j][k] > max[k])
+							max[k] = corners[j][k];
+					}
+				}
+
+
+				// Calculate area of each side of the resulting bounding box
+				float area[3] = {
+						(max[0]-min[0])*(max[1]-min[1]), // XY plane
+						(max[1]-min[1])*(max[2]-min[2]), // YZ plane
+						(max[2]-min[2])*(max[0]-min[0])  // XZ plane
+				};
+				uint maxArea = 0;
+				for(uint i = 1; i < 3; i++) {
+					if(area[i] > area[maxArea])
+						maxArea = i;
+				}
+
+				// Find rotation needed
+				float angleX, angleY;
+				uint xDirection;
+				uint yDirection;
+				uint zDirection;
+				switch(maxArea) {
+					case 0:
+						xDirection = 0;
+						yDirection = 1;
+						zDirection = 2;
+						angleX = 0;
+						angleY = 0;
+						break;
+					case 1:
+						// Rotate 90 degres around Y axis
+						xDirection = 2;
+						yDirection = 1;
+						zDirection = 0;
+						angleX = 0;
+						angleY = 90;
+						break;
+					case 2:
+						// Rotate 90 degres around X axis
+						xDirection = 0;
+						yDirection = 2;
+						zDirection = 1;
+						angleX = 90;
+						angleY = 0;
+						break;
+				}
+
+				// Rotate object if needed
+				rotation[0] = 0.0;//angleX;
+				rotation[1] = 0.0;//angleY;
+
+				centroid[0] = max[0] - (max[0]-min[0])*0.5;
+				centroid[1] = max[1] - (max[1]-min[1])*0.5;
+				centroid[2] = max[2] - (max[2]-min[2])*0.5;
+
+				std::cout << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << std::endl;
+
+				// Initialize rotation point to centroid of object
+				rotationPoint = centroid;
+
+				// Calculate initiali translation of camera
+				// Move centroid to z axis
+				cameraPosition[0] = -centroid.x();
+				cameraPosition[1] = -centroid.y();
+
+				// Calculate z distance from origo
+				float z_width = (max[xDirection]-min[xDirection])*0.5 / tan(fieldOfViewX*0.5);
+				float z_height = (max[yDirection]-min[yDirection])*0.5 / tan(fieldOfViewY*0.5);
+				cameraPosition[2] = -(z_width < z_height ? z_height : z_width) // minimum translation to see entire object
+						-(max[zDirection]-min[zDirection]) // depth of the bounding box
+						-50; // border
+				//cameraPosition[2] = 00.0;
+				originalCameraPosition = cameraPosition;
+
+				std::cout << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << std::endl;
+
+
+				//Set the output image size for volume renderer based on window size.
+				((VolumeRenderer::pointer)mVolumeRenderers[0])->resize(this->width(),this->height());
+				((VolumeRenderer::pointer)mVolumeRenderers[0])->setProjectionParameters(fieldOfViewY, (float)this->width()/this->height(), zNear, zFar);
+			}
+		}
+	}
 	
 }
 
 
 void View::paintGL() {
 
-	
-	if (mNonVolumeRenderers.size() > 0 )
+	setOpenGLContext(OpenCLDevice::pointer(DeviceManager::getInstance().getDefaultVisualizationDevice())->getGLContext());
+
+	if (mNonVolumeRenderers.size() > 0 ) //it can be "only nonVolume renderers" or "nonVolume + Volume renderes" together
 	{
-		setOpenGLContext(OpenCLDevice::pointer(DeviceManager::getInstance().getDefaultVisualizationDevice())->getGLContext());
 		if (mVolumeRenderers.size()>0)
 			glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 		else
@@ -519,12 +669,50 @@ void View::paintGL() {
 			//Rendere to Back buffer
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			getDepthBufferFromGeo();
+			renderVolumes();
 		}
 	}
+	else // only Volume renderers exict
+	{
+		setOpenGLContext(OpenCLDevice::pointer(DeviceManager::getInstance().getDefaultVisualizationDevice())->getGLContext());
 
+		if (mVolumeRenderers.size() > 0) // confirms that only Volume renderers exict
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	if (mVolumeRenderers.size() > 0)
-		renderVolumes();
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+
+			// Create headlight
+			glEnable(GL_LIGHT0);
+			// Create light components
+			GLfloat ambientLight[] = { 0.3f, 0.3f, 0.3f, 1.0f };
+			GLfloat diffuseLight[] = { 0.7f, 0.7f, 0.7f, 1.0f };
+			GLfloat specularLight[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+			GLfloat position[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+			// Assign created components to GL_LIGHT0
+			glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
+			glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
+			glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight);
+			glLightfv(GL_LIGHT0, GL_POSITION, position);
+
+			// Apply camera movement
+			glTranslatef(cameraPosition.x(), cameraPosition.y(), cameraPosition.z());
+
+			// Apply global rotation
+			glTranslatef(rotationPoint.x(),rotationPoint.y(),rotationPoint.z());
+
+			// TODO make this rotation better
+			glRotatef(rotation.x(), 1.0, 0.0, 0.0);
+			glRotatef(rotation.y(), 0.0, 1.0, 0.0);
+			glTranslatef(-rotationPoint.x(),-rotationPoint.y(),-rotationPoint.z());
+
+			setOpenGLContext(OpenCLDevice::pointer(DeviceManager::getInstance().getDefaultVisualizationDevice())->getGLContext());
+			renderVolumes();
+		}
+	}	
 
 }
 
@@ -540,8 +728,11 @@ void View::renderVolumes()
 		glMatrixMode(GL_PROJECTION);
 		glPushMatrix();
 
-		((VolumeRenderer::pointer)(mVolumeRenderers[0]))->addGeometryColorTexture(renderedTexture0);
-		((VolumeRenderer::pointer)(mVolumeRenderers[0]))->addGeometryDepthTexture(renderedTexture1);
+		if (mNonVolumeRenderers.size() > 0)
+		{
+			((VolumeRenderer::pointer)(mVolumeRenderers[0]))->addGeometryColorTexture(renderedTexture0);
+			((VolumeRenderer::pointer)(mVolumeRenderers[0]))->addGeometryDepthTexture(renderedTexture1);
+		}
 
 		for(unsigned int i = 0; i < mVolumeRenderers.size(); i++) {
 			
@@ -569,8 +760,8 @@ void View::getDepthBufferFromGeo()
 	glLoadIdentity();
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glViewport(0,0,512,512);
-	glOrtho(0, 512, 0, 512, 0, 512);
+	glViewport(0,0,this->width(),this->height());
+	glOrtho(0, this->width(), 0, this->height(), 0, 512);
 
 	// Render to Second Texture
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo2);
@@ -586,11 +777,11 @@ void View::getDepthBufferFromGeo()
 	glTexCoord2f(0, 0);
 	glVertex2f(0,0);
 	glTexCoord2f(1.0, 0);
-	glVertex2f(512,0);
+	glVertex2f(this->width(),0);
 	glTexCoord2f(1.0, 1.0);
-	glVertex2f(512, 512);
+	glVertex2f(this->width(), this->height());
 	glTexCoord2f(0, 1.0);
-	glVertex2f(0,  512);
+	glVertex2f(0,  this->height());
 	glEnd();
 		
 	glUseProgram(0);
@@ -610,7 +801,7 @@ void View::getDepthBufferFromGeo()
 
 void View::resizeGL(int width, int height) {
 	
-	if(mNonVolumeRenderers.size()>0)
+//	if(mNonVolumeRenderers.size()>0)
 	{
 		setOpenGLContext(OpenCLDevice::pointer(DeviceManager::getInstance().getDefaultVisualizationDevice())->getGLContext());
 		glMatrixMode(GL_PROJECTION);
@@ -626,7 +817,11 @@ void View::resizeGL(int width, int height) {
 		}
 
 	}
-
+	if (mVolumeRenderers.size() > 0)
+	{
+		((VolumeRenderer::pointer)mVolumeRenderers[0])->resize(width, height);
+		((VolumeRenderer::pointer)mVolumeRenderers[0])->setProjectionParameters(fieldOfViewY, (float)width/height, zNear, zFar);
+	}
 }
 
 void View::keyPressEvent(QKeyEvent* event) {
@@ -645,116 +840,92 @@ void View::keyPressEvent(QKeyEvent* event) {
 
 void View::mouseMoveEvent(QMouseEvent* event) {
 
-	if(mNonVolumeRenderers.size()> 0 )
-	{
-		if(mMiddleMouseButtonIsPressed) {
-			if(mIsIn2DMode) {
-				float deltaX = event->x() - previousX;
-				float deltaY = event->y() - previousY;
-				mPosX2D += deltaX;
-				mPosY2D -= deltaY;
-				glViewport(mPosX2D, mPosY2D, (mMaxX2D-mMinX2D)*mScale2D, (mMaxY2D-mMinY2D)*mScale2D);
-			} else {
-				float deltaX = event->x() - previousX;
-				float deltaY = event->y() - previousY;
+	if(mMiddleMouseButtonIsPressed) {
+		if(mIsIn2DMode) {
+			float deltaX = event->x() - previousX;
+			float deltaY = event->y() - previousY;
+			mPosX2D += deltaX;
+			mPosY2D -= deltaY;
+			glViewport(mPosX2D, mPosY2D, (mMaxX2D-mMinX2D)*mScale2D, (mMaxY2D-mMinY2D)*mScale2D);
+		} else {
+			float deltaX = event->x() - previousX;
+			float deltaY = event->y() - previousY;
 
-				float viewportWidth = tan((fieldOfViewX*M_PI/180)*0.5) * (-cameraPosition.z()) * 2;
-				float viewportHeight = tan((fieldOfViewY*M_PI/180)*0.5) * (-cameraPosition.z()) * 2;
-				float actualMovementX = (deltaX * (viewportWidth/width()));
-				float actualMovementY = (deltaY * (viewportHeight/height()));
-				cameraPosition[0] += actualMovementX;
-				cameraPosition[1] -= actualMovementY;
-			}
-			previousX = event->x();
-			previousY = event->y();
-		} else if(mLeftMouseButtonIsPressed && !mIsIn2DMode) {
-			int cx = width()/2;
-			int cy = height()/2;
-
-			if(event->x() == cx && event->y() == cy){ //The if cursor is in the middle
-				return;
-			}
-
-			int diffx=event->x()-cx; //check the difference between the current x and the last x position
-			int diffy=event->y()-cy; //check the difference between the current y and the last y position
-			rotation[0] += (float)diffy/2; //set the xrot to xrot with the addition of the difference in the y position
-			rotation[1] += (float)diffx/2;// set the xrot to yrot with the addition of the difference in the x position
-			QCursor::setPos(mapToGlobal(QPoint(cx,cy)));
+			float viewportWidth = tan((fieldOfViewX*M_PI/180)*0.5) * (-cameraPosition.z()) * 2;
+			float viewportHeight = tan((fieldOfViewY*M_PI/180)*0.5) * (-cameraPosition.z()) * 2;
+			float actualMovementX = (deltaX * (viewportWidth/width()));
+			float actualMovementY = (deltaY * (viewportHeight/height()));
+			cameraPosition[0] += actualMovementX;
+			cameraPosition[1] -= actualMovementY;
 		}
-		// Relay mouse event info to renderers
-		for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
-			mNonVolumeRenderers[i]->mouseMoveEvent(event, this);
+		previousX = event->x();
+		previousY = event->y();
+	} else if(mLeftMouseButtonIsPressed && !mIsIn2DMode) {
+		int cx = width()/2;
+		int cy = height()/2;
+
+		if(event->x() == cx && event->y() == cy){ //The if cursor is in the middle
+			return;
 		}
+
+		int diffx=event->x()-cx; //check the difference between the current x and the last x position
+		int diffy=event->y()-cy; //check the difference between the current y and the last y position
+		rotation[0] += (float)diffy/2; //set the xrot to xrot with the addition of the difference in the y position
+		rotation[1] += (float)diffx/2;// set the xrot to yrot with the addition of the difference in the x position
+		QCursor::setPos(mapToGlobal(QPoint(cx,cy)));
+	}
+	// Relay mouse event info to renderers
+	for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) 
+		mNonVolumeRenderers[i]->mouseMoveEvent(event, this);
 	
-	}
-
 	if (mVolumeRenderers.size()>0)
-	{
-		if (mVolumeRenderers.size()>0)
-		{
-			//Rendere to Back buffer
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			getDepthBufferFromGeo();
-		}
-
-		mVolumeRenderers[0]->mouseMoveEvent(event, this);
-
-	}
+		((VolumeRenderer::pointer)(mVolumeRenderers[0]))->mouseEvents();
 
 }
 
 void View::mousePressEvent(QMouseEvent* event) {
 
-	if (mNonVolumeRenderers.size()>0)
-	{
-		if(event->button() == Qt::LeftButton) {
-			mLeftMouseButtonIsPressed = true;
-		} else if(event->button() == Qt::MiddleButton) {
-			previousX = event->x();
-			previousY = event->y();
-			mMiddleMouseButtonIsPressed = true;
-		}
-		// Relay mouse event info to renderers
-		for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
-			mNonVolumeRenderers[i]->mousePressEvent(event);
-		}
-		
+	
+	if(event->button() == Qt::LeftButton) {
+		mLeftMouseButtonIsPressed = true;
+	} else if(event->button() == Qt::MiddleButton) {
+		previousX = event->x();
+		previousY = event->y();
+		mMiddleMouseButtonIsPressed = true;
+	}
+	// Relay mouse event info to renderers
+	for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
+		mNonVolumeRenderers[i]->mousePressEvent(event);
 	}
 
 	if (mVolumeRenderers.size()>0)
 	{
-		if (mVolumeRenderers.size()>0)
-		{
-			//Rendere to Back buffer
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			getDepthBufferFromGeo();
-		}
-
-		mVolumeRenderers[0]->mouseMoveEvent(event, this);
-
+		((VolumeRenderer::pointer)(mVolumeRenderers[0]))->mouseEvents();
 	}
 
 }
 
 void View::wheelEvent(QWheelEvent* event) {
     
-	if( mNonVolumeRenderers.size() > 0 )
-	{
-		if(mIsIn2DMode) {
-			if(event->delta() > 0) {
-				mScale2D += 0.1;
-			} else if(event->delta() < 0) {
-				mScale2D -= 0.1;
-			}
-			glViewport(mPosX2D, mPosY2D, (mMaxX2D-mMinX2D)*mScale2D, (mMaxY2D-mMinY2D)*mScale2D);
-		} else {
-			if(event->delta() > 0) {
-				cameraPosition[2] += 10;
-			} else if(event->delta() < 0) {
-				cameraPosition[2] += -10;
-			}
-		}
 
+	if(mIsIn2DMode) {
+		if(event->delta() > 0) {
+			mScale2D += 0.1;
+		} else if(event->delta() < 0) {
+			mScale2D -= 0.1;
+		}
+		glViewport(mPosX2D, mPosY2D, (mMaxX2D-mMinX2D)*mScale2D, (mMaxY2D-mMinY2D)*mScale2D);
+	} else {
+		if(event->delta() > 0) {
+			cameraPosition[2] += 10;
+		} else if(event->delta() < 0) {
+			cameraPosition[2] += -10;
+		}
+	}
+
+	if (mVolumeRenderers.size()>0)
+	{
+		((VolumeRenderer::pointer)(mVolumeRenderers[0]))->mouseEvents();
 	}
 
 }
@@ -769,17 +940,10 @@ void View::mouseReleaseEvent(QMouseEvent* event) {
     for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
         mNonVolumeRenderers[i]->mouseReleaseEvent(event);
     }
+	
 	if (mVolumeRenderers.size()>0)
 	{
-		if (mVolumeRenderers.size()>0)
-		{
-			//Rendere to Back buffer
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			getDepthBufferFromGeo();
-		}
-
-		mVolumeRenderers[0]->mouseMoveEvent(event, this);
-
+		((VolumeRenderer::pointer)(mVolumeRenderers[0]))->mouseEvents();
 	}
 
 }

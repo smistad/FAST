@@ -22,6 +22,10 @@ class View : public QGLWidget, public ProcessObject {
         void setMaximumFramerate(unsigned int framerate);
         void set2DMode();
         void set3DMode();
+
+		 Float3 cameraPosition;
+		 Float3 rotationPoint;
+		 Float2 rotation;
     private:
 
 		std::vector<Renderer::pointer> mNonVolumeRenderers;
@@ -41,11 +45,11 @@ class View : public QGLWidget, public ProcessObject {
         void execute();
         QTimer* timer;
         unsigned int mFramerate;
-        Float3 cameraPosition;
+       
         Float3 originalCameraPosition;
-        Float3 rotationPoint;
-        Float2 rotation;
-        float zNear, zFar;
+        
+        
+		float zNear, zFar;
         float fieldOfViewX, fieldOfViewY;
         float aspect;
         bool mIsIn2DMode;
@@ -59,6 +63,7 @@ class View : public QGLWidget, public ProcessObject {
         uint mPosX2D, mPosY2D;
         float mScale2D;
 
+		
     protected:
         void initializeGL();
         void paintGL();
