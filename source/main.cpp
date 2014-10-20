@@ -16,6 +16,7 @@
 #include "ColorTransferFunction.hpp"
 #include "OpacityTransferFunction.hpp"
 #include "SurfaceExtraction.hpp"
+#include "SeededRegionGrowing.hpp"
 
 using namespace fast;
 
@@ -23,9 +24,42 @@ int main(int argc, char ** argv) {
 
     // TODO this causes problem for some reason??
     // Get a GPU device and set it as the default device
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(true));
+    //DeviceManager& deviceManager = DeviceManager::getInstance();
+    //deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(true));
 
+    ExecutionDevice::pointer host = Host::New();
+    ExecutionDevice::pointer cpu = DeviceManager::getInstance().getOneCPUDevice();
+    MetaImageImporter::pointer importer = MetaImageImporter::New();
+    importer->setFilename("/home/smistad/Dropbox/Share_Erik/Erik/CT-Abdomen.mhd");
+    importer->enableRuntimeMeasurements();
+
+    SeededRegionGrowing::pointer segmentation = SeededRegionGrowing::New();
+    segmentation->setInput(importer->getOutput());
+    segmentation->addSeedPoint(223,282,387);
+    segmentation->addSeedPoint(251,314,148);
+    segmentation->setIntensityRange(150, 5000);
+    //segmentation->setDevice(host);
+    //segmentation->setDevice(cpu);
+
+    SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
+    extraction->setInput(segmentation->getOutput());
+
+    SurfaceRenderer::pointer renderer2 = SurfaceRenderer::New();
+    renderer2->setInput(extraction->getOutput());
+
+    SliceRenderer::pointer renderer = SliceRenderer::New();
+    renderer->setInput(importer->getOutput());
+    renderer->setIntensityWindow(1000);
+    renderer->setIntensityLevel(0);
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+    window->addRenderer(renderer2);
+    //window->addRenderer(renderer);
+    window->runMainLoop();
+    importer->getRuntime()->print();
+    segmentation->getRuntime()->print();
+    extraction->getRuntime()->print();
+    renderer2->getRuntime()->print();
     /*
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_0.mhd");
@@ -139,6 +173,7 @@ window->setTimeout(10*1000);
 	//MetaImageImporter::pointer mhdImporter = MetaImageImporter::New();
     //mhdImporter->setFilename("skull.mhd");
 	
+    /*
 	MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
 
@@ -188,6 +223,7 @@ window->setTimeout(10*1000);
     window->addRenderer(VolumeRenderer);
     window->runMainLoop();
 	VolumeRenderer->getRuntime()->print();
+    */
 	
 	
 
