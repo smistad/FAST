@@ -32,6 +32,9 @@ class OpenCLDevice : public ExecutionDevice, public oul::Context {
         OpenCLDevice(std::vector<cl::Device> devices, unsigned long * glContext = NULL) : oul::Context(devices, glContext, false)
         {mIsHost = false;mGLContext = glContext;};
         unsigned long * getGLContext() { return mGLContext; };
+        std::string getName() {
+            return getDevice().getInfo<CL_DEVICE_NAME>();
+        }
     private:
         OpenCLDevice() {mIsHost = false;};
         unsigned long * mGLContext;
