@@ -29,8 +29,12 @@ void Surface::create(
 
     for(unsigned int i = 0; i < vertices.size(); i++) {
         SurfaceVertex v;
-        v.position = vertices[i];
-        v.normal = normals[i];
+        v.position[0] = vertices[i].x();
+        v.position[1] = vertices[i].y();
+        v.position[2] = vertices[i].z();
+        v.normal[0] = normals[i].x();
+        v.normal[1] = normals[i].y();
+        v.normal[2] = normals[i].z();
         mVertices.push_back(v);
     }
 
@@ -41,6 +45,28 @@ void Surface::create(
     }
 
     mBoundingBox = BoundingBox(vertices);
+    mNrOfTriangles = triangles.size();
+    mTriangles = triangles;
+    mHostHasData = true;
+    mHostDataIsUpToDate = true;
+    SceneGraph& graph = SceneGraph::getInstance();
+    graph.addDataNodeToNewRoot(mPtr);
+}
+
+
+void Surface::create(std::vector<SurfaceVertex> vertices, std::vector<Uint3> triangles) {
+     if(mIsInitialized) {
+        // Delete old data
+        freeAll();
+    }
+    mIsInitialized = true;
+    mVertices = vertices;
+    std::vector<Float3> positions;
+    for(unsigned int i = 0; i < vertices.size(); i++) {
+        Float3 pos(vertices[i].position[0], vertices[i].position[1], vertices[i].position[2]);
+        positions.push_back(pos);
+    }
+    mBoundingBox = BoundingBox(positions);
     mNrOfTriangles = triangles.size();
     mTriangles = triangles;
     mHostHasData = true;
@@ -71,7 +97,7 @@ VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
         throw Exception("Surface has not been initialized.");
 
     if(mSurfaceIsBeingWrittenTo)
-        throw Exception("Requesting access to an image that is already being written to.");
+        throw Exception("Requesting access to a surface that is already being written to.");
     if (type == ACCESS_READ_WRITE) {
         if (isAnyDataBeingAccessed()) {
             throw Exception(
@@ -86,7 +112,8 @@ VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
 #else
 #if _WIN32
 #else
-        if(glXGetCurrentDrawable() == 0) { // TODO make this work on all platforms
+        // If no Window is present, create a dummy gl context
+        if(!QApplication::instance()) { // TODO make this work on all platforms
             SimpleWindow::initializeQtApp();
 
             // Need a drawable for this to work
@@ -146,11 +173,99 @@ VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
     return VertexBufferObjectAccess(mVBOID, &mVBODataIsBeingAccessed, &mSurfaceIsBeingWrittenTo);
 }
 
-SurfacePointerAccess Surface::getSurfacePointerAccess(accessType access) {
-    if(!mIsInitialized)
-        throw Exception("Surface has not been initialized.");
+// Hasher for the SurfaceVertex class
+class KeyHasher {
+    public:
+        std::size_t operator()(const SurfaceVertex& v) const {
+            using boost::hash_value;
+            using boost::hash_combine;
 
-    throw Exception("Not implemented yet!");
+            // Start with a hash value of 0    .
+            std::size_t seed = 0;
+
+            // Modify 'seed' by XORing and bit-shifting in
+            // one member of 'Key' after the other:
+            hash_combine(seed,hash_value(v.position[0]));
+            hash_combine(seed,hash_value(v.position[1]));
+            hash_combine(seed,hash_value(v.position[2]));
+
+            // Return the result.
+            return seed;
+        }
+};
+
+bool operator==(const SurfaceVertex& a, const SurfaceVertex& b) {
+    return a.position[0] == b.position[0] &&
+    a.position[1] == b.position[1] &&
+    a.position[2] == b.position[2];
+}
+
+SurfacePointerAccess Surface::getSurfacePointerAccess(accessType type) {
+    if(!mIsInitialized) {
+        this->update();
+    }
+    if(mSurfaceIsBeingWrittenTo)
+        throw Exception("Requesting access to a surface that is already being written to.");
+    if (type == ACCESS_READ_WRITE) {
+        if (isAnyDataBeingAccessed()) {
+            throw Exception(
+                    "Trying to get write access to an object that is already being accessed");
+        }
+        mSurfaceIsBeingWrittenTo = true;
+    }
+    if(!mHostHasData) {
+        // Get all vertices with normals from VBO (including duplicates)
+        float* data = new float[mNrOfTriangles*18];
+        glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
+        glGetBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float)*mNrOfTriangles*18, data);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        std::vector<SurfaceVertex> vertices;
+        std::vector<Uint3> triangles;
+        boost::unordered_map<SurfaceVertex, uint, KeyHasher> vertexList;
+        for(int t = 0; t < mNrOfTriangles; t++) {
+            Uint3 triangle;
+            for(int v = 0; v < 3; v++) {
+                SurfaceVertex vertex;
+                vertex.position[0] = data[t*18+v*6];
+                vertex.position[1] = data[t*18+v*6+1];
+                vertex.position[2] = data[t*18+v*6+2];
+                vertex.normal[0] = data[t*18+v*6+3];
+                vertex.normal[1] = data[t*18+v*6+4];
+                vertex.normal[2] = data[t*18+v*6+5];
+                vertex.triangles.push_back(t);
+
+                // Only add if not a duplicate
+                if(vertexList.count(vertex) > 0) {
+                    // Found a duplicate
+                    // Get index of duplicate
+                    const uint duplicateIndex = vertexList[vertex];
+                    // Add this triangle to the duplicate
+                    SurfaceVertex& duplicate = vertices[duplicateIndex];
+                    duplicate.triangles.push_back(t);
+                    // Add the vertex to this triangle
+                    triangle[v] = duplicateIndex;
+                } else {
+                    // If duplicate was not found, add it to the list
+                    vertices.push_back(vertex);
+                    triangle[v] = vertices.size()-1;
+                    vertexList[vertex] = vertices.size()-1;
+                }
+            }
+            triangles.push_back(triangle);
+        }
+        mTriangles = triangles;
+        mVertices = vertices;
+        mHostHasData = true;
+        mHostDataIsUpToDate = true;
+
+    } else {
+        if(!mHostDataIsUpToDate) {
+            throw Exception("Not implemented yet!");
+        }
+    }
+
+    mHostDataIsBeingAccessed = true;
+    return SurfacePointerAccess(&mVertices,&mTriangles,&mHostDataIsBeingAccessed,&mSurfaceIsBeingWrittenTo);
 }
 
 Surface::~Surface() {
