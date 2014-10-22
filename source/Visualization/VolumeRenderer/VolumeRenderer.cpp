@@ -415,6 +415,7 @@ void VolumeRenderer::execute() {
 			programNr = mDevice->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/VolumeRenderer/VolumeRendererNoGeo.cl", str);
         program = mDevice->getProgram(programNr);
 		renderKernel = cl::Kernel(program, "d_render");
+		mInputIsModified = false;
 	}
     
 	if(!pbo) 
