@@ -83,17 +83,16 @@ std::cout << "the device manager created the GL context " << glContext << std::e
 		if(!success)
 			throw Exception("Failed to set initial windows GL context");
 #else
-        int sngBuf[] = { GLX_RGBA,
-                         GLX_DOUBLEBUFFER,
-                         GLX_RED_SIZE, 1,
-                         GLX_GREEN_SIZE, 1,
-                         GLX_BLUE_SIZE, 1,
-                         GLX_DEPTH_SIZE, 12,
-                         None
-        };
-        Display * display = XOpenDisplay(0);
-        XVisualInfo* vi = glXChooseVisual(display, DefaultScreen(display), sngBuf);
-        glContext = (unsigned long *)glXCreateContext(display, vi, 0, GL_TRUE);
+		SimpleWindow::initializeQtApp();
+
+		// Need a drawable for this to work
+		QGLWidget* widget = new QGLWidget;
+		widget->show();
+
+		widget->hide(); // TODO should probably delete widget as well
+		std::cout << "created a drawable" << std::endl;
+
+        glContext = (long unsigned int*)glXGetCurrentContext();
         std::cout << "created GLX context " << glContext << std::endl;
 #endif
 #endif
