@@ -58,9 +58,20 @@ std::cout << "the device manager created the GL context " << glContext << std::e
 #if _WIN32
         // TODO implement windows OpenGL stuff
         // http://msdn.microsoft.com/en-us/library/windows/desktop/dd374379%28v=vs.85%29.aspx
-        HDC    hdc = oul::getHDC();
-		std::cout << "HDC in DeviceManager is: " << hdc << std::endl;
+        //HDC    hdc = oul::getHDC();
+		//std::cout << "HDC in DeviceManager is: " << hdc << std::endl;
         HGLRC  hglrc; 
+
+		SimpleWindow::initializeQtApp();
+
+		// Need a drawable for this to work
+		QGLWidget* widget = new QGLWidget;
+		widget->show();
+
+		widget->hide(); // TODO should probably delete widget as well
+		std::cout << "created a drawable" << std::endl;
+		HDC    hdc = wglGetCurrentDC();
+		std::cout << "HDC in DeviceManager is: " << hdc << std::endl;
          
         // create a rendering context  
         hglrc = wglCreateContext (hdc); 
@@ -68,7 +79,9 @@ std::cout << "the device manager created the GL context " << glContext << std::e
         glContext = (unsigned long *)hglrc;
          
         // make it the calling thread's current rendering context 
-        wglMakeCurrent (hdc, hglrc);
+        bool success = wglMakeCurrent (hdc, hglrc);
+		if(!success)
+			throw Exception("Failed to set initial windows GL context");
 #else
         int sngBuf[] = { GLX_RGBA,
                          GLX_DOUBLEBUFFER,
