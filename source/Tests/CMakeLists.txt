@@ -10,4 +10,5 @@ fast_add_test_sources(
     Algorithms/DoubleFilter.hpp
     Algorithms/DoubleFilterTests.cpp
     SystemTests.cpp
+    Benchmarks.cpp
 )
