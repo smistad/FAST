@@ -104,6 +104,10 @@ void MetaImageImporter::execute() {
 
     Float3 spacing(1,1,1), offset, centerOfRotation;
     Float<9> transformMatrix;
+    // Set to identity
+    transformMatrix[0] = 1;
+    transformMatrix[4] = 1;
+    transformMatrix[8] = 1;
 
     do{
         std::getline(mhdFile, line);
