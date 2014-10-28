@@ -16,7 +16,6 @@
 #include "ColorTransferFunction.hpp"
 #include "OpacityTransferFunction.hpp"
 #include "SurfaceExtraction.hpp"
-#include "SeededRegionGrowing.hpp"
 
 using namespace fast;
 
@@ -27,41 +26,6 @@ int main(int argc, char ** argv) {
     //DeviceManager& deviceManager = DeviceManager::getInstance();
     //deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(true));
 
-    /*
-    ExecutionDevice::pointer host = Host::New();
-    ExecutionDevice::pointer cpu = DeviceManager::getInstance().getOneCPUDevice();
-    MetaImageImporter::pointer importer = MetaImageImporter::New();
-    importer->setFilename("/home/smistad/Dropbox/Share_Erik/Erik/CT-Abdomen.mhd");
-    importer->enableRuntimeMeasurements();
-
-    SeededRegionGrowing::pointer segmentation = SeededRegionGrowing::New();
-    segmentation->setInput(importer->getOutput());
-    segmentation->addSeedPoint(223,282,387);
-    segmentation->addSeedPoint(251,314,148);
-    segmentation->setIntensityRange(150, 5000);
-    //segmentation->setDevice(host);
-    //segmentation->setDevice(cpu);
-
-    SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
-    extraction->setInput(segmentation->getOutput());
-
-    SurfaceRenderer::pointer renderer2 = SurfaceRenderer::New();
-    renderer2->setInput(extraction->getOutput());
-
-    SliceRenderer::pointer renderer = SliceRenderer::New();
-    renderer->setInput(importer->getOutput());
-    renderer->setIntensityWindow(1000);
-    renderer->setIntensityLevel(0);
-
-	SimpleWindow::pointer window = SimpleWindow::New();
-    window->addRenderer(renderer2);
-    //window->addRenderer(renderer);
-    window->runMainLoop();
-    importer->getRuntime()->print();
-    segmentation->getRuntime()->print();
-    extraction->getRuntime()->print();
-    renderer2->getRuntime()->print();
-    */
     /*
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_0.mhd");
@@ -177,12 +141,14 @@ window->setTimeout(10*1000);
 //	MetaImageImporter::pointer mhdImporter = MetaImageImporter::New();
 //    mhdImporter->setFilename("skull.mhd");
 	
+
 	MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
 
     SliceRenderer::pointer sRenderer = SliceRenderer::New();
     sRenderer->setSlicePlane(PLANE_Y);
     sRenderer->setInput(mhdStreamer->getOutput());
+	sRenderer->setSliceToRender(120);
 
 
 
@@ -196,10 +162,10 @@ window->setTimeout(10*1000);
 
 
 	MetaImageImporter::pointer mhdImporter = MetaImageImporter::New();
-    mhdImporter->setFilename("skull.mhd");
+    mhdImporter->setFilename(std::string(FAST_ROOT_DIR)+"TestData/skull256.mhd");
 
 	MetaImageImporter::pointer mhdImporter2 = MetaImageImporter::New();
-    mhdImporter2->setFilename("stent256.mhd");
+	mhdImporter2->setFilename(std::string(FAST_ROOT_DIR) + "TestData/v8.mhd");
 	
 	
 	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
@@ -207,14 +173,14 @@ window->setTimeout(10*1000);
 	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
 	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
 	ColorTransferFunction::pointer ctf2 = ColorTransferFunction::New();
-	ctf2->addRGBPoint(000.0, 0.0, 1.0, 0.0);
+	ctf2->addRGBPoint(000.0, 1.0, 0.0, 0.0);
 	ctf2->addRGBPoint(127.0, 0.0, 1.0, 0.0);
-	ctf2->addRGBPoint(255.0, 1.0, 0.0, 0.0);
+	ctf2->addRGBPoint(255.0, 0.0, 0.0, 1.0);
 
 
 	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
 	otf1->addAlphaPoint(000.0, 0.0);
-	otf1->addAlphaPoint(050.0, 1.0);
+	otf1->addAlphaPoint(50.0, 0.0);
 	otf1->addAlphaPoint(255.0, 1.0);
 	
 	OpacityTransferFunction::pointer otf2 = OpacityTransferFunction::New();
@@ -224,22 +190,34 @@ window->setTimeout(10*1000);
 
 
 	VolumeRenderer::pointer vRenderer = VolumeRenderer::New();
-    //vRenderer->addInput(mhdImporter->getOutput());
+    //VolumeRenderer->addInput(mhdImporter->getOutput());
 	vRenderer->addInput(mhdStreamer->getOutput());
-	//VolumeRenderer->addInput(mhdImporter2->getOutput());
-	
+	vRenderer->addInput(mhdStreamer->getOutput());
+	vRenderer->addInput(mhdStreamer->getOutput());
+	//vRenderer->addInput(mhdStreamer->getOutput());
+	//vRenderer->addInput(mhdImporter2->getOutput());
+	//vRenderer->addInput(mhdImporter->getOutput());
+	//vRenderer->turnOffTransformations();
 	
 	vRenderer->setColorTransferFunction(0, ctf1);
-	//VolumeRenderer->setColorTransferFunction(1, ctf2);
+	vRenderer->setColorTransferFunction(1, ctf2);
+	vRenderer->setColorTransferFunction(2, ctf1);
 
 	vRenderer->setOpacityTransferFunction(0, otf1);
-	//VolumeRenderer->setOpacityTransferFunction(1, otf2);
-
+	vRenderer->setOpacityTransferFunction(1, otf2);
+	vRenderer->setOpacityTransferFunction(2, otf1);
+	float ut[16]={	1.0, 0.0, 0.0, -100.0,
+					0.0, 1.0, 0.0, 0.0,
+					0.0, 0.0, 1.0, 0.0,
+					0.0, 0.0, 0.0, 1.0};
+	vRenderer->setUserTransform(1, ut);
+	ut[3] = -50.0;
+	vRenderer->setUserTransform(2, ut);
     vRenderer->enableRuntimeMeasurements();
 	SimpleWindow::pointer window = SimpleWindow::New();
-    window->setMaximumFramerate(100);
+    window->setMaximumFramerate(200);
     window->addRenderer(vRenderer);
-	window->addRenderer(sRenderer);
+	//window->addRenderer(sRenderer);
     window->runMainLoop();
 	vRenderer->getRuntime()->print();
 	

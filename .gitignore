@@ -1,2 +1,4 @@
 build/
 TestData/
+source/Visualization/VolumeRenderer/VolumeRendererNoGeo.cl.bin
+source/Visualization/VolumeRenderer/VolumeRendererNoGeo.cl.cache

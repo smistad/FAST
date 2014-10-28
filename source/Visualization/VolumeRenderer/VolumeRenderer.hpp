@@ -30,11 +30,14 @@ class VolumeRenderer : public Renderer {
 		void resize(GLuint, GLuint);
 		void setProjectionParameters(float fov, float aspect, float nearPlane, float farPlane);
 		void setUserTransform(int volumeIndex, const float userTransform[16]);
+
+		void turnOffTransformations();
+
     private:
         VolumeRenderer();
         void execute();
         void draw();
-		void turnOffTransformations();
+		
 
 		GLuint mHeight;
 		GLuint mWidth;
@@ -70,10 +73,10 @@ class VolumeRenderer : public Renderer {
 		cl::Image2D d_transferFuncArray[maxNumberOfVolumes];
 		cl::Image2D d_opacityFuncArray[maxNumberOfVolumes];
 
-		cl::Buffer d_invViewMatrix;
-		cl::Buffer d_invProjectionModelView;
+		cl::Buffer d_invViewMatrices;
+		cl::Buffer d_boxMaxs;
 		
-		float invProjectionModelView[16];
+		
 
 		cl::Kernel renderKernel;
 
@@ -96,7 +99,7 @@ class VolumeRenderer : public Renderer {
 		float* opacityFunc;
 
 		bool doUserTransforms[maxNumberOfVolumes];
-		float mUserTransforms[maxNumberOfVolumes*16];
+		float mUserTransforms[maxNumberOfVolumes * 16];
 		float mUserTransform0[16];
 		float mUserTransform1[16];
 		float mUserTransform2[16];
@@ -108,8 +111,9 @@ class VolumeRenderer : public Renderer {
 		float invViewMatrix2[16];
 		float invViewMatrix3[16];
 		float invViewMatrix4[16];
-		float invViewMatrix[16];
-
+		float invViewMatrices[maxNumberOfVolumes * 16];
+		
+		float boxMaxs[maxNumberOfVolumes * 3];
 };
 
 } // namespace fast

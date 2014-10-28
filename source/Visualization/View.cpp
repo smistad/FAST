@@ -139,7 +139,8 @@ void View::initializeGL() {
 	{
 
 		if (mVolumeRenderers.size()>0)
-		{	((VolumeRenderer::pointer)mVolumeRenderers[0])->setIncludeGeometry(true);
+		{	
+			((VolumeRenderer::pointer)mVolumeRenderers[0])->setIncludeGeometry(true);
 			glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 		}
 		else
