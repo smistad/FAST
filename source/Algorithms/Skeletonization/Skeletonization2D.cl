@@ -1,21 +1,6 @@
 
 __constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
 
-__kernel void initialize(
-        __read_only image2d_t readImage,
-        __write_only image2d_t writeImage,
-        __write_only image2d_t writeImage2
-        ) {
-    const int2 position = {get_global_id(0), get_global_id(1)};
-    
-    uchar value = 0;
-    if(read_imageui(readImage, sampler, position).x == 1) {
-        value = 1;
-    }
-    write_imageui(writeImage, position, value);
-    write_imageui(writeImage2, position, value);
-}
-
 void checkNeighborhood(
         const int2 position,
         __read_only image2d_t readImage,

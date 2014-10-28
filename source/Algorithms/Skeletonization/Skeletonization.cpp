@@ -58,7 +58,6 @@ void Skeletonization::execute() {
     // Create kernel
     int programNr = mDevice->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "Algorithms/Skeletonization/Skeletonization2D.cl");
     cl::Program program = mDevice->getProgram(programNr);
-    cl::Kernel kernelInit(program, "initialize");
     cl::Kernel kernel1(program, "thinningStep1");
     cl::Kernel kernel2(program, "thinningStep2");
 
@@ -73,10 +72,6 @@ void Skeletonization::execute() {
     cl::Image2D* image = access.get();
     OpenCLImageAccess2D access2 = output->getOpenCLImageAccess2D(ACCESS_READ_WRITE, mDevice);
     cl::Image2D* image1 = access2.get();
-
-    kernelInit.setArg(0, *image);
-    kernelInit.setArg(1, *image1);
-    kernelInit.setArg(2, image2);
 
     kernel1.setArg(0, *image1);
     kernel1.setArg(1, image2);
@@ -93,11 +88,13 @@ void Skeletonization::execute() {
     char* stopGrowingResult = new char;
     int iterations = 0;
     cl::CommandQueue queue = mDevice->getCommandQueue();
-    queue.enqueueNDRangeKernel(
-            kernelInit,
-            cl::NullRange,
-            globalSize,
-            cl::NullRange
+
+    queue.enqueueCopyImage(
+            *image,
+            *image1,
+            oul::createOrigoRegion(),
+            oul::createOrigoRegion(),
+            oul::createRegion(output->getWidth(), output->getHeight(), 1)
     );
 
     do {
