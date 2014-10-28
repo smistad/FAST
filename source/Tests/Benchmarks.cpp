@@ -75,10 +75,11 @@ TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark]") {
     filter->getRuntime()->print();
     extractor->getRuntime()->print();
     renderer->getRuntime()->print();
-    float total = streamer->getRuntime()->getAverage() +
-            filter->getRuntime()->getAverage() +
-            extractor->getRuntime()->getAverage() +
-            renderer->getRuntime()->getAverage();
+    float total = streamer->getRuntime()->getSum() +
+		filter->getRuntime()->getSum() +
+		extractor->getRuntime()->getSum() +
+		renderer->getRuntime()->getSum();
+	total = total / 84; // number of frames
     std::cout << "Average runtime was: " << total << std::endl << std::endl;
 }
 
