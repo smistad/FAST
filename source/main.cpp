@@ -180,7 +180,7 @@ window->setTimeout(10*1000);
 
 	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
 	otf1->addAlphaPoint(000.0, 0.0);
-	otf1->addAlphaPoint(50.0, 0.0);
+	otf1->addAlphaPoint(200.0, 1.0);
 	otf1->addAlphaPoint(255.0, 1.0);
 	
 	OpacityTransferFunction::pointer otf2 = OpacityTransferFunction::New();
@@ -211,13 +211,13 @@ window->setTimeout(10*1000);
 					0.0, 0.0, 1.0, 0.0,
 					0.0, 0.0, 0.0, 1.0};
 	vRenderer->setUserTransform(1, ut);
-	ut[3] = -50.0;
+	ut[3] = 100.0;
 	vRenderer->setUserTransform(2, ut);
     vRenderer->enableRuntimeMeasurements();
 	SimpleWindow::pointer window = SimpleWindow::New();
     window->setMaximumFramerate(200);
     window->addRenderer(vRenderer);
-	//window->addRenderer(sRenderer);
+	window->addRenderer(sRenderer);
     window->runMainLoop();
 	vRenderer->getRuntime()->print();
 	

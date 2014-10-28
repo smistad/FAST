@@ -124,16 +124,13 @@ d_render(__global uint *d_output,
 
     float u = (((x / (float) imageW)*2.0f)-1.0f)*right;
     float v = (((y / (float) imageH)*2.0f)-1.0f)*top;
-
-	//float winZ = ((read_imagef(geoDepthTexture, geometrySampler, (int2)(x,y)).x)*-2.0f)+1.0f;
+  //float winZ = ((read_imagef(geoDepthTexture, geometrySampler, (int2)(x,y)).x)*-2.0f)+1.0f;
 	
-	//float Z = projectionMatrix14 / (winZ+projectionMatrix10);
+  //float Z = projectionMatrix14 / (winZ+projectionMatrix10);
 
 
 	//float4 boxMin = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
 	float4 boxMax0 = (float4)(boxMaxs[0], boxMaxs[1], boxMaxs[2], 0.0f);
-	//float4 boxMax = (float4)(512.0f, 512.0f, 512.0f , 0.0f);
-	//float4 boxMax = (float4)(256.0f, 256.0f, 256.0f, 0.0f);
 	
     // calculate eye ray in world space
 	float4 eyeRay_o[numberOfVolumes];
@@ -160,7 +157,7 @@ d_render(__global uint *d_output,
         return;
     }
 
-	//if (tfar > -Z) tfar = -Z;
+  //if (tfar > -Z) tfar = -Z;
 	if (tnear < zNear) tnear = zNear;	// clamp to near plane
 	if (tfar > zFar) tfar= zFar;	// clamp to far  plane
 	
@@ -171,7 +168,7 @@ d_render(__global uint *d_output,
 	
     for(uint i=0; i<maxSteps*200; i++) {
 
-        float4 pos = eyeRay_o[0] + eyeRay_d[0]*t;    
+		float4 pos = eyeRay_o[0] + eyeRay_d[0] * t;
         
 		// read from 3D texture
 #ifdef TYPE_FLOAT1
@@ -194,7 +191,6 @@ d_render(__global uint *d_output,
 		pos = eyeRay_o[1] + eyeRay_d[1] * t;
 		if ((pos.x <= boxMaxs[3]) && (pos.x >= 0.0f) && (pos.y <= boxMaxs[4]) && (pos.y >= 0.0f) && (pos.z <= boxMaxs[5]) && (pos.z >= 0.0f))
 		{
-			//pos= pos*0.5f+0.5f; //Mehdi
 			
 #ifdef TYPE_FLOAT2
 			float sample = read_imagef(volume2, volumeSampler, pos).x;
@@ -283,8 +279,8 @@ d_render(__global uint *d_output,
         if (t < tnear) break;
     }
     volumeColor *= brightness;
-	//float4 geoColor=read_imagef(geoColorTexture, geometrySampler, (int2)(x,y));
-	//volumeColor = mix (geoColor, volumeColor ,volumeColor.w);
+  //float4 geoColor=read_imagef(geoColorTexture, geometrySampler, (int2)(x,y));
+  //volumeColor = mix (geoColor, volumeColor ,volumeColor.w);
 	volumeColor.w=1.0f;
 	
 	// write output color

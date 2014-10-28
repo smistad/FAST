@@ -2,3 +2,7 @@ build/
 TestData/
 source/Visualization/VolumeRenderer/VolumeRendererNoGeo.cl.bin
 source/Visualization/VolumeRenderer/VolumeRendererNoGeo.cl.cache
+source/Visualization/SliceRenderer/SliceRenderer.cl.bin
+source/Visualization/SliceRenderer/SliceRenderer.cl.cache
+source/Visualization/VolumeRenderer/VolumeRendererWithGeo.cl.bin
+source/Visualization/VolumeRenderer/VolumeRendererWithGeo.cl.cache
