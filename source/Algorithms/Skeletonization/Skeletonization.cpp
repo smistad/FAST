@@ -110,7 +110,7 @@ void Skeletonization::execute() {
 
     do {
         iterations++;
-        queue.enqueueWriteBuffer(stopGrowingBuffer, CL_TRUE, 0, sizeof(char), &stopGrowingInit);
+        queue.enqueueWriteBuffer(stopGrowingBuffer, CL_FALSE, 0, sizeof(char), &stopGrowingInit);
 
         queue.enqueueNDRangeKernel(
                 kernel1,

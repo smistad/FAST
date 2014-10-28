@@ -9,6 +9,9 @@
 #include "SimpleWindow.hpp"
 #include "DeviceManager.hpp"
 #include "SeededRegionGrowing.hpp"
+#include "Skeletonization.hpp"
+#include "ImageImporter.hpp"
+#include "ImageRenderer.hpp"
 
 using namespace fast;
 
@@ -88,6 +91,12 @@ TEST_CASE("Pipeline B", "[fast][benchmark]") {
     segmentation->setInput(importer->getOutput());
     segmentation->addSeedPoint(223,282,387);
     segmentation->addSeedPoint(251,314,148);
+    /*
+    segmentation->addSeedPoint(231,281,313);
+    segmentation->addSeedPoint(260,284,187);
+    segmentation->addSeedPoint(370,290,111);
+    segmentation->addSeedPoint(134,293,111);
+    */
     segmentation->setIntensityRange(150, 5000);
 
     SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
@@ -128,5 +137,23 @@ TEST_CASE("Pipeline B", "[fast][benchmark]") {
 }
 
 TEST_CASE("Pipeline C", "[fast][benchmark]") {
+    ImageImporter::pointer importer = ImageImporter::New();
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "retina.png");
 
+    Skeletonization::pointer skeletonization = Skeletonization::New();
+    skeletonization->setInput(importer->getOutput());
+    skeletonization->enableRuntimeMeasurements();
+
+    ImageRenderer::pointer renderer = ImageRenderer::New();
+    renderer->setInput(skeletonization->getOutput());
+    renderer->setIntensityWindow(1);
+    renderer->setIntensityLevel(0.5);
+    SimpleWindow::pointer window = SimpleWindow::New();
+    window->addRenderer(renderer);
+    window->setTimeout(500);
+    window->runMainLoop();
+    float total = importer->getRuntime()->getSum() +
+            skeletonization->getRuntime()->getSum() +
+            renderer->getRuntime()->getSum();
+    std::cout << "Total runtime was: " << total << std::endl;
 }
