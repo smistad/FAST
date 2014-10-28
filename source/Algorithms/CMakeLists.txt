@@ -3,6 +3,7 @@ fast_add_subdirectories(
     SeededRegionGrowing
     SurfaceExtraction
     Skeletonization
+    BinaryThresholding
 )
 fast_add_sources()
 fast_add_test_sources()

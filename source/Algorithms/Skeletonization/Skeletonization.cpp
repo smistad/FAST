@@ -53,13 +53,7 @@ void Skeletonization::execute() {
     }
 
     // Initialize output image
-    output->create2DImage(
-            input->getWidth(),
-            input->getHeight(),
-            TYPE_UINT8,
-            1,
-            mDevice
-            );
+    output->createFromImage(input, mDevice);
 
     // Create kernel
     int programNr = mDevice->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "Algorithms/Skeletonization/Skeletonization2D.cl");
@@ -80,11 +74,9 @@ void Skeletonization::execute() {
     OpenCLImageAccess2D access2 = output->getOpenCLImageAccess2D(ACCESS_READ_WRITE, mDevice);
     cl::Image2D* image1 = access2.get();
 
-    float threshold = 0.5;
     kernelInit.setArg(0, *image);
     kernelInit.setArg(1, *image1);
     kernelInit.setArg(2, image2);
-    kernelInit.setArg(3, threshold);
 
     kernel1.setArg(0, *image1);
     kernel1.setArg(1, image2);
@@ -132,6 +124,8 @@ void Skeletonization::execute() {
     } while(!stopGrowing);
 
     output->updateModifiedTimestamp();
+
+    // TODO fix scene graph
 }
 
 } // end namespace fast

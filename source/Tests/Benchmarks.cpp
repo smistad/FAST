@@ -12,6 +12,7 @@
 #include "Skeletonization.hpp"
 #include "ImageImporter.hpp"
 #include "ImageRenderer.hpp"
+#include "BinaryThresholding.hpp"
 
 using namespace fast;
 
@@ -140,10 +141,14 @@ TEST_CASE("Pipeline B", "[fast][benchmark]") {
 TEST_CASE("Pipeline C", "[fast][benchmark]") {
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "retina.png");
+    importer->enableRuntimeMeasurements();
+
+    BinaryThresholding::pointer thresholding = BinaryThresholding::New();
+    thresholding->setInput(importer->getOutput());
+    thresholding->setLowerThreshold(0.5);
 
     Skeletonization::pointer skeletonization = Skeletonization::New();
-    skeletonization->setInput(importer->getOutput());
-    skeletonization->enableRuntimeMeasurements();
+    skeletonization->setInput(thresholding->getOutput());
 
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->setInput(skeletonization->getOutput());
@@ -154,6 +159,7 @@ TEST_CASE("Pipeline C", "[fast][benchmark]") {
     window->setTimeout(500);
     window->runMainLoop();
     float total = importer->getRuntime()->getSum() +
+            thresholding->getRuntime()->getSum() +
             skeletonization->getRuntime()->getSum() +
             renderer->getRuntime()->getSum();
     std::cout << "Total runtime was: " << total << std::endl;
