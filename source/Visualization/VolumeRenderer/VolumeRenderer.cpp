@@ -149,45 +149,9 @@ BoundingBox VolumeRenderer::getBoundingBox()
         SceneGraphNode::pointer node;
         node = graph.getDataNode(mImageToRender);
         LinearTransformation transform = graph.getLinearTransformationFromNode(node);
-
 		BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
         
 		return transformedBoundingBox;
-
-		/*
-		glPushMatrix();
-		glLoadIdentity();
-	
-		
-
-		float matrix[16] = {
-                transform(0,0), transform(1,0), transform(2,0), transform(3,0),
-                transform(0,1), transform(1,1), transform(2,1), transform(3,1),
-                transform(0,2), transform(1,2), transform(2,2), transform(3,2),
-                transform(0,3), transform(1,3), transform(2,3), transform(3,3)
-        };
-
-        glMultMatrixf(matrix);
-		
-		if (doUserTransforms[0])
-			glMultMatrixf(mUserTransform0);
-
-		glGetFloatv(GL_MODELVIEW_MATRIX, tr);
-
-		glPopMatrix();
-	
-		fast::LinearTransformation a;
-		a(0,0)=tr[0];a(0,1)=tr[4];a(0,2)=tr[8];a(0,3)=tr[12];
-		a(1,0)=tr[1];a(1,1)=tr[5];a(1,2)=tr[9];a(1,3)=tr[13];
-		a(2,0)=tr[2];a(2,1)=tr[6];a(2,2)=tr[10];a(2,3)=tr[14];
-		a(3,0)=tr[3];a(3,1)=tr[7];a(3,2)=tr[11];a(3,3)=tr[15];
-
-
-
-        return inputBoundingBox.getTransformedBoundingBox(a);
-
-
-		*/
 
     } else {
         return inputBoundingBox;
@@ -247,8 +211,8 @@ VolumeRenderer::VolumeRenderer() : Renderer() {
 	mHeight = 512;
 	mWidth = 512;
 
-	d_invViewMatrix= cl::Buffer(clContext, CL_MEM_READ_WRITE, 16*sizeof(float));
-	d_invProjectionModelView= cl::Buffer(clContext, CL_MEM_READ_WRITE, 16*sizeof(float));
+	d_invViewMatrices= cl::Buffer(clContext, CL_MEM_READ_WRITE, maxNumberOfVolumes*16*sizeof(float));
+	d_boxMaxs = cl::Buffer(clContext, CL_MEM_READ_WRITE, maxNumberOfVolumes * 3 * sizeof(float));
 
 	includeGeometry=false;
 
@@ -261,6 +225,7 @@ VolumeRenderer::VolumeRenderer() : Renderer() {
 void VolumeRenderer::setIncludeGeometry(bool p){
 	
 	includeGeometry=p;
+	mInputIsModified = true;
 }
 
 void VolumeRenderer::execute() {
@@ -325,7 +290,7 @@ void VolumeRenderer::execute() {
 
 	glPushMatrix();
 
-	for(int i=0; i<1; i++)
+	for (int i = 0; i < numberOfVolumes; i++)
 	{
 		glLoadIdentity();
 		glMultMatrixf(modelView);
@@ -345,51 +310,60 @@ void VolumeRenderer::execute() {
 
 			glMultMatrixf(transformMatrix);
 		}
-		/*
+
+		
 		if (doUserTransforms[i])
 			switch(i)
-		{
-			case 0: glMultMatrixf(mUserTransform0); break;
-			case 1: glMultMatrixf(mUserTransform1); break;
-			case 2: glMultMatrixf(mUserTransform2); break;
-			case 3: glMultMatrixf(mUserTransform3); break;
-			case 4: glMultMatrixf(mUserTransform4); break;
+			{
+				case 0: glMultTransposeMatrixf(mUserTransform0); break;
+				case 1: glMultTransposeMatrixf(mUserTransform1); break;
+				case 2: glMultTransposeMatrixf(mUserTransform2); break;
+				case 3: glMultTransposeMatrixf(mUserTransform3); break;
+				case 4: glMultTransposeMatrixf(mUserTransform4); break;
+			}
 		
-		}
-		*/
 
 		GLfloat modelViewMatrix[16];
 		glGetFloatv(GL_MODELVIEW_MATRIX, modelViewMatrix);
-		gluInvertMatrix(modelViewMatrix,invViewMatrix);
-	
+		switch (i)
+		{
+			case 0: 
+				gluInvertMatrix(modelViewMatrix, invViewMatrix0); 
+				for (uint i = 0; i < 16; i++)	
+					invViewMatrices[i] = invViewMatrix0[i];
+				break;
+			case 1: 
+				gluInvertMatrix(modelViewMatrix, invViewMatrix1);
+				for (uint i = 0; i < 16; i++)
+					invViewMatrices[i+16] = invViewMatrix1[i];
+				break;
+			case 2: 
+				gluInvertMatrix(modelViewMatrix, invViewMatrix2);
+				for (uint i = 0; i < 16; i++)
+					invViewMatrices[i+32] = invViewMatrix2[i];
+				break;
+			case 3: 
+				gluInvertMatrix(modelViewMatrix, invViewMatrix3); 
+				for (uint i = 0; i < 16; i++)
+					invViewMatrices[i+48] = invViewMatrix3[i];
+				break;
+			case 4: 
+				gluInvertMatrix(modelViewMatrix, invViewMatrix4); 
+				for (uint i = 0; i < 16; i++)
+					invViewMatrices[i+64] = invViewMatrix4[i];
+				break;
+		}
 	}
 	
 	glPopMatrix();
 
-
-	
-
-
-	GLfloat ProjectionModelView[16];
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
-	
-
-	glMultMatrixf(modelView);
-	
-
-	glGetFloatv(GL_MODELVIEW_MATRIX, ProjectionModelView);
-	glPopMatrix();
-
-	gluInvertMatrix(ProjectionModelView,invProjectionModelView);
 
 
 	if(mInputIsModified)   
 	{
 		// Compile program
 		char buffer[128];
-		sprintf(buffer,"-cl-fast-relaxed-math -D VOL%d ", numberOfVolumes);
+		sprintf(buffer, "-cl-fast-relaxed-math -D VOL%d -D numberOfVolumes=%d", numberOfVolumes, numberOfVolumes);
 		for(unsigned int i=0; i<numberOfVolumes;i++)
 		{
 			char dataTypeBuffer[128];
@@ -405,6 +379,11 @@ void VolumeRenderer::execute() {
 					sprintf(dataTypeBuffer, " -D TYPE_INT%d ", i+1);
 			}
 			strcat(buffer, dataTypeBuffer);
+
+			boxMaxs[i * 3 + 0] = inputs[i]->getWidth();
+			boxMaxs[i * 3 + 1] = inputs[i]->getHeight();
+			boxMaxs[i * 3 + 2] = inputs[i]->getDepth();
+
 		}
 
         std::string str(buffer);
@@ -415,6 +394,9 @@ void VolumeRenderer::execute() {
 			programNr = mDevice->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/VolumeRenderer/VolumeRendererNoGeo.cl", str);
         program = mDevice->getProgram(programNr);
 		renderKernel = cl::Kernel(program, "d_render");
+
+		
+
 		mInputIsModified = false;
 	}
     
@@ -450,13 +432,13 @@ void VolumeRenderer::execute() {
         renderKernel.setArg(8, rightOfViewPlane);
 		renderKernel.setArg(9, projectionMatrix10);
 		renderKernel.setArg(10, projectionMatrix14);
-		renderKernel.setArg(11, d_invViewMatrix);
+		renderKernel.setArg(11, d_invViewMatrices);
 		renderKernel.setArg(12, *clImage);
 		renderKernel.setArg(13, d_transferFuncArray[0]);
 		renderKernel.setArg(14, d_opacityFuncArray[0]);
 		renderKernel.setArg(15, mImageGLGeoColor);
 		renderKernel.setArg(16, mImageGLGeoDepth);
-		renderKernel.setArg(17, d_invProjectionModelView);
+		renderKernel.setArg(17, d_boxMaxs);
 		if (numberOfVolumes>1)
 		{
 			OpenCLImageAccess3D access2 = inputs[1]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
@@ -497,7 +479,7 @@ void VolumeRenderer::execute() {
 		
 
 	}
-	else
+	else //NO Geometry
 	{
 		OpenCLImageAccess3D access = inputs[0]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
 		cl::Image3D* clImage = access.get();
@@ -513,11 +495,11 @@ void VolumeRenderer::execute() {
         renderKernel.setArg(8, rightOfViewPlane);
 		renderKernel.setArg(9, projectionMatrix10);
 		renderKernel.setArg(10, projectionMatrix14);
-		renderKernel.setArg(11, d_invViewMatrix);
+		renderKernel.setArg(11, d_invViewMatrices);
 		renderKernel.setArg(12, *clImage);
 		renderKernel.setArg(13, d_transferFuncArray[0]);
 		renderKernel.setArg(14, d_opacityFuncArray[0]);
-		renderKernel.setArg(15, d_invProjectionModelView);
+		renderKernel.setArg(15, d_boxMaxs);
 		if (numberOfVolumes>1)
 		{
 			OpenCLImageAccess3D access2 = inputs[1]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
@@ -564,8 +546,8 @@ void VolumeRenderer::execute() {
 		v.push_back(mImageGLGeoDepth);
 	}
 	mDevice->getCommandQueue().enqueueAcquireGLObjects(&v);
-	mDevice->getCommandQueue().enqueueWriteBuffer(d_invViewMatrix, CL_FALSE, 0, sizeof(invViewMatrix), invViewMatrix);
-	mDevice->getCommandQueue().enqueueWriteBuffer(d_invProjectionModelView, CL_FALSE, 0, sizeof(invProjectionModelView), invProjectionModelView);
+	mDevice->getCommandQueue().enqueueWriteBuffer(d_invViewMatrices, CL_FALSE, 0, sizeof(invViewMatrices), invViewMatrices);
+	mDevice->getCommandQueue().enqueueWriteBuffer(d_boxMaxs, CL_FALSE, 0, sizeof(boxMaxs), boxMaxs);
 
     mDevice->getCommandQueue().enqueueNDRangeKernel(
             renderKernel,

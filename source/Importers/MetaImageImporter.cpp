@@ -102,7 +102,7 @@ void MetaImageImporter::execute() {
     unsigned int nrOfComponents = 1;
     Image::pointer output = mOutput;
 
-    Float3 spacing(1,1,1), offset, centerOfRotation;
+    Float3 spacing(1,1,1), offset(0,0,0), centerOfRotation;
     Float<9> transformMatrix;
     // Set to identity
     transformMatrix[0] = 1;
