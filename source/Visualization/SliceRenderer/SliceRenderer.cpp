@@ -50,7 +50,6 @@ void SliceRenderer::execute() {
         level = getDefaultIntensityLevel(mImageToRender->getDataType());
     }
 
-    std::cout << "SLICE RENDERER EXEC" << std::endl;
     setOpenGLContext(mDevice->getGLContext());
 
     // Determine slice nr and width and height of the texture to render to
@@ -127,6 +126,7 @@ void SliceRenderer::execute() {
 
     // Create CL-GL image
 #if defined(CL_VERSION_1_2)
+    // TODO this sometimes locks. Why???
     mImageGL = cl::ImageGL(
             mDevice->getContext(),
             CL_MEM_READ_WRITE,
@@ -236,7 +236,6 @@ void SliceRenderer::draw() {
     glBindTexture(GL_TEXTURE_2D, mTexture);
 
     // Draw slice in voxel coordinates
-    glColor3f(1,1,1);
     glBegin(GL_QUADS);
     switch(mSlicePlane) {
     case PLANE_Z:

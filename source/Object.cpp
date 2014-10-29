@@ -15,12 +15,13 @@
 namespace fast {
 
 void Object::setOpenGLContext(unsigned long* OpenGLContext) {
-    boost::unique_lock<boost::mutex> lock(Object::GLmutex);
+    boost::unique_lock<boost::mutex> lock(Object::GLmutex); // this locks the mutex
     while(!Object::GLcontextReady)
     {
+        // Unlocks the mutex and wait until someone calls notify.
+        // When it wakes, the mutex is locked again and GLcontextReady is checked.
         Object::condition.wait(lock);
     }
-    std::cout << "acquired access to GL" << std::endl;
     Object::GLcontextReady = false;
 #if defined(__APPLE__) || defined(__MACOSX)
     // Returns 0 on success
@@ -32,7 +33,7 @@ void Object::setOpenGLContext(unsigned long* OpenGLContext) {
     bool success = wglMakeCurrent(wglGetCurrentDC(), (HGLRC)OpenGLContext);
 #else
     static Display * mXDisplay = XOpenDisplay(NULL);
-    std::cout << "drawable: " << currentDrawable << std::endl;
+    //std::cout << "drawable: " << currentDrawable << std::endl;
     bool success = glXMakeCurrent(mXDisplay,currentDrawable,(GLXContext)OpenGLContext);
     //std::cout << "drawable: " << glXGetCurrentDrawable() << std::endl;
     //bool success = glXMakeCurrent(mXDisplay,glXGetCurrentDrawable(),(GLXContext)OpenGLContext);
@@ -44,14 +45,13 @@ void Object::setOpenGLContext(unsigned long* OpenGLContext) {
 }
 
 void Object::releaseOpenGLContext() {
-    std::cout << "trying to release GL.." << std::endl;
-    static Display * mXDisplay = XOpenDisplay(NULL);
     {
-        boost::lock_guard<boost::mutex> lock(Object::GLmutex);
-        std::cout << "releasing GL" << std::endl;
+        boost::lock_guard<boost::mutex> lock(Object::GLmutex); // lock mutex
+        static Display * mXDisplay = XOpenDisplay(NULL);
         glXMakeCurrent(mXDisplay, None, NULL);
         Object::GLcontextReady = true;
     }
+    // Notify other waiting threads that the GL context is released
     Object::condition.notify_one();
 }
 

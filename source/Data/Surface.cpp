@@ -29,8 +29,12 @@ void Surface::create(
 
     for(unsigned int i = 0; i < vertices.size(); i++) {
         SurfaceVertex v;
-        v.position = vertices[i];
-        v.normal = normals[i];
+        v.position(0) = vertices[i].x();
+        v.position(1) = vertices[i].y();
+        v.position(2) = vertices[i].z();
+        v.normal(0) = normals[i].x();
+        v.normal(1) = normals[i].y();
+        v.normal(2) = normals[i].z();
         mVertices.push_back(v);
     }
 
@@ -59,7 +63,7 @@ void Surface::create(std::vector<SurfaceVertex> vertices, std::vector<Uint3> tri
     mVertices = vertices;
     std::vector<Float3> positions;
     for(unsigned int i = 0; i < vertices.size(); i++) {
-        Float3 pos = vertices[i].position;
+        Float3 pos(vertices[i].position(0), vertices[i].position(1), vertices[i].position(2));
         positions.push_back(pos);
     }
     mBoundingBox = BoundingBox(positions);
@@ -108,7 +112,8 @@ VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
 #else
 #if _WIN32
 #else
-        if(glXGetCurrentDrawable() == 0) { // TODO make this work on all platforms
+        // If no Window is present, create a dummy gl context
+        if(!QApplication::instance()) { // TODO make this work on all platforms
             SimpleWindow::initializeQtApp();
 
             // Need a drawable for this to work
@@ -170,10 +175,9 @@ VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
 }
 
 SurfacePointerAccess Surface::getSurfacePointerAccess(accessType type) {
-    this->update();
-    if(!mIsInitialized)
-        throw Exception("Surface has not been initialized.");
-
+    if(!mIsInitialized) {
+        this->update();
+    }
     if(mSurfaceIsBeingWrittenTo)
         throw Exception("Requesting access to a surface that is already being written to.");
     if (type == ACCESS_READ_WRITE) {

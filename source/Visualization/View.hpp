@@ -49,7 +49,7 @@ class View : public QGLWidget, public ProcessObject {
         uint mPosX2D, mPosY2D;
         float mScale2D;
 
-        boost::thread *thread;
+        boost::thread* thread;
 
     protected:
         void initializeGL();

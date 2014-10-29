@@ -68,6 +68,7 @@ void SimpleWindow::runMainLoop() {
     mView->resize(mWidth,mHeight);
 
     mWidget->show();
+    std::cout << "running main loop" << std::endl;
 
     mEventLoop = new QEventLoop(mWidget);
     if(mTimeout > 0) {

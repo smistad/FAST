@@ -51,18 +51,19 @@ void SurfaceRenderer::draw() {
     glEnable(GL_LIGHTING);
 
     // Set material properties which will be assigned by glColor
-    GLfloat color[] = { 0.0f, 1.0f, 0.0f, 1.0f };
+    // Enable transperacy
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    GLfloat color[] = { 0.0f, 1.0f, 0.0f, 0.5f };
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, color);
     GLfloat specReflection[] = { 0.8f, 0.8f, 0.8f, 1.0f };
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specReflection);
     GLfloat shininess[] = { 16.0f };
     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
 
-    std::cout << "asdasd" << std::endl;
     releaseOpenGLContext();
     VertexBufferObjectAccess access = mSurfaceToRender->getVertexBufferObjectAccess(ACCESS_READ, mDevice);
     setOpenGLContext(mDevice->getGLContext());
-    std::cout << "asdasd4" << std::endl;
     GLuint* VBO_ID = access.get();
 
     // Normal Buffer

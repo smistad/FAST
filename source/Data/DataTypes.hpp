@@ -5,6 +5,7 @@
 #include "OpenCL.hpp"
 #include <cmath>
 #include <iostream>
+#include <eigen3/Eigen/Dense>
 
 // These have to be outside of fast namespace or it will not compile with Qt on Windows. Why?
 typedef unsigned char uchar;
@@ -12,6 +13,15 @@ typedef unsigned short ushort;
 typedef unsigned int uint;
 
 namespace fast {
+
+using Eigen::MatrixXf;
+using Eigen::Matrix3f;
+using Eigen::Matrix4f;
+using Eigen::VectorXf;
+using Eigen::Vector4f;
+using Eigen::Vector3f;
+using Eigen::Vector4i;
+using Eigen::Vector3i;
 
 
 

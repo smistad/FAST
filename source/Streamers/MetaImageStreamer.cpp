@@ -39,6 +39,8 @@ void MetaImageStreamer::execute() {
     if(mFilenameFormat == "")
         throw Exception("No filename format was given to the MetaImageStreamer");
     if(!mStreamIsStarted) {
+        // Check that first frame exists before starting streamer
+
         mStreamIsStarted = true;
         thread = new boost::thread(&stubStreamThread, this);
     }
@@ -105,6 +107,12 @@ void MetaImageStreamer::producerStream() {
         } catch(FileNotFoundException &e) {
             if(i > 0) {
                 std::cout << "Reached end of stream" << std::endl;
+                // If there where no files found at all, we need to release the execute method
+                {
+                    boost::lock_guard<boost::mutex> lock(mFirstFrameMutex);
+                    mFirstFrameIsInserted = true;
+                }
+                mFirstFrameCondition.notify_one();
                 if(mLoop) {
                     // Restart stream
                     i = mStartNumber;

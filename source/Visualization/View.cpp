@@ -39,6 +39,7 @@ View::View() {
     mScale2D = 1.0f;
     mLeftMouseButtonIsPressed = false;
     mMiddleMouseButtonIsPressed = false;
+    thread = NULL;
 
     mFramerate = 25;
     // Set up a timer that will call update on this object at a regular interval
@@ -320,7 +321,6 @@ void View::initializeGL() {
         std::cout << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << std::endl;
     }
     releaseOpenGLContext();
-    std::cout << "released" << std::endl;
 }
 /**
  * Dummy function to get into the class again
@@ -339,6 +339,7 @@ void View::updateAllRenderers() {
 void View::paintGL() {
     setOpenGLContext(OpenCLDevice::pointer(DeviceManager::getInstance().getDefaultVisualizationDevice())->getGLContext());
 
+    glFinish();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -419,17 +420,15 @@ void View::paintGL() {
 
     for(unsigned int i = 0; i < mRenderers.size(); i++) {
         glPushMatrix();
-        std::cout << "drawing" << std::endl;
         mRenderers[i]->draw();
         glPopMatrix();
     }
-    std::cout << "asdasd" << std::endl;
     releaseOpenGLContext();
-    std::cout << "asdasd2" << std::endl;
 
     if(!mUpdateIsRunning) {
         // Spawn a new thread
         mUpdateIsRunning = true;
+        delete thread;
         thread = new boost::thread(&stubStreamThread, this);
     }
 }
@@ -465,7 +464,6 @@ void View::keyPressEvent(QKeyEvent* event) {
 }
 
 void View::mouseMoveEvent(QMouseEvent* event) {
-
     if(mMiddleMouseButtonIsPressed) {
         if(mIsIn2DMode) {
             float deltaX = event->x() - previousX;

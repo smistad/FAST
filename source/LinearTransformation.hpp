@@ -14,7 +14,7 @@ class LinearTransformation : public boost::numeric::ublas::matrix<float> {
         LinearTransformation getInverse();
         LinearTransformation operator*(const LinearTransformation &other);
         boost::numeric::ublas::matrix<float> getMatrix() const;
-        Float3 operator*(Float3 vertex);
+        Float3 operator*(Float3 vertex) const;
 };
 
 Float3 operator*(const Float3& vertex, const LinearTransformation& transform);

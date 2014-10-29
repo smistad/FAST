@@ -8,8 +8,8 @@ namespace fast {
 
 class SurfaceVertex {
     public:
-        Float3 position;
-        Float3 normal;
+        Vector3f position;
+        Vector3f normal;
         std::vector<unsigned int> triangles;
 };
 
