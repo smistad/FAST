@@ -30,6 +30,7 @@ QGLContext* SimpleWindow::mGLContext = NULL;
 SimpleWindow::SimpleWindow() {
     initializeQtApp();
 
+	mEventLoop = NULL;
     mView = View::New();
     // TODO unglobalize mGLContext
     if(mGLContext != NULL){
@@ -63,12 +64,12 @@ SimpleWindow::SimpleWindow() {
 }
 
 void SimpleWindow::runMainLoop() {
-
     mWidget->resize(mWidth,mHeight);
     mView->resize(mWidth,mHeight);
 
     mWidget->show();
     std::cout << "running main loop" << std::endl;
+
 
     mEventLoop = new QEventLoop(mWidget);
     if(mTimeout > 0) {
@@ -85,7 +86,8 @@ void SimpleWindow::runMainLoop() {
 
 SimpleWindow::~SimpleWindow() {
     // Cleanup
-    delete mEventLoop;
+	if(mEventLoop != NULL)
+		delete mEventLoop;
 }
 
 void SimpleWindow::setWindowSize(unsigned int w, unsigned int h) {

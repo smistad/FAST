@@ -725,6 +725,153 @@ TEST_CASE("Create a 3D image and change image data", "[fast][image]") {
     }
 }
 
+TEST_CASE("Create 2D image on one OpenCL device and request it on another OpenCL device", "[fast][image]") {
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    std::vector<OpenCLDevice::pointer> devices = deviceManager.getAllDevices();
+
+    // If system only has 1 device, skip this test
+    if(devices.size() <= 1)
+        return;
+
+    unsigned int width = 32;
+    unsigned int height = 32;
+    DataType type = TYPE_FLOAT;
+
+    // Try to transfer data between all OpenCL devices
+    for(int from = 0; from < devices.size(); from++) {
+        for(int to = 0; to < devices.size(); to++) {
+            if(to == from)
+                continue;
+            // Create image on "from" device
+            INFO("From: " << devices[from]->getName());
+            INFO("To: " << devices[to]->getName());
+
+            // Create a data array with random data
+            void* data = allocateRandomData(width*height, type);
+
+            Image::pointer image = Image::New();
+            image->create2DImage(width, height, type, 1, devices[from], data);
+
+            // Request image on "to" device
+            OpenCLImageAccess2D access = image->getOpenCLImageAccess2D(ACCESS_READ, devices[to]);
+            cl::Image2D* clImage = access.get();
+            CHECK(compareImage2DWithDataArray(*clImage, devices[to], data, width, height, 1, type) == true);
+            deleteArray(data, type);
+        }
+    }
+}
+
+TEST_CASE("Create 3D image on one OpenCL device and request it on another OpenCL device", "[fast][image]") {
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    std::vector<OpenCLDevice::pointer> devices = deviceManager.getAllDevices();
+
+    // If system only has 1 device, skip this test
+    if(devices.size() <= 1)
+        return;
+
+    unsigned int width = 32;
+    unsigned int height = 32;
+    unsigned int depth = 32;
+    DataType type = TYPE_FLOAT;
+
+    // Try to transfer data between all OpenCL devices
+    for(int from = 0; from < devices.size(); from++) {
+        for(int to = 0; to < devices.size(); to++) {
+            if(to == from)
+                continue;
+            // Create image on "from" device
+            INFO("From: " << devices[from]->getName());
+            INFO("To: " << devices[to]->getName());
+
+            // Create a data array with random data
+            void* data = allocateRandomData(width*height*depth, type);
+
+            Image::pointer image = Image::New();
+            image->create3DImage(width, height, depth, type, 1, devices[from], data);
+
+            // Request image on "to" device
+            OpenCLImageAccess3D access = image->getOpenCLImageAccess3D(ACCESS_READ, devices[to]);
+            cl::Image3D* clImage = access.get();
+            CHECK(compareImage3DWithDataArray(*clImage, devices[to], data, width, height, depth, 1, type) == true);
+            deleteArray(data, type);
+        }
+    }
+}
+
+
+TEST_CASE("Create 2D image on one OpenCL device and request it on another OpenCL device as buffer", "[fast][image]") {
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    std::vector<OpenCLDevice::pointer> devices = deviceManager.getAllDevices();
+
+    // If system only has 1 device, skip this test
+    if(devices.size() <= 1)
+        return;
+
+    unsigned int width = 32;
+    unsigned int height = 32;
+    DataType type = TYPE_FLOAT;
+
+    // Try to transfer data between all OpenCL devices
+    for(int from = 0; from < devices.size(); from++) {
+        for(int to = 0; to < devices.size(); to++) {
+            if(to == from)
+                continue;
+            // Create image on "from" device
+            INFO("From: " << devices[from]->getName());
+            INFO("To: " << devices[to]->getName());
+
+            // Create a data array with random data
+            void* data = allocateRandomData(width*height, type);
+
+            Image::pointer image = Image::New();
+            image->create2DImage(width, height, type, 1, devices[from], data);
+
+            // Request image on "to" device
+            OpenCLBufferAccess access = image->getOpenCLBufferAccess(ACCESS_READ, devices[to]);
+            cl::Buffer* buffer = access.get();
+            CHECK(compareBufferWithDataArray(*buffer, devices[to], data, width*height*1, type) == true);
+            deleteArray(data, type);
+        }
+    }
+}
+
+TEST_CASE("Create 3D image on one OpenCL device and request it on another OpenCL device as buffer", "[fast][image]") {
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    std::vector<OpenCLDevice::pointer> devices = deviceManager.getAllDevices();
+
+    // If system only has 1 device, skip this test
+    if(devices.size() <= 1)
+        return;
+
+    unsigned int width = 32;
+    unsigned int height = 32;
+    unsigned int depth = 32;
+    DataType type = TYPE_FLOAT;
+
+    // Try to transfer data between all OpenCL devices
+    for(int from = 0; from < devices.size(); from++) {
+        for(int to = 0; to < devices.size(); to++) {
+            if(to == from)
+                continue;
+            // Create image on "from" device
+            INFO("From: " << devices[from]->getName());
+            INFO("To: " << devices[to]->getName());
+
+            // Create a data array with random data
+            void* data = allocateRandomData(width*height*depth, type);
+
+            Image::pointer image = Image::New();
+            image->create3DImage(width, height, depth, type, 1, devices[from], data);
+
+            // Request image on "to" device
+            OpenCLBufferAccess access = image->getOpenCLBufferAccess(ACCESS_READ, devices[to]);
+            cl::Buffer* clImage = access.get();
+            CHECK(compareBufferWithDataArray(*clImage, devices[to], data, width*height*depth*1, type) == true);
+            deleteArray(data, type);
+        }
+    }
+}
+
 TEST_CASE("Uninitialized image throws exception", "[fast][image]") {
     DeviceManager& deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();

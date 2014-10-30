@@ -15,20 +15,22 @@ class SeededRegionGrowing : public ProcessObject {
         void setDevice(ExecutionDevice::pointer device);
         void addSeedPoint(uint x, uint y);
         void addSeedPoint(uint x, uint y, uint z);
-        void addSeedPoint(Uint<3> position);
+        void addSeedPoint(Uint3 position);
         ImageData::pointer getOutput();
     private:
         SeededRegionGrowing();
         void execute();
         void waitToFinish();
         void recompileOpenCLCode(Image::pointer input);
+        template <class T>
+        void executeOnHost(T* input, Image::pointer output);
 
         ImageData::pointer mInput;
         ImageData::pointer mOutput;
         ExecutionDevice::pointer mDevice;
 
         float mMinimumIntensity, mMaximumIntensity;
-        std::vector<Uint<3> > mSeedPoints;
+        std::vector<Uint3> mSeedPoints;
 
         cl::Kernel mKernel;
         unsigned char mDimensionCLCodeCompiledFor;

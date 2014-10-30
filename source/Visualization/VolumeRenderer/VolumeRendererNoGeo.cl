@@ -9,9 +9,22 @@
  *
  */
 
-#define maxSteps 500
-#define tstep 0.005f
+#define maxSteps 400
+#define tstep 0.5f
 
+const sampler_t geometrySampler =		CLK_NORMALIZED_COORDS_FALSE |
+										CLK_ADDRESS_CLAMP_TO_EDGE   |
+										CLK_FILTER_NEAREST;
+
+const sampler_t transferFuncSampler =	CLK_NORMALIZED_COORDS_TRUE	|
+										CLK_ADDRESS_CLAMP_TO_EDGE	|
+										CLK_FILTER_LINEAR;
+
+const sampler_t volumeSampler =			CLK_NORMALIZED_COORDS_FALSE	|
+										CLK_ADDRESS_CLAMP_TO_EDGE	|
+										CLK_FILTER_LINEAR;
+
+/*
 // intersect ray with a box
 // http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm
 
@@ -20,6 +33,29 @@ int intersectBox(float4 r_o, float4 r_d, float4 boxmin, float4 boxmax, float *tn
     // compute intersection of ray with all six bbox planes
     float4 invR = (float4)(1.0f,1.0f,1.0f,1.0f) / r_d;
     float4 tbot = invR * (boxmin - r_o);
+    float4 ttop = invR * (boxmax - r_o);
+
+    // re-order intersections to find smallest and largest on each axis
+    float4 tmin = min(ttop, tbot);
+    float4 tmax = max(ttop, tbot);
+
+    // find the largest tmin and the smallest tmax
+    float largest_tmin = max(max(tmin.x, tmin.y), max(tmin.x, tmin.z));
+    float smallest_tmax = min(min(tmax.x, tmax.y), min(tmax.x, tmax.z));
+
+	*tnear = largest_tmin;
+	*tfar = smallest_tmax;
+
+	return smallest_tmax > largest_tmin;
+}
+*/
+
+//Assuming that box minimum always starts from zero
+int intersectBox(float4 r_o, float4 r_d, float4 boxmax, float *tnear, float *tfar)
+{
+    // compute intersection of ray with all six bbox planes
+    float4 invR = (float4)(1.0f,1.0f,1.0f,1.0f) / r_d;
+    float4 tbot = invR * -r_o;
     float4 ttop = invR * (boxmax - r_o);
 
     // re-order intersections to find smallest and largest on each axis
@@ -49,13 +85,14 @@ __kernel void
 d_render(__global uint *d_output, 
          uint imageW, uint imageH,
          float density, float brightness,
-         float transferOffset, float transferScale,
-         __constant float* invViewMatrix
-          ,__read_only image3d_t volume,
+         float zNear, float zFar,
+		 float top, float right,
+		 float projectionMatrix10, float projectionMatrix14,
+         __constant float* invViewMatrix,
+          __read_only image3d_t volume,
           __read_only image2d_t transferFunc,
 		  __read_only image2d_t opacityFunc,
-          sampler_t volumeSampler,
-          sampler_t transferFuncSampler
+		  __constant float* boxMaxs
 #if defined(VOL2) || defined(VOL3) || defined(VOL4) || defined(VOL5)
 		  ,__read_only image3d_t volume2
 		  ,__read_only image2d_t transferFunc2
@@ -82,48 +119,58 @@ d_render(__global uint *d_output,
     uint x = get_global_id(0);
     uint y = get_global_id(1);
 
-    float u = (x / (float) imageW)*2.0f-1.0f;
-    float v = (y / (float) imageH)*2.0f-1.0f;
+	if ((x >= imageW) || (y >= imageH)) return;
+	uint outputIndex =(y * imageW) + x;
 
-    //float tstep = 0.01f;
-    float4 boxMin = (float4)(-1.0f, -1.0f, -1.0f,1.0f);
-    float4 boxMax = (float4)(1.0f, 1.0f, 1.0f,1.0f);
+    float u = (((x / (float) imageW)*2.0f)-1.0f)*right;
+    float v = (((y / (float) imageH)*2.0f)-1.0f)*top;
+  //float winZ = ((read_imagef(geoDepthTexture, geometrySampler, (int2)(x,y)).x)*-2.0f)+1.0f;
+	
+  //float Z = projectionMatrix14 / (winZ+projectionMatrix10);
 
+
+	//float4 boxMin = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
+	float4 boxMax0 = (float4)(boxMaxs[0], boxMaxs[1], boxMaxs[2], 0.0f);
+	
     // calculate eye ray in world space
-    float4 eyeRay_o;
-    float4 eyeRay_d;
+	float4 eyeRay_o[numberOfVolumes];
+	float4 eyeRay_d[numberOfVolumes];
+	const float4 temp_eyeRay_d = normalize((float4)(u, v, -zNear, 0.0f));
 
-    eyeRay_o = (float4)(invViewMatrix[3], invViewMatrix[7], invViewMatrix[11], 1.0f);   
+	for (int i = 0; i < numberOfVolumes; i++)
+	{
+		eyeRay_o[i] = (float4)(invViewMatrix[(i * 16) + 12], invViewMatrix[(i * 16) + 13], invViewMatrix[(i * 16) + 14], 0.0f);
 
-    float4 temp = normalize(((float4)(u, v, -2.0f,0.0f)));
-    eyeRay_d.x = dot(temp, ((float4)(invViewMatrix[0],invViewMatrix[1],invViewMatrix[2],invViewMatrix[3])));
-    eyeRay_d.y = dot(temp, ((float4)(invViewMatrix[4],invViewMatrix[5],invViewMatrix[6],invViewMatrix[7])));
-    eyeRay_d.z = dot(temp, ((float4)(invViewMatrix[8],invViewMatrix[9],invViewMatrix[10],invViewMatrix[11])));
-    eyeRay_d.w = 0.0f;
+		eyeRay_d[i].x = dot(temp_eyeRay_d, ((float4)(invViewMatrix[(i * 16) + 0], invViewMatrix[(i * 16) + 4], invViewMatrix[(i * 16) + 8], 0.0f)));
+		eyeRay_d[i].y = dot(temp_eyeRay_d, ((float4)(invViewMatrix[(i * 16) + 1], invViewMatrix[(i * 16) + 5], invViewMatrix[(i * 16) + 9], 0.0f)));
+		eyeRay_d[i].z = dot(temp_eyeRay_d, ((float4)(invViewMatrix[(i * 16) + 2], invViewMatrix[(i * 16) + 6], invViewMatrix[(i * 16) + 10], 0.0f)));
+		eyeRay_d[i].w = 1.0f;
+	}
 
     // find intersection with box
 	float tnear, tfar;
-	int hit = intersectBox(eyeRay_o, eyeRay_d, boxMin, boxMax, &tnear, &tfar);
-    if (!hit) {
-        if ((x < imageW) && (y < imageH)) {
-            // write output color
-            uint i =(y * imageW) + x;
-            d_output[i] = 0;
-        }
+	int hit = intersectBox(eyeRay_o[0], eyeRay_d[0], boxMax0, &tnear, &tfar);
+
+    if (!hit) 
+	{	
+		d_output[outputIndex] = rgbaFloatToInt((float4)(0.0f, 0.0f, 0.0f, 1.0f));
         return;
     }
-	if (tnear < 0.0f) tnear = 0.0f;     // clamp to near plane
 
+  //if (tfar > -Z) tfar = -Z;
+	if (tnear < zNear) tnear = zNear;	// clamp to near plane
+	if (tfar > zFar) tfar= zFar;	// clamp to far  plane
+	
     // march along ray from back to front, accumulating color
-    temp = (float4)(0.0f,0.0f,0.0f,0.0f);
+    float4 volumeColor = (float4)(0.0f,0.0f,0.0f,0.0f);
+	
     float t = tfar;
+	
+    for(uint i=0; i<maxSteps*200; i++) {
 
-    for(uint i=0; i<maxSteps*5; i++) {		
-        float4 pos = eyeRay_o + eyeRay_d*t;
-        pos = pos*0.5f+0.5f;    // map position to [0, 1] coordinates
-        // read from 3D texture        
-  
-        //float sample = (float)(read_imageui(volume, volumeSampler, pos).x)/255;
+		float4 pos = eyeRay_o[0] + eyeRay_d[0] * t;
+        
+		// read from 3D texture
 #ifdef TYPE_FLOAT1
 		float sample = read_imagef(volume, volumeSampler, pos).x;
 #elif TYPE_UINT1
@@ -132,20 +179,19 @@ d_render(__global uint *d_output,
 		float sample = (float)(read_imagei(volume, volumeSampler, pos).x)/255;
 #endif
         // lookup in transfer function texture
-        float2 transfer_pos = (float2)((sample-transferOffset)*transferScale, 0.5f);
+        float2 transfer_pos = (float2)(sample, 0.5f);
         float4 col =  read_imagef(transferFunc, transferFuncSampler, transfer_pos);
 		float4 alpha= read_imagef(opacityFunc, transferFuncSampler, transfer_pos);
 		col.w=alpha.w;
         // accumulate result
         float a = col.w*density;
-        temp = mix(temp, col, (float4)(a, a, a, a));
+        volumeColor = mix(volumeColor, col, (float4)(a, a, a, a));
 		
 #if defined(VOL2) || defined(VOL3) || defined(VOL4) || defined(VOL5)
-		pos= (float4)(eyeRay_o.x+0.0f, eyeRay_o.y+0.0f, eyeRay_o.z, eyeRay_o.w+0.0f) + eyeRay_d*t; //Mehdi
-		if( (pos.x>=-1.0f) && (pos.x<=1.0f) && (pos.y>=-1.0f) && (pos.y<=1.0f) )
+		pos = eyeRay_o[1] + eyeRay_d[1] * t;
+		if ((pos.x <= boxMaxs[3]) && (pos.x >= 0.0f) && (pos.y <= boxMaxs[4]) && (pos.y >= 0.0f) && (pos.z <= boxMaxs[5]) && (pos.z >= 0.0f))
 		{
-			pos= pos*0.5f+0.5f; //Mehdi
-
+			
 #ifdef TYPE_FLOAT2
 			float sample = read_imagef(volume2, volumeSampler, pos).x;
 #elif TYPE_UINT2
@@ -154,20 +200,19 @@ d_render(__global uint *d_output,
 			float sample = (float)(read_imagei(volume2, volumeSampler, pos).x)/255;
 #endif
 
-			transfer_pos = (float2)((sample-transferOffset)*transferScale, 0.5f); //Mehdi
+			transfer_pos = (float2)(sample, 0.5f); //Mehdi
 			col = read_imagef(transferFunc2, transferFuncSampler, transfer_pos); //Mehdi
 			float4 alpha= read_imagef(opacityFunc2, transferFuncSampler, transfer_pos);
 			col.w=alpha.w;
 			a = col.w*density; //Mehdi
-			temp = mix(temp, col, (float4)(a, a, a, a)); //Mehdi
+			volumeColor = mix(volumeColor, col, (float4)(a, a, a, a)); //Mehdi
 		}
 #endif //VOL2
 		
 #if defined(VOL3) || defined(VOL4) || defined(VOL5)
-		pos= (float4)(eyeRay_o.x+0.0f, eyeRay_o.y+0.0f, eyeRay_o.z, eyeRay_o.w+0.0f) + eyeRay_d*t; //Mehdi
-		if( (pos.x>=-1.0f) && (pos.x<=1.0f) && (pos.y>=-1.0f) && (pos.y<=1.0f) )
+		pos = eyeRay_o[2] + eyeRay_d[2] * t;
+		if ((pos.x <= boxMaxs[6]) && (pos.x >= 0.0f) && (pos.y <= boxMaxs[7]) && (pos.y >= 0.0f) && (pos.z <= boxMaxs[8]) && (pos.z >= 0.0f))
 		{
-			pos= pos*0.5f+0.5f; //Mehdi
 
 #ifdef TYPE_FLOAT3
 			float sample = read_imagef(volume3, volumeSampler, pos).x;
@@ -177,20 +222,19 @@ d_render(__global uint *d_output,
 			float sample = (float)(read_imagei(volume3, volumeSampler, pos).x)/255;
 #endif
 
-			transfer_pos = (float2)((sample-transferOffset)*transferScale, 0.5f); //Mehdi
+			transfer_pos = (float2)(sample, 0.5f); //Mehdi
 			col = read_imagef(transferFunc3, transferFuncSampler, transfer_pos); //Mehdi
 			float4 alpha= read_imagef(opacityFunc3, transferFuncSampler, transfer_pos);
 			col.w=alpha.w;
 			a = col.w*density; //Mehdi
-			temp = mix(temp, col, (float4)(a, a, a, a)); //Mehdi
+			volumeColor = mix(volumeColor, col, (float4)(a, a, a, a)); //Mehdi
 		}
 #endif //VOL3
 
 #if defined(VOL4) || defined(VOL5)
-		pos= (float4)(eyeRay_o.x+0.0f, eyeRay_o.y+0.0f, eyeRay_o.z, eyeRay_o.w+0.0f) + eyeRay_d*t; //Mehdi
-		if( (pos.x>=-1.0f) && (pos.x<=1.0f) && (pos.y>=-1.0f) && (pos.y<=1.0f) )
+		pos = eyeRay_o[3] + eyeRay_d[3] * t;
+		if ((pos.x <= boxMaxs[9]) && (pos.x >= 0.0f) && (pos.y <= boxMaxs[10]) && (pos.y >= 0.0f) && (pos.z <= boxMaxs[11]) && (pos.z >= 0.0f))
 		{
-			pos= pos*0.5f+0.5f; //Mehdi
 
 #ifdef TYPE_FLOAT4
 			float sample = read_imagef(volume4, volumeSampler, pos).x;
@@ -200,20 +244,19 @@ d_render(__global uint *d_output,
 			float sample = (float)(read_imagei(volume4, volumeSampler, pos).x)/255;
 #endif
 
-			transfer_pos = (float2)((sample-transferOffset)*transferScale, 0.5f); //Mehdi
+			transfer_pos = (float2)(sample, 0.5f); //Mehdi
 			col = read_imagef(transferFunc4, transferFuncSampler, transfer_pos); //Mehdi
 			float4 alpha= read_imagef(opacityFunc4, transferFuncSampler, transfer_pos);
 			col.w=alpha.w;
 			a = col.w*density; //Mehdi
-			temp = mix(temp, col, (float4)(a, a, a, a)); //Mehdi
+			volumeColor = mix(volumeColor, col, (float4)(a, a, a, a)); //Mehdi
 		}
 #endif //VOL4
 
 #if defined(VOL5)
-		pos= (float4)(eyeRay_o.x+0.0f, eyeRay_o.y+0.0f, eyeRay_o.z, eyeRay_o.w+0.0f) + eyeRay_d*t; //Mehdi
-		if( (pos.x>=-1.0f) && (pos.x<=1.0f) && (pos.y>=-1.0f) && (pos.y<=1.0f) )
+		pos = eyeRay_o[4] + eyeRay_d[4] * t;
+		if ((pos.x <= boxMaxs[12]) && (pos.x >= 0.0f) && (pos.y <= boxMaxs[13]) && (pos.y >= 0.0f) && (pos.z <= boxMaxs[14]) && (pos.z >= 0.0f))
 		{
-			pos= pos*0.5f+0.5f; //Mehdi
 
 #ifdef TYPE_FLOAT5
 			float sample = read_imagef(volume5, volumeSampler, pos).x;
@@ -223,24 +266,25 @@ d_render(__global uint *d_output,
 			float sample = (float)(read_imagei(volume5, volumeSampler, pos).x)/255;
 #endif
 
-			transfer_pos = (float2)((sample-transferOffset)*transferScale, 0.5f); //Mehdi
+			transfer_pos = (float2)(sample, 0.5f); //Mehdi
 			col = read_imagef(transferFunc5, transferFuncSampler, transfer_pos); //Mehdi
 			float4 alpha= read_imagef(opacityFunc5, transferFuncSampler, transfer_pos);
 			col.w=alpha.w;
 			a = col.w*density; //Mehdi
-			temp = mix(temp, col, (float4)(a, a, a, a)); //Mehdi
+			volumeColor = mix(temp, col, (float4)(a, a, a, a)); //Mehdi
 		}		
 #endif //VOL5
 		
         t -= tstep;
         if (t < tnear) break;
     }
-    temp *= brightness;
-
-    if ((x < imageW) && (y < imageH)) {
-        // write output color
-        uint i =(y * imageW) + x;
-        d_output[i] = rgbaFloatToInt(temp);
-    }
+    volumeColor *= brightness;
+  //float4 geoColor=read_imagef(geoColorTexture, geometrySampler, (int2)(x,y));
+  //volumeColor = mix (geoColor, volumeColor ,volumeColor.w);
+	volumeColor.w=1.0f;
+	
+	// write output color
+	d_output[outputIndex] = rgbaFloatToInt(volumeColor);
+    
 }
 

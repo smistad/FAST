@@ -38,7 +38,6 @@ class MetaImageStreamer : public Streamer {
         uint mStartNumber;
 
         boost::thread *thread;
-
         boost::mutex mFirstFrameMutex;
         boost::condition_variable mFirstFrameCondition;
 

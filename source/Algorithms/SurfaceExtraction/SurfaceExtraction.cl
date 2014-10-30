@@ -468,7 +468,7 @@ __kernel void traverseHP(
 
         const float3 vertex = mix((float3)(point0.x, point0.y, point0.z), (float3)(point1.x, point1.y, point1.z), diff);
 
-        const float3 normal = mix(forwardDifference0, forwardDifference1, diff);
+        const float3 normal = normalize(mix(forwardDifference0, forwardDifference1, diff));
 
         vstore3(vertex, target*6 + vertexNr*2, VBOBuffer);
         vstore3(normal, target*6 + vertexNr*2 + 1, VBOBuffer);

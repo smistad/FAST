@@ -24,17 +24,34 @@ class View : public QGLWidget, public ProcessObject {
         void set2DMode();
         void set3DMode();
         void updateAllRenderers();
+
+		 Float3 cameraPosition;
+		 Float3 rotationPoint;
+		 Float2 rotation;
     private:
+
+		std::vector<Renderer::pointer> mNonVolumeRenderers;
+		std::vector<Renderer::pointer> mVolumeRenderers;
+		bool NonVolumesTurn;
+		GLuint renderedDepthText;
+		GLuint fbo, fbo2, render_buf;
+		GLuint renderedTexture0, renderedTexture1;
+		GLuint programGLSL;
+		void initShader();
+		void getDepthBufferFromGeo();
+		void renderVolumes();
+
+
         View();
-        std::vector<Renderer::pointer> mRenderers;
+
         void execute();
         QTimer* timer;
         unsigned int mFramerate;
-        Float3 cameraPosition;
+       
         Float3 originalCameraPosition;
-        Float3 rotationPoint;
-        Float2 rotation;
-        float zNear, zFar;
+        
+        
+		float zNear, zFar;
         float fieldOfViewX, fieldOfViewY;
         float aspect;
         bool mIsIn2DMode;
@@ -50,7 +67,6 @@ class View : public QGLWidget, public ProcessObject {
         float mScale2D;
 
         boost::thread* thread;
-
     protected:
         void initializeGL();
         void paintGL();

@@ -23,8 +23,8 @@ int main(int argc, char ** argv) {
 
     // TODO this causes problem for some reason??
     // Get a GPU device and set it as the default device
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(true));
+    //DeviceManager& deviceManager = DeviceManager::getInstance();
+    //deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(true));
 
     /*
     MetaImageImporter::pointer importer = MetaImageImporter::New();
@@ -60,9 +60,11 @@ int main(int argc, char ** argv) {
     renderer->setSlicePlane(PLANE_Y);
     renderer->setInput(importer->getOutput());
     SimpleWindow::pointer window = SimpleWindow::New();
-    window->set2DMode();
+
     window->addRenderer(renderer);
     window->runMainLoop();
+	*/
+	/*
 
     ImageImporter::pointer importer2 = ImageImporter::New();
     importer2->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-2D.jpg");
@@ -136,18 +138,34 @@ window->setTimeout(10*1000);
 	// Example of using VolumeRenderer (3D) and SimpleWindow
 
 
-	//MetaImageImporter::pointer mhdImporter = MetaImageImporter::New();
-    //mhdImporter->setFilename("skull.mhd");
+//	MetaImageImporter::pointer mhdImporter = MetaImageImporter::New();
+//    mhdImporter->setFilename("skull.mhd");
 	
+
 	MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
 
-    
+    SliceRenderer::pointer sRenderer = SliceRenderer::New();
+    sRenderer->setSlicePlane(PLANE_Y);
+    sRenderer->setInput(mhdStreamer->getOutput());
+	sRenderer->setSliceToRender(120);
+
+
+
+
+    //SimpleWindow::pointer window = SimpleWindow::New();
+	//window->addRenderer(sRenderer);
+    //window->runMainLoop();
+	
+
+	
+
+
 	MetaImageImporter::pointer mhdImporter = MetaImageImporter::New();
-    mhdImporter->setFilename("skull.mhd");
+    mhdImporter->setFilename(std::string(FAST_ROOT_DIR)+"TestData/skull256.mhd");
 
 	MetaImageImporter::pointer mhdImporter2 = MetaImageImporter::New();
-    mhdImporter2->setFilename("stent256.mhd");
+	mhdImporter2->setFilename(std::string(FAST_ROOT_DIR) + "TestData/v8.mhd");
 	
 	
 	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
@@ -155,13 +173,14 @@ window->setTimeout(10*1000);
 	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
 	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
 	ColorTransferFunction::pointer ctf2 = ColorTransferFunction::New();
-	ctf2->addRGBPoint(000.0, 0.0, 1.0, 0.0);
+	ctf2->addRGBPoint(000.0, 1.0, 0.0, 0.0);
 	ctf2->addRGBPoint(127.0, 0.0, 1.0, 0.0);
-	ctf2->addRGBPoint(255.0, 1.0, 0.0, 0.0);
+	ctf2->addRGBPoint(255.0, 0.0, 0.0, 1.0);
 
 
 	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
 	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(200.0, 1.0);
 	otf1->addAlphaPoint(255.0, 1.0);
 	
 	OpacityTransferFunction::pointer otf2 = OpacityTransferFunction::New();
@@ -170,26 +189,39 @@ window->setTimeout(10*1000);
 
 
 
-	VolumeRenderer::pointer VolumeRenderer = VolumeRenderer::New();
+	VolumeRenderer::pointer vRenderer = VolumeRenderer::New();
     //VolumeRenderer->addInput(mhdImporter->getOutput());
-	//VolumeRenderer->addInput(mhdStreamer->getOutput());
-	VolumeRenderer->addInput(mhdImporter2->getOutput());
+	vRenderer->addInput(mhdStreamer->getOutput());
+	vRenderer->addInput(mhdStreamer->getOutput());
+	vRenderer->addInput(mhdStreamer->getOutput());
+	//vRenderer->addInput(mhdStreamer->getOutput());
+	//vRenderer->addInput(mhdImporter2->getOutput());
+	//vRenderer->addInput(mhdImporter->getOutput());
+	//vRenderer->turnOffTransformations();
 	
-	
-	VolumeRenderer->setColorTransferFunction(0, ctf1);
-	//VolumeRenderer->setColorTransferFunction(1, ctf2);
+	vRenderer->setColorTransferFunction(0, ctf1);
+	vRenderer->setColorTransferFunction(1, ctf2);
+	vRenderer->setColorTransferFunction(2, ctf1);
 
-	VolumeRenderer->setOpacityTransferFunction(0, otf1);
-	//VolumeRenderer->setOpacityTransferFunction(1, otf2);
-
-    VolumeRenderer->enableRuntimeMeasurements();
+	vRenderer->setOpacityTransferFunction(0, otf1);
+	vRenderer->setOpacityTransferFunction(1, otf2);
+	vRenderer->setOpacityTransferFunction(2, otf1);
+	float ut[16]={	1.0, 0.0, 0.0, -100.0,
+					0.0, 1.0, 0.0, 0.0,
+					0.0, 0.0, 1.0, 0.0,
+					0.0, 0.0, 0.0, 1.0};
+	vRenderer->setUserTransform(1, ut);
+	ut[3] = 100.0;
+	vRenderer->setUserTransform(2, ut);
+    vRenderer->enableRuntimeMeasurements();
 	SimpleWindow::pointer window = SimpleWindow::New();
-    window->setMaximumFramerate(100);
-    window->addRenderer(VolumeRenderer);
+    window->setMaximumFramerate(200);
+    window->addRenderer(vRenderer);
+	window->addRenderer(sRenderer);
     window->runMainLoop();
-	VolumeRenderer->getRuntime()->print();
+	vRenderer->getRuntime()->print();
 	
-	
+	getchar();
 
 
 }

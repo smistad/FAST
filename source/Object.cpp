@@ -47,8 +47,19 @@ void Object::setOpenGLContext(unsigned long* OpenGLContext) {
 void Object::releaseOpenGLContext() {
     {
         boost::lock_guard<boost::mutex> lock(Object::GLmutex); // lock mutex
+#if defined(__APPLE__) || defined(__MACOSX)
+        // Mac TODO verify that this works
+        bool success = CGLSetCurrentContext(NULL) == 0;
+#elif _WIN32
+        // Windows
+        bool success = wglMakeCurrent(wglGetCurrentDC(), NULL);
+#else
+        // Linux
         static Display * mXDisplay = XOpenDisplay(NULL);
-        glXMakeCurrent(mXDisplay, None, NULL);
+        bool success = glXMakeCurrent(mXDisplay, None, NULL);
+#endif
+        if(!success)
+            throw Exception("Failed to make the OpenGL Context current");
         Object::GLcontextReady = true;
     }
     // Notify other waiting threads that the GL context is released
