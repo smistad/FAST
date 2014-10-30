@@ -59,7 +59,7 @@ Float3 operator*(const Float3& vertex, const LinearTransformation& transform) {
     boostVertex(1) = vertex[1];
     boostVertex(2) = vertex[2];
     boostVertex(3) = 1;
-    noalias(boostVertex) = prod(transform, boostVertex);
+    boostVertex = prod(transform, boostVertex);
     Float3 result;
     result[0] = boostVertex(0);
     result[1] = boostVertex(1);
@@ -72,7 +72,7 @@ Float3 LinearTransformation::operator*(Float3 vertex) const {
     boostVertex(1) = vertex[1];
     boostVertex(2) = vertex[2];
     boostVertex(3) = 1;
-    noalias(boostVertex) = prod(*this, boostVertex);
+    boostVertex = prod(*this, boostVertex);
     Float3 result;
     result[0] = boostVertex(0);
     result[1] = boostVertex(1);
