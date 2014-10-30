@@ -20,6 +20,7 @@ void SurfaceRenderer::setInput(SurfaceData::pointer image) {
 
 SurfaceRenderer::SurfaceRenderer() : Renderer() {
     mDevice = DeviceManager::getInstance().getDefaultVisualizationDevice();
+    mOpacity = 1;
 }
 
 void SurfaceRenderer::execute() {
@@ -51,10 +52,12 @@ void SurfaceRenderer::draw() {
     glEnable(GL_LIGHTING);
 
     // Set material properties which will be assigned by glColor
-    // Enable transperacy
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    GLfloat color[] = { 0.0f, 1.0f, 0.0f, 0.5f };
+    if(mOpacity < 1) {
+        // Enable transparency
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+    GLfloat color[] = { 0.0f, 1.0f, 0.0f, mOpacity };
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, color);
     GLfloat specReflection[] = { 0.8f, 0.8f, 0.8f, 1.0f };
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specReflection);
@@ -91,6 +94,15 @@ BoundingBox SurfaceRenderer::getBoundingBox() {
     BoundingBox inputBoundingBox = mSurfaceToRender->getBoundingBox();
     BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
     return transformedBoundingBox;
+}
+
+void SurfaceRenderer::setOpacity(float opacity) {
+    mOpacity = opacity;
+    if(mOpacity > 1) {
+        mOpacity = 1;
+    } else if(mOpacity < 0) {
+        mOpacity = 0;
+    }
 }
 
 } // namespace fast

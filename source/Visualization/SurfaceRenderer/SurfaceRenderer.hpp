@@ -12,6 +12,7 @@ class SurfaceRenderer : public Renderer {
         void setInput(SurfaceData::pointer image);
         void setThreshold(float threshold){};
         BoundingBox getBoundingBox();
+        void setOpacity(float opacity);
     private:
         SurfaceRenderer();
         void execute();
@@ -20,6 +21,7 @@ class SurfaceRenderer : public Renderer {
         OpenCLDevice::pointer mDevice;
         SurfaceData::pointer mInput;
         Surface::pointer mSurfaceToRender;
+        float mOpacity;
 };
 
 } // namespace fast
