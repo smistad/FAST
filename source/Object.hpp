@@ -12,6 +12,7 @@ class Object {
         typedef SharedPointer<Object> pointer;
         virtual ~Object() {};
         static unsigned long currentDrawable;
+		static void* hdc;
     protected:
         void setOpenGLContext(unsigned long* OpenGLContext);
         void releaseOpenGLContext();

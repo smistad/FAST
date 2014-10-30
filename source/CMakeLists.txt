@@ -102,14 +102,13 @@ link_directories(${Boost_LIBRARY_DIRS})
 set(LIBRARIES ${LIBRARIES} ${Boost_LIBRARIES})
 
 ## GLEW
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../)
 find_package(GLEW REQUIRED)
 include_directories(${GLEW_INCLUDE_DIR})
 include_directories(${GLEW_INCLUDE_PATH})
 set(LIBRARIES ${LIBRARIES} ${GLEW_LIBRARY})
 
 ## Eigen
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR})
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
 

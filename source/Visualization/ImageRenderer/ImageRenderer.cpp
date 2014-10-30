@@ -115,6 +115,7 @@ void ImageRenderer::execute() {
     queue.finish();
 
     mTextureIsCreated = true;
+	releaseOpenGLContext();
 }
 
 void ImageRenderer::setInput(ImageData::pointer image) {

@@ -104,12 +104,12 @@ void View::initializeGL() {
         // Mac
 #elif _WIN32
         // Windows
+	Object::hdc = wglGetCurrentDC();
 #else
     // Linux
     Object::currentDrawable = glXGetCurrentDrawable();
 #endif
 	setOpenGLContext(OpenCLDevice::pointer(DeviceManager::getInstance().getDefaultVisualizationDevice())->getGLContext());
-
 	glewInit();
 	glEnable(GL_TEXTURE_2D);
 
@@ -181,7 +181,6 @@ void View::initializeGL() {
 			mNonVolumeRenderers[i]->update();
 
         setOpenGLContext(OpenCLDevice::pointer(DeviceManager::getInstance().getDefaultVisualizationDevice())->getGLContext());
-
 
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 

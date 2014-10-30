@@ -119,7 +119,7 @@ VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
             // Need a drawable for this to work
             QGLWidget* widget = new QGLWidget;
             widget->show();
-
+			Object::currentDrawable = glXGetCurrentDrawable();
             widget->hide(); // TODO should probably delete widget as well
             std::cout << "created a drawable" << std::endl;
         }

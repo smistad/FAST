@@ -30,7 +30,8 @@ void Object::setOpenGLContext(unsigned long* OpenGLContext) {
 	bool success = true;
 #else
 #if _WIN32
-    bool success = wglMakeCurrent(wglGetCurrentDC(), (HGLRC)OpenGLContext);
+	HDC hdc = (HDC)Object::hdc;
+    bool success = wglMakeCurrent(hdc, (HGLRC)OpenGLContext);
 #else
     static Display * mXDisplay = XOpenDisplay(NULL);
     //std::cout << "drawable: " << currentDrawable << std::endl;
@@ -52,14 +53,15 @@ void Object::releaseOpenGLContext() {
         bool success = CGLSetCurrentContext(NULL) == 0;
 #elif _WIN32
         // Windows
-        bool success = wglMakeCurrent(wglGetCurrentDC(), NULL);
+		HDC hdc = (HDC)Object::hdc;
+        bool success = wglMakeCurrent(hdc, NULL);
 #else
         // Linux
         static Display * mXDisplay = XOpenDisplay(NULL);
         bool success = glXMakeCurrent(mXDisplay, None, NULL);
 #endif
         if(!success)
-            throw Exception("Failed to make the OpenGL Context current");
+            throw Exception("Failed to release OpenGL Context");
         Object::GLcontextReady = true;
     }
     // Notify other waiting threads that the GL context is released
@@ -67,6 +69,7 @@ void Object::releaseOpenGLContext() {
 }
 
 unsigned long Object::currentDrawable;
+void* Object::hdc;
 boost::condition_variable Object::condition;
 bool Object::GLcontextReady = true;
 boost::mutex Object::GLmutex;
