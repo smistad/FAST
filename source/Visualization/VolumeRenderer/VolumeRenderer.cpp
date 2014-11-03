@@ -562,6 +562,8 @@ void VolumeRenderer::execute() {
 	mOutputIsCreated=true;
 	if (!inputs.empty())
 		inputs.clear();
+
+	releaseOpenGLContext();
 }
 
 void VolumeRenderer::draw() {
