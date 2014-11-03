@@ -6,6 +6,7 @@
 #include <cmath>
 #include <iostream>
 #if defined(__APPLE__) || defined(__MACOSX)
+#include <eigen3/Eigen/Dense>
 #elif _WIN32
 #include <Eigen/Dense>
 #else
