@@ -34,6 +34,7 @@ SimpleWindow::SimpleWindow() {
     mView = View::New();
     // TODO unglobalize mGLContext
     if(mGLContext != NULL){
+    	// This is used on Mac machines, create a shared context from mGLContext using Qt and give this to the view
         std::cout << "Creating custom QGLContext" << std::endl;
         QGLContext* context2 = new QGLContext(QGLFormat::defaultFormat(), mView.getPtr().get());
         context2->create(mGLContext);

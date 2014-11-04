@@ -60,13 +60,16 @@ void SurfaceExtraction::execute() {
     if(input->getDimensions() != 3)
         throw Exception("The SurfaceExtraction object only supports 3D images");
 
+#if defined(__APPLE__) || defined(__MACOSX)
+    const bool writingTo3DTextures = false;
+#else
     const bool writingTo3DTextures = mDevice->getDevice().getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") != std::string::npos;
+#endif
     cl::Context clContext = mDevice->getContext();
     const unsigned int SIZE = getRequiredHistogramPyramidSize(input);
 
     if(mHPSize != SIZE) {
         // Have to recreate the HP
-        std::cout << "creating HP" << std::endl;
         images.clear();
         buffers.clear();
         std::string kernelFilename;
@@ -75,24 +78,32 @@ void SurfaceExtraction::execute() {
             kernelFilename = "SurfaceExtraction.cl";
             // Create images for the HistogramPyramid
             int bufferSize = SIZE;
+            cl_channel_order order1, order2;
+            if(mDevice->isImageFormatSupported(CL_R, CL_UNSIGNED_INT8, CL_MEM_OBJECT_IMAGE3D) && mDevice->isImageFormatSupported(CL_RG, CL_UNSIGNED_INT8, CL_MEM_OBJECT_IMAGE3D)) {
+            	order1 = CL_R;
+            	order2 = CL_RG;
+            } else {
+            	order1 = CL_RGBA;
+            	order2 = CL_RGBA;
+            }
 
             // Make the two first buffers use INT8
-            images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_RG, CL_UNSIGNED_INT8), input->getWidth(), input->getHeight(), input->getDepth()));
+            images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(order2, CL_UNSIGNED_INT8), input->getWidth(), input->getHeight(), input->getDepth()));
             bufferSize /= 2;
-            images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_UNSIGNED_INT8), bufferSize, bufferSize, bufferSize));
+            images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(order1, CL_UNSIGNED_INT8), bufferSize, bufferSize, bufferSize));
             bufferSize /= 2;
             // And the third, fourth and fifth INT16
-            images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_UNSIGNED_INT16), bufferSize, bufferSize, bufferSize));
+            images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(order1, CL_UNSIGNED_INT16), bufferSize, bufferSize, bufferSize));
             bufferSize /= 2;
-            images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_UNSIGNED_INT16), bufferSize, bufferSize, bufferSize));
+            images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(order1, CL_UNSIGNED_INT16), bufferSize, bufferSize, bufferSize));
             bufferSize /= 2;
-            images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_UNSIGNED_INT16), bufferSize, bufferSize, bufferSize));
+            images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(order1, CL_UNSIGNED_INT16), bufferSize, bufferSize, bufferSize));
             bufferSize /= 2;
             // The rest will use INT32
             for(int i = 5; i < (log2((float)SIZE)); i ++) {
                 if(bufferSize == 1)
                     bufferSize = 2; // Image cant be 1x1x1
-                images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_UNSIGNED_INT32), bufferSize, bufferSize, bufferSize));
+                images.push_back(cl::Image3D(clContext, CL_MEM_READ_WRITE, cl::ImageFormat(order1, CL_UNSIGNED_INT32), bufferSize, bufferSize, bufferSize));
                 bufferSize /= 2;
             }
 
@@ -133,6 +144,9 @@ void SurfaceExtraction::execute() {
         } else {
             buildOptions += " -DTYPE_UINT";
         }
+#if defined(__APPLE__) || defined(__MACOSX)
+        buildOptions += " -DMAC_HACK";
+#endif
         int programNr = mDevice->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Algorithms/SurfaceExtraction/" + kernelFilename, buildOptions);
         program = mDevice->getProgram(programNr);
     }
@@ -291,16 +305,28 @@ void SurfaceExtraction::execute() {
 
     // Create VBO using the sum
     // Read top of histoPyramid an use this size to allocate VBO below
-    int * sum = new int[8];
+    unsigned int totalSum = 0;
     if(writingTo3DTextures) {
+    	int* sum;
+        if(mDevice->isImageFormatSupported(CL_R, CL_UNSIGNED_INT32, CL_MEM_OBJECT_IMAGE3D)) {
+            sum = new int[8];
+        } else {
+        	// A 4 channel texture/image has been used
+        	sum = new int[8*4];
+        }
         cl::size_t<3> origin = oul::createOrigoRegion();
         cl::size_t<3> region = oul::createRegion(2,2,2);
         queue.enqueueReadImage(images[images.size()-1], CL_TRUE, origin, region, 0, 0, sum);
+        if(mDevice->isImageFormatSupported(CL_R, CL_UNSIGNED_INT8, CL_MEM_OBJECT_IMAGE3D)) {
+            totalSum = sum[0] + sum[1] + sum[2] + sum[3] + sum[4] + sum[5] + sum[6] + sum[7] ;
+        } else {
+            totalSum = sum[0] + sum[4] + sum[8] + sum[12] + sum[16] + sum[20] + sum[24] + sum[28] ;
+        }
     } else {
+        int* sum = new int[8];
         queue.enqueueReadBuffer(buffers[buffers.size()-1], CL_TRUE, 0, sizeof(int)*8, sum);
+        totalSum = sum[0] + sum[1] + sum[2] + sum[3] + sum[4] + sum[5] + sum[6] + sum[7] ;
     }
-
-    unsigned int totalSum = sum[0] + sum[1] + sum[2] + sum[3] + sum[4] + sum[5] + sum[6] + sum[7] ;
 
     if(totalSum == 0) {
         std::cout << "No triangles were extracted. Check isovalue." << std::endl;

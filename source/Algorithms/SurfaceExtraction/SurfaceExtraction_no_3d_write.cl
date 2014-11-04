@@ -678,9 +678,17 @@ __kernel void traverseHP(
             isolevel-value0,
             READ_RAW_DATA(rawData, sampler, (int4)(point1.x, point1.y, point1.z, 0)).x - value0);
 
-        const float3 vertex = mix((float3)(point0.x, point0.y, point0.z), (float3)(point1.x, point1.y, point1.z), diff);
 
+        // OpenCL on Mac is missing the mix function for some reason
+#ifdef MAC_HACK
+        const float3 point0f = (float3)(point0.x, point0.y, point0.z);
+        const float3 point1f = (float3)(point1.x, point1.y, point1.z);
+        const float3 vertex =  point0f + (point1f-point0f)*diff;
+        const float3 normal = normalize(forwardDifference0 + diff*(forwardDifference1-forwardDifference0));
+#else
+        const float3 vertex = mix((float3)(point0.x, point0.y, point0.z), (float3)(point1.x, point1.y, point1.z), diff);
         const float3 normal = normalize(mix(forwardDifference0, forwardDifference1, diff));
+#endif
 
 
         vstore3(vertex, target*6 + vertexNr*2, VBOBuffer);

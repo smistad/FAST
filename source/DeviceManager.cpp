@@ -44,16 +44,13 @@ std::vector<OpenCLDevice::pointer> getDevices(oul::DeviceCriteria criteria, bool
     }
 
     context->makeCurrent();
-CGLContextObj appleContext = CGLGetCurrentContext();
+    CGLContextObj appleContext = CGLGetCurrentContext();
     std::cout << "Initial GL context: " << CGLGetCurrentContext() << std::endl;
     std::cout << "Initial GL share group: " << CGLGetShareGroup(CGLGetCurrentContext()) << std::endl;
 
-SimpleWindow::mGLContext = context;
+    SimpleWindow::mGLContext = context;
 
-
-        glContext = (unsigned long *)appleContext;
-//CGLSetCurrentContext(appleGLContext);
-std::cout << "the device manager created the GL context " << glContext << std::endl;
+    glContext = (unsigned long *)appleContext;
 #else
 #if _WIN32
         // TODO implement windows OpenGL stuff

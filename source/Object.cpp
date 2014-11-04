@@ -25,7 +25,12 @@ void Object::setOpenGLContext(unsigned long* OpenGLContext) {
     Object::GLcontextReady = false;
 #if defined(__APPLE__) || defined(__MACOSX)
     // Returns 0 on success
-    //bool success = CGLSetCurrentContext((CGLContextObj)OpenGLContext) == 0;
+    //bool success = CGLSetCurrentContext((CGLContextObj)(OpenGLContext)) == 0;
+    //Object::mGLContext->makeCurrent();
+    //std::cout << "Context: " << (CGLContextObj)OpenGLContext << std::endl;
+    //std::cout << "Share group 1: " << CGLGetShareGroup((CGLContextObj)(OpenGLContext)) << std::endl;
+    //std::cout << "Share group 2: " << CGLGetShareGroup((CGLContextObj)(currentDrawable)) << std::endl;
+    //std::cout << "Share group 3: " << CGLGetShareGroup(CGLGetCurrentContext()) << std::endl;
 	// Do nothing for apple
 	bool success = true;
 #else
@@ -50,7 +55,9 @@ void Object::releaseOpenGLContext() {
         boost::lock_guard<boost::mutex> lock(Object::GLmutex); // lock mutex
 #if defined(__APPLE__) || defined(__MACOSX)
         // Mac TODO verify that this works
-        bool success = CGLSetCurrentContext(NULL) == 0;
+        //bool success = CGLSetCurrentContext(NULL) == 0;
+        // Do nothing for apple
+        bool success = true;
 #elif _WIN32
         // Windows
 		HDC hdc = (HDC)Object::hdc;

@@ -101,6 +101,7 @@ void View::updateAllRenderers() {
 void View::initializeGL() {
     // TODO make this cross platform
 #if defined(__APPLE__) || defined(__MACOSX)
+    //Object::currentDrawable = (unsigned long)CGLGetCurrentContext();
         // Mac
 #elif _WIN32
         // Windows
@@ -710,8 +711,12 @@ void View::paintGL() {
         if(!mUpdateIsRunning) {
             // Spawn a new thread
             mUpdateIsRunning = true;
+#if defined(__APPLE__) || defined(__MACOSX)
+            stubStreamThread(this);
+#else
             delete thread;
             thread = new boost::thread(&stubStreamThread, this);
+#endif
         }
 	}
 	else // only Volume renderers exict
@@ -756,8 +761,12 @@ void View::paintGL() {
             if(!mUpdateIsRunning) {
                 // Spawn a new thread
                 mUpdateIsRunning = true;
-                delete thread;
-                thread = new boost::thread(&stubStreamThread, this);
+#if defined(__APPLE__) || defined(__MACOSX)
+            stubStreamThread(this);
+#else
+            delete thread;
+            thread = new boost::thread(&stubStreamThread, this);
+#endif
             }
 		}
 	}
