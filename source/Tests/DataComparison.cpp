@@ -60,7 +60,7 @@ bool compareDataArrays(void* data1, void* data2, unsigned int nrOfVoxels, DataTy
         FAST_TYPE* data2c = (FAST_TYPE*)data2;
         for(unsigned int i = 0; i < nrOfVoxels; i++) {
             if(data1c[i] != data2c[i]) {
-                /*
+            	/*
                 std::cout << i << std::endl;
                 std::cout << data1c[i] << std::endl;
                 std::cout << data2c[i] << std::endl;
@@ -89,14 +89,20 @@ bool compareBufferWithDataArray(cl::Buffer buffer, OpenCLDevice::pointer device,
     return compareDataArrays(bufferData, data, nrOfVoxels, type);
 }
 
-// Remove padding from a 3 channel data array created by padData
 template <class T>
-void * removePadding(T * data, unsigned int size) {
-     T * newData = new T[size*3];
+void * removePadding(T * data, unsigned int size, unsigned int nrOfComponents) {
+     T * newData = new T[size*nrOfComponents];
     for(unsigned int i = 0; i < size; i++) {
-        newData[i*3] = data[i*4];
-        newData[i*3+1] = data[i*4+1];
-        newData[i*3+2] = data[i*4+2];
+    	if(nrOfComponents == 1) {
+            newData[i] = data[i*4];
+    	} else if(nrOfComponents == 2) {
+            newData[i*2] = data[i*4];
+            newData[i*2+1] = data[i*4+1];
+    	} else {
+            newData[i*3] = data[i*4];
+            newData[i*3+1] = data[i*4+1];
+            newData[i*3+2] = data[i*4+2];
+    	}
     }
     return (void *)newData;
 }
@@ -112,7 +118,8 @@ bool compareImage2DWithDataArray(
     // First, transfer data from image
     void* bufferData;
     unsigned int nrOfVoxels = width*height;
-    if(nrOfComponents == 3) {
+    _cl_image_format format = image.getImageInfo<CL_IMAGE_FORMAT>();
+    if(format.image_channel_order == CL_RGBA) {
         nrOfVoxels *= 4;
     } else {
         nrOfVoxels *= nrOfComponents;
@@ -124,11 +131,11 @@ bool compareImage2DWithDataArray(
     }
     device->getCommandQueue().enqueueReadImage(image, CL_TRUE, oul::createOrigoRegion(), oul::createRegion(width, height, 1), 0, 0, bufferData);
 
-    if(nrOfComponents == 3) {
+    if(format.image_channel_order == CL_RGBA && nrOfComponents != 4) {
         // Since OpenCL images doesn't support 3 channels, 4 channel image is used and we must remove the padding
         switch(type) {
             fastSwitchTypeMacro(
-                void * newbufferData = removePadding((FAST_TYPE*)bufferData, width*height);
+                void * newbufferData = removePadding((FAST_TYPE*)bufferData, width*height, nrOfComponents);
                 deleteArray(bufferData, type);
                 bufferData = newbufferData;
             );
@@ -150,7 +157,8 @@ bool compareImage3DWithDataArray(
     // First, transfer data from image
     void* bufferData;
     unsigned int nrOfVoxels = width*height*depth;
-    if(nrOfComponents == 3) {
+    _cl_image_format format = image.getImageInfo<CL_IMAGE_FORMAT>();
+    if(format.image_channel_order == CL_RGBA) {
         nrOfVoxels *= 4;
     } else {
         nrOfVoxels *= nrOfComponents;
@@ -162,11 +170,11 @@ bool compareImage3DWithDataArray(
     }
     device->getCommandQueue().enqueueReadImage(image, CL_TRUE, oul::createOrigoRegion(), oul::createRegion(width, height, depth), 0, 0, bufferData);
 
-    if(nrOfComponents == 3) {
+    if(format.image_channel_order == CL_RGBA && nrOfComponents != 4) {
         // Since OpenCL images doesn't support 3 channels, 4 channel image is used and we must remove the padding
         switch(type) {
             fastSwitchTypeMacro(
-                void * newbufferData = removePadding((FAST_TYPE*)bufferData, width*height*depth);
+                void * newbufferData = removePadding((FAST_TYPE*)bufferData, width*height*depth, nrOfComponents);
                 deleteArray(bufferData, type);
                 bufferData = newbufferData;
             );

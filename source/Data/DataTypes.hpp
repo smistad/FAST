@@ -3,6 +3,7 @@
 
 #include "Exception.hpp"
 #include "OpenCL.hpp"
+#include "ExecutionDevice.hpp"
 #include <cmath>
 #include <iostream>
 #if defined(__APPLE__) || defined(__MACOSX)
@@ -43,7 +44,7 @@ enum DataType { TYPE_FLOAT, TYPE_UINT8, TYPE_INT8, TYPE_UINT16, TYPE_INT16 };
         fastCaseTypeMacro(TYPE_INT16, short, call) \
         fastCaseTypeMacro(TYPE_UINT16, ushort, call) \
 
-cl::ImageFormat getOpenCLImageFormat(DataType type, unsigned int components);
+cl::ImageFormat getOpenCLImageFormat(OpenCLDevice::pointer, cl_mem_object_type imageType, DataType type, unsigned int components);
 
 size_t getSizeOfDataType(DataType type, unsigned int nrOfComponents);
 

@@ -54,114 +54,114 @@ void * allocateDataArray(unsigned int voxels, DataType type, unsigned int nrOfCo
     return data;
 }
 
-// Pad data with 3 channels to 4 channels with 0
+// Pad data with 1, 2 or 3 channels to 4 channels with 0
 template <class T>
-void * padData(T * data, unsigned int size) {
-    T * newData = new T[size*4];
+void * padData(T * data, unsigned int size, unsigned int nrOfComponents) {
+    T * newData = new T[size*4]();
     for(unsigned int i = 0; i < size; i++) {
-        newData[i*4] = data[i*3];
-        newData[i*4+1] = data[i*3+1];
-        newData[i*4+2] = data[i*3+2];
-        newData[i*4+3] = 0;
+    	if(nrOfComponents == 1) {
+            newData[i*4] = data[i];
+    	} else if(nrOfComponents == 2) {
+            newData[i*4] = data[i*2];
+            newData[i*4+1] = data[i*2+1];
+    	} else {
+            newData[i*4] = data[i*3];
+            newData[i*4+1] = data[i*3+1];
+            newData[i*4+2] = data[i*3+2];
+    	}
     }
     return (void *)newData;
 }
 
-void * adaptDataToImage(void * data, unsigned int size, DataType type, unsigned int nrOfComponents) {
+void * adaptDataToImage(void * data, cl_channel_order order, unsigned int size, DataType type, unsigned int nrOfComponents) {
     // Because no OpenCL images support 3 channels,
     // the data has to be padded to 4 channels if the nr of components is 3
-    if(nrOfComponents == 3) {
+    // Also, not all CL platforms support CL_R and CL_RG images
+    if(order == CL_RGBA && nrOfComponents != 4) {
         switch(type) {
-            fastSwitchTypeMacro(return padData<FAST_TYPE>((FAST_TYPE*)data, size))
+            fastSwitchTypeMacro(return padData<FAST_TYPE>((FAST_TYPE*)data, size, nrOfComponents))
         }
     }
 
     return data;
 }
 
-// Remove padding from a 3 channel data array created by padData
+// Remove padding from a data array created by padData
 template <class T>
-void * removePadding(T * data, unsigned int size) {
-     T * newData = new T[size*3];
+void * removePadding(T * data, unsigned int size, unsigned int nrOfComponents) {
+     T * newData = new T[size*nrOfComponents];
     for(unsigned int i = 0; i < size; i++) {
-        newData[i*3] = data[i*4];
-        newData[i*3+1] = data[i*4+1];
-        newData[i*3+2] = data[i*4+2];
+    	if(nrOfComponents == 1) {
+            newData[i] = data[i*4];
+    	} else if(nrOfComponents == 2) {
+            newData[i*2] = data[i*4];
+            newData[i*2+1] = data[i*4+1];
+    	} else {
+            newData[i*3] = data[i*4];
+            newData[i*3+1] = data[i*4+1];
+            newData[i*3+2] = data[i*4+2];
+    	}
     }
     return (void *)newData;
 }
 
-void * adaptImageDataToHostData(void * data, unsigned int size, DataType type, unsigned int nrOfComponents) {
+void * adaptImageDataToHostData(void * data, cl_channel_order order, unsigned int size, DataType type, unsigned int nrOfComponents) {
     // Because no OpenCL images support 3 channels,
     // the data has to be padded to 4 channels if the nr of components is 3.
+    // Also, not all CL platforms support CL_R and CL_RG images
     // This function removes that padding
-    if(nrOfComponents == 3) {
+    if(order == CL_RGBA && nrOfComponents != 4) {
         switch(type) {
-            fastSwitchTypeMacro(return removePadding<FAST_TYPE>((FAST_TYPE*)data, size))
+            fastSwitchTypeMacro(return removePadding<FAST_TYPE>((FAST_TYPE*)data, size, nrOfComponents))
         }
     }
+
     return data;
 }
 
 
 
 void Image::transferCLImageFromHost(OpenCLDevice::pointer device) {
+
     // Special treatment for images with 3 components because an OpenCL image can only have 1, 2 or 4 channels
-    if(mComponents == 3) {
-        void * tempData = adaptDataToImage(mHostData, mWidth*mHeight*mDepth, mType, mComponents);
-        if(mDimensions == 2) {
-            device->getCommandQueue().enqueueWriteImage(*(cl::Image2D*)mCLImages[device],
-            CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, 1), 0,
-                    0, tempData);
-        } else {
-            device->getCommandQueue().enqueueWriteImage(*(cl::Image3D*)mCLImages[device],
-            CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
-                    0, tempData);
-        }
+	// And if the device does not support 1 or 2 channels
+    cl::ImageFormat format = getOpenCLImageFormat(device, mDimensions == 2 ? CL_MEM_OBJECT_IMAGE2D : CL_MEM_OBJECT_IMAGE3D, mType, mComponents);
+    if(format.image_channel_order == CL_RGBA && mComponents != 4) {
+        void * tempData = adaptDataToImage(mHostData, CL_RGBA, mWidth*mHeight*mDepth, mType, mComponents);
+        device->getCommandQueue().enqueueWriteImage(*(cl::Image*)mCLImages[device],
+        CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
+                0, tempData);
         deleteArray(tempData, mType);
     } else {
-        if(mDimensions == 2) {
-            device->getCommandQueue().enqueueWriteImage(*(cl::Image2D*)mCLImages[device],
-            CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, 1), 0,
-                    0, mHostData);
-        } else {
-            device->getCommandQueue().enqueueWriteImage(*(cl::Image3D*)mCLImages[device],
-            CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
-                    0, mHostData);
-        }
+        device->getCommandQueue().enqueueWriteImage(*(cl::Image*)mCLImages[device],
+        CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
+                0, mHostData);
     }
+
+
 }
 
 void Image::transferCLImageToHost(OpenCLDevice::pointer device) {
     // Special treatment for images with 3 components because an OpenCL image can only have 1, 2 or 4 channels
-    if(mComponents == 3) {
-        void * tempData = allocateDataArray(mWidth*mHeight*mDepth,mType,mComponents+1);
-        if(mDimensions == 2) {
-            device->getCommandQueue().enqueueReadImage(*(cl::Image2D*)mCLImages[device],
-            CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, 1), 0,
-                    0, tempData);
-        } else {
-            device->getCommandQueue().enqueueReadImage(*(cl::Image3D*)mCLImages[device],
-            CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
-                    0, tempData);
-        }
-        mHostData = adaptImageDataToHostData(tempData,mWidth*mHeight*mDepth,mType,mComponents);
+	// And if the device does not support 1 or 2 channels
+    cl::ImageFormat format = getOpenCLImageFormat(device, mDimensions == 2 ? CL_MEM_OBJECT_IMAGE2D : CL_MEM_OBJECT_IMAGE3D, mType, mComponents);
+    if(format.image_channel_order == CL_RGBA && mComponents != 4) {
+        void * tempData = allocateDataArray(mWidth*mHeight*mDepth,mType,4);
+        device->getCommandQueue().enqueueReadImage(*(cl::Image*)mCLImages[device],
+        CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
+                0, tempData);
+        mHostData = adaptImageDataToHostData(tempData,CL_RGBA, mWidth*mHeight*mDepth,mType,mComponents);
         deleteArray(tempData, mType);
     } else {
         if(!mHostHasData) {
             // Must allocate memory for host data
             mHostData = allocateDataArray(mWidth*mHeight*mDepth,mType,mComponents);
         }
-        if(mDimensions == 2) {
-            device->getCommandQueue().enqueueReadImage(*(cl::Image2D*)mCLImages[device],
-            CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, 1), 0,
-                    0, mHostData);
-        } else {
-            device->getCommandQueue().enqueueReadImage(*(cl::Image3D*)mCLImages[device],
-            CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
-                    0, mHostData);
-        }
+        device->getCommandQueue().enqueueReadImage(*(cl::Image*)mCLImages[device],
+        CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
+                0, mHostData);
     }
+
 }
 
 void Image::updateOpenCLImageData(OpenCLDevice::pointer device) {
@@ -176,10 +176,10 @@ void Image::updateOpenCLImageData(OpenCLDevice::pointer device) {
         cl::Image * newImage;
         if(mDimensions == 2) {
             newImage = new cl::Image2D(device->getContext(),
-            CL_MEM_READ_WRITE, getOpenCLImageFormat(mType,mComponents), mWidth, mHeight);
+            CL_MEM_READ_WRITE, getOpenCLImageFormat(device, CL_MEM_OBJECT_IMAGE2D, mType,mComponents), mWidth, mHeight);
         } else {
             newImage = new cl::Image3D(device->getContext(),
-            CL_MEM_READ_WRITE, getOpenCLImageFormat(mType,mComponents), mWidth, mHeight, mDepth);
+            CL_MEM_READ_WRITE, getOpenCLImageFormat(device, CL_MEM_OBJECT_IMAGE3D, mType,mComponents), mWidth, mHeight, mDepth);
         }
 
         mCLImages[device] = newImage;
@@ -519,7 +519,7 @@ void Image::create3DImage(
         cl::Image3D* clImage = new cl::Image3D(
             clDevice->getContext(),
             CL_MEM_READ_WRITE,
-            getOpenCLImageFormat(type, nrOfComponents),
+            getOpenCLImageFormat(clDevice, CL_MEM_OBJECT_IMAGE3D, type, nrOfComponents),
             width, height, depth
             );
         mCLImages[clDevice] = clImage;
@@ -557,27 +557,17 @@ void Image::create3DImage(
     } else {
         OpenCLDevice::pointer clDevice = device;
         cl::Image3D* clImage;
-        // Special treatment for images with 3 components because an OpenCL image can only have 1, 2 or 4 channels
-        if(mComponents == 3) {
-            void * tempData = adaptDataToImage((void *)data, width*height*depth, type, nrOfComponents);
-            clImage = new cl::Image3D(
-                clDevice->getContext(),
-                CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-                getOpenCLImageFormat(type, nrOfComponents),
-                width, height, depth,
-                0, 0,
-                tempData
-            );
+        void * tempData = adaptDataToImage((void *)data, getOpenCLImageFormat(clDevice, CL_MEM_OBJECT_IMAGE3D, type, nrOfComponents).image_channel_order, width*height*depth, type, nrOfComponents);
+        clImage = new cl::Image3D(
+            clDevice->getContext(),
+            CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+            getOpenCLImageFormat(clDevice, CL_MEM_OBJECT_IMAGE3D, type, nrOfComponents),
+            width, height, depth,
+            0, 0,
+            tempData
+        );
+        if(data != tempData) {
             deleteArray(tempData, type);
-        } else {
-            clImage = new cl::Image3D(
-                clDevice->getContext(),
-                CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-                getOpenCLImageFormat(type, nrOfComponents),
-                width, height, depth,
-                0, 0,
-                (void *)data
-            );
         }
         mCLImages[clDevice] = clImage;
         mCLImagesIsUpToDate[clDevice] = true;
@@ -612,7 +602,7 @@ void Image::create2DImage(
         cl::Image2D* clImage = new cl::Image2D(
             clDevice->getContext(),
             CL_MEM_READ_WRITE,
-            getOpenCLImageFormat(type, nrOfComponents),
+            getOpenCLImageFormat(clDevice, CL_MEM_OBJECT_IMAGE2D, type, nrOfComponents),
             width, height
             );
         mCLImages[clDevice] = clImage;
@@ -652,27 +642,17 @@ void Image::create2DImage(
     } else {
         OpenCLDevice::pointer clDevice = device;
         cl::Image2D* clImage;
-        // Special treatment for images with 3 components because an OpenCL image can only have 1, 2 or 4 channels
-        if(mComponents == 3) {
-            void * tempData = adaptDataToImage((void *)data, width*height, type, nrOfComponents);
-            clImage = new cl::Image2D(
-                clDevice->getContext(),
-                CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-                getOpenCLImageFormat(type, nrOfComponents),
-                width, height,
-                0,
-                tempData
-            );
+        void * tempData = adaptDataToImage((void *)data, getOpenCLImageFormat(clDevice, CL_MEM_OBJECT_IMAGE2D, type, nrOfComponents).image_channel_order, width*height, type, nrOfComponents);
+        clImage = new cl::Image2D(
+            clDevice->getContext(),
+            CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+            getOpenCLImageFormat(clDevice, CL_MEM_OBJECT_IMAGE2D, type, nrOfComponents),
+            width, height,
+            0,
+            tempData
+        );
+        if(data != tempData) {
             deleteArray(tempData, type);
-        } else {
-            clImage = new cl::Image2D(
-                clDevice->getContext(),
-                CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-                getOpenCLImageFormat(type, nrOfComponents),
-                width, height,
-                0,
-                (void*)data
-            );
         }
         mCLImages[clDevice] = clImage;
         mCLImagesIsUpToDate[clDevice] = true;
@@ -848,11 +828,11 @@ unsigned int getPowerOfTwoSize(unsigned int size) {
 }
 
 template <class T>
-inline void getMaxAndMinFromOpenCLImageResult(void* voidData, unsigned int size, float* min, float* max) {
+inline void getMaxAndMinFromOpenCLImageResult(void* voidData, unsigned int size, unsigned int nrOfComponents, float* min, float* max) {
     T* data = (T*)voidData;
     *min = data[0];
     *max = data[1];
-    for(unsigned int i = 2; i < size*2; i += 2) {
+    for(unsigned int i = nrOfComponents; i < size*nrOfComponents; i += nrOfComponents) {
         //std::cout << "min: " << data[i] << std::endl;
         //std::cout << "max: " << data[i+1] << std::endl;
         if(data[i] < *min) {
@@ -873,7 +853,7 @@ inline void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2
     size /= 2;
     std::vector<cl::Image2D> levels;
     while(size >= 4) {
-        cl::Image2D level = cl::Image2D(device->getContext(), CL_MEM_READ_WRITE, getOpenCLImageFormat(type, 2), size, size);
+        cl::Image2D level = cl::Image2D(device->getContext(), CL_MEM_READ_WRITE, getOpenCLImageFormat(device, CL_MEM_OBJECT_IMAGE2D, type, 2), size, size);
         levels.push_back(level);
         size /= 2;
     }
@@ -933,23 +913,24 @@ inline void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2
 
     // Get result from the last level
     unsigned int nrOfElements = 4*4;
-    void* result = allocateDataArray(nrOfElements,type,2);
+    unsigned int nrOfComponents = getOpenCLImageFormat(device, CL_MEM_OBJECT_IMAGE2D, type, 2).image_channel_order == CL_RGBA ? 4 : 2;
+    void* result = allocateDataArray(nrOfElements,type,nrOfComponents);
     queue.enqueueReadImage(levels[levels.size()-1],CL_TRUE,oul::createOrigoRegion(),oul::createRegion(4,4,1),0,0,result);
     switch(type) {
     case TYPE_FLOAT:
-        getMaxAndMinFromOpenCLImageResult<float>(result, nrOfElements, min, max);
+        getMaxAndMinFromOpenCLImageResult<float>(result, nrOfElements, nrOfComponents, min, max);
         break;
     case TYPE_INT8:
-        getMaxAndMinFromOpenCLImageResult<char>(result, nrOfElements, min, max);
+        getMaxAndMinFromOpenCLImageResult<char>(result, nrOfElements, nrOfComponents, min, max);
         break;
     case TYPE_UINT8:
-        getMaxAndMinFromOpenCLImageResult<uchar>(result, nrOfElements, min, max);
+        getMaxAndMinFromOpenCLImageResult<uchar>(result, nrOfElements, nrOfComponents, min, max);
         break;
     case TYPE_INT16:
-        getMaxAndMinFromOpenCLImageResult<short>(result, nrOfElements, min, max);
+        getMaxAndMinFromOpenCLImageResult<short>(result, nrOfElements, nrOfComponents, min, max);
         break;
     case TYPE_UINT16:
-        getMaxAndMinFromOpenCLImageResult<ushort>(result, nrOfElements, min, max);
+        getMaxAndMinFromOpenCLImageResult<ushort>(result, nrOfElements, nrOfComponents, min, max);
         break;
     }
 
@@ -969,7 +950,7 @@ inline void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3
     size /= 2;
     std::vector<cl::Image3D> levels;
     while(size >= 4) {
-        cl::Image3D level = cl::Image3D(device->getContext(), CL_MEM_READ_WRITE, getOpenCLImageFormat(type, 2), size, size, size);
+        cl::Image3D level = cl::Image3D(device->getContext(), CL_MEM_READ_WRITE, getOpenCLImageFormat(device, CL_MEM_OBJECT_IMAGE3D, type, 2), size, size, size);
         levels.push_back(level);
         size /= 2;
     }
@@ -1029,23 +1010,24 @@ inline void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3
 
     // Get result from the last level
     unsigned int nrOfElements = 4*4*4;
-    void* result = allocateDataArray(nrOfElements,type,2);
+    unsigned int nrOfComponents = getOpenCLImageFormat(device, CL_MEM_OBJECT_IMAGE3D, type, 2).image_channel_order == CL_RGBA ? 4 : 2;
+    void* result = allocateDataArray(nrOfElements,type,nrOfComponents);
     queue.enqueueReadImage(levels[levels.size()-1],CL_TRUE,oul::createOrigoRegion(),oul::createRegion(4,4,4),0,0,result);
     switch(type) {
     case TYPE_FLOAT:
-        getMaxAndMinFromOpenCLImageResult<float>(result, nrOfElements, min, max);
+        getMaxAndMinFromOpenCLImageResult<float>(result, nrOfElements, nrOfComponents, min, max);
         break;
     case TYPE_INT8:
-        getMaxAndMinFromOpenCLImageResult<char>(result, nrOfElements, min, max);
+        getMaxAndMinFromOpenCLImageResult<char>(result, nrOfElements, nrOfComponents, min, max);
         break;
     case TYPE_UINT8:
-        getMaxAndMinFromOpenCLImageResult<uchar>(result, nrOfElements, min, max);
+        getMaxAndMinFromOpenCLImageResult<uchar>(result, nrOfElements, nrOfComponents, min, max);
         break;
     case TYPE_INT16:
-        getMaxAndMinFromOpenCLImageResult<short>(result, nrOfElements, min, max);
+        getMaxAndMinFromOpenCLImageResult<short>(result, nrOfElements, nrOfComponents, min, max);
         break;
     case TYPE_UINT16:
-        getMaxAndMinFromOpenCLImageResult<ushort>(result, nrOfElements, min, max);
+        getMaxAndMinFromOpenCLImageResult<ushort>(result, nrOfElements, nrOfComponents, min, max);
         break;
     }
 
@@ -1109,19 +1091,19 @@ inline void getMaxAndMinFromOpenCLBuffer(OpenCLDevice::pointer device, cl::Buffe
     queue.enqueueReadBuffer(clResult,CL_TRUE,0,getSizeOfDataType(type,1)*workGroups*2,result);
     switch(type) {
     case TYPE_FLOAT:
-        getMaxAndMinFromOpenCLImageResult<float>(result, nrOfElements, min, max);
+        getMaxAndMinFromOpenCLImageResult<float>(result, nrOfElements, 2, min, max);
         break;
     case TYPE_INT8:
-        getMaxAndMinFromOpenCLImageResult<char>(result, nrOfElements, min, max);
+        getMaxAndMinFromOpenCLImageResult<char>(result, nrOfElements, 2, min, max);
         break;
     case TYPE_UINT8:
-        getMaxAndMinFromOpenCLImageResult<uchar>(result, nrOfElements, min, max);
+        getMaxAndMinFromOpenCLImageResult<uchar>(result, nrOfElements, 2, min, max);
         break;
     case TYPE_INT16:
-        getMaxAndMinFromOpenCLImageResult<short>(result, nrOfElements, min, max);
+        getMaxAndMinFromOpenCLImageResult<short>(result, nrOfElements, 2, min, max);
         break;
     case TYPE_UINT16:
-        getMaxAndMinFromOpenCLImageResult<ushort>(result, nrOfElements, min, max);
+        getMaxAndMinFromOpenCLImageResult<ushort>(result, nrOfElements, 2, min, max);
         break;
     }
 }

@@ -1,7 +1,7 @@
 #include "DataTypes.hpp"
 using namespace fast;
 
-cl::ImageFormat fast::getOpenCLImageFormat(DataType type, unsigned int components) {
+cl::ImageFormat fast::getOpenCLImageFormat(OpenCLDevice::pointer device, cl_mem_object_type imageType, DataType type, unsigned int components) {
     cl_channel_order channelOrder;
     cl_channel_type channelType;
 
@@ -25,10 +25,20 @@ cl::ImageFormat fast::getOpenCLImageFormat(DataType type, unsigned int component
 
     switch(components) {
     case 1:
-        channelOrder = CL_R;
+    	// Use 1 channel image if it is supported
+    	if(device->isImageFormatSupported(CL_R, channelType, imageType)) {
+            channelOrder = CL_R;
+    	} else {
+            channelOrder = CL_RGBA;
+    	}
         break;
     case 2:
-        channelOrder = CL_RG;
+    	// Use 2 channel image if it is supported
+    	if(device->isImageFormatSupported(CL_RG, channelType, imageType)) {
+            channelOrder = CL_RG;
+    	} else {
+            channelOrder = CL_RGBA;
+    	}
         break;
     case 3:
         // There is no 3 channel so a 4 channel has to be used
