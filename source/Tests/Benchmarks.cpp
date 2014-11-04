@@ -53,6 +53,7 @@ TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark]") {
     MetaImageStreamer::pointer streamer = MetaImageStreamer::New();
     streamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US-3Dt/US-3Dt_#.mhd");
     streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+    streamer->enableRuntimeMeasurements();
 
     GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
     filter->setInput(streamer->getOutput());
@@ -63,13 +64,15 @@ TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark]") {
     SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
     extractor->setInput(filter->getOutput());
     extractor->setThreshold(200);
+    extractor->enableRuntimeMeasurements();
 
     SurfaceRenderer::pointer renderer = SurfaceRenderer::New();
     renderer->setInput(extractor->getOutput());
+    renderer->enableRuntimeMeasurements();
 
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
-    window->setTimeout(10*1000); // timeout after 10 seconds
+    window->setTimeout(15*1000); // timeout after 10 seconds
     window->runMainLoop();
 
     streamer->getRuntime()->print();
@@ -100,9 +103,11 @@ TEST_CASE("Pipeline B", "[fast][benchmark]") {
     segmentation->addSeedPoint(134,293,111);
     */
     segmentation->setIntensityRange(150, 5000);
+    segmentation->enableRuntimeMeasurements();
 
     SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
     extraction->setInput(segmentation->getOutput());
+    extraction->enableRuntimeMeasurements();
 
     /*
     VTKSurfaceFileExporter::pointer exporter = VTKSurfaceFileExporter::New();
@@ -113,11 +118,13 @@ TEST_CASE("Pipeline B", "[fast][benchmark]") {
 
     SurfaceRenderer::pointer surfaceRenderer = SurfaceRenderer::New();
     surfaceRenderer->setInput(extraction->getOutput());
+    surfaceRenderer->enableRuntimeMeasurements();
 
     SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
     sliceRenderer->setInput(importer->getOutput());
     sliceRenderer->setIntensityWindow(1000);
     sliceRenderer->setIntensityLevel(0);
+    sliceRenderer->enableRuntimeMeasurements();
 
 	SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(surfaceRenderer);
@@ -146,14 +153,17 @@ TEST_CASE("Pipeline C", "[fast][benchmark]") {
     BinaryThresholding::pointer thresholding = BinaryThresholding::New();
     thresholding->setInput(importer->getOutput());
     thresholding->setLowerThreshold(0.5);
+    thresholding->enableRuntimeMeasurements();
 
     Skeletonization::pointer skeletonization = Skeletonization::New();
     skeletonization->setInput(thresholding->getOutput());
+    skeletonization->enableRuntimeMeasurements();
 
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->setInput(skeletonization->getOutput());
     renderer->setIntensityWindow(1);
     renderer->setIntensityLevel(0.5);
+    renderer->enableRuntimeMeasurements();
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->setTimeout(500);
