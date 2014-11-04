@@ -2,3 +2,8 @@ build/
 TestData/
 *.cl.bin
 *cl.cache
+.cproject
+
+.project
+
+*.xml
