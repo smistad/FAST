@@ -168,6 +168,10 @@ TEST_CASE("Pipeline C", "[fast][benchmark]") {
     window->addRenderer(renderer);
     window->setTimeout(500);
     window->runMainLoop();
+    importer->getRuntime()->print();
+    thresholding->getRuntime()->print();
+    skeletonization->getRuntime()->print();
+    renderer->getRuntime()->print();
     float total = importer->getRuntime()->getSum() +
             thresholding->getRuntime()->getSum() +
             skeletonization->getRuntime()->getSum() +
