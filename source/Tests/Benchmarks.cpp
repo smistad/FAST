@@ -166,7 +166,7 @@ TEST_CASE("Pipeline C", "[fast][benchmark]") {
     renderer->enableRuntimeMeasurements();
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
-    window->setTimeout(500);
+    window->setTimeout(2000);
     window->runMainLoop();
     importer->getRuntime()->print();
     thresholding->getRuntime()->print();
