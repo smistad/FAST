@@ -4,6 +4,7 @@ fast_add_subdirectories(
     SurfaceExtraction
     Skeletonization
     BinaryThresholding
+    ImageGradient
 )
 fast_add_sources()
 fast_add_test_sources()
