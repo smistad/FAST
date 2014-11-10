@@ -6,19 +6,10 @@ using namespace fast;
 DoubleFilter::DoubleFilter() {
     // Get the default computation device from the DeviceManager
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
-
-    // Create output data
-    mOutput= Image::New();
 }
 
 void DoubleFilter::setInput(Image::pointer image) {
-    mInput = image;
-
-    // Add input as a parent to the DoubleFilter
-    setParent(mInput);
-
-    // Because a parameter now has changed we mark the object as modified
-    mIsModified = true;
+    setInputData(0, image);
 }
 
 void DoubleFilter::setDevice(ExecutionDevice::pointer device) {
@@ -29,10 +20,7 @@ void DoubleFilter::setDevice(ExecutionDevice::pointer device) {
 }
 
 Image::pointer DoubleFilter::getOutput() {
-    // Set the source of the output image to be this double filter
-    mOutput->setSource(mPtr.lock());
-
-    return mOutput;
+    return getOutputData<Image>(0);
 }
 
 /*
@@ -54,12 +42,8 @@ void executeAlgorithmOnHost(Image::pointer input, Image::pointer output) {
 }
 
 void DoubleFilter::execute() {
-    if(!mInput.isValid()) {
-        throw Exception("No input supplied to GaussianSmoothingFilter");
-    }
-
-    Image::pointer input = mInput;
-    Image::pointer output = mOutput;
+    Image::pointer input = getInputData(0);
+    Image::pointer output = getOutputData<Image>(0);
 
     // Initialize output image
     output->createFromImage(input, mDevice);

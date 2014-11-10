@@ -14,6 +14,7 @@ class Object {
         static unsigned long currentDrawable;
 		static void* hdc;
     protected:
+        WeakPointer<Object> mPtr;
         void setOpenGLContext(unsigned long* OpenGLContext);
         void releaseOpenGLContext();
     private:

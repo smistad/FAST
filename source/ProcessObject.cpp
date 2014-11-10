@@ -1,5 +1,6 @@
 #include "ProcessObject.hpp"
 #include "Exception.hpp"
+
 using namespace fast;
 
 void ProcessObject::update() {
@@ -82,3 +83,36 @@ void ProcessObject::setParent(DataObject::pointer parent) {
 void ProcessObject::removeParents() {
     mParentDataObjects.clear();
 }
+
+void ProcessObject::setInputRequired(uint inputNumber, bool required) {
+    mRequiredInputs[inputNumber] = required;
+}
+
+void ProcessObject::releaseInputAfterExecute(uint inputNumber,
+        bool release) {
+    mReleaseAfterExecute[inputNumber] = release;
+}
+
+void ProcessObject::setInputData(uint inputNumber,
+        const DataObject::pointer data) {
+    // Default values:
+    // Input is by default reuiqred and will be relased after execute
+    mRequiredInputs[inputNumber] = true;
+    mReleaseAfterExecute[inputNumber] = true;
+
+    setParent(data);
+    mIsModified = true;
+    // TODO Retain on device
+    //data->retain(device);
+    // TODO if another input with same number existed, release it
+
+    mInputs[inputNumber] = data;
+}
+
+DataObject::pointer ProcessObject::getInputData(uint inputNumber) const {
+    // at throws exception if element not found, while [] does not
+    return mInputs.at(inputNumber);
+}
+
+
+

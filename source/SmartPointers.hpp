@@ -16,7 +16,6 @@
             return smartPtr;                                    \
         }                                                       \
     private:                                                    \
-        WeakPointer<className> mPtr;                            \
         void setPtr(className::pointer ptr) {                   \
             mPtr = ptr;                                         \
         }                                                       \

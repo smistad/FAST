@@ -4,11 +4,12 @@
 #include "SmartPointers.hpp"
 #include "Streamer.hpp"
 #include "Image.hpp"
+#include "ProcessObject.hpp"
 #include <boost/thread.hpp>
 
 namespace fast {
 
-class ImageStreamer : public Streamer {
+class ImageStreamer : public Streamer, public ProcessObject {
     FAST_OBJECT(ImageStreamer)
     public:
         DynamicImage::pointer getOutput();

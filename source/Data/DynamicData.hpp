@@ -19,7 +19,6 @@ class DynamicData : public virtual DataObject {
             return smartPtr;                                    
         }                                                       
     private:                                                    
-        WeakPointer<DynamicData<T> > mPtr;
         void setPtr(typename DynamicData<T>::pointer ptr) {                   
             mPtr = ptr;                                         
         }                                                       

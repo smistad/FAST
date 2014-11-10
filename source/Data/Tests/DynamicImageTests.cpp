@@ -1,11 +1,13 @@
 #include "catch.hpp"
 #include "Image.hpp"
+#include "Streamer.hpp"
+#include "ProcessObject.hpp"
 
 using namespace fast;
 
 namespace fast {
 
-class DummyStreamer : public Streamer {
+class DummyStreamer : public Streamer, public ProcessObject {
     FAST_OBJECT(DummyStreamer)
     public:
         void producerStream() {};

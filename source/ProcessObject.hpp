@@ -8,10 +8,11 @@
 #include "DataObject.hpp"
 #include "RuntimeMeasurement.hpp"
 #include "RuntimeMeasurementManager.hpp"
+#include "DynamicData.hpp"
 
 namespace fast {
 
-class ProcessObject : public Object {
+class ProcessObject : public virtual Object {
     public:
         ProcessObject() : mIsModified(false), mRuntimeManager(new oul::RuntimeMeasurementsManager) { };
         void update();
@@ -46,10 +47,62 @@ class ProcessObject : public Object {
 
         oul::RuntimeMeasurementsManagerPtr mRuntimeManager;
 
+
+        void setInputRequired(uint inputNumber, bool required);
+        void releaseInputAfterExecute(uint inputNumber, bool release);
+        void setInputData(uint inputNumber, const DataObject::pointer data);
+        DataObject::pointer getInputData(uint inputNumber) const;
+        template <class T>
+        DataObject::pointer getOutputData(uint outputNumber);
+        template <class T>
+        DataObject::pointer getOutputData(uint outputNumber, DataObject::pointer objectDependsOn);
+
     private:
         void setTimestamp(DataObject::pointer object, unsigned long timestamp);
 
+        boost::unordered_map<uint, DataObject::pointer> mInputs;
+        boost::unordered_map<uint, bool> mRequiredInputs;
+        boost::unordered_map<uint, bool> mReleaseAfterExecute;
+        boost::unordered_map<uint, DataObject::pointer> mOutputs;
+
 };
+
+template <class T>
+DataObject::pointer ProcessObject::getOutputData(uint outputNumber,
+        DataObject::pointer objectDependsOn) {
+    DataObject::pointer data;
+    if(mOutputs.count(outputNumber) == 0) {
+        if(objectDependsOn->isDynamicData()) {
+            data = DynamicData<T>::New();
+            DynamicData<T>::pointer(data)->setStreamer(
+                DynamicData<T>::pointer(objectDependsOn)->getStreamer());
+        } else {
+            data = T::New();
+        }
+        data->setSource(mPtr.lock());
+        mOutputs[outputNumber] = data;
+    } else {
+        data = mOutputs[outputNumber];
+    }
+
+    return data;
+}
+
+template <class T>
+DataObject::pointer ProcessObject::getOutputData(uint outputNumber) {
+    DataObject::pointer data;
+    if(mOutputs.count(outputNumber) == 0) {
+        // Create data
+        data = T::New();
+        data->setSource(mPtr.lock());
+        mOutputs[outputNumber] = data;
+    } else {
+        data = mOutputs[outputNumber];
+    }
+
+    return data;
+}
+
 
 }; // end namespace fast
 
