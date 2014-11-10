@@ -4,24 +4,11 @@
 namespace fast {
 
 void ImageGradient::setInput(ImageData::pointer input) {
-    mInput = input;
-    setParent(input);
-    mIsModified = true;
-    if(input->isDynamicData()) {
-        mOutput = DynamicImage::New();
-        DynamicImage::pointer(mOutput)->setStreamer(DynamicImage::pointer(mInput)->getStreamer());
-    } else {
-        mOutput = Image::New();
-        input->retain(mDevice);
-    }
-    mOutput->setSource(mPtr.lock());
+    setInputData(0, input);
 }
 
 ImageData::pointer ImageGradient::getOutput() {
-    if(!mOutput.isValid()) {
-        throw Exception("Must call setInput before getOutput in ImageGradient algorithm.");
-    }
-    return mOutput;
+    return getOutputData<Image>(0, getInputData(0));
 }
 
 ImageGradient::ImageGradient() {
@@ -29,13 +16,7 @@ ImageGradient::ImageGradient() {
 }
 
 void ImageGradient::execute() {
-    if(!mInput.isValid()) {
-        throw Exception("No input supplied to BinaryThresholding algorithm.");
-    }
-    if(!mOutput.isValid()) {
-        // output object is no longer valid
-        return;
-    }
+    ImageData::pointer mInput = getInputData(0);
     Image::pointer input;
     if(mInput->isDynamicData()) {
         input = DynamicImage::pointer(mInput)->getNextFrame();
@@ -43,12 +24,13 @@ void ImageGradient::execute() {
         input = mInput;
     }
 
+    ImageData::pointer mOutput = getOutputData<Image>(0);
     Image::pointer output;
     if(mInput->isDynamicData()) {
         output = Image::New();
         DynamicImage::pointer(mOutput)->addFrame(output);
     } else {
-        output = Image::pointer(mOutput);
+        output = mOutput;
     }
 
     // Initialize output image

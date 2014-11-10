@@ -70,12 +70,14 @@ class ProcessObject : public virtual Object {
 template <class T>
 DataObject::pointer ProcessObject::getOutputData(uint outputNumber,
         DataObject::pointer objectDependsOn) {
+    if(!objectDependsOn.isValid())
+        throw Exception("Must call input before output.");
     DataObject::pointer data;
     if(mOutputs.count(outputNumber) == 0) {
         if(objectDependsOn->isDynamicData()) {
             data = DynamicData<T>::New();
-            DynamicData<T>::pointer(data)->setStreamer(
-                DynamicData<T>::pointer(objectDependsOn)->getStreamer());
+            typename DynamicData<T>::pointer(data)->setStreamer(
+                typename DynamicData<T>::pointer(objectDependsOn)->getStreamer());
         } else {
             data = T::New();
         }

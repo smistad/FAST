@@ -15,8 +15,6 @@ class ImageGradient : public ProcessObject {
         ImageGradient();
         void execute();
 
-        ImageData::pointer mInput;
-        ImageData::pointer mOutput;
         OpenCLDevice::pointer mDevice;
 };
 

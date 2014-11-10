@@ -22,12 +22,6 @@ class DoubleFilter : public ProcessObject {
         // This method will execute the algorithm
         void execute();
 
-        // This is a pointer to the image which will be the input
-        Image::pointer mInput;
-
-        // This is a pointer to the image which will be the output
-        Image::pointer mOutput;
-
         // This is the device to execute the algorithm on
         ExecutionDevice::pointer mDevice;
 };
