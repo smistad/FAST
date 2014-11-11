@@ -90,8 +90,6 @@ void ImageGradient::execute() {
                 cl::NullRange
         );
     }
-
-    output->updateModifiedTimestamp();
 }
 
 

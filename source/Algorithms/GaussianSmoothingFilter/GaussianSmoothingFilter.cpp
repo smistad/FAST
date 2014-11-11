@@ -269,9 +269,6 @@ void GaussianSmoothingFilter::execute() {
                 cl::NullRange
         );
     }
-
-    // Update the timestamp of the output data
-    output->updateModifiedTimestamp();
 }
 
 void GaussianSmoothingFilter::waitToFinish() {

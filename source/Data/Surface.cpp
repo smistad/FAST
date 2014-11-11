@@ -104,6 +104,7 @@ VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
                     "Trying to get write access to an object that is already being accessed");
         }
         mSurfaceIsBeingWrittenTo = true;
+        updateModifiedTimestamp();
     }
     if(!mVBOHasData) {
         // TODO create VBO
@@ -214,6 +215,7 @@ SurfacePointerAccess Surface::getSurfacePointerAccess(accessType type) {
                     "Trying to get write access to an object that is already being accessed");
         }
         mSurfaceIsBeingWrittenTo = true;
+        updateModifiedTimestamp();
     }
     if(!mHostHasData) {
         // Get all vertices with normals from VBO (including duplicates)

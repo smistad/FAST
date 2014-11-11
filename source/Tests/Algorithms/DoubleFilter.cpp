@@ -99,7 +99,4 @@ void DoubleFilter::execute() {
                 cl::NullRange
         );
     }
-
-    // Update timestamp of the output data
-    output->updateModifiedTimestamp();
 }

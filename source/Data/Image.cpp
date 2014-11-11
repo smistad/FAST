@@ -242,6 +242,7 @@ OpenCLBufferAccess Image::getOpenCLBufferAccess(
     updateOpenCLBufferData(device);
     if (type == ACCESS_READ_WRITE) {
         setAllDataToOutOfDate();
+        updateModifiedTimestamp();
     }
     mCLBuffersAccess[device] = true;
     mCLBuffersIsUpToDate[device] = true;
@@ -408,6 +409,7 @@ OpenCLImageAccess2D Image::getOpenCLImageAccess2D(
     updateOpenCLImageData(device);
     if (type == ACCESS_READ_WRITE) {
         setAllDataToOutOfDate();
+        updateModifiedTimestamp();
     }
     mCLImagesAccess[device] = true;
     mCLImagesIsUpToDate[device] = true;
@@ -439,6 +441,7 @@ OpenCLImageAccess3D Image::getOpenCLImageAccess3D(
     updateOpenCLImageData(device);
     if (type == ACCESS_READ_WRITE) {
         setAllDataToOutOfDate();
+        updateModifiedTimestamp();
     }
     mCLImagesAccess[device] = true;
     mCLImagesIsUpToDate[device] = true;
@@ -483,6 +486,7 @@ ImageAccess Image::getImageAccess(accessType type) {
     if(type == ACCESS_READ_WRITE) {
         // Set modified to true since it wants write access
         setAllDataToOutOfDate();
+        updateModifiedTimestamp();
     }
 
     mHostDataIsUpToDate = true;
