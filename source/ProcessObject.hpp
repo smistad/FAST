@@ -54,7 +54,7 @@ class ProcessObject : public virtual Object {
         DataObject::pointer getInputData(uint inputNumber) const;
         template <class T>
         DataObject::pointer getOutputData(uint outputNumber);
-        template <class T>
+        template <class StaticType, class DynamicType>
         DataObject::pointer getOutputData(uint outputNumber, DataObject::pointer objectDependsOn);
 
     private:
@@ -67,7 +67,7 @@ class ProcessObject : public virtual Object {
 
 };
 
-template <class T>
+template <class StaticType, class DynamicType>
 DataObject::pointer ProcessObject::getOutputData(uint outputNumber,
         DataObject::pointer objectDependsOn) {
     if(!objectDependsOn.isValid())
@@ -75,11 +75,11 @@ DataObject::pointer ProcessObject::getOutputData(uint outputNumber,
     DataObject::pointer data;
     if(mOutputs.count(outputNumber) == 0) {
         if(objectDependsOn->isDynamicData()) {
-            data = DynamicData<T>::New();
-            typename DynamicData<T>::pointer(data)->setStreamer(
-                typename DynamicData<T>::pointer(objectDependsOn)->getStreamer());
+            data = DynamicType::New();
+            typename DynamicType::pointer(data)->setStreamer(
+                typename DynamicType::pointer(objectDependsOn)->getStreamer());
         } else {
-            data = T::New();
+            data = StaticType::New();
         }
         data->setSource(mPtr.lock());
         mOutputs[outputNumber] = data;
@@ -89,6 +89,7 @@ DataObject::pointer ProcessObject::getOutputData(uint outputNumber,
 
     return data;
 }
+
 
 template <class T>
 DataObject::pointer ProcessObject::getOutputData(uint outputNumber) {

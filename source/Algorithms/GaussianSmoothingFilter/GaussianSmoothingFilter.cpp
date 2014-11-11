@@ -36,7 +36,8 @@ void GaussianSmoothingFilter::setStandardDeviation(float stdDev) {
 }
 
 ImageData::pointer GaussianSmoothingFilter::getOutput() {
-    return getOutputData<Image>(0, getInputData(0));
+    DataObject::pointer data = getOutputData<Image, DynamicImage>(0, getInputData(0));
+    return data;
 }
 
 GaussianSmoothingFilter::GaussianSmoothingFilter() {
@@ -205,7 +206,6 @@ void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, float *
 }
 
 void GaussianSmoothingFilter::execute() {
-
     ImageData::pointer mInput = getInputData(0);
     Image::pointer input;
     if(mInput->isDynamicData()) {

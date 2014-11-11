@@ -8,7 +8,7 @@ void ImageGradient::setInput(ImageData::pointer input) {
 }
 
 ImageData::pointer ImageGradient::getOutput() {
-    return getOutputData<Image>(0, getInputData(0));
+    return getOutputData<Image, DynamicImage>(0, getInputData(0));
 }
 
 ImageGradient::ImageGradient() {

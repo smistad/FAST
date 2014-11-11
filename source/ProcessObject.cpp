@@ -1,7 +1,7 @@
 #include "ProcessObject.hpp"
 #include "Exception.hpp"
 
-using namespace fast;
+namespace fast {
 
 void ProcessObject::update() {
     bool aParentHasBeenModified = false;
@@ -115,4 +115,4 @@ DataObject::pointer ProcessObject::getInputData(uint inputNumber) const {
 }
 
 
-
+}; // namespace fast
