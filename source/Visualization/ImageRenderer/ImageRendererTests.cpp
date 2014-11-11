@@ -6,7 +6,7 @@
 
 using namespace fast;
 
-TEST_CASE("ImageRenderer with single 2D image", "[fast][ImageRenderer]") {
+TEST_CASE("ImageRenderer with single 2D image", "[fast][ImageRenderer][visual]") {
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US-2D.jpg");
     CHECK_NOTHROW(
@@ -19,7 +19,7 @@ TEST_CASE("ImageRenderer with single 2D image", "[fast][ImageRenderer]") {
     );
 }
 
-TEST_CASE("ImageRenderer with dynamic 2D image", "[fast][ImageRenderer]") {
+TEST_CASE("ImageRenderer with dynamic 2D image", "[fast][ImageRenderer][visual]") {
     MetaImageStreamer::pointer streamer = MetaImageStreamer::New();
     streamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-2Dt/US-2Dt_#.mhd");
     CHECK_NOTHROW(

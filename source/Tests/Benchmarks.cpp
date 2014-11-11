@@ -16,7 +16,7 @@
 
 using namespace fast;
 
-TEST_CASE("Pipeline A (static)", "[fast][benchmark]") {
+TEST_CASE("Pipeline A (static)", "[fast][benchmark][visual]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"/US-3Dt/US-3Dt_0.mhd");
     importer->enableRuntimeMeasurements();
@@ -49,7 +49,7 @@ TEST_CASE("Pipeline A (static)", "[fast][benchmark]") {
     std::cout << "Total runtime was: " << total << std::endl;
 }
 
-TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark]") {
+TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark][visual]") {
     MetaImageStreamer::pointer streamer = MetaImageStreamer::New();
     streamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US-3Dt/US-3Dt_#.mhd");
     streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
@@ -87,7 +87,7 @@ TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark]") {
     std::cout << "Average runtime was: " << total << std::endl << std::endl;
 }
 
-TEST_CASE("Pipeline B", "[fast][benchmark]") {
+TEST_CASE("Pipeline B", "[fast][benchmark][visual]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT-Abdomen.mhd");
     importer->enableRuntimeMeasurements();
@@ -145,7 +145,7 @@ TEST_CASE("Pipeline B", "[fast][benchmark]") {
     std::cout << "Total runtime was: " << total << std::endl;
 }
 
-TEST_CASE("Pipeline C", "[fast][benchmark]") {
+TEST_CASE("Pipeline C", "[fast][benchmark][visual]") {
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "retina.png");
     importer->enableRuntimeMeasurements();

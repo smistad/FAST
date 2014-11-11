@@ -11,7 +11,7 @@ TEST_CASE("SliceRenderer with no input throws exception", "[fast][SliceRenderer]
     CHECK_THROWS(renderer->update());
 }
 
-TEST_CASE("SliceRenderer on static data with no parameters set", "[fast][SliceRenderer]") {
+TEST_CASE("SliceRenderer on static data with no parameters set", "[fast][SliceRenderer][visual]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_0.mhd");
     CHECK_NOTHROW(
@@ -24,7 +24,7 @@ TEST_CASE("SliceRenderer on static data with no parameters set", "[fast][SliceRe
     );
 }
 
-TEST_CASE("SliceRenderer on dynamic data with no parameters set", "[fast][SliceRenderer]") {
+TEST_CASE("SliceRenderer on dynamic data with no parameters set", "[fast][SliceRenderer][visual]") {
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
     CHECK_NOTHROW(
@@ -37,7 +37,7 @@ TEST_CASE("SliceRenderer on dynamic data with no parameters set", "[fast][SliceR
     );
 }
 
-TEST_CASE("SliceRenderer on dynamic data with slice plane X set", "[fast][SliceRenderer]") {
+TEST_CASE("SliceRenderer on dynamic data with slice plane X set", "[fast][SliceRenderer][visual]") {
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
     CHECK_NOTHROW(
@@ -51,7 +51,7 @@ TEST_CASE("SliceRenderer on dynamic data with slice plane X set", "[fast][SliceR
     );
 }
 
-TEST_CASE("SliceRenderer on dynamic data with slice plane Y set", "[fast][SliceRenderer]") {
+TEST_CASE("SliceRenderer on dynamic data with slice plane Y set", "[fast][SliceRenderer][visual]") {
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
     CHECK_NOTHROW(
@@ -65,7 +65,7 @@ TEST_CASE("SliceRenderer on dynamic data with slice plane Y set", "[fast][SliceR
     );
 }
 
-TEST_CASE("SliceRenderer on dynamic data with slice plane Z set", "[fast][SliceRenderer]") {
+TEST_CASE("SliceRenderer on dynamic data with slice plane Z set", "[fast][SliceRenderer][visual]") {
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
     CHECK_NOTHROW(
@@ -79,7 +79,7 @@ TEST_CASE("SliceRenderer on dynamic data with slice plane Z set", "[fast][SliceR
     );
 }
 
-TEST_CASE("Setting slice nr in SliceRenderer too high should not throw exception", "[fast][SliceRenderer]") {
+TEST_CASE("Setting slice nr in SliceRenderer too high should not throw exception", "[fast][SliceRenderer][visual]") {
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
     CHECK_NOTHROW(

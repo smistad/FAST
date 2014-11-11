@@ -7,7 +7,7 @@
 
 using namespace fast;
 
-TEST_CASE("SurfaceRenderer on LV surface model", "[fast][SurfaceRenderer]") {
+TEST_CASE("SurfaceRenderer on LV surface model", "[fast][SurfaceRenderer][visual]") {
     CHECK_NOTHROW(
         VTKSurfaceFileImporter::pointer importer = VTKSurfaceFileImporter::New();
         importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "Surface_LV.vtk");
@@ -20,7 +20,7 @@ TEST_CASE("SurfaceRenderer on LV surface model", "[fast][SurfaceRenderer]") {
     );
 }
 
-TEST_CASE("SurfaceRenderer on stream of surfaces", "[fast][SurfaceRenderer]") {
+TEST_CASE("SurfaceRenderer on stream of surfaces", "[fast][SurfaceRenderer][visual]") {
     CHECK_NOTHROW(
         MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
         mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
@@ -31,7 +31,7 @@ TEST_CASE("SurfaceRenderer on stream of surfaces", "[fast][SurfaceRenderer]") {
         renderer->setInput(extractor->getOutput());
         SimpleWindow::pointer window = SimpleWindow::New();
         window->addRenderer(renderer);
-        window->setTimeout(1000);
+        window->setTimeout(4000);
         window->runMainLoop();
     );
 }
