@@ -5,17 +5,7 @@
 using namespace fast;
 
 void GaussianSmoothingFilter::setInput(ImageData::pointer input) {
-    mInput = input;
-    mIsModified = true;
-    setParent(input);
-    if(input->isDynamicData()) {
-        mOutput = DynamicImage::New();
-        DynamicImage::pointer(mOutput)->setStreamer(DynamicImage::pointer(mInput)->getStreamer());
-    } else {
-        mOutput = Image::New();
-        input->retain(mDevice);
-    }
-    mOutput->setSource(mPtr.lock());
+    setInputData(0, input);
 }
 
 
@@ -46,10 +36,7 @@ void GaussianSmoothingFilter::setStandardDeviation(float stdDev) {
 }
 
 ImageData::pointer GaussianSmoothingFilter::getOutput() {
-    if(!mOutput.isValid()) {
-        throw Exception("Must call setInput before getOutput in GaussianSmoothingFilter");
-    }
-    return mOutput;
+    return getOutputData<Image>(0, getInputData(0));
 }
 
 GaussianSmoothingFilter::GaussianSmoothingFilter() {
@@ -219,20 +206,15 @@ void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, float *
 
 void GaussianSmoothingFilter::execute() {
 
+    ImageData::pointer mInput = getInputData(0);
     Image::pointer input;
-    if(!mInput.isValid()) {
-        throw Exception("No input supplied to GaussianSmoothingFilter");
-    }
-    if(!mOutput.isValid()) {
-        // output object is no longer valid
-        return;
-    }
     if(mInput->isDynamicData()) {
         input = DynamicImage::pointer(mInput)->getNextFrame();
     } else {
         input = mInput;
     }
 
+    ImageData::pointer mOutput = getOutputData<Image>(0);
     Image::pointer output;
     if(mInput->isDynamicData()) {
         output = Image::New();
@@ -287,9 +269,6 @@ void GaussianSmoothingFilter::execute() {
                 cl::NullRange
         );
     }
-
-    if(!mInput->isDynamicData())
-        mInput->release(mDevice);
 
     // Update the timestamp of the output data
     output->updateModifiedTimestamp();
