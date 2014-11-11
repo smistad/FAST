@@ -83,10 +83,10 @@ void GaussianSmoothingFilter::createMask(Image::pointer input) {
 
     ExecutionDevice::pointer device = getMainDevice();
     if(!device->isHost()) {
-        OpenCLDevice::pointer device = device;
+        OpenCLDevice::pointer clDevice = device;
         unsigned int bufferSize = input->getDimensions() == 2 ? mMaskSize*mMaskSize : mMaskSize*mMaskSize*mMaskSize;
         mCLMask = cl::Buffer(
-                device->getContext(),
+                clDevice->getContext(),
                 CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                 sizeof(float)*bufferSize,
                 mMask
