@@ -3,20 +3,8 @@
 
 using namespace fast;
 
-DoubleFilter::DoubleFilter() {
-    // Get the default computation device from the DeviceManager
-    mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
-}
-
 void DoubleFilter::setInput(Image::pointer image) {
     setInputData(0, image);
-}
-
-void DoubleFilter::setDevice(ExecutionDevice::pointer device) {
-    mDevice = device;
-
-    // Because a parameter now has changed we mark the object as modified
-    mIsModified = true;
 }
 
 Image::pointer DoubleFilter::getOutput() {
@@ -46,9 +34,9 @@ void DoubleFilter::execute() {
     Image::pointer output = getOutputData<Image>(0);
 
     // Initialize output image
-    output->createFromImage(input, mDevice);
+    output->createFromImage(input, getMainDevice());
 
-    if(mDevice->isHost()) {
+    if(getMainDevice()->isHost()) {
         // Execution device is Host, use the executeAlgorithmOnHost function with the given data type
         switch(input->getDataType()) {
             // This macro creates a case statement for each data type and sets FAST_TYPE to the correct C++ data type
@@ -56,7 +44,7 @@ void DoubleFilter::execute() {
         }
     } else {
         // Execution device is an OpenCL device
-        OpenCLDevice::pointer device = mDevice;
+        OpenCLDevice::pointer device = getMainDevice();
 
         // Set build options based on the data type of the data
         std::string buildOptions = "";

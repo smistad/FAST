@@ -77,16 +77,17 @@ TEST_CASE("Simple pipeline with MetaImageStreamer, GaussianSmoothingFilter, Surf
 }
 
 TEST_CASE("Simple pipeline with MetaImageStreamer, GaussianSmoothingFilter and SliceRenderer on Host", "[fast][SystemTests]") {
+    ExecutionDevice::pointer host = Host::New();
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
-    mhdStreamer->setDevice(Host::New());
+    mhdStreamer->setDevice(host);
 
     GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
     filter->setInput(mhdStreamer->getOutput());
     filter->setMaskSize(3);
     filter->setStandardDeviation(2.0);
-    filter->setDevice(Host::New());
+    filter->setMainDevice(host);
 
     SliceRenderer::pointer renderer = SliceRenderer::New();
     renderer->setInput(filter->getOutput());

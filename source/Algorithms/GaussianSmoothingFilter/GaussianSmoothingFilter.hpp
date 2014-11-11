@@ -11,7 +11,6 @@ class GaussianSmoothingFilter : public ProcessObject {
     FAST_OBJECT(GaussianSmoothingFilter)
     public:
         void setInput(ImageData::pointer input);
-        void setDevice(ExecutionDevice::pointer device);
         void setMaskSize(unsigned char maskSize);
         void setStandardDeviation(float stdDev);
         ImageData::pointer getOutput();
@@ -23,7 +22,6 @@ class GaussianSmoothingFilter : public ProcessObject {
         void createMask(Image::pointer input);
         void recompileOpenCLCode(Image::pointer input);
 
-        ExecutionDevice::pointer mDevice;
         unsigned char mMaskSize;
         float mStdDev;
 
