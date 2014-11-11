@@ -12,6 +12,9 @@ class DummyProcessObject : public ProcessObject {
     FAST_OBJECT(DummyProcessObject)
     public:
         void setIsModified() { mIsModified = true; };
+        void setInput(DataObject::pointer data) { setInputData(0, data); };
+        void setInput(DataObject::pointer data, bool required) { ProcessObject::setInputRequired(0, required); setInputData(0, data); };
+        void setInputRequired(uint number) { ProcessObject::setInputRequired(number, true); };
         bool hasExecuted() { return mHasExecuted; };
     private:
         DummyProcessObject() : mHasExecuted(false) {};

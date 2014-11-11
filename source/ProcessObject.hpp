@@ -59,6 +59,8 @@ class ProcessObject : public virtual Object {
 
     private:
         void setTimestamp(DataObject::pointer object, unsigned long timestamp);
+        void preExecute();
+        void postExecute();
 
         boost::unordered_map<uint, DataObject::pointer> mInputs;
         boost::unordered_map<uint, bool> mRequiredInputs;

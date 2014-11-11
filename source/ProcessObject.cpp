@@ -23,7 +23,9 @@ void ProcessObject::update() {
     // has been modified, execute is called
     if(this->mIsModified || aParentHasBeenModified) {
         this->mRuntimeManager->startRegularTimer("execute");
+        this->preExecute();
         this->execute();
+        this->postExecute();
         if(this->mRuntimeManager->isEnabled())
             this->waitToFinish();
         this->mRuntimeManager->stopRegularTimer("execute");
@@ -114,5 +116,22 @@ DataObject::pointer ProcessObject::getInputData(uint inputNumber) const {
     return mInputs.at(inputNumber);
 }
 
+void ProcessObject::preExecute() {
+    // Check that required inputs are present
+    boost::unordered_map<uint, bool>::iterator it;
+    for(it = mRequiredInputs.begin(); it != mRequiredInputs.end(); it++) {
+        if(it->second) { // if required
+            // Check that input exist and is valid
+            if(mInputs.count(it->first) == 0 || !mInputs[it->first].isValid()) {
+                throw Exception("A process object is missing a required input data.");
+            }
+        }
+    }
+}
 
-}; // namespace fast
+void ProcessObject::postExecute() {
+    // TODO Release input data if they are marked as release after execute
+}
+
+
+} // namespace fast

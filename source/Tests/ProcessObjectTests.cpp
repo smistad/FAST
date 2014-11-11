@@ -60,3 +60,19 @@ TEST_CASE("Calling update on a process object which has a modified parent data o
     process->update();
     CHECK(process->hasExecuted() == true);
 }
+
+TEST_CASE("Calling update on a process object with missing required input data throws exception", "[fast][processobject]") {
+    DummyProcessObject::pointer process = DummyProcessObject::New();
+    process->setIsModified();
+    process->setInputRequired(0);
+    CHECK_THROWS(process->update());
+}
+
+TEST_CASE("Calling update on a process object with required input data does not throw exception", "[fast][processobject]") {
+    DummyDataObject::pointer data = DummyDataObject::New();
+    DummyProcessObject::pointer process = DummyProcessObject::New();
+    process->setIsModified();
+    process->setInputRequired(0);
+    process->setInput(data);
+    CHECK_NOTHROW(process->update());
+}
