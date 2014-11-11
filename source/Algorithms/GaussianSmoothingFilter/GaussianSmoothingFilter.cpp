@@ -8,13 +8,6 @@ void GaussianSmoothingFilter::setInput(ImageData::pointer input) {
     setInputData(0, input);
 }
 
-
-void GaussianSmoothingFilter::setDevice(ExecutionDevice::pointer device) {
-    mDevice = device;
-    mIsModified = true;
-    mRecreateMask = true;
-}
-
 void GaussianSmoothingFilter::setMaskSize(unsigned char maskSize) {
     if(maskSize <= 0)
         throw Exception("Mask size of GaussianSmoothingFilter can't be less than 0.");
@@ -41,7 +34,6 @@ ImageData::pointer GaussianSmoothingFilter::getOutput() {
 }
 
 GaussianSmoothingFilter::GaussianSmoothingFilter() {
-    mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
     mStdDev = 1.0f;
     mMaskSize = 3;
     mIsModified = true;
@@ -89,8 +81,9 @@ void GaussianSmoothingFilter::createMask(Image::pointer input) {
             mMask[i] /= sum;
     }
 
-    if(!mDevice->isHost()) {
-        OpenCLDevice::pointer device = mDevice;
+    ExecutionDevice::pointer device = getMainDevice();
+    if(!device->isHost()) {
+        OpenCLDevice::pointer device = device;
         unsigned int bufferSize = input->getDimensions() == 2 ? mMaskSize*mMaskSize : mMaskSize*mMaskSize*mMaskSize;
         mCLMask = cl::Buffer(
                 device->getContext(),
@@ -109,7 +102,7 @@ void GaussianSmoothingFilter::recompileOpenCLCode(Image::pointer input) {
             input->getDataType() == mTypeCLCodeCompiledFor)
         return;
 
-    OpenCLDevice::pointer device = mDevice;
+    OpenCLDevice::pointer device = getMainDevice();
     std::string buildOptions = "";
     if(input->getDataType() == TYPE_FLOAT) {
         buildOptions = "-DTYPE_FLOAT";
@@ -224,16 +217,17 @@ void GaussianSmoothingFilter::execute() {
     }
 
     // Initialize output image
-    output->createFromImage(input, mDevice);
+    ExecutionDevice::pointer device = getMainDevice();
+    output->createFromImage(input, device);
 
     createMask(input);
 
-    if(mDevice->isHost()) {
+    if(device->isHost()) {
         switch(input->getDataType()) {
             fastSwitchTypeMacro(executeAlgorithmOnHost<FAST_TYPE>(input, output, mMask, mMaskSize));
         }
     } else {
-        OpenCLDevice::pointer device = mDevice;
+        OpenCLDevice::pointer clDevice = device;
 
         recompileOpenCLCode(input);
         cl::NDRange globalSize;
@@ -247,7 +241,7 @@ void GaussianSmoothingFilter::execute() {
         } else {
             globalSize = cl::NDRange(input->getWidth(),input->getHeight(),input->getDepth());
 
-            const bool writingTo3DTextures = device->getDevice().getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") != std::string::npos;
+            const bool writingTo3DTextures = clDevice->getDevice().getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") != std::string::npos;
             OpenCLImageAccess3D inputAccess = input->getOpenCLImageAccess3D(ACCESS_READ, device);
             mKernel.setArg(0, *inputAccess.get());
             if(writingTo3DTextures) {
@@ -262,7 +256,7 @@ void GaussianSmoothingFilter::execute() {
         mKernel.setArg(1, mCLMask);
         mKernel.setArg(3, mMaskSize);
 
-        device->getCommandQueue().enqueueNDRangeKernel(
+        clDevice->getCommandQueue().enqueueNDRangeKernel(
                 mKernel,
                 cl::NullRange,
                 globalSize,
@@ -272,8 +266,8 @@ void GaussianSmoothingFilter::execute() {
 }
 
 void GaussianSmoothingFilter::waitToFinish() {
-    if(!mDevice->isHost()) {
-        OpenCLDevice::pointer device = mDevice;
+    if(!getMainDevice()->isHost()) {
+        OpenCLDevice::pointer device = getMainDevice();
         device->getCommandQueue().finish();
     }
 }

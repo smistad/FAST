@@ -9,12 +9,17 @@
 #include "RuntimeMeasurement.hpp"
 #include "RuntimeMeasurementManager.hpp"
 #include "DynamicData.hpp"
+#include "ExecutionDevice.hpp"
+#include "DeviceManager.hpp"
 
 namespace fast {
 
 class ProcessObject : public virtual Object {
     public:
-        ProcessObject() : mIsModified(false), mRuntimeManager(new oul::RuntimeMeasurementsManager) { };
+        ProcessObject() :
+            mIsModified(false),
+            mRuntimeManager(new oul::RuntimeMeasurementsManager)
+            { mDevices[0] = DeviceManager::getInstance().getDefaultComputationDevice(); };
         void update();
         typedef SharedPointer<ProcessObject> pointer;
         oul::RuntimeMeasurementPtr getRuntime();
@@ -28,9 +33,15 @@ class ProcessObject : public virtual Object {
          * Remove all parent objects
          */
         void removeParents();
+        void removeParent(const DataObject::pointer data);
         virtual ~ProcessObject() {};
         void enableRuntimeMeasurements();
         void disableRuntimeMeasurements();
+
+        void setMainDevice(ExecutionDevice::pointer device);
+        ExecutionDevice::pointer getMainDevice() const;
+        void setDevice(uint deviceNumber, ExecutionDevice::pointer device);
+        ExecutionDevice::pointer getDevice(uint deviceNumber) const;
     protected:
         // Pointer to the parent pipeline object
         std::vector<DataObject::pointer> mParentDataObjects;
@@ -50,14 +61,18 @@ class ProcessObject : public virtual Object {
 
         void setInputRequired(uint inputNumber, bool required);
         void releaseInputAfterExecute(uint inputNumber, bool release);
-        void setInputData(uint inputNumber, const DataObject::pointer data);
+        void setInputData(uint inputNumber, DataObject::pointer data);
+        void setInputData(uint inputNumber, DataObject::pointer data, const ExecutionDevice::pointer device);
         DataObject::pointer getInputData(uint inputNumber) const;
         template <class T>
         DataObject::pointer getOutputData(uint outputNumber);
         template <class StaticType, class DynamicType>
         DataObject::pointer getOutputData(uint outputNumber, DataObject::pointer objectDependsOn);
 
+
+
     private:
+        void changeDeviceOnInputs(uint deviceNumber, ExecutionDevice::pointer device);
         void setTimestamp(DataObject::pointer object, unsigned long timestamp);
         void preExecute();
         void postExecute();
@@ -66,6 +81,8 @@ class ProcessObject : public virtual Object {
         boost::unordered_map<uint, bool> mRequiredInputs;
         boost::unordered_map<uint, bool> mReleaseAfterExecute;
         boost::unordered_map<uint, DataObject::pointer> mOutputs;
+        boost::unordered_map<uint, std::vector<uint> > mInputDevices;
+        boost::unordered_map<uint, ExecutionDevice::pointer> mDevices;
 
 };
 

@@ -12,6 +12,7 @@ TEST_CASE("DoubleFilter on OpenCL device", "[fast][DoubleFilter]") {
     DoubleFilter::pointer filter = DoubleFilter::New();
     filter->setInput(input);
     Image::pointer output = filter->getOutput();
+    input->retain(filter->getMainDevice());
     filter->update();
 
     ImageAccess inputAccess = input->getImageAccess(ACCESS_READ);
@@ -36,7 +37,7 @@ TEST_CASE("DoubleFilter on Host", "[fast][DoubleFilter]") {
 
     DoubleFilter::pointer filter = DoubleFilter::New();
     filter->setInput(input);
-    filter->setDevice(Host::New());
+    filter->setMainDevice(Host::New());
     Image::pointer output = filter->getOutput();
     filter->update();
 

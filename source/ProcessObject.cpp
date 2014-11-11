@@ -86,6 +86,16 @@ void ProcessObject::removeParents() {
     mParentDataObjects.clear();
 }
 
+void ProcessObject::removeParent(const DataObject::pointer data) {
+    std::vector<DataObject::pointer> newParents;
+    for(int i = 0; i < mParentDataObjects.size(); i++) {
+        if(mParentDataObjects[i] != data) {
+            newParents.push_back(mParentDataObjects[i]);
+        }
+    }
+    mParentDataObjects = newParents;
+}
+
 void ProcessObject::setInputRequired(uint inputNumber, bool required) {
     mRequiredInputs[inputNumber] = required;
 }
@@ -96,17 +106,25 @@ void ProcessObject::releaseInputAfterExecute(uint inputNumber,
 }
 
 void ProcessObject::setInputData(uint inputNumber,
-        const DataObject::pointer data) {
+        DataObject::pointer data) {
     // Default values:
     // Input is by default reuiqred and will be relased after execute
     mRequiredInputs[inputNumber] = true;
     mReleaseAfterExecute[inputNumber] = true;
 
-    setParent(data);
+    // TODO if another input with same number existed, release it and remove it as parent
+    if(mInputs.count(inputNumber) > 0) {
+        removeParent(data);
+        std::vector<uint>::iterator it;
+        for(it = mInputDevices[inputNumber].begin(); it != mInputDevices[inputNumber].end(); it++) {
+            data->release(getDevice(*it));
+        }
+        mInputDevices[inputNumber].clear();
+    }
+    addParent(data);
     mIsModified = true;
-    // TODO Retain on device
-    //data->retain(device);
-    // TODO if another input with same number existed, release it
+    mInputDevices[inputNumber].push_back(0);
+    data->retain(getMainDevice());
 
     mInputs[inputNumber] = data;
 }
@@ -130,8 +148,58 @@ void ProcessObject::preExecute() {
 }
 
 void ProcessObject::postExecute() {
-    // TODO Release input data if they are marked as release after execute
+    // Release input data if they are marked as "release after execute"
+    boost::unordered_map<uint, bool>::iterator it;
+    for(it = mReleaseAfterExecute.begin(); it != mReleaseAfterExecute.end(); it++) {
+        if(it->second) {
+            std::vector<uint>::iterator it2;
+            for(it2 = mInputDevices[it->first].begin(); it2 != mInputDevices[it->first].end(); it2++) {
+                DataObject::pointer data = mInputs[it->first];
+                data->release(getDevice(*it2));
+            }
+        }
+    }
 }
 
+void ProcessObject::changeDeviceOnInputs(uint deviceNumber, ExecutionDevice::pointer device) {
+    // For each input, release old device and retain on new device
+    boost::unordered_map<uint, DataObject::pointer>::iterator it;
+    for(it = mInputs.begin(); it != mInputs.end(); it++) {
+        std::vector<uint>::iterator it2;
+        for(it2 = mInputDevices[it->first].begin(); it2 != mInputDevices[it->first].end(); it2++) {
+            if(*it2 == deviceNumber) {
+                it->second->release(mDevices[deviceNumber]);
+                it->second->retain(device);
+            }
+        }
+    }
+}
+
+void ProcessObject::setInputData(uint inputNumber,
+        const DataObject::pointer data, const ExecutionDevice::pointer device) {
+}
+
+void ProcessObject::setMainDevice(ExecutionDevice::pointer device) {
+    changeDeviceOnInputs(0, device);
+    mDevices[0] = device;
+}
+
+ExecutionDevice::pointer ProcessObject::getMainDevice() const {
+    return mDevices.at(0);
+}
+
+void ProcessObject::setDevice(uint deviceNumber,
+        ExecutionDevice::pointer device) {
+    if(mDevices.count(deviceNumber) > 0) {
+        changeDeviceOnInputs(deviceNumber, device);
+    }
+    mDevices[deviceNumber] = device;
+}
+
+ExecutionDevice::pointer ProcessObject::getDevice(uint deviceNumber) const {
+    return mDevices.at(deviceNumber);
+}
 
 } // namespace fast
+
+
