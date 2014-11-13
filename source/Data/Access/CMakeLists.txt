@@ -12,4 +12,6 @@ fast_add_sources(
     VertexBufferObjectAccess.hpp
     SurfacePointerAccess.cpp
     SurfacePointerAccess.hpp
+    PointSetAccess.cpp
+    PointSetAccess.hpp
 )

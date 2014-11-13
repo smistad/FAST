@@ -12,6 +12,8 @@ fast_add_sources(
     Surface.cpp
     Surface.hpp
     SurfaceVertex.hpp
+    PointSet.cpp
+    PointSet.hpp
 )
 fast_add_test_sources(
     Tests/DataObjectTests.cpp

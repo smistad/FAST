@@ -169,27 +169,20 @@ void ImageRenderer::draw() {
         SceneGraphNode::pointer node = graph.getDataNode(mImageToRender);
         LinearTransformation transform = graph.getLinearTransformationFromNode(node);
 
-        float matrix[16] = {
-                transform(0,0), transform(1,0), transform(2,0), transform(3,0),
-                transform(0,1), transform(1,1), transform(2,1), transform(3,1),
-                transform(0,2), transform(1,2), transform(2,2), transform(3,2),
-                transform(0,3), transform(1,3), transform(2,3), transform(3,3)
-        };
-
-        glMultMatrixf(matrix);
+        glMultMatrixf(transform.getTransform().data());
     }
 
     glBindTexture(GL_TEXTURE_2D, mTexture);
 
 //glColor3f(1.0,0,0);
     glBegin(GL_QUADS);
-        glTexCoord2i(0, 1);
-        glVertex3f(0, mHeight, 0.0f);
-        glTexCoord2i(1, 1);
-        glVertex3f(mWidth, mHeight, 0.0f);
-        glTexCoord2i(1, 0);
-        glVertex3f(mWidth, 0, 0.0f);
         glTexCoord2i(0, 0);
+        glVertex3f(0, mHeight, 0.0f);
+        glTexCoord2i(1, 0);
+        glVertex3f(mWidth, mHeight, 0.0f);
+        glTexCoord2i(1, 1);
+        glVertex3f(mWidth, 0, 0.0f);
+        glTexCoord2i(0, 1);
         glVertex3f(0, 0, 0.0f);
     glEnd();
 

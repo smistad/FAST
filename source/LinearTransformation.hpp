@@ -1,23 +1,28 @@
 #ifndef LINEARTRANSFORMATION_HPP_
 #define LINEARTRANSFORMATION_HPP_
 
-#include <boost/numeric/ublas/matrix.hpp>
 #include "DataTypes.hpp"
 
 namespace fast {
 
-class LinearTransformation : public boost::numeric::ublas::matrix<float> {
+class LinearTransformation {
     public:
         LinearTransformation();
-        // Copy
-        LinearTransformation(boost::numeric::ublas::matrix<float> m) : boost::numeric::ublas::matrix<float>(m) {};
         LinearTransformation getInverse();
-        LinearTransformation operator*(const LinearTransformation &other);
-        boost::numeric::ublas::matrix<float> getMatrix() const;
+        LinearTransformation operator*(LinearTransformation other);
+        void setTransform(const Eigen::Transform<float, 3, Eigen::Affine> transform);
+        Eigen::Transform<float, 3, Eigen::Affine> getTransform() const;
         Float3 operator*(Float3 vertex) const;
+        Vector3f operator*(Vector3f vertex) const;
+        float& operator()(uint i, uint j);
+        ~LinearTransformation() {};
+    private:
+        Eigen::Transform<float, 3, Eigen::Affine> mTransform;
+        void free(ExecutionDevice::pointer device) {};
+        void freeAll() {};
 };
 
-Float3 operator*(const Float3& vertex, const LinearTransformation& transform);
+Float3 operator*(const Float3& vertex, LinearTransformation transform);
 
 } // end namespace fast
 

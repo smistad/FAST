@@ -7,9 +7,6 @@ namespace fast {
 TEST_CASE("LinearTransformation object is initialized to 4x4 identity matrix", "[fast][SceneGraph]") {
     LinearTransformation T;
 
-    CHECK(T.size1() == 4);
-    CHECK(T.size2() == 4);
-
     bool correctValues = true;
     for(int i = 0; i < 4; i++) {
         for(int j = 0; j < 4; j++) {

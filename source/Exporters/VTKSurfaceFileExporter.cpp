@@ -65,20 +65,15 @@ void VTKSurfaceFileExporter::execute() {
         file << "3 " << triangle.x() << " " << triangle.y() << " " << triangle.z() << "\n";
     }
 
-    // Remove the translation part of the linear transformation for the normals
-    transform(0,3) = 0;
-    transform(1,3) = 0;
-    transform(2,3) = 0;
-
     // Write normals
     file << "POINT_DATA " << vertices.size() << "\n";
     file << "NORMALS Normals float\n";
     for(int i = 0; i < vertices.size(); i++) {
         SurfaceVertex vertex = vertices[i];
         // Transform it
-        vertex.normal = transform*vertex.normal;
+        vertex.normal = transform.getTransform().linear()*vertex.normal;
         // Normalize it
-        float length = sqrt(vertex.normal.x()*vertex.normal.x()+vertex.normal.y()*vertex.normal.y()+vertex.normal.z()*vertex.normal.z());
+        float length = vertex.normal.norm();
         if(length == 0) { // prevent NaN situations
             file << "0 1 0\n";
         } else {

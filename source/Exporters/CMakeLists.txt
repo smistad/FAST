@@ -3,8 +3,8 @@ fast_add_sources(
     ImageExporter.hpp
     MetaImageExporter.cpp
     MetaImageExporter.hpp
-    #VTKSurfaceFileExporter.cpp
-    #VTKSurfaceFileExporter.hpp
+    VTKSurfaceFileExporter.cpp
+    VTKSurfaceFileExporter.hpp
 )
 fast_add_test_sources(
     Tests/ImageExporterTests.cpp

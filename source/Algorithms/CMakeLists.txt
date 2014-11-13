@@ -5,6 +5,7 @@ fast_add_subdirectories(
     Skeletonization
     BinaryThresholding
     ImageGradient
+    IterativeClosestPoint
 )
 fast_add_sources()
 fast_add_test_sources()
