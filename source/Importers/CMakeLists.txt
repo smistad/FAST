@@ -1,6 +1,8 @@
 fast_add_sources(
     VTKSurfaceFileImporter.cpp
     VTKSurfaceFileImporter.hpp
+    VTKPointSetFileImporter.cpp
+    VTKPointSetFileImporter.hpp
     MetaImageImporter.cpp
     MetaImageImporter.hpp
     ImageImporter.cpp
