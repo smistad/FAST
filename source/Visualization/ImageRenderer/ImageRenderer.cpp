@@ -174,7 +174,7 @@ void ImageRenderer::draw() {
 
     glBindTexture(GL_TEXTURE_2D, mTexture);
 
-//glColor3f(1.0,0,0);
+    glColor3f(1,1,1); // black white texture
     glBegin(GL_QUADS);
         glTexCoord2i(0, 0);
         glVertex3f(0, mHeight, 0.0f);
