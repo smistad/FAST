@@ -3,6 +3,7 @@ fast_add_subdirectories(
     SliceRenderer
     SurfaceRenderer
     VolumeRenderer
+    PointRenderer
 )
 fast_add_sources(
     SimpleWindow.cpp
