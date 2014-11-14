@@ -1,4 +1,6 @@
 #include "IterativeClosestPoint.hpp"
+#undef min
+#undef max
 #include <limits>
 
 namespace fast {
@@ -22,6 +24,7 @@ void IterativeClosestPoint::setMovingPointSet(
 }
 
 LinearTransformation IterativeClosestPoint::getOutputTransformation() {
+	return LinearTransformation();
 }
 
 float IterativeClosestPoint::getError() const {
