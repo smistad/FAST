@@ -1,5 +1,10 @@
 #include "PointRenderer.hpp"
 #include "SceneGraph.hpp"
+#if defined(__APPLE__) || defined(__MACOSX)
+#include <OpenGL/OpenGL.h>
+#else
+#include <GL/gl.h>
+#endif
 
 namespace fast {
 
