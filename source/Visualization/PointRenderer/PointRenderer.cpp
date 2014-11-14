@@ -38,7 +38,15 @@ void PointRenderer::draw() {
 }
 
 BoundingBox PointRenderer::getBoundingBox() {
-    return BoundingBox(Float3(0,0,0));
+    BoundingBox inputBoundingBox = getInputData(0)->getBoundingBox();
+    /*
+    SceneGraph& graph = SceneGraph::getInstance();
+    SceneGraphNode::pointer node = graph.getDataNode(getInputData(0));
+    LinearTransformation transform = graph.getLinearTransformationFromNode(node);
+    BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
+    return transformedBoundingBox;
+    */
+    return inputBoundingBox;
 }
 
 PointRenderer::PointRenderer() {

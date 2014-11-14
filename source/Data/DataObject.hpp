@@ -19,7 +19,7 @@ class DataObject : public Object {
         void updateModifiedTimestamp();
         void retain(ExecutionDevice::pointer device);
         void release(ExecutionDevice::pointer device);
-        BoundingBox getBoundingBox() const;
+        virtual BoundingBox getBoundingBox() const;
         virtual ~DataObject() { };
         bool isDynamicData();
     protected:
