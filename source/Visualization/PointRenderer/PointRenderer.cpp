@@ -2,6 +2,7 @@
 #include "SceneGraph.hpp"
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenGL/OpenGL.h>
+#include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
 #endif
