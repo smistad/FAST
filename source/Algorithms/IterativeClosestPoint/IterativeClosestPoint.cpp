@@ -1,4 +1,6 @@
 #include "IterativeClosestPoint.hpp"
+#undef min
+#undef max
 #include <limits>
 
 namespace fast {
