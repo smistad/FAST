@@ -7,7 +7,7 @@ IterativeClosestPoint::IterativeClosestPoint() {
     setInputRequired(0, true);
     setInputRequired(1, true);
     mMaxIterations = 100;
-    mMinErrorChange = 0.01;
+    mMinErrorChange = 0.0001;
     mError = -1;
 }
 
@@ -22,6 +22,7 @@ void IterativeClosestPoint::setMovingPointSet(
 }
 
 LinearTransformation IterativeClosestPoint::getOutputTransformation() {
+    return mTransformation;
 }
 
 float IterativeClosestPoint::getError() const {
@@ -75,7 +76,7 @@ void IterativeClosestPoint::execute() {
     // These matrices are Nx3
     MatrixXf fixedPoints = accessFixedSet.getPointSetAsMatrix();
     MatrixXf movingPoints = accessMovingSet.getPointSetAsMatrix();
-    const uint nrOfPoints = ((PointSet::pointer)getInputData(0))->getNrOfPoints();
+    const uint nrOfPoints = ((PointSet::pointer)getInputData(1))->getNrOfPoints();
     do {
         previousError = error;
         MatrixXf movedPoints = currentTransformation*movingPoints.colwise().homogeneous();
@@ -102,26 +103,30 @@ void IterativeClosestPoint::execute() {
         Vector3f T = centroidFixed - R*centroidMoving;
 
         // Update current transformation
-        currentTransformation = R*Eigen::Translation3f(T)*currentTransformation;
+        Eigen::Transform<float,3,Eigen::Affine> rotationTransform = Eigen::Transform<float,3,Eigen::Affine>::Identity();
+        rotationTransform.linear() = R;
+        rotationTransform.translation() = T;
+        currentTransformation = rotationTransform*currentTransformation;
 
         // Calculate error
         MatrixXf distance = rearrangedFixedPoints - currentTransformation*movingPoints.colwise().homogeneous();
         error = 0;
         for(uint i = 0; i < nrOfPoints; i++) {
-            error += pow(distance.col(i).norm(), 2.0f);
+            error += distance.col(i).norm();
         }
         error /= nrOfPoints;
 
         iterations++;
         std::cout << "Error: " << error << std::endl;
         // To continue, change in error has to be above min error change and nr of iterations less than max iterations
-    } while(previousError-error > mMinErrorChange && iterations <= mMaxIterations);
+    } while(fabs(previousError-error) > mMinErrorChange && iterations <= mMaxIterations);
     mError = error;
     std::cout << "Finished after " << iterations << " iterations" << std::endl;
     std::cout << "Final transform" << std::endl;
     std::cout << currentTransformation.affine() << std::endl;
     std::cout << "Moved points: " << std::endl;
-    std::cout << currentTransformation*movingPoints.colwise().homogeneous() << std::endl;
+    //std::cout << currentTransformation*movingPoints.colwise().homogeneous() << std::endl;
+    mTransformation.setTransform(currentTransformation);
 }
 
 

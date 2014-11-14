@@ -21,6 +21,7 @@ class IterativeClosestPoint : public ProcessObject {
         float mMinErrorChange;
         uint mMaxIterations;
         float mError;
+        LinearTransformation mTransformation;
 };
 
 } // end namespace fast
