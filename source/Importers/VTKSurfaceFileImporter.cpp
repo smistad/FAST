@@ -21,7 +21,7 @@ VTKSurfaceFileImporter::VTKSurfaceFileImporter() {
     mIsModified = true;
 }
 
-bool gotoLineWithString(std::ifstream &file, std::string searchFor) {
+inline bool gotoLineWithString(std::ifstream &file, std::string searchFor) {
     bool found = false;
     std::string line;
     while(getline(file, line)) {
