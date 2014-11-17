@@ -14,6 +14,11 @@ void WindowWidget::keyPressEvent(QKeyEvent* event) {
     mView->keyPressEvent(event);
 }
 
+void WindowWidget::closeEvent(QCloseEvent* event) {
+    // This event occurs when window is closed
+    mEventLoop->quit();
+}
+
 void WindowWidget::mouseMoveEvent(QMouseEvent* event) {
     mView->mouseMoveEvent(event);
 }
