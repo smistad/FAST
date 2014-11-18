@@ -4,7 +4,7 @@ project(FAST)
 #### Options
 option(VTK_INTEROP "Enable interoperability with VTK" OFF)
 option(ITK_INTEROP "Enable interoperability with ITK" OFF)
-set(FAST_TEST_DATA_DIR "\"${PROJECT_SOURCE_DIR}/../TestData/\"" CACHE STRING "Directory of test data")
+set(FAST_TEST_DATA_DIR "${PROJECT_SOURCE_DIR}/../TestData/" CACHE STRING "Directory of test data")
 
 #### Macro for adding source files and directories
 macro (fast_add_sources)
@@ -77,7 +77,7 @@ set(QT_HEADERS
 # Set up some directory defines
 add_definitions("-DFAST_ROOT_DIR=\"${PROJECT_SOURCE_DIR}/../\"")
 add_definitions("-DFAST_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}/\"")
-add_definitions("-DFAST_TEST_DATA_DIR=${FAST_TEST_DATA_DIR}")
+add_definitions("-DFAST_TEST_DATA_DIR=\"${FAST_TEST_DATA_DIR}\"")
 
 #### Set up library dependencies
 set(FAST_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR})
