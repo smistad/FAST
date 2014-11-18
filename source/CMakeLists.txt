@@ -77,8 +77,9 @@ set(QT_HEADERS
 # Set up some directory defines
 add_definitions("-DFAST_ROOT_DIR=\"${PROJECT_SOURCE_DIR}/../\"")
 add_definitions("-DFAST_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}/\"")
-message("-DFAST_TEST_DATA_DIR=${FAST_TEST_DATA_DIR}")
-add_definitions("-DFAST_TEST_DATA_DIR=${FAST_TEST_DATA_DIR}")
+# Remove any existing "
+string(REPLACE "\"" "" FAST_TEST_DATA_DIR ${FAST_TEST_DATA_DIR})
+add_definitions("-DFAST_TEST_DATA_DIR=\"${FAST_TEST_DATA_DIR}\"")
 
 #### Set up library dependencies
 set(FAST_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR})
