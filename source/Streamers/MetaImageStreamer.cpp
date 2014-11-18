@@ -130,8 +130,9 @@ void MetaImageStreamer::producerStream() {
 
 MetaImageStreamer::~MetaImageStreamer() {
     if(mStreamIsStarted) {
-        std::cout << "Joining the thread" << std::endl;
-        thread->join();
+        if(thread->get_id() != boost::this_thread::get_id()) { // avoid deadlock
+            thread->join();
+        }
         delete thread;
     }
 }
