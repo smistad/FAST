@@ -15,9 +15,12 @@ void WindowWidget::keyPressEvent(QKeyEvent* event) {
 }
 
 void WindowWidget::closeEvent(QCloseEvent* event) {
-    // This event occurs when window is closed
-    mView->quit();
-    mEventLoop->quit();
+    // Make sure event is not quit twice
+    if(!mView->hasQuit()) {
+        // This event occurs when window is closed or timeout is reached
+        mView->quit();
+        mEventLoop->quit();
+    }
 }
 
 void WindowWidget::mouseMoveEvent(QMouseEvent* event) {
