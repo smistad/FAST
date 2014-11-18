@@ -530,6 +530,7 @@ void Image::create3DImage(
         mCLImagesIsUpToDate[clDevice] = true;
         mCLImagesAccess[clDevice] = false;
     }
+    updateModifiedTimestamp();
 }
 
 void Image::create3DImage(
@@ -577,6 +578,7 @@ void Image::create3DImage(
         mCLImagesIsUpToDate[clDevice] = true;
         mCLImagesAccess[clDevice] = false;
     }
+    updateModifiedTimestamp();
 }
 
 void Image::create2DImage(
@@ -613,6 +615,7 @@ void Image::create2DImage(
         mCLImagesIsUpToDate[clDevice] = true;
         mCLImagesAccess[clDevice] = false;
     }
+    updateModifiedTimestamp();
 }
 
 
@@ -662,6 +665,7 @@ void Image::create2DImage(
         mCLImagesIsUpToDate[clDevice] = true;
         mCLImagesAccess[clDevice] = false;
     }
+    updateModifiedTimestamp();
 }
 
 bool Image::isInitialized() const {
@@ -1234,6 +1238,7 @@ void Image::createFromImage(
     setOffset(image->getOffset());
     setCenterOfRotation(image->getCenterOfRotation());
     setTransformMatrix(image->getTransformMatrix());
+    updateModifiedTimestamp();
 }
 
 } // end namespace fast;
