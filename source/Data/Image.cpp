@@ -502,15 +502,15 @@ void Image::create3DImage(
         DataType type,
         unsigned int nrOfComponents,
         ExecutionDevice::pointer device) {
-    if (isInitialized())
-        throw Exception(
-                "Can not use createImage on an object that is already initialized.");
+
+    SceneGraph &graph = SceneGraph::getInstance();
+    graph.removeDataNode(mPtr); // remove old node if it exists
+    freeAll(); // delete any old data
 
     mWidth = width;
     mHeight = height;
     mDepth = depth;
     mBoundingBox = BoundingBox(Float3(width, height, depth));
-    SceneGraph &graph = SceneGraph::getInstance();
     SceneGraphNode::pointer node = graph.addDataNodeToNewRoot(mPtr);
     mDimensions = 3;
     mType = type;
@@ -540,15 +540,15 @@ void Image::create3DImage(
         unsigned int nrOfComponents,
         ExecutionDevice::pointer device,
         const void* data) {
-    if (isInitialized())
-        throw Exception(
-                "Can not use createImage on an object that is already initialized.");
+
+    SceneGraph &graph = SceneGraph::getInstance();
+    graph.removeDataNode(mPtr); // remove old node if it exists
+    freeAll(); // delete any old data
 
     mWidth = width;
     mHeight = height;
     mDepth = depth;
     mBoundingBox = BoundingBox(Float3(width, height, depth));
-    SceneGraph &graph = SceneGraph::getInstance();
     SceneGraphNode::pointer node = graph.addDataNodeToNewRoot(mPtr);
     mDimensions = 3;
     mType = type;
@@ -585,14 +585,14 @@ void Image::create2DImage(
         DataType type,
         unsigned int nrOfComponents,
         ExecutionDevice::pointer device) {
-    if (isInitialized())
-        throw Exception(
-                "Can not use createImage on an object that is already initialized.");
+
+    SceneGraph &graph = SceneGraph::getInstance();
+    graph.removeDataNode(mPtr); // remove old node if it exists
+    freeAll(); // delete any old data
 
     mWidth = width;
     mHeight = height;
     mBoundingBox = BoundingBox(Float3(width, height, 0));
-    SceneGraph &graph = SceneGraph::getInstance();
     SceneGraphNode::pointer node = graph.addDataNodeToNewRoot(mPtr);
     mDepth = 1;
     mDimensions = 2;
@@ -625,15 +625,15 @@ void Image::create2DImage(
         unsigned int nrOfComponents,
         ExecutionDevice::pointer device,
         const void* data) {
-    if (isInitialized())
-        throw Exception(
-                "Can not use createImage on an object that is already initialized.");
+
+    SceneGraph &graph = SceneGraph::getInstance();
+    graph.removeDataNode(mPtr); // remove old node if it exists
+    freeAll(); // delete any old data
 
     mWidth = width;
     mHeight = height;
     mDepth = 1;
     mBoundingBox = BoundingBox(Float3(width, height, 0));
-    SceneGraph &graph = SceneGraph::getInstance();
     SceneGraphNode::pointer node = graph.addDataNodeToNewRoot(mPtr);
     mDimensions = 2;
     mType = type;

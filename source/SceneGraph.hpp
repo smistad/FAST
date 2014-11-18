@@ -40,6 +40,7 @@ class SceneGraph {
         SceneGraphNode::pointer getDataNode(DataObject::pointer data);
         SceneGraphNode::pointer getDataNode(WeakPointer<DataObject> data);
         void removeDataNode(WeakPointer<DataObject> data);
+        void removeDataNode(DataObject::pointer data);
         void removeNode(SceneGraphNode::pointer node);
         LinearTransformation getLinearTransformationBetweenNodes(SceneGraphNode::pointer nodeA, SceneGraphNode::pointer nodeB);
         LinearTransformation getLinearTransformationFromNode(SceneGraphNode::pointer node);

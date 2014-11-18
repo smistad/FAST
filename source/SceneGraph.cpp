@@ -121,7 +121,13 @@ SceneGraphNode::pointer SceneGraph::getDataNode(
 }
 
 void SceneGraph::removeDataNode(WeakPointer<DataObject> data) {
-    removeNode(getDataNode(data));
+    if(mDataToNodesMap.count(WeakPointer<DataObject>(data)) > 0) { // if node exists
+        removeNode(getDataNode(data));
+    }
+}
+
+void SceneGraph::removeDataNode(DataObject::pointer data) {
+    removeDataNode(WeakPointer<DataObject>(data));
 }
 
 void SceneGraph::removeNode(SceneGraphNode::pointer node) {

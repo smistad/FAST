@@ -1152,11 +1152,11 @@ TEST_CASE("Requesting write access to a 3D image that has been released should n
     }
 }
 
-TEST_CASE("Initialize an image twice throws exception", "[fast][image]") {
+TEST_CASE("Initialize an image twice does not throw exception", "[fast][image]") {
     Image::pointer image = Image::New();
 
     image->create2DImage(256, 256, TYPE_FLOAT, 1, Host::New());
-    CHECK_THROWS(image->create2DImage(256, 256, TYPE_FLOAT, 1, Host::New()));
+    CHECK_NOTHROW(image->create2DImage(256, 256, TYPE_FLOAT, 1, Host::New()));
 }
 
 TEST_CASE("Calling calculate max or min intensity on uninitialized image throws an exception", "[fast][image]") {
