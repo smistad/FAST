@@ -15,6 +15,8 @@ bool PointSet::isAnyDataBeingAccessed() const {
 }
 
 PointSetAccess PointSet::getAccess(accessType access) {
+    update();
+
     if(mIsBeingWrittenTo)
         throw Exception("Requesting access to a surface that is already being written to.");
     if(access == ACCESS_READ_WRITE) {

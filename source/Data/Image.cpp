@@ -226,6 +226,7 @@ void Image::updateOpenCLImageData(OpenCLDevice::pointer device) {
 OpenCLBufferAccess Image::getOpenCLBufferAccess(
         accessType type,
         OpenCLDevice::pointer device) {
+    update();
 
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
@@ -390,6 +391,7 @@ void Image::setAllDataToOutOfDate() {
 OpenCLImageAccess2D Image::getOpenCLImageAccess2D(
         accessType type,
         OpenCLDevice::pointer device) {
+    update();
 
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
@@ -422,6 +424,7 @@ OpenCLImageAccess2D Image::getOpenCLImageAccess2D(
 OpenCLImageAccess3D Image::getOpenCLImageAccess3D(
         accessType type,
         OpenCLDevice::pointer device) {
+    update();
 
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
@@ -470,6 +473,7 @@ Image::Image() {
 }
 
 ImageAccess Image::getImageAccess(accessType type) {
+    update();
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
     if(mImageIsBeingWrittenTo)

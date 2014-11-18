@@ -93,6 +93,7 @@ bool Surface::isAnyDataBeingAccessed() {
 VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
         accessType type,
         OpenCLDevice::pointer device) {
+    update();
     if(!mIsInitialized)
         throw Exception("Surface has not been initialized.");
 
@@ -204,8 +205,9 @@ bool operator==(const SurfaceVertex& a, const SurfaceVertex& b) {
 }
 
 SurfacePointerAccess Surface::getSurfacePointerAccess(accessType type) {
+    update();
     if(!mIsInitialized) {
-        this->update();
+        throw Exception("Surface has not been initialized.");
     }
     if(mSurfaceIsBeingWrittenTo)
         throw Exception("Requesting access to a surface that is already being written to.");
