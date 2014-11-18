@@ -94,9 +94,9 @@ void ImageStreamer::producerStream() {
 
 ImageStreamer::~ImageStreamer() {
     if(mStreamIsStarted) {
-        std::cout << "Joining the thread" << std::endl;
-        // TODO stop thread as well
-        thread->join();
+        if(thread->get_id() != boost::this_thread::get_id()) { // avoid deadlock
+            thread->join();
+        }
         delete thread;
     }
 }
