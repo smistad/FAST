@@ -8,7 +8,7 @@ void WindowWidget::keyPressEvent(QKeyEvent* event) {
     case Qt::Key_Q:
     case Qt::Key_Escape:
         close();
-        mEventLoop->quit();
+        return;
         break;
     }
     mView->keyPressEvent(event);

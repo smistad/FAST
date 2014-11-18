@@ -78,7 +78,6 @@ void SimpleWindow::runMainLoop() {
         timer->start(mTimeout);
         timer->setSingleShot(true);
         mWidget->connect(timer,SIGNAL(timeout()),mWidget,SLOT(close()));
-        mWidget->connect(timer,SIGNAL(timeout()),mEventLoop,SLOT(quit()));
     }
 
     mWidget->setEventLoop(mEventLoop);
