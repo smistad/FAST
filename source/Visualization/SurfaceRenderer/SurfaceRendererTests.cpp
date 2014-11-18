@@ -23,7 +23,7 @@ TEST_CASE("SurfaceRenderer on LV surface model", "[fast][SurfaceRenderer][visual
 TEST_CASE("SurfaceRenderer on stream of surfaces", "[fast][SurfaceRenderer][visual]") {
     CHECK_NOTHROW(
         MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
-        mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
+        mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
         SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
         extractor->setInput(mhdStreamer->getOutput());
         extractor->setThreshold(200);

@@ -34,7 +34,7 @@ TEST_CASE("Wrong filename format given to MetaImageStreamer", "[fast][MetaImageS
 
 TEST_CASE("MetaImageStreamer streaming to host with streaming mode NEWEST set", "[fast][MetaImageStreamer]") {
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
-    mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
+    mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     mhdStreamer->setDevice(Host::New());
     DynamicImage::pointer image = mhdStreamer->getOutput();
@@ -55,7 +55,7 @@ TEST_CASE("MetaImageStreamer streaming to host with streaming mode NEWEST set", 
 
 TEST_CASE("MetaImageStreamer streaming to host with streaming mode PROCESS_ALL set", "[fast][MetaImageStreamer]") {
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
-    mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
+    mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     mhdStreamer->setDevice(Host::New());
     DynamicImage::pointer image = mhdStreamer->getOutput();
@@ -76,7 +76,7 @@ TEST_CASE("MetaImageStreamer streaming to host with streaming mode PROCESS_ALL s
 
 TEST_CASE("MetaImageStreamer streaming to host with streaming mode STORE_ALL set", "[fast][MetaImageStreamer]") {
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
-    mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
+    mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
     mhdStreamer->setDevice(Host::New());
     DynamicImage::pointer image = mhdStreamer->getOutput();
@@ -100,7 +100,7 @@ TEST_CASE("MetaImageStreamer streaming to OpenCL device with streaming mode NEWE
     OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
     mhdStreamer->setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
-    mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
+    mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setDevice(device);
     DynamicImage::pointer image = mhdStreamer->getOutput();
     unsigned long currentTimestamp = image->getTimestamp();
@@ -122,7 +122,7 @@ TEST_CASE("MetaImageStreamer streaming to OpenCL device with streaming mode PROC
     DeviceManager& deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
-    mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
+    mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setDevice(device);
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     DynamicImage::pointer image = mhdStreamer->getOutput();
@@ -145,7 +145,7 @@ TEST_CASE("MetaImageStreamer streaming to OpenCL device with streaming mode STOR
     DeviceManager& deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
-    mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
+    mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setDevice(device);
     mhdStreamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
     DynamicImage::pointer image = mhdStreamer->getOutput();
