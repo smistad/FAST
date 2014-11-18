@@ -24,6 +24,8 @@ class View : public QGLWidget, public ProcessObject {
         void set2DMode();
         void set3DMode();
         void updateAllRenderers();
+        void quit();
+        bool hasQuit() const;
 
 		 Float3 cameraPosition;
 		 Float3 rotationPoint;
@@ -50,6 +52,7 @@ class View : public QGLWidget, public ProcessObject {
        
         Float3 originalCameraPosition;
         
+        bool mQuit;
         
 		float zNear, zFar;
         float fieldOfViewX, fieldOfViewY;

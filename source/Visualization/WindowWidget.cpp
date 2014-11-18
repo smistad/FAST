@@ -16,6 +16,7 @@ void WindowWidget::keyPressEvent(QKeyEvent* event) {
 
 void WindowWidget::closeEvent(QCloseEvent* event) {
     // This event occurs when window is closed
+    mView->quit();
     mEventLoop->quit();
 }
 

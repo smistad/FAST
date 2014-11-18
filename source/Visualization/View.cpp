@@ -52,6 +52,7 @@ View::View() {
     mLeftMouseButtonIsPressed = false;
     mMiddleMouseButtonIsPressed = false;
     thread = NULL;
+    mQuit = false;
 
     mFramerate = 25;
     // Set up a timer that will call update on this object at a regular interval
@@ -66,6 +67,13 @@ View::View() {
 
 }
 
+void View::quit() {
+    mQuit = true;
+}
+
+bool View::hasQuit() const {
+    return mQuit;
+}
 
 
 void View::setMaximumFramerate(unsigned int framerate) {
@@ -85,7 +93,14 @@ void View::execute() {
  * Dummy function to get into the class again
  */
 inline void stubStreamThread(View* view) {
-    view->updateAllRenderers();
+    try {
+        view->updateAllRenderers();
+    } catch(Exception &e) {
+        // If window has been killed, pipeline is stopped and should ignore any exceptions
+        if(!view->hasQuit()) {
+            throw e;
+        }
+    }
 }
 
 void View::updateAllRenderers() {

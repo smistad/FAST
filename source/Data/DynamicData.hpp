@@ -115,6 +115,7 @@ typename T::pointer DynamicData<T>::getCurrentFrame() {
     mStreamMutex.lock();
     if(mFrames.size() == 0 || mFrames.size() <= mCurrentFrame) {
         if(!streamer.isValid()) {
+            mStreamMutex.unlock();
             throw Exception("Streamer does not exist (anymore), stop.");
         } else {
             if(streamer->hasReachedEnd()) {
