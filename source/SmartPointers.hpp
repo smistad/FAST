@@ -94,7 +94,8 @@ class SharedPointer {
         }
 
         bool isValid() {
-            return mSmartPtr != NULL;
+            // Check if smart pointer actually points to something
+            return mSmartPtr.get() != NULL;
         }
 
         operator unsigned long int() const {

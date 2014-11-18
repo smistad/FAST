@@ -31,7 +31,7 @@ TEST_CASE("SurfaceRenderer on stream of surfaces", "[fast][SurfaceRenderer][visu
         renderer->setInput(extractor->getOutput());
         SimpleWindow::pointer window = SimpleWindow::New();
         window->addRenderer(renderer);
-        window->setTimeout(4000);
+        window->setTimeout(1000);
         window->runMainLoop();
     );
 }

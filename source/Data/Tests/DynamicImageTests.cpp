@@ -27,13 +27,6 @@ TEST_CASE("New dynamic image has size 0 and has not reached end", "[fast][Dynami
     CHECK(image->getSize() == 0);
 }
 
-TEST_CASE("Dynamic image must have streamer set before it can be used", "[fast][DynamicImage]") {
-    DynamicImage::pointer image = DynamicImage::New();
-    Image::pointer frame = Image::New();
-    CHECK_THROWS(image->addFrame(frame));
-    CHECK_THROWS(image->hasReachedEnd());
-}
-
 TEST_CASE("Dynamic image can get and set streamer", "[fast][DynamicImage]") {
     DynamicImage::pointer image = DynamicImage::New();
     DummyStreamer::pointer streamer = DummyStreamer::New();

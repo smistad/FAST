@@ -131,7 +131,6 @@ void MetaImageStreamer::producerStream() {
 MetaImageStreamer::~MetaImageStreamer() {
     if(mStreamIsStarted) {
         std::cout << "Joining the thread" << std::endl;
-        // TODO stop thread as well
         thread->join();
         delete thread;
     }

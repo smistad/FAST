@@ -58,11 +58,16 @@ class DynamicData : public virtual DataObject {
 
 template <class T>
 typename T::pointer DynamicData<T>::getNextFrame() {
+    Streamer::pointer streamer = mStreamer.lock();
+    if(!streamer.isValid()) {
+        // If streamer has been deleted, return the current frame instead
+        return getCurrentFrame();
+    }
     mStreamMutex.lock();
 
     // Check if no frames are available
     if(mFrames.size() == 0 || mFrames.size() <= mCurrentFrame) {
-        if(mStreamer.lock()->hasReachedEnd()) {
+        if(streamer->hasReachedEnd()) {
             mStreamMutex.unlock();
             throw Exception("Streamer has reached the end.");
         } else {
@@ -73,7 +78,7 @@ typename T::pointer DynamicData<T>::getNextFrame() {
 
     // Get the frame
     typename T::pointer ret;
-    if(mStreamer.lock()->getStreamingMode() == STREAMING_MODE_STORE_ALL_FRAMES) {
+    if(streamer->getStreamingMode() == STREAMING_MODE_STORE_ALL_FRAMES) {
         // Get the next one
         ret = mFrames[mCurrentFrame];
         mCurrentFrame++;
@@ -83,16 +88,16 @@ typename T::pointer DynamicData<T>::getNextFrame() {
     }
 
     // Remove the frame from collection if necessary
-    if(mStreamer.lock()->getStreamingMode() == STREAMING_MODE_PROCESS_ALL_FRAMES) {
+    if(streamer->getStreamingMode() == STREAMING_MODE_PROCESS_ALL_FRAMES) {
         // Remove the frame that was read, the one in the front
         mFrames.erase(mFrames.begin());
     }
 
     // Update modified timestamp so that a process object will read the next frame
-    if(mStreamer.lock()->getStreamingMode() == STREAMING_MODE_STORE_ALL_FRAMES) {
+    if(streamer->getStreamingMode() == STREAMING_MODE_STORE_ALL_FRAMES) {
         if(mCurrentFrame < mFrames.size())
             updateModifiedTimestamp();
-    } else if(mStreamer.lock()->getStreamingMode() == STREAMING_MODE_PROCESS_ALL_FRAMES) {
+    } else if(streamer->getStreamingMode() == STREAMING_MODE_PROCESS_ALL_FRAMES) {
         if(mFrames.size() > 0)
             updateModifiedTimestamp();
     }
@@ -106,14 +111,19 @@ typename T::pointer DynamicData<T>::getNextFrame() {
 
 template <class T>
 typename T::pointer DynamicData<T>::getCurrentFrame() {
+    Streamer::pointer streamer = mStreamer.lock();
     mStreamMutex.lock();
     if(mFrames.size() == 0 || mFrames.size() <= mCurrentFrame) {
-        if(mStreamer.lock()->hasReachedEnd()) {
-            mStreamMutex.unlock();
-            throw Exception("Streamer has reached the end.");
+        if(!streamer.isValid()) {
+            throw Exception("Streamer does not exist (anymore), stop.");
         } else {
-            mStreamMutex.unlock();
-            throw Exception("This exception should not have occured. ");
+            if(streamer->hasReachedEnd()) {
+                mStreamMutex.unlock();
+                throw Exception("Streamer has reached the end.");
+            } else {
+                mStreamMutex.unlock();
+                throw Exception("This exception should not have occured. ");
+            }
         }
     }
     typename T::pointer ret = mFrames[mCurrentFrame];
@@ -123,9 +133,13 @@ typename T::pointer DynamicData<T>::getCurrentFrame() {
 
 template <class T>
 void DynamicData<T>::addFrame(typename T::pointer frame) {
-    if(!mStreamer.lock().isValid())
-        throw Exception("A DynamicImage must have a streamer set before it can be used.");
+    Streamer::pointer streamer = mStreamer.lock();
+    if(!streamer.isValid()) {
+        //throw Exception("A DynamicImage must have a streamer set before it can be used.");
+        return;
+    }
     mStreamMutex.lock();
+
     updateModifiedTimestamp();
     if(mStreamer.lock()->getStreamingMode() == STREAMING_MODE_NEWEST_FRAME_ONLY) {
         mFrames.clear();
@@ -160,24 +174,24 @@ Streamer::pointer DynamicData<T>::getStreamer() {
 
 template <class T>
 bool DynamicData<T>::hasReachedEnd() {
-    mStreamMutex.lock();
-    if(!mStreamer.lock().isValid()) {
-        mStreamMutex.unlock();
+    Streamer::pointer streamer = mStreamer.lock();
+    if(!streamer.isValid()) {
         throw Exception("A DynamicData must have a streamer set before it can be used.");
     }
+    mStreamMutex.lock();
     // Check if has reached end can be changed to true
     if(!mHasReachedEnd) {
-        switch(mStreamer.lock()->getStreamingMode()) {
+        switch(streamer->getStreamingMode()) {
         case STREAMING_MODE_NEWEST_FRAME_ONLY:
-            if(mStreamer.lock()->hasReachedEnd())
+            if(streamer->hasReachedEnd())
                 mHasReachedEnd = true;
             break;
         case STREAMING_MODE_PROCESS_ALL_FRAMES:
-            if(mStreamer.lock()->hasReachedEnd() && mFrames.size() == 0)
+            if(streamer->hasReachedEnd() && mFrames.size() == 0)
                 mHasReachedEnd = true;
             break;
         case STREAMING_MODE_STORE_ALL_FRAMES:
-            if(mStreamer.lock()->hasReachedEnd() && mCurrentFrame == mFrames.size())
+            if(streamer->hasReachedEnd() && mCurrentFrame == mFrames.size())
                 mHasReachedEnd = true;
             break;
         }
