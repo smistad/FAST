@@ -79,6 +79,7 @@ add_definitions("-DFAST_ROOT_DIR=\"${PROJECT_SOURCE_DIR}/../\"")
 add_definitions("-DFAST_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}/\"")
 # Remove any existing "
 string(REPLACE "\"" "" FAST_TEST_DATA_DIR ${FAST_TEST_DATA_DIR})
+message("-DFAST_TEST_DATA_DIR=\"${FAST_TEST_DATA_DIR}\"")
 add_definitions("-DFAST_TEST_DATA_DIR=\"${FAST_TEST_DATA_DIR}\"")
 
 #### Set up library dependencies
