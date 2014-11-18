@@ -26,6 +26,7 @@ DeviceManager& DeviceManager::getInstance() {
 
 std::vector<OpenCLDevice::pointer> getDevices(oul::DeviceCriteria criteria, bool enableVisualization) {
     unsigned long * glContext = NULL;
+    QGLWidget* widget = NULL;
     if(enableVisualization) {
         // TODO: this can be simplified to just use the QGLContext class instead
         // Create GL context
@@ -34,7 +35,7 @@ std::vector<OpenCLDevice::pointer> getDevices(oul::DeviceCriteria criteria, bool
     // Make sure only one QApplication is created
     SimpleWindow::initializeQtApp();
 
-    QGLWidget* widget = new QGLWidget;
+    widget = new QGLWidget;
 
     // Create GL context
     QGLContext* context = new QGLContext(QGLFormat::defaultFormat(), widget); // by including widget here the context becomes valid
@@ -63,9 +64,8 @@ std::vector<OpenCLDevice::pointer> getDevices(oul::DeviceCriteria criteria, bool
 
 		// Need a drawable for this to work
 		QGLWidget* widget = new QGLWidget;
-		widget->show();
+		widget->makeCurrent();
 
-		widget->hide(); // TODO should probably delete widget as well
 		std::cout << "created a drawable" << std::endl;
 		HDC    hdc = wglGetCurrentDC();
 		std::cout << "HDC in DeviceManager is: " << hdc << std::endl;
@@ -84,9 +84,7 @@ std::vector<OpenCLDevice::pointer> getDevices(oul::DeviceCriteria criteria, bool
 
 		// Need a drawable for this to work
 		QGLWidget* widget = new QGLWidget;
-		widget->show();
-
-		widget->hide(); // TODO should probably delete widget as well
+		widget->makeCurrent();
 		std::cout << "created a drawable" << std::endl;
 
         glContext = (long unsigned int*)glXGetCurrentContext();
@@ -106,6 +104,9 @@ std::vector<OpenCLDevice::pointer> getDevices(oul::DeviceCriteria criteria, bool
         OpenCLDevice * device = new OpenCLDevice(deviceVector, glContext);
         executionDevices.push_back(OpenCLDevice::pointer(device));
     }}
+
+    // Cleanup widget, widget has to be alive when creating device
+    delete widget;
 
     return executionDevices;
 }
