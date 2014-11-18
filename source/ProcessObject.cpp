@@ -23,13 +23,14 @@ void ProcessObject::update() {
     // has been modified, execute is called
     if(this->mIsModified || aParentHasBeenModified) {
         this->mRuntimeManager->startRegularTimer("execute");
+        // set isModified to false before executing to avoid recursive update calls
+        this->mIsModified = false;
         this->preExecute();
         this->execute();
         this->postExecute();
         if(this->mRuntimeManager->isEnabled())
             this->waitToFinish();
         this->mRuntimeManager->stopRegularTimer("execute");
-        this->mIsModified = false;
     }
 }
 
@@ -110,7 +111,7 @@ void ProcessObject::setInputData(uint inputNumber,
     // Default values:
     // Input is by default reuiqred and will be relased after execute
     mRequiredInputs[inputNumber] = true;
-    mReleaseAfterExecute[inputNumber] = true;
+    mReleaseAfterExecute[inputNumber] = false;
 
     // TODO if another input with same number existed, release it and remove it as parent
     if(mInputs.count(inputNumber) > 0) {
