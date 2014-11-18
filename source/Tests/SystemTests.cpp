@@ -78,7 +78,7 @@ TEST_CASE("Simple pipeline with MetaImageStreamer, GaussianSmoothingFilter, Surf
     );
 }
 
-TEST_CASE("Simple pipeline with MetaImageStreamer, GaussianSmoothingFilter and SliceRenderer on Host", "[fast][SystemTests]") {
+TEST_CASE("Simple pipeline with MetaImageStreamer, GaussianSmoothingFilter and SliceRenderer on Host", "[fast][SystemTests][visual]") {
     ExecutionDevice::pointer host = Host::New();
     MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US-3Dt/US-3Dt_#.mhd");
