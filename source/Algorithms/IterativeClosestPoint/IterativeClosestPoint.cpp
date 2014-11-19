@@ -9,7 +9,7 @@ IterativeClosestPoint::IterativeClosestPoint() {
     setInputRequired(0, true);
     setInputRequired(1, true);
     mMaxIterations = 100;
-    mMinErrorChange = 0.0001;
+    mMinErrorChange = 0.001;
     mError = -1;
 }
 
@@ -78,10 +78,18 @@ void IterativeClosestPoint::execute() {
     // These matrices are Nx3
     MatrixXf fixedPoints = accessFixedSet.getPointSetAsMatrix();
     MatrixXf movingPoints = accessMovingSet.getPointSetAsMatrix();
-    const uint nrOfPoints = ((PointSet::pointer)getInputData(1))->getNrOfPoints();
+
+    // Want to choose the smallest one as moving
+    bool invertTransform = false;
+    if(fixedPoints.cols() < movingPoints.cols()) {
+        MatrixXf temp = fixedPoints;
+        fixedPoints = movingPoints;
+        movingPoints = temp;
+        invertTransform = true;
+    }
     do {
         previousError = error;
-        MatrixXf movedPoints = currentTransformation*movingPoints.colwise().homogeneous();
+        MatrixXf movedPoints = currentTransformation*(movingPoints.colwise().homogeneous());
 
         // Match closest points using current transformation
         MatrixXf rearrangedFixedPoints = rearrangeMatrixToClosestPoints(
@@ -102,32 +110,33 @@ void IterativeClosestPoint::execute() {
         Matrix3f R = svd.matrixV()*svd.matrixU().transpose();
 
         // Estimate translation as t = centroid fixed - R*centroid moving
-        Vector3f T = centroidFixed - R*centroidMoving;
+        //Vector3f T = centroidFixed - R*centroidMoving;
+        Vector3f T = centroidFixed - centroidMoving;
 
         // Update current transformation
         Eigen::Transform<float,3,Eigen::Affine> rotationTransform = Eigen::Transform<float,3,Eigen::Affine>::Identity();
-        rotationTransform.linear() = R;
+        //rotationTransform.linear() = R;
         rotationTransform.translation() = T;
         currentTransformation = rotationTransform*currentTransformation;
 
-        // Calculate error
-        MatrixXf distance = rearrangedFixedPoints - currentTransformation*movingPoints.colwise().homogeneous();
+        // Calculate RMS error
+        MatrixXf distance = rearrangedFixedPoints - currentTransformation*(movingPoints.colwise().homogeneous());
         error = 0;
-        for(uint i = 0; i < nrOfPoints; i++) {
-            error += distance.col(i).norm();
+        for(uint i = 0; i < distance.cols(); i++) {
+            error += pow(distance.col(i).norm(),2);
         }
-        error /= nrOfPoints;
+        error = sqrt(error / distance.cols());
 
         iterations++;
         std::cout << "Error: " << error << std::endl;
         // To continue, change in error has to be above min error change and nr of iterations less than max iterations
-    } while(fabs(previousError-error) > mMinErrorChange && iterations <= mMaxIterations);
+    } while(previousError-error > mMinErrorChange && iterations < mMaxIterations);
+    if(invertTransform)
+        currentTransformation = currentTransformation.inverse();
     mError = error;
     std::cout << "Finished after " << iterations << " iterations" << std::endl;
-    std::cout << "Final transform" << std::endl;
+    std::cout << "Final transform:" << std::endl;
     std::cout << currentTransformation.affine() << std::endl;
-    std::cout << "Moved points: " << std::endl;
-    //std::cout << currentTransformation*movingPoints.colwise().homogeneous() << std::endl;
     mTransformation.setTransform(currentTransformation);
 }
 
