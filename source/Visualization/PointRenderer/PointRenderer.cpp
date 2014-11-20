@@ -19,13 +19,11 @@ void PointRenderer::draw() {
     PointSetAccess access = points->getAccess(ACCESS_READ);
     MatrixXf pointMatrix = access.getPointSetAsMatrix();
 
-    /*
     SceneGraph& graph = SceneGraph::getInstance();
     SceneGraphNode::pointer node = graph.getDataNode(points);
     LinearTransformation transform = graph.getLinearTransformationFromNode(node);
 
     glMultMatrixf(transform.getTransform().data());
-    */
 
     glPointSize(mPointSize);
     glColor3f(1, 0, 0);
@@ -40,14 +38,11 @@ void PointRenderer::draw() {
 
 BoundingBox PointRenderer::getBoundingBox() {
     BoundingBox inputBoundingBox = getInputData(0)->getBoundingBox();
-    /*
     SceneGraph& graph = SceneGraph::getInstance();
     SceneGraphNode::pointer node = graph.getDataNode(getInputData(0));
     LinearTransformation transform = graph.getLinearTransformationFromNode(node);
     BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
     return transformedBoundingBox;
-    */
-    return inputBoundingBox;
 }
 
 PointRenderer::PointRenderer() {
