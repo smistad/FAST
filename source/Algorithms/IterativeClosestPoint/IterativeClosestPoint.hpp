@@ -10,8 +10,10 @@ namespace fast {
 class IterativeClosestPoint : public ProcessObject {
     FAST_OBJECT(IterativeClosestPoint)
     public:
+        typedef enum { RIGID, TRANSLATION } TransformationType;
         void setFixedPointSet(const PointSet::pointer fixedSet);
         void setMovingPointSet(const PointSet::pointer movingSet);
+        void setTransformationType(const IterativeClosestPoint::TransformationType type);
         LinearTransformation getOutputTransformation();
         float getError() const;
     private:
@@ -22,6 +24,7 @@ class IterativeClosestPoint : public ProcessObject {
         uint mMaxIterations;
         float mError;
         LinearTransformation mTransformation;
+        IterativeClosestPoint::TransformationType mTransformationType;
 };
 
 } // end namespace fast

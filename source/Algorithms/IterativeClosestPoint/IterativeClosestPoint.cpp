@@ -9,8 +9,9 @@ IterativeClosestPoint::IterativeClosestPoint() {
     setInputRequired(0, true);
     setInputRequired(1, true);
     mMaxIterations = 100;
-    mMinErrorChange = 0.001;
+    mMinErrorChange = 1e-5;
     mError = -1;
+    mTransformationType = IterativeClosestPoint::RIGID;
 }
 
 void IterativeClosestPoint::setFixedPointSet(
@@ -35,7 +36,7 @@ float IterativeClosestPoint::getError() const {
  * Create a new matrix which is matrix A rearranged.
  * This matrix has the same size as B
  */
-MatrixXf rearrangeMatrixToClosestPoints(const MatrixXf A, const MatrixXf B) {
+inline MatrixXf rearrangeMatrixToClosestPoints(const MatrixXf A, const MatrixXf B) {
     MatrixXf result = MatrixXf::Constant(B.rows(), B.cols(), 0);
 
     // For each point in B, find the closest point in A
@@ -63,6 +64,12 @@ MatrixXf rearrangeMatrixToClosestPoints(const MatrixXf A, const MatrixXf B) {
  */
 Vector3f getCentroid(const MatrixXf m) {
     return m.rowwise().sum() / m.cols();
+}
+
+void IterativeClosestPoint::setTransformationType(
+        const IterativeClosestPoint::TransformationType type) {
+    mTransformationType = type;
+    mIsModified = true;
 }
 
 void IterativeClosestPoint::execute() {
@@ -99,24 +106,31 @@ void IterativeClosestPoint::execute() {
         Vector3f centroidFixed = getCentroid(rearrangedFixedPoints);
         Vector3f centroidMoving = getCentroid(movedPoints);
 
-        // Create correlation matrix H
-        MatrixXf H = (movedPoints.colwise()-centroidMoving)*
-                (rearrangedFixedPoints.colwise()-centroidFixed).transpose();
+        Eigen::Transform<float,3,Eigen::Affine> rotationTransform = Eigen::Transform<float,3,Eigen::Affine>::Identity();
 
-        // Do SVD on H
-        Eigen::JacobiSVD<Eigen::MatrixXf> svd(H, Eigen::ComputeFullU | Eigen::ComputeFullV);
+        if(mTransformationType == IterativeClosestPoint::RIGID) {
+            // Create correlation matrix H
+            MatrixXf H = (movedPoints.colwise()-centroidMoving)*
+                    (rearrangedFixedPoints.colwise()-centroidFixed).transpose();
 
-        // Estimate rotation as R=V*U.transpose()
-        Matrix3f R = svd.matrixV()*svd.matrixU().transpose();
+            // Do SVD on H
+            Eigen::JacobiSVD<Eigen::MatrixXf> svd(H, Eigen::ComputeFullU | Eigen::ComputeFullV);
 
-        // Estimate translation as t = centroid fixed - R*centroid moving
-        //Vector3f T = centroidFixed - R*centroidMoving;
-        Vector3f T = centroidFixed - centroidMoving;
+            // Estimate rotation as R=V*U.transpose()
+            Matrix3f R = svd.matrixV()*svd.matrixU().transpose();
+
+            // Estimate translation
+            Vector3f T = centroidFixed - R*centroidMoving;
+
+            rotationTransform.linear() = R;
+            rotationTransform.translation() = T;
+        } else {
+            // Only translation
+            Vector3f T = centroidFixed - centroidMoving;
+            rotationTransform.translation() = T;
+        }
 
         // Update current transformation
-        Eigen::Transform<float,3,Eigen::Affine> rotationTransform = Eigen::Transform<float,3,Eigen::Affine>::Identity();
-        //rotationTransform.linear() = R;
-        rotationTransform.translation() = T;
         currentTransformation = rotationTransform*currentTransformation;
 
         // Calculate RMS error
@@ -135,8 +149,6 @@ void IterativeClosestPoint::execute() {
         currentTransformation = currentTransformation.inverse();
     mError = error;
     std::cout << "Finished after " << iterations << " iterations" << std::endl;
-    std::cout << "Final transform:" << std::endl;
-    std::cout << currentTransformation.affine() << std::endl;
     mTransformation.setTransform(currentTransformation);
 }
 
