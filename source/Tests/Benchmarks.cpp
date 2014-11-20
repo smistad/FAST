@@ -13,6 +13,10 @@
 #include "ImageImporter.hpp"
 #include "ImageRenderer.hpp"
 #include "BinaryThresholding.hpp"
+#include "VTKPointSetFileImporter.hpp"
+#include "IterativeClosestPoint.hpp"
+#include "PointRenderer.hpp"
+#include "SceneGraph.hpp"
 
 using namespace fast;
 
@@ -176,5 +180,47 @@ TEST_CASE("Pipeline C", "[fast][benchmark][visual]") {
             thresholding->getRuntime()->getSum() +
             skeletonization->getRuntime()->getSum() +
             renderer->getRuntime()->getSum();
+    std::cout << "Total runtime was: " << total << std::endl;
+}
+
+TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
+    VTKPointSetFileImporter::pointer importerA = VTKPointSetFileImporter::New();
+    importerA->setFilename(std::string(FAST_TEST_DATA_DIR) + "Surface_LV.vtk");
+    importerA->enableRuntimeMeasurements();
+    VTKPointSetFileImporter::pointer importerB = VTKPointSetFileImporter::New();
+    importerB->setFilename("/home/smistad/Surface_LV_Transformed.vtk");
+    importerB->enableRuntimeMeasurements();
+
+    IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
+    icp->setMovingPointSet(importerA->getOutput());
+    icp->setFixedPointSet(importerB->getOutput());
+    icp->enableRuntimeMeasurements();
+    icp->update();
+    std::cout << icp->getOutputTransformation().getTransform().affine() << std::endl;
+
+    PointRenderer::pointer rendererA = PointRenderer::New();
+    rendererA->setInput(importerA->getOutput());
+    rendererA->enableRuntimeMeasurements();
+    PointRenderer::pointer rendererB = PointRenderer::New();
+    rendererB->setInput(importerB->getOutput());
+    rendererB->enableRuntimeMeasurements();
+
+    SimpleWindow::pointer window = SimpleWindow::New();
+    window->addRenderer(rendererA);
+    window->addRenderer(rendererB);
+    window->setTimeout(2000);
+    window->runMainLoop();
+
+    std::cout << "Pipeline D" << std::endl << "===================" << std::endl;
+    importerA->getRuntime()->print();
+    importerB->getRuntime()->print();
+    icp->getRuntime()->print();
+    rendererA->getRuntime()->print();
+    rendererB->getRuntime()->print();
+    float total = importerA->getRuntime()->getSum() +
+            importerB->getRuntime()->getSum() +
+            icp->getRuntime()->getSum() +
+            rendererA->getRuntime()->getSum() +
+            rendererB->getRuntime()->getSum();
     std::cout << "Total runtime was: " << total << std::endl;
 }
