@@ -21,9 +21,7 @@ TEST_CASE("Simple pipeline with MetaImageStreamer, GaussianSmoothingFilter and I
     filter->setStandardDeviation(2.0);
 
     ImageRenderer::pointer renderer = ImageRenderer::New();
-    std::cout << "asdasd" << std::endl;
     renderer->setInput(filter->getOutput());
-    std::cout << "asdasd" << std::endl;
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->setTimeout(10*1000);
