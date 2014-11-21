@@ -84,7 +84,7 @@ void IterativeClosestPoint::execute() {
     // Get transformations of point sets
     SceneGraph& graph = SceneGraph::getInstance();
     LinearTransformation fixedPointTransform = graph.getDataNode(getInputData(0))->getLinearTransformation();
-    LinearTransformation initialMovingTransform = graph.getDataNode(getInputData(0))->getLinearTransformation();
+    LinearTransformation initialMovingTransform = graph.getDataNode(getInputData(1))->getLinearTransformation();
 
     // These matrices are Nx3
     MatrixXf fixedPoints = accessFixedSet.getPointSetAsMatrix();
