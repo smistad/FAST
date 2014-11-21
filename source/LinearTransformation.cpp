@@ -57,4 +57,10 @@ Float3 LinearTransformation::operator*(Float3 vertex) const {
     return result;
 }
 
+Vector3f LinearTransformation::getEulerAngles() const {
+    Matrix3f rotationMatrix = mTransform.rotation();
+    return rotationMatrix.eulerAngles(0, 1, 2);
 }
+
+}
+

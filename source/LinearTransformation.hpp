@@ -13,6 +13,7 @@ class LinearTransformation {
         void setTransform(const Eigen::Transform<float, 3, Eigen::Affine> transform);
         Eigen::Transform<float, 3, Eigen::Affine> getTransform() const;
         Float3 operator*(Float3 vertex) const;
+        Vector3f getEulerAngles() const;
         Vector3f operator*(Vector3f vertex) const;
         float& operator()(uint i, uint j);
         ~LinearTransformation() {};

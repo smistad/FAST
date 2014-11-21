@@ -188,8 +188,21 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
     importerA->setFilename(std::string(FAST_TEST_DATA_DIR) + "Surface_LV.vtk");
     importerA->enableRuntimeMeasurements();
     VTKPointSetFileImporter::pointer importerB = VTKPointSetFileImporter::New();
-    importerB->setFilename("/home/smistad/Surface_LV_Transformed.vtk");
+    importerB->setFilename(std::string(FAST_TEST_DATA_DIR) + "Surface_LV.vtk");
     importerB->enableRuntimeMeasurements();
+
+    // Apply a transformation to B surface
+    Eigen::Transform<float, 3, Eigen::Affine> transform = Eigen::Transform<float,3,Eigen::Affine>::Identity();
+    transform.translate(Vector3f(0.01, 0, 0.01));
+    Matrix3f R;
+    R = Eigen::AngleAxisf(0.5, Vector3f::UnitX())
+    * Eigen::AngleAxisf(0, Vector3f::UnitY())
+    * Eigen::AngleAxisf(0, Vector3f::UnitZ());
+    transform.rotate(R);
+    LinearTransformation transformation;
+    transformation.setTransform(transform);
+    SceneGraph& graph = SceneGraph::getInstance();
+    graph.getDataNode(importerB->getOutput())->setTransformation(transformation);
 
     IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
     icp->setMovingPointSet(importerA->getOutput());
@@ -197,6 +210,12 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
     icp->enableRuntimeMeasurements();
     icp->update();
     std::cout << icp->getOutputTransformation().getTransform().affine() << std::endl;
+    SceneGraphNode::pointer node = graph.getDataNode(importerA->getOutput());
+    node->setTransformation(icp->getOutputTransformation());
+    std::cout << "result: " << std::endl;
+    std::cout << icp->getOutputTransformation().getEulerAngles() << std::endl;
+    std::cout << icp->getOutputTransformation().getTransform().translation() << std::endl;
+
 
     PointRenderer::pointer rendererA = PointRenderer::New();
     rendererA->setInput(importerA->getOutput());
