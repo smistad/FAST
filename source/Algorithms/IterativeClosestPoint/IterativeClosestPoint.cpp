@@ -1,4 +1,5 @@
 #include "IterativeClosestPoint.hpp"
+#include "SceneGraph.hpp"
 #undef min
 #undef max
 #include <limits>
@@ -75,16 +76,24 @@ void IterativeClosestPoint::setTransformationType(
 void IterativeClosestPoint::execute() {
     float error = std::numeric_limits<float>::max(), previousError;
     uint iterations = 0;
-    Eigen::Transform<float, 3, Eigen::Affine> currentTransformation =
-            Eigen::Transform<float, 3, Eigen::Affine>::Identity(); // TODO should get current from scene graph..
 
     // Get access to the two point sets
     PointSetAccess accessFixedSet = ((PointSet::pointer)getInputData(0))->getAccess(ACCESS_READ);
     PointSetAccess accessMovingSet = ((PointSet::pointer)getInputData(1))->getAccess(ACCESS_READ);
 
+    // Get transformations of point sets
+    SceneGraph& graph = SceneGraph::getInstance();
+    LinearTransformation fixedPointTransform = graph.getDataNode(getInputData(0))->getLinearTransformation();
+    LinearTransformation initialMovingTransform = graph.getDataNode(getInputData(0))->getLinearTransformation();
+
     // These matrices are Nx3
     MatrixXf fixedPoints = accessFixedSet.getPointSetAsMatrix();
     MatrixXf movingPoints = accessMovingSet.getPointSetAsMatrix();
+
+    // Apply transform to fixedPoints
+    fixedPoints = fixedPointTransform.getTransform()*fixedPoints.colwise().homogeneous();
+
+    Eigen::Transform<float, 3, Eigen::Affine> currentTransformation = initialMovingTransform.getTransform();
 
     // Want to choose the smallest one as moving
     bool invertTransform = false;
