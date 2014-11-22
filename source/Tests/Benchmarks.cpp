@@ -217,29 +217,26 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
     std::cout << icp->getOutputTransformation().getTransform().translation() << std::endl;
 
 
-    PointRenderer::pointer rendererA = PointRenderer::New();
-    rendererA->setInput(importerA->getOutput());
-    rendererA->enableRuntimeMeasurements();
-    PointRenderer::pointer rendererB = PointRenderer::New();
-    rendererB->setInput(importerB->getOutput());
-    rendererB->enableRuntimeMeasurements();
+    PointRenderer::pointer renderer = PointRenderer::New();
+    renderer->addInput(importerA->getOutput(), Color::Blue(), 10);
+    renderer->addInput(importerB->getOutput(), Color::Green(), 5);
+    renderer->setDefaultDrawOnTop(true);
+    renderer->enableRuntimeMeasurements();
 
     SimpleWindow::pointer window = SimpleWindow::New();
-    window->addRenderer(rendererA);
-    window->addRenderer(rendererB);
-    window->setTimeout(2000);
+    window->addRenderer(renderer);
+    //window->addRenderer(rendererB);
+    //window->setTimeout(2000);
     window->runMainLoop();
 
     std::cout << "Pipeline D" << std::endl << "===================" << std::endl;
     importerA->getRuntime()->print();
     importerB->getRuntime()->print();
     icp->getRuntime()->print();
-    rendererA->getRuntime()->print();
-    rendererB->getRuntime()->print();
+    renderer->getRuntime()->print();
     float total = importerA->getRuntime()->getSum() +
             importerB->getRuntime()->getSum() +
             icp->getRuntime()->getSum() +
-            rendererA->getRuntime()->getSum() +
-            rendererB->getRuntime()->getSum();
+            renderer->getRuntime()->getSum();
     std::cout << "Total runtime was: " << total << std::endl;
 }

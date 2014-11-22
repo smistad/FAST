@@ -7,6 +7,7 @@ namespace fast {
 
 class Color : public Vector3f {
     public:
+        Color() : Vector3f(0,0,0) {};
         Color(float red, float green, float blue) : Vector3f(red, green, blue) {};
         float getRedValue() const {
             return x();

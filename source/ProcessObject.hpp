@@ -68,6 +68,7 @@ class ProcessObject : public virtual Object {
         DataObject::pointer getOutputData(uint outputNumber);
         template <class StaticType, class DynamicType>
         DataObject::pointer getOutputData(uint outputNumber, DataObject::pointer objectDependsOn);
+        uint getNrOfInputData() const;
 
 
 

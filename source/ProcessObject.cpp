@@ -201,6 +201,10 @@ ExecutionDevice::pointer ProcessObject::getDevice(uint deviceNumber) const {
     return mDevices.at(deviceNumber);
 }
 
+uint ProcessObject::getNrOfInputData() const {
+    return mInputs.size();
+}
+
 } // namespace fast
 
 
