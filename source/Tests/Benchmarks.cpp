@@ -226,7 +226,7 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     //window->addRenderer(rendererB);
-    //window->setTimeout(2000);
+    window->setTimeout(2000);
     window->runMainLoop();
 
     std::cout << "Pipeline D" << std::endl << "===================" << std::endl;
