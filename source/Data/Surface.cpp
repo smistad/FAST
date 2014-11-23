@@ -18,9 +18,9 @@
 namespace fast {
 
 void Surface::create(
-        std::vector<Float3> vertices,
-        std::vector<Float3> normals,
-        std::vector<Uint3> triangles) {
+        std::vector<Vector3f> vertices,
+        std::vector<Vector3f> normals,
+        std::vector<Vector3ui> triangles) {
     if(mIsInitialized) {
         // Delete old data
         freeAll();
@@ -54,17 +54,16 @@ void Surface::create(
 }
 
 
-void Surface::create(std::vector<SurfaceVertex> vertices, std::vector<Uint3> triangles) {
+void Surface::create(std::vector<SurfaceVertex> vertices, std::vector<Vector3ui> triangles) {
      if(mIsInitialized) {
         // Delete old data
         freeAll();
     }
     mIsInitialized = true;
     mVertices = vertices;
-    std::vector<Float3> positions;
+    std::vector<Vector3f> positions;
     for(unsigned int i = 0; i < vertices.size(); i++) {
-        Float3 pos(vertices[i].position(0), vertices[i].position(1), vertices[i].position(2));
-        positions.push_back(pos);
+        positions.push_back(vertices[i].position);
     }
     mBoundingBox = BoundingBox(positions);
     mNrOfTriangles = triangles.size();
@@ -139,7 +138,7 @@ VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
             uint counter = 0;
             float* data = new float[mNrOfTriangles*18];
             for(uint i = 0; i < mNrOfTriangles; i++) {
-                Uint3 triangle = mTriangles[i];
+                Vector3ui triangle = mTriangles[i];
                 for(uint j = 0; j < 3; j++) {
                     SurfaceVertex vertex = mVertices[triangle[j]];
                     for(uint k = 0; k < 3; k++) {
@@ -226,10 +225,10 @@ SurfacePointerAccess Surface::getSurfacePointerAccess(accessType type) {
         glGetBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float)*mNrOfTriangles*18, data);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         std::vector<SurfaceVertex> vertices;
-        std::vector<Uint3> triangles;
+        std::vector<Vector3ui> triangles;
         boost::unordered_map<SurfaceVertex, uint, KeyHasher> vertexList;
         for(int t = 0; t < mNrOfTriangles; t++) {
-            Uint3 triangle;
+            Vector3ui triangle;
             for(int v = 0; v < 3; v++) {
                 SurfaceVertex vertex;
                 vertex.position[0] = data[t*18+v*6];

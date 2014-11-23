@@ -51,9 +51,9 @@ void PointSet::free(ExecutionDevice::pointer device) {
 }
 
 BoundingBox PointSet::getBoundingBox() const {
-    std::vector<Float3> list;
+    std::vector<Vector3f> list;
     for(uint i = 0; i < mPointSet.size(); i++) {
-        list.push_back(Float3(mPointSet[i].x(), mPointSet[i].y(), mPointSet[i].z()));
+        list.push_back(Vector3f(mPointSet[i].x(), mPointSet[i].y(), mPointSet[i].z()));
     }
     return BoundingBox(list);
 }

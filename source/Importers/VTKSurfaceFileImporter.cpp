@@ -48,7 +48,7 @@ void VTKSurfaceFileImporter::execute() {
     // Check file header?
 
     // Read vertices
-    std::vector<Float3> vertices;
+    std::vector<Vector3f> vertices;
     if(!gotoLineWithString(file, "POINTS")) {
         throw Exception("Found no vertices in the VTK surface file");
     }
@@ -66,17 +66,17 @@ void VTKSurfaceFileImporter::execute() {
         boost::split(tokens, line, boost::is_any_of(" "));
 
         for(int i = 0; i < tokens.size(); i += 3) {
-            Float3 v;
-            v[0] = boost::lexical_cast<float>(tokens[i]);
-            v[1] = boost::lexical_cast<float>(tokens[i+1]);
-            v[2] = boost::lexical_cast<float>(tokens[i+2]);
+            Vector3f v;
+            v(0) = boost::lexical_cast<float>(tokens[i]);
+            v(1) = boost::lexical_cast<float>(tokens[i+1]);
+            v(2) = boost::lexical_cast<float>(tokens[i+2]);
             vertices.push_back(v);
         }
     }
     file.seekg(0); // set stream to start
 
     // Read triangles (other types of polygons not supported yet)
-    std::vector<Uint3> triangles;
+    std::vector<Vector3ui> triangles;
     if(!gotoLineWithString(file, "POLYGONS")) {
         throw Exception("Found no triangles in the VTK surface file");
     }
@@ -101,10 +101,10 @@ void VTKSurfaceFileImporter::execute() {
             throw Exception("Error while reading triangles in VTKSurfaceFileImporter. Check format.");
         }
 
-        Uint3 triangle;
-        triangle[0] = boost::lexical_cast<uint>(tokens[1]);
-        triangle[1] = boost::lexical_cast<uint>(tokens[2]);
-        triangle[2] = boost::lexical_cast<uint>(tokens[3]);
+        Vector3ui triangle;
+        triangle(0) = boost::lexical_cast<uint>(tokens[1]);
+        triangle(1) = boost::lexical_cast<uint>(tokens[2]);
+        triangle(2) = boost::lexical_cast<uint>(tokens[3]);
 
         triangles.push_back(triangle);
 
@@ -112,11 +112,11 @@ void VTKSurfaceFileImporter::execute() {
     file.seekg(0); // set stream to start
 
     // Read normals (if any)
-    std::vector<Float3> normals;
+    std::vector<Vector3f> normals;
     if(!gotoLineWithString(file, "NORMALS")) {
         // Create dummy normals
         for(uint i = 0; i < vertices.size(); i++) {
-            Float3 dummyNormal;
+            Vector3f dummyNormal;
             normals.push_back(dummyNormal);
         }
     } else {
@@ -134,10 +134,10 @@ void VTKSurfaceFileImporter::execute() {
             boost::split(tokens, line, boost::is_any_of(" "));
 
             for(int i = 0; i < tokens.size(); i += 3) {
-                Float3 v;
-                v[0] = boost::lexical_cast<float>(tokens[i]);
-                v[1] = boost::lexical_cast<float>(tokens[i+1]);
-                v[2] = boost::lexical_cast<float>(tokens[i+2]);
+                Vector3f v;
+                v(0) = boost::lexical_cast<float>(tokens[i]);
+                v(1) = boost::lexical_cast<float>(tokens[i+1]);
+                v(2) = boost::lexical_cast<float>(tokens[i+2]);
                 normals.push_back(v);
             }
         }

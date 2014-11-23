@@ -9,10 +9,10 @@ namespace fast {
 
 class SurfacePointerAccess {
     public:
-        SurfacePointerAccess(std::vector<SurfaceVertex>* vertices, std::vector<Uint3>* triangles, bool* accessFlag, bool* accessFlag2);
+        SurfacePointerAccess(std::vector<SurfaceVertex>* vertices, std::vector<Vector3ui>* triangles, bool* accessFlag, bool* accessFlag2);
         SurfaceVertex getVertex(uint i);
-        Uint3 getTriangle(uint i);
-        std::vector<Uint3> getTriangles();
+        Vector3ui getTriangle(uint i);
+        std::vector<Vector3ui> getTriangles();
         std::vector<SurfaceVertex> getVertices();
         void release();
         ~SurfacePointerAccess();
@@ -20,7 +20,7 @@ class SurfacePointerAccess {
         bool* mAccessFlag;
         bool* mAccessFlag2;
         std::vector<SurfaceVertex>* mVertices;
-        std::vector<Uint3>* mTriangles;
+        std::vector<Vector3ui>* mTriangles;
 };
 
 } // end namespace fast

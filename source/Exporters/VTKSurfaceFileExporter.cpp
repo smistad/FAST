@@ -58,10 +58,10 @@ void VTKSurfaceFileExporter::execute() {
     }
 
     // Write triangles
-    std::vector<Uint3> triangles = access.getTriangles();
+    std::vector<Vector3ui> triangles = access.getTriangles();
     file << "POLYGONS " << surface->getNrOfTriangles() << " " << surface->getNrOfTriangles()*4 << "\n";
     for(int i = 0; i < triangles.size(); i++) {
-        Uint3 triangle = triangles[i];
+        Vector3ui triangle = triangles[i];
         file << "3 " << triangle.x() << " " << triangle.y() << " " << triangle.z() << "\n";
     }
 

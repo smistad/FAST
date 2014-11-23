@@ -12,6 +12,7 @@ class BoundingBox {
         BoundingBox(Float3 size);
         // Create a bounding box from a set of coordinates
         BoundingBox(std::vector<Float3> coordinates);
+        BoundingBox(std::vector<Vector3f> coordinates);
         BoundingBox(Vector<Float3, 8> corners);
         BoundingBox();
         Vector<Float3, 8> getCorners();

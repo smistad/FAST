@@ -55,12 +55,19 @@ void PointRenderer::draw() {
 }
 
 BoundingBox PointRenderer::getBoundingBox() {
-    BoundingBox inputBoundingBox = getInputData(0)->getBoundingBox();
-    SceneGraph& graph = SceneGraph::getInstance();
-    SceneGraphNode::pointer node = graph.getDataNode(getInputData(0));
-    LinearTransformation transform = graph.getLinearTransformationFromNode(node);
-    BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
-    return transformedBoundingBox;
+    std::vector<Float3> coordinates;
+    for(uint i = 0; i < getNrOfInputData(); i++) {
+        BoundingBox inputBoundingBox = getInputData(i)->getBoundingBox();
+        SceneGraph& graph = SceneGraph::getInstance();
+        SceneGraphNode::pointer node = graph.getDataNode(getInputData(i));
+        LinearTransformation transform = graph.getLinearTransformationFromNode(node);
+        BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
+        Vector<Float3, 8> corners = transformedBoundingBox.getCorners();
+        for(uint j = 0; j < 8; j++) {
+            coordinates.push_back(corners[j]);
+        }
+    }
+    return BoundingBox(coordinates);
 }
 
 PointRenderer::PointRenderer() {

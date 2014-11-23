@@ -76,6 +76,31 @@ BoundingBox::BoundingBox(std::vector<Float3> coordinates) {
     createCorners(minimum, size);
 }
 
+BoundingBox::BoundingBox(std::vector<Vector3f> coordinates) {
+    // Find min and max of all the coordinates
+    Float3 minimum(coordinates[0].x(), coordinates[0].y(), coordinates[0].z());
+    Float3 maximum(coordinates[0].x(), coordinates[0].y(), coordinates[0].z());
+    for(uint i = 1; i < coordinates.size(); i++) {
+        Vector3f coordinate = coordinates[i];
+        for(uint j = 0; j < 4; j++) {
+            if(coordinate[j] < minimum[j]) {
+                minimum[j] = coordinate[j];
+            }
+            if(coordinate[j] > maximum[j]) {
+                maximum[j] = coordinate[j];
+            }
+        }
+    }
+
+    // Make new bounding box
+    Float3 size(maximum.x()-minimum.x(), maximum.y()-minimum.y(), maximum.z()-minimum.z());
+    mIsInitialized = true;
+    std::cout << minimum[0] << " " << minimum[1] << std::endl;
+    std::cout << maximum[0] << " " << maximum[1] << std::endl;
+    std::cout << size[0] << " " << size[1] << std::endl;
+    createCorners(minimum, size);
+}
+
 BoundingBox BoundingBox::getTransformedBoundingBox(
         LinearTransformation transform) {
     if(!mIsInitialized)

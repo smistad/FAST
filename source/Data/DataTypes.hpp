@@ -29,6 +29,8 @@ using Eigen::Vector4f;
 using Eigen::Vector3f;
 using Eigen::Vector4i;
 using Eigen::Vector3i;
+typedef Eigen::Matrix<uint, 3, 1> Vector3ui;
+typedef Eigen::Matrix<uint, 4, 1> Vector4ui;
 
 
 
