@@ -42,6 +42,7 @@ class ProcessObject : public virtual Object {
         ExecutionDevice::pointer getMainDevice() const;
         void setDevice(uint deviceNumber, ExecutionDevice::pointer device);
         ExecutionDevice::pointer getDevice(uint deviceNumber) const;
+        void setOutputData(uint outputNumber, DataObject::pointer object);
     protected:
         // Pointer to the parent pipeline object
         std::vector<DataObject::pointer> mParentDataObjects;

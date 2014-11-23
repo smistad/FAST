@@ -205,6 +205,11 @@ uint ProcessObject::getNrOfInputData() const {
     return mInputs.size();
 }
 
+void ProcessObject::setOutputData(uint outputNumber, DataObject::pointer data) {
+    mOutputs[outputNumber] = data;
+}
+
+
 } // namespace fast
 
 

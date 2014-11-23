@@ -8,11 +8,14 @@ fast_add_sources(
     ImageImporter.cpp
     ImageImporter.hpp
     Importer.hpp
+    ImageFileImporter.cpp
+    ImageFileImporter.hpp
 )
 fast_add_test_sources(
     Tests/ImageImporterTests.cpp
     Tests/MetaImageImporterTests.cpp
     Tests/VTKSurfaceFileImporterTests.cpp
+    Tests/ImageFileImporterTests.cpp
 )
 if(VTK_INTEROP)
     fast_add_sources(
