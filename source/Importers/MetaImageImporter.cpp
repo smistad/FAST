@@ -102,12 +102,8 @@ void MetaImageImporter::execute() {
     unsigned int nrOfComponents = 1;
     Image::pointer output = mOutput;
 
-    Float3 spacing(1,1,1), offset(0,0,0), centerOfRotation;
-    Float<9> transformMatrix;
-    // Set to identity
-    transformMatrix[0] = 1;
-    transformMatrix[4] = 1;
-    transformMatrix[8] = 1;
+    Vector3f spacing(1,1,1), offset(0,0,0), centerOfRotation(0,0,0);
+    Matrix3f transformMatrix = Matrix3f::Identity();
 
     do{
         std::getline(mhdFile, line);
@@ -215,9 +211,10 @@ void MetaImageImporter::execute() {
             if(values.size() != 9)
                 throw Exception("Encountered a transform matrix with incorrect number of elements in the MetaImageImporter");
 
-            for(unsigned int i = 0; i < 9; i++) {
-                transformMatrix[i] = boost::lexical_cast<float>(values[i].c_str());
-            }
+            for(unsigned int i = 0; i < 3; i++) {
+            for(unsigned int j = 0; j < 3; j++) {
+                transformMatrix(j,i) = boost::lexical_cast<float>(values[j+i*3].c_str());
+            }}
         }
 
     } while(!mhdFile.eof());

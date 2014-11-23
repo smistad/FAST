@@ -43,14 +43,14 @@ class Image : public ImageData {
         DataType getDataType() const;
         unsigned int getNrOfComponents() const;
 
-        Float<3> getSpacing() const;
-        Float<3> getOffset() const;
-        Float<3> getCenterOfRotation() const;
-        Float<9> getTransformMatrix() const;
-        void setSpacing(Float<3> spacing);
-        void setOffset(Float<3> offset);
-        void setCenterOfRotation(Float<3> rotation);
-        void setTransformMatrix(Float<9> transformMatrix);
+        Vector3f getSpacing() const;
+        Vector3f getOffset() const;
+        Vector3f getCenterOfRotation() const;
+        Matrix3f getTransformMatrix() const;
+        void setSpacing(Vector3f spacing);
+        void setOffset(Vector3f offset);
+        void setCenterOfRotation(Vector3f rotation);
+        void setTransformMatrix(Matrix3f transformMatrix);
 
         float calculateMaximumIntensity();
         float calculateMinimumIntensity();
@@ -100,8 +100,8 @@ class Image : public ImageData {
         unsigned int mComponents;
         bool mImageIsBeingWrittenTo;
 
-        Float<3> mSpacing, mOffset, mCenterOfRotation;
-        Float<9> mTransformMatrix;
+        Vector3f mSpacing, mOffset, mCenterOfRotation;
+        Matrix3f mTransformMatrix;
 
         float mMaximumIntensity, mMinimumIntensity;
         unsigned long mMaxMinTimestamp;

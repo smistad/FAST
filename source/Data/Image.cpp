@@ -465,9 +465,7 @@ Image::Image() {
     mSpacing[1] = 1;
     mSpacing[2] = 1;
     // Identity matrix
-    mTransformMatrix[0] = 1;
-    mTransformMatrix[4] = 1;
-    mTransformMatrix[8] = 1;
+    mTransformMatrix = Matrix3f::Identity();
 
     mMaxMinInitialized = false;
 }
@@ -757,37 +755,37 @@ unsigned int Image::getNrOfComponents() const {
     return mComponents;
 }
 
-Float<3> fast::Image::getSpacing() const {
+Vector3f fast::Image::getSpacing() const {
     return mSpacing;
 }
 
-Float<3> fast::Image::getOffset() const {
+Vector3f fast::Image::getOffset() const {
     return mOffset;
 }
 
-Float<3> fast::Image::getCenterOfRotation() const {
+Vector3f fast::Image::getCenterOfRotation() const {
     return mCenterOfRotation;
 }
 
-Float<9> fast::Image::getTransformMatrix() const {
+Matrix3f fast::Image::getTransformMatrix() const {
     return mTransformMatrix;
 }
 
-void fast::Image::setSpacing(Float<3> spacing) {
+void fast::Image::setSpacing(Vector3f spacing) {
     mSpacing = spacing;
     updateSceneGraphTransformation();
 }
 
-void fast::Image::setOffset(Float<3> offset) {
+void fast::Image::setOffset(Vector3f offset) {
     mOffset = offset;
     updateSceneGraphTransformation();
 }
 
-void fast::Image::setCenterOfRotation(Float<3> rotation) {
+void fast::Image::setCenterOfRotation(Vector3f rotation) {
     mCenterOfRotation = rotation;
 }
 
-void fast::Image::setTransformMatrix(Float<9> transformMatrix) {
+void fast::Image::setTransformMatrix(Matrix3f transformMatrix) {
     mTransformMatrix = transformMatrix;
     updateSceneGraphTransformation();
 }
@@ -798,6 +796,11 @@ void Image::updateSceneGraphTransformation() const {
 
     // Create linear transformation matrix
     LinearTransformation transform;
+    Eigen::Transform<float, 3, Eigen::Affine> transformation = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
+    transformation.linear() = mTransformMatrix;
+    transformation.translation() = mOffset;
+    transformation.scale(mSpacing);
+    /*
     MatrixXf transformation = MatrixXf::Identity(3,4);
     transformation(0,0) = mTransformMatrix[0]*mSpacing[0];
     transformation(0,1) = mTransformMatrix[3]*mSpacing[1];
@@ -814,6 +817,8 @@ void Image::updateSceneGraphTransformation() const {
     Eigen::Transform<float,3,Eigen::Affine> asd;
     asd.affine() = transformation;
     transform.setTransform(asd);
+    */
+    transform.setTransform(transformation);
 
     SceneGraphNode::pointer node = SceneGraph::getInstance().getDataNode(mPtr);
     node->setTransformation(transform);

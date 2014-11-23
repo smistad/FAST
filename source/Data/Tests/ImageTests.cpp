@@ -1321,28 +1321,28 @@ TEST_CASE("createFromImage on 2D image", "[fast][image]") {
     image1->create2DImage(width, height, type, nrOfComponents, Host::New());
 
     // Create some metadata
-    Float<3> spacing;
+    Vector3f spacing;
     spacing[0] = 1.2;
     spacing[1] = 2.3;
     spacing[2] = 1;
-    Float<3> offset;
+    Vector3f offset;
     offset[0] = 2.2;
     offset[1] = 3.3;
     offset[2] = 3.1;
-    Float<3> centerOfRotation;
+    Vector3f centerOfRotation;
     centerOfRotation[0] = 3.2;
     centerOfRotation[1] = 4.3;
     centerOfRotation[2] = 5.0;
-    Float<9> transformMatrix;
-    transformMatrix[0] = 0.2;
-    transformMatrix[1] = 1.3;
-    transformMatrix[2] = 2.0;
-    transformMatrix[3] = 3.0;
-    transformMatrix[4] = 4.0;
-    transformMatrix[5] = 5.0;
-    transformMatrix[6] = 6.0;
-    transformMatrix[7] = 7.0;
-    transformMatrix[8] = 8.0;
+    Matrix3f transformMatrix;
+    transformMatrix(0,0) = 0.2;
+    transformMatrix(1,0) = 1.3;
+    transformMatrix(2,0) = 2.0;
+    transformMatrix(0,1) = 3.0;
+    transformMatrix(1,1) = 4.0;
+    transformMatrix(2,1) = 5.0;
+    transformMatrix(0,2) = 6.0;
+    transformMatrix(1,2) = 7.0;
+    transformMatrix(2,2) = 8.0;
 
     image1->setSpacing(spacing);
     image1->setOffset(offset);
@@ -1364,9 +1364,10 @@ TEST_CASE("createFromImage on 2D image", "[fast][image]") {
         CHECK(offset[i] == Approx(image2->getOffset()[i]));
         CHECK(centerOfRotation[i] == Approx(image2->getCenterOfRotation()[i]));
     }
-    for(unsigned int i = 0; i < 9; i++) {
-        CHECK(transformMatrix[i] == Approx(image2->getTransformMatrix()[i]));
-    }
+    for(unsigned int i = 0; i < 3; i++) {
+    for(unsigned int j = 0; j < 3; j++) {
+        CHECK(transformMatrix(i,j) == Approx(image2->getTransformMatrix()(i,j)));
+    }}
 }
 
 TEST_CASE("createFromImage on 3D image", "[fast][image]") {
@@ -1382,28 +1383,28 @@ TEST_CASE("createFromImage on 3D image", "[fast][image]") {
     image1->create3DImage(width, height, depth, type, nrOfComponents, Host::New());
 
     // Create some metadata
-    Float<3> spacing;
+    Vector3f spacing;
     spacing[0] = 1.2;
     spacing[1] = 2.3;
     spacing[2] = 1;
-    Float<3> offset;
+    Vector3f offset;
     offset[0] = 2.2;
     offset[1] = 3.3;
     offset[2] = 3.1;
-    Float<3> centerOfRotation;
+    Vector3f centerOfRotation;
     centerOfRotation[0] = 3.2;
     centerOfRotation[1] = 4.3;
     centerOfRotation[2] = 5.0;
-    Float<9> transformMatrix;
-    transformMatrix[0] = 0.2;
-    transformMatrix[1] = 1.3;
-    transformMatrix[2] = 2.0;
-    transformMatrix[3] = 3.0;
-    transformMatrix[4] = 4.0;
-    transformMatrix[5] = 5.0;
-    transformMatrix[6] = 6.0;
-    transformMatrix[7] = 7.0;
-    transformMatrix[8] = 8.0;
+    Matrix3f transformMatrix;
+    transformMatrix(0,0) = 0.2;
+    transformMatrix(1,0) = 1.3;
+    transformMatrix(2,0) = 2.0;
+    transformMatrix(0,1) = 3.0;
+    transformMatrix(1,1) = 4.0;
+    transformMatrix(2,1) = 5.0;
+    transformMatrix(0,2) = 6.0;
+    transformMatrix(1,2) = 7.0;
+    transformMatrix(2,2) = 8.0;
 
     image1->setSpacing(spacing);
     image1->setOffset(offset);
@@ -1425,9 +1426,10 @@ TEST_CASE("createFromImage on 3D image", "[fast][image]") {
         CHECK(offset[i] == Approx(image2->getOffset()[i]));
         CHECK(centerOfRotation[i] == Approx(image2->getCenterOfRotation()[i]));
     }
-    for(unsigned int i = 0; i < 9; i++) {
-        CHECK(transformMatrix[i] == Approx(image2->getTransformMatrix()[i]));
-    }
+    for(unsigned int i = 0; i < 3; i++) {
+    for(unsigned int j = 0; j < 3; j++) {
+        CHECK(transformMatrix(i,j) == Approx(image2->getTransformMatrix()(i,j)));
+    }}
 }
 
 
