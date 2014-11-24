@@ -1,6 +1,6 @@
+#include "ImageFileStreamer.hpp"
 #include "catch.hpp"
 #include "ImageImporter.hpp"
-#include "MetaImageStreamer.hpp"
 #include "ImageRenderer.hpp"
 #include "SimpleWindow.hpp"
 
@@ -20,7 +20,7 @@ TEST_CASE("ImageRenderer with single 2D image", "[fast][ImageRenderer][visual]")
 }
 
 TEST_CASE("ImageRenderer with dynamic 2D image", "[fast][ImageRenderer][visual]") {
-    MetaImageStreamer::pointer streamer = MetaImageStreamer::New();
+    ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
     streamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-2Dt/US-2Dt_#.mhd");
     CHECK_NOTHROW(
         ImageRenderer::pointer renderer = ImageRenderer::New();

@@ -1,30 +1,30 @@
 #include "catch.hpp"
-#include "MetaImageStreamer.hpp"
 #include "DeviceManager.hpp"
 #include <boost/thread.hpp>
+#include "ImageFileStreamer.hpp"
 
 using namespace fast;
 
-TEST_CASE("No filename format given to MetaImageStreamer", "[fast][MetaImageStreamer]") {
-    MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
+TEST_CASE("No filename format given to ImageFileStreamer", "[fast][ImageFileStreamer]") {
+    ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     DynamicImage::pointer image = mhdStreamer->getOutput();
     CHECK_THROWS(image->update());
 }
 
-TEST_CASE("No hash tag in filename format given to MetaImageStreamer", "[fast][MetaImageStreamer]") {
-    MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
+TEST_CASE("No hash tag in filename format given to ImageFileStreamer", "[fast][ImageFileStreamer]") {
+    ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     CHECK_THROWS(mhdStreamer->setFilenameFormat("asd"));
 }
 
-TEST_CASE("Default streaming mode is NEWEST_FRAME_ONLY", "[fast][MetaImageStreamer]") {
-    MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
+TEST_CASE("Default streaming mode is NEWEST_FRAME_ONLY", "[fast][ImageFileStreamer]") {
+    ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     CHECK(mhdStreamer->getStreamingMode() == STREAMING_MODE_NEWEST_FRAME_ONLY);
 }
 
 /*
 // TODO fix this, will not work because it is another thread that throws the exception
-TEST_CASE("Wrong filename format given to MetaImageStreamer", "[fast][MetaImageStreamer]") {
-    MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
+TEST_CASE("Wrong filename format given to ImageFileStreamer", "[fast][ImageFileStreamer]") {
+    ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat("asd#asd");
     DynamicImage::pointer image = mhdStreamer->getOutput();
     std::cout << "asd" << std::endl;
@@ -32,8 +32,8 @@ TEST_CASE("Wrong filename format given to MetaImageStreamer", "[fast][MetaImageS
 }
 */
 
-TEST_CASE("MetaImageStreamer streaming to host with streaming mode NEWEST set", "[fast][MetaImageStreamer]") {
-    MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
+TEST_CASE("ImageFileStreamer streaming to host with streaming mode NEWEST set", "[fast][ImageFileStreamer]") {
+    ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     mhdStreamer->setDevice(Host::New());
@@ -53,8 +53,8 @@ TEST_CASE("MetaImageStreamer streaming to host with streaming mode NEWEST set", 
     );
 }
 
-TEST_CASE("MetaImageStreamer streaming to host with streaming mode PROCESS_ALL set", "[fast][MetaImageStreamer]") {
-    MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
+TEST_CASE("ImageFileStreamer streaming to host with streaming mode PROCESS_ALL set", "[fast][ImageFileStreamer]") {
+    ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     mhdStreamer->setDevice(Host::New());
@@ -74,8 +74,8 @@ TEST_CASE("MetaImageStreamer streaming to host with streaming mode PROCESS_ALL s
     );
 }
 
-TEST_CASE("MetaImageStreamer streaming to host with streaming mode STORE_ALL set", "[fast][MetaImageStreamer]") {
-    MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
+TEST_CASE("ImageFileStreamer streaming to host with streaming mode STORE_ALL set", "[fast][ImageFileStreamer]") {
+    ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
     mhdStreamer->setDevice(Host::New());
@@ -95,10 +95,10 @@ TEST_CASE("MetaImageStreamer streaming to host with streaming mode STORE_ALL set
     );
 }
 
-TEST_CASE("MetaImageStreamer streaming to OpenCL device with streaming mode NEWEST set", "[fast][MetaImageStreamer]") {
+TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode NEWEST set", "[fast][ImageFileStreamer]") {
     DeviceManager& deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
-    MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
+    ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setDevice(device);
@@ -118,10 +118,10 @@ TEST_CASE("MetaImageStreamer streaming to OpenCL device with streaming mode NEWE
     );
 }
 
-TEST_CASE("MetaImageStreamer streaming to OpenCL device with streaming mode PROCESS_ALL set", "[fast][MetaImageStreamer]") {
+TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode PROCESS_ALL set", "[fast][ImageFileStreamer]") {
     DeviceManager& deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
-    MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
+    ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setDevice(device);
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
@@ -141,10 +141,10 @@ TEST_CASE("MetaImageStreamer streaming to OpenCL device with streaming mode PROC
     );
 }
 
-TEST_CASE("MetaImageStreamer streaming to OpenCL device with streaming mode STORE_ALL set", "[fast][MetaImageStreamer]") {
+TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode STORE_ALL set", "[fast][ImageFileStreamer]") {
     DeviceManager& deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
-    MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
+    ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setDevice(device);
     mhdStreamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);

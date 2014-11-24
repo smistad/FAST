@@ -1,6 +1,6 @@
+#include "ImageFileStreamer.hpp"
 #include "catch.hpp"
 #include "MetaImageImporter.hpp"
-#include "MetaImageStreamer.hpp"
 #include "GaussianSmoothingFilter.hpp"
 #include "SliceRenderer.hpp"
 #include "SurfaceRenderer.hpp"
@@ -10,8 +10,8 @@
 #include "DeviceManager.hpp"
 
 using namespace fast;
-TEST_CASE("Simple pipeline with MetaImageStreamer, GaussianSmoothingFilter and ImageRenderer", "[fast][SystemTests][visual]") {
-    MetaImageStreamer::pointer streamer = MetaImageStreamer::New();
+TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and ImageRenderer", "[fast][SystemTests][visual]") {
+    ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
     streamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-2Dt/US-2Dt_#.mhd");
     streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
@@ -30,8 +30,8 @@ TEST_CASE("Simple pipeline with MetaImageStreamer, GaussianSmoothingFilter and I
         window->runMainLoop();
     );
 }
-TEST_CASE("Simple pipeline with MetaImageStreamer, GaussianSmoothingFilter and SliceRenderer on OpenCL device", "[fast][SystemTests][visual]") {
-    MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
+TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and SliceRenderer on OpenCL device", "[fast][SystemTests][visual]") {
+    ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
@@ -51,8 +51,8 @@ TEST_CASE("Simple pipeline with MetaImageStreamer, GaussianSmoothingFilter and S
     );
 }
 
-TEST_CASE("Simple pipeline with MetaImageStreamer, GaussianSmoothingFilter, SurfaceExtraction and SurfaceRenderer on OpenCL device", "[fast][SystemTests][visual]") {
-    MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
+TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter, SurfaceExtraction and SurfaceRenderer on OpenCL device", "[fast][SystemTests][visual]") {
+    ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
@@ -76,9 +76,9 @@ TEST_CASE("Simple pipeline with MetaImageStreamer, GaussianSmoothingFilter, Surf
     );
 }
 
-TEST_CASE("Simple pipeline with MetaImageStreamer, GaussianSmoothingFilter and SliceRenderer on Host", "[fast][SystemTests][visual]") {
+TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and SliceRenderer on Host", "[fast][SystemTests][visual]") {
     ExecutionDevice::pointer host = Host::New();
-    MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
+    ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     mhdStreamer->setDevice(host);

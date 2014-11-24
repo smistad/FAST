@@ -1,5 +1,5 @@
-#ifndef IMAGE_STREAMER_2D_HPP
-#define IMAGE_STREAMER_2D_HPP
+#ifndef META_IMAGE_STREAMER_HPP
+#define META_IMAGE_STREAMER_HPP
 
 #include "SmartPointers.hpp"
 #include "Streamer.hpp"
@@ -9,20 +9,24 @@
 
 namespace fast {
 
-class ImageStreamer : public Streamer, public ProcessObject {
-    FAST_OBJECT(ImageStreamer)
+class ImageFileStreamer : public Streamer, public ProcessObject {
+    FAST_OBJECT(ImageFileStreamer)
     public:
         DynamicImage::pointer getOutput();
         void setFilenameFormat(std::string str);
         void setDevice(ExecutionDevice::pointer device);
+        void setStartNumber(uint startNumber);
+        void setZeroFilling(uint digits);
+        void enableLooping();
+        void disableLooping();
         bool hasReachedEnd() const;
         // This method runs in a separate thread and adds frames to the
         // output object
         void producerStream();
 
-        ~ImageStreamer();
+        ~ImageFileStreamer();
     private:
-        ImageStreamer();
+        ImageFileStreamer();
 
         // A reference to the output object used to update its next frame
         DynamicImage::pointer mOutput;
@@ -30,8 +34,13 @@ class ImageStreamer : public Streamer, public ProcessObject {
         // Update the streamer if any parameters have changed
         void execute();
 
+        bool mLoop;
+        uint mZeroFillDigits;
+        uint mStartNumber;
 
         boost::thread *thread;
+        boost::mutex mFirstFrameMutex;
+        boost::condition_variable mFirstFrameCondition;
 
         bool mStreamIsStarted;
         bool mFirstFrameIsInserted;

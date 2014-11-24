@@ -1,6 +1,6 @@
+#include "../Streamers/ImageFileStreamer.hpp"
 #include "catch.hpp"
 #include "MetaImageImporter.hpp"
-#include "MetaImageStreamer.hpp"
 #include "GaussianSmoothingFilter.hpp"
 #include "SliceRenderer.hpp"
 #include "SurfaceRenderer.hpp"
@@ -54,7 +54,7 @@ TEST_CASE("Pipeline A (static)", "[fast][benchmark][visual]") {
 }
 
 TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark][visual]") {
-    MetaImageStreamer::pointer streamer = MetaImageStreamer::New();
+    ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
     streamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US-3Dt/US-3Dt_#.mhd");
     streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     streamer->enableRuntimeMeasurements();

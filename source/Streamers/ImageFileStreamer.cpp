@@ -1,24 +1,24 @@
-#include "MetaImageStreamer.hpp"
-#include "MetaImageImporter.hpp"
+#include "ImageFileImporter.hpp"
 #include "DeviceManager.hpp"
 #include "Exception.hpp"
 #include <boost/lexical_cast.hpp>
+#include "ImageFileStreamer.hpp"
 
 namespace fast {
 /**
  * Dummy function to get into the class again
  */
-inline void stubStreamThread(MetaImageStreamer * streamer) {
+inline void stubStreamThread(ImageFileStreamer * streamer) {
     streamer->producerStream();
 }
 
-DynamicImage::pointer MetaImageStreamer::getOutput() {
+DynamicImage::pointer ImageFileStreamer::getOutput() {
     mOutput->setSource(mPtr.lock());
     mOutput->setStreamer(mPtr.lock());
     return mOutput;
 }
 
-MetaImageStreamer::MetaImageStreamer() {
+ImageFileStreamer::ImageFileStreamer() {
     mOutput = DynamicImage::New();
     mStreamIsStarted = false;
     mIsModified = true;
@@ -33,11 +33,11 @@ MetaImageStreamer::MetaImageStreamer() {
 }
 
 
-void MetaImageStreamer::execute() {
+void ImageFileStreamer::execute() {
     mOutput->setSource(mPtr.lock());
     mOutput->setStreamer(mPtr.lock());
     if(mFilenameFormat == "")
-        throw Exception("No filename format was given to the MetaImageStreamer");
+        throw Exception("No filename format was given to the ImageFileStreamer");
     if(!mStreamIsStarted) {
         // Check that first frame exists before starting streamer
 
@@ -52,18 +52,18 @@ void MetaImageStreamer::execute() {
     }
 }
 
-void MetaImageStreamer::setFilenameFormat(std::string str) {
+void ImageFileStreamer::setFilenameFormat(std::string str) {
     if(str.find("#") == std::string::npos)
         throw Exception("Filename format must include a hash tag # which will be replaced by a integer starting from 0.");
     mFilenameFormat = str;
 }
 
-void MetaImageStreamer::setDevice(ExecutionDevice::pointer device) {
+void ImageFileStreamer::setDevice(ExecutionDevice::pointer device) {
     mDevice = device;
 }
 
 
-void MetaImageStreamer::producerStream() {
+void ImageFileStreamer::producerStream() {
     uint i = mStartNumber;
     while(true) {
         std::string filename = mFilenameFormat;
@@ -81,9 +81,9 @@ void MetaImageStreamer::producerStream() {
                 frameNumber
                 );
         try {
-            MetaImageImporter::pointer importer = MetaImageImporter::New();
+            ImageFileImporter::pointer importer = ImageFileImporter::New();
             importer->setFilename(filename);
-            importer->setDevice(mDevice);
+            importer->setMainDevice(mDevice);
             Image::pointer image = importer->getOutput();
             image->update();
             DynamicImage::pointer ptr = mOutput;
@@ -128,7 +128,7 @@ void MetaImageStreamer::producerStream() {
     }
 }
 
-MetaImageStreamer::~MetaImageStreamer() {
+ImageFileStreamer::~ImageFileStreamer() {
     if(mStreamIsStarted) {
         if(thread->get_id() != boost::this_thread::get_id()) { // avoid deadlock
             thread->join();
@@ -137,23 +137,23 @@ MetaImageStreamer::~MetaImageStreamer() {
     }
 }
 
-bool MetaImageStreamer::hasReachedEnd() const {
+bool ImageFileStreamer::hasReachedEnd() const {
     return mHasReachedEnd;
 }
 
-void MetaImageStreamer::setStartNumber(uint startNumber) {
+void ImageFileStreamer::setStartNumber(uint startNumber) {
     mStartNumber = startNumber;
 }
 
-void MetaImageStreamer::setZeroFilling(uint digits) {
+void ImageFileStreamer::setZeroFilling(uint digits) {
     mZeroFillDigits = digits;
 }
 
-void MetaImageStreamer::enableLooping() {
+void ImageFileStreamer::enableLooping() {
     mLoop = true;
 }
 
-void MetaImageStreamer::disableLooping() {
+void ImageFileStreamer::disableLooping() {
     mLoop = false;
 }
 

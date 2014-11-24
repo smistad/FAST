@@ -1,12 +1,9 @@
 fast_add_sources(
     Streamer.cpp
     Streamer.hpp
-    ImageStreamer.cpp
-    ImageStreamer.hpp
-    MetaImageStreamer.cpp
-    MetaImageStreamer.hpp
+    ImageFileStreamer.cpp
+    ImageFileStreamer.hpp
 )
 fast_add_test_sources(
-    Tests/MetaImageStreamerTests.cpp
-    Tests/ImageStreamerTests.cpp
+    Tests/ImageFileStreamerTests.cpp
 )

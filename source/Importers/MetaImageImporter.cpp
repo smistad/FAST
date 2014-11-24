@@ -8,8 +8,7 @@
 using namespace fast;
 
 Image::pointer MetaImageImporter::getOutput() {
-    mOutput->setSource(mPtr.lock());
-    return mOutput;
+    return getOutputData<Image>(0);
 }
 
 void MetaImageImporter::setFilename(std::string filename) {
@@ -25,7 +24,6 @@ void MetaImageImporter::setDevice(ExecutionDevice::pointer device) {
 MetaImageImporter::MetaImageImporter() {
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
     mFilename = "";
-    mOutput = Image::New();
     mIsModified = true;
 }
 
@@ -99,7 +97,7 @@ void MetaImageImporter::execute() {
 
     unsigned int width, height, depth = 1;
     unsigned int nrOfComponents = 1;
-    Image::pointer output = mOutput;
+    Image::pointer output = getOutputData<Image>(0);
 
     Vector3f spacing(1,1,1), offset(0,0,0), centerOfRotation(0,0,0);
     Matrix3f transformMatrix = Matrix3f::Identity();
