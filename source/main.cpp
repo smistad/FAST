@@ -2,7 +2,6 @@
 #include "Exception.hpp"
 #include "ImageImporter.hpp"
 #include "ImageExporter.hpp"
-#include "ImageStreamer.hpp"
 #include "DeviceManager.hpp"
 #include "GaussianSmoothingFilter.hpp"
 #include "SimpleWindow.hpp"
@@ -11,7 +10,7 @@
 #include "VolumeRenderer.hpp"
 #include "SurfaceRenderer.hpp"
 #include "MetaImageImporter.hpp"
-#include "MetaImageStreamer.hpp"
+#include "ImageFileStreamer.hpp"
 #include "MetaImageExporter.hpp"
 #include "ColorTransferFunction.hpp"
 #include "OpacityTransferFunction.hpp"
@@ -30,7 +29,7 @@ int main(int argc, char ** argv) {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_0.mhd");
     Image::pointer image = importer->getOutput();
-    //MetaImageStreamer::pointer importer = MetaImageStreamer::New();
+    //ImageFileStreamer::pointer importer = ImageFileStreamer::New();
     //importer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
     //DynamicImage::pointer image = importer->getOutput();
     SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
@@ -78,7 +77,7 @@ int main(int argc, char ** argv) {
 
 
     /*
-    MetaImageStreamer::pointer importer = MetaImageStreamer::New();
+    ImageFileStreamer::pointer importer = ImageFileStreamer::New();
     importer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
     SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
     extractor->setInput(importer->getOutput());
@@ -125,7 +124,7 @@ window->setTimeout(10*1000);
     
 	
 /*
-    MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
+    ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
     SurfaceRenderer::pointer surfaceRenderer = SurfaceRenderer::New();
     surfaceRenderer->setInput(mhdStreamer->getOutput());
@@ -142,7 +141,7 @@ window->setTimeout(10*1000);
 //    mhdImporter->setFilename("skull.mhd");
 	
 
-	MetaImageStreamer::pointer mhdStreamer = MetaImageStreamer::New();
+	ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
 
     SliceRenderer::pointer sRenderer = SliceRenderer::New();
