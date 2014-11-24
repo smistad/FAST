@@ -11,7 +11,6 @@ class BoundingBox {
         BoundingBox(Vector3f pos, Vector3f size);
         BoundingBox(Vector3f size);
         // Create a bounding box from a set of coordinates
-        BoundingBox(std::vector<Float3> coordinates);
         BoundingBox(std::vector<Vector3f> coordinates);
         BoundingBox(MatrixXf corners);
         BoundingBox();
