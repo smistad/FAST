@@ -76,7 +76,6 @@ void MetaImageImporter::execute() {
          typeFound = false,
          dimensionsFound = false;
     std::string typeName;
-    //this->spacing = float3(1.0f,1.0f,1.0f);
 
     // Find NDims first
     bool imageIs3D = false;

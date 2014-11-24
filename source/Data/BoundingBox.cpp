@@ -70,9 +70,11 @@ BoundingBox::BoundingBox(std::vector<Float3> coordinates) {
     // Make new bounding box
     Float3 size(maximum.x()-minimum.x(), maximum.y()-minimum.y(), maximum.z()-minimum.z());
     mIsInitialized = true;
+    /*
     std::cout << minimum[0] << " " << minimum[1] << std::endl;
     std::cout << maximum[0] << " " << maximum[1] << std::endl;
     std::cout << size[0] << " " << size[1] << std::endl;
+    */
     createCorners(minimum, size);
 }
 
@@ -95,9 +97,11 @@ BoundingBox::BoundingBox(std::vector<Vector3f> coordinates) {
     // Make new bounding box
     Float3 size(maximum.x()-minimum.x(), maximum.y()-minimum.y(), maximum.z()-minimum.z());
     mIsInitialized = true;
+    /*
     std::cout << minimum[0] << " " << minimum[1] << std::endl;
     std::cout << maximum[0] << " " << maximum[1] << std::endl;
     std::cout << size[0] << " " << size[1] << std::endl;
+    */
     createCorners(minimum, size);
 }
 
