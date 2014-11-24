@@ -58,7 +58,7 @@ BoundingBox::BoundingBox(std::vector<Vector3f> coordinates) {
     Vector3f maximum(coordinates[0].x(), coordinates[0].y(), coordinates[0].z());
     for(uint i = 1; i < coordinates.size(); i++) {
         Vector3f coordinate = coordinates[i];
-        for(uint j = 0; j < 4; j++) {
+        for(uint j = 0; j < 3; j++) {
             if(coordinate[j] < minimum[j]) {
                 minimum[j] = coordinate[j];
             }
