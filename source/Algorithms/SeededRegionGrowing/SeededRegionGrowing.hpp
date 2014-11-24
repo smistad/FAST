@@ -15,7 +15,7 @@ class SeededRegionGrowing : public ProcessObject {
         void setDevice(ExecutionDevice::pointer device);
         void addSeedPoint(uint x, uint y);
         void addSeedPoint(uint x, uint y, uint z);
-        void addSeedPoint(Uint3 position);
+        void addSeedPoint(Vector3ui position);
         ImageData::pointer getOutput();
     private:
         SeededRegionGrowing();
@@ -30,7 +30,7 @@ class SeededRegionGrowing : public ProcessObject {
         ExecutionDevice::pointer mDevice;
 
         float mMinimumIntensity, mMaximumIntensity;
-        std::vector<Uint3> mSeedPoints;
+        std::vector<Vector3ui> mSeedPoints;
 
         cl::Kernel mKernel;
         unsigned char mDimensionCLCodeCompiledFor;

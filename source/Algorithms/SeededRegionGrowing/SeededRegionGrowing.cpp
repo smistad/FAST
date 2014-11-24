@@ -30,7 +30,7 @@ void SeededRegionGrowing::setIntensityRange(float min, float max) {
 }
 
 void SeededRegionGrowing::addSeedPoint(uint x, uint y) {
-    Uint3 pos;
+    Vector3ui pos;
     pos[0] = x;
     pos[1] = y;
     pos[2] = 0;
@@ -38,14 +38,14 @@ void SeededRegionGrowing::addSeedPoint(uint x, uint y) {
 }
 
 void SeededRegionGrowing::addSeedPoint(uint x, uint y, uint z) {
-    Uint3 pos;
+    Vector3ui pos;
     pos[0] = x;
     pos[1] = y;
     pos[2] = z;
     addSeedPoint(pos);
 }
 
-void SeededRegionGrowing::addSeedPoint(Uint3 position) {
+void SeededRegionGrowing::addSeedPoint(Vector3ui position) {
     mSeedPoints.push_back(position);
 }
 
@@ -103,11 +103,11 @@ void SeededRegionGrowing::executeOnHost(T* input, Image::pointer output) {
     uchar* outputData = (uchar*)outputAccess.get();
     // initialize output to all zero
     memset(outputData, 0, output->getWidth()*output->getHeight()*output->getDepth());
-    std::stack<Uint3> queue;
+    std::stack<Vector3ui> queue;
 
     // Add seeds to queue
     for(int i = 0; i < mSeedPoints.size(); i++) {
-        Uint3 pos = mSeedPoints[i];
+        Vector3ui pos = mSeedPoints[i];
 
         // Check if seed point is in bounds
         if(pos.x() < 0 || pos.y() < 0 || pos.z() < 0 ||
@@ -119,7 +119,7 @@ void SeededRegionGrowing::executeOnHost(T* input, Image::pointer output) {
 
     // Process queue
     while(!queue.empty()) {
-        Uint3 pos = queue.top();
+        Vector3ui pos = queue.top();
         queue.pop();
 
         // Add neighbors to queue
@@ -128,7 +128,7 @@ void SeededRegionGrowing::executeOnHost(T* input, Image::pointer output) {
         for(int c = -1; c < 2; c++) {
             if(abs(a)+abs(b)+abs(c) != 1) // connectivity
                 continue;
-            Uint3 neighbor(pos.x()+a,pos.y()+b,pos.z()+c);
+            Vector3ui neighbor(pos.x()+a,pos.y()+b,pos.z()+c);
             // Check for out of bounds
             if(neighbor.x() < 0 || neighbor.y() < 0 || neighbor.z() < 0 ||
                 neighbor.x() >= output->getWidth() || neighbor.y() >= output->getHeight() || neighbor.z() >= output->getDepth())
@@ -219,7 +219,7 @@ void SeededRegionGrowing::execute() {
 
         // Add sedd points
         for(int i = 0; i < mSeedPoints.size(); i++) {
-            Uint3 pos = mSeedPoints[i];
+            Vector3ui pos = mSeedPoints[i];
 
             // Check if seed point is in bounds
             if(pos.x() < 0 || pos.y() < 0 || pos.z() < 0 ||

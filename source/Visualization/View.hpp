@@ -27,9 +27,9 @@ class View : public QGLWidget, public ProcessObject {
         void quit();
         bool hasQuit() const;
 
-		 Float3 cameraPosition;
-		 Float3 rotationPoint;
-		 Float2 rotation;
+		 Vector3f cameraPosition;
+		 Vector3f rotationPoint;
+		 Vector2f rotation;
     private:
 
 		std::vector<Renderer::pointer> mNonVolumeRenderers;
@@ -50,7 +50,7 @@ class View : public QGLWidget, public ProcessObject {
         QTimer* timer;
         unsigned int mFramerate;
        
-        Float3 originalCameraPosition;
+        Vector3f originalCameraPosition;
         
         bool mQuit;
         

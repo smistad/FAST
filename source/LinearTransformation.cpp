@@ -38,25 +38,6 @@ float& LinearTransformation::operator()(uint i, uint j) {
     return mTransform(i,j);
 }
 
-Float3 operator*(const Float3& vertex, LinearTransformation transform) {
-    Vector3f v(vertex[0], vertex[1], vertex[2]);
-    v = transform.getTransform().affine()*v.homogeneous();
-    Float3 result;
-    result[0] = v(0);
-    result[1] = v(1);
-    result[2] = v(2);
-    return result;
-}
-Float3 LinearTransformation::operator*(Float3 vertex) const {
-    Vector3f v(vertex[0], vertex[1], vertex[2]);
-    v = getTransform().affine()*v.homogeneous();
-    Float3 result;
-    result[0] = v(0);
-    result[1] = v(1);
-    result[2] = v(2);
-    return result;
-}
-
 Vector3f LinearTransformation::getEulerAngles() const {
     Matrix3f rotationMatrix = mTransform.rotation();
     return rotationMatrix.eulerAngles(0, 1, 2);

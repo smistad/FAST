@@ -214,8 +214,8 @@ void View::initializeGL() {
 
 			// Have to find out rotation and scaling so to fit into the box
 			// Get bounding boxes of all objects
-			Float3 min, max;
-			Float3 centroid;
+			Vector3f min, max;
+			Vector3f centroid;
 			try {
 				SliceRenderer::pointer sliceRenderer = mNonVolumeRenderers[0];
 				sliceRenderer->turnOffTransformations();
@@ -346,8 +346,8 @@ void View::initializeGL() {
 				// Initialize camera
 
 				// Get bounding boxes of all objects
-				Float3 min, max;
-				Float3 centroid;
+				Vector3f min, max;
+				Vector3f centroid;
 				BoundingBox box = mNonVolumeRenderers[0]->getBoundingBox();
 				Vector3f corner = box.getCorners().row(0);
 				min[0] = corner[0];
@@ -497,8 +497,8 @@ void View::initializeGL() {
 				// Initialize camera
 
 				// Get bounding boxes of all objects
-				Float3 min, max;
-				Float3 centroid;
+				Vector3f min, max;
+				Vector3f centroid;
 				BoundingBox box = mVolumeRenderers[0]->getBoundingBox();
 				MatrixXf corners = box.getCorners();
 				Vector3f corner = box.getCorners().row(0);
@@ -896,7 +896,7 @@ void View::keyPressEvent(QKeyEvent* event) {
         case Qt::Key_R:
             // Set camera to original position and rotation
             cameraPosition = originalCameraPosition;
-            rotation = Float2(0,0);
+            rotation = Vector2f(0,0);
             break;
     }
     // Relay keyboard event info to renderers
