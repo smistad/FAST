@@ -280,20 +280,20 @@ void SliceRenderer::setSlicePlane(PlaneType plane) {
 BoundingBox SliceRenderer::getBoundingBox() {
 
     BoundingBox inputBoundingBox = mImageToRender->getBoundingBox();
-    Vector<Float3, 8> corners = inputBoundingBox.getCorners();
+    MatrixXf corners = inputBoundingBox.getCorners();
     // Shrink bounding box so that it covers the slice and not the entire data
     switch(mSlicePlane) {
         case PLANE_X:
             for(uint i = 0; i < 8; i++)
-                corners[i][0] = mSliceNr;
+                corners(i,0) = mSliceNr;
             break;
         case PLANE_Y:
             for(uint i = 0; i < 8; i++)
-                corners[i][1] = mSliceNr;
+                corners(i,1) = mSliceNr;
             break;
         case PLANE_Z:
             for(uint i = 0; i < 8; i++)
-                corners[i][2] = mSliceNr;
+                corners(i,2) = mSliceNr;
             break;
     }
     BoundingBox shrinkedBox(corners);

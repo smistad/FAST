@@ -512,7 +512,7 @@ void Image::create3DImage(
     mWidth = width;
     mHeight = height;
     mDepth = depth;
-    mBoundingBox = BoundingBox(Float3(width, height, depth));
+    mBoundingBox = BoundingBox(Vector3f(width, height, depth));
     SceneGraphNode::pointer node = graph.addDataNodeToNewRoot(mPtr);
     mDimensions = 3;
     mType = type;
@@ -551,7 +551,7 @@ void Image::create3DImage(
     mWidth = width;
     mHeight = height;
     mDepth = depth;
-    mBoundingBox = BoundingBox(Float3(width, height, depth));
+    mBoundingBox = BoundingBox(Vector3f(width, height, depth));
     SceneGraphNode::pointer node = graph.addDataNodeToNewRoot(mPtr);
     mDimensions = 3;
     mType = type;
@@ -596,7 +596,7 @@ void Image::create2DImage(
 
     mWidth = width;
     mHeight = height;
-    mBoundingBox = BoundingBox(Float3(width, height, 0));
+    mBoundingBox = BoundingBox(Vector3f(width, height, 0));
     SceneGraphNode::pointer node = graph.addDataNodeToNewRoot(mPtr);
     mDepth = 1;
     mDimensions = 2;
@@ -638,7 +638,7 @@ void Image::create2DImage(
     mWidth = width;
     mHeight = height;
     mDepth = 1;
-    mBoundingBox = BoundingBox(Float3(width, height, 0));
+    mBoundingBox = BoundingBox(Vector3f(width, height, 0));
     SceneGraphNode::pointer node = graph.addDataNodeToNewRoot(mPtr);
     mDimensions = 2;
     mType = type;

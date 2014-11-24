@@ -8,18 +8,18 @@ namespace fast {
 
 class BoundingBox {
     public:
-        BoundingBox(Float3 pos, Float3 size);
-        BoundingBox(Float3 size);
+        BoundingBox(Vector3f pos, Vector3f size);
+        BoundingBox(Vector3f size);
         // Create a bounding box from a set of coordinates
         BoundingBox(std::vector<Float3> coordinates);
         BoundingBox(std::vector<Vector3f> coordinates);
-        BoundingBox(Vector<Float3, 8> corners);
+        BoundingBox(MatrixXf corners);
         BoundingBox();
-        Vector<Float3, 8> getCorners();
+        MatrixXf getCorners();
         BoundingBox getTransformedBoundingBox(LinearTransformation transform);
     private:
-        void createCorners(Float3 pos, Float3 size);
-        Vector<Float3, 8> mCorners;
+        void createCorners(Vector3f pos, Vector3f size);
+        MatrixXf mCorners;
         bool mIsInitialized;
 
 };

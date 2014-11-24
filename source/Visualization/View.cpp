@@ -228,7 +228,7 @@ void View::initializeGL() {
 				}
 			}
 			BoundingBox box = mNonVolumeRenderers[0]->getBoundingBox();
-			Float3 corner = box.getCorners()[0];
+			Vector3f corner = box.getCorners().row(0);
 			min[0] = corner[0];
 			max[0] = corner[0];
 			min[1] = corner[1];
@@ -242,14 +242,14 @@ void View::initializeGL() {
 
 				BoundingBox box =  mNonVolumeRenderers[i]->getBoundingBox();
 				std::cout << box << std::endl;
-				Vector<Float3, 8> corners = box.getCorners();
+				MatrixXf corners = box.getCorners();
 
 				for(int j = 0; j < 8; j++) {
 					for(uint k = 0; k < 3; k++) {
-						if(corners[j][k] < min[k])
-							min[k] = corners[j][k];
-						if(corners[j][k] > max[k])
-							max[k] = corners[j][k];
+						if(corners(j,k) < min[k])
+							min[k] = corners(j,k);
+						if(corners(j,k) > max[k])
+							max[k] = corners(j,k);
 					}
 				}
 			}
@@ -349,7 +349,7 @@ void View::initializeGL() {
 				Float3 min, max;
 				Float3 centroid;
 				BoundingBox box = mNonVolumeRenderers[0]->getBoundingBox();
-				Float3 corner = box.getCorners()[0];
+				Vector3f corner = box.getCorners().row(0);
 				min[0] = corner[0];
 				max[0] = corner[0];
 				min[1] = corner[1];
@@ -363,16 +363,17 @@ void View::initializeGL() {
 					// Calculate centroid of all b boxes
 
 					BoundingBox box = mNonVolumeRenderers[i]->getBoundingBox();
-					Vector<Float3, 8> corners = box.getCorners();
+					MatrixXf corners = box.getCorners();
 
-					for(int j = 0; j < 8; j++) {
-						for(uint k = 0; k < 3; k++) {
-							if(corners[j][k] < min[k])
-								min[k] = corners[j][k];
-							if(corners[j][k] > max[k])
-								max[k] = corners[j][k];
-						}
+
+				for(int j = 0; j < 8; j++) {
+					for(uint k = 0; k < 3; k++) {
+						if(corners(j,k) < min[k])
+							min[k] = corners(j,k);
+						if(corners(j,k) > max[k])
+							max[k] = corners(j,k);
 					}
+				}
 				}
 
 				// Calculate area of each side of the resulting bounding box
@@ -499,23 +500,21 @@ void View::initializeGL() {
 				Float3 min, max;
 				Float3 centroid;
 				BoundingBox box = mVolumeRenderers[0]->getBoundingBox();
-				Vector<Float3, 8> corners = box.getCorners();
+				MatrixXf corners = box.getCorners();
+				Vector3f corner = box.getCorners().row(0);
+				min[0] = corner[0];
+				max[0] = corner[0];
+				min[1] = corner[1];
+				max[1] = corner[1];
+				min[2] = corner[2];
+				max[2] = corner[2];
 
-				min[0] = corners[0][0];
-				max[0] = corners[0][0];
-				min[1] = corners[0][1];
-				max[1] = corners[0][1];
-				min[2] = corners[0][2];
-				max[2] = corners[0][2];
-
-				for(int j = 1; j < 8; j++)
-				{
-					for(uint k = 0; k < 3; k++)
-					{
-						if(corners[j][k] < min[k])
-							min[k] = corners[j][k];
-						if(corners[j][k] > max[k])
-							max[k] = corners[j][k];
+				for(int j = 0; j < 8; j++) {
+					for(uint k = 0; k < 3; k++) {
+						if(corners(j,k) < min[k])
+							min[k] = corners(j,k);
+						if(corners(j,k) > max[k])
+							max[k] = corners(j,k);
 					}
 				}
 

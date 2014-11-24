@@ -55,16 +55,16 @@ void PointRenderer::draw() {
 }
 
 BoundingBox PointRenderer::getBoundingBox() {
-    std::vector<Float3> coordinates;
+    std::vector<Vector3f> coordinates;
     for(uint i = 0; i < getNrOfInputData(); i++) {
         BoundingBox inputBoundingBox = getInputData(i)->getBoundingBox();
         SceneGraph& graph = SceneGraph::getInstance();
         SceneGraphNode::pointer node = graph.getDataNode(getInputData(i));
         LinearTransformation transform = graph.getLinearTransformationFromNode(node);
         BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
-        Vector<Float3, 8> corners = transformedBoundingBox.getCorners();
+        MatrixXf corners = transformedBoundingBox.getCorners();
         for(uint j = 0; j < 8; j++) {
-            coordinates.push_back(corners[j]);
+            coordinates.push_back((Vector3f)corners.row(j));
         }
     }
     return BoundingBox(coordinates);
