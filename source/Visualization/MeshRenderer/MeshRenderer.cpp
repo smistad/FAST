@@ -1,11 +1,12 @@
 #include <GL/glew.h>
-#include "SurfaceRenderer.hpp"
 #include "Image.hpp"
 #include "HelperFunctions.hpp"
 #include "DeviceManager.hpp"
 #include "View.hpp"
 #include "Utility.hpp"
 #include <QCursor>
+
+#include "MeshRenderer.hpp"
 #include "SceneGraph.hpp"
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))

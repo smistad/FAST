@@ -1,7 +1,7 @@
 fast_add_subdirectories(
     ImageRenderer
     SliceRenderer
-    SurfaceRenderer
+    MeshRenderer
     VolumeRenderer
     PointRenderer
 )

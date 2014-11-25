@@ -1,6 +1,6 @@
 #include "ImageFileStreamer.hpp"
 #include "catch.hpp"
-#include "SurfaceRenderer.hpp"
+#include "MeshRenderer.hpp"
 #include "SurfaceExtraction.hpp"
 #include "SimpleWindow.hpp"
 #include "VTKSurfaceFileImporter.hpp"
