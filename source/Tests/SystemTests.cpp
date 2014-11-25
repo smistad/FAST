@@ -51,7 +51,7 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and S
     );
 }
 
-TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter, SurfaceExtraction and SurfaceRenderer on OpenCL device", "[fast][SystemTests][visual]") {
+TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter, SurfaceExtraction and MeshRenderer on OpenCL device", "[fast][SystemTests][visual]") {
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
@@ -65,7 +65,7 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter, Surf
     extractor->setInput(filter->getOutput());
     extractor->setThreshold(200);
 
-    SurfaceRenderer::pointer renderer = SurfaceRenderer::New();
+    MeshRenderer::pointer renderer = MeshRenderer::New();
     renderer->setInput(extractor->getOutput());
 
     SimpleWindow::pointer window = SimpleWindow::New();

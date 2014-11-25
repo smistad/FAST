@@ -11,7 +11,7 @@ TEST_CASE("SurfaceRenderer on LV surface model", "[fast][SurfaceRenderer][visual
     CHECK_NOTHROW(
         VTKSurfaceFileImporter::pointer importer = VTKSurfaceFileImporter::New();
         importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "Surface_LV.vtk");
-        SurfaceRenderer::pointer renderer = SurfaceRenderer::New();
+        MeshRenderer::pointer renderer = MeshRenderer::New();
         renderer->setInput(importer->getOutput());
         SimpleWindow::pointer window = SimpleWindow::New();
         window->addRenderer(renderer);
@@ -27,7 +27,7 @@ TEST_CASE("SurfaceRenderer on stream of surfaces", "[fast][SurfaceRenderer][visu
         SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
         extractor->setInput(mhdStreamer->getOutput());
         extractor->setThreshold(200);
-        SurfaceRenderer::pointer renderer = SurfaceRenderer::New();
+        MeshRenderer::pointer renderer = MeshRenderer::New();
         renderer->setInput(extractor->getOutput());
         SimpleWindow::pointer window = SimpleWindow::New();
         window->addRenderer(renderer);

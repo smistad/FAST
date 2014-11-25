@@ -36,7 +36,7 @@ TEST_CASE("Pipeline A (static)", "[fast][benchmark][visual]") {
     extractor->setInput(filter->getOutput());
     extractor->setThreshold(200);
 
-    SurfaceRenderer::pointer renderer = SurfaceRenderer::New();
+    MeshRenderer::pointer renderer = MeshRenderer::New();
     renderer->enableRuntimeMeasurements();
     renderer->setInput(extractor->getOutput());
 
@@ -76,7 +76,7 @@ TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark][visual]") {
     extractor->setThreshold(200);
     extractor->enableRuntimeMeasurements();
 
-    SurfaceRenderer::pointer renderer = SurfaceRenderer::New();
+    MeshRenderer::pointer renderer = MeshRenderer::New();
     renderer->setInput(extractor->getOutput());
     renderer->enableRuntimeMeasurements();
 
@@ -129,7 +129,7 @@ TEST_CASE("Pipeline B", "[fast][benchmark][visual]") {
     exporter->update();
     */
 
-    SurfaceRenderer::pointer surfaceRenderer = SurfaceRenderer::New();
+    MeshRenderer::pointer surfaceRenderer = MeshRenderer::New();
     surfaceRenderer->setInput(extraction->getOutput());
     surfaceRenderer->enableRuntimeMeasurements();
 

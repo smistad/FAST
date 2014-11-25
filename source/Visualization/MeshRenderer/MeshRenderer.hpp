@@ -6,15 +6,15 @@
 
 namespace fast {
 
-class SurfaceRenderer : public Renderer {
-    FAST_OBJECT(SurfaceRenderer)
+class MeshRenderer : public Renderer {
+    FAST_OBJECT(MeshRenderer)
     public:
         void setInput(MeshData::pointer image);
         void setThreshold(float threshold){};
         BoundingBox getBoundingBox();
         void setOpacity(float opacity);
     private:
-        SurfaceRenderer();
+        MeshRenderer();
         void execute();
         void draw();
 

@@ -13,18 +13,18 @@
 
 namespace fast {
 
-void SurfaceRenderer::setInput(MeshData::pointer image) {
+void MeshRenderer::setInput(MeshData::pointer image) {
     mInput = image;
     setParent(mInput);
     mIsModified = true;
 }
 
-SurfaceRenderer::SurfaceRenderer() : Renderer() {
+MeshRenderer::MeshRenderer() : Renderer() {
     mDevice = DeviceManager::getInstance().getDefaultVisualizationDevice();
     mOpacity = 1;
 }
 
-void SurfaceRenderer::execute() {
+void MeshRenderer::execute() {
     if(mInput->isDynamicData()) {
         mSurfaceToRender = DynamicMesh::pointer(mInput)->getNextFrame();
     } else {
@@ -32,7 +32,7 @@ void SurfaceRenderer::execute() {
     }
 }
 
-void SurfaceRenderer::draw() {
+void MeshRenderer::draw() {
     // Draw the triangles in the VBO
 
     SceneGraph& graph = SceneGraph::getInstance();
@@ -81,7 +81,7 @@ void SurfaceRenderer::draw() {
     glDisable(GL_LIGHTING);
 }
 
-BoundingBox SurfaceRenderer::getBoundingBox() {
+BoundingBox MeshRenderer::getBoundingBox() {
     SceneGraph& graph = SceneGraph::getInstance();
     SceneGraphNode::pointer node = graph.getDataNode(mSurfaceToRender);
     LinearTransformation transform = graph.getLinearTransformationFromNode(node);
@@ -90,7 +90,7 @@ BoundingBox SurfaceRenderer::getBoundingBox() {
     return transformedBoundingBox;
 }
 
-void SurfaceRenderer::setOpacity(float opacity) {
+void MeshRenderer::setOpacity(float opacity) {
     mOpacity = opacity;
     if(mOpacity > 1) {
         mOpacity = 1;
