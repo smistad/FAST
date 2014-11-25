@@ -8,7 +8,7 @@
 #include "ImageRenderer.hpp"
 #include "SliceRenderer.hpp"
 #include "VolumeRenderer.hpp"
-#include "SurfaceRenderer.hpp"
+#include "MeshRenderer.hpp"
 #include "MetaImageImporter.hpp"
 #include "ImageFileStreamer.hpp"
 #include "MetaImageExporter.hpp"
@@ -38,7 +38,7 @@ int main(int argc, char ** argv) {
     Surface::pointer surface = extractor->getOutput();
     //extractor->update();
 
-    SurfaceRenderer::pointer surfaceRenderer = SurfaceRenderer::New();
+    MeshRenderer::pointer surfaceRenderer = MeshRenderer::New();
     surfaceRenderer->setInput(surface);
     SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
     sliceRenderer->setInput(image);
@@ -85,7 +85,7 @@ int main(int argc, char ** argv) {
     Surface::pointer surface = extractor->getOutput();
     extractor->update();
 
-    SurfaceRenderer::pointer surfaceRenderer = SurfaceRenderer::New();
+    MeshRenderer::pointer surfaceRenderer = MeshRenderer::New();
     surfaceRenderer->setInput(surface);
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(surfaceRenderer);
@@ -126,7 +126,7 @@ window->setTimeout(10*1000);
 /*
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
-    SurfaceRenderer::pointer surfaceRenderer = SurfaceRenderer::New();
+    MeshRenderer::pointer surfaceRenderer = MeshRenderer::New();
     surfaceRenderer->setInput(mhdStreamer->getOutput());
     surfaceRenderer->setThreshold(200);
     SimpleWindow::pointer window = SimpleWindow::New();
