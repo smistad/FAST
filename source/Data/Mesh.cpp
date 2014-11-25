@@ -1,5 +1,5 @@
 #include <GL/glew.h>
-#include "Surface.hpp"
+#include "Mesh.hpp"
 #include "SimpleWindow.hpp"
 #include "SceneGraph.hpp"
 #include <QApplication>

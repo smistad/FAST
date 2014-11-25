@@ -1,9 +1,9 @@
 #ifndef SURFACEEXTRACTION_HPP_
 #define SURFACEEXTRACTION_HPP_
 
+#include "Mesh.hpp"
 #include "ProcessObject.hpp"
 #include "Image.hpp"
-#include "Surface.hpp"
 
 namespace fast {
 

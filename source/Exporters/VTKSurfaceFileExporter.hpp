@@ -1,8 +1,8 @@
 #ifndef VTK_SURFACE_FILE_EXPORTER_HPP
 #define VTK_SURFACE_FILE_EXPORTER_HPP
 
+#include "Mesh.hpp"
 #include "ProcessObject.hpp"
-#include "Surface.hpp"
 
 namespace fast {
 

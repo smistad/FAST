@@ -9,8 +9,8 @@ fast_add_sources(
     Image.hpp
     DataTypes.cpp
     DataTypes.hpp
-    Surface.cpp
-    Surface.hpp
+    Mesh.cpp
+    Mesh.hpp
     SurfaceVertex.hpp
     PointSet.cpp
     PointSet.hpp

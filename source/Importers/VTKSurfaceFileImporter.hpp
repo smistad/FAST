@@ -2,8 +2,8 @@
 #define VTK_SURFACE_FILE_IMPORTER_HPP
 
 #include "Importer.hpp"
-#include "Surface.hpp"
 #include <string>
+#include "Mesh.hpp"
 
 namespace fast {
 

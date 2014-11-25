@@ -1,8 +1,8 @@
 #ifndef SURFACERENDERER_HPP_
 #define SURFACERENDERER_HPP_
 
+#include "Mesh.hpp"
 #include "Renderer.hpp"
-#include "Surface.hpp"
 
 namespace fast {
 
