@@ -706,11 +706,13 @@ void View::paintGL() {
 			glEnable(GL_DEPTH_TEST);
 		}
 
+		mRuntimeManager->startRegularTimer("draw");
 		for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
 			glPushMatrix();
 			mNonVolumeRenderers[i]->draw();
 			glPopMatrix();
 		}
+		mRuntimeManager->stopRegularTimer("draw");
 
 
 		if (mVolumeRenderers.size()>0)
@@ -804,12 +806,11 @@ void View::renderVolumes()
 			((VolumeRenderer::pointer)(mVolumeRenderers[0]))->addGeometryDepthTexture(renderedTexture1);
 		}
 
+		mRuntimeManager->startRegularTimer("draw");
 		for(unsigned int i = 0; i < mVolumeRenderers.size(); i++) {
-
-
 			mVolumeRenderers[i]->draw();
-
 		}
+		mRuntimeManager->stopRegularTimer("draw");
 		glMatrixMode(GL_MODELVIEW);
 		glPopMatrix();
 		glMatrixMode(GL_PROJECTION);

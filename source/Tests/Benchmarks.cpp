@@ -26,18 +26,22 @@ TEST_CASE("Pipeline A (static)", "[fast][benchmark][visual]") {
     importer->enableRuntimeMeasurements();
 
     GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
+    filter->enableRuntimeMeasurements();
     filter->setInput(importer->getOutput());
     filter->setMaskSize(5);
     filter->setStandardDeviation(2.0);
 
     SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
+    extractor->enableRuntimeMeasurements();
     extractor->setInput(filter->getOutput());
     extractor->setThreshold(200);
 
     SurfaceRenderer::pointer renderer = SurfaceRenderer::New();
+    renderer->enableRuntimeMeasurements();
     renderer->setInput(extractor->getOutput());
 
     SimpleWindow::pointer window = SimpleWindow::New();
+    window->getView()->enableRuntimeMeasurements();
     window->addRenderer(renderer);
     window->setTimeout(2*1000); // timeout after 2 seconds
     window->runMainLoop();
@@ -46,10 +50,12 @@ TEST_CASE("Pipeline A (static)", "[fast][benchmark][visual]") {
     filter->getRuntime()->print();
     extractor->getRuntime()->print();
     renderer->getRuntime()->print();
+    window->getView()->getRuntime("draw")->print();
     float total = importer->getRuntime()->getSum() +
             filter->getRuntime()->getSum() +
             extractor->getRuntime()->getSum() +
-            renderer->getRuntime()->getSum();
+            renderer->getRuntime()->getSum() +
+            window->getView()->getRuntime("draw")->getAverage();
     std::cout << "Total runtime was: " << total << std::endl;
 }
 
@@ -75,6 +81,7 @@ TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark][visual]") {
     renderer->enableRuntimeMeasurements();
 
     SimpleWindow::pointer window = SimpleWindow::New();
+    window->getView()->enableRuntimeMeasurements();
     window->addRenderer(renderer);
     window->setTimeout(15*1000); // timeout after 10 seconds
     window->runMainLoop();
@@ -83,10 +90,12 @@ TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark][visual]") {
     filter->getRuntime()->print();
     extractor->getRuntime()->print();
     renderer->getRuntime()->print();
+    window->getView()->getRuntime("draw")->print();
     float total = streamer->getRuntime()->getSum() +
 		filter->getRuntime()->getSum() +
 		extractor->getRuntime()->getSum() +
-		renderer->getRuntime()->getSum();
+		renderer->getRuntime()->getSum() +
+            window->getView()->getRuntime("draw")->getAverage();
 	total = total / 84; // number of frames
     std::cout << "Average runtime was: " << total << std::endl << std::endl;
 }
@@ -132,6 +141,7 @@ TEST_CASE("Pipeline B", "[fast][benchmark][visual]") {
 
 	SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(surfaceRenderer);
+    window->getView()->enableRuntimeMeasurements();
     //window->addRenderer(sliceRenderer);
     window->setTimeout(2*1000); // timeout after 2 seconds
     window->runMainLoop();
@@ -140,12 +150,14 @@ TEST_CASE("Pipeline B", "[fast][benchmark][visual]") {
     extraction->getRuntime()->print();
     surfaceRenderer->getRuntime()->print();
     sliceRenderer->getRuntime()->print();
+    window->getView()->getRuntime("draw")->print();
 
     float total = importer->getRuntime()->getSum()+
                 segmentation->getRuntime()->getSum()+
                 extraction->getRuntime()->getSum()+
                 surfaceRenderer->getRuntime()->getSum() +
-                sliceRenderer->getRuntime()->getSum();
+                sliceRenderer->getRuntime()->getSum() +
+            window->getView()->getRuntime("draw")->getAverage();
     std::cout << "Total runtime was: " << total << std::endl;
 }
 
@@ -169,6 +181,7 @@ TEST_CASE("Pipeline C", "[fast][benchmark][visual]") {
     renderer->setIntensityLevel(0.5);
     renderer->enableRuntimeMeasurements();
     SimpleWindow::pointer window = SimpleWindow::New();
+    window->getView()->enableRuntimeMeasurements();
     window->addRenderer(renderer);
     window->setTimeout(2000);
     window->runMainLoop();
@@ -176,10 +189,12 @@ TEST_CASE("Pipeline C", "[fast][benchmark][visual]") {
     thresholding->getRuntime()->print();
     skeletonization->getRuntime()->print();
     renderer->getRuntime()->print();
+    window->getView()->getRuntime("draw")->print();
     float total = importer->getRuntime()->getSum() +
             thresholding->getRuntime()->getSum() +
             skeletonization->getRuntime()->getSum() +
-            renderer->getRuntime()->getSum();
+            renderer->getRuntime()->getSum() +
+            window->getView()->getRuntime("draw")->getAverage();
     std::cout << "Total runtime was: " << total << std::endl;
 }
 
@@ -224,6 +239,7 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
     renderer->enableRuntimeMeasurements();
 
     SimpleWindow::pointer window = SimpleWindow::New();
+    window->getView()->enableRuntimeMeasurements();
     window->addRenderer(renderer);
     //window->addRenderer(rendererB);
     window->setTimeout(2000);
@@ -234,9 +250,11 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
     importerB->getRuntime()->print();
     icp->getRuntime()->print();
     renderer->getRuntime()->print();
+    window->getView()->getRuntime("draw")->print();
     float total = importerA->getRuntime()->getSum() +
             importerB->getRuntime()->getSum() +
             icp->getRuntime()->getSum() +
-            renderer->getRuntime()->getSum();
+            renderer->getRuntime()->getSum() +
+            window->getView()->getRuntime("draw")->getAverage();
     std::cout << "Total runtime was: " << total << std::endl;
 }

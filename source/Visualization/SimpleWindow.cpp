@@ -106,3 +106,7 @@ void SimpleWindow::set2DMode() {
 void SimpleWindow::set3DMode() {
     mView->set3DMode();
 }
+
+View::pointer SimpleWindow::getView() const {
+    return mView;
+}

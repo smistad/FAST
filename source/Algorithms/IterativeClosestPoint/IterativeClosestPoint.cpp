@@ -157,7 +157,6 @@ void IterativeClosestPoint::execute() {
     if(invertTransform)
         currentTransformation = currentTransformation.inverse();
     mError = error;
-    std::cout << "Finished after " << iterations << " iterations" << std::endl;
     mTransformation.setTransform(currentTransformation);
 }
 

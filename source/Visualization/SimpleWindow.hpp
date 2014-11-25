@@ -21,6 +21,7 @@ class SimpleWindow : public Object {
         void setTimeout(unsigned int milliseconds);
         static QGLContext *mGLContext;
         static void initializeQtApp();
+        View::pointer getView() const;
         ~SimpleWindow();
         void set2DMode();
         void set3DMode();
