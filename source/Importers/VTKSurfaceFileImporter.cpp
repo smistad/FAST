@@ -10,13 +10,13 @@ void VTKSurfaceFileImporter::setFilename(std::string filename) {
     mIsModified = true;
 }
 
-Surface::pointer VTKSurfaceFileImporter::getOutput() {
+Mesh::pointer VTKSurfaceFileImporter::getOutput() {
     mOutput->setSource(mPtr);
     return mOutput;
 }
 
 VTKSurfaceFileImporter::VTKSurfaceFileImporter() {
-    mOutput = Surface::New();
+    mOutput = Mesh::New();
     mFilename = "";
     mIsModified = true;
 }

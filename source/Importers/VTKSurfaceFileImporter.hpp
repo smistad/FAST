@@ -11,13 +11,13 @@ class VTKSurfaceFileImporter : public Importer {
     FAST_OBJECT(VTKSurfaceFileImporter)
     public:
         void setFilename(std::string filename);
-        Surface::pointer getOutput();
+        Mesh::pointer getOutput();
     private:
         VTKSurfaceFileImporter();
         void execute();
 
         std::string mFilename;
-        Surface::pointer mOutput;
+        Mesh::pointer mOutput;
 };
 
 } // end namespace fast

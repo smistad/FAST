@@ -12,7 +12,7 @@
 
 namespace fast {
 
-void SurfaceRenderer::setInput(SurfaceData::pointer image) {
+void SurfaceRenderer::setInput(MeshData::pointer image) {
     mInput = image;
     setParent(mInput);
     mIsModified = true;
@@ -25,7 +25,7 @@ SurfaceRenderer::SurfaceRenderer() : Renderer() {
 
 void SurfaceRenderer::execute() {
     if(mInput->isDynamicData()) {
-        mSurfaceToRender = DynamicSurface::pointer(mInput)->getNextFrame();
+        mSurfaceToRender = DynamicMesh::pointer(mInput)->getNextFrame();
     } else {
         mSurfaceToRender = mInput;
     }

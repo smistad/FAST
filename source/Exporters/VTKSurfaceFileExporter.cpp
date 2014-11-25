@@ -4,7 +4,7 @@
 
 namespace fast {
 
-void VTKSurfaceFileExporter::setInput(SurfaceData::pointer input) {
+void VTKSurfaceFileExporter::setInput(MeshData::pointer input) {
     setParent(input);
     mInput = input;
 }
@@ -24,9 +24,9 @@ void VTKSurfaceFileExporter::execute() {
     if(!mInput.isValid())
         throw Exception("No valid input given to the VTKSurfaceFileExporter");
 
-    Surface::pointer surface;
+    Mesh::pointer surface;
     if(mInput->isDynamicData()) {
-        surface = DynamicSurface::pointer(mInput)->getNextFrame();
+        surface = DynamicMesh::pointer(mInput)->getNextFrame();
     } else {
         surface = mInput;
     }

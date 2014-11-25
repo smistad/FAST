@@ -9,7 +9,7 @@ namespace fast {
 class SurfaceRenderer : public Renderer {
     FAST_OBJECT(SurfaceRenderer)
     public:
-        void setInput(SurfaceData::pointer image);
+        void setInput(MeshData::pointer image);
         void setThreshold(float threshold){};
         BoundingBox getBoundingBox();
         void setOpacity(float opacity);
@@ -19,8 +19,8 @@ class SurfaceRenderer : public Renderer {
         void draw();
 
         OpenCLDevice::pointer mDevice;
-        SurfaceData::pointer mInput;
-        Surface::pointer mSurfaceToRender;
+        MeshData::pointer mInput;
+        Mesh::pointer mSurfaceToRender;
         float mOpacity;
 };
 

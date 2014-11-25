@@ -16,17 +16,17 @@ void SurfaceExtraction::setInput(ImageData::pointer input) {
     mInput = input;
     setParent(mInput);
     if(input->isDynamicData()) {
-        mOutput = DynamicSurface::New();
-        DynamicSurface::pointer(mOutput)->setStreamer(DynamicImage::pointer(mInput)->getStreamer());
+        mOutput = DynamicMesh::New();
+        DynamicMesh::pointer(mOutput)->setStreamer(DynamicImage::pointer(mInput)->getStreamer());
     } else {
-        mOutput = Surface::New();
+        mOutput = Mesh::New();
         input->retain(mDevice);
     }
     mOutput->setSource(mPtr.lock());
     mIsModified = true;
 }
 
-SurfaceData::pointer SurfaceExtraction::getOutput() {
+MeshData::pointer SurfaceExtraction::getOutput() {
     if(!mOutput.isValid()) {
         throw Exception("Must call setInput before getOutput in GaussianSmoothingFilter");
     }
@@ -334,12 +334,12 @@ void SurfaceExtraction::execute() {
     }
     std::cout << "Sum of triangles is " << totalSum << std::endl;
 
-    Surface::pointer output;
+    Mesh::pointer output;
     if(mInput->isDynamicData()) {
-        output = Surface::New();
-        DynamicSurface::pointer(mOutput)->addFrame(output);
+        output = Mesh::New();
+        DynamicMesh::pointer(mOutput)->addFrame(output);
     } else {
-        output = Surface::pointer(mOutput);
+        output = Mesh::pointer(mOutput);
     }
     output->create(totalSum);
 
@@ -399,7 +399,7 @@ SurfaceExtraction::SurfaceExtraction() {
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
     mThreshold = 0.0f;
     mHPSize = 0;
-    mOutput = Surface::New();
+    mOutput = Mesh::New();
 }
 
 

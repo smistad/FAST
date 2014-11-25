@@ -11,14 +11,14 @@
 
 namespace fast {
 
-class SurfaceData : public virtual DataObject {
+class MeshData : public virtual DataObject {
     public:
-        typedef SharedPointer<SurfaceData> pointer;
-        virtual ~SurfaceData() {};
+        typedef SharedPointer<MeshData> pointer;
+        virtual ~MeshData() {};
 };
 
-class Surface : public SurfaceData {
-    FAST_OBJECT(Surface)
+class Mesh : public MeshData {
+    FAST_OBJECT(Mesh)
     public:
         void create(std::vector<Vector3f> vertices, std::vector<Vector3f> normals, std::vector<Vector3ui> triangles);
         void create(std::vector<SurfaceVertex> vertices, std::vector<Vector3ui> triangles);
@@ -28,9 +28,9 @@ class Surface : public SurfaceData {
         unsigned int getNrOfTriangles() const;
         unsigned int getNrOfVertices() const;
         void setBoundingBox(BoundingBox box);
-        ~Surface();
+        ~Mesh();
     private:
-        Surface();
+        Mesh();
         void freeAll();
         void free(ExecutionDevice::pointer device);
 
@@ -54,8 +54,8 @@ class Surface : public SurfaceData {
         bool isAnyDataBeingAccessed();
 };
 
-class DynamicSurface : public SurfaceData, public DynamicData<Surface> {
-    FAST_OBJECT(DynamicSurface)
+class DynamicMesh : public MeshData, public DynamicData<Mesh> {
+    FAST_OBJECT(DynamicMesh)
 };
 
 } // end namespace fast

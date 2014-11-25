@@ -17,7 +17,7 @@
 
 namespace fast {
 
-void Surface::create(
+void Mesh::create(
         std::vector<Vector3f> vertices,
         std::vector<Vector3f> normals,
         std::vector<Vector3ui> triangles) {
@@ -54,7 +54,7 @@ void Surface::create(
 }
 
 
-void Surface::create(std::vector<SurfaceVertex> vertices, std::vector<Vector3ui> triangles) {
+void Mesh::create(std::vector<SurfaceVertex> vertices, std::vector<Vector3ui> triangles) {
      if(mIsInitialized) {
         // Delete old data
         freeAll();
@@ -74,7 +74,7 @@ void Surface::create(std::vector<SurfaceVertex> vertices, std::vector<Vector3ui>
     graph.addDataNodeToNewRoot(mPtr);
 }
 
-void Surface::create(unsigned int nrOfTriangles) {
+void Mesh::create(unsigned int nrOfTriangles) {
     if(mIsInitialized) {
         // Delete old data
         freeAll();
@@ -85,11 +85,11 @@ void Surface::create(unsigned int nrOfTriangles) {
     graph.addDataNodeToNewRoot(mPtr);
 }
 
-bool Surface::isAnyDataBeingAccessed() {
+bool Mesh::isAnyDataBeingAccessed() {
     return mVBODataIsBeingAccessed || mHostDataIsBeingAccessed;
 }
 
-VertexBufferObjectAccess Surface::getVertexBufferObjectAccess(
+VertexBufferObjectAccess Mesh::getVertexBufferObjectAccess(
         accessType type,
         OpenCLDevice::pointer device) {
     update();
@@ -203,7 +203,7 @@ bool operator==(const SurfaceVertex& a, const SurfaceVertex& b) {
     a.position[2] == b.position[2];
 }
 
-SurfacePointerAccess Surface::getSurfacePointerAccess(accessType type) {
+SurfacePointerAccess Mesh::getSurfacePointerAccess(accessType type) {
     update();
     if(!mIsInitialized) {
         throw Exception("Surface has not been initialized.");
@@ -273,11 +273,11 @@ SurfacePointerAccess Surface::getSurfacePointerAccess(accessType type) {
     return SurfacePointerAccess(&mVertices,&mTriangles,&mHostDataIsBeingAccessed,&mSurfaceIsBeingWrittenTo);
 }
 
-Surface::~Surface() {
+Mesh::~Mesh() {
     freeAll();
 }
 
-Surface::Surface() {
+Mesh::Mesh() {
     mIsInitialized = false;
     mVBOHasData = false;
     mHostHasData = false;
@@ -286,7 +286,7 @@ Surface::Surface() {
     mHostDataIsBeingAccessed = false;
 }
 
-void Surface::freeAll() {
+void Mesh::freeAll() {
     // TODO finish
     if(mVBOHasData) {
         glDeleteBuffers(1, &mVBOID);
@@ -294,19 +294,19 @@ void Surface::freeAll() {
     mVBOHasData = false;
 }
 
-void Surface::free(ExecutionDevice::pointer device) {
+void Mesh::free(ExecutionDevice::pointer device) {
     // TODO
 }
 
-unsigned int Surface::getNrOfTriangles() const {
+unsigned int Mesh::getNrOfTriangles() const {
     return mNrOfTriangles;
 }
 
-unsigned int Surface::getNrOfVertices() const {
+unsigned int Mesh::getNrOfVertices() const {
     return mVertices.size();
 }
 
-void Surface::setBoundingBox(BoundingBox box) {
+void Mesh::setBoundingBox(BoundingBox box) {
     mBoundingBox = box;
 }
 
