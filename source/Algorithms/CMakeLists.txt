@@ -5,7 +5,6 @@ fast_add_subdirectories(
     Skeletonization
     BinaryThresholding
     ImageGradient
-    VesselDetectionForUltrasound2D
     IterativeClosestPoint
 )
 fast_add_sources()
