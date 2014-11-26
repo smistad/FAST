@@ -13,89 +13,143 @@
 
 namespace fast {
 
-void MeshRenderer::setInput(MeshData::pointer image) {
-    mInput = image;
-    setParent(mInput);
-    mIsModified = true;
+
+void MeshRenderer::setInput(MeshData::pointer mesh) {
+    releaseInputAfterExecute(getNrOfInputData(), false);
+    setInputData(getNrOfInputData(), mesh);
 }
+
+void MeshRenderer::addInput(MeshData::pointer mesh) {
+    releaseInputAfterExecute(getNrOfInputData(), false);
+    setInputData(getNrOfInputData(), mesh);
+}
+
+void MeshRenderer::addInput(MeshData::pointer mesh, Color color, float opacity) {
+    addInput(mesh);
+    mInputColors[mesh] = color;
+    mInputOpacities[mesh] = opacity;
+}
+
 
 MeshRenderer::MeshRenderer() : Renderer() {
     mDevice = DeviceManager::getInstance().getDefaultVisualizationDevice();
-    mOpacity = 1;
+    mDefaultOpacity = 1;
+    mDefaultColor = Color::Green();
 }
 
 void MeshRenderer::execute() {
-    if(mInput->isDynamicData()) {
-        mSurfaceToRender = DynamicMesh::pointer(mInput)->getNextFrame();
-    } else {
-        mSurfaceToRender = mInput;
-    }
+
 }
 
 void MeshRenderer::draw() {
-    // Draw the triangles in the VBO
-
-    SceneGraph& graph = SceneGraph::getInstance();
-    SceneGraphNode::pointer node = graph.getDataNode(mSurfaceToRender);
-    LinearTransformation transform = graph.getLinearTransformationFromNode(node);
-
-    glMultMatrixf(transform.getTransform().data());
 
     glEnable(GL_NORMALIZE);
     glShadeModel(GL_SMOOTH);
     glEnable(GL_LIGHTING);
 
-    // Set material properties which will be assigned by glColor
-    if(mOpacity < 1) {
-        // Enable transparency
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
+        MeshData::pointer input = getInputData(inputNr);
+
+        Mesh::pointer surfaceToRender;
+        if(input->isDynamicData()) {
+            surfaceToRender = DynamicMesh::pointer(input)->getNextFrame();
+        } else {
+            surfaceToRender = input;
+        }
+        // Draw the triangles in the VBO
+        SceneGraph& graph = SceneGraph::getInstance();
+        SceneGraphNode::pointer node = graph.getDataNode(surfaceToRender);
+        LinearTransformation transform = graph.getLinearTransformationFromNode(node);
+
+        glPushMatrix();
+        glMultMatrixf(transform.getTransform().data());
+
+        float opacity = mDefaultOpacity;
+        Color color = mDefaultColor;
+        if(mInputOpacities.count(input) > 0) {
+            opacity = mInputOpacities[input];
+        }
+        if(mInputColors.count(input) > 0) {
+            color = mInputColors[input];
+        }
+
+        // Set material properties
+        if(opacity < 1) {
+            // Enable transparency
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        }
+        GLfloat GLcolor[] = { color.getRedValue(), color.getGreenValue(), color.getBlueValue(), opacity };
+        glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, GLcolor);
+        GLfloat specReflection[] = { 0.8f, 0.8f, 0.8f, 1.0f };
+        glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specReflection);
+        GLfloat shininess[] = { 16.0f };
+        glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
+
+        releaseOpenGLContext();
+        VertexBufferObjectAccess access = surfaceToRender->getVertexBufferObjectAccess(ACCESS_READ, mDevice);
+        setOpenGLContext(mDevice->getGLContext());
+        GLuint* VBO_ID = access.get();
+
+        // Normal Buffer
+        glBindBuffer(GL_ARRAY_BUFFER, *VBO_ID);
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_NORMAL_ARRAY);
+
+        glVertexPointer(3, GL_FLOAT, 24, BUFFER_OFFSET(0));
+        glNormalPointer(GL_FLOAT, 24, BUFFER_OFFSET(12));
+
+        glDrawArrays(GL_TRIANGLES, 0, surfaceToRender->getNrOfTriangles()*3);
+
+        // Release buffer
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_NORMAL_ARRAY);
+        if(opacity < 1) {
+            // Disable transparency
+            glDisable(GL_BLEND);
+        }
+        glPopMatrix();
     }
-    GLfloat color[] = { 0.0f, 1.0f, 0.0f, mOpacity };
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, color);
-    GLfloat specReflection[] = { 0.8f, 0.8f, 0.8f, 1.0f };
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specReflection);
-    GLfloat shininess[] = { 16.0f };
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
-
-    releaseOpenGLContext();
-    VertexBufferObjectAccess access = mSurfaceToRender->getVertexBufferObjectAccess(ACCESS_READ, mDevice);
-    setOpenGLContext(mDevice->getGLContext());
-    GLuint* VBO_ID = access.get();
-
-    // Normal Buffer
-    glBindBuffer(GL_ARRAY_BUFFER, *VBO_ID);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_NORMAL_ARRAY);
-
-    glVertexPointer(3, GL_FLOAT, 24, BUFFER_OFFSET(0));
-    glNormalPointer(GL_FLOAT, 24, BUFFER_OFFSET(12));
-
-    glDrawArrays(GL_TRIANGLES, 0, mSurfaceToRender->getNrOfTriangles()*3);
-
-    // Release buffer
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_NORMAL_ARRAY);
 
     glDisable(GL_LIGHTING);
+    glDisable(GL_NORMALIZE);
 }
 
 BoundingBox MeshRenderer::getBoundingBox() {
-    SceneGraph& graph = SceneGraph::getInstance();
-    SceneGraphNode::pointer node = graph.getDataNode(mSurfaceToRender);
-    LinearTransformation transform = graph.getLinearTransformationFromNode(node);
-    BoundingBox inputBoundingBox = mSurfaceToRender->getBoundingBox();
-    BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
-    return transformedBoundingBox;
+    std::vector<Vector3f> coordinates;
+    for(uint i = 0; i < getNrOfInputData(); i++) {
+        BoundingBox inputBoundingBox = getInputData(i)->getBoundingBox();
+        SceneGraph& graph = SceneGraph::getInstance();
+        SceneGraphNode::pointer node = graph.getDataNode(getInputData(i));
+        LinearTransformation transform = graph.getLinearTransformationFromNode(node);
+        BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
+        MatrixXf corners = transformedBoundingBox.getCorners();
+        for(uint j = 0; j < 8; j++) {
+            coordinates.push_back((Vector3f)corners.row(j));
+        }
+    }
+    return BoundingBox(coordinates);
 }
 
-void MeshRenderer::setOpacity(float opacity) {
-    mOpacity = opacity;
-    if(mOpacity > 1) {
-        mOpacity = 1;
-    } else if(mOpacity < 0) {
-        mOpacity = 0;
+void MeshRenderer::setDefaultColor(Color color) {
+    mDefaultColor = color;
+}
+
+void MeshRenderer::setColor(MeshData::pointer mesh, Color color) {
+    mInputColors[mesh] = color;
+}
+
+void MeshRenderer::setOpacity(MeshData::pointer mesh, float opacity) {
+    mInputOpacities[mesh] = opacity;
+}
+
+void MeshRenderer::setDefaultOpacity(float opacity) {
+    mDefaultOpacity = opacity;
+    if(mDefaultOpacity > 1) {
+        mDefaultOpacity = 1;
+    } else if(mDefaultOpacity < 0) {
+        mDefaultOpacity = 0;
     }
 }
 
