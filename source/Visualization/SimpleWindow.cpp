@@ -17,11 +17,26 @@ void SimpleWindow::setMaximumFramerate(unsigned int framerate) {
 void SimpleWindow::initializeQtApp() {
     if(!QApplication::instance()) {
         // Qt Application has not been created, do it now
-        std::cout << "creating qt app in SimpleWindow" << std::endl;
+        std::cout << "Creating Qt application in SimpleWindow" << std::endl;
         // Create some dummy argc and argv options as QApplication requires it
         int* argc = new int[1];
         *argc = 0;
         QApplication* app = new QApplication(*argc,NULL);
+
+        // There is a bug in AMD OpenCL related to comma (,) as decimal point
+        // This will change decimal point to dot (.)
+        struct lconv * lc;
+        lc = localeconv();
+        if(strcmp(lc->decimal_point, ",") == 0) {
+            std::cout << "WARNING: Your system uses comma as decimal point." << std::endl;
+            std::cout << "WARNING: This will now be changed to dot to avoid any comma related bugs." << std::endl;
+            setlocale(LC_NUMERIC, "C");
+            // Check again to be sure
+            lc = localeconv();
+            if(strcmp(lc->decimal_point, ",") == 0) {
+                throw Exception("Failed to convert decimal point to dot.");
+            }
+        }
     }
 }
 
