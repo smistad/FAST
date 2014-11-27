@@ -58,5 +58,5 @@ BoundingBox DataObject::getTransformedBoundingBox() const {
     SceneGraph& graph = SceneGraph::getInstance();
     LinearTransformation T = graph.getLinearTransformationFromNode(graph.getDataNode(mPtr));
 
-    return mBoundingBox.getTransformedBoundingBox(T);
+    return getBoundingBox().getTransformedBoundingBox(T);
 }
