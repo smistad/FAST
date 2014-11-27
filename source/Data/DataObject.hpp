@@ -20,6 +20,7 @@ class DataObject : public Object {
         void retain(ExecutionDevice::pointer device);
         void release(ExecutionDevice::pointer device);
         virtual BoundingBox getBoundingBox() const;
+        virtual BoundingBox getTransformedBoundingBox() const;
         virtual ~DataObject() { };
         bool isDynamicData();
     protected:

@@ -12,7 +12,7 @@ class PointSet : public virtual DataObject {
         void create(std::vector<Vector3f> points);
         uint getNrOfPoints() const;
         PointSetAccess getAccess(accessType access);
-        BoundingBox getBoundingBox() const;
+        BoundingBox getBoundingBox();
         ~PointSet();
     private:
         PointSet();

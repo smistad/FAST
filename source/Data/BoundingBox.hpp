@@ -14,8 +14,9 @@ class BoundingBox {
         BoundingBox(std::vector<Vector3f> coordinates);
         BoundingBox(MatrixXf corners);
         BoundingBox();
-        MatrixXf getCorners();
-        BoundingBox getTransformedBoundingBox(LinearTransformation transform);
+        MatrixXf getCorners() const;
+        BoundingBox getTransformedBoundingBox(LinearTransformation transform) const;
+        bool isInitialized() const;
     private:
         void createCorners(Vector3f pos, Vector3f size);
         MatrixXf mCorners;

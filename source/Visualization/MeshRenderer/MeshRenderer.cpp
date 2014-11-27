@@ -38,7 +38,14 @@ MeshRenderer::MeshRenderer() : Renderer() {
 }
 
 void MeshRenderer::execute() {
-
+    for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
+        MeshData::pointer input = getInputData(inputNr);
+        if(input->isDynamicData()) {
+            mMeshToRender[inputNr] = DynamicMesh::pointer(input)->getNextFrame();
+        } else {
+            mMeshToRender[inputNr] = input;
+        }
+    }
 }
 
 void MeshRenderer::draw() {
@@ -50,12 +57,7 @@ void MeshRenderer::draw() {
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
         MeshData::pointer input = getInputData(inputNr);
 
-        Mesh::pointer surfaceToRender;
-        if(input->isDynamicData()) {
-            surfaceToRender = DynamicMesh::pointer(input)->getNextFrame();
-        } else {
-            surfaceToRender = input;
-        }
+        Mesh::pointer surfaceToRender = mMeshToRender[inputNr];
         // Draw the triangles in the VBO
         SceneGraph& graph = SceneGraph::getInstance();
         SceneGraphNode::pointer node = graph.getDataNode(surfaceToRender);
@@ -119,11 +121,7 @@ void MeshRenderer::draw() {
 BoundingBox MeshRenderer::getBoundingBox() {
     std::vector<Vector3f> coordinates;
     for(uint i = 0; i < getNrOfInputData(); i++) {
-        BoundingBox inputBoundingBox = getInputData(i)->getBoundingBox();
-        SceneGraph& graph = SceneGraph::getInstance();
-        SceneGraphNode::pointer node = graph.getDataNode(getInputData(i));
-        LinearTransformation transform = graph.getLinearTransformationFromNode(node);
-        BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
+        BoundingBox transformedBoundingBox = mMeshToRender[i]->getTransformedBoundingBox();
         MatrixXf corners = transformedBoundingBox.getCorners();
         for(uint j = 0; j < 8; j++) {
             coordinates.push_back((Vector3f)corners.row(j));

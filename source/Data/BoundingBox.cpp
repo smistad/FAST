@@ -46,7 +46,7 @@ BoundingBox::BoundingBox() {
     mIsInitialized = false;
 }
 
-MatrixXf BoundingBox::getCorners() {
+MatrixXf BoundingBox::getCorners() const {
     if(!mIsInitialized)
         throw Exception("Cannot getCorners because bounding box was not initialized.");
     return mCorners;
@@ -80,7 +80,7 @@ BoundingBox::BoundingBox(std::vector<Vector3f> coordinates) {
 }
 
 BoundingBox BoundingBox::getTransformedBoundingBox(
-        LinearTransformation transform) {
+        LinearTransformation transform) const {
     if(!mIsInitialized)
         throw Exception("Cannot getTransformedBoundingBox because bounding box was not initialized.");
     MatrixXf newCorners = MatrixXf::Constant(8,3,0);
@@ -103,6 +103,10 @@ std::ostream &operator<<(std::ostream &os, BoundingBox &object) {
 
     return os;
 
+}
+
+bool BoundingBox::isInitialized() const {
+    return mIsInitialized;
 }
 
 } // end namespace fast

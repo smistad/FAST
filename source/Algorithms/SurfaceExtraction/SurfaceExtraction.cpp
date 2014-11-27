@@ -386,10 +386,10 @@ void SurfaceExtraction::execute() {
     queue.enqueueReleaseGLObjects(&v, 0, &traversalEvent);
 //  traversalSync = glCreateSyncFromCLeventARB((cl_context)context(), (cl_event)traversalEvent(), 0); // Need the GL_ARB_cl_event extension
     queue.finish();
-    mOutput->updateModifiedTimestamp();
     SceneGraph::getInstance().setParentNode(output, input);
-    BoundingBox box = mInput->getBoundingBox();
+    BoundingBox box = input->getBoundingBox();
     output->setBoundingBox(box);
+    mOutput->updateModifiedTimestamp();
 
     if(!mInput->isDynamicData())
         mInput->release(mDevice);
@@ -399,7 +399,6 @@ SurfaceExtraction::SurfaceExtraction() {
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
     mThreshold = 0.0f;
     mHPSize = 0;
-    mOutput = Mesh::New();
 }
 
 

@@ -26,6 +26,7 @@ class MeshRenderer : public Renderer {
         OpenCLDevice::pointer mDevice;
         boost::unordered_map<MeshData::pointer, Color> mInputColors;
         boost::unordered_map<MeshData::pointer, float> mInputOpacities;
+        boost::unordered_map<uint, Mesh::pointer> mMeshToRender;
         Color mDefaultColor;
         float mDefaultOpacity;
 };
