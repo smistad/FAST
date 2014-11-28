@@ -22,7 +22,7 @@ using namespace fast;
 
 TEST_CASE("Pipeline A (static)", "[fast][benchmark][visual]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"/US-3Dt/US-3Dt_0.mhd");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"/US-3Dt/US-3Dt_50.mhd");
     importer->enableRuntimeMeasurements();
 
     GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
@@ -40,9 +40,14 @@ TEST_CASE("Pipeline A (static)", "[fast][benchmark][visual]") {
     renderer->enableRuntimeMeasurements();
     renderer->setInput(extractor->getOutput());
 
+    SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+    sliceRenderer->setInput(filter->getOutput());
+    sliceRenderer->setSlicePlane(PLANE_X);
+
     SimpleWindow::pointer window = SimpleWindow::New();
     window->getView()->enableRuntimeMeasurements();
     window->addRenderer(renderer);
+    window->addRenderer(sliceRenderer);
     window->setTimeout(2*1000); // timeout after 2 seconds
     window->runMainLoop();
 
@@ -142,7 +147,7 @@ TEST_CASE("Pipeline B", "[fast][benchmark][visual]") {
 	SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(surfaceRenderer);
     window->getView()->enableRuntimeMeasurements();
-    //window->addRenderer(sliceRenderer);
+    window->addRenderer(sliceRenderer);
     window->setTimeout(2*1000); // timeout after 2 seconds
     window->runMainLoop();
     importer->getRuntime()->print();
