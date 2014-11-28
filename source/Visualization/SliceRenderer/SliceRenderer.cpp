@@ -171,9 +171,12 @@ void SliceRenderer::execute() {
     mTextureIsCreated = true;
 }
 
-void SliceRenderer::setInput(ImageData::pointer image) {
-    mInput = image;
+void SliceRenderer::setInput(ImageData::pointer input) {
+    mInput = input;
     setParent(mInput);
+    if(!input->isDynamicData()) {
+        input->retain(mDevice);
+    }
     mIsModified = true;
 }
 
