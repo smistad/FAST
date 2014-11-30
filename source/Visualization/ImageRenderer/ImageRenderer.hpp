@@ -10,14 +10,13 @@ class ImageRenderer : public Renderer {
     FAST_OBJECT(ImageRenderer)
     public:
         void setInput(ImageData::pointer image);
-        void keyPressEvent(QKeyEvent* event);
+        void addInput(ImageData::pointer image);
         BoundingBox getBoundingBox();
         void turnOffTransformations();
     private:
         ImageRenderer();
         void execute();
         void draw();
-        void recompileOpenCLCode(Image::pointer input);
 
         OpenCLDevice::pointer mDevice;
         ImageData::pointer mInput;
@@ -26,17 +25,13 @@ class ImageRenderer : public Renderer {
 #else
         cl::Image2DGL mImageGL;
 #endif
-        GLuint mTexture;
+        boost::unordered_map<uint, Image::pointer> mImagesToRender;
+        boost::unordered_map<uint, GLuint> mTexturesToRender;
         bool mTextureIsCreated;
 
-        DataType mTypeCLCodeCompiledFor;
         cl::Kernel mKernel;
 
-        float mScale;
-        unsigned int mWidth, mHeight;
-
         bool mDoTransformations;
-        Image::pointer mImageToRender;
 
 };
 
