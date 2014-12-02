@@ -2,6 +2,7 @@
 #define STREAMER_HPP_
 
 #include "SmartPointers.hpp"
+#include "DataTypes.hpp"
 
 namespace fast {
 

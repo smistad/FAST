@@ -1,6 +1,7 @@
 #ifndef DATA_TYPES_HPP
 #define DATA_TYPES_HPP
 
+#define NOMINMAX // Removes windows min and max macros
 #include "Exception.hpp"
 #include "OpenCL.hpp"
 #include "ExecutionDevice.hpp"
