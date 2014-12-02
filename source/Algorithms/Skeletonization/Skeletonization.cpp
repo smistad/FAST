@@ -39,7 +39,7 @@ void Skeletonization::execute() {
         return;
     }
     if(mInput->isDynamicData()) {
-        input = DynamicImage::pointer(mInput)->getNextFrame();
+        input = DynamicImage::pointer(mInput)->getNextFrame(mPtr);
     } else {
         input = mInput;
     }

@@ -41,7 +41,7 @@ void MeshRenderer::execute() {
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
         MeshData::pointer input = getInputData(inputNr);
         if(input->isDynamicData()) {
-            mMeshToRender[inputNr] = DynamicMesh::pointer(input)->getNextFrame();
+            mMeshToRender[inputNr] = DynamicMesh::pointer(input)->getNextFrame(mPtr);
         } else {
             mMeshToRender[inputNr] = input;
         }

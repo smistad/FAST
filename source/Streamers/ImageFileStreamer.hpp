@@ -20,6 +20,7 @@ class ImageFileStreamer : public Streamer, public ProcessObject {
         void enableLooping();
         void disableLooping();
         bool hasReachedEnd() const;
+        uint getNrOfFrames() const;
         // This method runs in a separate thread and adds frames to the
         // output object
         void producerStream();
@@ -37,6 +38,7 @@ class ImageFileStreamer : public Streamer, public ProcessObject {
         bool mLoop;
         uint mZeroFillDigits;
         uint mStartNumber;
+        uint mNrOfFrames;
 
         boost::thread *thread;
         boost::mutex mFirstFrameMutex;

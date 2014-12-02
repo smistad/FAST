@@ -2,6 +2,7 @@
 #include "DeviceManager.hpp"
 #include <boost/thread.hpp>
 #include "ImageFileStreamer.hpp"
+#include "DummyObjects.hpp"
 
 using namespace fast;
 
@@ -33,6 +34,7 @@ TEST_CASE("Wrong filename format given to ImageFileStreamer", "[fast][ImageFileS
 */
 
 TEST_CASE("ImageFileStreamer streaming to host with streaming mode NEWEST set", "[fast][ImageFileStreamer]") {
+    DummyProcessObject::pointer PO = DummyProcessObject::New();
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
@@ -45,7 +47,7 @@ TEST_CASE("ImageFileStreamer streaming to host with streaming mode NEWEST set", 
         image->update();
         if(currentTimestamp != image->getTimestamp()) {
             currentTimestamp = image->getTimestamp();
-            Image::pointer frame = image->getNextFrame();
+            Image::pointer frame = image->getNextFrame(PO);
         }
         // Must make this thread sleep a little so that streamer will get a chance to import data
         boost::this_thread::sleep(boost::posix_time::milliseconds(20));
@@ -54,6 +56,7 @@ TEST_CASE("ImageFileStreamer streaming to host with streaming mode NEWEST set", 
 }
 
 TEST_CASE("ImageFileStreamer streaming to host with streaming mode PROCESS_ALL set", "[fast][ImageFileStreamer]") {
+    DummyProcessObject::pointer PO = DummyProcessObject::New();
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
@@ -66,7 +69,7 @@ TEST_CASE("ImageFileStreamer streaming to host with streaming mode PROCESS_ALL s
         image->update();
         if(currentTimestamp != image->getTimestamp()) {
             currentTimestamp = image->getTimestamp();
-            Image::pointer frame = image->getNextFrame();
+            Image::pointer frame = image->getNextFrame(PO);
         }
         // Must make this thread sleep a little so that streamer will get a chance to import data
         boost::this_thread::sleep(boost::posix_time::milliseconds(20));
@@ -75,6 +78,7 @@ TEST_CASE("ImageFileStreamer streaming to host with streaming mode PROCESS_ALL s
 }
 
 TEST_CASE("ImageFileStreamer streaming to host with streaming mode STORE_ALL set", "[fast][ImageFileStreamer]") {
+    DummyProcessObject::pointer PO = DummyProcessObject::New();
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
@@ -87,7 +91,7 @@ TEST_CASE("ImageFileStreamer streaming to host with streaming mode STORE_ALL set
         image->update();
         if(currentTimestamp != image->getTimestamp()) {
             currentTimestamp = image->getTimestamp();
-            Image::pointer frame = image->getNextFrame();
+            Image::pointer frame = image->getNextFrame(PO);
         }
         // Must make this thread sleep a little so that streamer will get a chance to import data
         boost::this_thread::sleep(boost::posix_time::milliseconds(20));
@@ -96,6 +100,7 @@ TEST_CASE("ImageFileStreamer streaming to host with streaming mode STORE_ALL set
 }
 
 TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode NEWEST set", "[fast][ImageFileStreamer]") {
+    DummyProcessObject::pointer PO = DummyProcessObject::New();
     DeviceManager& deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
@@ -110,7 +115,7 @@ TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode NEWE
         image->update();
         if(currentTimestamp != image->getTimestamp()) {
             currentTimestamp = image->getTimestamp();
-            Image::pointer frame = image->getNextFrame();
+            Image::pointer frame = image->getNextFrame(PO);
         }
         // Must make this thread sleep a little so that streamer will get a chance to import data
         boost::this_thread::sleep(boost::posix_time::milliseconds(20));
@@ -119,6 +124,7 @@ TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode NEWE
 }
 
 TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode PROCESS_ALL set", "[fast][ImageFileStreamer]") {
+    DummyProcessObject::pointer PO = DummyProcessObject::New();
     DeviceManager& deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
@@ -133,7 +139,7 @@ TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode PROC
         image->update();
         if(currentTimestamp != image->getTimestamp()) {
             currentTimestamp = image->getTimestamp();
-            Image::pointer frame = image->getNextFrame();
+            Image::pointer frame = image->getNextFrame(PO);
         }
         // Must make this thread sleep a little so that streamer will get a chance to import data
         boost::this_thread::sleep(boost::posix_time::milliseconds(20));
@@ -142,6 +148,7 @@ TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode PROC
 }
 
 TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode STORE_ALL set", "[fast][ImageFileStreamer]") {
+    DummyProcessObject::pointer PO = DummyProcessObject::New();
     DeviceManager& deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
@@ -156,7 +163,7 @@ TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode STOR
         image->update();
         if(currentTimestamp != image->getTimestamp()) {
             currentTimestamp = image->getTimestamp();
-            Image::pointer frame = image->getNextFrame();
+            Image::pointer frame = image->getNextFrame(PO);
         }
         // Must make this thread sleep a little so that streamer will get a chance to import data
         boost::this_thread::sleep(boost::posix_time::milliseconds(20));

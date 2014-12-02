@@ -52,7 +52,7 @@ void SurfaceExtraction::execute() {
 
     Image::pointer input;
     if(mInput->isDynamicData()) {
-        input = DynamicImage::pointer(mInput)->getNextFrame();
+        input = DynamicImage::pointer(mInput)->getNextFrame(mPtr);
     } else {
         input = mInput;
     }

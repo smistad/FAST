@@ -31,7 +31,7 @@ void SliceRenderer::execute() {
         throw Exception("No input was given to SliceRenderer");
 
     if(mInput->isDynamicData()) {
-        mImageToRender = DynamicImage::pointer(mInput)->getNextFrame();
+        mImageToRender = DynamicImage::pointer(mInput)->getNextFrame(mPtr);
     } else {
         mImageToRender = mInput;
     }

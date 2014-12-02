@@ -29,9 +29,13 @@ ImageFileStreamer::ImageFileStreamer() {
     mFirstFrameIsInserted = false;
     mHasReachedEnd = false;
     mFilenameFormat = "";
+    mNrOfFrames = 0;
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
 }
 
+uint ImageFileStreamer::getNrOfFrames() const {
+    return mNrOfFrames;
+}
 
 void ImageFileStreamer::execute() {
     mOutput->setSource(mPtr.lock());
@@ -103,6 +107,7 @@ void ImageFileStreamer::producerStream() {
                 std::cout << "DynamicImage object destroyed, stream can stop." << std::endl;
                 break;
             }
+            mNrOfFrames++;
             i++;
         } catch(FileNotFoundException &e) {
             if(i > 0) {

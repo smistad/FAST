@@ -135,7 +135,7 @@ BoundingBox VolumeRenderer::getBoundingBox()
 {
 	Image::pointer mImageToRender;
 	if(mInputs[0]->isDynamicData()) 
-		mImageToRender = (DynamicImage::pointer(mInputs[0])->getCurrentFrame());
+		mImageToRender = (DynamicImage::pointer(mInputs[0])->getNextFrame(mPtr));
 	else 
 		mImageToRender = mInputs[0];
 		
@@ -247,7 +247,7 @@ void VolumeRenderer::execute() {
 		if(mInputs[i]->isDynamicData()) 
 		{
 		
-			inputs.push_back( DynamicImage::pointer(mInputs[i])->getNextFrame());
+			inputs.push_back( DynamicImage::pointer(mInputs[i])->getNextFrame(mPtr));
 			
 		} 
 		else 

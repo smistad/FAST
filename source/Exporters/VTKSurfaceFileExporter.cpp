@@ -26,7 +26,7 @@ void VTKSurfaceFileExporter::execute() {
 
     Mesh::pointer surface;
     if(mInput->isDynamicData()) {
-        surface = DynamicMesh::pointer(mInput)->getNextFrame();
+        surface = DynamicMesh::pointer(mInput)->getNextFrame(mPtr);
     } else {
         surface = mInput;
     }
