@@ -143,11 +143,13 @@ uint DynamicData<T>::getLowestFrameCount() const {
 template <class T>
 void DynamicData<T>::removeOldFrames(uint frameCounter) {
     // TODO this could be implemented in a faster way
-    typename boost::unordered_map<uint, typename T::pointer>::iterator it;
-    for(it = mFrames2.begin(); it != mFrames2.end(); it++) {
+    typename boost::unordered_map<uint, typename T::pointer>::iterator it = mFrames2.begin();
+    while(it != mFrames2.end()) {
         if(it->first < frameCounter) {
-            mFrames2.erase(it);
-        }
+            it = mFrames2.erase(it);
+		} else {
+			it++;
+		}
     }
 }
 
