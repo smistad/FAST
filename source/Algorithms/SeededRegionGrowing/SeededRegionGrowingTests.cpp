@@ -14,7 +14,7 @@ TEST_CASE("2D Seeded region growing on OpenCL device", "[fast][SeededRegionGrowi
         INFO("Device " << devices[i]->getName());
         ImageImporter::pointer importer = ImageImporter::New();
         importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-2D.jpg");
-        importer->setDevice(devices[i]);
+        importer->setMainDevice(devices[i]);
 
         SeededRegionGrowing::pointer algorithm = SeededRegionGrowing::New();
         algorithm->setInput(importer->getOutput());

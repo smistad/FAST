@@ -17,9 +17,7 @@ class ImageImporter : public Importer {
         ~ImageImporter() {};
     private:
         ImageImporter();
-        Image::pointer mOutput;
         std::string mFilename;
-        ExecutionDevice::pointer mDevice;
         void execute();
 
 };
