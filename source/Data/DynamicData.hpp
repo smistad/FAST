@@ -188,8 +188,10 @@ typename T::pointer DynamicData<T>::getNextFrame(WeakPointer<Object> processObje
     mStreamMutex.lock();
     if(streamer->getStreamingMode() == STREAMING_MODE_NEWEST_FRAME_ONLY) {
         // Always return last frame
-        if(mCurrentFrameCounter == 0)
+        if(mCurrentFrameCounter == 0) {
+            mStreamMutex.unlock();
             throw Exception("Trying to get next frame, when no frame has ever been given to dynamic data.");
+        }
         typename T::pointer returnData = mCurrentFrame2;
         mStreamMutex.unlock();
         return mCurrentFrame2;
@@ -209,6 +211,7 @@ typename T::pointer DynamicData<T>::getNextFrame(WeakPointer<Object> processObje
     if(mFrames2.count(mConsumerFrameCounters[processObject]) > 0) {
         returnData = mFrames2[mConsumerFrameCounters[processObject]];
     } else {
+        mStreamMutex.unlock();
         throw Exception("Frame in dynamic data was not found");
     }
 
