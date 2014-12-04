@@ -4,6 +4,7 @@ fast_add_subdirectories(
     MeshRenderer
     VolumeRenderer
     PointRenderer
+    LineRenderer
 )
 fast_add_sources(
     SimpleWindow.cpp
