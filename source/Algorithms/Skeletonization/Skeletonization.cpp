@@ -1,76 +1,48 @@
 #include "Skeletonization.hpp"
 #include "DeviceManager.hpp"
 #include "HelperFunctions.hpp"
+#include "SceneGraph.hpp"
 
 namespace fast {
 
 void Skeletonization::setInput(ImageData::pointer input) {
-    mInput = input;
-    setParent(input);
-    mIsModified = true;
-    if(input->isDynamicData()) {
-        mOutput = DynamicImage::New();
-        DynamicImage::pointer(mOutput)->setStreamer(DynamicImage::pointer(mInput)->getStreamer());
-    } else {
-        mOutput = Image::New();
-        input->retain(mDevice);
-    }
-    mOutput->setSource(mPtr.lock());
+    setInputData(0, input);
 }
 
 ImageData::pointer Skeletonization::getOutput() {
-    if(!mOutput.isValid()) {
-        throw Exception("Must call setInput before getOutput in Skeletonization algorithm.");
-    }
-    return mOutput;
+    return getOutputData<Image, DynamicImage>(0);
 }
 
 Skeletonization::Skeletonization() {
-    mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
+    setOutputDataDynamicDependsOnInputData(0, 0);
 }
 
 void Skeletonization::execute() {
-    Image::pointer input;
-    if(!mInput.isValid()) {
-        throw Exception("No input supplied to Skeletonization algorithm.");
-    }
-    if(!mOutput.isValid()) {
-        // output object is no longer valid
-        return;
-    }
-    if(mInput->isDynamicData()) {
-        input = DynamicImage::pointer(mInput)->getNextFrame(mPtr);
-    } else {
-        input = mInput;
-    }
-
-    Image::pointer output;
-    if(mInput->isDynamicData()) {
-        output = Image::New();
-        DynamicImage::pointer(mOutput)->addFrame(output);
-    } else {
-        output = Image::pointer(mOutput);
-    }
+    Image::pointer input = getStaticInputData<Image>(0);
+    Image::pointer output = getStaticOutputData<Image>(0);
+    SceneGraph::getInstance().setParentNode(output, input);
 
     // Initialize output image
-    output->createFromImage(input, mDevice);
+    output->createFromImage(input, getMainDevice());
+
+    OpenCLDevice::pointer device = getMainDevice();
 
     // Create kernel
-    int programNr = mDevice->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "Algorithms/Skeletonization/Skeletonization2D.cl");
-    cl::Program program = mDevice->getProgram(programNr);
+    int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "Algorithms/Skeletonization/Skeletonization2D.cl");
+    cl::Program program = device->getProgram(programNr);
     cl::Kernel kernel1(program, "thinningStep1");
     cl::Kernel kernel2(program, "thinningStep2");
 
     // Create buffer for check if stop
     cl::Buffer stopGrowingBuffer = cl::Buffer(
-            mDevice->getContext(),
+            device->getContext(),
             CL_MEM_READ_WRITE,
             sizeof(char));
 
-    cl::Image2D image2(mDevice->getContext(), CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_UNSIGNED_INT8), output->getWidth(), output->getHeight());
-    OpenCLImageAccess2D access = input->getOpenCLImageAccess2D(ACCESS_READ, mDevice);
+    cl::Image2D image2(device->getContext(), CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_UNSIGNED_INT8), output->getWidth(), output->getHeight());
+    OpenCLImageAccess2D access = input->getOpenCLImageAccess2D(ACCESS_READ, device);
     cl::Image2D* image = access.get();
-    OpenCLImageAccess2D access2 = output->getOpenCLImageAccess2D(ACCESS_READ_WRITE, mDevice);
+    OpenCLImageAccess2D access2 = output->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
     cl::Image2D* image1 = access2.get();
 
     kernel1.setArg(0, *image1);
@@ -87,7 +59,7 @@ void Skeletonization::execute() {
     char stopGrowingInit = 1;
     char* stopGrowingResult = new char;
     int iterations = 0;
-    cl::CommandQueue queue = mDevice->getCommandQueue();
+    cl::CommandQueue queue = device->getCommandQueue();
 
     queue.enqueueCopyImage(
             *image,
@@ -119,10 +91,6 @@ void Skeletonization::execute() {
         if(*stopGrowingResult == 1)
             stopGrowing = true;
     } while(!stopGrowing);
-
-    output->updateModifiedTimestamp();
-
-    // TODO fix scene graph
 }
 
 } // end namespace fast

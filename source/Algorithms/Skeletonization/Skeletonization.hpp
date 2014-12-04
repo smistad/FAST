@@ -14,11 +14,6 @@ class Skeletonization : public ProcessObject {
     private:
         Skeletonization();
         void execute();
-
-        ImageData::pointer mInput;
-        ImageData::pointer mOutput;
-        OpenCLDevice::pointer mDevice;
-
 };
 
 } // end namespace fast
