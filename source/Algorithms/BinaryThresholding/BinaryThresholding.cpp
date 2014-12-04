@@ -1,32 +1,13 @@
 #include "BinaryThresholding.hpp"
-#include "DeviceManager.hpp"
 
 namespace fast {
 
 void BinaryThresholding::setInput(ImageData::pointer input) {
-    mInput = input;
-    setParent(input);
-    mIsModified = true;
-    if(input->isDynamicData()) {
-        mOutput = DynamicImage::New();
-        DynamicImage::pointer(mOutput)->setStreamer(DynamicImage::pointer(mInput)->getStreamer());
-    } else {
-        mOutput = Image::New();
-        input->retain(mDevice);
-    }
-    mOutput->setSource(mPtr.lock());
-}
-
-void BinaryThresholding::setDevice(ExecutionDevice::pointer device) {
-    mDevice = device;
-    mIsModified = true;
+    setInputData(0, input);
 }
 
 ImageData::pointer BinaryThresholding::getOutput() {
-    if(!mOutput.isValid()) {
-        throw Exception("Must call setInput before getOutput in Skeletonization algorithm.");
-    }
-    return mOutput;
+    return getOutputData<Image, DynamicImage>(0);
 }
 
 void BinaryThresholding::setLowerThreshold(float threshold) {
@@ -44,34 +25,16 @@ void BinaryThresholding::setUpperThreshold(float threshold) {
 BinaryThresholding::BinaryThresholding() {
     mLowerThresholdSet = false;
     mUpperThresholdSet = false;
-    mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
+    setOutputDataDynamicDependsOnInputData(0, 0);
 }
 
 void BinaryThresholding::execute() {
     if(!mLowerThresholdSet && !mUpperThresholdSet) {
         throw Exception("BinaryThresholding need at least one threshold to be set.");
     }
-    if(!mInput.isValid()) {
-        throw Exception("No input supplied to BinaryThresholding algorithm.");
-    }
-    if(!mOutput.isValid()) {
-        // output object is no longer valid
-        return;
-    }
-    Image::pointer input;
-    if(mInput->isDynamicData()) {
-        input = DynamicImage::pointer(mInput)->getNextFrame(mPtr);
-    } else {
-        input = mInput;
-    }
 
-    Image::pointer output;
-    if(mInput->isDynamicData()) {
-        output = Image::New();
-        DynamicImage::pointer(mOutput)->addFrame(output);
-    } else {
-        output = Image::pointer(mOutput);
-    }
+    Image::pointer input = getStaticInputData<Image>(0);
+    Image::pointer output = getStaticOutputData<Image>(0);
 
     // Initialize output image
     if(input->getDimensions() == 2) {
@@ -80,7 +43,7 @@ void BinaryThresholding::execute() {
                 input->getHeight(),
                 TYPE_UINT8,
                 1,
-                mDevice
+                getMainDevice()
                 );
     } else {
         throw Exception("Not implemented yet.");
@@ -90,15 +53,23 @@ void BinaryThresholding::execute() {
                 input->getDepth(),
                 TYPE_UINT8,
                 1,
-                mDevice
+                getMainDevice()
                 );
     }
 
-    if(mDevice->isHost()) {
+    if(getMainDevice()->isHost()) {
         throw Exception("Not implemented yet.");
     } else {
-        OpenCLDevice::pointer device = OpenCLDevice::pointer(mDevice);
-        int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "Algorithms/BinaryThresholding/BinaryThresholding2D.cl");
+        OpenCLDevice::pointer device = OpenCLDevice::pointer(getMainDevice());
+        std::string buildOptions = "";
+        if(input->getDataType() == TYPE_FLOAT) {
+            buildOptions = "-DTYPE_FLOAT";
+        } else if(input->getDataType() == TYPE_INT8 || input->getDataType() == TYPE_INT16) {
+            buildOptions = "-DTYPE_INT";
+        } else {
+            buildOptions = "-DTYPE_UINT";
+        }
+        int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "Algorithms/BinaryThresholding/BinaryThresholding2D.cl", buildOptions);
         cl::Program program = device->getProgram(programNr);
         cl::Kernel kernel;
         if(mLowerThresholdSet && mUpperThresholdSet) {
@@ -125,12 +96,10 @@ void BinaryThresholding::execute() {
                 cl::NullRange
         );
     }
-
-    output->updateModifiedTimestamp();
 }
 
 void BinaryThresholding::waitToFinish() {
-    OpenCLDevice::pointer device = OpenCLDevice::pointer(mDevice);
+    OpenCLDevice::pointer device = OpenCLDevice::pointer(getMainDevice());
     device->getCommandQueue().finish();
 }
 

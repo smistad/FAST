@@ -21,7 +21,7 @@ TEST_CASE("2D Seeded region growing on OpenCL device", "[fast][SeededRegionGrowi
         algorithm->addSeedPoint(45,248);
         algorithm->addSeedPoint(321,181);
         algorithm->setIntensityRange(0.1,1.0);
-        algorithm->setDevice(devices[i]);
+        algorithm->setMainDevice(devices[i]);
         Image::pointer result = algorithm->getOutput();
         result->update();
 
@@ -52,7 +52,7 @@ TEST_CASE("3D Seeded region growing on OpenCL device", "[fast][SeededRegionGrowi
         algorithm->setInput(importer->getOutput());
         algorithm->addSeedPoint(100,100,100);
         algorithm->setIntensityRange(50, 255);
-        algorithm->setDevice(devices[i]);
+        algorithm->setMainDevice(devices[i]);
         Image::pointer result = algorithm->getOutput();
         result->update();
 
@@ -77,7 +77,7 @@ TEST_CASE("3D Seeded region growing on Host", "[fast][SeededRegionGrowing]") {
     algorithm->setInput(importer->getOutput());
     algorithm->addSeedPoint(100,100,100);
     algorithm->setIntensityRange(50, 255);
-    algorithm->setDevice(Host::New());
+    algorithm->setMainDevice(Host::New());
     Image::pointer result = algorithm->getOutput();
     result->update();
 

@@ -7,17 +7,7 @@ namespace fast {
 
 
 void SeededRegionGrowing::setInput(ImageData::pointer input) {
-    mInput = input;
-    mIsModified = true;
-    setParent(input);
-    if(input->isDynamicData()) {
-        mOutput = DynamicImage::New();
-        DynamicImage::pointer(mOutput)->setStreamer(DynamicImage::pointer(mInput)->getStreamer());
-    } else {
-        mOutput = Image::New();
-        input->retain(mDevice);
-    }
-    mOutput->setSource(mPtr.lock());
+    setInputData(0, input);
 }
 
 void SeededRegionGrowing::setIntensityRange(float min, float max) {
@@ -49,24 +39,12 @@ void SeededRegionGrowing::addSeedPoint(Vector3ui position) {
     mSeedPoints.push_back(position);
 }
 
-void SeededRegionGrowing::setDevice(ExecutionDevice::pointer device) {
-    if(mInput.isValid() && !mInput->isDynamicData()) {
-        Image::pointer(mInput)->release(mDevice);
-        Image::pointer(mInput)->retain(device);
-    }
-    mDevice = device;
-    mIsModified = true;
-}
-
 ImageData::pointer SeededRegionGrowing::getOutput() {
-    if(!mOutput.isValid()) {
-        throw Exception("Must call setInput before getOutput in SeededRegionGrowing");
-    }
-    return mOutput;
+    return getOutputData<Image, DynamicImage>(0);
 }
 
 SeededRegionGrowing::SeededRegionGrowing() {
-    mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
+    setOutputDataDynamicDependsOnInputData(0, 0);
     mDimensionCLCodeCompiledFor = 0;
 }
 
@@ -76,7 +54,7 @@ void SeededRegionGrowing::recompileOpenCLCode(Image::pointer input) {
             input->getDataType() == mTypeCLCodeCompiledFor)
         return;
 
-    OpenCLDevice::pointer device = mDevice;
+    OpenCLDevice::pointer device = getMainDevice();
     std::string buildOptions = "";
     if(input->getDataType() == TYPE_FLOAT) {
         buildOptions = "-DTYPE_FLOAT";
@@ -152,34 +130,15 @@ void SeededRegionGrowing::executeOnHost(T* input, Image::pointer output) {
 }
 
 void SeededRegionGrowing::execute() {
-    Image::pointer input;
-    if(!mInput.isValid())
-        throw Exception("No input supplied to SeededRegionGrowing");
-
     if(mSeedPoints.size() == 0)
         throw Exception("No seed points supplied to SeededRegionGrowing");
 
-    if(!mOutput.isValid()) {
-        // output object is no longer valid
-        return;
-    }
-
-    if(mInput->isDynamicData()) {
-        input = DynamicImage::pointer(mInput)->getNextFrame(mPtr);
-    } else {
-        input = mInput;
-    }
-
+    Image::pointer input = getStaticInputData<Image>(0);
     if(input->getNrOfComponents() != 1)
         throw Exception("Seeded region growing currently doesn't support images with several components.");
 
-    Image::pointer output;
-    if(mInput->isDynamicData()) {
-        output = Image::New();
-        DynamicImage::pointer(mOutput)->addFrame(output);
-    } else {
-        output = Image::pointer(mOutput);
-    }
+    Image::pointer output = getStaticOutputData<Image>(0);
+    SceneGraph::getInstance().setParentNode(output, input); // connect output to input in scene graph
 
     // Initialize output image
     if(input->getDimensions() == 2) {
@@ -188,7 +147,7 @@ void SeededRegionGrowing::execute() {
                 input->getHeight(),
                 TYPE_UINT8,
                 1,
-                mDevice
+                getMainDevice()
         );
     } else {
          output->create3DImage(
@@ -197,18 +156,18 @@ void SeededRegionGrowing::execute() {
                 input->getDepth(),
                 TYPE_UINT8,
                 1,
-                mDevice
+                getMainDevice()
         );
     }
 
-    if(mDevice->isHost()) {
+    if(getMainDevice()->isHost()) {
         ImageAccess inputAccess = input->getImageAccess(ACCESS_READ);
         void* inputData = inputAccess.get();
         switch(input->getDataType()) {
             fastSwitchTypeMacro(executeOnHost<FAST_TYPE>((FAST_TYPE*)inputData, output));
         }
     } else {
-        OpenCLDevice::pointer device = mDevice;
+        OpenCLDevice::pointer device = getMainDevice();
 
         recompileOpenCLCode(input);
 
@@ -273,17 +232,11 @@ void SeededRegionGrowing::execute() {
         } while(!stopGrowing);
     }
 
-    if(!mInput->isDynamicData())
-        mInput->release(mDevice);
-
-    // Update the timestamp of the output data
-    output->updateModifiedTimestamp();
-    SceneGraph::getInstance().setParentNode(output, input);
 }
 
 void SeededRegionGrowing::waitToFinish() {
-    if(!mDevice->isHost()) {
-        OpenCLDevice::pointer device = mDevice;
+    if(!getMainDevice()->isHost()) {
+        OpenCLDevice::pointer device = getMainDevice();
         device->getCommandQueue().finish();
     }
 }

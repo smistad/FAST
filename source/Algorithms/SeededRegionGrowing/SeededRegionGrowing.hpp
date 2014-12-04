@@ -12,7 +12,6 @@ class SeededRegionGrowing : public ProcessObject {
     public:
         void setInput(ImageData::pointer input);
         void setIntensityRange(float min, float max);
-        void setDevice(ExecutionDevice::pointer device);
         void addSeedPoint(uint x, uint y);
         void addSeedPoint(uint x, uint y, uint z);
         void addSeedPoint(Vector3ui position);
@@ -24,10 +23,6 @@ class SeededRegionGrowing : public ProcessObject {
         void recompileOpenCLCode(Image::pointer input);
         template <class T>
         void executeOnHost(T* input, Image::pointer output);
-
-        ImageData::pointer mInput;
-        ImageData::pointer mOutput;
-        ExecutionDevice::pointer mDevice;
 
         float mMinimumIntensity, mMaximumIntensity;
         std::vector<Vector3ui> mSeedPoints;

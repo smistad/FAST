@@ -1,3 +1,10 @@
+#ifdef TYPE_UINT
+#define READ_IMAGE (float)read_imageui
+#elif TYPE_INT
+#define READ_IMAGE (float)read_imagei
+#else
+#define READ_IMAGE read_imagef
+#endif
 
 __constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
 
@@ -9,7 +16,7 @@ __kernel void thresholding(
         ) {
     const int2 pos = {get_global_id(0), get_global_id(1)};
     
-    const float value = read_imagef(image, sampler, pos).x;
+    const float value = READ_IMAGE(image, sampler, pos).x;
     float writeValue = 0;
     if(value >= lowerThreshold && value <= lowerThreshold) {
         writeValue = 1;
@@ -23,7 +30,7 @@ __kernel void thresholdingWithOnlyLower(
         ) {
     const int2 pos = {get_global_id(0), get_global_id(1)};
     
-    const float value = read_imagef(image, sampler, pos).x;
+    const float value = READ_IMAGE(image, sampler, pos).x;
     float writeValue = 0;
     if(value >= lowerThreshold) {
         writeValue = 1;
@@ -37,7 +44,7 @@ __kernel void thresholdingWithOnlyUpper(
         ) {
     const int2 pos = {get_global_id(0), get_global_id(1)};
     
-    const float value = read_imagef(image, sampler, pos).x;
+    const float value = READ_IMAGE(image, sampler, pos).x;
     float writeValue = 0;
     if(value <= upperThreshold) {
         writeValue = 1;
