@@ -22,8 +22,6 @@ class SliceRenderer : public Renderer {
         void draw();
         void recompileOpenCLCode(Image::pointer input);
 
-        OpenCLDevice::pointer mDevice;
-        ImageData::pointer mInput;
         Image::pointer mImageToRender;
 #if defined(CL_VERSION_1_2)
         cl::ImageGL mImageGL;

@@ -27,14 +27,7 @@ using namespace fast;
 
 
 void SliceRenderer::execute() {
-    if(!mInput.isValid())
-        throw Exception("No input was given to SliceRenderer");
-
-    if(mInput->isDynamicData()) {
-        mImageToRender = DynamicImage::pointer(mInput)->getNextFrame(mPtr);
-    } else {
-        mImageToRender = mInput;
-    }
+    mImageToRender = getStaticInputData<Image>(0);
 
     if(mImageToRender->getDimensions() != 3)
         throw Exception("The SliceRenderer only supports 3D images");
@@ -50,7 +43,8 @@ void SliceRenderer::execute() {
         level = getDefaultIntensityLevel(mImageToRender->getDataType());
     }
 
-    setOpenGLContext(mDevice->getGLContext());
+    OpenCLDevice::pointer device = getMainDevice();
+    setOpenGLContext(device->getGLContext());
 
     // Determine slice nr and width and height of the texture to render to
     unsigned int sliceNr;
@@ -106,7 +100,7 @@ void SliceRenderer::execute() {
     }
     mSliceNr = sliceNr;
 
-    OpenCLImageAccess3D access = mImageToRender->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+    OpenCLImageAccess3D access = mImageToRender->getOpenCLImageAccess3D(ACCESS_READ, device);
     cl::Image3D* clImage = access.get();
 
     glEnable(GL_TEXTURE_2D);
@@ -128,7 +122,7 @@ void SliceRenderer::execute() {
 #if defined(CL_VERSION_1_2)
     // TODO this sometimes locks. Why???
     mImageGL = cl::ImageGL(
-            mDevice->getContext(),
+            device->getContext(),
             CL_MEM_READ_WRITE,
             GL_TEXTURE_2D,
             0,
@@ -136,7 +130,7 @@ void SliceRenderer::execute() {
     );
 #else
     mImageGL = cl::Image2DGL(
-            mDevice->getContext(),
+            device->getContext(),
             CL_MEM_READ_WRITE,
             GL_TEXTURE_2D,
             0,
@@ -145,7 +139,7 @@ void SliceRenderer::execute() {
 #endif
 
     // Run kernel to fill the texture
-    cl::CommandQueue queue = mDevice->getCommandQueue();
+    cl::CommandQueue queue = device->getCommandQueue();
     std::vector<cl::Memory> v;
     v.push_back(mImageGL);
     queue.enqueueAcquireGLObjects(&v);
@@ -172,12 +166,7 @@ void SliceRenderer::execute() {
 }
 
 void SliceRenderer::setInput(ImageData::pointer input) {
-    mInput = input;
-    setParent(mInput);
-    if(!input->isDynamicData()) {
-        input->retain(mDevice);
-    }
-    mIsModified = true;
+    setInputData(0, input);
 }
 
 void SliceRenderer::recompileOpenCLCode(Image::pointer input) {
@@ -199,14 +188,14 @@ void SliceRenderer::recompileOpenCLCode(Image::pointer input) {
     } else {
         buildOptions = "-DTYPE_UINT";
     }
-    int i = mDevice->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/SliceRenderer/SliceRenderer.cl", buildOptions);
-    mKernel = cl::Kernel(mDevice->getProgram(i), "renderToTexture");
+    OpenCLDevice::pointer device = getMainDevice();
+    int i = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/SliceRenderer/SliceRenderer.cl", buildOptions);
+    mKernel = cl::Kernel(device->getProgram(i), "renderToTexture");
     mTypeCLCodeCompiledFor = input->getDataType();
 }
 
 
 SliceRenderer::SliceRenderer() : Renderer() {
-    mDevice = DeviceManager::getInstance().getDefaultVisualizationDevice();
     mTextureIsCreated = false;
     mIsModified = true;
     mSlicePlane = PLANE_Z;
