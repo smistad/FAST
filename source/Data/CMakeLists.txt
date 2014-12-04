@@ -14,6 +14,8 @@ fast_add_sources(
     SurfaceVertex.hpp
     PointSet.cpp
     PointSet.hpp
+    LineSet.cpp
+    LineSet.hpp
     Color.hpp
 )
 fast_add_test_sources(

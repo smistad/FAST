@@ -7,6 +7,13 @@
 
 namespace fast {
 
+class PointSetData : public virtual DataObject {
+    public:
+        typedef SharedPointer<PointSetData> pointer;
+        virtual ~PointSetData() {};
+};
+
+
 class PointSet : public virtual DataObject {
     FAST_OBJECT(PointSet)
     public:
@@ -26,6 +33,10 @@ class PointSet : public virtual DataObject {
         bool mHostDataIsBeingAccessed;
 
         bool mIsBeingWrittenTo;
+};
+
+class DynamicPointSet : public PointSetData, public DynamicData<PointSet> {
+    FAST_OBJECT(DynamicPointSet)
 };
 
 

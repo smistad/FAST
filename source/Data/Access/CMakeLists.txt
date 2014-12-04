@@ -14,4 +14,6 @@ fast_add_sources(
     SurfacePointerAccess.hpp
     PointSetAccess.cpp
     PointSetAccess.hpp
+    LineSetAccess.cpp
+    LineSetAccess.hpp
 )
