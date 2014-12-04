@@ -181,7 +181,7 @@ TEST_CASE("Pipeline C", "[fast][benchmark][visual]") {
     skeletonization->enableRuntimeMeasurements();
 
     ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->setInput(skeletonization->getOutput());
+    renderer->addInput(skeletonization->getOutput());
     renderer->setIntensityWindow(1);
     renderer->setIntensityLevel(0.5);
     renderer->enableRuntimeMeasurements();

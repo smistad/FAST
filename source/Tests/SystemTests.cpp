@@ -21,7 +21,7 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and I
     filter->setStandardDeviation(2.0);
 
     ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->setInput(filter->getOutput());
+    renderer->addInput(filter->getOutput());
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->setTimeout(10*1000);

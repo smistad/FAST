@@ -9,7 +9,6 @@ namespace fast {
 class ImageRenderer : public Renderer {
     FAST_OBJECT(ImageRenderer)
     public:
-        void setInput(ImageData::pointer image);
         void addInput(ImageData::pointer image);
         BoundingBox getBoundingBox();
         void turnOffTransformations();

@@ -123,11 +123,6 @@ void ImageRenderer::execute() {
     mTextureIsCreated = true;
 }
 
-void ImageRenderer::setInput(ImageData::pointer image) {
-    releaseInputAfterExecute(getNrOfInputData(), false);
-    setInputData(getNrOfInputData(), image);
-}
-
 void ImageRenderer::addInput(ImageData::pointer image) {
     releaseInputAfterExecute(getNrOfInputData(), false);
     setInputData(getNrOfInputData(), image);

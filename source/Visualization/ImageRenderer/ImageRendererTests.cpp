@@ -10,7 +10,7 @@ TEST_CASE("ImageRenderer with single 2D image", "[fast][ImageRenderer][visual]")
     ImageFileImporter::pointer importer = ImageFileImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US-2D.jpg");
         ImageRenderer::pointer renderer = ImageRenderer::New();
-        renderer->setInput(importer->getOutput());
+        renderer->addInput(importer->getOutput());
         SimpleWindow::pointer window = SimpleWindow::New();
         window->addRenderer(renderer);
         window->set2DMode();
@@ -24,7 +24,7 @@ TEST_CASE("ImageRenderer with dynamic 2D image", "[fast][ImageRenderer][visual]"
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
     streamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-2Dt/US-2Dt_#.mhd");
         ImageRenderer::pointer renderer = ImageRenderer::New();
-        renderer->setInput(streamer->getOutput());
+        renderer->addInput(streamer->getOutput());
         SimpleWindow::pointer window = SimpleWindow::New();
         window->addRenderer(renderer);
         window->set2DMode();
