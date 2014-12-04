@@ -167,6 +167,7 @@ void SliceRenderer::execute() {
 
 void SliceRenderer::setInput(ImageData::pointer input) {
     setInputData(0, input);
+    releaseInputAfterExecute(0, false);
 }
 
 void SliceRenderer::recompileOpenCLCode(Image::pointer input) {

@@ -1,5 +1,4 @@
 #include "MetaImageImporter.hpp"
-#include "DeviceManager.hpp"
 #include "Exception.hpp"
 #include <fstream>
 #include <boost/iostreams/device/mapped_file.hpp>
@@ -16,13 +15,7 @@ void MetaImageImporter::setFilename(std::string filename) {
     mIsModified = true;
 }
 
-void MetaImageImporter::setDevice(ExecutionDevice::pointer device) {
-    mDevice = device;
-    mIsModified = true;
-}
-
 MetaImageImporter::MetaImageImporter() {
-    mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
     mFilename = "";
     mIsModified = true;
 }
@@ -244,9 +237,9 @@ void MetaImageImporter::execute() {
     }
 
     if(imageIs3D) {
-        output->create3DImage(width,height,depth,type,nrOfComponents,mDevice,data);
+        output->create3DImage(width,height,depth,type,nrOfComponents,getMainDevice(),data);
     } else {
-        output->create2DImage(width,height,type,nrOfComponents,mDevice,data);
+        output->create2DImage(width,height,type,nrOfComponents,getMainDevice(),data);
     }
 
     output->setOffset(offset);
@@ -255,7 +248,5 @@ void MetaImageImporter::execute() {
     output->setTransformMatrix(transformMatrix);
 
     // Clean up
-    if(!mDevice->isHost()) {
-        deleteArray(data, type);
-    }
+    deleteArray(data, type);
 }

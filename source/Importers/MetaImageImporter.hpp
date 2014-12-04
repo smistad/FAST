@@ -11,11 +11,9 @@ class MetaImageImporter : public Importer {
     public:
         Image::pointer getOutput();
         void setFilename(std::string filename);
-        void setDevice(ExecutionDevice::pointer device);
     private:
         MetaImageImporter();
         std::string mFilename;
-        ExecutionDevice::pointer mDevice;
         void execute();
 };
 

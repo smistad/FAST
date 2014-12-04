@@ -46,7 +46,7 @@ TEST_CASE("3D Seeded region growing on OpenCL device", "[fast][SeededRegionGrowi
         INFO("Device " << devices[i]->getName());
         MetaImageImporter::pointer importer = MetaImageImporter::New();
         importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_0.mhd");
-        importer->setDevice(devices[i]);
+        importer->setMainDevice(devices[i]);
 
         SeededRegionGrowing::pointer algorithm = SeededRegionGrowing::New();
         algorithm->setInput(importer->getOutput());
