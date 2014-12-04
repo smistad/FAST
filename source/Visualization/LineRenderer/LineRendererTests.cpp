@@ -5,7 +5,7 @@
 
 using namespace fast;
 
-TEST_CASE("LineRenderer", "[fast][LineRenderer]") {
+TEST_CASE("LineRenderer", "[fast][LineRenderer][visual]") {
     VTKLineSetFileImporter::pointer importer = VTKLineSetFileImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "centerline.vtk");
 
