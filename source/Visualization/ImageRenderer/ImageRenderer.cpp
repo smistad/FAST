@@ -26,14 +26,7 @@ using namespace fast;
 
 void ImageRenderer::execute() {
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
-        ImageData::pointer mInput = getInputData(inputNr);
-
-        Image::pointer input;
-        if(mInput->isDynamicData()) {
-            input = DynamicImage::pointer(mInput)->getNextFrame(mPtr);
-        } else {
-            input = mInput;
-        }
+        Image::pointer input = getStaticInputData<Image>(inputNr);
 
         if(input->getDimensions() != 2)
             throw Exception("The ImageRenderer only supports 2D images");
@@ -50,55 +43,54 @@ void ImageRenderer::execute() {
             level = getDefaultIntensityLevel(input->getDataType());
         }
 
-        setOpenGLContext(mDevice->getGLContext());
+        OpenCLDevice::pointer device = getMainDevice();
+        setOpenGLContext(device->getGLContext());
 
-        OpenCLImageAccess2D access = input->getOpenCLImageAccess2D(ACCESS_READ, mDevice);
+        OpenCLImageAccess2D access = input->getOpenCLImageAccess2D(ACCESS_READ, device);
         cl::Image2D* clImage = access.get();
 
         glEnable(GL_TEXTURE_2D);
-        GLuint mTexture;
-        /*
-         * TODO delete texture
-        if(mTextureIsCreated) {
+        if(mTexturesToRender.count(inputNr) > 0) {
             // Delete old texture
-            glDeleteTextures(1, &mTexture);
+            glDeleteTextures(1, &mTexturesToRender[inputNr]);
+            mTexturesToRender.erase(inputNr);
         }
-        */
 
             // Resize window to image
 
         // Create OpenGL texture
-        glGenTextures(1, &mTexture);
-        glBindTexture(GL_TEXTURE_2D, mTexture);
+        GLuint textureID;
+        glGenTextures(1, &textureID);
+        glBindTexture(GL_TEXTURE_2D, textureID);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, clImage->getImageInfo<CL_IMAGE_WIDTH>(), clImage->getImageInfo<CL_IMAGE_HEIGHT>(), 0, GL_RGBA, GL_FLOAT, 0);
         glBindTexture(GL_TEXTURE_2D, 0);
         glFinish();
 
-        mTexturesToRender[inputNr] = mTexture;
+        mTexturesToRender[inputNr] = textureID;
 
         // Create CL-GL image
     #if defined(CL_VERSION_1_2)
         mImageGL = cl::ImageGL(
-                mDevice->getContext(),
+                device->getContext(),
                 CL_MEM_READ_WRITE,
                 GL_TEXTURE_2D,
                 0,
-                mTexture
+                textureID
         );
     #else
         mImageGL = cl::Image2DGL(
-                mDevice->getContext(),
+                device->getContext(),
                 CL_MEM_READ_WRITE,
                 GL_TEXTURE_2D,
                 0,
-                mTexture
+                textureID
         );
     #endif
 
 
-        int i = mDevice->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/ImageRenderer/ImageRenderer.cl");
+        int i = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/ImageRenderer/ImageRenderer.cl");
         std::string kernelName = "renderToTextureInt";
         if(input->getDataType() == TYPE_FLOAT) {
             kernelName = "renderToTextureFloat";
@@ -106,9 +98,9 @@ void ImageRenderer::execute() {
             kernelName = "renderToTextureUint";
         }
 
-        mKernel = cl::Kernel(mDevice->getProgram(i), kernelName.c_str());
+        mKernel = cl::Kernel(device->getProgram(i), kernelName.c_str());
         // Run kernel to fill the texture
-        cl::CommandQueue queue = mDevice->getCommandQueue();
+        cl::CommandQueue queue = device->getCommandQueue();
         std::vector<cl::Memory> v;
         v.push_back(mImageGL);
         queue.enqueueAcquireGLObjects(&v);
@@ -126,8 +118,7 @@ void ImageRenderer::execute() {
 
         queue.enqueueReleaseGLObjects(&v);
         queue.finish();
-
-            releaseOpenGLContext();
+        releaseOpenGLContext();
     }
     mTextureIsCreated = true;
 }
@@ -144,7 +135,6 @@ void ImageRenderer::addInput(ImageData::pointer image) {
 
 
 ImageRenderer::ImageRenderer() : Renderer() {
-    mDevice = DeviceManager::getInstance().getDefaultVisualizationDevice();
     mTextureIsCreated = false;
     mIsModified = true;
     mDoTransformations = true;

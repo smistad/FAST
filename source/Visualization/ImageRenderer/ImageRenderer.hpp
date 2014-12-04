@@ -18,8 +18,6 @@ class ImageRenderer : public Renderer {
         void execute();
         void draw();
 
-        OpenCLDevice::pointer mDevice;
-        ImageData::pointer mInput;
 #if defined(CL_VERSION_1_2)
         cl::ImageGL mImageGL;
 #else
