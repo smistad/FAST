@@ -14,6 +14,7 @@ class LineSetAccess {
         void setPoint(uint i, const Vector3f point);
         void addPoint(const Vector3f point);
         uint getNrOfPoints() const;
+        uint getNrOfLines() const;
         /**
          * Create line between i and j
          */

@@ -26,6 +26,10 @@ uint LineSetAccess::getNrOfPoints() const {
     return mVertices->size();
 }
 
+uint LineSetAccess::getNrOfLines() const {
+    return mLines->size();
+}
+
 void LineSetAccess::addLine(uint i, uint j) {
     mLines->push_back(Vector2ui(i,j));
 }

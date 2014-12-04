@@ -17,6 +17,7 @@ fast_add_test_sources(
     Tests/ImageImporterTests.cpp
     Tests/MetaImageImporterTests.cpp
     Tests/VTKSurfaceFileImporterTests.cpp
+    Tests/VTKLineSetFileImporterTests.cpp
     Tests/ImageFileImporterTests.cpp
 )
 if(VTK_INTEROP)

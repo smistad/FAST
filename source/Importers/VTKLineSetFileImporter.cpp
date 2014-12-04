@@ -70,6 +70,7 @@ void VTKLineSetFileImporter::execute() {
             vertices.push_back(v);
         }
     }
+    file.seekg(0); // set stream to start
 
     // Read lines
     std::vector<Vector2ui> lines;
