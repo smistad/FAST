@@ -8,11 +8,13 @@
 #include "DataObject.hpp"
 #include "RuntimeMeasurement.hpp"
 #include "RuntimeMeasurementManager.hpp"
-#include "DynamicData.hpp"
 #include "ExecutionDevice.hpp"
 #include "DeviceManager.hpp"
 
 namespace fast {
+
+template <class T>
+class DynamicData;
 
 class ProcessObject : public virtual Object {
     public:
@@ -65,6 +67,11 @@ class ProcessObject : public virtual Object {
         void setInputData(uint inputNumber, DataObject::pointer data);
         void setInputData(uint inputNumber, DataObject::pointer data, const ExecutionDevice::pointer device);
         DataObject::pointer getInputData(uint inputNumber) const;
+        /**
+         * This method returns static data always. So if the input is dynamic data it will get the next frame.
+         */
+        template <class InputDataType>
+        DataObject::pointer getStaticInputData(uint inputNumber) const;
         template <class T>
         DataObject::pointer getOutputData(uint outputNumber);
         template <class StaticType, class DynamicType>
@@ -122,6 +129,20 @@ DataObject::pointer ProcessObject::getOutputData(uint outputNumber) {
         mOutputs[outputNumber] = data;
     } else {
         data = mOutputs[outputNumber];
+    }
+
+    return data;
+}
+
+template <class T>
+DataObject::pointer ProcessObject::getStaticInputData(uint inputNumber) const {
+    // at throws exception if element not found, while [] does not
+    DataObject::pointer data = mInputs.at(inputNumber);
+    DataObject::pointer returnData;
+    if(data->isDynamicData()) {
+        returnData = typename DynamicData<T>::pointer(data)->getNextFrame(mPtr);
+    } else {
+        returnData = data;
     }
 
     return data;

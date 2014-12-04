@@ -1,5 +1,4 @@
 #include "DoubleFilter.hpp"
-#include "DeviceManager.hpp"
 
 using namespace fast;
 
@@ -30,7 +29,7 @@ void executeAlgorithmOnHost(Image::pointer input, Image::pointer output) {
 }
 
 void DoubleFilter::execute() {
-    Image::pointer input = getInputData(0);
+    Image::pointer input = getStaticInputData<Image>(0);
     Image::pointer output = getOutputData<Image>(0);
 
     // Initialize output image
