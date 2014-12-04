@@ -8,30 +8,17 @@ void ImageGradient::setInput(ImageData::pointer input) {
 }
 
 ImageData::pointer ImageGradient::getOutput() {
-    return getOutputData<Image, DynamicImage>(0, getInputData(0));
+    return getOutputData<Image, DynamicImage>(0);
 }
 
 ImageGradient::ImageGradient() {
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
+    setOutputDataDynamicDependsOnInputData(0, 0);
 }
 
 void ImageGradient::execute() {
-    ImageData::pointer mInput = getInputData(0);
-    Image::pointer input;
-    if(mInput->isDynamicData()) {
-        input = DynamicImage::pointer(mInput)->getNextFrame(mPtr);
-    } else {
-        input = mInput;
-    }
-
-    ImageData::pointer mOutput = getOutputData<Image>(0);
-    Image::pointer output;
-    if(mInput->isDynamicData()) {
-        output = Image::New();
-        DynamicImage::pointer(mOutput)->addFrame(output);
-    } else {
-        output = mOutput;
-    }
+    Image::pointer input = getStaticInputData<Image>(0);
+    Image::pointer output = getStaticOutputData<Image>(0);
 
     // Initialize output image
     if(input->getDimensions() == 2) {

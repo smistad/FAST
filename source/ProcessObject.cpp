@@ -210,6 +210,11 @@ void ProcessObject::setOutputData(uint outputNumber, DataObject::pointer data) {
 }
 
 
+void ProcessObject::setOutputDataDynamicDependsOnInputData(uint outputNumber, uint inputNumber) {
+    mOutputDynamicDependsOnInput[outputNumber] = inputNumber;
+}
+
+
 } // namespace fast
 
 

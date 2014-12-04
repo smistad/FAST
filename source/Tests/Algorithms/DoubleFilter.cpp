@@ -1,13 +1,17 @@
 #include "DoubleFilter.hpp"
 
-using namespace fast;
+namespace fast {
 
-void DoubleFilter::setInput(Image::pointer image) {
+void DoubleFilter::setInput(ImageData::pointer image) {
     setInputData(0, image);
 }
 
-Image::pointer DoubleFilter::getOutput() {
-    return getOutputData<Image>(0);
+ImageData::pointer DoubleFilter::getOutput() {
+    return getOutputData<Image, DynamicImage>(0);
+}
+
+DoubleFilter::DoubleFilter() {
+    setOutputDataDynamicDependsOnInputData(0, 0);
 }
 
 /*
@@ -15,7 +19,7 @@ Image::pointer DoubleFilter::getOutput() {
  * It is templated so that it can support images of different data types.
  */
 template<class T>
-void executeAlgorithmOnHost(Image::pointer input, Image::pointer output) {
+inline void executeAlgorithmOnHost(Image::pointer input, Image::pointer output) {
     ImageAccess inputAccess = input->getImageAccess(ACCESS_READ);
     ImageAccess outputAccess = output->getImageAccess(ACCESS_READ_WRITE);
 
@@ -30,7 +34,7 @@ void executeAlgorithmOnHost(Image::pointer input, Image::pointer output) {
 
 void DoubleFilter::execute() {
     Image::pointer input = getStaticInputData<Image>(0);
-    Image::pointer output = getOutputData<Image>(0);
+    Image::pointer output = getStaticOutputData<Image>(0);
 
     // Initialize output image
     output->createFromImage(input, getMainDevice());
@@ -86,4 +90,6 @@ void DoubleFilter::execute() {
                 cl::NullRange
         );
     }
+}
+
 }

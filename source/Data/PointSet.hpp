@@ -2,6 +2,7 @@
 #define POINT_SET_HPP_
 
 #include "DataObject.hpp"
+#include "DynamicData.hpp"
 #include "PointSetAccess.hpp"
 
 namespace fast {

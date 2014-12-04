@@ -12,9 +12,10 @@ namespace fast {
 class DoubleFilter : public ProcessObject {
     FAST_OBJECT(DoubleFilter)
     public:
-        void setInput(Image::pointer image);
-        Image::pointer getOutput();
+        void setInput(ImageData::pointer image);
+        ImageData::pointer getOutput();
     private:
+        DoubleFilter();
         // This method will execute the algorithm
         void execute();
 };

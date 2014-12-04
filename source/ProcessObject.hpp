@@ -70,12 +70,18 @@ class ProcessObject : public virtual Object {
         /**
          * This method returns static data always. So if the input is dynamic data it will get the next frame.
          */
-        template <class InputDataType>
+        template <class DataType>
         DataObject::pointer getStaticInputData(uint inputNumber) const;
-        template <class T>
+        /**
+         * This method returns static data always. So if the output is dynamic data it will create a new frame and return that.
+         */
+        template <class DataType>
+        DataObject::pointer getStaticOutputData(uint outputNumber) const;
+        template <class StaticDataType, class DynamicDataType>
         DataObject::pointer getOutputData(uint outputNumber);
-        template <class StaticType, class DynamicType>
-        DataObject::pointer getOutputData(uint outputNumber, DataObject::pointer objectDependsOn);
+        template <class DataType>
+        DataObject::pointer getOutputData(uint outputNumber);
+        void setOutputDataDynamicDependsOnInputData(uint outputNumber, uint inputNumber);
         uint getNrOfInputData() const;
 
 
@@ -92,39 +98,23 @@ class ProcessObject : public virtual Object {
         boost::unordered_map<uint, DataObject::pointer> mOutputs;
         boost::unordered_map<uint, std::vector<uint> > mInputDevices;
         boost::unordered_map<uint, ExecutionDevice::pointer> mDevices;
+        boost::unordered_map<uint, uint> mOutputDynamicDependsOnInput;
 
+        template <class T>
+        friend class DynamicData;
 };
 
-template <class StaticType, class DynamicType>
-DataObject::pointer ProcessObject::getOutputData(uint outputNumber,
-        DataObject::pointer objectDependsOn) {
-    if(!objectDependsOn.isValid())
-        throw Exception("Must call input before output.");
-    DataObject::pointer data;
-    if(mOutputs.count(outputNumber) == 0) {
-        if(objectDependsOn->isDynamicData()) {
-            data = DynamicType::New();
-            typename DynamicType::pointer(data)->setStreamer(
-                typename DynamicType::pointer(objectDependsOn)->getStreamer());
-        } else {
-            data = StaticType::New();
-        }
-        data->setSource(mPtr.lock());
-        mOutputs[outputNumber] = data;
-    } else {
-        data = mOutputs[outputNumber];
-    }
-
-    return data;
-}
-
-
-template <class T>
+template <class DataType>
 DataObject::pointer ProcessObject::getOutputData(uint outputNumber) {
+    if(mOutputDynamicDependsOnInput.count(outputNumber) > 0) {
+        throw Exception("Your output data depends on input data. Use the method getOutputData<StaticDataType, DynamicDatatype>() instead of getOutputData<DataType>().");
+    }
     DataObject::pointer data;
+
+    // If output data is not created
     if(mOutputs.count(outputNumber) == 0) {
         // Create data
-        data = T::New();
+        data = DataType::New();
         data->setSource(mPtr.lock());
         mOutputs[outputNumber] = data;
     } else {
@@ -134,18 +124,68 @@ DataObject::pointer ProcessObject::getOutputData(uint outputNumber) {
     return data;
 }
 
-template <class T>
+template <class StaticDataType, class DynamicDataType>
+DataObject::pointer ProcessObject::getOutputData(uint outputNumber) {
+    DataObject::pointer data;
+
+    // If output data is not created
+    if(mOutputs.count(outputNumber) == 0) {
+        // Is output dependent on any input?
+        if(mOutputDynamicDependsOnInput.count(outputNumber) > 0) {
+            uint inputNumber = mOutputDynamicDependsOnInput[outputNumber];
+            if(mInputs.count(inputNumber) == 0)
+                throw Exception("Must call input before output.");
+            DataObject::pointer objectDependsOn = mInputs[inputNumber];
+            if(objectDependsOn->isDynamicData()) {
+                data = DynamicDataType::New();
+                typename DynamicDataType::pointer(data)->setStreamer(
+                    typename DynamicDataType::pointer(objectDependsOn)->getStreamer());
+            } else {
+                data = StaticDataType::New();
+            }
+            data->setSource(mPtr.lock());
+            mOutputs[outputNumber] = data;
+        } else {
+            // Create data
+            data = StaticDataType::New();
+            data->setSource(mPtr.lock());
+            mOutputs[outputNumber] = data;
+        }
+    } else {
+        data = mOutputs[outputNumber];
+    }
+
+    return data;
+}
+
+template <class DataType>
 DataObject::pointer ProcessObject::getStaticInputData(uint inputNumber) const {
     // at throws exception if element not found, while [] does not
     DataObject::pointer data = mInputs.at(inputNumber);
     DataObject::pointer returnData;
     if(data->isDynamicData()) {
-        returnData = typename DynamicData<T>::pointer(data)->getNextFrame(mPtr);
+        returnData = typename DynamicData<DataType>::pointer(data)->getNextFrame(mPtr);
     } else {
         returnData = data;
     }
 
-    return data;
+    return returnData;
+}
+
+template <class DataType>
+DataObject::pointer ProcessObject::getStaticOutputData(uint outputNumber) const {
+    // at throws exception if element not found, while [] does not
+    DataObject::pointer data = mOutputs.at(outputNumber);
+    DataObject::pointer returnData;
+    if(data->isDynamicData()) {
+        // Create new frame
+        returnData = DataType::New();
+        typename DynamicData<DataType>::pointer(data)->addFrame(returnData);
+    } else {
+        returnData = data;
+    }
+
+    return returnData;
 }
 
 

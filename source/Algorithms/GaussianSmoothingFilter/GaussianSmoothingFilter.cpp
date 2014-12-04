@@ -29,11 +29,11 @@ void GaussianSmoothingFilter::setStandardDeviation(float stdDev) {
 }
 
 ImageData::pointer GaussianSmoothingFilter::getOutput() {
-    DataObject::pointer data = getOutputData<Image, DynamicImage>(0, getInputData(0));
-    return data;
+    return getOutputData<Image, DynamicImage>(0);
 }
 
 GaussianSmoothingFilter::GaussianSmoothingFilter() {
+    setOutputDataDynamicDependsOnInputData(0, 0);
     mStdDev = 1.0f;
     mMaskSize = 3;
     mIsModified = true;
@@ -199,22 +199,9 @@ void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, float *
 }
 
 void GaussianSmoothingFilter::execute() {
-    ImageData::pointer mInput = getInputData(0);
-    Image::pointer input;
-    if(mInput->isDynamicData()) {
-        input = DynamicImage::pointer(mInput)->getNextFrame(mPtr);
-    } else {
-        input = mInput;
-    }
+    Image::pointer input = getStaticInputData<Image>(0);
+    Image::pointer output = getStaticOutputData<Image>(0);
 
-    ImageData::pointer mOutput = getOutputData<Image>(0);
-    Image::pointer output;
-    if(mInput->isDynamicData()) {
-        output = Image::New();
-        DynamicImage::pointer(mOutput)->addFrame(output);
-    } else {
-        output = Image::pointer(mOutput);
-    }
 
     // Initialize output image
     ExecutionDevice::pointer device = getMainDevice();
