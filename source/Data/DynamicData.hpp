@@ -5,6 +5,7 @@
 #include "DataObject.hpp"
 #include <vector>
 #include <boost/unordered_map.hpp>
+#include "ProcessObject.hpp"
 
 namespace fast {
 
@@ -51,6 +52,7 @@ class DynamicData : public virtual DataObject {
         boost::unordered_map<WeakPointer<Object>, uint> mConsumerFrameCounters;
         uint getLowestFrameCount() const;
         void removeOldFrames(uint frameCounter);
+        void setAllConsumersUpToDate();
         // Maps frame counter to a data
         boost::unordered_map<uint, typename T::pointer> mFrames2;
         // This is the frame number of HEAD
@@ -179,6 +181,17 @@ typename T::pointer DynamicData<T>::getNextFrame(Object::pointer processObject) 
     return getNextFrame(WeakPointer<Object>(processObject));
 }
 
+
+template <class T>
+void DynamicData<T>::setAllConsumersUpToDate() {
+    unsigned long timestamp = getTimestamp();
+    boost::unordered_map<WeakPointer<Object>, uint>::iterator it;
+    for(it = mConsumerFrameCounters.begin(); it != mConsumerFrameCounters.end(); it++) {
+        ProcessObject::pointer consumer = ProcessObject::pointer(it->first.lock());
+        consumer->setTimestamp(mPtr, timestamp);
+    }
+}
+
 template <class T>
 typename T::pointer DynamicData<T>::getNextFrame(WeakPointer<Object> processObject) {
     Streamer::pointer streamer = mStreamer.lock();
@@ -224,15 +237,20 @@ typename T::pointer DynamicData<T>::getNextFrame(WeakPointer<Object> processObje
     // If PROCESS_ALL and this has smallest frame counter, remove old frame
     if(streamer->getStreamingMode() == STREAMING_MODE_PROCESS_ALL_FRAMES) {
         removeOldFrames(getLowestFrameCount());
-        if(mFrames2.size() > 0) // Update timestamp if there are more frames available
+        if(mFrames2.size() > 0) { // Update timestamp if there are more frames available
             updateModifiedTimestamp();
+        } else {
+            // All frames are gone, make sure timestamps that all POs have are up to date
+            setAllConsumersUpToDate();
+        }
     } else if(streamer->getStreamingMode() == STREAMING_MODE_NEWEST_FRAME_ONLY) {
         // With newest frame only, always remove?
         //mFrames2.erase(removeFrame);
     } else {
         // Update timestamp if there are more frames available
-        if(mConsumerFrameCounters[processObject] < mFrames2.size())
+        if(mConsumerFrameCounters[processObject] < mFrames2.size()) {
             updateModifiedTimestamp();
+        }
     }
 
 

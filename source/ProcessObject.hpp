@@ -8,11 +8,13 @@
 #include "DataObject.hpp"
 #include "RuntimeMeasurement.hpp"
 #include "RuntimeMeasurementManager.hpp"
-#include "DynamicData.hpp"
 #include "ExecutionDevice.hpp"
 #include "DeviceManager.hpp"
 
 namespace fast {
+
+template<class T>
+class DynamicData;
 
 class ProcessObject : public virtual Object {
     public:
@@ -86,6 +88,8 @@ class ProcessObject : public virtual Object {
         boost::unordered_map<uint, std::vector<uint> > mInputDevices;
         boost::unordered_map<uint, ExecutionDevice::pointer> mDevices;
 
+        template <class T>
+        friend class DynamicData;
 };
 
 template <class StaticType, class DynamicType>
