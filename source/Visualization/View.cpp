@@ -359,28 +359,27 @@ void View::initializeGL() {
 
 					// Apply transformation to all b boxes
 					// Get max and min of x and y coordinates of the transformed b boxes
-					// Calculate centroid of all b boxes
 
 					BoundingBox box = mNonVolumeRenderers[i]->getBoundingBox();
 					MatrixXf corners = box.getCorners();
 					//std::cout << box << std::endl;
 
 
-				for(int j = 0; j < 8; j++) {
-					for(uint k = 0; k < 3; k++) {
-						if(corners(j,k) < min[k])
-							min[k] = corners(j,k);
-						if(corners(j,k) > max[k])
-							max[k] = corners(j,k);
-					}
-				}
+                    for(int j = 0; j < 8; j++) {
+                        for(uint k = 0; k < 3; k++) {
+                            if(corners(j,k) < min[k])
+                                min[k] = corners(j,k);
+                            if(corners(j,k) > max[k])
+                                max[k] = corners(j,k);
+                        }
+                    }
 				}
 
 				// Calculate area of each side of the resulting bounding box
 				float area[3] = {
-						(max[0]-min[0])*(max[1]-min[1]), // XY plane
-						(max[1]-min[1])*(max[2]-min[2]), // YZ plane
-						(max[2]-min[2])*(max[0]-min[0])  // XZ plane
+                    (max[0]-min[0])*(max[1]-min[1]), // XY plane
+                    (max[1]-min[1])*(max[2]-min[2]), // YZ plane
+                    (max[2]-min[2])*(max[0]-min[0])  // XZ plane
 				};
 				uint maxArea = 0;
 				for(uint i = 1; i < 3; i++) {
@@ -435,17 +434,18 @@ void View::initializeGL() {
 
 				// Calculate initiali translation of camera
 				// Move centroid to z axis
+				// Note: Centroid does not change after rotation
 				cameraPosition[0] = -centroid[0];
 				cameraPosition[1] = -centroid[1];
 
 				// Calculate z distance
 				cameraPosition[2] = -centroid[2]; // first move objects to origo
-				// Move objects further so that we see everything
-				float z_width = (max[0]-min[0])*0.5 / tan(fieldOfViewX*0.5);
-				float z_height = (max[1]-min[1])*0.5 / tan(fieldOfViewY*0.5);
+				// Move objects away from camera so that we see everything
+				float z_width = (max[xDirection]-min[xDirection])*0.5 / tan(fieldOfViewX*0.5);
+				float z_height = (max[yDirection]-min[yDirection])*0.5 / tan(fieldOfViewY*0.5);
 				//std::cout << "asd: " << z_width << " " << z_height << std::endl;
 				float minimumTranslationToSeeEntireObject = (z_width < z_height ? z_height : z_width);
-				float boundingBoxDepth = (max[2]-min[2]);
+				float boundingBoxDepth = (max[zDirection]-min[zDirection]);
 				//std::cout << "minimum translation to see entire object: " << minimumTranslationToSeeEntireObject  << std::endl;
 				//std::cout << "half depth of bounding box " << boundingBoxDepth*0.5 << std::endl;
 				cameraPosition[2] += -minimumTranslationToSeeEntireObject
@@ -455,7 +455,7 @@ void View::initializeGL() {
 
 				//std::cout << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << std::endl;
 				zFar = (minimumTranslationToSeeEntireObject+boundingBoxDepth)*2;
-				zNear = std::min((z_width < z_height ? z_height : z_width)*0.5, 0.1);
+				zNear = std::min(minimumTranslationToSeeEntireObject*0.5, 0.1);
 				//std::cout << "set zFar to " << zFar << std::endl;
 				//std::cout << "set zNear to " << zNear << std::endl;
 				gluPerspective(fieldOfViewY, aspect, zNear, zFar);
