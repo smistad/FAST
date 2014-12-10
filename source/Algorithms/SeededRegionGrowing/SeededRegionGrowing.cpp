@@ -138,7 +138,6 @@ void SeededRegionGrowing::execute() {
         throw Exception("Seeded region growing currently doesn't support images with several components.");
 
     Image::pointer output = getStaticOutputData<Image>(0);
-    SceneGraph::getInstance().setParentNode(output, input); // connect output to input in scene graph
 
     // Initialize output image
     if(input->getDimensions() == 2) {
@@ -159,6 +158,8 @@ void SeededRegionGrowing::execute() {
                 getMainDevice()
         );
     }
+    // This must be called after the create commands above:
+    SceneGraph::getInstance().setParentNode(output, input); // connect output to input in scene graph
 
     if(getMainDevice()->isHost()) {
         ImageAccess inputAccess = input->getImageAccess(ACCESS_READ);
