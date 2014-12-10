@@ -342,7 +342,6 @@ void View::initializeGL() {
 
 				aspect = (float)this->width() / this->height();
 				fieldOfViewX = aspect*fieldOfViewY;
-				gluPerspective(fieldOfViewY, aspect, zNear, zFar);
 				// Initialize camera
 
 				// Get bounding boxes of all objects
@@ -364,6 +363,7 @@ void View::initializeGL() {
 
 					BoundingBox box = mNonVolumeRenderers[i]->getBoundingBox();
 					MatrixXf corners = box.getCorners();
+					//std::cout << box << std::endl;
 
 
 				for(int j = 0; j < 8; j++) {
@@ -423,30 +423,42 @@ void View::initializeGL() {
 				rotation[0] = angleX;
 				rotation[1] = angleY;
 
+				// Max pos - half of the size
 				centroid[0] = max[0] - (max[0]-min[0])*0.5;
 				centroid[1] = max[1] - (max[1]-min[1])*0.5;
 				centroid[2] = max[2] - (max[2]-min[2])*0.5;
 
-				std::cout << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << std::endl;
+				//std::cout << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << std::endl;
 
 				// Initialize rotation point to centroid of object
 				rotationPoint = centroid;
 
 				// Calculate initiali translation of camera
 				// Move centroid to z axis
-				cameraPosition[0] = -centroid.x();
-				cameraPosition[1] = -centroid.y();
+				cameraPosition[0] = -centroid[0];
+				cameraPosition[1] = -centroid[1];
 
-				// Calculate z distance from origo
-				float z_width = (max[xDirection]-min[xDirection])*0.5 / tan(fieldOfViewX*0.5);
-				float z_height = (max[yDirection]-min[yDirection])*0.5 / tan(fieldOfViewY*0.5);
-				cameraPosition[2] = -(z_width < z_height ? z_height : z_width) // minimum translation to see entire object
-						-(max[zDirection]-min[zDirection]); // depth of the bounding box
-						//-50; // border
+				// Calculate z distance
+				cameraPosition[2] = -centroid[2]; // first move objects to origo
+				// Move objects further so that we see everything
+				float z_width = (max[0]-min[0])*0.5 / tan(fieldOfViewX*0.5);
+				float z_height = (max[1]-min[1])*0.5 / tan(fieldOfViewY*0.5);
+				//std::cout << "asd: " << z_width << " " << z_height << std::endl;
+				float minimumTranslationToSeeEntireObject = (z_width < z_height ? z_height : z_width);
+				float boundingBoxDepth = (max[2]-min[2]);
+				//std::cout << "minimum translation to see entire object: " << minimumTranslationToSeeEntireObject  << std::endl;
+				//std::cout << "half depth of bounding box " << boundingBoxDepth*0.5 << std::endl;
+				cameraPosition[2] += -minimumTranslationToSeeEntireObject
+						-boundingBoxDepth*0.5; // half of the depth of the bounding box
 
 				originalCameraPosition = cameraPosition;
 
-				std::cout << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << std::endl;
+				//std::cout << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << std::endl;
+				zFar = (minimumTranslationToSeeEntireObject+boundingBoxDepth)*2;
+				zNear = std::min((z_width < z_height ? z_height : z_width)*0.5, 0.1);
+				//std::cout << "set zFar to " << zFar << std::endl;
+				//std::cout << "set zNear to " << zNear << std::endl;
+				gluPerspective(fieldOfViewY, aspect, zNear, zFar);
 			}
 		}
 	}
@@ -915,11 +927,12 @@ void View::mouseMoveEvent(QMouseEvent* event) {
 			mPosY2D -= deltaY;
 			glViewport(mPosX2D, mPosY2D, (mMaxX2D-mMinX2D)*mScale2D, (mMaxY2D-mMinY2D)*mScale2D);
 		} else {
+		    // 3D movement
 			float deltaX = event->x() - previousX;
 			float deltaY = event->y() - previousY;
 
-			float viewportWidth = tan((fieldOfViewX*M_PI/180)*0.5) * (-cameraPosition.z()) * 2;
-			float viewportHeight = tan((fieldOfViewY*M_PI/180)*0.5) * (-cameraPosition.z()) * 2;
+			float viewportWidth = tan((fieldOfViewX*M_PI/180)*0.5) * fabs(-cameraPosition.z()) * 2;
+			float viewportHeight = tan((fieldOfViewY*M_PI/180)*0.5) * fabs(-cameraPosition.z()) * 2;
 			float actualMovementX = (deltaX * (viewportWidth/width()));
 			float actualMovementY = (deltaY * (viewportHeight/height()));
 			cameraPosition[0] += actualMovementX;
@@ -928,6 +941,7 @@ void View::mouseMoveEvent(QMouseEvent* event) {
 		previousX = event->x();
 		previousY = event->y();
 	} else if(mLeftMouseButtonIsPressed && !mIsIn2DMode) {
+	    // 3D rotation
 		int cx = width()/2;
 		int cy = height()/2;
 
@@ -954,6 +968,10 @@ void View::mousePressEvent(QMouseEvent* event) {
 
 	if(event->button() == Qt::LeftButton) {
 		mLeftMouseButtonIsPressed = true;
+		// Move cursor to center of window
+		int cx = width()/2;
+		int cy = height()/2;
+		QCursor::setPos(mapToGlobal(QPoint(cx,cy)));
 	} else if(event->button() == Qt::MiddleButton) {
 		previousX = event->x();
 		previousY = event->y();
@@ -983,9 +1001,9 @@ void View::wheelEvent(QWheelEvent* event) {
 		glViewport(mPosX2D, mPosY2D, (mMaxX2D-mMinX2D)*mScale2D, (mMaxY2D-mMinY2D)*mScale2D);
 	} else {
 		if(event->delta() > 0) {
-			cameraPosition[2] += 10;
+			cameraPosition[2] += (zFar-zNear)*0.05f;
 		} else if(event->delta() < 0) {
-			cameraPosition[2] += -10;
+			cameraPosition[2] += -(zFar-zNear)*0.05f;
 		}
 	}
 
