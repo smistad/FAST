@@ -68,6 +68,7 @@ void ImageFileStreamer::setDevice(ExecutionDevice::pointer device) {
 
 
 void ImageFileStreamer::producerStream() {
+    Streamer::pointer pointerToSelf = mPtr.lock(); // try to avoid this object from being destroyed until this function is finished
     uint i = mStartNumber;
     while(true) {
         std::string filename = mFilenameFormat;
@@ -98,11 +99,13 @@ void ImageFileStreamer::producerStream() {
                     std::cout << "streamer has been deleted, stop" << std::endl;
                     break;
                 }
-                {
-                    boost::lock_guard<boost::mutex> lock(mFirstFrameMutex);
-                    mFirstFrameIsInserted = true;
+                if(!mFirstFrameIsInserted) {
+                    {
+                        boost::lock_guard<boost::mutex> lock(mFirstFrameMutex);
+                        mFirstFrameIsInserted = true;
+                    }
+                    mFirstFrameCondition.notify_one();
                 }
-                mFirstFrameCondition.notify_one();
             } else {
                 std::cout << "DynamicImage object destroyed, stream can stop." << std::endl;
                 break;
@@ -113,11 +116,13 @@ void ImageFileStreamer::producerStream() {
             if(i > 0) {
                 std::cout << "Reached end of stream" << std::endl;
                 // If there where no files found at all, we need to release the execute method
-                {
-                    boost::lock_guard<boost::mutex> lock(mFirstFrameMutex);
-                    mFirstFrameIsInserted = true;
+                if(!mFirstFrameIsInserted) {
+                    {
+                        boost::lock_guard<boost::mutex> lock(mFirstFrameMutex);
+                        mFirstFrameIsInserted = true;
+                    }
+                    mFirstFrameCondition.notify_one();
                 }
-                mFirstFrameCondition.notify_one();
                 if(mLoop) {
                     // Restart stream
                     i = mStartNumber;
