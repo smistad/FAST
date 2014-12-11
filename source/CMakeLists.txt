@@ -4,6 +4,8 @@ project(FAST)
 #### Options
 option(VTK_INTEROP "Enable interoperability with VTK" OFF)
 option(ITK_INTEROP "Enable interoperability with ITK" OFF)
+option(BUILD_TESTS "Build tests." ON)
+option(BUILD_EXAMPLES "Build examples." OFF)
 set(FAST_TEST_DATA_DIR "${PROJECT_SOURCE_DIR}/../TestData/" CACHE STRING "Directory of test data")
 
 #### Macro for adding source files and directories
@@ -139,15 +141,26 @@ fast_add_subdirectories(Algorithms Data Streamers Importers Exporters Visualizat
 
 #### Set include dirs
 include_directories(${FAST_INCLUDE_DIRS})
-set (FAST_INCLUDE_DIRS ${FAST_INCLUDE_DIRS} PARENT_SCOPE)
+get_directory_property(hasParent PARENT_DIRECTORY)
+if(hasParent)
+    set (FAST_INCLUDE_DIRS ${FAST_INCLUDE_DIRS} PARENT_SCOPE)
+endif()
 
 #### Create FAST library and executables
 add_library(FAST ${FAST_SOURCE_FILES} ${HEADERS_MOC})
-add_executable(examples main.cpp)
-add_executable(test ${FAST_TEST_SOURCE_FILES})
+if(BUILD_EXAMPLES)
+    add_executable(examples main.cpp)
+endif()
+if(BUILD_TESTS)
+    add_executable(test ${FAST_TEST_SOURCE_FILES} ${OUL_TEST_SOURCE_FILES})
+endif()
 
 ## Link everything
 target_link_libraries(FAST ${LIBRARIES})
 qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
-target_link_libraries(examples FAST)
-target_link_libraries(test FAST)
+if(BUILD_EXAMPLES)
+    target_link_libraries(examples FAST)
+endif()
+if(BUILD_TESTS)
+    target_link_libraries(test FAST)
+endif()
