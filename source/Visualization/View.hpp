@@ -26,6 +26,7 @@ class View : public QGLWidget, public ProcessObject {
         void updateAllRenderers();
         void quit();
         bool hasQuit() const;
+        ~View();
 
 		 Vector3f cameraPosition;
 		 Vector3f rotationPoint;

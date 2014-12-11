@@ -75,6 +75,13 @@ bool View::hasQuit() const {
     return mQuit;
 }
 
+View::~View() {
+    quit();
+    if(thread != NULL) {
+        thread->join();
+    }
+}
+
 
 void View::setMaximumFramerate(unsigned int framerate) {
     if(framerate == 0)
@@ -97,8 +104,10 @@ inline void stubStreamThread(View* view) {
         view->updateAllRenderers();
     } catch(Exception &e) {
         // If window has been killed, pipeline is stopped and should ignore any exceptions
-        if(!view->hasQuit()) {
-            throw e;
+        if(view != NULL) {
+            if(!view->hasQuit()) {
+                throw e;
+            }
         }
     }
 }
