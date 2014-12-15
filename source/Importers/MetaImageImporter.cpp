@@ -98,28 +98,33 @@ void MetaImageImporter::execute() {
     do{
         std::getline(mhdFile, line);
         boost::trim(line);
-        if(!mhdFile.eof()) {
-            int firstSpace = line.find(" ");
-            std::string key = line.substr(0, firstSpace);
-            std::string value = line.substr(firstSpace+3);
-            //this->setAttribute(key, value);
-        }
-        if(line.substr(0, 7) == "DimSize") {
-            std::string sizeString = line.substr(7+3);
-            std::string sizeX = sizeString.substr(0,sizeString.find(" "));
-            sizeString = sizeString.substr(sizeString.find(" ")+1);
-            std::string sizeY = sizeString.substr(0,sizeString.find(" "));
-            width = boost::lexical_cast<int>(sizeX.c_str());
-            height = boost::lexical_cast<int>(sizeY.c_str());
-            if(imageIs3D) {
-                sizeString = sizeString.substr(sizeString.find(" ")+1);
-                std::string sizeZ = sizeString.substr(0,sizeString.find(" "));
-                depth = boost::lexical_cast<int>(sizeZ.c_str());
-            }
+        if(line.size() == 0) // line is empty
+            continue;
+        int firstSpace = line.find(" ");
+        std::string key = line.substr(0, firstSpace);
+        boost::trim(key);
+        int equalSignPos = line.find("=");
+        std::string value = line.substr(equalSignPos+1);
+        boost::trim(value);
+        if(key == "DimSize") {
+            std::vector<std::string> values;
+            boost::split(values, value, boost::is_any_of(" "));
+            // Remove any empty values:
+            values.erase(std::remove(values.begin(), values.end(), ""), values.end());
 
+            if(imageIs3D) {
+                if(values.size() != 3)
+                    throw Exception("DimSize in MetaImage file did not contain 3 numbers");
+                depth = boost::lexical_cast<int>(values[2]);
+            } else {
+                if(values.size() != 2)
+                    throw Exception("DimSize in MetaImage file did not contain 2 numbers");
+            }
+            width = boost::lexical_cast<int>(values[0]);
+            height = boost::lexical_cast<int>(values[1]);
             sizeFound = true;
-        } else if(line.substr(0, 15) == "ElementDataFile") {
-            rawFilename = line.substr(15+3);
+        } else if(key == "ElementDataFile") {
+            rawFilename = value;
             rawFilenameFound = true;
 
             // Remove any trailing spaces
@@ -131,9 +136,9 @@ void MetaImageImporter::execute() {
             pos = mFilename.rfind('/');
             if(pos > 0)
                 rawFilename = mFilename.substr(0,pos+1) + rawFilename;
-        } else if(line.substr(0, 11) == "ElementType") {
+        } else if(key == "ElementType") {
             typeFound = true;
-            typeName = line.substr(11+3);
+            typeName = value;
 
             // Remove any trailing spaces
             int pos = typeName.find(" ");
@@ -150,54 +155,74 @@ void MetaImageImporter::execute() {
             } else {
                 throw Exception("Trying to read volume of unsupported data type", __LINE__, __FILE__);
             }
-        } else if(line.substr(0,23) == "ElementNumberOfChannels") {
-            nrOfComponents = boost::lexical_cast<int>(line.substr(23+3).c_str());
+        } else if(key == "ElementNumberOfChannels") {
+            nrOfComponents = boost::lexical_cast<int>(value.c_str());
             if(nrOfComponents <= 0)
                 throw Exception("Error in reading the number of components in the MetaImageImporter");
-        } else if(line.substr(0, 14) == "ElementSpacing") {
-            std::string sizeString = line.substr(14+3);
-            boost::trim(sizeString);
-            std::string sizeX = sizeString.substr(0,sizeString.find(" "));
-            sizeString = sizeString.substr(sizeString.find(" ")+1);
-            std::string sizeY = sizeString.substr(0,sizeString.find(" "));
-            std::string sizeZ = "1";
+        } else if(key == "ElementSpacing") {
+            std::vector<std::string> values;
+            boost::split(values, value, boost::is_any_of(" "));
+            // Remove any empty values:
+            values.erase(std::remove(values.begin(), values.end(), ""), values.end());
             if(imageIs3D) {
-                sizeString = sizeString.substr(sizeString.find(" ")+1);
-                sizeZ = sizeString.substr(0,sizeString.find(" "));
+                if(values.size() != 3)
+                    throw Exception("ElementSpacing in MetaImage file did not contain 3 numbers");
+                spacing[0] = boost::lexical_cast<float>(values[0]);
+                spacing[1] = boost::lexical_cast<float>(values[1]);
+                spacing[2] = boost::lexical_cast<float>(values[2]);
+            } else {
+                if(values.size() != 2 && values.size() != 3)
+                    throw Exception("ElementSpacing in MetaImage file did not contain 2 or 3 numbers");
+
+                spacing[0] = boost::lexical_cast<float>(values[0]);
+                spacing[1] = boost::lexical_cast<float>(values[1]);
+                if(values.size() == 2) {
+                    spacing[2] = 1;
+                } else {
+                    spacing[2] = boost::lexical_cast<float>(values[2]);
+                }
             }
 
-            spacing[0] = boost::lexical_cast<float>(sizeX.c_str());
-            spacing[1] = boost::lexical_cast<float>(sizeY.c_str());
-            spacing[2] = boost::lexical_cast<float>(sizeZ.c_str());
-        } else if(line.substr(0, 16) == "CenterOfRotation") {
-            std::string sizeString = line.substr(16+3);
-            boost::trim(sizeString);
-            std::string sizeX = sizeString.substr(0,sizeString.find(" "));
-            sizeString = sizeString.substr(sizeString.find(" ")+1);
-            std::string sizeY = sizeString.substr(0,sizeString.find(" "));
-            sizeString = sizeString.substr(sizeString.find(" ")+1);
-            std::string sizeZ = sizeString.substr(0,sizeString.find(" "));
 
-            centerOfRotation[0] = boost::lexical_cast<float>(sizeX.c_str());
-            centerOfRotation[1] = boost::lexical_cast<float>(sizeY.c_str());
-            centerOfRotation[2] = boost::lexical_cast<float>(sizeZ.c_str());
-        } else if(line.substr(0, 6) == "Offset") {
-            std::string sizeString = line.substr(6+3);
-            boost::trim(sizeString);
-            std::string sizeX = sizeString.substr(0,sizeString.find(" "));
-            sizeString = sizeString.substr(sizeString.find(" ")+1);
-            std::string sizeY = sizeString.substr(0,sizeString.find(" "));
-            sizeString = sizeString.substr(sizeString.find(" ")+1);
-            std::string sizeZ = sizeString.substr(0,sizeString.find(" "));
+        } else if(key == "CenterOfRotation") {
+            std::vector<std::string> values;
+            boost::split(values, value, boost::is_any_of(" "));
+            // Remove any empty values:
+            values.erase(std::remove(values.begin(), values.end(), ""), values.end());
+            if(imageIs3D) {
+                if(values.size() != 3)
+                    throw Exception("CenterOfRotation in MetaImage file did not contain 3 numbers");
+                centerOfRotation[0] = boost::lexical_cast<float>(values[0]);
+                centerOfRotation[1] = boost::lexical_cast<float>(values[1]);
+                centerOfRotation[2] = boost::lexical_cast<float>(values[2]);
+            } else {
+                if(values.size() != 2 && values.size() != 3)
+                    throw Exception("CenterOfRotation in MetaImage file did not contain 2 or 3 numbers");
 
-            offset[0] = boost::lexical_cast<float>(sizeX.c_str());
-            offset[1] = boost::lexical_cast<float>(sizeY.c_str());
-            offset[2] = boost::lexical_cast<float>(sizeZ.c_str());
-        } else if(line.substr(0, 15) == "TransformMatrix") {
-            std::string string = line.substr(15+3);
-            boost::trim(string);
+                centerOfRotation[0] = boost::lexical_cast<float>(values[0]);
+                centerOfRotation[1] = boost::lexical_cast<float>(values[1]);
+                if(values.size() == 2) {
+                    centerOfRotation[2] = 0;
+                } else {
+                    centerOfRotation[2] = boost::lexical_cast<float>(values[2]);
+                }
+            }
+        } else if(key == "Offset") {
+            std::vector<std::string> values;
+            boost::split(values, value, boost::is_any_of(" "));
+            // Remove any empty values:
+            values.erase(std::remove(values.begin(), values.end(), ""), values.end());
+            if(values.size() != 3)
+                throw Exception("Offset in MetaImage file did not contain 3 numbers");
 
-            std::vector<std::string> values = stringSplit(string, " ");
+            offset[0] = boost::lexical_cast<float>(values[0].c_str());
+            offset[1] = boost::lexical_cast<float>(values[1].c_str());
+            offset[2] = boost::lexical_cast<float>(values[2].c_str());
+        } else if(key == "TransformMatrix") {
+            std::vector<std::string> values;
+            boost::split(values, value, boost::is_any_of(" "));
+            // Remove any empty values:
+            values.erase(std::remove(values.begin(), values.end(), ""), values.end());
             if(values.size() != 9)
                 throw Exception("Encountered a transform matrix with incorrect number of elements in the MetaImageImporter");
 
@@ -208,7 +233,6 @@ void MetaImageImporter::execute() {
         }
 
     } while(!mhdFile.eof());
-
 
     mhdFile.close();
     if(!sizeFound || !rawFilenameFound || !typeFound || !dimensionsFound)
