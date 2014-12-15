@@ -5,6 +5,7 @@
 #include "DataObject.hpp"
 #include <vector>
 #include <boost/unordered_map.hpp>
+#include <boost/interprocess/sync/interprocess_semaphore.hpp>
 #include "ProcessObject.hpp"
 
 namespace fast {
@@ -25,12 +26,13 @@ class DynamicData : public virtual DataObject {
             mPtr = ptr;                                         
         }                                                       
     public:
+        void setMaximumNumberOfFrames(uint nrOfFrames);
         //typename T::pointer getNextFrame();
         typename T::pointer getNextFrame(WeakPointer<Object> processObject);
         typename T::pointer getNextFrame(Object::pointer processObject);
         void addFrame(typename T::pointer frame);
         unsigned int getSize() const;
-        ~DynamicData() {};
+        ~DynamicData();
         void setStreamer(Streamer::pointer streamer);
         Streamer::pointer getStreamer();
         bool hasReachedEnd();
@@ -60,6 +62,9 @@ class DynamicData : public virtual DataObject {
         // Only used with newest frame only:
         typename T::pointer mCurrentFrame2;
 
+        uint mMaximumNrOfFrames;
+        boost::interprocess::interprocess_semaphore* fillCount;
+        boost::interprocess::interprocess_semaphore* emptyCount;
 
         boost::mutex mStreamMutex;
 
@@ -125,6 +130,22 @@ typename T::pointer DynamicData<T>::getNextFrame() {
     return ret;
 }
 */
+
+template <class T>
+DynamicData<T>::~DynamicData() {
+    delete fillCount;
+    delete emptyCount;
+}
+template <class T>
+void DynamicData<T>::setMaximumNumberOfFrames(uint nrOfFrames) {
+    mMaximumNrOfFrames = nrOfFrames;
+    if(mFrames2.size() > 0)
+        throw Exception("Must call setMaximumNumberOfFrames before streaming is started");
+    delete fillCount;
+    delete emptyCount;
+    fillCount = new boost::interprocess::interprocess_semaphore(0);
+    emptyCount = new boost::interprocess::interprocess_semaphore(nrOfFrames);
+}
 
 template <class T>
 uint DynamicData<T>::getLowestFrameCount() const {
@@ -200,6 +221,11 @@ typename T::pointer DynamicData<T>::getNextFrame(WeakPointer<Object> processObje
         throw Exception("Streamer has been deleted, but someone has called getNextFrame");
         //return getCurrentFrame();
     }
+
+    // Producer consumer model
+    if(mMaximumNrOfFrames > 0 && streamer->getStreamingMode() == STREAMING_MODE_PROCESS_ALL_FRAMES) {
+        fillCount->wait(); // decrement
+    }
     mStreamMutex.lock();
     if(streamer->getStreamingMode() == STREAMING_MODE_NEWEST_FRAME_ONLY) {
         // Always return last frame
@@ -253,8 +279,12 @@ typename T::pointer DynamicData<T>::getNextFrame(WeakPointer<Object> processObje
         }
     }
 
-
     mStreamMutex.unlock();
+    // Producer consumer
+    if(mMaximumNrOfFrames > 0 && streamer->getStreamingMode() == STREAMING_MODE_PROCESS_ALL_FRAMES) {
+        emptyCount->post(); // increment
+    }
+
     return returnData;
 }
 
@@ -290,6 +320,16 @@ void DynamicData<T>::addFrame(typename T::pointer frame) {
         //throw Exception("A DynamicImage must have a streamer set before it can be used.");
         return;
     }
+    if(mMaximumNrOfFrames > 0) {
+        if(streamer->getStreamingMode() == STREAMING_MODE_PROCESS_ALL_FRAMES) {
+            // Producer consumer model using semaphores
+            emptyCount->wait(); // decrement
+            //down(mutex);
+        } else if(streamer->getStreamingMode() == STREAMING_MODE_STORE_ALL_FRAMES) {
+            if(mFrames2.size() >= mMaximumNrOfFrames)
+                throw NoMoreFramesException("Maximum number of frames reached. You can change the this number using the setMaximumNumberOfFrames method on the streamer/dynamic data objects.");
+        }
+    }
     mStreamMutex.lock();
 
     updateModifiedTimestamp();
@@ -300,13 +340,19 @@ void DynamicData<T>::addFrame(typename T::pointer frame) {
     mCurrentFrame2 = frame;
     mCurrentFrameCounter++;
     mStreamMutex.unlock();
+    if(mMaximumNrOfFrames > 0 && streamer->getStreamingMode() == STREAMING_MODE_PROCESS_ALL_FRAMES) {
+        fillCount->post(); // increment
+    }
 }
 
 template <class T>
 DynamicData<T>::DynamicData() {
     mCurrentFrameCounter = 0;
+    mMaximumNrOfFrames = 0;
     mIsDynamicData = true;
     mHasReachedEnd = false;
+    fillCount = NULL;
+    emptyCount = NULL;
     updateModifiedTimestamp();
 }
 

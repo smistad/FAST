@@ -30,11 +30,17 @@ ImageFileStreamer::ImageFileStreamer() {
     mHasReachedEnd = false;
     mFilenameFormat = "";
     mNrOfFrames = 0;
+    mMaximumNrOfFrames = 0;
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
 }
 
 uint ImageFileStreamer::getNrOfFrames() const {
     return mNrOfFrames;
+}
+
+void ImageFileStreamer::setMaximumNumberOfFrames(uint nrOfFrames) {
+    mMaximumNrOfFrames = nrOfFrames;
+    mOutput->setMaximumNumberOfFrames(nrOfFrames);
 }
 
 void ImageFileStreamer::execute() {
@@ -95,6 +101,8 @@ void ImageFileStreamer::producerStream() {
             if(ptr.isValid()) {
                 try {
                     ptr->addFrame(image);
+                } catch(NoMoreFramesException &e) {
+                    throw e;
                 } catch(Exception &e) {
                     std::cout << "streamer has been deleted, stop" << std::endl;
                     break;

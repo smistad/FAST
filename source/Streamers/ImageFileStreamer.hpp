@@ -17,6 +17,7 @@ class ImageFileStreamer : public Streamer, public ProcessObject {
         void setDevice(ExecutionDevice::pointer device);
         void setStartNumber(uint startNumber);
         void setZeroFilling(uint digits);
+        void setMaximumNumberOfFrames(uint nrOfFrames);
         void enableLooping();
         void disableLooping();
         bool hasReachedEnd() const;
@@ -39,6 +40,7 @@ class ImageFileStreamer : public Streamer, public ProcessObject {
         uint mZeroFillDigits;
         uint mStartNumber;
         uint mNrOfFrames;
+        uint mMaximumNrOfFrames;
 
         boost::thread *thread;
         boost::mutex mFirstFrameMutex;

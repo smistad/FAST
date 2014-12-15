@@ -99,6 +99,69 @@ TEST_CASE("ImageFileStreamer streaming to host with streaming mode STORE_ALL set
     );
 }
 
+/*
+TEST_CASE("ImageFileStreamer with streaming mode STORE_ALL and maximum number of frames throws when limit is reached", "[fast][ImageFileStreamer]") {
+    DummyProcessObject::pointer PO = DummyProcessObject::New();
+    ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
+    mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
+    mhdStreamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
+    mhdStreamer->setMaximumNumberOfFrames(4);
+    mhdStreamer->setDevice(Host::New());
+    DynamicImage::pointer image = mhdStreamer->getOutput();
+    unsigned long currentTimestamp = image->getTimestamp();
+    CHECK_THROWS(
+        image->update(); // this starts the streamer
+        while(!image->hasReachedEnd()) {
+            image->update();
+            if(currentTimestamp != image->getTimestamp()) {
+                currentTimestamp = image->getTimestamp();
+                Image::pointer frame = image->getNextFrame(PO);
+            }
+            // Must make this thread sleep a little so that streamer will get a chance to import data
+            boost::this_thread::sleep(boost::posix_time::milliseconds(20));
+        }
+    );
+}
+*/
+
+TEST_CASE("ImageFileStreamer with streaming mode PROCESS_ALL and maximum number of frames stops producing when limit is reached", "[fast][ImageFileStreamer]") {
+    DummyProcessObject::pointer PO = DummyProcessObject::New();
+    ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
+    mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
+    mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+    mhdStreamer->setMaximumNumberOfFrames(4);
+    mhdStreamer->setDevice(Host::New());
+    DynamicImage::pointer image = mhdStreamer->getOutput();
+    unsigned long currentTimestamp = image->getTimestamp();
+    image->update(); // this starts the streamer
+    // Must make this thread sleep a little so that streamer will get a chance to import data
+    boost::this_thread::sleep(boost::posix_time::milliseconds(500));
+    CHECK(image->getSize() == 4);
+}
+
+TEST_CASE("ImageFileStreamer with streaming mode STORE_ALL and maximum number of frames set", "[fast][ImageFileStreamer]") {
+    DummyProcessObject::pointer PO = DummyProcessObject::New();
+    ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
+    mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
+    mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+    mhdStreamer->setMaximumNumberOfFrames(4);
+    mhdStreamer->setDevice(Host::New());
+    DynamicImage::pointer image = mhdStreamer->getOutput();
+    unsigned long currentTimestamp = image->getTimestamp();
+    CHECK_NOTHROW(
+        image->update(); // this starts the streamer
+        while(!image->hasReachedEnd()) {
+            image->update();
+            if(currentTimestamp != image->getTimestamp()) {
+                currentTimestamp = image->getTimestamp();
+                Image::pointer frame = image->getNextFrame(PO);
+            }
+            // Must make this thread sleep a little so that streamer will get a chance to import data
+            boost::this_thread::sleep(boost::posix_time::milliseconds(20));
+        }
+    );
+}
+
 TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode NEWEST set", "[fast][ImageFileStreamer]") {
     DummyProcessObject::pointer PO = DummyProcessObject::New();
     DeviceManager& deviceManager = DeviceManager::getInstance();
