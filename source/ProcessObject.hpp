@@ -13,6 +13,8 @@
 
 namespace fast {
 
+
+
 template <class T>
 class DynamicData;
 
@@ -41,8 +43,10 @@ class ProcessObject : public virtual Object {
         void disableRuntimeMeasurements();
 
         void setMainDevice(ExecutionDevice::pointer device);
+        void setMainDeviceCriteria(const DeviceCriteria& citeria);
         ExecutionDevice::pointer getMainDevice() const;
         void setDevice(uint deviceNumber, ExecutionDevice::pointer device);
+        void setDeviceCriteria(uint deviceNumber, const DeviceCriteria& criteria);
         ExecutionDevice::pointer getDevice(uint deviceNumber) const;
         void setOutputData(uint outputNumber, DataObject::pointer object);
     protected:
@@ -99,6 +103,7 @@ class ProcessObject : public virtual Object {
         boost::unordered_map<uint, std::vector<uint> > mInputDevices;
         boost::unordered_map<uint, ExecutionDevice::pointer> mDevices;
         boost::unordered_map<uint, uint> mOutputDynamicDependsOnInput;
+        boost::unordered_map<uint, DeviceCriteria> mDeviceCriteria;
 
         template <class T>
         friend class DynamicData;

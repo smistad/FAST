@@ -206,3 +206,22 @@ DeviceManager::DeviceManager() {
     // Set one random device as default device
     setDefaultDevice(getOneOpenCLDevice(true));
 }
+
+OpenCLDevice::pointer DeviceManager::getDevice(
+        DeviceCriteria criteria) const {
+    bool interop = false;
+    if(criteria.hasCapabilityCriteria(DEVICE_CAPABILITY_OPENGL_INTEROP)) {
+        interop = true;
+    }
+    criteria.setDeviceCountCriteria(1);
+    std::vector<OpenCLDevice::pointer> devices = getDevices(criteria, interop);
+    if(devices.size() == 0)
+        throw Exception("Found no devices which satisfies the device criteria");
+    return devices[0];
+}
+
+bool DeviceManager::deviceSatisfiesCriteria(OpenCLDevice::pointer device,
+        const DeviceCriteria& criteria) const {
+    oul::OpenCLManager * manager = oul::OpenCLManager::getInstance();
+    return manager->deviceSatisfiesCriteria(criteria, device->getDevice());
+}

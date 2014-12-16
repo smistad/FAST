@@ -181,8 +181,7 @@ void ProcessObject::setInputData(uint inputNumber,
 }
 
 void ProcessObject::setMainDevice(ExecutionDevice::pointer device) {
-    changeDeviceOnInputs(0, device);
-    mDevices[0] = device;
+    setDevice(0, device);
 }
 
 ExecutionDevice::pointer ProcessObject::getMainDevice() const {
@@ -191,6 +190,10 @@ ExecutionDevice::pointer ProcessObject::getMainDevice() const {
 
 void ProcessObject::setDevice(uint deviceNumber,
         ExecutionDevice::pointer device) {
+    if(mDeviceCriteria.count(deviceNumber) > 0) {
+        if(!DeviceManager::getInstance().deviceSatisfiesCriteria(device, mDeviceCriteria[deviceNumber]))
+            throw Exception("Tried to set device which does not satisfy device criteria");
+    }
     if(mDevices.count(deviceNumber) > 0) {
         changeDeviceOnInputs(deviceNumber, device);
     }
@@ -214,6 +217,16 @@ void ProcessObject::setOutputDataDynamicDependsOnInputData(uint outputNumber, ui
     mOutputDynamicDependsOnInput[outputNumber] = inputNumber;
 }
 
+void ProcessObject::setMainDeviceCriteria(const DeviceCriteria& criteria) {
+    mDeviceCriteria[0] = criteria;
+    mDevices[0] = DeviceManager::getInstance().getDevice(criteria);
+}
+
+void ProcessObject::setDeviceCriteria(uint deviceNumber,
+        const DeviceCriteria& criteria) {
+    mDeviceCriteria[deviceNumber] = criteria;
+    mDevices[deviceNumber] = DeviceManager::getInstance().getDevice(criteria);
+}
 
 } // namespace fast
 
