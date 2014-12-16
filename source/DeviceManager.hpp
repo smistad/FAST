@@ -18,13 +18,13 @@ class DeviceManager {
         OpenCLDevice::pointer getOneOpenCLDevice(bool enableVisualization = false);
         OpenCLDevice::pointer getOneGPUDevice(bool enableVisualization = false);
         OpenCLDevice::pointer getOneCPUDevice(bool enableVisualization = false);
-        Host::pointer getHostDevice();
+        static Host::pointer getHostDevice();
         void setDefaultDevice(ExecutionDevice::pointer device);
         void setDefaultComputationDevice(ExecutionDevice::pointer device);
         void setDefaultVisualizationDevice(ExecutionDevice::pointer device);
         ExecutionDevice::pointer getDefaultComputationDevice();
         ExecutionDevice::pointer getDefaultVisualizationDevice();
-	void setGLContext(unsigned long * glContext) { mGLContext = glContext;};
+        void setGLContext(unsigned long * glContext) { mGLContext = glContext;};
     private:
 	unsigned long * mGLContext;
         DeviceManager();

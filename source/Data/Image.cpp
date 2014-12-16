@@ -715,7 +715,7 @@ void Image::freeAll() {
 
     // Delete host data
     if(mHostHasData) {
-        this->free(Host::New());
+        this->free(Host::getInstance());
     }
 }
 

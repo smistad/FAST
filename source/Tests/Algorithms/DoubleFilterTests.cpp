@@ -37,7 +37,7 @@ TEST_CASE("DoubleFilter on Host", "[fast][DoubleFilter]") {
 
     DoubleFilter::pointer filter = DoubleFilter::New();
     filter->setInput(input);
-    filter->setMainDevice(Host::New());
+    filter->setMainDevice(Host::getInstance());
     input->retain(filter->getMainDevice());
     Image::pointer output = filter->getOutput();
     filter->update();

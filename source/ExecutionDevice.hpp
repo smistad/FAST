@@ -17,10 +17,30 @@ class ExecutionDevice : public Object {
 
 };
 
+class DeviceManager; // Forward declaration
 class Host : public ExecutionDevice {
-    FAST_OBJECT(Host)
+    public:
+        typedef SharedPointer<Host> pointer;
+        static Host::pointer getInstance() {
+            static Host::pointer instance = Host::New();
+            return instance;
+        }
+    // Declare factory method New private
     private:
-        Host() {mIsHost = true;};
+        static Host::pointer New() {
+            Host* ptr = new Host();
+            Host::pointer smartPtr(ptr);
+            ptr->setPtr(smartPtr);
+
+            return smartPtr;
+        }
+        void setPtr(Host::pointer ptr) {
+            mPtr = ptr;
+        }
+        Host() {
+            mIsHost = true;
+        }
+
 };
 
 class OpenCLDevice : public ExecutionDevice, public oul::Context {

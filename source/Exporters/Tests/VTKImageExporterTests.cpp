@@ -85,7 +85,7 @@ TEST_CASE("Export a 2D image from FAST to VTK", "[fast][VTK]") {
         Image::pointer fastImage = Image::New();
         DataType type = (DataType)typeNr;
         void* data = allocateRandomData(width*height, type);
-        fastImage->create2DImage(width, height, type, 1, Host::New(), data);
+        fastImage->create2DImage(width, height, type, 1, Host::getInstance(), data);
 
         vtkSmartPointer<VTKImageExporter> vtkExporter = VTKImageExporter::New();
         vtkExporter->SetInput(fastImage);
@@ -116,7 +116,7 @@ TEST_CASE("Export a 3D image from FAST to VTK", "[fast][VTK]") {
         Image::pointer fastImage = Image::New();
         DataType type = (DataType)typeNr;
         void* data = allocateRandomData(width*height*depth, type);
-        fastImage->create3DImage(width, height, depth, type, 1, Host::New(), data);
+        fastImage->create3DImage(width, height, depth, type, 1, Host::getInstance(), data);
 
         vtkSmartPointer<VTKImageExporter> vtkExporter = VTKImageExporter::New();
         vtkExporter->SetInput(fastImage);

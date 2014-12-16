@@ -176,7 +176,7 @@ OpenCLDevice::pointer DeviceManager::getOneCPUDevice(
 }
 
 Host::pointer DeviceManager::getHostDevice() {
-    return Host::New();
+    return Host::getInstance();
 }
 
 void DeviceManager::setDefaultDevice(ExecutionDevice::pointer device) {

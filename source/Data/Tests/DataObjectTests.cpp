@@ -32,7 +32,7 @@ TEST_CASE("Calling retain on DataObject on two devices and then release on one d
     DeviceManager& deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
     DummyDataObject::pointer data = DummyDataObject::New();
-    Host::pointer host = Host::New();
+    Host::pointer host = Host::getInstance();
     data->retain(device);
     data->retain(host);
     data->release(host);

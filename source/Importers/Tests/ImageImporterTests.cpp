@@ -18,7 +18,7 @@ TEST_CASE("Import non-existing file to ImageImporter", "[fast][ImageImporter]") 
 TEST_CASE("Import Image file to host", "[fast][ImageImporter]") {
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-2D.jpg");
-    importer->setMainDevice(Host::New());
+    importer->setMainDevice(Host::getInstance());
     Image::pointer image = importer->getOutput();
     image->update();
 

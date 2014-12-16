@@ -79,9 +79,9 @@ void transferVTKDataToFAST(vtkSmartPointer<vtkImageData> image, Image::pointer o
 
     int * size = image->GetDimensions();
     if(image->GetDataDimension() == 2) {
-        output->create2DImage(size[0]-1, size[1]-1,type,1,Host::New(),data);
+        output->create2DImage(size[0]-1, size[1]-1,type,1,Host::getInstance(),data);
     } else if(image->GetDataDimension() == 3) {
-        output->create3DImage(size[0]-1, size[1]-1,size[2]-1,type,1,Host::New(),data);
+        output->create3DImage(size[0]-1, size[1]-1,size[2]-1,type,1,Host::getInstance(),data);
     } else {
         throw Exception("Wrong number of dimensions in VTK image");
     }

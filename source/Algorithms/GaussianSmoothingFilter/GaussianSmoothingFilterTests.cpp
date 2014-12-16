@@ -75,7 +75,7 @@ TEST_CASE("Correct output with small 3x3 2D image as input to GaussianSmoothingF
     //filter->setDevice(Host::New());
 
     Image::pointer image = Image::New();
-    image->create2DImage(3,3,TYPE_FLOAT,1,Host::New());
+    image->create2DImage(3,3,TYPE_FLOAT,1,Host::getInstance());
     ImageAccess access = image->getImageAccess(ACCESS_READ_WRITE);
     float* data = (float*)access.get();
     for(unsigned int i = 0; i < 9; i++) {
@@ -162,7 +162,7 @@ TEST_CASE("Correct output with small 3x3 3D image as input to GaussianSmoothingF
     filter->setStandardDeviation(1.0);
 
     Image::pointer image = Image::New();
-    image->create3DImage(3,3,3,TYPE_FLOAT,1,Host::New());
+    image->create3DImage(3,3,3,TYPE_FLOAT,1,Host::getInstance());
     ImageAccess access = image->getImageAccess(ACCESS_READ_WRITE);
     float* data = (float*)access.get();
     for(unsigned int i = 0; i < 3*3*3; i++) {

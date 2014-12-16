@@ -77,7 +77,7 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter, Surf
 }
 
 TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and SliceRenderer on Host", "[fast][SystemTests][visual]") {
-    ExecutionDevice::pointer host = Host::New();
+    ExecutionDevice::pointer host = Host::getInstance();
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
