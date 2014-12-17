@@ -1,4 +1,4 @@
-#include "../../Importers/VTKMeshFileImporter.hpp"
+#include "VTKMeshFileImporter.hpp"
 #include "ImageFileStreamer.hpp"
 #include "catch.hpp"
 #include "MeshRenderer.hpp"

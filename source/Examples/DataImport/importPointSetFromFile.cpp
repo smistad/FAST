@@ -1,21 +1,21 @@
 /**
- * Examples/DataImport/importMeshFromVTKFile.cpp
+ * Examples/DataImport/importPointSetFromFile.cpp
  *
  * If you edit this example, please also update the wiki and source code file in the repository.
  */
-#include "VTKMeshFileImporter.hpp"
-#include "MeshRenderer.hpp"
+#include "VTKPointSetFileImporter.hpp"
+#include "PointRenderer.hpp"
 #include "SimpleWindow.hpp"
 
 using namespace fast;
 
 int main() {
-    // Import mesh from vtk file using the VTKSurfaceFileImporter
-    VTKSurfaceFileImporter::pointer importer = VTKSurfaceFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"/Surface_LV.vtk");
+    // Import line set from vtk file
+    VTKPointSetFileImporter::pointer importer = VTKPointSetFileImporter::New();
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "Surface_LV.vtk");
 
     // Renderer image
-    MeshRenderer::pointer renderer = MeshRenderer::New();
+    PointRenderer::pointer renderer = PointRenderer::New();
     renderer->addInput(importer->getOutput());
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);

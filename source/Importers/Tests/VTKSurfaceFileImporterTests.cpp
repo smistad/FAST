@@ -1,4 +1,4 @@
-#include "../VTKMeshFileImporter.hpp"
+#include "VTKMeshFileImporter.hpp"
 #include "catch.hpp"
 
 namespace fast {
