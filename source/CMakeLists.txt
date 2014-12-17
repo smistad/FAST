@@ -166,9 +166,6 @@ endif()
 
 #### Create FAST library and executables
 add_library(FAST ${FAST_SOURCE_FILES} ${HEADERS_MOC})
-if(BUILD_EXAMPLES)
-    add_executable(examples main.cpp)
-endif()
 if(BUILD_TESTS)
     add_executable(test ${FAST_TEST_SOURCE_FILES} ${OUL_TEST_SOURCE_FILES})
 endif()
@@ -177,7 +174,7 @@ endif()
 target_link_libraries(FAST ${LIBRARIES})
 qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
 if(BUILD_EXAMPLES)
-    target_link_libraries(examples FAST)
+    add_subdirectory(Examples)
 endif()
 if(BUILD_TESTS)
     target_link_libraries(test FAST)
