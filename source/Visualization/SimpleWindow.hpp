@@ -15,7 +15,7 @@ class SimpleWindow : public Object {
     public:
         void addRenderer(Renderer::pointer renderer);
         void setMaximumFramerate(unsigned int framerate);
-        void runMainLoop();
+        void start();
         void setWindowSize(unsigned int w, unsigned int h);
         // Makes the window close after a specific number of ms
         void setTimeout(unsigned int milliseconds);

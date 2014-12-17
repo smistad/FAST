@@ -27,7 +27,7 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and I
     window->setTimeout(10*1000);
     window->set2DMode();
     CHECK_NOTHROW(
-        window->runMainLoop();
+        window->start();
     );
 }
 TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and SliceRenderer on OpenCL device", "[fast][SystemTests][visual]") {
@@ -47,7 +47,7 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and S
     window->addRenderer(renderer);
     window->setTimeout(10*1000); // timeout after 10 seconds
     CHECK_NOTHROW(
-    window->runMainLoop();
+    window->start();
     );
 }
 
@@ -72,7 +72,7 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter, Surf
     window->addRenderer(renderer);
     window->setTimeout(10*1000); // timeout after 10 seconds
     CHECK_NOTHROW(
-    window->runMainLoop();
+    window->start();
     );
 }
 
@@ -96,6 +96,6 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and S
     window->addRenderer(renderer);
     window->setTimeout(10*1000); // timeout after 10 seconds
     CHECK_NOTHROW(
-    window->runMainLoop();
+    window->start();
     );
 }

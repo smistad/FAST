@@ -21,5 +21,5 @@ int main() {
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->setTimeout(5*1000); // automatically close window after 5 seconds
-    window->runMainLoop();
+    window->start();
 }

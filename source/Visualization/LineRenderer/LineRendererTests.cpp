@@ -14,5 +14,5 @@ TEST_CASE("LineRenderer", "[fast][LineRenderer][visual]") {
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->setTimeout(500);
-    window->runMainLoop();
+    window->start();
 }

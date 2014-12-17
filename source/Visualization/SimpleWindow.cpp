@@ -79,7 +79,7 @@ SimpleWindow::SimpleWindow() {
     mainLayout->setContentsMargins(0, 0, 0, 0);
 }
 
-void SimpleWindow::runMainLoop() {
+void SimpleWindow::start() {
     mWidget->resize(mWidth,mHeight);
     mView->resize(mWidth,mHeight);
 

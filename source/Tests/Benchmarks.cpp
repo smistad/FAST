@@ -49,7 +49,7 @@ TEST_CASE("Pipeline A (static)", "[fast][benchmark][visual]") {
     window->addRenderer(renderer);
     window->addRenderer(sliceRenderer);
     window->setTimeout(2*1000); // timeout after 2 seconds
-    window->runMainLoop();
+    window->start();
 
     importer->getRuntime()->print();
     filter->getRuntime()->print();
@@ -89,7 +89,7 @@ TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark][visual]") {
     window->getView()->enableRuntimeMeasurements();
     window->addRenderer(renderer);
     window->setTimeout(15*1000); // timeout after 10 seconds
-    window->runMainLoop();
+    window->start();
 
     streamer->getRuntime()->print();
     filter->getRuntime()->print();
@@ -149,7 +149,7 @@ TEST_CASE("Pipeline B", "[fast][benchmark][visual]") {
     window->getView()->enableRuntimeMeasurements();
     window->addRenderer(sliceRenderer);
     window->setTimeout(2*1000); // timeout after 2 seconds
-    window->runMainLoop();
+    window->start();
     importer->getRuntime()->print();
     segmentation->getRuntime()->print();
     extraction->getRuntime()->print();
@@ -189,7 +189,7 @@ TEST_CASE("Pipeline C", "[fast][benchmark][visual]") {
     window->getView()->enableRuntimeMeasurements();
     window->addRenderer(renderer);
     window->setTimeout(2000);
-    window->runMainLoop();
+    window->start();
     importer->getRuntime()->print();
     thresholding->getRuntime()->print();
     skeletonization->getRuntime()->print();
@@ -248,7 +248,7 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
     window->addRenderer(renderer);
     //window->addRenderer(rendererB);
     window->setTimeout(2000);
-    window->runMainLoop();
+    window->start();
 
     std::cout << "Pipeline D" << std::endl << "===================" << std::endl;
     importerA->getRuntime()->print();

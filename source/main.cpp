@@ -50,7 +50,7 @@ int main(int argc, char ** argv) {
     window->addRenderer(surfaceRenderer);
     window->addRenderer(sliceRenderer);
     window->addRenderer(sliceRenderer2);
-    window->runMainLoop();
+    window->start();
     */
 	/*
     MetaImageImporter::pointer importer = MetaImageImporter::New();
@@ -61,7 +61,7 @@ int main(int argc, char ** argv) {
     SimpleWindow::pointer window = SimpleWindow::New();
 
     window->addRenderer(renderer);
-    window->runMainLoop();
+    window->start();
 	*/
 	/*
 
@@ -72,7 +72,7 @@ int main(int argc, char ** argv) {
     SimpleWindow::pointer window2 = SimpleWindow::New();
     window2->set2DMode();
     window2->addRenderer(renderer2);
-    window2->runMainLoop();
+    window2->start();
 	*/
 
 
@@ -89,7 +89,7 @@ int main(int argc, char ** argv) {
     surfaceRenderer->setInput(surface);
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(surfaceRenderer);
-    window->runMainLoop();
+    window->start();
     */
 
     /*
@@ -119,7 +119,7 @@ int main(int argc, char ** argv) {
     renderer->setInput(filteredImage);
     window->addRenderer(renderer);
 window->setTimeout(10*1000);
-    window->runMainLoop();
+    window->start();
     */
     
 	
@@ -132,7 +132,7 @@ window->setTimeout(10*1000);
     SimpleWindow::pointer window = SimpleWindow::New();
     window->setMaximumFramerate(25);
     window->addRenderer(surfaceRenderer);
-    window->runMainLoop();
+    window->start();
 */
 	// Example of using VolumeRenderer (3D) and SimpleWindow
 
@@ -154,7 +154,7 @@ window->setTimeout(10*1000);
 
     //SimpleWindow::pointer window = SimpleWindow::New();
 	//window->addRenderer(sRenderer);
-    //window->runMainLoop();
+    //window->start();
 	
 
 	
@@ -217,7 +217,7 @@ window->setTimeout(10*1000);
     window->setMaximumFramerate(200);
     window->addRenderer(vRenderer);
 	window->addRenderer(sRenderer);
-    window->runMainLoop();
+    window->start();
 	vRenderer->getRuntime()->print();
 	
 	getchar();

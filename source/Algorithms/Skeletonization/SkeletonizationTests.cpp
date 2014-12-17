@@ -21,6 +21,6 @@ TEST_CASE("Skeletonization on 2D image", "[fast][Skeletonization]") {
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->setTimeout(500);
-    window->runMainLoop();
+    window->start();
     skeletonization->getRuntime()->print();
 }

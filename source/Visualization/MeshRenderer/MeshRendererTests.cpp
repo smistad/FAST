@@ -16,7 +16,7 @@ TEST_CASE("SurfaceRenderer on LV surface model", "[fast][MeshRenderer][visual]")
         SimpleWindow::pointer window = SimpleWindow::New();
         window->addRenderer(renderer);
         window->setTimeout(1000);
-        window->runMainLoop();
+        window->start();
     );
 }
 
@@ -32,6 +32,6 @@ TEST_CASE("SurfaceRenderer on stream of surfaces", "[fast][MeshRenderer][visual]
         SimpleWindow::pointer window = SimpleWindow::New();
         window->addRenderer(renderer);
         window->setTimeout(1000);
-        window->runMainLoop();
+        window->start();
     );
 }

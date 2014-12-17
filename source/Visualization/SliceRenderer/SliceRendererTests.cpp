@@ -20,7 +20,7 @@ TEST_CASE("SliceRenderer on static data with no parameters set", "[fast][SliceRe
         SimpleWindow::pointer window = SimpleWindow::New();
         window->addRenderer(renderer);
         window->setTimeout(500);
-        window->runMainLoop();
+        window->start();
     );
 }
 
@@ -33,7 +33,7 @@ TEST_CASE("SliceRenderer on dynamic data with no parameters set", "[fast][SliceR
         SimpleWindow::pointer window = SimpleWindow::New();
         window->addRenderer(renderer);
         window->setTimeout(1000);
-        window->runMainLoop();
+        window->start();
     );
 }
 
@@ -47,7 +47,7 @@ TEST_CASE("SliceRenderer on dynamic data with slice plane X set", "[fast][SliceR
         SimpleWindow::pointer window = SimpleWindow::New();
         window->addRenderer(renderer);
         window->setTimeout(1000);
-        window->runMainLoop();
+        window->start();
     );
 }
 
@@ -61,7 +61,7 @@ TEST_CASE("SliceRenderer on dynamic data with slice plane Y set", "[fast][SliceR
         SimpleWindow::pointer window = SimpleWindow::New();
         window->addRenderer(renderer);
         window->setTimeout(1000);
-        window->runMainLoop();
+        window->start();
     );
 }
 
@@ -75,7 +75,7 @@ TEST_CASE("SliceRenderer on dynamic data with slice plane Z set", "[fast][SliceR
         SimpleWindow::pointer window = SimpleWindow::New();
         window->addRenderer(renderer);
         window->setTimeout(1000);
-        window->runMainLoop();
+        window->start();
     );
 }
 
@@ -89,6 +89,6 @@ TEST_CASE("Setting slice nr in SliceRenderer too high should not throw exception
         SimpleWindow::pointer window = SimpleWindow::New();
         window->addRenderer(renderer);
         window->setTimeout(1000);
-        window->runMainLoop();
+        window->start();
     );
 }

@@ -16,7 +16,7 @@ TEST_CASE("ImageRenderer with single 2D image", "[fast][ImageRenderer][visual]")
         window->set2DMode();
         window->setTimeout(500);
 
-    CHECK_NOTHROW(window->runMainLoop();
+    CHECK_NOTHROW(window->start();
     );
 }
 
@@ -29,6 +29,6 @@ TEST_CASE("ImageRenderer with dynamic 2D image", "[fast][ImageRenderer][visual]"
         window->addRenderer(renderer);
         window->set2DMode();
         window->setTimeout(1000);
-    CHECK_NOTHROW(window->runMainLoop();
+    CHECK_NOTHROW(window->start();
     );
 }
