@@ -1,0 +1,56 @@
+#include "IterativeClosestPoint.hpp"
+#include "VTKPointSetFileImporter.hpp"
+#include "PointRenderer.hpp"
+#include "SimpleWindow.hpp"
+#include "SceneGraph.hpp"
+
+using namespace fast;
+
+int main() {
+    // Import two point sets A and B
+    VTKPointSetFileImporter::pointer importerA = VTKPointSetFileImporter::New();
+    importerA->setFilename(std::string(FAST_TEST_DATA_DIR) + "Surface_LV.vtk");
+
+    VTKPointSetFileImporter::pointer importerB = VTKPointSetFileImporter::New();
+    importerB->setFilename(std::string(FAST_TEST_DATA_DIR) + "Surface_LV.vtk");
+
+    // Apply a transformation to point set B
+    Vector3f translation(0.01, 0, 0.01);
+    Vector3f rotation(0.5, 0, 0);
+    Eigen::Transform<float, 3, Eigen::Affine> transform = Eigen::Transform<float,3,Eigen::Affine>::Identity();
+    transform.translate(translation);
+    Matrix3f R;
+    R = Eigen::AngleAxisf(rotation.x(), Vector3f::UnitX())
+    * Eigen::AngleAxisf(rotation.y(), Vector3f::UnitY())
+    * Eigen::AngleAxisf(rotation.z(), Vector3f::UnitZ());
+    transform.rotate(R);
+    LinearTransformation transformation;
+    transformation.setTransform(transform);
+    SceneGraph& graph = SceneGraph::getInstance();
+    graph.getDataNode(importerB->getOutput())->setTransformation(transformation);
+
+    // Perform the registration
+    IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
+    icp->setMovingPointSet(importerA->getOutput());
+    icp->setFixedPointSet(importerB->getOutput());
+    icp->update();
+
+    // Apply transformation to A
+    SceneGraphNode::pointer node = graph.getDataNode(importerA->getOutput());
+    node->setTransformation(icp->getOutputTransformation());
+
+    std::cout << "Registration result: " << std::endl;
+    std::cout << "Rotation: " << icp->getOutputTransformation().getEulerAngles().transpose() << std::endl;
+    std::cout << "Translation:" << icp->getOutputTransformation().getTransform().translation().transpose() << std::endl;
+
+    // Visualize the two point sets
+    PointRenderer::pointer renderer = PointRenderer::New();
+    renderer->addInput(importerA->getOutput(), Color::Blue(), 10);
+    renderer->addInput(importerB->getOutput(), Color::Green(), 5);
+    renderer->setDefaultDrawOnTop(true);
+
+    SimpleWindow::pointer window = SimpleWindow::New();
+    window->addRenderer(renderer);
+    window->setTimeout(5*1000);
+    window->start();
+}
