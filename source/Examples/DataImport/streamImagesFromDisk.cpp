@@ -20,6 +20,7 @@ int main() {
     renderer->addInput(streamer->getOutput());
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
+    window->set2DMode();
     window->setTimeout(5*1000); // automatically close window after 5 seconds
     window->start();
 }

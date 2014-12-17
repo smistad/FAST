@@ -1,5 +1,5 @@
+#include "../VTKMeshFileImporter.hpp"
 #include "catch.hpp"
-#include "VTKSurfaceFileImporter.hpp"
 
 namespace fast {
 

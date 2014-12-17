@@ -1,2 +1,3 @@
 fast_add_example(importImageFromFile importImageFromFile.cpp)
 fast_add_example(streamImagesFromDisk streamImagesFromDisk.cpp)
+fast_add_example(importMeshFromVTKFile importMeshFromVTKFile.cpp)

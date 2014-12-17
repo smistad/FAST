@@ -1,9 +1,9 @@
+#include "../../Importers/VTKMeshFileImporter.hpp"
 #include "ImageFileStreamer.hpp"
 #include "catch.hpp"
 #include "MeshRenderer.hpp"
 #include "SurfaceExtraction.hpp"
 #include "SimpleWindow.hpp"
-#include "VTKSurfaceFileImporter.hpp"
 
 using namespace fast;
 
