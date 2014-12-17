@@ -11,7 +11,7 @@ To setup and build the framework, see the instructions for your operating system
 * [Windows](https://github.com/smistad/FAST/wiki/Windows-instructions)
 * [Mac OS X](https://github.com/smistad/FAST/wiki/Mac-OS-X-instructions)
 
-To start using the framework, see the [Getting started with FAST](https://github.com/smistad/FAST/wiki/Getting-started-with-FAST) guide.
+To start using the framework, see the [Getting started with FAST](https://github.com/smistad/FAST/wiki/Getting-started-with-FAST) guide or the [examples page](https://github.com/smistad/FAST/wiki/Examples).
 
 Build status
 ---------------------
