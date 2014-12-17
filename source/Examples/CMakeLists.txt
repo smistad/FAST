@@ -1,9 +1,9 @@
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/examples)
 if(WIN32)
     file(WRITE ${PROJECT_BINARY_DIR}/runAllExamples.bat "")
-else(WIN32)
+else()
     file(WRITE ${PROJECT_BINARY_DIR}/runAllExamples.sh "#!/bin/bash\n")
-endif(WIN32)
+endif()
 
 ### Macro for add examples
 macro (fast_add_example NAME)
@@ -11,9 +11,9 @@ macro (fast_add_example NAME)
     target_link_libraries(${NAME} FAST)
     if(WIN32)
         file(APPEND ${PROJECT_BINARY_DIR}/runAllExamples.sh "examples/${NAME}.exe\r\n")
-    else(WIN32)
+    else()
         file(APPEND ${PROJECT_BINARY_DIR}/runAllExamples.sh "./examples/${NAME}\n")
-    endif(WIN32)
+    endif()
 endmacro()
 
 add_subdirectory(DataImport)
