@@ -17,4 +17,5 @@ macro (fast_add_example NAME)
 endmacro()
 
 add_subdirectory(DataImport)
+add_subdirectory(Filtering)
 add_subdirectory(Segmentation)
