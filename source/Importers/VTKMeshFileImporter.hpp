@@ -7,13 +7,13 @@
 
 namespace fast {
 
-class VTKSurfaceFileImporter : public Importer {
-    FAST_OBJECT(VTKSurfaceFileImporter)
+class VTKMeshFileImporter : public Importer {
+    FAST_OBJECT(VTKMeshFileImporter)
     public:
         void setFilename(std::string filename);
         Mesh::pointer getOutput();
     private:
-        VTKSurfaceFileImporter();
+        VTKMeshFileImporter();
         void execute();
 
         std::string mFilename;

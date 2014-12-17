@@ -1,5 +1,5 @@
 /**
- * Examples/DataImport/importMeshFromVTKFile.cpp
+ * Examples/DataImport/importMeshFromFile.cpp
  *
  * If you edit this example, please also update the wiki and source code file in the repository.
  */
@@ -10,8 +10,8 @@
 using namespace fast;
 
 int main() {
-    // Import mesh from vtk file using the VTKSurfaceFileImporter
-    VTKSurfaceFileImporter::pointer importer = VTKSurfaceFileImporter::New();
+    // Import mesh from vtk file using the VTKMeshFileImporter
+    VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"/Surface_LV.vtk");
 
     // Renderer image

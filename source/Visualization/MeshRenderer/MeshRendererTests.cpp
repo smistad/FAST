@@ -9,7 +9,7 @@ using namespace fast;
 
 TEST_CASE("SurfaceRenderer on LV surface model", "[fast][MeshRenderer][visual]") {
     CHECK_NOTHROW(
-        VTKSurfaceFileImporter::pointer importer = VTKSurfaceFileImporter::New();
+        VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
         importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "Surface_LV.vtk");
         MeshRenderer::pointer renderer = MeshRenderer::New();
         renderer->setInput(importer->getOutput());

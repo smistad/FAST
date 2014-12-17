@@ -5,17 +5,17 @@
 
 namespace fast {
 
-void VTKSurfaceFileImporter::setFilename(std::string filename) {
+void VTKMeshFileImporter::setFilename(std::string filename) {
     mFilename = filename;
     mIsModified = true;
 }
 
-Mesh::pointer VTKSurfaceFileImporter::getOutput() {
+Mesh::pointer VTKMeshFileImporter::getOutput() {
     mOutput->setSource(mPtr);
     return mOutput;
 }
 
-VTKSurfaceFileImporter::VTKSurfaceFileImporter() {
+VTKMeshFileImporter::VTKMeshFileImporter() {
     mOutput = Mesh::New();
     mFilename = "";
     mIsModified = true;
@@ -34,9 +34,9 @@ inline bool gotoLineWithString(std::ifstream &file, std::string searchFor) {
     return found;
 }
 
-void VTKSurfaceFileImporter::execute() {
+void VTKMeshFileImporter::execute() {
     if(mFilename == "")
-        throw Exception("No filename given to the VTKSurfaceFileImporter");
+        throw Exception("No filename given to the VTKMeshFileImporter");
 
     // Try to open file and check that it exists
     std::ifstream file(mFilename.c_str());
@@ -95,10 +95,10 @@ void VTKSurfaceFileImporter::execute() {
         boost::split(tokens, line, boost::is_any_of(" "));
 
         if(boost::lexical_cast<int>(tokens[0]) != 3) {
-            throw Exception("The VTKSurfaceFileImporter currently only supports reading files with triangles. Encountered a non-triangle. Aborting.");
+            throw Exception("The VTKMeshFileImporter currently only supports reading files with triangles. Encountered a non-triangle. Aborting.");
         }
         if(tokens.size() != 4) {
-            throw Exception("Error while reading triangles in VTKSurfaceFileImporter. Check format.");
+            throw Exception("Error while reading triangles in VTKMeshFileImporter. Check format.");
         }
 
         Vector3ui triangle;
