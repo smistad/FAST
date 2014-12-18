@@ -17,8 +17,8 @@ __kernel void gradient2D(
     
     // TODO take pixel spacing into account
     float4 gradient = {
-            (READ_IMAGE(input, sampler, pos+(int2)(1,0)).x + READ_IMAGE(input, sampler, pos-(int2)(1,0)).x)/2.0f,
-            (READ_IMAGE(input, sampler, pos+(int2)(0,1)).x + READ_IMAGE(input, sampler, pos-(int2)(0,1)).x)/2.0f,
+            (READ_IMAGE(input, sampler, pos+(int2)(1,0)).x - READ_IMAGE(input, sampler, pos-(int2)(1,0)).x)/2.0f,
+            (READ_IMAGE(input, sampler, pos+(int2)(0,1)).x - READ_IMAGE(input, sampler, pos-(int2)(0,1)).x)/2.0f,
             0,0
     };
     //printf("gradient: %f %f\n", READ_IMAGE(input, sampler, pos+(int2)(0,1)).x, gradient.y);
