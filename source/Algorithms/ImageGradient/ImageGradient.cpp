@@ -29,7 +29,6 @@ void ImageGradient::execute() {
                 getMainDevice()
                 );
     } else {
-        throw Exception("Not implemented yet.");
          output->create3DImage(
                 input->getWidth(),
                 input->getHeight(),
@@ -64,9 +63,17 @@ void ImageGradient::execute() {
         } else {
             kernel = cl::Kernel(program, "gradient3D");
             OpenCLImageAccess3D inputAccess = input->getOpenCLImageAccess3D(ACCESS_READ, device);
-            OpenCLImageAccess3D outputAccess = output->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
             kernel.setArg(0, *inputAccess.get());
-            kernel.setArg(1, *outputAccess.get());
+
+            const bool writingTo3DTextures = device->getDevice().getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") != std::string::npos;
+            if(writingTo3DTextures) {
+                OpenCLImageAccess3D outputAccess = output->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
+                kernel.setArg(1, *outputAccess.get());
+            } else {
+                // If device does not support writing to 3D textures, use a buffer instead
+                OpenCLBufferAccess outputAccess = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+                kernel.setArg(1, *outputAccess.get());
+            }
         }
 
         device->getCommandQueue().enqueueNDRangeKernel(
