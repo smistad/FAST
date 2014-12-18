@@ -24,26 +24,13 @@ __kernel void gradient2D(
     write_imagef(output, pos, gradient);
 }
 
+__kernel void gradient3D(
+        __read_only image3d_t input,
 #ifdef cl_khr_3d_image_writes
-__kernel void gradient3D(
-        __read_only image3d_t input,
         __write_only image3d_t output
-        ) {
-    const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
-    
-    // TODO take pixel spacing into account
-    float4 gradient = {
-            (READ_IMAGE(input, sampler, pos+(int4)(1,0,0,0)).x - READ_IMAGE(input, sampler, pos-(int4)(1,0,0,0)).x)*0.5f,
-            (READ_IMAGE(input, sampler, pos+(int4)(0,1,0,0)).x - READ_IMAGE(input, sampler, pos-(int4)(0,1,0,0)).x)*0.5f,
-            (READ_IMAGE(input, sampler, pos+(int4)(0,0,1,0)).x - READ_IMAGE(input, sampler, pos-(int4)(0,0,1,0)).x)*0.5f,
-            0
-    };
-    write_imagef(output, pos, gradient);
-}
-#else // cl_khr_3d_image_writes
-__kernel void gradient3D(
-        __read_only image3d_t input,
+#else
         __global float* output
+#endif
         ) {
     const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
     
@@ -54,7 +41,10 @@ __kernel void gradient3D(
             (READ_IMAGE(input, sampler, pos+(int4)(0,0,1,0)).x - READ_IMAGE(input, sampler, pos-(int4)(0,0,1,0)).x)*0.5f,
             0
     };
+#ifdef cl_khr_3d_image_writes
+    write_imagef(output, pos, gradient);
+#else 
     vstore3(gradient, pos.x()+pos.y()*get_global_size(0)+pos.z()*get_global_size(0)*get_global_size(1), output);
+#endif
 }
-#endif // cl_khr_3d_image_writes
 
