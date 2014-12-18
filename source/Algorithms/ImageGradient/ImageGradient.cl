@@ -44,7 +44,7 @@ __kernel void gradient3D(
 #ifdef cl_khr_3d_image_writes
     write_imagef(output, pos, gradient);
 #else 
-    vstore3(gradient, pos.x()+pos.y()*get_global_size(0)+pos.z()*get_global_size(0)*get_global_size(1), output);
+    vstore3(gradient, pos.x+pos.y*get_global_size(0)+pos.z*get_global_size(0)*get_global_size(1), output);
 #endif
 }
 
