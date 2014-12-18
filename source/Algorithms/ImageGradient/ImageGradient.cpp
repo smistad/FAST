@@ -12,7 +12,6 @@ ImageData::pointer ImageGradient::getOutput() {
 }
 
 ImageGradient::ImageGradient() {
-    mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
     setOutputDataDynamicDependsOnInputData(0, 0);
 }
 
@@ -27,7 +26,7 @@ void ImageGradient::execute() {
                 input->getHeight(),
                 TYPE_FLOAT,
                 2,
-                mDevice
+                getMainDevice()
                 );
     } else {
         throw Exception("Not implemented yet.");
@@ -37,14 +36,14 @@ void ImageGradient::execute() {
                 input->getDepth(),
                 TYPE_FLOAT,
                 3,
-                mDevice
+                getMainDevice()
                 );
     }
 
-    if(mDevice->isHost()) {
+    if(getMainDevice()->isHost()) {
         throw Exception("Not implemented yet.");
     } else {
-        OpenCLDevice::pointer device = OpenCLDevice::pointer(mDevice);
+        OpenCLDevice::pointer device = OpenCLDevice::pointer(getMainDevice());
         std::string buildOptions = "";
         if(input->getDataType() == TYPE_FLOAT) {
             buildOptions = "-DTYPE_FLOAT";
