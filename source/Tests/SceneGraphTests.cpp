@@ -39,7 +39,7 @@ TEST_CASE("Add data node to new root", "[fast][SceneGraph]") {
     CHECK(root->isDataNode() == false);
     CHECK(root->isRootNode() == true);
 
-    graph.deleteGraph();
+    //graph.deleteGraph();
 }
 
 TEST_CASE("Add data node with parent", "[fast][SceneGraph]") {
@@ -55,7 +55,7 @@ TEST_CASE("Add data node with parent", "[fast][SceneGraph]") {
     CHECK(node2->isRootNode() == false);
     CHECK(node2->getParent() == node1);
 
-    graph.deleteGraph();
+    //graph.deleteGraph();
 }
 
 TEST_CASE("Get linear transformation from node to its parent root", "[fast][SceneGraph]") {
@@ -77,7 +77,7 @@ TEST_CASE("Get linear transformation from node to its parent root", "[fast][Scen
     }
     CHECK(correctValues == true);
 
-    graph.deleteGraph();
+    //graph.deleteGraph();
 }
 
 
