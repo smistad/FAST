@@ -29,7 +29,7 @@ class DataObject : public Object {
         BoundingBox mBoundingBox;
         bool mIsDynamicData;
     private:
-        boost::unordered_map<ExecutionDevice::pointer, unsigned int> mReferenceCount;
+        boost::unordered_map<WeakPointer<ExecutionDevice>, unsigned int> mReferenceCount;
         // The souce object is the process object that created this data object
         // It is defined as a weak pointer to break a cyclic dependency on the process objects
         WeakPointer<Object> mSourceObject;
