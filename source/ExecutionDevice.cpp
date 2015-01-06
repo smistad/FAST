@@ -8,3 +8,9 @@ cl::CommandQueue OpenCLDevice::getCommandQueue() {
 cl::Device OpenCLDevice::getDevice() {
     return Context::getDevice(0);
 }
+
+OpenCLDevice::~OpenCLDevice() {
+     //std::cout << "DESTROYING opencl device object..." << std::endl;
+     // Make sure that all queues are finished
+     getQueue(0).finish();
+}

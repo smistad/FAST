@@ -6,11 +6,11 @@
 using namespace fast;
 
 void SimpleWindow::addRenderer(Renderer::pointer renderer) {
-    mView->addRenderer(renderer);
+    mWidget->getView()->addRenderer(renderer);
 }
 
 void SimpleWindow::setMaximumFramerate(unsigned int framerate) {
-    mView->setMaximumFramerate(framerate);
+    mWidget->getView()->setMaximumFramerate(framerate);
 }
 
 // Make sure only one QApplication is created
@@ -46,14 +46,14 @@ SimpleWindow::SimpleWindow() {
     initializeQtApp();
 
 	mEventLoop = NULL;
-    mView = View::New();
+    mWidget = new WindowWidget;
     // TODO unglobalize mGLContext
     if(mGLContext != NULL){
     	// This is used on Mac machines, create a shared context from mGLContext using Qt and give this to the view
         std::cout << "Creating custom QGLContext" << std::endl;
-        QGLContext* context2 = new QGLContext(QGLFormat::defaultFormat(), mView.getPtr().get());
+        QGLContext* context2 = new QGLContext(QGLFormat::defaultFormat(), mWidget->getView().getPtr().get());
         context2->create(mGLContext);
-        mView->setContext(context2);
+        mWidget->getView()->setContext(context2);
         if(!context2->isValid()) {
             std::cout << "QGL context 2 is invalid!" << std::endl;
             exit(-1);
@@ -70,9 +70,8 @@ SimpleWindow::SimpleWindow() {
 
     mTimeout = 0;
 
-    mWidget = new WindowWidget(mView);
     QHBoxLayout* mainLayout = new QHBoxLayout;
-    mainLayout->addWidget(mView.getPtr().get());
+    mainLayout->addWidget(mWidget->getView().getPtr().get());
     mWidget->setLayout(mainLayout);
     mWidget->setWindowTitle("FAST");
     mWidget->setContentsMargins(0, 0, 0, 0);
@@ -81,7 +80,7 @@ SimpleWindow::SimpleWindow() {
 
 void SimpleWindow::start() {
     mWidget->resize(mWidth,mHeight);
-    mView->resize(mWidth,mHeight);
+    mWidget->getView()->resize(mWidth,mHeight);
 
     mWidget->show();
     std::cout << "running main loop" << std::endl;
@@ -101,8 +100,8 @@ void SimpleWindow::start() {
 
 SimpleWindow::~SimpleWindow() {
     // Cleanup
-	if(mEventLoop != NULL)
-		delete mEventLoop;
+    delete mEventLoop;
+    delete mWidget;
 }
 
 void SimpleWindow::setWindowSize(unsigned int w, unsigned int h) {
@@ -115,13 +114,13 @@ void SimpleWindow::setTimeout(unsigned int milliseconds) {
 }
 
 void SimpleWindow::set2DMode() {
-    mView->set2DMode();
+    mWidget->getView()->set2DMode();
 }
 
 void SimpleWindow::set3DMode() {
-    mView->set3DMode();
+    mWidget->getView()->set3DMode();
 }
 
 View::pointer SimpleWindow::getView() const {
-    return mView;
+    return mWidget->getView();
 }

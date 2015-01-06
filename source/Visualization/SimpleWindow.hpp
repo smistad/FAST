@@ -27,7 +27,6 @@ class SimpleWindow : public Object {
         void set3DMode();
     private:
         SimpleWindow();
-        View::pointer mView;
 
         WindowWidget* mWidget;
 

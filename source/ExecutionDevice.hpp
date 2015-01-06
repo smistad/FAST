@@ -55,6 +55,7 @@ class OpenCLDevice : public ExecutionDevice, public oul::Context {
         std::string getName() {
             return getDevice().getInfo<CL_DEVICE_NAME>();
         }
+        ~OpenCLDevice();
     private:
         OpenCLDevice() {mIsHost = false;};
         unsigned long * mGLContext;

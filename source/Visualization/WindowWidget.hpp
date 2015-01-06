@@ -23,8 +23,10 @@ class WindowWidget : public QWidget {
         void mouseReleaseEvent(QMouseEvent* event);
         void wheelEvent(QWheelEvent* event);
         void closeEvent(QCloseEvent* event);
-        WindowWidget(View::pointer view) : mView(view) {mEventLoop = NULL;};
+        WindowWidget() {mView = View::New(); mEventLoop = NULL;};
+        View::pointer getView();
         void setEventLoop(QEventLoop* eventLoop) { mEventLoop = eventLoop; };
+        ~WindowWidget();
     private:
         View::pointer mView;
         QEventLoop *mEventLoop;

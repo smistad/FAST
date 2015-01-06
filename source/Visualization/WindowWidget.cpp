@@ -38,3 +38,11 @@ void WindowWidget::mouseReleaseEvent(QMouseEvent* event) {
 void WindowWidget::wheelEvent(QWheelEvent* event) {
     mView->wheelEvent(event);
 }
+
+WindowWidget::~WindowWidget() {
+    //std::cout << "DESTROYING window widget" << std::endl;
+}
+
+View::pointer WindowWidget::getView() {
+    return mView;
+}
