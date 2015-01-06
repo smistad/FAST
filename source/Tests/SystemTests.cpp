@@ -81,7 +81,7 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and S
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
-    mhdStreamer->setDevice(host);
+    mhdStreamer->setMainDevice(host);
 
     GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
     filter->setInput(mhdStreamer->getOutput());
