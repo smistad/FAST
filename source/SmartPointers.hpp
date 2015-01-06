@@ -37,10 +37,17 @@ class WeakPointer {
         SharedPointer<T> lock() const {
             return SharedPointer<T>(mWeakPtr.lock());
         };
-        boost::weak_ptr<T> getPtr() { return mWeakPtr; };
+        boost::weak_ptr<T> getPtr() const { return mWeakPtr; };
         WeakPointer<T> &operator=(const SharedPointer<T> &other);
         bool operator==(const WeakPointer<T> &other) const {
-            return mWeakPtr.lock() == other.lock().getPtr();
+            // Check if the two weak pointers, point to the same objecs
+            SharedPointer<T> object1 = mWeakPtr.lock();
+            SharedPointer<T> object2 = other.lock();
+            if(object1.isValid() && object2.isValid()) {
+                return object1 == object2;
+            } else {
+                return false;
+            }
         }
     private:
         boost::weak_ptr<T> mWeakPtr;
