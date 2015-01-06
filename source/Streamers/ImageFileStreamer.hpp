@@ -14,7 +14,6 @@ class ImageFileStreamer : public Streamer, public ProcessObject {
     public:
         DynamicImage::pointer getOutput();
         void setFilenameFormat(std::string str);
-        void setDevice(ExecutionDevice::pointer device);
         void setStartNumber(uint startNumber);
         void setZeroFilling(uint digits);
         void setMaximumNumberOfFrames(uint nrOfFrames);
@@ -51,8 +50,6 @@ class ImageFileStreamer : public Streamer, public ProcessObject {
         bool mHasReachedEnd;
 
         std::string mFilenameFormat;
-
-        ExecutionDevice::pointer mDevice;
 
 };
 

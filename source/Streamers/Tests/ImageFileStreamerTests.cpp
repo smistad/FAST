@@ -38,7 +38,7 @@ TEST_CASE("ImageFileStreamer streaming to host with streaming mode NEWEST set", 
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
-    mhdStreamer->setDevice(Host::getInstance());
+    mhdStreamer->setMainDevice(Host::getInstance());
     DynamicImage::pointer image = mhdStreamer->getOutput();
     unsigned long currentTimestamp = image->getTimestamp();
     CHECK_NOTHROW(
@@ -60,7 +60,7 @@ TEST_CASE("ImageFileStreamer streaming to host with streaming mode PROCESS_ALL s
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
-    mhdStreamer->setDevice(Host::getInstance());
+    mhdStreamer->setMainDevice(Host::getInstance());
     DynamicImage::pointer image = mhdStreamer->getOutput();
     unsigned long currentTimestamp = image->getTimestamp();
     CHECK_NOTHROW(
@@ -82,7 +82,7 @@ TEST_CASE("ImageFileStreamer streaming to host with streaming mode STORE_ALL set
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
-    mhdStreamer->setDevice(Host::getInstance());
+    mhdStreamer->setMainDevice(Host::getInstance());
     DynamicImage::pointer image = mhdStreamer->getOutput();
     unsigned long currentTimestamp = image->getTimestamp();
     CHECK_NOTHROW(
@@ -106,7 +106,7 @@ TEST_CASE("ImageFileStreamer with streaming mode STORE_ALL and maximum number of
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
     mhdStreamer->setMaximumNumberOfFrames(4);
-    mhdStreamer->setDevice(Host::getInstance());
+    mhdStreamer->setMainDevice(Host::getInstance());
     DynamicImage::pointer image = mhdStreamer->getOutput();
     unsigned long currentTimestamp = image->getTimestamp();
     CHECK_THROWS(
@@ -130,7 +130,7 @@ TEST_CASE("ImageFileStreamer with streaming mode PROCESS_ALL and maximum number 
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     mhdStreamer->setMaximumNumberOfFrames(4);
-    mhdStreamer->setDevice(Host::getInstance());
+    mhdStreamer->setMainDevice(Host::getInstance());
     DynamicImage::pointer image = mhdStreamer->getOutput();
     unsigned long currentTimestamp = image->getTimestamp();
     image->update(); // this starts the streamer
@@ -145,7 +145,7 @@ TEST_CASE("ImageFileStreamer with streaming mode STORE_ALL and maximum number of
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     mhdStreamer->setMaximumNumberOfFrames(4);
-    mhdStreamer->setDevice(Host::getInstance());
+    mhdStreamer->setMainDevice(Host::getInstance());
     DynamicImage::pointer image = mhdStreamer->getOutput();
     unsigned long currentTimestamp = image->getTimestamp();
     CHECK_NOTHROW(
@@ -169,7 +169,7 @@ TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode NEWE
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
-    mhdStreamer->setDevice(device);
+    mhdStreamer->setMainDevice(device);
     DynamicImage::pointer image = mhdStreamer->getOutput();
     unsigned long currentTimestamp = image->getTimestamp();
     CHECK_NOTHROW(
@@ -192,7 +192,7 @@ TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode PROC
     OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
-    mhdStreamer->setDevice(device);
+    mhdStreamer->setMainDevice(device);
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     DynamicImage::pointer image = mhdStreamer->getOutput();
     unsigned long currentTimestamp = image->getTimestamp();
@@ -216,7 +216,7 @@ TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode STOR
     OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
-    mhdStreamer->setDevice(device);
+    mhdStreamer->setMainDevice(device);
     mhdStreamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
     DynamicImage::pointer image = mhdStreamer->getOutput();
     unsigned long currentTimestamp = image->getTimestamp();

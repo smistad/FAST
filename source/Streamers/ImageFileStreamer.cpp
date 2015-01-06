@@ -31,7 +31,6 @@ ImageFileStreamer::ImageFileStreamer() {
     mFilenameFormat = "";
     mNrOfFrames = 0;
     mMaximumNrOfFrames = 0;
-    mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
 }
 
 uint ImageFileStreamer::getNrOfFrames() const {
@@ -68,11 +67,6 @@ void ImageFileStreamer::setFilenameFormat(std::string str) {
     mFilenameFormat = str;
 }
 
-void ImageFileStreamer::setDevice(ExecutionDevice::pointer device) {
-    mDevice = device;
-}
-
-
 void ImageFileStreamer::producerStream() {
     Streamer::pointer pointerToSelf = mPtr.lock(); // try to avoid this object from being destroyed until this function is finished
     uint i = mStartNumber;
@@ -94,7 +88,7 @@ void ImageFileStreamer::producerStream() {
         try {
             ImageFileImporter::pointer importer = ImageFileImporter::New();
             importer->setFilename(filename);
-            importer->setMainDevice(mDevice);
+            importer->setMainDevice(getMainDevice());
             Image::pointer image = importer->getOutput();
             image->update();
             DynamicImage::pointer ptr = mOutput;
