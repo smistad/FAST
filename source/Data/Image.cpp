@@ -505,15 +505,13 @@ void Image::create3DImage(
         unsigned int nrOfComponents,
         ExecutionDevice::pointer device) {
 
-    SceneGraph &graph = SceneGraph::getInstance();
-    graph.removeDataNode(mPtr); // remove old node if it exists
+    getSceneGraphNode()->reset(); // reset scene graph node
     freeAll(); // delete any old data
 
     mWidth = width;
     mHeight = height;
     mDepth = depth;
     mBoundingBox = BoundingBox(Vector3f(width, height, depth));
-    SceneGraphNode::pointer node = graph.addDataNodeToNewRoot(mPtr);
     mDimensions = 3;
     mType = type;
     mComponents = nrOfComponents;
@@ -544,15 +542,13 @@ void Image::create3DImage(
         ExecutionDevice::pointer device,
         const void* data) {
 
-    SceneGraph &graph = SceneGraph::getInstance();
-    graph.removeDataNode(mPtr); // remove old node if it exists
+    getSceneGraphNode()->reset(); // reset scene graph node
     freeAll(); // delete any old data
 
     mWidth = width;
     mHeight = height;
     mDepth = depth;
     mBoundingBox = BoundingBox(Vector3f(width, height, depth));
-    SceneGraphNode::pointer node = graph.addDataNodeToNewRoot(mPtr);
     mDimensions = 3;
     mType = type;
     mComponents = nrOfComponents;
@@ -590,14 +586,12 @@ void Image::create2DImage(
         unsigned int nrOfComponents,
         ExecutionDevice::pointer device) {
 
-    SceneGraph &graph = SceneGraph::getInstance();
-    graph.removeDataNode(mPtr); // remove old node if it exists
+    getSceneGraphNode()->reset(); // reset scene graph node
     freeAll(); // delete any old data
 
     mWidth = width;
     mHeight = height;
     mBoundingBox = BoundingBox(Vector3f(width, height, 0));
-    SceneGraphNode::pointer node = graph.addDataNodeToNewRoot(mPtr);
     mDepth = 1;
     mDimensions = 2;
     mType = type;
@@ -631,15 +625,13 @@ void Image::create2DImage(
         ExecutionDevice::pointer device,
         const void* data) {
 
-    SceneGraph &graph = SceneGraph::getInstance();
-    graph.removeDataNode(mPtr); // remove old node if it exists
+    getSceneGraphNode()->reset(); // reset scene graph node
     freeAll(); // delete any old data
 
     mWidth = width;
     mHeight = height;
     mDepth = 1;
     mBoundingBox = BoundingBox(Vector3f(width, height, 0));
-    SceneGraphNode::pointer node = graph.addDataNodeToNewRoot(mPtr);
     mDimensions = 2;
     mType = type;
     mComponents = nrOfComponents;
@@ -820,7 +812,7 @@ void Image::updateSceneGraphTransformation() const {
     */
     transform.setTransform(transformation);
 
-    SceneGraphNode::pointer node = SceneGraph::getInstance().getDataNode(mPtr);
+    SceneGraphNode::pointer node = getSceneGraphNode();
     node->setTransformation(transform);
 }
 

@@ -1,7 +1,6 @@
 #include <GL/glew.h>
 #include "Mesh.hpp"
 #include "SimpleWindow.hpp"
-#include "SceneGraph.hpp"
 #include <QApplication>
 
 #if defined(__APPLE__) || defined(__MACOSX)
@@ -49,8 +48,6 @@ void Mesh::create(
     mTriangles = triangles;
     mHostHasData = true;
     mHostDataIsUpToDate = true;
-    SceneGraph& graph = SceneGraph::getInstance();
-    graph.addDataNodeToNewRoot(mPtr);
 }
 
 
@@ -70,8 +67,6 @@ void Mesh::create(std::vector<SurfaceVertex> vertices, std::vector<Vector3ui> tr
     mTriangles = triangles;
     mHostHasData = true;
     mHostDataIsUpToDate = true;
-    SceneGraph& graph = SceneGraph::getInstance();
-    graph.addDataNodeToNewRoot(mPtr);
 }
 
 void Mesh::create(unsigned int nrOfTriangles) {
@@ -81,8 +76,6 @@ void Mesh::create(unsigned int nrOfTriangles) {
     }
     mIsInitialized = true;
     mNrOfTriangles = nrOfTriangles;
-    SceneGraph& graph = SceneGraph::getInstance();
-    graph.addDataNodeToNewRoot(mPtr);
 }
 
 bool Mesh::isAnyDataBeingAccessed() {

@@ -2,7 +2,6 @@
 #include "VTKPointSetFileImporter.hpp"
 #include "PointRenderer.hpp"
 #include "SimpleWindow.hpp"
-#include "SceneGraph.hpp"
 
 using namespace fast;
 
@@ -26,8 +25,7 @@ int main() {
     transform.rotate(R);
     LinearTransformation transformation;
     transformation.setTransform(transform);
-    SceneGraph& graph = SceneGraph::getInstance();
-    graph.getDataNode(importerB->getOutput())->setTransformation(transformation);
+    importerB->getOutput()->getSceneGraphNode()->setTransformation(transformation);
 
     // Perform the registration
     IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
@@ -36,8 +34,7 @@ int main() {
     icp->update();
 
     // Apply transformation to A
-    SceneGraphNode::pointer node = graph.getDataNode(importerA->getOutput());
-    node->setTransformation(icp->getOutputTransformation());
+    importerA->getOutput()->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
 
     std::cout << "Registration result: " << std::endl;
     std::cout << "Rotation: " << icp->getOutputTransformation().getEulerAngles().transpose() << std::endl;

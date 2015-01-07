@@ -33,8 +33,7 @@ void VTKSurfaceFileExporter::execute() {
 
 
     // Get transformation
-    SceneGraph& graph = SceneGraph::getInstance();
-    LinearTransformation transform = graph.getLinearTransformationFromNode(graph.getDataNode(surface));
+    LinearTransformation transform = SceneGraph::getLinearTransformationFromData(surface);
 
     std::ofstream file(mFilename.c_str());
 

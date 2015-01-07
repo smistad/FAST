@@ -145,10 +145,7 @@ BoundingBox VolumeRenderer::getBoundingBox()
 	BoundingBox inputBoundingBox = mImageToRender->getBoundingBox();
 
     if(mDoTransformations) {
-        SceneGraph& graph = SceneGraph::getInstance();
-        SceneGraphNode::pointer node;
-        node = graph.getDataNode(mImageToRender);
-        LinearTransformation transform = graph.getLinearTransformationFromNode(node);
+        LinearTransformation transform = SceneGraph::getLinearTransformationFromData(mImageToRender);
 		BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
         
 		return transformedBoundingBox;
@@ -297,9 +294,7 @@ void VolumeRenderer::execute() {
 
 		if(mDoTransformations) 
 		{
-			SceneGraph& graph = SceneGraph::getInstance();
-			SceneGraphNode::pointer node = graph.getDataNode(inputs[i]);
-			LinearTransformation transform = graph.getLinearTransformationFromNode(node);
+			LinearTransformation transform = SceneGraph::getLinearTransformationFromData(inputs[i]);
 
             glMultMatrixf(transform.getTransform().data());
 		}

@@ -6,12 +6,14 @@
 #include "ExecutionDevice.hpp"
 #include <boost/unordered_map.hpp>
 #include "BoundingBox.hpp"
+#include "SceneGraph.hpp"
 
 namespace fast {
 
+
 class DataObject : public Object {
     public:
-        DataObject() : mTimestampModified(0),mIsDynamicData(false) {};
+        DataObject();
         typedef SharedPointer<DataObject> pointer;
         void update();
         void setSource(Object::pointer source);
@@ -23,6 +25,7 @@ class DataObject : public Object {
         virtual BoundingBox getTransformedBoundingBox() const;
         virtual ~DataObject() { };
         bool isDynamicData();
+        SceneGraphNode::pointer getSceneGraphNode() const;
     protected:
         virtual void free(ExecutionDevice::pointer device) = 0;
         virtual void freeAll() = 0;
@@ -34,6 +37,8 @@ class DataObject : public Object {
         // It is defined as a weak pointer to break a cyclic dependency on the process objects
         WeakPointer<Object> mSourceObject;
         unsigned long mTimestampModified;
+
+        SceneGraphNode::pointer mSceneGraphNode;
 };
 
 }

@@ -16,9 +16,7 @@ void PointRenderer::draw() {
         PointSetAccess access = points->getAccess(ACCESS_READ);
         MatrixXf pointMatrix = access.getPointSetAsMatrix();
 
-        SceneGraph& graph = SceneGraph::getInstance();
-        SceneGraphNode::pointer node = graph.getDataNode(points);
-        LinearTransformation transform = graph.getLinearTransformationFromNode(node);
+        LinearTransformation transform = SceneGraph::getLinearTransformationFromData(points);
 
         glPushMatrix();
         glMultMatrixf(transform.getTransform().data());

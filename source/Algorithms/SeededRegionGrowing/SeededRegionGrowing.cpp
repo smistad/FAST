@@ -159,7 +159,7 @@ void SeededRegionGrowing::execute() {
         );
     }
     // This must be called after the create commands above:
-    SceneGraph::getInstance().setParentNode(output, input); // connect output to input in scene graph
+    SceneGraph::setParentNode(output, input); // connect output to input in scene graph
 
     if(getMainDevice()->isHost()) {
         ImageAccess inputAccess = input->getImageAccess(ACCESS_READ);

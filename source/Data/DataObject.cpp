@@ -1,7 +1,19 @@
 #include "DataObject.hpp"
 #include "ProcessObject.hpp"
-#include "SceneGraph.hpp"
-using namespace fast;
+
+namespace fast {
+
+DataObject::DataObject() : mTimestampModified(0), mIsDynamicData(false) {
+    // Create scene graph node and attach it to a new root
+    SceneGraphNode::pointer newRootNode = SceneGraphNode::New();
+    SceneGraphNode::pointer node = SceneGraphNode::New();
+    node->setParent(newRootNode);
+    mSceneGraphNode = node;
+}
+
+SceneGraphNode::pointer DataObject::getSceneGraphNode() const {
+    return mSceneGraphNode;
+}
 
 bool DataObject::isDynamicData() {
     return mIsDynamicData;
@@ -55,8 +67,9 @@ BoundingBox DataObject::getBoundingBox() const {
 }
 
 BoundingBox DataObject::getTransformedBoundingBox() const {
-    SceneGraph& graph = SceneGraph::getInstance();
-    LinearTransformation T = graph.getLinearTransformationFromNode(graph.getDataNode(mPtr));
+    LinearTransformation T = SceneGraph::getLinearTransformationFromData(DataObject::pointer(mPtr.lock()));
 
     return getBoundingBox().getTransformedBoundingBox(T);
 }
+
+} // end namespace fast

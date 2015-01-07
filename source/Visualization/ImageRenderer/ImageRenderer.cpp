@@ -140,9 +140,7 @@ void ImageRenderer::draw() {
     for(int i = 0; i < getNrOfInputData(); i++) {
         glPushMatrix();
         if(mDoTransformations) {
-            SceneGraph& graph = SceneGraph::getInstance();
-            SceneGraphNode::pointer node = graph.getDataNode(mImagesToRender[i]);
-            LinearTransformation transform = graph.getLinearTransformationFromNode(node);
+            LinearTransformation transform = SceneGraph::getLinearTransformationFromData(mImagesToRender[i]);
 
             glMultMatrixf(transform.getTransform().data());
         }

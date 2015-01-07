@@ -20,7 +20,7 @@ Skeletonization::Skeletonization() {
 void Skeletonization::execute() {
     Image::pointer input = getStaticInputData<Image>(0);
     Image::pointer output = getStaticOutputData<Image>(0);
-    SceneGraph::getInstance().setParentNode(output, input);
+    SceneGraph::setParentNode(output, input);
 
     // Initialize output image
     output->createFromImage(input, getMainDevice());

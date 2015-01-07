@@ -212,9 +212,7 @@ void SliceRenderer::draw() {
     //setOpenGLContext(mDevice->getGLContext());
 
     if(mDoTransformations) {
-        SceneGraph& graph = SceneGraph::getInstance();
-        SceneGraphNode::pointer node = graph.getDataNode(mImageToRender);
-        LinearTransformation transform = graph.getLinearTransformationFromNode(node);
+        LinearTransformation transform = SceneGraph::getLinearTransformationFromData(mImageToRender);
 
         glMultMatrixf(transform.getTransform().data());
     }
@@ -291,10 +289,7 @@ BoundingBox SliceRenderer::getBoundingBox() {
     }
     BoundingBox shrinkedBox(corners);
     if(mDoTransformations) {
-        SceneGraph& graph = SceneGraph::getInstance();
-        SceneGraphNode::pointer node;
-        node = graph.getDataNode(mImageToRender);
-        LinearTransformation transform = graph.getLinearTransformationFromNode(node);
+        LinearTransformation transform = SceneGraph::getLinearTransformationFromData(mImageToRender);
         BoundingBox transformedBoundingBox = shrinkedBox.getTransformedBoundingBox(transform);
         return transformedBoundingBox;
     } else {

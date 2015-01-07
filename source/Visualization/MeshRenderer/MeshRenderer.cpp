@@ -59,9 +59,7 @@ void MeshRenderer::draw() {
 
         Mesh::pointer surfaceToRender = mMeshToRender[inputNr];
         // Draw the triangles in the VBO
-        SceneGraph& graph = SceneGraph::getInstance();
-        SceneGraphNode::pointer node = graph.getDataNode(surfaceToRender);
-        LinearTransformation transform = graph.getLinearTransformationFromNode(node);
+        LinearTransformation transform = SceneGraph::getLinearTransformationFromData(surfaceToRender);
 
         glPushMatrix();
         glMultMatrixf(transform.getTransform().data());
