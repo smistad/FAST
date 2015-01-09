@@ -18,6 +18,8 @@ namespace fast {
 template <class T>
 class DynamicData;
 
+struct ProcessObjectPort;
+
 class ProcessObject : public virtual Object {
     public:
         ProcessObject() :
@@ -49,6 +51,13 @@ class ProcessObject : public virtual Object {
         void setDeviceCriteria(uint deviceNumber, const DeviceCriteria& criteria);
         ExecutionDevice::pointer getDevice(uint deviceNumber) const;
         void setOutputData(uint outputNumber, DataObject::pointer object);
+
+        // New pipeline methods
+        void setInputConnection(ProcessObjectPort port);
+        void setInputConnection(uint connectionID, ProcessObjectPort port);
+        ProcessObjectPort getOutputPort();
+        ProcessObjectPort getOutputPort(uint portID);
+        DataObject::pointer getOutputDataX(uint portID) const;
     protected:
         // Pointer to the parent pipeline object
         std::vector<DataObject::pointer> mParentDataObjects;
@@ -80,7 +89,7 @@ class ProcessObject : public virtual Object {
          * This method returns static data always. So if the output is dynamic data it will create a new frame and return that.
          */
         template <class DataType>
-        DataObject::pointer getStaticOutputData(uint outputNumber) const;
+        DataObject::pointer getStaticOutputData(uint outputNumber);
         template <class StaticDataType, class DynamicDataType>
         DataObject::pointer getOutputData(uint outputNumber);
         template <class DataType>
@@ -89,6 +98,8 @@ class ProcessObject : public virtual Object {
         uint getNrOfInputData() const;
 
 
+        // New pipeline
+        void setOutputDataX(uint portID, DataObject::pointer data);
 
     private:
         void changeDeviceOnInputs(uint deviceNumber, ExecutionDevice::pointer device);
@@ -105,8 +116,20 @@ class ProcessObject : public virtual Object {
         boost::unordered_map<uint, uint> mOutputDynamicDependsOnInput;
         boost::unordered_map<uint, DeviceCriteria> mDeviceCriteria;
 
+        // New pipeline
+        boost::unordered_map<uint, ProcessObjectPort> mInputConnections;
+        boost::unordered_map<uint, DataObject::pointer> mOutputData;
+
+
         template <class T>
         friend class DynamicData;
+};
+
+
+struct ProcessObjectPort {
+        uint portID;
+        ProcessObject::pointer processObject;
+        unsigned long timestamp;
 };
 
 template <class DataType>
@@ -122,8 +145,11 @@ DataObject::pointer ProcessObject::getOutputData(uint outputNumber) {
         data = DataType::New();
         data->setSource(mPtr.lock());
         mOutputs[outputNumber] = data;
+        mOutputData[outputNumber] = data;
+        std::cout << "data created at output port " << outputNumber << std::endl;
     } else {
-        data = mOutputs[outputNumber];
+        //data = mOutputs[outputNumber];
+        data = mOutputData[outputNumber];
     }
 
     return data;
@@ -138,9 +164,10 @@ DataObject::pointer ProcessObject::getOutputData(uint outputNumber) {
         // Is output dependent on any input?
         if(mOutputDynamicDependsOnInput.count(outputNumber) > 0) {
             uint inputNumber = mOutputDynamicDependsOnInput[outputNumber];
-            if(mInputs.count(inputNumber) == 0)
+            if(mInputs.count(inputNumber) == 0 && mInputConnections.count(inputNumber) == 0)
                 throw Exception("Must call input before output.");
-            DataObject::pointer objectDependsOn = mInputs[inputNumber];
+            ProcessObjectPort port = mInputConnections[inputNumber];
+            DataObject::pointer objectDependsOn = port.processObject->getOutputDataX(port.portID);//mInputs[inputNumber];
             if(objectDependsOn->isDynamicData()) {
                 data = DynamicDataType::New();
                 typename DynamicDataType::pointer(data)->setStreamer(
@@ -150,14 +177,16 @@ DataObject::pointer ProcessObject::getOutputData(uint outputNumber) {
             }
             data->setSource(mPtr.lock());
             mOutputs[outputNumber] = data;
+            mOutputData[outputNumber] = data;
         } else {
             // Create data
             data = StaticDataType::New();
             data->setSource(mPtr.lock());
             mOutputs[outputNumber] = data;
+            mOutputData[outputNumber] = data;
         }
     } else {
-        data = mOutputs[outputNumber];
+        data = mOutputData[outputNumber];//mOutputs[outputNumber];
     }
 
     return data;
@@ -166,7 +195,8 @@ DataObject::pointer ProcessObject::getOutputData(uint outputNumber) {
 template <class DataType>
 DataObject::pointer ProcessObject::getStaticInputData(uint inputNumber) const {
     // at throws exception if element not found, while [] does not
-    DataObject::pointer data = mInputs.at(inputNumber);
+    ProcessObjectPort port = mInputConnections.at(inputNumber);
+    DataObject::pointer data = port.processObject->getOutputDataX(port.portID);//mInputs.at(inputNumber);
     DataObject::pointer returnData;
     if(data->isDynamicData()) {
         returnData = typename DynamicData<DataType>::pointer(data)->getNextFrame(mPtr);
@@ -178,9 +208,9 @@ DataObject::pointer ProcessObject::getStaticInputData(uint inputNumber) const {
 }
 
 template <class DataType>
-DataObject::pointer ProcessObject::getStaticOutputData(uint outputNumber) const {
+DataObject::pointer ProcessObject::getStaticOutputData(uint outputNumber) {
     // at throws exception if element not found, while [] does not
-    DataObject::pointer data = mOutputs.at(outputNumber);
+    DataObject::pointer data = getOutputData<DataType, DynamicData<DataType> >(outputNumber);//mOutputs.at(outputNumber);
     DataObject::pointer returnData;
     if(data->isDynamicData()) {
         // Create new frame

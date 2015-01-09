@@ -34,7 +34,9 @@ inline void executeAlgorithmOnHost(Image::pointer input, Image::pointer output) 
 
 void DoubleFilter::execute() {
     Image::pointer input = getStaticInputData<Image>(0);
+    std::cout << "got input data" << std::endl;
     Image::pointer output = getStaticOutputData<Image>(0);
+    std::cout << "got output data" << std::endl;
 
     // Initialize output image
     output->createFromImage(input, getMainDevice());
@@ -90,6 +92,7 @@ void DoubleFilter::execute() {
                 cl::NullRange
         );
     }
+    std::cout << "execute finished" << std::endl;
 }
 
 }

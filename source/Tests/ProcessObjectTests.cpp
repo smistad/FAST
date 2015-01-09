@@ -16,63 +16,44 @@ TEST_CASE("Calling update on modified process object does execute", "[fast][Proc
     CHECK(process->hasExecuted() == true);
 }
 
-TEST_CASE("Calling update on a data object with unmodified process object does not execute parent process", "[fast][ProcessObject]") {
-    DummyProcessObject::pointer process = DummyProcessObject::New();
-    DummyDataObject::pointer data = DummyDataObject::New();
-    data->setSource(process);
-    data->update();
-    CHECK(process->hasExecuted() == false);
-}
-
-TEST_CASE("Calling update on a data object with modified process object does execute parent process", "[fast][ProcessObject]") {
+TEST_CASE("Calling update on modified process object does execute first time, second time it does not", "[fast][ProcessObject]") {
     DummyProcessObject::pointer process = DummyProcessObject::New();
     process->setIsModified();
-    DummyDataObject::pointer data = DummyDataObject::New();
-    data->setSource(process);
-    data->update();
+    process->update();
     CHECK(process->hasExecuted() == true);
-}
-
-TEST_CASE("Calling update on a process object which has a unmodified parent data object is not executed", "[fast][ProcessObject]") {
-    DummyDataObject::pointer data = DummyDataObject::New();
-    DummyProcessObject::pointer process = DummyProcessObject::New();
-    process->addParent(data);
+    process->setHasExecuted(false);
     process->update();
     CHECK(process->hasExecuted() == false);
 }
 
-TEST_CASE("Calling update on a process object which has a modified parent data object is executed", "[fast][ProcessObject]") {
-    DummyDataObject::pointer data = DummyDataObject::New();
-    DummyProcessObject::pointer process = DummyProcessObject::New();
-    process->addParent(data);
-    data->updateModifiedTimestamp();
-    process->update();
-    CHECK(process->hasExecuted() == true);
-}
-
-TEST_CASE("Calling update on a process object which has a modified parent data object an one unmodified parent data object is executed", "[fast][ProcessObject]") {
-    DummyDataObject::pointer data = DummyDataObject::New();
-    DummyDataObject::pointer data2 = DummyDataObject::New();
-    DummyProcessObject::pointer process = DummyProcessObject::New();
-    process->addParent(data);
-    process->addParent(data2);
-    data2->updateModifiedTimestamp();
-    process->update();
-    CHECK(process->hasExecuted() == true);
-}
-
-TEST_CASE("Calling update on a process object with missing required input data throws exception", "[fast][processobject]") {
+TEST_CASE("Calling update on a PO with a modified parent PO executes both POs", "[fast][ProcessObject]") {
     DummyProcessObject::pointer process = DummyProcessObject::New();
     process->setIsModified();
-    process->setInputRequired(0);
-    CHECK_THROWS(process->update());
+    DummyProcessObject::pointer process2 = DummyProcessObject::New();
+    process2->setInputConnection(process->getOutputPort());
+    process2->update();
+    CHECK(process->hasExecuted() == true);
+    CHECK(process2->hasExecuted() == true);
 }
 
-TEST_CASE("Calling update on a process object with required input data does not throw exception", "[fast][processobject]") {
-    DummyDataObject::pointer data = DummyDataObject::New();
+TEST_CASE("Calling update on a PO with a unmodified parent PO does not execute any POs", "[fast][ProcessObject]") {
     DummyProcessObject::pointer process = DummyProcessObject::New();
-    process->setIsModified();
-    process->setInputRequired(0);
-    process->setInput(data);
-    CHECK_NOTHROW(process->update());
+    DummyProcessObject::pointer process2 = DummyProcessObject::New();
+    process2->setInputConnection(process->getOutputPort());
+    process2->update();
+    CHECK(process->hasExecuted() == false);
+    CHECK(process2->hasExecuted() == false);
+}
+
+TEST_CASE("Calling update on a PO with two connections, one modified, one unmodified", "[fast][ProcessObject]") {
+    DummyProcessObject::pointer process = DummyProcessObject::New();
+    DummyProcessObject::pointer process2 = DummyProcessObject::New();
+    process2->setIsModified();
+    DummyProcessObject::pointer process3 = DummyProcessObject::New();
+    process3->setInputConnection(process->getOutputPort());
+    process3->setInputConnection(process2->getOutputPort());
+    process3->update();
+    CHECK(process->hasExecuted() == false);
+    CHECK(process2->hasExecuted() == true);
+    CHECK(process3->hasExecuted() == true);
 }

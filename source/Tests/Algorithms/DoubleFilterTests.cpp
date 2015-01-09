@@ -7,14 +7,15 @@ using namespace fast;
 TEST_CASE("DoubleFilter on OpenCL device", "[fast][DoubleFilter]") {
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US-2D.jpg");
-    Image::pointer input = importer->getOutput();
 
     DoubleFilter::pointer filter = DoubleFilter::New();
-    filter->setInput(input);
-    Image::pointer output = filter->getOutput();
-    input->retain(filter->getMainDevice());
+    filter->setInputConnection(importer->getOutputPort());
     filter->update();
+    std::cout << "finished update" << std::endl;
 
+    Image::pointer input = importer->getOutputDataX(0);
+    Image::pointer output = filter->getOutputDataX(0);
+    input->retain(filter->getMainDevice());
     ImageAccess inputAccess = input->getImageAccess(ACCESS_READ);
     ImageAccess outputAccess = output->getImageAccess(ACCESS_READ);
 
@@ -33,14 +34,16 @@ TEST_CASE("DoubleFilter on OpenCL device", "[fast][DoubleFilter]") {
 TEST_CASE("DoubleFilter on Host", "[fast][DoubleFilter]") {
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US-2D.jpg");
-    Image::pointer input = importer->getOutput();
 
     DoubleFilter::pointer filter = DoubleFilter::New();
-    filter->setInput(input);
+    filter->setInputConnection(importer->getOutputPort());
     filter->setMainDevice(Host::getInstance());
-    input->retain(filter->getMainDevice());
-    Image::pointer output = filter->getOutput();
     filter->update();
+    std::cout << "finished update" << std::endl;
+
+    Image::pointer input = importer->getOutputDataX(0);
+    Image::pointer output = filter->getOutputDataX(0);
+    input->retain(filter->getMainDevice());
 
     ImageAccess inputAccess = input->getImageAccess(ACCESS_READ);
     ImageAccess outputAccess = output->getImageAccess(ACCESS_READ);

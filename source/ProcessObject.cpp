@@ -4,24 +4,37 @@
 namespace fast {
 
 void ProcessObject::update() {
+        std::cout << "update" << std::endl;
     bool aParentHasBeenModified = false;
-    for(unsigned int i = 0; i < mParentDataObjects.size(); i++) {
-        // Check that object has not been deleted
-        // TODO maybe throw exception here?
-        if(mParentDataObjects[i].isValid())
-            mParentDataObjects[i]->update();
+    // TODO check mInputConnections here instead
+    boost::unordered_map<uint, ProcessObjectPort>::iterator it;
+    for(it = mInputConnections.begin(); it != mInputConnections.end(); it++) {
+        std::cout << it->first << std::endl;
+        // Update input connection
+        ProcessObjectPort port = it->second;
+        port.processObject->update();
 
-        // Check if a data object has been updated
-        if(mParentDataObjects[i]->getTimestamp() != mTimestamps[i]) {
-            aParentHasBeenModified = true;
-            // Update timestamp
-            setTimestamp(mParentDataObjects[i], mParentDataObjects[i]->getTimestamp());
+        // Check if the data object has been updated
+        std::cout << "checking if data is updated" << std::endl;
+        DataObject::pointer data;
+        try {
+            data = port.processObject->getOutputDataX(port.portID);
+            if(data->getTimestamp() != port.timestamp) {
+                aParentHasBeenModified = true;
+                // Update timestamp
+                port.timestamp = data->getTimestamp();
+                // TODO remove setTimestamp
+                //setTimestamp(mParentDataObjects[i], mParentDataObjects[i]->getTimestamp());
+            }
+        } catch(Exception &e) {
+            // Data was not found
         }
     }
 
     // If this process object itself has been modified or a parent object (input)
     // has been modified, execute is called
     if(this->mIsModified || aParentHasBeenModified) {
+        std::cout << "something is modified, running execute" << std::endl;
         this->mRuntimeManager->startRegularTimer("execute");
         // set isModified to false before executing to avoid recursive update calls
         this->mIsModified = false;
@@ -226,6 +239,45 @@ void ProcessObject::setDeviceCriteria(uint deviceNumber,
         const DeviceCriteria& criteria) {
     mDeviceCriteria[deviceNumber] = criteria;
     mDevices[deviceNumber] = DeviceManager::getInstance().getDevice(criteria);
+}
+
+// New pipeline
+void ProcessObject::setInputConnection(ProcessObjectPort port) {
+    setInputConnection(0, port);
+}
+
+void ProcessObject::setInputConnection(uint connectionID, ProcessObjectPort port) {
+    mInputConnections[connectionID] = port;
+}
+
+ProcessObjectPort ProcessObject::getOutputPort() {
+    return getOutputPort(0);
+}
+
+ProcessObjectPort ProcessObject::getOutputPort(uint portID) {
+    ProcessObjectPort port;
+    port.portID = portID;
+    port.processObject = mPtr.lock();
+    port.timestamp = 0;
+    return port;
+}
+
+DataObject::pointer ProcessObject::getOutputDataX(uint portID) const {
+    DataObject::pointer data;
+
+    // If output data is not created
+    if(mOutputData.count(portID) == 0) {
+        std::cout << "Port ID: " << portID << std::endl;
+        throw Exception("Could not find data for port");
+    } else {
+        data = mOutputData.at(portID);
+    }
+
+    return data;
+}
+
+void ProcessObject::setOutputDataX(uint portID, DataObject::pointer data) {
+    mOutputData[portID] = data;
 }
 
 } // namespace fast
