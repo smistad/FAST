@@ -48,6 +48,7 @@ void Mesh::create(
     mTriangles = triangles;
     mHostHasData = true;
     mHostDataIsUpToDate = true;
+    updateModifiedTimestamp();
 }
 
 

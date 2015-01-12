@@ -2,14 +2,6 @@
 
 namespace fast {
 
-void DoubleFilter::setInput(ImageData::pointer image) {
-    setInputData(0, image);
-}
-
-ImageData::pointer DoubleFilter::getOutput() {
-    return getOutputData<Image, DynamicImage>(0);
-}
-
 DoubleFilter::DoubleFilter() {
     setOutputDataDynamicDependsOnInputData(0, 0);
 }

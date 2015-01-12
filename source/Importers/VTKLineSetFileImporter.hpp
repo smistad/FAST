@@ -10,7 +10,6 @@ class VTKLineSetFileImporter : public Importer {
     FAST_OBJECT(VTKLineSetFileImporter)
     public:
         void setFilename(std::string filename);
-        LineSet::pointer getOutput();
     private:
         VTKLineSetFileImporter();
         void execute();

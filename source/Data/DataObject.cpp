@@ -38,8 +38,7 @@ unsigned long DataObject::getTimestamp() {
 }
 
 void DataObject::updateModifiedTimestamp() {
-    static unsigned long globalTimestamp = 0;
-    mTimestampModified = ++globalTimestamp;
+    mTimestampModified++;
 }
 
 void DataObject::retain(ExecutionDevice::pointer device) {
@@ -70,6 +69,15 @@ BoundingBox DataObject::getTransformedBoundingBox() const {
     LinearTransformation T = SceneGraph::getLinearTransformationFromData(DataObject::pointer(mPtr.lock()));
 
     return getBoundingBox().getTransformedBoundingBox(T);
+}
+
+
+void DataObject::setStreamer(Streamer::pointer streamer) {
+    mStreamer = streamer;
+}
+
+Streamer::pointer DataObject::getStreamer() {
+    return mStreamer.lock();
 }
 
 } // end namespace fast

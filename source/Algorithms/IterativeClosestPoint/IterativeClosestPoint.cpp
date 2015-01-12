@@ -17,12 +17,10 @@ IterativeClosestPoint::IterativeClosestPoint() {
 
 void IterativeClosestPoint::setFixedPointSet(
         const PointSet::pointer fixedSet) {
-    setInputData(0, fixedSet);
 }
 
 void IterativeClosestPoint::setMovingPointSet(
         const PointSet::pointer movingSet) {
-    setInputData(1, movingSet);
 }
 
 LinearTransformation IterativeClosestPoint::getOutputTransformation() {

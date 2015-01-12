@@ -21,21 +21,21 @@ void LineRenderer::draw() {
         glPushMatrix();
         glMultMatrixf(transform.getTransform().data());
 
-        if(mInputWidths.count(points) > 0) {
-            glLineWidth(mInputWidths[points]);
+        if(mInputWidths.count(getInputPort(i)) > 0) {
+            glLineWidth(mInputWidths[getInputPort(i)]);
         } else {
             glLineWidth(mDefaultLineWidth);
         }
-        if(mInputColors.count(points) > 0) {
-            Color c = mInputColors[points];
+        if(mInputColors.count(getInputPort(i)) > 0) {
+            Color c = mInputColors[getInputPort(i)];
             glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
         } else {
             Color c = mDefaultColor;
             glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
         }
         bool drawOnTop;
-        if(mInputDrawOnTop.count(points) > 0) {
-            drawOnTop = mInputDrawOnTop[points];
+        if(mInputDrawOnTop.count(getInputPort(i)) > 0) {
+            drawOnTop = mInputDrawOnTop[getInputPort(i)];
         } else {
             drawOnTop = mDefaultDrawOnTop;
         }
@@ -78,16 +78,17 @@ void LineRenderer::execute() {
 }
 
 
-void LineRenderer::addInput(LineSet::pointer lines) {
-    releaseInputAfterExecute(getNrOfInputData(), false);
-    setInputData(getNrOfInputData(), lines);
+void LineRenderer::addInputConnection(ProcessObjectPort port) {
+    uint nr = getNrOfInputData();
+    releaseInputAfterExecute(nr, false);
+    setInputConnection(nr, port);
 }
 
-void LineRenderer::addInput(LineSet::pointer lines, Color color,
+void LineRenderer::addInputConnection(ProcessObjectPort port, Color color,
         float width) {
-    addInput(lines);
-    setColor(lines, color);
-    setWidth(lines, width);
+    addInputConnection(port);
+    setColor(port, color);
+    setWidth(port, width);
 }
 
 void LineRenderer::setDefaultColor(Color color) {
@@ -103,16 +104,16 @@ void LineRenderer::setDefaultDrawOnTop(bool drawOnTop) {
 }
 
 
-void LineRenderer::setDrawOnTop(DataObject::pointer input, bool drawOnTop) {
-    mInputDrawOnTop[input] = drawOnTop;
+void LineRenderer::setDrawOnTop(ProcessObjectPort port, bool drawOnTop) {
+    mInputDrawOnTop[port] = drawOnTop;
 }
 
-void LineRenderer::setColor(DataObject::pointer input, Color color) {
-    mInputColors[input] = color;
+void LineRenderer::setColor(ProcessObjectPort port, Color color) {
+    mInputColors[port] = color;
 }
 
-void LineRenderer::setWidth(DataObject::pointer input, float width) {
-    mInputWidths[input] = width;
+void LineRenderer::setWidth(ProcessObjectPort port, float width) {
+    mInputWidths[port] = width;
 }
 
 } // end namespace fast

@@ -7,7 +7,6 @@ namespace fast {
 
 
 void SeededRegionGrowing::setInput(ImageData::pointer input) {
-    setInputData(0, input);
 }
 
 void SeededRegionGrowing::setIntensityRange(float min, float max) {

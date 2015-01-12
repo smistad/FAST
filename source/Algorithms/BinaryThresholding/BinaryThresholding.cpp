@@ -3,7 +3,6 @@
 namespace fast {
 
 void BinaryThresholding::setInput(ImageData::pointer input) {
-    setInputData(0, input);
 }
 
 ImageData::pointer BinaryThresholding::getOutput() {

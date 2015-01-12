@@ -21,7 +21,7 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and I
     filter->setStandardDeviation(2.0);
 
     ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->addInput(filter->getOutput());
+    renderer->addInputPort(filter->getOutputPort());
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->setTimeout(10*1000);
@@ -62,11 +62,11 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter, Surf
     filter->setStandardDeviation(2.0);
 
     SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
-    extractor->setInput(filter->getOutput());
+    extractor->setInputConnection(filter->getOutputPort());
     extractor->setThreshold(200);
 
     MeshRenderer::pointer renderer = MeshRenderer::New();
-    renderer->setInput(extractor->getOutput());
+    renderer->addInputConnection(extractor->getOutputPort());
 
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);

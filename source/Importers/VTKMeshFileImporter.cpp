@@ -10,13 +10,7 @@ void VTKMeshFileImporter::setFilename(std::string filename) {
     mIsModified = true;
 }
 
-Mesh::pointer VTKMeshFileImporter::getOutput() {
-    mOutput->setSource(mPtr);
-    return mOutput;
-}
-
 VTKMeshFileImporter::VTKMeshFileImporter() {
-    mOutput = Mesh::New();
     mFilename = "";
     mIsModified = true;
 }
@@ -148,11 +142,11 @@ void VTKMeshFileImporter::execute() {
         }
     }
 
-    // Add data to mOutput
-    mOutput->create(vertices, normals, triangles);
+    Mesh::pointer output = getOutputData<Mesh>(0);
 
-    // Update timestamp on output
-    mOutput->updateModifiedTimestamp();
+    // Add data to output
+    output->create(vertices, normals, triangles);
+    std::cout << "MESH IMPORTED" << std::endl;
 }
 
 } // end namespace fast

@@ -10,14 +10,14 @@ namespace fast {
 class PointRenderer : public Renderer {
     FAST_OBJECT(PointRenderer)
     public:
-        void addInput(PointSet::pointer points);
-        void addInput(PointSet::pointer points, Color color, float size);
+        void addInputConnection(ProcessObjectPort port);
+        void addInputConnection(ProcessObjectPort port, Color color, float size);
         void setDefaultColor(Color color);
         void setDefaultSize(float size);
         void setDefaultDrawOnTop(bool drawOnTop);
-        void setDrawOnTop(DataObject::pointer input, bool drawOnTop);
-        void setColor(DataObject::pointer input, Color color);
-        void setSize(DataObject::pointer input, float size);
+        void setDrawOnTop(ProcessObjectPort input, bool drawOnTop);
+        void setColor(ProcessObjectPort input, Color color);
+        void setSize(ProcessObjectPort input, float size);
         void draw();
         BoundingBox getBoundingBox();
     private:
@@ -27,9 +27,9 @@ class PointRenderer : public Renderer {
         float mDefaultPointSize;
         Color mDefaultColor;
         bool mDefaultDrawOnTop;
-        boost::unordered_map<DataObject::pointer, float> mInputSizes;
-        boost::unordered_map<DataObject::pointer, Color> mInputColors;
-        boost::unordered_map<DataObject::pointer, bool> mInputDrawOnTop;
+        boost::unordered_map<ProcessObjectPort, float> mInputSizes;
+        boost::unordered_map<ProcessObjectPort, Color> mInputColors;
+        boost::unordered_map<ProcessObjectPort, bool> mInputDrawOnTop;
 };
 
 }

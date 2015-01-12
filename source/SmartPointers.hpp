@@ -117,6 +117,10 @@ class SharedPointer {
         boost::shared_ptr<T> operator->() {
             return mSmartPtr;
         }
+        boost::shared_ptr<T> operator->() const {
+            return mSmartPtr;
+        }
+
         boost::shared_ptr<T> getPtr() const { return mSmartPtr; };
         boost::shared_ptr<T> & getReferenceToPointer() { return mSmartPtr; };
     private:

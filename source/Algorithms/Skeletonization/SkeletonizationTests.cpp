@@ -15,7 +15,7 @@ TEST_CASE("Skeletonization on 2D image", "[fast][Skeletonization]") {
     skeletonization->enableRuntimeMeasurements();
 
     ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->addInput(skeletonization->getOutput());
+    renderer->addInputPort(skeletonization->getOutputPort());
     renderer->setIntensityWindow(1);
     renderer->setIntensityLevel(0.5);
     SimpleWindow::pointer window = SimpleWindow::New();

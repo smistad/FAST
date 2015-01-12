@@ -1,5 +1,6 @@
 #include "ProcessObject.hpp"
 #include "Exception.hpp"
+#include <boost/lexical_cast.hpp>
 
 namespace fast {
 
@@ -12,17 +13,16 @@ void ProcessObject::update() {
         std::cout << it->first << std::endl;
         // Update input connection
         ProcessObjectPort port = it->second;
-        port.processObject->update();
+        port.getProcessObject()->update();
 
         // Check if the data object has been updated
         std::cout << "checking if data is updated" << std::endl;
         DataObject::pointer data;
         try {
-            data = port.processObject->getOutputDataX(port.portID);
-            if(data->getTimestamp() != port.timestamp) {
+            if(port.isDataModified()) {
                 aParentHasBeenModified = true;
                 // Update timestamp
-                port.timestamp = data->getTimestamp();
+                mInputConnections[it->first].updateTimestamp();
                 // TODO remove setTimestamp
                 //setTimestamp(mParentDataObjects[i], mParentDataObjects[i]->getTimestamp());
             }
@@ -110,8 +110,8 @@ void ProcessObject::removeParent(const DataObject::pointer data) {
     mParentDataObjects = newParents;
 }
 
-void ProcessObject::setInputRequired(uint inputNumber, bool required) {
-    mRequiredInputs[inputNumber] = required;
+void ProcessObject::setInputRequired(uint portID, bool required) {
+    mRequiredInputs[portID] = required;
 }
 
 void ProcessObject::releaseInputAfterExecute(uint inputNumber,
@@ -119,6 +119,7 @@ void ProcessObject::releaseInputAfterExecute(uint inputNumber,
     mReleaseAfterExecute[inputNumber] = release;
 }
 
+/*
 void ProcessObject::setInputData(uint inputNumber,
         DataObject::pointer data) {
     // Default values:
@@ -127,7 +128,7 @@ void ProcessObject::setInputData(uint inputNumber,
     mReleaseAfterExecute[inputNumber] = false;
 
     // TODO if another input with same number existed, release it and remove it as parent
-    if(mInputs.count(inputNumber) > 0) {
+    if(mInputConnections.count(inputNumber) > 0) {
         removeParent(data);
         std::vector<uint>::iterator it;
         for(it = mInputDevices[inputNumber].begin(); it != mInputDevices[inputNumber].end(); it++) {
@@ -140,16 +141,15 @@ void ProcessObject::setInputData(uint inputNumber,
     mInputDevices[inputNumber].push_back(0);
     data->retain(getMainDevice());
 
-    mInputs[inputNumber] = data;
+    mInput[inputNumber] = data;
 }
+*/
 
-DataObject::pointer ProcessObject::getInputData(uint inputNumber) const {
-    // at throws exception if element not found, while [] does not
-    return mInputs.at(inputNumber);
-}
+
 
 void ProcessObject::preExecute() {
-    // Check that required inputs are present
+    // TODO Check that required inputs are present
+    /*
     boost::unordered_map<uint, bool>::iterator it;
     for(it = mRequiredInputs.begin(); it != mRequiredInputs.end(); it++) {
         if(it->second) { // if required
@@ -159,10 +159,12 @@ void ProcessObject::preExecute() {
             }
         }
     }
+    */
 }
 
 void ProcessObject::postExecute() {
-    // Release input data if they are marked as "release after execute"
+    // TODO Release input data if they are marked as "release after execute"
+    /*
     boost::unordered_map<uint, bool>::iterator it;
     for(it = mReleaseAfterExecute.begin(); it != mReleaseAfterExecute.end(); it++) {
         if(it->second) {
@@ -173,10 +175,12 @@ void ProcessObject::postExecute() {
             }
         }
     }
+    */
 }
 
 void ProcessObject::changeDeviceOnInputs(uint deviceNumber, ExecutionDevice::pointer device) {
-    // For each input, release old device and retain on new device
+    // TODO For each input, release old device and retain on new device
+    /*
     boost::unordered_map<uint, DataObject::pointer>::iterator it;
     for(it = mInputs.begin(); it != mInputs.end(); it++) {
         std::vector<uint>::iterator it2;
@@ -187,11 +191,14 @@ void ProcessObject::changeDeviceOnInputs(uint deviceNumber, ExecutionDevice::poi
             }
         }
     }
+    */
 }
 
+/*
 void ProcessObject::setInputData(uint inputNumber,
         const DataObject::pointer data, const ExecutionDevice::pointer device) {
 }
+*/
 
 void ProcessObject::setMainDevice(ExecutionDevice::pointer device) {
     setDevice(0, device);
@@ -218,11 +225,11 @@ ExecutionDevice::pointer ProcessObject::getDevice(uint deviceNumber) const {
 }
 
 uint ProcessObject::getNrOfInputData() const {
-    return mInputs.size();
+    return mInputConnections.size();
 }
 
 void ProcessObject::setOutputData(uint outputNumber, DataObject::pointer data) {
-    mOutputs[outputNumber] = data;
+    mOutputData[outputNumber] = data;
 }
 
 
@@ -255,10 +262,7 @@ ProcessObjectPort ProcessObject::getOutputPort() {
 }
 
 ProcessObjectPort ProcessObject::getOutputPort(uint portID) {
-    ProcessObjectPort port;
-    port.portID = portID;
-    port.processObject = mPtr.lock();
-    port.timestamp = 0;
+    ProcessObjectPort port(portID, mPtr.lock());
     return port;
 }
 
@@ -280,6 +284,45 @@ void ProcessObject::setOutputDataX(uint portID, DataObject::pointer data) {
     mOutputData[portID] = data;
 }
 
+DataObject::pointer ProcessObject::getInputData(uint inputNumber) const {
+    // at throws exception if element not found, while [] does not
+    ProcessObjectPort port = mInputConnections.at(inputNumber);
+    return port.getData();
+}
+
+ProcessObjectPort ProcessObject::getInputPort(uint portID) const {
+    return mInputConnections.at(portID);
+}
+
+ProcessObjectPort::ProcessObjectPort(uint portID,
+        ProcessObject::pointer processObject) {
+    mPortID = portID;
+    mProcessObject = processObject;
+    mTimestamp = 0;
+}
+
+ProcessObject::pointer ProcessObjectPort::getProcessObject() const {
+    return mProcessObject;
+}
+
+DataObject::pointer ProcessObjectPort::getData() const {
+    return mProcessObject->getOutputDataX(mPortID);
+}
+
+uint ProcessObjectPort::getPortID() const {
+    return mPortID;
+}
+
+bool ProcessObjectPort::isDataModified() const {
+    return mTimestamp != getData()->getTimestamp();
+}
+
+void ProcessObjectPort::updateTimestamp() {
+    mTimestamp = getData()->getTimestamp();
+}
+
+bool ProcessObjectPort::operator==(const ProcessObjectPort &other) const {
+    return mPortID == other.getPortID() && mProcessObject == other.getProcessObject();
+}
+
 } // namespace fast
-
-

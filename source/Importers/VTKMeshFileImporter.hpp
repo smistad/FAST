@@ -11,13 +11,11 @@ class VTKMeshFileImporter : public Importer {
     FAST_OBJECT(VTKMeshFileImporter)
     public:
         void setFilename(std::string filename);
-        Mesh::pointer getOutput();
     private:
         VTKMeshFileImporter();
         void execute();
 
         std::string mFilename;
-        Mesh::pointer mOutput;
 };
 
 } // end namespace fast

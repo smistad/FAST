@@ -21,21 +21,22 @@ void PointRenderer::draw() {
         glPushMatrix();
         glMultMatrixf(transform.getTransform().data());
 
-        if(mInputSizes.count(points) > 0) {
-            glPointSize(mInputSizes[points]);
+        ProcessObjectPort port = getInputPort(i);
+        if(mInputSizes.count(port) > 0) {
+            glPointSize(mInputSizes[port]);
         } else {
             glPointSize(mDefaultPointSize);
         }
-        if(mInputColors.count(points) > 0) {
-            Color c = mInputColors[points];
+        if(mInputColors.count(port) > 0) {
+            Color c = mInputColors[port];
             glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
         } else {
             Color c = mDefaultColor;
             glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
         }
         bool drawOnTop;
-        if(mInputDrawOnTop.count(points) > 0) {
-            drawOnTop = mInputDrawOnTop[points];
+        if(mInputDrawOnTop.count(port) > 0) {
+            drawOnTop = mInputDrawOnTop[port];
         } else {
             drawOnTop = mDefaultDrawOnTop;
         }
@@ -74,16 +75,17 @@ void PointRenderer::execute() {
 }
 
 
-void PointRenderer::addInput(PointSet::pointer points) {
-    releaseInputAfterExecute(getNrOfInputData(), false);
-    setInputData(getNrOfInputData(), points);
+void PointRenderer::addInputConnection(ProcessObjectPort port) {
+    uint nr = getNrOfInputData();
+    releaseInputAfterExecute(nr, false);
+    setInputConnection(nr, port);
 }
 
-void PointRenderer::addInput(PointSet::pointer points, Color color,
+void PointRenderer::addInputConnection(ProcessObjectPort port, Color color,
         float size) {
-    addInput(points);
-    setColor(points, color);
-    setSize(points, size);
+    addInputConnection(port);
+    setColor(port, color);
+    setSize(port, size);
 }
 
 void PointRenderer::setDefaultColor(Color color) {
@@ -99,16 +101,16 @@ void PointRenderer::setDefaultDrawOnTop(bool drawOnTop) {
 }
 
 
-void PointRenderer::setDrawOnTop(DataObject::pointer input, bool drawOnTop) {
-    mInputDrawOnTop[input] = drawOnTop;
+void PointRenderer::setDrawOnTop(ProcessObjectPort port, bool drawOnTop) {
+    mInputDrawOnTop[port] = drawOnTop;
 }
 
-void PointRenderer::setColor(DataObject::pointer input, Color color) {
-    mInputColors[input] = color;
+void PointRenderer::setColor(ProcessObjectPort port, Color color) {
+    mInputColors[port] = color;
 }
 
-void PointRenderer::setSize(DataObject::pointer input, float size) {
-    mInputSizes[input] = size;
+void PointRenderer::setSize(ProcessObjectPort port, float size) {
+    mInputSizes[port] = size;
 }
 
 } // end namespace fast

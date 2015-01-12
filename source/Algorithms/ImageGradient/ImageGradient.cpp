@@ -4,7 +4,6 @@
 namespace fast {
 
 void ImageGradient::setInput(ImageData::pointer input) {
-    setInputData(0, input);
 }
 
 ImageData::pointer ImageGradient::getOutput() {

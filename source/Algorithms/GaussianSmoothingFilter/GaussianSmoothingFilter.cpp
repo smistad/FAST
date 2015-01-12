@@ -5,7 +5,6 @@
 using namespace fast;
 
 void GaussianSmoothingFilter::setInput(ImageData::pointer input) {
-    setInputData(0, input);
 }
 
 void GaussianSmoothingFilter::setMaskSize(unsigned char maskSize) {

@@ -33,12 +33,12 @@ TEST_CASE("Pipeline A (static)", "[fast][benchmark][visual]") {
 
     SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
     extractor->enableRuntimeMeasurements();
-    extractor->setInput(filter->getOutput());
+    extractor->setInputConnection(filter->getOutputPort());
     extractor->setThreshold(200);
 
     MeshRenderer::pointer renderer = MeshRenderer::New();
     renderer->enableRuntimeMeasurements();
-    renderer->setInput(extractor->getOutput());
+    renderer->addInputConnection(extractor->getOutputPort());
 
     SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
     sliceRenderer->setInput(filter->getOutput());
@@ -77,12 +77,12 @@ TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark][visual]") {
     filter->enableRuntimeMeasurements();
 
     SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
-    extractor->setInput(filter->getOutput());
+    extractor->setInputConnection(filter->getOutputPort());
     extractor->setThreshold(200);
     extractor->enableRuntimeMeasurements();
 
     MeshRenderer::pointer renderer = MeshRenderer::New();
-    renderer->setInput(extractor->getOutput());
+    renderer->addInputConnection(extractor->getOutputPort());
     renderer->enableRuntimeMeasurements();
 
     SimpleWindow::pointer window = SimpleWindow::New();
@@ -124,7 +124,7 @@ TEST_CASE("Pipeline B", "[fast][benchmark][visual]") {
     segmentation->enableRuntimeMeasurements();
 
     SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
-    extraction->setInput(segmentation->getOutput());
+    extraction->setInputConnection(segmentation->getOutputPort());
     extraction->enableRuntimeMeasurements();
 
     /*
@@ -135,7 +135,7 @@ TEST_CASE("Pipeline B", "[fast][benchmark][visual]") {
     */
 
     MeshRenderer::pointer surfaceRenderer = MeshRenderer::New();
-    surfaceRenderer->setInput(extraction->getOutput());
+    surfaceRenderer->addInputConnection(extraction->getOutputPort());
     surfaceRenderer->enableRuntimeMeasurements();
 
     SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
@@ -181,7 +181,7 @@ TEST_CASE("Pipeline C", "[fast][benchmark][visual]") {
     skeletonization->enableRuntimeMeasurements();
 
     ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->addInput(skeletonization->getOutput());
+    renderer->addInputPort(skeletonization->getOutputPort());
     renderer->setIntensityWindow(1);
     renderer->setIntensityLevel(0.5);
     renderer->enableRuntimeMeasurements();
@@ -236,8 +236,8 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
 
 
     PointRenderer::pointer renderer = PointRenderer::New();
-    renderer->addInput(importerA->getOutput(), Color::Blue(), 10);
-    renderer->addInput(importerB->getOutput(), Color::Green(), 5);
+    renderer->addInputConnection(importerA->getOutputPort(), Color::Blue(), 10);
+    renderer->addInputConnection(importerB->getOutputPort(), Color::Green(), 5);
     renderer->setDefaultDrawOnTop(true);
     renderer->enableRuntimeMeasurements();
 

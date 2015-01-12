@@ -14,20 +14,17 @@
 namespace fast {
 
 
-void MeshRenderer::setInput(MeshData::pointer mesh) {
-    releaseInputAfterExecute(getNrOfInputData(), false);
-    setInputData(getNrOfInputData(), mesh);
+
+void MeshRenderer::addInputConnection(ProcessObjectPort port) {
+    uint nr = getNrOfInputData();
+    releaseInputAfterExecute(nr, false);
+    setInputConnection(nr, port);
 }
 
-void MeshRenderer::addInput(MeshData::pointer mesh) {
-    releaseInputAfterExecute(getNrOfInputData(), false);
-    setInputData(getNrOfInputData(), mesh);
-}
-
-void MeshRenderer::addInput(MeshData::pointer mesh, Color color, float opacity) {
-    addInput(mesh);
-    mInputColors[mesh] = color;
-    mInputOpacities[mesh] = opacity;
+void MeshRenderer::addInputConnection(ProcessObjectPort port, Color color, float opacity) {
+    addInputConnection(port);
+    mInputColors[port] = color;
+    mInputOpacities[port] = opacity;
 }
 
 
@@ -39,12 +36,8 @@ MeshRenderer::MeshRenderer() : Renderer() {
 
 void MeshRenderer::execute() {
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
-        MeshData::pointer input = getInputData(inputNr);
-        if(input->isDynamicData()) {
-            mMeshToRender[inputNr] = DynamicMesh::pointer(input)->getNextFrame(mPtr);
-        } else {
-            mMeshToRender[inputNr] = input;
-        }
+        Mesh::pointer input = getStaticInputData<Mesh>(inputNr);
+    mMeshToRender[inputNr] = input;
     }
 }
 
@@ -55,8 +48,6 @@ void MeshRenderer::draw() {
     glEnable(GL_LIGHTING);
 
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
-        MeshData::pointer input = getInputData(inputNr);
-
         Mesh::pointer surfaceToRender = mMeshToRender[inputNr];
         // Draw the triangles in the VBO
         LinearTransformation transform = SceneGraph::getLinearTransformationFromData(surfaceToRender);
@@ -66,11 +57,12 @@ void MeshRenderer::draw() {
 
         float opacity = mDefaultOpacity;
         Color color = mDefaultColor;
-        if(mInputOpacities.count(input) > 0) {
-            opacity = mInputOpacities[input];
+        ProcessObjectPort port = getInputPort(inputNr);
+        if(mInputOpacities.count(port) > 0) {
+            opacity = mInputOpacities[port];
         }
-        if(mInputColors.count(input) > 0) {
-            color = mInputColors[input];
+        if(mInputColors.count(port) > 0) {
+            color = mInputColors[port];
         }
 
         // Set material properties
@@ -132,12 +124,12 @@ void MeshRenderer::setDefaultColor(Color color) {
     mDefaultColor = color;
 }
 
-void MeshRenderer::setColor(MeshData::pointer mesh, Color color) {
-    mInputColors[mesh] = color;
+void MeshRenderer::setColor(ProcessObjectPort port, Color color) {
+    mInputColors[port] = color;
 }
 
-void MeshRenderer::setOpacity(MeshData::pointer mesh, float opacity) {
-    mInputOpacities[mesh] = opacity;
+void MeshRenderer::setOpacity(ProcessObjectPort port, float opacity) {
+    mInputOpacities[port] = opacity;
 }
 
 void MeshRenderer::setDefaultOpacity(float opacity) {

@@ -33,15 +33,13 @@ class DynamicData : public virtual DataObject {
         void addFrame(typename T::pointer frame);
         unsigned int getSize() const;
         ~DynamicData();
-        void setStreamer(Streamer::pointer streamer);
-        Streamer::pointer getStreamer();
+
         bool hasReachedEnd();
         typename T::pointer getCurrentFrame();
         void registerConsumer(WeakPointer<Object> processObject);
         void registerConsumer(Object::pointer processObject);
     private:
 
-        WeakPointer<Streamer> mStreamer;
 
         // If the flag mKeepAllFrames is set to false, this vector will have
         // a max size of 1
@@ -183,7 +181,7 @@ void DynamicData<T>::registerConsumer(Object::pointer processObject) {
 
 template <class T>
 void DynamicData<T>::registerConsumer(WeakPointer<Object> processObject) {
-    Streamer::pointer streamer = mStreamer.lock();
+    Streamer::pointer streamer = getStreamer();
     mStreamMutex.lock();
      if(mConsumerFrameCounters.count(processObject) == 0) {
         if(streamer->getStreamingMode() == STREAMING_MODE_NEWEST_FRAME_ONLY) {
@@ -215,7 +213,7 @@ void DynamicData<T>::setAllConsumersUpToDate() {
 
 template <class T>
 typename T::pointer DynamicData<T>::getNextFrame(WeakPointer<Object> processObject) {
-    Streamer::pointer streamer = mStreamer.lock();
+    Streamer::pointer streamer = getStreamer();
     if(!streamer.isValid()) {
         // If streamer has been deleted, return the current frame instead
         throw Exception("Streamer has been deleted, but someone has called getNextFrame");
@@ -290,7 +288,7 @@ typename T::pointer DynamicData<T>::getNextFrame(WeakPointer<Object> processObje
 
 template <class T>
 typename T::pointer DynamicData<T>::getCurrentFrame() {
-    Streamer::pointer streamer = mStreamer.lock();
+    Streamer::pointer streamer = getStreamer();
     mStreamMutex.lock();
     /*
     if(mFrames.size() == 0 || mFrames.size() <= mCurrentFrame) {
@@ -315,7 +313,7 @@ typename T::pointer DynamicData<T>::getCurrentFrame() {
 
 template <class T>
 void DynamicData<T>::addFrame(typename T::pointer frame) {
-    Streamer::pointer streamer = mStreamer.lock();
+    Streamer::pointer streamer = getStreamer();
     if(!streamer.isValid()) {
         //throw Exception("A DynamicImage must have a streamer set before it can be used.");
         return;
@@ -333,7 +331,7 @@ void DynamicData<T>::addFrame(typename T::pointer frame) {
     mStreamMutex.lock();
 
     updateModifiedTimestamp();
-    if(mStreamer.lock()->getStreamingMode() == STREAMING_MODE_NEWEST_FRAME_ONLY) {
+    if(getStreamer()->getStreamingMode() == STREAMING_MODE_NEWEST_FRAME_ONLY) {
         mFrames2.clear();
     }
     mFrames2[mCurrentFrameCounter] = frame;
@@ -362,19 +360,10 @@ unsigned int DynamicData<T>::getSize() const {
     return mFrames2.size();
 }
 
-template <class T>
-void DynamicData<T>::setStreamer(Streamer::pointer streamer) {
-    mStreamer = streamer;
-}
-
-template <class T>
-Streamer::pointer DynamicData<T>::getStreamer() {
-    return mStreamer.lock();
-}
 
 template <class T>
 bool DynamicData<T>::hasReachedEnd() {
-    Streamer::pointer streamer = mStreamer.lock();
+    Streamer::pointer streamer = getStreamer();
     if(!streamer.isValid()) {
         throw Exception("A DynamicData must have a streamer set before it can be used.");
     }

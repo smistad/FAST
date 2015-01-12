@@ -6,7 +6,6 @@
 namespace fast {
 
 void Skeletonization::setInput(ImageData::pointer input) {
-    setInputData(0, input);
 }
 
 ImageData::pointer Skeletonization::getOutput() {

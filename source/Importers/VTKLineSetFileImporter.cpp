@@ -9,10 +9,6 @@ void VTKLineSetFileImporter::setFilename(std::string filename) {
     mFilename = filename;
 }
 
-LineSet::pointer VTKLineSetFileImporter::getOutput() {
-    return getOutputData<LineSet>(0);
-}
-
 VTKLineSetFileImporter::VTKLineSetFileImporter() {
     mFilename = "";
     mIsModified = true;

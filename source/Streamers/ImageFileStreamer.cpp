@@ -20,6 +20,7 @@ DynamicImage::pointer ImageFileStreamer::getOutput() {
 
 ImageFileStreamer::ImageFileStreamer() {
     mOutput = DynamicImage::New();
+    setOutputData(0, mOutput);
     mStreamIsStarted = false;
     mIsModified = true;
     mLoop = false;
@@ -89,8 +90,8 @@ void ImageFileStreamer::producerStream() {
             ImageFileImporter::pointer importer = ImageFileImporter::New();
             importer->setFilename(filename);
             importer->setMainDevice(getMainDevice());
+            importer->update();
             Image::pointer image = importer->getOutput();
-            image->update();
             DynamicImage::pointer ptr = mOutput;
             if(ptr.isValid()) {
                 try {

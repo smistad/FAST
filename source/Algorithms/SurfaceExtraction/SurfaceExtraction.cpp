@@ -12,27 +12,6 @@ void SurfaceExtraction::setThreshold(float threshold) {
     mIsModified = true;
 }
 
-void SurfaceExtraction::setInput(ImageData::pointer input) {
-    mInput = input;
-    setParent(mInput);
-    if(input->isDynamicData()) {
-        mOutput = DynamicMesh::New();
-        DynamicMesh::pointer(mOutput)->setStreamer(DynamicImage::pointer(mInput)->getStreamer());
-    } else {
-        mOutput = Mesh::New();
-        input->retain(mDevice);
-    }
-    mOutput->setSource(mPtr.lock());
-    mIsModified = true;
-}
-
-MeshData::pointer SurfaceExtraction::getOutput() {
-    if(!mOutput.isValid()) {
-        throw Exception("Must call setInput before getOutput in GaussianSmoothingFilter");
-    }
-    return mOutput;
-}
-
 void SurfaceExtraction::setDevice(OpenCLDevice::pointer device) {
     mDevice = device;
 }
@@ -47,15 +26,7 @@ inline unsigned int getRequiredHistogramPyramidSize(Image::pointer input) {
 }
 
 void SurfaceExtraction::execute() {
-    if(!mInput.isValid())
-        throw Exception("No input was given to SurfaceRenderer");
-
-    Image::pointer input;
-    if(mInput->isDynamicData()) {
-        input = DynamicImage::pointer(mInput)->getNextFrame(mPtr);
-    } else {
-        input = mInput;
-    }
+    Image::pointer input = getStaticInputData<Image>(0);
 
     if(input->getDimensions() != 3)
         throw Exception("The SurfaceExtraction object only supports 3D images");
@@ -334,13 +305,8 @@ void SurfaceExtraction::execute() {
     }
     std::cout << "Sum of triangles is " << totalSum << std::endl;
 
-    Mesh::pointer output;
-    if(mInput->isDynamicData()) {
-        output = Mesh::New();
-        DynamicMesh::pointer(mOutput)->addFrame(output);
-    } else {
-        output = Mesh::pointer(mOutput);
-    }
+    Mesh::pointer output = getStaticOutputData<Mesh>(0);
+    std::cout << "asd" << std::endl;
     output->create(totalSum);
 
     // Traverse HP to create triangles and put them in the VBO
@@ -389,16 +355,14 @@ void SurfaceExtraction::execute() {
     SceneGraph::setParentNode(output, input);
     BoundingBox box = input->getBoundingBox();
     output->setBoundingBox(box);
-    mOutput->updateModifiedTimestamp();
-
-    if(!mInput->isDynamicData())
-        mInput->release(mDevice);
+    std::cout << "SURFACE EXTRACTION FINISHED" << std::endl;
 }
 
 SurfaceExtraction::SurfaceExtraction() {
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
     mThreshold = 0.0f;
     mHPSize = 0;
+    setOutputDataDynamicDependsOnInputData(0, 0);
 }
 
 

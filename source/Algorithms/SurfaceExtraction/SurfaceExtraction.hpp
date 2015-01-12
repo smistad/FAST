@@ -11,15 +11,11 @@ class SurfaceExtraction : public ProcessObject {
     FAST_OBJECT(SurfaceExtraction)
     public:
         void setThreshold(float threshold);
-        void setInput(ImageData::pointer input);
         void setDevice(OpenCLDevice::pointer device);
-        MeshData::pointer getOutput();
     private:
         SurfaceExtraction();
         void execute();
 
-        ImageData::pointer mInput;
-        MeshData::pointer mOutput;
         float mThreshold;
         OpenCLDevice::pointer mDevice;
         unsigned int mHPSize;
