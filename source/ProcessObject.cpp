@@ -70,86 +70,46 @@ void ProcessObject::releaseInputAfterExecute(uint inputNumber,
     mReleaseAfterExecute[inputNumber] = release;
 }
 
-/*
-void ProcessObject::setInputData(uint inputNumber,
-        DataObject::pointer data) {
-    // Default values:
-    // Input is by default reuiqred and will be relased after execute
-    mRequiredInputs[inputNumber] = true;
-    mReleaseAfterExecute[inputNumber] = false;
-
-    // TODO if another input with same number existed, release it and remove it as parent
-    if(mInputConnections.count(inputNumber) > 0) {
-        removeParent(data);
-        std::vector<uint>::iterator it;
-        for(it = mInputDevices[inputNumber].begin(); it != mInputDevices[inputNumber].end(); it++) {
-            data->release(getDevice(*it));
-        }
-        mInputDevices[inputNumber].clear();
-    }
-    addParent(data);
-    mIsModified = true;
-    mInputDevices[inputNumber].push_back(0);
-    data->retain(getMainDevice());
-
-    mInput[inputNumber] = data;
-}
-*/
-
-
-
 void ProcessObject::preExecute() {
-    // TODO Check that required inputs are present
-    /*
+    // Check that required inputs are present
     boost::unordered_map<uint, bool>::iterator it;
     for(it = mRequiredInputs.begin(); it != mRequiredInputs.end(); it++) {
         if(it->second) { // if required
             // Check that input exist and is valid
-            if(mInputs.count(it->first) == 0 || !mInputs[it->first].isValid()) {
+            if(mInputConnections.count(it->first) == 0/* || !mInputConnections[it->first].isValid()*/) {
                 throw Exception("A process object is missing a required input data.");
             }
         }
     }
-    */
 }
 
 void ProcessObject::postExecute() {
     // TODO Release input data if they are marked as "release after execute"
-    /*
     boost::unordered_map<uint, bool>::iterator it;
     for(it = mReleaseAfterExecute.begin(); it != mReleaseAfterExecute.end(); it++) {
         if(it->second) {
             std::vector<uint>::iterator it2;
             for(it2 = mInputDevices[it->first].begin(); it2 != mInputDevices[it->first].end(); it2++) {
-                DataObject::pointer data = mInputs[it->first];
+                DataObject::pointer data = getInputData(it->first);
                 data->release(getDevice(*it2));
             }
         }
     }
-    */
 }
 
 void ProcessObject::changeDeviceOnInputs(uint deviceNumber, ExecutionDevice::pointer device) {
     // TODO For each input, release old device and retain on new device
-    /*
-    boost::unordered_map<uint, DataObject::pointer>::iterator it;
-    for(it = mInputs.begin(); it != mInputs.end(); it++) {
+    boost::unordered_map<uint, ProcessObjectPort>::iterator it;
+    for(it = mInputConnections.begin(); it != mInputConnections.end(); it++) {
         std::vector<uint>::iterator it2;
         for(it2 = mInputDevices[it->first].begin(); it2 != mInputDevices[it->first].end(); it2++) {
             if(*it2 == deviceNumber) {
-                it->second->release(mDevices[deviceNumber]);
-                it->second->retain(device);
+                getInputData(it->first)->release(mDevices[deviceNumber]);
+                getInputData(it->first)->retain(device);
             }
         }
     }
-    */
 }
-
-/*
-void ProcessObject::setInputData(uint inputNumber,
-        const DataObject::pointer data, const ExecutionDevice::pointer device) {
-}
-*/
 
 void ProcessObject::setMainDevice(ExecutionDevice::pointer device) {
     setDevice(0, device);
@@ -231,17 +191,11 @@ DataObject::pointer ProcessObject::getOutputDataX(uint portID) const {
     return data;
 }
 
-void ProcessObject::setOutputDataX(uint portID, DataObject::pointer data) {
-    mOutputData[portID] = data;
-}
-
 DataObject::pointer ProcessObject::getInputData(uint inputNumber) const {
     // at throws exception if element not found, while [] does not
     ProcessObjectPort port = mInputConnections.at(inputNumber);
     return port.getData();
 }
-
-
 
 void ProcessObject::setInputData(uint portID, DataObject::pointer data) {
     class EmptyProcessObject : public ProcessObject {

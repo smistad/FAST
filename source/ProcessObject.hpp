@@ -52,7 +52,6 @@ class ProcessObject : public virtual Object {
         void setInputData(DataObject::pointer);
         ProcessObjectPort getOutputPort();
         ProcessObjectPort getOutputPort(uint portID);
-        DataObject::pointer getOutputDataX(uint portID) const;
         /**
          * This method returns static data always. So if the input is dynamic data it will get the next frame.
          */
@@ -86,21 +85,17 @@ class ProcessObject : public virtual Object {
 
         void setInputRequired(uint portID, bool required);
         void releaseInputAfterExecute(uint inputNumber, bool release);
-        //void setInputData(uint inputNumber, DataObject::pointer data);
-        //void setInputData(uint inputNumber, DataObject::pointer data, const ExecutionDevice::pointer device);
 
         void setOutputDataDynamicDependsOnInputData(uint outputNumber, uint inputNumber);
         uint getNrOfInputData() const;
-
-
-        // New pipeline
-        void setOutputDataX(uint portID, DataObject::pointer data);
         DataObject::pointer getInputData(uint inputNumber) const;
 
     private:
         void changeDeviceOnInputs(uint deviceNumber, ExecutionDevice::pointer device);
         void preExecute();
         void postExecute();
+        // This fetches output data without creating it
+        DataObject::pointer getOutputDataX(uint portID) const;
 
         boost::unordered_map<uint, bool> mRequiredInputs;
         boost::unordered_map<uint, bool> mReleaseAfterExecute;
@@ -115,6 +110,7 @@ class ProcessObject : public virtual Object {
 
         template <class T>
         friend class DynamicData;
+        friend class ProcessObjectPort;
 };
 
 

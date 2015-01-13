@@ -13,8 +13,8 @@ TEST_CASE("DoubleFilter on OpenCL device", "[fast][DoubleFilter]") {
     filter->update();
     std::cout << "finished update" << std::endl;
 
-    Image::pointer input = importer->getOutputDataX(0);
-    Image::pointer output = filter->getOutputDataX(0);
+    Image::pointer input = importer->getOutputData<Image>(0);
+    Image::pointer output = filter->getOutputData<Image>(0);
     input->retain(filter->getMainDevice());
     ImageAccess inputAccess = input->getImageAccess(ACCESS_READ);
     ImageAccess outputAccess = output->getImageAccess(ACCESS_READ);
@@ -41,8 +41,8 @@ TEST_CASE("DoubleFilter on Host", "[fast][DoubleFilter]") {
     filter->update();
     std::cout << "finished update" << std::endl;
 
-    Image::pointer input = importer->getOutputDataX(0);
-    Image::pointer output = filter->getOutputDataX(0);
+    Image::pointer input = importer->getOutputData<Image>(0);
+    Image::pointer output = filter->getOutputData<Image>(0);
     input->retain(filter->getMainDevice());
 
     ImageAccess inputAccess = input->getImageAccess(ACCESS_READ);
