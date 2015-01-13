@@ -5,21 +5,17 @@
 
 namespace fast {
 
-void Skeletonization::setInput(ImageData::pointer input) {
-}
-
-ImageData::pointer Skeletonization::getOutput() {
-    return getOutputData<Image, DynamicImage>(0);
-}
-
 Skeletonization::Skeletonization() {
     setOutputDataDynamicDependsOnInputData(0, 0);
 }
 
 void Skeletonization::execute() {
-    Image::pointer input = getStaticInputData<Image>(0);
-    Image::pointer output = getStaticOutputData<Image>(0);
+    Image::pointer input = getStaticInputData<Image>();
+    Image::pointer output = getStaticOutputData<Image>();
     SceneGraph::setParentNode(output, input);
+
+    if(input->getDimensions() != 2)
+        throw Exception("The skeletonization algorithm currently only support 2D images");
 
     // Initialize output image
     output->createFromImage(input, getMainDevice());
@@ -90,6 +86,7 @@ void Skeletonization::execute() {
         if(*stopGrowingResult == 1)
             stopGrowing = true;
     } while(!stopGrowing);
+    std::cout << "SKELETONIZATION EXECUTED" << std::endl;
 }
 
 } // end namespace fast

@@ -17,13 +17,13 @@ TEST_CASE("2D Seeded region growing on OpenCL device", "[fast][SeededRegionGrowi
         importer->setMainDevice(devices[i]);
 
         SeededRegionGrowing::pointer algorithm = SeededRegionGrowing::New();
-        algorithm->setInput(importer->getOutput());
+        algorithm->setInputConnection(importer->getOutputPort());
         algorithm->addSeedPoint(45,248);
         algorithm->addSeedPoint(321,181);
         algorithm->setIntensityRange(0.1,1.0);
         algorithm->setMainDevice(devices[i]);
-        Image::pointer result = algorithm->getOutput();
-        result->update();
+        algorithm->update();
+        Image::pointer result = algorithm->getOutputData<Image>();
 
         // Temporary check of how many pixels where segmented
         // Should be replaced by result matching
@@ -49,12 +49,12 @@ TEST_CASE("3D Seeded region growing on OpenCL device", "[fast][SeededRegionGrowi
         importer->setMainDevice(devices[i]);
 
         SeededRegionGrowing::pointer algorithm = SeededRegionGrowing::New();
-        algorithm->setInput(importer->getOutput());
+        algorithm->setInputConnection(importer->getOutputPort());
         algorithm->addSeedPoint(100,100,100);
         algorithm->setIntensityRange(50, 255);
         algorithm->setMainDevice(devices[i]);
-        Image::pointer result = algorithm->getOutput();
-        result->update();
+        algorithm->update();
+        Image::pointer result = algorithm->getOutputData<Image>();
 
         // Temporary check of how many pixels where segmented
         // Should be replaced by result matching
@@ -74,12 +74,12 @@ TEST_CASE("3D Seeded region growing on Host", "[fast][SeededRegionGrowing]") {
     importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_0.mhd");
 
     SeededRegionGrowing::pointer algorithm = SeededRegionGrowing::New();
-    algorithm->setInput(importer->getOutput());
+    algorithm->setInputConnection(importer->getOutputPort());
     algorithm->addSeedPoint(100,100,100);
     algorithm->setIntensityRange(50, 255);
     algorithm->setMainDevice(Host::getInstance());
-    Image::pointer result = algorithm->getOutput();
-    result->update();
+    algorithm->update();
+    Image::pointer result = algorithm->getOutputData<Image>();
 
     // Temporary check of how many pixels where segmented
     // Should be replaced by result matching

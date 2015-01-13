@@ -16,8 +16,6 @@ class DataObject : public Object {
     public:
         DataObject();
         typedef SharedPointer<DataObject> pointer;
-        void update();
-        void setSource(Object::pointer source);
         unsigned long getTimestamp();
         void updateModifiedTimestamp();
         void retain(ExecutionDevice::pointer device);
@@ -36,9 +34,6 @@ class DataObject : public Object {
         bool mIsDynamicData;
     private:
         boost::unordered_map<WeakPointer<ExecutionDevice>, unsigned int> mReferenceCount;
-        // The souce object is the process object that created this data object
-        // It is defined as a weak pointer to break a cyclic dependency on the process objects
-        WeakPointer<Object> mSourceObject;
 
         // This is only used for dynamic data, it is defined here for to make the convienice function getStaticOutput/InputData to work
         WeakPointer<Streamer> mStreamer;

@@ -9,8 +9,6 @@ namespace fast {
 class BinaryThresholding : public ProcessObject {
     FAST_OBJECT(BinaryThresholding)
     public:
-        void setInput(ImageData::pointer input);
-        ImageData::pointer getOutput();
         void setLowerThreshold(float threshold);
         void setUpperThreshold(float threshold);
     private:

@@ -9,7 +9,6 @@ TEST_CASE("Run ImageGradient on 2D image and OpenCL device", "[fast][ImageGradie
     importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-2Dt/US-2Dt_0.mhd");
 
     ImageGradient::pointer gradientFilter = ImageGradient::New();
-    gradientFilter->setInput(importer->getOutput());
-    Image::pointer gradient = gradientFilter->getOutput();
+    gradientFilter->setInputConnection(importer->getOutputPort());
     CHECK_NOTHROW(gradientFilter->update());
 }

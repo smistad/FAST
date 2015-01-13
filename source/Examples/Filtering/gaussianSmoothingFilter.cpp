@@ -17,13 +17,13 @@ int main() {
 
     // Smooth image
     GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
-    filter->setInput(importer->getOutput());
+    filter->setInputConnection(importer->getOutputPort());
     filter->setStandardDeviation(2.0);
     filter->setMaskSize(7);
 
     // Renderer image
     ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->addInput(filter->getOutput());
+    renderer->addInputConnection(filter->getOutputPort());
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->setTimeout(5*1000); // automatically close window after 5 seconds

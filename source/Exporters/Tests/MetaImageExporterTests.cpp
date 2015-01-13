@@ -9,7 +9,7 @@ using namespace fast;
 TEST_CASE("No filename given to the MetaImageExporter", "[fast][MetaImageExporter]") {
     Image::pointer image = Image::New();
     MetaImageExporter::pointer exporter = MetaImageExporter::New();
-    exporter->setInput(image);
+    exporter->setInputData(image);
     CHECK_THROWS(exporter->update());
 }
 
@@ -63,14 +63,15 @@ TEST_CASE("Write a 2D image with the MetaImageExporter", "[fast][MetaImageExport
             // Export image
             MetaImageExporter::pointer exporter = MetaImageExporter::New();
             exporter->setFilename("MetaImageExporterTest2D.mhd");
-            exporter->setInput(image);
+            exporter->setInputData(image);
             exporter->update();
 
             // Import image back again
             MetaImageImporter::pointer importer = MetaImageImporter::New();
             importer->setFilename("MetaImageExporterTest2D.mhd");
-            Image::pointer image2 = importer->getOutput();
+
             importer->update();
+            Image::pointer image2 = importer->getOutputData<Image>();
 
             // Check that the image properties are correct
             for(unsigned int i = 0; i < 3; i++) {
@@ -145,14 +146,14 @@ TEST_CASE("Write a 3D image with the MetaImageExporter", "[fast][MetaImageExport
             // Export image
             MetaImageExporter::pointer exporter = MetaImageExporter::New();
             exporter->setFilename("MetaImageExporterTest3D.mhd");
-            exporter->setInput(image);
+            exporter->setInputData(image);
             exporter->update();
 
             // Import image back again
             MetaImageImporter::pointer importer = MetaImageImporter::New();
             importer->setFilename("MetaImageExporterTest3D.mhd");
-            Image::pointer image2 = importer->getOutput();
             importer->update();
+            Image::pointer image2 = importer->getOutputData<Image>(0);
 
             // Check that the image properties are correct
             for(unsigned int i = 0; i < 3; i++) {

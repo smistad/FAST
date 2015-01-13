@@ -11,7 +11,6 @@ namespace fast {
 class ImageImporter : public Importer {
     FAST_OBJECT(ImageImporter)
     public:
-        Image::pointer getOutput();
         void setFilename(std::string filename);
         ~ImageImporter() {};
     private:

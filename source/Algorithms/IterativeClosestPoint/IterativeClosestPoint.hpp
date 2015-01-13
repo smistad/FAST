@@ -11,8 +11,8 @@ class IterativeClosestPoint : public ProcessObject {
     FAST_OBJECT(IterativeClosestPoint)
     public:
         typedef enum { RIGID, TRANSLATION } TransformationType;
-        void setFixedPointSet(const PointSet::pointer fixedSet);
-        void setMovingPointSet(const PointSet::pointer movingSet);
+        void setFixedPointSetPort(ProcessObjectPort port);
+        void setMovingPointSetPort(ProcessObjectPort port);
         void setTransformationType(const IterativeClosestPoint::TransformationType type);
         LinearTransformation getOutputTransformation();
         float getError() const;

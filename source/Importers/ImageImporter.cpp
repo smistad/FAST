@@ -33,7 +33,7 @@ void ImageImporter::execute() {
     }
 
     // Transfer to texture(if OpenCL) or copy raw pixel data (if host)
-    Image::pointer output = getOutputData<Image>(0);
+    Image::pointer output = getOutputData<Image>();
     output->create2DImage(image.width(),
             image.height(),
             TYPE_FLOAT,
@@ -41,17 +41,11 @@ void ImageImporter::execute() {
             getMainDevice(),
             convertedPixelData);
     delete[] convertedPixelData;
-
-    output->updateModifiedTimestamp();
 }
 
 ImageImporter::ImageImporter() {
 	mFilename = "";
 	mIsModified = true;
-}
-
-Image::pointer ImageImporter::getOutput() {
-	return getOutputData<Image>(0);
 }
 
 void ImageImporter::setFilename(std::string filename) {

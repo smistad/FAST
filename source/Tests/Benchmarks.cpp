@@ -27,7 +27,7 @@ TEST_CASE("Pipeline A (static)", "[fast][benchmark][visual]") {
 
     GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
     filter->enableRuntimeMeasurements();
-    filter->setInput(importer->getOutput());
+    filter->setInputConnection(importer->getOutputPort());
     filter->setMaskSize(5);
     filter->setStandardDeviation(2.0);
 
@@ -41,7 +41,7 @@ TEST_CASE("Pipeline A (static)", "[fast][benchmark][visual]") {
     renderer->addInputConnection(extractor->getOutputPort());
 
     SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
-    sliceRenderer->setInput(filter->getOutput());
+    sliceRenderer->setInputConnection(filter->getOutputPort());
     sliceRenderer->setSlicePlane(PLANE_X);
 
     SimpleWindow::pointer window = SimpleWindow::New();
@@ -71,7 +71,7 @@ TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark][visual]") {
     streamer->enableRuntimeMeasurements();
 
     GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
-    filter->setInput(streamer->getOutput());
+    filter->setInputConnection(streamer->getOutputPort());
     filter->setMaskSize(5);
     filter->setStandardDeviation(2.0);
     filter->enableRuntimeMeasurements();
@@ -111,7 +111,7 @@ TEST_CASE("Pipeline B", "[fast][benchmark][visual]") {
     importer->enableRuntimeMeasurements();
 
     SeededRegionGrowing::pointer segmentation = SeededRegionGrowing::New();
-    segmentation->setInput(importer->getOutput());
+    segmentation->setInputConnection(importer->getOutputPort());
     segmentation->addSeedPoint(223,282,387);
     segmentation->addSeedPoint(251,314,148);
     /*
@@ -130,7 +130,7 @@ TEST_CASE("Pipeline B", "[fast][benchmark][visual]") {
     /*
     VTKSurfaceFileExporter::pointer exporter = VTKSurfaceFileExporter::New();
     exporter->setFilename("bones.vtk");
-    exporter->setInput(extraction->getOutput());
+    exporter->setInputConnection(extraction->getOutputPort());
     exporter->update();
     */
 
@@ -139,7 +139,7 @@ TEST_CASE("Pipeline B", "[fast][benchmark][visual]") {
     surfaceRenderer->enableRuntimeMeasurements();
 
     SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
-    sliceRenderer->setInput(importer->getOutput());
+    sliceRenderer->setInputConnection(importer->getOutputPort());
     sliceRenderer->setIntensityWindow(1000);
     sliceRenderer->setIntensityLevel(0);
     sliceRenderer->enableRuntimeMeasurements();
@@ -172,16 +172,16 @@ TEST_CASE("Pipeline C", "[fast][benchmark][visual]") {
     importer->enableRuntimeMeasurements();
 
     BinaryThresholding::pointer thresholding = BinaryThresholding::New();
-    thresholding->setInput(importer->getOutput());
+    thresholding->setInputConnection(importer->getOutputPort());
     thresholding->setLowerThreshold(0.5);
     thresholding->enableRuntimeMeasurements();
 
     Skeletonization::pointer skeletonization = Skeletonization::New();
-    skeletonization->setInput(thresholding->getOutput());
+    skeletonization->setInputConnection(thresholding->getOutputPort());
     skeletonization->enableRuntimeMeasurements();
 
     ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->addInputPort(skeletonization->getOutputPort());
+    renderer->addInputConnection(skeletonization->getOutputPort());
     renderer->setIntensityWindow(1);
     renderer->setIntensityLevel(0.5);
     renderer->enableRuntimeMeasurements();
@@ -221,15 +221,16 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
     transform.rotate(R);
     LinearTransformation transformation;
     transformation.setTransform(transform);
-    importerB->getOutput()->getSceneGraphNode()->setTransformation(transformation);
+    importerB->update();
+    importerB->getOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(transformation);
 
     IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
-    icp->setMovingPointSet(importerA->getOutput());
-    icp->setFixedPointSet(importerB->getOutput());
+    icp->setMovingPointSetPort(importerA->getOutputPort());
+    icp->setFixedPointSetPort(importerB->getOutputPort());
     icp->enableRuntimeMeasurements();
     icp->update();
     std::cout << icp->getOutputTransformation().getTransform().affine() << std::endl;
-    importerA->getOutput()->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
+    importerA->getOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
     std::cout << "result: " << std::endl;
     std::cout << icp->getOutputTransformation().getEulerAngles() << std::endl;
     std::cout << icp->getOutputTransformation().getTransform().translation() << std::endl;

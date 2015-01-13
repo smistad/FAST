@@ -16,7 +16,7 @@ TEST_CASE("SliceRenderer on static data with no parameters set", "[fast][SliceRe
     importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_0.mhd");
     CHECK_NOTHROW(
         SliceRenderer::pointer renderer = SliceRenderer::New();
-        renderer->setInput(importer->getOutput());
+        renderer->setInputConnection(importer->getOutputPort());
         SimpleWindow::pointer window = SimpleWindow::New();
         window->addRenderer(renderer);
         window->setTimeout(500);
@@ -29,7 +29,7 @@ TEST_CASE("SliceRenderer on dynamic data with no parameters set", "[fast][SliceR
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     CHECK_NOTHROW(
         SliceRenderer::pointer renderer = SliceRenderer::New();
-        renderer->setInput(mhdStreamer->getOutput());
+        renderer->setInputConnection(mhdStreamer->getOutputPort());
         SimpleWindow::pointer window = SimpleWindow::New();
         window->addRenderer(renderer);
         window->setTimeout(1000);
@@ -42,7 +42,7 @@ TEST_CASE("SliceRenderer on dynamic data with slice plane X set", "[fast][SliceR
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     CHECK_NOTHROW(
         SliceRenderer::pointer renderer = SliceRenderer::New();
-        renderer->setInput(mhdStreamer->getOutput());
+        renderer->setInputConnection(mhdStreamer->getOutputPort());
         renderer->setSlicePlane(PLANE_X);
         SimpleWindow::pointer window = SimpleWindow::New();
         window->addRenderer(renderer);
@@ -56,7 +56,7 @@ TEST_CASE("SliceRenderer on dynamic data with slice plane Y set", "[fast][SliceR
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     CHECK_NOTHROW(
         SliceRenderer::pointer renderer = SliceRenderer::New();
-        renderer->setInput(mhdStreamer->getOutput());
+        renderer->setInputConnection(mhdStreamer->getOutputPort());
         renderer->setSlicePlane(PLANE_Y);
         SimpleWindow::pointer window = SimpleWindow::New();
         window->addRenderer(renderer);
@@ -70,7 +70,7 @@ TEST_CASE("SliceRenderer on dynamic data with slice plane Z set", "[fast][SliceR
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     CHECK_NOTHROW(
         SliceRenderer::pointer renderer = SliceRenderer::New();
-        renderer->setInput(mhdStreamer->getOutput());
+        renderer->setInputConnection(mhdStreamer->getOutputPort());
         renderer->setSlicePlane(PLANE_Z);
         SimpleWindow::pointer window = SimpleWindow::New();
         window->addRenderer(renderer);
@@ -84,7 +84,7 @@ TEST_CASE("Setting slice nr in SliceRenderer too high should not throw exception
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     CHECK_NOTHROW(
         SliceRenderer::pointer renderer = SliceRenderer::New();
-        renderer->setInput(mhdStreamer->getOutput());
+        renderer->setInputConnection(mhdStreamer->getOutputPort());
         renderer->setSliceToRender(1000);
         SimpleWindow::pointer window = SimpleWindow::New();
         window->addRenderer(renderer);

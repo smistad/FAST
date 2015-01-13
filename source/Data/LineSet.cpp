@@ -14,7 +14,6 @@ bool LineSet::isAnyDataBeingAccessed() const {
 }
 
 LineSetAccess LineSet::getAccess(accessType access) {
-    update();
 
     if(mIsBeingWrittenTo)
         throw Exception("Requesting access to a surface that is already being written to.");

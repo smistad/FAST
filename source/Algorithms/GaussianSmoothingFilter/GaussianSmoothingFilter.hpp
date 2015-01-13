@@ -10,10 +10,8 @@ namespace fast {
 class GaussianSmoothingFilter : public ProcessObject {
     FAST_OBJECT(GaussianSmoothingFilter)
     public:
-        void setInput(ImageData::pointer input);
         void setMaskSize(unsigned char maskSize);
         void setStandardDeviation(float stdDev);
-        ImageData::pointer getOutput();
         ~GaussianSmoothingFilter();
     private:
         GaussianSmoothingFilter();

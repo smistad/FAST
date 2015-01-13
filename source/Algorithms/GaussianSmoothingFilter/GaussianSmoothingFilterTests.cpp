@@ -39,8 +39,8 @@ TEST_CASE("Correct output with small 3x3 2D image as input to GaussianSmoothingF
         data[i] = 1.0f;
     }
     access.release();
-    filter->setInput(image);
-    Image::pointer output = filter->getOutput();
+    filter->setInputData(image);
+    Image::pointer output = filter->getOutputData<Image>();
     filter->update();
 
     access = output->getImageAccess(ACCESS_READ);
@@ -82,8 +82,8 @@ TEST_CASE("Correct output with small 3x3 2D image as input to GaussianSmoothingF
         data[i] = 1.0f;
     }
     access.release();
-    filter->setInput(image);
-    Image::pointer output = filter->getOutput();
+    filter->setInputData(image);
+    Image::pointer output = filter->getOutputData<Image>();
     filter->update();
 
     access = output->getImageAccess(ACCESS_READ);
@@ -125,8 +125,8 @@ TEST_CASE("Correct output with small 3x3 3D image as input to GaussianSmoothingF
         data[i] = 1.0f;
     }
     access.release();
-    filter->setInput(image);
-    Image::pointer output = filter->getOutput();
+    filter->setInputData(image);
+    Image::pointer output = filter->getOutputData<Image>();
     filter->update();
 
     access = output->getImageAccess(ACCESS_READ);
@@ -169,8 +169,8 @@ TEST_CASE("Correct output with small 3x3 3D image as input to GaussianSmoothingF
         data[i] = 1.0f;
     }
     access.release();
-    filter->setInput(image);
-    Image::pointer output = filter->getOutput();
+    filter->setInputData(image);
+    Image::pointer output = filter->getOutputData<Image>();
     filter->update();
 
     access = output->getImageAccess(ACCESS_READ);

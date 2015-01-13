@@ -17,12 +17,12 @@ int main() {
 
     // Segment image
     BinaryThresholding::pointer thresholding = BinaryThresholding::New();
-    thresholding->setInput(importer->getOutput());
+    thresholding->setInputConnection(importer->getOutputPort());
     thresholding->setLowerThreshold(0.1);
 
     // Renderer image
     ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->addInput(thresholding->getOutput());
+    renderer->addInputConnection(thresholding->getOutputPort());
     renderer->setIntensityLevel(0.5);
     renderer->setIntensityWindow(1);
     SimpleWindow::pointer window = SimpleWindow::New();

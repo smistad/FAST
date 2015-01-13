@@ -4,27 +4,26 @@
 
 namespace fast {
 
+ProcessObject::ProcessObject() : mIsModified(false), mRuntimeManager(new oul::RuntimeMeasurementsManager) {
+     mDevices[0] = DeviceManager::getInstance().getDefaultComputationDevice();
+}
+
 void ProcessObject::update() {
-        std::cout << "update" << std::endl;
     bool aParentHasBeenModified = false;
     // TODO check mInputConnections here instead
     boost::unordered_map<uint, ProcessObjectPort>::iterator it;
     for(it = mInputConnections.begin(); it != mInputConnections.end(); it++) {
-        std::cout << it->first << std::endl;
         // Update input connection
-        ProcessObjectPort port = it->second;
+        ProcessObjectPort& port = it->second; // use reference here to make sure timestamp is updated
         port.getProcessObject()->update();
 
         // Check if the data object has been updated
-        std::cout << "checking if data is updated" << std::endl;
         DataObject::pointer data;
         try {
             if(port.isDataModified()) {
                 aParentHasBeenModified = true;
                 // Update timestamp
-                mInputConnections[it->first].updateTimestamp();
-                // TODO remove setTimestamp
-                //setTimestamp(mParentDataObjects[i], mParentDataObjects[i]->getTimestamp());
+                port.updateTimestamp();
             }
         } catch(Exception &e) {
             // Data was not found
@@ -34,7 +33,6 @@ void ProcessObject::update() {
     // If this process object itself has been modified or a parent object (input)
     // has been modified, execute is called
     if(this->mIsModified || aParentHasBeenModified) {
-        std::cout << "something is modified, running execute" << std::endl;
         this->mRuntimeManager->startRegularTimer("execute");
         // set isModified to false before executing to avoid recursive update calls
         this->mIsModified = false;
@@ -47,22 +45,6 @@ void ProcessObject::update() {
     }
 }
 
-void ProcessObject::addParent(DataObject::pointer parent) {
-    if(!parent.isValid())
-        throw Exception("Trying to add an expired/NULL pointer as a parent object");
-
-    // Check that it doesn't already exist
-    bool exist = false;
-    for(unsigned int i = 0; i < mParentDataObjects.size(); i++) {
-        if(parent == mParentDataObjects[i])
-            exist = true;
-    }
-    if(!exist) {
-        mParentDataObjects.push_back(parent);
-        mTimestamps.push_back(parent->getTimestamp());
-    }
-}
-
 void ProcessObject::enableRuntimeMeasurements() {
     mRuntimeManager->enable();
 }
@@ -71,43 +53,12 @@ void ProcessObject::disableRuntimeMeasurements() {
     mRuntimeManager->disable();
 }
 
-void ProcessObject::setTimestamp(
-        DataObject::pointer object,
-        unsigned long timestamp) {
-
-    for(unsigned int i = 0; i < mParentDataObjects.size(); i++) {
-        if(object == mParentDataObjects[i]) {
-            mTimestamps[i] = timestamp;
-            break;
-        }
-    }
-}
-
 oul::RuntimeMeasurementPtr ProcessObject::getRuntime() {
     return mRuntimeManager->getTiming("execute");
 }
 
 oul::RuntimeMeasurementPtr ProcessObject::getRuntime(std::string name) {
     return mRuntimeManager->getTiming(name);
-}
-
-void ProcessObject::setParent(DataObject::pointer parent) {
-    removeParents();
-    addParent(parent);
-}
-
-void ProcessObject::removeParents() {
-    mParentDataObjects.clear();
-}
-
-void ProcessObject::removeParent(const DataObject::pointer data) {
-    std::vector<DataObject::pointer> newParents;
-    for(int i = 0; i < mParentDataObjects.size(); i++) {
-        if(mParentDataObjects[i] != data) {
-            newParents.push_back(mParentDataObjects[i]);
-        }
-    }
-    mParentDataObjects = newParents;
 }
 
 void ProcessObject::setInputRequired(uint portID, bool required) {
@@ -271,7 +222,6 @@ DataObject::pointer ProcessObject::getOutputDataX(uint portID) const {
 
     // If output data is not created
     if(mOutputData.count(portID) == 0) {
-        std::cout << "Port ID: " << portID << std::endl;
         throw Exception("Could not find data for port");
     } else {
         data = mOutputData.at(portID);
@@ -288,6 +238,24 @@ DataObject::pointer ProcessObject::getInputData(uint inputNumber) const {
     // at throws exception if element not found, while [] does not
     ProcessObjectPort port = mInputConnections.at(inputNumber);
     return port.getData();
+}
+
+
+
+void ProcessObject::setInputData(uint portID, DataObject::pointer data) {
+    class EmptyProcessObject : public ProcessObject {
+        FAST_OBJECT(EmptyProcessObject)
+        public:
+        private:
+            void execute() {};
+    };
+    EmptyProcessObject::pointer PO = EmptyProcessObject::New();
+    PO->setOutputData(0, data);
+    setInputConnection(portID, PO->getOutputPort());
+}
+
+void ProcessObject::setInputData(DataObject::pointer data) {
+    setInputData(0, data);
 }
 
 ProcessObjectPort ProcessObject::getInputPort(uint portID) const {
@@ -324,5 +292,7 @@ void ProcessObjectPort::updateTimestamp() {
 bool ProcessObjectPort::operator==(const ProcessObjectPort &other) const {
     return mPortID == other.getPortID() && mProcessObject == other.getProcessObject();
 }
+
+
 
 } // namespace fast

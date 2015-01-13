@@ -10,10 +10,6 @@ void VTKPointSetFileImporter::setFilename(std::string filename) {
     mIsModified = true;
 }
 
-PointSet::pointer VTKPointSetFileImporter::getOutput() {
-    return getOutputData<PointSet>(0);
-}
-
 VTKPointSetFileImporter::VTKPointSetFileImporter() {
     mFilename = "";
     mIsModified = true;

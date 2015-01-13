@@ -207,7 +207,8 @@ void DynamicData<T>::setAllConsumersUpToDate() {
     boost::unordered_map<WeakPointer<Object>, uint>::iterator it;
     for(it = mConsumerFrameCounters.begin(); it != mConsumerFrameCounters.end(); it++) {
         ProcessObject::pointer consumer = ProcessObject::pointer(it->first.lock());
-        consumer->setTimestamp(mPtr, timestamp);
+        // TODO fix this:
+        //consumer->setTimestamp(mPtr, timestamp);
     }
 }
 

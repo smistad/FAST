@@ -12,15 +12,7 @@ inline void stubStreamThread(ImageFileStreamer * streamer) {
     streamer->producerStream();
 }
 
-DynamicImage::pointer ImageFileStreamer::getOutput() {
-    mOutput->setSource(mPtr.lock());
-    mOutput->setStreamer(mPtr.lock());
-    return mOutput;
-}
-
 ImageFileStreamer::ImageFileStreamer() {
-    mOutput = DynamicImage::New();
-    setOutputData(0, mOutput);
     mStreamIsStarted = false;
     mIsModified = true;
     mLoop = false;
@@ -40,12 +32,12 @@ uint ImageFileStreamer::getNrOfFrames() const {
 
 void ImageFileStreamer::setMaximumNumberOfFrames(uint nrOfFrames) {
     mMaximumNrOfFrames = nrOfFrames;
-    mOutput->setMaximumNumberOfFrames(nrOfFrames);
+    DynamicData<Image>::pointer data = getOutputData<DynamicData<Image> >();
+    data->setMaximumNumberOfFrames(nrOfFrames);
 }
 
 void ImageFileStreamer::execute() {
-    mOutput->setSource(mPtr.lock());
-    mOutput->setStreamer(mPtr.lock());
+    getOutputData<DynamicData<Image> >(0)->setStreamer(mPtr.lock());
     if(mFilenameFormat == "")
         throw Exception("No filename format was given to the ImageFileStreamer");
     if(!mStreamIsStarted) {
@@ -91,8 +83,8 @@ void ImageFileStreamer::producerStream() {
             importer->setFilename(filename);
             importer->setMainDevice(getMainDevice());
             importer->update();
-            Image::pointer image = importer->getOutput();
-            DynamicImage::pointer ptr = mOutput;
+            Image::pointer image = importer->getOutputData<Image>();
+            DynamicData<Image>::pointer ptr = getOutputData<DynamicData<Image> >();
             if(ptr.isValid()) {
                 try {
                     ptr->addFrame(image);

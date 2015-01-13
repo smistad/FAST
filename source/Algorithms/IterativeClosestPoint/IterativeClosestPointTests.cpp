@@ -22,10 +22,10 @@ TEST_CASE("IterativeClosestPoint", "[fast][IterativeClosestPoint][icp]") {
     accessB.release();
 
     IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
-    icp->setMovingPointSet(B);
-    icp->setFixedPointSet(A);
+    icp->setInputData(0, B);
+    icp->setInputData(1, A);
 
-    icp->update();
+    CHECK_NOTHROW(icp->update());
 
     //icp->getOutputTransformation();
 

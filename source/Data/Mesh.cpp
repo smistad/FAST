@@ -86,7 +86,6 @@ bool Mesh::isAnyDataBeingAccessed() {
 VertexBufferObjectAccess Mesh::getVertexBufferObjectAccess(
         accessType type,
         OpenCLDevice::pointer device) {
-    update();
     if(!mIsInitialized)
         throw Exception("Surface has not been initialized.");
 
@@ -198,7 +197,6 @@ bool operator==(const SurfaceVertex& a, const SurfaceVertex& b) {
 }
 
 SurfacePointerAccess Mesh::getSurfacePointerAccess(accessType type) {
-    update();
     if(!mIsInitialized) {
         throw Exception("Surface has not been initialized.");
     }

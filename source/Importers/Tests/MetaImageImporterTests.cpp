@@ -19,8 +19,8 @@ TEST_CASE("Import 2D MetaImage file to host", "[fast][MetaImageImporter]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US-2Dt/US-2Dt_0.mhd");
     importer->setMainDevice(Host::getInstance());
-    Image::pointer image = importer->getOutput();
-    image->update();
+    importer->update();
+    Image::pointer image = importer->getOutputData<Image>(0);
 
     // Check attributes of image
     CHECK(image->getWidth() == 471);
@@ -52,8 +52,8 @@ TEST_CASE("Import 3D MetaImage file to host", "[fast][MetaImageImporter]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_0.mhd");
     importer->setMainDevice(Host::getInstance());
-    Image::pointer image = importer->getOutput();
-    image->update();
+    importer->update();
+    Image::pointer image = importer->getOutputData<Image>(0);
 
     // Check attributes of image
     CHECK(image->getWidth() == 276);
@@ -88,8 +88,8 @@ TEST_CASE("Import MetaImage file to OpenCL device", "[fast][MetaImageImporter]")
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_0.mhd");
     importer->setMainDevice(device);
-    Image::pointer image = importer->getOutput();
-    image->update();
+    importer->update();
+    Image::pointer image = importer->getOutputData<Image>(0);
 
     // Check attributes of image
     CHECK(image->getWidth() == 276);

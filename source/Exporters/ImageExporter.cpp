@@ -6,12 +6,6 @@
 
 namespace fast {
 
-void ImageExporter::setInput(ImageData::pointer image) {
-    mInput = image;
-    setParent(mInput);
-    mIsModified = true;
-}
-
 void ImageExporter::setFilename(std::string filename) {
     mFilename = filename;
     mIsModified = true;
@@ -23,19 +17,10 @@ ImageExporter::ImageExporter() {
 }
 
 void ImageExporter::execute() {
-    if(!mInput.isValid())
-        throw Exception("No input image given to ImageExporter");
-
     if(mFilename == "")
         throw Exception("No filename given to ImageExporter");
 
-    Image::pointer input;
-
-    if(mInput->isDynamicData()) {
-        input = DynamicImage::pointer(mInput)->getNextFrame(mPtr);
-    } else {
-        input = mInput;
-    }
+    Image::pointer input = getStaticInputData<Image>();
 
     if(input->getDimensions() != 2)
         throw Exception("Input image to ImageExporter must be 2D.");

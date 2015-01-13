@@ -16,12 +16,12 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and I
     streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
     GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
-    filter->setInput(streamer->getOutput());
+    filter->setInputConnection(streamer->getOutputPort());
     filter->setMaskSize(3);
     filter->setStandardDeviation(2.0);
 
     ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->addInputPort(filter->getOutputPort());
+    renderer->addInputConnection(filter->getOutputPort());
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->setTimeout(10*1000);
@@ -36,12 +36,12 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and S
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
     GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
-    filter->setInput(mhdStreamer->getOutput());
+    filter->setInputConnection(mhdStreamer->getOutputPort());
     filter->setMaskSize(3);
     filter->setStandardDeviation(2.0);
 
     SliceRenderer::pointer renderer = SliceRenderer::New();
-    renderer->setInput(filter->getOutput());
+    renderer->setInputConnection(filter->getOutputPort());
 
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
@@ -57,7 +57,7 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter, Surf
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
     GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
-    filter->setInput(mhdStreamer->getOutput());
+    filter->setInputConnection(mhdStreamer->getOutputPort());
     filter->setMaskSize(5);
     filter->setStandardDeviation(2.0);
 
@@ -84,13 +84,13 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and S
     mhdStreamer->setMainDevice(host);
 
     GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
-    filter->setInput(mhdStreamer->getOutput());
+    filter->setInputConnection(mhdStreamer->getOutputPort());
     filter->setMaskSize(3);
     filter->setStandardDeviation(2.0);
     filter->setMainDevice(host);
 
     SliceRenderer::pointer renderer = SliceRenderer::New();
-    renderer->setInput(filter->getOutput());
+    renderer->setInputConnection(filter->getOutputPort());
 
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);

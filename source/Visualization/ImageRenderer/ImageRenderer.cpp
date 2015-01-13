@@ -25,9 +25,7 @@ using namespace fast;
 #endif
 
 void ImageRenderer::execute() {
-        std::cout << "image renderer execute" << std::endl;
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
-        std::cout << "image renderer execute" << std::endl;
         Image::pointer input = getStaticInputData<Image>(inputNr);
 
         if(input->getDimensions() != 2)
@@ -121,12 +119,11 @@ void ImageRenderer::execute() {
         queue.enqueueReleaseGLObjects(&v);
         queue.finish();
         releaseOpenGLContext();
-        std::cout << "finished image renderer execute" << std::endl;
     }
     mTextureIsCreated = true;
 }
 
-void ImageRenderer::addInputPort(ProcessObjectPort port) {
+void ImageRenderer::addInputConnection(ProcessObjectPort port) {
     uint nr = getNrOfInputData();
     releaseInputAfterExecute(nr, false);
     setInputConnection(nr, port);

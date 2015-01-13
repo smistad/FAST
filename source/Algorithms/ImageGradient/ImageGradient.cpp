@@ -3,13 +3,6 @@
 
 namespace fast {
 
-void ImageGradient::setInput(ImageData::pointer input) {
-}
-
-ImageData::pointer ImageGradient::getOutput() {
-    return getOutputData<Image, DynamicImage>(0);
-}
-
 ImageGradient::ImageGradient() {
     setOutputDataDynamicDependsOnInputData(0, 0);
 }

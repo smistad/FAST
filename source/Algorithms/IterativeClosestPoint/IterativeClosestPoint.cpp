@@ -15,12 +15,12 @@ IterativeClosestPoint::IterativeClosestPoint() {
     mTransformationType = IterativeClosestPoint::RIGID;
 }
 
-void IterativeClosestPoint::setFixedPointSet(
-        const PointSet::pointer fixedSet) {
-}
 
-void IterativeClosestPoint::setMovingPointSet(
-        const PointSet::pointer movingSet) {
+void IterativeClosestPoint::setFixedPointSetPort(ProcessObjectPort port) {
+    setInputConnection(0, port);
+}
+void IterativeClosestPoint::setMovingPointSetPort(ProcessObjectPort port) {
+    setInputConnection(1, port);
 }
 
 LinearTransformation IterativeClosestPoint::getOutputTransformation() {
@@ -76,12 +76,12 @@ void IterativeClosestPoint::execute() {
     uint iterations = 0;
 
     // Get access to the two point sets
-    PointSetAccess accessFixedSet = ((PointSet::pointer)getInputData(0))->getAccess(ACCESS_READ);
-    PointSetAccess accessMovingSet = ((PointSet::pointer)getInputData(1))->getAccess(ACCESS_READ);
+    PointSetAccess accessFixedSet = ((PointSet::pointer)getStaticInputData<PointSet>(0))->getAccess(ACCESS_READ);
+    PointSetAccess accessMovingSet = ((PointSet::pointer)getStaticInputData<PointSet>(1))->getAccess(ACCESS_READ);
 
     // Get transformations of point sets
-    LinearTransformation fixedPointTransform = getInputData(0)->getSceneGraphNode()->getLinearTransformation();
-    LinearTransformation initialMovingTransform = getInputData(1)->getSceneGraphNode()->getLinearTransformation();
+    LinearTransformation fixedPointTransform = getStaticInputData<PointSet>(0)->getSceneGraphNode()->getLinearTransformation();
+    LinearTransformation initialMovingTransform = getStaticInputData<PointSet>(1)->getSceneGraphNode()->getLinearTransformation();
 
     // These matrices are Nx3
     MatrixXf fixedPoints = accessFixedSet.getPointSetAsMatrix();

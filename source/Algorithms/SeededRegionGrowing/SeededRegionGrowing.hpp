@@ -10,12 +10,10 @@ namespace fast {
 class SeededRegionGrowing : public ProcessObject {
     FAST_OBJECT(SeededRegionGrowing)
     public:
-        void setInput(ImageData::pointer input);
         void setIntensityRange(float min, float max);
         void addSeedPoint(uint x, uint y);
         void addSeedPoint(uint x, uint y, uint z);
         void addSeedPoint(Vector3ui position);
-        ImageData::pointer getOutput();
     private:
         SeededRegionGrowing();
         void execute();

@@ -36,6 +36,7 @@ TEST_CASE("Calling update on a PO with a modified parent PO executes both POs", 
     process2->setInputConnection(process->getOutputPort());
     process2->update();
     CHECK(process->hasExecuted() == true);
+    CHECK(process2->getInputPort(0).isDataModified() == false);
     CHECK(process2->hasExecuted() == true);
 }
 
@@ -69,4 +70,16 @@ TEST_CASE("If data of parent PO is not modified, child PO is not executed", "[fa
     childProcess->setInputConnection(parentProcess->getOutputPort());
     childProcess->update();
     CHECK(childProcess->hasExecuted() == false);
+}
+
+TEST_CASE("Parent process object defined in separate scope", "[fast][ProcessObject]") {
+    DummyProcessObject::pointer childProcess = DummyProcessObject::New();
+    {
+        DummyProcessObject::pointer parentProcess = DummyProcessObject::New();
+        parentProcess->setIsModified();
+        parentProcess->updateDataTimestamp();
+        childProcess->setInputConnection(parentProcess->getOutputPort());
+    }
+    childProcess->update();
+    CHECK(childProcess->hasExecuted() == true);
 }

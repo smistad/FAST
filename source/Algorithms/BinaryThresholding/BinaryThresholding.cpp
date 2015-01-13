@@ -2,13 +2,6 @@
 
 namespace fast {
 
-void BinaryThresholding::setInput(ImageData::pointer input) {
-}
-
-ImageData::pointer BinaryThresholding::getOutput() {
-    return getOutputData<Image, DynamicImage>(0);
-}
-
 void BinaryThresholding::setLowerThreshold(float threshold) {
     mLowerThreshold = threshold;
     mLowerThresholdSet = true;

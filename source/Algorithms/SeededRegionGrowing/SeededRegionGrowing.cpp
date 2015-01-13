@@ -5,10 +5,6 @@
 
 namespace fast {
 
-
-void SeededRegionGrowing::setInput(ImageData::pointer input) {
-}
-
 void SeededRegionGrowing::setIntensityRange(float min, float max) {
     if(min >= max)
         throw Exception("Min must be smaller than max intensity range in SeededRegionGrowing");
@@ -36,10 +32,6 @@ void SeededRegionGrowing::addSeedPoint(uint x, uint y, uint z) {
 
 void SeededRegionGrowing::addSeedPoint(Vector3ui position) {
     mSeedPoints.push_back(position);
-}
-
-ImageData::pointer SeededRegionGrowing::getOutput() {
-    return getOutputData<Image, DynamicImage>(0);
 }
 
 SeededRegionGrowing::SeededRegionGrowing() {

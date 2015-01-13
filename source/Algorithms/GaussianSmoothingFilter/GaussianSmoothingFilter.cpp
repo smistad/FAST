@@ -4,9 +4,6 @@
 #include "Image.hpp"
 using namespace fast;
 
-void GaussianSmoothingFilter::setInput(ImageData::pointer input) {
-}
-
 void GaussianSmoothingFilter::setMaskSize(unsigned char maskSize) {
     if(maskSize <= 0)
         throw Exception("Mask size of GaussianSmoothingFilter can't be less than 0.");
@@ -25,10 +22,6 @@ void GaussianSmoothingFilter::setStandardDeviation(float stdDev) {
     mStdDev = stdDev;
     mIsModified = true;
     mRecreateMask = true;
-}
-
-ImageData::pointer GaussianSmoothingFilter::getOutput() {
-    return getOutputData<Image, DynamicImage>(0);
 }
 
 GaussianSmoothingFilter::GaussianSmoothingFilter() {

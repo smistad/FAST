@@ -12,7 +12,6 @@ namespace fast {
 class ImageFileStreamer : public Streamer, public ProcessObject {
     FAST_OBJECT(ImageFileStreamer)
     public:
-        DynamicImage::pointer getOutput();
         void setFilenameFormat(std::string str);
         void setStartNumber(uint startNumber);
         void setZeroFilling(uint digits);
@@ -28,9 +27,6 @@ class ImageFileStreamer : public Streamer, public ProcessObject {
         ~ImageFileStreamer();
     private:
         ImageFileStreamer();
-
-        // A reference to the output object used to update its next frame
-        DynamicImage::pointer mOutput;
 
         // Update the streamer if any parameters have changed
         void execute();

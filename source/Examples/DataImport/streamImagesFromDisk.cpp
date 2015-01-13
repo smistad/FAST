@@ -17,7 +17,7 @@ int main() {
 
     // Renderer image
     ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->addInput(streamer->getOutput());
+    renderer->addInputConnection(streamer->getOutputPort());
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->set2DMode();

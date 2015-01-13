@@ -25,16 +25,17 @@ int main() {
     transform.rotate(R);
     LinearTransformation transformation;
     transformation.setTransform(transform);
-    importerB->getOutput()->getSceneGraphNode()->setTransformation(transformation);
+    importerB->update();
+    importerB->getOutputData<PointSet>()->getSceneGraphNode()->setTransformation(transformation);
 
     // Perform the registration
     IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
-    icp->setMovingPointSet(importerA->getOutput());
-    icp->setFixedPointSet(importerB->getOutput());
+    icp->setMovingPointSetPort(importerA->getOutputPort());
+    icp->setFixedPointSetPort(importerB->getOutputPort());
     icp->update();
 
     // Apply transformation to A
-    importerA->getOutput()->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
+    importerA->getOutputData<PointSet>()->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
 
     std::cout << "Registration result: " << std::endl;
     std::cout << "Rotation: " << icp->getOutputTransformation().getEulerAngles().transpose() << std::endl;
@@ -42,8 +43,8 @@ int main() {
 
     // Visualize the two point sets
     PointRenderer::pointer renderer = PointRenderer::New();
-    renderer->addInput(importerA->getOutput(), Color::Blue(), 10);
-    renderer->addInput(importerB->getOutput(), Color::Green(), 5);
+    renderer->addInputConnection(importerA->getOutputPort(), Color::Blue(), 10);
+    renderer->addInputConnection(importerB->getOutputPort(), Color::Green(), 5);
     renderer->setDefaultDrawOnTop(true);
 
     SimpleWindow::pointer window = SimpleWindow::New();

@@ -11,7 +11,6 @@ class VTKPointSetFileImporter : public Importer {
     FAST_OBJECT(VTKPointSetFileImporter)
     public:
         void setFilename(std::string filename);
-        PointSet::pointer getOutput();
     private:
         VTKPointSetFileImporter();
         void execute();

@@ -9,7 +9,6 @@ namespace fast {
 class MetaImageImporter : public Importer {
     FAST_OBJECT(MetaImageImporter)
     public:
-        Image::pointer getOutput();
         void setFilename(std::string filename);
     private:
         MetaImageImporter();

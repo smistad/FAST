@@ -9,15 +9,12 @@ namespace fast {
 class VTKSurfaceFileExporter : public ProcessObject {
     FAST_OBJECT(VTKSurfaceFileExporter);
     public:
-        void setInput(MeshData::pointer input);
         void setFilename(std::string filename);
     private:
         VTKSurfaceFileExporter();
         void execute();
 
         std::string mFilename;
-        MeshData::pointer mInput;
-
 };
 
 }

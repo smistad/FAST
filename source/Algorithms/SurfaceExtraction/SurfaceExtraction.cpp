@@ -303,10 +303,8 @@ void SurfaceExtraction::execute() {
         std::cout << "No triangles were extracted. Check isovalue." << std::endl;
         return;
     }
-    std::cout << "Sum of triangles is " << totalSum << std::endl;
 
     Mesh::pointer output = getStaticOutputData<Mesh>(0);
-    std::cout << "asd" << std::endl;
     output->create(totalSum);
 
     // Traverse HP to create triangles and put them in the VBO
@@ -355,7 +353,6 @@ void SurfaceExtraction::execute() {
     SceneGraph::setParentNode(output, input);
     BoundingBox box = input->getBoundingBox();
     output->setBoundingBox(box);
-    std::cout << "SURFACE EXTRACTION FINISHED" << std::endl;
 }
 
 SurfaceExtraction::SurfaceExtraction() {

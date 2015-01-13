@@ -4,11 +4,6 @@
 
 namespace fast {
 
-void VTKSurfaceFileExporter::setInput(MeshData::pointer input) {
-    setParent(input);
-    mInput = input;
-}
-
 void VTKSurfaceFileExporter::setFilename(std::string filename) {
     mFilename = filename;
 }
@@ -21,16 +16,7 @@ void VTKSurfaceFileExporter::execute() {
     if(mFilename == "")
         throw Exception("No filename given to the VTKSurfaceFileExporter");
 
-    if(!mInput.isValid())
-        throw Exception("No valid input given to the VTKSurfaceFileExporter");
-
-    Mesh::pointer surface;
-    if(mInput->isDynamicData()) {
-        surface = DynamicMesh::pointer(mInput)->getNextFrame(mPtr);
-    } else {
-        surface = mInput;
-    }
-
+    Mesh::pointer surface = getStaticInputData<Mesh>();
 
     // Get transformation
     LinearTransformation transform = SceneGraph::getLinearTransformationFromData(surface);

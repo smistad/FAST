@@ -165,8 +165,9 @@ void SliceRenderer::execute() {
     mTextureIsCreated = true;
 }
 
-void SliceRenderer::setInput(ImageData::pointer input) {
+void SliceRenderer::setInputConnection(ProcessObjectPort port) {
     releaseInputAfterExecute(0, false);
+    ProcessObject::setInputConnection(0, port);
 }
 
 void SliceRenderer::recompileOpenCLCode(Image::pointer input) {

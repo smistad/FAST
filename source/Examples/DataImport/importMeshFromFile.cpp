@@ -16,7 +16,7 @@ int main() {
 
     // Renderer image
     MeshRenderer::pointer renderer = MeshRenderer::New();
-    renderer->addInput(importer->getOutput());
+    renderer->addInputConnection(importer->getOutputPort());
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->setTimeout(5*1000); // automatically close window after 5 seconds

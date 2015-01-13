@@ -22,39 +22,34 @@ class ProcessObjectPort;
 
 class ProcessObject : public virtual Object {
     public:
-        ProcessObject() :
-            mIsModified(false),
-            mRuntimeManager(new oul::RuntimeMeasurementsManager)
-            { mDevices[0] = DeviceManager::getInstance().getDefaultComputationDevice(); };
+        ProcessObject();
+        virtual ~ProcessObject() {};
         void update();
         typedef SharedPointer<ProcessObject> pointer;
+
+        // Runtime stuff
         oul::RuntimeMeasurementPtr getRuntime();
         oul::RuntimeMeasurementPtr getRuntime(std::string name);
-        void addParent(DataObject::pointer parent);
-        /**
-         * Remove any old parent objects and set the input as the parent object
-         */
-        void setParent(DataObject::pointer parent);
-        /**
-         * Remove all parent objects
-         */
-        void removeParents();
-        void removeParent(const DataObject::pointer data);
-        virtual ~ProcessObject() {};
         void enableRuntimeMeasurements();
         void disableRuntimeMeasurements();
 
+        // Device stuff
         void setMainDevice(ExecutionDevice::pointer device);
         void setMainDeviceCriteria(const DeviceCriteria& citeria);
         ExecutionDevice::pointer getMainDevice() const;
         void setDevice(uint deviceNumber, ExecutionDevice::pointer device);
         void setDeviceCriteria(uint deviceNumber, const DeviceCriteria& criteria);
         ExecutionDevice::pointer getDevice(uint deviceNumber) const;
+
+
         void setOutputData(uint outputNumber, DataObject::pointer object);
 
         // New pipeline methods
         void setInputConnection(ProcessObjectPort port);
         void setInputConnection(uint connectionID, ProcessObjectPort port);
+        ProcessObjectPort getInputPort(uint portID) const;
+        void setInputData(uint portID, DataObject::pointer);
+        void setInputData(DataObject::pointer);
         ProcessObjectPort getOutputPort();
         ProcessObjectPort getOutputPort(uint portID);
         DataObject::pointer getOutputDataX(uint portID) const;
@@ -62,21 +57,22 @@ class ProcessObject : public virtual Object {
          * This method returns static data always. So if the input is dynamic data it will get the next frame.
          */
         template <class DataType>
-        DataObject::pointer getStaticInputData(uint inputNumber) const;
+        typename DataType::pointer getStaticInputData(uint inputNumber) const;
+        template <class DataType>
+        typename DataType::pointer getStaticInputData() const;
         /**
          * This method returns static data always. So if the output is dynamic data it will create a new frame and return that.
          */
         template <class DataType>
-        DataObject::pointer getStaticOutputData(uint outputNumber);
-        template <class StaticDataType, class DynamicDataType>
-        DataObject::pointer getOutputData(uint outputNumber);
+        typename DataType::pointer getStaticOutputData(uint portID);
         template <class DataType>
-        DataObject::pointer getOutputData(uint outputNumber);
-    protected:
-        // Pointer to the parent pipeline object
-        std::vector<DataObject::pointer> mParentDataObjects;
-        std::vector<unsigned long> mTimestamps;
+        typename DataType::pointer getStaticOutputData();
 
+        template <class DataType>
+        DataObject::pointer getOutputData(uint portID);
+        template <class DataType>
+        DataObject::pointer getOutputData();
+    protected:
         // Flag to indicate whether the object has been modified
         // and should be executed again
         bool mIsModified;
@@ -87,7 +83,6 @@ class ProcessObject : public virtual Object {
         virtual void waitToFinish() {};
 
         oul::RuntimeMeasurementsManagerPtr mRuntimeManager;
-
 
         void setInputRequired(uint portID, bool required);
         void releaseInputAfterExecute(uint inputNumber, bool release);
@@ -101,11 +96,9 @@ class ProcessObject : public virtual Object {
         // New pipeline
         void setOutputDataX(uint portID, DataObject::pointer data);
         DataObject::pointer getInputData(uint inputNumber) const;
-        ProcessObjectPort getInputPort(uint portID) const;
 
     private:
         void changeDeviceOnInputs(uint deviceNumber, ExecutionDevice::pointer device);
-        void setTimestamp(DataObject::pointer object, unsigned long timestamp);
         void preExecute();
         void postExecute();
 
@@ -119,7 +112,6 @@ class ProcessObject : public virtual Object {
         // New pipeline
         boost::unordered_map<uint, ProcessObjectPort> mInputConnections;
         boost::unordered_map<uint, DataObject::pointer> mOutputData;
-
 
         template <class T>
         friend class DynamicData;
@@ -152,70 +144,46 @@ class ProcessObjectPort {
 
 template <class DataType>
 DataObject::pointer ProcessObject::getOutputData(uint outputNumber) {
-    if(mOutputDynamicDependsOnInput.count(outputNumber) > 0) {
-        throw Exception("Your output data depends on input data. Use the method getOutputData<StaticDataType, DynamicDatatype>() instead of getOutputData<DataType>().");
-    }
     DataObject::pointer data;
 
     // If output data is not created
     if(mOutputData.count(outputNumber) == 0) {
-        // Create data
-        data = DataType::New();
-        data->setSource(mPtr.lock());
-        mOutputData[outputNumber] = data;
-        std::cout << "data created at output port " << outputNumber << std::endl;
+        // Is output dependent on any input?
+        if(mOutputDynamicDependsOnInput.count(outputNumber) > 0) {
+            uint inputNumber = mOutputDynamicDependsOnInput[outputNumber];
+            if(mInputConnections.count(inputNumber) == 0)
+                throw Exception("Must call input before output.");
+            ProcessObjectPort port = mInputConnections[inputNumber];
+            DataObject::pointer objectDependsOn = port.getData();
+            if(objectDependsOn->isDynamicData()) {
+                data = DynamicData<DataType>::New();
+                data->setStreamer(objectDependsOn->getStreamer());
+            } else {
+                data = DataType::New();
+            }
+            mOutputData[outputNumber] = data;
+        } else {
+            // Create data
+            data = DataType::New();
+            mOutputData[outputNumber] = data;
+        }
     } else {
-        //data = mOutputs[outputNumber];
         data = mOutputData[outputNumber];
     }
 
     return data;
 }
 
-template <class StaticDataType, class DynamicDataType>
-DataObject::pointer ProcessObject::getOutputData(uint outputNumber) {
-    DataObject::pointer data;
-
-    // If output data is not created
-    if(mOutputData.count(outputNumber) == 0) {
-        // Is output dependent on any input?
-        // TODO: problem this only works if input and output are of same type
-        if(mOutputDynamicDependsOnInput.count(outputNumber) > 0) {
-            uint inputNumber = mOutputDynamicDependsOnInput[outputNumber];
-            if(mInputConnections.count(inputNumber) == 0)
-                throw Exception("Must call input before output.");
-            ProcessObjectPort port = mInputConnections[inputNumber];
-            DataObject::pointer objectDependsOn = port.getData();//mInputs[inputNumber];
-            if(objectDependsOn->isDynamicData()) {
-                std::cout << "IS DYNAMIC" << std::endl;
-                data = DynamicDataType::New();
-                std::cout << "AAAA" << std::endl;
-                data->setStreamer(objectDependsOn->getStreamer());
-                std::cout << "AAAA" << std::endl;
-            } else {
-                data = StaticDataType::New();
-            }
-            data->setSource(mPtr.lock());
-                std::cout << "AAAA" << std::endl;
-            mOutputData[outputNumber] = data;
-        } else {
-            // Create data
-            data = StaticDataType::New();
-            data->setSource(mPtr.lock());
-            mOutputData[outputNumber] = data;
-        }
-    } else {
-        data = mOutputData[outputNumber];//mOutputs[outputNumber];
-    }
-
-    return data;
+template <class DataType>
+DataObject::pointer ProcessObject::getOutputData() {
+    return getOutputData<DataType>(0);
 }
 
 template <class DataType>
-DataObject::pointer ProcessObject::getStaticInputData(uint inputNumber) const {
+typename DataType::pointer ProcessObject::getStaticInputData(uint inputNumber) const {
     // at throws exception if element not found, while [] does not
     ProcessObjectPort port = mInputConnections.at(inputNumber);
-    DataObject::pointer data = port.getData();//mInputs.at(inputNumber);
+    DataObject::pointer data = port.getData();
     DataObject::pointer returnData;
     if(data->isDynamicData()) {
         returnData = typename DynamicData<DataType>::pointer(data)->getNextFrame(mPtr);
@@ -227,10 +195,14 @@ DataObject::pointer ProcessObject::getStaticInputData(uint inputNumber) const {
 }
 
 template <class DataType>
-DataObject::pointer ProcessObject::getStaticOutputData(uint outputNumber) {
+typename DataType::pointer ProcessObject::getStaticInputData() const {
+    return getStaticInputData<DataType>(0);
+}
+
+template <class DataType>
+typename DataType::pointer ProcessObject::getStaticOutputData(uint outputNumber) {
     // at throws exception if element not found, while [] does not
-    DataObject::pointer data = getOutputData<DataType, DynamicData<DataType> >(outputNumber);//mOutputs.at(outputNumber);
-    std::cout << "LKAJHD" << std::endl;
+    DataObject::pointer data = getOutputData<DataType>(outputNumber);//mOutputs.at(outputNumber);
     DataObject::pointer returnData;
     if(data->isDynamicData()) {
         // Create new frame
@@ -239,17 +211,16 @@ DataObject::pointer ProcessObject::getStaticOutputData(uint outputNumber) {
     } else {
         returnData = data;
     }
-    std::cout << "KJAHD" << std::endl;
 
     return returnData;
+}
+
+template <class DataType>
+typename DataType::pointer ProcessObject::getStaticOutputData() {
+    return getStaticOutputData<DataType>(0);
 }
 
 
 }; // end namespace fast
 
-// A custum boost hashing function for the ProcessObjectPort object so that they can be used
-// in unordered data structures. TODO verify that this works
-namespace boost {
-
-}
 #endif

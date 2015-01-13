@@ -9,8 +9,6 @@ namespace fast {
 class Skeletonization : public ProcessObject {
     FAST_OBJECT(Skeletonization)
     public:
-        void setInput(ImageData::pointer input);
-        ImageData::pointer getOutput();
     private:
         Skeletonization();
         void execute();

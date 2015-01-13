@@ -11,7 +11,7 @@ enum PlaneType {PLANE_X, PLANE_Y, PLANE_Z};
 class SliceRenderer : public Renderer {
     FAST_OBJECT(SliceRenderer)
     public:
-        void setInput(ImageData::pointer image);
+        void setInputConnection(ProcessObjectPort port);
         void setSliceToRender(unsigned int sliceNr);
         void setSlicePlane(PlaneType plane);
         BoundingBox getBoundingBox();

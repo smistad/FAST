@@ -43,7 +43,7 @@ void VolumeRenderer::addInput(ImageData::pointer image) {
 	if(numberOfVolumes<maxNumberOfVolumes)
 	{
 		mInputs.push_back(image);
-		addParent(mInputs[numberOfVolumes]);
+		//addParent(mInputs[numberOfVolumes]);
 		numberOfVolumes++;
 		mIsModified = true;
 		mInputIsModified=true;

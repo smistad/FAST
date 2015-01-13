@@ -9,8 +9,6 @@ namespace fast {
 class ImageGradient : public ProcessObject {
     FAST_OBJECT(ImageGradient);
     public:
-        void setInput(ImageData::pointer image);
-        ImageData::pointer getOutput();
     private:
         ImageGradient();
         void execute();

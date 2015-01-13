@@ -9,7 +9,7 @@ namespace fast {
 class ImageRenderer : public Renderer {
     FAST_OBJECT(ImageRenderer)
     public:
-        void addInputPort(ProcessObjectPort port);
+        void addInputConnection(ProcessObjectPort port);
         BoundingBox getBoundingBox();
         void turnOffTransformations();
     private:

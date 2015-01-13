@@ -19,8 +19,8 @@ TEST_CASE("Import Image file to host", "[fast][ImageImporter]") {
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-2D.jpg");
     importer->setMainDevice(Host::getInstance());
-    Image::pointer image = importer->getOutput();
-    image->update();
+    importer->update();
+    Image::pointer image = importer->getOutputData<Image>(0);
 
     // Check attributes of image
     CHECK(image->getWidth() == 512);
@@ -37,8 +37,8 @@ TEST_CASE("Import Image file to OpenCL device", "[fast][MetaImageImporter]") {
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-2D.jpg");
     importer->setMainDevice(device);
-    Image::pointer image = importer->getOutput();
-    image->update();
+    importer->update();
+    Image::pointer image = importer->getOutputData<Image>(0);
 
     // Check attributes of image
     CHECK(image->getWidth() == 512);

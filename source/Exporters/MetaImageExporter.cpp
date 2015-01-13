@@ -1,13 +1,8 @@
 #include "MetaImageExporter.hpp"
 #include "Image.hpp"
 #include <fstream>
-using namespace fast;
 
-void MetaImageExporter::setInput(ImageData::pointer input) {
-    mInput = input;
-    setParent(input);
-    mIsModified = true;
-}
+namespace fast {
 
 void MetaImageExporter::setFilename(std::string filename) {
     mFilename = filename;
@@ -33,19 +28,10 @@ void writeToRawFile(std::string filename, T * data, unsigned int numberOfElement
 }
 
 void MetaImageExporter::execute() {
-
-    if(!mInput.isValid())
-        throw Exception("No input was given to the MetaImageExporter");
-
     if(mFilename == "")
         throw Exception("No filename was given to the MetaImageExporter");
 
-    Image::pointer input;
-    if(mInput->isDynamicData()) {
-        input = DynamicImage::pointer(mInput)->getNextFrame(mPtr);
-    } else {
-        input = mInput;
-    }
+    Image::pointer input = getStaticInputData<Image>();
 
     // Check that filename ends with .mhd if not, append it
     if(mFilename.substr(mFilename.length()-4) != ".mhd") {
@@ -119,4 +105,6 @@ void MetaImageExporter::execute() {
     mhdFile << "ElementDataFile = " << rawFilename << "\n";
 
     mhdFile.close();
+}
+
 }

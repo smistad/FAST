@@ -6,10 +6,6 @@
 #include <boost/lexical_cast.hpp>
 using namespace fast;
 
-Image::pointer MetaImageImporter::getOutput() {
-    return getOutputData<Image>(0);
-}
-
 void MetaImageImporter::setFilename(std::string filename) {
     mFilename = filename;
     mIsModified = true;

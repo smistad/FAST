@@ -19,20 +19,6 @@ bool DataObject::isDynamicData() {
     return mIsDynamicData;
 }
 
-void DataObject::update() {
-    if(mSourceObject.lock().isValid()) {
-        ProcessObject::pointer object = mSourceObject.lock();
-        object->update();
-    }
-}
-
-void DataObject::setSource(Object::pointer source) {
-    if(!source.isValid())
-        throw Exception("Trying to add an expired/NULL pointer as a parent object");
-
-    mSourceObject = source;
-}
-
 unsigned long DataObject::getTimestamp() {
     return mTimestampModified;
 }
