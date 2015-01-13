@@ -14,13 +14,7 @@
 #include <boost/unordered_set.hpp>
 namespace fast {
 
-class ImageData : public virtual DataObject {
-    public:
-        typedef SharedPointer<ImageData> pointer;
-        virtual ~ImageData() {};
-};
-
-class Image : public ImageData {
+class Image : public DataObject {
     FAST_OBJECT(Image)
     public:
         void createFromImage(Image::pointer image, ExecutionDevice::pointer device);
@@ -109,9 +103,7 @@ class Image : public ImageData {
         void calculateMaxAndMinIntensity();
 };
 
-class DynamicImage : public ImageData, public DynamicData<Image> {
-    FAST_OBJECT(DynamicImage)
-};
+typedef DynamicData<Image> DynamicImage;
 
 } // end namespace fast
 

@@ -7,14 +7,7 @@
 
 namespace fast {
 
-class PointSetData : public virtual DataObject {
-    public:
-        typedef SharedPointer<PointSetData> pointer;
-        virtual ~PointSetData() {};
-};
-
-
-class PointSet : public virtual DataObject {
+class PointSet : public DataObject {
     FAST_OBJECT(PointSet)
     public:
         void create(std::vector<Vector3f> points);
@@ -35,9 +28,7 @@ class PointSet : public virtual DataObject {
         bool mIsBeingWrittenTo;
 };
 
-class DynamicPointSet : public PointSetData, public DynamicData<PointSet> {
-    FAST_OBJECT(DynamicPointSet)
-};
+typedef DynamicData<PointSet> DynamicPointSet;
 
 
 } // end namespace fast

@@ -7,14 +7,8 @@
 
 namespace fast {
 
-class LineSetData : public virtual DataObject {
-    public:
-        typedef SharedPointer<LineSetData> pointer;
-        virtual ~LineSetData() {};
-};
-
 class LineSetAccess;
-class LineSet : public LineSetData {
+class LineSet : public DataObject {
     FAST_OBJECT(LineSet);
     public:
         void create(std::vector<Vector3f> vertices, std::vector<Vector2ui> lines);
@@ -34,9 +28,7 @@ class LineSet : public LineSetData {
         bool mIsBeingWrittenTo;
 };
 
-class DynamicLineSet : public LineSetData, public DynamicData<LineSet> {
-    FAST_OBJECT(DynamicLineSet)
-};
+typedef DynamicData<LineSet> DynamicLineSet;
 
 }
 

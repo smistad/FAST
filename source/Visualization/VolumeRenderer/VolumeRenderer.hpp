@@ -13,7 +13,7 @@ namespace fast {
 class VolumeRenderer : public Renderer {
     FAST_OBJECT(VolumeRenderer)
     public:
-        void addInput(ImageData::pointer image);
+        void addInputConnection(ProcessObjectPort port);
 		void setColorTransferFunction(int volumeIndex, ColorTransferFunction::pointer ctf);
 		void setOpacityTransferFunction(int volumeIndex, OpacityTransferFunction::pointer otf);
         
@@ -91,7 +91,7 @@ class VolumeRenderer : public Renderer {
 
 		unsigned int numberOfVolumes;
 
-		std::vector<ImageData::pointer> mInputs;
+		//std::vector<ImageData::pointer> mInputs;
 		std::vector<Image::pointer> inputs;
 
 

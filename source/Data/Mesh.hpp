@@ -11,13 +11,7 @@
 
 namespace fast {
 
-class MeshData : public virtual DataObject {
-    public:
-        typedef SharedPointer<MeshData> pointer;
-        virtual ~MeshData() {};
-};
-
-class Mesh : public MeshData {
+class Mesh : public DataObject {
     FAST_OBJECT(Mesh)
     public:
         void create(std::vector<Vector3f> vertices, std::vector<Vector3f> normals, std::vector<Vector3ui> triangles);
@@ -54,9 +48,7 @@ class Mesh : public MeshData {
         bool isAnyDataBeingAccessed();
 };
 
-class DynamicMesh : public MeshData, public DynamicData<Mesh> {
-    FAST_OBJECT(DynamicMesh)
-};
+typedef DynamicData<Mesh> DynamicMesh;
 
 } // end namespace fast
 

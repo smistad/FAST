@@ -35,14 +35,14 @@ void VolumeRenderer::setProjectionParameters(float fov, float aspect, float near
 	projectionMatrix14= (-2.0*zFar*zNear) / (zFar-zNear);
 	mIsModified = true;
 }
-void VolumeRenderer::addInput(ImageData::pointer image) {
+void VolumeRenderer::addInputConnection(ProcessObjectPort port) {
 
 
 	if(numberOfVolumes<0)
         throw Exception("Not a correct number of volumes is given to VolumeRenderer");
 	if(numberOfVolumes<maxNumberOfVolumes)
 	{
-		mInputs.push_back(image);
+		//mInputs.push_back(image);
 		//addParent(mInputs[numberOfVolumes]);
 		numberOfVolumes++;
 		mIsModified = true;
@@ -133,11 +133,7 @@ void VolumeRenderer::turnOffTransformations() {
 //this returns the boundingbox of the FIRST volume
 BoundingBox VolumeRenderer::getBoundingBox()
 {
-	Image::pointer mImageToRender;
-	if(mInputs[0]->isDynamicData()) 
-		mImageToRender = (DynamicImage::pointer(mInputs[0])->getNextFrame(mPtr));
-	else 
-		mImageToRender = mInputs[0];
+	Image::pointer mImageToRender = getInputData(0);
 		
 	
 	float tr[16];
@@ -201,7 +197,6 @@ VolumeRenderer::VolumeRenderer() : Renderer() {
 
 	numberOfVolumes=0;
 
-	mInputs.clear();
 	inputs.clear();
 
 	//Default window size
@@ -235,6 +230,7 @@ void VolumeRenderer::execute() {
 
 	for(unsigned int i=0;i<numberOfVolumes;i++)
 	{
+	    /*
 		if(!mInputs[i].isValid())
 		{
 			char errorMessage[255];
@@ -251,6 +247,7 @@ void VolumeRenderer::execute() {
 		{
 			inputs.push_back( mInputs[i]);
 		}
+		*/
 
 		if(inputs[i]->getDimensions() != 3)
 		{
