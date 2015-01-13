@@ -11,9 +11,7 @@ class VTKImageExporter : public vtkImageAlgorithm, public ProcessObject {
     public:
         vtkTypeMacro(VTKImageExporter,vtkImageAlgorithm);
         static VTKImageExporter *New();
-        void SetInput(Image::pointer image);
     private:
-        Image::pointer mInput;
         VTKImageExporter();
         int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
         void execute() {};

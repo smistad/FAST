@@ -7,13 +7,7 @@ void VTKImageImporter::setInput(vtkSmartPointer<vtkImageData> image) {
     mIsModified = true;
 }
 
-Image::pointer VTKImageImporter::getOutput() {
-    mOutput->setSource(mPtr.lock());
-    return mOutput;
-}
-
 VTKImageImporter::VTKImageImporter() {
-    mOutput = Image::New();
 }
 
 template <class T>
@@ -91,8 +85,11 @@ void transferVTKDataToFAST(vtkSmartPointer<vtkImageData> image, Image::pointer o
 
 void VTKImageImporter::execute() {
     // Make sure VTK data is up to date
+#if VTK_MAJOR_VERSION <= 5
     mInput->Update();
+#else
+#endif
 
-    transferVTKDataToFAST(mInput, mOutput);
+    transferVTKDataToFAST(mInput, getOutputData<Image>());
 
 }

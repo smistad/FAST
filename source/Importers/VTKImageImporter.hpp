@@ -12,10 +12,8 @@ class VTKImageImporter : public ProcessObject {
     FAST_OBJECT(VTKImageImporter)
     public:
         void setInput(vtkSmartPointer<vtkImageData> image);
-        Image::pointer getOutput();
     private:
         vtkSmartPointer<vtkImageData> mInput;
-        Image::pointer mOutput;
 
         VTKImageImporter();
         void execute();

@@ -9,18 +9,18 @@ using namespace fast;
 TEST_CASE("Import an image from VTK to FAST", "[fast][VTK]") {
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-2D.jpg");
-    Image::pointer fastImage = importer->getOutput();
+    Image::pointer fastImage = importer->getOutputData<Image>();
 
     // VTK Export
     vtkSmartPointer<VTKImageExporter> vtkExporter = VTKImageExporter::New();
-    vtkExporter->SetInput(fastImage);
+    vtkExporter->setInputData(fastImage);
     vtkSmartPointer<vtkImageData> vtkImage = vtkExporter->GetOutput();
     vtkExporter->Update();
 
     // VTK Import example
     VTKImageImporter::pointer vtkImporter = VTKImageImporter::New();
-    vtkImporter->setInput(vtkImage);
-    Image::pointer importedImage = vtkImporter->getOutput();
+    //vtkImporter->setInput(vtkImage);
+    Image::pointer importedImage = vtkImporter->getOutputData<Image>();
     vtkImporter->update();
 
     CHECK(fastImage->getWidth() == importedImage->getWidth());

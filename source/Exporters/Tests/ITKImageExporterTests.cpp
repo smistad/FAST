@@ -30,7 +30,7 @@ TEST_CASE("Different dimensions in input and output image throws exception in th
     Image::pointer fastImage = Image::New();
     fastImage->create2DImage(width, height, type, 1, Host::getInstance());
     ITKImageExporter<ImageType>::Pointer itkExporter = ITKImageExporter<ImageType>::New();
-    itkExporter->SetInput(fastImage);
+    itkExporter->setInputData(fastImage);
     ImageType::Pointer itkImage = itkExporter->GetOutput();
     CHECK_THROWS(itkExporter->Update());
 }
@@ -46,7 +46,7 @@ TEST_CASE("Export a float 2D image to ITK from FAST", "[fast][ITK]") {
     fastImage->create2DImage(width, height, type, 1, Host::getInstance(), data);
 
     ITKImageExporter<ImageType>::Pointer itkExporter = ITKImageExporter<ImageType>::New();
-    itkExporter->SetInput(fastImage);
+    itkExporter->setInputData(fastImage);
     ImageType::Pointer itkImage = itkExporter->GetOutput();
     itkExporter->Update();
 
@@ -75,7 +75,7 @@ TEST_CASE("Export a char 2D image to ITK from FAST", "[fast][ITK]") {
     fastImage->create2DImage(width, height, type, 1, Host::getInstance(), data);
 
     ITKImageExporter<ImageType>::Pointer itkExporter = ITKImageExporter<ImageType>::New();
-    itkExporter->SetInput(fastImage);
+    itkExporter->setInputData(fastImage);
     ImageType::Pointer itkImage = itkExporter->GetOutput();
     itkExporter->Update();
 
@@ -104,7 +104,7 @@ TEST_CASE("Export a uchar 2D image to ITK from FAST", "[fast][ITK]") {
     fastImage->create2DImage(width, height, type, 1, Host::getInstance(), data);
 
     ITKImageExporter<ImageType>::Pointer itkExporter = ITKImageExporter<ImageType>::New();
-    itkExporter->SetInput(fastImage);
+    itkExporter->setInputData(fastImage);
     ImageType::Pointer itkImage = itkExporter->GetOutput();
     itkExporter->Update();
 
@@ -133,7 +133,7 @@ TEST_CASE("Export a short 2D image to ITK from FAST", "[fast][ITK]") {
     fastImage->create2DImage(width, height, type, 1, Host::getInstance(), data);
 
     ITKImageExporter<ImageType>::Pointer itkExporter = ITKImageExporter<ImageType>::New();
-    itkExporter->SetInput(fastImage);
+    itkExporter->setInputData(fastImage);
     ImageType::Pointer itkImage = itkExporter->GetOutput();
     itkExporter->Update();
 
@@ -162,7 +162,7 @@ TEST_CASE("Export a ushort 2D image to ITK from FAST", "[fast][ITK]") {
     fastImage->create2DImage(width, height, type, 1, Host::getInstance(), data);
 
     ITKImageExporter<ImageType>::Pointer itkExporter = ITKImageExporter<ImageType>::New();
-    itkExporter->SetInput(fastImage);
+    itkExporter->setInputData(fastImage);
     ImageType::Pointer itkImage = itkExporter->GetOutput();
     itkExporter->Update();
 
@@ -192,7 +192,7 @@ TEST_CASE("Export a float 3D image to ITK from FAST", "[fast][ITK]") {
     fastImage->create3DImage(width, height, depth, type, 1, Host::getInstance(), data);
 
     ITKImageExporter<ImageType>::Pointer itkExporter = ITKImageExporter<ImageType>::New();
-    itkExporter->SetInput(fastImage);
+    itkExporter->setInputData(fastImage);
     ImageType::Pointer itkImage = itkExporter->GetOutput();
     itkExporter->Update();
 
@@ -223,7 +223,7 @@ TEST_CASE("Export a char 3D image to ITK from FAST", "[fast][ITK]") {
     fastImage->create3DImage(width, height, depth, type, 1, Host::getInstance(), data);
 
     ITKImageExporter<ImageType>::Pointer itkExporter = ITKImageExporter<ImageType>::New();
-    itkExporter->SetInput(fastImage);
+    itkExporter->setInputData(fastImage);
     ImageType::Pointer itkImage = itkExporter->GetOutput();
     itkExporter->Update();
 
@@ -254,7 +254,7 @@ TEST_CASE("Export a uchar 3D image to ITK from FAST", "[fast][ITK]") {
     fastImage->create3DImage(width, height, depth, type, 1, Host::getInstance(), data);
 
     ITKImageExporter<ImageType>::Pointer itkExporter = ITKImageExporter<ImageType>::New();
-    itkExporter->SetInput(fastImage);
+    itkExporter->setInputData(fastImage);
     ImageType::Pointer itkImage = itkExporter->GetOutput();
     itkExporter->Update();
 
@@ -285,7 +285,7 @@ TEST_CASE("Export a short 3D image to ITK from FAST", "[fast][ITK]") {
     fastImage->create3DImage(width, height, depth, type, 1, Host::getInstance(), data);
 
     ITKImageExporter<ImageType>::Pointer itkExporter = ITKImageExporter<ImageType>::New();
-    itkExporter->SetInput(fastImage);
+    itkExporter->setInputData(fastImage);
     ImageType::Pointer itkImage = itkExporter->GetOutput();
     itkExporter->Update();
 
@@ -316,7 +316,7 @@ TEST_CASE("Export a ushort 3D image to ITK from FAST", "[fast][ITK]") {
     fastImage->create3DImage(width, height, depth, type, 1, Host::getInstance(), data);
 
     ITKImageExporter<ImageType>::Pointer itkExporter = ITKImageExporter<ImageType>::New();
-    itkExporter->SetInput(fastImage);
+    itkExporter->setInputData(fastImage);
     ImageType::Pointer itkImage = itkExporter->GetOutput();
     itkExporter->Update();
 

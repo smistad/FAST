@@ -13,12 +13,6 @@ using namespace fast;
 
 vtkStandardNewMacro(VTKImageExporter);
 
-void VTKImageExporter::SetInput(Image::pointer image) {
-    mInput = image;
-    setParent(image);
-    mIsModified = true;
-}
-
 VTKImageExporter::VTKImageExporter() {
     // VTK stuff
     this->SetNumberOfOutputPorts(1);
@@ -55,30 +49,29 @@ int VTKImageExporter::RequestData(
         vtkInformationVector** inputVector,
         vtkInformationVector* outputVector) {
 
-    if(!mInput.isValid())
-        throw Exception("No input was given to the VTKImageExporter");
+    update(); // Run FAST pipeline
 
-    mInput->update(); // Make sure input is up to date
+    Image::pointer input = getStaticInputData<Image>();
 
-    if(mInput->getNrOfComponents() != 1)
+    if(input->getNrOfComponents() != 1)
         throw Exception("The VTKImageExporter currently doesn't support images with multiple components.");
 
     vtkInformation *outInfo = outputVector->GetInformationObject(0);
 
-    vtkImageData *output = vtkImageData::SafeDownCast(
-            outInfo->Get(vtkDataObject::DATA_OBJECT()));
+    vtkImageData *output = this->GetOutput();
 
     vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
 
     // Set size
-    if(mInput->getDimensions() == 2) {
-        image->SetExtent(0, mInput->getWidth(), 0, mInput->getHeight(), 0, 0);
+    if(input->getDimensions() == 2) {
+        image->SetExtent(0, input->getWidth(), 0, input->getHeight(), 0, 0);
     } else {
-        image->SetExtent(0, mInput->getWidth(), 0, mInput->getHeight(), 0, mInput->getDepth());
+        image->SetExtent(0, input->getWidth(), 0, input->getHeight(), 0, input->getDepth());
     }
 
+#if VTK_MAJOR_VERSION <= 5
     // Set type
-    switch(mInput->getDataType()) {
+    switch(input->getDataType()) {
     case TYPE_FLOAT:
         image->SetScalarType(VTK_FLOAT);
         break;
@@ -98,18 +91,43 @@ int VTKImageExporter::RequestData(
         throw Exception("Unknown type");
         break;
     }
+#else
+    // Set type
+    switch(input->getDataType()) {
+    case TYPE_FLOAT:
+        image->SetScalarType(VTK_FLOAT, outInfo);
+        break;
+    case TYPE_INT8:
+        image->SetScalarType(VTK_CHAR, outInfo);
+        break;
+    case TYPE_UINT8:
+        image->SetScalarType(VTK_UNSIGNED_CHAR, outInfo);
+        break;
+    case TYPE_INT16:
+        image->SetScalarType(VTK_SHORT, outInfo);
+        break;
+    case TYPE_UINT16:
+        image->SetScalarType(VTK_UNSIGNED_SHORT, outInfo);
+        break;
+    default:
+        throw Exception("Unknown type");
+        break;
+    }
+#endif
 
     // Transfer data from mInput to vtk image
-    switch(mInput->getDataType()) {
-        fastSwitchTypeMacro(transferDataToVTKImage<FAST_TYPE>(mInput, image))
+    switch(input->getDataType()) {
+        fastSwitchTypeMacro(transferDataToVTKImage<FAST_TYPE>(input, image))
     }
 
     output->ShallowCopy(image);
 
     // Without these lines, the output will appear real but will not work as the input to any other filters
     output->SetExtent(image->GetExtent());
-    output->SetUpdateExtent(output->GetExtent());
-    output->SetWholeExtent(output->GetExtent());
+#if VTK_MAJOR_VERSION <= 5
+    //output->SetUpdateExtent(output->GetExtent());
+    //output->SetWholeExtent(output->GetExtent());
+#endif
 
     return 1;
 }

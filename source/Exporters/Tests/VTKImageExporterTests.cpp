@@ -88,7 +88,7 @@ TEST_CASE("Export a 2D image from FAST to VTK", "[fast][VTK]") {
         fastImage->create2DImage(width, height, type, 1, Host::getInstance(), data);
 
         vtkSmartPointer<VTKImageExporter> vtkExporter = VTKImageExporter::New();
-        vtkExporter->SetInput(fastImage);
+        vtkExporter->setInputData(fastImage);
         vtkSmartPointer<vtkImageData> vtkImage = vtkExporter->GetOutput();
         vtkExporter->Update();
 
@@ -119,7 +119,7 @@ TEST_CASE("Export a 3D image from FAST to VTK", "[fast][VTK]") {
         fastImage->create3DImage(width, height, depth, type, 1, Host::getInstance(), data);
 
         vtkSmartPointer<VTKImageExporter> vtkExporter = VTKImageExporter::New();
-        vtkExporter->SetInput(fastImage);
+        vtkExporter->setInputData(fastImage);
         vtkSmartPointer<vtkImageData> vtkImage = vtkExporter->GetOutput();
         vtkExporter->Update();
 
@@ -144,11 +144,11 @@ TEST_CASE("Export an image from FAST to VTK and visualize", "[fast][VTK]") {
 
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-2D.jpg");
-    Image::pointer fastImage = importer->getOutput();
+    Image::pointer fastImage = importer->getOutputData<Image>();
 
     // VTK Export and render example
     vtkSmartPointer<VTKImageExporter> vtkExporter = VTKImageExporter::New();
-    vtkExporter->SetInput(fastImage);
+    vtkExporter->setInputData(fastImage);
     vtkSmartPointer<vtkImageData> vtkImage = vtkExporter->GetOutput();
     vtkExporter->Update();
 
