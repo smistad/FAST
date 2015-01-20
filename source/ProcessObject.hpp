@@ -71,6 +71,7 @@ class ProcessObject : public virtual Object {
         DataObject::pointer getOutputData(uint portID);
         template <class DataType>
         DataObject::pointer getOutputData();
+
     protected:
         // Flag to indicate whether the object has been modified
         // and should be executed again
@@ -91,6 +92,7 @@ class ProcessObject : public virtual Object {
         DataObject::pointer getInputData(uint inputNumber) const;
 
     private:
+        void updateTimestamp(DataObject::pointer data);
         void changeDeviceOnInputs(uint deviceNumber, ExecutionDevice::pointer device);
         void preExecute();
         void postExecute();

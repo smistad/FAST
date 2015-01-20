@@ -207,8 +207,7 @@ void DynamicData<T>::setAllConsumersUpToDate() {
     boost::unordered_map<WeakPointer<Object>, uint>::iterator it;
     for(it = mConsumerFrameCounters.begin(); it != mConsumerFrameCounters.end(); it++) {
         ProcessObject::pointer consumer = ProcessObject::pointer(it->first.lock());
-        // TODO fix this:
-        //consumer->setTimestamp(mPtr, timestamp);
+        consumer->updateTimestamp(mPtr.lock());
     }
 }
 
@@ -243,7 +242,8 @@ typename T::pointer DynamicData<T>::getNextFrame(WeakPointer<Object> processObje
         } else if(streamer->getStreamingMode() == STREAMING_MODE_STORE_ALL_FRAMES) {
             mConsumerFrameCounters[processObject] = 0;
         } else {
-            mConsumerFrameCounters[processObject] = getLowestFrameCount();
+            uint lowestFrameCount = getLowestFrameCount(); // This must be assigned to a variable first to ensure correct result!
+            mConsumerFrameCounters[processObject] = lowestFrameCount;
         }
     }
     // Return frame
