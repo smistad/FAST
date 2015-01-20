@@ -218,6 +218,17 @@ ProcessObjectPort ProcessObject::getInputPort(uint portID) const {
     return mInputConnections.at(portID);
 }
 
+
+void ProcessObject::updateTimestamp(DataObject::pointer data) {
+    boost::unordered_map<uint, ProcessObjectPort>::iterator it;
+    for(it = mInputConnections.begin(); it != mInputConnections.end(); it++) {
+        ProcessObjectPort& port = it->second;
+        if(port.getData() == data) {
+            port.updateTimestamp();
+        }
+    }
+}
+
 ProcessObjectPort::ProcessObjectPort(uint portID,
         ProcessObject::pointer processObject) {
     mPortID = portID;
@@ -248,7 +259,6 @@ void ProcessObjectPort::updateTimestamp() {
 bool ProcessObjectPort::operator==(const ProcessObjectPort &other) const {
     return mPortID == other.getPortID() && mProcessObject == other.getProcessObject();
 }
-
 
 
 } // namespace fast
