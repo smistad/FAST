@@ -33,6 +33,7 @@ class DummyProcessObject : public ProcessObject {
     FAST_OBJECT(DummyProcessObject)
     public:
         void setIsModified() { mIsModified = true; };
+        void setIsNotModified() { mIsModified = false; };
         void setInputRequired(uint number) { ProcessObject::setInputRequired(number, true); };
         bool hasExecuted() { return mHasExecuted; };
         void setHasExecuted(bool value) { mHasExecuted = value; };
