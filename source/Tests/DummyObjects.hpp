@@ -41,7 +41,6 @@ class DummyProcessObject : public ProcessObject {
     private:
         DummyProcessObject() : mHasExecuted(false) {};
         void execute() {
-            std::cout << "executing" << std::endl;
             mHasExecuted = true;
             getOutputData<DummyDataObject>(0);
         };

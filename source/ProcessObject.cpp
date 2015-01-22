@@ -166,7 +166,6 @@ void ProcessObject::setInputConnection(ProcessObjectPort port) {
 
 void ProcessObject::setInputConnection(uint connectionID, ProcessObjectPort port) {
     mInputConnections[connectionID] = port;
-    mIsModified = true;
 }
 
 ProcessObjectPort ProcessObject::getOutputPort() {
