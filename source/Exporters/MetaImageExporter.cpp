@@ -29,7 +29,7 @@ inline std::size_t writeToRawFile(std::string filename, T * data, unsigned int n
     if(useCompression) {
 #ifdef ZLIB_ENABLED
         // Have to allocate enough memory for compression: 1.1*DATA_SIZE_IN_BYTES + 12
-        std::size_t sizeDataCompressed = 1.1*sizeof(T)*numberOfElements + 12;
+        std::size_t sizeDataCompressed = compressBound(sizeof(T)*numberOfElements);
         std::size_t sizeDataOriginal = sizeof(T)*numberOfElements;
         Bytef* writeData = (Bytef*)malloc(sizeDataCompressed);
         int z_result = compress(
@@ -64,15 +64,10 @@ inline std::size_t writeToRawFile(std::string filename, T * data, unsigned int n
 }
 
 void MetaImageExporter::execute() {
-    if(mUseCompression)
-        throw Exception("Compression is currently not implemented for the MetaImageExporter");
-
-/*
 #ifndef ZLIB_ENABLED
     if(mUseCompression)
         throw Exception("You enabled compression on the MetaImageExporter, however FAST is not compiled with zlib which is required to do so.");
 #endif
-*/
 
     if(mFilename == "")
         throw Exception("No filename was given to the MetaImageExporter");

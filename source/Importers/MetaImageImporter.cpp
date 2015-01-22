@@ -38,7 +38,7 @@ std::vector<std::string> stringSplit(std::string str, std::string delimiter) {
 }
 
 template <class T>
-inline void * readRawData(std::string rawFilename, unsigned int width, unsigned int height, unsigned int depth, unsigned int nrOfComponents, bool compressed) {
+inline void * readRawData(std::string rawFilename, unsigned int width, unsigned int height, unsigned int depth, unsigned int nrOfComponents, bool compressed, std::size_t compressedFileSize) {
     T * data = new T[width*height*depth*nrOfComponents];
     if(compressed) {
 #ifdef ZLIB_ENABLED
@@ -62,7 +62,7 @@ inline void * readRawData(std::string rawFilename, unsigned int width, unsigned 
 
             (Bytef*)fileData,   // source buffer - the compressed data
 
-            fileSize);   // length of compressed data in bytes
+            compressedFileSize);   // length of compressed data in bytes
         switch( z_result )
         {
         case Z_OK:
@@ -136,6 +136,7 @@ void MetaImageImporter::execute() {
     Vector3f spacing(1,1,1), offset(0,0,0), centerOfRotation(0,0,0);
     Matrix3f transformMatrix = Matrix3f::Identity();
     bool isCompressed = false;
+    std::size_t compressedDataSize;
 
     do{
         std::getline(mhdFile, line);
@@ -167,6 +168,8 @@ void MetaImageImporter::execute() {
             sizeFound = true;
         } else if(key == "CompressedData" && value == "True") {
             isCompressed = true;
+        } else if(key == "CompressedDataSize") {
+            compressedDataSize = boost::lexical_cast<int>(value);
         } else if(key == "ElementDataFile") {
             rawFilename = value;
             rawFilenameFound = true;
@@ -287,19 +290,19 @@ void MetaImageImporter::execute() {
     DataType type;
     if(typeName == "MET_SHORT") {
         type = TYPE_INT16;
-        data = readRawData<short>(rawFilename, width, height, depth, nrOfComponents, isCompressed);
+        data = readRawData<short>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
     } else if(typeName == "MET_USHORT") {
         type = TYPE_UINT16;
-        data = readRawData<unsigned short>(rawFilename, width, height, depth, nrOfComponents, isCompressed);
+        data = readRawData<unsigned short>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
     } else if(typeName == "MET_CHAR") {
         type = TYPE_INT8;
-        data = readRawData<char>(rawFilename, width, height, depth, nrOfComponents, isCompressed);
+        data = readRawData<char>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
     } else if(typeName == "MET_UCHAR") {
         type = TYPE_UINT8;
-        data = readRawData<unsigned char>(rawFilename, width, height, depth, nrOfComponents, isCompressed);
+        data = readRawData<unsigned char>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
     } else if(typeName == "MET_FLOAT") {
         type = TYPE_FLOAT;
-        data = readRawData<float>(rawFilename, width, height, depth, nrOfComponents, isCompressed);
+        data = readRawData<float>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
     }
 
     if(imageIs3D) {
