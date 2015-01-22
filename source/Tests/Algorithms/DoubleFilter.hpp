@@ -2,7 +2,6 @@
 #define DOUBLEFILTER_HPP
 
 #include "ProcessObject.hpp"
-#include "Image.hpp"
 
 namespace fast {
 
@@ -12,6 +11,7 @@ namespace fast {
 class DoubleFilter : public ProcessObject {
     FAST_OBJECT(DoubleFilter)
     private:
+        // Constructor
         DoubleFilter();
         // This method will execute the algorithm
         void execute();

@@ -1,4 +1,5 @@
 #include "DoubleFilter.hpp"
+#include "Image.hpp"
 
 namespace fast {
 
@@ -25,10 +26,9 @@ inline void executeAlgorithmOnHost(Image::pointer input, Image::pointer output) 
 }
 
 void DoubleFilter::execute() {
+    // Get input and output data
     Image::pointer input = getStaticInputData<Image>(0);
-    std::cout << "got input data" << std::endl;
     Image::pointer output = getStaticOutputData<Image>(0);
-    std::cout << "got output data" << std::endl;
 
     // Initialize output image
     output->createFromImage(input, getMainDevice());
@@ -84,7 +84,6 @@ void DoubleFilter::execute() {
                 cl::NullRange
         );
     }
-    std::cout << "execute finished" << std::endl;
 }
 
 }
