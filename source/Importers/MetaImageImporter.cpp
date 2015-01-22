@@ -47,7 +47,7 @@ inline void * readRawData(std::string rawFilename, unsigned int width, unsigned 
         file.open(rawFilename, width*height*depth*nrOfComponents*sizeof(T));
         if(!file.is_open())
             throw FileNotFoundException(rawFilename);
-        T * fileData = (T*)file.data();
+        Bytef* fileData = (Bytef*)file.data();
 
         unsigned long uncompressedSize = sizeof(T)*width*height*depth*nrOfComponents;
         unsigned long fileSize = file.size();
