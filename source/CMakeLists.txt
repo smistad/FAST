@@ -135,6 +135,14 @@ if(ITK_INTEROP)
     set(LIBRARIES ${LIBRARIES} ${ITK_LIBRARIES})
 endif()
 
+## Z lib for compressed data (zraw)
+find_package(ZLIB)
+if(ZLIB_FOUND)
+    add_definitions("-DZLIB_ENABLED") # Tell FAST to use ZLIB
+    include_directories(${ZLIB_INCLUDE_DIRS})
+    set(LIBRARIES ${LIBRARIES} ${ZLIB_LIBRARIES})
+endif()
+
 
 #### Add all subdirs
 fast_add_subdirectories(Algorithms Data Streamers Importers Exporters Visualization Tests)

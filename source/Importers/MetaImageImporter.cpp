@@ -4,6 +4,7 @@
 #include <boost/iostreams/device/mapped_file.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
+#include <zlib.h>
 using namespace fast;
 
 void MetaImageImporter::setFilename(std::string filename) {
@@ -35,15 +36,57 @@ std::vector<std::string> stringSplit(std::string str, std::string delimiter) {
 }
 
 template <class T>
-void * readRawData(std::string rawFilename, unsigned int width, unsigned int height, unsigned int depth, unsigned int nrOfComponents) {
-    boost::iostreams::mapped_file_source file;
-    file.open(rawFilename, width*height*depth*nrOfComponents*sizeof(T));
-    if(!file.is_open())
-        throw FileNotFoundException(rawFilename);
+inline void * readRawData(std::string rawFilename, unsigned int width, unsigned int height, unsigned int depth, unsigned int nrOfComponents, bool compressed) {
     T * data = new T[width*height*depth*nrOfComponents];
-    T * fileData = (T*)file.data();
-    memcpy(data,fileData,width*height*depth*nrOfComponents*sizeof(T));
-    file.close();
+    if(compressed) {
+#ifdef ZLIB_ENABLED
+        // Read compressed data
+        boost::iostreams::mapped_file_source file;
+        file.open(rawFilename, width*height*depth*nrOfComponents*sizeof(T));
+        if(!file.is_open())
+            throw FileNotFoundException(rawFilename);
+        T * fileData = (T*)file.data();
+
+        unsigned long uncompressedSize = sizeof(T)*width*height*depth*nrOfComponents;
+        unsigned long fileSize = file.size();
+        int z_result = uncompress(
+            (Bytef*)data,       // destination for the uncompressed
+                                    // data.  This should be the size of
+                                    // the original data, which you should
+                                    // already know.
+
+            &uncompressedSize,  // length of destination (uncompressed)
+                                    // buffer
+
+            (Bytef*)fileData,   // source buffer - the compressed data
+
+            fileSize);   // length of compressed data in bytes
+        switch( z_result )
+        {
+        case Z_OK:
+            break;
+
+        case Z_MEM_ERROR:
+            throw Exception("Out of memory while decompressing raw file");
+            break;
+
+        case Z_BUF_ERROR:
+            throw Exception("Output buffer was not large enough while decompressing raw file");
+            break;
+        }
+        file.close();
+#else
+        throw Exception("Error reading MetaImage. Compressed raw files (.zraw) currently not supported.");
+#endif
+    } else {
+        boost::iostreams::mapped_file_source file;
+        file.open(rawFilename, width*height*depth*nrOfComponents*sizeof(T));
+        if(!file.is_open())
+            throw FileNotFoundException(rawFilename);
+        T * fileData = (T*)file.data();
+        memcpy(data,fileData,width*height*depth*nrOfComponents*sizeof(T));
+        file.close();
+    }
     return data;
 }
 
@@ -90,6 +133,7 @@ void MetaImageImporter::execute() {
 
     Vector3f spacing(1,1,1), offset(0,0,0), centerOfRotation(0,0,0);
     Matrix3f transformMatrix = Matrix3f::Identity();
+    bool isCompressed = false;
 
     do{
         std::getline(mhdFile, line);
@@ -119,6 +163,8 @@ void MetaImageImporter::execute() {
             width = boost::lexical_cast<int>(values[0]);
             height = boost::lexical_cast<int>(values[1]);
             sizeFound = true;
+        } else if(key == "CompressedData" && value == "True") {
+            isCompressed = true;
         } else if(key == "ElementDataFile") {
             rawFilename = value;
             rawFilenameFound = true;
@@ -234,26 +280,24 @@ void MetaImageImporter::execute() {
     if(!sizeFound || !rawFilenameFound || !typeFound || !dimensionsFound)
         throw Exception("Error reading the mhd file", __LINE__, __FILE__);
 
-    if(rawFilename.substr(rawFilename.length()-5) == ".zraw")
-        throw Exception("Error reading MetaImage. Compressed raw files (.zraw) currently not supported.");
 
     void * data;
     DataType type;
     if(typeName == "MET_SHORT") {
         type = TYPE_INT16;
-        data = readRawData<short>(rawFilename, width, height, depth, nrOfComponents);
+        data = readRawData<short>(rawFilename, width, height, depth, nrOfComponents, isCompressed);
     } else if(typeName == "MET_USHORT") {
         type = TYPE_UINT16;
-        data = readRawData<unsigned short>(rawFilename, width, height, depth, nrOfComponents);
+        data = readRawData<unsigned short>(rawFilename, width, height, depth, nrOfComponents, isCompressed);
     } else if(typeName == "MET_CHAR") {
         type = TYPE_INT8;
-        data = readRawData<char>(rawFilename, width, height, depth, nrOfComponents);
+        data = readRawData<char>(rawFilename, width, height, depth, nrOfComponents, isCompressed);
     } else if(typeName == "MET_UCHAR") {
         type = TYPE_UINT8;
-        data = readRawData<unsigned char>(rawFilename, width, height, depth, nrOfComponents);
+        data = readRawData<unsigned char>(rawFilename, width, height, depth, nrOfComponents, isCompressed);
     } else if(typeName == "MET_FLOAT") {
         type = TYPE_FLOAT;
-        data = readRawData<float>(rawFilename, width, height, depth, nrOfComponents);
+        data = readRawData<float>(rawFilename, width, height, depth, nrOfComponents, isCompressed);
     }
 
     if(imageIs3D) {
