@@ -18,10 +18,16 @@ class ImageFileStreamer : public Streamer, public ProcessObject {
         void setMaximumNumberOfFrames(uint nrOfFrames);
         void enableLooping();
         void disableLooping();
+        /**
+         * Set a sleep time after each frame is read
+         */
+        void setSleepTime(uint milliseconds);
         bool hasReachedEnd() const;
         uint getNrOfFrames() const;
-        // This method runs in a separate thread and adds frames to the
-        // output object
+        /**
+         * This method runs in a separate thread and adds frames to the
+         * output object
+         */
         void producerStream();
 
         ~ImageFileStreamer();
@@ -36,6 +42,7 @@ class ImageFileStreamer : public Streamer, public ProcessObject {
         uint mStartNumber;
         uint mNrOfFrames;
         uint mMaximumNrOfFrames;
+        uint mSleepTime;
 
         boost::thread *thread;
         boost::mutex mFirstFrameMutex;

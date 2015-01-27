@@ -132,7 +132,7 @@ void ImageRenderer::addInputConnection(ProcessObjectPort port) {
 
 ImageRenderer::ImageRenderer() : Renderer() {
     mTextureIsCreated = false;
-    mIsModified = true;
+    mIsModified = false;
     mDoTransformations = true;
 }
 
