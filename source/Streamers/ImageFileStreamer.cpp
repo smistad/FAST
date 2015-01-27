@@ -24,11 +24,18 @@ ImageFileStreamer::ImageFileStreamer() {
     mFilenameFormat = "";
     mNrOfFrames = 0;
     mSleepTime = 0;
+    mMaximumNrOfFramesSet = false;
 #if defined(__APPLE__) || defined(__MACOSX)
     mMaximumNrOfFrames = 0;
 #else
     setMaximumNumberOfFrames(50); // Set default maximum number of frames to 50
 #endif
+}
+
+void ImageFileStreamer::setStreamingMode(StreamingMode mode) {
+    if(mode == STREAMING_MODE_STORE_ALL_FRAMES && !mMaximumNrOfFramesSet)
+        setMaximumNumberOfFrames(0);
+    Streamer::setStreamingMode(mode);
 }
 
 uint ImageFileStreamer::getNrOfFrames() const {
