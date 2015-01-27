@@ -14,6 +14,7 @@ class SimpleWindow : public Object {
     FAST_OBJECT(SimpleWindow)
     public:
         void addRenderer(Renderer::pointer renderer);
+        void removeAllRenderers();
         void setMaximumFramerate(unsigned int framerate);
         void start();
         void setWindowSize(unsigned int w, unsigned int h);

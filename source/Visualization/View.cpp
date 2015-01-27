@@ -41,6 +41,11 @@ void View::addRenderer(Renderer::pointer renderer) {
 		mNonVolumeRenderers.push_back(renderer);
 }
 
+void View::removeAllRenderers() {
+    mVolumeRenderers.clear();
+    mNonVolumeRenderers.clear();
+}
+
 View::View() {
 
     zNear = 0.1;

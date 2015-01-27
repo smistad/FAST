@@ -15,6 +15,7 @@ class View : public QGLWidget, public ProcessObject {
     Q_OBJECT
     public:
         void addRenderer(Renderer::pointer renderer);
+        void removeAllRenderers();
         void keyPressEvent(QKeyEvent* event);
         void mouseMoveEvent(QMouseEvent* event);
         void mousePressEvent(QMouseEvent* event);

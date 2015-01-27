@@ -9,6 +9,10 @@ void SimpleWindow::addRenderer(Renderer::pointer renderer) {
     mWidget->getView()->addRenderer(renderer);
 }
 
+void SimpleWindow::removeAllRenderers() {
+    mWidget->getView()->removeAllRenderers();
+}
+
 void SimpleWindow::setMaximumFramerate(unsigned int framerate) {
     mWidget->getView()->setMaximumFramerate(framerate);
 }
