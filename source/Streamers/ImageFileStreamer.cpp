@@ -23,6 +23,7 @@ ImageFileStreamer::ImageFileStreamer() {
     mHasReachedEnd = false;
     mFilenameFormat = "";
     mNrOfFrames = 0;
+    mSleepTime = 0;
 #if defined(__APPLE__) || defined(__MACOSX)
     mMaximumNrOfFrames = 0;
 #else
@@ -32,6 +33,10 @@ ImageFileStreamer::ImageFileStreamer() {
 
 uint ImageFileStreamer::getNrOfFrames() const {
     return mNrOfFrames;
+}
+
+void ImageFileStreamer::setSleepTime(uint milliseconds) {
+    mSleepTime = milliseconds;
 }
 
 void ImageFileStreamer::setMaximumNumberOfFrames(uint nrOfFrames) {
@@ -92,6 +97,8 @@ void ImageFileStreamer::producerStream() {
             if(ptr.isValid()) {
                 try {
                     ptr->addFrame(image);
+                    if(mSleepTime > 0)
+                        boost::this_thread::sleep(boost::posix_time::milliseconds(mSleepTime));
                 } catch(NoMoreFramesException &e) {
                     throw e;
                 } catch(Exception &e) {
