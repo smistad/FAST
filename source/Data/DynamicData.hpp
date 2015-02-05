@@ -167,10 +167,7 @@ void DynamicData<T>::removeOldFrames(uint frameCounter) {
     typename boost::unordered_map<uint, typename T::pointer>::iterator it = mFrames2.begin();
     while(it != mFrames2.end()) {
         if(it->first < frameCounter) {
-
             it = mFrames2.erase(it);
-            if(mMaximumNrOfFrames > 0)
-                emptyCount->post(); // increment semaphore, indicating that producer can produce more
 		} else {
 			it++;
 		}
@@ -223,6 +220,10 @@ typename T::pointer DynamicData<T>::getNextFrame(WeakPointer<Object> processObje
         //return getCurrentFrame();
     }
 
+    // Producer consumer model
+    if(mMaximumNrOfFrames > 0 && streamer->getStreamingMode() == STREAMING_MODE_PROCESS_ALL_FRAMES) {
+        fillCount->wait(); // decrement
+    }
     mStreamMutex.lock();
     if(streamer->getStreamingMode() == STREAMING_MODE_NEWEST_FRAME_ONLY) {
         // Always return last frame
@@ -248,9 +249,6 @@ typename T::pointer DynamicData<T>::getNextFrame(WeakPointer<Object> processObje
     // Return frame
     typename T::pointer returnData;
     if(mFrames2.count(mConsumerFrameCounters[processObject]) > 0) {
-        if(mMaximumNrOfFrames > 0 && streamer->getStreamingMode() == STREAMING_MODE_PROCESS_ALL_FRAMES) {
-            fillCount->wait(); // decrement semaphore, indicating that consumers have consumed 1
-        }
         returnData = mFrames2[mConsumerFrameCounters[processObject]];
     } else {
         mStreamMutex.unlock();
@@ -263,34 +261,6 @@ typename T::pointer DynamicData<T>::getNextFrame(WeakPointer<Object> processObje
 
     // If PROCESS_ALL and this has smallest frame counter, remove old frame
     if(streamer->getStreamingMode() == STREAMING_MODE_PROCESS_ALL_FRAMES) {
-        // Check if one or more consumers have been removed
-        if(mConsumerFrameCounters.size() > 1) {
-            bool removed = false;
-            do {
-                removed = false;
-                boost::unordered_map<WeakPointer<Object>, uint>::const_iterator it;
-                uint lowestFrameCount = std::numeric_limits<uint>::max();
-                WeakPointer<Object> lowestConsumer;
-                uint highestFrameCount = 0;
-                WeakPointer<Object> highestConsumer;
-                for(it = mConsumerFrameCounters.begin(); it != mConsumerFrameCounters.end(); it++) {
-                    if(it->second < lowestFrameCount) {
-                        lowestFrameCount = it->second;
-                        lowestConsumer = it->first;
-                    }
-                    if(it->second > highestFrameCount) {
-                        highestFrameCount = it->second;
-                        highestConsumer = it->first;
-                    }
-                }
-                if(highestFrameCount - lowestFrameCount > mMaximumNrOfFrames-1) {
-                    // Remove lowest consumer
-                    mConsumerFrameCounters.erase(lowestConsumer);
-                    removed = true;
-                }
-            } while(removed);
-        }
-
         removeOldFrames(getLowestFrameCount());
         if(mFrames2.size() > 0) { // Update timestamp if there are more frames available
             updateModifiedTimestamp();
@@ -308,7 +278,11 @@ typename T::pointer DynamicData<T>::getNextFrame(WeakPointer<Object> processObje
         }
     }
 
-    mStreamMutex.unlock(); // should this be unlocked before removeOldFrames??
+    mStreamMutex.unlock();
+    // Producer consumer
+    if(mMaximumNrOfFrames > 0 && streamer->getStreamingMode() == STREAMING_MODE_PROCESS_ALL_FRAMES) {
+        emptyCount->post(); // increment
+    }
 
     return returnData;
 }
@@ -317,6 +291,22 @@ template <class T>
 typename T::pointer DynamicData<T>::getCurrentFrame() {
     Streamer::pointer streamer = getStreamer();
     mStreamMutex.lock();
+    /*
+    if(mFrames.size() == 0 || mFrames.size() <= mCurrentFrame) {
+        if(!streamer.isValid()) {
+            mStreamMutex.unlock();
+            throw Exception("Streamer does not exist (anymore), stop.");
+        } else {
+            if(streamer->hasReachedEnd()) {
+                mStreamMutex.unlock();
+                throw Exception("Streamer has reached the end.");
+            } else {
+                mStreamMutex.unlock();
+                throw Exception("This exception should not have occured. ");
+            }
+        }
+    }
+    */
     typename T::pointer ret = mCurrentFrame2;
     mStreamMutex.unlock();
     return ret;
@@ -333,6 +323,7 @@ void DynamicData<T>::addFrame(typename T::pointer frame) {
         if(streamer->getStreamingMode() == STREAMING_MODE_PROCESS_ALL_FRAMES) {
             // Producer consumer model using semaphores
             emptyCount->wait(); // decrement
+            //down(mutex);
         } else if(streamer->getStreamingMode() == STREAMING_MODE_STORE_ALL_FRAMES) {
             if(mFrames2.size() >= mMaximumNrOfFrames)
                 throw NoMoreFramesException("Maximum number of frames reached. You can change the this number using the setMaximumNumberOfFrames method on the streamer/dynamic data objects.");
@@ -349,7 +340,7 @@ void DynamicData<T>::addFrame(typename T::pointer frame) {
     mCurrentFrameCounter++;
     mStreamMutex.unlock();
     if(mMaximumNrOfFrames > 0 && streamer->getStreamingMode() == STREAMING_MODE_PROCESS_ALL_FRAMES) {
-        fillCount->post(); // increment, indicating that one more item has been produced
+        fillCount->post(); // increment
     }
 }
 

@@ -24,7 +24,7 @@ ImageFileStreamer::ImageFileStreamer() {
     mFilenameFormat = "";
     mNrOfFrames = 0;
     mSleepTime = 0;
-    mStepSize = 0;
+    mStepSize = 1;
     mMaximumNrOfFramesSet = false;
 #if defined(__APPLE__) || defined(__MACOSX)
     mMaximumNrOfFrames = 0;
