@@ -7,6 +7,8 @@
 #include <QtOpenGL/QGLWidget>
 #include <QTimer>
 #include <boost/thread.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/condition_variable.hpp>
 
 namespace fast {
 
@@ -25,9 +27,12 @@ class View : public QGLWidget, public ProcessObject {
         void set2DMode();
         void set3DMode();
         void updateAllRenderers();
+        void stopPipelineUpdateThread();
+        void resumePipelineUpdateThread();
         void quit();
         bool hasQuit() const;
         ~View();
+        void recalculateCamera();
 
 		 Vector3f cameraPosition;
 		 Vector3f rotationPoint;
@@ -55,6 +60,7 @@ class View : public QGLWidget, public ProcessObject {
         Vector3f originalCameraPosition;
         
         bool mQuit;
+        bool mUpdateThreadIsStopped;
         
 		float zNear, zFar;
         float fieldOfViewX, fieldOfViewY;
@@ -72,6 +78,8 @@ class View : public QGLWidget, public ProcessObject {
         float mScale2D;
 
         boost::thread* thread;
+        boost::condition_variable mUpdateThreadConditionVariable;
+        boost::mutex mUpdateThreadMutex;
     protected:
         void initializeGL();
         void paintGL();

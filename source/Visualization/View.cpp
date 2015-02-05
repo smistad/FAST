@@ -6,6 +6,7 @@
 #include "DeviceManager.hpp"
 #include "SliceRenderer.hpp"
 #include "ImageRenderer.hpp"
+#include "HelperFunctions.hpp"
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
@@ -66,7 +67,7 @@ View::View() {
     timer->setSingleShot(false);
     connect(timer,SIGNAL(timeout()),this,SLOT(update()));
 
-
+    mUpdateThreadIsStopped = false;
 
 	NonVolumesTurn=true;
 
@@ -108,6 +109,13 @@ void View::execute() {
 inline void stubStreamThread(View* view) {
     try {
         view->updateAllRenderers();
+        /*
+    } catch(cl::Error &e) {
+        std::cout << "OpenCL exception caugt" << std::endl;
+        std::cout << e.what() << std::endl;
+        std::cout << oul::getCLErrorString(e.err()) << std::endl;
+        throw e;
+        */
     } catch(Exception &e) {
         // If window has been killed, pipeline is stopped and should ignore any exceptions
         if(view != NULL) {
@@ -118,6 +126,22 @@ inline void stubStreamThread(View* view) {
     }
 }
 
+void View::stopPipelineUpdateThread() {
+    mUpdateThreadIsStopped = true;
+    // Block until mUpdateIsRunning is set to false
+    boost::unique_lock<boost::mutex> lock(mUpdateThreadMutex); // this locks the mutex
+    while(mUpdateIsRunning) {
+        // Unlocks the mutex and wait until someone calls notify.
+        // When it wakes, the mutex is locked again and mUpdateIsRunning is checked.
+        mUpdateThreadConditionVariable.wait(lock);
+    }
+    // mUpdateIsRunning is now false
+}
+
+void View::resumePipelineUpdateThread() {
+    mUpdateThreadIsStopped = false;
+}
+
 void View::updateAllRenderers() {
     for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
         mNonVolumeRenderers[i]->update();
@@ -125,7 +149,246 @@ void View::updateAllRenderers() {
     for(unsigned int i = 0; i < mVolumeRenderers.size(); i++) {
         mVolumeRenderers[i]->update();
     }
-    mUpdateIsRunning = false;
+    if(mUpdateThreadIsStopped) {
+        {
+            boost::unique_lock<boost::mutex> lock(mUpdateThreadMutex); // this locks the mutex
+            mUpdateIsRunning = false;
+        }
+        mUpdateThreadConditionVariable.notify_one();
+    } else {
+        mUpdateIsRunning = false;
+    }
+}
+
+void View::recalculateCamera() {
+    // Update all renderes, so that getBoundingBox works
+    for (unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
+        mNonVolumeRenderers[i]->update();
+    if (mIsIn2DMode) {
+        if (mNonVolumeRenderers.size() > 1)
+            throw Exception(
+                    "The 2D mode is currently only able to use one renderer");
+
+        // Have to find out rotation and scaling so to fit into the box
+        // Get bounding boxes of all objects
+        Vector3f min, max;
+        Vector3f centroid;
+        try {
+            SliceRenderer::pointer sliceRenderer = mNonVolumeRenderers[0];
+            sliceRenderer->turnOffTransformations();
+        } catch (Exception& e) {
+            try {
+                ImageRenderer::pointer imageRenderer = mNonVolumeRenderers[0];
+                imageRenderer->turnOffTransformations();
+            } catch (Exception& e) {
+                throw Exception(
+                        "The 2D mode currently does not support the volume renderer");
+            }
+        }
+        BoundingBox box = mNonVolumeRenderers[0]->getBoundingBox();
+        Vector3f corner = box.getCorners().row(0);
+        min[0] = corner[0];
+        max[0] = corner[0];
+        min[1] = corner[1];
+        max[1] = corner[1];
+        min[2] = corner[2];
+        max[2] = corner[2];
+        for (int i = 0; i < mNonVolumeRenderers.size(); i++) {
+            // Apply transformation to all b boxes
+            // Get max and min of x and y coordinates of the transformed b boxes
+            // Calculate centroid of all b boxes
+            BoundingBox box = mNonVolumeRenderers[i]->getBoundingBox();
+            std::cout << box << std::endl;
+            MatrixXf corners = box.getCorners();
+            for (int j = 0; j < 8; j++) {
+                for (uint k = 0; k < 3; k++) {
+                    if (corners(j, k) < min[k])
+                        min[k] = corners(j, k);
+
+                    if (corners(j, k) > max[k])
+                        max[k] = corners(j, k);
+                }
+            }
+        }
+        // Calculate area of each side of the resulting bounding box
+        float area[3] = { (max[0] - min[0]) * (max[1] - min[1]), // XY plane
+        (max[1] - min[1]) * (max[2] - min[2]), // YZ plane
+        (max[2] - min[2]) * (max[0] - min[0]) };
+        uint maxArea = 0;
+        for (uint i = 1; i < 3; i++) {
+            if (area[i] > area[maxArea])
+                maxArea = i;
+        }
+        // Find rotation needed
+        float angleX, angleY;
+        uint xDirection;
+        uint yDirection;
+        uint zDirection;
+        switch (maxArea) {
+            case 0:
+                xDirection = 0;
+                yDirection = 1;
+                zDirection = 2;
+                angleX = 0;
+                angleY = 0;
+            break;
+            case 1:
+                // Rotate 90 degres around Y axis
+                xDirection = 2;
+                yDirection = 1;
+                zDirection = 0;
+                angleX = 0;
+                angleY = 90;
+            break;
+            case 2:
+                // Rotate 90 degres around X axis
+                xDirection = 0;
+                yDirection = 2;
+                zDirection = 1;
+                angleX = 90;
+                angleY = 0;
+            break;
+        }
+        // Rotate object if needed
+        rotation[0] = angleX;
+        rotation[1] = angleY;
+        centroid[0] = max[0] - (max[0] - min[0]) * 0.5;
+        centroid[1] = max[1] - (max[1] - min[1]) * 0.5;
+        centroid[2] = max[2] - (max[2] - min[2]) * 0.5;
+        std::cout << "Centroid set to: " << centroid.x() << " " << centroid.y()
+                << " " << centroid.z() << std::endl;
+        // Initialize rotation point to centroid of object
+        rotationPoint = centroid;
+        std::cout << "rotation: " << angleX << " " << angleY << std::endl;
+        // Calculate initiali translation of camera
+        // Move centroid to z axis
+        cameraPosition[0] = 0; //-centroid.x();
+        cameraPosition[1] = 0; //-centroid.y();
+        // Calculate z distance from origo
+        cameraPosition[2] = -centroid[2];
+        mMinX2D = rotationPoint[0] - (max[xDirection] - min[xDirection]) * 0.5;
+        mMaxX2D = rotationPoint[0] + (max[xDirection] - min[xDirection]) * 0.5;
+        mMinY2D = rotationPoint[1] - (max[yDirection] - min[yDirection]) * 0.5;
+        mMaxY2D = rotationPoint[1] + (max[yDirection] - min[yDirection]) * 0.5;
+        mPosX2D = 0;
+        mPosY2D = 0;
+        std::cout << "min x: " << mMinX2D << std::endl;
+        std::cout << "max x: " << mMaxX2D << std::endl;
+        std::cout << "min y: " << mMinY2D << std::endl;
+        std::cout << "max y: " << mMaxY2D << std::endl;
+        originalCameraPosition = cameraPosition;
+        std::cout << "Camera pos set to: " << cameraPosition.x() << " "
+                << cameraPosition.y() << " " << cameraPosition.z() << std::endl;
+    } else {
+        // 3D Mode
+        if (mNonVolumeRenderers.size() > 0) {
+            aspect = (float) (this->width()) / this->height();
+            fieldOfViewX = aspect * fieldOfViewY;
+            // Initialize camera
+            // Get bounding boxes of all objects
+            Vector3f min, max;
+            Vector3f centroid;
+            BoundingBox box = mNonVolumeRenderers[0]->getBoundingBox();
+            Vector3f corner = box.getCorners().row(0);
+            min[0] = corner[0];
+            max[0] = corner[0];
+            min[1] = corner[1];
+            max[1] = corner[1];
+            min[2] = corner[2];
+            max[2] = corner[2];
+            for (int i = 0; i < mNonVolumeRenderers.size(); i++) {
+                // Apply transformation to all b boxes
+                // Get max and min of x and y coordinates of the transformed b boxes
+                BoundingBox box = mNonVolumeRenderers[i]->getBoundingBox();
+                MatrixXf corners = box.getCorners();
+                //std::cout << box << std::endl;
+                for (int j = 0; j < 8; j++) {
+                    for (uint k = 0; k < 3; k++) {
+                        if (corners(j, k) < min[k])
+                            min[k] = corners(j, k);
+
+                        if (corners(j, k) > max[k])
+                            max[k] = corners(j, k);
+                    }
+                }
+            }
+            // Calculate area of each side of the resulting bounding box
+            float area[3] = { (max[0] - min[0]) * (max[1] - min[1]), // XY plane
+            (max[1] - min[1]) * (max[2] - min[2]), // YZ plane
+            (max[2] - min[2]) * (max[0] - min[0]) };
+            uint maxArea = 0;
+            for (uint i = 1; i < 3; i++) {
+                if (area[i] > area[maxArea])
+                    maxArea = i;
+            }
+            // Find rotation needed
+            float angleX, angleY;
+            uint xDirection;
+            uint yDirection;
+            uint zDirection;
+            switch (maxArea) {
+                case 0:
+                    xDirection = 0;
+                    yDirection = 1;
+                    zDirection = 2;
+                    angleX = 0;
+                    angleY = 0;
+                break;
+                case 1:
+                    // Rotate 90 degres around Y axis
+                    xDirection = 2;
+                    yDirection = 1;
+                    zDirection = 0;
+                    angleX = 0;
+                    angleY = 90;
+                break;
+                case 2:
+                    // Rotate 90 degres around X axis
+                    xDirection = 0;
+                    yDirection = 2;
+                    zDirection = 1;
+                    angleX = 90;
+                    angleY = 0;
+                break;
+            }
+            // Rotate object if needed
+            rotation[0] = angleX;
+            rotation[1] = angleY;
+            // Max pos - half of the size
+            centroid[0] = max[0] - (max[0] - min[0]) * 0.5;
+            centroid[1] = max[1] - (max[1] - min[1]) * 0.5;
+            centroid[2] = max[2] - (max[2] - min[2]) * 0.5;
+            //std::cout << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << std::endl;
+            // Initialize rotation point to centroid of object
+            rotationPoint = centroid;
+            // Calculate initiali translation of camera
+            // Move centroid to z axis
+            // Note: Centroid does not change after rotation
+            cameraPosition[0] = -centroid[0];
+            cameraPosition[1] = -centroid[1];
+            // Calculate z distance
+            cameraPosition[2] = -centroid[2]; // first move objects to origo
+            // Move objects away from camera so that we see everything
+            float z_width = (max[xDirection] - min[xDirection]) * 0.5
+                    / tan(fieldOfViewX * 0.5);
+            float z_height = (max[yDirection] - min[yDirection]) * 0.5
+                    / tan(fieldOfViewY * 0.5);
+            //std::cout << "asd: " << z_width << " " << z_height << std::endl;
+            float minimumTranslationToSeeEntireObject = (
+                    z_width < z_height ? z_height : z_width);
+            float boundingBoxDepth = (max[zDirection] - min[zDirection]);
+            //std::cout << "minimum translation to see entire object: " << minimumTranslationToSeeEntireObject  << std::endl;
+            //std::cout << "half depth of bounding box " << boundingBoxDepth*0.5 << std::endl;
+            cameraPosition[2] += -minimumTranslationToSeeEntireObject
+                    - boundingBoxDepth * 0.5; // half of the depth of the bounding box
+            originalCameraPosition = cameraPosition;
+            //std::cout << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << std::endl;
+            zFar = (minimumTranslationToSeeEntireObject + boundingBoxDepth) * 2;
+            zNear = std::min(minimumTranslationToSeeEntireObject * 0.5, 0.1);
+            //std::cout << "set zFar to " << zFar << std::endl;
+            //std::cout << "set zNear to " << zNear << std::endl;
+        }
+    }
 }
 
 void View::initializeGL() {
@@ -207,275 +470,23 @@ void View::initializeGL() {
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
-		// Update all renderes
-		for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
-			mNonVolumeRenderers[i]->update();
 
-        setOpenGLContext(OpenCLDevice::pointer(DeviceManager::getInstance().getDefaultVisualizationDevice())->getGLContext());
+        recalculateCamera();
+        setOpenGLContext(
+                OpenCLDevice::pointer(
+                        DeviceManager::getInstance().getDefaultVisualizationDevice())->getGLContext());
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        // Set up viewport and projection transformation
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glViewport(0, 0, this->width(), this->height());
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_TEXTURE_2D);
+        if(mIsIn2DMode) {
 
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-
-		// Set up viewport and projection transformation
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glViewport(0, 0, this->width(), this->height());
-		glEnable(GL_DEPTH_TEST);
-		glEnable(GL_TEXTURE_2D);
-
-		if(mIsIn2DMode) {
-
-			if(mNonVolumeRenderers.size() > 1)
-				throw Exception("The 2D mode is currently only able to use one renderer");
-
-			// Have to find out rotation and scaling so to fit into the box
-			// Get bounding boxes of all objects
-			Vector3f min, max;
-			Vector3f centroid;
-			try {
-				SliceRenderer::pointer sliceRenderer = mNonVolumeRenderers[0];
-				sliceRenderer->turnOffTransformations();
-			} catch(Exception &e) {
-				try {
-					ImageRenderer::pointer imageRenderer = mNonVolumeRenderers[0];
-					imageRenderer->turnOffTransformations();
-				} catch(Exception &e) {
-					throw Exception("The 2D mode currently does not support the volume renderer");
-				}
-			}
-			BoundingBox box = mNonVolumeRenderers[0]->getBoundingBox();
-			Vector3f corner = box.getCorners().row(0);
-			min[0] = corner[0];
-			max[0] = corner[0];
-			min[1] = corner[1];
-			max[1] = corner[1];
-			min[2] = corner[2];
-			max[2] = corner[2];
-			for(int i = 0; i < mNonVolumeRenderers.size(); i++) {
-				// Apply transformation to all b boxes
-				// Get max and min of x and y coordinates of the transformed b boxes
-				// Calculate centroid of all b boxes
-
-				BoundingBox box =  mNonVolumeRenderers[i]->getBoundingBox();
-				std::cout << box << std::endl;
-				MatrixXf corners = box.getCorners();
-
-				for(int j = 0; j < 8; j++) {
-					for(uint k = 0; k < 3; k++) {
-						if(corners(j,k) < min[k])
-							min[k] = corners(j,k);
-						if(corners(j,k) > max[k])
-							max[k] = corners(j,k);
-					}
-				}
-			}
-
-			// Calculate area of each side of the resulting bounding box
-			float area[3] = {
-					(max[0]-min[0])*(max[1]-min[1]), // XY plane
-					(max[1]-min[1])*(max[2]-min[2]), // YZ plane
-					(max[2]-min[2])*(max[0]-min[0])  // XZ plane
-			};
-			uint maxArea = 0;
-			for(uint i = 1; i < 3; i++) {
-				if(area[i] > area[maxArea])
-					maxArea = i;
-			}
-
-			// Find rotation needed
-			float angleX, angleY;
-			uint xDirection;
-			uint yDirection;
-			uint zDirection;
-			switch(maxArea) {
-				case 0:
-					xDirection = 0;
-					yDirection = 1;
-					zDirection = 2;
-					angleX = 0;
-					angleY = 0;
-					break;
-				case 1:
-					// Rotate 90 degres around Y axis
-					xDirection = 2;
-					yDirection = 1;
-					zDirection = 0;
-					angleX = 0;
-					angleY = 90;
-					break;
-				case 2:
-					// Rotate 90 degres around X axis
-					xDirection = 0;
-					yDirection = 2;
-					zDirection = 1;
-					angleX = 90;
-					angleY = 0;
-					break;
-			}
-
-			// Rotate object if needed
-			rotation[0] = angleX;
-			rotation[1] = angleY;
-
-			centroid[0] = max[0] - (max[0]-min[0])*0.5;
-			centroid[1] = max[1] - (max[1]-min[1])*0.5;
-			centroid[2] = max[2] - (max[2]-min[2])*0.5;
-
-			std::cout << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << std::endl;
-
-			// Initialize rotation point to centroid of object
-			rotationPoint = centroid;
-
-			std::cout << "rotation: " << angleX << " " << angleY << std::endl;
-			// Calculate initiali translation of camera
-			// Move centroid to z axis
-			cameraPosition[0] = 0;//-centroid.x();
-			cameraPosition[1] = 0;//-centroid.y();
-
-
-			// Calculate z distance from origo
-			cameraPosition[2] = -centroid[2];
-			mMinX2D = rotationPoint[0] - (max[xDirection]-min[xDirection])*0.5;
-			mMaxX2D = rotationPoint[0] + (max[xDirection]-min[xDirection])*0.5;
-			mMinY2D = rotationPoint[1] - (max[yDirection]-min[yDirection])*0.5;
-			mMaxY2D = rotationPoint[1] + (max[yDirection]-min[yDirection])*0.5;
-			mPosX2D = 0;
-			mPosY2D = 0;
-
-			std::cout << "min x: " << mMinX2D << std::endl;
-			std::cout << "max x: " << mMaxX2D << std::endl;
-			std::cout << "min y: " << mMinY2D << std::endl;
-			std::cout << "max y: " << mMaxY2D << std::endl;
-
-			originalCameraPosition = cameraPosition;
-
-			std::cout << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << std::endl;
-
-		} else {
-				// 3D Mode
-			if (mNonVolumeRenderers.size() > 0)
-			{
-
-				aspect = (float)this->width() / this->height();
-				fieldOfViewX = aspect*fieldOfViewY;
-				// Initialize camera
-
-				// Get bounding boxes of all objects
-				Vector3f min, max;
-				Vector3f centroid;
-				BoundingBox box = mNonVolumeRenderers[0]->getBoundingBox();
-				Vector3f corner = box.getCorners().row(0);
-				min[0] = corner[0];
-				max[0] = corner[0];
-				min[1] = corner[1];
-				max[1] = corner[1];
-				min[2] = corner[2];
-				max[2] = corner[2];
-				for(int i = 0; i < mNonVolumeRenderers.size(); i++) {
-
-					// Apply transformation to all b boxes
-					// Get max and min of x and y coordinates of the transformed b boxes
-
-					BoundingBox box = mNonVolumeRenderers[i]->getBoundingBox();
-					MatrixXf corners = box.getCorners();
-					//std::cout << box << std::endl;
-
-
-                    for(int j = 0; j < 8; j++) {
-                        for(uint k = 0; k < 3; k++) {
-                            if(corners(j,k) < min[k])
-                                min[k] = corners(j,k);
-                            if(corners(j,k) > max[k])
-                                max[k] = corners(j,k);
-                        }
-                    }
-				}
-
-				// Calculate area of each side of the resulting bounding box
-				float area[3] = {
-                    (max[0]-min[0])*(max[1]-min[1]), // XY plane
-                    (max[1]-min[1])*(max[2]-min[2]), // YZ plane
-                    (max[2]-min[2])*(max[0]-min[0])  // XZ plane
-				};
-				uint maxArea = 0;
-				for(uint i = 1; i < 3; i++) {
-					if(area[i] > area[maxArea])
-						maxArea = i;
-				}
-
-				// Find rotation needed
-				float angleX, angleY;
-				uint xDirection;
-				uint yDirection;
-				uint zDirection;
-				switch(maxArea) {
-					case 0:
-						xDirection = 0;
-						yDirection = 1;
-						zDirection = 2;
-						angleX = 0;
-						angleY = 0;
-						break;
-					case 1:
-						// Rotate 90 degres around Y axis
-						xDirection = 2;
-						yDirection = 1;
-						zDirection = 0;
-						angleX = 0;
-						angleY = 90;
-						break;
-					case 2:
-						// Rotate 90 degres around X axis
-						xDirection = 0;
-						yDirection = 2;
-						zDirection = 1;
-						angleX = 90;
-						angleY = 0;
-						break;
-				}
-
-				// Rotate object if needed
-				rotation[0] = angleX;
-				rotation[1] = angleY;
-
-				// Max pos - half of the size
-				centroid[0] = max[0] - (max[0]-min[0])*0.5;
-				centroid[1] = max[1] - (max[1]-min[1])*0.5;
-				centroid[2] = max[2] - (max[2]-min[2])*0.5;
-
-				//std::cout << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << std::endl;
-
-				// Initialize rotation point to centroid of object
-				rotationPoint = centroid;
-
-				// Calculate initiali translation of camera
-				// Move centroid to z axis
-				// Note: Centroid does not change after rotation
-				cameraPosition[0] = -centroid[0];
-				cameraPosition[1] = -centroid[1];
-
-				// Calculate z distance
-				cameraPosition[2] = -centroid[2]; // first move objects to origo
-				// Move objects away from camera so that we see everything
-				float z_width = (max[xDirection]-min[xDirection])*0.5 / tan(fieldOfViewX*0.5);
-				float z_height = (max[yDirection]-min[yDirection])*0.5 / tan(fieldOfViewY*0.5);
-				//std::cout << "asd: " << z_width << " " << z_height << std::endl;
-				float minimumTranslationToSeeEntireObject = (z_width < z_height ? z_height : z_width);
-				float boundingBoxDepth = (max[zDirection]-min[zDirection]);
-				//std::cout << "minimum translation to see entire object: " << minimumTranslationToSeeEntireObject  << std::endl;
-				//std::cout << "half depth of bounding box " << boundingBoxDepth*0.5 << std::endl;
-				cameraPosition[2] += -minimumTranslationToSeeEntireObject
-						-boundingBoxDepth*0.5; // half of the depth of the bounding box
-
-				originalCameraPosition = cameraPosition;
-
-				//std::cout << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << std::endl;
-				zFar = (minimumTranslationToSeeEntireObject+boundingBoxDepth)*2;
-				zNear = std::min(minimumTranslationToSeeEntireObject*0.5, 0.1);
-				//std::cout << "set zFar to " << zFar << std::endl;
-				//std::cout << "set zNear to " << zNear << std::endl;
-				gluPerspective(fieldOfViewY, aspect, zNear, zFar);
-			}
-		}
+        } else {
+            gluPerspective(fieldOfViewY, aspect, zNear, zFar);
+        }
 	}
 	else
 	{
@@ -751,7 +762,7 @@ void View::paintGL() {
 		}
         releaseOpenGLContext();
 
-        if(!mUpdateIsRunning) {
+        if(!mUpdateIsRunning && !mUpdateThreadIsStopped) {
             // Spawn a new thread
             mUpdateIsRunning = true;
 #if defined(__APPLE__) || defined(__MACOSX)
