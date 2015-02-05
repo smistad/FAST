@@ -16,6 +16,7 @@ class ImageFileStreamer : public Streamer, public ProcessObject {
         void setStartNumber(uint startNumber);
         void setStepSize(uint step);
         void setZeroFilling(uint digits);
+        void setStreamingMode(StreamingMode mode);
         void setMaximumNumberOfFrames(uint nrOfFrames);
         void enableLooping();
         void disableLooping();
@@ -43,6 +44,7 @@ class ImageFileStreamer : public Streamer, public ProcessObject {
         uint mStartNumber;
         uint mNrOfFrames;
         uint mMaximumNrOfFrames;
+        bool mMaximumNrOfFramesSet;
         uint mSleepTime;
         uint mStepSize;
 

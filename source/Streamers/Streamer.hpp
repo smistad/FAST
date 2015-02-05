@@ -19,8 +19,8 @@ class Streamer {
         typedef SharedPointer<Streamer> pointer;
         virtual void producerStream() = 0;
         virtual ~Streamer() {};
-        void setStreamingMode(StreamingMode mode);
-        StreamingMode getStreamingMode() const;
+        virtual void setStreamingMode(StreamingMode mode);
+        virtual StreamingMode getStreamingMode() const;
         virtual bool hasReachedEnd() const = 0;
         virtual uint getNrOfFrames() const = 0;
     protected:

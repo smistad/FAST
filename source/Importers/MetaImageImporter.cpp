@@ -136,7 +136,7 @@ void MetaImageImporter::execute() {
     Vector3f spacing(1,1,1), offset(0,0,0), centerOfRotation(0,0,0);
     Matrix3f transformMatrix = Matrix3f::Identity();
     bool isCompressed = false;
-    std::size_t compressedDataSize;
+    std::size_t compressedDataSize = 0;
 
     do{
         std::getline(mhdFile, line);

@@ -55,6 +55,7 @@ inline std::size_t writeToRawFile(std::string filename, T * data, unsigned int n
         free(writeData);
 #endif
     } else {
+        returnSize = sizeof(T)*numberOfElements;
         fwrite(data, sizeof(T), numberOfElements, file);
         fclose(file);
     }
