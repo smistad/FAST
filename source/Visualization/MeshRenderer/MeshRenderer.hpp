@@ -22,7 +22,6 @@ class MeshRenderer : public Renderer {
         void execute();
         void draw();
 
-        OpenCLDevice::pointer mDevice;
         boost::unordered_map<ProcessObjectPort, Color> mInputColors;
         boost::unordered_map<ProcessObjectPort, float> mInputOpacities;
         boost::unordered_map<uint, Mesh::pointer> mMeshToRender;

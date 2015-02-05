@@ -12,6 +12,8 @@ class PointRenderer : public Renderer {
     public:
         void addInputConnection(ProcessObjectPort port);
         void addInputConnection(ProcessObjectPort port, Color color, float size);
+        void addInputData(PointSet::pointer data);
+        void addInputData(PointSet::pointer data, Color color, float size);
         void setDefaultColor(Color color);
         void setDefaultSize(float size);
         void setDefaultDrawOnTop(bool drawOnTop);

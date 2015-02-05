@@ -19,6 +19,7 @@ void MeshRenderer::addInputConnection(ProcessObjectPort port) {
     uint nr = getNrOfInputData();
     releaseInputAfterExecute(nr, false);
     setInputConnection(nr, port);
+    mIsModified = true;
 }
 
 void MeshRenderer::addInputConnection(ProcessObjectPort port, Color color, float opacity) {
@@ -29,7 +30,6 @@ void MeshRenderer::addInputConnection(ProcessObjectPort port, Color color, float
 
 
 MeshRenderer::MeshRenderer() : Renderer() {
-    mDevice = DeviceManager::getInstance().getDefaultVisualizationDevice();
     mDefaultOpacity = 1;
     mDefaultColor = Color::Green();
 }
@@ -37,7 +37,7 @@ MeshRenderer::MeshRenderer() : Renderer() {
 void MeshRenderer::execute() {
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
         Mesh::pointer input = getStaticInputData<Mesh>(inputNr);
-    mMeshToRender[inputNr] = input;
+        mMeshToRender[inputNr] = input;
     }
 }
 
@@ -47,8 +47,9 @@ void MeshRenderer::draw() {
     glShadeModel(GL_SMOOTH);
     glEnable(GL_LIGHTING);
 
-    for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
-        Mesh::pointer surfaceToRender = mMeshToRender[inputNr];
+    boost::unordered_map<uint, Mesh::pointer>::iterator it;
+    for(it = mMeshToRender.begin(); it != mMeshToRender.end(); it++) {
+        Mesh::pointer surfaceToRender = it->second;
         // Draw the triangles in the VBO
         LinearTransformation transform = SceneGraph::getLinearTransformationFromData(surfaceToRender);
 
@@ -57,7 +58,7 @@ void MeshRenderer::draw() {
 
         float opacity = mDefaultOpacity;
         Color color = mDefaultColor;
-        ProcessObjectPort port = getInputPort(inputNr);
+        ProcessObjectPort port = getInputPort(it->first);
         if(mInputOpacities.count(port) > 0) {
             opacity = mInputOpacities[port];
         }
@@ -79,8 +80,8 @@ void MeshRenderer::draw() {
         glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
 
         releaseOpenGLContext();
-        VertexBufferObjectAccess access = surfaceToRender->getVertexBufferObjectAccess(ACCESS_READ, mDevice);
-        setOpenGLContext(mDevice->getGLContext());
+        VertexBufferObjectAccess access = surfaceToRender->getVertexBufferObjectAccess(ACCESS_READ, getMainDevice());
+        setOpenGLContext(OpenCLDevice::pointer(getMainDevice())->getGLContext());
         GLuint* VBO_ID = access.get();
 
         // Normal Buffer

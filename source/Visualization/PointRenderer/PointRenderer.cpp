@@ -88,6 +88,21 @@ void PointRenderer::addInputConnection(ProcessObjectPort port, Color color,
     setSize(port, size);
 }
 
+void PointRenderer::addInputData(PointSet::pointer data) {
+    uint nr = getNrOfInputData();
+    releaseInputAfterExecute(nr, false);
+    setInputData(nr, data);
+}
+
+void PointRenderer::addInputData(PointSet::pointer data, Color color, float size) {
+    uint nr = getNrOfInputData();
+    addInputData(data);
+    ProcessObjectPort port = getInputPort(nr);
+    setColor(port, color);
+    setSize(port, size);
+}
+
+
 void PointRenderer::setDefaultColor(Color color) {
     mDefaultColor = color;
 }
