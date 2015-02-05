@@ -182,6 +182,8 @@ void ImageFileStreamer::disableLooping() {
 }
 
 void ImageFileStreamer::setStepSize(uint stepSize) {
+    if(stepSize == 0)
+        throw Exception("Step size given to ImageFileStreamer can't be 0");
     mStepSize = stepSize;
 }
 
