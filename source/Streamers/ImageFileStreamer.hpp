@@ -14,6 +14,7 @@ class ImageFileStreamer : public Streamer, public ProcessObject {
     public:
         void setFilenameFormat(std::string str);
         void setStartNumber(uint startNumber);
+        void setStepSize(uint step);
         void setZeroFilling(uint digits);
         void setMaximumNumberOfFrames(uint nrOfFrames);
         void enableLooping();
@@ -43,6 +44,7 @@ class ImageFileStreamer : public Streamer, public ProcessObject {
         uint mNrOfFrames;
         uint mMaximumNrOfFrames;
         uint mSleepTime;
+        uint mStepSize;
 
         boost::thread *thread;
         boost::mutex mFirstFrameMutex;

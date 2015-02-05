@@ -24,6 +24,7 @@ ImageFileStreamer::ImageFileStreamer() {
     mFilenameFormat = "";
     mNrOfFrames = 0;
     mSleepTime = 0;
+    mStepSize = 0;
 #if defined(__APPLE__) || defined(__MACOSX)
     mMaximumNrOfFrames = 0;
 #else
@@ -117,7 +118,7 @@ void ImageFileStreamer::producerStream() {
                 break;
             }
             mNrOfFrames++;
-            i++;
+            i += mStepSize;
         } catch(FileNotFoundException &e) {
             if(i > 0) {
                 std::cout << "Reached end of stream" << std::endl;
@@ -171,6 +172,10 @@ void ImageFileStreamer::enableLooping() {
 
 void ImageFileStreamer::disableLooping() {
     mLoop = false;
+}
+
+void ImageFileStreamer::setStepSize(uint stepSize) {
+    mStepSize = stepSize;
 }
 
 } // end namespace fast
