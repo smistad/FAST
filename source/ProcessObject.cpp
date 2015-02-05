@@ -182,7 +182,7 @@ DataObject::pointer ProcessObject::getOutputDataX(uint portID) const {
 
     // If output data is not created
     if(mOutputData.count(portID) == 0) {
-        throw Exception("Could not find data for port");
+        throw Exception("Could not find output data for port " + boost::lexical_cast<std::string>(portID));
     } else {
         data = mOutputData.at(portID);
     }
