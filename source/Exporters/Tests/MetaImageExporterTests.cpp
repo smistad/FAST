@@ -181,6 +181,7 @@ TEST_CASE("Write a 3D image with the MetaImageExporter", "[fast][MetaImageExport
     }
 }
 
+#ifdef ZLIB_ENABLED
 TEST_CASE("Write a compressed 2D image with the MetaImageExporter", "[fast][MetaImageExporter]") {
     // Create some metadata
     Vector3f spacing;
@@ -345,3 +346,4 @@ TEST_CASE("Write a compressed 3D image with the MetaImageExporter", "[fast][Meta
         }
     }
 }
+#endif
