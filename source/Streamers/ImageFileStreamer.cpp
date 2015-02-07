@@ -26,11 +26,7 @@ ImageFileStreamer::ImageFileStreamer() {
     mSleepTime = 0;
     mStepSize = 1;
     mMaximumNrOfFramesSet = false;
-#if defined(__APPLE__) || defined(__MACOSX)
-    mMaximumNrOfFrames = 0;
-#else
     setMaximumNumberOfFrames(50); // Set default maximum number of frames to 50
-#endif
 }
 
 void ImageFileStreamer::setStreamingMode(StreamingMode mode) {

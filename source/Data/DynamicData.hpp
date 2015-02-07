@@ -6,7 +6,9 @@
 #include <vector>
 #include <boost/unordered_map.hpp>
 #include <boost/interprocess/sync/interprocess_semaphore.hpp>
+#include <boost/interprocess/sync/named_semaphore.hpp>
 #include "ProcessObject.hpp"
+#include <boost/lexical_cast.hpp>
 
 namespace fast {
 
@@ -61,8 +63,16 @@ class DynamicData : public virtual DataObject {
         typename T::pointer mCurrentFrame2;
 
         uint mMaximumNrOfFrames;
+
+        // Use named semaphore if Mac
+#if defined(__APPLE__) || defined(__MACOSX)
+        uint mSemaphoreNumber;
+        boost::interprocess::named_semaphore* fillCount;
+        boost::interprocess::named_semaphore* emptyCount;
+#else
         boost::interprocess::interprocess_semaphore* fillCount;
         boost::interprocess::interprocess_semaphore* emptyCount;
+#endif
 
         boost::mutex mStreamMutex;
 
@@ -133,6 +143,13 @@ template <class T>
 DynamicData<T>::~DynamicData() {
     delete fillCount;
     delete emptyCount;
+
+#if defined(__APPLE__) || defined(__MACOSX)
+    std::string name = "FAST_dynamic_data_fill_count_" + boost::lexical_cast<std::string>(mSemaphoreNumber);
+    boost::interprocess::named_semaphore::remove(name.c_str());
+    name = "FAST_dynamic_data_empty_count_" + boost::lexical_cast<std::string>(mSemaphoreNumber);
+    boost::interprocess::named_semaphore::remove(name.c_str());
+#endif
 }
 template <class T>
 void DynamicData<T>::setMaximumNumberOfFrames(uint nrOfFrames) {
@@ -142,8 +159,19 @@ void DynamicData<T>::setMaximumNumberOfFrames(uint nrOfFrames) {
     if(mMaximumNrOfFrames > 0) {
         delete fillCount;
         delete emptyCount;
+
+        // Use named semaphore if Mac
+#if defined(__APPLE__) || defined(__MACOSX)
+        std::string name = "FAST_dynamic_data_fill_count_" + boost::lexical_cast<std::string>(mSemaphoreNumber);
+        boost::interprocess::named_semaphore::remove(name.c_str());
+        std::string name2 = "FAST_dynamic_data_empty_count_" + boost::lexical_cast<std::string>(mSemaphoreNumber);
+        boost::interprocess::named_semaphore::remove(name2.c_str());
+        fillCount = new boost::interprocess::named_semaphore(boost::interprocess::create_only, name.c_str(), 0);
+        emptyCount = new boost::interprocess::named_semaphore(boost::interprocess::create_only, name2.c_str(), nrOfFrames);
+#else
         fillCount = new boost::interprocess::interprocess_semaphore(0);
         emptyCount = new boost::interprocess::interprocess_semaphore(nrOfFrames);
+#endif
     }
 }
 
@@ -355,6 +383,12 @@ DynamicData<T>::DynamicData() {
     fillCount = NULL;
     emptyCount = NULL;
     updateModifiedTimestamp();
+
+#if defined(__APPLE__) || defined(__MACOSX)
+    static uint namedSemaphoresCount = 0;
+    mSemaphoreNumber = namedSemaphoresCount;
+    namedSemaphoresCount++;
+#endif
 }
 
 
@@ -393,6 +427,7 @@ bool DynamicData<T>::hasReachedEnd() {
     mStreamMutex.unlock();
     return mHasReachedEnd;
 }
+
 
 } // end namespace fast
 
