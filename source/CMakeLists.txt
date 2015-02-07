@@ -185,7 +185,13 @@ endif()
 #### Create FAST library and executables
 add_library(FAST ${FAST_SOURCE_FILES} ${HEADERS_MOC})
 if(BUILD_TESTS)
-    add_executable(test ${FAST_TEST_SOURCE_FILES} ${OUL_TEST_SOURCE_FILES})
+    if(APPLE)
+        # Do not run OUL test on Apple at the moment
+        # TODO: fix the HP OUL tests
+        add_executable(test ${FAST_TEST_SOURCE_FILES})
+    else()
+        add_executable(test ${FAST_TEST_SOURCE_FILES} ${OUL_TEST_SOURCE_FILES})
+    endif()
 endif()
 
 ## Link everything
