@@ -139,10 +139,12 @@ void DynamicData<T>::setMaximumNumberOfFrames(uint nrOfFrames) {
     mMaximumNrOfFrames = nrOfFrames;
     if(mFrames2.size() > 0)
         throw Exception("Must call setMaximumNumberOfFrames before streaming is started");
-    delete fillCount;
-    delete emptyCount;
-    fillCount = new boost::interprocess::interprocess_semaphore(0);
-    emptyCount = new boost::interprocess::interprocess_semaphore(nrOfFrames);
+    if(mMaximumNrOfFrames > 0) {
+        delete fillCount;
+        delete emptyCount;
+        fillCount = new boost::interprocess::interprocess_semaphore(0);
+        emptyCount = new boost::interprocess::interprocess_semaphore(nrOfFrames);
+    }
 }
 
 template <class T>
