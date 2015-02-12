@@ -1,5 +1,5 @@
-#ifndef GAUSSIANSMOOTHINGFILTER_HPP_
-#define GAUSSIANSMOOTHINGFILTER_HPP_
+#ifndef LAPLACIAN_OF_GAUSSIAN_HPP_
+#define LAPLACIAN_OF_GAUSSIAN_HPP_
 
 #include "ProcessObject.hpp"
 #include "ExecutionDevice.hpp"
@@ -38,4 +38,4 @@ class LaplacianOfGaussian : public ProcessObject {
 
 
 
-#endif /* GAUSSIANSMOOTHINGFILTER_HPP_ */
+#endif
