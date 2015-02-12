@@ -1,5 +1,6 @@
 fast_add_subdirectories(
     GaussianSmoothingFilter
+    LaplacianOfGaussian
     SeededRegionGrowing
     SurfaceExtraction
     Skeletonization
