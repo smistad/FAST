@@ -12,9 +12,11 @@ void SceneGraphNode::reset() {
     setTransformation(LinearTransformation());
 }
 
+// Set transformation to its parent
 void SceneGraphNode::setTransformation(
         LinearTransformation transformation) {
     mTransformation = transformation;
+    mIsRootNode = false;
 }
 
 void SceneGraphNode::setParent(SceneGraphNode::pointer parent) {
@@ -74,6 +76,16 @@ void SceneGraph::setParentNode(DataObject::pointer child,
     SceneGraphNode::pointer thisNode = child->getSceneGraphNode();
     SceneGraphNode::pointer parentNode = parent->getSceneGraphNode();
     thisNode->setParent(parentNode);
+}
+
+
+void SceneGraph::insertParentNode(DataObject::pointer child, LinearTransformation transform) {
+    SceneGraphNode::pointer childNode = child->getSceneGraphNode();
+    SceneGraphNode::pointer newNode = SceneGraphNode::New();
+    newNode->setTransformation(childNode->getLinearTransformation());
+    newNode->setParent(childNode->getParent());
+    childNode->setTransformation(transform);
+    childNode->setParent(newNode);
 }
 
 } // end namespace fast
