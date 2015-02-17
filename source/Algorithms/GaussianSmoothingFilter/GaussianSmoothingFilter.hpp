@@ -12,6 +12,7 @@ class GaussianSmoothingFilter : public ProcessObject {
     public:
         void setMaskSize(unsigned char maskSize);
         void setStandardDeviation(float stdDev);
+        void setOutputType(DataType type);
         ~GaussianSmoothingFilter();
     private:
         GaussianSmoothingFilter();
@@ -30,6 +31,8 @@ class GaussianSmoothingFilter : public ProcessObject {
         cl::Kernel mKernel;
         unsigned char mDimensionCLCodeCompiledFor;
         DataType mTypeCLCodeCompiledFor;
+        DataType mOutputType;
+        bool mOutputTypeSet;
 
 };
 

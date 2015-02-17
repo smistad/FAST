@@ -14,18 +14,18 @@ __kernel void gaussianSmoothing(
     for(int x = -halfSize; x <= halfSize; x++) {
     for(int y = -halfSize; y <= halfSize; y++) {
         const int2 offset = {x,y};
-#ifdef TYPE_FLOAT
+#ifdef INPUT_TYPE_FLOAT
         sum += mask[x+halfSize+(y+halfSize)*maskSize]*read_imagef(input, sampler, pos+offset).x;
-#elif TYPE_UINT
+#elif INPUT_TYPE_UINT
         sum += mask[x+halfSize+(y+halfSize)*maskSize]*read_imageui(input, sampler, pos+offset).x;
 #else
         sum += mask[x+halfSize+(y+halfSize)*maskSize]*read_imagei(input, sampler, pos+offset).x;
 #endif
     }}
 
-#ifdef TYPE_FLOAT
+#ifdef OUTPUT_TYPE_FLOAT
     write_imagef(output, pos, sum);
-#elif TYPE_UINT
+#elif OUTPUT_TYPE_UINT
     write_imageui(output, pos, round(sum));
 #else
     write_imagei(output, pos, round(sum));

@@ -18,18 +18,18 @@ __kernel void gaussianSmoothing(
     for(int z = -halfSize; z <= halfSize; z++) {
         const int4 offset = {x,y,z,0};
         const uint maskOffset = x+halfSize+(y+halfSize)*maskSize+(z+halfSize)*maskSize*maskSize;
-#ifdef TYPE_FLOAT
+#ifdef INPUT_TYPE_FLOAT
         sum += mask[maskOffset]*read_imagef(input, sampler, pos+offset).x;
-#elif TYPE_UINT
+#elif INPUT_TYPE_UINT
         sum += mask[maskOffset]*read_imageui(input, sampler, pos+offset).x;
 #else
         sum += mask[maskOffset]*read_imagei(input, sampler, pos+offset).x;
 #endif
     }}}
 
-#ifdef TYPE_FLOAT
+#ifdef OUTPUT_TYPE_FLOAT
     write_imagef(output, pos, sum);
-#elif TYPE_UINT
+#elif OUTPUT_TYPE_UINT
     write_imageui(output, pos, round(sum));
 #else
     write_imagei(output, pos, round(sum));
@@ -53,9 +53,9 @@ __kernel void gaussianSmoothing(
     for(int z = -halfSize; z <= halfSize; z++) {
         const int4 offset = {x,y,z,0};
         const uint maskOffset = x+halfSize+(y+halfSize)*maskSize+(z+halfSize)*maskSize*maskSize;
-#ifdef TYPE_FLOAT
+#ifdef INPUT_TYPE_FLOAT
         sum += mask[maskOffset]*read_imagef(input, sampler, pos+offset).x;
-#elif TYPE_UINT
+#elif INPUT_TYPE_UINT
         sum += mask[maskOffset]*read_imageui(input, sampler, pos+offset).x;
 #else
         sum += mask[maskOffset]*read_imagei(input, sampler, pos+offset).x;

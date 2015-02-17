@@ -15,6 +15,12 @@ void GaussianSmoothingFilter::setMaskSize(unsigned char maskSize) {
     mRecreateMask = true;
 }
 
+void GaussianSmoothingFilter::setOutputType(DataType type) {
+    mOutputType = type;
+    mOutputTypeSet = true;
+    mIsModified = true;
+}
+
 void GaussianSmoothingFilter::setStandardDeviation(float stdDev) {
     if(stdDev <= 0)
         throw Exception("Standard deviation of GaussianSmoothingFilter can't be less than 0.");
@@ -32,6 +38,7 @@ GaussianSmoothingFilter::GaussianSmoothingFilter() {
     mRecreateMask = true;
     mDimensionCLCodeCompiledFor = 0;
     mMask = NULL;
+    mOutputTypeSet = false;
 }
 
 GaussianSmoothingFilter::~GaussianSmoothingFilter() {
@@ -97,13 +104,20 @@ void GaussianSmoothingFilter::recompileOpenCLCode(Image::pointer input) {
     OpenCLDevice::pointer device = getMainDevice();
     std::string buildOptions = "";
     if(input->getDataType() == TYPE_FLOAT) {
-        buildOptions = "-DTYPE_FLOAT";
+        buildOptions = "-DINPUT_TYPE_FLOAT";
     } else if(input->getDataType() == TYPE_INT8 || input->getDataType() == TYPE_INT16) {
-        buildOptions = "-DTYPE_INT";
+        buildOptions = "-DINPUT_TYPE_INT";
     } else {
-        buildOptions = "-DTYPE_UINT";
+        buildOptions = "-DINPUT_TYPE_UINT";
     }
-    switch(input->getDataType()) {
+    if(mOutputType == TYPE_FLOAT) {
+        buildOptions = "-DOUTPUT_TYPE_FLOAT";
+    } else if(mOutputType == TYPE_INT8 || mOutputType == TYPE_INT16) {
+        buildOptions = "-DOUTPUT_TYPE_INT";
+    } else {
+        buildOptions = "-DOUTPUT_TYPE_UINT";
+    }
+    switch(mOutputType) {
         case TYPE_FLOAT:
             buildOptions += " -DTYPE=float";
             break;
@@ -197,7 +211,29 @@ void GaussianSmoothingFilter::execute() {
 
     // Initialize output image
     ExecutionDevice::pointer device = getMainDevice();
-    output->createFromImage(input, device);
+    if(mOutputTypeSet) {
+        if(input->getDimensions() == 2) {
+            output->create2DImage(
+                    input->getWidth(),
+                    input->getHeight(),
+                    mOutputType,
+                    input->getNrOfComponents(),
+                    device
+            );
+        } else {
+             output->create3DImage(
+                    input->getWidth(),
+                    input->getHeight(),
+                    input->getDepth(),
+                    mOutputType,
+                    input->getNrOfComponents(),
+                    device
+            );
+        }
+    } else {
+        output->createFromImage(input, device);
+    }
+    mOutputType = output->getDataType();
 
     createMask(input);
 
