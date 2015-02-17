@@ -23,11 +23,5 @@ __kernel void laplacianOfGaussian(
 #endif
     }}
 
-#ifdef TYPE_FLOAT
     write_imagef(output, pos, sum);
-#elif TYPE_UINT
-    write_imageui(output, pos, round(sum));
-#else
-    write_imagei(output, pos, round(sum));
-#endif
 }

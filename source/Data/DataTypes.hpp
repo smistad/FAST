@@ -26,6 +26,7 @@ using Eigen::MatrixXf;
 using Eigen::Matrix3f;
 using Eigen::Matrix4f;
 using Eigen::VectorXf;
+using Eigen::VectorXi;
 using Eigen::Vector4f;
 using Eigen::Vector3f;
 using Eigen::Vector2f;

@@ -45,34 +45,30 @@ void LaplacianOfGaussian::createMask(Image::pointer input) {
 
     unsigned char halfSize = (mMaskSize-1)/2;
     float sum = 0.0f;
+    float sum2 = 0.0f;
 
     if(input->getDimensions() == 2) {
         mMask = new float[mMaskSize*mMaskSize];
 
         for(int x = -halfSize; x <= halfSize; x++) {
         for(int y = -halfSize; y <= halfSize; y++) {
-            float value = ((x*x+y*y-mStdDev*mStdDev)/(mStdDev*mStdDev*mStdDev*mStdDev))*exp(-(float)(x*x+y*y)/(2.0f*mStdDev*mStdDev));
+            float value = (x*x + y*y - 2.0f*mStdDev*mStdDev) * exp( -(float)(x*x + y*y)/(2.0f*mStdDev*mStdDev) ) /
+                    (2.0f*M_PI*pow(mStdDev, 6.0f)); // Matlab only uses pow(mStdDev, 4.0) for some reason
             mMask[x+halfSize+(y+halfSize)*mMaskSize] = value;
-            sum += value;
+            sum += exp( -(float)(x*x + y*y)/(2.0f*mStdDev*mStdDev) );
         }}
 
-        for(int i = 0; i < mMaskSize*mMaskSize; i++)
+        // Normalize gaussian
+        for(int i = 0; i < mMaskSize*mMaskSize; i++) {
             mMask[i] /= sum;
+            sum2 += mMask[i];
+        }
+        // Make mask sum to zero
+        for(int i = 0; i < mMaskSize*mMaskSize; i++) {
+            mMask[i] = mMask[i] - sum2/(mMaskSize*mMaskSize);
+        }
     } else if(input->getDimensions() == 3) {
-        /*
-         mMask = new float[mMaskSize*mMaskSize*mMaskSize];
 
-        for(int x = -halfSize; x <= halfSize; x++) {
-        for(int y = -halfSize; y <= halfSize; y++) {
-        for(int z = -halfSize; z <= halfSize; z++) {
-            float value = exp(-(float)(x*x+y*y+z*z)/(2.0f*mStdDev*mStdDev));
-            mMask[x+halfSize+(y+halfSize)*mMaskSize+(z+halfSize)*mMaskSize*mMaskSize] = value;
-            sum += value;
-        }}}
-
-        for(int i = 0; i < mMaskSize*mMaskSize*mMaskSize; i++)
-            mMask[i] /= sum;
-            */
     }
 
     ExecutionDevice::pointer device = getMainDevice();
@@ -202,7 +198,13 @@ void LaplacianOfGaussian::execute() {
 
     // Initialize output image
     ExecutionDevice::pointer device = getMainDevice();
-    output->createFromImage(input, device);
+    output->create2DImage(
+            input->getWidth(),
+            input->getHeight(),
+            TYPE_FLOAT,
+            1,
+            device
+    );
 
     createMask(input);
 
