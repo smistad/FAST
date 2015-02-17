@@ -2,9 +2,15 @@
 
 FAST (Framework for Heterogeneous Medical Image Computing and Visualization) is an open-source cross-platform framework with the main goal of making it easier to do processing and visualization of medical images on heterogeneous systems (CPU+GPU).
 
-A detailed description of the framework design can be found [here](https://github.com/smistad/FAST/wiki/Framework-Design).
+A detailed description of the framework design can be found [on the project wiki](https://github.com/smistad/FAST/wiki/Framework-Design) or in the research article:
+[FAST: framework for heterogeneous medical image computing and visualization](http://dx.doi.org/10.1007/s11548-015-1158-5/). 
+Erik Smistad, Mohammadmehdi Bozorgi, Frank Lindseth.
+International Journal of Computer Assisted Radiology and Surgery. February 2015.
+Preprint of article can be downloaded from [here](http://www.thebigblob.com/wp-content/uploads/FAST_framework_for_heterogeneous_medical_image_computing_and_visualization.pdf).
+If you use FAST for research, please cite this article.
 
-***
+Getting started with FAST
+-------------------------
 
 To setup and build the framework, see the instructions for your operating system:
 * [Linux (Ubuntu)](https://github.com/smistad/FAST/wiki/Linux-instructions)
@@ -14,7 +20,7 @@ To setup and build the framework, see the instructions for your operating system
 To start using the framework, see the [Getting started with FAST](https://github.com/smistad/FAST/wiki/Getting-started-with-FAST) guide or the [examples page](https://github.com/smistad/FAST/wiki/Examples).
 
 Build status
----------------------
+-------------------------
 **Master branch**
 * Ubuntu Linux 14.04, AMD CPU, AMD GPU - [![Build Status](http://ans0124.idi.ntnu.no:8080/job/FAST%20-%20Ubuntu%20AMD%20-%20Master%20-%20NO%20Visual/badge/icon)](http://ans0124.idi.ntnu.no:8080/job/FAST%20-%20Ubuntu%20AMD%20-%20Master%20-%20NO%20Visual/)
 * Mac OS X 10.9, Intel CPU, NVIDIA GPU - [![Build Status](http://ans0124.idi.ntnu.no:8080/buildStatus/icon?job=FAST - Mac OS X - Master)](http://ans0124.idi.ntnu.no:8080/job/FAST%20-%20Mac%20OS%20X%20-%20Master/)
