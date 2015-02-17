@@ -138,17 +138,18 @@ ImageRenderer::ImageRenderer() : Renderer() {
 
 void ImageRenderer::draw() {
 
-    for(int i = 0; i < getNrOfInputData(); i++) {
+    boost::unordered_map<uint, Image::pointer>::iterator it;
+    for(it = mImagesToRender.begin(); it != mImagesToRender.end(); it++) {
         glPushMatrix();
         if(mDoTransformations) {
-            LinearTransformation transform = SceneGraph::getLinearTransformationFromData(mImagesToRender[i]);
+            LinearTransformation transform = SceneGraph::getLinearTransformationFromData(it->second);
 
             glMultMatrixf(transform.getTransform().data());
         }
 
-        glBindTexture(GL_TEXTURE_2D, mTexturesToRender[i]);
-        uint width = mImagesToRender[i]->getWidth();
-        uint height = mImagesToRender[i]->getHeight();
+        glBindTexture(GL_TEXTURE_2D, mTexturesToRender[it->first]);
+        uint width = it->second->getWidth();
+        uint height = it->second->getHeight();
 
         glColor3f(1,1,1); // black white texture
         glBegin(GL_QUADS);
@@ -174,12 +175,14 @@ void ImageRenderer::turnOffTransformations() {
 
 BoundingBox ImageRenderer::getBoundingBox() {
     std::vector<Vector3f> coordinates;
-    for(uint i = 0; i < getNrOfInputData(); i++) {
+
+    boost::unordered_map<uint, Image::pointer>::iterator it;
+    for(it = mImagesToRender.begin(); it != mImagesToRender.end(); it++) {
         BoundingBox transformedBoundingBox;
         if(mDoTransformations) {
-            transformedBoundingBox = mImagesToRender[i]->getTransformedBoundingBox();
+            transformedBoundingBox = it->second->getTransformedBoundingBox();
         } else {
-            transformedBoundingBox = mImagesToRender[i]->getBoundingBox();
+            transformedBoundingBox = it->second->getBoundingBox();
         }
 
         MatrixXf corners = transformedBoundingBox.getCorners();
