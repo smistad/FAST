@@ -110,7 +110,7 @@ TEST_CASE("Correct output with small 3x3 2D image as input to GaussianSmoothingF
     CHECK(success == true);
 }
 
-TEST_CASE("Correct output with small 3x3 3D image as input to GaussianSmoothingFilter on OpenCLDevice", "[fast][GaussianSmoothingFilter]") {
+TEST_CASE("Correct output with small 3x3x3 3D image as input to GaussianSmoothingFilter on OpenCLDevice", "[fast][GaussianSmoothingFilter]") {
     DeviceManager& deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
     GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
@@ -156,7 +156,7 @@ TEST_CASE("Correct output with small 3x3 3D image as input to GaussianSmoothingF
     CHECK(success == true);
 }
 
-TEST_CASE("Correct output with small 3x3 3D image as input to GaussianSmoothingFilter on Host", "[fast][GaussianSmoothingFilter]") {
+TEST_CASE("Correct output with small 3x3x3 3D image as input to GaussianSmoothingFilter on Host", "[fast][GaussianSmoothingFilter]") {
     GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
     filter->setMaskSize(3);
     filter->setStandardDeviation(1.0);

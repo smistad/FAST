@@ -111,11 +111,11 @@ void GaussianSmoothingFilter::recompileOpenCLCode(Image::pointer input) {
         buildOptions = "-DINPUT_TYPE_UINT";
     }
     if(mOutputType == TYPE_FLOAT) {
-        buildOptions = "-DOUTPUT_TYPE_FLOAT";
+        buildOptions += " -DOUTPUT_TYPE_FLOAT";
     } else if(mOutputType == TYPE_INT8 || mOutputType == TYPE_INT16) {
-        buildOptions = "-DOUTPUT_TYPE_INT";
+        buildOptions += " -DOUTPUT_TYPE_INT";
     } else {
-        buildOptions = "-DOUTPUT_TYPE_UINT";
+        buildOptions += " -DOUTPUT_TYPE_UINT";
     }
     switch(mOutputType) {
         case TYPE_FLOAT:
