@@ -3,7 +3,7 @@
 FAST (Framework for Heterogeneous Medical Image Computing and Visualization) is an open-source cross-platform framework with the main goal of making it easier to do processing and visualization of medical images on heterogeneous systems (CPU+GPU).
 
 A detailed description of the framework design can be found [on the project wiki](https://github.com/smistad/FAST/wiki/Framework-Design) or in the research article:  
-[FAST: framework for heterogeneous medical image computing and visualization](http://dx.doi.org/10.1007/s11548-015-1158-5/).  
+[FAST: framework for heterogeneous medical image computing and visualization](http://dx.doi.org/10.1007/s11548-015-1158-5).  
 Erik Smistad, Mohammadmehdi Bozorgi, Frank Lindseth.  
 International Journal of Computer Assisted Radiology and Surgery. February 2015.
 
