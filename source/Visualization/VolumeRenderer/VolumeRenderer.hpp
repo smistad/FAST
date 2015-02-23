@@ -90,8 +90,11 @@ class VolumeRenderer : public Renderer {
 		bool gluInvertMatrix(const float m[16], float invOut[16]);
 
 		unsigned int numberOfVolumes;
-
-		//std::vector<ImageData::pointer> mInputs;
+		
+		
+		//Image::pointer 
+		Image::pointer mI;
+		std::vector<Image::pointer> mInputs;
 		std::vector<Image::pointer> inputs;
 
 

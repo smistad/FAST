@@ -18,11 +18,11 @@ void VolumeRenderer::resize(GLuint height, GLuint width){
 	mHeight = height;
 	mWidth = width;
 	mIsModified = true;
-
+	/*
 	//delete old pbo if exist any
 	if (pbo)
 		glDeleteBuffersARB(1, &pbo);
-	pbo = 0;
+	pbo = 0;*/
 }
 void VolumeRenderer::setProjectionParameters(float fov, float aspect, float nearPlane, float farPlane){
 	zNear = nearPlane;
@@ -37,12 +37,17 @@ void VolumeRenderer::setProjectionParameters(float fov, float aspect, float near
 }
 void VolumeRenderer::addInputConnection(ProcessObjectPort port) {
 
+	
 
 	if(numberOfVolumes<0)
         throw Exception("Not a correct number of volumes is given to VolumeRenderer");
 	if(numberOfVolumes<maxNumberOfVolumes)
 	{
-		//mInputs.push_back(image);
+		uint nr = getNrOfInputData();
+	//	releaseInputAfterExecute(nr, false);
+		setInputConnection(nr, port);
+		//mInputs.push_back(getStaticInputData<Image>(0));
+		
 		//addParent(mInputs[numberOfVolumes]);
 		numberOfVolumes++;
 		mIsModified = true;
@@ -133,7 +138,7 @@ void VolumeRenderer::turnOffTransformations() {
 //this returns the boundingbox of the FIRST volume
 BoundingBox VolumeRenderer::getBoundingBox()
 {
-	Image::pointer mImageToRender = getInputData(0);
+	Image::pointer mImageToRender = inputs[0];//getInputData(0);
 		
 	
 	float tr[16];
@@ -222,6 +227,8 @@ void VolumeRenderer::setIncludeGeometry(bool p){
 
 void VolumeRenderer::execute() {
 
+	if (!inputs.empty())
+		inputs.clear();
 
 	if(numberOfVolumes<0)
         throw Exception("Not a correct number of volumes is given to VolumeRenderer.");
@@ -230,7 +237,7 @@ void VolumeRenderer::execute() {
 
 	for(unsigned int i=0;i<numberOfVolumes;i++)
 	{
-	    /*
+		/*
 		if(!mInputs[i].isValid())
 		{
 			char errorMessage[255];
@@ -248,7 +255,7 @@ void VolumeRenderer::execute() {
 			inputs.push_back( mInputs[i]);
 		}
 		*/
-
+		inputs.push_back(getStaticInputData<Image>(i));
 		if(inputs[i]->getDimensions() != 3)
 		{
 			char errorMessage[255];
@@ -545,8 +552,7 @@ void VolumeRenderer::execute() {
 	mDevice->getCommandQueue().finish();
     
 	mOutputIsCreated=true;
-	if (!inputs.empty())
-		inputs.clear();
+
 
 	releaseOpenGLContext();
 }
