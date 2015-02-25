@@ -13,6 +13,7 @@ IterativeClosestPoint::IterativeClosestPoint() {
     mMinErrorChange = 1e-5;
     mError = -1;
     mTransformationType = IterativeClosestPoint::RIGID;
+    mIsModified = true;
 }
 
 
@@ -93,12 +94,11 @@ void IterativeClosestPoint::execute() {
     MatrixXf fixedPoints = accessFixedSet.getPointSetAsMatrix();
     MatrixXf movingPoints = accessMovingSet.getPointSetAsMatrix();
 
-    Eigen::Transform<float, 3, Eigen::Affine> currentTransformation;
+    Eigen::Transform<float, 3, Eigen::Affine> currentTransformation = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
 
     // Want to choose the smallest one as moving
     bool invertTransform = false;
-    if(false && fixedPoints.cols() < movingPoints.cols()) {
-        std::cout << "Switching fixed and moving" << std::endl;
+    if(fixedPoints.cols() < movingPoints.cols()) {
         // Switch fixed and moving
         MatrixXf temp = fixedPoints;
         fixedPoints = movingPoints;
@@ -106,11 +106,13 @@ void IterativeClosestPoint::execute() {
         invertTransform = true;
 
         // Apply initial transformations
-        currentTransformation = fixedPointTransform.getTransform();
+        //currentTransformation = fixedPointTransform.getTransform();
+        movingPoints = fixedPointTransform.getTransform()*movingPoints.colwise().homogeneous();
         fixedPoints = initialMovingTransform.getTransform()*fixedPoints.colwise().homogeneous();
     } else {
         // Apply initial transformations
-        currentTransformation = initialMovingTransform.getTransform();
+        //currentTransformation = initialMovingTransform.getTransform();
+        movingPoints = initialMovingTransform.getTransform()*movingPoints.colwise().homogeneous();
         fixedPoints = fixedPointTransform.getTransform()*fixedPoints.colwise().homogeneous();
     }
     do {
@@ -172,9 +174,6 @@ void IterativeClosestPoint::execute() {
 
     if(invertTransform){
         currentTransformation = currentTransformation.inverse();
-    } else {
-        // Remove initial moving transform
-        currentTransformation = initialMovingTransform.getTransform().inverse()*currentTransformation;
     }
 
     mError = error;
