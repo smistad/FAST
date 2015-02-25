@@ -12,7 +12,9 @@ class IterativeClosestPoint : public ProcessObject {
     public:
         typedef enum { RIGID, TRANSLATION } TransformationType;
         void setFixedPointSetPort(ProcessObjectPort port);
+        void setFixedPointSet(PointSet::pointer data);
         void setMovingPointSetPort(ProcessObjectPort port);
+        void setMovingPointSet(PointSet::pointer data);
         void setTransformationType(const IterativeClosestPoint::TransformationType type);
         LinearTransformation getOutputTransformation();
         float getError() const;
