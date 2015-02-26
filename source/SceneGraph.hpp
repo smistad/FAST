@@ -32,7 +32,8 @@ namespace SceneGraph {
     LinearTransformation getLinearTransformationFromNode(SceneGraphNode::pointer node);
     LinearTransformation getLinearTransformationFromData(SharedPointer<DataObject> node);
     void setParentNode(SharedPointer<DataObject> child, SharedPointer<DataObject> parent);
-    void insertParentNode(SharedPointer<DataObject> child, LinearTransformation transform);
+    SceneGraphNode::pointer insertParentNodeToData(SharedPointer<DataObject> child, LinearTransformation transform);
+    SceneGraphNode::pointer insertParentNodeToNode(SceneGraphNode::pointer child, LinearTransformation transform);
 };
 
 } // end namespace fast
