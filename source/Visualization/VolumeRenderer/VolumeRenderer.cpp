@@ -59,7 +59,12 @@ void VolumeRenderer::addInputConnection(ProcessObjectPort port) {
 }
 void VolumeRenderer::setOpacityTransferFunction(int volumeIndex, OpacityTransferFunction::pointer otf) {
 
-	unsigned int XDef = static_cast<unsigned int>(otf->getXMax() - otf->getXMin());
+	if (volumeIndex>=maxNumberOfVolumes)
+		throw Exception("\nError: The volumeIndex for OpacityTransferFunction is out of range.");
+
+	double xMin = otf->getXMin();
+	double xMax = otf->getXMax();
+	unsigned int XDef = static_cast<unsigned int>(xMax - xMin);
 
 	opacityFunc=(float *)(malloc(sizeof(float)*XDef));
 	
@@ -72,7 +77,7 @@ void VolumeRenderer::setOpacityTransferFunction(int volumeIndex, OpacityTransfer
 		float D=E-S;
 
 		unsigned int index=0;
-		for(unsigned int i=S; i<E; i++, index++)
+		for(unsigned int i=S-xMin; i<E-xMin; i++, index++)
 		{
 			opacityFunc[i]=A1+A*index/D;//A
 			
@@ -80,13 +85,18 @@ void VolumeRenderer::setOpacityTransferFunction(int volumeIndex, OpacityTransfer
 	}
 
 	d_opacityFuncArray[volumeIndex]=cl::Image2D(clContext, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, cl::ImageFormat(CL_A, CL_FLOAT), XDef, 1, 0, opacityFunc, 0);
-	
+	opacityFuncDefs[volumeIndex] = XDef;
+	opacityFuncMins[volumeIndex] = xMin;
 	mIsModified = true;
 }
 void VolumeRenderer::setColorTransferFunction(int volumeIndex, ColorTransferFunction::pointer ctf) {
 
+	if (volumeIndex >= maxNumberOfVolumes)
+		throw Exception("\nError: The volumeIndex for ColorTransferFunction is out of range.");
 
-	unsigned int XDef = static_cast<unsigned int>(ctf->getXMax() - ctf->getXMin());
+	double xMin = ctf->getXMin();
+	double xMax = ctf->getXMax();
+	unsigned int XDef = static_cast<unsigned int>(xMax - xMin);
 
 	transferFunc=(float *)(malloc(sizeof(float)*4*XDef));
 	
@@ -103,7 +113,7 @@ void VolumeRenderer::setColorTransferFunction(int volumeIndex, ColorTransferFunc
 		float D=E-S;
 
 		unsigned int index=0;
-		for(unsigned int i=S; i<E; i++, index++)
+		for (unsigned int i = S - xMin; i<E - xMin; i++, index++)
 		{
 			transferFunc[i*4+0]=R1+R*index/D;//R
 			transferFunc[i*4+1]=G1+G*index/D;//G
@@ -113,7 +123,8 @@ void VolumeRenderer::setColorTransferFunction(int volumeIndex, ColorTransferFunc
 	}
 
 	d_transferFuncArray[volumeIndex]=cl::Image2D(clContext, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, cl::ImageFormat(CL_RGBA, CL_FLOAT), XDef, 1, 0, transferFunc, 0);
-
+	colorFuncDefs[volumeIndex] = XDef;
+	colorFuncMins[volumeIndex] = xMin;
 	mIsModified = true;
 }
 void VolumeRenderer::addGeometryColorTexture(GLuint geoColorTex)
@@ -210,6 +221,10 @@ VolumeRenderer::VolumeRenderer() : Renderer() {
 
 	d_invViewMatrices= cl::Buffer(clContext, CL_MEM_READ_WRITE, maxNumberOfVolumes*16*sizeof(float));
 	d_boxMaxs = cl::Buffer(clContext, CL_MEM_READ_WRITE, maxNumberOfVolumes * 3 * sizeof(float));
+	d_opacityFuncDefs = cl::Buffer(clContext, CL_MEM_READ_WRITE, maxNumberOfVolumes * sizeof(float));
+	d_opacityFuncMins = cl::Buffer(clContext, CL_MEM_READ_WRITE, maxNumberOfVolumes * sizeof(float));
+	d_colorFuncDefs = cl::Buffer(clContext, CL_MEM_READ_WRITE, maxNumberOfVolumes * sizeof(float));
+	d_colorFuncMins = cl::Buffer(clContext, CL_MEM_READ_WRITE, maxNumberOfVolumes * sizeof(float));
 
 	includeGeometry=false;
 
@@ -262,13 +277,13 @@ void VolumeRenderer::execute() {
 			sprintf(errorMessage, "The VolumeRenderer only supports 3D images; check input number %d.", i);
 			throw Exception(errorMessage);
 		}
-
+		/*
 		if(inputs[i]->getNrOfComponents() !=1)
 		{
 			char errorMessage[255];
 			sprintf(errorMessage, "The VolumeRenderer currentlt only supports single chanel images; check input volume number %d.", i);
 			throw Exception(errorMessage);
-		}
+		}*/
 	}
 
 	mOutputIsCreated=false;
@@ -365,7 +380,7 @@ void VolumeRenderer::execute() {
 				sprintf(dataTypeBuffer, " -D TYPE_FLOAT%d ", i+1);
 			else
 			{
-				if( (volumeDataType==fast::TYPE_UINT8) || (volumeDataType==fast::TYPE_UINT16) )
+				if ((volumeDataType == fast::TYPE_UINT8) || (volumeDataType == fast::TYPE_UINT16))
 					sprintf(dataTypeBuffer, " -D TYPE_UINT%d ", i+1);
 				else
 					sprintf(dataTypeBuffer, " -D TYPE_INT%d ", i+1);
@@ -431,37 +446,41 @@ void VolumeRenderer::execute() {
 		renderKernel.setArg(15, mImageGLGeoColor);
 		renderKernel.setArg(16, mImageGLGeoDepth);
 		renderKernel.setArg(17, d_boxMaxs);
+		renderKernel.setArg(18, d_opacityFuncDefs);
+		renderKernel.setArg(19, d_opacityFuncMins);
+		renderKernel.setArg(20, d_colorFuncDefs);
+		renderKernel.setArg(21, d_colorFuncMins);
 		if (numberOfVolumes>1)
 		{
 			OpenCLImageAccess3D access2 = inputs[1]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
 			cl::Image3D* clImage2 = access2.get();
-			renderKernel.setArg(18, *clImage2);
-			renderKernel.setArg(19, d_transferFuncArray[1]);
-			renderKernel.setArg(20, d_opacityFuncArray[1]);
+			renderKernel.setArg(22, *clImage2);
+			renderKernel.setArg(23, d_transferFuncArray[1]);
+			renderKernel.setArg(24, d_opacityFuncArray[1]);
 
 			if (numberOfVolumes>2)
 			{
 				OpenCLImageAccess3D access3 = inputs[2]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
 				cl::Image3D* clImage3 = access3.get();
-				renderKernel.setArg(21, *clImage3);
-				renderKernel.setArg(22, d_transferFuncArray[2]);
-				renderKernel.setArg(23, d_opacityFuncArray[2]);
+				renderKernel.setArg(25, *clImage3);
+				renderKernel.setArg(26, d_transferFuncArray[2]);
+				renderKernel.setArg(27, d_opacityFuncArray[2]);
 				
 				if (numberOfVolumes>3)
 				{
 					OpenCLImageAccess3D access4 = inputs[3]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
 					cl::Image3D* clImage4 = access4.get();
-					renderKernel.setArg(24, *clImage4);
-					renderKernel.setArg(25, d_transferFuncArray[3]);
-					renderKernel.setArg(26, d_opacityFuncArray[3]);
+					renderKernel.setArg(28, *clImage4);
+					renderKernel.setArg(29, d_transferFuncArray[3]);
+					renderKernel.setArg(30, d_opacityFuncArray[3]);
 
 					if (numberOfVolumes>4)
 					{	
 						OpenCLImageAccess3D access5 = inputs[4]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
 						cl::Image3D* clImage5 = access5.get();
-						renderKernel.setArg(27, *clImage5);
-						renderKernel.setArg(28, d_transferFuncArray[4]);
-						renderKernel.setArg(29, d_opacityFuncArray[4]);
+						renderKernel.setArg(31, *clImage5);
+						renderKernel.setArg(32, d_transferFuncArray[4]);
+						renderKernel.setArg(33, d_opacityFuncArray[4]);
 					}
 				}
 
@@ -492,37 +511,41 @@ void VolumeRenderer::execute() {
 		renderKernel.setArg(13, d_transferFuncArray[0]);
 		renderKernel.setArg(14, d_opacityFuncArray[0]);
 		renderKernel.setArg(15, d_boxMaxs);
+		renderKernel.setArg(16, d_opacityFuncDefs);
+		renderKernel.setArg(17, d_opacityFuncMins);
+		renderKernel.setArg(18, d_colorFuncDefs);
+		renderKernel.setArg(19, d_colorFuncMins);
 		if (numberOfVolumes>1)
 		{
 			OpenCLImageAccess3D access2 = inputs[1]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
 			cl::Image3D* clImage2 = access2.get();
-			renderKernel.setArg(16, *clImage2);
-			renderKernel.setArg(17, d_transferFuncArray[1]);
-			renderKernel.setArg(18, d_opacityFuncArray[1]);
+			renderKernel.setArg(20, *clImage2);
+			renderKernel.setArg(21, d_transferFuncArray[1]);
+			renderKernel.setArg(22, d_opacityFuncArray[1]);
 
 			if (numberOfVolumes>2)
 			{
 				OpenCLImageAccess3D access3 = inputs[2]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
 				cl::Image3D* clImage3 = access3.get();
-				renderKernel.setArg(19, *clImage3);
-				renderKernel.setArg(20, d_transferFuncArray[2]);
-				renderKernel.setArg(21, d_opacityFuncArray[2]);
+				renderKernel.setArg(23, *clImage3);
+				renderKernel.setArg(24, d_transferFuncArray[2]);
+				renderKernel.setArg(25, d_opacityFuncArray[2]);
 				
 				if (numberOfVolumes>3)
 				{
 					OpenCLImageAccess3D access4 = inputs[3]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
 					cl::Image3D* clImage4 = access4.get();
-					renderKernel.setArg(22, *clImage4);
-					renderKernel.setArg(23, d_transferFuncArray[3]);
-					renderKernel.setArg(24, d_opacityFuncArray[3]);
+					renderKernel.setArg(26, *clImage4);
+					renderKernel.setArg(27, d_transferFuncArray[3]);
+					renderKernel.setArg(28, d_opacityFuncArray[3]);
 
 					if (numberOfVolumes>4)
 					{	
 						OpenCLImageAccess3D access5 = inputs[4]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
 						cl::Image3D* clImage5 = access5.get();
-						renderKernel.setArg(25, *clImage5);
-						renderKernel.setArg(26, d_transferFuncArray[4]);
-						renderKernel.setArg(27, d_opacityFuncArray[4]);
+						renderKernel.setArg(29, *clImage5);
+						renderKernel.setArg(30, d_transferFuncArray[4]);
+						renderKernel.setArg(31, d_opacityFuncArray[4]);
 					}
 				}
 
@@ -540,6 +563,10 @@ void VolumeRenderer::execute() {
 	mDevice->getCommandQueue().enqueueAcquireGLObjects(&v);
 	mDevice->getCommandQueue().enqueueWriteBuffer(d_invViewMatrices, CL_FALSE, 0, sizeof(invViewMatrices), invViewMatrices);
 	mDevice->getCommandQueue().enqueueWriteBuffer(d_boxMaxs, CL_FALSE, 0, sizeof(boxMaxs), boxMaxs);
+	mDevice->getCommandQueue().enqueueWriteBuffer(d_opacityFuncDefs, CL_FALSE, 0, sizeof(opacityFuncDefs), opacityFuncDefs);
+	mDevice->getCommandQueue().enqueueWriteBuffer(d_opacityFuncMins, CL_FALSE, 0, sizeof(opacityFuncMins), opacityFuncMins);
+	mDevice->getCommandQueue().enqueueWriteBuffer(d_colorFuncDefs, CL_FALSE, 0, sizeof(colorFuncDefs), colorFuncDefs);
+	mDevice->getCommandQueue().enqueueWriteBuffer(d_colorFuncMins, CL_FALSE, 0, sizeof(colorFuncMins), colorFuncMins);
 
     mDevice->getCommandQueue().enqueueNDRangeKernel(
             renderKernel,
