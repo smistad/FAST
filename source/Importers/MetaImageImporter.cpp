@@ -51,18 +51,18 @@ inline void * readRawData(std::string rawFilename, unsigned int width, unsigned 
 
         unsigned long uncompressedSize = sizeof(T)*width*height*depth*nrOfComponents;
         unsigned long fileSize = file.size();
-        int z_result = uncompress(
+		int z_result = uncompress(
             (Bytef*)data,       // destination for the uncompressed
                                     // data.  This should be the size of
                                     // the original data, which you should
                                     // already know.
 
-            &uncompressedSize,  // length of destination (uncompressed)
+            (uLongf *)&uncompressedSize,  // length of destination (uncompressed)
                                     // buffer
 
             (Bytef*)fileData,   // source buffer - the compressed data
 
-            compressedFileSize);   // length of compressed data in bytes
+            (uLong)compressedFileSize);   // length of compressed data in bytes
         switch( z_result )
         {
         case Z_OK:

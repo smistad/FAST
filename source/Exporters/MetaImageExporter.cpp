@@ -34,7 +34,7 @@ inline std::size_t writeToRawFile(std::string filename, T * data, unsigned int n
         Bytef* writeData = (Bytef*)malloc(sizeDataCompressed);
         int z_result = compress(
                 (Bytef*)writeData,
-                &sizeDataCompressed,
+                (uLongf*)&sizeDataCompressed,
                 (Bytef*)data,
                 sizeDataOriginal
         );
