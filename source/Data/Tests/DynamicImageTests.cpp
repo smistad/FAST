@@ -441,6 +441,46 @@ TEST_CASE("DynamicData with more than one consumer object returns correct frame 
     CHECK(frame3 == frame3PO2);
 }
 
+TEST_CASE("DynamicData with more than one consumer object returns correct frame with PROCESS_ALL and maximum nr of frames is set", "[fast][DynamicData]") {
+    DynamicImage::pointer image = DynamicImage::New();
+    DummyStreamer::pointer streamer = DummyStreamer::New();
+    streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+    image->setStreamer(streamer);
+    image->setMaximumNumberOfFrames(1000);
+
+    Image::pointer frame1 = Image::New();
+    Image::pointer frame2 = Image::New();
+    Image::pointer frame3 = Image::New();
+    image->addFrame(frame1);
+    image->addFrame(frame2);
+    image->addFrame(frame3);
+
+    DummyProcessObject::pointer PO1 = DummyProcessObject::New();
+    DummyProcessObject::pointer PO2 = DummyProcessObject::New();
+    image->registerConsumer(PO1);
+    image->registerConsumer(PO2);
+    CHECK(image->getSize() == 3);
+    Image::pointer frame1PO1 = image->getNextFrame(PO1); // frame nr for PO1 is set to 0
+    CHECK(image->getSize() == 3);
+    Image::pointer frame1PO2 = image->getNextFrame(PO2); // frame nr for PO2 is set to 0
+    CHECK(image->getSize() == 2);
+    Image::pointer frame2PO1 = image->getNextFrame(PO1); // frame nr for PO1 is set to 1
+    CHECK(image->getSize() == 2);
+    Image::pointer frame2PO2 = image->getNextFrame(PO2); // frame nr for PO2 is set to 1, frame 0 should be deleted here
+    CHECK(image->getSize() == 1);
+    Image::pointer frame3PO1 = image->getNextFrame(PO1); // frame nr for PO1 is set to 2
+    CHECK(image->getSize() == 1);
+    Image::pointer frame3PO2 = image->getNextFrame(PO2); // frame nr for PO2 is set to 2, frame 1 should be deleted here
+    CHECK(image->getSize() == 0);
+
+    CHECK(frame1 == frame1PO1);
+    CHECK(frame1 == frame1PO2);
+    CHECK(frame2 == frame2PO1);
+    CHECK(frame2 == frame2PO2);
+    CHECK(frame3 == frame3PO1);
+    CHECK(frame3 == frame3PO2);
+}
+
 TEST_CASE("DynamicData with more than one consumer object returns correct frame with STORE_ALL", "[fast][DynamicData]") {
     DynamicImage::pointer image = DynamicImage::New();
     DummyStreamer::pointer streamer = DummyStreamer::New();
