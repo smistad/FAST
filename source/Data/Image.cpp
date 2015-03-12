@@ -480,7 +480,7 @@ ImageAccess Image::getImageAccess(accessType type) {
     mHostDataIsUpToDate = true;
     mHostDataIsBeingAccessed = true;
 
-    return ImageAccess(mHostData, &mHostDataIsBeingAccessed, &mImageIsBeingWrittenTo);
+    return ImageAccess(mHostData, mPtr.lock(), &mHostDataIsBeingAccessed, &mImageIsBeingWrittenTo);
 }
 
 void Image::create3DImage(
@@ -922,6 +922,56 @@ void Image::createFromImage(
     setCenterOfRotation(image->getCenterOfRotation());
     setTransformMatrix(image->getTransformMatrix());
     updateModifiedTimestamp();
+}
+
+
+Image::pointer Image::copy(ExecutionDevice::pointer device) {
+    Image::pointer clone = Image::New();
+    clone->createFromImage(mPtr.lock(), device);
+
+    // If device is host, get data from this image to host
+    if(device->isHost()) {
+        ImageAccess readAccess = this->getImageAccess(ACCESS_READ);
+        ImageAccess writeAccess = clone->getImageAccess(ACCESS_READ_WRITE);
+
+        void* input = readAccess.get();
+        void* output = writeAccess.get();
+        switch(getDataType()) {
+            fastSwitchTypeMacro(memcpy(output, input, sizeof(FAST_TYPE)*getWidth()*getHeight()*getDepth()*getNrOfComponents()));
+        }
+    } else {
+        // If device is not host
+        OpenCLDevice::pointer clDevice = device;
+        if(getDimensions() == 2) {
+            OpenCLImageAccess2D readAccess = this->getOpenCLImageAccess2D(ACCESS_READ, clDevice);
+            OpenCLImageAccess2D writeAccess = clone->getOpenCLImageAccess2D(ACCESS_READ_WRITE, clDevice);
+            cl::Image2D* input = readAccess.get();
+            cl::Image2D* output = writeAccess.get();
+
+            clDevice->getCommandQueue().enqueueCopyImage(
+                    *input,
+                    *output,
+                    oul::createOrigoRegion(),
+                    oul::createOrigoRegion(),
+                    oul::createRegion(getWidth(), getHeight(), 1)
+            );
+        } else {
+            OpenCLImageAccess3D readAccess = this->getOpenCLImageAccess3D(ACCESS_READ, clDevice);
+            OpenCLImageAccess3D writeAccess = clone->getOpenCLImageAccess3D(ACCESS_READ_WRITE, clDevice);
+            cl::Image3D* input = readAccess.get();
+            cl::Image3D* output = writeAccess.get();
+
+            clDevice->getCommandQueue().enqueueCopyImage(
+                    *input,
+                    *output,
+                    oul::createOrigoRegion(),
+                    oul::createOrigoRegion(),
+                    oul::createRegion(getWidth(), getHeight(), getDepth())
+            );
+        }
+    }
+
+    return clone;
 }
 
 } // end namespace fast;
