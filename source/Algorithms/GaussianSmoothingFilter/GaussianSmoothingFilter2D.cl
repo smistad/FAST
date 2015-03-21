@@ -11,23 +11,25 @@ __kernel void gaussianSmoothing(
     const unsigned char halfSize = (maskSize-1)/2;
 
     float sum = 0.0f;
+    int dataType = get_image_channel_data_type(input);
     for(int x = -halfSize; x <= halfSize; x++) {
     for(int y = -halfSize; y <= halfSize; y++) {
         const int2 offset = {x,y};
-#ifdef INPUT_TYPE_FLOAT
-        sum += mask[x+halfSize+(y+halfSize)*maskSize]*read_imagef(input, sampler, pos+offset).x;
-#elif INPUT_TYPE_UINT
-        sum += mask[x+halfSize+(y+halfSize)*maskSize]*read_imageui(input, sampler, pos+offset).x;
-#else
-        sum += mask[x+halfSize+(y+halfSize)*maskSize]*read_imagei(input, sampler, pos+offset).x;
-#endif
+        if(dataType == CLK_FLOAT) {
+            sum += mask[x+halfSize+(y+halfSize)*maskSize]*read_imagef(input, sampler, pos+offset).x;
+        } else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+            sum += mask[x+halfSize+(y+halfSize)*maskSize]*read_imageui(input, sampler, pos+offset).x;
+        } else {
+            sum += mask[x+halfSize+(y+halfSize)*maskSize]*read_imagei(input, sampler, pos+offset).x;
+        }
     }}
 
-#ifdef OUTPUT_TYPE_FLOAT
-    write_imagef(output, pos, sum);
-#elif OUTPUT_TYPE_UINT
-    write_imageui(output, pos, round(sum));
-#else
-    write_imagei(output, pos, round(sum));
-#endif
+    int outputDataType = get_image_channel_data_type(output);
+    if(outputDataType == CLK_FLOAT) {
+        write_imagef(output, pos, sum);
+    } else if(outputDataType == CLK_UNSIGNED_INT8 || outputDataType == CLK_UNSIGNED_INT16) {
+        write_imageui(output, pos, round(sum));
+    } else {
+        write_imagei(output, pos, round(sum));
+    }
 }
