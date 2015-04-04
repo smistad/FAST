@@ -11,6 +11,8 @@ if(MODULE_OpenIGTLink)
     )
     fast_add_test_sources(
         Tests/ImageIGTLinkStreamerTests.cpp
+        Tests/DummyIGTLImageServer.cpp
+        Tests/DummyIGTLImageServer.hpp
     )
 endif()
 fast_add_test_sources(

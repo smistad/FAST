@@ -1,5 +1,6 @@
 #include "ImageIGTLinkStreamer.hpp"
 #include "Image.hpp"
+#include <boost/shared_array.hpp>
 
 #include "igtlOSUtil.h"
 #include "igtlMessageHeader.h"
@@ -72,10 +73,36 @@ Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer message, E
         image->create3DImage(width, height, depth, type, message->GetNumComponents(), device, data);
     }
 
+    boost::shared_array<float> spacing(new float[3]);
+    boost::shared_array<float> offset(new float[3]);
+    message->GetSpacing(spacing.get());
+    message->GetOrigin(offset.get());
+    igtl::Matrix4x4 matrix;
+    message->GetMatrix(matrix);
+    image->setSpacing(Vector3f(spacing[0], spacing[1], spacing[2]));
+    image->setOffset(Vector3f(offset[0], offset[1], offset[2]));
+    Matrix3f fastMatrix;
+    for(int i = 0; i < 3; i++) {
+    for(int j = 0; j < 3; j++) {
+        fastMatrix(i,j) = matrix[i][j];
+    }}
+    image->setTransformMatrix(fastMatrix);
+    igtl::PrintMatrix(matrix);
+    std::cout << fastMatrix << std::endl;
+    std::cout << "SPACING IS " << spacing[0] << std::endl;
+
+    // TODO transform matrix
+
     return image;
 }
 
 void ImageIGTLinkStreamer::producerStream() {
+    mSocket = igtl::ClientSocket::New();
+    int r = mSocket->ConnectToServer(mAddress.c_str(), mPort);
+    if(r != 0) {
+       throw Exception("Cannot connect to the Open IGT Link server.");
+    }
+
     // Create a message buffer to receive header
     igtl::MessageHeader::Pointer headerMsg;
     headerMsg = igtl::MessageHeader::New();
@@ -138,6 +165,7 @@ void ImageIGTLinkStreamer::producerStream() {
                 imgMsg->GetDimensions(size);
                 imgMsg->GetSpacing(spacing);
                 imgMsg->GetSubVolume(svsize, svoffset);
+                /*
                 std::cout << "Device Name : " << imgMsg->GetDeviceName() << std::endl;
                 std::cout << "Scalar Type : " << scalarType << std::endl;
                 std::cout << "Dimensions : ("
@@ -148,6 +176,7 @@ void ImageIGTLinkStreamer::producerStream() {
                 << svsize[0] << ", " << svsize[1] << ", " << svsize[2] << ")" << std::endl;
                 std::cout << "Sub-Volume offset : ("
                 << svoffset[0] << ", " << svoffset[1] << ", " << svoffset[2] << ")" << std::endl << std::endl;
+                */
                 Image::pointer image = createFASTImageFromMessage(imgMsg, getMainDevice());
                 DynamicData<Image>::pointer ptr = getOutputData<DynamicData<Image> >();
                 try {
@@ -202,15 +231,9 @@ inline void stubStreamThread(ImageIGTLinkStreamer* streamer) {
 }
 
 void ImageIGTLinkStreamer::execute() {
+    getOutputData<DynamicData<Image> >()->setStreamer(mPtr.lock());
     if(mAddress == "" || mPort == 0) {
         throw Exception("Must call setConnectionAddress and setConnectionPort before executing the ImageIGTLinkStreamer.");
-    }
-    // Establish Connection
-
-    mSocket = igtl::ClientSocket::New();
-    int r = mSocket->ConnectToServer(mAddress.c_str(), mPort);
-    if(r != 0) {
-       throw Exception("Cannot connect to the Open IGT Link server.");
     }
 
     if(!mStreamIsStarted) {
