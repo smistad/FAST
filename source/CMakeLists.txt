@@ -6,6 +6,8 @@ option(VTK_INTEROP "Enable interoperability with VTK" OFF)
 option(ITK_INTEROP "Enable interoperability with ITK" OFF)
 option(BUILD_TESTS "Build tests." ON)
 option(BUILD_EXAMPLES "Build examples." OFF)
+option(MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
+
 set(FAST_TEST_DATA_DIR "${PROJECT_SOURCE_DIR}/../TestData/" CACHE STRING "Directory of test data")
 
 #### Macro for adding source files and directories
@@ -86,6 +88,18 @@ add_definitions("-DFAST_TEST_DATA_DIR=\"${FAST_TEST_DATA_DIR}\"")
 
 #### Set up library dependencies
 set(FAST_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR})
+
+## OpenIGTLink
+if(MODULE_OpenIGTLink)
+    set(CMAKE_PREFIX_PATH "${FAST_BINARY_DIR}") # Needed to find the cmake config file of IGTL
+    set(LIBRARY_OUTPUT_PATH  "${FAST_BINARY_DIR}") # Needed to output the libraries in the correct folder
+    set(EXECUTABLE_OUTPUT_PATH "${FAST_BINARY_DIR}") # Needed to output the executables in correct folder
+    add_subdirectory(OpenIGTLink)
+    find_package(OpenIGTLink PATHS "${FAST_BINARY_DIR}/OpenIGTLink" REQUIRED)
+    include(${OpenIGTLink_USE_FILE})
+    list(APPEND FAST_INCLUDE_DIRS ${OpenIGTLink_INCLUDE_DIRS})
+    list(APPEND LIBRARIES ${OpenIGTLink_LIBRARIES})
+endif()
 
 ## OpenCL Utility Library
 add_subdirectory(OpenCLUtilityLibrary)

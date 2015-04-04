@@ -1,3 +1,6 @@
 [submodule "source/OpenCLUtilityLibrary"]
 	path = source/OpenCLUtilityLibrary
 	url = https://github.com/smistad/OpenCLUtilityLibrary/
+[submodule "source/OpenIGTLink"]
+	path = source/OpenIGTLink
+	url = https://github.com/openigtlink/OpenIGTLink.git
