@@ -9,8 +9,11 @@
 #include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
+#include <QThread>
 
 namespace fast {
+
+class ComputationThread;
 
 class View : public QGLWidget, public ProcessObject {
     FAST_OBJECT(View)
@@ -77,7 +80,9 @@ class View : public QGLWidget, public ProcessObject {
         uint mPosX2D, mPosY2D;
         float mScale2D;
 
-        boost::thread* thread;
+        ComputationThread* mThread;
+        friend class ComputationThread;
+        //boost::thread* thread;
         boost::condition_variable mUpdateThreadConditionVariable;
         boost::mutex mUpdateThreadMutex;
     protected:
@@ -85,6 +90,14 @@ class View : public QGLWidget, public ProcessObject {
         void paintGL();
         void resizeGL(int width, int height);
 
+};
+
+class ComputationThread : public QThread {
+    public:
+        View::pointer mView;
+        QThread* mMainThread;
+    private:
+        void run();
 };
 
 } // end namespace fast

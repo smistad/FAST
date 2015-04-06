@@ -27,6 +27,7 @@ class MeshRenderer : public Renderer {
         boost::unordered_map<uint, Mesh::pointer> mMeshToRender;
         Color mDefaultColor;
         float mDefaultOpacity;
+        boost::mutex mMutex;
 };
 
 } // namespace fast

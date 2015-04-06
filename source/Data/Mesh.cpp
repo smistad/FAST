@@ -113,13 +113,11 @@ VertexBufferObjectAccess Mesh::getVertexBufferObjectAccess(
             // Need a drawable for this to work
             QGLWidget* widget = new QGLWidget;
             widget->show();
-			Object::currentDrawable = glXGetCurrentDrawable();
             widget->hide(); // TODO should probably delete widget as well
             std::cout << "created a drawable" << std::endl;
         }
 #endif
 #endif
-        setOpenGLContext(device->getGLContext());
         GLenum err = glewInit();
         if(err != GLEW_OK)
             throw Exception("GLEW init error");
@@ -150,7 +148,6 @@ VertexBufferObjectAccess Mesh::getVertexBufferObjectAccess(
         }
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glFinish();
-        releaseOpenGLContext();
         std::cout << "Created VBO with ID " << mVBOID << std::endl;
         // TODO Transfer data if any exist
 

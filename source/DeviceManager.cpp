@@ -30,21 +30,12 @@ std::vector<OpenCLDevice::pointer> getDevices(oul::DeviceCriteria criteria, bool
     if(enableVisualization) {
         // TODO: this can be simplified to just use the QGLContext class instead
         // Create GL context
-#if defined(__APPLE__) || defined(__MACOSX)
 	std::cout << "trying to create a MAC os X GL context" << std::endl;
     // Make sure only one QApplication is created
     SimpleWindow::initializeQtApp();
 
-    widget = new QGLWidget;
-
-    // Create GL context
-    QGLContext* context = new QGLContext(QGLFormat::defaultFormat(), widget); // by including widget here the context becomes valid
-    context->create();
-    if(!context->isValid()) {
-        throw Exception("QGL context is invalid!");
-    }
-
-    context->makeCurrent();
+    SimpleWindow::mGLContext->makeCurrent();
+#if defined(__APPLE__) || defined(__MACOSX)
     CGLContextObj appleContext = CGLGetCurrentContext();
     std::cout << "Initial GL context: " << CGLGetCurrentContext() << std::endl;
     std::cout << "Initial GL share group: " << CGLGetShareGroup(CGLGetCurrentContext()) << std::endl;
@@ -54,17 +45,7 @@ std::vector<OpenCLDevice::pointer> getDevices(oul::DeviceCriteria criteria, bool
     glContext = (unsigned long *)appleContext;
 #else
 #if _WIN32
-        // TODO implement windows OpenGL stuff
-        // http://msdn.microsoft.com/en-us/library/windows/desktop/dd374379%28v=vs.85%29.aspx
-        //HDC    hdc = oul::getHDC();
-		//std::cout << "HDC in DeviceManager is: " << hdc << std::endl;
-        HGLRC  hglrc; 
 
-		SimpleWindow::initializeQtApp();
-
-		// Need a drawable for this to work
-		QGLWidget* widget = new QGLWidget;
-		widget->makeCurrent();
 
 		std::cout << "created a drawable" << std::endl;
 		HDC    hdc = wglGetCurrentDC();
@@ -80,13 +61,6 @@ std::vector<OpenCLDevice::pointer> getDevices(oul::DeviceCriteria criteria, bool
 		if(!success)
 			throw Exception("Failed to set initial windows GL context");
 #else
-		SimpleWindow::initializeQtApp();
-
-		// Need a drawable for this to work
-		QGLWidget* widget = new QGLWidget;
-		widget->makeCurrent();
-		std::cout << "created a drawable" << std::endl;
-
         glContext = (long unsigned int*)glXGetCurrentContext();
         std::cout << "created GLX context " << glContext << std::endl;
 #endif

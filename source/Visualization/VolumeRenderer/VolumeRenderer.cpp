@@ -271,7 +271,6 @@ void VolumeRenderer::execute() {
 
 	
 
-    setOpenGLContext(mDevice->getGLContext());
 
    
     glEnable(GL_NORMALIZE);
@@ -548,7 +547,6 @@ void VolumeRenderer::execute() {
 	if (!inputs.empty())
 		inputs.clear();
 
-	releaseOpenGLContext();
 }
 
 void VolumeRenderer::draw() {

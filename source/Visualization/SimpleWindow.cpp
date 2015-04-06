@@ -41,6 +41,15 @@ void SimpleWindow::initializeQtApp() {
                 throw Exception("Failed to convert decimal point to dot.");
             }
         }
+        // Dummy widget
+        QGLWidget* widget = new QGLWidget;
+
+        // Create GL context to be shared with the CL contexts
+        SimpleWindow::mGLContext = new QGLContext(QGLFormat::defaultFormat(), widget); // by including widget here the context becomes valid
+        mGLContext->create();
+        if(!mGLContext->isValid()) {
+            throw Exception("QGL context is invalid!");
+        }
     }
 }
 
@@ -51,20 +60,17 @@ SimpleWindow::SimpleWindow() {
 
 	mEventLoop = NULL;
     mWidget = new WindowWidget;
-    // TODO unglobalize mGLContext
-    if(mGLContext != NULL){
-    	// This is used on Mac machines, create a shared context from mGLContext using Qt and give this to the view
-        std::cout << "Creating custom QGLContext" << std::endl;
-        QGLContext* context2 = new QGLContext(QGLFormat::defaultFormat(), mWidget->getView().getPtr().get());
-        context2->create(mGLContext);
-        mWidget->getView()->setContext(context2);
-        if(!context2->isValid()) {
-            std::cout << "QGL context 2 is invalid!" << std::endl;
-            exit(-1);
-        }
-        if(context2->isSharing()) {
-            std::cout << "context 2 is sharing" << std::endl;
-        }
+
+    std::cout << "Creating custom QGLContext" << std::endl;
+    QGLContext* context2 = new QGLContext(QGLFormat::defaultFormat(), mWidget->getView().getPtr().get());
+    context2->create(mGLContext);
+    mWidget->getView()->setContext(context2);
+    if(!context2->isValid()) {
+        std::cout << "QGL context 2 is invalid!" << std::endl;
+        exit(-1);
+    }
+    if(context2->isSharing()) {
+        std::cout << "context 2 is sharing" << std::endl;
     }
 
 
