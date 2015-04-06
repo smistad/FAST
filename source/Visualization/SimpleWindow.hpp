@@ -38,6 +38,7 @@ class SimpleWindow : public Object {
         QEventLoop* mEventLoop;
 
 
+
 };
 
 } // end namespace fast

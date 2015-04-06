@@ -11,6 +11,8 @@ fast_add_sources(
     SimpleWindow.hpp
     WindowWidget.cpp
     WindowWidget.hpp
+    ComputationThread.cpp
+    ComputationThread.hpp
     View.cpp
     View.hpp
     Renderer.cpp

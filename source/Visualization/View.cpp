@@ -54,11 +54,9 @@ View::View() {
     zFar = 1000;
     fieldOfViewY = 45;
     mIsIn2DMode = false;
-    mUpdateIsRunning = false;
     mScale2D = 1.0f;
     mLeftMouseButtonIsPressed = false;
     mMiddleMouseButtonIsPressed = false;
-    mThread = NULL;
     mQuit = false;
 
     mFramerate = 25;
@@ -68,7 +66,6 @@ View::View() {
     timer->setSingleShot(false);
     connect(timer,SIGNAL(timeout()),this,SLOT(update()));
 
-    mUpdateThreadIsStopped = false;
 
 	NonVolumesTurn=true;
 
@@ -76,9 +73,6 @@ View::View() {
 
 void View::quit() {
     mQuit = true;
-    if(mThread != NULL) {
-        stopPipelineUpdateThread();
-    }
 }
 
 bool View::hasQuit() const {
@@ -105,41 +99,6 @@ void View::execute() {
 }
 
 
-void View::stopPipelineUpdateThread() {
-    mUpdateThreadIsStopped = true;
-    // Block until mUpdateIsRunning is set to false
-    boost::unique_lock<boost::mutex> lock(mUpdateThreadMutex); // this locks the mutex
-    while(mUpdateIsRunning) {
-        // Unlocks the mutex and wait until someone calls notify.
-        // When it wakes, the mutex is locked again and mUpdateIsRunning is checked.
-        mUpdateThreadConditionVariable.wait(lock);
-    }
-    // mUpdateIsRunning is now false
-}
-
-void View::resumePipelineUpdateThread() {
-    mUpdateThreadIsStopped = false;
-}
-
-void ComputationThread::run() {
-    SimpleWindow::mGLContext->makeCurrent();
-    try {
-        while(!mView->mUpdateThreadIsStopped) {
-            mView->updateAllRenderers();
-        }
-    } catch(Exception &e) {
-        // If window has been killed, pipeline is stopped and should ignore any exceptions
-        if(mView.isValid()) {
-            if(!mView->hasQuit()) {
-                throw e;
-            }
-        }
-    }
-    // Move GL context back to main thread
-    SimpleWindow::mGLContext->moveToThread(mMainThread);
-    SimpleWindow::mGLContext->doneCurrent();
-    mView->mUpdateIsRunning = false;
-}
 
 void View::updateAllRenderers() {
     for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
@@ -148,13 +107,7 @@ void View::updateAllRenderers() {
     for(unsigned int i = 0; i < mVolumeRenderers.size(); i++) {
         mVolumeRenderers[i]->update();
     }
-    if(mUpdateThreadIsStopped) {
-        {
-            boost::unique_lock<boost::mutex> lock(mUpdateThreadMutex); // this locks the mutex
-            mUpdateIsRunning = false;
-        }
-        mUpdateThreadConditionVariable.notify_one();
-    }
+
 }
 
 void View::recalculateCamera() {
@@ -695,28 +648,6 @@ void View::paintGL() {
 			getDepthBufferFromGeo();
 			renderVolumes();
 		}
-
-        if(!mUpdateIsRunning && !mUpdateThreadIsStopped) {
-            // Spawn a new thread
-            mUpdateIsRunning = true;
-            std::cout << "Trying to start computation thread" << std::endl;
-            delete mThread;
-            mThread = new ComputationThread;
-            mThread->mView = mPtr.lock();
-            mThread->mMainThread = QThread::currentThread();
-            if(!SimpleWindow::mGLContext->isValid()) {
-                throw Exception("QGL context is invalid!");
-            }
-
-            // Context must be current in this thread before it can be moved to another thread
-            doneCurrent();
-            SimpleWindow::mGLContext->makeCurrent();
-            SimpleWindow::mGLContext->moveToThread(mThread);
-            SimpleWindow::mGLContext->doneCurrent();
-            mThread->start();
-            std::cout << "Computation thread started" << std::endl;
-            makeCurrent();
-        }
 	}
 	else // only Volume renderers exict
 	{
@@ -755,31 +686,8 @@ void View::paintGL() {
 			glTranslatef(-rotationPoint.x(),-rotationPoint.y(),-rotationPoint.z());
 
 			renderVolumes();
-
-            if(!mUpdateIsRunning && !mUpdateThreadIsStopped) {
-                // Spawn a new thread
-                mUpdateIsRunning = true;
-                std::cout << "Trying to start computation thread" << std::endl;
-                delete mThread;
-                mThread = new ComputationThread;
-                mThread->mView = mPtr.lock();
-                mThread->mMainThread = QThread::currentThread();
-                if(!SimpleWindow::mGLContext->isValid()) {
-                    throw Exception("QGL context is invalid!");
-                }
-
-                // Context must be current in this thread before it can be moved to another thread
-                doneCurrent();
-                SimpleWindow::mGLContext->makeCurrent();
-                SimpleWindow::mGLContext->moveToThread(mThread);
-                SimpleWindow::mGLContext->doneCurrent();
-                mThread->start();
-                std::cout << "Computation thread started" << std::endl;
-                makeCurrent();
-            }
 		}
 	}
-
 }
 
 void View::renderVolumes()

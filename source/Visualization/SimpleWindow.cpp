@@ -105,7 +105,10 @@ void SimpleWindow::start() {
     }
 
     mWidget->setEventLoop(mEventLoop);
-    mEventLoop->exec();
+
+    mWidget->startComputationThread();
+
+    mEventLoop->exec(); // This call blocks and starts rendering
 }
 
 SimpleWindow::~SimpleWindow() {
