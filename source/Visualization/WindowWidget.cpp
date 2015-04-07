@@ -63,9 +63,8 @@ void WindowWidget::startComputationThread() {
     // Start computation thread
     std::cout << "Trying to start computation thread" << std::endl;
     delete mThread;
-    mThread = new ComputationThread;
-    mThread->mView = mView;
-    mThread->mMainThread = QThread::currentThread();
+    mThread = new ComputationThread(QThread::currentThread());
+    mThread->addView(mView);
     if(!SimpleWindow::mGLContext->isValid()) {
         throw Exception("QGL context is invalid!");
     }

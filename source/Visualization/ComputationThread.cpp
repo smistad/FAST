@@ -3,9 +3,18 @@
 
 namespace fast {
 
-ComputationThread::ComputationThread() {
+ComputationThread::ComputationThread(QThread* mainThread) {
     mUpdateThreadIsStopped = false;
     mIsRunning = false;
+    mMainThread = mainThread;
+}
+
+void ComputationThread::addView(View::pointer view) {
+    mViews.push_back(view);
+}
+
+void ComputationThread::clearViews() {
+    mViews.clear();
 }
 
 bool ComputationThread::isRunning() {
@@ -18,24 +27,19 @@ void ComputationThread::run() {
         mIsRunning = true;
     }
     SimpleWindow::mGLContext->makeCurrent();
-    try {
-        while(true) {
-            mView->updateAllRenderers();
-            boost::unique_lock<boost::mutex> lock(mUpdateThreadMutex); // this locks the mutex
-            if(mUpdateThreadIsStopped) {
-                mIsRunning = false;
-                break;
-            }
+
+    while(true) {
+        for(int i = 0; i < mViews.size(); i++) {
+            mViews[i]->updateAllRenderers();
         }
-        mUpdateThreadConditionVariable.notify_one();
-    } catch(Exception &e) {
-        // If window has been killed, pipeline is stopped and should ignore any exceptions
-        if(mView.isValid()) {
-            if(!mView->hasQuit()) {
-                throw e;
-            }
+        boost::unique_lock<boost::mutex> lock(mUpdateThreadMutex); // this locks the mutex
+        if(mUpdateThreadIsStopped) {
+            mIsRunning = false;
+            break;
         }
     }
+    mUpdateThreadConditionVariable.notify_one();
+
     // Move GL context back to main thread
     SimpleWindow::mGLContext->moveToThread(mMainThread);
     SimpleWindow::mGLContext->doneCurrent();

@@ -5,17 +5,18 @@
 #include <QThread>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
+#include <vector>
 
 
 namespace fast {
 
 class ComputationThread : public QThread {
     public:
-        ComputationThread();
-        View::pointer mView;
-        QThread* mMainThread;
+        ComputationThread(QThread* mainThread);
         bool isRunning();
         void stop();
+        void addView(View::pointer view);
+        void clearViews();
     private:
         void run();
 
@@ -23,6 +24,10 @@ class ComputationThread : public QThread {
         bool mIsRunning;
         boost::condition_variable mUpdateThreadConditionVariable;
         boost::mutex mUpdateThreadMutex;
+
+        QThread* mMainThread;
+
+        std::vector<View::pointer> mViews;
 };
 
 }
