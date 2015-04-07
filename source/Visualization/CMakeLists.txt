@@ -7,6 +7,8 @@ fast_add_subdirectories(
     LineRenderer
 )
 fast_add_sources(
+    Window.cpp
+    Window.hpp
     SimpleWindow.cpp
     SimpleWindow.hpp
     WindowWidget.cpp

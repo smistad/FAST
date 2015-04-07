@@ -26,7 +26,8 @@ void ComputationThread::run() {
         boost::unique_lock<boost::mutex> lock(mUpdateThreadMutex); // this locks the mutex
         mIsRunning = true;
     }
-    SimpleWindow::mGLContext->makeCurrent();
+    QGLContext* mainGLContext = Window::getMainGLContext();
+    mainGLContext->makeCurrent();
 
     while(true) {
         for(int i = 0; i < mViews.size(); i++) {
@@ -38,12 +39,13 @@ void ComputationThread::run() {
             break;
         }
     }
-    mUpdateThreadConditionVariable.notify_one();
 
     // Move GL context back to main thread
-    SimpleWindow::mGLContext->moveToThread(mMainThread);
-    SimpleWindow::mGLContext->doneCurrent();
+    mainGLContext->moveToThread(mMainThread);
+    mainGLContext->doneCurrent();
     mIsRunning = false;
+    std::cout << "Computation thread has finished in run()" << std::endl;
+    mUpdateThreadConditionVariable.notify_one();
 }
 
 void ComputationThread::stop() {
@@ -55,6 +57,7 @@ void ComputationThread::stop() {
         // When it wakes, the mutex is locked again and mUpdateIsRunning is checked.
         mUpdateThreadConditionVariable.wait(lock);
     }
+    this->exit();
 }
 
 

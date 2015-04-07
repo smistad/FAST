@@ -11,7 +11,6 @@
 #include <QWidget>
 #include <QEventLoop>
 #include "View.hpp"
-#include "ComputationThread.hpp"
 
 namespace fast {
 
@@ -26,15 +25,14 @@ class WindowWidget : public QWidget {
         void wheelEvent(QWheelEvent* event);
         void closeEvent(QCloseEvent* event);
         View::pointer getView();
-        void setEventLoop(QEventLoop* eventLoop) { mEventLoop = eventLoop; };
-        void startComputationThread();
-        void stopComputationThread();
         ~WindowWidget();
     private:
         View::pointer mView;
-        QEventLoop *mEventLoop;
 
-        ComputationThread* mThread;
+    signals:
+        void widgetHasClosed();
+
+
 };
 }; // end namespace fast
 

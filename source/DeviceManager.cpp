@@ -1,7 +1,7 @@
 #include "DeviceManager.hpp"
 #include "OpenCLManager.hpp"
 #include "Exception.hpp"
-#include "SimpleWindow.hpp"
+#include "Window.hpp"
 #include <QApplication>
 
 #if defined(__APPLE__) || defined(__MACOSX)
@@ -31,9 +31,7 @@ std::vector<OpenCLDevice::pointer> getDevices(oul::DeviceCriteria criteria, bool
         // Create GL context
 
 		// Make sure only one QApplication is created
-		SimpleWindow::initializeQtApp();
-
-		SimpleWindow::mGLContext->makeCurrent();
+		fast::Window::getMainGLContext()->makeCurrent();
 #if defined(__APPLE__) || defined(__MACOSX)
 		CGLContextObj appleContext = CGLGetCurrentContext();
 		std::cout << "Initial GL context: " << CGLGetCurrentContext() << std::endl;

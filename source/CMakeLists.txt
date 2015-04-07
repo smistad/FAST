@@ -4,9 +4,14 @@ project(FAST)
 #### Options
 option(VTK_INTEROP "Enable interoperability with VTK" OFF)
 option(ITK_INTEROP "Enable interoperability with ITK" OFF)
-option(BUILD_TESTS "Build tests." ON)
+option(BUILD_TESTS "Build FAST tests." ON)
+option(BUILD_IGTLINK_TESTS "Build OpenIGTLink tests." OFF)
 option(BUILD_EXAMPLES "Build examples." OFF)
 option(MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
+
+if(BUILD_IGTLINK_TESTS)
+    set(BUILD_TESTING ON)
+endif()
 
 set(FAST_TEST_DATA_DIR "${PROJECT_SOURCE_DIR}/../TestData/" CACHE STRING "Directory of test data")
 
@@ -76,6 +81,7 @@ fast_add_sources(
 set(QT_HEADERS
     Visualization/View.hpp
     Visualization/WindowWidget.hpp
+    Visualization/Window.hpp
 )
 
 # Set up some directory defines

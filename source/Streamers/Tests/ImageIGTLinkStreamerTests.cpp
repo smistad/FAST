@@ -6,7 +6,7 @@
 
 using namespace fast;
 
-TEST_CASE("Stream 2D images using ImageIGTLinkStreamer", "[ImageIGTLinkStreamer][fast][IGTLink]") {
+TEST_CASE("Stream 2D images using ImageIGTLinkStreamer", "[ImageIGTLinkStreamer][fast][IGTLink][visual]") {
 
     ImageFileStreamer::pointer fileStreamer = ImageFileStreamer::New();
     fileStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-2Dt/US-2Dt_#.mhd");
