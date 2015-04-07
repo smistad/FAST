@@ -13,6 +13,7 @@ namespace fast {
 class ComputationThread : public QThread {
     public:
         ComputationThread(QThread* mainThread);
+        ~ComputationThread();
         bool isRunning();
         void stop();
         void addView(View::pointer view);

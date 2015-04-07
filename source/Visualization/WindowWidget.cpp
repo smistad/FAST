@@ -12,7 +12,8 @@ void WindowWidget::keyPressEvent(QKeyEvent* event) {
         return;
         break;
     }
-    mView->keyPressEvent(event);
+    for(View::pointer view : mViews)
+        view->keyPressEvent(event);
 }
 
 void WindowWidget::closeEvent(QCloseEvent* event) {
@@ -20,31 +21,38 @@ void WindowWidget::closeEvent(QCloseEvent* event) {
 }
 
 void WindowWidget::mouseMoveEvent(QMouseEvent* event) {
-    mView->mouseMoveEvent(event);
+    for(View::pointer view : mViews)
+        view->mouseMoveEvent(event);
 }
 
 void WindowWidget::mousePressEvent(QMouseEvent* event) {
-    mView->mousePressEvent(event);
+    for(View::pointer view : mViews)
+        view->mousePressEvent(event);
 }
 
 void WindowWidget::mouseReleaseEvent(QMouseEvent* event) {
-    mView->mouseReleaseEvent(event);
+    for(View::pointer view : mViews)
+        view->mouseReleaseEvent(event);
 }
 
 void WindowWidget::wheelEvent(QWheelEvent* event) {
-    mView->wheelEvent(event);
+    for(View::pointer view : mViews)
+        view->wheelEvent(event);
 }
 
 WindowWidget::~WindowWidget() {
     //std::cout << "DESTROYING window widget" << std::endl;
 }
 
-View::pointer WindowWidget::getView() {
-    return mView;
+WindowWidget::WindowWidget() {
 }
 
-WindowWidget::WindowWidget() {
-    mView = View::New();
+void WindowWidget::addView(View::pointer view) {
+    mViews.push_back(view);
+}
+
+std::vector<View::pointer> WindowWidget::getViews() const {
+    return mViews;
 }
 
 

@@ -80,7 +80,7 @@ bool View::hasQuit() const {
 }
 
 View::~View() {
-    //std::cout << "DESTROYING view object" << std::endl;
+    std::cout << "DESTROYING view object" << std::endl;
     quit();
 }
 

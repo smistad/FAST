@@ -7,6 +7,7 @@ QGLContext* Window::mMainGLContext = NULL;
 
 Window::Window() {
     mThread = NULL;
+    mTimeout = 0;
     initializeQtApp();
 	mEventLoop = NULL;
     mWidget = new WindowWidget;
@@ -64,9 +65,27 @@ void Window::stop() {
     */
 }
 
+View::pointer Window::createView() {
+    View::pointer view = View::New();
+    mWidget->addView(view);
+    std::cout << "Creating custom Qt GL context for the view which shares with the primary GL context" << std::endl;
+    QGLContext* context = new QGLContext(QGLFormat::defaultFormat(), view.getPtr().get());
+    context->create(getMainGLContext());
+    view->setContext(context);
+    if(!context->isValid()) {
+        std::cout << "The custom Qt GL context is invalid!" << std::endl;
+        exit(-1);
+    }
+    if(context->isSharing()) {
+        std::cout << "The custom Qt GL context is sharing" << std::endl;
+    }
+
+    return view;
+}
+
 void Window::start() {
     mWidget->resize(mWidth,mHeight);
-    mWidget->getView()->resize(mWidth,mHeight);
+    getViews()[0]->resize(mWidth,mHeight);
 
     mWidget->show();
     std::cout << "running main loop" << std::endl;
@@ -85,18 +104,16 @@ void Window::start() {
 }
 
 Window::~Window() {
-    std::cout << "Destroying window.." << std::endl;
     // Cleanup
+    std::cout << "Destroying window.." << std::endl;
     std::cout << "Deleting event loop" << std::endl;
     if(mEventLoop != NULL)
         delete mEventLoop;
     std::cout << "Deleting widget" << std::endl;
     if(mWidget != NULL)
         delete mWidget;
-    std::cout << "Deleting computation thread" << std::endl;
     if(mThread != NULL) {
         mThread->stop();
-        delete mThread;
     }
     std::cout << "Window destroyed" << std::endl;
 }
@@ -118,7 +135,12 @@ void Window::startComputationThread() {
         // Start computation thread
         std::cout << "Trying to start computation thread" << std::endl;
         mThread = new ComputationThread(QThread::currentThread());
-        mThread->addView(mWidget->getView());
+
+        // Make sure this thread is deleted after it is finished
+        //connect(mThread, SIGNAL(finished()), mThread, SLOT(deleteLater()));
+
+        for(int i = 0; i < getViews().size(); i++)
+            mThread->addView(getViews()[i]);
         QGLContext* mainGLContext = Window::getMainGLContext();
         if(!mainGLContext->isValid()) {
             throw Exception("QGL context is invalid!");
@@ -137,10 +159,13 @@ void Window::startComputationThread() {
 
 void Window::stopComputationThread() {
     std::cout << "Trying to stop computation thread" << std::endl;
-    mThread->stop();
-    delete mThread;
-    mThread = NULL;
+    if(mThread != NULL)
+        mThread->stop();
     std::cout << "Computation thread stopped" << std::endl;
+}
+
+std::vector<View::pointer> Window::getViews() const {
+    return mWidget->getViews();
 }
 
 } // end namespace fast

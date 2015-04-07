@@ -4,15 +4,15 @@
 namespace fast {
 
 void SimpleWindow::addRenderer(Renderer::pointer renderer) {
-    mWidget->getView()->addRenderer(renderer);
+    getViews()[0]->addRenderer(renderer);
 }
 
 void SimpleWindow::removeAllRenderers() {
-    mWidget->getView()->removeAllRenderers();
+    getViews()[0]->removeAllRenderers();
 }
 
 void SimpleWindow::setMaximumFramerate(unsigned int framerate) {
-    mWidget->getView()->setMaximumFramerate(framerate);
+    getViews()[0]->setMaximumFramerate(framerate);
 }
 
 SimpleWindow::~SimpleWindow() {
@@ -20,26 +20,14 @@ SimpleWindow::~SimpleWindow() {
 }
 
 SimpleWindow::SimpleWindow() {
-    std::cout << "Creating custom Qt GL context for the view which shares with the primary GL context" << std::endl;
-    QGLContext* context = new QGLContext(QGLFormat::defaultFormat(), mWidget->getView().getPtr().get());
-    context->create(getMainGLContext());
-    mWidget->getView()->setContext(context);
-    if(!context->isValid()) {
-        std::cout << "The custom Qt GL context is invalid!" << std::endl;
-        exit(-1);
-    }
-    if(context->isSharing()) {
-        std::cout << "The custom Qt GL context is sharing" << std::endl;
-    }
+    View::pointer view = createView();
 
     // default window size
     mWidth = 512;
     mHeight = 512;
 
-    mTimeout = 0;
-
     QHBoxLayout* mainLayout = new QHBoxLayout;
-    mainLayout->addWidget(mWidget->getView().getPtr().get());
+    mainLayout->addWidget(view.getPtr().get());
     mWidget->setLayout(mainLayout);
     mWidget->setWindowTitle("FAST");
     mWidget->setContentsMargins(0, 0, 0, 0);
@@ -52,15 +40,15 @@ void SimpleWindow::setWindowSize(unsigned int w, unsigned int h) {
 }
 
 void SimpleWindow::set2DMode() {
-    mWidget->getView()->set2DMode();
+    getViews()[0]->set2DMode();
 }
 
 void SimpleWindow::set3DMode() {
-    mWidget->getView()->set3DMode();
+    getViews()[0]->set3DMode();
 }
 
 View::pointer SimpleWindow::getView() const {
-    return mWidget->getView();
+    return (getViews()[0]);
 }
 
 } // end namespace fast

@@ -17,6 +17,10 @@ void ComputationThread::clearViews() {
     mViews.clear();
 }
 
+ComputationThread::~ComputationThread() {
+    std::cout << "Computation thread object destroyed" << std::endl;
+}
+
 bool ComputationThread::isRunning() {
     return mIsRunning;
 }
@@ -35,15 +39,14 @@ void ComputationThread::run() {
         }
         boost::unique_lock<boost::mutex> lock(mUpdateThreadMutex); // this locks the mutex
         if(mUpdateThreadIsStopped) {
+            // Move GL context back to main thread
+            mainGLContext->moveToThread(mMainThread);
+            mainGLContext->doneCurrent();
             mIsRunning = false;
             break;
         }
     }
 
-    // Move GL context back to main thread
-    mainGLContext->moveToThread(mMainThread);
-    mainGLContext->doneCurrent();
-    mIsRunning = false;
     std::cout << "Computation thread has finished in run()" << std::endl;
     mUpdateThreadConditionVariable.notify_one();
 }
@@ -57,7 +60,7 @@ void ComputationThread::stop() {
         // When it wakes, the mutex is locked again and mUpdateIsRunning is checked.
         mUpdateThreadConditionVariable.wait(lock);
     }
-    this->exit();
+    this->quit();
 }
 
 

@@ -6,6 +6,8 @@
 #include <QGLContext>
 #include <QEventLoop>
 #include "ComputationThread.hpp"
+#include "View.hpp"
+#include <vector>
 
 namespace fast {
 
@@ -22,6 +24,8 @@ class Window : public QObject, public Object {
         void stopComputationThread();
     protected:
         Window();
+        View::pointer createView();
+        std::vector<View::pointer> getViews() const;
         static QGLContext* mMainGLContext;
 
         WindowWidget* mWidget;
