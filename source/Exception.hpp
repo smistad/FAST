@@ -68,6 +68,13 @@ class FileNotFoundException : public Exception {
         FileNotFoundException(std::string message, int line, const char * file): Exception(message,line,file) {};
 };
 
+class OutOfBoundsException : public Exception {
+    public:
+        OutOfBoundsException() : Exception() {};
+        OutOfBoundsException(int line, const char * file) : Exception(line,file) {};
+        OutOfBoundsException(std::string message, int line, const char * file): Exception(message,line,file) {};
+};
+
 } // end namespace fast
 
 

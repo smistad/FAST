@@ -157,6 +157,12 @@ void MetaImageExporter::execute() {
     }
 #endif
 
+    // Remove any path information from rawFilename
+    std::size_t slashPos = rawFilename.find_last_of('/');
+    if(slashPos != std::string::npos) {
+        rawFilename = rawFilename.substr(slashPos+1);
+    }
+
     mhdFile << "ElementDataFile = " << rawFilename << "\n";
 
     mhdFile.close();

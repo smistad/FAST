@@ -252,8 +252,25 @@ typename T::pointer DynamicData<T>::getNextFrame(WeakPointer<Object> processObje
 
     // Producer consumer model
     if(mMaximumNrOfFrames > 0 && streamer->getStreamingMode() == STREAMING_MODE_PROCESS_ALL_FRAMES) {
-        fillCount->wait(); // decrement
+        bool frameShouldBeRemoved = true;
+
+        if(mConsumerFrameCounters.count(processObject) > 0) {
+            uint thisFrameCounter = mConsumerFrameCounters[processObject]; // Current consumer frame counter
+
+            // If any other frame counters are less or equal, we do not want to remove frame
+            boost::unordered_map<WeakPointer<Object>, uint>::const_iterator it;
+            for(it = mConsumerFrameCounters.begin(); it != mConsumerFrameCounters.end(); it++) {
+                if(it->second <= thisFrameCounter) {
+                    frameShouldBeRemoved = false;
+                    break;
+                }
+            }
+        }
+
+        if(frameShouldBeRemoved)
+            fillCount->wait(); // decrement
     }
+
     mStreamMutex.lock();
     if(streamer->getStreamingMode() == STREAMING_MODE_NEWEST_FRAME_ONLY) {
         // Always return last frame

@@ -72,6 +72,16 @@ Vector3f getCentroid(const MatrixXf m) {
     return m.rowwise().sum() / m.cols();
 }
 
+inline float sign(float value) {
+    if(value > 0) {
+        return 1.0f;
+    } else if (value < 0) {
+        return -1.0f;
+    } else {
+        return 0.0f;
+    }
+}
+
 void IterativeClosestPoint::setTransformationType(
         const IterativeClosestPoint::TransformationType type) {
     mTransformationType = type;
@@ -98,7 +108,8 @@ void IterativeClosestPoint::execute() {
 
     // Want to choose the smallest one as moving
     bool invertTransform = false;
-    if(fixedPoints.cols() < movingPoints.cols()) {
+    if(false && fixedPoints.cols() < movingPoints.cols()) {
+        std::cout << "switching fixed and moving" << std::endl;
         // Switch fixed and moving
         MatrixXf temp = fixedPoints;
         fixedPoints = movingPoints;
@@ -131,32 +142,35 @@ void IterativeClosestPoint::execute() {
         //std::cout << "Centroid moving: " << std::endl;
         //std::cout << centroidMoving << std::endl;
 
-        Eigen::Transform<float,3,Eigen::Affine> rotationTransform = Eigen::Transform<float,3,Eigen::Affine>::Identity();
+        Eigen::Transform<float, 3, Eigen::Affine> updateTransform = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
 
         if(mTransformationType == IterativeClosestPoint::RIGID) {
-            // Create correlation matrix H
-            MatrixXf H = (movedPoints.colwise()-centroidMoving)*
-                    (rearrangedFixedPoints.colwise()-centroidFixed).transpose();
+            // Create correlation matrix H of the deviations from centroid
+            MatrixXf H = (movedPoints.colwise() - centroidMoving)*
+                    (rearrangedFixedPoints.colwise() - centroidFixed).transpose();
 
             // Do SVD on H
             Eigen::JacobiSVD<Eigen::MatrixXf> svd(H, Eigen::ComputeFullU | Eigen::ComputeFullV);
 
             // Estimate rotation as R=V*U.transpose()
-            Matrix3f R = svd.matrixV()*svd.matrixU().transpose();
+            MatrixXf temp = svd.matrixV()*svd.matrixU().transpose();
+            Matrix3f d = Matrix3f::Identity();
+            d(2,2) = sign(temp.determinant());
+            Matrix3f R = svd.matrixV()*d*svd.matrixU().transpose();
 
             // Estimate translation
             Vector3f T = centroidFixed - R*centroidMoving;
 
-            rotationTransform.linear() = R;
-            rotationTransform.translation() = T;
+            updateTransform.linear() = R;
+            updateTransform.translation() = T;
         } else {
             // Only translation
             Vector3f T = centroidFixed - centroidMoving;
-            rotationTransform.translation() = T;
+            updateTransform.translation() = T;
         }
 
         // Update current transformation
-        currentTransformation = rotationTransform*currentTransformation;
+        currentTransformation = updateTransform*currentTransformation;
 
         // Calculate RMS error
         MatrixXf distance = rearrangedFixedPoints - currentTransformation*(movingPoints.colwise().homogeneous());

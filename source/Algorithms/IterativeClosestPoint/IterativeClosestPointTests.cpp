@@ -141,8 +141,8 @@ TEST_CASE("ICP on two point sets which are already transformed by scene graph", 
     Eigen::Transform<float, 3, Eigen::Affine> transformInit = Eigen::Transform<float,3,Eigen::Affine>::Identity();
     LinearTransformation FASTtransformInit;
     FASTtransformInit.setTransform(transformInit);
-    SceneGraph::insertParentNode(A, FASTtransformInit);
-    SceneGraph::insertParentNode(B, FASTtransformInit);
+    SceneGraph::insertParentNodeToData(A, FASTtransformInit);
+    SceneGraph::insertParentNodeToData(B, FASTtransformInit);
 
     // Apply a transformation to B surface
     Eigen::Transform<float, 3, Eigen::Affine> transform = Eigen::Transform<float,3,Eigen::Affine>::Identity();

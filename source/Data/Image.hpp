@@ -48,6 +48,9 @@ class Image : public DataObject {
 
         float calculateMaximumIntensity();
         float calculateMinimumIntensity();
+
+        // Copy image and put contents to specific device
+        Image::pointer copy(ExecutionDevice::pointer device);
     private:
         Image();
 

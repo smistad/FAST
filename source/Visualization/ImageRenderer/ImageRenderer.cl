@@ -9,12 +9,15 @@ __kernel void renderToTextureFloat(
     const int x = get_global_id(0);
     const int y = get_global_id(1);
 
-    // TODO components support
-    float value = read_imagef(image, sampler, (int2)(x,y)).x;
+    float4 value = read_imagef(image, sampler, (int2)(x,y));
+    if(get_image_channel_order(image) == CLK_R) {
+        value.y = value.x;
+        value.z = value.x;
+    }
 
     value = (value - level + window/2) / window;
     value = clamp(value, 0.0f, 1.0f);
-    write_imagef(texture, (int2)(x,get_global_size(1)-y-1), (float4)(value,value,value,1.0));
+    write_imagef(texture, (int2)(x,get_global_size(1)-y-1), value);
 }
 
 __kernel void renderToTextureUint(
@@ -26,12 +29,15 @@ __kernel void renderToTextureUint(
     const int x = get_global_id(0);
     const int y = get_global_id(1);
 
-    // TODO components support
-    float value = (float)read_imageui(image, sampler, (int2)(x,y)).x;
+    float4 value = convert_float4(read_imageui(image, sampler, (int2)(x,y)));
+    if(get_image_channel_order(image) == CLK_R) {
+        value.y = value.x;
+        value.z = value.x;
+    }
 
     value = (value - level + window/2) / window;
     value = clamp(value, 0.0f, 1.0f);
-    write_imagef(texture, (int2)(x,get_global_size(1)-y-1), (float4)(value,value,value,1.0));
+    write_imagef(texture, (int2)(x,get_global_size(1)-y-1), value);
 }
 
 __kernel void renderToTextureInt(
@@ -43,10 +49,13 @@ __kernel void renderToTextureInt(
     const int x = get_global_id(0);
     const int y = get_global_id(1);
 
-    // TODO components support
-    float value = (float)read_imagei(image, sampler, (int2)(x,y)).x;
+    float4 value = convert_float4(read_imagei(image, sampler, (int2)(x,y)));
+    if(get_image_channel_order(image) == CLK_R) {
+        value.y = value.x;
+        value.z = value.x;
+    }
 
     value = (value - level + window/2) / window;
     value = clamp(value, 0.0f, 1.0f);
-    write_imagef(texture, (int2)(x,get_global_size(1)-y-1), (float4)(value,value,value,1.0));
+    write_imagef(texture, (int2)(x,get_global_size(1)-y-1), value);
 }
