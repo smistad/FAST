@@ -120,6 +120,7 @@ void DummyIGTLImageServer::streamImages() {
                 socket->Send(imgMsg->GetPackPointer(), imgMsg->GetPackSize());
                 igtl::Sleep(interval); // wait
             }
+            break;
         }
     }
 

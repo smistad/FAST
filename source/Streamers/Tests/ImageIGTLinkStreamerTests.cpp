@@ -24,6 +24,6 @@ TEST_CASE("Stream 2D images using ImageIGTLinkStreamer", "[ImageIGTLinkStreamer]
     renderer->addInputConnection(streamer->getOutputPort());
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
-    std::cout << "ASDASDSDA!!!!" << std::endl;
+    window->setTimeout(5000);
     window->start();
 }
