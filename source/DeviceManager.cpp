@@ -40,8 +40,6 @@ std::vector<OpenCLDevice::pointer> getDevices(oul::DeviceCriteria criteria, bool
     std::cout << "Initial GL context: " << CGLGetCurrentContext() << std::endl;
     std::cout << "Initial GL share group: " << CGLGetShareGroup(CGLGetCurrentContext()) << std::endl;
 
-    SimpleWindow::mGLContext = context;
-
     glContext = (unsigned long *)appleContext;
 #else
 #if _WIN32
