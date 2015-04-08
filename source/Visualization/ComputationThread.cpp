@@ -9,7 +9,7 @@ ComputationThread::ComputationThread(QThread* mainThread) {
     mMainThread = mainThread;
 }
 
-void ComputationThread::addView(View::pointer view) {
+void ComputationThread::addView(View* view) {
     mViews.push_back(view);
 }
 

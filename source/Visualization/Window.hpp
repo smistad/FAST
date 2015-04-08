@@ -24,8 +24,8 @@ class Window : public QObject, public Object {
         void stopComputationThread();
     protected:
         Window();
-        View::pointer createView();
-        std::vector<View::pointer> getViews() const;
+        View* createView();
+        std::vector<View*> getViews() const;
         static QGLContext* mMainGLContext;
 
         WindowWidget* mWidget;

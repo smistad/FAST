@@ -1,5 +1,4 @@
 #include "SimpleWindow.hpp"
-#include <QHBoxLayout>
 
 namespace fast {
 
@@ -16,18 +15,17 @@ void SimpleWindow::setMaximumFramerate(unsigned int framerate) {
 }
 
 SimpleWindow::~SimpleWindow() {
-
 }
 
 SimpleWindow::SimpleWindow() {
-    View::pointer view = createView();
+    View* view = createView();
 
     // default window size
     mWidth = 512;
     mHeight = 512;
 
     QHBoxLayout* mainLayout = new QHBoxLayout;
-    mainLayout->addWidget(view.getPtr().get());
+    mainLayout->addWidget(view);
     mWidget->setLayout(mainLayout);
     mWidget->setWindowTitle("FAST");
     mWidget->setContentsMargins(0, 0, 0, 0);

@@ -12,7 +12,7 @@ void WindowWidget::keyPressEvent(QKeyEvent* event) {
         return;
         break;
     }
-    for(View::pointer view : mViews)
+    for(View* view : mViews)
         view->keyPressEvent(event);
 }
 
@@ -21,22 +21,22 @@ void WindowWidget::closeEvent(QCloseEvent* event) {
 }
 
 void WindowWidget::mouseMoveEvent(QMouseEvent* event) {
-    for(View::pointer view : mViews)
+    for(View* view : mViews)
         view->mouseMoveEvent(event);
 }
 
 void WindowWidget::mousePressEvent(QMouseEvent* event) {
-    for(View::pointer view : mViews)
+    for(View* view : mViews)
         view->mousePressEvent(event);
 }
 
 void WindowWidget::mouseReleaseEvent(QMouseEvent* event) {
-    for(View::pointer view : mViews)
+    for(View* view : mViews)
         view->mouseReleaseEvent(event);
 }
 
 void WindowWidget::wheelEvent(QWheelEvent* event) {
-    for(View::pointer view : mViews)
+    for(View* view : mViews)
         view->wheelEvent(event);
 }
 
@@ -47,11 +47,11 @@ WindowWidget::~WindowWidget() {
 WindowWidget::WindowWidget() {
 }
 
-void WindowWidget::addView(View::pointer view) {
+void WindowWidget::addView(View* view) {
     mViews.push_back(view);
 }
 
-std::vector<View::pointer> WindowWidget::getViews() const {
+std::vector<View*> WindowWidget::getViews() const {
     return mViews;
 }
 

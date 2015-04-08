@@ -24,11 +24,11 @@ class WindowWidget : public QWidget {
         void mouseReleaseEvent(QMouseEvent* event);
         void wheelEvent(QWheelEvent* event);
         void closeEvent(QCloseEvent* event);
-        void addView(View::pointer view);
-        std::vector<View::pointer> getViews() const;
+        void addView(View* view);
+        std::vector<View*> getViews() const;
         ~WindowWidget();
     private:
-        std::vector<View::pointer> mViews;
+        std::vector<View*> mViews;
 
     signals:
         void widgetHasClosed();

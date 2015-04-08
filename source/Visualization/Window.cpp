@@ -11,6 +11,7 @@ Window::Window() {
     initializeQtApp();
 	mEventLoop = NULL;
     mWidget = new WindowWidget;
+    mEventLoop = new QEventLoop(mWidget);
     mWidget->connect(mWidget, SIGNAL(widgetHasClosed()), this, SLOT(stop()));
 }
 
@@ -65,11 +66,11 @@ void Window::stop() {
     */
 }
 
-View::pointer Window::createView() {
-    View::pointer view = View::New();
+View* Window::createView() {
+    View* view = new View();
     mWidget->addView(view);
     std::cout << "Creating custom Qt GL context for the view which shares with the primary GL context" << std::endl;
-    QGLContext* context = new QGLContext(QGLFormat::defaultFormat(), view.getPtr().get());
+    QGLContext* context = new QGLContext(QGLFormat::defaultFormat(), view);
     context->create(getMainGLContext());
     view->setContext(context);
     if(!context->isValid()) {
@@ -90,7 +91,6 @@ void Window::start() {
     mWidget->show();
     std::cout << "running main loop" << std::endl;
 
-    mEventLoop = new QEventLoop(mWidget);
     if(mTimeout > 0) {
         QTimer* timer = new QTimer(mWidget);
         timer->start(mTimeout);
@@ -106,14 +106,18 @@ void Window::start() {
 Window::~Window() {
     // Cleanup
     std::cout << "Destroying window.." << std::endl;
-    std::cout << "Deleting event loop" << std::endl;
-    if(mEventLoop != NULL)
-        delete mEventLoop;
+    // Event loop is child of widget
+    //std::cout << "Deleting event loop" << std::endl;
+    //if(mEventLoop != NULL)
+    //    delete mEventLoop;
     std::cout << "Deleting widget" << std::endl;
     if(mWidget != NULL)
         delete mWidget;
+    std::cout << "Finished deleting window widget" << std::endl;
     if(mThread != NULL) {
         mThread->stop();
+        delete mThread;
+        mThread = NULL;
     }
     std::cout << "Window destroyed" << std::endl;
 }
@@ -147,24 +151,25 @@ void Window::startComputationThread() {
         }
 
         // Context must be current in this thread before it can be moved to another thread
-        //doneCurrent();
         mainGLContext->makeCurrent();
         mainGLContext->moveToThread(mThread);
         mainGLContext->doneCurrent();
         mThread->start();
         std::cout << "Computation thread started" << std::endl;
-        //makeCurrent();
     }
 }
 
 void Window::stopComputationThread() {
     std::cout << "Trying to stop computation thread" << std::endl;
-    if(mThread != NULL)
+    if(mThread != NULL) {
         mThread->stop();
+        delete mThread;
+        mThread = NULL;
+    }
     std::cout << "Computation thread stopped" << std::endl;
 }
 
-std::vector<View::pointer> Window::getViews() const {
+std::vector<View*> Window::getViews() const {
     return mWidget->getViews();
 }
 

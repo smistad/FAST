@@ -4,7 +4,7 @@
 #include "Window.hpp"
 #include "View.hpp"
 #include "Renderer.hpp"
-#include "WindowWidget.hpp"
+#include <QHBoxLayout>
 
 namespace fast {
 
@@ -21,6 +21,7 @@ class SimpleWindow : public Window {
         void set3DMode();
     protected:
         SimpleWindow();
+
 };
 
 } // end namespace fast

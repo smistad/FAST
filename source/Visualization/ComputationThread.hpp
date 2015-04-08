@@ -16,7 +16,7 @@ class ComputationThread : public QThread {
         ~ComputationThread();
         bool isRunning();
         void stop();
-        void addView(View::pointer view);
+        void addView(View* view);
         void clearViews();
     private:
         void run();
@@ -28,7 +28,7 @@ class ComputationThread : public QThread {
 
         QThread* mMainThread;
 
-        std::vector<View::pointer> mViews;
+        std::vector<View*> mViews;
 };
 
 }
