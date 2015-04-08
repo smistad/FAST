@@ -28,7 +28,8 @@ void* ImageAccess::get() {
 template <typename T>
 float getScalarAsFloat(T* data, Vector3i position, Vector3i size, uchar channel, uchar nrOfChannels) {
 
-    if(position.x() > size.x()-1 || position.y() > size.y()-1 || position.z() > size.z()-1 || channel >= nrOfChannels)
+    if(position.x() < 0 || position.y() < 0 || position.z() < 0 ||
+            position.x() > size.x()-1 || position.y() > size.y()-1 || position.z() > size.z()-1 || channel >= nrOfChannels)
         throw OutOfBoundsException();
 
     return data[(position.x() + position.y()*size.x() + position.z()*size.x()*size.y())*nrOfChannels + channel];
@@ -38,7 +39,8 @@ float getScalarAsFloat(T* data, Vector3i position, Vector3i size, uchar channel,
 template <typename T>
 void setScalarAsFloat(T* data, Vector3i position, Vector3i size, float value, uchar channel, uchar nrOfChannels) {
 
-    if(position.x() > size.x()-1 || position.y() > size.y()-1 || position.z() > size.z()-1 || channel >= nrOfChannels)
+    if(position.x() < 0 || position.y() < 0 || position.z() < 0 ||
+            position.x() > size.x()-1 || position.y() > size.y()-1 || position.z() > size.z()-1 || channel >= nrOfChannels)
         throw OutOfBoundsException();
 
     data[(position.x() + position.y()*size.x() + position.z()*size.x()*size.y())*nrOfChannels + channel] = value;
