@@ -11,6 +11,8 @@ option(MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
 
 if(BUILD_IGTLINK_TESTS)
     set(BUILD_TESTING ON)
+else()
+    set(BUILD_TESTING OFF)
 endif()
 
 set(FAST_TEST_DATA_DIR "${PROJECT_SOURCE_DIR}/../TestData/" CACHE STRING "Directory of test data")
