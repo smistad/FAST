@@ -4,7 +4,6 @@
 #include "Window.hpp"
 #include "View.hpp"
 #include "Renderer.hpp"
-#include <QHBoxLayout>
 
 namespace fast {
 

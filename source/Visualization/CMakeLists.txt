@@ -5,12 +5,15 @@ fast_add_subdirectories(
     VolumeRenderer
     PointRenderer
     LineRenderer
+    Tests
 )
 fast_add_sources(
     Window.cpp
     Window.hpp
     SimpleWindow.cpp
     SimpleWindow.hpp
+    DualViewWindow.cpp
+    DualViewWindow.hpp
     WindowWidget.cpp
     WindowWidget.hpp
     ComputationThread.cpp

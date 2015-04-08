@@ -86,7 +86,7 @@ View* Window::createView() {
 
 void Window::start() {
     mWidget->resize(mWidth,mHeight);
-    getViews()[0]->resize(mWidth,mHeight);
+    //getViews()[0]->resize(mWidth,mHeight);
 
     mWidget->show();
     std::cout << "running main loop" << std::endl;

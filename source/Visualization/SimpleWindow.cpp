@@ -1,4 +1,5 @@
 #include "SimpleWindow.hpp"
+#include <QHBoxLayout>
 
 namespace fast {
 
