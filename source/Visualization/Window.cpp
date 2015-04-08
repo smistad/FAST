@@ -13,6 +13,12 @@ Window::Window() {
     mWidget = new WindowWidget;
     mEventLoop = new QEventLoop(mWidget);
     mWidget->connect(mWidget, SIGNAL(widgetHasClosed()), this, SLOT(stop()));
+    mWidget->setWindowTitle("FAST");
+    mWidget->setContentsMargins(0, 0, 0, 0);
+
+    // default window size
+    mWidth = 512;
+    mHeight = 512;
 }
 
 void Window::initializeQtApp() {

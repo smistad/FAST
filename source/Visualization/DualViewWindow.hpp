@@ -21,6 +21,7 @@ class DualViewWindow : public Window {
         ~DualViewWindow();
     protected:
         DualViewWindow();
+        void createLayout();
 
         bool mVerticalMode;
 };

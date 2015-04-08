@@ -1,5 +1,6 @@
 #include "DualViewWindow.hpp"
 #include <QHBoxLayout>
+#include <QVBoxLayout>
 
 namespace fast {
 
@@ -27,29 +28,45 @@ View* DualViewWindow::getBottomRightView() const {
 }
 
 void DualViewWindow::setHorizontalMode() {
+    mVerticalMode = false;
+    createLayout();
 }
 
 void DualViewWindow::setVerticalMode() {
+    mVerticalMode = true;
+    createLayout();
 }
 
 DualViewWindow::~DualViewWindow() {
 }
 
 DualViewWindow::DualViewWindow() {
+    mVerticalMode = false;
     View* view1 = createView();
     View* view2 = createView();
 
-    // default window size
-    mWidth = 512;
-    mHeight = 512;
+    createLayout();
+}
 
-    QHBoxLayout* mainLayout = new QHBoxLayout;
-    mainLayout->addWidget(view1);
-    mainLayout->addWidget(view2);
-    mWidget->setLayout(mainLayout);
-    mWidget->setWindowTitle("FAST");
-    mWidget->setContentsMargins(0, 0, 0, 0);
-    mainLayout->setContentsMargins(0, 0, 0, 0);
+void DualViewWindow::createLayout() {
+    // Remove old layout by deleting it
+    QLayout* layout = mWidget->layout();
+    delete layout;
+
+    // Add new layout
+    if(mVerticalMode) {
+        QVBoxLayout* mainLayout = new QVBoxLayout;
+        mainLayout->addWidget(getViews()[0]);
+        mainLayout->addWidget(getViews()[1]);
+        mainLayout->setContentsMargins(0, 0, 0, 0);
+        mWidget->setLayout(mainLayout);
+    } else {
+        QHBoxLayout* mainLayout = new QHBoxLayout;
+        mainLayout->addWidget(getViews()[0]);
+        mainLayout->addWidget(getViews()[1]);
+        mainLayout->setContentsMargins(0, 0, 0, 0);
+        mWidget->setLayout(mainLayout);
+    }
 }
 
 } // end namespace fast
