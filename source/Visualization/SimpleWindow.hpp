@@ -14,7 +14,7 @@ class SimpleWindow : public Window {
         void removeAllRenderers();
         void setMaximumFramerate(unsigned int framerate);
         void setWindowSize(unsigned int w, unsigned int h);
-        View::pointer getView() const;
+        View* getView() const;
         ~SimpleWindow();
         void set2DMode();
         void set3DMode();

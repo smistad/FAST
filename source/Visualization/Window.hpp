@@ -25,6 +25,7 @@ class Window : public QObject, public Object {
     protected:
         Window();
         View* createView();
+        View* getView(uint i) const;
         std::vector<View*> getViews() const;
         static QGLContext* mMainGLContext;
 

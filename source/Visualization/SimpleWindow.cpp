@@ -39,15 +39,15 @@ void SimpleWindow::setWindowSize(unsigned int w, unsigned int h) {
 }
 
 void SimpleWindow::set2DMode() {
-    getViews()[0]->set2DMode();
+    getView()->set2DMode();
 }
 
 void SimpleWindow::set3DMode() {
-    getViews()[0]->set3DMode();
+    getView()->set3DMode();
 }
 
-View::pointer SimpleWindow::getView() const {
-    return (getViews()[0]);
+View* SimpleWindow::getView() const {
+    return Window::getView(0);
 }
 
 } // end namespace fast

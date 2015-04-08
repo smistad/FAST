@@ -179,4 +179,8 @@ std::vector<View*> Window::getViews() const {
     return mWidget->getViews();
 }
 
+View* Window::getView(uint i) const {
+    return mWidget->getViews().at(i);
+}
+
 } // end namespace fast
