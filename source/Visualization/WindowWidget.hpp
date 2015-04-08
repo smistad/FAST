@@ -17,19 +17,23 @@ namespace fast {
 class WindowWidget : public QWidget {
     Q_OBJECT
     public:
+        WindowWidget();
         void keyPressEvent(QKeyEvent* event);
         void mouseMoveEvent(QMouseEvent* event);
         void mousePressEvent(QMouseEvent* event);
         void mouseReleaseEvent(QMouseEvent* event);
         void wheelEvent(QWheelEvent* event);
         void closeEvent(QCloseEvent* event);
-        WindowWidget() {mView = View::New(); mEventLoop = NULL;};
-        View::pointer getView();
-        void setEventLoop(QEventLoop* eventLoop) { mEventLoop = eventLoop; };
+        void addView(View* view);
+        std::vector<View*> getViews() const;
         ~WindowWidget();
     private:
-        View::pointer mView;
-        QEventLoop *mEventLoop;
+        std::vector<View*> mViews;
+
+    signals:
+        void widgetHasClosed();
+
+
 };
 }; // end namespace fast
 

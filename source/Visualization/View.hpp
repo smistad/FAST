@@ -6,14 +6,13 @@
 #include <vector>
 #include <QtOpenGL/QGLWidget>
 #include <QTimer>
-#include <boost/thread.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition_variable.hpp>
 
 namespace fast {
 
+class ComputationThread;
+
 class View : public QGLWidget, public ProcessObject {
-    FAST_OBJECT(View)
+    //FAST_OBJECT(View)
     Q_OBJECT
     public:
         void addRenderer(Renderer::pointer renderer);
@@ -37,6 +36,7 @@ class View : public QGLWidget, public ProcessObject {
 		 Vector3f cameraPosition;
 		 Vector3f rotationPoint;
 		 Vector2f rotation;
+        View();
     private:
 
 		std::vector<Renderer::pointer> mNonVolumeRenderers;
@@ -51,7 +51,6 @@ class View : public QGLWidget, public ProcessObject {
 		void renderVolumes();
 
 
-        View();
 
         void execute();
         QTimer* timer;
@@ -60,13 +59,11 @@ class View : public QGLWidget, public ProcessObject {
         Vector3f originalCameraPosition;
         
         bool mQuit;
-        bool mUpdateThreadIsStopped;
         
 		float zNear, zFar;
         float fieldOfViewX, fieldOfViewY;
         float aspect;
         bool mIsIn2DMode;
-        bool mUpdateIsRunning;
 
         bool mLeftMouseButtonIsPressed;
         bool mMiddleMouseButtonIsPressed;
@@ -77,15 +74,15 @@ class View : public QGLWidget, public ProcessObject {
         uint mPosX2D, mPosY2D;
         float mScale2D;
 
-        boost::thread* thread;
-        boost::condition_variable mUpdateThreadConditionVariable;
-        boost::mutex mUpdateThreadMutex;
+        friend class ComputationThread;
     protected:
         void initializeGL();
         void paintGL();
         void resizeGL(int width, int height);
 
 };
+
+
 
 } // end namespace fast
 

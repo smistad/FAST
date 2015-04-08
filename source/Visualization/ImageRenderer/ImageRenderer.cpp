@@ -17,6 +17,7 @@
 #include <CL/cl_gl.h>
 #endif
 #endif
+#include <boost/thread/lock_guard.hpp>
 
 using namespace fast;
 
@@ -25,6 +26,7 @@ using namespace fast;
 #endif
 
 void ImageRenderer::execute() {
+    boost::lock_guard<boost::mutex> lock(mMutex);
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
         Image::pointer input = getStaticInputData<Image>(inputNr);
 
@@ -44,7 +46,6 @@ void ImageRenderer::execute() {
         }
 
         OpenCLDevice::pointer device = getMainDevice();
-        setOpenGLContext(device->getGLContext());
 
         OpenCLImageAccess2D access = input->getOpenCLImageAccess2D(ACCESS_READ, device);
         cl::Image2D* clImage = access.get();
@@ -55,8 +56,6 @@ void ImageRenderer::execute() {
             glDeleteTextures(1, &mTexturesToRender[inputNr]);
             mTexturesToRender.erase(inputNr);
         }
-
-            // Resize window to image
 
         // Create OpenGL texture
         GLuint textureID;
@@ -118,7 +117,6 @@ void ImageRenderer::execute() {
 
         queue.enqueueReleaseGLObjects(&v);
         queue.finish();
-        releaseOpenGLContext();
     }
     mTextureIsCreated = true;
 }
@@ -137,7 +135,7 @@ ImageRenderer::ImageRenderer() : Renderer() {
 }
 
 void ImageRenderer::draw() {
-
+    boost::lock_guard<boost::mutex> lock(mMutex);
     boost::unordered_map<uint, Image::pointer>::iterator it;
     for(it = mImagesToRender.begin(); it != mImagesToRender.end(); it++) {
         glPushMatrix();

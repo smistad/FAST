@@ -4,6 +4,7 @@
 #include "HelperFunctions.hpp"
 #include "Image.hpp"
 #include "SceneGraph.hpp"
+#include <boost/thread/lock_guard.hpp>
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
 #include <OpenGL/gl.h>
@@ -27,6 +28,7 @@ using namespace fast;
 
 
 void SliceRenderer::execute() {
+    boost::lock_guard<boost::mutex> lock(mMutex);
     mImageToRender = getStaticInputData<Image>(0);
 
     if(mImageToRender->getDimensions() != 3)
@@ -44,7 +46,6 @@ void SliceRenderer::execute() {
     }
 
     OpenCLDevice::pointer device = getMainDevice();
-    setOpenGLContext(device->getGLContext());
 
     // Determine slice nr and width and height of the texture to render to
     unsigned int sliceNr;
@@ -160,7 +161,6 @@ void SliceRenderer::execute() {
 
     queue.enqueueReleaseGLObjects(&v);
     queue.finish();
-    releaseOpenGLContext();
 
     mTextureIsCreated = true;
 }
@@ -206,6 +206,7 @@ SliceRenderer::SliceRenderer() : Renderer() {
 }
 
 void SliceRenderer::draw() {
+    boost::lock_guard<boost::mutex> lock(mMutex);
     if(!mTextureIsCreated)
         return;
 

@@ -5,6 +5,7 @@
 #include "View.hpp"
 #include "Utility.hpp"
 #include <QCursor>
+#include <boost/thread/lock_guard.hpp>
 
 #include "MeshRenderer.hpp"
 #include "SceneGraph.hpp"
@@ -35,6 +36,7 @@ MeshRenderer::MeshRenderer() : Renderer() {
 }
 
 void MeshRenderer::execute() {
+    boost::lock_guard<boost::mutex> lock(mMutex);
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
         Mesh::pointer input = getStaticInputData<Mesh>(inputNr);
         mMeshToRender[inputNr] = input;
@@ -42,6 +44,7 @@ void MeshRenderer::execute() {
 }
 
 void MeshRenderer::draw() {
+    boost::lock_guard<boost::mutex> lock(mMutex);
 
     glEnable(GL_NORMALIZE);
     glShadeModel(GL_SMOOTH);
@@ -79,9 +82,7 @@ void MeshRenderer::draw() {
         GLfloat shininess[] = { 16.0f };
         glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
 
-        releaseOpenGLContext();
         VertexBufferObjectAccess access = surfaceToRender->getVertexBufferObjectAccess(ACCESS_READ, getMainDevice());
-        setOpenGLContext(OpenCLDevice::pointer(getMainDevice())->getGLContext());
         GLuint* VBO_ID = access.get();
 
         // Normal Buffer

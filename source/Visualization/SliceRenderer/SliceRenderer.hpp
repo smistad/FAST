@@ -42,6 +42,8 @@ class SliceRenderer : public Renderer {
         unsigned int mHeight;
 
         bool mDoTransformations;
+
+        boost::mutex mMutex;
 };
 
 }

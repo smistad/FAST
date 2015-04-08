@@ -1,4 +1,5 @@
 #include "WindowWidget.hpp"
+#include "SimpleWindow.hpp"
 using namespace fast;
 
 
@@ -11,38 +12,47 @@ void WindowWidget::keyPressEvent(QKeyEvent* event) {
         return;
         break;
     }
-    mView->keyPressEvent(event);
+    for(View* view : mViews)
+        view->keyPressEvent(event);
 }
 
 void WindowWidget::closeEvent(QCloseEvent* event) {
-    // Make sure event is not quit twice
-    if(!mView->hasQuit()) {
-        // This event occurs when window is closed or timeout is reached
-        mView->quit();
-        mEventLoop->quit();
-    }
+    emit widgetHasClosed();
 }
 
 void WindowWidget::mouseMoveEvent(QMouseEvent* event) {
-    mView->mouseMoveEvent(event);
+    for(View* view : mViews)
+        view->mouseMoveEvent(event);
 }
 
 void WindowWidget::mousePressEvent(QMouseEvent* event) {
-    mView->mousePressEvent(event);
+    for(View* view : mViews)
+        view->mousePressEvent(event);
 }
 
 void WindowWidget::mouseReleaseEvent(QMouseEvent* event) {
-    mView->mouseReleaseEvent(event);
+    for(View* view : mViews)
+        view->mouseReleaseEvent(event);
 }
 
 void WindowWidget::wheelEvent(QWheelEvent* event) {
-    mView->wheelEvent(event);
+    for(View* view : mViews)
+        view->wheelEvent(event);
 }
 
 WindowWidget::~WindowWidget() {
     //std::cout << "DESTROYING window widget" << std::endl;
 }
 
-View::pointer WindowWidget::getView() {
-    return mView;
+WindowWidget::WindowWidget() {
 }
+
+void WindowWidget::addView(View* view) {
+    mViews.push_back(view);
+}
+
+std::vector<View*> WindowWidget::getViews() const {
+    return mViews;
+}
+
+

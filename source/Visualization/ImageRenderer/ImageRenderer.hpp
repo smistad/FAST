@@ -30,6 +30,8 @@ class ImageRenderer : public Renderer {
 
         bool mDoTransformations;
 
+        boost::mutex mMutex;
+
 };
 
 }

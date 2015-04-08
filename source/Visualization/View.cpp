@@ -7,6 +7,7 @@
 #include "SliceRenderer.hpp"
 #include "ImageRenderer.hpp"
 #include "HelperFunctions.hpp"
+#include "SimpleWindow.hpp"
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
@@ -24,6 +25,7 @@
 #endif
 
 #include <QCursor>
+#include <QThread>
 #include "VolumeRenderer.hpp"
 
 using namespace fast;
@@ -48,16 +50,13 @@ void View::removeAllRenderers() {
 }
 
 View::View() {
-
     zNear = 0.1;
     zFar = 1000;
     fieldOfViewY = 45;
     mIsIn2DMode = false;
-    mUpdateIsRunning = false;
     mScale2D = 1.0f;
     mLeftMouseButtonIsPressed = false;
     mMiddleMouseButtonIsPressed = false;
-    thread = NULL;
     mQuit = false;
 
     mFramerate = 25;
@@ -67,7 +66,6 @@ View::View() {
     timer->setSingleShot(false);
     connect(timer,SIGNAL(timeout()),this,SLOT(update()));
 
-    mUpdateThreadIsStopped = false;
 
 	NonVolumesTurn=true;
 
@@ -82,11 +80,8 @@ bool View::hasQuit() const {
 }
 
 View::~View() {
-    //std::cout << "DESTROYING view object" << std::endl;
+    std::cout << "DESTROYING view object" << std::endl;
     quit();
-    if(thread != NULL) {
-        thread->join();
-    }
 }
 
 
@@ -103,44 +98,7 @@ void View::setMaximumFramerate(unsigned int framerate) {
 void View::execute() {
 }
 
-/**
- * Dummy function to get into the class again
- */
-inline void stubStreamThread(View* view) {
-    try {
-        view->updateAllRenderers();
-        /*
-    } catch(cl::Error &e) {
-        std::cout << "OpenCL exception caugt" << std::endl;
-        std::cout << e.what() << std::endl;
-        std::cout << oul::getCLErrorString(e.err()) << std::endl;
-        throw e;
-        */
-    } catch(Exception &e) {
-        // If window has been killed, pipeline is stopped and should ignore any exceptions
-        if(view != NULL) {
-            if(!view->hasQuit()) {
-                throw e;
-            }
-        }
-    }
-}
 
-void View::stopPipelineUpdateThread() {
-    mUpdateThreadIsStopped = true;
-    // Block until mUpdateIsRunning is set to false
-    boost::unique_lock<boost::mutex> lock(mUpdateThreadMutex); // this locks the mutex
-    while(mUpdateIsRunning) {
-        // Unlocks the mutex and wait until someone calls notify.
-        // When it wakes, the mutex is locked again and mUpdateIsRunning is checked.
-        mUpdateThreadConditionVariable.wait(lock);
-    }
-    // mUpdateIsRunning is now false
-}
-
-void View::resumePipelineUpdateThread() {
-    mUpdateThreadIsStopped = false;
-}
 
 void View::updateAllRenderers() {
     for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
@@ -149,15 +107,7 @@ void View::updateAllRenderers() {
     for(unsigned int i = 0; i < mVolumeRenderers.size(); i++) {
         mVolumeRenderers[i]->update();
     }
-    if(mUpdateThreadIsStopped) {
-        {
-            boost::unique_lock<boost::mutex> lock(mUpdateThreadMutex); // this locks the mutex
-            mUpdateIsRunning = false;
-        }
-        mUpdateThreadConditionVariable.notify_one();
-    } else {
-        mUpdateIsRunning = false;
-    }
+
 }
 
 void View::recalculateCamera() {
@@ -392,18 +342,6 @@ void View::recalculateCamera() {
 }
 
 void View::initializeGL() {
-    // TODO make this cross platform
-#if defined(__APPLE__) || defined(__MACOSX)
-    //Object::currentDrawable = (unsigned long)CGLGetCurrentContext();
-        // Mac
-#elif _WIN32
-        // Windows
-	Object::hdc = wglGetCurrentDC();
-#else
-    // Linux
-    Object::currentDrawable = glXGetCurrentDrawable();
-#endif
-	setOpenGLContext(OpenCLDevice::pointer(DeviceManager::getInstance().getDefaultVisualizationDevice())->getGLContext());
 	glewInit();
 	glEnable(GL_TEXTURE_2D);
 
@@ -456,7 +394,6 @@ void View::initializeGL() {
 
 
 	initShader();
-	releaseOpenGLContext();
 
 	if (mNonVolumeRenderers.size()>0) //it can be "only nonVolume renderers" or "nonVolume + Volume renderes" together
 	{
@@ -472,9 +409,6 @@ void View::initializeGL() {
 		}
 
         recalculateCamera();
-        setOpenGLContext(
-                OpenCLDevice::pointer(
-                        DeviceManager::getInstance().getDefaultVisualizationDevice())->getGLContext());
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         // Set up viewport and projection transformation
         glMatrixMode(GL_PROJECTION);
@@ -505,7 +439,6 @@ void View::initializeGL() {
 			glPopMatrix();
 			glMatrixMode(GL_PROJECTION);
 			glPopMatrix();
-            setOpenGLContext(OpenCLDevice::pointer(DeviceManager::getInstance().getDefaultVisualizationDevice())->getGLContext());
 
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -636,14 +569,11 @@ void View::initializeGL() {
 			}
 		}
 	}
-    releaseOpenGLContext();
 	std::cout << "finished init GL" << std::endl;
 }
 
 
 void View::paintGL() {
-
-	setOpenGLContext(OpenCLDevice::pointer(DeviceManager::getInstance().getDefaultVisualizationDevice())->getGLContext());
 
 	if (mNonVolumeRenderers.size() > 0 ) //it can be "only nonVolume renderers" or "nonVolume + Volume renderes" together
 	{
@@ -686,55 +616,13 @@ void View::paintGL() {
 			// Apply camera movement
 			glTranslatef(cameraPosition.x(), cameraPosition.y(), cameraPosition.z());
 
-			/*
-			// Draw x, y and z axis
-			glBegin(GL_LINES);
-			glColor3f(1.0,0.0,0.0);
-			glVertex3f(0.0,0.0,0.0);
-			glVertex3f(1000.0,0.0,0.0);
-			glColor3f(0.0,1.0,0.0);
-			glVertex3f(0.0,0.0,0.0);
-			glVertex3f(0.0,1000.0,0.0);
-			glColor3f(0.0,0.0,1.0);
-			glVertex3f(0.0,0.0,0.0);
-			glVertex3f(0.0,0.0,1000.0);
-			glEnd();
-			*/
-
 			// Apply global rotation
 			glTranslatef(rotationPoint.x(),rotationPoint.y(),rotationPoint.z());
 			// TODO make this rotation better
 			glRotatef(rotation.x(), 1.0, 0.0, 0.0);
 			glRotatef(rotation.y(), 0.0, 1.0, 0.0);
 			glTranslatef(-rotationPoint.x(),-rotationPoint.y(),-rotationPoint.z());
-
-			/*
-			// Draw x, y and z axis
-			glBegin(GL_LINES);
-			glColor3f(1.0,0.0,0.0);
-			glVertex3f(0.0,0.0,0.0);
-			glVertex3f(1000.0,0.0,0.0);
-			glColor3f(0.0,1.0,0.0);
-			glVertex3f(0.0,0.0,0.0);
-			glVertex3f(0.0,1000.0,0.0);
-			glColor3f(0.0,0.0,1.0);
-			glVertex3f(0.0,0.0,0.0);
-			glVertex3f(0.0,0.0,1000.0);
-			glEnd();
-
-			// Draw rotation point
-			glPointSize(10);
-			glBegin(GL_POINTS);
-			glVertex3f(rotationPoint.x(), rotationPoint.y(), rotationPoint.z());
-			glEnd();
-			*/
-
-
-			//setOpenGLContext(mDevice->getGLContext());
-
 		}
-
-
 
 		if (mVolumeRenderers.size()>0)
 		{
@@ -760,18 +648,6 @@ void View::paintGL() {
 			getDepthBufferFromGeo();
 			renderVolumes();
 		}
-        releaseOpenGLContext();
-
-        if(!mUpdateIsRunning && !mUpdateThreadIsStopped) {
-            // Spawn a new thread
-            mUpdateIsRunning = true;
-#if defined(__APPLE__) || defined(__MACOSX)
-            stubStreamThread(this);
-#else
-            delete thread;
-            thread = new boost::thread(&stubStreamThread, this);
-#endif
-        }
 	}
 	else // only Volume renderers exict
 	{
@@ -810,21 +686,8 @@ void View::paintGL() {
 			glTranslatef(-rotationPoint.x(),-rotationPoint.y(),-rotationPoint.z());
 
 			renderVolumes();
-            releaseOpenGLContext();
-
-            if(!mUpdateIsRunning) {
-                // Spawn a new thread
-                mUpdateIsRunning = true;
-#if defined(__APPLE__) || defined(__MACOSX)
-            stubStreamThread(this);
-#else
-            delete thread;
-            thread = new boost::thread(&stubStreamThread, this);
-#endif
-            }
 		}
 	}
-
 }
 
 void View::renderVolumes()
@@ -909,7 +772,6 @@ void View::getDepthBufferFromGeo()
 
 void View::resizeGL(int width, int height) {
 
-    setOpenGLContext(OpenCLDevice::pointer(DeviceManager::getInstance().getDefaultVisualizationDevice())->getGLContext());
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     if(mIsIn2DMode) {
@@ -927,7 +789,6 @@ void View::resizeGL(int width, int height) {
 		((VolumeRenderer::pointer)mVolumeRenderers[0])->resize(width, height);
 		((VolumeRenderer::pointer)mVolumeRenderers[0])->setProjectionParameters(fieldOfViewY, (float)width/height, zNear, zFar);
 	}
-	releaseOpenGLContext();
 }
 
 void View::keyPressEvent(QKeyEvent* event) {

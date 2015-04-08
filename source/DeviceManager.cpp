@@ -1,7 +1,7 @@
 #include "DeviceManager.hpp"
 #include "OpenCLManager.hpp"
 #include "Exception.hpp"
-#include "SimpleWindow.hpp"
+#include "Window.hpp"
 #include <QApplication>
 
 #if defined(__APPLE__) || defined(__MACOSX)
@@ -28,68 +28,22 @@ std::vector<OpenCLDevice::pointer> getDevices(oul::DeviceCriteria criteria, bool
     unsigned long * glContext = NULL;
     QGLWidget* widget = NULL;
     if(enableVisualization) {
-        // TODO: this can be simplified to just use the QGLContext class instead
         // Create GL context
+
+		// Make sure only one QApplication is created
+		fast::Window::getMainGLContext()->makeCurrent();
 #if defined(__APPLE__) || defined(__MACOSX)
-	std::cout << "trying to create a MAC os X GL context" << std::endl;
-    // Make sure only one QApplication is created
-    SimpleWindow::initializeQtApp();
+		CGLContextObj appleContext = CGLGetCurrentContext();
+		std::cout << "Initial GL context: " << CGLGetCurrentContext() << std::endl;
+		std::cout << "Initial GL share group: " << CGLGetShareGroup(CGLGetCurrentContext()) << std::endl;
 
-    widget = new QGLWidget;
-
-    // Create GL context
-    QGLContext* context = new QGLContext(QGLFormat::defaultFormat(), widget); // by including widget here the context becomes valid
-    context->create();
-    if(!context->isValid()) {
-        throw Exception("QGL context is invalid!");
-    }
-
-    context->makeCurrent();
-    CGLContextObj appleContext = CGLGetCurrentContext();
-    std::cout << "Initial GL context: " << CGLGetCurrentContext() << std::endl;
-    std::cout << "Initial GL share group: " << CGLGetShareGroup(CGLGetCurrentContext()) << std::endl;
-
-    SimpleWindow::mGLContext = context;
-
-    glContext = (unsigned long *)appleContext;
+		glContext = (unsigned long *)appleContext;
+#elif _WIN32
+        glContext = (unsigned long *)wglGetCurrentContext();
+		std::cout << "Initial W GL context " << glContext << std::endl;
 #else
-#if _WIN32
-        // TODO implement windows OpenGL stuff
-        // http://msdn.microsoft.com/en-us/library/windows/desktop/dd374379%28v=vs.85%29.aspx
-        //HDC    hdc = oul::getHDC();
-		//std::cout << "HDC in DeviceManager is: " << hdc << std::endl;
-        HGLRC  hglrc; 
-
-		SimpleWindow::initializeQtApp();
-
-		// Need a drawable for this to work
-		QGLWidget* widget = new QGLWidget;
-		widget->makeCurrent();
-
-		std::cout << "created a drawable" << std::endl;
-		HDC    hdc = wglGetCurrentDC();
-		std::cout << "HDC in DeviceManager is: " << hdc << std::endl;
-         
-        // create a rendering context  
-        hglrc = wglCreateContext (hdc); 
-		std::cout << "GL context in DeviceManager is: " << hglrc << std::endl;
-        glContext = (unsigned long *)hglrc;
-         
-        // make it the calling thread's current rendering context 
-        bool success = wglMakeCurrent (hdc, hglrc);
-		if(!success)
-			throw Exception("Failed to set initial windows GL context");
-#else
-		SimpleWindow::initializeQtApp();
-
-		// Need a drawable for this to work
-		QGLWidget* widget = new QGLWidget;
-		widget->makeCurrent();
-		std::cout << "created a drawable" << std::endl;
-
         glContext = (long unsigned int*)glXGetCurrentContext();
-        std::cout << "created GLX context " << glContext << std::endl;
-#endif
+        std::cout << "Initial GLX context " << glContext << std::endl;
 #endif
         criteria.setCapabilityCriteria(oul::DEVICE_CAPABILITY_OPENGL_INTEROP);
     }
