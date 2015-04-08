@@ -30,7 +30,7 @@ TEST_CASE("DualViewWindow", "[fast][DualViewWindow][visual]") {
     DualViewWindow::pointer window = DualViewWindow::New();
     window->addRendererToBottomRightView(renderer);
     window->addRendererToTopLeftView(renderer2);
-    //window->setTimeout(2000);
+    window->setTimeout(2000);
 
     CHECK_NOTHROW(window->start());
 }
