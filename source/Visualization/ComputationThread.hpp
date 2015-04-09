@@ -10,7 +10,8 @@
 
 namespace fast {
 
-class ComputationThread : public QThread {
+class ComputationThread : public QObject {
+    Q_OBJECT
     public:
         ComputationThread(QThread* mainThread);
         ~ComputationThread();
@@ -18,8 +19,11 @@ class ComputationThread : public QThread {
         void stop();
         void addView(View* view);
         void clearViews();
-    private:
+    public slots:
         void run();
+    signals:
+        void finished();
+    private:
 
         bool mUpdateThreadIsStopped;
         bool mIsRunning;

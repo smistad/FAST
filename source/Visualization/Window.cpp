@@ -142,9 +142,15 @@ QGLContext* Window::getMainGLContext() {
 
 void Window::startComputationThread() {
     if(mThread == NULL) {
-        // Start computation thread
+        // Start computation thread using QThreads which is a strange thing, see https://mayaposch.wordpress.com/2011/11/01/how-to-really-truly-use-qthreads-the-full-explanation/
         std::cout << "Trying to start computation thread" << std::endl;
         mThread = new ComputationThread(QThread::currentThread());
+        QThread* thread = new QThread();
+        mThread->moveToThread(thread);
+        connect(thread, SIGNAL(started()), mThread, SLOT(run()));
+        connect(mThread, SIGNAL(finished()), thread, SLOT(quit()));
+        //connect(mThread, SIGNAL(finished()), mThread, SLOT(deleteLater()));
+        connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
 
         // Make sure this thread is deleted after it is finished
         //connect(mThread, SIGNAL(finished()), mThread, SLOT(deleteLater()));
@@ -158,9 +164,9 @@ void Window::startComputationThread() {
 
         // Context must be current in this thread before it can be moved to another thread
         mainGLContext->makeCurrent();
-        mainGLContext->moveToThread(mThread);
+        mainGLContext->moveToThread(thread);
         mainGLContext->doneCurrent();
-        mThread->start();
+        thread->start();
         std::cout << "Computation thread started" << std::endl;
     }
 }

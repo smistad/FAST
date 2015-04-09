@@ -84,6 +84,7 @@ set(QT_HEADERS
     Visualization/View.hpp
     Visualization/WindowWidget.hpp
     Visualization/Window.hpp
+    Visualization/ComputationThread.hpp
 )
 
 # Set up some directory defines

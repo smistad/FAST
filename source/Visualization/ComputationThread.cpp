@@ -26,6 +26,7 @@ bool ComputationThread::isRunning() {
 }
 
 void ComputationThread::run() {
+    // This is run in the secondary (computation thread)
     {
         boost::unique_lock<boost::mutex> lock(mUpdateThreadMutex); // this locks the mutex
         mIsRunning = true;
@@ -47,11 +48,13 @@ void ComputationThread::run() {
         }
     }
 
+    emit finished();
     std::cout << "Computation thread has finished in run()" << std::endl;
     mUpdateThreadConditionVariable.notify_one();
 }
 
 void ComputationThread::stop() {
+    // This is run in the main thread
     boost::unique_lock<boost::mutex> lock(mUpdateThreadMutex); // this locks the mutex
     mUpdateThreadIsStopped = true;
     // Block until mIsRunning is set to false
@@ -60,7 +63,6 @@ void ComputationThread::stop() {
         // When it wakes, the mutex is locked again and mUpdateIsRunning is checked.
         mUpdateThreadConditionVariable.wait(lock);
     }
-    this->quit();
 }
 
 
