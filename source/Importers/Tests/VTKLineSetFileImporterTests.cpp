@@ -10,8 +10,8 @@ TEST_CASE("VTKLineSetFileImporter", "[fast][VTKLineSetFileImporter]") {
     importer->update();
     LineSet::pointer lineSet = importer->getOutputData<LineSet>(0);
 
-    LineSetAccess access = lineSet->getAccess(ACCESS_READ);
-    CHECK(access.getNrOfPoints() == 89);
-    CHECK(access.getNrOfLines() == 97);
+    LineSetAccess::pointer access = lineSet->getAccess(ACCESS_READ);
+    CHECK(access->getNrOfPoints() == 89);
+    CHECK(access->getNrOfLines() == 97);
 
 }

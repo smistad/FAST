@@ -13,8 +13,8 @@ void PointRenderer::draw() {
     // For all input data
     for(uint i = 0; i < getNrOfInputData(); i++) {
         PointSet::pointer points = getInputData(i);
-        PointSetAccess access = points->getAccess(ACCESS_READ);
-        MatrixXf pointMatrix = access.getPointSetAsMatrix();
+        PointSetAccess::pointer access = points->getAccess(ACCESS_READ);
+        MatrixXf pointMatrix = access->getPointSetAsMatrix();
 
         LinearTransformation transform = SceneGraph::getLinearTransformationFromData(points);
 
