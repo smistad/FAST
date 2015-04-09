@@ -13,7 +13,7 @@ bool LineSet::isAnyDataBeingAccessed() const {
     return mHostDataIsBeingAccessed;
 }
 
-LineSetAccess LineSet::getAccess(accessType access) {
+LineSetAccess::pointer LineSet::getAccess(accessType access) {
 
     if(mIsBeingWrittenTo)
         throw Exception("Requesting access to a surface that is already being written to.");
@@ -29,7 +29,8 @@ LineSetAccess LineSet::getAccess(accessType access) {
     // TODO should send a parameter whether writing is allowed or not
 
     mHostDataIsBeingAccessed = true;
-    return LineSetAccess(&mVertices, &mLines, &mHostDataIsBeingAccessed, &mIsBeingWrittenTo);
+    LineSetAccess::pointer accessObject(new LineSetAccess(&mVertices, &mLines, &mHostDataIsBeingAccessed, &mIsBeingWrittenTo));
+	return accessObject;
 }
 
 LineSet::LineSet() {

@@ -3,16 +3,15 @@
 
 #include "DataObject.hpp"
 #include "DynamicData.hpp"
-#include "Access.hpp"
+#include "LineSetAccess.hpp"
 
 namespace fast {
 
-class LineSetAccess;
 class LineSet : public DataObject {
     FAST_OBJECT(LineSet);
     public:
         void create(std::vector<Vector3f> vertices, std::vector<Vector2ui> lines);
-        LineSetAccess getAccess(accessType access);
+        LineSetAccess::pointer getAccess(accessType access);
         BoundingBox getBoundingBox() const;
         ~LineSet();
     private:

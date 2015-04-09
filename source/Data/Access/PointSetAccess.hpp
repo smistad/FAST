@@ -3,6 +3,7 @@
 
 #include "DataTypes.hpp"
 #include "Access.hpp"
+#include "SmartPointers.hpp"
 
 namespace fast {
 
@@ -15,6 +16,7 @@ class PointSetAccess {
         MatrixXf getPointSetAsMatrix() const;
         void release();
         ~PointSetAccess();
+		typedef UniquePointer<PointSetAccess> pointer;
     private:
         bool* mAccessFlag;
         bool* mAccessFlag2;

@@ -93,16 +93,16 @@ void IterativeClosestPoint::execute() {
     uint iterations = 0;
 
     // Get access to the two point sets
-    PointSetAccess accessFixedSet = ((PointSet::pointer)getStaticInputData<PointSet>(0))->getAccess(ACCESS_READ);
-    PointSetAccess accessMovingSet = ((PointSet::pointer)getStaticInputData<PointSet>(1))->getAccess(ACCESS_READ);
+    PointSetAccess::pointer accessFixedSet = ((PointSet::pointer)getStaticInputData<PointSet>(0))->getAccess(ACCESS_READ);
+    PointSetAccess::pointer accessMovingSet = ((PointSet::pointer)getStaticInputData<PointSet>(1))->getAccess(ACCESS_READ);
 
     // Get transformations of point sets
     LinearTransformation fixedPointTransform = SceneGraph::getLinearTransformationFromData(getStaticInputData<PointSet>(0));
     LinearTransformation initialMovingTransform = SceneGraph::getLinearTransformationFromData(getStaticInputData<PointSet>(1));
 
     // These matrices are Nx3
-    MatrixXf fixedPoints = accessFixedSet.getPointSetAsMatrix();
-    MatrixXf movingPoints = accessMovingSet.getPointSetAsMatrix();
+    MatrixXf fixedPoints = accessFixedSet->getPointSetAsMatrix();
+    MatrixXf movingPoints = accessMovingSet->getPointSetAsMatrix();
 
     Eigen::Transform<float, 3, Eigen::Affine> currentTransformation = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
 

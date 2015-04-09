@@ -7,20 +7,20 @@ namespace fast {
 TEST_CASE("IterativeClosestPoint", "[fast][IterativeClosestPoint][icp]") {
 
     PointSet::pointer A = PointSet::New();
-    PointSetAccess accessA = A->getAccess(ACCESS_READ_WRITE);
-    accessA.addPoint(Vector3f(2,2,1));
-    accessA.addPoint(Vector3f(6,2,2));
-    accessA.addPoint(Vector3f(2,6,1));
-    accessA.release();
+    PointSetAccess::pointer accessA = A->getAccess(ACCESS_READ_WRITE);
+    accessA->addPoint(Vector3f(2,2,1));
+	accessA->addPoint(Vector3f(6, 2, 2));
+	accessA->addPoint(Vector3f(2, 6, 1));
+	accessA->release();
 
     PointSet::pointer B = PointSet::New();
-    PointSetAccess accessB = B->getAccess(ACCESS_READ_WRITE);
-    accessB.addPoint(Vector3f(3,2,0));
-    accessB.addPoint(Vector3f(7,0,0));
-    accessB.addPoint(Vector3f(9,5,0));
-    accessB.addPoint(Vector3f(2,1,1));
-    accessB.addPoint(Vector3f(2,1,8));
-    accessB.release();
+	PointSetAccess::pointer accessB = B->getAccess(ACCESS_READ_WRITE);
+	accessB->addPoint(Vector3f(3, 2, 0));
+	accessB->addPoint(Vector3f(7, 0, 0));
+	accessB->addPoint(Vector3f(9, 5, 0));
+	accessB->addPoint(Vector3f(2, 1, 1));
+	accessB->addPoint(Vector3f(2, 1, 8));
+	accessB->release();
 
     IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
     icp->setInputData(0, B);
@@ -100,9 +100,9 @@ TEST_CASE("ICP on two point sets where moving point set is larger than the fixed
 
     importerA->update();
     PointSet::pointer A = importerA->getOutputData<PointSet>(0);
-    PointSetAccess access = A->getAccess(ACCESS_READ_WRITE);
-    access.addPoint(access.getPoint(0));
-    access.release();
+    PointSetAccess::pointer access = A->getAccess(ACCESS_READ_WRITE);
+    access->addPoint(access->getPoint(0));
+    access->release();
 
     // Do ICP registration
     IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();

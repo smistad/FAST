@@ -14,7 +14,7 @@ void LineRenderer::draw() {
     // For all input data
     for(uint i = 0; i < getNrOfInputData(); i++) {
         LineSet::pointer points = getInputData(i);
-        LineSetAccess access = points->getAccess(ACCESS_READ);
+        LineSetAccess::pointer access = points->getAccess(ACCESS_READ);
 
         LinearTransformation transform = SceneGraph::getLinearTransformationFromData(points);
 
@@ -42,10 +42,10 @@ void LineRenderer::draw() {
         if(drawOnTop)
             glDisable(GL_DEPTH_TEST);
         glBegin(GL_LINES);
-        for(uint i = 0; i < access.getNrOfLines(); i++) {
-            Vector2ui line = access.getLine(i);
-            Vector3f a = access.getPoint(line.x());
-            Vector3f b = access.getPoint(line.y());
+        for(uint i = 0; i < access->getNrOfLines(); i++) {
+            Vector2ui line = access->getLine(i);
+            Vector3f a = access->getPoint(line.x());
+            Vector3f b = access->getPoint(line.y());
             glVertex3f(a.x(), a.y(), a.z());
             glVertex3f(b.x(), b.y(), b.z());
         }

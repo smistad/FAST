@@ -4,6 +4,7 @@
 #include "DataTypes.hpp"
 #include "Access.hpp"
 #include <vector>
+#include "SmartPointers.hpp"
 
 namespace fast {
 
@@ -24,6 +25,7 @@ class LineSetAccess {
         void deletePoint(uint i);
         void release();
         ~LineSetAccess();
+		typedef UniquePointer<LineSetAccess> pointer;
     private:
         bool* mAccessFlag;
         bool* mAccessFlag2;

@@ -14,7 +14,7 @@ bool PointSet::isAnyDataBeingAccessed() const {
     return mHostDataIsBeingAccessed;
 }
 
-PointSetAccess PointSet::getAccess(accessType access) {
+PointSetAccess::pointer PointSet::getAccess(accessType access) {
 
     if(mIsBeingWrittenTo)
         throw Exception("Requesting access to a point set that is already being written to.");
@@ -30,7 +30,8 @@ PointSetAccess PointSet::getAccess(accessType access) {
     // TODO should send a parameter whether writing is allowed or not to PointSetAccess
 
     mHostDataIsBeingAccessed = true;
-    return PointSetAccess(&mPointSet, &mHostDataIsBeingAccessed, &mIsBeingWrittenTo);
+    PointSetAccess::pointer accessObject(new PointSetAccess(&mPointSet, &mHostDataIsBeingAccessed, &mIsBeingWrittenTo));
+	return accessObject;
 }
 
 PointSet::PointSet() {
