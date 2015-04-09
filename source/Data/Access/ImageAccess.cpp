@@ -16,8 +16,7 @@ void ImageAccess::release() {
 }
 
 ImageAccess::~ImageAccess() {
-    *mAccessFlag = false;
-    *mAccessFlag2 = false;
+	release();
 }
 
 // TODO this should return a copy

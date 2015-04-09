@@ -33,18 +33,18 @@ TEST_CASE("Correct output with small 3x3 2D image as input to GaussianSmoothingF
 
     Image::pointer image = Image::New();
     image->create2DImage(3,3,TYPE_FLOAT,1,device);
-    ImageAccess access = image->getImageAccess(ACCESS_READ_WRITE);
-    float* data = (float*)access.get();
+    ImageAccess::pointer access = image->getImageAccess(ACCESS_READ_WRITE);
+    float* data = (float*)access->get();
     for(unsigned int i = 0; i < 9; i++) {
         data[i] = 1.0f;
     }
-    access.release();
+    access->release();
     filter->setInputData(image);
     Image::pointer output = filter->getOutputData<Image>();
     filter->update();
 
-    access = output->getImageAccess(ACCESS_READ);
-    data = (float*)access.get();
+    ImageAccess::pointer access2 = output->getImageAccess(ACCESS_READ);
+    data = (float*)access2->get();
 
     bool success = true;
     for(int x = 0; x < 3; x++) {
@@ -76,18 +76,18 @@ TEST_CASE("Correct output with small 3x3 2D image as input to GaussianSmoothingF
 
     Image::pointer image = Image::New();
     image->create2DImage(3,3,TYPE_FLOAT,1,Host::getInstance());
-    ImageAccess access = image->getImageAccess(ACCESS_READ_WRITE);
-    float* data = (float*)access.get();
+    ImageAccess::pointer access = image->getImageAccess(ACCESS_READ_WRITE);
+    float* data = (float*)access->get();
     for(unsigned int i = 0; i < 9; i++) {
         data[i] = 1.0f;
     }
-    access.release();
+    access->release();
     filter->setInputData(image);
     Image::pointer output = filter->getOutputData<Image>();
     filter->update();
 
-    access = output->getImageAccess(ACCESS_READ);
-    data = (float*)access.get();
+	ImageAccess::pointer access2 = output->getImageAccess(ACCESS_READ);
+	data = (float*)access2->get();
 
     bool success = true;
     for(int x = 0; x < 3; x++) {
@@ -119,18 +119,18 @@ TEST_CASE("Correct output with small 3x3x3 3D image as input to GaussianSmoothin
 
     Image::pointer image = Image::New();
     image->create3DImage(3,3,3,TYPE_FLOAT,1,device);
-    ImageAccess access = image->getImageAccess(ACCESS_READ_WRITE);
-    float* data = (float*)access.get();
+    ImageAccess::pointer access = image->getImageAccess(ACCESS_READ_WRITE);
+    float* data = (float*)access->get();
     for(unsigned int i = 0; i < 3*3*3; i++) {
         data[i] = 1.0f;
     }
-    access.release();
+    access->release();
     filter->setInputData(image);
     Image::pointer output = filter->getOutputData<Image>();
     filter->update();
 
-    access = output->getImageAccess(ACCESS_READ);
-    data = (float*)access.get();
+	ImageAccess::pointer access2 = output->getImageAccess(ACCESS_READ);
+	data = (float*)access2->get();
 
     bool success = true;
     for(int x = 0; x < 3; x++) {
@@ -163,18 +163,18 @@ TEST_CASE("Correct output with small 3x3x3 3D image as input to GaussianSmoothin
 
     Image::pointer image = Image::New();
     image->create3DImage(3,3,3,TYPE_FLOAT,1,Host::getInstance());
-    ImageAccess access = image->getImageAccess(ACCESS_READ_WRITE);
-    float* data = (float*)access.get();
+    ImageAccess::pointer access = image->getImageAccess(ACCESS_READ_WRITE);
+    float* data = (float*)access->get();
     for(unsigned int i = 0; i < 3*3*3; i++) {
         data[i] = 1.0f;
     }
-    access.release();
+    access->release();
     filter->setInputData(image);
     Image::pointer output = filter->getOutputData<Image>();
     filter->update();
 
-    access = output->getImageAccess(ACCESS_READ);
-    data = (float*)access.get();
+	ImageAccess::pointer access2 = output->getImageAccess(ACCESS_READ);
+	data = (float*)access2->get();
 
     bool success = true;
     for(int x = 0; x < 3; x++) {

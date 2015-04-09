@@ -213,7 +213,7 @@ void Image::updateOpenCLImageData(OpenCLDevice::pointer device) {
                 "Data was not updated because no data was marked as up to date");
 }
 
-OpenCLBufferAccess Image::getOpenCLBufferAccess(
+OpenCLBufferAccess::pointer Image::getOpenCLBufferAccess(
         accessType type,
         OpenCLDevice::pointer device) {
 
@@ -238,8 +238,8 @@ OpenCLBufferAccess Image::getOpenCLBufferAccess(
     mCLBuffersIsUpToDate[device] = true;
 
     // Now it is guaranteed that the data is on the device and that it is up to date
-
-    return OpenCLBufferAccess(mCLBuffers[device], &mCLBuffersAccess[device], &mImageIsBeingWrittenTo);
+	OpenCLBufferAccess::pointer accessObject(new OpenCLBufferAccess(mCLBuffers[device], &mCLBuffersAccess[device], &mImageIsBeingWrittenTo));
+	return std::move(accessObject);
 }
 
 unsigned int Image::getBufferSize() const {
@@ -377,7 +377,7 @@ void Image::setAllDataToOutOfDate() {
     }
 }
 
-OpenCLImageAccess2D Image::getOpenCLImageAccess2D(
+OpenCLImageAccess2D::pointer Image::getOpenCLImageAccess2D(
         accessType type,
         OpenCLDevice::pointer device) {
 
@@ -405,11 +405,11 @@ OpenCLImageAccess2D Image::getOpenCLImageAccess2D(
     mCLImagesIsUpToDate[device] = true;
 
     // Now it is guaranteed that the data is on the device and that it is up to date
-
-    return OpenCLImageAccess2D((cl::Image2D*)mCLImages[device], &mCLImagesAccess[device], &mImageIsBeingWrittenTo);
+	OpenCLImageAccess2D::pointer accessObject(new OpenCLImageAccess2D((cl::Image2D*)mCLImages[device], &mCLImagesAccess[device], &mImageIsBeingWrittenTo));
+	return accessObject;
 }
 
-OpenCLImageAccess3D Image::getOpenCLImageAccess3D(
+OpenCLImageAccess3D::pointer Image::getOpenCLImageAccess3D(
         accessType type,
         OpenCLDevice::pointer device) {
 
@@ -437,8 +437,8 @@ OpenCLImageAccess3D Image::getOpenCLImageAccess3D(
     mCLImagesIsUpToDate[device] = true;
 
     // Now it is guaranteed that the data is on the device and that it is up to date
-
-    return OpenCLImageAccess3D((cl::Image3D*)mCLImages[device], &mCLImagesAccess[device], &mImageIsBeingWrittenTo);
+	OpenCLImageAccess3D::pointer accessObject(new OpenCLImageAccess3D((cl::Image3D*)mCLImages[device], &mCLImagesAccess[device], &mImageIsBeingWrittenTo));
+	return accessObject;
 }
 
 Image::Image() {
@@ -457,7 +457,7 @@ Image::Image() {
     mMaxMinInitialized = false;
 }
 
-ImageAccess Image::getImageAccess(accessType type) {
+ImageAccess::pointer Image::getImageAccess(accessType type) {
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
     if(mImageIsBeingWrittenTo)
@@ -480,7 +480,9 @@ ImageAccess Image::getImageAccess(accessType type) {
     mHostDataIsUpToDate = true;
     mHostDataIsBeingAccessed = true;
 
-    return ImageAccess(mHostData, mPtr.lock(), &mHostDataIsBeingAccessed, &mImageIsBeingWrittenTo);
+	Image::pointer image = mPtr.lock();
+	ImageAccess::pointer accessObject(new ImageAccess(mHostData, image, &mHostDataIsBeingAccessed, &mImageIsBeingWrittenTo));
+	return std::move(accessObject);
 }
 
 void Image::create3DImage(
@@ -810,8 +812,8 @@ void Image::calculateMaxAndMinIntensity() {
         unsigned int nrOfElements = mWidth*mHeight*mDepth*mComponents;
         if(mHostHasData && mHostDataIsUpToDate) {
             // Host data is up to date, calculate min and max on host
-            ImageAccess access = getImageAccess(ACCESS_READ);
-            void* data = access.get();
+            ImageAccess::pointer access = getImageAccess(ACCESS_READ);
+            void* data = access->get();
             switch(mType) {
             case TYPE_FLOAT:
                 getMaxAndMinFromData<float>(data,nrOfElements,&mMinimumIntensity,&mMaximumIntensity);
@@ -838,19 +840,19 @@ void Image::calculateMaxAndMinIntensity() {
                 if(it->second == true) {
                     OpenCLDevice::pointer device = it->first;
                     if(mDimensions == 2) {
-                        OpenCLImageAccess2D access = getOpenCLImageAccess2D(ACCESS_READ, device);
-                        cl::Image2D* clImage = access.get();
+                        OpenCLImageAccess2D::pointer access = getOpenCLImageAccess2D(ACCESS_READ, device);
+                        cl::Image2D* clImage = access->get();
                         getMaxAndMinFromOpenCLImage(device, *clImage, mType, &mMinimumIntensity, &mMaximumIntensity);
                     } else {
                         if(device->getDevice().getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") == std::string::npos) {
                             // Writing to 3D images is not supported on this device
                             // Copy data to buffer instead and do the max min calculation on the buffer instead
-                            OpenCLBufferAccess access = getOpenCLBufferAccess(ACCESS_READ, device);
-                            cl::Buffer* buffer = access.get();
+                            OpenCLBufferAccess::pointer access = getOpenCLBufferAccess(ACCESS_READ, device);
+                            cl::Buffer* buffer = access->get();
                             getMaxAndMinFromOpenCLBuffer(device, *buffer, nrOfElements, mType, &mMinimumIntensity, &mMaximumIntensity);
                         } else {
-                            OpenCLImageAccess3D access = getOpenCLImageAccess3D(ACCESS_READ, device);
-                            cl::Image3D* clImage = access.get();
+                            OpenCLImageAccess3D::pointer access = getOpenCLImageAccess3D(ACCESS_READ, device);
+                            cl::Image3D* clImage = access->get();
                             getMaxAndMinFromOpenCLImage(device, *clImage, mType, &mMinimumIntensity, &mMaximumIntensity);
                         }
                     }
@@ -862,8 +864,8 @@ void Image::calculateMaxAndMinIntensity() {
                 for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end(); it++) {
                     if(it->second == true) {
                         OpenCLDevice::pointer device = it->first;
-                        OpenCLBufferAccess access = getOpenCLBufferAccess(ACCESS_READ, device);
-                        cl::Buffer* buffer = access.get();
+                        OpenCLBufferAccess::pointer access = getOpenCLBufferAccess(ACCESS_READ, device);
+                        cl::Buffer* buffer = access->get();
                         getMaxAndMinFromOpenCLBuffer(device, *buffer, nrOfElements, mType, &mMinimumIntensity, &mMaximumIntensity);
                         found = true;
                     }
@@ -931,11 +933,11 @@ Image::pointer Image::copy(ExecutionDevice::pointer device) {
 
     // If device is host, get data from this image to host
     if(device->isHost()) {
-        ImageAccess readAccess = this->getImageAccess(ACCESS_READ);
-        ImageAccess writeAccess = clone->getImageAccess(ACCESS_READ_WRITE);
+        ImageAccess::pointer readAccess = this->getImageAccess(ACCESS_READ);
+        ImageAccess::pointer writeAccess = clone->getImageAccess(ACCESS_READ_WRITE);
 
-        void* input = readAccess.get();
-        void* output = writeAccess.get();
+        void* input = readAccess->get();
+        void* output = writeAccess->get();
         switch(getDataType()) {
             fastSwitchTypeMacro(memcpy(output, input, sizeof(FAST_TYPE)*getWidth()*getHeight()*getDepth()*getNrOfComponents()));
         }
@@ -943,10 +945,10 @@ Image::pointer Image::copy(ExecutionDevice::pointer device) {
         // If device is not host
         OpenCLDevice::pointer clDevice = device;
         if(getDimensions() == 2) {
-            OpenCLImageAccess2D readAccess = this->getOpenCLImageAccess2D(ACCESS_READ, clDevice);
-            OpenCLImageAccess2D writeAccess = clone->getOpenCLImageAccess2D(ACCESS_READ_WRITE, clDevice);
-            cl::Image2D* input = readAccess.get();
-            cl::Image2D* output = writeAccess.get();
+            OpenCLImageAccess2D::pointer readAccess = this->getOpenCLImageAccess2D(ACCESS_READ, clDevice);
+            OpenCLImageAccess2D::pointer writeAccess = clone->getOpenCLImageAccess2D(ACCESS_READ_WRITE, clDevice);
+            cl::Image2D* input = readAccess->get();
+            cl::Image2D* output = writeAccess->get();
 
             clDevice->getCommandQueue().enqueueCopyImage(
                     *input,
@@ -956,10 +958,10 @@ Image::pointer Image::copy(ExecutionDevice::pointer device) {
                     oul::createRegion(getWidth(), getHeight(), 1)
             );
         } else {
-            OpenCLImageAccess3D readAccess = this->getOpenCLImageAccess3D(ACCESS_READ, clDevice);
-            OpenCLImageAccess3D writeAccess = clone->getOpenCLImageAccess3D(ACCESS_READ_WRITE, clDevice);
-            cl::Image3D* input = readAccess.get();
-            cl::Image3D* output = writeAccess.get();
+            OpenCLImageAccess3D::pointer readAccess = this->getOpenCLImageAccess3D(ACCESS_READ, clDevice);
+            OpenCLImageAccess3D::pointer writeAccess = clone->getOpenCLImageAccess3D(ACCESS_READ_WRITE, clDevice);
+            cl::Image3D* input = readAccess->get();
+            cl::Image3D* output = writeAccess->get();
 
             clDevice->getCommandQueue().enqueueCopyImage(
                     *input,

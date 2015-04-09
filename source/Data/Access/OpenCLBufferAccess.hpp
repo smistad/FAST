@@ -2,6 +2,7 @@
 #define OPENCLBUFFERACCESS_HPP_
 
 #include "OpenCL.hpp"
+#include "SmartPointers.hpp"
 
 namespace fast {
 
@@ -11,7 +12,10 @@ class OpenCLBufferAccess {
         OpenCLBufferAccess(cl::Buffer* buffer, bool* accessFlag, bool* accessFlag2);
         void release();
         ~OpenCLBufferAccess();
+		typedef UniquePointer<OpenCLBufferAccess> pointer;
     private:
+		OpenCLBufferAccess(const OpenCLBufferAccess& other);
+		OpenCLBufferAccess& operator=(const OpenCLBufferAccess& other);
         cl::Buffer* mBuffer;
         bool mIsDeleted;
         bool* mAccessFlag;

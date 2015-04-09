@@ -402,8 +402,8 @@ void VolumeRenderer::execute() {
 		
 	if (includeGeometry)
 	{
-		OpenCLImageAccess3D access = inputs[0]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
-		cl::Image3D* clImage = access.get();
+		OpenCLImageAccess3D::pointer access = inputs[0]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+		cl::Image3D* clImage = access->get();
 
 		renderKernel.setArg(0, pbo_cl);
 		renderKernel.setArg(1, mWidth);
@@ -425,32 +425,32 @@ void VolumeRenderer::execute() {
 		renderKernel.setArg(17, d_boxMaxs);
 		if (numberOfVolumes>1)
 		{
-			OpenCLImageAccess3D access2 = inputs[1]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
-			cl::Image3D* clImage2 = access2.get();
+			OpenCLImageAccess3D::pointer access2 = inputs[1]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+			cl::Image3D* clImage2 = access2->get();
 			renderKernel.setArg(18, *clImage2);
 			renderKernel.setArg(19, d_transferFuncArray[1]);
 			renderKernel.setArg(20, d_opacityFuncArray[1]);
 
 			if (numberOfVolumes>2)
 			{
-				OpenCLImageAccess3D access3 = inputs[2]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
-				cl::Image3D* clImage3 = access3.get();
+				OpenCLImageAccess3D::pointer access3 = inputs[2]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+				cl::Image3D* clImage3 = access3->get();
 				renderKernel.setArg(21, *clImage3);
 				renderKernel.setArg(22, d_transferFuncArray[2]);
 				renderKernel.setArg(23, d_opacityFuncArray[2]);
 				
 				if (numberOfVolumes>3)
 				{
-					OpenCLImageAccess3D access4 = inputs[3]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
-					cl::Image3D* clImage4 = access4.get();
+					OpenCLImageAccess3D::pointer access4 = inputs[3]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+					cl::Image3D* clImage4 = access4->get();
 					renderKernel.setArg(24, *clImage4);
 					renderKernel.setArg(25, d_transferFuncArray[3]);
 					renderKernel.setArg(26, d_opacityFuncArray[3]);
 
 					if (numberOfVolumes>4)
 					{	
-						OpenCLImageAccess3D access5 = inputs[4]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
-						cl::Image3D* clImage5 = access5.get();
+						OpenCLImageAccess3D::pointer access5 = inputs[4]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+						cl::Image3D* clImage5 = access5->get();
 						renderKernel.setArg(27, *clImage5);
 						renderKernel.setArg(28, d_transferFuncArray[4]);
 						renderKernel.setArg(29, d_opacityFuncArray[4]);
@@ -465,8 +465,8 @@ void VolumeRenderer::execute() {
 	}
 	else //NO Geometry
 	{
-		OpenCLImageAccess3D access = inputs[0]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
-		cl::Image3D* clImage = access.get();
+		OpenCLImageAccess3D::pointer access = inputs[0]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+		cl::Image3D* clImage = access->get();
 
 		renderKernel.setArg(0, pbo_cl);
 		renderKernel.setArg(1, mWidth);
@@ -486,32 +486,32 @@ void VolumeRenderer::execute() {
 		renderKernel.setArg(15, d_boxMaxs);
 		if (numberOfVolumes>1)
 		{
-			OpenCLImageAccess3D access2 = inputs[1]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
-			cl::Image3D* clImage2 = access2.get();
+			OpenCLImageAccess3D::pointer access2 = inputs[1]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+			cl::Image3D* clImage2 = access2->get();
 			renderKernel.setArg(16, *clImage2);
 			renderKernel.setArg(17, d_transferFuncArray[1]);
 			renderKernel.setArg(18, d_opacityFuncArray[1]);
 
 			if (numberOfVolumes>2)
 			{
-				OpenCLImageAccess3D access3 = inputs[2]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
-				cl::Image3D* clImage3 = access3.get();
+				OpenCLImageAccess3D::pointer access3 = inputs[2]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+				cl::Image3D* clImage3 = access3->get();
 				renderKernel.setArg(19, *clImage3);
 				renderKernel.setArg(20, d_transferFuncArray[2]);
 				renderKernel.setArg(21, d_opacityFuncArray[2]);
 				
 				if (numberOfVolumes>3)
 				{
-					OpenCLImageAccess3D access4 = inputs[3]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
-					cl::Image3D* clImage4 = access4.get();
+					OpenCLImageAccess3D::pointer access4 = inputs[3]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+					cl::Image3D* clImage4 = access4->get();
 					renderKernel.setArg(22, *clImage4);
 					renderKernel.setArg(23, d_transferFuncArray[3]);
 					renderKernel.setArg(24, d_opacityFuncArray[3]);
 
 					if (numberOfVolumes>4)
 					{	
-						OpenCLImageAccess3D access5 = inputs[4]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
-						cl::Image3D* clImage5 = access5.get();
+						OpenCLImageAccess3D::pointer access5 = inputs[4]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+						cl::Image3D* clImage5 = access5->get();
 						renderKernel.setArg(25, *clImage5);
 						renderKernel.setArg(26, d_transferFuncArray[4]);
 						renderKernel.setArg(27, d_opacityFuncArray[4]);

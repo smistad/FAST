@@ -128,7 +128,8 @@ class SharedPointer {
 
 };
 
-;
+template <class T>
+using UniquePointer = std::unique_ptr<T>;
 
 template <class T>
 WeakPointer<T> &WeakPointer<T>::operator=(const SharedPointer<T> &other) {

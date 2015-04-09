@@ -1,4 +1,5 @@
 #include "OpenCLBufferAccess.hpp"
+#include <iostream>
 using namespace fast;
 
 cl::Buffer* OpenCLBufferAccess::get() const {

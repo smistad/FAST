@@ -27,8 +27,8 @@ TEST_CASE("2D Seeded region growing on OpenCL device", "[fast][SeededRegionGrowi
 
         // Temporary check of how many pixels where segmented
         // Should be replaced by result matching
-        ImageAccess access = result->getImageAccess(ACCESS_READ);
-        uchar* data = (uchar*)access.get();
+        ImageAccess::pointer access = result->getImageAccess(ACCESS_READ);
+        uchar* data = (uchar*)access->get();
         int sum = 0;
         for(int i = 0; i < result->getWidth()*result->getHeight(); i++) {
             if(data[i] == 1)
@@ -58,8 +58,8 @@ TEST_CASE("3D Seeded region growing on OpenCL device", "[fast][SeededRegionGrowi
 
         // Temporary check of how many pixels where segmented
         // Should be replaced by result matching
-        ImageAccess access = result->getImageAccess(ACCESS_READ);
-        uchar* data = (uchar*)access.get();
+        ImageAccess::pointer access = result->getImageAccess(ACCESS_READ);
+        uchar* data = (uchar*)access->get();
         int sum = 0;
         for(int i = 0; i < result->getWidth()*result->getHeight()*result->getDepth(); i++) {
             if(data[i] == 1)
@@ -83,8 +83,8 @@ TEST_CASE("3D Seeded region growing on Host", "[fast][SeededRegionGrowing]") {
 
     // Temporary check of how many pixels where segmented
     // Should be replaced by result matching
-    ImageAccess access = result->getImageAccess(ACCESS_READ);
-    uchar* data = (uchar*)access.get();
+    ImageAccess::pointer access = result->getImageAccess(ACCESS_READ);
+    uchar* data = (uchar*)access->get();
     int sum = 0;
     for(int i = 0; i < result->getWidth()*result->getHeight()*result->getDepth(); i++) {
         if(data[i] == 1)

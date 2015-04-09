@@ -23,10 +23,10 @@ class Image : public DataObject {
         void create3DImage(unsigned int width, unsigned int height, unsigned int depth, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device);
         void create3DImage(unsigned int width, unsigned int height, unsigned int depth, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device, const void * data);
 
-        OpenCLImageAccess2D getOpenCLImageAccess2D(accessType type, OpenCLDevice::pointer);
-        OpenCLImageAccess3D getOpenCLImageAccess3D(accessType type, OpenCLDevice::pointer);
-        OpenCLBufferAccess getOpenCLBufferAccess(accessType type, OpenCLDevice::pointer);
-        ImageAccess getImageAccess(accessType type);
+        OpenCLImageAccess2D::pointer getOpenCLImageAccess2D(accessType type, OpenCLDevice::pointer);
+        OpenCLImageAccess3D::pointer getOpenCLImageAccess3D(accessType type, OpenCLDevice::pointer);
+        OpenCLBufferAccess::pointer getOpenCLBufferAccess(accessType type, OpenCLDevice::pointer);
+        ImageAccess::pointer getImageAccess(accessType type);
 
         ~Image() { freeAll(); };
 

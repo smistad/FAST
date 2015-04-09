@@ -17,8 +17,8 @@ class Mesh : public DataObject {
         void create(std::vector<Vector3f> vertices, std::vector<Vector3f> normals, std::vector<Vector3ui> triangles);
         void create(std::vector<SurfaceVertex> vertices, std::vector<Vector3ui> triangles);
         void create(unsigned int nrOfTriangles);
-        VertexBufferObjectAccess getVertexBufferObjectAccess(accessType access, OpenCLDevice::pointer device);
-        SurfacePointerAccess getSurfacePointerAccess(accessType access);
+        VertexBufferObjectAccess::pointer getVertexBufferObjectAccess(accessType access, OpenCLDevice::pointer device);
+        SurfacePointerAccess::pointer getSurfacePointerAccess(accessType access);
         unsigned int getNrOfTriangles() const;
         unsigned int getNrOfVertices() const;
         void setBoundingBox(BoundingBox box);

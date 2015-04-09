@@ -33,8 +33,8 @@ void VTKSurfaceFileExporter::execute() {
             "DATASET POLYDATA\n";
 
     // Write vertices
-    SurfacePointerAccess access = surface->getSurfacePointerAccess(ACCESS_READ);
-    std::vector<SurfaceVertex> vertices = access.getVertices();
+    SurfacePointerAccess::pointer access = surface->getSurfacePointerAccess(ACCESS_READ);
+    std::vector<SurfaceVertex> vertices = access->getVertices();
     file << "POINTS " << vertices.size() << " float\n";
     for(int i = 0; i < vertices.size(); i++) {
         SurfaceVertex vertex = vertices[i];
@@ -43,7 +43,7 @@ void VTKSurfaceFileExporter::execute() {
     }
 
     // Write triangles
-    std::vector<Vector3ui> triangles = access.getTriangles();
+    std::vector<Vector3ui> triangles = access->getTriangles();
     file << "POLYGONS " << surface->getNrOfTriangles() << " " << surface->getNrOfTriangles()*4 << "\n";
     for(int i = 0; i < triangles.size(); i++) {
         Vector3ui triangle = triangles[i];

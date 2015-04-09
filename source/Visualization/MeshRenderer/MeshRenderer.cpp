@@ -82,8 +82,8 @@ void MeshRenderer::draw() {
         GLfloat shininess[] = { 16.0f };
         glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
 
-        VertexBufferObjectAccess access = surfaceToRender->getVertexBufferObjectAccess(ACCESS_READ, getMainDevice());
-        GLuint* VBO_ID = access.get();
+        VertexBufferObjectAccess::pointer access = surfaceToRender->getVertexBufferObjectAccess(ACCESS_READ, getMainDevice());
+        GLuint* VBO_ID = access->get();
 
         // Normal Buffer
         glBindBuffer(GL_ARRAY_BUFFER, *VBO_ID);

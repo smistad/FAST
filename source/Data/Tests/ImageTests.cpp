@@ -95,8 +95,8 @@ TEST_CASE("Create a 2D image on an OpenCL device with data", "[fast][image]") {
             void* data = allocateRandomData(width*height*nrOfComponents, (DataType)typeNr);
             Image::pointer image = Image::New();
             CHECK_NOTHROW(image->create2DImage(width, height, type, nrOfComponents, device, data));
-            ImageAccess access = image->getImageAccess(ACCESS_READ);
-            CHECK(compareDataArrays(data, access.get(), width*height*nrOfComponents, type) == true);
+            ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
+            CHECK(compareDataArrays(data, access->get(), width*height*nrOfComponents, type) == true);
             deleteArray(data, type);
         }
     }
@@ -116,8 +116,8 @@ TEST_CASE("Create a 3D image on an OpenCL device with data", "[fast][image]") {
             void* data = allocateRandomData(width*height*depth*nrOfComponents, type);
             Image::pointer image = Image::New();
             CHECK_NOTHROW(image->create3DImage(width, height, depth, type, nrOfComponents, device, data));
-            ImageAccess access = image->getImageAccess(ACCESS_READ);
-            CHECK(compareDataArrays(data, access.get(), width*height*depth*nrOfComponents, type) == true);
+            ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
+            CHECK(compareDataArrays(data, access->get(), width*height*depth*nrOfComponents, type) == true);
             deleteArray(data, type);
         }
     }
@@ -138,8 +138,8 @@ TEST_CASE("Create a 2D image on host with input data", "[fast][image]") {
             Image::pointer image = Image::New();
             image->create2DImage(width, height, type, nrOfComponents, Host::getInstance(), data);
 
-            ImageAccess access = image->getImageAccess(ACCESS_READ);
-            CHECK(compareDataArrays(data, access.get(), width*height*nrOfComponents, type) == true);
+            ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
+            CHECK(compareDataArrays(data, access->get(), width*height*nrOfComponents, type) == true);
 
             deleteArray(data, type);
         }
@@ -162,8 +162,8 @@ TEST_CASE("Create a 3D image on host with input data", "[fast][image]") {
             Image::pointer image = Image::New();
             image->create3DImage(width, height, depth, type, nrOfComponents, Host::getInstance(), data);
 
-            ImageAccess access = image->getImageAccess(ACCESS_READ);
-            CHECK(compareDataArrays(data, access.get(), width*height*depth*nrOfComponents, type) == true);
+            ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
+            CHECK(compareDataArrays(data, access->get(), width*height*depth*nrOfComponents, type) == true);
 
             deleteArray(data, type);
         }
@@ -188,8 +188,8 @@ TEST_CASE("Create a 2D image on host and request access to OpenCL buffer", "[fas
             Image::pointer image = Image::New();
             image->create2DImage(width, height, type, nrOfComponents, Host::getInstance(), data);
 
-            OpenCLBufferAccess access = image->getOpenCLBufferAccess(ACCESS_READ, device);
-            cl::Buffer* buffer = access.get();
+            OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ, device);
+            cl::Buffer* buffer = access->get();
             CHECK(compareBufferWithDataArray(*buffer, device, data, width*height*nrOfComponents, type) == true);
 
             deleteArray(data, type);
@@ -215,8 +215,8 @@ TEST_CASE("Create a 3D image on host and request access to OpenCL buffer", "[fas
             Image::pointer image = Image::New();
             image->create3DImage(width, height, depth, type, nrOfComponents, Host::getInstance(), data);
 
-            OpenCLBufferAccess access = image->getOpenCLBufferAccess(ACCESS_READ, device);
-            cl::Buffer* buffer = access.get();
+            OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ, device);
+            cl::Buffer* buffer = access->get();
             CHECK(compareBufferWithDataArray(*buffer, device, data, width*height*depth*nrOfComponents, type) == true);
 
             deleteArray(data, type);
@@ -242,8 +242,8 @@ TEST_CASE("Create a 2D image on host and request access to OpenCL Image", "[fast
             Image::pointer image = Image::New();
             image->create2DImage(width, height, type, nrOfComponents, Host::getInstance(), data);
 
-            OpenCLImageAccess2D access = image->getOpenCLImageAccess2D(ACCESS_READ, device);
-            cl::Image2D* clImage = access.get();
+            OpenCLImageAccess2D::pointer access = image->getOpenCLImageAccess2D(ACCESS_READ, device);
+            cl::Image2D* clImage = access->get();
             CHECK(compareImage2DWithDataArray(*clImage, device, data, width, height, nrOfComponents, type) == true);
 
             deleteArray(data, type);
@@ -270,8 +270,8 @@ TEST_CASE("Create a 3D image on host and request access to OpenCL Image", "[fast
             Image::pointer image = Image::New();
             image->create3DImage(width, height, depth, type, nrOfComponents, Host::getInstance(), data);
 
-            OpenCLImageAccess3D access = image->getOpenCLImageAccess3D(ACCESS_READ, device);
-            cl::Image3D* clImage = access.get();
+            OpenCLImageAccess3D::pointer access = image->getOpenCLImageAccess3D(ACCESS_READ, device);
+            cl::Image3D* clImage = access->get();
             CHECK(compareImage3DWithDataArray(*clImage, device, data, width, height, depth, nrOfComponents, type) == true);
 
             deleteArray(data, type);
@@ -297,8 +297,8 @@ TEST_CASE("Create a 2D image on a CL device and request access to OpenCL buffer"
             Image::pointer image = Image::New();
             image->create2DImage(width, height, type, nrOfComponents, device, data);
 
-            OpenCLBufferAccess access = image->getOpenCLBufferAccess(ACCESS_READ, device);
-            cl::Buffer* buffer = access.get();
+            OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ, device);
+            cl::Buffer* buffer = access->get();
             CHECK(compareBufferWithDataArray(*buffer, device, data, width*height*nrOfComponents, type) == true);
 
             deleteArray(data, type);
@@ -325,8 +325,8 @@ TEST_CASE("Create a 3D image on CL device and request access to OpenCL buffer", 
             Image::pointer image = Image::New();
             image->create3DImage(width, height, depth, type, nrOfComponents, device, data);
 
-            OpenCLBufferAccess access = image->getOpenCLBufferAccess(ACCESS_READ, device);
-            cl::Buffer* buffer = access.get();
+            OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ, device);
+            cl::Buffer* buffer = access->get();
             CHECK(compareBufferWithDataArray(*buffer, device, data, width*height*depth*nrOfComponents, type) == true);
 
             deleteArray(data, type);
@@ -354,8 +354,8 @@ TEST_CASE("Create a 2D image and change host data", "[fast][image]") {
             deleteArray(data, type);
 
             // Put the data as buffer and host data as well
-            ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE);
-            void* changedData = access2.get();
+            ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ_WRITE);
+            void* changedData = access2->get();
 
             // Now change host data
             switch(type) {
@@ -366,15 +366,15 @@ TEST_CASE("Create a 2D image and change host data", "[fast][image]") {
                     }
                 )
             }
-            access2.release();
+            access2->release();
 
-            OpenCLBufferAccess access = image->getOpenCLBufferAccess(ACCESS_READ, device);
-            cl::Buffer* buffer = access.get();
+            OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ, device);
+            cl::Buffer* buffer = access->get();
             CHECK(compareBufferWithDataArray(*buffer, device, changedData, width*height*nrOfComponents, type) == true);
-            access.release();
+            access->release();
 
-            OpenCLImageAccess2D access3 = image->getOpenCLImageAccess2D(ACCESS_READ, device);
-            cl::Image2D* clImage = access3.get();
+            OpenCLImageAccess2D::pointer access3 = image->getOpenCLImageAccess2D(ACCESS_READ, device);
+            cl::Image2D* clImage = access3->get();
             CHECK(compareImage2DWithDataArray(*clImage, device, changedData, width, height, nrOfComponents, type) == true);
 
         }
@@ -402,8 +402,8 @@ TEST_CASE("Create a 3D image and change host data", "[fast][image]") {
             deleteArray(data, type);
 
             // Put the data as buffer and host data as well
-            ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE);
-            void* changedData = access2.get();
+            ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ_WRITE);
+            void* changedData = access2->get();
 
             // Now change host data
             switch(type) {
@@ -414,15 +414,15 @@ TEST_CASE("Create a 3D image and change host data", "[fast][image]") {
                     }
                 )
             }
-            access2.release();
+            access2->release();
 
-            OpenCLBufferAccess access = image->getOpenCLBufferAccess(ACCESS_READ, device);
-            cl::Buffer* buffer = access.get();
+            OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ, device);
+            cl::Buffer* buffer = access->get();
             CHECK(compareBufferWithDataArray(*buffer, device, changedData, width*height*depth*nrOfComponents, type) == true);
-            access.release();
+            access->release();
 
-            OpenCLImageAccess3D access3 = image->getOpenCLImageAccess3D(ACCESS_READ, device);
-            cl::Image3D* clImage = access3.get();
+            OpenCLImageAccess3D::pointer access3 = image->getOpenCLImageAccess3D(ACCESS_READ, device);
+            cl::Image3D* clImage = access3->get();
             CHECK(compareImage3DWithDataArray(*clImage, device, changedData, width, height, depth, nrOfComponents, type) == true);
 
         }
@@ -449,8 +449,8 @@ TEST_CASE("Create a 2D image and change buffer data", "[fast][image]") {
             image->create2DImage(width, height, type, nrOfComponents, device, data);
 
             // Change buffer data
-            OpenCLBufferAccess access = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
-            cl::Buffer* buffer = access.get();
+            OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+            cl::Buffer* buffer = access->get();
 
             // Create kernel for changing buffer data
             std::string typeDef;
@@ -482,7 +482,7 @@ TEST_CASE("Create a 2D image and change buffer data", "[fast][image]") {
                     cl::NDRange(width*height*nrOfComponents),
                     cl::NullRange
             );
-            access.release();
+            access->release();
 
             switch(type) {
                 fastSwitchTypeMacro(
@@ -493,11 +493,11 @@ TEST_CASE("Create a 2D image and change buffer data", "[fast][image]") {
                 )
             }
 
-            ImageAccess access2 = image->getImageAccess(ACCESS_READ);
-            CHECK(compareDataArrays(access2.get(), data, width*height*nrOfComponents, type) == true);
+            ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ);
+            CHECK(compareDataArrays(access2->get(), data, width*height*nrOfComponents, type) == true);
 
-            OpenCLImageAccess2D access3 = image->getOpenCLImageAccess2D(ACCESS_READ, device);
-            cl::Image2D* clImage = access3.get();
+            OpenCLImageAccess2D::pointer access3 = image->getOpenCLImageAccess2D(ACCESS_READ, device);
+            cl::Image2D* clImage = access3->get();
             CHECK(compareImage2DWithDataArray(*clImage, device, data, width, height, nrOfComponents, type) == true);
             deleteArray(data, type);
 
@@ -527,8 +527,8 @@ TEST_CASE("Create a 3D image and change buffer data", "[fast][image]") {
             image->create3DImage(width, height, depth, type, nrOfComponents, device, data);
 
             // Change buffer data
-            OpenCLBufferAccess access = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
-            cl::Buffer* buffer = access.get();
+            OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+            cl::Buffer* buffer = access->get();
 
             // Create kernel for changing buffer data
             std::string typeDef;
@@ -560,7 +560,7 @@ TEST_CASE("Create a 3D image and change buffer data", "[fast][image]") {
                     cl::NDRange(width*height*depth*nrOfComponents),
                     cl::NullRange
             );
-            access.release();
+            access->release();
 
             switch(type) {
                 fastSwitchTypeMacro(
@@ -571,11 +571,11 @@ TEST_CASE("Create a 3D image and change buffer data", "[fast][image]") {
                 )
             }
 
-            ImageAccess access2 = image->getImageAccess(ACCESS_READ);
-            CHECK(compareDataArrays(access2.get(), data, width*height*depth*nrOfComponents, type) == true);
+            ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ);
+            CHECK(compareDataArrays(access2->get(), data, width*height*depth*nrOfComponents, type) == true);
 
-            OpenCLImageAccess3D access3 = image->getOpenCLImageAccess3D(ACCESS_READ, device);
-            cl::Image3D* clImage = access3.get();
+            OpenCLImageAccess3D::pointer access3 = image->getOpenCLImageAccess3D(ACCESS_READ, device);
+            cl::Image3D* clImage = access3->get();
             CHECK(compareImage3DWithDataArray(*clImage, device, data, width, height, depth, nrOfComponents, type) == true);
             deleteArray(data, type);
 
@@ -603,8 +603,8 @@ TEST_CASE("Create a 2D image and change image data", "[fast][image]") {
             image->create2DImage(width, height, type, nrOfComponents, device, data);
 
             // Change image data
-            OpenCLImageAccess2D access3 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
-            cl::Image2D* clImage = access3.get();
+            OpenCLImageAccess2D::pointer access3 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
+            cl::Image2D* clImage = access3->get();
 
             // Create kernel for changing image data
             int i;
@@ -632,7 +632,7 @@ TEST_CASE("Create a 2D image and change image data", "[fast][image]") {
                     cl::NDRange(width, height),
                     cl::NullRange
             );
-            access3.release();
+            access3->release();
 
             switch(type) {
                 fastSwitchTypeMacro(
@@ -643,11 +643,11 @@ TEST_CASE("Create a 2D image and change image data", "[fast][image]") {
                 )
             }
 
-            ImageAccess access2 = image->getImageAccess(ACCESS_READ);
-            CHECK(compareDataArrays(access2.get(), data, width*height*nrOfComponents, type) == true);
+            ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ);
+            CHECK(compareDataArrays(access2->get(), data, width*height*nrOfComponents, type) == true);
 
-            OpenCLBufferAccess access = image->getOpenCLBufferAccess(ACCESS_READ, device);
-            cl::Buffer* buffer = access.get();
+            OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ, device);
+            cl::Buffer* buffer = access->get();
             CHECK(compareBufferWithDataArray(*buffer, device, data, width*height*nrOfComponents, type) == true);
             deleteArray(data, type);
         }
@@ -679,8 +679,8 @@ TEST_CASE("Create a 3D image and change image data", "[fast][image]") {
             image->create3DImage(width, height, depth, type, nrOfComponents, device, data);
 
             // Change image data
-            OpenCLImageAccess3D access3 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
-            cl::Image3D* clImage = access3.get();
+            OpenCLImageAccess3D::pointer access3 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
+            cl::Image3D* clImage = access3->get();
 
             // Create kernel for changing image data
             int i;
@@ -703,7 +703,7 @@ TEST_CASE("Create a 3D image and change image data", "[fast][image]") {
                     cl::NDRange(width, height, depth),
                     cl::NullRange
             );
-            access3.release();
+            access3->release();
 
             switch(type) {
                 fastSwitchTypeMacro(
@@ -714,11 +714,11 @@ TEST_CASE("Create a 3D image and change image data", "[fast][image]") {
                 )
             }
 
-            ImageAccess access2 = image->getImageAccess(ACCESS_READ);
-            CHECK(compareDataArrays(access2.get(), data, width*height*depth*nrOfComponents, type) == true);
+            ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ);
+            CHECK(compareDataArrays(access2->get(), data, width*height*depth*nrOfComponents, type) == true);
 
-            OpenCLBufferAccess access = image->getOpenCLBufferAccess(ACCESS_READ, device);
-            cl::Buffer* buffer = access.get();
+            OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ, device);
+            cl::Buffer* buffer = access->get();
             CHECK(compareBufferWithDataArray(*buffer, device, data, width*height*depth*nrOfComponents, type) == true);
             deleteArray(data, type);
         }
@@ -753,8 +753,8 @@ TEST_CASE("Create 2D image on one OpenCL device and request it on another OpenCL
             image->create2DImage(width, height, type, 1, devices[from], data);
 
             // Request image on "to" device
-            OpenCLImageAccess2D access = image->getOpenCLImageAccess2D(ACCESS_READ, devices[to]);
-            cl::Image2D* clImage = access.get();
+            OpenCLImageAccess2D::pointer access = image->getOpenCLImageAccess2D(ACCESS_READ, devices[to]);
+            cl::Image2D* clImage = access->get();
             CHECK(compareImage2DWithDataArray(*clImage, devices[to], data, width, height, 1, type) == true);
             deleteArray(data, type);
         }
@@ -790,8 +790,8 @@ TEST_CASE("Create 3D image on one OpenCL device and request it on another OpenCL
             image->create3DImage(width, height, depth, type, 1, devices[from], data);
 
             // Request image on "to" device
-            OpenCLImageAccess3D access = image->getOpenCLImageAccess3D(ACCESS_READ, devices[to]);
-            cl::Image3D* clImage = access.get();
+            OpenCLImageAccess3D::pointer access = image->getOpenCLImageAccess3D(ACCESS_READ, devices[to]);
+            cl::Image3D* clImage = access->get();
             CHECK(compareImage3DWithDataArray(*clImage, devices[to], data, width, height, depth, 1, type) == true);
             deleteArray(data, type);
         }
@@ -827,8 +827,8 @@ TEST_CASE("Create 2D image on one OpenCL device and request it on another OpenCL
             image->create2DImage(width, height, type, 1, devices[from], data);
 
             // Request image on "to" device
-            OpenCLBufferAccess access = image->getOpenCLBufferAccess(ACCESS_READ, devices[to]);
-            cl::Buffer* buffer = access.get();
+            OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ, devices[to]);
+            cl::Buffer* buffer = access->get();
             CHECK(compareBufferWithDataArray(*buffer, devices[to], data, width*height*1, type) == true);
             deleteArray(data, type);
         }
@@ -864,8 +864,8 @@ TEST_CASE("Create 3D image on one OpenCL device and request it on another OpenCL
             image->create3DImage(width, height, depth, type, 1, devices[from], data);
 
             // Request image on "to" device
-            OpenCLBufferAccess access = image->getOpenCLBufferAccess(ACCESS_READ, devices[to]);
-            cl::Buffer* clImage = access.get();
+            OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ, devices[to]);
+            cl::Buffer* clImage = access->get();
             CHECK(compareBufferWithDataArray(*clImage, devices[to], data, width*height*depth*1, type) == true);
             deleteArray(data, type);
         }
@@ -896,10 +896,10 @@ TEST_CASE("Multiple read access to 2D image should not throw exception", "[fast]
     Image::pointer image = Image::New();
     image->create2DImage(256, 256, TYPE_FLOAT, 1, Host::getInstance());
 
-    CHECK_NOTHROW(ImageAccess access1 = image->getImageAccess(ACCESS_READ));
-    CHECK_NOTHROW(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ, device));
-    CHECK_NOTHROW(OpenCLImageAccess2D access3 = image->getOpenCLImageAccess2D(ACCESS_READ, device));
-    CHECK_NOTHROW(ImageAccess access4 = image->getImageAccess(ACCESS_READ));
+    CHECK_NOTHROW(ImageAccess::pointer access1 = image->getImageAccess(ACCESS_READ));
+    CHECK_NOTHROW(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ, device));
+    CHECK_NOTHROW(OpenCLImageAccess2D::pointer access3 = image->getOpenCLImageAccess2D(ACCESS_READ, device));
+    CHECK_NOTHROW(ImageAccess::pointer access4 = image->getImageAccess(ACCESS_READ));
 }
 
 TEST_CASE("Multiple read access to 3D image should not throw exception", "[fast][image]") {
@@ -909,10 +909,10 @@ TEST_CASE("Multiple read access to 3D image should not throw exception", "[fast]
     image->create3DImage(64, 64, 32, TYPE_FLOAT, 1, Host::getInstance());
 
     CHECK_NOTHROW(
-            ImageAccess access1 = image->getImageAccess(ACCESS_READ);
-            OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ, device);
-            OpenCLImageAccess3D access3 = image->getOpenCLImageAccess3D(ACCESS_READ, device);
-            ImageAccess access4 = image->getImageAccess(ACCESS_READ)
+            ImageAccess::pointer access1 = image->getImageAccess(ACCESS_READ);
+            OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ, device);
+            OpenCLImageAccess3D::pointer access3 = image->getOpenCLImageAccess3D(ACCESS_READ, device);
+            ImageAccess::pointer access4 = image->getImageAccess(ACCESS_READ)
     );
 }
 
@@ -923,27 +923,27 @@ TEST_CASE("Requesting access to a 2D image that is being written to should throw
     image->create2DImage(256, 256, TYPE_FLOAT, 1, Host::getInstance());
 
     {
-        ImageAccess access1 = image->getImageAccess(ACCESS_READ_WRITE);
-        CHECK_THROWS(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ, device));
-        CHECK_THROWS(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
-        CHECK_THROWS(OpenCLImageAccess2D access2 = image->getOpenCLImageAccess2D(ACCESS_READ, device));
-        CHECK_THROWS(OpenCLImageAccess2D access2 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device));
+        ImageAccess::pointer access1 = image->getImageAccess(ACCESS_READ_WRITE);
+        CHECK_THROWS(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ, device));
+        CHECK_THROWS(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
+        CHECK_THROWS(OpenCLImageAccess2D::pointer access2 = image->getOpenCLImageAccess2D(ACCESS_READ, device));
+        CHECK_THROWS(OpenCLImageAccess2D::pointer access2 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device));
     }
 
     {
-        OpenCLBufferAccess access1 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
-        CHECK_THROWS(ImageAccess access2 = image->getImageAccess(ACCESS_READ));
-        CHECK_THROWS(ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE));
-        CHECK_THROWS(OpenCLImageAccess2D access2 = image->getOpenCLImageAccess2D(ACCESS_READ, device));
-        CHECK_THROWS(OpenCLImageAccess2D access2 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device));
+        OpenCLBufferAccess::pointer access1 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+        CHECK_THROWS(ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ));
+        CHECK_THROWS(ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ_WRITE));
+        CHECK_THROWS(OpenCLImageAccess2D::pointer access2 = image->getOpenCLImageAccess2D(ACCESS_READ, device));
+        CHECK_THROWS(OpenCLImageAccess2D::pointer access2 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device));		
     }
 
     {
-        OpenCLImageAccess2D access1 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
-        CHECK_THROWS(ImageAccess access2 = image->getImageAccess(ACCESS_READ));
-        CHECK_THROWS(ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE));
-        CHECK_THROWS(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ, device));
-        CHECK_THROWS(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
+        OpenCLImageAccess2D::pointer access1 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
+        CHECK_THROWS(ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ));
+        CHECK_THROWS(ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ_WRITE));
+        CHECK_THROWS(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ, device));
+        CHECK_THROWS(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
     }
 }
 
@@ -954,61 +954,68 @@ TEST_CASE("Requesting access to a 3D image that is being written to should throw
     image->create3DImage(32,32,32, TYPE_FLOAT, 1, Host::getInstance());
 
     {
-        ImageAccess access1 = image->getImageAccess(ACCESS_READ_WRITE);
-        CHECK_THROWS(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ, device));
-        CHECK_THROWS(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
-        CHECK_THROWS(OpenCLImageAccess3D access2 = image->getOpenCLImageAccess3D(ACCESS_READ, device));
-        CHECK_THROWS(OpenCLImageAccess3D access2 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device));
+        ImageAccess::pointer access1 = image->getImageAccess(ACCESS_READ_WRITE);
+        CHECK_THROWS(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ, device));
+        CHECK_THROWS(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
+        CHECK_THROWS(OpenCLImageAccess3D::pointer access2 = image->getOpenCLImageAccess3D(ACCESS_READ, device));
+        CHECK_THROWS(OpenCLImageAccess3D::pointer access2 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device));
     }
 
     {
-        OpenCLBufferAccess access1 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
-        CHECK_THROWS(ImageAccess access2 = image->getImageAccess(ACCESS_READ));
-        CHECK_THROWS(ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE));
-        CHECK_THROWS(OpenCLImageAccess3D access2 = image->getOpenCLImageAccess3D(ACCESS_READ, device));
-        CHECK_THROWS(OpenCLImageAccess3D access2 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device));
+        OpenCLBufferAccess::pointer access1 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+        CHECK_THROWS(ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ));
+        CHECK_THROWS(ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ_WRITE));
+        CHECK_THROWS(OpenCLImageAccess3D::pointer access2 = image->getOpenCLImageAccess3D(ACCESS_READ, device));
+        CHECK_THROWS(OpenCLImageAccess3D::pointer access2 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device));
     }
 
     {
-        OpenCLImageAccess3D access1 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
-        CHECK_THROWS(ImageAccess access2 = image->getImageAccess(ACCESS_READ));
-        CHECK_THROWS(ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE));
-        CHECK_THROWS(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ, device));
-        CHECK_THROWS(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
+        OpenCLImageAccess3D::pointer access1 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
+        CHECK_THROWS(ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ));
+        CHECK_THROWS(ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ_WRITE));
+        CHECK_THROWS(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ, device));
+        CHECK_THROWS(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
     }
 }
 
+
+
+
+
 TEST_CASE("Requesting access to a 2D image that has been released should not throw exception", "[fast][image]") {
+
+	
+
     DeviceManager& deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
     Image::pointer image = Image::New();
     image->create2DImage(256, 256, TYPE_FLOAT, 1, Host::getInstance());
 
     {
-        ImageAccess access1 = image->getImageAccess(ACCESS_READ_WRITE);
-        access1.release();
-        CHECK_NOTHROW(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ, device));
-        CHECK_NOTHROW(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
-        CHECK_NOTHROW(OpenCLImageAccess2D access2 = image->getOpenCLImageAccess2D(ACCESS_READ, device));
-        CHECK_NOTHROW(OpenCLImageAccess2D access2 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device));
+        ImageAccess::pointer access1 = image->getImageAccess(ACCESS_READ_WRITE);
+        access1->release();
+        CHECK_NOTHROW(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ, device));
+        CHECK_NOTHROW(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
+        CHECK_NOTHROW(OpenCLImageAccess2D::pointer access2 = image->getOpenCLImageAccess2D(ACCESS_READ, device));
+        CHECK_NOTHROW(OpenCLImageAccess2D::pointer access2 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device));
     }
 
     {
-        OpenCLBufferAccess access1 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
-        access1.release();
-        CHECK_NOTHROW(ImageAccess access2 = image->getImageAccess(ACCESS_READ));
-        CHECK_NOTHROW(ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE));
-        CHECK_NOTHROW(OpenCLImageAccess2D access2 = image->getOpenCLImageAccess2D(ACCESS_READ, device));
-        CHECK_NOTHROW(OpenCLImageAccess2D access2 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device));
+        OpenCLBufferAccess::pointer access1 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+        access1->release();
+        CHECK_NOTHROW(ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ));
+        CHECK_NOTHROW(ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ_WRITE));
+        CHECK_NOTHROW(OpenCLImageAccess2D::pointer access2 = image->getOpenCLImageAccess2D(ACCESS_READ, device));
+        CHECK_NOTHROW(OpenCLImageAccess2D::pointer access2 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device));
     }
 
     {
-        OpenCLImageAccess2D access1 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
-        access1.release();
-        CHECK_NOTHROW(ImageAccess access2 = image->getImageAccess(ACCESS_READ));
-        CHECK_NOTHROW(ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE));
-        CHECK_NOTHROW(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ, device));
-        CHECK_NOTHROW(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
+        OpenCLImageAccess2D::pointer access1 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
+        access1->release();
+        CHECK_NOTHROW(ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ));
+        CHECK_NOTHROW(ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ_WRITE));
+        CHECK_NOTHROW(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ, device));
+        CHECK_NOTHROW(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
     }
 }
 
@@ -1019,30 +1026,30 @@ TEST_CASE("Requesting access to a 3D image that has been released should not thr
     image->create3DImage(32,32,32, TYPE_FLOAT, 1, Host::getInstance());
 
     {
-        ImageAccess access1 = image->getImageAccess(ACCESS_READ_WRITE);
-        access1.release();
-        CHECK_NOTHROW(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ, device));
-        CHECK_NOTHROW(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
-        CHECK_NOTHROW(OpenCLImageAccess3D access2 = image->getOpenCLImageAccess3D(ACCESS_READ, device));
-        CHECK_NOTHROW(OpenCLImageAccess3D access2 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device));
+        ImageAccess::pointer access1 = image->getImageAccess(ACCESS_READ_WRITE);
+        access1->release();
+        CHECK_NOTHROW(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ, device));
+        CHECK_NOTHROW(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
+        CHECK_NOTHROW(OpenCLImageAccess3D::pointer access2 = image->getOpenCLImageAccess3D(ACCESS_READ, device));
+        CHECK_NOTHROW(OpenCLImageAccess3D::pointer access2 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device));
     }
 
     {
-        OpenCLBufferAccess access1 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
-        access1.release();
-        CHECK_NOTHROW(ImageAccess access2 = image->getImageAccess(ACCESS_READ));
-        CHECK_NOTHROW(ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE));
-        CHECK_NOTHROW(OpenCLImageAccess3D access2 = image->getOpenCLImageAccess3D(ACCESS_READ, device));
-        CHECK_NOTHROW(OpenCLImageAccess3D access2 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device));
+        OpenCLBufferAccess::pointer access1 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+        access1->release();
+        CHECK_NOTHROW(ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ));
+        CHECK_NOTHROW(ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ_WRITE));
+        CHECK_NOTHROW(OpenCLImageAccess3D::pointer access2 = image->getOpenCLImageAccess3D(ACCESS_READ, device));
+        CHECK_NOTHROW(OpenCLImageAccess3D::pointer access2 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device));
     }
 
     {
-        OpenCLImageAccess3D access1 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
-        access1.release();
-        CHECK_NOTHROW(ImageAccess access2 = image->getImageAccess(ACCESS_READ));
-        CHECK_NOTHROW(ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE));
-        CHECK_NOTHROW(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ, device));
-        CHECK_NOTHROW(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
+        OpenCLImageAccess3D::pointer access1 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
+        access1->release();
+        CHECK_NOTHROW(ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ));
+        CHECK_NOTHROW(ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ_WRITE));
+        CHECK_NOTHROW(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ, device));
+        CHECK_NOTHROW(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
     }
 }
 
@@ -1053,21 +1060,21 @@ TEST_CASE("Requesting write access to a 2D image that is being read from should 
     image->create2DImage(256, 256, TYPE_FLOAT, 1, Host::getInstance());
 
     {
-        ImageAccess access1 = image->getImageAccess(ACCESS_READ);
-        CHECK_THROWS(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
-        CHECK_THROWS(OpenCLImageAccess2D access2 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device));
+        ImageAccess::pointer access1 = image->getImageAccess(ACCESS_READ);
+        CHECK_THROWS(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
+        CHECK_THROWS(OpenCLImageAccess2D::pointer access2 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device));
     }
 
     {
-        OpenCLBufferAccess access1 = image->getOpenCLBufferAccess(ACCESS_READ, device);
-        CHECK_THROWS(ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE));
-        CHECK_THROWS(OpenCLImageAccess2D access2 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device));
+        OpenCLBufferAccess::pointer access1 = image->getOpenCLBufferAccess(ACCESS_READ, device);
+        CHECK_THROWS(ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ_WRITE));
+        CHECK_THROWS(OpenCLImageAccess2D::pointer access2 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device));
     }
 
     {
-        OpenCLImageAccess2D access1 = image->getOpenCLImageAccess2D(ACCESS_READ, device);
-        CHECK_THROWS(ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE));
-        CHECK_THROWS(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
+        OpenCLImageAccess2D::pointer access1 = image->getOpenCLImageAccess2D(ACCESS_READ, device);
+        CHECK_THROWS(ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ_WRITE));
+        CHECK_THROWS(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
     }
 }
 
@@ -1078,21 +1085,21 @@ TEST_CASE("Requesting write access to a 3D image that is being read from should 
     image->create3DImage(32,32,32, TYPE_FLOAT, 1, Host::getInstance());
 
     {
-        ImageAccess access1 = image->getImageAccess(ACCESS_READ);
-        CHECK_THROWS(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
-        CHECK_THROWS(OpenCLImageAccess3D access2 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device));
+        ImageAccess::pointer access1 = image->getImageAccess(ACCESS_READ);
+        CHECK_THROWS(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
+        CHECK_THROWS(OpenCLImageAccess3D::pointer access2 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device));
     }
 
     {
-        OpenCLBufferAccess access1 = image->getOpenCLBufferAccess(ACCESS_READ, device);
-        CHECK_THROWS(ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE));
-        CHECK_THROWS(OpenCLImageAccess3D access2 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device));
+        OpenCLBufferAccess::pointer access1 = image->getOpenCLBufferAccess(ACCESS_READ, device);
+        CHECK_THROWS(ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ_WRITE));
+        CHECK_THROWS(OpenCLImageAccess3D::pointer access2 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device));
     }
 
     {
-        OpenCLImageAccess3D access1 = image->getOpenCLImageAccess3D(ACCESS_READ, device);
-        CHECK_THROWS(ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE));
-        CHECK_THROWS(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
+        OpenCLImageAccess3D::pointer access1 = image->getOpenCLImageAccess3D(ACCESS_READ, device);
+        CHECK_THROWS(ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ_WRITE));
+        CHECK_THROWS(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
     }
 }
 
@@ -1103,24 +1110,24 @@ TEST_CASE("Requesting write access to a 2D image that has been released should n
     image->create2DImage(256, 256, TYPE_FLOAT, 1, Host::getInstance());
 
     {
-        ImageAccess access1 = image->getImageAccess(ACCESS_READ);
-        access1.release();
-        CHECK_NOTHROW(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
-        CHECK_NOTHROW(OpenCLImageAccess2D access2 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device));
+        ImageAccess::pointer access1 = image->getImageAccess(ACCESS_READ);
+        access1->release();
+        CHECK_NOTHROW(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
+        CHECK_NOTHROW(OpenCLImageAccess2D::pointer access2 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device));
     }
 
     {
-        OpenCLBufferAccess access1 = image->getOpenCLBufferAccess(ACCESS_READ, device);
-        access1.release();
-        CHECK_NOTHROW(ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE));
-        CHECK_NOTHROW(OpenCLImageAccess2D access2 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device));
+        OpenCLBufferAccess::pointer access1 = image->getOpenCLBufferAccess(ACCESS_READ, device);
+        access1->release();
+        CHECK_NOTHROW(ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ_WRITE));
+        CHECK_NOTHROW(OpenCLImageAccess2D::pointer access2 = image->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device));
     }
 
     {
-        OpenCLImageAccess2D access1 = image->getOpenCLImageAccess2D(ACCESS_READ, device);
-        access1.release();
-        CHECK_NOTHROW(ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE));
-        CHECK_NOTHROW(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
+        OpenCLImageAccess2D::pointer access1 = image->getOpenCLImageAccess2D(ACCESS_READ, device);
+        access1->release();
+        CHECK_NOTHROW(ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ_WRITE));
+        CHECK_NOTHROW(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
     }
 }
 
@@ -1131,24 +1138,24 @@ TEST_CASE("Requesting write access to a 3D image that has been released should n
     image->create3DImage(32,32,32, TYPE_FLOAT, 1, Host::getInstance());
 
     {
-        ImageAccess access1 = image->getImageAccess(ACCESS_READ);
-        access1.release();
-        CHECK_NOTHROW(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
-        CHECK_NOTHROW(OpenCLImageAccess3D access2 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device));
+        ImageAccess::pointer access1 = image->getImageAccess(ACCESS_READ);
+        access1->release();
+        CHECK_NOTHROW(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
+        CHECK_NOTHROW(OpenCLImageAccess3D::pointer access2 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device));
     }
 
     {
-        OpenCLBufferAccess access1 = image->getOpenCLBufferAccess(ACCESS_READ, device);
-        access1.release();
-        CHECK_NOTHROW(ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE));
-        CHECK_NOTHROW(OpenCLImageAccess3D access2 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device));
+        OpenCLBufferAccess::pointer access1 = image->getOpenCLBufferAccess(ACCESS_READ, device);
+        access1->release();
+        CHECK_NOTHROW(ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ_WRITE));
+        CHECK_NOTHROW(OpenCLImageAccess3D::pointer access2 = image->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device));
     }
 
     {
-        OpenCLImageAccess3D access1 = image->getOpenCLImageAccess3D(ACCESS_READ, device);
-        access1.release();
-        CHECK_NOTHROW(ImageAccess access2 = image->getImageAccess(ACCESS_READ_WRITE));
-        CHECK_NOTHROW(OpenCLBufferAccess access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
+        OpenCLImageAccess3D::pointer access1 = image->getOpenCLImageAccess3D(ACCESS_READ, device);
+        access1->release();
+        CHECK_NOTHROW(ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ_WRITE));
+        CHECK_NOTHROW(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
     }
 }
 

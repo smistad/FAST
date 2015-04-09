@@ -92,8 +92,8 @@ TEST_CASE("Write a 2D image with the MetaImageExporter", "[fast][MetaImageExport
             CHECK(image2->getNrOfComponents() == components);
             CHECK(image2->getDimensions() == 2);
 
-            ImageAccess access = image2->getImageAccess(ACCESS_READ);
-            void* data2 = access.get();
+            ImageAccess::pointer access = image2->getImageAccess(ACCESS_READ);
+            void* data2 = access->get();
             CHECK(compareDataArrays(data, data2, width*height*components, type) == true);
             deleteArray(data, type);
         }
@@ -173,8 +173,8 @@ TEST_CASE("Write a 3D image with the MetaImageExporter", "[fast][MetaImageExport
             CHECK(image2->getNrOfComponents() == components);
             CHECK(image2->getDimensions() == 3);
 
-            ImageAccess access = image2->getImageAccess(ACCESS_READ);
-            void* data2 = access.get();
+            ImageAccess::pointer access = image2->getImageAccess(ACCESS_READ);
+            void* data2 = access->get();
             CHECK(compareDataArrays(data, data2, width*height*depth*components, type) == true);
             deleteArray(data, type);
         }
@@ -258,8 +258,8 @@ TEST_CASE("Write a compressed 2D image with the MetaImageExporter", "[fast][Meta
             CHECK(image2->getNrOfComponents() == components);
             CHECK(image2->getDimensions() == 2);
 
-            ImageAccess access = image2->getImageAccess(ACCESS_READ);
-            void* data2 = access.get();
+            ImageAccess::pointer access = image2->getImageAccess(ACCESS_READ);
+            void* data2 = access->get();
             CHECK(compareDataArrays(data, data2, width*height*components, type) == true);
             deleteArray(data, type);
         }
@@ -339,8 +339,8 @@ TEST_CASE("Write a compressed 3D image with the MetaImageExporter", "[fast][Meta
             CHECK(image2->getNrOfComponents() == components);
             CHECK(image2->getDimensions() == 3);
 
-            ImageAccess access = image2->getImageAccess(ACCESS_READ);
-            void* data2 = access.get();
+            ImageAccess::pointer access = image2->getImageAccess(ACCESS_READ);
+            void* data2 = access->get();
             CHECK(compareDataArrays(data, data2, width*height*depth*components, type) == true);
             deleteArray(data, type);
         }

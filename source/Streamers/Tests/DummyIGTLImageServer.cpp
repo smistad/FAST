@@ -84,8 +84,8 @@ igtl::ImageMessage::Pointer createIGTLImageMessage(Image::pointer image) {
     imgMsg->SetSubVolume(size, svoffset);
     imgMsg->AllocateScalars();
 
-    ImageAccess access = image->getImageAccess(ACCESS_READ);
-    memcpy(imgMsg->GetScalarPointer(), access.get(), totalSize);
+    ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
+    memcpy(imgMsg->GetScalarPointer(), access->get(), totalSize);
 
     return imgMsg;
 }

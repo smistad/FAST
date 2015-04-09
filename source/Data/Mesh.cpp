@@ -83,7 +83,7 @@ bool Mesh::isAnyDataBeingAccessed() {
     return mVBODataIsBeingAccessed || mHostDataIsBeingAccessed;
 }
 
-VertexBufferObjectAccess Mesh::getVertexBufferObjectAccess(
+VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
         accessType type,
         OpenCLDevice::pointer device) {
     if(!mIsInitialized)
@@ -162,7 +162,8 @@ VertexBufferObjectAccess Mesh::getVertexBufferObjectAccess(
 
     mVBODataIsBeingAccessed = true;
 
-    return VertexBufferObjectAccess(mVBOID, &mVBODataIsBeingAccessed, &mSurfaceIsBeingWrittenTo);
+	VertexBufferObjectAccess::pointer accessObject(new VertexBufferObjectAccess(mVBOID, &mVBODataIsBeingAccessed, &mSurfaceIsBeingWrittenTo));
+	return std::move(accessObject);
 }
 
 
@@ -193,7 +194,7 @@ bool operator==(const SurfaceVertex& a, const SurfaceVertex& b) {
     a.position[2] == b.position[2];
 }
 
-SurfacePointerAccess Mesh::getSurfacePointerAccess(accessType type) {
+SurfacePointerAccess::pointer Mesh::getSurfacePointerAccess(accessType type) {
     if(!mIsInitialized) {
         throw Exception("Surface has not been initialized.");
     }
@@ -259,7 +260,8 @@ SurfacePointerAccess Mesh::getSurfacePointerAccess(accessType type) {
     }
 
     mHostDataIsBeingAccessed = true;
-    return SurfacePointerAccess(&mVertices,&mTriangles,&mHostDataIsBeingAccessed,&mSurfaceIsBeingWrittenTo);
+    SurfacePointerAccess::pointer accessObject(new SurfacePointerAccess(&mVertices,&mTriangles,&mHostDataIsBeingAccessed,&mSurfaceIsBeingWrittenTo));
+	return std::move(accessObject);
 }
 
 Mesh::~Mesh() {

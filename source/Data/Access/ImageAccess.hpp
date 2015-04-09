@@ -18,7 +18,10 @@ class ImageAccess {
         void setScalar(Vector3i position, float value, uchar channel = 0);
         void release();
         ~ImageAccess();
+		typedef UniquePointer<ImageAccess> pointer;
     private:
+		ImageAccess(const ImageAccess::pointer other);
+		ImageAccess::pointer operator=(const ImageAccess::pointer other);
         void* mData;
         bool* mAccessFlag;
         bool* mAccessFlag2;

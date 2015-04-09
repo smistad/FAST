@@ -16,11 +16,11 @@ TEST_CASE("DoubleFilter on OpenCL device", "[fast][DoubleFilter]") {
     Image::pointer input = importer->getOutputData<Image>(0);
     Image::pointer output = filter->getOutputData<Image>(0);
     input->retain(filter->getMainDevice());
-    ImageAccess inputAccess = input->getImageAccess(ACCESS_READ);
-    ImageAccess outputAccess = output->getImageAccess(ACCESS_READ);
+    ImageAccess::pointer inputAccess = input->getImageAccess(ACCESS_READ);
+    ImageAccess::pointer outputAccess = output->getImageAccess(ACCESS_READ);
 
-    float* inputData = (float*)inputAccess.get();
-    float* outputData = (float*)outputAccess.get();
+    float* inputData = (float*)inputAccess->get();
+    float* outputData = (float*)outputAccess->get();
     bool success = true;
     for(unsigned int i = 0; i < input->getWidth()*input->getHeight(); i++) {
         if(fabs(inputData[i]*2-outputData[i]) > 0.001) {
@@ -45,11 +45,11 @@ TEST_CASE("DoubleFilter on Host", "[fast][DoubleFilter]") {
     Image::pointer output = filter->getOutputData<Image>(0);
     input->retain(filter->getMainDevice());
 
-    ImageAccess inputAccess = input->getImageAccess(ACCESS_READ);
-    ImageAccess outputAccess = output->getImageAccess(ACCESS_READ);
+    ImageAccess::pointer inputAccess = input->getImageAccess(ACCESS_READ);
+    ImageAccess::pointer outputAccess = output->getImageAccess(ACCESS_READ);
 
-    float* inputData = (float*)inputAccess.get();
-    float* outputData = (float*)outputAccess.get();
+    float* inputData = (float*)inputAccess->get();
+    float* outputData = (float*)outputAccess->get();
     bool success = true;
     for(unsigned int i = 0; i < input->getWidth()*input->getHeight(); i++) {
         if(fabs(inputData[i]*2-outputData[i]) > 0.001) {

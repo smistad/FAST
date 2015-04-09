@@ -12,6 +12,8 @@
 #endif
 #endif
 
+#include "SmartPointers.hpp"
+
 namespace fast {
 
 class VertexBufferObjectAccess {
@@ -20,6 +22,7 @@ class VertexBufferObjectAccess {
         VertexBufferObjectAccess(GLuint VBOID, bool* accessFlag, bool* accessFlag2);
         void release();
         ~VertexBufferObjectAccess();
+		typedef UniquePointer<VertexBufferObjectAccess> pointer;
     private:
         GLuint* mVBOID;
         bool mIsDeleted;

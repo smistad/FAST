@@ -126,8 +126,8 @@ void SurfaceExtraction::execute() {
     cl::Kernel classifyCubesKernel = cl::Kernel(program, "classifyCubes");
     cl::Kernel traverseHPKernel = cl::Kernel(program, "traverseHP");
 
-    OpenCLImageAccess3D access = input->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
-    cl::Image3D* clImage = access.get();
+    OpenCLImageAccess3D::pointer access = input->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+    cl::Image3D* clImage = access->get();
 
     // update scalar field
     if(writingTo3DTextures) {
@@ -325,8 +325,8 @@ void SurfaceExtraction::execute() {
         i += 2;
     }
 
-    VertexBufferObjectAccess VBOaccess = output->getVertexBufferObjectAccess(ACCESS_READ_WRITE, mDevice);
-    GLuint* VBO_ID = VBOaccess.get();
+    VertexBufferObjectAccess::pointer VBOaccess = output->getVertexBufferObjectAccess(ACCESS_READ_WRITE, mDevice);
+    GLuint* VBO_ID = VBOaccess->get();
     cl::BufferGL VBOBuffer = cl::BufferGL(mDevice->getContext(), CL_MEM_WRITE_ONLY, *VBO_ID);
     traverseHPKernel.setArg(i, VBOBuffer);
     traverseHPKernel.setArg(i+1, mThreshold);

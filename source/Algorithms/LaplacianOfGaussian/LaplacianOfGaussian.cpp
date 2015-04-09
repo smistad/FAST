@@ -134,11 +134,11 @@ template <class T>
 void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, float * mask, unsigned char maskSize) {
     // TODO: this method currently only processes the first component
     unsigned int nrOfComponents = input->getNrOfComponents();
-    ImageAccess inputAccess = input->getImageAccess(ACCESS_READ);
-    ImageAccess outputAccess = output->getImageAccess(ACCESS_READ_WRITE);
+    ImageAccess::pointer inputAccess = input->getImageAccess(ACCESS_READ);
+    ImageAccess::pointer outputAccess = output->getImageAccess(ACCESS_READ_WRITE);
 
-    T * inputData = (T*)inputAccess.get();
-    T * outputData = (T*)outputAccess.get();
+    T * inputData = (T*)inputAccess->get();
+    T * outputData = (T*)outputAccess->get();
 
     const unsigned char halfSize = (maskSize-1)/2;
     unsigned int width = input->getWidth();
@@ -220,22 +220,22 @@ void LaplacianOfGaussian::execute() {
         if(input->getDimensions() == 2) {
             globalSize = cl::NDRange(input->getWidth(),input->getHeight());
 
-            OpenCLImageAccess2D inputAccess = input->getOpenCLImageAccess2D(ACCESS_READ, device);
-            OpenCLImageAccess2D outputAccess = output->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
-            mKernel.setArg(0, *inputAccess.get());
-            mKernel.setArg(2, *outputAccess.get());
+            OpenCLImageAccess2D::pointer inputAccess = input->getOpenCLImageAccess2D(ACCESS_READ, device);
+            OpenCLImageAccess2D::pointer outputAccess = output->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
+            mKernel.setArg(0, *inputAccess->get());
+            mKernel.setArg(2, *outputAccess->get());
         } else {
             globalSize = cl::NDRange(input->getWidth(),input->getHeight(),input->getDepth());
 
             const bool writingTo3DTextures = clDevice->getDevice().getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") != std::string::npos;
-            OpenCLImageAccess3D inputAccess = input->getOpenCLImageAccess3D(ACCESS_READ, device);
-            mKernel.setArg(0, *inputAccess.get());
+            OpenCLImageAccess3D::pointer inputAccess = input->getOpenCLImageAccess3D(ACCESS_READ, device);
+            mKernel.setArg(0, *inputAccess->get());
             if(writingTo3DTextures) {
-                OpenCLImageAccess3D outputAccess = output->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
-                mKernel.setArg(2, *outputAccess.get());
+                OpenCLImageAccess3D::pointer outputAccess = output->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
+                mKernel.setArg(2, *outputAccess->get());
             } else {
-                OpenCLBufferAccess outputAccess = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
-                mKernel.setArg(2, *outputAccess.get());
+                OpenCLBufferAccess::pointer outputAccess = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+                mKernel.setArg(2, *outputAccess->get());
             }
         }
 

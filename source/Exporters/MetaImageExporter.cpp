@@ -124,8 +124,8 @@ void MetaImageExporter::execute() {
     const unsigned int numberOfElements = input->getWidth()*input->getHeight()*
             input->getDepth()*input->getNrOfComponents();
 
-    ImageAccess access = input->getImageAccess(ACCESS_READ);
-    void* data = access.get();
+    ImageAccess::pointer access = input->getImageAccess(ACCESS_READ);
+    void* data = access->get();
     std::size_t compressedSize;
     switch(input->getDataType()) {
     case TYPE_FLOAT:

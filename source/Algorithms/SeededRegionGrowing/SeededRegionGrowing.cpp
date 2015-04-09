@@ -68,8 +68,8 @@ void SeededRegionGrowing::recompileOpenCLCode(Image::pointer input) {
 
 template <class T>
 void SeededRegionGrowing::executeOnHost(T* input, Image::pointer output) {
-    ImageAccess outputAccess = output->getImageAccess(ACCESS_READ_WRITE);
-    uchar* outputData = (uchar*)outputAccess.get();
+    ImageAccess::pointer outputAccess = output->getImageAccess(ACCESS_READ_WRITE);
+    uchar* outputData = (uchar*)outputAccess->get();
     // initialize output to all zero
     memset(outputData, 0, output->getWidth()*output->getHeight()*output->getDepth());
     std::stack<Vector3ui> queue;
@@ -153,8 +153,8 @@ void SeededRegionGrowing::execute() {
     SceneGraph::setParentNode(output, input); // connect output to input in scene graph
 
     if(getMainDevice()->isHost()) {
-        ImageAccess inputAccess = input->getImageAccess(ACCESS_READ);
-        void* inputData = inputAccess.get();
+        ImageAccess::pointer inputAccess = input->getImageAccess(ACCESS_READ);
+        void* inputData = inputAccess->get();
         switch(input->getDataType()) {
             fastSwitchTypeMacro(executeOnHost<FAST_TYPE>((FAST_TYPE*)inputData, output));
         }
@@ -163,8 +163,8 @@ void SeededRegionGrowing::execute() {
 
         recompileOpenCLCode(input);
 
-        ImageAccess access = output->getImageAccess(ACCESS_READ_WRITE);
-        uchar* outputData = (uchar*)access.get();
+        ImageAccess::pointer access = output->getImageAccess(ACCESS_READ_WRITE);
+        uchar* outputData = (uchar*)access->get();
         // Initialize to all 0s
         memset(outputData,0,sizeof(uchar)*output->getWidth()*output->getHeight()*output->getDepth());
 
@@ -179,26 +179,26 @@ void SeededRegionGrowing::execute() {
 
             outputData[pos.x() + pos.y()*output->getWidth() + pos.z()*output->getWidth()*output->getHeight()] = 2;
         }
-        access.release();
+        access->release();
 
         cl::NDRange globalSize;
         if(output->getDimensions() == 2) {
             globalSize = cl::NDRange(input->getWidth(),input->getHeight());
-            OpenCLImageAccess2D inputAccess = input->getOpenCLImageAccess2D(ACCESS_READ, device);
-            mKernel.setArg(0, *inputAccess.get());
+            OpenCLImageAccess2D::pointer inputAccess = input->getOpenCLImageAccess2D(ACCESS_READ, device);
+            mKernel.setArg(0, *inputAccess->get());
         } else {
             globalSize = cl::NDRange(input->getWidth(),input->getHeight(), input->getDepth());
-            OpenCLImageAccess3D inputAccess = input->getOpenCLImageAccess3D(ACCESS_READ, device);
-            mKernel.setArg(0, *inputAccess.get());
+            OpenCLImageAccess3D::pointer inputAccess = input->getOpenCLImageAccess3D(ACCESS_READ, device);
+            mKernel.setArg(0, *inputAccess->get());
         }
 
-        OpenCLBufferAccess outputAccess = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+        OpenCLBufferAccess::pointer outputAccess = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
         cl::Buffer stopGrowingBuffer = cl::Buffer(
                 device->getContext(),
                 CL_MEM_READ_WRITE,
                 sizeof(char));
         cl::CommandQueue queue = device->getCommandQueue();
-        mKernel.setArg(1, *outputAccess.get());
+        mKernel.setArg(1, *outputAccess->get());
         mKernel.setArg(2, stopGrowingBuffer);
         mKernel.setArg(3, mMinimumIntensity);
         mKernel.setArg(4, mMaximumIntensity);

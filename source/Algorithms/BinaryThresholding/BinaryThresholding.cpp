@@ -75,10 +75,10 @@ void BinaryThresholding::execute() {
             kernel = cl::Kernel(program, "thresholdingWithOnlyUpper");
             kernel.setArg(2, mUpperThreshold);
         }
-        OpenCLImageAccess2D access = input->getOpenCLImageAccess2D(ACCESS_READ, device);
-        OpenCLImageAccess2D access2 = output->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
-        kernel.setArg(0, *access.get());
-        kernel.setArg(1, *access2.get());
+        OpenCLImageAccess2D::pointer access = input->getOpenCLImageAccess2D(ACCESS_READ, device);
+        OpenCLImageAccess2D::pointer access2 = output->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
+        kernel.setArg(0, *access->get());
+        kernel.setArg(1, *access2->get());
 
         cl::CommandQueue queue = device->getCommandQueue();
         queue.enqueueNDRangeKernel(

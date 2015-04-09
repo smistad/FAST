@@ -47,8 +47,8 @@ void ImageRenderer::execute() {
 
         OpenCLDevice::pointer device = getMainDevice();
 
-        OpenCLImageAccess2D access = input->getOpenCLImageAccess2D(ACCESS_READ, device);
-        cl::Image2D* clImage = access.get();
+        OpenCLImageAccess2D::pointer access = input->getOpenCLImageAccess2D(ACCESS_READ, device);
+        cl::Image2D* clImage = access->get();
 
         glEnable(GL_TEXTURE_2D);
         if(mTexturesToRender.count(inputNr) > 0) {

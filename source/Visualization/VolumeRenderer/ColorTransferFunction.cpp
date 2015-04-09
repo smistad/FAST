@@ -214,8 +214,8 @@ void VolumeRenderer::execute() {
 		//for(int i=0;i<numberOfVolumes;i++)
 		//	d_volumeArray.push_back(cl::Image3D(clContext,CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, cl::ImageFormat(CL_R, CL_UNORM_INT8), inputs[i]->getWidth(), inputs[i]->getHeight(), inputs[i]->getDepth(), 0, 0, inputs[i]->getImageAccess(ACCESS_READ).get(), 0));
 		
-		OpenCLImageAccess3D access = inputs[0]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
-		cl::Image3D* clImage = access.get();
+		OpenCLImageAccess3D::pointer access = inputs[0]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+		cl::Image3D* clImage = access->get();
 
 		renderKernel.setArg(0, pbo_cl);
 		renderKernel.setArg(1, mWidth);
@@ -232,29 +232,29 @@ void VolumeRenderer::execute() {
 		renderKernel.setArg(11, transferFuncSampler);
 		if (numberOfVolumes>1)
 		{
-			OpenCLImageAccess3D access2 = inputs[1]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+			OpenCLImageAccess3D::pointer access2 = inputs[1]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
 //			std::cout<<inputs[1]->getDataType()<<std::endl;
-			cl::Image3D* clImage2 = access2.get();
+			cl::Image3D* clImage2 = access2->get();
 			renderKernel.setArg(12, *clImage2);
 			renderKernel.setArg(13, d_transferFuncArray);
 
 			if (numberOfVolumes>2)
 			{
-				OpenCLImageAccess3D access3 = inputs[2]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+				OpenCLImageAccess3D::pointer access3 = inputs[2]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
 				cl::Image3D* clImage3 = access3.get();
 				renderKernel.setArg(14, *clImage3);
 				renderKernel.setArg(15, d_transferFuncArray);
 
 				if (numberOfVolumes>3)
 				{
-					OpenCLImageAccess3D access4 = inputs[3]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+					OpenCLImageAccess3D::pointer access4 = inputs[3]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
 					cl::Image3D* clImage4 = access4.get();
 					renderKernel.setArg(16, *clImage4);
 					renderKernel.setArg(17, d_transferFuncArray);
 
 					if (numberOfVolumes>4)
 					{	
-						OpenCLImageAccess3D access5 = inputs[4]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+						OpenCLImageAccess3D::pointer access5 = inputs[4]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
 						cl::Image3D* clImage5 = access5.get();
 						renderKernel.setArg(18, *clImage5);
 						renderKernel.setArg(19, d_transferFuncArray);

@@ -4,6 +4,7 @@
 #include "SurfaceVertex.hpp"
 #include <vector>
 #include <DataTypes.hpp>
+#include "SmartPointers.hpp"
 
 namespace fast {
 
@@ -16,6 +17,7 @@ class SurfacePointerAccess {
         std::vector<SurfaceVertex> getVertices();
         void release();
         ~SurfacePointerAccess();
+		typedef UniquePointer<SurfacePointerAccess> pointer;
     private:
         bool* mAccessFlag;
         bool* mAccessFlag2;

@@ -13,11 +13,11 @@ DoubleFilter::DoubleFilter() {
  */
 template<class T>
 inline void executeAlgorithmOnHost(Image::pointer input, Image::pointer output) {
-    ImageAccess inputAccess = input->getImageAccess(ACCESS_READ);
-    ImageAccess outputAccess = output->getImageAccess(ACCESS_READ_WRITE);
+    ImageAccess::pointer inputAccess = input->getImageAccess(ACCESS_READ);
+    ImageAccess::pointer outputAccess = output->getImageAccess(ACCESS_READ_WRITE);
 
-    T * inputData = (T*)inputAccess.get();
-    T * outputData = (T*)outputAccess.get();
+    T * inputData = (T*)inputAccess->get();
+    T * outputData = (T*)outputAccess->get();
 
     unsigned int nrOfElements = input->getWidth()*input->getHeight()*input->getDepth()*input->getNrOfComponents();
     for(unsigned int i = 0; i < nrOfElements; i++) {
@@ -71,10 +71,10 @@ void DoubleFilter::execute() {
         cl::NDRange globalSize(input->getWidth()*input->getHeight()*input->getDepth()*input->getNrOfComponents());
 
         // Set the arguments for the kernel
-        OpenCLBufferAccess inputAccess = input->getOpenCLBufferAccess(ACCESS_READ, device);
-        OpenCLBufferAccess outputAccess = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
-        kernel.setArg(0, *inputAccess.get());
-        kernel.setArg(1, *outputAccess.get());
+        OpenCLBufferAccess::pointer inputAccess = input->getOpenCLBufferAccess(ACCESS_READ, device);
+        OpenCLBufferAccess::pointer outputAccess = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+        kernel.setArg(0, *inputAccess->get());
+        kernel.setArg(1, *outputAccess->get());
 
         // Execute the kernel
         device->getCommandQueue().enqueueNDRangeKernel(
