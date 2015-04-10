@@ -1,1 +1,2 @@
 fast_add_example(extractSurfaceAndRender extractSurfaceAndRender.cpp)
+fast_add_example(volumeRenderer volumeRenderer.cpp)

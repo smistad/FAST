@@ -90,8 +90,11 @@ class VolumeRenderer : public Renderer {
 		bool gluInvertMatrix(const float m[16], float invOut[16]);
 
 		unsigned int numberOfVolumes;
-
-		//std::vector<ImageData::pointer> mInputs;
+		
+		
+		//Image::pointer 
+		Image::pointer mI;
+		std::vector<Image::pointer> mInputs;
 		std::vector<Image::pointer> inputs;
 
 
@@ -114,6 +117,17 @@ class VolumeRenderer : public Renderer {
 		float invViewMatrices[maxNumberOfVolumes * 16];
 		
 		float boxMaxs[maxNumberOfVolumes * 3];
+
+		float opacityFuncDefs[maxNumberOfVolumes];
+		float opacityFuncMins[maxNumberOfVolumes];
+		float colorFuncDefs[maxNumberOfVolumes];
+		float colorFuncMins[maxNumberOfVolumes];
+
+		cl::Buffer d_opacityFuncDefs;
+		cl::Buffer d_opacityFuncMins;
+		cl::Buffer d_colorFuncDefs;
+		cl::Buffer d_colorFuncMins;
+
 };
 
 } // namespace fast

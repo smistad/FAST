@@ -94,7 +94,11 @@ d_render(__global uint *d_output,
 		  __read_only image2d_t opacityFunc,
 		  __read_only image2d_t geoColorTexture,
 		  __read_only image2d_t geoDepthTexture,
-		  __constant float* boxMaxs
+		  __constant float* boxMaxs,
+		  __constant float* opacityFuncDefs,
+		  __constant float* opacityFuncMins,
+		  __constant float* colorFuncDefs,
+		  __constant float* colorFuncMins
 #if defined(VOL2) || defined(VOL3) || defined(VOL4) || defined(VOL5)
 		  ,__read_only image3d_t volume2
 		  ,__read_only image2d_t transferFunc2
@@ -176,14 +180,15 @@ d_render(__global uint *d_output,
 #ifdef TYPE_FLOAT1
 		float sample = read_imagef(volume, volumeSampler, pos).x;
 #elif TYPE_UINT1
-		float sample = (float)(read_imageui(volume, volumeSampler, pos).x)/255;
+		float sample = (float)(read_imageui(volume, volumeSampler, pos).x);
 #elif TYPE_INT1
-		float sample = (float)(read_imagei(volume, volumeSampler, pos).x)/255;
+		float sample = (float)(read_imagei(volume, volumeSampler, pos).x);
 #endif
-        // lookup in transfer function texture
-        float2 transfer_pos = (float2)(sample, 0.5f);
-        float4 col =  read_imagef(transferFunc, transferFuncSampler, transfer_pos);
-		float4 alpha= read_imagef(opacityFunc, transferFuncSampler, transfer_pos);
+		// lookup in transfer function texture
+		float2 color_transfer_pos = (float2)((sample - colorFuncMins[0]) / colorFuncDefs[0], 0.5f); //make the sample between 0.0 and 1.0
+		float2 opacity_transfer_pos = (float2)((sample - opacityFuncMins[0]) / opacityFuncDefs[0], 0.5f); //make the sample between 0.0 and 1.0
+		float4 col = read_imagef(transferFunc, transferFuncSampler, color_transfer_pos);
+		float4 alpha = read_imagef(opacityFunc, transferFuncSampler, opacity_transfer_pos);
 		col.w=alpha.w;
         // accumulate result
         float a = col.w*density;
@@ -197,14 +202,15 @@ d_render(__global uint *d_output,
 #ifdef TYPE_FLOAT2
 			float sample = read_imagef(volume2, volumeSampler, pos).x;
 #elif TYPE_UINT2
-			float sample = (float)(read_imageui(volume2, volumeSampler, pos).x)/255;
+			float sample = (float)(read_imageui(volume2, volumeSampler, pos).x);
 #elif TYPE_INT2
-			float sample = (float)(read_imagei(volume2, volumeSampler, pos).x)/255;
+			float sample = (float)(read_imagei(volume2, volumeSampler, pos).x);
 #endif
-
-			transfer_pos = (float2)(sample, 0.5f); //Mehdi
-			col = read_imagef(transferFunc2, transferFuncSampler, transfer_pos); //Mehdi
-			float4 alpha= read_imagef(opacityFunc2, transferFuncSampler, transfer_pos);
+			// lookup in transfer function texture
+			float2 color_transfer_pos = (float2)((sample - colorFuncMins[1]) / colorFuncDefs[1], 0.5f); //make the sample between 0.0 and 1.0
+			float2 opacity_transfer_pos = (float2)((sample - opacityFuncMins[1]) / opacityFuncDefs[1], 0.5f); //make the sample between 0.0 and 1.0
+			col = read_imagef(transferFunc2, transferFuncSampler, color_transfer_pos);
+			alpha = read_imagef(opacityFunc2, transferFuncSampler, opacity_transfer_pos);
 			col.w=alpha.w;
 			a = col.w*density; //Mehdi
 			volumeColor = mix(volumeColor, col, (float4)(a, a, a, a)); //Mehdi
@@ -219,14 +225,15 @@ d_render(__global uint *d_output,
 #ifdef TYPE_FLOAT3
 			float sample = read_imagef(volume3, volumeSampler, pos).x;
 #elif TYPE_UINT3
-			float sample = (float)(read_imageui(volume3, volumeSampler, pos).x)/255;
+			float sample = (float)(read_imageui(volume3, volumeSampler, pos).x);
 #elif TYPE_INT3
-			float sample = (float)(read_imagei(volume3, volumeSampler, pos).x)/255;
+			float sample = (float)(read_imagei(volume3, volumeSampler, pos).x);
 #endif
-
-			transfer_pos = (float2)(sample, 0.5f); //Mehdi
-			col = read_imagef(transferFunc3, transferFuncSampler, transfer_pos); //Mehdi
-			float4 alpha= read_imagef(opacityFunc3, transferFuncSampler, transfer_pos);
+			// lookup in transfer function texture
+			float2 color_transfer_pos = (float2)((sample - colorFuncMins[2]) / colorFuncDefs[2], 0.5f);
+			float2 opacity_transfer_pos = (float2)((sample - opacityFuncMins[2]) / opacityFuncDefs[2], 0.5f);
+			col = read_imagef(transferFunc3, transferFuncSampler, color_transfer_pos);
+			alpha = read_imagef(opacityFunc3, transferFuncSampler, opacity_transfer_pos);
 			col.w=alpha.w;
 			a = col.w*density; //Mehdi
 			volumeColor = mix(volumeColor, col, (float4)(a, a, a, a)); //Mehdi
@@ -241,14 +248,15 @@ d_render(__global uint *d_output,
 #ifdef TYPE_FLOAT4
 			float sample = read_imagef(volume4, volumeSampler, pos).x;
 #elif TYPE_UINT4
-			float sample = (float)(read_imageui(volume4, volumeSampler, pos).x)/255;
+			float sample = (float)(read_imageui(volume4, volumeSampler, pos).x);
 #elif TYPE_INT4
-			float sample = (float)(read_imagei(volume4, volumeSampler, pos).x)/255;
+			float sample = (float)(read_imagei(volume4, volumeSampler, pos).x);
 #endif
-
-			transfer_pos = (float2)(sample, 0.5f); //Mehdi
-			col = read_imagef(transferFunc4, transferFuncSampler, transfer_pos); //Mehdi
-			float4 alpha= read_imagef(opacityFunc4, transferFuncSampler, transfer_pos);
+			// lookup in transfer function texture
+			float2 color_transfer_pos = (float2)((sample - colorFuncMins[3]) / colorFuncDefs[3], 0.5f);
+			float2 opacity_transfer_pos = (float2)((sample - opacityFuncMins[3]) / opacityFuncDefs[3], 0.5f);
+			col = read_imagef(transferFunc4, transferFuncSampler, color_transfer_pos);
+			alpha = read_imagef(opacityFunc4, transferFuncSampler, opacity_transfer_pos);
 			col.w=alpha.w;
 			a = col.w*density; //Mehdi
 			volumeColor = mix(volumeColor, col, (float4)(a, a, a, a)); //Mehdi
@@ -263,14 +271,15 @@ d_render(__global uint *d_output,
 #ifdef TYPE_FLOAT5
 			float sample = read_imagef(volume5, volumeSampler, pos).x;
 #elif TYPE_UINT5
-			float sample = (float)(read_imageui(volume5, volumeSampler, pos).x)/255;
+			float sample = (float)(read_imageui(volume5, volumeSampler, pos).x);
 #elif TYPE_INT5
-			float sample = (float)(read_imagei(volume5, volumeSampler, pos).x)/255;
+			float sample = (float)(read_imagei(volume5, volumeSampler, pos).x);
 #endif
-
-			transfer_pos = (float2)(sample, 0.5f); //Mehdi
-			col = read_imagef(transferFunc5, transferFuncSampler, transfer_pos); //Mehdi
-			float4 alpha= read_imagef(opacityFunc5, transferFuncSampler, transfer_pos);
+			// lookup in transfer function texture
+			float2 color_transfer_pos = (float2)((sample - colorFuncMins[4]) / colorFuncDefs[4], 0.5f);
+			float2 opacity_transfer_pos = (float2)((sample - opacityFuncMins[4]) / opacityFuncDefs[4], 0.5f);
+			col = read_imagef(transferFunc5, transferFuncSampler, color_transfer_pos);
+			alpha = read_imagef(opacityFunc5, transferFuncSampler, opacity_transfer_pos);
 			col.w=alpha.w;
 			a = col.w*density; //Mehdi
 			volumeColor = mix(temp, col, (float4)(a, a, a, a)); //Mehdi
