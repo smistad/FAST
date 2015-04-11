@@ -22,6 +22,8 @@ class Window : public QObject, public Object {
         virtual void start();
         void startComputationThread();
         void stopComputationThread();
+        void setWidth(uint width);
+        void setHeight(uint height);
     protected:
         Window();
         View* createView();

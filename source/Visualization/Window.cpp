@@ -189,4 +189,12 @@ View* Window::getView(uint i) const {
     return mWidget->getViews().at(i);
 }
 
+void Window::setWidth(uint width) {
+    mWidth = width;
+}
+
+void Window::setHeight(uint height) {
+    mHeight = height;
+}
+
 } // end namespace fast
