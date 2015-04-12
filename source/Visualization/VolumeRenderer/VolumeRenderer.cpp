@@ -66,27 +66,49 @@ void VolumeRenderer::setOpacityTransferFunction(int volumeIndex, OpacityTransfer
 	double xMax = otf->getXMax();
 	unsigned int XDef = static_cast<unsigned int>(xMax - xMin);
 
-	opacityFunc=(float *)(malloc(sizeof(float)*XDef));
-	
-	for (unsigned int c=0; c<otf->v.size()-1; c++)
-	{
-		int   S=otf->v[c+0].X;
-		int   E=otf->v[c+1].X;
-		float A1=otf->v[c].A;
-		float A= (otf->v[c+1].A) - A1;
-		float D=E-S;
+	if(((OpenCLDevice::pointer)getMainDevice())->isImageFormatSupported(CL_A, CL_FLOAT, CL_MEM_OBJECT_IMAGE2D)) {
+        opacityFunc=(float *)(malloc(sizeof(float)*XDef));
 
-		unsigned int index=0;
-		for(unsigned int i=S-xMin; i<E-xMin; i++, index++)
-		{
-			opacityFunc[i]=A1+A*index/D;//A
-			
-		}
+        for (unsigned int c=0; c<otf->v.size()-1; c++)
+        {
+                int   S=otf->v[c+0].X;
+                int   E=otf->v[c+1].X;
+                float A1=otf->v[c].A;
+                float A= (otf->v[c+1].A) - A1;
+                float D=E-S;
+
+                unsigned int index=0;
+                for(unsigned int i=S-xMin; i<E-xMin; i++, index++)
+                {
+                        opacityFunc[i]=A1+A*index/D;//A
+
+                }
+        }
+        d_opacityFuncArray[volumeIndex]=cl::Image2D(clContext, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, cl::ImageFormat(CL_A, CL_FLOAT), XDef, 1, 0, opacityFunc, 0);
+	} else {
+		// Single channel images is not support on all platforms (e.g. Mac), thus use regular 4 channel images if it is not supported
+        opacityFunc=(float *)(malloc(sizeof(float)*XDef*4));
+
+        for (unsigned int c=0; c<otf->v.size()-1; c++)
+        {
+                int   S=otf->v[c+0].X;
+                int   E=otf->v[c+1].X;
+                float A1=otf->v[c].A;
+                float A= (otf->v[c+1].A) - A1;
+                float D=E-S;
+
+                unsigned int index=0;
+                for(unsigned int i=S-xMin; i<E-xMin; i++, index++)
+                {
+                        opacityFunc[i*4]=A1+A*index/D;//A
+
+                }
+        }
+        d_opacityFuncArray[volumeIndex]=cl::Image2D(clContext, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, cl::ImageFormat(CL_RGBA, CL_FLOAT), XDef, 1, 0, opacityFunc, 0);
 	}
-
-	d_opacityFuncArray[volumeIndex]=cl::Image2D(clContext, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, cl::ImageFormat(CL_A, CL_FLOAT), XDef, 1, 0, opacityFunc, 0);
 	opacityFuncDefs[volumeIndex] = XDef;
 	opacityFuncMins[volumeIndex] = xMin;
+	
 	mIsModified = true;
 }
 void VolumeRenderer::setColorTransferFunction(int volumeIndex, ColorTransferFunction::pointer ctf) {

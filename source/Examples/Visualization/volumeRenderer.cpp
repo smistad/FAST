@@ -222,10 +222,11 @@ window->setTimeout(10*1000);
     window->setMaximumFramerate(15);
     window->addRenderer(vRenderer);
 	window->addRenderer(sRenderer);
+	window->setTimeout(10*1000); // 10 seconds
     window->start();
 	//vRenderer->getRuntime()->print();
 	
-	getchar();
+	//getchar(); // Do not commit this as the example is run on all platforms..
 
 
 }
