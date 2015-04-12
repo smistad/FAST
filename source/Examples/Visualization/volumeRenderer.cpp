@@ -142,13 +142,13 @@ window->setTimeout(10*1000);
 	
 
 	ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
-	mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
+	mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
 
 	MetaImageImporter::pointer mhdImporter = MetaImageImporter::New();
-	mhdImporter->setFilename(std::string(FAST_ROOT_DIR) + "TestData/skull256.mhd");
+	mhdImporter->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
 
 	MetaImageImporter::pointer mhdImporter2 = MetaImageImporter::New();
-	mhdImporter2->setFilename(std::string(FAST_ROOT_DIR) + "TestData/v8.mhd");
+	mhdImporter2->setFilename(std::string(FAST_TEST_DATA_DIR) + "v8.mhd");
 
 	
     SliceRenderer::pointer sRenderer = SliceRenderer::New();
