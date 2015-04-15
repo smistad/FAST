@@ -122,9 +122,9 @@ void SurfaceExtraction::execute() {
         program = mDevice->getProgram(programNr);
     }
 
-    cl::Kernel constructHPLevelKernel = cl::Kernel(program, "constructHPLevel");
-    cl::Kernel classifyCubesKernel = cl::Kernel(program, "classifyCubes");
-    cl::Kernel traverseHPKernel = cl::Kernel(program, "traverseHP");
+    cl::Kernel constructHPLevelKernel(program, "constructHPLevel");
+    cl::Kernel classifyCubesKernel(program, "classifyCubes");
+    cl::Kernel traverseHPKernel(program, "traverseHP");
 
     OpenCLImageAccess3D::pointer access = input->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
     cl::Image3D* clImage = access->get();
@@ -260,7 +260,7 @@ void SurfaceExtraction::execute() {
 
         previous /= 2;
 
-        // Run level 2 to top level
+        // Run level 5 to top level
         for(int i = 5; i < log2((float)SIZE)-1; i++) {
             constructHPLevelKernel.setArg(0, buffers[i]);
             constructHPLevelKernel.setArg(1, buffers[i+1]);

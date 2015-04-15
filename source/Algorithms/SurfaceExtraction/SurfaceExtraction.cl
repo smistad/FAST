@@ -498,13 +498,13 @@ __kernel void classifyCubes(
 
     const uchar cubeindex =
     ((first > isolevel)) |
-    ((read_imagei(rawData, sampler, pos + cubeOffsets[1]).x > isolevel) << 1) |
-    ((read_imagei(rawData, sampler, pos + cubeOffsets[3]).x > isolevel) << 2) |
-    ((read_imagei(rawData, sampler, pos + cubeOffsets[2]).x > isolevel) << 3) |
-    ((read_imagei(rawData, sampler, pos + cubeOffsets[4]).x > isolevel) << 4) |
-    ((read_imagei(rawData, sampler, pos + cubeOffsets[5]).x > isolevel) << 5) |
-    ((read_imagei(rawData, sampler, pos + cubeOffsets[7]).x > isolevel) << 6) |
-    ((read_imagei(rawData, sampler, pos + cubeOffsets[6]).x > isolevel) << 7);
+    ((READ_RAW_DATA(rawData, sampler, pos + cubeOffsets[1]).x > isolevel) << 1) |
+    ((READ_RAW_DATA(rawData, sampler, pos + cubeOffsets[3]).x > isolevel) << 2) |
+    ((READ_RAW_DATA(rawData, sampler, pos + cubeOffsets[2]).x > isolevel) << 3) |
+    ((READ_RAW_DATA(rawData, sampler, pos + cubeOffsets[4]).x > isolevel) << 4) |
+    ((READ_RAW_DATA(rawData, sampler, pos + cubeOffsets[5]).x > isolevel) << 5) |
+    ((READ_RAW_DATA(rawData, sampler, pos + cubeOffsets[7]).x > isolevel) << 6) |
+    ((READ_RAW_DATA(rawData, sampler, pos + cubeOffsets[6]).x > isolevel) << 7);
 
 
     // Store number of triangles and cube index
