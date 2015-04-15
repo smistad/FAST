@@ -16,15 +16,11 @@ class ImageRenderer : public Renderer {
         ImageRenderer();
         void execute();
         void draw();
+        void draw2D();
 
-#if defined(CL_VERSION_1_2)
-        cl::ImageGL mImageGL;
-#else
-        cl::Image2DGL mImageGL;
-#endif
         boost::unordered_map<uint, Image::pointer> mImagesToRender;
         boost::unordered_map<uint, GLuint> mTexturesToRender;
-        bool mTextureIsCreated;
+        boost::unordered_map<uint, Image::pointer> mImageUsed;
 
         cl::Kernel mKernel;
 

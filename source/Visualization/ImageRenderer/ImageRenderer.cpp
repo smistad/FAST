@@ -27,6 +27,8 @@ using namespace fast;
 
 void ImageRenderer::execute() {
     boost::lock_guard<boost::mutex> lock(mMutex);
+
+    // This simply gets the input data for each connection and puts it into a data structure
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
         Image::pointer input = getStaticInputData<Image>(inputNr);
 
@@ -34,6 +36,36 @@ void ImageRenderer::execute() {
             throw Exception("The ImageRenderer only supports 2D images");
 
         mImagesToRender[inputNr] = input;
+
+    }
+}
+
+void ImageRenderer::addInputConnection(ProcessObjectPort port) {
+    uint nr = getNrOfInputData();
+    releaseInputAfterExecute(nr, false);
+    setInputConnection(nr, port);
+}
+
+
+ImageRenderer::ImageRenderer() : Renderer() {
+    mIsModified = false;
+    mDoTransformations = true;
+}
+
+void ImageRenderer::draw() {
+    boost::lock_guard<boost::mutex> lock(mMutex);
+
+    boost::unordered_map<uint, Image::pointer>::iterator it;
+    for(it = mImagesToRender.begin(); it != mImagesToRender.end(); it++) {
+        Image::pointer input = it->second;
+        uint inputNr = it->first;
+
+        // Check if a texture has already been created for this image
+        if(mTexturesToRender.count(inputNr) > 0 && mImageUsed[inputNr] == input)
+            continue; // If it has already been created, skip it
+
+        // If it has not been created, create the texture
+
         // Determine level and window
         float window = mWindow;
         float level = mLevel;
@@ -68,26 +100,26 @@ void ImageRenderer::execute() {
         glFinish();
 
         mTexturesToRender[inputNr] = textureID;
+        mImageUsed[inputNr] = input;
 
         // Create CL-GL image
-    #if defined(CL_VERSION_1_2)
-        mImageGL = cl::ImageGL(
-                device->getContext(),
-                CL_MEM_READ_WRITE,
-                GL_TEXTURE_2D,
-                0,
-                textureID
-        );
-    #else
-        mImageGL = cl::Image2DGL(
-                device->getContext(),
-                CL_MEM_READ_WRITE,
-                GL_TEXTURE_2D,
-                0,
-                textureID
-        );
-    #endif
-
+        #if defined(CL_VERSION_1_2)
+            cl::ImageGL mImageGL = cl::ImageGL(
+                    device->getContext(),
+                    CL_MEM_READ_WRITE,
+                    GL_TEXTURE_2D,
+                    0,
+                    textureID
+            );
+        #else
+            cl::Image2DGL mImageGL = cl::Image2DGL(
+                    device->getContext(),
+                    CL_MEM_READ_WRITE,
+                    GL_TEXTURE_2D,
+                    0,
+                    textureID
+            );
+        #endif
 
         int i = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/ImageRenderer/ImageRenderer.cl");
         std::string kernelName = "renderToTextureInt";
@@ -118,26 +150,10 @@ void ImageRenderer::execute() {
         queue.enqueueReleaseGLObjects(&v);
         queue.finish();
     }
-    mTextureIsCreated = true;
-}
-
-void ImageRenderer::addInputConnection(ProcessObjectPort port) {
-    uint nr = getNrOfInputData();
-    releaseInputAfterExecute(nr, false);
-    setInputConnection(nr, port);
-}
 
 
-ImageRenderer::ImageRenderer() : Renderer() {
-    mTextureIsCreated = false;
-    mIsModified = false;
-    mDoTransformations = true;
-}
-
-void ImageRenderer::draw() {
-    boost::lock_guard<boost::mutex> lock(mMutex);
-    boost::unordered_map<uint, Image::pointer>::iterator it;
-    for(it = mImagesToRender.begin(); it != mImagesToRender.end(); it++) {
+    // This is the actual rendering
+    for(it = mImageUsed.begin(); it != mImageUsed.end(); it++) {
         glPushMatrix();
         if(mDoTransformations) {
             LinearTransformation transform = SceneGraph::getLinearTransformationFromData(it->second);
@@ -164,6 +180,9 @@ void ImageRenderer::draw() {
         glBindTexture(GL_TEXTURE_2D, 0);
         glPopMatrix();
     }
+}
+
+void ImageRenderer::draw2D() {
 
 }
 
