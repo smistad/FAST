@@ -20,26 +20,6 @@ void WindowWidget::closeEvent(QCloseEvent* event) {
     emit widgetHasClosed();
 }
 
-void WindowWidget::mouseMoveEvent(QMouseEvent* event) {
-    for(View* view : mViews)
-        view->mouseMoveEvent(event);
-}
-
-void WindowWidget::mousePressEvent(QMouseEvent* event) {
-    for(View* view : mViews)
-        view->mousePressEvent(event);
-}
-
-void WindowWidget::mouseReleaseEvent(QMouseEvent* event) {
-    for(View* view : mViews)
-        view->mouseReleaseEvent(event);
-}
-
-void WindowWidget::wheelEvent(QWheelEvent* event) {
-    for(View* view : mViews)
-        view->wheelEvent(event);
-}
-
 WindowWidget::~WindowWidget() {
     //std::cout << "DESTROYING window widget" << std::endl;
 }

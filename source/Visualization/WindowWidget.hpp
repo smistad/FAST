@@ -19,10 +19,6 @@ class WindowWidget : public QWidget {
     public:
         WindowWidget();
         void keyPressEvent(QKeyEvent* event);
-        void mouseMoveEvent(QMouseEvent* event);
-        void mousePressEvent(QMouseEvent* event);
-        void mouseReleaseEvent(QMouseEvent* event);
-        void wheelEvent(QWheelEvent* event);
         void closeEvent(QCloseEvent* event);
         void addView(View* view);
         std::vector<View*> getViews() const;
