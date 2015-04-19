@@ -422,21 +422,22 @@ void View::initializeGL() {
                 mNonVolumeRenderers[i]->update();
 
             // Derive a good spacing for the PBO
-            BoundingBox box = mNonVolumeRenderers[0]->getBoundingBox();
-            Vector3f corner = box.getCorners().row(0);
-            for (int i = 0; i < mNonVolumeRenderers.size(); i++) {
-                // Apply transformation to all b boxes
-                // Get max and min of x and y coordinates of the transformed b boxes
-                // Calculate centroid of all b boxes
+            // Find longest edge of the BB
+            float longestEdgeDistance = 0;
+            for(int i = 0; i < mNonVolumeRenderers.size(); i++) {
                 BoundingBox box = mNonVolumeRenderers[i]->getBoundingBox();
-                std::cout << box << std::endl;
                 MatrixXf corners = box.getCorners();
-                for (int j = 0; j < 8; j++) {
+                Vector3f boxOrigo = corners.row(0);
+                for (int j = 1; j < 8; j++) {
                     Vector3f corner = corners.row(j);
+                    if((corner-boxOrigo).norm() > longestEdgeDistance) {
+                        longestEdgeDistance = (corner-boxOrigo).norm();
+                    }
                 }
             }
 
-            mPBOspacing = 0.081; // TODO set this properly
+            mPBOspacing = longestEdgeDistance / width();
+            std::cout << "PBO spacing set to " << mPBOspacing << std::endl;
 
 
             glOrtho(0.0, width(), 0.0, height(), -1.0, 1.0);
@@ -634,7 +635,7 @@ void View::paintGL() {
 		    Matrix4f transform;
             mRuntimeManager->startRegularTimer("draw2D");
             for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
-                mNonVolumeRenderers[i]->draw2D(clPBO, width(), height(), transform, mPBOspacing);
+                mNonVolumeRenderers[i]->draw2D(clPBO, width(), height(), transform, mPBOspacing*mScale2D);
             }
             mRuntimeManager->stopRegularTimer("draw2D");
 
@@ -938,11 +939,10 @@ void View::wheelEvent(QWheelEvent* event) {
 
 	if(mIsIn2DMode) {
 		if(event->delta() > 0) {
-			mScale2D += 0.1;
+			mScale2D *= 1.1;
 		} else if(event->delta() < 0) {
-			mScale2D -= 0.1;
+			mScale2D *= 0.9;
 		}
-		glViewport(mPosX2D, mPosY2D, (mMaxX2D-mMinX2D)*mScale2D, (mMaxY2D-mMinY2D)*mScale2D);
 	} else {
 		if(event->delta() > 0) {
 			cameraPosition[2] += (zFar-zNear)*0.05f;
