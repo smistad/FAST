@@ -66,6 +66,7 @@ View::View() {
     timer->setSingleShot(false);
     connect(timer,SIGNAL(timeout()),this,SLOT(update()));
 
+    mPBO = 0;
 
 	NonVolumesTurn=true;
 
@@ -397,7 +398,7 @@ void View::initializeGL() {
 
 	if (mNonVolumeRenderers.size()>0) //it can be "only nonVolume renderers" or "nonVolume + Volume renderes" together
 	{
-
+	    // Non volume rendering, (and volume renderer)
 		if (mVolumeRenderers.size()>0)
 		{	
 			((VolumeRenderer::pointer)mVolumeRenderers[0])->setIncludeGeometry(true);
@@ -408,7 +409,6 @@ void View::initializeGL() {
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
 
-        recalculateCamera();
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         // Set up viewport and projection transformation
         glMatrixMode(GL_PROJECTION);
@@ -417,13 +417,42 @@ void View::initializeGL() {
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_2D);
         if(mIsIn2DMode) {
+            // Update all renders
+            for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
+                mNonVolumeRenderers[i]->update();
 
+            // Derive a good spacing for the PBO
+            BoundingBox box = mNonVolumeRenderers[0]->getBoundingBox();
+            Vector3f corner = box.getCorners().row(0);
+            for (int i = 0; i < mNonVolumeRenderers.size(); i++) {
+                // Apply transformation to all b boxes
+                // Get max and min of x and y coordinates of the transformed b boxes
+                // Calculate centroid of all b boxes
+                BoundingBox box = mNonVolumeRenderers[i]->getBoundingBox();
+                std::cout << box << std::endl;
+                MatrixXf corners = box.getCorners();
+                for (int j = 0; j < 8; j++) {
+                    Vector3f corner = corners.row(j);
+                }
+            }
+
+            mPBOspacing = 0.081; // TODO set this properly
+
+
+            glOrtho(0.0, width(), 0.0, height(), -1.0, 1.0);
+            // create pixel buffer object for display
+            glGenBuffersARB(1, &mPBO);
+            glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, mPBO);
+            glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, width() * height() * sizeof(GLfloat) * 4, NULL, GL_STREAM_DRAW_ARB);
+            glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
         } else {
+            recalculateCamera();
             gluPerspective(fieldOfViewY, aspect, zNear, zFar);
         }
 	}
 	else
 	{
+	    // Only volume renderer
 		if (mVolumeRenderers.size()>0)
 		{
 			((VolumeRenderer::pointer)mVolumeRenderers[0])->setIncludeGeometry(false);
@@ -587,17 +616,35 @@ void View::paintGL() {
 		glLoadIdentity();
 
 		if(mIsIn2DMode) {
+		    // Create PBO BufferGL object
+		    OpenCLDevice::pointer device = getMainDevice();
+		    cl::BufferGL clPBO(device->getContext(), CL_MEM_READ_WRITE, mPBO);
 
-			// Apply camera movement
-			glTranslatef(cameraPosition.x(), cameraPosition.y(), cameraPosition.z());
+		    // Initialize PBO with background color
+            int i = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/View.cl");
+            cl::Kernel kernel(device->getProgram(i), "initializePBO");
+            kernel.setArg(0, clPBO);
+            device->getCommandQueue().enqueueNDRangeKernel(
+                    kernel,
+                    cl::NullRange,
+                    cl::NDRange(width()*height()),
+                    cl::NullRange
+            );
 
-			//std::cout << "rotation point: " << rotationPoint.x() << " " << rotationPoint.y() << " " << rotationPoint.z() << std::endl;
-			// Apply global rotation
-			glTranslatef(rotationPoint.x(),rotationPoint.y(),rotationPoint.z());
-			// TODO make this rotation better
-			glRotatef(rotation.x(), 1.0, 0.0, 0.0);
-			glRotatef(rotation.y(), 0.0, 1.0, 0.0);
-			glTranslatef(-rotationPoint.x(),-rotationPoint.y(),-rotationPoint.z());
+		    Matrix4f transform;
+            mRuntimeManager->startRegularTimer("draw2D");
+            for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
+                mNonVolumeRenderers[i]->draw2D(clPBO, width(), height(), transform, mPBOspacing);
+            }
+            mRuntimeManager->stopRegularTimer("draw2D");
+
+            // Paint the PBO
+            glDisable(GL_DEPTH_TEST);
+            glDisable(GL_TEXTURE_2D);
+            glRasterPos2i(0, 0);
+            glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, mPBO);
+            glDrawPixels(width(), height(), GL_RGBA, GL_FLOAT, 0);
+            glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 		} else {
 			// Create headlight
 			glEnable(GL_LIGHT0);
@@ -622,32 +669,34 @@ void View::paintGL() {
 			glRotatef(rotation.x(), 1.0, 0.0, 0.0);
 			glRotatef(rotation.y(), 0.0, 1.0, 0.0);
 			glTranslatef(-rotationPoint.x(),-rotationPoint.y(),-rotationPoint.z());
+
+            if (mVolumeRenderers.size()>0)
+            {
+                    //Rendere to Textures (offscreen)
+                    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+                    glEnable(GL_TEXTURE_2D);
+                    glEnable(GL_DEPTH_TEST);
+            }
+
+            mRuntimeManager->startRegularTimer("draw");
+            for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
+                    glPushMatrix();
+                    mNonVolumeRenderers[i]->draw();
+                    glPopMatrix();
+            }
+            mRuntimeManager->stopRegularTimer("draw");
+
+
+            if (mVolumeRenderers.size()>0)
+            {
+                    //Rendere to Back buffer
+                    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                    getDepthBufferFromGeo();
+                    renderVolumes();
+            }
 		}
 
-		if (mVolumeRenderers.size()>0)
-		{
-			//Rendere to Textures (offscreen)
-			glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-			glEnable(GL_TEXTURE_2D);
-			glEnable(GL_DEPTH_TEST);
-		}
 
-		mRuntimeManager->startRegularTimer("draw");
-		for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
-			glPushMatrix();
-			mNonVolumeRenderers[i]->draw();
-			glPopMatrix();
-		}
-		mRuntimeManager->stopRegularTimer("draw");
-
-
-		if (mVolumeRenderers.size()>0)
-		{
-			//Rendere to Back buffer
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			getDepthBufferFromGeo();
-			renderVolumes();
-		}
 	}
 	else // only Volume renderers exict
 	{
@@ -775,13 +824,19 @@ void View::resizeGL(int width, int height) {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     if(mIsIn2DMode) {
-            glViewport(mPosX2D, mPosY2D, (mMaxX2D-mMinX2D)*mScale2D, (mMaxY2D-mMinY2D)*mScale2D);
-            glOrtho(mMinX2D, mMaxX2D, mMinY2D, mMaxY2D,-1,1);
+        glViewport(0, 0, width, height);
+        glOrtho(0.0, width, 0.0, height, -1.0, 1.0);
+        if(mPBO != 0)
+            glDeleteBuffersARB(1, &mPBO);
+        glGenBuffersARB(1, &mPBO);
+        glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, mPBO);
+        glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, width * height * sizeof(GLfloat) * 4, 0, GL_STREAM_DRAW_ARB);
+        glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
     } else {
-            glViewport(0, 0, width, height);
-            aspect = (float)width/height;
-            fieldOfViewX = aspect*fieldOfViewY;
-            gluPerspective(fieldOfViewY, aspect, zNear, zFar);
+        glViewport(0, 0, width, height);
+        aspect = (float)width/height;
+        fieldOfViewX = aspect*fieldOfViewY;
+        gluPerspective(fieldOfViewY, aspect, zNear, zFar);
     }
 
 	if (mVolumeRenderers.size() > 0)
@@ -808,11 +863,13 @@ void View::keyPressEvent(QKeyEvent* event) {
 void View::mouseMoveEvent(QMouseEvent* event) {
 	if(mMiddleMouseButtonIsPressed) {
 		if(mIsIn2DMode) {
+		    /*
 			float deltaX = event->x() - previousX;
 			float deltaY = event->y() - previousY;
 			mPosX2D += deltaX;
 			mPosY2D -= deltaY;
 			glViewport(mPosX2D, mPosY2D, (mMaxX2D-mMinX2D)*mScale2D, (mMaxY2D-mMinY2D)*mScale2D);
+			*/
 		} else {
 		    // 3D movement
 			float deltaX = event->x() - previousX;

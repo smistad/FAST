@@ -16,7 +16,7 @@ class ImageRenderer : public Renderer {
         ImageRenderer();
         void execute();
         void draw();
-        void draw2D();
+        void draw2D(cl::BufferGL PBO, uint width, uint height, Matrix4f pixelToViewportTransform, float PBOspacing);
 
         boost::unordered_map<uint, Image::pointer> mImagesToRender;
         boost::unordered_map<uint, GLuint> mTexturesToRender;

@@ -44,6 +44,8 @@ class View : public QGLWidget, public ProcessObject {
 		bool NonVolumesTurn;
 		GLuint renderedDepthText;
 		GLuint fbo, fbo2, render_buf;
+		GLuint mPBO;
+		float mPBOspacing;
 		GLuint renderedTexture0, renderedTexture1;
 		GLuint programGLSL;
 		void initShader();
