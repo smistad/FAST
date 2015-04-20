@@ -7,7 +7,7 @@
 
 using namespace fast;
 
-TEST_CASE("SegmentationRenderer on a thresholded 2D image", "[fast][SegmentationRenderer]") {
+TEST_CASE("SegmentationRenderer on a thresholded 2D image", "[fast][SegmentationRenderer][visual]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-2Dt/US-2Dt_0.mhd");
 
