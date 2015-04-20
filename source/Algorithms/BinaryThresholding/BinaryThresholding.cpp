@@ -48,6 +48,7 @@ void BinaryThresholding::execute() {
                 getMainDevice()
                 );
     }
+    output->setSpacing(input->getSpacing());
 
     if(getMainDevice()->isHost()) {
         throw Exception("Not implemented yet.");

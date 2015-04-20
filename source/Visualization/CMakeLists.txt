@@ -5,6 +5,7 @@ fast_add_subdirectories(
     VolumeRenderer
     PointRenderer
     LineRenderer
+    SegmentationRenderer
     Tests
 )
 fast_add_sources(

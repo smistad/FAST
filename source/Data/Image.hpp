@@ -51,7 +51,7 @@ class Image : public DataObject {
 
         // Copy image and put contents to specific device
         Image::pointer copy(ExecutionDevice::pointer device);
-    private:
+    protected:
         Image();
 
         // OpenCL Images

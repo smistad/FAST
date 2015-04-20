@@ -7,6 +7,8 @@ fast_add_sources(
     DynamicData.hpp
     Image.cpp
     Image.hpp
+    Segmentation.cpp
+    Segmentation.hpp
     DataTypes.cpp
     DataTypes.hpp
     Mesh.cpp

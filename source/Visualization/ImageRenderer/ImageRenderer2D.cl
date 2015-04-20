@@ -17,8 +17,10 @@ __kernel void render(
     imagePosition.x /= imageSpacingX;
     imagePosition.y /= imageSpacingY;
     
+    
     // Is image within bounds?
     if(imagePosition.x < get_image_width(image) && imagePosition.y < get_image_height(image)) {
+        imagePosition.y = get_image_height(image) - imagePosition.y - 1; // Flip image vertically
         // Read image and put value in PBO
         float4 value;
         int dataType = get_image_channel_data_type(image);

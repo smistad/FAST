@@ -36,7 +36,6 @@ void ImageRenderer::execute() {
             throw Exception("The ImageRenderer only supports 2D images");
 
         mImagesToRender[inputNr] = input;
-
     }
 }
 
