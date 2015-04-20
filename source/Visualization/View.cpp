@@ -622,15 +622,20 @@ void View::paintGL() {
 		    cl::BufferGL clPBO(device->getContext(), CL_MEM_READ_WRITE, mPBO);
 
 		    // Initialize PBO with background color
+		    cl::CommandQueue queue = device->getCommandQueue();
             int i = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/View.cl");
             cl::Kernel kernel(device->getProgram(i), "initializePBO");
             kernel.setArg(0, clPBO);
-            device->getCommandQueue().enqueueNDRangeKernel(
+            std::vector<cl::Memory> v;
+            v.push_back(clPBO);
+            queue.enqueueAcquireGLObjects(&v);
+            queue.enqueueNDRangeKernel(
                     kernel,
                     cl::NullRange,
                     cl::NDRange(width()*height()),
                     cl::NullRange
             );
+            queue.enqueueReleaseGLObjects(&v);
 
 		    Matrix4f transform;
             mRuntimeManager->startRegularTimer("draw2D");
