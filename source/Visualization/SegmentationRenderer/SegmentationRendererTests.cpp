@@ -25,5 +25,6 @@ TEST_CASE("SegmentationRenderer on a thresholded 2D image", "[fast][Segmentation
     window->set2DMode();
     window->addRenderer(imageRenderer);
     window->addRenderer(renderer);
+    window->setTimeout(1000);
     window->start();
 }
