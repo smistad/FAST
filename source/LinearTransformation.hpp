@@ -8,6 +8,7 @@ namespace fast {
 class LinearTransformation {
     public:
         LinearTransformation();
+        Vector3f getTranslation() const;
         LinearTransformation getInverse();
         LinearTransformation operator*(LinearTransformation other);
         void setTransform(const Eigen::Transform<float, 3, Eigen::Affine> transform);
@@ -18,8 +19,6 @@ class LinearTransformation {
         ~LinearTransformation() {};
     private:
         Eigen::Transform<float, 3, Eigen::Affine> mTransform;
-        void free(ExecutionDevice::pointer device) {};
-        void freeAll() {};
 };
 
 } // end namespace fast

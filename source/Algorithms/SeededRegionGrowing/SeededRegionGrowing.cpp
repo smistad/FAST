@@ -2,6 +2,7 @@
 #include "DeviceManager.hpp"
 #include "SceneGraph.hpp"
 #include <stack>
+#include "Segmentation.hpp"
 
 namespace fast {
 
@@ -124,33 +125,14 @@ void SeededRegionGrowing::execute() {
     if(mSeedPoints.size() == 0)
         throw Exception("No seed points supplied to SeededRegionGrowing");
 
-    Image::pointer input = getStaticInputData<Image>(0);
+    Image::pointer input = getStaticInputData<Image>();
     if(input->getNrOfComponents() != 1)
         throw Exception("Seeded region growing currently doesn't support images with several components.");
 
-    Image::pointer output = getStaticOutputData<Image>(0);
+    Segmentation::pointer output = getStaticOutputData<Segmentation>();
 
     // Initialize output image
-    if(input->getDimensions() == 2) {
-        output->create2DImage(
-                input->getWidth(),
-                input->getHeight(),
-                TYPE_UINT8,
-                1,
-                getMainDevice()
-        );
-    } else {
-         output->create3DImage(
-                input->getWidth(),
-                input->getHeight(),
-                input->getDepth(),
-                TYPE_UINT8,
-                1,
-                getMainDevice()
-        );
-    }
-    // This must be called after the create commands above:
-    SceneGraph::setParentNode(output, input); // connect output to input in scene graph
+    output->createFromImage(input, getMainDevice());
 
     if(getMainDevice()->isHost()) {
         ImageAccess::pointer inputAccess = input->getImageAccess(ACCESS_READ);

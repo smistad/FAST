@@ -44,6 +44,9 @@ SegmentationRenderer::SegmentationRenderer() {
     // Set up default label colors
     mLabelColors[Segmentation::LABEL_BACKGROUND] = Color::Black();
     mLabelColors[Segmentation::LABEL_FOREGROUND] = Color::Green();
+    mLabelColors[Segmentation::LABEL_BLOOD] = Color::Red();
+    mLabelColors[Segmentation::LABEL_BONE] = Color::White();
+    mLabelColors[Segmentation::LABEL_MUSCLE] = Color::Red();
 }
 
 void SegmentationRenderer::execute() {

@@ -1,4 +1,5 @@
 #include "BinaryThresholding.hpp"
+#include "Segmentation.hpp"
 
 namespace fast {
 
@@ -26,29 +27,14 @@ void BinaryThresholding::execute() {
     }
 
     Image::pointer input = getStaticInputData<Image>(0);
-    Image::pointer output = getStaticOutputData<Image>(0);
+    Segmentation::pointer output = getStaticOutputData<Segmentation>(0);
+
+    output->createFromImage(input, getMainDevice());
 
     // Initialize output image
-    if(input->getDimensions() == 2) {
-        output->create2DImage(
-                input->getWidth(),
-                input->getHeight(),
-                TYPE_UINT8,
-                1,
-                getMainDevice()
-                );
-    } else {
+    if(input->getDimensions() == 3) {
         throw Exception("Not implemented yet.");
-         output->create3DImage(
-                input->getWidth(),
-                input->getHeight(),
-                input->getDepth(),
-                TYPE_UINT8,
-                1,
-                getMainDevice()
-                );
     }
-    output->setSpacing(input->getSpacing());
 
     if(getMainDevice()->isHost()) {
         throw Exception("Not implemented yet.");

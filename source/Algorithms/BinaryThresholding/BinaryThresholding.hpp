@@ -2,7 +2,6 @@
 #define BINARY_THRESHOLDING_HPP
 
 #include "ProcessObject.hpp"
-#include "Image.hpp"
 
 namespace fast {
 

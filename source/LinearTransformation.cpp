@@ -43,5 +43,9 @@ Vector3f LinearTransformation::getEulerAngles() const {
     return rotationMatrix.eulerAngles(0, 1, 2);
 }
 
+Vector3f LinearTransformation::getTranslation() const {
+    return mTransform.translation();
 }
 
+
+}
