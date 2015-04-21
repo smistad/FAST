@@ -3,6 +3,7 @@
 
 #include "SmartPointers.hpp"
 #include "Renderer.hpp"
+#include "Plane.hpp"
 #include <vector>
 #include <QtOpenGL/QGLWidget>
 #include <QTimer>
@@ -25,6 +26,7 @@ class View : public QGLWidget, public ProcessObject {
         void setMaximumFramerate(unsigned int framerate);
         void set2DMode();
         void set3DMode();
+        void setViewingPlane(Plane plane);
         void updateAllRenderers();
         void stopPipelineUpdateThread();
         void resumePipelineUpdateThread();
@@ -52,7 +54,8 @@ class View : public QGLWidget, public ProcessObject {
 		void getDepthBufferFromGeo();
 		void renderVolumes();
 
-
+		Plane mViewingPlane;
+        Eigen::Transform<float, 3, Eigen::Affine> m2DViewingTransformation;
 
         void execute();
         QTimer* timer;

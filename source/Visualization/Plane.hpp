@@ -13,10 +13,12 @@ class Plane {
         void setNormal(Vector3f normal);
         Vector3f getPosition() const;
         Vector3f getNormal() const;
-    private:
+        Vector3f getIntersectionPoint(Vector3f pointA, Vector3f pointB) const;
+        bool hasPosition() const;
         static Plane Sagittal();
         static Plane Coronal();
         static Plane Axial();
+    private:
 
         bool mHasPosition;
         Vector3f mNormal;

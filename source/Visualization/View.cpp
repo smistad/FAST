@@ -8,6 +8,7 @@
 #include "ImageRenderer.hpp"
 #include "HelperFunctions.hpp"
 #include "SimpleWindow.hpp"
+#include "Utility.hpp"
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
@@ -49,7 +50,7 @@ void View::removeAllRenderers() {
     mNonVolumeRenderers.clear();
 }
 
-View::View() {
+View::View() : mViewingPlane(Plane::Axial()) {
     zNear = 0.1;
     zFar = 1000;
     fieldOfViewY = 45;
@@ -342,6 +343,66 @@ void View::recalculateCamera() {
     }
 }
 
+inline MatrixXf sortIntersectionPoints(std::vector<Vector3f> points, Plane plane) {
+
+    // TODO This seems unnecessary complex, try to simplify
+
+    MatrixXf Q = MatrixXf::Zero(4,3);
+
+    int point0;
+    int point1;
+    int point2;
+    int point3;
+
+    // First find point 0, as the one closest to -inf, -inf, -inf
+    for(int i = 0; i < 4; i++) {
+        Vector3f a = points[i];
+        bool invalid = false;
+        for(int j = 0; j < 4; j++) {
+            if(i == j)
+                continue;
+            Vector3f b = points[j];
+            for(int c = 0; c < 3; c++) {
+                if(a[c] > b[c])
+                    invalid = true;
+            }
+        }
+
+        if(!invalid) {
+            Q.row(0) = a;
+            point0 = i;
+        }
+    }
+
+    // Find point 3 as the farthest away from point 0
+    Q.row(3) = Q.row(0);
+    for(int i = 0; i < 4; i++) {
+        if((points[i].transpose()-Q.row(0)).norm() > (Q.row(3)-Q.row(0)).norm()) {
+            Q.row(3) = points[i];
+            point3 = i;
+        }
+    }
+
+    for(int i = 0; i < 4; i++) {
+        if(i != point0 && i != point3) {
+            point1 = i;
+            break;
+        }
+    }
+
+    for(int i = 0; i < 4; i++) {
+        if(i != point0 && i != point3 && i != point1) {
+            point2 = i;
+            break;
+        }
+    }
+
+    Q.row(1) = points[point1];
+    Q.row(2) = points[point2];
+
+    return Q;
+}
+
 void View::initializeGL() {
 	glewInit();
 	glEnable(GL_TEXTURE_2D);
@@ -424,6 +485,15 @@ void View::initializeGL() {
             // Derive a good spacing for the PBO
             // Find longest edge of the BB
             float longestEdgeDistance = 0;
+            BoundingBox box = mNonVolumeRenderers[0]->getBoundingBox();
+            Vector3f corner = box.getCorners().row(0);
+            Vector3f min, max;
+            min[0] = corner[0];
+            max[0] = corner[0];
+            min[1] = corner[1];
+            max[1] = corner[1];
+            min[2] = corner[2];
+            max[2] = corner[2];
             for(int i = 0; i < mNonVolumeRenderers.size(); i++) {
                 BoundingBox box = mNonVolumeRenderers[i]->getBoundingBox();
                 MatrixXf corners = box.getCorners();
@@ -433,12 +503,101 @@ void View::initializeGL() {
                     if((corner-boxOrigo).norm() > longestEdgeDistance) {
                         longestEdgeDistance = (corner-boxOrigo).norm();
                     }
+                    for (uint k = 0; k < 3; k++) {
+                        if (corners(j, k) < min[k])
+                            min[k] = corners(j, k);
+
+                        if (corners(j, k) > max[k])
+                            max[k] = corners(j, k);
+                    }
                 }
             }
 
             mPBOspacing = longestEdgeDistance / width();
             std::cout << "PBO spacing set to " << mPBOspacing << std::endl;
 
+            // Get the centroid of the bounding boxes
+            if(!mViewingPlane.hasPosition()) {
+                Vector3f centroid;
+                centroid[0] = max[0] - (max[0] - min[0]) * 0.5;
+                centroid[1] = max[1] - (max[1] - min[1]) * 0.5;
+                centroid[2] = max[2] - (max[2] - min[2]) * 0.5;
+                mViewingPlane.setPosition(centroid);
+            }
+
+            // TODO Calculate 4 corner points of the compounded BB using plane line intersections
+            BoundingBox compoundedBB = BoundingBox(min, max-min);
+            MatrixXf corners = compoundedBB.getCorners();
+            std::vector<Vector3f> intersectionPoints;
+            Vector3f intersectionCentroid(0,0,0);
+            for(int i = 0; i < 7; i++) {
+                Vector3f cornerA = corners.row(i);
+                for(int j = i+1; j < 8; j++) {
+                    Vector3f cornerB = corners.row(j);
+                    if((cornerA.x() == cornerB.x() && cornerA.y() == cornerB.y()) ||
+                            (cornerA.y() == cornerB.y() && cornerA.z() == cornerB.z()) ||
+                            (cornerA.x() == cornerB.x() && cornerA.z() == cornerB.z())) {
+                        // Calculate intersection with the plane
+                        try {
+                            Vector3f intersectionPoint = mViewingPlane.getIntersectionPoint(cornerA, cornerB);
+                            intersectionPoints.push_back(intersectionPoint);
+                            intersectionCentroid += intersectionPoint;
+                            std::cout << "found intersection point " << intersectionPoint.transpose() << std::endl;
+                        } catch(Exception &e) {
+                            // No intersection found
+                        }
+                    }
+                }
+            }
+
+            if(intersectionPoints.size() != 4) {
+                std::cout << "Failed to find intersection points" << std::endl;
+            } else {
+
+            // Register PBO corners to these intersection points
+            // Want the transformation to get from PBO pixel position to mm position
+            intersectionCentroid /= 4;
+
+            // TODO Create P and Q matrices, P are moving points (PBO corners) and Q are fixed points (intersection points)
+            MatrixXf P = MatrixXf::Zero(4,3);
+            P.row(0) = Vector3f(0, 0, 0); // Corner point with all components lowest
+            P.row(1) = Vector3f(width(), 0, 0);
+            P.row(2) = Vector3f(0, height(), 0);
+            P.row(3) = Vector3f(width(), height(), 0);
+            P = P.rowwise() - Vector3f(width()*0.5, height()*0.5, 0).transpose(); // - the PBO centroid
+            // TODO need to sort this Q points so they match to P somehow..
+            MatrixXf Q = sortIntersectionPoints(intersectionPoints, mViewingPlane);
+            std::cout << "Point 0: " << Q.row(0) << std::endl;
+            std::cout << "Point 1: " << Q.row(1) << std::endl;
+            std::cout << "Point 2: " << Q.row(2) << std::endl;
+            std::cout << "Point 3: " << Q.row(3) << std::endl;
+            Q = Q.rowwise() - intersectionCentroid.transpose();
+
+            // Kabsch algorithm
+            MatrixXf A = P.transpose()*Q;
+
+            Eigen::JacobiSVD<Eigen::MatrixXf> svd(A, Eigen::ComputeFullU | Eigen::ComputeFullV);
+
+            MatrixXf V = svd.matrixU();
+            MatrixXf W = svd.matrixV();
+
+            MatrixXf temp = W*V.transpose();
+            Matrix3f d = Matrix3f::Identity();
+            d(2,2) = sign(temp.determinant());
+            Matrix3f R = W*d*V.transpose();
+
+            std::cout << "Rotation matrix" << std::endl;
+            std::cout << R << std::endl;
+
+            // Rotate a position back
+            Vector3f rotatedPosition = R.inverse() * Vector3f(0,0,0);
+
+            // Estimate translation
+            Vector3f translation = intersectionPoints[0] - rotatedPosition;
+
+            m2DViewingTransformation.linear() = R;
+            m2DViewingTransformation.translation() = translation;
+            }
 
             glOrtho(0.0, width(), 0.0, height(), -1.0, 1.0);
             // create pixel buffer object for display
@@ -637,10 +796,9 @@ void View::paintGL() {
             );
             queue.enqueueReleaseGLObjects(&v);
 
-		    Matrix4f transform;
             mRuntimeManager->startRegularTimer("draw2D");
             for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
-                mNonVolumeRenderers[i]->draw2D(clPBO, width(), height(), transform, mPBOspacing*mScale2D);
+                mNonVolumeRenderers[i]->draw2D(clPBO, width(), height(), m2DViewingTransformation, mPBOspacing*mScale2D);
             }
             mRuntimeManager->stopRegularTimer("draw2D");
 
@@ -988,6 +1146,10 @@ void View::set2DMode() {
 
 void View::set3DMode() {
     mIsIn2DMode = false;
+}
+
+void View::setViewingPlane(Plane plane) {
+    mViewingPlane = plane;
 }
 
 

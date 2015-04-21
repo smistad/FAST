@@ -46,4 +46,29 @@ Plane Plane::Axial() {
     return Plane(Vector3f(0,0,1));
 }
 
+Vector3f Plane::getIntersectionPoint(Vector3f pointA, Vector3f pointB) const {
+
+    Vector3f lineDirection = pointB - pointA;
+
+    if(!mHasPosition)
+        throw Exception("Can't calculate intersection point without a plane point set");
+
+    if(lineDirection.dot(mNormal) == 0)
+        throw Exception("The line and plane are parallel, can't calculate intersection point");
+
+    // http://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection
+    float d = (mPosition - pointA).dot(mNormal) / (lineDirection.dot(mNormal));
+
+    Vector3f intersectionPoint =  pointA + d*lineDirection;
+
+    if((pointB - intersectionPoint).dot(lineDirection) < 0) // Intersection point is not on the line
+        throw Exception("The intersection point was not on the line.");
+
+    return intersectionPoint;
+}
+
+bool Plane::hasPosition() const {
+    return mHasPosition;
+}
+
 }

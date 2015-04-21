@@ -67,7 +67,7 @@ void SegmentationRenderer::draw() {
 }
 
 void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
-        Matrix4f pixelToViewportTransform, float PBOspacing) {
+        Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform, float PBOspacing) {
     boost::lock_guard<boost::mutex> lock(mMutex);
     OpenCLDevice::pointer device = getMainDevice();
 
@@ -110,7 +110,7 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
         LinearTransformation dataTransform = SceneGraph::getLinearTransformationFromData(input);
 
         // Transfer transformations
-        Matrix4f transform = dataTransform.getTransform().inverse()*pixelToViewportTransform;
+        Eigen::Transform<float, 3, Eigen::Affine> transform = dataTransform.getTransform().inverse()*pixelToViewportTransform;
 
         cl::Buffer transformBuffer(
                 device->getContext(),
