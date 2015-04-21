@@ -54,7 +54,7 @@ void SegmentationRenderer::execute() {
 
     // This simply gets the input data for each connection and puts it into a data structure
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
-        Image::pointer input = getStaticInputData<Image>(inputNr);
+        Segmentation::pointer input = getStaticInputData<Segmentation>(inputNr);
 
         if(input->getDimensions() != 2)
             throw Exception("The SegmentationRenderer only supports 2D images");
@@ -68,7 +68,7 @@ void SegmentationRenderer::draw() {
 
 void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
         Matrix4f pixelToViewportTransform, float PBOspacing) {
-
+    boost::lock_guard<boost::mutex> lock(mMutex);
     OpenCLDevice::pointer device = getMainDevice();
 
     if(mColorsModified) {
@@ -89,7 +89,6 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
         );
     }
 
-    boost::lock_guard<boost::mutex> lock(mMutex);
 
     cl::CommandQueue queue = device->getCommandQueue();
     std::vector<cl::Memory> v;
