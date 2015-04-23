@@ -79,3 +79,20 @@ TEST_CASE("ImageRenderer with single 3D image in 2D mode in Sagittal plane", "[f
 
     CHECK_NOTHROW(window->start());
 }
+
+TEST_CASE("ImageRenderer with single 3D image in 2D mode and custom plane", "[fast][ImageRenderer][visual]") {
+    ImageFileImporter::pointer importer = ImageFileImporter::New();
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"CT-Abdomen.mhd");
+
+    ImageRenderer::pointer renderer = ImageRenderer::New();
+    renderer->setInputConnection(importer->getOutputPort());
+
+    SimpleWindow::pointer window = SimpleWindow::New();
+    window->addRenderer(renderer);
+    window->set2DMode();
+    window->getView()->setViewingPlane(Plane(Vector3f(0.5, 0.5, 0.5)));
+    window->setTimeout(1000);
+
+    CHECK_NOTHROW(window->start());
+}
+

@@ -343,66 +343,6 @@ void View::recalculateCamera() {
     }
 }
 
-inline MatrixXf sortIntersectionPoints(std::vector<Vector3f> points, Plane plane) {
-
-    // TODO This seems unnecessary complex, try to simplify
-
-    MatrixXf Q = MatrixXf::Zero(4,3);
-
-    int point0;
-    int point1;
-    int point2;
-    int point3;
-
-    // First find point 0, as the one closest to -inf, -inf, -inf
-    for(int i = 0; i < 4; i++) {
-        Vector3f a = points[i];
-        bool invalid = false;
-        for(int j = 0; j < 4; j++) {
-            if(i == j)
-                continue;
-            Vector3f b = points[j];
-            for(int c = 0; c < 3; c++) {
-                if(a[c] > b[c])
-                    invalid = true;
-            }
-        }
-
-        if(!invalid) {
-            Q.row(0) = a;
-            point0 = i;
-        }
-    }
-
-    // Find point 3 as the farthest away from point 0
-    Q.row(3) = Q.row(0);
-    for(int i = 0; i < 4; i++) {
-        if((points[i].transpose()-Q.row(0)).norm() > (Q.row(3)-Q.row(0)).norm()) {
-            Q.row(3) = points[i];
-            point3 = i;
-        }
-    }
-
-    for(int i = 0; i < 4; i++) {
-        if(i != point0 && i != point3) {
-            point1 = i;
-            break;
-        }
-    }
-
-    for(int i = 0; i < 4; i++) {
-        if(i != point0 && i != point3 && i != point1) {
-            point2 = i;
-            break;
-        }
-    }
-
-    Q.row(1) = points[point1];
-    Q.row(2) = points[point2];
-
-    return Q;
-}
-
 void View::initializeGL() {
 	glewInit();
 	glEnable(GL_TEXTURE_2D);
@@ -525,7 +465,7 @@ void View::initializeGL() {
                 mViewingPlane.setPosition(centroid);
             }
 
-            // TODO Calculate 4 corner points of the compounded BB using plane line intersections
+            // Calculate 4 corner points of the compounded BB using plane line intersections
             BoundingBox compoundedBB = BoundingBox(min, max-min);
             MatrixXf corners = compoundedBB.getCorners();
             std::vector<Vector3f> intersectionPoints;
@@ -537,12 +477,11 @@ void View::initializeGL() {
                     if((cornerA.x() == cornerB.x() && cornerA.y() == cornerB.y()) ||
                             (cornerA.y() == cornerB.y() && cornerA.z() == cornerB.z()) ||
                             (cornerA.x() == cornerB.x() && cornerA.z() == cornerB.z())) {
-                        // Calculate intersection with the plane
                         try {
+                            // Calculate intersection with the plane
                             Vector3f intersectionPoint = mViewingPlane.getIntersectionPoint(cornerA, cornerB);
                             intersectionPoints.push_back(intersectionPoint);
                             intersectionCentroid += intersectionPoint;
-                            std::cout << "found intersection point " << intersectionPoint.transpose() << std::endl;
                         } catch(Exception &e) {
                             // No intersection found
                         }
@@ -550,53 +489,48 @@ void View::initializeGL() {
                 }
             }
 
-            if(intersectionPoints.size() != 4) {
+            // TODO more than 4 intersection points are possible, how to handle it?
+            if(intersectionPoints.size() == 0) {
                 std::cout << "Failed to find intersection points" << std::endl;
             } else {
+                // Register PBO corners to these intersection points
+                // Want the transformation to get from PBO pixel position to mm position
+                intersectionCentroid /= intersectionPoints.size();
 
-            // Register PBO corners to these intersection points
-            // Want the transformation to get from PBO pixel position to mm position
-            intersectionCentroid /= 4;
+                // PBO normal
+                Vector3f PBOnormal = Vector3f(0,0,1); // moving
 
-            // TODO Create P and Q matrices, P are moving points (PBO corners) and Q are fixed points (intersection points)
-            MatrixXf P = MatrixXf::Zero(4,3);
-            P.row(0) = Vector3f(0, 0, 0); // Corner point with all components lowest
-            P.row(1) = Vector3f(width(), 0, 0);
-            P.row(2) = Vector3f(0, height(), 0);
-            P.row(3) = Vector3f(width(), height(), 0);
-            P = P.rowwise() - Vector3f(width()*0.5, height()*0.5, 0).transpose(); // - the PBO centroid
-            // TODO need to sort this Q points so they match to P somehow..
-            MatrixXf Q = sortIntersectionPoints(intersectionPoints, mViewingPlane);
-            std::cout << "Point 0: " << Q.row(0) << std::endl;
-            std::cout << "Point 1: " << Q.row(1) << std::endl;
-            std::cout << "Point 2: " << Q.row(2) << std::endl;
-            std::cout << "Point 3: " << Q.row(3) << std::endl;
-            Q = Q.rowwise() - intersectionCentroid.transpose();
+                Vector3f planeNormal = mViewingPlane.getNormal();
 
-            // Kabsch algorithm
-            MatrixXf A = P.transpose()*Q;
+                // Find rotation matrix between PBOnormal and planeNormal following http://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
+                Vector3f v = PBOnormal.cross(planeNormal);
+                float s = v.norm();
+                float c = PBOnormal.dot(planeNormal);
+                Matrix3f R;
+                std::cout << c << std::endl;
+                if(c == 1) { // planes are already aligned
+                    R = Matrix3f::Identity();
+                } else {
+                    Matrix3f vx = Matrix3f::Zero();
+                    // Matrix positions are on y,x form
+                    vx(0,1) = -v.z();
+                    vx(1,0) = v.z();
+                    vx(0,2) = v.y();
+                    vx(2,0) = -v.y();
+                    vx(1,2) = -v.x();
+                    vx(2,1) = v.x();
 
-            Eigen::JacobiSVD<Eigen::MatrixXf> svd(A, Eigen::ComputeFullU | Eigen::ComputeFullV);
+                    R = Matrix3f::Identity() + vx + vx*vx* ((1.0f-c)/(s*s));
+                }
 
-            MatrixXf V = svd.matrixU();
-            MatrixXf W = svd.matrixV();
+                // Rotate a position back
+                Vector3f rotatedPosition = R * Vector3f(width()*0.5,height()*0.5,0);
 
-            MatrixXf temp = W*V.transpose();
-            Matrix3f d = Matrix3f::Identity();
-            d(2,2) = sign(temp.determinant());
-            Matrix3f R = W*d*V.transpose();
+                // Estimate translation
+                Vector3f translation = intersectionCentroid - rotatedPosition;
 
-            std::cout << "Rotation matrix" << std::endl;
-            std::cout << R << std::endl;
-
-            // Rotate a position back
-            Vector3f rotatedPosition = R.inverse() * Vector3f(0,0,0);
-
-            // Estimate translation
-            Vector3f translation = intersectionPoints[0] - rotatedPosition;
-
-            m2DViewingTransformation.linear() = R;
-            m2DViewingTransformation.translation() = translation;
+                m2DViewingTransformation.linear() = R;
+                m2DViewingTransformation.translation() = translation;
             }
 
             glOrtho(0.0, width(), 0.0, height(), -1.0, 1.0);

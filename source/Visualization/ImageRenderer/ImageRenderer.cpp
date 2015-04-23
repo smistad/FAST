@@ -204,8 +204,8 @@ void ImageRenderer::draw2D(cl::BufferGL PBO, uint width, uint height, Eigen::Tra
         // Transfer transformations
         Eigen::Transform<float, 3, Eigen::Affine> transform = dataTransform.getTransform().inverse()*pixelToViewportTransform;
 
-        std::cout << "Transform in image renderer: " << std::endl;
-        std::cout << transform.affine() << std::endl;
+        //std::cout << "Transform in image renderer: " << std::endl;
+        //std::cout << transform.affine() << std::endl;
 
         cl::Buffer transformBuffer(
                 device->getContext(),
