@@ -54,16 +54,19 @@ void BinaryThresholding::execute() {
             kernel = cl::Kernel(program, "thresholdingWithOnlyUpper");
             kernel.setArg(3, mUpperThreshold);
         }
+        cl::NDRange globalSize;
         if(input->getDimensions() == 2) {
             OpenCLImageAccess2D::pointer access = input->getOpenCLImageAccess2D(ACCESS_READ, device);
             OpenCLImageAccess2D::pointer access2 = output->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
             kernel.setArg(0, *access->get());
             kernel.setArg(1, *access2->get());
+            globalSize = cl::NDRange(output->getWidth(), output->getHeight());
         } else {
             OpenCLImageAccess3D::pointer access = input->getOpenCLImageAccess3D(ACCESS_READ, device);
             OpenCLImageAccess3D::pointer access2 = output->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
             kernel.setArg(0, *access->get());
             kernel.setArg(1, *access2->get());
+            globalSize = cl::NDRange(output->getWidth(), output->getHeight(), output->getDepth());
         }
         kernel.setArg(2, (uchar)mLabel);
 
@@ -71,7 +74,7 @@ void BinaryThresholding::execute() {
         queue.enqueueNDRangeKernel(
                 kernel,
                 cl::NullRange,
-                cl::NDRange(output->getWidth(), output->getHeight()),
+                globalSize,
                 cl::NullRange
         );
     }
