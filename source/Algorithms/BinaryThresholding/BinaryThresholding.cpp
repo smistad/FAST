@@ -40,15 +40,7 @@ void BinaryThresholding::execute() {
         throw Exception("Not implemented yet.");
     } else {
         OpenCLDevice::pointer device = OpenCLDevice::pointer(getMainDevice());
-        std::string buildOptions = "";
-        if(input->getDataType() == TYPE_FLOAT) {
-            buildOptions = "-DTYPE_FLOAT";
-        } else if(input->getDataType() == TYPE_INT8 || input->getDataType() == TYPE_INT16) {
-            buildOptions = "-DTYPE_INT";
-        } else {
-            buildOptions = "-DTYPE_UINT";
-        }
-        int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "Algorithms/BinaryThresholding/BinaryThresholding2D.cl", buildOptions);
+        int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "Algorithms/BinaryThresholding/BinaryThresholding2D.cl");
         cl::Program program = device->getProgram(programNr);
         cl::Kernel kernel;
         if(mLowerThresholdSet && mUpperThresholdSet) {
