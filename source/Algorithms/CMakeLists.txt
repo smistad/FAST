@@ -8,5 +8,8 @@ fast_add_subdirectories(
     ImageGradient
     IterativeClosestPoint
 )
-fast_add_sources()
+fast_add_sources(
+    SegmentationAlgorithm.cpp
+    SegmentationAlgorithm.hpp
+)
 fast_add_test_sources()
