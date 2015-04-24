@@ -178,7 +178,7 @@ void ImageRenderer::draw() {
     }
 }
 
-void ImageRenderer::draw2D(cl::BufferGL PBO, uint width, uint height, Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform, float PBOspacing) {
+void ImageRenderer::draw2D(cl::BufferGL PBO, uint width, uint height, Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform, float PBOspacing, Vector2f translation) {
     boost::lock_guard<boost::mutex> lock(mMutex);
 
     OpenCLDevice::pointer device = getMainDevice();
@@ -197,23 +197,6 @@ void ImageRenderer::draw2D(cl::BufferGL PBO, uint width, uint height, Eigen::Tra
     boost::unordered_map<uint, Image::pointer>::iterator it;
     for(it = mImagesToRender.begin(); it != mImagesToRender.end(); it++) {
         Image::pointer input = it->second;
-
-        // Get transform of the image
-        LinearTransformation dataTransform = SceneGraph::getLinearTransformationFromData(input);
-
-        // Transfer transformations
-        Eigen::Transform<float, 3, Eigen::Affine> transform = dataTransform.getTransform().inverse()*pixelToViewportTransform;
-
-        //std::cout << "Transform in image renderer: " << std::endl;
-        //std::cout << transform.affine() << std::endl;
-
-        cl::Buffer transformBuffer(
-                device->getContext(),
-                CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                16*sizeof(float),
-                transform.data()
-        );
-
         // Determine level and window
         float window = mWindow;
         float level = mLevel;
@@ -224,8 +207,6 @@ void ImageRenderer::draw2D(cl::BufferGL PBO, uint width, uint height, Eigen::Tra
         if(level == -1) {
             level = getDefaultIntensityLevel(input->getDataType());
         }
-
-
 
         int i = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/ImageRenderer/ImageRenderer2D.cl");
 
@@ -243,6 +224,8 @@ void ImageRenderer::draw2D(cl::BufferGL PBO, uint width, uint height, Eigen::Tra
             kernel.setArg(5, PBOspacing);
             kernel.setArg(6, level);
             kernel.setArg(7, window);
+            kernel.setArg(8, translation.x());
+            kernel.setArg(9, translation.y());
 
             // Run the draw 2D kernel
             device->getCommandQueue().enqueueNDRangeKernel(
@@ -252,6 +235,20 @@ void ImageRenderer::draw2D(cl::BufferGL PBO, uint width, uint height, Eigen::Tra
                     cl::NullRange
             );
         } else {
+
+            // Get transform of the image
+            LinearTransformation dataTransform = SceneGraph::getLinearTransformationFromData(input);
+
+            // Transfer transformations
+            Eigen::Transform<float, 3, Eigen::Affine> transform = dataTransform.getTransform().inverse()*pixelToViewportTransform;
+
+            cl::Buffer transformBuffer(
+                    device->getContext(),
+                    CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                    16*sizeof(float),
+                    transform.data()
+            );
+
              cl::Kernel kernel(device->getProgram(i), "render3Dimage");
             // Run kernel to fill the texture
 

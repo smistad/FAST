@@ -68,6 +68,8 @@ View::View() : mViewingPlane(Plane::Axial()) {
     connect(timer,SIGNAL(timeout()),this,SLOT(update()));
 
     mPBO = 0;
+    mPosX2D = 0;
+    mPosY2D = 0;
 
 	NonVolumesTurn=true;
 
@@ -489,7 +491,6 @@ void View::initializeGL() {
                 }
             }
 
-            // TODO more than 4 intersection points are possible, how to handle it?
             if(intersectionPoints.size() == 0) {
                 std::cout << "Failed to find intersection points" << std::endl;
             } else {
@@ -507,7 +508,6 @@ void View::initializeGL() {
                 float s = v.norm();
                 float c = PBOnormal.dot(planeNormal);
                 Matrix3f R;
-                std::cout << c << std::endl;
                 if(c == 1) { // planes are already aligned
                     R = Matrix3f::Identity();
                 } else {
@@ -531,6 +531,12 @@ void View::initializeGL() {
 
                 m2DViewingTransformation.linear() = R;
                 m2DViewingTransformation.translation() = translation;
+                m2DViewingTransformation.scale(mPBOspacing);
+                // TODO figure out how to do translation for 2D images
+                //mPosX2D = width()*0.5*mPBOspacing;
+                //mPosY2D = height()*0.5*mPBOspacing;
+                mPosX2D = 0;
+                mPosY2D = 0;
             }
 
             glOrtho(0.0, width(), 0.0, height(), -1.0, 1.0);
@@ -732,7 +738,7 @@ void View::paintGL() {
 
             mRuntimeManager->startRegularTimer("draw2D");
             for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
-                mNonVolumeRenderers[i]->draw2D(clPBO, width(), height(), m2DViewingTransformation, mPBOspacing*mScale2D);
+                mNonVolumeRenderers[i]->draw2D(clPBO, width(), height(), m2DViewingTransformation, mPBOspacing*mScale2D, Vector2f(mPosX2D, mPosY2D));
             }
             mRuntimeManager->stopRegularTimer("draw2D");
 
@@ -967,7 +973,8 @@ void View::mouseMoveEvent(QMouseEvent* event) {
 			Vector3f deltaView(-deltaX, deltaY, 0);
 			Vector3f deltaMM = m2DViewingTransformation.linear() * deltaView; // Transform from view coordinates to MM coordinates
 			m2DViewingTransformation.translation() = m2DViewingTransformation.translation() + deltaMM;
-
+			//mPosX2D = deltaView.x()*mPBOspacing;
+			//mPosY2D = deltaView.y()*mPBOspacing;
 		} else {
 		    // 3D movement
 			float deltaX = event->x() - previousX;

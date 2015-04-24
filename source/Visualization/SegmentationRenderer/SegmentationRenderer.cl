@@ -7,7 +7,8 @@ __kernel void render(
         __private float imageSpacingX,
         __private float imageSpacingY,
         __private float PBOspacing,
-        __global float* colors
+        __global float* colors,
+        __private char fillArea
         ) {
     const int2 PBOposition = {get_global_id(0), get_global_id(1)};
     const int linearPosition = PBOposition.x + PBOposition.y*get_global_size(0);
@@ -16,30 +17,51 @@ __kernel void render(
     imagePosition.x /= imageSpacingX;
     imagePosition.y /= imageSpacingY;
     
+    float2 offsets[8] = {
+            {1, 0},
+            {0, 1},
+            {1, 1},
+            {-1, 0},
+            {0, -1},
+            {-1, -1},
+            {-1, 1},
+            {1, -1}
+    };
+    
+    float4 color;
     
     // Is image within bounds?
+    char useBackground = 1;
     if(imagePosition.x < get_image_width(image) && imagePosition.y < get_image_height(image)) {
         imagePosition.y = get_image_height(image) - imagePosition.y - 1; // Flip image vertically
         // Read image and put value in PBO
         uint label = read_imageui(image, sampler, imagePosition).x;
         
         if(label > 0) {
-            // TODO some out of bounds check here on colors?
-            float4 color;
-            color.xyz = vload3(label, colors);
-            color.w = 1.0f;
-
-            vstore4(color, linearPosition, PBOwrite);
-        } else {
-            // Read PBO
-            float4 value = vload4(linearPosition, PBOread);
-            // Write to PBU
-            vstore4(value, linearPosition, PBOwrite);
+            // Fill area check
+            char getColor = 1;
+            if(fillArea == 0) {
+                getColor = 0;
+                // Check neighbors
+                for(char n = 0; n < 8; n++) {
+                    uint labelNeighbor = read_imageui(image, sampler, imagePosition + offsets[n]).x;
+                    if(labelNeighbor == 0)
+                        getColor = 1;
+                }
+            }
+            if(getColor == 1) {
+                useBackground = 0;
+                // TODO some out of bounds check here on colors?
+                color.xyz = vload3(label, colors);
+                color.w = 1.0f;
+            }
         }
-    } else {
-        // Read PBO
-        float4 value = vload4(linearPosition, PBOread);
-        // Write to PBU
-        vstore4(value, linearPosition, PBOwrite);
     }
+    
+    if(useBackground == 1) {
+        color = vload4(linearPosition, PBOread);
+    }
+    
+    // Write to PBO
+    vstore4(color, linearPosition, PBOwrite);
 }

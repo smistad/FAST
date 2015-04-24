@@ -8,12 +8,14 @@ __kernel void render2Dimage(
         __private float imageSpacingY,
         __private float PBOspacing,
         __private float level,
-        __private float window
+        __private float window,
+        __private float translationX,
+        __private float translationY
         ) {
     const int2 PBOposition = {get_global_id(0), get_global_id(1)};
     const int linearPosition = PBOposition.x + PBOposition.y*get_global_size(0);
     
-    float2 imagePosition = convert_float2(PBOposition)*PBOspacing;
+    float2 imagePosition = convert_float2(PBOposition)*PBOspacing + (float2)(translationX, translationY);
     imagePosition.x /= imageSpacingX;
     imagePosition.y /= imageSpacingY;
     

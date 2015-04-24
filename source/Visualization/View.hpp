@@ -76,7 +76,7 @@ class View : public QGLWidget, public ProcessObject {
         int previousX, previousY;
 
         float mMinX2D, mMaxX2D, mMinY2D, mMaxY2D;
-        uint mPosX2D, mPosY2D;
+        int mPosX2D, mPosY2D;
         float mScale2D;
 
         friend class ComputationThread;

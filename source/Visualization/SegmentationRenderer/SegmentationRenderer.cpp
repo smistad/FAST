@@ -36,10 +36,15 @@ void SegmentationRenderer::setColor(Segmentation::LabelType labelType,
     mColorsModified = true;
 }
 
+void SegmentationRenderer::setFillArea(bool fillArea) {
+    mFillArea = fillArea;
+}
+
 SegmentationRenderer::SegmentationRenderer() {
     mIsModified = false;
     mDoTransformations = true;
     mColorsModified = true;
+    mFillArea = true;
 
     // Set up default label colors
     mLabelColors[Segmentation::LABEL_BACKGROUND] = Color::Black();
@@ -67,7 +72,9 @@ void SegmentationRenderer::draw() {
 }
 
 void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
-        Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform, float PBOspacing) {
+        Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform, float PBOspacing,
+        Vector2f translation
+        ) {
     boost::lock_guard<boost::mutex> lock(mMutex);
     OpenCLDevice::pointer device = getMainDevice();
 
@@ -133,6 +140,8 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
         kernel.setArg(4, input->getSpacing().y());
         kernel.setArg(5, PBOspacing);
         kernel.setArg(6, mColorBuffer);
+        char fillArea = mFillArea ? 1 : 0;
+        kernel.setArg(7, fillArea);
 
         // Run the draw 2D kernel
         device->getCommandQueue().enqueueNDRangeKernel(

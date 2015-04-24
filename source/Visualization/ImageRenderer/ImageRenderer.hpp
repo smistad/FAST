@@ -16,7 +16,14 @@ class ImageRenderer : public Renderer {
         ImageRenderer();
         void execute();
         void draw();
-        void draw2D(cl::BufferGL PBO, uint width, uint height, Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform, float PBOspacing);
+        void draw2D(
+                cl::BufferGL PBO,
+                uint width,
+                uint height,
+                Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform,
+                float PBOspacing,
+                Vector2f translation
+        );
 
         boost::unordered_map<uint, Image::pointer> mImagesToRender;
         boost::unordered_map<uint, GLuint> mTexturesToRender;
