@@ -61,9 +61,6 @@ void SegmentationRenderer::execute() {
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
         Segmentation::pointer input = getStaticInputData<Segmentation>(inputNr);
 
-        if(input->getDimensions() != 2)
-            throw Exception("The SegmentationRenderer only supports 2D images");
-
         mImagesToRender[inputNr] = input;
     }
 }
@@ -77,6 +74,7 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
         ) {
     boost::lock_guard<boost::mutex> lock(mMutex);
     OpenCLDevice::pointer device = getMainDevice();
+    int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/SegmentationRenderer/SegmentationRenderer.cl");
 
     if(mColorsModified) {
         // Transfer colors to device (this doesn't have to happen every render call..)
@@ -113,47 +111,73 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
     for(it = mImagesToRender.begin(); it != mImagesToRender.end(); it++) {
         Image::pointer input = it->second;
 
-        // Get transform of the image
-        LinearTransformation dataTransform = SceneGraph::getLinearTransformationFromData(input);
 
-        // Transfer transformations
-        Eigen::Transform<float, 3, Eigen::Affine> transform = dataTransform.getTransform().inverse()*pixelToViewportTransform;
+        if(input->getDimensions() == 2) {
+            std::string kernelName;
+            if(mFillArea) {
+                kernelName = "renderArea2D";
+            } else {
+                kernelName = "renderBorder2D";
+            }
+            cl::Kernel kernel(device->getProgram(programNr), kernelName.c_str());
+            // Run kernel to fill the texture
 
-        cl::Buffer transformBuffer(
-                device->getContext(),
-                CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                16*sizeof(float),
-                transform.data()
-        );
+            OpenCLImageAccess2D::pointer access = input->getOpenCLImageAccess2D(ACCESS_READ, device);
+            cl::Image2D* clImage = access->get();
+            kernel.setArg(0, *clImage);
+            kernel.setArg(1, PBO); // Read from this
+            kernel.setArg(2, PBO2); // Write to this
+            kernel.setArg(3, input->getSpacing().x());
+            kernel.setArg(4, input->getSpacing().y());
+            kernel.setArg(5, PBOspacing);
+            kernel.setArg(6, mColorBuffer);
 
-        OpenCLImageAccess2D::pointer access = input->getOpenCLImageAccess2D(ACCESS_READ, device);
-        cl::Image2D* clImage = access->get();
-
-        int i = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/SegmentationRenderer/SegmentationRenderer.cl");
-        std::string kernelName;
-        if(mFillArea) {
-            kernelName = "renderArea";
+            // Run the draw 2D kernel
+            queue.enqueueNDRangeKernel(
+                    kernel,
+                    cl::NullRange,
+                    cl::NDRange(width, height),
+                    cl::NullRange
+            );
         } else {
-            kernelName = "renderBorder";
+            std::string kernelName;
+            if(mFillArea) {
+                kernelName = "renderArea3D";
+            } else {
+                kernelName = "renderBorder3D";
+            }
+            cl::Kernel kernel(device->getProgram(programNr), kernelName.c_str());
+
+            // Get transform of the image
+            LinearTransformation dataTransform = SceneGraph::getLinearTransformationFromData(input);
+
+            // Transfer transformations
+            Eigen::Transform<float, 3, Eigen::Affine> transform = dataTransform.getTransform().inverse()*pixelToViewportTransform;
+
+            cl::Buffer transformBuffer(
+                    device->getContext(),
+                    CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                    16*sizeof(float),
+                    transform.data()
+            );
+
+            // Run kernel to fill the texture
+            OpenCLImageAccess3D::pointer access = input->getOpenCLImageAccess3D(ACCESS_READ, device);
+            cl::Image3D* clImage = access->get();
+            kernel.setArg(0, *clImage);
+            kernel.setArg(1, PBO); // Read from this
+            kernel.setArg(2, PBO2); // Write to this
+            kernel.setArg(3, transformBuffer);
+            kernel.setArg(4, mColorBuffer);
+
+            // Run the draw 3D image kernel
+            queue.enqueueNDRangeKernel(
+                    kernel,
+                    cl::NullRange,
+                    cl::NDRange(width, height),
+                    cl::NullRange
+            );
         }
-        cl::Kernel kernel(device->getProgram(i), kernelName.c_str());
-        // Run kernel to fill the texture
-
-        kernel.setArg(0, *clImage);
-        kernel.setArg(1, PBO); // Read from this
-        kernel.setArg(2, PBO2); // Write to this
-        kernel.setArg(3, input->getSpacing().x());
-        kernel.setArg(4, input->getSpacing().y());
-        kernel.setArg(5, PBOspacing);
-        kernel.setArg(6, mColorBuffer);
-
-        // Run the draw 2D kernel
-        device->getCommandQueue().enqueueNDRangeKernel(
-                kernel,
-                cl::NullRange,
-                cl::NDRange(width, height),
-                cl::NullRange
-        );
 
         // Copy PBO2 to PBO
         queue.enqueueCopyBuffer(PBO2, PBO, 0, 0, sizeof(float)*width*height*4);

@@ -27,17 +27,16 @@ TEST_CASE("SegmentationRenderer on a thresholded 2D image", "[fast][Segmentation
     window->addRenderer(imageRenderer);
     window->addRenderer(renderer);
     window->setTimeout(1000);
-    window->start();
+    CHECK_NOTHROW(window->start());
 }
 
-/*
 TEST_CASE("SegmentationRenderer on a thresholded 3D image", "[fast][SegmentationRenderer][visual]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT-Abdomen.mhd");
 
     BinaryThresholding::pointer segmentation = BinaryThresholding::New();
     segmentation->setInputConnection(importer->getOutputPort());
-    segmentation->setLowerThreshold(500);
+    segmentation->setLowerThreshold(100);
 
     ImageRenderer::pointer imageRenderer = ImageRenderer::New();
     imageRenderer->addInputConnection(importer->getOutputPort());
@@ -50,9 +49,33 @@ TEST_CASE("SegmentationRenderer on a thresholded 3D image", "[fast][Segmentation
     window->addRenderer(imageRenderer);
     window->addRenderer(renderer);
     window->setTimeout(1000);
-    window->start();
+    CHECK_NOTHROW(window->start());
 }
-*/
+
+
+TEST_CASE("SegmentationRenderer on a thresholded 3D image with draw contours only", "[fast][SegmentationRenderer][visual]") {
+    ImageFileImporter::pointer importer = ImageFileImporter::New();
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT-Abdomen.mhd");
+
+    BinaryThresholding::pointer segmentation = BinaryThresholding::New();
+    segmentation->setInputConnection(importer->getOutputPort());
+    segmentation->setLowerThreshold(100);
+
+    ImageRenderer::pointer imageRenderer = ImageRenderer::New();
+    imageRenderer->addInputConnection(importer->getOutputPort());
+
+    SegmentationRenderer::pointer renderer = SegmentationRenderer::New();
+    renderer->setFillArea(false);
+    renderer->addInputConnection(segmentation->getOutputPort());
+
+    SimpleWindow::pointer window = SimpleWindow::New();
+    window->set2DMode();
+    window->addRenderer(imageRenderer);
+    window->addRenderer(renderer);
+    window->setTimeout(1000);
+    CHECK_NOTHROW(window->start());
+}
+
 
 TEST_CASE("SegmentationRenderer on a stream of thresholded 2D images", "[fast][SegmentationRenderer][visual]") {
     ImageFileStreamer::pointer importer = ImageFileStreamer::New();
@@ -73,7 +96,7 @@ TEST_CASE("SegmentationRenderer on a stream of thresholded 2D images", "[fast][S
     window->addRenderer(imageRenderer);
     window->addRenderer(renderer);
     window->setTimeout(2000);
-    window->start();
+    CHECK_NOTHROW(window->start());
 }
 
 
@@ -97,7 +120,7 @@ TEST_CASE("SegmentationRenderer on a stream of thresholded 2D images with draw c
     window->addRenderer(imageRenderer);
     window->addRenderer(renderer);
     window->setTimeout(2000);
-    window->start();
+    CHECK_NOTHROW(window->start());
 }
 
 TEST_CASE("SegmentationRenderer on a stream of thresholded 2D images and set different color", "[fast][SegmentationRenderer][visual]") {
@@ -120,7 +143,7 @@ TEST_CASE("SegmentationRenderer on a stream of thresholded 2D images and set dif
     window->addRenderer(imageRenderer);
     window->addRenderer(renderer);
     window->setTimeout(2000);
-    window->start();
+    CHECK_NOTHROW(window->start());
 }
 
 

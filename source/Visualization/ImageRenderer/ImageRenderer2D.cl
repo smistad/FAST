@@ -88,7 +88,7 @@ __kernel void render3Dimage(
     const int2 PBOposition = {get_global_id(0), get_global_id(1)};
     const int linearPosition = PBOposition.x + PBOposition.y*get_global_size(0);
     
-    const float4 imagePosition = transformPosition(transform, PBOposition);
+    float4 imagePosition = transformPosition(transform, PBOposition);
     imagePosition.w = 1;
      
     // Is image within bounds?
