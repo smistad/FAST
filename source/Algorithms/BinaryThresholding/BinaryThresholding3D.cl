@@ -1,6 +1,6 @@
 __constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_NONE | CLK_FILTER_NEAREST;
 
-float getIntensity(__read_only image2d_t image, int2 pos) {
+float getIntensity(__read_only image3d_t image, int4 pos) {
     float value;
     int dataType = get_image_channel_data_type(image);
     if(dataType == CLK_FLOAT) {
@@ -14,13 +14,13 @@ float getIntensity(__read_only image2d_t image, int2 pos) {
 }
 
 __kernel void thresholding(
-        __read_only image2d_t image,
-        __write_only image2d_t segmentation,
+        __read_only image3d_t image,
+        __write_only image3d_t segmentation,
         __private uchar label,
         __private float lowerThreshold,
         __private float upperThreshold
         ) {
-    const int2 pos = {get_global_id(0), get_global_id(1)};
+    const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
     
     const float value = getIntensity(image, pos);
    
@@ -31,12 +31,12 @@ __kernel void thresholding(
     write_imageui(segmentation, pos, writeValue);
 }
 __kernel void thresholdingWithOnlyLower(
-        __read_only image2d_t image,
-        __write_only image2d_t segmentation,
+        __read_only image3d_t image,
+        __write_only image3d_t segmentation,
         __private uchar label,
         __private float lowerThreshold
         ) {
-    const int2 pos = {get_global_id(0), get_global_id(1)};
+    const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
     
     const float value = getIntensity(image, pos);
 
@@ -47,12 +47,12 @@ __kernel void thresholdingWithOnlyLower(
     write_imageui(segmentation, pos, writeValue);
 }
 __kernel void thresholdingWithOnlyUpper(
-        __read_only image2d_t image,
-        __write_only image2d_t segmentation,
+        __read_only image3d_t image,
+        __write_only image3d_t segmentation,
         __private uchar label,
         __private float upperThreshold
         ) {
-    const int2 pos = {get_global_id(0), get_global_id(1)};
+    const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
     
     const float value = getIntensity(image, pos);
 
