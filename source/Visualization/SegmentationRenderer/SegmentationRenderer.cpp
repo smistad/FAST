@@ -130,7 +130,13 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
         cl::Image2D* clImage = access->get();
 
         int i = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/SegmentationRenderer/SegmentationRenderer.cl");
-        cl::Kernel kernel(device->getProgram(i), "render");
+        std::string kernelName;
+        if(mFillArea) {
+            kernelName = "renderArea";
+        } else {
+            kernelName = "renderBorder";
+        }
+        cl::Kernel kernel(device->getProgram(i), kernelName.c_str());
         // Run kernel to fill the texture
 
         kernel.setArg(0, *clImage);
@@ -140,8 +146,6 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
         kernel.setArg(4, input->getSpacing().y());
         kernel.setArg(5, PBOspacing);
         kernel.setArg(6, mColorBuffer);
-        char fillArea = mFillArea ? 1 : 0;
-        kernel.setArg(7, fillArea);
 
         // Run the draw 2D kernel
         device->getCommandQueue().enqueueNDRangeKernel(
