@@ -453,7 +453,7 @@ void View::initializeGL() {
                 }
             }
 
-            mPBOspacing = longestEdgeDistance / width();
+            mPBOspacing = longestEdgeDistance / std::min(width(), height());
             std::cout << "PBO spacing set to " << mPBOspacing << std::endl;
 
             // Get the centroid of the bounding boxes
@@ -961,13 +961,13 @@ void View::keyPressEvent(QKeyEvent* event) {
 void View::mouseMoveEvent(QMouseEvent* event) {
 	if(mMiddleMouseButtonIsPressed) {
 		if(mIsIn2DMode) {
-		    /*
 			float deltaX = event->x() - previousX;
 			float deltaY = event->y() - previousY;
-			mPosX2D += deltaX;
-			mPosY2D -= deltaY;
-			glViewport(mPosX2D, mPosY2D, (mMaxX2D-mMinX2D)*mScale2D, (mMaxY2D-mMinY2D)*mScale2D);
-			*/
+
+			Vector3f deltaView(-deltaX, deltaY, 0);
+			Vector3f deltaMM = m2DViewingTransformation.linear() * deltaView; // Transform from view coordinates to MM coordinates
+			m2DViewingTransformation.translation() = m2DViewingTransformation.translation() + deltaMM;
+
 		} else {
 		    // 3D movement
 			float deltaX = event->x() - previousX;

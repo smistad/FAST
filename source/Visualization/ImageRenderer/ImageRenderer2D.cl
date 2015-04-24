@@ -93,7 +93,7 @@ __kernel void render3Dimage(
     if(imagePosition.x < get_image_width(image) && imagePosition.y < get_image_height(image) && imagePosition.z < get_image_depth(image) &&
         imagePosition.x >= 0 && imagePosition.y >= 0 && imagePosition.z >= 0
         ) {
-        //imagePosition.y = get_image_height(image) - imagePosition.y - 1; // Flip image vertically
+        imagePosition.y = get_image_height(image) - imagePosition.y - 1; // Flip image vertically
         // Read image and put value in PBO
         float4 value;
         int dataType = get_image_channel_data_type(image);
