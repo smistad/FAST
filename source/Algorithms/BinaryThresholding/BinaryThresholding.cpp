@@ -53,19 +53,20 @@ void BinaryThresholding::execute() {
         cl::Kernel kernel;
         if(mLowerThresholdSet && mUpperThresholdSet) {
             kernel = cl::Kernel(program, "tresholding");
-            kernel.setArg(2, mLowerThreshold);
-            kernel.setArg(3, mUpperThreshold);
+            kernel.setArg(3, mLowerThreshold);
+            kernel.setArg(4, mUpperThreshold);
         } else if(mLowerThresholdSet) {
             kernel = cl::Kernel(program, "thresholdingWithOnlyLower");
-            kernel.setArg(2, mLowerThreshold);
+            kernel.setArg(3, mLowerThreshold);
         } else {
             kernel = cl::Kernel(program, "thresholdingWithOnlyUpper");
-            kernel.setArg(2, mUpperThreshold);
+            kernel.setArg(3, mUpperThreshold);
         }
         OpenCLImageAccess2D::pointer access = input->getOpenCLImageAccess2D(ACCESS_READ, device);
         OpenCLImageAccess2D::pointer access2 = output->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
         kernel.setArg(0, *access->get());
         kernel.setArg(1, *access2->get());
+        kernel.setArg(2, (uchar)mLabel);
 
         cl::CommandQueue queue = device->getCommandQueue();
         queue.enqueueNDRangeKernel(
