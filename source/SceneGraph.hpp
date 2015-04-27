@@ -25,14 +25,14 @@ class SceneGraphNode : public Object {
         LinearTransformation mTransformation;
 };
 
-class DataObject;
+class SpatialDataObject;
 
 namespace SceneGraph {
     LinearTransformation getLinearTransformationBetweenNodes(SceneGraphNode::pointer nodeA, SceneGraphNode::pointer nodeB);
     LinearTransformation getLinearTransformationFromNode(SceneGraphNode::pointer node);
-    LinearTransformation getLinearTransformationFromData(SharedPointer<DataObject> node);
-    void setParentNode(SharedPointer<DataObject> child, SharedPointer<DataObject> parent);
-    SceneGraphNode::pointer insertParentNodeToData(SharedPointer<DataObject> child, LinearTransformation transform);
+    LinearTransformation getLinearTransformationFromData(SharedPointer<SpatialDataObject> node);
+    void setParentNode(SharedPointer<SpatialDataObject> child, SharedPointer<SpatialDataObject> parent);
+    SceneGraphNode::pointer insertParentNodeToData(SharedPointer<SpatialDataObject> child, LinearTransformation transform);
     SceneGraphNode::pointer insertParentNodeToNode(SceneGraphNode::pointer child, LinearTransformation transform);
 };
 

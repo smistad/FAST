@@ -222,7 +222,7 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
     LinearTransformation transformation;
     transformation.setTransform(transform);
     importerB->update();
-    importerB->getOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(transformation);
+    importerB->getStaticOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(transformation);
 
     IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
     icp->setMovingPointSetPort(importerA->getOutputPort());
@@ -230,7 +230,7 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
     icp->enableRuntimeMeasurements();
     icp->update();
     std::cout << icp->getOutputTransformation().getTransform().affine() << std::endl;
-    importerA->getOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
+    importerA->getStaticOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
     std::cout << "result: " << std::endl;
     std::cout << icp->getOutputTransformation().getEulerAngles() << std::endl;
     std::cout << icp->getOutputTransformation().getTransform().translation() << std::endl;

@@ -4,16 +4,8 @@
 namespace fast {
 
 DataObject::DataObject() : mTimestampModified(0), mIsDynamicData(false) {
-    // Create scene graph node and attach it to a new root
-    SceneGraphNode::pointer newRootNode = SceneGraphNode::New();
-    SceneGraphNode::pointer node = SceneGraphNode::New();
-    node->setParent(newRootNode);
-    mSceneGraphNode = node;
 }
 
-SceneGraphNode::pointer DataObject::getSceneGraphNode() const {
-    return mSceneGraphNode;
-}
 
 bool DataObject::isDynamicData() {
     return mIsDynamicData;
@@ -46,17 +38,6 @@ void DataObject::release(ExecutionDevice::pointer device) {
         this->free(device);
     }
 }
-
-BoundingBox DataObject::getBoundingBox() const {
-    return mBoundingBox;
-}
-
-BoundingBox DataObject::getTransformedBoundingBox() const {
-    LinearTransformation T = SceneGraph::getLinearTransformationFromData(DataObject::pointer(mPtr.lock()));
-
-    return getBoundingBox().getTransformedBoundingBox(T);
-}
-
 
 void DataObject::setStreamer(Streamer::pointer streamer) {
     mStreamer = streamer;

@@ -1,5 +1,6 @@
-#include "ImageIGTLinkStreamer.hpp"
-#include "Image.hpp"
+#include "TransformIGTLinkStreamer.hpp"
+#include "DynamicData.hpp"
+#include "LinearTransformation.hpp"
 #include <boost/shared_array.hpp>
 #include <boost/lexical_cast.hpp>
 
@@ -39,30 +40,6 @@ inline int ReceiveString(igtl::Socket * socket, igtl::MessageHeader::Pointer& he
     }
 
   return 1;
-}
-
-inline int ReceiveTransform(igtl::Socket * socket, igtl::MessageHeader::Pointer& header) {
-    //std::cerr << "Receiving TRANSFORM data type." << std::endl;
-    // Create a message buffer to receive transform data
-    igtl::TransformMessage::Pointer transMsg;
-    transMsg = igtl::TransformMessage::New();
-    transMsg->SetMessageHeader(header);
-    transMsg->AllocatePack();
-    // Receive transform data from the socket
-    socket->Receive(transMsg->GetPackBodyPointer(), transMsg->GetPackBodySize());
-    // Deserialize the transform data
-    // If you want to skip CRC check, call Unpack() without argument.
-    int c = transMsg->Unpack(1);
-    if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
-    {
-    // Retrive the transform data
-    igtl::Matrix4x4 matrix;
-    transMsg->GetMatrix(matrix);
-    //igtl::PrintMatrix(matrix);
-    //std::cerr << std::endl;
-    return 1;
-    }
-    return 0;
 }
 
 inline int ReceivePosition(igtl::Socket * socket, igtl::MessageHeader::Pointer& header) {
@@ -116,93 +93,37 @@ inline int ReceiveStatus(igtl::Socket * socket, igtl::MessageHeader::Pointer& he
     return 0;
 }
 
-void ImageIGTLinkStreamer::setConnectionAddress(std::string address) {
+void TransformIGTLinkStreamer::setConnectionAddress(std::string address) {
     mAddress = address;
     mIsModified = true;
 }
 
-void ImageIGTLinkStreamer::setConnectionPort(uint port) {
+void TransformIGTLinkStreamer::setConnectionPort(uint port) {
     mPort = port;
     mIsModified = true;
 }
 
-void ImageIGTLinkStreamer::setStreamingMode(StreamingMode mode) {
+void TransformIGTLinkStreamer::setStreamingMode(StreamingMode mode) {
     if(mode == STREAMING_MODE_STORE_ALL_FRAMES && !mMaximumNrOfFramesSet)
         setMaximumNumberOfFrames(0);
     Streamer::setStreamingMode(mode);}
 
-void ImageIGTLinkStreamer::setMaximumNumberOfFrames(uint nrOfFrames) {
+void TransformIGTLinkStreamer::setMaximumNumberOfFrames(uint nrOfFrames) {
     mMaximumNrOfFrames = nrOfFrames;
-    DynamicData<Image>::pointer data = getOutputData<DynamicData<Image> >();
+    DynamicData<LinearTransformation>::pointer data = getOutputData<DynamicData<LinearTransformation> >();
     data->setMaximumNumberOfFrames(nrOfFrames);
 }
 
-bool ImageIGTLinkStreamer::hasReachedEnd() const {
+bool TransformIGTLinkStreamer::hasReachedEnd() const {
     return mHasReachedEnd;
 }
 
-uint ImageIGTLinkStreamer::getNrOfFrames() const {
+uint TransformIGTLinkStreamer::getNrOfFrames() const {
     return mNrOfFrames;
 }
 
-Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer message, ExecutionDevice::pointer device) {
-    Image::pointer image = Image::New();
-    int width, height, depth;
-    message->GetDimensions(width, height, depth);
-    void* data = message->GetScalarPointer();
-    DataType type;
-    switch(message->GetScalarType()) {
-        case igtl::ImageMessage::TYPE_INT8:
-            type = TYPE_INT8;
-            break;
-        case igtl::ImageMessage::TYPE_UINT8:
-            type = TYPE_UINT8;
-            break;
-        case igtl::ImageMessage::TYPE_INT16:
-            type = TYPE_INT16;
-            break;
-        case igtl::ImageMessage::TYPE_UINT16:
-            type = TYPE_UINT16;
-            break;
-        case igtl::ImageMessage::TYPE_FLOAT32:
-            type = TYPE_FLOAT;
-            break;
-        default:
-            throw Exception("Unsupported image data type.");
-            break;
-    }
 
-    if(depth == 1) {
-        image->create2DImage(width, height, type, message->GetNumComponents(), device, data);
-    } else {
-        image->create3DImage(width, height, depth, type, message->GetNumComponents(), device, data);
-    }
-
-    boost::shared_array<float> spacing(new float[3]);
-    boost::shared_array<float> offset(new float[3]);
-    message->GetSpacing(spacing.get());
-    message->GetOrigin(offset.get());
-    igtl::Matrix4x4 matrix;
-    message->GetMatrix(matrix);
-    image->setSpacing(Vector3f(spacing[0], spacing[1], spacing[2]));
-    image->setOffset(Vector3f(offset[0], offset[1], offset[2]));
-    Matrix3f fastMatrix;
-    for(int i = 0; i < 3; i++) {
-    for(int j = 0; j < 3; j++) {
-        fastMatrix(i,j) = matrix[i][j];
-    }}
-    image->setTransformMatrix(fastMatrix);
-    igtl::PrintMatrix(matrix);
-    std::cout << fastMatrix << std::endl;
-    std::cout << "SPACING IS " << spacing[0] << " " << spacing[1] << std::endl;
-    std::cout << "OFFSET IS " << offset[0] << " " << offset[1] << " " << offset[2] << std::endl;
-
-    // TODO transform matrix
-
-    return image;
-}
-
-void ImageIGTLinkStreamer::producerStream() {
+void TransformIGTLinkStreamer::producerStream() {
     mSocket = igtl::ClientSocket::New();
     std::cout << "Trying to connect to Open IGT Link server " << mAddress << ":" << boost::lexical_cast<std::string>(mPort) << std::endl;;
     //mSocket->SetTimeout(3000); // try to connect for 3 seconds
@@ -263,38 +184,39 @@ void ImageIGTLinkStreamer::producerStream() {
         } else if(strcmp(headerMsg->GetDeviceType(), "STRING") == 0) {
             ReceiveString(mSocket, headerMsg);
         } else if(strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0) {
-            ReceiveTransform(mSocket, headerMsg);
-        } else if(strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0) {
-            std::cout << "Receiving IMAGE data type." << std::endl;
-
-            // Create a message buffer to receive transform data
-            igtl::ImageMessage::Pointer imgMsg;
-            imgMsg = igtl::ImageMessage::New();
-            imgMsg->SetMessageHeader(headerMsg);
-            imgMsg->AllocatePack();
-
+            // TODO get transform packet and put into dynamic object
+            igtl::TransformMessage::Pointer transMsg;
+            transMsg = igtl::TransformMessage::New();
+            transMsg->SetMessageHeader(headerMsg);
+            transMsg->AllocatePack();
             // Receive transform data from the socket
-            mSocket->Receive(imgMsg->GetPackBodyPointer(), imgMsg->GetPackBodySize());
-
+            mSocket->Receive(transMsg->GetPackBodyPointer(), transMsg->GetPackBodySize());
             // Deserialize the transform data
             // If you want to skip CRC check, call Unpack() without argument.
-            int c = imgMsg->Unpack(1);
+            int c = transMsg->Unpack(1);
+            if(mTransformName != "") {
+                // Check that name is correct
+                if(mTransformName != headerMsg->GetDeviceName())
+                    continue;
+            }
             if(c & igtl::MessageHeader::UNPACK_BODY) { // if CRC check is OK
-                // Retrive the image data
-                int size[3]; // image dimension
-                float spacing[3]; // spacing (mm/pixel)
-                int svsize[3]; // sub-volume size
-                int svoffset[3]; // sub-volume offset
-                int scalarType; // scalar type
-                scalarType = imgMsg->GetScalarType();
-                imgMsg->GetDimensions(size);
-                imgMsg->GetSpacing(spacing);
-                imgMsg->GetSubVolume(svsize, svoffset);
-
-                Image::pointer image = createFASTImageFromMessage(imgMsg, getMainDevice());
-                DynamicData<Image>::pointer ptr = getOutputData<DynamicData<Image> >();
+                // Retrive the transform data
+                igtl::Matrix4x4 matrix;
+                transMsg->GetMatrix(matrix);
+                Matrix4f fastMatrix;
+                for(int i = 0; i < 4; i++) {
+                for(int j = 0; j < 4; j++) {
+                    fastMatrix(i,j) = matrix[i][j];
+                }}
+                igtl::PrintMatrix(matrix);
+                Eigen::Transform<float, 3, Eigen::Affine> transformMatrix;
+                transformMatrix.matrix() = fastMatrix;
+                DynamicData<LinearTransformation>::pointer ptr = getOutputData<DynamicData<LinearTransformation> >();
+                LinearTransformation::pointer T = LinearTransformation::New();
+                T->setTransform(transformMatrix);
                 try {
-                    ptr->addFrame(image);
+                    std::cout << "Adding LinearTransformation to stream.." << std::endl;
+                    ptr->addFrame(T);
                 } catch(NoMoreFramesException &e) {
                     throw e;
                 } catch(Exception &e) {
@@ -310,12 +232,27 @@ void ImageIGTLinkStreamer::producerStream() {
                 }
                 mNrOfFrames++;
             }
+        } else if(strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0) {
+            std::cout << "Receiving IMAGE data type." << std::endl;
+
+            // Create a message buffer to receive transform data
+            igtl::ImageMessage::Pointer imgMsg;
+            imgMsg = igtl::ImageMessage::New();
+            imgMsg->SetMessageHeader(headerMsg);
+            imgMsg->AllocatePack();
+
+            // Receive transform data from the socket
+            mSocket->Receive(imgMsg->GetPackBodyPointer(), imgMsg->GetPackBodySize());
+
+            // Deserialize the transform data
+            // If you want to skip CRC check, call Unpack() without argument.
+            int c = imgMsg->Unpack(1);
        }
     }
     mSocket->CloseSocket();
 }
 
-ImageIGTLinkStreamer::~ImageIGTLinkStreamer() {
+TransformIGTLinkStreamer::~TransformIGTLinkStreamer() {
     if(mStreamIsStarted) {
         stop();
         if(thread->get_id() != boost::this_thread::get_id()) { // avoid deadlock
@@ -325,7 +262,7 @@ ImageIGTLinkStreamer::~ImageIGTLinkStreamer() {
     }
 }
 
-ImageIGTLinkStreamer::ImageIGTLinkStreamer() {
+TransformIGTLinkStreamer::TransformIGTLinkStreamer() {
     mStreamIsStarted = false;
     mIsModified = true;
     thread = NULL;
@@ -336,24 +273,25 @@ ImageIGTLinkStreamer::ImageIGTLinkStreamer() {
     mPort = 0;
     mMaximumNrOfFramesSet = false;
     setMaximumNumberOfFrames(50); // Set default maximum number of frames to 50
+    mTransformName = "";
 }
 
 /**
  * Dummy function to get into the class again
  */
-inline void stubStreamThread(ImageIGTLinkStreamer* streamer) {
+inline void stubStreamThread(TransformIGTLinkStreamer* streamer) {
     streamer->producerStream();
 }
 
-void ImageIGTLinkStreamer::stop() {
+void TransformIGTLinkStreamer::stop() {
     boost::unique_lock<boost::mutex> lock(mStopMutex);
     mStop = true;
 }
 
-void ImageIGTLinkStreamer::execute() {
-    getOutputData<DynamicData<Image> >()->setStreamer(mPtr.lock());
+void TransformIGTLinkStreamer::execute() {
+    getOutputData<DynamicData<LinearTransformation> >()->setStreamer(mPtr.lock());
     if(mAddress == "" || mPort == 0) {
-        throw Exception("Must call setConnectionAddress and setConnectionPort before executing the ImageIGTLinkStreamer.");
+        throw Exception("Must call setConnectionAddress and setConnectionPort before executing the TransformIGTLinkStreamer.");
     }
 
     if(!mStreamIsStarted) {
@@ -368,6 +306,10 @@ void ImageIGTLinkStreamer::execute() {
     while(!mFirstFrameIsInserted) {
         mFirstFrameCondition.wait(lock);
     }
+}
+
+void TransformIGTLinkStreamer::setTransformName(std::string transformName) {
+    mTransformName = transformName;
 }
 
 } // end namespace fast

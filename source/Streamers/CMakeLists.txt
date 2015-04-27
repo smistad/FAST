@@ -8,6 +8,8 @@ if(MODULE_OpenIGTLink)
     fast_add_sources(
         ImageIGTLinkStreamer.hpp
         ImageIGTLinkStreamer.cpp
+        TransformIGTLinkStreamer.hpp
+        TransformIGTLinkStreamer.cpp
     )
     fast_add_test_sources(
         Tests/ImageIGTLinkStreamerTests.cpp

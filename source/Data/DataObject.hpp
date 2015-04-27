@@ -5,8 +5,6 @@
 #include "Object.hpp"
 #include "ExecutionDevice.hpp"
 #include <boost/unordered_map.hpp>
-#include "BoundingBox.hpp"
-#include "SceneGraph.hpp"
 #include "Streamer.hpp"
 
 namespace fast {
@@ -20,17 +18,13 @@ class DataObject : public Object {
         void updateModifiedTimestamp();
         void retain(ExecutionDevice::pointer device);
         void release(ExecutionDevice::pointer device);
-        virtual BoundingBox getBoundingBox() const;
-        virtual BoundingBox getTransformedBoundingBox() const;
         virtual ~DataObject() { };
         bool isDynamicData();
-        SceneGraphNode::pointer getSceneGraphNode() const;
         void setStreamer(Streamer::pointer streamer);
         Streamer::pointer getStreamer();
     protected:
         virtual void free(ExecutionDevice::pointer device) = 0;
         virtual void freeAll() = 0;
-        BoundingBox mBoundingBox;
         bool mIsDynamicData;
     private:
         boost::unordered_map<WeakPointer<ExecutionDevice>, unsigned int> mReferenceCount;
@@ -41,7 +35,6 @@ class DataObject : public Object {
         // Timestamp is set to 0 when data object is constructed
         unsigned long mTimestampModified;
 
-        SceneGraphNode::pointer mSceneGraphNode;
 };
 
 }

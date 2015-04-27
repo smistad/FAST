@@ -11,6 +11,7 @@
 namespace fast {
 
 class View;
+class BoundingBox;
 
 class Renderer : public ProcessObject {
     public:

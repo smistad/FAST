@@ -1,5 +1,5 @@
-#ifndef IMAGE_IGTLINK_STREAMER_HPP
-#define IMAGE_IGTLINK_STREAMER_HPP
+#ifndef TRANSFORM_IGTLINK_STREAMER_HPP
+#define TRANSFORM_IGTLINK_STREAMER_HPP
 
 #include "SmartPointers.hpp"
 #include "Streamer.hpp"
@@ -9,9 +9,10 @@
 
 namespace fast {
 
-class ImageIGTLinkStreamer : public Streamer, public ProcessObject {
-    FAST_OBJECT(ImageIGTLinkStreamer)
+class TransformIGTLinkStreamer : public Streamer, public ProcessObject {
+    FAST_OBJECT(TransformIGTLinkStreamer)
     public:
+        void setTransformName(std::string transformName);
         void setConnectionAddress(std::string address);
         void setConnectionPort(uint port);
         void setStreamingMode(StreamingMode mode);
@@ -26,9 +27,9 @@ class ImageIGTLinkStreamer : public Streamer, public ProcessObject {
 
         void stop();
 
-        ~ImageIGTLinkStreamer();
+        ~TransformIGTLinkStreamer();
     private:
-        ImageIGTLinkStreamer();
+        TransformIGTLinkStreamer();
 
         // Update the streamer if any parameters have changed
         void execute();
@@ -47,6 +48,7 @@ class ImageIGTLinkStreamer : public Streamer, public ProcessObject {
         bool mHasReachedEnd;
         bool mStop;
 
+        std::string mTransformName;
         std::string mAddress;
         uint mPort;
 

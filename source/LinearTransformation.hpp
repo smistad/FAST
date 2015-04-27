@@ -1,11 +1,13 @@
 #ifndef LINEARTRANSFORMATION_HPP_
 #define LINEARTRANSFORMATION_HPP_
 
+#include "DataObject.hpp"
 #include "DataTypes.hpp"
 
 namespace fast {
 
-class LinearTransformation {
+class LinearTransformation : public DataObject {
+    FAST_OBJECT(LinearTransformation);
     public:
         LinearTransformation();
         Vector3f getTranslation() const;
@@ -17,6 +19,8 @@ class LinearTransformation {
         Vector3f operator*(Vector3f vertex) const;
         float& operator()(uint i, uint j);
         ~LinearTransformation() {};
+        void free(ExecutionDevice::pointer device) {};
+        void freeAll() {};
     private:
         Eigen::Transform<float, 3, Eigen::Affine> mTransform;
 };

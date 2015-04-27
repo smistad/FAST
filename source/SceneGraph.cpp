@@ -1,6 +1,5 @@
 #include "SceneGraph.hpp"
-#include "DataObject.hpp"
-
+#include "SpatialDataObject.hpp"
 
 namespace fast {
 
@@ -66,20 +65,20 @@ LinearTransformation SceneGraph::getLinearTransformationFromNode(
 }
 
 LinearTransformation SceneGraph::getLinearTransformationFromData(
-        DataObject::pointer data) {
+        SpatialDataObject::pointer data) {
     SceneGraphNode::pointer currentNode = data->getSceneGraphNode();
     return SceneGraph::getLinearTransformationFromNode(currentNode);
 }
 
-void SceneGraph::setParentNode(DataObject::pointer child,
-        DataObject::pointer parent) {
+void SceneGraph::setParentNode(SpatialDataObject::pointer child,
+        SpatialDataObject::pointer parent) {
     SceneGraphNode::pointer thisNode = child->getSceneGraphNode();
     SceneGraphNode::pointer parentNode = parent->getSceneGraphNode();
     thisNode->setParent(parentNode);
 }
 
 
-SceneGraphNode::pointer SceneGraph::insertParentNodeToData(DataObject::pointer child, LinearTransformation transform) {
+SceneGraphNode::pointer SceneGraph::insertParentNodeToData(SpatialDataObject::pointer child, LinearTransformation transform) {
     SceneGraphNode::pointer childNode = child->getSceneGraphNode();
     return insertParentNodeToNode(childNode, transform);
 }

@@ -1,4 +1,5 @@
 fast_add_subdirectories(
+    AddTransformation
     GaussianSmoothingFilter
     LaplacianOfGaussian
     SeededRegionGrowing

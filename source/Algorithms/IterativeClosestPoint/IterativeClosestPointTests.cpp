@@ -61,7 +61,7 @@ TEST_CASE("ICP on two point sets", "[fast][IterativeClosestPoint][icp]") {
     icp->update();
 
     // Validate result
-    importerA->getOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
+    importerA->getStaticOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
     Vector3f detectedRotation = icp->getOutputTransformation().getEulerAngles();
     Vector3f detectedTranslation = icp->getOutputTransformation().getTransform().translation();
 
@@ -111,7 +111,7 @@ TEST_CASE("ICP on two point sets where moving point set is larger than the fixed
     icp->update();
 
     // Validate result
-    importerA->getOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
+    importerA->getStaticOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
     Vector3f detectedRotation = icp->getOutputTransformation().getEulerAngles();
     Vector3f detectedTranslation = icp->getOutputTransformation().getTransform().translation();
 
@@ -163,7 +163,7 @@ TEST_CASE("ICP on two point sets which are already transformed by scene graph", 
     icp->update();
 
     // Validate result
-    importerA->getOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
+    importerA->getStaticOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
     Vector3f detectedRotation = icp->getOutputTransformation().getEulerAngles();
     Vector3f detectedTranslation = icp->getOutputTransformation().getTransform().translation();
 

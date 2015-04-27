@@ -1,13 +1,13 @@
 #ifndef POINT_SET_HPP_
 #define POINT_SET_HPP_
 
-#include "DataObject.hpp"
+#include "SpatialDataObject.hpp"
 #include "DynamicData.hpp"
 #include "PointSetAccess.hpp"
 
 namespace fast {
 
-class PointSet : public DataObject {
+class PointSet : public SpatialDataObject {
     FAST_OBJECT(PointSet)
     public:
         void create(std::vector<Vector3f> points);

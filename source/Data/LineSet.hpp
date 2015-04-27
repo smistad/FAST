@@ -1,13 +1,13 @@
 #ifndef LINESET_HPP_
 #define LINESET_HPP_
 
-#include "DataObject.hpp"
+#include "SpatialDataObject.hpp"
 #include "DynamicData.hpp"
 #include "LineSetAccess.hpp"
 
 namespace fast {
 
-class LineSet : public DataObject {
+class LineSet : public SpatialDataObject {
     FAST_OBJECT(LineSet);
     public:
         void create(std::vector<Vector3f> vertices, std::vector<Vector2ui> lines);

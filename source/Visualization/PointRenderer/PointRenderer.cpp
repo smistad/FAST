@@ -56,7 +56,7 @@ void PointRenderer::draw() {
 BoundingBox PointRenderer::getBoundingBox() {
     std::vector<Vector3f> coordinates;
     for(uint i = 0; i < getNrOfInputData(); i++) {
-        BoundingBox transformedBoundingBox = getInputData(i)->getTransformedBoundingBox();
+        BoundingBox transformedBoundingBox = getStaticInputData<PointSet>(i)->getTransformedBoundingBox();
         MatrixXf corners = transformedBoundingBox.getCorners();
         for(uint j = 0; j < 8; j++) {
             coordinates.push_back((Vector3f)corners.row(j));

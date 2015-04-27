@@ -1,6 +1,7 @@
 #ifndef IMAGE2D_HPP
 #define IMAGE2D_HPP
 
+#include "SpatialDataObject.hpp"
 #include "DynamicData.hpp"
 #include "DataTypes.hpp"
 #include "SmartPointers.hpp"
@@ -14,7 +15,7 @@
 #include <boost/unordered_set.hpp>
 namespace fast {
 
-class Image : public DataObject {
+class Image : public SpatialDataObject {
     FAST_OBJECT(Image)
     public:
         void createFromImage(Image::pointer image, ExecutionDevice::pointer device);

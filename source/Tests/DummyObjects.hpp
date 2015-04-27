@@ -2,14 +2,14 @@
 #define DUMMYOBJECTS_HPP_
 
 #include "ProcessObject.hpp"
-#include "DataObject.hpp"
+#include "SpatialDataObject.hpp"
 #include "DynamicData.hpp"
 #include <boost/unordered_map.hpp>
 
 namespace fast {
 
 // Create a dummy class that extends the DataObject which is an abstract class
-class DummyDataObject : public DataObject {
+class DummyDataObject : public SpatialDataObject {
     FAST_OBJECT(DummyDataObject)
     public:
         bool hasBeenFreed(ExecutionDevice::pointer device) {

@@ -1,7 +1,7 @@
 #ifndef SURFACE_HPP_
 #define SURFACE_HPP_
 
-#include "DataObject.hpp"
+#include "SpatialDataObject.hpp"
 #include "DynamicData.hpp"
 #include "Access.hpp"
 #include <vector>
@@ -11,7 +11,7 @@
 
 namespace fast {
 
-class Mesh : public DataObject {
+class Mesh : public SpatialDataObject {
     FAST_OBJECT(Mesh)
     public:
         void create(std::vector<Vector3f> vertices, std::vector<Vector3f> normals, std::vector<Vector3ui> triangles);
