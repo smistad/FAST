@@ -18,7 +18,14 @@ void AddTransformation::execute() {
     LinearTransformation::pointer transform = getStaticInputData<LinearTransformation>(1);
     LinearTransformation* T = transform.getPtr().get();
 
-    SceneGraph::insertParentNodeToData(image, *T);
+    if(image == mPrevious) {
+        // This has already been processed, remove parent first
+        SceneGraphNode::pointer dataNode = image->getSceneGraphNode();
+        dataNode->setTransformation(*T);
+    } else {
+        SceneGraph::insertParentNodeToData(image, *T);
+    }
+    mPrevious = image;
 
     DataObject::pointer output = getOutputData<Image>();
     if(output->isDynamicData()) {

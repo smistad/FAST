@@ -2,6 +2,7 @@
 #define ADD_TRANSFORMATION_HPP_
 
 #include "ProcessObject.hpp"
+#include "Image.hpp"
 
 namespace fast {
 
@@ -12,6 +13,8 @@ class AddTransformation : public ProcessObject {
     private:
         AddTransformation();
         void execute();
+
+        Image::pointer mPrevious;
 };
 
 }
