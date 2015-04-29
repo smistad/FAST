@@ -102,7 +102,7 @@ void DummyIGTLImageServer::streamImages() {
     }
 
     igtl::Socket::Pointer socket;
-    DynamicImage::pointer dataStream = mStreamer->getOutputData<DynamicData<Image> >();
+    DynamicData::pointer dataStream = mStreamer->getOutputData<DynamicData >();
     DummyProcessObject::pointer dummy = DummyProcessObject::New();
     while(true) {
         // Waiting for Connection

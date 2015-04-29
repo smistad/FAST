@@ -28,9 +28,6 @@ class PointSet : public DataObject {
         bool mIsBeingWrittenTo;
 };
 
-typedef DynamicData<PointSet> DynamicPointSet;
-
-
 } // end namespace fast
 
 #endif

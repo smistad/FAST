@@ -10,13 +10,12 @@
 #include "RuntimeMeasurementManager.hpp"
 #include "ExecutionDevice.hpp"
 #include "DeviceManager.hpp"
+#include "DynamicData.hpp"
 
 namespace fast {
 
 
 
-template <class T>
-class DynamicData;
 
 class ProcessObjectPort;
 
@@ -110,7 +109,6 @@ class ProcessObject : public virtual Object {
         boost::unordered_map<uint, ProcessObjectPort> mInputConnections;
         boost::unordered_map<uint, DataObject::pointer> mOutputData;
 
-        template <class T>
         friend class DynamicData;
         friend class ProcessObjectPort;
 };
@@ -154,7 +152,7 @@ DataObject::pointer ProcessObject::getOutputData(uint outputNumber) {
             ProcessObjectPort port = mInputConnections[inputNumber];
             DataObject::pointer objectDependsOn = port.getData();
             if(objectDependsOn->isDynamicData()) {
-                data = DynamicData<DataType>::New();
+                data = DynamicData::New();
                 data->setStreamer(objectDependsOn->getStreamer());
             } else {
                 data = DataType::New();
@@ -184,7 +182,7 @@ typename DataType::pointer ProcessObject::getStaticInputData(uint inputNumber) c
     DataObject::pointer data = port.getData();
     DataObject::pointer returnData;
     if(data->isDynamicData()) {
-        returnData = typename DynamicData<DataType>::pointer(data)->getNextFrame(mPtr);
+        returnData = typename DynamicData::pointer(data)->getNextFrame(mPtr);
     } else {
         returnData = data;
     }
@@ -205,7 +203,7 @@ typename DataType::pointer ProcessObject::getStaticOutputData(uint outputNumber)
     if(data->isDynamicData()) {
         // Create new frame
         returnData = DataType::New();
-        typename DynamicData<DataType>::pointer(data)->addFrame(returnData);
+        typename DynamicData::pointer(data)->addFrame(returnData);
     } else {
         returnData = data;
     }

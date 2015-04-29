@@ -45,12 +45,12 @@ void ImageFileStreamer::setSleepTime(uint milliseconds) {
 
 void ImageFileStreamer::setMaximumNumberOfFrames(uint nrOfFrames) {
     mMaximumNrOfFrames = nrOfFrames;
-    DynamicData<Image>::pointer data = getOutputData<DynamicData<Image> >();
+    DynamicData::pointer data = getOutputData<DynamicData>();
     data->setMaximumNumberOfFrames(nrOfFrames);
 }
 
 void ImageFileStreamer::execute() {
-    getOutputData<DynamicData<Image> >(0)->setStreamer(mPtr.lock());
+    getOutputData<DynamicData>(0)->setStreamer(mPtr.lock());
     if(mFilenameFormat == "")
         throw Exception("No filename format was given to the ImageFileStreamer");
     if(!mStreamIsStarted) {
@@ -97,7 +97,7 @@ void ImageFileStreamer::producerStream() {
             importer->setMainDevice(getMainDevice());
             importer->update();
             Image::pointer image = importer->getOutputData<Image>();
-            DynamicData<Image>::pointer ptr = getOutputData<DynamicData<Image> >();
+            DynamicData::pointer ptr = getOutputData<DynamicData >();
             if(ptr.isValid()) {
                 try {
                     ptr->addFrame(image);

@@ -27,8 +27,6 @@ class LineSet : public DataObject {
         bool mIsBeingWrittenTo;
 };
 
-typedef DynamicData<LineSet> DynamicLineSet;
-
 }
 
 

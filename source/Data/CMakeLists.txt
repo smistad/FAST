@@ -4,6 +4,7 @@ fast_add_sources(
     BoundingBox.hpp
     DataObject.cpp
     DataObject.hpp
+    DynamicData.cpp
     DynamicData.hpp
     Image.cpp
     Image.hpp

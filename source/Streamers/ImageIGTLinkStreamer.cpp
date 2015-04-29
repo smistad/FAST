@@ -28,7 +28,7 @@ void ImageIGTLinkStreamer::setStreamingMode(StreamingMode mode) {
 
 void ImageIGTLinkStreamer::setMaximumNumberOfFrames(uint nrOfFrames) {
     mMaximumNrOfFrames = nrOfFrames;
-    DynamicData<Image>::pointer data = getOutputData<DynamicData<Image> >();
+    DynamicData::pointer data = getOutputData<DynamicData >();
     data->setMaximumNumberOfFrames(nrOfFrames);
 }
 
@@ -178,7 +178,7 @@ void ImageIGTLinkStreamer::producerStream() {
                 << svoffset[0] << ", " << svoffset[1] << ", " << svoffset[2] << ")" << std::endl << std::endl;
                 */
                 Image::pointer image = createFASTImageFromMessage(imgMsg, getMainDevice());
-                DynamicData<Image>::pointer ptr = getOutputData<DynamicData<Image> >();
+                DynamicData::pointer ptr = getOutputData<DynamicData >();
                 try {
                     ptr->addFrame(image);
                 } catch(NoMoreFramesException &e) {
@@ -231,7 +231,7 @@ inline void stubStreamThread(ImageIGTLinkStreamer* streamer) {
 }
 
 void ImageIGTLinkStreamer::execute() {
-    getOutputData<DynamicData<Image> >()->setStreamer(mPtr.lock());
+    getOutputData<DynamicData >()->setStreamer(mPtr.lock());
     if(mAddress == "" || mPort == 0) {
         throw Exception("Must call setConnectionAddress and setConnectionPort before executing the ImageIGTLinkStreamer.");
     }

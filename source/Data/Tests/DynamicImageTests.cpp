@@ -27,19 +27,19 @@ class DummyStreamer : public Streamer, public ProcessObject {
 } // end namespace fast
 
 TEST_CASE("New dynamic image has size 0 and has not reached end", "[fast][DynamicData]") {
-    DynamicImage::pointer image = DynamicImage::New();
+    DynamicData::pointer image = DynamicData::New();
     CHECK(image->getSize() == 0);
 }
 
 TEST_CASE("Dynamic image can get and set streamer", "[fast][DynamicData]") {
-    DynamicImage::pointer image = DynamicImage::New();
+    DynamicData::pointer image = DynamicData::New();
     DummyStreamer::pointer streamer = DummyStreamer::New();
     image->setStreamer(streamer);
     CHECK(image->getStreamer() == streamer);
 }
 
 TEST_CASE("getNextFrame on dynamic image with size 0 returns exception", "[fast][DynamicData]") {
-    DynamicImage::pointer image = DynamicImage::New();
+    DynamicData::pointer image = DynamicData::New();
     DummyStreamer::pointer streamer = DummyStreamer::New();
     DummyProcessObject::pointer PO = DummyProcessObject::New();
     image->setStreamer(streamer);
@@ -47,7 +47,7 @@ TEST_CASE("getNextFrame on dynamic image with size 0 returns exception", "[fast]
 }
 
 TEST_CASE("Adding frames to dynamic image updates the timestamp of the dynamic image" "[fast][DynamicData]") {
-    DynamicImage::pointer image = DynamicImage::New();
+    DynamicData::pointer image = DynamicData::New();
     DummyStreamer::pointer streamer = DummyStreamer::New();
     streamer->setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     image->setStreamer(streamer);
@@ -58,7 +58,7 @@ TEST_CASE("Adding frames to dynamic image updates the timestamp of the dynamic i
 }
 
 TEST_CASE("Adding frames to dynamic image does not change size for streaming mode NEWEST_FRAME_ONLY", "[fast][DynamicData]") {
-    DynamicImage::pointer image = DynamicImage::New();
+    DynamicData::pointer image = DynamicData::New();
     DummyStreamer::pointer streamer = DummyStreamer::New();
     streamer->setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     image->setStreamer(streamer);
@@ -72,7 +72,7 @@ TEST_CASE("Adding frames to dynamic image does not change size for streaming mod
 }
 
 TEST_CASE("Adding frames to dynamic image changes size for streaming mode PROCESS_ALL", "[fast][DynamicData]") {
-    DynamicImage::pointer image = DynamicImage::New();
+    DynamicData::pointer image = DynamicData::New();
     DummyStreamer::pointer streamer = DummyStreamer::New();
     streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     image->setStreamer(streamer);
@@ -86,7 +86,7 @@ TEST_CASE("Adding frames to dynamic image changes size for streaming mode PROCES
 }
 
 TEST_CASE("Adding frames to dynamic image changes size for streaming mode STORE_ALL", "[fast][DynamicData]") {
-    DynamicImage::pointer image = DynamicImage::New();
+    DynamicData::pointer image = DynamicData::New();
     DummyStreamer::pointer streamer = DummyStreamer::New();
     streamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
     image->setStreamer(streamer);
@@ -100,7 +100,7 @@ TEST_CASE("Adding frames to dynamic image changes size for streaming mode STORE_
 }
 
 TEST_CASE("Dynamic image with streaming mode NEWEST_FRAME_ONLY always keeps the last frame", "[fast][DynamicData]") {
-    DynamicImage::pointer image = DynamicImage::New();
+    DynamicData::pointer image = DynamicData::New();
     DummyStreamer::pointer streamer = DummyStreamer::New();
     DummyProcessObject::pointer PO = DummyProcessObject::New();
     streamer->setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
@@ -114,7 +114,7 @@ TEST_CASE("Dynamic image with streaming mode NEWEST_FRAME_ONLY always keeps the 
 }
 
 TEST_CASE("Getting next frame changes size with streaming mode PROCESS_ALL", "[fast][DynamicData]") {
-    DynamicImage::pointer image = DynamicImage::New();
+    DynamicData::pointer image = DynamicData::New();
     DummyStreamer::pointer streamer = DummyStreamer::New();
     DummyProcessObject::pointer PO = DummyProcessObject::New();
     streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
@@ -132,7 +132,7 @@ TEST_CASE("Getting next frame changes size with streaming mode PROCESS_ALL", "[f
 }
 
 TEST_CASE("Getting next frame does not change size with streaming mode STORE_ALL", "[fast][DynamicData]") {
-    DynamicImage::pointer image = DynamicImage::New();
+    DynamicData::pointer image = DynamicData::New();
     DummyStreamer::pointer streamer = DummyStreamer::New();
     DummyProcessObject::pointer PO = DummyProcessObject::New();
     streamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
@@ -150,7 +150,7 @@ TEST_CASE("Getting next frame does not change size with streaming mode STORE_ALL
 }
 
 TEST_CASE("Dynamic image with streaming mode NEWEST_FRAME_ONLY always returns the last frame inserted", "[fast][DynamicData]") {
-    DynamicImage::pointer image = DynamicImage::New();
+    DynamicData::pointer image = DynamicData::New();
     DummyStreamer::pointer streamer = DummyStreamer::New();
     DummyProcessObject::pointer PO = DummyProcessObject::New();
     streamer->setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
@@ -168,7 +168,7 @@ TEST_CASE("Dynamic image with streaming mode NEWEST_FRAME_ONLY always returns th
 }
 
 TEST_CASE("Dynamic image with streaming mode PROCESS_ALL returns the frames in the order they were added", "[fast][DynamicData]") {
-    DynamicImage::pointer image = DynamicImage::New();
+    DynamicData::pointer image = DynamicData::New();
     DummyStreamer::pointer streamer = DummyStreamer::New();
     DummyProcessObject::pointer PO = DummyProcessObject::New();
     streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
@@ -186,7 +186,7 @@ TEST_CASE("Dynamic image with streaming mode PROCESS_ALL returns the frames in t
 }
 
 TEST_CASE("Dynamic image with streaming mode STORE_ALL returns the frames in the order they were added", "[fast][DynamicData]") {
-    DynamicImage::pointer image = DynamicImage::New();
+    DynamicData::pointer image = DynamicData::New();
     DummyStreamer::pointer streamer = DummyStreamer::New();
     DummyProcessObject::pointer PO = DummyProcessObject::New();
     streamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
@@ -204,7 +204,7 @@ TEST_CASE("Dynamic image with streaming mode STORE_ALL returns the frames in the
 }
 
 TEST_CASE("Dynamic image with streaming mode PROCESS_ALL throws exception when all frames have been retrieved", "[fast][DynamicData]") {
-    DynamicImage::pointer image = DynamicImage::New();
+    DynamicData::pointer image = DynamicData::New();
     DummyStreamer::pointer streamer = DummyStreamer::New();
     DummyProcessObject::pointer PO = DummyProcessObject::New();
     streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
@@ -223,7 +223,7 @@ TEST_CASE("Dynamic image with streaming mode PROCESS_ALL throws exception when a
 }
 
 TEST_CASE("Dynamic image with streaming mode STORE_ALL throws exception when all frames have been retrieved", "[fast][DynamicData]") {
-    DynamicImage::pointer image = DynamicImage::New();
+    DynamicData::pointer image = DynamicData::New();
     DummyStreamer::pointer streamer = DummyStreamer::New();
     DummyProcessObject::pointer PO = DummyProcessObject::New();
     streamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
@@ -242,7 +242,7 @@ TEST_CASE("Dynamic image with streaming mode STORE_ALL throws exception when all
 }
 
 TEST_CASE("Dynamic image with streaming mode NEWEST_FRAME_ONLY does not update timestamp after getNextFrame is called", "[fast][DynamicData]") {
-    DynamicImage::pointer image = DynamicImage::New();
+    DynamicData::pointer image = DynamicData::New();
     DummyStreamer::pointer streamer = DummyStreamer::New();
     DummyProcessObject::pointer PO = DummyProcessObject::New();
     streamer->setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
@@ -260,7 +260,7 @@ TEST_CASE("Dynamic image with streaming mode NEWEST_FRAME_ONLY does not update t
 }
 
 TEST_CASE("Dynamic image with streaming mode PROCESS_ALL does update timestamp after getNextFrame is called and there is more than one frame left", "[fast][DynamicData]") {
-    DynamicImage::pointer image = DynamicImage::New();
+    DynamicData::pointer image = DynamicData::New();
     DummyStreamer::pointer streamer = DummyStreamer::New();
     DummyProcessObject::pointer PO = DummyProcessObject::New();
     streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
@@ -284,7 +284,7 @@ TEST_CASE("Dynamic image with streaming mode PROCESS_ALL does update timestamp a
 }
 
 TEST_CASE("Dynamic image with streaming mode STORE_ALL does update timestamp after getNextFrame is called and it has not reached the end", "[fast][DynamicData]") {
-    DynamicImage::pointer image = DynamicImage::New();
+    DynamicData::pointer image = DynamicData::New();
     DummyStreamer::pointer streamer = DummyStreamer::New();
     DummyProcessObject::pointer PO = DummyProcessObject::New();
     streamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
@@ -308,7 +308,7 @@ TEST_CASE("Dynamic image with streaming mode STORE_ALL does update timestamp aft
 }
 
 TEST_CASE("Dynamic image with streaming mode NEWEST_FRAME_ONLY is marked as has reached end when streamer is marked as has reached end", "[fast][DynamicData]") {
-    DynamicImage::pointer image = DynamicImage::New();
+    DynamicData::pointer image = DynamicData::New();
     DummyStreamer::pointer streamer = DummyStreamer::New();
     streamer->setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     image->setStreamer(streamer);
@@ -320,7 +320,7 @@ TEST_CASE("Dynamic image with streaming mode NEWEST_FRAME_ONLY is marked as has 
 
 TEST_CASE("Dynamic image with streaming mode PROCESS_ALL is marked as has reached end when streamer is marked as has reached end and there are no more frames left", "[fast][DynamicData]") {
     {
-        DynamicImage::pointer image = DynamicImage::New();
+        DynamicData::pointer image = DynamicData::New();
         DummyStreamer::pointer streamer = DummyStreamer::New();
         DummyProcessObject::pointer PO = DummyProcessObject::New();
         streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
@@ -339,7 +339,7 @@ TEST_CASE("Dynamic image with streaming mode PROCESS_ALL is marked as has reache
         CHECK(image->hasReachedEnd() == true);
     }
     {
-        DynamicImage::pointer image = DynamicImage::New();
+        DynamicData::pointer image = DynamicData::New();
         DummyStreamer::pointer streamer = DummyStreamer::New();
         DummyProcessObject::pointer PO = DummyProcessObject::New();
         streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
@@ -361,7 +361,7 @@ TEST_CASE("Dynamic image with streaming mode PROCESS_ALL is marked as has reache
 
 TEST_CASE("Dynamic image with streaming mode STORE_ALL is marked as has reached end when streamer is marked as has reached end and there are no more frames left", "[fast][DynamicData]") {
     {
-        DynamicImage::pointer image = DynamicImage::New();
+        DynamicData::pointer image = DynamicData::New();
         DummyStreamer::pointer streamer = DummyStreamer::New();
         DummyProcessObject::pointer PO = DummyProcessObject::New();
         streamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
@@ -381,7 +381,7 @@ TEST_CASE("Dynamic image with streaming mode STORE_ALL is marked as has reached 
         CHECK(image->hasReachedEnd() == true);
     }
     {
-        DynamicImage::pointer image = DynamicImage::New();
+        DynamicData::pointer image = DynamicData::New();
         DummyStreamer::pointer streamer = DummyStreamer::New();
         DummyProcessObject::pointer PO = DummyProcessObject::New();
         streamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
@@ -403,7 +403,7 @@ TEST_CASE("Dynamic image with streaming mode STORE_ALL is marked as has reached 
 }
 
 TEST_CASE("DynamicData with more than one consumer object returns correct frame with PROCESS_ALL", "[fast][DynamicData]") {
-    DynamicImage::pointer image = DynamicImage::New();
+    DynamicData::pointer image = DynamicData::New();
     DummyStreamer::pointer streamer = DummyStreamer::New();
     streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     image->setStreamer(streamer);
@@ -442,7 +442,7 @@ TEST_CASE("DynamicData with more than one consumer object returns correct frame 
 }
 
 TEST_CASE("DynamicData with more than one consumer object returns correct frame with PROCESS_ALL and maximum nr of frames is set", "[fast][DynamicData]") {
-    DynamicImage::pointer image = DynamicImage::New();
+    DynamicData::pointer image = DynamicData::New();
     DummyStreamer::pointer streamer = DummyStreamer::New();
     streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     image->setStreamer(streamer);
@@ -482,7 +482,7 @@ TEST_CASE("DynamicData with more than one consumer object returns correct frame 
 }
 
 TEST_CASE("DynamicData with more than one consumer object returns correct frame with STORE_ALL", "[fast][DynamicData]") {
-    DynamicImage::pointer image = DynamicImage::New();
+    DynamicData::pointer image = DynamicData::New();
     DummyStreamer::pointer streamer = DummyStreamer::New();
     streamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
     image->setStreamer(streamer);
@@ -511,7 +511,7 @@ TEST_CASE("DynamicData with more than one consumer object returns correct frame 
 }
 
 TEST_CASE("DynamicData with more than one consumer object returns correct frame with NEWEST_ONLY", "[fast][DynamicData]") {
-    DynamicImage::pointer image = DynamicImage::New();
+    DynamicData::pointer image = DynamicData::New();
     DummyStreamer::pointer streamer = DummyStreamer::New();
     streamer->setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     image->setStreamer(streamer);

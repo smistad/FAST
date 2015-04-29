@@ -48,8 +48,6 @@ class Mesh : public DataObject {
         bool isAnyDataBeingAccessed();
 };
 
-typedef DynamicData<Mesh> DynamicMesh;
-
 } // end namespace fast
 
 
