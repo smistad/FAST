@@ -46,6 +46,7 @@ void ImageImporter::execute() {
 ImageImporter::ImageImporter() {
 	mFilename = "";
 	mIsModified = true;
+    createOutputPort<Image>(0, OUTPUT_STATIC);
 }
 
 void ImageImporter::setFilename(std::string filename) {

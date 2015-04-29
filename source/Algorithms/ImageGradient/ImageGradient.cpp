@@ -4,7 +4,8 @@
 namespace fast {
 
 ImageGradient::ImageGradient() {
-    setOutputDataDynamicDependsOnInputData(0, 0);
+    createInputPort<Image>(0);
+    createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
 }
 
 void ImageGradient::execute() {

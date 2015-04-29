@@ -38,12 +38,15 @@ void ImageRenderer::execute() {
 
 void ImageRenderer::addInputConnection(ProcessObjectPort port) {
     uint nr = getNrOfInputData();
+    if(nr > 0)
+        createInputPort<Image>(nr);
     releaseInputAfterExecute(nr, false);
     setInputConnection(nr, port);
 }
 
 
 ImageRenderer::ImageRenderer() : Renderer() {
+    createInputPort<Image>(0, false);
     mIsModified = false;
     mDoTransformations = true;
 }

@@ -18,7 +18,8 @@ void BinaryThresholding::setUpperThreshold(float threshold) {
 BinaryThresholding::BinaryThresholding() {
     mLowerThresholdSet = false;
     mUpperThresholdSet = false;
-    setOutputDataDynamicDependsOnInputData(0, 0);
+    createInputPort<Image>(0);
+    createOutputPort<Segmentation>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
 }
 
 void BinaryThresholding::execute() {

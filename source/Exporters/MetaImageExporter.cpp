@@ -13,6 +13,7 @@ void MetaImageExporter::setFilename(std::string filename) {
 }
 
 MetaImageExporter::MetaImageExporter() {
+    createInputPort<Image>(0);
     mFilename = "";
     mIsModified = true;
     mUseCompression = false;

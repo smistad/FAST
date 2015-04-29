@@ -19,6 +19,9 @@
         virtual std::string getNameOfClass() const {            \
             return std::string(#className);                     \
         };                                                      \
+        static std::string getStaticNameOfClass() {             \
+            return std::string(#className);                     \
+        };                                                      \
     private:                                                    \
         void setPtr(className::pointer ptr) {                   \
             mPtr = ptr;                                         \

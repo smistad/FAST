@@ -5,6 +5,7 @@
 #include "ImageRenderer.hpp"
 #include "SimpleWindow.hpp"
 #include "DeviceManager.hpp"
+#include "Segmentation.hpp"
 
 namespace fast {
 
@@ -23,7 +24,7 @@ TEST_CASE("2D Seeded region growing on OpenCL device", "[fast][SeededRegionGrowi
         algorithm->setIntensityRange(0.1,1.0);
         algorithm->setMainDevice(devices[i]);
         algorithm->update();
-        Image::pointer result = algorithm->getOutputData<Image>();
+        Segmentation::pointer result = algorithm->getOutputData<Segmentation>();
 
         // Temporary check of how many pixels where segmented
         // Should be replaced by result matching
@@ -54,7 +55,7 @@ TEST_CASE("3D Seeded region growing on OpenCL device", "[fast][SeededRegionGrowi
         algorithm->setIntensityRange(50, 255);
         algorithm->setMainDevice(devices[i]);
         algorithm->update();
-        Image::pointer result = algorithm->getOutputData<Image>();
+        Segmentation::pointer result = algorithm->getOutputData<Segmentation>();
 
         // Temporary check of how many pixels where segmented
         // Should be replaced by result matching
@@ -79,7 +80,7 @@ TEST_CASE("3D Seeded region growing on Host", "[fast][SeededRegionGrowing]") {
     algorithm->setIntensityRange(50, 255);
     algorithm->setMainDevice(Host::getInstance());
     algorithm->update();
-    Image::pointer result = algorithm->getOutputData<Image>();
+    Segmentation::pointer result = algorithm->getOutputData<Segmentation>();
 
     // Temporary check of how many pixels where segmented
     // Should be replaced by result matching

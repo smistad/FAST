@@ -12,6 +12,7 @@ void ImageExporter::setFilename(std::string filename) {
 }
 
 ImageExporter::ImageExporter() {
+    createInputPort<Image>(0);
     mFilename = "";
     mIsModified = true;
 }

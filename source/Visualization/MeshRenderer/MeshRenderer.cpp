@@ -18,6 +18,8 @@ namespace fast {
 
 void MeshRenderer::addInputConnection(ProcessObjectPort port) {
     uint nr = getNrOfInputData();
+    if(nr > 0)
+        createInputPort<Mesh>(nr);
     releaseInputAfterExecute(nr, false);
     setInputConnection(nr, port);
     mIsModified = true;
@@ -33,6 +35,7 @@ void MeshRenderer::addInputConnection(ProcessObjectPort port, Color color, float
 MeshRenderer::MeshRenderer() : Renderer() {
     mDefaultOpacity = 1;
     mDefaultColor = Color::Green();
+    createInputPort<Mesh>(0, false);
 }
 
 void MeshRenderer::execute() {

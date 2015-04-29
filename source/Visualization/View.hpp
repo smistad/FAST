@@ -35,9 +35,12 @@ class View : public QGLWidget, public ProcessObject {
         ~View();
         void recalculateCamera();
 
-		 Vector3f cameraPosition;
-		 Vector3f rotationPoint;
-		 Vector2f rotation;
+		Vector3f cameraPosition;
+		Vector3f rotationPoint;
+		Vector2f rotation;
+		std::string getNameOfClass() const {
+		    return "View";
+		};
         View();
     private:
 

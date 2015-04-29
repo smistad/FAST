@@ -259,5 +259,12 @@ bool ProcessObjectPort::operator==(const ProcessObjectPort &other) const {
     return mPortID == other.getPortID() && mProcessObject == other.getProcessObject();
 }
 
+bool ProcessObject::inputPortExists(uint portID) const {
+    return mInputPortType.count(portID) > 0;
+}
+
+bool ProcessObject::outputPortExists(uint portID) const {
+    return mOutputPortType.count(portID) > 0;
+}
 
 } // namespace fast

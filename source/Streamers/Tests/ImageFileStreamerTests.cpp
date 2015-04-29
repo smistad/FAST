@@ -40,7 +40,7 @@ TEST_CASE("ImageFileStreamer streaming to host with streaming mode NEWEST set", 
     mhdStreamer->setMainDevice(Host::getInstance());
     CHECK_NOTHROW(
     mhdStreamer->update(); // this starts the streamer
-    DynamicData::pointer image = mhdStreamer->getOutputData<DynamicData >(0);
+    DynamicData::pointer image = mhdStreamer->getOutputData<Image>(0);
     unsigned long currentTimestamp = image->getTimestamp();
     while(!image->hasReachedEnd()) {
         mhdStreamer->update();
@@ -62,7 +62,7 @@ TEST_CASE("ImageFileStreamer streaming to host with streaming mode PROCESS_ALL s
     mhdStreamer->setMainDevice(Host::getInstance());
     CHECK_NOTHROW(
     mhdStreamer->update(); // this starts the streamer
-    DynamicData::pointer image = mhdStreamer->getOutputData<DynamicData >(0);
+    DynamicData::pointer image = mhdStreamer->getOutputData<Image>(0);
     unsigned long currentTimestamp = image->getTimestamp();
     while(!image->hasReachedEnd()) {
         mhdStreamer->update();
@@ -84,7 +84,7 @@ TEST_CASE("ImageFileStreamer streaming to host with streaming mode STORE_ALL set
     mhdStreamer->setMainDevice(Host::getInstance());
     CHECK_NOTHROW(
     mhdStreamer->update(); // this starts the streamer
-    DynamicData::pointer image = mhdStreamer->getOutputData<DynamicData >(0);
+    DynamicData::pointer image = mhdStreamer->getOutputData<Image>(0);
     unsigned long currentTimestamp = image->getTimestamp();
     while(!image->hasReachedEnd()) {
         mhdStreamer->update();
@@ -131,7 +131,7 @@ TEST_CASE("ImageFileStreamer with streaming mode PROCESS_ALL and maximum number 
     mhdStreamer->setMaximumNumberOfFrames(4);
     mhdStreamer->setMainDevice(Host::getInstance());
     mhdStreamer->update(); // this starts the streamer
-    DynamicData::pointer image = mhdStreamer->getOutputData<DynamicData >(0);
+    DynamicData::pointer image = mhdStreamer->getOutputData<Image>(0);
     unsigned long currentTimestamp = image->getTimestamp();
     // Must make this thread sleep a little so that streamer will get a chance to import data
     boost::this_thread::sleep(boost::posix_time::milliseconds(500));
@@ -147,7 +147,7 @@ TEST_CASE("ImageFileStreamer with streaming mode STORE_ALL and maximum number of
     mhdStreamer->setMainDevice(Host::getInstance());
     CHECK_NOTHROW(
         mhdStreamer->update(); // this starts the streamer
-        DynamicData::pointer image = mhdStreamer->getOutputData<DynamicData >(0);
+        DynamicData::pointer image = mhdStreamer->getOutputData<Image>(0);
         unsigned long currentTimestamp = image->getTimestamp();
         while(!image->hasReachedEnd()) {
             mhdStreamer->update();
@@ -171,7 +171,7 @@ TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode NEWE
     mhdStreamer->setMainDevice(device);
     CHECK_NOTHROW(
     mhdStreamer->update(); // this starts the streamer
-    DynamicData::pointer image = mhdStreamer->getOutputData<DynamicData >(0);
+    DynamicData::pointer image = mhdStreamer->getOutputData<Image>(0);
     unsigned long currentTimestamp = image->getTimestamp();
     while(!image->hasReachedEnd()) {
         mhdStreamer->update();
@@ -195,7 +195,7 @@ TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode PROC
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     CHECK_NOTHROW(
     mhdStreamer->update(); // this starts the streamer
-    DynamicData::pointer image = mhdStreamer->getOutputData<DynamicData >(0);
+    DynamicData::pointer image = mhdStreamer->getOutputData<Image>(0);
     unsigned long currentTimestamp = image->getTimestamp();
     while(!image->hasReachedEnd()) {
         mhdStreamer->update();
@@ -219,7 +219,7 @@ TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode STOR
     mhdStreamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
     CHECK_NOTHROW(
     mhdStreamer->update(); // this starts the streamer
-    DynamicData::pointer image = mhdStreamer->getOutputData<DynamicData >(0);
+    DynamicData::pointer image = mhdStreamer->getOutputData<Image>(0);
     unsigned long currentTimestamp = image->getTimestamp();
     while(!image->hasReachedEnd()) {
         mhdStreamer->update();

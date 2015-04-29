@@ -12,6 +12,7 @@ void ImageFileImporter::setFilename(std::string filename) {
 
 ImageFileImporter::ImageFileImporter() {
     mFilename = "";
+    createOutputPort<Image>(0, OUTPUT_STATIC);
 }
 
 inline bool matchExtension(std::string extension, std::string extension2) {

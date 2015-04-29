@@ -13,6 +13,7 @@ void VTKMeshFileImporter::setFilename(std::string filename) {
 VTKMeshFileImporter::VTKMeshFileImporter() {
     mFilename = "";
     mIsModified = true;
+    createOutputPort<Mesh>(0, OUTPUT_STATIC);
 }
 
 inline bool gotoLineWithString(std::ifstream &file, std::string searchFor) {

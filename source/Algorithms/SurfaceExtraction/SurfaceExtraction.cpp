@@ -359,7 +359,8 @@ SurfaceExtraction::SurfaceExtraction() {
     mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
     mThreshold = 0.0f;
     mHPSize = 0;
-    setOutputDataDynamicDependsOnInputData(0, 0);
+    createInputPort<Image>(0);
+    createOutputPort<Mesh>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
 }
 
 

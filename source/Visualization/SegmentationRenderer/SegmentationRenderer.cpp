@@ -6,6 +6,8 @@ namespace fast {
 
 void SegmentationRenderer::addInputConnection(ProcessObjectPort port) {
     uint nr = getNrOfInputData();
+    if(nr > 0)
+        createInputPort<Segmentation>(0);
     releaseInputAfterExecute(nr, false);
     setInputConnection(nr, port);
 }
@@ -41,6 +43,7 @@ void SegmentationRenderer::setFillArea(bool fillArea) {
 }
 
 SegmentationRenderer::SegmentationRenderer() {
+    createInputPort<Segmentation>(0, false);
     mIsModified = false;
     mDoTransformations = true;
     mColorsModified = true;

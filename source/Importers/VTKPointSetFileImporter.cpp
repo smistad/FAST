@@ -13,6 +13,7 @@ void VTKPointSetFileImporter::setFilename(std::string filename) {
 VTKPointSetFileImporter::VTKPointSetFileImporter() {
     mFilename = "";
     mIsModified = true;
+    createOutputPort<PointSet>(0, OUTPUT_STATIC);
 }
 
 inline bool gotoLineWithString(std::ifstream &file, std::string searchFor) {

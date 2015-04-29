@@ -197,6 +197,7 @@ void SliceRenderer::recompileOpenCLCode(Image::pointer input) {
 
 
 SliceRenderer::SliceRenderer() : Renderer() {
+    createInputPort<Image>(0, false);
     mTextureIsCreated = false;
     mIsModified = true;
     mSlicePlane = PLANE_Z;

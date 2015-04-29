@@ -69,6 +69,7 @@ PointRenderer::PointRenderer() {
     mDefaultPointSize = 10;
     mDefaultColor = Color::Red();
     mDefaultDrawOnTop = false;
+    createInputPort<PointSet>(0, false);
 }
 
 void PointRenderer::execute() {
@@ -77,6 +78,8 @@ void PointRenderer::execute() {
 
 void PointRenderer::addInputConnection(ProcessObjectPort port) {
     uint nr = getNrOfInputData();
+    if(nr > 0)
+        createInputPort<PointSet>(nr);
     releaseInputAfterExecute(nr, false);
     setInputConnection(nr, port);
 }
