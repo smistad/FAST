@@ -16,6 +16,9 @@
                                                                 \
             return smartPtr;                                    \
         }                                                       \
+        virtual std::string getNameOfClass() const {            \
+            return std::string(#className);                     \
+        };                                                      \
     private:                                                    \
         void setPtr(className::pointer ptr) {                   \
             mPtr = ptr;                                         \

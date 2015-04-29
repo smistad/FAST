@@ -15,7 +15,8 @@
 namespace fast {
 
 
-
+//enum InputDataType { INPUT_STATIC, INPUT_DYNAMIC, INPUT_STATIC_OR_DYNAMIC };
+//enum OutputDataType { OUTPUT_STATIC, OUTPUT_DYNAMIC, OUTPUT_DEPENDS_ON_INPUT };
 
 class ProcessObjectPort;
 

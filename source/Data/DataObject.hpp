@@ -11,7 +11,6 @@
 
 namespace fast {
 
-
 class DataObject : public Object {
     public:
         DataObject();
@@ -27,6 +26,7 @@ class DataObject : public Object {
         SceneGraphNode::pointer getSceneGraphNode() const;
         void setStreamer(Streamer::pointer streamer);
         Streamer::pointer getStreamer();
+        virtual std::string getNameOfClass() const = 0;
     protected:
         virtual void free(ExecutionDevice::pointer device) = 0;
         virtual void freeAll() = 0;
