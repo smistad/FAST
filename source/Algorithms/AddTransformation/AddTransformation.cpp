@@ -10,29 +10,30 @@ void AddTransformation::setTransformationInputConnection(ProcessObjectPort port)
 }
 
 AddTransformation::AddTransformation() {
-    setOutputDataDynamicDependsOnInputData(0,0);
+    createInputPort<SpatialDataObject>(0);
+    createInputPort<LinearTransformation>(1);
+    createOutputPort<SpatialDataObject>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
 }
 
 void AddTransformation::execute() {
-    Image::pointer image = getStaticInputData<Image>(0);
+    SpatialDataObject::pointer data = getStaticInputData<SpatialDataObject>(0);
     LinearTransformation::pointer transform = getStaticInputData<LinearTransformation>(1);
     LinearTransformation* T = transform.getPtr().get();
+    SceneGraphNode::pointer dataNode = data->getSceneGraphNode();
 
-    if(image == mPrevious) {
-        // This has already been processed, remove parent first
-        SceneGraphNode::pointer dataNode = image->getSceneGraphNode();
-        dataNode->setTransformation(*T);
+    if(data == mPrevious) {
+        // This has already been processed, just change the transformation
+        dataNode->getParent()->setTransformation(*T);
     } else {
-        SceneGraph::insertParentNodeToData(image, *T);
+        // Add new node
+        SceneGraphNode::pointer newNode = SceneGraphNode::New();
+        newNode->setParent(dataNode->getParent());
+        newNode->setTransformation(*T);
+        dataNode->setParent(newNode);
     }
-    mPrevious = image;
+    mPrevious = data;
 
-    DataObject::pointer output = getOutputData<Image>();
-    if(output->isDynamicData()) {
-        DynamicImage::pointer(output)->addFrame(image);
-    } else {
-        throw Exception("Not implemented yet.");
-    }
+    setStaticOutputData(0, data);
 }
 
 }

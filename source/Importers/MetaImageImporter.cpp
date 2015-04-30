@@ -17,6 +17,7 @@ void MetaImageImporter::setFilename(std::string filename) {
 MetaImageImporter::MetaImageImporter() {
     mFilename = "";
     mIsModified = true;
+    createOutputPort<Image>(0, OUTPUT_STATIC);
 }
 
 std::vector<std::string> stringSplit(std::string str, std::string delimiter) {

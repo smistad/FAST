@@ -8,6 +8,7 @@ void VTKImageImporter::setInput(vtkSmartPointer<vtkImageData> image) {
 }
 
 VTKImageImporter::VTKImageImporter() {
+    createOutputPort<Image>(0, OUTPUT_STATIC);
 }
 
 template <class T>

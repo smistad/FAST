@@ -16,6 +16,12 @@
                                                                 \
             return smartPtr;                                    \
         }                                                       \
+        virtual std::string getNameOfClass() const {            \
+            return std::string(#className);                     \
+        };                                                      \
+        static std::string getStaticNameOfClass() {             \
+            return std::string(#className);                     \
+        };                                                      \
     private:                                                    \
         void setPtr(className::pointer ptr) {                   \
             mPtr = ptr;                                         \
@@ -76,14 +82,14 @@ class SharedPointer {
         SharedPointer(SharedPointer<U> object) {
             boost::shared_ptr<T> ptr = boost::dynamic_pointer_cast<T>(object.getPtr());
             if(ptr == NULL)
-                throw Exception("Illegal cast");
+                throw Exception("Illegal cast from " + U::getStaticNameOfClass() + " to " + T::getStaticNameOfClass());
             mSmartPtr = boost::shared_ptr<T>(ptr);
         }
         template <class U>
         SharedPointer(WeakPointer<U> object) {
             boost::shared_ptr<T> ptr = boost::dynamic_pointer_cast<T>(object.getPtr().lock());
             if(ptr == NULL)
-                throw Exception("Illegal cast");
+                throw Exception("Illegal cast from " + U::getStaticNameOfClass() + " to " + T::getStaticNameOfClass());
             mSmartPtr = boost::shared_ptr<T>(ptr);
         }
 
@@ -91,7 +97,7 @@ class SharedPointer {
         SharedPointer<T> &operator=(const SharedPointer<U> &other) {
             boost::shared_ptr<T> ptr = boost::dynamic_pointer_cast<T>(other.getPtr());
             if(ptr == NULL)
-                throw Exception("Illegal cast");
+                throw Exception("Illegal cast from " + U::getStaticNameOfClass() + " to " + T::getStaticNameOfClass());
             mSmartPtr = boost::shared_ptr<T>(ptr);
             return *this;
         }

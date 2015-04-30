@@ -12,6 +12,9 @@ class ExecutionDevice : public Object {
         typedef SharedPointer<ExecutionDevice> pointer;
         bool isHost() {return mIsHost;};
         virtual ~ExecutionDevice() {};
+        static std::string getStaticNameOfClass() {
+            return "ExecutionDevice";
+        }
     protected:
         bool mIsHost;
 
@@ -24,6 +27,9 @@ class Host : public ExecutionDevice {
         static Host::pointer getInstance() {
             static Host::pointer instance = Host::New();
             return instance;
+        }
+        static std::string getStaticNameOfClass() {
+            return "Host";
         }
     // Declare factory method New private
     private:

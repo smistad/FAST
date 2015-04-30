@@ -8,6 +8,7 @@
 #include "ImageRenderer.hpp"
 #include "HelperFunctions.hpp"
 #include "SimpleWindow.hpp"
+#include "Utility.hpp"
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
@@ -49,7 +50,7 @@ void View::removeAllRenderers() {
     mNonVolumeRenderers.clear();
 }
 
-View::View() {
+View::View() : mViewingPlane(Plane::Axial()) {
     zNear = 0.1;
     zFar = 1000;
     fieldOfViewY = 45;
@@ -67,6 +68,8 @@ View::View() {
     connect(timer,SIGNAL(timeout()),this,SLOT(update()));
 
     mPBO = 0;
+    mPosX2D = 0;
+    mPosY2D = 0;
 
 	NonVolumesTurn=true;
 
@@ -424,6 +427,15 @@ void View::initializeGL() {
             // Derive a good spacing for the PBO
             // Find longest edge of the BB
             float longestEdgeDistance = 0;
+            BoundingBox box = mNonVolumeRenderers[0]->getBoundingBox();
+            Vector3f corner = box.getCorners().row(0);
+            Vector3f min, max;
+            min[0] = corner[0];
+            max[0] = corner[0];
+            min[1] = corner[1];
+            max[1] = corner[1];
+            min[2] = corner[2];
+            max[2] = corner[2];
             for(int i = 0; i < mNonVolumeRenderers.size(); i++) {
                 BoundingBox box = mNonVolumeRenderers[i]->getBoundingBox();
                 MatrixXf corners = box.getCorners();
@@ -433,12 +445,99 @@ void View::initializeGL() {
                     if((corner-boxOrigo).norm() > longestEdgeDistance) {
                         longestEdgeDistance = (corner-boxOrigo).norm();
                     }
+                    for (uint k = 0; k < 3; k++) {
+                        if (corners(j, k) < min[k])
+                            min[k] = corners(j, k);
+
+                        if (corners(j, k) > max[k])
+                            max[k] = corners(j, k);
+                    }
                 }
             }
 
-            mPBOspacing = longestEdgeDistance / width();
+            mPBOspacing = longestEdgeDistance / std::min(width(), height());
             std::cout << "PBO spacing set to " << mPBOspacing << std::endl;
 
+            // Get the centroid of the bounding boxes
+            if(!mViewingPlane.hasPosition()) {
+                Vector3f centroid;
+                centroid[0] = max[0] - (max[0] - min[0]) * 0.5;
+                centroid[1] = max[1] - (max[1] - min[1]) * 0.5;
+                centroid[2] = max[2] - (max[2] - min[2]) * 0.5;
+                mViewingPlane.setPosition(centroid);
+            }
+
+            // Calculate 4 corner points of the compounded BB using plane line intersections
+            BoundingBox compoundedBB = BoundingBox(min, max-min);
+            MatrixXf corners = compoundedBB.getCorners();
+            std::vector<Vector3f> intersectionPoints;
+            Vector3f intersectionCentroid(0,0,0);
+            for(int i = 0; i < 7; i++) {
+                Vector3f cornerA = corners.row(i);
+                for(int j = i+1; j < 8; j++) {
+                    Vector3f cornerB = corners.row(j);
+                    if((cornerA.x() == cornerB.x() && cornerA.y() == cornerB.y()) ||
+                            (cornerA.y() == cornerB.y() && cornerA.z() == cornerB.z()) ||
+                            (cornerA.x() == cornerB.x() && cornerA.z() == cornerB.z())) {
+                        try {
+                            // Calculate intersection with the plane
+                            Vector3f intersectionPoint = mViewingPlane.getIntersectionPoint(cornerA, cornerB);
+                            intersectionPoints.push_back(intersectionPoint);
+                            intersectionCentroid += intersectionPoint;
+                        } catch(Exception &e) {
+                            // No intersection found
+                        }
+                    }
+                }
+            }
+
+            if(intersectionPoints.size() == 0) {
+                std::cout << "Failed to find intersection points" << std::endl;
+            } else {
+                // Register PBO corners to these intersection points
+                // Want the transformation to get from PBO pixel position to mm position
+                intersectionCentroid /= intersectionPoints.size();
+
+                // PBO normal
+                Vector3f PBOnormal = Vector3f(0,0,1); // moving
+
+                Vector3f planeNormal = mViewingPlane.getNormal();
+
+                // Find rotation matrix between PBOnormal and planeNormal following http://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
+                Vector3f v = PBOnormal.cross(planeNormal);
+                float s = v.norm();
+                float c = PBOnormal.dot(planeNormal);
+                Matrix3f R;
+                if(c == 1) { // planes are already aligned
+                    R = Matrix3f::Identity();
+                } else {
+                    Matrix3f vx = Matrix3f::Zero();
+                    // Matrix positions are on y,x form
+                    vx(0,1) = -v.z();
+                    vx(1,0) = v.z();
+                    vx(0,2) = v.y();
+                    vx(2,0) = -v.y();
+                    vx(1,2) = -v.x();
+                    vx(2,1) = v.x();
+
+                    R = Matrix3f::Identity() + vx + vx*vx* ((1.0f-c)/(s*s));
+                }
+
+                // Rotate a position back
+                Vector3f rotatedPosition = R * Vector3f(width()*0.5,height()*0.5,0);
+
+                // Estimate translation
+                Vector3f translation = intersectionCentroid - rotatedPosition;
+
+                m2DViewingTransformation.linear() = R;
+                m2DViewingTransformation.translation() = translation;
+                m2DViewingTransformation.scale(mPBOspacing);
+                // TODO figure out how to do translation for 2D images
+                //mPosX2D = width()*0.5*mPBOspacing;
+                //mPosY2D = height()*0.5*mPBOspacing;
+                mPosX2D = 0;
+                mPosY2D = 0;
+            }
 
             glOrtho(0.0, width(), 0.0, height(), -1.0, 1.0);
             // create pixel buffer object for display
@@ -637,10 +736,9 @@ void View::paintGL() {
             );
             queue.enqueueReleaseGLObjects(&v);
 
-		    Matrix4f transform;
             mRuntimeManager->startRegularTimer("draw2D");
             for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
-                mNonVolumeRenderers[i]->draw2D(clPBO, width(), height(), transform, mPBOspacing*mScale2D);
+                mNonVolumeRenderers[i]->draw2D(clPBO, width(), height(), m2DViewingTransformation, mPBOspacing*mScale2D, Vector2f(mPosX2D, mPosY2D));
             }
             mRuntimeManager->stopRegularTimer("draw2D");
 
@@ -869,13 +967,14 @@ void View::keyPressEvent(QKeyEvent* event) {
 void View::mouseMoveEvent(QMouseEvent* event) {
 	if(mMiddleMouseButtonIsPressed) {
 		if(mIsIn2DMode) {
-		    /*
 			float deltaX = event->x() - previousX;
 			float deltaY = event->y() - previousY;
-			mPosX2D += deltaX;
-			mPosY2D -= deltaY;
-			glViewport(mPosX2D, mPosY2D, (mMaxX2D-mMinX2D)*mScale2D, (mMaxY2D-mMinY2D)*mScale2D);
-			*/
+
+			Vector3f deltaView(-deltaX, deltaY, 0);
+			Vector3f deltaMM = m2DViewingTransformation.linear() * deltaView; // Transform from view coordinates to MM coordinates
+			m2DViewingTransformation.translation() = m2DViewingTransformation.translation() + deltaMM;
+			//mPosX2D = deltaView.x()*mPBOspacing;
+			//mPosY2D = deltaView.y()*mPBOspacing;
 		} else {
 		    // 3D movement
 			float deltaX = event->x() - previousX;
@@ -988,6 +1087,10 @@ void View::set2DMode() {
 
 void View::set3DMode() {
     mIsIn2DMode = false;
+}
+
+void View::setViewingPlane(Plane plane) {
+    mViewingPlane = plane;
 }
 
 

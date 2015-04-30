@@ -36,7 +36,8 @@ void SeededRegionGrowing::addSeedPoint(Vector3ui position) {
 }
 
 SeededRegionGrowing::SeededRegionGrowing() {
-    setOutputDataDynamicDependsOnInputData(0, 0);
+    createInputPort<Image>(0);
+    createOutputPort<Segmentation>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
     mDimensionCLCodeCompiledFor = 0;
 }
 

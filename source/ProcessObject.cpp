@@ -259,5 +259,60 @@ bool ProcessObjectPort::operator==(const ProcessObjectPort &other) const {
     return mPortID == other.getPortID() && mProcessObject == other.getProcessObject();
 }
 
+bool ProcessObject::inputPortExists(uint portID) const {
+    return mInputPortType.count(portID) > 0;
+}
+
+bool ProcessObject::outputPortExists(uint portID) const {
+    return mOutputPortType.count(portID) > 0;
+}
+
+
+void ProcessObject::setStaticOutputData(uint portID, DataObject::pointer staticData) {
+
+    if(!outputPortExists(portID)) {
+        throw Exception("Output port " + boost::lexical_cast<std::string>(portID) + " does not exist on process object " + getNameOfClass());
+    }
+
+    bool outputIsDynamic = false;
+
+    // Do type checking
+    if(mOutputPortClass[portID] != "") {
+        if(staticData->getNameOfClass() != mOutputPortClass[portID])
+            throw Exception("Wrong output data given to " + getNameOfClass() + " \n" +
+                    "Required: " + mOutputPortClass[portID] + " Given: " + staticData->getNameOfClass());
+    }
+
+    // If output data is not created, check if it is dynamic, if it is, create the dynamic data object
+    if(mOutputData.count(portID) == 0) {
+        // Is output dependent on any input?
+        if(mOutputDynamicDependsOnInput.count(portID) > 0) {
+            uint inputNumber = mOutputDynamicDependsOnInput[portID];
+            if(mInputConnections.count(inputNumber) == 0)
+                throw Exception("Must call input before output.");
+            ProcessObjectPort port = mInputConnections[inputNumber];
+            DataObject::pointer objectDependsOn = port.getData();
+            if(objectDependsOn->isDynamicData()) {
+                outputIsDynamic = true;
+                // Create dynamic data
+                DataObject::pointer data;
+                data = DynamicData::New();
+                data->setStreamer(objectDependsOn->getStreamer());
+                mOutputData[portID] = data;
+            }
+        } else if(mOutputPortType[portID] == OUTPUT_DYNAMIC) {
+            outputIsDynamic = true;
+            // Create dynamic data
+            mOutputData[portID] = DynamicData::New();
+        }
+    }
+
+    if(outputIsDynamic) {
+        DynamicData::pointer(mOutputData[portID])->addFrame(staticData);
+    } else {
+        mOutputData[portID] = staticData;
+    }
+    mOutputData[portID]->updateModifiedTimestamp();
+}
 
 } // namespace fast

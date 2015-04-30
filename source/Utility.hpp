@@ -25,6 +25,17 @@ T max(T a, T b) {
     return a > b ? a : b;
 }
 
+template<class T>
+T sign(T value) {
+    if(value > 0) {
+        return 1;
+    } else if (value < 0) {
+        return -1;
+    } else {
+        return 0;
+    }
+}
+
 void* allocateDataArray(unsigned int voxels, DataType type, unsigned int nrOfComponents);
 
 void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image, DataType type, float* min, float* max);

@@ -23,6 +23,9 @@ class Streamer {
         virtual StreamingMode getStreamingMode() const;
         virtual bool hasReachedEnd() const = 0;
         virtual uint getNrOfFrames() const = 0;
+        static std::string getStaticNameOfClass() {
+            return "Streamer";
+        }
     protected:
         StreamingMode mStreamingMode;
         Streamer();

@@ -31,7 +31,8 @@ void GaussianSmoothingFilter::setStandardDeviation(float stdDev) {
 }
 
 GaussianSmoothingFilter::GaussianSmoothingFilter() {
-    setOutputDataDynamicDependsOnInputData(0, 0);
+    createInputPort<Image>(0);
+    createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
     mStdDev = 1.0f;
     mMaskSize = 3;
     mIsModified = true;

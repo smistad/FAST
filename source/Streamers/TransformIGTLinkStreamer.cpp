@@ -110,7 +110,7 @@ void TransformIGTLinkStreamer::setStreamingMode(StreamingMode mode) {
 
 void TransformIGTLinkStreamer::setMaximumNumberOfFrames(uint nrOfFrames) {
     mMaximumNrOfFrames = nrOfFrames;
-    DynamicData<LinearTransformation>::pointer data = getOutputData<DynamicData<LinearTransformation> >();
+    DynamicData::pointer data = getOutputData<LinearTransformation>();
     data->setMaximumNumberOfFrames(nrOfFrames);
 }
 
@@ -211,7 +211,7 @@ void TransformIGTLinkStreamer::producerStream() {
                 igtl::PrintMatrix(matrix);
                 Eigen::Transform<float, 3, Eigen::Affine> transformMatrix;
                 transformMatrix.matrix() = fastMatrix;
-                DynamicData<LinearTransformation>::pointer ptr = getOutputData<DynamicData<LinearTransformation> >();
+                DynamicData::pointer ptr = getOutputData<LinearTransformation>();
                 LinearTransformation::pointer T = LinearTransformation::New();
                 T->setTransform(transformMatrix);
                 try {
@@ -263,11 +263,13 @@ TransformIGTLinkStreamer::~TransformIGTLinkStreamer() {
 }
 
 TransformIGTLinkStreamer::TransformIGTLinkStreamer() {
+    createOutputPort<LinearTransformation>(0, OUTPUT_DYNAMIC);
     mStreamIsStarted = false;
     mIsModified = true;
     thread = NULL;
     mFirstFrameIsInserted = false;
     mHasReachedEnd = false;
+    mStop = false;
     mNrOfFrames = 0;
     mAddress = "";
     mPort = 0;
@@ -289,7 +291,7 @@ void TransformIGTLinkStreamer::stop() {
 }
 
 void TransformIGTLinkStreamer::execute() {
-    getOutputData<DynamicData<LinearTransformation> >()->setStreamer(mPtr.lock());
+    getOutputData<LinearTransformation>()->setStreamer(mPtr.lock());
     if(mAddress == "" || mPort == 0) {
         throw Exception("Must call setConnectionAddress and setConnectionPort before executing the TransformIGTLinkStreamer.");
     }

@@ -107,8 +107,6 @@ class Image : public SpatialDataObject {
         void calculateMaxAndMinIntensity();
 };
 
-typedef DynamicData<Image> DynamicImage;
-
 } // end namespace fast
 
 #endif

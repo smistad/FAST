@@ -7,8 +7,8 @@
 namespace fast {
 
 IterativeClosestPoint::IterativeClosestPoint() {
-    setInputRequired(0, true);
-    setInputRequired(1, true);
+    createInputPort<PointSet>(0);
+    createInputPort<PointSet>(1);
     mMaxIterations = 100;
     mMinErrorChange = 1e-5;
     mError = -1;

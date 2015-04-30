@@ -9,6 +9,7 @@ void VTKSurfaceFileExporter::setFilename(std::string filename) {
 }
 
 VTKSurfaceFileExporter::VTKSurfaceFileExporter() {
+    createInputPort<Mesh>(0);
     mFilename = "";
 }
 

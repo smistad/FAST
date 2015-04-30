@@ -28,9 +28,6 @@ class PointSet : public SpatialDataObject {
         bool mIsBeingWrittenTo;
 };
 
-typedef DynamicData<PointSet> DynamicPointSet;
-
-
 } // end namespace fast
 
 #endif

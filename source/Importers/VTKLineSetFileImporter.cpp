@@ -11,6 +11,7 @@ void VTKLineSetFileImporter::setFilename(std::string filename) {
 
 VTKLineSetFileImporter::VTKLineSetFileImporter() {
     mFilename = "";
+    createOutputPort<LineSet>(0, OUTPUT_STATIC);
     mIsModified = true;
 }
 

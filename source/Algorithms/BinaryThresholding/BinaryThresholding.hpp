@@ -1,11 +1,11 @@
 #ifndef BINARY_THRESHOLDING_HPP
 #define BINARY_THRESHOLDING_HPP
 
-#include "ProcessObject.hpp"
+#include "SegmentationAlgorithm.hpp"
 
 namespace fast {
 
-class BinaryThresholding : public ProcessObject {
+class BinaryThresholding : public SegmentationAlgorithm {
     FAST_OBJECT(BinaryThresholding)
     public:
         void setLowerThreshold(float threshold);

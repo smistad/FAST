@@ -2,7 +2,7 @@
 #define ADD_TRANSFORMATION_HPP_
 
 #include "ProcessObject.hpp"
-#include "Image.hpp"
+#include "SpatialDataObject.hpp"
 
 namespace fast {
 
@@ -14,7 +14,7 @@ class AddTransformation : public ProcessObject {
         AddTransformation();
         void execute();
 
-        Image::pointer mPrevious;
+        SpatialDataObject::pointer mPrevious;
 };
 
 }

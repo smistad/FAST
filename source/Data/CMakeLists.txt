@@ -6,6 +6,7 @@ fast_add_sources(
     DataObject.hpp
     SpatialDataObject.cpp
     SpatialDataObject.hpp
+    DynamicData.cpp
     DynamicData.hpp
     Image.cpp
     Image.hpp

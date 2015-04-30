@@ -14,6 +14,9 @@ class SpatialDataObject : public DataObject {
         virtual BoundingBox getBoundingBox() const;
         virtual BoundingBox getTransformedBoundingBox() const;
         SceneGraphNode::pointer getSceneGraphNode() const;
+        static std::string getStaticNameOfClass() {
+            return "";
+        };
     protected:
         BoundingBox mBoundingBox;
     private:

@@ -27,8 +27,6 @@ class LineSet : public SpatialDataObject {
         bool mIsBeingWrittenTo;
 };
 
-typedef DynamicData<LineSet> DynamicLineSet;
-
 }
 
 

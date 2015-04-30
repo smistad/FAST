@@ -4,6 +4,7 @@
 #include "Renderer.hpp"
 #include "PointSet.hpp"
 #include "Color.hpp"
+#include <boost/thread/mutex.hpp>
 
 namespace fast {
 
@@ -32,6 +33,8 @@ class PointRenderer : public Renderer {
         boost::unordered_map<ProcessObjectPort, float> mInputSizes;
         boost::unordered_map<ProcessObjectPort, Color> mInputColors;
         boost::unordered_map<ProcessObjectPort, bool> mInputDrawOnTop;
+        boost::unordered_map<uint, PointSet::pointer> mPointSetsToRender;
+        boost::mutex mMutex;
 };
 
 }

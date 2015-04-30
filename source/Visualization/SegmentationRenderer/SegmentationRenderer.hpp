@@ -15,11 +15,19 @@ class SegmentationRenderer : public Renderer {
         void addInputConnection(ProcessObjectPort port);
         BoundingBox getBoundingBox();
         void setColor(Segmentation::LabelType, Color);
+        void setFillArea(bool fillArea);
     private:
         SegmentationRenderer();
         void execute();
         void draw();
-        void draw2D(cl::BufferGL PBO, uint width, uint height, Matrix4f pixelToViewportTransform, float PBOspacing);
+        void draw2D(
+                cl::BufferGL PBO,
+                uint width,
+                uint height,
+                Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform,
+                float PBOspacing,
+                Vector2f translation
+        );
 
         bool mDoTransformations;
         bool mColorsModified;
@@ -28,6 +36,7 @@ class SegmentationRenderer : public Renderer {
         boost::unordered_map<uint, GLuint> mTexturesToRender;
         boost::unordered_map<uint, Image::pointer> mImageUsed;
         boost::unordered_map<Segmentation::LabelType, Color> mLabelColors;
+        bool mFillArea;
         cl::Buffer mColorBuffer;
         boost::mutex mMutex;
 

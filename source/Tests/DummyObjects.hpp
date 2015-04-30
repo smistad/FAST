@@ -39,7 +39,10 @@ class DummyProcessObject : public ProcessObject {
         void setHasExecuted(bool value) { mHasExecuted = value; };
         void updateDataTimestamp() { getOutputData<DummyDataObject>(0)->updateModifiedTimestamp(); };
     private:
-        DummyProcessObject() : mHasExecuted(false) {};
+        DummyProcessObject() : mHasExecuted(false) {
+            createInputPort<DummyDataObject>(0, false);
+            createOutputPort<DummyDataObject>(0, OUTPUT_STATIC, 0);
+        };
         void execute() {
             mHasExecuted = true;
             getOutputData<DummyDataObject>(0);

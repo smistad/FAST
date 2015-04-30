@@ -23,5 +23,7 @@ fast_add_sources(
     View.hpp
     Renderer.cpp
     Renderer.hpp
+    Plane.cpp
+    Plane.hpp
 ) 
 fast_add_test_sources()

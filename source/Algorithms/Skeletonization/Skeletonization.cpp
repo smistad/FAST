@@ -2,15 +2,17 @@
 #include "DeviceManager.hpp"
 #include "HelperFunctions.hpp"
 #include "SceneGraph.hpp"
+#include "Segmentation.hpp"
 
 namespace fast {
 
 Skeletonization::Skeletonization() {
-    setOutputDataDynamicDependsOnInputData(0, 0);
+    createInputPort<Segmentation>(0);
+    createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
 }
 
 void Skeletonization::execute() {
-    Image::pointer input = getStaticInputData<Image>();
+    Segmentation::pointer input = getStaticInputData<Segmentation>();
     Image::pointer output = getStaticOutputData<Image>();
     SceneGraph::setParentNode(output, input);
 
