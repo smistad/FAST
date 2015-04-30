@@ -44,6 +44,8 @@ void VolumeRenderer::addInputConnection(ProcessObjectPort port) {
 	if(numberOfVolumes<maxNumberOfVolumes)
 	{
 		uint nr = getNrOfInputData();
+		if(nr > 0)
+		    createInputPort<Image>(nr);
 	//	releaseInputAfterExecute(nr, false);
 		setInputConnection(nr, port);
 		//mInputs.push_back(getStaticInputData<Image>(0));
@@ -224,6 +226,7 @@ void VolumeRenderer::setUserTransform(int volumeIndex, const float userTransform
 	
 }
 VolumeRenderer::VolumeRenderer() : Renderer() {
+    createInputPort<Image>(0, false);
 
     mDevice = DeviceManager::getInstance().getDefaultVisualizationDevice();
 	clContext = mDevice->getContext();
