@@ -101,6 +101,7 @@ class ProcessObject : public virtual Object {
         uint getNrOfInputData() const;
         DataObject::pointer getInputData(uint inputNumber) const;
 
+        template <class T>
         void setStaticOutputData(uint portID, DataObject::pointer data);
 
     private:
@@ -121,8 +122,10 @@ class ProcessObject : public virtual Object {
         // New pipeline
         boost::unordered_map<uint, ProcessObjectPort> mInputConnections;
         boost::unordered_map<uint, DataObject::pointer> mOutputData;
+        // Contains a string of required port class
         boost::unordered_map<uint, std::string> mInputPortClass;
         boost::unordered_map<uint, std::string> mOutputPortClass;
+        // Whether the ports accept dynamic, static or any of the two
         boost::unordered_map<uint, InputDataType> mInputPortType;
         boost::unordered_map<uint, OutputDataType> mOutputPortType;
 
@@ -188,11 +191,13 @@ DataObject::pointer ProcessObject::getOutputData(uint outputNumber) {
         data = mOutputData[outputNumber];
     }
 
+    /*
     if(DataType::getStaticNameOfClass() != "") {
         if(mOutputPortClass[outputNumber] != DataType::getStaticNameOfClass())
             throw Exception("Wrong data type given to getOutputData in ProcessObject " + getNameOfClass() + " \n" +
                     "Required: " + mOutputPortClass[outputNumber] + " Given: " + DataType::getStaticNameOfClass());
     }
+    */
 
     return data;
 }
@@ -221,15 +226,16 @@ typename DataType::pointer ProcessObject::getStaticInputData(uint inputNumber) c
         returnData = data;
     }
 
-    // Validate type
-    if(DataType::getStaticNameOfClass() != "") {
-        if(mInputPortClass.at(inputNumber) != "DataObject" && returnData->getNameOfClass() != mInputPortClass.at(inputNumber))
-            throw Exception("Wrong input data given to " + getNameOfClass() + " \n" +
-                    "Required: " + mInputPortClass.at(inputNumber) + " Given: " + returnData->getNameOfClass());
+    // Try to do conversion
+    try {
+        // Try to cast the input data to the requested DataType
+        typename DataType::pointer convertedReturnData = returnData;
+        return convertedReturnData;
+    } catch(Exception &e) {
+        // Illegal cast means wrong input data was given to the class
+        throw Exception("Wrong input data given to " + getNameOfClass() + " \n" +
+                "Required: " + mInputPortClass.at(inputNumber) + " Requested: " + DataType::getStaticNameOfClass() + " Given: " + returnData->getNameOfClass());
     }
-
-
-    return returnData;
 }
 
 template <class DataType>
@@ -253,11 +259,15 @@ typename DataType::pointer ProcessObject::getStaticOutputData(uint outputNumber)
         returnData = data;
     }
 
-    // Validate type
-    if(DataType::getStaticNameOfClass() != "") {
-        if(mOutputPortClass[outputNumber] != "DataObject" && returnData->getNameOfClass() != mOutputPortClass[outputNumber])
-            throw Exception("Wrong output data given to " + getNameOfClass() + " \n" +
-                    "Required: " + mOutputPortClass[outputNumber] + " Given: " + returnData->getNameOfClass());
+    // Try to do conversion
+    try {
+        // Try to cast the input data to the requested DataType
+        typename DataType::pointer convertedReturnData = returnData;
+        return convertedReturnData;
+    } catch(Exception &e) {
+        // Illegal cast means wrong input data was given to the class
+        throw Exception("Wrong input data given to " + getNameOfClass() + " \n" +
+                "Required: " + mOutputPortClass[outputNumber] + " Requested: " + DataType::getStaticNameOfClass() + " Given: " + returnData->getNameOfClass());
     }
 
     return returnData;
@@ -266,6 +276,59 @@ typename DataType::pointer ProcessObject::getStaticOutputData(uint outputNumber)
 template <class DataType>
 typename DataType::pointer ProcessObject::getStaticOutputData() {
     return getStaticOutputData<DataType>(0);
+}
+
+template <class DataType>
+void ProcessObject::setStaticOutputData(uint portID, DataObject::pointer staticData) {
+
+    if(!outputPortExists(portID)) {
+        throw Exception("Output port " + boost::lexical_cast<std::string>(portID) + " does not exist on process object " + getNameOfClass());
+    }
+
+    bool outputIsDynamic = false;
+
+    // Do type checking to see that supplied staticData is of required type
+    // Try to do conversion
+    typename DataType::pointer convertedStaticData;
+    try {
+        // Try to cast the input data to the requested DataType
+        convertedStaticData = staticData;
+    } catch(Exception &e) {
+        // Illegal cast means wrong input data was given to the class
+        throw Exception("Wrong output data given to " + getNameOfClass() + " \n" +
+                "Required: " + mOutputPortClass[portID] + " Requested: " + DataType::getStaticNameOfClass() + " Given: " + staticData->getNameOfClass());
+    }
+
+    // If output data is not created, check if it is dynamic, if it is, create the dynamic data object
+    if(mOutputData.count(portID) == 0) {
+        // Is output dependent on any input?
+        if(mOutputDynamicDependsOnInput.count(portID) > 0) {
+            uint inputNumber = mOutputDynamicDependsOnInput[portID];
+            if(mInputConnections.count(inputNumber) == 0)
+                throw Exception("Must call input before output.");
+            ProcessObjectPort port = mInputConnections[inputNumber];
+            DataObject::pointer objectDependsOn = port.getData();
+            if(objectDependsOn->isDynamicData()) {
+                outputIsDynamic = true;
+                // Create dynamic data
+                DataObject::pointer data;
+                data = DynamicData::New();
+                data->setStreamer(objectDependsOn->getStreamer());
+                mOutputData[portID] = data;
+            }
+        } else if(mOutputPortType[portID] == OUTPUT_DYNAMIC) {
+            outputIsDynamic = true;
+            // Create dynamic data
+            mOutputData[portID] = DynamicData::New();
+        }
+    }
+
+    if(outputIsDynamic) {
+        DynamicData::pointer(mOutputData[portID])->addFrame(convertedStaticData);
+    } else {
+        mOutputData[portID] = convertedStaticData;
+    }
+    mOutputData[portID]->updateModifiedTimestamp();
 }
 
 template <class DataType>

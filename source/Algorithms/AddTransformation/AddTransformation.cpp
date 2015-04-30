@@ -33,7 +33,7 @@ void AddTransformation::execute() {
     }
     mPrevious = data;
 
-    setStaticOutputData(0, data);
+    setStaticOutputData<SpatialDataObject>(0, data);
 }
 
 }
