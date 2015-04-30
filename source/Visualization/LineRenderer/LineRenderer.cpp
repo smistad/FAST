@@ -69,6 +69,7 @@ BoundingBox LineRenderer::getBoundingBox() {
 }
 
 LineRenderer::LineRenderer() {
+    createInputPort<LineSet>(0, false);
     mDefaultLineWidth = 2;
     mDefaultColor = Color::Blue();
     mDefaultDrawOnTop = false;
@@ -80,6 +81,8 @@ void LineRenderer::execute() {
 
 void LineRenderer::addInputConnection(ProcessObjectPort port) {
     uint nr = getNrOfInputData();
+    if(nr > 0)
+        createInputPort<LineSet>(nr);
     releaseInputAfterExecute(nr, false);
     setInputConnection(nr, port);
 }
