@@ -26,7 +26,7 @@ int main() {
     LinearTransformation transformation;
     transformation.setTransform(transform);
     importerB->update();
-    importerB->getOutputData<PointSet>()->getSceneGraphNode()->setTransformation(transformation);
+    importerB->getStaticOutputData<PointSet>()->getSceneGraphNode()->setTransformation(transformation);
 
     // Perform the registration
     IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
@@ -35,7 +35,7 @@ int main() {
     icp->update();
 
     // Apply transformation to A
-    importerA->getOutputData<PointSet>()->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
+    importerA->getStaticOutputData<PointSet>()->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
 
     std::cout << "Registration result: " << std::endl;
     std::cout << "Rotation: " << icp->getOutputTransformation().getEulerAngles().transpose() << std::endl;
