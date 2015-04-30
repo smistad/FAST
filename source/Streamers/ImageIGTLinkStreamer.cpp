@@ -193,7 +193,6 @@ Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer message, E
     }}
     image->setTransformMatrix(fastMatrix);
     igtl::PrintMatrix(matrix);
-    std::cout << fastMatrix << std::endl;
     std::cout << "SPACING IS " << spacing[0] << " " << spacing[1] << std::endl;
     std::cout << "OFFSET IS " << offset[0] << " " << offset[1] << " " << offset[2] << std::endl;
 
