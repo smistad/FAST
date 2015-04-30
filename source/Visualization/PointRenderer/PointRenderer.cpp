@@ -6,13 +6,16 @@
 #else
 #include <GL/gl.h>
 #endif
+#include <boost/thread/lock_guard.hpp>
 
 namespace fast {
 
 void PointRenderer::draw() {
-    // For all input data
-    for(uint i = 0; i < getNrOfInputData(); i++) {
-        PointSet::pointer points = getInputData(i);
+    boost::lock_guard<boost::mutex> lock(mMutex);
+
+    boost::unordered_map<uint, PointSet::pointer>::iterator it;
+    for(it = mPointSetsToRender.begin(); it != mPointSetsToRender.end(); it++) {
+        PointSet::pointer points = it->second;
         PointSetAccess::pointer access = points->getAccess(ACCESS_READ);
         MatrixXf pointMatrix = access->getPointSetAsMatrix();
 
@@ -21,7 +24,7 @@ void PointRenderer::draw() {
         glPushMatrix();
         glMultMatrixf(transform.getTransform().data());
 
-        ProcessObjectPort port = getInputPort(i);
+        ProcessObjectPort port = getInputPort(it->first);
         if(mInputSizes.count(port) > 0) {
             glPointSize(mInputSizes[port]);
         } else {
@@ -72,6 +75,14 @@ PointRenderer::PointRenderer() {
 }
 
 void PointRenderer::execute() {
+    boost::lock_guard<boost::mutex> lock(mMutex);
+
+    // This simply gets the input data for each connection and puts it into a data structure
+    for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
+        PointSet::pointer input = getStaticInputData<PointSet>(inputNr);
+
+        mPointSetsToRender[inputNr] = input;
+    }
 }
 
 
