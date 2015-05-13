@@ -10,6 +10,7 @@
 #include <QCursor>
 #include "ColorTransferFunction.hpp"
 #include "OpacityTransferFunction.hpp"
+#include <boost/thread/lock_guard.hpp>
 
 
 namespace fast {
@@ -261,8 +262,14 @@ void VolumeRenderer::setIncludeGeometry(bool p){
 	includeGeometry=p;
 	mInputIsModified = true;
 }
+void VolumeRenderer::setModelViewMatrix(GLfloat mView[16]){
 
+	for (int i = 0; i < 16; i++)
+		modelView[i] = mView[i];
+}
 void VolumeRenderer::execute() {
+
+	boost::lock_guard<boost::mutex> lock(mMutex);
 
 	if (!inputs.empty())
 		inputs.clear();
@@ -321,9 +328,9 @@ void VolumeRenderer::execute() {
     glEnable(GL_DEPTH_TEST);
 
 	//Update Camera Matrix
-	GLfloat modelView[16];
-	glMatrixMode(GL_MODELVIEW);
-	glGetFloatv(GL_MODELVIEW_MATRIX, modelView);
+	//GLfloat modelView[16];
+	//glMatrixMode(GL_MODELVIEW);
+	//glGetFloatv(GL_MODELVIEW_MATRIX, modelView);
 
 	glPushMatrix();
 
@@ -606,6 +613,8 @@ void VolumeRenderer::execute() {
 
 void VolumeRenderer::draw() {
 	
+	boost::lock_guard<boost::mutex> lock(mMutex);
+
 	if(!mOutputIsCreated)
         return;
 	

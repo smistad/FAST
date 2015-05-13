@@ -696,26 +696,34 @@ void View::renderVolumes()
 		//Rendere to Back buffer
 		glBindFramebuffer(GL_FRAMEBUFFER,0);
 
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
+		
 		glMatrixMode(GL_PROJECTION);
 		glPushMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+
+		//Update Camera Matrix for VolumeRendere
+		GLfloat modelView[16];
+		glGetFloatv(GL_MODELVIEW_MATRIX, modelView);
+		((VolumeRenderer::pointer)(mVolumeRenderers[0]))->setModelViewMatrix(modelView);
 
 		if (mNonVolumeRenderers.size() > 0)
 		{
 			((VolumeRenderer::pointer)(mVolumeRenderers[0]))->addGeometryColorTexture(renderedTexture0);
 			((VolumeRenderer::pointer)(mVolumeRenderers[0]))->addGeometryDepthTexture(renderedTexture1);
 		}
+		
 
 		mRuntimeManager->startRegularTimer("draw");
 		for(unsigned int i = 0; i < mVolumeRenderers.size(); i++) {
 			mVolumeRenderers[i]->draw();
 		}
 		mRuntimeManager->stopRegularTimer("draw");
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
 		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
+		
 }
 
 void View::getDepthBufferFromGeo()

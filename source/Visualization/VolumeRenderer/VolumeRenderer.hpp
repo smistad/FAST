@@ -16,7 +16,8 @@ class VolumeRenderer : public Renderer {
         void addInputConnection(ProcessObjectPort port);
 		void setColorTransferFunction(int volumeIndex, ColorTransferFunction::pointer ctf);
 		void setOpacityTransferFunction(int volumeIndex, OpacityTransferFunction::pointer otf);
-        
+		void setModelViewMatrix(GLfloat mView[16]);
+
 		//void resizeEvent(QResizeEvent* event);
 		void mouseEvents();
 
@@ -61,6 +62,8 @@ class VolumeRenderer : public Renderer {
 		bool mDoTransformations;
         //unsigned int windowWidth, windowHeight;
 
+		boost::mutex mMutex;
+
         cl::Program program;
 		cl::Context clContext;
 
@@ -96,7 +99,8 @@ class VolumeRenderer : public Renderer {
 		Image::pointer mI;
 		std::vector<Image::pointer> mInputs;
 		std::vector<Image::pointer> inputs;
-
+		
+		GLfloat modelView[16];
 
 		float* transferFunc;
 		float* opacityFunc;
