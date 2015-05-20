@@ -168,6 +168,16 @@ DataObject::pointer DynamicData::getNextFrame(WeakPointer<Object> processObject)
         removeOldFrames(getLowestFrameCount());
         if(mFrames2.size() > 0) { // Update timestamp if there are more frames available
             updateModifiedTimestamp();
+            // For each consumer
+            boost::unordered_map<WeakPointer<Object>, uint>::iterator it;
+            for(it = mConsumerFrameCounters.begin(); it != mConsumerFrameCounters.end(); it++) {
+                // Check if next frame is available
+                if(mFrames2.count(it->second) == 0) {
+                    // Set consumer up to date, so that it will not request data yet
+                    ProcessObject::pointer consumer = it->first.lock();
+                    consumer->updateTimestamp(mPtr.lock());
+                }
+            }
         } else {
             // All frames are gone, make sure timestamps that all POs have are up to date
             setAllConsumersUpToDate();
