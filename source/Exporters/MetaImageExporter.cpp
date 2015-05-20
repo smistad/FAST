@@ -104,12 +104,13 @@ void MetaImageExporter::execute() {
     if(input->getDimensions() == 3)
         mhdFile << " " << input->getSpacing()[2];
     mhdFile << "\n";
-    mhdFile << "Offset = " << input->getOffset()[0] << " " << input->getOffset()[1] << " " << input->getOffset()[2] << "\n";
+    LinearTransformation T = SceneGraph::getLinearTransformationFromData(input);
+    mhdFile << "Offset = " << T.getTranslation().x() << " " << T.getTranslation().y() << " " << T.getTranslation().z() << "\n";
     mhdFile << "CenterOfRotation = " << input->getCenterOfRotation()[0] << " " << input->getCenterOfRotation()[1] << " " << input->getCenterOfRotation()[2] << "\n";
     mhdFile << "TransformMatrix =";
     for(unsigned int i = 0; i < 3; i++) {
     for(unsigned int j = 0; j < 3; j++) {
-        mhdFile << " " << input->getTransformMatrix()(j,i);
+        mhdFile << " " << T.getTransform().rotation()(j,i);
     }}
     mhdFile << "\n";
 
