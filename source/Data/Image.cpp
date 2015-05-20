@@ -448,9 +448,8 @@ Image::Image() {
     mHostDataIsBeingAccessed = false;
     mIsDynamicData = false;
     mImageIsBeingWrittenTo = false;
-    mSpacing[0] = 1;
-    mSpacing[1] = 1;
-    mSpacing[2] = 1;
+    mSpacing = Vector3f(1,1,1);
+    mCenterOfRotation = Vector3f(0,0,0);
     // Identity matrix
     mTransformMatrix = Matrix3f::Identity();
 
