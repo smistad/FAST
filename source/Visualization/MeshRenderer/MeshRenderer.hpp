@@ -13,6 +13,7 @@ class MeshRenderer : public Renderer {
         void addInputConnection(ProcessObjectPort port);
         void addInputConnection(ProcessObjectPort port, Color color, float opacity);
         BoundingBox getBoundingBox();
+        void draw();
         void setDefaultOpacity(float opacity);
         void setDefaultColor(Color color);
         void setColor(ProcessObjectPort port, Color color);
@@ -20,7 +21,6 @@ class MeshRenderer : public Renderer {
     private:
         MeshRenderer();
         void execute();
-        void draw();
 
         boost::unordered_map<ProcessObjectPort, Color> mInputColors;
         boost::unordered_map<ProcessObjectPort, float> mInputOpacities;

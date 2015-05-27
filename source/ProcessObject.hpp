@@ -285,8 +285,6 @@ void ProcessObject::setStaticOutputData(uint portID, DataObject::pointer staticD
         throw Exception("Output port " + boost::lexical_cast<std::string>(portID) + " does not exist on process object " + getNameOfClass());
     }
 
-    bool outputIsDynamic = false;
-
     // Do type checking to see that supplied staticData is of required type
     // Try to do conversion
     typename DataType::pointer convertedStaticData;
@@ -299,6 +297,8 @@ void ProcessObject::setStaticOutputData(uint portID, DataObject::pointer staticD
                 "Required: " + mOutputPortClass[portID] + " Requested: " + DataType::getStaticNameOfClass() + " Given: " + staticData->getNameOfClass());
     }
 
+    bool isDynamicData = false;
+
     // If output data is not created, check if it is dynamic, if it is, create the dynamic data object
     if(mOutputData.count(portID) == 0) {
         // Is output dependent on any input?
@@ -309,26 +309,30 @@ void ProcessObject::setStaticOutputData(uint portID, DataObject::pointer staticD
             ProcessObjectPort port = mInputConnections[inputNumber];
             DataObject::pointer objectDependsOn = port.getData();
             if(objectDependsOn->isDynamicData()) {
-                outputIsDynamic = true;
                 // Create dynamic data
                 DataObject::pointer data;
                 data = DynamicData::New();
                 data->setStreamer(objectDependsOn->getStreamer());
                 mOutputData[portID] = data;
+                isDynamicData = true;
             }
         } else if(mOutputPortType[portID] == OUTPUT_DYNAMIC) {
-            outputIsDynamic = true;
             // Create dynamic data
             mOutputData[portID] = DynamicData::New();
+            isDynamicData = true;
+        }
+    } else {
+        if(mOutputData[portID]->isDynamicData()) {
+            isDynamicData = true;
         }
     }
 
-    if(outputIsDynamic) {
+    if(isDynamicData) {
         DynamicData::pointer(mOutputData[portID])->addFrame(convertedStaticData);
     } else {
         mOutputData[portID] = convertedStaticData;
+        mOutputData[portID]->updateModifiedTimestamp();
     }
-    mOutputData[portID]->updateModifiedTimestamp();
 }
 
 template <class DataType>
