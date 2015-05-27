@@ -8,6 +8,7 @@ option(BUILD_TESTS "Build FAST tests." ON)
 option(BUILD_IGTLINK_TESTS "Build OpenIGTLink tests." OFF)
 option(BUILD_EXAMPLES "Build examples." OFF)
 option(MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
+set(OPENCL_KERNEL_BINARY_PATH "${PROJECT_BINARY_DIR}/")
 
 if(BUILD_IGTLINK_TESTS)
     set(BUILD_TESTING ON CACHE INTERNAL "Build OpenIGTLink tests." FORCE)
