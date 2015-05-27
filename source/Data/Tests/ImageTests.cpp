@@ -670,6 +670,8 @@ TEST_CASE("Create a 3D image and change image data", "[fast][image]") {
     // Test for having components 1 to 4 and for all data types
     for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
+            INFO("Components " << nrOfComponents);
+            INFO("Type " << typeNr);
             DataType type = (DataType)typeNr;
 
             // Create a data array with random data
@@ -688,6 +690,11 @@ TEST_CASE("Create a 3D image and change image data", "[fast][image]") {
                 i = device->createProgramFromString("__kernel void changeData(__write_only image3d_t image) {"
                         "int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};"
                         "write_imagef(image, pos, (float4)(1,1,1,1));"
+                        "}");
+            } else if(type == TYPE_UINT8 || type == TYPE_UINT16) {
+                 i = device->createProgramFromString("__kernel void changeData(__write_only image3d_t image) {"
+                        "int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};"
+                        "write_imageui(image, pos, (uint4)(1,1,1,1));"
                         "}");
             } else {
                 i = device->createProgramFromString("__kernel void changeData(__write_only image3d_t image) {"
