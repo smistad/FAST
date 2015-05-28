@@ -12,10 +12,6 @@ void SurfaceExtraction::setThreshold(float threshold) {
     mIsModified = true;
 }
 
-void SurfaceExtraction::setDevice(OpenCLDevice::pointer device) {
-    mDevice = device;
-}
-
 inline unsigned int getRequiredHistogramPyramidSize(Image::pointer input) {
     unsigned int largestSize = fast::max(fast::max(input->getWidth(), input->getHeight()), input->getDepth());
     int i = 1;
@@ -31,12 +27,13 @@ void SurfaceExtraction::execute() {
     if(input->getDimensions() != 3)
         throw Exception("The SurfaceExtraction object only supports 3D images");
 
+    OpenCLDevice::pointer device = getMainDevice();
 #if defined(__APPLE__) || defined(__MACOSX)
     const bool writingTo3DTextures = false;
 #else
-    const bool writingTo3DTextures = mDevice->getDevice().getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") != std::string::npos;
+    const bool writingTo3DTextures = device->getDevice().getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") != std::string::npos;
 #endif
-    cl::Context clContext = mDevice->getContext();
+    cl::Context clContext = device->getContext();
     const unsigned int SIZE = getRequiredHistogramPyramidSize(input);
 
     if(mHPSize != SIZE) {
@@ -50,7 +47,7 @@ void SurfaceExtraction::execute() {
             // Create images for the HistogramPyramid
             int bufferSize = SIZE;
             cl_channel_order order1, order2;
-            if(mDevice->isImageFormatSupported(CL_R, CL_UNSIGNED_INT8, CL_MEM_OBJECT_IMAGE3D) && mDevice->isImageFormatSupported(CL_RG, CL_UNSIGNED_INT8, CL_MEM_OBJECT_IMAGE3D)) {
+            if(device->isImageFormatSupported(CL_R, CL_UNSIGNED_INT8, CL_MEM_OBJECT_IMAGE3D) && device->isImageFormatSupported(CL_RG, CL_UNSIGNED_INT8, CL_MEM_OBJECT_IMAGE3D)) {
             	order1 = CL_R;
             	order2 = CL_RG;
             } else {
@@ -118,15 +115,15 @@ void SurfaceExtraction::execute() {
 #if defined(__APPLE__) || defined(__MACOSX)
         buildOptions += " -DMAC_HACK";
 #endif
-        int programNr = mDevice->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Algorithms/SurfaceExtraction/" + kernelFilename, buildOptions);
-        program = mDevice->getProgram(programNr);
+        int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Algorithms/SurfaceExtraction/" + kernelFilename, buildOptions);
+        program = device->getProgram(programNr);
     }
 
     cl::Kernel constructHPLevelKernel(program, "constructHPLevel");
     cl::Kernel classifyCubesKernel(program, "classifyCubes");
     cl::Kernel traverseHPKernel(program, "traverseHP");
 
-    OpenCLImageAccess3D::pointer access = input->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+    OpenCLImageAccess3D::pointer access = input->getOpenCLImageAccess3D(ACCESS_READ, device);
     cl::Image3D* clImage = access->get();
 
     // update scalar field
@@ -134,7 +131,7 @@ void SurfaceExtraction::execute() {
         classifyCubesKernel.setArg(0, images[0]);
         classifyCubesKernel.setArg(1, *clImage);
         classifyCubesKernel.setArg(2, mThreshold);
-        mDevice->getCommandQueue().enqueueNDRangeKernel(
+        device->getCommandQueue().enqueueNDRangeKernel(
                 classifyCubesKernel,
                 cl::NullRange,
                 cl::NDRange(SIZE, SIZE, SIZE),
@@ -145,7 +142,7 @@ void SurfaceExtraction::execute() {
         classifyCubesKernel.setArg(1, cubeIndexesBuffer);
         classifyCubesKernel.setArg(2, *clImage);
         classifyCubesKernel.setArg(3, mThreshold);
-        mDevice->getCommandQueue().enqueueNDRangeKernel(
+        device->getCommandQueue().enqueueNDRangeKernel(
                 classifyCubesKernel,
                 cl::NullRange,
                 cl::NDRange(SIZE, SIZE, SIZE),
@@ -162,11 +159,11 @@ void SurfaceExtraction::execute() {
         region[2] = SIZE;
 
         // Copy buffer to image
-        mDevice->getCommandQueue().enqueueCopyBufferToImage(cubeIndexesBuffer, cubeIndexesImage, 0, offset, region);
+        device->getCommandQueue().enqueueCopyBufferToImage(cubeIndexesBuffer, cubeIndexesImage, 0, offset, region);
     }
 
     // Construct HP
-    cl::CommandQueue queue = mDevice->getCommandQueue();
+    cl::CommandQueue queue = device->getCommandQueue();
 
     if(writingTo3DTextures) {
         // Run base to first level
@@ -279,7 +276,7 @@ void SurfaceExtraction::execute() {
     unsigned int totalSum = 0;
     if(writingTo3DTextures) {
     	int* sum;
-        if(mDevice->isImageFormatSupported(CL_R, CL_UNSIGNED_INT32, CL_MEM_OBJECT_IMAGE3D)) {
+        if(device->isImageFormatSupported(CL_R, CL_UNSIGNED_INT32, CL_MEM_OBJECT_IMAGE3D)) {
             sum = new int[8];
         } else {
         	// A 4 channel texture/image has been used
@@ -288,7 +285,7 @@ void SurfaceExtraction::execute() {
         cl::size_t<3> origin = oul::createOrigoRegion();
         cl::size_t<3> region = oul::createRegion(2,2,2);
         queue.enqueueReadImage(images[images.size()-1], CL_TRUE, origin, region, 0, 0, sum);
-        if(mDevice->isImageFormatSupported(CL_R, CL_UNSIGNED_INT8, CL_MEM_OBJECT_IMAGE3D)) {
+        if(device->isImageFormatSupported(CL_R, CL_UNSIGNED_INT8, CL_MEM_OBJECT_IMAGE3D)) {
             totalSum = sum[0] + sum[1] + sum[2] + sum[3] + sum[4] + sum[5] + sum[6] + sum[7] ;
         } else {
             totalSum = sum[0] + sum[4] + sum[8] + sum[12] + sum[16] + sum[20] + sum[24] + sum[28] ;
@@ -325,9 +322,9 @@ void SurfaceExtraction::execute() {
         i += 2;
     }
 
-    VertexBufferObjectAccess::pointer VBOaccess = output->getVertexBufferObjectAccess(ACCESS_READ_WRITE, mDevice);
+    VertexBufferObjectAccess::pointer VBOaccess = output->getVertexBufferObjectAccess(ACCESS_READ_WRITE, device);
     GLuint* VBO_ID = VBOaccess->get();
-    cl::BufferGL VBOBuffer = cl::BufferGL(mDevice->getContext(), CL_MEM_WRITE_ONLY, *VBO_ID);
+    cl::BufferGL VBOBuffer = cl::BufferGL(device->getContext(), CL_MEM_WRITE_ONLY, *VBO_ID);
     traverseHPKernel.setArg(i, VBOBuffer);
     traverseHPKernel.setArg(i+1, mThreshold);
     traverseHPKernel.setArg(i+2, totalSum);
@@ -354,11 +351,13 @@ void SurfaceExtraction::execute() {
     queue.finish();
     SceneGraph::setParentNode(output, input);
     BoundingBox box = input->getBoundingBox();
-    output->setBoundingBox(box);
+    // Apply spacing scaling to BB
+    AffineTransformation T;
+    T.scale(input->getSpacing());
+    output->setBoundingBox(box.getTransformedBoundingBox(T));
 }
 
 SurfaceExtraction::SurfaceExtraction() {
-    mDevice = DeviceManager::getInstance().getDefaultComputationDevice();
     mThreshold = 0.0f;
     mHPSize = 0;
     createInputPort<Image>(0);
