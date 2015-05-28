@@ -331,7 +331,9 @@ void SurfaceExtraction::execute() {
     traverseHPKernel.setArg(i, VBOBuffer);
     traverseHPKernel.setArg(i+1, mThreshold);
     traverseHPKernel.setArg(i+2, totalSum);
-    // TODO should set spacing to this kernel here
+    traverseHPKernel.setArg(i+3, input->getSpacing().x());
+    traverseHPKernel.setArg(i+4, input->getSpacing().y());
+    traverseHPKernel.setArg(i+5, input->getSpacing().z());
     //cl_event syncEvent = clCreateEventFromGLsyncKHR((cl_context)context(), (cl_GLsync)glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0), 0);
     //glFinish();
     std::vector<cl::Memory> v;

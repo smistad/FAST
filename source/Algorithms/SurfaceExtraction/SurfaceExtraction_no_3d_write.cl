@@ -621,7 +621,10 @@ __kernel void traverseHP(
         #endif
         __global float * VBOBuffer,
         __private float isolevel,
-        __private int sum
+        __private int sum,
+        __private float spacing_x,
+        __private float spacing_y,
+        __private float spacing_z
         ) {
 
     int target = get_global_id(0);
@@ -662,6 +665,8 @@ __kernel void traverseHP(
 
         // Store vertex in VBO
 
+        // TODO Should use spacing in these calculations:
+        float3 spacing = {spacing_x, spacing_y, spacing_z};
         const float3 forwardDifference0 = (float3)(
                 (-READ_RAW_DATA(rawData, sampler, (int4)(point0.x+1, point0.y, point0.z, 0)).x+READ_RAW_DATA(rawData, sampler, (int4)(point0.x-1, point0.y, point0.z, 0)).x),
                 (-READ_RAW_DATA(rawData, sampler, (int4)(point0.x, point0.y+1, point0.z, 0)).x+READ_RAW_DATA(rawData, sampler, (int4)(point0.x, point0.y-1, point0.z, 0)).x),
@@ -683,10 +688,10 @@ __kernel void traverseHP(
 #ifdef MAC_HACK
         const float3 point0f = (float3)(point0.x, point0.y, point0.z);
         const float3 point1f = (float3)(point1.x, point1.y, point1.z);
-        const float3 vertex =  point0f + (point1f-point0f)*diff;
+        const float3 vertex = (point0f + (point1f-point0f)*diff)*spacing;
         const float3 normal = normalize(forwardDifference0 + diff*(forwardDifference1-forwardDifference0));
 #else
-        const float3 vertex = mix((float3)(point0.x, point0.y, point0.z), (float3)(point1.x, point1.y, point1.z), diff);
+        const float3 vertex = mix((float3)(point0.x, point0.y, point0.z), (float3)(point1.x, point1.y, point1.z), diff)*spacing;
         const float3 normal = normalize(mix(forwardDifference0, forwardDifference1, diff));
 #endif
 
