@@ -11,7 +11,6 @@ class ImageRenderer : public Renderer {
     public:
         void addInputConnection(ProcessObjectPort port);
         BoundingBox getBoundingBox();
-        void turnOffTransformations();
     private:
         ImageRenderer();
         void execute();
@@ -30,8 +29,6 @@ class ImageRenderer : public Renderer {
         boost::unordered_map<uint, Image::pointer> mImageUsed;
 
         cl::Kernel mKernel;
-
-        bool mDoTransformations;
 
         boost::mutex mMutex;
 

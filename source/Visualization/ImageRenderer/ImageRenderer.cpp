@@ -48,7 +48,6 @@ void ImageRenderer::addInputConnection(ProcessObjectPort port) {
 ImageRenderer::ImageRenderer() : Renderer() {
     createInputPort<Image>(0, false);
     mIsModified = false;
-    mDoTransformations = true;
 }
 
 void ImageRenderer::draw() {
@@ -154,11 +153,9 @@ void ImageRenderer::draw() {
     // This is the actual rendering
     for(it = mImageUsed.begin(); it != mImageUsed.end(); it++) {
         glPushMatrix();
-        if(mDoTransformations) {
-            LinearTransformation transform = SceneGraph::getLinearTransformationFromData(it->second);
 
-            glMultMatrixf(transform.getTransform().data());
-        }
+        LinearTransformation transform = SceneGraph::getLinearTransformationFromData(it->second);
+        glMultMatrixf(transform.getTransform().data());
 
         glBindTexture(GL_TEXTURE_2D, mTexturesToRender[it->first]);
         uint width = it->second->getWidth();
@@ -280,21 +277,13 @@ void ImageRenderer::draw2D(cl::BufferGL PBO, uint width, uint height, Eigen::Tra
     queue.finish();
 }
 
-void ImageRenderer::turnOffTransformations() {
-    mDoTransformations = false;
-}
-
 BoundingBox ImageRenderer::getBoundingBox() {
     std::vector<Vector3f> coordinates;
 
     boost::unordered_map<uint, Image::pointer>::iterator it;
     for(it = mImagesToRender.begin(); it != mImagesToRender.end(); it++) {
         BoundingBox transformedBoundingBox;
-        if(mDoTransformations) {
-            transformedBoundingBox = it->second->getTransformedBoundingBox();
-        } else {
-            transformedBoundingBox = it->second->getBoundingBox();
-        }
+        transformedBoundingBox = it->second->getTransformedBoundingBox();
 
         MatrixXf corners = transformedBoundingBox.getCorners();
         for(uint j = 0; j < 8; j++) {

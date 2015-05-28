@@ -203,7 +203,6 @@ SliceRenderer::SliceRenderer() : Renderer() {
     mSlicePlane = PLANE_Z;
     mSliceNr = -1;
     mScale = 1.0;
-    mDoTransformations = true;
 }
 
 void SliceRenderer::draw() {
@@ -211,13 +210,8 @@ void SliceRenderer::draw() {
     if(!mTextureIsCreated)
         return;
 
-    //setOpenGLContext(mDevice->getGLContext());
-
-    if(mDoTransformations) {
-        LinearTransformation transform = SceneGraph::getLinearTransformationFromData(mImageToRender);
-
-        glMultMatrixf(transform.getTransform().data());
-    }
+    LinearTransformation transform = SceneGraph::getLinearTransformationFromData(mImageToRender);
+    glMultMatrixf(transform.getTransform().data());
 
     glBindTexture(GL_TEXTURE_2D, mTexture);
 
@@ -290,15 +284,8 @@ BoundingBox SliceRenderer::getBoundingBox() {
             break;
     }
     BoundingBox shrinkedBox(corners);
-    if(mDoTransformations) {
-        LinearTransformation transform = SceneGraph::getLinearTransformationFromData(mImageToRender);
-        BoundingBox transformedBoundingBox = shrinkedBox.getTransformedBoundingBox(transform);
-        return transformedBoundingBox;
-    } else {
-        return shrinkedBox;
-    }
+    LinearTransformation transform = SceneGraph::getLinearTransformationFromData(mImageToRender);
+    BoundingBox transformedBoundingBox = shrinkedBox.getTransformedBoundingBox(transform);
+    return transformedBoundingBox;
 }
 
-void SliceRenderer::turnOffTransformations() {
-    mDoTransformations = false;
-}
