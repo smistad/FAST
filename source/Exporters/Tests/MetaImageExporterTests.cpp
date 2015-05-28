@@ -29,10 +29,6 @@ TEST_CASE("Write a 2D image with the MetaImageExporter", "[fast][MetaImageExport
     offset[0] = 2.2;
     offset[1] = 3.3;
     offset[2] = 3.1;
-    Vector3f centerOfRotation;
-    centerOfRotation[0] = 3.2;
-    centerOfRotation[1] = 4.3;
-    centerOfRotation[2] = 5.0;
     Matrix3f transformMatrix;
     transformMatrix(0,0) = 0.2;
     transformMatrix(1,0) = 1.3;
@@ -43,6 +39,10 @@ TEST_CASE("Write a 2D image with the MetaImageExporter", "[fast][MetaImageExport
     transformMatrix(0,2) = 6.0;
     transformMatrix(1,2) = 7.0;
     transformMatrix(2,2) = 8.0;
+
+    AffineTransformation T;
+    T.translation() = offset;
+    T.linear() = transformMatrix;
 
     unsigned int width = 32;
     unsigned int height = 46;
@@ -56,9 +56,7 @@ TEST_CASE("Write a 2D image with the MetaImageExporter", "[fast][MetaImageExport
 
             // Set metadata
             image->setSpacing(spacing);
-            image->setOffset(offset);
-            image->setCenterOfRotation(centerOfRotation);
-            image->setTransformMatrix(transformMatrix);
+            image->getSceneGraphNode()->setTransformation(T);
 
             // Export image
             MetaImageExporter::pointer exporter = MetaImageExporter::New();
@@ -72,16 +70,16 @@ TEST_CASE("Write a 2D image with the MetaImageExporter", "[fast][MetaImageExport
 
             importer->update();
             Image::pointer image2 = importer->getOutputData<Image>();
+            AffineTransformation T2 = image2->getSceneGraphNode()->getAffineTransformation();
 
             // Check that the image properties are correct
             for(unsigned int i = 0; i < 3; i++) {
                 CHECK(spacing[i] == Approx(image2->getSpacing()[i]));
-                CHECK(offset[i] == Approx(image2->getOffset()[i]));
-                CHECK(centerOfRotation[i] == Approx(image2->getCenterOfRotation()[i]));
+                CHECK(offset[i] == Approx(T2.translation()[i]));
             }
             for(unsigned int i = 0; i < 3; i++) {
             for(unsigned int j = 0; j < 3; j++) {
-                CHECK(transformMatrix(i,j) == Approx(image2->getTransformMatrix()(i,j)));
+                CHECK(transformMatrix(i,j) == Approx(T2.linear()(i,j)));
             }}
 
 
@@ -111,10 +109,6 @@ TEST_CASE("Write a 3D image with the MetaImageExporter", "[fast][MetaImageExport
     offset[0] = 2.2;
     offset[1] = 3.3;
     offset[2] = 3.1;
-    Vector3f centerOfRotation;
-    centerOfRotation[0] = 3.2;
-    centerOfRotation[1] = 4.3;
-    centerOfRotation[2] = 5.0;
     Matrix3f transformMatrix;
     transformMatrix(0,0) = 0.2;
     transformMatrix(1,0) = 1.3;
@@ -125,6 +119,10 @@ TEST_CASE("Write a 3D image with the MetaImageExporter", "[fast][MetaImageExport
     transformMatrix(0,2) = 6.0;
     transformMatrix(1,2) = 7.0;
     transformMatrix(2,2) = 8.0;
+
+    AffineTransformation T;
+    T.translation() = offset;
+    T.linear() = transformMatrix;
 
     unsigned int width = 32;
     unsigned int height = 22;
@@ -139,9 +137,7 @@ TEST_CASE("Write a 3D image with the MetaImageExporter", "[fast][MetaImageExport
 
             // Set metadata
             image->setSpacing(spacing);
-            image->setOffset(offset);
-            image->setCenterOfRotation(centerOfRotation);
-            image->setTransformMatrix(transformMatrix);
+            image->getSceneGraphNode()->setTransformation(T);
 
             // Export image
             MetaImageExporter::pointer exporter = MetaImageExporter::New();
@@ -154,16 +150,16 @@ TEST_CASE("Write a 3D image with the MetaImageExporter", "[fast][MetaImageExport
             importer->setFilename("MetaImageExporterTest3D.mhd");
             importer->update();
             Image::pointer image2 = importer->getOutputData<Image>(0);
+            AffineTransformation T2 = image2->getSceneGraphNode()->getAffineTransformation();
 
             // Check that the image properties are correct
             for(unsigned int i = 0; i < 3; i++) {
                 CHECK(spacing[i] == Approx(image2->getSpacing()[i]));
-                CHECK(offset[i] == Approx(image2->getOffset()[i]));
-                CHECK(centerOfRotation[i] == Approx(image2->getCenterOfRotation()[i]));
+                CHECK(offset[i] == Approx(T2.translation()[i]));
             }
             for(unsigned int i = 0; i < 3; i++) {
             for(unsigned int j = 0; j < 3; j++) {
-                CHECK(transformMatrix(i,j) == Approx(image2->getTransformMatrix()(i,j)));
+                CHECK(transformMatrix(i,j) == Approx(T2.linear()(i,j)));
             }}
 
             CHECK(image2->getWidth() == width);
@@ -192,10 +188,6 @@ TEST_CASE("Write a compressed 2D image with the MetaImageExporter", "[fast][Meta
     offset[0] = 2.2;
     offset[1] = 3.3;
     offset[2] = 3.1;
-    Vector3f centerOfRotation;
-    centerOfRotation[0] = 3.2;
-    centerOfRotation[1] = 4.3;
-    centerOfRotation[2] = 5.0;
     Matrix3f transformMatrix;
     transformMatrix(0,0) = 0.2;
     transformMatrix(1,0) = 1.3;
@@ -206,6 +198,10 @@ TEST_CASE("Write a compressed 2D image with the MetaImageExporter", "[fast][Meta
     transformMatrix(0,2) = 6.0;
     transformMatrix(1,2) = 7.0;
     transformMatrix(2,2) = 8.0;
+
+    AffineTransformation T;
+    T.translation() = offset;
+    T.linear() = transformMatrix;
 
     unsigned int width = 32;
     unsigned int height = 46;
@@ -221,9 +217,7 @@ TEST_CASE("Write a compressed 2D image with the MetaImageExporter", "[fast][Meta
 
             // Set metadata
             image->setSpacing(spacing);
-            image->setOffset(offset);
-            image->setCenterOfRotation(centerOfRotation);
-            image->setTransformMatrix(transformMatrix);
+            image->getSceneGraphNode()->setTransformation(T);
 
             // Export image
             MetaImageExporter::pointer exporter = MetaImageExporter::New();
@@ -238,18 +232,17 @@ TEST_CASE("Write a compressed 2D image with the MetaImageExporter", "[fast][Meta
 
             importer->update();
             Image::pointer image2 = importer->getOutputData<Image>();
+            AffineTransformation T2 = image2->getSceneGraphNode()->getAffineTransformation();
 
             // Check that the image properties are correct
             for(unsigned int i = 0; i < 3; i++) {
                 CHECK(spacing[i] == Approx(image2->getSpacing()[i]));
-                CHECK(offset[i] == Approx(image2->getOffset()[i]));
-                CHECK(centerOfRotation[i] == Approx(image2->getCenterOfRotation()[i]));
+                CHECK(offset[i] == Approx(T2.translation()[i]));
             }
             for(unsigned int i = 0; i < 3; i++) {
             for(unsigned int j = 0; j < 3; j++) {
-                CHECK(transformMatrix(i,j) == Approx(image2->getTransformMatrix()(i,j)));
+                CHECK(transformMatrix(i,j) == Approx(T2.linear()(i,j)));
             }}
-
 
             CHECK(image2->getWidth() == width);
             CHECK(image2->getHeight() == height);
@@ -276,10 +269,6 @@ TEST_CASE("Write a compressed 3D image with the MetaImageExporter", "[fast][Meta
     offset[0] = 2.2;
     offset[1] = 3.3;
     offset[2] = 3.1;
-    Vector3f centerOfRotation;
-    centerOfRotation[0] = 3.2;
-    centerOfRotation[1] = 4.3;
-    centerOfRotation[2] = 5.0;
     Matrix3f transformMatrix;
     transformMatrix(0,0) = 0.2;
     transformMatrix(1,0) = 1.3;
@@ -290,6 +279,11 @@ TEST_CASE("Write a compressed 3D image with the MetaImageExporter", "[fast][Meta
     transformMatrix(0,2) = 6.0;
     transformMatrix(1,2) = 7.0;
     transformMatrix(2,2) = 8.0;
+
+
+    AffineTransformation T;
+    T.translation() = offset;
+    T.linear() = transformMatrix;
 
     unsigned int width = 32;
     unsigned int height = 22;
@@ -304,9 +298,7 @@ TEST_CASE("Write a compressed 3D image with the MetaImageExporter", "[fast][Meta
 
             // Set metadata
             image->setSpacing(spacing);
-            image->setOffset(offset);
-            image->setCenterOfRotation(centerOfRotation);
-            image->setTransformMatrix(transformMatrix);
+            image->getSceneGraphNode()->setTransformation(T);
 
             // Export image
             MetaImageExporter::pointer exporter = MetaImageExporter::New();
@@ -320,16 +312,16 @@ TEST_CASE("Write a compressed 3D image with the MetaImageExporter", "[fast][Meta
             importer->setFilename("MetaImageExporterTest3D.mhd");
             importer->update();
             Image::pointer image2 = importer->getOutputData<Image>(0);
+            AffineTransformation T2 = image2->getSceneGraphNode()->getAffineTransformation();
 
             // Check that the image properties are correct
             for(unsigned int i = 0; i < 3; i++) {
                 CHECK(spacing[i] == Approx(image2->getSpacing()[i]));
-                CHECK(offset[i] == Approx(image2->getOffset()[i]));
-                CHECK(centerOfRotation[i] == Approx(image2->getCenterOfRotation()[i]));
+                CHECK(offset[i] == Approx(T2.translation()[i]));
             }
             for(unsigned int i = 0; i < 3; i++) {
             for(unsigned int j = 0; j < 3; j++) {
-                CHECK(transformMatrix(i,j) == Approx(image2->getTransformMatrix()(i,j)));
+                CHECK(transformMatrix(i,j) == Approx(T2.linear()(i,j)));
             }}
 
             CHECK(image2->getWidth() == width);

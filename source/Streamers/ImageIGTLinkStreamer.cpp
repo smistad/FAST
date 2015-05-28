@@ -185,18 +185,18 @@ Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer message, E
     igtl::Matrix4x4 matrix;
     message->GetMatrix(matrix);
     image->setSpacing(Vector3f(spacing[0], spacing[1], spacing[2]));
-    image->setOffset(Vector3f(offset[0], offset[1], offset[2]));
+    AffineTransformation T;
+    T.translation() = Vector3f(offset[0], offset[1], offset[2]);
     Matrix3f fastMatrix;
     for(int i = 0; i < 3; i++) {
     for(int j = 0; j < 3; j++) {
         fastMatrix(i,j) = matrix[i][j];
     }}
-    image->setTransformMatrix(fastMatrix);
+    T.linear() = fastMatrix;
+    image->getSceneGraphNode()->setTransformation(T);
     igtl::PrintMatrix(matrix);
-    std::cout << "SPACING IS " << spacing[0] << " " << spacing[1] << std::endl;
+    std::cout << "SPACING IS " << spacing[0] << " " << spacing[1] << " " << spacing[2] << std::endl;
     std::cout << "OFFSET IS " << offset[0] << " " << offset[1] << " " << offset[2] << std::endl;
-
-    // TODO transform matrix
 
     return image;
 }

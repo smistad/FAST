@@ -233,6 +233,7 @@ void MetaImageImporter::execute() {
 
 
         } else if(key == "CenterOfRotation") {
+            std::cout << "WARNING: CenterOfRotation in Metaimage file ignored" << std::endl;
             std::vector<std::string> values;
             boost::split(values, value, boost::is_any_of(" "));
             // Remove any empty values:
@@ -255,24 +256,24 @@ void MetaImageImporter::execute() {
                     centerOfRotation[2] = boost::lexical_cast<float>(values[2]);
                 }
             }
-        } else if(key == "Offset") {
+        } else if(key == "Offset" || key == "Origin" || key == "Position") {
             std::vector<std::string> values;
             boost::split(values, value, boost::is_any_of(" "));
             // Remove any empty values:
             values.erase(std::remove(values.begin(), values.end(), ""), values.end());
             if(values.size() != 3)
-                throw Exception("Offset in MetaImage file did not contain 3 numbers");
+                throw Exception("Offset/Origin/Position in MetaImage file did not contain 3 numbers");
 
             offset[0] = boost::lexical_cast<float>(values[0].c_str());
             offset[1] = boost::lexical_cast<float>(values[1].c_str());
             offset[2] = boost::lexical_cast<float>(values[2].c_str());
-        } else if(key == "TransformMatrix") {
+        } else if(key == "TransformMatrix" || key == "Rotation" || key == "Orientation") {
             std::vector<std::string> values;
             boost::split(values, value, boost::is_any_of(" "));
             // Remove any empty values:
             values.erase(std::remove(values.begin(), values.end(), ""), values.end());
             if(values.size() != 9)
-                throw Exception("Encountered a transform matrix with incorrect number of elements in the MetaImageImporter");
+                throw Exception("Encountered a transform/orientation/rotation matrix with incorrect number of elements in the MetaImageImporter");
 
             for(unsigned int i = 0; i < 3; i++) {
             for(unsigned int j = 0; j < 3; j++) {
@@ -312,10 +313,13 @@ void MetaImageImporter::execute() {
         output->create2DImage(width,height,type,nrOfComponents,getMainDevice(),data);
     }
 
-    output->setOffset(offset);
     output->setSpacing(spacing);
-    output->setCenterOfRotation(centerOfRotation);
-    output->setTransformMatrix(transformMatrix);
+
+    // Create transformation
+    AffineTransformation T;
+    T.translation() = offset;
+    T.linear() = transformMatrix;
+    output->getSceneGraphNode()->setTransformation(T);
 
     // Clean up
     deleteArray(data, type);

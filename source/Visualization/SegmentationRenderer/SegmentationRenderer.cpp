@@ -18,11 +18,7 @@ BoundingBox SegmentationRenderer::getBoundingBox() {
     boost::unordered_map<uint, Image::pointer>::iterator it;
     for(it = mImagesToRender.begin(); it != mImagesToRender.end(); it++) {
         BoundingBox transformedBoundingBox;
-        if(mDoTransformations) {
-            transformedBoundingBox = it->second->getTransformedBoundingBox();
-        } else {
-            transformedBoundingBox = it->second->getBoundingBox();
-        }
+        transformedBoundingBox = it->second->getTransformedBoundingBox();
 
         MatrixXf corners = transformedBoundingBox.getCorners();
         for(uint j = 0; j < 8; j++) {
@@ -45,7 +41,6 @@ void SegmentationRenderer::setFillArea(bool fillArea) {
 SegmentationRenderer::SegmentationRenderer() {
     createInputPort<Segmentation>(0, false);
     mIsModified = false;
-    mDoTransformations = true;
     mColorsModified = true;
     mFillArea = true;
 
@@ -153,6 +148,7 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
 
             // Get transform of the image
             AffineTransformation dataTransform = SceneGraph::getAffineTransformationFromData(input);
+            dataTransform.scale(input->getSpacing());
 
             // Transfer transformations
             Eigen::Affine3f transform = dataTransform.inverse()*pixelToViewportTransform;

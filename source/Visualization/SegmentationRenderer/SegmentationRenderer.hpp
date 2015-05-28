@@ -29,7 +29,6 @@ class SegmentationRenderer : public Renderer {
                 Vector2f translation
         );
 
-        bool mDoTransformations;
         bool mColorsModified;
 
         boost::unordered_map<uint, Image::pointer> mImagesToRender;

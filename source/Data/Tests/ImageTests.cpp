@@ -1339,29 +1339,8 @@ TEST_CASE("createFromImage on 2D image", "[fast][image]") {
     spacing[0] = 1.2;
     spacing[1] = 2.3;
     spacing[2] = 1;
-    Vector3f offset;
-    offset[0] = 2.2;
-    offset[1] = 3.3;
-    offset[2] = 3.1;
-    Vector3f centerOfRotation;
-    centerOfRotation[0] = 3.2;
-    centerOfRotation[1] = 4.3;
-    centerOfRotation[2] = 5.0;
-    Matrix3f transformMatrix;
-    transformMatrix(0,0) = 0.2;
-    transformMatrix(1,0) = 1.3;
-    transformMatrix(2,0) = 2.0;
-    transformMatrix(0,1) = 3.0;
-    transformMatrix(1,1) = 4.0;
-    transformMatrix(2,1) = 5.0;
-    transformMatrix(0,2) = 6.0;
-    transformMatrix(1,2) = 7.0;
-    transformMatrix(2,2) = 8.0;
 
     image1->setSpacing(spacing);
-    image1->setOffset(offset);
-    image1->setCenterOfRotation(centerOfRotation);
-    image1->setTransformMatrix(transformMatrix);
 
     image2->createFromImage(image1, Host::getInstance());
 
@@ -1375,13 +1354,7 @@ TEST_CASE("createFromImage on 2D image", "[fast][image]") {
     // Check that the image properties are correct
     for(unsigned int i = 0; i < 3; i++) {
         CHECK(spacing[i] == Approx(image2->getSpacing()[i]));
-        CHECK(offset[i] == Approx(image2->getOffset()[i]));
-        CHECK(centerOfRotation[i] == Approx(image2->getCenterOfRotation()[i]));
     }
-    for(unsigned int i = 0; i < 3; i++) {
-    for(unsigned int j = 0; j < 3; j++) {
-        CHECK(transformMatrix(i,j) == Approx(image2->getTransformMatrix()(i,j)));
-    }}
 }
 
 TEST_CASE("createFromImage on 3D image", "[fast][image]") {
@@ -1401,29 +1374,8 @@ TEST_CASE("createFromImage on 3D image", "[fast][image]") {
     spacing[0] = 1.2;
     spacing[1] = 2.3;
     spacing[2] = 1;
-    Vector3f offset;
-    offset[0] = 2.2;
-    offset[1] = 3.3;
-    offset[2] = 3.1;
-    Vector3f centerOfRotation;
-    centerOfRotation[0] = 3.2;
-    centerOfRotation[1] = 4.3;
-    centerOfRotation[2] = 5.0;
-    Matrix3f transformMatrix;
-    transformMatrix(0,0) = 0.2;
-    transformMatrix(1,0) = 1.3;
-    transformMatrix(2,0) = 2.0;
-    transformMatrix(0,1) = 3.0;
-    transformMatrix(1,1) = 4.0;
-    transformMatrix(2,1) = 5.0;
-    transformMatrix(0,2) = 6.0;
-    transformMatrix(1,2) = 7.0;
-    transformMatrix(2,2) = 8.0;
 
     image1->setSpacing(spacing);
-    image1->setOffset(offset);
-    image1->setCenterOfRotation(centerOfRotation);
-    image1->setTransformMatrix(transformMatrix);
 
     image2->createFromImage(image1, Host::getInstance());
 
@@ -1437,13 +1389,7 @@ TEST_CASE("createFromImage on 3D image", "[fast][image]") {
     // Check that the image properties are correct
     for(unsigned int i = 0; i < 3; i++) {
         CHECK(spacing[i] == Approx(image2->getSpacing()[i]));
-        CHECK(offset[i] == Approx(image2->getOffset()[i]));
-        CHECK(centerOfRotation[i] == Approx(image2->getCenterOfRotation()[i]));
     }
-    for(unsigned int i = 0; i < 3; i++) {
-    for(unsigned int j = 0; j < 3; j++) {
-        CHECK(transformMatrix(i,j) == Approx(image2->getTransformMatrix()(i,j)));
-    }}
 }
 
 

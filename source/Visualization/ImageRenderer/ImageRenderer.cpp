@@ -155,6 +155,7 @@ void ImageRenderer::draw() {
         glPushMatrix();
 
         AffineTransformation transform = SceneGraph::getAffineTransformationFromData(it->second);
+        transform.scale(it->second->getSpacing()); // Apply image spacing
         glMultMatrixf(transform.data());
 
         glBindTexture(GL_TEXTURE_2D, mTexturesToRender[it->first]);
@@ -238,9 +239,10 @@ void ImageRenderer::draw2D(cl::BufferGL PBO, uint width, uint height, Eigen::Tra
 
             // Get transform of the image
             AffineTransformation dataTransform = SceneGraph::getAffineTransformationFromData(input);
+            dataTransform.scale(it->second->getSpacing()); // Apply image spacing
 
             // Transfer transformations
-            Eigen::Transform<float, 3, Eigen::Affine> transform = dataTransform.inverse()*pixelToViewportTransform;
+            Eigen::Affine3f transform = dataTransform.inverse()*pixelToViewportTransform;
 
             cl::Buffer transformBuffer(
                     device->getContext(),

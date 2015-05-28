@@ -37,21 +37,17 @@ class Image : public SpatialDataObject {
         unsigned char getDimensions() const;
         DataType getDataType() const;
         unsigned int getNrOfComponents() const;
-
         Vector3f getSpacing() const;
-        Vector3f getOffset() const;
-        Vector3f getCenterOfRotation() const;
-        Matrix3f getTransformMatrix() const;
         void setSpacing(Vector3f spacing);
-        void setOffset(Vector3f offset);
-        void setCenterOfRotation(Vector3f rotation);
-        void setTransformMatrix(Matrix3f transformMatrix);
 
         float calculateMaximumIntensity();
         float calculateMinimumIntensity();
 
         // Copy image and put contents to specific device
         Image::pointer copy(ExecutionDevice::pointer device);
+
+        // Override
+        BoundingBox getTransformedBoundingBox() const;
     protected:
         Image();
 
@@ -88,8 +84,6 @@ class Image : public SpatialDataObject {
 
         void updateHostData();
 
-        void updateSceneGraphTransformation() const;
-
         unsigned int getBufferSize() const;
 
         unsigned int mWidth, mHeight, mDepth;
@@ -98,8 +92,7 @@ class Image : public SpatialDataObject {
         unsigned int mComponents;
         bool mImageIsBeingWrittenTo;
 
-        Vector3f mSpacing, mOffset, mCenterOfRotation;
-        Matrix3f mTransformMatrix;
+        Vector3f mSpacing;
 
         float mMaximumIntensity, mMinimumIntensity;
         unsigned long mMaxMinTimestamp;

@@ -449,10 +449,6 @@ Image::Image() {
     mIsDynamicData = false;
     mImageIsBeingWrittenTo = false;
     mSpacing = Vector3f(1,1,1);
-    mCenterOfRotation = Vector3f(0,0,0);
-    // Identity matrix
-    mTransformMatrix = Matrix3f::Identity();
-
     mMaxMinInitialized = false;
 }
 
@@ -738,37 +734,11 @@ Vector3f fast::Image::getSpacing() const {
     return mSpacing;
 }
 
-Vector3f fast::Image::getOffset() const {
-    return mOffset;
-}
-
-Vector3f fast::Image::getCenterOfRotation() const {
-    return mCenterOfRotation;
-}
-
-Matrix3f fast::Image::getTransformMatrix() const {
-    return mTransformMatrix;
-}
-
 void fast::Image::setSpacing(Vector3f spacing) {
     mSpacing = spacing;
-    updateSceneGraphTransformation();
 }
 
-void fast::Image::setOffset(Vector3f offset) {
-    mOffset = offset;
-    updateSceneGraphTransformation();
-}
-
-void fast::Image::setCenterOfRotation(Vector3f rotation) {
-    mCenterOfRotation = rotation;
-}
-
-void fast::Image::setTransformMatrix(Matrix3f transformMatrix) {
-    mTransformMatrix = transformMatrix;
-    updateSceneGraphTransformation();
-}
-
+/*
 void Image::updateSceneGraphTransformation() const {
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
@@ -778,28 +748,11 @@ void Image::updateSceneGraphTransformation() const {
     transformation.linear() = mTransformMatrix;
     transformation.translation() = mOffset;
     transformation.scale(mSpacing);
-    /*
-    MatrixXf transformation = MatrixXf::Identity(3,4);
-    transformation(0,0) = mTransformMatrix[0]*mSpacing[0];
-    transformation(0,1) = mTransformMatrix[3]*mSpacing[1];
-    transformation(0,2) = mTransformMatrix[6]*mSpacing[2];
-    transformation(0,3) = mOffset[0];
-    transformation(1,0) = mTransformMatrix[1]*mSpacing[0];
-    transformation(1,1) = mTransformMatrix[4]*mSpacing[1];
-    transformation(1,2) = mTransformMatrix[7]*mSpacing[2];
-    transformation(1,3) = mOffset[1];
-    transformation(2,0) = mTransformMatrix[2]*mSpacing[0];
-    transformation(2,1) = mTransformMatrix[5]*mSpacing[1];
-    transformation(2,2) = mTransformMatrix[8]*mSpacing[2];
-    transformation(2,3) = mOffset[2];
-    Eigen::Transform<float,3,Eigen::Affine> asd;
-    asd.affine() = transformation;
-    transform.setTransform(asd);
-    */
 
     SceneGraphNode::pointer node = getSceneGraphNode();
     node->setTransformation(transformation);
 }
+*/
 
 
 void Image::calculateMaxAndMinIntensity() {
@@ -917,9 +870,6 @@ void Image::createFromImage(
 
     // Copy metadata
     setSpacing(image->getSpacing());
-    setOffset(image->getOffset());
-    setCenterOfRotation(image->getCenterOfRotation());
-    setTransformMatrix(image->getTransformMatrix());
     updateModifiedTimestamp();
 }
 
@@ -971,6 +921,15 @@ Image::pointer Image::copy(ExecutionDevice::pointer device) {
     }
 
     return clone;
+}
+
+BoundingBox Image::getTransformedBoundingBox() const {
+    AffineTransformation T = SceneGraph::getAffineTransformationFromData(DataObject::pointer(mPtr.lock()));
+
+    // Add image spacing
+    T.scale(getSpacing());
+
+    return getBoundingBox().getTransformedBoundingBox(T);
 }
 
 } // end namespace fast;

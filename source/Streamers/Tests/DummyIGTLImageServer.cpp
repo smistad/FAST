@@ -65,10 +65,10 @@ igtl::ImageMessage::Pointer createIGTLImageMessage(Image::pointer image) {
 
     igtl::Matrix4x4 matrix;
     igtl::IdentityMatrix(matrix);
-    Matrix3f fastMatrix = image->getTransformMatrix();
+    AffineTransformation T = image->getSceneGraphNode()->getAffineTransformation();
     for(int i = 0; i < 3; i++) {
     for(int j = 0; j < 3; j++) {
-        matrix[i][j] = fastMatrix(i,j);
+        matrix[i][j] = T.linear()(i,j);
     }}
 
     //------------------------------------------------------------
@@ -76,7 +76,7 @@ igtl::ImageMessage::Pointer createIGTLImageMessage(Image::pointer image) {
     igtl::ImageMessage::Pointer imgMsg = igtl::ImageMessage::New();
     imgMsg->SetDimensions(size);
     imgMsg->SetSpacing(spacing);
-    imgMsg->SetOrigin(image->getOffset().x(), image->getOffset().y(), image->getOffset().z());
+    imgMsg->SetOrigin(T.translation().x(), T.translation().y(), T.translation().z());
     imgMsg->SetMatrix(matrix);
     imgMsg->SetNumComponents(image->getNrOfComponents());
     imgMsg->SetScalarType(scalarType);
