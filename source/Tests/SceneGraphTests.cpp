@@ -4,8 +4,8 @@
 
 namespace fast {
 
-TEST_CASE("LinearTransformation object is initialized to 4x4 identity matrix", "[fast][SceneGraph]") {
-    LinearTransformation T;
+TEST_CASE("AffineTransformation object is initialized to 4x4 identity matrix", "[fast][SceneGraph]") {
+    AffineTransformation T;
 
     bool correctValues = true;
     for(int i = 0; i < 4; i++) {
@@ -25,13 +25,13 @@ TEST_CASE("Inversion of linear transformation") {
 }
 TEST_CASE("Get linear transformation from node to its parent root", "[fast][SceneGraph]") {
 
-    LinearTransformation T;
+    AffineTransformation T;
     T(1,3) = 2.0;
     DummyDataObject::pointer dummy = DummyDataObject::New();
     SceneGraphNode::pointer node = dummy->getSceneGraphNode();
     node->setTransformation(T);
 
-    LinearTransformation T2 = SceneGraph::getLinearTransformationFromData(dummy);
+    AffineTransformation T2 = SceneGraph::getAffineTransformationFromData(dummy);
     bool correctValues = true;
     for(int i = 0; i < 4; i++) {
         for(int j = 0; j < 4; j++) {

@@ -20,7 +20,7 @@ void VTKSurfaceFileExporter::execute() {
     Mesh::pointer surface = getStaticInputData<Mesh>();
 
     // Get transformation
-    LinearTransformation transform = SceneGraph::getLinearTransformationFromData(surface);
+    AffineTransformation transform = SceneGraph::getAffineTransformationFromData(surface);
 
     std::ofstream file(mFilename.c_str());
 
@@ -57,7 +57,7 @@ void VTKSurfaceFileExporter::execute() {
     for(int i = 0; i < vertices.size(); i++) {
         SurfaceVertex vertex = vertices[i];
         // Transform it
-        vertex.normal = transform.getTransform().linear()*vertex.normal;
+        vertex.normal = transform.linear()*vertex.normal;
         // Normalize it
         float length = vertex.normal.norm();
         if(length == 0) { // prevent NaN situations

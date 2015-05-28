@@ -774,8 +774,7 @@ void Image::updateSceneGraphTransformation() const {
         throw Exception("Image has not been initialized.");
 
     // Create linear transformation matrix
-    LinearTransformation transform;
-    Eigen::Transform<float, 3, Eigen::Affine> transformation = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
+    AffineTransformation transformation;
     transformation.linear() = mTransformMatrix;
     transformation.translation() = mOffset;
     transformation.scale(mSpacing);
@@ -797,10 +796,9 @@ void Image::updateSceneGraphTransformation() const {
     asd.affine() = transformation;
     transform.setTransform(asd);
     */
-    transform.setTransform(transformation);
 
     SceneGraphNode::pointer node = getSceneGraphNode();
-    node->setTransformation(transform);
+    node->setTransformation(transformation);
 }
 
 

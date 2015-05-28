@@ -1,7 +1,7 @@
 #ifndef SCENEGRAPH_HPP_
 #define SCENEGRAPH_HPP_
 
-#include "LinearTransformation.hpp"
+#include "AffineTransformation.hpp"
 #include "Object.hpp"
 
 namespace fast {
@@ -10,10 +10,10 @@ namespace fast {
 class SceneGraphNode : public Object {
     FAST_OBJECT(SceneGraphNode)
     public:
-        void setTransformation(LinearTransformation transformation);
+        void setTransformation(AffineTransformation transformation);
         void setParent(SceneGraphNode::pointer parent);
         SceneGraphNode::pointer getParent() const;
-        LinearTransformation getLinearTransformation() const;
+        AffineTransformation getAffineTransformation() const;
         void reset();
         bool isDataNode() const;
         bool isRootNode() const;
@@ -22,18 +22,18 @@ class SceneGraphNode : public Object {
 
         SceneGraphNode::pointer mParent;
         bool mIsRootNode;
-        LinearTransformation mTransformation;
+        AffineTransformation mTransformation;
 };
 
 class SpatialDataObject;
 
 namespace SceneGraph {
-    LinearTransformation getLinearTransformationBetweenNodes(SceneGraphNode::pointer nodeA, SceneGraphNode::pointer nodeB);
-    LinearTransformation getLinearTransformationFromNode(SceneGraphNode::pointer node);
-    LinearTransformation getLinearTransformationFromData(SharedPointer<SpatialDataObject> node);
+    AffineTransformation getAffineTransformationBetweenNodes(SceneGraphNode::pointer nodeA, SceneGraphNode::pointer nodeB);
+    AffineTransformation getAffineTransformationFromNode(SceneGraphNode::pointer node);
+    AffineTransformation getAffineTransformationFromData(SharedPointer<SpatialDataObject> node);
     void setParentNode(SharedPointer<SpatialDataObject> child, SharedPointer<SpatialDataObject> parent);
-    SceneGraphNode::pointer insertParentNodeToData(SharedPointer<SpatialDataObject> child, LinearTransformation transform);
-    SceneGraphNode::pointer insertParentNodeToNode(SceneGraphNode::pointer child, LinearTransformation transform);
+    SceneGraphNode::pointer insertParentNodeToData(SharedPointer<SpatialDataObject> child, AffineTransformation transform);
+    SceneGraphNode::pointer insertParentNodeToNode(SceneGraphNode::pointer child, AffineTransformation transform);
 };
 
 } // end namespace fast

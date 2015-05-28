@@ -30,7 +30,7 @@ void IterativeClosestPoint::setMovingPointSet(PointSet::pointer data) {
     setInputData(1, data);
 }
 
-LinearTransformation IterativeClosestPoint::getOutputTransformation() {
+AffineTransformation IterativeClosestPoint::getOutputTransformation() {
     return mTransformation;
 }
 
@@ -97,8 +97,8 @@ void IterativeClosestPoint::execute() {
     PointSetAccess::pointer accessMovingSet = ((PointSet::pointer)getStaticInputData<PointSet>(1))->getAccess(ACCESS_READ);
 
     // Get transformations of point sets
-    LinearTransformation fixedPointTransform = SceneGraph::getLinearTransformationFromData(getStaticInputData<PointSet>(0));
-    LinearTransformation initialMovingTransform = SceneGraph::getLinearTransformationFromData(getStaticInputData<PointSet>(1));
+    AffineTransformation fixedPointTransform = SceneGraph::getAffineTransformationFromData(getStaticInputData<PointSet>(0));
+    AffineTransformation initialMovingTransform = SceneGraph::getAffineTransformationFromData(getStaticInputData<PointSet>(1));
 
     // These matrices are Nx3
     MatrixXf fixedPoints = accessFixedSet->getPointSetAsMatrix();
@@ -118,13 +118,13 @@ void IterativeClosestPoint::execute() {
 
         // Apply initial transformations
         //currentTransformation = fixedPointTransform.getTransform();
-        movingPoints = fixedPointTransform.getTransform()*movingPoints.colwise().homogeneous();
-        fixedPoints = initialMovingTransform.getTransform()*fixedPoints.colwise().homogeneous();
+        movingPoints = fixedPointTransform*movingPoints.colwise().homogeneous();
+        fixedPoints = initialMovingTransform*fixedPoints.colwise().homogeneous();
     } else {
         // Apply initial transformations
         //currentTransformation = initialMovingTransform.getTransform();
-        movingPoints = initialMovingTransform.getTransform()*movingPoints.colwise().homogeneous();
-        fixedPoints = fixedPointTransform.getTransform()*fixedPoints.colwise().homogeneous();
+        movingPoints = initialMovingTransform*movingPoints.colwise().homogeneous();
+        fixedPoints = fixedPointTransform*fixedPoints.colwise().homogeneous();
     }
     do {
         previousError = error;
@@ -191,7 +191,7 @@ void IterativeClosestPoint::execute() {
     }
 
     mError = error;
-    mTransformation.setTransform(currentTransformation);
+    mTransformation = currentTransformation;
 }
 
 

@@ -1,8 +1,8 @@
 #ifndef BOUNDINGBOX_HPP_
 #define BOUNDINGBOX_HPP_
 
+#include "AffineTransformation.hpp"
 #include "DataTypes.hpp"
-#include "LinearTransformation.hpp"
 
 namespace fast {
 
@@ -15,7 +15,7 @@ class BoundingBox {
         BoundingBox(MatrixXf corners);
         BoundingBox();
         MatrixXf getCorners() const;
-        BoundingBox getTransformedBoundingBox(LinearTransformation transform) const;
+        BoundingBox getTransformedBoundingBox(AffineTransformation transform) const;
         bool isInitialized() const;
     private:
         void createCorners(Vector3f pos, Vector3f size);

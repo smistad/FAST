@@ -152,10 +152,10 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
             cl::Kernel kernel(device->getProgram(programNr), kernelName.c_str());
 
             // Get transform of the image
-            LinearTransformation dataTransform = SceneGraph::getLinearTransformationFromData(input);
+            AffineTransformation dataTransform = SceneGraph::getAffineTransformationFromData(input);
 
             // Transfer transformations
-            Eigen::Transform<float, 3, Eigen::Affine> transform = dataTransform.getTransform().inverse()*pixelToViewportTransform;
+            Eigen::Affine3f transform = dataTransform.inverse()*pixelToViewportTransform;
 
             cl::Buffer transformBuffer(
                     device->getContext(),

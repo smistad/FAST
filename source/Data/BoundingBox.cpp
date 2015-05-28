@@ -80,7 +80,7 @@ BoundingBox::BoundingBox(std::vector<Vector3f> coordinates) {
 }
 
 BoundingBox BoundingBox::getTransformedBoundingBox(
-        LinearTransformation transform) const {
+        AffineTransformation transform) const {
     if(!mIsInitialized)
         throw Exception("Cannot getTransformedBoundingBox because bounding box was not initialized.");
     MatrixXf newCorners = MatrixXf::Constant(8,3,0);

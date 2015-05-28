@@ -212,15 +212,13 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
     importerB->enableRuntimeMeasurements();
 
     // Apply a transformation to B surface
-    Eigen::Transform<float, 3, Eigen::Affine> transform = Eigen::Transform<float,3,Eigen::Affine>::Identity();
-    transform.translate(Vector3f(0.01, 0, 0.01));
+    AffineTransformation transformation;
+    transformation.translate(Vector3f(0.01, 0, 0.01));
     Matrix3f R;
     R = Eigen::AngleAxisf(0.5, Vector3f::UnitX())
     * Eigen::AngleAxisf(0, Vector3f::UnitY())
     * Eigen::AngleAxisf(0, Vector3f::UnitZ());
-    transform.rotate(R);
-    LinearTransformation transformation;
-    transformation.setTransform(transform);
+    transformation.rotate(R);
     importerB->update();
     importerB->getStaticOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(transformation);
 
@@ -229,11 +227,11 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
     icp->setFixedPointSetPort(importerB->getOutputPort());
     icp->enableRuntimeMeasurements();
     icp->update();
-    std::cout << icp->getOutputTransformation().getTransform().affine() << std::endl;
+    std::cout << icp->getOutputTransformation().affine() << std::endl;
     importerA->getStaticOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
     std::cout << "result: " << std::endl;
     std::cout << icp->getOutputTransformation().getEulerAngles() << std::endl;
-    std::cout << icp->getOutputTransformation().getTransform().translation() << std::endl;
+    std::cout << icp->getOutputTransformation().translation() << std::endl;
 
 
     PointRenderer::pointer renderer = PointRenderer::New();

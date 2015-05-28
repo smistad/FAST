@@ -16,10 +16,10 @@ void LineRenderer::draw() {
         LineSet::pointer points = getInputData(i);
         LineSetAccess::pointer access = points->getAccess(ACCESS_READ);
 
-        LinearTransformation transform = SceneGraph::getLinearTransformationFromData(points);
+        AffineTransformation transform = SceneGraph::getAffineTransformationFromData(points);
 
         glPushMatrix();
-        glMultMatrixf(transform.getTransform().data());
+        glMultMatrixf(transform.data());
 
         if(mInputWidths.count(getInputPort(i)) > 0) {
             glLineWidth(mInputWidths[getInputPort(i)]);

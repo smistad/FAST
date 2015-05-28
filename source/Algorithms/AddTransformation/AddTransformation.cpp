@@ -11,14 +11,14 @@ void AddTransformation::setTransformationInputConnection(ProcessObjectPort port)
 
 AddTransformation::AddTransformation() {
     createInputPort<SpatialDataObject>(0);
-    createInputPort<LinearTransformation>(1);
+    createInputPort<AffineTransformation>(1);
     createOutputPort<SpatialDataObject>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
 }
 
 void AddTransformation::execute() {
     SpatialDataObject::pointer data = getStaticInputData<SpatialDataObject>(0);
-    LinearTransformation::pointer transform = getStaticInputData<LinearTransformation>(1);
-    LinearTransformation* T = transform.getPtr().get();
+    AffineTransformation::pointer transform = getStaticInputData<AffineTransformation>(1);
+    AffineTransformation* T = transform.getPtr().get();
     SceneGraphNode::pointer dataNode = data->getSceneGraphNode();
 
     if(data == mPrevious) {

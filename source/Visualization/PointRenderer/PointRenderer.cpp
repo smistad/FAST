@@ -19,10 +19,10 @@ void PointRenderer::draw() {
         PointSetAccess::pointer access = points->getAccess(ACCESS_READ);
         MatrixXf pointMatrix = access->getPointSetAsMatrix();
 
-        LinearTransformation transform = SceneGraph::getLinearTransformationFromData(points);
+        AffineTransformation transform = SceneGraph::getAffineTransformationFromData(points);
 
         glPushMatrix();
-        glMultMatrixf(transform.getTransform().data());
+        glMultMatrixf(transform.data());
 
         ProcessObjectPort port = getInputPort(it->first);
         if(mInputSizes.count(port) > 0) {

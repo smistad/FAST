@@ -1,9 +1,9 @@
 #include "TransformIGTLinkStreamer.hpp"
 #include "DynamicData.hpp"
-#include "LinearTransformation.hpp"
 #include <boost/shared_array.hpp>
 #include <boost/lexical_cast.hpp>
 
+#include "../AffineTransformation.hpp"
 #include "igtlOSUtil.h"
 #include "igtlMessageHeader.h"
 #include "igtlTransformMessage.h"
@@ -110,7 +110,7 @@ void TransformIGTLinkStreamer::setStreamingMode(StreamingMode mode) {
 
 void TransformIGTLinkStreamer::setMaximumNumberOfFrames(uint nrOfFrames) {
     mMaximumNrOfFrames = nrOfFrames;
-    DynamicData::pointer data = getOutputData<LinearTransformation>();
+    DynamicData::pointer data = getOutputData<AffineTransformation>();
     data->setMaximumNumberOfFrames(nrOfFrames);
 }
 
@@ -209,13 +209,11 @@ void TransformIGTLinkStreamer::producerStream() {
                     fastMatrix(i,j) = matrix[i][j];
                 }}
                 igtl::PrintMatrix(matrix);
-                Eigen::Transform<float, 3, Eigen::Affine> transformMatrix;
-                transformMatrix.matrix() = fastMatrix;
-                DynamicData::pointer ptr = getOutputData<LinearTransformation>();
-                LinearTransformation::pointer T = LinearTransformation::New();
-                T->setTransform(transformMatrix);
+                DynamicData::pointer ptr = getOutputData<AffineTransformation>();
+                AffineTransformation::pointer T = AffineTransformation::New();
+                T->matrix() = fastMatrix;
                 try {
-                    std::cout << "Adding LinearTransformation to stream.." << std::endl;
+                    std::cout << "Adding AffineTransformation to stream.." << std::endl;
                     ptr->addFrame(T);
                 } catch(NoMoreFramesException &e) {
                     throw e;
@@ -263,7 +261,7 @@ TransformIGTLinkStreamer::~TransformIGTLinkStreamer() {
 }
 
 TransformIGTLinkStreamer::TransformIGTLinkStreamer() {
-    createOutputPort<LinearTransformation>(0, OUTPUT_DYNAMIC);
+    createOutputPort<AffineTransformation>(0, OUTPUT_DYNAMIC);
     mStreamIsStarted = false;
     mIsModified = true;
     thread = NULL;
@@ -291,7 +289,7 @@ void TransformIGTLinkStreamer::stop() {
 }
 
 void TransformIGTLinkStreamer::execute() {
-    getOutputData<LinearTransformation>()->setStreamer(mPtr.lock());
+    getOutputData<AffineTransformation>()->setStreamer(mPtr.lock());
     if(mAddress == "" || mPort == 0) {
         throw Exception("Must call setConnectionAddress and setConnectionPort before executing the TransformIGTLinkStreamer.");
     }

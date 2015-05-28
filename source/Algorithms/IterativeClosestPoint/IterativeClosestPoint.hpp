@@ -1,8 +1,8 @@
 #ifndef ITERATIVE_CLOSEST_POINT_HPP
 #define ITERATIVE_CLOSEST_POINT_HPP
 
+#include "AffineTransformation.hpp"
 #include "ProcessObject.hpp"
-#include "LinearTransformation.hpp"
 #include "PointSet.hpp"
 
 namespace fast {
@@ -16,7 +16,7 @@ class IterativeClosestPoint : public ProcessObject {
         void setMovingPointSetPort(ProcessObjectPort port);
         void setMovingPointSet(PointSet::pointer data);
         void setTransformationType(const IterativeClosestPoint::TransformationType type);
-        LinearTransformation getOutputTransformation();
+        AffineTransformation getOutputTransformation();
         float getError() const;
     private:
         IterativeClosestPoint();
@@ -25,7 +25,7 @@ class IterativeClosestPoint : public ProcessObject {
         float mMinErrorChange;
         uint mMaxIterations;
         float mError;
-        LinearTransformation mTransformation;
+        AffineTransformation mTransformation;
         IterativeClosestPoint::TransformationType mTransformationType;
 };
 

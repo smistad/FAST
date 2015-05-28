@@ -181,7 +181,7 @@ BoundingBox VolumeRenderer::getBoundingBox()
 	BoundingBox inputBoundingBox = mImageToRender->getBoundingBox();
 
     if(mDoTransformations) {
-        LinearTransformation transform = SceneGraph::getLinearTransformationFromData(mImageToRender);
+        AffineTransformation transform = SceneGraph::getAffineTransformationFromData(mImageToRender);
 		BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
         
 		return transformedBoundingBox;
@@ -337,9 +337,9 @@ void VolumeRenderer::execute() {
 
 		if(mDoTransformations) 
 		{
-			LinearTransformation transform = SceneGraph::getLinearTransformationFromData(inputs[i]);
+			AffineTransformation transform = SceneGraph::getAffineTransformationFromData(inputs[i]);
 
-            glMultMatrixf(transform.getTransform().data());
+            glMultMatrixf(transform.data());
 		}
 
 		

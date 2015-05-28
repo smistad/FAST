@@ -104,13 +104,23 @@ void MetaImageExporter::execute() {
     if(input->getDimensions() == 3)
         mhdFile << " " << input->getSpacing()[2];
     mhdFile << "\n";
-    LinearTransformation T = SceneGraph::getLinearTransformationFromData(input);
-    mhdFile << "Offset = " << T.getTranslation().x() << " " << T.getTranslation().y() << " " << T.getTranslation().z() << "\n";
+    AffineTransformation T = SceneGraph::getAffineTransformationFromData(input);
+    mhdFile << "Offset = " << T.translation().x() << " " << T.translation().y() << " " << T.translation().z() << "\n";
     mhdFile << "CenterOfRotation = " << input->getCenterOfRotation()[0] << " " << input->getCenterOfRotation()[1] << " " << input->getCenterOfRotation()[2] << "\n";
     mhdFile << "TransformMatrix =";
+
+    // Remove spacing from transform matrix, as this is a separate field in the MetaImage format
+    Matrix4f affineMatrix = T.matrix();
+    Matrix3f transformMatrix = affineMatrix.block(0, 0, 3, 3);
+    Matrix3f removeSpacingMatrix = Matrix3f::Identity();
+    removeSpacingMatrix(0,0) = 1.0f/input->getSpacing()[0];
+    removeSpacingMatrix(1,1) = 1.0f/input->getSpacing()[1];
+    if(input->getDimensions() == 3)
+        removeSpacingMatrix(2,2) = 1.0f/input->getSpacing()[2];
+    transformMatrix = transformMatrix*removeSpacingMatrix;
     for(unsigned int i = 0; i < 3; i++) {
     for(unsigned int j = 0; j < 3; j++) {
-        mhdFile << " " << T.getTransform().rotation()(j,i);
+        mhdFile << " " << transformMatrix(j,i);
     }}
     mhdFile << "\n";
 

@@ -154,8 +154,8 @@ void ImageRenderer::draw() {
     for(it = mImageUsed.begin(); it != mImageUsed.end(); it++) {
         glPushMatrix();
 
-        LinearTransformation transform = SceneGraph::getLinearTransformationFromData(it->second);
-        glMultMatrixf(transform.getTransform().data());
+        AffineTransformation transform = SceneGraph::getAffineTransformationFromData(it->second);
+        glMultMatrixf(transform.data());
 
         glBindTexture(GL_TEXTURE_2D, mTexturesToRender[it->first]);
         uint width = it->second->getWidth();
@@ -237,10 +237,10 @@ void ImageRenderer::draw2D(cl::BufferGL PBO, uint width, uint height, Eigen::Tra
         } else {
 
             // Get transform of the image
-            LinearTransformation dataTransform = SceneGraph::getLinearTransformationFromData(input);
+            AffineTransformation dataTransform = SceneGraph::getAffineTransformationFromData(input);
 
             // Transfer transformations
-            Eigen::Transform<float, 3, Eigen::Affine> transform = dataTransform.getTransform().inverse()*pixelToViewportTransform;
+            Eigen::Transform<float, 3, Eigen::Affine> transform = dataTransform.inverse()*pixelToViewportTransform;
 
             cl::Buffer transformBuffer(
                     device->getContext(),

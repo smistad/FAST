@@ -76,8 +76,8 @@ fast_add_sources(
     Utility.hpp
     SceneGraph.cpp
     SceneGraph.hpp
-    LinearTransformation.cpp
-    LinearTransformation.hpp
+    AffineTransformation.cpp
+    AffineTransformation.hpp
 )
 
 # Headers for Qt objects
