@@ -65,7 +65,7 @@ igtl::ImageMessage::Pointer createIGTLImageMessage(Image::pointer image) {
 
     igtl::Matrix4x4 matrix;
     igtl::IdentityMatrix(matrix);
-    AffineTransformation T = image->getSceneGraphNode()->getAffineTransformation();
+    AffineTransformation T = image->getSceneGraphNode()->getTransformation();
     for(int i = 0; i < 3; i++) {
     for(int j = 0; j < 3; j++) {
         matrix[i][j] = T.linear()(i,j);

@@ -13,7 +13,7 @@ class SceneGraphNode : public Object {
         void setTransformation(AffineTransformation transformation);
         void setParent(SceneGraphNode::pointer parent);
         SceneGraphNode::pointer getParent() const;
-        AffineTransformation getAffineTransformation() const;
+        AffineTransformation getTransformation() const;
         void reset();
         bool isDataNode() const;
         bool isRootNode() const;

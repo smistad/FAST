@@ -37,7 +37,7 @@ bool SceneGraphNode::isRootNode() const {
     return mIsRootNode;
 }
 
-AffineTransformation SceneGraphNode::getAffineTransformation() const {
+AffineTransformation SceneGraphNode::getTransformation() const {
     return mTransformation;
 }
 
@@ -57,7 +57,7 @@ AffineTransformation SceneGraph::getAffineTransformationFromNode(
     SceneGraphNode::pointer currentNode = node;
     AffineTransformation transformation;
     while(!currentNode->isRootNode()) {
-        transformation = currentNode->getAffineTransformation()*transformation;
+        transformation = currentNode->getTransformation()*transformation;
         currentNode = currentNode->getParent();
     }
 
@@ -85,7 +85,7 @@ SceneGraphNode::pointer SceneGraph::insertParentNodeToData(SpatialDataObject::po
 
 SceneGraphNode::pointer SceneGraph::insertParentNodeToNode(SceneGraphNode::pointer childNode, AffineTransformation transform) {
     SceneGraphNode::pointer newNode = SceneGraphNode::New();
-    newNode->setTransformation(childNode->getAffineTransformation());
+    newNode->setTransformation(childNode->getTransformation());
     newNode->setParent(childNode->getParent());
     childNode->setTransformation(transform);
     childNode->setParent(newNode);
