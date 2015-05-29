@@ -1,6 +1,6 @@
-#include "catch.hpp"
-#include "ITKImageExporter.hpp"
-#include "DataComparison.hpp"
+#include "FAST/Tests/catch.hpp"
+#include "FAST/Exporters/ITKImageExporter.hpp"
+#include "FAST/Tests/DataComparison.hpp"
 
 using namespace fast;
 

@@ -1,8 +1,8 @@
 #ifndef ITKIMAGEEXPORTER_HPP_
 #define ITKIMAGEEXPORTER_HPP_
 
-#include "ProcessObject.hpp"
-#include "Image.hpp"
+#include "FAST/ProcessObject.hpp"
+#include "FAST/Data/Image.hpp"
 
 #include <itkImageSource.h>
 #include <itkImageRegionIterator.h>

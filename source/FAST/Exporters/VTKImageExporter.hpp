@@ -2,8 +2,8 @@
 #define VTKIMAGEEXPORTER_HPP_
 
 #include <vtkImageAlgorithm.h>
-#include "ProcessObject.hpp"
-#include "Image.hpp"
+#include "FAST/ProcessObject.hpp"
+#include "FAST/Data/Image.hpp"
 
 namespace fast {
 

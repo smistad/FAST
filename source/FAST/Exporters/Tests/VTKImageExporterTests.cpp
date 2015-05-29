@@ -1,10 +1,9 @@
-#include "catch.hpp"
-
-#include "DeviceManager.hpp"
-#include "ImageImporter.hpp"
-#include "VTKImageExporter.hpp"
-#include "Image.hpp"
-#include "DataComparison.hpp"
+#include "FAST/Tests/catch.hpp"
+#include "FAST/DeviceManager.hpp"
+#include "FAST/Importers/ImageImporter.hpp"
+#include "FAST/Exporters/VTKImageExporter.hpp"
+#include "FAST/Data/Image.hpp"
+#include "FAST/Tests/DataComparison.hpp"
 
 #include <vtkVersion.h>
 #include <vtkImageData.h>

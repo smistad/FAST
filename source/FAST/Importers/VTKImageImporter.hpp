@@ -1,10 +1,10 @@
 #ifndef VTKIMAGEIMPORTER_HPP_
 #define VTKIMAGEIMPORTER_HPP_
 
-#include "ProcessObject.hpp"
+#include "FAST/ProcessObject.hpp"
 #include <vtkImageData.h>
 #include <vtkSmartPointer.h>
-#include "Image.hpp"
+#include "FAST/Data/Image.hpp"
 
 namespace fast {
 

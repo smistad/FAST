@@ -1,8 +1,8 @@
 #ifndef ITKIMAGEIMPORTER_HPP_
 #define ITKIMAGEIMPORTER_HPP_
 
-#include "ProcessObject.hpp"
-#include "Image.hpp"
+#include "FAST/ProcessObject.hpp"
+#include "FAST/Data/Image.hpp"
 
 #include <itkImageSource.h>
 #include <itkImageRegionIterator.h>

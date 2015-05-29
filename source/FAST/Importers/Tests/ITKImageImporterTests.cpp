@@ -1,5 +1,5 @@
 #include "catch.hpp"
-#include "ITKImageImporter.hpp"
+#include "FAST/Importers/ITKImageImporter.hpp"
 
 using namespace fast;
 

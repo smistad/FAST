@@ -1,7 +1,7 @@
-#include "catch.hpp"
-#include "VTKImageImporter.hpp"
-#include "VTKImageExporter.hpp"
-#include "ImageImporter.hpp"
+#include "FAST/Tests/catch.hpp"
+#include "FAST/Importers/VTKImageImporter.hpp"
+#include "FAST/Exporters/VTKImageExporter.hpp"
+#include "FAST/Importers/ImageImporter.hpp"
 
 using namespace fast;
 
