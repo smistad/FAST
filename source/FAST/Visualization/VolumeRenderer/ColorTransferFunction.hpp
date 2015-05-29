@@ -2,6 +2,7 @@
 #define COLORTRANSFERFUNCTION_HPP_
 
 #include "FAST/Object.hpp"
+#include <vector>
 
 namespace fast {
 
