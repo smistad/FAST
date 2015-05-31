@@ -27,8 +27,74 @@ using namespace fast;
 #endif
 
 
+bool ray_to_plane(const Vector3f &RayOrig, const Vector3f &RayDir, const Vector3f &PlaneOrig, const Vector3f &PlaneNormal, float *OutT)
+{
+	float OutVD = PlaneNormal.x() * RayDir.x() + PlaneNormal.y() * RayDir.y() + PlaneNormal.z() * RayDir.z();
+
+	if (OutVD == 0.0f)
+		return false;
+	
+	*OutT = -(PlaneNormal.x() * RayOrig.x() + PlaneNormal.y() * RayOrig.y() + PlaneNormal.z() * RayOrig.z() - (PlaneNormal.x()*PlaneOrig.x() + PlaneNormal.y()*PlaneOrig.y() + PlaneNormal.z()*PlaneOrig.z())) / OutVD;
+	return true;
+}
+
+void calc_plane_aabb_intersection_points(const Vector3f &planeNormal, const Vector3f &PlaneOrig,
+	                                     const Vector3f &aabb_min, const Vector3f &aabb_max,
+										 Vector3f *out_points, unsigned &out_point_count)
+{
+	out_point_count = 0;
+	float t;
+
+	// Test edges along X axis, pointing right.
+	Vector3f dir = Vector3f(aabb_max.x() - aabb_min.x(), 0.f, 0.f);
+	Vector3f orig = Vector3f(aabb_min.x(), aabb_min.y(), aabb_min.z());
+	if (ray_to_plane(orig, dir, PlaneOrig, planeNormal, &t) && t >= 0.f && t <= 1.f)
+		out_points[out_point_count++] = orig + dir * t;
+	orig = Vector3f(aabb_min.x(), aabb_max.y(), aabb_min.z());
+	if (ray_to_plane(orig, dir, PlaneOrig, planeNormal, &t) && t >= 0.f && t <= 1.f)
+		out_points[out_point_count++] = orig + dir * t;
+	orig = Vector3f(aabb_min.x(), aabb_min.y(), aabb_max.z());
+	if (ray_to_plane(orig, dir, PlaneOrig, planeNormal, &t) && t >= 0.f && t <= 1.f)
+		out_points[out_point_count++] = orig + dir * t;
+	orig = Vector3f(aabb_min.x(), aabb_max.y(), aabb_max.z());
+	if (ray_to_plane(orig, dir, PlaneOrig, planeNormal, &t) && t >= 0.f && t <= 1.f)
+		out_points[out_point_count++] = orig + dir * t;
+
+	// Test edges along Y axis, pointing up.
+	dir = Vector3f(0.f, aabb_max.y() - aabb_min.y(), 0.f);
+	orig = Vector3f(aabb_min.x(), aabb_min.y(), aabb_min.z());
+	if (ray_to_plane(orig, dir, PlaneOrig, planeNormal, &t) && t >= 0.f && t <= 1.f)
+		out_points[out_point_count++] = orig + dir * t;
+	orig = Vector3f(aabb_max.x(), aabb_min.y(), aabb_min.z());
+	if (ray_to_plane(orig, dir, PlaneOrig, planeNormal, &t) && t >= 0.f && t <= 1.f)
+		out_points[out_point_count++] = orig + dir * t;
+	orig = Vector3f(aabb_min.x(), aabb_min.y(), aabb_max.z());
+	if (ray_to_plane(orig, dir, PlaneOrig, planeNormal, &t) && t >= 0.f && t <= 1.f)
+		out_points[out_point_count++] = orig + dir * t;
+	orig = Vector3f(aabb_max.x(), aabb_min.y(), aabb_max.z());
+	if (ray_to_plane(orig, dir, PlaneOrig, planeNormal, &t) && t >= 0.f && t <= 1.f)
+		out_points[out_point_count++] = orig + dir * t;
+
+	// Test edges along Z axis, pointing forward.
+	dir = Vector3f(0.f, 0.f, aabb_max.z() - aabb_min.z());
+	orig = Vector3f(aabb_min.x(), aabb_min.y(), aabb_min.z());
+	if (ray_to_plane(orig, dir, PlaneOrig, planeNormal, &t) && t >= 0.f && t <= 1.f)
+		out_points[out_point_count++] = orig + dir * t;
+	orig = Vector3f(aabb_max.x(), aabb_min.y(), aabb_min.z());
+	if (ray_to_plane(orig, dir, PlaneOrig, planeNormal, &t) && t >= 0.f && t <= 1.f)
+		out_points[out_point_count++] = orig + dir * t;
+	orig = Vector3f(aabb_min.x(), aabb_max.y(), aabb_min.z());
+	if (ray_to_plane(orig, dir, PlaneOrig, planeNormal, &t) && t >= 0.f && t <= 1.f)
+		out_points[out_point_count++] = orig + dir * t;
+	orig = Vector3f(aabb_max.x(), aabb_max.y(), aabb_min.z());
+	if (ray_to_plane(orig, dir, PlaneOrig, planeNormal, &t) && t >= 0.f && t <= 1.f)
+		out_points[out_point_count++] = orig + dir * t;
+}
+
 void SliceRenderer::execute() {
     boost::lock_guard<boost::mutex> lock(mMutex);
+
+	
     mImageToRender = getStaticInputData<Image>(0);
 
     if(mImageToRender->getDimensions() != 3)
@@ -45,62 +111,88 @@ void SliceRenderer::execute() {
         level = getDefaultIntensityLevel(mImageToRender->getDataType());
     }
 
-    OpenCLDevice::pointer device = getMainDevice();
+	if (planeOrigin.x() == -1)
+	{
+		planeOrigin.x() = mImageToRender->getWidth() / 2;
+		planeOrigin.y() = mImageToRender->getHeight() / 2;
+		planeOrigin.z() = mImageToRender->getDepth() / 2;
+	}
 
-    // Determine slice nr and width and height of the texture to render to
-    unsigned int sliceNr;
-    if(mSliceNr == -1) {
-        switch(mSlicePlane) {
-        case PLANE_X:
-            sliceNr = mImageToRender->getWidth()/2;
-            break;
-        case PLANE_Y:
-            sliceNr = mImageToRender->getHeight()/2;
-            break;
-        case PLANE_Z:
-            sliceNr = mImageToRender->getDepth()/2;
-            break;
-        }
-    } else if(mSliceNr >= 0) {
-        // Check that mSliceNr is valid
-        sliceNr = mSliceNr;
-        switch(mSlicePlane) {
-        case PLANE_X:
-            if(sliceNr >= mImageToRender->getWidth())
-                sliceNr = mImageToRender->getWidth()-1;
-            break;
-        case PLANE_Y:
-            if(sliceNr >= mImageToRender->getHeight())
-                sliceNr = mImageToRender->getHeight()-1;
-            break;
-        case PLANE_Z:
-            if(sliceNr >= mImageToRender->getDepth())
-                sliceNr = mImageToRender->getDepth()-1;
-            break;
-        }
-    } else {
-        throw Exception("Slice to render was below 0 in SliceRenderer");
-    }
-    unsigned int slicePlaneNr;
-    switch(mSlicePlane) {
-        case PLANE_X:
-            slicePlaneNr = 0;
-            mWidth = mImageToRender->getHeight();
-            mHeight = mImageToRender->getDepth();
-            break;
-        case PLANE_Y:
-            slicePlaneNr = 1;
-            mWidth = mImageToRender->getWidth();
-            mHeight = mImageToRender->getDepth();
-            break;
-        case PLANE_Z:
-            slicePlaneNr = 2;
-            mWidth = mImageToRender->getWidth();
-            mHeight = mImageToRender->getHeight();
-            break;
-    }
-    mSliceNr = sliceNr;
+	Vector3f bbMin = Vector3f(0.0f, 0.0f, 0.0f);
+	Vector3f bbMax = Vector3f(mImageToRender->getWidth(), mImageToRender->getHeight(), mImageToRender->getDepth());
 
+
+	planeD = planeNormal.x()*planeOrigin.x() + planeNormal.y()*planeOrigin.y() + planeNormal.z()*planeOrigin.z();
+
+
+	Vector3f outPoints[6];
+	unsigned int numberofIntersectionPoints;
+	calc_plane_aabb_intersection_points(planeNormal, planeOrigin, bbMin, bbMax, outPoints, numberofIntersectionPoints);
+
+	if (numberofIntersectionPoints < 3)
+		throw Exception("The defined plane has no intersection with volume(s)");
+
+	
+
+	maxX = outPoints[0].x();
+	minX = maxX;
+	maxY = outPoints[0].y();
+	minY = maxY;
+	maxZ = outPoints[0].z();
+	minZ = maxZ;
+
+	for (unsigned int i = 1; i < numberofIntersectionPoints; i++)
+	{
+		if (outPoints[i].x() < minX) minX = outPoints[i].x();
+		if (outPoints[i].y() < minY) minY = outPoints[i].y();
+		if (outPoints[i].z() < minZ) minZ = outPoints[i].z();
+		if (outPoints[i].x() > maxX) maxX = outPoints[i].x();
+		if (outPoints[i].y() > maxY) maxY = outPoints[i].y();
+		if (outPoints[i].z() > maxZ) maxZ = outPoints[i].z();
+	}
+
+	if (minX == maxX)
+	{
+		mWidth = maxY - minY;
+		mHeight = maxZ - minZ;
+		mSlicePlane = PLANE_X;
+
+		corners[0] = Vector3f(-(minY*planeNormal.y() + maxZ*planeNormal.z() - planeD) / planeNormal.x(), minY, maxZ);
+		corners[1] = Vector3f(-(maxY*planeNormal.y() + maxZ*planeNormal.z() - planeD) / planeNormal.x(), maxY, maxZ);
+		corners[2] = Vector3f(-(maxY*planeNormal.y() + minZ*planeNormal.z() - planeD) / planeNormal.x(), maxY, minZ);
+		corners[3] = Vector3f(-(minY*planeNormal.y() + minZ*planeNormal.z() - planeD) / planeNormal.x(), minY, minZ);
+	}
+	else
+	{
+		if (minY == maxY)
+		{
+			mWidth = maxX - minX;
+			mHeight = maxZ - minZ;
+			mSlicePlane = PLANE_Y;
+
+
+			corners[0] = Vector3f(minX, -(minX*planeNormal.x() + maxZ*planeNormal.z() - planeD) / planeNormal.y(), maxZ);
+			corners[1] = Vector3f(maxX, -(maxX*planeNormal.x() + maxZ*planeNormal.z() - planeD) / planeNormal.y(), maxZ);
+			corners[2] = Vector3f(maxX, -(maxX*planeNormal.x() + minZ*planeNormal.z() - planeD) / planeNormal.y(), minZ);
+			corners[3] = Vector3f(minX, -(minX*planeNormal.x() + minZ*planeNormal.z() - planeD) / planeNormal.y(), minZ);
+
+		}
+		else
+		{
+			mWidth = maxX - minX;
+			mHeight = maxY - minY;
+			mSlicePlane = PLANE_Z;
+
+			corners[0] = Vector3f(minX, maxY, -(minX*planeNormal.x() + maxY*planeNormal.y() - planeD) / planeNormal.z());
+			corners[1] = Vector3f(maxX, maxY, -(maxX*planeNormal.x() + maxY*planeNormal.y() - planeD) / planeNormal.z());
+			corners[2] = Vector3f(maxX, minY, -(maxX*planeNormal.x() + minY*planeNormal.y() - planeD) / planeNormal.z());
+			corners[3] = Vector3f(minX, minY, -(minX*planeNormal.x() + minY*planeNormal.y() - planeD) / planeNormal.z());
+		}
+	}
+	
+	unsigned int slicePlaneNr = mSlicePlane;
+
+	OpenCLDevice::pointer device = getMainDevice();
     OpenCLImageAccess3D::pointer access = mImageToRender->getOpenCLImageAccess3D(ACCESS_READ, device);
     cl::Image3D* clImage = access->get();
 
@@ -148,10 +240,16 @@ void SliceRenderer::execute() {
     recompileOpenCLCode(mImageToRender);
     mKernel.setArg(0, *clImage);
     mKernel.setArg(1, mImageGL);
-    mKernel.setArg(2, sliceNr);
-    mKernel.setArg(3, level);
-    mKernel.setArg(4, window);
-    mKernel.setArg(5, slicePlaneNr);
+    mKernel.setArg(2, level);
+    mKernel.setArg(3, window);
+    mKernel.setArg(4, slicePlaneNr);
+	mKernel.setArg(5, planeNormal.x());
+	mKernel.setArg(6, planeNormal.y());
+	mKernel.setArg(7, planeNormal.z());
+	mKernel.setArg(8, planeD);
+	mKernel.setArg(9, minX);
+	mKernel.setArg(10, minY);
+	mKernel.setArg(11, minZ);
     queue.enqueueNDRangeKernel(
             mKernel,
             cl::NullRange,
@@ -199,8 +297,9 @@ void SliceRenderer::recompileOpenCLCode(Image::pointer input) {
 SliceRenderer::SliceRenderer() : Renderer() {
     mTextureIsCreated = false;
     mIsModified = true;
-    mSlicePlane = PLANE_Z;
-    mSliceNr = -1;
+    mSlicePlane = PLANE_Y;
+	planeNormal = Vector3f(0.0f, 1.0f, 0.0f);
+	planeOrigin = Vector3f(-1.0f, -1.0f, -1.0f);
     mScale = 1.0;
     mDoTransformations = true;
 }
@@ -217,55 +316,68 @@ void SliceRenderer::draw() {
 
         glMultMatrixf(transform.getTransform().data());
     }
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glBindTexture(GL_TEXTURE_2D, mTexture);
 
     // Draw slice in voxel coordinates
     glBegin(GL_QUADS);
-    switch(mSlicePlane) {
-    case PLANE_Z:
-        glTexCoord2i(0, 1);
-        glVertex3f(0, mHeight, mSliceNr);
-        glTexCoord2i(1, 1);
-        glVertex3f(mWidth, mHeight, mSliceNr);
-        glTexCoord2i(1, 0);
-        glVertex3f( mWidth,0, mSliceNr);
-        glTexCoord2i(0, 0);
-        glVertex3f(0,0, mSliceNr);
-        break;
-    case PLANE_Y:
-        glTexCoord2i(0, 1);
-        glVertex3f(0, mSliceNr, mHeight);
-        glTexCoord2i(1, 1);
-        glVertex3f(mWidth, mSliceNr, mHeight);
-        glTexCoord2i(1, 0);
-        glVertex3f( mWidth,mSliceNr, 0 );
-        glTexCoord2i(0, 0);
-        glVertex3f(0,mSliceNr,0 );
-        break;
-    case PLANE_X:
-        glTexCoord2i(0, 1);
-        glVertex3f(mSliceNr, 0 , mHeight);
-        glTexCoord2i(1, 1);
-        glVertex3f(mSliceNr, mWidth, mHeight);
-        glTexCoord2i(1, 0);
-        glVertex3f( mSliceNr, mWidth, 0 );
-        glTexCoord2i(0, 0);
-        glVertex3f(mSliceNr,0,0 );
-    break;
-    }
-    glEnd();
+
+	glTexCoord2i(0, 1);
+	glVertex3f(corners[0].x(), corners[0].y(), corners[0].z());
+	glTexCoord2i(1, 1);
+	glVertex3f(corners[1].x(), corners[1].y(), corners[1].z());
+	glTexCoord2i(1, 0);
+	glVertex3f(corners[2].x(), corners[2].y(), corners[2].z());
+	glTexCoord2i(0, 0);
+	glVertex3f(corners[3].x(), corners[3].y(), corners[3].z());
+
+	glEnd();
 
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void SliceRenderer::setSliceToRender(unsigned int sliceNr) {
-    mSliceNr = sliceNr;
-    mIsModified = true;
+void SliceRenderer::setSlicePlaneOrigin(float x, float y, float z) 
+{
+	setSlicePlaneOrigin(Vector3f(x, y, z));
 }
 
+void SliceRenderer::setSlicePlaneOrigin(Vector3f slicePlaneOrigin) 
+{
+	planeOrigin = slicePlaneOrigin;
+	mIsModified = true;
+}
+
+void SliceRenderer::setSlicePlaneNormal(float x, float y, float z)
+{
+	setSlicePlaneNormal(Vector3f(x, y, z));
+}
+
+void SliceRenderer::setSlicePlaneNormal(Vector3f slicePlaneNormal)
+{
+	planeNormal = slicePlaneNormal;
+	mIsModified = true;
+}
 void SliceRenderer::setSlicePlane(PlaneType plane) {
-    mSlicePlane = plane;
+	
+	mSlicePlane = plane;
+	switch (plane)
+	{
+		case PLANE_X:
+			planeNormal = Vector3f(1.0f, 0.0f, 0.0f);
+		break;
+
+		default:
+		case PLANE_Y:
+			planeNormal = Vector3f(0.0f, 1.0f, 0.0f);
+		break;
+
+		case PLANE_Z:
+			planeNormal = Vector3f(0.0f, 0.0f, 1.0f);
+		break;
+	}
+    
     mIsModified = true;
 }
 
@@ -273,21 +385,8 @@ BoundingBox SliceRenderer::getBoundingBox() {
 
     BoundingBox inputBoundingBox = mImageToRender->getBoundingBox();
     MatrixXf corners = inputBoundingBox.getCorners();
-    // Shrink bounding box so that it covers the slice and not the entire data
-    switch(mSlicePlane) {
-        case PLANE_X:
-            for(uint i = 0; i < 8; i++)
-                corners(i,0) = mSliceNr;
-            break;
-        case PLANE_Y:
-            for(uint i = 0; i < 8; i++)
-                corners(i,1) = mSliceNr;
-            break;
-        case PLANE_Z:
-            for(uint i = 0; i < 8; i++)
-                corners(i,2) = mSliceNr;
-            break;
-    }
+
+
     BoundingBox shrinkedBox(corners);
     if(mDoTransformations) {
         LinearTransformation transform = SceneGraph::getLinearTransformationFromData(mImageToRender);

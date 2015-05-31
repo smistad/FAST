@@ -14,6 +14,10 @@ class SliceRenderer : public Renderer {
         void setInputConnection(ProcessObjectPort port);
         void setSliceToRender(unsigned int sliceNr);
         void setSlicePlane(PlaneType plane);
+		void setSlicePlaneNormal(float x, float y, float z);
+		void setSlicePlaneNormal(Vector3f slicePlaneNormal);
+		void setSlicePlaneOrigin(float x, float y, float z);
+		void setSlicePlaneOrigin(Vector3f slicePlaneOrigin);
         BoundingBox getBoundingBox();
         void turnOffTransformations();
     private:
@@ -34,12 +38,22 @@ class SliceRenderer : public Renderer {
         cl::Kernel mKernel;
         DataType mTypeCLCodeCompiledFor;
 
-        unsigned int mSliceNr;
         PlaneType mSlicePlane;
 
         float mScale;
         unsigned int mWidth;
         unsigned int mHeight;
+
+		unsigned int minX, maxX;
+		unsigned int minY, maxY;
+		unsigned int minZ, maxZ;
+
+		Vector3f corners[4];
+
+		Vector3f planeNormal;
+		Vector3f planeOrigin;
+
+		float planeD;
 
         bool mDoTransformations;
 
