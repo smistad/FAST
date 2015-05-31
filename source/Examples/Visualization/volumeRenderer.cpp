@@ -152,10 +152,13 @@ window->setTimeout(10*1000);
 
 	
     SliceRenderer::pointer sRenderer = SliceRenderer::New();
-    sRenderer->setSlicePlane(PLANE_Y);
-    sRenderer->setInputConnection(mhdStreamer->getOutputPort());
+	
+	sRenderer->setInputConnection(mhdStreamer->getOutputPort());
+    //sRenderer->setSlicePlane(PLANE_Z);
+	sRenderer->setSlicePlaneNormal(0.0, 1.0, 0.2);
+	sRenderer->setSlicePlaneOrigin(138.0, 124.0, 100.0);
 	//sRenderer->setInputConnection(mhdImporter->getOutputPort());
-	sRenderer->setSliceToRender(120);
+	
 	
 
 
@@ -222,7 +225,7 @@ window->setTimeout(10*1000);
     window->setMaximumFramerate(15);
     window->addRenderer(vRenderer);
 	window->addRenderer(sRenderer);
-	window->setTimeout(10*1000); // 10 seconds
+	//window->setTimeout(10*1000); // 10 seconds
     window->start();
 	//vRenderer->getRuntime()->print();
 	
