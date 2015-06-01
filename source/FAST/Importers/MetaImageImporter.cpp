@@ -234,7 +234,7 @@ void MetaImageImporter::execute() {
 
 
         } else if(key == "CenterOfRotation") {
-            std::cout << "WARNING: CenterOfRotation in Metaimage file ignored" << std::endl;
+            //std::cout << "WARNING: CenterOfRotation in Metaimage file ignored" << std::endl;
             std::vector<std::string> values;
             boost::split(values, value, boost::is_any_of(" "));
             // Remove any empty values:
