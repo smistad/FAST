@@ -61,6 +61,7 @@ set(QT_HEADERS
     FAST/Visualization/WindowWidget.hpp
     FAST/Visualization/Window.hpp
     FAST/Visualization/ComputationThread.hpp
+    FAST/Examples/Interoperability/qtInteroperability.hpp
 )
 
 # Set up some directory defines

@@ -31,21 +31,25 @@ void Window::initializeQtApp() {
         int* argc = new int[1];
         *argc = 0;
         QApplication* app = new QApplication(*argc,NULL);
+    }
 
-        // There is a bug in AMD OpenCL related to comma (,) as decimal point
-        // This will change decimal point to dot (.)
-        struct lconv * lc;
+    // There is a bug in AMD OpenCL related to comma (,) as decimal point
+    // This will change decimal point to dot (.)
+    struct lconv * lc;
+    lc = localeconv();
+    if(strcmp(lc->decimal_point, ",") == 0) {
+        std::cout << "WARNING: Your system uses comma as decimal point." << std::endl;
+        std::cout << "WARNING: This will now be changed to dot to avoid any comma related bugs." << std::endl;
+        setlocale(LC_NUMERIC, "C");
+        // Check again to be sure
         lc = localeconv();
         if(strcmp(lc->decimal_point, ",") == 0) {
-            std::cout << "WARNING: Your system uses comma as decimal point." << std::endl;
-            std::cout << "WARNING: This will now be changed to dot to avoid any comma related bugs." << std::endl;
-            setlocale(LC_NUMERIC, "C");
-            // Check again to be sure
-            lc = localeconv();
-            if(strcmp(lc->decimal_point, ",") == 0) {
-                throw Exception("Failed to convert decimal point to dot.");
-            }
+            throw Exception("Failed to convert decimal point to dot.");
         }
+    }
+
+    // Create computation GL context, if it doesn't exist
+    if(mMainGLContext == NULL) {
         // Dummy widget
         QGLWidget* widget = new QGLWidget;
 
@@ -75,17 +79,6 @@ void Window::stop() {
 View* Window::createView() {
     View* view = new View();
     mWidget->addView(view);
-    std::cout << "Creating custom Qt GL context for the view which shares with the primary GL context" << std::endl;
-    QGLContext* context = new QGLContext(QGLFormat::defaultFormat(), view);
-    context->create(getMainGLContext());
-    view->setContext(context);
-    if(!context->isValid()) {
-        std::cout << "The custom Qt GL context is invalid!" << std::endl;
-        exit(-1);
-    }
-    if(context->isSharing()) {
-        std::cout << "The custom Qt GL context is sharing" << std::endl;
-    }
 
     return view;
 }

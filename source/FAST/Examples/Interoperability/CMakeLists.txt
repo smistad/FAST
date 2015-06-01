@@ -1,1 +1,1 @@
-fast_add_example(qtInteroperability qtInteroperability.cpp)
+fast_add_example(qtInteroperability qtInteroperability.cpp qtInteroperability.hpp)

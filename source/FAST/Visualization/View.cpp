@@ -73,6 +73,14 @@ View::View() : mViewingPlane(Plane::Axial()) {
 
 	NonVolumesTurn=true;
 
+    // Creating custom Qt GL context for the view which shares with the primary GL context
+    QGLContext* context = new QGLContext(QGLFormat::defaultFormat(), this);
+    context->create(fast::Window::getMainGLContext());
+    this->setContext(context);
+    if(!context->isValid() || !context->isSharing()) {
+        std::cout << "The custom Qt GL context is invalid!" << std::endl;
+        exit(-1);
+    }
 }
 
 void View::quit() {
