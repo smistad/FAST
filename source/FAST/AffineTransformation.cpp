@@ -9,6 +9,9 @@ AffineTransformation::AffineTransformation() {
     matrix() = Eigen::Matrix4f::Identity();
 }
 
+AffineTransformation::AffineTransformation(const Eigen::Affine3f& transform) {
+    matrix() = transform.matrix();
+}
 
 AffineTransformation& AffineTransformation::operator=(const Eigen::Affine3f& transform) {
     matrix() = transform.matrix();
