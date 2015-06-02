@@ -35,9 +35,6 @@ class View : public QGLWidget, public ProcessObject {
         ~View();
         void recalculateCamera();
 
-		Vector3f cameraPosition;
-		Vector3f rotationPoint;
-		Vector2f rotation;
 		std::string getNameOfClass() const {
 		    return "View";
 		};
@@ -58,7 +55,13 @@ class View : public QGLWidget, public ProcessObject {
 		void renderVolumes();
 
 		Plane mViewingPlane;
-        Eigen::Transform<float, 3, Eigen::Affine> m2DViewingTransformation;
+        Eigen::Affine3f m2DViewingTransformation;
+
+        // For camera rotation
+        Eigen::Quaternionf mCameraQuaternion;
+		Vector3f rotationPoint;
+
+		Vector3f cameraPosition;
 
         void execute();
         QTimer* timer;

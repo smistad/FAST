@@ -198,13 +198,18 @@ void View::recalculateCamera() {
                 angleY = 0;
             break;
         }
-        // Rotate object if needed
-        rotation[0] = angleX;
-        rotation[1] = angleY;
         // Max pos - half of the size
         centroid[0] = max[0] - (max[0] - min[0]) * 0.5;
         centroid[1] = max[1] - (max[1] - min[1]) * 0.5;
         centroid[2] = max[2] - (max[2] - min[2]) * 0.5;
+
+        // Rotate object if needed
+        Eigen::Quaternionf Qx;
+        Qx = Eigen::AngleAxisf(angleX*M_PI/180.0f, Vector3f::UnitX());
+        Eigen::Quaternionf Qy;
+        Qy = Eigen::AngleAxisf(angleY*M_PI/180.0f, Vector3f::UnitY());
+        mCameraQuaternion = Qx*Qy;
+
         //std::cout << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << std::endl;
         // Initialize rotation point to centroid of object
         rotationPoint = centroid;
@@ -555,8 +560,11 @@ void View::initializeGL() {
 				}
 
 				// Rotate object if needed
-				rotation[0] = 0.0;//angleX;
-				rotation[1] = 0.0;//angleY;
+                Eigen::Quaternionf Qx;
+                Qx = Eigen::AngleAxisf(angleX*M_PI/180.0f, Vector3f::UnitX());
+                Eigen::Quaternionf Qy;
+                Qy = Eigen::AngleAxisf(angleY*M_PI/180.0f, Vector3f::UnitY());
+                mCameraQuaternion = Qx*Qy;
 
 				centroid[0] = max[0] - (max[0]-min[0])*0.5;
 				centroid[1] = max[1] - (max[1]-min[1])*0.5;
@@ -661,9 +669,9 @@ void View::paintGL() {
 
 			// Apply global rotation
 			glTranslatef(rotationPoint.x(),rotationPoint.y(),rotationPoint.z());
-			// TODO make this rotation better
-			glRotatef(rotation.x(), 1.0, 0.0, 0.0);
-			glRotatef(rotation.y(), 0.0, 1.0, 0.0);
+			Eigen::Affine3f transform = Eigen::Affine3f::Identity();
+			transform.linear() = mCameraQuaternion.matrix();
+			glMultMatrixf(transform.data());
 			glTranslatef(-rotationPoint.x(),-rotationPoint.y(),-rotationPoint.z());
 
             if (mVolumeRenderers.size()>0)
@@ -724,10 +732,9 @@ void View::paintGL() {
 
 			// Apply global rotation
 			glTranslatef(rotationPoint.x(),rotationPoint.y(),rotationPoint.z());
-
-			// TODO make this rotation better
-			glRotatef(rotation.x(), 1.0, 0.0, 0.0);
-			glRotatef(rotation.y(), 0.0, 1.0, 0.0);
+			Eigen::Affine3f transform = Eigen::Affine3f::Identity();
+			transform.linear() = mCameraQuaternion.matrix();
+			glMultMatrixf(transform.data());
 			glTranslatef(-rotationPoint.x(),-rotationPoint.y(),-rotationPoint.z());
 
 			renderVolumes();
@@ -847,7 +854,6 @@ void View::keyPressEvent(QKeyEvent* event) {
         case Qt::Key_R:
             // Set camera to original position and rotation
             cameraPosition = originalCameraPosition;
-            rotation = Vector2f(0,0);
             break;
     }
     // Relay keyboard event info to renderers
@@ -892,9 +898,13 @@ void View::mouseMoveEvent(QMouseEvent* event) {
 
 		int diffx=event->x()-cx; //check the difference between the current x and the last x position
 		int diffy=event->y()-cy; //check the difference between the current y and the last y position
-		rotation[0] += (float)diffy/2; //set the xrot to xrot with the addition of the difference in the y position
-		rotation[1] += (float)diffx/2;// set the xrot to yrot with the addition of the difference in the x position
 		QCursor::setPos(mapToGlobal(QPoint(cx,cy)));
+        Eigen::Quaternionf Qx;
+        float sensitivity = 0.01;
+        Qx = Eigen::AngleAxisf(sensitivity*diffx, Vector3f::UnitY());
+        Eigen::Quaternionf Qy;
+        Qy = Eigen::AngleAxisf(sensitivity*diffy, Vector3f::UnitX());
+        mCameraQuaternion = Qx*Qy*mCameraQuaternion;
 	}
 	// Relay mouse event info to renderers
 	for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
