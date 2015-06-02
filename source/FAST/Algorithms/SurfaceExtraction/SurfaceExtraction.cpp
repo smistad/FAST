@@ -297,13 +297,20 @@ void SurfaceExtraction::execute() {
         totalSum = sum[0] + sum[1] + sum[2] + sum[3] + sum[4] + sum[5] + sum[6] + sum[7] ;
     }
 
+    Mesh::pointer output = getStaticOutputData<Mesh>(0);
+    SceneGraph::setParentNode(output, input);
+    BoundingBox box = input->getBoundingBox();
+    // Apply spacing scaling to BB
+    AffineTransformation T;
+    T.scale(input->getSpacing());
+    output->setBoundingBox(box.getTransformedBoundingBox(T));
+    output->create(totalSum);
+
     if(totalSum == 0) {
         std::cout << "No triangles were extracted. Check isovalue." << std::endl;
         return;
     }
 
-    Mesh::pointer output = getStaticOutputData<Mesh>(0);
-    output->create(totalSum);
 
     // Traverse HP to create triangles and put them in the VBO
     // Make OpenCL buffer from OpenGL buffer
@@ -350,12 +357,7 @@ void SurfaceExtraction::execute() {
     queue.enqueueReleaseGLObjects(&v, 0, &traversalEvent);
 //  traversalSync = glCreateSyncFromCLeventARB((cl_context)context(), (cl_event)traversalEvent(), 0); // Need the GL_ARB_cl_event extension
     queue.finish();
-    SceneGraph::setParentNode(output, input);
-    BoundingBox box = input->getBoundingBox();
-    // Apply spacing scaling to BB
-    AffineTransformation T;
-    T.scale(input->getSpacing());
-    output->setBoundingBox(box.getTransformedBoundingBox(T));
+
 }
 
 SurfaceExtraction::SurfaceExtraction() {

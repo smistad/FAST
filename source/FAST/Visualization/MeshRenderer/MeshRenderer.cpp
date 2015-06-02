@@ -8,11 +8,7 @@
 #include "MeshRenderer.hpp"
 #include "FAST/SceneGraph.hpp"
 
-#define BUFFER_OFFSET(i) ((char *)NULL + (i))
-
 namespace fast {
-
-
 
 void MeshRenderer::addInputConnection(ProcessObjectPort port) {
     uint nr = getNrOfInputData();
@@ -91,8 +87,8 @@ void MeshRenderer::draw() {
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_NORMAL_ARRAY);
 
-        glVertexPointer(3, GL_FLOAT, 24, BUFFER_OFFSET(0));
-        glNormalPointer(GL_FLOAT, 24, BUFFER_OFFSET(12));
+        glVertexPointer(3, GL_FLOAT, 24, 0);
+        glNormalPointer(GL_FLOAT, 24, (float*)(sizeof(GLfloat)*3));
 
         glDrawArrays(GL_TRIANGLES, 0, surfaceToRender->getNrOfTriangles()*3);
 

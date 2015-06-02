@@ -2,6 +2,7 @@
 #include "Mesh.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 #include <QApplication>
+#include <boost/thread.hpp>
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenGL/OpenGL.h>
@@ -148,7 +149,7 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
         }
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glFinish();
-        std::cout << "Created VBO with ID " << mVBOID << std::endl;
+        //std::cout << "Created VBO with ID " << mVBOID << " and " << mNrOfTriangles << " of triangles" << std::endl;
         // TODO Transfer data if any exist
 
         mVBOHasData = true;
@@ -252,7 +253,7 @@ SurfacePointerAccess::pointer Mesh::getSurfacePointerAccess(accessType type) {
         mVertices = vertices;
         mHostHasData = true;
         mHostDataIsUpToDate = true;
-
+        delete[] data;
     } else {
         if(!mHostDataIsUpToDate) {
             throw Exception("Not implemented yet!");
@@ -280,7 +281,13 @@ Mesh::Mesh() {
 void Mesh::freeAll() {
     // TODO finish
     if(mVBOHasData) {
-        glDeleteBuffers(1, &mVBOID);
+        // glDeleteBuffer is not used due to multi-threading issues..
+        //glDeleteBuffers(1, &mVBOID);
+        glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
+        // This should delete the data, by replacing it with 1 byte buffer
+        // Ideally it should be 0, but then the data is not deleted..
+        glBufferData(GL_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
     mVBOHasData = false;
 }
