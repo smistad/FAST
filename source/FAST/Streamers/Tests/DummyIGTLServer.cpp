@@ -1,40 +1,42 @@
-#include "DummyIGTLImageServer.hpp"
+#include "DummyIGTLServer.hpp"
+
 #include "igtlServerSocket.h"
 #include "igtlImageMessage.h"
+#include "igtlTransformMessage.h"
 #include "igtlOSUtil.h"
 #include "FAST/Tests/DummyObjects.hpp"
 #include "FAST/Data/Image.hpp"
 
 namespace fast {
 
-DummyIGTLImageServer::DummyIGTLImageServer() {
+DummyIGTLServer::DummyIGTLServer() {
     mFPS = 10;
     mPort = 18944;
 }
 
-void DummyIGTLImageServer::setPort(uint port) {
+void DummyIGTLServer::setPort(uint port) {
     mPort = port;
 }
 
-void DummyIGTLImageServer::setFramesPerSecond(uint fps) {
+void DummyIGTLServer::setFramesPerSecond(uint fps) {
     mFPS = fps;
 }
 
-void DummyIGTLImageServer::setImageStreamer(
+void DummyIGTLServer::setImageStreamer(
         ImageFileStreamer::pointer streamer) {
     mStreamer = streamer;
 }
 
-void DummyIGTLImageServer::start() {
+void DummyIGTLServer::start() {
     // Create a new thread which runs the server
-    mThread = boost::thread(boost::bind(&DummyIGTLImageServer::streamImages, this));
+    mThread = boost::thread(boost::bind(&DummyIGTLServer::stream, this));
 }
 
-DummyIGTLImageServer::~DummyIGTLImageServer() {
+DummyIGTLServer::~DummyIGTLServer() {
     mThread.join();
 }
 
-igtl::ImageMessage::Pointer createIGTLImageMessage(Image::pointer image) {
+inline igtl::ImageMessage::Pointer createIGTLImageMessage(Image::pointer image) {
     // size parameters
     int   size[3]     = {(int)image->getWidth(), (int)image->getHeight(), (int)image->getDepth()};       // image dimension
     float spacing[3]  = {image->getSpacing().x(), image->getSpacing().y(), image->getSpacing().z()};     // spacing (mm/pixel)
@@ -64,24 +66,14 @@ igtl::ImageMessage::Pointer createIGTLImageMessage(Image::pointer image) {
             break;
     }
 
-    igtl::Matrix4x4 matrix;
-    igtl::IdentityMatrix(matrix);
-    AffineTransformation T = image->getSceneGraphNode()->getTransformation();
-    for(int i = 0; i < 3; i++) {
-    for(int j = 0; j < 3; j++) {
-        matrix[i][j] = T.linear()(i,j);
-    }}
-
     //------------------------------------------------------------
     // Create a new IMAGE type message
     igtl::ImageMessage::Pointer imgMsg = igtl::ImageMessage::New();
     imgMsg->SetDimensions(size);
     imgMsg->SetSpacing(spacing);
-    imgMsg->SetOrigin(T.translation().x(), T.translation().y(), T.translation().z());
-    imgMsg->SetMatrix(matrix);
     imgMsg->SetNumComponents(image->getNrOfComponents());
     imgMsg->SetScalarType(scalarType);
-    imgMsg->SetDeviceName("DummyIGTLImageServer");
+    imgMsg->SetDeviceName("DummyImage");
     imgMsg->SetSubVolume(size, svoffset);
     imgMsg->AllocateScalars();
 
@@ -91,7 +83,23 @@ igtl::ImageMessage::Pointer createIGTLImageMessage(Image::pointer image) {
     return imgMsg;
 }
 
-void DummyIGTLImageServer::streamImages() {
+inline igtl::TransformMessage::Pointer createIGTLTransformMessage(Image::pointer image) {
+    // Create transform message from the scene graph information of image
+    igtl::Matrix4x4 matrix;
+    AffineTransformation T = image->getSceneGraphNode()->getTransformation();
+    for(int i = 0; i < 4; i++) {
+    for(int j = 0; j < 4; j++) {
+        matrix[i][j] = T.matrix()(i,j);
+    }}
+
+    igtl::TransformMessage::Pointer message = igtl::TransformMessage::New();
+    message->SetDeviceName("DummyTransform");
+    message->SetMatrix(matrix);
+
+    return message;
+}
+
+void DummyIGTLServer::stream() {
     // Prepare server socket
     igtl::ServerSocket::Pointer serverSocket;
     serverSocket = igtl::ServerSocket::New();
@@ -119,6 +127,13 @@ void DummyIGTLImageServer::streamImages() {
 
                 imgMsg->Pack();
                 socket->Send(imgMsg->GetPackPointer(), imgMsg->GetPackSize());
+
+                // Create a new TRANSFORM type message
+                igtl::TransformMessage::Pointer transformMsg = createIGTLTransformMessage(image);
+
+                transformMsg->Pack();
+                socket->Send(transformMsg->GetPackPointer(), transformMsg->GetPackSize());
+
                 igtl::Sleep(interval); // wait
             }
             break;

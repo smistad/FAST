@@ -99,6 +99,7 @@ class ProcessObject : public virtual Object {
 
         void setOutputDataDynamicDependsOnInputData(uint outputNumber, uint inputNumber);
         uint getNrOfInputData() const;
+        uint getNrOfOutputPorts() const;
         DataObject::pointer getInputData(uint inputNumber) const;
 
         template <class T>

@@ -6,15 +6,15 @@
 
 namespace fast {
 
-class DummyIGTLImageServer {
+class DummyIGTLServer {
     public:
-        DummyIGTLImageServer();
-        ~DummyIGTLImageServer();
+        DummyIGTLServer();
+        ~DummyIGTLServer();
         void setPort(uint port);
         void setFramesPerSecond(uint fps);
         void setImageStreamer(ImageFileStreamer::pointer streamer);
         void start();
-        void streamImages();
+        void stream();
     private:
         uint mPort;
         uint mFPS;

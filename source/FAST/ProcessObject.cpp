@@ -139,6 +139,10 @@ uint ProcessObject::getNrOfInputData() const {
     return mInputConnections.size();
 }
 
+uint ProcessObject::getNrOfOutputPorts() const {
+    return mOutputPortType.size();
+}
+
 void ProcessObject::setOutputData(uint outputNumber, DataObject::pointer data) {
     mOutputData[outputNumber] = data;
 }
