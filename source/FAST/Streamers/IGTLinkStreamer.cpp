@@ -27,7 +27,8 @@ void IGTLinkStreamer::setConnectionPort(uint port) {
 void IGTLinkStreamer::setStreamingMode(StreamingMode mode) {
     if(mode == STREAMING_MODE_STORE_ALL_FRAMES && !mMaximumNrOfFramesSet)
         setMaximumNumberOfFrames(0);
-    Streamer::setStreamingMode(mode);}
+    Streamer::setStreamingMode(mode);
+}
 
 void IGTLinkStreamer::setMaximumNumberOfFrames(uint nrOfFrames) {
     mMaximumNrOfFrames = nrOfFrames;
@@ -95,6 +96,26 @@ inline Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer mes
     std::cout << "OFFSET IS " << offset[0] << " " << offset[1] << " " << offset[2] << std::endl;
 
     return image;
+}
+
+void IGTLinkStreamer::updateFirstFrameSetFlag() {
+    // Check that all output ports have got their first frame
+    bool allHaveGotData = true;
+    for(uint i = 0; i < getNrOfOutputPorts(); i++) {
+        DynamicData::pointer data = ProcessObject::getOutputPort(i).getData();
+        if(data->getSize() == 0) {
+            allHaveGotData = false;
+            break;
+        }
+    }
+
+    if(allHaveGotData) {
+        {
+            boost::lock_guard<boost::mutex> lock(mFirstFrameMutex);
+            mFirstFrameIsInserted = true;
+        }
+        mFirstFrameCondition.notify_one();
+    }
 }
 
 void IGTLinkStreamer::producerStream() {
@@ -194,11 +215,7 @@ void IGTLinkStreamer::producerStream() {
                     break;
                 }
                 if(!mFirstFrameIsInserted) {
-                    {
-                        boost::lock_guard<boost::mutex> lock(mFirstFrameMutex);
-                        mFirstFrameIsInserted = true;
-                    }
-                    mFirstFrameCondition.notify_one();
+                    updateFirstFrameSetFlag();
                 }
                 mNrOfFrames++;
             }
@@ -248,11 +265,7 @@ void IGTLinkStreamer::producerStream() {
                     break;
                 }
                 if(!mFirstFrameIsInserted) {
-                    {
-                        boost::lock_guard<boost::mutex> lock(mFirstFrameMutex);
-                        mFirstFrameIsInserted = true;
-                    }
-                    mFirstFrameCondition.notify_one();
+                    updateFirstFrameSetFlag();
                 }
                 mNrOfFrames++;
             }
