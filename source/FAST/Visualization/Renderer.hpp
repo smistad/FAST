@@ -22,11 +22,6 @@ class Renderer : public ProcessObject {
         float getIntensityLevel();
         void setIntensityWindow(float window);
         float getIntensityWindow();
-        virtual void keyPressEvent(QKeyEvent* event) {};
-        virtual void mouseMoveEvent(QMouseEvent* event, View* view) {};
-        virtual void mousePressEvent(QMouseEvent* event) {};
-        virtual void mouseReleaseEvent(QMouseEvent* event) {};
-        virtual void resizeEvent(QResizeEvent* event) {};
         virtual void draw2D(
                 cl::BufferGL PBO,
                 uint width,

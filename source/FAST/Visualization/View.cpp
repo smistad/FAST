@@ -83,6 +83,45 @@ View::View() : mViewingPlane(Plane::Axial()) {
     }
 }
 
+
+void View::setLookAt(Vector3f cameraPosition, Vector3f targetPosition, Vector3f cameraUpVector) {
+    mCameraPosition = cameraPosition;
+    mRotationPoint = targetPosition;
+    // Equations based on gluLookAt https://www.opengl.org/sdk/docs/man2/xhtml/gluLookAt.xml
+    Vector3f F = targetPosition - cameraPosition;
+    F.normalize();
+    Vector3f up = cameraUpVector;
+    up.normalize();
+    Vector3f s = F.cross(up);
+    Vector3f sNormalized = s;
+    sNormalized.normalize();
+    Vector3f u = sNormalized.cross(F);
+
+    Matrix3f M;
+    // First row
+    M(0,0) = s[0];
+    M(0,1) = s[1];
+    M(0,2) = s[2];
+    // Second row
+    M(1,0) = u[0];
+    M(1,1) = u[1];
+    M(1,2) = u[2];
+    // Third row
+    M(2,0) = -F[0];
+    M(2,1) = -F[1];
+    M(2,2) = -F[2];
+
+    // Must calculate this somehow
+    zNear = 1;
+    zFar = 1000;
+
+    m3DViewingTransformation = AffineTransformation::Identity();
+    m3DViewingTransformation.rotate(M);
+    m3DViewingTransformation.translate(-mCameraPosition);
+
+    mCameraSet = true;
+}
+
 void View::quit() {
     mQuit = true;
 }
@@ -123,9 +162,6 @@ void View::updateAllRenderers() {
 }
 
 void View::recalculateCamera() {
-    // Update all renderes, so that getBoundingBox works
-    for (unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
-        mNonVolumeRenderers[i]->update();
 
     // 3D Mode
     if (mNonVolumeRenderers.size() > 0) {
@@ -208,18 +244,18 @@ void View::recalculateCamera() {
         Qx = Eigen::AngleAxisf(angleX*M_PI/180.0f, Vector3f::UnitX());
         Eigen::Quaternionf Qy;
         Qy = Eigen::AngleAxisf(angleY*M_PI/180.0f, Vector3f::UnitY());
-        mCameraQuaternion = Qx*Qy;
+        Eigen::Quaternionf Q = Qx*Qy;
 
         //std::cout << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << std::endl;
         // Initialize rotation point to centroid of object
-        rotationPoint = centroid;
+        mRotationPoint = centroid;
         // Calculate initiali translation of camera
         // Move centroid to z axis
         // Note: Centroid does not change after rotation
-        cameraPosition[0] = -centroid[0];
-        cameraPosition[1] = -centroid[1];
+        mCameraPosition[0] = -centroid[0];
+        mCameraPosition[1] = -centroid[1];
         // Calculate z distance
-        cameraPosition[2] = -centroid[2]; // first move objects to origo
+        mCameraPosition[2] = -centroid[2]; // first move objects to origo
         // Move objects away from camera so that we see everything
         float z_width = (max[xDirection] - min[xDirection]) * 0.5
                 / tan(fieldOfViewX * 0.5);
@@ -231,14 +267,18 @@ void View::recalculateCamera() {
         float boundingBoxDepth = (max[zDirection] - min[zDirection]);
         //std::cout << "minimum translation to see entire object: " << minimumTranslationToSeeEntireObject  << std::endl;
         //std::cout << "half depth of bounding box " << boundingBoxDepth*0.5 << std::endl;
-        cameraPosition[2] += -minimumTranslationToSeeEntireObject
+        mCameraPosition[2] += -minimumTranslationToSeeEntireObject
                 - boundingBoxDepth * 0.5; // half of the depth of the bounding box
-        originalCameraPosition = cameraPosition;
         //std::cout << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << std::endl;
         zFar = (minimumTranslationToSeeEntireObject + boundingBoxDepth) * 2;
         zNear = std::min(minimumTranslationToSeeEntireObject * 0.5, 0.1);
         //std::cout << "set zFar to " << zFar << std::endl;
         //std::cout << "set zNear to " << zNear << std::endl;
+        m3DViewingTransformation = AffineTransformation::Identity();
+        m3DViewingTransformation.pretranslate(-mRotationPoint); // Move to rotation point
+        m3DViewingTransformation.prerotate(Q.toRotationMatrix()); // Rotate
+        m3DViewingTransformation.pretranslate(mRotationPoint); // Move back from rotation point
+        m3DViewingTransformation.pretranslate(mCameraPosition);
     }
 }
 
@@ -443,7 +483,16 @@ void View::initializeGL() {
             glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, width() * height() * sizeof(GLfloat) * 4, NULL, GL_STREAM_DRAW_ARB);
             glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
         } else {
-            recalculateCamera();
+            // Update all renderes, so that getBoundingBox works
+            for (unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
+                mNonVolumeRenderers[i]->update();
+            if(!mCameraSet) {
+                // If camera is not set explicitly by user, FAST has to calculate it
+                recalculateCamera();
+            } else {
+                aspect = (float) (this->width()) / this->height();
+                fieldOfViewX = aspect * fieldOfViewY;
+            }
             gluPerspective(fieldOfViewY, aspect, zNear, zFar);
         }
 	}
@@ -564,7 +613,7 @@ void View::initializeGL() {
                 Qx = Eigen::AngleAxisf(angleX*M_PI/180.0f, Vector3f::UnitX());
                 Eigen::Quaternionf Qy;
                 Qy = Eigen::AngleAxisf(angleY*M_PI/180.0f, Vector3f::UnitY());
-                mCameraQuaternion = Qx*Qy;
+                Eigen::Quaternionf Q = Qx*Qy;
 
 				centroid[0] = max[0] - (max[0]-min[0])*0.5;
 				centroid[1] = max[1] - (max[1]-min[1])*0.5;
@@ -573,24 +622,28 @@ void View::initializeGL() {
 				std::cout << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << std::endl;
 
 				// Initialize rotation point to centroid of object
-				rotationPoint = centroid;
+				mRotationPoint = centroid;
 
 				// Calculate initiali translation of camera
 				// Move centroid to z axis
-				cameraPosition[0] = -centroid.x();
-				cameraPosition[1] = -centroid.y();
+				mCameraPosition[0] = -centroid.x();
+				mCameraPosition[1] = -centroid.y();
 
 				// Calculate z distance from origo
 				float z_width = (max[xDirection]-min[xDirection])*0.5 / tan(fieldOfViewX*0.5);
 				float z_height = (max[yDirection]-min[yDirection])*0.5 / tan(fieldOfViewY*0.5);
-				cameraPosition[2] = -(z_width < z_height ? z_height : z_width) // minimum translation to see entire object
+				mCameraPosition[2] = -(z_width < z_height ? z_height : z_width) // minimum translation to see entire object
 						-(max[zDirection]-min[zDirection]) // depth of the bounding box
 						-50; // border
 				//cameraPosition[2] = 00.0;
-				originalCameraPosition = cameraPosition;
 
-				std::cout << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << std::endl;
+				//std::cout << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << std::endl;
 
+                m3DViewingTransformation = AffineTransformation::Identity();
+                m3DViewingTransformation.pretranslate(-mRotationPoint); // Move to rotation point
+                m3DViewingTransformation.prerotate(Q.toRotationMatrix()); // Rotate
+                m3DViewingTransformation.pretranslate(mRotationPoint); // Move back from rotation point
+                m3DViewingTransformation.pretranslate(mCameraPosition);
 
 				//Set the output image size for volume renderer based on window size.
 				((VolumeRenderer::pointer)mVolumeRenderers[0])->resize(this->width(),this->height());
@@ -664,15 +717,8 @@ void View::paintGL() {
 			glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight);
 			glLightfv(GL_LIGHT0, GL_POSITION, position);
 
-			// Apply camera movement
-			glTranslatef(cameraPosition.x(), cameraPosition.y(), cameraPosition.z());
-
-			// Apply global rotation
-			glTranslatef(rotationPoint.x(),rotationPoint.y(),rotationPoint.z());
-			Eigen::Affine3f transform = Eigen::Affine3f::Identity();
-			transform.linear() = mCameraQuaternion.matrix();
-			glMultMatrixf(transform.data());
-			glTranslatef(-rotationPoint.x(),-rotationPoint.y(),-rotationPoint.z());
+			// Apply camera transformations
+			glMultMatrixf(m3DViewingTransformation.data());
 
             if (mVolumeRenderers.size()>0)
             {
@@ -727,15 +773,8 @@ void View::paintGL() {
 			glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight);
 			glLightfv(GL_LIGHT0, GL_POSITION, position);
 
-			// Apply camera movement
-			glTranslatef(cameraPosition.x(), cameraPosition.y(), cameraPosition.z());
-
-			// Apply global rotation
-			glTranslatef(rotationPoint.x(),rotationPoint.y(),rotationPoint.z());
-			Eigen::Affine3f transform = Eigen::Affine3f::Identity();
-			transform.linear() = mCameraQuaternion.matrix();
-			glMultMatrixf(transform.data());
-			glTranslatef(-rotationPoint.x(),-rotationPoint.y(),-rotationPoint.z());
+			// Apply camera transformations
+			glMultMatrixf(m3DViewingTransformation.data());
 
 			renderVolumes();
 		}
@@ -852,13 +891,8 @@ void View::resizeGL(int width, int height) {
 void View::keyPressEvent(QKeyEvent* event) {
     switch(event->key()) {
         case Qt::Key_R:
-            // Set camera to original position and rotation
-            cameraPosition = originalCameraPosition;
+            recalculateCamera();
             break;
-    }
-    // Relay keyboard event info to renderers
-    for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
-        mNonVolumeRenderers[i]->keyPressEvent(event);
     }
 }
 
@@ -878,12 +912,13 @@ void View::mouseMoveEvent(QMouseEvent* event) {
 			float deltaX = event->x() - previousX;
 			float deltaY = event->y() - previousY;
 
-			float viewportWidth = tan((fieldOfViewX*M_PI/180)*0.5) * fabs(-cameraPosition.z()) * 2;
-			float viewportHeight = tan((fieldOfViewY*M_PI/180)*0.5) * fabs(-cameraPosition.z()) * 2;
+			float viewportWidth = tan((fieldOfViewX*M_PI/180)*0.5) * fabs(-mCameraPosition.z()) * 2;
+			float viewportHeight = tan((fieldOfViewY*M_PI/180)*0.5) * fabs(-mCameraPosition.z()) * 2;
 			float actualMovementX = (deltaX * (viewportWidth/width()));
 			float actualMovementY = (deltaY * (viewportHeight/height()));
-			cameraPosition[0] += actualMovementX;
-			cameraPosition[1] -= actualMovementY;
+			mCameraPosition[0] += actualMovementX;
+			mCameraPosition[1] -= actualMovementY;
+			m3DViewingTransformation.pretranslate(Vector3f(actualMovementX, -actualMovementY,0));
 		}
 		previousX = event->x();
 		previousY = event->y();
@@ -904,11 +939,12 @@ void View::mouseMoveEvent(QMouseEvent* event) {
         Qx = Eigen::AngleAxisf(sensitivity*diffx, Vector3f::UnitY());
         Eigen::Quaternionf Qy;
         Qy = Eigen::AngleAxisf(sensitivity*diffy, Vector3f::UnitX());
-        mCameraQuaternion = Qx*Qy*mCameraQuaternion;
+        Eigen::Quaternionf Q = Qx*Qy;
+        Vector3f newRotationPoint = m3DViewingTransformation*mRotationPoint; // Move rotation point to new position
+        m3DViewingTransformation.pretranslate(-newRotationPoint); // Move to rotation point
+        m3DViewingTransformation.prerotate(Q.toRotationMatrix()); // Rotate
+        m3DViewingTransformation.pretranslate(newRotationPoint); // Move back
 	}
-	// Relay mouse event info to renderers
-	for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
-		mNonVolumeRenderers[i]->mouseMoveEvent(event, this);
 
 	if (mVolumeRenderers.size()>0)
 		((VolumeRenderer::pointer)(mVolumeRenderers[0]))->mouseEvents();
@@ -927,10 +963,6 @@ void View::mousePressEvent(QMouseEvent* event) {
 		previousX = event->x();
 		previousY = event->y();
 		mMiddleMouseButtonIsPressed = true;
-	}
-	// Relay mouse event info to renderers
-	for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
-		mNonVolumeRenderers[i]->mousePressEvent(event);
 	}
 
 	if (mVolumeRenderers.size()>0)
@@ -951,14 +983,15 @@ void View::wheelEvent(QWheelEvent* event) {
 		}
 	} else {
 		if(event->delta() > 0) {
-			cameraPosition[2] += (zFar-zNear)*0.05f;
+			mCameraPosition[2] += (zFar-zNear)*0.05f;
+			m3DViewingTransformation.pretranslate(Vector3f(0, 0, (zFar-zNear)*0.05f));
 		} else if(event->delta() < 0) {
-			cameraPosition[2] += -(zFar-zNear)*0.05f;
+			mCameraPosition[2] += -(zFar-zNear)*0.05f;
+			m3DViewingTransformation.pretranslate(Vector3f(0, 0, -(zFar-zNear)*0.05f));
 		}
 	}
 
-	if (mVolumeRenderers.size()>0)
-	{
+	if (mVolumeRenderers.size()>0) {
 		((VolumeRenderer::pointer)(mVolumeRenderers[0]))->mouseEvents();
 	}
 
@@ -970,13 +1003,8 @@ void View::mouseReleaseEvent(QMouseEvent* event) {
     } else if(event->button() == Qt::MiddleButton) {
         mMiddleMouseButtonIsPressed = false;
     }
-    // Relay mouse event info to renderers
-    for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
-        mNonVolumeRenderers[i]->mouseReleaseEvent(event);
-    }
 
-	if (mVolumeRenderers.size()>0)
-	{
+	if (mVolumeRenderers.size()>0) {
 		((VolumeRenderer::pointer)(mVolumeRenderers[0]))->mouseEvents();
 	}
 

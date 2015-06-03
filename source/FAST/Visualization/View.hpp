@@ -2,6 +2,7 @@
 #define VIEW_HPP_
 
 #include "FAST/SmartPointers.hpp"
+#include "FAST/AffineTransformation.hpp"
 #include "Renderer.hpp"
 #include "Plane.hpp"
 #include <vector>
@@ -27,6 +28,7 @@ class View : public QGLWidget, public ProcessObject {
         void set2DMode();
         void set3DMode();
         void setViewingPlane(Plane plane);
+        void setLookAt(Vector3f cameraPosition, Vector3f targetPosition, Vector3f cameraUpVector);
         void updateAllRenderers();
         void stopPipelineUpdateThread();
         void resumePipelineUpdateThread();
@@ -57,17 +59,16 @@ class View : public QGLWidget, public ProcessObject {
 		Plane mViewingPlane;
         Eigen::Affine3f m2DViewingTransformation;
 
-        // For camera rotation
-        Eigen::Quaternionf mCameraQuaternion;
-		Vector3f rotationPoint;
-
-		Vector3f cameraPosition;
+        // Camera
+        AffineTransformation m3DViewingTransformation;
+		Vector3f mRotationPoint;
+		Vector3f mCameraPosition;
+		bool mCameraSet;
 
         void execute();
         QTimer* timer;
         unsigned int mFramerate;
        
-        Vector3f originalCameraPosition;
         
         bool mQuit;
         
