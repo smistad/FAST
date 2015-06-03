@@ -157,7 +157,7 @@ d_render(__global uint *d_output,
 
     if (!hit) 
 	{	
-		d_output[outputIndex] = rgbaFloatToInt((float4)(0.0f, 0.0f, 0.0f, 1.0f));
+		d_output[outputIndex] = rgbaFloatToInt((float4)(1.0f, 1.0f, 1.0f, 1.0f));
         return;
     }
 
@@ -166,7 +166,7 @@ d_render(__global uint *d_output,
 	if (tfar > zFar) tfar= zFar;	// clamp to far  plane
 	
     // march along ray from back to front, accumulating color
-    float4 volumeColor = (float4)(0.0f,0.0f,0.0f,0.0f);
+    float4 volumeColor = (float4)(1.0f,1.0f,1.0f,1.0f);
 	
     float t = tfar;
 	

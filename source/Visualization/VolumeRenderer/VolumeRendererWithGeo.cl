@@ -168,7 +168,7 @@ d_render(__global uint *d_output,
 	if (tfar > zFar) tfar= zFar;	// clamp to far  plane
 	
     // march along ray from back to front, accumulating color
-    float4 volumeColor = (float4)(0.0f,0.0f,0.0f,0.0f);
+    float4 volumeColor = (float4)(1.0f,1.0f,1.0f,1.0f);
 	
     float t = tfar;
 	
@@ -291,7 +291,7 @@ d_render(__global uint *d_output,
     }
     volumeColor *= brightness;
 	float4 geoColor=read_imagef(geoColorTexture, geometrySampler, (int2)(x,y));
-	volumeColor = mix (geoColor, volumeColor ,volumeColor.w);
+	volumeColor = mix(volumeColor, geoColor, volumeColor.w);
 	volumeColor.w=1.0f;
 	
 	// write output color
