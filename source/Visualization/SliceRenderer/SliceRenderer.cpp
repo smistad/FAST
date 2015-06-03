@@ -94,32 +94,40 @@ void calc_plane_aabb_intersection_points(const Vector3f &planeNormal, const Vect
 void SliceRenderer::execute() {
     boost::lock_guard<boost::mutex> lock(mMutex);
 
-	
-    mImageToRender = getStaticInputData<Image>(0);
+	unsigned int nrOfInputData = getNrOfInputData();
 
-    if(mImageToRender->getDimensions() != 3)
-        throw Exception("The SliceRenderer only supports 3D images");
+	// This simply gets the input data for each connection and puts it into a data structure
+	for (uint inputNr = 0; inputNr < nrOfInputData; inputNr++)
+	{
+		Image::pointer input = getStaticInputData<Image>(inputNr);
+		mImagesToRender[inputNr] = input;
+
+		if (mImagesToRender[inputNr]->getDimensions() != 3)
+			throw Exception("The SliceRenderer only supports 3D images");
+
+	}
+	
 
     // Determine level and window
     float window = mWindow;
     float level = mLevel;
     // If mWindow/mLevel is equal to -1 use default level/window values
     if(window == -1) {
-        window = getDefaultIntensityWindow(mImageToRender->getDataType());
+        window = getDefaultIntensityWindow(mImagesToRender[0]->getDataType());
     }
     if(level == -1) {
-        level = getDefaultIntensityLevel(mImageToRender->getDataType());
+        level = getDefaultIntensityLevel(mImagesToRender[0]->getDataType());
     }
 
 	if (planeOrigin.x() == -1)
 	{
-		planeOrigin.x() = mImageToRender->getWidth() / 2;
-		planeOrigin.y() = mImageToRender->getHeight() / 2;
-		planeOrigin.z() = mImageToRender->getDepth() / 2;
+		planeOrigin.x() = mImagesToRender[0]->getWidth() / 2;
+		planeOrigin.y() = mImagesToRender[0]->getHeight() / 2;
+		planeOrigin.z() = mImagesToRender[0]->getDepth() / 2;
 	}
 
 	Vector3f bbMin = Vector3f(0.0f, 0.0f, 0.0f);
-	Vector3f bbMax = Vector3f(mImageToRender->getWidth(), mImageToRender->getHeight(), mImageToRender->getDepth());
+	Vector3f bbMax = Vector3f(mImagesToRender[0]->getWidth(), mImagesToRender[0]->getHeight(), mImagesToRender[0]->getDepth());
 
 
 	planeD = planeNormal.x()*planeOrigin.x() + planeNormal.y()*planeOrigin.y() + planeNormal.z()*planeOrigin.z();
@@ -193,8 +201,8 @@ void SliceRenderer::execute() {
 	unsigned int slicePlaneNr = mSlicePlane;
 
 	OpenCLDevice::pointer device = getMainDevice();
-    OpenCLImageAccess3D::pointer access = mImageToRender->getOpenCLImageAccess3D(ACCESS_READ, device);
-    cl::Image3D* clImage = access->get();
+    OpenCLImageAccess3D::pointer access = mImagesToRender[0]->getOpenCLImageAccess3D(ACCESS_READ, device);
+    mClImage[0] = access->get();
 
     glEnable(GL_TEXTURE_2D);
     if(mTextureIsCreated) {
@@ -237,8 +245,9 @@ void SliceRenderer::execute() {
     v.push_back(mImageGL);
     queue.enqueueAcquireGLObjects(&v);
 
-    recompileOpenCLCode(mImageToRender);
-    mKernel.setArg(0, *clImage);
+    recompileOpenCLCode(mImagesToRender);
+
+    mKernel.setArg(0, *mClImage[0]);
     mKernel.setArg(1, mImageGL);
     mKernel.setArg(2, level);
     mKernel.setArg(3, window);
@@ -250,6 +259,38 @@ void SliceRenderer::execute() {
 	mKernel.setArg(9, minX);
 	mKernel.setArg(10, minY);
 	mKernel.setArg(11, minZ);
+	
+	for (unsigned int inputIndex = 1; inputIndex < nrOfInputData; inputIndex++)
+	{
+		OpenCLImageAccess3D::pointer access = mImagesToRender[inputIndex]->getOpenCLImageAccess3D(ACCESS_READ, device);
+		mClImage[inputIndex] = access->get();
+		mKernel.setArg(12 + (inputIndex - 1) * 3, *mClImage[inputIndex]);
+
+		float *transformationMatix;
+		LinearTransformation transform;
+		if (mDoTransformations) 
+		{
+			transform = SceneGraph::getLinearTransformationFromData(mImagesToRender[inputIndex]);
+			transformationMatix = transform.getInverse().getTransform().data();
+		}
+		else
+		{
+			transformationMatix = transform.getTransform().data();
+		}
+
+		d_transformationMatrices[inputIndex - 1] = cl::Buffer(device->getContext(), CL_MEM_READ_ONLY, 16 * sizeof(float));
+		mKernel.setArg(13 + (inputIndex - 1) * 3, d_transformationMatrices[inputIndex - 1]);
+		queue.enqueueWriteBuffer(d_transformationMatrices[inputIndex - 1], CL_FALSE, 0, 16 * sizeof(float), transformationMatix);
+
+
+
+		unsigned int imageSize[3] = { mImagesToRender[inputIndex]->getWidth(), mImagesToRender[inputIndex]->getHeight(), mImagesToRender[inputIndex]->getDepth() };
+		d_imageSizes[inputIndex - 1] = cl::Buffer(device->getContext(), CL_MEM_READ_ONLY, 3 * sizeof(unsigned int));
+		mKernel.setArg(14 + (inputIndex - 1) * 3, d_imageSizes[inputIndex - 1]);
+		queue.enqueueWriteBuffer(d_imageSizes[inputIndex - 1], CL_FALSE, 0, 3 * sizeof(unsigned int), imageSize);
+
+	}
+
     queue.enqueueNDRangeKernel(
             mKernel,
             cl::NullRange,
@@ -263,36 +304,52 @@ void SliceRenderer::execute() {
     mTextureIsCreated = true;
 }
 
-void SliceRenderer::setInputConnection(ProcessObjectPort port) {
-    releaseInputAfterExecute(0, false);
-    ProcessObject::setInputConnection(0, port);
+void SliceRenderer::addInputConnection(ProcessObjectPort port) {
+	uint nr = getNrOfInputData();
+    releaseInputAfterExecute(nr, false);
+    ProcessObject::setInputConnection(nr, port);
+	mInputIsModified = true;
 }
 
-void SliceRenderer::recompileOpenCLCode(Image::pointer input) {
+void SliceRenderer::recompileOpenCLCode(boost::unordered_map<uint, Image::pointer> inputs) {
     // Check if code has to be recompiled
-    bool recompile = false;
-    if(!mTextureIsCreated) {
-        recompile = true;
-    } else {
-        if(mTypeCLCodeCompiledFor != input->getDataType())
-            recompile = true;
-    }
-    if(!recompile)
-        return;
-    std::string buildOptions = "";
-    if(input->getDataType() == TYPE_FLOAT) {
-        buildOptions = "-DTYPE_FLOAT";
-    } else if(input->getDataType() == TYPE_INT8 || input->getDataType() == TYPE_INT16) {
-        buildOptions = "-DTYPE_INT";
-    } else {
-        buildOptions = "-DTYPE_UINT";
-    }
-    OpenCLDevice::pointer device = getMainDevice();
-    int i = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/SliceRenderer/SliceRenderer.cl", buildOptions);
-    mKernel = cl::Kernel(device->getProgram(i), "renderToTexture");
-    mTypeCLCodeCompiledFor = input->getDataType();
-}
+	if (mInputIsModified)
+	{
+		
+		unsigned int numberOfVolumes = getNrOfInputData();
 
+		// Compile program
+		char buildOptionsBuffer[128];
+		sprintf(buildOptionsBuffer, "-cl-fast-relaxed-math -D VOL%d -D numberOfVolumes=%d", numberOfVolumes, numberOfVolumes);
+		for (unsigned int i = 0; i<numberOfVolumes; i++)
+		{
+			char dataTypeBuffer[128];
+			unsigned int volumeDataType = inputs[i]->getDataType();
+
+			if (volumeDataType == fast::TYPE_FLOAT)
+				sprintf(dataTypeBuffer, " -D TYPE_FLOAT%d ", i + 1);
+			else
+			{
+				if ((volumeDataType == fast::TYPE_UINT8) || (volumeDataType == fast::TYPE_UINT16))
+					sprintf(dataTypeBuffer, " -D TYPE_UINT%d ", i + 1);
+				else
+					sprintf(dataTypeBuffer, " -D TYPE_INT%d ", i + 1);
+			}
+			strcat(buildOptionsBuffer, dataTypeBuffer);
+
+		}
+
+		std::string buildOptions(buildOptionsBuffer);
+		OpenCLDevice::pointer device = getMainDevice(); //DeviceManager::getInstance().getDefaultVisualizationDevice();
+		int i = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/SliceRenderer/SliceRenderer.cl", buildOptions);
+		mKernel = cl::Kernel(device->getProgram(i), "renderToTexture");
+
+		mInputIsModified = false;
+	
+	}
+
+    
+}
 
 SliceRenderer::SliceRenderer() : Renderer() {
     mTextureIsCreated = false;
@@ -302,6 +359,7 @@ SliceRenderer::SliceRenderer() : Renderer() {
 	planeOrigin = Vector3f(-1.0f, -1.0f, -1.0f);
     mScale = 1.0;
     mDoTransformations = true;
+	mInputIsModified = true;
 }
 
 void SliceRenderer::draw() {
@@ -311,11 +369,12 @@ void SliceRenderer::draw() {
 
     //setOpenGLContext(mDevice->getGLContext());
 
-    if(mDoTransformations) {
-        LinearTransformation transform = SceneGraph::getLinearTransformationFromData(mImageToRender);
-
+    if(mDoTransformations) 
+	{
+        LinearTransformation transform = SceneGraph::getLinearTransformationFromData(mImagesToRender[0]);
         glMultMatrixf(transform.getTransform().data());
     }
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -383,13 +442,13 @@ void SliceRenderer::setSlicePlane(PlaneType plane) {
 
 BoundingBox SliceRenderer::getBoundingBox() {
 
-    BoundingBox inputBoundingBox = mImageToRender->getBoundingBox();
+    BoundingBox inputBoundingBox = mImagesToRender[0]->getBoundingBox();
     MatrixXf corners = inputBoundingBox.getCorners();
 
 
     BoundingBox shrinkedBox(corners);
     if(mDoTransformations) {
-        LinearTransformation transform = SceneGraph::getLinearTransformationFromData(mImageToRender);
+        LinearTransformation transform = SceneGraph::getLinearTransformationFromData(mImagesToRender[0]);
         BoundingBox transformedBoundingBox = shrinkedBox.getTransformedBoundingBox(transform);
         return transformedBoundingBox;
     } else {
@@ -400,3 +459,289 @@ BoundingBox SliceRenderer::getBoundingBox() {
 void SliceRenderer::turnOffTransformations() {
     mDoTransformations = false;
 }
+
+/*
+---------------------------------------------------
+
+void ImageRenderer::execute() {
+	boost::lock_guard<boost::mutex> lock(mMutex);
+
+	// This simply gets the input data for each connection and puts it into a data structure
+	for (uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
+		Image::pointer input = getStaticInputData<Image>(inputNr);
+
+		mImagesToRender[inputNr] = input;
+	}
+}
+
+void ImageRenderer::addInputConnection(ProcessObjectPort port) {
+	uint nr = getNrOfInputData();
+	if (nr > 0)
+		createInputPort<Image>(nr);
+	releaseInputAfterExecute(nr, false);
+	setInputConnection(nr, port);
+}
+
+
+ImageRenderer::ImageRenderer() : Renderer() {
+	createInputPort<Image>(0, false);
+	mIsModified = false;
+	mDoTransformations = true;
+}
+
+void ImageRenderer::draw() {
+	boost::lock_guard<boost::mutex> lock(mMutex);
+
+	boost::unordered_map<uint, Image::pointer>::iterator it;
+	for (it = mImagesToRender.begin(); it != mImagesToRender.end(); it++) {
+		Image::pointer input = it->second;
+		uint inputNr = it->first;
+
+		// Check if a texture has already been created for this image
+		if (mTexturesToRender.count(inputNr) > 0 && mImageUsed[inputNr] == input)
+			continue; // If it has already been created, skip it
+
+		// If it has not been created, create the texture
+
+		// Determine level and window
+		float window = mWindow;
+		float level = mLevel;
+		// If mWindow/mLevel is equal to -1 use default level/window values
+		if (window == -1) {
+			window = getDefaultIntensityWindow(input->getDataType());
+		}
+		if (level == -1) {
+			level = getDefaultIntensityLevel(input->getDataType());
+		}
+
+		OpenCLDevice::pointer device = getMainDevice();
+
+		OpenCLImageAccess2D::pointer access = input->getOpenCLImageAccess2D(ACCESS_READ, device);
+		cl::Image2D* clImage = access->get();
+
+		glEnable(GL_TEXTURE_2D);
+		if (mTexturesToRender.count(inputNr) > 0) {
+			// Delete old texture
+			glDeleteTextures(1, &mTexturesToRender[inputNr]);
+			mTexturesToRender.erase(inputNr);
+		}
+
+		// Create OpenGL texture
+		GLuint textureID;
+		glGenTextures(1, &textureID);
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, clImage->getImageInfo<CL_IMAGE_WIDTH>(), clImage->getImageInfo<CL_IMAGE_HEIGHT>(), 0, GL_RGBA, GL_FLOAT, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glFinish();
+
+		mTexturesToRender[inputNr] = textureID;
+		mImageUsed[inputNr] = input;
+
+		// Create CL-GL image
+#if defined(CL_VERSION_1_2)
+		cl::ImageGL mImageGL = cl::ImageGL(
+			device->getContext(),
+			CL_MEM_READ_WRITE,
+			GL_TEXTURE_2D,
+			0,
+			textureID
+			);
+#else
+		cl::Image2DGL mImageGL = cl::Image2DGL(
+			device->getContext(),
+			CL_MEM_READ_WRITE,
+			GL_TEXTURE_2D,
+			0,
+			textureID
+			);
+#endif
+
+		int i = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/ImageRenderer/ImageRenderer.cl");
+		std::string kernelName = "renderToTextureInt";
+		if (input->getDataType() == TYPE_FLOAT) {
+			kernelName = "renderToTextureFloat";
+		}
+		else if (input->getDataType() == TYPE_UINT8 || input->getDataType() == TYPE_UINT16) {
+			kernelName = "renderToTextureUint";
+		}
+
+		mKernel = cl::Kernel(device->getProgram(i), kernelName.c_str());
+		// Run kernel to fill the texture
+		cl::CommandQueue queue = device->getCommandQueue();
+		std::vector<cl::Memory> v;
+		v.push_back(mImageGL);
+		queue.enqueueAcquireGLObjects(&v);
+
+		mKernel.setArg(0, *clImage);
+		mKernel.setArg(1, mImageGL);
+		mKernel.setArg(2, level);
+		mKernel.setArg(3, window);
+		queue.enqueueNDRangeKernel(
+			mKernel,
+			cl::NullRange,
+			cl::NDRange(clImage->getImageInfo<CL_IMAGE_WIDTH>(), clImage->getImageInfo<CL_IMAGE_HEIGHT>()),
+			cl::NullRange
+			);
+
+		queue.enqueueReleaseGLObjects(&v);
+		queue.finish();
+	}
+
+
+	// This is the actual rendering
+	for (it = mImageUsed.begin(); it != mImageUsed.end(); it++) {
+		glPushMatrix();
+		if (mDoTransformations) {
+			LinearTransformation transform = SceneGraph::getLinearTransformationFromData(it->second);
+
+			glMultMatrixf(transform.getTransform().data());
+		}
+
+		glBindTexture(GL_TEXTURE_2D, mTexturesToRender[it->first]);
+		uint width = it->second->getWidth();
+		uint height = it->second->getHeight();
+
+		glColor3f(1, 1, 1); // black white texture
+		glBegin(GL_QUADS);
+		glTexCoord2i(0, 0);
+		glVertex3f(0, height, 0.0f);
+		glTexCoord2i(1, 0);
+		glVertex3f(width, height, 0.0f);
+		glTexCoord2i(1, 1);
+		glVertex3f(width, 0, 0.0f);
+		glTexCoord2i(0, 1);
+		glVertex3f(0, 0, 0.0f);
+		glEnd();
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glPopMatrix();
+	}
+}
+
+void ImageRenderer::draw2D(cl::BufferGL PBO, uint width, uint height, Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform, float PBOspacing, Vector2f translation) {
+	boost::lock_guard<boost::mutex> lock(mMutex);
+
+	OpenCLDevice::pointer device = getMainDevice();
+	cl::CommandQueue queue = device->getCommandQueue();
+	std::vector<cl::Memory> v;
+	v.push_back(PBO);
+	queue.enqueueAcquireGLObjects(&v);
+
+	// Create an aux PBO
+	cl::Buffer PBO2(
+		device->getContext(),
+		CL_MEM_READ_WRITE,
+		sizeof(float)*width*height * 4
+		);
+
+	boost::unordered_map<uint, Image::pointer>::iterator it;
+	for (it = mImagesToRender.begin(); it != mImagesToRender.end(); it++) {
+		Image::pointer input = it->second;
+		// Determine level and window
+		float window = mWindow;
+		float level = mLevel;
+		// If mWindow/mLevel is equal to -1 use default level/window values
+		if (window == -1) {
+			window = getDefaultIntensityWindow(input->getDataType());
+		}
+		if (level == -1) {
+			level = getDefaultIntensityLevel(input->getDataType());
+		}
+
+		int i = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/ImageRenderer/ImageRenderer2D.cl");
+
+		if (input->getDimensions() == 2) {
+			cl::Kernel kernel(device->getProgram(i), "render2Dimage");
+			// Run kernel to fill the texture
+
+			OpenCLImageAccess2D::pointer access = input->getOpenCLImageAccess2D(ACCESS_READ, device);
+			cl::Image2D* clImage = access->get();
+			kernel.setArg(0, *clImage);
+			kernel.setArg(1, PBO); // Read from this
+			kernel.setArg(2, PBO2); // Write to this
+			kernel.setArg(3, input->getSpacing().x());
+			kernel.setArg(4, input->getSpacing().y());
+			kernel.setArg(5, PBOspacing);
+			kernel.setArg(6, level);
+			kernel.setArg(7, window);
+			kernel.setArg(8, translation.x());
+			kernel.setArg(9, translation.y());
+
+			// Run the draw 2D kernel
+			device->getCommandQueue().enqueueNDRangeKernel(
+				kernel,
+				cl::NullRange,
+				cl::NDRange(width, height),
+				cl::NullRange
+				);
+		}
+		else {
+
+			// Get transform of the image
+			LinearTransformation dataTransform = SceneGraph::getLinearTransformationFromData(input);
+
+			// Transfer transformations
+			Eigen::Transform<float, 3, Eigen::Affine> transform = dataTransform.getTransform().inverse()*pixelToViewportTransform;
+
+			cl::Buffer transformBuffer(
+				device->getContext(),
+				CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+				16 * sizeof(float),
+				transform.data()
+				);
+
+			cl::Kernel kernel(device->getProgram(i), "render3Dimage");
+			// Run kernel to fill the texture
+
+			OpenCLImageAccess3D::pointer access = input->getOpenCLImageAccess3D(ACCESS_READ, device);
+			cl::Image3D* clImage = access->get();
+			kernel.setArg(0, *clImage);
+			kernel.setArg(1, PBO); // Read from this
+			kernel.setArg(2, PBO2); // Write to this
+			kernel.setArg(3, transformBuffer);
+			kernel.setArg(4, level);
+			kernel.setArg(5, window);
+
+			// Run the draw 3D image kernel
+			device->getCommandQueue().enqueueNDRangeKernel(
+				kernel,
+				cl::NullRange,
+				cl::NDRange(width, height),
+				cl::NullRange
+				);
+		}
+
+		// Copy PBO2 to PBO
+		queue.enqueueCopyBuffer(PBO2, PBO, 0, 0, sizeof(float)*width*height * 4);
+	}
+	queue.enqueueReleaseGLObjects(&v);
+	queue.finish();
+}
+
+void ImageRenderer::turnOffTransformations() {
+	mDoTransformations = false;
+}
+
+BoundingBox ImageRenderer::getBoundingBox() {
+	std::vector<Vector3f> coordinates;
+
+	boost::unordered_map<uint, Image::pointer>::iterator it;
+	for (it = mImagesToRender.begin(); it != mImagesToRender.end(); it++) {
+		BoundingBox transformedBoundingBox;
+		if (mDoTransformations) {
+			transformedBoundingBox = it->second->getTransformedBoundingBox();
+		}
+		else {
+			transformedBoundingBox = it->second->getBoundingBox();
+		}
+
+		MatrixXf corners = transformedBoundingBox.getCorners();
+		for (uint j = 0; j < 8; j++) {
+			coordinates.push_back((Vector3f)corners.row(j));
+		}
+	}
+	return BoundingBox(coordinates);
+}
+*/

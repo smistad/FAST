@@ -11,7 +11,7 @@ enum PlaneType {PLANE_X, PLANE_Y, PLANE_Z};
 class SliceRenderer : public Renderer {
     FAST_OBJECT(SliceRenderer)
     public:
-        void setInputConnection(ProcessObjectPort port);
+        void addInputConnection(ProcessObjectPort port);
         void setSliceToRender(unsigned int sliceNr);
         void setSlicePlane(PlaneType plane);
 		void setSlicePlaneNormal(float x, float y, float z);
@@ -24,9 +24,16 @@ class SliceRenderer : public Renderer {
         SliceRenderer();
         void execute();
         void draw();
-        void recompileOpenCLCode(Image::pointer input);
+		void recompileOpenCLCode(boost::unordered_map<uint, Image::pointer> inputs);
 
-        Image::pointer mImageToRender;
+        //Image::pointer mImageToRender;
+		boost::unordered_map<uint, Image::pointer> mImagesToRender;
+
+		boost::unordered_map<uint, cl::Image3D*> mClImage;
+
+		boost::unordered_map<uint, cl::Buffer> d_transformationMatrices;
+		boost::unordered_map<uint, cl::Buffer> d_imageSizes;
+
 #if defined(CL_VERSION_1_2)
         cl::ImageGL mImageGL;
 #else
@@ -36,7 +43,7 @@ class SliceRenderer : public Renderer {
         bool mTextureIsCreated;
 
         cl::Kernel mKernel;
-        DataType mTypeCLCodeCompiledFor;
+
 
         PlaneType mSlicePlane;
 
@@ -58,6 +65,8 @@ class SliceRenderer : public Renderer {
         bool mDoTransformations;
 
         boost::mutex mMutex;
+
+		bool mInputIsModified;
 };
 
 }
