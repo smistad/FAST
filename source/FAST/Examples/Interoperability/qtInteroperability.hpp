@@ -1,3 +1,8 @@
+/**
+ * Examples/Interoperability/qtInteroperability.hpp
+ *
+ * If you edit this example, please also update the wiki and source code file in the repository.
+ */
 #ifndef QT_INTEROP_HPP_
 #define QT_INTEROP_HPP_
 

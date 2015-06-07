@@ -4,7 +4,14 @@
 namespace fast {
 
 DoubleFilter::DoubleFilter() {
+    // This creates an input port of type Image.
     createInputPort<Image>(0);
+
+    // This creates an output port of type Image.
+    // The OUTPUT_DEPENDS_ON_INPUT flag means that if the input
+    // is a static image, the output will also be a static image,
+    // and if the input is a dynamic image, the output will also
+    // be a dynamic image.
     createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
 }
 
@@ -87,4 +94,4 @@ void DoubleFilter::execute() {
     }
 }
 
-}
+} // end namespace fast
