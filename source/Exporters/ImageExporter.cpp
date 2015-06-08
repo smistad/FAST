@@ -32,32 +32,35 @@ void ImageExporter::execute() {
     unsigned char * pixelData = image.bits();
     ImageAccess::pointer access = input->getImageAccess(ACCESS_READ);
     void * inputData = access->get();
+    uint nrOfComponents = input->getNrOfComponents();
 
-    for(unsigned int i = 0; i < input->getWidth()*input->getHeight(); i++) {
+    for(uint x = 0; x < input->getWidth(); x++) {
+    for(uint y = 0; y < input->getHeight(); y++) {
         float data;
         switch(input->getDataType()) {
         case TYPE_FLOAT:
-            data = round(((float*)inputData)[i]*255.0f);
+            data = round(((float*)inputData)[(x+y*input->getWidth())*nrOfComponents]*255.0f);
             break;
         case TYPE_UINT8:
-            data = ((uchar*)inputData)[i];
+            data = ((uchar*)inputData)[(x+y*input->getWidth())*nrOfComponents];
             break;
         case TYPE_INT8:
-            data = ((char*)inputData)[i]+128;
+            data = ((char*)inputData)[(x+y*input->getWidth())*nrOfComponents]+128;
             break;
         case TYPE_UINT16:
-            data = ((ushort*)inputData)[i];
+            data = ((ushort*)inputData)[(x+y*input->getWidth())*nrOfComponents];
             break;
         case TYPE_INT16:
-            data = ((short*)inputData)[i];
+            data = ((short*)inputData)[(x+y*input->getWidth())*nrOfComponents];
             break;
 
         }
+        uint i = x + y*input->getWidth();
         pixelData[i*4] = data;
         pixelData[i*4+1] = pixelData[i*4];
         pixelData[i*4+2] = pixelData[i*4];
         pixelData[i*4+3] = 255; // Alpha
-    }
+    }}
 
     image.save(QString(mFilename.c_str()));
 
