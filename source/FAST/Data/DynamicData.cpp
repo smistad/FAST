@@ -56,7 +56,7 @@ uint DynamicData::getLowestFrameCount() const {
 
 void DynamicData::removeOldFrames(uint frameCounter) {
     // TODO this could be implemented in a faster way
-    typename boost::unordered_map<uint, DataObject::pointer>::iterator it = mFrames2.begin();
+    boost::unordered_map<uint, DataObject::pointer>::iterator it = mFrames2.begin();
     while(it != mFrames2.end()) {
         if(it->first < frameCounter) {
             it = mFrames2.erase(it);
