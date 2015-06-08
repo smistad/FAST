@@ -8,6 +8,7 @@ option(BUILD_TESTS "Build FAST tests." ON)
 option(BUILD_IGTLINK_TESTS "Build OpenIGTLink tests." OFF)
 option(BUILD_EXAMPLES "Build examples." OFF)
 option(MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
+set(OPENCL_KERNEL_BINARY_PATH "${PROJECT_BINARY_DIR}/" CACHE STRING "Directory to put kernel binaries in. Default is build dir.")
 
 if(BUILD_IGTLINK_TESTS)
     set(BUILD_TESTING ON CACHE INTERNAL "Build OpenIGTLink tests." FORCE)
@@ -49,47 +50,23 @@ endmacro()
 macro (fast_add_subdirectories)
     file (RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
     foreach (_src ${ARGN})
-        list (APPEND FAST_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/${_src}")
         add_subdirectory(${_src})
     endforeach()
-    if (_relPath)
-        # propagate FAST_INCLUDE_DIRS to parent directory
-        set (FAST_INCLUDE_DIRS ${FAST_INCLUDE_DIRS} PARENT_SCOPE)
-    endif()
 endmacro()
 
 
-fast_add_sources(
-    Object.cpp
-    Object.hpp
-    SmartPointers.hpp
-    ProcessObject.cpp
-    ProcessObject.hpp
-    ExecutionDevice.cpp
-    ExecutionDevice.hpp
-    DeviceManager.cpp
-    DeviceManager.hpp
-    Exception.cpp
-    Exception.hpp
-    Utility.cpp
-    Utility.hpp
-    SceneGraph.cpp
-    SceneGraph.hpp
-    LinearTransformation.cpp
-    LinearTransformation.hpp
-)
-
 # Headers for Qt objects
 set(QT_HEADERS
-    Visualization/View.hpp
-    Visualization/WindowWidget.hpp
-    Visualization/Window.hpp
-    Visualization/ComputationThread.hpp
+    FAST/Visualization/View.hpp
+    FAST/Visualization/WindowWidget.hpp
+    FAST/Visualization/Window.hpp
+    FAST/Visualization/ComputationThread.hpp
+    FAST/Examples/Interoperability/qtInteroperability.hpp
 )
 
 # Set up some directory defines
 add_definitions("-DFAST_ROOT_DIR=\"${PROJECT_SOURCE_DIR}/../\"")
-add_definitions("-DFAST_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}/\"")
+add_definitions("-DFAST_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}/FAST/\"")
 # Remove any existing "
 string(REPLACE "\"" "" FAST_TEST_DATA_DIR ${FAST_TEST_DATA_DIR})
 message("-- FAST test data directory set to: \"${FAST_TEST_DATA_DIR}\"")
@@ -168,7 +145,7 @@ endif()
 
 
 #### Add all subdirs
-fast_add_subdirectories(Algorithms Data Streamers Importers Exporters Visualization Tests)
+fast_add_subdirectories(FAST)
 
 #### Set include dirs
 include_directories(${FAST_INCLUDE_DIRS})
@@ -221,7 +198,7 @@ endif()
 target_link_libraries(FAST ${LIBRARIES})
 qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
 if(BUILD_EXAMPLES)
-    add_subdirectory(Examples)
+    add_subdirectory(FAST/Examples)
 endif()
 if(BUILD_TESTS)
     target_link_libraries(test FAST)
