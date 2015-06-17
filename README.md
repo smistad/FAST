@@ -31,3 +31,5 @@ Build status
 * Ubuntu Linux 14.04, AMD CPU, AMD GPU - ![Build Status](http://thebigblob.com/upload/build/FAST-Ubuntu-AMD-Development-NO-Visual.svg)
 * Mac OS X 10.9, Intel CPU, NVIDIA GPU - ![Build Status](http://thebigblob.com/upload/build/FAST-Mac-Development.svg)
 * Windows 8.1, Intel CPU, NVIDIA GPU - ![Build Status](http://thebigblob.com/upload/build/FAST-Windows-Development.svg)
+
+![Surface mesh extracted from a large abdominal CT scan in about 100 ms using FAST and a modern GPU.](https://github.com/smistad/FAST/wiki/images/surface_extraction.png) ![Ultrasound image segmented using binary thresholding.](https://github.com/smistad/FAST/wiki/images/binary_thresholding.png)
