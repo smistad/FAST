@@ -4,6 +4,7 @@ namespace fast {
 
 void PointSet::create(std::vector<Vector3f> points) {
     mPointSet = points;
+    updateModifiedTimestamp();
 }
 
 uint PointSet::getNrOfPoints() const {

@@ -6,6 +6,7 @@ void LineSet::create(std::vector<Vector3f> vertices,
         std::vector<Vector2ui> lines) {
     mVertices = vertices;
     mLines = lines;
+    updateModifiedTimestamp();
 }
 
 bool LineSet::isAnyDataBeingAccessed() const {
