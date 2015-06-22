@@ -5,7 +5,7 @@
 
 using namespace fast;
 
-TEST_CASE("BoundingBox renderer", "[BoundingBoxRenderer][fast]") {
+TEST_CASE("BoundingBox renderer", "[BoundingBoxRenderer][fast][visual]") {
     CHECK_NOTHROW(
         VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
         importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "Surface_LV.vtk");

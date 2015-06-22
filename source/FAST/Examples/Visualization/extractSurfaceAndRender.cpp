@@ -23,7 +23,6 @@ int main() {
     // Render and visualize the mesh
     MeshRenderer::pointer surfaceRenderer = MeshRenderer::New();
     surfaceRenderer->setInputConnection(extraction->getOutputPort());
-    surfaceRenderer->enableRuntimeMeasurements();
 
 	SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(surfaceRenderer);
