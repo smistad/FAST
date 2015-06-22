@@ -23,7 +23,7 @@ class DataObject : public Object {
         Streamer::pointer getStreamer();
         virtual std::string getNameOfClass() const = 0;
         static std::string getStaticNameOfClass() {
-            return "";
+            return "DataObject";
         };
     protected:
         virtual void free(ExecutionDevice::pointer device) = 0;
