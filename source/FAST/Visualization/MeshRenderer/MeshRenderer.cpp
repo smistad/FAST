@@ -29,6 +29,7 @@ void MeshRenderer::addInputConnection(ProcessObjectPort port, Color color, float
 MeshRenderer::MeshRenderer() : Renderer() {
     mDefaultOpacity = 1;
     mDefaultColor = Color::Green();
+    mDefaultSpecularReflection = 0.8f;
     createInputPort<Mesh>(0, false);
 }
 
@@ -74,7 +75,7 @@ void MeshRenderer::draw() {
         }
         GLfloat GLcolor[] = { color.getRedValue(), color.getGreenValue(), color.getBlueValue(), opacity };
         glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, GLcolor);
-        GLfloat specReflection[] = { 0.8f, 0.8f, 0.8f, 1.0f };
+        GLfloat specReflection[] = { mDefaultSpecularReflection, mDefaultSpecularReflection, mDefaultSpecularReflection, 1.0f };
         glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specReflection);
         GLfloat shininess[] = { 16.0f };
         glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
@@ -138,6 +139,10 @@ void MeshRenderer::setDefaultOpacity(float opacity) {
     } else if(mDefaultOpacity < 0) {
         mDefaultOpacity = 0;
     }
+}
+
+void MeshRenderer::setDefaultSpecularReflection(float specularReflection) {
+    mDefaultSpecularReflection = specularReflection;
 }
 
 } // namespace fast
