@@ -22,6 +22,8 @@ fast_add_sources(
     LineSet.cpp
     LineSet.hpp
     Color.hpp
+    Camera.cpp
+    Camera.hpp
 )
 fast_add_test_sources(
     Tests/DataObjectTests.cpp

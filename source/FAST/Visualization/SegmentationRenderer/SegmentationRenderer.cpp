@@ -7,7 +7,7 @@ namespace fast {
 void SegmentationRenderer::addInputConnection(ProcessObjectPort port) {
     uint nr = getNrOfInputData();
     if(nr > 0)
-        createInputPort<Segmentation>(0);
+        createInputPort<Segmentation>(nr);
     releaseInputAfterExecute(nr, false);
     setInputConnection(nr, port);
 }

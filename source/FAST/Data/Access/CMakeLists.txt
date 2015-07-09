@@ -16,4 +16,6 @@ fast_add_sources(
     PointSetAccess.hpp
     LineSetAccess.cpp
     LineSetAccess.hpp
+    CameraAccess.cpp
+    CameraAccess.hpp
 )

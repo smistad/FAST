@@ -2,6 +2,7 @@
 
 #include <GL/glew.h>
 #include "View.hpp"
+#include "FAST/Data/Camera.hpp"
 #include "FAST/Exception.hpp"
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Visualization/SliceRenderer/SliceRenderer.hpp"
@@ -51,6 +52,7 @@ void View::removeAllRenderers() {
 }
 
 View::View() : mViewingPlane(Plane::Axial()) {
+    createInputPort<Camera>(0, false);
     zNear = 0.1;
     zFar = 1000;
     fieldOfViewY = 45;
@@ -83,6 +85,9 @@ View::View() : mViewingPlane(Plane::Axial()) {
     }
 }
 
+void View::setCameraInputConnection(ProcessObjectPort port) {
+    setInputConnection(0, port);
+}
 
 void View::setLookAt(Vector3f cameraPosition, Vector3f targetPosition, Vector3f cameraUpVector) {
     mCameraPosition = cameraPosition;
@@ -486,7 +491,7 @@ void View::initializeGL() {
             // Update all renderes, so that getBoundingBox works
             for (unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
                 mNonVolumeRenderers[i]->update();
-            if(!mCameraSet) {
+            if(!mCameraSet && getNrOfInputData() == 0) {
                 // If camera is not set explicitly by user, FAST has to calculate it
                 recalculateCamera();
             } else {
@@ -718,7 +723,16 @@ void View::paintGL() {
 			glLightfv(GL_LIGHT0, GL_POSITION, position);
 
 			// Apply camera transformations
-			glMultMatrixf(m3DViewingTransformation.data());
+			if(getNrOfInputData() > 0) {
+			    // Has camera input connection, get camera
+			    Camera::pointer camera = getStaticInputData<Camera>(0);
+			    CameraAccess::pointer access = camera->getAccess(ACCESS_READ);
+                glMultMatrixf(m3DViewingTransformation.data());
+			    glMultMatrixf(access->getCameraTransformation().data());
+			    mRotationPoint = access->getCameraTransformation()*access->getTargetPosition();
+			} else {
+                glMultMatrixf(m3DViewingTransformation.data());
+			}
 
             if (mVolumeRenderers.size()>0)
             {
