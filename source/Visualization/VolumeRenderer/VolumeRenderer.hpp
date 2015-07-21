@@ -98,7 +98,8 @@ class VolumeRenderer : public Renderer {
 		//Image::pointer 
 		Image::pointer mI;
 		std::vector<Image::pointer> mInputs;
-		std::vector<Image::pointer> inputs;
+		boost::unordered_map<uint, Image::pointer> mImagesToRender;
+		//std::vector<Image::pointer> inputs;
 		
 		GLfloat modelView[16];
 
