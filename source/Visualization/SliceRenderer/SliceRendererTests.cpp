@@ -79,13 +79,13 @@ TEST_CASE("SliceRenderer on dynamic data with slice plane Z set", "[fast][SliceR
     );
 }
 
-TEST_CASE("Setting slice nr in SliceRenderer too high should not throw exception", "[fast][SliceRenderer][visual]") {
+TEST_CASE("Setting slice plane origin in SliceRenderer too high should not throw exception", "[fast][SliceRenderer][visual]") {
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
     CHECK_NOTHROW(
         SliceRenderer::pointer renderer = SliceRenderer::New();
         renderer->setInputConnection(mhdStreamer->getOutputPort());
-        renderer->setSliceToRender(1000);
+		renderer->setSlicePlaneOrigin(1000, 1000, 1000);
         SimpleWindow::pointer window = SimpleWindow::New();
         window->addRenderer(renderer);
         window->setTimeout(1000);
