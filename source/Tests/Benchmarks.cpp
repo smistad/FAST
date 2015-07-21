@@ -269,194 +269,172 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
 
 TEST_CASE("SliceRenderer Static Single", "[fast][benchmark][visualization][slice][static][single]")
 {
-	if (1)
-	{
 
-		MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
-		mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
-		mhdImporterStatic->enableRuntimeMeasurements();
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
 
-		SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
-		sliceRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
-		sliceRenderer->setSlicePlane(PLANE_Z);
-		sliceRenderer->enableRuntimeMeasurements();
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
 
-		SimpleWindow::pointer window = SimpleWindow::New();
-		window->getView()->enableRuntimeMeasurements();
-		window->setMaximumFramerate(1000);
-		window->addRenderer(sliceRenderer);
-		window->setTimeout(1000); // 1 second
-		window->start();
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->setTimeout(1000); // 1 second
+	window->start();
 
-		FILE * pFile;
-		pFile = fopen("speedtest.txt", "a");
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
 
-		std::cout << "\n\n\nSliceRenderer Static Single:" << std::endl;
-		fputs("\n\n\nSliceRenderer Static Single:\n", pFile);
+	std::cout << "\n\n\nSliceRenderer Static Single:" << std::endl;
+	fputs("\n\n\nSliceRenderer Static Single:\n", pFile);
 
-		std::cout << "\nImport Time:" << std::endl;
-		fputs("\nImport Time:\n", pFile);
-		mhdImporterStatic->getRuntime()->print(pFile);
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
 
-		std::cout << "\nRendering Time:" << std::endl;
-		fputs("\nRendering Time:\n", pFile);
-		sliceRenderer->getRuntime()->print(pFile);
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
 
-		window->getView()->getRuntime("draw")->print(pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 
-		fclose(pFile);
-		/*
-		float total = mhdImporterStatic->getRuntime()->getSum() +
-		sliceRenderer->getRuntime()->getSum() +
-		window->getView()->getRuntime("draw")->getAverage();
-		std::cout << "Total runtime was: " << total << std::endl;
-		*/
-		window->stop();
-	}
+	fclose(pFile);
 }
+
 TEST_CASE("SliceRenderer Dynamic Single", "[fast][benchmark][visualization][slice][dynamic][single]")
 {
-	if (1)
-	{
-		ImageFileStreamer::pointer mhdImporterDynamic = ImageFileStreamer::New();
-		mhdImporterDynamic->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
-		mhdImporterDynamic->enableRuntimeMeasurements();
 
-		SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
-		sliceRenderer->addInputConnection(mhdImporterDynamic->getOutputPort());
-		sliceRenderer->setSlicePlane(PLANE_Y);
-		sliceRenderer->enableRuntimeMeasurements();
+	ImageFileStreamer::pointer mhdImporterDynamic = ImageFileStreamer::New();
+	mhdImporterDynamic->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic->enableRuntimeMeasurements();
 
-		SimpleWindow::pointer window = SimpleWindow::New();
-		window->getView()->enableRuntimeMeasurements();
-		window->setMaximumFramerate(1000);
-		window->addRenderer(sliceRenderer);
-		window->setTimeout(1000); // 1 second
-		window->start();
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterDynamic->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Y);
+	sliceRenderer->enableRuntimeMeasurements();
 
-		FILE * pFile;
-		pFile = fopen("speedtest.txt", "a");
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->setTimeout(1000); // 1 second
+	window->start();
 
-		std::cout << "\n\n\nSliceRenderer Dynamic Single:" << std::endl;
-		fputs("\n\n\nSliceRenderer Dynamic Single:\n", pFile);
-		std::cout << "\nImport Time:" << std::endl;
-		fputs("\nImport Time:\n", pFile);
-		mhdImporterDynamic->getRuntime()->print(pFile);
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
 
-		std::cout << "\nRendering Time:" << std::endl;
-		fputs("\nRendering Time :\n", pFile);
-		sliceRenderer->getRuntime()->print(pFile);
+	std::cout << "\n\n\nSliceRenderer Dynamic Single:" << std::endl;
+	fputs("\n\n\nSliceRenderer Dynamic Single:\n", pFile);
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterDynamic->getRuntime()->print().c_str(), pFile);
 
-		window->getView()->getRuntime("draw")->print(pFile);
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time :\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
 
-		fclose(pFile);
-		/*
-		float total = mhdImporterDynamic->getRuntime()->getSum() +
-		sliceRenderer->getRuntime()->getSum() +
-		window->getView()->getRuntime("draw")->getAverage();
-		std::cout << "Total runtime was: " << total << std::endl;
-		*/
-	}
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+
+	fclose(pFile);
+
 }
 TEST_CASE("SliceRenderer Static Multi", "[fast][benchmark][visualization][slice][static][multi]")
 {
-	if (1)
-	{
-		MetaImageImporter::pointer mhdImporterStatic1 = MetaImageImporter::New();
-		mhdImporterStatic1->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
-		mhdImporterStatic1->enableRuntimeMeasurements();
+	MetaImageImporter::pointer mhdImporterStatic1 = MetaImageImporter::New();
+	mhdImporterStatic1->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic1->enableRuntimeMeasurements();
 
-		MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
-		mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
-		mhdImporterStatic2->enableRuntimeMeasurements();
+	MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
+	mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
+	mhdImporterStatic2->enableRuntimeMeasurements();
 
 
-		SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
-		sliceRenderer->addInputConnection(mhdImporterStatic1->getOutputPort());
-		sliceRenderer->addInputConnection(mhdImporterStatic2->getOutputPort());
-		sliceRenderer->setSlicePlane(PLANE_Z);
-		sliceRenderer->enableRuntimeMeasurements();
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterStatic1->getOutputPort());
+	sliceRenderer->addInputConnection(mhdImporterStatic2->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
 
-		SimpleWindow::pointer window = SimpleWindow::New();
-		window->getView()->enableRuntimeMeasurements();
-		window->setMaximumFramerate(1000);
-		window->addRenderer(sliceRenderer);
-		window->setTimeout(1000); // 1 second
-		window->start();
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->setTimeout(1000); // 1 second
+	window->start();
 
 
-		FILE * pFile;
-		pFile = fopen("speedtest.txt", "a");
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
 
-		std::cout << "\n\n\nSliceRenderer Static Multi:" << std::endl;
-		fputs("\n\n\nSliceRenderer Static Multi:\n", pFile);
+	std::cout << "\n\n\nSliceRenderer Static Multi:" << std::endl;
+	fputs("\n\n\nSliceRenderer Static Multi:\n", pFile);
 
-		std::cout << "\nImport Time 1:" << std::endl;
-		fputs("\nImport Time 1:\n", pFile);
-		mhdImporterStatic1->getRuntime()->print(pFile);
-		std::cout << "\nImport Time 2:" << std::endl;
-		fputs("\nImport Time 2:\n", pFile);
-		mhdImporterStatic2->getRuntime()->print(pFile);
+	std::cout << "\nImport Time 1:" << std::endl;
+	fputs("\nImport Time 1:\n", pFile);
+	fputs(mhdImporterStatic1->getRuntime()->print().c_str(), pFile);
+	std::cout << "\nImport Time 2:" << std::endl;
+	fputs("\nImport Time 2:\n", pFile);
+	fputs(mhdImporterStatic2->getRuntime()->print().c_str(), pFile);
 
-		std::cout << "\nRendering Time:" << std::endl;
-		fputs("\nRendering Time :\n", pFile);
-		sliceRenderer->getRuntime()->print(pFile);
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time :\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
 
-		window->getView()->getRuntime("draw")->print(pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 
-		fclose(pFile);
-	}
+	fclose(pFile);
 }
 
 
 TEST_CASE("SliceRenderer Dynamic Multi", "[fast][benchmark][visualization][slice][dynamic][multi]")
 {
-	if (1)
-	{
-		ImageFileStreamer::pointer mhdImporterDynamic1 = ImageFileStreamer::New();
-		mhdImporterDynamic1->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
-		mhdImporterDynamic1->enableRuntimeMeasurements();
+	ImageFileStreamer::pointer mhdImporterDynamic1 = ImageFileStreamer::New();
+	mhdImporterDynamic1->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic1->enableRuntimeMeasurements();
 
-		ImageFileStreamer::pointer mhdImporterDynamic2 = ImageFileStreamer::New();
-		mhdImporterDynamic2->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
-		mhdImporterDynamic2->enableRuntimeMeasurements();
+	ImageFileStreamer::pointer mhdImporterDynamic2 = ImageFileStreamer::New();
+	mhdImporterDynamic2->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic2->enableRuntimeMeasurements();
 
 
-		SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
-		sliceRenderer->addInputConnection(mhdImporterDynamic1->getOutputPort());
-		sliceRenderer->addInputConnection(mhdImporterDynamic2->getOutputPort());
-		sliceRenderer->setSlicePlane(PLANE_Z);
-		sliceRenderer->enableRuntimeMeasurements();
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterDynamic1->getOutputPort());
+	sliceRenderer->addInputConnection(mhdImporterDynamic2->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
 
-		SimpleWindow::pointer window = SimpleWindow::New();
-		window->getView()->enableRuntimeMeasurements();
-		window->setMaximumFramerate(1000);
-		window->addRenderer(sliceRenderer);
-		window->setTimeout(1000); // 1 second
-		window->start();
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->setTimeout(1000); // 1 second
+	window->start();
 
 
-		FILE * pFile;
-		pFile = fopen("speedtest.txt", "a");
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
 
-		std::cout << "\n\n\nSliceRenderer Dynamic Multi:" << std::endl;
-		fputs("\n\n\nSliceRenderer Dynamic Multi:\n", pFile);
+	std::cout << "\n\n\nSliceRenderer Dynamic Multi:" << std::endl;
+	fputs("\n\n\nSliceRenderer Dynamic Multi:\n", pFile);
 
-		std::cout << "\nImport Time 1:" << std::endl;
-		fputs("\nImport Time 1:\n", pFile);
-		mhdImporterDynamic1->getRuntime()->print(pFile);
-		std::cout << "\nImport Time 2:" << std::endl;
-		fputs("\nImport Time 2:\n", pFile);
-		mhdImporterDynamic2->getRuntime()->print(pFile);
+	std::cout << "\nImport Time 1:" << std::endl;
+	fputs("\nImport Time 1:\n", pFile);
+	fputs(mhdImporterDynamic1->getRuntime()->print().c_str(), pFile);
+	std::cout << "\nImport Time 2:" << std::endl;
+	fputs("\nImport Time 2:\n", pFile);
+	fputs(mhdImporterDynamic2->getRuntime()->print().c_str(), pFile);
 
-		std::cout << "\nRendering Time:" << std::endl;
-		fputs("\nRendering Time :\n", pFile);
-		sliceRenderer->getRuntime()->print(pFile);
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time :\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
 
-		window->getView()->getRuntime("draw")->print(pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 
-		fclose(pFile);
-	}
+	fclose(pFile);
 }
 
 TEST_CASE("VolumeRenderer Static Single", "[fast][benchmark][visualization][volume][static][single]")
@@ -495,21 +473,16 @@ TEST_CASE("VolumeRenderer Static Single", "[fast][benchmark][visualization][volu
 
 	std::cout << "\nImport Time:" << std::endl;
 	fputs("\nImport Time:\n", pFile);
-	mhdImporterStatic->getRuntime()->print(pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time:" << std::endl;
 	fputs("\nRendering Time:\n", pFile);
-	volumeRenderer->getRuntime()->print(pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	window->getView()->getRuntime("draw")->print(pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
 
 	fclose(pFile);
-	/*
-	float total = mhdImporterStatic->getRuntime()->getSum() +
-	sliceRenderer->getRuntime()->getSum() +
-	window->getView()->getRuntime("draw")->getAverage();`
-	std::cout << "Total runtime was: " << total << std::endl;
-	*/
+
 }
 
 TEST_CASE("VolumeRenderer Dynamic Single", "[fast][benchmark][visualization][volume][dynamic][single]")
@@ -548,21 +521,16 @@ TEST_CASE("VolumeRenderer Dynamic Single", "[fast][benchmark][visualization][vol
 
 	std::cout << "\nImport Time:" << std::endl;
 	fputs("\nImport Time:\n", pFile);
-	mhdImporterDynamic->getRuntime()->print(pFile);
+	fputs(mhdImporterDynamic->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time:" << std::endl;
 	fputs("\nRendering Time:\n", pFile);
-	volumeRenderer->getRuntime()->print(pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	window->getView()->getRuntime("draw")->print(pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
 
 	fclose(pFile);
-	/*
-	float total = mhdImporterStatic->getRuntime()->getSum() +
-	sliceRenderer->getRuntime()->getSum() +
-	window->getView()->getRuntime("draw")->getAverage();`
-	std::cout << "Total runtime was: " << total << std::endl;
-	*/
+
 }
 
 TEST_CASE("VolumeRenderer Static Multi", "[fast][benchmark][visualization][volume][static][multi]")
@@ -617,25 +585,20 @@ TEST_CASE("VolumeRenderer Static Multi", "[fast][benchmark][visualization][volum
 
 	std::cout << "\nImport Time 1:" << std::endl;
 	fputs("\nImport Time:\n", pFile);
-	mhdImporterStatic1->getRuntime()->print(pFile);
+	fputs(mhdImporterStatic1->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nImport Time 2:" << std::endl;
 	fputs("\nImport Time:\n", pFile);
-	mhdImporterStatic2->getRuntime()->print(pFile);
+	fputs(mhdImporterStatic2->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time:" << std::endl;
 	fputs("\nRendering Time:\n", pFile);
-	volumeRenderer->getRuntime()->print(pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	window->getView()->getRuntime("draw")->print(pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
 
 	fclose(pFile);
-	/*
-	float total = mhdImporterStatic->getRuntime()->getSum() +
-	sliceRenderer->getRuntime()->getSum() +
-	window->getView()->getRuntime("draw")->getAverage();`
-	std::cout << "Total runtime was: " << total << std::endl;
-	*/
+
 }
 
 TEST_CASE("VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][volume][dynamic][multi]")
@@ -690,25 +653,20 @@ TEST_CASE("VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][volu
 
 	std::cout << "\nImport Time 1:" << std::endl;
 	fputs("\nImport Time:\n", pFile);
-	mhdImporterDynamic1->getRuntime()->print(pFile);
+	fputs(mhdImporterDynamic1->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nImport Time 2:" << std::endl;
 	fputs("\nImport Time:\n", pFile);
-	mhdImporterDynamic2->getRuntime()->print(pFile);
+	fputs(mhdImporterDynamic2->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time:" << std::endl;
 	fputs("\nRendering Time:\n", pFile);
-	volumeRenderer->getRuntime()->print(pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	window->getView()->getRuntime("draw")->print(pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
 
 	fclose(pFile);
-	/*
-	float total = mhdImporterStatic->getRuntime()->getSum() +
-	sliceRenderer->getRuntime()->getSum() +
-	window->getView()->getRuntime("draw")->getAverage();`
-	std::cout << "Total runtime was: " << total << std::endl;
-	*/
+
 }
 
 TEST_CASE("SliceRenderer Static Single + VolumeRenderer Static Single", "[fast][benchmark][visualization][slicestaticsingle][volumestaticsingle]")
@@ -754,25 +712,20 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Static Single", "[fast][
 
 	std::cout << "\nImport Time:" << std::endl;
 	fputs("\nImport Time:\n", pFile);
-	mhdImporterStatic->getRuntime()->print(pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of SliceRendrer:" << std::endl;
 	fputs("\nRendering Time of SliceRendrer:\n", pFile);
-	sliceRenderer->getRuntime()->print(pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
-	volumeRenderer->getRuntime()->print(pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	window->getView()->getRuntime("draw")->print(pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
 	
 	fclose(pFile);
-	/*
-	float total = mhdImporterStatic->getRuntime()->getSum() +
-	sliceRenderer->getRuntime()->getSum() +
-	window->getView()->getRuntime("draw")->getAverage();
-	std::cout << "Total runtime was: " << total << std::endl;
-	*/
+
 }
 
 TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Static Single", "[fast][benchmark][visualization][slicestaticmulti][volumestaticsingle]")
@@ -824,29 +777,24 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Static Single", "[fast][b
 
 	std::cout << "\nImport Time 1:" << std::endl;
 	fputs("\nImport Time 1:\n", pFile);
-	mhdImporterStatic1->getRuntime()->print(pFile);
+	fputs(mhdImporterStatic1->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nImport Time 2:" << std::endl;
 	fputs("\nImport Time 2:\n", pFile);
-	mhdImporterStatic2->getRuntime()->print(pFile);
+	fputs(mhdImporterStatic2->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of SliceRendrer:" << std::endl;
 	fputs("\nRendering Time of SliceRendrer:\n", pFile);
-	sliceRenderer->getRuntime()->print(pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
-	volumeRenderer->getRuntime()->print(pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	window->getView()->getRuntime("draw")->print(pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
 
 	fclose(pFile);
-	/*
-	float total = mhdImporterStatic->getRuntime()->getSum() +
-	sliceRenderer->getRuntime()->getSum() +
-	window->getView()->getRuntime("draw")->getAverage();
-	std::cout << "Total runtime was: " << total << std::endl;
-	*/
+
 }
 TEST_CASE("SliceRenderer Static Single + VolumeRenderer Static Multi", "[fast][benchmark][visualization][slicestaticsingle][volumestaticmulti]")
 {
@@ -908,29 +856,24 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Static Multi", "[fast][b
 
 	std::cout << "\nImport Time 1:" << std::endl;
 	fputs("\nImport Time 1:\n", pFile);
-	mhdImporterStatic1->getRuntime()->print(pFile);
+	fputs(mhdImporterStatic1->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nImport Time 2:" << std::endl;
 	fputs("\nImport Time 2:\n", pFile);
-	mhdImporterStatic2->getRuntime()->print(pFile);
+	fputs(mhdImporterStatic2->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of SliceRendrer:" << std::endl;
 	fputs("\nRendering Time of SliceRendrer:\n", pFile);
-	sliceRenderer->getRuntime()->print(pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
-	volumeRenderer->getRuntime()->print(pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	window->getView()->getRuntime("draw")->print(pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
 
 	fclose(pFile);
-	/*
-	float total = mhdImporterStatic->getRuntime()->getSum() +
-	sliceRenderer->getRuntime()->getSum() +
-	window->getView()->getRuntime("draw")->getAverage();
-	std::cout << "Total runtime was: " << total << std::endl;
-	*/
+
 }
 TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Static Multi", "[fast][benchmark][visualization][slicestaticmulti][volumestaticmulti]")
 {
@@ -993,29 +936,24 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Static Multi", "[fast][be
 
 	std::cout << "\nImport Time 1:" << std::endl;
 	fputs("\nImport Time 1:\n", pFile);
-	mhdImporterStatic1->getRuntime()->print(pFile);
+	fputs(mhdImporterStatic1->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nImport Time 2:" << std::endl;
 	fputs("\nImport Time 2:\n", pFile);
-	mhdImporterStatic2->getRuntime()->print(pFile);
+	fputs(mhdImporterStatic2->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of SliceRendrer:" << std::endl;
 	fputs("\nRendering Time of SliceRendrer:\n", pFile);
-	sliceRenderer->getRuntime()->print(pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
-	volumeRenderer->getRuntime()->print(pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	window->getView()->getRuntime("draw")->print(pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
 
 	fclose(pFile);
-	/*
-	float total = mhdImporterStatic->getRuntime()->getSum() +
-	sliceRenderer->getRuntime()->getSum() +
-	window->getView()->getRuntime("draw")->getAverage();
-	std::cout << "Total runtime was: " << total << std::endl;
-	*/
+
 }
 //------------------------
 TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Static Single", "[fast][benchmark][visualization][slicedynamicsingle][volumestaticsingle]")
@@ -1065,29 +1003,24 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Static Single", "[fast]
 
 	std::cout << "\nImport Time Static:" << std::endl;
 	fputs("\nImport Time Static:\n", pFile);
-	mhdImporterStatic->getRuntime()->print(pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nImport Time Dynamic:" << std::endl;
 	fputs("\nImport Time Dynamic:\n", pFile);
-	mhdImporterDynamic->getRuntime()->print(pFile);
+	fputs(mhdImporterDynamic->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of SliceRendrer:" << std::endl;
 	fputs("\nRendering Time of SliceRendrer:\n", pFile);
-	sliceRenderer->getRuntime()->print(pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
-	volumeRenderer->getRuntime()->print(pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	window->getView()->getRuntime("draw")->print(pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
 
 	fclose(pFile);
-	/*
-	float total = mhdImporterStatic->getRuntime()->getSum() +
-	sliceRenderer->getRuntime()->getSum() +
-	window->getView()->getRuntime("draw")->getAverage();
-	std::cout << "Total runtime was: " << total << std::endl;
-	*/
+
 }
 
 TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Static Single", "[fast][benchmark][visualization][slicedynamicmulti][volumestaticsingle]")
@@ -1143,33 +1076,28 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Static Single", "[fast][
 
 	std::cout << "\nImport Time Dynamic 1:" << std::endl;
 	fputs("\nImport Time Dynamic 1:\n", pFile);
-	mhdImporterDynamic1->getRuntime()->print(pFile);
+	fputs(mhdImporterDynamic1->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nImport Time Dynamic 2:" << std::endl;
 	fputs("\nImport Time Dynamic 2:\n", pFile);
-	mhdImporterDynamic2->getRuntime()->print(pFile);
+	fputs(mhdImporterDynamic2->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nImport Time Static:" << std::endl;
 	fputs("\nImport Time Static:\n", pFile);
-	mhdImporterStatic->getRuntime()->print(pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of SliceRendrer:" << std::endl;
 	fputs("\nRendering Time of SliceRendrer:\n", pFile);
-	sliceRenderer->getRuntime()->print(pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
-	volumeRenderer->getRuntime()->print(pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	window->getView()->getRuntime("draw")->print(pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
 
 	fclose(pFile);
-	/*
-	float total = mhdImporterStatic->getRuntime()->getSum() +
-	sliceRenderer->getRuntime()->getSum() +
-	window->getView()->getRuntime("draw")->getAverage();
-	std::cout << "Total runtime was: " << total << std::endl;
-	*/
+
 }
 TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Static Multi", "[fast][benchmark][visualization][slicedynamicsingle][volumestaticmulti]")
 {
@@ -1234,33 +1162,28 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Static Multi", "[fast][
 
 	std::cout << "\nImport Time Static 1:" << std::endl;
 	fputs("\nImport Time Static 1:\n", pFile);
-	mhdImporterStatic1->getRuntime()->print(pFile);
+	fputs(mhdImporterStatic1->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nImport Time Static 2:" << std::endl;
 	fputs("\nImport Time Static 2:\n", pFile);
-	mhdImporterStatic2->getRuntime()->print(pFile);
+	fputs(mhdImporterStatic2->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nImport Time Dynamic:" << std::endl;
 	fputs("\nImport Time Dynamic:\n", pFile);
-	mhdImporterDynamic->getRuntime()->print(pFile);
+	fputs(mhdImporterDynamic->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of SliceRendrer:" << std::endl;
 	fputs("\nRendering Time of SliceRendrer:\n", pFile);
-	sliceRenderer->getRuntime()->print(pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
-	volumeRenderer->getRuntime()->print(pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	window->getView()->getRuntime("draw")->print(pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
 
 	fclose(pFile);
-	/*
-	float total = mhdImporterStatic->getRuntime()->getSum() +
-	sliceRenderer->getRuntime()->getSum() +
-	window->getView()->getRuntime("draw")->getAverage();
-	std::cout << "Total runtime was: " << total << std::endl;
-	*/
+
 }
 TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Static Multi", "[fast][benchmark][visualization][slicedynamicmulti][volumestaticmulti]")
 {
@@ -1331,29 +1254,29 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Static Multi", "[fast][b
 
 	std::cout << "\nImport Time Static 1:" << std::endl;
 	fputs("\nImport Time Static 1:\n", pFile);
-	mhdImporterStatic1->getRuntime()->print(pFile);
+	fputs(mhdImporterStatic1->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nImport Time Static 2:" << std::endl;
 	fputs("\nImport Time Static 2:\n", pFile);
-	mhdImporterStatic2->getRuntime()->print(pFile);
+	fputs(mhdImporterStatic2->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nImport Time Dynamic 1:" << std::endl;
 	fputs("\nImport Time Dynamic 1:\n", pFile);
-	mhdImporterDynamic1->getRuntime()->print(pFile);
+	fputs(mhdImporterDynamic1->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nImport Time Dynamic 2:" << std::endl;
 	fputs("\nImport Time Dynamic 2:\n", pFile);
-	mhdImporterDynamic2->getRuntime()->print(pFile);
+	fputs(mhdImporterDynamic2->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of SliceRendrer:" << std::endl;
 	fputs("\nRendering Time of SliceRendrer:\n", pFile);
-	sliceRenderer->getRuntime()->print(pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
-	volumeRenderer->getRuntime()->print(pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	window->getView()->getRuntime("draw")->print(pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
 
 	fclose(pFile);
 
@@ -1407,29 +1330,23 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Dynamic Single", "[fast]
 
 	std::cout << "\nImport Time Static:" << std::endl;
 	fputs("\nImport Time Static:\n", pFile);
-	mhdImporterStatic->getRuntime()->print(pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nImport Time Dynamic:" << std::endl;
 	fputs("\nImport Time Dynamic:\n", pFile);
-	mhdImporterDynamic->getRuntime()->print(pFile);
+	fputs(mhdImporterDynamic->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of SliceRendrer:" << std::endl;
 	fputs("\nRendering Time of SliceRendrer:\n", pFile);
-	sliceRenderer->getRuntime()->print(pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
-	volumeRenderer->getRuntime()->print(pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	window->getView()->getRuntime("draw")->print(pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
 
 	fclose(pFile);
-	/*
-	float total = mhdImporterStatic->getRuntime()->getSum() +
-	sliceRenderer->getRuntime()->getSum() +
-	window->getView()->getRuntime("draw")->getAverage();
-	std::cout << "Total runtime was: " << total << std::endl;
-	*/
 }
 
 TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Dynamic Single", "[fast][benchmark][visualization][slicestaticmulti][volumedynamicsingle]")
@@ -1484,33 +1401,28 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Dynamic Single", "[fast][
 
 	std::cout << "\nImport Time Static 1:" << std::endl;
 	fputs("\nImport Time Static 1:\n", pFile);
-	mhdImporterStatic1->getRuntime()->print(pFile);
+	fputs(mhdImporterStatic1->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nImport Time Static 2:" << std::endl;
 	fputs("\nImport Time Static 2:\n", pFile);
-	mhdImporterStatic2->getRuntime()->print(pFile);
+	fputs(mhdImporterStatic2->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nImport Time Dynamic:" << std::endl;
 	fputs("\nImport Time Dynamic:\n", pFile);
-	mhdImporterDynamic->getRuntime()->print(pFile);
+	fputs(mhdImporterDynamic->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of SliceRendrer:" << std::endl;
 	fputs("\nRendering Time of SliceRendrer:\n", pFile);
-	sliceRenderer->getRuntime()->print(pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
-	volumeRenderer->getRuntime()->print(pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	window->getView()->getRuntime("draw")->print(pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
 
 	fclose(pFile);
-	/*
-	float total = mhdImporterStatic->getRuntime()->getSum() +
-	sliceRenderer->getRuntime()->getSum() +
-	window->getView()->getRuntime("draw")->getAverage();
-	std::cout << "Total runtime was: " << total << std::endl;
-	*/
+
 }
 TEST_CASE("SliceRenderer Static Single + VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][slicestaticsingle][volumedynamicmulti]")
 {
@@ -1575,33 +1487,28 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Dynamic Multi", "[fast][
 
 	std::cout << "\nImport Time Static:" << std::endl;
 	fputs("\nImport Time Static:\n", pFile);
-	mhdImporterStatic->getRuntime()->print(pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nImport Time Dynamic 1:" << std::endl;
 	fputs("\nImport Time Dynamic 1:\n", pFile);
-	mhdImporterDynamic1->getRuntime()->print(pFile);
+	fputs(mhdImporterDynamic1->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nImport Time Dynamic 2:" << std::endl;
 	fputs("\nImport Time Dynamic 2:\n", pFile);
-	mhdImporterDynamic2->getRuntime()->print(pFile);
+	fputs(mhdImporterDynamic2->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of SliceRendrer:" << std::endl;
 	fputs("\nRendering Time of SliceRendrer:\n", pFile);
-	sliceRenderer->getRuntime()->print(pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
-	volumeRenderer->getRuntime()->print(pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	window->getView()->getRuntime("draw")->print(pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
 
 	fclose(pFile);
-	/*
-	float total = mhdImporterStatic->getRuntime()->getSum() +
-	sliceRenderer->getRuntime()->getSum() +
-	window->getView()->getRuntime("draw")->getAverage();
-	std::cout << "Total runtime was: " << total << std::endl;
-	*/
+
 }
 TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][slicestaticmulti][volumedynamicmulti]")
 {
@@ -1671,29 +1578,29 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Dynamic Multi", "[fast][b
 
 	std::cout << "\nImport Time Static 1:" << std::endl;
 	fputs("\nImport Time Static 1:\n", pFile);
-	mhdImporterStatic1->getRuntime()->print(pFile);
+	fputs(mhdImporterStatic1->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nImport Time Static 2:" << std::endl;
 	fputs("\nImport Time Static 2:\n", pFile);
-	mhdImporterStatic2->getRuntime()->print(pFile);
+	fputs(mhdImporterStatic2->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nImport Time Dynamic 1:" << std::endl;
 	fputs("\nImport Time Dynamic 1:\n", pFile);
-	mhdImporterDynamic1->getRuntime()->print(pFile);
+	fputs(mhdImporterDynamic1->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nImport Time Dynamic 2:" << std::endl;
 	fputs("\nImport Time Dynamic 2:\n", pFile);
-	mhdImporterDynamic2->getRuntime()->print(pFile);
+	fputs(mhdImporterDynamic2->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of SliceRendrer:" << std::endl;
 	fputs("\nRendering Time of SliceRendrer:\n", pFile);
-	sliceRenderer->getRuntime()->print(pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
-	volumeRenderer->getRuntime()->print(pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	window->getView()->getRuntime("draw")->print(pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
 
 	fclose(pFile);
 }
@@ -1743,25 +1650,20 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Dynamic Single", "[fast
 
 	std::cout << "\nImport Time Dynamic:" << std::endl;
 	fputs("\nImport Time Dynamic:\n", pFile);
-	mhdImporterDynamic->getRuntime()->print(pFile);
+	fputs(mhdImporterDynamic->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of SliceRendrer:" << std::endl;
 	fputs("\nRendering Time of SliceRendrer:\n", pFile);
-	sliceRenderer->getRuntime()->print(pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
-	volumeRenderer->getRuntime()->print(pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	window->getView()->getRuntime("draw")->print(pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
 
 	fclose(pFile);
-	/*
-	float total = mhdImporterStatic->getRuntime()->getSum() +
-	sliceRenderer->getRuntime()->getSum() +
-	window->getView()->getRuntime("draw")->getAverage();
-	std::cout << "Total runtime was: " << total << std::endl;
-	*/
+
 }
 
 TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Dynamic Single", "[fast][benchmark][visualization][slicedynamicmulti][volumedynamicsingle]")
@@ -1812,29 +1714,24 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Dynamic Single", "[fast]
 
 	std::cout << "\nImport Time Dynamic 1:" << std::endl;
 	fputs("\nImport Time Dynamic 1:\n", pFile);
-	mhdImporterDynamic1->getRuntime()->print(pFile);
+	fputs(mhdImporterDynamic1->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nImport Time Dynamic 2:" << std::endl;
 	fputs("\nImport Time Dynamic 2:\n", pFile);
-	mhdImporterDynamic2->getRuntime()->print(pFile);
+	fputs(mhdImporterDynamic2->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of SliceRendrer:" << std::endl;
 	fputs("\nRendering Time of SliceRendrer:\n", pFile);
-	sliceRenderer->getRuntime()->print(pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
-	volumeRenderer->getRuntime()->print(pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	window->getView()->getRuntime("draw")->print(pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
 
 	fclose(pFile);
-	/*
-	float total = mhdImporterStatic->getRuntime()->getSum() +
-	sliceRenderer->getRuntime()->getSum() +
-	window->getView()->getRuntime("draw")->getAverage();
-	std::cout << "Total runtime was: " << total << std::endl;
-	*/
+
 }
 TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][slicedynamicsingle][volumedynamicmulti]")
 {
@@ -1896,29 +1793,24 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Dynamic Multi", "[fast]
 
 	std::cout << "\nImport Time Dynamic 1:" << std::endl;
 	fputs("\nImport Time Dynamic 1:\n", pFile);
-	mhdImporterDynamic1->getRuntime()->print(pFile);
+	fputs(mhdImporterDynamic1->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nImport Time Dynamic 2:" << std::endl;
 	fputs("\nImport Time Dynamic 2:\n", pFile);
-	mhdImporterDynamic2->getRuntime()->print(pFile);
+	fputs(mhdImporterDynamic2->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of SliceRendrer:" << std::endl;
 	fputs("\nRendering Time of SliceRendrer:\n", pFile);
-	sliceRenderer->getRuntime()->print(pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
-	volumeRenderer->getRuntime()->print(pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	window->getView()->getRuntime("draw")->print(pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
 
 	fclose(pFile);
-	/*
-	float total = mhdImporterStatic->getRuntime()->getSum() +
-	sliceRenderer->getRuntime()->getSum() +
-	window->getView()->getRuntime("draw")->getAverage();
-	std::cout << "Total runtime was: " << total << std::endl;
-	*/
+
 }
 TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][slicedynamicmulti][volumedynamicmulti]")
 {
@@ -1980,21 +1872,21 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Dynamic Multi", "[fast][
 
 	std::cout << "\nImport Time Dynamic 1:" << std::endl;
 	fputs("\nImport Time Dynamic 1:\n", pFile);
-	mhdImporterDynamic1->getRuntime()->print(pFile);
+	fputs(mhdImporterDynamic1->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nImport Time Dynamic 2:" << std::endl;
 	fputs("\nImport Time Dynamic 2:\n", pFile);
-	mhdImporterDynamic2->getRuntime()->print(pFile);
+	fputs(mhdImporterDynamic2->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of SliceRendrer:" << std::endl;
 	fputs("\nRendering Time of SliceRendrer:\n", pFile);
-	sliceRenderer->getRuntime()->print(pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
 
 	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
-	volumeRenderer->getRuntime()->print(pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	window->getView()->getRuntime("draw")->print(pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
 
 	fclose(pFile);
 }
