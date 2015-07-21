@@ -29,7 +29,7 @@ void VolumeRenderer::setProjectionParameters(float fov, float aspect, float near
 	zNear = nearPlane;
 	zFar = farPlane;
 
-	topOfViewPlane=abs(zNear)*tan(M_PI*fov/360);
+	topOfViewPlane=fabs(zNear)*tan(M_PI*fov/360);
 	rightOfViewPlane=topOfViewPlane*aspect;
 
 	projectionMatrix10 = (zFar+zNear)/(zFar-zNear);

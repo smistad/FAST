@@ -148,32 +148,32 @@ window->setTimeout(10*1000);
 	mhdImporter->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
 
 	MetaImageImporter::pointer mhdImporter2 = MetaImageImporter::New();
-	mhdImporter2->setFilename(std::string(FAST_TEST_DATA_DIR) + "v8.mhd");
+	mhdImporter2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
 
 	
     SliceRenderer::pointer sRenderer = SliceRenderer::New();
 	
-	sRenderer->setInputConnection(mhdStreamer->getOutputPort());
-    //sRenderer->setSlicePlane(PLANE_Z);
-	sRenderer->setSlicePlaneNormal(0.0, 1.0, 0.2);
-	sRenderer->setSlicePlaneOrigin(138.0, 124.0, 100.0);
-	//sRenderer->setInputConnection(mhdImporter->getOutputPort());
-	
-	
+	//sRenderer->addInputConnection(mhdStreamer->getOutputPort());
+	sRenderer->addInputConnection(mhdImporter->getOutputPort());
+	sRenderer->addInputConnection(mhdImporter2->getOutputPort());
+	sRenderer->setSlicePlane(PLANE_Z);
+	//sRenderer->setSlicePlaneNormal(0.0, 1.0, 0.2);
+	//sRenderer->setSlicePlaneOrigin(138.0, 124.0, 100.0);
 
 
 
-    //SimpleWindow::pointer window = SimpleWindow::New();
+
+
+
+	//SimpleWindow::pointer window = SimpleWindow::New();
 	//window->addRenderer(sRenderer);
-    //window->start();
-	
-
-	
+	//window->start();
 
 
-	
-	
-	
+
+	/*
+
+
 	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
 	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
 	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
@@ -186,9 +186,8 @@ window->setTimeout(10*1000);
 
 	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
 	otf1->addAlphaPoint(000.0, 0.0);
-	otf1->addAlphaPoint(200.0, 1.0);
 	otf1->addAlphaPoint(255.0, 1.0);
-	
+
 	OpacityTransferFunction::pointer otf2 = OpacityTransferFunction::New();
 	otf2->addAlphaPoint(000.0, 0.0);
 	otf2->addAlphaPoint(255.0, 1.0);
@@ -196,40 +195,62 @@ window->setTimeout(10*1000);
 
 
 	VolumeRenderer::pointer vRenderer = VolumeRenderer::New();
-	vRenderer->addInputConnection(mhdStreamer->getOutputPort());
 	//vRenderer->addInputConnection(mhdStreamer->getOutputPort());
-	//vRenderer->addInputConnection(mhdStreamer->getOutputPort());
-	//vRenderer->addInputConnection(mhdStreamer->getOutputPort());
-	//vRenderer->addInputConnection(mhdImporter->getOutputPort());
-	//vRenderer->addInputConnection(mhdImporter2->getOutputPort());
+	vRenderer->addInputConnection(mhdImporter->getOutputPort());
+	vRenderer->addInputConnection(mhdImporter2->getOutputPort());
 	//vRenderer->turnOffTransformations();
-	
+
 	vRenderer->setColorTransferFunction(0, ctf1);
-	//vRenderer->setColorTransferFunction(1, ctf2);
+	vRenderer->setColorTransferFunction(1, ctf2);
 	//vRenderer->setColorTransferFunction(2, ctf1);
 
 	vRenderer->setOpacityTransferFunction(0, otf1);
-	//vRenderer->setOpacityTransferFunction(1, otf2);
+	vRenderer->setOpacityTransferFunction(1, otf2);
 	//vRenderer->setOpacityTransferFunction(2, otf1);
 	float ut[16]={	1.0, 0.0, 0.0, -100.0,
-					0.0, 1.0, 0.0, 0.0,
-					0.0, 0.0, 1.0, 0.0,
-					0.0, 0.0, 0.0, 1.0};
+	0.0, 1.0, 0.0, 0.0,
+	0.0, 0.0, 1.0, 0.0,
+	0.0, 0.0, 0.0, 1.0};
 	ut[3] = 0.0f;
 	//vRenderer->setUserTransform(1, ut);
 	ut[3] = 100.0f;
 	//vRenderer->setUserTransform(2, ut);
-	
-    //vRenderer->enableRuntimeMeasurements();
+
+	//vRenderer->enableRuntimeMeasurements();
 	SimpleWindow::pointer window = SimpleWindow::New();
-    window->setMaximumFramerate(15);
-    window->addRenderer(vRenderer);
+	window->setMaximumFramerate(30);
+	window->addRenderer(vRenderer);
 	window->addRenderer(sRenderer);
 	//window->setTimeout(10*1000); // 10 seconds
-    window->start();
+	window->start();
 	//vRenderer->getRuntime()->print();
-	
-	//getchar(); // Do not commit this as the example is run on all platforms..
 
+	//getchar(); // Do not commit this as the example is run on all platforms..
+	*/
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	//window->setTimeout(1000); // 1 second
+	window->start();
 
 }
