@@ -1,10 +1,12 @@
 fast_add_subdirectories(
     AddTransformation
+    GradientVectorFlow
     GaussianSmoothingFilter
     LaplacianOfGaussian
     SeededRegionGrowing
     SurfaceExtraction
     Skeletonization
+    ScaleImage
     BinaryThresholding
     ImageGradient
     IterativeClosestPoint

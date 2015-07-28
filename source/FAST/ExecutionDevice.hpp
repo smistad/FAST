@@ -61,6 +61,7 @@ class OpenCLDevice : public ExecutionDevice, public oul::Context {
         std::string getName() {
             return getDevice().getInfo<CL_DEVICE_NAME>();
         }
+        bool isWritingTo3DTexturesSupported();
         ~OpenCLDevice();
     private:
         OpenCLDevice() {mIsHost = false;};
