@@ -25,7 +25,7 @@ void* ImageAccess::get() {
 }
 
 template <typename T>
-float getScalarAsFloat(T* data, Vector3i position, Vector3i size, uchar channel, uchar nrOfChannels) {
+float getScalarAsFloat(T* data, VectorXi position, Vector3i size, uchar channel, uchar nrOfChannels) {
 
     if(position.x() < 0 || position.y() < 0 || position.z() < 0 ||
             position.x() > size.x()-1 || position.y() > size.y()-1 || position.z() > size.z()-1 || channel >= nrOfChannels)
@@ -36,7 +36,7 @@ float getScalarAsFloat(T* data, Vector3i position, Vector3i size, uchar channel,
 }
 
 template <typename T>
-void setScalarAsFloat(T* data, Vector3i position, Vector3i size, float value, uchar channel, uchar nrOfChannels) {
+void setScalarAsFloat(T* data, VectorXi position, Vector3i size, float value, uchar channel, uchar nrOfChannels) {
 
     if(position.x() < 0 || position.y() < 0 || position.z() < 0 ||
             position.x() > size.x()-1 || position.y() > size.y()-1 || position.z() > size.z()-1 || channel >= nrOfChannels)
@@ -46,28 +46,36 @@ void setScalarAsFloat(T* data, Vector3i position, Vector3i size, float value, uc
 
 }
 
-float ImageAccess::getScalar(Vector2i position, uchar channel) const {
-    Vector3i position3D(position.x(), position.y(), 0);
-    return getScalar(position3D, channel);
-}
-
-float ImageAccess::getScalar(Vector3i position, uchar channel) const {
+float ImageAccess::getScalar(VectorXi position, uchar channel) const {
     Vector3i size(mImage->getWidth(), mImage->getHeight(), mImage->getDepth());
+    if(mImage->getDimensions() == 2)
+        position = Vector3i(position.x(), position.y(), 0);
     switch(mImage->getDataType()) {
         fastSwitchTypeMacro(return getScalarAsFloat<FAST_TYPE>((FAST_TYPE*)mData, position, size, channel, mImage->getNrOfComponents()))
     }
 }
 
-void ImageAccess::setScalar(Vector2i position, float value, uchar channel) {
-    Vector3i position3D(position.x(), position.y(), 0);
-    setScalar(position3D, value, channel);
-}
-
-void ImageAccess::setScalar(Vector3i position, float value, uchar channel) {
+void ImageAccess::setScalar(VectorXi position, float value, uchar channel) {
     Vector3i size(mImage->getWidth(), mImage->getHeight(), mImage->getDepth());
+    if(mImage->getDimensions() == 2)
+        position = Vector3i(position.x(), position.y(), 0);
     switch(mImage->getDataType()) {
         fastSwitchTypeMacro(setScalarAsFloat<FAST_TYPE>((FAST_TYPE*)mData, position, size, value, channel, mImage->getNrOfComponents()))
     }
 }
 
+Vector4f ImageAccess::getVector(VectorXi position) const {
+    Vector4f result;
+    for(uchar i = 0; i < mImage->getNrOfComponents(); ++i) {
+        result[i] = getScalar(position, i);
+    }
+    return result;
 }
+
+void ImageAccess::setVector(VectorXi position, Vector4f value) {
+    for(uchar i = 0; i < mImage->getNrOfComponents(); ++i) {
+        setScalar(position, value[i], i);
+    }
+}
+
+} // end namespace fast
