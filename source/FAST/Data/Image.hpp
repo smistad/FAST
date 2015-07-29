@@ -34,6 +34,7 @@ class Image : public SpatialDataObject {
         unsigned int getWidth() const;
         unsigned int getHeight() const;
         unsigned int getDepth() const;
+        Vector3i getSize() const;
         unsigned char getDimensions() const;
         DataType getDataType() const;
         unsigned int getNrOfComponents() const;

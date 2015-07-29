@@ -712,6 +712,12 @@ unsigned int Image::getDepth() const {
     return mDepth;
 }
 
+Vector3i Image::getSize() const {
+    if(!isInitialized())
+        throw Exception("Image has not been initialized.");
+    return Vector3i(mWidth, mHeight, mDepth);
+}
+
 unsigned char Image::getDimensions() const {
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
