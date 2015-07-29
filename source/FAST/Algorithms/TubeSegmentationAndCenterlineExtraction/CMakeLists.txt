@@ -1,0 +1,10 @@
+fast_add_sources(
+    TubeSegmentationAndCenterlineExtraction.cpp
+    TubeSegmentationAndCenterlineExtraction.hpp
+    CircleFittingTDF.cpp
+    CircleFittingTDF.hpp
+    ParallelCenterlineExtraction.cpp
+    ParallelCenterlineExtraction.hpp
+    InverseGradientSegmentation.cpp
+    InverseGradientSegmentation.hpp
+)
