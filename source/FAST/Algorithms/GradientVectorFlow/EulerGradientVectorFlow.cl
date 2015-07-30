@@ -76,11 +76,105 @@ __kernel void GVF3DIteration(
 
     // The last component of the input vector is stored in f to save memory (f.w)
     f += mu * laplacian - (f - init_vector)*
-        (init_vector.x*init_vector.x + init_vector.y*init_vector.y + init_vector.z);
+        (init_vector.x*init_vector.x + init_vector.y*init_vector.y + init_vector.z*init_vector.z);
 
     write_imagef(write_vector_field, writePos, f.xyzz);
 }
 
 #else
+
+#define LPOS(pos) pos.x+pos.y*get_global_size(0)+pos.z*get_global_size(0)*get_global_size(1)
+#ifdef VECTORS_16BIT
+#define FLOAT_TO_SNORM16_4(vector) convert_short4_sat_rte(vector * 32767.0f)
+#define SNORM16_TO_FLOAT_4(vector) max(-1.0f, convert_float4(vector) / 32767.0f)
+#define FLOAT_TO_SNORM16_3(vector) convert_short3_sat_rte(vector * 32767.0f)
+#define SNORM16_TO_FLOAT_3(vector) max(-1.0f, convert_float3(vector) / 32767.0f)
+#define FLOAT_TO_SNORM16_2(vector) convert_short2_sat_rte(vector * 32767.0f)
+#define SNORM16_TO_FLOAT_2(vector) max(-1.0f, convert_float2(vector) / 32767.0f)
+#define FLOAT_TO_SNORM16(vector) convert_short_sat_rte(vector * 32767.0f)
+#define SNORM16_TO_FLOAT(vector) max(-1.0f, convert_float(vector) / 32767.0f)
+#define VECTOR_FIELD_TYPE short
+#define UNORM16_TO_FLOAT(v) (float)v / 65535.0f
+#define FLOAT_TO_UNORM16(v) convert_ushort_sat_rte(v * 65535.0f)
+#define TDF_TYPE ushort
+#else
+#define FLOAT_TO_SNORM16_4(vector) vector
+#define SNORM16_TO_FLOAT_4(vector) vector
+#define FLOAT_TO_SNORM16_3(vector) vector
+#define SNORM16_TO_FLOAT_3(vector) vector
+#define FLOAT_TO_SNORM16_2(vector) vector
+#define SNORM16_TO_FLOAT_2(vector) vector
+#define FLOAT_TO_SNORM16(vector) vector
+#define SNORM16_TO_FLOAT(vector) vector
+#define VECTOR_FIELD_TYPE float
+#define UNORM16_TO_FLOAT(v) v
+#define FLOAT_TO_UNORM16(v) v
+#define TDF_TYPE float
+#endif
+
+__kernel void GVF3DIteration(
+        __read_only image3d_t init_vector_field,
+        __global VECTOR_FIELD_TYPE const * restrict read_vector_field,
+        __global VECTOR_FIELD_TYPE * write_vector_field,
+        __private float mu
+        ) {
+    int4 writePos = {
+        get_global_id(0),
+        get_global_id(1),
+        get_global_id(2),
+        0
+    };
+    // Enforce mirror boundary conditions
+    int4 size = {get_global_size(0), get_global_size(1), get_global_size(2), 0};
+    int4 pos = writePos;
+    pos = select(pos, (int4)(2,2,2,0), pos == (int4)(0,0,0,0));
+    pos = select(pos, size-3, pos >= size-1);
+    int offset = pos.x + pos.y*size.x + pos.z*size.x*size.y;
+
+    // Load data from shared memory and do calculations
+    float4 init_vector = read_imagef(init_vector_field, sampler, pos);
+
+    float3 v = SNORM16_TO_FLOAT_3(vload3(offset, read_vector_field));
+    float3 fx1 = SNORM16_TO_FLOAT_3(vload3(offset+1, read_vector_field));
+    float3 fx_1 = SNORM16_TO_FLOAT_3(vload3(offset-1, read_vector_field));
+    float3 fy1 = SNORM16_TO_FLOAT_3(vload3(offset+size.x, read_vector_field));
+    float3 fy_1 = SNORM16_TO_FLOAT_3(vload3(offset-size.x, read_vector_field));
+    float3 fz1 = SNORM16_TO_FLOAT_3(vload3(offset+size.x*size.y, read_vector_field));
+    float3 fz_1 = SNORM16_TO_FLOAT_3(vload3(offset-size.x*size.y, read_vector_field));
+    
+    // Update the vector field: Calculate Laplacian using a 3D central difference scheme
+    float3 v2;
+    v2.x = -6*v.x;
+    v2.y = -6*v.y;
+    v2.z = -6*v.z;
+    float3 laplacian = v2 + fx1 + fx_1 + fy1 + fy_1 + fz1 + fz_1;
+
+    v += mu*laplacian - (v - init_vector.xyz)*(init_vector.x*init_vector.x + init_vector.y*init_vector.y + init_vector.z*init_vector.z);
+
+    vstore3(FLOAT_TO_SNORM16_3(v), writePos.x + writePos.y*size.x + writePos.z*size.x*size.y, write_vector_field);
+}
+
+
+__kernel void GVF3DInit(
+        __read_only image3d_t vectorFieldImage,
+        __global VECTOR_FIELD_TYPE * vectorField
+        ) {
+    const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
+    vstore3(FLOAT_TO_SNORM16_3(read_imagef(vectorFieldImage, sampler, pos).xyz), LPOS(pos), vectorField);
+}
+
+__kernel void GVF3DFinish(
+        __global VECTOR_FIELD_TYPE * vectorField,
+        //__global VECTOR_FIELD_TYPE * vectorField2
+        __global float * vectorField2
+        ) {
+    const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
+    float4 v;
+    v.xyz = SNORM16_TO_FLOAT_3(vload3(LPOS(pos), vectorField));
+    v.w = 0;
+    v.w = length(v) > 0.0f ? length(v) : 1.0f;
+    //vstore4(FLOAT_TO_SNORM16_4(v), LPOS(pos), vectorField2);
+    vstore4(v, LPOS(pos), vectorField2);
+}
 
 #endif
