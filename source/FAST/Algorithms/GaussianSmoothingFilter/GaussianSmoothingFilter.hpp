@@ -18,10 +18,10 @@ class GaussianSmoothingFilter : public ProcessObject {
         GaussianSmoothingFilter();
         void execute();
         void waitToFinish();
-        void createMask(Image::pointer input);
+        void createMask(Image::pointer input, uchar maskSize);
         void recompileOpenCLCode(Image::pointer input);
 
-        unsigned char mMaskSize;
+        char mMaskSize;
         float mStdDev;
 
         cl::Buffer mCLMask;
