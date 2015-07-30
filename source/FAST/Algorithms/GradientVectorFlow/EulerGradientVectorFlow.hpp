@@ -5,6 +5,8 @@
 
 namespace fast {
 
+class Image;
+
 class EulerGradientVectorFlow : public ProcessObject {
     FAST_OBJECT(EulerGradientVectorFlow)
     public:
@@ -24,6 +26,9 @@ class EulerGradientVectorFlow : public ProcessObject {
     private:
         EulerGradientVectorFlow();
         void execute();
+        void execute2DGVF(SharedPointer<Image> input, SharedPointer<Image> output, uint iterations);
+        void execute3DGVF(SharedPointer<Image> input, SharedPointer<Image> output, uint iterations);
+        void execute3DGVFNo3DWrite(SharedPointer<Image> input, SharedPointer<Image> output, uint iterations);
 
         float mMu;
         uint mIterations;
