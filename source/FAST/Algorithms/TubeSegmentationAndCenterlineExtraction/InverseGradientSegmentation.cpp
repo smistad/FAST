@@ -1,0 +1,253 @@
+#include "InverseGradientSegmentation.hpp"
+#include "FAST/Data/Image.hpp"
+#include "FAST/Data/Segmentation.hpp"
+#include "HelperFunctions.hpp"
+
+namespace fast {
+
+void InverseGradientSegmentation::setCenterlineInputConnection(
+        ProcessObjectPort port) {
+    setInputConnection(0, port);
+}
+
+void InverseGradientSegmentation::setVectorFieldInputConnection(
+        ProcessObjectPort port) {
+    setInputConnection(1, port);
+}
+
+InverseGradientSegmentation::InverseGradientSegmentation() {
+    createInputPort<Segmentation>(0);
+    createInputPort<Image>(1);
+    createOutputPort<Segmentation>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+}
+
+void InverseGradientSegmentation::execute() {
+    OpenCLDevice::pointer device = getMainDevice();
+    Segmentation::pointer centerline = getStaticInputData<Segmentation>(0);
+    Vector3i size = centerline->getSize();
+    Image::pointer vectorField = getStaticInputData<Image>(1);
+    Segmentation::pointer segmentation = getStaticOutputData<Segmentation>(0);
+    segmentation->createFromImage(centerline, device);
+    Segmentation::pointer segmentation2 = Segmentation::New();
+    segmentation2->createFromImage(centerline, device);
+
+    OpenCLImageAccess3D::pointer centerlineAccess = centerline->getOpenCLImageAccess3D(ACCESS_READ, device);
+    OpenCLImageAccess3D::pointer vectorFieldAccess = vectorField->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
+    OpenCLImageAccess3D::pointer segmentationOutputAccess = segmentation->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
+    OpenCLImageAccess3D::pointer segmentation2Access = segmentation2->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
+
+    device->createProgramFromSourceWithName("inverseGradientSegmentation",
+            std::string(FAST_SOURCE_DIR) + "Algorithms/TubeSegmentationAndCenterlineExtraction/InverseGradientSegmentation.cl");
+    cl::Program program(device->getProgram("inverseGradientSegmentation"));
+
+
+    cl::Kernel initGrowKernel(program, "initGrowing");
+    cl::Kernel growKernel(program, "grow");
+
+    cl::CommandQueue queue = device->getCommandQueue();
+
+    cl::Image3D* volume = segmentationOutputAccess->get();
+    cl::Image3D* volume2 = segmentation2Access->get();
+
+    cl::size_t<3> offset = oul::createOrigoRegion();
+    cl::size_t<3> region = oul::createRegion(size.x(), size.y(), size.z());
+
+    // Copy centerline to segmentation
+    queue.enqueueCopyImage(
+            *(centerlineAccess->get()),
+            *volume,
+            offset,
+            offset,
+            region
+    );
+
+    int stopGrowing = 0;
+    cl::Buffer stop = cl::Buffer(device->getContext(), CL_MEM_WRITE_ONLY, sizeof(int));
+    queue.enqueueWriteBuffer(stop, CL_FALSE, 0, sizeof(int), &stopGrowing);
+
+    growKernel.setArg(1, *(vectorFieldAccess->get()));
+    growKernel.setArg(3, stop);
+
+    int i = 0;
+    int minimumIterations = 0;
+    if(!device->isWritingTo3DTexturesSupported()) {
+        /*
+        Buffer volume2 = Buffer(
+                ocl.context,
+                CL_MEM_READ_WRITE,
+                sizeof(char)*totalSize
+        );
+        queue.enqueueCopyImageToBuffer(
+                volume,
+                volume2,
+                offset,
+                region,
+                0
+        );
+        initGrowKernel.setArg(0, volume);
+        initGrowKernel.setArg(1, volume2);
+        //initGrowKernel.setArg(2, radius);
+        queue.enqueueNDRangeKernel(
+            initGrowKernel,
+            cl::NullRange,
+            cl::NDRange(size.x, size.y, size.z),
+            cl::NullRange
+        );
+        queue.enqueueCopyBufferToImage(
+                volume2,
+                volume,
+                0,
+                offset,
+                region
+        );
+        growKernel.setArg(0, volume);
+        growKernel.setArg(2, volume2);
+        while(stopGrowing == 0) {
+            if(i > minimumIterations) {
+                stopGrowing = 1;
+                queue.enqueueWriteBuffer(stop, CL_TRUE, 0, sizeof(int), &stopGrowing);
+            }
+
+            queue.enqueueNDRangeKernel(
+                    growKernel,
+                    cl::NullRange,
+                    cl::NDRange(size.x, size.y, size.z),
+                    cl::NullRange
+            );
+            if(i > minimumIterations)
+                queue.enqueueReadBuffer(stop, CL_TRUE, 0, sizeof(int), &stopGrowing);
+            i++;
+            queue.enqueueCopyBufferToImage(
+                    volume2,
+                    volume,
+                    0,
+                    offset,
+                    region
+            );
+        }
+        */
+
+    } else {
+        queue.enqueueCopyImage(
+                *volume,
+                *volume2,
+                oul::createOrigoRegion(),
+                oul::createOrigoRegion(),
+                oul::createRegion(size.x(), size.y(), size.z())
+        );
+        initGrowKernel.setArg(0, *volume);
+        initGrowKernel.setArg(1, *volume2);
+        //initGrowKernel.setArg(2, radius);
+        queue.enqueueNDRangeKernel(
+            initGrowKernel,
+            cl::NullRange,
+            cl::NDRange(size.x(), size.y(), size.z()),
+            cl::NullRange
+        );
+        while(stopGrowing == 0) {
+            if(i > minimumIterations) {
+                stopGrowing = 1;
+                queue.enqueueWriteBuffer(stop, CL_FALSE, 0, sizeof(int), &stopGrowing);
+            }
+            if(i % 2 == 0) {
+                growKernel.setArg(0, *volume);
+                growKernel.setArg(2, *volume2);
+            } else {
+                growKernel.setArg(0, *volume2);
+                growKernel.setArg(2, *volume);
+            }
+
+            queue.enqueueNDRangeKernel(
+                    growKernel,
+                    cl::NullRange,
+                    cl::NDRange(size.x(), size.y(), size.z()),
+                    cl::NullRange
+            );
+            if(i > minimumIterations)
+                queue.enqueueReadBuffer(stop, CL_TRUE, 0, sizeof(int), &stopGrowing);
+            i++;
+        }
+
+    }
+
+    std::cout << "segmentation result grown in " << i << " iterations" << std::endl;
+
+    cl::Kernel dilateKernel(program, "dilate");
+    cl::Kernel erodeKernel(program, "erode");
+
+    if(!device->isWritingTo3DTexturesSupported()) {
+        /*
+        cl::Buffer volumeBuffer = Buffer(
+                device->getContext(),
+                CL_MEM_WRITE_ONLY,
+                sizeof(char)*totalSize
+        );
+        dilateKernel.setArg(0, *volume);
+        dilateKernel.setArg(1, volumeBuffer);
+
+        queue.enqueueNDRangeKernel(
+            dilateKernel,
+            cl::NullRange,
+            cl::NDRange(size.x(), size.y(), size.z()),
+            cl::NullRange
+        );
+
+        queue.enqueueCopyBufferToImage(
+                volumeBuffer,
+                volume,
+                0,
+                offset,
+                region);
+
+        erodeKernel.setArg(0, volume);
+        erodeKernel.setArg(1, volumeBuffer);
+
+        queue.enqueueNDRangeKernel(
+            erodeKernel,
+            cl::NullRange,
+            cl::NDRange(size.x, size.y, size.z),
+            cl::NullRange
+        );
+        queue.enqueueCopyBufferToImage(
+            volumeBuffer,
+            volume,
+            0,
+            offset,
+            region
+        );
+        */
+    } else {
+        cl::Kernel init3DImage(program, "init3DImage");
+        init3DImage.setArg(0, *volume2);
+        queue.enqueueNDRangeKernel(
+            init3DImage,
+            cl::NullRange,
+            cl::NDRange(size.x(), size.y(), size.z()),
+            cl::NullRange
+        );
+
+        dilateKernel.setArg(0, *volume);
+        dilateKernel.setArg(1, *volume2);
+
+        queue.enqueueNDRangeKernel(
+            dilateKernel,
+            cl::NullRange,
+            cl::NDRange(size.x(), size.y(), size.z()),
+            cl::NullRange
+        );
+
+        erodeKernel.setArg(0, *volume2);
+        erodeKernel.setArg(1, *volume);
+
+        queue.enqueueNDRangeKernel(
+            erodeKernel,
+            cl::NullRange,
+            cl::NDRange(size.x(), size.y(), size.z()),
+            cl::NullRange
+        );
+    }
+
+}
+
+
+}

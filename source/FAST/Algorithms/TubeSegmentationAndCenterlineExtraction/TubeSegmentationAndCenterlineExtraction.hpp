@@ -1,7 +1,8 @@
 #ifndef TUBE_SEGMENTATION_AND_CENTERLINE_EXTRACTION_HPP
 #define TUBE_SEGMENTATION_AND_CENTERLINE_EXTRACTION_HPP
 
-#include "ProcessObject.hpp"
+#include "FAST/ProcessObject.hpp"
+#include "FAST/Data/Image.hpp"
 
 namespace fast {
 
@@ -26,9 +27,14 @@ class TubeSegmentationAndCenterlineExtraction : public ProcessObject {
         void enableAutomaticCropping(bool lungCropping = false);
         ProcessObjectPort getSegmentationOutputPort();
         ProcessObjectPort getCenterlineOutputPort();
+        ProcessObjectPort getTDFOutputPort();
     private:
         TubeSegmentationAndCenterlineExtraction();
         void execute();
+
+        Image::pointer createGradients(Image::pointer image);
+        Image::pointer runTubeDetectionFilter(Image::pointer gradients);
+        Image::pointer runGradientVectorFlow(Image::pointer vectorField);
 
         // Parameters
 
