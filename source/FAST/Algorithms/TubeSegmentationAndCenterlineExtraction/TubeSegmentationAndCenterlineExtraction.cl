@@ -145,10 +145,13 @@ float3 gradientNormalized(
     return grad;
 }
 
-
 __kernel void toFloat(
         __read_only image3d_t volume,
+#ifdef cl_khr_3d_image_writes
         __write_only image3d_t processedVolume,
+#else
+        __global float* processedVolume,
+#endif
         __private float minimum,
         __private float maximum
         ) {
@@ -163,12 +166,20 @@ __kernel void toFloat(
     float value = (v - minimum) / (maximum - minimum);
 
     // Store value
+#ifdef cl_khr_3d_image_writes
     write_imagef(processedVolume, pos, value);
+#else
+    processedVolume[LPOS(pos)] = value;
+#endif
 }
 
 __kernel void createVectorField(
         __read_only image3d_t volume, 
+#ifdef cl_khr_3d_image_writes
         __write_only image3d_t vectorField, 
+#else
+        __global float* vectorField,
+#endif
         __private float Fmax,
         __private int vsign
         ) {
@@ -185,8 +196,11 @@ __kernel void createVectorField(
     F.w = 1.0f;
 
     // Store vector field
-    //vstore4(F, LPOS(pos), vectorField);
+#ifdef cl_khr_3d_image_writes
     write_imagef(vectorField, pos, F);
+#else
+    vstore3(F.xyz, LPOS(pos), vectorField);
+#endif
 }
 
 // Forward declaration of eigen_decomp function

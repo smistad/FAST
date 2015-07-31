@@ -207,6 +207,7 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::runGradientVectorFlow(Im
     OpenCLDevice::pointer device = getMainDevice();
     EulerGradientVectorFlow::pointer gvf = EulerGradientVectorFlow::New();
     gvf->setInputData(vectorField);
+    gvf->set32bitStorageFormat();
     gvf->update();
     return gvf->getOutputData<Image>();
 }
@@ -219,9 +220,9 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::createGradients(Image::p
     vectorField->create3DImage(image->getWidth(), image->getHeight(), image->getDepth(), TYPE_FLOAT, 3, device);
     vectorField->setSpacing(image->getSpacing());
 
+    bool no3Dwrite = !device->isWritingTo3DTexturesSupported();
+
     OpenCLImageAccess3D::pointer access = image->getOpenCLImageAccess3D(ACCESS_READ, device);
-    OpenCLImageAccess3D::pointer floatImageAccess = floatImage->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
-    OpenCLImageAccess3D::pointer vectorFieldAccess = vectorField->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
     device->createProgramFromSourceWithName("tsf",
             std::string(FAST_SOURCE_DIR) + "Algorithms/TubeSegmentationAndCenterlineExtraction/TubeSegmentationAndCenterlineExtraction.cl");
     cl::Program program(device->getProgram("tsf"));
@@ -246,7 +247,13 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::createGradients(Image::p
     std::cout << image->getSize().transpose() << std::endl;
 
     toFloatKernel.setArg(0, *(access->get()));
-    toFloatKernel.setArg(1, *(floatImageAccess->get()));
+    if(no3Dwrite) {
+        OpenCLBufferAccess::pointer floatImageAccess = floatImage->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+        toFloatKernel.setArg(1, *(floatImageAccess->get()));
+    } else {
+        OpenCLImageAccess3D::pointer floatImageAccess = floatImage->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
+        toFloatKernel.setArg(1, *(floatImageAccess->get()));
+    }
     toFloatKernel.setArg(2, minimumIntensity);
     toFloatKernel.setArg(3, maximumIntensity);
     device->getCommandQueue().enqueueNDRangeKernel(
@@ -263,8 +270,15 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::createGradients(Image::p
     float vectorMaximum = (1 - mSensitivity);
     int sign = mExtractDarkStructures ? -1 : 1;
 
+    OpenCLImageAccess3D::pointer floatImageAccess = floatImage->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
     vectorFieldKernel.setArg(0, *(floatImageAccess->get()));
-    vectorFieldKernel.setArg(1, *(vectorFieldAccess->get()));
+    if(no3Dwrite) {
+        OpenCLBufferAccess::pointer vectorFieldAccess = vectorField->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+        vectorFieldKernel.setArg(1, *(vectorFieldAccess->get()));
+    } else {
+        OpenCLImageAccess3D::pointer vectorFieldAccess = vectorField->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
+        vectorFieldKernel.setArg(1, *(vectorFieldAccess->get()));
+    }
     vectorFieldKernel.setArg(2, vectorMaximum);
     vectorFieldKernel.setArg(3, sign);
 

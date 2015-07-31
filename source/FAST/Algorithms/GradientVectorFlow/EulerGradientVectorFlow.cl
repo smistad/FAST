@@ -74,7 +74,7 @@ __kernel void GVF3DIteration(
     // Update the vector field: Calculate Laplacian using a 3D central difference scheme
     float3 laplacian = -6*f.xyz + fx1 + fx_1 + fy1 + fy_1 + fz1 + fz_1;
 
-    // The last component of the input vector is stored in f to save memory (f.w)
+    // NOT ANYMORE: The last component of the input vector is stored in f to save memory (f.w)
     f += mu * laplacian - (f - init_vector)*
         (init_vector.x*init_vector.x + init_vector.y*init_vector.y + init_vector.z*init_vector.z);
 

@@ -23,6 +23,7 @@ InverseGradientSegmentation::InverseGradientSegmentation() {
 
 void InverseGradientSegmentation::execute() {
     OpenCLDevice::pointer device = getMainDevice();
+    bool no3Dwrite = !device->isWritingTo3DTexturesSupported();
     Segmentation::pointer centerline = getStaticInputData<Segmentation>(0);
     Vector3i size = centerline->getSize();
     Image::pointer vectorField = getStaticInputData<Image>(1);
@@ -34,7 +35,7 @@ void InverseGradientSegmentation::execute() {
     OpenCLImageAccess3D::pointer centerlineAccess = centerline->getOpenCLImageAccess3D(ACCESS_READ, device);
     OpenCLImageAccess3D::pointer vectorFieldAccess = vectorField->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
     OpenCLImageAccess3D::pointer segmentationOutputAccess = segmentation->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
-    OpenCLImageAccess3D::pointer segmentation2Access = segmentation2->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
+    cl::Image3D* volume = segmentationOutputAccess->get();
 
     device->createProgramFromSourceWithName("inverseGradientSegmentation",
             std::string(FAST_SOURCE_DIR) + "Algorithms/TubeSegmentationAndCenterlineExtraction/InverseGradientSegmentation.cl");
@@ -46,8 +47,6 @@ void InverseGradientSegmentation::execute() {
 
     cl::CommandQueue queue = device->getCommandQueue();
 
-    cl::Image3D* volume = segmentationOutputAccess->get();
-    cl::Image3D* volume2 = segmentation2Access->get();
 
     cl::size_t<3> offset = oul::createOrigoRegion();
     cl::size_t<3> region = oul::createRegion(size.x(), size.y(), size.z());
@@ -71,37 +70,33 @@ void InverseGradientSegmentation::execute() {
     int i = 0;
     int minimumIterations = 0;
     if(!device->isWritingTo3DTexturesSupported()) {
-        /*
-        Buffer volume2 = Buffer(
-                ocl.context,
-                CL_MEM_READ_WRITE,
-                sizeof(char)*totalSize
-        );
+        OpenCLBufferAccess::pointer segmentation2Access = segmentation2->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+        cl::Buffer* volume2 = segmentation2Access->get();
         queue.enqueueCopyImageToBuffer(
-                volume,
-                volume2,
+                *volume,
+                *volume2,
                 offset,
                 region,
                 0
         );
-        initGrowKernel.setArg(0, volume);
-        initGrowKernel.setArg(1, volume2);
+        initGrowKernel.setArg(0, *volume);
+        initGrowKernel.setArg(1, *volume2);
         //initGrowKernel.setArg(2, radius);
         queue.enqueueNDRangeKernel(
             initGrowKernel,
             cl::NullRange,
-            cl::NDRange(size.x, size.y, size.z),
+            cl::NDRange(size.x(), size.y(), size.z()),
             cl::NullRange
         );
         queue.enqueueCopyBufferToImage(
-                volume2,
-                volume,
+                *volume2,
+                *volume,
                 0,
                 offset,
                 region
         );
-        growKernel.setArg(0, volume);
-        growKernel.setArg(2, volume2);
+        growKernel.setArg(0, *volume);
+        growKernel.setArg(2, *volume2);
         while(stopGrowing == 0) {
             if(i > minimumIterations) {
                 stopGrowing = 1;
@@ -111,23 +106,23 @@ void InverseGradientSegmentation::execute() {
             queue.enqueueNDRangeKernel(
                     growKernel,
                     cl::NullRange,
-                    cl::NDRange(size.x, size.y, size.z),
+                    cl::NDRange(size.x(), size.y(), size.z()),
                     cl::NullRange
             );
             if(i > minimumIterations)
                 queue.enqueueReadBuffer(stop, CL_TRUE, 0, sizeof(int), &stopGrowing);
             i++;
             queue.enqueueCopyBufferToImage(
-                    volume2,
-                    volume,
+                    *volume2,
+                    *volume,
                     0,
                     offset,
                     region
             );
         }
-        */
-
     } else {
+        OpenCLImageAccess3D::pointer segmentation2Access = segmentation2->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
+        cl::Image3D* volume2 = segmentation2Access->get();
         queue.enqueueCopyImage(
                 *volume,
                 *volume2,
@@ -176,14 +171,10 @@ void InverseGradientSegmentation::execute() {
     cl::Kernel erodeKernel(program, "erode");
 
     if(!device->isWritingTo3DTexturesSupported()) {
-        /*
-        cl::Buffer volumeBuffer = Buffer(
-                device->getContext(),
-                CL_MEM_WRITE_ONLY,
-                sizeof(char)*totalSize
-        );
+        OpenCLBufferAccess::pointer segmentation2Access = segmentation2->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+        cl::Buffer* volumeBuffer = segmentation2Access->get();
         dilateKernel.setArg(0, *volume);
-        dilateKernel.setArg(1, volumeBuffer);
+        dilateKernel.setArg(1, *volumeBuffer);
 
         queue.enqueueNDRangeKernel(
             dilateKernel,
@@ -193,38 +184,31 @@ void InverseGradientSegmentation::execute() {
         );
 
         queue.enqueueCopyBufferToImage(
-                volumeBuffer,
-                volume,
+                *volumeBuffer,
+                *volume,
                 0,
                 offset,
                 region);
 
-        erodeKernel.setArg(0, volume);
-        erodeKernel.setArg(1, volumeBuffer);
+        erodeKernel.setArg(0, *volume);
+        erodeKernel.setArg(1, *volumeBuffer);
 
         queue.enqueueNDRangeKernel(
             erodeKernel,
             cl::NullRange,
-            cl::NDRange(size.x, size.y, size.z),
+            cl::NDRange(size.x(), size.y(), size.z()),
             cl::NullRange
         );
         queue.enqueueCopyBufferToImage(
-            volumeBuffer,
-            volume,
+            *volumeBuffer,
+            *volume,
             0,
             offset,
             region
         );
-        */
     } else {
-        cl::Kernel init3DImage(program, "init3DImage");
-        init3DImage.setArg(0, *volume2);
-        queue.enqueueNDRangeKernel(
-            init3DImage,
-            cl::NullRange,
-            cl::NDRange(size.x(), size.y(), size.z()),
-            cl::NullRange
-        );
+        OpenCLImageAccess3D::pointer segmentation2Access = segmentation2->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
+        cl::Image3D* volume2 = segmentation2Access->get();
 
         dilateKernel.setArg(0, *volume);
         dilateKernel.setArg(1, *volume2);

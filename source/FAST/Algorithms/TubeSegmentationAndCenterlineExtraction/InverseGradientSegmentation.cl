@@ -1,8 +1,14 @@
 __constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
 
+#define LPOS(pos) pos.x+pos.y*get_global_size(0)+pos.z*get_global_size(0)*get_global_size(1)
+
 __kernel void initGrowing(
         __read_only image3d_t centerline,
+#ifdef cl_khr_3d_image_writes
         __write_only image3d_t initSegmentation
+#else
+    __global uchar * initSegmentation,
+#endif
         //__read_only image3d_t avgRadius
     ) {
     int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
@@ -17,8 +23,15 @@ __kernel void initGrowing(
             n.x = pos.x + a;
             n.y = pos.y + b;
             n.z = pos.z + c;
-        if(read_imageui(centerline, sampler, n).x == 0 /*&& length((float3)(a,b,c)) <= N*/)
-            write_imageui(initSegmentation, n, 2);
+            if(read_imageui(centerline, sampler, n).x == 0 /*&& length((float3)(a,b,c)) <= N*/) {
+#ifdef cl_khr_3d_image_writes
+                write_imageui(initSegmentation, n, 2);
+#else
+                if(n.x >= 0 && n.y >= 0 && n.z >= 0 &&
+                    n.x < get_global_size(0) && n.y < get_global_size(1) && n.z < get_global_size(2))
+                    initSegmentation[LPOS(n)] = 2; 
+#endif
+        }
         }}}
     }
 
@@ -27,7 +40,11 @@ __kernel void initGrowing(
 __kernel void grow(
         __read_only image3d_t currentSegmentation,
         __read_only image3d_t gvf,
+#ifdef cl_khr_3d_image_writes
         __write_only image3d_t nextSegmentation,
+#else
+        __global uchar* nextSegmentation,
+#endif
         __global int * stop
     ) {
 
@@ -35,7 +52,11 @@ __kernel void grow(
     char value = read_imageui(currentSegmentation, sampler, X).x;
     // value of 2, means to check it, 1 means it is already accepted
     if(value == 1) {
+#ifdef cl_khr_3d_image_writes
         write_imageui(nextSegmentation, X, 1);
+#else
+        nextSegmentation[LPOS(X)] = 1;
+#endif
     } else if(value == 2){
         float4 FNX = read_imagef(gvf, sampler, X);
         float FNXw = length(FNX.xyz);
@@ -83,8 +104,18 @@ __kernel void grow(
                     }}}
 
                     if(Z.x == X.x && Z.y == X.y && Z.z == X.z) {
+#ifdef cl_khr_3d_image_writes
                         write_imageui(nextSegmentation, X, 1);
                         write_imageui(nextSegmentation, Y, 2);
+#else
+                        nextSegmentation[LPOS(X)] = 1;
+                        // Check if in bounds
+                        if(Y.x >= 0 && Y.y >= 0 && Y.z >= 0 && 
+                            Y.x < get_global_size(0) && Y.y < get_global_size(1) && Y.z < get_global_size(2)) {
+                            nextSegmentation[LPOS(Y)] = 2; 
+                        }
+#endif
+                      
                         continueGrowing = true;
                     }
                 }
@@ -96,21 +127,22 @@ __kernel void grow(
             stop[0] = 0;
         } else {
             // X was not accepted
+#ifdef cl_khr_3d_image_writes
             write_imageui(nextSegmentation, X, 0);
+#else
+            nextSegmentation[LPOS(X)] = 0;
+#endif
         }
     }
 }
 
-// Intialize 3D image to 0
-__kernel void init3DImage(
-    __write_only image3d_t image
-    ) {
-    write_imageui(image, (int4)(get_global_id(0), get_global_id(1), get_global_id(2), 0), 0);
-}
-
 __kernel void dilate(
         __read_only image3d_t volume, 
+#ifdef cl_khr_3d_image_writes
         __write_only image3d_t result
+#else
+        __global uchar * result
+#endif
     ) {
     int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
 
@@ -119,7 +151,14 @@ __kernel void dilate(
             for(int b = -1; b < 2 ; b++) {
                 for(int c = -1; c < 2 ; c++) {
                     int4 nPos = pos + (int4)(a,b,c,0);
+#ifdef cl_khr_3d_image_writes
                     write_imageui(result, nPos, 1);
+#else
+                    // Check if in bounds
+                    if(nPos.x >= 0 && nPos.y >= 0 && nPos.z >= 0 &&
+                        nPos.x < get_global_size(0) && nPos.y < get_global_size(1) && nPos.z < get_global_size(2))
+                    result[LPOS(nPos)] = 1;
+#endif
                 }
             }
         }
@@ -128,7 +167,11 @@ __kernel void dilate(
 
 __kernel void erode(
         __read_only image3d_t volume, 
+#ifdef cl_khr_3d_image_writes
         __write_only image3d_t result
+#else
+        __global uchar * result
+#endif
     ) {
     int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
 
@@ -142,8 +185,15 @@ __kernel void erode(
                 }
             }
         }
+#ifdef cl_khr_3d_image_writes
         write_imageui(result, pos, keep ? 1 : 0);
     } else {
         write_imageui(result, pos, 0);
     }
+#else
+        result[LPOS(pos)] = keep ? 1 : 0;
+    } else {
+        result[LPOS(pos)] = 0;
+    }
+#endif
 }
