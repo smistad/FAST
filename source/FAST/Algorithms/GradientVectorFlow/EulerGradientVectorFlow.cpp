@@ -378,11 +378,11 @@ void EulerGradientVectorFlow::execute() {
     if(input->getDimensions() == 2) {
         execute2DGVF(input, output, iterations);
     } else {
-        /*if(device->isWritingTo3DTexturesSupported()) {
+        if(device->isWritingTo3DTexturesSupported()) {
             execute3DGVF(input, output, iterations);
-        } else {*/
+        } else {
             execute3DGVFNo3DWrite(input, output, iterations);
-        //}
+        }
     }
 }
 
