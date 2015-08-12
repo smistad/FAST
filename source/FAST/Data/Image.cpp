@@ -161,6 +161,7 @@ void Image::updateOpenCLImageData(OpenCLDevice::pointer device) {
             == true)
         return;
 
+    bool updated = false;
     if (mCLImagesIsUpToDate.count(device) == 0) {
         // Data is not on device, create it
         cl::Image * newImage;
@@ -174,10 +175,10 @@ void Image::updateOpenCLImageData(OpenCLDevice::pointer device) {
 
         mCLImages[device] = newImage;
         mCLImagesIsUpToDate[device] = false;
+        updated = true;
     }
 
     // Find which data is up to date
-    bool updated = false;
     if (mHostDataIsUpToDate) {
         // Transfer host data to this device
         transferCLImageFromHost(device);
@@ -259,6 +260,7 @@ void Image::updateOpenCLBufferData(OpenCLDevice::pointer device) {
             == true)
         return;
 
+    bool updated = false;
     if (mCLBuffers.count(device) == 0) {
         // Data is not on device, create it
         unsigned int bufferSize = getBufferSize();
@@ -267,11 +269,11 @@ void Image::updateOpenCLBufferData(OpenCLDevice::pointer device) {
 
         mCLBuffers[device] = newBuffer;
         mCLBuffersIsUpToDate[device] = false;
+        updated = true;
     }
 
 
     // Find which data is up to date
-    bool updated = false;
     if (mHostDataIsUpToDate) {
         // Transfer host data to this device
         transferCLBufferFromHost(device);
@@ -326,6 +328,7 @@ void Image::updateHostData() {
     if (mHostDataIsUpToDate)
         return;
 
+    bool updated = false;
     if (!mHostHasData) {
         // Data is not initialized, do that first
         unsigned int size = mWidth*mHeight*mComponents;
@@ -333,11 +336,11 @@ void Image::updateHostData() {
             size *= mDepth;
         mHostData = allocateDataArray(mWidth*mHeight*mDepth,mType,mComponents);
         mHostHasData = true;
+        updated = true;
     }
 
     if (mCLImages.size() > 0) {
         // Find which data is up to date
-        bool updated = false;
         boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
         for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
                 it++) {
