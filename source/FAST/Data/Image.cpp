@@ -146,6 +146,7 @@ void Image::transferCLImageToHost(OpenCLDevice::pointer device) {
         if(!mHostHasData) {
             // Must allocate memory for host data
             mHostData = allocateDataArray(mWidth*mHeight*mDepth,mType,mComponents);
+			mHostHasData = true;
         }
         device->getCommandQueue().enqueueReadImage(*(cl::Image*)mCLImages[device],
         CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
@@ -187,35 +188,39 @@ void Image::updateOpenCLImageData(OpenCLDevice::pointer device) {
     }
 
     // Find which data is up to date
-    if (mHostDataIsUpToDate) {
-        // Transfer host data to this device
-        transferCLImageFromHost(device);
-        updated = true;
-    } else {
-        boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
-        for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
-                it++) {
-            if (it->second == true) {
-                // Transfer from this device(it->first) to device
-                transferCLImageToHost(it->first);
-                transferCLImageFromHost(device);
-                mHostDataIsUpToDate = true;
-                updated = true;
-                break;
-            }
-        }
-        for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end();
-                it++) {
-            if (it->second == true) {
-                // Transfer from this device(it->first) to device
-                transferCLBufferToHost(it->first);
-                transferCLImageFromHost(device);
-                mHostDataIsUpToDate = true;
-                updated = true;
-                break;
-            }
-        }
-    }
+	if (!mCLImagesIsUpToDate[device]) {
+		if (mHostDataIsUpToDate) {
+			// Transfer host data to this device
+			transferCLImageFromHost(device);
+			updated = true;
+		} else {
+			boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+			for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
+				it++) {
+				if (it->second == true) {
+					// Transfer from this device(it->first) to device
+					// TODO should use copy image to image here, if possible
+					transferCLImageToHost(it->first);
+					transferCLImageFromHost(device);
+					mHostDataIsUpToDate = true;
+					updated = true;
+					break;
+				}
+			}
+			for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end();
+				it++) {
+				if (it->second == true) {
+					// Transfer from this device(it->first) to device
+					// TODO should use copy buffer to image here, if possible
+					transferCLBufferToHost(it->first);
+					transferCLImageFromHost(device);
+					mHostDataIsUpToDate = true;
+					updated = true;
+					break;
+				}
+			}
+		}
+	}
 
     if (!updated)
         throw Exception(
@@ -332,6 +337,11 @@ void Image::transferCLBufferFromHost(OpenCLDevice::pointer device) {
 }
 
 void Image::transferCLBufferToHost(OpenCLDevice::pointer device) {
+	if (!mHostHasData) {
+		// Must allocate memory for host data
+		mHostData = allocateDataArray(mWidth*mHeight*mDepth, mType, mComponents);
+		mHostHasData = true;
+	}
     unsigned int bufferSize = getBufferSize();
     device->getCommandQueue().enqueueReadBuffer(*mCLBuffers[device],
         CL_TRUE, 0, bufferSize, mHostData);
