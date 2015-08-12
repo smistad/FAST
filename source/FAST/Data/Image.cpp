@@ -146,12 +146,17 @@ void Image::transferCLImageToHost(OpenCLDevice::pointer device) {
         if(!mHostHasData) {
             // Must allocate memory for host data
             mHostData = allocateDataArray(mWidth*mHeight*mDepth,mType,mComponents);
+			mHostHasData = true;
         }
         device->getCommandQueue().enqueueReadImage(*(cl::Image*)mCLImages[device],
         CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
                 0, mHostData);
     }
 
+}
+
+bool Image::hasAnyData() {
+    return mHostHasData || mCLImages.size() > 0 || mCLBuffers.size() > 0;
 }
 
 void Image::updateOpenCLImageData(OpenCLDevice::pointer device) {
@@ -161,6 +166,7 @@ void Image::updateOpenCLImageData(OpenCLDevice::pointer device) {
             == true)
         return;
 
+    bool updated = false;
     if (mCLImagesIsUpToDate.count(device) == 0) {
         // Data is not on device, create it
         cl::Image * newImage;
@@ -172,41 +178,49 @@ void Image::updateOpenCLImageData(OpenCLDevice::pointer device) {
             CL_MEM_READ_WRITE, getOpenCLImageFormat(device, CL_MEM_OBJECT_IMAGE3D, mType,mComponents), mWidth, mHeight, mDepth);
         }
 
+        if(hasAnyData()) {
+            mCLImagesIsUpToDate[device] = false;
+        } else {
+            mCLImagesIsUpToDate[device] = true;
+            updated = true;
+        }
         mCLImages[device] = newImage;
-        mCLImagesIsUpToDate[device] = false;
     }
 
     // Find which data is up to date
-    bool updated = false;
-    if (mHostDataIsUpToDate) {
-        // Transfer host data to this device
-        transferCLImageFromHost(device);
-        updated = true;
-    } else {
-        boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
-        for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
-                it++) {
-            if (it->second == true) {
-                // Transfer from this device(it->first) to device
-                transferCLImageToHost(it->first);
-                transferCLImageFromHost(device);
-                mHostDataIsUpToDate = true;
-                updated = true;
-                break;
-            }
-        }
-        for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end();
-                it++) {
-            if (it->second == true) {
-                // Transfer from this device(it->first) to device
-                transferCLBufferToHost(it->first);
-                transferCLImageFromHost(device);
-                mHostDataIsUpToDate = true;
-                updated = true;
-                break;
-            }
-        }
-    }
+	if (!mCLImagesIsUpToDate[device]) {
+		if (mHostDataIsUpToDate) {
+			// Transfer host data to this device
+			transferCLImageFromHost(device);
+			updated = true;
+		} else {
+			boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+			for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
+				it++) {
+				if (it->second == true) {
+					// Transfer from this device(it->first) to device
+					// TODO should use copy image to image here, if possible
+					transferCLImageToHost(it->first);
+					transferCLImageFromHost(device);
+					mHostDataIsUpToDate = true;
+					updated = true;
+					break;
+				}
+			}
+			for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end();
+				it++) {
+				if (it->second == true) {
+					// Transfer from this device(it->first) to device
+					// TODO should use copy buffer to image here, if possible
+					transferCLBufferToHost(it->first);
+					transferCLImageFromHost(device);
+					mHostDataIsUpToDate = true;
+					updated = true;
+					break;
+				}
+			}
+		}
+	}
 
     if (!updated)
         throw Exception(
@@ -259,45 +273,52 @@ void Image::updateOpenCLBufferData(OpenCLDevice::pointer device) {
             == true)
         return;
 
+    bool updated = false;
     if (mCLBuffers.count(device) == 0) {
         // Data is not on device, create it
         unsigned int bufferSize = getBufferSize();
         cl::Buffer * newBuffer = new cl::Buffer(device->getContext(),
         CL_MEM_READ_WRITE, bufferSize);
 
+        if(hasAnyData()) {
+            mCLBuffersIsUpToDate[device] = false;
+        } else {
+            mCLBuffersIsUpToDate[device] = true;
+            updated = true;
+        }
         mCLBuffers[device] = newBuffer;
-        mCLBuffersIsUpToDate[device] = false;
     }
 
 
     // Find which data is up to date
-    bool updated = false;
-    if (mHostDataIsUpToDate) {
-        // Transfer host data to this device
-        transferCLBufferFromHost(device);
-        updated = true;
-    } else {
-        boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
-        for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
-                it++) {
-            if (it->second == true) {
-                // Transfer from this device(it->first) to device
-                transferCLImageToHost(it->first);
-                transferCLBufferFromHost(device);
-                mHostDataIsUpToDate = true;
-                updated = true;
-                break;
+    if(!mCLBuffersIsUpToDate[device]) {
+        if (mHostDataIsUpToDate) {
+            // Transfer host data to this device
+            transferCLBufferFromHost(device);
+            updated = true;
+        } else {
+            boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+            for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
+                    it++) {
+                if (it->second == true) {
+                    // Transfer from this device(it->first) to device
+                    transferCLImageToHost(it->first);
+                    transferCLBufferFromHost(device);
+                    mHostDataIsUpToDate = true;
+                    updated = true;
+                    break;
+                }
             }
-        }
-        for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end();
-                it++) {
-            if (it->second == true) {
-                // Transfer from this device(it->first) to device
-                transferCLBufferToHost(it->first);
-                transferCLBufferFromHost(device);
-                mHostDataIsUpToDate = true;
-                updated = true;
-                break;
+            for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end();
+                    it++) {
+                if (it->second == true) {
+                    // Transfer from this device(it->first) to device
+                    transferCLBufferToHost(it->first);
+                    transferCLBufferFromHost(device);
+                    mHostDataIsUpToDate = true;
+                    updated = true;
+                    break;
+                }
             }
         }
     }
@@ -316,6 +337,11 @@ void Image::transferCLBufferFromHost(OpenCLDevice::pointer device) {
 }
 
 void Image::transferCLBufferToHost(OpenCLDevice::pointer device) {
+	if (!mHostHasData) {
+		// Must allocate memory for host data
+		mHostData = allocateDataArray(mWidth*mHeight*mDepth, mType, mComponents);
+		mHostHasData = true;
+	}
     unsigned int bufferSize = getBufferSize();
     device->getCommandQueue().enqueueReadBuffer(*mCLBuffers[device],
         CL_TRUE, 0, bufferSize, mHostData);
@@ -326,42 +352,45 @@ void Image::updateHostData() {
     if (mHostDataIsUpToDate)
         return;
 
+    bool updated = false;
     if (!mHostHasData) {
         // Data is not initialized, do that first
         unsigned int size = mWidth*mHeight*mComponents;
         if(mDimensions == 3)
             size *= mDepth;
         mHostData = allocateDataArray(mWidth*mHeight*mDepth,mType,mComponents);
+        if(hasAnyData()) {
+            mHostDataIsUpToDate = false;
+        } else {
+            mHostDataIsUpToDate = true;
+            updated = true;
+        }
         mHostHasData = true;
     }
 
-    if (mCLImages.size() > 0) {
-        // Find which data is up to date
-        bool updated = false;
-        boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
-        for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
-                it++) {
-            if (it->second == true) {
-                // transfer from this device to host
-                transferCLImageToHost(it->first);
-                updated = true;
-                break;
-            }
+    // Find which data is up to date
+    boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+    for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
+            it++) {
+        if (it->second == true) {
+            // transfer from this device to host
+            transferCLImageToHost(it->first);
+            updated = true;
+            break;
         }
-        for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end();
-                it++) {
-            if (it->second == true) {
-                // transfer from this device to host
-                transferCLBufferToHost(it->first);
-                updated = true;
-                break;
-            }
-        }
-
-        if (!updated)
-            throw Exception(
-                    "Data was not updated because no data was marked as up to date");
     }
+    for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end();
+            it++) {
+        if (it->second == true) {
+            // transfer from this device to host
+            transferCLBufferToHost(it->first);
+            updated = true;
+            break;
+        }
+    }
+    if (!updated)
+        throw Exception(
+                "Data was not updated because no data was marked as up to date");
 }
 
 void Image::setAllDataToOutOfDate() {
@@ -857,7 +886,7 @@ float Image::calculateMinimumIntensity() {
 void Image::createFromImage(
         Image::pointer image) {
     // Create image first
-    create(image->getSize().cast<uint>(), image->getDataType(), image->getNrOfComponents());
+    create(image->getSize(), image->getDataType(), image->getNrOfComponents());
 
     // Copy metadata
     setSpacing(image->getSpacing());
