@@ -154,6 +154,10 @@ void Image::transferCLImageToHost(OpenCLDevice::pointer device) {
 
 }
 
+bool Image::hasAnyData() {
+    return mHostHasData || mCLImages.size() > 0 || mCLBuffers.size() > 0;
+}
+
 void Image::updateOpenCLImageData(OpenCLDevice::pointer device) {
 
     // If data exist on device and is up to date do nothing
@@ -173,9 +177,13 @@ void Image::updateOpenCLImageData(OpenCLDevice::pointer device) {
             CL_MEM_READ_WRITE, getOpenCLImageFormat(device, CL_MEM_OBJECT_IMAGE3D, mType,mComponents), mWidth, mHeight, mDepth);
         }
 
+        if(hasAnyData()) {
+            mCLImagesIsUpToDate[device] = false;
+        } else {
+            mCLImagesIsUpToDate[device] = true;
+            updated = true;
+        }
         mCLImages[device] = newImage;
-        mCLImagesIsUpToDate[device] = false;
-        updated = true;
     }
 
     // Find which data is up to date
@@ -267,9 +275,13 @@ void Image::updateOpenCLBufferData(OpenCLDevice::pointer device) {
         cl::Buffer * newBuffer = new cl::Buffer(device->getContext(),
         CL_MEM_READ_WRITE, bufferSize);
 
+        if(hasAnyData()) {
+            mCLBuffersIsUpToDate[device] = false;
+        } else {
+            mCLBuffersIsUpToDate[device] = true;
+            updated = true;
+        }
         mCLBuffers[device] = newBuffer;
-        mCLBuffersIsUpToDate[device] = false;
-        updated = true;
     }
 
 
@@ -335,36 +347,38 @@ void Image::updateHostData() {
         if(mDimensions == 3)
             size *= mDepth;
         mHostData = allocateDataArray(mWidth*mHeight*mDepth,mType,mComponents);
+        if(hasAnyData()) {
+            mHostDataIsUpToDate = false;
+        } else {
+            mHostDataIsUpToDate = true;
+            updated = true;
+        }
         mHostHasData = true;
-        updated = true;
     }
 
-    if (mCLImages.size() > 0) {
-        // Find which data is up to date
-        boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
-        for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
-                it++) {
-            if (it->second == true) {
-                // transfer from this device to host
-                transferCLImageToHost(it->first);
-                updated = true;
-                break;
-            }
+    // Find which data is up to date
+    boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+    for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
+            it++) {
+        if (it->second == true) {
+            // transfer from this device to host
+            transferCLImageToHost(it->first);
+            updated = true;
+            break;
         }
-        for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end();
-                it++) {
-            if (it->second == true) {
-                // transfer from this device to host
-                transferCLBufferToHost(it->first);
-                updated = true;
-                break;
-            }
-        }
-
-        if (!updated)
-            throw Exception(
-                    "Data was not updated because no data was marked as up to date");
     }
+    for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end();
+            it++) {
+        if (it->second == true) {
+            // transfer from this device to host
+            transferCLBufferToHost(it->first);
+            updated = true;
+            break;
+        }
+    }
+    if (!updated)
+        throw Exception(
+                "Data was not updated because no data was marked as up to date");
 }
 
 void Image::setAllDataToOutOfDate() {
@@ -860,7 +874,7 @@ float Image::calculateMinimumIntensity() {
 void Image::createFromImage(
         Image::pointer image) {
     // Create image first
-    create(image->getSize().cast<uint>(), image->getDataType(), image->getNrOfComponents());
+    create(image->getSize(), image->getDataType(), image->getNrOfComponents());
 
     // Copy metadata
     setSpacing(image->getSpacing());

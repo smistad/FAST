@@ -87,6 +87,8 @@ class Image : public SpatialDataObject {
 
         void updateHostData();
 
+        bool hasAnyData();
+
         unsigned int getBufferSize() const;
 
         unsigned int mWidth, mHeight, mDepth;
