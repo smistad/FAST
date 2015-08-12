@@ -39,7 +39,7 @@ void ScaleImage::execute() {
     cl::Kernel kernel;
 
     if(input->getDimensions() == 2) {
-        output->create2DImage(width, height, TYPE_FLOAT, input->getNrOfComponents(), device);
+        output->create(width, height, TYPE_FLOAT, input->getNrOfComponents());
         globalSize = cl::NDRange(width, height);
         OpenCLImageAccess2D::pointer inputAccess = input->getOpenCLImageAccess2D(ACCESS_READ, device);
         OpenCLImageAccess2D::pointer outputAccess = output->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
@@ -47,7 +47,7 @@ void ScaleImage::execute() {
         kernel.setArg(0, *(inputAccess->get()));
         kernel.setArg(1, *(outputAccess->get()));
     } else {
-        output->create3DImage(width, height, depth, TYPE_FLOAT, input->getNrOfComponents(), device);
+        output->create(width, height, depth, TYPE_FLOAT, input->getNrOfComponents());
         globalSize = cl::NDRange(width, height, depth);
         OpenCLImageAccess3D::pointer inputAccess = input->getOpenCLImageAccess3D(ACCESS_READ, device);
         kernel = cl::Kernel(program, "scaleImage3D");

@@ -10,7 +10,7 @@ namespace fast {
 class Segmentation : public Image {
     FAST_OBJECT(Segmentation)
     public:
-        void createFromImage(Image::pointer image, ExecutionDevice::pointer device);
+        void createFromImage(Image::pointer image);
 
         // If you add a label to this enum you should also add a default color in the SegmentationRenderer constructor
         enum LabelType {

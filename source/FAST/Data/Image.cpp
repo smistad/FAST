@@ -450,6 +450,7 @@ Image::Image() {
     mImageIsBeingWrittenTo = false;
     mSpacing = Vector3f(1,1,1);
     mMaxMinInitialized = false;
+    mIsInitialized = false;
 }
 
 ImageAccess::pointer Image::getImageAccess(accessType type) {
@@ -480,13 +481,42 @@ ImageAccess::pointer Image::getImageAccess(accessType type) {
 	return std::move(accessObject);
 }
 
-void Image::create3DImage(
+void Image::create(
+        VectorXui size,
+        DataType type,
+        unsigned int nrOfComponents) {
+
+    if(size.rows() > 2 && size.z() > 1) {
+        // 3D
+        create(size.x(), size.y(), size.z(), type, nrOfComponents);
+    } else {
+        // 2D
+        create(size.x(), size.y(), type, nrOfComponents);
+    }
+}
+
+void Image::create(
+        VectorXui size,
+        DataType type,
+        unsigned int nrOfComponents,
+        ExecutionDevice::pointer device,
+        const void* data) {
+
+    if(size.rows() > 2 && size.z() > 1) {
+        // 3D
+        create(size.x(), size.y(), size.z(), type, nrOfComponents, device, data);
+    } else {
+        // 2D
+        create(size.x(), size.y(), type, nrOfComponents, device, data);
+    }
+}
+
+void Image::create(
         unsigned int width,
         unsigned int height,
         unsigned int depth,
         DataType type,
-        unsigned int nrOfComponents,
-        ExecutionDevice::pointer device) {
+        unsigned int nrOfComponents) {
 
     getSceneGraphNode()->reset(); // reset scene graph node
     freeAll(); // delete any old data
@@ -498,25 +528,11 @@ void Image::create3DImage(
     mDimensions = 3;
     mType = type;
     mComponents = nrOfComponents;
-    if(device->isHost()) {
-        mHostHasData = true;
-        mHostData = allocateDataArray(mWidth*mHeight*mDepth,mType,mComponents);
-    } else {
-        OpenCLDevice::pointer clDevice = device;
-        cl::Image3D* clImage = new cl::Image3D(
-            clDevice->getContext(),
-            CL_MEM_READ_WRITE,
-            getOpenCLImageFormat(clDevice, CL_MEM_OBJECT_IMAGE3D, type, nrOfComponents),
-            width, height, depth
-            );
-        mCLImages[clDevice] = clImage;
-        mCLImagesIsUpToDate[clDevice] = true;
-        mCLImagesAccess[clDevice] = false;
-    }
     updateModifiedTimestamp();
+    mIsInitialized = true;
 }
 
-void Image::create3DImage(
+void Image::create(
         unsigned int width,
         unsigned int height,
         unsigned int depth,
@@ -560,14 +576,14 @@ void Image::create3DImage(
         mCLImagesAccess[clDevice] = false;
     }
     updateModifiedTimestamp();
+    mIsInitialized = true;
 }
 
-void Image::create2DImage(
+void Image::create(
         unsigned int width,
         unsigned int height,
         DataType type,
-        unsigned int nrOfComponents,
-        ExecutionDevice::pointer device) {
+        unsigned int nrOfComponents) {
 
     getSceneGraphNode()->reset(); // reset scene graph node
     freeAll(); // delete any old data
@@ -579,28 +595,14 @@ void Image::create2DImage(
     mDimensions = 2;
     mType = type;
     mComponents = nrOfComponents;
-    if(device->isHost()) {
-        mHostHasData = true;
-        mHostData = allocateDataArray(mWidth*mHeight,mType,mComponents);
-    } else {
-        OpenCLDevice::pointer clDevice = device;
-        cl::Image2D* clImage = new cl::Image2D(
-            clDevice->getContext(),
-            CL_MEM_READ_WRITE,
-            getOpenCLImageFormat(clDevice, CL_MEM_OBJECT_IMAGE2D, type, nrOfComponents),
-            width, height
-            );
-        mCLImages[clDevice] = clImage;
-        mCLImagesIsUpToDate[clDevice] = true;
-        mCLImagesAccess[clDevice] = false;
-    }
     updateModifiedTimestamp();
+    mIsInitialized = true;
 }
 
 
 
 
-void Image::create2DImage(
+void Image::create(
         unsigned int width,
         unsigned int height,
         DataType type,
@@ -643,10 +645,11 @@ void Image::create2DImage(
         mCLImagesAccess[clDevice] = false;
     }
     updateModifiedTimestamp();
+    mIsInitialized = true;
 }
 
 bool Image::isInitialized() const {
-    return mCLImages.size() > 0 || mCLBuffers.size() > 0 || mHostHasData;
+    return mIsInitialized;
 }
 
 void Image::free(ExecutionDevice::pointer device) {
@@ -712,10 +715,10 @@ unsigned int Image::getDepth() const {
     return mDepth;
 }
 
-Vector3i Image::getSize() const {
+Vector3ui Image::getSize() const {
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
-    return Vector3i(mWidth, mHeight, mDepth);
+    return Vector3ui(mWidth, mHeight, mDepth);
 }
 
 unsigned char Image::getDimensions() const {
@@ -852,27 +855,9 @@ float Image::calculateMinimumIntensity() {
 }
 
 void Image::createFromImage(
-        Image::pointer image,
-        ExecutionDevice::pointer device) {
+        Image::pointer image) {
     // Create image first
-    if(image->getDimensions() == 2) {
-        create2DImage(
-                image->getWidth(),
-                image->getHeight(),
-                image->getDataType(),
-                image->getNrOfComponents(),
-                device
-        );
-    } else {
-        create3DImage(
-                image->getWidth(),
-                image->getHeight(),
-                image->getDepth(),
-                image->getDataType(),
-                image->getNrOfComponents(),
-                device
-        );
-    }
+    create(image->getSize().cast<uint>(), image->getDataType(), image->getNrOfComponents());
 
     // Copy metadata
     setSpacing(image->getSpacing());
@@ -882,7 +867,7 @@ void Image::createFromImage(
 
 Image::pointer Image::copy(ExecutionDevice::pointer device) {
     Image::pointer clone = Image::New();
-    clone->createFromImage(mPtr.lock(), device);
+    clone->createFromImage(mPtr.lock());
 
     // If device is host, get data from this image to host
     if(device->isHost()) {

@@ -30,7 +30,7 @@ void BinaryThresholding::execute() {
     Image::pointer input = getStaticInputData<Image>(0);
     Segmentation::pointer output = getStaticOutputData<Segmentation>(0);
 
-    output->createFromImage(input, getMainDevice());
+    output->createFromImage(input);
 
     if(getMainDevice()->isHost()) {
         throw Exception("Not implemented yet.");

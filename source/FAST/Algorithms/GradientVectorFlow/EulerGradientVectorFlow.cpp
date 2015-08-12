@@ -372,7 +372,7 @@ void EulerGradientVectorFlow::execute() {
 
     // Create output
     Image::pointer output = getStaticOutputData<Image>();
-    output->createFromImage(input, device);
+    output->createFromImage(input);
     SceneGraph::setParentNode(output, input);
 
     if(input->getDimensions() == 2) {

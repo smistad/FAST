@@ -14,21 +14,19 @@ void ImageGradient::execute() {
 
     // Initialize output image
     if(input->getDimensions() == 2) {
-        output->create2DImage(
+        output->create(
                 input->getWidth(),
                 input->getHeight(),
                 TYPE_FLOAT,
-                2,
-                getMainDevice()
+                2
                 );
     } else {
-         output->create3DImage(
+         output->create(
                 input->getWidth(),
                 input->getHeight(),
                 input->getDepth(),
                 TYPE_FLOAT,
-                3,
-                getMainDevice()
+                3
                 );
     }
 

@@ -70,9 +70,9 @@ inline Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer mes
     }
 
     if(depth == 1) {
-        image->create2DImage(width, height, type, message->GetNumComponents(), device, data);
+        image->create(width, height, type, message->GetNumComponents(), device, data);
     } else {
-        image->create3DImage(width, height, depth, type, message->GetNumComponents(), device, data);
+        image->create(width, height, depth, type, message->GetNumComponents(), device, data);
     }
 
     boost::shared_array<float> spacing(new float[3]);

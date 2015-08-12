@@ -133,7 +133,7 @@ void SeededRegionGrowing::execute() {
     Segmentation::pointer output = getStaticOutputData<Segmentation>();
 
     // Initialize output image
-    output->createFromImage(input, getMainDevice());
+    output->createFromImage(input);
 
     if(getMainDevice()->isHost()) {
         ImageAccess::pointer inputAccess = input->getImageAccess(ACCESS_READ);

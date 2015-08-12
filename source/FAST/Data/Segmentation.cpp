@@ -2,13 +2,8 @@
 
 namespace fast {
 
-void Segmentation::createFromImage(Image::pointer image,
-        ExecutionDevice::pointer device) {
-    if(image->getDimensions() == 2) {
-        create2DImage(image->getWidth(), image->getHeight(), TYPE_UINT8, 1, device);
-    } else {
-        create3DImage(image->getWidth(), image->getHeight(), image->getDepth(), TYPE_UINT8, 1, device);
-    }
+void Segmentation::createFromImage(Image::pointer image) {
+    create(image->getSize(), TYPE_UINT8, 1);
 
     SceneGraph::setParentNode(mPtr.lock(), image);
     setSpacing(image->getSpacing());

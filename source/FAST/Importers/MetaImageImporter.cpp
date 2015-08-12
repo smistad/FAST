@@ -309,9 +309,9 @@ void MetaImageImporter::execute() {
     }
 
     if(imageIs3D) {
-        output->create3DImage(width,height,depth,type,nrOfComponents,getMainDevice(),data);
+        output->create(width,height,depth,type,nrOfComponents,getMainDevice(),data);
     } else {
-        output->create2DImage(width,height,type,nrOfComponents,getMainDevice(),data);
+        output->create(width,height,type,nrOfComponents,getMainDevice(),data);
     }
 
     output->setSpacing(spacing);
