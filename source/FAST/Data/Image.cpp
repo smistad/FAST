@@ -286,32 +286,34 @@ void Image::updateOpenCLBufferData(OpenCLDevice::pointer device) {
 
 
     // Find which data is up to date
-    if (mHostDataIsUpToDate) {
-        // Transfer host data to this device
-        transferCLBufferFromHost(device);
-        updated = true;
-    } else {
-        boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
-        for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
-                it++) {
-            if (it->second == true) {
-                // Transfer from this device(it->first) to device
-                transferCLImageToHost(it->first);
-                transferCLBufferFromHost(device);
-                mHostDataIsUpToDate = true;
-                updated = true;
-                break;
+    if(!mCLBuffersIsUpToDate[device]) {
+        if (mHostDataIsUpToDate) {
+            // Transfer host data to this device
+            transferCLBufferFromHost(device);
+            updated = true;
+        } else {
+            boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+            for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
+                    it++) {
+                if (it->second == true) {
+                    // Transfer from this device(it->first) to device
+                    transferCLImageToHost(it->first);
+                    transferCLBufferFromHost(device);
+                    mHostDataIsUpToDate = true;
+                    updated = true;
+                    break;
+                }
             }
-        }
-        for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end();
-                it++) {
-            if (it->second == true) {
-                // Transfer from this device(it->first) to device
-                transferCLBufferToHost(it->first);
-                transferCLBufferFromHost(device);
-                mHostDataIsUpToDate = true;
-                updated = true;
-                break;
+            for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end();
+                    it++) {
+                if (it->second == true) {
+                    // Transfer from this device(it->first) to device
+                    transferCLBufferToHost(it->first);
+                    transferCLBufferFromHost(device);
+                    mHostDataIsUpToDate = true;
+                    updated = true;
+                    break;
+                }
             }
         }
     }
