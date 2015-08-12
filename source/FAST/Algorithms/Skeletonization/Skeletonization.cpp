@@ -20,7 +20,7 @@ void Skeletonization::execute() {
         throw Exception("The skeletonization algorithm currently only support 2D images");
 
     // Initialize output image
-    output->createFromImage(input, getMainDevice());
+    output->createFromImage(input);
 
     OpenCLDevice::pointer device = getMainDevice();
 

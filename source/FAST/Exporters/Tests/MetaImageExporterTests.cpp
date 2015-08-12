@@ -52,7 +52,7 @@ TEST_CASE("Write a 2D image with the MetaImageExporter", "[fast][MetaImageExport
 
             Image::pointer image = Image::New();
             void* data = allocateRandomData(width*height*components, type);
-            image->create2DImage(width, height, type, components, Host::getInstance(), data);
+            image->create(width, height, type, components, Host::getInstance(), data);
 
             // Set metadata
             image->setSpacing(spacing);
@@ -133,7 +133,7 @@ TEST_CASE("Write a 3D image with the MetaImageExporter", "[fast][MetaImageExport
 
             Image::pointer image = Image::New();
             void* data = allocateRandomData(width*height*depth*components, type);
-            image->create3DImage(width, height, depth, type, components, Host::getInstance(), data);
+            image->create(width, height, depth, type, components, Host::getInstance(), data);
 
             // Set metadata
             image->setSpacing(spacing);
@@ -213,7 +213,7 @@ TEST_CASE("Write a compressed 2D image with the MetaImageExporter", "[fast][Meta
 
             Image::pointer image = Image::New();
             void* data = allocateRandomData(width*height*components, type);
-            image->create2DImage(width, height, type, components, Host::getInstance(), data);
+            image->create(width, height, type, components, Host::getInstance(), data);
 
             // Set metadata
             image->setSpacing(spacing);
@@ -294,7 +294,7 @@ TEST_CASE("Write a compressed 3D image with the MetaImageExporter", "[fast][Meta
 
             Image::pointer image = Image::New();
             void* data = allocateRandomData(width*height*depth*components, type);
-            image->create3DImage(width, height, depth, type, components, Host::getInstance(), data);
+            image->create(width, height, depth, type, components, Host::getInstance(), data);
 
             // Set metadata
             image->setSpacing(spacing);

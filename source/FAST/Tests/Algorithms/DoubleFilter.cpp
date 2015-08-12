@@ -39,7 +39,7 @@ void DoubleFilter::execute() {
     Image::pointer output = getStaticOutputData<Image>(0);
 
     // Initialize output image
-    output->createFromImage(input, getMainDevice());
+    output->createFromImage(input);
 
     if(getMainDevice()->isHost()) {
         // Execution device is Host, use the executeAlgorithmOnHost function with the given data type

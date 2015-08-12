@@ -199,12 +199,11 @@ void LaplacianOfGaussian::execute() {
 
     // Initialize output image
     ExecutionDevice::pointer device = getMainDevice();
-    output->create2DImage(
+    output->create(
             input->getWidth(),
             input->getHeight(),
             TYPE_FLOAT,
-            1,
-            device
+            1
     );
 
     createMask(input);

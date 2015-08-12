@@ -22,7 +22,7 @@ TEST_CASE("No input given to the ImageExporter", "[fast][ImageExporter]") {
 
 TEST_CASE("If 3D image is given as input to ImageExporter it throws exception", "[fast][ImageExporter]") {
     Image::pointer image = Image::New();
-    image->create3DImage(16,16,16,TYPE_INT8,1,Host::getInstance());
+    image->create(16,16,16,TYPE_INT8,1);
     ImageExporter::pointer exporter = ImageExporter::New();
     exporter->setFilename("asd");
     exporter->setInputData(image);
@@ -37,7 +37,7 @@ TEST_CASE("Write 2D image with the ImageExporter", "[fast][ImageExporter]") {
     DataType type = TYPE_UINT8;
 
     Image::pointer image = Image::New();
-    image->create2DImage(width,height,type,components,Host::getInstance());
+    image->create(width,height,type,components);
 
     ImageExporter::pointer exporter = ImageExporter::New();
     exporter->setFilename("ImageExporterTest.jpg");

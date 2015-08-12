@@ -18,11 +18,13 @@ namespace fast {
 class Image : public SpatialDataObject {
     FAST_OBJECT(Image)
     public:
-        void createFromImage(Image::pointer image, ExecutionDevice::pointer device);
-        void create2DImage(unsigned int width, unsigned int height, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device);
-        void create2DImage(unsigned int width, unsigned int height, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device, const void * data);
-        void create3DImage(unsigned int width, unsigned int height, unsigned int depth, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device);
-        void create3DImage(unsigned int width, unsigned int height, unsigned int depth, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device, const void * data);
+        void createFromImage(Image::pointer image);
+        void create(VectorXui size, DataType type, unsigned int nrOfComponents);
+        void create(unsigned int width, unsigned int height, DataType type, unsigned int nrOfComponents);
+        void create(unsigned int width, unsigned int height, unsigned int depth, DataType type, unsigned int nrOfComponents);
+        void create(VectorXui size, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device, const void * data);
+        void create(unsigned int width, unsigned int height, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device, const void * data);
+        void create(unsigned int width, unsigned int height, unsigned int depth, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device, const void * data);
 
         OpenCLImageAccess2D::pointer getOpenCLImageAccess2D(accessType type, OpenCLDevice::pointer);
         OpenCLImageAccess3D::pointer getOpenCLImageAccess3D(accessType type, OpenCLDevice::pointer);
@@ -34,6 +36,7 @@ class Image : public SpatialDataObject {
         unsigned int getWidth() const;
         unsigned int getHeight() const;
         unsigned int getDepth() const;
+        Vector3ui getSize() const;
         unsigned char getDimensions() const;
         DataType getDataType() const;
         unsigned int getNrOfComponents() const;
@@ -91,6 +94,7 @@ class Image : public SpatialDataObject {
         DataType mType;
         unsigned int mComponents;
         bool mImageIsBeingWrittenTo;
+        bool mIsInitialized;
 
         Vector3f mSpacing;
 

@@ -35,7 +35,7 @@ void ImageImporter::execute() {
 
     // Transfer to texture(if OpenCL) or copy raw pixel data (if host)
     Image::pointer output = getOutputData<Image>();
-    output->create2DImage(image.width(),
+    output->create(image.width(),
             image.height(),
             TYPE_FLOAT,
             1,

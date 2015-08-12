@@ -94,10 +94,10 @@ inline void fast::ITKImageImporter<TImage>::execute() {
     unsigned int height = region.GetSize()[1];
     Image::pointer output = getOutputData<Image>();
     if(TImage::ImageDimension == 2) {
-        output->create2DImage(width, height, type, 1, Host::getInstance(), data);
+        output->create(width, height, type, 1, Host::getInstance(), data);
     } else if(TImage::ImageDimension == 3) {
         unsigned int depth = region.GetSize()[3];
-        output->create3DImage(width, height, depth, type, 1, Host::getInstance(), data);
+        output->create(width, height, depth, type, 1, Host::getInstance(), data);
     } else {
         throw Exception("The ITKImageImporter only supports 2D and 3D images.");
     }
