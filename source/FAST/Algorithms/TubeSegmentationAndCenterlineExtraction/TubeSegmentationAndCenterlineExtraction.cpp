@@ -113,7 +113,7 @@ ProcessObjectPort TubeSegmentationAndCenterlineExtraction::getTDFOutputPort() {
 void TubeSegmentationAndCenterlineExtraction::execute() {
     Image::pointer input = getStaticInputData<Image>();
     Vector3f spacing = input->getSpacing();
-    Vector3i size = input->getSize();
+    Vector3ui size = input->getSize();
     float smallestSpacing = spacing.minCoeff();
     float largestSpacing = spacing.maxCoeff();
 
@@ -215,9 +215,9 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::runGradientVectorFlow(Im
 Image::pointer TubeSegmentationAndCenterlineExtraction::createGradients(Image::pointer image) {
     OpenCLDevice::pointer device = getMainDevice();
     Image::pointer floatImage = Image::New();
-    floatImage->create3DImage(image->getWidth(), image->getHeight(), image->getDepth(), TYPE_FLOAT, 1, device);
+    floatImage->create(image->getWidth(), image->getHeight(), image->getDepth(), TYPE_FLOAT, 1);
     Image::pointer vectorField = Image::New();
-    vectorField->create3DImage(image->getWidth(), image->getHeight(), image->getDepth(), TYPE_FLOAT, 3, device);
+    vectorField->create(image->getWidth(), image->getHeight(), image->getDepth(), TYPE_FLOAT, 3);
     vectorField->setSpacing(image->getSpacing());
 
     bool no3Dwrite = !device->isWritingTo3DTexturesSupported();
@@ -296,7 +296,7 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::createGradients(Image::p
 Image::pointer TubeSegmentationAndCenterlineExtraction::runTubeDetectionFilter(Image::pointer vectorField) {
     OpenCLDevice::pointer device = getMainDevice();
     Image::pointer TDF = Image::New();
-    TDF->create3DImage(vectorField->getWidth(), vectorField->getHeight(), vectorField->getDepth(), TYPE_FLOAT, 1, device);
+    TDF->create(vectorField->getWidth(), vectorField->getHeight(), vectorField->getDepth(), TYPE_FLOAT, 1);
     TDF->setSpacing(vectorField->getSpacing());
 
     OpenCLBufferAccess::pointer TDFAccess = TDF->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);

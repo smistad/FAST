@@ -25,12 +25,12 @@ void InverseGradientSegmentation::execute() {
     OpenCLDevice::pointer device = getMainDevice();
     bool no3Dwrite = !device->isWritingTo3DTexturesSupported();
     Segmentation::pointer centerline = getStaticInputData<Segmentation>(0);
-    Vector3i size = centerline->getSize();
+    Vector3ui size = centerline->getSize();
     Image::pointer vectorField = getStaticInputData<Image>(1);
     Segmentation::pointer segmentation = getStaticOutputData<Segmentation>(0);
-    segmentation->createFromImage(centerline, device);
+    segmentation->createFromImage(centerline);
     Segmentation::pointer segmentation2 = Segmentation::New();
-    segmentation2->createFromImage(centerline, device);
+    segmentation2->createFromImage(centerline);
 
     OpenCLImageAccess3D::pointer centerlineAccess = centerline->getOpenCLImageAccess3D(ACCESS_READ, device);
     OpenCLImageAccess3D::pointer vectorFieldAccess = vectorField->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);

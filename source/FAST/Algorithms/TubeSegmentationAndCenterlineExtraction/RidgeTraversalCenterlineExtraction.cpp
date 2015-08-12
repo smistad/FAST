@@ -117,7 +117,7 @@ void sortEigenvaluesAndVectors(Vector3f* eigenvaluesOut, Matrix3f* eigenvectorsO
 }
 
 
-Vector3f getTubeDirection(ImageAccess::pointer& vectorField, Vector3i pos, Vector3i size) {
+Vector3f getTubeDirection(ImageAccess::pointer& vectorField, Vector3i pos, Vector3ui size) {
 
     // Do gradient on Fx, Fy and Fz and normalization
     Vector3f Fx = gradient(vectorField, pos,0,1);
@@ -139,7 +139,7 @@ Vector3f getTubeDirection(ImageAccess::pointer& vectorField, Vector3i pos, Vecto
     return eigenvectors.col(0);
 }
 
-void doEigen(ImageAccess::pointer& vectorField, Vector3i pos, Vector3i size, Vector3f* lambda, Vector3f* e1, Vector3f* e2, Vector3f* e3) {
+void doEigen(ImageAccess::pointer& vectorField, Vector3i pos, Vector3ui size, Vector3f* lambda, Vector3f* e1, Vector3f* e2, Vector3f* e3) {
 
     // Do gradient on Fx, Fy and Fz and normalization
     Vector3f Fx = gradient(vectorField, pos,0,1);
@@ -185,7 +185,7 @@ void RidgeTraversalCenterlineExtraction::execute() {
     Segmentation::pointer centerlineVolumeOutput = getStaticOutputData<Segmentation>(1);
     ImageAccess::pointer TDFaccess = TDF->getImageAccess(ACCESS_READ);
     ImageAccess::pointer vectorFieldAccess = vectorField->getImageAccess(ACCESS_READ);
-    Vector3i size = TDF->getSize();
+    Vector3ui size = TDF->getSize();
 
     float Thigh = 0.5;
     int Dmin = 4;//getParam(parameters, "min-distance");
@@ -518,7 +518,7 @@ void RidgeTraversalCenterlineExtraction::execute() {
     delete[] centerlines;
 
     centerlineOutput->create(vertices, lines);
-    centerlineVolumeOutput->create3DImage(size.x(), size.y(), size.z(), TYPE_UINT8, 1, getMainDevice(), returnCenterlines);
+    centerlineVolumeOutput->create(size.x(), size.y(), size.z(), TYPE_UINT8, 1, getMainDevice(), returnCenterlines);
 }
 
 }
