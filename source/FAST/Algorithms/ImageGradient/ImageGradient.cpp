@@ -45,21 +45,19 @@ void ImageGradient::execute() {
         int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "Algorithms/ImageGradient/ImageGradient.cl", buildOptions);
         cl::Program program = device->getProgram(programNr);
         cl::Kernel kernel;
+        OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
         if(input->getDimensions() == 2) {
             kernel = cl::Kernel(program, "gradient2D");
-            OpenCLImageAccess2D::pointer inputAccess = input->getOpenCLImageAccess2D(ACCESS_READ, device);
-            OpenCLImageAccess2D::pointer outputAccess = output->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
-            kernel.setArg(0, *inputAccess->get());
-            kernel.setArg(1, *outputAccess->get());
+            OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+            kernel.setArg(0, *inputAccess->get2DImage());
+            kernel.setArg(1, *outputAccess->get2DImage());
         } else {
             kernel = cl::Kernel(program, "gradient3D");
-            OpenCLImageAccess3D::pointer inputAccess = input->getOpenCLImageAccess3D(ACCESS_READ, device);
-            kernel.setArg(0, *inputAccess->get());
+            kernel.setArg(0, *inputAccess->get3DImage());
 
-            const bool writingTo3DTextures = device->getDevice().getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") != std::string::npos;
-            if(writingTo3DTextures) {
-                OpenCLImageAccess3D::pointer outputAccess = output->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
-                kernel.setArg(1, *outputAccess->get());
+            if(device->isWritingTo3DTexturesSupported()) {
+                OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+                kernel.setArg(1, *outputAccess->get3DImage());
             } else {
                 // If device does not support writing to 3D textures, use a buffer instead
                 OpenCLBufferAccess::pointer outputAccess = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);

@@ -75,8 +75,8 @@ void EulerGradientVectorFlow::execute2DGVF(Image::pointer input, Image::pointer 
     }
 
     cl::Kernel iterationKernel(program, "GVF2DIteration");
-    OpenCLImageAccess2D::pointer access = input->getOpenCLImageAccess2D(ACCESS_READ, device);
-    cl::Image2D* inputVectorField = access->get();
+    OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
+    cl::Image2D* inputVectorField = access->get2DImage();
 
     // Copy input vector field and create double buffer
     cl::Image2D vectorField(context, CL_MEM_READ_WRITE, storageFormat, width, height);
@@ -125,8 +125,8 @@ void EulerGradientVectorFlow::execute2DGVF(Image::pointer input, Image::pointer 
 
 
     // Copy result to output
-    OpenCLImageAccess2D::pointer outputAccess = output->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
-    cl::Image2D* outputCLImage = outputAccess->get();
+    OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+    cl::Image2D* outputCLImage = outputAccess->get2DImage();
     if(storageFormat.image_channel_data_type == CL_SNORM_INT16) {
         // Have to convert type back to float
         cl::Kernel resultKernel(program, "GVF2DCopy");
@@ -176,8 +176,8 @@ void EulerGradientVectorFlow::execute3DGVF(Image::pointer input, Image::pointer 
     }
 
     cl::Kernel iterationKernel(program, "GVF3DIteration");
-    OpenCLImageAccess3D::pointer access = input->getOpenCLImageAccess3D(ACCESS_READ, device);
-    cl::Image3D* inputVectorField = access->get();
+    OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
+    cl::Image3D* inputVectorField = access->get3DImage();
 
     // Copy input vector field and create double buffer
     cl::Image3D vectorField(context, CL_MEM_READ_WRITE, storageFormat, width, height, depth);
@@ -225,8 +225,8 @@ void EulerGradientVectorFlow::execute3DGVF(Image::pointer input, Image::pointer 
     }
 
     // Copy result to output
-    OpenCLImageAccess3D::pointer outputAccess = output->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
-    cl::Image3D* outputCLImage = outputAccess->get();
+    OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+    cl::Image3D* outputCLImage = outputAccess->get3DImage();
     if(storageFormat.image_channel_data_type == CL_SNORM_INT16) {
         cl::Kernel resultKernel(program, "GVF3DCopy");
         resultKernel.setArg(0, vectorField);
@@ -282,8 +282,8 @@ void EulerGradientVectorFlow::execute3DGVFNo3DWrite(Image::pointer input, Image:
     cl::Kernel iterationKernel(program, "GVF3DIteration");
     cl::Kernel initKernel(program, "GVF3DInit");
     cl::Kernel finishKernel(program, "GVF3DFinish");
-    OpenCLImageAccess3D::pointer access = input->getOpenCLImageAccess3D(ACCESS_READ, device);
-    cl::Image3D* inputVectorField = access->get();
+    OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
+    cl::Image3D* inputVectorField = access->get3DImage();
 
     // Create auxillary buffers
     cl::Buffer vectorFieldBuffer(
@@ -344,8 +344,8 @@ void EulerGradientVectorFlow::execute3DGVFNo3DWrite(Image::pointer input, Image:
     );
 
     // Copy result to output
-    OpenCLImageAccess3D::pointer outputAccess = output->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
-    cl::Image3D* outputCLImage = outputAccess->get();
+    OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+    cl::Image3D* outputCLImage = outputAccess->get3DImage();
     queue.enqueueCopyBufferToImage(
             finalVectorFieldBuffer,
             *outputCLImage,

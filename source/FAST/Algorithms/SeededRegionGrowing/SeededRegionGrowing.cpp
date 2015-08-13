@@ -165,14 +165,13 @@ void SeededRegionGrowing::execute() {
         access->release();
 
         cl::NDRange globalSize;
+        OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
         if(output->getDimensions() == 2) {
             globalSize = cl::NDRange(input->getWidth(),input->getHeight());
-            OpenCLImageAccess2D::pointer inputAccess = input->getOpenCLImageAccess2D(ACCESS_READ, device);
-            mKernel.setArg(0, *inputAccess->get());
+            mKernel.setArg(0, *inputAccess->get2DImage());
         } else {
             globalSize = cl::NDRange(input->getWidth(),input->getHeight(), input->getDepth());
-            OpenCLImageAccess3D::pointer inputAccess = input->getOpenCLImageAccess3D(ACCESS_READ, device);
-            mKernel.setArg(0, *inputAccess->get());
+            mKernel.setArg(0, *inputAccess->get3DImage());
         }
 
         OpenCLBufferAccess::pointer outputAccess = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);

@@ -204,8 +204,6 @@ void GaussianSmoothingFilter::execute() {
     if(maskSize > 19)
         maskSize = 19;
 
-    std::cout << "using mask size: " << (int)maskSize << std::endl;
-
     // Initialize output image
     ExecutionDevice::pointer device = getMainDevice();
     if(mOutputTypeSet) {
@@ -226,22 +224,20 @@ void GaussianSmoothingFilter::execute() {
 
         recompileOpenCLCode(input);
         cl::NDRange globalSize;
+        OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
         if(input->getDimensions() == 2) {
             globalSize = cl::NDRange(input->getWidth(),input->getHeight());
 
-            OpenCLImageAccess2D::pointer inputAccess = input->getOpenCLImageAccess2D(ACCESS_READ, device);
-            OpenCLImageAccess2D::pointer outputAccess = output->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
-            mKernel.setArg(0, *inputAccess->get());
-            mKernel.setArg(2, *outputAccess->get());
+            OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+            mKernel.setArg(0, *inputAccess->get2DImage());
+            mKernel.setArg(2, *outputAccess->get2DImage());
         } else {
             globalSize = cl::NDRange(input->getWidth(),input->getHeight(),input->getDepth());
 
-            const bool writingTo3DTextures = clDevice->getDevice().getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") != std::string::npos;
-            OpenCLImageAccess3D::pointer inputAccess = input->getOpenCLImageAccess3D(ACCESS_READ, device);
-            mKernel.setArg(0, *inputAccess->get());
-            if(writingTo3DTextures) {
-                OpenCLImageAccess3D::pointer outputAccess = output->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
-                mKernel.setArg(2, *outputAccess->get());
+            mKernel.setArg(0, *inputAccess->get3DImage());
+            if(clDevice->isWritingTo3DTexturesSupported()) {
+                OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+                mKernel.setArg(2, *outputAccess->get3DImage());
             } else {
                 OpenCLBufferAccess::pointer outputAccess = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
                 mKernel.setArg(2, *outputAccess->get());

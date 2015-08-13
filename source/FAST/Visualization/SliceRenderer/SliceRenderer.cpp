@@ -101,8 +101,8 @@ void SliceRenderer::execute() {
     }
     mSliceNr = sliceNr;
 
-    OpenCLImageAccess3D::pointer access = mImageToRender->getOpenCLImageAccess3D(ACCESS_READ, device);
-    cl::Image3D* clImage = access->get();
+    OpenCLImageAccess::pointer access = mImageToRender->getOpenCLImageAccess(ACCESS_READ, device);
+    cl::Image3D* clImage = access->get3DImage();
 
     glEnable(GL_TEXTURE_2D);
     if(mTextureIsCreated) {

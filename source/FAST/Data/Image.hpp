@@ -7,8 +7,7 @@
 #include "FAST/SmartPointers.hpp"
 #include "OpenCLManager.hpp"
 #include "FAST/ExecutionDevice.hpp"
-#include "FAST/Data/Access/OpenCLImageAccess2D.hpp"
-#include "FAST/Data/Access/OpenCLImageAccess3D.hpp"
+#include "FAST/Data/Access/OpenCLImageAccess.hpp"
 #include "FAST/Data/Access/OpenCLBufferAccess.hpp"
 #include "FAST/Data/Access/ImageAccess.hpp"
 #include <boost/unordered_map.hpp>
@@ -26,8 +25,7 @@ class Image : public SpatialDataObject {
         void create(unsigned int width, unsigned int height, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device, const void * data);
         void create(unsigned int width, unsigned int height, unsigned int depth, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device, const void * data);
 
-        OpenCLImageAccess2D::pointer getOpenCLImageAccess2D(accessType type, OpenCLDevice::pointer);
-        OpenCLImageAccess3D::pointer getOpenCLImageAccess3D(accessType type, OpenCLDevice::pointer);
+        OpenCLImageAccess::pointer getOpenCLImageAccess(accessType type, OpenCLDevice::pointer);
         OpenCLBufferAccess::pointer getOpenCLBufferAccess(accessType type, OpenCLDevice::pointer);
         ImageAccess::pointer getImageAccess(accessType type);
 

@@ -37,10 +37,10 @@ void Skeletonization::execute() {
             sizeof(char));
 
     cl::Image2D image2(device->getContext(), CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_UNSIGNED_INT8), output->getWidth(), output->getHeight());
-    OpenCLImageAccess2D::pointer access = input->getOpenCLImageAccess2D(ACCESS_READ, device);
-    cl::Image2D* image = access->get();
-    OpenCLImageAccess2D::pointer access2 = output->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
-    cl::Image2D* image1 = access2->get();
+    OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
+    cl::Image2D* image = access->get2DImage();
+    OpenCLImageAccess::pointer access2 = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+    cl::Image2D* image1 = access2->get2DImage();
 
     kernel1.setArg(0, *image1);
     kernel1.setArg(1, image2);

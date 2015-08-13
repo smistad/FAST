@@ -38,23 +38,22 @@ void ScaleImage::execute() {
     cl::Program program = device->getProgram("ScaleImage");
     cl::Kernel kernel;
 
+    OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
     if(input->getDimensions() == 2) {
         output->create(width, height, TYPE_FLOAT, input->getNrOfComponents());
         globalSize = cl::NDRange(width, height);
-        OpenCLImageAccess2D::pointer inputAccess = input->getOpenCLImageAccess2D(ACCESS_READ, device);
-        OpenCLImageAccess2D::pointer outputAccess = output->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
+        OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
         kernel = cl::Kernel(program, "scaleImage2D");
-        kernel.setArg(0, *(inputAccess->get()));
-        kernel.setArg(1, *(outputAccess->get()));
+        kernel.setArg(0, *(inputAccess->get2DImage()));
+        kernel.setArg(1, *(outputAccess->get2DImage()));
     } else {
         output->create(width, height, depth, TYPE_FLOAT, input->getNrOfComponents());
         globalSize = cl::NDRange(width, height, depth);
-        OpenCLImageAccess3D::pointer inputAccess = input->getOpenCLImageAccess3D(ACCESS_READ, device);
         kernel = cl::Kernel(program, "scaleImage3D");
-        kernel.setArg(0, *(inputAccess->get()));
+        kernel.setArg(0, *(inputAccess->get3DImage()));
         if(device->isWritingTo3DTexturesSupported()) {
-            OpenCLImageAccess3D::pointer outputAccess = output->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
-            kernel.setArg(1, *(outputAccess->get()));
+            OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+            kernel.setArg(1, *(outputAccess->get3DImage()));
         } else {
             OpenCLBufferAccess::pointer outputAccess = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
             kernel.setArg(1, *(outputAccess->get()));
