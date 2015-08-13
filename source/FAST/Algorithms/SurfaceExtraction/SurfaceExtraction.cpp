@@ -124,8 +124,8 @@ void SurfaceExtraction::execute() {
     cl::Kernel classifyCubesKernel(program, "classifyCubes");
     cl::Kernel traverseHPKernel(program, "traverseHP");
 
-    OpenCLImageAccess3D::pointer access = input->getOpenCLImageAccess3D(ACCESS_READ, device);
-    cl::Image3D* clImage = access->get();
+    OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
+    cl::Image3D* clImage = access->get3DImage();
 
     // update scalar field
     if(writingTo3DTextures) {

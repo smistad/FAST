@@ -120,8 +120,8 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
             cl::Kernel kernel(device->getProgram(programNr), kernelName.c_str());
             // Run kernel to fill the texture
 
-            OpenCLImageAccess2D::pointer access = input->getOpenCLImageAccess2D(ACCESS_READ, device);
-            cl::Image2D* clImage = access->get();
+            OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
+            cl::Image2D* clImage = access->get2DImage();
             kernel.setArg(0, *clImage);
             kernel.setArg(1, PBO); // Read from this
             kernel.setArg(2, PBO2); // Write to this
@@ -161,8 +161,8 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
             );
 
             // Run kernel to fill the texture
-            OpenCLImageAccess3D::pointer access = input->getOpenCLImageAccess3D(ACCESS_READ, device);
-            cl::Image3D* clImage = access->get();
+            OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
+            cl::Image3D* clImage = access->get3DImage();
             kernel.setArg(0, *clImage);
             kernel.setArg(1, PBO); // Read from this
             kernel.setArg(2, PBO2); // Write to this

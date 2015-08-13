@@ -56,17 +56,17 @@ void BinaryThresholding::execute() {
             kernel.setArg(3, mUpperThreshold);
         }
         cl::NDRange globalSize;
+        OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
         if(input->getDimensions() == 2) {
-            OpenCLImageAccess2D::pointer access = input->getOpenCLImageAccess2D(ACCESS_READ, device);
-            OpenCLImageAccess2D::pointer access2 = output->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
-            kernel.setArg(0, *access->get());
-            kernel.setArg(1, *access2->get());
+            OpenCLImageAccess::pointer access2 = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+            kernel.setArg(0, *access->get2DImage());
+            kernel.setArg(1, *access2->get2DImage());
             globalSize = cl::NDRange(output->getWidth(), output->getHeight());
         } else {
-            OpenCLImageAccess3D::pointer access = input->getOpenCLImageAccess3D(ACCESS_READ, device);
-            OpenCLImageAccess3D::pointer access2 = output->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
-            kernel.setArg(0, *access->get());
-            kernel.setArg(1, *access2->get());
+            // TODO no 3d image write support
+            OpenCLImageAccess::pointer access2 = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+            kernel.setArg(0, *access->get3DImage());
+            kernel.setArg(1, *access2->get3DImage());
             globalSize = cl::NDRange(output->getWidth(), output->getHeight(), output->getDepth());
         }
         kernel.setArg(2, (uchar)mLabel);
