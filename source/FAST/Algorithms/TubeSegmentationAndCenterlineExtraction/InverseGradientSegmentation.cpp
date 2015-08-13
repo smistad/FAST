@@ -32,10 +32,10 @@ void InverseGradientSegmentation::execute() {
     Segmentation::pointer segmentation2 = Segmentation::New();
     segmentation2->createFromImage(centerline);
 
-    OpenCLImageAccess3D::pointer centerlineAccess = centerline->getOpenCLImageAccess3D(ACCESS_READ, device);
-    OpenCLImageAccess3D::pointer vectorFieldAccess = vectorField->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
-    OpenCLImageAccess3D::pointer segmentationOutputAccess = segmentation->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
-    cl::Image3D* volume = segmentationOutputAccess->get();
+    OpenCLImageAccess::pointer centerlineAccess = centerline->getOpenCLImageAccess(ACCESS_READ, device);
+    OpenCLImageAccess::pointer vectorFieldAccess = vectorField->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+    OpenCLImageAccess::pointer segmentationOutputAccess = segmentation->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+    cl::Image3D* volume = segmentationOutputAccess->get3DImage();
 
     device->createProgramFromSourceWithName("inverseGradientSegmentation",
             std::string(FAST_SOURCE_DIR) + "Algorithms/TubeSegmentationAndCenterlineExtraction/InverseGradientSegmentation.cl");
@@ -53,7 +53,7 @@ void InverseGradientSegmentation::execute() {
 
     // Copy centerline to segmentation
     queue.enqueueCopyImage(
-            *(centerlineAccess->get()),
+            *(centerlineAccess->get3DImage()),
             *volume,
             offset,
             offset,
@@ -64,7 +64,7 @@ void InverseGradientSegmentation::execute() {
     cl::Buffer stop = cl::Buffer(device->getContext(), CL_MEM_WRITE_ONLY, sizeof(int));
     queue.enqueueWriteBuffer(stop, CL_FALSE, 0, sizeof(int), &stopGrowing);
 
-    growKernel.setArg(1, *(vectorFieldAccess->get()));
+    growKernel.setArg(1, *(vectorFieldAccess->get3DImage()));
     growKernel.setArg(3, stop);
 
     int i = 0;
@@ -121,8 +121,8 @@ void InverseGradientSegmentation::execute() {
             );
         }
     } else {
-        OpenCLImageAccess3D::pointer segmentation2Access = segmentation2->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
-        cl::Image3D* volume2 = segmentation2Access->get();
+        OpenCLImageAccess::pointer segmentation2Access = segmentation2->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+        cl::Image3D* volume2 = segmentation2Access->get3DImage();
         queue.enqueueCopyImage(
                 *volume,
                 *volume2,
@@ -207,8 +207,8 @@ void InverseGradientSegmentation::execute() {
             region
         );
     } else {
-        OpenCLImageAccess3D::pointer segmentation2Access = segmentation2->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
-        cl::Image3D* volume2 = segmentation2Access->get();
+        OpenCLImageAccess::pointer segmentation2Access = segmentation2->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+        cl::Image3D* volume2 = segmentation2Access->get3DImage();
 
         dilateKernel.setArg(0, *volume);
         dilateKernel.setArg(1, *volume2);

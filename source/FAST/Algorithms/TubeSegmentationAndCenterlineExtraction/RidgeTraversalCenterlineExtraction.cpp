@@ -16,6 +16,11 @@ namespace fast {
 RidgeTraversalCenterlineExtraction::RidgeTraversalCenterlineExtraction() {
     createInputPort<Image>(0);
     createInputPort<Image>(1);
+
+    // These are not required: Used when centerlines from two TDF results are to be merged
+    createInputPort<Image>(2, false);
+    createInputPort<Image>(3, false);
+
     createOutputPort<LineSet>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
     createOutputPort<Segmentation>(1, OUTPUT_DEPENDS_ON_INPUT, 0);
 }
@@ -177,12 +182,15 @@ void copyToLineSet(std::stack<CenterlinePoint> points, std::vector<Vector3f>& ve
     }
 }
 
-void RidgeTraversalCenterlineExtraction::execute() {
-
-    Image::pointer TDF = getStaticInputData<Image>(0);
-    Image::pointer vectorField = getStaticInputData<Image>(1);
-    LineSet::pointer centerlineOutput = getStaticOutputData<LineSet>(0);
-    Segmentation::pointer centerlineVolumeOutput = getStaticOutputData<Segmentation>(1);
+void extractCenterlines(
+        Image::pointer TDF,
+        Image::pointer vectorField,
+        int* centerlines,
+        unordered_map<int, int>& centerlineDistances,
+        unordered_map<int, std::stack<CenterlinePoint> >& centerlineStacks,
+        std::vector<Vector3f>& vertices,
+        std::vector<Vector2ui>& lines
+    ) {
     ImageAccess::pointer TDFaccess = TDF->getImageAccess(ACCESS_READ);
     ImageAccess::pointer vectorFieldAccess = vectorField->getImageAccess(ACCESS_READ);
     Vector3ui size = TDF->getSize();
@@ -193,12 +201,9 @@ void RidgeTraversalCenterlineExtraction::execute() {
     float Tlow = 0.1;
     int maxBelowTlow = 4;
     float minMeanTube = 0.5;
-    int TreeMin = 20;
     const int totalSize = size.x()*size.y()*size.z();
 
-    int * centerlines = new int[totalSize]();
-
-    // Create queue
+        // Create queue
     std::priority_queue<point, std::vector<point>, PointComparison> queue;
 
     // Collect all valid start points
@@ -240,16 +245,10 @@ void RidgeTraversalCenterlineExtraction::execute() {
     if(queue.size() == 0) {
         throw Exception("no valid start points found");
     }
-    int counter = 1;
+    static int counter = 1;
 
-    // Create a map of centerline distances
-    unordered_map<int, int> centerlineDistances;
 
-    // Create a map of centerline stacks
-    unordered_map<int, std::stack<CenterlinePoint> > centerlineStacks;
 
-    std::vector<Vector3f> vertices;
-    std::vector<Vector2ui> lines;
 
     while(!queue.empty()) {
         // Traverse from new start point
@@ -463,6 +462,43 @@ void RidgeTraversalCenterlineExtraction::execute() {
         } // end if new point can be added
     } // End while queue is not empty
     std::cout << "Finished traversal" << std::endl;
+}
+
+void RidgeTraversalCenterlineExtraction::execute() {
+
+    LineSet::pointer centerlineOutput = getStaticOutputData<LineSet>(0);
+    Segmentation::pointer centerlineVolumeOutput = getStaticOutputData<Segmentation>(1);
+
+    Image::pointer TDF = getStaticInputData<Image>(0);
+    Vector3ui size = TDF->getSize();
+    const int totalSize = size.x()*size.y()*size.z();
+    int TreeMin = 20;
+
+    // Create some data structures
+    int * centerlines = new int[totalSize]();
+
+    // Create a map of centerline distances
+    unordered_map<int, int> centerlineDistances;
+
+    // Create a map of centerline stacks
+    unordered_map<int, std::stack<CenterlinePoint> > centerlineStacks;
+
+    std::vector<Vector3f> vertices;
+    std::vector<Vector2ui> lines;
+
+    {
+        Image::pointer vectorField = getStaticInputData<Image>(1);
+        extractCenterlines(TDF, vectorField, centerlines, centerlineDistances, centerlineStacks, vertices, lines);
+    }
+
+    // TODO check to see if more than two inputs were provided, if so run again..
+    if(getNrOfInputData() > 2) {
+        Image::pointer TDF = getStaticInputData<Image>(2);
+        Image::pointer vectorField = getStaticInputData<Image>(3);
+        extractCenterlines(TDF, vectorField, centerlines, centerlineDistances, centerlineStacks, vertices, lines);
+    }
+
+
 
     if(centerlineDistances.size() == 0) {
         //throw SIPL::SIPLException("no centerlines were extracted");

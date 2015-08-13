@@ -123,6 +123,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
     Image::pointer smallTDF;
     Image::pointer gradients;
     if(mMinimumRadius /*/ smallestSpacing*/ < 1.5) {
+        std::cout << "Running small TDF" << std::endl;
         // Find small structures
         // Blur
         Image::pointer smoothedImage;
@@ -148,7 +149,9 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
 
     // If max radius is larger than 2.5 voxels
     Image::pointer largeTDF;
+    Image::pointer GVFfield;
     if(mMaximumRadius /*/ largestSpacing*/ >= 1.5) {
+        std::cout << "Running large TDF" << std::endl;
         // Find large structures, if max radius is large enough
         // Blur
         Image::pointer smoothedImage;
@@ -165,40 +168,60 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
         }
 
         // Create gradients and cap intensity
-        gradients = createGradients(smoothedImage);
+        GVFfield = createGradients(smoothedImage);
 
         // GVF
-        gradients = runGradientVectorFlow(gradients);
+        GVFfield = runGradientVectorFlow(GVFfield);
 
         // TDF
-        largeTDF = runTubeDetectionFilter(gradients);
+        largeTDF = runTubeDetectionFilter(GVFfield);
     }
 
-    Image::pointer TDF;
-    // Add the two TDF's if applicable
-    if(smallTDF.isValid() && largeTDF.isValid()) {
-        // TODO
-    } else if(smallTDF.isValid()) {
-        TDF = smallTDF;
-    } else {
-        TDF = largeTDF;
-    }
-
-    // Centerline extraction
     RidgeTraversalCenterlineExtraction::pointer centerlineExtraction = RidgeTraversalCenterlineExtraction::New();
-    centerlineExtraction->setInputData(0, TDF);
-    centerlineExtraction->setInputData(1, gradients);
-    centerlineExtraction->update();
-    LineSet::pointer centerline = centerlineExtraction->getOutputData<LineSet>();
+    Image::pointer TDF;
+    if(smallTDF.isValid() && largeTDF.isValid()) {
+        TDF = largeTDF;
+        // TODO
+        // First, extract centerlines from largeTDF and GVF
+        // Then extract centerlines from smallTDF using large centerlines as input
+        centerlineExtraction->setInputData(0, largeTDF);
+        centerlineExtraction->setInputData(1, GVFfield);
+        centerlineExtraction->setInputData(2, smallTDF);
+        centerlineExtraction->setInputData(3, gradients);
+        centerlineExtraction->update();
+        LineSet::pointer centerline = centerlineExtraction->getOutputData<LineSet>();
 
-    // Segmentation
-    InverseGradientSegmentation::pointer segmentation = InverseGradientSegmentation::New();
-    segmentation->setInputConnection(centerlineExtraction->getOutputPort(1));
-    segmentation->setInputData(1, gradients);
-    segmentation->update();
+        // Segmentation
+        InverseGradientSegmentation::pointer segmentation = InverseGradientSegmentation::New();
+        segmentation->setInputConnection(centerlineExtraction->getOutputPort(1));
+        segmentation->setInputData(1, GVFfield);
+        segmentation->update();
+        setStaticOutputData<Segmentation>(0, segmentation->getOutputData<Segmentation>());
+        setStaticOutputData<LineSet>(1, centerline);
+    } else {
+        if(smallTDF.isValid()) {
+            TDF = smallTDF;
+            centerlineExtraction->setInputData(0, smallTDF);
+            centerlineExtraction->setInputData(1, gradients);
+        } else {
+            TDF = largeTDF;
+            centerlineExtraction->setInputData(0, largeTDF);
+            centerlineExtraction->setInputData(1, GVFfield);
+            gradients = GVFfield;
+        }
+        centerlineExtraction->update();
+        LineSet::pointer centerline = centerlineExtraction->getOutputData<LineSet>();
 
-    setStaticOutputData<Segmentation>(0, segmentation->getOutputData<Segmentation>());
-    setStaticOutputData<LineSet>(1, centerline);
+        // Segmentation
+        InverseGradientSegmentation::pointer segmentation = InverseGradientSegmentation::New();
+        segmentation->setInputConnection(centerlineExtraction->getOutputPort(1));
+        segmentation->setInputData(1, gradients);
+        segmentation->update();
+        setStaticOutputData<Segmentation>(0, segmentation->getOutputData<Segmentation>());
+        setStaticOutputData<LineSet>(1, centerline);
+    }
+
+
     setStaticOutputData<Image>(2, TDF);
 }
 
@@ -222,7 +245,7 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::createGradients(Image::p
 
     bool no3Dwrite = !device->isWritingTo3DTexturesSupported();
 
-    OpenCLImageAccess3D::pointer access = image->getOpenCLImageAccess3D(ACCESS_READ, device);
+    OpenCLImageAccess::pointer access = image->getOpenCLImageAccess(ACCESS_READ, device);
     device->createProgramFromSourceWithName("tsf",
             std::string(FAST_SOURCE_DIR) + "Algorithms/TubeSegmentationAndCenterlineExtraction/TubeSegmentationAndCenterlineExtraction.cl");
     cl::Program program(device->getProgram("tsf"));
@@ -246,13 +269,13 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::createGradients(Image::p
     }
     std::cout << image->getSize().transpose() << std::endl;
 
-    toFloatKernel.setArg(0, *(access->get()));
+    toFloatKernel.setArg(0, *(access->get3DImage()));
     if(no3Dwrite) {
         OpenCLBufferAccess::pointer floatImageAccess = floatImage->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
         toFloatKernel.setArg(1, *(floatImageAccess->get()));
     } else {
-        OpenCLImageAccess3D::pointer floatImageAccess = floatImage->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
-        toFloatKernel.setArg(1, *(floatImageAccess->get()));
+        OpenCLImageAccess::pointer floatImageAccess = floatImage->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+        toFloatKernel.setArg(1, *(floatImageAccess->get3DImage()));
     }
     toFloatKernel.setArg(2, minimumIntensity);
     toFloatKernel.setArg(3, maximumIntensity);
@@ -270,14 +293,14 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::createGradients(Image::p
     float vectorMaximum = (1 - mSensitivity);
     int sign = mExtractDarkStructures ? -1 : 1;
 
-    OpenCLImageAccess3D::pointer floatImageAccess = floatImage->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
-    vectorFieldKernel.setArg(0, *(floatImageAccess->get()));
+    OpenCLImageAccess::pointer floatImageAccess = floatImage->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+    vectorFieldKernel.setArg(0, *(floatImageAccess->get3DImage()));
     if(no3Dwrite) {
         OpenCLBufferAccess::pointer vectorFieldAccess = vectorField->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
         vectorFieldKernel.setArg(1, *(vectorFieldAccess->get()));
     } else {
-        OpenCLImageAccess3D::pointer vectorFieldAccess = vectorField->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
-        vectorFieldKernel.setArg(1, *(vectorFieldAccess->get()));
+        OpenCLImageAccess::pointer vectorFieldAccess = vectorField->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+        vectorFieldKernel.setArg(1, *(vectorFieldAccess->get3DImage()));
     }
     vectorFieldKernel.setArg(2, vectorMaximum);
     vectorFieldKernel.setArg(3, sign);
@@ -300,14 +323,14 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::runTubeDetectionFilter(I
     TDF->setSpacing(vectorField->getSpacing());
 
     OpenCLBufferAccess::pointer TDFAccess = TDF->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
-    OpenCLImageAccess3D::pointer vectorFieldAccess = vectorField->getOpenCLImageAccess3D(ACCESS_READ, device);
+    OpenCLImageAccess::pointer vectorFieldAccess = vectorField->getOpenCLImageAccess(ACCESS_READ, device);
 
     device->createProgramFromSourceWithName("tsf",
             std::string(FAST_SOURCE_DIR) + "Algorithms/TubeSegmentationAndCenterlineExtraction/TubeSegmentationAndCenterlineExtraction.cl");
     cl::Program program(device->getProgram("tsf"));
     cl::Kernel kernel(program, "circleFittingTDF");
 
-    kernel.setArg(0, *(vectorFieldAccess->get()));
+    kernel.setArg(0, *(vectorFieldAccess->get3DImage()));
     kernel.setArg(1, *(TDFAccess->get()));
     kernel.setArg(2, mMinimumRadius);
     kernel.setArg(3, mMaximumRadius);

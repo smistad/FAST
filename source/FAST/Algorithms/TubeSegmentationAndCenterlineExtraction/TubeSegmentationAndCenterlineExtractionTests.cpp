@@ -16,7 +16,7 @@ TEST_CASE("TSF", "[tsf]") {
     TubeSegmentationAndCenterlineExtraction::pointer tubeExtraction = TubeSegmentationAndCenterlineExtraction::New();
     tubeExtraction->setInputConnection(importer->getOutputPort());
     tubeExtraction->extractBrightTubes();
-    tubeExtraction->setMinimumRadius(1.5);
+    tubeExtraction->setMinimumRadius(0.5);
     tubeExtraction->setMaximumRadius(8);
     tubeExtraction->setSensitivity(0.99);
 
