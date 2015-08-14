@@ -9,9 +9,19 @@ namespace fast {
 class ImageGradient : public ProcessObject {
     FAST_OBJECT(ImageGradient);
     public:
+        /**
+         * Use 16 bit format to reduce memory usage
+         */
+        void set16bitStorageFormat();
+        /**
+         * Use regular 32 bit float format (default)
+         */
+        void set32bitStorageFormat();
     private:
         ImageGradient();
         void execute();
+
+        bool mUse16bitFormat;
 };
 
 }

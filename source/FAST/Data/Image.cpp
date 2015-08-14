@@ -127,8 +127,6 @@ void Image::transferCLImageFromHost(OpenCLDevice::pointer device) {
         CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
                 0, mHostData);
     }
-
-
 }
 
 void Image::transferCLImageToHost(OpenCLDevice::pointer device) {
@@ -152,7 +150,6 @@ void Image::transferCLImageToHost(OpenCLDevice::pointer device) {
         CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
                 0, mHostData);
     }
-
 }
 
 bool Image::hasAnyData() {
@@ -775,6 +772,8 @@ void Image::calculateMaxAndMinIntensity() {
             void* data = access->get();
             switch(mType) {
             case TYPE_FLOAT:
+            case TYPE_SNORM_INT16:
+            case TYPE_UNORM_INT16:
                 getMaxAndMinFromData<float>(data,nrOfElements,&mMinimumIntensity,&mMaximumIntensity);
                 break;
             case TYPE_INT8:

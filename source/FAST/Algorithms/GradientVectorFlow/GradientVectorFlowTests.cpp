@@ -76,6 +76,7 @@ TEST_CASE("Gradient vector flow with Euler method 2D 16 bit", "[fast][GVF][Gradi
 
     ImageGradient::pointer gradient = ImageGradient::New();
     gradient->setInputConnection(importer->getOutputPort());
+    gradient->set16bitStorageFormat();
 
     EulerGradientVectorFlow::pointer gvf = EulerGradientVectorFlow::New();
     gvf->setInputConnection(gradient->getOutputPort());
@@ -111,6 +112,7 @@ TEST_CASE("Gradient vector flow with Euler method 3D 16 bit", "[fast][GVF][Gradi
 
     ImageGradient::pointer gradient = ImageGradient::New();
     gradient->setInputConnection(normalize->getOutputPort());
+    gradient->set16bitStorageFormat();
 
     EulerGradientVectorFlow::pointer gvf = EulerGradientVectorFlow::New();
     gvf->setInputConnection(gradient->getOutputPort());
