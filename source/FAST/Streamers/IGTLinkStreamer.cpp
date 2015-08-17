@@ -115,15 +115,18 @@ void IGTLinkStreamer::updateFirstFrameSetFlag() {
             mFirstFrameIsInserted = true;
         }
         mFirstFrameCondition.notify_one();
+    } else {
+        std::cout << "ALL HAVE NOT GOT DATA" << std::endl;
     }
 }
 
 void IGTLinkStreamer::producerStream() {
     mSocket = igtl::ClientSocket::New();
     std::cout << "Trying to connect to Open IGT Link server " << mAddress << ":" << boost::lexical_cast<std::string>(mPort) << std::endl;;
-    //mSocket->SetTimeout(3000); // try to connect for 3 seconds
+    //mSocket->SetTimeout(3); // try to connect for 3 seconds
     int r = mSocket->ConnectToServer(mAddress.c_str(), mPort);
     if(r != 0) {
+       connectionLostSignal();
        throw Exception("Cannot connect to the Open IGT Link server.");
     }
     std::cout << "Connected to Open IGT Link server" << std::endl;;
@@ -153,8 +156,9 @@ void IGTLinkStreamer::producerStream() {
         // Receive generic header from the socket
         int r = mSocket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
         if(r == 0) {
-           mSocket->CloseSocket();
-           break;
+            connectionLostSignal();
+            mSocket->CloseSocket();
+            break;
         }
         if(r != headerMsg->GetPackSize()) {
            continue;
@@ -200,7 +204,7 @@ void IGTLinkStreamer::producerStream() {
                      ptr = getOutputDataFromDeviceName<AffineTransformation>(headerMsg->GetDeviceName());
                      ptr->setStreamer(mPtr.lock());
                 } catch(Exception &e) {
-                    std::cout << "Output port with device name not found" << std::endl;
+                    std::cout << "Output port with device name " << headerMsg->GetDeviceName() << " not found" << std::endl;
                     continue;
                 }
                 try {
@@ -251,13 +255,13 @@ void IGTLinkStreamer::producerStream() {
                      ptr = getOutputDataFromDeviceName<Image>(headerMsg->GetDeviceName());
                      ptr->setStreamer(mPtr.lock());
                 } catch(Exception &e) {
-                    std::cout << "Output port with device name not found" << std::endl;
+                    std::cout << "Output port with device name " << headerMsg->GetDeviceName() << " not found" << std::endl;
                     continue;
                 }
                 try {
                     Image::pointer image = createFASTImageFromMessage(imgMsg, getMainDevice());
                     ptr->addFrame(image);
-                    std::cout << "Frame added.." << std::endl;
+                    std::cout << "Image frame added.." << std::endl;
                 } catch(NoMoreFramesException &e) {
                     throw e;
                 } catch(Exception &e) {
@@ -269,6 +273,11 @@ void IGTLinkStreamer::producerStream() {
                 }
                 mNrOfFrames++;
             }
+        } else if(strcmp(headerMsg->GetDeviceType(), "STATUS") == 0) {
+            std::cout << "STATUS MESSAGE recieved closing connection" << std::endl;
+            stop();
+            connectionLostSignal();
+            break;
        } else {
            // Receive generic message
           igtl::MessageBase::Pointer message;
@@ -284,6 +293,13 @@ void IGTLinkStreamer::producerStream() {
           int c = message->Unpack();
        }
     }
+    // Make sure we end the waiting thread if first frame has not been inserted
+    {
+        boost::lock_guard<boost::mutex> lock(mFirstFrameMutex);
+        if(!mFirstFrameIsInserted)
+            mFirstFrameIsInserted = true;
+    }
+    mFirstFrameCondition.notify_one();
     mSocket->CloseSocket();
 }
 
@@ -335,6 +351,11 @@ void IGTLinkStreamer::execute() {
     boost::unique_lock<boost::mutex> lock(mFirstFrameMutex);
     while(!mFirstFrameIsInserted) {
         mFirstFrameCondition.wait(lock);
+    }
+    {
+        boost::unique_lock<boost::mutex> lock(mStopMutex);
+        if(!mStop)
+            connectionEstablishedSignal(); // send signal
     }
 }
 

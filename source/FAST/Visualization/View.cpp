@@ -287,7 +287,12 @@ void View::recalculateCamera() {
     }
 }
 
+void View::reinitialize() {
+    initializeGL();
+}
+
 void View::initializeGL() {
+    std::cout << "SIZE IS: " << width() << " " << height() << std::endl;
 	glewInit();
 	glEnable(GL_TEXTURE_2D);
 

@@ -103,7 +103,7 @@ list (APPEND FAST_INCLUDE_DIRS "${Qt5Widgets_INCLUDE_DIRS}")
 list (APPEND FAST_INCLUDE_DIRS "${Qt5OpenGL_INCLUDE_DIRS}")
 
 ## Boost
-find_package(Boost COMPONENTS system thread iostreams REQUIRED)
+find_package(Boost COMPONENTS system thread iostreams signals REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS} ${PROJECT_BINARY_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
 set(LIBRARIES ${LIBRARIES} ${Boost_LIBRARIES})
@@ -157,6 +157,7 @@ endif()
 #### Enable C++11
 # Note that Microsoft Visual C++ compiler enables C++11 by default
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth=300") # Fix for a bug with boost signals2
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR CMAKE_COMPILER_IS_GNUCXX)
     include(CheckCXXCompilerFlag)
     check_cxx_compiler_flag(--std=c++11 SUPPORTS_STD_CXX11)
