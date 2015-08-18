@@ -43,15 +43,6 @@ inline void getMaxAndMinFromOpenCLImageResult(void* voidData, unsigned int size,
     }
 }
 
-template <class T>
-inline float getSumFromOpenCLImageResult(void* voidData, unsigned int size, unsigned int nrOfComponents) {
-    T* data = (T*)voidData;
-    float sum = 0.0f;
-    for(unsigned int i = nrOfComponents; i < size*nrOfComponents; i += nrOfComponents) {
-        sum += data[i];
-    }
-}
-
 unsigned int getPowerOfTwoSize(unsigned int size) {
     int i = 1;
     while(pow(2, i) < size)
@@ -69,7 +60,7 @@ void getIntensitySumFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D im
     size /= 2;
     std::vector<cl::Image2D> levels;
     while(size >= 4) {
-        cl::Image2D level = cl::Image2D(device->getContext(), CL_MEM_READ_WRITE, getOpenCLImageFormat(device, CL_MEM_OBJECT_IMAGE2D, type, 2), size, size);
+        cl::Image2D level = cl::Image2D(device->getContext(), CL_MEM_READ_WRITE, getOpenCLImageFormat(device, CL_MEM_OBJECT_IMAGE2D, TYPE_FLOAT, 1), size, size);
         levels.push_back(level);
         size /= 2;
     }
@@ -129,28 +120,11 @@ void getIntensitySumFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D im
 
     // Get result from the last level
     unsigned int nrOfElements = 4*4;
-    unsigned int nrOfComponents = getOpenCLImageFormat(device, CL_MEM_OBJECT_IMAGE2D, type, 2).image_channel_order == CL_RGBA ? 4 : 2;
-    void* result = allocateDataArray(nrOfElements,type,nrOfComponents);
+    unsigned int nrOfComponents = getOpenCLImageFormat(device, CL_MEM_OBJECT_IMAGE2D, TYPE_FLOAT, 1).image_channel_order == CL_RGBA ? 4 : 1;
+    float* result = (float*)allocateDataArray(nrOfElements,TYPE_FLOAT,nrOfComponents);
     queue.enqueueReadImage(levels[levels.size()-1],CL_TRUE,oul::createOrigoRegion(),oul::createRegion(4,4,1),0,0,result);
-    switch(type) {
-    case TYPE_FLOAT:
-        sum = getSumFromOpenCLImageResult<float>(result, nrOfElements, nrOfComponents);
-        break;
-    case TYPE_INT8:
-        sum = getSumFromOpenCLImageResult<char>(result, nrOfElements, nrOfComponents);
-        break;
-    case TYPE_UINT8:
-        sum = getSumFromOpenCLImageResult<uchar>(result, nrOfElements, nrOfComponents);
-        break;
-    case TYPE_INT16:
-        sum = getSumFromOpenCLImageResult<short>(result, nrOfElements, nrOfComponents);
-        break;
-    case TYPE_UINT16:
-        sum = getSumFromOpenCLImageResult<ushort>(result, nrOfElements, nrOfComponents);
-        break;
-    default:
-        throw Exception("Unsupported data type");
-    }
+    *sum = getSumFromOpenCLImageResult<float>(result, nrOfElements, nrOfComponents);
+    delete[] result;
 }
 
 void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image, DataType type, float* min, float* max) {
@@ -242,6 +216,7 @@ void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image
         getMaxAndMinFromOpenCLImageResult<ushort>(result, nrOfElements, nrOfComponents, min, max);
         break;
     }
+    deleteArray(result, type);
 }
 
 void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D image, DataType type, float* min, float* max) {
@@ -338,6 +313,7 @@ void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D image
         getMaxAndMinFromOpenCLImageResult<ushort>(result, nrOfElements, nrOfComponents, min, max);
         break;
     }
+    deleteArray(result, type);
 
 }
 
@@ -414,6 +390,7 @@ void getMaxAndMinFromOpenCLBuffer(OpenCLDevice::pointer device, cl::Buffer buffe
         getMaxAndMinFromOpenCLImageResult<ushort>(result, nrOfElements, 2, min, max);
         break;
     }
+    deleteArray(result, type);
 }
 
 } // end namespace fast
