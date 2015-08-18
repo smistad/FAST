@@ -1248,6 +1248,53 @@ TEST_CASE("calculateAverageIntensity returns the average intensity of a 2D image
     //}
 }
 
+TEST_CASE("calculateAverageIntensity returns the average intensity of a 2D image stored on host" , "[fast][image]") {
+    unsigned int width = 31;
+    unsigned int height = 64;
+
+    // Test for having components 1 to 4 and for all data types
+    unsigned int nrOfComponents = 1;
+    //for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+        for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
+            DataType type = (DataType)typeNr;
+
+            // Create a data array with random data
+            void* data = allocateRandomData(width*height*nrOfComponents, type);
+
+            Image::pointer image = Image::New();
+            image->create(width, height, type, nrOfComponents, Host::getInstance(), data);
+
+            float average = getSumFromData(data, width*height*nrOfComponents, type) / (width*height);
+            CHECK(image->calculateAverageIntensity() == Approx(average));
+            deleteArray(data, type);
+        }
+    //}
+}
+
+TEST_CASE("calculateAverageIntensity returns the average intensity of a 3D image stored as host array" , "[fast][image]") {
+    unsigned int width = 32;
+    unsigned int height = 32;
+    unsigned int depth = 32;
+
+    // Test for having components 1 to 4 and for all data types
+    uint nrOfComponents = 1;
+    //for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+        for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
+            DataType type = (DataType)typeNr;
+
+            // Create a data array with random data
+            void* data = allocateRandomData(width*height*depth*nrOfComponents, type);
+
+            Image::pointer image = Image::New();
+            image->create(width, height, depth, type, nrOfComponents, Host::getInstance(), data);
+
+            float average = getSumFromData(data, width*height*depth*nrOfComponents, type) / (width*height*depth);
+            CHECK(image->calculateAverageIntensity() == Approx(average));
+            deleteArray(data, type);
+        }
+    //}
+}
+
 TEST_CASE("calculateMaximum/MinimumIntensity returns the maximum/minimum intensity of a 2D image stored as OpenCL image" , "[fast][image]") {
     DeviceManager& deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
