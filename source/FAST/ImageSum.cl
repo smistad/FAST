@@ -4,15 +4,11 @@
 #define BUFFER_TYPE float
 #define READ_IMAGE read_imagef
 #define WRITE_IMAGE write_imagef
-#define MAX_VALUE FLT_MAX
-#define MIN_VALUE FLT_MIN
 #elif TYPE_UINT8
 #define TYPE uint4
 #define BUFFER_TYPE uchar
 #define READ_IMAGE read_imageui
 #define WRITE_IMAGE write_imageui
-#define MAX_VALUE UCHAR_MAX
-#define MIN_VALUE 0
 #elif TYPE_INT8
 #define TYPE int4
 #define BUFFER_TYPE char
@@ -60,7 +56,10 @@ __kernel void createFirstSumImage2DLevel(
 
     float sum = 0.0f;
     for(int i = 0; i < 4; i++) {
-        sum += READ_IMAGE(image, sampler, select((int2)(0,0), readPos+offset2D[i], readPos+offset2D[i] < size)).x;
+        int2 nPos = readPos + offset2D[i];
+        if(nPos.x < size.x && nPos.y < size.y) {
+            sum += READ_IMAGE(image, sampler, nPos).x;
+        }
     }
 
     write_imagef(firstLevel, pos, sum);

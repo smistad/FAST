@@ -2,6 +2,7 @@
 #include "FAST/Data/Image.hpp"
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Tests/DataComparison.hpp"
+#include "FAST/Utility.hpp"
 #include <limits>
 
 using namespace fast;
@@ -1179,22 +1180,6 @@ TEST_CASE("Calling calculate max or min intensity on uninitialized image throws 
     CHECK_THROWS(image->calculateMinimumIntensity());
 }
 
-template <class T>
-inline void getMaxAndMinFromData(void* voidData, unsigned int nrOfElements, float* min, float* max) {
-    T* data = (T*)voidData;
-
-    *min = std::numeric_limits<float>::max();
-    *max = std::numeric_limits<float>::min();
-    for(unsigned int i = 0; i < nrOfElements; i++) {
-        if((float)data[i] < *min) {
-            *min = (float)data[i];
-        }
-        if((float)data[i] > *max) {
-            *max = (float)data[i];
-        }
-    }
-}
-
 inline void getMaxAndMinFromData(void* data, unsigned int nrOfElements, float* min, float* max, DataType type) {
     switch(type) {
     case TYPE_FLOAT:
@@ -1213,6 +1198,54 @@ inline void getMaxAndMinFromData(void* data, unsigned int nrOfElements, float* m
         getMaxAndMinFromData<ushort>(data,nrOfElements,min,max);
         break;
     }
+}
+
+inline float getSumFromData(void* data, unsigned int nrOfElements, DataType type) {
+    float sum;
+    switch(type) {
+    case TYPE_FLOAT:
+        sum = getSumFromData<float>(data,nrOfElements);
+        break;
+    case TYPE_INT8:
+        sum = getSumFromData<char>(data,nrOfElements);
+        break;
+    case TYPE_UINT8:
+        sum = getSumFromData<uchar>(data,nrOfElements);
+        break;
+    case TYPE_INT16:
+        sum = getSumFromData<short>(data,nrOfElements);
+        break;
+    case TYPE_UINT16:
+        sum = getSumFromData<ushort>(data,nrOfElements);
+        break;
+    }
+
+    return sum;
+}
+
+TEST_CASE("calculateAverageIntensity returns the average intensity of a 2D image stored as OpenCL image" , "[fast][image]") {
+    DeviceManager& deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    unsigned int width = 31;
+    unsigned int height = 64;
+
+    // Test for having components 1 to 4 and for all data types
+    unsigned int nrOfComponents = 1;
+    //for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+        for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
+            DataType type = (DataType)typeNr;
+
+            // Create a data array with random data
+            void* data = allocateRandomData(width*height*nrOfComponents, type);
+
+            Image::pointer image = Image::New();
+            image->create(width, height, type, nrOfComponents, device, data);
+
+            float average = getSumFromData(data, width*height*nrOfComponents, type) / (width*height);
+            CHECK(image->calculateAverageIntensity() == Approx(average));
+            deleteArray(data, type);
+        }
+    //}
 }
 
 TEST_CASE("calculateMaximum/MinimumIntensity returns the maximum/minimum intensity of a 2D image stored as OpenCL image" , "[fast][image]") {
@@ -1237,6 +1270,7 @@ TEST_CASE("calculateMaximum/MinimumIntensity returns the maximum/minimum intensi
             getMaxAndMinFromData(data, width*height*nrOfComponents, &min, &max, type);
             CHECK(image->calculateMaximumIntensity() == Approx(max));
             CHECK(image->calculateMinimumIntensity() == Approx(min));
+            deleteArray(data, type);
         }
     //}
 }
@@ -1264,6 +1298,7 @@ TEST_CASE("calculateMaximum/MinimumIntensity returns the maximum/minimum intensi
             getMaxAndMinFromData(data, width*height*depth*nrOfComponents, &min, &max, type);
             CHECK(image->calculateMaximumIntensity() == Approx(max));
             CHECK(image->calculateMinimumIntensity() == Approx(min));
+            deleteArray(data, type);
         }
     //}
 }
@@ -1295,6 +1330,7 @@ TEST_CASE("calculateMaximum/MinimumIntensity returns the maximum/minimum intensi
             getMaxAndMinFromData(data, width*height*nrOfComponents, &min, &max, type);
             CHECK(image->calculateMaximumIntensity() == Approx(max));
             CHECK(image->calculateMinimumIntensity() == Approx(min));
+            deleteArray(data, type);
         }
     }
 }
@@ -1319,6 +1355,7 @@ TEST_CASE("calculateMaximum/MinimumIntensity returns the maximum/minimum intensi
             getMaxAndMinFromData(data, width*height*depth*nrOfComponents, &min, &max, type);
             CHECK(image->calculateMaximumIntensity() == Approx(max));
             CHECK(image->calculateMinimumIntensity() == Approx(min));
+            deleteArray(data, type);
         }
     }
 }
