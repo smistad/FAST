@@ -19,6 +19,15 @@ Window::Window() {
     // default window size
     mWidth = 512;
     mHeight = 512;
+    mFullscreen = false;
+}
+
+void Window::enableFullscreen() {
+    mFullscreen = true;
+}
+
+void Window::disableFullscreen() {
+    mFullscreen = false;
 }
 
 void Window::initializeQtApp() {
@@ -85,10 +94,12 @@ View* Window::createView() {
 
 void Window::start() {
     mWidget->resize(mWidth,mHeight);
-    //getViews()[0]->resize(mWidth,mHeight);
 
-    mWidget->show();
-    std::cout << "running main loop" << std::endl;
+    if(mFullscreen) {
+        mWidget->showFullScreen();
+    } else {
+        mWidget->show();
+    }
 
     if(mTimeout > 0) {
         QTimer* timer = new QTimer(mWidget);
