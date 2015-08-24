@@ -34,6 +34,12 @@ void SegmentationRenderer::setColor(Segmentation::LabelType labelType,
     mColorsModified = true;
 }
 
+void SegmentationRenderer::setFillArea(Segmentation::LabelType labelType,
+        bool fillArea) {
+    mLabelFillArea[labelType] = fillArea;
+    mFillAreaModified = true;
+}
+
 void SegmentationRenderer::setFillArea(bool fillArea) {
     mFillArea = fillArea;
 }
@@ -42,6 +48,7 @@ SegmentationRenderer::SegmentationRenderer() {
     createInputPort<Segmentation>(0, false);
     mIsModified = false;
     mColorsModified = true;
+    mFillAreaModified = true;
     mFillArea = true;
 
     // Set up default label colors
@@ -98,6 +105,27 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
         );
     }
 
+    if(mFillAreaModified) {
+        // Transfer colors to device (this doesn't have to happen every render call..)
+        boost::shared_array<char> fillAreaData(new char[mLabelColors.size()]);
+        boost::unordered_map<Segmentation::LabelType, Color>::iterator it;
+        for(it = mLabelColors.begin(); it != mLabelColors.end(); it++) {
+            if(mLabelFillArea.count(it->first) == 0) {
+                // Use default value
+                fillAreaData[it->first] = mFillArea;
+            } else {
+                fillAreaData[it->first] = mLabelFillArea[it->first];
+            }
+        }
+
+        mFillAreaBuffer = cl::Buffer(
+                device->getContext(),
+                CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                sizeof(char)*mLabelColors.size(),
+                fillAreaData.get()
+        );
+    }
+
 
     cl::CommandQueue queue = device->getCommandQueue();
     std::vector<cl::Memory> v;
@@ -117,12 +145,7 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
 
 
         if(input->getDimensions() == 2) {
-            std::string kernelName;
-            if(mFillArea) {
-                kernelName = "renderArea2D";
-            } else {
-                kernelName = "renderBorder2D";
-            }
+            std::string kernelName = "render2D";
             cl::Kernel kernel(device->getProgram(programNr), kernelName.c_str());
             // Run kernel to fill the texture
 
@@ -135,6 +158,7 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
             kernel.setArg(4, input->getSpacing().y());
             kernel.setArg(5, PBOspacing);
             kernel.setArg(6, mColorBuffer);
+            kernel.setArg(7, mFillAreaBuffer);
 
             // Run the draw 2D kernel
             queue.enqueueNDRangeKernel(
