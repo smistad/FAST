@@ -168,12 +168,7 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
                     cl::NullRange
             );
         } else {
-            std::string kernelName;
-            if(mFillArea) {
-                kernelName = "renderArea3D";
-            } else {
-                kernelName = "renderBorder3D";
-            }
+            std::string kernelName = "render3D";
             cl::Kernel kernel(device->getProgram(programNr), kernelName.c_str());
 
             // Get transform of the image
@@ -198,6 +193,7 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
             kernel.setArg(2, PBO2); // Write to this
             kernel.setArg(3, transformBuffer);
             kernel.setArg(4, mColorBuffer);
+            kernel.setArg(5, mFillAreaBuffer);
 
             // Run the draw 3D image kernel
             queue.enqueueNDRangeKernel(

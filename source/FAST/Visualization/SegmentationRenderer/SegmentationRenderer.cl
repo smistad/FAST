@@ -90,12 +90,13 @@ float4 transformPosition(__constant float* transform, int2 PBOposition) {
     return result;
 }
 
-__kernel void renderBorder3D(
+__kernel void render3D(
         __read_only image3d_t image,
         __global float* PBOread,
         __global float* PBOwrite,
         __constant float* transform,
-        __global float* colors
+        __global float* colors,
+        __global char* fillArea
         ) {
     const int2 PBOposition = {get_global_id(0), get_global_id(1)};
     const int linearPosition = PBOposition.x + PBOposition.y*get_global_size(0);
@@ -120,13 +121,18 @@ __kernel void renderBorder3D(
             char getColor = 0;
             // Check neighbors
             // If any neighbors have a different label, we are at the border
-            for(int a = -1; a < 2; a++) {
-            for(int b = -1; b < 2; b++) {
-            for(int c = -1; c < 2; c++) {
-                if(read_imageui(image, sampler, imagePosition + (float4)(a,b,c,0)).x != label) {
-                    getColor = 1;
-                }
-            }}}
+
+            if(fillArea[label] == 1) {
+                getColor = 1;
+            } else {
+                for(int a = -1; a < 2; a++) {
+                for(int b = -1; b < 2; b++) {
+                for(int c = -1; c < 2; c++) {
+                    if(read_imageui(image, sampler, imagePosition + (float4)(a,b,c,0)).x != label) {
+                        getColor = 1;
+                    }
+                }}}
+            }
             if(getColor == 1) {
                 useBackground = 0;
                 // TODO some out of bounds check here on colors?
@@ -143,48 +149,3 @@ __kernel void renderBorder3D(
     // Write to PBO
     vstore4(color, linearPosition, PBOwrite);
 }
-
-
-__kernel void renderArea3D(
-        __read_only image3d_t image,
-        __global float* PBOread,
-        __global float* PBOwrite,
-        __constant float* transform,
-        __global float* colors
-        ) {
-    const int2 PBOposition = {get_global_id(0), get_global_id(1)};
-    const int linearPosition = PBOposition.x + PBOposition.y*get_global_size(0);
-    
-    float4 imagePosition = transformPosition(transform, PBOposition);
-    imagePosition.w = 1;
-       
-    float4 color;
-    char useBackground = 1;
-
-    // Is image within bounds?
-
-    if(imagePosition.x < get_image_width(image) && imagePosition.y < get_image_height(image) && imagePosition.z < get_image_depth(image) &&
-        imagePosition.x >= 0 && imagePosition.y >= 0 && imagePosition.z >= 0
-        ) {
-        imagePosition.y = get_image_height(image) - imagePosition.y - 1; // Flip image vertically
-        // Read image and put value in PBO
-        uint label = read_imageui(image, sampler, imagePosition).x;
-        
-        if(label > 0) {
-            useBackground = 0;
-            // TODO some out of bounds check here on colors?
-            color.xyz = vload3(label, colors);
-            color.w = 1.0f;
-            //printf("S color: %f %f %f Laabel %d\n", color.x, color.y, color.z, label);
-        }
-    }
-    
-    if(useBackground == 1) {
-        color = vload4(linearPosition, PBOread);
-        //printf("BG: color: %f %f %f\n", color.x, color.y, color.z);
-    }
-    
-    // Write to PBO
-    vstore4(color, linearPosition, PBOwrite);
-}
-
