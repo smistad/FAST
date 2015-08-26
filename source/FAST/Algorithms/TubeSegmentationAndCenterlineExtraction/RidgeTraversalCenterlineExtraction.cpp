@@ -206,6 +206,7 @@ void extractCenterlines(
         // Create queue
     std::priority_queue<point, std::vector<point>, PointComparison> queue;
 
+    std::cout << "Getting valid start points for centerline extraction.." << std::endl;
     // Collect all valid start points
     #pragma omp parallel for
     for(int z = 2; z < size.z()-2; z++) {
@@ -555,6 +556,7 @@ void RidgeTraversalCenterlineExtraction::execute() {
 
     centerlineOutput->create(vertices, lines);
     centerlineVolumeOutput->create(size.x(), size.y(), size.z(), TYPE_UINT8, 1, getMainDevice(), returnCenterlines);
+    SceneGraph::setParentNode(centerlineVolumeOutput, TDF);
 }
 
 }
