@@ -24,6 +24,8 @@ class Window : public QObject, public Object {
         void stopComputationThread();
         void setWidth(uint width);
         void setHeight(uint height);
+        void enableFullscreen();
+        void disableFullscreen();
     protected:
         Window();
         View* createView();
@@ -33,6 +35,7 @@ class Window : public QObject, public Object {
 
         WindowWidget* mWidget;
         unsigned int mWidth, mHeight;
+        bool mFullscreen;
         unsigned int mTimeout;
         QEventLoop* mEventLoop;
         ComputationThread* mThread;

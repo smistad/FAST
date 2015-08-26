@@ -287,7 +287,12 @@ void View::recalculateCamera() {
     }
 }
 
+void View::reinitialize() {
+    initializeGL();
+}
+
 void View::initializeGL() {
+    std::cout << "SIZE IS: " << width() << " " << height() << std::endl;
 	glewInit();
 	glEnable(GL_TEXTURE_2D);
 
@@ -370,22 +375,23 @@ void View::initializeGL() {
             // Find longest edge of the BB
             float longestEdgeDistance = 0;
             BoundingBox box = mNonVolumeRenderers[0]->getBoundingBox();
-            Vector3f corner = box.getCorners().row(0);
+            Vector3f firstCorner = box.getCorners().row(0);
             Vector3f min, max;
-            min[0] = corner[0];
-            max[0] = corner[0];
-            min[1] = corner[1];
-            max[1] = corner[1];
-            min[2] = corner[2];
-            max[2] = corner[2];
+            min[0] = firstCorner[0];
+            max[0] = firstCorner[0];
+            min[1] = firstCorner[1];
+            max[1] = firstCorner[1];
+            min[2] = firstCorner[2];
+            max[2] = firstCorner[2];
             for(int i = 0; i < mNonVolumeRenderers.size(); i++) {
                 BoundingBox box = mNonVolumeRenderers[i]->getBoundingBox();
                 MatrixXf corners = box.getCorners();
-                Vector3f boxOrigo = corners.row(0);
                 for (int j = 1; j < 8; j++) {
                     Vector3f corner = corners.row(j);
-                    if((corner-boxOrigo).norm() > longestEdgeDistance) {
-                        longestEdgeDistance = (corner-boxOrigo).norm();
+                    uint neighborCornerPos = j == 7 ? 0 : j - 1;
+                    Vector3f neighborCorner = corners.row(neighborCornerPos);
+                    if((corner-neighborCorner).norm() > longestEdgeDistance) {
+                        longestEdgeDistance = (corner-neighborCorner).norm();
                     }
                     for (uint k = 0; k < 3; k++) {
                         if (corners(j, k) < min[k])
@@ -398,6 +404,7 @@ void View::initializeGL() {
             }
 
             mPBOspacing = longestEdgeDistance / std::min(width(), height());
+            std::cout << "longest edge distance " << longestEdgeDistance << std::endl;
             std::cout << "PBO spacing set to " << mPBOspacing << std::endl;
 
             // Get the centroid of the bounding boxes
@@ -475,7 +482,7 @@ void View::initializeGL() {
                 m2DViewingTransformation.translation() = translation;
                 m2DViewingTransformation.scale(mPBOspacing);
                 // TODO figure out how to do translation for 2D images
-                //mPosX2D = width()*0.5*mPBOspacing;
+                //mPosX2D = width()*0.5*mPBOspacing - intersectionCentroid;
                 //mPosY2D = height()*0.5*mPBOspacing;
                 mPosX2D = 0;
                 mPosY2D = 0;

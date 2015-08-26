@@ -43,6 +43,7 @@ class Image : public SpatialDataObject {
 
         float calculateMaximumIntensity();
         float calculateMinimumIntensity();
+        float calculateAverageIntensity();
 
         // Copy image and put contents to specific device
         Image::pointer copy(ExecutionDevice::pointer device);
@@ -98,9 +99,9 @@ class Image : public SpatialDataObject {
 
         Vector3f mSpacing;
 
-        float mMaximumIntensity, mMinimumIntensity;
-        unsigned long mMaxMinTimestamp;
-        bool mMaxMinInitialized;
+        float mMaximumIntensity, mMinimumIntensity, mAverageIntensity;
+        unsigned long mMaxMinTimestamp, mAverageIntensityTimestamp;
+        bool mMaxMinInitialized, mAverageInitialized;
         void calculateMaxAndMinIntensity();
 };
 

@@ -23,13 +23,28 @@ void AddTransformation::execute() {
 
     if(data == mPrevious) {
         // This has already been processed, just change the transformation
-        dataNode->getParent()->setTransformation(*T);
+
+        // Find root node of dataNode
+        SceneGraphNode::pointer currentNode = dataNode->getParent();
+        SceneGraphNode::pointer currentChildNode = dataNode;
+        while(!currentNode->isRootNode()) {
+            currentChildNode = currentNode;
+            currentNode = currentNode->getParent();
+        }
+        // CurrentNode is now root node
+        // change transformation
+        currentChildNode->setTransformation(*T);
     } else {
-        // Add new node
-        SceneGraphNode::pointer newNode = SceneGraphNode::New();
-        newNode->setParent(dataNode->getParent());
-        newNode->setTransformation(*T);
-        dataNode->setParent(newNode);
+        // Find root node of dataNode
+        SceneGraphNode::pointer currentNode = dataNode->getParent();
+        while(!currentNode->isRootNode()) {
+            currentNode = currentNode->getParent();
+        }
+        // CurrentNode is now root node
+        // Add new root node
+        SceneGraphNode::pointer newRootNode = SceneGraphNode::New();
+        currentNode->setParent(newRootNode);
+        currentNode->setTransformation(*T);
     }
     mPrevious = data;
 

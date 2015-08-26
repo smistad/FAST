@@ -51,6 +51,81 @@ unsigned int getPowerOfTwoSize(unsigned int size) {
     return (unsigned int)pow(2,i);
 }
 
+void getIntensitySumFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image, DataType type, float* sum) {
+    // Get power of two size
+    unsigned int powerOfTwoSize = getPowerOfTwoSize(std::max(image.getImageInfo<CL_IMAGE_WIDTH>(), image.getImageInfo<CL_IMAGE_HEIGHT>()));
+
+    // Create image levels
+    unsigned int size = powerOfTwoSize;
+    size /= 2;
+    std::vector<cl::Image2D> levels;
+    while(size >= 4) {
+        cl::Image2D level = cl::Image2D(device->getContext(), CL_MEM_READ_WRITE, getOpenCLImageFormat(device, CL_MEM_OBJECT_IMAGE2D, TYPE_FLOAT, 1), size, size);
+        levels.push_back(level);
+        size /= 2;
+    }
+
+    // Compile OpenCL code
+    std::string buildOptions = "";
+    switch(type) {
+    case TYPE_FLOAT:
+        buildOptions = "-DTYPE_FLOAT";
+        break;
+    case TYPE_UINT8:
+        buildOptions = "-DTYPE_UINT8";
+        break;
+    case TYPE_INT8:
+        buildOptions = "-DTYPE_INT8";
+        break;
+    case TYPE_UINT16:
+        buildOptions = "-DTYPE_UINT16";
+        break;
+    case TYPE_INT16:
+        buildOptions = "-DTYPE_INT16";
+        break;
+    }
+    int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/ImageSum.cl", buildOptions);
+    cl::Program program = device->getProgram(programNr);
+    cl::CommandQueue queue = device->getCommandQueue();
+
+    // Fill first level
+    size = powerOfTwoSize/2;
+    cl::Kernel firstLevel(program, "createFirstSumImage2DLevel");
+    firstLevel.setArg(0, image);
+    firstLevel.setArg(1, levels[0]);
+
+    queue.enqueueNDRangeKernel(
+            firstLevel,
+            cl::NullRange,
+            cl::NDRange(size,size),
+            cl::NullRange
+    );
+
+    // Fill all other levels
+    cl::Kernel createLevel(program, "createSumImage2DLevel");
+    int i = 0;
+    size /= 2;
+    while(size >= 4) {
+        createLevel.setArg(0, levels[i]);
+        createLevel.setArg(1, levels[i+1]);
+        queue.enqueueNDRangeKernel(
+                createLevel,
+                cl::NullRange,
+                cl::NDRange(size,size),
+                cl::NullRange
+        );
+        i++;
+        size /= 2;
+    }
+
+    // Get result from the last level
+    unsigned int nrOfElements = 4*4;
+    unsigned int nrOfComponents = getOpenCLImageFormat(device, CL_MEM_OBJECT_IMAGE2D, TYPE_FLOAT, 1).image_channel_order == CL_RGBA ? 4 : 1;
+    float* result = (float*)allocateDataArray(nrOfElements,TYPE_FLOAT,nrOfComponents);
+    queue.enqueueReadImage(levels[levels.size()-1],CL_TRUE,oul::createOrigoRegion(),oul::createRegion(4,4,1),0,0,result);
+    *sum = getSumFromOpenCLImageResult<float>(result, nrOfElements, nrOfComponents);
+    delete[] result;
+}
 
 void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image, DataType type, float* min, float* max) {
     // Get power of two size
@@ -141,7 +216,7 @@ void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image
         getMaxAndMinFromOpenCLImageResult<ushort>(result, nrOfElements, nrOfComponents, min, max);
         break;
     }
-
+    deleteArray(result, type);
 }
 
 void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D image, DataType type, float* min, float* max) {
@@ -238,6 +313,7 @@ void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D image
         getMaxAndMinFromOpenCLImageResult<ushort>(result, nrOfElements, nrOfComponents, min, max);
         break;
     }
+    deleteArray(result, type);
 
 }
 
@@ -314,6 +390,7 @@ void getMaxAndMinFromOpenCLBuffer(OpenCLDevice::pointer device, cl::Buffer buffe
         getMaxAndMinFromOpenCLImageResult<ushort>(result, nrOfElements, 2, min, max);
         break;
     }
+    deleteArray(result, type);
 }
 
 } // end namespace fast

@@ -1,11 +1,12 @@
 #ifndef IGTLINK_STREAMER_HPP
 #define IGTLINK_STREAMER_HPP
 
+#include <boost/signals2.hpp>
+#include <boost/thread.hpp>
+#include <boost/unordered_map.hpp>
 #include "FAST/SmartPointers.hpp"
 #include "FAST/Streamers/Streamer.hpp"
 #include "FAST/ProcessObject.hpp"
-#include <boost/thread.hpp>
-#include <boost/unordered_map.hpp>
 #include "igtlClientSocket.h"
 
 namespace fast {
@@ -32,6 +33,10 @@ class IGTLinkStreamer : public Streamer, public ProcessObject {
         void stop();
 
         ~IGTLinkStreamer();
+
+        // Signals
+        boost::signals2::signal<void ()> connectionEstablishedSignal;
+        boost::signals2::signal<void ()> connectionLostSignal;
     private:
         IGTLinkStreamer();
 

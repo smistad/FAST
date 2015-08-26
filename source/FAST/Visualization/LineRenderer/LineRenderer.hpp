@@ -1,5 +1,5 @@
-#ifndef POINT_RENDERER_HPP_
-#define POINT_RENDERER_HPP_
+#ifndef LINE_RENDERER_HPP_
+#define LINE_RENDERER_HPP_
 
 #include "FAST/Visualization/Renderer.hpp"
 #include "FAST/Data/Color.hpp"

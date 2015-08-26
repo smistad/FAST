@@ -1,5 +1,5 @@
-#ifndef ADD_TRANSFORMATION_HPP_
-#define ADD_TRANSFORMATION_HPP_
+#ifndef SET_TRANSFORMATION_HPP_
+#define SET_TRANSFORMATION_HPP_
 
 #include "FAST/ProcessObject.hpp"
 #include "FAST/Data/SpatialDataObject.hpp"
