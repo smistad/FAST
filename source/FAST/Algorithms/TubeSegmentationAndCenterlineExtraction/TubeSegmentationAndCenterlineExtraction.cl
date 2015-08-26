@@ -181,7 +181,7 @@ __kernel void createVectorField(
         __global float* vectorField,
 #endif
         __private float Fmax,
-        __private int vsign
+        __private float vsign
         ) {
     const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
 

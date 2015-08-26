@@ -230,7 +230,9 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::runGradientVectorFlow(Im
     OpenCLDevice::pointer device = getMainDevice();
     EulerGradientVectorFlow::pointer gvf = EulerGradientVectorFlow::New();
     gvf->setInputData(vectorField);
-    gvf->set32bitStorageFormat();
+    //gvf->set32bitStorageFormat();
+    gvf->set16bitStorageFormat();
+    gvf->setIterations(100);
     gvf->update();
     return gvf->getOutputData<Image>();
 }
@@ -240,7 +242,8 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::createGradients(Image::p
     Image::pointer floatImage = Image::New();
     floatImage->create(image->getWidth(), image->getHeight(), image->getDepth(), TYPE_FLOAT, 1);
     Image::pointer vectorField = Image::New();
-    vectorField->create(image->getWidth(), image->getHeight(), image->getDepth(), TYPE_FLOAT, 3);
+    vectorField->create(image->getWidth(), image->getHeight(), image->getDepth(), TYPE_SNORM_INT16, 3);
+    //vectorField->create(image->getWidth(), image->getHeight(), image->getDepth(), TYPE_FLOAT, 3);
     vectorField->setSpacing(image->getSpacing());
 
     bool no3Dwrite = !device->isWritingTo3DTexturesSupported();
@@ -291,7 +294,7 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::createGradients(Image::p
 
     // Use sensitivity to set vector maximum (fmax)
     float vectorMaximum = (1 - mSensitivity);
-    int sign = mExtractDarkStructures ? -1 : 1;
+    float sign = mExtractDarkStructures ? -1.0f : 1.0f;
 
     OpenCLImageAccess::pointer floatImageAccess = floatImage->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
     vectorFieldKernel.setArg(0, *(floatImageAccess->get3DImage()));
@@ -321,6 +324,7 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::runTubeDetectionFilter(I
     Image::pointer TDF = Image::New();
     TDF->create(vectorField->getWidth(), vectorField->getHeight(), vectorField->getDepth(), TYPE_FLOAT, 1);
     TDF->setSpacing(vectorField->getSpacing());
+    SceneGraph::setParentNode(TDF, vectorField);
 
     OpenCLBufferAccess::pointer TDFAccess = TDF->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
     OpenCLImageAccess::pointer vectorFieldAccess = vectorField->getOpenCLImageAccess(ACCESS_READ, device);
