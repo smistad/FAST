@@ -94,6 +94,7 @@ inline Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer mes
     igtl::PrintMatrix(matrix);
     std::cout << "SPACING IS " << spacing[0] << " " << spacing[1] << " " << spacing[2] << std::endl;
     std::cout << "OFFSET IS " << offset[0] << " " << offset[1] << " " << offset[2] << std::endl;
+    std::cout << "SIZE IS " << image->getSize().transpose() << std::endl;
 
     return image;
 }
@@ -138,6 +139,7 @@ void IGTLinkStreamer::producerStream() {
     // Allocate a time stamp
     igtl::TimeStamp::Pointer ts;
     ts = igtl::TimeStamp::New();
+    uint statusMessageCounter = 0;
 
     while(true) {
         {
@@ -179,6 +181,7 @@ void IGTLinkStreamer::producerStream() {
         std::cout << "Device type: " << headerMsg->GetDeviceType() << std::endl;
         std::cout << "Device name: " << headerMsg->GetDeviceName() << std::endl;
         if(strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0) {
+            statusMessageCounter = 0;
             igtl::TransformMessage::Pointer transMsg;
             transMsg = igtl::TransformMessage::New();
             transMsg->SetMessageHeader(headerMsg);
@@ -224,6 +227,7 @@ void IGTLinkStreamer::producerStream() {
                 mNrOfFrames++;
             }
         } else if(strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0) {
+            statusMessageCounter = 0;
             std::cout << "Receiving IMAGE data type." << std::endl;
 
             // Create a message buffer to receive transform data
@@ -274,10 +278,22 @@ void IGTLinkStreamer::producerStream() {
                 mNrOfFrames++;
             }
         } else if(strcmp(headerMsg->GetDeviceType(), "STATUS") == 0) {
-            std::cout << "STATUS MESSAGE recieved closing connection" << std::endl;
-            stop();
-            connectionLostSignal();
-            break;
+            ++statusMessageCounter;
+            std::cout << "STATUS MESSAGE recieved" << std::endl;
+            // Receive generic message
+            igtl::MessageBase::Pointer message;
+            message = igtl::MessageBase::New();
+            message->SetMessageHeader(headerMsg);
+            message->AllocatePack();
+
+            // Receive transform data from the socket
+            mSocket->Receive(message->GetPackBodyPointer(), message->GetPackBodySize());
+            if(statusMessageCounter > 10) { // If we only recieve status messages, the connection is lost
+                std::cout << "10 STATUS MESSAGE recieved closing connection" << std::endl;
+                stop();
+                connectionLostSignal();
+                break;
+            }
        } else {
            // Receive generic message
           igtl::MessageBase::Pointer message;
