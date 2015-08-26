@@ -1,13 +1,27 @@
-
 __constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
 
-#ifdef TYPE_UINT
-#define READ_IMAGE (float)read_imageui
-#elif TYPE_INT
-#define READ_IMAGE (float)read_imagei
-#elif TYPE_FLOAT
-#define READ_IMAGE read_imagef
-#endif
+
+float readImageAsFloat2D(__read_only image2d_t image, sampler_t sampler, int2 position) {
+    int dataType = get_image_channel_data_type(image);
+    if(dataType == CLK_FLOAT || dataType == CLK_SNORM_INT16 || dataType == CLK_UNORM_INT16) {
+        return read_imagef(image, sampler, position).x;
+    } else if(dataType == CLK_SIGNED_INT16 || dataType == CLK_SIGNED_INT8) {
+        return (float)read_imagei(image, sampler, position).x;
+    } else {
+        return (float)read_imageui(image, sampler, position).x;
+    }
+}
+
+float readImageAsFloat3D(__read_only image3d_t image, sampler_t sampler, int4 position) {
+    int dataType = get_image_channel_data_type(image);
+    if(dataType == CLK_FLOAT || dataType == CLK_SNORM_INT16 || dataType == CLK_UNORM_INT16) {
+        return read_imagef(image, sampler, position).x;
+    } else if(dataType == CLK_SIGNED_INT16 || dataType == CLK_SIGNED_INT8) {
+        return (float)read_imagei(image, sampler, position).x;
+    } else {
+        return (float)read_imageui(image, sampler, position).x;
+    }
+}
 
 __kernel void gradient2D(
         __read_only image2d_t input,
@@ -17,8 +31,8 @@ __kernel void gradient2D(
     
     // TODO take pixel spacing into account
     float2 gradient = {
-            (READ_IMAGE(input, sampler, pos+(int2)(1,0)).x - READ_IMAGE(input, sampler, pos-(int2)(1,0)).x)*0.5f,
-            (READ_IMAGE(input, sampler, pos+(int2)(0,1)).x - READ_IMAGE(input, sampler, pos-(int2)(0,1)).x)*0.5f
+            (readImageAsFloat2D(input, sampler, pos+(int2)(1,0)) - readImageAsFloat2D(input, sampler, pos-(int2)(1,0)))*0.5f,
+            (readImageAsFloat2D(input, sampler, pos+(int2)(0,1)) - readImageAsFloat2D(input, sampler, pos-(int2)(0,1)))*0.5f
     };
     write_imagef(output, pos, gradient.xyyy);
 }
@@ -35,9 +49,9 @@ __kernel void gradient3D(
     
     // TODO take pixel spacing into account
     float3 gradient = {
-            (READ_IMAGE(input, sampler, pos+(int4)(1,0,0,0)).x - READ_IMAGE(input, sampler, pos-(int4)(1,0,0,0)).x)*0.5f,
-            (READ_IMAGE(input, sampler, pos+(int4)(0,1,0,0)).x - READ_IMAGE(input, sampler, pos-(int4)(0,1,0,0)).x)*0.5f,
-            (READ_IMAGE(input, sampler, pos+(int4)(0,0,1,0)).x - READ_IMAGE(input, sampler, pos-(int4)(0,0,1,0)).x)*0.5f
+            (readImageAsFloat3D(input, sampler, pos+(int4)(1,0,0,0)) - readImageAsFloat3D(input, sampler, pos-(int4)(1,0,0,0)))*0.5f,
+            (readImageAsFloat3D(input, sampler, pos+(int4)(0,1,0,0)) - readImageAsFloat3D(input, sampler, pos-(int4)(0,1,0,0)))*0.5f,
+            (readImageAsFloat3D(input, sampler, pos+(int4)(0,0,1,0)) - readImageAsFloat3D(input, sampler, pos-(int4)(0,0,1,0)))*0.5f
     };
 #ifdef cl_khr_3d_image_writes
     write_imagef(output, pos, gradient.xyzz);

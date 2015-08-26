@@ -82,7 +82,7 @@ void EulerGradientVectorFlow::execute2DGVF(Image::pointer input, Image::pointer 
     cl::Image2D vectorField(context, CL_MEM_READ_WRITE, storageFormat, width, height);
     cl::Image2D vectorField2(context, CL_MEM_READ_WRITE, storageFormat, width, height);
 
-    if(storageFormat.image_channel_data_type == CL_SNORM_INT16) {
+    if(storageFormat.image_channel_data_type == CL_SNORM_INT16  && input->getDataType() != TYPE_SNORM_INT16) {
         // Must run init kernel to copy values to 16 bit texture
         cl::Kernel initKernel(program, "GVF2DCopy");
         initKernel.setArg(0, *inputVectorField);
@@ -127,7 +127,7 @@ void EulerGradientVectorFlow::execute2DGVF(Image::pointer input, Image::pointer 
     // Copy result to output
     OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
     cl::Image2D* outputCLImage = outputAccess->get2DImage();
-    if(storageFormat.image_channel_data_type == CL_SNORM_INT16) {
+    if(storageFormat.image_channel_data_type == CL_SNORM_INT16 && input->getDataType() != TYPE_SNORM_INT16) {
         // Have to convert type back to float
         cl::Kernel resultKernel(program, "GVF2DCopy");
         resultKernel.setArg(0, vectorField);

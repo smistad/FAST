@@ -21,6 +21,12 @@ cl::ImageFormat fast::getOpenCLImageFormat(OpenCLDevice::pointer device, cl_mem_
     case TYPE_INT16:
         channelType = CL_SIGNED_INT16;
         break;
+    case TYPE_UNORM_INT16:
+        channelType = CL_UNORM_INT16;
+        break;
+    case TYPE_SNORM_INT16:
+        channelType = CL_SNORM_INT16;
+        break;
     }
 
     switch(components) {
@@ -69,6 +75,10 @@ size_t fast::getSizeOfDataType(DataType type, unsigned int nrOfComponents) {
     case TYPE_INT16:
         bytes = sizeof(short);
         break;
+    case TYPE_SNORM_INT16:
+    case TYPE_UNORM_INT16:
+        bytes = sizeof(short);
+        break;
     }
 
     return nrOfComponents*bytes;
@@ -90,6 +100,12 @@ float fast::getDefaultIntensityLevel(DataType type) {
         level = 128;
         break;
     case TYPE_INT16:
+        level = 0;
+        break;
+    case TYPE_UNORM_INT16:
+        level = 0.5;
+        break;
+    case TYPE_SNORM_INT16:
         level = 0;
         break;
     }
@@ -114,6 +130,12 @@ float fast::getDefaultIntensityWindow(DataType type) {
     case TYPE_INT16:
         window = 255;
         break;
+    case TYPE_UNORM_INT16:
+        window = 1;
+        break;
+    case TYPE_SNORM_INT16:
+        window = 2;
+        break;
     }
     return window;
 }
@@ -130,9 +152,11 @@ void fast::deleteArray(void * data, DataType type) {
             delete[] (char*)data;
             break;
         case TYPE_UINT16:
+        case TYPE_UNORM_INT16:
             delete[] (ushort*)data;
             break;
         case TYPE_INT16:
+        case TYPE_SNORM_INT16:
             delete[] (short*)data;
             break;
     }

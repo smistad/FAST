@@ -6,43 +6,42 @@ namespace fast {
 ImageGradient::ImageGradient() {
     createInputPort<Image>(0);
     createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+
+    mUse16bitFormat = false;
 }
 
 void ImageGradient::execute() {
     Image::pointer input = getStaticInputData<Image>(0);
     Image::pointer output = getStaticOutputData<Image>(0);
 
+    DataType type = TYPE_FLOAT;
+    if(mUse16bitFormat) {
+        type = TYPE_SNORM_INT16;
+    }
+
     // Initialize output image
     if(input->getDimensions() == 2) {
         output->create(
                 input->getWidth(),
                 input->getHeight(),
-                TYPE_FLOAT,
+                type,
                 2
-                );
+        );
     } else {
          output->create(
                 input->getWidth(),
                 input->getHeight(),
                 input->getDepth(),
-                TYPE_FLOAT,
+                type,
                 3
-                );
+        );
     }
 
     if(getMainDevice()->isHost()) {
         throw Exception("Not implemented yet.");
     } else {
         OpenCLDevice::pointer device = OpenCLDevice::pointer(getMainDevice());
-        std::string buildOptions = "";
-        if(input->getDataType() == TYPE_FLOAT) {
-            buildOptions = "-DTYPE_FLOAT";
-        } else if(input->getDataType() == TYPE_INT8 || input->getDataType() == TYPE_INT16) {
-            buildOptions = "-DTYPE_INT";
-        } else {
-            buildOptions = "-DTYPE_UINT";
-        }
-        int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "Algorithms/ImageGradient/ImageGradient.cl", buildOptions);
+        int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "Algorithms/ImageGradient/ImageGradient.cl");
         cl::Program program = device->getProgram(programNr);
         cl::Kernel kernel;
         OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
@@ -74,6 +73,14 @@ void ImageGradient::execute() {
     }
 }
 
+void ImageGradient::set16bitStorageFormat() {
+    mUse16bitFormat = true;
+}
+
+void ImageGradient::set32bitStorageFormat() {
+    mUse16bitFormat = false;
+}
 
 }
+
 
