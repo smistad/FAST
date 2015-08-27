@@ -4,6 +4,8 @@
 #include <map>
 #include <iostream>
 
+#undef ERROR // undefine some windows garbage
+
 namespace fast {
 
 // Use to signal end of report line
