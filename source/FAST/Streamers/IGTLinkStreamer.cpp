@@ -91,7 +91,7 @@ inline Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer mes
     }}
     T.linear() = fastMatrix;
     image->getSceneGraphNode()->setTransformation(T);
-    igtl::PrintMatrix(matrix);
+    Report::info() << T.matrix() << Report::end;
     Report::info() << "SPACING IS " << spacing[0] << " " << spacing[1] << " " << spacing[2] << Report::end;
     Report::info() << "OFFSET IS " << offset[0] << " " << offset[1] << " " << offset[2] << Report::end;
     Report::info() << "SIZE IS " << image->getSize().transpose() << Report::end;
@@ -201,7 +201,7 @@ void IGTLinkStreamer::producerStream() {
                 for(int j = 0; j < 4; j++) {
                     fastMatrix(i,j) = matrix[i][j];
                 }}
-                igtl::PrintMatrix(matrix);
+                Report::info() << fastMatrix << Report::end;
                 DynamicData::pointer ptr;
                 try {
                      ptr = getOutputDataFromDeviceName<AffineTransformation>(headerMsg->GetDeviceName());
