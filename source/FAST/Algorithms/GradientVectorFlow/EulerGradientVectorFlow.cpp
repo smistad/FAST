@@ -51,21 +51,21 @@ void EulerGradientVectorFlow::execute2DGVF(Image::pointer input, Image::pointer 
     cl::ImageFormat storageFormat;
     if(mUse16bitFormat) { // (CL_SNORM_INT16 is not core)
         if(device->isImageFormatSupported(CL_RG, CL_SNORM_INT16, CL_MEM_OBJECT_IMAGE2D)) {
-            std::cout << "Using 16 bit floats for GVF" << std::endl;
+            Report::info() << "Using 16 bit floats for GVF" << Report::end;
             storageFormat = cl::ImageFormat(CL_RG, CL_SNORM_INT16);
         } else if(device->isImageFormatSupported(CL_RGBA, CL_SNORM_INT16, CL_MEM_OBJECT_IMAGE2D)) {
-            std::cout << "Using 16 bit floats for GVF" << std::endl;
+            Report::info() << "Using 16 bit floats for GVF" << Report::end;
             storageFormat = cl::ImageFormat(CL_RGBA, CL_SNORM_INT16);
         } else if(device->isImageFormatSupported(CL_RG, CL_FLOAT, CL_MEM_OBJECT_IMAGE2D)) {
-            std::cout << "16 bit floats not supported. Using 32 bit for GVF instead." << std::endl;
+            Report::info() << "16 bit floats not supported. Using 32 bit for GVF instead." << Report::end;
             storageFormat = cl::ImageFormat(CL_RG, CL_FLOAT);
         } else {
-            std::cout << "16 bit floats not supported. Using 32 bit for GVF instead." << std::endl;
+            Report::info() << "16 bit floats not supported. Using 32 bit for GVF instead." << Report::end;
             storageFormat = cl::ImageFormat(CL_RGBA, CL_FLOAT);
         }
 
     } else {
-        std::cout << "Using 32 bit floats for GVF" << std::endl;
+        Report::info() << "Using 32 bit floats for GVF" << Report::end;
         // Check if two channel texture is supported
         if(device->isImageFormatSupported(CL_RG, CL_FLOAT, CL_MEM_OBJECT_IMAGE2D)) {
             storageFormat = cl::ImageFormat(CL_RG, CL_FLOAT);
@@ -164,14 +164,14 @@ void EulerGradientVectorFlow::execute3DGVF(Image::pointer input, Image::pointer 
     if(mUse16bitFormat) {
         // Is 16 bit supported(CL_SNORM_INT16 is not core)?
         if(device->isImageFormatSupported(CL_RGBA, CL_SNORM_INT16, CL_MEM_OBJECT_IMAGE3D)) {
-            std::cout << "Using 16 bit floats for GVF" << std::endl;
+            Report::info() << "Using 16 bit floats for GVF" << Report::end;
             storageFormat = cl::ImageFormat(CL_RGBA, CL_SNORM_INT16);
         } else {
-            std::cout << "16 bit floats not supported. Using 32 bit for GVF instead." << std::endl;
+            Report::info() << "16 bit floats not supported. Using 32 bit for GVF instead." << Report::end;
             storageFormat = cl::ImageFormat(CL_RGBA, CL_FLOAT);
         }
     } else {
-        std::cout << "Using 32 bit floats for GVF" << std::endl;
+        Report::info() << "Using 32 bit floats for GVF" << Report::end;
         storageFormat = cl::ImageFormat(CL_RGBA, CL_FLOAT);
     }
 
@@ -266,14 +266,14 @@ void EulerGradientVectorFlow::execute3DGVFNo3DWrite(Image::pointer input, Image:
         buildOptions = "-DVECTORS_16BIT";
         // Is 16 bit supported on textures (CL_SNORM_INT16 is not core)?
         if(device->isImageFormatSupported(CL_RGBA, CL_SNORM_INT16, CL_MEM_OBJECT_IMAGE3D)) {
-            std::cout << "Using 16 bit floats for GVF" << std::endl;
+            Report::info() << "Using 16 bit floats for GVF" << Report::end;
             storageFormat = cl::ImageFormat(CL_RGBA, CL_SNORM_INT16);
         } else {
-            std::cout << "16 bit floats not supported. Using 32 bit for GVF instead." << std::endl;
+            Report::info() << "16 bit floats not supported. Using 32 bit for GVF instead." << Report::end;
             storageFormat = cl::ImageFormat(CL_RGBA, CL_FLOAT);
         }
     } else {
-        std::cout << "Using 32 bit floats for GVF" << std::endl;
+        Report::info() << "Using 32 bit floats for GVF" << Report::end;
         storageFormat = cl::ImageFormat(CL_RGBA, CL_FLOAT);
     }
     device->createProgramFromSourceWithName("EulerGradientVectorFlow", std::string(FAST_SOURCE_DIR) + "Algorithms/GradientVectorFlow/EulerGradientVectorFlow.cl", buildOptions);

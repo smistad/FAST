@@ -72,6 +72,12 @@ string(REPLACE "\"" "" FAST_TEST_DATA_DIR ${FAST_TEST_DATA_DIR})
 message("-- FAST test data directory set to: \"${FAST_TEST_DATA_DIR}\"")
 add_definitions("-DFAST_TEST_DATA_DIR=\"${FAST_TEST_DATA_DIR}\"")
 
+# Set debug define if debug mode is set
+if(CMAKE_BUILD_TYPE STREQUAL Debug)
+    message("-- FAST Debug mode set")
+    add_definitions("-DFAST_DEBUG")
+endif()
+
 #### Set up library dependencies
 set(FAST_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR})
 

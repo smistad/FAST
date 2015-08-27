@@ -67,19 +67,19 @@ class WindowWidget : public QWidget {
             connect(timer, SIGNAL(timeout()), this, SLOT(close()));
         };
         ~WindowWidget() {
-            std::cout << "Trying to stop computation thread" << std::endl;
+            fast::Report::info() << "Trying to stop computation thread" << fast::Report::end;
             if(mThread != NULL) {
                 mThread->stop();
                 delete mThread;
                 mThread = NULL;
             }
-            std::cout << "Computation thread stopped" << std::endl;
+            fast::Report::info() << "Computation thread stopped" << fast::Report::end;
         };
     public slots:
         void startPipeline() {
             if(mThread == NULL) {
                 // Start computation thread using QThreads which is a strange thing, see https://mayaposch.wordpress.com/2011/11/01/how-to-really-truly-use-qthreads-the-full-explanation/
-                std::cout << "Trying to start computation thread" << std::endl;
+                fast::Report::info() << "Trying to start computation thread" << fast::Report::end;
                 mThread = new fast::ComputationThread(QThread::currentThread());
                 QThread* thread = new QThread();
                 mThread->moveToThread(thread);
@@ -99,7 +99,7 @@ class WindowWidget : public QWidget {
                 mainGLContext->moveToThread(thread);
                 mainGLContext->doneCurrent();
                 thread->start();
-                std::cout << "Computation thread started" << std::endl;
+                fast::Report::info() << "Computation thread started" << fast::Report::end;
             }
         };
     private:

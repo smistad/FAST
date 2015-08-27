@@ -18,7 +18,7 @@ void ComputationThread::clearViews() {
 }
 
 ComputationThread::~ComputationThread() {
-    std::cout << "Computation thread object destroyed" << std::endl;
+    Report::info() << "Computation thread object destroyed" << Report::end;
 }
 
 bool ComputationThread::isRunning() {
@@ -49,7 +49,7 @@ void ComputationThread::run() {
     }
 
     emit finished();
-    std::cout << "Computation thread has finished in run()" << std::endl;
+    Report::info() << "Computation thread has finished in run()" << Report::end;
     mUpdateThreadConditionVariable.notify_one();
 }
 

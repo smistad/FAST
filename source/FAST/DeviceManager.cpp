@@ -34,16 +34,16 @@ std::vector<OpenCLDevice::pointer> getDevices(oul::DeviceCriteria criteria, bool
 		fast::Window::getMainGLContext()->makeCurrent();
 #if defined(__APPLE__) || defined(__MACOSX)
 		CGLContextObj appleContext = CGLGetCurrentContext();
-		std::cout << "Initial GL context: " << CGLGetCurrentContext() << std::endl;
-		std::cout << "Initial GL share group: " << CGLGetShareGroup(CGLGetCurrentContext()) << std::endl;
+		Report::info() << "Initial GL context: " << CGLGetCurrentContext() << Report::end;
+		Report::info() << "Initial GL share group: " << CGLGetShareGroup(CGLGetCurrentContext()) << Report::end;
 
 		glContext = (unsigned long *)appleContext;
 #elif _WIN32
         glContext = (unsigned long *)wglGetCurrentContext();
-		std::cout << "Initial W GL context " << glContext << std::endl;
+		Report::info() << "Initial W GL context " << glContext << Report::end;
 #else
         glContext = (long unsigned int*)glXGetCurrentContext();
-        std::cout << "Initial GLX context " << glContext << std::endl;
+        Report::info() << "Initial GLX context " << glContext << Report::end;
 #endif
         criteria.setCapabilityCriteria(oul::DEVICE_CAPABILITY_OPENGL_INTEROP);
     }

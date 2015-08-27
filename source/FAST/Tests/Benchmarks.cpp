@@ -61,7 +61,7 @@ TEST_CASE("Pipeline A (static)", "[fast][benchmark][visual]") {
             extractor->getRuntime()->getSum() +
             renderer->getRuntime()->getSum() +
             window->getView()->getRuntime("draw")->getAverage();
-    std::cout << "Total runtime was: " << total << std::endl;
+    Report::info() << "Total runtime was: " << total << Report::end;
 }
 
 TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark][visual]") {
@@ -102,7 +102,7 @@ TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark][visual]") {
 		renderer->getRuntime()->getSum() +
             window->getView()->getRuntime("draw")->getAverage();
 	total = total / 84; // number of frames
-    std::cout << "Average runtime was: " << total << std::endl << std::endl;
+    Report::info() << "Average runtime was: " << total << Report::end << Report::end;
 }
 
 TEST_CASE("Pipeline B", "[fast][benchmark][visual]") {
@@ -163,7 +163,7 @@ TEST_CASE("Pipeline B", "[fast][benchmark][visual]") {
                 surfaceRenderer->getRuntime()->getSum() +
                 sliceRenderer->getRuntime()->getSum() +
             window->getView()->getRuntime("draw")->getAverage();
-    std::cout << "Total runtime was: " << total << std::endl;
+    Report::info() << "Total runtime was: " << total << Report::end;
 }
 
 TEST_CASE("Pipeline C", "[fast][benchmark][visual]") {
@@ -200,7 +200,7 @@ TEST_CASE("Pipeline C", "[fast][benchmark][visual]") {
             skeletonization->getRuntime()->getSum() +
             renderer->getRuntime()->getSum() +
             window->getView()->getRuntime("draw")->getAverage();
-    std::cout << "Total runtime was: " << total << std::endl;
+    Report::info() << "Total runtime was: " << total << Report::end;
 }
 
 TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
@@ -227,11 +227,11 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
     icp->setFixedPointSetPort(importerB->getOutputPort());
     icp->enableRuntimeMeasurements();
     icp->update();
-    std::cout << icp->getOutputTransformation().affine() << std::endl;
+    Report::info() << icp->getOutputTransformation().affine() << Report::end;
     importerA->getStaticOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
-    std::cout << "result: " << std::endl;
-    std::cout << icp->getOutputTransformation().getEulerAngles() << std::endl;
-    std::cout << icp->getOutputTransformation().translation() << std::endl;
+    Report::info() << "result: " << Report::end;
+    Report::info() << icp->getOutputTransformation().getEulerAngles() << Report::end;
+    Report::info() << icp->getOutputTransformation().translation() << Report::end;
 
 
     PointRenderer::pointer renderer = PointRenderer::New();
@@ -247,7 +247,7 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
     window->setTimeout(2000);
     window->start();
 
-    std::cout << "Pipeline D" << std::endl << "===================" << std::endl;
+    Report::info() << "Pipeline D" << Report::end << "===================" << Report::end;
     importerA->getRuntime()->print();
     importerB->getRuntime()->print();
     icp->getRuntime()->print();
@@ -258,5 +258,5 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
             icp->getRuntime()->getSum() +
             renderer->getRuntime()->getSum() +
             window->getView()->getRuntime("draw")->getAverage();
-    std::cout << "Total runtime was: " << total << std::endl;
+    Report::info() << "Total runtime was: " << total << Report::end;
 }

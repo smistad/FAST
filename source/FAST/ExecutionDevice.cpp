@@ -14,7 +14,7 @@ bool OpenCLDevice::isWritingTo3DTexturesSupported() {
 }
 
 OpenCLDevice::~OpenCLDevice() {
-     //std::cout << "DESTROYING opencl device object..." << std::endl;
+     //Report::info() << "DESTROYING opencl device object..." << Report::end;
      // Make sure that all queues are finished
      getQueue(0).finish();
 }

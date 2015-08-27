@@ -148,7 +148,7 @@ void VTKMeshFileImporter::execute() {
 
     // Add data to output
     output->create(vertices, normals, triangles);
-    std::cout << "MESH IMPORTED vertices " << vertices.size() << " normals " << normals.size() << " triangles " << triangles.size() << std::endl;
+    Report::info() << "MESH IMPORTED vertices " << vertices.size() << " normals " << normals.size() << " triangles " << triangles.size() << Report::end;
 }
 
 } // end namespace fast

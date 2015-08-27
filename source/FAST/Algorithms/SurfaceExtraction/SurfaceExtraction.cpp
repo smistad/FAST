@@ -307,7 +307,7 @@ void SurfaceExtraction::execute() {
     output->create(totalSum);
 
     if(totalSum == 0) {
-        std::cout << "No triangles were extracted. Check isovalue." << std::endl;
+        Report::info() << "No triangles were extracted. Check isovalue." << Report::end;
         return;
     }
 

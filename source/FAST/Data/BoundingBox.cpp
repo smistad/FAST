@@ -72,9 +72,9 @@ BoundingBox::BoundingBox(std::vector<Vector3f> coordinates) {
     Vector3f size(maximum.x()-minimum.x(), maximum.y()-minimum.y(), maximum.z()-minimum.z());
     mIsInitialized = true;
     /*
-    std::cout << minimum[0] << " " << minimum[1] << std::endl;
-    std::cout << maximum[0] << " " << maximum[1] << std::endl;
-    std::cout << size[0] << " " << size[1] << std::endl;
+    Report::info() << minimum[0] << " " << minimum[1] << Report::end;
+    Report::info() << maximum[0] << " " << maximum[1] << Report::end;
+    Report::info() << size[0] << " " << size[1] << Report::end;
     */
     createCorners(minimum, size);
 }
