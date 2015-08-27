@@ -6,6 +6,7 @@ namespace fast {
 ImageGradient::ImageGradient() {
     createInputPort<Image>(0);
     createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/ImageGradient/ImageGradient.cl");
 
     mUse16bitFormat = false;
 }
@@ -41,8 +42,7 @@ void ImageGradient::execute() {
         throw Exception("Not implemented yet.");
     } else {
         OpenCLDevice::pointer device = OpenCLDevice::pointer(getMainDevice());
-        int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "Algorithms/ImageGradient/ImageGradient.cl");
-        cl::Program program = device->getProgram(programNr);
+        cl::Program program = getOpenCLProgram(device);
         cl::Kernel kernel;
         OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
         if(input->getDimensions() == 2) {

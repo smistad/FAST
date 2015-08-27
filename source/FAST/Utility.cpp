@@ -84,8 +84,12 @@ void getIntensitySumFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D im
         buildOptions = "-DTYPE_INT16";
         break;
     }
-    int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/ImageSum.cl", buildOptions);
-    cl::Program program = device->getProgram(programNr);
+    std::string sourceFilename = std::string(FAST_SOURCE_DIR) + "/ImageSum.cl";
+    std::string programName = sourceFilename + buildOptions;
+    // Only create program if it doesn't exist for this device from before
+    if(!device->hasProgram(programName))
+        device->createProgramFromSourceWithName(programName, sourceFilename, buildOptions);
+    cl::Program program = device->getProgram(programName);
     cl::CommandQueue queue = device->getCommandQueue();
 
     // Fill first level
@@ -160,8 +164,12 @@ void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image
         buildOptions = "-DTYPE_INT16";
         break;
     }
-    int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/ImageMinMax.cl", buildOptions);
-    cl::Program program = device->getProgram(programNr);
+    std::string sourceFilename = std::string(FAST_SOURCE_DIR) + "/ImageMinMax.cl";
+    std::string programName = sourceFilename + buildOptions;
+    // Only create program if it doesn't exist for this device from before
+    if(!device->hasProgram(programName))
+        device->createProgramFromSourceWithName(programName, sourceFilename, buildOptions);
+    cl::Program program = device->getProgram(programName);
     cl::CommandQueue queue = device->getCommandQueue();
 
     // Fill first level
@@ -257,8 +265,12 @@ void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D image
         buildOptions = "-DTYPE_INT16";
         break;
     }
-    int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/ImageMinMax.cl", buildOptions);
-    cl::Program program = device->getProgram(programNr);
+    std::string sourceFilename = std::string(FAST_SOURCE_DIR) + "/ImageMinMax.cl";
+    std::string programName = sourceFilename + buildOptions;
+    // Only create program if it doesn't exist for this device from before
+    if(!device->hasProgram(programName))
+        device->createProgramFromSourceWithName(programName, sourceFilename, buildOptions);
+    cl::Program program = device->getProgram(programName);
     cl::CommandQueue queue = device->getCommandQueue();
 
     // Fill first level
@@ -337,8 +349,12 @@ void getMaxAndMinFromOpenCLBuffer(OpenCLDevice::pointer device, cl::Buffer buffe
         buildOptions = "-DTYPE_INT16";
         break;
     }
-    int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/ImageMinMax.cl", buildOptions);
-    cl::Program program = device->getProgram(programNr);
+    std::string sourceFilename = std::string(FAST_SOURCE_DIR) + "/ImageMinMax.cl";
+    std::string programName = sourceFilename + buildOptions;
+    // Only create program if it doesn't exist for this device from before
+    if(!device->hasProgram(programName))
+        device->createProgramFromSourceWithName(programName, sourceFilename, buildOptions);
+    cl::Program program = device->getProgram(programName);
     cl::CommandQueue queue = device->getCommandQueue();
 
     // Nr of work groups must be set so that work-group size does not exceed max work-group size (256 on AMD)

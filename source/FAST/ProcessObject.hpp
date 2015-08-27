@@ -19,6 +19,7 @@ enum InputDataType { INPUT_STATIC, INPUT_DYNAMIC, INPUT_STATIC_OR_DYNAMIC };
 enum OutputDataType { OUTPUT_STATIC, OUTPUT_DYNAMIC, OUTPUT_DEPENDS_ON_INPUT };
 
 class ProcessObjectPort;
+class OpenCLProgram;
 
 class ProcessObject : public virtual Object {
     public:
@@ -105,6 +106,13 @@ class ProcessObject : public virtual Object {
         template <class T>
         void setStaticOutputData(uint portID, DataObject::pointer data);
 
+        void createOpenCLProgram(std::string sourceFilename, std::string name = "");
+        cl::Program getOpenCLProgram(
+                SharedPointer<OpenCLDevice> device,
+                std::string name = "",
+                std::string buildOptions = ""
+        );
+
     private:
         void updateTimestamp(DataObject::pointer data);
         void changeDeviceOnInputs(uint deviceNumber, ExecutionDevice::pointer device);
@@ -129,6 +137,8 @@ class ProcessObject : public virtual Object {
         // Whether the ports accept dynamic, static or any of the two
         boost::unordered_map<uint, InputDataType> mInputPortType;
         boost::unordered_map<uint, OutputDataType> mOutputPortType;
+
+        boost::unordered_map<std::string, SharedPointer<OpenCLProgram> > mOpenCLPrograms;
 
         friend class DynamicData;
         friend class ProcessObjectPort;

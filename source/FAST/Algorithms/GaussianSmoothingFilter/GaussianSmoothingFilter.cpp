@@ -33,6 +33,8 @@ void GaussianSmoothingFilter::setStandardDeviation(float stdDev) {
 GaussianSmoothingFilter::GaussianSmoothingFilter() {
     createInputPort<Image>(0);
     createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter2D.cl", "2D");
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter3D.cl", "3D");
     mStdDev = 0.5f;
     mMaskSize = -1;
     mIsModified = true;
@@ -123,14 +125,13 @@ void GaussianSmoothingFilter::recompileOpenCLCode(Image::pointer input) {
                 break;
         }
     }
-    std::string filename;
+    cl::Program program;
     if(input->getDimensions() == 2) {
-        filename = "Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter2D.cl";
+        program = getOpenCLProgram(device, "2D", buildOptions);
     } else {
-        filename = "Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter3D.cl";
+        program = getOpenCLProgram(device, "3D", buildOptions);
     }
-    int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + filename, buildOptions);
-    mKernel = cl::Kernel(device->getProgram(programNr), "gaussianSmoothing");
+    mKernel = cl::Kernel(program, "gaussianSmoothing");
     mDimensionCLCodeCompiledFor = input->getDimensions();
     mTypeCLCodeCompiledFor = input->getDataType();
 }

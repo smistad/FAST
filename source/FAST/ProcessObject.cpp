@@ -1,5 +1,6 @@
 #include "FAST/ProcessObject.hpp"
 #include "FAST/Exception.hpp"
+#include "FAST/OpenCLProgram.hpp"
 #include <boost/lexical_cast.hpp>
 
 namespace fast {
@@ -269,6 +270,27 @@ bool ProcessObject::inputPortExists(uint portID) const {
 
 bool ProcessObject::outputPortExists(uint portID) const {
     return mOutputPortType.count(portID) > 0;
+}
+
+void ProcessObject::createOpenCLProgram(std::string sourceFilename, std::string name) {
+    OpenCLProgram::pointer program = OpenCLProgram::New();
+    program->setName(name);
+    program->setSourceFilename(sourceFilename);
+    mOpenCLPrograms[name] = program;
+}
+
+cl::Program ProcessObject::getOpenCLProgram(
+        OpenCLDevice::pointer device,
+        std::string name,
+        std::string buildOptions
+        ) {
+
+    if(mOpenCLPrograms.count(name) == 0) {
+        throw Exception("OpenCL program with the name " + name + " not found in " + getNameOfClass());
+    }
+
+    OpenCLProgram::pointer program = mOpenCLPrograms[name];
+    return program->build(device, buildOptions);
 }
 
 } // namespace fast

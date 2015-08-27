@@ -190,14 +190,14 @@ void SliceRenderer::recompileOpenCLCode(Image::pointer input) {
         buildOptions = "-DTYPE_UINT";
     }
     OpenCLDevice::pointer device = getMainDevice();
-    int i = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/SliceRenderer/SliceRenderer.cl", buildOptions);
-    mKernel = cl::Kernel(device->getProgram(i), "renderToTexture");
+    mKernel = cl::Kernel(getOpenCLProgram(device, "", buildOptions), "renderToTexture");
     mTypeCLCodeCompiledFor = input->getDataType();
 }
 
 
 SliceRenderer::SliceRenderer() : Renderer() {
     createInputPort<Image>(0, false);
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "/Visualization/SliceRenderer/SliceRenderer.cl");
     mTextureIsCreated = false;
     mIsModified = true;
     mSlicePlane = PLANE_Z;

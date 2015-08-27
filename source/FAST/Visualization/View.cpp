@@ -292,7 +292,6 @@ void View::reinitialize() {
 }
 
 void View::initializeGL() {
-    std::cout << "SIZE IS: " << width() << " " << height() << std::endl;
 	glewInit();
 	glEnable(GL_TEXTURE_2D);
 
@@ -404,6 +403,7 @@ void View::initializeGL() {
             }
 
             mPBOspacing = longestEdgeDistance / std::min(width(), height());
+            std::cout << "current width and height " << width() << " " << height() << std::endl;
             std::cout << "longest edge distance " << longestEdgeDistance << std::endl;
             std::cout << "PBO spacing set to " << mPBOspacing << std::endl;
 

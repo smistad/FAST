@@ -20,6 +20,8 @@ BinaryThresholding::BinaryThresholding() {
     mUpperThresholdSet = false;
     createInputPort<Image>(0);
     createOutputPort<Segmentation>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/BinaryThresholding/BinaryThresholding3D.cl", "3D");
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/BinaryThresholding/BinaryThresholding2D.cl", "2D");
 }
 
 void BinaryThresholding::execute() {
@@ -36,13 +38,12 @@ void BinaryThresholding::execute() {
         throw Exception("Not implemented yet.");
     } else {
         OpenCLDevice::pointer device = OpenCLDevice::pointer(getMainDevice());
-        int programNr;
+        cl::Program program;
         if(input->getDimensions() == 3) {
-            programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "Algorithms/BinaryThresholding/BinaryThresholding3D.cl");
+            program = getOpenCLProgram(device, "3D");
         } else {
-            programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "Algorithms/BinaryThresholding/BinaryThresholding2D.cl");
+            program = getOpenCLProgram(device, "2D");
         }
-        cl::Program program = device->getProgram(programNr);
         cl::Kernel kernel;
         if(mLowerThresholdSet && mUpperThresholdSet) {
             kernel = cl::Kernel(program, "tresholding");

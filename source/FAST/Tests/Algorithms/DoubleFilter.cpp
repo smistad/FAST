@@ -13,6 +13,9 @@ DoubleFilter::DoubleFilter() {
     // and if the input is a dynamic image, the output will also
     // be a dynamic image.
     createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+
+    // This creates an OpenCL program from a source file on disk
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Tests/Algorithms/DoubleFilter.cl");
 }
 
 /*
@@ -72,8 +75,7 @@ void DoubleFilter::execute() {
         }
 
         // Compile the code
-        int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "Tests/Algorithms/DoubleFilter.cl", buildOptions);
-        cl::Kernel kernel = cl::Kernel(device->getProgram(programNr), "doubleFilter");
+        cl::Kernel kernel = cl::Kernel(getOpenCLProgram(device, "", buildOptions), "doubleFilter");
 
         // Get global size for the kernel
         cl::NDRange globalSize(input->getWidth()*input->getHeight()*input->getDepth()*input->getNrOfComponents());
