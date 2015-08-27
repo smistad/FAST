@@ -249,7 +249,7 @@ void ImageRenderer::draw2D(cl::BufferGL PBO, uint width, uint height, Eigen::Tra
                     transform.data()
             );
 
-             cl::Kernel kernel(getOpenCLProgram(device, "3D"), "render3Dimage");
+             cl::Kernel kernel(getOpenCLProgram(device, "2D"), "render3Dimage");
             // Run kernel to fill the texture
 
             OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
