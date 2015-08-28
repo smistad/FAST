@@ -61,6 +61,7 @@ View::View() : mViewingPlane(Plane::Axial()) {
     mLeftMouseButtonIsPressed = false;
     mMiddleMouseButtonIsPressed = false;
     mQuit = false;
+	mCameraSet = false;
 
     mFramerate = 25;
     // Set up a timer that will call update on this object at a regular interval
@@ -167,7 +168,6 @@ void View::updateAllRenderers() {
 }
 
 void View::recalculateCamera() {
-
     // 3D Mode
     if (mNonVolumeRenderers.size() > 0) {
         aspect = (float) (this->width()) / this->height();
