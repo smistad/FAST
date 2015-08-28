@@ -209,10 +209,12 @@ void GaussianSmoothingFilter::execute() {
     ExecutionDevice::pointer device = getMainDevice();
     if(mOutputTypeSet) {
         output->create(input->getSize(), mOutputType, input->getNrOfComponents());
+        output->setSpacing(input->getSpacing());
     } else {
         output->createFromImage(input);
     }
     mOutputType = output->getDataType();
+    SceneGraph::setParentNode(output, input);
 
     createMask(input, maskSize);
 
