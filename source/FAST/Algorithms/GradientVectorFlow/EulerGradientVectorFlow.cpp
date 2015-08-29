@@ -7,6 +7,7 @@ namespace fast {
 EulerGradientVectorFlow::EulerGradientVectorFlow() {
     createInputPort<Image>(0);
     createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/GradientVectorFlow/EulerGradientVectorFlow.cl");
     mIterations = 0;
     mMu = 0.05f;
     mUse16bitFormat = true;
@@ -38,8 +39,7 @@ void EulerGradientVectorFlow::set32bitStorageFormat() {
 
 void EulerGradientVectorFlow::execute2DGVF(Image::pointer input, Image::pointer output, uint iterations) {
     OpenCLDevice::pointer device = getMainDevice();
-    device->createProgramFromSourceWithName("EulerGradientVectorFlow", std::string(FAST_SOURCE_DIR) + "Algorithms/GradientVectorFlow/EulerGradientVectorFlow.cl");
-    cl::Program program = device->getProgram("EulerGradientVectorFlow");
+    cl::Program program = getOpenCLProgram(device);
 
     cl::Context context = device->getContext();
     cl::CommandQueue queue = device->getCommandQueue();
@@ -127,7 +127,7 @@ void EulerGradientVectorFlow::execute2DGVF(Image::pointer input, Image::pointer 
     // Copy result to output
     OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
     cl::Image2D* outputCLImage = outputAccess->get2DImage();
-    if(storageFormat.image_channel_data_type == CL_SNORM_INT16 && input->getDataType() != TYPE_SNORM_INT16) {
+    if(storageFormat.image_channel_data_type == CL_SNORM_INT16) {
         // Have to convert type back to float
         cl::Kernel resultKernel(program, "GVF2DCopy");
         resultKernel.setArg(0, vectorField);
@@ -151,8 +151,7 @@ void EulerGradientVectorFlow::execute2DGVF(Image::pointer input, Image::pointer 
 
 void EulerGradientVectorFlow::execute3DGVF(Image::pointer input, Image::pointer output, uint iterations) {
     OpenCLDevice::pointer device = getMainDevice();
-    device->createProgramFromSourceWithName("EulerGradientVectorFlow", std::string(FAST_SOURCE_DIR) + "Algorithms/GradientVectorFlow/EulerGradientVectorFlow.cl");
-    cl::Program program = device->getProgram("EulerGradientVectorFlow");
+    cl::Program program = getOpenCLProgram(device);
 
     cl::Context context = device->getContext();
     cl::CommandQueue queue = device->getCommandQueue();
@@ -262,10 +261,10 @@ void EulerGradientVectorFlow::execute3DGVFNo3DWrite(Image::pointer input, Image:
     int vectorFieldSize = sizeof(float);
     std::string buildOptions = "";
     if(mUse16bitFormat) {
-        vectorFieldSize = sizeof(short);
-        buildOptions = "-DVECTORS_16BIT";
         // Is 16 bit supported on textures (CL_SNORM_INT16 is not core)?
         if(device->isImageFormatSupported(CL_RGBA, CL_SNORM_INT16, CL_MEM_OBJECT_IMAGE3D)) {
+            vectorFieldSize = sizeof(short);
+            buildOptions = "-DVECTORS_16BIT";
             Report::info() << "Using 16 bit floats for GVF" << Report::end;
             storageFormat = cl::ImageFormat(CL_RGBA, CL_SNORM_INT16);
         } else {
@@ -276,8 +275,7 @@ void EulerGradientVectorFlow::execute3DGVFNo3DWrite(Image::pointer input, Image:
         Report::info() << "Using 32 bit floats for GVF" << Report::end;
         storageFormat = cl::ImageFormat(CL_RGBA, CL_FLOAT);
     }
-    device->createProgramFromSourceWithName("EulerGradientVectorFlow", std::string(FAST_SOURCE_DIR) + "Algorithms/GradientVectorFlow/EulerGradientVectorFlow.cl", buildOptions);
-    cl::Program program = device->getProgram("EulerGradientVectorFlow");
+    cl::Program program = getOpenCLProgram(device, "", buildOptions);
 
     cl::Kernel iterationKernel(program, "GVF3DIteration");
     cl::Kernel initKernel(program, "GVF3DInit");
@@ -370,9 +368,10 @@ void EulerGradientVectorFlow::execute() {
     if(iterations == 0)
         iterations = std::max(input->getWidth(), std::max(input->getHeight(), input->getDepth()));
 
-    // Create output
+    // Create output, currently only type float is output, not normalized 16 bit
     Image::pointer output = getStaticOutputData<Image>();
-    output->createFromImage(input);
+    output->create(input->getSize(), TYPE_FLOAT, input->getNrOfComponents());
+    output->setSpacing(input->getSpacing());
     SceneGraph::setParentNode(output, input);
 
     if(input->getDimensions() == 2) {
