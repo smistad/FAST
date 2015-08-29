@@ -27,6 +27,8 @@ void LaplacianOfGaussian::setStandardDeviation(float stdDev) {
 LaplacianOfGaussian::LaplacianOfGaussian() {
     createInputPort<Image>(0);
     createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/LaplacianOfGaussian/LaplacianOfGaussian2D.cl", "2D");
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/LaplacianOfGaussian/LaplacianOfGaussian3D.cl", "3D");
     mStdDev = 1.0f;
     mMaskSize = 3;
     mIsModified = true;
@@ -119,14 +121,13 @@ void LaplacianOfGaussian::recompileOpenCLCode(Image::pointer input) {
             buildOptions += " -DTYPE=ushort";
             break;
         }
-    std::string filename;
+    cl::Program program;
     if(input->getDimensions() == 2) {
-        filename = "Algorithms/LaplacianOfGaussian/LaplacianOfGaussian2D.cl";
+        program = getOpenCLProgram(device, "2D", buildOptions);
     } else {
-        filename = "Algorithms/LaplacianOfGaussian/LaplacianOfGaussian3D.cl";
+        program = getOpenCLProgram(device, "3D", buildOptions);
     }
-    int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + filename, buildOptions);
-    mKernel = cl::Kernel(device->getProgram(programNr), "laplacianOfGaussian");
+    mKernel = cl::Kernel(program, "laplacianOfGaussian");
     mDimensionCLCodeCompiledFor = input->getDimensions();
     mTypeCLCodeCompiledFor = input->getDataType();
 }

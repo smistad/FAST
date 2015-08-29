@@ -18,5 +18,9 @@ fast_add_sources(
     SceneGraph.hpp
     AffineTransformation.cpp
     AffineTransformation.hpp
+    OpenCLProgram.cpp
+    OpenCLProgram.hpp
+    Report.cpp
+    Report.hpp
 )
 fast_add_test_sources()

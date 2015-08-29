@@ -846,7 +846,7 @@ float Image::calculateAverageIntensity() {
     if(!mAverageInitialized || mAverageIntensityTimestamp != getTimestamp()) {
         unsigned int nrOfElements = mWidth*mHeight*mDepth;
         if(mHostHasData && mHostDataIsUpToDate) {
-            std::cout << "calculating sum on host" << std::endl;
+            Report::info() << "calculating sum on host" << Report::end;
             // Host data is up to date, calculate min and max on host
             ImageAccess::pointer access = getImageAccess(ACCESS_READ);
             void* data = access->get();
@@ -868,7 +868,7 @@ float Image::calculateAverageIntensity() {
                 break;
             }
         } else {
-            std::cout << "calculating sum with OpenCL" << std::endl;
+            Report::info() << "calculating sum with OpenCL" << Report::end;
             // TODO the logic here can be improved. For instance choose the best device
             // Find some OpenCL image data or buffer data that is up to date
             bool found = false;

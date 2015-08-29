@@ -61,6 +61,7 @@ View::View() : mViewingPlane(Plane::Axial()) {
     mLeftMouseButtonIsPressed = false;
     mMiddleMouseButtonIsPressed = false;
     mQuit = false;
+	mCameraSet = false;
 
     mFramerate = 25;
     // Set up a timer that will call update on this object at a regular interval
@@ -80,7 +81,7 @@ View::View() : mViewingPlane(Plane::Axial()) {
     context->create(fast::Window::getMainGLContext());
     this->setContext(context);
     if(!context->isValid() || !context->isSharing()) {
-        std::cout << "The custom Qt GL context is invalid!" << std::endl;
+        Report::info() << "The custom Qt GL context is invalid!" << Report::end;
         exit(-1);
     }
 }
@@ -136,7 +137,7 @@ bool View::hasQuit() const {
 }
 
 View::~View() {
-    std::cout << "DESTROYING view object" << std::endl;
+    Report::info() << "DESTROYING view object" << Report::end;
     quit();
 }
 
@@ -167,7 +168,6 @@ void View::updateAllRenderers() {
 }
 
 void View::recalculateCamera() {
-
     // 3D Mode
     if (mNonVolumeRenderers.size() > 0) {
         aspect = (float) (this->width()) / this->height();
@@ -189,7 +189,7 @@ void View::recalculateCamera() {
             // Get max and min of x and y coordinates of the transformed b boxes
             BoundingBox box = mNonVolumeRenderers[i]->getBoundingBox();
             MatrixXf corners = box.getCorners();
-            //std::cout << box << std::endl;
+            //Report::info() << box << Report::end;
             for (int j = 0; j < 8; j++) {
                 for (uint k = 0; k < 3; k++) {
                     if (corners(j, k) < min[k])
@@ -251,7 +251,7 @@ void View::recalculateCamera() {
         Qy = Eigen::AngleAxisf(angleY*M_PI/180.0f, Vector3f::UnitY());
         Eigen::Quaternionf Q = Qx*Qy;
 
-        //std::cout << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << std::endl;
+        //Report::info() << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << Report::end;
         // Initialize rotation point to centroid of object
         mRotationPoint = centroid;
         // Calculate initiali translation of camera
@@ -266,19 +266,19 @@ void View::recalculateCamera() {
                 / tan(fieldOfViewX * 0.5);
         float z_height = (max[yDirection] - min[yDirection]) * 0.5
                 / tan(fieldOfViewY * 0.5);
-        //std::cout << "asd: " << z_width << " " << z_height << std::endl;
+        //Report::info() << "asd: " << z_width << " " << z_height << Report::end;
         float minimumTranslationToSeeEntireObject = (
                 z_width < z_height ? z_height : z_width);
         float boundingBoxDepth = (max[zDirection] - min[zDirection]);
-        //std::cout << "minimum translation to see entire object: " << minimumTranslationToSeeEntireObject  << std::endl;
-        //std::cout << "half depth of bounding box " << boundingBoxDepth*0.5 << std::endl;
+        //Report::info() << "minimum translation to see entire object: " << minimumTranslationToSeeEntireObject  << Report::end;
+        //Report::info() << "half depth of bounding box " << boundingBoxDepth*0.5 << Report::end;
         mCameraPosition[2] += -minimumTranslationToSeeEntireObject
                 - boundingBoxDepth * 0.5; // half of the depth of the bounding box
-        //std::cout << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << std::endl;
+        //Report::info() << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << Report::end;
         zFar = (minimumTranslationToSeeEntireObject + boundingBoxDepth) * 2;
         zNear = std::min(minimumTranslationToSeeEntireObject * 0.5, 0.1);
-        //std::cout << "set zFar to " << zFar << std::endl;
-        //std::cout << "set zNear to " << zNear << std::endl;
+        //Report::info() << "set zFar to " << zFar << Report::end;
+        //Report::info() << "set zNear to " << zNear << Report::end;
         m3DViewingTransformation = AffineTransformation::Identity();
         m3DViewingTransformation.pretranslate(-mRotationPoint); // Move to rotation point
         m3DViewingTransformation.prerotate(Q.toRotationMatrix()); // Rotate
@@ -292,7 +292,6 @@ void View::reinitialize() {
 }
 
 void View::initializeGL() {
-    std::cout << "SIZE IS: " << width() << " " << height() << std::endl;
 	glewInit();
 	glEnable(GL_TEXTURE_2D);
 
@@ -404,8 +403,9 @@ void View::initializeGL() {
             }
 
             mPBOspacing = longestEdgeDistance / std::min(width(), height());
-            std::cout << "longest edge distance " << longestEdgeDistance << std::endl;
-            std::cout << "PBO spacing set to " << mPBOspacing << std::endl;
+            Report::info() << "current width and height " << width() << " " << height() << Report::end;
+            Report::info() << "longest edge distance " << longestEdgeDistance << Report::end;
+            Report::info() << "PBO spacing set to " << mPBOspacing << Report::end;
 
             // Get the centroid of the bounding boxes
             if(!mViewingPlane.hasPosition()) {
@@ -441,7 +441,7 @@ void View::initializeGL() {
             }
 
             if(intersectionPoints.size() == 0) {
-                std::cout << "Failed to find intersection points" << std::endl;
+                Report::info() << "Failed to find intersection points" << Report::end;
             } else {
                 // Register PBO corners to these intersection points
                 // Want the transformation to get from PBO pixel position to mm position
@@ -631,7 +631,7 @@ void View::initializeGL() {
 				centroid[1] = max[1] - (max[1]-min[1])*0.5;
 				centroid[2] = max[2] - (max[2]-min[2])*0.5;
 
-				std::cout << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << std::endl;
+				Report::info() << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << Report::end;
 
 				// Initialize rotation point to centroid of object
 				mRotationPoint = centroid;
@@ -649,7 +649,7 @@ void View::initializeGL() {
 						-50; // border
 				//cameraPosition[2] = 00.0;
 
-				//std::cout << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << std::endl;
+				//Report::info() << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << Report::end;
 
                 m3DViewingTransformation = AffineTransformation::Identity();
                 m3DViewingTransformation.pretranslate(-mRotationPoint); // Move to rotation point
@@ -663,7 +663,7 @@ void View::initializeGL() {
 			}
 		}
 	}
-	std::cout << "finished init GL" << std::endl;
+	Report::info() << "finished init GL" << Report::end;
 }
 
 

@@ -5,6 +5,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
 #include "FAST/Exception.hpp"
+#include "FAST/Report.hpp"
 
 #define FAST_OBJECT(className)                                  \
     public:                                                     \

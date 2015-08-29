@@ -21,7 +21,7 @@ void WindowWidget::closeEvent(QCloseEvent* event) {
 }
 
 WindowWidget::~WindowWidget() {
-    //std::cout << "DESTROYING window widget" << std::endl;
+    //Report::info() << "DESTROYING window widget" << Report::end;
 }
 
 WindowWidget::WindowWidget() {

@@ -108,7 +108,7 @@ void ImageFileStreamer::producerStream() {
                 } catch(NoMoreFramesException &e) {
                     throw e;
                 } catch(Exception &e) {
-                    std::cout << "streamer has been deleted, stop" << std::endl;
+                    Report::info() << "streamer has been deleted, stop" << Report::end;
                     break;
                 }
                 if(!mFirstFrameIsInserted) {
@@ -119,14 +119,14 @@ void ImageFileStreamer::producerStream() {
                     mFirstFrameCondition.notify_one();
                 }
             } else {
-                std::cout << "DynamicImage object destroyed, stream can stop." << std::endl;
+                Report::info() << "DynamicImage object destroyed, stream can stop." << Report::end;
                 break;
             }
             mNrOfFrames++;
             i += mStepSize;
         } catch(FileNotFoundException &e) {
             if(i > 0) {
-                std::cout << "Reached end of stream" << std::endl;
+                Report::info() << "Reached end of stream" << Report::end;
                 // If there where no files found at all, we need to release the execute method
                 if(!mFirstFrameIsInserted) {
                     {

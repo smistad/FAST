@@ -32,8 +32,8 @@ inline void getMaxAndMinFromOpenCLImageResult(void* voidData, unsigned int size,
     *min = data[0];
     *max = data[1];
     for(unsigned int i = nrOfComponents; i < size*nrOfComponents; i += nrOfComponents) {
-        //std::cout << "min: " << data[i] << std::endl;
-        //std::cout << "max: " << data[i+1] << std::endl;
+        //Report::info() << "min: " << data[i] << Report::end;
+        //Report::info() << "max: " << data[i+1] << Report::end;
         if(data[i] < *min) {
             *min = data[i];
         }
@@ -84,8 +84,12 @@ void getIntensitySumFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D im
         buildOptions = "-DTYPE_INT16";
         break;
     }
-    int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/ImageSum.cl", buildOptions);
-    cl::Program program = device->getProgram(programNr);
+    std::string sourceFilename = std::string(FAST_SOURCE_DIR) + "/ImageSum.cl";
+    std::string programName = sourceFilename + buildOptions;
+    // Only create program if it doesn't exist for this device from before
+    if(!device->hasProgram(programName))
+        device->createProgramFromSourceWithName(programName, sourceFilename, buildOptions);
+    cl::Program program = device->getProgram(programName);
     cl::CommandQueue queue = device->getCommandQueue();
 
     // Fill first level
@@ -160,8 +164,12 @@ void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image
         buildOptions = "-DTYPE_INT16";
         break;
     }
-    int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/ImageMinMax.cl", buildOptions);
-    cl::Program program = device->getProgram(programNr);
+    std::string sourceFilename = std::string(FAST_SOURCE_DIR) + "/ImageMinMax.cl";
+    std::string programName = sourceFilename + buildOptions;
+    // Only create program if it doesn't exist for this device from before
+    if(!device->hasProgram(programName))
+        device->createProgramFromSourceWithName(programName, sourceFilename, buildOptions);
+    cl::Program program = device->getProgram(programName);
     cl::CommandQueue queue = device->getCommandQueue();
 
     // Fill first level
@@ -257,8 +265,12 @@ void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D image
         buildOptions = "-DTYPE_INT16";
         break;
     }
-    int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/ImageMinMax.cl", buildOptions);
-    cl::Program program = device->getProgram(programNr);
+    std::string sourceFilename = std::string(FAST_SOURCE_DIR) + "/ImageMinMax.cl";
+    std::string programName = sourceFilename + buildOptions;
+    // Only create program if it doesn't exist for this device from before
+    if(!device->hasProgram(programName))
+        device->createProgramFromSourceWithName(programName, sourceFilename, buildOptions);
+    cl::Program program = device->getProgram(programName);
     cl::CommandQueue queue = device->getCommandQueue();
 
     // Fill first level
@@ -337,8 +349,12 @@ void getMaxAndMinFromOpenCLBuffer(OpenCLDevice::pointer device, cl::Buffer buffe
         buildOptions = "-DTYPE_INT16";
         break;
     }
-    int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/ImageMinMax.cl", buildOptions);
-    cl::Program program = device->getProgram(programNr);
+    std::string sourceFilename = std::string(FAST_SOURCE_DIR) + "/ImageMinMax.cl";
+    std::string programName = sourceFilename + buildOptions;
+    // Only create program if it doesn't exist for this device from before
+    if(!device->hasProgram(programName))
+        device->createProgramFromSourceWithName(programName, sourceFilename, buildOptions);
+    cl::Program program = device->getProgram(programName);
     cl::CommandQueue queue = device->getCommandQueue();
 
     // Nr of work groups must be set so that work-group size does not exceed max work-group size (256 on AMD)
@@ -351,8 +367,8 @@ void getMaxAndMinFromOpenCLBuffer(OpenCLDevice::pointer device, cl::Buffer buffe
     int workGroups = 256;
     int X = ceil((float)length / (workGroups*workGroupSize));
 
-    std::cout << "number of work groups is: " << workGroups << std::endl;
-    std::cout << "X is: " << X << std::endl;
+    Report::info() << "number of work groups is: " << workGroups << Report::end;
+    Report::info() << "X is: " << X << Report::end;
     clResult = cl::Buffer(device->getContext(), CL_MEM_READ_WRITE, getSizeOfDataType(type,1)*workGroups*2);
     reduce.setArg(0, current);
     reduce.setArg(1, workGroupSize * getSizeOfDataType(type,1), NULL);

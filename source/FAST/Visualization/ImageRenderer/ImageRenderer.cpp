@@ -46,6 +46,8 @@ void ImageRenderer::addInputConnection(ProcessObjectPort port) {
 
 ImageRenderer::ImageRenderer() : Renderer() {
     createInputPort<Image>(0, false);
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "/Visualization/ImageRenderer/ImageRenderer.cl", "3D");
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "/Visualization/ImageRenderer/ImageRenderer2D.cl", "2D");
     mIsModified = false;
 }
 
@@ -118,7 +120,6 @@ void ImageRenderer::draw() {
             );
         #endif
 
-        int i = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/ImageRenderer/ImageRenderer.cl");
         std::string kernelName = "renderToTextureInt";
         if(input->getDataType() == TYPE_FLOAT) {
             kernelName = "renderToTextureFloat";
@@ -126,7 +127,7 @@ void ImageRenderer::draw() {
             kernelName = "renderToTextureUint";
         }
 
-        mKernel = cl::Kernel(device->getProgram(i), kernelName.c_str());
+        mKernel = cl::Kernel(getOpenCLProgram(device, "3D"), kernelName.c_str());
         // Run kernel to fill the texture
         cl::CommandQueue queue = device->getCommandQueue();
         std::vector<cl::Memory> v;
@@ -208,10 +209,8 @@ void ImageRenderer::draw2D(cl::BufferGL PBO, uint width, uint height, Eigen::Tra
             level = getDefaultIntensityLevel(input->getDataType());
         }
 
-        int i = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/ImageRenderer/ImageRenderer2D.cl");
-
         if(input->getDimensions() == 2) {
-            cl::Kernel kernel(device->getProgram(i), "render2Dimage");
+            cl::Kernel kernel(getOpenCLProgram(device, "2D"), "render2Dimage");
             // Run kernel to fill the texture
 
             OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
@@ -250,7 +249,7 @@ void ImageRenderer::draw2D(cl::BufferGL PBO, uint width, uint height, Eigen::Tra
                     transform.data()
             );
 
-             cl::Kernel kernel(device->getProgram(i), "render3Dimage");
+             cl::Kernel kernel(getOpenCLProgram(device, "2D"), "render3Dimage");
             // Run kernel to fill the texture
 
             OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);

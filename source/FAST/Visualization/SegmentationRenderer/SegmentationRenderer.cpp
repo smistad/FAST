@@ -46,6 +46,7 @@ void SegmentationRenderer::setFillArea(bool fillArea) {
 
 SegmentationRenderer::SegmentationRenderer() {
     createInputPort<Segmentation>(0, false);
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "/Visualization/SegmentationRenderer/SegmentationRenderer.cl");
     mIsModified = false;
     mColorsModified = true;
     mFillAreaModified = true;
@@ -85,7 +86,6 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
         ) {
     boost::lock_guard<boost::mutex> lock(mMutex);
     OpenCLDevice::pointer device = getMainDevice();
-    int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/SegmentationRenderer/SegmentationRenderer.cl");
 
     if(mColorsModified) {
         // Transfer colors to device (this doesn't have to happen every render call..)
@@ -146,7 +146,7 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
 
         if(input->getDimensions() == 2) {
             std::string kernelName = "render2D";
-            cl::Kernel kernel(device->getProgram(programNr), kernelName.c_str());
+            cl::Kernel kernel(getOpenCLProgram(device), kernelName.c_str());
             // Run kernel to fill the texture
 
             OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
@@ -169,7 +169,7 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
             );
         } else {
             std::string kernelName = "render3D";
-            cl::Kernel kernel(device->getProgram(programNr), kernelName.c_str());
+            cl::Kernel kernel(getOpenCLProgram(device), kernelName.c_str());
 
             // Get transform of the image
             AffineTransformation dataTransform = SceneGraph::getAffineTransformationFromData(input);
