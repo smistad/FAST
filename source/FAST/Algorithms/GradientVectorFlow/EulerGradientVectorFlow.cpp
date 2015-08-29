@@ -4,6 +4,40 @@
 
 namespace fast {
 
+inline uint getPeakMemoryUsage(Image::pointer input, bool use16bit, bool writingTo3DTextures) {
+    uint size = input->getWidth()*input->getHeight()*input->getDepth();
+    uint result = 0;
+
+    if(input->getDataType() == TYPE_FLOAT) {
+        result = size*sizeof(float);
+    } else {
+        result = size*sizeof(short);
+    }
+
+    // Nr of channels for input CL image
+    if(input->getDimensions() == 2) {
+        result *= 2; // TODO only if CL_RG is supprted
+    } else {
+        result *= 4;
+    }
+
+    uint elementSize = sizeof(float);
+    if(use16bit)
+        elementSize = sizeof(short);
+
+    if(input->getDimensions() == 3) {
+        if(writingTo3DTextures) {
+            result += size*elementSize*3*2;
+        } else {
+            result += size*elementSize*4*2;
+        }
+    } else {
+        result += size*elementSize*2*2;
+    }
+
+    return result;
+}
+
 EulerGradientVectorFlow::EulerGradientVectorFlow() {
     createInputPort<Image>(0);
     createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
@@ -73,6 +107,8 @@ void EulerGradientVectorFlow::execute2DGVF(Image::pointer input, Image::pointer 
             storageFormat = cl::ImageFormat(CL_RGBA, CL_FLOAT);
         }
     }
+    Report::info() << "Euler GVF using a maximum of " <<
+            getPeakMemoryUsage(input, storageFormat.image_channel_data_type == CL_SNORM_INT16, device->isWritingTo3DTexturesSupported()) / (1024*1024) << " MB" << Report::end;
 
     cl::Kernel iterationKernel(program, "GVF2DIteration");
     OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
@@ -173,6 +209,8 @@ void EulerGradientVectorFlow::execute3DGVF(Image::pointer input, Image::pointer 
         Report::info() << "Using 32 bit floats for GVF" << Report::end;
         storageFormat = cl::ImageFormat(CL_RGBA, CL_FLOAT);
     }
+    Report::info() << "Euler GVF using a maximum of " <<
+            getPeakMemoryUsage(input, storageFormat.image_channel_data_type == CL_SNORM_INT16, device->isWritingTo3DTexturesSupported()) / (1024*1024) << " MB" << Report::end;
 
     cl::Kernel iterationKernel(program, "GVF3DIteration");
     OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
@@ -275,6 +313,8 @@ void EulerGradientVectorFlow::execute3DGVFNo3DWrite(Image::pointer input, Image:
         Report::info() << "Using 32 bit floats for GVF" << Report::end;
         storageFormat = cl::ImageFormat(CL_RGBA, CL_FLOAT);
     }
+    Report::info() << "Euler GVF using a maximum of " <<
+            getPeakMemoryUsage(input, storageFormat.image_channel_data_type == CL_SNORM_INT16, device->isWritingTo3DTexturesSupported()) / (1024*1024) << " MB" << Report::end;
     cl::Program program = getOpenCLProgram(device, "", buildOptions);
 
     cl::Kernel iterationKernel(program, "GVF3DIteration");
@@ -373,6 +413,7 @@ void EulerGradientVectorFlow::execute() {
     output->create(input->getSize(), TYPE_FLOAT, input->getNrOfComponents());
     output->setSpacing(input->getSpacing());
     SceneGraph::setParentNode(output, input);
+
 
     if(input->getDimensions() == 2) {
         execute2DGVF(input, output, iterations);
