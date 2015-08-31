@@ -29,6 +29,7 @@ void InverseGradientSegmentation::execute() {
     Image::pointer vectorField = getStaticInputData<Image>(1);
     Segmentation::pointer segmentation = getStaticOutputData<Segmentation>(0);
     segmentation->createFromImage(centerline);
+    SceneGraph::setParentNode(segmentation, centerline);
     Segmentation::pointer segmentation2 = Segmentation::New();
     segmentation2->createFromImage(centerline);
 
