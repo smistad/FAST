@@ -28,7 +28,7 @@ TubeSegmentationAndCenterlineExtraction::TubeSegmentationAndCenterlineExtraction
     mMaximumIntensity = std::numeric_limits<float>::max();
     // Blur has to be adapted to noise level in image
     mStDevBlurSmall = 1.0;
-    mStDevBlurLarge = 1.0; // 2.5 for airway
+    mStDevBlurLarge = 2.5; // 2.5 for airway
 }
 
 void TubeSegmentationAndCenterlineExtraction::loadPreset() {
@@ -151,7 +151,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
         GVFfield = runGradientVectorFlow(GVFfield);
 
         // TDF
-        largeTDF = runTubeDetectionFilter(GVFfield);
+        largeTDF = runNonCircularTubeDetectionFilter(GVFfield, 1.5, mMaximumRadius);
     }
 
     // If min radius is larger than 2.5 voxels
@@ -177,7 +177,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
         gradients = createGradients(smoothedImage);
 
         // TDF
-        smallTDF = runTubeDetectionFilter(gradients);
+        smallTDF = runTubeDetectionFilter(gradients, mMinimumRadius, 1.5);
     }
 
     RidgeTraversalCenterlineExtraction::pointer centerlineExtraction = RidgeTraversalCenterlineExtraction::New();
@@ -324,7 +324,7 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::createGradients(Image::p
     return vectorField;
 }
 
-Image::pointer TubeSegmentationAndCenterlineExtraction::runTubeDetectionFilter(Image::pointer vectorField) {
+Image::pointer TubeSegmentationAndCenterlineExtraction::runTubeDetectionFilter(Image::pointer vectorField, float minimumRadius, float maximumRadius) {
     OpenCLDevice::pointer device = getMainDevice();
     Image::pointer TDF = Image::New();
     TDF->create(vectorField->getWidth(), vectorField->getHeight(), vectorField->getDepth(), TYPE_FLOAT, 1);
@@ -341,9 +341,42 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::runTubeDetectionFilter(I
 
     kernel.setArg(0, *(vectorFieldAccess->get3DImage()));
     kernel.setArg(1, *(TDFAccess->get()));
-    kernel.setArg(2, mMinimumRadius);
-    kernel.setArg(3, mMaximumRadius);
+    kernel.setArg(2, minimumRadius);
+    kernel.setArg(3, maximumRadius);
     kernel.setArg(4, mRadiusStep);
+
+    device->getCommandQueue().enqueueNDRangeKernel(
+            kernel,
+            cl::NullRange,
+            cl::NDRange(TDF->getWidth(), TDF->getHeight(), TDF->getDepth()),
+            cl::NullRange
+    );
+
+    return TDF;
+}
+
+Image::pointer TubeSegmentationAndCenterlineExtraction::runNonCircularTubeDetectionFilter(Image::pointer vectorField, float minimumRadius, float maximumRadius) {
+    OpenCLDevice::pointer device = getMainDevice();
+    Image::pointer TDF = Image::New();
+    TDF->create(vectorField->getWidth(), vectorField->getHeight(), vectorField->getDepth(), TYPE_FLOAT, 1);
+    TDF->setSpacing(vectorField->getSpacing());
+    SceneGraph::setParentNode(TDF, vectorField);
+
+    OpenCLBufferAccess::pointer TDFAccess = TDF->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+    OpenCLImageAccess::pointer vectorFieldAccess = vectorField->getOpenCLImageAccess(ACCESS_READ, device);
+
+    device->createProgramFromSourceWithName("tsf",
+            std::string(FAST_SOURCE_DIR) + "Algorithms/TubeSegmentationAndCenterlineExtraction/TubeSegmentationAndCenterlineExtraction.cl");
+    cl::Program program(device->getProgram("tsf"));
+    cl::Kernel kernel(program, "nonCircularTDF");
+
+    kernel.setArg(0, *(vectorFieldAccess->get3DImage()));
+    kernel.setArg(1, *(TDFAccess->get()));
+    kernel.setArg(2, minimumRadius);
+    kernel.setArg(3, maximumRadius);
+    kernel.setArg(4, mRadiusStep);
+    kernel.setArg(5, 12); // nr of line searches
+    kernel.setArg(6, 0.1f); // GVF magnitude threshold
 
     device->getCommandQueue().enqueueNDRangeKernel(
             kernel,
