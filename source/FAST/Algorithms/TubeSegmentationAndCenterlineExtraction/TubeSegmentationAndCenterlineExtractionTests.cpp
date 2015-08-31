@@ -41,10 +41,11 @@ TEST_CASE("TSF", "[tsf]") {
 }
 
 /*
-TEST_CASE("TSF Airway", "[tsf]") {
+TEST_CASE("TSF Airway", "[tsf][airway]") {
+    Report::setReportMethod(Report::COUT);
     ImageFileImporter::pointer importer = ImageFileImporter::New();
     //importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT-Thorax.mhd");
-    importer->setFilename("/home/smistad/EXACT/CASE21.mhd");
+    importer->setFilename("/home/smistad/Dropbox/CT-Thorax-cropped.mhd");
 
     TubeSegmentationAndCenterlineExtraction::pointer tubeExtraction = TubeSegmentationAndCenterlineExtraction::New();
     tubeExtraction->setInputConnection(importer->getOutputPort());
@@ -52,8 +53,8 @@ TEST_CASE("TSF Airway", "[tsf]") {
     tubeExtraction->setMinimumIntensity(-1024);
     tubeExtraction->setMaximumIntensity(100);
     tubeExtraction->setMinimumRadius(3);
-    tubeExtraction->setMaximumRadius(25);
-    tubeExtraction->setSensitivity(0.5);
+    tubeExtraction->setMaximumRadius(30);
+    tubeExtraction->setSensitivity(0.85);
 
     SliceRenderer::pointer renderer = SliceRenderer::New();
     renderer->setInputConnection(tubeExtraction->getTDFOutputPort());

@@ -26,8 +26,9 @@ TubeSegmentationAndCenterlineExtraction::TubeSegmentationAndCenterlineExtraction
     mLungCropping = false;
     mMinimumIntensity = -std::numeric_limits<float>::max();
     mMaximumIntensity = std::numeric_limits<float>::max();
+    // Blur has to be adapted to noise level in image
     mStDevBlurSmall = 1.0;
-    mStDevBlurLarge = 1.0;
+    mStDevBlurLarge = 1.0; // 2.5 for airway
 }
 
 void TubeSegmentationAndCenterlineExtraction::loadPreset() {
@@ -119,35 +120,11 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
 
     // Cropping
 
-    // If min radius is larger than 2.5 voxels
-    Image::pointer smallTDF;
-    Image::pointer gradients;
-    if(mMinimumRadius /*/ smallestSpacing*/ < 1.5) {
-        std::cout << "Running small TDF" << std::endl;
-        // Find small structures
-        // Blur
-        Image::pointer smoothedImage;
-        if(mStDevBlurSmall > 0.1) {
-            GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
-            filter->setInputData(input);
-            filter->setStandardDeviation(mStDevBlurSmall);
-            filter->setOutputType(TYPE_FLOAT);
-            filter->update();
-            smoothedImage = filter->getOutputData<Image>();
-            smoothedImage->setSpacing(spacing);
-        } else {
-            smoothedImage = input;
-        }
 
-        // Create gradients and cap intensity
-        gradients = createGradients(smoothedImage);
-
-        // TDF
-        smallTDF = runTubeDetectionFilter(gradients);
-    }
 
 
     // If max radius is larger than 2.5 voxels
+    Image::pointer gradients;
     Image::pointer largeTDF;
     Image::pointer GVFfield;
     if(mMaximumRadius /*/ largestSpacing*/ >= 1.5) {
@@ -177,11 +154,37 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
         largeTDF = runTubeDetectionFilter(GVFfield);
     }
 
+    // If min radius is larger than 2.5 voxels
+    Image::pointer smallTDF;
+    if(mMinimumRadius /*/ smallestSpacing*/ < 1.5) {
+        std::cout << "Running small TDF" << std::endl;
+        // Find small structures
+        // Blur
+        Image::pointer smoothedImage;
+        if(mStDevBlurSmall > 0.1) {
+            GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
+            filter->setInputData(input);
+            filter->setStandardDeviation(mStDevBlurSmall);
+            filter->setOutputType(TYPE_FLOAT);
+            filter->update();
+            smoothedImage = filter->getOutputData<Image>();
+            smoothedImage->setSpacing(spacing);
+        } else {
+            smoothedImage = input;
+        }
+
+        // Create gradients and cap intensity
+        gradients = createGradients(smoothedImage);
+
+        // TDF
+        smallTDF = runTubeDetectionFilter(gradients);
+    }
+
     RidgeTraversalCenterlineExtraction::pointer centerlineExtraction = RidgeTraversalCenterlineExtraction::New();
     Image::pointer TDF;
     if(smallTDF.isValid() && largeTDF.isValid()) {
+        // Both small and large TDF has been executed, need to merge the two.
         TDF = largeTDF;
-        // TODO
         // First, extract centerlines from largeTDF and GVF
         // Then extract centerlines from smallTDF using large centerlines as input
         centerlineExtraction->setInputData(0, largeTDF);
@@ -192,6 +195,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
         LineSet::pointer centerline = centerlineExtraction->getOutputData<LineSet>();
 
         // Segmentation
+        // TODO: Use only dilation for smallTDF
         InverseGradientSegmentation::pointer segmentation = InverseGradientSegmentation::New();
         segmentation->setInputConnection(centerlineExtraction->getOutputPort(1));
         segmentation->setInputData(1, GVFfield);
@@ -199,6 +203,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
         setStaticOutputData<Segmentation>(0, segmentation->getOutputData<Segmentation>());
         setStaticOutputData<LineSet>(1, centerline);
     } else {
+        // Only small or large TDF has been used
         if(smallTDF.isValid()) {
             TDF = smallTDF;
             centerlineExtraction->setInputData(0, smallTDF);
@@ -232,7 +237,7 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::runGradientVectorFlow(Im
     gvf->setInputData(vectorField);
     //gvf->set32bitStorageFormat();
     gvf->set16bitStorageFormat();
-    gvf->setIterations(100);
+    //gvf->setIterations(100);
     gvf->update();
     return gvf->getOutputData<Image>();
 }

@@ -169,14 +169,14 @@ void doEigen(ImageAccess::pointer& vectorField, Vector3i pos, Vector3ui size, Ve
     *e3 = eigenvectors.col(2);
 }
 
-void copyToLineSet(std::stack<CenterlinePoint> points, std::vector<Vector3f>& vertices, std::vector<Vector2ui>& lines) {
+void copyToLineSet(std::stack<CenterlinePoint> points, std::vector<Vector3f>& vertices, std::vector<Vector2ui>& lines, Vector3f spacing) {
     while(!points.empty()) {
         CenterlinePoint point = points.top();
         points.pop();
         if(point.previousPos.x() != -1) {
             const uint pos = vertices.size();
-            vertices.push_back(point.pos.cast<float>());
-            vertices.push_back(point.previousPos.cast<float>());
+            vertices.push_back(point.pos.cast<float>().cwiseProduct(spacing));
+            vertices.push_back(point.previousPos.cast<float>().cwiseProduct(spacing));
             lines.push_back(Vector2ui(pos, pos+1));
         }
     }
@@ -197,9 +197,9 @@ void extractCenterlines(
 
     float Thigh = 0.5;
     int Dmin = 4;//getParam(parameters, "min-distance");
-    float Mlow = 0.02;
+    float Mlow = 0.1;
     float Tlow = 0.1;
-    int maxBelowTlow = 4;
+    int maxBelowTlow = 0;
     float minMeanTube = 0.5;
     const int totalSize = size.x()*size.y()*size.z();
 
@@ -217,9 +217,9 @@ void extractCenterlines(
 
                 Vector3i pos(x,y,z);
                 bool valid = true;
-                for(int a = -1; a < 2; a++) {
-                    for(int b = -1; b < 2; b++) {
-                        for(int c = -1; c < 2; c++) {
+                for(int a = -2; a < 3; a++) {
+                    for(int b = -2; b < 3; b++) {
+                        for(int c = -2; c < 3; c++) {
                             Vector3i nPos(x+a,y+b,z+c);
                             if(squaredMagnitude(vectorFieldAccess, nPos) < squaredMagnitude(vectorFieldAccess, pos)) {
                                 valid = false;
@@ -315,9 +315,9 @@ void extractCenterlines(
                             } else if(1 - squaredMagnitude(vectorFieldAccess, n) > 1 - squaredMagnitude(vectorFieldAccess, maxPoint)) {
                                 maxPoint = n;
                             }
-                                /*
+                            /*
                             } else {
-                                if(T.TDF[LPOS(n.x,n.y,n.z)]*M(n.x,n.y,n.z) > T.TDF[POS(maxPoint)]*M(maxPoint.x,maxPoint.y,maxPoint.z))
+                                if(TDFaccess->getScalar(n)*(1-squaredMagnitude(vectorFieldAccess, n)) > TDFaccess->getScalar(maxPoint)*(1-squaredMagnitude(vectorFieldAccess, maxPoint)))
                                 maxPoint = n;
                             }
                             */
@@ -370,7 +370,6 @@ void extractCenterlines(
                                 e1 = e2;
                             }
                         }
-
 
                         float maintain_dir = sign(e1.dot(t_i));
                         Vector3f vec_sum;
@@ -523,7 +522,7 @@ void RidgeTraversalCenterlineExtraction::execute() {
     // TODO: if use the method with TreeMin have to add them to centerlineStack also
     std::stack<CenterlinePoint> centerlineStack = centerlineStacks[max];
     for(it2 = trees.begin(); it2 != trees.end(); it2++) {
-        copyToLineSet(centerlineStacks[*it2], vertices, lines);
+        copyToLineSet(centerlineStacks[*it2], vertices, lines, TDF->getSpacing());
         while(!centerlineStacks[*it2].empty()) {
             centerlineStack.push(centerlineStacks[*it2].top());
             centerlineStacks[*it2].pop();
@@ -556,7 +555,9 @@ void RidgeTraversalCenterlineExtraction::execute() {
 
     centerlineOutput->create(vertices, lines);
     centerlineVolumeOutput->create(size.x(), size.y(), size.z(), TYPE_UINT8, 1, getMainDevice(), returnCenterlines);
+    centerlineVolumeOutput->setSpacing(TDF->getSpacing());
     SceneGraph::setParentNode(centerlineVolumeOutput, TDF);
+    SceneGraph::setParentNode(centerlineOutput, TDF);
 }
 
 }
