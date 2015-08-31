@@ -9,6 +9,7 @@
 
 namespace fast {
 
+/*
 TEST_CASE("TSF", "[tsf]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
     importer->setFilename("/home/smistad/Dropbox/Programmering/Tube-Segmentation-Framework/tests/data/synthetic/dataset_1/noisy.mhd");
@@ -40,7 +41,6 @@ TEST_CASE("TSF", "[tsf]") {
     window->start();
 }
 
-/*
 TEST_CASE("TSF Airway", "[tsf][airway]") {
     Report::setReportMethod(Report::COUT);
     ImageFileImporter::pointer importer = ImageFileImporter::New();
