@@ -4,6 +4,7 @@
 #include "FAST/Data/LineSet.hpp"
 #include "FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp"
 #include "FAST/Algorithms/GradientVectorFlow/EulerGradientVectorFlow.hpp"
+#include "FAST/Algorithms/GradientVectorFlow/MultigridGradientVectorFlow.hpp"
 #include "RidgeTraversalCenterlineExtraction.hpp"
 #include "InverseGradientSegmentation.hpp"
 
@@ -27,8 +28,8 @@ TubeSegmentationAndCenterlineExtraction::TubeSegmentationAndCenterlineExtraction
     mMinimumIntensity = -std::numeric_limits<float>::max();
     mMaximumIntensity = std::numeric_limits<float>::max();
     // Blur has to be adapted to noise level in image
-    mStDevBlurSmall = 1.0;
-    mStDevBlurLarge = 2.5; // 2.5 for airway
+    mStDevBlurSmall = 0.5;
+    mStDevBlurLarge = 1.0; // 2.5 for airway
 }
 
 void TubeSegmentationAndCenterlineExtraction::loadPreset() {
@@ -233,11 +234,13 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
 
 Image::pointer TubeSegmentationAndCenterlineExtraction::runGradientVectorFlow(Image::pointer vectorField) {
     OpenCLDevice::pointer device = getMainDevice();
-    EulerGradientVectorFlow::pointer gvf = EulerGradientVectorFlow::New();
+    //EulerGradientVectorFlow::pointer gvf = EulerGradientVectorFlow::New();
+    MultigridGradientVectorFlow::pointer gvf = MultigridGradientVectorFlow::New();
     gvf->setInputData(vectorField);
     //gvf->set32bitStorageFormat();
     gvf->set16bitStorageFormat();
-    //gvf->setIterations(100);
+    gvf->setIterations(10);
+    gvf->setMuConstant(0.199);
     gvf->update();
     return gvf->getOutputData<Image>();
 }
