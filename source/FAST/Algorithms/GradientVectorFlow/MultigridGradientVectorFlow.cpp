@@ -4,8 +4,9 @@
 
 namespace fast {
 
-cl::Image3D MultigridGradientVectorFlow::initSolutionToZero(Vector3ui size, int imageType, int bufferSize, bool no3Dwrite) {
+cl::Image3D MultigridGradientVectorFlow::initSolutionToZero(Vector3ui size, int imageType, int bufferSize) {
     OpenCLDevice::pointer device = getMainDevice();
+    cl::CommandQueue queue = device->getCommandQueue();
     cl::Image3D v(
             device->getContext(),
             CL_MEM_READ_WRITE,
@@ -15,29 +16,23 @@ cl::Image3D MultigridGradientVectorFlow::initSolutionToZero(Vector3ui size, int 
             size.z()
     );
 
-    if(no3Dwrite) {
-        /*
-        Kernel initToZeroKernel(ocl.program, "initFloatBuffer");
-        Buffer vBuffer = Buffer(ocl.context, CL_MEM_WRITE_ONLY, bufferSize*size.x*size.y*size.z);
-        initToZeroKernel.setArg(0,vBuffer);
-        ocl.queue.enqueueNDRangeKernel(
-                initToZeroKernel,
-                NullRange,
-                NDRange(size.x*size.y*size.z),
-                NullRange
+    if(!device->isWritingTo3DTexturesSupported()) {
+        cl::Kernel initToZeroKernel(mProgram, "initFloatBuffer");
+        cl::Buffer vBuffer(
+                device->getContext(),
+                CL_MEM_WRITE_ONLY,
+                bufferSize*size.x()*size.y()*size.z()
         );
-        cl::size_t<3> offset;
-        offset[0] = 0;
-        offset[1] = 0;
-        offset[2] = 0;
-        cl::size_t<3> region;
-        region[0] = size.x;
-        region[1] = size.y;
-        region[2] = size.z;
-        ocl.queue.enqueueCopyBufferToImage(vBuffer,v,0,offset,region);
-        */
+        initToZeroKernel.setArg(0,vBuffer);
+        queue.enqueueNDRangeKernel(
+                initToZeroKernel,
+                cl::NullRange,
+                cl::NDRange(size.x()*size.y()*size.z()),
+                cl::NullRange
+        );
+        queue.enqueueCopyBufferToImage(vBuffer,v,0,oul::createOrigoRegion(),oul::createRegion(size.x(), size.y(), size.z()));
     } else {
-        cl::Kernel initToZeroKernel(getOpenCLProgram(device), "init3DFloat");
+        cl::Kernel initToZeroKernel(mProgram, "init3DFloat");
         initToZeroKernel.setArg(0,v);
         device->getCommandQueue().enqueueNDRangeKernel(
                 initToZeroKernel,
@@ -59,8 +54,7 @@ void MultigridGradientVectorFlow::gaussSeidelSmoothing(
         float mu,
         float spacing,
         int imageType,
-        int bufferSize,
-        bool no3Dwrite
+        int bufferSize
         ) {
 
     if(iterations <= 0)
@@ -68,8 +62,8 @@ void MultigridGradientVectorFlow::gaussSeidelSmoothing(
     OpenCLDevice::pointer device = getMainDevice();
     cl::CommandQueue queue = device->getCommandQueue();
 
-    cl::Kernel gaussSeidelKernel(getOpenCLProgram(device), "GVFgaussSeidel");
-    cl::Kernel gaussSeidelKernel2(getOpenCLProgram(device), "GVFgaussSeidel2");
+    cl::Kernel gaussSeidelKernel(mProgram, "GVFgaussSeidel");
+    cl::Kernel gaussSeidelKernel2(mProgram, "GVFgaussSeidel2");
 
     cl::Image3D v_2 = cl::Image3D(
             device->getContext(),
@@ -89,42 +83,37 @@ void MultigridGradientVectorFlow::gaussSeidelSmoothing(
     gaussSeidelKernel2.setArg(2, mu);
     gaussSeidelKernel2.setArg(3, spacing);
 
-    if(no3Dwrite) {
-        /*
-        cl::size_t<3> offset;
-        offset[0] = 0;
-        offset[1] = 0;
-        offset[2] = 0;
-        cl::size_t<3> region;
-        region[0] = size.x;
-        region[1] = size.y;
-        region[2] = size.z;
-        Buffer v_2_buffer = Buffer(ocl.context, CL_MEM_WRITE_ONLY, bufferSize*size.x*size.y*size.z);
+    if(!device->isWritingTo3DTexturesSupported()) {
+        cl::size_t<3> offset = oul::createOrigoRegion();
+        cl::size_t<3> region = oul::createRegion(size.x(), size.y(), size.z());
+        cl::Buffer v_2_buffer(
+                device->getContext(),
+                CL_MEM_WRITE_ONLY,
+                bufferSize*size.x()*size.y()*size.z());
 
         for(int i = 0; i < iterations*2; i++) {
              if(i % 2 == 0) {
                  gaussSeidelKernel.setArg(4, v);
                  gaussSeidelKernel.setArg(5, v_2_buffer);
-                 ocl.queue.enqueueNDRangeKernel(
+                 queue.enqueueNDRangeKernel(
                     gaussSeidelKernel,
-                    NullRange,
-                    NDRange(size.x,size.y,size.z),
-                    NDRange(4,4,4)
+                    cl::NullRange,
+                    cl::NDRange(size.x(), size.y(), size.z()),
+                    cl::NullRange
                 );
-                ocl.queue.enqueueCopyBufferToImage(v_2_buffer, v_2,0,offset,region);
+                queue.enqueueCopyBufferToImage(v_2_buffer, v_2,0,offset,region);
              } else {
                  gaussSeidelKernel2.setArg(4, v_2);
                  gaussSeidelKernel2.setArg(5, v_2_buffer);
-                 ocl.queue.enqueueNDRangeKernel(
+                 queue.enqueueNDRangeKernel(
                     gaussSeidelKernel2,
-                    NullRange,
-                    NDRange(size.x,size.y,size.z),
-                    NDRange(4,4,4)
+                    cl::NullRange,
+                    cl::NDRange(size.x(), size.y(), size.z()),
+                    cl::NullRange
                 );
-                ocl.queue.enqueueCopyBufferToImage(v_2_buffer, v,0,offset,region);
+                queue.enqueueCopyBufferToImage(v_2_buffer, v,0,offset,region);
              }
         }
-        */
     } else {
          for(int i = 0; i < iterations*2; i++) {
              if(i % 2 == 0) {
@@ -154,8 +143,7 @@ cl::Image3D MultigridGradientVectorFlow::restrictVolume(
         cl::Image3D &v,
         Vector3ui newSize,
         int imageType,
-        int bufferSize,
-        bool no3Dwrite
+        int bufferSize
         ) {
 
     OpenCLDevice::pointer device = getMainDevice();
@@ -171,28 +159,28 @@ cl::Image3D MultigridGradientVectorFlow::restrictVolume(
             newSize.z()
     );
 
-    cl::Kernel restrictKernel(getOpenCLProgram(device), "restrictVolume");
-    if(no3Dwrite) {
-        /*
-        cl::size_t<3> offset;
-        offset[0] = 0;
-        offset[1] = 0;
-        offset[2] = 0;
-        cl::size_t<3> region;
-        region[0] = newSize.x;
-        region[1] = newSize.y;
-        region[2] = newSize.z;
-        Buffer v_2_buffer = Buffer(ocl.context, CL_MEM_WRITE_ONLY, bufferSize*newSize.x*newSize.y*newSize.z);
+    cl::Kernel restrictKernel(mProgram, "restrictVolume");
+    if(!device->isWritingTo3DTexturesSupported()) {
+        cl::Buffer v_2_buffer(
+                device->getContext(),
+                CL_MEM_WRITE_ONLY,
+                bufferSize*newSize.x()*newSize.y()*newSize.z()
+        );
         restrictKernel.setArg(0, v);
         restrictKernel.setArg(1, v_2_buffer);
-        ocl.queue.enqueueNDRangeKernel(
+        queue.enqueueNDRangeKernel(
                 restrictKernel,
-                NullRange,
-                NDRange(newSize.x,newSize.y,newSize.z),
-                NDRange(4,4,4)
+                cl::NullRange,
+                cl::NDRange(newSize.x(), newSize.y(), newSize.z()),
+                cl::NullRange
         );
-        ocl.queue.enqueueCopyBufferToImage(v_2_buffer, v_2,0,offset,region);
-        */
+        queue.enqueueCopyBufferToImage(
+                v_2_buffer,
+                v_2,
+                0,
+                oul::createOrigoRegion(),
+                oul::createRegion(newSize.x(), newSize.y(), newSize.z())
+        );
     } else {
         restrictKernel.setArg(0, v);
         restrictKernel.setArg(1, v_2);
@@ -212,8 +200,7 @@ cl::Image3D MultigridGradientVectorFlow::prolongateVolume(
         cl::Image3D &v_l_p1,
         Vector3ui size,
         int imageType,
-        int bufferSize,
-        bool no3Dwrite
+        int bufferSize
         ) {
     OpenCLDevice::pointer device = getMainDevice();
     cl::CommandQueue queue = device->getCommandQueue();
@@ -226,30 +213,30 @@ cl::Image3D MultigridGradientVectorFlow::prolongateVolume(
             size.z()
     );
 
-    cl::Kernel prolongateKernel(getOpenCLProgram(device), "prolongate");
-    if(no3Dwrite) {
-        /*
-        cl::size_t<3> offset;
-        offset[0] = 0;
-        offset[1] = 0;
-        offset[2] = 0;
-        cl::size_t<3> region;
-        region[0] = size.x;
-        region[1] = size.y;
-        region[2] = size.z;
-        Buffer v_2_buffer = Buffer(ocl.context, CL_MEM_WRITE_ONLY, bufferSize*size.x*size.y*size.z);
+    cl::Kernel prolongateKernel(mProgram, "prolongate");
+    if(!device->isWritingTo3DTexturesSupported()) {
+        cl::Buffer v_2_buffer(
+                device->getContext(),
+                CL_MEM_WRITE_ONLY,
+                bufferSize*size.x()*size.y()*size.z()
+        );
         prolongateKernel.setArg(0, v_l);
         prolongateKernel.setArg(1, v_l_p1);
         prolongateKernel.setArg(2, v_2_buffer);
-        ocl.queue.enqueueNDRangeKernel(
+        queue.enqueueNDRangeKernel(
                 prolongateKernel,
-                NullRange,
-                NDRange(size.x,size.y,size.z),
-                NDRange(4,4,4)
+                cl::NullRange,
+                cl::NDRange(size.x(),size.y(),size.z()),
+                cl::NullRange
         );
 
-        ocl.queue.enqueueCopyBufferToImage(v_2_buffer, v_2,0,offset,region);
-        */
+        queue.enqueueCopyBufferToImage(
+                v_2_buffer,
+                v_2,
+                0,
+                oul::createOrigoRegion(),
+                oul::createRegion(size.x(), size.y(), size.z())
+        );
     } else {
         prolongateKernel.setArg(0, v_l);
         prolongateKernel.setArg(1, v_l_p1);
@@ -269,8 +256,7 @@ cl::Image3D MultigridGradientVectorFlow::prolongateVolume2(
         cl::Image3D &v_l_p1,
         Vector3ui size,
         int imageType,
-        int bufferSize,
-        bool no3Dwrite
+        int bufferSize
         ) {
     OpenCLDevice::pointer device = getMainDevice();
     cl::CommandQueue queue = device->getCommandQueue();
@@ -283,29 +269,29 @@ cl::Image3D MultigridGradientVectorFlow::prolongateVolume2(
             size.z()
     );
 
-    cl::Kernel prolongateKernel(getOpenCLProgram(device), "prolongate2");
-    if(no3Dwrite) {
-        /*
-        cl::size_t<3> offset;
-        offset[0] = 0;
-        offset[1] = 0;
-        offset[2] = 0;
-        cl::size_t<3> region;
-        region[0] = size.x;
-        region[1] = size.y;
-        region[2] = size.z;
-        Buffer v_2_buffer = Buffer(ocl.context, CL_MEM_WRITE_ONLY, bufferSize*size.x*size.y*size.z);
+    cl::Kernel prolongateKernel(mProgram, "prolongate2");
+    if(!device->isWritingTo3DTexturesSupported()) {
+        cl::Buffer v_2_buffer(
+                device->getContext(),
+                CL_MEM_WRITE_ONLY,
+                bufferSize*size.x()*size.y()*size.z()
+        );
         prolongateKernel.setArg(0, v_l_p1);
         prolongateKernel.setArg(1, v_2_buffer);
-        ocl.queue.enqueueNDRangeKernel(
+        queue.enqueueNDRangeKernel(
                 prolongateKernel,
-                NullRange,
-                NDRange(size.x,size.y,size.z),
-                NDRange(4,4,4)
+                cl::NullRange,
+                cl::NDRange(size.x(),size.y(),size.z()),
+                cl::NullRange
         );
 
-        ocl.queue.enqueueCopyBufferToImage(v_2_buffer, v_2,0,offset,region);
-        */
+        queue.enqueueCopyBufferToImage(
+                v_2_buffer,
+                v_2,
+                0,
+                oul::createOrigoRegion(),
+                oul::createRegion(size.x(), size.y(), size.z())
+        );
     } else {
         prolongateKernel.setArg(0, v_l_p1);
         prolongateKernel.setArg(1, v_2);
@@ -329,8 +315,7 @@ cl::Image3D MultigridGradientVectorFlow::residual(
         float spacing,
         Vector3ui size,
         int imageType,
-        int bufferSize,
-        bool no3Dwrite
+        int bufferSize
         ) {
     OpenCLDevice::pointer device = getMainDevice();
     cl::CommandQueue queue = device->getCommandQueue();
@@ -343,33 +328,33 @@ cl::Image3D MultigridGradientVectorFlow::residual(
             size.z()
     );
 
-    cl::Kernel residualKernel(getOpenCLProgram(device), "residual");
-    if(no3Dwrite) {
-        /*
-        cl::size_t<3> offset;
-        offset[0] = 0;
-        offset[1] = 0;
-        offset[2] = 0;
-        cl::size_t<3> region;
-        region[0] = size.x;
-        region[1] = size.y;
-        region[2] = size.z;
-        Buffer newResidualBuffer = Buffer(ocl.context, CL_MEM_WRITE_ONLY, bufferSize*size.x*size.y*size.z);
+    cl::Kernel residualKernel(mProgram, "residual");
+    if(!device->isWritingTo3DTexturesSupported()) {
+        cl::Buffer newResidualBuffer(
+                device->getContext(),
+                CL_MEM_WRITE_ONLY,
+                bufferSize*size.x()*size.y()*size.z()
+        );
         residualKernel.setArg(0, r);
         residualKernel.setArg(1, v);
         residualKernel.setArg(2, sqrMag);
         residualKernel.setArg(3, mu);
         residualKernel.setArg(4, spacing);
         residualKernel.setArg(5, newResidualBuffer);
-        ocl.queue.enqueueNDRangeKernel(
+        queue.enqueueNDRangeKernel(
                 residualKernel,
-                NullRange,
-                NDRange(size.x,size.y,size.z),
-                NDRange(4,4,4)
+                cl::NullRange,
+                cl::NDRange(size.x(),size.y(),size.z()),
+                cl::NullRange
         );
 
-        ocl.queue.enqueueCopyBufferToImage(newResidualBuffer, newResidual,0,offset,region);
-        */
+        queue.enqueueCopyBufferToImage(
+                newResidualBuffer,
+                newResidual,
+                0,
+                oul::createOrigoRegion(),
+                oul::createRegion(size.x(), size.y(), size.z())
+        );
     } else {
         residualKernel.setArg(0, r);
         residualKernel.setArg(1, v);
@@ -426,37 +411,36 @@ void MultigridGradientVectorFlow::multigridVcycle(
         float spacing,
         Vector3ui size,
         int imageType,
-        int bufferSize,
-        bool no3Dwrite
+        int bufferSize
         ) {
 
     // Pre-smoothing
-    gaussSeidelSmoothing(v_l,r_l,sqrMag,v1,size,mu,spacing,imageType,bufferSize,no3Dwrite);
+    gaussSeidelSmoothing(v_l,r_l,sqrMag,v1,size,mu,spacing,imageType,bufferSize);
 
     if(l < l_max) {
         Vector3ui newSize = calculateNewSize(size);
 
         // Compute new residual
-        cl::Image3D p_l = residual(r_l, v_l, sqrMag, mu, spacing, size,imageType,bufferSize,no3Dwrite);
+        cl::Image3D p_l = residual(r_l, v_l, sqrMag, mu, spacing, size,imageType,bufferSize);
 
         // Restrict residual
-        cl::Image3D r_l_p1 = restrictVolume(p_l, newSize,imageType,bufferSize,no3Dwrite);
+        cl::Image3D r_l_p1 = restrictVolume(p_l, newSize,imageType,bufferSize);
 
         // Restrict sqrMag
-        cl::Image3D sqrMag_l_p1 = restrictVolume(sqrMag, newSize,imageType,bufferSize,no3Dwrite);
+        cl::Image3D sqrMag_l_p1 = restrictVolume(sqrMag, newSize,imageType,bufferSize);
 
         // Initialize v_l_p1
-        cl::Image3D v_l_p1 = initSolutionToZero(newSize,imageType,bufferSize,no3Dwrite);
+        cl::Image3D v_l_p1 = initSolutionToZero(newSize,imageType,bufferSize);
 
         // Solve recursively
-        multigridVcycle(r_l_p1, v_l_p1, sqrMag_l_p1, l+1,v1,v2,l_max,mu,spacing*2,newSize,imageType,bufferSize,no3Dwrite);
+        multigridVcycle(r_l_p1, v_l_p1, sqrMag_l_p1, l+1,v1,v2,l_max,mu,spacing*2,newSize,imageType,bufferSize);
 
         // Prolongate
-        v_l = prolongateVolume(v_l, v_l_p1, size,imageType,bufferSize,no3Dwrite);
+        v_l = prolongateVolume(v_l, v_l_p1, size,imageType,bufferSize);
     }
 
     // Post-smoothing
-    gaussSeidelSmoothing(v_l,r_l,sqrMag,v2,size,mu,spacing,imageType,bufferSize,no3Dwrite);
+    gaussSeidelSmoothing(v_l,r_l,sqrMag,v2,size,mu,spacing,imageType,bufferSize);
 }
 
 cl::Image3D MultigridGradientVectorFlow::computeNewResidual(
@@ -467,8 +451,7 @@ cl::Image3D MultigridGradientVectorFlow::computeNewResidual(
         int component,
         Vector3ui size,
         int imageType,
-        int bufferSize,
-        bool no3Dwrite
+        int bufferSize
         ) {
     OpenCLDevice::pointer device = getMainDevice();
     cl::CommandQueue queue = device->getCommandQueue();
@@ -481,32 +464,33 @@ cl::Image3D MultigridGradientVectorFlow::computeNewResidual(
             size.z()
     );
 
-    cl::Kernel residualKernel(getOpenCLProgram(device), "fmgResidual");
-    if(no3Dwrite) {
-        /*
-        cl::size_t<3> offset;
-        offset[0] = 0;
-        offset[1] = 0;
-        offset[2] = 0;
-        cl::size_t<3> region;
-        region[0] = size.x;
-        region[1] = size.y;
-        region[2] = size.z;
-        Buffer newResidualBuffer = Buffer(ocl.context, CL_MEM_WRITE_ONLY, bufferSize*size.x*size.y*size.z);
+    cl::Kernel residualKernel(mProgram, "fmgResidual");
+    if(!device->isWritingTo3DTexturesSupported()) {
+        cl::Buffer newResidualBuffer(
+                device->getContext(),
+                CL_MEM_WRITE_ONLY,
+                bufferSize*size.x()*size.y()*size.z()
+        );
         residualKernel.setArg(0,vectorField);
         residualKernel.setArg(1, f);
         residualKernel.setArg(2, mu);
         residualKernel.setArg(3, spacing);
         residualKernel.setArg(4, component);
         residualKernel.setArg(5, newResidualBuffer);
-        ocl.queue.enqueueNDRangeKernel(
+        queue.enqueueNDRangeKernel(
                 residualKernel,
-                NullRange,
-                NDRange(size.x,size.y,size.z),
-                NDRange(4,4,4)
+                cl::NullRange,
+                cl::NDRange(size.x(),size.y(),size.z()),
+                cl::NullRange
         );
-        ocl.queue.enqueueCopyBufferToImage(newResidualBuffer, newResidual,0,offset,region);
-        */
+
+        queue.enqueueCopyBufferToImage(
+                newResidualBuffer,
+                newResidual,
+                0,
+                oul::createOrigoRegion(),
+                oul::createRegion(size.x(), size.y(), size.z())
+        );
     } else {
         residualKernel.setArg(0,vectorField);
         residualKernel.setArg(1, f);
@@ -537,22 +521,21 @@ cl::Image3D MultigridGradientVectorFlow::fullMultigrid(
         float spacing,
         Vector3ui size,
         int imageType,
-        int bufferSize,
-        bool no3Dwrite
+        int bufferSize
         ) {
     cl::Image3D v_l;
     if(l < l_max) {
         Vector3ui newSize = calculateNewSize(size);
-        cl::Image3D r_l_p1 = restrictVolume(r_l, newSize, imageType,bufferSize,no3Dwrite);
-        cl::Image3D sqrMag_l = restrictVolume(sqrMag,newSize,imageType,bufferSize,no3Dwrite);
-        cl::Image3D v_l_p1 = fullMultigrid(r_l_p1,sqrMag_l,l+1,v0,v1,v2,l_max,mu,spacing*2,newSize, imageType,bufferSize,no3Dwrite);
-        v_l = prolongateVolume2(v_l_p1, size,imageType,bufferSize,no3Dwrite);
+        cl::Image3D r_l_p1 = restrictVolume(r_l, newSize, imageType,bufferSize);
+        cl::Image3D sqrMag_l = restrictVolume(sqrMag,newSize,imageType,bufferSize);
+        cl::Image3D v_l_p1 = fullMultigrid(r_l_p1,sqrMag_l,l+1,v0,v1,v2,l_max,mu,spacing*2,newSize, imageType,bufferSize);
+        v_l = prolongateVolume2(v_l_p1, size,imageType,bufferSize);
     } else {
-        v_l = initSolutionToZero(size,imageType,bufferSize,no3Dwrite);
+        v_l = initSolutionToZero(size,imageType,bufferSize);
     }
 
     for(int i = 0; i < v0; i++) {
-        multigridVcycle(r_l,v_l,sqrMag,l,v1,v2,l_max,mu,spacing,size,imageType,bufferSize,no3Dwrite);
+        multigridVcycle(r_l,v_l,sqrMag,l,v1,v2,l_max,mu,spacing,size,imageType,bufferSize);
     }
 
     return v_l;
@@ -611,11 +594,12 @@ void MultigridGradientVectorFlow::execute() {
     if(input->getDimensions() == 2) {
         throw Exception("The multigrid GVF only supports 3D");
     } else {
-        if(device->isWritingTo3DTexturesSupported()) {
-            execute3DGVF(input, output, mIterations);
+        if(mUse16bitFormat) {
+            mProgram = getOpenCLProgram(device, "", "-DVECTORS_16BIT");
         } else {
-            execute3DGVFNo3DWrite(input, output, mIterations);
+            mProgram = getOpenCLProgram(device);
         }
+        execute3DGVF(input, output, mIterations);
     }
 }
 
@@ -625,7 +609,7 @@ void MultigridGradientVectorFlow::execute3DGVF(SharedPointer<Image> input,
     OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
     cl::CommandQueue queue = device->getCommandQueue();
     Vector3ui size = input->getSize();
-    const bool no3Dwrite = false;
+    const bool no3Dwrite = !device->isWritingTo3DTexturesSupported();
     const int totalSize = size.x()*size.y()*size.z();
     int imageType, bufferTypeSize;
     if(mUse16bitFormat) {
@@ -636,16 +620,16 @@ void MultigridGradientVectorFlow::execute3DGVF(SharedPointer<Image> input,
         bufferTypeSize = sizeof(float);
     }
 
-    cl::Kernel initKernel(getOpenCLProgram(device), "MGGVFInit");
+    cl::Kernel initKernel(mProgram, "MGGVFInit");
 
     int v0 = 1;
     int v1 = 2;
     int v2 = 2;
-    int l_max = 2; // TODO this should be calculated
+    int l_max = log(size.maxCoeff())/log(2) - 2; // log - 1 gives error on 32 bit. Why??
     float spacing = 1.0f;
 
     // create sqrMag
-    cl::Kernel createSqrMagKernel(getOpenCLProgram(device), "createSqrMag");
+    cl::Kernel createSqrMagKernel(mProgram, "createSqrMag");
     cl::Image3D sqrMag(
             device->getContext(),
             CL_MEM_READ_WRITE,
@@ -658,22 +642,20 @@ void MultigridGradientVectorFlow::execute3DGVF(SharedPointer<Image> input,
     cl::size_t<3> region = oul::createRegion(size.x(), size.y(), size.z());
 
     if(no3Dwrite) {
-        /*
-        Buffer sqrMagBuffer = Buffer(
-                ocl.context,
+        cl::Buffer sqrMagBuffer(
+                device->getContext(),
                 CL_MEM_WRITE_ONLY,
                 totalSize*bufferTypeSize
         );
-        createSqrMagKernel.setArg(0, *vectorField);
+        createSqrMagKernel.setArg(0, *inputAccess->get3DImage());
         createSqrMagKernel.setArg(1, sqrMagBuffer);
-        ocl.queue.enqueueNDRangeKernel(
+        queue.enqueueNDRangeKernel(
                 createSqrMagKernel,
-                NullRange,
-                NDRange(size.x,size.y,size.z),
-                NDRange(4,4,4)
+                cl::NullRange,
+                cl::NDRange(size.x(),size.y(),size.z()),
+                cl::NullRange
         );
-        ocl.queue.enqueueCopyBufferToImage(sqrMagBuffer,sqrMag,0,offset,region);
-        */
+        queue.enqueueCopyBufferToImage(sqrMagBuffer,sqrMag,0,offset,region);
     } else {
         createSqrMagKernel.setArg(0, *inputAccess->get3DImage());
         createSqrMagKernel.setArg(1, sqrMag);
@@ -686,18 +668,17 @@ void MultigridGradientVectorFlow::execute3DGVF(SharedPointer<Image> input,
     }
     std::cout << "sqrMag created" << std::endl;
 
-    cl::Kernel addKernel(getOpenCLProgram(device), "addTwoImages");
-    cl::Image3D fx = initSolutionToZero(size,imageType,bufferTypeSize,no3Dwrite);
+    cl::Kernel addKernel(mProgram, "addTwoImages");
+    cl::Image3D fx = initSolutionToZero(size,imageType,bufferTypeSize);
 
     // X component
     for(int i = 0; i < iterations; i++) {
-        cl::Image3D rx = computeNewResidual(fx,*inputAccess->get3DImage(),mMu,spacing,1,size,imageType,bufferTypeSize,no3Dwrite);
-        cl::Image3D fx2 = fullMultigrid(rx,sqrMag,0,v0,v1,v2,l_max,mMu,spacing,size,imageType,bufferTypeSize,no3Dwrite);
+        cl::Image3D rx = computeNewResidual(fx,*inputAccess->get3DImage(),mMu,spacing,1,size,imageType,bufferTypeSize);
+        cl::Image3D fx2 = fullMultigrid(rx,sqrMag,0,v0,v1,v2,l_max,mMu,spacing,size,imageType,bufferTypeSize);
         queue.finish();
         if(no3Dwrite) {
-            /*
-            Buffer fx3 = Buffer(
-                    ocl.context,
+            cl::Buffer fx3(
+                    device->getContext(),
                     CL_MEM_WRITE_ONLY,
                     totalSize*bufferTypeSize
             );
@@ -705,15 +686,14 @@ void MultigridGradientVectorFlow::execute3DGVF(SharedPointer<Image> input,
             addKernel.setArg(0,fx);
             addKernel.setArg(1,fx2);
             addKernel.setArg(2,fx3);
-            ocl.queue.enqueueNDRangeKernel(
+            queue.enqueueNDRangeKernel(
                     addKernel,
-                    NullRange,
-                    NDRange(size.x,size.y,size.z),
-                    NDRange(4,4,4)
+                    cl::NullRange,
+                    cl::NDRange(size.x(),size.y(),size.z()),
+                    cl::NullRange
             );
-            ocl.queue.enqueueCopyBufferToImage(fx3,fx,0,offset,region);
-            ocl.queue.finish();
-            */
+            queue.enqueueCopyBufferToImage(fx3,fx,0,offset,region);
+            queue.finish();
         } else {
             cl::Image3D fx3(
                 device->getContext(),
@@ -743,15 +723,14 @@ void MultigridGradientVectorFlow::execute3DGVF(SharedPointer<Image> input,
 
     // create fy and ry
     // Y component
-    cl::Image3D fy = initSolutionToZero(size,imageType,bufferTypeSize,no3Dwrite);
+    cl::Image3D fy = initSolutionToZero(size,imageType,bufferTypeSize);
     for(int i = 0; i < iterations; i++) {
-        cl::Image3D ry = computeNewResidual(fy,*inputAccess->get3DImage(),mMu,spacing,2,size,imageType,bufferTypeSize,no3Dwrite);
-        cl::Image3D fy2 = fullMultigrid(ry,sqrMag,0,v0,v1,v2,l_max,mMu,spacing,size,imageType,bufferTypeSize,no3Dwrite);
+        cl::Image3D ry = computeNewResidual(fy,*inputAccess->get3DImage(),mMu,spacing,2,size,imageType,bufferTypeSize);
+        cl::Image3D fy2 = fullMultigrid(ry,sqrMag,0,v0,v1,v2,l_max,mMu,spacing,size,imageType,bufferTypeSize);
         queue.finish();
         if(no3Dwrite) {
-            /*
-            Buffer fy3 = Buffer(
-                    ocl.context,
+            cl::Buffer fy3(
+                    device->getContext(),
                     CL_MEM_WRITE_ONLY,
                     totalSize*bufferTypeSize
             );
@@ -759,15 +738,14 @@ void MultigridGradientVectorFlow::execute3DGVF(SharedPointer<Image> input,
             addKernel.setArg(0,fy);
             addKernel.setArg(1,fy2);
             addKernel.setArg(2,fy3);
-            ocl.queue.enqueueNDRangeKernel(
+            queue.enqueueNDRangeKernel(
                     addKernel,
-                    NullRange,
-                    NDRange(size.x,size.y,size.z),
-                    NDRange(4,4,4)
+                    cl::NullRange,
+                    cl::NDRange(size.x(),size.y(),size.z()),
+                    cl::NullRange
             );
-            ocl.queue.enqueueCopyBufferToImage(fy3,fy,0,offset,region);
-            ocl.queue.finish();
-            */
+            queue.enqueueCopyBufferToImage(fy3,fy,0,offset,region);
+            queue.finish();
         } else {
             cl::Image3D fy3(
                 device->getContext(),
@@ -798,15 +776,14 @@ void MultigridGradientVectorFlow::execute3DGVF(SharedPointer<Image> input,
 
     // create fz and rz
     // Z component
-    cl::Image3D fz = initSolutionToZero(size,imageType,bufferTypeSize,no3Dwrite);
+    cl::Image3D fz = initSolutionToZero(size,imageType,bufferTypeSize);
     for(int i = 0; i < iterations; i++) {
-        cl::Image3D rz = computeNewResidual(fz,*inputAccess->get3DImage(),mMu,spacing,3,size,imageType,bufferTypeSize,no3Dwrite);
-        cl::Image3D fz2 = fullMultigrid(rz,sqrMag,0,v0,v1,v2,l_max,mMu,spacing,size,imageType,bufferTypeSize,no3Dwrite);
+        cl::Image3D rz = computeNewResidual(fz,*inputAccess->get3DImage(),mMu,spacing,3,size,imageType,bufferTypeSize);
+        cl::Image3D fz2 = fullMultigrid(rz,sqrMag,0,v0,v1,v2,l_max,mMu,spacing,size,imageType,bufferTypeSize);
         queue.finish();
         if(no3Dwrite) {
-            /*
-            Buffer fz3 = Buffer(
-                    ocl.context,
+            cl::Buffer fz3(
+                    device->getContext(),
                     CL_MEM_WRITE_ONLY,
                     totalSize*bufferTypeSize
             );
@@ -814,15 +791,14 @@ void MultigridGradientVectorFlow::execute3DGVF(SharedPointer<Image> input,
             addKernel.setArg(0,fz);
             addKernel.setArg(1,fz2);
             addKernel.setArg(2,fz3);
-            ocl.queue.enqueueNDRangeKernel(
+            queue.enqueueNDRangeKernel(
                     addKernel,
-                    NullRange,
-                    NDRange(size.x,size.y,size.z),
-                    NDRange(4,4,4)
+                    cl::NullRange,
+                    cl::NDRange(size.x(),size.y(),size.z()),
+                    cl::NullRange
             );
-            ocl.queue.enqueueCopyBufferToImage(fz3,fz,0,offset,region);
-            ocl.queue.finish();
-            */
+            queue.enqueueCopyBufferToImage(fz3,fz,0,offset,region);
+            queue.finish();
         } else {
             cl::Image3D fz3(
                 device->getContext(),
@@ -852,11 +828,11 @@ void MultigridGradientVectorFlow::execute3DGVF(SharedPointer<Image> input,
     std::cout << "fz finished" << std::endl;
 
 
-    cl::Kernel finalizeKernel(getOpenCLProgram(device), "MGGVFFinish");
+    cl::Kernel finalizeKernel(mProgram, "MGGVFFinish");
     if(no3Dwrite) {
-        /*
-        Buffer finalVectorFieldBuffer = Buffer(
-                ocl.context,
+        OpenCLImageAccess::pointer access = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+        cl::Buffer finalVectorFieldBuffer(
+                device->getContext(),
                 CL_MEM_WRITE_ONLY,
                 4*totalSize*bufferTypeSize
         );
@@ -865,14 +841,13 @@ void MultigridGradientVectorFlow::execute3DGVF(SharedPointer<Image> input,
         finalizeKernel.setArg(1, fy);
         finalizeKernel.setArg(2, fz);
         finalizeKernel.setArg(3, finalVectorFieldBuffer);
-        ocl.queue.enqueueNDRangeKernel(
+        queue.enqueueNDRangeKernel(
                 finalizeKernel,
-                NullRange,
-                NDRange(size.x,size.y,size.z),
-                NDRange(4,4,4)
+                cl::NullRange,
+                cl::NDRange(size.x(),size.y(),size.z()),
+                cl::NullRange
         );
-        ocl.queue.enqueueCopyBufferToImage(finalVectorFieldBuffer,finalVectorField,0,offset,region);
-        */
+        queue.enqueueCopyBufferToImage(finalVectorFieldBuffer,*access->get3DImage(),0,offset,region);
     } else {
         OpenCLImageAccess::pointer access = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
         finalizeKernel.setArg(0, fx);
@@ -888,12 +863,6 @@ void MultigridGradientVectorFlow::execute3DGVF(SharedPointer<Image> input,
 
     }
     std::cout << "MG GVF finished" << std::endl;
-}
-
-void MultigridGradientVectorFlow::execute3DGVFNo3DWrite(
-        SharedPointer<Image> input, SharedPointer<Image> output,
-        uint iterations) {
-    throw Exception("Multigrid GVF not implemented for no 3d write devices yet.");
 }
 
 } // end namespace fast

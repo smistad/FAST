@@ -27,13 +27,13 @@ class MultigridGradientVectorFlow : public ProcessObject {
         MultigridGradientVectorFlow();
         void execute();
         void execute3DGVF(SharedPointer<Image> input, SharedPointer<Image> output, uint iterations);
-        void execute3DGVFNo3DWrite(SharedPointer<Image> input, SharedPointer<Image> output, uint iterations);
 
         float mMu;
         uint mIterations;
         bool mUse16bitFormat;
+        cl::Program mProgram;
 
-        cl::Image3D initSolutionToZero(Vector3ui size, int imageType, int bufferSize, bool no3Dwrite);
+        cl::Image3D initSolutionToZero(Vector3ui size, int imageType, int bufferSize);
         void gaussSeidelSmoothing(
             cl::Image3D &v,
             cl::Image3D &r,
@@ -43,30 +43,26 @@ class MultigridGradientVectorFlow : public ProcessObject {
             float mu,
             float spacing,
             int imageType,
-            int bufferSize,
-            bool no3Dwrite
+            int bufferSize
         );
         cl::Image3D restrictVolume(
         cl::Image3D &v,
         Vector3ui newSize,
         int imageType,
-        int bufferSize,
-        bool no3Dwrite
+        int bufferSize
         );
         cl::Image3D prolongateVolume(
         cl::Image3D &v_l,
         cl::Image3D &v_l_p1,
         Vector3ui size,
         int imageType,
-        int bufferSize,
-        bool no3Dwrite
+        int bufferSize
         );
         cl::Image3D prolongateVolume2(
         cl::Image3D &v_l_p1,
         Vector3ui size,
         int imageType,
-        int bufferSize,
-        bool no3Dwrite
+        int bufferSize
         );
         cl::Image3D residual(
         cl::Image3D &r,
@@ -76,8 +72,7 @@ class MultigridGradientVectorFlow : public ProcessObject {
         float spacing,
         Vector3ui size,
         int imageType,
-        int bufferSize,
-        bool no3Dwrite
+        int bufferSize
         );
         void multigridVcycle(
         cl::Image3D &r_l,
@@ -91,8 +86,7 @@ class MultigridGradientVectorFlow : public ProcessObject {
         float spacing,
         Vector3ui size,
         int imageType,
-        int bufferSize,
-        bool no3Dwrite
+        int bufferSize
         );
         cl::Image3D computeNewResidual(
         cl::Image3D &f,
@@ -102,8 +96,7 @@ class MultigridGradientVectorFlow : public ProcessObject {
         int component,
         Vector3ui size,
         int imageType,
-        int bufferSize,
-        bool no3Dwrite
+        int bufferSize
         );
         cl::Image3D fullMultigrid(
         cl::Image3D &r_l,
@@ -117,8 +110,7 @@ class MultigridGradientVectorFlow : public ProcessObject {
         float spacing,
         Vector3ui size,
         int imageType,
-        int bufferSize,
-        bool no3Dwrite
+        int bufferSize
         );
 };
 
