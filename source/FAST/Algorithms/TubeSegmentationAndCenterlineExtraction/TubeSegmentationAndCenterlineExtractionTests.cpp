@@ -79,6 +79,7 @@ TEST_CASE("TSF Airway", "[tsf][airway][visual]") {
     window->addRenderer(renderer);
     window->addRenderer(meshRenderer);
     window->addRenderer(lineRenderer);
+    window->setTimeout(3*1000);
     window->start();
 }
 
