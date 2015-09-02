@@ -1,5 +1,4 @@
-#pragma OPENCL EXTENSION cl_khr_3d_image_writes : enable
-__constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
+__constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
 
 #ifdef cl_khr_3d_image_writes
 __kernel void gaussianSmoothing(
