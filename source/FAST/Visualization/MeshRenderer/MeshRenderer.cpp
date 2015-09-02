@@ -106,6 +106,7 @@ void MeshRenderer::draw() {
 
     glDisable(GL_LIGHTING);
     glDisable(GL_NORMALIZE);
+    glColor3f(1.0f, 1.0f, 1.0f); // Reset color
 }
 
 BoundingBox MeshRenderer::getBoundingBox() {

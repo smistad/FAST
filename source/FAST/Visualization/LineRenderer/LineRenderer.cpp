@@ -59,6 +59,7 @@ void LineRenderer::draw() {
             glEnable(GL_DEPTH_TEST);
         glPopMatrix();
     }
+    glColor3f(1.0f, 1.0f, 1.0f); // Reset color
 }
 
 BoundingBox LineRenderer::getBoundingBox() {
