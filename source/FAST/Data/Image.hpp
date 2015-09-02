@@ -48,10 +48,15 @@ class Image : public SpatialDataObject {
         // Copy image and put contents to specific device
         Image::pointer copy(ExecutionDevice::pointer device);
 
+        // Create a new image which is a cropped version of this image
+        Image::pointer crop(VectorXui offset, VectorXui size);
+
         // Override
         BoundingBox getTransformedBoundingBox() const;
     protected:
         Image();
+
+        void findDeviceWithUptodateData(ExecutionDevice::pointer* device, bool* isOpenCLImage);
 
         // OpenCL Images
         boost::unordered_map<OpenCLDevice::pointer, cl::Image*> mCLImages;

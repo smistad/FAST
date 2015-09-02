@@ -1002,6 +1002,93 @@ Image::pointer Image::copy(ExecutionDevice::pointer device) {
     return clone;
 }
 
+
+void Image::findDeviceWithUptodateData(ExecutionDevice::pointer* device, bool* isOpenCLImage) {
+    // Check first if there are any OpenCL images
+    for(auto iterator : mCLImagesIsUpToDate) {
+        if(iterator.second) {
+            *device = iterator.first;
+            *isOpenCLImage = true;
+            return;
+        }
+    }
+
+    // OpenCL buffers
+    for(auto iterator : mCLBuffersIsUpToDate) {
+        if(iterator.second) {
+            *device = iterator.first;
+            *isOpenCLImage = false;
+            return;
+        }
+    }
+
+    // Host data
+    if(mHostDataIsUpToDate) {
+        *device = Host::getInstance();
+    } else {
+        throw Exception("Image has no up to date data. This should not be possible!");
+    }
+}
+
+Image::pointer Image::crop(VectorXui offset, VectorXui size) {
+    Image::pointer newImage = Image::New();
+
+    ExecutionDevice::pointer device;
+    bool isOpenCLImage;
+    findDeviceWithUptodateData(&device, &isOpenCLImage);
+    // Handle host
+    if(device->isHost()) {
+        throw Exception("Not implemented yet");
+    } else {
+        OpenCLDevice::pointer clDevice = device;
+        if(getDimensions() == 2) {
+            if(offset.size() < 2 || size.size() < 2)
+                throw Exception("offset and size vectors given to Image::crop must have at least 2 components");
+            newImage->create(size, getDataType(), getNrOfComponents());
+            OpenCLImageAccess::pointer readAccess = this->getOpenCLImageAccess(ACCESS_READ, clDevice);
+            OpenCLImageAccess::pointer writeAccess = newImage->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
+            cl::Image2D* input = readAccess->get2DImage();
+            cl::Image2D* output = writeAccess->get2DImage();
+
+            clDevice->getCommandQueue().enqueueCopyImage(
+                    *input,
+                    *output,
+                    oul::createRegion(offset.x(), offset.y(), 0),
+                    oul::createOrigoRegion(),
+                    oul::createRegion(size.x(), size.y(), 1)
+            );
+        } else {
+            if(offset.size() < 3 || size.size() < 3)
+                throw Exception("offset and size vectors given to Image::crop must have at least 3 components");
+            newImage->create(size, getDataType(), getNrOfComponents());
+            OpenCLImageAccess::pointer readAccess = this->getOpenCLImageAccess(ACCESS_READ, clDevice);
+            OpenCLImageAccess::pointer writeAccess = newImage->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
+            cl::Image3D* input = readAccess->get3DImage();
+            cl::Image3D* output = writeAccess->get3DImage();
+
+            clDevice->getCommandQueue().enqueueCopyImage(
+                    *input,
+                    *output,
+                    oul::createRegion(offset.x(), offset.y(), offset.z()),
+                    oul::createOrigoRegion(),
+                    oul::createRegion(size.x(), size.y(), size.z())
+            );
+        }
+    }
+
+    // Fix placement and spacing of the new cropped image
+    AffineTransformation T;
+    newImage->setSpacing(getSpacing());
+    // Multiply with spacing here to convert voxel translation to world(mm) translation
+    T.translation() = getSpacing().cwiseProduct(getDimensions() == 2 ? Vector3f(offset.x(), offset.y(), 0) : Vector3f(offset.x(), offset.y(), offset.z()));
+    newImage->getSceneGraphNode()->setTransformation(T);
+    SceneGraph::setParentNode(newImage, mPtr.lock());
+    Report::info() << SceneGraph::getAffineTransformationFromData(newImage).matrix() << Report::end;
+    Report::info() << SceneGraph::getAffineTransformationFromData(mPtr.lock()).matrix() << Report::end;
+
+    return newImage;
+}
+
 BoundingBox Image::getTransformedBoundingBox() const {
     AffineTransformation T = SceneGraph::getAffineTransformationFromData(DataObject::pointer(mPtr.lock()));
 

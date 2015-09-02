@@ -11,6 +11,7 @@ fast_add_subdirectories(
     ImageGradient
     IterativeClosestPoint
     TubeSegmentationAndCenterlineExtraction
+    ImageCropper
 )
 fast_add_sources(
     SegmentationAlgorithm.cpp
