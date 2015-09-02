@@ -189,7 +189,8 @@ void extractCenterlines(
         unordered_map<int, int>& centerlineDistances,
         unordered_map<int, std::stack<CenterlinePoint> >& centerlineStacks,
         std::vector<Vector3f>& vertices,
-        std::vector<Vector2ui>& lines
+        std::vector<Vector2ui>& lines,
+        int maxBelowTlow
     ) {
     ImageAccess::pointer TDFaccess = TDF->getImageAccess(ACCESS_READ);
     ImageAccess::pointer vectorFieldAccess = vectorField->getImageAccess(ACCESS_READ);
@@ -199,7 +200,6 @@ void extractCenterlines(
     int Dmin = 4;//getParam(parameters, "min-distance");
     float Mlow = 0.1;
     float Tlow = 0.1;
-    int maxBelowTlow = 0;
     float minMeanTube = 0.5;
     const int totalSize = size.x()*size.y()*size.z();
 
@@ -217,9 +217,9 @@ void extractCenterlines(
 
                 Vector3i pos(x,y,z);
                 bool valid = true;
-                for(int a = -2; a < 3; a++) {
-                    for(int b = -2; b < 3; b++) {
-                        for(int c = -2; c < 3; c++) {
+                for(int a = -1; a < 2; a++) {
+                    for(int b = -1; b < 2; b++) {
+                        for(int c = -1; c < 2; c++) {
                             Vector3i nPos(x+a,y+b,z+c);
                             if(squaredMagnitude(vectorFieldAccess, nPos) < squaredMagnitude(vectorFieldAccess, pos)) {
                                 valid = false;
@@ -300,7 +300,7 @@ void extractCenterlines(
                     for(int b = -1; b < 2; b++) {
                         for(int c = -1; c < 2; c++) {
                             Vector3i n(position.x()+a,position.y()+b,position.z()+c);
-                            if((a == 0 && b == 0 && c == 0) || TDFaccess->getScalar(n) == 0.0f)
+                            if((a == 0 && b == 0 && c == 0) /*|| TDFaccess->getScalar(n) == 0.0f*/)
                                 continue;
 
                             Vector3f dir = (n - position).cast<float>();
@@ -488,14 +488,19 @@ void RidgeTraversalCenterlineExtraction::execute() {
 
     {
         Image::pointer vectorField = getStaticInputData<Image>(1);
-        extractCenterlines(TDF, vectorField, centerlines, centerlineDistances, centerlineStacks, vertices, lines);
+        extractCenterlines(TDF, vectorField, centerlines, centerlineDistances, centerlineStacks, vertices, lines, 12);
+
+        // TODO do inverse gradient segmentation here?
     }
 
-    // TODO check to see if more than two inputs were provided, if so run again..
+    // Check to see if more than two inputs were provided, if so run again..
     if(getNrOfInputData() > 2) {
+        // Run again for small
         Image::pointer TDF = getStaticInputData<Image>(2);
         Image::pointer vectorField = getStaticInputData<Image>(3);
-        extractCenterlines(TDF, vectorField, centerlines, centerlineDistances, centerlineStacks, vertices, lines);
+        extractCenterlines(TDF, vectorField, centerlines, centerlineDistances, centerlineStacks, vertices, lines, 0);
+
+        // TODO do dilation segmentation here?
     }
 
 

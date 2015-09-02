@@ -6,6 +6,7 @@
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
 #include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
+#include "FAST/Algorithms/ImageCropper/ImageCropper.hpp"
 
 namespace fast {
 
@@ -40,24 +41,29 @@ TEST_CASE("TSF", "[tsf]") {
     window->addRenderer(lineRenderer);
     window->start();
 }
+*/
 
 TEST_CASE("TSF Airway", "[tsf][airway]") {
-    Report::setReportMethod(Report::COUT);
+    //Report::setReportMethod(Report::COUT);
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    //importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT-Thorax.mhd");
-    importer->setFilename("/home/smistad/Dropbox/CT-Thorax-cropped.mhd");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT-Thorax.mhd");
+
+    ImageCropper::pointer cropper = ImageCropper::New();
+    cropper->setOffset(Vector3ui(56, 119, 155));
+    cropper->setSize(Vector3ui(400, 232, 509));
+    cropper->setInputConnection(importer->getOutputPort());
 
     TubeSegmentationAndCenterlineExtraction::pointer tubeExtraction = TubeSegmentationAndCenterlineExtraction::New();
-    tubeExtraction->setInputConnection(importer->getOutputPort());
+    tubeExtraction->setInputConnection(cropper->getOutputPort());
     tubeExtraction->extractDarkTubes();
     tubeExtraction->setMinimumIntensity(-1024);
     tubeExtraction->setMaximumIntensity(100);
-    tubeExtraction->setMinimumRadius(3);
-    tubeExtraction->setMaximumRadius(30);
-    tubeExtraction->setSensitivity(0.85);
+    tubeExtraction->setMinimumRadius(0.5);
+    tubeExtraction->setMaximumRadius(50);
+    tubeExtraction->setSensitivity(0.8);
 
     SliceRenderer::pointer renderer = SliceRenderer::New();
-    renderer->setInputConnection(tubeExtraction->getTDFOutputPort());
+    renderer->setInputConnection(importer->getOutputPort());
 
     LineRenderer::pointer lineRenderer = LineRenderer::New();
     lineRenderer->addInputConnection(tubeExtraction->getCenterlineOutputPort());
@@ -75,6 +81,5 @@ TEST_CASE("TSF Airway", "[tsf][airway]") {
     window->addRenderer(lineRenderer);
     window->start();
 }
-*/
 
 }

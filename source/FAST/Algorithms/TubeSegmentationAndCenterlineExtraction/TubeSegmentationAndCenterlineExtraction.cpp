@@ -29,7 +29,7 @@ TubeSegmentationAndCenterlineExtraction::TubeSegmentationAndCenterlineExtraction
     mMaximumIntensity = std::numeric_limits<float>::max();
     // Blur has to be adapted to noise level in image
     mStDevBlurSmall = 0.5;
-    mStDevBlurLarge = 1.0; // 2.5 for airway
+    mStDevBlurLarge = 1.0;
 }
 
 void TubeSegmentationAndCenterlineExtraction::loadPreset() {
@@ -119,10 +119,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
     float smallestSpacing = spacing.minCoeff();
     float largestSpacing = spacing.maxCoeff();
 
-    // Cropping
-
-
-
+    // TODO automatic cropping
 
     // If max radius is larger than 2.5 voxels
     Image::pointer gradients;
@@ -253,6 +250,7 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::createGradients(Image::p
     vectorField->create(image->getWidth(), image->getHeight(), image->getDepth(), TYPE_SNORM_INT16, 3);
     //vectorField->create(image->getWidth(), image->getHeight(), image->getDepth(), TYPE_FLOAT, 3);
     vectorField->setSpacing(image->getSpacing());
+    SceneGraph::setParentNode(vectorField, image);
 
     bool no3Dwrite = !device->isWritingTo3DTexturesSupported();
 
