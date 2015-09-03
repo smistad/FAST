@@ -1,7 +1,22 @@
 #include "DataTypes.hpp"
-using namespace fast;
 
-cl::ImageFormat fast::getOpenCLImageFormat(OpenCLDevice::pointer device, cl_mem_object_type imageType, DataType type, unsigned int components) {
+namespace fast {
+
+std::string getCTypeAsString(DataType type) {
+    const std::map<DataType, std::string> defines = {
+            {TYPE_FLOAT, "float"},
+            {TYPE_INT8, "char"},
+            {TYPE_UINT8, "uchar"},
+            {TYPE_INT16, "short"},
+            {TYPE_SNORM_INT16, "short"},
+            {TYPE_UINT16, "ushort"},
+            {TYPE_UNORM_INT16, "ushort"}
+    };
+
+    return defines.at(type);
+}
+
+cl::ImageFormat getOpenCLImageFormat(OpenCLDevice::pointer device, cl_mem_object_type imageType, DataType type, unsigned int components) {
     cl_channel_order channelOrder;
     cl_channel_type channelType;
 
@@ -61,7 +76,7 @@ cl::ImageFormat fast::getOpenCLImageFormat(OpenCLDevice::pointer device, cl_mem_
     return cl::ImageFormat(channelOrder, channelType);
 }
 
-size_t fast::getSizeOfDataType(DataType type, unsigned int nrOfComponents) {
+size_t getSizeOfDataType(DataType type, unsigned int nrOfComponents) {
     size_t bytes;
     switch(type) {
     case TYPE_FLOAT:
@@ -84,7 +99,7 @@ size_t fast::getSizeOfDataType(DataType type, unsigned int nrOfComponents) {
     return nrOfComponents*bytes;
 }
 
-float fast::getDefaultIntensityLevel(DataType type) {
+float getDefaultIntensityLevel(DataType type) {
     float level;
     switch(type) {
     case TYPE_FLOAT:
@@ -112,7 +127,7 @@ float fast::getDefaultIntensityLevel(DataType type) {
     return level;
 }
 
-float fast::getDefaultIntensityWindow(DataType type) {
+float getDefaultIntensityWindow(DataType type) {
     float window;
     switch(type) {
     case TYPE_FLOAT:
@@ -140,7 +155,7 @@ float fast::getDefaultIntensityWindow(DataType type) {
     return window;
 }
 
-void fast::deleteArray(void * data, DataType type) {
+void deleteArray(void * data, DataType type) {
     switch(type) {
         case TYPE_FLOAT:
             delete[] (float*)data;
@@ -161,3 +176,5 @@ void fast::deleteArray(void * data, DataType type) {
             break;
     }
 }
+
+} // end namespace fast
