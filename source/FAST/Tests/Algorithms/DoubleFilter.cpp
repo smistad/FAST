@@ -38,8 +38,8 @@ inline void executeAlgorithmOnHost(Image::pointer input, Image::pointer output) 
 
 void DoubleFilter::execute() {
     // Get input and output data
-    Image::pointer input = getStaticInputData<Image>(0);
-    Image::pointer output = getStaticOutputData<Image>(0);
+    Image::pointer input = getStaticInputData<Image>();
+    Image::pointer output = getStaticOutputData<Image>();
 
     // Initialize output image
     output->createFromImage(input);
@@ -55,24 +55,7 @@ void DoubleFilter::execute() {
         OpenCLDevice::pointer device = getMainDevice();
 
         // Set build options based on the data type of the data
-        std::string buildOptions = "";
-        switch(input->getDataType()) {
-        case TYPE_FLOAT:
-            buildOptions = "-DTYPE=float";
-            break;
-        case TYPE_INT8:
-            buildOptions = "-DTYPE=char";
-            break;
-        case TYPE_UINT8:
-            buildOptions = "-DTYPE=uchar";
-            break;
-        case TYPE_INT16:
-            buildOptions = "-DTYPE=short";
-            break;
-        case TYPE_UINT16:
-            buildOptions = "-DTYPE=ushort";
-            break;
-        }
+        std::string buildOptions = "-DTYPE=" + getCTypeAsString(input->getDataType());
 
         // Compile the code
         cl::Kernel kernel = cl::Kernel(getOpenCLProgram(device, "", buildOptions), "doubleFilter");
