@@ -203,29 +203,40 @@ void extractCenterlines(
     float minMeanTube = 0.5;
     const int totalSize = size.x()*size.y()*size.z();
 
+    Vector3i neighborhood[26];
+    uint i = 0;
+    for(int a = -1; a < 2; a++) {
+        for(int b = -1; b < 2; b++) {
+            for(int c = -1; c < 2; c++) {
+                if(a == 0 && b == 0 && c == 0)
+                    continue;
+                neighborhood[i] = Vector3i(a,b,c);
+                i++;
+            }
+        }
+    }
+
         // Create queue
     std::priority_queue<point, std::vector<point>, PointComparison> queue;
 
     std::cout << "Getting valid start points for centerline extraction.." << std::endl;
+    float* TDFarray = (float*)TDFaccess->get();
     // Collect all valid start points
     #pragma omp parallel for
     for(int z = 2; z < size.z()-2; z++) {
         for(int y = 2; y < size.y()-2; y++) {
             for(int x = 2; x < size.x()-2; x++) {
-                if(TDFaccess->getScalar(Vector3i(x,y,z)) < Thigh)
+                if(TDFarray[x + y*size.x() + z*size.x()*size.y()] < Thigh)
+                //if(TDFaccess->getScalar(Vector3i(x,y,z)) < Thigh) // This is reaaaaallllly slow
                     continue;
 
                 Vector3i pos(x,y,z);
                 bool valid = true;
-                for(int a = -1; a < 2; a++) {
-                    for(int b = -1; b < 2; b++) {
-                        for(int c = -1; c < 2; c++) {
-                            Vector3i nPos(x+a,y+b,z+c);
-                            if(squaredMagnitude(vectorFieldAccess, nPos) < squaredMagnitude(vectorFieldAccess, pos)) {
-                                valid = false;
-                                break;
-                            }
-                        }
+                for(int i = 0; i < 26; ++i) {
+                    Vector3i nPos = pos + neighborhood[i];
+                    if(squaredMagnitude(vectorFieldAccess, nPos) < squaredMagnitude(vectorFieldAccess, pos)) {
+                        valid = false;
+                        break;
                     }
                 }
 
