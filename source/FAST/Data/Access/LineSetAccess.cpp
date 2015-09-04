@@ -42,17 +42,6 @@ void LineSetAccess::deleteLine(uint i) {
     mLines->erase(mLines->begin() + i);
 }
 
-void LineSetAccess::deletePoint(uint i) {
-    mVertices->erase(mVertices->begin() + i);
-    // Remove any lines which contains point i
-    for(uint l = 0; l < mLines->size(); l++) {
-        Vector2ui line = mLines->operator[](l);
-        if(line.x() == i || line.y() == i) {
-            deleteLine(l);
-        }
-    }
-}
-
 void LineSetAccess::release() {
     *mAccessFlag = false;
     *mAccessFlag2 = false;
