@@ -17,6 +17,8 @@ TubeSegmentationAndCenterlineExtraction::TubeSegmentationAndCenterlineExtraction
     createOutputPort<LineSet>(1, OUTPUT_DEPENDS_ON_INPUT, 0);
     createOutputPort<Image>(2, OUTPUT_DEPENDS_ON_INPUT, 0);
 
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/TubeSegmentationAndCenterlineExtraction/TubeSegmentationAndCenterlineExtraction.cl");
+
     mSensitivity = 0.5;
     mMinimumRadius = 0.5;
     mMaximumRadius = 5;
@@ -141,9 +143,11 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
         } else {
             smoothedImage = input;
         }
+        Report::info() << "finished smoothing" << Report::end;
 
         // Create gradients and cap intensity
         GVFfield = createGradients(smoothedImage);
+        Report::info() << "finished gradients" << Report::end;
 
         // GVF
         GVFfield = runGradientVectorFlow(GVFfield);
@@ -255,9 +259,7 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::createGradients(Image::p
     bool no3Dwrite = !device->isWritingTo3DTexturesSupported();
 
     OpenCLImageAccess::pointer access = image->getOpenCLImageAccess(ACCESS_READ, device);
-    device->createProgramFromSourceWithName("tsf",
-            std::string(FAST_SOURCE_DIR) + "Algorithms/TubeSegmentationAndCenterlineExtraction/TubeSegmentationAndCenterlineExtraction.cl");
-    cl::Program program(device->getProgram("tsf"));
+    cl::Program program =  getOpenCLProgram(device);
 
     // Convert to float 0-1
     cl::Kernel toFloatKernel(program, "toFloat");
@@ -335,9 +337,7 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::runTubeDetectionFilter(I
     OpenCLBufferAccess::pointer TDFAccess = TDF->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
     OpenCLImageAccess::pointer vectorFieldAccess = vectorField->getOpenCLImageAccess(ACCESS_READ, device);
 
-    device->createProgramFromSourceWithName("tsf",
-            std::string(FAST_SOURCE_DIR) + "Algorithms/TubeSegmentationAndCenterlineExtraction/TubeSegmentationAndCenterlineExtraction.cl");
-    cl::Program program(device->getProgram("tsf"));
+    cl::Program program = getOpenCLProgram(device);
     cl::Kernel kernel(program, "circleFittingTDF");
 
     kernel.setArg(0, *(vectorFieldAccess->get3DImage()));
@@ -366,9 +366,7 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::runNonCircularTubeDetect
     OpenCLBufferAccess::pointer TDFAccess = TDF->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
     OpenCLImageAccess::pointer vectorFieldAccess = vectorField->getOpenCLImageAccess(ACCESS_READ, device);
 
-    device->createProgramFromSourceWithName("tsf",
-            std::string(FAST_SOURCE_DIR) + "Algorithms/TubeSegmentationAndCenterlineExtraction/TubeSegmentationAndCenterlineExtraction.cl");
-    cl::Program program(device->getProgram("tsf"));
+    cl::Program program = getOpenCLProgram(device);
     cl::Kernel kernel(program, "nonCircularTDF");
 
     kernel.setArg(0, *(vectorFieldAccess->get3DImage()));
