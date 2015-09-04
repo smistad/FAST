@@ -332,12 +332,30 @@ void extractCenterlines(
                         // Hit an existing centerline
                         if(prevConnection == -1) {
                             prevConnection = centerlines[POS(maxPoint)];
+                            // Add connection point
+                            CenterlinePoint p;
+                            p.pos = maxPoint;
+                            p.previousPos = previous;
+                            previous = position;
+                            stack.push(p);
+                            distance ++;
+                            newCenterlines.insert(POS(maxPoint));
+                            meanTube += TDFaccess->getScalar(maxPoint);
                         } else {
                             if(prevConnection == centerlines[POS(maxPoint)]) {
                                 // A loop has occured, reject this centerline
                                 connections = 5;
                             } else {
                                 secondConnection = centerlines[POS(maxPoint)];
+                                // Add connection point
+                                CenterlinePoint p;
+                                p.pos = maxPoint;
+                                p.previousPos = previous;
+                                previous = position;
+                                stack.push(p);
+                                distance ++;
+                                newCenterlines.insert(POS(maxPoint));
+                                meanTube += TDFaccess->getScalar(maxPoint);
                             }
                         }
                         break;
@@ -428,6 +446,7 @@ void extractCenterlines(
                 counter ++;
             } else {
                 // The first connection
+                // TODO connect together in stack
 
                 std::stack<CenterlinePoint> prevConnectionStack = centerlineStacks[prevConnection];
                 while(!stack.empty()) {
@@ -507,8 +526,8 @@ void RidgeTraversalCenterlineExtraction::execute() {
 
     if(centerlineDistances.size() == 0) {
         //throw SIPL::SIPLException("no centerlines were extracted");
-        char * returnCenterlines = new char[totalSize]();
         std::cout << "No centerlines were extracted" << std::endl;
+        delete[] centerlines;
         return;
     }
     std::cout << centerlineDistances.size() << " centerline extracted" << std::endl;
@@ -560,6 +579,7 @@ void RidgeTraversalCenterlineExtraction::execute() {
 
     centerlineOutput->create(vertices, lines);
     centerlineVolumeOutput->create(size.x(), size.y(), size.z(), TYPE_UINT8, 1, getMainDevice(), returnCenterlines);
+    delete[] returnCenterlines;
     centerlineVolumeOutput->setSpacing(TDF->getSpacing());
     SceneGraph::setParentNode(centerlineVolumeOutput, TDF);
     SceneGraph::setParentNode(centerlineOutput, TDF);
