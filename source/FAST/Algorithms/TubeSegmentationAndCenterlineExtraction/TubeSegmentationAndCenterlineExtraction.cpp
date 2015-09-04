@@ -7,6 +7,7 @@
 #include "FAST/Algorithms/GradientVectorFlow/MultigridGradientVectorFlow.hpp"
 #include "RidgeTraversalCenterlineExtraction.hpp"
 #include "InverseGradientSegmentation.hpp"
+#include <stack>
 
 namespace fast {
 
@@ -113,6 +114,85 @@ ProcessObjectPort TubeSegmentationAndCenterlineExtraction::getTDFOutputPort() {
     return getOutputPort(2);
 }
 
+inline void floodFill(ImageAccess::pointer& access, Vector3i startPosition, std::vector<Vector3i>& largestObject) {
+    std::vector<Vector3i> thisObject;
+
+    std::stack<Vector3i> stack;
+    stack.push(startPosition);
+    while(!stack.empty()) {
+        Vector3i currentPosition = stack.top();
+        stack.pop();
+        thisObject.push_back(currentPosition);
+
+        for(int a = -1; a < 2; a++) {
+        for(int b = -1; b < 2; b++) {
+        for(int c = -1; c < 2; c++) {
+            Vector3i position = currentPosition + Vector3i(a,b,c);
+            try {
+                if(access->getScalar(position) == 1) {
+                    access->setScalar(position, 0);
+                    stack.push(position);
+                }
+            } catch(Exception &e) {
+                // Out of bounds..
+            }
+        }}}
+    }
+
+    if(thisObject.size() > largestObject.size()) {
+        largestObject = thisObject;
+    }
+}
+
+inline void keepLargestObject(Segmentation::pointer segmentation, LineSet::pointer& centerlines) {
+    ImageAccess::pointer access = segmentation->getImageAccess(ACCESS_READ_WRITE);
+    const int width = segmentation->getWidth();
+    const int height = segmentation->getHeight();
+    const int depth = segmentation->getDepth();
+
+    std::vector<Vector3i> largestObject;
+    // Go through each voxel
+    for(int z = 0; z < depth; ++z) {
+    for(int y = 0; y < height; ++y) {
+    for(int x = 0; x < width; ++x) {
+        // If label found, do flood fill, count size, and keep all voxels in a structure
+        if(access->getScalar(Vector3i(x,y,z)) == 1) {
+            floodFill(access, Vector3i(x,y,z), largestObject);
+        }
+    }}}
+
+    Report::info() << "Size of largest object: " << largestObject.size() << Report::end;
+
+    // Store the largest object
+    for(Vector3i position : largestObject) {
+        access->setScalar(position, 1);
+    }
+
+    LineSet::pointer newCenterlines = LineSet::New();
+    {
+        // Remove centerlines of small objects as well
+        LineSetAccess::pointer lineAccess = centerlines->getAccess(ACCESS_READ);
+        LineSetAccess::pointer newLineAccess = newCenterlines->getAccess(ACCESS_READ_WRITE);
+        Vector3f spacing = segmentation->getSpacing();
+        uint j = 0;
+        for(uint i = 0; i < lineAccess->getNrOfLines(); ++i) {
+            Vector2ui line = lineAccess->getLine(i);
+            Vector3f pointA = lineAccess->getPoint(line.x());
+            Vector3f pointB = lineAccess->getPoint(line.y());
+            Vector3f pointAinVoxelSpace(pointA.x() / spacing.x(), pointA.y() / spacing.y(), pointA.z() / spacing.z());
+            if(access->getScalar(pointAinVoxelSpace.cast<int>()) == 1) {
+                newLineAccess->addPoint(pointA);
+                newLineAccess->addPoint(pointB);
+                newLineAccess->addLine(j, j + 1);
+                j += 2;
+            }
+        }
+        Report::info() << "Size of new centerlines " << newLineAccess->getNrOfPoints() << Report::end;
+    }
+    centerlines = newCenterlines;
+    SceneGraph::setParentNode(centerlines, segmentation);
+}
+
 
 void TubeSegmentationAndCenterlineExtraction::execute() {
     Image::pointer input = getStaticInputData<Image>();
@@ -184,6 +264,8 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
 
     RidgeTraversalCenterlineExtraction::pointer centerlineExtraction = RidgeTraversalCenterlineExtraction::New();
     Image::pointer TDF;
+    InverseGradientSegmentation::pointer segmentation = InverseGradientSegmentation::New();
+    LineSet::pointer centerline;
     if(smallTDF.isValid() && largeTDF.isValid()) {
         // Both small and large TDF has been executed, need to merge the two.
         TDF = largeTDF;
@@ -194,16 +276,13 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
         centerlineExtraction->setInputData(2, smallTDF);
         centerlineExtraction->setInputData(3, gradients);
         centerlineExtraction->update();
-        LineSet::pointer centerline = centerlineExtraction->getOutputData<LineSet>();
+        centerline = centerlineExtraction->getOutputData<LineSet>();
 
         // Segmentation
         // TODO: Use only dilation for smallTDF
-        InverseGradientSegmentation::pointer segmentation = InverseGradientSegmentation::New();
         segmentation->setInputConnection(centerlineExtraction->getOutputPort(1));
         segmentation->setInputData(1, GVFfield);
         segmentation->update();
-        setStaticOutputData<Segmentation>(0, segmentation->getOutputData<Segmentation>());
-        setStaticOutputData<LineSet>(1, centerline);
     } else {
         // Only small or large TDF has been used
         if(smallTDF.isValid()) {
@@ -217,18 +296,22 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
             gradients = GVFfield;
         }
         centerlineExtraction->update();
-        LineSet::pointer centerline = centerlineExtraction->getOutputData<LineSet>();
+        centerline = centerlineExtraction->getOutputData<LineSet>();
 
         // Segmentation
-        InverseGradientSegmentation::pointer segmentation = InverseGradientSegmentation::New();
         segmentation->setInputConnection(centerlineExtraction->getOutputPort(1));
         segmentation->setInputData(1, gradients);
         segmentation->update();
-        setStaticOutputData<Segmentation>(0, segmentation->getOutputData<Segmentation>());
-        setStaticOutputData<LineSet>(1, centerline);
     }
 
+    Segmentation::pointer segmentationVolume = segmentation->getOutputData<Segmentation>();
 
+    // TODO get largest segmentation object
+    Report::info() << "Removing small objects..." << Report::end;
+    keepLargestObject(segmentationVolume, centerline);
+
+    setStaticOutputData<Segmentation>(0, segmentationVolume);
+    setStaticOutputData<LineSet>(1, centerline);
     setStaticOutputData<Image>(2, TDF);
 }
 
