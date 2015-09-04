@@ -114,11 +114,12 @@ ProcessObjectPort TubeSegmentationAndCenterlineExtraction::getTDFOutputPort() {
     return getOutputPort(2);
 }
 
-inline void floodFill(ImageAccess::pointer& access, Vector3i startPosition, std::vector<Vector3i>& largestObject) {
+inline void floodFill(ImageAccess::pointer& access, Vector3ui size, Vector3i startPosition, std::vector<Vector3i>& largestObject) {
     std::vector<Vector3i> thisObject;
 
     std::stack<Vector3i> stack;
     stack.push(startPosition);
+    uchar* segmentation = (uchar*)access->get();
     while(!stack.empty()) {
         Vector3i currentPosition = stack.top();
         stack.pop();
@@ -129,8 +130,9 @@ inline void floodFill(ImageAccess::pointer& access, Vector3i startPosition, std:
         for(int c = -1; c < 2; c++) {
             Vector3i position = currentPosition + Vector3i(a,b,c);
             try {
-                if(access->getScalar(position) == 1) {
-                    access->setScalar(position, 0);
+                uchar value = segmentation[position.x() + position.y()*size.x() + position.z()*size.x()*size.y()];
+                if(value == 1) {
+                    segmentation[position.x() + position.y()*size.x() + position.z()*size.x()*size.y()] = 0;
                     stack.push(position);
                 }
             } catch(Exception &e) {
@@ -149,15 +151,19 @@ inline void keepLargestObject(Segmentation::pointer segmentation, LineSet::point
     const int width = segmentation->getWidth();
     const int height = segmentation->getHeight();
     const int depth = segmentation->getDepth();
+    Vector3ui size = segmentation->getSize();
 
     std::vector<Vector3i> largestObject;
+    uchar* segmentationArray = (uchar*)access->get();
     // Go through each voxel
     for(int z = 0; z < depth; ++z) {
     for(int y = 0; y < height; ++y) {
     for(int x = 0; x < width; ++x) {
         // If label found, do flood fill, count size, and keep all voxels in a structure
-        if(access->getScalar(Vector3i(x,y,z)) == 1) {
-            floodFill(access, Vector3i(x,y,z), largestObject);
+        Vector3i position(x,y,z);
+        uchar value = segmentationArray[position.x() + position.y()*size.x() + position.z()*size.x()*size.y()];
+        if(value == 1) {
+            floodFill(access, size, position, largestObject);
         }
     }}}
 
@@ -165,7 +171,7 @@ inline void keepLargestObject(Segmentation::pointer segmentation, LineSet::point
 
     // Store the largest object
     for(Vector3i position : largestObject) {
-        access->setScalar(position, 1);
+        segmentationArray[position.x() + position.y()*size.x() + position.z()*size.x()*size.y()] = 1;
     }
 
     LineSet::pointer newCenterlines = LineSet::New();
@@ -202,6 +208,24 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
     float largestSpacing = spacing.maxCoeff();
 
     // TODO automatic cropping
+    if(mLungCropping) {
+        // Cut away 20% on all sides
+        float fraction = 0.2;
+        uint startX = round(input->getWidth()*fraction);
+        uint sizeX = input->getWidth() - round(input->getWidth()*fraction*2);
+        uint startY = round(input->getHeight()*fraction);
+        uint sizeY = input->getHeight() - round(input->getHeight()*fraction*2);
+        uint startZ = round(input->getDepth()*fraction);
+        uint sizeZ = input->getDepth() - round(input->getDepth()*fraction*2);
+
+        // Make size dividable by 4
+        sizeX = sizeX + (4 - sizeX % 4);
+        sizeY = sizeY + (4 - sizeY % 4);
+        sizeZ = sizeZ + (4 - sizeZ % 4);
+
+        Image::pointer croppedImage = input->crop(Vector3ui(startX, startY, startZ), Vector3ui(sizeX, sizeY, sizeZ));
+        input = croppedImage;
+    }
 
     // If max radius is larger than 2.5 voxels
     Image::pointer gradients;
@@ -318,7 +342,6 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
 
 Image::pointer TubeSegmentationAndCenterlineExtraction::runGradientVectorFlow(Image::pointer vectorField) {
     OpenCLDevice::pointer device = getMainDevice();
-    //EulerGradientVectorFlow::pointer gvf = EulerGradientVectorFlow::New();
     MultigridGradientVectorFlow::pointer gvf = MultigridGradientVectorFlow::New();
     gvf->setInputData(vectorField);
     //gvf->set32bitStorageFormat();
