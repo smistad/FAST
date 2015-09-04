@@ -33,8 +33,8 @@ class TubeSegmentationAndCenterlineExtraction : public ProcessObject {
         void execute();
 
         Image::pointer createGradients(Image::pointer image);
-        Image::pointer runTubeDetectionFilter(Image::pointer gradients, float minimumRadius, float maximumRadius);
-        Image::pointer runNonCircularTubeDetectionFilter(Image::pointer gradients, float minimumRadius, float maximumRadius);
+        void runTubeDetectionFilter(Image::pointer gradients, float minimumRadius, float maximumRadius, Image::pointer& TDF, Image::pointer& radius);
+        void runNonCircularTubeDetectionFilter(Image::pointer gradients, float minimumRadius, float maximumRadius, Image::pointer& TDF, Image::pointer& radius);
         Image::pointer runGradientVectorFlow(Image::pointer vectorField);
 
         // Parameters

@@ -212,10 +212,10 @@ __constant float sinValues[32] = {0.0f, 0.841471f, 0.909297f, 0.14112f, -0.75680
 __kernel void circleFittingTDF(
         __read_only image3d_t vectorField,
         __global TDF_TYPE * T,
-        //__global float * Radius,
         __private float rMin,
         __private float rMax,
-        __private float rStep
+        __private float rStep,
+        __global float * Radius
     ) {
     const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
 
@@ -280,7 +280,7 @@ __kernel void circleFittingTDF(
 
     // Store result
     T[LPOS(pos)] = FLOAT_TO_UNORM16(maxSum);
-    //Radius[LPOS(pos)] = maxRadius;
+    Radius[LPOS(pos)] = maxRadius;
 }
 
 __kernel void nonCircularTDF(
@@ -290,8 +290,8 @@ __kernel void nonCircularTDF(
         __private float rMax,
         __private float rStep,
         __private const int arms,
-        //__global float * R,
-        __private const float minAverageMag
+        __private const float minAverageMag,
+        __global float * R
     ) {
     const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
     char invalid = 0;
@@ -364,7 +364,7 @@ __kernel void nonCircularTDF(
 
     avgRadius = avgRadius / arms;
 
-    //R[LPOS(pos)] = avgRadius;
+    R[LPOS(pos)] = avgRadius;
     if(invalid != 1) {
         float avgSymmetry = 0.0f;
         for(char j = 0; j < arms/2; ++j) {
