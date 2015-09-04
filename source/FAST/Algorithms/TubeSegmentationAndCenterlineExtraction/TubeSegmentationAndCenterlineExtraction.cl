@@ -260,20 +260,10 @@ __kernel void circleFittingTDF(
     const float4 floatPos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
     for(float radius = rMin; radius <= rMax; radius += rStep) {
         float radiusSum = 0.0f;
-        int samples = 32;
-        int stride = 1;
-        //int negatives = 0;
-        /*
-        if(radius < 3) {
-            samples = 8;
-            stride = 4;
-        } else if(radius < 6) {
-            samples = 16;
-            stride = 2;
-        }
-        */
+        char samples = 32;
+        char stride = 1;
 
-        for(int j = 0; j < samples; j++) {
+        for(char j = 0; j < samples; ++j) {
             float3 V_alpha = cosValues[j*stride]*e3 + sinValues[j*stride]*e2;
             float4 position = floatPos + radius*V_alpha.xyzz;
             float3 V = -read_imagef(vectorField, interpolationSampler, position).xyz;
@@ -304,7 +294,7 @@ __kernel void nonCircularTDF(
         __private const float minAverageMag
     ) {
     const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
-    int invalid = 0;
+    char invalid = 0;
 
     // Find Hessian Matrix
     const float3 Fx = gradientNormalized(vectorField, pos, 0, 1);
@@ -331,14 +321,14 @@ __kernel void nonCircularTDF(
     float sum = 0.0f;
     //float minAverageMag = 0.01f; // 0.01
     float avgRadius = 0.0f;
-    for(int j = 0; j < arms; j++) {
+    for(char j = 0; j < arms; ++j) {
         maxRadius[j] = 999;
         float alpha = 2 * M_PI_F * j / arms;
         float4 V_alpha = cos(alpha)*e3.xyzz + sin(alpha)*e2.xyzz;
         float prevMagnitude2 = currentVoxelMagnitude;
         float4 position = convert_float4(pos) + rMin*V_alpha;
         float prevMagnitude = length(read_imagef(vectorField, interpolationSampler, position).xyz);
-        int up = prevMagnitude2 > prevMagnitude ? 0 : 1;
+        char up = prevMagnitude2 > prevMagnitude ? 0 : 1;
 
         // Perform the actual line search
         for(float radius = rMin+rStep; radius <= rMax; radius += rStep) {
@@ -377,7 +367,7 @@ __kernel void nonCircularTDF(
     //R[LPOS(pos)] = avgRadius;
     if(invalid != 1) {
         float avgSymmetry = 0.0f;
-        for(int j = 0; j < arms/2; j++) {
+        for(char j = 0; j < arms/2; ++j) {
            avgSymmetry += min(maxRadius[j], maxRadius[arms/2 + j]) /
                 max(maxRadius[j], maxRadius[arms/2+j]);
         }
@@ -405,24 +395,24 @@ void tred2(float V[SIZE][SIZE], float d[SIZE], float e[SIZE]) {
 //  Auto. Comp., Vol.ii-Linear Algebra, and the corresponding
 //  Fortran subroutine in EISPACK.
 
-  for (int j = 0; j < SIZE; j++) {
+  for (char j = 0; j < SIZE; ++j) {
     d[j] = V[SIZE-1][j];
   }
 
   // Householder reduction to tridiagonal form.
 
-  for (int i = SIZE-1; i > 0; i--) {
+  for (char i = SIZE-1; i > 0; --i) {
 
     // Scale to avoid under/overflow.
 
     float scale = 0.0f;
     float h = 0.0f;
-    for (int k = 0; k < i; k++) {
+    for (char k = 0; k < i; ++k) {
       scale = scale + fabs(d[k]);
     }
     if (scale == 0.0f) {
       e[i] = d[i-1];
-      for (int j = 0; j < i; j++) {
+      for (char j = 0; j < i; ++j) {
         d[j] = V[i-1][j];
         V[i][j] = 0.0f;
         V[j][i] = 0.0f;
@@ -431,7 +421,7 @@ void tred2(float V[SIZE][SIZE], float d[SIZE], float e[SIZE]) {
 
       // Generate Householder vector.
 
-      for (int k = 0; k < i; k++) {
+      for (char k = 0; k < i; ++k) {
         d[k] /= scale;
         h += d[k] * d[k];
       }
@@ -443,35 +433,35 @@ void tred2(float V[SIZE][SIZE], float d[SIZE], float e[SIZE]) {
       e[i] = scale * g;
       h = h - f * g;
       d[i-1] = f - g;
-      for (int j = 0; j < i; j++) {
+      for (char j = 0; j < i; ++j) {
         e[j] = 0.0f;
       }
 
       // Apply similarity transformation to remaining columns.
 
-      for (int j = 0; j < i; j++) {
+      for (char j = 0; j < i; ++j) {
         f = d[j];
         V[j][i] = f;
         g = e[j] + V[j][j] * f;
-        for (int k = j+1; k <= i-1; k++) {
+        for (char k = j+1; k <= i-1; ++k) {
           g += V[k][j] * d[k];
           e[k] += V[k][j] * f;
         }
         e[j] = g;
       }
       f = 0.0f;
-      for (int j = 0; j < i; j++) {
+      for (char j = 0; j < i; ++j) {
         e[j] /= h;
         f += e[j] * d[j];
       }
       float hh = f / (h + h);
-      for (int j = 0; j < i; j++) {
+      for (char j = 0; j < i; ++j) {
         e[j] -= hh * d[j];
       }
-      for (int j = 0; j < i; j++) {
+      for (char j = 0; j < i; ++j) {
         f = d[j];
         g = e[j];
-        for (int k = j; k <= i-1; k++) {
+        for (char k = j; k <= i-1; ++k) {
           V[k][j] -= (f * e[k] + g * d[k]);
         }
         d[j] = V[i-1][j];
@@ -483,29 +473,29 @@ void tred2(float V[SIZE][SIZE], float d[SIZE], float e[SIZE]) {
 
   // Accumulate transformations.
 
-  for (volatile int i = 0; i < SIZE-1; i++) {
+  for (char i = 0; i < SIZE-1; ++i) {
     V[SIZE-1][i] = V[i][i];
     V[i][i] = 1.0f;
     float h = d[i+1];
     if (h != 0.0f) {
-      for (int k = 0; k <= i; k++) {
+      for (char k = 0; k <= i; ++k) {
         d[k] = V[k][i+1] / h;
       }
-      for (int j = 0; j <= i; j++) {
+      for (char j = 0; j <= i; ++j) {
         float g = 0.0f;
-        for (int k = 0; k <= i; k++) {
+        for (char k = 0; k <= i; ++k) {
           g += V[k][i+1] * V[k][j];
         }
-        for (int k = 0; k <= i; k++) {
+        for (char k = 0; k <= i; ++k) {
           V[k][j] -= g * d[k];
         }
       }
     }
-    for (int k = 0; k <= i; k++) {
+    for (char k = 0; k <= i; ++k) {
       V[k][i+1] = 0.0f;
     }
   }
-  for (int j = 0; j < SIZE; j++) {
+  for (char j = 0; j < SIZE; ++j) {
     d[j] = V[SIZE-1][j];
     V[SIZE-1][j] = 0.0f;
   }
@@ -522,7 +512,7 @@ void tql2(float V[SIZE][SIZE], float d[SIZE], float e[SIZE]) {
 //  Auto. Comp., Vol.ii-Linear Algebra, and the corresponding
 //  Fortran subroutine in EISPACK.
 
-  for (int i = 1; i < SIZE; i++) {
+  for (char i = 1; i < SIZE; ++i) {
     e[i-1] = e[i];
   }
   e[SIZE-1] = 0.0f;
@@ -530,12 +520,12 @@ void tql2(float V[SIZE][SIZE], float d[SIZE], float e[SIZE]) {
   float f = 0.0f;
   float tst1 = 0.0f;
   float eps = pow(2.0f,-52.0f);
-  for (int l = 0; l < SIZE; l++) {
+  for (char l = 0; l < SIZE; ++l) {
 
     // Find small subdiagonal element
 
     tst1 = MAX(tst1,fabs(d[l]) + fabs(e[l]));
-    int m = l;
+    char m = l;
     while (m < SIZE) {
       if (fabs(e[m]) <= eps*tst1) {
         break;
@@ -563,7 +553,7 @@ void tql2(float V[SIZE][SIZE], float d[SIZE], float e[SIZE]) {
         d[l+1] = e[l] * (p + r);
         float dl1 = d[l+1];
         float h = g - d[l];
-        for (int i = l+2; i < SIZE; i++) {
+        for (char i = l+2; i < SIZE; ++i) {
           d[i] -= h;
         }
         f = f + h;
@@ -577,7 +567,7 @@ void tql2(float V[SIZE][SIZE], float d[SIZE], float e[SIZE]) {
         float el1 = e[l+1];
         float s = 0.0f;
         float s2 = 0.0f;
-        for (int i = m-1; i >= l; i--) {
+        for (char i = m-1; i >= l; --i) {
           c3 = c2;
           c2 = c;
           s2 = s;
@@ -592,7 +582,7 @@ void tql2(float V[SIZE][SIZE], float d[SIZE], float e[SIZE]) {
 
           // Accumulate transformation.
 
-          for (int k = 0; k < SIZE; k++) {
+          for (char k = 0; k < SIZE; ++k) {
             h = V[k][i+1];
             V[k][i+1] = s * V[k][i] + c * h;
             V[k][i] = c * V[k][i] - s * h;
@@ -612,10 +602,10 @@ void tql2(float V[SIZE][SIZE], float d[SIZE], float e[SIZE]) {
   
   // Sort eigenvalues and corresponding vectors.
 
-  for (int i = 0; i < SIZE-1; i++) {
-    int k = i;
+  for (char i = 0; i < SIZE-1; ++i) {
+    char k = i;
     float p = d[i];
-    for (int j = i+1; j < SIZE; j++) {
+    for (char j = i+1; j < SIZE; ++j) {
       if (fabs(d[j]) < fabs(p)) {
         k = j;
         p = d[j];
@@ -624,7 +614,7 @@ void tql2(float V[SIZE][SIZE], float d[SIZE], float e[SIZE]) {
     if (k != i) {
       d[k] = d[i];
       d[i] = p;
-      for (int j = 0; j < SIZE; j++) {
+      for (char j = 0; j < SIZE; ++j) {
         p = V[j][i];
         V[j][i] = V[j][k];
         V[j][k] = p;
@@ -635,8 +625,8 @@ void tql2(float V[SIZE][SIZE], float d[SIZE], float e[SIZE]) {
 
 void eigen_decomposition(float A[SIZE][SIZE], float V[SIZE][SIZE], float d[SIZE]) {
   float e[SIZE];
-  for (int i = 0; i < SIZE; i++) {
-    for (int j = 0; j < SIZE; j++) {
+  for (char i = 0; i < SIZE; ++i) {
+    for (char j = 0; j < SIZE; ++j) {
       V[i][j] = A[i][j];
     }
   }
