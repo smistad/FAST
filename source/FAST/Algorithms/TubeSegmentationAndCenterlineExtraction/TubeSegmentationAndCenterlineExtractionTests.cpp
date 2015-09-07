@@ -43,7 +43,7 @@ TEST_CASE("TSF", "[tsf]") {
 }
 */
 
-TEST_CASE("TSF Airway", "[tsf][airway][visual]") {
+TEST_CASE("TSF Airway", "[tsf][airway][visual][broken_on_mac]") {
     //Report::setReportMethod(Report::COUT);
     ImageFileImporter::pointer importer = ImageFileImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT-Thorax.mhd");
