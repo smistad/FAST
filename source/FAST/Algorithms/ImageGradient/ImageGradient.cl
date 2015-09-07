@@ -37,12 +37,21 @@ __kernel void gradient2D(
     write_imagef(output, pos, gradient.xyyy);
 }
 
+
+#ifdef VECTORS_16BIT
+#define FLOAT_TO_SNORM16_3(vector) convert_short3_sat_rte(vector * 32767.0f)
+#define VECTOR_FIELD_TYPE short
+#else
+#define FLOAT_TO_SNORM16_3(vector) vector
+#define VECTOR_FIELD_TYPE float
+#endif
+
 __kernel void gradient3D(
         __read_only image3d_t input,
 #ifdef cl_khr_3d_image_writes
         __write_only image3d_t output
 #else
-        __global float* output
+        __global VECTOR_FIELD_TYPE* output
 #endif
         ) {
     const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
@@ -56,7 +65,7 @@ __kernel void gradient3D(
 #ifdef cl_khr_3d_image_writes
     write_imagef(output, pos, gradient.xyzz);
 #else 
-    vstore3(gradient, pos.x+pos.y*get_global_size(0)+pos.z*get_global_size(0)*get_global_size(1), output);
+    vstore3(FLOAT_TO_SNORM16_3(gradient), pos.x + pos.y*get_global_size(0) + pos.z*get_global_size(0)*get_global_size(1), output);
 #endif
 }
 

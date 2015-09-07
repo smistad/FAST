@@ -834,7 +834,8 @@ void MultigridGradientVectorFlow::execute3DGVF(SharedPointer<Image> input,
         cl::Buffer finalVectorFieldBuffer(
                 device->getContext(),
                 CL_MEM_WRITE_ONLY,
-                4*totalSize*bufferTypeSize
+                //4*totalSize*bufferTypeSize
+                4 * totalSize*sizeof(float)
         );
 
         finalizeKernel.setArg(0, fx);

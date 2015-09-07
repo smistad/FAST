@@ -320,6 +320,8 @@ void EulerGradientVectorFlow::execute3DGVFNo3DWrite(Image::pointer input, Image:
     cl::Kernel iterationKernel(program, "GVF3DIteration");
     cl::Kernel initKernel(program, "GVF3DInit");
     cl::Kernel finishKernel(program, "GVF3DFinish");
+
+	Report::info() << "Starting Euler GVF" << Report::end;
     OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
     cl::Image3D* inputVectorField = access->get3DImage();
 
@@ -328,41 +330,44 @@ void EulerGradientVectorFlow::execute3DGVFNo3DWrite(Image::pointer input, Image:
             device->getContext(),
             CL_MEM_READ_WRITE,
             3*vectorFieldSize*totalSize
-    );
-    cl::Buffer vectorFieldBuffer1(
-            device->getContext(),
-            CL_MEM_READ_WRITE,
-            3*vectorFieldSize*totalSize
-    );
+	);
+	{
+		cl::Buffer vectorFieldBuffer1(
+			device->getContext(),
+			CL_MEM_READ_WRITE,
+			3 * vectorFieldSize*totalSize
+			);
 
-    initKernel.setArg(0, *inputVectorField);
-    initKernel.setArg(1, vectorFieldBuffer);
-    queue.enqueueNDRangeKernel(
-        initKernel,
-        cl::NullRange,
-        cl::NDRange(width, height, depth),
-        cl::NullRange
-    );
+		initKernel.setArg(0, *inputVectorField);
+		initKernel.setArg(1, vectorFieldBuffer);
+		queue.enqueueNDRangeKernel(
+			initKernel,
+			cl::NullRange,
+			cl::NDRange(width, height, depth),
+			cl::NullRange
+			);
 
-    // Run iterations
-    iterationKernel.setArg(0, *inputVectorField);
-    iterationKernel.setArg(3, mMu);
+		// Run iterations
+		iterationKernel.setArg(0, *inputVectorField);
+		iterationKernel.setArg(3, mMu);
 
-    for(int i = 0; i < iterations; i++) {
-        if(i % 2 == 0) {
-            iterationKernel.setArg(1, vectorFieldBuffer);
-            iterationKernel.setArg(2, vectorFieldBuffer1);
-        } else {
-            iterationKernel.setArg(1, vectorFieldBuffer1);
-            iterationKernel.setArg(2, vectorFieldBuffer);
-        }
-        queue.enqueueNDRangeKernel(
-            iterationKernel,
-            cl::NullRange,
-            cl::NDRange(width, height, depth),
-            cl::NullRange
-        );
-    }
+		for (int i = 0; i < iterations; i++) {
+			if (i % 2 == 0) {
+				iterationKernel.setArg(1, vectorFieldBuffer);
+				iterationKernel.setArg(2, vectorFieldBuffer1);
+			}
+			else {
+				iterationKernel.setArg(1, vectorFieldBuffer1);
+				iterationKernel.setArg(2, vectorFieldBuffer);
+			}
+			queue.enqueueNDRangeKernel(
+				iterationKernel,
+				cl::NullRange,
+				cl::NDRange(width, height, depth),
+				cl::NullRange
+				);
+		}
+	}
 
     cl::Buffer finalVectorFieldBuffer(
             device->getContext(),
