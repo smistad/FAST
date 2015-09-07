@@ -16,10 +16,12 @@ namespace fast {
 RidgeTraversalCenterlineExtraction::RidgeTraversalCenterlineExtraction() {
     createInputPort<Image>(0);
     createInputPort<Image>(1);
+    createInputPort<Image>(2);
 
     // These are not required: Used when centerlines from two TDF results are to be merged
-    createInputPort<Image>(2, false);
     createInputPort<Image>(3, false);
+    createInputPort<Image>(4, false);
+    createInputPort<Image>(5, false);
 
     createOutputPort<LineSet>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
     createOutputPort<Segmentation>(1, OUTPUT_DEPENDS_ON_INPUT, 0);
@@ -185,17 +187,20 @@ void copyToLineSet(std::stack<CenterlinePoint> points, std::vector<Vector3f>& ve
 void extractCenterlines(
         Image::pointer TDF,
         Image::pointer vectorField,
+        Image::pointer radius,
         int* centerlines,
         unordered_map<int, int>& centerlineDistances,
         unordered_map<int, std::stack<CenterlinePoint> >& centerlineStacks,
         std::vector<Vector3f>& vertices,
         std::vector<Vector2ui>& lines,
-        int maxBelowTlow
+        int maxBelowTlow,
+        bool* useFirstRadius
     ) {
     ImageAccess::pointer TDFaccess = TDF->getImageAccess(ACCESS_READ);
     ImageAccess::pointer vectorFieldAccess = vectorField->getImageAccess(ACCESS_READ);
     Vector3ui size = TDF->getSize();
 
+    static int counter = 1;
     float Thigh = 0.5;
     int Dmin = 4;//getParam(parameters, "min-distance");
     float Mlow = 0.1;
@@ -257,10 +262,6 @@ void extractCenterlines(
     if(queue.size() == 0) {
         throw Exception("no valid start points found");
     }
-    static int counter = 1;
-
-
-
 
     while(!queue.empty()) {
         // Traverse from new start point
@@ -451,6 +452,9 @@ void extractCenterlines(
                 // No connections
                 for(usit = newCenterlines.begin(); usit != newCenterlines.end(); usit++) {
                     centerlines[*usit] = counter;
+                    if(maxBelowTlow > 0) {
+                        useFirstRadius[*usit] = true;
+                    }
                 }
                 centerlineDistances[counter] = distance;
                 centerlineStacks[counter] = stack;
@@ -467,6 +471,9 @@ void extractCenterlines(
 
                 for(usit = newCenterlines.begin(); usit != newCenterlines.end(); usit++) {
                     centerlines[*usit] = prevConnection;
+                    if(maxBelowTlow > 0) {
+                        useFirstRadius[*usit] = true;
+                    }
                 }
                 centerlineDistances[prevConnection] += distance;
                 if(secondConnection != -1) {
@@ -516,19 +523,24 @@ void RidgeTraversalCenterlineExtraction::execute() {
     std::vector<Vector3f> vertices;
     std::vector<Vector2ui> lines;
 
+    uint firstLimit;
+    int counter = 1;
+    bool* useFirstRadius = new bool[totalSize]();
+    Image::pointer radius = getStaticInputData<Image>(2);
     {
         Image::pointer vectorField = getStaticInputData<Image>(1);
-        extractCenterlines(TDF, vectorField, centerlines, centerlineDistances, centerlineStacks, vertices, lines, 12);
-
+        extractCenterlines(TDF, vectorField, radius, centerlines, centerlineDistances, centerlineStacks, vertices, lines, 12, useFirstRadius);
         // TODO do inverse gradient segmentation here?
     }
 
     // Check to see if more than two inputs were provided, if so run again..
-    if(getNrOfInputData() > 2) {
+    Image::pointer radius2;
+    if(getNrOfInputData() > 3) {
         // Run again for small
-        Image::pointer TDF = getStaticInputData<Image>(2);
-        Image::pointer vectorField = getStaticInputData<Image>(3);
-        extractCenterlines(TDF, vectorField, centerlines, centerlineDistances, centerlineStacks, vertices, lines, 0);
+        Image::pointer TDF = getStaticInputData<Image>(3);
+        Image::pointer vectorField = getStaticInputData<Image>(4);
+        radius2 = getStaticInputData<Image>(5);
+        extractCenterlines(TDF, vectorField, radius2, centerlines, centerlineDistances, centerlineStacks, vertices, lines, 0, useFirstRadius);
 
         // TODO do dilation segmentation here?
     }
@@ -565,25 +577,28 @@ void RidgeTraversalCenterlineExtraction::execute() {
     }
 
     uchar * returnCenterlines = new uchar[totalSize]();
+    ImageAccess::pointer radiusAccess = radius->getImageAccess(ACCESS_READ);
+    ImageAccess::pointer radius2Access;
+    if(radius2.isValid())
+        radius2Access = radius2->getImageAccess(ACCESS_READ);
     // Mark largest tree with 1, and rest with 0
     #pragma omp parallel for
     for(int i = 0; i < totalSize;i++) {
-        if(centerlines[i] == max) {
-        //if(centerlines[i] > 0) {
-            returnCenterlines[i] = 1;
-        } else {
-            bool valid = false;
-            for(it2 = trees.begin(); it2 != trees.end(); it2++) {
-                if(centerlines[i] == *it2) {
-                    returnCenterlines[i] = 1;
-                    valid = true;
-                    break;
+        bool valid = false;
+        for(it2 = trees.begin(); it2 != trees.end(); it2++) {
+            if(centerlines[i] == *it2) {
+                // Store radius in centerline volume
+                if(useFirstRadius[i]) {
+                    returnCenterlines[i] = round(radiusAccess->getScalar(i));
+                } else {
+                    returnCenterlines[i] = 1;//round(radius2Access->getScalar(i));
                 }
+                valid = true;
+                break;
             }
-            if(!valid)
-                returnCenterlines[i] = 0;
-
         }
+        if(!valid)
+            returnCenterlines[i] = 0;
     }
 
     delete[] centerlines;

@@ -299,8 +299,10 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
         // Then extract centerlines from smallTDF using large centerlines as input
         centerlineExtraction->setInputData(0, largeTDF);
         centerlineExtraction->setInputData(1, GVFfield);
-        centerlineExtraction->setInputData(2, smallTDF);
-        centerlineExtraction->setInputData(3, gradients);
+        centerlineExtraction->setInputData(2, largeRadius);
+        centerlineExtraction->setInputData(3, smallTDF);
+        centerlineExtraction->setInputData(4, gradients);
+        centerlineExtraction->setInputData(5, smallRadius);
         centerlineExtraction->update();
         centerline = centerlineExtraction->getOutputData<LineSet>();
 
@@ -315,10 +317,12 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
             TDF = smallTDF;
             centerlineExtraction->setInputData(0, smallTDF);
             centerlineExtraction->setInputData(1, gradients);
+            centerlineExtraction->setInputData(2, smallRadius);
         } else {
             TDF = largeTDF;
             centerlineExtraction->setInputData(0, largeTDF);
             centerlineExtraction->setInputData(1, GVFfield);
+            centerlineExtraction->setInputData(3, largeRadius);
             gradients = GVFfield;
         }
         centerlineExtraction->update();
