@@ -84,10 +84,10 @@ TEST_CASE("TSF Airway", "[tsf][airway][visual][broken_on_mac]") {
     meshRenderer->addInputConnection(surfaceExtraction->getOutputPort());
 
     SimpleWindow::pointer window = SimpleWindow::New();
-    window->addRenderer(renderer);
+    //window->addRenderer(renderer);
     window->addRenderer(meshRenderer);
     window->addRenderer(lineRenderer);
-    //window->setTimeout(3*1000);
+    window->setTimeout(3*1000);
     window->start();
     tubeExtraction->getRuntime()->print();
 }
