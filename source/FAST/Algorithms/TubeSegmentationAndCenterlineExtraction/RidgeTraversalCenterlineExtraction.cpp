@@ -585,6 +585,7 @@ void RidgeTraversalCenterlineExtraction::execute() {
     #pragma omp parallel for
     for(int i = 0; i < totalSize;i++) {
         bool valid = false;
+        std::list<int>::iterator it2;
         for(it2 = trees.begin(); it2 != trees.end(); it2++) {
             if(centerlines[i] == *it2) {
                 // Store radius in centerline volume

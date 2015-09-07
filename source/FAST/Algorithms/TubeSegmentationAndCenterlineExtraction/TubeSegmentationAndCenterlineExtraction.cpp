@@ -130,7 +130,7 @@ inline void floodFill(ImageAccess::pointer& access, Vector3ui size, Vector3i sta
         for(int c = -1; c < 2; c++) {
             Vector3i position = currentPosition + Vector3i(a,b,c);
             try {
-                uchar value = segmentation[position.x() + position.y()*size.x() + position.z()*size.x()*size.y()];
+                uchar value = access->getScalar(position); // need out of bounds check here
                 if(value == 1) {
                     segmentation[position.x() + position.y()*size.x() + position.z()*size.x()*size.y()] = 0;
                     stack.push(position);
