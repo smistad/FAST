@@ -66,7 +66,7 @@ float getNormalizedValue(ImageAccess::pointer& vectorField, Vector3i pos, uint c
 }
 
 Vector3f gradient(ImageAccess::pointer& vectorField, Vector3i pos, int volumeComponent, int dimensions) {
-    float f100, f_100, f010, f0_10, f001, f00_1;
+    float f100, f_100, f010 = 0, f0_10 = 0, f001 = 0, f00_1 = 0;
     Vector3i npos = pos;
     npos.x() += 1;
     f100 = getNormalizedValue(vectorField, npos, volumeComponent);

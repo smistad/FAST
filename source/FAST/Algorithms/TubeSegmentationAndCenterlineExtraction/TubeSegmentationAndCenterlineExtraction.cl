@@ -5,13 +5,23 @@ __constant sampler_t hpSampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP
 #define LPOS(pos) pos.x+pos.y*get_global_size(0)+pos.z*get_global_size(0)*get_global_size(1)
 
 #ifdef VECTORS_16BIT
-#define UNORM16_TO_FLOAT(v) (float)v / 65535.0f
-#define FLOAT_TO_UNORM16(v) convert_ushort_sat_rte(v * 65535.0f)
-#define TDF_TYPE ushort
+//#define UNORM16_TO_FLOAT(v) (float)v / 65535.0f
+//#define TDF_TYPE ushort
+//#define FLOAT_TO_UNORM16(v) convert_ushort_sat_rte(v * 65535.0f)
+#define UNORM16_TO_FLOAT(v) v
+#define FLOAT_TO_UNORM16(v) v
+#define TDF_TYPE float
+
+#define VECTOR_FIELD_TYPE short
+#define FLOAT_TO_SNORM16_3(vector) convert_short3_sat_rte(vector * 32767.0f)
+
 #else
 #define UNORM16_TO_FLOAT(v) v
 #define FLOAT_TO_UNORM16(v) v
 #define TDF_TYPE float
+
+#define VECTOR_FIELD_TYPE float
+#define FLOAT_TO_SNORM16_3(vector) vector
 #endif
 
 float4 readImageToFloat(
@@ -178,7 +188,7 @@ __kernel void createVectorField(
 #ifdef cl_khr_3d_image_writes
         __write_only image3d_t vectorField, 
 #else
-        __global float* vectorField,
+        __global VECTOR_FIELD_TYPE* vectorField,
 #endif
         __private float Fmax,
         __private float vsign
@@ -199,7 +209,7 @@ __kernel void createVectorField(
 #ifdef cl_khr_3d_image_writes
     write_imagef(vectorField, pos, F);
 #else
-    vstore3(F.xyz, LPOS(pos), vectorField);
+    vstore3(FLOAT_TO_SNORM16_3(F.xyz), LPOS(pos), vectorField);
 #endif
 }
 

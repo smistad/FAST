@@ -15,9 +15,11 @@ void ImageGradient::execute() {
     Image::pointer input = getStaticInputData<Image>(0);
     Image::pointer output = getStaticOutputData<Image>(0);
 
+    std::string buildOptions = "";
     DataType type = TYPE_FLOAT;
     if(mUse16bitFormat) {
         type = TYPE_SNORM_INT16;
+        buildOptions = "-DVECTORS_16BIT";
     }
 
     // Initialize output image
@@ -42,7 +44,7 @@ void ImageGradient::execute() {
         throw Exception("Not implemented yet.");
     } else {
         OpenCLDevice::pointer device = OpenCLDevice::pointer(getMainDevice());
-        cl::Program program = getOpenCLProgram(device);
+        cl::Program program = getOpenCLProgram(device, "", buildOptions);
         cl::Kernel kernel;
         OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
         if(input->getDimensions() == 2) {

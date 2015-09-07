@@ -89,14 +89,13 @@ __kernel void GVFgaussSeidel2(
 
     // Calculate manhatten address
     int i = pos.x+pos.y+pos.z;
-
-        if(i % 2 == 0) {
-            // Copy red
-            float value = read_imagef(v_read, sampler, pos).x;
-        write_imagef(v_write, writePos, value);
-        } else {
+	float value;
+    if(i % 2 == 0) {
+        // Copy red
+        value = read_imagef(v_read, sampler, pos).x;
+    } else {
             // Compute black
-            float value = native_divide(2.0f*mu*(
+        value = native_divide(2.0f*mu*(
                     read_imagef(v_read, sampler, pos + (int4)(1,0,0,0)).x+
                     read_imagef(v_read, sampler, pos - (int4)(1,0,0,0)).x+
                     read_imagef(v_read, sampler, pos + (int4)(0,1,0,0)).x+
@@ -106,12 +105,13 @@ __kernel void GVFgaussSeidel2(
                     ) - 2.0f*spacing*spacing*read_imagef(r, sampler, pos).x,
                     12.0f*mu+spacing*spacing*read_imagef(sqrMag, sampler, pos).x);
 
+
+    }
 #ifdef cl_khr_3d_image_writes
-            write_imagef(v_write, writePos, value);
+	write_imagef(v_write, writePos, value);
 #else
-            v_write[LPOS(writePos)] = FLOAT_TO_SNORM16(value);
+	v_write[LPOS(writePos)] = FLOAT_TO_SNORM16(value);
 #endif
-        }
 }
 
 
@@ -198,7 +198,8 @@ __kernel void MGGVFFinish(
 #ifdef cl_khr_3d_image_writes
         __write_only image3d_t vectorField
 #else
-        __global VECTOR_FIELD_TYPE * vectorField
+        //__global VECTOR_FIELD_TYPE * vectorField
+        __global float* vectorField
 #endif
         ) {
     const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
@@ -211,7 +212,8 @@ __kernel void MGGVFFinish(
 #ifdef cl_khr_3d_image_writes
     write_imagef(vectorField,pos,value);
 #else
-    vstore4(FLOAT_TO_SNORM16_4(value), LPOS(pos), vectorField);
+    //vstore4(FLOAT_TO_SNORM16_4(value), LPOS(pos), vectorField);
+    vstore4(value, LPOS(pos), vectorField);
 #endif
 }
 
@@ -264,8 +266,9 @@ __kernel void prolongate(
         ) {
     const int4 writePos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
     const int4 readPos = convert_int4(floor(convert_float4(writePos)/2.0f));
+    float value = read_imagef(v_l_read, hpSampler, writePos).x + read_imagef(v_l_p1, hpSampler, readPos).x;
 #ifdef cl_khr_3d_image_writes
-    write_imagef(v_l_write, writePos, read_imagef(v_l_read, hpSampler, writePos).x + read_imagef(v_l_p1, hpSampler, readPos).x);
+    write_imagef(v_l_write, writePos, value);
 #else
     v_l_write[LPOS(writePos)] = FLOAT_TO_SNORM16(value);
 #endif
