@@ -330,7 +330,7 @@ __kernel void nonCircularTDF(
     float maxRadius[12]; // 12 is maximum nr of arms atm.
     float sum = 0.0f;
     //float minAverageMag = 0.01f; // 0.01
-    float avgRadius = 0.0f;
+    float minRadius = rMax+1;
     for(char j = 0; j < arms; ++j) {
         maxRadius[j] = 999;
         float alpha = 2 * M_PI_F * j / arms;
@@ -350,7 +350,8 @@ __kernel void nonCircularTDF(
             // Is a border point found?
             if(up == 1 && magnitude < prevMagnitude && (prevMagnitude+magnitude)/2.0f - currentVoxelMagnitude > minAverageMag) { // Dot produt here is test
                 maxRadius[j] = radius;
-                avgRadius += radius;
+                if(radius < minRadius)
+                    minRadius = radius;
                 if(dot(normalize(vec.xyz), -normalize(V_alpha.xyz)) < 0.0f) {
                     invalid = 1;
                     sum = 0.0f;
@@ -372,9 +373,7 @@ __kernel void nonCircularTDF(
         }
     } // End for arms
 
-    avgRadius = avgRadius / arms;
-
-    R[LPOS(pos)] = avgRadius;
+    R[LPOS(pos)] = minRadius;
     if(invalid != 1) {
         float avgSymmetry = 0.0f;
         for(char j = 0; j < arms/2; ++j) {

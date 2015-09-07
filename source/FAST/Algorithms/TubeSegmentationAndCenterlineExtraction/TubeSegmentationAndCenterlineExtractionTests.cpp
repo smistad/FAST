@@ -44,23 +44,31 @@ TEST_CASE("TSF", "[tsf]") {
 */
 
 TEST_CASE("TSF Airway", "[tsf][airway][visual][broken_on_mac]") {
-    //Report::setReportMethod(Report::COUT);
+    Report::setReportMethod(Report::COUT);
     ImageFileImporter::pointer importer = ImageFileImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT-Thorax.mhd");
+    //importer->setFilename("/home/smistad/Data/lunge_datasett/pasient17.mhd");
 
-    ImageCropper::pointer cropper = ImageCropper::New();
-    cropper->setOffset(Vector3ui(56, 119, 155));
-    cropper->setSize(Vector3ui(400, 232, 509));
-    cropper->setInputConnection(importer->getOutputPort());
+    // Need to know the data type
+    importer->update();
+    Image::pointer image = importer->getOutputData<Image>();
 
     TubeSegmentationAndCenterlineExtraction::pointer tubeExtraction = TubeSegmentationAndCenterlineExtraction::New();
-    tubeExtraction->setInputConnection(cropper->getOutputPort());
+    tubeExtraction->setInputConnection(importer->getOutputPort());
     tubeExtraction->extractDarkTubes();
-    tubeExtraction->setMinimumIntensity(-1024);
-    tubeExtraction->setMaximumIntensity(100);
+    tubeExtraction->enableAutomaticCropping(true);
+    // Set min and max intensity based on HU unit scale
+    if(image->getDataType() == TYPE_UINT16) {
+        tubeExtraction->setMinimumIntensity(0);
+        tubeExtraction->setMaximumIntensity(1124);
+    } else {
+        tubeExtraction->setMinimumIntensity(-1024);
+        tubeExtraction->setMaximumIntensity(100);
+    }
     tubeExtraction->setMinimumRadius(0.5);
     tubeExtraction->setMaximumRadius(50);
     tubeExtraction->setSensitivity(0.8);
+    tubeExtraction->enableRuntimeMeasurements();
 
     SliceRenderer::pointer renderer = SliceRenderer::New();
     renderer->setInputConnection(importer->getOutputPort());
@@ -79,8 +87,9 @@ TEST_CASE("TSF Airway", "[tsf][airway][visual][broken_on_mac]") {
     window->addRenderer(renderer);
     window->addRenderer(meshRenderer);
     window->addRenderer(lineRenderer);
-    window->setTimeout(3*1000);
+    //window->setTimeout(3*1000);
     window->start();
+    tubeExtraction->getRuntime()->print();
 }
 
 }
