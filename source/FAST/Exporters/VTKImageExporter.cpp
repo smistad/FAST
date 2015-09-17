@@ -21,8 +21,8 @@ VTKImageExporter::VTKImageExporter() {
 
 template <class T>
 void transferDataToVTKImage(Image::pointer input, vtkSmartPointer<vtkImageData> output) {
-    ImageAccess access = input->getImageAccess(ACCESS_READ);
-    T* fastPixelData = (T*)access.get();
+    ImageAccess::pointer access = input->getImageAccess(ACCESS_READ);
+    T* fastPixelData = (T*)access->get();
 
     unsigned int width = input->getWidth();
     unsigned int height = input->getHeight();
