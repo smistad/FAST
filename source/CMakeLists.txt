@@ -219,3 +219,13 @@ endif()
 if(BUILD_TESTS)
     target_link_libraries(test FAST)
 endif()
+
+
+set(FAST_LIBRARY FAST)
+set(FAST_LIBRARY_DIRS ${PROJECT_BINARY_DIR})
+
+# Create config file
+configure_file (
+    "${PROJECT_SOURCE_DIR}/FASTConfig.cmake.in"
+    "${PROJECT_BINARY_DIR}/FASTConfig.cmake"
+)
