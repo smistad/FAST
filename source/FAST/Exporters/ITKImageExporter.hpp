@@ -22,6 +22,8 @@ class ITKImageExporter: public itk::ImageSource<TImage>, public ProcessObject {
 
         /** Run-time type information (and related methods). */
         itkTypeMacro(MyImageSource, ImageSource);
+
+        std::string getNameOfClass() const { return "ITKImageExporter"; };
     private:
         ITKImageExporter();
         void execute() {};
@@ -64,8 +66,8 @@ inline void fast::ITKImageExporter<TImage>::transferDataToITKImage(Image::pointe
     output->SetRegions(region);
     output->Allocate();
 
-    ImageAccess access = input->getImageAccess(ACCESS_READ);
-    T * fastPixelData = (T*)access.get();
+    ImageAccess::pointer access = input->getImageAccess(ACCESS_READ);
+    T * fastPixelData = (T*)access->get();
 
     itk::ImageRegionIterator<TImage> imageIterator(output,
             output->GetLargestPossibleRegion());
