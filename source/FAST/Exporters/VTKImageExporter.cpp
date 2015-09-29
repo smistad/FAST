@@ -17,6 +17,7 @@ VTKImageExporter::VTKImageExporter() {
     // VTK stuff
     this->SetNumberOfOutputPorts(1);
     this->SetNumberOfInputPorts(0);
+    createInputPort<Image>(0);
 }
 
 template <class T>
@@ -60,32 +61,31 @@ int VTKImageExporter::RequestData(
 
     vtkImageData *output = this->GetOutput();
 
-    vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
-
     // Set size
     if(input->getDimensions() == 2) {
-        image->SetExtent(0, input->getWidth(), 0, input->getHeight(), 0, 0);
+        output->SetExtent(0, input->getWidth(), 0, input->getHeight(), 0, 0);
     } else {
-        image->SetExtent(0, input->getWidth(), 0, input->getHeight(), 0, input->getDepth());
+        output->SetExtent(0, input->getWidth(), 0, input->getHeight(), 0, input->getDepth());
     }
 
 #if VTK_MAJOR_VERSION <= 5
+    output->SetNumberOfScalarComponents(1);
     // Set type
     switch(input->getDataType()) {
     case TYPE_FLOAT:
-        image->SetScalarType(VTK_FLOAT);
+        output->SetScalarType(VTK_FLOAT);
         break;
     case TYPE_INT8:
-        image->SetScalarType(VTK_CHAR);
+        output->SetScalarType(VTK_CHAR);
         break;
     case TYPE_UINT8:
-        image->SetScalarType(VTK_UNSIGNED_CHAR);
+        output->SetScalarType(VTK_UNSIGNED_CHAR);
         break;
     case TYPE_INT16:
-        image->SetScalarType(VTK_SHORT);
+        output->SetScalarType(VTK_SHORT);
         break;
     case TYPE_UINT16:
-        image->SetScalarType(VTK_UNSIGNED_SHORT);
+        output->SetScalarType(VTK_UNSIGNED_SHORT);
         break;
     default:
         throw Exception("Unknown type");
@@ -95,19 +95,19 @@ int VTKImageExporter::RequestData(
     // Set type
     switch(input->getDataType()) {
     case TYPE_FLOAT:
-        image->SetScalarType(VTK_FLOAT, outInfo);
+        output->AllocateScalars(VTK_FLOAT, 1);
         break;
     case TYPE_INT8:
-        image->SetScalarType(VTK_CHAR, outInfo);
+        output->AllocateScalars(VTK_CHAR, 1);
         break;
     case TYPE_UINT8:
-        image->SetScalarType(VTK_UNSIGNED_CHAR, outInfo);
+        output->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
         break;
     case TYPE_INT16:
-        image->SetScalarType(VTK_SHORT, outInfo);
+        output->AllocateScalars(VTK_SHORT, 1);
         break;
     case TYPE_UINT16:
-        image->SetScalarType(VTK_UNSIGNED_SHORT, outInfo);
+        output->AllocateScalars(VTK_UNSIGNED_SHORT, 1);
         break;
     default:
         throw Exception("Unknown type");
@@ -115,15 +115,14 @@ int VTKImageExporter::RequestData(
     }
 #endif
 
+
     // Transfer data from mInput to vtk image
     switch(input->getDataType()) {
-        fastSwitchTypeMacro(transferDataToVTKImage<FAST_TYPE>(input, image))
+        fastSwitchTypeMacro(transferDataToVTKImage<FAST_TYPE>(input, output))
     }
 
-    output->ShallowCopy(image);
-
     // Without these lines, the output will appear real but will not work as the input to any other filters
-    output->SetExtent(image->GetExtent());
+    //output->SetExtent(output->GetExtent());
 #if VTK_MAJOR_VERSION <= 5
     //output->SetUpdateExtent(output->GetExtent());
     //output->SetWholeExtent(output->GetExtent());

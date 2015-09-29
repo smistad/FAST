@@ -71,13 +71,13 @@ inline bool compareVTKDataWithFASTData(vtkSmartPointer<vtkImageData> vtkImage, v
     return true;
 }
 
-TEST_CASE("No input given to the VTKImageExporter", "[fast][VTK]") {
+TEST_CASE("No input given to the VTKImageExporter", "[fast][VTK][VTKImageExporter]") {
     vtkSmartPointer<VTKImageExporter> vtkExporter = VTKImageExporter::New();
     vtkSmartPointer<vtkImageData> vtkImage = vtkExporter->GetOutput();
     CHECK_THROWS(vtkExporter->Update());
 }
 
-TEST_CASE("Export a 2D image from FAST to VTK", "[fast][VTK]") {
+TEST_CASE("Export a 2D image from FAST to VTK", "[fast][VTK][VTKImageExporter]") {
     unsigned int width = 32;
     unsigned int height = 40;
     for(unsigned int typeNr = 0; typeNr < 5; typeNr++) { // for all types
@@ -107,7 +107,7 @@ TEST_CASE("Export a 2D image from FAST to VTK", "[fast][VTK]") {
     }
 }
 
-TEST_CASE("Export a 3D image from FAST to VTK", "[fast][VTK]") {
+TEST_CASE("Export a 3D image from FAST to VTK", "[fast][VTK][VTKImageExporter]") {
     unsigned int width = 32;
     unsigned int height = 20;
     unsigned int depth = 8;
@@ -139,7 +139,7 @@ TEST_CASE("Export a 3D image from FAST to VTK", "[fast][VTK]") {
     }
 }
 
-TEST_CASE("Export an image from FAST to VTK and visualize", "[fast][VTK]") {
+TEST_CASE("Export an image from FAST to VTK and visualize", "[fast][VTK][VTKImageExporter]") {
 
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-2D.jpg");
@@ -147,7 +147,7 @@ TEST_CASE("Export an image from FAST to VTK and visualize", "[fast][VTK]") {
 
     // VTK Export and render example
     vtkSmartPointer<VTKImageExporter> vtkExporter = VTKImageExporter::New();
-    vtkExporter->setInputData(fastImage);
+    vtkExporter->setInputConnection(importer->getOutputPort());
     vtkSmartPointer<vtkImageData> vtkImage = vtkExporter->GetOutput();
     vtkExporter->Update();
 
@@ -185,6 +185,6 @@ TEST_CASE("Export an image from FAST to VTK and visualize", "[fast][VTK]") {
     renderWindowInteractor->SetRenderWindow(renderWindow);
     renderer2->AddActor2D(imageActor);
     renderWindow->Render();
-    //renderWindowInteractor->Start();
+    //renderWindowInteractor->Start(); // this will block
     );
 }
