@@ -1,18 +1,24 @@
 #include "VTKImageImporter.hpp"
 #include <vtkType.h>
+#include <vtkObjectFactory.h>
+#include <vtkStreamingDemandDrivenPipeline.h>
+#include <vtkInformationVector.h>
+#include <vtkInformation.h>
+#include <vtkDataObject.h>
+#include <vtkImageData.h>
 using namespace fast;
 
-void VTKImageImporter::setInput(vtkSmartPointer<vtkImageData> image) {
-    mInput = image;
+vtkStandardNewMacro(VTKImageImporter);
+
+VTKImageImporter::VTKImageImporter() {
+    this->SetNumberOfOutputPorts(0);
+    this->SetNumberOfInputPorts(1);
+    createOutputPort<Image>(0, OUTPUT_STATIC);
     mIsModified = true;
 }
 
-VTKImageImporter::VTKImageImporter() {
-    createOutputPort<Image>(0, OUTPUT_STATIC);
-}
-
 template <class T>
-void* readVTKData(vtkSmartPointer<vtkImageData> image) {
+void* readVTKData(vtkImageData* image) {
     // TODO component support
     int * size = image->GetDimensions();
     unsigned int width = size[0]-1;
@@ -21,7 +27,7 @@ void* readVTKData(vtkSmartPointer<vtkImageData> image) {
         T* fastPixelData = new T[width*height];
         for(unsigned int x = 0; x < width; x++) {
         for(unsigned int y = 0; y < height; y++) {
-            T * pixel = static_cast<T*>(image->GetScalarPointer(x,height-y,0));
+            T* pixel = static_cast<T*>(image->GetScalarPointer(x,height-y,0));
             fastPixelData[x+y*width] = pixel[0];
         }}
         return (void*)fastPixelData;
@@ -31,7 +37,7 @@ void* readVTKData(vtkSmartPointer<vtkImageData> image) {
         for(unsigned int x = 0; x < width; x++) {
         for(unsigned int y = 0; y < height; y++) {
         for(unsigned int z = 0; z < depth; z++) {
-            T * pixel = static_cast<T*>(image->GetScalarPointer(x,height-y,z));
+            T*  pixel = static_cast<T*>(image->GetScalarPointer(x,height-y,z));
             fastPixelData[x+y*width+z*width*height] = pixel[0];
         }}}
         return (void*)fastPixelData;
@@ -40,8 +46,7 @@ void* readVTKData(vtkSmartPointer<vtkImageData> image) {
         return NULL;
     }
 }
-
-void transferVTKDataToFAST(vtkSmartPointer<vtkImageData> image, Image::pointer output) {
+void transferVTKDataToFAST(vtkImageData* image, Image::pointer output) {
 
     void* data;
     DataType type;
@@ -81,16 +86,24 @@ void transferVTKDataToFAST(vtkSmartPointer<vtkImageData> image, Image::pointer o
         throw Exception("Wrong number of dimensions in VTK image");
     }
     deleteArray(data, type);
-    output->updateModifiedTimestamp();
 }
 
+
+int VTKImageImporter::RequestData(
+        vtkInformation* vtkNotUsed(request),
+        vtkInformationVector** inputVector,
+        vtkInformationVector* outputVector) {
+    vtkInformation *inInfo = inputVector[0]->GetInformationObject(0);
+    // Get the input data
+    vtkImageData* input = vtkImageData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
+
+    transferVTKDataToFAST(input, getStaticOutputData<Image>());
+
+    return 1;
+}
+
+
 void VTKImageImporter::execute() {
-    // Make sure VTK data is up to date
-#if VTK_MAJOR_VERSION <= 5
-    mInput->Update();
-#else
-#endif
-
-    transferVTKDataToFAST(mInput, getOutputData<Image>());
-
+    // Run VTK pipeline
+    Update();
 }
