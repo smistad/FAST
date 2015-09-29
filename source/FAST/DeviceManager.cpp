@@ -251,7 +251,7 @@ bool DeviceManager::deviceHasOpenGLInteropCapability(const cl::Device &device) {
 std::cout << glContext << std::endl;
 std::cout << CGLGetCurrentContext() << std::endl;
 std::cout << "trying to get share group of gl context" << std::endl;
-CGLShareGroupObj shareGroup = CGLGetShareGroup(glContext);
+CGLShareGroupObj shareGroup = CGLGetShareGroup((CGLContextObj)glContext);
 if(shareGroup == NULL)
 throw Exception("Not able to get sharegroup");
 std::cout << "success " << shareGroup << std::endl;
