@@ -1,5 +1,5 @@
 #include <GL/glew.h>
-#include "HelperFunctions.hpp"
+#include "FAST/Utility.hpp"
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Visualization/View.hpp"
 #include "FAST/Utility.hpp"

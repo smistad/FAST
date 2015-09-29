@@ -80,6 +80,12 @@ float getSumFromData(void* voidData, unsigned int nrOfElements) {
     return sum;
 }
 
+cl::size_t<3> createRegion(unsigned int x, unsigned int y, unsigned int z);
+cl::size_t<3> createRegion(Vector3ui size);
+cl::size_t<3> createOrigoRegion();
+
+std::string getCLErrorString(cl_int err);
+
 } // end namespace fast
 
 

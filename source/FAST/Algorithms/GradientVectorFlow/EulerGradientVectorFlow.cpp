@@ -1,6 +1,6 @@
 #include "EulerGradientVectorFlow.hpp"
 #include "FAST/Data/Image.hpp"
-#include "HelperFunctions.hpp"
+#include "FAST/Utility.hpp"
 
 namespace fast {
 
@@ -134,9 +134,9 @@ void EulerGradientVectorFlow::execute2DGVF(Image::pointer input, Image::pointer 
         queue.enqueueCopyImage(
                 *inputVectorField,
                 vectorField,
-                oul::createOrigoRegion(),
-                oul::createOrigoRegion(),
-                oul::createRegion(width, height, 1)
+                createOrigoRegion(),
+                createOrigoRegion(),
+                createRegion(width, height, 1)
         );
     }
 
@@ -178,9 +178,9 @@ void EulerGradientVectorFlow::execute2DGVF(Image::pointer input, Image::pointer 
         queue.enqueueCopyImage(
                 vectorField,
                 *outputCLImage,
-                oul::createOrigoRegion(),
-                oul::createOrigoRegion(),
-                oul::createRegion(width, height, 1)
+                createOrigoRegion(),
+                createOrigoRegion(),
+                createRegion(width, height, 1)
         );
     }
 }
@@ -236,9 +236,9 @@ void EulerGradientVectorFlow::execute3DGVF(Image::pointer input, Image::pointer 
         queue.enqueueCopyImage(
                 *inputVectorField,
                 vectorField,
-                oul::createOrigoRegion(),
-                oul::createOrigoRegion(),
-                oul::createRegion(width, height, depth)
+                createOrigoRegion(),
+                createOrigoRegion(),
+                createRegion(width, height, depth)
         );
     }
 
@@ -278,9 +278,9 @@ void EulerGradientVectorFlow::execute3DGVF(Image::pointer input, Image::pointer 
         queue.enqueueCopyImage(
                 vectorField,
                 *outputCLImage,
-                oul::createOrigoRegion(),
-                oul::createOrigoRegion(),
-                oul::createRegion(width, height, depth)
+                createOrigoRegion(),
+                createOrigoRegion(),
+                createRegion(width, height, depth)
         );
     }
 }
@@ -393,8 +393,8 @@ void EulerGradientVectorFlow::execute3DGVFNo3DWrite(Image::pointer input, Image:
             finalVectorFieldBuffer,
             *outputCLImage,
             0,
-            oul::createOrigoRegion(),
-            oul::createRegion(width, height, depth)
+            createOrigoRegion(),
+            createRegion(width, height, depth)
     );
 
 }

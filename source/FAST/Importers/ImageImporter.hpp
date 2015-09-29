@@ -3,7 +3,6 @@
 
 #include "Importer.hpp"
 #include <string>
-#include "OpenCLManager.hpp"
 
 namespace fast {
 

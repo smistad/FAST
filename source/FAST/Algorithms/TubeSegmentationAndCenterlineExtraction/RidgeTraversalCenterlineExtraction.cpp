@@ -63,11 +63,11 @@ float getNormalizedValue(ImageAccess::pointer& vectorField, Vector3i pos, uint c
     if(magnitude == 0) {
         return 0;
     } else {
-        return vectorField->getScalar(pos, component);
+        return vectorField->getScalar(pos, component) ;/// magnitude;
     }
 }
 
-Vector3f gradient(ImageAccess::pointer& vectorField, Vector3i pos, int volumeComponent, int dimensions) {
+Vector3f gradientNormalized(ImageAccess::pointer& vectorField, Vector3i pos, int volumeComponent, int dimensions) {
     float f100, f_100, f010 = 0, f0_10 = 0, f001 = 0, f00_1 = 0;
     Vector3i npos = pos;
     npos.x() += 1;
@@ -87,6 +87,34 @@ Vector3f gradient(ImageAccess::pointer& vectorField, Vector3i pos, int volumeCom
         f001 = getNormalizedValue(vectorField, npos, volumeComponent);
         npos.z() -= 2;
         f00_1 = getNormalizedValue(vectorField, npos, volumeComponent);
+    }
+
+    Vector3f grad(0.5f*(f100-f_100), 0.5f*(f010-f0_10), 0.5f*(f001-f00_1));
+
+
+    return grad;
+}
+
+Vector3f gradient(ImageAccess::pointer& vectorField, Vector3i pos, int volumeComponent, int dimensions) {
+    float f100, f_100, f010 = 0, f0_10 = 0, f001 = 0, f00_1 = 0;
+    Vector3i npos = pos;
+    npos.x() += 1;
+    f100 = vectorField->getScalar(npos, volumeComponent);
+    npos.x() -= 2;
+    f_100 = vectorField->getScalar(npos, volumeComponent);
+    if(dimensions > 1) {
+        npos = pos;
+        npos.y() += 1;
+        f010 = vectorField->getScalar(npos, volumeComponent);
+        npos.y() -= 2;
+        f0_10 = vectorField->getScalar(npos, volumeComponent);
+    }
+    if(dimensions > 2) {
+        npos = pos;
+        npos.z() += 1;
+        f001 = vectorField->getScalar(npos, volumeComponent);
+        npos.z() -= 2;
+        f00_1 = vectorField->getScalar(npos, volumeComponent);
     }
 
     Vector3f grad(0.5f*(f100-f_100), 0.5f*(f010-f0_10), 0.5f*(f001-f00_1));
@@ -124,12 +152,19 @@ void sortEigenvaluesAndVectors(Vector3f* eigenvaluesOut, Matrix3f* eigenvectorsO
 }
 
 
-Vector3f getTubeDirection(ImageAccess::pointer& vectorField, Vector3i pos, Vector3ui size) {
+Vector3f getTubeDirection(ImageAccess::pointer& vectorField, Vector3i pos, Vector3ui size, bool normalize) {
 
     // Do gradient on Fx, Fy and Fz and normalization
-    Vector3f Fx = gradient(vectorField, pos,0,1);
-    Vector3f Fy = gradient(vectorField, pos,1,2);
-    Vector3f Fz = gradient(vectorField, pos,2,3);
+    Vector3f Fx, Fy, Fz;
+    if(normalize) {
+        Fx = gradientNormalized(vectorField, pos,0,1);
+        Fy = gradientNormalized(vectorField, pos,1,2);
+        Fz = gradientNormalized(vectorField, pos,2,3);
+    } else {
+        Fx = gradient(vectorField, pos,0,1);
+        Fy = gradient(vectorField, pos,1,2);
+        Fz = gradient(vectorField, pos,2,3);
+    }
 
     Matrix3f hessian = Matrix3f::Zero();
     hessian(0, 0) = Fx.x();
@@ -146,12 +181,19 @@ Vector3f getTubeDirection(ImageAccess::pointer& vectorField, Vector3i pos, Vecto
     return eigenvectors.col(0);
 }
 
-void doEigen(ImageAccess::pointer& vectorField, Vector3i pos, Vector3ui size, Vector3f* lambda, Vector3f* e1, Vector3f* e2, Vector3f* e3) {
+void doEigen(ImageAccess::pointer& vectorField, Vector3i pos, Vector3ui size, bool normalize, Vector3f* lambda, Vector3f* e1, Vector3f* e2, Vector3f* e3) {
 
     // Do gradient on Fx, Fy and Fz and normalization
-    Vector3f Fx = gradient(vectorField, pos,0,1);
-    Vector3f Fy = gradient(vectorField, pos,1,2);
-    Vector3f Fz = gradient(vectorField, pos,2,3);
+    Vector3f Fx, Fy, Fz;
+    if(normalize) {
+        Fx = gradientNormalized(vectorField, pos,0,1);
+        Fy = gradientNormalized(vectorField, pos,1,2);
+        Fz = gradientNormalized(vectorField, pos,2,3);
+    } else {
+        Fx = gradient(vectorField, pos,0,1);
+        Fy = gradient(vectorField, pos,1,2);
+        Fz = gradient(vectorField, pos,2,3);
+    }
 
     Matrix3f hessian = Matrix3f::Zero();
     hessian(0, 0) = Fx.x();
@@ -198,14 +240,15 @@ void extractCenterlines(
     ) {
     ImageAccess::pointer TDFaccess = TDF->getImageAccess(ACCESS_READ);
     ImageAccess::pointer vectorFieldAccess = vectorField->getImageAccess(ACCESS_READ);
-    Vector3ui size = TDF->getSize();
+    const Vector3ui size = TDF->getSize();
+    const Vector3f spacing = vectorField->getSpacing();
 
     static int counter = 1;
     float Thigh = 0.5;
-    int Dmin = 4;//getParam(parameters, "min-distance");
+    int Dmin = 10;//getParam(parameters, "min-distance");
     float Mlow = 0.1;
     float Tlow = 0.1;
-    float minMeanTube = 0.5;
+    float minMeanTube = maxBelowTlow > 0 ? 0.4 : 0.5;
     const int totalSize = size.x()*size.y()*size.z();
 
     Vector3i neighborhood[26];
@@ -295,7 +338,7 @@ void extractCenterlines(
             Vector3i previous = startPoint.pos;
             int belowTlow = 0;
             Vector3i position(p.x,p.y,p.z);
-            Vector3f t_i = getTubeDirection(vectorFieldAccess, position, size)*direction;
+            Vector3f t_i = getTubeDirection(vectorFieldAccess, position, size, maxBelowTlow > 0)*direction;
             Vector3f t_i_1 = t_i;
 
 
@@ -312,10 +355,10 @@ void extractCenterlines(
                     for(int b = -1; b < 2; b++) {
                         for(int c = -1; c < 2; c++) {
                             Vector3i n(position.x()+a,position.y()+b,position.z()+c);
-                            if((a == 0 && b == 0 && c == 0) /*|| TDFaccess->getScalar(n) == 0.0f*/)
+                            if((a == 0 && b == 0 && c == 0))
                                 continue;
 
-                            Vector3f dir = (n - position).cast<float>();
+                            Vector3f dir = (n - position).cast<float>();//.cwiseProduct(spacing);
                             dir.normalize();
                             if(dir.dot(t_i) <= 0.1) // Maintain direction
                                 continue;
@@ -390,7 +433,7 @@ void extractCenterlines(
 
                         //TODO: check if all eigenvalues are negative, if so find the egeinvector that best matches
                         Vector3f lambda, e1, e2, e3;
-                        doEigen(vectorFieldAccess, maxPoint, size, &lambda, &e1, &e2, &e3);
+                        doEigen(vectorFieldAccess, maxPoint, size, maxBelowTlow > 0, &lambda, &e1, &e2, &e3);
                         if((lambda.x() < 0 && lambda.y() < 0 && lambda.z() < 0)) {
                             if(fabs(t_i.dot(e3)) > fabs(t_i.dot(e2))) {
                                 if(fabs(t_i.dot(e3)) > fabs(t_i.dot(e1))) {

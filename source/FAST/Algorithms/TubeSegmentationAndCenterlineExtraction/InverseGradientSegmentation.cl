@@ -9,12 +9,16 @@ __kernel void initGrowing(
 #else
     __global uchar * initSegmentation
 #endif
-        //__read_only image3d_t avgRadius
     ) {
     int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
     if(read_imageui(centerline, sampler, pos).x > 0) {
-        uint radius = 1;//read_imageui(centerline, sampler, pos).x;
-        const int N = min(max(1, (int)radius), 4);
+        uint radius = read_imageui(centerline, sampler, pos).x;
+        int N;
+        if(radius > 7) {
+            N = min(max(1, (int)(radius)), 5);
+        } else {
+            N = 1;
+        }
 
         for(int a = -N; a < N+1; a++) {
         for(int b = -N; b < N+1; b++) {
@@ -23,7 +27,7 @@ __kernel void initGrowing(
             n.x = pos.x + a;
             n.y = pos.y + b;
             n.z = pos.z + c;
-            if(read_imageui(centerline, sampler, n).x == 0 /*&& length((float3)(a,b,c)) <= N*/) {
+            if(read_imageui(centerline, sampler, n).x == 0 && length((float3)(a,b,c)) <= N) {
 #ifdef cl_khr_3d_image_writes
                 write_imageui(initSegmentation, n, 2);
 #else

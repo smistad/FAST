@@ -44,9 +44,10 @@ float3 gradient(
         __read_only image3d_t volume,   // Volume to perform gradient on
         int4 pos,                       // Position to perform gradient on
         int volumeComponent,            // The volume component to perform gradient on: 0, 1 or 2
-        int dimensions                  // The number of dimensions to perform gradient in: 1, 2 or 3
+        int dimensions,                 // The number of dimensions to perform gradient in: 1, 2 or 3
+        float3 spacing                  // Image spacing
     ) {
-    float f100, f_100, f010, f0_10, f001, f00_1;
+    float f100, f_100, f010 = 0, f0_10 = 0, f001 = 0, f00_1 = 0;
     switch(volumeComponent) {
         case 0:
         f100 = read_imagef(volume, pos + (int4)(1,0,0,0)).x; 
@@ -86,23 +87,29 @@ float3 gradient(
     break;
     }
 
-    // TODO spacing here..
-    float3 grad = {
-        0.5f*(f100-f_100), 
-        0.5f*(f010-f0_10),
-        0.5f*(f001-f00_1)
+    float3 gradient = {
+        (f100-f_100)/(2.0f), 
+        (f010-f0_10)/(2.0f),
+        (f001-f00_1)/(2.0f)
     };
+    
+    // Keep original length
+    float gradientLength = length(gradient);
+    gradient /= spacing;
+    gradient = gradientLength*normalize(gradient);
+    
 
-    return grad;
+    return gradient;
 }
 
 float3 gradientNormalized(
-        __read_only image3d_t volume,   // Volume to perform gradient on
+        __read_only image3d_t volume,   // Volume to perform gradient on, this volume is vector field
         int4 pos,                       // Position to perform gradient on
         int volumeComponent,            // The volume component to perform gradient on: 0, 1 or 2
-        int dimensions                  // The number of dimensions to perform gradient in: 1, 2 or 3
+        int dimensions,                 // The number of dimensions to perform gradient in: 1, 2 or 3
+        float3 spacing                  // Image spacing
     ) {
-    float f100, f_100, f010, f0_10, f001, f00_1;
+    float f100, f_100, f010 = 0, f0_10 = 0, f001 = 0, f00_1 = 0;
     switch(volumeComponent) {
         case 0:
         f100 = read_imagef(volume, pos + (int4)(1,0,0,0)).x; 
@@ -142,17 +149,30 @@ float3 gradientNormalized(
     break;
     }
     
-    float3 grad = {
-        0.5f*(f100/length(read_imagef(volume, sampler, pos + (int4)(1,0,0,0)).xyz)
-                - f_100/length(read_imagef(volume, sampler, pos - (int4)(1,0,0,0)).xyz)), 
-        0.5f*(f010/length(read_imagef(volume, sampler, pos + (int4)(0,1,0,0)).xyz) -
-                f0_10/length(read_imagef(volume, sampler, pos - (int4)(0,1,0,0)).xyz)),
-        0.5f*(f001/length(read_imagef(volume, sampler, pos + (int4)(0,0,1,0)).xyz) -
-                f00_1/length(read_imagef(volume, sampler, pos - (int4)(0,0,1,0)).xyz))
+    // Normalization
+    f100 /= length(read_imagef(volume, sampler, pos + (int4)(1,0,0,0)).xyz);
+    f_100 /= length(read_imagef(volume, sampler, pos - (int4)(1,0,0,0)).xyz);
+    f010 /= length(read_imagef(volume, sampler, pos + (int4)(0,1,0,0)).xyz);
+    f0_10 /= length(read_imagef(volume, sampler, pos - (int4)(0,1,0,0)).xyz);
+    f001 /= length(read_imagef(volume, sampler, pos + (int4)(0,0,1,0)).xyz);
+    f00_1 /= length(read_imagef(volume, sampler, pos - (int4)(0,0,1,0)).xyz);
+    
+    float3 gradient = {
+        (f100 - f_100)/(2.0f),
+        (f010 - f0_10)/(2.0f),
+        (f001 - f00_1)/(2.0f)
     };
+    
+    
+    // Keep original length
+    /*
+    float gradientLength = length(gradient);
+    gradient /= spacing;
+    gradient = gradientLength*normalize(gradient);
+    */
 
 
-    return grad;
+    return gradient;
 }
 
 __kernel void toFloat(
@@ -191,13 +211,16 @@ __kernel void createVectorField(
         __global VECTOR_FIELD_TYPE* vectorField,
 #endif
         __private float Fmax,
-        __private float vsign
+        __private float vsign,
+        __private float spacing_x,
+        __private float spacing_y,
+        __private float spacing_z
         ) {
     const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
 
     // Gradient of volume
     float4 F; 
-    F.xyz = vsign*gradient(volume, pos, 0, 3); // The sign here is important
+    F.xyz = vsign*gradient(volume, pos, 0, 3, (float3)(spacing_x, spacing_y, spacing_z)); // The sign here is important
     F.w = 0.0f;
 
     // Fmax normalization
@@ -225,20 +248,25 @@ __kernel void circleFittingTDF(
         __private float rMin,
         __private float rMax,
         __private float rStep,
-        __global float * Radius
+        __global float* Radius,
+        __private float spacing_x,
+        __private float spacing_y,
+        __private float spacing_z
     ) {
     const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
+    const float3 spacing = {spacing_x, spacing_y, spacing_z};
+
 
     // Find Hessian Matrix
     float3 Fx, Fy, Fz;
     if(rMax < 4) {
-        Fx = gradient(vectorField, pos, 0, 1);
-        Fy = gradient(vectorField, pos, 1, 2);
-        Fz = gradient(vectorField, pos, 2, 3);
+        Fx = gradient(vectorField, pos, 0, 1, spacing);
+        Fy = gradient(vectorField, pos, 1, 2, spacing);
+        Fz = gradient(vectorField, pos, 2, 3, spacing);
     } else {
-        Fx = gradientNormalized(vectorField, pos, 0, 1);
-        Fy = gradientNormalized(vectorField, pos, 1, 2);
-        Fz = gradientNormalized(vectorField, pos, 2, 3);
+        Fx = gradientNormalized(vectorField, pos, 0, 1, spacing);
+        Fy = gradientNormalized(vectorField, pos, 1, 2, spacing);
+        Fz = gradientNormalized(vectorField, pos, 2, 3, spacing);
     }
 
 
@@ -256,13 +284,6 @@ __kernel void circleFittingTDF(
     //const float3 e1 = {eigenVectors[0][0], eigenVectors[1][0], eigenVectors[2][0]};
     const float3 e2 = {eigenVectors[0][1], eigenVectors[1][1], eigenVectors[2][1]};
     const float3 e3 = {eigenVectors[0][2], eigenVectors[1][2], eigenVectors[2][2]};
-
-    /*
-    if(lambda.y > 0 && lambda.z > 0) {
-        T[LPOS(pos)] = 0;
-        return;
-    }
-    */
 
     // Circle Fitting
     float maxSum = 0.0f;
@@ -301,15 +322,19 @@ __kernel void nonCircularTDF(
         __private float rStep,
         __private const int arms,
         __private const float minAverageMag,
-        __global float * R
+        __global float * R,
+        __private float spacing_x,
+        __private float spacing_y,
+        __private float spacing_z
     ) {
     const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
+    const float3 spacing = {spacing_x, spacing_y, spacing_z};
     char invalid = 0;
 
     // Find Hessian Matrix
-    const float3 Fx = gradientNormalized(vectorField, pos, 0, 1);
-    const float3 Fy = gradientNormalized(vectorField, pos, 1, 2);
-    const float3 Fz = gradientNormalized(vectorField, pos, 2, 3);
+    const float3 Fx = gradientNormalized(vectorField, pos, 0, 1, spacing);
+    const float3 Fy = gradientNormalized(vectorField, pos, 1, 2, spacing);
+    const float3 Fz = gradientNormalized(vectorField, pos, 2, 3, spacing);
 
     float Hessian[3][3] = {
         {Fx.x, Fy.x, Fz.x},
@@ -330,7 +355,7 @@ __kernel void nonCircularTDF(
     float maxRadius[12]; // 12 is maximum nr of arms atm.
     float sum = 0.0f;
     //float minAverageMag = 0.01f; // 0.01
-    float minRadius = rMax+1;
+    float largestRadius = 0;
     for(char j = 0; j < arms; ++j) {
         maxRadius[j] = 999;
         float alpha = 2 * M_PI_F * j / arms;
@@ -350,8 +375,8 @@ __kernel void nonCircularTDF(
             // Is a border point found?
             if(up == 1 && magnitude < prevMagnitude && (prevMagnitude+magnitude)/2.0f - currentVoxelMagnitude > minAverageMag) { // Dot produt here is test
                 maxRadius[j] = radius;
-                if(radius < minRadius)
-                    minRadius = radius;
+                if(radius > largestRadius)
+                    largestRadius = radius;
                 if(dot(normalize(vec.xyz), -normalize(V_alpha.xyz)) < 0.0f) {
                     invalid = 1;
                     sum = 0.0f;
@@ -373,7 +398,6 @@ __kernel void nonCircularTDF(
         }
     } // End for arms
 
-    R[LPOS(pos)] = minRadius;
     if(invalid != 1) {
         float avgSymmetry = 0.0f;
         for(char j = 0; j < arms/2; ++j) {
@@ -381,240 +405,149 @@ __kernel void nonCircularTDF(
                 max(maxRadius[j], maxRadius[arms/2+j]);
         }
         avgSymmetry /= arms/2;
+        R[LPOS(pos)] = largestRadius;
         T[LPOS(pos)] = FLOAT_TO_UNORM16(min(1.0f, (sum / (arms))*avgSymmetry+0.2f));
     } else {
+        R[LPOS(pos)] = 0;
         T[LPOS(pos)] = 0;
     }
 }
-
-#define MAX(a, b) ((a)>(b)?(a):(b))
-
-#define SIZE 3
-
-float hypot2(float x, float y) {
-  return sqrt(x*x+y*y);
-}
-
-// Symmetric Householder reduction to tridiagonal form.
-
-void tred2(float V[SIZE][SIZE], float d[SIZE], float e[SIZE]) {
-
-//  This is derived from the Algol procedures tred2 by
-//  Bowdler, Martin, Reinsch, and Wilkinson, Handbook for
-//  Auto. Comp., Vol.ii-Linear Algebra, and the corresponding
-//  Fortran subroutine in EISPACK.
-
-  for (char j = 0; j < SIZE; ++j) {
-    d[j] = V[SIZE-1][j];
+int dsyevj3(float A[3][3], float Q[3][3], float w[3])
+// ----------------------------------------------------------------------------
+// Calculates the eigenvalues and normalized eigenvectors of a symmetric 3x3
+// matrix A using the Jacobi algorithm.
+// The upper triangular part of A is destroyed during the calculation,
+// the diagonal elements are read but not destroyed, and the lower
+// triangular elements are not referenced at all.
+// ----------------------------------------------------------------------------
+// Parameters:
+//   A: The symmetric input matrix
+//   Q: Storage buffer for eigenvectors
+//   w: Storage buffer for eigenvalues
+// ----------------------------------------------------------------------------
+// Return value:
+//   0: Success
+//  -1: Error (no convergence)
+// ----------------------------------------------------------------------------
+{
+  const int n = 3;
+  float sd, so;                  // Sums of diagonal resp. off-diagonal elements
+  float s, c, t;                 // sin(phi), cos(phi), tan(phi) and temporary storage
+  float g, h, z, theta;          // More temporary storage
+  float thresh;
+  
+  // Initialize Q to the identitity matrix
+  for (int i=0; i < n; i++)
+  {
+    Q[i][i] = 1.0;
+    for (int j=0; j < i; j++)
+      Q[i][j] = Q[j][i] = 0.0;
   }
 
-  // Householder reduction to tridiagonal form.
+  // Initialize w to diag(A)
+  for (int i=0; i < n; i++)
+    w[i] = A[i][i];
 
-  for (char i = SIZE-1; i > 0; --i) {
+  // Calculate SQR(tr(A))  
+  sd = 0.0;
+  for (int i=0; i < n; i++)
+    sd += fabs(w[i]);
+  sd = sd*sd;
+ 
+  // Main iteration loop
+  for (int nIter=0; nIter < 50; nIter++)
+  {
+    // Test for convergence 
+    so = 0.0;
+    for (int p=0; p < n; p++)
+      for (int q=p+1; q < n; q++)
+        so += fabs(A[p][q]);
+    if (so == 0.0)
+      return 0;
 
-    // Scale to avoid under/overflow.
-
-    float scale = 0.0f;
-    float h = 0.0f;
-    for (char k = 0; k < i; ++k) {
-      scale = scale + fabs(d[k]);
-    }
-    if (scale == 0.0f) {
-      e[i] = d[i-1];
-      for (char j = 0; j < i; ++j) {
-        d[j] = V[i-1][j];
-        V[i][j] = 0.0f;
-        V[j][i] = 0.0f;
-      }
+    if (nIter < 4) {
+      thresh = 0.2 * so / (n*n);
     } else {
-
-      // Generate Householder vector.
-
-      for (char k = 0; k < i; ++k) {
-        d[k] /= scale;
-        h += d[k] * d[k];
-      }
-      float f = d[i-1];
-      float g = sqrt(h);
-      if (f > 0) {
-        g = -g;
-      }
-      e[i] = scale * g;
-      h = h - f * g;
-      d[i-1] = f - g;
-      for (char j = 0; j < i; ++j) {
-        e[j] = 0.0f;
-      }
-
-      // Apply similarity transformation to remaining columns.
-
-      for (char j = 0; j < i; ++j) {
-        f = d[j];
-        V[j][i] = f;
-        g = e[j] + V[j][j] * f;
-        for (char k = j+1; k <= i-1; ++k) {
-          g += V[k][j] * d[k];
-          e[k] += V[k][j] * f;
-        }
-        e[j] = g;
-      }
-      f = 0.0f;
-      for (char j = 0; j < i; ++j) {
-        e[j] /= h;
-        f += e[j] * d[j];
-      }
-      float hh = f / (h + h);
-      for (char j = 0; j < i; ++j) {
-        e[j] -= hh * d[j];
-      }
-      for (char j = 0; j < i; ++j) {
-        f = d[j];
-        g = e[j];
-        for (char k = j; k <= i-1; ++k) {
-          V[k][j] -= (f * e[k] + g * d[k]);
-        }
-        d[j] = V[i-1][j];
-        V[i][j] = 0.0f;
-      }
-    }
-    d[i] = h;
-  }
-
-  // Accumulate transformations.
-
-  for (char i = 0; i < SIZE-1; ++i) {
-    V[SIZE-1][i] = V[i][i];
-    V[i][i] = 1.0f;
-    float h = d[i+1];
-    if (h != 0.0f) {
-      for (char k = 0; k <= i; ++k) {
-        d[k] = V[k][i+1] / h;
-      }
-      for (char j = 0; j <= i; ++j) {
-        float g = 0.0f;
-        for (char k = 0; k <= i; ++k) {
-          g += V[k][i+1] * V[k][j];
-        }
-        for (char k = 0; k <= i; ++k) {
-          V[k][j] -= g * d[k];
-        }
-      }
-    }
-    for (char k = 0; k <= i; ++k) {
-      V[k][i+1] = 0.0f;
-    }
-  }
-  for (char j = 0; j < SIZE; ++j) {
-    d[j] = V[SIZE-1][j];
-    V[SIZE-1][j] = 0.0f;
-  }
-  V[SIZE-1][SIZE-1] = 1.0f;
-  e[0] = 0.0f;
-} 
-
-// Symmetric tridiagonal QL algorithm.
-
-void tql2(float V[SIZE][SIZE], float d[SIZE], float e[SIZE]) {
-
-//  This is derived from the Algol procedures tql2, by
-//  Bowdler, Martin, Reinsch, and Wilkinson, Handbook for
-//  Auto. Comp., Vol.ii-Linear Algebra, and the corresponding
-//  Fortran subroutine in EISPACK.
-
-  for (char i = 1; i < SIZE; ++i) {
-    e[i-1] = e[i];
-  }
-  e[SIZE-1] = 0.0f;
-
-  float f = 0.0f;
-  float tst1 = 0.0f;
-  float eps = pow(2.0f,-52.0f);
-  for (char l = 0; l < SIZE; ++l) {
-
-    // Find small subdiagonal element
-
-    tst1 = MAX(tst1,fabs(d[l]) + fabs(e[l]));
-    char m = l;
-    while (m < SIZE) {
-      if (fabs(e[m]) <= eps*tst1) {
-        break;
-      }
-      m++;
+      thresh = 0.0;
     }
 
-    // If m == l, d[l] is an eigenvalue,
-    // otherwise, iterate.
-
-    if (m > l) {
-      int iter = 0;
-      do {
-        iter = iter + 1;  // (Could check iteration count here.)
-
-        // Compute implicit shift
-
-        float g = d[l];
-        float p = (d[l+1] - g) / (2.0f * e[l]);
-        float r = hypot2(p,1.0f);
-        if (p < 0) {
-          r = -r;
+    // Do sweep
+    for (int p=0; p < n; p++)
+      for (int q=p+1; q < n; q++)
+      {
+        g = 100.0 * fabs(A[p][q]);
+        if (nIter > 4  &&  fabs(w[p]) + g == fabs(w[p])
+                       &&  fabs(w[q]) + g == fabs(w[q]))
+        {
+          A[p][q] = 0.0;
         }
-        d[l] = e[l] / (p + r);
-        d[l+1] = e[l] * (p + r);
-        float dl1 = d[l+1];
-        float h = g - d[l];
-        for (char i = l+2; i < SIZE; ++i) {
-          d[i] -= h;
-        }
-        f = f + h;
+        else if (fabs(A[p][q]) > thresh)
+        {
+          // Calculate Jacobi transformation
+          h = w[q] - w[p];
+          if (fabs(h) + g == fabs(h))
+          {
+            t = A[p][q] / h;
+          }
+          else
+          {
+            theta = 0.5 * h / A[p][q];
+            if (theta < 0.0)
+              t = -1.0 / (sqrt(1.0 + theta*theta) - theta);
+            else
+              t = 1.0 / (sqrt(1.0 + theta*theta) + theta);
+          }
+          c = 1.0/sqrt(1.0 + t*t);
+          s = t * c;
+          z = t * A[p][q];
 
-        // Implicit QL transformation.
+          // Apply Jacobi transformation
+          A[p][q] = 0.0;
+          w[p] -= z;
+          w[q] += z;
+          for (int r=0; r < p; r++)
+          {
+            t = A[r][p];
+            A[r][p] = c*t - s*A[r][q];
+            A[r][q] = s*t + c*A[r][q];
+          }
+          for (int r=p+1; r < q; r++)
+          {
+            t = A[p][r];
+            A[p][r] = c*t - s*A[r][q];
+            A[r][q] = s*t + c*A[r][q];
+          }
+          for (int r=q+1; r < n; r++)
+          {
+            t = A[p][r];
+            A[p][r] = c*t - s*A[q][r];
+            A[q][r] = s*t + c*A[q][r];
+          }
 
-        p = d[m];
-        float c = 1.0f;
-        float c2 = c;
-        float c3 = c;
-        float el1 = e[l+1];
-        float s = 0.0f;
-        float s2 = 0.0f;
-        for (char i = m-1; i >= l; --i) {
-          c3 = c2;
-          c2 = c;
-          s2 = s;
-          g = c * e[i];
-          h = c * p;
-          r = hypot2(p,e[i]);
-          e[i+1] = s * r;
-          s = e[i] / r;
-          c = p / r;
-          p = c * d[i] - s * g;
-          d[i+1] = h + s * (c * g + s * d[i]);
-
-          // Accumulate transformation.
-
-          for (char k = 0; k < SIZE; ++k) {
-            h = V[k][i+1];
-            V[k][i+1] = s * V[k][i] + c * h;
-            V[k][i] = c * V[k][i] - s * h;
+          // Update eigenvectors
+          for (int r=0; r < n; r++)
+          {
+            t = Q[r][p];
+            Q[r][p] = c*t - s*Q[r][q];
+            Q[r][q] = s*t + c*Q[r][q];
           }
         }
-        p = -s * s2 * c3 * el1 * e[l] / dl1;
-        e[l] = s * p;
-        d[l] = c * p;
-
-        // Check for convergence.
-
-      } while (fabs(e[l]) > eps*tst1);
-    }
-    d[l] = d[l] + f;
-    e[l] = 0.0f;
+      }
   }
   
-  // Sort eigenvalues and corresponding vectors.
 
-  for (char i = 0; i < SIZE-1; ++i) {
+
+  return -1;
+}
+
+void eigen_decomposition(float A[3][3], float V[3][3], float d[3]) {
+  dsyevj3(A, V, d);
+
+    // Sort eigenvalues and corresponding vectors.
+  for (char i = 0; i < 3; ++i) {
     char k = i;
     float p = d[i];
-    for (char j = i+1; j < SIZE; ++j) {
+    for (char j = i+1; j < 3; ++j) {
       if (fabs(d[j]) < fabs(p)) {
         k = j;
         p = d[j];
@@ -623,22 +556,11 @@ void tql2(float V[SIZE][SIZE], float d[SIZE], float e[SIZE]) {
     if (k != i) {
       d[k] = d[i];
       d[i] = p;
-      for (char j = 0; j < SIZE; ++j) {
+      for (char j = 0; j < 3; ++j) {
         p = V[j][i];
         V[j][i] = V[j][k];
         V[j][k] = p;
       }
     }
   }
-}
-
-void eigen_decomposition(float A[SIZE][SIZE], float V[SIZE][SIZE], float d[SIZE]) {
-  float e[SIZE];
-  for (char i = 0; i < SIZE; ++i) {
-    for (char j = 0; j < SIZE; ++j) {
-      V[i][j] = A[i][j];
-    }
-  }
-  tred2(V, d, e);
-  tql2(V, d, e);
 }

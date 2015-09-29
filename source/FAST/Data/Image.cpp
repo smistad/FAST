@@ -1,5 +1,5 @@
 #include "Image.hpp"
-#include "HelperFunctions.hpp"
+#include "FAST/Utility.hpp"
 #include "FAST/Exception.hpp"
 #include "FAST/Utility.hpp"
 #include "FAST/SceneGraph.hpp"
@@ -119,12 +119,12 @@ void Image::transferCLImageFromHost(OpenCLDevice::pointer device) {
     if(format.image_channel_order == CL_RGBA && mComponents != 4) {
         void * tempData = adaptDataToImage(mHostData, CL_RGBA, mWidth*mHeight*mDepth, mType, mComponents);
         device->getCommandQueue().enqueueWriteImage(*(cl::Image*)mCLImages[device],
-        CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
+        CL_TRUE, createOrigoRegion(), createRegion(mWidth, mHeight, mDepth), 0,
                 0, tempData);
         deleteArray(tempData, mType);
     } else {
         device->getCommandQueue().enqueueWriteImage(*(cl::Image*)mCLImages[device],
-        CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
+        CL_TRUE, createOrigoRegion(), createRegion(mWidth, mHeight, mDepth), 0,
                 0, mHostData);
     }
 }
@@ -136,7 +136,7 @@ void Image::transferCLImageToHost(OpenCLDevice::pointer device) {
     if(format.image_channel_order == CL_RGBA && mComponents != 4) {
         void * tempData = allocateDataArray(mWidth*mHeight*mDepth,mType,4);
         device->getCommandQueue().enqueueReadImage(*(cl::Image*)mCLImages[device],
-        CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
+        CL_TRUE, createOrigoRegion(), createRegion(mWidth, mHeight, mDepth), 0,
                 0, tempData);
         mHostData = adaptImageDataToHostData(tempData,CL_RGBA, mWidth*mHeight*mDepth,mType,mComponents);
         deleteArray(tempData, mType);
@@ -147,7 +147,7 @@ void Image::transferCLImageToHost(OpenCLDevice::pointer device) {
 			mHostHasData = true;
         }
         device->getCommandQueue().enqueueReadImage(*(cl::Image*)mCLImages[device],
-        CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
+        CL_TRUE, createOrigoRegion(), createRegion(mWidth, mHeight, mDepth), 0,
                 0, mHostData);
     }
 }
@@ -979,9 +979,9 @@ Image::pointer Image::copy(ExecutionDevice::pointer device) {
             clDevice->getCommandQueue().enqueueCopyImage(
                     *input,
                     *output,
-                    oul::createOrigoRegion(),
-                    oul::createOrigoRegion(),
-                    oul::createRegion(getWidth(), getHeight(), 1)
+                    createOrigoRegion(),
+                    createOrigoRegion(),
+                    createRegion(getWidth(), getHeight(), 1)
             );
         } else {
             OpenCLImageAccess::pointer readAccess = this->getOpenCLImageAccess(ACCESS_READ, clDevice);
@@ -992,9 +992,9 @@ Image::pointer Image::copy(ExecutionDevice::pointer device) {
             clDevice->getCommandQueue().enqueueCopyImage(
                     *input,
                     *output,
-                    oul::createOrigoRegion(),
-                    oul::createOrigoRegion(),
-                    oul::createRegion(getWidth(), getHeight(), getDepth())
+                    createOrigoRegion(),
+                    createOrigoRegion(),
+                    createRegion(getWidth(), getHeight(), getDepth())
             );
         }
     }
@@ -1053,9 +1053,9 @@ Image::pointer Image::crop(VectorXui offset, VectorXui size) {
             clDevice->getCommandQueue().enqueueCopyImage(
                     *input,
                     *output,
-                    oul::createRegion(offset.x(), offset.y(), 0),
-                    oul::createOrigoRegion(),
-                    oul::createRegion(size.x(), size.y(), 1)
+                    createRegion(offset.x(), offset.y(), 0),
+                    createOrigoRegion(),
+                    createRegion(size.x(), size.y(), 1)
             );
         } else {
             if(offset.size() < 3 || size.size() < 3)
@@ -1069,9 +1069,9 @@ Image::pointer Image::crop(VectorXui offset, VectorXui size) {
             clDevice->getCommandQueue().enqueueCopyImage(
                     *input,
                     *output,
-                    oul::createRegion(offset.x(), offset.y(), offset.z()),
-                    oul::createOrigoRegion(),
-                    oul::createRegion(size.x(), size.y(), size.z())
+                    createRegion(offset.x(), offset.y(), offset.z()),
+                    createOrigoRegion(),
+                    createRegion(size.x(), size.y(), size.z())
             );
         }
     }

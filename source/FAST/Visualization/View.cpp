@@ -8,7 +8,7 @@
 #include "FAST/Visualization/SliceRenderer/SliceRenderer.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/VolumeRenderer/VolumeRenderer.hpp"
-#include "HelperFunctions.hpp"
+#include "FAST/Utility.hpp"
 #include "SimpleWindow.hpp"
 #include "FAST/Utility.hpp"
 

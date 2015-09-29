@@ -1,6 +1,6 @@
 #include "MultigridGradientVectorFlow.hpp"
 #include "FAST/Data/Image.hpp"
-#include "HelperFunctions.hpp"
+#include "FAST/Utility.hpp"
 
 namespace fast {
 
@@ -30,7 +30,7 @@ cl::Image3D MultigridGradientVectorFlow::initSolutionToZero(Vector3ui size, int 
                 cl::NDRange(size.x()*size.y()*size.z()),
                 cl::NullRange
         );
-        queue.enqueueCopyBufferToImage(vBuffer,v,0,oul::createOrigoRegion(),oul::createRegion(size.x(), size.y(), size.z()));
+        queue.enqueueCopyBufferToImage(vBuffer,v,0,createOrigoRegion(),createRegion(size.x(), size.y(), size.z()));
     } else {
         cl::Kernel initToZeroKernel(mProgram, "init3DFloat");
         initToZeroKernel.setArg(0,v);
@@ -84,8 +84,8 @@ void MultigridGradientVectorFlow::gaussSeidelSmoothing(
     gaussSeidelKernel2.setArg(3, spacing);
 
     if(!device->isWritingTo3DTexturesSupported()) {
-        cl::size_t<3> offset = oul::createOrigoRegion();
-        cl::size_t<3> region = oul::createRegion(size.x(), size.y(), size.z());
+        cl::size_t<3> offset = createOrigoRegion();
+        cl::size_t<3> region = createRegion(size.x(), size.y(), size.z());
         cl::Buffer v_2_buffer(
                 device->getContext(),
                 CL_MEM_WRITE_ONLY,
@@ -178,8 +178,8 @@ cl::Image3D MultigridGradientVectorFlow::restrictVolume(
                 v_2_buffer,
                 v_2,
                 0,
-                oul::createOrigoRegion(),
-                oul::createRegion(newSize.x(), newSize.y(), newSize.z())
+                createOrigoRegion(),
+                createRegion(newSize.x(), newSize.y(), newSize.z())
         );
     } else {
         restrictKernel.setArg(0, v);
@@ -234,8 +234,8 @@ cl::Image3D MultigridGradientVectorFlow::prolongateVolume(
                 v_2_buffer,
                 v_2,
                 0,
-                oul::createOrigoRegion(),
-                oul::createRegion(size.x(), size.y(), size.z())
+                createOrigoRegion(),
+                createRegion(size.x(), size.y(), size.z())
         );
     } else {
         prolongateKernel.setArg(0, v_l);
@@ -289,8 +289,8 @@ cl::Image3D MultigridGradientVectorFlow::prolongateVolume2(
                 v_2_buffer,
                 v_2,
                 0,
-                oul::createOrigoRegion(),
-                oul::createRegion(size.x(), size.y(), size.z())
+                createOrigoRegion(),
+                createRegion(size.x(), size.y(), size.z())
         );
     } else {
         prolongateKernel.setArg(0, v_l_p1);
@@ -352,8 +352,8 @@ cl::Image3D MultigridGradientVectorFlow::residual(
                 newResidualBuffer,
                 newResidual,
                 0,
-                oul::createOrigoRegion(),
-                oul::createRegion(size.x(), size.y(), size.z())
+                createOrigoRegion(),
+                createRegion(size.x(), size.y(), size.z())
         );
     } else {
         residualKernel.setArg(0, r);
@@ -488,8 +488,8 @@ cl::Image3D MultigridGradientVectorFlow::computeNewResidual(
                 newResidualBuffer,
                 newResidual,
                 0,
-                oul::createOrigoRegion(),
-                oul::createRegion(size.x(), size.y(), size.z())
+                createOrigoRegion(),
+                createRegion(size.x(), size.y(), size.z())
         );
     } else {
         residualKernel.setArg(0,vectorField);
@@ -607,6 +607,7 @@ void MultigridGradientVectorFlow::execute3DGVF(SharedPointer<Image> input,
         SharedPointer<Image> output, uint iterations) {
     OpenCLDevice::pointer device = getMainDevice();
     OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
+    const Vector3f inputSpacing = input->getSpacing();
     cl::CommandQueue queue = device->getCommandQueue();
     Vector3ui size = input->getSize();
     const bool no3Dwrite = !device->isWritingTo3DTexturesSupported();
@@ -626,7 +627,6 @@ void MultigridGradientVectorFlow::execute3DGVF(SharedPointer<Image> input,
     int v1 = 2;
     int v2 = 2;
     int l_max = log(size.maxCoeff())/log(2) - 2; // log - 1 gives error on 32 bit. Why??
-    float spacing = 1.0f;
 
     // create sqrMag
     cl::Kernel createSqrMagKernel(mProgram, "createSqrMag");
@@ -638,8 +638,8 @@ void MultigridGradientVectorFlow::execute3DGVF(SharedPointer<Image> input,
             size.y(),
             size.z()
     );
-    cl::size_t<3> offset = oul::createOrigoRegion();
-    cl::size_t<3> region = oul::createRegion(size.x(), size.y(), size.z());
+    cl::size_t<3> offset = createOrigoRegion();
+    cl::size_t<3> region = createRegion(size.x(), size.y(), size.z());
 
     if(no3Dwrite) {
         cl::Buffer sqrMagBuffer(
@@ -669,6 +669,7 @@ void MultigridGradientVectorFlow::execute3DGVF(SharedPointer<Image> input,
     std::cout << "sqrMag created" << std::endl;
 
     cl::Kernel addKernel(mProgram, "addTwoImages");
+    float spacing = inputSpacing.x();
     cl::Image3D fx = initSolutionToZero(size,imageType,bufferTypeSize);
 
     // X component
@@ -720,6 +721,7 @@ void MultigridGradientVectorFlow::execute3DGVF(SharedPointer<Image> input,
 
     }
     std::cout << "fx finished" << std::endl;
+    spacing = inputSpacing.y();
 
     // create fy and ry
     // Y component
@@ -773,6 +775,7 @@ void MultigridGradientVectorFlow::execute3DGVF(SharedPointer<Image> input,
     }
 
     std::cout << "fy finished" << std::endl;
+    spacing = inputSpacing.z();
 
     // create fz and rz
     // Z component

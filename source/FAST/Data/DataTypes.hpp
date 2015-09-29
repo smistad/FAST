@@ -3,7 +3,7 @@
 
 #define NOMINMAX // Removes windows min and max macros
 #include "FAST/Exception.hpp"
-#include "OpenCL.hpp"
+#include "CL/OpenCL.hpp"
 #include "FAST/ExecutionDevice.hpp"
 #include <cmath>
 #include <iostream>

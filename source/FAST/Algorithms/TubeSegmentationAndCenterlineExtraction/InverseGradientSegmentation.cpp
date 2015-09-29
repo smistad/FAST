@@ -1,7 +1,7 @@
 #include "InverseGradientSegmentation.hpp"
 #include "FAST/Data/Image.hpp"
 #include "FAST/Data/Segmentation.hpp"
-#include "HelperFunctions.hpp"
+#include "FAST/Utility.hpp"
 
 namespace fast {
 
@@ -49,8 +49,8 @@ void InverseGradientSegmentation::execute() {
     cl::CommandQueue queue = device->getCommandQueue();
 
 
-    cl::size_t<3> offset = oul::createOrigoRegion();
-    cl::size_t<3> region = oul::createRegion(size.x(), size.y(), size.z());
+    cl::size_t<3> offset = createOrigoRegion();
+    cl::size_t<3> region = createRegion(size.x(), size.y(), size.z());
 
     // Copy centerline to segmentation
     queue.enqueueCopyImage(
@@ -127,9 +127,9 @@ void InverseGradientSegmentation::execute() {
         queue.enqueueCopyImage(
                 *volume,
                 *volume2,
-                oul::createOrigoRegion(),
-                oul::createOrigoRegion(),
-                oul::createRegion(size.x(), size.y(), size.z())
+                createOrigoRegion(),
+                createOrigoRegion(),
+                createRegion(size.x(), size.y(), size.z())
         );
         initGrowKernel.setArg(0, *volume);
         initGrowKernel.setArg(1, *volume2);

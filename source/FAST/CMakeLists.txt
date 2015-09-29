@@ -22,5 +22,11 @@ fast_add_sources(
     OpenCLProgram.hpp
     Report.cpp
     Report.hpp
+    RuntimeMeasurementManager.cpp
+    RuntimeMeasurementManager.hpp
+    RuntimeMeasurement.cpp
+    RuntimeMeasurement.hpp
+    DeviceCriteria.cpp
+    DeviceCriteria.hpp
 )
 fast_add_test_sources()

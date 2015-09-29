@@ -21,7 +21,7 @@ TubeSegmentationAndCenterlineExtraction::TubeSegmentationAndCenterlineExtraction
     createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/TubeSegmentationAndCenterlineExtraction/TubeSegmentationAndCenterlineExtraction.cl");
 
     mSensitivity = 0.5;
-    mMinimumRadius = 0.5;
+    mMinimumRadius = 1;
     mMaximumRadius = 5;
     mRadiusStep = 0.5;
     mExtractDarkStructures = false;
@@ -241,6 +241,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
             GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
             filter->setInputData(input);
             filter->setStandardDeviation(mStDevBlurLarge);
+            //filter->setMaskSize(7);
             filter->setOutputType(TYPE_FLOAT);
             filter->update();
             smoothedImage = filter->getOutputData<Image>();
@@ -258,7 +259,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
         GVFfield = runGradientVectorFlow(GVFfield);
 
         // TDF
-        runNonCircularTubeDetectionFilter(GVFfield, 1.5, mMaximumRadius, largeTDF, largeRadius);
+        runNonCircularTubeDetectionFilter(GVFfield, 2.5, mMaximumRadius, largeTDF, largeRadius);
     }
 
     // If min radius is larger than 2.5 voxels
@@ -273,6 +274,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
             GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
             filter->setInputData(input);
             filter->setStandardDeviation(mStDevBlurSmall);
+            //filter->setMaskSize(7);
             filter->setOutputType(TYPE_FLOAT);
             filter->update();
             smoothedImage = filter->getOutputData<Image>();
@@ -322,7 +324,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
             TDF = largeTDF;
             centerlineExtraction->setInputData(0, largeTDF);
             centerlineExtraction->setInputData(1, GVFfield);
-            centerlineExtraction->setInputData(3, largeRadius);
+            centerlineExtraction->setInputData(2, largeRadius);
             gradients = GVFfield;
         }
         centerlineExtraction->update();
@@ -430,6 +432,14 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::createGradients(Image::p
     }
     vectorFieldKernel.setArg(2, vectorMaximum);
     vectorFieldKernel.setArg(3, sign);
+    vectorFieldKernel.setArg(4, vectorField->getSpacing().x());
+    vectorFieldKernel.setArg(5, vectorField->getSpacing().y());
+    vectorFieldKernel.setArg(6, vectorField->getSpacing().z());
+    /*
+    vectorFieldKernel.setArg(4, 1.0f);
+    vectorFieldKernel.setArg(5, 1.0f);
+    vectorFieldKernel.setArg(6, 1.0f);
+    */
 
     // Run kernel
     device->getCommandQueue().enqueueNDRangeKernel(
@@ -464,6 +474,14 @@ void TubeSegmentationAndCenterlineExtraction::runTubeDetectionFilter(Image::poin
     kernel.setArg(3, maximumRadius);
     kernel.setArg(4, mRadiusStep);
     kernel.setArg(5, *(radiusAccess->get()));
+    /*
+    kernel.setArg(6, vectorField->getSpacing().x());
+    kernel.setArg(7, vectorField->getSpacing().y());
+    kernel.setArg(8, vectorField->getSpacing().z());
+    */
+    kernel.setArg(6, 1.0f);
+    kernel.setArg(7, 1.0f);
+    kernel.setArg(8, 1.0f);
 
     device->getCommandQueue().enqueueNDRangeKernel(
             kernel,
@@ -497,8 +515,16 @@ void TubeSegmentationAndCenterlineExtraction::runNonCircularTubeDetectionFilter(
     kernel.setArg(3, maximumRadius);
     kernel.setArg(4, mRadiusStep);
     kernel.setArg(5, 12); // nr of line searches
-    kernel.setArg(6, 0.1f); // GVF magnitude threshold
+    kernel.setArg(6, 0.2f); // GVF magnitude threshold
     kernel.setArg(7, *(radiusAccess->get()));
+    /*
+    kernel.setArg(8, vectorField->getSpacing().x());
+    kernel.setArg(9, vectorField->getSpacing().y());
+    kernel.setArg(10, vectorField->getSpacing().z());
+    */
+    kernel.setArg(8, 1.0f);
+    kernel.setArg(9, 1.0f);
+    kernel.setArg(10, 1.0f);
 
     device->getCommandQueue().enqueueNDRangeKernel(
             kernel,

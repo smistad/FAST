@@ -1,5 +1,5 @@
 #include "DataComparison.hpp"
-#include "HelperFunctions.hpp"
+#include "FAST/Utility.hpp"
 #include <cmath>
 #include <ctime>
 
@@ -129,7 +129,7 @@ bool compareImage2DWithDataArray(
             bufferData = new FAST_TYPE[nrOfVoxels];
         );
     }
-    device->getCommandQueue().enqueueReadImage(image, CL_TRUE, oul::createOrigoRegion(), oul::createRegion(width, height, 1), 0, 0, bufferData);
+    device->getCommandQueue().enqueueReadImage(image, CL_TRUE, createOrigoRegion(), createRegion(width, height, 1), 0, 0, bufferData);
 
     if(format.image_channel_order == CL_RGBA && nrOfComponents != 4) {
         // Since OpenCL images doesn't support 3 channels, 4 channel image is used and we must remove the padding
@@ -168,7 +168,7 @@ bool compareImage3DWithDataArray(
             bufferData = new FAST_TYPE[nrOfVoxels];
         );
     }
-    device->getCommandQueue().enqueueReadImage(image, CL_TRUE, oul::createOrigoRegion(), oul::createRegion(width, height, depth), 0, 0, bufferData);
+    device->getCommandQueue().enqueueReadImage(image, CL_TRUE, createOrigoRegion(), createRegion(width, height, depth), 0, 0, bufferData);
 
     if(format.image_channel_order == CL_RGBA && nrOfComponents != 4) {
         // Since OpenCL images doesn't support 3 channels, 4 channel image is used and we must remove the padding

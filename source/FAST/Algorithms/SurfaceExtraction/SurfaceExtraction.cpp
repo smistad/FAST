@@ -3,7 +3,7 @@
 #include "FAST/Data/Image.hpp"
 #include "FAST/Data/Mesh.hpp"
 #include "FAST/Utility.hpp"
-#include "HelperFunctions.hpp"
+#include "FAST/Utility.hpp"
 #include "FAST/SceneGraph.hpp"
 
 namespace fast {
@@ -281,8 +281,8 @@ void SurfaceExtraction::execute() {
         	// A 4 channel texture/image has been used
         	sum = new int[8*4];
         }
-        cl::size_t<3> origin = oul::createOrigoRegion();
-        cl::size_t<3> region = oul::createRegion(2,2,2);
+        cl::size_t<3> origin = createOrigoRegion();
+        cl::size_t<3> region = createRegion(2,2,2);
         queue.enqueueReadImage(images[images.size()-1], CL_TRUE, origin, region, 0, 0, sum);
         if(device->isImageFormatSupported(CL_R, CL_UNSIGNED_INT8, CL_MEM_OBJECT_IMAGE3D)) {
             totalSum = sum[0] + sum[1] + sum[2] + sum[3] + sum[4] + sum[5] + sum[6] + sum[7] ;
