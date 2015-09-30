@@ -64,6 +64,17 @@ AffineTransformation SceneGraph::getAffineTransformationFromNode(
     return transformation;
 }
 
+Eigen::Affine3f SceneGraph::getEigenAffineTransformationFromData(
+        SpatialDataObject::pointer data) {
+    SceneGraphNode::pointer currentNode = data->getSceneGraphNode();
+    AffineTransformation transformation = getAffineTransformationFromNode(currentNode);
+
+    Eigen::Affine3f result;
+    result.matrix() = transformation.matrix();
+
+    return result;
+}
+
 AffineTransformation SceneGraph::getAffineTransformationFromData(
         SpatialDataObject::pointer data) {
     SceneGraphNode::pointer currentNode = data->getSceneGraphNode();
