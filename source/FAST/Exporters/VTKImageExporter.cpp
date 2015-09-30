@@ -68,6 +68,8 @@ int VTKImageExporter::RequestData(
         output->SetExtent(0, input->getWidth(), 0, input->getHeight(), 0, input->getDepth());
     }
 
+    output->SetSpacing(input->getSpacing().x(), input->getSpacing().y(), input->getSpacing().z());
+
 #if VTK_MAJOR_VERSION <= 5
     output->SetNumberOfScalarComponents(1);
     // Set type
