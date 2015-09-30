@@ -1,5 +1,5 @@
-#ifndef LINEARTRANSFORMATION_HPP_
-#define LINEARTRANSFORMATION_HPP_
+#ifndef AFFINE_TRANSFORMATION_HPP_
+#define AFFINE_TRANSFORMATION_HPP_
 
 #include "FAST/Data/DataObject.hpp"
 #include "FAST/Data/DataTypes.hpp"
@@ -21,4 +21,4 @@ class AffineTransformation : public DataObject, public Eigen::Affine3f {
 
 } // end namespace fast
 
-#endif /* LINEARTRANSFORMATION_HPP_ */
+#endif /* AFFINE_TRANSFORMATION_HPP_ */
