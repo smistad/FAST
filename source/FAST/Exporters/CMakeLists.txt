@@ -14,6 +14,8 @@ if(VTK_INTEROP)
     fast_add_sources(
         VTKImageExporter.cpp
         VTKImageExporter.hpp
+        VTKLineSetExporter.cpp
+        VTKLineSetExporter.hpp
     )
     fast_add_test_sources(
         Tests/VTKImageExporterTests.cpp
