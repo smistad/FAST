@@ -30,7 +30,7 @@ void transferDataToVTKImage(Image::pointer input, vtkSmartPointer<vtkImageData> 
     if(input->getDimensions() == 2) {
         for(unsigned int x = 0; x < width; x++) {
         for(unsigned int y = 0; y < height; y++) {
-            T * pixel = static_cast<T*>(output->GetScalarPointer(x,height-y,0));
+            T * pixel = static_cast<T*>(output->GetScalarPointer(x,y,0));
             pixel[0] = fastPixelData[x+y*width];
         }}
     } else {
@@ -39,7 +39,7 @@ void transferDataToVTKImage(Image::pointer input, vtkSmartPointer<vtkImageData> 
         for(unsigned int y = 0; y < height; y++) {
         for(unsigned int z = 0; z < depth; z++) {
             // TODO check the addressing here
-            T * pixel = static_cast<T*>(output->GetScalarPointer(x,height-y,z));
+            T * pixel = static_cast<T*>(output->GetScalarPointer(x,y,z));
             pixel[0] = fastPixelData[x+y*width+z*width*height];
         }}}
     }
@@ -63,9 +63,9 @@ int VTKImageExporter::RequestData(
 
     // Set size
     if(input->getDimensions() == 2) {
-        output->SetExtent(0, input->getWidth(), 0, input->getHeight(), 0, 0);
+        output->SetExtent(0, input->getWidth()-1, 0, input->getHeight()-1, 0, 0);
     } else {
-        output->SetExtent(0, input->getWidth(), 0, input->getHeight(), 0, input->getDepth());
+        output->SetExtent(0, input->getWidth()-1, 0, input->getHeight()-1, 0, input->getDepth()-1);
     }
 
     output->SetSpacing(input->getSpacing().x(), input->getSpacing().y(), input->getSpacing().z());

@@ -49,7 +49,7 @@ inline bool compareVTKDataWithFASTData(vtkSmartPointer<vtkImageData> vtkImage, v
         for(unsigned int x = 0; x < width; x++) {
         for(unsigned int y = 0; y < height; y++) {
             T fastValue = ((T*)fastData)[x+y*width];
-            T vtkValue = *(static_cast<T*>(vtkImage->GetScalarPointer(x,height-y,0)));
+            T vtkValue = *(static_cast<T*>(vtkImage->GetScalarPointer(x,y,0)));
             if(fastValue != vtkValue) {
                 return false;
             }
@@ -61,7 +61,7 @@ inline bool compareVTKDataWithFASTData(vtkSmartPointer<vtkImageData> vtkImage, v
         for(unsigned int z = 0; z < depth; z++) {
             // TODO check the addressing here
             T fastValue = ((T*)fastData)[x+y*width+z*width*height];
-            T vtkValue = *(static_cast<T*>(vtkImage->GetScalarPointer(x,height-y,z)));
+            T vtkValue = *(static_cast<T*>(vtkImage->GetScalarPointer(x,y,z)));
             if(fastValue != vtkValue) {
                 return false;
             }
