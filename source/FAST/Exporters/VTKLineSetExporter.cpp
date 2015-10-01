@@ -27,11 +27,11 @@ int VTKLineSetExporter::FillOutputPortInformation(int vtkNotUsed(port), vtkInfor
   return 1;
 }
 
-vtkPolyData* VTKLineSetExporter::GetOutput() {
+vtkSmartPointer<vtkPolyData> VTKLineSetExporter::GetOutput() {
     return GetOutput(0);
 }
 
-vtkPolyData* VTKLineSetExporter::GetOutput(int port) {
+vtkSmartPointer<vtkPolyData> VTKLineSetExporter::GetOutput(int port) {
     return vtkPolyData::SafeDownCast(this->GetOutputDataObject(port));
 }
 

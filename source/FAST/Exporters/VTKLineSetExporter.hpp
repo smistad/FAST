@@ -2,6 +2,7 @@
 #define VTKLINESETEXPORTER_HPP_
 
 #include <vtkAlgorithm.h>
+#include <vtkSmartPointer.h>
 #include "FAST/ProcessObject.hpp"
 
 class vtkPolyData;
@@ -13,8 +14,8 @@ class VTKLineSetExporter : public vtkAlgorithm, public ProcessObject {
         static VTKLineSetExporter *New();
         vtkTypeRevisionMacro(VTKLineSetExporter,vtkAlgorithm);
         std::string getNameOfClass() const { return "VTKLineSetExporter"; };
-        vtkPolyData* GetOutput();
-        vtkPolyData* GetOutput(int portID);
+        vtkSmartPointer<vtkPolyData> GetOutput();
+        vtkSmartPointer<vtkPolyData> GetOutput(int portID);
         int ProcessRequest(vtkInformation* request,
                                      vtkInformationVector** inputVector,
                                      vtkInformationVector* outputVector);
