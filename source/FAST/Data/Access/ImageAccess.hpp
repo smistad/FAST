@@ -12,8 +12,10 @@ class ImageAccess {
     public:
         ImageAccess(void* data, SharedPointer<Image> image, bool* accessFlag, bool* accessFlag2);
         void* get();
+        float getScalar(uint position, uchar channel = 0) const;
         float getScalar(VectorXi position, uchar channel = 0) const;
         Vector4f getVector(VectorXi position) const;
+        void setScalar(uint position, float value, uchar channel = 0);
         void setScalar(VectorXi position, float value, uchar channel = 0);
         void setVector(VectorXi position, Vector4f value);
         void release();

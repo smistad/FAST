@@ -1,7 +1,7 @@
 #include "ImageRenderer.hpp"
 #include "FAST/Exception.hpp"
 #include "FAST/DeviceManager.hpp"
-#include "HelperFunctions.hpp"
+#include "FAST/Utility.hpp"
 #include "FAST/SceneGraph.hpp"
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>

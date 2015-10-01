@@ -46,6 +46,26 @@ float getScalarAsFloat(T* data, VectorXi position, Image::pointer image, uchar c
 }
 
 template <typename T>
+float getScalarAsFloat(T* data, uint position, Image::pointer image, uchar channel) {
+
+    Vector3ui size = image->getSize();
+    if(position >= size.x()*size.y()*size.z())
+        throw OutOfBoundsException();
+
+    T value = data[position*image->getNrOfComponents() + channel];
+    float floatValue;
+    if(image->getDataType() == TYPE_SNORM_INT16) {
+        floatValue = std::max(-1.0f, (float)value / 32767.0f);
+    } else if(image->getDataType() == TYPE_UNORM_INT16) {
+        floatValue = (float)value / 65535.0f;
+    } else {
+        floatValue = value;
+    }
+
+    return floatValue;
+}
+
+template <typename T>
 void setScalarAsFloat(T* data, VectorXi position, Image::pointer image, float value, uchar channel) {
 
     Vector3ui size = image->getSize();
@@ -63,9 +83,32 @@ void setScalarAsFloat(T* data, VectorXi position, Image::pointer image, float va
     }
 }
 
+template <typename T>
+void setScalarAsFloat(T* data, uint position, Image::pointer image, float value, uchar channel) {
+
+    Vector3ui size = image->getSize();
+    if(position >= size.x()*size.y()*size.z())
+        throw OutOfBoundsException();
+
+    uint address = position*image->getNrOfComponents() + channel;
+    if(image->getDataType() == TYPE_SNORM_INT16) {
+        data[address] = value * 32767.0f;;
+    } else if(image->getDataType() == TYPE_UNORM_INT16) {
+        data[address] = value * 65535.0f;;
+    } else {
+        data[address] = value;
+    }
+}
+
 float ImageAccess::getScalar(VectorXi position, uchar channel) const {
     if(mImage->getDimensions() == 2)
         position = Vector3i(position.x(), position.y(), 0);
+    switch(mImage->getDataType()) {
+        fastSwitchTypeMacro(return getScalarAsFloat<FAST_TYPE>((FAST_TYPE*)mData, position, mImage, channel))
+    }
+}
+
+float ImageAccess::getScalar(uint position, uchar channel) const {
     switch(mImage->getDataType()) {
         fastSwitchTypeMacro(return getScalarAsFloat<FAST_TYPE>((FAST_TYPE*)mData, position, mImage, channel))
     }
@@ -75,6 +118,12 @@ void ImageAccess::setScalar(VectorXi position, float value, uchar channel) {
     Vector3i size(mImage->getWidth(), mImage->getHeight(), mImage->getDepth());
     if(mImage->getDimensions() == 2)
         position = Vector3i(position.x(), position.y(), 0);
+    switch(mImage->getDataType()) {
+        fastSwitchTypeMacro(setScalarAsFloat<FAST_TYPE>((FAST_TYPE*)mData, position, mImage, value, channel))
+    }
+}
+
+void ImageAccess::setScalar(uint position, float value, uchar channel) {
     switch(mImage->getDataType()) {
         fastSwitchTypeMacro(setScalarAsFloat<FAST_TYPE>((FAST_TYPE*)mData, position, mImage, value, channel))
     }

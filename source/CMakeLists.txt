@@ -9,7 +9,15 @@ option(BUILD_IGTLINK_TESTS "Build OpenIGTLink tests." OFF)
 option(BUILD_EXAMPLES "Build examples." OFF)
 option(MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
 set(OPENCL_KERNEL_BINARY_PATH "${PROJECT_BINARY_DIR}/" CACHE STRING "Directory to put kernel binaries in. Default is build dir.")
+# Remove any existing "
+string(REPLACE "\"" "" OPENCL_KERNEL_BINARY_PATH ${OPENCL_KERNEL_BINARY_PATH})
+message("-- OpenCL Kernel binary path set to: ${OPENCL_KERNEL_BINARY_PATH}")
+add_definitions("-DOUL_OPENCL_KERNEL_BINARY_PATH=\"${OPENCL_KERNEL_BINARY_PATH}\"")
 
+#### Module path
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../) # For finding the custom Find modules
+
+### IGT Link tests
 if(BUILD_IGTLINK_TESTS)
     set(BUILD_TESTING ON CACHE INTERNAL "Build OpenIGTLink tests." FORCE)
 else()
@@ -94,11 +102,27 @@ if(MODULE_OpenIGTLink)
 endif()
 
 ## OpenCL Utility Library
-add_subdirectory(OpenCLUtilityLibrary)
-find_package(OpenCLUtilityLibrary PATHS "${FAST_BINARY_DIR}/OpenCLUtilityLibrary" REQUIRED)
-include(${OpenCLUtilityLibrary_USE_FILE})
-set(LIBRARIES ${LIBRARIES} OpenCLUtilityLibrary)
-list (APPEND FAST_INCLUDE_DIRS "${OpenCLUtilityLibrary_INCLUDE_DIRS}")
+#add_subdirectory(OpenCLUtilityLibrary)
+#find_package(OpenCLUtilityLibrary PATHS "${FAST_BINARY_DIR}/OpenCLUtilityLibrary" REQUIRED)
+#include(${OpenCLUtilityLibrary_USE_FILE})
+#set(LIBRARIES ${LIBRARIES} OpenCLUtilityLibrary)
+#list (APPEND FAST_INCLUDE_DIRS "${OpenCLUtilityLibrary_INCLUDE_DIRS}")
+
+## OpenCL
+find_package(OpenCL REQUIRED)
+list(APPEND LIBRARIES ${OPENCL_LIBRARIES})
+list(APPEND FAST_INCLUDE_DIRS "${OPENCL_INCLUDE_DIRS}")
+message("-- OpenCL include dir: ${OPENCL_INCLUDE_DIRS}")
+
+## OpenGL
+find_package(OpenGL REQUIRED)
+list(APPEND LIBRARIES ${OPENGL_LIBRARIES})
+list(APPEND FAST_INCLUDE_DIRS ${OPENGL_INCLUDE_DIR})
+# If OS is Linux, add X explicitly to library list
+if(CMAKE_SYSTEM_NAME STREQUAL Linux)
+    list(APPEND LIBRARIES X11)
+endif()
+
 
 ## Qt
 find_package(Qt5Widgets)
@@ -109,13 +133,12 @@ list (APPEND FAST_INCLUDE_DIRS "${Qt5Widgets_INCLUDE_DIRS}")
 list (APPEND FAST_INCLUDE_DIRS "${Qt5OpenGL_INCLUDE_DIRS}")
 
 ## Boost
-find_package(Boost COMPONENTS system thread iostreams signals REQUIRED)
+find_package(Boost COMPONENTS system thread iostreams signals filesystem chrono REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS} ${PROJECT_BINARY_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
 set(LIBRARIES ${LIBRARIES} ${Boost_LIBRARIES})
 
 ## GLEW
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../)
 find_package(GLEW REQUIRED)
 include_directories(${GLEW_INCLUDE_DIR})
 include_directories(${GLEW_INCLUDE_PATH})
@@ -124,12 +147,13 @@ set(LIBRARIES ${LIBRARIES} ${GLEW_LIBRARY})
 ## Eigen
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
+message("-- Using Eigen ${EIGEN3_VERSION}")
 
 ## VTK
 if(VTK_INTEROP)
     find_package(VTK REQUIRED)
     include(${VTK_USE_FILE})
-    message("-- Enabling VTK interoperability")
+    message("-- Enabling VTK interoperability. VTK version ${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}")
     set(LIBRARIES ${LIBRARIES} ${VTK_LIBRARIES})
 endif()
 
@@ -189,6 +213,15 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR CMAKE_COMPILER_IS_GNUCXX)
     endif()
 endif()
 
+#### OpenMP
+find_package(OpenMP)
+if(OPENMP_FOUND)
+    message("-- OpenMP was detected. Using OpenMP to speed up some calculations.")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}" )
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
+endif()
+
 #### Create FAST library and executables
 add_library(FAST ${FAST_SOURCE_FILES} ${HEADERS_MOC})
 if(BUILD_TESTS)
@@ -210,3 +243,13 @@ endif()
 if(BUILD_TESTS)
     target_link_libraries(test FAST)
 endif()
+
+
+set(FAST_LIBRARY FAST)
+set(FAST_LIBRARY_DIRS ${PROJECT_BINARY_DIR})
+
+# Create config file
+configure_file (
+    "${PROJECT_SOURCE_DIR}/FASTConfig.cmake.in"
+    "${PROJECT_BINARY_DIR}/FASTConfig.cmake"
+)

@@ -3,7 +3,7 @@
 
 #include "FAST/Object.hpp"
 #include "FAST/SmartPointers.hpp"
-#include "Context.hpp"
+#include "RuntimeMeasurementManager.hpp"
 
 namespace fast {
 
@@ -49,23 +49,55 @@ class Host : public ExecutionDevice {
 
 };
 
-class OpenCLDevice : public ExecutionDevice, public oul::Context {
+class OpenCLDevice : public ExecutionDevice {
     FAST_OBJECT(OpenCLDevice)
     public:
         cl::CommandQueue getCommandQueue();
         cl::Device getDevice();
 
-        OpenCLDevice(std::vector<cl::Device> devices, unsigned long * glContext = NULL) : oul::Context(devices, glContext, false)
-        {mIsHost = false;mGLContext = glContext;};
+        int createProgramFromSource(std::string filename, std::string buildOptions = "", bool caching = true);
+        int createProgramFromSource(std::vector<std::string> filenames, std::string buildOptions = "");
+        int createProgramFromString(std::string code, std::string buildOptions = "");
+        int createProgramFromSourceWithName(std::string programName, std::string filename, std::string buildOptions = "");
+        int createProgramFromSourceWithName(std::string programName, std::vector<std::string> filenames, std::string buildOptions = "");
+        int createProgramFromStringWithName(std::string programName, std::string code, std::string buildOptions = "");
+        cl::Program getProgram(unsigned int i);
+        cl::Program getProgram(std::string name);
+        bool hasProgram(std::string name);
+
+        bool isImageFormatSupported(cl_channel_order order, cl_channel_type type, cl_mem_object_type imageType);
+
+        cl::CommandQueue getQueue(unsigned int i);
+        cl::Device getDevice(unsigned int i);
+        cl::Device getDevice(cl::CommandQueue queue);
+        cl::Context getContext();
+        cl::Platform getPlatform();
+
+        OpenCLDevice(std::vector<cl::Device> devices, unsigned long* glContext = NULL);
         unsigned long * getGLContext() { return mGLContext; };
         std::string getName() {
             return getDevice().getInfo<CL_DEVICE_NAME>();
         }
         bool isWritingTo3DTexturesSupported();
+        RuntimeMeasurementsManagerPtr getRunTimeMeasurementManager();
         ~OpenCLDevice();
     private:
-        OpenCLDevice() {mIsHost = false;};
+        OpenCLDevice();
         unsigned long * mGLContext;
+        cl::Program writeBinary(std::string filename, std::string buildOptions);
+        cl::Program readBinary(std::string filename);
+        cl::Program buildProgramFromBinary(std::string filename, std::string buildOptions);
+        cl::Program buildSources(cl::Program::Sources source, std::string buildOptions);
+
+        cl::Context context;
+        std::vector<cl::CommandQueue> queues;
+        std::map<std::string, int> programNames;
+        std::vector<cl::Program> programs;
+        std::vector<cl::Device> devices;
+        cl::Platform platform;
+
+        bool profilingEnabled;
+        RuntimeMeasurementsManagerPtr runtimeManager;
 
 };
 

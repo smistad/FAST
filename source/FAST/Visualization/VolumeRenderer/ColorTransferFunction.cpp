@@ -3,7 +3,7 @@
 #include "FAST/Data/Image.hpp"
 #include <limits.h>
 //#include "DynamicImage.hpp"
-//#include "HelperFunctions.hpp"
+//#include "FAST/Utility.hpp"
 //#include "DeviceManager.hpp"
 //#include "View.hpp"
 //#include <QCursor>

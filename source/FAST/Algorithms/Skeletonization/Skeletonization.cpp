@@ -1,6 +1,6 @@
 #include "FAST/Algorithms/Skeletonization/Skeletonization.hpp"
 #include "FAST/DeviceManager.hpp"
-#include "HelperFunctions.hpp"
+#include "FAST/Utility.hpp"
 #include "FAST/SceneGraph.hpp"
 #include "FAST/Data/Segmentation.hpp"
 
@@ -61,9 +61,9 @@ void Skeletonization::execute() {
     queue.enqueueCopyImage(
             *image,
             *image1,
-            oul::createOrigoRegion(),
-            oul::createOrigoRegion(),
-            oul::createRegion(output->getWidth(), output->getHeight(), 1)
+            createOrigoRegion(),
+            createOrigoRegion(),
+            createRegion(output->getWidth(), output->getHeight(), 1)
     );
 
     do {

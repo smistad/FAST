@@ -2,20 +2,18 @@
 #define VTKIMAGEIMPORTER_HPP_
 
 #include "FAST/ProcessObject.hpp"
-#include <vtkImageData.h>
-#include <vtkSmartPointer.h>
+#include <vtkImageAlgorithm.h>
 #include "FAST/Data/Image.hpp"
 
 namespace fast {
 
-class VTKImageImporter : public ProcessObject {
-    FAST_OBJECT(VTKImageImporter)
+class VTKImageImporter : public vtkImageAlgorithm, public ProcessObject {
     public:
-        void setInput(vtkSmartPointer<vtkImageData> image);
+        static VTKImageImporter *New();
+        std::string getNameOfClass() const { return "VTKImageExporter"; };
     private:
-        vtkSmartPointer<vtkImageData> mInput;
-
         VTKImageImporter();
+        int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
         void execute();
 
 };

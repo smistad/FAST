@@ -1,5 +1,5 @@
 #include <GL/glew.h>
-#include "HelperFunctions.hpp"
+#include "FAST/Utility.hpp"
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Visualization/View.hpp"
 #include "FAST/Utility.hpp"
@@ -106,6 +106,7 @@ void MeshRenderer::draw() {
 
     glDisable(GL_LIGHTING);
     glDisable(GL_NORMALIZE);
+    glColor3f(1.0f, 1.0f, 1.0f); // Reset color
 }
 
 BoundingBox MeshRenderer::getBoundingBox() {

@@ -126,23 +126,7 @@ void GaussianSmoothingFilter::recompileOpenCLCode(Image::pointer input) {
     OpenCLDevice::pointer device = getMainDevice();
     std::string buildOptions = "";
     if(!device->isWritingTo3DTexturesSupported()) {
-        switch(mOutputType) {
-            case TYPE_FLOAT:
-                buildOptions += " -DTYPE=float";
-                break;
-            case TYPE_INT8:
-                buildOptions += " -DTYPE=char";
-                break;
-            case TYPE_UINT8:
-                buildOptions += " -DTYPE=uchar";
-                break;
-            case TYPE_INT16:
-                buildOptions += " -DTYPE=short";
-                break;
-            case TYPE_UINT16:
-                buildOptions += " -DTYPE=ushort";
-                break;
-        }
+        buildOptions = "-DTYPE=" + getCTypeAsString(mOutputType);
     }
     cl::Program program;
     if(input->getDimensions() == 2) {

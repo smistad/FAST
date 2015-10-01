@@ -3,7 +3,7 @@
 
 #define NOMINMAX // Removes windows min and max macros
 #include "FAST/Exception.hpp"
-#include "OpenCL.hpp"
+#include "CL/OpenCL.hpp"
 #include "FAST/ExecutionDevice.hpp"
 #include <cmath>
 #include <iostream>
@@ -47,6 +47,9 @@ enum DataType {
     TYPE_UNORM_INT16, // Unsigned normalized 16 bit integer. A 16 bit int interpreted as a float between 0 and 1.
     TYPE_SNORM_INT16 // Signed normalized 16 bit integer. A 16 bit int interpreted as a float between -1 and 1.
 };
+
+// Returns the C type for a DataType as a string
+std::string getCTypeAsString(DataType type);
 
 #define fastCaseTypeMacro(fastType, cType, call) case fastType: {typedef cType FAST_TYPE; call;} break;
 

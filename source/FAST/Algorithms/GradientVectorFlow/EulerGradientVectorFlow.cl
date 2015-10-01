@@ -74,7 +74,7 @@ __kernel void GVF3DIteration(
     // Update the vector field: Calculate Laplacian using a 3D central difference scheme
     float3 laplacian = -6*f.xyz + fx1 + fx_1 + fy1 + fy_1 + fz1 + fz_1;
 
-    // The last component of the input vector is stored in f to save memory (f.w)
+    // NOT ANYMORE: The last component of the input vector is stored in f to save memory (f.w)
     f += mu * laplacian - (f - init_vector)*
         (init_vector.x*init_vector.x + init_vector.y*init_vector.y + init_vector.z*init_vector.z);
 
@@ -94,9 +94,6 @@ __kernel void GVF3DIteration(
 #define FLOAT_TO_SNORM16(vector) convert_short_sat_rte(vector * 32767.0f)
 #define SNORM16_TO_FLOAT(vector) max(-1.0f, convert_float(vector) / 32767.0f)
 #define VECTOR_FIELD_TYPE short
-#define UNORM16_TO_FLOAT(v) (float)v / 65535.0f
-#define FLOAT_TO_UNORM16(v) convert_ushort_sat_rte(v * 65535.0f)
-#define TDF_TYPE ushort
 #else
 #define FLOAT_TO_SNORM16_4(vector) vector
 #define SNORM16_TO_FLOAT_4(vector) vector
@@ -107,9 +104,6 @@ __kernel void GVF3DIteration(
 #define FLOAT_TO_SNORM16(vector) vector
 #define SNORM16_TO_FLOAT(vector) vector
 #define VECTOR_FIELD_TYPE float
-#define UNORM16_TO_FLOAT(v) v
-#define FLOAT_TO_UNORM16(v) v
-#define TDF_TYPE float
 #endif
 
 __kernel void GVF3DIteration(

@@ -1,7 +1,7 @@
 #include "SliceRenderer.hpp"
 #include "FAST/Exception.hpp"
 #include "FAST/DeviceManager.hpp"
-#include "HelperFunctions.hpp"
+#include "FAST/Utility.hpp"
 #include "FAST/Data/Image.hpp"
 #include "FAST/SceneGraph.hpp"
 #include <boost/thread/lock_guard.hpp>

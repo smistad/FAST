@@ -31,6 +31,7 @@ namespace SceneGraph {
     AffineTransformation getAffineTransformationBetweenNodes(SceneGraphNode::pointer nodeA, SceneGraphNode::pointer nodeB);
     AffineTransformation getAffineTransformationFromNode(SceneGraphNode::pointer node);
     AffineTransformation getAffineTransformationFromData(SharedPointer<SpatialDataObject> node);
+    Eigen::Affine3f getEigenAffineTransformationFromData(SharedPointer<SpatialDataObject> node);
     void setParentNode(SharedPointer<SpatialDataObject> child, SharedPointer<SpatialDataObject> parent);
     SceneGraphNode::pointer insertParentNodeToData(SharedPointer<SpatialDataObject> child, AffineTransformation transform);
     SceneGraphNode::pointer insertParentNodeToNode(SceneGraphNode::pointer child, AffineTransformation transform);

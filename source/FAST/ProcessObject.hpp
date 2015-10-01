@@ -29,8 +29,8 @@ class ProcessObject : public virtual Object {
         typedef SharedPointer<ProcessObject> pointer;
 
         // Runtime stuff
-        oul::RuntimeMeasurementPtr getRuntime();
-        oul::RuntimeMeasurementPtr getRuntime(std::string name);
+        RuntimeMeasurementPtr getRuntime();
+        RuntimeMeasurementPtr getRuntime(std::string name);
         void enableRuntimeMeasurements();
         void disableRuntimeMeasurements();
 
@@ -93,7 +93,7 @@ class ProcessObject : public virtual Object {
 
         virtual void waitToFinish() {};
 
-        oul::RuntimeMeasurementsManagerPtr mRuntimeManager;
+        RuntimeMeasurementsManagerPtr mRuntimeManager;
 
         void setInputRequired(uint portID, bool required);
         void releaseInputAfterExecute(uint inputNumber, bool release);

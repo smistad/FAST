@@ -7,7 +7,7 @@ A detailed description of the framework design can be found [on the project wiki
 Erik Smistad, Mohammadmehdi Bozorgi, Frank Lindseth.  
 International Journal of Computer Assisted Radiology and Surgery. February 2015.
 
-Preprint of article can be downloaded from [here](http://www.thebigblob.com/wp-content/uploads/FAST_framework_for_heterogeneous_medical_image_computing_and_visualization.pdf).
+Preprint of article can be downloaded from [here](http://www.eriksmistad.no/wp-content/uploads/FAST_framework_for_heterogeneous_medical_image_computing_and_visualization.pdf).
 If you use FAST for research, please cite this article.
 
 Getting started with FAST
@@ -23,13 +23,13 @@ To start using the framework, see the [Getting started with FAST](https://github
 Build status
 -------------------------
 **Master branch**
-* Ubuntu Linux 14.04, AMD CPU, AMD GPU - ![Build Status](http://thebigblob.com/upload/build/FAST-Ubuntu-AMD-Master-NO-Visual.svg)
-* Mac OS X 10.9, Intel CPU, NVIDIA GPU - ![Build Status](http://thebigblob.com/upload/build/FAST-Mac-Master.svg)
-* Windows 8.1, Intel CPU, NVIDIA GPU - ![Build Status](http://thebigblob.com/upload/build/FAST-Windows-Master.svg)
+* Ubuntu Linux 14.04, AMD CPU, AMD GPU - ![Build Status](http://eriksmistad.no/upload/build/FAST-Ubuntu-AMD-Master-NO-Visual.svg)
+* Mac OS X 10.9, Intel CPU, NVIDIA GPU - ![Build Status](http://eriksmistad.no/upload/build/FAST-Mac-Master.svg)
+* Windows 8.1, Intel CPU, NVIDIA GPU - ![Build Status](http://eriksmistad.no/upload/build/FAST-Windows-Master.svg)
 
 **Development branch**
-* Ubuntu Linux 14.04, AMD CPU, AMD GPU - ![Build Status](http://thebigblob.com/upload/build/FAST-Ubuntu-AMD-Development-NO-Visual.svg)
-* Mac OS X 10.9, Intel CPU, NVIDIA GPU - ![Build Status](http://thebigblob.com/upload/build/FAST-Mac-Development.svg)
-* Windows 8.1, Intel CPU, NVIDIA GPU - ![Build Status](http://thebigblob.com/upload/build/FAST-Windows-Development.svg)
+* Ubuntu Linux 14.04, AMD CPU, AMD GPU - ![Build Status](http://eriksmistad.no/upload/build/FAST-Ubuntu-AMD-Development-NO-Visual.svg)
+* Mac OS X 10.9, Intel CPU, NVIDIA GPU - ![Build Status](http://eriksmistad.no/upload/build/FAST-Mac-Development.svg)
+* Windows 8.1, Intel CPU, NVIDIA GPU - ![Build Status](http://eriksmistad.no/upload/build/FAST-Windows-Development.svg)
 
 ![Surface mesh extracted from a large abdominal CT scan in about 100 ms using FAST and a modern GPU.](https://github.com/smistad/FAST/wiki/images/surface_extraction.png) ![Ultrasound image segmented using binary thresholding.](https://github.com/smistad/FAST/wiki/images/binary_thresholding.png)

@@ -1,7 +1,7 @@
 #ifndef OPENCLBUFFERACCESS_HPP_
 #define OPENCLBUFFERACCESS_HPP_
 
-#include "OpenCL.hpp"
+#include "CL/OpenCL.hpp"
 #include "FAST/SmartPointers.hpp"
 
 namespace fast {

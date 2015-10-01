@@ -1,5 +1,5 @@
 #include "Image.hpp"
-#include "HelperFunctions.hpp"
+#include "FAST/Utility.hpp"
 #include "FAST/Exception.hpp"
 #include "FAST/Utility.hpp"
 #include "FAST/SceneGraph.hpp"
@@ -119,12 +119,12 @@ void Image::transferCLImageFromHost(OpenCLDevice::pointer device) {
     if(format.image_channel_order == CL_RGBA && mComponents != 4) {
         void * tempData = adaptDataToImage(mHostData, CL_RGBA, mWidth*mHeight*mDepth, mType, mComponents);
         device->getCommandQueue().enqueueWriteImage(*(cl::Image*)mCLImages[device],
-        CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
+        CL_TRUE, createOrigoRegion(), createRegion(mWidth, mHeight, mDepth), 0,
                 0, tempData);
         deleteArray(tempData, mType);
     } else {
         device->getCommandQueue().enqueueWriteImage(*(cl::Image*)mCLImages[device],
-        CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
+        CL_TRUE, createOrigoRegion(), createRegion(mWidth, mHeight, mDepth), 0,
                 0, mHostData);
     }
 }
@@ -136,7 +136,7 @@ void Image::transferCLImageToHost(OpenCLDevice::pointer device) {
     if(format.image_channel_order == CL_RGBA && mComponents != 4) {
         void * tempData = allocateDataArray(mWidth*mHeight*mDepth,mType,4);
         device->getCommandQueue().enqueueReadImage(*(cl::Image*)mCLImages[device],
-        CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
+        CL_TRUE, createOrigoRegion(), createRegion(mWidth, mHeight, mDepth), 0,
                 0, tempData);
         mHostData = adaptImageDataToHostData(tempData,CL_RGBA, mWidth*mHeight*mDepth,mType,mComponents);
         deleteArray(tempData, mType);
@@ -147,7 +147,7 @@ void Image::transferCLImageToHost(OpenCLDevice::pointer device) {
 			mHostHasData = true;
         }
         device->getCommandQueue().enqueueReadImage(*(cl::Image*)mCLImages[device],
-        CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
+        CL_TRUE, createOrigoRegion(), createRegion(mWidth, mHeight, mDepth), 0,
                 0, mHostData);
     }
 }
@@ -979,9 +979,9 @@ Image::pointer Image::copy(ExecutionDevice::pointer device) {
             clDevice->getCommandQueue().enqueueCopyImage(
                     *input,
                     *output,
-                    oul::createOrigoRegion(),
-                    oul::createOrigoRegion(),
-                    oul::createRegion(getWidth(), getHeight(), 1)
+                    createOrigoRegion(),
+                    createOrigoRegion(),
+                    createRegion(getWidth(), getHeight(), 1)
             );
         } else {
             OpenCLImageAccess::pointer readAccess = this->getOpenCLImageAccess(ACCESS_READ, clDevice);
@@ -992,14 +992,101 @@ Image::pointer Image::copy(ExecutionDevice::pointer device) {
             clDevice->getCommandQueue().enqueueCopyImage(
                     *input,
                     *output,
-                    oul::createOrigoRegion(),
-                    oul::createOrigoRegion(),
-                    oul::createRegion(getWidth(), getHeight(), getDepth())
+                    createOrigoRegion(),
+                    createOrigoRegion(),
+                    createRegion(getWidth(), getHeight(), getDepth())
             );
         }
     }
 
     return clone;
+}
+
+
+void Image::findDeviceWithUptodateData(ExecutionDevice::pointer* device, bool* isOpenCLImage) {
+    // Check first if there are any OpenCL images
+    for(auto iterator : mCLImagesIsUpToDate) {
+        if(iterator.second) {
+            *device = iterator.first;
+            *isOpenCLImage = true;
+            return;
+        }
+    }
+
+    // OpenCL buffers
+    for(auto iterator : mCLBuffersIsUpToDate) {
+        if(iterator.second) {
+            *device = iterator.first;
+            *isOpenCLImage = false;
+            return;
+        }
+    }
+
+    // Host data
+    if(mHostDataIsUpToDate) {
+        *device = Host::getInstance();
+    } else {
+        throw Exception("Image has no up to date data. This should not be possible!");
+    }
+}
+
+Image::pointer Image::crop(VectorXui offset, VectorXui size) {
+    Image::pointer newImage = Image::New();
+
+    ExecutionDevice::pointer device;
+    bool isOpenCLImage;
+    findDeviceWithUptodateData(&device, &isOpenCLImage);
+    // Handle host
+    if(device->isHost()) {
+        throw Exception("Not implemented yet");
+    } else {
+        OpenCLDevice::pointer clDevice = device;
+        if(getDimensions() == 2) {
+            if(offset.size() < 2 || size.size() < 2)
+                throw Exception("offset and size vectors given to Image::crop must have at least 2 components");
+            newImage->create(size, getDataType(), getNrOfComponents());
+            OpenCLImageAccess::pointer readAccess = this->getOpenCLImageAccess(ACCESS_READ, clDevice);
+            OpenCLImageAccess::pointer writeAccess = newImage->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
+            cl::Image2D* input = readAccess->get2DImage();
+            cl::Image2D* output = writeAccess->get2DImage();
+
+            clDevice->getCommandQueue().enqueueCopyImage(
+                    *input,
+                    *output,
+                    createRegion(offset.x(), offset.y(), 0),
+                    createOrigoRegion(),
+                    createRegion(size.x(), size.y(), 1)
+            );
+        } else {
+            if(offset.size() < 3 || size.size() < 3)
+                throw Exception("offset and size vectors given to Image::crop must have at least 3 components");
+            newImage->create(size, getDataType(), getNrOfComponents());
+            OpenCLImageAccess::pointer readAccess = this->getOpenCLImageAccess(ACCESS_READ, clDevice);
+            OpenCLImageAccess::pointer writeAccess = newImage->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
+            cl::Image3D* input = readAccess->get3DImage();
+            cl::Image3D* output = writeAccess->get3DImage();
+
+            clDevice->getCommandQueue().enqueueCopyImage(
+                    *input,
+                    *output,
+                    createRegion(offset.x(), offset.y(), offset.z()),
+                    createOrigoRegion(),
+                    createRegion(size.x(), size.y(), size.z())
+            );
+        }
+    }
+
+    // Fix placement and spacing of the new cropped image
+    AffineTransformation T;
+    newImage->setSpacing(getSpacing());
+    // Multiply with spacing here to convert voxel translation to world(mm) translation
+    T.translation() = getSpacing().cwiseProduct(getDimensions() == 2 ? Vector3f(offset.x(), offset.y(), 0) : Vector3f(offset.x(), offset.y(), offset.z()));
+    newImage->getSceneGraphNode()->setTransformation(T);
+    SceneGraph::setParentNode(newImage, mPtr.lock());
+    Report::info() << SceneGraph::getAffineTransformationFromData(newImage).matrix() << Report::end;
+    Report::info() << SceneGraph::getAffineTransformationFromData(mPtr.lock()).matrix() << Report::end;
+
+    return newImage;
 }
 
 BoundingBox Image::getTransformedBoundingBox() const {

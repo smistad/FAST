@@ -49,7 +49,7 @@ inline bool compareVTKDataWithFASTData(vtkSmartPointer<vtkImageData> vtkImage, v
         for(unsigned int x = 0; x < width; x++) {
         for(unsigned int y = 0; y < height; y++) {
             T fastValue = ((T*)fastData)[x+y*width];
-            T vtkValue = *(static_cast<T*>(vtkImage->GetScalarPointer(x,height-y,0)));
+            T vtkValue = *(static_cast<T*>(vtkImage->GetScalarPointer(x,y,0)));
             if(fastValue != vtkValue) {
                 return false;
             }
@@ -61,7 +61,7 @@ inline bool compareVTKDataWithFASTData(vtkSmartPointer<vtkImageData> vtkImage, v
         for(unsigned int z = 0; z < depth; z++) {
             // TODO check the addressing here
             T fastValue = ((T*)fastData)[x+y*width+z*width*height];
-            T vtkValue = *(static_cast<T*>(vtkImage->GetScalarPointer(x,height-y,z)));
+            T vtkValue = *(static_cast<T*>(vtkImage->GetScalarPointer(x,y,z)));
             if(fastValue != vtkValue) {
                 return false;
             }
@@ -71,20 +71,20 @@ inline bool compareVTKDataWithFASTData(vtkSmartPointer<vtkImageData> vtkImage, v
     return true;
 }
 
-TEST_CASE("No input given to the VTKImageExporter", "[fast][VTK]") {
+TEST_CASE("No input given to the VTKImageExporter", "[fast][VTK][VTKImageExporter]") {
     vtkSmartPointer<VTKImageExporter> vtkExporter = VTKImageExporter::New();
     vtkSmartPointer<vtkImageData> vtkImage = vtkExporter->GetOutput();
     CHECK_THROWS(vtkExporter->Update());
 }
 
-TEST_CASE("Export a 2D image from FAST to VTK", "[fast][VTK]") {
+TEST_CASE("Export a 2D image from FAST to VTK", "[fast][VTK][VTKImageExporter]") {
     unsigned int width = 32;
     unsigned int height = 40;
     for(unsigned int typeNr = 0; typeNr < 5; typeNr++) { // for all types
         Image::pointer fastImage = Image::New();
         DataType type = (DataType)typeNr;
         void* data = allocateRandomData(width*height, type);
-        fastImage->create2DImage(width, height, type, 1, Host::getInstance(), data);
+        fastImage->create(width, height, type, 1, Host::getInstance(), data);
 
         vtkSmartPointer<VTKImageExporter> vtkExporter = VTKImageExporter::New();
         vtkExporter->setInputData(fastImage);
@@ -107,7 +107,7 @@ TEST_CASE("Export a 2D image from FAST to VTK", "[fast][VTK]") {
     }
 }
 
-TEST_CASE("Export a 3D image from FAST to VTK", "[fast][VTK]") {
+TEST_CASE("Export a 3D image from FAST to VTK", "[fast][VTK][VTKImageExporter]") {
     unsigned int width = 32;
     unsigned int height = 20;
     unsigned int depth = 8;
@@ -115,7 +115,7 @@ TEST_CASE("Export a 3D image from FAST to VTK", "[fast][VTK]") {
         Image::pointer fastImage = Image::New();
         DataType type = (DataType)typeNr;
         void* data = allocateRandomData(width*height*depth, type);
-        fastImage->create3DImage(width, height, depth, type, 1, Host::getInstance(), data);
+        fastImage->create(width, height, depth, type, 1, Host::getInstance(), data);
 
         vtkSmartPointer<VTKImageExporter> vtkExporter = VTKImageExporter::New();
         vtkExporter->setInputData(fastImage);
@@ -139,7 +139,7 @@ TEST_CASE("Export a 3D image from FAST to VTK", "[fast][VTK]") {
     }
 }
 
-TEST_CASE("Export an image from FAST to VTK and visualize", "[fast][VTK]") {
+TEST_CASE("Export an image from FAST to VTK and visualize", "[fast][VTK][VTKImageExporter]") {
 
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-2D.jpg");
@@ -147,7 +147,7 @@ TEST_CASE("Export an image from FAST to VTK and visualize", "[fast][VTK]") {
 
     // VTK Export and render example
     vtkSmartPointer<VTKImageExporter> vtkExporter = VTKImageExporter::New();
-    vtkExporter->setInputData(fastImage);
+    vtkExporter->setInputConnection(importer->getOutputPort());
     vtkSmartPointer<vtkImageData> vtkImage = vtkExporter->GetOutput();
     vtkExporter->Update();
 
@@ -185,6 +185,6 @@ TEST_CASE("Export an image from FAST to VTK and visualize", "[fast][VTK]") {
     renderWindowInteractor->SetRenderWindow(renderWindow);
     renderer2->AddActor2D(imageActor);
     renderWindow->Render();
-    //renderWindowInteractor->Start();
+    //renderWindowInteractor->Start(); // this will block
     );
 }

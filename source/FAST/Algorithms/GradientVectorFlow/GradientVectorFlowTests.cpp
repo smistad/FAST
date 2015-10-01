@@ -1,5 +1,6 @@
 #include "FAST/Tests/catch.hpp"
 #include "EulerGradientVectorFlow.hpp"
+#include "MultigridGradientVectorFlow.hpp"
 #include "FAST/Algorithms/ScaleImage/ScaleImage.hpp"
 #include "FAST/Algorithms/ImageGradient/ImageGradient.hpp"
 #include "FAST/Importers/ImageFileImporter.hpp"
@@ -134,6 +135,45 @@ TEST_CASE("Gradient vector flow with Euler method 3D 32 bit", "[fast][GVF][Gradi
     gradient->setInputConnection(normalize->getOutputPort());
 
     EulerGradientVectorFlow::pointer gvf = EulerGradientVectorFlow::New();
+    gvf->setInputConnection(gradient->getOutputPort());
+    gvf->set32bitStorageFormat();
+    gvf->update();
+
+    CHECK(calculateGVFVectorFieldResidual(gradient->getOutputData<Image>(), gvf->getOutputData<Image>(), gvf->getMuConstant())
+            < 0.001);
+}
+
+TEST_CASE("Gradient vector flow with Multigrid method 3D 16 bit", "[fast][GVF][GradientVectorFlow][MultigridGradientVectorFlow][3D]") {
+    ImageFileImporter::pointer importer = ImageFileImporter::New();
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_0.mhd");
+
+    ScaleImage::pointer normalize = ScaleImage::New();
+    normalize->setInputConnection(importer->getOutputPort());
+
+    ImageGradient::pointer gradient = ImageGradient::New();
+    gradient->setInputConnection(normalize->getOutputPort());
+    gradient->set16bitStorageFormat();
+
+    MultigridGradientVectorFlow::pointer gvf = MultigridGradientVectorFlow::New();
+    gvf->setInputConnection(gradient->getOutputPort());
+    gvf->set16bitStorageFormat();
+    gvf->update();
+
+    CHECK(calculateGVFVectorFieldResidual(gradient->getOutputData<Image>(), gvf->getOutputData<Image>(), gvf->getMuConstant())
+            < 0.001);
+}
+
+TEST_CASE("Gradient vector flow with Multigrid method 3D 32 bit", "[fast][GVF][GradientVectorFlow][MultigridGradientVectorFlow][3D]") {
+    ImageFileImporter::pointer importer = ImageFileImporter::New();
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_0.mhd");
+
+    ScaleImage::pointer normalize = ScaleImage::New();
+    normalize->setInputConnection(importer->getOutputPort());
+
+    ImageGradient::pointer gradient = ImageGradient::New();
+    gradient->setInputConnection(normalize->getOutputPort());
+
+    MultigridGradientVectorFlow::pointer gvf = MultigridGradientVectorFlow::New();
     gvf->setInputConnection(gradient->getOutputPort());
     gvf->set32bitStorageFormat();
     gvf->update();

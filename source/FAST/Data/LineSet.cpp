@@ -52,6 +52,8 @@ void LineSet::free(ExecutionDevice::pointer device) {
 }
 
 BoundingBox LineSet::getBoundingBox() const {
+    if(mVertices.size() == 0)
+        return BoundingBox();
     std::vector<Vector3f> list;
     for(uint i = 0; i < mVertices.size(); i++) {
         list.push_back(mVertices[i]);

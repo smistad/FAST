@@ -1,6 +1,8 @@
 fast_add_sources(
     EulerGradientVectorFlow.cpp
     EulerGradientVectorFlow.hpp
+    MultigridGradientVectorFlow.cpp
+    MultigridGradientVectorFlow.hpp
 )
 fast_add_test_sources(
     GradientVectorFlowTests.cpp
