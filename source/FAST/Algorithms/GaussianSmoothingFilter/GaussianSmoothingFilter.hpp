@@ -18,7 +18,7 @@ class GaussianSmoothingFilter : public ProcessObject {
         GaussianSmoothingFilter();
         void execute();
         void waitToFinish();
-        void createMask(Image::pointer input, uchar maskSize);
+        void createMask(Image::pointer input, uchar maskSize, bool useSeperableFilter);
         void recompileOpenCLCode(Image::pointer input);
 
         char mMaskSize;
