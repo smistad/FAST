@@ -1,5 +1,6 @@
 #include "FAST/ExecutionDevice.hpp"
 #include "FAST/RuntimeMeasurementManager.hpp"
+#include "FAST/Utility.hpp"
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/lock_guard.hpp>
 #include <boost/lexical_cast.hpp>
@@ -275,10 +276,10 @@ cl::Program OpenCLDevice::buildSources(cl::Program::Sources source, std::string 
     } catch(cl::Error &error) {
         if(error.err() == CL_BUILD_PROGRAM_FAILURE) {
             for(unsigned int i=0; i<devices.size(); i++){
-            	//reporter.report("Build log, device "+number(i)+ "\n"+ program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[i]), ERROR);
+            	Report::error() << "Build log, device " << i << "\n" << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[i]) << Report::end;
             }
         }
-        //reporter.report(getCLErrorString(error.err()), ERROR);
+        Report::error() << getCLErrorString(error.err()) << Report::end;
 
         throw error;
     }
