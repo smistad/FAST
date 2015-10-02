@@ -1,5 +1,6 @@
 #include "ComputationThread.hpp"
 #include "SimpleWindow.hpp"
+#include "View.hpp"
 
 namespace fast {
 
@@ -18,7 +19,7 @@ void ComputationThread::clearViews() {
 }
 
 ComputationThread::~ComputationThread() {
-    Report::info() << "Computation thread object destroyed" << Report::end;
+    reportInfo() << "Computation thread object destroyed" << Reporter::end;
 }
 
 bool ComputationThread::isRunning() {
@@ -49,7 +50,7 @@ void ComputationThread::run() {
     }
 
     emit finished();
-    Report::info() << "Computation thread has finished in run()" << Report::end;
+    reportInfo() << "Computation thread has finished in run()" << Reporter::end;
     mUpdateThreadConditionVariable.notify_one();
 }
 

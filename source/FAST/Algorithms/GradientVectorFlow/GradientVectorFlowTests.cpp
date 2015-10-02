@@ -36,7 +36,7 @@ Vector3f calculateLaplacian(ImageAccess::pointer& input, ImageAccess::pointer& r
 double calculateGVFVectorFieldResidual(Image::pointer inputVectorField, Image::pointer vectorField, float mu) {
     ImageAccess::pointer input = inputVectorField->getImageAccess(ACCESS_READ);
     ImageAccess::pointer result = vectorField->getImageAccess(ACCESS_READ);
-    Report::info() << "Calculating residual..." << Report::end;
+    reportInfo() << "Calculating residual..." << Reporter::end;
 
     double sum = 0.0;
     uint size;

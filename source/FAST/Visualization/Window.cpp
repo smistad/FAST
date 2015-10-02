@@ -33,9 +33,6 @@ void Window::disableFullscreen() {
 void Window::initializeQtApp() {
     // Make sure only one QApplication is created
     if(!QApplication::instance()) {
-        // Qt Application has not been created, do it now
-        Report::info() << "Creating Qt application in Window" << Report::end;
-
         // Create some dummy argc and argv options as QApplication requires it
         int* argc = new int[1];
         *argc = 0;
@@ -47,8 +44,8 @@ void Window::initializeQtApp() {
     struct lconv * lc;
     lc = localeconv();
     if(strcmp(lc->decimal_point, ",") == 0) {
-        Report::warning() << "WARNING: Your system uses comma as decimal point." << Report::end;
-        Report::warning() << "WARNING: This will now be changed to dot to avoid any comma related bugs." << Report::end;
+        Reporter::warning() << "WARNING: Your system uses comma as decimal point." << Reporter::end;
+        Reporter::warning() << "WARNING: This will now be changed to dot to avoid any comma related bugs." << Reporter::end;
         setlocale(LC_NUMERIC, "C");
         // Check again to be sure
         lc = localeconv();
@@ -72,7 +69,7 @@ void Window::initializeQtApp() {
 }
 
 void Window::stop() {
-    Report::info() << "Stop signal recieved.." << Report::end;
+    reportInfo() << "Stop signal recieved.." << Reporter::end;
     stopComputationThread();
     if(mEventLoop != NULL)
         mEventLoop->quit();
@@ -115,21 +112,21 @@ void Window::start() {
 
 Window::~Window() {
     // Cleanup
-    Report::info() << "Destroying window.." << Report::end;
+    reportInfo() << "Destroying window.." << Reporter::end;
     // Event loop is child of widget
-    //Report::info() << "Deleting event loop" << Report::end;
+    //reportInfo() << "Deleting event loop" << Reporter::end;
     //if(mEventLoop != NULL)
     //    delete mEventLoop;
-    Report::info() << "Deleting widget" << Report::end;
+    reportInfo() << "Deleting widget" << Reporter::end;
     if(mWidget != NULL)
         delete mWidget;
-    Report::info() << "Finished deleting window widget" << Report::end;
+    reportInfo() << "Finished deleting window widget" << Reporter::end;
     if(mThread != NULL) {
         mThread->stop();
         delete mThread;
         mThread = NULL;
     }
-    Report::info() << "Window destroyed" << Report::end;
+    reportInfo() << "Window destroyed" << Reporter::end;
 }
 
 void Window::setTimeout(unsigned int milliseconds) {
@@ -147,7 +144,7 @@ QGLContext* Window::getMainGLContext() {
 void Window::startComputationThread() {
     if(mThread == NULL) {
         // Start computation thread using QThreads which is a strange thing, see https://mayaposch.wordpress.com/2011/11/01/how-to-really-truly-use-qthreads-the-full-explanation/
-        Report::info() << "Trying to start computation thread" << Report::end;
+        reportInfo() << "Trying to start computation thread" << Reporter::end;
         mThread = new ComputationThread(QThread::currentThread());
         QThread* thread = new QThread();
         mThread->moveToThread(thread);
@@ -171,18 +168,18 @@ void Window::startComputationThread() {
         mainGLContext->moveToThread(thread);
         mainGLContext->doneCurrent();
         thread->start();
-        Report::info() << "Computation thread started" << Report::end;
+        reportInfo() << "Computation thread started" << Reporter::end;
     }
 }
 
 void Window::stopComputationThread() {
-    Report::info() << "Trying to stop computation thread" << Report::end;
+    reportInfo() << "Trying to stop computation thread" << Reporter::end;
     if(mThread != NULL) {
         mThread->stop();
         delete mThread;
         mThread = NULL;
     }
-    Report::info() << "Computation thread stopped" << Report::end;
+    reportInfo() << "Computation thread stopped" << Reporter::end;
 }
 
 std::vector<View*> Window::getViews() const {

@@ -91,10 +91,7 @@ inline Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer mes
     }}
     T.linear() = fastMatrix;
     image->getSceneGraphNode()->setTransformation(T);
-    Report::info() << T.matrix() << Report::end;
-    Report::info() << "SPACING IS " << spacing[0] << " " << spacing[1] << " " << spacing[2] << Report::end;
-    Report::info() << "OFFSET IS " << offset[0] << " " << offset[1] << " " << offset[2] << Report::end;
-    Report::info() << "SIZE IS " << image->getSize().transpose() << Report::end;
+
 
     return image;
 }
@@ -117,20 +114,20 @@ void IGTLinkStreamer::updateFirstFrameSetFlag() {
         }
         mFirstFrameCondition.notify_one();
     } else {
-        Report::info() << "ALL HAVE NOT GOT DATA" << Report::end;
+        reportInfo() << "ALL HAVE NOT GOT DATA" << Reporter::end;
     }
 }
 
 void IGTLinkStreamer::producerStream() {
     mSocket = igtl::ClientSocket::New();
-    Report::info() << "Trying to connect to Open IGT Link server " << mAddress << ":" << boost::lexical_cast<std::string>(mPort) << Report::end;;
+    reportInfo() << "Trying to connect to Open IGT Link server " << mAddress << ":" << boost::lexical_cast<std::string>(mPort) << Reporter::end;;
     //mSocket->SetTimeout(3); // try to connect for 3 seconds
     int r = mSocket->ConnectToServer(mAddress.c_str(), mPort);
     if(r != 0) {
        connectionLostSignal();
        throw Exception("Cannot connect to the Open IGT Link server.");
     }
-    Report::info() << "Connected to Open IGT Link server" << Report::end;;
+    reportInfo() << "Connected to Open IGT Link server" << Reporter::end;;
 
     // Create a message buffer to receive header
     igtl::MessageHeader::Pointer headerMsg;
@@ -175,11 +172,11 @@ void IGTLinkStreamer::producerStream() {
         headerMsg->GetTimeStamp(ts);
         ts->GetTimeStamp(&sec, &nanosec);
 
-        Report::info() << "Time stamp: "
+        reportInfo() << "Time stamp: "
            << sec << "." << std::setw(9) << std::setfill('0')
-           << nanosec << Report::end;
-        Report::info() << "Device type: " << headerMsg->GetDeviceType() << Report::end;
-        Report::info() << "Device name: " << headerMsg->GetDeviceName() << Report::end;
+           << nanosec << Reporter::end;
+        reportInfo() << "Device type: " << headerMsg->GetDeviceType() << Reporter::end;
+        reportInfo() << "Device name: " << headerMsg->GetDeviceName() << Reporter::end;
         if(strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0) {
             statusMessageCounter = 0;
             igtl::TransformMessage::Pointer transMsg;
@@ -201,24 +198,24 @@ void IGTLinkStreamer::producerStream() {
                 for(int j = 0; j < 4; j++) {
                     fastMatrix(i,j) = matrix[i][j];
                 }}
-                Report::info() << fastMatrix << Report::end;
+                reportInfo() << fastMatrix << Reporter::end;
                 DynamicData::pointer ptr;
                 try {
                      ptr = getOutputDataFromDeviceName<AffineTransformation>(headerMsg->GetDeviceName());
                      ptr->setStreamer(mPtr.lock());
                 } catch(Exception &e) {
-                    Report::info() << "Output port with device name " << headerMsg->GetDeviceName() << " not found" << Report::end;
+                    reportInfo() << "Output port with device name " << headerMsg->GetDeviceName() << " not found" << Reporter::end;
                     continue;
                 }
                 try {
                     AffineTransformation::pointer T = AffineTransformation::New();
                     T->matrix() = fastMatrix;
                     ptr->addFrame(T);
-                    Report::info() << "Frame added.." << Report::end;
+                    reportInfo() << "Frame added.." << Reporter::end;
                 } catch(NoMoreFramesException &e) {
                     throw e;
                 } catch(Exception &e) {
-                    Report::info() << "streamer has been deleted, stop" << Report::end;
+                    reportInfo() << "streamer has been deleted, stop" << Reporter::end;
                     break;
                 }
                 if(!mFirstFrameIsInserted) {
@@ -228,7 +225,7 @@ void IGTLinkStreamer::producerStream() {
             }
         } else if(strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0) {
             statusMessageCounter = 0;
-            Report::info() << "Receiving IMAGE data type." << Report::end;
+            reportInfo() << "Receiving IMAGE data type." << Reporter::end;
 
             // Create a message buffer to receive transform data
             igtl::ImageMessage::Pointer imgMsg;
@@ -259,17 +256,20 @@ void IGTLinkStreamer::producerStream() {
                      ptr = getOutputDataFromDeviceName<Image>(headerMsg->GetDeviceName());
                      ptr->setStreamer(mPtr.lock());
                 } catch(Exception &e) {
-                    Report::info() << "Output port with device name " << headerMsg->GetDeviceName() << " not found" << Report::end;
+                    reportInfo() << "Output port with device name " << headerMsg->GetDeviceName() << " not found" << Reporter::end;
                     continue;
                 }
                 try {
                     Image::pointer image = createFASTImageFromMessage(imgMsg, getMainDevice());
+                    reportInfo() << image->getSceneGraphNode()->getTransformation().matrix() << Reporter::end;
+                    reportInfo() << "SPACING IS " << image->getSpacing().transpose() << Reporter::end;
+                    reportInfo() << "SIZE IS " << image->getSize().transpose() << Reporter::end;
                     ptr->addFrame(image);
-                    Report::info() << "Image frame added.." << Report::end;
+                    reportInfo() << "Image frame added.." << Reporter::end;
                 } catch(NoMoreFramesException &e) {
                     throw e;
                 } catch(Exception &e) {
-                    Report::info() << "streamer has been deleted, stop" << Report::end;
+                    reportInfo() << "streamer has been deleted, stop" << Reporter::end;
                     break;
                 }
                 if(!mFirstFrameIsInserted) {
@@ -279,7 +279,7 @@ void IGTLinkStreamer::producerStream() {
             }
         } else if(strcmp(headerMsg->GetDeviceType(), "STATUS") == 0) {
             ++statusMessageCounter;
-            Report::info() << "STATUS MESSAGE recieved" << Report::end;
+            reportInfo() << "STATUS MESSAGE recieved" << Reporter::end;
             // Receive generic message
             igtl::MessageBase::Pointer message;
             message = igtl::MessageBase::New();
@@ -289,7 +289,7 @@ void IGTLinkStreamer::producerStream() {
             // Receive transform data from the socket
             mSocket->Receive(message->GetPackBodyPointer(), message->GetPackBodySize());
             if(statusMessageCounter > 10) { // If we only recieve status messages, the connection is lost
-                Report::info() << "10 STATUS MESSAGE recieved closing connection" << Report::end;
+                reportInfo() << "10 STATUS MESSAGE recieved closing connection" << Reporter::end;
                 stop();
                 connectionLostSignal();
                 break;

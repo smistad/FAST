@@ -12,11 +12,11 @@ void ImageImporter::execute() {
 
     // Load image from disk using Qt
     QImage image;
-    Report::info() << "Trying to load image..." << Report::end;
+    reportInfo() << "Trying to load image..." << Reporter::end;
     if(!image.load(mFilename.c_str())) {
         throw FileNotFoundException(mFilename);
     }
-    Report::info() << "Loaded image with size " << image.width() << " "  << image.height() << Report::end;
+    reportInfo() << "Loaded image with size " << image.width() << " "  << image.height() << Reporter::end;
 
     // Convert image to make sure color tables are not used
     QImage convertedImage = image.convertToFormat(QImage::Format_RGB32);

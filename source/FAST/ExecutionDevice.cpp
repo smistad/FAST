@@ -88,7 +88,7 @@ bool OpenCLDevice::isWritingTo3DTexturesSupported() {
 }
 
 OpenCLDevice::~OpenCLDevice() {
-     //Report::info() << "DESTROYING opencl device object..." << Report::end;
+     //reportInfo() << "DESTROYING opencl device object..." << Reporter::end;
      // Make sure that all queues are finished
      getQueue(0).finish();
 }
@@ -276,10 +276,10 @@ cl::Program OpenCLDevice::buildSources(cl::Program::Sources source, std::string 
     } catch(cl::Error &error) {
         if(error.err() == CL_BUILD_PROGRAM_FAILURE) {
             for(unsigned int i=0; i<devices.size(); i++){
-            	Report::error() << "Build log, device " << i << "\n" << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[i]) << Report::end;
+            	reportError() << "Build log, device " << i << "\n" << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[i]) << Reporter::end;
             }
         }
-        Report::error() << getCLErrorString(error.err()) << Report::end;
+        reportError() << getCLErrorString(error.err()) << Reporter::end;
 
         throw error;
     }

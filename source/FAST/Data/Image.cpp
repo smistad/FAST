@@ -846,7 +846,7 @@ float Image::calculateAverageIntensity() {
     if(!mAverageInitialized || mAverageIntensityTimestamp != getTimestamp()) {
         unsigned int nrOfElements = mWidth*mHeight*mDepth;
         if(mHostHasData && mHostDataIsUpToDate) {
-            Report::info() << "calculating sum on host" << Report::end;
+            reportInfo() << "calculating sum on host" << Reporter::end;
             // Host data is up to date, calculate min and max on host
             ImageAccess::pointer access = getImageAccess(ACCESS_READ);
             void* data = access->get();
@@ -868,7 +868,7 @@ float Image::calculateAverageIntensity() {
                 break;
             }
         } else {
-            Report::info() << "calculating sum with OpenCL" << Report::end;
+            reportInfo() << "calculating sum with OpenCL" << Reporter::end;
             // TODO the logic here can be improved. For instance choose the best device
             // Find some OpenCL image data or buffer data that is up to date
             bool found = false;
@@ -1083,8 +1083,8 @@ Image::pointer Image::crop(VectorXui offset, VectorXui size) {
     T.translation() = getSpacing().cwiseProduct(getDimensions() == 2 ? Vector3f(offset.x(), offset.y(), 0) : Vector3f(offset.x(), offset.y(), offset.z()));
     newImage->getSceneGraphNode()->setTransformation(T);
     SceneGraph::setParentNode(newImage, mPtr.lock());
-    Report::info() << SceneGraph::getAffineTransformationFromData(newImage).matrix() << Report::end;
-    Report::info() << SceneGraph::getAffineTransformationFromData(mPtr.lock()).matrix() << Report::end;
+    reportInfo() << SceneGraph::getAffineTransformationFromData(newImage).matrix() << Reporter::end;
+    reportInfo() << SceneGraph::getAffineTransformationFromData(mPtr.lock()).matrix() << Reporter::end;
 
     return newImage;
 }

@@ -20,8 +20,8 @@ fast_add_sources(
     AffineTransformation.hpp
     OpenCLProgram.cpp
     OpenCLProgram.hpp
-    Report.cpp
-    Report.hpp
+    Reporter.cpp
+    Reporter.hpp
     RuntimeMeasurementManager.cpp
     RuntimeMeasurementManager.hpp
     RuntimeMeasurement.cpp

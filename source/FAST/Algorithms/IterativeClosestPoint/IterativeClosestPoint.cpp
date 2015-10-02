@@ -109,7 +109,7 @@ void IterativeClosestPoint::execute() {
     // Want to choose the smallest one as moving
     bool invertTransform = false;
     if(false && fixedPoints.cols() < movingPoints.cols()) {
-        Report::info() << "switching fixed and moving" << Report::end;
+        reportInfo() << "switching fixed and moving" << Reporter::end;
         // Switch fixed and moving
         MatrixXf temp = fixedPoints;
         fixedPoints = movingPoints;
@@ -136,11 +136,11 @@ void IterativeClosestPoint::execute() {
 
         // Get centroids
         Vector3f centroidFixed = getCentroid(rearrangedFixedPoints);
-        //Report::info() << "Centroid fixed: " << Report::end;
-        //Report::info() << centroidFixed << Report::end;
+        //reportInfo() << "Centroid fixed: " << Reporter::end;
+        //reportInfo() << centroidFixed << Reporter::end;
         Vector3f centroidMoving = getCentroid(movedPoints);
-        //Report::info() << "Centroid moving: " << Report::end;
-        //Report::info() << centroidMoving << Report::end;
+        //reportInfo() << "Centroid moving: " << Reporter::end;
+        //reportInfo() << centroidMoving << Reporter::end;
 
         Eigen::Transform<float, 3, Eigen::Affine> updateTransform = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
 
@@ -181,7 +181,7 @@ void IterativeClosestPoint::execute() {
         error = sqrt(error / distance.cols());
 
         iterations++;
-        Report::info() << "Error: " << error << Report::end;
+        reportInfo() << "Error: " << error << Reporter::end;
         // To continue, change in error has to be above min error change and nr of iterations less than max iterations
     } while(previousError-error > mMinErrorChange && iterations < mMaxIterations);
 

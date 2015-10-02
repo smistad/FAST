@@ -76,16 +76,16 @@ std::vector<OpenCLDevice::pointer> DeviceManager::getDevices(DeviceCriteria crit
 		fast::Window::getMainGLContext()->makeCurrent();
 #if defined(__APPLE__) || defined(__MACOSX)
 		CGLContextObj appleContext = CGLGetCurrentContext();
-		Report::info() << "Initial GL context: " << CGLGetCurrentContext() << Report::end;
-		Report::info() << "Initial GL share group: " << CGLGetShareGroup(CGLGetCurrentContext()) << Report::end;
+		reportInfo() << "Initial GL context: " << CGLGetCurrentContext() << Reporter::end;
+		reportInfo() << "Initial GL share group: " << CGLGetShareGroup(CGLGetCurrentContext()) << Reporter::end;
 
 		glContext = (unsigned long *)appleContext;
 #elif _WIN32
         glContext = (unsigned long *)wglGetCurrentContext();
-		Report::info() << "Initial W GL context " << glContext << Report::end;
+		reportInfo() << "Initial W GL context " << glContext << Reporter::end;
 #else
         glContext = (long unsigned int*)glXGetCurrentContext();
-        Report::info() << "Initial GLX context " << glContext << Report::end;
+        reportInfo() << "Initial GLX context " << glContext << Reporter::end;
 #endif
         criteria.setCapabilityCriteria(DEVICE_CAPABILITY_OPENGL_INTEROP);
     }
@@ -151,7 +151,7 @@ OpenCLDevice::pointer DeviceManager::getOneOpenCLDevice(
     if(devices.size() > 0) {
         return devices[0];
     } else {
-        Report::info() << "NO suitable GPU found! Trying to find other devices" << Report::end;
+        reportInfo() << "NO suitable GPU found! Trying to find other devices" << Reporter::end;
         criteria.setTypeCriteria(DEVICE_TYPE_ANY);
         std::vector<OpenCLDevice::pointer> devices = getDevices(criteria,enableVisualization);
 		if(devices.size() == 0)
@@ -234,17 +234,17 @@ bool DeviceManager::deviceHasOpenGLInteropCapability(const cl::Device &device) {
 		unsigned long* glContext;
 #if defined(__APPLE__) || defined(__MACOSX)
 		CGLContextObj appleContext = CGLGetCurrentContext();
-		Report::info() << "Initial GL context: " << CGLGetCurrentContext() << Report::end;
-		Report::info() << "Initial GL share group: " << CGLGetShareGroup(CGLGetCurrentContext()) << Report::end;
+		reportInfo() << "Initial GL context: " << CGLGetCurrentContext() << Reporter::end;
+		reportInfo() << "Initial GL share group: " << CGLGetShareGroup(CGLGetCurrentContext()) << Reporter::end;
 
 		glContext = (unsigned long *)appleContext;
 #elif _WIN32
         cl_context_properties * cps = createInteropContextProperties(platform, (cl_context_properties)wglGetCurrentContext(), (cl_context_properties)wglGetCurrentDC());
-		Report::info() << "Initial W GL context " << glContext << Report::end;
+		reportInfo() << "Initial W GL context " << glContext << Reporter::end;
 #else
         glContext = (unsigned long*)glXGetCurrentContext();
         cl_context_properties * cps = createInteropContextProperties(platform, (cl_context_properties)glContext, (cl_context_properties)glXGetCurrentDisplay());
-        Report::info() << "Initial GLX context " << glContext << Report::end;
+        reportInfo() << "Initial GLX context " << glContext << Reporter::end;
 #endif
 #if defined(__APPLE__) || defined(__MACOSX)
 
@@ -295,12 +295,12 @@ std::cout << num_devices << "!!!!!!!" << std::endl;
     glGetGLContextInfo_func(cps, CL_DEVICES_FOR_GL_CONTEXT_KHR, 32 * sizeof(cl_device_id), &cl_gl_device_ids, &returnSize);
     delete[] cps;
 
-    Report::info() << "There are " << (returnSize / sizeof(cl_device_id)) << " devices that can be associated with the GL context" << Report::end;
+    reportInfo() << "There are " << (returnSize / sizeof(cl_device_id)) << " devices that can be associated with the GL context" << Reporter::end;
 
     bool found = false;
     for (int i = 0; i < returnSize / sizeof(cl_device_id); i++) {
         cl::Device device2(cl_gl_device_ids[i]);
-        Report::info() << deviceID << " - " << device2() << Report::end;
+        reportInfo() << deviceID << " - " << device2() << Reporter::end;
         if (deviceID == device2()) {
             found = true;
             break;
@@ -365,10 +365,10 @@ void DeviceManager::sortDevicesAccordingToPreference(
                 break;
             default:
                 // Do nothing
-                Report::info() << "No valid preference selected." << Report::end;
+                reportInfo() << "No valid preference selected." << Reporter::end;
                 break;
             }
-            Report::info() << "The device " <<  device.getInfo<CL_DEVICE_NAME>() << " got a score of " << (das.score) << Report::end;
+            reportInfo() << "The device " <<  device.getInfo<CL_DEVICE_NAME>() << " got a score of " << (das.score) << Reporter::end;
             deviceScores.push_back(das);
         }
 
@@ -485,8 +485,8 @@ std::vector<cl::Device> DeviceManager::getDevicesForBestPlatform(
         for (int i = 0; i < sortedPlatformDevices[bestPlatform].size(); i++) {
             validDevices.push_back(sortedPlatformDevices[bestPlatform][i]);
         }
-		Report::info() << "The platform " << platformDevices[bestPlatform].first.getInfo<CL_PLATFORM_NAME>() << " was selected as the best platform." << Report::end;
-		Report::info() << "A total of " << sortedPlatformDevices[bestPlatform].size() << " devices were selected for the context from this platform:" << Report::end;
+		reportInfo() << "The platform " << platformDevices[bestPlatform].first.getInfo<CL_PLATFORM_NAME>() << " was selected as the best platform." << Reporter::end;
+		reportInfo() << "A total of " << sortedPlatformDevices[bestPlatform].size() << " devices were selected for the context from this platform:" << Reporter::end;
 
 		for (int i = 0; i < validDevices.size(); i++) {
 			//reporter.report("Device " + number(i) + ": " + validDevices[i].getInfo<CL_DEVICE_NAME>(), INFO);
@@ -523,41 +523,41 @@ std::vector<PlatformDevices> DeviceManager::getDevices(
     if (platforms.size() == 0)
         throw Exception("No OpenCL platforms installed on the system!");
 
-    Report::info() << "Found " << platforms.size() << " OpenCL platforms." << Report::end;
+    reportInfo() << "Found " << platforms.size() << " OpenCL platforms." << Reporter::end;
 
     // First, get all the platforms that fit the platform criteria
     std::vector<cl::Platform> validPlatforms = this->getPlatforms(deviceCriteria.getPlatformCriteria());
-    Report::info() << validPlatforms.size() << " platforms selected for inspection." << Report::end;
+    reportInfo() << validPlatforms.size() << " platforms selected for inspection." << Reporter::end;
 
     // Create a vector of devices for each platform
     std::vector<PlatformDevices> platformDevices;
     for (int i = 0; i < validPlatforms.size(); i++) {
-    	Report::info() << "Platform " << i << ": " <<  validPlatforms[i].getInfo<CL_PLATFORM_VENDOR>() << Report::end;
+    	reportInfo() << "Platform " << i << ": " <<  validPlatforms[i].getInfo<CL_PLATFORM_VENDOR>() << Reporter::end;
 
         // Next, get all devices of correct type for each of those platforms
         std::vector<cl::Device> devices;
         cl_device_type deviceType;
         if (deviceCriteria.getTypeCriteria() == DEVICE_TYPE_ANY) {
             deviceType = CL_DEVICE_TYPE_ALL;
-            Report::info() << "Looking for all types of devices." << Report::end;
+            reportInfo() << "Looking for all types of devices." << Reporter::end;
         } else if (deviceCriteria.getTypeCriteria() == DEVICE_TYPE_GPU) {
             deviceType = CL_DEVICE_TYPE_GPU;
-            Report::info() << "Looking for GPU devices only." << Report::end;
+            reportInfo() << "Looking for GPU devices only." << Reporter::end;
         } else if (deviceCriteria.getTypeCriteria() == DEVICE_TYPE_CPU) {
             deviceType = CL_DEVICE_TYPE_CPU;
-            Report::info() << "Looking for CPU devices only." << Report::end;
+            reportInfo() << "Looking for CPU devices only." << Reporter::end;
         }
         try {
             validPlatforms[i].getDevices(deviceType, &devices);
         } catch (cl::Error &error) {
             // Do nothing?
         }
-        Report::info() << devices.size() << " devices found for this platform." << Report::end;
+        reportInfo() << devices.size() << " devices found for this platform." << Reporter::end;
 
         // Go through each device and see if they have the correct capabilities (if any)
         std::vector<cl::Device> acceptedDevices;
         for (int j = 0; j < devices.size(); j++) {
-        	Report::info() << "Inspecting device " << j << " with the name " << devices[j].getInfo<CL_DEVICE_NAME>() << Report::end;
+        	reportInfo() << "Inspecting device " << j << " with the name " << devices[j].getInfo<CL_DEVICE_NAME>() << Reporter::end;
             std::vector<DeviceCapability> capabilityCriteria = deviceCriteria.getCapabilityCriteria();
             bool accepted = true;
             for (int k = 0; k < capabilityCriteria.size(); k++) {
@@ -567,10 +567,10 @@ std::vector<PlatformDevices> DeviceManager::getDevices(
                 }
             }
             if (accepted) {
-            	Report::info() << "The device was accepted." << Report::end;
+            	reportInfo() << "The device was accepted." << Reporter::end;
                 acceptedDevices.push_back(devices[j]);
             } else {
-            	Report::info() << "The device was NOT accepted." << Report::end;
+            	reportInfo() << "The device was NOT accepted." << Reporter::end;
             }
         }
         if(acceptedDevices.size() > 0)

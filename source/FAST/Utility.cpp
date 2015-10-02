@@ -32,8 +32,6 @@ inline void getMaxAndMinFromOpenCLImageResult(void* voidData, unsigned int size,
     *min = data[0];
     *max = data[1];
     for(unsigned int i = nrOfComponents; i < size*nrOfComponents; i += nrOfComponents) {
-        //Report::info() << "min: " << data[i] << Report::end;
-        //Report::info() << "max: " << data[i+1] << Report::end;
         if(data[i] < *min) {
             *min = data[i];
         }
@@ -367,8 +365,6 @@ void getMaxAndMinFromOpenCLBuffer(OpenCLDevice::pointer device, cl::Buffer buffe
     int workGroups = 256;
     int X = ceil((float)length / (workGroups*workGroupSize));
 
-    Report::info() << "number of work groups is: " << workGroups << Report::end;
-    Report::info() << "X is: " << X << Report::end;
     clResult = cl::Buffer(device->getContext(), CL_MEM_READ_WRITE, getSizeOfDataType(type,1)*workGroups*2);
     reduce.setArg(0, current);
     reduce.setArg(1, workGroupSize * getSizeOfDataType(type,1), NULL);

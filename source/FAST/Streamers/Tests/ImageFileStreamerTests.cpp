@@ -28,7 +28,7 @@ TEST_CASE("Wrong filename format given to ImageFileStreamer", "[fast][ImageFileS
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat("asd#asd");
     DynamicData::pointer image = mhdStreamer->getOutput();
-    Report::info() << "asd" << Report::end;
+    reportInfo() << "asd" << Reporter::end;
     CHECK_THROWS(mhdStreamer->update());
 }
 */

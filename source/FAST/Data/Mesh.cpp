@@ -115,7 +115,7 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
             QGLWidget* widget = new QGLWidget;
             widget->show();
             widget->hide(); // TODO should probably delete widget as well
-            Report::info() << "created a drawable" << Report::end;
+            reportInfo() << "created a drawable" << Reporter::end;
         }
 #endif
 #endif
@@ -135,10 +135,10 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
                     SurfaceVertex vertex = mVertices[triangle[j]];
                     for(uint k = 0; k < 3; k++) {
                         data[counter+k] = vertex.position[k];
-                        //Report::info() << data[counter+k] << Report::end;
+                        //reportInfo() << data[counter+k] << Reporter::end;
                         data[counter+3+k] = vertex.normal[k];
                     }
-                    //Report::info() << "...." << Report::end;
+                    //reportInfo() << "...." << Reporter::end;
                     counter += 6;
                 }
             }
@@ -149,7 +149,7 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
         }
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glFinish();
-        //Report::info() << "Created VBO with ID " << mVBOID << " and " << mNrOfTriangles << " of triangles" << Report::end;
+        //reportInfo() << "Created VBO with ID " << mVBOID << " and " << mNrOfTriangles << " of triangles" << Reporter::end;
         // TODO Transfer data if any exist
 
         mVBOHasData = true;

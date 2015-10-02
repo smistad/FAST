@@ -88,7 +88,7 @@ void Skeletonization::execute() {
         if(*stopGrowingResult == 1)
             stopGrowing = true;
     } while(!stopGrowing);
-    Report::info() << "SKELETONIZATION EXECUTED" << Report::end;
+    reportInfo() << "SKELETONIZATION EXECUTED" << Reporter::end;
 }
 
 } // end namespace fast

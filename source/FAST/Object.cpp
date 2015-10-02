@@ -14,5 +14,27 @@
 
 namespace fast {
 
+Reporter& Object::reportError() {
+    mReporter.setType(Reporter::ERROR);
+    return mReporter;
+}
+
+Reporter& Object::reportWarning() {
+    mReporter.setType(Reporter::WARNING);
+    return mReporter;
+}
+
+Reporter& Object::reportInfo() {
+    mReporter.setType(Reporter::INFO);
+    return mReporter;
+}
+
+Reporter& Object::getReporterer() {
+    return mReporter;
+}
+
+ReporterEnd Object::reportEnd() const {
+    return Reporter::end;
+}
 
 } // end namespace fast
