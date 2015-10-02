@@ -29,7 +29,7 @@ Reporter& Object::reportInfo() {
     return mReporter;
 }
 
-Reporter& Object::getReporterer() {
+Reporter& Object::getReporter() {
     return mReporter;
 }
 
