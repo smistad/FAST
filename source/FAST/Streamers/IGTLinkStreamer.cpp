@@ -178,6 +178,8 @@ void IGTLinkStreamer::producerStream() {
         reportInfo() << "Device type: " << headerMsg->GetDeviceType() << Reporter::end;
         reportInfo() << "Device name: " << headerMsg->GetDeviceName() << Reporter::end;
         if(strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0) {
+            if(mInFreezeMode)
+                unfreezeSignal();
             statusMessageCounter = 0;
             igtl::TransformMessage::Pointer transMsg;
             transMsg = igtl::TransformMessage::New();
@@ -224,6 +226,8 @@ void IGTLinkStreamer::producerStream() {
                 mNrOfFrames++;
             }
         } else if(strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0) {
+            if(mInFreezeMode)
+                unfreezeSignal();
             statusMessageCounter = 0;
             reportInfo() << "Receiving IMAGE data type." << Reporter::end;
 
@@ -289,10 +293,9 @@ void IGTLinkStreamer::producerStream() {
             // Receive transform data from the socket
             mSocket->Receive(message->GetPackBodyPointer(), message->GetPackBodySize());
             if(statusMessageCounter > 10) { // If we only recieve status messages, the connection is lost
-                reportInfo() << "10 STATUS MESSAGE recieved closing connection" << Reporter::end;
-                stop();
-                connectionLostSignal();
-                break;
+                reportInfo() << "10 STATUS MESSAGE received, freeze detected" << Reporter::end;
+                mInFreezeMode = true;
+                freezeSignal();
             }
        } else {
            // Receive generic message
@@ -340,6 +343,7 @@ IGTLinkStreamer::IGTLinkStreamer() {
     mAddress = "";
     mPort = 0;
     mMaximumNrOfFramesSet = false;
+    mInFreezeMode = false;
     setMaximumNumberOfFrames(50); // Set default maximum number of frames to 50
 }
 

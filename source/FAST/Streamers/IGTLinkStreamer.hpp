@@ -37,6 +37,9 @@ class IGTLinkStreamer : public Streamer, public ProcessObject {
         // Signals
         boost::signals2::signal<void ()> connectionEstablishedSignal;
         boost::signals2::signal<void ()> connectionLostSignal;
+        // Ultrasound systems can freeze and thereby stop sending data, these signals are used for that
+        boost::signals2::signal<void ()> freezeSignal;
+        boost::signals2::signal<void ()> unfreezeSignal;
     private:
         IGTLinkStreamer();
 
@@ -56,6 +59,7 @@ class IGTLinkStreamer : public Streamer, public ProcessObject {
         bool mFirstFrameIsInserted;
         bool mHasReachedEnd;
         bool mStop;
+        bool mInFreezeMode;
 
         std::string mAddress;
         uint mPort;
