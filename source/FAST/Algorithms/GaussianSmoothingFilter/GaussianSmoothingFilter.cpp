@@ -82,7 +82,7 @@ void GaussianSmoothingFilter::createMask(Image::pointer input, uchar maskSize, b
             for(int i = 0; i < maskSize; ++i)
                 mMask[i] /= sum;
         } else {
-            mMask = new float[maskSize*maskSize];
+            mMask = new float[maskSize*maskSize*maskSize];
 
             for(int x = -halfSize; x <= halfSize; x++) {
             for(int y = -halfSize; y <= halfSize; y++) {
@@ -92,7 +92,7 @@ void GaussianSmoothingFilter::createMask(Image::pointer input, uchar maskSize, b
                 sum += value;
             }}}
 
-            for(int i = 0; i < maskSize*maskSize; ++i)
+            for(int i = 0; i < maskSize*maskSize*maskSize; ++i)
                 mMask[i] /= sum;
         }
     }
@@ -221,6 +221,7 @@ void GaussianSmoothingFilter::execute() {
 
 
     if(device->isHost()) {
+        createMask(input, maskSize, false);
         switch(input->getDataType()) {
             fastSwitchTypeMacro(executeAlgorithmOnHost<FAST_TYPE>(input, output, mMask, maskSize));
         }
