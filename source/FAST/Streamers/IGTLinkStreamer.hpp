@@ -77,10 +77,15 @@ class IGTLinkStreamer : public Streamer, public ProcessObject {
 
 template<class T>
 ProcessObjectPort IGTLinkStreamer::getOutputPort(std::string deviceName) {
-    uint portID = getNrOfOutputPorts();
-    createOutputPort<T>(portID, OUTPUT_DYNAMIC);
-    getOutputData<T>(portID); // This initializes the output data
-    mOutputPortDeviceNames[deviceName] = portID;
+	uint portID;
+	if(mOutputPortDeviceNames.count(deviceName) == 0) {
+		portID = getNrOfOutputPorts();
+		createOutputPort<T>(portID, OUTPUT_DYNAMIC);
+		getOutputData<T>(portID); // This initializes the output data
+		mOutputPortDeviceNames[deviceName] = portID;
+	} else {
+		portID = mOutputPortDeviceNames[deviceName];
+	}
     return ProcessObject::getOutputPort(portID);
 }
 

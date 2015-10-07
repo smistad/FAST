@@ -124,8 +124,12 @@ void IGTLinkStreamer::producerStream() {
     //mSocket->SetTimeout(3); // try to connect for 3 seconds
     int r = mSocket->ConnectToServer(mAddress.c_str(), mPort);
     if(r != 0) {
+		reportInfo() << "Failed to connect to Open IGT Link server " << mAddress << ":" << boost::lexical_cast<std::string>(mPort) << Reporter::end;;
+       mIsModified = true;
+        mStreamIsStarted = false;
        connectionLostSignal();
-       throw Exception("Cannot connect to the Open IGT Link server.");
+       //throw Exception("Cannot connect to the Open IGT Link server.");
+       return;
     }
     reportInfo() << "Connected to Open IGT Link server" << Reporter::end;;
 
