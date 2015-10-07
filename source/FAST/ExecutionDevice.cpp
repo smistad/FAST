@@ -165,11 +165,10 @@ OpenCLDevice::OpenCLDevice(std::vector<cl::Device> devices, unsigned long* OpenG
         );
 #else
 #ifdef _WIN32
-		HDC hdc = getHDC();
         cps = createInteropContextProperties(
                 this->platform,
                 (cl_context_properties)OpenGLContext,
-                (cl_context_properties)hdc
+                (cl_context_properties)wglGetCurrentDC()
         );
 #else
         std::cout << "current glX context is " << OpenGLContext << std::endl;

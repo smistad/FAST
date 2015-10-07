@@ -12,6 +12,8 @@
 #endif
 #endif
 
+#undef ERROR // undefine some windows garbage
+
 namespace fast {
 
 Reporter& Object::reportError() {
