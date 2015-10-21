@@ -181,6 +181,10 @@ void IGTLinkStreamer::producerStream() {
            << nanosec << Reporter::end;
         reportInfo() << "Device type: " << headerMsg->GetDeviceType() << Reporter::end;
         reportInfo() << "Device name: " << headerMsg->GetDeviceName() << Reporter::end;
+        igtl::TimeStamp::Pointer igtlTimestamp = igtl::TimeStamp::New();
+        headerMsg->GetTimeStamp(igtlTimestamp);
+        unsigned long timestamp = round(ts->GetTimeStamp()*1000); // convert to milliseconds
+        reportInfo() << "TIMESTAMP converted: " << timestamp << reportEnd();
         if(strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0) {
             if(mInFreezeMode) {
                 unfreezeSignal();
@@ -196,6 +200,7 @@ void IGTLinkStreamer::producerStream() {
             // Deserialize the transform data
             // If you want to skip CRC check, call Unpack() without argument.
             int c = transMsg->Unpack(1);
+
 
             if(c & igtl::MessageHeader::UNPACK_BODY) { // if CRC check is OK
                 // Retrive the transform data
@@ -218,6 +223,7 @@ void IGTLinkStreamer::producerStream() {
                 try {
                     AffineTransformation::pointer T = AffineTransformation::New();
                     T->matrix() = fastMatrix;
+                    T->setCreationTimestamp(timestamp);
                     ptr->addFrame(T);
                     reportInfo() << "Frame added.." << Reporter::end;
                 } catch(NoMoreFramesException &e) {
@@ -273,6 +279,7 @@ void IGTLinkStreamer::producerStream() {
                 }
                 try {
                     Image::pointer image = createFASTImageFromMessage(imgMsg, getMainDevice());
+                    image->setCreationTimestamp(timestamp);
                     reportInfo() << image->getSceneGraphNode()->getTransformation().matrix() << Reporter::end;
                     reportInfo() << "SPACING IS " << image->getSpacing().transpose() << Reporter::end;
                     reportInfo() << "SIZE IS " << image->getSize().transpose() << Reporter::end;

@@ -17,6 +17,7 @@ class ImageFileStreamer : public Streamer, public ProcessObject {
         void setZeroFilling(uint digits);
         void setStreamingMode(StreamingMode mode);
         void setMaximumNumberOfFrames(uint nrOfFrames);
+        void setTimestampFilename(std::string filepath);
         void enableLooping();
         void disableLooping();
         /**
@@ -56,6 +57,7 @@ class ImageFileStreamer : public Streamer, public ProcessObject {
         bool mHasReachedEnd;
 
         std::string mFilenameFormat;
+        std::string mTimestampFilename;
 
 };
 

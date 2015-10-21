@@ -4,6 +4,8 @@
 #include <boost/lexical_cast.hpp>
 #include "ImageFileStreamer.hpp"
 #include "FAST/Data/Image.hpp"
+#include <fstream>
+#include <chrono>
 
 namespace fast {
 /**
@@ -23,6 +25,7 @@ ImageFileStreamer::ImageFileStreamer() {
     mFirstFrameIsInserted = false;
     mHasReachedEnd = false;
     mFilenameFormat = "";
+    mTimestampFilename = "";
     mNrOfFrames = 0;
     mSleepTime = 0;
     mStepSize = 1;
@@ -51,6 +54,10 @@ void ImageFileStreamer::setMaximumNumberOfFrames(uint nrOfFrames) {
     data->setMaximumNumberOfFrames(nrOfFrames);
 }
 
+void ImageFileStreamer::setTimestampFilename(std::string filepath) {
+    mTimestampFilename = filepath;
+}
+
 void ImageFileStreamer::execute() {
     getOutputData<Image>(0)->setStreamer(mPtr.lock());
     if(mFilenameFormat == "")
@@ -77,6 +84,28 @@ void ImageFileStreamer::setFilenameFormat(std::string str) {
 
 void ImageFileStreamer::producerStream() {
     Streamer::pointer pointerToSelf = mPtr.lock(); // try to avoid this object from being destroyed until this function is finished
+
+    // Read timestamp file if available
+    std::ifstream timestampFile;
+    unsigned long previousTimestamp = 0;
+    auto previousTimestampTime = std::chrono::high_resolution_clock::time_point::min();
+    if(mTimestampFilename != "") {
+        timestampFile.open(mTimestampFilename.c_str());
+        if(!timestampFile.is_open()) {
+            throw Exception("Timestamp file not found in ImageFileStreamer");
+        }
+
+        // Fast forward to start
+        if(mStartNumber > 0) {
+            int i = 0;
+            while(i <= mStartNumber) {
+                std::string line;
+                std::getline(timestampFile, line);
+                ++i;
+            }
+        }
+    }
+
     uint i = mStartNumber;
     while(true) {
         std::string filename = mFilenameFormat;
@@ -99,6 +128,33 @@ void ImageFileStreamer::producerStream() {
             importer->setMainDevice(getMainDevice());
             importer->update();
             Image::pointer image = importer->getOutputData<Image>();
+            // Set and use timestamp if available
+            if(mTimestampFilename != "") {
+                std::string line;
+                std::getline(timestampFile, line);
+                if(line != "") {
+                    unsigned long timestamp = boost::lexical_cast<unsigned long>(line);
+                    image->setCreationTimestamp(timestamp);
+                    // Wait as long as necessary before adding image
+                    auto timePassed = std::chrono::duration_cast<std::chrono::milliseconds>(
+                            std::chrono::high_resolution_clock::now() - previousTimestampTime);
+                    //reportInfo() << timestamp << reportEnd();
+                    //reportInfo() << previousTimestamp << reportEnd();
+                    //reportInfo() << "Time passed: " << timePassed.count() << reportEnd();
+                    while(timestamp > previousTimestamp + timePassed.count()) {
+                        // Wait
+                        boost::this_thread::sleep(boost::posix_time::milliseconds(timestamp-(long)previousTimestamp-timePassed.count()));
+                        timePassed = std::chrono::duration_cast<std::chrono::milliseconds>(
+                            std::chrono::high_resolution_clock::now() - previousTimestampTime);
+                        //reportInfo() << "wait" << reportEnd();
+                        //reportInfo() << timestamp << reportEnd();
+                        //reportInfo() << previousTimestamp << reportEnd();
+                        //reportInfo() << "Time passed: " << timePassed.count() << reportEnd();
+                    }
+                    previousTimestamp = timestamp;
+                    previousTimestampTime = std::chrono::high_resolution_clock::now();
+                }
+            }
             DynamicData::pointer ptr = getOutputData<Image>();
             if(ptr.isValid()) {
                 try {
@@ -137,6 +193,11 @@ void ImageFileStreamer::producerStream() {
                 }
                 if(mLoop) {
                     // Restart stream
+                    if(timestampFile.is_open()) {
+                        previousTimestamp = 0;
+                        previousTimestampTime = std::chrono::high_resolution_clock::time_point::min();
+                        timestampFile.seekg(0); // reset file to start
+                    }
                     i = mStartNumber;
                     continue;
                 }
