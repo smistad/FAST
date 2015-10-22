@@ -125,11 +125,11 @@ void IGTLinkStreamer::producerStream() {
     int r = mSocket->ConnectToServer(mAddress.c_str(), mPort);
     if(r != 0) {
 		reportInfo() << "Failed to connect to Open IGT Link server " << mAddress << ":" << boost::lexical_cast<std::string>(mPort) << Reporter::end;;
-       mIsModified = true;
+        mIsModified = true;
         mStreamIsStarted = false;
-       connectionLostSignal();
-       //throw Exception("Cannot connect to the Open IGT Link server.");
-       return;
+        connectionLostSignal();
+        //throw Exception("Cannot connect to the Open IGT Link server.");
+        return;
     }
     reportInfo() << "Connected to Open IGT Link server" << Reporter::end;;
 
@@ -171,18 +171,10 @@ void IGTLinkStreamer::producerStream() {
         headerMsg->Unpack();
 
         // Get time stamp
-        igtlUint32 sec;
-        igtlUint32 nanosec;
         headerMsg->GetTimeStamp(ts);
-        ts->GetTimeStamp(&sec, &nanosec);
 
-        reportInfo() << "Time stamp: "
-           << sec << "." << std::setw(9) << std::setfill('0')
-           << nanosec << Reporter::end;
-        reportInfo() << "Device type: " << headerMsg->GetDeviceType() << Reporter::end;
         reportInfo() << "Device name: " << headerMsg->GetDeviceName() << Reporter::end;
-        igtl::TimeStamp::Pointer igtlTimestamp = igtl::TimeStamp::New();
-        headerMsg->GetTimeStamp(igtlTimestamp);
+
         unsigned long timestamp = round(ts->GetTimeStamp()*1000); // convert to milliseconds
         reportInfo() << "TIMESTAMP converted: " << timestamp << reportEnd();
         if(strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0) {
@@ -224,8 +216,7 @@ void IGTLinkStreamer::producerStream() {
                     AffineTransformation::pointer T = AffineTransformation::New();
                     T->matrix() = fastMatrix;
                     T->setCreationTimestamp(timestamp);
-                    ptr->addFrame(T);
-                    reportInfo() << "Frame added.." << Reporter::end;
+                    mOutputDataBuffer[headerMsg->GetDeviceName()] = T;
                 } catch(NoMoreFramesException &e) {
                     throw e;
                 } catch(Exception &e) {
@@ -280,11 +271,7 @@ void IGTLinkStreamer::producerStream() {
                 try {
                     Image::pointer image = createFASTImageFromMessage(imgMsg, getMainDevice());
                     image->setCreationTimestamp(timestamp);
-                    reportInfo() << image->getSceneGraphNode()->getTransformation().matrix() << Reporter::end;
-                    reportInfo() << "SPACING IS " << image->getSpacing().transpose() << Reporter::end;
-                    reportInfo() << "SIZE IS " << image->getSize().transpose() << Reporter::end;
-                    ptr->addFrame(image);
-                    reportInfo() << "Image frame added.." << Reporter::end;
+                    mOutputDataBuffer[headerMsg->GetDeviceName()] = image;
                 } catch(NoMoreFramesException &e) {
                     throw e;
                 } catch(Exception &e) {
@@ -326,6 +313,8 @@ void IGTLinkStreamer::producerStream() {
           // If you want to skip CRC check, call Unpack() without argument.
           int c = message->Unpack();
        }
+
+        outputDataIfAllHasBeenReceived();
     }
     // Make sure we end the waiting thread if first frame has not been inserted
     {
@@ -335,6 +324,34 @@ void IGTLinkStreamer::producerStream() {
     }
     mFirstFrameCondition.notify_one();
     mSocket->CloseSocket();
+}
+
+void IGTLinkStreamer::outputDataIfAllHasBeenReceived() {
+    // Check if all output data has been put in the buffer
+    // If it has add it to the dynamic data objects
+    bool allDataPresent = true;
+    boost::unordered_map<std::string, uint>::iterator it;
+    for(it = mOutputPortDeviceNames.begin(); it != mOutputPortDeviceNames.end(); ++it) {
+        if(mOutputDataBuffer.count(it->first) == 0) {
+            allDataPresent = false;
+            break;
+        }
+    }
+
+    if(!allDataPresent)
+        return;
+
+    boost::unordered_map<std::string, DataObject::pointer>::iterator it2;
+    for(it2 = mOutputDataBuffer.begin(); it2 != mOutputDataBuffer.end(); ++it2) {
+        if(it2->second->getNameOfClass() == "Image") {
+            DynamicData::pointer ptr = getOutputDataFromDeviceName<Image>(it2->first);
+            ptr->addFrame(it2->second);
+        } else {
+            DynamicData::pointer ptr = getOutputDataFromDeviceName<AffineTransformation>(it2->first);
+            ptr->addFrame(it2->second);
+        }
+    }
+    mOutputDataBuffer.clear();
 }
 
 IGTLinkStreamer::~IGTLinkStreamer() {

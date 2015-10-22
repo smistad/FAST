@@ -72,6 +72,9 @@ class IGTLinkStreamer : public Streamer, public ProcessObject {
         DynamicData::pointer getOutputDataFromDeviceName(std::string deviceName);
         void updateFirstFrameSetFlag();
 
+        // Keep data in this structure until all data has been received
+        boost::unordered_map<std::string, DataObject::pointer> mOutputDataBuffer;
+        void outputDataIfAllHasBeenReceived();
 };
 
 
