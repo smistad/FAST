@@ -324,7 +324,6 @@ void IGTLinkStreamer::producerStream() {
     mSocket->CloseSocket();
 }
 
-
 IGTLinkStreamer::~IGTLinkStreamer() {
     if(mStreamIsStarted) {
         stop();
