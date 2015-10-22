@@ -125,11 +125,11 @@ void IGTLinkStreamer::producerStream() {
     int r = mSocket->ConnectToServer(mAddress.c_str(), mPort);
     if(r != 0) {
 		reportInfo() << "Failed to connect to Open IGT Link server " << mAddress << ":" << boost::lexical_cast<std::string>(mPort) << Reporter::end;;
-       mIsModified = true;
+        mIsModified = true;
         mStreamIsStarted = false;
-       connectionLostSignal();
-       //throw Exception("Cannot connect to the Open IGT Link server.");
-       return;
+        connectionLostSignal();
+        //throw Exception("Cannot connect to the Open IGT Link server.");
+        return;
     }
     reportInfo() << "Connected to Open IGT Link server" << Reporter::end;;
 
@@ -171,18 +171,10 @@ void IGTLinkStreamer::producerStream() {
         headerMsg->Unpack();
 
         // Get time stamp
-        igtlUint32 sec;
-        igtlUint32 nanosec;
         headerMsg->GetTimeStamp(ts);
-        ts->GetTimeStamp(&sec, &nanosec);
 
-        reportInfo() << "Time stamp: "
-           << sec << "." << std::setw(9) << std::setfill('0')
-           << nanosec << Reporter::end;
-        reportInfo() << "Device type: " << headerMsg->GetDeviceType() << Reporter::end;
         reportInfo() << "Device name: " << headerMsg->GetDeviceName() << Reporter::end;
-        igtl::TimeStamp::Pointer igtlTimestamp = igtl::TimeStamp::New();
-        headerMsg->GetTimeStamp(igtlTimestamp);
+
         unsigned long timestamp = round(ts->GetTimeStamp()*1000); // convert to milliseconds
         reportInfo() << "TIMESTAMP converted: " << timestamp << reportEnd();
         if(strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0) {
@@ -225,7 +217,6 @@ void IGTLinkStreamer::producerStream() {
                     T->matrix() = fastMatrix;
                     T->setCreationTimestamp(timestamp);
                     ptr->addFrame(T);
-                    reportInfo() << "Frame added.." << Reporter::end;
                 } catch(NoMoreFramesException &e) {
                     throw e;
                 } catch(Exception &e) {
@@ -280,11 +271,7 @@ void IGTLinkStreamer::producerStream() {
                 try {
                     Image::pointer image = createFASTImageFromMessage(imgMsg, getMainDevice());
                     image->setCreationTimestamp(timestamp);
-                    reportInfo() << image->getSceneGraphNode()->getTransformation().matrix() << Reporter::end;
-                    reportInfo() << "SPACING IS " << image->getSpacing().transpose() << Reporter::end;
-                    reportInfo() << "SIZE IS " << image->getSize().transpose() << Reporter::end;
                     ptr->addFrame(image);
-                    reportInfo() << "Image frame added.." << Reporter::end;
                 } catch(NoMoreFramesException &e) {
                     throw e;
                 } catch(Exception &e) {
@@ -336,6 +323,7 @@ void IGTLinkStreamer::producerStream() {
     mFirstFrameCondition.notify_one();
     mSocket->CloseSocket();
 }
+
 
 IGTLinkStreamer::~IGTLinkStreamer() {
     if(mStreamIsStarted) {

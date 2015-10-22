@@ -71,7 +71,6 @@ class IGTLinkStreamer : public Streamer, public ProcessObject {
         template <class T>
         DynamicData::pointer getOutputDataFromDeviceName(std::string deviceName);
         void updateFirstFrameSetFlag();
-
 };
 
 
