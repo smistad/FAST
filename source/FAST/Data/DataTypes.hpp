@@ -7,13 +7,7 @@
 #include "FAST/ExecutionDevice.hpp"
 #include <cmath>
 #include <iostream>
-#if defined(__APPLE__) || defined(__MACOSX)
-#include <eigen3/Eigen/Dense>
-#elif _WIN32
 #include <Eigen/Dense>
-#else
-#include <eigen3/Eigen/Dense>
-#endif
 
 // These have to be outside of fast namespace or it will not compile with Qt on Windows. Why?
 typedef unsigned char uchar;
