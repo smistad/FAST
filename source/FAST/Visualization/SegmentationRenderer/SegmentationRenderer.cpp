@@ -56,6 +56,8 @@ SegmentationRenderer::SegmentationRenderer() {
     mLabelColors[Segmentation::LABEL_BACKGROUND] = Color::Black();
     mLabelColors[Segmentation::LABEL_FOREGROUND] = Color::Green();
     mLabelColors[Segmentation::LABEL_BLOOD] = Color::Red();
+    mLabelColors[Segmentation::LABEL_ARTERY] = Color::Red();
+    mLabelColors[Segmentation::LABEL_VEIN] = Color::Blue();
     mLabelColors[Segmentation::LABEL_BONE] = Color::White();
     mLabelColors[Segmentation::LABEL_MUSCLE] = Color::Red();
     mLabelColors[Segmentation::LABEL_NERVE] = Color::Yellow();
