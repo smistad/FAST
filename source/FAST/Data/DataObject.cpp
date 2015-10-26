@@ -3,16 +3,27 @@
 
 namespace fast {
 
-DataObject::DataObject() : mTimestampModified(0), mIsDynamicData(false) {
+DataObject::DataObject() :
+        mTimestampModified(0),
+        mTimestampCreated(0),
+        mIsDynamicData(false) {
 }
 
 
-bool DataObject::isDynamicData() {
+bool DataObject::isDynamicData() const {
     return mIsDynamicData;
 }
 
-unsigned long DataObject::getTimestamp() {
+unsigned long DataObject::getTimestamp() const {
     return mTimestampModified;
+}
+
+unsigned long DataObject::getCreationTimestamp() const {
+    return mTimestampCreated;
+}
+
+void DataObject::setCreationTimestamp(unsigned long timestamp) {
+    mTimestampCreated = timestamp;
 }
 
 void DataObject::updateModifiedTimestamp() {
