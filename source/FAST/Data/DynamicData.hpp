@@ -23,6 +23,7 @@ class DynamicData : public DataObject {
         ~DynamicData();
 
         bool hasReachedEnd();
+        bool hasReachedEnd(Object::pointer PO);
         DataObject::pointer getCurrentFrame();
         void registerConsumer(WeakPointer<Object> processObject);
         void registerConsumer(Object::pointer processObject);
