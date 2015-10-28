@@ -146,7 +146,7 @@ set(LIBRARIES ${LIBRARIES} ${GLEW_LIBRARY})
 
 ## Eigen
 find_package(Eigen3 REQUIRED)
-include_directories(${EIGEN3_INCLUDE_DIR})
+list(APPEND FAST_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR}) 
 message("-- Using Eigen ${EIGEN3_VERSION}")
 
 ## VTK
