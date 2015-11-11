@@ -26,7 +26,8 @@ class Segmentation : public Image {
             LABEL_GREEN,
             LABEL_PURPLE,
             LABEL_RED,
-            LABEL_WHITE
+            LABEL_WHITE,
+			LABEL_BLUE
         };
 
         /*

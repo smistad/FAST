@@ -66,6 +66,7 @@ SegmentationRenderer::SegmentationRenderer() {
     mLabelColors[Segmentation::LABEL_PURPLE] = Color::Purple();
     mLabelColors[Segmentation::LABEL_RED] = Color::Red();
     mLabelColors[Segmentation::LABEL_WHITE] = Color::White();
+    mLabelColors[Segmentation::LABEL_BLUE] = Color::Blue();
 }
 
 void SegmentationRenderer::execute() {
