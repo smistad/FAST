@@ -155,12 +155,13 @@ void ImageRenderer::draw() {
         glPushMatrix();
 
         AffineTransformation transform = SceneGraph::getAffineTransformationFromData(it->second);
-        transform.scale(it->second->getSpacing()); // Apply image spacing
         glMultMatrixf(transform.data());
 
         glBindTexture(GL_TEXTURE_2D, mTexturesToRender[it->first]);
-        uint width = it->second->getWidth();
-        uint height = it->second->getHeight();
+
+        // Get width and height in mm
+        float width = it->second->getWidth()*it->second->getSpacing().x();
+        float height = it->second->getHeight()*it->second->getSpacing().y();
 
         glColor3f(1,1,1); // black white texture
         glBegin(GL_QUADS);
