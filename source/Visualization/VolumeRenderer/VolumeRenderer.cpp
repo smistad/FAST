@@ -101,7 +101,7 @@ void VolumeRenderer::setOpacityTransferFunction(int volumeIndex, OpacityTransfer
                 unsigned int index=0;
                 for(unsigned int i=S-xMin; i<E-xMin; i++, index++)
                 {
-                        opacityFunc[i*4]=A1+A*index/D;//A
+                        opacityFunc[i*4+3]=A1+A*index/D;//A
 
                 }
         }
@@ -438,7 +438,7 @@ void VolumeRenderer::execute() {
 	if (!includeGeometry)
 	{
 
-		float density = 0.05f;
+		float density = 1.0f;
 		float brightness = 1.0f;
 
 		OpenCLImageAccess3D::pointer access = mImagesToRender[0]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);//getStaticInputData<Image>(0)->getOpenCLImageAccess3D(ACCESS_READ, mDevice);

@@ -189,7 +189,7 @@ d_render(__global uint *d_output,
 		float4 alpha = read_imagef(opacityFunc, transferFuncSampler, opacity_transfer_pos);
 		col.w=alpha.w;
         // accumulate result
-        float a = col.w*density;
+		float a = clamp(col.w*density*tstep, 0.0f, 1.0f);
         volumeColor = mix(volumeColor, col, (float4)(a, a, a, a));
 		
 #if defined(VOL2) || defined(VOL3) || defined(VOL4) || defined(VOL5)
@@ -210,7 +210,7 @@ d_render(__global uint *d_output,
 			col = read_imagef(transferFunc2, transferFuncSampler, color_transfer_pos);
 			alpha = read_imagef(opacityFunc2, transferFuncSampler, opacity_transfer_pos);
 			col.w=alpha.w;
-			a = col.w*density; //Mehdi
+			a = clamp(col.w*density*tstep, 0.0f, 1.0f);
 			volumeColor = mix(volumeColor, col, (float4)(a, a, a, a)); //Mehdi
 		}
 #endif //VOL2
@@ -233,7 +233,7 @@ d_render(__global uint *d_output,
 			col = read_imagef(transferFunc3, transferFuncSampler, color_transfer_pos);
 			alpha = read_imagef(opacityFunc3, transferFuncSampler, opacity_transfer_pos);
 			col.w=alpha.w;
-			a = col.w*density; //Mehdi
+			a = clamp(col.w*density*tstep, 0.0f, 1.0f); //Mehdi
 			volumeColor = mix(volumeColor, col, (float4)(a, a, a, a)); //Mehdi
 		}
 #endif //VOL3
@@ -256,7 +256,7 @@ d_render(__global uint *d_output,
 			col = read_imagef(transferFunc4, transferFuncSampler, color_transfer_pos);
 			alpha = read_imagef(opacityFunc4, transferFuncSampler, opacity_transfer_pos);
 			col.w=alpha.w;
-			a = col.w*density; //Mehdi
+			a = clamp(col.w*density*tstep, 0.0f, 1.0f); //Mehdi
 			volumeColor = mix(volumeColor, col, (float4)(a, a, a, a)); //Mehdi
 		}
 #endif //VOL4
@@ -279,7 +279,7 @@ d_render(__global uint *d_output,
 			col = read_imagef(transferFunc5, transferFuncSampler, color_transfer_pos);
 			alpha = read_imagef(opacityFunc5, transferFuncSampler, opacity_transfer_pos);
 			col.w=alpha.w;
-			a = col.w*density; //Mehdi
+			a = clamp(col.w*density*tstep, 0.0f, 1.0f); //Mehdi
 			volumeColor = mix(temp, col, (float4)(a, a, a, a)); //Mehdi
 		}		
 #endif //VOL5
