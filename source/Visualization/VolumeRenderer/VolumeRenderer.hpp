@@ -29,7 +29,7 @@ class VolumeRenderer : public Renderer {
 		void addGeometryDepthTexture(GLuint geoDepthTex);
         
 		void resize(GLuint, GLuint);
-		void setProjectionParameters(float fov, float aspect, float nearPlane, float farPlane);
+		void setProjectionParameters(float fov, float aspect, float nearPlane, float farPlane, int width, int height);
 		void setUserTransform(int volumeIndex, const float userTransform[16]);
 
 		void turnOffTransformations();
@@ -69,7 +69,7 @@ class VolumeRenderer : public Renderer {
 
        // unsigned int mWidth, mHeight;
 
-
+		bool pboHasChanged;
 		GLuint pbo;
 		cl::BufferGL pbo_cl;
 

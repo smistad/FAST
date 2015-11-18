@@ -565,7 +565,7 @@ void View::initializeGL() {
 
 				//Set the output image size for volume renderer based on window size.
 				((VolumeRenderer::pointer)mVolumeRenderers[0])->resize(this->width(),this->height());
-				((VolumeRenderer::pointer)mVolumeRenderers[0])->setProjectionParameters(fieldOfViewY, (float)this->width()/this->height(), zNear, zFar);
+				((VolumeRenderer::pointer)mVolumeRenderers[0])->setProjectionParameters(fieldOfViewY, (float)this->width()/this->height(), zNear, zFar, this->width(), this->height());
 			}
 		}
 	}
@@ -797,7 +797,7 @@ void View::resizeGL(int width, int height) {
 	if (mVolumeRenderers.size() > 0)
 	{
 		((VolumeRenderer::pointer)mVolumeRenderers[0])->resize(width, height);
-		((VolumeRenderer::pointer)mVolumeRenderers[0])->setProjectionParameters(fieldOfViewY, (float)width/height, zNear, zFar);
+		((VolumeRenderer::pointer)mVolumeRenderers[0])->setProjectionParameters(fieldOfViewY, (float)width/height, zNear, zFar, width, height);
 	}
 }
 

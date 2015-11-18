@@ -16,24 +16,24 @@
 namespace fast {
 
 void VolumeRenderer::resize(GLuint height, GLuint width){
-	mHeight = height;
-	mWidth = width;
+
+	pboHasChanged = true;
 	mIsModified = true;
-	/*
-	//delete old pbo if exist any
-	if (pbo)
-		glDeleteBuffersARB(1, &pbo);
-	pbo = 0;*/
+
 }
-void VolumeRenderer::setProjectionParameters(float fov, float aspect, float nearPlane, float farPlane){
+void VolumeRenderer::setProjectionParameters(float fov, float aspect, float nearPlane, float farPlane, int width, int height){
+	mWidth = width;
+	mHeight = height;
 	zNear = nearPlane;
 	zFar = farPlane;
-
 	topOfViewPlane=fabs(zNear)*tan(M_PI*fov/360);
 	rightOfViewPlane=topOfViewPlane*aspect;
 
 	projectionMatrix10 = (zFar+zNear)/(zFar-zNear);
 	projectionMatrix14= (-2.0*zFar*zNear) / (zFar-zNear);
+
+	pboHasChanged = true;
+
 	mIsModified = true;
 }
 void VolumeRenderer::addInputConnection(ProcessObjectPort port) {
@@ -233,7 +233,7 @@ void VolumeRenderer::setUserTransform(int volumeIndex, const float userTransform
 	
 }
 VolumeRenderer::VolumeRenderer() : Renderer() {
-
+	
     mDevice = DeviceManager::getInstance().getDefaultVisualizationDevice();
 	clContext = mDevice->getContext();
 
@@ -245,7 +245,6 @@ VolumeRenderer::VolumeRenderer() : Renderer() {
 	numberOfVolumes=0;
 
 //	inputs.clear();
-
 	//Default window size
 	mHeight = 512;
 	mWidth = 512;
@@ -259,6 +258,7 @@ VolumeRenderer::VolumeRenderer() : Renderer() {
 
 	includeGeometry=false;
 
+	pboHasChanged = true;
 	pbo=0;
 
 	for (int i=0; i<maxNumberOfVolumes; i++)
@@ -420,8 +420,13 @@ void VolumeRenderer::execute() {
 		mInputIsModified = false;
 	}
 
-	if (!pbo)
+	if (pboHasChanged)
 	{
+		if (pbo)
+		{
+			// delete old buffer
+			glDeleteBuffers(1, &pbo);
+		}
 		// create pixel buffer object for display
 		glGenBuffersARB(1, &pbo);
 		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pbo);
@@ -431,8 +436,6 @@ void VolumeRenderer::execute() {
 		// Create CL-GL image
 		pbo_cl = cl::BufferGL(clContext, CL_MEM_WRITE_ONLY, pbo);
 
-		// delete old buffer
-		//glDeleteBuffersARB(1, &pbo);
 	}
 
 	if (!includeGeometry)
