@@ -300,7 +300,8 @@ TEST_CASE("SliceRenderer Static Single", "[fast][benchmark][visualization][slice
 	fputs("\nRendering Time:\n", pFile);
 	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
 
-	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
 	fclose(pFile);
 }
@@ -337,7 +338,8 @@ TEST_CASE("SliceRenderer Dynamic Single", "[fast][benchmark][visualization][slic
 	fputs("\nRendering Time :\n", pFile);
 	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
 
-	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
 	fclose(pFile);
 
@@ -384,7 +386,8 @@ TEST_CASE("SliceRenderer Static Multi", "[fast][benchmark][visualization][slice]
 	fputs("\nRendering Time :\n", pFile);
 	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
 
-	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
 	fclose(pFile);
 }
@@ -432,7 +435,8 @@ TEST_CASE("SliceRenderer Dynamic Multi", "[fast][benchmark][visualization][slice
 	fputs("\nRendering Time :\n", pFile);
 	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
 
-	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
 	fclose(pFile);
 }
@@ -479,7 +483,8 @@ TEST_CASE("VolumeRenderer Static Single", "[fast][benchmark][visualization][volu
 	fputs("\nRendering Time:\n", pFile);
 	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
 	fclose(pFile);
 
@@ -527,7 +532,8 @@ TEST_CASE("VolumeRenderer Dynamic Single", "[fast][benchmark][visualization][vol
 	fputs("\nRendering Time:\n", pFile);
 	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
 	fclose(pFile);
 
@@ -595,7 +601,8 @@ TEST_CASE("VolumeRenderer Static Multi", "[fast][benchmark][visualization][volum
 	fputs("\nRendering Time:\n", pFile);
 	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
 	fclose(pFile);
 
@@ -663,7 +670,8 @@ TEST_CASE("VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][volu
 	fputs("\nRendering Time:\n", pFile);
 	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
 	fclose(pFile);
 
@@ -722,7 +730,8 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Static Single", "[fast][
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
 	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 	
 	fclose(pFile);
 
@@ -791,7 +800,8 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Static Single", "[fast][b
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
 	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
 	fclose(pFile);
 
@@ -870,7 +880,8 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Static Multi", "[fast][b
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
 	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
 	fclose(pFile);
 
@@ -950,7 +961,8 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Static Multi", "[fast][be
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
 	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
 	fclose(pFile);
 
@@ -1017,7 +1029,8 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Static Single", "[fast]
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
 	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
 	fclose(pFile);
 
@@ -1094,7 +1107,8 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Static Single", "[fast][
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
 	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
 	fclose(pFile);
 
@@ -1180,7 +1194,8 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Static Multi", "[fast][
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
 	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
 	fclose(pFile);
 
@@ -1276,7 +1291,8 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Static Multi", "[fast][b
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
 	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
 	fclose(pFile);
 
@@ -1344,7 +1360,8 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Dynamic Single", "[fast]
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
 	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
 	fclose(pFile);
 }
@@ -1419,7 +1436,8 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Dynamic Single", "[fast][
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
 	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
 	fclose(pFile);
 
@@ -1505,7 +1523,8 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Dynamic Multi", "[fast][
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
 	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
 	fclose(pFile);
 
@@ -1600,7 +1619,8 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Dynamic Multi", "[fast][b
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
 	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
 	fclose(pFile);
 }
@@ -1660,7 +1680,8 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Dynamic Single", "[fast
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
 	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
 	fclose(pFile);
 
@@ -1728,7 +1749,8 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Dynamic Single", "[fast]
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
 	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
 	fclose(pFile);
 
@@ -1807,7 +1829,8 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Dynamic Multi", "[fast]
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
 	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
 	fclose(pFile);
 
@@ -1886,7 +1909,8 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Dynamic Multi", "[fast][
 	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
 	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
-	fputs(window->getView()->getRuntime("draw")->print().c_str(),pFile);
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
 	fclose(pFile);
 }
