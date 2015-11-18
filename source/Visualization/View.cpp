@@ -574,7 +574,7 @@ void View::initializeGL() {
 
 
 void View::paintGL() {
-
+	mRuntimeManager->startRegularTimer("paintGL");
 	if (mNonVolumeRenderers.size() > 0 ) //it can be "only nonVolume renderers" or "nonVolume + Volume renderes" together
 	{
 		if (mVolumeRenderers.size()>0)
@@ -688,6 +688,7 @@ void View::paintGL() {
 			renderVolumes();
 		}
 	}
+	mRuntimeManager->stopRegularTimer("paintGL");
 }
 
 void View::renderVolumes()
