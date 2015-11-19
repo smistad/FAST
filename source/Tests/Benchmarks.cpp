@@ -283,7 +283,7 @@ TEST_CASE("SliceRenderer Static Single", "[fast][benchmark][visualization][slice
 	window->getView()->enableRuntimeMeasurements();
 	window->setMaximumFramerate(1000);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(1000); // 1 second
+	window->setTimeout(10000); // 10 second
 	window->start();
 
 	FILE * pFile;
@@ -322,7 +322,7 @@ TEST_CASE("SliceRenderer Dynamic Single", "[fast][benchmark][visualization][slic
 	window->getView()->enableRuntimeMeasurements();
 	window->setMaximumFramerate(1000);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(1000); // 1 second
+	window->setTimeout(10000); // 10 second
 	window->start();
 
 	FILE * pFile;
@@ -365,7 +365,7 @@ TEST_CASE("SliceRenderer Static Multi", "[fast][benchmark][visualization][slice]
 	window->getView()->enableRuntimeMeasurements();
 	window->setMaximumFramerate(1000);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(1000); // 1 second
+	window->setTimeout(10000); // 10 second
 	window->start();
 
 
@@ -414,7 +414,7 @@ TEST_CASE("SliceRenderer Dynamic Multi", "[fast][benchmark][visualization][slice
 	window->getView()->enableRuntimeMeasurements();
 	window->setMaximumFramerate(1000);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(1000); // 1 second
+	window->setTimeout(10000); // 10 second
 	window->start();
 
 
@@ -466,7 +466,7 @@ TEST_CASE("VolumeRenderer Static Single", "[fast][benchmark][visualization][volu
 	window->getView()->enableRuntimeMeasurements();
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
-	window->setTimeout(1000); // 1 second
+	window->setTimeout(10000); // 10 second
 	window->start();
 
 	FILE * pFile;
@@ -515,7 +515,7 @@ TEST_CASE("VolumeRenderer Dynamic Single", "[fast][benchmark][visualization][vol
 	window->getView()->enableRuntimeMeasurements();
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
-	window->setTimeout(1000); // 1 second
+	window->setTimeout(10000); // 10 second
 	window->start();
 
 	FILE * pFile;
@@ -580,7 +580,7 @@ TEST_CASE("VolumeRenderer Static Multi", "[fast][benchmark][visualization][volum
 	window->getView()->enableRuntimeMeasurements();
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
-	window->setTimeout(1000); // 1 second
+	window->setTimeout(10000); // 10 second
 	window->start();
 
 	FILE * pFile;
@@ -649,7 +649,7 @@ TEST_CASE("VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][volu
 	window->getView()->enableRuntimeMeasurements();
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
-	window->setTimeout(1000); // 1 second
+	window->setTimeout(10000); // 10 second
 	window->start();
 
 	FILE * pFile;
@@ -709,7 +709,7 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Static Single", "[fast][
 	window->setMaximumFramerate(1000);
 	window->addRenderer(sliceRenderer);
 	window->addRenderer(volumeRenderer);
-	window->setTimeout(1000); // 1 second
+	window->setTimeout(10000); // 10 second
 	window->start();
 
 	FILE * pFile;
@@ -775,7 +775,7 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Static Single", "[fast][b
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(1000); // 1 second
+	window->setTimeout(10000); // 10 second
 	window->start();
 
 	FILE * pFile;
@@ -855,7 +855,7 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Static Multi", "[fast][b
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(1000); // 1 second
+	window->setTimeout(10000); // 10 second
 	window->start();
 
 	FILE * pFile;
@@ -936,7 +936,7 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Static Multi", "[fast][be
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(1000); // 1 second
+	window->setTimeout(10000); // 10 second
 	window->start();
 
 	FILE * pFile;
@@ -1004,7 +1004,7 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Static Single", "[fast]
 	window->setMaximumFramerate(1000);
 	window->addRenderer(sliceRenderer);
 	window->addRenderer(volumeRenderer);
-	window->setTimeout(1000); // 1 second
+	window->setTimeout(10000); // 10 second
 	window->start();
 
 	FILE * pFile;
@@ -1078,7 +1078,7 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Static Single", "[fast][
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(1000); // 1 second
+	window->setTimeout(10000); // 10 second
 	window->start();
 
 	FILE * pFile;
@@ -1165,7 +1165,7 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Static Multi", "[fast][
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(1000); // 1 second
+	window->setTimeout(10000); // 10 second
 	window->start();
 
 	FILE * pFile;
@@ -1258,7 +1258,7 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Static Multi", "[fast][b
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(1000); // 1 second
+	window->setTimeout(10000); // 10 second
 	window->start();
 
 	FILE * pFile;
@@ -1335,7 +1335,7 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Dynamic Single", "[fast]
 	window->setMaximumFramerate(1000);
 	window->addRenderer(sliceRenderer);
 	window->addRenderer(volumeRenderer);
-	window->setTimeout(1000); // 1 second
+	window->setTimeout(10000); // 10 second
 	window->start();
 
 	FILE * pFile;
@@ -1407,7 +1407,7 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Dynamic Single", "[fast][
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(1000); // 1 second
+	window->setTimeout(10000); // 10 second
 	window->start();
 
 	FILE * pFile;
@@ -1494,7 +1494,7 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Dynamic Multi", "[fast][
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(1000); // 1 second
+	window->setTimeout(10000); // 10 second
 	window->start();
 
 	FILE * pFile;
@@ -1586,7 +1586,7 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Dynamic Multi", "[fast][b
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(1000); // 1 second
+	window->setTimeout(10000); // 10 second
 	window->start();
 
 	FILE * pFile;
@@ -1659,7 +1659,7 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Dynamic Single", "[fast
 	window->setMaximumFramerate(1000);
 	window->addRenderer(sliceRenderer);
 	window->addRenderer(volumeRenderer);
-	window->setTimeout(1000); // 1 second
+	window->setTimeout(10000); // 10 second
 	window->start();
 
 	FILE * pFile;
@@ -1724,7 +1724,7 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Dynamic Single", "[fast]
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(1000); // 1 second
+	window->setTimeout(10000); // 10 second
 	window->start();
 
 	FILE * pFile;
@@ -1804,7 +1804,7 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Dynamic Multi", "[fast]
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(1000); // 1 second
+	window->setTimeout(10000); // 10 second
 	window->start();
 
 	FILE * pFile;
@@ -1884,7 +1884,7 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Dynamic Multi", "[fast][
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(1000); // 1 second
+	window->setTimeout(10000); // 10 second
 	window->start();
 
 	FILE * pFile;
