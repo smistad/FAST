@@ -270,8 +270,9 @@ void SliceRenderer::execute() {
 		LinearTransformation transform;
 		if (mDoTransformations) 
 		{
+			LinearTransformation transformFromFirstData = SceneGraph::getLinearTransformationFromData(mImagesToRender[0]);
 			transform = SceneGraph::getLinearTransformationFromData(mImagesToRender[inputIndex]);
-			transformationMatix = transform.getInverse().getTransform().data();
+			transformationMatix = ((transform.getInverse())*transformFromFirstData).getTransform().data();
 		}
 		else
 		{
