@@ -53,9 +53,11 @@ class VolumeRenderer : public Renderer {
 		cl::Image2DGL mImageGLGeoColor;
 		cl::Image2DGL mImageGLGeoDepth;
 #endif
-		
-        OpenCLDevice::pointer mDevice;
-        
+		GLuint mGeoColorTex;
+		GLuint mGeoDepthTex;
+
+		OpenCLDevice::pointer mDevice;
+
 		bool includeGeometry;
 
         bool mOutputIsCreated;

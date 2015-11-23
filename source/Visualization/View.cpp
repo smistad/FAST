@@ -342,6 +342,7 @@ void View::recalculateCamera() {
 }
 
 void View::initializeGL() {
+	modelViewHasChanged = true;
 	glewInit();
 	glEnable(GL_TEXTURE_2D);
 
@@ -699,15 +700,20 @@ void View::renderVolumes()
 		glBindFramebuffer(GL_FRAMEBUFFER,0);
 
 		
+
 		glMatrixMode(GL_PROJECTION);
 		glPushMatrix();
 		glMatrixMode(GL_MODELVIEW);
 		glPushMatrix();
-
-		//Update Camera Matrix for VolumeRendere
-		GLfloat modelView[16];
-		glGetFloatv(GL_MODELVIEW_MATRIX, modelView);
-		((VolumeRenderer::pointer)(mVolumeRenderers[0]))->setModelViewMatrix(modelView);
+		
+		if (modelViewHasChanged)
+		{
+			//Update Camera Matrix for VolumeRendere
+			GLfloat modelView[16];
+			glGetFloatv(GL_MODELVIEW_MATRIX, modelView);
+			((VolumeRenderer::pointer)(mVolumeRenderers[0]))->setModelViewMatrix(modelView);
+			modelViewHasChanged = false;
+		}
 
 		if (mNonVolumeRenderers.size() > 0)
 		{
@@ -855,7 +861,7 @@ void View::mouseMoveEvent(QMouseEvent* event) {
 	// Relay mouse event info to renderers
 	for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
 		mNonVolumeRenderers[i]->mouseMoveEvent(event, this);
-
+	modelViewHasChanged = true;
 	if (mVolumeRenderers.size()>0)
 		((VolumeRenderer::pointer)(mVolumeRenderers[0]))->mouseEvents();
 }
@@ -878,7 +884,7 @@ void View::mousePressEvent(QMouseEvent* event) {
 	for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
 		mNonVolumeRenderers[i]->mousePressEvent(event);
 	}
-
+	modelViewHasChanged = true;
 	if (mVolumeRenderers.size()>0)
 	{
 		((VolumeRenderer::pointer)(mVolumeRenderers[0]))->mouseEvents();
@@ -904,6 +910,7 @@ void View::wheelEvent(QWheelEvent* event) {
 		}
 	}
 
+	modelViewHasChanged = true;
 	if (mVolumeRenderers.size()>0)
 	{
 		((VolumeRenderer::pointer)(mVolumeRenderers[0]))->mouseEvents();
@@ -921,7 +928,7 @@ void View::mouseReleaseEvent(QMouseEvent* event) {
     for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
         mNonVolumeRenderers[i]->mouseReleaseEvent(event);
     }
-
+	modelViewHasChanged = true;
 	if (mVolumeRenderers.size()>0)
 	{
 		((VolumeRenderer::pointer)(mVolumeRenderers[0]))->mouseEvents();

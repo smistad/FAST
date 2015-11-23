@@ -152,27 +152,14 @@ void VolumeRenderer::setColorTransferFunction(int volumeIndex, ColorTransferFunc
 }
 void VolumeRenderer::addGeometryColorTexture(GLuint geoColorTex)
 {
-	//glFinish();
 	if (geoColorTex)
-#if defined(CL_VERSION_1_2)
-	mImageGLGeoColor = cl::ImageGL( clContext, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, geoColorTex);
-#else
-	mImageGLGeoColor = cl::Image2DGL( clContext, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, geoColorTex);
-#endif
-	//glFinish();
-	mIsModified = true;
+		mGeoColorTex = geoColorTex;
 }
 
 void VolumeRenderer::addGeometryDepthTexture(GLuint geoDepthTex)
 {
-	//glFinish();
-#if defined(CL_VERSION_1_2)
-	mImageGLGeoDepth = cl::ImageGL( clContext, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, geoDepthTex);
-#else
-	mImageGLGeoDepth = cl::Image2DGL(clContext, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, geoDepthTex);
-#endif
-	//glFinish();
-	mIsModified = true;
+	if (geoDepthTex)
+		mGeoDepthTex = geoDepthTex;
 }
 void VolumeRenderer::turnOffTransformations() {
     mDoTransformations = false;
@@ -274,6 +261,7 @@ void VolumeRenderer::setModelViewMatrix(GLfloat mView[16]){
 
 	for (int i = 0; i < 16; i++)
 		modelView[i] = mView[i];
+	mIsModified = true;
 }
 void VolumeRenderer::execute() {
 
@@ -507,11 +495,7 @@ void VolumeRenderer::execute() {
 
 		std::vector<cl::Memory> v;
 		v.push_back(pbo_cl);
-		if (includeGeometry)
-		{
-			v.push_back(mImageGLGeoColor);
-			v.push_back(mImageGLGeoDepth);
-		}
+
 
 		mDevice->getCommandQueue().enqueueAcquireGLObjects(&v);
 		mDevice->getCommandQueue().enqueueWriteBuffer(d_invViewMatrices, CL_FALSE, 0, sizeof(invViewMatrices), invViewMatrices);
@@ -545,119 +529,121 @@ void VolumeRenderer::execute() {
 void VolumeRenderer::draw() {
 	
 	boost::lock_guard<boost::mutex> lock(mMutex);
-
+	
 	if (!mOutputIsCreated)
-	{
-		mIsModified = true;
 		return;
-	}
 
-	if (mIsModified)
+	if (includeGeometry)
 	{
 
-		if (includeGeometry)
+#if defined(CL_VERSION_1_2)
+		mImageGLGeoColor = cl::ImageGL(clContext, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mGeoColorTex);
+#else
+		mImageGLGeoColor = cl::Image2DGL(clContext, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mGeoColorTex);
+#endif
+#if defined(CL_VERSION_1_2)
+		mImageGLGeoDepth = cl::ImageGL(clContext, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mGeoDepthTex);
+#else
+		mImageGLGeoDepth = cl::Image2DGL(clContext, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mGeoDepthTex);
+#endif
+		float density = 1.0f;
+		float brightness = 1.0f;
+
+		OpenCLImageAccess3D::pointer access = mImagesToRender[0]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);//getStaticInputData<Image>(0)->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+
+		cl::Image3D* clImage = access->get();
+
+		renderKernel.setArg(0, pbo_cl);
+		renderKernel.setArg(1, mWidth);
+		renderKernel.setArg(2, mHeight);
+		renderKernel.setArg(3, density);
+		renderKernel.setArg(4, brightness);
+		renderKernel.setArg(5, zNear);
+		renderKernel.setArg(6, zFar);
+		renderKernel.setArg(7, topOfViewPlane);
+		renderKernel.setArg(8, rightOfViewPlane);
+		renderKernel.setArg(9, projectionMatrix10);
+		renderKernel.setArg(10, projectionMatrix14);
+		renderKernel.setArg(11, d_invViewMatrices);
+		renderKernel.setArg(12, *clImage);
+		renderKernel.setArg(13, d_transferFuncArray[0]);
+		renderKernel.setArg(14, d_opacityFuncArray[0]);
+		renderKernel.setArg(15, mImageGLGeoColor);
+		renderKernel.setArg(16, mImageGLGeoDepth);
+		renderKernel.setArg(17, d_boxMaxs);
+		renderKernel.setArg(18, d_opacityFuncDefs);
+		renderKernel.setArg(19, d_opacityFuncMins);
+		renderKernel.setArg(20, d_colorFuncDefs);
+		renderKernel.setArg(21, d_colorFuncMins);
+		if (numberOfVolumes > 1)
 		{
-			float density = 0.05f;
-			float brightness = 1.0f;
+			OpenCLImageAccess3D::pointer access2 = mImagesToRender[1]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);//getStaticInputData<Image>(1)->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+			cl::Image3D* clImage2 = access2->get();
+			renderKernel.setArg(22, *clImage2);
+			renderKernel.setArg(23, d_transferFuncArray[1]);
+			renderKernel.setArg(24, d_opacityFuncArray[1]);
 
-			OpenCLImageAccess3D::pointer access = mImagesToRender[0]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);//getStaticInputData<Image>(0)->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
-
-			cl::Image3D* clImage = access->get();
-
-			renderKernel.setArg(0, pbo_cl);
-			renderKernel.setArg(1, mWidth);
-			renderKernel.setArg(2, mHeight);
-			renderKernel.setArg(3, density);
-			renderKernel.setArg(4, brightness);
-			renderKernel.setArg(5, zNear);
-			renderKernel.setArg(6, zFar);
-			renderKernel.setArg(7, topOfViewPlane);
-			renderKernel.setArg(8, rightOfViewPlane);
-			renderKernel.setArg(9, projectionMatrix10);
-			renderKernel.setArg(10, projectionMatrix14);
-			renderKernel.setArg(11, d_invViewMatrices);
-			renderKernel.setArg(12, *clImage);
-			renderKernel.setArg(13, d_transferFuncArray[0]);
-			renderKernel.setArg(14, d_opacityFuncArray[0]);
-			renderKernel.setArg(15, mImageGLGeoColor);
-			renderKernel.setArg(16, mImageGLGeoDepth);
-			renderKernel.setArg(17, d_boxMaxs);
-			renderKernel.setArg(18, d_opacityFuncDefs);
-			renderKernel.setArg(19, d_opacityFuncMins);
-			renderKernel.setArg(20, d_colorFuncDefs);
-			renderKernel.setArg(21, d_colorFuncMins);
-			if (numberOfVolumes > 1)
+			if (numberOfVolumes > 2)
 			{
-				OpenCLImageAccess3D::pointer access2 = mImagesToRender[1]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);//getStaticInputData<Image>(1)->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
-				cl::Image3D* clImage2 = access2->get();
-				renderKernel.setArg(22, *clImage2);
-				renderKernel.setArg(23, d_transferFuncArray[1]);
-				renderKernel.setArg(24, d_opacityFuncArray[1]);
+				OpenCLImageAccess3D::pointer access3 = mImagesToRender[2]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);//getStaticInputData<Image>(2)->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+				cl::Image3D* clImage3 = access3->get();
+				renderKernel.setArg(25, *clImage3);
+				renderKernel.setArg(26, d_transferFuncArray[2]);
+				renderKernel.setArg(27, d_opacityFuncArray[2]);
 
-				if (numberOfVolumes > 2)
+				if (numberOfVolumes > 3)
 				{
-					OpenCLImageAccess3D::pointer access3 = mImagesToRender[2]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);//getStaticInputData<Image>(2)->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
-					cl::Image3D* clImage3 = access3->get();
-					renderKernel.setArg(25, *clImage3);
-					renderKernel.setArg(26, d_transferFuncArray[2]);
-					renderKernel.setArg(27, d_opacityFuncArray[2]);
+					OpenCLImageAccess3D::pointer access4 = mImagesToRender[3]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);//getStaticInputData<Image>(3)->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+					cl::Image3D* clImage4 = access4->get();
+					renderKernel.setArg(28, *clImage4);
+					renderKernel.setArg(29, d_transferFuncArray[3]);
+					renderKernel.setArg(30, d_opacityFuncArray[3]);
 
-					if (numberOfVolumes > 3)
+					if (numberOfVolumes > 4)
 					{
-						OpenCLImageAccess3D::pointer access4 = mImagesToRender[3]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);//getStaticInputData<Image>(3)->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
-						cl::Image3D* clImage4 = access4->get();
-						renderKernel.setArg(28, *clImage4);
-						renderKernel.setArg(29, d_transferFuncArray[3]);
-						renderKernel.setArg(30, d_opacityFuncArray[3]);
-
-						if (numberOfVolumes > 4)
-						{
-							OpenCLImageAccess3D::pointer access5 = mImagesToRender[4]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);//getStaticInputData<Image>(4)->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
-							cl::Image3D* clImage5 = access5->get();
-							renderKernel.setArg(31, *clImage5);
-							renderKernel.setArg(32, d_transferFuncArray[4]);
-							renderKernel.setArg(33, d_opacityFuncArray[4]);
-						}
+						OpenCLImageAccess3D::pointer access5 = mImagesToRender[4]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);//getStaticInputData<Image>(4)->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
+						cl::Image3D* clImage5 = access5->get();
+						renderKernel.setArg(31, *clImage5);
+						renderKernel.setArg(32, d_transferFuncArray[4]);
+						renderKernel.setArg(33, d_opacityFuncArray[4]);
 					}
-
 				}
 
 			}
-			std::vector<cl::Memory> v;
-			v.push_back(pbo_cl);
-			if (includeGeometry)
-			{
-				v.push_back(mImageGLGeoColor);
-				v.push_back(mImageGLGeoDepth);
-			}
 
-			mDevice->getCommandQueue().enqueueAcquireGLObjects(&v);
-			mDevice->getCommandQueue().enqueueWriteBuffer(d_invViewMatrices, CL_FALSE, 0, sizeof(invViewMatrices), invViewMatrices);
-			mDevice->getCommandQueue().enqueueWriteBuffer(d_boxMaxs, CL_FALSE, 0, sizeof(boxMaxs), boxMaxs);
-			mDevice->getCommandQueue().enqueueWriteBuffer(d_opacityFuncDefs, CL_FALSE, 0, sizeof(opacityFuncDefs), opacityFuncDefs);
-			mDevice->getCommandQueue().enqueueWriteBuffer(d_opacityFuncMins, CL_FALSE, 0, sizeof(opacityFuncMins), opacityFuncMins);
-			mDevice->getCommandQueue().enqueueWriteBuffer(d_colorFuncDefs, CL_FALSE, 0, sizeof(colorFuncDefs), colorFuncDefs);
-			mDevice->getCommandQueue().enqueueWriteBuffer(d_colorFuncMins, CL_FALSE, 0, sizeof(colorFuncMins), colorFuncMins);
+		}
+		std::vector<cl::Memory> v;
+		v.push_back(pbo_cl);
 
-			try
-			{
-				mDevice->getCommandQueue().enqueueNDRangeKernel(
-					renderKernel,
-					cl::NullRange,
-					cl::NDRange(mWidth, mHeight),
-					cl::NullRange
-					);
-			}
-			catch (Exception e)
-			{
+		v.push_back(mImageGLGeoColor);
+		v.push_back(mImageGLGeoDepth);
 
-			}
-			mDevice->getCommandQueue().enqueueReleaseGLObjects(&v);
-			mDevice->getCommandQueue().finish();
+		mDevice->getCommandQueue().enqueueAcquireGLObjects(&v);
+		mDevice->getCommandQueue().enqueueWriteBuffer(d_invViewMatrices, CL_FALSE, 0, sizeof(invViewMatrices), invViewMatrices);
+		mDevice->getCommandQueue().enqueueWriteBuffer(d_boxMaxs, CL_FALSE, 0, sizeof(boxMaxs), boxMaxs);
+		mDevice->getCommandQueue().enqueueWriteBuffer(d_opacityFuncDefs, CL_FALSE, 0, sizeof(opacityFuncDefs), opacityFuncDefs);
+		mDevice->getCommandQueue().enqueueWriteBuffer(d_opacityFuncMins, CL_FALSE, 0, sizeof(opacityFuncMins), opacityFuncMins);
+		mDevice->getCommandQueue().enqueueWriteBuffer(d_colorFuncDefs, CL_FALSE, 0, sizeof(colorFuncDefs), colorFuncDefs);
+		mDevice->getCommandQueue().enqueueWriteBuffer(d_colorFuncMins, CL_FALSE, 0, sizeof(colorFuncMins), colorFuncMins);
 
-		}	//includeGeometry
+		try
+		{
+			mDevice->getCommandQueue().enqueueNDRangeKernel(
+				renderKernel,
+				cl::NullRange,
+				cl::NDRange(mWidth, mHeight),
+				cl::NullRange
+				);
+		}
+		catch (Exception e)
+		{
 
-	} //isModified
+		}
+		mDevice->getCommandQueue().enqueueReleaseGLObjects(&v);
+		mDevice->getCommandQueue().finish();
+
+	}	//includeGeometry
+
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glMatrixMode(GL_PROJECTION);
@@ -672,7 +658,7 @@ void VolumeRenderer::draw() {
 	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pbo);
 	glDrawPixels(mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
-
+	glFinish();
 	
 }
 

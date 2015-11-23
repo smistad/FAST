@@ -68,6 +68,8 @@ class View : public QGLWidget, public ProcessObject {
         bool mLeftMouseButtonIsPressed;
         bool mMiddleMouseButtonIsPressed;
 
+		bool modelViewHasChanged;
+
         int previousX, previousY;
 
         float mMinX2D, mMaxX2D, mMinY2D, mMaxY2D;
