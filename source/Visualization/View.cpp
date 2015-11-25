@@ -232,7 +232,7 @@ void View::recalculateCamera() {
     } else {
         // 3D Mode
         if (mNonVolumeRenderers.size() > 0) {
-            aspect = (float) (this->width()) / this->height();
+            aspect = (float) (this->window()->width()) / this->window()->height();
             fieldOfViewX = aspect * fieldOfViewY;
             // Initialize camera
             // Get bounding boxes of all objects
@@ -354,7 +354,7 @@ void View::initializeGL() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, this->width(), this->height(), 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, this->window()->width(), this->window()->height(), 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
 
 	glGenTextures(1, &renderedTexture0);
@@ -364,7 +364,7 @@ void View::initializeGL() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, this->width(), this->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, this->window()->width(), this->window()->height(), 0, GL_RGBA, GL_FLOAT, NULL);
 
 	glGenTextures(1, &renderedTexture1);
 	glBindTexture(GL_TEXTURE_2D, renderedTexture1);
@@ -373,7 +373,7 @@ void View::initializeGL() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, this->width(), this->height(), 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, this->window()->width(), this->window()->height(), 0, GL_RGBA, GL_FLOAT, NULL);
 
 	glBindTexture(GL_TEXTURE_2D, 0); // unbind texture
 
@@ -414,7 +414,7 @@ void View::initializeGL() {
         // Set up viewport and projection transformation
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        glViewport(0, 0, this->width(), this->height());
+        glViewport(0, 0, this->window()->width(), this->window()->height());
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_2D);
         if(mIsIn2DMode) {
@@ -448,7 +448,7 @@ void View::initializeGL() {
 			// Set up viewport and projection transformation
 			glMatrixMode(GL_PROJECTION);
 			glLoadIdentity();
-			glViewport(0, 0, this->width(), this->height());
+			glViewport(0, 0, this->window()->width(), this->window()->height());
 			glEnable(GL_DEPTH_TEST);
 			glEnable(GL_TEXTURE_2D);
 
@@ -463,7 +463,7 @@ void View::initializeGL() {
 					throw Exception("\nThe volume renderer is currently only able to use one renderer with multible inputs (volumes)");
 
 
-				aspect = (float)this->width() / this->height();
+				aspect = (float)this->window()->width() / this->window()->height();
 				fieldOfViewX = aspect*fieldOfViewY;
 				gluPerspective(fieldOfViewY, aspect, zNear, zFar);
 				// Initialize camera
@@ -565,8 +565,8 @@ void View::initializeGL() {
 
 
 				//Set the output image size for volume renderer based on window size.
-				((VolumeRenderer::pointer)mVolumeRenderers[0])->resize(this->width(),this->height());
-				((VolumeRenderer::pointer)mVolumeRenderers[0])->setProjectionParameters(fieldOfViewY, (float)this->width()/this->height(), zNear, zFar, this->width(), this->height());
+				((VolumeRenderer::pointer)mVolumeRenderers[0])->resize(this->window()->width(),this->window()->height());
+				((VolumeRenderer::pointer)mVolumeRenderers[0])->setProjectionParameters(fieldOfViewY, (float)this->window()->width()/this->window()->height(), zNear, zFar, this->window()->width(), this->window()->height());
 			}
 		}
 	}
@@ -747,8 +747,8 @@ void View::getDepthBufferFromGeo()
 	glLoadIdentity();
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glViewport(0,0,this->width(),this->height());
-	glOrtho(0, this->width(), 0, this->height(), 0, 512);
+	glViewport(0,0,this->window()->width(),this->window()->height());
+	glOrtho(0, this->window()->width(), 0, this->window()->height(), 0, 512);
 
 	// Render to Second Texture
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo2);
@@ -764,11 +764,11 @@ void View::getDepthBufferFromGeo()
 	glTexCoord2f(0, 0);
 	glVertex2f(0,0);
 	glTexCoord2f(1.0, 0);
-	glVertex2f(this->width(),0);
+	glVertex2f(this->window()->width(),0);
 	glTexCoord2f(1.0, 1.0);
-	glVertex2f(this->width(), this->height());
+	glVertex2f(this->window()->width(), this->window()->height());
 	glTexCoord2f(0, 1.0);
-	glVertex2f(0,  this->height());
+	glVertex2f(0,  this->window()->height());
 	glEnd();
 
 	glUseProgram(0);
