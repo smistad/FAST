@@ -91,7 +91,7 @@ TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark][visual]") {
     SimpleWindow::pointer window = SimpleWindow::New();
     window->getView()->enableRuntimeMeasurements();
     window->addRenderer(renderer);
-    window->setTimeout(15*1000); // timeout after 10 seconds
+    window->setTimeout(15*1000); // timeout after 3 seconds
     window->start();
 
     streamer->getRuntime()->print();
@@ -283,7 +283,7 @@ TEST_CASE("SliceRenderer Static Single", "[fast][benchmark][visualization][slice
 	window->getView()->enableRuntimeMeasurements();
 	window->setMaximumFramerate(1000);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(10000); // 10 second
+	window->setTimeout(3000); // 3 second
 	window->start();
 
 	FILE * pFile;
@@ -322,7 +322,7 @@ TEST_CASE("SliceRenderer Dynamic Single", "[fast][benchmark][visualization][slic
 	window->getView()->enableRuntimeMeasurements();
 	window->setMaximumFramerate(1000);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(10000); // 10 second
+	window->setTimeout(3000); // 3 second
 	window->start();
 
 	FILE * pFile;
@@ -365,7 +365,7 @@ TEST_CASE("SliceRenderer Static Multi", "[fast][benchmark][visualization][slice]
 	window->getView()->enableRuntimeMeasurements();
 	window->setMaximumFramerate(1000);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(10000); // 10 second
+	window->setTimeout(3000); // 3 second
 	window->start();
 
 
@@ -414,7 +414,7 @@ TEST_CASE("SliceRenderer Dynamic Multi", "[fast][benchmark][visualization][slice
 	window->getView()->enableRuntimeMeasurements();
 	window->setMaximumFramerate(1000);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(10000); // 10 second
+	window->setTimeout(3000); // 3 second
 	window->start();
 
 
@@ -439,6 +439,207 @@ TEST_CASE("SliceRenderer Dynamic Multi", "[fast][benchmark][visualization][slice
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
 	fclose(pFile);
+}
+
+TEST_CASE("MeshRenderer Static Single", "[fast][benchmark][visualization][mesh][static][single]")
+{
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Static Single:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Single:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+
+TEST_CASE("MeshRenderer Dynamic Single", "[fast][benchmark][visualization][mesh][dynamic][single]")
+{
+	ImageFileStreamer::pointer mhdImporterDynamic = ImageFileStreamer::New();
+	mhdImporterDynamic->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterDynamic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Dynamic Single:" << std::endl;
+	fputs("\n\n\nMeshRenderer Dynamic Single:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterDynamic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+
+TEST_CASE("MeshRenderer Static Multi", "[fast][benchmark][visualization][mesh][static][multi]")
+{
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
+	mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
+	mhdImporterStatic2->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor2 = SurfaceExtraction::New();
+	surfaceExtractor2->setInputConnection(mhdImporterStatic2->getOutputPort());
+	surfaceExtractor2->setThreshold(50);
+	surfaceExtractor2->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->addInputConnection(surfaceExtractor2->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Static Multi:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Multi:\n", pFile);
+
+	std::cout << "\nImport Time 1:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time 2:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+
+TEST_CASE("MeshRenderer Dynamic Multi", "[fast][benchmark][visualization][mesh][dynamic][multi]")
+{
+	ImageFileStreamer::pointer mhdImporterDynamic1 = ImageFileStreamer::New();
+	mhdImporterDynamic1->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic1->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic2 = ImageFileStreamer::New();
+	mhdImporterDynamic2->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic2->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterDynamic1->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor2 = SurfaceExtraction::New();
+	surfaceExtractor2->setInputConnection(mhdImporterDynamic2->getOutputPort());
+	surfaceExtractor2->setThreshold(50);
+	surfaceExtractor2->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->addInputConnection(surfaceExtractor2->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Dynamic Multi:" << std::endl;
+	fputs("\n\n\nMeshRenderer Dynamic Multi:\n", pFile);
+
+	std::cout << "\nImport Time 1:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterDynamic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time 2:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterDynamic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
 }
 
 TEST_CASE("VolumeRenderer Static Single", "[fast][benchmark][visualization][volume][static][single]")
@@ -466,7 +667,7 @@ TEST_CASE("VolumeRenderer Static Single", "[fast][benchmark][visualization][volu
 	window->getView()->enableRuntimeMeasurements();
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
-	window->setTimeout(10000); // 10 second
+	window->setTimeout(3000); // 3 second
 	window->start();
 
 	FILE * pFile;
@@ -515,7 +716,7 @@ TEST_CASE("VolumeRenderer Dynamic Single", "[fast][benchmark][visualization][vol
 	window->getView()->enableRuntimeMeasurements();
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
-	window->setTimeout(10000); // 10 second
+	window->setTimeout(3000); // 3 second
 	window->start();
 
 	FILE * pFile;
@@ -580,7 +781,7 @@ TEST_CASE("VolumeRenderer Static Multi", "[fast][benchmark][visualization][volum
 	window->getView()->enableRuntimeMeasurements();
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
-	window->setTimeout(10000); // 10 second
+	window->setTimeout(3000); // 3 second
 	window->start();
 
 	FILE * pFile;
@@ -649,7 +850,7 @@ TEST_CASE("VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][volu
 	window->getView()->enableRuntimeMeasurements();
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
-	window->setTimeout(10000); // 10 second
+	window->setTimeout(3000); // 3 second
 	window->start();
 
 	FILE * pFile;
@@ -677,7 +878,7 @@ TEST_CASE("VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][volu
 
 }
 
-TEST_CASE("SliceRenderer Static Single + VolumeRenderer Static Single", "[fast][benchmark][visualization][slicestaticsingle][volumestaticsingle]")
+TEST_CASE("SliceRenderer Static Single + VolumeRenderer Static Single", "[fast][benchmark][visualization][slicevolume][slicestaticsingle][volumestaticsingle]")
 {
 
 	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
@@ -709,7 +910,7 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Static Single", "[fast][
 	window->setMaximumFramerate(1000);
 	window->addRenderer(sliceRenderer);
 	window->addRenderer(volumeRenderer);
-	window->setTimeout(10000); // 10 second
+	window->setTimeout(3000); // 3 second
 	window->start();
 
 	FILE * pFile;
@@ -737,7 +938,7 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Static Single", "[fast][
 
 }
 
-TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Static Single", "[fast][benchmark][visualization][slicestaticmulti][volumestaticsingle]")
+TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Static Single", "[fast][benchmark][visualization][slicevolume][slicestaticmulti][volumestaticsingle]")
 {
 
 	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
@@ -775,7 +976,7 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Static Single", "[fast][b
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(10000); // 10 second
+	window->setTimeout(3000); // 3 second
 	window->start();
 
 	FILE * pFile;
@@ -806,7 +1007,7 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Static Single", "[fast][b
 	fclose(pFile);
 
 }
-TEST_CASE("SliceRenderer Static Single + VolumeRenderer Static Multi", "[fast][benchmark][visualization][slicestaticsingle][volumestaticmulti]")
+TEST_CASE("SliceRenderer Static Single + VolumeRenderer Static Multi", "[fast][benchmark][visualization][slicevolume][slicestaticsingle][volumestaticmulti]")
 {
 
 	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
@@ -855,7 +1056,7 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Static Multi", "[fast][b
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(10000); // 10 second
+	window->setTimeout(3000); // 3 second
 	window->start();
 
 	FILE * pFile;
@@ -886,7 +1087,7 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Static Multi", "[fast][b
 	fclose(pFile);
 
 }
-TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Static Multi", "[fast][benchmark][visualization][slicestaticmulti][volumestaticmulti]")
+TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Static Multi", "[fast][benchmark][visualization][slicevolume][slicestaticmulti][volumestaticmulti]")
 {
 
 	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
@@ -936,7 +1137,7 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Static Multi", "[fast][be
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(10000); // 10 second
+	window->setTimeout(3000); // 3 second
 	window->start();
 
 	FILE * pFile;
@@ -968,7 +1169,7 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Static Multi", "[fast][be
 
 }
 //------------------------
-TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Static Single", "[fast][benchmark][visualization][slicedynamicsingle][volumestaticsingle]")
+TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Static Single", "[fast][benchmark][visualization][slicevolume][slicedynamicsingle][volumestaticsingle]")
 {
 
 	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
@@ -1004,7 +1205,7 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Static Single", "[fast]
 	window->setMaximumFramerate(1000);
 	window->addRenderer(sliceRenderer);
 	window->addRenderer(volumeRenderer);
-	window->setTimeout(10000); // 10 second
+	window->setTimeout(3000); // 3 second
 	window->start();
 
 	FILE * pFile;
@@ -1036,7 +1237,7 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Static Single", "[fast]
 
 }
 
-TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Static Single", "[fast][benchmark][visualization][slicedynamicmulti][volumestaticsingle]")
+TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Static Single", "[fast][benchmark][visualization][slicevolume][slicedynamicmulti][volumestaticsingle]")
 {
 
 	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
@@ -1078,7 +1279,7 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Static Single", "[fast][
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(10000); // 10 second
+	window->setTimeout(3000); // 3 second
 	window->start();
 
 	FILE * pFile;
@@ -1113,7 +1314,7 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Static Single", "[fast][
 	fclose(pFile);
 
 }
-TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Static Multi", "[fast][benchmark][visualization][slicedynamicsingle][volumestaticmulti]")
+TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Static Multi", "[fast][benchmark][visualization][slicevolume][slicedynamicsingle][volumestaticmulti]")
 {
 
 	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
@@ -1165,7 +1366,7 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Static Multi", "[fast][
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(10000); // 10 second
+	window->setTimeout(3000); // 3 second
 	window->start();
 
 	FILE * pFile;
@@ -1200,7 +1401,7 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Static Multi", "[fast][
 	fclose(pFile);
 
 }
-TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Static Multi", "[fast][benchmark][visualization][slicedynamicmulti][volumestaticmulti]")
+TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Static Multi", "[fast][benchmark][visualization][slicevolume][slicedynamicmulti][volumestaticmulti]")
 {
 
 	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
@@ -1258,7 +1459,7 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Static Multi", "[fast][b
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(10000); // 10 second
+	window->setTimeout(3000); // 3 second
 	window->start();
 
 	FILE * pFile;
@@ -1299,7 +1500,7 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Static Multi", "[fast][b
 }
 //-------------------------------
 
-TEST_CASE("SliceRenderer Static Single + VolumeRenderer Dynamic Single", "[fast][benchmark][visualization][slicestaticsingle][volumedynamicsingle]")
+TEST_CASE("SliceRenderer Static Single + VolumeRenderer Dynamic Single", "[fast][benchmark][visualization][slicevolume][slicestaticsingle][volumedynamicsingle]")
 {
 
 	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
@@ -1335,7 +1536,7 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Dynamic Single", "[fast]
 	window->setMaximumFramerate(1000);
 	window->addRenderer(sliceRenderer);
 	window->addRenderer(volumeRenderer);
-	window->setTimeout(10000); // 10 second
+	window->setTimeout(3000); // 3 second
 	window->start();
 
 	FILE * pFile;
@@ -1366,7 +1567,7 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Dynamic Single", "[fast]
 	fclose(pFile);
 }
 
-TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Dynamic Single", "[fast][benchmark][visualization][slicestaticmulti][volumedynamicsingle]")
+TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Dynamic Single", "[fast][benchmark][visualization][slicevolume][slicestaticmulti][volumedynamicsingle]")
 {
 
 	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
@@ -1407,7 +1608,7 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Dynamic Single", "[fast][
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(10000); // 10 second
+	window->setTimeout(3000); // 3 second
 	window->start();
 
 	FILE * pFile;
@@ -1442,7 +1643,7 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Dynamic Single", "[fast][
 	fclose(pFile);
 
 }
-TEST_CASE("SliceRenderer Static Single + VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][slicestaticsingle][volumedynamicmulti]")
+TEST_CASE("SliceRenderer Static Single + VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][slicevolume][slicestaticsingle][volumedynamicmulti]")
 {
 
 	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
@@ -1494,7 +1695,7 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Dynamic Multi", "[fast][
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(10000); // 10 second
+	window->setTimeout(3000); // 3 second
 	window->start();
 
 	FILE * pFile;
@@ -1529,7 +1730,7 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Dynamic Multi", "[fast][
 	fclose(pFile);
 
 }
-TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][slicestaticmulti][volumedynamicmulti]")
+TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][slicevolume][slicestaticmulti][volumedynamicmulti]")
 {
 
 	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
@@ -1586,7 +1787,7 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Dynamic Multi", "[fast][b
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(10000); // 10 second
+	window->setTimeout(3000); // 3 second
 	window->start();
 
 	FILE * pFile;
@@ -1627,7 +1828,7 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Dynamic Multi", "[fast][b
 //-----------------
 
 
-TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Dynamic Single", "[fast][benchmark][visualization][slicedynamicsingle][volumedynamicsingle]")
+TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Dynamic Single", "[fast][benchmark][visualization][slicevolume][slicedynamicsingle][volumedynamicsingle]")
 {
 
 	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
@@ -1659,7 +1860,7 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Dynamic Single", "[fast
 	window->setMaximumFramerate(1000);
 	window->addRenderer(sliceRenderer);
 	window->addRenderer(volumeRenderer);
-	window->setTimeout(10000); // 10 second
+	window->setTimeout(3000); // 3 second
 	window->start();
 
 	FILE * pFile;
@@ -1687,7 +1888,7 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Dynamic Single", "[fast
 
 }
 
-TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Dynamic Single", "[fast][benchmark][visualization][slicedynamicmulti][volumedynamicsingle]")
+TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Dynamic Single", "[fast][benchmark][visualization][slicevolume][slicedynamicmulti][volumedynamicsingle]")
 {
 
 	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
@@ -1724,7 +1925,7 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Dynamic Single", "[fast]
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(10000); // 10 second
+	window->setTimeout(3000); // 3 second
 	window->start();
 
 	FILE * pFile;
@@ -1755,7 +1956,7 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Dynamic Single", "[fast]
 	fclose(pFile);
 
 }
-TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][slicedynamicsingle][volumedynamicmulti]")
+TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][slicevolume][slicedynamicsingle][volumedynamicmulti]")
 {
 
 	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
@@ -1804,7 +2005,7 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Dynamic Multi", "[fast]
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(10000); // 10 second
+	window->setTimeout(3000); // 3 second
 	window->start();
 
 	FILE * pFile;
@@ -1835,7 +2036,7 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Dynamic Multi", "[fast]
 	fclose(pFile);
 
 }
-TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][slicedynamicmulti][volumedynamicmulti]")
+TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][slicevolume][slicedynamicmulti][volumedynamicmulti]")
 {
 
 	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
@@ -1884,7 +2085,7 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Dynamic Multi", "[fast][
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
 	window->addRenderer(sliceRenderer);
-	window->setTimeout(10000); // 10 second
+	window->setTimeout(3000); // 3 second
 	window->start();
 
 	FILE * pFile;
@@ -1910,6 +2111,2514 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Dynamic Multi", "[fast][
 	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
 
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+}
+
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+
+TEST_CASE("MeshRenderer Static Single + VolumeRenderer Static Single", "[fast][benchmark][visualization][meshvolume][meshstaticsingle][volumestaticsingle]")
+{
+
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(meshRenderer);
+	window->addRenderer(volumeRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Static Single + VolumeRenderer Static Single:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Single + VolumeRenderer Static Single:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
+	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+
+TEST_CASE("MeshRenderer Static Multi + VolumeRenderer Static Single", "[fast][benchmark][visualization][meshvolume][meshstaticmulti][volumestaticsingle]")
+{
+
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic1 = MetaImageImporter::New();
+	mhdImporterStatic1->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic1->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
+	mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
+	mhdImporterStatic2->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic1->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor2 = SurfaceExtraction::New();
+	surfaceExtractor2->setInputConnection(mhdImporterStatic2->getOutputPort());
+	surfaceExtractor2->setThreshold(50);
+	surfaceExtractor2->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->addInputConnection(surfaceExtractor2->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterStatic1->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Static Multi + VolumeRenderer Static Single:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Multi + VolumeRenderer Static Single:\n", pFile);
+
+	std::cout << "\nImport Time 1:" << std::endl;
+	fputs("\nImport Time 1:\n", pFile);
+	fputs(mhdImporterStatic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time 2:" << std::endl;
+	fputs("\nImport Time 2:\n", pFile);
+	fputs(mhdImporterStatic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRenderer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
+	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+TEST_CASE("MeshRenderer Static Single + VolumeRenderer Static Multi", "[fast][benchmark][visualization][meshvolume][meshstaticsingle][volumestaticmulti]")
+{
+
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	ColorTransferFunction::pointer ctf2 = ColorTransferFunction::New();
+	ctf2->addRGBPoint(000.0, 1.0, 0.0, 1.0);
+	ctf2->addRGBPoint(127.0, 0.0, 1.0, 1.0);
+	ctf2->addRGBPoint(255.0, 1.0, 0.0, 0.0);
+
+	OpacityTransferFunction::pointer otf2 = OpacityTransferFunction::New();
+	otf2->addAlphaPoint(000.0, 0.0);
+	otf2->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic1 = MetaImageImporter::New();
+	mhdImporterStatic1->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic1->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
+	mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
+	mhdImporterStatic2->enableRuntimeMeasurements();
+
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic1->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterStatic1->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->addInputConnection(mhdImporterStatic2->getOutputPort());
+	volumeRenderer->setColorTransferFunction(1, ctf2);
+	volumeRenderer->setOpacityTransferFunction(1, otf2);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Static Single + VolumeRenderer Static Multi:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Single + VolumeRenderer Static Multi:\n", pFile);
+
+	std::cout << "\nImport Time 1:" << std::endl;
+	fputs("\nImport Time 1:\n", pFile);
+	fputs(mhdImporterStatic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time 2:" << std::endl;
+	fputs("\nImport Time 2:\n", pFile);
+	fputs(mhdImporterStatic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRenderer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
+	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+TEST_CASE("MeshRenderer Static Multi + VolumeRenderer Static Multi", "[fast][benchmark][visualization][meshvolume][meshstaticmulti][volumestaticmulti]")
+{
+
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	ColorTransferFunction::pointer ctf2 = ColorTransferFunction::New();
+	ctf2->addRGBPoint(000.0, 1.0, 0.0, 1.0);
+	ctf2->addRGBPoint(127.0, 0.0, 1.0, 1.0);
+	ctf2->addRGBPoint(255.0, 1.0, 0.0, 0.0);
+
+	OpacityTransferFunction::pointer otf2 = OpacityTransferFunction::New();
+	otf2->addAlphaPoint(000.0, 0.0);
+	otf2->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic1 = MetaImageImporter::New();
+	mhdImporterStatic1->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic1->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
+	mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
+	mhdImporterStatic2->enableRuntimeMeasurements();
+
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic1->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor2 = SurfaceExtraction::New();
+	surfaceExtractor2->setInputConnection(mhdImporterStatic2->getOutputPort());
+	surfaceExtractor2->setThreshold(50);
+	surfaceExtractor2->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->addInputConnection(surfaceExtractor2->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterStatic1->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->addInputConnection(mhdImporterStatic2->getOutputPort());
+	volumeRenderer->setColorTransferFunction(1, ctf2);
+	volumeRenderer->setOpacityTransferFunction(1, otf2);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Static Multi + VolumeRenderer Static Multi:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Multi + VolumeRenderer Static Multi:\n", pFile);
+
+	std::cout << "\nImport Time 1:" << std::endl;
+	fputs("\nImport Time 1:\n", pFile);
+	fputs(mhdImporterStatic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time 2:" << std::endl;
+	fputs("\nImport Time 2:\n", pFile);
+	fputs(mhdImporterStatic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
+	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+//------------------------
+TEST_CASE("MeshRenderer Dynamic Single + VolumeRenderer Static Single", "[fast][benchmark][visualization][meshvolume][meshdynamicsingle][volumestaticsingle]")
+{
+
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic = ImageFileStreamer::New();
+	mhdImporterDynamic->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterDynamic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(meshRenderer);
+	window->addRenderer(volumeRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Dynamic Single + VolumeRenderer Static Single:" << std::endl;
+	fputs("\n\n\nMeshRenderer Dynamic Single + VolumeRenderer Static Single:\n", pFile);
+
+	std::cout << "\nImport Time Static:" << std::endl;
+	fputs("\nImport Time Static:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic:" << std::endl;
+	fputs("\nImport Time Dynamic:\n", pFile);
+	fputs(mhdImporterDynamic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
+	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+
+TEST_CASE("MeshRenderer Dynamic Multi + VolumeRenderer Static Single", "[fast][benchmark][visualization][meshvolume][meshdynamicmulti][volumestaticsingle]")
+{
+
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	ImageFileStreamer::pointer mhdImporterDynamic1 = ImageFileStreamer::New();
+	mhdImporterDynamic1->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic1->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic2 = ImageFileStreamer::New();
+	mhdImporterDynamic2->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic2->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterDynamic1->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor2 = SurfaceExtraction::New();
+	surfaceExtractor2->setInputConnection(mhdImporterDynamic2->getOutputPort());
+	surfaceExtractor2->setThreshold(50);
+	surfaceExtractor2->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->addInputConnection(surfaceExtractor2->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Dynamic Multi + VolumeRenderer Static Single:" << std::endl;
+	fputs("\n\n\nMeshRenderer Dynamic Multi + VolumeRenderer Static Single:\n", pFile);
+
+	std::cout << "\nImport Time Dynamic 1:" << std::endl;
+	fputs("\nImport Time Dynamic 1:\n", pFile);
+	fputs(mhdImporterDynamic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic 2:" << std::endl;
+	fputs("\nImport Time Dynamic 2:\n", pFile);
+	fputs(mhdImporterDynamic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Static:" << std::endl;
+	fputs("\nImport Time Static:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
+	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+TEST_CASE("MeshRenderer Dynamic Single + VolumeRenderer Static Multi", "[fast][benchmark][visualization][meshvolume][meshdynamicsingle][volumestaticmulti]")
+{
+
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	ColorTransferFunction::pointer ctf2 = ColorTransferFunction::New();
+	ctf2->addRGBPoint(000.0, 1.0, 0.0, 1.0);
+	ctf2->addRGBPoint(127.0, 0.0, 1.0, 1.0);
+	ctf2->addRGBPoint(255.0, 1.0, 0.0, 0.0);
+
+	OpacityTransferFunction::pointer otf2 = OpacityTransferFunction::New();
+	otf2->addAlphaPoint(000.0, 0.0);
+	otf2->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic1 = MetaImageImporter::New();
+	mhdImporterStatic1->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic1->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
+	mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
+	mhdImporterStatic2->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic = ImageFileStreamer::New();
+	mhdImporterDynamic->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterDynamic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterStatic1->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->addInputConnection(mhdImporterStatic2->getOutputPort());
+	volumeRenderer->setColorTransferFunction(1, ctf2);
+	volumeRenderer->setOpacityTransferFunction(1, otf2);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Dynamic Single + VolumeRenderer Static Multi:" << std::endl;
+	fputs("\n\n\nMeshRenderer Dynamic Single + VolumeRenderer Static Multi:\n", pFile);
+
+	std::cout << "\nImport Time Static 1:" << std::endl;
+	fputs("\nImport Time Static 1:\n", pFile);
+	fputs(mhdImporterStatic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Static 2:" << std::endl;
+	fputs("\nImport Time Static 2:\n", pFile);
+	fputs(mhdImporterStatic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic:" << std::endl;
+	fputs("\nImport Time Dynamic:\n", pFile);
+	fputs(mhdImporterDynamic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
+	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+TEST_CASE("MeshRenderer Dynamic Multi + VolumeRenderer Static Multi", "[fast][benchmark][visualization][meshvolume][meshdynamicmulti][volumestaticmulti]")
+{
+
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	ColorTransferFunction::pointer ctf2 = ColorTransferFunction::New();
+	ctf2->addRGBPoint(000.0, 1.0, 0.0, 1.0);
+	ctf2->addRGBPoint(127.0, 0.0, 1.0, 1.0);
+	ctf2->addRGBPoint(255.0, 1.0, 0.0, 0.0);
+
+	OpacityTransferFunction::pointer otf2 = OpacityTransferFunction::New();
+	otf2->addAlphaPoint(000.0, 0.0);
+	otf2->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic1 = MetaImageImporter::New();
+	mhdImporterStatic1->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic1->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
+	mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
+	mhdImporterStatic2->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic1 = ImageFileStreamer::New();
+	mhdImporterDynamic1->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic1->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic2 = ImageFileStreamer::New();
+	mhdImporterDynamic2->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic2->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterDynamic1->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor2 = SurfaceExtraction::New();
+	surfaceExtractor2->setInputConnection(mhdImporterDynamic2->getOutputPort());
+	surfaceExtractor2->setThreshold(50);
+	surfaceExtractor2->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->addInputConnection(surfaceExtractor2->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterStatic1->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->addInputConnection(mhdImporterStatic2->getOutputPort());
+	volumeRenderer->setColorTransferFunction(1, ctf2);
+	volumeRenderer->setOpacityTransferFunction(1, otf2);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Dynamic Multi + VolumeRenderer Static Multi:" << std::endl;
+	fputs("\n\n\nMeshRenderer Dynamic Multi + VolumeRenderer Static Multi:\n", pFile);
+
+	std::cout << "\nImport Time Static 1:" << std::endl;
+	fputs("\nImport Time Static 1:\n", pFile);
+	fputs(mhdImporterStatic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Static 2:" << std::endl;
+	fputs("\nImport Time Static 2:\n", pFile);
+	fputs(mhdImporterStatic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic 1:" << std::endl;
+	fputs("\nImport Time Dynamic 1:\n", pFile);
+	fputs(mhdImporterDynamic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic 2:" << std::endl;
+	fputs("\nImport Time Dynamic 2:\n", pFile);
+	fputs(mhdImporterDynamic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
+	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+//-------------------------------
+
+TEST_CASE("MeshRenderer Static Single + VolumeRenderer Dynamic Single", "[fast][benchmark][visualization][meshvolume][meshstaticsingle][volumedynamicsingle]")
+{
+
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic = ImageFileStreamer::New();
+	mhdImporterDynamic->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterDynamic->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Static Single + VolumeRenderer Dynamic Single:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Single + VolumeRenderer Dynamic Single:\n", pFile);
+
+	std::cout << "\nImport Time Static:" << std::endl;
+	fputs("\nImport Time Static:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic:" << std::endl;
+	fputs("\nImport Time Dynamic:\n", pFile);
+	fputs(mhdImporterDynamic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
+	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+}
+
+TEST_CASE("MeshRenderer Static Multi + VolumeRenderer Dynamic Single", "[fast][benchmark][visualization][meshvolume][meshstaticmulti][volumedynamicsingle]")
+{
+
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic1 = MetaImageImporter::New();
+	mhdImporterStatic1->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic1->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
+	mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
+	mhdImporterStatic2->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic = ImageFileStreamer::New();
+	mhdImporterDynamic->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic1->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor2 = SurfaceExtraction::New();
+	surfaceExtractor2->setInputConnection(mhdImporterStatic2->getOutputPort());
+	surfaceExtractor2->setThreshold(50);
+	surfaceExtractor2->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->addInputConnection(surfaceExtractor2->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterDynamic->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Static Multi + VolumeRenderer Dynamic Single:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Multi + VolumeRenderer Dynamic Single:\n", pFile);
+
+	std::cout << "\nImport Time Static 1:" << std::endl;
+	fputs("\nImport Time Static 1:\n", pFile);
+	fputs(mhdImporterStatic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Static 2:" << std::endl;
+	fputs("\nImport Time Static 2:\n", pFile);
+	fputs(mhdImporterStatic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic:" << std::endl;
+	fputs("\nImport Time Dynamic:\n", pFile);
+	fputs(mhdImporterDynamic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
+	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+TEST_CASE("MeshRenderer Static Single + VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][meshvolume][meshstaticsingle][volumedynamicmulti]")
+{
+
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	ColorTransferFunction::pointer ctf2 = ColorTransferFunction::New();
+	ctf2->addRGBPoint(000.0, 1.0, 0.0, 1.0);
+	ctf2->addRGBPoint(127.0, 0.0, 1.0, 1.0);
+	ctf2->addRGBPoint(255.0, 1.0, 0.0, 0.0);
+
+	OpacityTransferFunction::pointer otf2 = OpacityTransferFunction::New();
+	otf2->addAlphaPoint(000.0, 0.0);
+	otf2->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic1 = ImageFileStreamer::New();
+	mhdImporterDynamic1->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic1->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic2 = ImageFileStreamer::New();
+	mhdImporterDynamic2->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic2->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterDynamic1->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->addInputConnection(mhdImporterDynamic2->getOutputPort());
+	volumeRenderer->setColorTransferFunction(1, ctf2);
+	volumeRenderer->setOpacityTransferFunction(1, otf2);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Static Single + VolumeRenderer Dynamic Multi:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Single + VolumeRenderer Dynamic Multi:\n", pFile);
+
+	std::cout << "\nImport Time Static:" << std::endl;
+	fputs("\nImport Time Static:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic 1:" << std::endl;
+	fputs("\nImport Time Dynamic 1:\n", pFile);
+	fputs(mhdImporterDynamic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic 2:" << std::endl;
+	fputs("\nImport Time Dynamic 2:\n", pFile);
+	fputs(mhdImporterDynamic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
+	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+TEST_CASE("MeshRenderer Static Multi + VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][meshvolume][meshstaticmulti][volumedynamicmulti]")
+{
+
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	ColorTransferFunction::pointer ctf2 = ColorTransferFunction::New();
+	ctf2->addRGBPoint(000.0, 1.0, 0.0, 1.0);
+	ctf2->addRGBPoint(127.0, 0.0, 1.0, 1.0);
+	ctf2->addRGBPoint(255.0, 1.0, 0.0, 0.0);
+
+	OpacityTransferFunction::pointer otf2 = OpacityTransferFunction::New();
+	otf2->addAlphaPoint(000.0, 0.0);
+	otf2->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic1 = MetaImageImporter::New();
+	mhdImporterStatic1->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic1->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
+	mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
+	mhdImporterStatic2->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic1 = ImageFileStreamer::New();
+	mhdImporterDynamic1->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic1->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic2 = ImageFileStreamer::New();
+	mhdImporterDynamic2->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic2->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic1->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor2 = SurfaceExtraction::New();
+	surfaceExtractor2->setInputConnection(mhdImporterStatic2->getOutputPort());
+	surfaceExtractor2->setThreshold(50);
+	surfaceExtractor2->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->addInputConnection(surfaceExtractor2->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterDynamic1->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->addInputConnection(mhdImporterDynamic2->getOutputPort());
+	volumeRenderer->setColorTransferFunction(1, ctf2);
+	volumeRenderer->setOpacityTransferFunction(1, otf2);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Static Multi + VolumeRenderer Dynamic Multi:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Multi + VolumeRenderer Dynamic Multi:\n", pFile);
+
+	std::cout << "\nImport Time Static 1:" << std::endl;
+	fputs("\nImport Time Static 1:\n", pFile);
+	fputs(mhdImporterStatic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Static 2:" << std::endl;
+	fputs("\nImport Time Static 2:\n", pFile);
+	fputs(mhdImporterStatic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic 1:" << std::endl;
+	fputs("\nImport Time Dynamic 1:\n", pFile);
+	fputs(mhdImporterDynamic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic 2:" << std::endl;
+	fputs("\nImport Time Dynamic 2:\n", pFile);
+	fputs(mhdImporterDynamic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
+	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+}
+//-----------------
+
+
+TEST_CASE("MeshRenderer Dynamic Single + VolumeRenderer Dynamic Single", "[fast][benchmark][visualization][meshvolume][meshdynamicsingle][volumedynamicsingle]")
+{
+
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	ImageFileStreamer::pointer mhdImporterDynamic = ImageFileStreamer::New();
+	mhdImporterDynamic->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterDynamic->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterDynamic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(meshRenderer);
+	window->addRenderer(volumeRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Dynamic Single + VolumeRenderer Dynamic Single:" << std::endl;
+	fputs("\n\n\nMeshRenderer Dynamic Single + VolumeRenderer Dynamic Single:\n", pFile);
+
+	std::cout << "\nImport Time Dynamic:" << std::endl;
+	fputs("\nImport Time Dynamic:\n", pFile);
+	fputs(mhdImporterDynamic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
+	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+
+TEST_CASE("MeshRenderer Dynamic Multi + VolumeRenderer Dynamic Single", "[fast][benchmark][visualization][meshvolume][meshdynamicmulti][volumedynamicsingle]")
+{
+
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	ImageFileStreamer::pointer mhdImporterDynamic1 = ImageFileStreamer::New();
+	mhdImporterDynamic1->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic1->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic2 = ImageFileStreamer::New();
+	mhdImporterDynamic2->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic2->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterDynamic1->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor2 = SurfaceExtraction::New();
+	surfaceExtractor2->setInputConnection(mhdImporterDynamic2->getOutputPort());
+	surfaceExtractor2->setThreshold(50);
+	surfaceExtractor2->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->addInputConnection(surfaceExtractor2->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterDynamic1->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Dynamic Multi + VolumeRenderer Dynamic Single:" << std::endl;
+	fputs("\n\n\nMeshRenderer Dynamic Multi + VolumeRenderer Dynamic Single:\n", pFile);
+
+	std::cout << "\nImport Time Dynamic 1:" << std::endl;
+	fputs("\nImport Time Dynamic 1:\n", pFile);
+	fputs(mhdImporterDynamic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic 2:" << std::endl;
+	fputs("\nImport Time Dynamic 2:\n", pFile);
+	fputs(mhdImporterDynamic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
+	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+TEST_CASE("MeshRenderer Dynamic Single + VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][meshvolume][meshdynamicsingle][volumedynamicmulti]")
+{
+
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	ColorTransferFunction::pointer ctf2 = ColorTransferFunction::New();
+	ctf2->addRGBPoint(000.0, 1.0, 0.0, 1.0);
+	ctf2->addRGBPoint(127.0, 0.0, 1.0, 1.0);
+	ctf2->addRGBPoint(255.0, 1.0, 0.0, 0.0);
+
+	OpacityTransferFunction::pointer otf2 = OpacityTransferFunction::New();
+	otf2->addAlphaPoint(000.0, 0.0);
+	otf2->addAlphaPoint(255.0, 1.0);
+
+
+	ImageFileStreamer::pointer mhdImporterDynamic1 = ImageFileStreamer::New();
+	mhdImporterDynamic1->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic1->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic2 = ImageFileStreamer::New();
+	mhdImporterDynamic2->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic2->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterDynamic1->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterDynamic1->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->addInputConnection(mhdImporterDynamic2->getOutputPort());
+	volumeRenderer->setColorTransferFunction(1, ctf2);
+	volumeRenderer->setOpacityTransferFunction(1, otf2);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Dynamic Single + VolumeRenderer Dynamic Multi:" << std::endl;
+	fputs("\n\n\nMeshRenderer Dynamic Single + VolumeRenderer Dynamic Multi:\n", pFile);
+
+	std::cout << "\nImport Time Dynamic 1:" << std::endl;
+	fputs("\nImport Time Dynamic 1:\n", pFile);
+	fputs(mhdImporterDynamic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic 2:" << std::endl;
+	fputs("\nImport Time Dynamic 2:\n", pFile);
+	fputs(mhdImporterDynamic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
+	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+TEST_CASE("MeshRenderer Dynamic Multi + VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][meshvolume][meshdynamicmulti][volumedynamicmulti]")
+{
+
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	ColorTransferFunction::pointer ctf2 = ColorTransferFunction::New();
+	ctf2->addRGBPoint(000.0, 1.0, 0.0, 1.0);
+	ctf2->addRGBPoint(127.0, 0.0, 1.0, 1.0);
+	ctf2->addRGBPoint(255.0, 1.0, 0.0, 0.0);
+
+	OpacityTransferFunction::pointer otf2 = OpacityTransferFunction::New();
+	otf2->addAlphaPoint(000.0, 0.0);
+	otf2->addAlphaPoint(255.0, 1.0);
+
+	ImageFileStreamer::pointer mhdImporterDynamic1 = ImageFileStreamer::New();
+	mhdImporterDynamic1->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic1->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic2 = ImageFileStreamer::New();
+	mhdImporterDynamic2->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic2->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterDynamic1->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor2 = SurfaceExtraction::New();
+	surfaceExtractor2->setInputConnection(mhdImporterDynamic2->getOutputPort());
+	surfaceExtractor2->setThreshold(50);
+	surfaceExtractor2->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->addInputConnection(surfaceExtractor2->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterDynamic1->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->addInputConnection(mhdImporterDynamic2->getOutputPort());
+	volumeRenderer->setColorTransferFunction(1, ctf2);
+	volumeRenderer->setOpacityTransferFunction(1, otf2);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Dynamic Multi + VolumeRenderer Dynamic Multi:" << std::endl;
+	fputs("\n\n\nMeshRenderer Dynamic Multi + VolumeRenderer Dynamic Multi:\n", pFile);
+
+	std::cout << "\nImport Time Dynamic 1:" << std::endl;
+	fputs("\nImport Time Dynamic 1:\n", pFile);
+	fputs(mhdImporterDynamic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic 2:" << std::endl;
+	fputs("\nImport Time Dynamic 2:\n", pFile);
+	fputs(mhdImporterDynamic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of VolumeRenderer:" << std::endl;
+	fputs("\nRendering Time of VolumeRenderer:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+}
+
+//--------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------
+
+TEST_CASE("MeshRenderer Static Single + SliceRenderer Static Single", "[fast][benchmark][visualization][meshslice][meshstaticsingle][slicestaticsingle]")
+{
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(meshRenderer);
+	window->addRenderer(sliceRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Static Single + SliceRenderer Static Single:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Single + SliceRenderer Static Single:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of SliceRenderer:" << std::endl;
+	fputs("\nRendering Time of SliceRenderer:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+
+TEST_CASE("MeshRenderer Static Multi + SliceRenderer Static Single", "[fast][benchmark][visualization][meshslice][meshstaticmulti][slicestaticsingle]")
+{
+
+	MetaImageImporter::pointer mhdImporterStatic1 = MetaImageImporter::New();
+	mhdImporterStatic1->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic1->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
+	mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
+	mhdImporterStatic2->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic1->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor2 = SurfaceExtraction::New();
+	surfaceExtractor2->setInputConnection(mhdImporterStatic2->getOutputPort());
+	surfaceExtractor2->setThreshold(50);
+	surfaceExtractor2->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->addInputConnection(surfaceExtractor2->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterStatic1->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Static Multi + SliceRenderer Static Single:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Multi + SliceRenderer Static Single:\n", pFile);
+
+	std::cout << "\nImport Time 1:" << std::endl;
+	fputs("\nImport Time 1:\n", pFile);
+	fputs(mhdImporterStatic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time 2:" << std::endl;
+	fputs("\nImport Time 2:\n", pFile);
+	fputs(mhdImporterStatic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRenderer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of SliceRenderer:" << std::endl;
+	fputs("\nRendering Time of SliceRenderer:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+TEST_CASE("MeshRenderer Static Single + SliceRenderer Static Multi", "[fast][benchmark][visualization][meshslice][meshstaticsingle][slicestaticmulti]")
+{
+
+	MetaImageImporter::pointer mhdImporterStatic1 = MetaImageImporter::New();
+	mhdImporterStatic1->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic1->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
+	mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
+	mhdImporterStatic2->enableRuntimeMeasurements();
+
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic1->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterStatic1->getOutputPort());
+	sliceRenderer->addInputConnection(mhdImporterStatic2->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Static Single + SliceRenderer Static Multi:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Single + SliceRenderer Static Multi:\n", pFile);
+
+	std::cout << "\nImport Time 1:" << std::endl;
+	fputs("\nImport Time 1:\n", pFile);
+	fputs(mhdImporterStatic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time 2:" << std::endl;
+	fputs("\nImport Time 2:\n", pFile);
+	fputs(mhdImporterStatic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRenderer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of SliceRenderer:" << std::endl;
+	fputs("\nRendering Time of SliceRenderer:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+TEST_CASE("MeshRenderer Static Multi + SliceRenderer Static Multi", "[fast][benchmark][visualization][meshslice][meshstaticmulti][slicestaticmulti]")
+{
+
+	MetaImageImporter::pointer mhdImporterStatic1 = MetaImageImporter::New();
+	mhdImporterStatic1->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic1->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
+	mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
+	mhdImporterStatic2->enableRuntimeMeasurements();
+
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic1->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor2 = SurfaceExtraction::New();
+	surfaceExtractor2->setInputConnection(mhdImporterStatic2->getOutputPort());
+	surfaceExtractor2->setThreshold(50);
+	surfaceExtractor2->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->addInputConnection(surfaceExtractor2->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterStatic1->getOutputPort());
+	sliceRenderer->addInputConnection(mhdImporterStatic2->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Static Multi + SliceRenderer Static Multi:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Multi + SliceRenderer Static Multi:\n", pFile);
+
+	std::cout << "\nImport Time 1:" << std::endl;
+	fputs("\nImport Time 1:\n", pFile);
+	fputs(mhdImporterStatic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time 2:" << std::endl;
+	fputs("\nImport Time 2:\n", pFile);
+	fputs(mhdImporterStatic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of SliceRenderer:" << std::endl;
+	fputs("\nRendering Time of SliceRenderer:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+//------------------------
+TEST_CASE("MeshRenderer Dynamic Single + SliceRenderer Static Single", "[fast][benchmark][visualization][meshslice][meshdynamicsingle][slicestaticsingle]")
+{
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic = ImageFileStreamer::New();
+	mhdImporterDynamic->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterDynamic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(meshRenderer);
+	window->addRenderer(sliceRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Dynamic Single + SliceRenderer Static Single:" << std::endl;
+	fputs("\n\n\nMeshRenderer Dynamic Single + SliceRenderer Static Single:\n", pFile);
+
+	std::cout << "\nImport Time Static:" << std::endl;
+	fputs("\nImport Time Static:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic:" << std::endl;
+	fputs("\nImport Time Dynamic:\n", pFile);
+	fputs(mhdImporterDynamic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of SliceRenderer:" << std::endl;
+	fputs("\nRendering Time of SliceRenderer:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+
+TEST_CASE("MeshRenderer Dynamic Multi + SliceRenderer Static Single", "[fast][benchmark][visualization][meshslice][meshdynamicmulti][slicestaticsingle]")
+{
+
+	ImageFileStreamer::pointer mhdImporterDynamic1 = ImageFileStreamer::New();
+	mhdImporterDynamic1->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic1->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic2 = ImageFileStreamer::New();
+	mhdImporterDynamic2->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic2->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterDynamic1->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor2 = SurfaceExtraction::New();
+	surfaceExtractor2->setInputConnection(mhdImporterDynamic2->getOutputPort());
+	surfaceExtractor2->setThreshold(50);
+	surfaceExtractor2->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->addInputConnection(surfaceExtractor2->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Dynamic Multi + SliceRenderer Static Single:" << std::endl;
+	fputs("\n\n\nMeshRenderer Dynamic Multi + SliceRenderer Static Single:\n", pFile);
+
+	std::cout << "\nImport Time Dynamic 1:" << std::endl;
+	fputs("\nImport Time Dynamic 1:\n", pFile);
+	fputs(mhdImporterDynamic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic 2:" << std::endl;
+	fputs("\nImport Time Dynamic 2:\n", pFile);
+	fputs(mhdImporterDynamic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Static:" << std::endl;
+	fputs("\nImport Time Static:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of SliceRenderer:" << std::endl;
+	fputs("\nRendering Time of SliceRenderer:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+TEST_CASE("MeshRenderer Dynamic Single + SliceRenderer Static Multi", "[fast][benchmark][visualization][meshslice][meshdynamicsingle][slicestaticmulti]")
+{
+
+	MetaImageImporter::pointer mhdImporterStatic1 = MetaImageImporter::New();
+	mhdImporterStatic1->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic1->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
+	mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
+	mhdImporterStatic2->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic = ImageFileStreamer::New();
+	mhdImporterDynamic->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterDynamic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterStatic1->getOutputPort());
+	sliceRenderer->addInputConnection(mhdImporterStatic2->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Dynamic Single + SliceRenderer Static Multi:" << std::endl;
+	fputs("\n\n\nMeshRenderer Dynamic Single + SliceRenderer Static Multi:\n", pFile);
+
+	std::cout << "\nImport Time Static 1:" << std::endl;
+	fputs("\nImport Time Static 1:\n", pFile);
+	fputs(mhdImporterStatic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Static 2:" << std::endl;
+	fputs("\nImport Time Static 2:\n", pFile);
+	fputs(mhdImporterStatic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic:" << std::endl;
+	fputs("\nImport Time Dynamic:\n", pFile);
+	fputs(mhdImporterDynamic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of SliceRenderer:" << std::endl;
+	fputs("\nRendering Time of SliceRenderer:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+TEST_CASE("MeshRenderer Dynamic Multi + SliceRenderer Static Multi", "[fast][benchmark][visualization][meshslice][meshdynamicmulti][slicestaticmulti]")
+{
+
+	MetaImageImporter::pointer mhdImporterStatic1 = MetaImageImporter::New();
+	mhdImporterStatic1->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic1->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
+	mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
+	mhdImporterStatic2->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic1 = ImageFileStreamer::New();
+	mhdImporterDynamic1->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic1->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic2 = ImageFileStreamer::New();
+	mhdImporterDynamic2->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic2->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterDynamic1->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor2 = SurfaceExtraction::New();
+	surfaceExtractor2->setInputConnection(mhdImporterDynamic2->getOutputPort());
+	surfaceExtractor2->setThreshold(50);
+	surfaceExtractor2->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->addInputConnection(surfaceExtractor2->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterStatic1->getOutputPort());
+	sliceRenderer->addInputConnection(mhdImporterStatic2->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Dynamic Multi + SliceRenderer Static Multi:" << std::endl;
+	fputs("\n\n\nMeshRenderer Dynamic Multi + SliceRenderer Static Multi:\n", pFile);
+
+	std::cout << "\nImport Time Static 1:" << std::endl;
+	fputs("\nImport Time Static 1:\n", pFile);
+	fputs(mhdImporterStatic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Static 2:" << std::endl;
+	fputs("\nImport Time Static 2:\n", pFile);
+	fputs(mhdImporterStatic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic 1:" << std::endl;
+	fputs("\nImport Time Dynamic 1:\n", pFile);
+	fputs(mhdImporterDynamic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic 2:" << std::endl;
+	fputs("\nImport Time Dynamic 2:\n", pFile);
+	fputs(mhdImporterDynamic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of SliceRenderer:" << std::endl;
+	fputs("\nRendering Time of SliceRenderer:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+//-------------------------------
+
+TEST_CASE("MeshRenderer Static Single + SliceRenderer Dynamic Single", "[fast][benchmark][visualization][meshslice][meshstaticsingle][slicedynamicsingle]")
+{
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic = ImageFileStreamer::New();
+	mhdImporterDynamic->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterDynamic->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Static Single + SliceRenderer Dynamic Single:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Single + SliceRenderer Dynamic Single:\n", pFile);
+
+	std::cout << "\nImport Time Static:" << std::endl;
+	fputs("\nImport Time Static:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic:" << std::endl;
+	fputs("\nImport Time Dynamic:\n", pFile);
+	fputs(mhdImporterDynamic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of SliceRenderer:" << std::endl;
+	fputs("\nRendering Time of SliceRenderer:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+}
+
+TEST_CASE("MeshRenderer Static Multi + SliceRenderer Dynamic Single", "[fast][benchmark][visualization][meshslice][meshstaticmulti][slicedynamicsingle]")
+{
+
+	MetaImageImporter::pointer mhdImporterStatic1 = MetaImageImporter::New();
+	mhdImporterStatic1->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic1->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
+	mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
+	mhdImporterStatic2->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic = ImageFileStreamer::New();
+	mhdImporterDynamic->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic1->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor2 = SurfaceExtraction::New();
+	surfaceExtractor2->setInputConnection(mhdImporterStatic2->getOutputPort());
+	surfaceExtractor2->setThreshold(50);
+	surfaceExtractor2->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->addInputConnection(surfaceExtractor2->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterDynamic->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Static Multi + SliceRenderer Dynamic Single:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Multi + SliceRenderer Dynamic Single:\n", pFile);
+
+	std::cout << "\nImport Time Static 1:" << std::endl;
+	fputs("\nImport Time Static 1:\n", pFile);
+	fputs(mhdImporterStatic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Static 2:" << std::endl;
+	fputs("\nImport Time Static 2:\n", pFile);
+	fputs(mhdImporterStatic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic:" << std::endl;
+	fputs("\nImport Time Dynamic:\n", pFile);
+	fputs(mhdImporterDynamic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of SliceRenderer:" << std::endl;
+	fputs("\nRendering Time of SliceRenderer:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+TEST_CASE("MeshRenderer Static Single + SliceRenderer Dynamic Multi", "[fast][benchmark][visualization][meshslice][meshstaticsingle][slicedynamicmulti]")
+{
+
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	ColorTransferFunction::pointer ctf2 = ColorTransferFunction::New();
+	ctf2->addRGBPoint(000.0, 1.0, 0.0, 1.0);
+	ctf2->addRGBPoint(127.0, 0.0, 1.0, 1.0);
+	ctf2->addRGBPoint(255.0, 1.0, 0.0, 0.0);
+
+	OpacityTransferFunction::pointer otf2 = OpacityTransferFunction::New();
+	otf2->addAlphaPoint(000.0, 0.0);
+	otf2->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic1 = ImageFileStreamer::New();
+	mhdImporterDynamic1->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic1->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic2 = ImageFileStreamer::New();
+	mhdImporterDynamic2->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic2->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterDynamic1->getOutputPort());
+	sliceRenderer->addInputConnection(mhdImporterDynamic2->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Static Single + SliceRenderer Dynamic Multi:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Single + SliceRenderer Dynamic Multi:\n", pFile);
+
+	std::cout << "\nImport Time Static:" << std::endl;
+	fputs("\nImport Time Static:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic 1:" << std::endl;
+	fputs("\nImport Time Dynamic 1:\n", pFile);
+	fputs(mhdImporterDynamic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic 2:" << std::endl;
+	fputs("\nImport Time Dynamic 2:\n", pFile);
+	fputs(mhdImporterDynamic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of SliceRenderer:" << std::endl;
+	fputs("\nRendering Time of SliceRenderer:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+TEST_CASE("MeshRenderer Static Multi + SliceRenderer Dynamic Multi", "[fast][benchmark][visualization][meshslice][meshstaticmulti][slicedynamicmulti]")
+{
+
+	OpacityTransferFunction::pointer otf2 = OpacityTransferFunction::New();
+	otf2->addAlphaPoint(000.0, 0.0);
+	otf2->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic1 = MetaImageImporter::New();
+	mhdImporterStatic1->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic1->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
+	mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
+	mhdImporterStatic2->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic1 = ImageFileStreamer::New();
+	mhdImporterDynamic1->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic1->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic2 = ImageFileStreamer::New();
+	mhdImporterDynamic2->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic2->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic1->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor2 = SurfaceExtraction::New();
+	surfaceExtractor2->setInputConnection(mhdImporterStatic2->getOutputPort());
+	surfaceExtractor2->setThreshold(50);
+	surfaceExtractor2->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->addInputConnection(surfaceExtractor2->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterDynamic1->getOutputPort());
+	sliceRenderer->addInputConnection(mhdImporterDynamic2->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Static Multi + SliceRenderer Dynamic Multi:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Multi + SliceRenderer Dynamic Multi:\n", pFile);
+
+	std::cout << "\nImport Time Static 1:" << std::endl;
+	fputs("\nImport Time Static 1:\n", pFile);
+	fputs(mhdImporterStatic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Static 2:" << std::endl;
+	fputs("\nImport Time Static 2:\n", pFile);
+	fputs(mhdImporterStatic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic 1:" << std::endl;
+	fputs("\nImport Time Dynamic 1:\n", pFile);
+	fputs(mhdImporterDynamic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic 2:" << std::endl;
+	fputs("\nImport Time Dynamic 2:\n", pFile);
+	fputs(mhdImporterDynamic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of SliceRenderer:" << std::endl;
+	fputs("\nRendering Time of SliceRenderer:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+}
+//-----------------
+
+
+TEST_CASE("MeshRenderer Dynamic Single + SliceRenderer Dynamic Single", "[fast][benchmark][visualization][meshslice][meshdynamicsingle][slicedynamicsingle]")
+{
+
+	ImageFileStreamer::pointer mhdImporterDynamic = ImageFileStreamer::New();
+	mhdImporterDynamic->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterDynamic->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterDynamic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(meshRenderer);
+	window->addRenderer(sliceRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Dynamic Single + SliceRenderer Dynamic Single:" << std::endl;
+	fputs("\n\n\nMeshRenderer Dynamic Single + SliceRenderer Dynamic Single:\n", pFile);
+
+	std::cout << "\nImport Time Dynamic:" << std::endl;
+	fputs("\nImport Time Dynamic:\n", pFile);
+	fputs(mhdImporterDynamic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of SliceRenderer:" << std::endl;
+	fputs("\nRendering Time of SliceRenderer:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+
+TEST_CASE("MeshRenderer Dynamic Multi + SliceRenderer Dynamic Single", "[fast][benchmark][visualization][meshslice][meshdynamicmulti][slicedynamicsingle]")
+{
+
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	ImageFileStreamer::pointer mhdImporterDynamic1 = ImageFileStreamer::New();
+	mhdImporterDynamic1->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic1->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic2 = ImageFileStreamer::New();
+	mhdImporterDynamic2->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic2->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterDynamic1->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor2 = SurfaceExtraction::New();
+	surfaceExtractor2->setInputConnection(mhdImporterDynamic2->getOutputPort());
+	surfaceExtractor2->setThreshold(50);
+	surfaceExtractor2->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->addInputConnection(surfaceExtractor2->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterDynamic1->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Dynamic Multi + SliceRenderer Dynamic Single:" << std::endl;
+	fputs("\n\n\nMeshRenderer Dynamic Multi + SliceRenderer Dynamic Single:\n", pFile);
+
+	std::cout << "\nImport Time Dynamic 1:" << std::endl;
+	fputs("\nImport Time Dynamic 1:\n", pFile);
+	fputs(mhdImporterDynamic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic 2:" << std::endl;
+	fputs("\nImport Time Dynamic 2:\n", pFile);
+	fputs(mhdImporterDynamic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of SliceRenderer:" << std::endl;
+	fputs("\nRendering Time of SliceRenderer:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+TEST_CASE("MeshRenderer Dynamic Single + SliceRenderer Dynamic Multi", "[fast][benchmark][visualization][meshslice][meshdynamicsingle][slicedynamicmulti]")
+{
+
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	ColorTransferFunction::pointer ctf2 = ColorTransferFunction::New();
+	ctf2->addRGBPoint(000.0, 1.0, 0.0, 1.0);
+	ctf2->addRGBPoint(127.0, 0.0, 1.0, 1.0);
+	ctf2->addRGBPoint(255.0, 1.0, 0.0, 0.0);
+
+	OpacityTransferFunction::pointer otf2 = OpacityTransferFunction::New();
+	otf2->addAlphaPoint(000.0, 0.0);
+	otf2->addAlphaPoint(255.0, 1.0);
+
+
+	ImageFileStreamer::pointer mhdImporterDynamic1 = ImageFileStreamer::New();
+	mhdImporterDynamic1->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic1->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic2 = ImageFileStreamer::New();
+	mhdImporterDynamic2->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic2->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterDynamic1->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterDynamic1->getOutputPort());
+	sliceRenderer->addInputConnection(mhdImporterDynamic2->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Dynamic Single + SliceRenderer Dynamic Multi:" << std::endl;
+	fputs("\n\n\nMeshRenderer Dynamic Single + SliceRenderer Dynamic Multi:\n", pFile);
+
+	std::cout << "\nImport Time Dynamic 1:" << std::endl;
+	fputs("\nImport Time Dynamic 1:\n", pFile);
+	fputs(mhdImporterDynamic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic 2:" << std::endl;
+	fputs("\nImport Time Dynamic 2:\n", pFile);
+	fputs(mhdImporterDynamic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of SliceRenderer:" << std::endl;
+	fputs("\nRendering Time of SliceRenderer:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile);
+
+}
+TEST_CASE("MeshRenderer Dynamic Multi + SliceRenderer Dynamic Multi", "[fast][benchmark][visualization][meshslice][meshdynamicmulti][slicedynamicmulti]")
+{
+
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	ColorTransferFunction::pointer ctf2 = ColorTransferFunction::New();
+	ctf2->addRGBPoint(000.0, 1.0, 0.0, 1.0);
+	ctf2->addRGBPoint(127.0, 0.0, 1.0, 1.0);
+	ctf2->addRGBPoint(255.0, 1.0, 0.0, 0.0);
+
+	OpacityTransferFunction::pointer otf2 = OpacityTransferFunction::New();
+	otf2->addAlphaPoint(000.0, 0.0);
+	otf2->addAlphaPoint(255.0, 1.0);
+
+	ImageFileStreamer::pointer mhdImporterDynamic1 = ImageFileStreamer::New();
+	mhdImporterDynamic1->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic1->enableRuntimeMeasurements();
+
+	ImageFileStreamer::pointer mhdImporterDynamic2 = ImageFileStreamer::New();
+	mhdImporterDynamic2->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_#.mhd");
+	mhdImporterDynamic2->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterDynamic1->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor2 = SurfaceExtraction::New();
+	surfaceExtractor2->setInputConnection(mhdImporterDynamic2->getOutputPort());
+	surfaceExtractor2->setThreshold(50);
+	surfaceExtractor2->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->addInputConnection(surfaceExtractor2->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterDynamic1->getOutputPort());
+	sliceRenderer->addInputConnection(mhdImporterDynamic2->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 seconds
+	window->start();
+
+	FILE * pFile;
+	pFile = fopen("speedtest.txt", "a");
+
+	std::cout << "\n\n\nMeshRenderer Dynamic Multi + SliceRenderer Dynamic Multi:" << std::endl;
+	fputs("\n\n\nMeshRenderer Dynamic Multi + SliceRenderer Dynamic Multi:\n", pFile);
+
+	std::cout << "\nImport Time Dynamic 1:" << std::endl;
+	fputs("\nImport Time Dynamic 1:\n", pFile);
+	fputs(mhdImporterDynamic1->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nImport Time Dynamic 2:" << std::endl;
+	fputs("\nImport Time Dynamic 2:\n", pFile);
+	fputs(mhdImporterDynamic2->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of MeshRendrer:" << std::endl;
+	fputs("\nRendering Time of MeshRendrer:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time of SliceRenderer:" << std::endl;
+	fputs("\nRendering Time of SliceRenderer:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
 	fclose(pFile);
