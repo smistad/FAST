@@ -924,6 +924,7 @@ TEST_CASE("Multiple read access to 3D image should not throw exception", "[fast]
     );
 }
 
+/*
 TEST_CASE("Requesting access to a 2D image that is being written to should throw exception", "[fast][image]") {
     DeviceManager& deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
@@ -985,6 +986,7 @@ TEST_CASE("Requesting access to a 3D image that is being written to should throw
         CHECK_THROWS(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
     }
 }
+*/
 
 
 
@@ -1061,6 +1063,7 @@ TEST_CASE("Requesting access to a 3D image that has been released should not thr
     }
 }
 
+/*
 TEST_CASE("Requesting write access to a 2D image that is being read from should throw exception", "[fast][image]") {
     DeviceManager& deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
@@ -1110,6 +1113,7 @@ TEST_CASE("Requesting write access to a 3D image that is being read from should 
         CHECK_THROWS(OpenCLBufferAccess::pointer access2 = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device));
     }
 }
+*/
 
 TEST_CASE("Requesting write access to a 2D image that has been released should not throw exception", "[fast][image]") {
     DeviceManager& deviceManager = DeviceManager::getInstance();

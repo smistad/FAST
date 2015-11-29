@@ -231,25 +231,27 @@ OpenCLBufferAccess::pointer Image::getOpenCLBufferAccess(
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
 
-    if(mImageIsBeingWrittenTo)
-        throw Exception("Requesting access to an image that is already being written to.");
-    if (type == ACCESS_READ_WRITE) {
-        if (isAnyDataBeingAccessed()) {
-            throw Exception(
-                    "Trying to get write access to an object that is already being accessed");
-        }
+    blockIfImageIsBeingWrittenTo();
+
+    if(type == ACCESS_READ_WRITE) {
+    	blockIfImageIsBeingAccessed();
+        boost::unique_lock<boost::mutex> lock(mImageIsBeingWrittenToMutex);
         mImageIsBeingWrittenTo = true;
     }
     updateOpenCLBufferData(device);
-    if (type == ACCESS_READ_WRITE) {
+    if(type == ACCESS_READ_WRITE) {
         setAllDataToOutOfDate();
         updateModifiedTimestamp();
     }
-    mCLBuffersAccess[device] = true;
     mCLBuffersIsUpToDate[device] = true;
+    {
+        boost::unique_lock<boost::mutex> lock(mImageIsBeingAccessedMutex);
+        mCLBuffersAccess[device] = true;
+    }
 
     // Now it is guaranteed that the data is on the device and that it is up to date
-	OpenCLBufferAccess::pointer accessObject(new OpenCLBufferAccess(mCLBuffers[device], &mCLBuffersAccess[device], &mImageIsBeingWrittenTo));
+    Image::pointer image = mPtr.lock();
+	OpenCLBufferAccess::pointer accessObject(new OpenCLBufferAccess(mCLBuffers[device], device, image));
 	return std::move(accessObject);
 }
 
@@ -409,15 +411,13 @@ OpenCLImageAccess::pointer Image::getOpenCLImageAccess(
 
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
-    if(mImageIsBeingWrittenTo)
-        throw Exception("Requesting access to an image that is already being written to.");
+
+    blockIfImageIsBeingWrittenTo();
 
     // Check for write access
-    if (type == ACCESS_READ_WRITE) {
-        if (isAnyDataBeingAccessed()) {
-            throw Exception(
-                    "Trying to get write access to an object that is already being accessed");
-        }
+    if(type == ACCESS_READ_WRITE) {
+    	blockIfImageIsBeingAccessed();
+    	boost::lock_guard<boost::mutex> lock(mImageIsBeingWrittenToMutex);
         mImageIsBeingWrittenTo = true;
     }
     updateOpenCLImageData(device);
@@ -425,15 +425,19 @@ OpenCLImageAccess::pointer Image::getOpenCLImageAccess(
         setAllDataToOutOfDate();
         updateModifiedTimestamp();
     }
-    mCLImagesAccess[device] = true;
+    {
+        boost::lock_guard<boost::mutex> lock(mImageIsBeingAccessedMutex);
+        mCLImagesAccess[device] = true;
+    }
     mCLImagesIsUpToDate[device] = true;
 
+    Image::pointer image = mPtr.lock();
     // Now it is guaranteed that the data is on the device and that it is up to date
     if(mDimensions == 2) {
-        OpenCLImageAccess::pointer accessObject(new OpenCLImageAccess((cl::Image2D*)mCLImages[device], &mCLImagesAccess[device], &mImageIsBeingWrittenTo));
+        OpenCLImageAccess::pointer accessObject(new OpenCLImageAccess((cl::Image2D*)mCLImages[device], device, image));
         return accessObject;
     } else {
-        OpenCLImageAccess::pointer accessObject(new OpenCLImageAccess((cl::Image3D*)mCLImages[device], &mCLImagesAccess[device], &mImageIsBeingWrittenTo));
+        OpenCLImageAccess::pointer accessObject(new OpenCLImageAccess((cl::Image3D*)mCLImages[device], device, image));
         return accessObject;
     }
 }
@@ -451,31 +455,96 @@ Image::Image() {
     mIsInitialized = false;
 }
 
+void Image::blockIfImageIsBeingWrittenTo() {
+    boost::unique_lock<boost::mutex> lock(mImageIsBeingWrittenToMutex);
+    while(mImageIsBeingWrittenTo) {
+        mImageIsBeingWrittenToCondition.wait(lock);
+    }
+}
+
+void Image::blockIfImageIsBeingAccessed() {
+    boost::unique_lock<boost::mutex> lock(mImageIsBeingAccessedMutex);
+    while(isAnyDataBeingAccessed()) {
+        mImageIsBeingWrittenToCondition.wait(lock);
+    }
+}
+
+void Image::hostAccessFinished() {
+	{
+        boost::unique_lock<boost::mutex> lock(mImageIsBeingWrittenToMutex);
+        mImageIsBeingWrittenTo = false;
+	}
+	mImageIsBeingWrittenToCondition.notify_one();
+
+	{
+        boost::unique_lock<boost::mutex> lock(mImageIsBeingAccessedMutex);
+        mHostDataIsBeingAccessed = false;
+	}
+	mImageIsBeingAccessedCondition.notify_one();
+}
+
+void Image::OpenCLImageAccessFinished(OpenCLDevice::pointer device) {
+	{
+        boost::unique_lock<boost::mutex> lock(mImageIsBeingWrittenToMutex);
+        mImageIsBeingWrittenTo = false;
+	}
+	mImageIsBeingWrittenToCondition.notify_one();
+
+	{
+        boost::unique_lock<boost::mutex> lock(mImageIsBeingAccessedMutex);
+        mCLImagesAccess[device] = false;
+	}
+	mImageIsBeingAccessedCondition.notify_one();
+}
+
+void Image::OpenCLBufferAccessFinished(OpenCLDevice::pointer device) {
+	{
+        boost::unique_lock<boost::mutex> lock(mImageIsBeingWrittenToMutex);
+        mImageIsBeingWrittenTo = false;
+	}
+	mImageIsBeingWrittenToCondition.notify_one();
+
+	{
+        boost::unique_lock<boost::mutex> lock(mImageIsBeingAccessedMutex);
+        mCLBuffersAccess[device] = false;
+	}
+	mImageIsBeingAccessedCondition.notify_one();
+}
+
 ImageAccess::pointer Image::getImageAccess(accessType type) {
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
-    if(mImageIsBeingWrittenTo)
-        throw Exception("Requesting access to an image that is already being written to.");
 
-    if (type == ACCESS_READ_WRITE) {
+    blockIfImageIsBeingWrittenTo();
+    //if(mImageIsBeingWrittenTo)
+    //    throw Exception("Requesting access to an image that is already being written to.");
+
+    if(type == ACCESS_READ_WRITE) {
+    	blockIfImageIsBeingAccessed();
+    	/*
         if (isAnyDataBeingAccessed()) {
             throw Exception(
                     "Trying to get write access to an object that is already being accessed");
         }
+        */
+
+        boost::unique_lock<boost::mutex> lock(mImageIsBeingWrittenToMutex);
         mImageIsBeingWrittenTo = true;
     }
     updateHostData();
     if(type == ACCESS_READ_WRITE) {
-        // Set modified to true since it wants write access
         setAllDataToOutOfDate();
         updateModifiedTimestamp();
     }
 
     mHostDataIsUpToDate = true;
-    mHostDataIsBeingAccessed = true;
+    {
+        boost::unique_lock<boost::mutex> lock(mImageIsBeingAccessedMutex);
+        mHostDataIsBeingAccessed = true;
+    }
 
 	Image::pointer image = mPtr.lock();
-	ImageAccess::pointer accessObject(new ImageAccess(mHostData, image, &mHostDataIsBeingAccessed, &mImageIsBeingWrittenTo));
+	ImageAccess::pointer accessObject(new ImageAccess(mHostData, image));
 	return std::move(accessObject);
 }
 

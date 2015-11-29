@@ -11,6 +11,7 @@
 #include "FAST/Data/Access/ImageAccess.hpp"
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
+#include <boost/thread/condition_variable.hpp>
 namespace fast {
 
 class Image : public SpatialDataObject {
@@ -52,6 +53,7 @@ class Image : public SpatialDataObject {
 
         // Override
         BoundingBox getTransformedBoundingBox() const;
+
     protected:
         Image();
 
@@ -107,6 +109,21 @@ class Image : public SpatialDataObject {
         unsigned long mMaxMinTimestamp, mAverageIntensityTimestamp;
         bool mMaxMinInitialized, mAverageInitialized;
         void calculateMaxAndMinIntensity();
+
+        // Test
+        void hostAccessFinished();
+        void OpenCLBufferAccessFinished(OpenCLDevice::pointer device);
+        void OpenCLImageAccessFinished(OpenCLDevice::pointer device);
+        void blockIfImageIsBeingWrittenTo();
+        void blockIfImageIsBeingAccessed();
+        boost::mutex mImageIsBeingWrittenToMutex;
+        boost::condition_variable mImageIsBeingWrittenToCondition;
+        boost::mutex mImageIsBeingAccessedMutex;
+        boost::condition_variable mImageIsBeingAccessedCondition;
+        // Declare as friends so they can get access to the accessFinished methods
+        friend class ImageAccess;
+        friend class OpenCLBufferAccess;
+        friend class OpenCLImageAccess;
 };
 
 } // end namespace fast

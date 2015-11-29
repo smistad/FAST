@@ -6,10 +6,13 @@
 
 namespace fast {
 
+class Image;
+class OpenCLDevice;
+
 class OpenCLBufferAccess {
     public:
         cl::Buffer* get() const;
-        OpenCLBufferAccess(cl::Buffer* buffer, bool* accessFlag, bool* accessFlag2);
+        OpenCLBufferAccess(cl::Buffer* buffer, SharedPointer<OpenCLDevice> device, SharedPointer<Image> image);
         void release();
         ~OpenCLBufferAccess();
 		typedef UniquePointer<OpenCLBufferAccess> pointer;
@@ -18,8 +21,8 @@ class OpenCLBufferAccess {
 		OpenCLBufferAccess& operator=(const OpenCLBufferAccess& other);
         cl::Buffer* mBuffer;
         bool mIsDeleted;
-        bool* mAccessFlag;
-        bool* mAccessFlag2;
+        SharedPointer<Image> mImage;
+        SharedPointer<OpenCLDevice> mDevice;
 };
 
 } // end namespace fast
