@@ -1,26 +1,23 @@
 #include "SurfacePointerAccess.hpp"
+#include "FAST/Data/Mesh.hpp"
 
 namespace fast {
 
 SurfacePointerAccess::SurfacePointerAccess(
         std::vector<SurfaceVertex>* vertices,
         std::vector<Vector3ui>* triangles,
-        bool* accessFlag,
-        bool* accessFlag2) {
+        SharedPointer<Mesh> mesh) {
     mVertices = vertices;
     mTriangles = triangles;
-    mAccessFlag = accessFlag;
-    mAccessFlag2 = accessFlag2;
+    mMesh = mesh;;
 }
 
 void SurfacePointerAccess::release() {
-    *mAccessFlag = false;
-    *mAccessFlag2 = false;
+	mMesh->hostAccessFinished();
 }
 
 SurfacePointerAccess::~SurfacePointerAccess() {
-    *mAccessFlag = false;
-    *mAccessFlag2 = false;
+	release();
 }
 
 

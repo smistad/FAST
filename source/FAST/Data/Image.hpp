@@ -110,7 +110,7 @@ class Image : public SpatialDataObject {
         bool mMaxMinInitialized, mAverageInitialized;
         void calculateMaxAndMinIntensity();
 
-        // Test
+        // Block access test
         void hostAccessFinished();
         void OpenCLBufferAccessFinished(OpenCLDevice::pointer device);
         void OpenCLImageAccessFinished(OpenCLDevice::pointer device);

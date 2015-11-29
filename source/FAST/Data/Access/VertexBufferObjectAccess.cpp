@@ -1,4 +1,5 @@
 #include "VertexBufferObjectAccess.hpp"
+#include "FAST/Data/Mesh.hpp"
 
 namespace fast {
 
@@ -8,20 +9,17 @@ GLuint* VertexBufferObjectAccess::get() const {
 
 VertexBufferObjectAccess::VertexBufferObjectAccess(
         GLuint VBOID,
-        bool* accessFlag,
-        bool* accessFlag2) {
+        SharedPointer<Mesh> mesh) {
 
     mVBOID = new GLuint;
     *mVBOID = VBOID;
 
     mIsDeleted = false;
-    mAccessFlag = accessFlag;
-    mAccessFlag2 = accessFlag2;
+    mMesh = mesh;
 }
 
 void VertexBufferObjectAccess::release() {
-    *mAccessFlag = false;
-    *mAccessFlag2 = false;
+	mMesh->VBOAccessFinished();
     if(!mIsDeleted) {
         delete mVBOID;
         mIsDeleted = true;

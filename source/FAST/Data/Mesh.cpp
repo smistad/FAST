@@ -80,6 +80,48 @@ void Mesh::create(unsigned int nrOfTriangles) {
     mNrOfTriangles = nrOfTriangles;
 }
 
+void Mesh::blockIfBeingWrittenTo() {
+    boost::unique_lock<boost::mutex> lock(mMeshIsBeingWrittenToMutex);
+    while(mSurfaceIsBeingWrittenTo) {
+        mMeshIsBeingWrittenToCondition.wait(lock);
+    }
+}
+
+void Mesh::blockIfBeingAccessed() {
+    boost::unique_lock<boost::mutex> lock(mMeshIsBeingAccessedMutex);
+    while(isAnyDataBeingAccessed()) {
+        mMeshIsBeingWrittenToCondition.wait(lock);
+    }
+}
+
+void Mesh::hostAccessFinished() {
+	{
+        boost::unique_lock<boost::mutex> lock(mMeshIsBeingWrittenToMutex);
+        mSurfaceIsBeingWrittenTo = false;
+	}
+	mMeshIsBeingWrittenToCondition.notify_one();
+
+	{
+        boost::unique_lock<boost::mutex> lock(mMeshIsBeingAccessedMutex);
+        mHostDataIsBeingAccessed = false;
+	}
+	mMeshIsBeingAccessedCondition.notify_one();
+}
+
+void Mesh::VBOAccessFinished() {
+	{
+        boost::unique_lock<boost::mutex> lock(mMeshIsBeingWrittenToMutex);
+        mSurfaceIsBeingWrittenTo = false;
+	}
+	mMeshIsBeingWrittenToCondition.notify_one();
+
+	{
+        boost::unique_lock<boost::mutex> lock(mMeshIsBeingAccessedMutex);
+        mVBODataIsBeingAccessed = false;
+	}
+	mMeshIsBeingAccessedCondition.notify_one();
+}
+
 bool Mesh::isAnyDataBeingAccessed() {
     return mVBODataIsBeingAccessed || mHostDataIsBeingAccessed;
 }
@@ -88,16 +130,17 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
         accessType type,
         OpenCLDevice::pointer device) {
     if(!mIsInitialized)
-        throw Exception("Surface has not been initialized.");
+        throw Exception("Mesh has not been initialized.");
 
-    if(mSurfaceIsBeingWrittenTo)
-        throw Exception("Requesting access to a surface that is already being written to.");
+    blockIfBeingWrittenTo();
+
     if (type == ACCESS_READ_WRITE) {
-        if (isAnyDataBeingAccessed()) {
-            throw Exception(
-                    "Trying to get write access to an object that is already being accessed");
-        }
-        mSurfaceIsBeingWrittenTo = true;
+    	blockIfBeingAccessed();
+
+    	{
+            boost::unique_lock<boost::mutex> lock(mMeshIsBeingWrittenToMutex);
+            mSurfaceIsBeingWrittenTo = true;
+    	}
         updateModifiedTimestamp();
     }
     if(!mVBOHasData) {
@@ -161,9 +204,13 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
         }
     }
 
-    mVBODataIsBeingAccessed = true;
+    {
+        boost::unique_lock<boost::mutex> lock(mMeshIsBeingAccessedMutex);
+        mVBODataIsBeingAccessed = true;
+    }
 
-	VertexBufferObjectAccess::pointer accessObject(new VertexBufferObjectAccess(mVBOID, &mVBODataIsBeingAccessed, &mSurfaceIsBeingWrittenTo));
+    Mesh::pointer mesh = mPtr.lock();
+	VertexBufferObjectAccess::pointer accessObject(new VertexBufferObjectAccess(mVBOID, mesh));
 	return std::move(accessObject);
 }
 
@@ -199,14 +246,15 @@ SurfacePointerAccess::pointer Mesh::getSurfacePointerAccess(accessType type) {
     if(!mIsInitialized) {
         throw Exception("Surface has not been initialized.");
     }
-    if(mSurfaceIsBeingWrittenTo)
-        throw Exception("Requesting access to a surface that is already being written to.");
-    if (type == ACCESS_READ_WRITE) {
-        if (isAnyDataBeingAccessed()) {
-            throw Exception(
-                    "Trying to get write access to an object that is already being accessed");
-        }
-        mSurfaceIsBeingWrittenTo = true;
+
+    blockIfBeingWrittenTo();
+
+    if(type == ACCESS_READ_WRITE) {
+    	blockIfBeingAccessed();
+    	{
+    		boost::lock_guard<boost::mutex> lock(mMeshIsBeingWrittenToMutex);
+            mSurfaceIsBeingWrittenTo = true;
+    	}
         updateModifiedTimestamp();
     }
     if(!mHostHasData) {
@@ -260,8 +308,13 @@ SurfacePointerAccess::pointer Mesh::getSurfacePointerAccess(accessType type) {
         }
     }
 
-    mHostDataIsBeingAccessed = true;
-    SurfacePointerAccess::pointer accessObject(new SurfacePointerAccess(&mVertices,&mTriangles,&mHostDataIsBeingAccessed,&mSurfaceIsBeingWrittenTo));
+    {
+        boost::lock_guard<boost::mutex> lock(mMeshIsBeingAccessedMutex);
+        mHostDataIsBeingAccessed = true;
+    }
+
+    Mesh::pointer mesh = mPtr.lock();
+    SurfacePointerAccess::pointer accessObject(new SurfacePointerAccess(&mVertices,&mTriangles,mesh));
 	return std::move(accessObject);
 }
 

@@ -8,6 +8,7 @@
 #include "FAST/Data/DataTypes.hpp"
 #include "FAST/Data/Access/VertexBufferObjectAccess.hpp"
 #include "FAST/Data/Access/SurfacePointerAccess.hpp"
+#include <boost/thread/condition_variable.hpp>
 
 namespace fast {
 
@@ -46,6 +47,19 @@ class Mesh : public SpatialDataObject {
 
         bool mSurfaceIsBeingWrittenTo;
         bool isAnyDataBeingAccessed();
+
+        // Block access test
+        void hostAccessFinished();
+        void VBOAccessFinished();
+        void blockIfBeingWrittenTo();
+        void blockIfBeingAccessed();
+        boost::mutex mMeshIsBeingWrittenToMutex;
+        boost::condition_variable mMeshIsBeingWrittenToCondition;
+        boost::mutex mMeshIsBeingAccessedMutex;
+        boost::condition_variable mMeshIsBeingAccessedCondition;
+        // Declare as friends so they can get access to the accessFinished methods
+        friend class SurfacePointerAccess;
+        friend class VertexBufferObjectAccess;
 };
 
 } // end namespace fast
