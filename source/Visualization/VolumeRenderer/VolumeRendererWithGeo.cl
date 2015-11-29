@@ -173,7 +173,7 @@ d_render(__global uint *d_output,
     float t = tfar;
 	
     for(uint i=0; i<maxSteps*200; i++) {
-
+		if (t < tnear) break;
 		float4 pos = eyeRay_o[0] + eyeRay_d[0] * t;
         
 		// read from 3D texture
@@ -287,7 +287,7 @@ d_render(__global uint *d_output,
 #endif //VOL5
 		
         t -= tstep;
-        if (t < tnear) break;
+        
     }
     volumeColor *= brightness;
 	float4 geoColor=read_imagef(geoColorTexture, geometrySampler, (int2)(x,y));

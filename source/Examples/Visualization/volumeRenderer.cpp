@@ -15,6 +15,8 @@
 #include "ColorTransferFunction.hpp"
 #include "OpacityTransferFunction.hpp"
 #include "SurfaceExtraction.hpp"
+#include "VTKMeshFileImporter.hpp"
+#include "VTKSurfaceFileExporter.hpp"
 
 using namespace fast;
 
@@ -227,6 +229,16 @@ window->setTimeout(10*1000);
 
 	//getchar(); // Do not commit this as the example is run on all platforms..
 	*/
+	/*
+	VTKMeshFileImporter::pointer surfaceImporter = VTKMeshFileImporter::New();
+	surfaceImporter->setFilename(std::string(FAST_TEST_DATA_DIR) + "/Surface_LV.vtk");
+
+	*/
+	
+
+	// Renderer image
+	
+
 	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
 	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
 	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
@@ -240,6 +252,22 @@ window->setTimeout(10*1000);
 	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
 	mhdImporterStatic->enableRuntimeMeasurements();
 
+	SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
+	extractor->enableRuntimeMeasurements();
+	extractor->setInputConnection(mhdImporterStatic->getOutputPort());
+	extractor->setThreshold(50);
+
+//	extractor->update();
+	
+	VTKSurfaceFileExporter::pointer surfaceExporter = VTKSurfaceFileExporter::New();
+	surfaceExporter->setInputConnection(extractor->getOutputPort());
+	surfaceExporter->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull2.vtk");
+
+	
+	
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(extractor->getOutputPort());
+	
 	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
 	volumeRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
 	volumeRenderer->setColorTransferFunction(0, ctf1);
@@ -250,7 +278,7 @@ window->setTimeout(10*1000);
 	window->getView()->enableRuntimeMeasurements();
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
+	window->addRenderer(meshRenderer);
 	//window->setTimeout(1000); // 1 second
 	window->start();
-
 }
