@@ -10,7 +10,7 @@ fast_add_test_sources(
     Tests/ImageExporterTests.cpp
     Tests/MetaImageExporterTests.cpp
 )
-if(VTK_INTEROP)
+if(FAST_VTK_INTEROP)
     fast_add_sources(
         VTKImageExporter.cpp
         VTKImageExporter.hpp
@@ -22,7 +22,7 @@ if(VTK_INTEROP)
         Tests/VTKLineSetExporterTests.cpp
     )
 endif()
-if(ITK_INTEROP)
+if(FAST_ITK_INTEROP)
     fast_add_sources(
         ITKImageExporter.hpp
     )

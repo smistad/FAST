@@ -2,17 +2,18 @@ cmake_minimum_required(VERSION 2.8.9)
 project(FAST)
 
 #### Options
-option(VTK_INTEROP "Enable interoperability with VTK" OFF)
-option(ITK_INTEROP "Enable interoperability with ITK" OFF)
+option(FAST_VTK_INTEROP "Enable interoperability with VTK" OFF)
+option(FAST_ITK_INTEROP "Enable interoperability with ITK" OFF)
 option(BUILD_TESTS "Build FAST tests." ON)
 option(BUILD_IGTLINK_TESTS "Build OpenIGTLink tests." OFF)
 option(BUILD_EXAMPLES "Build examples." OFF)
-option(MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
-set(OPENCL_KERNEL_BINARY_PATH "${PROJECT_BINARY_DIR}/" CACHE STRING "Directory to put kernel binaries in. Default is build dir.")
+option(FAST_MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
+set(FAST_TEST_DATA_DIR "${PROJECT_SOURCE_DIR}/../TestData/" CACHE PATH "Directory of test data")
+set(FAST_OPENCL_KERNEL_BINARY_PATH "${PROJECT_BINARY_DIR}/" CACHE PATH "Directory to put kernel binaries in. Default is build dir.")
 # Remove any existing "
-string(REPLACE "\"" "" OPENCL_KERNEL_BINARY_PATH ${OPENCL_KERNEL_BINARY_PATH})
-message("-- OpenCL Kernel binary path set to: ${OPENCL_KERNEL_BINARY_PATH}")
-add_definitions("-DOUL_OPENCL_KERNEL_BINARY_PATH=\"${OPENCL_KERNEL_BINARY_PATH}\"")
+string(REPLACE "\"" "" FAST_OPENCL_KERNEL_BINARY_PATH ${FAST_OPENCL_KERNEL_BINARY_PATH})
+message("-- OpenCL Kernel binary path set to: ${FAST_OPENCL_KERNEL_BINARY_PATH}")
+add_definitions("-DOUL_OPENCL_KERNEL_BINARY_PATH=\"${FAST_OPENCL_KERNEL_BINARY_PATH}\"")
 
 #### Module path
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../) # For finding the custom Find modules
@@ -24,7 +25,6 @@ else()
     set(BUILD_TESTING OFF CACHE INTERNAL "Build OpenIGTLink tests." FORCE)
 endif()
 
-set(FAST_TEST_DATA_DIR "${PROJECT_SOURCE_DIR}/../TestData/" CACHE STRING "Directory of test data")
 
 #### Macro for adding source files and directories
 macro (fast_add_sources)
@@ -90,7 +90,7 @@ endif()
 set(FAST_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR})
 
 ## OpenIGTLink
-if(MODULE_OpenIGTLink)
+if(FAST_MODULE_OpenIGTLink)
     set(CMAKE_PREFIX_PATH "${FAST_BINARY_DIR}") # Needed to find the cmake config file of IGTL
     set(LIBRARY_OUTPUT_PATH  "${FAST_BINARY_DIR}") # Needed to output the libraries in the correct folder
     set(EXECUTABLE_OUTPUT_PATH "${FAST_BINARY_DIR}") # Needed to output the executables in correct folder
@@ -100,13 +100,6 @@ if(MODULE_OpenIGTLink)
     list(APPEND FAST_INCLUDE_DIRS ${OpenIGTLink_INCLUDE_DIRS})
     list(APPEND LIBRARIES ${OpenIGTLink_LIBRARIES})
 endif()
-
-## OpenCL Utility Library
-#add_subdirectory(OpenCLUtilityLibrary)
-#find_package(OpenCLUtilityLibrary PATHS "${FAST_BINARY_DIR}/OpenCLUtilityLibrary" REQUIRED)
-#include(${OpenCLUtilityLibrary_USE_FILE})
-#set(LIBRARIES ${LIBRARIES} OpenCLUtilityLibrary)
-#list (APPEND FAST_INCLUDE_DIRS "${OpenCLUtilityLibrary_INCLUDE_DIRS}")
 
 ## OpenCL
 find_package(OpenCL REQUIRED)
@@ -150,7 +143,7 @@ list(APPEND FAST_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
 message("-- Using Eigen ${EIGEN3_VERSION}")
 
 ## VTK
-if(VTK_INTEROP)
+if(FAST_VTK_INTEROP)
     find_package(VTK REQUIRED)
     include(${VTK_USE_FILE})
     message("-- Enabling VTK interoperability. VTK version ${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}")
@@ -158,7 +151,7 @@ if(VTK_INTEROP)
 endif()
 
 ## ITK
-if(ITK_INTEROP)
+if(FAST_ITK_INTEROP)
     find_package(ITK REQUIRED)
     include(${ITK_USE_FILE})
     message("-- Enabling ITK interoperability")
@@ -196,7 +189,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR CMAKE_COMPILER_IS_GNUCXX)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c++11")
         # Permissive flag is currently needed to make ITK work with C++11
-        if(ITK_INTEROP)
+        if(FAST_ITK_INTEROP)
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpermissive")
         endif()
@@ -204,7 +197,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR CMAKE_COMPILER_IS_GNUCXX)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++0x")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c++0x")
         # Permissive flag is currently needed to make ITK work with C++11
-        if(ITK_INTEROP)
+        if(FAST_ITK_INTEROP)
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpermissive")
         endif()
