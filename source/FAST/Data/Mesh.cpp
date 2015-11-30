@@ -194,7 +194,7 @@ bool operator==(const MeshVertex& a, const MeshVertex& b) {
     a.position[2] == b.position[2];
 }
 
-SurfacePointerAccess::pointer Mesh::getSurfacePointerAccess(accessType type) {
+MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
     if(!mIsInitialized) {
         throw Exception("Surface has not been initialized.");
     }
@@ -265,7 +265,7 @@ SurfacePointerAccess::pointer Mesh::getSurfacePointerAccess(accessType type) {
         mDataIsBeingAccessed = true;
     }
 
-    SurfacePointerAccess::pointer accessObject(new SurfacePointerAccess(&mVertices,&mTriangles,mPtr.lock()));
+    MeshAccess::pointer accessObject(new MeshAccess(&mVertices,&mTriangles,mPtr.lock()));
 	return std::move(accessObject);
 }
 

@@ -1,5 +1,5 @@
-#ifndef SURFACEPOINTERACCESS_HPP_
-#define SURFACEPOINTERACCESS_HPP_
+#ifndef MESHACCESS_HPP_
+#define MESHACCESS_HPP_
 
 #include <vector>
 #include <FAST/Data/DataTypes.hpp>
@@ -10,16 +10,16 @@ namespace fast {
 
 class Mesh;
 
-class SurfacePointerAccess {
+class MeshAccess {
     public:
-        SurfacePointerAccess(std::vector<MeshVertex>* vertices, std::vector<Vector3ui>* triangles, SharedPointer<Mesh> mesh);
+        MeshAccess(std::vector<MeshVertex>* vertices, std::vector<Vector3ui>* triangles, SharedPointer<Mesh> mesh);
         MeshVertex getVertex(uint i);
         Vector3ui getTriangle(uint i);
         std::vector<Vector3ui> getTriangles();
         std::vector<MeshVertex> getVertices();
         void release();
-        ~SurfacePointerAccess();
-		typedef UniquePointer<SurfacePointerAccess> pointer;
+        ~MeshAccess();
+		typedef UniquePointer<MeshAccess> pointer;
     private:
         std::vector<MeshVertex>* mVertices;
         std::vector<Vector3ui>* mTriangles;
@@ -29,4 +29,4 @@ class SurfacePointerAccess {
 } // end namespace fast
 
 
-#endif /* SURFACEPOINTERACCESS_HPP_ */
+#endif /* MESHACCESS_HPP_ */

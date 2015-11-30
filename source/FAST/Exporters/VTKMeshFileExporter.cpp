@@ -35,7 +35,7 @@ void VTKMeshFileExporter::execute() {
             "DATASET POLYDATA\n";
 
     // Write vertices
-    SurfacePointerAccess::pointer access = surface->getSurfacePointerAccess(ACCESS_READ);
+    MeshAccess::pointer access = surface->getMeshAccess(ACCESS_READ);
     std::vector<MeshVertex> vertices = access->getVertices();
     file << "POINTS " << vertices.size() << " float\n";
     for(int i = 0; i < vertices.size(); i++) {

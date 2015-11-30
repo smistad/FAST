@@ -29,6 +29,10 @@ AffineTransformation::pointer AffineTransformation::multiply(AffineTransformatio
 	return result;
 }
 
+Vector3f AffineTransformation::multiply(Vector3f point) {
+	return (matrix()*point.homogeneous()).head(3);
+}
+
 
 
 }

@@ -7,7 +7,7 @@
 #include <vector>
 #include "FAST/Data/DataTypes.hpp"
 #include "FAST/Data/Access/VertexBufferObjectAccess.hpp"
-#include "FAST/Data/Access/SurfacePointerAccess.hpp"
+#include "FAST/Data/Access/MeshAccess.hpp"
 #include <boost/thread/condition_variable.hpp>
 
 namespace fast {
@@ -19,7 +19,7 @@ class Mesh : public SpatialDataObject {
         void create(std::vector<MeshVertex> vertices, std::vector<Vector3ui> triangles);
         void create(unsigned int nrOfTriangles);
         VertexBufferObjectAccess::pointer getVertexBufferObjectAccess(accessType access, OpenCLDevice::pointer device);
-        SurfacePointerAccess::pointer getSurfacePointerAccess(accessType access);
+        MeshAccess::pointer getMeshAccess(accessType access);
         unsigned int getNrOfTriangles() const;
         unsigned int getNrOfVertices() const;
         void setBoundingBox(BoundingBox box);
@@ -44,7 +44,7 @@ class Mesh : public SpatialDataObject {
         std::vector<Vector3ui> mTriangles;
 
         // Declare as friends so they can get access to the accessFinished methods
-        friend class SurfacePointerAccess;
+        friend class MeshAccess;
         friend class VertexBufferObjectAccess;
 };
 
