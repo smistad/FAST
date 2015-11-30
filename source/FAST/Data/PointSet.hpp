@@ -19,13 +19,12 @@ class PointSet : public SpatialDataObject {
         PointSet();
         void freeAll();
         void free(ExecutionDevice::pointer device);
-        bool isAnyDataBeingAccessed() const;
 
         // Host data
         std::vector<Vector3f> mPointSet;
-        bool mHostDataIsBeingAccessed;
 
-        bool mIsBeingWrittenTo;
+        // Necessary to give PointSetAccess access to the accessFinished method
+        friend class PointSetAccess;
 };
 
 } // end namespace fast

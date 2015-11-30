@@ -8,9 +8,11 @@
 
 namespace fast {
 
+class LineSet;
+
 class LineSetAccess {
     public:
-        LineSetAccess(std::vector<Vector3f>* vertices, std::vector<Vector2ui>* lines, bool* accessFlag, bool* accessFlag2);
+        LineSetAccess(std::vector<Vector3f>* vertices, std::vector<Vector2ui>* lines, SharedPointer<LineSet> object);
         Vector3f getPoint(uint i) const;
         void setPoint(uint i, const Vector3f point);
         void addPoint(const Vector3f point);
@@ -27,10 +29,9 @@ class LineSetAccess {
         ~LineSetAccess();
 		typedef UniquePointer<LineSetAccess> pointer;
     private:
-        bool* mAccessFlag;
-        bool* mAccessFlag2;
         std::vector<Vector3f>* mVertices;
         std::vector<Vector2ui>* mLines;
+        SharedPointer<LineSet> mObject;
 };
 
 } // end namespace fast
