@@ -301,8 +301,8 @@ void SurfaceExtraction::execute() {
     SceneGraph::setParentNode(output, input);
     BoundingBox box = input->getBoundingBox();
     // Apply spacing scaling to BB
-    AffineTransformation T;
-    T.scale(input->getSpacing());
+    AffineTransformation::pointer T = AffineTransformation::New();
+    T->scale(input->getSpacing());
     output->setBoundingBox(box.getTransformedBoundingBox(T));
     output->create(totalSum);
 
@@ -310,6 +310,7 @@ void SurfaceExtraction::execute() {
         reportInfo() << "No triangles were extracted. Check isovalue." << Reporter::end;
         return;
     }
+    reportInfo() << totalSum << " nr of triangles were extracted with the SurfaceExtraction algorithm." << reportEnd();
 
 
     // Traverse HP to create triangles and put them in the VBO

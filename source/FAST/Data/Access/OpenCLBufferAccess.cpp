@@ -9,12 +9,11 @@ cl::Buffer* OpenCLBufferAccess::get() const {
     return mBuffer;
 }
 
-OpenCLBufferAccess::OpenCLBufferAccess(cl::Buffer* buffer, SharedPointer<OpenCLDevice> device, SharedPointer<Image> image) {
+OpenCLBufferAccess::OpenCLBufferAccess(cl::Buffer* buffer,  SharedPointer<Image> image) {
     // Copy the image
     mBuffer = new cl::Buffer(*buffer);
     mIsDeleted = false;
     mImage = image;
-    mDevice = device;
 }
 
 void OpenCLBufferAccess::release() {
@@ -23,7 +22,7 @@ void OpenCLBufferAccess::release() {
         mBuffer = new cl::Buffer(); // assign a new blank object
         mIsDeleted = true;
     }
-	mImage->OpenCLBufferAccessFinished(mDevice);
+	mImage->accessFinished();
 }
 
 OpenCLBufferAccess::~OpenCLBufferAccess() {

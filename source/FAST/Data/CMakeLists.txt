@@ -16,7 +16,7 @@ fast_add_sources(
     DataTypes.hpp
     Mesh.cpp
     Mesh.hpp
-    SurfaceVertex.hpp
+    MeshVertex.hpp
     PointSet.cpp
     PointSet.hpp
     LineSet.cpp

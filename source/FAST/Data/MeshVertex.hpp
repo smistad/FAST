@@ -1,12 +1,12 @@
-#ifndef SURFACEVERTEX_HPP_
-#define SURFACEVERTEX_HPP_
+#ifndef MESHVERTEX_HPP_
+#define MESHVERTEX_HPP_
 
 #include "DataTypes.hpp"
 #include <vector>
 
 namespace fast {
 
-class SurfaceVertex {
+class MeshVertex {
     public:
         Vector3f position;
         Vector3f normal;

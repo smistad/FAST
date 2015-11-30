@@ -16,13 +16,13 @@ int main() {
     // Apply a transformation to point set B
     Vector3f translation(0.01, 0, 0.01);
     Vector3f rotation(0.5, 0, 0);
-    AffineTransformation transformation;
-    transformation.translate(translation);
+    AffineTransformation::pointer transformation = AffineTransformation::New();
+    transformation->translate(translation);
     Matrix3f R;
     R = Eigen::AngleAxisf(rotation.x(), Vector3f::UnitX())
     * Eigen::AngleAxisf(rotation.y(), Vector3f::UnitY())
     * Eigen::AngleAxisf(rotation.z(), Vector3f::UnitZ());
-    transformation.rotate(R);
+    transformation->rotate(R);
     importerB->update();
     importerB->getStaticOutputData<PointSet>()->getSceneGraphNode()->setTransformation(transformation);
 
@@ -36,8 +36,8 @@ int main() {
     importerA->getStaticOutputData<PointSet>()->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
 
     Reporter::info() << "Registration result: " << Reporter::end;
-    Reporter::info() << "Rotation: " << icp->getOutputTransformation().getEulerAngles().transpose() << Reporter::end;
-    Reporter::info() << "Translation:" << icp->getOutputTransformation().translation().transpose() << Reporter::end;
+    Reporter::info() << "Rotation: " << icp->getOutputTransformation()->getEulerAngles().transpose() << Reporter::end;
+    Reporter::info() << "Translation:" << icp->getOutputTransformation()->translation().transpose() << Reporter::end;
 
     // Visualize the two point sets
     PointRenderer::pointer renderer = PointRenderer::New();

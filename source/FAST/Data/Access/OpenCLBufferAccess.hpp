@@ -12,7 +12,7 @@ class OpenCLDevice;
 class OpenCLBufferAccess {
     public:
         cl::Buffer* get() const;
-        OpenCLBufferAccess(cl::Buffer* buffer, SharedPointer<OpenCLDevice> device, SharedPointer<Image> image);
+        OpenCLBufferAccess(cl::Buffer* buffer,  SharedPointer<Image> image);
         void release();
         ~OpenCLBufferAccess();
 		typedef UniquePointer<OpenCLBufferAccess> pointer;
@@ -22,7 +22,6 @@ class OpenCLBufferAccess {
         cl::Buffer* mBuffer;
         bool mIsDeleted;
         SharedPointer<Image> mImage;
-        SharedPointer<OpenCLDevice> mDevice;
 };
 
 } // end namespace fast

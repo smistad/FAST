@@ -104,13 +104,13 @@ void MetaImageExporter::execute() {
     if(input->getDimensions() == 3)
         mhdFile << " " << input->getSpacing()[2];
     mhdFile << "\n";
-    AffineTransformation T = SceneGraph::getAffineTransformationFromData(input);
-    mhdFile << "Offset = " << T.translation().x() << " " << T.translation().y() << " " << T.translation().z() << "\n";
+    AffineTransformation::pointer T = SceneGraph::getAffineTransformationFromData(input);
+    mhdFile << "Offset = " << T->translation().x() << " " << T->translation().y() << " " << T->translation().z() << "\n";
     mhdFile << "TransformMatrix =";
 
     for(unsigned int i = 0; i < 3; i++) {
     for(unsigned int j = 0; j < 3; j++) {
-        mhdFile << " " << T.matrix()(j,i);
+        mhdFile << " " << T->matrix()(j,i);
     }}
     mhdFile << "\n";
 

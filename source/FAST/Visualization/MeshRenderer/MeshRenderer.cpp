@@ -52,10 +52,10 @@ void MeshRenderer::draw() {
     for(it = mMeshToRender.begin(); it != mMeshToRender.end(); it++) {
         Mesh::pointer surfaceToRender = it->second;
         // Draw the triangles in the VBO
-        AffineTransformation transform = SceneGraph::getAffineTransformationFromData(surfaceToRender);
+        AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(surfaceToRender);
 
         glPushMatrix();
-        glMultMatrixf(transform.data());
+        glMultMatrixf(transform->data());
 
         float opacity = mDefaultOpacity;
         Color color = mDefaultColor;

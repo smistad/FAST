@@ -18,7 +18,6 @@ AddTransformation::AddTransformation() {
 void AddTransformation::execute() {
     SpatialDataObject::pointer data = getStaticInputData<SpatialDataObject>(0);
     AffineTransformation::pointer transform = getStaticInputData<AffineTransformation>(1);
-    AffineTransformation* T = transform.getPtr().get();
     SceneGraphNode::pointer dataNode = data->getSceneGraphNode();
 
     if(data == mPrevious) {
@@ -33,7 +32,7 @@ void AddTransformation::execute() {
         }
         // CurrentNode is now root node
         // change transformation
-        currentChildNode->setTransformation(*T);
+        currentChildNode->setTransformation(transform);
     } else {
         // Find root node of dataNode
         SceneGraphNode::pointer currentNode = dataNode->getParent();
@@ -44,7 +43,7 @@ void AddTransformation::execute() {
         // Add new root node
         SceneGraphNode::pointer newRootNode = SceneGraphNode::New();
         currentNode->setParent(newRootNode);
-        currentNode->setTransformation(*T);
+        currentNode->setTransformation(transform);
     }
     mPrevious = data;
 

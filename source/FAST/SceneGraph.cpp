@@ -8,12 +8,12 @@ void SceneGraphNode::reset() {
     SceneGraphNode::pointer newRootNode = SceneGraphNode::New();
     setParent(newRootNode);
     // Set transformation to identity
-    setTransformation(AffineTransformation());
+    setTransformation(AffineTransformation::New());
 }
 
 // Set transformation to its parent
 void SceneGraphNode::setTransformation(
-        AffineTransformation transformation) {
+        AffineTransformation::pointer transformation) {
     mTransformation = transformation;
     mIsRootNode = false;
 }
@@ -37,27 +37,28 @@ bool SceneGraphNode::isRootNode() const {
     return mIsRootNode;
 }
 
-AffineTransformation SceneGraphNode::getTransformation() const {
+AffineTransformation::pointer SceneGraphNode::getTransformation() const {
     return mTransformation;
 }
 
 SceneGraphNode::SceneGraphNode() {
     mIsRootNode = true;
+    mTransformation = AffineTransformation::New();
 }
 
-AffineTransformation SceneGraph::getAffineTransformationBetweenNodes(
+AffineTransformation::pointer SceneGraph::getAffineTransformationBetweenNodes(
         SceneGraphNode::pointer nodeA, SceneGraphNode::pointer nodeB) {
     // TODO traverse the graph from node A to node B
 
-			return AffineTransformation();
+			return AffineTransformation::New();
 }
 
-AffineTransformation SceneGraph::getAffineTransformationFromNode(
+AffineTransformation::pointer SceneGraph::getAffineTransformationFromNode(
         SceneGraphNode::pointer node) {
     SceneGraphNode::pointer currentNode = node;
-    AffineTransformation transformation;
+    AffineTransformation::pointer transformation = AffineTransformation::New();
     while(!currentNode->isRootNode()) {
-        transformation = currentNode->getTransformation()*transformation;
+        transformation = currentNode->getTransformation()->multiply(transformation);
         currentNode = currentNode->getParent();
     }
 
@@ -67,15 +68,15 @@ AffineTransformation SceneGraph::getAffineTransformationFromNode(
 Eigen::Affine3f SceneGraph::getEigenAffineTransformationFromData(
         SpatialDataObject::pointer data) {
     SceneGraphNode::pointer currentNode = data->getSceneGraphNode();
-    AffineTransformation transformation = getAffineTransformationFromNode(currentNode);
+    AffineTransformation::pointer transformation = getAffineTransformationFromNode(currentNode);
 
     Eigen::Affine3f result;
-    result.matrix() = transformation.matrix();
+    result.matrix() = transformation->matrix();
 
     return result;
 }
 
-AffineTransformation SceneGraph::getAffineTransformationFromData(
+AffineTransformation::pointer SceneGraph::getAffineTransformationFromData(
         SpatialDataObject::pointer data) {
     SceneGraphNode::pointer currentNode = data->getSceneGraphNode();
     return SceneGraph::getAffineTransformationFromNode(currentNode);
@@ -89,12 +90,12 @@ void SceneGraph::setParentNode(SpatialDataObject::pointer child,
 }
 
 
-SceneGraphNode::pointer SceneGraph::insertParentNodeToData(SpatialDataObject::pointer child, AffineTransformation transform) {
+SceneGraphNode::pointer SceneGraph::insertParentNodeToData(SpatialDataObject::pointer child, AffineTransformation::pointer transform) {
     SceneGraphNode::pointer childNode = child->getSceneGraphNode();
     return insertParentNodeToNode(childNode, transform);
 }
 
-SceneGraphNode::pointer SceneGraph::insertParentNodeToNode(SceneGraphNode::pointer childNode, AffineTransformation transform) {
+SceneGraphNode::pointer SceneGraph::insertParentNodeToNode(SceneGraphNode::pointer childNode, AffineTransformation::pointer transform) {
     SceneGraphNode::pointer newNode = SceneGraphNode::New();
     newNode->setTransformation(childNode->getTransformation());
     newNode->setParent(childNode->getParent());

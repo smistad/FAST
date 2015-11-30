@@ -9,7 +9,7 @@ ImageAccess::ImageAccess(void* data, Image::pointer image) {
 }
 
 void ImageAccess::release() {
-	mImage->hostAccessFinished();
+	mImage->accessFinished();
 }
 
 ImageAccess::~ImageAccess() {

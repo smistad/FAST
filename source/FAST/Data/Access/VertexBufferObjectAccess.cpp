@@ -19,7 +19,7 @@ VertexBufferObjectAccess::VertexBufferObjectAccess(
 }
 
 void VertexBufferObjectAccess::release() {
-	mMesh->VBOAccessFinished();
+	mMesh->accessFinished();
     if(!mIsDeleted) {
         delete mVBOID;
         mIsDeleted = true;

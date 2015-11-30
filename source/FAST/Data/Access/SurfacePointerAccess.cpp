@@ -4,7 +4,7 @@
 namespace fast {
 
 SurfacePointerAccess::SurfacePointerAccess(
-        std::vector<SurfaceVertex>* vertices,
+        std::vector<MeshVertex>* vertices,
         std::vector<Vector3ui>* triangles,
         SharedPointer<Mesh> mesh) {
     mVertices = vertices;
@@ -13,7 +13,7 @@ SurfacePointerAccess::SurfacePointerAccess(
 }
 
 void SurfacePointerAccess::release() {
-	mMesh->hostAccessFinished();
+	mMesh->accessFinished();
 }
 
 SurfacePointerAccess::~SurfacePointerAccess() {
@@ -21,7 +21,7 @@ SurfacePointerAccess::~SurfacePointerAccess() {
 }
 
 
-SurfaceVertex SurfacePointerAccess::getVertex(uint i) {
+MeshVertex SurfacePointerAccess::getVertex(uint i) {
     return (*mVertices)[i];
 }
 
@@ -29,8 +29,8 @@ Vector3ui SurfacePointerAccess::getTriangle(uint i) {
     return (*mTriangles)[i];
 }
 
-std::vector<SurfaceVertex> SurfacePointerAccess::getVertices() {
-    std::vector<SurfaceVertex> copy = *mVertices;
+std::vector<MeshVertex> SurfacePointerAccess::getVertices() {
+    std::vector<MeshVertex> copy = *mVertices;
     return copy;
 }
 

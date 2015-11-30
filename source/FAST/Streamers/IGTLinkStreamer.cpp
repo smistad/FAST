@@ -82,14 +82,14 @@ inline Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer mes
     igtl::Matrix4x4 matrix;
     message->GetMatrix(matrix);
     image->setSpacing(Vector3f(spacing[0], spacing[1], spacing[2]));
-    AffineTransformation T;
-    T.translation() = Vector3f(offset[0], offset[1], offset[2]);
+    AffineTransformation::pointer T = AffineTransformation::New();
+    T->translation() = Vector3f(offset[0], offset[1], offset[2]);
     Matrix3f fastMatrix;
     for(int i = 0; i < 3; i++) {
     for(int j = 0; j < 3; j++) {
         fastMatrix(i,j) = matrix[i][j];
     }}
-    T.linear() = fastMatrix;
+    T->linear() = fastMatrix;
     image->getSceneGraphNode()->setTransformation(T);
 
 

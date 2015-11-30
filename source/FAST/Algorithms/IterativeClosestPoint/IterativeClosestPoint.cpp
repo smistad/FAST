@@ -14,6 +14,7 @@ IterativeClosestPoint::IterativeClosestPoint() {
     mError = -1;
     mTransformationType = IterativeClosestPoint::RIGID;
     mIsModified = true;
+    mTransformation = AffineTransformation::New();
 }
 
 
@@ -30,7 +31,7 @@ void IterativeClosestPoint::setMovingPointSet(PointSet::pointer data) {
     setInputData(1, data);
 }
 
-AffineTransformation IterativeClosestPoint::getOutputTransformation() {
+AffineTransformation::pointer IterativeClosestPoint::getOutputTransformation() {
     return mTransformation;
 }
 
@@ -97,14 +98,18 @@ void IterativeClosestPoint::execute() {
     PointSetAccess::pointer accessMovingSet = ((PointSet::pointer)getStaticInputData<PointSet>(1))->getAccess(ACCESS_READ);
 
     // Get transformations of point sets
-    AffineTransformation fixedPointTransform = SceneGraph::getAffineTransformationFromData(getStaticInputData<PointSet>(0));
-    AffineTransformation initialMovingTransform = SceneGraph::getAffineTransformationFromData(getStaticInputData<PointSet>(1));
+    AffineTransformation::pointer fixedPointTransform2 = SceneGraph::getAffineTransformationFromData(getStaticInputData<PointSet>(0));
+    Eigen::Affine3f fixedPointTransform;
+    fixedPointTransform.matrix() = fixedPointTransform2->matrix();
+    AffineTransformation::pointer initialMovingTransform2 = SceneGraph::getAffineTransformationFromData(getStaticInputData<PointSet>(1));
+    Eigen::Affine3f initialMovingTransform;
+    initialMovingTransform.matrix() = initialMovingTransform2->matrix();
 
     // These matrices are Nx3
     MatrixXf fixedPoints = accessFixedSet->getPointSetAsMatrix();
     MatrixXf movingPoints = accessMovingSet->getPointSetAsMatrix();
 
-    Eigen::Transform<float, 3, Eigen::Affine> currentTransformation = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
+    Eigen::Affine3f currentTransformation = Eigen::Affine3f::Identity();
 
     // Want to choose the smallest one as moving
     bool invertTransform = false;
@@ -191,7 +196,7 @@ void IterativeClosestPoint::execute() {
     }
 
     mError = error;
-    mTransformation = currentTransformation;
+    mTransformation->matrix() = currentTransformation.matrix();
 }
 
 

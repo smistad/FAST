@@ -16,24 +16,22 @@ cl::Image3D* OpenCLImageAccess::get3DImage() const {
 }
 
 
-OpenCLImageAccess::OpenCLImageAccess(cl::Image3D* image, SharedPointer<OpenCLDevice> device, SharedPointer<Image> object) {
+OpenCLImageAccess::OpenCLImageAccess(cl::Image3D* image, SharedPointer<Image> object) {
     // Copy the image
     mImage = new cl::Image3D(*image);
     mIsDeleted = false;
     mImageObject = object;
-    mDevice = device;
 }
 
-OpenCLImageAccess::OpenCLImageAccess(cl::Image2D* image, SharedPointer<OpenCLDevice> device, SharedPointer<Image> object) {
+OpenCLImageAccess::OpenCLImageAccess(cl::Image2D* image, SharedPointer<Image> object) {
     // Copy the image
     mImage = new cl::Image2D(*image);
     mIsDeleted = false;
     mImageObject = object;
-    mDevice = device;
 }
 
 void OpenCLImageAccess::release() {
-	mImageObject->OpenCLImageAccessFinished(mDevice);
+	mImageObject->accessFinished();
     if(!mIsDeleted) {
         delete mImage;
         mImage = new cl::Image3D(); // assign a new blank object
