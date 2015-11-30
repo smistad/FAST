@@ -1,3 +1,8 @@
+/**
+ * Examples/GUI/SimpleGUI/main.hpp
+ *
+ * If you edit this example, please also update the wiki and source code file in the repository.
+ */
 #include "SimpleGUI.hpp"
 
 using namespace fast;
