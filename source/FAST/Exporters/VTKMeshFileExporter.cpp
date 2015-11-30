@@ -1,22 +1,22 @@
-#include "VTKSurfaceFileExporter.hpp"
+#include "VTKMeshFileExporter.hpp"
 #include "FAST/Data/Mesh.hpp"
 #include <fstream>
 #include "FAST/SceneGraph.hpp"
 
 namespace fast {
 
-void VTKSurfaceFileExporter::setFilename(std::string filename) {
+void VTKMeshFileExporter::setFilename(std::string filename) {
     mFilename = filename;
 }
 
-VTKSurfaceFileExporter::VTKSurfaceFileExporter() {
+VTKMeshFileExporter::VTKMeshFileExporter() {
     createInputPort<Mesh>(0);
     mFilename = "";
 }
 
-void VTKSurfaceFileExporter::execute() {
+void VTKMeshFileExporter::execute() {
     if(mFilename == "")
-        throw Exception("No filename given to the VTKSurfaceFileExporter");
+        throw Exception("No filename given to the VTKMeshFileExporter");
 
     Mesh::pointer surface = getStaticInputData<Mesh>();
 
