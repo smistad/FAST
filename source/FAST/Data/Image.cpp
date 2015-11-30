@@ -6,26 +6,6 @@
 
 namespace fast {
 
-bool Image::isDataModified() {
-    if (!mHostDataIsUpToDate)
-        return true;
-
-    boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
-    for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
-            it++) {
-        if (it->second == false)
-            return true;
-    }
-
-    for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end();
-            it++) {
-        if (it->second == false)
-            return true;
-    }
-
-    return false;
-}
-
 // Pad data with 1, 2 or 3 channels to 4 channels with 0
 template <class T>
 void * padData(T * data, unsigned int size, unsigned int nrOfComponents) {

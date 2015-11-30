@@ -71,7 +71,6 @@ class Image : public SpatialDataObject {
         bool mHostHasData;
         bool mHostDataIsUpToDate;
 
-        bool isDataModified();
         void setAllDataToOutOfDate();
         bool isInitialized() const;
         void free(ExecutionDevice::pointer device);
