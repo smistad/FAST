@@ -17,6 +17,8 @@ class Segmentation : public Image {
             LABEL_BACKGROUND = 0,
             LABEL_FOREGROUND,
             LABEL_BLOOD,
+            LABEL_ARTERY,
+            LABEL_VEIN,
             LABEL_BONE,
             LABEL_MUSCLE,
             LABEL_NERVE,
@@ -24,7 +26,8 @@ class Segmentation : public Image {
             LABEL_GREEN,
             LABEL_PURPLE,
             LABEL_RED,
-            LABEL_WHITE
+            LABEL_WHITE,
+			LABEL_BLUE
         };
 
         /*

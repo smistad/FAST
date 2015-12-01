@@ -307,6 +307,35 @@ bool DynamicData::hasReachedEnd() {
     return mHasReachedEnd;
 }
 
+bool DynamicData::hasReachedEnd(Object::pointer PO) {
+    Streamer::pointer streamer = getStreamer();
+    if(!streamer.isValid()) {
+        throw Exception("A DynamicData must have a streamer set before it can be used.");
+    }
+    mStreamMutex.lock();
+    // Check if has reached end can be changed to true
+    if(!mHasReachedEnd) {
+        // TODO the checks for NEWEST_FRAME AND PROCESS_ALL are not necessarily correct, for a pipeline with several steps
+        switch(streamer->getStreamingMode()) {
+        case STREAMING_MODE_NEWEST_FRAME_ONLY:
+            // Should get frame nr of last to see if we have read the last
+            if(streamer->hasReachedEnd())
+                mHasReachedEnd = true;
+            break;
+        case STREAMING_MODE_PROCESS_ALL_FRAMES:
+            if(streamer->hasReachedEnd() && mFrames2.count(mConsumerFrameCounters[PO]) == 0)
+                mHasReachedEnd = true;
+            break;
+        case STREAMING_MODE_STORE_ALL_FRAMES:
+            if(streamer->hasReachedEnd() && streamer->getNrOfFrames() == getLowestFrameCount())
+                mHasReachedEnd = true;
+            break;
+        }
+    }
+    mStreamMutex.unlock();
+    return mHasReachedEnd;
+}
+
 
 
 }

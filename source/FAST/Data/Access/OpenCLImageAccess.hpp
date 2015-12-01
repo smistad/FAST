@@ -7,13 +7,16 @@
 
 namespace fast {
 
+class Image;
+class OpenCLDevice;
+
 class OpenCLImageAccess {
     public:
         cl::Image* get() const;
         cl::Image2D* get2DImage() const;
         cl::Image3D* get3DImage() const;
-        OpenCLImageAccess(cl::Image2D* image, bool* accessFlag, bool* accessFlag2);
-        OpenCLImageAccess(cl::Image3D* image, bool* accessFlag, bool* accessFlag2);
+        OpenCLImageAccess(cl::Image2D* image, SharedPointer<Image> object);
+        OpenCLImageAccess(cl::Image3D* image, SharedPointer<Image> object);
         void release();
         ~OpenCLImageAccess();
 		typedef UniquePointer<OpenCLImageAccess> pointer;
@@ -22,8 +25,7 @@ class OpenCLImageAccess {
 		OpenCLImageAccess& operator=(const OpenCLImageAccess& other);
         cl::Image* mImage;
         bool mIsDeleted;
-        bool* mAccessFlag;
-        bool* mAccessFlag2;
+        SharedPointer<Image> mImageObject;
 
 };
 

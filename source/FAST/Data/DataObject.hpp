@@ -6,6 +6,7 @@
 #include "FAST/ExecutionDevice.hpp"
 #include <boost/unordered_map.hpp>
 #include "FAST/Streamers/Streamer.hpp"
+#include <boost/thread/condition_variable.hpp>
 
 namespace fast {
 
@@ -31,6 +32,18 @@ class DataObject : public Object {
         virtual void free(ExecutionDevice::pointer device) = 0;
         virtual void freeAll() = 0;
         bool mIsDynamicData;
+
+        void accessFinished();
+        void blockIfBeingWrittenTo();
+        void blockIfBeingAccessed();
+
+        boost::mutex mDataIsBeingWrittenToMutex;
+        boost::condition_variable mDataIsBeingWrittenToCondition;
+        bool mDataIsBeingWrittenTo;
+
+        boost::mutex mDataIsBeingAccessedMutex;
+        boost::condition_variable mDataIsBeingAccessedCondition;
+        bool mDataIsBeingAccessed;
     private:
         boost::unordered_map<WeakPointer<ExecutionDevice>, unsigned int> mReferenceCount;
 

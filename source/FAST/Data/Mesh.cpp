@@ -28,7 +28,7 @@ void Mesh::create(
     mIsInitialized = true;
 
     for(unsigned int i = 0; i < vertices.size(); i++) {
-        SurfaceVertex v;
+        MeshVertex v;
         v.position(0) = vertices[i].x();
         v.position(1) = vertices[i].y();
         v.position(2) = vertices[i].z();
@@ -53,7 +53,7 @@ void Mesh::create(
 }
 
 
-void Mesh::create(std::vector<SurfaceVertex> vertices, std::vector<Vector3ui> triangles) {
+void Mesh::create(std::vector<MeshVertex> vertices, std::vector<Vector3ui> triangles) {
      if(mIsInitialized) {
         // Delete old data
         freeAll();
@@ -80,24 +80,20 @@ void Mesh::create(unsigned int nrOfTriangles) {
     mNrOfTriangles = nrOfTriangles;
 }
 
-bool Mesh::isAnyDataBeingAccessed() {
-    return mVBODataIsBeingAccessed || mHostDataIsBeingAccessed;
-}
-
 VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
         accessType type,
         OpenCLDevice::pointer device) {
     if(!mIsInitialized)
-        throw Exception("Surface has not been initialized.");
+        throw Exception("Mesh has not been initialized.");
 
-    if(mSurfaceIsBeingWrittenTo)
-        throw Exception("Requesting access to a surface that is already being written to.");
+    blockIfBeingWrittenTo();
+
     if (type == ACCESS_READ_WRITE) {
-        if (isAnyDataBeingAccessed()) {
-            throw Exception(
-                    "Trying to get write access to an object that is already being accessed");
-        }
-        mSurfaceIsBeingWrittenTo = true;
+    	blockIfBeingAccessed();
+    	{
+            boost::unique_lock<boost::mutex> lock(mDataIsBeingWrittenToMutex);
+            mDataIsBeingWrittenTo = true;
+    	}
         updateModifiedTimestamp();
     }
     if(!mVBOHasData) {
@@ -132,7 +128,7 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
             for(uint i = 0; i < mNrOfTriangles; i++) {
                 Vector3ui triangle = mTriangles[i];
                 for(uint j = 0; j < 3; j++) {
-                    SurfaceVertex vertex = mVertices[triangle[j]];
+                    MeshVertex vertex = mVertices[triangle[j]];
                     for(uint k = 0; k < 3; k++) {
                         data[counter+k] = vertex.position[k];
                         //reportInfo() << data[counter+k] << Reporter::end;
@@ -161,17 +157,20 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
         }
     }
 
-    mVBODataIsBeingAccessed = true;
+    {
+        boost::unique_lock<boost::mutex> lock(mDataIsBeingAccessedMutex);
+        mDataIsBeingAccessed = true;
+    }
 
-	VertexBufferObjectAccess::pointer accessObject(new VertexBufferObjectAccess(mVBOID, &mVBODataIsBeingAccessed, &mSurfaceIsBeingWrittenTo));
+	VertexBufferObjectAccess::pointer accessObject(new VertexBufferObjectAccess(mVBOID, mPtr.lock()));
 	return std::move(accessObject);
 }
 
 
-// Hasher for the SurfaceVertex class
+// Hasher for the MeshVertex class
 class KeyHasher {
     public:
-        std::size_t operator()(const SurfaceVertex& v) const {
+        std::size_t operator()(const MeshVertex& v) const {
             using boost::hash_value;
             using boost::hash_combine;
 
@@ -189,24 +188,25 @@ class KeyHasher {
         }
 };
 
-bool operator==(const SurfaceVertex& a, const SurfaceVertex& b) {
+bool operator==(const MeshVertex& a, const MeshVertex& b) {
     return a.position[0] == b.position[0] &&
     a.position[1] == b.position[1] &&
     a.position[2] == b.position[2];
 }
 
-SurfacePointerAccess::pointer Mesh::getSurfacePointerAccess(accessType type) {
+MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
     if(!mIsInitialized) {
         throw Exception("Surface has not been initialized.");
     }
-    if(mSurfaceIsBeingWrittenTo)
-        throw Exception("Requesting access to a surface that is already being written to.");
-    if (type == ACCESS_READ_WRITE) {
-        if (isAnyDataBeingAccessed()) {
-            throw Exception(
-                    "Trying to get write access to an object that is already being accessed");
-        }
-        mSurfaceIsBeingWrittenTo = true;
+
+    blockIfBeingWrittenTo();
+
+    if(type == ACCESS_READ_WRITE) {
+    	blockIfBeingAccessed();
+    	{
+    		boost::lock_guard<boost::mutex> lock(mDataIsBeingWrittenToMutex);
+            mDataIsBeingWrittenTo = true;
+    	}
         updateModifiedTimestamp();
     }
     if(!mHostHasData) {
@@ -215,13 +215,13 @@ SurfacePointerAccess::pointer Mesh::getSurfacePointerAccess(accessType type) {
         glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
         glGetBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float)*mNrOfTriangles*18, data);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-        std::vector<SurfaceVertex> vertices;
+        std::vector<MeshVertex> vertices;
         std::vector<Vector3ui> triangles;
-        boost::unordered_map<SurfaceVertex, uint, KeyHasher> vertexList;
+        boost::unordered_map<MeshVertex, uint, KeyHasher> vertexList;
         for(int t = 0; t < mNrOfTriangles; t++) {
             Vector3ui triangle;
             for(int v = 0; v < 3; v++) {
-                SurfaceVertex vertex;
+                MeshVertex vertex;
                 vertex.position[0] = data[t*18+v*6];
                 vertex.position[1] = data[t*18+v*6+1];
                 vertex.position[2] = data[t*18+v*6+2];
@@ -236,7 +236,7 @@ SurfacePointerAccess::pointer Mesh::getSurfacePointerAccess(accessType type) {
                     // Get index of duplicate
                     const uint duplicateIndex = vertexList[vertex];
                     // Add this triangle to the duplicate
-                    SurfaceVertex& duplicate = vertices[duplicateIndex];
+                    MeshVertex& duplicate = vertices[duplicateIndex];
                     duplicate.triangles.push_back(t);
                     // Add the vertex to this triangle
                     triangle[v] = duplicateIndex;
@@ -260,8 +260,12 @@ SurfacePointerAccess::pointer Mesh::getSurfacePointerAccess(accessType type) {
         }
     }
 
-    mHostDataIsBeingAccessed = true;
-    SurfacePointerAccess::pointer accessObject(new SurfacePointerAccess(&mVertices,&mTriangles,&mHostDataIsBeingAccessed,&mSurfaceIsBeingWrittenTo));
+    {
+        boost::lock_guard<boost::mutex> lock(mDataIsBeingAccessedMutex);
+        mDataIsBeingAccessed = true;
+    }
+
+    MeshAccess::pointer accessObject(new MeshAccess(&mVertices,&mTriangles,mPtr.lock()));
 	return std::move(accessObject);
 }
 
@@ -273,9 +277,6 @@ Mesh::Mesh() {
     mIsInitialized = false;
     mVBOHasData = false;
     mHostHasData = false;
-    mSurfaceIsBeingWrittenTo = false;
-    mVBODataIsBeingAccessed = false;
-    mHostDataIsBeingAccessed = false;
 }
 
 void Mesh::freeAll() {

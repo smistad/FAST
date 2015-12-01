@@ -3,6 +3,8 @@ fast_add_sources(
     Streamer.hpp
     ImageFileStreamer.cpp
     ImageFileStreamer.hpp
+    AffineTransformationFileStreamer.cpp
+    AffineTransformationFileStreamer.hpp
 )
 if(MODULE_OpenIGTLink)
     fast_add_sources(

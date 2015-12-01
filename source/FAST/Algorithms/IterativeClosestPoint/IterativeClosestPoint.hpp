@@ -16,7 +16,7 @@ class IterativeClosestPoint : public ProcessObject {
         void setMovingPointSetPort(ProcessObjectPort port);
         void setMovingPointSet(PointSet::pointer data);
         void setTransformationType(const IterativeClosestPoint::TransformationType type);
-        AffineTransformation getOutputTransformation();
+        AffineTransformation::pointer getOutputTransformation();
         float getError() const;
     private:
         IterativeClosestPoint();
@@ -25,7 +25,7 @@ class IterativeClosestPoint : public ProcessObject {
         float mMinErrorChange;
         uint mMaxIterations;
         float mError;
-        AffineTransformation mTransformation;
+        AffineTransformation::pointer mTransformation;
         IterativeClosestPoint::TransformationType mTransformationType;
 };
 

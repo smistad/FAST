@@ -10,7 +10,7 @@ class Image;
 
 class ImageAccess {
     public:
-        ImageAccess(void* data, SharedPointer<Image> image, bool* accessFlag, bool* accessFlag2);
+        ImageAccess(void* data, SharedPointer<Image> image);
         void* get();
         float getScalar(uint position, uchar channel = 0) const;
         float getScalar(VectorXi position, uchar channel = 0) const;
@@ -25,8 +25,6 @@ class ImageAccess {
 		ImageAccess(const ImageAccess::pointer other);
 		ImageAccess::pointer operator=(const ImageAccess::pointer other);
         void* mData;
-        bool* mAccessFlag;
-        bool* mAccessFlag2;
 
         SharedPointer<Image> mImage;
 };

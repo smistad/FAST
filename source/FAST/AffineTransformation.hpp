@@ -11,6 +11,8 @@ class AffineTransformation : public DataObject, public Eigen::Affine3f {
     public:
         AffineTransformation();
         AffineTransformation(const Eigen::Affine3f& transform);
+        AffineTransformation::pointer multiply(AffineTransformation::pointer);
+        Vector3f multiply(Vector3f);
         AffineTransformation& operator=(const Eigen::Affine3f& transform);
         Vector3f getEulerAngles() const;
         ~AffineTransformation() {};

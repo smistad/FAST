@@ -7,9 +7,11 @@
 
 namespace fast {
 
+class PointSet;
+
 class PointSetAccess {
     public:
-        PointSetAccess(std::vector<Vector3f>* points, bool* accessFlag, bool* accessFlag2);
+        PointSetAccess(std::vector<Vector3f>* points, SharedPointer<PointSet> object);
         Vector3f getPoint(uint i) const;
         void setPoint(uint i, const Vector3f point);
         void addPoint(const Vector3f point);
@@ -18,9 +20,8 @@ class PointSetAccess {
         ~PointSetAccess();
 		typedef UniquePointer<PointSetAccess> pointer;
     private:
-        bool* mAccessFlag;
-        bool* mAccessFlag2;
         std::vector<Vector3f>* mPointSet;
+        SharedPointer<PointSet> mObject;
 };
 
 } // end namespace fast

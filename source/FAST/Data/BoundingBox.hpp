@@ -15,7 +15,7 @@ class BoundingBox {
         BoundingBox(MatrixXf corners);
         BoundingBox();
         MatrixXf getCorners() const;
-        BoundingBox getTransformedBoundingBox(AffineTransformation transform) const;
+        BoundingBox getTransformedBoundingBox(AffineTransformation::pointer transform) const;
         bool isInitialized() const;
     private:
         void createCorners(Vector3f pos, Vector3f size);

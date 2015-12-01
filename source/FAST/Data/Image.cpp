@@ -6,44 +6,6 @@
 
 namespace fast {
 
-bool Image::isDataModified() {
-    if (!mHostDataIsUpToDate)
-        return true;
-
-    boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
-    for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
-            it++) {
-        if (it->second == false)
-            return true;
-    }
-
-    for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end();
-            it++) {
-        if (it->second == false)
-            return true;
-    }
-
-    return false;
-}
-
-bool Image::isAnyDataBeingAccessed() {
-    if (mHostDataIsBeingAccessed)
-        return true;
-
-    boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
-    for (it = mCLImagesAccess.begin(); it != mCLImagesAccess.end(); it++) {
-        if (it->second)
-            return true;
-    }
-
-    for (it = mCLBuffersAccess.begin(); it != mCLBuffersAccess.end(); it++) {
-        if (it->second)
-            return true;
-    }
-
-    return false;
-}
-
 // Pad data with 1, 2 or 3 channels to 4 channels with 0
 template <class T>
 void * padData(T * data, unsigned int size, unsigned int nrOfComponents) {
@@ -231,25 +193,26 @@ OpenCLBufferAccess::pointer Image::getOpenCLBufferAccess(
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
 
-    if(mImageIsBeingWrittenTo)
-        throw Exception("Requesting access to an image that is already being written to.");
-    if (type == ACCESS_READ_WRITE) {
-        if (isAnyDataBeingAccessed()) {
-            throw Exception(
-                    "Trying to get write access to an object that is already being accessed");
-        }
-        mImageIsBeingWrittenTo = true;
+    blockIfBeingWrittenTo();
+
+    if(type == ACCESS_READ_WRITE) {
+    	blockIfBeingAccessed();
+        boost::unique_lock<boost::mutex> lock(mDataIsBeingWrittenToMutex);
+        mDataIsBeingWrittenTo = true;
     }
     updateOpenCLBufferData(device);
-    if (type == ACCESS_READ_WRITE) {
+    if(type == ACCESS_READ_WRITE) {
         setAllDataToOutOfDate();
         updateModifiedTimestamp();
     }
-    mCLBuffersAccess[device] = true;
     mCLBuffersIsUpToDate[device] = true;
+    {
+        boost::unique_lock<boost::mutex> lock(mDataIsBeingAccessedMutex);
+        mDataIsBeingAccessed = true;
+    }
 
     // Now it is guaranteed that the data is on the device and that it is up to date
-	OpenCLBufferAccess::pointer accessObject(new OpenCLBufferAccess(mCLBuffers[device], &mCLBuffersAccess[device], &mImageIsBeingWrittenTo));
+	OpenCLBufferAccess::pointer accessObject(new OpenCLBufferAccess(mCLBuffers[device],  mPtr.lock()));
 	return std::move(accessObject);
 }
 
@@ -409,31 +372,32 @@ OpenCLImageAccess::pointer Image::getOpenCLImageAccess(
 
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
-    if(mImageIsBeingWrittenTo)
-        throw Exception("Requesting access to an image that is already being written to.");
+
+    blockIfBeingWrittenTo();
 
     // Check for write access
-    if (type == ACCESS_READ_WRITE) {
-        if (isAnyDataBeingAccessed()) {
-            throw Exception(
-                    "Trying to get write access to an object that is already being accessed");
-        }
-        mImageIsBeingWrittenTo = true;
+    if(type == ACCESS_READ_WRITE) {
+    	blockIfBeingAccessed();
+    	boost::lock_guard<boost::mutex> lock(mDataIsBeingWrittenToMutex);
+        mDataIsBeingWrittenTo = true;
     }
     updateOpenCLImageData(device);
     if (type == ACCESS_READ_WRITE) {
         setAllDataToOutOfDate();
         updateModifiedTimestamp();
     }
-    mCLImagesAccess[device] = true;
+    {
+        boost::lock_guard<boost::mutex> lock(mDataIsBeingAccessedMutex);
+        mDataIsBeingAccessed = true;
+    }
     mCLImagesIsUpToDate[device] = true;
 
     // Now it is guaranteed that the data is on the device and that it is up to date
     if(mDimensions == 2) {
-        OpenCLImageAccess::pointer accessObject(new OpenCLImageAccess((cl::Image2D*)mCLImages[device], &mCLImagesAccess[device], &mImageIsBeingWrittenTo));
+        OpenCLImageAccess::pointer accessObject(new OpenCLImageAccess((cl::Image2D*)mCLImages[device], mPtr.lock()));
         return accessObject;
     } else {
-        OpenCLImageAccess::pointer accessObject(new OpenCLImageAccess((cl::Image3D*)mCLImages[device], &mCLImagesAccess[device], &mImageIsBeingWrittenTo));
+        OpenCLImageAccess::pointer accessObject(new OpenCLImageAccess((cl::Image3D*)mCLImages[device], mPtr.lock()));
         return accessObject;
     }
 }
@@ -442,9 +406,7 @@ Image::Image() {
     mHostData = NULL;
     mHostHasData = false;
     mHostDataIsUpToDate = false;
-    mHostDataIsBeingAccessed = false;
     mIsDynamicData = false;
-    mImageIsBeingWrittenTo = false;
     mSpacing = Vector3f(1,1,1);
     mMaxMinInitialized = false;
     mAverageInitialized = false;
@@ -454,28 +416,26 @@ Image::Image() {
 ImageAccess::pointer Image::getImageAccess(accessType type) {
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
-    if(mImageIsBeingWrittenTo)
-        throw Exception("Requesting access to an image that is already being written to.");
 
-    if (type == ACCESS_READ_WRITE) {
-        if (isAnyDataBeingAccessed()) {
-            throw Exception(
-                    "Trying to get write access to an object that is already being accessed");
-        }
-        mImageIsBeingWrittenTo = true;
+    blockIfBeingWrittenTo();
+
+    if(type == ACCESS_READ_WRITE) {
+    	blockIfBeingAccessed();
+        boost::unique_lock<boost::mutex> lock(mDataIsBeingWrittenToMutex);
+        mDataIsBeingWrittenTo = true;
     }
     updateHostData();
     if(type == ACCESS_READ_WRITE) {
-        // Set modified to true since it wants write access
         setAllDataToOutOfDate();
         updateModifiedTimestamp();
     }
-
     mHostDataIsUpToDate = true;
-    mHostDataIsBeingAccessed = true;
+    {
+        boost::unique_lock<boost::mutex> lock(mDataIsBeingAccessedMutex);
+        mDataIsBeingAccessed = true;
+    }
 
-	Image::pointer image = mPtr.lock();
-	ImageAccess::pointer accessObject(new ImageAccess(mHostData, image, &mHostDataIsBeingAccessed, &mImageIsBeingWrittenTo));
+	ImageAccess::pointer accessObject(new ImageAccess(mHostData, mPtr.lock()));
 	return std::move(accessObject);
 }
 
@@ -571,7 +531,6 @@ void Image::create(
         }
         mCLImages[clDevice] = clImage;
         mCLImagesIsUpToDate[clDevice] = true;
-        mCLImagesAccess[clDevice] = false;
     }
     updateModifiedTimestamp();
     mIsInitialized = true;
@@ -640,7 +599,6 @@ void Image::create(
         }
         mCLImages[clDevice] = clImage;
         mCLImagesIsUpToDate[clDevice] = true;
-        mCLImagesAccess[clDevice] = false;
     }
     updateModifiedTimestamp();
     mIsInitialized = true;
@@ -661,12 +619,10 @@ void Image::free(ExecutionDevice::pointer device) {
         delete mCLImages[clDevice];
         mCLImages.erase(clDevice);
         mCLImagesIsUpToDate.erase(clDevice);
-        mCLImagesAccess.erase(clDevice);
         // Delete any OpenCL buffers
         delete mCLBuffers[clDevice];
         mCLBuffers.erase(clDevice);
         mCLBuffersIsUpToDate.erase(clDevice);
-        mCLBuffersAccess.erase(clDevice);
     }
 }
 
@@ -678,7 +634,6 @@ void Image::freeAll() {
     }
     mCLImages.clear();
     mCLImagesIsUpToDate.clear();
-    mCLImagesAccess.clear();
 
     // Delete OpenCL buffers
     boost::unordered_map<OpenCLDevice::pointer, cl::Buffer*>::iterator it2;
@@ -687,7 +642,6 @@ void Image::freeAll() {
     }
     mCLBuffers.clear();
     mCLBuffersIsUpToDate.clear();
-    mCLBuffersAccess.clear();
 
     // Delete host data
     if(mHostHasData) {
@@ -744,23 +698,6 @@ Vector3f fast::Image::getSpacing() const {
 void fast::Image::setSpacing(Vector3f spacing) {
     mSpacing = spacing;
 }
-
-/*
-void Image::updateSceneGraphTransformation() const {
-    if(!isInitialized())
-        throw Exception("Image has not been initialized.");
-
-    // Create linear transformation matrix
-    AffineTransformation transformation;
-    transformation.linear() = mTransformMatrix;
-    transformation.translation() = mOffset;
-    transformation.scale(mSpacing);
-
-    SceneGraphNode::pointer node = getSceneGraphNode();
-    node->setTransformation(transformation);
-}
-*/
-
 
 void Image::calculateMaxAndMinIntensity() {
     // Calculate max and min if image has changed or it is the first time
@@ -1077,23 +1014,23 @@ Image::pointer Image::crop(VectorXui offset, VectorXui size) {
     }
 
     // Fix placement and spacing of the new cropped image
-    AffineTransformation T;
+    AffineTransformation::pointer T = AffineTransformation::New();
     newImage->setSpacing(getSpacing());
     // Multiply with spacing here to convert voxel translation to world(mm) translation
-    T.translation() = getSpacing().cwiseProduct(getDimensions() == 2 ? Vector3f(offset.x(), offset.y(), 0) : Vector3f(offset.x(), offset.y(), offset.z()));
+    T->translation() = getSpacing().cwiseProduct(getDimensions() == 2 ? Vector3f(offset.x(), offset.y(), 0) : Vector3f(offset.x(), offset.y(), offset.z()));
     newImage->getSceneGraphNode()->setTransformation(T);
     SceneGraph::setParentNode(newImage, mPtr.lock());
-    reportInfo() << SceneGraph::getAffineTransformationFromData(newImage).matrix() << Reporter::end;
-    reportInfo() << SceneGraph::getAffineTransformationFromData(mPtr.lock()).matrix() << Reporter::end;
+    reportInfo() << SceneGraph::getAffineTransformationFromData(newImage)->matrix() << Reporter::end;
+    reportInfo() << SceneGraph::getAffineTransformationFromData(mPtr.lock())->matrix() << Reporter::end;
 
     return newImage;
 }
 
 BoundingBox Image::getTransformedBoundingBox() const {
-    AffineTransformation T = SceneGraph::getAffineTransformationFromData(DataObject::pointer(mPtr.lock()));
+    AffineTransformation::pointer T = SceneGraph::getAffineTransformationFromData(DataObject::pointer(mPtr.lock()));
 
     // Add image spacing
-    T.scale(getSpacing());
+    T->scale(getSpacing());
 
     return getBoundingBox().getTransformedBoundingBox(T);
 }

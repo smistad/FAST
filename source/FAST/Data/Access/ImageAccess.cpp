@@ -3,16 +3,13 @@
 
 namespace fast {
 
-ImageAccess::ImageAccess(void* data, Image::pointer image, bool* accessFlag, bool* accessFlag2) {
+ImageAccess::ImageAccess(void* data, Image::pointer image) {
     mData = data;
     mImage = image;
-    mAccessFlag = accessFlag;
-    mAccessFlag2 = accessFlag2;
 }
 
 void ImageAccess::release() {
-    *mAccessFlag = false;
-    *mAccessFlag2 = false;
+	mImage->accessFinished();
 }
 
 ImageAccess::~ImageAccess() {

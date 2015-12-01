@@ -1,12 +1,11 @@
 #include "PointSetAccess.hpp"
+#include "FAST/Data/PointSet.hpp"
 
 namespace fast {
 
-PointSetAccess::PointSetAccess(std::vector<Vector3f>* points, bool* accessFlag,
-        bool* accessFlag2) {
+PointSetAccess::PointSetAccess(std::vector<Vector3f>* points, PointSet::pointer object) {
     mPointSet = points;
-    mAccessFlag = accessFlag;
-    mAccessFlag2 = accessFlag2;
+    mObject = object;
 }
 
 Vector3f PointSetAccess::getPoint(uint i) const {
@@ -32,13 +31,11 @@ MatrixXf PointSetAccess::getPointSetAsMatrix() const {
 }
 
 void PointSetAccess::release() {
-    *mAccessFlag = false;
-    *mAccessFlag2 = false;
+	mObject->accessFinished();
 }
 
 PointSetAccess::~PointSetAccess() {
-    *mAccessFlag = false;
-    *mAccessFlag2 = false;
+	release();
 }
 
 } // end namespace fast

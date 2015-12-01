@@ -56,6 +56,8 @@ SegmentationRenderer::SegmentationRenderer() {
     mLabelColors[Segmentation::LABEL_BACKGROUND] = Color::Black();
     mLabelColors[Segmentation::LABEL_FOREGROUND] = Color::Green();
     mLabelColors[Segmentation::LABEL_BLOOD] = Color::Red();
+    mLabelColors[Segmentation::LABEL_ARTERY] = Color::Red();
+    mLabelColors[Segmentation::LABEL_VEIN] = Color::Blue();
     mLabelColors[Segmentation::LABEL_BONE] = Color::White();
     mLabelColors[Segmentation::LABEL_MUSCLE] = Color::Red();
     mLabelColors[Segmentation::LABEL_NERVE] = Color::Yellow();
@@ -64,6 +66,7 @@ SegmentationRenderer::SegmentationRenderer() {
     mLabelColors[Segmentation::LABEL_PURPLE] = Color::Purple();
     mLabelColors[Segmentation::LABEL_RED] = Color::Red();
     mLabelColors[Segmentation::LABEL_WHITE] = Color::White();
+    mLabelColors[Segmentation::LABEL_BLUE] = Color::Blue();
 }
 
 void SegmentationRenderer::execute() {
@@ -172,11 +175,11 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
             cl::Kernel kernel(getOpenCLProgram(device), kernelName.c_str());
 
             // Get transform of the image
-            AffineTransformation dataTransform = SceneGraph::getAffineTransformationFromData(input);
-            dataTransform.scale(input->getSpacing());
+            AffineTransformation::pointer dataTransform = SceneGraph::getAffineTransformationFromData(input);
+            dataTransform->scale(input->getSpacing());
 
             // Transfer transformations
-            Eigen::Affine3f transform = dataTransform.inverse()*pixelToViewportTransform;
+            Eigen::Affine3f transform = dataTransform->inverse()*pixelToViewportTransform;
 
             cl::Buffer transformBuffer(
                     device->getContext(),

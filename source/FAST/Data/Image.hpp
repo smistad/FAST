@@ -17,12 +17,12 @@ class Image : public SpatialDataObject {
     FAST_OBJECT(Image)
     public:
         void createFromImage(Image::pointer image);
-        void create(VectorXui size, DataType type, unsigned int nrOfComponents);
-        void create(unsigned int width, unsigned int height, DataType type, unsigned int nrOfComponents);
-        void create(unsigned int width, unsigned int height, unsigned int depth, DataType type, unsigned int nrOfComponents);
-        void create(VectorXui size, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device, const void * data);
-        void create(unsigned int width, unsigned int height, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device, const void * data);
-        void create(unsigned int width, unsigned int height, unsigned int depth, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device, const void * data);
+        void create(VectorXui size, DataType type, uint nrOfComponents);
+        void create(uint width, uint height, DataType type, uint nrOfComponents);
+        void create(uint width, uint height, uint depth, DataType type, uint nrOfComponents);
+        void create(VectorXui size, DataType type, uint nrOfComponents, ExecutionDevice::pointer device, const void * data);
+        void create(uint width, uint height, DataType type, uint nrOfComponents, ExecutionDevice::pointer device, const void * data);
+        void create(uint width, uint height, uint depth, DataType type, uint nrOfComponents, ExecutionDevice::pointer device, const void * data);
 
         OpenCLImageAccess::pointer getOpenCLImageAccess(accessType type, OpenCLDevice::pointer);
         OpenCLBufferAccess::pointer getOpenCLBufferAccess(accessType type, OpenCLDevice::pointer);
@@ -30,13 +30,13 @@ class Image : public SpatialDataObject {
 
         ~Image() { freeAll(); };
 
-        unsigned int getWidth() const;
-        unsigned int getHeight() const;
-        unsigned int getDepth() const;
+        uint getWidth() const;
+        uint getHeight() const;
+        uint getDepth() const;
         Vector3ui getSize() const;
-        unsigned char getDimensions() const;
+        uchar getDimensions() const;
         DataType getDataType() const;
-        unsigned int getNrOfComponents() const;
+        uint getNrOfComponents() const;
         Vector3f getSpacing() const;
         void setSpacing(Vector3f spacing);
 
@@ -52,6 +52,7 @@ class Image : public SpatialDataObject {
 
         // Override
         BoundingBox getTransformedBoundingBox() const;
+
     protected:
         Image();
 
@@ -60,22 +61,17 @@ class Image : public SpatialDataObject {
         // OpenCL Images
         boost::unordered_map<OpenCLDevice::pointer, cl::Image*> mCLImages;
         boost::unordered_map<OpenCLDevice::pointer, bool> mCLImagesIsUpToDate;
-        boost::unordered_map<OpenCLDevice::pointer, bool> mCLImagesAccess;
 
         // OpenCL Buffers
         boost::unordered_map<OpenCLDevice::pointer, cl::Buffer*> mCLBuffers;
         boost::unordered_map<OpenCLDevice::pointer, bool> mCLBuffersIsUpToDate;
-        boost::unordered_map<OpenCLDevice::pointer, bool> mCLBuffersAccess;
 
         // Host data
         void * mHostData;
         bool mHostHasData;
         bool mHostDataIsUpToDate;
-        bool mHostDataIsBeingAccessed;
 
-        bool isDataModified();
         void setAllDataToOutOfDate();
-        bool isAnyDataBeingAccessed();
         bool isInitialized() const;
         void free(ExecutionDevice::pointer device);
         void freeAll();
@@ -92,13 +88,12 @@ class Image : public SpatialDataObject {
 
         bool hasAnyData();
 
-        unsigned int getBufferSize() const;
+        uint getBufferSize() const;
 
-        unsigned int mWidth, mHeight, mDepth;
-        unsigned char mDimensions;
+        uint mWidth, mHeight, mDepth;
+        uchar mDimensions;
         DataType mType;
-        unsigned int mComponents;
-        bool mImageIsBeingWrittenTo;
+        uint mComponents;
         bool mIsInitialized;
 
         Vector3f mSpacing;
@@ -107,6 +102,11 @@ class Image : public SpatialDataObject {
         unsigned long mMaxMinTimestamp, mAverageIntensityTimestamp;
         bool mMaxMinInitialized, mAverageInitialized;
         void calculateMaxAndMinIntensity();
+
+        // Declare as friends so they can get access to the accessFinished methods
+        friend class ImageAccess;
+        friend class OpenCLBufferAccess;
+        friend class OpenCLImageAccess;
 };
 
 } // end namespace fast

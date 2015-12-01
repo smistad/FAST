@@ -18,10 +18,9 @@ SetTransformation::SetTransformation() {
 void SetTransformation::execute() {
     SpatialDataObject::pointer data = getStaticInputData<SpatialDataObject>(0);
     AffineTransformation::pointer transform = getStaticInputData<AffineTransformation>(1);
-    AffineTransformation* T = transform.getPtr().get();
     SceneGraphNode::pointer dataNode = data->getSceneGraphNode();
 
-    dataNode->setTransformation(*T);
+    dataNode->setTransformation(transform);
 
     setStaticOutputData<SpatialDataObject>(0, data);
 }

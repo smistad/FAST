@@ -154,13 +154,14 @@ void ImageRenderer::draw() {
     for(it = mImageUsed.begin(); it != mImageUsed.end(); it++) {
         glPushMatrix();
 
-        AffineTransformation transform = SceneGraph::getAffineTransformationFromData(it->second);
-        transform.scale(it->second->getSpacing()); // Apply image spacing
-        glMultMatrixf(transform.data());
+        AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(it->second);
+        glMultMatrixf(transform->data());
 
         glBindTexture(GL_TEXTURE_2D, mTexturesToRender[it->first]);
-        uint width = it->second->getWidth();
-        uint height = it->second->getHeight();
+
+        // Get width and height in mm
+        float width = it->second->getWidth()*it->second->getSpacing().x();
+        float height = it->second->getHeight()*it->second->getSpacing().y();
 
         glColor3f(1,1,1); // black white texture
         glBegin(GL_QUADS);
@@ -236,11 +237,11 @@ void ImageRenderer::draw2D(cl::BufferGL PBO, uint width, uint height, Eigen::Tra
         } else {
 
             // Get transform of the image
-            AffineTransformation dataTransform = SceneGraph::getAffineTransformationFromData(input);
-            dataTransform.scale(it->second->getSpacing()); // Apply image spacing
+            AffineTransformation::pointer dataTransform = SceneGraph::getAffineTransformationFromData(input);
+            dataTransform->scale(it->second->getSpacing()); // Apply image spacing
 
             // Transfer transformations
-            Eigen::Affine3f transform = dataTransform.inverse()*pixelToViewportTransform;
+            Eigen::Affine3f transform = dataTransform->inverse()*pixelToViewportTransform;
 
             cl::Buffer transformBuffer(
                     device->getContext(),

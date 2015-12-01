@@ -1,0 +1,1 @@
+fast_add_example(simpleGUI main.cpp SimpleGUI.hpp SimpleGUI.cpp)

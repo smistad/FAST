@@ -16,18 +16,19 @@
 
 namespace fast {
 
+class Mesh;
+
 class VertexBufferObjectAccess {
     public:
         GLuint* get() const;
-        VertexBufferObjectAccess(GLuint VBOID, bool* accessFlag, bool* accessFlag2);
+        VertexBufferObjectAccess(GLuint VBOID, SharedPointer<Mesh> mesh);
         void release();
         ~VertexBufferObjectAccess();
 		typedef UniquePointer<VertexBufferObjectAccess> pointer;
     private:
         GLuint* mVBOID;
         bool mIsDeleted;
-        bool* mAccessFlag;
-        bool* mAccessFlag2;
+        SharedPointer<Mesh> mMesh;
 };
 
 } // end namespace fast

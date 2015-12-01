@@ -82,14 +82,14 @@ inline Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer mes
     igtl::Matrix4x4 matrix;
     message->GetMatrix(matrix);
     image->setSpacing(Vector3f(spacing[0], spacing[1], spacing[2]));
-    AffineTransformation T;
-    T.translation() = Vector3f(offset[0], offset[1], offset[2]);
+    AffineTransformation::pointer T = AffineTransformation::New();
+    T->translation() = Vector3f(offset[0], offset[1], offset[2]);
     Matrix3f fastMatrix;
     for(int i = 0; i < 3; i++) {
     for(int j = 0; j < 3; j++) {
         fastMatrix(i,j) = matrix[i][j];
     }}
-    T.linear() = fastMatrix;
+    T->linear() = fastMatrix;
     image->getSceneGraphNode()->setTransformation(T);
 
 
@@ -127,7 +127,14 @@ void IGTLinkStreamer::producerStream() {
 		reportInfo() << "Failed to connect to Open IGT Link server " << mAddress << ":" << boost::lexical_cast<std::string>(mPort) << Reporter::end;;
         mIsModified = true;
         mStreamIsStarted = false;
+        mStop = true;
         connectionLostSignal();
+        {
+            boost::lock_guard<boost::mutex> lock(mFirstFrameMutex);
+			mFirstFrameIsInserted = true;
+        }
+        mFirstFrameCondition.notify_one();
+        reportInfo() << "Connection lost signal sent" << reportEnd();
         //throw Exception("Cannot connect to the Open IGT Link server.");
         return;
     }
@@ -298,6 +305,16 @@ void IGTLinkStreamer::producerStream() {
                 reportInfo() << "3 STATUS MESSAGE received, freeze detected" << Reporter::end;
                 mInFreezeMode = true;
                 freezeSignal();
+
+                // If no frames has been inserted, stop
+                if(!mFirstFrameIsInserted) {
+					{
+						boost::lock_guard<boost::mutex> lock(mFirstFrameMutex);
+						mFirstFrameIsInserted = true;
+					}
+					mStop = true;
+					mFirstFrameCondition.notify_one();
+                }
             }
        } else {
            // Receive generic message

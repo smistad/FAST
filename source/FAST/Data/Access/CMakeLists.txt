@@ -8,8 +8,8 @@ fast_add_sources(
     ImageAccess.hpp
     VertexBufferObjectAccess.cpp
     VertexBufferObjectAccess.hpp
-    SurfacePointerAccess.cpp
-    SurfacePointerAccess.hpp
+    MeshAccess.cpp
+    MeshAccess.hpp
     PointSetAccess.cpp
     PointSetAccess.hpp
     LineSetAccess.cpp

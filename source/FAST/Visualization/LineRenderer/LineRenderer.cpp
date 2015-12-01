@@ -21,10 +21,10 @@ void LineRenderer::draw() {
         LineSet::pointer points = it->second;
         LineSetAccess::pointer access = points->getAccess(ACCESS_READ);
 
-        AffineTransformation transform = SceneGraph::getAffineTransformationFromData(points);
+        AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(points);
 
         glPushMatrix();
-        glMultMatrixf(transform.data());
+        glMultMatrixf(transform->data());
 
         if(mInputWidths.count(getInputPort(it->first)) > 0) {
             glLineWidth(mInputWidths[getInputPort(it->first)]);

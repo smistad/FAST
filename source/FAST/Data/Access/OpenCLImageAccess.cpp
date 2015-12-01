@@ -1,5 +1,7 @@
 #include "OpenCLImageAccess.hpp"
-using namespace fast;
+#include "FAST/Data/Image.hpp"
+
+namespace fast {
 
 cl::Image* OpenCLImageAccess::get() const {
     return mImage;
@@ -14,25 +16,22 @@ cl::Image3D* OpenCLImageAccess::get3DImage() const {
 }
 
 
-OpenCLImageAccess::OpenCLImageAccess(cl::Image3D* image, bool* accessFlag, bool* accessFlag2) {
+OpenCLImageAccess::OpenCLImageAccess(cl::Image3D* image, SharedPointer<Image> object) {
     // Copy the image
     mImage = new cl::Image3D(*image);
     mIsDeleted = false;
-    mAccessFlag = accessFlag;
-    mAccessFlag2 = accessFlag2;
+    mImageObject = object;
 }
 
-OpenCLImageAccess::OpenCLImageAccess(cl::Image2D* image, bool* accessFlag, bool* accessFlag2) {
+OpenCLImageAccess::OpenCLImageAccess(cl::Image2D* image, SharedPointer<Image> object) {
     // Copy the image
     mImage = new cl::Image2D(*image);
     mIsDeleted = false;
-    mAccessFlag = accessFlag;
-    mAccessFlag2 = accessFlag2;
+    mImageObject = object;
 }
 
 void OpenCLImageAccess::release() {
-    *mAccessFlag = false;
-    *mAccessFlag2 = false;
+	mImageObject->accessFinished();
     if(!mIsDeleted) {
         delete mImage;
         mImage = new cl::Image3D(); // assign a new blank object
@@ -44,3 +43,5 @@ OpenCLImageAccess::~OpenCLImageAccess() {
     if(!mIsDeleted)
         release();
 }
+
+} // end namespace fast

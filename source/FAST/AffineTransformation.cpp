@@ -23,6 +23,16 @@ Vector3f AffineTransformation::getEulerAngles() const {
     return rotationMatrix.eulerAngles(0, 1, 2);
 }
 
+AffineTransformation::pointer AffineTransformation::multiply(AffineTransformation::pointer transformation) {
+	AffineTransformation::pointer result = AffineTransformation::New();
+	result->matrix() = matrix()*transformation->matrix();
+	return result;
+}
+
+Vector3f AffineTransformation::multiply(Vector3f point) {
+	return (matrix()*point.homogeneous()).head(3);
+}
+
 
 
 }

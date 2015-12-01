@@ -20,7 +20,7 @@ fast_add_test_sources(
     Tests/VTKLineSetFileImporterTests.cpp
     Tests/ImageFileImporterTests.cpp
 )
-if(VTK_INTEROP)
+if(FAST_VTK_INTEROP)
     fast_add_sources(
         VTKImageImporter.cpp
         VTKImageImporter.hpp
@@ -29,7 +29,7 @@ if(VTK_INTEROP)
         Tests/VTKImageImporterTests.cpp
     )
 endif()
-if(ITK_INTEROP)
+if(FAST_ITK_INTEROP)
     fast_add_sources(
         ITKImageImporter.hpp
     )

@@ -11,33 +11,29 @@ uint PointSet::getNrOfPoints() const {
     return mPointSet.size();
 }
 
-bool PointSet::isAnyDataBeingAccessed() const {
-    return mHostDataIsBeingAccessed;
-}
-
 PointSetAccess::pointer PointSet::getAccess(accessType access) {
 
-    if(mIsBeingWrittenTo)
-        throw Exception("Requesting access to a point set that is already being written to.");
+	blockIfBeingWrittenTo();
+
     if(access == ACCESS_READ_WRITE) {
-        if (isAnyDataBeingAccessed()) {
-            throw Exception(
-                    "Trying to get write access to an object that is already being accessed");
-        }
-        mIsBeingWrittenTo = true;
+    	blockIfBeingAccessed();
+    	{
+            boost::unique_lock<boost::mutex> lock(mDataIsBeingWrittenToMutex);
+            mDataIsBeingWrittenTo = true;
+    	}
         updateModifiedTimestamp();
     }
 
+    {
+        boost::unique_lock<boost::mutex> lock(mDataIsBeingAccessedMutex);
+        mDataIsBeingAccessed = true;
+    }
     // TODO should send a parameter whether writing is allowed or not to PointSetAccess
-
-    mHostDataIsBeingAccessed = true;
-    PointSetAccess::pointer accessObject(new PointSetAccess(&mPointSet, &mHostDataIsBeingAccessed, &mIsBeingWrittenTo));
+    PointSetAccess::pointer accessObject(new PointSetAccess(&mPointSet, mPtr.lock()));
 	return accessObject;
 }
 
 PointSet::PointSet() {
-    mIsBeingWrittenTo = false;
-    mHostDataIsBeingAccessed = false;
 }
 
 void PointSet::freeAll() {

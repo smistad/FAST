@@ -7,8 +7,38 @@ DataObject::DataObject() :
         mTimestampModified(0),
         mTimestampCreated(0),
         mIsDynamicData(false) {
+
+    mDataIsBeingAccessed = false;
+    mDataIsBeingWrittenTo = false;
 }
 
+void DataObject::blockIfBeingWrittenTo() {
+    boost::unique_lock<boost::mutex> lock(mDataIsBeingWrittenToMutex);
+    while(mDataIsBeingWrittenTo) {
+        mDataIsBeingWrittenToCondition.wait(lock);
+    }
+}
+
+void DataObject::blockIfBeingAccessed() {
+    boost::unique_lock<boost::mutex> lock(mDataIsBeingAccessedMutex);
+    while(mDataIsBeingAccessed) {
+        mDataIsBeingWrittenToCondition.wait(lock);
+    }
+}
+
+void DataObject::accessFinished() {
+	{
+        boost::unique_lock<boost::mutex> lock(mDataIsBeingWrittenToMutex);
+        mDataIsBeingWrittenTo = false;
+	}
+	mDataIsBeingWrittenToCondition.notify_one();
+
+	{
+        boost::unique_lock<boost::mutex> lock(mDataIsBeingAccessedMutex);
+        mDataIsBeingAccessed = false;
+	}
+	mDataIsBeingAccessedCondition.notify_one();
+}
 
 bool DataObject::isDynamicData() const {
     return mIsDynamicData;

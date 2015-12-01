@@ -1,27 +1,27 @@
-#include "VTKSurfaceFileExporter.hpp"
+#include "VTKMeshFileExporter.hpp"
 #include "FAST/Data/Mesh.hpp"
 #include <fstream>
 #include "FAST/SceneGraph.hpp"
 
 namespace fast {
 
-void VTKSurfaceFileExporter::setFilename(std::string filename) {
+void VTKMeshFileExporter::setFilename(std::string filename) {
     mFilename = filename;
 }
 
-VTKSurfaceFileExporter::VTKSurfaceFileExporter() {
+VTKMeshFileExporter::VTKMeshFileExporter() {
     createInputPort<Mesh>(0);
     mFilename = "";
 }
 
-void VTKSurfaceFileExporter::execute() {
+void VTKMeshFileExporter::execute() {
     if(mFilename == "")
-        throw Exception("No filename given to the VTKSurfaceFileExporter");
+        throw Exception("No filename given to the VTKMeshFileExporter");
 
     Mesh::pointer surface = getStaticInputData<Mesh>();
 
     // Get transformation
-    AffineTransformation transform = SceneGraph::getAffineTransformationFromData(surface);
+    AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(surface);
 
     std::ofstream file(mFilename.c_str());
 
@@ -35,12 +35,12 @@ void VTKSurfaceFileExporter::execute() {
             "DATASET POLYDATA\n";
 
     // Write vertices
-    SurfacePointerAccess::pointer access = surface->getSurfacePointerAccess(ACCESS_READ);
-    std::vector<SurfaceVertex> vertices = access->getVertices();
+    MeshAccess::pointer access = surface->getMeshAccess(ACCESS_READ);
+    std::vector<MeshVertex> vertices = access->getVertices();
     file << "POINTS " << vertices.size() << " float\n";
     for(int i = 0; i < vertices.size(); i++) {
-        SurfaceVertex vertex = vertices[i];
-        vertex.position = transform*vertex.position;
+        MeshVertex vertex = vertices[i];
+        vertex.position = (transform->matrix()*vertex.position.homogeneous()).head(3);
         file << vertex.position.x() << " " << vertex.position.y() << " " << vertex.position.z() << "\n";
     }
 
@@ -56,9 +56,9 @@ void VTKSurfaceFileExporter::execute() {
     file << "POINT_DATA " << vertices.size() << "\n";
     file << "NORMALS Normals float\n";
     for(int i = 0; i < vertices.size(); i++) {
-        SurfaceVertex vertex = vertices[i];
+        MeshVertex vertex = vertices[i];
         // Transform it
-        vertex.normal = transform.linear()*vertex.normal;
+        vertex.normal = transform->linear()*vertex.normal;
         // Normalize it
         float length = vertex.normal.norm();
         if(length == 0) { // prevent NaN situations
