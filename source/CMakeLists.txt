@@ -72,13 +72,7 @@ set(QT_HEADERS
     FAST/Examples/Interoperability/qtInteroperability.hpp
 )
 
-# Set up some directory defines
-add_definitions("-DFAST_ROOT_DIR=\"${PROJECT_SOURCE_DIR}/../\"")
-add_definitions("-DFAST_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}/FAST/\"")
-# Remove any existing "
-string(REPLACE "\"" "" FAST_TEST_DATA_DIR ${FAST_TEST_DATA_DIR})
-message("-- FAST test data directory set to: \"${FAST_TEST_DATA_DIR}\"")
-add_definitions("-DFAST_TEST_DATA_DIR=\"${FAST_TEST_DATA_DIR}\"")
+
 
 # Set debug define if debug mode is set
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
@@ -214,6 +208,14 @@ if(OPENMP_FOUND)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
 endif()
+
+# Set up some directory defines
+add_definitions("-DFAST_ROOT_DIR=\"${PROJECT_SOURCE_DIR}/../\"")
+add_definitions("-DFAST_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}/FAST/\"")
+# Remove any existing "
+string(REPLACE "\"" "" FAST_TEST_DATA_DIR ${FAST_TEST_DATA_DIR})
+message("-- FAST test data directory set to: \"${FAST_TEST_DATA_DIR}\"")
+add_definitions("-DFAST_TEST_DATA_DIR=\"${FAST_TEST_DATA_DIR}/\"")
 
 #### Create FAST library and executables
 add_library(FAST ${FAST_SOURCE_FILES} ${HEADERS_MOC})
