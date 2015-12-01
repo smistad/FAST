@@ -15,7 +15,7 @@ message("-- OpenCL Kernel binary path set to: ${OPENCL_KERNEL_BINARY_PATH}")
 add_definitions("-DOUL_OPENCL_KERNEL_BINARY_PATH=\"${OPENCL_KERNEL_BINARY_PATH}\"")
 
 #### Module path
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../) # For finding the custom Find modules
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../ ${CMAKE_MODULE_PATH}) # For finding the custom Find modules
 
 ### IGT Link tests
 if(BUILD_IGTLINK_TESTS)
@@ -110,9 +110,9 @@ endif()
 
 ## OpenCL
 find_package(OpenCL REQUIRED)
-list(APPEND LIBRARIES ${OPENCL_LIBRARIES})
-list(APPEND FAST_INCLUDE_DIRS "${OPENCL_INCLUDE_DIRS}")
-message("-- OpenCL include dir: ${OPENCL_INCLUDE_DIRS}")
+list(APPEND LIBRARIES ${OpenCL_LIBRARIES})
+list(APPEND FAST_INCLUDE_DIRS "${OpenCL_INCLUDE_DIRS}")
+message("-- OpenCL include dir: ${OpenCL_INCLUDE_DIRS}")
 
 ## OpenGL
 find_package(OpenGL REQUIRED)
