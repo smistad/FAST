@@ -1,4 +1,4 @@
-#include "FAST/Tests/catch.hpp"
+#include "FAST/Testing.hpp"
 #include "BoundingBoxRenderer.hpp"
 #include "FAST/Importers/VTKMeshFileImporter.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"

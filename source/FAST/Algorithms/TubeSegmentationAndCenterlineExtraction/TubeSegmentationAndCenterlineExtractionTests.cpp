@@ -1,4 +1,4 @@
-#include "FAST/Tests/catch.hpp"
+#include "FAST/Testing.hpp"
 #include "TubeSegmentationAndCenterlineExtraction.hpp"
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "FAST/Visualization/SliceRenderer/SliceRenderer.hpp"

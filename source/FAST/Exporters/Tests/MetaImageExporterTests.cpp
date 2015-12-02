@@ -1,4 +1,4 @@
-#include "FAST/Tests/catch.hpp"
+#include "FAST/Testing.hpp"
 #include "FAST/Exporters/MetaImageExporter.hpp"
 #include "FAST/Importers/MetaImageImporter.hpp"
 #include "FAST/Data/Image.hpp"

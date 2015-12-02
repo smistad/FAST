@@ -1,4 +1,4 @@
-#include "FAST/Tests/catch.hpp"
+#include "FAST/Testing.hpp"
 #include "FAST/Algorithms/ImageGradient/ImageGradient.hpp"
 #include "FAST/Importers/MetaImageImporter.hpp"
 

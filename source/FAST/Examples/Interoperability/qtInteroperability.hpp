@@ -18,6 +18,7 @@
 #include <QVBoxLayout>
 #include <QPushButton>
 #include <QGLContext>
+#include "FAST/TestDataPath.hpp"
 
 class WindowWidget : public QWidget {
     Q_OBJECT

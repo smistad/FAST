@@ -1,4 +1,4 @@
-#include "FAST/Tests/catch.hpp"
+#include "FAST/Testing.hpp"
 #include "FAST/Importers/VTKMeshFileImporter.hpp"
 #include "FAST/Data/Mesh.hpp"
 

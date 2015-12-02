@@ -1,4 +1,4 @@
-#include "FAST/Tests/catch.hpp"
+#include "FAST/Testing.hpp"
 #include "SeededRegionGrowing.hpp"
 #include "FAST/Importers/ImageImporter.hpp"
 #include "FAST/Importers/MetaImageImporter.hpp"

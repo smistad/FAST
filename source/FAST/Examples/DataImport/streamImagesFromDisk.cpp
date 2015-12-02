@@ -6,6 +6,7 @@
 #include "FAST/Streamers/ImageFileStreamer.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
+#include "FAST/TestDataPath.hpp"
 
 using namespace fast;
 

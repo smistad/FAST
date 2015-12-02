@@ -1,4 +1,4 @@
-#include "FAST/Tests/catch.hpp"
+#include "FAST/Testing.hpp"
 #include "FAST/Importers/ImageImporter.hpp"
 #include "DoubleFilter.hpp"
 #include "FAST/Data/Image.hpp"

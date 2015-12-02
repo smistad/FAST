@@ -12,6 +12,7 @@
 #include "FAST/Visualization/VolumeRenderer/ColorTransferFunction.hpp"
 #include "FAST/Visualization/VolumeRenderer/OpacityTransferFunction.hpp"
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
+#include "FAST/TestDataPath.hpp"
 
 using namespace fast;
 

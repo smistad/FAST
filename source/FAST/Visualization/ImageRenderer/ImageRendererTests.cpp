@@ -1,5 +1,5 @@
 #include "FAST/Streamers/ImageFileStreamer.hpp"
-#include "FAST/Tests/catch.hpp"
+#include "FAST/Testing.hpp"
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "ImageRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"

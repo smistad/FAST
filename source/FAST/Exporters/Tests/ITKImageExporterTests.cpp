@@ -1,4 +1,4 @@
-#include "FAST/Tests/catch.hpp"
+#include "FAST/Testing.hpp"
 #include "FAST/Exporters/ITKImageExporter.hpp"
 #include "FAST/Tests/DataComparison.hpp"
 

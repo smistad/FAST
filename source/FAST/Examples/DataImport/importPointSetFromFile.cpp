@@ -6,6 +6,7 @@
 #include "FAST/Importers/VTKPointSetFileImporter.hpp"
 #include "FAST/Visualization/PointRenderer/PointRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
+#include "FAST/TestDataPath.hpp"
 
 using namespace fast;
 

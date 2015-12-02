@@ -11,6 +11,7 @@
 #include <FAST/Importers/ImageFileImporter.hpp>
 #include <FAST/Visualization/MeshRenderer/MeshRenderer.hpp>
 #include <boost/bind.hpp>
+#include "FAST/TestDataPath.hpp"
 
 namespace fast {
 

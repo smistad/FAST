@@ -1,4 +1,4 @@
-#include "FAST/Tests/catch.hpp"
+#include "FAST/Testing.hpp"
 #include "EulerGradientVectorFlow.hpp"
 #include "MultigridGradientVectorFlow.hpp"
 #include "FAST/Algorithms/ScaleImage/ScaleImage.hpp"

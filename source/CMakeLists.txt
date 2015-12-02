@@ -8,12 +8,25 @@ option(BUILD_TESTS "Build FAST tests." ON)
 option(BUILD_IGTLINK_TESTS "Build OpenIGTLink tests." OFF)
 option(BUILD_EXAMPLES "Build examples." OFF)
 option(FAST_MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
+
 set(FAST_TEST_DATA_DIR "${PROJECT_SOURCE_DIR}/../TestData/" CACHE PATH "Directory of test data")
 set(FAST_OPENCL_KERNEL_BINARY_PATH "${PROJECT_BINARY_DIR}/" CACHE PATH "Directory to put kernel binaries in. Default is build dir.")
+set(FAST_SOURCE_DIR "${PROJECT_SOURCE_DIR}/FAST/")
 # Remove any existing "
 string(REPLACE "\"" "" FAST_OPENCL_KERNEL_BINARY_PATH ${FAST_OPENCL_KERNEL_BINARY_PATH})
+string(REPLACE "\"" "" FAST_TEST_DATA_DIR ${FAST_TEST_DATA_DIR})
 message("-- OpenCL Kernel binary path set to: ${FAST_OPENCL_KERNEL_BINARY_PATH}")
-add_definitions("-DOUL_OPENCL_KERNEL_BINARY_PATH=\"${FAST_OPENCL_KERNEL_BINARY_PATH}\"")
+message("-- FAST test data directory set to: \"${FAST_TEST_DATA_DIR}\"")
+
+#### Create the header files Paths.hpp and TestDataPath.hpp which include all useful paths
+configure_file(
+	${CMAKE_CURRENT_SOURCE_DIR}/Paths.hpp.in 
+	${CMAKE_CURRENT_BINARY_DIR}/FAST/Paths.hpp
+)
+configure_file(
+	${CMAKE_CURRENT_SOURCE_DIR}/TestDataPath.hpp.in 
+	${CMAKE_CURRENT_BINARY_DIR}/FAST/TestDataPath.hpp
+)
 
 #### Module path
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../ ${CMAKE_MODULE_PATH}) # For finding the custom Find modules
@@ -72,8 +85,6 @@ set(QT_HEADERS
     FAST/Examples/Interoperability/qtInteroperability.hpp
 )
 
-
-
 # Set debug define if debug mode is set
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
     message("-- FAST Debug mode set")
@@ -81,7 +92,7 @@ if(CMAKE_BUILD_TYPE STREQUAL Debug)
 endif()
 
 #### Set up library dependencies
-set(FAST_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR})
+set(FAST_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
 ## OpenIGTLink
 if(FAST_MODULE_OpenIGTLink)
@@ -209,13 +220,7 @@ if(OPENMP_FOUND)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
 endif()
 
-# Set up some directory defines
-add_definitions("-DFAST_ROOT_DIR=\"${PROJECT_SOURCE_DIR}/../\"")
-add_definitions("-DFAST_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}/FAST/\"")
-# Remove any existing "
-string(REPLACE "\"" "" FAST_TEST_DATA_DIR ${FAST_TEST_DATA_DIR})
-message("-- FAST test data directory set to: \"${FAST_TEST_DATA_DIR}\"")
-add_definitions("-DFAST_TEST_DATA_DIR=\"${FAST_TEST_DATA_DIR}/\"")
+
 
 #### Create FAST library and executables
 add_library(FAST ${FAST_SOURCE_FILES} ${HEADERS_MOC})
