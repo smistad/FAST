@@ -27,6 +27,9 @@ int main() {
 
 	SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(surfaceRenderer);
-    window->setTimeout(5*1000); // automatically close window after 5 seconds
+#ifdef FAST_CONTINUOUS_INTEGRATION
+	// This will automatically close the window after 5 seconds, used for CI testing
+    window->setTimeout(5*1000);
+#endif
     window->start();
 }

@@ -8,7 +8,13 @@ option(BUILD_TESTS "Build FAST tests." ON)
 option(BUILD_IGTLINK_TESTS "Build OpenIGTLink tests." OFF)
 option(BUILD_EXAMPLES "Build examples." OFF)
 option(FAST_MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
+option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
 
+if(FAST_CONTINUOUS_INTEGRATION)
+	add_definition("-DFAST_CONTINUOUS_INTEGRATION")
+endif()
+
+#### Paths
 set(FAST_TEST_DATA_DIR "${PROJECT_SOURCE_DIR}/../TestData/" CACHE PATH "Directory of test data")
 set(FAST_OPENCL_KERNEL_BINARY_PATH "${PROJECT_BINARY_DIR}/" CACHE PATH "Directory to put kernel binaries in. Default is build dir.")
 set(FAST_SOURCE_DIR "${PROJECT_SOURCE_DIR}/FAST/")
@@ -18,7 +24,7 @@ string(REPLACE "\"" "" FAST_TEST_DATA_DIR ${FAST_TEST_DATA_DIR})
 message("-- OpenCL Kernel binary path set to: ${FAST_OPENCL_KERNEL_BINARY_PATH}")
 message("-- FAST test data directory set to: \"${FAST_TEST_DATA_DIR}\"")
 
-#### Create the header files Paths.hpp and TestDataPath.hpp which include all useful paths
+### Create the header files Paths.hpp and TestDataPath.hpp which include all useful paths
 configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/Paths.hpp.in 
 	${CMAKE_CURRENT_BINARY_DIR}/FAST/Paths.hpp
@@ -225,13 +231,7 @@ endif()
 #### Create FAST library and executables
 add_library(FAST ${FAST_SOURCE_FILES} ${HEADERS_MOC})
 if(BUILD_TESTS)
-    if(APPLE)
-        # Do not run OUL test on Apple at the moment
-        # TODO: fix the HP OUL tests
-        add_executable(test ${FAST_TEST_SOURCE_FILES})
-    else()
-        add_executable(test ${FAST_TEST_SOURCE_FILES} ${OUL_TEST_SOURCE_FILES})
-    endif()
+	add_executable(test ${FAST_TEST_SOURCE_FILES})
 endif()
 
 ## Link everything

@@ -61,11 +61,14 @@ class WindowWidget : public QWidget {
             // Connect the button to start pipeline
             connect(button, SIGNAL(clicked()), this, SLOT(startPipeline()));
 
-            // Close window automatically after 15 seconds
+#ifdef FAST_CONTINUOUS_INTEGRATION
+	// This will automatically close the window after 5 seconds, used for CI testing
             QTimer* timer = new QTimer(this);
-            timer->start(15*1000);
+            timer->start(5*1000);
             timer->setSingleShot(true);
             connect(timer, SIGNAL(timeout()), this, SLOT(close()));
+#endif
+
         };
         ~WindowWidget() {
             fast::Reporter::info() << "Trying to stop computation thread" << fast::Reporter::end;
