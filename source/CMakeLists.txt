@@ -232,7 +232,7 @@ endif()
 #### Create FAST library and executables
 add_library(FAST ${FAST_SOURCE_FILES} ${HEADERS_MOC})
 if(BUILD_TESTS)
-	add_executable(test ${FAST_TEST_SOURCE_FILES})
+	add_executable(testFAST ${FAST_TEST_SOURCE_FILES})
 endif()
 
 ## Link everything
@@ -242,7 +242,7 @@ if(BUILD_EXAMPLES)
     add_subdirectory(FAST/Examples)
 endif()
 if(BUILD_TESTS)
-    target_link_libraries(test FAST)
+    target_link_libraries(testFAST FAST)
 endif()
 
 
