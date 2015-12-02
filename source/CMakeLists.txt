@@ -11,7 +11,7 @@ option(FAST_MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
 
 if(FAST_CONTINUOUS_INTEGRATION)
-	add_definition("-DFAST_CONTINUOUS_INTEGRATION")
+	add_definitions("-DFAST_CONTINUOUS_INTEGRATION")
 endif()
 
 #### Paths
