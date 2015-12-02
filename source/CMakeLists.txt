@@ -4,9 +4,9 @@ project(FAST)
 #### Options
 option(FAST_VTK_INTEROP "Enable interoperability with VTK" OFF)
 option(FAST_ITK_INTEROP "Enable interoperability with ITK" OFF)
-option(BUILD_TESTS "Build FAST tests." ON)
+option(FAST_BUILD_TESTS "Build FAST tests." ON)
 option(BUILD_IGTLINK_TESTS "Build OpenIGTLink tests." OFF)
-option(BUILD_EXAMPLES "Build examples." OFF)
+option(FAST_BUILD_EXAMPLES "Build examples." OFF)
 option(FAST_MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
 
@@ -231,17 +231,17 @@ endif()
 
 #### Create FAST library and executables
 add_library(FAST ${FAST_SOURCE_FILES} ${HEADERS_MOC})
-if(BUILD_TESTS)
+if(FAST_BUILD_TESTS)
 	add_executable(testFAST ${FAST_TEST_SOURCE_FILES})
 endif()
 
 ## Link everything
 target_link_libraries(FAST ${LIBRARIES})
 qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
-if(BUILD_EXAMPLES)
+if(FAST_BUILD_EXAMPLES)
     add_subdirectory(FAST/Examples)
 endif()
-if(BUILD_TESTS)
+if(FAST_BUILD_TESTS)
     target_link_libraries(testFAST FAST)
 endif()
 
