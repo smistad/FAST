@@ -145,6 +145,9 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
         }
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glFinish();
+        if(glGetError() == GL_OUT_OF_MEMORY) {
+        	throw Exception("OpenGL out of memory while creating mesh data for VBO");
+        }
         //reportInfo() << "Created VBO with ID " << mVBOID << " and " << mNrOfTriangles << " of triangles" << Reporter::end;
         // TODO Transfer data if any exist
 
