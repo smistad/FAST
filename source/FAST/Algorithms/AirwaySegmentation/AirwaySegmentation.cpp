@@ -121,7 +121,7 @@ void regionGrowing(Image::pointer volume, Segmentation::pointer segmentation, Ve
 	ImageAccess::pointer access = volume->getImageAccess(ACCESS_READ);
 	short* data = (short*)access->get();
 	ImageAccess::pointer access2 = segmentation->getImageAccess(ACCESS_READ_WRITE);
-	uchar* segmentationData = (uchar*)access->get();
+	uchar* segmentationData = (uchar*)access2->get();
 	memset(segmentationData, 0, width*height*depth);
     std::vector<Vector3i> voxels;
     segmentationData[seed.x() + seed.y()*width + seed.z()*width*height] = 1;
