@@ -9,6 +9,8 @@ namespace fast {
 AirwaySegmentation::AirwaySegmentation() {
 	createInputPort<Image>(0);
 	createOutputPort<Segmentation>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+
+	createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/AirwaySegmentation/AirwaySegmentation.cl");
 }
 
 Vector3i findSeedVoxel(Image::pointer volume) {
@@ -161,10 +163,37 @@ void regionGrowing(Image::pointer volume, Segmentation::pointer segmentation, Ve
     }
 }
 
+Image::pointer AirwaySegmentation::convertToHU(Image::pointer image) {
+	OpenCLDevice::pointer device = getMainDevice();
+	cl::Program program = getOpenCLProgram(device);
+
+	OpenCLImageAccess::pointer input = image->getOpenCLImageAccess(ACCESS_READ, device);
+	Image::pointer newImage = Image::New();
+	newImage->create(image->getSize(), TYPE_INT16, 1);
+	OpenCLImageAccess::pointer output = newImage->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+
+	cl::Kernel kernel(program, "convertToHU");
+
+	kernel.setArg(0, *input->get3DImage());
+	kernel.setArg(1, *output->get2DImage());
+
+	device->getCommandQueue().enqueueNDRangeKernel(
+			kernel,
+			cl::NullRange,
+			cl::NDRange(image->getWidth(), image->getHeight(), image->getDepth()),
+			cl::NullRange
+    );
+
+	return newImage;
+}
+
 void AirwaySegmentation::execute() {
 	Image::pointer image = getStaticInputData<Image>();
 
-	// TODO convert to signed HU if unsigned
+	// Convert to signed HU if unsigned
+	if(image->getDataType() == TYPE_UINT16) {
+		image = convertToHU(image);
+	}
 
 	// Smooth image
 	GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
@@ -175,11 +204,18 @@ void AirwaySegmentation::execute() {
 
 	// Find seed voxel
 	Vector3i seed = findSeedVoxel(image);
+
+	if(seed == Vector3i::Zero()) {
+		throw Exception("No seed found.");
+	}
+
 	reportInfo() << "Seed found at " << seed.transpose() << reportEnd();
 
 	// Do the region growing
 	Segmentation::pointer segmentation = getStaticOutputData<Segmentation>();
 	regionGrowing(image, segmentation, seed);
+
+	// TODO morphological closing
 }
 
 }

@@ -11,7 +11,8 @@ using namespace fast;
 TEST_CASE("Airway segmentation", "[fast][AirwaySegmentation]") {
 	Reporter::setGlobalReportMethod(Reporter::COUT);
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT-Thorax.mhd");
+    //importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT-Thorax.mhd");
+    importer->setFilename("/home/smistad/Data/lunge_datasett/pasient06.mhd");
 
     AirwaySegmentation::pointer segmentation = AirwaySegmentation::New();
     segmentation->setInputConnection(importer->getOutputPort());
