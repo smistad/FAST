@@ -6,6 +6,7 @@
 namespace fast {
 
 class Image;
+class Segmentation;
 
 class AirwaySegmentation : public SegmentationAlgorithm {
 	FAST_OBJECT(AirwaySegmentation)
@@ -15,6 +16,7 @@ class AirwaySegmentation : public SegmentationAlgorithm {
 		void execute();
 
 		SharedPointer<Image> convertToHU(SharedPointer<Image> image);
+		void morphologicalClosing(SharedPointer<Segmentation> segmentation);
 };
 
 }

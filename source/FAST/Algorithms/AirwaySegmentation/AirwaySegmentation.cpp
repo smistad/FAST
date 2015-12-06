@@ -164,6 +164,7 @@ void regionGrowing(Image::pointer volume, Segmentation::pointer segmentation, Ve
 }
 
 Image::pointer AirwaySegmentation::convertToHU(Image::pointer image) {
+	// TODO need support for no 3d write
 	OpenCLDevice::pointer device = getMainDevice();
 	cl::Program program = getOpenCLProgram(device);
 
@@ -185,6 +186,49 @@ Image::pointer AirwaySegmentation::convertToHU(Image::pointer image) {
     );
 
 	return newImage;
+}
+
+void AirwaySegmentation::morphologicalClosing(Segmentation::pointer segmentation) {
+	int width = segmentation->getWidth();
+	int height = segmentation->getHeight();
+	int depth = segmentation->getDepth();
+
+	// TODO need support for no 3d write
+	OpenCLDevice::pointer device = getMainDevice();
+	cl::Program program = getOpenCLProgram(device);
+
+	Segmentation::pointer segmentation2 = Segmentation::New();
+	segmentation2->create(segmentation->getSize(), TYPE_UINT8, 1);
+	ImageAccess::pointer access = segmentation2->getImageAccess(ACCESS_READ_WRITE);
+	uchar* data = (uchar*)access->get();
+	memset(data, 0, width*height*depth);
+	access->release();
+
+	OpenCLImageAccess::pointer input = segmentation->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+	OpenCLImageAccess::pointer input2 = segmentation2->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+
+	cl::Kernel dilateKernel(program, "dilate");
+	cl::Kernel erodeKernel(program, "erode");
+
+	dilateKernel.setArg(0, *input->get3DImage());
+	dilateKernel.setArg(1, *input2->get3DImage());
+
+	device->getCommandQueue().enqueueNDRangeKernel(
+			dilateKernel,
+			cl::NullRange,
+			cl::NDRange(width, height, depth),
+			cl::NullRange
+    );
+
+	erodeKernel.setArg(0, *input2->get3DImage());
+	erodeKernel.setArg(1, *input->get3DImage());
+
+	device->getCommandQueue().enqueueNDRangeKernel(
+			erodeKernel,
+			cl::NullRange,
+			cl::NDRange(width, height, depth),
+			cl::NullRange
+    );
 }
 
 void AirwaySegmentation::execute() {
@@ -215,7 +259,8 @@ void AirwaySegmentation::execute() {
 	Segmentation::pointer segmentation = getStaticOutputData<Segmentation>();
 	regionGrowing(image, segmentation, seed);
 
-	// TODO morphological closing
+	// Do morphological closing to remove holes in segmentation
+	morphologicalClosing(segmentation);
 }
 
 }
