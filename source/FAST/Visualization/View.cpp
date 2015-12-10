@@ -63,7 +63,7 @@ View::View() : mViewingPlane(Plane::Axial()) {
     mQuit = false;
 	mCameraSet = false;
 
-    mFramerate = 25;
+    mFramerate = 60;
     // Set up a timer that will call update on this object at a regular interval
     timer = new QTimer(this);
     timer->start(1000/mFramerate); // in milliseconds
@@ -668,6 +668,7 @@ void View::initializeGL() {
 
 
 void View::paintGL() {
+	mRuntimeManager->startRegularTimer("paint");
 
 	if (mNonVolumeRenderers.size() > 0 ) //it can be "only nonVolume renderers" or "nonVolume + Volume renderes" together
 	{
@@ -800,6 +801,8 @@ void View::paintGL() {
 			renderVolumes();
 		}
 	}
+	glFinish();
+	mRuntimeManager->stopRegularTimer("paint");
 }
 
 void View::renderVolumes()
