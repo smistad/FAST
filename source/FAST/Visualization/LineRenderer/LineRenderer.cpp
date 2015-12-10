@@ -26,21 +26,23 @@ void LineRenderer::draw() {
         glPushMatrix();
         glMultMatrixf(transform->data());
 
-        if(mInputWidths.count(getInputPort(it->first)) > 0) {
-            glLineWidth(mInputWidths[getInputPort(it->first)]);
+        ProcessObjectPort port = getInputPort(it->first);
+
+        if(mInputWidths.count(port) > 0) {
+            glLineWidth(mInputWidths[port]);
         } else {
             glLineWidth(mDefaultLineWidth);
         }
-        if(mInputColors.count(getInputPort(it->first)) > 0) {
-            Color c = mInputColors[getInputPort(it->first)];
+        if(mInputColors.count(port) > 0) {
+            Color c = mInputColors[port];
             glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
         } else {
             Color c = mDefaultColor;
             glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
         }
         bool drawOnTop;
-        if(mInputDrawOnTop.count(getInputPort(it->first)) > 0) {
-            drawOnTop = mInputDrawOnTop[getInputPort(it->first)];
+        if(mInputDrawOnTop.count(port) > 0) {
+            drawOnTop = mInputDrawOnTop[port];
         } else {
             drawOnTop = mDefaultDrawOnTop;
         }
