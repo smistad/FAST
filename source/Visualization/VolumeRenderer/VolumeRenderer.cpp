@@ -424,6 +424,7 @@ void VolumeRenderer::execute() {
 		// Create CL-GL image
 		pbo_cl = cl::BufferGL(clContext, CL_MEM_WRITE_ONLY, pbo);
 
+		pboHasChanged = false;
 	}
 
 	if (!includeGeometry)
