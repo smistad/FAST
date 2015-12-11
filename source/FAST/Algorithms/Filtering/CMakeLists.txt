@@ -1,0 +1,9 @@
+fast_add_subdirectories(
+    FilteringVariations
+    Helper
+    GUI
+)
+fast_add_sources(
+    Filtering.cpp
+    Filtering.hpp
+)
