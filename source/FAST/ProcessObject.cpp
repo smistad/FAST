@@ -238,6 +238,7 @@ ProcessObjectPort::ProcessObjectPort(uint portID,
     mPortID = portID;
     mProcessObject = processObject;
     mTimestamp = 0;
+    mDataPointer = 0;
 }
 
 ProcessObject::pointer ProcessObjectPort::getProcessObject() const {
@@ -254,7 +255,7 @@ uint ProcessObjectPort::getPortID() const {
 }
 
 bool ProcessObjectPort::isDataModified() const {
-    return mTimestamp != mProcessObject->getOutputDataX(mPortID)->getTimestamp() || mDataPointer != (std::size_t)mProcessObject->getOutputDataX(mPortID).getPtr().get();
+    return mTimestamp != mProcessObject->getOutputDataX(mPortID)->getTimestamp() || (mDataPointer != 0 && mDataPointer != (std::size_t)mProcessObject->getOutputDataX(mPortID).getPtr().get());
 }
 
 void ProcessObjectPort::updateTimestamp() {

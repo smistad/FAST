@@ -63,7 +63,7 @@ TEST_CASE("Calling update on a PO with two connections, one modified, one unmodi
     CHECK(process3->hasExecuted() == true);
 }
 
-TEST_CASE("If data of parent PO is not modified, child PO is not executed", "[fast][ProcessObject") {
+TEST_CASE("If data of parent PO is not modified, child PO is not executed", "[fast][ProcessObject]") {
     DummyProcessObject::pointer parentProcess = DummyProcessObject::New();
     parentProcess->setIsModified();
     DummyProcessObject::pointer childProcess = DummyProcessObject::New();
