@@ -549,7 +549,7 @@ std::vector<PlatformDevices> DeviceManager::getDevices(
         }
         try {
             validPlatforms[i].getDevices(deviceType, &devices);
-        } catch (cl::Error &error) {
+        } catch (cl::Error error) {
             // Do nothing?
         }
         reportInfo() << devices.size() << " devices found for this platform." << Reporter::end;

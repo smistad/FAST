@@ -298,7 +298,7 @@ void SimpleFilteringGUI::updateInputImage(int value){
     std::string newFilename = getInputFilename(value);
     if (newFilename == mFilenameSetTo) return;
     mFilenameSetTo = newFilename;
-    mImporter = ImageFileImporter::New();
+    //mImporter = ImageFileImporter::New();
     mImporter->setFilename(std::string(FAST_TEST_DATA_DIR) + newFilename);
     ProcessObjectPort port = mImporter->getOutputPort();
     
@@ -307,11 +307,11 @@ void SimpleFilteringGUI::updateInputImage(int value){
     mGaussian->setInputConnection(port);
     mSobelX->setInputConnection(port);
     mSobelY->setInputConnection(port);
-    ImageRenderer::pointer newRenderer = ImageRenderer::New();
+    /*ImageRenderer::pointer newRenderer = ImageRenderer::New();
     newRenderer->addInputConnection(port);
     mInitView->removeAllRenderers();
     mInitView->addRenderer(newRenderer);
-    mInitView->setFixedWidth(600);
+    mInitView->setFixedWidth(600);*/
     startComputationThread();
    
     std::string text = "Input image: " + newFilename;

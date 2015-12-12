@@ -16,6 +16,7 @@
 #include <QLabel>
 
 #include <FAST/Importers/ImageFileImporter.hpp>
+//#include "FAST/Importers/I
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 
 namespace fast {
