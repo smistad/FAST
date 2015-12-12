@@ -93,7 +93,7 @@ void calc_plane_aabb_intersection_points(const Vector3f &planeNormal, const Vect
 
 void SliceRenderer::execute() {
     boost::lock_guard<boost::mutex> lock(mMutex);
-
+	mTextureIsCreated = false;
 	unsigned int nrOfInputData = getNrOfInputData();
 
 	// This simply gets the input data for each connection and puts it into a data structure
