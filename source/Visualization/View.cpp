@@ -50,6 +50,9 @@ void View::removeAllRenderers() {
 }
 
 View::View() {
+
+    this->setAutoBufferSwap(false);
+
     zNear = 0.1;
     zFar = 1000;
     fieldOfViewY = 45;
@@ -346,36 +349,36 @@ void View::initializeGL() {
 	glewInit();
 	glEnable(GL_TEXTURE_2D);
 
-	glGenTextures(1, &renderedDepthText);
-	glBindTexture(GL_TEXTURE_2D, renderedDepthText);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, this->window()->width(), this->window()->height(), 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-
-
-	glGenTextures(1, &renderedTexture0);
-	glBindTexture(GL_TEXTURE_2D, renderedTexture0);
-	//glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA, 512, 512, 0,GL_RGBA, GL_UNSIGNED_BYTE, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, this->window()->width(), this->window()->height(), 0, GL_RGBA, GL_FLOAT, NULL);
-
-	glGenTextures(1, &renderedTexture1);
-	glBindTexture(GL_TEXTURE_2D, renderedTexture1);
-	//glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA, 512, 512, 0,GL_RGBA, GL_UNSIGNED_BYTE, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, this->window()->width(), this->window()->height(), 0, GL_RGBA, GL_FLOAT, NULL);
-
-	glBindTexture(GL_TEXTURE_2D, 0); // unbind texture
+    glGenTextures(1, &renderedDepthText);
+    glBindTexture(GL_TEXTURE_2D, renderedDepthText);
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, this->window()->width(), this->window()->height(), 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+    
+    
+    glGenTextures(1, &renderedTexture0);
+    glBindTexture(GL_TEXTURE_2D, renderedTexture0);
+    //glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA, 512, 512, 0,GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16, this->window()->width(), this->window()->height(), 0, GL_RGBA, GL_FLOAT, 0);
+    
+    glGenTextures(1, &renderedTexture1);
+    glBindTexture(GL_TEXTURE_2D, renderedTexture1);
+    //glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA, 512, 512, 0,GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16, this->window()->width(), this->window()->height(), 0, GL_RGBA, GL_FLOAT, 0);
+    
+    glBindTexture(GL_TEXTURE_2D, 0); // unbind texture
 
 	glGenFramebuffers(1,&fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER,fbo);
@@ -689,7 +692,8 @@ void View::paintGL() {
 			renderVolumes();
 		}
 	}
-	glFinish();
+	//glFinish();
+    this->swapBuffers();
 	mRuntimeManager->stopRegularTimer("paintGL");
 }
 
@@ -956,8 +960,8 @@ void View::initShader()
 {
 
 	//Read our shaders into the appropriate buffers
-	std::string vertexSource =		"#version 120\nuniform sampler2D renderedDepthText;\n void main(){ gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * gl_Vertex; \ngl_TexCoord[0] = gl_MultiTexCoord0;}\n";//Get source code for vertex shader.
-	std::string fragmentSource =	"#version 120\nuniform sampler2D renderedDepthText;\nvoid main(){ \ngl_FragColor = texture2D(renderedDepthText, gl_TexCoord[0].st); }\n";//Get source code for fragment shader.
+    std::string vertexSource =		"#version 120\nuniform sampler2D renderedDepthText;\n void main(){ }\n";//Get source code for vertex shader.
+    std::string fragmentSource =	"#version 120\nuniform sampler2D renderedDepthText;\nvoid main(){ \n float a = texture2D(renderedDepthText, gl_FragCoord.xy); gl_FragColor = vec4(a, a, a, a); }\n";//Get source code for fragment shader.
 
 	//Create an empty vertex shader handle
 	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);

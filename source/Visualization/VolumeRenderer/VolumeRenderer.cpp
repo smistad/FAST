@@ -659,7 +659,7 @@ void VolumeRenderer::draw() {
 	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pbo);
 	glDrawPixels(mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
-	glFinish();
+	//glFinish();
 	
 }
 
