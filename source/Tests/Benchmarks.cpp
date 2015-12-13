@@ -286,8 +286,20 @@ TEST_CASE("SliceRenderer Static Single", "[fast][benchmark][visualization][slice
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Static Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nSliceRenderer Static Single:" << std::endl;
 	fputs("\n\n\nSliceRenderer Static Single:\n", pFile);
@@ -303,7 +315,7 @@ TEST_CASE("SliceRenderer Static Single", "[fast][benchmark][visualization][slice
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 }
 
 TEST_CASE("SliceRenderer Dynamic Single", "[fast][benchmark][visualization][slice][dynamic][single]")
@@ -325,8 +337,20 @@ TEST_CASE("SliceRenderer Dynamic Single", "[fast][benchmark][visualization][slic
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Dynamic Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nSliceRenderer Dynamic Single:" << std::endl;
 	fputs("\n\n\nSliceRenderer Dynamic Single:\n", pFile);
@@ -341,7 +365,7 @@ TEST_CASE("SliceRenderer Dynamic Single", "[fast][benchmark][visualization][slic
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 TEST_CASE("SliceRenderer Static Multi", "[fast][benchmark][visualization][slice][static][multi]")
@@ -368,9 +392,20 @@ TEST_CASE("SliceRenderer Static Multi", "[fast][benchmark][visualization][slice]
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Static Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nSliceRenderer Static Multi:" << std::endl;
 	fputs("\n\n\nSliceRenderer Static Multi:\n", pFile);
@@ -389,7 +424,7 @@ TEST_CASE("SliceRenderer Static Multi", "[fast][benchmark][visualization][slice]
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 }
 
 
@@ -417,9 +452,20 @@ TEST_CASE("SliceRenderer Dynamic Multi", "[fast][benchmark][visualization][slice
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Dynamic Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nSliceRenderer Dynamic Multi:" << std::endl;
 	fputs("\n\n\nSliceRenderer Dynamic Multi:\n", pFile);
@@ -438,7 +484,7 @@ TEST_CASE("SliceRenderer Dynamic Multi", "[fast][benchmark][visualization][slice
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 }
 
 TEST_CASE("MeshRenderer Static Single", "[fast][benchmark][visualization][mesh][static][single]")
@@ -463,8 +509,20 @@ TEST_CASE("MeshRenderer Static Single", "[fast][benchmark][visualization][mesh][
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("nMeshRenderer Static Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Static Single:" << std::endl;
 	fputs("\n\n\nMeshRenderer Static Single:\n", pFile);
@@ -480,7 +538,7 @@ TEST_CASE("MeshRenderer Static Single", "[fast][benchmark][visualization][mesh][
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 
@@ -506,8 +564,20 @@ TEST_CASE("MeshRenderer Dynamic Single", "[fast][benchmark][visualization][mesh]
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Dynamic Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Dynamic Single:" << std::endl;
 	fputs("\n\n\nMeshRenderer Dynamic Single:\n", pFile);
@@ -523,7 +593,7 @@ TEST_CASE("MeshRenderer Dynamic Single", "[fast][benchmark][visualization][mesh]
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 
@@ -560,8 +630,20 @@ TEST_CASE("MeshRenderer Static Multi", "[fast][benchmark][visualization][mesh][s
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Static Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Static Multi:" << std::endl;
 	fputs("\n\n\nMeshRenderer Static Multi:\n", pFile);
@@ -581,7 +663,7 @@ TEST_CASE("MeshRenderer Static Multi", "[fast][benchmark][visualization][mesh][s
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 
@@ -617,8 +699,20 @@ TEST_CASE("MeshRenderer Dynamic Multi", "[fast][benchmark][visualization][mesh][
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Dynamic Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Dynamic Multi:" << std::endl;
 	fputs("\n\n\nMeshRenderer Dynamic Multi:\n", pFile);
@@ -638,7 +732,7 @@ TEST_CASE("MeshRenderer Dynamic Multi", "[fast][benchmark][visualization][mesh][
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 
@@ -670,8 +764,20 @@ TEST_CASE("VolumeRenderer Static Single", "[fast][benchmark][visualization][volu
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("VolumeRenderer Static Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nVolumeRenderer Static Single:" << std::endl;
 	fputs("\n\n\nVolumeRenderer Static Single:\n", pFile);
@@ -687,7 +793,7 @@ TEST_CASE("VolumeRenderer Static Single", "[fast][benchmark][visualization][volu
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 
@@ -719,8 +825,20 @@ TEST_CASE("VolumeRenderer Dynamic Single", "[fast][benchmark][visualization][vol
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("VolumeRenderer Dynamic Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nVolumeRenderer Dynamic Single:" << std::endl;
 	fputs("\n\n\nVolumeRenderer Dynamic Single:\n", pFile);
@@ -736,7 +854,7 @@ TEST_CASE("VolumeRenderer Dynamic Single", "[fast][benchmark][visualization][vol
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 
@@ -784,8 +902,20 @@ TEST_CASE("VolumeRenderer Static Multi", "[fast][benchmark][visualization][volum
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("VolumeRenderer Static Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nVolumeRenderer Static Multi:" << std::endl;
 	fputs("\n\n\nVolumeRenderer Static Multi:\n", pFile);
@@ -805,7 +935,7 @@ TEST_CASE("VolumeRenderer Static Multi", "[fast][benchmark][visualization][volum
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 
@@ -853,8 +983,20 @@ TEST_CASE("VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][volu
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("VolumeRenderer Dynamic Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nVolumeRenderer Dynamic Multi:" << std::endl;
 	fputs("\n\n\nVolumeRenderer Dynamic Multi:\n", pFile);
@@ -874,7 +1016,7 @@ TEST_CASE("VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][volu
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 
@@ -913,8 +1055,20 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Static Single", "[fast][
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Static Single + VolumeRenderer Static Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nSliceRenderer Static Single + VolumeRenderer Static Single:" << std::endl;
 	fputs("\n\n\nSliceRenderer Static Single + VolumeRenderer Static Single:\n", pFile);
@@ -934,7 +1088,7 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Static Single", "[fast][
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 	
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 
@@ -979,8 +1133,20 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Static Single", "[fast][b
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Static Multi + VolumeRenderer Static Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nSliceRenderer Static Multi + VolumeRenderer Static Single:" << std::endl;
 	fputs("\n\n\nSliceRenderer Static Multi + VolumeRenderer Static Single:\n", pFile);
@@ -1004,7 +1170,7 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Static Single", "[fast][b
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 TEST_CASE("SliceRenderer Static Single + VolumeRenderer Static Multi", "[fast][benchmark][visualization][slicevolume][slicestaticsingle][volumestaticmulti]")
@@ -1059,8 +1225,20 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Static Multi", "[fast][b
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Static Single + VolumeRenderer Static Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nSliceRenderer Static Single + VolumeRenderer Static Multi:" << std::endl;
 	fputs("\n\n\nSliceRenderer Static Single + VolumeRenderer Static Multi:\n", pFile);
@@ -1084,7 +1262,7 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Static Multi", "[fast][b
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Static Multi", "[fast][benchmark][visualization][slicevolume][slicestaticmulti][volumestaticmulti]")
@@ -1140,8 +1318,20 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Static Multi", "[fast][be
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Static Multi + VolumeRenderer Static Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nSliceRenderer Static Multi + VolumeRenderer Static Multi:" << std::endl;
 	fputs("\n\n\nSliceRenderer Static Multi + VolumeRenderer Static Multi:\n", pFile);
@@ -1165,7 +1355,7 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Static Multi", "[fast][be
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 //------------------------
@@ -1208,8 +1398,20 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Static Single", "[fast]
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Dynamic Single + VolumeRenderer Static Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nSliceRenderer Dynamic Single + VolumeRenderer Static Single:" << std::endl;
 	fputs("\n\n\nSliceRenderer Dynamic Single + VolumeRenderer Static Single:\n", pFile);
@@ -1233,7 +1435,7 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Static Single", "[fast]
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 
@@ -1282,8 +1484,20 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Static Single", "[fast][
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Dynamic Multi + VolumeRenderer Static Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nSliceRenderer Dynamic Multi + VolumeRenderer Static Single:" << std::endl;
 	fputs("\n\n\nSliceRenderer Dynamic Multi + VolumeRenderer Static Single:\n", pFile);
@@ -1311,7 +1525,7 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Static Single", "[fast][
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Static Multi", "[fast][benchmark][visualization][slicevolume][slicedynamicsingle][volumestaticmulti]")
@@ -1369,8 +1583,20 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Static Multi", "[fast][
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Dynamic Single + VolumeRenderer Static Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nSliceRenderer Dynamic Single + VolumeRenderer Static Multi:" << std::endl;
 	fputs("\n\n\nSliceRenderer Dynamic Single + VolumeRenderer Static Multi:\n", pFile);
@@ -1398,7 +1624,7 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Static Multi", "[fast][
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Static Multi", "[fast][benchmark][visualization][slicevolume][slicedynamicmulti][volumestaticmulti]")
@@ -1462,8 +1688,20 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Static Multi", "[fast][b
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Dynamic Multi + VolumeRenderer Static Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nSliceRenderer Dynamic Multi + VolumeRenderer Static Multi:" << std::endl;
 	fputs("\n\n\nSliceRenderer Dynamic Multi + VolumeRenderer Static Multi:\n", pFile);
@@ -1495,7 +1733,7 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Static Multi", "[fast][b
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 //-------------------------------
@@ -1539,8 +1777,20 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Dynamic Single", "[fast]
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Static Single + VolumeRenderer Dynamic Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nSliceRenderer Static Single + VolumeRenderer Dynamic Single:" << std::endl;
 	fputs("\n\n\nSliceRenderer Static Single + VolumeRenderer Dynamic Single:\n", pFile);
@@ -1564,7 +1814,7 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Dynamic Single", "[fast]
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 }
 
 TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Dynamic Single", "[fast][benchmark][visualization][slicevolume][slicestaticmulti][volumedynamicsingle]")
@@ -1611,8 +1861,20 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Dynamic Single", "[fast][
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Static Multi + VolumeRenderer Dynamic Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nSliceRenderer Static Multi + VolumeRenderer Dynamic Single:" << std::endl;
 	fputs("\n\n\nSliceRenderer Static Multi + VolumeRenderer Dynamic Single:\n", pFile);
@@ -1640,7 +1902,7 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Dynamic Single", "[fast][
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 TEST_CASE("SliceRenderer Static Single + VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][slicevolume][slicestaticsingle][volumedynamicmulti]")
@@ -1698,8 +1960,20 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Dynamic Multi", "[fast][
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Static Single + VolumeRenderer Dynamic Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nSliceRenderer Static Single + VolumeRenderer Dynamic Multi:" << std::endl;
 	fputs("\n\n\nSliceRenderer Static Single + VolumeRenderer Dynamic Multi:\n", pFile);
@@ -1727,7 +2001,7 @@ TEST_CASE("SliceRenderer Static Single + VolumeRenderer Dynamic Multi", "[fast][
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][slicevolume][slicestaticmulti][volumedynamicmulti]")
@@ -1790,8 +2064,20 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Dynamic Multi", "[fast][b
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Static Multi + VolumeRenderer Dynamic Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nSliceRenderer Static Multi + VolumeRenderer Dynamic Multi:" << std::endl;
 	fputs("\n\n\nSliceRenderer Static Multi + VolumeRenderer Dynamic Multi:\n", pFile);
@@ -1823,7 +2109,7 @@ TEST_CASE("SliceRenderer Static Multi + VolumeRenderer Dynamic Multi", "[fast][b
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 }
 //-----------------
 
@@ -1863,8 +2149,20 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Dynamic Single", "[fast
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Dynamic Single + VolumeRenderer Dynamic Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nSliceRenderer Dynamic Single + VolumeRenderer Dynamic Single:" << std::endl;
 	fputs("\n\n\nSliceRenderer Dynamic Single + VolumeRenderer Dynamic Single:\n", pFile);
@@ -1884,7 +2182,7 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Dynamic Single", "[fast
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 
@@ -1928,8 +2226,20 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Dynamic Single", "[fast]
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Dynamic Multi + VolumeRenderer Dynamic Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nSliceRenderer Dynamic Multi + VolumeRenderer Dynamic Single:" << std::endl;
 	fputs("\n\n\nSliceRenderer Dynamic Multi + VolumeRenderer Dynamic Single:\n", pFile);
@@ -1953,7 +2263,7 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Dynamic Single", "[fast]
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][slicevolume][slicedynamicsingle][volumedynamicmulti]")
@@ -2008,8 +2318,20 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Dynamic Multi", "[fast]
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Dynamic Single + VolumeRenderer Dynamic Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nSliceRenderer Dynamic Single + VolumeRenderer Dynamic Multi:" << std::endl;
 	fputs("\n\n\nSliceRenderer Dynamic Single + VolumeRenderer Dynamic Multi:\n", pFile);
@@ -2033,7 +2355,7 @@ TEST_CASE("SliceRenderer Dynamic Single + VolumeRenderer Dynamic Multi", "[fast]
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][slicevolume][slicedynamicmulti][volumedynamicmulti]")
@@ -2088,8 +2410,20 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Dynamic Multi", "[fast][
 	window->setTimeout(3000); // 3 second
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Dynamic Multi + VolumeRenderer Dynamic Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nSliceRenderer Dynamic Multi + VolumeRenderer Dynamic Multi:" << std::endl;
 	fputs("\n\n\nSliceRenderer Dynamic Multi + VolumeRenderer Dynamic Multi:\n", pFile);
@@ -2113,7 +2447,7 @@ TEST_CASE("SliceRenderer Dynamic Multi + VolumeRenderer Dynamic Multi", "[fast][
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile); 
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 }
 
 //--------------------------------------------------------------------------------------------
@@ -2158,8 +2492,20 @@ TEST_CASE("MeshRenderer Static Single + VolumeRenderer Static Single", "[fast][b
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Static Single + VolumeRenderer Static Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Static Single + VolumeRenderer Static Single:" << std::endl;
 	fputs("\n\n\nMeshRenderer Static Single + VolumeRenderer Static Single:\n", pFile);
@@ -2179,7 +2525,7 @@ TEST_CASE("MeshRenderer Static Single + VolumeRenderer Static Single", "[fast][b
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 
@@ -2233,8 +2579,20 @@ TEST_CASE("MeshRenderer Static Multi + VolumeRenderer Static Single", "[fast][be
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Static Multi + VolumeRenderer Static Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Static Multi + VolumeRenderer Static Single:" << std::endl;
 	fputs("\n\n\nMeshRenderer Static Multi + VolumeRenderer Static Single:\n", pFile);
@@ -2258,7 +2616,7 @@ TEST_CASE("MeshRenderer Static Multi + VolumeRenderer Static Single", "[fast][be
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 TEST_CASE("MeshRenderer Static Single + VolumeRenderer Static Multi", "[fast][benchmark][visualization][meshvolume][meshstaticsingle][volumestaticmulti]")
@@ -2317,8 +2675,20 @@ TEST_CASE("MeshRenderer Static Single + VolumeRenderer Static Multi", "[fast][be
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Static Single + VolumeRenderer Static Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Static Single + VolumeRenderer Static Multi:" << std::endl;
 	fputs("\n\n\nMeshRenderer Static Single + VolumeRenderer Static Multi:\n", pFile);
@@ -2342,7 +2712,7 @@ TEST_CASE("MeshRenderer Static Single + VolumeRenderer Static Multi", "[fast][be
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 TEST_CASE("MeshRenderer Static Multi + VolumeRenderer Static Multi", "[fast][benchmark][visualization][meshvolume][meshstaticmulti][volumestaticmulti]")
@@ -2407,8 +2777,20 @@ TEST_CASE("MeshRenderer Static Multi + VolumeRenderer Static Multi", "[fast][ben
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Static Multi + VolumeRenderer Static Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Static Multi + VolumeRenderer Static Multi:" << std::endl;
 	fputs("\n\n\nMeshRenderer Static Multi + VolumeRenderer Static Multi:\n", pFile);
@@ -2432,7 +2814,7 @@ TEST_CASE("MeshRenderer Static Multi + VolumeRenderer Static Multi", "[fast][ben
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 //------------------------
@@ -2480,8 +2862,20 @@ TEST_CASE("MeshRenderer Dynamic Single + VolumeRenderer Static Single", "[fast][
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Dynamic Single + VolumeRenderer Static Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Dynamic Single + VolumeRenderer Static Single:" << std::endl;
 	fputs("\n\n\nMeshRenderer Dynamic Single + VolumeRenderer Static Single:\n", pFile);
@@ -2505,7 +2899,7 @@ TEST_CASE("MeshRenderer Dynamic Single + VolumeRenderer Static Single", "[fast][
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 
@@ -2562,8 +2956,20 @@ TEST_CASE("MeshRenderer Dynamic Multi + VolumeRenderer Static Single", "[fast][b
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Dynamic Multi + VolumeRenderer Static Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Dynamic Multi + VolumeRenderer Static Single:" << std::endl;
 	fputs("\n\n\nMeshRenderer Dynamic Multi + VolumeRenderer Static Single:\n", pFile);
@@ -2591,7 +2997,7 @@ TEST_CASE("MeshRenderer Dynamic Multi + VolumeRenderer Static Single", "[fast][b
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 TEST_CASE("MeshRenderer Dynamic Single + VolumeRenderer Static Multi", "[fast][benchmark][visualization][meshvolume][meshdynamicsingle][volumestaticmulti]")
@@ -2653,8 +3059,20 @@ TEST_CASE("MeshRenderer Dynamic Single + VolumeRenderer Static Multi", "[fast][b
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Dynamic Single + VolumeRenderer Static Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Dynamic Single + VolumeRenderer Static Multi:" << std::endl;
 	fputs("\n\n\nMeshRenderer Dynamic Single + VolumeRenderer Static Multi:\n", pFile);
@@ -2682,7 +3100,7 @@ TEST_CASE("MeshRenderer Dynamic Single + VolumeRenderer Static Multi", "[fast][b
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 TEST_CASE("MeshRenderer Dynamic Multi + VolumeRenderer Static Multi", "[fast][benchmark][visualization][meshvolume][meshdynamicmulti][volumestaticmulti]")
@@ -2754,8 +3172,20 @@ TEST_CASE("MeshRenderer Dynamic Multi + VolumeRenderer Static Multi", "[fast][be
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Dynamic Multi + VolumeRenderer Static Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Dynamic Multi + VolumeRenderer Static Multi:" << std::endl;
 	fputs("\n\n\nMeshRenderer Dynamic Multi + VolumeRenderer Static Multi:\n", pFile);
@@ -2787,7 +3217,7 @@ TEST_CASE("MeshRenderer Dynamic Multi + VolumeRenderer Static Multi", "[fast][be
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 //-------------------------------
@@ -2836,8 +3266,20 @@ TEST_CASE("MeshRenderer Static Single + VolumeRenderer Dynamic Single", "[fast][
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Static Single + VolumeRenderer Dynamic Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Static Single + VolumeRenderer Dynamic Single:" << std::endl;
 	fputs("\n\n\nMeshRenderer Static Single + VolumeRenderer Dynamic Single:\n", pFile);
@@ -2861,7 +3303,7 @@ TEST_CASE("MeshRenderer Static Single + VolumeRenderer Dynamic Single", "[fast][
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 }
 
 TEST_CASE("MeshRenderer Static Multi + VolumeRenderer Dynamic Single", "[fast][benchmark][visualization][meshvolume][meshstaticmulti][volumedynamicsingle]")
@@ -2917,8 +3359,20 @@ TEST_CASE("MeshRenderer Static Multi + VolumeRenderer Dynamic Single", "[fast][b
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Static Multi + VolumeRenderer Dynamic Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Static Multi + VolumeRenderer Dynamic Single:" << std::endl;
 	fputs("\n\n\nMeshRenderer Static Multi + VolumeRenderer Dynamic Single:\n", pFile);
@@ -2946,7 +3400,7 @@ TEST_CASE("MeshRenderer Static Multi + VolumeRenderer Dynamic Single", "[fast][b
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 TEST_CASE("MeshRenderer Static Single + VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][meshvolume][meshstaticsingle][volumedynamicmulti]")
@@ -3008,8 +3462,20 @@ TEST_CASE("MeshRenderer Static Single + VolumeRenderer Dynamic Multi", "[fast][b
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Static Single + VolumeRenderer Dynamic Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Static Single + VolumeRenderer Dynamic Multi:" << std::endl;
 	fputs("\n\n\nMeshRenderer Static Single + VolumeRenderer Dynamic Multi:\n", pFile);
@@ -3037,7 +3503,7 @@ TEST_CASE("MeshRenderer Static Single + VolumeRenderer Dynamic Multi", "[fast][b
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 TEST_CASE("MeshRenderer Static Multi + VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][meshvolume][meshstaticmulti][volumedynamicmulti]")
@@ -3109,8 +3575,20 @@ TEST_CASE("MeshRenderer Static Multi + VolumeRenderer Dynamic Multi", "[fast][be
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Static Multi + VolumeRenderer Dynamic Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Static Multi + VolumeRenderer Dynamic Multi:" << std::endl;
 	fputs("\n\n\nMeshRenderer Static Multi + VolumeRenderer Dynamic Multi:\n", pFile);
@@ -3142,7 +3620,7 @@ TEST_CASE("MeshRenderer Static Multi + VolumeRenderer Dynamic Multi", "[fast][be
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 }
 //-----------------
 
@@ -3186,8 +3664,20 @@ TEST_CASE("MeshRenderer Dynamic Single + VolumeRenderer Dynamic Single", "[fast]
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Dynamic Single + VolumeRenderer Dynamic Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Dynamic Single + VolumeRenderer Dynamic Single:" << std::endl;
 	fputs("\n\n\nMeshRenderer Dynamic Single + VolumeRenderer Dynamic Single:\n", pFile);
@@ -3207,7 +3697,7 @@ TEST_CASE("MeshRenderer Dynamic Single + VolumeRenderer Dynamic Single", "[fast]
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 
@@ -3260,8 +3750,20 @@ TEST_CASE("MeshRenderer Dynamic Multi + VolumeRenderer Dynamic Single", "[fast][
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Dynamic Multi + VolumeRenderer Dynamic Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Dynamic Multi + VolumeRenderer Dynamic Single:" << std::endl;
 	fputs("\n\n\nMeshRenderer Dynamic Multi + VolumeRenderer Dynamic Single:\n", pFile);
@@ -3285,7 +3787,7 @@ TEST_CASE("MeshRenderer Dynamic Multi + VolumeRenderer Dynamic Single", "[fast][
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 TEST_CASE("MeshRenderer Dynamic Single + VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][meshvolume][meshdynamicsingle][volumedynamicmulti]")
@@ -3344,8 +3846,20 @@ TEST_CASE("MeshRenderer Dynamic Single + VolumeRenderer Dynamic Multi", "[fast][
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Dynamic Single + VolumeRenderer Dynamic Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Dynamic Single + VolumeRenderer Dynamic Multi:" << std::endl;
 	fputs("\n\n\nMeshRenderer Dynamic Single + VolumeRenderer Dynamic Multi:\n", pFile);
@@ -3369,7 +3883,7 @@ TEST_CASE("MeshRenderer Dynamic Single + VolumeRenderer Dynamic Multi", "[fast][
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 TEST_CASE("MeshRenderer Dynamic Multi + VolumeRenderer Dynamic Multi", "[fast][benchmark][visualization][meshvolume][meshdynamicmulti][volumedynamicmulti]")
@@ -3433,8 +3947,20 @@ TEST_CASE("MeshRenderer Dynamic Multi + VolumeRenderer Dynamic Multi", "[fast][b
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Dynamic Multi + VolumeRenderer Dynamic Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Dynamic Multi + VolumeRenderer Dynamic Multi:" << std::endl;
 	fputs("\n\n\nMeshRenderer Dynamic Multi + VolumeRenderer Dynamic Multi:\n", pFile);
@@ -3458,7 +3984,7 @@ TEST_CASE("MeshRenderer Dynamic Multi + VolumeRenderer Dynamic Multi", "[fast][b
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -3493,8 +4019,20 @@ TEST_CASE("MeshRenderer Static Single + SliceRenderer Static Single", "[fast][be
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Static Single + SliceRenderer Static Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Static Single + SliceRenderer Static Single:" << std::endl;
 	fputs("\n\n\nMeshRenderer Static Single + SliceRenderer Static Single:\n", pFile);
@@ -3514,7 +4052,7 @@ TEST_CASE("MeshRenderer Static Single + SliceRenderer Static Single", "[fast][be
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 
@@ -3557,8 +4095,20 @@ TEST_CASE("MeshRenderer Static Multi + SliceRenderer Static Single", "[fast][ben
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Static Multi + SliceRenderer Static Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Static Multi + SliceRenderer Static Single:" << std::endl;
 	fputs("\n\n\nMeshRenderer Static Multi + SliceRenderer Static Single:\n", pFile);
@@ -3582,7 +4132,7 @@ TEST_CASE("MeshRenderer Static Multi + SliceRenderer Static Single", "[fast][ben
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 TEST_CASE("MeshRenderer Static Single + SliceRenderer Static Multi", "[fast][benchmark][visualization][meshslice][meshstaticsingle][slicestaticmulti]")
@@ -3620,8 +4170,20 @@ TEST_CASE("MeshRenderer Static Single + SliceRenderer Static Multi", "[fast][ben
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Static Single + SliceRenderer Static Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Static Single + SliceRenderer Static Multi:" << std::endl;
 	fputs("\n\n\nMeshRenderer Static Single + SliceRenderer Static Multi:\n", pFile);
@@ -3645,7 +4207,7 @@ TEST_CASE("MeshRenderer Static Single + SliceRenderer Static Multi", "[fast][ben
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 TEST_CASE("MeshRenderer Static Multi + SliceRenderer Static Multi", "[fast][benchmark][visualization][meshslice][meshstaticmulti][slicestaticmulti]")
@@ -3689,8 +4251,20 @@ TEST_CASE("MeshRenderer Static Multi + SliceRenderer Static Multi", "[fast][benc
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Static Multi + SliceRenderer Static Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Static Multi + SliceRenderer Static Multi:" << std::endl;
 	fputs("\n\n\nMeshRenderer Static Multi + SliceRenderer Static Multi:\n", pFile);
@@ -3714,7 +4288,7 @@ TEST_CASE("MeshRenderer Static Multi + SliceRenderer Static Multi", "[fast][benc
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 //------------------------
@@ -3752,8 +4326,20 @@ TEST_CASE("MeshRenderer Dynamic Single + SliceRenderer Static Single", "[fast][b
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Dynamic Single + SliceRenderer Static Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Dynamic Single + SliceRenderer Static Single:" << std::endl;
 	fputs("\n\n\nMeshRenderer Dynamic Single + SliceRenderer Static Single:\n", pFile);
@@ -3777,7 +4363,7 @@ TEST_CASE("MeshRenderer Dynamic Single + SliceRenderer Static Single", "[fast][b
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 
@@ -3824,8 +4410,20 @@ TEST_CASE("MeshRenderer Dynamic Multi + SliceRenderer Static Single", "[fast][be
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Dynamic Multi + SliceRenderer Static Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Dynamic Multi + SliceRenderer Static Single:" << std::endl;
 	fputs("\n\n\nMeshRenderer Dynamic Multi + SliceRenderer Static Single:\n", pFile);
@@ -3853,7 +4451,7 @@ TEST_CASE("MeshRenderer Dynamic Multi + SliceRenderer Static Single", "[fast][be
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 TEST_CASE("MeshRenderer Dynamic Single + SliceRenderer Static Multi", "[fast][benchmark][visualization][meshslice][meshdynamicsingle][slicestaticmulti]")
@@ -3894,8 +4492,20 @@ TEST_CASE("MeshRenderer Dynamic Single + SliceRenderer Static Multi", "[fast][be
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Dynamic Single + SliceRenderer Static Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Dynamic Single + SliceRenderer Static Multi:" << std::endl;
 	fputs("\n\n\nMeshRenderer Dynamic Single + SliceRenderer Static Multi:\n", pFile);
@@ -3923,7 +4533,7 @@ TEST_CASE("MeshRenderer Dynamic Single + SliceRenderer Static Multi", "[fast][be
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 TEST_CASE("MeshRenderer Dynamic Multi + SliceRenderer Static Multi", "[fast][benchmark][visualization][meshslice][meshdynamicmulti][slicestaticmulti]")
@@ -3974,8 +4584,20 @@ TEST_CASE("MeshRenderer Dynamic Multi + SliceRenderer Static Multi", "[fast][ben
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Dynamic Multi + SliceRenderer Static Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Dynamic Multi + SliceRenderer Static Multi:" << std::endl;
 	fputs("\n\n\nMeshRenderer Dynamic Multi + SliceRenderer Static Multi:\n", pFile);
@@ -4007,7 +4629,7 @@ TEST_CASE("MeshRenderer Dynamic Multi + SliceRenderer Static Multi", "[fast][ben
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 //-------------------------------
@@ -4046,8 +4668,20 @@ TEST_CASE("MeshRenderer Static Single + SliceRenderer Dynamic Single", "[fast][b
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Static Single + SliceRenderer Dynamic Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Static Single + SliceRenderer Dynamic Single:" << std::endl;
 	fputs("\n\n\nMeshRenderer Static Single + SliceRenderer Dynamic Single:\n", pFile);
@@ -4071,7 +4705,7 @@ TEST_CASE("MeshRenderer Static Single + SliceRenderer Dynamic Single", "[fast][b
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 }
 
 TEST_CASE("MeshRenderer Static Multi + SliceRenderer Dynamic Single", "[fast][benchmark][visualization][meshslice][meshstaticmulti][slicedynamicsingle]")
@@ -4117,8 +4751,20 @@ TEST_CASE("MeshRenderer Static Multi + SliceRenderer Dynamic Single", "[fast][be
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Static Multi + SliceRenderer Dynamic Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Static Multi + SliceRenderer Dynamic Single:" << std::endl;
 	fputs("\n\n\nMeshRenderer Static Multi + SliceRenderer Dynamic Single:\n", pFile);
@@ -4146,7 +4792,7 @@ TEST_CASE("MeshRenderer Static Multi + SliceRenderer Dynamic Single", "[fast][be
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 TEST_CASE("MeshRenderer Static Single + SliceRenderer Dynamic Multi", "[fast][benchmark][visualization][meshslice][meshstaticsingle][slicedynamicmulti]")
@@ -4205,8 +4851,20 @@ TEST_CASE("MeshRenderer Static Single + SliceRenderer Dynamic Multi", "[fast][be
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Static Single + SliceRenderer Dynamic Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Static Single + SliceRenderer Dynamic Multi:" << std::endl;
 	fputs("\n\n\nMeshRenderer Static Single + SliceRenderer Dynamic Multi:\n", pFile);
@@ -4234,7 +4892,7 @@ TEST_CASE("MeshRenderer Static Single + SliceRenderer Dynamic Multi", "[fast][be
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 TEST_CASE("MeshRenderer Static Multi + SliceRenderer Dynamic Multi", "[fast][benchmark][visualization][meshslice][meshstaticmulti][slicedynamicmulti]")
@@ -4289,8 +4947,20 @@ TEST_CASE("MeshRenderer Static Multi + SliceRenderer Dynamic Multi", "[fast][ben
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Static Multi + SliceRenderer Dynamic Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Static Multi + SliceRenderer Dynamic Multi:" << std::endl;
 	fputs("\n\n\nMeshRenderer Static Multi + SliceRenderer Dynamic Multi:\n", pFile);
@@ -4322,7 +4992,7 @@ TEST_CASE("MeshRenderer Static Multi + SliceRenderer Dynamic Multi", "[fast][ben
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 }
 //-----------------
 
@@ -4356,8 +5026,20 @@ TEST_CASE("MeshRenderer Dynamic Single + SliceRenderer Dynamic Single", "[fast][
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Dynamic Single + SliceRenderer Dynamic Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Dynamic Single + SliceRenderer Dynamic Single:" << std::endl;
 	fputs("\n\n\nMeshRenderer Dynamic Single + SliceRenderer Dynamic Single:\n", pFile);
@@ -4377,7 +5059,7 @@ TEST_CASE("MeshRenderer Dynamic Single + SliceRenderer Dynamic Single", "[fast][
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 
@@ -4429,8 +5111,20 @@ TEST_CASE("MeshRenderer Dynamic Multi + SliceRenderer Dynamic Single", "[fast][b
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Dynamic Multi + SliceRenderer Dynamic Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Dynamic Multi + SliceRenderer Dynamic Single:" << std::endl;
 	fputs("\n\n\nMeshRenderer Dynamic Multi + SliceRenderer Dynamic Single:\n", pFile);
@@ -4454,7 +5148,7 @@ TEST_CASE("MeshRenderer Dynamic Multi + SliceRenderer Dynamic Single", "[fast][b
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 TEST_CASE("MeshRenderer Dynamic Single + SliceRenderer Dynamic Multi", "[fast][benchmark][visualization][meshslice][meshdynamicsingle][slicedynamicmulti]")
@@ -4510,8 +5204,20 @@ TEST_CASE("MeshRenderer Dynamic Single + SliceRenderer Dynamic Multi", "[fast][b
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Dynamic Single + SliceRenderer Dynamic Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Dynamic Single + SliceRenderer Dynamic Multi:" << std::endl;
 	fputs("\n\n\nMeshRenderer Dynamic Single + SliceRenderer Dynamic Multi:\n", pFile);
@@ -4535,7 +5241,7 @@ TEST_CASE("MeshRenderer Dynamic Single + SliceRenderer Dynamic Multi", "[fast][b
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 TEST_CASE("MeshRenderer Dynamic Multi + SliceRenderer Dynamic Multi", "[fast][benchmark][visualization][meshslice][meshdynamicmulti][slicedynamicmulti]")
@@ -4596,8 +5302,20 @@ TEST_CASE("MeshRenderer Dynamic Multi + SliceRenderer Dynamic Multi", "[fast][be
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Dynamic Multi + SliceRenderer Dynamic Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Dynamic Multi + SliceRenderer Dynamic Multi:" << std::endl;
 	fputs("\n\n\nMeshRenderer Dynamic Multi + SliceRenderer Dynamic Multi:\n", pFile);
@@ -4621,7 +5339,7 @@ TEST_CASE("MeshRenderer Dynamic Multi + SliceRenderer Dynamic Multi", "[fast][be
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 }
 //------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------
@@ -4670,8 +5388,20 @@ TEST_CASE("MeshRenderer Static Single + SliceRenderer Static Single + VolumeRend
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Static Single + SliceRenderer Static Single + VolumeRendere Static Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Static Single + SliceRenderer Static Single + VolumeRendere Static Single:" << std::endl;
 	fputs("\n\n\nMeshRenderer Static Single + SliceRenderer Static Single + VolumeRendere Static Single:\n", pFile);
@@ -4695,7 +5425,7 @@ TEST_CASE("MeshRenderer Static Single + SliceRenderer Static Single + VolumeRend
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 
@@ -4768,8 +5498,20 @@ TEST_CASE("MeshRenderer Static Multi + SliceRenderer Static Multi + VolumeRender
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Static Multi + SliceRenderer Static Multi + VolumeRenderer Static Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Static Multi + SliceRenderer Static Multi + VolumeRenderer Static Multi:" << std::endl;
 	fputs("\n\n\nMeshRenderer Static Multi + SliceRenderer Static Multi + VolumeRenderer Static Multi:\n", pFile);
@@ -4797,7 +5539,7 @@ TEST_CASE("MeshRenderer Static Multi + SliceRenderer Static Multi + VolumeRender
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 
@@ -4846,8 +5588,20 @@ TEST_CASE("MeshRenderer Dynamic Single + SliceRenderer Dynamic Single + Volume D
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Dynamic Single + SliceRenderer Dynamic Single + Volume Dynamic Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Dynamic Single + SliceRenderer Dynamic Single + Volume Dynamic Single:" << std::endl;
 	fputs("\n\n\nMeshRenderer Dynamic Single + SliceRenderer Dynamic Single + Volume Dynamic Single:\n", pFile);
@@ -4871,7 +5625,7 @@ TEST_CASE("MeshRenderer Dynamic Single + SliceRenderer Dynamic Single + Volume D
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 
 }
 
@@ -4943,8 +5697,20 @@ TEST_CASE("MeshRenderer Dynamic Multi + SliceRenderer Dynamic Multi + VolumeRend
 	window->setTimeout(3000); // 3 seconds
 	window->start();
 
-	FILE * pFile;
+	FILE *pFile, *pFileShort;
 	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum()) executeTime += volumeRenderer->getRuntime()->getAverage();
+	if ( executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("MeshRenderer Dynamic Multi + SliceRenderer Dynamic Multi+ VolumeRenderer Dynamic Multi:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Dynamic Multi + SliceRenderer Dynamic Multi+ VolumeRenderer Dynamic Multi:" << std::endl;
 	fputs("\n\n\nMeshRenderer Dynamic Multi + SliceRenderer Dynamic Multi+ VolumeRenderer Dynamic Multi:\n", pFile);
@@ -4972,5 +5738,5 @@ TEST_CASE("MeshRenderer Dynamic Multi + SliceRenderer Dynamic Multi + VolumeRend
 	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
 	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
 
-	fclose(pFile);
+	fclose(pFile); fclose(pFileShort);
 }
