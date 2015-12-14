@@ -75,7 +75,7 @@ void Filtering::createMask(Image::pointer input, uchar maskSize) {
         return;
     mRuntimeManager->startRegularTimer("create_mask");
     bool separable = isSeparable();
-    if (mConvRunType == 0){
+    if (mConvRunType == 0 || mConvRunType == 2){
         mRuntimeManager->startRegularTimer("create_naive_mask");
         unsigned char halfSize = (maskSize - 1) / 2;
         float sum = 0.0f;
@@ -144,7 +144,7 @@ void Filtering::createMask(Image::pointer input, uchar maskSize) {
     ExecutionDevice::pointer device = getMainDevice();
     if (!device->isHost()) {
         OpenCLDevice::pointer clDevice = device;
-        if (mConvRunType == 0){
+        if (mConvRunType == 0 || mConvRunType == 2){
             unsigned int bufferSize = input->getDimensions() == 2 ? maskSize*maskSize : maskSize*maskSize*maskSize;
             mCLMask = cl::Buffer(
                 clDevice->getContext(),
@@ -255,9 +255,21 @@ void Filtering::recompileOpenCLCode(Image::pointer input) {
     else if (mConvRunType == 2){
         // TODO Advnaced method
         //split separable and not?
+
+        std::cout << "Running part " << mConvRunType << std::endl;
+        //cl::Program programX, programY;
+        cl::Program program;
+        
+        buildOptions += " -D PASS_DIRECTION=0";
+        buildOptions += " -D LOCAL_MEM_PAD=0";
+        //assumes 2D for now
+        std::cout << "PasDir build optsX" << buildOptions << std::endl;
+        program = getOpenCLProgram(device, "2D", buildOptions);
+        mKernel = cl::Kernel(program, "FilteringLocalMemory");//todo rename? :P
     }
     else {
         buildOptions += " -D PASS_DIRECTION=0";
+        
         cl::Program program;
         if (input->getDimensions() == 2) {
             program = getOpenCLProgram(device, "2D", buildOptions);
@@ -265,7 +277,7 @@ void Filtering::recompileOpenCLCode(Image::pointer input) {
         else {
             program = getOpenCLProgram(device, "3D", buildOptions);
         }
-        mKernel = cl::Kernel(program, "SpatialFilter");
+        mKernel = cl::Kernel(program, "SpatialFilter"); 
         //mKernel = cl::Kernel(program, "OneDirPass");
     }
     
@@ -405,10 +417,17 @@ void Filtering::execute() {
         OpenCLImageAccess::pointer tempAccess = tempImage->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
         mKernelDirX.setArg(0, *inputAccess->get2DImage());
         mKernelDirX.setArg(2, *tempAccess->get2DImage());
-
         mKernelDirX.setArg(1, mCLMaskX);
+
+        OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+        mKernelDirY.setArg(0, *tempAccess->get2DImage());
+        mKernelDirY.setArg(2, *outputAccess->get2DImage());
+        mKernelDirY.setArg(1, mCLMaskY);
+
         cl::CommandQueue cmdQueue = clDevice->getCommandQueue();
+        cmdQueue.finish();
         //mRuntimeManager->startCLTimer("twopass_cl", cmdQueue);
+        mRuntimeManager->startRegularTimer("twopass_cl");
         cmdQueue.enqueueNDRangeKernel(
             mKernelDirX,
             cl::NullRange,
@@ -421,12 +440,6 @@ void Filtering::execute() {
 
         // Pass 1 - Y direction
 
-        OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
-        mKernelDirY.setArg(0, *tempAccess->get2DImage());
-        mKernelDirY.setArg(2, *outputAccess->get2DImage());
-
-        mKernelDirY.setArg(1, mCLMaskY);
-
         cmdQueue.enqueueNDRangeKernel(
             mKernelDirY,
             cl::NullRange,
@@ -435,14 +448,63 @@ void Filtering::execute() {
             );
         cmdQueue.finish();
         //mRuntimeManager->stopCLTimer("twopass_cl", cmdQueue);
+        mRuntimeManager->stopRegularTimer("twopass_cl");
         mRuntimeManager->stopRegularTimer("twopass_setup");
     }
     else if (mConvRunType == 2){
         // split separable and not?
         // TODO implement advanced routine 
+        std::cout << "Running part " << mConvRunType << std::endl;
+        mRuntimeManager->startRegularTimer("local_setup");
+        OpenCLDevice::pointer clDevice = device;
+
+        recompileOpenCLCode(input);
+        /*
+            __kernel void FilteringLocalMemory(
+                __read_only image2d_t input,
+                __constant float * mask,
+                __local float * sharedMem,
+                __write_only image2d_t output)
+        */
+        //assumes 2D
+        cl::NDRange globalSize;
+        OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
+        OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+        int localWidth = 32;
+        int localHeight = 16;
+        int globalWidth = input->getWidth() + mMaskSize - 1;
+        int globalHeight = input->getHeight() + mMaskSize - 1;
+        globalWidth = globalWidth + (localWidth - (globalWidth & (localWidth-1) ) );
+        globalHeight = globalHeight + (localHeight - (globalHeight & (localHeight - 1) ) );
+        std::cout << "Widths: " << input->getWidth() << " " << localWidth << " " << globalWidth << std::endl;
+        std::cout << "Height: " << input->getHeight() << " " << localHeight << " " << globalHeight << std::endl;
+        globalSize = cl::NDRange(globalWidth, globalHeight); //buffer to include padding
+        cl::NDRange localSize = cl::NDRange(32, 16); // 1D?
+        size_t sharedSize = (32 * 16 * sizeof(float));
+        mKernel.setArg(0, *inputAccess->get2DImage());
+        mKernel.setArg(3, *outputAccess->get2DImage());
+        mKernel.setArg(1, mCLMask);
+        mKernel.setArg(2, sharedSize, NULL); //sharedMem size initialized
+        cl::CommandQueue cmdQueue = clDevice->getCommandQueue();
+        //mRuntimeManager->startCLTimer("naive_cl", cmdQueue);
+        cmdQueue.finish();
+        mRuntimeManager->startRegularTimer("local_cl");
+       // cl_int * err;
+       // cl::Device::getInfo<CL_DEVICE_MAX_WORK_ITEM_SIZES>(err);
+        std::cout << " max work items: " << CL_DEVICE_MAX_WORK_GROUP_SIZE << std::endl;
+        cmdQueue.enqueueNDRangeKernel(
+            mKernel,
+            cl::NullRange,
+            globalSize,
+            localSize
+            );
+        //mRuntimeManager->stopCLTimer("naive_cl", cmdQueue);
+        cmdQueue.finish();
+        mRuntimeManager->stopRegularTimer("local_cl");
+        mRuntimeManager->stopRegularTimer("local_setup");
     }
     else {
-
+        std::cout << "Running part " << mConvRunType << std::endl;
         mRuntimeManager->startRegularTimer("naive_setup");
         OpenCLDevice::pointer clDevice = device;
 
@@ -474,6 +536,8 @@ void Filtering::execute() {
         mKernel.setArg(3, maskSize);
         cl::CommandQueue cmdQueue = clDevice->getCommandQueue();
         //mRuntimeManager->startCLTimer("naive_cl", cmdQueue);
+        cmdQueue.finish();
+        mRuntimeManager->startRegularTimer("naive_cl");
         cmdQueue.enqueueNDRangeKernel(
             mKernel,
             cl::NullRange,
@@ -482,6 +546,7 @@ void Filtering::execute() {
             );
         //mRuntimeManager->stopCLTimer("naive_cl", cmdQueue);
         cmdQueue.finish();
+        mRuntimeManager->stopRegularTimer("naive_cl");
         mRuntimeManager->stopRegularTimer("naive_setup");
     }
     std::cout << "maxIntensity! @Filtering " << output->calculateMaximumIntensity() << std::endl;

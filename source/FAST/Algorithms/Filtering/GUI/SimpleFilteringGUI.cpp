@@ -251,6 +251,14 @@ SimpleFilteringGUI::SimpleFilteringGUI() {
     mCreateMaskNaiveLabel = new QLabel;
     mCreateMaskNaiveLabel->setText("Create mask (naive) time: -- ms");
     menuLayout->addWidget(mCreateMaskNaiveLabel);
+    // Kernel twopass parameter label 
+    mKernelTwopassLabel = new QLabel;
+    mKernelTwopassLabel->setText("Kernel (twopass) time: -- ms");
+    menuLayout->addWidget(mKernelTwopassLabel);
+    // Kernel naive parameter label 
+    mKernelNaiveLabel = new QLabel;
+    mKernelNaiveLabel->setText("Kernel (naive) time: -- ms");
+    menuLayout->addWidget(mKernelNaiveLabel);
 
     // Add menu and view to main layout
     QHBoxLayout* layout = new QHBoxLayout;
@@ -291,6 +299,45 @@ std::string SimpleFilteringGUI::numToRunType(int num){
 
     return "None";
 
+}
+
+void SimpleFilteringGUI::updateRuntimes(Filtering::pointer filter){
+    filter->update();
+    filter->getRuntime()->print();
+    float timingLast_tot = filter->getRuntime()->getLast();
+    filter->getRuntime("twopass_setup")->print();
+    float timingLast_twopass_setup = filter->getRuntime("twopass_setup")->getLast();
+    //mGaussian->getRuntime("twopass_cl")->print();
+    filter->getRuntime("naive_setup")->print();
+    float timingLast_naive_setup = filter->getRuntime("naive_setup")->getLast();
+    filter->getRuntime("create_mask")->print();
+    float timingLast_create_mask = filter->getRuntime("create_mask")->getLast();
+    filter->getRuntime("create_twopass_mask")->print();
+    float timingLast_create_twopass_mask = filter->getRuntime("create_twopass_mask")->getLast();
+    filter->getRuntime("create_naive_mask")->print();
+    float timingLast_create_naive_mask = filter->getRuntime("create_naive_mask")->getLast();
+    filter->getRuntime("twopass_cl")->print();
+    float timingLast_twopass_kernel = filter->getRuntime("twopass_cl")->getLast();
+    filter->getRuntime("naive_cl")->print();
+    float timingLast_naive_kernel = filter->getRuntime("naive_cl")->getLast();
+    //mGaussian->getRuntime("naive_cl")->print();
+    std::string executeText = "Execute time: " + std::to_string(timingLast_tot) + " ms";
+    mExecuteTimeLabel->setText(executeText.c_str());
+    std::string setupTwopassText = "Setup twopass time: " + std::to_string(timingLast_twopass_setup) + " ms";
+    mSetupTimeLabel->setText(setupTwopassText.c_str());
+    std::string setupNaiveText = "Setup naive time: " + std::to_string(timingLast_naive_setup) + " ms";
+    mSetupTime2Label->setText(setupNaiveText.c_str());
+    std::string createMaskText = "Create mask time: " + std::to_string(timingLast_create_mask) + " ms";
+    mCreateMaskLabel->setText(createMaskText.c_str());
+    std::string createMaskTwopassText = "Create mask (twopass) time: " + std::to_string(timingLast_create_twopass_mask) + " ms";
+    mCreateMaskTwopassLabel->setText(createMaskTwopassText.c_str());
+    std::string createMaskNaiveText = "Create mask (naive) time: " + std::to_string(timingLast_create_naive_mask) + " ms";
+    mCreateMaskNaiveLabel->setText(createMaskNaiveText.c_str());//*/
+
+    std::string kernelTwopassText = "Kernel (twopass) time: " + std::to_string(timingLast_twopass_kernel) + " ms";
+    mKernelTwopassLabel->setText(kernelTwopassText.c_str());
+    std::string kernelNaiveText = "Kernel (naive) time: " + std::to_string(timingLast_naive_kernel) + " ms";
+    mKernelNaiveLabel->setText(kernelNaiveText.c_str());
 }
 
 //// -- Functions updating values upon slider change -- ////
@@ -379,38 +426,14 @@ void SimpleFilteringGUI::updateGaussStd(float value){
     mGaussStdLabel->setText(text.c_str());
     if(mFilterType==1) saveImage(); //only if gaussian
     if (mFilterType == 1){
-        mGaussian->update();
-        mGaussian->getRuntime()->print();
-        float timingLast_tot = mGaussian->getRuntime()->getLast();
-        mGaussian->getRuntime("twopass_setup")->print();
-        float timingLast_twopass_setup = mGaussian->getRuntime("twopass_setup")->getLast();
-        //mGaussian->getRuntime("twopass_cl")->print();
-        mGaussian->getRuntime("naive_setup")->print();
-        float timingLast_naive_setup = mGaussian->getRuntime("naive_setup")->getLast();
-        mGaussian->getRuntime("create_mask")->print();
-        float timingLast_create_mask = mGaussian->getRuntime("create_mask")->getLast();
-        mGaussian->getRuntime("create_twopass_mask")->print();
-        float timingLast_create_twopass_mask = mGaussian->getRuntime("create_twopass_mask")->getLast();
-        mGaussian->getRuntime("create_naive_mask")->print();
-        float timingLast_create_naive_mask = mGaussian->getRuntime("create_naive_mask")->getLast();
-        //mGaussian->getRuntime("naive_cl")->print();
-        std::string executeText = "Execute time: " + std::to_string(timingLast_tot)+" ms";
-        mExecuteTimeLabel->setText(executeText.c_str());
-        std::string setupTwopassText = "Setup twopass time: " + std::to_string(timingLast_twopass_setup) + " ms";
-        mSetupTimeLabel->setText(setupTwopassText.c_str());
-        std::string setupNaiveText = "Setup naive time: " + std::to_string(timingLast_naive_setup) + " ms";
-        mSetupTime2Label->setText(setupNaiveText.c_str());
-        std::string createMaskText = "Create mask time: " + std::to_string(timingLast_create_mask) + " ms";
-        mCreateMaskLabel->setText(createMaskText.c_str());
-        std::string createMaskTwopassText = "Create mask (twopass) time: " + std::to_string(timingLast_create_twopass_mask) + " ms";
-        mCreateMaskTwopassLabel->setText(createMaskTwopassText.c_str());
-        std::string createMaskNaiveText = "Create mask (naive) time: " + std::to_string(timingLast_create_naive_mask) + " ms";
-        mCreateMaskNaiveLabel->setText(createMaskNaiveText.c_str());//*/
+        updateRuntimes(mGaussian);
+        //RuntimeMeasurementPtr ptr = mGaussian->getRuntime();
+        
     }
 }
 
 void SimpleFilteringGUI::updateRunType(int value){
-    if (value < 0 || value >= 2 || value==mRunType) return;
+    if (value < 0 || value > 2 || value==mRunType) return;
 
     mGaussian->setConvRunType(value); // 1:twopass, 2:adv, else: naive
     mSobelX->setConvRunType(value); // 1:twopass, 2:adv, else: naive
@@ -427,8 +450,9 @@ void SimpleFilteringGUI::updateRunType(int value){
 
 
 void SimpleFilteringGUI::saveImage(){
+    std::this_thread::sleep_for(std::chrono::milliseconds(200)); //20
+    return;
     
-    std::this_thread::sleep_for( std::chrono::milliseconds(20) ); 
     // Exporter image
     ImageExporter::pointer exporter = ImageExporter::New();
     // add string with time.h (time(NULL)) etc

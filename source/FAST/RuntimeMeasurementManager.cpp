@@ -69,12 +69,14 @@ void RuntimeMeasurementsManager::stopCLTimer(std::string name, cl::CommandQueue 
 	// Remove the start event
 	startEvents.erase(name);
 }
-
+typedef boost::chrono::high_resolution_clock boostTimerClock_test;
+//typedef boost::chrono::system_clock boostTimerClock_test;
 void RuntimeMeasurementsManager::startRegularTimer(std::string name) {
 	if (!enabled)
 		return;
 
-	startTimes[name] = boost::chrono::system_clock::now();
+	//startTimes[name] = boost::chrono::system_clock::now();
+    startTimes[name] = boostTimerClock_test::now();
 }
 
 void RuntimeMeasurementsManager::stopRegularTimer(std::string name) {
@@ -84,7 +86,8 @@ void RuntimeMeasurementsManager::stopRegularTimer(std::string name) {
 	if(startTimes.count(name) == 0)
 	    return;
 
-	boost::chrono::duration<double, boost::milli> time = boost::chrono::system_clock::now() - startTimes[name];
+	//boost::chrono::duration<double, boost::milli> time = boost::chrono::system_clock::now() - startTimes[name];
+    boost::chrono::duration<double, boost::milli> time = boostTimerClock_test::now() - startTimes[name];
     if (timings.count(name) == 0) {
 		// No timings with this name exists, create a new one
 		RuntimeMeasurementPtr runtime(new RuntimeMeasurement(name));

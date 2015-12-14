@@ -35,6 +35,7 @@ class SimpleFilteringGUI : public Window {
 
         std::string numToRunType(int num);
         std::string getInputFilename(int inputnum);
+        void updateRuntimes(Filtering::pointer filter);
         void saveImage();//ProcessObjectPort fromPort);
 
         Filtering::pointer mBoxFilter;
@@ -66,6 +67,8 @@ class SimpleFilteringGUI : public Window {
         QLabel* mCreateMaskLabel;
         QLabel* mCreateMaskTwopassLabel;
         QLabel* mCreateMaskNaiveLabel;
+        QLabel* mKernelTwopassLabel;
+        QLabel* mKernelNaiveLabel;
 
         View* mView;
         View* mInitView;

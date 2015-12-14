@@ -40,7 +40,8 @@ private:
 	std::map<std::string, RuntimeMeasurementPtr> timings;
 	std::map<std::string, unsigned int> numberings;
 	std::map<std::string, cl::Event> startEvents;
-	std::map<std::string, boost::chrono::system_clock::time_point> startTimes;
+	//std::map<std::string, boost::chrono::system_clock::time_point> startTimes;
+    std::map<std::string, boost::chrono::high_resolution_clock::time_point> startTimes;
 };
 
 typedef boost::shared_ptr<class RuntimeMeasurementsManager> RuntimeMeasurementsManagerPtr;
