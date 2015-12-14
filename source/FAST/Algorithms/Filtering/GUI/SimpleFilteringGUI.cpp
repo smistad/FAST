@@ -381,7 +381,7 @@ void SimpleFilteringGUI::updateGaussStd(float value){
     if (mFilterType == 1){
         mGaussian->update();
         mGaussian->getRuntime()->print();
-        /*float timingLast_tot = mGaussian->getRuntime()->getLast();
+        float timingLast_tot = mGaussian->getRuntime()->getLast();
         mGaussian->getRuntime("twopass_setup")->print();
         float timingLast_twopass_setup = mGaussian->getRuntime("twopass_setup")->getLast();
         //mGaussian->getRuntime("twopass_cl")->print();
@@ -405,7 +405,7 @@ void SimpleFilteringGUI::updateGaussStd(float value){
         std::string createMaskTwopassText = "Create mask (twopass) time: " + std::to_string(timingLast_create_twopass_mask) + " ms";
         mCreateMaskTwopassLabel->setText(createMaskTwopassText.c_str());
         std::string createMaskNaiveText = "Create mask (naive) time: " + std::to_string(timingLast_create_naive_mask) + " ms";
-        mCreateMaskNaiveLabel->setText(createMaskNaiveText.c_str());*/
+        mCreateMaskNaiveLabel->setText(createMaskNaiveText.c_str());//*/
     }
 }
 

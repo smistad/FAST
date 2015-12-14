@@ -14,6 +14,8 @@ class RuntimeMeasurement {
 public:
 	RuntimeMeasurement(std::string name);
 	void addSample(double runtime);
+    double getLast() const;
+    double getSlidingAverage() const;
 	double getSum() const;
 	double getAverage() const;
 	double getStdDeviation() const;
@@ -23,6 +25,9 @@ public:
 private:
 	RuntimeMeasurement();
 
+    double last;
+    double slidingAvg;
+    double slidingAlpha;
 	double sum;
 	unsigned int samples;
 	std::string name;
