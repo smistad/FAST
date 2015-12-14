@@ -522,7 +522,7 @@ TEST_CASE("MeshRenderer Static Single", "[fast][benchmark][visualization][mesh][
 	else
 		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
 
-	fputs(std::string("nMeshRenderer Static Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+	fputs(std::string("Meshrenderer Static Single:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
 
 	std::cout << "\n\n\nMeshRenderer Static Single:" << std::endl;
 	fputs("\n\n\nMeshRenderer Static Single:\n", pFile);
@@ -4798,24 +4798,6 @@ TEST_CASE("MeshRenderer Static Multi + SliceRenderer Dynamic Single", "[fast][be
 TEST_CASE("MeshRenderer Static Single + SliceRenderer Dynamic Multi", "[fast][benchmark][visualization][meshslice][meshstaticsingle][slicedynamicmulti]")
 {
 
-	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
-	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
-	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
-	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
-
-	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
-	otf1->addAlphaPoint(000.0, 0.0);
-	otf1->addAlphaPoint(255.0, 1.0);
-
-	ColorTransferFunction::pointer ctf2 = ColorTransferFunction::New();
-	ctf2->addRGBPoint(000.0, 1.0, 0.0, 1.0);
-	ctf2->addRGBPoint(127.0, 0.0, 1.0, 1.0);
-	ctf2->addRGBPoint(255.0, 1.0, 0.0, 0.0);
-
-	OpacityTransferFunction::pointer otf2 = OpacityTransferFunction::New();
-	otf2->addAlphaPoint(000.0, 0.0);
-	otf2->addAlphaPoint(255.0, 1.0);
-
 	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
 	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
 	mhdImporterStatic->enableRuntimeMeasurements();
@@ -5740,3 +5722,2326 @@ TEST_CASE("MeshRenderer Dynamic Multi + SliceRenderer Dynamic Multi + VolumeRend
 
 	fclose(pFile); fclose(pFileShort);
 }
+
+
+
+//----------------------------------------------------------------------------------
+TEST_CASE("SliceRenderer Static Single View 256x256", "[fast][benchmark][visualization][sliceview][256]")
+{
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->setTimeout(3000); // 3 second
+	window->setWindowSize(256, 256);
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Static Single View 256x256:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nSliceRenderer Static Single View 256x256:" << std::endl;
+	fputs("\n\n\nSliceRenderer Static SingleView 256x256:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+}
+TEST_CASE("SliceRenderer Static Single View 512x512", "[fast][benchmark][visualization][sliceview][512]")
+{
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->setTimeout(3000); // 3 second
+	window->setWindowSize(512, 512);
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Static Single View 512x512:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nSliceRenderer Static Single View 512x512:" << std::endl;
+	fputs("\n\n\nSliceRenderer Static SingleView 512x512:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+}
+TEST_CASE("SliceRenderer Static Single View 1280x720", "[fast][benchmark][visualization][sliceview][1280]")
+{
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->setTimeout(3000); // 3 second
+	window->setWindowSize(1280, 720);
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Static Single View 1280x720:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nSliceRenderer Static Single View 1280x720:" << std::endl;
+	fputs("\n\n\nSliceRenderer Static SingleView 1280x720:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+}
+TEST_CASE("SliceRenderer Static Single View 1920x1080", "[fast][benchmark][visualization][sliceview][1920]")
+{
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->setTimeout(3000); // 3 second
+	window->setWindowSize(1920, 1080);
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Static Single View 1920x1080:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nSliceRenderer Static Single View 1920x1080:" << std::endl;
+	fputs("\n\n\nSliceRenderer Static SingleView 1920x1080:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+}
+TEST_CASE("SliceRenderer Static Single View 2560x1440", "[fast][benchmark][visualization][sliceview][2560]")
+{
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->setTimeout(3000); // 3 second
+	window->setWindowSize(2560, 1440);
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Static Single View 2560x1440:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nSliceRenderer Static Single View 2560x1440:" << std::endl;
+	fputs("\n\n\nSliceRenderer Static SingleView 2560x1440:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+}
+//----
+TEST_CASE("MeshRenderer Static Single View 256x256", "[fast][benchmark][visualization][meshview][256]")
+{
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 second
+	window->setWindowSize(256,256);
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("Meshrenderer Static Single View 256x256:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nMeshRenderer Static Single View 256x256:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Single View 256x256:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+TEST_CASE("MeshRenderer Static Single View 512x512", "[fast][benchmark][visualization][meshview][512]")
+{
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 second
+	window->setWindowSize(512, 512);
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("Meshrenderer Static Single View 512x512:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nMeshRenderer Static Single View 512x512:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Single View 512x512:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+TEST_CASE("MeshRenderer Static Single View 1280x720", "[fast][benchmark][visualization][meshview][1280]")
+{
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 second
+	window->setWindowSize(1280, 720);
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("Meshrenderer Static Single View 1280x720:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nMeshRenderer Static Single View 1280x720:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Single View 1280x720:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+TEST_CASE("MeshRenderer Static Single View 1920x1080", "[fast][benchmark][visualization][meshview][1920]")
+{
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 second
+	window->setWindowSize(1920, 1080);
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("Meshrenderer Static Single View 1920x1080:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nMeshRenderer Static Single View 1920x1080:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Single View 1920x1080:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+TEST_CASE("MeshRenderer Static Single View 2560x1440", "[fast][benchmark][visualization][meshview][2560]")
+{
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 second
+	window->setWindowSize(2560, 1440);
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("Meshrenderer Static Single View 2560x1440:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nMeshRenderer Static Single View 2560x1440:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Single View 2560x1440:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+//****
+TEST_CASE("VolumeRenderer Static Single View 256x256", "[fast][benchmark][visualization][volumeview][256]")
+{
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->setTimeout(3000); // 3 second
+	window->setWindowSize(256, 256);
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("VolumeRenderer Static Single View 256x256:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nVolumeRenderer Static Single View 256x256:" << std::endl;
+	fputs("\n\n\nVolumeRenderer Static Single View 256x256:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+TEST_CASE("VolumeRenderer Static Single View 512x512", "[fast][benchmark][visualization][volumeview][512]")
+{
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->setTimeout(3000); // 3 second
+	window->setWindowSize(512, 512);
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("VolumeRenderer Static Single View 512x512:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nVolumeRenderer Static Single View 512x512:" << std::endl;
+	fputs("\n\n\nVolumeRenderer Static Single View 512x512:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+TEST_CASE("VolumeRenderer Static Single View 1280x720", "[fast][benchmark][visualization][volumeview][1280]")
+{
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->setTimeout(3000); // 3 second
+	window->setWindowSize(1280, 720);
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("VolumeRenderer Static Single View 1280x720:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nVolumeRenderer Static Single View 1280x720:" << std::endl;
+	fputs("\n\n\nVolumeRenderer Static Single View 1280x720:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+TEST_CASE("VolumeRenderer Static Single View 1920x1080", "[fast][benchmark][visualization][volumeview][1920]")
+{
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->setTimeout(3000); // 3 second
+	window->setWindowSize(1920, 1080);
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("VolumeRenderer Static Single View 1920x1080:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nVolumeRenderer Static Single View 1920x1080:" << std::endl;
+	fputs("\n\n\nVolumeRenderer Static Single View 1920x1080:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+TEST_CASE("VolumeRenderer Static Single View 2560x1440", "[fast][benchmark][visualization][volumeview][2560]")
+{
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->setTimeout(3000); // 3 second
+	window->setWindowSize(2560, 1440);
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("VolumeRenderer Static Single View 2560x1440:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nVolumeRenderer Static Single View 2560x1440:" << std::endl;
+	fputs("\n\n\nVolumeRenderer Static Single View 2560x1440:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+//------------------------------------------------------------------------------------------------------------------
+TEST_CASE("SliceRenderer Static Single One Volume", "[fast][benchmark][visualization][slicemulti][one]")
+{
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Static Single One Volume:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nSliceRenderer Static Single One Volume:" << std::endl;
+	fputs("\n\n\nSliceRenderer Static Single One Volume:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+}
+TEST_CASE("SliceRenderer Static Single Two Volumes", "[fast][benchmark][visualization][slicemulti][two]")
+{
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
+	mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
+	mhdImporterStatic2->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	sliceRenderer->addInputConnection(mhdImporterStatic2->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Static Single Two Volumes:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nSliceRenderer Static Single Two Volumes:" << std::endl;
+	fputs("\n\n\nSliceRenderer Static Single Two Volumes:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+}
+TEST_CASE("SliceRenderer Static Single Three Volumes", "[fast][benchmark][visualization][slicemulti][three]")
+{
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
+	mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
+	mhdImporterStatic2->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic3 = MetaImageImporter::New();
+	mhdImporterStatic3->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_3.mhd");
+	mhdImporterStatic3->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	sliceRenderer->addInputConnection(mhdImporterStatic2->getOutputPort());
+	sliceRenderer->addInputConnection(mhdImporterStatic3->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Static Single Three Volumes:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nSliceRenderer Static Single Three Volumes:" << std::endl;
+	fputs("\n\n\nSliceRenderer Static Single Three Volumes:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+}
+TEST_CASE("SliceRenderer Static Four Volumes", "[fast][benchmark][visualization][slicemulti][four]")
+{
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
+	mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
+	mhdImporterStatic2->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic3 = MetaImageImporter::New();
+	mhdImporterStatic3->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_3.mhd");
+	mhdImporterStatic3->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic4 = MetaImageImporter::New();
+	mhdImporterStatic4->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_4.mhd");
+	mhdImporterStatic4->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	sliceRenderer->addInputConnection(mhdImporterStatic2->getOutputPort());
+	sliceRenderer->addInputConnection(mhdImporterStatic3->getOutputPort());
+	sliceRenderer->addInputConnection(mhdImporterStatic4->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Static Four Volumes:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nSliceRenderer Static Four Volumes:" << std::endl;
+	fputs("\n\n\nSliceRenderer Static Four Volumes:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+}
+//-------
+TEST_CASE("MeshRenderer Static One Volume", "[fast][benchmark][visualization][meshmulti][one]")
+{
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("Meshrenderer Static One Volume:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nMeshRenderer Static One Volume:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static One Volume:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+TEST_CASE("MeshRenderer Static Two Volumes", "[fast][benchmark][visualization][meshmulti][two]")
+{
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
+	mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
+	mhdImporterStatic2->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor2 = SurfaceExtraction::New();
+	surfaceExtractor2->setInputConnection(mhdImporterStatic2->getOutputPort());
+	surfaceExtractor2->setThreshold(50);
+	surfaceExtractor2->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->addInputConnection(surfaceExtractor2->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("Meshrenderer Static Two Volumes:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nMeshRenderer Static Two Volumes:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Two Volumes:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+TEST_CASE("MeshRenderer Static Three Volumes", "[fast][benchmark][visualization][meshmulti][three]")
+{
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
+	mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
+	mhdImporterStatic2->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor2 = SurfaceExtraction::New();
+	surfaceExtractor2->setInputConnection(mhdImporterStatic2->getOutputPort());
+	surfaceExtractor2->setThreshold(50);
+	surfaceExtractor2->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic3 = MetaImageImporter::New();
+	mhdImporterStatic3->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_3.mhd");
+	mhdImporterStatic3->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor3 = SurfaceExtraction::New();
+	surfaceExtractor3->setInputConnection(mhdImporterStatic3->getOutputPort());
+	surfaceExtractor3->setThreshold(50);
+	surfaceExtractor3->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->addInputConnection(surfaceExtractor2->getOutputPort());
+	meshRenderer->addInputConnection(surfaceExtractor3->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("Meshrenderer Static Three Volumes:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nMeshRenderer Static Three Volumes:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Three Volumes:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+TEST_CASE("MeshRenderer Static Four Volumes", "[fast][benchmark][visualization][meshmulti][four]")
+{
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
+	mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
+	mhdImporterStatic2->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor2 = SurfaceExtraction::New();
+	surfaceExtractor2->setInputConnection(mhdImporterStatic2->getOutputPort());
+	surfaceExtractor2->setThreshold(50);
+	surfaceExtractor2->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic3 = MetaImageImporter::New();
+	mhdImporterStatic3->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_3.mhd");
+	mhdImporterStatic3->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor3 = SurfaceExtraction::New();
+	surfaceExtractor3->setInputConnection(mhdImporterStatic3->getOutputPort());
+	surfaceExtractor3->setThreshold(50);
+	surfaceExtractor3->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic4 = MetaImageImporter::New();
+	mhdImporterStatic4->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_4.mhd");
+	mhdImporterStatic4->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor4 = SurfaceExtraction::New();
+	surfaceExtractor4->setInputConnection(mhdImporterStatic4->getOutputPort());
+	surfaceExtractor4->setThreshold(50);
+	surfaceExtractor4->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->addInputConnection(surfaceExtractor2->getOutputPort());
+	meshRenderer->addInputConnection(surfaceExtractor3->getOutputPort());
+	meshRenderer->addInputConnection(surfaceExtractor4->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("Meshrenderer Static Four Volumes:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nMeshRenderer Static Four Volumes:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Four Volumes:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+//*****
+TEST_CASE("VolumeRenderer Static One Volume", "[fast][benchmark][visualization][volumemulti][one]")
+{
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("VolumeRenderer Static One Volume:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nVolumeRenderer Static One Volume:" << std::endl;
+	fputs("\n\n\nVolumeRenderer Static One Volume:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+
+TEST_CASE("VolumeRenderer Static Two Volumes", "[fast][benchmark][visualization][volumemulti][two]")
+{
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	ColorTransferFunction::pointer ctf2 = ColorTransferFunction::New();
+	ctf2->addRGBPoint(000.0, 1.0, 0.0, 1.0);
+	ctf2->addRGBPoint(127.0, 0.0, 1.0, 1.0);
+	ctf2->addRGBPoint(255.0, 1.0, 0.0, 0.0);
+
+	OpacityTransferFunction::pointer otf2 = OpacityTransferFunction::New();
+	otf2->addAlphaPoint(000.0, 0.0);
+	otf2->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
+	mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
+	mhdImporterStatic2->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->addInputConnection(mhdImporterStatic2->getOutputPort());
+	volumeRenderer->setColorTransferFunction(1, ctf2);
+	volumeRenderer->setOpacityTransferFunction(1, otf2);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("VolumeRenderer Static Two Volumes:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nVolumeRenderer Static Two Volumes:" << std::endl;
+	fputs("\n\n\nVolumeRenderer Static Two Volumes:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+
+TEST_CASE("VolumeRenderer Static Three Volumes", "[fast][benchmark][visualization][volumemulti][three]")
+{
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	ColorTransferFunction::pointer ctf2 = ColorTransferFunction::New();
+	ctf2->addRGBPoint(000.0, 1.0, 0.0, 1.0);
+	ctf2->addRGBPoint(127.0, 0.0, 1.0, 1.0);
+	ctf2->addRGBPoint(255.0, 1.0, 0.0, 0.0);
+
+	OpacityTransferFunction::pointer otf2 = OpacityTransferFunction::New();
+	otf2->addAlphaPoint(000.0, 0.0);
+	otf2->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
+	mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
+	mhdImporterStatic2->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic3 = MetaImageImporter::New();
+	mhdImporterStatic3->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_3.mhd");
+	mhdImporterStatic3->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->addInputConnection(mhdImporterStatic2->getOutputPort());
+	volumeRenderer->setColorTransferFunction(1, ctf2);
+	volumeRenderer->setOpacityTransferFunction(1, otf2);
+	volumeRenderer->addInputConnection(mhdImporterStatic3->getOutputPort());
+	volumeRenderer->setColorTransferFunction(2, ctf2);
+	volumeRenderer->setOpacityTransferFunction(2, otf2);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("VolumeRenderer Static Three Volumes:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nVolumeRenderer Static Three Volumes:" << std::endl;
+	fputs("\n\n\nVolumeRenderer Static Three Volumes:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+
+TEST_CASE("VolumeRenderer Static Four Volumes", "[fast][benchmark][visualization][volumemulti][four]")
+{
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	ColorTransferFunction::pointer ctf2 = ColorTransferFunction::New();
+	ctf2->addRGBPoint(000.0, 1.0, 0.0, 1.0);
+	ctf2->addRGBPoint(127.0, 0.0, 1.0, 1.0);
+	ctf2->addRGBPoint(255.0, 1.0, 0.0, 0.0);
+
+	OpacityTransferFunction::pointer otf2 = OpacityTransferFunction::New();
+	otf2->addAlphaPoint(000.0, 0.0);
+	otf2->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic2 = MetaImageImporter::New();
+	mhdImporterStatic2->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_2.mhd");
+	mhdImporterStatic2->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic3 = MetaImageImporter::New();
+	mhdImporterStatic3->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_3.mhd");
+	mhdImporterStatic3->enableRuntimeMeasurements();
+
+	MetaImageImporter::pointer mhdImporterStatic4 = MetaImageImporter::New();
+	mhdImporterStatic4->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256_4.mhd");
+	mhdImporterStatic4->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->addInputConnection(mhdImporterStatic2->getOutputPort());
+	volumeRenderer->setColorTransferFunction(1, ctf2);
+	volumeRenderer->setOpacityTransferFunction(1, otf2);
+	volumeRenderer->addInputConnection(mhdImporterStatic3->getOutputPort());
+	volumeRenderer->setColorTransferFunction(2, ctf2);
+	volumeRenderer->setOpacityTransferFunction(2, otf2);
+	volumeRenderer->addInputConnection(mhdImporterStatic4->getOutputPort());
+	volumeRenderer->setColorTransferFunction(3, ctf2);
+	volumeRenderer->setOpacityTransferFunction(3, otf2);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("VolumeRenderer Static Four Volumes:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nVolumeRenderer Static Four Volumes:" << std::endl;
+	fputs("\n\n\nVolumeRenderer Static Four Volumes:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------
+TEST_CASE("SliceRenderer Static Single Size 128 Cubic", "[fast][benchmark][visualization][slicesize][128]")
+{
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull128.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Static Single Size 128 Cubic:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nSliceRenderer Static Single Size 128 Cubic:" << std::endl;
+	fputs("\n\n\nSliceRenderer Static Single Size 128 Cubic:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+}
+TEST_CASE("SliceRenderer Static Single Size 256 Cubic", "[fast][benchmark][visualization][slicesize][256]")
+{
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Static Single Size 256 Cubic:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nSliceRenderer Static Single Size 256 Cubic:" << std::endl;
+	fputs("\n\n\nSliceRenderer Static Single Size 256 Cubic:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+}
+TEST_CASE("SliceRenderer Static Single Size 512 Cubic", "[fast][benchmark][visualization][slicesize][512]")
+{
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull512.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Static Single Size 512 Cubic:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nSliceRenderer Static Single Size 512 Cubic:" << std::endl;
+	fputs("\n\n\nSliceRenderer Static Single Size 512 Cubic:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+}
+TEST_CASE("SliceRenderer Static Single Size 1024 Cubic", "[fast][benchmark][visualization][slicesize][1024]")
+{
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull1024.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+	sliceRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Z);
+	sliceRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(sliceRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("SliceRenderer Static Single Size 1024 Cubic:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nSliceRenderer Static Single Size 1024 Cubic:" << std::endl;
+	fputs("\n\n\nSliceRenderer Static Single Size 1024 Cubic:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(sliceRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+}
+//------
+TEST_CASE("MeshRenderer Static Single Size 128 Cubic", "[fast][benchmark][visualization][meshsize][128]")
+{
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull128.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("Meshrenderer Static Single Size 128 Cubic:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nMeshRenderer Static Single Size 128 Cubic:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Single Size 128 Cubic:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+TEST_CASE("MeshRenderer Static Single Size 256 Cubic", "[fast][benchmark][visualization][meshsize][256]")
+{
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("Meshrenderer Static Single Size 256 Cubic:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nMeshRenderer Static Single Size 256 Cubic:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Single Size 256 Cubic:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+TEST_CASE("MeshRenderer Static Single Size 512 Cubic", "[fast][benchmark][visualization][meshsize][512]")
+{
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull512.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("Meshrenderer Static Single Size 512 Cubic:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nMeshRenderer Static Single Size 512 Cubic:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Single Size 512 Cubic:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+TEST_CASE("MeshRenderer Static Single Size 1024 Cubic", "[fast][benchmark][visualization][meshsize][1024]")
+{
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull1024.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	SurfaceExtraction::pointer surfaceExtractor = SurfaceExtraction::New();
+	surfaceExtractor->setInputConnection(mhdImporterStatic->getOutputPort());
+	surfaceExtractor->setThreshold(50);
+	surfaceExtractor->enableRuntimeMeasurements();
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(surfaceExtractor->getOutputPort());
+	meshRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(meshRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	//if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("Meshrenderer Static Single Size 1024 Cubic:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nMeshRenderer Static Single Size 1024 Cubic:" << std::endl;
+	fputs("\n\n\nMeshRenderer Static Single Size 1024 Cubic:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(meshRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+//******
+TEST_CASE("VolumeRenderer Static Single Size 128 Cubic", "[fast][benchmark][visualization][volumesize][128]")
+{
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull128.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("VolumeRenderer Static Single Size 128 Cubic:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nVolumeRenderer Static Single Size 128 Cubic:" << std::endl;
+	fputs("\n\n\nVolumeRenderer Static Single Size 128 Cubic:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+TEST_CASE("VolumeRenderer Static Single Size 256 Cubic", "[fast][benchmark][visualization][volumesize][256]")
+{
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("VolumeRenderer Static Single Size 256 Cubic:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nVolumeRenderer Static Single Size 256 Cubic:" << std::endl;
+	fputs("\n\n\nVolumeRenderer Static Single Size 256 Cubic:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+TEST_CASE("VolumeRenderer Static Single Size 512 Cubic", "[fast][benchmark][visualization][volumesize][512]")
+{
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull512.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("VolumeRenderer Static Single Size 512 Cubic:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nVolumeRenderer Static Single Size 512 Cubic:" << std::endl;
+	fputs("\n\n\nVolumeRenderer Static Single Size 512 Cubic:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+TEST_CASE("VolumeRenderer Static Single Size 1024 Cubic", "[fast][benchmark][visualization][volumesize][1024]")
+{
+	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+
+	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+	otf1->addAlphaPoint(000.0, 0.0);
+	otf1->addAlphaPoint(255.0, 1.0);
+
+	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull1024.mhd");
+	mhdImporterStatic->enableRuntimeMeasurements();
+
+	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
+	volumeRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	volumeRenderer->setColorTransferFunction(0, ctf1);
+	volumeRenderer->setOpacityTransferFunction(0, otf1);
+	volumeRenderer->enableRuntimeMeasurements();
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->enableRuntimeMeasurements();
+	window->setMaximumFramerate(1000);
+	window->addRenderer(volumeRenderer);
+	window->setTimeout(3000); // 3 second
+	window->start();
+
+	FILE *pFile, *pFileShort;
+	pFile = fopen("speedtest.txt", "a");
+	pFileShort = fopen("speedtestShort.txt", "a");
+
+	double fps = 0; double executeTime = 0;
+	//if (sliceRenderer->getRuntime()->getAverage() != sliceRenderer->getRuntime()->getSum())	executeTime += sliceRenderer->getRuntime()->getAverage();
+	//if (meshRenderer->getRuntime()->getAverage() != meshRenderer->getRuntime()->getSum())	executeTime += meshRenderer->getRuntime()->getAverage();
+	if (volumeRenderer->getRuntime()->getAverage() != volumeRenderer->getRuntime()->getSum())	executeTime += volumeRenderer->getRuntime()->getAverage();
+	if (executeTime != 0)
+		fps = 1000.0f / ((3000.0f / (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage())) + executeTime);
+	else
+		fps = (window->getView()->getRuntime("paintGL")->getSum() / window->getView()->getRuntime("paintGL")->getAverage()) / 3.0f;
+
+	fputs(std::string("VolumeRenderer Static Single Size 1024 Cubic:" + (std::to_string(fps)) + "fps\n").c_str(), pFileShort);
+
+	std::cout << "\n\n\nVolumeRenderer Static Single Size 1024 Cubic:" << std::endl;
+	fputs("\n\n\nVolumeRenderer Static Single Size 1024 Cubic:\n", pFile);
+
+	std::cout << "\nImport Time:" << std::endl;
+	fputs("\nImport Time:\n", pFile);
+	fputs(mhdImporterStatic->getRuntime()->print().c_str(), pFile);
+
+	std::cout << "\nRendering Time:" << std::endl;
+	fputs("\nRendering Time:\n", pFile);
+	fputs(volumeRenderer->getRuntime()->print().c_str(), pFile);
+
+	fputs(window->getView()->getRuntime("draw")->print().c_str(), pFile);
+	fputs(window->getView()->getRuntime("paintGL")->print().c_str(), pFile);
+
+	fclose(pFile); fclose(pFileShort);
+
+}
+
