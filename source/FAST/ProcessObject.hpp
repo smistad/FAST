@@ -149,7 +149,7 @@ class ProcessObjectPort {
     public:
         ProcessObjectPort(uint portID, ProcessObject::pointer processObject);
         ProcessObjectPort() {};
-        DataObject::pointer getData() const;
+        DataObject::pointer getData();
         uint getPortID() const;
         ProcessObject::pointer getProcessObject() const;
         bool isDataModified() const;
@@ -165,6 +165,7 @@ class ProcessObjectPort {
         uint mPortID;
         ProcessObject::pointer mProcessObject;
         unsigned long mTimestamp;
+        std::size_t mDataPointer;
 };
 
 
