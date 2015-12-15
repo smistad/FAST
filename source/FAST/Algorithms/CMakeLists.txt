@@ -13,6 +13,7 @@ fast_add_subdirectories(
     TubeSegmentationAndCenterlineExtraction
     ImageCropper
     AirwaySegmentation
+    CenterlineExtraction
 )
 fast_add_sources(
     SegmentationAlgorithm.cpp

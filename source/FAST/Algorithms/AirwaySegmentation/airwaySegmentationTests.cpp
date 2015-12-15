@@ -1,9 +1,10 @@
 #include "FAST/Testing.hpp"
 #include "AirwaySegmentation.hpp"
 #include "FAST/Importers/ImageFileImporter.hpp"
-
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
+#include "FAST/Algorithms/CenterlineExtraction/CenterlineExtraction.hpp"
 #include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
+#include "FAST/Visualization/LineRenderer/LineRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 
 using namespace fast;
@@ -11,11 +12,15 @@ using namespace fast;
 TEST_CASE("Airway segmentation", "[fast][AirwaySegmentation]") {
 	Reporter::setGlobalReportMethod(Reporter::COUT);
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    //importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT-Thorax.mhd");
-    importer->setFilename("/home/smistad/Data/lunge_datasett/pasient10.mhd");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT-Thorax.mhd");
+    //importer->setFilename("/home/smistad/Data/lunge_datasett/pasient10.mhd");
 
     AirwaySegmentation::pointer segmentation = AirwaySegmentation::New();
     segmentation->setInputConnection(importer->getOutputPort());
+
+    CenterlineExtraction::pointer centerline = CenterlineExtraction::New();
+    centerline->setInputConnection(segmentation->getOutputPort());
+    centerline->update();
 
     SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
     extraction->setInputConnection(segmentation->getOutputPort());
@@ -23,8 +28,13 @@ TEST_CASE("Airway segmentation", "[fast][AirwaySegmentation]") {
     MeshRenderer::pointer renderer = MeshRenderer::New();
     renderer->addInputConnection(extraction->getOutputPort());
 
+    LineRenderer::pointer lineRenderer = LineRenderer::New();
+    lineRenderer->addInputConnection(centerline->getOutputPort());
+    lineRenderer->setDefaultDrawOnTop(true);
+
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
+    window->addRenderer(lineRenderer);
     window->start();
 
 }
