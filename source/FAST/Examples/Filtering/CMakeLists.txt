@@ -1,3 +1,4 @@
 fast_add_example(gaussianSmoothingFilter gaussianSmoothingFilter.cpp)
 fast_add_example(simpleFilteringGUI simpleFilteringGUI.cpp)
 fast_add_example(filteringTests FilteringTests.cpp)
+fast_add_example(filteringBenchmark FilteringBenchmark.cpp)

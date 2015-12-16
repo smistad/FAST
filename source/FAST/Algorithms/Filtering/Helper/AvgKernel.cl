@@ -39,6 +39,7 @@ __kernel void CutExcess(
     //value = sqrt((value - 0.5)*(value - 0.5) + (valueOne - 0.5)*(valueOne - 0.5)); //or -0.5f if normalized
     value = sqrt(value*value + valueOne*valueOne);
 
+    
     if (CUT_OVERHEAD){
         if (value > MAX_VAL){
             value = MAX_VAL;

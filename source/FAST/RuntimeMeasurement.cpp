@@ -10,7 +10,7 @@ RuntimeMeasurement::RuntimeMeasurement(std::string name) {
     last = 0.0f;
     sum = 0.0f;
     slidingAvg = 0.0f;
-    slidingAlpha = 0.3f;
+    slidingAlpha = 0.2f;
 	samples = 0;
 	this->name = name;
 }

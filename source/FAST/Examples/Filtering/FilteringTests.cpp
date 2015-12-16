@@ -36,8 +36,8 @@ int main() {
     //Filtering::pointer convolution = Filtering::New();
     GaussianFiltering::pointer convolution = GaussianFiltering::New();
     convolution->setStandardDeviation(3.0);
-    convolution->setMaskSize(11);
-    convolution->setConvRunType(0); // 1:twopass, 2:adv, else: naive
+    convolution->setMaskSize(3);
+    convolution->setConvRunType(2); // 1:twopass, 2:adv, else: naive
     convolution->setInputConnection(importer->getOutputPort());
     
     SobelFiltering::pointer convolutionX = SobelFiltering::New();
@@ -65,12 +65,12 @@ int main() {
     //std::cout << "FAST_TEST_DATA_DIR" << FAST_TEST_DATA_DIR << std::endl;
     std::string output_filename = std::string(FAST_TEST_DATA_DIR) + "/output/" + INPUT_FILENAME + ".output.png";
     exporter->setFilename(output_filename);
-    exporter->setInputConnection(averageing->getOutputPort());
+    exporter->setInputConnection(convolution->getOutputPort());
     exporter->update();
 
     // Renderer image
     ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->addInputConnection(averageing->getOutputPort());
+    renderer->addInputConnection(convolution->getOutputPort());
     ImageRenderer::pointer initialRenderer = ImageRenderer::New();
     initialRenderer->addInputConnection(importer->getOutputPort());
 

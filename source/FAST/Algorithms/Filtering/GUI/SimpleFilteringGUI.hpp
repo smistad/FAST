@@ -33,9 +33,10 @@ class SimpleFilteringGUI : public Window {
 	private:
         SimpleFilteringGUI();
 
+        //void addLabel(QLabel* label, char* text, QVBoxLayout* addTo);
         std::string numToRunType(int num);
         std::string getInputFilename(int inputnum);
-        void updateRuntimes(Filtering::pointer filter);
+        void updateRuntimes(Filtering::pointer filter, bool print=true);
         void saveImage();//ProcessObjectPort fromPort);
 
         Filtering::pointer mBoxFilter;
@@ -64,11 +65,13 @@ class SimpleFilteringGUI : public Window {
         QLabel* mSetupTimeLabel;
         //QLabel* mExecuteTime2Label;
         QLabel* mSetupTime2Label;
+        QLabel* mSetupTimeLocalLabel;
         QLabel* mCreateMaskLabel;
         QLabel* mCreateMaskTwopassLabel;
         QLabel* mCreateMaskNaiveLabel;
         QLabel* mKernelTwopassLabel;
         QLabel* mKernelNaiveLabel;
+        QLabel* mKernelLocalLabel;
 
         View* mView;
         View* mInitView;

@@ -43,7 +43,10 @@ void Filtering::setConvRunType(int runType) {
 Filtering::Filtering() {
     createInputPort<Image>(0);
     createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/Filtering/SpatialFilter2D.cl", "2D"); //TODO fix OpenCL
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/Filtering/SpatialFilter2D.cl", "2D");
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/Filtering/SpatialFilterLocal2D.cl", "2D_local");
+    //createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/Filtering/SpatialFilterLocal_3x3_2D.cl", "2D_local_3x3");
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/Filtering/SpatialFilterLocal_twopass_2D.cl", "2D_local_twopass");
     createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/Filtering/SpatialFilter3D.cl", "3D");
     //mStdDev = 0.5f;
     mMaskSize = -1;
@@ -75,7 +78,7 @@ void Filtering::createMask(Image::pointer input, uchar maskSize) {
         return;
     mRuntimeManager->startRegularTimer("create_mask");
     bool separable = isSeparable();
-    if (mConvRunType == 0 || mConvRunType == 2){
+    if (mConvRunType == 0 || mConvRunType == 2 || mConvRunType == 3){
         mRuntimeManager->startRegularTimer("create_naive_mask");
         unsigned char halfSize = (maskSize - 1) / 2;
         float sum = 0.0f;
@@ -144,7 +147,7 @@ void Filtering::createMask(Image::pointer input, uchar maskSize) {
     ExecutionDevice::pointer device = getMainDevice();
     if (!device->isHost()) {
         OpenCLDevice::pointer clDevice = device;
-        if (mConvRunType == 0 || mConvRunType == 2){
+        if (mConvRunType == 0 || mConvRunType == 2 || mConvRunType == 3){
             unsigned int bufferSize = input->getDimensions() == 2 ? maskSize*maskSize : maskSize*maskSize*maskSize;
             mCLMask = cl::Buffer(
                 clDevice->getContext(),
@@ -200,22 +203,32 @@ void Filtering::recompileOpenCLCode(Image::pointer input) {
     // AND/OR split up to multiple
     OpenCLDevice::pointer device = getMainDevice();
     std::string buildOptions = "";
-    if (!device->isWritingTo3DTexturesSupported()) {
+    if (!device->isWritingTo3DTexturesSupported()) { //just relevant for 3D??? need revert?
         switch (mOutputType) {
         case TYPE_FLOAT:
-            buildOptions += " -DTYPE=float";
+            //buildOptions += " -DTYPE=float";
+            buildOptions += " -D DATA_TYPE=";
+            buildOptions += std::to_string(CL_FLOAT);
             break;
         case TYPE_INT8:
-            buildOptions += " -DTYPE=char";
+            //buildOptions += " -D DTYPE=char";
+            buildOptions += " -D DATA_TYPE=";
+            buildOptions += std::to_string(CL_UNORM_INT8); //?
             break;
         case TYPE_UINT8:
-            buildOptions += " -DTYPE=uchar";
+            //buildOptions += " -D DTYPE=uchar";
+            buildOptions += " -D DATA_TYPE=";
+            buildOptions += std::to_string(CL_UNSIGNED_INT8);
             break;
         case TYPE_INT16:
-            buildOptions += " -DTYPE=short";
+            //buildOptions += " -D DTYPE=short";
+            buildOptions += " -D DATA_TYPE=";
+            buildOptions += std::to_string(CL_UNORM_INT16); //??
             break;
         case TYPE_UINT16:
-            buildOptions += " -DTYPE=ushort";
+            //buildOptions += " -D DTYPE=ushort";
+            buildOptions += " -D DATA_TYPE=";
+            buildOptions += std::to_string(CL_UNSIGNED_INT16);
             break;
         }
     }
@@ -223,17 +236,17 @@ void Filtering::recompileOpenCLCode(Image::pointer input) {
         int maskSize = int(mMaskSize);
         buildOptions += " -D FILTER_SIZE=";
         buildOptions += std::to_string(maskSize);
-        std::cout << "maskSize " << maskSize << std::endl;
+        //std::cout << "maskSize " << maskSize << std::endl;
         buildOptions += " -D HALF_FILTER_SIZE=";
         buildOptions += std::to_string((maskSize - 1) / 2);
-        std::cout << "mIsDifferential " << bool(mIsDifferential) << std::endl;
+        /*std::cout << "mIsDifferential " << bool(mIsDifferential) << std::endl;
         if (mIsDifferential){
             buildOptions += " -D STATIC_ADD=0.5";
         }
         else {
             buildOptions += " -D STATIC_ADD=0.0";
-        }
-        
+        }*/
+       
     }
     
     if (mConvRunType == 1 && isSeparable()){
@@ -260,12 +273,103 @@ void Filtering::recompileOpenCLCode(Image::pointer input) {
         //cl::Program programX, programY;
         cl::Program program;
         
-        buildOptions += " -D PASS_DIRECTION=0";
-        buildOptions += " -D LOCAL_MEM_PAD=0";
+        //buildOptions += " -D PASS_DIRECTION=0";
+        //buildOptions += " -D LOCAL_MEM_PAD=1";
+        buildOptions += " -D IMAGE_WIDTH=";
+        buildOptions += std::to_string(input->getWidth());
+        buildOptions += " -D IMAGE_HEIGHT=";
+        buildOptions += std::to_string(input->getHeight());//assumes 2D
+        // START
+        //cl::NDRange globalSize;
+        //OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
+        //OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+        int localWidth = 32;
+        int localHeight = 16;
+        int pad = 1;
+        int halfSize = (mMaskSize - 1) / 2;
+        int localWidthPad = localWidth + pad + 2 * halfSize;
+        int localHeightPad = localHeight + 2 * halfSize;
+        int workGroupItems = localWidthPad * localHeightPad;
+        if (workGroupItems > 1024){
+            localWidth /= 2;
+            localWidthPad = localWidth + pad + 2 * halfSize;
+            workGroupItems = localWidthPad * localHeightPad;
+        }
+        int globalWidth = input->getWidth();
+        int globalHeight = input->getHeight();
+        globalWidth = globalWidth + localWidth - (globalWidth % localWidth);
+        globalHeight = globalHeight + localHeight - (globalHeight % localWidth);
+        //globalSize = cl::NDRange(globalWidth, globalHeight);
+        //cl::NDRange localSize = cl::NDRange(localWidth, localHeight);
+        //size_t sharedSize = workGroupItems * sizeof(float);
+
+        // END
+        buildOptions += " -D LOCAL_SIZE_X=" + std::to_string(localWidth);
+        buildOptions += " -D LOCAL_SIZE_Y=" + std::to_string(localHeight);
+        buildOptions += " -D LOCAL_WIDTH=" + std::to_string(localWidthPad);
+        buildOptions += " -D LOCAL_HEIGHT=" + std::to_string(localHeightPad);
+        /*
+        Y - const int localSizeX = get_local_size(0);
+        Y - const int localSizeY = get_local_size(1);
+        Y - const int localWidth = localSizeX + 2 * HALF_FILTER_SIZE + 1;
+        Y - const int localHeight = localSizeY + 2 * HALF_FILTER_SIZE;*/
         //assumes 2D for now
-        std::cout << "PasDir build optsX" << buildOptions << std::endl;
-        program = getOpenCLProgram(device, "2D", buildOptions);
-        mKernel = cl::Kernel(program, "FilteringLocalMemory");//todo rename? :P
+        if (false){//mMaskSize == 3){
+            //add mask to buildOpts
+            
+            std::cout << "Local buildOptions" << buildOptions << std::endl;
+            program = getOpenCLProgram(device, "2D_local_3x3", buildOptions);
+            mKernel = cl::Kernel(program, "FilteringLocalMemory_Unrolled3x3");//todo rename? :P
+        }
+        else{
+            std::cout << "Local buildOptions" << buildOptions << std::endl;
+            program = getOpenCLProgram(device, "2D_local", buildOptions);
+            mKernel = cl::Kernel(program, "FilteringLocalMemory");//todo rename? :P
+        }
+    }
+    else if (mConvRunType == 3){
+        std::cout << "Running part " << mConvRunType << std::endl;
+        cl::Program program;
+        //buildOptions += " -D LOCAL_MEM_PAD=1";
+        buildOptions += " -D IMAGE_WIDTH=";
+        buildOptions += std::to_string(input->getWidth());
+        buildOptions += " -D IMAGE_HEIGHT=";
+        buildOptions += std::to_string(input->getHeight());//assumes 2D
+        // START
+        int localWidth = 16;
+        int localHeight = 16;
+        int pad = 0;
+        int halfSize = 8;// (mMaskSize - 1) / 2;
+        int localWidthPad = localWidth + pad + 2 * halfSize;
+        int localHeightPad = localHeight + 2 * halfSize;
+        int workGroupItems = localWidthPad * localHeightPad;
+        if (workGroupItems > 1024){
+            localWidth /= 2;
+            localWidthPad = localWidth + pad + 2 * halfSize;
+            workGroupItems = localWidthPad * localHeightPad;
+        }
+        /*int globalWidth = input->getWidth();
+        int globalHeight = input->getHeight();
+        globalWidth = globalWidth + localWidth - (globalWidth % localWidth);
+        globalHeight = globalHeight + localHeight - (globalHeight % localWidth);*/
+        //globalSize = cl::NDRange(globalWidth, globalHeight);
+        //cl::NDRange localSize = cl::NDRange(localWidth, localHeight);
+        //size_t sharedSize = workGroupItems * sizeof(float);
+
+        // END
+        buildOptions += " -D LOCAL_SIZE_X=" + std::to_string(localWidth);
+        buildOptions += " -D LOCAL_SIZE_Y=" + std::to_string(localHeight);
+        buildOptions += " -D LOCAL_WIDTH=" + std::to_string(localWidthPad);
+        buildOptions += " -D LOCAL_HEIGHT=" + std::to_string(localHeightPad);
+        /*
+        Y - const int localSizeX = get_local_size(0);
+        Y - const int localSizeY = get_local_size(1);
+        Y - const int localWidth = localSizeX + 2 * HALF_FILTER_SIZE + 1;
+        Y - const int localHeight = localSizeY + 2 * HALF_FILTER_SIZE;*/
+        //assumes 2D for now
+        std::cout << "LocalDef buildOptions" << buildOptions << std::endl;
+        program = getOpenCLProgram(device, "2D_local", buildOptions);
+        mKernel = cl::Kernel(program, "filterLocalDefinedSize");//todo rename? :P
     }
     else {
         buildOptions += " -D PASS_DIRECTION=0";
@@ -384,7 +488,7 @@ void Filtering::execute() {
         }
     }
     else if (mConvRunType == 1 && isSeparable() ){ 
-        std::cout << "Running part " << mConvRunType << std::endl;
+        std::cout << "Executing part tp " << mConvRunType << std::endl;
         mRuntimeManager->startRegularTimer("twopass_setup");
         OpenCLDevice::pointer clDevice = device;
 
@@ -393,8 +497,8 @@ void Filtering::execute() {
         OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
         //Assumes 2D
         globalSize = cl::NDRange(input->getWidth(), input->getHeight());
-        cl::NDRange localSizeX = cl::NDRange(input->getWidth(), 1);
-        cl::NDRange localSizeY = cl::NDRange(1, input->getHeight());
+        //cl::NDRange localSizeX = cl::NDRange(input->getWidth(), 1);
+        //cl::NDRange localSizeY = cl::NDRange(1, input->getHeight());
         // Pass 0 - X direction
         Image::pointer tempImage = Image::New();
         /*create(
@@ -413,7 +517,7 @@ void Filtering::execute() {
             data?
             );*/
         tempImage->createFromImage(input);
-        std::cout << "temp size " << tempImage->getSize() << std::endl;
+        //std::cout << "temp size " << tempImage->getSize() << std::endl;
         OpenCLImageAccess::pointer tempAccess = tempImage->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
         mKernelDirX.setArg(0, *inputAccess->get2DImage());
         mKernelDirX.setArg(2, *tempAccess->get2DImage());
@@ -432,7 +536,7 @@ void Filtering::execute() {
             mKernelDirX,
             cl::NullRange,
             globalSize,
-            localSizeX
+            cl::NullRange
             );
         cmdQueue.finish();
         //cmdQueue.enqueueBarrier();
@@ -444,7 +548,7 @@ void Filtering::execute() {
             mKernelDirY,
             cl::NullRange,
             globalSize,
-            localSizeY
+            cl::NullRange
             );
         cmdQueue.finish();
         //mRuntimeManager->stopCLTimer("twopass_cl", cmdQueue);
@@ -454,7 +558,7 @@ void Filtering::execute() {
     else if (mConvRunType == 2){
         // split separable and not?
         // TODO implement advanced routine 
-        std::cout << "Running part " << mConvRunType << std::endl;
+        std::cout << "Executing part " << mConvRunType << std::endl;
         mRuntimeManager->startRegularTimer("local_setup");
         OpenCLDevice::pointer clDevice = device;
 
@@ -472,15 +576,31 @@ void Filtering::execute() {
         OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
         int localWidth = 32;
         int localHeight = 16;
-        int globalWidth = input->getWidth() + mMaskSize - 1;
-        int globalHeight = input->getHeight() + mMaskSize - 1;
-        globalWidth = globalWidth + (localWidth - (globalWidth & (localWidth-1) ) );
-        globalHeight = globalHeight + (localHeight - (globalHeight & (localHeight - 1) ) );
-        std::cout << "Widths: " << input->getWidth() << " " << localWidth << " " << globalWidth << std::endl;
-        std::cout << "Height: " << input->getHeight() << " " << localHeight << " " << globalHeight << std::endl;
+        int halfSize = (maskSize - 1) / 2;
+        int workGroupItems = (localWidth + 1 + 2 * halfSize) * (localHeight + 2 * halfSize);
+        if (workGroupItems > 1024){
+            localWidth /= 2;
+            workGroupItems = (localWidth + 1 + 2 * halfSize) * (localHeight + 2 * halfSize);
+        }
+        //localWidth = localWidth + 2 * halfSize;//32;
+        //localHeight = localHeight + 2 * halfSize;//16;
+        
+        int globalWidth = input->getWidth();// +mMaskSize - 1;
+        int globalHeight = input->getHeight();// +mMaskSize - 1;
+        //globalWidth =  localWidth * 32; // globalWidth - localWidth + (localWidth - (globalWidth & (localWidth - 1)));
+        //globalHeight = localHeight * 40;// globalHeight + (localHeight - (globalHeight & (localHeight - 1) ) );
+        globalWidth = globalWidth + localWidth - (globalWidth % localWidth);
+        globalHeight = globalHeight + localHeight - (globalHeight % localWidth);
+
+
+        //std::cout << "Widths: " << input->getWidth() << " " << localWidth << " " << globalWidth << std::endl;
+        //std::cout << "Height: " << input->getHeight() << " " << localHeight << " " << globalHeight << std::endl;
+        //std::cout << "Work group items: " << workGroupItems << std::endl;
         globalSize = cl::NDRange(globalWidth, globalHeight); //buffer to include padding
-        cl::NDRange localSize = cl::NDRange(32, 16); // 1D?
-        size_t sharedSize = (32 * 16 * sizeof(float));
+        //cl::NDRange localSize = cl::NDRange(32, 16); // 1D? //cl::NDRange(32 * 16);//
+        cl::NDRange localSize = cl::NDRange(localWidth, localHeight);
+        size_t sharedSize = workGroupItems * sizeof(float);// (32 * sizeof(float), 16 * sizeof(float));
+
         mKernel.setArg(0, *inputAccess->get2DImage());
         mKernel.setArg(3, *outputAccess->get2DImage());
         mKernel.setArg(1, mCLMask);
@@ -491,7 +611,63 @@ void Filtering::execute() {
         mRuntimeManager->startRegularTimer("local_cl");
        // cl_int * err;
        // cl::Device::getInfo<CL_DEVICE_MAX_WORK_ITEM_SIZES>(err);
-        std::cout << " max work items: " << CL_DEVICE_MAX_WORK_GROUP_SIZE << std::endl;
+        //std::cout << " max work items: " << CL_DEVICE_MAX_WORK_GROUP_SIZE << std::endl;
+        cmdQueue.enqueueNDRangeKernel(
+            mKernel,
+            cl::NullRange,
+            globalSize,
+            localSize
+            );
+        //mRuntimeManager->stopCLTimer("naive_cl", cmdQueue);
+        cmdQueue.finish();
+        mRuntimeManager->stopRegularTimer("local_cl");
+        mRuntimeManager->stopRegularTimer("local_setup");
+    }
+    else if (mConvRunType == 3){
+        std::cout << "Executing part " << mConvRunType << std::endl;
+        mRuntimeManager->startRegularTimer("local_setup");
+        OpenCLDevice::pointer clDevice = device;
+
+        recompileOpenCLCode(input);
+        //assumes 2D
+        cl::NDRange globalSize;
+        OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
+        OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+        int localWidth = 16;
+        int localHeight = 16;
+        //int pad = 0;
+        int halfSize = 8;// (mMaskSize - 1) / 2;
+        int localWidthPad = localWidth + 2 * halfSize; // + pad
+        int localHeightPad = localHeight + 2 * halfSize;
+        int workGroupItems = localWidthPad * localHeightPad;
+        if (workGroupItems > 1024){
+            localWidth /= 2;
+            localWidthPad = localWidth + 2 * halfSize; // + pad
+            workGroupItems = localWidthPad * localHeightPad;
+        }
+        int globalWidth = input->getWidth();
+        int globalHeight = input->getHeight();
+        if (globalWidth % localWidth != 0) globalWidth = globalWidth + localWidth - (globalWidth % localWidth);
+        if (globalHeight % localHeight != 0) globalHeight = globalHeight + localHeight - (globalHeight % localWidth);
+        std::cout << "Widths: " << input->getWidth() << " " << localWidth << " " << localWidthPad << " " << globalWidth << std::endl;
+        std::cout << "Height: " << input->getHeight() << " " << localHeight << " " << localHeightPad << " " << globalHeight << std::endl;
+        std::cout << "Work group items: " << workGroupItems << std::endl;
+        globalSize = cl::NDRange(globalWidth, globalHeight); //buffer to include padding
+        //cl::NDRange localSize = cl::NDRange(32, 16); // 1D? //cl::NDRange(32 * 16);//
+        cl::NDRange localSize = cl::NDRange(localWidth, localHeight);
+        //size_t sharedSize = workGroupItems * sizeof(float);// (32 * sizeof(float), 16 * sizeof(float));
+        size_t sharedSize = (localWidthPad*localHeightPad*sizeof(float));
+        mKernel.setArg(0, *inputAccess->get2DImage());
+        mKernel.setArg(2, *outputAccess->get2DImage());
+        mKernel.setArg(1, mCLMask);
+        mKernel.setArg(3, sharedSize, NULL); //sharedMem size initialized
+        cl::CommandQueue cmdQueue = clDevice->getCommandQueue();
+        //mRuntimeManager->startCLTimer("naive_cl", cmdQueue);
+        cmdQueue.finish();
+        mRuntimeManager->startRegularTimer("local_cl");
+        // cl_int * err;
+        // cl::Device::getInfo<CL_DEVICE_MAX_WORK_ITEM_SIZES>(err);
+        //std::cout << " max work items: " << CL_DEVICE_MAX_WORK_GROUP_SIZE << std::endl;
         cmdQueue.enqueueNDRangeKernel(
             mKernel,
             cl::NullRange,
@@ -504,7 +680,7 @@ void Filtering::execute() {
         mRuntimeManager->stopRegularTimer("local_setup");
     }
     else {
-        std::cout << "Running part " << mConvRunType << std::endl;
+        std::cout << "Executing part " << mConvRunType << std::endl;
         mRuntimeManager->startRegularTimer("naive_setup");
         OpenCLDevice::pointer clDevice = device;
 
