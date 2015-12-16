@@ -125,9 +125,9 @@ __kernel void FilteringLocalMemory(
 __kernel void filterLocalDefinedSize(
     __read_only image2d_t input,
     __constant float * mask,
-    __write_only image2d_t output,
-    __local float sharedMem)
-{ //
+    __write_only image2d_t output)
+{ //,
+   // __local float * sharedMem
     int2 pos = { get_global_id(0), get_global_id(1) };
     const int globalX = get_global_id(0);
     const int globalY = get_global_id(1);
@@ -137,32 +137,36 @@ __kernel void filterLocalDefinedSize(
     const int KERNEL_RADIUS = 16;
     const int HALF_KERNEL_RADIUS = 8;
 
-    const int2 offset = { KERNEL_RADIUS, KERNEL_RADIUS };
-    const int2 offsetAlt = { -KERNEL_RADIUS, KERNEL_RADIUS };
+    const int2 offset = { HALF_KERNEL_RADIUS, HALF_KERNEL_RADIUS };
+    const int2 offsetAlt = { -HALF_KERNEL_RADIUS, HALF_KERNEL_RADIUS };
 
+    //__local float sharedMem[32*32];
     //__local float sharedMem[32][32];
+    //sharedMem = float[32][32];
     // LOADING
     //TODOOOOOO fix sharedMem 2d array
     // PART 1 (-,-)
-    sharedMem[localX + localY*32]                           = read_imagef(input, sampler, pos - offset).x;
+    //sharedMem[localX + localY*32]                           = read_imagef(input, sampler, pos - offset).x;
+    //sharedMem[localX][localY] = read_imagef(input, sampler, pos - offset).x;
     // PART 2 (-,+)
-    sharedMem[localX + (localY + KERNEL_RADIUS)*32]         = read_imagef(input, sampler, pos + offsetAlt).x;
+    //sharedMem[localX + (localY + KERNEL_RADIUS)*32]         = read_imagef(input, sampler, pos + offsetAlt).x;
     // PART 3 (+,-)
-    sharedMem[localX + KERNEL_RADIUS + localY*32]           = read_imagef(input, sampler, pos - offsetAlt).x;
+    //sharedMem[localX + KERNEL_RADIUS + localY*32]           = read_imagef(input, sampler, pos - offsetAlt).x;
     // PART 4 (+,+)
-    sharedMem[localX + KERNEL_RADIUS + (localY + KERNEL_RADIUS)*32] = read_imagef(input, sampler, pos + offset).x;
+    //sharedMem[localX + KERNEL_RADIUS + (localY + KERNEL_RADIUS)*32] = read_imagef(input, sampler, pos + offset).x;
     
-    barrier(CLK_LOCAL_MEM_FENCE);
+    //barrier(CLK_LOCAL_MEM_FENCE);
 
-    float sum = 0.0f;
-    int maskIndex = 0;
+    float sum = 0.2f;
+    /*int maskIndex = 0;
     for (int y = -HALF_FILTER_SIZE; y <= HALF_FILTER_SIZE; y++){
         for (int x = -HALF_FILTER_SIZE; x <= HALF_FILTER_SIZE; x++){
             sum +=
-                sharedMem[HALF_KERNEL_RADIUS + localX + x][HALF_KERNEL_RADIUS + localY + y]
-                * mask[maskIndex++]; //is this correct with the mask?
+                sharedMem[HALF_KERNEL_RADIUS + localX + x + (HALF_KERNEL_RADIUS + localY + y)*32]
+                * mask[x + y*FILTER_SIZE]; //is this correct with the mask? maskIndex++
+            //sharedMem[HALF_KERNEL_RADIUS + localX + x][HALF_KERNEL_RADIUS + localY + y]
         }
-    }
+    }*/
 
     write_imagef(output, pos, sum);
 

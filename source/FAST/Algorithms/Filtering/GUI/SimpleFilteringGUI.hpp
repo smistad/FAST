@@ -36,7 +36,7 @@ class SimpleFilteringGUI : public Window {
         //void addLabel(QLabel* label, char* text, QVBoxLayout* addTo);
         std::string numToRunType(int num);
         std::string getInputFilename(int inputnum);
-        void updateRuntimes(Filtering::pointer filter, bool print=true);
+        void updateRuntimes(Filtering::pointer filter, bool print=false);
         void saveImage();//ProcessObjectPort fromPort);
 
         Filtering::pointer mBoxFilter;

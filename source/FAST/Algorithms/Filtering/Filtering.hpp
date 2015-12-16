@@ -49,6 +49,8 @@ namespace fast {
         DataType mOutputType;
         bool mOutputTypeSet;
         int mConvRunTypeCompiledFor;
+        char mMaskSizeCompiledFor;
+        bool mNeedRebuild;
 
         //std::string =  //string in C++
 

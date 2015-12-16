@@ -12,6 +12,7 @@ mStdDev = stdDev;
 mMaskDefaultSize = (char)(ceil(2 * mStdDev) * 2 + 1);
 mIsModified = true;
 mRecreateMask = true;
+mNeedRebuild = true;
 }
 
 

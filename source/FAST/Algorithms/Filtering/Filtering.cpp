@@ -37,6 +37,7 @@ mRecreateMask = true;
 void Filtering::setConvRunType(int runType) {
     mConvRunType = runType;
     mIsModified = true;
+    mRecreateMask = true;
 }
 
 
@@ -53,6 +54,7 @@ Filtering::Filtering() {
     mMaskDefaultSize = 3;
     mIsModified = true;
     mRecreateMask = true;
+    mNeedRebuild = true; // USED by subclasses of Filtering to mark OpenCL code is dependant on this - add to more?
     mDimensionCLCodeCompiledFor = 0; //necessary?
     mMask = NULL;
     mOutputTypeSet = false;
@@ -196,9 +198,12 @@ float * Filtering::getSeparable(int dir){
 
 void Filtering::recompileOpenCLCode(Image::pointer input) {
     // Check if there is a need to recompile OpenCL code
-    if (input->getDimensions() == mDimensionCLCodeCompiledFor &&
-        input->getDataType() == mTypeCLCodeCompiledFor && mConvRunType == mConvRunTypeCompiledFor)
+    if ((input->getDimensions() == mDimensionCLCodeCompiledFor 
+        && input->getDataType() == mTypeCLCodeCompiledFor 
+        && mConvRunType == mConvRunTypeCompiledFor
+        && mMaskSize == mMaskSizeCompiledFor) )
         return;
+    // (!mNeedRebuild)
     // TODO add more conditions for skipping recompile? Filtersize same etc..
     // AND/OR split up to multiple
     OpenCLDevice::pointer device = getMainDevice();
@@ -287,12 +292,12 @@ void Filtering::recompileOpenCLCode(Image::pointer input) {
         int localHeight = 16;
         int pad = 1;
         int halfSize = (mMaskSize - 1) / 2;
-        int localWidthPad = localWidth + pad + 2 * halfSize;
-        int localHeightPad = localHeight + 2 * halfSize;
+        int localWidthPad = localWidth + pad + (2 * halfSize);
+        int localHeightPad = localHeight + (2 * halfSize);
         int workGroupItems = localWidthPad * localHeightPad;
         if (workGroupItems > 1024){
             localWidth /= 2;
-            localWidthPad = localWidth + pad + 2 * halfSize;
+            localWidthPad = localWidth + pad + (2 * halfSize);
             workGroupItems = localWidthPad * localHeightPad;
         }
         int globalWidth = input->getWidth();
@@ -373,7 +378,7 @@ void Filtering::recompileOpenCLCode(Image::pointer input) {
     }
     else {
         buildOptions += " -D PASS_DIRECTION=0";
-        
+        std::cout << "Naive buildOptions" << buildOptions << std::endl;
         cl::Program program;
         if (input->getDimensions() == 2) {
             program = getOpenCLProgram(device, "2D", buildOptions);
@@ -388,6 +393,8 @@ void Filtering::recompileOpenCLCode(Image::pointer input) {
     mDimensionCLCodeCompiledFor = input->getDimensions();
     mTypeCLCodeCompiledFor = input->getDataType();
     mConvRunTypeCompiledFor = mConvRunType;
+    mMaskSizeCompiledFor = mMaskSize;
+    mNeedRebuild = false;
 }
 
 template <class T>
@@ -649,9 +656,9 @@ void Filtering::execute() {
         int globalHeight = input->getHeight();
         if (globalWidth % localWidth != 0) globalWidth = globalWidth + localWidth - (globalWidth % localWidth);
         if (globalHeight % localHeight != 0) globalHeight = globalHeight + localHeight - (globalHeight % localWidth);
-        std::cout << "Widths: " << input->getWidth() << " " << localWidth << " " << localWidthPad << " " << globalWidth << std::endl;
-        std::cout << "Height: " << input->getHeight() << " " << localHeight << " " << localHeightPad << " " << globalHeight << std::endl;
-        std::cout << "Work group items: " << workGroupItems << std::endl;
+        //std::cout << "Widths: " << input->getWidth() << " " << localWidth << " " << localWidthPad << " " << globalWidth << std::endl;
+        //std::cout << "Height: " << input->getHeight() << " " << localHeight << " " << localHeightPad << " " << globalHeight << std::endl;
+        //std::cout << "Work group items: " << workGroupItems << std::endl;
         globalSize = cl::NDRange(globalWidth, globalHeight); //buffer to include padding
         //cl::NDRange localSize = cl::NDRange(32, 16); // 1D? //cl::NDRange(32 * 16);//
         cl::NDRange localSize = cl::NDRange(localWidth, localHeight);
@@ -660,7 +667,7 @@ void Filtering::execute() {
         mKernel.setArg(0, *inputAccess->get2DImage());
         mKernel.setArg(2, *outputAccess->get2DImage());
         mKernel.setArg(1, mCLMask);
-        mKernel.setArg(3, sharedSize, NULL); //sharedMem size initialized
+        //mKernel.setArg(3, sharedSize, NULL); //sharedMem size initialized
         cl::CommandQueue cmdQueue = clDevice->getCommandQueue();
         //mRuntimeManager->startCLTimer("naive_cl", cmdQueue);
         cmdQueue.finish();

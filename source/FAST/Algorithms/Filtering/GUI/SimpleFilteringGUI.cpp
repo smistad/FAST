@@ -29,12 +29,12 @@ namespace fast {
 
 SimpleFilteringGUI::SimpleFilteringGUI() {
 
-    int initialMaskSize = 3; 
+    int initialMaskSize = 11; 
     float initialStdDev = 1.0; 
-    int initialRunType = 3; // 0:naive, 1:Twopass
+    int initialRunType = 2; // 0:naive, 1:Twopass, 2:Local-Naive
     int initialFilterType = 1; // 1:Gauss, 2:Sobel, ..
 
-    int initialInputImage = 1; // 0:US, 1:Retina 2:CornerTest
+    int initialInputImage = 4; // 0:US, 1:Retina(Big) 2:CornerTest, 3:Retina, 4:CornerTestMini, 5:Test(white)
 
     //
     mFilterSize = initialMaskSize;
@@ -156,7 +156,7 @@ SimpleFilteringGUI::SimpleFilteringGUI() {
     // Input image parameter slider
     QSlider* inputImageSlider = new QSlider(Qt::Horizontal);
     inputImageSlider->setMinimum(0);
-    inputImageSlider->setMaximum(2);
+    inputImageSlider->setMaximum(5);
     inputImageSlider->setValue(initialInputImage);
     inputImageSlider->setFixedWidth(200);
     menuLayout->addWidget(inputImageSlider);
@@ -201,8 +201,8 @@ SimpleFilteringGUI::SimpleFilteringGUI() {
     // Gaussian std dev parameter slider
     QSlider* gaussStdDevSlider = new QSlider(Qt::Horizontal);
     gaussStdDevSlider->setMinimum(1.0);
-    gaussStdDevSlider->setMaximum(80.0);
-    gaussStdDevSlider->setValue(initialStdDev*4);
+    gaussStdDevSlider->setMaximum(4.0); //40 was 80
+    gaussStdDevSlider->setValue((initialStdDev + 2 )/ 3);//initialStdDev/2); //*2was *4
     gaussStdDevSlider->setFixedWidth(200);
     menuLayout->addWidget(gaussStdDevSlider);
     // Connect the value changed signal of the slider to the updateGaussStd method
@@ -276,6 +276,17 @@ SimpleFilteringGUI::SimpleFilteringGUI() {
     //addLabel(mSetupTimeLocalLabel, "Setup local time: -- ms", menuLayout);
     //mKernelLocalLabel mSetupTimeLocalLabel
 
+    // Force print button
+    QPushButton* printButton = new QPushButton;
+    printButton->setText("Print stats");
+    printButton->setFixedWidth(200);
+    menuLayout->addWidget(printButton);
+    // Connect the clicked signal of the quit button to the stop method for the window
+    QObject::connect(printButton, &QPushButton::clicked, [=]{
+        SimpleFilteringGUI::updateRuntimes(mGaussian, true);
+    });// // (, this)); //this
+    //boost::bind(&SimpleFilteringGUI::updateRuntimes(mGaussian, true), this)
+
     // Add menu and view to main layout
     QHBoxLayout* layout = new QHBoxLayout;
     layout->addLayout(menuLayout);
@@ -298,10 +309,19 @@ std::string SimpleFilteringGUI::getInputFilename(int inputnum){
     std::string INPUT_FILENAME;
     switch (inputnum){
     case 1:
-        INPUT_FILENAME =  "retina_big.png"; //"test.png";//
+        INPUT_FILENAME =  "retina_big.png"; 
         break;
     case 2:
-        INPUT_FILENAME = "cornerTest.png"; //cornerTest2.png
+        INPUT_FILENAME = "cornerTest.png"; 
+        break;
+    case 3:
+        INPUT_FILENAME = "retina.png";
+        break;
+    case 4:
+        INPUT_FILENAME = "cornerTestMini.png";
+        break;
+    case 5:
+        INPUT_FILENAME = "test.png"; 
         break;
     default:
         INPUT_FILENAME = "US-2D.jpg";
@@ -425,6 +445,7 @@ void SimpleFilteringGUI::updateFilterSize(int value){
 
     std::string text = "Filter size: " + boost::lexical_cast<std::string>(mFilterSize);
     mFilterSizeLabel->setText(text.c_str());
+    std::this_thread::sleep_for(std::chrono::milliseconds(15000));//15000));
     if (mFilterType != 2) saveImage(); // if not sobel
 }
 
@@ -467,7 +488,8 @@ void SimpleFilteringGUI::updateFilterType(int value){
 }
 
 void SimpleFilteringGUI::updateGaussStd(float value){
-    mGaussStdDev = value / 4;
+
+    mGaussStdDev = value*3-2; // / 2; //was /4
     //float newStdDev = value / 4;
     mGaussian->setStandardDeviation(mGaussStdDev);
 
@@ -477,12 +499,12 @@ void SimpleFilteringGUI::updateGaussStd(float value){
 
     if (mFilterType == 1){
         //for (int i = 0; i < 100; i++) updateRuntimes(mGaussian);//mGaussian->update();
-        updateRuntimes(mGaussian, true);
+        updateRuntimes(mGaussian);// , true);
         
         //RuntimeMeasurementPtr ptr = mGaussian->getRuntime();  
     }
     else if (mFilterType == 2){
-        updateRuntimes(mSobelX, true);
+        updateRuntimes(mSobelX);//, true);
     }
 }
 
@@ -498,14 +520,14 @@ void SimpleFilteringGUI::updateRunType(int value){
     mRunTypeString = numToRunType(value);
     std::string text = "Run type: " + mRunTypeString;
     mRunTypeLabel->setText(text.c_str());
-    std::this_thread::sleep_for(std::chrono::milliseconds(1180));
+    std::this_thread::sleep_for(std::chrono::milliseconds(10000));// 180));
     saveImage();
 }
 
 
 void SimpleFilteringGUI::saveImage(){
     std::this_thread::sleep_for(std::chrono::milliseconds(200)); //20
-    return;
+    //return;
     
     // Exporter image
     ImageExporter::pointer exporter = ImageExporter::New();
@@ -525,12 +547,13 @@ void SimpleFilteringGUI::saveImage(){
     
     //add a timestamp?
     std::string output_filename = mFilenameSetTo + "_"+ configString +"_out.png";
-    std::string sub_folders = "/output/GUI/"+mFilenameSetTo + "/" + mFilterTypeString + "/";
+    std::string sub_folders = "/output/GUI/"+mFilenameSetTo + "/" + mFilterTypeString + "/" + mRunTypeString + "/";
     std::string output_filepath = std::string(FAST_TEST_DATA_DIR) + sub_folders + output_filename;
     exporter->setFilename(output_filepath);
     exporter->setInputConnection(mOutPort);
     exporter->update();
     std::cout << "Saved imaged '" << output_filename << "' to '" << sub_folders << "'!" << std::endl;
+
 }
 
 }
