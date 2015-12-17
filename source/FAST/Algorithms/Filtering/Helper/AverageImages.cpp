@@ -60,6 +60,8 @@ void AverageImages::execute(){
         cl::NDRange globalSize;
         OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
         OpenCLImageAccess::pointer input1Access = input1->getOpenCLImageAccess(ACCESS_READ, device);
+        float maxVal = input->calculateMaximumIntensity();
+        float maxVal1 = input1->calculateMaximumIntensity();
         if (input->getDimensions() == 2) {
             globalSize = cl::NDRange(input->getWidth(), input->getHeight());
 
@@ -67,6 +69,8 @@ void AverageImages::execute(){
             mKernel.setArg(0, *inputAccess->get2DImage());
             mKernel.setArg(1, *input1Access->get2DImage());
             mKernel.setArg(2, *outputAccess->get2DImage());
+            mKernel.setArg(3, maxVal);
+            mKernel.setArg(4, maxVal1);
         }
         else {
             globalSize = cl::NDRange(input->getWidth(), input->getHeight(), input->getDepth());
@@ -91,7 +95,7 @@ void AverageImages::execute(){
             );
     }
     std::cout << "maxIntensity! @avgAdd " << output->calculateMaximumIntensity() << std::endl;
-
+    std::cout << "minIntensity! @avgAdd " << output->calculateMinimumIntensity() << std::endl;
 }
 
 void AverageImages::recompileOpenCLCode(Image::pointer input) {

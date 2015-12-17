@@ -103,8 +103,10 @@ void Filtering::createMask(Image::pointer input, uchar maskSize) {
                     mMask[i] /= sum;
             }
             else {
-                for (int i = 0; i < maskSize*maskSize; i++) //starte den her riktig på 0 eller 1?
-                    mMask[i] /= 4.0;
+                for (int i = 0; i < maskSize*maskSize; i++){ //starte den her riktig på 0 eller 1?
+                    mMask[i] /= 4.0; //was 4.0
+                    //std::cout << "mask " << i << " = " << mMask[i] << std::endl;
+                }
             }
         }
         else if (input->getDimensions() == 3){
@@ -488,6 +490,10 @@ void Filtering::execute() {
     SceneGraph::setParentNode(output, input);
 
     createMask(input, maskSize);
+    /*std::cout << "Mask created " << std::endl;
+    std::cout << &mMask << std::endl;
+    std::cout << &mMaskX << std::endl;
+    std::cout << &mMaskY << std::endl;*/
 
     if (device->isHost()) {
         switch (input->getDataType()) {
@@ -733,6 +739,7 @@ void Filtering::execute() {
         mRuntimeManager->stopRegularTimer("naive_setup");
     }
     std::cout << "maxIntensity! @Filtering " << output->calculateMaximumIntensity() << std::endl;
+    std::cout << "minIntensity! @Filtering " << output->calculateMinimumIntensity() << std::endl;
     //std::cout << "kernel! @Filtering " << output->calculateMaximumIntensity() << std::endl;
 }
 

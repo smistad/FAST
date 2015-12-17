@@ -7,10 +7,11 @@ using namespace fast;
 void SobelFiltering::setDirection(int direction) {
 if (direction < 0)
 throw Exception("Standard deviation of SobelFiltering can't be less than 0.");
-
+if (direction == mDirection) return;
 mDirection = direction;
 mIsModified = true;
 mRecreateMask = true;
+mNeedRebuild = true;
 }
 
 
@@ -117,9 +118,9 @@ float * SobelFiltering::getSeparable(int dir){
     float * mask = new float[3];
     if (dir == mDirection){
         //float mask[3] = { 0.5, 0.0, -0.5 };
-        mask[0] = 1.0;
+        mask[0] = 1.0; // 0.5;// 1.0;
         mask[1] = 0.0;
-        mask[2] = -1.0;
+        mask[2] = -1.0; // -0.5;// -1.0;
         return mask;
     }
     else {

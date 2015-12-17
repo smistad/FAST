@@ -4,7 +4,9 @@ __constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_T
 __kernel void CutExcess(
     __read_only image2d_t input,
     __read_only image2d_t inputOne,
-    __write_only image2d_t output)
+    __write_only image2d_t output,
+    float maxVal,
+    float maxValOne)
 {
     const int2 pos = { get_global_id(0), get_global_id(1) };
 
@@ -37,9 +39,13 @@ __kernel void CutExcess(
     //    value = valueOne;
     //}
     //value = sqrt((value - 0.5)*(value - 0.5) + (valueOne - 0.5)*(valueOne - 0.5)); //or -0.5f if normalized
-    value = sqrt(value*value + valueOne*valueOne);
+    //Scale values
+    value = value  / maxVal;
+    valueOne = valueOne / maxValOne;
+    // Calculate total magnitude
+    value = sqrt(value*value + valueOne*valueOne); //was no /2
 
-    
+    //Scale?
     if (CUT_OVERHEAD){
         if (value > MAX_VAL){
             value = MAX_VAL;

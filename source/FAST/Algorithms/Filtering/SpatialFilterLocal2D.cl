@@ -21,22 +21,81 @@ __kernel void FilteringLocalMemory(
     //const int localHeight = LOCAL_SIZE_Y + 2 * HALF_FILTER_SIZE;
     //const int localTot = localWidth * localHeight;
     // todo define these as build params or sth!
+
+    // Load top main
     const int localFetchIndex = localX + localY * LOCAL_WIDTH;//LOCAL_SIZE_X; // ja continuelig
     //const int localIndex = localX + localY * LOCAL_SIZE_X;
-    const int2 offset = { HALF_FILTER_SIZE, HALF_FILTER_SIZE };
+    const int2 offsetMain = { -HALF_FILTER_SIZE, -HALF_FILTER_SIZE };
     int dataType = DATA_TYPE; // get_image_channel_data_type(input);
     if (dataType == CLK_FLOAT) {
-        sharedMem[localFetchIndex] = read_imagef(input, sampler, pos - offset).x;
+        sharedMem[localFetchIndex] = read_imagef(input, sampler, pos + offsetMain).x;
     }
     else if (dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
-        sharedMem[localFetchIndex] = read_imageui(input, sampler, pos - offset).x;
+        sharedMem[localFetchIndex] = read_imageui(input, sampler, pos + offsetMain).x;
     }
     else {
-        sharedMem[localFetchIndex] = read_imagei(input, sampler, pos - offset).x;
+        sharedMem[localFetchIndex] = read_imagei(input, sampler, pos + offsetMain).x;
     }
+    
+    //int x;
+    int localIndex;
+    //int2 posBase = { (globalX - localX - HALF_FILTER_SIZE), (globalY - localY - HALF_FILTER_SIZE) };
+    // Load top right
+    if ( (localX + LOCAL_SIZE_X) < LOCAL_WIDTH){
+        const int2 offset_TopRight = { -HALF_FILTER_SIZE + LOCAL_SIZE_X, -HALF_FILTER_SIZE };
+        int x = localX + LOCAL_SIZE_X;
+        localIndex = x + localY * LOCAL_WIDTH;
+        //int dataType = DATA_TYPE; // get_image_channel_data_type(input);
+        if (dataType == CLK_FLOAT) {
+            sharedMem[localIndex] = read_imagef(input, sampler, pos + offset_TopRight).x;
+        }
+        else if (dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+            sharedMem[localIndex] = read_imageui(input, sampler, pos + offset_TopRight).x;
+        }
+        else {
+            sharedMem[localIndex] = read_imagei(input, sampler, pos + offset_TopRight).x;
+        }
+    }
+    //barrier(CLK_LOCAL_MEM_FENCE); 
     // TODO change read for all localY + LOCAL_SIZE_Y < LOCAL_HEIGHT
+    // Load bottom main  
+    if ( (localY + LOCAL_SIZE_Y) < LOCAL_HEIGHT){
+        const int2 offset_BottomMain = { -HALF_FILTER_SIZE, -HALF_FILTER_SIZE + LOCAL_SIZE_Y };
+        int y = localY + LOCAL_SIZE_Y;
+        localIndex = localX + y * LOCAL_WIDTH;
+        //int dataType = DATA_TYPE; // get_image_channel_data_type(input);
+        if (dataType == CLK_FLOAT) {
+            //if (localY == 0) sharedMem[localIndex] = 1.0f;
+            //else sharedMem[localIndex] = 0.2f;
+            sharedMem[localIndex] = read_imagef(input, sampler, pos + offset_BottomMain).x;
+            
+        }
+        else if (dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+            sharedMem[localIndex] = read_imageui(input, sampler, pos + offset_BottomMain).x;
+        }
+        else {
+            sharedMem[localIndex] = read_imagei(input, sampler, pos + offset_BottomMain).x;
+        }
+
+        // Load bottom right
+        if ( (localX + LOCAL_SIZE_X) < LOCAL_WIDTH){
+            const int2 offset_BottomRight = { -HALF_FILTER_SIZE + LOCAL_SIZE_X, -HALF_FILTER_SIZE + LOCAL_SIZE_Y };
+            int x = localX + LOCAL_SIZE_X;
+            localIndex = x + y * LOCAL_WIDTH;
+            //int dataType = DATA_TYPE; // get_image_channel_data_type(input);
+            if (dataType == CLK_FLOAT) {
+                sharedMem[localIndex] = read_imagef(input, sampler, pos + offset_BottomRight).x;
+            }
+            else if (dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+                sharedMem[localIndex] = read_imageui(input, sampler, pos + offset_BottomRight).x;
+            }
+            else {
+                sharedMem[localIndex] = read_imagei(input, sampler, pos + offset_BottomRight).x;
+            }
+        }
+    }//*/
     // plus change read of right side columns
-    if (localY == 0){ //(localX == 0 && localY == 0){
+   /*if (localY == 0){ //(localX == 0 && localY == 0){
         //fetch remaining
         // left overs for rows + zero position of local region 
         //int posX = (localSizeTot % LOCAL_WIDTH) + (globalX - localX)
@@ -76,7 +135,7 @@ __kernel void FilteringLocalMemory(
                 }
             }
         }
-    }
+    }*/
     barrier(CLK_LOCAL_MEM_FENCE);
 
     //int localReadIndex = (localX + HALF_FILTER_SIZE) + ((localY + HALF_FILTER_SIZE)*LOCAL_WIDTH);
@@ -101,10 +160,12 @@ __kernel void FilteringLocalMemory(
             // localX - x + (localY - y)*LOCAL_SIZE_X
             //index++;
         }
-        index += LOCAL_WIDTH - FILTER_SIZE;
+        index += LOCAL_WIDTH - FILTER_SIZE;// -1; //was no -1
         //ySizeAdd++;// = FILTER_SIZE
         //index += LOCAL_MEM_PAD; //?
     }
+    //if (localX == 0 && localY == 0) sum = 0.8f;
+    //if (localX == LOCAL_SIZE_X-1 || localY == LOCAL_SIZE_Y-1) sum = 0.3f;
     //int imSizeX = get_image_width(input);
     //int imSizeY = get_image_height(input);
     if (IMAGE_WIDTH > globalX && IMAGE_HEIGHT > globalY){

@@ -78,6 +78,8 @@ class SimpleFilteringGUI : public Window {
         ImageFileImporter::pointer mImporter;
         ImageRenderer::pointer mInitRenderer;
         ProcessObjectPort mOutPort;
+
+        bool mSkipSave;
 };
 
 } // end namespace fast

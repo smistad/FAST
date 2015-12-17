@@ -29,18 +29,19 @@ namespace fast {
 
 SimpleFilteringGUI::SimpleFilteringGUI() {
 
-    int initialMaskSize = 11; 
+    int initialMaskSize = 3; 
     float initialStdDev = 1.0; 
     int initialRunType = 2; // 0:naive, 1:Twopass, 2:Local-Naive
     int initialFilterType = 1; // 1:Gauss, 2:Sobel, ..
 
-    int initialInputImage = 4; // 0:US, 1:Retina(Big) 2:CornerTest, 3:Retina, 4:CornerTestMini, 5:Test(white)
+    int initialInputImage = 1; // 0:US, 1:Retina(Big) 2:CornerTest, 3:Retina, 4:CornerTestMini, 5:Test(white)
 
     //
     mFilterSize = initialMaskSize;
     mRunType = initialRunType;
     mRunTypeString = numToRunType(initialRunType);
     mGaussStdDev = initialStdDev;
+    mSkipSave = false;//true;
 
 	// Create a 2D view
     mView = createView();
@@ -84,7 +85,7 @@ SimpleFilteringGUI::SimpleFilteringGUI() {
 
     //AverageImages::pointer 
     mSobelTot = AverageImages::New();
-    mSobelTot->setCutOverhead(false); //true
+    mSobelTot->setCutOverhead(true); //true
     mSobelTot->setInputConnection(0, mSobelX->getOutputPort());
     mSobelTot->setInputConnection(1, mSobelY->getOutputPort());
     mSobelTot->enableRuntimeMeasurements(); //for timing
@@ -100,6 +101,7 @@ SimpleFilteringGUI::SimpleFilteringGUI() {
         break;
     case 2:
         mFilterTypeString = "Sobel";
+        //mOutPort = mSobelY->getOutputPort();
         mOutPort = mSobelTot->getOutputPort();
         //renderer->addInputConnection(mSobelTot->getOutputPort());
         mFilterType = 2;
@@ -445,7 +447,7 @@ void SimpleFilteringGUI::updateFilterSize(int value){
 
     std::string text = "Filter size: " + boost::lexical_cast<std::string>(mFilterSize);
     mFilterSizeLabel->setText(text.c_str());
-    std::this_thread::sleep_for(std::chrono::milliseconds(15000));//15000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(20000));//8000 15000));//15000));
     if (mFilterType != 2) saveImage(); // if not sobel
 }
 
@@ -462,6 +464,7 @@ void SimpleFilteringGUI::updateFilterType(int value){
     case 2:
         //return;
         mFilterTypeString = "Sobel";
+        //mOutPort = mSobelY->getOutputPort();
         mOutPort = mSobelTot->getOutputPort();
         mFilterType = 2;
         break;
@@ -527,7 +530,7 @@ void SimpleFilteringGUI::updateRunType(int value){
 
 void SimpleFilteringGUI::saveImage(){
     std::this_thread::sleep_for(std::chrono::milliseconds(200)); //20
-    //return;
+    if (mSkipSave) return;
     
     // Exporter image
     ImageExporter::pointer exporter = ImageExporter::New();
