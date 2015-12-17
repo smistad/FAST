@@ -80,6 +80,7 @@ class SimpleFilteringGUI : public Window {
         ProcessObjectPort mOutPort;
 
         bool mSkipSave;
+        int mSleepTime_maskChange;
 };
 
 } // end namespace fast

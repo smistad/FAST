@@ -131,7 +131,7 @@ void Filtering::createMask(Image::pointer input, uchar maskSize) {
         //mRuntimeManager->stopRegularTimer("create_naive_mask");
         separable = isSeparable();
     }
-    else if (mConvRunType == 1 && separable){
+    else if ((mConvRunType == 1 || mConvRunType == 4) && separable){
         mRuntimeManager->startRegularTimer("create_twopass_mask");
         mMaskX = getSeparable(0);
         mMaskY = getSeparable(1);
@@ -161,7 +161,7 @@ void Filtering::createMask(Image::pointer input, uchar maskSize) {
                 );
             mRuntimeManager->stopRegularTimer("create_naive_mask");
         }
-        else if (mConvRunType == 1 && separable){
+        else if ((mConvRunType == 1 || mConvRunType == 4) && separable){
             unsigned int bufferSizeDir = maskSize;
             mCLMaskX = cl::Buffer(
                 clDevice->getContext(),
@@ -377,6 +377,9 @@ void Filtering::recompileOpenCLCode(Image::pointer input) {
         std::cout << "LocalDef buildOptions" << buildOptions << std::endl;
         program = getOpenCLProgram(device, "2D_local", buildOptions);
         mKernel = cl::Kernel(program, "filterLocalDefinedSize");//todo rename? :P
+    }
+    else if (mConvRunType == 4){
+
     }
     else {
         buildOptions += " -D PASS_DIRECTION=0";

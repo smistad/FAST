@@ -34,14 +34,15 @@ SimpleFilteringGUI::SimpleFilteringGUI() {
     int initialRunType = 2; // 0:naive, 1:Twopass, 2:Local-Naive
     int initialFilterType = 1; // 1:Gauss, 2:Sobel, ..
 
-    int initialInputImage = 1; // 0:US, 1:Retina(Big) 2:CornerTest, 3:Retina, 4:CornerTestMini, 5:Test(white)
-
+    int initialInputImage = 2; // 0:US, 1:Retina(Big) 2:CornerTest, 3:Retina, 4:CornerTestMini, 5:Test(white)
+    
     //
     mFilterSize = initialMaskSize;
     mRunType = initialRunType;
     mRunTypeString = numToRunType(initialRunType);
     mGaussStdDev = initialStdDev;
     mSkipSave = false;//true;
+    mSleepTime_maskChange = 4000;
 
 	// Create a 2D view
     mView = createView();
@@ -447,7 +448,7 @@ void SimpleFilteringGUI::updateFilterSize(int value){
 
     std::string text = "Filter size: " + boost::lexical_cast<std::string>(mFilterSize);
     mFilterSizeLabel->setText(text.c_str());
-    std::this_thread::sleep_for(std::chrono::milliseconds(20000));//8000 15000));//15000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(mSleepTime_maskChange));//8000 15000));//15000));
     if (mFilterType != 2) saveImage(); // if not sobel
 }
 
