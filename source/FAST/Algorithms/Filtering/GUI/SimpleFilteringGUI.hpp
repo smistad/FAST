@@ -66,12 +66,14 @@ class SimpleFilteringGUI : public Window {
         //QLabel* mExecuteTime2Label;
         QLabel* mSetupTime2Label;
         QLabel* mSetupTimeLocalLabel;
+        QLabel* mSetupTimeLocalTwoLabel;
         QLabel* mCreateMaskLabel;
         QLabel* mCreateMaskTwopassLabel;
         QLabel* mCreateMaskNaiveLabel;
         QLabel* mKernelTwopassLabel;
         QLabel* mKernelNaiveLabel;
         QLabel* mKernelLocalLabel;
+        QLabel* mKernelLocalTwoLabel;
 
         View* mView;
         View* mInitView;

@@ -135,6 +135,11 @@ void Filtering::createMask(Image::pointer input, uchar maskSize) {
         mRuntimeManager->startRegularTimer("create_twopass_mask");
         mMaskX = getSeparable(0);
         mMaskY = getSeparable(1);
+        /*for (int i = 0; i < mMaskSize; i++){
+            std::cout << "Mask values @ " << i << " X: " << mMaskX[i] << std::endl;
+            std::cout << "Mask values @ " << i << " Y: " << mMaskY[i] << std::endl;
+        }*/
+        std::cout << "Directional masks for dir X and Y written!" << std::endl;
         //mRuntimeManager->stopRegularTimer("create_twopass_mask");
     }
     
@@ -257,7 +262,7 @@ void Filtering::recompileOpenCLCode(Image::pointer input) {
     }
     
     if (mConvRunType == 1 && isSeparable()){
-        std::cout << "Running part " << mConvRunType << std::endl;
+        std::cout << "Building part " << mConvRunType << std::endl;
         cl::Program programX, programY;
         //assume 2D
         std::string buildOptsX = buildOptions + " -D PASS_DIRECTION=0";
@@ -276,7 +281,7 @@ void Filtering::recompileOpenCLCode(Image::pointer input) {
         // TODO Advnaced method
         //split separable and not?
 
-        std::cout << "Running part " << mConvRunType << std::endl;
+        std::cout << "Building part " << mConvRunType << std::endl;
         //cl::Program programX, programY;
         cl::Program program;
         
@@ -335,7 +340,7 @@ void Filtering::recompileOpenCLCode(Image::pointer input) {
         }
     }
     else if (mConvRunType == 3){
-        std::cout << "Running part " << mConvRunType << std::endl;
+        std::cout << "Building part " << mConvRunType << std::endl;
         cl::Program program;
         //buildOptions += " -D LOCAL_MEM_PAD=1";
         buildOptions += " -D IMAGE_WIDTH=";
@@ -378,8 +383,50 @@ void Filtering::recompileOpenCLCode(Image::pointer input) {
         program = getOpenCLProgram(device, "2D_local", buildOptions);
         mKernel = cl::Kernel(program, "filterLocalDefinedSize");//todo rename? :P
     }
-    else if (mConvRunType == 4){
+    else if (mConvRunType == 4 && isSeparable()){
+        //Twopass local
 
+        std::cout << "Building part TP local " << mConvRunType << std::endl;
+        //cl::Program programX, programY;
+        cl::Program program;
+        //buildOptions += " -g"; //debuggin enabled
+        buildOptions += " -Werror"; //warnings to errors
+        buildOptions += " -D IMAGE_WIDTH=";
+        buildOptions += std::to_string(input->getWidth());
+        buildOptions += " -D IMAGE_HEIGHT=";
+        buildOptions += std::to_string(input->getHeight());//assumes 2D
+        // START
+        int localWidth = 32;
+        int localHeight = 16;
+        int pad = 1;
+        int halfSize = (mMaskSize - 1) / 2;
+        int localWidthPad = localWidth + pad + (2 * halfSize);
+        int localHeightPad = localHeight + (2 * halfSize);
+        int workGroupItems = localWidthPad * localHeightPad;
+        if (workGroupItems > 1024){
+            localWidth /= 2;
+            localWidthPad = localWidth + pad + (2 * halfSize);
+            workGroupItems = localWidthPad * localHeightPad;
+        }
+        int globalWidth = input->getWidth();
+        int globalHeight = input->getHeight();
+        globalWidth = globalWidth + localWidth - (globalWidth % localWidth);
+        globalHeight = globalHeight + localHeight - (globalHeight % localWidth);
+        // END
+        buildOptions += " -D LOCAL_SIZE_X=" + std::to_string(localWidth);
+        buildOptions += " -D LOCAL_SIZE_Y=" + std::to_string(localHeight);
+        buildOptions += " -D LOCAL_WIDTH=" + std::to_string(localWidthPad);
+        buildOptions += " -D LOCAL_HEIGHT=" + std::to_string(localHeightPad);
+        //buildOptions += " -D LOCAL_MEM_PAD=1";
+        /*
+        Y - const int localSizeX = get_local_size(0);
+        Y - const int localSizeY = get_local_size(1);
+        Y - const int localWidth = localSizeX + 2 * HALF_FILTER_SIZE + 1;
+        Y - const int localHeight = localSizeY + 2 * HALF_FILTER_SIZE;*/
+        //assumes 2D for now
+        std::cout << "Local twopass buildOptions" << buildOptions << std::endl;
+        program = getOpenCLProgram(device, "2D_local_twopass", buildOptions);
+        mKernel = cl::Kernel(program, "FilteringLocalMemory_twopass");//todo rename? :P
     }
     else {
         buildOptions += " -D PASS_DIRECTION=0";
@@ -694,6 +741,77 @@ void Filtering::execute() {
         cmdQueue.finish();
         mRuntimeManager->stopRegularTimer("local_cl");
         mRuntimeManager->stopRegularTimer("local_setup");
+    }
+    else if (mConvRunType ==  4 && isSeparable()){
+        std::cout << "Executing part local TP " << mConvRunType << std::endl;
+        mRuntimeManager->startRegularTimer("local_twopass_setup");
+        OpenCLDevice::pointer clDevice = device;
+
+        recompileOpenCLCode(input);
+        /*
+        __kernel void FilteringLocalMemory(
+        __read_only image2d_t input,
+        __constant float * maskX,
+        __constant float * maskY,
+        __local float * sharedMem,
+        __write_only image2d_t output)
+        */
+        //assumes 2D
+        cl::NDRange globalSize;
+        OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
+        OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+        /*
+        int localWidth = 32;
+        int localHeight = 16;
+        int pad = 1;
+        int halfSize = (mMaskSize - 1) / 2;
+        int localWidthPad = localWidth + pad + (2 * halfSize);
+        int localHeightPad = localHeight + (2 * halfSize);
+        int workGroupItems = localWidthPad * localHeightPad;
+        if (workGroupItems > 1024){
+            localWidth /= 2;
+            localWidthPad = localWidth + pad + (2 * halfSize);
+            workGroupItems = localWidthPad * localHeightPad;
+        }
+        */
+        int localWidth = 32;
+        int localHeight = 16;
+        int pad = 1;
+        int halfSize = (maskSize - 1) / 2;
+        int workGroupItems = (localWidth + pad + 2 * halfSize) * (localHeight + 2 * halfSize);
+        if (workGroupItems > 1024){
+            localWidth /= 2;
+            workGroupItems = (localWidth + pad + 2 * halfSize) * (localHeight + 2 * halfSize);
+        }
+
+        int globalWidth = input->getWidth();// +mMaskSize - 1;
+        int globalHeight = input->getHeight();// +mMaskSize - 1;
+        globalWidth = globalWidth + localWidth - (globalWidth % localWidth);
+        globalHeight = globalHeight + localHeight - (globalHeight % localWidth);
+
+        globalSize = cl::NDRange(globalWidth, globalHeight); //buffer to include padding
+        cl::NDRange localSize = cl::NDRange(localWidth, localHeight);
+        size_t sharedSize = workGroupItems * sizeof(float);// (32 * sizeof(float), 16 * sizeof(float));
+
+        mKernel.setArg(0, *inputAccess->get2DImage());
+        mKernel.setArg(4, *outputAccess->get2DImage());
+        mKernel.setArg(1, mCLMaskX);
+        mKernel.setArg(2, mCLMaskY);
+        mKernel.setArg(3, sharedSize, NULL); //sharedMem size initialized
+        cl::CommandQueue cmdQueue = clDevice->getCommandQueue();
+        //mRuntimeManager->startCLTimer("naive_cl", cmdQueue);
+        cmdQueue.finish();
+        mRuntimeManager->startRegularTimer("local_twopass_cl");
+        cmdQueue.enqueueNDRangeKernel(
+            mKernel,
+            cl::NullRange,
+            globalSize,
+            localSize
+            );
+        //mRuntimeManager->stopCLTimer("naive_cl", cmdQueue);
+        cmdQueue.finish();
+        mRuntimeManager->stopRegularTimer("local_twopass_cl");
+        mRuntimeManager->stopRegularTimer("local_twopass_setup");
     }
     else {
         std::cout << "Executing part " << mConvRunType << std::endl;

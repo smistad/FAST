@@ -1,9 +1,10 @@
 __constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;  //border padding
 //__constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_MIRRORED_REPEAT | CLK_FILTER_NEAREST; // mirrored padding
 
-__kernel void FilteringLocalMemory(
+__kernel void FilteringLocalMemory_twopass(
     __read_only image2d_t input,
-    __constant float * mask,
+    __constant float * maskX,
+    __constant float * maskY,
     __local float * sharedMem,
     __write_only image2d_t output)
 {
@@ -37,6 +38,7 @@ __kernel void FilteringLocalMemory(
         sharedMem[localFetchIndex] = read_imagei(input, sampler, pos + offsetMain).x;
     }
 
+    barrier(CLK_LOCAL_MEM_FENCE);
     //int x;
     int localIndex;
     //int2 posBase = { (globalX - localX - HALF_FILTER_SIZE), (globalY - localY - HALF_FILTER_SIZE) };
@@ -56,7 +58,7 @@ __kernel void FilteringLocalMemory(
             sharedMem[localIndex] = read_imagei(input, sampler, pos + offset_TopRight).x;
         }
     }
-    //barrier(CLK_LOCAL_MEM_FENCE); 
+    barrier(CLK_LOCAL_MEM_FENCE); 
     // TODO change read for all localY + LOCAL_SIZE_Y < LOCAL_HEIGHT
     // Load bottom main  
     if ((localY + LOCAL_SIZE_Y) < LOCAL_HEIGHT){
@@ -95,65 +97,83 @@ __kernel void FilteringLocalMemory(
         }
     }
     barrier(CLK_LOCAL_MEM_FENCE); // BLOCK AFTER LOADING IN
-
+    
+    int maskBaseToCentreOffset = HALF_FILTER_SIZE + (HALF_FILTER_SIZE * LOCAL_WIDTH);
     // HORIZONTAL PASS - group 1
     float sum = 0.0f;
-    g1_x = localX - HALF_FILTER_SIZE;
-    int baseIndex_g1 = g1_x + localY * LOCAL_WIDTH;
-    int index = baseIndex_g1;
+    int g1_x = localX;// +HALF_FILTER_SIZE;
+    int g1_y = localY;// -HALF_FILTER_SIZE;
+    int baseIndex_g1 = g1_x + (g1_y * LOCAL_WIDTH);// +HALF_FILTER_SIZE;
+    int index = baseIndex_g1;// -HALF_FILTER_SIZE;
     int maskIndex = 0;
-    for (int x = -HALF_FILTER_SIZE; x <= HALF_FILTER_SIZE; x++){
-        sum += sharedMem[index++] * maskX[ySizeAdd++];
+    //for (int x_it = -HALF_FILTER_SIZE; x_it <= HALF_FILTER_SIZE; x_it++){
+    for (int maskIndexX = 0; maskIndexX <= FILTER_SIZE; maskIndexX++){
+        sum += sharedMem[index++] * maskX[maskIndexX];// ++];
     }
-    barrier(CLK_LOCAL_MEM_FENCE); // BLOCK FOR SAVING sum HORIZONTAL group 1
-    sharedMem[baseIndex_g1] = sum;
-
+    //barrier(CLK_LOCAL_MEM_FENCE); // BLOCK FOR SAVING sum HORIZONTAL group 1
+    int centreIndex_g1 = baseIndex_g1 + HALF_FILTER_SIZE;
+    sharedMem[centreIndex_g1] = sum;
+    //sharedMem[5 + 5 * LOCAL_WIDTH] = 2.0f;
+    
     // HORIZONTAL PASS - group 2
-    g2_y = localY + LOCAL_SIZE_Y;
+    int g2_y = g1_y + LOCAL_SIZE_Y;
     if (g2_y < LOCAL_HEIGHT){
-        float sum = 0.0f;
-        g2_x = g1_x; // localX - HALF_FILTER_SIZE;
-        int baseIndex_g2 = g2_x + g2_y * LOCAL_WIDTH;
-        int index = baseIndex_g2;
-        int maskIndex = 0;
-        for (int x = -HALF_FILTER_SIZE; x <= HALF_FILTER_SIZE; x++){
-            sum += sharedMem[index++] * maskX[ySizeAdd++];
+        sum = 0.0f;
+        int g2_x = g1_x; // localX - HALF_FILTER_SIZE;
+        int baseIndex_g2 = g2_x + (g2_y * LOCAL_WIDTH);// +HALF_FILTER_SIZE;
+        index = baseIndex_g2;
+        //maskIndex = 0;
+        //for (int x_it = -HALF_FILTER_SIZE; x_it <= HALF_FILTER_SIZE; x_it++){
+        for (int maskIndexX = 0; maskIndexX <= FILTER_SIZE; maskIndexX++){
+            sum += sharedMem[index++] * maskX[maskIndexX];// ++];
         }
-        barrier(CLK_LOCAL_MEM_FENCE); // BLOCK FOR SAVING sum HORIZONTAL group 2
-        sharedMem[baseIndex_g2] = sum;
+        //barrier(CLK_LOCAL_MEM_FENCE); // BLOCK FOR SAVING sum HORIZONTAL group 2
+        int centreIndex_g2 = baseIndex_g2 + HALF_FILTER_SIZE;
+        sharedMem[centreIndex_g2] = sum;
     }
 
     barrier(CLK_LOCAL_MEM_FENCE); // BLOCK FOR HORIZONTAL FINISHED
-
+    
     // VERTICAL PASS - group 1
-    float sum = 0.0f;
+    sum = 0.0f;
+    //float outValue = 0.0f;
     //g1_x = localX - HALF_FILTER_SIZE;
-    int baseIndex_vert = localX + localY * LOCAL_WIDTH;
-    int index = baseIndex_vert;
-    int maskIndex = 0;
-    for (int y = -HALF_FILTER_SIZE; y <= HALF_FILTER_SIZE; y++){
-        sum += sharedMem[index] * maskY[ySizeAdd++];
+    int g3_x = localX + HALF_FILTER_SIZE;
+    int g3_y = localY;// +HALF_FILTER_SIZE;
+    int baseIndex_vert = g3_x + g3_y * LOCAL_WIDTH;// +maskBaseToCentreOffset;
+    index = baseIndex_vert;// -maskBaseToCentreOffset;
+    //maskIndex = 0;
+    
+    //for (int y_it = -HALF_FILTER_SIZE; y_it <= HALF_FILTER_SIZE; y_it++){
+    for (int maskIndexY = 0; maskIndexY <= FILTER_SIZE; maskIndexY++){
+        sum += sharedMem[index] * maskY[maskIndexY];// maskIndex++];
         index += LOCAL_WIDTH; // no -filtersize?
     }
     //barrier(CLK_LOCAL_MEM_FENCE); // BLOCK FOR SAVING Vertical
-    sharedMem[baseIndex_vert] = sum;
+    //int ceQntreIndex_vert = baseIndex_vert + (HALF_FILTER_SIZE*LOCAL_WIDTH);
+    //sharedMem[g3_x + ((g3_y + HALF_FILTER_SIZE)*LOCAL_WIDTH)] = sum;
+    /**/
+    //barrier(CLK_LOCAL_MEM_FENCE); // BLOCK FOR VERTICAL FINISHED
     
-    barrier(CLK_LOCAL_MEM_FENCE); // BLOCK FOR VERTICAL FINISHED
-
-    //if (localX == 0 && localY == 0) sum = 0.8f;
+    //float sum = 0.7f;
+    //int writeIndex = baseIndex_vert;
+    int writeIndex = (localX+HALF_FILTER_SIZE) + ((localY+HALF_FILTER_SIZE) * LOCAL_WIDTH);
+    //float outValue = sum;// sharedMem[writeIndex];
+    //sum = sharedMem[writeIndex];
+    //if (localX == 0 && localY == 0) sum = 1.0f;
     //if (localX == LOCAL_SIZE_X-1 || localY == LOCAL_SIZE_Y-1) sum = 0.3f;
     //int imSizeX = get_image_width(input);
     //int imSizeY = get_image_height(input);
     if (IMAGE_WIDTH > globalX && IMAGE_HEIGHT > globalY){
         int outputDataType = DATA_TYPE;// get_image_channel_data_type(output);
         if (outputDataType == CLK_FLOAT) {
-            write_imagef(output, pos, sum);
+            write_imagef(output, pos, sum);// sharedMem[writeIndex]);
         }
         else if (outputDataType == CLK_UNSIGNED_INT8 || outputDataType == CLK_UNSIGNED_INT16) {
-            write_imageui(output, pos, round(sum));
+            write_imageui(output, pos, round(sum));//sharedMem[writeIndex]));
         }
         else {
-            write_imagei(output, pos, round(sum));
+            write_imagei(output, pos, round(sum));//sharedMem[writeIndex]));
         }
     }
 }

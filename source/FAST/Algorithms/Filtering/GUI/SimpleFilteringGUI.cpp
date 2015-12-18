@@ -29,12 +29,12 @@ namespace fast {
 
 SimpleFilteringGUI::SimpleFilteringGUI() {
 
-    int initialMaskSize = 3; 
+    int initialMaskSize = 7; 
     float initialStdDev = 1.0; 
-    int initialRunType = 2; // 0:naive, 1:Twopass, 2:Local-Naive
+    int initialRunType = 4; // 0:naive, 1:Twopass, 2:Local-Naive, 3:?, 4:Local-Twopass
     int initialFilterType = 1; // 1:Gauss, 2:Sobel, ..
 
-    int initialInputImage = 2; // 0:US, 1:Retina(Big) 2:CornerTest, 3:Retina, 4:CornerTestMini, 5:Test(white)
+    int initialInputImage = 0; // 0:US, 1:Retina(Big) 2:CornerTest, 3:Retina, 4:CornerTestMini, 5:Test(white)
     
     //
     mFilterSize = initialMaskSize;
@@ -42,7 +42,7 @@ SimpleFilteringGUI::SimpleFilteringGUI() {
     mRunTypeString = numToRunType(initialRunType);
     mGaussStdDev = initialStdDev;
     mSkipSave = false;//true;
-    mSleepTime_maskChange = 4000;
+    mSleepTime_maskChange = 8000;
 
 	// Create a 2D view
     mView = createView();
@@ -219,7 +219,7 @@ SimpleFilteringGUI::SimpleFilteringGUI() {
     // RunType parameter slider
     QSlider* runTypeSlider = new QSlider(Qt::Horizontal);
     runTypeSlider->setMinimum(0);
-    runTypeSlider->setMaximum(3);
+    runTypeSlider->setMaximum(4);
     runTypeSlider->setValue(initialRunType);
     runTypeSlider->setFixedWidth(200);
     menuLayout->addWidget(runTypeSlider);
@@ -250,6 +250,10 @@ SimpleFilteringGUI::SimpleFilteringGUI() {
     mSetupTimeLocalLabel = new QLabel;
     mSetupTimeLocalLabel->setText("Setup local time: -- ms");
     menuLayout->addWidget(mSetupTimeLocalLabel);
+    // SetupTime Local Twopass parameter label  //local_twopass_cl
+    mSetupTimeLocalTwoLabel = new QLabel;
+    mSetupTimeLocalTwoLabel->setText("Setup local twopass time: -- ms");
+    menuLayout->addWidget(mSetupTimeLocalTwoLabel);
     // CreateMask parameter label 
     mCreateMaskLabel = new QLabel;
     mCreateMaskLabel->setText("Create mask time: -- ms");
@@ -270,10 +274,14 @@ SimpleFilteringGUI::SimpleFilteringGUI() {
     mKernelNaiveLabel = new QLabel;
     mKernelNaiveLabel->setText("Kernel (naive) time: -- ms");
     menuLayout->addWidget(mKernelNaiveLabel);
-    // Kernel naive parameter label 
+    // Kernel local naive parameter label 
     mKernelLocalLabel = new QLabel;
     mKernelLocalLabel->setText("Kernel (local) time: -- ms");
     menuLayout->addWidget(mKernelLocalLabel);
+    // Kernel local twopass  parameter label 
+    mKernelLocalTwoLabel = new QLabel;
+    mKernelLocalTwoLabel->setText("Kernel (local-2P) time: -- ms");
+    menuLayout->addWidget(mKernelLocalTwoLabel);
     
     //addLabel(mKernelLocalLabel, "Kernel (local) time: -- ms", menuLayout);
     //addLabel(mSetupTimeLocalLabel, "Setup local time: -- ms", menuLayout);
@@ -342,6 +350,8 @@ std::string SimpleFilteringGUI::numToRunType(int num){
         return "Local-Naive";
     case 3:
         return "Local-Def";
+    case 4:
+        return "Local-Twopass";
     }
 
     return "None";
@@ -355,24 +365,31 @@ void SimpleFilteringGUI::updateRuntimes(Filtering::pointer filter, bool print){
         filter->getRuntime("twopass_setup")->print();
         filter->getRuntime("naive_setup")->print();
         filter->getRuntime("local_setup")->print();
+        filter->getRuntime("local_twopass_setup")->print();
         //filter->getRuntime("create_mask")->print();
         filter->getRuntime("create_twopass_mask")->print();
         filter->getRuntime("create_naive_mask")->print();
         filter->getRuntime("twopass_cl")->print();
         filter->getRuntime("naive_cl")->print();
         filter->getRuntime("local_cl")->print();
+        filter->getRuntime("local_twopass_cl")->print();
     }
     //getLast() vs getSlidingAverage()
     float timingLast_tot = filter->getRuntime()->getSlidingAverage();
     float timingLast_twopass_setup = filter->getRuntime("twopass_setup")->getSlidingAverage();
     float timingLast_naive_setup = filter->getRuntime("naive_setup")->getSlidingAverage();
     float timingLast_local_setup = filter->getRuntime("local_setup")->getSlidingAverage();
+    float timingLast_local_twopass_setup = filter->getRuntime("local_twopass_setup")->getSlidingAverage();
+
     float timingLast_create_mask = filter->getRuntime("create_mask")->getSlidingAverage();
     float timingLast_create_twopass_mask = filter->getRuntime("create_twopass_mask")->getSlidingAverage();
     float timingLast_create_naive_mask = filter->getRuntime("create_naive_mask")->getSlidingAverage();
+
     float timingLast_twopass_kernel = filter->getRuntime("twopass_cl")->getSlidingAverage();
     float timingLast_naive_kernel = filter->getRuntime("naive_cl")->getSlidingAverage();
     float timingLast_local_kernel = filter->getRuntime("local_cl")->getSlidingAverage();
+    float timingLast_local_twopass_kernel = filter->getRuntime("local_twopass_cl")->getSlidingAverage();
+
     std::string executeText = "Execute time: " + std::to_string(timingLast_tot) + " ms";
     mExecuteTimeLabel->setText(executeText.c_str());
     std::string setupTwopassText = "Setup twopass time: " + std::to_string(timingLast_twopass_setup) + " ms";
@@ -381,6 +398,7 @@ void SimpleFilteringGUI::updateRuntimes(Filtering::pointer filter, bool print){
     mSetupTime2Label->setText(setupNaiveText.c_str());
     std::string setupLocalText = "Setup local time: " + std::to_string(timingLast_local_setup) + " ms";
     mSetupTimeLocalLabel->setText(setupLocalText.c_str());
+
     std::string createMaskText = "Create mask time: " + std::to_string(timingLast_create_mask) + " ms";
     mCreateMaskLabel->setText(createMaskText.c_str());
     std::string createMaskTwopassText = "Create mask (twopass) time: " + std::to_string(timingLast_create_twopass_mask) + " ms";
@@ -394,6 +412,8 @@ void SimpleFilteringGUI::updateRuntimes(Filtering::pointer filter, bool print){
     mKernelNaiveLabel->setText(kernelNaiveText.c_str());
     std::string kernelLocalText = "Kernel (local) time: " + std::to_string(timingLast_local_kernel) + " ms";
     mKernelLocalLabel->setText(kernelLocalText.c_str());
+    std::string kernelLocalTwoText = "Kernel (local-2P) time: " + std::to_string(timingLast_local_twopass_kernel) + " ms";
+    mKernelLocalTwoLabel->setText(kernelLocalTwoText.c_str());
 }
 
 //// -- Functions updating values upon slider change -- ////
@@ -422,7 +442,7 @@ void SimpleFilteringGUI::updateInputImage(int value){
 
     std::this_thread::sleep_for(std::chrono::milliseconds(80));
     saveImage();
-
+    /*
     switch (mFilterType){
     case 1:
         updateRuntimes(mGaussian);
@@ -435,7 +455,7 @@ void SimpleFilteringGUI::updateInputImage(int value){
         return;
         //mFilterTypeString = "Avg";
         updateRuntimes(mBoxFilter);
-    }
+    }*/
    
 }
 void SimpleFilteringGUI::updateFilterSize(int value){
@@ -513,7 +533,7 @@ void SimpleFilteringGUI::updateGaussStd(float value){
 }
 
 void SimpleFilteringGUI::updateRunType(int value){
-    if (value < 0 || value > 2 || value==mRunType) return;
+    if (value < 0 || value > 4 || value==mRunType) return;
 
     mGaussian->setConvRunType(value); // 1:twopass, 2:adv, else: naive
     mSobelX->setConvRunType(value); // 1:twopass, 2:adv, else: naive
