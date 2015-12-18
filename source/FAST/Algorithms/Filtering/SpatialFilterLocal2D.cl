@@ -43,8 +43,8 @@ __kernel void FilteringLocalMemory(
     // Load top right
     if ( (localX + LOCAL_SIZE_X) < LOCAL_WIDTH){
         const int2 offset_TopRight = { -HALF_FILTER_SIZE + LOCAL_SIZE_X, -HALF_FILTER_SIZE };
-        int x = localX + LOCAL_SIZE_X;
-        localIndex = x + localY * LOCAL_WIDTH;
+        int x_TR = localX + LOCAL_SIZE_X;
+        localIndex = x_TR + localY * LOCAL_WIDTH;
         //int dataType = DATA_TYPE; // get_image_channel_data_type(input);
         if (dataType == CLK_FLOAT) {
             sharedMem[localIndex] = read_imagef(input, sampler, pos + offset_TopRight).x;
@@ -56,13 +56,14 @@ __kernel void FilteringLocalMemory(
             sharedMem[localIndex] = read_imagei(input, sampler, pos + offset_TopRight).x;
         }
     }
-    //barrier(CLK_LOCAL_MEM_FENCE); 
+    barrier(CLK_LOCAL_MEM_FENCE); 
     // TODO change read for all localY + LOCAL_SIZE_Y < LOCAL_HEIGHT
     // Load bottom main  
+    
     if ( (localY + LOCAL_SIZE_Y) < LOCAL_HEIGHT){
         const int2 offset_BottomMain = { -HALF_FILTER_SIZE, -HALF_FILTER_SIZE + LOCAL_SIZE_Y };
-        int y = localY + LOCAL_SIZE_Y;
-        localIndex = localX + y * LOCAL_WIDTH;
+        int y_B = localY + LOCAL_SIZE_Y;
+        localIndex = localX + y_B * LOCAL_WIDTH;
         //int dataType = DATA_TYPE; // get_image_channel_data_type(input);
         if (dataType == CLK_FLOAT) {
             //if (localY == 0) sharedMem[localIndex] = 1.0f;
@@ -80,8 +81,8 @@ __kernel void FilteringLocalMemory(
         // Load bottom right
         if ( (localX + LOCAL_SIZE_X) < LOCAL_WIDTH){
             const int2 offset_BottomRight = { -HALF_FILTER_SIZE + LOCAL_SIZE_X, -HALF_FILTER_SIZE + LOCAL_SIZE_Y };
-            int x = localX + LOCAL_SIZE_X;
-            localIndex = x + y * LOCAL_WIDTH;
+            int x_BR = localX + LOCAL_SIZE_X;
+            localIndex = x_BR + y_B * LOCAL_WIDTH;
             //int dataType = DATA_TYPE; // get_image_channel_data_type(input);
             if (dataType == CLK_FLOAT) {
                 sharedMem[localIndex] = read_imagef(input, sampler, pos + offset_BottomRight).x;
@@ -93,49 +94,9 @@ __kernel void FilteringLocalMemory(
                 sharedMem[localIndex] = read_imagei(input, sampler, pos + offset_BottomRight).x;
             }
         }
-    }//*/
+    }///**/
     // plus change read of right side columns
-   /*if (localY == 0){ //(localX == 0 && localY == 0){
-        //fetch remaining
-        // left overs for rows + zero position of local region 
-        //int posX = (localSizeTot % LOCAL_WIDTH) + (globalX - localX)
-        int2 posBase = { (globalX - localX - HALF_FILTER_SIZE), (globalY - localY - HALF_FILTER_SIZE) };
-        int localIndex;
-        int x;
-        for (int y = 0; y < LOCAL_HEIGHT; y++){
-            if (y < LOCAL_SIZE_Y) x = localX + LOCAL_SIZE_X; //{ //x = LOCAL_SIZE_X;
-            else x = localX;//x = 0;
-            //x = 0;
-            //for (; x < LOCAL_WIDTH; x++){
-            if (x < LOCAL_WIDTH){ //continue;
-                int2 offset2 = { x, y };
-                localIndex = x + y * LOCAL_WIDTH;
-                if (dataType == CLK_FLOAT) {
-                    sharedMem[localIndex] = read_imagef(input, sampler, posBase + offset2).x;
-                }
-                else if (dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
-                    sharedMem[localIndex] = read_imageui(input, sampler, posBase + offset2).x;
-                }
-                else {
-                    sharedMem[localIndex] = read_imagei(input, sampler, posBase + offset2).x;
-                }
-            }
-            if (x + LOCAL_SIZE_X < LOCAL_WIDTH){
-                x = x + LOCAL_SIZE_X;
-                int2 offset2 = { x, y };
-                localIndex = x + y * LOCAL_WIDTH;
-                if (dataType == CLK_FLOAT) {
-                    sharedMem[localIndex] = read_imagef(input, sampler, posBase + offset2).x;
-                }
-                else if (dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
-                    sharedMem[localIndex] = read_imageui(input, sampler, posBase + offset2).x;
-                }
-                else {
-                    sharedMem[localIndex] = read_imagei(input, sampler, posBase + offset2).x;
-                }
-            }
-        }
-    }*/
+   
     barrier(CLK_LOCAL_MEM_FENCE);
 
     //int localReadIndex = (localX + HALF_FILTER_SIZE) + ((localY + HALF_FILTER_SIZE)*LOCAL_WIDTH);
@@ -163,7 +124,8 @@ __kernel void FilteringLocalMemory(
         index += LOCAL_WIDTH - FILTER_SIZE;// -1; //was no -1
         //ySizeAdd++;// = FILTER_SIZE
         //index += LOCAL_MEM_PAD; //?
-    }
+    }/**/
+    //float sum = sharedMem[(localX+HALF_FILTER_SIZE) + ((localY+HALF_FILTER_SIZE) * LOCAL_WIDTH)];
     //if (localX == 0 && localY == 0) sum = 0.8f;
     //if (localX == LOCAL_SIZE_X-1 || localY == LOCAL_SIZE_Y-1) sum = 0.3f;
     //int imSizeX = get_image_width(input);
@@ -180,6 +142,47 @@ __kernel void FilteringLocalMemory(
             write_imagei(output, pos, round(sum));
         }
     }
+    /*if (localY == 0){ //(localX == 0 && localY == 0){
+    //fetch remaining
+    // left overs for rows + zero position of local region
+    //int posX = (localSizeTot % LOCAL_WIDTH) + (globalX - localX)
+    int2 posBase = { (globalX - localX - HALF_FILTER_SIZE), (globalY - localY - HALF_FILTER_SIZE) };
+    int localIndex;
+    int x;
+    for (int y = 0; y < LOCAL_HEIGHT; y++){
+    if (y < LOCAL_SIZE_Y) x = localX + LOCAL_SIZE_X; //{ //x = LOCAL_SIZE_X;
+    else x = localX;//x = 0;
+    //x = 0;
+    //for (; x < LOCAL_WIDTH; x++){
+    if (x < LOCAL_WIDTH){ //continue;
+    int2 offset2 = { x, y };
+    localIndex = x + y * LOCAL_WIDTH;
+    if (dataType == CLK_FLOAT) {
+    sharedMem[localIndex] = read_imagef(input, sampler, posBase + offset2).x;
+    }
+    else if (dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+    sharedMem[localIndex] = read_imageui(input, sampler, posBase + offset2).x;
+    }
+    else {
+    sharedMem[localIndex] = read_imagei(input, sampler, posBase + offset2).x;
+    }
+    }
+    if (x + LOCAL_SIZE_X < LOCAL_WIDTH){
+    x = x + LOCAL_SIZE_X;
+    int2 offset2 = { x, y };
+    localIndex = x + y * LOCAL_WIDTH;
+    if (dataType == CLK_FLOAT) {
+    sharedMem[localIndex] = read_imagef(input, sampler, posBase + offset2).x;
+    }
+    else if (dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+    sharedMem[localIndex] = read_imageui(input, sampler, posBase + offset2).x;
+    }
+    else {
+    sharedMem[localIndex] = read_imagei(input, sampler, posBase + offset2).x;
+    }
+    }
+    }
+    }*/
 }
 
 

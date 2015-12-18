@@ -45,8 +45,8 @@ __kernel void FilteringLocalMemory_twopass(
     // Load top right
     if ((localX + LOCAL_SIZE_X) < LOCAL_WIDTH){
         const int2 offset_TopRight = { -HALF_FILTER_SIZE + LOCAL_SIZE_X, -HALF_FILTER_SIZE };
-        int x = localX + LOCAL_SIZE_X;
-        localIndex = x + localY * LOCAL_WIDTH;
+        int x_TR = localX + LOCAL_SIZE_X;
+        localIndex = x_TR + localY * LOCAL_WIDTH;
         //int dataType = DATA_TYPE; // get_image_channel_data_type(input);
         if (dataType == CLK_FLOAT) {
             sharedMem[localIndex] = read_imagef(input, sampler, pos + offset_TopRight).x;
@@ -63,8 +63,8 @@ __kernel void FilteringLocalMemory_twopass(
     // Load bottom main  
     if ((localY + LOCAL_SIZE_Y) < LOCAL_HEIGHT){
         const int2 offset_BottomMain = { -HALF_FILTER_SIZE, -HALF_FILTER_SIZE + LOCAL_SIZE_Y };
-        int y = localY + LOCAL_SIZE_Y;
-        localIndex = localX + y * LOCAL_WIDTH;
+        int y_B = localY + LOCAL_SIZE_Y;
+        localIndex = localX + y_B * LOCAL_WIDTH;
         //int dataType = DATA_TYPE; // get_image_channel_data_type(input);
         if (dataType == CLK_FLOAT) {
             //if (localY == 0) sharedMem[localIndex] = 1.0f;
@@ -82,8 +82,8 @@ __kernel void FilteringLocalMemory_twopass(
         // Load bottom right
         if ((localX + LOCAL_SIZE_X) < LOCAL_WIDTH){
             const int2 offset_BottomRight = { -HALF_FILTER_SIZE + LOCAL_SIZE_X, -HALF_FILTER_SIZE + LOCAL_SIZE_Y };
-            int x = localX + LOCAL_SIZE_X;
-            localIndex = x + y * LOCAL_WIDTH;
+            int x_BR = localX + LOCAL_SIZE_X;
+            localIndex = x_BR + y_B * LOCAL_WIDTH;
             //int dataType = DATA_TYPE; // get_image_channel_data_type(input);
             if (dataType == CLK_FLOAT) {
                 sharedMem[localIndex] = read_imagef(input, sampler, pos + offset_BottomRight).x;
@@ -107,14 +107,14 @@ __kernel void FilteringLocalMemory_twopass(
     int index = baseIndex_g1;// -HALF_FILTER_SIZE;
     int maskIndex = 0;
     //for (int x_it = -HALF_FILTER_SIZE; x_it <= HALF_FILTER_SIZE; x_it++){
-    for (int maskIndexX = 0; maskIndexX <= FILTER_SIZE; maskIndexX++){
-        sum += sharedMem[index++] * maskX[maskIndexX];// ++];
+    for (int maskIndex1X = 0; maskIndex1X <= FILTER_SIZE; maskIndex1X++){
+        sum += sharedMem[index++] * maskX[maskIndex1X];// ++];
     }
-    //barrier(CLK_LOCAL_MEM_FENCE); // BLOCK FOR SAVING sum HORIZONTAL group 1
+    barrier(CLK_LOCAL_MEM_FENCE); // BLOCK FOR SAVING sum HORIZONTAL group 1
     int centreIndex_g1 = baseIndex_g1 + HALF_FILTER_SIZE;
     sharedMem[centreIndex_g1] = sum;
     //sharedMem[5 + 5 * LOCAL_WIDTH] = 2.0f;
-    
+    barrier(CLK_LOCAL_MEM_FENCE);
     // HORIZONTAL PASS - group 2
     int g2_y = g1_y + LOCAL_SIZE_Y;
     if (g2_y < LOCAL_HEIGHT){
@@ -124,8 +124,8 @@ __kernel void FilteringLocalMemory_twopass(
         index = baseIndex_g2;
         //maskIndex = 0;
         //for (int x_it = -HALF_FILTER_SIZE; x_it <= HALF_FILTER_SIZE; x_it++){
-        for (int maskIndexX = 0; maskIndexX <= FILTER_SIZE; maskIndexX++){
-            sum += sharedMem[index++] * maskX[maskIndexX];// ++];
+        for (int maskIndex2X = 0; maskIndex2X <= FILTER_SIZE; maskIndex2X++){
+            sum += sharedMem[index++] * maskX[maskIndex2X];// ++];
         }
         //barrier(CLK_LOCAL_MEM_FENCE); // BLOCK FOR SAVING sum HORIZONTAL group 2
         int centreIndex_g2 = baseIndex_g2 + HALF_FILTER_SIZE;
@@ -143,7 +143,7 @@ __kernel void FilteringLocalMemory_twopass(
     int baseIndex_vert = g3_x + g3_y * LOCAL_WIDTH;// +maskBaseToCentreOffset;
     index = baseIndex_vert;// -maskBaseToCentreOffset;
     //maskIndex = 0;
-    
+    barrier(CLK_LOCAL_MEM_FENCE);
     //for (int y_it = -HALF_FILTER_SIZE; y_it <= HALF_FILTER_SIZE; y_it++){
     for (int maskIndexY = 0; maskIndexY <= FILTER_SIZE; maskIndexY++){
         sum += sharedMem[index] * maskY[maskIndexY];// maskIndex++];
@@ -164,6 +164,8 @@ __kernel void FilteringLocalMemory_twopass(
     //if (localX == LOCAL_SIZE_X-1 || localY == LOCAL_SIZE_Y-1) sum = 0.3f;
     //int imSizeX = get_image_width(input);
     //int imSizeY = get_image_height(input);
+
+    barrier(CLK_LOCAL_MEM_FENCE);
     if (IMAGE_WIDTH > globalX && IMAGE_HEIGHT > globalY){
         int outputDataType = DATA_TYPE;// get_image_channel_data_type(output);
         if (outputDataType == CLK_FLOAT) {

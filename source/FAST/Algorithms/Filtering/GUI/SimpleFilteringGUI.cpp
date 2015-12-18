@@ -29,8 +29,8 @@ namespace fast {
 
 SimpleFilteringGUI::SimpleFilteringGUI() {
 
-    int initialMaskSize = 7; 
-    float initialStdDev = 1.0; 
+    int initialMaskSize = 7;
+    float initialStdDev = 1.0;
     int initialRunType = 4; // 0:naive, 1:Twopass, 2:Local-Naive, 3:?, 4:Local-Twopass
     int initialFilterType = 1; // 1:Gauss, 2:Sobel, ..
 
@@ -320,7 +320,7 @@ std::string SimpleFilteringGUI::getInputFilename(int inputnum){
     std::string INPUT_FILENAME;
     switch (inputnum){
     case 1:
-        INPUT_FILENAME =  "retina_big.png"; 
+        INPUT_FILENAME = "retina_big.png"; 
         break;
     case 2:
         INPUT_FILENAME = "cornerTest.png"; 
@@ -398,6 +398,8 @@ void SimpleFilteringGUI::updateRuntimes(Filtering::pointer filter, bool print){
     mSetupTime2Label->setText(setupNaiveText.c_str());
     std::string setupLocalText = "Setup local time: " + std::to_string(timingLast_local_setup) + " ms";
     mSetupTimeLocalLabel->setText(setupLocalText.c_str());
+    std::string setupLocalTwoText = "Setup local twopass time: " + std::to_string(timingLast_local_twopass_setup) + " ms";
+    mSetupTimeLocalTwoLabel->setText(setupLocalTwoText.c_str());
 
     std::string createMaskText = "Create mask time: " + std::to_string(timingLast_create_mask) + " ms";
     mCreateMaskLabel->setText(createMaskText.c_str());

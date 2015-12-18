@@ -310,7 +310,7 @@ void Filtering::recompileOpenCLCode(Image::pointer input) {
         int globalWidth = input->getWidth();
         int globalHeight = input->getHeight();
         globalWidth = globalWidth + localWidth - (globalWidth % localWidth);
-        globalHeight = globalHeight + localHeight - (globalHeight % localWidth);
+        globalHeight = globalHeight + localHeight - (globalHeight % localHeight);
         //globalSize = cl::NDRange(globalWidth, globalHeight);
         //cl::NDRange localSize = cl::NDRange(localWidth, localHeight);
         //size_t sharedSize = workGroupItems * sizeof(float);
@@ -411,7 +411,7 @@ void Filtering::recompileOpenCLCode(Image::pointer input) {
         int globalWidth = input->getWidth();
         int globalHeight = input->getHeight();
         globalWidth = globalWidth + localWidth - (globalWidth % localWidth);
-        globalHeight = globalHeight + localHeight - (globalHeight % localWidth);
+        globalHeight = globalHeight + localHeight - (globalHeight % localHeight);
         // END
         buildOptions += " -D LOCAL_SIZE_X=" + std::to_string(localWidth);
         buildOptions += " -D LOCAL_SIZE_Y=" + std::to_string(localHeight);
@@ -653,7 +653,7 @@ void Filtering::execute() {
         //globalWidth =  localWidth * 32; // globalWidth - localWidth + (localWidth - (globalWidth & (localWidth - 1)));
         //globalHeight = localHeight * 40;// globalHeight + (localHeight - (globalHeight & (localHeight - 1) ) );
         globalWidth = globalWidth + localWidth - (globalWidth % localWidth);
-        globalHeight = globalHeight + localHeight - (globalHeight % localWidth);
+        globalHeight = globalHeight + +localHeight - (globalHeight % localHeight);
 
 
         //std::cout << "Widths: " << input->getWidth() << " " << localWidth << " " << globalWidth << std::endl;
@@ -711,7 +711,7 @@ void Filtering::execute() {
         int globalWidth = input->getWidth();
         int globalHeight = input->getHeight();
         if (globalWidth % localWidth != 0) globalWidth = globalWidth + localWidth - (globalWidth % localWidth);
-        if (globalHeight % localHeight != 0) globalHeight = globalHeight + localHeight - (globalHeight % localWidth);
+        if (globalHeight % localHeight != 0) globalHeight = globalHeight + localHeight - (globalHeight % localHeight);
         //std::cout << "Widths: " << input->getWidth() << " " << localWidth << " " << localWidthPad << " " << globalWidth << std::endl;
         //std::cout << "Height: " << input->getHeight() << " " << localHeight << " " << localHeightPad << " " << globalHeight << std::endl;
         //std::cout << "Work group items: " << workGroupItems << std::endl;
@@ -787,7 +787,7 @@ void Filtering::execute() {
         int globalWidth = input->getWidth();// +mMaskSize - 1;
         int globalHeight = input->getHeight();// +mMaskSize - 1;
         globalWidth = globalWidth + localWidth - (globalWidth % localWidth);
-        globalHeight = globalHeight + localHeight - (globalHeight % localWidth);
+        globalHeight = globalHeight + localHeight - (globalHeight % localHeight);
 
         globalSize = cl::NDRange(globalWidth, globalHeight); //buffer to include padding
         cl::NDRange localSize = cl::NDRange(localWidth, localHeight);
