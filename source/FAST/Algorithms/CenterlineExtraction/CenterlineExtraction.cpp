@@ -4,6 +4,7 @@
 #include "FAST/Utility.hpp"
 #include <boost/shared_array.hpp>
 #include <unordered_set>
+#include <stack>
 
 namespace fast {
 
@@ -192,6 +193,41 @@ inline double solveQuadratic(boost::shared_array<double> G, boost::shared_array<
 	}
 }
 
+inline void growFromPointsAdded(std::vector<Vector3i> points, boost::shared_array<double> G, std::unordered_set<int>& Sc, std::unordered_set<int>& processed, Vector3i size) {
+
+	std::stack<Vector3i> stack;
+	stack.push(points[0]);
+
+	std::vector<Vector3i> neighbors2;
+    for(int a = -1; a <= 1;  ++a) {
+    for(int b = -1; b <= 1;  ++b) {
+    for(int c = -1; c <= 1;  ++c) {
+    	if(a == 0 && b == 0 && c == 0)
+    		continue;
+    	neighbors2.push_back(Vector3i(a,b,c));
+    }}}
+
+	while(!stack.empty()) {
+		Vector3i current = stack.top();
+		stack.pop();
+        std::unordered_set<int>::iterator it = Sc.find(linearPosition(current, size));
+        if(it != Sc.end()) {
+            Sc.erase(it);
+        }
+
+		// Add neighbors
+        for(Vector3i neighbor : neighbors2) {
+            Vector3i xn = current + neighbor;
+            if(G[linearPosition(xn, size)] < G[linearPosition(current, size)]) {
+            	if(processed.count(linearPosition(xn, size)) == 0) {
+                    stack.push(xn);
+                    processed.insert(linearPosition(xn, size));
+            	}
+            }
+        }
+	}
+}
+
 void CenterlineExtraction::execute() {
 	Image::pointer input = getStaticInputData<Image>();
 	Vector3f spacing = input->getSpacing();
@@ -215,6 +251,7 @@ void CenterlineExtraction::execute() {
 	Vector3i maxPosition;
 	boost::shared_array<bool> isInL(new bool[totalSize]);
 	std::unordered_set<int> Sc;
+	// TODO this takes time, consider GPU implementation
 	for(int z = 0; z < depth; ++z) {
 	for(int y = 0; y < height; ++y) {
 	for(int x = 0; x < width; ++x) {
@@ -225,7 +262,7 @@ void CenterlineExtraction::execute() {
 			short distance = distanceArray[linearPosition(position, size)];
 
 			// Check if voxel is candidate centerline
-			int N = 2;
+			int N = 3;
 			bool invalid = false;
             for(int a = -N; a <= N;  ++a) {
             for(int b = -N; b <= N;  ++b) {
@@ -317,6 +354,7 @@ void CenterlineExtraction::execute() {
     }}}
 
     std::unordered_set<int> refinedCenterline;
+    std::unordered_set<int> processed;
 	// Do backtrace
 	while(Sc.size() > 0) {
 		// Find candidate centerline point with highest G
@@ -368,16 +406,20 @@ void CenterlineExtraction::execute() {
 			} else {
                 current = bestPos;
 			}
+			pointsToAdd.push_back(current);
+
+			// Stop conditions
 			if(minG == 0) {
 				break;
 			}
-			pointsToAdd.push_back(current);
 			if(refinedCenterline.count(linearPosition(current,size)) > 0) {
+				// Bifurcation
 				break;
 			}
 		}
 
-		if(pointsToAdd.size() > 3) {
+		if(pointsToAdd.size() > 10) { // minimum length
+			growFromPointsAdded(pointsToAdd, G, Sc, processed, size);
 			int counter = outputAccess->getNrOfPoints();
             outputAccess->addPoint(pointsToAdd[0].cast<float>().cwiseProduct(spacing));
             refinedCenterline.insert(linearPosition(pointsToAdd[0], size));
@@ -389,7 +431,8 @@ void CenterlineExtraction::execute() {
 			}
 		}
 	}
-
 }
+
+
 
 }
