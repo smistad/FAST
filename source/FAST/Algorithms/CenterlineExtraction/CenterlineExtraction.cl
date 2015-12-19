@@ -66,3 +66,31 @@ __kernel void calculateDistance(
         write_imagei(output, pos, value);
     }
 }
+
+__kernel void findCandidateCenterpoints(
+			__read_only image3d_t segmentation,
+			__read_only image3d_t distanceImage,
+			__write_only image3d_t output
+        ) {
+	const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
+    if(read_imageui(segmentation, sampler, pos).x == 1) {
+        // Inside object
+        short distance = read_imagei(distanceImage, sampler, pos).x;
+
+        // Check if voxel is candidate centerline
+        int N = 4;
+        bool invalid = false;
+        for(int a = -N; a <= N;  ++a) {
+        for(int b = -N; b <= N;  ++b) {
+        for(int c = -N; c <= N;  ++c) {
+            short distance2 = read_imagei(distanceImage, sampler, pos + (int4)(a,b,c,0)).x;
+            if(distance2 > distance) {
+                invalid = true;
+            }
+        }}}
+
+        if(!invalid) {
+        	write_imageui(output, pos, 1);
+        }
+    }
+}

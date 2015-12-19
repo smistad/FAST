@@ -26,37 +26,6 @@ Image::pointer CenterlineExtraction::calculateDistanceTransform(Image::pointer i
 	Image::pointer distance = Image::New();
 	distance->create(input->getSize(), TYPE_INT16, 1);
 
-	/*
-	ImageAccess::pointer inputAccess = input->getImageAccess(ACCESS_READ);
-	ImageAccess::pointer distanceAccess = distance->getImageAccess(ACCESS_READ_WRITE);
-
-	for(int z = 0; z < depth; ++z) {
-	for(int y = 0; y < height; ++y) {
-	for(int x = 0; x < width; ++x) {
-		if(inputAccess->getScalar(Vector3i(x,y,z)) == 0) {
-			// Outside of segmentation
-            bool atBorder = false;
-            for(int a = -1; a <= 1;  ++a) {
-            for(int b = -1; b <= 1;  ++b) {
-            for(int c = -1; c <= 1;  ++c) {
-                if(inputAccess->getScalar(Vector3i(x+a,y+b,z+c)) == 0) {
-                    atBorder = true;
-                    break;
-                }
-            }}}
-            if(atBorder) {
-                distanceAccess->setScalar(Vector3i(x,y,z), 0);
-            } else {
-                distanceAccess->setScalar(Vector3i(x,y,z), 1);
-            }
-		} else {
-			distanceAccess->setScalar(Vector3i(x,y,z), 1);
-		}
-
-
-	}}}
-	*/
-
 	OpenCLImageAccess::pointer distanceAccess = distance->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
 	OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
 
@@ -244,50 +213,61 @@ void CenterlineExtraction::execute() {
 	const int height = input->getHeight();
 	const int depth = input->getDepth();
 	const int totalSize = width*height*depth;
+
+	Image::pointer candidateCenterpointsImage = Image::New();
+	candidateCenterpointsImage->create(size.cast<uint>(), TYPE_UINT8, 1);
+
+	{
+        OpenCLDevice::pointer device = getMainDevice();
+        cl::Program program = getOpenCLProgram(device);
+        cl::CommandQueue queue = device->getCommandQueue();
+        OpenCLImageAccess::pointer distanceAccess = distance->getOpenCLImageAccess(ACCESS_READ, device);
+        OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
+        OpenCLImageAccess::pointer candidateAccess = candidateCenterpointsImage->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+
+        // First initialize
+        cl::Kernel candidateKernel(program, "findCandidateCenterpoints");
+        candidateKernel.setArg(0, *inputAccess->get3DImage());
+        candidateKernel.setArg(1, *distanceAccess->get3DImage());
+        candidateKernel.setArg(2, *candidateAccess->get3DImage());
+
+        queue.enqueueNDRangeKernel(
+            candidateKernel,
+            cl::NullRange,
+            cl::NDRange(width, height, depth),
+            cl::NullRange
+        );
+	}
+
 	ImageAccess::pointer inputAccess = input->getImageAccess(ACCESS_READ);
 	ImageAccess::pointer distanceAccess = distance->getImageAccess(ACCESS_READ);
+	ImageAccess::pointer candidateAccess = candidateCenterpointsImage->getImageAccess(ACCESS_READ);
 	short* distanceArray = (short*)distanceAccess->get();
+	uchar* inputArray = (uchar*)inputAccess->get();
+	uchar* candidateArray = (uchar*)candidateAccess->get();
 	int maxDistance = 0;
-	Vector3i maxPosition;
+	int maxIndex = 0;
 	boost::shared_array<bool> isInL(new bool[totalSize]);
 	std::unordered_set<int> Sc;
-	// TODO this takes time, consider GPU implementation
-	for(int z = 0; z < depth; ++z) {
-	for(int y = 0; y < height; ++y) {
-	for(int x = 0; x < width; ++x) {
-		Vector3i position(x,y,z);
-		if(inputAccess->getScalar(position) == 1) {
-			isInL[linearPosition(position, size)] = false;
+	for(int i = 0; i < totalSize; ++i) {
+		if(inputArray[i] == 1) {
 			// Inside object
-			short distance = distanceArray[linearPosition(position, size)];
-
-			// Check if voxel is candidate centerline
-			int N = 3;
-			bool invalid = false;
-            for(int a = -N; a <= N;  ++a) {
-            for(int b = -N; b <= N;  ++b) {
-            for(int c = -N; c <= N;  ++c) {
-            	// TODO Out of bounds check
-                short distance2 = distanceArray[linearPosition(position + Vector3i(a,b,c), size)];
-                if(distance2 > distance) {
-                	invalid = true;
-                	break;
-                }
-            }}}
+			isInL[i] = false;
 
 			// Get max distance
-            if(!invalid) {
+            if(candidateArray[i] == 1) {
+                short distance = distanceArray[i];
                 if(distance > maxDistance) {
                     maxDistance = distance;
-                    maxPosition = position;
+                    maxIndex = i;
                 }
-                // TODO add to candidate centerlines
-                Sc.insert(linearPosition(position, size));
+                Sc.insert(i);
             }
 		} else {
-			isInL[linearPosition(Vector3i(x,y,z), size)] = true;
+			isInL[i] = true;
 		}
-	}}}
+	}
+	Vector3i maxPosition = position3D(maxIndex, size);
 	reportInfo() << "Max position found at " << maxPosition.transpose() << " with value " << maxDistance << reportEnd();
 
 	// Calculate speed term
