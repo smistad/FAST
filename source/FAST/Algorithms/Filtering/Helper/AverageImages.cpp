@@ -62,6 +62,8 @@ void AverageImages::execute(){
         OpenCLImageAccess::pointer input1Access = input1->getOpenCLImageAccess(ACCESS_READ, device);
         float maxVal = input->calculateMaximumIntensity();
         float maxVal1 = input1->calculateMaximumIntensity();
+        float minVal = input->calculateMinimumIntensity();
+        float minVal1 = input1->calculateMinimumIntensity();
         if (input->getDimensions() == 2) {
             globalSize = cl::NDRange(input->getWidth(), input->getHeight());
 
@@ -71,6 +73,8 @@ void AverageImages::execute(){
             mKernel.setArg(2, *outputAccess->get2DImage());
             mKernel.setArg(3, maxVal);
             mKernel.setArg(4, maxVal1);
+            mKernel.setArg(5, maxVal1);
+            mKernel.setArg(6, maxVal1);
         }
         else {
             globalSize = cl::NDRange(input->getWidth(), input->getHeight(), input->getDepth());

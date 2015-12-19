@@ -125,6 +125,7 @@ __kernel void FilteringLocalMemory(
         //ySizeAdd++;// = FILTER_SIZE
         //index += LOCAL_MEM_PAD; //?
     }/**/
+    sum = fabs(sum);
     //float sum = sharedMem[(localX+HALF_FILTER_SIZE) + ((localY+HALF_FILTER_SIZE) * LOCAL_WIDTH)];
     //if (localX == 0 && localY == 0) sum = 0.8f;
     //if (localX == LOCAL_SIZE_X-1 || localY == LOCAL_SIZE_Y-1) sum = 0.3f;

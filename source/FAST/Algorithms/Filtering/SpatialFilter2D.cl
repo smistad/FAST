@@ -94,7 +94,7 @@ __kernel void OneDirPass(
         }
         */
         //sum += STATIC_ADD;
-        //sum = fabs(sum);
+        sum = fabs(sum);
     }
 
     //sum += STATIC_ADD/2.0;
@@ -107,6 +107,8 @@ __kernel void OneDirPass(
     else if (sum < 0.0){
         sum = 0.0;
     }*/
+    //sum = 1.0f;
+    //sum = fabs(sum);
 
     int outputDataType = get_image_channel_data_type(output);
     if (outputDataType == CLK_FLOAT) {

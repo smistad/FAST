@@ -6,7 +6,9 @@ __kernel void CutExcess(
     __read_only image2d_t inputOne,
     __write_only image2d_t output,
     float maxVal,
-    float maxValOne)
+    float maxValOne,
+    float minVal,
+    float minValOne)
 {
     const int2 pos = { get_global_id(0), get_global_id(1) };
 
@@ -39,9 +41,20 @@ __kernel void CutExcess(
     //    value = valueOne;
     //}
     //value = sqrt((value - 0.5)*(value - 0.5) + (valueOne - 0.5)*(valueOne - 0.5)); //or -0.5f if normalized
-    //Scale values
-    value = value  / maxVal;
-    valueOne = valueOne / maxValOne;
+    //Scale values to minVal
+    //value = value - minVal;
+    //valueOne = value - minVal;
+    //maxVal = maxVal - minVal;
+    //maxValOne = maxVal - minVal;
+    //maxVal = max(maxVal, -minVal);
+    //maxValOne = max(maxValOne, -minValOne);
+    //if (fabs(minVal) > maxVal) maxVal = fabs(minVal);
+    //if (fabs(minValOne) > maxValOne) maxValOne = fabs(minValOne);
+    //value = fabs(value);
+    //valueOne = fabs(valueOne);
+    //Scale values to maxVal
+    value = fabs(value)  / maxVal; //need no fabs?
+    valueOne = fabs(valueOne) / maxValOne;
     // Calculate total magnitude
     value = sqrt(value*value + valueOne*valueOne); //was no /2
 

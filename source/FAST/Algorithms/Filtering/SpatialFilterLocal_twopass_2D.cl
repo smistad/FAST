@@ -155,6 +155,7 @@ __kernel void FilteringLocalMemory_twopass(
     /**/
     //barrier(CLK_LOCAL_MEM_FENCE); // BLOCK FOR VERTICAL FINISHED
     
+    sum = fabs(sum);
     //float sum = 0.7f;
     //int writeIndex = baseIndex_vert;
     int writeIndex = (localX+HALF_FILTER_SIZE) + ((localY+HALF_FILTER_SIZE) * LOCAL_WIDTH);

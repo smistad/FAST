@@ -31,10 +31,10 @@ SimpleFilteringGUI::SimpleFilteringGUI() {
 
     int initialMaskSize = 7;
     float initialStdDev = 1.0;
-    int initialRunType = 4; // 0:naive, 1:Twopass, 2:Local-Naive, 3:?, 4:Local-Twopass
-    int initialFilterType = 1; // 1:Gauss, 2:Sobel, ..
+    int initialRunType = 1; // 0:naive, 1:Twopass, 2:Local-Naive, 3:?, 4:Local-Twopass
+    int initialFilterType = 2; // 1:Gauss, 2:Sobel, ..
 
-    int initialInputImage = 0; // 0:US, 1:Retina(Big) 2:CornerTest, 3:Retina, 4:CornerTestMini, 5:Test(white)
+    int initialInputImage = 5; // 0:US, 1:Retina(Big) 2:CornerTest, 3:Retina, 4:CornerTestMini, 5:Test(white)
     
     //
     mFilterSize = initialMaskSize;
