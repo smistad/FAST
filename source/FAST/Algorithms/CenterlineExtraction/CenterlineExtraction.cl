@@ -91,6 +91,10 @@ __kernel void findCandidateCenterpoints(
 
         if(!invalid) {
         	write_imageui(output, pos, 1);
+        } else {
+        	write_imageui(output, pos, 0);
         }
+    } else {
+        write_imageui(output, pos, 0);
     }
 }

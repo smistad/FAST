@@ -5,6 +5,7 @@
 #include <boost/shared_array.hpp>
 #include <unordered_set>
 #include <stack>
+#include "FAST/Exporters/MetaImageExporter.hpp"
 
 namespace fast {
 
@@ -206,6 +207,12 @@ void CenterlineExtraction::execute() {
 
 	// Do distance transform
 	Image::pointer distance = calculateDistanceTransform(input);
+	/*
+	MetaImageExporter::pointer exporter = MetaImageExporter::New();
+	exporter->setInputData(distance);
+	exporter->setFilename("/home/smistad/distance.mhd");
+	exporter->update();
+	*/
 
 	// Extract candidate centerlines, and get max distance
 	const Vector3i size = input->getSize().cast<int>();
@@ -238,6 +245,12 @@ void CenterlineExtraction::execute() {
             cl::NullRange
         );
 	}
+	/*
+	MetaImageExporter::pointer exporter2 = MetaImageExporter::New();
+	exporter2->setInputData(candidateCenterpointsImage);
+	exporter2->setFilename("/home/smistad/candidates.mhd");
+	exporter2->update();
+	*/
 
 	ImageAccess::pointer inputAccess = input->getImageAccess(ACCESS_READ);
 	ImageAccess::pointer distanceAccess = distance->getImageAccess(ACCESS_READ);
@@ -356,6 +369,8 @@ void CenterlineExtraction::execute() {
 
 		std::vector<Vector3i> pointsToAdd;
 		Vector3i current = maxPosition;
+		Vector3i previous = Vector3i::Zero();
+		Vector3i previous2 = Vector3i::Zero();
 		while(true) {
 			std::unordered_set<int>::iterator it = Sc.find(linearPosition(current, size));
 			if(it != Sc.end()) {
@@ -387,6 +402,13 @@ void CenterlineExtraction::execute() {
                 current = bestPos;
 			}
 			pointsToAdd.push_back(current);
+
+			// A failsafe (why is this needed?)
+			if(previous2 == current) {
+				break;
+			}
+			previous2 = previous;
+			previous = current;
 
 			// Stop conditions
 			if(minG == 0) {

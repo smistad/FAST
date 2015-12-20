@@ -176,7 +176,7 @@ Image::pointer AirwaySegmentation::convertToHU(Image::pointer image) {
 	cl::Kernel kernel(program, "convertToHU");
 
 	kernel.setArg(0, *input->get3DImage());
-	kernel.setArg(1, *output->get2DImage());
+	kernel.setArg(1, *output->get3DImage());
 
 	device->getCommandQueue().enqueueNDRangeKernel(
 			kernel,
