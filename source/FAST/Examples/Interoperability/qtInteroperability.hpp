@@ -18,6 +18,7 @@
 #include <QVBoxLayout>
 #include <QPushButton>
 #include <QGLContext>
+#include "FAST/TestDataPath.hpp"
 
 class WindowWidget : public QWidget {
     Q_OBJECT
@@ -60,26 +61,29 @@ class WindowWidget : public QWidget {
             // Connect the button to start pipeline
             connect(button, SIGNAL(clicked()), this, SLOT(startPipeline()));
 
-            // Close window automatically after 15 seconds
+#ifdef FAST_CONTINUOUS_INTEGRATION
+	// This will automatically close the window after 5 seconds, used for CI testing
             QTimer* timer = new QTimer(this);
-            timer->start(15*1000);
+            timer->start(5*1000);
             timer->setSingleShot(true);
             connect(timer, SIGNAL(timeout()), this, SLOT(close()));
+#endif
+
         };
         ~WindowWidget() {
-            std::cout << "Trying to stop computation thread" << std::endl;
+            fast::Reporter::info() << "Trying to stop computation thread" << fast::Reporter::end;
             if(mThread != NULL) {
                 mThread->stop();
                 delete mThread;
                 mThread = NULL;
             }
-            std::cout << "Computation thread stopped" << std::endl;
+            fast::Reporter::info() << "Computation thread stopped" << fast::Reporter::end;
         };
     public slots:
         void startPipeline() {
             if(mThread == NULL) {
                 // Start computation thread using QThreads which is a strange thing, see https://mayaposch.wordpress.com/2011/11/01/how-to-really-truly-use-qthreads-the-full-explanation/
-                std::cout << "Trying to start computation thread" << std::endl;
+                fast::Reporter::info() << "Trying to start computation thread" << fast::Reporter::end;
                 mThread = new fast::ComputationThread(QThread::currentThread());
                 QThread* thread = new QThread();
                 mThread->moveToThread(thread);
@@ -99,7 +103,7 @@ class WindowWidget : public QWidget {
                 mainGLContext->moveToThread(thread);
                 mainGLContext->doneCurrent();
                 thread->start();
-                std::cout << "Computation thread started" << std::endl;
+                fast::Reporter::info() << "Computation thread started" << fast::Reporter::end;
             }
         };
     private:

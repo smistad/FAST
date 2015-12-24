@@ -1,5 +1,5 @@
 #include "DataComparison.hpp"
-#include "HelperFunctions.hpp"
+#include "FAST/Utility.hpp"
 #include <cmath>
 #include <ctime>
 
@@ -61,9 +61,9 @@ bool compareDataArrays(void* data1, void* data2, unsigned int nrOfVoxels, DataTy
         for(unsigned int i = 0; i < nrOfVoxels; i++) {
             if(data1c[i] != data2c[i]) {
             	/*
-                std::cout << i << std::endl;
-                std::cout << data1c[i] << std::endl;
-                std::cout << data2c[i] << std::endl;
+                reportInfo() << i << Reporter::end;
+                reportInfo() << data1c[i] << Reporter::end;
+                reportInfo() << data2c[i] << Reporter::end;
                 */
                 success = false;
                 break;
@@ -129,7 +129,7 @@ bool compareImage2DWithDataArray(
             bufferData = new FAST_TYPE[nrOfVoxels];
         );
     }
-    device->getCommandQueue().enqueueReadImage(image, CL_TRUE, oul::createOrigoRegion(), oul::createRegion(width, height, 1), 0, 0, bufferData);
+    device->getCommandQueue().enqueueReadImage(image, CL_TRUE, createOrigoRegion(), createRegion(width, height, 1), 0, 0, bufferData);
 
     if(format.image_channel_order == CL_RGBA && nrOfComponents != 4) {
         // Since OpenCL images doesn't support 3 channels, 4 channel image is used and we must remove the padding
@@ -168,7 +168,7 @@ bool compareImage3DWithDataArray(
             bufferData = new FAST_TYPE[nrOfVoxels];
         );
     }
-    device->getCommandQueue().enqueueReadImage(image, CL_TRUE, oul::createOrigoRegion(), oul::createRegion(width, height, depth), 0, 0, bufferData);
+    device->getCommandQueue().enqueueReadImage(image, CL_TRUE, createOrigoRegion(), createRegion(width, height, depth), 0, 0, bufferData);
 
     if(format.image_channel_order == CL_RGBA && nrOfComponents != 4) {
         // Since OpenCL images doesn't support 3 channels, 4 channel image is used and we must remove the padding

@@ -1,4 +1,4 @@
-#include "catch.hpp"
+#include "FAST/Testing.hpp"
 #include "FAST/Importers/ITKImageImporter.hpp"
 
 using namespace fast;

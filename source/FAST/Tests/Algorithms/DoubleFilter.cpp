@@ -13,6 +13,9 @@ DoubleFilter::DoubleFilter() {
     // and if the input is a dynamic image, the output will also
     // be a dynamic image.
     createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+
+    // This creates an OpenCL program from a source file on disk
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Tests/Algorithms/DoubleFilter.cl");
 }
 
 /*
@@ -35,11 +38,11 @@ inline void executeAlgorithmOnHost(Image::pointer input, Image::pointer output) 
 
 void DoubleFilter::execute() {
     // Get input and output data
-    Image::pointer input = getStaticInputData<Image>(0);
-    Image::pointer output = getStaticOutputData<Image>(0);
+    Image::pointer input = getStaticInputData<Image>();
+    Image::pointer output = getStaticOutputData<Image>();
 
     // Initialize output image
-    output->createFromImage(input, getMainDevice());
+    output->createFromImage(input);
 
     if(getMainDevice()->isHost()) {
         // Execution device is Host, use the executeAlgorithmOnHost function with the given data type
@@ -52,28 +55,10 @@ void DoubleFilter::execute() {
         OpenCLDevice::pointer device = getMainDevice();
 
         // Set build options based on the data type of the data
-        std::string buildOptions = "";
-        switch(input->getDataType()) {
-        case TYPE_FLOAT:
-            buildOptions = "-DTYPE=float";
-            break;
-        case TYPE_INT8:
-            buildOptions = "-DTYPE=char";
-            break;
-        case TYPE_UINT8:
-            buildOptions = "-DTYPE=uchar";
-            break;
-        case TYPE_INT16:
-            buildOptions = "-DTYPE=short";
-            break;
-        case TYPE_UINT16:
-            buildOptions = "-DTYPE=ushort";
-            break;
-        }
+        std::string buildOptions = "-DTYPE=" + getCTypeAsString(input->getDataType());
 
         // Compile the code
-        int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "Tests/Algorithms/DoubleFilter.cl", buildOptions);
-        cl::Kernel kernel = cl::Kernel(device->getProgram(programNr), "doubleFilter");
+        cl::Kernel kernel = cl::Kernel(getOpenCLProgram(device, "", buildOptions), "doubleFilter");
 
         // Get global size for the kernel
         cl::NDRange globalSize(input->getWidth()*input->getHeight()*input->getDepth()*input->getNrOfComponents());

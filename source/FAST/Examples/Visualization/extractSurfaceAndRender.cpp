@@ -7,6 +7,7 @@
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
 #include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
+#include "FAST/TestDataPath.hpp"
 
 using namespace fast;
 
@@ -23,10 +24,12 @@ int main() {
     // Render and visualize the mesh
     MeshRenderer::pointer surfaceRenderer = MeshRenderer::New();
     surfaceRenderer->setInputConnection(extraction->getOutputPort());
-    surfaceRenderer->enableRuntimeMeasurements();
 
 	SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(surfaceRenderer);
-    window->setTimeout(5*1000); // automatically close window after 5 seconds
+#ifdef FAST_CONTINUOUS_INTEGRATION
+	// This will automatically close the window after 5 seconds, used for CI testing
+    window->setTimeout(5*1000);
+#endif
     window->start();
 }

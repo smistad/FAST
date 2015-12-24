@@ -1,8 +1,9 @@
-#ifndef POINT_RENDERER_HPP_
-#define POINT_RENDERER_HPP_
+#ifndef LINE_RENDERER_HPP_
+#define LINE_RENDERER_HPP_
 
 #include "FAST/Visualization/Renderer.hpp"
 #include "FAST/Data/Color.hpp"
+#include "FAST/Data/LineSet.hpp"
 
 namespace fast {
 
@@ -29,6 +30,8 @@ class LineRenderer : public Renderer {
         boost::unordered_map<ProcessObjectPort, float> mInputWidths;
         boost::unordered_map<ProcessObjectPort, Color> mInputColors;
         boost::unordered_map<ProcessObjectPort, bool> mInputDrawOnTop;
+        boost::unordered_map<uint, LineSet::pointer> mLineSetsToRender;
+        boost::mutex mMutex;
 };
 
 }

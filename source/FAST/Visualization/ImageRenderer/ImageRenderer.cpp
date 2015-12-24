@@ -1,7 +1,7 @@
 #include "ImageRenderer.hpp"
 #include "FAST/Exception.hpp"
 #include "FAST/DeviceManager.hpp"
-#include "HelperFunctions.hpp"
+#include "FAST/Utility.hpp"
 #include "FAST/SceneGraph.hpp"
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
@@ -46,6 +46,8 @@ void ImageRenderer::addInputConnection(ProcessObjectPort port) {
 
 ImageRenderer::ImageRenderer() : Renderer() {
     createInputPort<Image>(0, false);
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "/Visualization/ImageRenderer/ImageRenderer.cl", "3D");
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "/Visualization/ImageRenderer/ImageRenderer2D.cl", "2D");
     mIsModified = false;
 }
 
@@ -76,8 +78,8 @@ void ImageRenderer::draw() {
 
         OpenCLDevice::pointer device = getMainDevice();
 
-        OpenCLImageAccess2D::pointer access = input->getOpenCLImageAccess2D(ACCESS_READ, device);
-        cl::Image2D* clImage = access->get();
+        OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
+        cl::Image2D* clImage = access->get2DImage();
 
         glEnable(GL_TEXTURE_2D);
         if(mTexturesToRender.count(inputNr) > 0) {
@@ -118,7 +120,6 @@ void ImageRenderer::draw() {
             );
         #endif
 
-        int i = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/ImageRenderer/ImageRenderer.cl");
         std::string kernelName = "renderToTextureInt";
         if(input->getDataType() == TYPE_FLOAT) {
             kernelName = "renderToTextureFloat";
@@ -126,7 +127,7 @@ void ImageRenderer::draw() {
             kernelName = "renderToTextureUint";
         }
 
-        mKernel = cl::Kernel(device->getProgram(i), kernelName.c_str());
+        mKernel = cl::Kernel(getOpenCLProgram(device, "3D"), kernelName.c_str());
         // Run kernel to fill the texture
         cl::CommandQueue queue = device->getCommandQueue();
         std::vector<cl::Memory> v;
@@ -153,13 +154,14 @@ void ImageRenderer::draw() {
     for(it = mImageUsed.begin(); it != mImageUsed.end(); it++) {
         glPushMatrix();
 
-        AffineTransformation transform = SceneGraph::getAffineTransformationFromData(it->second);
-        transform.scale(it->second->getSpacing()); // Apply image spacing
-        glMultMatrixf(transform.data());
+        AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(it->second);
+        glMultMatrixf(transform->data());
 
         glBindTexture(GL_TEXTURE_2D, mTexturesToRender[it->first]);
-        uint width = it->second->getWidth();
-        uint height = it->second->getHeight();
+
+        // Get width and height in mm
+        float width = it->second->getWidth()*it->second->getSpacing().x();
+        float height = it->second->getHeight()*it->second->getSpacing().y();
 
         glColor3f(1,1,1); // black white texture
         glBegin(GL_QUADS);
@@ -208,14 +210,12 @@ void ImageRenderer::draw2D(cl::BufferGL PBO, uint width, uint height, Eigen::Tra
             level = getDefaultIntensityLevel(input->getDataType());
         }
 
-        int i = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/ImageRenderer/ImageRenderer2D.cl");
-
         if(input->getDimensions() == 2) {
-            cl::Kernel kernel(device->getProgram(i), "render2Dimage");
+            cl::Kernel kernel(getOpenCLProgram(device, "2D"), "render2Dimage");
             // Run kernel to fill the texture
 
-            OpenCLImageAccess2D::pointer access = input->getOpenCLImageAccess2D(ACCESS_READ, device);
-            cl::Image2D* clImage = access->get();
+            OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
+            cl::Image2D* clImage = access->get2DImage();
             kernel.setArg(0, *clImage);
             kernel.setArg(1, PBO); // Read from this
             kernel.setArg(2, PBO2); // Write to this
@@ -237,11 +237,11 @@ void ImageRenderer::draw2D(cl::BufferGL PBO, uint width, uint height, Eigen::Tra
         } else {
 
             // Get transform of the image
-            AffineTransformation dataTransform = SceneGraph::getAffineTransformationFromData(input);
-            dataTransform.scale(it->second->getSpacing()); // Apply image spacing
+            AffineTransformation::pointer dataTransform = SceneGraph::getAffineTransformationFromData(input);
+            dataTransform->scale(it->second->getSpacing()); // Apply image spacing
 
             // Transfer transformations
-            Eigen::Affine3f transform = dataTransform.inverse()*pixelToViewportTransform;
+            Eigen::Affine3f transform = dataTransform->inverse()*pixelToViewportTransform;
 
             cl::Buffer transformBuffer(
                     device->getContext(),
@@ -250,11 +250,11 @@ void ImageRenderer::draw2D(cl::BufferGL PBO, uint width, uint height, Eigen::Tra
                     transform.data()
             );
 
-             cl::Kernel kernel(device->getProgram(i), "render3Dimage");
+             cl::Kernel kernel(getOpenCLProgram(device, "2D"), "render3Dimage");
             // Run kernel to fill the texture
 
-            OpenCLImageAccess3D::pointer access = input->getOpenCLImageAccess3D(ACCESS_READ, device);
-            cl::Image3D* clImage = access->get();
+            OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
+            cl::Image3D* clImage = access->get3DImage();
             kernel.setArg(0, *clImage);
             kernel.setArg(1, PBO); // Read from this
             kernel.setArg(2, PBO2); // Write to this

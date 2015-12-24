@@ -1,6 +1,6 @@
 #include "FAST/Algorithms/Skeletonization/Skeletonization.hpp"
 #include "FAST/DeviceManager.hpp"
-#include "HelperFunctions.hpp"
+#include "FAST/Utility.hpp"
 #include "FAST/SceneGraph.hpp"
 #include "FAST/Data/Segmentation.hpp"
 
@@ -20,7 +20,7 @@ void Skeletonization::execute() {
         throw Exception("The skeletonization algorithm currently only support 2D images");
 
     // Initialize output image
-    output->createFromImage(input, getMainDevice());
+    output->createFromImage(input);
 
     OpenCLDevice::pointer device = getMainDevice();
 
@@ -37,10 +37,10 @@ void Skeletonization::execute() {
             sizeof(char));
 
     cl::Image2D image2(device->getContext(), CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_UNSIGNED_INT8), output->getWidth(), output->getHeight());
-    OpenCLImageAccess2D::pointer access = input->getOpenCLImageAccess2D(ACCESS_READ, device);
-    cl::Image2D* image = access->get();
-    OpenCLImageAccess2D::pointer access2 = output->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
-    cl::Image2D* image1 = access2->get();
+    OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
+    cl::Image2D* image = access->get2DImage();
+    OpenCLImageAccess::pointer access2 = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+    cl::Image2D* image1 = access2->get2DImage();
 
     kernel1.setArg(0, *image1);
     kernel1.setArg(1, image2);
@@ -61,9 +61,9 @@ void Skeletonization::execute() {
     queue.enqueueCopyImage(
             *image,
             *image1,
-            oul::createOrigoRegion(),
-            oul::createOrigoRegion(),
-            oul::createRegion(output->getWidth(), output->getHeight(), 1)
+            createOrigoRegion(),
+            createOrigoRegion(),
+            createRegion(output->getWidth(), output->getHeight(), 1)
     );
 
     do {
@@ -88,7 +88,7 @@ void Skeletonization::execute() {
         if(*stopGrowingResult == 1)
             stopGrowing = true;
     } while(!stopGrowing);
-    std::cout << "SKELETONIZATION EXECUTED" << std::endl;
+    reportInfo() << "SKELETONIZATION EXECUTED" << Reporter::end;
 }
 
 } // end namespace fast

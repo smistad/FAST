@@ -1,48 +1,10 @@
 #include "Image.hpp"
-#include "HelperFunctions.hpp"
+#include "FAST/Utility.hpp"
 #include "FAST/Exception.hpp"
 #include "FAST/Utility.hpp"
 #include "FAST/SceneGraph.hpp"
 
 namespace fast {
-
-bool Image::isDataModified() {
-    if (!mHostDataIsUpToDate)
-        return true;
-
-    boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
-    for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
-            it++) {
-        if (it->second == false)
-            return true;
-    }
-
-    for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end();
-            it++) {
-        if (it->second == false)
-            return true;
-    }
-
-    return false;
-}
-
-bool Image::isAnyDataBeingAccessed() {
-    if (mHostDataIsBeingAccessed)
-        return true;
-
-    boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
-    for (it = mCLImagesAccess.begin(); it != mCLImagesAccess.end(); it++) {
-        if (it->second)
-            return true;
-    }
-
-    for (it = mCLBuffersAccess.begin(); it != mCLBuffersAccess.end(); it++) {
-        if (it->second)
-            return true;
-    }
-
-    return false;
-}
 
 // Pad data with 1, 2 or 3 channels to 4 channels with 0
 template <class T>
@@ -119,16 +81,14 @@ void Image::transferCLImageFromHost(OpenCLDevice::pointer device) {
     if(format.image_channel_order == CL_RGBA && mComponents != 4) {
         void * tempData = adaptDataToImage(mHostData, CL_RGBA, mWidth*mHeight*mDepth, mType, mComponents);
         device->getCommandQueue().enqueueWriteImage(*(cl::Image*)mCLImages[device],
-        CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
+        CL_TRUE, createOrigoRegion(), createRegion(mWidth, mHeight, mDepth), 0,
                 0, tempData);
         deleteArray(tempData, mType);
     } else {
         device->getCommandQueue().enqueueWriteImage(*(cl::Image*)mCLImages[device],
-        CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
+        CL_TRUE, createOrigoRegion(), createRegion(mWidth, mHeight, mDepth), 0,
                 0, mHostData);
     }
-
-
 }
 
 void Image::transferCLImageToHost(OpenCLDevice::pointer device) {
@@ -138,7 +98,7 @@ void Image::transferCLImageToHost(OpenCLDevice::pointer device) {
     if(format.image_channel_order == CL_RGBA && mComponents != 4) {
         void * tempData = allocateDataArray(mWidth*mHeight*mDepth,mType,4);
         device->getCommandQueue().enqueueReadImage(*(cl::Image*)mCLImages[device],
-        CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
+        CL_TRUE, createOrigoRegion(), createRegion(mWidth, mHeight, mDepth), 0,
                 0, tempData);
         mHostData = adaptImageDataToHostData(tempData,CL_RGBA, mWidth*mHeight*mDepth,mType,mComponents);
         deleteArray(tempData, mType);
@@ -146,12 +106,16 @@ void Image::transferCLImageToHost(OpenCLDevice::pointer device) {
         if(!mHostHasData) {
             // Must allocate memory for host data
             mHostData = allocateDataArray(mWidth*mHeight*mDepth,mType,mComponents);
+			mHostHasData = true;
         }
         device->getCommandQueue().enqueueReadImage(*(cl::Image*)mCLImages[device],
-        CL_TRUE, oul::createOrigoRegion(), oul::createRegion(mWidth, mHeight, mDepth), 0,
+        CL_TRUE, createOrigoRegion(), createRegion(mWidth, mHeight, mDepth), 0,
                 0, mHostData);
     }
+}
 
+bool Image::hasAnyData() {
+    return mHostHasData || mCLImages.size() > 0 || mCLBuffers.size() > 0;
 }
 
 void Image::updateOpenCLImageData(OpenCLDevice::pointer device) {
@@ -161,6 +125,7 @@ void Image::updateOpenCLImageData(OpenCLDevice::pointer device) {
             == true)
         return;
 
+    bool updated = false;
     if (mCLImagesIsUpToDate.count(device) == 0) {
         // Data is not on device, create it
         cl::Image * newImage;
@@ -172,41 +137,49 @@ void Image::updateOpenCLImageData(OpenCLDevice::pointer device) {
             CL_MEM_READ_WRITE, getOpenCLImageFormat(device, CL_MEM_OBJECT_IMAGE3D, mType,mComponents), mWidth, mHeight, mDepth);
         }
 
+        if(hasAnyData()) {
+            mCLImagesIsUpToDate[device] = false;
+        } else {
+            mCLImagesIsUpToDate[device] = true;
+            updated = true;
+        }
         mCLImages[device] = newImage;
-        mCLImagesIsUpToDate[device] = false;
     }
 
     // Find which data is up to date
-    bool updated = false;
-    if (mHostDataIsUpToDate) {
-        // Transfer host data to this device
-        transferCLImageFromHost(device);
-        updated = true;
-    } else {
-        boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
-        for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
-                it++) {
-            if (it->second == true) {
-                // Transfer from this device(it->first) to device
-                transferCLImageToHost(it->first);
-                transferCLImageFromHost(device);
-                mHostDataIsUpToDate = true;
-                updated = true;
-                break;
-            }
-        }
-        for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end();
-                it++) {
-            if (it->second == true) {
-                // Transfer from this device(it->first) to device
-                transferCLBufferToHost(it->first);
-                transferCLImageFromHost(device);
-                mHostDataIsUpToDate = true;
-                updated = true;
-                break;
-            }
-        }
-    }
+	if (!mCLImagesIsUpToDate[device]) {
+		if (mHostDataIsUpToDate) {
+			// Transfer host data to this device
+			transferCLImageFromHost(device);
+			updated = true;
+		} else {
+			boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+			for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
+				it++) {
+				if (it->second == true) {
+					// Transfer from this device(it->first) to device
+					// TODO should use copy image to image here, if possible
+					transferCLImageToHost(it->first);
+					transferCLImageFromHost(device);
+					mHostDataIsUpToDate = true;
+					updated = true;
+					break;
+				}
+			}
+			for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end();
+				it++) {
+				if (it->second == true) {
+					// Transfer from this device(it->first) to device
+					// TODO should use copy buffer to image here, if possible
+					transferCLBufferToHost(it->first);
+					transferCLImageFromHost(device);
+					mHostDataIsUpToDate = true;
+					updated = true;
+					break;
+				}
+			}
+		}
+	}
 
     if (!updated)
         throw Exception(
@@ -220,25 +193,26 @@ OpenCLBufferAccess::pointer Image::getOpenCLBufferAccess(
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
 
-    if(mImageIsBeingWrittenTo)
-        throw Exception("Requesting access to an image that is already being written to.");
-    if (type == ACCESS_READ_WRITE) {
-        if (isAnyDataBeingAccessed()) {
-            throw Exception(
-                    "Trying to get write access to an object that is already being accessed");
-        }
-        mImageIsBeingWrittenTo = true;
+    blockIfBeingWrittenTo();
+
+    if(type == ACCESS_READ_WRITE) {
+    	blockIfBeingAccessed();
+        boost::unique_lock<boost::mutex> lock(mDataIsBeingWrittenToMutex);
+        mDataIsBeingWrittenTo = true;
     }
     updateOpenCLBufferData(device);
-    if (type == ACCESS_READ_WRITE) {
+    if(type == ACCESS_READ_WRITE) {
         setAllDataToOutOfDate();
         updateModifiedTimestamp();
     }
-    mCLBuffersAccess[device] = true;
     mCLBuffersIsUpToDate[device] = true;
+    {
+        boost::unique_lock<boost::mutex> lock(mDataIsBeingAccessedMutex);
+        mDataIsBeingAccessed = true;
+    }
 
     // Now it is guaranteed that the data is on the device and that it is up to date
-	OpenCLBufferAccess::pointer accessObject(new OpenCLBufferAccess(mCLBuffers[device], &mCLBuffersAccess[device], &mImageIsBeingWrittenTo));
+	OpenCLBufferAccess::pointer accessObject(new OpenCLBufferAccess(mCLBuffers[device],  mPtr.lock()));
 	return std::move(accessObject);
 }
 
@@ -259,45 +233,52 @@ void Image::updateOpenCLBufferData(OpenCLDevice::pointer device) {
             == true)
         return;
 
+    bool updated = false;
     if (mCLBuffers.count(device) == 0) {
         // Data is not on device, create it
         unsigned int bufferSize = getBufferSize();
         cl::Buffer * newBuffer = new cl::Buffer(device->getContext(),
         CL_MEM_READ_WRITE, bufferSize);
 
+        if(hasAnyData()) {
+            mCLBuffersIsUpToDate[device] = false;
+        } else {
+            mCLBuffersIsUpToDate[device] = true;
+            updated = true;
+        }
         mCLBuffers[device] = newBuffer;
-        mCLBuffersIsUpToDate[device] = false;
     }
 
 
     // Find which data is up to date
-    bool updated = false;
-    if (mHostDataIsUpToDate) {
-        // Transfer host data to this device
-        transferCLBufferFromHost(device);
-        updated = true;
-    } else {
-        boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
-        for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
-                it++) {
-            if (it->second == true) {
-                // Transfer from this device(it->first) to device
-                transferCLImageToHost(it->first);
-                transferCLBufferFromHost(device);
-                mHostDataIsUpToDate = true;
-                updated = true;
-                break;
+    if(!mCLBuffersIsUpToDate[device]) {
+        if (mHostDataIsUpToDate) {
+            // Transfer host data to this device
+            transferCLBufferFromHost(device);
+            updated = true;
+        } else {
+            boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+            for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
+                    it++) {
+                if (it->second == true) {
+                    // Transfer from this device(it->first) to device
+                    transferCLImageToHost(it->first);
+                    transferCLBufferFromHost(device);
+                    mHostDataIsUpToDate = true;
+                    updated = true;
+                    break;
+                }
             }
-        }
-        for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end();
-                it++) {
-            if (it->second == true) {
-                // Transfer from this device(it->first) to device
-                transferCLBufferToHost(it->first);
-                transferCLBufferFromHost(device);
-                mHostDataIsUpToDate = true;
-                updated = true;
-                break;
+            for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end();
+                    it++) {
+                if (it->second == true) {
+                    // Transfer from this device(it->first) to device
+                    transferCLBufferToHost(it->first);
+                    transferCLBufferFromHost(device);
+                    mHostDataIsUpToDate = true;
+                    updated = true;
+                    break;
+                }
             }
         }
     }
@@ -316,6 +297,11 @@ void Image::transferCLBufferFromHost(OpenCLDevice::pointer device) {
 }
 
 void Image::transferCLBufferToHost(OpenCLDevice::pointer device) {
+	if (!mHostHasData) {
+		// Must allocate memory for host data
+		mHostData = allocateDataArray(mWidth*mHeight*mDepth, mType, mComponents);
+		mHostHasData = true;
+	}
     unsigned int bufferSize = getBufferSize();
     device->getCommandQueue().enqueueReadBuffer(*mCLBuffers[device],
         CL_TRUE, 0, bufferSize, mHostData);
@@ -326,42 +312,45 @@ void Image::updateHostData() {
     if (mHostDataIsUpToDate)
         return;
 
+    bool updated = false;
     if (!mHostHasData) {
         // Data is not initialized, do that first
         unsigned int size = mWidth*mHeight*mComponents;
         if(mDimensions == 3)
             size *= mDepth;
         mHostData = allocateDataArray(mWidth*mHeight*mDepth,mType,mComponents);
+        if(hasAnyData()) {
+            mHostDataIsUpToDate = false;
+        } else {
+            mHostDataIsUpToDate = true;
+            updated = true;
+        }
         mHostHasData = true;
     }
 
-    if (mCLImages.size() > 0) {
-        // Find which data is up to date
-        bool updated = false;
-        boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
-        for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
-                it++) {
-            if (it->second == true) {
-                // transfer from this device to host
-                transferCLImageToHost(it->first);
-                updated = true;
-                break;
-            }
+    // Find which data is up to date
+    boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+    for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
+            it++) {
+        if (it->second == true) {
+            // transfer from this device to host
+            transferCLImageToHost(it->first);
+            updated = true;
+            break;
         }
-        for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end();
-                it++) {
-            if (it->second == true) {
-                // transfer from this device to host
-                transferCLBufferToHost(it->first);
-                updated = true;
-                break;
-            }
-        }
-
-        if (!updated)
-            throw Exception(
-                    "Data was not updated because no data was marked as up to date");
     }
+    for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end();
+            it++) {
+        if (it->second == true) {
+            // transfer from this device to host
+            transferCLBufferToHost(it->first);
+            updated = true;
+            break;
+        }
+    }
+    if (!updated)
+        throw Exception(
+                "Data was not updated because no data was marked as up to date");
 }
 
 void Image::setAllDataToOutOfDate() {
@@ -377,116 +366,115 @@ void Image::setAllDataToOutOfDate() {
     }
 }
 
-OpenCLImageAccess2D::pointer Image::getOpenCLImageAccess2D(
+OpenCLImageAccess::pointer Image::getOpenCLImageAccess(
         accessType type,
         OpenCLDevice::pointer device) {
 
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
-    if(mImageIsBeingWrittenTo)
-        throw Exception("Requesting access to an image that is already being written to.");
-    if(mDimensions != 2)
-        throw Exception("Trying to get OpenCL Image2D access to an Image that is not 2D");
+
+    blockIfBeingWrittenTo();
 
     // Check for write access
-    if (type == ACCESS_READ_WRITE) {
-        if (isAnyDataBeingAccessed()) {
-            throw Exception(
-                    "Trying to get write access to an object that is already being accessed");
-        }
-        mImageIsBeingWrittenTo = true;
+    if(type == ACCESS_READ_WRITE) {
+    	blockIfBeingAccessed();
+    	boost::lock_guard<boost::mutex> lock(mDataIsBeingWrittenToMutex);
+        mDataIsBeingWrittenTo = true;
     }
     updateOpenCLImageData(device);
     if (type == ACCESS_READ_WRITE) {
         setAllDataToOutOfDate();
         updateModifiedTimestamp();
     }
-    mCLImagesAccess[device] = true;
+    {
+        boost::lock_guard<boost::mutex> lock(mDataIsBeingAccessedMutex);
+        mDataIsBeingAccessed = true;
+    }
     mCLImagesIsUpToDate[device] = true;
 
     // Now it is guaranteed that the data is on the device and that it is up to date
-	OpenCLImageAccess2D::pointer accessObject(new OpenCLImageAccess2D((cl::Image2D*)mCLImages[device], &mCLImagesAccess[device], &mImageIsBeingWrittenTo));
-	return accessObject;
-}
-
-OpenCLImageAccess3D::pointer Image::getOpenCLImageAccess3D(
-        accessType type,
-        OpenCLDevice::pointer device) {
-
-    if(!isInitialized())
-        throw Exception("Image has not been initialized.");
-    if(mImageIsBeingWrittenTo)
-        throw Exception("Requesting access to an image that is already being written to.");
-    if(mDimensions != 3)
-        throw Exception("Trying to get OpenCL Image3D access to an Image that is not 3D");
-
-    // Check for write access
-    if (type == ACCESS_READ_WRITE) {
-        if (isAnyDataBeingAccessed()) {
-            throw Exception(
-                    "Trying to get write access to an object that is already being accessed");
-        }
-        mImageIsBeingWrittenTo = true;
+    if(mDimensions == 2) {
+        OpenCLImageAccess::pointer accessObject(new OpenCLImageAccess((cl::Image2D*)mCLImages[device], mPtr.lock()));
+        return accessObject;
+    } else {
+        OpenCLImageAccess::pointer accessObject(new OpenCLImageAccess((cl::Image3D*)mCLImages[device], mPtr.lock()));
+        return accessObject;
     }
-    updateOpenCLImageData(device);
-    if (type == ACCESS_READ_WRITE) {
-        setAllDataToOutOfDate();
-        updateModifiedTimestamp();
-    }
-    mCLImagesAccess[device] = true;
-    mCLImagesIsUpToDate[device] = true;
-
-    // Now it is guaranteed that the data is on the device and that it is up to date
-	OpenCLImageAccess3D::pointer accessObject(new OpenCLImageAccess3D((cl::Image3D*)mCLImages[device], &mCLImagesAccess[device], &mImageIsBeingWrittenTo));
-	return accessObject;
 }
 
 Image::Image() {
     mHostData = NULL;
     mHostHasData = false;
     mHostDataIsUpToDate = false;
-    mHostDataIsBeingAccessed = false;
     mIsDynamicData = false;
-    mImageIsBeingWrittenTo = false;
     mSpacing = Vector3f(1,1,1);
     mMaxMinInitialized = false;
+    mAverageInitialized = false;
+    mIsInitialized = false;
 }
 
 ImageAccess::pointer Image::getImageAccess(accessType type) {
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
-    if(mImageIsBeingWrittenTo)
-        throw Exception("Requesting access to an image that is already being written to.");
 
-    if (type == ACCESS_READ_WRITE) {
-        if (isAnyDataBeingAccessed()) {
-            throw Exception(
-                    "Trying to get write access to an object that is already being accessed");
-        }
-        mImageIsBeingWrittenTo = true;
+    blockIfBeingWrittenTo();
+
+    if(type == ACCESS_READ_WRITE) {
+    	blockIfBeingAccessed();
+        boost::unique_lock<boost::mutex> lock(mDataIsBeingWrittenToMutex);
+        mDataIsBeingWrittenTo = true;
     }
     updateHostData();
     if(type == ACCESS_READ_WRITE) {
-        // Set modified to true since it wants write access
         setAllDataToOutOfDate();
         updateModifiedTimestamp();
     }
-
     mHostDataIsUpToDate = true;
-    mHostDataIsBeingAccessed = true;
+    {
+        boost::unique_lock<boost::mutex> lock(mDataIsBeingAccessedMutex);
+        mDataIsBeingAccessed = true;
+    }
 
-	Image::pointer image = mPtr.lock();
-	ImageAccess::pointer accessObject(new ImageAccess(mHostData, image, &mHostDataIsBeingAccessed, &mImageIsBeingWrittenTo));
+	ImageAccess::pointer accessObject(new ImageAccess(mHostData, mPtr.lock()));
 	return std::move(accessObject);
 }
 
-void Image::create3DImage(
+void Image::create(
+        VectorXui size,
+        DataType type,
+        unsigned int nrOfComponents) {
+
+    if(size.rows() > 2 && size.z() > 1) {
+        // 3D
+        create(size.x(), size.y(), size.z(), type, nrOfComponents);
+    } else {
+        // 2D
+        create(size.x(), size.y(), type, nrOfComponents);
+    }
+}
+
+void Image::create(
+        VectorXui size,
+        DataType type,
+        unsigned int nrOfComponents,
+        ExecutionDevice::pointer device,
+        const void* data) {
+
+    if(size.rows() > 2 && size.z() > 1) {
+        // 3D
+        create(size.x(), size.y(), size.z(), type, nrOfComponents, device, data);
+    } else {
+        // 2D
+        create(size.x(), size.y(), type, nrOfComponents, device, data);
+    }
+}
+
+void Image::create(
         unsigned int width,
         unsigned int height,
         unsigned int depth,
         DataType type,
-        unsigned int nrOfComponents,
-        ExecutionDevice::pointer device) {
+        unsigned int nrOfComponents) {
 
     getSceneGraphNode()->reset(); // reset scene graph node
     freeAll(); // delete any old data
@@ -498,25 +486,11 @@ void Image::create3DImage(
     mDimensions = 3;
     mType = type;
     mComponents = nrOfComponents;
-    if(device->isHost()) {
-        mHostHasData = true;
-        mHostData = allocateDataArray(mWidth*mHeight*mDepth,mType,mComponents);
-    } else {
-        OpenCLDevice::pointer clDevice = device;
-        cl::Image3D* clImage = new cl::Image3D(
-            clDevice->getContext(),
-            CL_MEM_READ_WRITE,
-            getOpenCLImageFormat(clDevice, CL_MEM_OBJECT_IMAGE3D, type, nrOfComponents),
-            width, height, depth
-            );
-        mCLImages[clDevice] = clImage;
-        mCLImagesIsUpToDate[clDevice] = true;
-        mCLImagesAccess[clDevice] = false;
-    }
     updateModifiedTimestamp();
+    mIsInitialized = true;
 }
 
-void Image::create3DImage(
+void Image::create(
         unsigned int width,
         unsigned int height,
         unsigned int depth,
@@ -557,17 +531,16 @@ void Image::create3DImage(
         }
         mCLImages[clDevice] = clImage;
         mCLImagesIsUpToDate[clDevice] = true;
-        mCLImagesAccess[clDevice] = false;
     }
     updateModifiedTimestamp();
+    mIsInitialized = true;
 }
 
-void Image::create2DImage(
+void Image::create(
         unsigned int width,
         unsigned int height,
         DataType type,
-        unsigned int nrOfComponents,
-        ExecutionDevice::pointer device) {
+        unsigned int nrOfComponents) {
 
     getSceneGraphNode()->reset(); // reset scene graph node
     freeAll(); // delete any old data
@@ -579,28 +552,14 @@ void Image::create2DImage(
     mDimensions = 2;
     mType = type;
     mComponents = nrOfComponents;
-    if(device->isHost()) {
-        mHostHasData = true;
-        mHostData = allocateDataArray(mWidth*mHeight,mType,mComponents);
-    } else {
-        OpenCLDevice::pointer clDevice = device;
-        cl::Image2D* clImage = new cl::Image2D(
-            clDevice->getContext(),
-            CL_MEM_READ_WRITE,
-            getOpenCLImageFormat(clDevice, CL_MEM_OBJECT_IMAGE2D, type, nrOfComponents),
-            width, height
-            );
-        mCLImages[clDevice] = clImage;
-        mCLImagesIsUpToDate[clDevice] = true;
-        mCLImagesAccess[clDevice] = false;
-    }
     updateModifiedTimestamp();
+    mIsInitialized = true;
 }
 
 
 
 
-void Image::create2DImage(
+void Image::create(
         unsigned int width,
         unsigned int height,
         DataType type,
@@ -640,13 +599,13 @@ void Image::create2DImage(
         }
         mCLImages[clDevice] = clImage;
         mCLImagesIsUpToDate[clDevice] = true;
-        mCLImagesAccess[clDevice] = false;
     }
     updateModifiedTimestamp();
+    mIsInitialized = true;
 }
 
 bool Image::isInitialized() const {
-    return mCLImages.size() > 0 || mCLBuffers.size() > 0 || mHostHasData;
+    return mIsInitialized;
 }
 
 void Image::free(ExecutionDevice::pointer device) {
@@ -660,12 +619,10 @@ void Image::free(ExecutionDevice::pointer device) {
         delete mCLImages[clDevice];
         mCLImages.erase(clDevice);
         mCLImagesIsUpToDate.erase(clDevice);
-        mCLImagesAccess.erase(clDevice);
         // Delete any OpenCL buffers
         delete mCLBuffers[clDevice];
         mCLBuffers.erase(clDevice);
         mCLBuffersIsUpToDate.erase(clDevice);
-        mCLBuffersAccess.erase(clDevice);
     }
 }
 
@@ -677,7 +634,6 @@ void Image::freeAll() {
     }
     mCLImages.clear();
     mCLImagesIsUpToDate.clear();
-    mCLImagesAccess.clear();
 
     // Delete OpenCL buffers
     boost::unordered_map<OpenCLDevice::pointer, cl::Buffer*>::iterator it2;
@@ -686,7 +642,6 @@ void Image::freeAll() {
     }
     mCLBuffers.clear();
     mCLBuffersIsUpToDate.clear();
-    mCLBuffersAccess.clear();
 
     // Delete host data
     if(mHostHasData) {
@@ -710,6 +665,12 @@ unsigned int Image::getDepth() const {
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
     return mDepth;
+}
+
+Vector3ui Image::getSize() const {
+    if(!isInitialized())
+        throw Exception("Image has not been initialized.");
+    return Vector3ui(mWidth, mHeight, mDepth);
 }
 
 unsigned char Image::getDimensions() const {
@@ -738,23 +699,6 @@ void fast::Image::setSpacing(Vector3f spacing) {
     mSpacing = spacing;
 }
 
-/*
-void Image::updateSceneGraphTransformation() const {
-    if(!isInitialized())
-        throw Exception("Image has not been initialized.");
-
-    // Create linear transformation matrix
-    AffineTransformation transformation;
-    transformation.linear() = mTransformMatrix;
-    transformation.translation() = mOffset;
-    transformation.scale(mSpacing);
-
-    SceneGraphNode::pointer node = getSceneGraphNode();
-    node->setTransformation(transformation);
-}
-*/
-
-
 void Image::calculateMaxAndMinIntensity() {
     // Calculate max and min if image has changed or it is the first time
     if(!mMaxMinInitialized || mMaxMinTimestamp != getTimestamp()) {
@@ -766,6 +710,8 @@ void Image::calculateMaxAndMinIntensity() {
             void* data = access->get();
             switch(mType) {
             case TYPE_FLOAT:
+            case TYPE_SNORM_INT16:
+            case TYPE_UNORM_INT16:
                 getMaxAndMinFromData<float>(data,nrOfElements,&mMinimumIntensity,&mMaximumIntensity);
                 break;
             case TYPE_INT8:
@@ -790,8 +736,8 @@ void Image::calculateMaxAndMinIntensity() {
                 if(it->second == true) {
                     OpenCLDevice::pointer device = it->first;
                     if(mDimensions == 2) {
-                        OpenCLImageAccess2D::pointer access = getOpenCLImageAccess2D(ACCESS_READ, device);
-                        cl::Image2D* clImage = access->get();
+                        OpenCLImageAccess::pointer access = getOpenCLImageAccess(ACCESS_READ, device);
+                        cl::Image2D* clImage = access->get2DImage();
                         getMaxAndMinFromOpenCLImage(device, *clImage, mType, &mMinimumIntensity, &mMaximumIntensity);
                     } else {
                         if(device->getDevice().getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") == std::string::npos) {
@@ -801,8 +747,8 @@ void Image::calculateMaxAndMinIntensity() {
                             cl::Buffer* buffer = access->get();
                             getMaxAndMinFromOpenCLBuffer(device, *buffer, nrOfElements, mType, &mMinimumIntensity, &mMaximumIntensity);
                         } else {
-                            OpenCLImageAccess3D::pointer access = getOpenCLImageAccess3D(ACCESS_READ, device);
-                            cl::Image3D* clImage = access->get();
+                            OpenCLImageAccess::pointer access = getOpenCLImageAccess(ACCESS_READ, device);
+                            cl::Image3D* clImage = access->get3DImage();
                             getMaxAndMinFromOpenCLImage(device, *clImage, mType, &mMinimumIntensity, &mMaximumIntensity);
                         }
                     }
@@ -829,6 +775,94 @@ void Image::calculateMaxAndMinIntensity() {
     }
 }
 
+float Image::calculateAverageIntensity() {
+     if(!isInitialized())
+        throw Exception("Image has not been initialized.");
+
+    // Calculate max and min if image has changed or it is the first time
+    if(!mAverageInitialized || mAverageIntensityTimestamp != getTimestamp()) {
+        unsigned int nrOfElements = mWidth*mHeight*mDepth;
+        if(mHostHasData && mHostDataIsUpToDate) {
+            reportInfo() << "calculating sum on host" << Reporter::end;
+            // Host data is up to date, calculate min and max on host
+            ImageAccess::pointer access = getImageAccess(ACCESS_READ);
+            void* data = access->get();
+            switch(mType) {
+            case TYPE_FLOAT:
+                mAverageIntensity = getSumFromData<float>(data,nrOfElements) / nrOfElements;
+                break;
+            case TYPE_INT8:
+                mAverageIntensity = getSumFromData<char>(data,nrOfElements) / nrOfElements;
+                break;
+            case TYPE_UINT8:
+                mAverageIntensity = getSumFromData<uchar>(data,nrOfElements) / nrOfElements;
+                break;
+            case TYPE_INT16:
+                mAverageIntensity = getSumFromData<short>(data,nrOfElements) / nrOfElements;
+                break;
+            case TYPE_UINT16:
+                mAverageIntensity = getSumFromData<ushort>(data,nrOfElements) / nrOfElements;
+                break;
+            }
+        } else {
+            reportInfo() << "calculating sum with OpenCL" << Reporter::end;
+            // TODO the logic here can be improved. For instance choose the best device
+            // Find some OpenCL image data or buffer data that is up to date
+            bool found = false;
+            boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+            for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end(); it++) {
+                if(it->second == true) {
+                    OpenCLDevice::pointer device = it->first;
+                    float sum;
+                    if(mDimensions == 2) {
+                        OpenCLImageAccess::pointer access = getOpenCLImageAccess(ACCESS_READ, device);
+                        cl::Image2D* clImage = access->get2DImage();
+                        getIntensitySumFromOpenCLImage(device, *clImage, mType, &sum);
+                    } else {
+                        if(!device->isWritingTo3DTexturesSupported()) {
+                            // Writing to 3D images is not supported on this device
+                            // Copy data to buffer instead and do the max min calculation on the buffer instead
+                            OpenCLBufferAccess::pointer access = getOpenCLBufferAccess(ACCESS_READ, device);
+                            cl::Buffer* buffer = access->get();
+                            // TODO
+                            throw Exception("Not implemented yet");
+                            //getMaxAndMinFromOpenCLBuffer(device, *buffer, nrOfElements, mType, &mMinimumIntensity, &mMaximumIntensity);
+                        } else {
+                            OpenCLImageAccess::pointer access = getOpenCLImageAccess(ACCESS_READ, device);
+                            cl::Image3D* clImage = access->get3DImage();
+                            // TODO
+                            throw Exception("Not implemented yet");
+                            //getIntensitySumFromOpenCLImage(device, *clImage, mType, &sum);
+                        }
+                    }
+                    mAverageIntensity = sum / nrOfElements;
+                    found = true;
+                }
+            }
+
+            if(!found) {
+                for (it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end(); it++) {
+                    if(it->second == true) {
+                        OpenCLDevice::pointer device = it->first;
+                        OpenCLBufferAccess::pointer access = getOpenCLBufferAccess(ACCESS_READ, device);
+                        cl::Buffer* buffer = access->get();
+                        // TODO
+                            throw Exception("Not implemented yet");
+                        //getMaxAndMinFromOpenCLBuffer(device, *buffer, nrOfElements, mType, &mMinimumIntensity, &mMaximumIntensity);
+                        found = true;
+                    }
+                }
+            }
+        }
+
+        // Update timestamp
+        mAverageIntensityTimestamp = getTimestamp();
+        mAverageInitialized = true;
+    }
+
+    return mAverageIntensity;
+}
+
 float Image::calculateMaximumIntensity() {
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
@@ -846,27 +880,9 @@ float Image::calculateMinimumIntensity() {
 }
 
 void Image::createFromImage(
-        Image::pointer image,
-        ExecutionDevice::pointer device) {
+        Image::pointer image) {
     // Create image first
-    if(image->getDimensions() == 2) {
-        create2DImage(
-                image->getWidth(),
-                image->getHeight(),
-                image->getDataType(),
-                image->getNrOfComponents(),
-                device
-        );
-    } else {
-        create3DImage(
-                image->getWidth(),
-                image->getHeight(),
-                image->getDepth(),
-                image->getDataType(),
-                image->getNrOfComponents(),
-                device
-        );
-    }
+    create(image->getSize(), image->getDataType(), image->getNrOfComponents());
 
     // Copy metadata
     setSpacing(image->getSpacing());
@@ -876,7 +892,7 @@ void Image::createFromImage(
 
 Image::pointer Image::copy(ExecutionDevice::pointer device) {
     Image::pointer clone = Image::New();
-    clone->createFromImage(mPtr.lock(), device);
+    clone->createFromImage(mPtr.lock());
 
     // If device is host, get data from this image to host
     if(device->isHost()) {
@@ -892,30 +908,30 @@ Image::pointer Image::copy(ExecutionDevice::pointer device) {
         // If device is not host
         OpenCLDevice::pointer clDevice = device;
         if(getDimensions() == 2) {
-            OpenCLImageAccess2D::pointer readAccess = this->getOpenCLImageAccess2D(ACCESS_READ, clDevice);
-            OpenCLImageAccess2D::pointer writeAccess = clone->getOpenCLImageAccess2D(ACCESS_READ_WRITE, clDevice);
-            cl::Image2D* input = readAccess->get();
-            cl::Image2D* output = writeAccess->get();
+            OpenCLImageAccess::pointer readAccess = this->getOpenCLImageAccess(ACCESS_READ, clDevice);
+            OpenCLImageAccess::pointer writeAccess = clone->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
+            cl::Image2D* input = readAccess->get2DImage();
+            cl::Image2D* output = writeAccess->get2DImage();
 
             clDevice->getCommandQueue().enqueueCopyImage(
                     *input,
                     *output,
-                    oul::createOrigoRegion(),
-                    oul::createOrigoRegion(),
-                    oul::createRegion(getWidth(), getHeight(), 1)
+                    createOrigoRegion(),
+                    createOrigoRegion(),
+                    createRegion(getWidth(), getHeight(), 1)
             );
         } else {
-            OpenCLImageAccess3D::pointer readAccess = this->getOpenCLImageAccess3D(ACCESS_READ, clDevice);
-            OpenCLImageAccess3D::pointer writeAccess = clone->getOpenCLImageAccess3D(ACCESS_READ_WRITE, clDevice);
-            cl::Image3D* input = readAccess->get();
-            cl::Image3D* output = writeAccess->get();
+            OpenCLImageAccess::pointer readAccess = this->getOpenCLImageAccess(ACCESS_READ, clDevice);
+            OpenCLImageAccess::pointer writeAccess = clone->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
+            cl::Image3D* input = readAccess->get3DImage();
+            cl::Image3D* output = writeAccess->get3DImage();
 
             clDevice->getCommandQueue().enqueueCopyImage(
                     *input,
                     *output,
-                    oul::createOrigoRegion(),
-                    oul::createOrigoRegion(),
-                    oul::createRegion(getWidth(), getHeight(), getDepth())
+                    createOrigoRegion(),
+                    createOrigoRegion(),
+                    createRegion(getWidth(), getHeight(), getDepth())
             );
         }
     }
@@ -923,11 +939,98 @@ Image::pointer Image::copy(ExecutionDevice::pointer device) {
     return clone;
 }
 
+
+void Image::findDeviceWithUptodateData(ExecutionDevice::pointer* device, bool* isOpenCLImage) {
+    // Check first if there are any OpenCL images
+    for(auto iterator : mCLImagesIsUpToDate) {
+        if(iterator.second) {
+            *device = iterator.first;
+            *isOpenCLImage = true;
+            return;
+        }
+    }
+
+    // OpenCL buffers
+    for(auto iterator : mCLBuffersIsUpToDate) {
+        if(iterator.second) {
+            *device = iterator.first;
+            *isOpenCLImage = false;
+            return;
+        }
+    }
+
+    // Host data
+    if(mHostDataIsUpToDate) {
+        *device = Host::getInstance();
+    } else {
+        throw Exception("Image has no up to date data. This should not be possible!");
+    }
+}
+
+Image::pointer Image::crop(VectorXui offset, VectorXui size) {
+    Image::pointer newImage = Image::New();
+
+    ExecutionDevice::pointer device;
+    bool isOpenCLImage;
+    findDeviceWithUptodateData(&device, &isOpenCLImage);
+    // Handle host
+    if(device->isHost()) {
+        throw Exception("Not implemented yet");
+    } else {
+        OpenCLDevice::pointer clDevice = device;
+        if(getDimensions() == 2) {
+            if(offset.size() < 2 || size.size() < 2)
+                throw Exception("offset and size vectors given to Image::crop must have at least 2 components");
+            newImage->create(size, getDataType(), getNrOfComponents());
+            OpenCLImageAccess::pointer readAccess = this->getOpenCLImageAccess(ACCESS_READ, clDevice);
+            OpenCLImageAccess::pointer writeAccess = newImage->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
+            cl::Image2D* input = readAccess->get2DImage();
+            cl::Image2D* output = writeAccess->get2DImage();
+
+            clDevice->getCommandQueue().enqueueCopyImage(
+                    *input,
+                    *output,
+                    createRegion(offset.x(), offset.y(), 0),
+                    createOrigoRegion(),
+                    createRegion(size.x(), size.y(), 1)
+            );
+        } else {
+            if(offset.size() < 3 || size.size() < 3)
+                throw Exception("offset and size vectors given to Image::crop must have at least 3 components");
+            newImage->create(size, getDataType(), getNrOfComponents());
+            OpenCLImageAccess::pointer readAccess = this->getOpenCLImageAccess(ACCESS_READ, clDevice);
+            OpenCLImageAccess::pointer writeAccess = newImage->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
+            cl::Image3D* input = readAccess->get3DImage();
+            cl::Image3D* output = writeAccess->get3DImage();
+
+            clDevice->getCommandQueue().enqueueCopyImage(
+                    *input,
+                    *output,
+                    createRegion(offset.x(), offset.y(), offset.z()),
+                    createOrigoRegion(),
+                    createRegion(size.x(), size.y(), size.z())
+            );
+        }
+    }
+
+    // Fix placement and spacing of the new cropped image
+    AffineTransformation::pointer T = AffineTransformation::New();
+    newImage->setSpacing(getSpacing());
+    // Multiply with spacing here to convert voxel translation to world(mm) translation
+    T->translation() = getSpacing().cwiseProduct(getDimensions() == 2 ? Vector3f(offset.x(), offset.y(), 0) : Vector3f(offset.x(), offset.y(), offset.z()));
+    newImage->getSceneGraphNode()->setTransformation(T);
+    SceneGraph::setParentNode(newImage, mPtr.lock());
+    reportInfo() << SceneGraph::getAffineTransformationFromData(newImage)->matrix() << Reporter::end;
+    reportInfo() << SceneGraph::getAffineTransformationFromData(mPtr.lock())->matrix() << Reporter::end;
+
+    return newImage;
+}
+
 BoundingBox Image::getTransformedBoundingBox() const {
-    AffineTransformation T = SceneGraph::getAffineTransformationFromData(DataObject::pointer(mPtr.lock()));
+    AffineTransformation::pointer T = SceneGraph::getAffineTransformationFromData(DataObject::pointer(mPtr.lock()));
 
     // Add image spacing
-    T.scale(getSpacing());
+    T->scale(getSpacing());
 
     return getBoundingBox().getTransformedBoundingBox(T);
 }

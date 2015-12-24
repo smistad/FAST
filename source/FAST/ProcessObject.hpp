@@ -19,6 +19,7 @@ enum InputDataType { INPUT_STATIC, INPUT_DYNAMIC, INPUT_STATIC_OR_DYNAMIC };
 enum OutputDataType { OUTPUT_STATIC, OUTPUT_DYNAMIC, OUTPUT_DEPENDS_ON_INPUT };
 
 class ProcessObjectPort;
+class OpenCLProgram;
 
 class ProcessObject : public virtual Object {
     public:
@@ -28,8 +29,8 @@ class ProcessObject : public virtual Object {
         typedef SharedPointer<ProcessObject> pointer;
 
         // Runtime stuff
-        oul::RuntimeMeasurementPtr getRuntime();
-        oul::RuntimeMeasurementPtr getRuntime(std::string name);
+        RuntimeMeasurementPtr getRuntime();
+        RuntimeMeasurementPtr getRuntime(std::string name);
         void enableRuntimeMeasurements();
         void disableRuntimeMeasurements();
 
@@ -92,7 +93,7 @@ class ProcessObject : public virtual Object {
 
         virtual void waitToFinish() {};
 
-        oul::RuntimeMeasurementsManagerPtr mRuntimeManager;
+        RuntimeMeasurementsManagerPtr mRuntimeManager;
 
         void setInputRequired(uint portID, bool required);
         void releaseInputAfterExecute(uint inputNumber, bool release);
@@ -104,6 +105,13 @@ class ProcessObject : public virtual Object {
 
         template <class T>
         void setStaticOutputData(uint portID, DataObject::pointer data);
+
+        void createOpenCLProgram(std::string sourceFilename, std::string name = "");
+        cl::Program getOpenCLProgram(
+                SharedPointer<OpenCLDevice> device,
+                std::string name = "",
+                std::string buildOptions = ""
+        );
 
     private:
         void updateTimestamp(DataObject::pointer data);
@@ -130,6 +138,8 @@ class ProcessObject : public virtual Object {
         boost::unordered_map<uint, InputDataType> mInputPortType;
         boost::unordered_map<uint, OutputDataType> mOutputPortType;
 
+        boost::unordered_map<std::string, SharedPointer<OpenCLProgram> > mOpenCLPrograms;
+
         friend class DynamicData;
         friend class ProcessObjectPort;
 };
@@ -139,7 +149,7 @@ class ProcessObjectPort {
     public:
         ProcessObjectPort(uint portID, ProcessObject::pointer processObject);
         ProcessObjectPort() {};
-        DataObject::pointer getData() const;
+        DataObject::pointer getData();
         uint getPortID() const;
         ProcessObject::pointer getProcessObject() const;
         bool isDataModified() const;
@@ -155,6 +165,7 @@ class ProcessObjectPort {
         uint mPortID;
         ProcessObject::pointer mProcessObject;
         unsigned long mTimestamp;
+        std::size_t mDataPointer;
 };
 
 

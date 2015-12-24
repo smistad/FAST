@@ -3,7 +3,7 @@
 #include "FAST/Data/Image.hpp"
 #include "FAST/Data/Mesh.hpp"
 #include "FAST/Utility.hpp"
-#include "HelperFunctions.hpp"
+#include "FAST/Utility.hpp"
 #include "FAST/SceneGraph.hpp"
 
 namespace fast {
@@ -32,7 +32,7 @@ void SurfaceExtraction::execute() {
 #if defined(__APPLE__) || defined(__MACOSX)
     const bool writingTo3DTextures = false;
 #else
-    const bool writingTo3DTextures = device->getDevice().getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") != std::string::npos;
+    const bool writingTo3DTextures = device->isWritingTo3DTexturesSupported();
 #endif
     cl::Context clContext = device->getContext();
     const unsigned int SIZE = getRequiredHistogramPyramidSize(input);
@@ -41,10 +41,9 @@ void SurfaceExtraction::execute() {
         // Have to recreate the HP
         images.clear();
         buffers.clear();
-        std::string kernelFilename;
+        std::string programName = "";
         // create new HP (if necessary)
         if(writingTo3DTextures) {
-            kernelFilename = "SurfaceExtraction.cl";
             // Create images for the HistogramPyramid
             int bufferSize = SIZE;
             cl_channel_order order1, order2;
@@ -78,7 +77,7 @@ void SurfaceExtraction::execute() {
 
             // If writing to 3D textures is not supported we to create buffers to write to
        } else {
-            kernelFilename = "SurfaceExtraction_no_3d_write.cl";
+            programName = "no_3d_write";
             int bufferSize = SIZE*SIZE*SIZE;
             buffers.push_back(cl::Buffer(clContext, CL_MEM_READ_WRITE, sizeof(char)*bufferSize));
             bufferSize /= 8;
@@ -116,16 +115,15 @@ void SurfaceExtraction::execute() {
 #if defined(__APPLE__) || defined(__MACOSX)
         buildOptions += " -DMAC_HACK";
 #endif
-        int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Algorithms/SurfaceExtraction/" + kernelFilename, buildOptions);
-        program = device->getProgram(programNr);
+        program = getOpenCLProgram(device, programName, buildOptions);
     }
 
     cl::Kernel constructHPLevelKernel(program, "constructHPLevel");
     cl::Kernel classifyCubesKernel(program, "classifyCubes");
     cl::Kernel traverseHPKernel(program, "traverseHP");
 
-    OpenCLImageAccess3D::pointer access = input->getOpenCLImageAccess3D(ACCESS_READ, device);
-    cl::Image3D* clImage = access->get();
+    OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
+    cl::Image3D* clImage = access->get3DImage();
 
     // update scalar field
     if(writingTo3DTextures) {
@@ -283,33 +281,36 @@ void SurfaceExtraction::execute() {
         	// A 4 channel texture/image has been used
         	sum = new int[8*4];
         }
-        cl::size_t<3> origin = oul::createOrigoRegion();
-        cl::size_t<3> region = oul::createRegion(2,2,2);
+        cl::size_t<3> origin = createOrigoRegion();
+        cl::size_t<3> region = createRegion(2,2,2);
         queue.enqueueReadImage(images[images.size()-1], CL_TRUE, origin, region, 0, 0, sum);
         if(device->isImageFormatSupported(CL_R, CL_UNSIGNED_INT8, CL_MEM_OBJECT_IMAGE3D)) {
             totalSum = sum[0] + sum[1] + sum[2] + sum[3] + sum[4] + sum[5] + sum[6] + sum[7] ;
         } else {
             totalSum = sum[0] + sum[4] + sum[8] + sum[12] + sum[16] + sum[20] + sum[24] + sum[28] ;
         }
+        delete[] sum;
     } else {
         int* sum = new int[8];
         queue.enqueueReadBuffer(buffers[buffers.size()-1], CL_TRUE, 0, sizeof(int)*8, sum);
         totalSum = sum[0] + sum[1] + sum[2] + sum[3] + sum[4] + sum[5] + sum[6] + sum[7] ;
+        delete[] sum;
     }
 
     Mesh::pointer output = getStaticOutputData<Mesh>(0);
     SceneGraph::setParentNode(output, input);
     BoundingBox box = input->getBoundingBox();
     // Apply spacing scaling to BB
-    AffineTransformation T;
-    T.scale(input->getSpacing());
+    AffineTransformation::pointer T = AffineTransformation::New();
+    T->scale(input->getSpacing());
     output->setBoundingBox(box.getTransformedBoundingBox(T));
     output->create(totalSum);
 
     if(totalSum == 0) {
-        std::cout << "No triangles were extracted. Check isovalue." << std::endl;
+        reportInfo() << "No triangles were extracted. Check isovalue." << Reporter::end;
         return;
     }
+    reportInfo() << totalSum << " nr of triangles were extracted with the SurfaceExtraction algorithm." << reportEnd();
 
 
     // Traverse HP to create triangles and put them in the VBO
@@ -365,6 +366,8 @@ SurfaceExtraction::SurfaceExtraction() {
     mHPSize = 0;
     createInputPort<Image>(0);
     createOutputPort<Mesh>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "/Algorithms/SurfaceExtraction/SurfaceExtraction.cl");
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "/Algorithms/SurfaceExtraction/SurfaceExtraction_no_3d_write.cl", "no_3d_write");
 }
 
 

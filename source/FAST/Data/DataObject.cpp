@@ -3,16 +3,57 @@
 
 namespace fast {
 
-DataObject::DataObject() : mTimestampModified(0), mIsDynamicData(false) {
+DataObject::DataObject() :
+        mTimestampModified(0),
+        mTimestampCreated(0),
+        mIsDynamicData(false) {
+
+    mDataIsBeingAccessed = false;
+    mDataIsBeingWrittenTo = false;
 }
 
+void DataObject::blockIfBeingWrittenTo() {
+    boost::unique_lock<boost::mutex> lock(mDataIsBeingWrittenToMutex);
+    while(mDataIsBeingWrittenTo) {
+        mDataIsBeingWrittenToCondition.wait(lock);
+    }
+}
 
-bool DataObject::isDynamicData() {
+void DataObject::blockIfBeingAccessed() {
+    boost::unique_lock<boost::mutex> lock(mDataIsBeingAccessedMutex);
+    while(mDataIsBeingAccessed) {
+        mDataIsBeingWrittenToCondition.wait(lock);
+    }
+}
+
+void DataObject::accessFinished() {
+	{
+        boost::unique_lock<boost::mutex> lock(mDataIsBeingWrittenToMutex);
+        mDataIsBeingWrittenTo = false;
+	}
+	mDataIsBeingWrittenToCondition.notify_one();
+
+	{
+        boost::unique_lock<boost::mutex> lock(mDataIsBeingAccessedMutex);
+        mDataIsBeingAccessed = false;
+	}
+	mDataIsBeingAccessedCondition.notify_one();
+}
+
+bool DataObject::isDynamicData() const {
     return mIsDynamicData;
 }
 
-unsigned long DataObject::getTimestamp() {
+unsigned long DataObject::getTimestamp() const {
     return mTimestampModified;
+}
+
+unsigned long DataObject::getCreationTimestamp() const {
+    return mTimestampCreated;
+}
+
+void DataObject::setCreationTimestamp(unsigned long timestamp) {
+    mTimestampCreated = timestamp;
 }
 
 void DataObject::updateModifiedTimestamp() {

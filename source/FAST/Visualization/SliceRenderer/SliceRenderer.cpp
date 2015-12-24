@@ -1,7 +1,7 @@
 #include "SliceRenderer.hpp"
 #include "FAST/Exception.hpp"
 #include "FAST/DeviceManager.hpp"
-#include "HelperFunctions.hpp"
+#include "FAST/Utility.hpp"
 #include "FAST/Data/Image.hpp"
 #include "FAST/SceneGraph.hpp"
 #include <boost/thread/lock_guard.hpp>
@@ -101,8 +101,8 @@ void SliceRenderer::execute() {
     }
     mSliceNr = sliceNr;
 
-    OpenCLImageAccess3D::pointer access = mImageToRender->getOpenCLImageAccess3D(ACCESS_READ, device);
-    cl::Image3D* clImage = access->get();
+    OpenCLImageAccess::pointer access = mImageToRender->getOpenCLImageAccess(ACCESS_READ, device);
+    cl::Image3D* clImage = access->get3DImage();
 
     glEnable(GL_TEXTURE_2D);
     if(mTextureIsCreated) {
@@ -190,14 +190,14 @@ void SliceRenderer::recompileOpenCLCode(Image::pointer input) {
         buildOptions = "-DTYPE_UINT";
     }
     OpenCLDevice::pointer device = getMainDevice();
-    int i = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/SliceRenderer/SliceRenderer.cl", buildOptions);
-    mKernel = cl::Kernel(device->getProgram(i), "renderToTexture");
+    mKernel = cl::Kernel(getOpenCLProgram(device, "", buildOptions), "renderToTexture");
     mTypeCLCodeCompiledFor = input->getDataType();
 }
 
 
 SliceRenderer::SliceRenderer() : Renderer() {
     createInputPort<Image>(0, false);
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "/Visualization/SliceRenderer/SliceRenderer.cl");
     mTextureIsCreated = false;
     mIsModified = true;
     mSlicePlane = PLANE_Z;
@@ -210,9 +210,9 @@ void SliceRenderer::draw() {
     if(!mTextureIsCreated)
         return;
 
-    AffineTransformation transform = SceneGraph::getAffineTransformationFromData(mImageToRender);
-    transform.scale(mImageToRender->getSpacing());
-    glMultMatrixf(transform.data());
+    AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(mImageToRender);
+    transform->scale(mImageToRender->getSpacing());
+    glMultMatrixf(transform->data());
 
     glBindTexture(GL_TEXTURE_2D, mTexture);
 
@@ -285,8 +285,8 @@ BoundingBox SliceRenderer::getBoundingBox() {
             break;
     }
     BoundingBox shrinkedBox(corners);
-    AffineTransformation transform = SceneGraph::getAffineTransformationFromData(mImageToRender);
-    transform.scale(mImageToRender->getSpacing());
+    AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(mImageToRender);
+    transform->scale(mImageToRender->getSpacing());
     BoundingBox transformedBoundingBox = shrinkedBox.getTransformedBoundingBox(transform);
     return transformedBoundingBox;
 }

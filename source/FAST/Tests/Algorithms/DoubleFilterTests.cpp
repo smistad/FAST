@@ -1,4 +1,4 @@
-#include "FAST/Tests/catch.hpp"
+#include "FAST/Testing.hpp"
 #include "FAST/Importers/ImageImporter.hpp"
 #include "DoubleFilter.hpp"
 #include "FAST/Data/Image.hpp"
@@ -12,7 +12,7 @@ TEST_CASE("DoubleFilter on OpenCL device", "[fast][DoubleFilter]") {
     DoubleFilter::pointer filter = DoubleFilter::New();
     filter->setInputConnection(importer->getOutputPort());
     filter->update();
-    std::cout << "finished update" << std::endl;
+    Reporter::info() << "finished update" << Reporter::end;
 
     Image::pointer input = importer->getOutputData<Image>(0);
     Image::pointer output = filter->getOutputData<Image>(0);
@@ -40,7 +40,7 @@ TEST_CASE("DoubleFilter on Host", "[fast][DoubleFilter]") {
     filter->setInputConnection(importer->getOutputPort());
     filter->setMainDevice(Host::getInstance());
     filter->update();
-    std::cout << "finished update" << std::endl;
+    Reporter::info() << "finished update" << Reporter::end;
 
     Image::pointer input = importer->getOutputData<Image>(0);
     Image::pointer output = filter->getOutputData<Image>(0);

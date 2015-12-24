@@ -19,10 +19,10 @@ void PointRenderer::draw() {
         PointSetAccess::pointer access = points->getAccess(ACCESS_READ);
         MatrixXf pointMatrix = access->getPointSetAsMatrix();
 
-        AffineTransformation transform = SceneGraph::getAffineTransformationFromData(points);
+        AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(points);
 
         glPushMatrix();
-        glMultMatrixf(transform.data());
+        glMultMatrixf(transform->data());
 
         ProcessObjectPort port = getInputPort(it->first);
         if(mInputSizes.count(port) > 0) {
@@ -54,6 +54,7 @@ void PointRenderer::draw() {
             glEnable(GL_DEPTH_TEST);
         glPopMatrix();
     }
+    glColor3f(1.0f, 1.0f, 1.0f); // Reset color
 }
 
 BoundingBox PointRenderer::getBoundingBox() {

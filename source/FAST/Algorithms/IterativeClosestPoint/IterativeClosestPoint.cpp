@@ -14,6 +14,7 @@ IterativeClosestPoint::IterativeClosestPoint() {
     mError = -1;
     mTransformationType = IterativeClosestPoint::RIGID;
     mIsModified = true;
+    mTransformation = AffineTransformation::New();
 }
 
 
@@ -30,7 +31,7 @@ void IterativeClosestPoint::setMovingPointSet(PointSet::pointer data) {
     setInputData(1, data);
 }
 
-AffineTransformation IterativeClosestPoint::getOutputTransformation() {
+AffineTransformation::pointer IterativeClosestPoint::getOutputTransformation() {
     return mTransformation;
 }
 
@@ -97,19 +98,23 @@ void IterativeClosestPoint::execute() {
     PointSetAccess::pointer accessMovingSet = ((PointSet::pointer)getStaticInputData<PointSet>(1))->getAccess(ACCESS_READ);
 
     // Get transformations of point sets
-    AffineTransformation fixedPointTransform = SceneGraph::getAffineTransformationFromData(getStaticInputData<PointSet>(0));
-    AffineTransformation initialMovingTransform = SceneGraph::getAffineTransformationFromData(getStaticInputData<PointSet>(1));
+    AffineTransformation::pointer fixedPointTransform2 = SceneGraph::getAffineTransformationFromData(getStaticInputData<PointSet>(0));
+    Eigen::Affine3f fixedPointTransform;
+    fixedPointTransform.matrix() = fixedPointTransform2->matrix();
+    AffineTransformation::pointer initialMovingTransform2 = SceneGraph::getAffineTransformationFromData(getStaticInputData<PointSet>(1));
+    Eigen::Affine3f initialMovingTransform;
+    initialMovingTransform.matrix() = initialMovingTransform2->matrix();
 
     // These matrices are Nx3
     MatrixXf fixedPoints = accessFixedSet->getPointSetAsMatrix();
     MatrixXf movingPoints = accessMovingSet->getPointSetAsMatrix();
 
-    Eigen::Transform<float, 3, Eigen::Affine> currentTransformation = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
+    Eigen::Affine3f currentTransformation = Eigen::Affine3f::Identity();
 
     // Want to choose the smallest one as moving
     bool invertTransform = false;
     if(false && fixedPoints.cols() < movingPoints.cols()) {
-        std::cout << "switching fixed and moving" << std::endl;
+        reportInfo() << "switching fixed and moving" << Reporter::end;
         // Switch fixed and moving
         MatrixXf temp = fixedPoints;
         fixedPoints = movingPoints;
@@ -136,11 +141,11 @@ void IterativeClosestPoint::execute() {
 
         // Get centroids
         Vector3f centroidFixed = getCentroid(rearrangedFixedPoints);
-        //std::cout << "Centroid fixed: " << std::endl;
-        //std::cout << centroidFixed << std::endl;
+        //reportInfo() << "Centroid fixed: " << Reporter::end;
+        //reportInfo() << centroidFixed << Reporter::end;
         Vector3f centroidMoving = getCentroid(movedPoints);
-        //std::cout << "Centroid moving: " << std::endl;
-        //std::cout << centroidMoving << std::endl;
+        //reportInfo() << "Centroid moving: " << Reporter::end;
+        //reportInfo() << centroidMoving << Reporter::end;
 
         Eigen::Transform<float, 3, Eigen::Affine> updateTransform = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
 
@@ -181,7 +186,7 @@ void IterativeClosestPoint::execute() {
         error = sqrt(error / distance.cols());
 
         iterations++;
-        std::cout << "Error: " << error << std::endl;
+        reportInfo() << "Error: " << error << Reporter::end;
         // To continue, change in error has to be above min error change and nr of iterations less than max iterations
     } while(previousError-error > mMinErrorChange && iterations < mMaxIterations);
 
@@ -191,7 +196,7 @@ void IterativeClosestPoint::execute() {
     }
 
     mError = error;
-    mTransformation = currentTransformation;
+    mTransformation->matrix() = currentTransformation.matrix();
 }
 
 

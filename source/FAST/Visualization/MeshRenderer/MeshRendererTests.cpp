@@ -1,6 +1,6 @@
 #include "FAST/Importers/VTKMeshFileImporter.hpp"
 #include "FAST/Streamers/ImageFileStreamer.hpp"
-#include "FAST/Tests/catch.hpp"
+#include "FAST/Testing.hpp"
 #include "MeshRenderer.hpp"
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"

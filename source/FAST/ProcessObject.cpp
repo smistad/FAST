@@ -1,10 +1,11 @@
 #include "FAST/ProcessObject.hpp"
 #include "FAST/Exception.hpp"
+#include "FAST/OpenCLProgram.hpp"
 #include <boost/lexical_cast.hpp>
 
 namespace fast {
 
-ProcessObject::ProcessObject() : mIsModified(false), mRuntimeManager(new oul::RuntimeMeasurementsManager) {
+ProcessObject::ProcessObject() : mIsModified(false), mRuntimeManager(new RuntimeMeasurementsManager) {
      mDevices[0] = DeviceManager::getInstance().getDefaultComputationDevice();
 }
 
@@ -53,11 +54,11 @@ void ProcessObject::disableRuntimeMeasurements() {
     mRuntimeManager->disable();
 }
 
-oul::RuntimeMeasurementPtr ProcessObject::getRuntime() {
+RuntimeMeasurementPtr ProcessObject::getRuntime() {
     return mRuntimeManager->getTiming("execute");
 }
 
-oul::RuntimeMeasurementPtr ProcessObject::getRuntime(std::string name) {
+RuntimeMeasurementPtr ProcessObject::getRuntime(std::string name) {
     return mRuntimeManager->getTiming(name);
 }
 
@@ -186,7 +187,7 @@ DataObject::pointer ProcessObject::getOutputDataX(uint portID) const {
 
     // If output data is not created
     if(mOutputData.count(portID) == 0) {
-        throw Exception("Could not find output data for port " + boost::lexical_cast<std::string>(portID));
+        throw Exception("Could not find output data for port " + boost::lexical_cast<std::string>(portID) + " in " + getNameOfClass());
     } else {
         data = mOutputData.at(portID);
     }
@@ -237,13 +238,15 @@ ProcessObjectPort::ProcessObjectPort(uint portID,
     mPortID = portID;
     mProcessObject = processObject;
     mTimestamp = 0;
+    mDataPointer = 0;
 }
 
 ProcessObject::pointer ProcessObjectPort::getProcessObject() const {
     return mProcessObject;
 }
 
-DataObject::pointer ProcessObjectPort::getData() const {
+DataObject::pointer ProcessObjectPort::getData() {
+	mDataPointer = (std::size_t)mProcessObject->getOutputDataX(mPortID).getPtr().get();
     return mProcessObject->getOutputDataX(mPortID);
 }
 
@@ -252,7 +255,7 @@ uint ProcessObjectPort::getPortID() const {
 }
 
 bool ProcessObjectPort::isDataModified() const {
-    return mTimestamp != getData()->getTimestamp();
+    return mTimestamp != mProcessObject->getOutputDataX(mPortID)->getTimestamp() || (mDataPointer != 0 && mDataPointer != (std::size_t)mProcessObject->getOutputDataX(mPortID).getPtr().get());
 }
 
 void ProcessObjectPort::updateTimestamp() {
@@ -269,6 +272,27 @@ bool ProcessObject::inputPortExists(uint portID) const {
 
 bool ProcessObject::outputPortExists(uint portID) const {
     return mOutputPortType.count(portID) > 0;
+}
+
+void ProcessObject::createOpenCLProgram(std::string sourceFilename, std::string name) {
+    OpenCLProgram::pointer program = OpenCLProgram::New();
+    program->setName(name);
+    program->setSourceFilename(sourceFilename);
+    mOpenCLPrograms[name] = program;
+}
+
+cl::Program ProcessObject::getOpenCLProgram(
+        OpenCLDevice::pointer device,
+        std::string name,
+        std::string buildOptions
+        ) {
+
+    if(mOpenCLPrograms.count(name) == 0) {
+        throw Exception("OpenCL program with the name " + name + " not found in " + getNameOfClass());
+    }
+
+    OpenCLProgram::pointer program = mOpenCLPrograms[name];
+    return program->build(device, buildOptions);
 }
 
 } // namespace fast

@@ -20,7 +20,7 @@ BoundingBox SpatialDataObject::getBoundingBox() const {
 }
 
 BoundingBox SpatialDataObject::getTransformedBoundingBox() const {
-    AffineTransformation T = SceneGraph::getAffineTransformationFromData(DataObject::pointer(mPtr.lock()));
+    AffineTransformation::pointer T = SceneGraph::getAffineTransformationFromData(DataObject::pointer(mPtr.lock()));
 
     return getBoundingBox().getTransformedBoundingBox(T);
 }

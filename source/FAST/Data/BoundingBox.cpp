@@ -72,21 +72,21 @@ BoundingBox::BoundingBox(std::vector<Vector3f> coordinates) {
     Vector3f size(maximum.x()-minimum.x(), maximum.y()-minimum.y(), maximum.z()-minimum.z());
     mIsInitialized = true;
     /*
-    std::cout << minimum[0] << " " << minimum[1] << std::endl;
-    std::cout << maximum[0] << " " << maximum[1] << std::endl;
-    std::cout << size[0] << " " << size[1] << std::endl;
+    reportInfo() << minimum[0] << " " << minimum[1] << Reporter::end;
+    reportInfo() << maximum[0] << " " << maximum[1] << Reporter::end;
+    reportInfo() << size[0] << " " << size[1] << Reporter::end;
     */
     createCorners(minimum, size);
 }
 
 BoundingBox BoundingBox::getTransformedBoundingBox(
-        AffineTransformation transform) const {
+        AffineTransformation::pointer transform) const {
     if(!mIsInitialized)
         throw Exception("Cannot getTransformedBoundingBox because bounding box was not initialized.");
     MatrixXf newCorners = MatrixXf::Constant(8,3,0);
     for(uint i = 0; i < 8; i++) {
         Vector3f vertex = mCorners.row(i);
-        Vector3f transformedVertex = transform*vertex;
+        Vector3f transformedVertex = (transform->matrix()*vertex.homogeneous()).head(3);
         newCorners.row(i) = transformedVertex;
     }
     return BoundingBox(newCorners);

@@ -1,4 +1,4 @@
-#include "FAST/Tests/catch.hpp"
+#include "FAST/Testing.hpp"
 #include "FAST/Importers/VTKLineSetFileImporter.hpp"
 #include "LineRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"

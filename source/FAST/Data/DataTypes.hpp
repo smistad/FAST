@@ -3,17 +3,11 @@
 
 #define NOMINMAX // Removes windows min and max macros
 #include "FAST/Exception.hpp"
-#include "OpenCL.hpp"
+#include "CL/OpenCL.hpp"
 #include "FAST/ExecutionDevice.hpp"
 #include <cmath>
 #include <iostream>
-#if defined(__APPLE__) || defined(__MACOSX)
-#include <eigen3/Eigen/Dense>
-#elif _WIN32
 #include <Eigen/Dense>
-#else
-#include <eigen3/Eigen/Dense>
-#endif
 
 // These have to be outside of fast namespace or it will not compile with Qt on Windows. Why?
 typedef unsigned char uchar;
@@ -33,11 +27,23 @@ using Eigen::Vector2f;
 using Eigen::Vector4i;
 using Eigen::Vector3i;
 using Eigen::Vector2i;
+typedef Eigen::Matrix<uint, Eigen::Dynamic, 1> VectorXui;
 typedef Eigen::Matrix<uint, 4, 1> Vector4ui;
 typedef Eigen::Matrix<uint, 3, 1> Vector3ui;
 typedef Eigen::Matrix<uint, 2, 1> Vector2ui;
 
-enum DataType { TYPE_FLOAT, TYPE_UINT8, TYPE_INT8, TYPE_UINT16, TYPE_INT16 };
+enum DataType {
+    TYPE_FLOAT,
+    TYPE_UINT8,
+    TYPE_INT8,
+    TYPE_UINT16,
+    TYPE_INT16,
+    TYPE_UNORM_INT16, // Unsigned normalized 16 bit integer. A 16 bit int interpreted as a float between 0 and 1.
+    TYPE_SNORM_INT16 // Signed normalized 16 bit integer. A 16 bit int interpreted as a float between -1 and 1.
+};
+
+// Returns the C type for a DataType as a string
+std::string getCTypeAsString(DataType type);
 
 #define fastCaseTypeMacro(fastType, cType, call) case fastType: {typedef cType FAST_TYPE; call;} break;
 
@@ -47,6 +53,8 @@ enum DataType { TYPE_FLOAT, TYPE_UINT8, TYPE_INT8, TYPE_UINT16, TYPE_INT16 };
         fastCaseTypeMacro(TYPE_UINT8, uchar, call) \
         fastCaseTypeMacro(TYPE_INT16, short, call) \
         fastCaseTypeMacro(TYPE_UINT16, ushort, call) \
+        fastCaseTypeMacro(TYPE_SNORM_INT16, short, call) \
+        fastCaseTypeMacro(TYPE_UNORM_INT16, ushort, call) \
 
 cl::ImageFormat getOpenCLImageFormat(OpenCLDevice::pointer, cl_mem_object_type imageType, DataType type, unsigned int components);
 

@@ -1,7 +1,7 @@
 #ifndef COMPUTATION_THREAD_HPP
 #define COMPUTATION_THREAD_HPP
 
-#include "View.hpp"
+#include "FAST/Object.hpp"
 #include <QThread>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
@@ -10,7 +10,9 @@
 
 namespace fast {
 
-class ComputationThread : public QObject {
+class View;
+
+class ComputationThread : public QObject, public Object {
     Q_OBJECT
     public:
         ComputationThread(QThread* mainThread);

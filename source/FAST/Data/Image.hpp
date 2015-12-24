@@ -5,10 +5,8 @@
 #include "DynamicData.hpp"
 #include "DataTypes.hpp"
 #include "FAST/SmartPointers.hpp"
-#include "OpenCLManager.hpp"
 #include "FAST/ExecutionDevice.hpp"
-#include "FAST/Data/Access/OpenCLImageAccess2D.hpp"
-#include "FAST/Data/Access/OpenCLImageAccess3D.hpp"
+#include "FAST/Data/Access/OpenCLImageAccess.hpp"
 #include "FAST/Data/Access/OpenCLBufferAccess.hpp"
 #include "FAST/Data/Access/ImageAccess.hpp"
 #include <boost/unordered_map.hpp>
@@ -18,58 +16,62 @@ namespace fast {
 class Image : public SpatialDataObject {
     FAST_OBJECT(Image)
     public:
-        void createFromImage(Image::pointer image, ExecutionDevice::pointer device);
-        void create2DImage(unsigned int width, unsigned int height, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device);
-        void create2DImage(unsigned int width, unsigned int height, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device, const void * data);
-        void create3DImage(unsigned int width, unsigned int height, unsigned int depth, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device);
-        void create3DImage(unsigned int width, unsigned int height, unsigned int depth, DataType type, unsigned int nrOfComponents, ExecutionDevice::pointer device, const void * data);
+        void createFromImage(Image::pointer image);
+        void create(VectorXui size, DataType type, uint nrOfComponents);
+        void create(uint width, uint height, DataType type, uint nrOfComponents);
+        void create(uint width, uint height, uint depth, DataType type, uint nrOfComponents);
+        void create(VectorXui size, DataType type, uint nrOfComponents, ExecutionDevice::pointer device, const void * data);
+        void create(uint width, uint height, DataType type, uint nrOfComponents, ExecutionDevice::pointer device, const void * data);
+        void create(uint width, uint height, uint depth, DataType type, uint nrOfComponents, ExecutionDevice::pointer device, const void * data);
 
-        OpenCLImageAccess2D::pointer getOpenCLImageAccess2D(accessType type, OpenCLDevice::pointer);
-        OpenCLImageAccess3D::pointer getOpenCLImageAccess3D(accessType type, OpenCLDevice::pointer);
+        OpenCLImageAccess::pointer getOpenCLImageAccess(accessType type, OpenCLDevice::pointer);
         OpenCLBufferAccess::pointer getOpenCLBufferAccess(accessType type, OpenCLDevice::pointer);
         ImageAccess::pointer getImageAccess(accessType type);
 
         ~Image() { freeAll(); };
 
-        unsigned int getWidth() const;
-        unsigned int getHeight() const;
-        unsigned int getDepth() const;
-        unsigned char getDimensions() const;
+        uint getWidth() const;
+        uint getHeight() const;
+        uint getDepth() const;
+        Vector3ui getSize() const;
+        uchar getDimensions() const;
         DataType getDataType() const;
-        unsigned int getNrOfComponents() const;
+        uint getNrOfComponents() const;
         Vector3f getSpacing() const;
         void setSpacing(Vector3f spacing);
 
         float calculateMaximumIntensity();
         float calculateMinimumIntensity();
+        float calculateAverageIntensity();
 
         // Copy image and put contents to specific device
         Image::pointer copy(ExecutionDevice::pointer device);
 
+        // Create a new image which is a cropped version of this image
+        Image::pointer crop(VectorXui offset, VectorXui size);
+
         // Override
         BoundingBox getTransformedBoundingBox() const;
+
     protected:
         Image();
+
+        void findDeviceWithUptodateData(ExecutionDevice::pointer* device, bool* isOpenCLImage);
 
         // OpenCL Images
         boost::unordered_map<OpenCLDevice::pointer, cl::Image*> mCLImages;
         boost::unordered_map<OpenCLDevice::pointer, bool> mCLImagesIsUpToDate;
-        boost::unordered_map<OpenCLDevice::pointer, bool> mCLImagesAccess;
 
         // OpenCL Buffers
         boost::unordered_map<OpenCLDevice::pointer, cl::Buffer*> mCLBuffers;
         boost::unordered_map<OpenCLDevice::pointer, bool> mCLBuffersIsUpToDate;
-        boost::unordered_map<OpenCLDevice::pointer, bool> mCLBuffersAccess;
 
         // Host data
         void * mHostData;
         bool mHostHasData;
         bool mHostDataIsUpToDate;
-        bool mHostDataIsBeingAccessed;
 
-        bool isDataModified();
         void setAllDataToOutOfDate();
-        bool isAnyDataBeingAccessed();
         bool isInitialized() const;
         void free(ExecutionDevice::pointer device);
         void freeAll();
@@ -84,20 +86,27 @@ class Image : public SpatialDataObject {
 
         void updateHostData();
 
-        unsigned int getBufferSize() const;
+        bool hasAnyData();
 
-        unsigned int mWidth, mHeight, mDepth;
-        unsigned char mDimensions;
+        uint getBufferSize() const;
+
+        uint mWidth, mHeight, mDepth;
+        uchar mDimensions;
         DataType mType;
-        unsigned int mComponents;
-        bool mImageIsBeingWrittenTo;
+        uint mComponents;
+        bool mIsInitialized;
 
         Vector3f mSpacing;
 
-        float mMaximumIntensity, mMinimumIntensity;
-        unsigned long mMaxMinTimestamp;
-        bool mMaxMinInitialized;
+        float mMaximumIntensity, mMinimumIntensity, mAverageIntensity;
+        unsigned long mMaxMinTimestamp, mAverageIntensityTimestamp;
+        bool mMaxMinInitialized, mAverageInitialized;
         void calculateMaxAndMinIntensity();
+
+        // Declare as friends so they can get access to the accessFinished methods
+        friend class ImageAccess;
+        friend class OpenCLBufferAccess;
+        friend class OpenCLImageAccess;
 };
 
 } // end namespace fast

@@ -18,13 +18,12 @@ class LineSet : public SpatialDataObject {
         LineSet();
         void freeAll();
         void free(ExecutionDevice::pointer device);
-        bool isAnyDataBeingAccessed() const;
 
         std::vector<Vector3f> mVertices;
         std::vector<Vector2ui> mLines;
-        bool mHostDataIsBeingAccessed;
 
-        bool mIsBeingWrittenTo;
+        // Necessary to give LineSetAccess access to the accessFinished method
+        friend class LineSetAccess;
 };
 
 }

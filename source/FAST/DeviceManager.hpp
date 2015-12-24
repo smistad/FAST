@@ -3,37 +3,20 @@
 
 #include "FAST/ExecutionDevice.hpp"
 #include <vector>
-#include "DeviceCriteria.hpp"
+#include "FAST/DeviceCriteria.hpp"
 
 namespace fast {
 
-using oul::DeviceCriteria;
-using oul::DeviceType;
-using oul::DevicePlatform;
-using oul::DeviceCapability;
-using oul::DevicePreference;
-using oul::DEVICE_TYPE_ANY;
-using oul::DEVICE_TYPE_GPU;
-using oul::DEVICE_TYPE_CPU;
-using oul::DEVICE_PLATFORM_ANY;
-using oul::DEVICE_PLATFORM_AMD;
-using oul::DEVICE_PLATFORM_NVIDIA;
-using oul::DEVICE_PLATFORM_INTEL;
-using oul::DEVICE_PLATFORM_APPLE;
-using oul::DEVICE_CAPABILITY_OPENGL_INTEROP;
-using oul::DEVICE_PREFERENCE_NONE;
-using oul::DEVICE_PREFERENCE_NOT_CONNECTED_TO_SCREEN;
-using oul::DEVICE_PREFERENCE_COMPUTE_UNITS;
-using oul::DEVICE_PREFERENCE_GLOBAL_MEMORY;
+typedef std::pair<cl::Platform, std::vector<cl::Device> > PlatformDevices;
 
 /**
  * Singleton class for retrieving and setting default execution devices
  */
-class DeviceManager {
+class DeviceManager : public Object {
     public:
         static DeviceManager& getInstance();
-        OpenCLDevice::pointer getDevice(DeviceCriteria criteria) const;
-        bool deviceSatisfiesCriteria(OpenCLDevice::pointer, const DeviceCriteria& criteria) const;
+        OpenCLDevice::pointer getDevice(DeviceCriteria criteria);
+        bool deviceSatisfiesCriteria(OpenCLDevice::pointer, const DeviceCriteria& criteria);
         std::vector<OpenCLDevice::pointer> getAllDevices(bool enableVisualization = false);
         std::vector<OpenCLDevice::pointer> getAllGPUDevices(bool enableVisualization = false);
         std::vector<OpenCLDevice::pointer> getAllCPUDevices(bool enableVisualization = false);
@@ -47,6 +30,20 @@ class DeviceManager {
         ExecutionDevice::pointer getDefaultComputationDevice();
         ExecutionDevice::pointer getDefaultVisualizationDevice();
         void setGLContext(unsigned long * glContext) { mGLContext = glContext;};
+        std::vector<PlatformDevices> getDevices(const DeviceCriteria &criteria);
+        std::vector<OpenCLDevice::pointer> getDevices(DeviceCriteria criteria, bool enableVisualization);
+        std::vector<cl::Platform> getPlatforms(
+                DevicePlatform platformCriteria);
+
+        bool deviceSatisfiesCriteria(const DeviceCriteria& criteria, const cl::Device &device);
+        bool deviceHasOpenGLInteropCapability(const cl::Device &device);
+        bool devicePlatformMismatch(
+                const cl::Device &device,
+                const cl::Platform &platform);
+
+        std::vector<cl::Device> getDevicesForBestPlatform(
+                const DeviceCriteria& deviceCriteria,
+               std::vector<PlatformDevices> &platformDevices);
     private:
 	unsigned long * mGLContext;
         DeviceManager();
@@ -54,6 +51,17 @@ class DeviceManager {
         void operator=(DeviceManager const&); // Don't implement
         ExecutionDevice::pointer mDefaultComputationDevice;
         ExecutionDevice::pointer mDefaultVisualizationDevice;
+        void sortDevicesAccordingToPreference(
+                int numberOfPlatforms,
+                int maxNumberOfDevices,
+                std::vector<PlatformDevices> platformDevices,
+                DevicePreference preference,
+                std::vector<cl::Device> * sortedPlatformDevices,
+                int * platformScores);
+        DevicePlatform getDevicePlatform(std::string platformVendor);
+        std::string getDevicePlatform(DevicePlatform devicePlatform);
+
+        std::vector<cl::Platform> platforms;
 };
 
 }

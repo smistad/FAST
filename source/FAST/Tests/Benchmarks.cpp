@@ -1,6 +1,6 @@
 #include "FAST/Streamers/ImageFileStreamer.hpp"
 #include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
-#include "FAST/Tests/catch.hpp"
+#include "FAST/Testing.hpp"
 #include "FAST/Importers/MetaImageImporter.hpp"
 #include "FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp"
 #include "FAST/Visualization/SliceRenderer/SliceRenderer.hpp"
@@ -61,7 +61,7 @@ TEST_CASE("Pipeline A (static)", "[fast][benchmark][visual]") {
             extractor->getRuntime()->getSum() +
             renderer->getRuntime()->getSum() +
             window->getView()->getRuntime("draw")->getAverage();
-    std::cout << "Total runtime was: " << total << std::endl;
+    Reporter::info() << "Total runtime was: " << total << Reporter::end;
 }
 
 TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark][visual]") {
@@ -102,7 +102,7 @@ TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark][visual]") {
 		renderer->getRuntime()->getSum() +
             window->getView()->getRuntime("draw")->getAverage();
 	total = total / 84; // number of frames
-    std::cout << "Average runtime was: " << total << std::endl << std::endl;
+    Reporter::info() << "Average runtime was: " << total << Reporter::end << Reporter::end;
 }
 
 TEST_CASE("Pipeline B", "[fast][benchmark][visual]") {
@@ -163,7 +163,7 @@ TEST_CASE("Pipeline B", "[fast][benchmark][visual]") {
                 surfaceRenderer->getRuntime()->getSum() +
                 sliceRenderer->getRuntime()->getSum() +
             window->getView()->getRuntime("draw")->getAverage();
-    std::cout << "Total runtime was: " << total << std::endl;
+    Reporter::info() << "Total runtime was: " << total << Reporter::end;
 }
 
 TEST_CASE("Pipeline C", "[fast][benchmark][visual]") {
@@ -200,7 +200,7 @@ TEST_CASE("Pipeline C", "[fast][benchmark][visual]") {
             skeletonization->getRuntime()->getSum() +
             renderer->getRuntime()->getSum() +
             window->getView()->getRuntime("draw")->getAverage();
-    std::cout << "Total runtime was: " << total << std::endl;
+    Reporter::info() << "Total runtime was: " << total << Reporter::end;
 }
 
 TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
@@ -212,13 +212,13 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
     importerB->enableRuntimeMeasurements();
 
     // Apply a transformation to B surface
-    AffineTransformation transformation;
-    transformation.translate(Vector3f(0.01, 0, 0.01));
+    AffineTransformation::pointer transformation = AffineTransformation::New();
+    transformation->translate(Vector3f(0.01, 0, 0.01));
     Matrix3f R;
     R = Eigen::AngleAxisf(0.5, Vector3f::UnitX())
     * Eigen::AngleAxisf(0, Vector3f::UnitY())
     * Eigen::AngleAxisf(0, Vector3f::UnitZ());
-    transformation.rotate(R);
+    transformation->rotate(R);
     importerB->update();
     importerB->getStaticOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(transformation);
 
@@ -227,11 +227,11 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
     icp->setFixedPointSetPort(importerB->getOutputPort());
     icp->enableRuntimeMeasurements();
     icp->update();
-    std::cout << icp->getOutputTransformation().affine() << std::endl;
+    Reporter::info() << icp->getOutputTransformation()->affine() << Reporter::end;
     importerA->getStaticOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
-    std::cout << "result: " << std::endl;
-    std::cout << icp->getOutputTransformation().getEulerAngles() << std::endl;
-    std::cout << icp->getOutputTransformation().translation() << std::endl;
+    Reporter::info() << "result: " << Reporter::end;
+    Reporter::info() << icp->getOutputTransformation()->getEulerAngles() << Reporter::end;
+    Reporter::info() << icp->getOutputTransformation()->translation() << Reporter::end;
 
 
     PointRenderer::pointer renderer = PointRenderer::New();
@@ -247,7 +247,7 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
     window->setTimeout(2000);
     window->start();
 
-    std::cout << "Pipeline D" << std::endl << "===================" << std::endl;
+    Reporter::info() << "Pipeline D" << Reporter::end << "===================" << Reporter::end;
     importerA->getRuntime()->print();
     importerB->getRuntime()->print();
     icp->getRuntime()->print();
@@ -258,5 +258,5 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
             icp->getRuntime()->getSum() +
             renderer->getRuntime()->getSum() +
             window->getView()->getRuntime("draw")->getAverage();
-    std::cout << "Total runtime was: " << total << std::endl;
+    Reporter::info() << "Total runtime was: " << total << Reporter::end;
 }

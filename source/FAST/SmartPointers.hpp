@@ -5,6 +5,8 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
 #include "FAST/Exception.hpp"
+#include "FAST/Reporter.hpp"
+#include "FAST/Paths.hpp"
 
 #define FAST_OBJECT(className)                                  \
     public:                                                     \
@@ -80,6 +82,8 @@ class SharedPointer {
 
         template <class U>
         SharedPointer(SharedPointer<U> object) {
+            if(!object.isValid())
+                throw Exception("Cast from " + U::getStaticNameOfClass() + " to " + T::getStaticNameOfClass() + " failed because object was invalid (uninitialized or deleted).");
             boost::shared_ptr<T> ptr = boost::dynamic_pointer_cast<T>(object.getPtr());
             if(ptr == NULL)
                 throw Exception("Illegal cast from " + U::getStaticNameOfClass() + " to " + T::getStaticNameOfClass());
@@ -87,6 +91,8 @@ class SharedPointer {
         }
         template <class U>
         SharedPointer(WeakPointer<U> object) {
+            if(!object.isValid())
+                throw Exception("Cast from " + U::getStaticNameOfClass() + " to " + T::getStaticNameOfClass() + " failed because object was invalid (uninitialized or deleted).");
             boost::shared_ptr<T> ptr = boost::dynamic_pointer_cast<T>(object.getPtr().lock());
             if(ptr == NULL)
                 throw Exception("Illegal cast from " + U::getStaticNameOfClass() + " to " + T::getStaticNameOfClass());
@@ -95,6 +101,8 @@ class SharedPointer {
 
         template <class U>
         SharedPointer<T> &operator=(const SharedPointer<U> &other) {
+            if(!other.isValid())
+                throw Exception("Cast from " + U::getStaticNameOfClass() + " to " + T::getStaticNameOfClass() + " failed because object was invalid (uninitialized or deleted).");
             boost::shared_ptr<T> ptr = boost::dynamic_pointer_cast<T>(other.getPtr());
             if(ptr == NULL)
                 throw Exception("Illegal cast from " + U::getStaticNameOfClass() + " to " + T::getStaticNameOfClass());
@@ -107,7 +115,7 @@ class SharedPointer {
             mSmartPtr.swap(other.getReferenceToPointer());
         }
 
-        bool isValid() {
+        bool isValid() const {
             // Check if smart pointer actually points to something
             return mSmartPtr.get() != NULL;
         }

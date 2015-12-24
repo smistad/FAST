@@ -16,6 +16,7 @@ class MeshRenderer : public Renderer {
         void draw();
         void setDefaultOpacity(float opacity);
         void setDefaultColor(Color color);
+        void setDefaultSpecularReflection(float specularReflection);
         void setColor(ProcessObjectPort port, Color color);
         void setOpacity(ProcessObjectPort port, float opacity);
     private:
@@ -26,6 +27,7 @@ class MeshRenderer : public Renderer {
         boost::unordered_map<ProcessObjectPort, float> mInputOpacities;
         boost::unordered_map<uint, Mesh::pointer> mMeshToRender;
         Color mDefaultColor;
+        float mDefaultSpecularReflection;
         float mDefaultOpacity;
         boost::mutex mMutex;
 };

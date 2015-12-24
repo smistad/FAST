@@ -11,6 +11,7 @@ class VTKImageExporter : public vtkImageAlgorithm, public ProcessObject {
     public:
         vtkTypeMacro(VTKImageExporter,vtkImageAlgorithm);
         static VTKImageExporter *New();
+        std::string getNameOfClass() const { return "VTKImageExporter"; };
     private:
         VTKImageExporter();
         int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);

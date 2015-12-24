@@ -12,9 +12,15 @@ class Object {
         static std::string getStaticNameOfClass() {
             return "Object";
         }
+        Reporter& getReporter();
     protected:
         WeakPointer<Object> mPtr;
+        Reporter& reportError();
+        Reporter& reportWarning();
+        Reporter& reportInfo();
+        ReporterEnd reportEnd() const;
     private:
+        Reporter mReporter;
 
 };
 

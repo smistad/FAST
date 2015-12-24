@@ -6,6 +6,7 @@
 #include "FAST/Importers/VTKMeshFileImporter.hpp"
 #include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
+#include "FAST/TestDataPath.hpp"
 
 using namespace fast;
 

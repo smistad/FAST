@@ -25,6 +25,7 @@ class View : public QGLWidget, public ProcessObject {
         void mouseReleaseEvent(QMouseEvent* event);
         void wheelEvent(QWheelEvent* event);
         void setMaximumFramerate(unsigned int framerate);
+        void setCameraInputConnection(ProcessObjectPort port);
         void set2DMode();
         void set3DMode();
         void setViewingPlane(Plane plane);
@@ -33,6 +34,7 @@ class View : public QGLWidget, public ProcessObject {
         void stopPipelineUpdateThread();
         void resumePipelineUpdateThread();
         void quit();
+        void reinitialize();
         bool hasQuit() const;
         ~View();
         void recalculateCamera();

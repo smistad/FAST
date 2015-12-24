@@ -234,7 +234,7 @@ void MetaImageImporter::execute() {
 
 
         } else if(key == "CenterOfRotation") {
-            //std::cout << "WARNING: CenterOfRotation in Metaimage file ignored" << std::endl;
+            //reportInfo() << "WARNING: CenterOfRotation in Metaimage file ignored" << Reporter::end;
             std::vector<std::string> values;
             boost::split(values, value, boost::is_any_of(" "));
             // Remove any empty values:
@@ -309,17 +309,17 @@ void MetaImageImporter::execute() {
     }
 
     if(imageIs3D) {
-        output->create3DImage(width,height,depth,type,nrOfComponents,getMainDevice(),data);
+        output->create(width,height,depth,type,nrOfComponents,getMainDevice(),data);
     } else {
-        output->create2DImage(width,height,type,nrOfComponents,getMainDevice(),data);
+        output->create(width,height,type,nrOfComponents,getMainDevice(),data);
     }
 
     output->setSpacing(spacing);
 
     // Create transformation
-    AffineTransformation T;
-    T.translation() = offset;
-    T.linear() = transformMatrix;
+    AffineTransformation::pointer T = AffineTransformation::New();
+    T->translation() = offset;
+    T->linear() = transformMatrix;
     output->getSceneGraphNode()->setTransformation(T);
 
     // Clean up

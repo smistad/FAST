@@ -33,8 +33,10 @@ void GaussianSmoothingFilter::setStandardDeviation(float stdDev) {
 GaussianSmoothingFilter::GaussianSmoothingFilter() {
     createInputPort<Image>(0);
     createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-    mStdDev = 1.0f;
-    mMaskSize = 3;
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter2D.cl", "2D");
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter3D.cl", "3D");
+    mStdDev = 0.5f;
+    mMaskSize = -1;
     mIsModified = true;
     mRecreateMask = true;
     mDimensionCLCodeCompiledFor = 0;
@@ -47,44 +49,63 @@ GaussianSmoothingFilter::~GaussianSmoothingFilter() {
 }
 
 // TODO have to set mRecreateMask to true if input change dimension
-void GaussianSmoothingFilter::createMask(Image::pointer input) {
+void GaussianSmoothingFilter::createMask(Image::pointer input, uchar maskSize, bool useSeperableFilter) {
     if(!mRecreateMask)
         return;
 
-    unsigned char halfSize = (mMaskSize-1)/2;
+    unsigned char halfSize = (maskSize-1)/2;
     float sum = 0.0f;
 
     if(input->getDimensions() == 2) {
-        mMask = new float[mMaskSize*mMaskSize];
+        mMask = new float[maskSize*maskSize];
 
         for(int x = -halfSize; x <= halfSize; x++) {
         for(int y = -halfSize; y <= halfSize; y++) {
             float value = exp(-(float)(x*x+y*y)/(2.0f*mStdDev*mStdDev));
-            mMask[x+halfSize+(y+halfSize)*mMaskSize] = value;
+            mMask[x+halfSize+(y+halfSize)*maskSize] = value;
             sum += value;
         }}
 
-        for(int i = 0; i < mMaskSize*mMaskSize; i++)
+        for(int i = 0; i < maskSize*maskSize; ++i)
             mMask[i] /= sum;
     } else if(input->getDimensions() == 3) {
-         mMask = new float[mMaskSize*mMaskSize*mMaskSize];
+        // Use separable filtering for 3D
+        if(useSeperableFilter) {
+            mMask = new float[maskSize];
 
-        for(int x = -halfSize; x <= halfSize; x++) {
-        for(int y = -halfSize; y <= halfSize; y++) {
-        for(int z = -halfSize; z <= halfSize; z++) {
-            float value = exp(-(float)(x*x+y*y+z*z)/(2.0f*mStdDev*mStdDev));
-            mMask[x+halfSize+(y+halfSize)*mMaskSize+(z+halfSize)*mMaskSize*mMaskSize] = value;
-            sum += value;
-        }}}
+            for(int x = -halfSize; x <= halfSize; x++) {
+                float value = exp(-(float)(x*x)/(2.0f*mStdDev*mStdDev));
+                mMask[x+halfSize] = value;
+                sum += value;
+            }
 
-        for(int i = 0; i < mMaskSize*mMaskSize*mMaskSize; i++)
-            mMask[i] /= sum;
+            for(int i = 0; i < maskSize; ++i)
+                mMask[i] /= sum;
+        } else {
+            mMask = new float[maskSize*maskSize*maskSize];
+
+            for(int x = -halfSize; x <= halfSize; x++) {
+            for(int y = -halfSize; y <= halfSize; y++) {
+            for(int z = -halfSize; z <= halfSize; z++) {
+                float value = exp(-(float)(x*x+y*y+z*z)/(2.0f*mStdDev*mStdDev));
+                mMask[x+halfSize+(y+halfSize)*maskSize+(z+halfSize)*maskSize*maskSize] = value;
+                sum += value;
+            }}}
+
+            for(int i = 0; i < maskSize*maskSize*maskSize; ++i)
+                mMask[i] /= sum;
+        }
     }
 
     ExecutionDevice::pointer device = getMainDevice();
     if(!device->isHost()) {
         OpenCLDevice::pointer clDevice = device;
-        unsigned int bufferSize = input->getDimensions() == 2 ? mMaskSize*mMaskSize : mMaskSize*mMaskSize*mMaskSize;
+        uint bufferSize;
+        if(useSeperableFilter) {
+            bufferSize = maskSize;
+        } else {
+            bufferSize = input->getDimensions() == 2 ? maskSize*maskSize : maskSize*maskSize*maskSize;
+        }
         mCLMask = cl::Buffer(
                 clDevice->getContext(),
                 CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -104,34 +125,16 @@ void GaussianSmoothingFilter::recompileOpenCLCode(Image::pointer input) {
 
     OpenCLDevice::pointer device = getMainDevice();
     std::string buildOptions = "";
-    const bool writingTo3DTextures = device->getDevice().getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") != std::string::npos;
-    if(!writingTo3DTextures) {
-    switch(mOutputType) {
-        case TYPE_FLOAT:
-            buildOptions += " -DTYPE=float";
-            break;
-        case TYPE_INT8:
-            buildOptions += " -DTYPE=char";
-            break;
-        case TYPE_UINT8:
-            buildOptions += " -DTYPE=uchar";
-            break;
-        case TYPE_INT16:
-            buildOptions += " -DTYPE=short";
-            break;
-        case TYPE_UINT16:
-            buildOptions += " -DTYPE=ushort";
-            break;
-        }
+    if(!device->isWritingTo3DTexturesSupported()) {
+        buildOptions = "-DTYPE=" + getCTypeAsString(mOutputType);
     }
-    std::string filename;
+    cl::Program program;
     if(input->getDimensions() == 2) {
-        filename = "Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter2D.cl";
+        program = getOpenCLProgram(device, "2D", buildOptions);
     } else {
-        filename = "Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter3D.cl";
+        program = getOpenCLProgram(device, "3D", buildOptions);
     }
-    int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + filename, buildOptions);
-    mKernel = cl::Kernel(device->getProgram(programNr), "gaussianSmoothing");
+    mKernel = cl::Kernel(program, "gaussianSmoothing");
     mDimensionCLCodeCompiledFor = input->getDimensions();
     mTypeCLCodeCompiledFor = input->getDataType();
 }
@@ -198,75 +201,107 @@ void GaussianSmoothingFilter::execute() {
     Image::pointer input = getStaticInputData<Image>(0);
     Image::pointer output = getStaticOutputData<Image>(0);
 
+    char maskSize = mMaskSize;
+    if(maskSize <= 0) // If mask size is not set calculate it instead
+        maskSize = ceil(2*mStdDev)*2+1;
+
+    if(maskSize > 19)
+        maskSize = 19;
 
     // Initialize output image
     ExecutionDevice::pointer device = getMainDevice();
     if(mOutputTypeSet) {
-        if(input->getDimensions() == 2) {
-            output->create2DImage(
-                    input->getWidth(),
-                    input->getHeight(),
-                    mOutputType,
-                    input->getNrOfComponents(),
-                    device
-            );
-        } else {
-             output->create3DImage(
-                    input->getWidth(),
-                    input->getHeight(),
-                    input->getDepth(),
-                    mOutputType,
-                    input->getNrOfComponents(),
-                    device
-            );
-        }
+        output->create(input->getSize(), mOutputType, input->getNrOfComponents());
+        output->setSpacing(input->getSpacing());
     } else {
-        output->createFromImage(input, device);
+        output->createFromImage(input);
     }
     mOutputType = output->getDataType();
+    SceneGraph::setParentNode(output, input);
 
-    createMask(input);
 
     if(device->isHost()) {
+        createMask(input, maskSize, false);
         switch(input->getDataType()) {
-            fastSwitchTypeMacro(executeAlgorithmOnHost<FAST_TYPE>(input, output, mMask, mMaskSize));
+            fastSwitchTypeMacro(executeAlgorithmOnHost<FAST_TYPE>(input, output, mMask, maskSize));
         }
     } else {
         OpenCLDevice::pointer clDevice = device;
 
         recompileOpenCLCode(input);
+
         cl::NDRange globalSize;
+
+        OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
         if(input->getDimensions() == 2) {
+            createMask(input, maskSize, false);
+            mKernel.setArg(1, mCLMask);
+            mKernel.setArg(3, maskSize);
             globalSize = cl::NDRange(input->getWidth(),input->getHeight());
 
-            OpenCLImageAccess2D::pointer inputAccess = input->getOpenCLImageAccess2D(ACCESS_READ, device);
-            OpenCLImageAccess2D::pointer outputAccess = output->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
-            mKernel.setArg(0, *inputAccess->get());
-            mKernel.setArg(2, *outputAccess->get());
+            OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+            mKernel.setArg(0, *inputAccess->get2DImage());
+            mKernel.setArg(2, *outputAccess->get2DImage());
+            clDevice->getCommandQueue().enqueueNDRangeKernel(
+                    mKernel,
+                    cl::NullRange,
+                    globalSize,
+                    cl::NullRange
+            );
         } else {
+            // Create an auxilliary image
+            Image::pointer output2 = Image::New();
+            output2->createFromImage(output);
+
             globalSize = cl::NDRange(input->getWidth(),input->getHeight(),input->getDepth());
 
-            const bool writingTo3DTextures = clDevice->getDevice().getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") != std::string::npos;
-            OpenCLImageAccess3D::pointer inputAccess = input->getOpenCLImageAccess3D(ACCESS_READ, device);
-            mKernel.setArg(0, *inputAccess->get());
-            if(writingTo3DTextures) {
-                OpenCLImageAccess3D::pointer outputAccess = output->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
-                mKernel.setArg(2, *outputAccess->get());
+            if(clDevice->isWritingTo3DTexturesSupported()) {
+                createMask(input, maskSize, true);
+                mKernel.setArg(1, mCLMask);
+                mKernel.setArg(3, maskSize);
+                OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+                OpenCLImageAccess::pointer outputAccess2 = output2->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+
+                cl::Image3D* image2;
+                cl::Image3D* image;
+                image = outputAccess->get3DImage();
+                image2 = outputAccess->get3DImage();
+                for(uchar direction = 0; direction < input->getDimensions(); ++direction) {
+                    if(direction == 0) {
+                        mKernel.setArg(0, *inputAccess->get3DImage());
+                        mKernel.setArg(2, *image);
+                    } else if(direction == 1) {
+                        mKernel.setArg(0, *image);
+                        mKernel.setArg(2, *image2);
+                    } else {
+                        mKernel.setArg(0, *image2);
+                        mKernel.setArg(2, *image);
+                    }
+                    mKernel.setArg(4, direction);
+                    clDevice->getCommandQueue().enqueueNDRangeKernel(
+                            mKernel,
+                            cl::NullRange,
+                            globalSize,
+                            cl::NullRange
+                    );
+                }
             } else {
+                createMask(input, maskSize, false);
+                mKernel.setArg(1, mCLMask);
+                mKernel.setArg(3, maskSize);
                 OpenCLBufferAccess::pointer outputAccess = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+                mKernel.setArg(0, *inputAccess->get3DImage());
                 mKernel.setArg(2, *outputAccess->get());
+                clDevice->getCommandQueue().enqueueNDRangeKernel(
+                        mKernel,
+                        cl::NullRange,
+                        globalSize,
+                        cl::NullRange
+                );
             }
+
+
         }
-
-        mKernel.setArg(1, mCLMask);
-        mKernel.setArg(3, mMaskSize);
-
-        clDevice->getCommandQueue().enqueueNDRangeKernel(
-                mKernel,
-                cl::NullRange,
-                globalSize,
-                cl::NullRange
-        );
     }
 }
 

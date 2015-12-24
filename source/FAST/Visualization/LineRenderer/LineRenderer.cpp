@@ -2,6 +2,7 @@
 #include "FAST/Data/Access/LineSetAccess.hpp"
 #include "FAST/Data/LineSet.hpp"
 #include "FAST/SceneGraph.hpp"
+#include <boost/thread/lock_guard.hpp>
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenGL/OpenGL.h>
 #include <OpenGL/gl.h>
@@ -12,31 +13,36 @@
 namespace fast {
 
 void LineRenderer::draw() {
+    boost::lock_guard<boost::mutex> lock(mMutex);
+
     // For all input data
-    for(uint i = 0; i < getNrOfInputData(); i++) {
-        LineSet::pointer points = getInputData(i);
+    boost::unordered_map<uint, LineSet::pointer>::iterator it;
+    for(it = mLineSetsToRender.begin(); it != mLineSetsToRender.end(); it++) {
+        LineSet::pointer points = it->second;
         LineSetAccess::pointer access = points->getAccess(ACCESS_READ);
 
-        AffineTransformation transform = SceneGraph::getAffineTransformationFromData(points);
+        AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(points);
 
         glPushMatrix();
-        glMultMatrixf(transform.data());
+        glMultMatrixf(transform->data());
 
-        if(mInputWidths.count(getInputPort(i)) > 0) {
-            glLineWidth(mInputWidths[getInputPort(i)]);
+        ProcessObjectPort port = getInputPort(it->first);
+
+        if(mInputWidths.count(port) > 0) {
+            glLineWidth(mInputWidths[port]);
         } else {
             glLineWidth(mDefaultLineWidth);
         }
-        if(mInputColors.count(getInputPort(i)) > 0) {
-            Color c = mInputColors[getInputPort(i)];
+        if(mInputColors.count(port) > 0) {
+            Color c = mInputColors[port];
             glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
         } else {
             Color c = mDefaultColor;
             glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
         }
         bool drawOnTop;
-        if(mInputDrawOnTop.count(getInputPort(i)) > 0) {
-            drawOnTop = mInputDrawOnTop[getInputPort(i)];
+        if(mInputDrawOnTop.count(port) > 0) {
+            drawOnTop = mInputDrawOnTop[port];
         } else {
             drawOnTop = mDefaultDrawOnTop;
         }
@@ -55,6 +61,7 @@ void LineRenderer::draw() {
             glEnable(GL_DEPTH_TEST);
         glPopMatrix();
     }
+    glColor3f(1.0f, 1.0f, 1.0f); // Reset color
 }
 
 BoundingBox LineRenderer::getBoundingBox() {
@@ -77,6 +84,14 @@ LineRenderer::LineRenderer() {
 }
 
 void LineRenderer::execute() {
+    boost::lock_guard<boost::mutex> lock(mMutex);
+
+    // This simply gets the input data for each connection and puts it into a data structure
+    for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
+        LineSet::pointer input = getStaticInputData<LineSet>(inputNr);
+
+        mLineSetsToRender[inputNr] = input;
+    }
 }
 
 

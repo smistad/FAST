@@ -20,6 +20,8 @@ BinaryThresholding::BinaryThresholding() {
     mUpperThresholdSet = false;
     createInputPort<Image>(0);
     createOutputPort<Segmentation>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/BinaryThresholding/BinaryThresholding3D.cl", "3D");
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/BinaryThresholding/BinaryThresholding2D.cl", "2D");
 }
 
 void BinaryThresholding::execute() {
@@ -30,19 +32,18 @@ void BinaryThresholding::execute() {
     Image::pointer input = getStaticInputData<Image>(0);
     Segmentation::pointer output = getStaticOutputData<Segmentation>(0);
 
-    output->createFromImage(input, getMainDevice());
+    output->createFromImage(input);
 
     if(getMainDevice()->isHost()) {
         throw Exception("Not implemented yet.");
     } else {
         OpenCLDevice::pointer device = OpenCLDevice::pointer(getMainDevice());
-        int programNr;
+        cl::Program program;
         if(input->getDimensions() == 3) {
-            programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "Algorithms/BinaryThresholding/BinaryThresholding3D.cl");
+            program = getOpenCLProgram(device, "3D");
         } else {
-            programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "Algorithms/BinaryThresholding/BinaryThresholding2D.cl");
+            program = getOpenCLProgram(device, "2D");
         }
-        cl::Program program = device->getProgram(programNr);
         cl::Kernel kernel;
         if(mLowerThresholdSet && mUpperThresholdSet) {
             kernel = cl::Kernel(program, "tresholding");
@@ -56,17 +57,17 @@ void BinaryThresholding::execute() {
             kernel.setArg(3, mUpperThreshold);
         }
         cl::NDRange globalSize;
+        OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
         if(input->getDimensions() == 2) {
-            OpenCLImageAccess2D::pointer access = input->getOpenCLImageAccess2D(ACCESS_READ, device);
-            OpenCLImageAccess2D::pointer access2 = output->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
-            kernel.setArg(0, *access->get());
-            kernel.setArg(1, *access2->get());
+            OpenCLImageAccess::pointer access2 = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+            kernel.setArg(0, *access->get2DImage());
+            kernel.setArg(1, *access2->get2DImage());
             globalSize = cl::NDRange(output->getWidth(), output->getHeight());
         } else {
-            OpenCLImageAccess3D::pointer access = input->getOpenCLImageAccess3D(ACCESS_READ, device);
-            OpenCLImageAccess3D::pointer access2 = output->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
-            kernel.setArg(0, *access->get());
-            kernel.setArg(1, *access2->get());
+            // TODO no 3d image write support
+            OpenCLImageAccess::pointer access2 = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+            kernel.setArg(0, *access->get3DImage());
+            kernel.setArg(1, *access2->get3DImage());
             globalSize = cl::NDRange(output->getWidth(), output->getHeight(), output->getDepth());
         }
         kernel.setArg(2, (uchar)mLabel);

@@ -36,11 +36,22 @@ T sign(T value) {
     }
 }
 
+unsigned int getPowerOfTwoSize(unsigned int size);
 void* allocateDataArray(unsigned int voxels, DataType type, unsigned int nrOfComponents);
+template <class T>
+float getSumFromOpenCLImageResult(void* voidData, unsigned int size, unsigned int nrOfComponents) {
+    T* data = (T*)voidData;
+    float sum = 0.0f;
+    for(unsigned int i = 0; i < size*nrOfComponents; i += nrOfComponents) {
+        sum += data[i];
+    }
+    return sum;
+}
 
 void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image, DataType type, float* min, float* max);
 void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D image, DataType type, float* min, float* max);
 void getMaxAndMinFromOpenCLBuffer(OpenCLDevice::pointer device, cl::Buffer buffer, unsigned int size, DataType type, float* min, float* max);
+void getIntensitySumFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image, DataType type, float* sum);
 
 template <class T>
 void getMaxAndMinFromData(void* voidData, unsigned int nrOfElements, float* min, float* max) {
@@ -57,6 +68,23 @@ void getMaxAndMinFromData(void* voidData, unsigned int nrOfElements, float* min,
         }
     }
 }
+
+template <class T>
+float getSumFromData(void* voidData, unsigned int nrOfElements) {
+    T* data = (T*)voidData;
+
+    float sum = 0.0f;
+    for(unsigned int i = 0; i < nrOfElements; i++) {
+        sum += (float)data[i];
+    }
+    return sum;
+}
+
+cl::size_t<3> createRegion(unsigned int x, unsigned int y, unsigned int z);
+cl::size_t<3> createRegion(Vector3ui size);
+cl::size_t<3> createOrigoRegion();
+
+std::string getCLErrorString(cl_int err);
 
 } // end namespace fast
 

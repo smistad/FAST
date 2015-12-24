@@ -1,4 +1,4 @@
-#include "FAST/Tests/catch.hpp"
+#include "FAST/Testing.hpp"
 #include "FAST/DeviceManager.hpp"
 #include <boost/thread.hpp>
 #include "FAST/Streamers/ImageFileStreamer.hpp"
@@ -28,7 +28,7 @@ TEST_CASE("Wrong filename format given to ImageFileStreamer", "[fast][ImageFileS
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat("asd#asd");
     DynamicData::pointer image = mhdStreamer->getOutput();
-    std::cout << "asd" << std::endl;
+    reportInfo() << "asd" << Reporter::end;
     CHECK_THROWS(mhdStreamer->update());
 }
 */

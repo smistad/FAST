@@ -6,35 +6,32 @@ void LineSet::create(std::vector<Vector3f> vertices,
         std::vector<Vector2ui> lines) {
     mVertices = vertices;
     mLines = lines;
-}
-
-bool LineSet::isAnyDataBeingAccessed() const {
-    return mHostDataIsBeingAccessed;
+    updateModifiedTimestamp();
 }
 
 LineSetAccess::pointer LineSet::getAccess(accessType access) {
 
-    if(mIsBeingWrittenTo)
-        throw Exception("Requesting access to a surface that is already being written to.");
+	blockIfBeingWrittenTo();
+
     if(access == ACCESS_READ_WRITE) {
-        if (isAnyDataBeingAccessed()) {
-            throw Exception(
-                    "Trying to get write access to an object that is already being accessed");
-        }
-        mIsBeingWrittenTo = true;
+    	blockIfBeingAccessed();
+    	{
+            boost::unique_lock<boost::mutex> lock(mDataIsBeingWrittenToMutex);
+            mDataIsBeingWrittenTo = true;
+    	}
         updateModifiedTimestamp();
     }
 
+    {
+        boost::unique_lock<boost::mutex> lock(mDataIsBeingAccessedMutex);
+        mDataIsBeingAccessed = true;
+    }
     // TODO should send a parameter whether writing is allowed or not
-
-    mHostDataIsBeingAccessed = true;
-    LineSetAccess::pointer accessObject(new LineSetAccess(&mVertices, &mLines, &mHostDataIsBeingAccessed, &mIsBeingWrittenTo));
+    LineSetAccess::pointer accessObject(new LineSetAccess(&mVertices, &mLines, mPtr.lock()));
 	return accessObject;
 }
 
 LineSet::LineSet() {
-    mIsBeingWrittenTo = false;
-    mHostDataIsBeingAccessed = false;
 }
 
 LineSet::~LineSet() {
@@ -51,6 +48,8 @@ void LineSet::free(ExecutionDevice::pointer device) {
 }
 
 BoundingBox LineSet::getBoundingBox() const {
+    if(mVertices.size() == 0)
+        return BoundingBox();
     std::vector<Vector3f> list;
     for(uint i = 0; i < mVertices.size(); i++) {
         list.push_back(mVertices[i]);

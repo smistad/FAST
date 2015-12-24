@@ -5,6 +5,7 @@
 #include "FAST/Data/DataObject.hpp"
 #include <vector>
 #include <boost/unordered_map.hpp>
+#include <boost/thread/mutex.hpp>
 #include <boost/interprocess/sync/interprocess_semaphore.hpp>
 #include <boost/interprocess/sync/named_semaphore.hpp>
 #include <boost/lexical_cast.hpp>
@@ -22,6 +23,7 @@ class DynamicData : public DataObject {
         ~DynamicData();
 
         bool hasReachedEnd();
+        bool hasReachedEnd(Object::pointer PO);
         DataObject::pointer getCurrentFrame();
         void registerConsumer(WeakPointer<Object> processObject);
         void registerConsumer(Object::pointer processObject);

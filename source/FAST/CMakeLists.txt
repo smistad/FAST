@@ -18,5 +18,15 @@ fast_add_sources(
     SceneGraph.hpp
     AffineTransformation.cpp
     AffineTransformation.hpp
+    OpenCLProgram.cpp
+    OpenCLProgram.hpp
+    Reporter.cpp
+    Reporter.hpp
+    RuntimeMeasurementManager.cpp
+    RuntimeMeasurementManager.hpp
+    RuntimeMeasurement.cpp
+    RuntimeMeasurement.hpp
+    DeviceCriteria.cpp
+    DeviceCriteria.hpp
 )
 fast_add_test_sources()

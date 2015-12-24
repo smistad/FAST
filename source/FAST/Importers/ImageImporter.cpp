@@ -12,11 +12,11 @@ void ImageImporter::execute() {
 
     // Load image from disk using Qt
     QImage image;
-    std::cout << "Trying to load image..." << std::endl;
+    reportInfo() << "Trying to load image..." << Reporter::end;
     if(!image.load(mFilename.c_str())) {
         throw FileNotFoundException(mFilename);
     }
-    std::cout << "Loaded image with size " << image.width() << " "  << image.height() << std::endl;
+    reportInfo() << "Loaded image with size " << image.width() << " "  << image.height() << Reporter::end;
 
     // Convert image to make sure color tables are not used
     QImage convertedImage = image.convertToFormat(QImage::Format_RGB32);
@@ -35,7 +35,7 @@ void ImageImporter::execute() {
 
     // Transfer to texture(if OpenCL) or copy raw pixel data (if host)
     Image::pointer output = getOutputData<Image>();
-    output->create2DImage(image.width(),
+    output->create(image.width(),
             image.height(),
             TYPE_FLOAT,
             1,

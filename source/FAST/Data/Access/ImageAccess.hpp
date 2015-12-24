@@ -10,12 +10,14 @@ class Image;
 
 class ImageAccess {
     public:
-        ImageAccess(void* data, SharedPointer<Image> image, bool* accessFlag, bool* accessFlag2);
+        ImageAccess(void* data, SharedPointer<Image> image);
         void* get();
-        float getScalar(Vector2i position, uchar channel = 0) const;
-        float getScalar(Vector3i position, uchar channel = 0) const;
-        void setScalar(Vector2i position, float value, uchar channel = 0);
-        void setScalar(Vector3i position, float value, uchar channel = 0);
+        float getScalar(uint position, uchar channel = 0) const;
+        float getScalar(VectorXi position, uchar channel = 0) const;
+        Vector4f getVector(VectorXi position) const;
+        void setScalar(uint position, float value, uchar channel = 0);
+        void setScalar(VectorXi position, float value, uchar channel = 0);
+        void setVector(VectorXi position, Vector4f value);
         void release();
         ~ImageAccess();
 		typedef UniquePointer<ImageAccess> pointer;
@@ -23,8 +25,6 @@ class ImageAccess {
 		ImageAccess(const ImageAccess::pointer other);
 		ImageAccess::pointer operator=(const ImageAccess::pointer other);
         void* mData;
-        bool* mAccessFlag;
-        bool* mAccessFlag2;
 
         SharedPointer<Image> mImage;
 };

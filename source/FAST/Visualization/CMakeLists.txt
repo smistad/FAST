@@ -6,6 +6,7 @@ fast_add_subdirectories(
     PointRenderer
     LineRenderer
     SegmentationRenderer
+    BoundingBoxRenderer
     Tests
 )
 fast_add_sources(

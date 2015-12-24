@@ -27,6 +27,8 @@ void LaplacianOfGaussian::setStandardDeviation(float stdDev) {
 LaplacianOfGaussian::LaplacianOfGaussian() {
     createInputPort<Image>(0);
     createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/LaplacianOfGaussian/LaplacianOfGaussian2D.cl", "2D");
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/LaplacianOfGaussian/LaplacianOfGaussian3D.cl", "3D");
     mStdDev = 1.0f;
     mMaskSize = 3;
     mIsModified = true;
@@ -119,14 +121,13 @@ void LaplacianOfGaussian::recompileOpenCLCode(Image::pointer input) {
             buildOptions += " -DTYPE=ushort";
             break;
         }
-    std::string filename;
+    cl::Program program;
     if(input->getDimensions() == 2) {
-        filename = "Algorithms/LaplacianOfGaussian/LaplacianOfGaussian2D.cl";
+        program = getOpenCLProgram(device, "2D", buildOptions);
     } else {
-        filename = "Algorithms/LaplacianOfGaussian/LaplacianOfGaussian3D.cl";
+        program = getOpenCLProgram(device, "3D", buildOptions);
     }
-    int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + filename, buildOptions);
-    mKernel = cl::Kernel(device->getProgram(programNr), "laplacianOfGaussian");
+    mKernel = cl::Kernel(program, "laplacianOfGaussian");
     mDimensionCLCodeCompiledFor = input->getDimensions();
     mTypeCLCodeCompiledFor = input->getDataType();
 }
@@ -199,12 +200,11 @@ void LaplacianOfGaussian::execute() {
 
     // Initialize output image
     ExecutionDevice::pointer device = getMainDevice();
-    output->create2DImage(
+    output->create(
             input->getWidth(),
             input->getHeight(),
             TYPE_FLOAT,
-            1,
-            device
+            1
     );
 
     createMask(input);
@@ -218,22 +218,20 @@ void LaplacianOfGaussian::execute() {
 
         recompileOpenCLCode(input);
         cl::NDRange globalSize;
+        OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
         if(input->getDimensions() == 2) {
             globalSize = cl::NDRange(input->getWidth(),input->getHeight());
 
-            OpenCLImageAccess2D::pointer inputAccess = input->getOpenCLImageAccess2D(ACCESS_READ, device);
-            OpenCLImageAccess2D::pointer outputAccess = output->getOpenCLImageAccess2D(ACCESS_READ_WRITE, device);
-            mKernel.setArg(0, *inputAccess->get());
-            mKernel.setArg(2, *outputAccess->get());
+            OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+            mKernel.setArg(0, *inputAccess->get2DImage());
+            mKernel.setArg(2, *outputAccess->get2DImage());
         } else {
             globalSize = cl::NDRange(input->getWidth(),input->getHeight(),input->getDepth());
 
-            const bool writingTo3DTextures = clDevice->getDevice().getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") != std::string::npos;
-            OpenCLImageAccess3D::pointer inputAccess = input->getOpenCLImageAccess3D(ACCESS_READ, device);
-            mKernel.setArg(0, *inputAccess->get());
-            if(writingTo3DTextures) {
-                OpenCLImageAccess3D::pointer outputAccess = output->getOpenCLImageAccess3D(ACCESS_READ_WRITE, device);
-                mKernel.setArg(2, *outputAccess->get());
+            mKernel.setArg(0, *inputAccess->get3DImage());
+            if(clDevice->isWritingTo3DTexturesSupported()) {
+                OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+                mKernel.setArg(2, *outputAccess->get3DImage());
             } else {
                 OpenCLBufferAccess::pointer outputAccess = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
                 mKernel.setArg(2, *outputAccess->get());

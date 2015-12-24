@@ -1,4 +1,4 @@
-#include "FAST/Tests/catch.hpp"
+#include "FAST/Testing.hpp"
 #include "FAST/Algorithms/LaplacianOfGaussian/LaplacianOfGaussian.hpp"
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"

@@ -3,7 +3,7 @@
 #include "FAST/Data/Image.hpp"
 #include <limits.h>
 //#include "DynamicImage.hpp"
-//#include "HelperFunctions.hpp"
+//#include "FAST/Utility.hpp"
 //#include "DeviceManager.hpp"
 //#include "View.hpp"
 //#include <QCursor>
@@ -233,7 +233,7 @@ void VolumeRenderer::execute() {
 		if (numberOfVolumes>1)
 		{
 			OpenCLImageAccess3D::pointer access2 = inputs[1]->getOpenCLImageAccess3D(ACCESS_READ, mDevice);
-//			std::cout<<inputs[1]->getDataType()<<std::endl;
+//			Reporter::info()<<inputs[1]->getDataType()<<Reporter::end;
 			cl::Image3D* clImage2 = access2->get();
 			renderKernel.setArg(12, *clImage2);
 			renderKernel.setArg(13, d_transferFuncArray);

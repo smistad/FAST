@@ -6,27 +6,35 @@
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "FAST/Algorithms/BinaryThresholding/BinaryThresholding.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
+#include "FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
+#include "FAST/TestDataPath.hpp"
 
 using namespace fast;
 
 int main() {
     // Import image from file using the ImageFileImporter
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"/US-2D.jpg");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"/US-2Dt/US-2Dt_0.mhd");
 
     // Segment image
     BinaryThresholding::pointer thresholding = BinaryThresholding::New();
     thresholding->setInputConnection(importer->getOutputPort());
-    thresholding->setLowerThreshold(0.1);
+    thresholding->setLowerThreshold(30);
 
-    // Renderer image
-    ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->addInputConnection(thresholding->getOutputPort());
-    renderer->setIntensityLevel(0.5);
-    renderer->setIntensityWindow(1);
+    // Renderer segmentation on top of input image
+    ImageRenderer::pointer imageRenderer = ImageRenderer::New();
+    imageRenderer->addInputConnection(importer->getOutputPort());
+    SegmentationRenderer::pointer segmentationRenderer = SegmentationRenderer::New();
+    segmentationRenderer->addInputConnection(thresholding->getOutputPort());
+    segmentationRenderer->setFillArea(false);
     SimpleWindow::pointer window = SimpleWindow::New();
-    window->addRenderer(renderer);
-    window->setTimeout(5*1000); // automatically close window after 5 seconds
+    window->addRenderer(imageRenderer);
+    window->addRenderer(segmentationRenderer);
+    window->set2DMode();
+#ifdef FAST_CONTINUOUS_INTEGRATION
+	// This will automatically close the window after 5 seconds, used for CI testing
+    window->setTimeout(5*1000);
+#endif
     window->start();
 }

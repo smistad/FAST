@@ -7,7 +7,7 @@ namespace fast {
 void SegmentationRenderer::addInputConnection(ProcessObjectPort port) {
     uint nr = getNrOfInputData();
     if(nr > 0)
-        createInputPort<Segmentation>(0);
+        createInputPort<Segmentation>(nr);
     releaseInputAfterExecute(nr, false);
     setInputConnection(nr, port);
 }
@@ -34,22 +34,39 @@ void SegmentationRenderer::setColor(Segmentation::LabelType labelType,
     mColorsModified = true;
 }
 
+void SegmentationRenderer::setFillArea(Segmentation::LabelType labelType,
+        bool fillArea) {
+    mLabelFillArea[labelType] = fillArea;
+    mFillAreaModified = true;
+}
+
 void SegmentationRenderer::setFillArea(bool fillArea) {
     mFillArea = fillArea;
 }
 
 SegmentationRenderer::SegmentationRenderer() {
     createInputPort<Segmentation>(0, false);
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "/Visualization/SegmentationRenderer/SegmentationRenderer.cl");
     mIsModified = false;
     mColorsModified = true;
+    mFillAreaModified = true;
     mFillArea = true;
 
     // Set up default label colors
     mLabelColors[Segmentation::LABEL_BACKGROUND] = Color::Black();
     mLabelColors[Segmentation::LABEL_FOREGROUND] = Color::Green();
     mLabelColors[Segmentation::LABEL_BLOOD] = Color::Red();
+    mLabelColors[Segmentation::LABEL_ARTERY] = Color::Red();
+    mLabelColors[Segmentation::LABEL_VEIN] = Color::Blue();
     mLabelColors[Segmentation::LABEL_BONE] = Color::White();
     mLabelColors[Segmentation::LABEL_MUSCLE] = Color::Red();
+    mLabelColors[Segmentation::LABEL_NERVE] = Color::Yellow();
+    mLabelColors[Segmentation::LABEL_YELLOW] = Color::Yellow();
+    mLabelColors[Segmentation::LABEL_GREEN] = Color::Green();
+    mLabelColors[Segmentation::LABEL_PURPLE] = Color::Purple();
+    mLabelColors[Segmentation::LABEL_RED] = Color::Red();
+    mLabelColors[Segmentation::LABEL_WHITE] = Color::White();
+    mLabelColors[Segmentation::LABEL_BLUE] = Color::Blue();
 }
 
 void SegmentationRenderer::execute() {
@@ -72,7 +89,6 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
         ) {
     boost::lock_guard<boost::mutex> lock(mMutex);
     OpenCLDevice::pointer device = getMainDevice();
-    int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/SegmentationRenderer/SegmentationRenderer.cl");
 
     if(mColorsModified) {
         // Transfer colors to device (this doesn't have to happen every render call..)
@@ -89,6 +105,27 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
                 CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                 sizeof(float)*3*mLabelColors.size(),
                 colorData.get()
+        );
+    }
+
+    if(mFillAreaModified) {
+        // Transfer colors to device (this doesn't have to happen every render call..)
+        boost::shared_array<char> fillAreaData(new char[mLabelColors.size()]);
+        boost::unordered_map<Segmentation::LabelType, Color>::iterator it;
+        for(it = mLabelColors.begin(); it != mLabelColors.end(); it++) {
+            if(mLabelFillArea.count(it->first) == 0) {
+                // Use default value
+                fillAreaData[it->first] = mFillArea;
+            } else {
+                fillAreaData[it->first] = mLabelFillArea[it->first];
+            }
+        }
+
+        mFillAreaBuffer = cl::Buffer(
+                device->getContext(),
+                CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                sizeof(char)*mLabelColors.size(),
+                fillAreaData.get()
         );
     }
 
@@ -111,17 +148,12 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
 
 
         if(input->getDimensions() == 2) {
-            std::string kernelName;
-            if(mFillArea) {
-                kernelName = "renderArea2D";
-            } else {
-                kernelName = "renderBorder2D";
-            }
-            cl::Kernel kernel(device->getProgram(programNr), kernelName.c_str());
+            std::string kernelName = "render2D";
+            cl::Kernel kernel(getOpenCLProgram(device), kernelName.c_str());
             // Run kernel to fill the texture
 
-            OpenCLImageAccess2D::pointer access = input->getOpenCLImageAccess2D(ACCESS_READ, device);
-            cl::Image2D* clImage = access->get();
+            OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
+            cl::Image2D* clImage = access->get2DImage();
             kernel.setArg(0, *clImage);
             kernel.setArg(1, PBO); // Read from this
             kernel.setArg(2, PBO2); // Write to this
@@ -129,6 +161,7 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
             kernel.setArg(4, input->getSpacing().y());
             kernel.setArg(5, PBOspacing);
             kernel.setArg(6, mColorBuffer);
+            kernel.setArg(7, mFillAreaBuffer);
 
             // Run the draw 2D kernel
             queue.enqueueNDRangeKernel(
@@ -138,20 +171,15 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
                     cl::NullRange
             );
         } else {
-            std::string kernelName;
-            if(mFillArea) {
-                kernelName = "renderArea3D";
-            } else {
-                kernelName = "renderBorder3D";
-            }
-            cl::Kernel kernel(device->getProgram(programNr), kernelName.c_str());
+            std::string kernelName = "render3D";
+            cl::Kernel kernel(getOpenCLProgram(device), kernelName.c_str());
 
             // Get transform of the image
-            AffineTransformation dataTransform = SceneGraph::getAffineTransformationFromData(input);
-            dataTransform.scale(input->getSpacing());
+            AffineTransformation::pointer dataTransform = SceneGraph::getAffineTransformationFromData(input);
+            dataTransform->scale(input->getSpacing());
 
             // Transfer transformations
-            Eigen::Affine3f transform = dataTransform.inverse()*pixelToViewportTransform;
+            Eigen::Affine3f transform = dataTransform->inverse()*pixelToViewportTransform;
 
             cl::Buffer transformBuffer(
                     device->getContext(),
@@ -161,13 +189,14 @@ void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
             );
 
             // Run kernel to fill the texture
-            OpenCLImageAccess3D::pointer access = input->getOpenCLImageAccess3D(ACCESS_READ, device);
-            cl::Image3D* clImage = access->get();
+            OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
+            cl::Image3D* clImage = access->get3DImage();
             kernel.setArg(0, *clImage);
             kernel.setArg(1, PBO); // Read from this
             kernel.setArg(2, PBO2); // Write to this
             kernel.setArg(3, transformBuffer);
             kernel.setArg(4, mColorBuffer);
+            kernel.setArg(5, mFillAreaBuffer);
 
             // Run the draw 3D image kernel
             queue.enqueueNDRangeKernel(

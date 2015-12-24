@@ -12,6 +12,7 @@
 #include "FAST/Visualization/VolumeRenderer/ColorTransferFunction.hpp"
 #include "FAST/Visualization/VolumeRenderer/OpacityTransferFunction.hpp"
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
+#include "FAST/TestDataPath.hpp"
 
 using namespace fast;
 
@@ -219,7 +220,10 @@ window->setTimeout(10*1000);
     window->setMaximumFramerate(15);
     window->addRenderer(vRenderer);
 	window->addRenderer(sRenderer);
-	window->setTimeout(10*1000); // 10 seconds
+#ifdef FAST_CONTINUOUS_INTEGRATION
+	// This will automatically close the window after 5 seconds, used for CI testing
+    window->setTimeout(5*1000);
+#endif
     window->start();
 	//vRenderer->getRuntime()->print();
 	

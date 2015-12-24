@@ -15,6 +15,7 @@ class SegmentationRenderer : public Renderer {
         void addInputConnection(ProcessObjectPort port);
         BoundingBox getBoundingBox();
         void setColor(Segmentation::LabelType, Color);
+        void setFillArea(Segmentation::LabelType, bool);
         void setFillArea(bool fillArea);
     private:
         SegmentationRenderer();
@@ -30,13 +31,15 @@ class SegmentationRenderer : public Renderer {
         );
 
         bool mColorsModified;
+        bool mFillAreaModified;
 
         boost::unordered_map<uint, Image::pointer> mImagesToRender;
         boost::unordered_map<uint, GLuint> mTexturesToRender;
         boost::unordered_map<uint, Image::pointer> mImageUsed;
         boost::unordered_map<Segmentation::LabelType, Color> mLabelColors;
+        boost::unordered_map<Segmentation::LabelType, bool> mLabelFillArea;
         bool mFillArea;
-        cl::Buffer mColorBuffer;
+        cl::Buffer mColorBuffer, mFillAreaBuffer;
         boost::mutex mMutex;
 
 };
