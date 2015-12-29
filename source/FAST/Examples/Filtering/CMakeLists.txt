@@ -1,1 +1,2 @@
 fast_add_example(gaussianSmoothingFilter gaussianSmoothingFilter.cpp)
+fast_add_example(NLMFilter noneLocalMeansFilter.cpp)

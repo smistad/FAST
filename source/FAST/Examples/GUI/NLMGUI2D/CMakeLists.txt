@@ -1,0 +1,1 @@
+fast_add_example(NLMGUI2D main.cpp NLMGUI2D.hpp NLMGUI2D.cpp)
