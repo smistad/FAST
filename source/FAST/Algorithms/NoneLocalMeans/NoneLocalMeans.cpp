@@ -2,6 +2,7 @@
 #include "FAST/Exception.hpp"
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Data/Image.hpp"
+#include <numeric>
 using namespace fast;
 
 NoneLocalMeans::NoneLocalMeans() {
@@ -77,15 +78,6 @@ void NoneLocalMeans::setDenoiseStrength(float dS){
 	//recompile = true;
 }
 
-/*
-void NoneLocalMeans::setSigma(unsigned char s){
-	if (s < 0)
-		throw Exception("NoneLocalMeans sigma must be greater then 0.");
-
-	sigma = s;
-	recompile = true;
-}*/
-
 void NoneLocalMeans::setSigma(float s){
     if (s < 0)
         throw Exception("NoneLocalMeans sigma must be greater then 0.");
@@ -95,155 +87,83 @@ void NoneLocalMeans::setSigma(float s){
     recompile = true;
 }
 
-//Not sure if needed
 
 
 template <class T>
-void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, unsigned char gS, unsigned char wS, float dS, unsigned char s) {
+void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, unsigned char group, unsigned char window, float strength, unsigned char sigma) {
 	throw Exception("This is on host, does not work atm");
-    /*
-	unsigned int nrOfComponents = input->getNrOfComponents();
-	ImageAccess::pointer inputAccess = input->getImageAccess(ACCESS_READ);
-	ImageAccess::pointer outputAccess = output->getImageAccess(ACCESS_READ_WRITE);
+    
+    ImageAccess::pointer inputAccess = input->getImageAccess(ACCESS_READ);
+    ImageAccess::pointer outputAccess = output->getImageAccess(ACCESS_READ_WRITE);
 
-	//this makes input/output serial, need to figure out math to convert cords into corret serial placement
-	T * inputData = (T*)inputAccess->get();
-	T * outputData = (T*)outputAccess->get();
+    T * inputData = (T*)inputAccess->get();
+    T * outputData = (T*)outputAccess->get();
 
-	const unsigned char hGS = (gS - 1) / 2;
-	const unsigned char hWS = (wS - 1) / 2;
-	//this seems to be the easies way to declare pi....
-	const float pi = 3.1415927;
+    unsigned int width = input->getWidth();
+    unsigned int height = input->getHeight();
+    //Window is window-1/2
+    //group is group-1/2
+    //strength is strength*strength
+    //sigma is sigma*sigma
+    //Not working atm with the T
+    //Does not work with outofbounds atm
+    //So this code is for all pixels inbound, meaning x + group + window < width / x - group - window > 0 //same for y
+    for (int x = 0; x < width; x++){
+        for (int y = 0; y < height; y++){
+            
+            double normSum = 0.0;
+            double totSum = 0.0;
+            double indi = 0.0;
+            double groupTot = 0.0;
+            double value = 0.0;
 
-	unsigned int width = input->getWidth();
-	unsigned int height = input->getHeight();
-	float windowWeight = 0;
-	float totWeight = 0;
-	float totValue = 0;
-	float currentWeight = 0;
-	float delta = 0;
-	float gWeight = 0;
-	char eDist1 = 0;
-	char eDist2 = 0;
+            for (int i = x - window; i <= x + window; i++){
+                for (int j = y - window; j <= y + window; j++){
+                    if (i != x && j != y){
 
-	if (input->getDimensions() == 3){
-		//untested, this needs to be threaded.....this is where your processor goes to die
-		unsigned int depth = input->getDepth();
-		char eDist3 = 0;
-		int sx = 0;
-		int sy = 0;
-		int sz = 0;
+                        int mX = x - group;
+                        int mY = y - group;
+                        for (int k = i - group; k <= i + group; k++, mX++){
+                            for (int l = j - group; l <= j + group; l++, mY++){
+                                //This is wrong, need to fix T
+                                //indi = inputData[mX][mY] - inputData[k][l];
+                                indi = abs(indi*indi);
+                                indi = exp( - (indi/strength));
+                                groupTot += indi;
+                            }
+                        }
+                        //This is wrong, need to fix T
+                        //value = inputData[i][j];
+                        double pA[] = {i,j};
+                        double pB[] = {x,y};
+                        //double dist = i, j - x, y;
+                        double dist = std::inner_product(std::begin(pA), std::end(pA), std::begin(pB), 0.0);
+                        
+                        double gaussWeight = exp(-(dist / (2.0 * sigma)));
+                        gaussWeight = gaussWeight / (2.0 * sigma);
+                        groupTot *= gaussWeight;
 
-		//ok, for loop maze inc
-		//for each voxel
-		for (int x = 0; x < width; x++){
-			for (int y = 0; y < height; y++){
-				for (int z = 0; z < depth; z++){
-					//for each voxel in search window
-					for (int i = x - hWS; i <= x + hWS; i++){
-						for (int j = y - hWS; j <= y + hWS; j++){
-							for (int k = z - hWS; k <= z + hWS; k++){
-								if (i < 0 || i >= width || j < 0 || j >= height || z < 0 || z >= depth){
-									continue;
-								}
-								sx = i - hGS;
-								sy = j - hGS;
-								sz = z - hGS;
-								//for each voxel in group
-								for (int l = x - hGS; l <= x + hGS; l++){
-									for (int m = y - hGS; m <= y + hGS; m++){
-										for (int n = z - hGS; n <= z + hGS; n++){
-											if (l < 0 || l >= width || m < 0 || m >= height || n < 0 || n >= depth){
-												continue;
-											}
-											//This needs some math magic to work
-											//delta = abs(inputData[l][m][n] - inputData[sx][sy][sz]);
-											currentWeight = exp(-((delta*delta) / (dS*dS)));
-											windowWeight += currentWeight;
-											currentWeight = 0;
-											sz++;
-										}
-										sy++;
-									}
-									sx++;
-								}
-								eDist1 = abs(x - i);
-								eDist2 = abs(y - j);
-								eDist3 = abs(z - k);
-								//unsure about this one
-								gWeight = exp(-(((eDist1*eDist1) + (eDist2*eDist2) + (eDist3*eDist3)) / (2 * (s * s))));
-								windowWeight = windowWeight * (1 / (2 * pi * (s * s)) * gWeight);
-
-								totWeight += windowWeight;
-								//this also needs some math magic to work
-								//totValue += inputData[i][j][k] * windowWeight;
-								windowWeight = 0;
-							}
-						}
-					}
-					totValue = totValue / totWeight;
-					//mathmagic req
-					//outputData[x][y][z] = totValue;
-				}
-			}
-		}
-
-	}
-	else if (input->getDimensions() == 2){
-		//need to figure out how to convert x,y cords into serial xy
-		int sx = 0;
-		int sy = 0;
-		//For each pixel
-		for (int x = 0; x < width; x++){
-			for (int y = 0; y < height; y++){
-				//For each pixel in search window
-				for (int i = x - hWS; i <= x + hWS; i++){
-					for (int j = y - hWS; j <= y + hWS; j++){
-						if (i < 0 || i >= width || j < 0 || j >= height){
-							continue;
-						}
-						sx = i - hGS;
-						sy = j - hGS;
-						//For each pixel in group
-						for (int k = x - hGS; k <= x + hGS; k++){
-							for (int l = y - hGS; l <= y + hGS; l++){
-								if (k < 0 || k >= width || l < 0 || l >= height){
-									continue;
-								}
-								//math magic
-								//delta = abs(inputData[k][l] - inputData[sx][sy]);
-								//unsure, might have changed the formula
-								currentWeight = exp(-((delta*delta) / (dS*dS)));
-								windowWeight += currentWeight;
-								currentWeight = 0;
-								sy++;
-							}
-							sx++;
-						}
-						//this might very well be wrong, need to try
-						eDist1 = abs(x - i);
-						eDist2 = abs(y - j);
-						//unsure if i need abs here
-						//should have sqrt() here, but it varies depending on sources...
-						gWeight = exp(- ( ((eDist1*eDist1) + (eDist2*eDist2)) / (2 * (s * s)) ) );
-						windowWeight = windowWeight * (1 / ( 2 * pi * (s * s)) * gWeight );
-
-						totWeight += windowWeight;
-						//needs some math magic here
-						//totValue += inputData[i][j] * windowWeight;
-						windowWeight = 0;
-					}
-				}
-				totValue = totValue / totWeight;
-				//needs some math magic here to
-				//outputData[x][y] = totValue;
-			}
-		}
-	}
-	else{
-		throw Exception("NoneLocalMeans input dimensions does not equal 2 or 3");
-	}
-     */
+                        normSum += groupTot;
+                        totSum += groupTot * value;
+                        groupTot = 0.0;
+                    }
+                }
+            }
+            value = totSum / normSum;
+            /*
+            Not sure it needed
+            if (value < 0){
+                value = 0;
+            }
+            if (value > 1.0){
+                value = 1.0f;
+            }
+            */
+            //This is wrong, need to fix T
+            //outputData[x][y] = (T)value;
+            
+        }
+    }
 }
 
 void NoneLocalMeans::recompileOpenCLCode(Image::pointer input) {
