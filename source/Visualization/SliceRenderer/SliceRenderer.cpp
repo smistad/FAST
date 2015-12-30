@@ -328,13 +328,13 @@ void SliceRenderer::recompileOpenCLCode(boost::unordered_map<uint, Image::pointe
 			unsigned int volumeDataType = inputs[i]->getDataType();
 
 			if (volumeDataType == fast::TYPE_FLOAT)
-				sprintf(dataTypeBuffer, " -D TYPE_FLOAT%d ", i + 1);
+				sprintf(dataTypeBuffer, " -D TYPE_FLOAT%d", i + 1);
 			else
 			{
 				if ((volumeDataType == fast::TYPE_UINT8) || (volumeDataType == fast::TYPE_UINT16))
-					sprintf(dataTypeBuffer, " -D TYPE_UINT%d ", i + 1);
+					sprintf(dataTypeBuffer, " -D TYPE_UINT%d", i + 1);
 				else
-					sprintf(dataTypeBuffer, " -D TYPE_INT%d ", i + 1);
+					sprintf(dataTypeBuffer, " -D TYPE_INT%d", i + 1);
 			}
 			strcat(buildOptionsBuffer, dataTypeBuffer);
 
