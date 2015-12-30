@@ -72,17 +72,17 @@ int intersectBox(float4 r_o, float4 r_d, float4 boxmax, float *tnear, float *tfa
 	return smallest_tmax > largest_tmin;
 }
 
-uint rgbaFloatToInt(float4 rgba)
+uchar4 rgbaFloatToInt(float4 rgba)
 {
     rgba.x = clamp(rgba.x,0.0f,1.0f);  
     rgba.y = clamp(rgba.y,0.0f,1.0f);  
     rgba.z = clamp(rgba.z,0.0f,1.0f);  
     rgba.w = clamp(rgba.w,0.0f,1.0f);  
-    return ((uint)(rgba.w*255.0f)<<24) | ((uint)(rgba.z*255.0f)<<16) | ((uint)(rgba.y*255.0f)<<8) | (uint)(rgba.x*255.0f);
+    return (uchar4)((uchar)(rgba.w*255.0f), (uchar)(rgba.z*255.0f), (uchar)(rgba.y*255.0f), (uchar)(rgba.x*255.0f) );
 }
 
 __kernel void
-d_render(__global uint *d_output, 
+d_render(__global uchar4 *d_output,
          uint imageW, uint imageH,
          float density, float brightness,
          float zNear, float zFar,

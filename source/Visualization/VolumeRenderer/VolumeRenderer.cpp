@@ -418,7 +418,7 @@ void VolumeRenderer::execute() {
 		// create pixel buffer object for display
 		glGenBuffersARB(1, &pbo);
 		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pbo);
-		glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, mHeight * mWidth * sizeof(GLubyte)* 4, 0, GL_STREAM_DRAW_ARB);
+		glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, mHeight * mWidth * 4, 0, GL_STREAM_DRAW_ARB);
 		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 
 		// Create CL-GL image
@@ -657,7 +657,7 @@ void VolumeRenderer::draw() {
 	glDisable(GL_TEXTURE_2D);
 	glRasterPos2i(0, 0);
 	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pbo);
-	glDrawPixels(mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	glDrawPixels(mWidth, mHeight, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, 0);
 	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 	//glFinish();
 	
