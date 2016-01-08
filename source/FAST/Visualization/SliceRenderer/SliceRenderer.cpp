@@ -304,6 +304,8 @@ void SliceRenderer::execute() {
 
 void SliceRenderer::addInputConnection(ProcessObjectPort port) {
 	uint nr = getNrOfInputData();
+    if(nr > 0)
+        createInputPort<Image>(nr);
     releaseInputAfterExecute(nr, false);
     ProcessObject::setInputConnection(nr, port);
 	mInputIsModified = true;
