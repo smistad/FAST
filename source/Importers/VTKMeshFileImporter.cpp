@@ -71,6 +71,9 @@ void VTKMeshFileImporter::execute() {
 
     // Read triangles (other types of polygons not supported yet)
     std::vector<Vector3ui> triangles;
+
+	std::vector<Vector3f> normalsPerTriangle;
+
     if(!gotoLineWithString(file, "POLYGONS")) {
         throw Exception("Found no triangles in the VTK surface file");
     }
@@ -99,20 +102,42 @@ void VTKMeshFileImporter::execute() {
         triangle(0) = boost::lexical_cast<uint>(tokens[1]);
         triangle(1) = boost::lexical_cast<uint>(tokens[2]);
         triangle(2) = boost::lexical_cast<uint>(tokens[3]);
-
         triangles.push_back(triangle);
+
+		//if (!gotoLineWithString(file, "NORMALS")) {
+			
+			//Cereate Surface Normal For Each Triangle
+			Vector3f U(vertices[triangle(1)] - vertices[triangle(0)]);
+			Vector3f V(vertices[triangle(2)] - vertices[triangle(0)]);
+
+			Vector3f normalPerTriangle;
+			normalPerTriangle(0) = ((U.y()*V.z()) - (U.z()*V.y()));
+			normalPerTriangle(1) = ((U.z()*V.x()) - (U.x()*V.z()));
+			normalPerTriangle(2) = ((U.x()*V.y()) - (U.y()*V.x()));
+
+			normalsPerTriangle.push_back(normalPerTriangle);
+		//}
 
     }
     file.seekg(0); // set stream to start
 
     // Read normals (if any)
-    std::vector<Vector3f> normals;
+    std::vector<Vector3f> normals; // normals per vertex
+	
+
     if(!gotoLineWithString(file, "NORMALS")) {
-        // Create dummy normals
-        for(uint i = 0; i < vertices.size(); i++) {
-            Vector3f dummyNormal;
-            normals.push_back(dummyNormal);
-        }
+        // Generate normals for each vertex
+        for(uint i = 0; i < vertices.size(); i++) 
+		{
+			Vector3f normal(0.0, 0.0, 0.0);
+			for (uint j = 0; j < triangles.size(); j++) 
+				if (triangles[j].x() == i || triangles[j].y() == i || triangles[j].z() == i)
+					normal += normalsPerTriangle[j];
+
+			normal.normalize();
+			normals.push_back(normal);
+		}
+
     } else {
         while(getline(file, line)) {
             boost::trim(line);
@@ -147,6 +172,10 @@ void VTKMeshFileImporter::execute() {
     // Add data to output
     output->create(vertices, normals, triangles);
     std::cout << "MESH IMPORTED" << std::endl;
+	std::cout << "vertices:" << vertices.size() << std::endl;
+	std::cout << "normals:" << normals.size() << std::endl;
+	std::cout << "triangles:" << triangles.size() << std::endl;
+
 }
 
 } // end namespace fast
