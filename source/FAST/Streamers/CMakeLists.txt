@@ -1,0 +1,22 @@
+fast_add_sources(
+    Streamer.cpp
+    Streamer.hpp
+    ImageFileStreamer.cpp
+    ImageFileStreamer.hpp
+    AffineTransformationFileStreamer.cpp
+    AffineTransformationFileStreamer.hpp
+)
+if(MODULE_OpenIGTLink)
+    fast_add_sources(
+        IGTLinkStreamer.hpp
+        IGTLinkStreamer.cpp
+    )
+    fast_add_test_sources(
+        Tests/IGTLinkStreamerTests.cpp
+        Tests/DummyIGTLServer.cpp
+        Tests/DummyIGTLServer.hpp
+    )
+endif()
+fast_add_test_sources(
+    Tests/ImageFileStreamerTests.cpp
+)

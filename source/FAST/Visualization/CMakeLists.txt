@@ -1,0 +1,30 @@
+fast_add_subdirectories(
+    ImageRenderer
+    SliceRenderer
+    MeshRenderer
+    VolumeRenderer
+    PointRenderer
+    LineRenderer
+    SegmentationRenderer
+    BoundingBoxRenderer
+    Tests
+)
+fast_add_sources(
+    Window.cpp
+    Window.hpp
+    SimpleWindow.cpp
+    SimpleWindow.hpp
+    DualViewWindow.cpp
+    DualViewWindow.hpp
+    WindowWidget.cpp
+    WindowWidget.hpp
+    ComputationThread.cpp
+    ComputationThread.hpp
+    View.cpp
+    View.hpp
+    Renderer.cpp
+    Renderer.hpp
+    Plane.cpp
+    Plane.hpp
+) 
+fast_add_test_sources()

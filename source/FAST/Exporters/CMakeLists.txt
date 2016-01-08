@@ -1,0 +1,32 @@
+fast_add_sources(
+    ImageExporter.cpp
+    ImageExporter.hpp
+    MetaImageExporter.cpp
+    MetaImageExporter.hpp
+    VTKMeshFileExporter.cpp
+    VTKMeshFileExporter.hpp
+)
+fast_add_test_sources(
+    Tests/ImageExporterTests.cpp
+    Tests/MetaImageExporterTests.cpp
+)
+if(FAST_VTK_INTEROP)
+    fast_add_sources(
+        VTKImageExporter.cpp
+        VTKImageExporter.hpp
+        VTKLineSetExporter.cpp
+        VTKLineSetExporter.hpp
+    )
+    fast_add_test_sources(
+        Tests/VTKImageExporterTests.cpp
+        Tests/VTKLineSetExporterTests.cpp
+    )
+endif()
+if(FAST_ITK_INTEROP)
+    fast_add_sources(
+        ITKImageExporter.hpp
+    )
+    fast_add_test_sources(
+        Tests/ITKImageExporterTests.cpp
+    )
+endif()

@@ -1,59 +1,54 @@
+#.rst:
+# FindGLEW
+# --------
 #
-# Try to find GLEW library and include path.
-# Once done this will define
+# Find the OpenGL Extension Wrangler Library (GLEW)
 #
-# GLEW_FOUND
-# GLEW_INCLUDE_PATH
-# GLEW_LIBRARY
-# 
+# IMPORTED Targets
+# ^^^^^^^^^^^^^^^^
+#
+# This module defines the :prop_tgt:`IMPORTED` target ``GLEW::GLEW``,
+# if GLEW has been found.
+#
+# Result Variables
+# ^^^^^^^^^^^^^^^^
+#
+# This module defines the following variables:
+#
+# ::
+#
+#   GLEW_INCLUDE_DIRS - include directories for GLEW
+#   GLEW_LIBRARIES - libraries to link against GLEW
+#   GLEW_FOUND - true if GLEW has been found and can be used
 
-IF (WIN32)
-	FIND_PATH( GLEW_INCLUDE_PATH GL/glew.h
-		$ENV{PROGRAMFILES}/GLEW/include
-		${PROJECT_SOURCE_DIR}/src/nvgl/glew/include
-		DOC "The directory where GL/glew.h resides")
-	IF (NV_SYSTEM_PROCESSOR STREQUAL "AMD64")
-		FIND_LIBRARY( GLEW_LIBRARY
-			NAMES glew64 glew64s
-			PATHS
-			$ENV{PROGRAMFILES}/GLEW/lib
-			${PROJECT_SOURCE_DIR}/src/nvgl/glew/bin
-	    	${PROJECT_SOURCE_DIR}/src/nvgl/glew/lib
-			DOC "The GLEW library (64-bit)"
-		)
-	ELSE(NV_SYSTEM_PROCESSOR STREQUAL "AMD64")
-		FIND_LIBRARY( GLEW_LIBRARY
-			NAMES glew GLEW glew32 glew32s
-			PATHS
-			$ENV{PROGRAMFILES}/GLEW/lib
-			${PROJECT_SOURCE_DIR}/src/nvgl/glew/bin
-	    	${PROJECT_SOURCE_DIR}/src/nvgl/glew/lib
-			DOC "The GLEW library"
-		)
-	ENDIF(NV_SYSTEM_PROCESSOR STREQUAL "AMD64")
-ELSE (WIN32)
-	FIND_PATH( GLEW_INCLUDE_PATH GL/glew.h
-		/usr/include
-		/usr/local/include
-		/sw/include
-		/opt/local/include
-		DOC "The directory where GL/glew.h resides")
-	FIND_LIBRARY( GLEW_LIBRARY
-		NAMES GLEW glew
-		PATHS
-		/usr/lib64
-		/usr/lib
-		/usr/local/lib64
-		/usr/local/lib
-		/sw/lib
-		/opt/local/lib
-		DOC "The GLEW library")
-ENDIF (WIN32)
+#=============================================================================
+# Copyright 2012 Benjamin Eikel
+#
+# Distributed under the OSI-approved BSD License (the "License");
+# see accompanying file Copyright.txt for details.
+#
+# This software is distributed WITHOUT ANY WARRANTY; without even the
+# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the License for more information.
+#=============================================================================
+# (To distribute this file outside of CMake, substitute the full
+#  License text for the above reference.)
 
-IF (GLEW_INCLUDE_PATH)
-	SET( GLEW_FOUND 1 CACHE STRING "Set to 1 if GLEW is found, 0 otherwise")
-ELSE (GLEW_INCLUDE_PATH)
-	SET( GLEW_FOUND 0 CACHE STRING "Set to 1 if GLEW is found, 0 otherwise")
-ENDIF (GLEW_INCLUDE_PATH)
+find_path(GLEW_INCLUDE_DIR GL/glew.h)
+find_library(GLEW_LIBRARY NAMES GLEW glew32 glew glew32s PATH_SUFFIXES lib64)
 
-MARK_AS_ADVANCED( GLEW_FOUND )
+set(GLEW_INCLUDE_DIRS ${GLEW_INCLUDE_DIR})
+set(GLEW_LIBRARIES ${GLEW_LIBRARY})
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(GLEW
+                                  REQUIRED_VARS GLEW_INCLUDE_DIR GLEW_LIBRARY)
+
+if(GLEW_FOUND AND NOT TARGET GLEW::GLEW)
+  add_library(GLEW::GLEW UNKNOWN IMPORTED)
+  set_target_properties(GLEW::GLEW PROPERTIES
+    IMPORTED_LOCATION "${GLEW_LIBRARY}"
+    INTERFACE_INCLUDE_DIRECTORIES "${GLEW_INCLUDE_DIRS}")
+endif()
+
+mark_as_advanced(GLEW_INCLUDE_DIR GLEW_LIBRARY)
