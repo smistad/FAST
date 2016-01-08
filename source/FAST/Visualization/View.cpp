@@ -55,6 +55,10 @@ void View::setBackgroundColor(Color color) {
 	mBackgroundColor = color;
 }
 
+void View::set2DPixelSpacing(float spacing) {
+	mPBOspacing = spacing;
+}
+
 View::View() : mViewingPlane(Plane::Axial()) {
     createInputPort<Camera>(0, false);
 
@@ -68,6 +72,7 @@ View::View() : mViewingPlane(Plane::Axial()) {
     mMiddleMouseButtonIsPressed = false;
     mQuit = false;
 	mCameraSet = false;
+	mPBOspacing = -1;
 
     mFramerate = 60;
     // Set up a timer that will call update on this object at a regular interval
@@ -408,7 +413,8 @@ void View::initializeGL() {
                 }
             }
 
-            mPBOspacing = longestEdgeDistance / std::min(width(), height());
+            if(mPBOspacing < 0)
+				mPBOspacing = longestEdgeDistance / std::min(width(), height());
             reportInfo() << "current width and height " << width() << " " << height() << Reporter::end;
             reportInfo() << "longest edge distance " << longestEdgeDistance << Reporter::end;
             reportInfo() << "PBO spacing set to " << mPBOspacing << Reporter::end;

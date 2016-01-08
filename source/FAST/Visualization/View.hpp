@@ -40,6 +40,7 @@ class View : public QGLWidget, public ProcessObject {
         ~View();
         void recalculateCamera();
         void setBackgroundColor(Color color);
+        void set2DPixelSpacing(float spacing);
 
 		std::string getNameOfClass() const {
 		    return "View";
