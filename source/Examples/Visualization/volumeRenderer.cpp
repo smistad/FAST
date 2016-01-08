@@ -15,6 +15,7 @@
 #include "ColorTransferFunction.hpp"
 #include "OpacityTransferFunction.hpp"
 #include "SurfaceExtraction.hpp"
+#include "VTKMeshFileImporter.hpp"
 
 using namespace fast;
 
@@ -228,16 +229,22 @@ window->setTimeout(10*1000);
 	//getchar(); // Do not commit this as the example is run on all platforms..
 	*/
 	ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
-	ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
-	ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
-	ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+	ctf1->addRGBPoint(-1024.0, 0.0, 0.0, 0.0);
+	ctf1->addRGBPoint(109.0, 1.0, 0.0, 0.0);
+	ctf1->addRGBPoint(144.0, 1.0, 0.56, 0.286);
+	ctf1->addRGBPoint(392.0, 1.0, 1.0, 1.0);
+	ctf1->addRGBPoint(1504.0, 0.0, 0.0, 0.0);
 
 	OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
-	otf1->addAlphaPoint(000.0, 0.0);
-	otf1->addAlphaPoint(255.0, 1.0);
+	otf1->addAlphaPoint(-1024.0, 0.0);
+	otf1->addAlphaPoint(-385.0, 0.03);
+	otf1->addAlphaPoint(107.0, 0.0);
+	otf1->addAlphaPoint(184.0, 0.37);
+	otf1->addAlphaPoint(1149.0, 1.0);
+	otf1->addAlphaPoint(1504.0, 1.0);
 
 	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
-	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "/Application/CT.mhd");
 	mhdImporterStatic->enableRuntimeMeasurements();
 
 	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
@@ -246,10 +253,51 @@ window->setTimeout(10*1000);
 	volumeRenderer->setOpacityTransferFunction(0, otf1);
 	volumeRenderer->enableRuntimeMeasurements();
 
+	VTKMeshFileImporter::pointer vtkImporterVeins = VTKMeshFileImporter::New();
+	vtkImporterVeins->setFilename(std::string(FAST_TEST_DATA_DIR) + "/Application/veins.vtk");
+
+	VTKMeshFileImporter::pointer vtkImporterArtery = VTKMeshFileImporter::New();
+	vtkImporterArtery->setFilename(std::string(FAST_TEST_DATA_DIR) + "/Application/artery.vtk");
+
+	VTKMeshFileImporter::pointer vtkImporterLeftFemur = VTKMeshFileImporter::New();
+	vtkImporterLeftFemur->setFilename(std::string(FAST_TEST_DATA_DIR) + "/Application/left_femur.vtk");
+
+	VTKMeshFileImporter::pointer vtkImporterRightFemur = VTKMeshFileImporter::New();
+	vtkImporterRightFemur->setFilename(std::string(FAST_TEST_DATA_DIR) + "/Application/right_femur.vtk");
+
+	VTKMeshFileImporter::pointer vtkImporterNerves = VTKMeshFileImporter::New();
+	vtkImporterNerves->setFilename(std::string(FAST_TEST_DATA_DIR) + "/Application/nerves.vtk");
+
+	VTKMeshFileImporter::pointer vtkImporterNerveFemoralRight = VTKMeshFileImporter::New();
+	vtkImporterNerveFemoralRight->setFilename(std::string(FAST_TEST_DATA_DIR) + "/Application/nerve_femoral_right.vtk");
+
+	// Renderer image
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	//Veines
+	meshRenderer->addInputConnection(vtkImporterVeins->getOutputPort());
+	meshRenderer->setColor(vtkImporterVeins->getOutputPort(), Color::Blue());
+	//Artery
+	meshRenderer->addInputConnection(vtkImporterArtery->getOutputPort());
+	meshRenderer->setColor(vtkImporterArtery->getOutputPort(), Color::Red());
+	//Left Femur
+	meshRenderer->addInputConnection(vtkImporterLeftFemur->getOutputPort());
+	meshRenderer->setColor(vtkImporterLeftFemur->getOutputPort(), Color::White());
+	//Right Femur
+	meshRenderer->addInputConnection(vtkImporterRightFemur->getOutputPort());
+	meshRenderer->setColor(vtkImporterRightFemur->getOutputPort(), Color::White());
+	//Nerves 
+	meshRenderer->addInputConnection(vtkImporterNerves->getOutputPort());
+	meshRenderer->setColor(vtkImporterNerves->getOutputPort(), Color(1.0f, 1.0f, 0.0f));
+	//Nerve Femora lRight
+	meshRenderer->addInputConnection(vtkImporterNerveFemoralRight->getOutputPort());
+	meshRenderer->setColor(vtkImporterNerveFemoralRight->getOutputPort(), Color(1.0f, 1.0f, 0.0f));
+
+
 	SimpleWindow::pointer window = SimpleWindow::New();
 	window->getView()->enableRuntimeMeasurements();
 	window->setMaximumFramerate(1000);
 	window->addRenderer(volumeRenderer);
+	//window->addRenderer(meshRenderer);
 	//window->setTimeout(1000); // 1 second
 	window->start();
 
