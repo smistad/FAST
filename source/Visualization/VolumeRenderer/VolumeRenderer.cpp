@@ -164,27 +164,18 @@ void VolumeRenderer::addGeometryDepthTexture(GLuint geoDepthTex)
 void VolumeRenderer::turnOffTransformations() {
     mDoTransformations = false;
 }
-//this returns the boundingbox of the FIRST volume
+//this returns the boundingbox of ALL volumes
 BoundingBox VolumeRenderer::getBoundingBox()
 {
-	Image::pointer mImageToRender = mImagesToRender[0];//getStaticInputData<Image>(0);//getInputData(0);
-		
-	
-	float tr[16];
-
-	BoundingBox inputBoundingBox = mImageToRender->getBoundingBox();
-
-    if(mDoTransformations) {
-        LinearTransformation transform = SceneGraph::getLinearTransformationFromData(mImageToRender);
-		BoundingBox transformedBoundingBox = inputBoundingBox.getTransformedBoundingBox(transform);
-        
-		return transformedBoundingBox;
-
-    } else {
-        return inputBoundingBox;
-    }
-
-
+	std::vector<Vector3f> coordinates;
+	for (uint i = 0; i < getNrOfInputData(); i++) {
+		BoundingBox transformedBoundingBox = mImagesToRender[i]->getTransformedBoundingBox();
+		MatrixXf corners = transformedBoundingBox.getCorners();
+		for (uint j = 0; j < 8; j++) {
+			coordinates.push_back((Vector3f)corners.row(j));
+		}
+	}
+	return BoundingBox(coordinates);
 }
 void VolumeRenderer::setUserTransform(int volumeIndex, const float userTransform[16]){
 	
