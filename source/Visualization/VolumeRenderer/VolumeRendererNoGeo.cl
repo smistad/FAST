@@ -134,11 +134,14 @@ d_render(__global uchar4 *d_output,
 
 
 	//float4 boxMin = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
-	float4 boxMax0 = (float4)(boxMaxs[0], boxMaxs[1], boxMaxs[2], 0.0f);
-	
+	//float4 boxMax0 = (float4)(boxMaxs[0], boxMaxs[1], boxMaxs[2], 0.0f);
+	int anyHit = 0;
+	int hit[numberOfVolumes];
+	float tnear, tfar;
     // calculate eye ray in world space
 	float4 eyeRay_o[numberOfVolumes];
 	float4 eyeRay_d[numberOfVolumes];
+
 	const float4 temp_eyeRay_d = normalize((float4)(u, v, -zNear, 0.0f));
 
 	for (int i = 0; i < numberOfVolumes; i++)
@@ -149,18 +152,34 @@ d_render(__global uchar4 *d_output,
 		eyeRay_d[i].y = dot(temp_eyeRay_d, ((float4)(invViewMatrix[(i * 16) + 1], invViewMatrix[(i * 16) + 5], invViewMatrix[(i * 16) + 9], 0.0f)));
 		eyeRay_d[i].z = dot(temp_eyeRay_d, ((float4)(invViewMatrix[(i * 16) + 2], invViewMatrix[(i * 16) + 6], invViewMatrix[(i * 16) + 10], 0.0f)));
 		eyeRay_d[i].w = 1.0f;
+
+		// find intersection with bounding box
+		float tnear_temp, tfar_temp;
+		hit[i] = intersectBox(eyeRay_o[i], eyeRay_d[i], ((float4)(boxMaxs[i * 3], boxMaxs[i * 3 + 1], boxMaxs[i * 3 + 2], 0.0f)), &tnear_temp, &tfar_temp);
+		if (hit[i])
+			anyHit = 1;
+		if (i > 0)
+		{
+			if (tnear_temp < tnear)
+				tnear = tnear_temp;
+			if (tfar_temp > tfar)
+				tfar = tfar_temp;
+		}
+		else
+		{
+			tnear = tnear_temp;
+			tfar = tfar_temp;
+		}
+
 	}
 
-    // find intersection with box
-	float tnear, tfar;
-	int hit = intersectBox(eyeRay_o[0], eyeRay_d[0], boxMax0, &tnear, &tfar);
-
-    if (!hit) 
-	{	
+	if (!anyHit)
+	{
 		d_output[outputIndex] = rgbaFloatToInt((float4)(1.0f, 1.0f, 1.0f, 1.0f));
-        return;
-    }
+		return;
+	}
 
+ 
   //if (tfar > -Z) tfar = -Z;
 	if (tnear < zNear) tnear = zNear;	// clamp to near plane
 	if (tfar > zFar) tfar= zFar;	// clamp to far  plane
@@ -169,119 +188,139 @@ d_render(__global uchar4 *d_output,
     float4 volumeColor = (float4)(1.0f,1.0f,1.0f,1.0f);
 	
     float t = tfar;
-	
-    for(uint i=0; i<maxSteps*200; i++) {
+	float4 pos;
+	float4 col;
+	float4 alpha;
+	float a;
 
-		float4 pos = eyeRay_o[0] + eyeRay_d[0] * t;
-        
-		// read from 3D texture
-#ifdef TYPE_FLOAT1
-		float sample = read_imagef(volume, volumeSampler, pos).x;
-#elif TYPE_UINT1
-		float sample = (float)(read_imageui(volume, volumeSampler, pos).x);	
-#elif TYPE_INT1
-		float sample = (float)(read_imagei(volume, volumeSampler, pos).x);
-#endif
-        // lookup in transfer function texture
-		float2 color_transfer_pos = (float2)((sample - colorFuncMins[0]) / colorFuncDefs[0], 0.5f); //make the sample between 0.0 and 1.0
-		float2 opacity_transfer_pos = (float2)((sample - opacityFuncMins[0]) / opacityFuncDefs[0], 0.5f); //make the sample between 0.0 and 1.0
-		float4 col = read_imagef(transferFunc, transferFuncSampler, color_transfer_pos);
-		float4 alpha = read_imagef(opacityFunc, transferFuncSampler, opacity_transfer_pos);
-		col.w=alpha.w;
-        // accumulate result
-		float a = clamp(col.w*density*tstep, 0.0f, 1.0f);
-        volumeColor = mix(volumeColor, col, (float4)(a, a, a, a));
-		
-#if defined(VOL2) || defined(VOL3) || defined(VOL4) || defined(VOL5)
-		pos = eyeRay_o[1] + eyeRay_d[1] * t;
-		if ((pos.x <= boxMaxs[3]) && (pos.x >= 0.0f) && (pos.y <= boxMaxs[4]) && (pos.y >= 0.0f) && (pos.z <= boxMaxs[5]) && (pos.z >= 0.0f))
+    for(uint i=0; i<maxSteps; i++) {
+		if (t < tnear) break;
+
+		if (hit[0])
 		{
-			
-#ifdef TYPE_FLOAT2
-			float sample = read_imagef(volume2, volumeSampler, pos).x;
-#elif TYPE_UINT2
-			float sample = (float)(read_imageui(volume2, volumeSampler, pos).x);
-#elif TYPE_INT2
-			float sample = (float)(read_imagei(volume2, volumeSampler, pos).x);
+			pos = eyeRay_o[0] + eyeRay_d[0] * t;
+
+			// read from 3D texture
+#ifdef TYPE_FLOAT1
+			float sample = read_imagef(volume, volumeSampler, pos).x;
+#elif TYPE_UINT1
+			float sample = (float)(read_imageui(volume, volumeSampler, pos).x);
+#elif TYPE_INT1
+			float sample = (float)(read_imagei(volume, volumeSampler, pos).x);
 #endif
 			// lookup in transfer function texture
-			float2 color_transfer_pos = (float2)((sample - colorFuncMins[1]) / colorFuncDefs[1], 0.5f);
-			float2 opacity_transfer_pos = (float2)((sample - opacityFuncMins[1]) / opacityFuncDefs[1], 0.5f);
-			col = read_imagef(transferFunc2, transferFuncSampler, color_transfer_pos);
-			alpha = read_imagef(opacityFunc2, transferFuncSampler, opacity_transfer_pos);
-			col.w=alpha.w;
+			float2 color_transfer_pos = (float2)((sample - colorFuncMins[0]) / colorFuncDefs[0], 0.5f); //make the sample between 0.0 and 1.0
+			float2 opacity_transfer_pos = (float2)((sample - opacityFuncMins[0]) / opacityFuncDefs[0], 0.5f); //make the sample between 0.0 and 1.0
+			col = read_imagef(transferFunc, transferFuncSampler, color_transfer_pos);
+			//col = shade(volume, pos, col, eyeRay_d[0]);
+			alpha = read_imagef(opacityFunc, transferFuncSampler, opacity_transfer_pos);
+			col.w = alpha.w;
+			// accumulate result
 			a = clamp(col.w*density*tstep, 0.0f, 1.0f);
-			volumeColor = mix(volumeColor, col, (float4)(a, a, a, a)); //Mehdi
+			volumeColor = mix(volumeColor, col, (float4)(a, a, a, a));
+		}
+#if defined(VOL2) || defined(VOL3) || defined(VOL4) || defined(VOL5)
+		if (hit[1])
+		{
+			pos = eyeRay_o[1] + eyeRay_d[1] * t;
+			if ((pos.x <= boxMaxs[3]) && (pos.x >= 0.0f) && (pos.y <= boxMaxs[4]) && (pos.y >= 0.0f) && (pos.z <= boxMaxs[5]) && (pos.z >= 0.0f))
+			{
+
+#ifdef TYPE_FLOAT2
+				float sample = read_imagef(volume2, volumeSampler, pos).x;
+#elif TYPE_UINT2
+				float sample = (float)(read_imageui(volume2, volumeSampler, pos).x);
+#elif TYPE_INT2
+				float sample = (float)(read_imagei(volume2, volumeSampler, pos).x);
+#endif
+				// lookup in transfer function texture
+				float2 color_transfer_pos = (float2)((sample - colorFuncMins[1]) / colorFuncDefs[1], 0.5f);
+				float2 opacity_transfer_pos = (float2)((sample - opacityFuncMins[1]) / opacityFuncDefs[1], 0.5f);
+				col = read_imagef(transferFunc2, transferFuncSampler, color_transfer_pos);
+				alpha = read_imagef(opacityFunc2, transferFuncSampler, opacity_transfer_pos);
+				col.w = alpha.w;
+				a = clamp(col.w*density*tstep, 0.0f, 1.0f);
+				volumeColor = mix(volumeColor, col, (float4)(a, a, a, a)); //Mehdi
+			}
 		}
 #endif //VOL2
 		
 #if defined(VOL3) || defined(VOL4) || defined(VOL5)
-		pos = eyeRay_o[2] + eyeRay_d[2] * t;
-		if ((pos.x <= boxMaxs[6]) && (pos.x >= 0.0f) && (pos.y <= boxMaxs[7]) && (pos.y >= 0.0f) && (pos.z <= boxMaxs[8]) && (pos.z >= 0.0f))
+		if (hit[2])
 		{
+			pos = eyeRay_o[2] + eyeRay_d[2] * t;
+			if ((pos.x <= boxMaxs[6]) && (pos.x >= 0.0f) && (pos.y <= boxMaxs[7]) && (pos.y >= 0.0f) && (pos.z <= boxMaxs[8]) && (pos.z >= 0.0f))
+			{
 
 #ifdef TYPE_FLOAT3
-			float sample = read_imagef(volume3, volumeSampler, pos).x;
+				float sample = read_imagef(volume3, volumeSampler, pos).x;
 #elif TYPE_UINT3
-			float sample = (float)(read_imageui(volume3, volumeSampler, pos).x);
+				float sample = (float)(read_imageui(volume3, volumeSampler, pos).x);
 #elif TYPE_INT3
-			float sample = (float)(read_imagei(volume3, volumeSampler, pos).x);
+				float sample = (float)(read_imagei(volume3, volumeSampler, pos).x);
 #endif
-			// lookup in transfer function texture
-			float2 color_transfer_pos = (float2)((sample - colorFuncMins[2]) / colorFuncDefs[2], 0.5f);
-			float2 opacity_transfer_pos = (float2)((sample - opacityFuncMins[2]) / opacityFuncDefs[2], 0.5f);
-			col = read_imagef(transferFunc3, transferFuncSampler, color_transfer_pos);
-			alpha = read_imagef(opacityFunc3, transferFuncSampler, opacity_transfer_pos);
-			col.w=alpha.w;
-			a = clamp(col.w*density*tstep, 0.0f, 1.0f); //Mehdi
-			volumeColor = mix(volumeColor, col, (float4)(a, a, a, a)); //Mehdi
+				// lookup in transfer function texture
+				float2 color_transfer_pos = (float2)((sample - colorFuncMins[2]) / colorFuncDefs[2], 0.5f);
+				float2 opacity_transfer_pos = (float2)((sample - opacityFuncMins[2]) / opacityFuncDefs[2], 0.5f);
+				col = read_imagef(transferFunc3, transferFuncSampler, color_transfer_pos);
+				alpha = read_imagef(opacityFunc3, transferFuncSampler, opacity_transfer_pos);
+				col.w = alpha.w;
+				a = clamp(col.w*density*tstep, 0.0f, 1.0f); //Mehdi
+				volumeColor = mix(volumeColor, col, (float4)(a, a, a, a)); //Mehdi
+			}
 		}
 #endif //VOL3
 
 #if defined(VOL4) || defined(VOL5)
-		pos = eyeRay_o[3] + eyeRay_d[3] * t;
-		if ((pos.x <= boxMaxs[9]) && (pos.x >= 0.0f) && (pos.y <= boxMaxs[10]) && (pos.y >= 0.0f) && (pos.z <= boxMaxs[11]) && (pos.z >= 0.0f))
+		if (hit[3])
 		{
+			pos = eyeRay_o[3] + eyeRay_d[3] * t;
+			if ((pos.x <= boxMaxs[9]) && (pos.x >= 0.0f) && (pos.y <= boxMaxs[10]) && (pos.y >= 0.0f) && (pos.z <= boxMaxs[11]) && (pos.z >= 0.0f))
+			{
 
 #ifdef TYPE_FLOAT4
-			float sample = read_imagef(volume4, volumeSampler, pos).x;
+				float sample = read_imagef(volume4, volumeSampler, pos).x;
 #elif TYPE_UINT4
-			float sample = (float)(read_imageui(volume4, volumeSampler, pos).x);
+				float sample = (float)(read_imageui(volume4, volumeSampler, pos).x);
 #elif TYPE_INT4
-			float sample = (float)(read_imagei(volume4, volumeSampler, pos).x);
+				float sample = (float)(read_imagei(volume4, volumeSampler, pos).x);
 #endif
-			// lookup in transfer function texture
-			float2 color_transfer_pos = (float2)((sample - colorFuncMins[3]) / colorFuncDefs[3], 0.5f);
-			float2 opacity_transfer_pos = (float2)((sample - opacityFuncMins[3]) / opacityFuncDefs[3], 0.5f);
-			col = read_imagef(transferFunc4, transferFuncSampler, color_transfer_pos);
-			alpha = read_imagef(opacityFunc4, transferFuncSampler, opacity_transfer_pos);
-			col.w=alpha.w;
-			a = clamp(col.w*density*tstep, 0.0f, 1.0f); //Mehdi
-			volumeColor = mix(volumeColor, col, (float4)(a, a, a, a)); //Mehdi
+				// lookup in transfer function texture
+				float2 color_transfer_pos = (float2)((sample - colorFuncMins[3]) / colorFuncDefs[3], 0.5f);
+				float2 opacity_transfer_pos = (float2)((sample - opacityFuncMins[3]) / opacityFuncDefs[3], 0.5f);
+				col = read_imagef(transferFunc4, transferFuncSampler, color_transfer_pos);
+				alpha = read_imagef(opacityFunc4, transferFuncSampler, opacity_transfer_pos);
+				col.w = alpha.w;
+				a = clamp(col.w*density*tstep, 0.0f, 1.0f); //Mehdi
+				volumeColor = mix(volumeColor, col, (float4)(a, a, a, a)); //Mehdi
+			}
 		}
 #endif //VOL4
 
 #if defined(VOL5)
-		pos = eyeRay_o[4] + eyeRay_d[4] * t;
-		if ((pos.x <= boxMaxs[12]) && (pos.x >= 0.0f) && (pos.y <= boxMaxs[13]) && (pos.y >= 0.0f) && (pos.z <= boxMaxs[14]) && (pos.z >= 0.0f))
+		if (hit[4])
 		{
+			pos = eyeRay_o[4] + eyeRay_d[4] * t;
+			if ((pos.x <= boxMaxs[12]) && (pos.x >= 0.0f) && (pos.y <= boxMaxs[13]) && (pos.y >= 0.0f) && (pos.z <= boxMaxs[14]) && (pos.z >= 0.0f))
+			{
 
 #ifdef TYPE_FLOAT5
-			float sample = read_imagef(volume5, volumeSampler, pos).x;
+				float sample = read_imagef(volume5, volumeSampler, pos).x;
 #elif TYPE_UINT5
-			float sample = (float)(read_imageui(volume5, volumeSampler, pos).x);
+				float sample = (float)(read_imageui(volume5, volumeSampler, pos).x);
 #elif TYPE_INT5
-			float sample = (float)(read_imagei(volume5, volumeSampler, pos).x);
+				float sample = (float)(read_imagei(volume5, volumeSampler, pos).x);
 #endif
-			// lookup in transfer function texture
-			float2 color_transfer_pos = (float2)((sample - colorFuncMins[4]) / colorFuncDefs[4], 0.5f);
-			float2 opacity_transfer_pos = (float2)((sample - opacityFuncMins[4]) / opacityFuncDefs[4], 0.5f);
-			col = read_imagef(transferFunc5, transferFuncSampler, color_transfer_pos);
-			alpha = read_imagef(opacityFunc5, transferFuncSampler, opacity_transfer_pos);
-			col.w=alpha.w;
-			a = clamp(col.w*density*tstep, 0.0f, 1.0f); //Mehdi
-			volumeColor = mix(temp, col, (float4)(a, a, a, a)); //Mehdi
-		}		
+				// lookup in transfer function texture
+				float2 color_transfer_pos = (float2)((sample - colorFuncMins[4]) / colorFuncDefs[4], 0.5f);
+				float2 opacity_transfer_pos = (float2)((sample - opacityFuncMins[4]) / opacityFuncDefs[4], 0.5f);
+				col = read_imagef(transferFunc5, transferFuncSampler, color_transfer_pos);
+				alpha = read_imagef(opacityFunc5, transferFuncSampler, opacity_transfer_pos);
+				col.w = alpha.w;
+				a = clamp(col.w*density*tstep, 0.0f, 1.0f); //Mehdi
+				volumeColor = mix(temp, col, (float4)(a, a, a, a)); //Mehdi
+			}
+		}
 #endif //VOL5
 		
         t -= tstep;
