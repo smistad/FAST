@@ -51,8 +51,14 @@ void View::removeAllRenderers() {
     mNonVolumeRenderers.clear();
 }
 
+void View::setBackgroundColor(Color color) {
+	mBackgroundColor = color;
+}
+
 View::View() : mViewingPlane(Plane::Axial()) {
     createInputPort<Camera>(0, false);
+
+    mBackgroundColor = Color::White();
     zNear = 0.1;
     zFar = 1000;
     fieldOfViewY = 45;
@@ -358,7 +364,7 @@ void View::initializeGL() {
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
 
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClearColor(mBackgroundColor.getRedValue(), mBackgroundColor.getGreenValue(), mBackgroundColor.getBlueValue(), 1.0f);
         // Set up viewport and projection transformation
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
@@ -529,7 +535,7 @@ void View::initializeGL() {
 
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-			glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+			glClearColor(mBackgroundColor.getRedValue(), mBackgroundColor.getGreenValue(), mBackgroundColor.getBlueValue(), 1.0f);
 
 			// Set up viewport and projection transformation
 			glMatrixMode(GL_PROJECTION);
@@ -691,6 +697,9 @@ void View::paintGL() {
             int i = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/View.cl");
             cl::Kernel kernel(device->getProgram(i), "initializePBO");
             kernel.setArg(0, clPBO);
+            kernel.setArg(1, mBackgroundColor.getRedValue());
+            kernel.setArg(2, mBackgroundColor.getGreenValue());
+            kernel.setArg(3, mBackgroundColor.getBlueValue());
             std::vector<cl::Memory> v;
             v.push_back(clPBO);
             queue.enqueueAcquireGLObjects(&v);
