@@ -177,7 +177,7 @@ d_render(__global uchar4 *d_output,
 
 	if (!anyHit)
 	{
-		d_output[outputIndex] = rgbaFloatToInt((float4)(1.0f, 1.0f, 1.0f, 1.0f));
+		d_output[outputIndex] = rgbaFloatToInt(read_imagef(geoColorTexture, geometrySampler, (int2)(x, y)));
 		return;
 	}
 
