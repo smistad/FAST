@@ -272,7 +272,7 @@ void SliceRenderer::execute() {
 			Eigen::Affine3f transformFromFirstData = SceneGraph::getEigenAffineTransformationFromData(mImagesToRender[0]);
 			transformFromFirstData.scale(mImagesToRender[0]->getSpacing());
 			transform = SceneGraph::getEigenAffineTransformationFromData(mImagesToRender[inputIndex]);
-			transform.scale(mImagesToRender[inputIndex]);
+			transform.scale(mImagesToRender[inputIndex]->getSpacing());
 			transformationMatix = (float*)(transform.inverse()*transformFromFirstData).data();
 
 
@@ -309,6 +309,7 @@ void SliceRenderer::addInputConnection(ProcessObjectPort port) {
     releaseInputAfterExecute(nr, false);
     ProcessObject::setInputConnection(nr, port);
 	mInputIsModified = true;
+	mIsModified = true;
 }
 
 void SliceRenderer::recompileOpenCLCode(boost::unordered_map<uint, Image::pointer> inputs) {
