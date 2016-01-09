@@ -201,6 +201,21 @@ void View::recalculateCamera() {
                 }
             }
         }
+		if (mVolumeRenderers.size() > 0)
+		{
+			BoundingBox box = mVolumeRenderers[0]->getBoundingBox();
+			MatrixXf corners = box.getCorners();
+			//reportInfo() << box << Reporter::end;
+			for (int j = 0; j < 8; j++) {
+				for (uint k = 0; k < 3; k++) {
+					if (corners(j, k) < min[k])
+						min[k] = corners(j, k);
+
+					if (corners(j, k) > max[k])
+						max[k] = corners(j, k);
+				}
+			}
+		}
         // Calculate area of each side of the resulting bounding box
         float area[3] = { (max[0] - min[0]) * (max[1] - min[1]), // XY plane
         (max[1] - min[1]) * (max[2] - min[2]), // YZ plane
@@ -501,6 +516,8 @@ void View::initializeGL() {
             // Update all renderes, so that getBoundingBox works
             for (unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
                 mNonVolumeRenderers[i]->update();
+			if (mVolumeRenderers.size() > 0)
+				mVolumeRenderers[0]->update();
             if(!mCameraSet && getNrOfInputData() == 0) {
                 // If camera is not set explicitly by user, FAST has to calculate it
                 recalculateCamera();
