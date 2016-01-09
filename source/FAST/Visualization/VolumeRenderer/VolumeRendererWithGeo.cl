@@ -200,24 +200,26 @@ d_render(__global uchar4 *d_output,
 		if (hit[0])
 		{
 			pos = eyeRay_o[0] + eyeRay_d[0] * t;
-
-			// read from 3D texture
+			if ((pos.x <= boxMaxs[0]) && (pos.x >= 0.0f) && (pos.y <= boxMaxs[1]) && (pos.y >= 0.0f) && (pos.z <= boxMaxs[2]) && (pos.z >= 0.0f))
+			{
+				// read from 3D texture
 #ifdef TYPE_FLOAT1
-			float sample = read_imagef(volume, volumeSampler, pos).x;
+				float sample = read_imagef(volume, volumeSampler, pos).x;
 #elif TYPE_UINT1
-			float sample = (float)(read_imageui(volume, volumeSampler, pos).x);
+				float sample = (float)(read_imageui(volume, volumeSampler, pos).x);
 #elif TYPE_INT1
-			float sample = (float)(read_imagei(volume, volumeSampler, pos).x);
+				float sample = (float)(read_imagei(volume, volumeSampler, pos).x);
 #endif
-			// lookup in transfer function texture
-			float2 color_transfer_pos = (float2)((sample - colorFuncMins[0]) / colorFuncDefs[0], 0.5f); //make the sample between 0.0 and 1.0
-			float2 opacity_transfer_pos = (float2)((sample - opacityFuncMins[0]) / opacityFuncDefs[0], 0.5f); //make the sample between 0.0 and 1.0
-			col = read_imagef(transferFunc, transferFuncSampler, color_transfer_pos);
-			alpha = read_imagef(opacityFunc, transferFuncSampler, opacity_transfer_pos);
-			col.w = alpha.w;
-			// accumulate result
-			a = clamp(col.w*density*tstep, 0.0f, 1.0f);
-			volumeColor = mix(volumeColor, col, (float4)(a, a, a, a));
+				// lookup in transfer function texture
+				float2 color_transfer_pos = (float2)((sample - colorFuncMins[0]) / colorFuncDefs[0], 0.5f); //make the sample between 0.0 and 1.0
+				float2 opacity_transfer_pos = (float2)((sample - opacityFuncMins[0]) / opacityFuncDefs[0], 0.5f); //make the sample between 0.0 and 1.0
+				col = read_imagef(transferFunc, transferFuncSampler, color_transfer_pos);
+				alpha = read_imagef(opacityFunc, transferFuncSampler, opacity_transfer_pos);
+				col.w = alpha.w;
+				// accumulate result
+				a = clamp(col.w*density*tstep, 0.0f, 1.0f);
+				volumeColor = mix(volumeColor, col, (float4)(a, a, a, a));
+			}
 		}
 #if defined(VOL2) || defined(VOL3) || defined(VOL4) || defined(VOL5)
 		if (hit[1])
