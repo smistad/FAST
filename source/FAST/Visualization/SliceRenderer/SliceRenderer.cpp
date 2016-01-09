@@ -438,15 +438,14 @@ void SliceRenderer::setSlicePlane(PlaneType plane) {
 
 BoundingBox SliceRenderer::getBoundingBox() {
 
-    BoundingBox inputBoundingBox = mImagesToRender[0]->getBoundingBox();
-    MatrixXf corners = inputBoundingBox.getCorners();
-
-
-    BoundingBox shrinkedBox(corners);
-		AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(mImagesToRender[0]);
-		transform->scale(mImagesToRender[0]->getSpacing());
-        BoundingBox transformedBoundingBox = shrinkedBox.getTransformedBoundingBox(transform);
-        return transformedBoundingBox;
-
+		std::vector<Vector3f> coordinates;
+		for (uint i = 0; i < getNrOfInputData(); i++) {
+			BoundingBox transformedBoundingBox = mImagesToRender[i]->getTransformedBoundingBox();
+			MatrixXf corners = transformedBoundingBox.getCorners();
+			for (uint j = 0; j < 8; j++) {
+				coordinates.push_back((Vector3f)corners.row(j));
+			}
+		}
+		return BoundingBox(coordinates);
 }
 
