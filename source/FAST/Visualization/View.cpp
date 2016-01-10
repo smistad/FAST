@@ -119,7 +119,7 @@ void View::setLookAt(Vector3f cameraPosition, Vector3f targetPosition, Vector3f 
     M(2,2) = -F[2];
 
     // Must calculate this somehow
-    zNear = 1;
+    zNear = 0.1;
     zFar = 1000;
 
     m3DViewingTransformation = AffineTransformation::Identity();
@@ -325,7 +325,7 @@ void View::initializeGL() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, this->window()->width(), this->window()->height(), 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, this->window()->width(), this->window()->height(), 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
     
     
     glGenTextures(1, &renderedTexture0);

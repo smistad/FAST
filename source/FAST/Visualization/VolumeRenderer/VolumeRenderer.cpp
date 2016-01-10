@@ -289,8 +289,8 @@ void VolumeRenderer::execute() {
 	}
 
 
-	glEnable(GL_NORMALIZE);
-	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_NORMALIZE);
+	//glEnable(GL_DEPTH_TEST);
 
 	//-------------------------------
 
@@ -641,6 +641,9 @@ void VolumeRenderer::draw() {
 
 	}	//includeGeometry
 
+	//glEnable(GL_DEPTH_TEST);
+	glEnable(GL_TEXTURE_2D);
+
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glMatrixMode(GL_PROJECTION);
@@ -649,7 +652,7 @@ void VolumeRenderer::draw() {
 	glOrtho(0, mWidth, 0, mHeight, 0, 512);
 	// draw image from PBO
 	glClear(GL_COLOR_BUFFER_BIT);
-	glDisable(GL_DEPTH_TEST);
+	//glDisable(GL_DEPTH_TEST);
 	glDisable(GL_TEXTURE_2D);
 	glRasterPos2i(0, 0);
 	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pbo);
