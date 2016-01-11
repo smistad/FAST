@@ -369,7 +369,6 @@ void View::initializeGL() {
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
 
-        glClearColor(mBackgroundColor.getRedValue(), mBackgroundColor.getGreenValue(), mBackgroundColor.getBlueValue(), 1.0f);
         // Set up viewport and projection transformation
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
@@ -541,7 +540,6 @@ void View::initializeGL() {
 
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-			glClearColor(mBackgroundColor.getRedValue(), mBackgroundColor.getGreenValue(), mBackgroundColor.getBlueValue(), 1.0f);
 
 			// Set up viewport and projection transformation
 			glMatrixMode(GL_PROJECTION);
@@ -682,6 +680,7 @@ void View::initializeGL() {
 void View::paintGL() {
 	mRuntimeManager->startRegularTimer("paint");
 
+	glClearColor(mBackgroundColor.getRedValue(), mBackgroundColor.getGreenValue(), mBackgroundColor.getBlueValue(), 1.0f);
 	if (mNonVolumeRenderers.size() > 0 ) //it can be "only nonVolume renderers" or "nonVolume + Volume renderes" together
 	{
 		if (mVolumeRenderers.size()>0)
