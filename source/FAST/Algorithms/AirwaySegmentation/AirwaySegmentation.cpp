@@ -18,13 +18,15 @@ Vector3i findSeedVoxel(Image::pointer volume) {
 	ImageAccess::pointer access = volume->getImageAccess(ACCESS_READ);
 	short* data = (short*)access->get();
 
-    int slice = (int)round(volume->getDepth()*0.6);
-    int threshold = -750;
+    int slice = volume->getDepth()*0.6;
+
+    int threshold = -700;
     int Tseed = -1000;
     float minArea = 7.5f*7.5f*3.14f; // min radius of 7.5
     float maxArea = 25.0f*25.0f*3.14f; // max radius of 25.0
     Vector3i currentSeed(0,0,0);
     float currentCentricity = 99999.0f; // Distance from center
+    float spacing = 1.0f;//volume->getSpacing().x();
 
     std::unordered_set<int> visited;
     int width = volume->getWidth();
@@ -59,7 +61,7 @@ Vector3i findSeedVoxel(Image::pointer volume) {
                     if(data[c.x() + c.y()*width + c.z()*width*height] <= threshold && visited.find(c.x()+c.y()*volume->getWidth()) == visited.end()) {
                         visited.insert(c.x()+c.y()*volume->getWidth());
                         stack.push(c);
-                        if(visited.size() > maxArea) {
+                        if(visited.size()*spacing*spacing > maxArea) {
                             invalid = true;
                             break;
                         }
@@ -68,7 +70,7 @@ Vector3i findSeedVoxel(Image::pointer volume) {
             }
 
             //float compaction = (4.0f*3.14*area)/(perimenter*perimenter);
-            if(!invalid && visited.size() > minArea) {
+            if(!invalid && visited.size()*spacing*spacing > minArea) {
                 float centricity = sqrt(pow(testSeed.x()-volume->getWidth()*0.5f,2.0f)+pow(testSeed.y()-volume->getHeight()*0.5f,2.0f));
                 if(centricity < currentCentricity) {
                     // Accept as new seed
@@ -171,6 +173,8 @@ Image::pointer AirwaySegmentation::convertToHU(Image::pointer image) {
 	OpenCLImageAccess::pointer input = image->getOpenCLImageAccess(ACCESS_READ, device);
 	Image::pointer newImage = Image::New();
 	newImage->create(image->getSize(), TYPE_INT16, 1);
+	newImage->setSpacing(image->getSpacing());
+	SceneGraph::setParentNode(newImage, image);
 	OpenCLImageAccess::pointer output = newImage->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
 
 	cl::Kernel kernel(program, "convertToHU");
@@ -261,6 +265,7 @@ void AirwaySegmentation::execute() {
 
 	// Do morphological closing to remove holes in segmentation
 	morphologicalClosing(segmentation);
+
 }
 
 }

@@ -11,7 +11,7 @@ using namespace fast;
 
 TEST_CASE("Airway segmentation", "[fast][AirwaySegmentation]") {
 	Reporter::setGlobalReportMethod(Reporter::COUT);
-	for(int i = 1; i < 14; ++i) {
+	for(int i = 1; i < 26; ++i) {
         ImageFileImporter::pointer importer = ImageFileImporter::New();
         //importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT-Thorax.mhd");
         std::string nr = boost::lexical_cast<std::string>(i);
