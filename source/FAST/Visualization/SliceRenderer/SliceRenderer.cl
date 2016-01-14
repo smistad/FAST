@@ -10,9 +10,9 @@ __kernel void renderToTexture(
 		__private float planeB,
 		__private float planeC,
 		__private float planeD,
-		__private unsigned int minX,
-		__private unsigned int minY,
-		__private unsigned int minZ
+		__private int minX,
+		__private int minY,
+		__private int minZ
 #if defined(VOL2) || defined(VOL3) || defined(VOL4) || defined(VOL5)
 		, __read_only image3d_t image2
 		, __constant float* transformationMatix2

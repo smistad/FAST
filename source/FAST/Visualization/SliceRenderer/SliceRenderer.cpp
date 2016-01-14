@@ -129,9 +129,29 @@ void SliceRenderer::execute() {
 	Vector3f bbMin = Vector3f(0.0f, 0.0f, 0.0f);
 	Vector3f bbMax = Vector3f(mImagesToRender[0]->getWidth(), mImagesToRender[0]->getHeight(), mImagesToRender[0]->getDepth());
 
+	//Finding the bounding box around all data sets in object space (reletive to first data set)
+	AffineTransformation::pointer inverseTransformFromFirstData = SceneGraph::getAffineTransformationFromData(mImagesToRender[0]);
+	inverseTransformFromFirstData->scale(mImagesToRender[0]->getSpacing());
+	inverseTransformFromFirstData = inverseTransformFromFirstData->getInverse();
+
+	for (uint inputIndex = 1; inputIndex < nrOfInputData; inputIndex++)
+	{
+		BoundingBox bbox = mImagesToRender[inputIndex]->getTransformedBoundingBox();
+		bbox = bbox.getTransformedBoundingBox(inverseTransformFromFirstData);
+
+		MatrixXf tempCorners = bbox.getCorners();
+		for (int j = 0; j < 8; j++) {
+			for (uint k = 0; k < 3; k++) {
+				if (tempCorners(j, k) < bbMin[k])
+					bbMin[k] = tempCorners(j, k);
+
+				if (tempCorners(j, k) > bbMax[k])
+					bbMax[k] = tempCorners(j, k);
+			}
+		}
+	}
 
 	planeD = planeNormal.x()*planeOrigin.x() + planeNormal.y()*planeOrigin.y() + planeNormal.z()*planeOrigin.z();
-
 
 	Vector3f outPoints[6];
 	unsigned int numberofIntersectionPoints;

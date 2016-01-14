@@ -47,12 +47,12 @@ class SliceRenderer : public Renderer {
         PlaneType mSlicePlane;
 
         float mScale;
-        unsigned int mWidth;
-        unsigned int mHeight;
+         int mWidth;
+         int mHeight;
 
-		unsigned int minX, maxX;
-		unsigned int minY, maxY;
-		unsigned int minZ, maxZ;
+		 int minX, maxX;
+		 int minY, maxY;
+		 int minZ, maxZ;
 
 		Vector3f corners[4];
 
