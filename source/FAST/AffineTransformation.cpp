@@ -34,5 +34,10 @@ Vector3f AffineTransformation::multiply(Vector3f point) {
 }
 
 
+AffineTransformation::pointer AffineTransformation::getInverse() {
+	AffineTransformation::pointer result = AffineTransformation::New();
+	result->matrix() = matrix().inverse();
+	return result;
+}
 
 }
