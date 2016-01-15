@@ -3,6 +3,7 @@
 
 #include "FAST/SmartPointers.hpp"
 #include "FAST/AffineTransformation.hpp"
+#include "FAST/Data/Color.hpp"
 #include "Renderer.hpp"
 #include "Plane.hpp"
 #include <vector>
@@ -38,6 +39,8 @@ class View : public QGLWidget, public ProcessObject {
         bool hasQuit() const;
         ~View();
         void recalculateCamera();
+        void setBackgroundColor(Color color);
+        void set2DPixelSpacing(float spacing);
 
 		std::string getNameOfClass() const {
 		    return "View";
@@ -71,6 +74,7 @@ class View : public QGLWidget, public ProcessObject {
         QTimer* timer;
         unsigned int mFramerate;
        
+        Color mBackgroundColor;
         
         bool mQuit;
         
