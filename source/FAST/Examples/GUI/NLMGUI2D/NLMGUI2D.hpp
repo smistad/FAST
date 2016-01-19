@@ -9,9 +9,9 @@
 #include "FAST/Visualization/Window.hpp"
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
 #include <FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp>
-#include <FAST/Algorithms/NoneLocalMeans/NoneLocalMeans.hpp>
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include <QLabel>
+#include "../../../Algorithms/NonLocalMeans/NoneLocalMeans.hpp"
 
 namespace fast {
 

@@ -5,12 +5,12 @@
  */
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "FAST/Exporters/ImageExporter.hpp"
-#include "FAST/Algorithms/NoneLocalMeans/NoneLocalMeans.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 #include "FAST/TestDataPath.hpp"
 #include <stdio.h>
 #include <time.h>
+#include "FAST/Algorithms/NonLocalMeans/NoneLocalMeans.hpp"
 
 using namespace fast;
 
