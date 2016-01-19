@@ -31,7 +31,7 @@ NLMGUI3D::NLMGUI3D() {
 
     // Import image
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "/CT-Abdomen.mhd");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "/US-3Dt/US-3Dt_0.mhd");
     
     
     // Smooth images
@@ -40,7 +40,7 @@ NLMGUI3D::NLMGUI3D() {
     nlmSmoothing->setInputConnection(importer->getOutputPort());
     nlmSmoothing->setSigma(0.65f);
     nlmSmoothing->setGroupSize(3);
-    nlmSmoothing->setWindowSize(11);
+    nlmSmoothing->setWindowSize(3);
     nlmSmoothing->setDenoiseStrength(0.150f);
     nlmSmoothing->setK(0);
     //nlmSmoothing->enableRuntimeMeasurements();
@@ -49,7 +49,7 @@ NLMGUI3D::NLMGUI3D() {
     mSurfaceExtraction = SurfaceExtraction::New();
     //mSurfaceExtraction->setInputConnection(importer->getOutputPort());
     mSurfaceExtraction->setInputConnection(nlmSmoothing->getOutputPort());
-    mSurfaceExtraction->setThreshold(100);
+    mSurfaceExtraction->setThreshold(50);
 
     // Set up rendering
     MeshRenderer::pointer renderer = MeshRenderer::New();

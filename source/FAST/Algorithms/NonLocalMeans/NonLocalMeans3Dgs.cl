@@ -18,7 +18,6 @@ __kernel void noneLocalMeans(
     const int g3 = ((GROUP+1)*2)*((GROUP+1)*2)*((GROUP+1)*2);
     float totSum = 0.0f;
     float normSum = 0.0f;
-    float value = 0.0f;
     float groupTot = 0.0f;
     float indi = 0.0f;
     const float K = native_divide(1.0f,g3);
@@ -56,6 +55,7 @@ __kernel void noneLocalMeans(
                     }
                     int4 coord = {i,j,k,0};
                     
+					float value = 0.0f;
                     if(dataType == CLK_FLOAT){
                         value = read_imagef(input,sampler,coord).x;
                     }else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16){
@@ -72,7 +72,7 @@ __kernel void noneLocalMeans(
             }
         }
     }
-    value = native_divide(totSum,normSum);
+    float value = native_divide(totSum,normSum);
     
     
     int outputDataType = get_image_channel_data_type(output);

@@ -31,8 +31,8 @@ void NonLocalMeans::setOutputType(DataType type){
     recompile = true;
 }
 void NonLocalMeans::setK(char newK){
-    if (newK <= 0){
-        throw Exception("NoneLocalMeans K must be greater then 0.");
+    if (newK < 0){
+        throw Exception("NoneLocalMeans K must be >= 0.");
     }
     k = newK;
     mIsModified = true;
@@ -40,8 +40,8 @@ void NonLocalMeans::setK(char newK){
 }
 
 void NonLocalMeans::setEuclid(char e){
-    if (e <= 0){
-        throw Exception("NoneLocalMeans Euclid must be greater then 0.");
+    if (e < 0){
+        throw Exception("NoneLocalMeans Euclid must be >= 0.");
     }
     e = euclid;
     mIsModified = true;
@@ -186,7 +186,7 @@ void NonLocalMeans::recompileOpenCLCode(Image::pointer input) {
     buildOptions += " -D KVERSION=";
     buildOptions += std::to_string(k);
     buildOptions += " -D EUCLID=";
-    buildOptions += std::to_string(k);
+    buildOptions += std::to_string(euclid);
     cl::Program program;
     if(input->getDimensions() == 2) {
         program = getOpenCLProgram(device, "2D", buildOptions);
@@ -307,14 +307,8 @@ void NonLocalMeans::execute() {
                 mKernel.setArg(2, (denoiseStrength*denoiseStrength));
                 mKernel.setArg(3, (sigma*sigma));
                 OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
-                //OpenCLImageAccess::pointer outputAccess2 = output2->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
-                
-                //cl::Image3D* image2;
-                cl::Image3D* image;
-                image = outputAccess->get3DImage();
-                //image2 = outputAccess->get3DImage();
                 mKernel.setArg(0, *inputAccess->get3DImage());
-                mKernel.setArg(1, *image);
+                mKernel.setArg(1, *outputAccess->get3DImage());
                 clDevice->getCommandQueue().enqueueNDRangeKernel(
                         mKernel,
                         cl::NullRange,

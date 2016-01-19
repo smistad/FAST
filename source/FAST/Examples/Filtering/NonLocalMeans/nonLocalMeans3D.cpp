@@ -10,7 +10,6 @@ using namespace fast;
 int main() {
 
 	// THIS DOES NOT WORK ATM
-	/*
 	NLMGUI3D::pointer window = NLMGUI3D::New();
 #ifdef FAST_CONTINUOUS_INTEGRATION
 	// This will automatically close the window after 5 seconds, used for CI testing
@@ -20,7 +19,6 @@ int main() {
     window->setWidth(1600);
     window->setHeight(600);
     window->start();
-    */
 
 	return 0;
 }
