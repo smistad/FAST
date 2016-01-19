@@ -135,8 +135,8 @@ void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, unsigne
                         }
                         //This is wrong, need to fix T
                         //value = inputData[i][j];
-                        double pA[] = {i,j};
-                        double pB[] = {x,y};
+                        double pA[] = {(double)i,(double)j};
+                        double pB[] = {(double)x,(double)y};
                         //double dist = i, j - x, y;
                         double dist = std::inner_product(std::begin(pA), std::end(pA), std::begin(pB), 0.0);
                         
