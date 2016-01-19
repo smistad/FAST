@@ -10,7 +10,8 @@
 #include "FAST/TestDataPath.hpp"
 #include <stdio.h>
 #include <time.h>
-#include "FAST/Algorithms/NonLocalMeans/NoneLocalMeans.hpp"
+
+#include "../../Algorithms/NonLocalMeans/NonLocalMeans.hpp"
 
 using namespace fast;
 

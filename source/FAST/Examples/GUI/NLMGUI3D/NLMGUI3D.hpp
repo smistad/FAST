@@ -11,7 +11,8 @@
 #include <FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp>
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include <QLabel>
-#include "../../../Algorithms/NonLocalMeans/NoneLocalMeans.hpp"
+
+#include "../../../Algorithms/NonLocalMeans/NonLocalMeans.hpp"
 
 namespace fast {
 
