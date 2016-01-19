@@ -1,10 +1,10 @@
 /**
- * Examples/GUI/SimpleGUI/SimpleGUI.hpp
+ * Examples/Filtering/NonLocalMeans/NLMGUI3D.hpp
  *
  * If you edit this example, please also update the wiki and source code file in the repository.
  */
-#ifndef NLM_GUI_HPP_
-#define NLM_GUI_HPP_
+#ifndef NLM_GUI3D_HPP_
+#define NLM_GUI3D_HPP_
 
 #include "FAST/Visualization/Window.hpp"
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
@@ -12,7 +12,7 @@
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include <QLabel>
 
-#include "../../../Algorithms/NonLocalMeans/NonLocalMeans.hpp"
+#include "FAST/Algorithms/NonLocalMeans/NonLocalMeans.hpp"
 
 namespace fast {
 
