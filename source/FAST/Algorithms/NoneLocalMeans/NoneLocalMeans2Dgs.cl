@@ -92,7 +92,7 @@ __kernel void noneLocalMeans(
                     dist = native_exp( - native_divide( dist, (2.0f * sigma2) ) );
                     groupTot += (1.0f / (2.0f * pi * sigma2) * dist);
                 }else if(EUCLID == 2){
-                    float2 dist = convert_float(coord - pos);
+                    float2 dist = convert_float2(coord - pos);
                     float gaussWeight = native_exp( - native_divide( dot(dist, dist), (2.0f * sigma2) ) );
                     //gaussWeight = native_divide(gaussWeight, 2.0f * pi * sigma2);
                     gaussWeight = native_divide(gaussWeight, 2.0f * sigma2);
