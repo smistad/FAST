@@ -30,8 +30,8 @@ void NonLocalMeans::setOutputType(DataType type){
 	mIsModified = true;
     recompile = true;
 }
-void NonLocalMeans::setK(unsigned char newK){
-    if (newK < 0){
+void NonLocalMeans::setK(char newK){
+    if (newK <= 0){
         throw Exception("NoneLocalMeans K must be greater then 0.");
     }
     k = newK;
@@ -39,8 +39,8 @@ void NonLocalMeans::setK(unsigned char newK){
     recompile = true;
 }
 
-void NonLocalMeans::setEuclid(unsigned char e){
-    if (e < 0){
+void NonLocalMeans::setEuclid(char e){
+    if (e <= 0){
         throw Exception("NoneLocalMeans Euclid must be greater then 0.");
     }
     e = euclid;
@@ -48,7 +48,7 @@ void NonLocalMeans::setEuclid(unsigned char e){
     recompile = true;
 }
 
-void NonLocalMeans::setWindowSize(unsigned char wS) {
+void NonLocalMeans::setWindowSize(char wS) {
 	if (wS <= 0)
 		throw Exception("NoneLocalMeans window size must be greater then 0.");
 	if (wS % 2 != 1)
@@ -59,7 +59,7 @@ void NonLocalMeans::setWindowSize(unsigned char wS) {
 	recompile = true;
 }
 
-void NonLocalMeans::setGroupSize(unsigned char gS) {
+void NonLocalMeans::setGroupSize(char gS) {
 	if (gS <= 0)
 		throw Exception("NoneLocalMeans group size must be greater then 0.");
 	if (gS % 2 != 1)
@@ -71,7 +71,7 @@ void NonLocalMeans::setGroupSize(unsigned char gS) {
 }
 
 void NonLocalMeans::setDenoiseStrength(float dS){
-	if (dS < 0)
+	if (dS <= 0)
 		throw Exception("NoneLocalMeans denoise strength must be greater then 0.");
 
 	denoiseStrength = dS;
@@ -80,7 +80,7 @@ void NonLocalMeans::setDenoiseStrength(float dS){
 }
 
 void NonLocalMeans::setSigma(float s){
-    if (s < 0)
+    if (s <= 0)
         throw Exception("NoneLocalMeans sigma must be greater then 0.");
     
     sigma = s;

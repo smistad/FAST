@@ -12,12 +12,12 @@ class NonLocalMeans : public ProcessObject {
 	public:
 		//void setSigma(unsigned char s);
         void setSigma(float s);
-        void setK(unsigned char k);
-        void setGroupSize(unsigned char gS);
-		void setWindowSize(unsigned char wS);
+        void setK(char k);
+        void setGroupSize(char gS);
+		void setWindowSize(char wS);
 		void setDenoiseStrength(float dS);
 		void setOutputType(DataType type);
-        void setEuclid(unsigned char e);
+        void setEuclid(char e);
         float getSigma();
         int getK();
         int getGroupSize();
