@@ -128,7 +128,7 @@ void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, unsigne
                             for (int l = j - group; l <= j + group; l++, mY++){
                                 //This is wrong, need to fix T
                                 //indi = inputData[mX][mY] - inputData[k][l];
-                                indi = abs(indi*indi);
+                                indi = fabs(indi*indi);
                                 indi = exp( - (indi/strength));
                                 groupTot += indi;
                             }
