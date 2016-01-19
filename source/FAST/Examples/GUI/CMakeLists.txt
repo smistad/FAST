@@ -1,1 +1,3 @@
 add_subdirectory(SimpleGUI)
+add_subdirectory(NLMGUI2D)
+add_subdirectory(NLMGUI3D)
