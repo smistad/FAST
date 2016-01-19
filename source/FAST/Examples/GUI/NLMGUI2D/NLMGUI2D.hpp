@@ -31,7 +31,7 @@ class NLMGUI2D : public Window {
         
 		SurfaceExtraction::pointer mSurfaceExtraction;
 		GaussianSmoothingFilter::pointer mSmoothing;
-        NoneLocalMeans::pointer nlmSmoothing;
+        NonLocalMeans::pointer nlmSmoothing;
         ImageRenderer::pointer renderer;
         ImageRenderer::pointer rendererOrig;
         View* view;

@@ -42,7 +42,7 @@ int main() {
     
     
     // Smooth image
-    NoneLocalMeans::pointer filter = NoneLocalMeans::New();
+    NonLocalMeans::pointer filter = NonLocalMeans::New();
     filter->setInputConnection(importer->getOutputPort());
     //filter->setGroupSize(15);
     //filter->setWindowSize(51);

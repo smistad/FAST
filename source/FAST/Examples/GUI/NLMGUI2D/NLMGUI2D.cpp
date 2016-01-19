@@ -36,7 +36,7 @@ NLMGUI2D::NLMGUI2D() {
     
     
     // Smooth images
-    nlmSmoothing = NoneLocalMeans::New();
+    nlmSmoothing = NonLocalMeans::New();
     nlmSmoothing->setInputConnection(importer->getOutputPort());
     nlmSmoothing->setSigma(0.65f);
     nlmSmoothing->setGroupSize(5);

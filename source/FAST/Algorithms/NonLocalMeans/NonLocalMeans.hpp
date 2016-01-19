@@ -7,8 +7,8 @@
 
 namespace fast {
 
-class NoneLocalMeans : public ProcessObject {
-	FAST_OBJECT(NoneLocalMeans)
+class NonLocalMeans : public ProcessObject {
+	FAST_OBJECT(NonLocalMeans)
 	public:
 		//void setSigma(unsigned char s);
         void setSigma(float s);
@@ -25,7 +25,7 @@ class NoneLocalMeans : public ProcessObject {
         float getDenoiseStrength();
 		void waitToFinish();
 	private:
-		NoneLocalMeans();
+		NonLocalMeans();
 		void execute();
 		void recompileOpenCLCode(Image::pointer input);
 

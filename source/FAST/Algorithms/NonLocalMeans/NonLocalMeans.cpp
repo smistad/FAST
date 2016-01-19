@@ -6,7 +6,7 @@
 #include "NonLocalMeans.hpp"
 using namespace fast;
 
-NoneLocalMeans::NoneLocalMeans() {
+NonLocalMeans::NonLocalMeans() {
 	createInputPort<Image>(0);
 	createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
     createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/NonLocalMeans/NonLocalMeans2Dgs.cl", "2D");
@@ -24,13 +24,13 @@ NoneLocalMeans::NoneLocalMeans() {
     recompile = true;
 }
 
-void NoneLocalMeans::setOutputType(DataType type){
+void NonLocalMeans::setOutputType(DataType type){
 	mOutputType = type;
 	mOutputTypeSet = true;
 	mIsModified = true;
     recompile = true;
 }
-void NoneLocalMeans::setK(unsigned char newK){
+void NonLocalMeans::setK(unsigned char newK){
     if (newK < 0){
         throw Exception("NoneLocalMeans K must be greater then 0.");
     }
@@ -39,7 +39,7 @@ void NoneLocalMeans::setK(unsigned char newK){
     recompile = true;
 }
 
-void NoneLocalMeans::setEuclid(unsigned char e){
+void NonLocalMeans::setEuclid(unsigned char e){
     if (e < 0){
         throw Exception("NoneLocalMeans Euclid must be greater then 0.");
     }
@@ -48,7 +48,7 @@ void NoneLocalMeans::setEuclid(unsigned char e){
     recompile = true;
 }
 
-void NoneLocalMeans::setWindowSize(unsigned char wS) {
+void NonLocalMeans::setWindowSize(unsigned char wS) {
 	if (wS <= 0)
 		throw Exception("NoneLocalMeans window size must be greater then 0.");
 	if (wS % 2 != 1)
@@ -59,7 +59,7 @@ void NoneLocalMeans::setWindowSize(unsigned char wS) {
 	recompile = true;
 }
 
-void NoneLocalMeans::setGroupSize(unsigned char gS) {
+void NonLocalMeans::setGroupSize(unsigned char gS) {
 	if (gS <= 0)
 		throw Exception("NoneLocalMeans group size must be greater then 0.");
 	if (gS % 2 != 1)
@@ -70,7 +70,7 @@ void NoneLocalMeans::setGroupSize(unsigned char gS) {
 	recompile = true;
 }
 
-void NoneLocalMeans::setDenoiseStrength(float dS){
+void NonLocalMeans::setDenoiseStrength(float dS){
 	if (dS < 0)
 		throw Exception("NoneLocalMeans denoise strength must be greater then 0.");
 
@@ -79,7 +79,7 @@ void NoneLocalMeans::setDenoiseStrength(float dS){
 	//recompile = true;
 }
 
-void NoneLocalMeans::setSigma(float s){
+void NonLocalMeans::setSigma(float s){
     if (s < 0)
         throw Exception("NoneLocalMeans sigma must be greater then 0.");
     
@@ -167,7 +167,7 @@ void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, unsigne
     }
 }
 
-void NoneLocalMeans::recompileOpenCLCode(Image::pointer input) {
+void NonLocalMeans::recompileOpenCLCode(Image::pointer input) {
     // Check if there is a need to recompile OpenCL code
     if(input->getDimensions() == mDimensionCLCodeCompiledFor &&
        input->getDataType() == mTypeCLCodeCompiledFor && !recompile)
@@ -255,7 +255,7 @@ void NoneLocalMeans::recompileOpenCLCode(Image::pointer input) {
 	mDimensionCLCodeCompiledFor = input->getDimensions();
 	mTypeCLCodeCompiledFor = input->getDataType();
 }*/
-void NoneLocalMeans::execute() {
+void NonLocalMeans::execute() {
     Image::pointer input = getStaticInputData<Image>(0);
     Image::pointer output = getStaticOutputData<Image>(0);
     
@@ -410,27 +410,27 @@ void NoneLocalMeans::execute() {
 		);
 	}
 }*/
-float NoneLocalMeans::getSigma(){
+float NonLocalMeans::getSigma(){
     return sigma;
 }
 
-float NoneLocalMeans::getDenoiseStrength(){
+float NonLocalMeans::getDenoiseStrength(){
     return denoiseStrength;
 }
 
-int NoneLocalMeans::getGroupSize(){
+int NonLocalMeans::getGroupSize(){
     return groupSize;
 }
 
-int NoneLocalMeans::getWindowSize(){
+int NonLocalMeans::getWindowSize(){
     return windowSize;
 }
 
-int NoneLocalMeans::getK(){
+int NonLocalMeans::getK(){
     return k;
 }
 
-void NoneLocalMeans::waitToFinish() {
+void NonLocalMeans::waitToFinish() {
     if (!getMainDevice()->isHost()) {
         OpenCLDevice::pointer device = getMainDevice();
         device->getCommandQueue().finish();

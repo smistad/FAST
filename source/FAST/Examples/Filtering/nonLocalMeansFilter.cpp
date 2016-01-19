@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <time.h>
 
-#include "../../Algorithms/NonLocalMeans/NonLocalMeans.hpp"
+#include "FAST/Algorithms/NonLocalMeans/NonLocalMeans.hpp"
 
 using namespace fast;
 
@@ -27,7 +27,7 @@ int main() {
     float dS = 5.0f;
     
     // Smooth image
-    NoneLocalMeans::pointer filter = NoneLocalMeans::New();
+    NonLocalMeans::pointer filter = NonLocalMeans::New();
     filter->setInputConnection(importer->getOutputPort());
     filter->setGroupSize(groupSize);
     filter->setWindowSize(windowSize);
