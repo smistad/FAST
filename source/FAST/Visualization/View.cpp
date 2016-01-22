@@ -51,9 +51,19 @@ void View::removeAllRenderers() {
     mNonVolumeRenderers.clear();
 }
 
+void View::setBackgroundColor(Color color) {
+	mBackgroundColor = color;
+}
+
+void View::set2DPixelSpacing(float spacing) {
+	mPBOspacing = spacing;
+}
+
 View::View() : mViewingPlane(Plane::Axial()) {
     this->setAutoBufferSwap(false);
     createInputPort<Camera>(0, false);
+
+    mBackgroundColor = Color::White();
     zNear = 0.1;
     zFar = 1000;
     fieldOfViewY = 45;
@@ -63,6 +73,7 @@ View::View() : mViewingPlane(Plane::Axial()) {
     mMiddleMouseButtonIsPressed = false;
     mQuit = false;
 	mCameraSet = false;
+	mPBOspacing = -1;
 
     mFramerate = 60;
     // Set up a timer that will call update on this object at a regular interval
@@ -380,7 +391,6 @@ void View::initializeGL() {
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
 
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         // Set up viewport and projection transformation
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
@@ -424,7 +434,8 @@ void View::initializeGL() {
                 }
             }
 
-            mPBOspacing = longestEdgeDistance / std::min(width(), height());
+            if(mPBOspacing < 0)
+				mPBOspacing = longestEdgeDistance / std::min(width(), height());
             reportInfo() << "current width and height " << width() << " " << height() << Reporter::end;
             reportInfo() << "longest edge distance " << longestEdgeDistance << Reporter::end;
             reportInfo() << "PBO spacing set to " << mPBOspacing << Reporter::end;
@@ -553,7 +564,6 @@ void View::initializeGL() {
 
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-			glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
 			// Set up viewport and projection transformation
 			glMatrixMode(GL_PROJECTION);
@@ -588,6 +598,10 @@ void View::initializeGL() {
 
 void View::paintGL() {
 	mRuntimeManager->startRegularTimer("paintGL");
+
+
+	glClearColor(mBackgroundColor.getRedValue(), mBackgroundColor.getGreenValue(), mBackgroundColor.getBlueValue(), 1.0f);
+
 	if (mNonVolumeRenderers.size() > 0 ) //it can be "only nonVolume renderers" or "nonVolume + Volume renderes" together
 	{
 		if (mVolumeRenderers.size()>0)
@@ -609,6 +623,9 @@ void View::paintGL() {
             int i = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/View.cl");
             cl::Kernel kernel(device->getProgram(i), "initializePBO");
             kernel.setArg(0, clPBO);
+            kernel.setArg(1, mBackgroundColor.getRedValue());
+            kernel.setArg(2, mBackgroundColor.getGreenValue());
+            kernel.setArg(3, mBackgroundColor.getBlueValue());
             std::vector<cl::Memory> v;
             v.push_back(clPBO);
             queue.enqueueAcquireGLObjects(&v);
