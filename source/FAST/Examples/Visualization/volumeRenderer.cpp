@@ -16,7 +16,7 @@
 #include "FAST/Visualization/VolumeRenderer/OpacityTransferFunction.hpp"
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
 #include "FAST/Importers/VTKMeshFileImporter.hpp"
-
+#include "FAST/TestDataPath.hpp"
 
 using namespace fast;
 
