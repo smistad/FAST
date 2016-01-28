@@ -30,7 +30,7 @@ class SliceRenderer : public Renderer {
 
 		boost::unordered_map<uint, cl::Image3D*> mClImage;
 
-		boost::unordered_map<uint, cl::Buffer> d_transformationMatrices;
+		cl::Buffer d_transformationMatrices[4];
 		boost::unordered_map<uint, cl::Buffer> d_imageSizes;
 
 #if defined(CL_VERSION_1_2)

@@ -298,7 +298,7 @@ void SliceRenderer::execute() {
 
 		d_transformationMatrices[inputIndex - 1] = cl::Buffer(device->getContext(), CL_MEM_READ_ONLY, 16 * sizeof(float));
 		mKernel.setArg(13 + (inputIndex - 1) * 3, d_transformationMatrices[inputIndex - 1]);
-		queue.enqueueWriteBuffer(d_transformationMatrices[inputIndex - 1], CL_FALSE, 0, 16 * sizeof(float), transformationMatix);
+		queue.enqueueWriteBuffer(d_transformationMatrices[inputIndex - 1], CL_TRUE, 0, 16 * sizeof(float), transformationMatix);
 
 
 
