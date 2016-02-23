@@ -6,6 +6,7 @@
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QResizeEvent>
+#include "FAST/Data/BoundingBox.hpp"
 
 
 namespace fast {
