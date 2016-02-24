@@ -1,14 +1,4 @@
-fast_add_subdirectories(
-    ImageRenderer
-    SliceRenderer
-    MeshRenderer
-    VolumeRenderer
-    PointRenderer
-    LineRenderer
-    SegmentationRenderer
-    BoundingBoxRenderer
-    Tests
-)
+fast_add_all_subdirectories()
 fast_add_sources(
     Window.cpp
     Window.hpp
