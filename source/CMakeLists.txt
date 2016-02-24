@@ -82,6 +82,14 @@ macro (fast_add_subdirectories)
         add_subdirectory(${_src})
     endforeach()
 endmacro()
+macro (fast_add_all_subdirectories)
+	file(GLOB children RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*)
+	foreach(child ${children})
+		if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${child})
+			add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/${child})
+		endif()
+    endforeach()
+endmacro()	
 
 
 # Headers for Qt objects
