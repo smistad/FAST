@@ -7,14 +7,17 @@
 
 namespace fast {
 
+class Image;
+
 class KalmanFilter : public ProcessObject {
 	FAST_OBJECT(KalmanFilter)
 	public:
+		void setShapeModel(ShapeModel::pointer shapeModel);
+		void setAppearanceModel(AppearanceModel::pointer appearanceModel);
 	private:
 		void execute(); // runs a loop with predict, measure and update
 		void predictState();
-		AssimilatedMeasurements getMeasurements();
-		void updateState(AssimilatedMeasurements);
+		void updateState(SharedPointer<Image> image);
 
 		AppearanceModel::pointer mAppearanceModel;
 		ShapeModel::pointer mShapeModel;
@@ -27,6 +30,8 @@ class KalmanFilter : public ProcessObject {
 		MatrixXf mCurrentCovariance;
 		MatrixXf mPreviousCovariance;
 		MatrixXf mPredictedCovariance;
+
+		MatrixXf mProcessErrorMatrix;
 };
 
 }

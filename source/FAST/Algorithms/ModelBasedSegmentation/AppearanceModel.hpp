@@ -8,11 +8,10 @@ namespace fast {
 
 class Image;
 
-class AssimilatedMeasurements {
+class Measurement {
 	public:
-		// TODO find better names
-		MatrixXf HRv;
-		VectorXf HRH;
+		float displacement;
+		float uncertainty;
 };
 
 /**
@@ -23,7 +22,7 @@ class AssimilatedMeasurements {
 class AppearanceModel {
 	public:
 		typedef SharedPointer<AppearanceModel> pointer;
-		virtual AssimilatedMeasurements getMeasurements(SharedPointer<Image> image, Shape shape) = 0;
+		virtual std::vector<Measurement> getMeasurements(SharedPointer<Image> image, SharedPointer<Shape> shape) = 0;
 
 
 };

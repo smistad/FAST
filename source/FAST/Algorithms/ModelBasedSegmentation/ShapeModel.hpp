@@ -13,10 +13,11 @@ namespace fast {
 class ShapeModel {
 	public:
 		typedef SharedPointer<ShapeModel> pointer;
-		virtual Shape getShape(VectorXf state) = 0;
+		virtual Shape::pointer getShape(VectorXf state) = 0;
 		virtual MatrixXf getStateTransitionMatrix1() = 0;
 		virtual MatrixXf getStateTransitionMatrix2() = 0;
 		virtual MatrixXf getStateTransitionMatrix3() = 0;
+		virtual std::vector<VectorXf> getMeasurementVectors(VectorXf state, Shape::pointer shape) = 0;
 	private:
 
 };

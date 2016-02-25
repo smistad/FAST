@@ -5,10 +5,20 @@
 
 namespace fast {
 
+class Image;
+class MeshShape;
+
 class StepEdgeModel : public AppearanceModel {
+	FAST_OBJECT(StepEdgeModel)
 	public:
-		void getMeasurements(SharedPointer<Image> image, SharedPointer<MeshShape> shape);
+		void setLineLength(float lengthInMM);
+		void setLineSampleSpacing(float spacingInMM);
+		std::vector<Measurement> getMeasurements(SharedPointer<Image> image, SharedPointer<MeshShape> shape);
 	private:
+		StepEdgeModel();
+
+		float mLineLength;
+		float mLineSampleSpacing;
 
 };
 

@@ -10,10 +10,12 @@ namespace fast {
  *
  */
 class MeshShape {
+	FAST_OBJECT(MeshShape)
 	public:
 		Mesh::pointer getMesh() const;
 		void setMesh(Mesh::pointer mesh);
 	private:
+		MeshShape();
 		Mesh::pointer mMesh;
 };
 

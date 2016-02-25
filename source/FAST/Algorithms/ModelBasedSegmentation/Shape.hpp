@@ -1,7 +1,7 @@
 #ifndef SHAPE_HPP_
 #define SHAPE_HPP_
 
-#include "FAST/Data/Mesh.hpp"
+#include "FAST/SmartPointers.hpp"
 
 namespace fast {
 
@@ -14,6 +14,7 @@ namespace fast {
  */
 class Shape {
 	public:
+		typedef SharedPointer<Shape> pointer;
 	private:
 };
 
