@@ -304,7 +304,7 @@ if(SWIG_FOUND)
 	
 	set_source_files_properties(${FAST_PYTHON_INTERFACE_FILES} PROPERTIES CPLUSPLUS ON)
 	#set_source_files_properties(${FAST_PYTHON_INTERFACE_FILES} PROPERTIES SWIG_FLAGS "-includeall") # Should avoid this flag
-	swig_add_module(fast python ${FAST_PYTHON_INTERFACE_FILES})
+	swig_add_module(fast python FAST/Python.i)
 	swig_link_libraries(fast ${PYTHON_LIBRARIES} FAST)
 else()
 	message("-- SWIG not found, Python bindings will NOT be created.")

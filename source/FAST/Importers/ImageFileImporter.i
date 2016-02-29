@@ -1,26 +1,10 @@
-%module fast
-%{
-#include "FAST/SmartPointers.hpp"
-#include "FAST/ProcessObject.hpp"
-#include "FAST/Importers/ImageFileImporter.hpp"
-%}
-
 // This adds support for converting std::string into python strings
 %include "std_string.i"
 
+%import "FAST/ProcessObject.i"
+
 namespace fast {
 
-class Object {
-};
-
-// This is an abstract class
-class ProcessObject : public virtual Object {
-    public:
-        ProcessObject();
-        void update();
-	private:
-		virtual void execute() = 0; // This will declare class as abstract
-};
 
 class ImageFileImporter : public ProcessObject {
     public:
