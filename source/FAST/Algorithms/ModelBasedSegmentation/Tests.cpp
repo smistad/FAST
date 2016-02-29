@@ -14,7 +14,9 @@ TEST_CASE("", "[fast][ModelBasedSegmentation]") {
 	streamer->setFilenameFormat("/home/smistad/CETUS/Patient1/Patient1_frame#.mhd");
 	streamer->setZeroFilling(2);
 	streamer->setStartNumber(1);
-	streamer->setSleepTime(2000);
+	streamer->enableLooping();
+	streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+	//streamer->setSleepTime(2000);
 
 	MeanValueCoordinatesModel::pointer shapeModel = MeanValueCoordinatesModel::New();
 	shapeModel->loadMeshes("/home/smistad/Dropbox/Programmering/Mean value coordinates/cetus_model_mesh_small.vtk",
@@ -30,9 +32,11 @@ TEST_CASE("", "[fast][ModelBasedSegmentation]") {
 
 	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
 	meshRenderer->setInputConnection(segmentation->getOutputPort());
+	meshRenderer->setDefaultOpacity(0.3);
 
 	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
 	sliceRenderer->setInputConnection(streamer->getOutputPort());
+	sliceRenderer->setSlicePlane(PLANE_Y);
 
 	SimpleWindow::pointer window = SimpleWindow::New();
 	window->addRenderer(meshRenderer);

@@ -32,7 +32,7 @@ void KalmanFilter::execute() {
 
 	Image::pointer image = getStaticInputData<Image>();
 
-	int counter = 10;
+	int counter = 5;
 	while(counter--) {
 		predict();
 		estimate(image);
@@ -71,6 +71,7 @@ void KalmanFilter::estimate(SharedPointer<Image> image) {
 
 	// Update covariance and state
 	mPreviousState = mCurrentState;
+	mPreviousCovariance = mCurrentCovariance;
 	mCurrentCovariance = (mPredictedCovariance.inverse() + HRH).inverse();
 	mCurrentState = mPredictedState + mCurrentCovariance*HRv;
 
