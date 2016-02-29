@@ -76,16 +76,30 @@ macro (fast_add_test_sources)
         set (FAST_TEST_SOURCE_FILES ${FAST_TEST_SOURCE_FILES} PARENT_SCOPE)
     endif()
 endmacro()
+macro (fast_add_python_interfaces)
+    file (RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
+    foreach (_src ${ARGN})
+        if (_relPath)
+            list (APPEND FAST_PYTHON_INTERFACE_FILES "${_relPath}/${_src}")
+        else()
+            list (APPEND FAST_PYTHON_INTERFACE_FILES "${_src}")
+        endif()
+    endforeach()
+    if (_relPath)
+        # propagate FAST_PYTHON_INTERFACE_FILES to parent directory
+        set (FAST_PYTHON_INTERFACE_FILES ${FAST_PYTHON_INTERFACE_FILES} PARENT_SCOPE)
+    endif()
+endmacro()
 macro (fast_add_subdirectories)
     file (RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
     foreach (_src ${ARGN})
         add_subdirectory(${_src})
     endforeach()
     if (_relPath)
-        # propagate FAST_TEST_SOURCE_FILES to parent directory
+        # propagate to parent directory
         set (FAST_TEST_SOURCE_FILES ${FAST_TEST_SOURCE_FILES} PARENT_SCOPE)
-        # propagate FAST_SOURCE_FILES to parent directory
         set (FAST_SOURCE_FILES ${FAST_SOURCE_FILES} PARENT_SCOPE)
+        set (FAST_PYTHON_INTERFACE_FILES ${FAST_PYTHON_INTERFACE_FILES} PARENT_SCOPE)
 	endif()
 endmacro()
 macro (fast_add_all_subdirectories)
@@ -96,10 +110,10 @@ macro (fast_add_all_subdirectories)
 		endif()
     endforeach()
     if (_relPath)
-        # propagate FAST_TEST_SOURCE_FILES to parent directory
+        # propagate to parent directory
         set (FAST_TEST_SOURCE_FILES ${FAST_TEST_SOURCE_FILES} PARENT_SCOPE)
-        # propagate FAST_SOURCE_FILES to parent directory
         set (FAST_SOURCE_FILES ${FAST_SOURCE_FILES} PARENT_SCOPE)
+        set (FAST_PYTHON_INTERFACE_FILES ${FAST_PYTHON_INTERFACE_FILES} PARENT_SCOPE)
 	endif()
 endmacro()	
 
@@ -275,3 +289,23 @@ configure_file (
     "${PROJECT_SOURCE_DIR}/FASTConfig.cmake.in"
     "${PROJECT_BINARY_DIR}/FASTConfig.cmake"
 )
+
+find_package(SWIG)
+if(SWIG_FOUND)
+	message("-- SWIG found, creating python bindings...")
+	message("-- Python files: ${FAST_PYTHON_INTERFACE_FILES}")
+	include(${SWIG_USE_FILE})
+	find_package(PythonLibs REQUIRED)
+	include_directories(${PYTHON_INCLUDE_PATH})
+
+	include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
+	set(CMAKE_SWIG_FLAGS "")
+	
+	set_source_files_properties(${FAST_PYTHON_INTERFACE_FILES} PROPERTIES CPLUSPLUS ON)
+	#set_source_files_properties(${FAST_PYTHON_INTERFACE_FILES} PROPERTIES SWIG_FLAGS "-includeall") # Should avoid this flag
+	swig_add_module(fast python ${FAST_PYTHON_INTERFACE_FILES})
+	swig_link_libraries(fast ${PYTHON_LIBRARIES} FAST)
+else()
+	message("-- SWIG not found, Python bindings will NOT be created.")
+endif()

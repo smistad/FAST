@@ -13,6 +13,9 @@ fast_add_sources(
     ImageFileImporter.cpp
     ImageFileImporter.hpp
 )
+fast_add_python_interfaces(
+	ImageFileImporter.i
+)
 fast_add_test_sources(
     Tests/ImageImporterTests.cpp
     Tests/MetaImageImporterTests.cpp

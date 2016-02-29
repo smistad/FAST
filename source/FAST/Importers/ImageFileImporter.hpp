@@ -9,8 +9,8 @@ class ImageFileImporter : public ProcessObject {
     FAST_OBJECT(ImageFileImporter)
     public:
         void setFilename(std::string filename);
-    private:
         ImageFileImporter();
+    private:
         void execute();
 
         std::string mFilename;
