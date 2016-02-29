@@ -1,21 +1,23 @@
 #ifndef SHAPE_HPP_
 #define SHAPE_HPP_
 
-#include "FAST/SmartPointers.hpp"
+#include "FAST/Data/Mesh.hpp"
 
 namespace fast {
 
 /**
- * Abstract base class used to represent a shape.
- * This is passed from the ShapeModel to the AppearanceModel.
- * It is created by the shape model.
- * Is it really needed? Why not just pass the shape model and state matrix to the appearance model?
+ * Class used to represent a mesh shape.
  *
  */
-class Shape {
+class Shape : public Object {
+	FAST_OBJECT(Shape)
 	public:
-		typedef SharedPointer<Shape> pointer;
+		Mesh::pointer getMesh() const;
+		void setMesh(Mesh::pointer mesh);
+		Vector3f getCentroid();
 	private:
+		Shape();
+		Mesh::pointer mMesh;
 };
 
 }

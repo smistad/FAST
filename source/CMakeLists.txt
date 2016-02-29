@@ -81,6 +81,12 @@ macro (fast_add_subdirectories)
     foreach (_src ${ARGN})
         add_subdirectory(${_src})
     endforeach()
+    if (_relPath)
+        # propagate FAST_TEST_SOURCE_FILES to parent directory
+        set (FAST_TEST_SOURCE_FILES ${FAST_TEST_SOURCE_FILES} PARENT_SCOPE)
+        # propagate FAST_SOURCE_FILES to parent directory
+        set (FAST_SOURCE_FILES ${FAST_SOURCE_FILES} PARENT_SCOPE)
+	endif()
 endmacro()
 macro (fast_add_all_subdirectories)
 	file(GLOB children RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*)
@@ -89,6 +95,12 @@ macro (fast_add_all_subdirectories)
 			add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/${child})
 		endif()
     endforeach()
+    if (_relPath)
+        # propagate FAST_TEST_SOURCE_FILES to parent directory
+        set (FAST_TEST_SOURCE_FILES ${FAST_TEST_SOURCE_FILES} PARENT_SCOPE)
+        # propagate FAST_SOURCE_FILES to parent directory
+        set (FAST_SOURCE_FILES ${FAST_SOURCE_FILES} PARENT_SCOPE)
+	endif()
 endmacro()	
 
 

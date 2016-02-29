@@ -8,15 +8,18 @@
 
 namespace fast {
 
-class MeanValueCoordinatesModel : ShapeModel {
+class MeanValueCoordinatesModel : public ShapeModel {
+	FAST_OBJECT(MeanValueCoordinatesModel)
 	public:
-		typedef SharedPointer<MeanValueCoordinatesModel> pointer;
+		void loadMeshes(std::string surfaceMeshFilename, std::string controlMeshFilename);
 		void loadMeshes(Mesh::pointer surfaceMesh, Mesh::pointer controlMesh);
 		Shape::pointer getShape(VectorXf state);
 		MatrixXf getStateTransitionMatrix1();
 		MatrixXf getStateTransitionMatrix2();
 		MatrixXf getStateTransitionMatrix3();
-		std::vector<VectorXf> getMeasurementVectors(VectorXf state, Shape::pointer shape);
+		MatrixXf getProcessErrorMatrix();
+		std::vector<MatrixXf> getMeasurementVectors(VectorXf state, Shape::pointer shape);
+		VectorXf getState(Vector3f translation, Vector3f scale, Vector3f rotation);
 	private:
 		void assertLoadedMeshes();
         void setNormalizedWeight(
@@ -45,12 +48,10 @@ class MeanValueCoordinatesModel : ShapeModel {
 		MatrixXf mA1;
 		MatrixXf mA2;
 		MatrixXf mA3;
-
-
-
+		MatrixXf mProcessErrorMatrix;
 
 };
 
-}
+} // end namespace fast
 
 #endif

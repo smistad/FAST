@@ -1,7 +1,13 @@
 #include "StepEdgeModel.hpp"
 #include "FAST/Data/Image.hpp"
+#include "FAST/Algorithms/ModelBasedSegmentation/Shape.hpp"
 
 namespace fast {
+
+StepEdgeModel::StepEdgeModel() {
+	mLineLength = 0;
+	mLineSampleSpacing = 0;
+}
 
 typedef struct DetectedEdge {
     int edgeIndex;
@@ -84,15 +90,19 @@ inline float insertValue(void* pixelPointer, Image::pointer image, Vector3i posi
 }
 
 
-std::vector<Measurement> StepEdgeModel::getMeasurements(SharedPointer<Image> image, SharedPointer<MeshShape> shape) {
+std::vector<Measurement> StepEdgeModel::getMeasurements(SharedPointer<Image> image, SharedPointer<Shape> shape) {
+	if(mLineLength == 0 || mLineSampleSpacing == 0)
+		throw Exception("Line length and sample spacing must be given to the StepEdgeModel");
+
 	// For each point on the shape do a line search in the direction of the normal
 	// Return set of displacements and uncertainties
-    AffineTransformation transformMatrix = SceneGraph::getAffineTransformationFromData(image);
-    Matrix4f inverseTransformMatrix = transformMatrix.inverse();
+    AffineTransformation::pointer transformMatrix = SceneGraph::getAffineTransformationFromData(image);
+    transformMatrix->scale(image->getSpacing());
+    Matrix4f inverseTransformMatrix = transformMatrix->matrix().inverse();
 
     // Get model scene graph transform
-    AffineTransformation modelTransformation = SceneGraph::getAffineTransformationFromData(shape->getMesh());
-    MatrixXf modelTransformMatrix = modelTransformation.affine();
+    AffineTransformation::pointer modelTransformation = SceneGraph::getAffineTransformationFromData(shape->getMesh());
+    MatrixXf modelTransformMatrix = modelTransformation->affine();
 
     Mesh::pointer predictedMesh = shape->getMesh();
     MeshAccess::pointer predictedMeshAccess = predictedMesh->getMeshAccess(ACCESS_READ);

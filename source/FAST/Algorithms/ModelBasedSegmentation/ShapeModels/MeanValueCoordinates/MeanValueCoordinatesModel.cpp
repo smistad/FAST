@@ -1,7 +1,11 @@
 #include "MeanValueCoordinatesModel.hpp"
+#include "FAST/Importers/VTKMeshFileImporter.hpp"
 
 namespace fast {
 
+inline float sign(float v) {
+    return v < 0.0f ? -1.0f : 1.0f;
+}
 
 std::vector<MeshVertex> MeanValueCoordinatesModel::getDeformedVertices(
         const std::vector<Vector3f>& displacements) {
@@ -70,6 +74,21 @@ std::vector<MeshVertex> MeanValueCoordinatesModel::getDeformedVertices(
     return newVertices;
 }
 
+void MeanValueCoordinatesModel::loadMeshes(std::string surfaceMeshFilename, std::string controlMeshFilename) {
+	VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
+
+	importer->setFilename(surfaceMeshFilename);
+	importer->update();
+	Mesh::pointer surfaceMesh = importer->getOutputData<Mesh>();
+
+	VTKMeshFileImporter::pointer importer2 = VTKMeshFileImporter::New();
+	importer2->setFilename(controlMeshFilename);
+	importer2->update();
+	Mesh::pointer controlMesh = importer2->getOutputData<Mesh>();
+
+	loadMeshes(surfaceMesh, controlMesh);
+}
+
 void MeanValueCoordinatesModel::loadMeshes(Mesh::pointer surfaceMesh,
 		Mesh::pointer controlMesh) {
 	mSurfaceMesh = surfaceMesh;
@@ -113,15 +132,25 @@ void MeanValueCoordinatesModel::loadMeshes(Mesh::pointer surfaceMesh,
 
     mA3 = MatrixXf::Zero(mStateSize, mStateSize);
 
+    mProcessErrorMatrix = MatrixXf::Zero(mStateSize, mStateSize);
+    for(int i = 0; i < mStateSize; ++i) {
+    	if(i < 9) {
+    		mProcessErrorMatrix(i, i) = 1.5f;
+    	} else {
+    		mProcessErrorMatrix(i, i) = 0.001f;
+    	}
+    }
+
 
 	// Calculate weights
     // Calculate the weights using the original vertices of the model
     std::vector<MeshVertex> vertices = getOriginalVertices();
 
     // Allocate memory for the weights
-    mNormalizedWeights = boost::shared_array(new float[vertices.size()*(mControlMesh->getNrOfTriangles()*3)]());
-    mNormalizedWeightsPerNode = boost::shared_array(new float[vertices.size()*mControlMesh->getNrOfVertices()]);
+    mNormalizedWeights = boost::shared_array<float>(new float[vertices.size()*(mControlMesh->getNrOfTriangles()*3)]());
+    mNormalizedWeightsPerNode = boost::shared_array<float>(new float[vertices.size()*mControlMesh->getNrOfVertices()]);
 
+    mCentroid = Vector3f::Zero();
     for(int vertexNr = 0; vertexNr < vertices.size(); vertexNr++) {
         MeshVertex x = vertices[vertexNr];
         mCentroid += x.position;
@@ -216,6 +245,7 @@ void MeanValueCoordinatesModel::loadMeshes(Mesh::pointer surfaceMesh,
 
     // Calculate centroid
     mCentroid /= vertices.size();
+    reportInfo() << "Finished loading meshes in mean value coordinates model" << reportEnd();
 }
 
 void MeanValueCoordinatesModel::assertLoadedMeshes() {
@@ -226,6 +256,23 @@ void MeanValueCoordinatesModel::assertLoadedMeshes() {
 std::vector<MeshVertex> MeanValueCoordinatesModel::getOriginalVertices() {
     MeshAccess::pointer access = mSurfaceMesh->getMeshAccess(ACCESS_READ);
     return access->getVertices();
+}
+
+VectorXf MeanValueCoordinatesModel::getState(Vector3f translation, Vector3f scale, Vector3f rotation) {
+	assertLoadedMeshes();
+
+	VectorXf state = VectorXf::Zero(mStateSize);
+	state(0) = translation(0);
+	state(1) = translation(1);
+	state(2) = translation(2);
+	state(3) = scale(0);
+	state(4) = scale(1);
+	state(5) = scale(2);
+	state(6) = rotation(0);
+	state(7) = rotation(1);
+	state(8) = rotation(2);
+
+	return state;
 }
 
 Shape::pointer MeanValueCoordinatesModel::getShape(VectorXf state) {
@@ -243,7 +290,7 @@ Shape::pointer MeanValueCoordinatesModel::getShape(VectorXf state) {
 	pL = getDeformedVertices(displacements);
 
     // Calculate centroid of pL
-    Vector3f c = Vector3f::Constant(0);
+    Vector3f c = Vector3f::Zero();
     int nrOfNans = 0;
     for(int i = 0; i < pL.size(); i++) {
         if(isnan(pL[i].position.x()) || isnan(pL[i].position.y()) || isnan(pL[i].position.z())) {
@@ -253,7 +300,6 @@ Shape::pointer MeanValueCoordinatesModel::getShape(VectorXf state) {
         c = c + pL[i].position;
     }
     c = c / (pL.size()-nrOfNans);
-    //this->centroid = c;
 
     /* Global transformation */
     Vector3f rotation(state(6), state(7), state(8));
@@ -319,7 +365,7 @@ Shape::pointer MeanValueCoordinatesModel::getShape(VectorXf state) {
     MeshAccess::pointer meshAccess = mSurfaceMesh->getMeshAccess(ACCESS_READ);
     Mesh::pointer mesh = Mesh::New();
     mesh->create(result, meshAccess->getTriangles());
-	MeshShape::pointer shape = MeshShape::New();
+	Shape::pointer shape = Shape::New();
 	shape->setMesh(mesh);
 
 	return shape;
@@ -391,11 +437,17 @@ MatrixXf MeanValueCoordinatesModel::getStateTransitionMatrix3() {
 	return mA3;
 }
 
-std::vector<VectorXf> MeanValueCoordinatesModel::getMeasurementVectors(
+MatrixXf MeanValueCoordinatesModel::getProcessErrorMatrix() {
+	assertLoadedMeshes();
+
+	return mProcessErrorMatrix;
+}
+
+std::vector<MatrixXf> MeanValueCoordinatesModel::getMeasurementVectors(
 		VectorXf state, Shape::pointer shape) {
 	assertLoadedMeshes();
 
-	MeshShape::pointer meshShape = shape;
+	Shape::pointer meshShape = shape;
 	Mesh::pointer mesh = meshShape->getMesh();
 	MeshAccess::pointer meshAccess = mesh->getMeshAccess(ACCESS_READ);
 	MeshAccess::pointer originalMeshAccess = mSurfaceMesh->getMeshAccess(ACCESS_READ);
@@ -433,7 +485,7 @@ std::vector<VectorXf> MeanValueCoordinatesModel::getMeasurementVectors(
 
     Matrix3f RS = Rz*Ry*Rx*S;
 
-    std::vector<VectorXf> result;
+    std::vector<MatrixXf> result;
 
 	for(int j = 0; j < meshSize; ++j) {
 		MatrixXf hT(1, mStateSize);
@@ -446,7 +498,7 @@ std::vector<VectorXf> MeanValueCoordinatesModel::getMeasurementVectors(
 		hT(2) = v.normal(2); // tz
 
 		// Original position - centroid of original mesh
-		Vector3f posMinusC = originalMeshAccess->getVertex(j) - mCentroid;
+		Vector3f posMinusC = originalMeshAccess->getVertex(j).position - mCentroid;
 		Vector3f n = v.normal;
 
 
@@ -484,6 +536,7 @@ std::vector<VectorXf> MeanValueCoordinatesModel::getMeasurementVectors(
 			hT(9+i) = localPart(0,i);
 		}
 
+		//VectorXf asd = hT.transpose();
 		result.push_back(hT);
 	}
 

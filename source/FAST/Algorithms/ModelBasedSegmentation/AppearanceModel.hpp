@@ -19,7 +19,7 @@ class Measurement {
  * These classes model of an object appears in an image.
  * They are used by the Kalman filter to collect measurements.
  */
-class AppearanceModel {
+class AppearanceModel : public Object {
 	public:
 		typedef SharedPointer<AppearanceModel> pointer;
 		virtual std::vector<Measurement> getMeasurements(SharedPointer<Image> image, SharedPointer<Shape> shape) = 0;
