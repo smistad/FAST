@@ -11,9 +11,9 @@
 #define FAST_OBJECT(className)                                  \
     public:                                                     \
         typedef SharedPointer<className> pointer;               \
-        static className::pointer New() {                       \
+        static SharedPointer<className> New() {                       \
             className * ptr = new className();                  \
-            className::pointer smartPtr(ptr);                   \
+            SharedPointer<className> smartPtr(ptr);                   \
             ptr->setPtr(smartPtr);                              \
                                                                 \
             return smartPtr;                                    \
@@ -128,12 +128,12 @@ class SharedPointer {
             return this->getPtr() == other.getPtr();
         }
 
-        boost::shared_ptr<T> operator->() {
-            return mSmartPtr;
-        }
-        boost::shared_ptr<T> operator->() const {
-            return mSmartPtr;
-        }
+        T* operator->() {
+        	return mSmartPtr.get();
+		}
+        T* operator->() const {
+        	return mSmartPtr.get();
+		}
 
         boost::shared_ptr<T> getPtr() const { return mSmartPtr; };
         boost::shared_ptr<T> & getReferenceToPointer() { return mSmartPtr; };

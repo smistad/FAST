@@ -1,5 +1,6 @@
 %module fast
 %{
+#include "FAST/SmartPointers.hpp"
 #include "FAST/ProcessObject.hpp"
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
