@@ -293,7 +293,6 @@ configure_file (
 find_package(SWIG)
 if(SWIG_FOUND)
 	message("-- SWIG found, creating python bindings...")
-	message("-- Python files: ${FAST_PYTHON_INTERFACE_FILES}")
 	include(${SWIG_USE_FILE})
 	find_package(PythonLibs REQUIRED)
 	include_directories(${PYTHON_INCLUDE_PATH})
@@ -302,9 +301,25 @@ if(SWIG_FOUND)
 
 	set(CMAKE_SWIG_FLAGS "")
 	
-	set_source_files_properties(${FAST_PYTHON_INTERFACE_FILES} PROPERTIES CPLUSPLUS ON)
-	#set_source_files_properties(${FAST_PYTHON_INTERFACE_FILES} PROPERTIES SWIG_FLAGS "-includeall") # Should avoid this flag
-	swig_add_module(fast python FAST/Python.i)
+	# Generate the PyFAST interface file
+	set(PYFAST_FILE "${PROJECT_BINARY_DIR}/PyFAST.i")
+	file(WRITE ${PYFAST_FILE} "%module fast\n%{\n")
+	# Include all header files
+	foreach(FILE ${FAST_SOURCE_FILES})
+		if(${FILE} MATCHES "^.*hpp$")
+			file(APPEND ${PYFAST_FILE} "#include \"${FILE}\"\n")
+		endif()
+	endforeach()
+	file(APPEND ${PYFAST_FILE} "%}\n\n")
+
+	# Include all python interface files
+	foreach(FILE ${FAST_PYTHON_INTERFACE_FILES})
+		file(APPEND ${PYFAST_FILE} "%include \"${FILE}\"\n")
+	endforeach()
+	
+	# Build it
+	set_source_files_properties(${PYFAST_FILE} PROPERTIES CPLUSPLUS ON)
+	swig_add_module(fast python ${PYFAST_FILE})
 	swig_link_libraries(fast ${PYTHON_LIBRARIES} FAST)
 else()
 	message("-- SWIG not found, Python bindings will NOT be created.")

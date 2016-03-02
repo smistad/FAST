@@ -1,6 +1,6 @@
+%include "FAST/ProcessObject.i"
 
-%import "FAST/ProcessObject.i"
-%import "FAST/Visualization/ImageRenderer/ImageRenderer.i"
+%shared_ptr(fast::SimpleWindow)
 
 namespace fast {
 
@@ -8,7 +8,7 @@ class SimpleWindow : public Window {
     public:
     	static SharedPointer<SimpleWindow> New();
     	SimpleWindow();
-        void addRenderer(SharedPointer<Renderer> renderer);
+        void addRenderer(Renderer::pointer renderer);
         void removeAllRenderers();
         void setMaximumFramerate(unsigned int framerate);
         void setWindowSize(unsigned int w, unsigned int h);
@@ -17,11 +17,7 @@ class SimpleWindow : public Window {
         void start();
 };
 
-
-// This is needed for some strange reason
-typedef SharedPointer<SimpleWindow> SimpleWindowPtr;
 %template(SimpleWindowPtr) SharedPointer<SimpleWindow>;
-
 
 
 }

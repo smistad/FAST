@@ -1,4 +1,6 @@
-%import "FAST/ProcessObject.i"
+%include "FAST/ProcessObject.i"
+
+%shared_ptr(fast::ImageRenderer)
 
 namespace fast {
 
@@ -6,14 +8,11 @@ namespace fast {
 class ImageRenderer : public Renderer {
     public:
     	static SharedPointer<ImageRenderer> New();
-    	ImageRenderer();
         void addInputConnection(ProcessObjectPort port);
 	private:
-		void execute(); // Must have this, or class will be defined as abstract 
+    	ImageRenderer();
 };
 
-// This is needed for some strange reason
-typedef SharedPointer<ImageRenderer> ImageRendererPtr;
 %template(ImageRendererPtr) SharedPointer<ImageRenderer>;
 
 

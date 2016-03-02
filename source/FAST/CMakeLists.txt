@@ -30,6 +30,5 @@ fast_add_sources(
     DeviceCriteria.hpp
 )
 fast_add_python_interfaces(
-	Python.i
 	ProcessObject.i
 )

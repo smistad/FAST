@@ -18,3 +18,6 @@ fast_add_sources(
     Plane.hpp
 ) 
 fast_add_test_sources()
+fast_add_python_interfaces(
+	SimpleWindow.i
+)

@@ -70,9 +70,12 @@ class SharedPointer {
         SharedPointer() {
 
         }
-
-        SharedPointer(Object * object) {
-            mSmartPtr = boost::shared_ptr<T>(dynamic_cast<T*>(object));
+		SharedPointer(T* object) {
+            mSmartPtr = boost::shared_ptr<T>(object);
+        }
+        template <class D>
+        SharedPointer(T* p, D d) {
+        	mSmartPtr = boost::shared_ptr<T>(p, d);
         }
 
         template <class U>
@@ -134,6 +137,9 @@ class SharedPointer {
         T* operator->() const {
         	return mSmartPtr.get();
 		}
+        T* get() {
+        	return mSmartPtr.get();
+        }
 
         boost::shared_ptr<T> getPtr() const { return mSmartPtr; };
         boost::shared_ptr<T> & getReferenceToPointer() { return mSmartPtr; };

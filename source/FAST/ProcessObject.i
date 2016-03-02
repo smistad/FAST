@@ -1,15 +1,10 @@
-namespace fast {
+%include "FAST/SmartPointers.i"
 
-template <class T>
-class SharedPointer {
-	public:        
-		SharedPointer(Object * object);
-        template <class U>
-        SharedPointer(SharedPointer<U> object);
-        template <class U>
-        SharedPointer<T> &operator=(const SharedPointer<U> &other);
-        T* operator->();     
-};
+%shared_ptr(fast::Object)
+%shared_ptr(fast::ProcessObject)
+%shared_ptr(fast::Renderer)
+
+namespace fast {
 
 class ProcessObjectPort {
 };
@@ -22,6 +17,8 @@ class ProcessObject : public Object {
     	ProcessObject();
     	void update();
         ProcessObjectPort getOutputPort();
+        void setInputConnection(ProcessObjectPort port);
+        void setInputConnection(uint connectionID, ProcessObjectPort port);
     protected:
     	virtual void execute() = 0;
 };
@@ -34,11 +31,7 @@ class Renderer : public ProcessObject {
 		virtual void execute() = 0;
 };
 
-typedef SharedPointer<Renderer> RendererPtr;
 %template(RendererPtr) SharedPointer<Renderer>;
-
-
-
 
 
 } // end namespace fast
