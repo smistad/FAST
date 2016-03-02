@@ -19,5 +19,6 @@ fast_add_sources(
 ) 
 fast_add_test_sources()
 fast_add_python_interfaces(
+	Renderer.i
 	SimpleWindow.i
 )

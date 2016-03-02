@@ -1,9 +1,8 @@
-%include "FAST/ProcessObject.i"
+%include "FAST/Visualization/Renderer.i"
 
 %shared_ptr(fast::ImageRenderer)
 
 namespace fast {
-
 
 class ImageRenderer : public Renderer {
     public:
@@ -14,7 +13,5 @@ class ImageRenderer : public Renderer {
 };
 
 %template(ImageRendererPtr) SharedPointer<ImageRenderer>;
-
-
 
 } // end namespace fast
