@@ -27,11 +27,11 @@ EllipseModel::EllipseModel() {
 
 Shape::pointer EllipseModel::getShape(VectorXf state) {
 	// TODO need 2D support in mesh
-	Mesh::pointer mesh = Mesh::New();
 	Vector2f center(state(0), state(1));
     float flattening = 1.0f - state(3)/state(2);
     float predictedRadius = state(2);
 
+    std::vector<MeshVertex> vertices;
 	for(int i = 0; i < mNrOfNodes; ++i) {
         float alpha = 2.0*M_PI*i/mNrOfNodes;
         Vector2f direction(cos(alpha), (1-flattening)*sin(alpha));
@@ -39,8 +39,19 @@ Shape::pointer EllipseModel::getShape(VectorXf state) {
 
         Vector2f normal((1-flattening)*predictedRadius*cos(alpha), predictedRadius*sin(alpha));
         normal.normalize();
+        MeshVertex vertex(position, normal);
+        vertices.push_back(vertex);
 	}
+	std::vector<VectorXui> connections;
+	for(int i = 0; i < mNrOfNodes; ++i) {
+		Vector2ui line(i, i+1);
+		connections.push_back(line);
+	}
+	Vector2ui line(mNrOfNodes-1, 0);
+	connections.push_back(line);
 
+	Mesh::pointer mesh = Mesh::New();
+	mesh->create(vertices, connections);
 	Shape::pointer shape = Shape::New();
 	shape->setMesh(mesh);
 	return shape;
