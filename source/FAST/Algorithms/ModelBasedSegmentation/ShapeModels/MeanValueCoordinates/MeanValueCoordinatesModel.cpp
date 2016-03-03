@@ -24,7 +24,7 @@ std::vector<MeshVertex> MeanValueCoordinatesModel::getDeformedVertices(
     Vector3f* controlNodes = new Vector3f[nodes.size()];
     // TODO this loop could be run in parallel
     for(int i = 0; i < nodes.size(); i++) {
-        controlNodes[i] = (nodes[i].position + displacements[i]);
+        controlNodes[i] = (nodes[i].getPosition() + displacements[i]);
     }
 
     for(uint i = 0; i < vertices.size(); i++) {
@@ -32,8 +32,7 @@ std::vector<MeshVertex> MeanValueCoordinatesModel::getDeformedVertices(
         for(uint j = 0; j < nodes.size(); j++) {
             newVertex = newVertex + controlNodes[j]*getNormalizedWeight(i, j);
         }
-        MeshVertex v;
-        v.position = newVertex;
+        MeshVertex v(newVertex);
         newVertices.push_back(v);
     }
     delete[] controlNodes;
@@ -42,7 +41,7 @@ std::vector<MeshVertex> MeanValueCoordinatesModel::getDeformedVertices(
     // TODO this loop could be run in parallel
     for(int i = 0; i < vertices.size(); i++) {
         // Find the normal of all triangles
-        std::vector<uint> triangles = vertices[i].triangles;
+        std::vector<int> triangles = vertices[i].getConnections();
         Vector3f average = Vector3f::Constant(0);
         int counter = 0;
         for(int j = 0; j < triangles.size(); j++) {
@@ -50,25 +49,25 @@ std::vector<MeshVertex> MeanValueCoordinatesModel::getDeformedVertices(
             Vector3f a;
             Vector3f b;
             if(triangle.x() == i) {
-                a = newVertices[triangle.y()].position-newVertices[i].position;
-                b = newVertices[triangle.z()].position-newVertices[i].position;
+                a = newVertices[triangle.y()].getPosition()-newVertices[i].getPosition();
+                b = newVertices[triangle.z()].getPosition()-newVertices[i].getPosition();
             } else if(triangle.y() == i) {
-                a = newVertices[triangle.x()].position-newVertices[i].position;
-                b = newVertices[triangle.z()].position-newVertices[i].position;
+                a = newVertices[triangle.x()].getPosition()-newVertices[i].getPosition();
+                b = newVertices[triangle.z()].getPosition()-newVertices[i].getPosition();
             } else {
-                a = newVertices[triangle.x()].position-newVertices[i].position;
-                b = newVertices[triangle.y()].position-newVertices[i].position;
+                a = newVertices[triangle.x()].getPosition()-newVertices[i].getPosition();
+                b = newVertices[triangle.y()].getPosition()-newVertices[i].getPosition();
             }
             Vector3f faceNormal = a.cross(b);
             faceNormal.normalize();
             // Have to make sure that all the normals are pointing out of the object
-            float direction = sign(faceNormal.dot(vertices[i].normal));
+            float direction = sign(faceNormal.dot(vertices[i].getNormal()));
             average = average + faceNormal*direction;
             counter++;
         }
         average = average / counter;
         average.normalize();
-        newVertices[i].normal = average;
+        newVertices[i].setNormal(average);
     }
 
     return newVertices;
@@ -153,13 +152,13 @@ void MeanValueCoordinatesModel::loadMeshes(Mesh::pointer surfaceMesh,
     mCentroid = Vector3f::Zero();
     for(int vertexNr = 0; vertexNr < vertices.size(); vertexNr++) {
         MeshVertex x = vertices[vertexNr];
-        mCentroid += x.position;
+        mCentroid += x.getPosition();
         float totalWeight = 0.0f; // Total weight for this vertex
         float * distances = new float[nodes.size()];
         Vector3f* u = new Vector3f[nodes.size()];
         for(int j = 0; j < nodes.size(); j++) {
-            distances[j] = (x.position-nodes[j].position).norm();
-            Vector3f newPos = (nodes[j].position - x.position) / distances[j];
+            distances[j] = (x.getPosition()-nodes[j].getPosition()).norm();
+            Vector3f newPos = (nodes[j].getPosition() - x.getPosition()) / distances[j];
             u[j] = Vector3f(newPos(0),newPos(1),newPos(2));
         }
 
@@ -293,11 +292,12 @@ Shape::pointer MeanValueCoordinatesModel::getShape(VectorXf state) {
     Vector3f c = Vector3f::Zero();
     int nrOfNans = 0;
     for(int i = 0; i < pL.size(); i++) {
-        if(isnan(pL[i].position.x()) || isnan(pL[i].position.y()) || isnan(pL[i].position.z())) {
+    	Vector3f position = pL[i].getPosition();
+        if(isnan(position.x()) || isnan(position.y()) || isnan(position.z())) {
             nrOfNans++;
             continue;
         }
-        c = c + pL[i].position;
+        c = c + position;
     }
     c = c / (pL.size()-nrOfNans);
 
@@ -343,22 +343,15 @@ Shape::pointer MeanValueCoordinatesModel::getShape(VectorXf state) {
 
     std::vector<MeshVertex> result;
     for(int i = 0; i < pL.size(); i++) {
-        Vector3f ov = pL[i].position;
-        Vector3f nv = pL[i].normal;
+        Vector3f ov = pL[i].getPosition();
+        Vector3f nv = pL[i].getNormal();
 
         Vector4f v(ov(0), ov(1), ov(2), 1.0);
         v = RS*(v-centroid) + centroid + T;
         Vector4f n(nv(0), nv(1), nv(2), 1.0);
         n = RS*n;
-        MeshVertex newVertex;
-        newVertex.position(0) = v(0);
-        newVertex.position(1) = v(1);
-        newVertex.position(2) = v(2);
-        newVertex.normal(0) = n(0);
-        newVertex.normal(1) = n(1);
-        newVertex.normal(2) = n(2);
-        newVertex.normal.normalize();
-        newVertex.triangles = pL[i].triangles;
+        n.normalize();
+        MeshVertex newVertex(v, n, pL[i].getConnections());
         result.push_back(newVertex);
     }
 
@@ -400,8 +393,8 @@ void MeanValueCoordinatesModel::setNormalizedWeightPerNode(
     // Go trough triangle vector
     MeshAccess::pointer access = mControlMesh->getMeshAccess(ACCESS_READ);
     MeshVertex controlNode = access->getVertex(controlNodeNr);
-    for(int i = 0; i < controlNode.triangles.size(); i++) {
-        uint t = controlNode.triangles[i];
+    for(int i = 0; i < controlNode.getConnections().size(); i++) {
+        uint t = controlNode.getConnections()[i];
         Vector3ui triangle = access->getTriangle(t);
 
         // For each occurence of controlNodeNr, get the weight
@@ -492,20 +485,20 @@ std::vector<MatrixXf> MeanValueCoordinatesModel::getMeasurementVectors(
 
 		MeshVertex v = meshAccess->getVertex(j);
 
+		Vector3f n = v.getNormal();
 		// Translation
-		hT(0) = v.normal(0); // tx
-		hT(1) = v.normal(1); // ty
-		hT(2) = v.normal(2); // tz
+		hT(0) = n(0); // tx
+		hT(1) = n(1); // ty
+		hT(2) = n(2); // tz
 
 		// Original position - centroid of original mesh
-		Vector3f posMinusC = originalMeshAccess->getVertex(j).position - mCentroid;
-		Vector3f n = v.normal;
+		Vector3f posMinusC = originalMeshAccess->getVertex(j).getPosition() - mCentroid;
 
 
 		// Scaling
-		hT(3) = cosine(2)*cosine(1)*posMinusC(0)*v.normal(0) + sine(2)*cosine(1)*posMinusC(0)*v.normal(1) - sine(1)*posMinusC(0)*v.normal(2); // sx
-		hT(4) = (-sine(2)*cosine(0) + sine(2)*sine(1)*sine(0))*posMinusC(1)*v.normal(0) + (cosine(2)*cosine(0)+sine(2)*sine(1)*sine(0))*posMinusC(1)*v.normal(1) + (cosine(1)*sine(0))*posMinusC(1)*v.normal(2); // sy
-		hT(5) = (sine(2)*sine(0)+cosine(2)*sine(1)*cosine(0))*posMinusC(2)*v.normal(0) + (-cosine(2)*sine(0)+sine(2)*sine(1)*cosine(0))*posMinusC(2)*v.normal(1) + cosine(1)*cosine(0)*posMinusC(2)*v.normal(2); // sz
+		hT(3) = cosine(2)*cosine(1)*posMinusC(0)*n(0) + sine(2)*cosine(1)*posMinusC(0)*n(1) - sine(1)*posMinusC(0)*n(2); // sx
+		hT(4) = (-sine(2)*cosine(0) + sine(2)*sine(1)*sine(0))*posMinusC(1)*n(0) + (cosine(2)*cosine(0)+sine(2)*sine(1)*sine(0))*posMinusC(1)*n(1) + (cosine(1)*sine(0))*posMinusC(1)*n(2); // sy
+		hT(5) = (sine(2)*sine(0)+cosine(2)*sine(1)*cosine(0))*posMinusC(2)*n(0) + (-cosine(2)*sine(0)+sine(2)*sine(1)*cosine(0))*posMinusC(2)*n(1) + cosine(1)*cosine(0)*posMinusC(2)*n(2); // sz
 
 		// Rotation
 		hT(6) = ((sine(2)*sine(0)+cosine(2)*sine(1)*cosine(0))*s(1)*posMinusC(1) + (sine(2)*cosine(0)-cosine(2)*sine(1)*sine(0))*s(2)*posMinusC(2))*n(0) +
@@ -530,7 +523,7 @@ std::vector<MatrixXf> MeanValueCoordinatesModel::getMeasurementVectors(
 			localJacobian(2,i*3+2) = value;
 		}
 
-		MatrixXf localPart = v.normal.transpose()*RS*localJacobian; // 1 x NL
+		MatrixXf localPart = n.transpose()*RS*localJacobian; // 1 x NL
 
 		for(int i = 0; i < controlMeshSize*3; i++) {
 			hT(9+i) = localPart(0,i);

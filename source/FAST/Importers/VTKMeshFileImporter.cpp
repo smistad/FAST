@@ -72,7 +72,7 @@ void VTKMeshFileImporter::execute() {
     file.seekg(0); // set stream to start
 
     // Read triangles (other types of polygons not supported yet)
-    std::vector<Vector3ui> triangles;
+    std::vector<VectorXui> triangles;
     if(!gotoLineWithString(file, "POLYGONS")) {
         throw Exception("Found no triangles in the VTK surface file");
     }

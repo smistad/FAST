@@ -82,7 +82,7 @@ std::vector<MatrixXf> EllipseModel::getMeasurementVectors(VectorXf state,
         derivativeMatrix(0,2) = cos(alpha);
         derivativeMatrix(1,3) = sin(alpha);
 
-        MatrixXf measurementVector = normal.dot(derivativeMatrix);
+        MatrixXf measurementVector = normal*derivativeMatrix;
         result.push_back(measurementVector);
 	}
 

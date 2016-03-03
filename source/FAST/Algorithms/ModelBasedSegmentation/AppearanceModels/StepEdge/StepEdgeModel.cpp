@@ -120,7 +120,7 @@ std::vector<Measurement> StepEdgeModel::getMeasurements(SharedPointer<Image> ima
 		unsigned int startPos = 0;
 		bool startFound = false;
 		for(float d = -mLineLength/2; d < mLineLength/2; d += mLineSampleSpacing) {
-			Vector3f position = points[i].position + points[i].normal*d;
+			Vector3f position = points[i].getPosition() + points[i].getNormal()*d;
 			// Apply model transform
 			// TODO the line search normal*d should propably be applied after this transform, so that we know that is correct units?
 			position = modelTransformMatrix*position.homogeneous();
@@ -146,10 +146,10 @@ std::vector<Measurement> StepEdgeModel::getMeasurements(SharedPointer<Image> ima
 			DetectedEdge edge = findEdge(intensityProfile);
 			if(edge.edgeIndex != -1) {
 				float d = -mLineLength/2.0f + (startPos + edge.edgeIndex)*mLineSampleSpacing;
-				const Vector3f position = points[i].position + points[i].normal*d;
+				const Vector3f position = points[i].getPosition() + points[i].getNormal()*d;
 				m.uncertainty = edge.uncertainty;//1.0f/bestHeightDifference;
-				const Vector3f normal = points[i].normal;
-				m.displacement = normal.dot(position-points[i].position);
+				const Vector3f normal = points[i].getNormal();
+				m.displacement = normal.dot(position-points[i].getPosition());
 				counter++;
 			}
 		}

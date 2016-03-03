@@ -4,7 +4,7 @@
 #include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
 #include "FAST/Visualization/SliceRenderer/SliceRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
-#include "AppearanceModels/StepEdgeModel/StepEdgeModel.hpp"
+#include "AppearanceModels/StepEdge/StepEdgeModel.hpp"
 #include "ShapeModels/MeanValueCoordinates/MeanValueCoordinatesModel.hpp"
 
 using namespace fast;

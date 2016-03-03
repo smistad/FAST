@@ -40,31 +40,31 @@ void VTKMeshFileExporter::execute() {
     file << "POINTS " << vertices.size() << " float\n";
     for(int i = 0; i < vertices.size(); i++) {
         MeshVertex vertex = vertices[i];
-        vertex.position = (transform->matrix()*vertex.position.homogeneous()).head(3);
-        file << vertex.position.x() << " " << vertex.position.y() << " " << vertex.position.z() << "\n";
+        vertex.getPosition() = (transform->matrix()*vertex.getPosition().homogeneous()).head(3);
+        file << vertex.getPosition().x() << " " << vertex.getPosition().y() << " " << vertex.getPosition().z() << "\n";
     }
 
     // Write triangles
-    std::vector<Vector3ui> triangles = access->getTriangles();
+    std::vector<VectorXui> triangles = access->getTriangles();
     file << "POLYGONS " << surface->getNrOfTriangles() << " " << surface->getNrOfTriangles()*4 << "\n";
     for(int i = 0; i < triangles.size(); i++) {
         Vector3ui triangle = triangles[i];
         file << "3 " << triangle.x() << " " << triangle.y() << " " << triangle.z() << "\n";
     }
 
-    // Write normals
+    // Write.getNormal()s
     file << "POINT_DATA " << vertices.size() << "\n";
     file << "NORMALS Normals float\n";
     for(int i = 0; i < vertices.size(); i++) {
         MeshVertex vertex = vertices[i];
         // Transform it
-        vertex.normal = transform->linear()*vertex.normal;
+        vertex.getNormal() = transform->linear()*vertex.getNormal();
         // Normalize it
-        float length = vertex.normal.norm();
+        float length = vertex.getNormal().norm();
         if(length == 0) { // prevent NaN situations
             file << "0 1 0\n";
         } else {
-            file << (vertex.normal.x()/length) << " " << (vertex.normal.y()/length) << " " << (vertex.normal.z()/length) << "\n";
+            file << (vertex.getNormal().x()/length) << " " << (vertex.getNormal().y()/length) << " " << (vertex.getNormal().z()/length) << "\n";
         }
     }
 
