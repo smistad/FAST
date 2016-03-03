@@ -14,7 +14,8 @@ MeshVertex::MeshVertex(VectorXf position, VectorXf normal) {
 
 MeshVertex::MeshVertex(VectorXf position, VectorXf normal,
 		std::vector<int> connections) {
-	MeshVertex(position, normal);
+	mPosition = position;
+	mNormal = normal;
 	mConnections = connections;
 }
 

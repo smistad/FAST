@@ -9,7 +9,6 @@
 
 using namespace fast;
 
-/*
 TEST_CASE("", "[fast][ModelBasedSegmentation]") {
 	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
 	streamer->setFilenameFormat("/home/smistad/CETUS/Patient1/Patient1_frame#.mhd");
@@ -44,4 +43,3 @@ TEST_CASE("", "[fast][ModelBasedSegmentation]") {
 	window->addRenderer(sliceRenderer);
 	window->start();
 }
-*/

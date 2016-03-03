@@ -81,14 +81,6 @@ inline float getValue(void* pixelPointer, Image::pointer image, const Vector4f& 
     return value;
 }
 
-inline float insertValue(void* pixelPointer, Image::pointer image, Vector3i position) {
-    uint index = position(0)+position(1)*image->getWidth()+position(2)*image->getWidth()*image->getHeight();
-    switch(image->getDataType()) {
-        // This macro creates a case statement for each data type and sets FAST_TYPE to the correct C++ data type
-        fastSwitchTypeMacro(((FAST_TYPE*)pixelPointer)[index] = 255);
-    }
-}
-
 
 std::vector<Measurement> StepEdgeModel::getMeasurements(SharedPointer<Image> image, SharedPointer<Shape> shape) {
 	if(mLineLength == 0 || mLineSampleSpacing == 0)
@@ -110,7 +102,6 @@ std::vector<Measurement> StepEdgeModel::getMeasurements(SharedPointer<Image> ima
 
    // TODO This takes a lot of time. why??
 	ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
-	void* pixelPointer = access->get();
 
 	// Do edge detection for each vertex
 	std::vector<Measurement> measurements;
@@ -128,7 +119,7 @@ std::vector<Measurement> StepEdgeModel::getMeasurements(SharedPointer<Image> ima
 			// Apply image inverse transform to get image voxel position
 			const Vector4f positionInt = inverseTransformMatrix*longPosition;
 			if(isInBounds(image, positionInt)) {
-				const float value = getValue(pixelPointer, image, positionInt);
+				const float value = access->getScalar(positionInt.cast<int>());
 				if(value > 0) {
 					intensityProfile.push_back(value);
 					startFound = true;

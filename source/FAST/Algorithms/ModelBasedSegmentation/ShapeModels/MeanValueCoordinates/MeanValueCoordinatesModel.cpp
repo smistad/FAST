@@ -351,7 +351,7 @@ Shape::pointer MeanValueCoordinatesModel::getShape(VectorXf state) {
         Vector4f n(nv(0), nv(1), nv(2), 1.0);
         n = RS*n;
         n.normalize();
-        MeshVertex newVertex(v, n, pL[i].getConnections());
+        MeshVertex newVertex(v.head(3), n.head(3), pL[i].getConnections());
         result.push_back(newVertex);
     }
 
