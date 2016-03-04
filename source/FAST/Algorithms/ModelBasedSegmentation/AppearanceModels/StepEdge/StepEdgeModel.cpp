@@ -86,65 +86,71 @@ std::vector<Measurement> StepEdgeModel::getMeasurements(SharedPointer<Image> ima
 	if(mLineLength == 0 || mLineSampleSpacing == 0)
 		throw Exception("Line length and sample spacing must be given to the StepEdgeModel");
 
+	std::vector<Measurement> measurements;
 	// For each point on the shape do a line search in the direction of the normal
 	// Return set of displacements and uncertainties
-    AffineTransformation::pointer transformMatrix = SceneGraph::getAffineTransformationFromData(image);
-    transformMatrix->scale(image->getSpacing());
-    Matrix4f inverseTransformMatrix = transformMatrix->matrix().inverse();
+	if(image->getDimensions() == 3) {
+		AffineTransformation::pointer transformMatrix = SceneGraph::getAffineTransformationFromData(image);
+		transformMatrix->scale(image->getSpacing());
+		Matrix4f inverseTransformMatrix = transformMatrix->matrix().inverse();
 
-    // Get model scene graph transform
-    AffineTransformation::pointer modelTransformation = SceneGraph::getAffineTransformationFromData(shape->getMesh());
-    MatrixXf modelTransformMatrix = modelTransformation->affine();
+		// Get model scene graph transform
+		AffineTransformation::pointer modelTransformation = SceneGraph::getAffineTransformationFromData(shape->getMesh());
+		MatrixXf modelTransformMatrix = modelTransformation->affine();
 
-    Mesh::pointer predictedMesh = shape->getMesh();
-    MeshAccess::pointer predictedMeshAccess = predictedMesh->getMeshAccess(ACCESS_READ);
-    std::vector<MeshVertex> points = predictedMeshAccess->getVertices();
+		Mesh::pointer predictedMesh = shape->getMesh();
+		MeshAccess::pointer predictedMeshAccess = predictedMesh->getMeshAccess(ACCESS_READ);
+		std::vector<MeshVertex> points = predictedMeshAccess->getVertices();
 
-   // TODO This takes a lot of time. why??
-	ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
+	   // TODO This takes a lot of time. why??
+		ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
 
-	// Do edge detection for each vertex
-	std::vector<Measurement> measurements;
-	int counter = 0;
-	for(int i = 0; i < points.size(); ++i) {
-		std::vector<float> intensityProfile;
-		unsigned int startPos = 0;
-		bool startFound = false;
-		for(float d = -mLineLength/2; d < mLineLength/2; d += mLineSampleSpacing) {
-			Vector3f position = points[i].getPosition() + points[i].getNormal()*d;
-			// Apply model transform
-			// TODO the line search normal*d should propably be applied after this transform, so that we know that is correct units?
-			position = modelTransformMatrix*position.homogeneous();
-			const Vector4f longPosition(position(0), position(1), position(2), 1);
-			// Apply image inverse transform to get image voxel position
-			const Vector4f positionInt = inverseTransformMatrix*longPosition;
-			if(isInBounds(image, positionInt)) {
-				const float value = access->getScalar(positionInt.cast<int>());
-				if(value > 0) {
-					intensityProfile.push_back(value);
-					startFound = true;
-				} else if(!startFound) {
-					startPos++;
+		// Do edge detection for each vertex
+		int counter = 0;
+		for(int i = 0; i < points.size(); ++i) {
+			std::vector<float> intensityProfile;
+			unsigned int startPos = 0;
+			bool startFound = false;
+			for(float d = -mLineLength/2; d < mLineLength/2; d += mLineSampleSpacing) {
+				Vector3f position = points[i].getPosition() + points[i].getNormal()*d;
+				// Apply model transform
+				// TODO the line search normal*d should propably be applied after this transform, so that we know that is correct units?
+				position = modelTransformMatrix*position.homogeneous();
+				const Vector4f longPosition(position(0), position(1), position(2), 1);
+				// Apply image inverse transform to get image voxel position
+				const Vector4f positionInt = inverseTransformMatrix*longPosition;
+				try {
+					const float value = access->getScalar(positionInt.cast<int>());
+					if(value > 0) {
+						intensityProfile.push_back(value);
+						startFound = true;
+					} else if(!startFound) {
+						startPos++;
+					}
+				} catch(Exception &e) {
+					if(!startFound) {
+						startPos++;
+					}
 				}
-			} else if(!startFound) {
-				startPos++;
 			}
-		}
-		Measurement m;
-		m.uncertainty = 1;
-		m.displacement = 0;
-		if(startFound){
-			DetectedEdge edge = findEdge(intensityProfile);
-			if(edge.edgeIndex != -1) {
-				float d = -mLineLength/2.0f + (startPos + edge.edgeIndex)*mLineSampleSpacing;
-				const Vector3f position = points[i].getPosition() + points[i].getNormal()*d;
-				m.uncertainty = edge.uncertainty;//1.0f/bestHeightDifference;
-				const Vector3f normal = points[i].getNormal();
-				m.displacement = normal.dot(position-points[i].getPosition());
-				counter++;
+			Measurement m;
+			m.uncertainty = 1;
+			m.displacement = 0;
+			if(startFound){
+				DetectedEdge edge = findEdge(intensityProfile);
+				if(edge.edgeIndex != -1) {
+					float d = -mLineLength/2.0f + (startPos + edge.edgeIndex)*mLineSampleSpacing;
+					const Vector3f position = points[i].getPosition() + points[i].getNormal()*d;
+					m.uncertainty = edge.uncertainty;//1.0f/bestHeightDifference;
+					const Vector3f normal = points[i].getNormal();
+					m.displacement = normal.dot(position-points[i].getPosition());
+					counter++;
+				}
 			}
+			measurements.push_back(m);
 		}
-		measurements.push_back(m);
+	} else {
+		// For 2D images
 	}
 
 	return measurements;

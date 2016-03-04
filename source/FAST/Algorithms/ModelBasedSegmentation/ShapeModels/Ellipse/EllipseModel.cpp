@@ -24,6 +24,8 @@ EllipseModel::EllipseModel() {
     mProcessErrorMatrix(3,3) = 0.01;
 
     mNrOfNodes = 16;
+
+    mInitialState = Vector4f(0, 0, 1, 1);
 }
 
 Shape::pointer EllipseModel::getShape(VectorXf state) {
@@ -102,7 +104,11 @@ std::vector<MatrixXf> EllipseModel::getMeasurementVectors(VectorXf state,
 }
 
 VectorXf EllipseModel::getInitialState(Image::pointer image) {
-	// TODO
+	return mInitialState;
+}
+
+void EllipseModel::setInitialState(Vector2f position, float majorRadius, float minorRadius) {
+	mInitialState = Vector4f(position.x(), position.y(), majorRadius, minorRadius);
 }
 
 }

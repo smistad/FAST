@@ -14,6 +14,10 @@ class EllipseModel : public ShapeModel {
 		MatrixXf getStateTransitionMatrix3();
 		MatrixXf getProcessErrorMatrix();
 		std::vector<MatrixXf> getMeasurementVectors(VectorXf state, Shape::pointer shape);
+		/**
+		 * Set initial state in mm
+		 */
+		void setInitialState(Vector2f position, float majorRadius, float minorRadius);
 		VectorXf getInitialState(SharedPointer<Image> image);
 	private:
 		EllipseModel();
@@ -22,6 +26,8 @@ class EllipseModel : public ShapeModel {
 		Matrix4f mStateTransitionMatrix3;
 		Matrix4f mProcessErrorMatrix;
 		int mNrOfNodes;
+
+		VectorXf mInitialState;
 };
 
 }
