@@ -87,6 +87,12 @@ std::vector<Measurement> StepEdgeModel::getMeasurements(SharedPointer<Image> ima
 		throw Exception("Line length and sample spacing must be given to the StepEdgeModel");
 
 	std::vector<Measurement> measurements;
+	Mesh::pointer predictedMesh = shape->getMesh();
+	MeshAccess::pointer predictedMeshAccess = predictedMesh->getMeshAccess(ACCESS_READ);
+	std::vector<MeshVertex> points = predictedMeshAccess->getVertices();
+
+	ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
+
 	// For each point on the shape do a line search in the direction of the normal
 	// Return set of displacements and uncertainties
 	if(image->getDimensions() == 3) {
@@ -97,13 +103,6 @@ std::vector<Measurement> StepEdgeModel::getMeasurements(SharedPointer<Image> ima
 		// Get model scene graph transform
 		AffineTransformation::pointer modelTransformation = SceneGraph::getAffineTransformationFromData(shape->getMesh());
 		MatrixXf modelTransformMatrix = modelTransformation->affine();
-
-		Mesh::pointer predictedMesh = shape->getMesh();
-		MeshAccess::pointer predictedMeshAccess = predictedMesh->getMeshAccess(ACCESS_READ);
-		std::vector<MeshVertex> points = predictedMeshAccess->getVertices();
-
-	   // TODO This takes a lot of time. why??
-		ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
 
 		// Do edge detection for each vertex
 		int counter = 0;
@@ -141,7 +140,7 @@ std::vector<Measurement> StepEdgeModel::getMeasurements(SharedPointer<Image> ima
 				if(edge.edgeIndex != -1) {
 					float d = -mLineLength/2.0f + (startPos + edge.edgeIndex)*mLineSampleSpacing;
 					const Vector3f position = points[i].getPosition() + points[i].getNormal()*d;
-					m.uncertainty = edge.uncertainty;//1.0f/bestHeightDifference;
+					m.uncertainty = edge.uncertainty;
 					const Vector3f normal = points[i].getNormal();
 					m.displacement = normal.dot(position-points[i].getPosition());
 					counter++;
@@ -150,7 +149,48 @@ std::vector<Measurement> StepEdgeModel::getMeasurements(SharedPointer<Image> ima
 			measurements.push_back(m);
 		}
 	} else {
+		Vector3f spacing = image->getSpacing();
 		// For 2D images
+		// For 2D, we probably want to ignore scene graph, and only use spacing.
+		// Do edge detection for each vertex
+		int counter = 0;
+		for(int i = 0; i < points.size(); ++i) {
+			std::vector<float> intensityProfile;
+			unsigned int startPos = 0;
+			bool startFound = false;
+			for(float d = -mLineLength/2; d < mLineLength/2; d += mLineSampleSpacing) {
+				Vector2f position = points[i].getPosition() + points[i].getNormal()*d;
+				const Vector2i pixelPosition(round(position.x() / spacing.x()), round(position.y()) / spacing.y());
+				try {
+					const float value = access->getScalar(pixelPosition);
+					if(value > 0) {
+						intensityProfile.push_back(value);
+						startFound = true;
+					} else if(!startFound) {
+						startPos++;
+					}
+				} catch(Exception &e) {
+					if(!startFound) {
+						startPos++;
+					}
+				}
+			}
+			Measurement m;
+			m.uncertainty = 1;
+			m.displacement = 0;
+			if(startFound){
+				DetectedEdge edge = findEdge(intensityProfile);
+				if(edge.edgeIndex != -1) {
+					float d = -mLineLength/2.0f + (startPos + edge.edgeIndex)*mLineSampleSpacing;
+					const Vector2f position = points[i].getPosition() + points[i].getNormal()*d;
+					m.uncertainty = edge.uncertainty;
+					const Vector2f normal = points[i].getNormal();
+					m.displacement = normal.dot(position-points[i].getPosition());
+					counter++;
+				}
+			}
+			measurements.push_back(m);
+		}
 	}
 
 	return measurements;
