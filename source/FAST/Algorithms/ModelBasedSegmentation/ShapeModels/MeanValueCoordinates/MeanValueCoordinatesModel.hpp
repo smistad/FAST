@@ -8,6 +8,8 @@
 
 namespace fast {
 
+class Image;
+
 class MeanValueCoordinatesModel : public ShapeModel {
 	FAST_OBJECT(MeanValueCoordinatesModel)
 	public:
@@ -18,9 +20,12 @@ class MeanValueCoordinatesModel : public ShapeModel {
 		MatrixXf getStateTransitionMatrix2();
 		MatrixXf getStateTransitionMatrix3();
 		MatrixXf getProcessErrorMatrix();
+		VectorXf getInitialState(SharedPointer<Image> image);
 		std::vector<MatrixXf> getMeasurementVectors(VectorXf state, Shape::pointer shape);
-		VectorXf getState(Vector3f translation, Vector3f scale, Vector3f rotation);
+		void initializeShapeToImageCenter();
 	private:
+		MeanValueCoordinatesModel();
+		VectorXf getState(Vector3f translation, Vector3f scale, Vector3f rotation);
 		void assertLoadedMeshes();
         void setNormalizedWeight(
                 const int vertexNr,
@@ -49,6 +54,8 @@ class MeanValueCoordinatesModel : public ShapeModel {
 		MatrixXf mA2;
 		MatrixXf mA3;
 		MatrixXf mProcessErrorMatrix;
+
+		bool mInitializeShapeToImageCenter;
 
 };
 

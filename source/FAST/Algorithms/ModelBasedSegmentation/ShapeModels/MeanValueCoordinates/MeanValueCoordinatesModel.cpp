@@ -1,7 +1,12 @@
 #include "MeanValueCoordinatesModel.hpp"
+#include "FAST/Data/Image.hpp"
 #include "FAST/Importers/VTKMeshFileImporter.hpp"
 
 namespace fast {
+
+MeanValueCoordinatesModel::MeanValueCoordinatesModel() {
+	mInitializeShapeToImageCenter = false;
+}
 
 inline float sign(float v) {
     return v < 0.0f ? -1.0f : 1.0f;
@@ -536,6 +541,34 @@ std::vector<MatrixXf> MeanValueCoordinatesModel::getMeasurementVectors(
 	return result;
 }
 
+void MeanValueCoordinatesModel::initializeShapeToImageCenter() {
+	mInitializeShapeToImageCenter = true;
 }
+
+VectorXf MeanValueCoordinatesModel::getInitialState(Image::pointer image) {
+	assertLoadedMeshes();
+
+	if(mInitializeShapeToImageCenter) {
+		Image::pointer currentFrame = image;
+		Vector3f volumeCentroid;
+		volumeCentroid[0] = currentFrame->getWidth() / 2;
+		volumeCentroid[1] = currentFrame->getHeight() / 2;
+		volumeCentroid[2] = currentFrame->getDepth() / 2;
+		VectorXf defaultState = getState(Vector3f::Zero(), Vector3f(0.8, 0.8, 0.8), Vector3f::Zero());
+		Shape::pointer defaultShape = getShape(defaultState);
+		Vector3f modelCentroid = defaultShape->getCentroid();
+
+		AffineTransformation::pointer transformMatrix = SceneGraph::getAffineTransformationFromData(currentFrame);
+		transformMatrix->scale(currentFrame->getSpacing());
+		volumeCentroid = transformMatrix->multiply(volumeCentroid);
+		Vector3f translation = volumeCentroid - modelCentroid;
+
+		return getState(translation, Vector3f(0.8, 0.8, 0.8), Vector3f::Zero());
+	} else {
+		return getState(Vector3f::Zero(), Vector3f(1, 1, 1), Vector3f::Zero());
+	}
+}
+
+} // end namespace fast
 
 

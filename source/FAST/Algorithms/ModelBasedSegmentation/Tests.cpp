@@ -21,6 +21,7 @@ TEST_CASE("", "[fast][ModelBasedSegmentation]") {
 	MeanValueCoordinatesModel::pointer shapeModel = MeanValueCoordinatesModel::New();
 	shapeModel->loadMeshes("/home/smistad/Dropbox/Programmering/Mean value coordinates/cetus_model_mesh_small.vtk",
 			"/home/smistad/Dropbox/Programmering/Mean value coordinates/cetus_control_mesh.vtk");
+	shapeModel->initializeShapeToImageCenter();
 	KalmanFilter::pointer segmentation = KalmanFilter::New();
 	StepEdgeModel::pointer appearanceModel = StepEdgeModel::New();
 	appearanceModel->setLineLength(0.025);
@@ -28,7 +29,6 @@ TEST_CASE("", "[fast][ModelBasedSegmentation]") {
 	segmentation->setAppearanceModel(appearanceModel);
 	segmentation->setShapeModel(shapeModel);
 	segmentation->setInputConnection(streamer->getOutputPort());
-	segmentation->placeShapeInImageCenter();
 
 	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
 	meshRenderer->setInputConnection(segmentation->getOutputPort());

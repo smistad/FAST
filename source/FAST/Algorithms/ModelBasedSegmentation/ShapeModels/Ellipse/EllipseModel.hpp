@@ -14,7 +14,7 @@ class EllipseModel : public ShapeModel {
 		MatrixXf getStateTransitionMatrix3();
 		MatrixXf getProcessErrorMatrix();
 		std::vector<MatrixXf> getMeasurementVectors(VectorXf state, Shape::pointer shape);
-		VectorXf getState(Vector3f translation, Vector3f scale, Vector3f rotation);
+		VectorXf getInitialState(SharedPointer<Image> image);
 	private:
 		EllipseModel();
 		Matrix4f mStateTransitionMatrix1;

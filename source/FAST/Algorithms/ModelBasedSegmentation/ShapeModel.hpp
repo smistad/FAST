@@ -6,6 +6,8 @@
 
 namespace fast {
 
+class Image;
+
 /**
  * This is an abstract base class for all shape models.
  * These objects describe a deformable shape, its parameters
@@ -19,7 +21,7 @@ class ShapeModel : public Object {
 		virtual MatrixXf getStateTransitionMatrix2() = 0;
 		virtual MatrixXf getStateTransitionMatrix3() = 0;
 		virtual MatrixXf getProcessErrorMatrix() = 0;
-		virtual VectorXf getState(Vector3f translation, Vector3f scale, Vector3f rotation) = 0;
+		virtual VectorXf getInitialState(SharedPointer<Image> image) = 0;
 		virtual std::vector<MatrixXf> getMeasurementVectors(VectorXf state, Shape::pointer shape) = 0;
 	private:
 

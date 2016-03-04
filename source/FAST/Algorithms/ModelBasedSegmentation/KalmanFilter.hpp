@@ -14,7 +14,6 @@ class KalmanFilter : public ProcessObject {
 	public:
 		void setShapeModel(ShapeModel::pointer shapeModel);
 		void setAppearanceModel(AppearanceModel::pointer appearanceModel);
-		void placeShapeInImageCenter();
 	private:
 		KalmanFilter();
 		void execute(); // runs a loop with predict, measure and update
@@ -32,6 +31,8 @@ class KalmanFilter : public ProcessObject {
 		MatrixXf mCurrentCovariance;
 		MatrixXf mPreviousCovariance;
 		MatrixXf mPredictedCovariance;
+
+		bool mInitialized;
 };
 
 } // end namespace fast

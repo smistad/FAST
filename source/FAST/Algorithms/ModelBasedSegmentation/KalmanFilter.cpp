@@ -32,6 +32,16 @@ void KalmanFilter::execute() {
 
 	Image::pointer image = getStaticInputData<Image>();
 
+	if(!mInitialized) {
+		// Initialize state using shape model
+		mCurrentState = mShapeModel->getInitialState(image);
+		mPreviousState = mCurrentState;
+		mDefaultState = mCurrentState;
+		mCurrentCovariance = MatrixXf::Zero(mCurrentState.size(), mCurrentState.size());
+		mPreviousCovariance = mCurrentCovariance;
+		mInitialized = true;
+	}
+
 	int counter = 5;
 	while(counter--) {
 		predict();
@@ -47,6 +57,8 @@ void KalmanFilter::execute() {
 KalmanFilter::KalmanFilter() {
 	createInputPort<Image>(0);
 	createOutputPort<Mesh>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+
+	mInitialized = false;
 }
 
 void KalmanFilter::estimate(SharedPointer<Image> image) {
@@ -74,38 +86,6 @@ void KalmanFilter::estimate(SharedPointer<Image> image) {
 	mPreviousCovariance = mCurrentCovariance;
 	mCurrentCovariance = (mPredictedCovariance.inverse() + HRH).inverse();
 	mCurrentState = mPredictedState + mCurrentCovariance*HRv;
-
-}
-
-void KalmanFilter::placeShapeInImageCenter() {
-    reportInfo() << "In place shape in image center" << reportEnd();
-    try {
-		getInputPort(0).getProcessObject()->update();// Make sure we have a frame;
-    } catch(...) {
-    	throw Exception("Must call setInputConnection before placeShapeInImageCenter");
-    }
-    reportInfo() << "In place shape in image center" << reportEnd();
-    Image::pointer currentFrame = DynamicData::pointer(getInputPort(0).getData())->getCurrentFrame();
-    Vector3f volumeCentroid;
-    volumeCentroid[0] = currentFrame->getWidth() / 2;
-    volumeCentroid[1] = currentFrame->getHeight() / 2;
-    volumeCentroid[2] = currentFrame->getDepth() / 2;
-    VectorXf defaultState = mShapeModel->getState(Vector3f::Zero(), Vector3f(0.8, 0.8, 0.8), Vector3f::Zero());
-    Shape::pointer defaultShape = mShapeModel->getShape(defaultState);
-    Vector3f modelCentroid = defaultShape->getCentroid();
-
-    AffineTransformation::pointer transformMatrix = SceneGraph::getAffineTransformationFromData(currentFrame);
-    transformMatrix->scale(currentFrame->getSpacing());
-    volumeCentroid = transformMatrix->multiply(volumeCentroid);
-    Vector3f translation = volumeCentroid - modelCentroid;
-
-    // TODO should probably initialize states and covariance when loading shape model
-    mCurrentState = mShapeModel->getState(translation, Vector3f(0.8, 0.8, 0.8), Vector3f::Zero());
-    mPreviousState = mCurrentState;
-    mDefaultState = mCurrentState;
-    mCurrentCovariance = MatrixXf::Zero(mCurrentState.size(), mCurrentState.size());
-    mPreviousCovariance = mCurrentCovariance;
-    reportInfo() << "Finished placing shape in image center" << reportEnd();
 }
 
 }

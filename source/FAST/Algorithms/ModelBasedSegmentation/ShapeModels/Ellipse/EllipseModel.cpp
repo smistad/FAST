@@ -1,4 +1,5 @@
 #include "EllipseModel.hpp"
+#include "FAST/Data/Image.hpp"
 
 namespace fast {
 
@@ -100,9 +101,8 @@ std::vector<MatrixXf> EllipseModel::getMeasurementVectors(VectorXf state,
 	return result;
 }
 
-VectorXf EllipseModel::getState(Vector3f translation, Vector3f scale,
-		Vector3f rotation) {
-	// TODO This is used in KalmanFilter::placeShapeInImageCenter??
+VectorXf EllipseModel::getInitialState(Image::pointer image) {
+	// TODO
 }
 
 }
