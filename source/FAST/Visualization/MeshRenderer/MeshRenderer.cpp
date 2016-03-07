@@ -109,6 +109,45 @@ void MeshRenderer::draw() {
     glColor3f(1.0f, 1.0f, 1.0f); // Reset color
 }
 
+void MeshRenderer::draw2D(
+                cl::BufferGL PBO,
+                uint width,
+                uint height,
+                Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform,
+                float PBOspacing,
+                Vector2f translation
+        ) {
+    boost::lock_guard<boost::mutex> lock(mMutex);
+
+
+    boost::unordered_map<uint, Mesh::pointer>::iterator it;
+    for(it = mMeshToRender.begin(); it != mMeshToRender.end(); it++) {
+    	Mesh::pointer mesh = it->second;
+    	if(mesh->getDimensions() != 2) // Mesh must be 2D
+    		continue;
+
+    	MeshAccess::pointer access = mesh->getMeshAccess(ACCESS_READ);
+        std::vector<VectorXui> lines = access->getLines();
+        std::vector<MeshVertex> vertices = access->getVertices();
+
+        // Draw each line
+        for(int i = 0; i < lines.size(); ++i) {
+        	Vector2ui line = lines[i];
+        	Vector2f a = vertices[line.x()];
+        	Vector2f b = vertices[line.y()];
+        	Vector2f direction = b - a;
+        	direction.normalize();
+        	float lengthInPixels = ceil((b-a).norm()/PBOspacing);
+
+        	// Draw the line
+        	for(int j = 0; j < lengthInPixels; ++j) {
+        		Vector2f positionInMM = a + direction*(j/lengthInPixels);
+        		Vector2f positionInPixels = positionInMM / PBOspacing;
+        	}
+        }
+    }
+}
+
 BoundingBox MeshRenderer::getBoundingBox() {
     std::vector<Vector3f> coordinates;
     for(uint i = 0; i < getNrOfInputData(); i++) {
