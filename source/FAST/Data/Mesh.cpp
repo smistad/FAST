@@ -335,7 +335,7 @@ void Mesh::create(std::vector<Vector2f> vertices, std::vector<Vector2f> normals,
         mVertices[lines[i].y()].addConnection(i);
     }
 
-    //mBoundingBox = BoundingBox(vertices);
+    mBoundingBox = BoundingBox(vertices);
     mNrOfConnections = lines.size();
     mConnections = lines;
     mHostHasData = true;

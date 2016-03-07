@@ -96,6 +96,28 @@ BoundingBox::BoundingBox(std::vector<VectorXf> coordinates) {
     createCorners(minimum, size);
 }
 
+BoundingBox::BoundingBox(std::vector<Vector2f> coordinates) {
+    // Find min and max of all the coordinates
+    Vector3f minimum(coordinates[0].x(), coordinates[0].y(), 0);
+    Vector3f maximum(coordinates[0].x(), coordinates[0].y(), 0);
+    for(uint i = 1; i < coordinates.size(); i++) {
+        Vector2f coordinate = coordinates[i];
+        for(uint j = 0; j < 2; j++) {
+            if(coordinate[j] < minimum[j]) {
+                minimum[j] = coordinate[j];
+            }
+            if(coordinate[j] > maximum[j]) {
+                maximum[j] = coordinate[j];
+            }
+        }
+    }
+
+    // Make new bounding box
+    Vector3f size(maximum.x()-minimum.x(), maximum.y()-minimum.y(), 0);
+    mIsInitialized = true;
+    createCorners(minimum, size);
+}
+
 BoundingBox BoundingBox::getTransformedBoundingBox(
         AffineTransformation::pointer transform) const {
     if(!mIsInitialized)
