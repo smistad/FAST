@@ -3,13 +3,15 @@
 #include "KalmanFilter.hpp"
 #include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
 #include "FAST/Visualization/SliceRenderer/SliceRenderer.hpp"
+#include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 #include "AppearanceModels/StepEdge/StepEdgeModel.hpp"
 #include "ShapeModels/MeanValueCoordinates/MeanValueCoordinatesModel.hpp"
+#include "ShapeModels/Ellipse/EllipseModel.hpp"
 
 using namespace fast;
 
-TEST_CASE("", "[fast][ModelBasedSegmentation]") {
+TEST_CASE("Model based segmentation with mean value coordinates on 3D cardiac US data", "[fast][ModelBasedSegmentation][visual]") {
 	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
 	streamer->setFilenameFormat("/home/smistad/CETUS/Patient1/Patient1_frame#.mhd");
 	streamer->setZeroFilling(2);
@@ -41,5 +43,36 @@ TEST_CASE("", "[fast][ModelBasedSegmentation]") {
 	SimpleWindow::pointer window = SimpleWindow::New();
 	window->addRenderer(meshRenderer);
 	window->addRenderer(sliceRenderer);
+	window->start();
+}
+
+TEST_CASE("Model based segmentation with ellipse model on 2D femoral nerve block US data", "[fast][ModelBasedSegmentation][visual]") {
+	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
+	streamer->setFilenameFormat("/home/smistad/AssistantTestData/FL/US-Acq_01_20150608T102019/Acquisition/US-Acq_01_20150608T102019_Image_Transducer_#.mhd");
+	streamer->setStartNumber(20);
+	streamer->enableLooping();
+	streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+	streamer->setSleepTime(500);
+
+	EllipseModel::pointer shapeModel = EllipseModel::New();
+	shapeModel->setInitialState(Vector2f(30, 25), 5, 4);
+	KalmanFilter::pointer segmentation = KalmanFilter::New();
+	StepEdgeModel::pointer appearanceModel = StepEdgeModel::New();
+	appearanceModel->setLineLength(3);
+	appearanceModel->setLineSampleSpacing(3/32.0);
+	segmentation->setAppearanceModel(appearanceModel);
+	segmentation->setShapeModel(shapeModel);
+	segmentation->setInputConnection(streamer->getOutputPort());
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->setInputConnection(segmentation->getOutputPort());
+
+	ImageRenderer::pointer imageRenderer = ImageRenderer::New();
+	imageRenderer->setInputConnection(streamer->getOutputPort());
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->addRenderer(imageRenderer);
+	window->addRenderer(meshRenderer);
+	window->set2DMode();
 	window->start();
 }
