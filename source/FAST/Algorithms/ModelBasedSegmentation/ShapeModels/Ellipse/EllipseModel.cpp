@@ -46,7 +46,7 @@ Shape::pointer EllipseModel::getShape(VectorXf state) {
         vertices.push_back(vertex);
 	}
 	std::vector<VectorXui> connections;
-	for(int i = 0; i < mNrOfNodes; ++i) {
+	for(int i = 0; i < mNrOfNodes-1; ++i) {
 		Vector2ui line(i, i+1);
 		connections.push_back(line);
 	}
