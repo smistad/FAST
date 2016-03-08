@@ -51,6 +51,10 @@ void MeshRenderer::draw() {
     boost::unordered_map<uint, Mesh::pointer>::iterator it;
     for(it = mMeshToRender.begin(); it != mMeshToRender.end(); it++) {
         Mesh::pointer surfaceToRender = it->second;
+
+        if(surfaceToRender->getDimensions() != 3)
+        	continue;
+
         // Draw the triangles in the VBO
         AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(surfaceToRender);
 
