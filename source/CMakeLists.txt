@@ -6,6 +6,7 @@ option(FAST_VTK_INTEROP "Enable interoperability with VTK" OFF)
 option(FAST_ITK_INTEROP "Enable interoperability with ITK" OFF)
 option(FAST_BUILD_TESTS "Build FAST tests." ON)
 option(BUILD_IGTLINK_TESTS "Build OpenIGTLink tests." OFF)
+option(BUILD_EXAMPLES "Build OpenIGTLink examples." OFF)
 option(FAST_BUILD_EXAMPLES "Build examples." OFF)
 option(FAST_MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
@@ -18,9 +19,15 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
 endif()
 
+## Set continous integration define
 if(FAST_CONTINUOUS_INTEGRATION)
 	add_definitions("-DFAST_CONTINUOUS_INTEGRATION")
 endif()
+
+## Set build folders
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
 #### Paths
 set(FAST_TEST_DATA_DIR "${PROJECT_SOURCE_DIR}/../TestData/" CACHE PATH "Directory of test data")
@@ -329,6 +336,9 @@ if(SWIG_FOUND)
 	set_source_files_properties(${PYFAST_FILE} PROPERTIES CPLUSPLUS ON)
 	swig_add_module(fast python ${PYFAST_FILE})
 	swig_link_libraries(fast ${PYTHON_LIBRARIES} FAST)
+	
+	# Move python file to lib folder
+	file(RENAME ${PROJECT_BINARY_DIR}/fast.py ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/fast.py)
 else()
 	message("-- SWIG not found, Python bindings will NOT be created.")
 endif()
