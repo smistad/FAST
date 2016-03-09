@@ -34,7 +34,6 @@ TEST_CASE("Model based segmentation with mean value coordinates on 3D cardiac US
 
 	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
 	meshRenderer->setInputConnection(segmentation->getOutputPort());
-	meshRenderer->setDefaultOpacity(0.3);
 
 	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
 	sliceRenderer->setInputConnection(streamer->getOutputPort());

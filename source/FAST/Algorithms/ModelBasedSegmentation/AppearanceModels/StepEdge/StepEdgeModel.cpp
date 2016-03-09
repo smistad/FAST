@@ -33,8 +33,6 @@ inline DetectedEdge findEdge(
     float bestHeightDifference = 0;
     for(int k = 0; k < intensityProfile.size()-1; ++k) {
         float score = 0.0f;
-        if(intensityProfile[k] < 20)
-            continue;
         for(int t = 0; t <= k; ++t) {
             score += fabs((1.0f/(k+1))*sum_k[k] - intensityProfile[t]);
         }
@@ -52,15 +50,15 @@ inline DetectedEdge findEdge(
     DetectedEdge edge;
 
 
-    // Should be dark inside and bright outside
-
-    if(bestHeightDifference > 0) {
-        bestK = -1;
-
+    const float differenceThreshold = 20;
+    if(bestHeightDifference >= 0) { // Black inside, white outside
+        edge.edgeIndex = -1;
+    } else if(fabs(bestHeightDifference) < differenceThreshold) {
+        edge.edgeIndex = -1;
+    } else {
+        edge.edgeIndex = bestK;
+        edge.uncertainty = 1.0f/fabs(bestHeightDifference);
     }
-
-    edge.edgeIndex = bestK;
-    edge.uncertainty = 1.0f / fabs(bestHeightDifference);
 
     return edge;
 }

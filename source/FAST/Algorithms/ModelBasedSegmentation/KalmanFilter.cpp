@@ -47,7 +47,7 @@ void KalmanFilter::execute() {
 		predict();
 		estimate(image);
 	}
-	reportInfo() << "Current state3: " << mCurrentState.transpose() << reportEnd();
+	reportInfo() << "Current state: " << mCurrentState.transpose() << reportEnd();
     reportInfo() << "Finished one round of Kalman filter" << reportEnd();
 
 	Shape::pointer shape = mShapeModel->getShape(mCurrentState);
