@@ -9,13 +9,13 @@ EllipseModel::EllipseModel() {
     mStateTransitionMatrix1 = Matrix4f::Zero();
     mStateTransitionMatrix1(0,0) = 2 - dampening;
     mStateTransitionMatrix1(1,1) = 2 - dampening;
-    mStateTransitionMatrix1(2,2) = 1;//0.5;
-    mStateTransitionMatrix1(3,3) = 1;//0.5;
+    mStateTransitionMatrix1(2,2) = 0.5;
+    mStateTransitionMatrix1(3,3) = 0.5;
     mStateTransitionMatrix2 = Matrix4f::Zero();
     mStateTransitionMatrix2(0,0) = dampening - 1;
     mStateTransitionMatrix2(1,1) = dampening - 1;
-    mStateTransitionMatrix2(2,2) = 0;//0.5;
-    mStateTransitionMatrix2(3,3) = 0;//0.5;
+    mStateTransitionMatrix2(2,2) = 0.5;
+    mStateTransitionMatrix2(3,3) = 0.5;
     mStateTransitionMatrix3 = Matrix4f::Zero();
     mProcessErrorMatrix = Matrix4f::Zero();
     mProcessErrorMatrix(0,0) = 0.01;
@@ -34,16 +34,17 @@ Shape::pointer EllipseModel::getShape(VectorXf state) {
     float flattening = 1.0f - state(3)/state(2);
     float predictedRadius = state(2);
 
-    std::vector<MeshVertex> vertices;
+    std::vector<Vector2f> positions;
+    std::vector<Vector2f> normals;
 	for(int i = 0; i < mNrOfNodes; ++i) {
         float alpha = 2.0*M_PI*i/mNrOfNodes;
         Vector2f direction(cos(alpha), (1-flattening)*sin(alpha));
         Vector2f position = center + direction*predictedRadius;
+        positions.push_back(position);
 
         Vector2f normal((1-flattening)*predictedRadius*cos(alpha), predictedRadius*sin(alpha));
         normal.normalize();
-        MeshVertex vertex(position, normal);
-        vertices.push_back(vertex);
+        normals.push_back(normal);
 	}
 	std::vector<VectorXui> connections;
 	for(int i = 0; i < mNrOfNodes-1; ++i) {
@@ -54,7 +55,7 @@ Shape::pointer EllipseModel::getShape(VectorXf state) {
 	connections.push_back(line);
 
 	Mesh::pointer mesh = Mesh::New();
-	mesh->create(vertices, connections);
+	mesh->create(positions, normals, connections);
 	Shape::pointer shape = Shape::New();
 	shape->setMesh(mesh);
 	return shape;
@@ -96,7 +97,7 @@ std::vector<MatrixXf> EllipseModel::getMeasurementVectors(VectorXf state,
         derivativeMatrix(0,2) = cos(alpha);
         derivativeMatrix(1,3) = sin(alpha);
 
-        MatrixXf measurementVector = normal*derivativeMatrix;
+        MatrixXf measurementVector = normal.transpose()*derivativeMatrix;
         result.push_back(measurementVector);
 	}
 
