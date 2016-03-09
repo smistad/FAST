@@ -160,7 +160,7 @@ std::vector<Measurement> StepEdgeModel::getMeasurements(SharedPointer<Image> ima
 			bool startFound = false;
 			for(float d = -mLineLength/2; d < mLineLength/2; d += mLineSampleSpacing) {
 				Vector2f position = points[i].getPosition() + points[i].getNormal()*d;
-				const Vector2i pixelPosition(round(position.x() / spacing.x()), round(position.y()) / spacing.y());
+				const Vector2i pixelPosition(round(position.x() / spacing.x()), round(position.y() / spacing.y()));
 				try {
 					const float value = access->getScalar(pixelPosition);
 					if(value > 0) {
