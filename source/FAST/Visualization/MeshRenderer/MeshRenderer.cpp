@@ -163,6 +163,7 @@ void MeshRenderer::draw2D(
 
         		int x = round(positionInPixels.x());
         		int y = round(positionInPixels.y());
+        		y = height - 1 - y;
         		if(x < 0 || y < 0 || x >= width || y >= height)
         			continue;
 
