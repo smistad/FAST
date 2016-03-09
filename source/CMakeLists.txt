@@ -317,28 +317,34 @@ if(SWIG_FOUND)
 	set(CMAKE_SWIG_FLAGS "")
 	
 	# Generate the PyFAST interface file
-	set(PYFAST_FILE "${PROJECT_BINARY_DIR}/PyFAST.i")
-	file(WRITE ${PYFAST_FILE} "%module fast\n%{\n")
 	# Include all header files
 	foreach(FILE ${FAST_SOURCE_FILES})
 		if(${FILE} MATCHES "^.*hpp$")
-			file(APPEND ${PYFAST_FILE} "#include \"${FILE}\"\n")
+			set(PYFAST_HEADER_INCLUDES "${PYFAST_HEADER_INCLUDES}#include \"${FILE}\"\n")
 		endif()
 	endforeach()
-	file(APPEND ${PYFAST_FILE} "%}\n\n")
-
+	
 	# Include all python interface files
 	foreach(FILE ${FAST_PYTHON_INTERFACE_FILES})
-		file(APPEND ${PYFAST_FILE} "%include \"${FILE}\"\n")
+		set(PYFAST_INTERFACE_INCLUDES "${PYFAST_INTERFACE_INCLUDES}%include \"${FILE}\"\n")
 	endforeach()
 	
+	set(PYFAST_FILE "${PROJECT_BINARY_DIR}/PyFAST.i")
+	configure_file(
+		"${PROJECT_SOURCE_DIR}/PyFAST.i.in"
+		${PYFAST_FILE}
+	)
+	
 	# Build it
+	set_source_files_properties(${PYFAST_FILE} PROPERTIES GENERATED TRUE)
 	set_source_files_properties(${PYFAST_FILE} PROPERTIES CPLUSPLUS ON)
 	swig_add_module(fast python ${PYFAST_FILE})
 	swig_link_libraries(fast ${PYTHON_LIBRARIES} FAST)
 	
 	# Move python file to lib folder
-	file(RENAME ${PROJECT_BINARY_DIR}/fast.py ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/fast.py)
+	add_custom_command(TARGET _fast POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E rename fast.py ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/fast.py
+	)
 else()
 	message("-- SWIG not found, Python bindings will NOT be created.")
 endif()
