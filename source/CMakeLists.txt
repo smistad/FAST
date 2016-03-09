@@ -9,6 +9,7 @@ option(BUILD_IGTLINK_TESTS "Build OpenIGTLink tests." OFF)
 option(BUILD_EXAMPLES "Build OpenIGTLink examples." OFF)
 option(FAST_BUILD_EXAMPLES "Build examples." OFF)
 option(FAST_MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
+option(FAST_MODULE_Python "Build Python wrappers" ON)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
 
 #### Set build type
@@ -306,7 +307,7 @@ configure_file (
 )
 
 find_package(SWIG)
-if(SWIG_FOUND)
+if(SWIG_FOUND AND FAST_MODULE_Python)
 	message("-- SWIG found, creating python bindings...")
 	include(${SWIG_USE_FILE})
 	find_package(PythonLibs REQUIRED)
