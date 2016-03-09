@@ -49,17 +49,17 @@ TEST_CASE("Model based segmentation with mean value coordinates on 3D cardiac US
 TEST_CASE("Model based segmentation with ellipse model on 2D femoral nerve block US data", "[fast][ModelBasedSegmentation][visual]") {
 	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
 	streamer->setFilenameFormat("/home/smistad/AssistantTestData/FL/US-Acq_01_20150608T102019/Acquisition/US-Acq_01_20150608T102019_Image_Transducer_#.mhd");
-	streamer->setStartNumber(20);
+	streamer->setStartNumber(26);
 	streamer->enableLooping();
 	streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
-	streamer->setSleepTime(500);
+	streamer->setSleepTime(100);
 
 	EllipseModel::pointer shapeModel = EllipseModel::New();
-	shapeModel->setInitialState(Vector2f(30, 25), 5, 4);
+	shapeModel->setInitialState(Vector2f(27, 10), 5, 4.5);
 	KalmanFilter::pointer segmentation = KalmanFilter::New();
 	StepEdgeModel::pointer appearanceModel = StepEdgeModel::New();
-	appearanceModel->setLineLength(3);
-	appearanceModel->setLineSampleSpacing(3/32.0);
+	appearanceModel->setLineLength(4);
+	appearanceModel->setLineSampleSpacing(4.0/16.0);
 	segmentation->setAppearanceModel(appearanceModel);
 	segmentation->setShapeModel(shapeModel);
 	segmentation->setInputConnection(streamer->getOutputPort());
