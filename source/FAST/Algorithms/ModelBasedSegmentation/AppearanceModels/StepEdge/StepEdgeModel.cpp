@@ -1,6 +1,7 @@
 #include "StepEdgeModel.hpp"
 #include "FAST/Data/Image.hpp"
 #include "FAST/Algorithms/ModelBasedSegmentation/Shape.hpp"
+#include <boost/shared_array.hpp>
 
 namespace fast {
 
@@ -17,7 +18,7 @@ typedef struct DetectedEdge {
 inline DetectedEdge findEdge(
         std::vector<float> intensityProfile) {
     // Pre calculate partial sum
-    float * sum_k = new float[intensityProfile.size()]();
+    boost::shared_array<float> sum_k(new float[intensityProfile.size()]());
     float totalSum = 0.0f;
     for(int k = 0; k < intensityProfile.size(); ++k) {
         if(k == 0) {
@@ -45,7 +46,6 @@ inline DetectedEdge findEdge(
             bestHeightDifference = (((1.0/(k+1))*sum_k[bestK] - (1.0f/(intensityProfile.size()-k))*(totalSum-sum_k[bestK])));
         }
     }
-    delete[] sum_k;
 
     DetectedEdge edge;
 
