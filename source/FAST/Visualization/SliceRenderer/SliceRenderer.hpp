@@ -6,7 +6,6 @@
 
 namespace fast {
 
-enum PlaneType {PLANE_X, PLANE_Y, PLANE_Z};
 
 class SliceRenderer : public Renderer {
     FAST_OBJECT(SliceRenderer)

@@ -42,6 +42,8 @@ enum DataType {
     TYPE_SNORM_INT16 // Signed normalized 16 bit integer. A 16 bit int interpreted as a float between -1 and 1.
 };
 
+enum PlaneType {PLANE_X, PLANE_Y, PLANE_Z};
+
 // Returns the C type for a DataType as a string
 std::string getCTypeAsString(DataType type);
 
