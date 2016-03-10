@@ -75,9 +75,8 @@ void KalmanFilter::estimate(SharedPointer<Image> image) {
 	for(uint i = 0; i < nrOfMeasurements; ++i) {
 		MatrixXf measurementVector = measurementVectors[i];
 		if(measurements[i].uncertainty < 1) {
-			// TODO what is the 0.001 factor here??
-			HRH += measurementVector.transpose()*(0.001*1.0f/measurements[i].uncertainty)*measurementVector;
-			HRv += measurementVector.transpose()*(0.001*1.0f/measurements[i].uncertainty)*measurements[i].displacement;
+			HRH += measurementVector.transpose()*(1.0f/measurements[i].uncertainty)*measurementVector;
+			HRv += measurementVector.transpose()*(1.0f/measurements[i].uncertainty)*measurements[i].displacement;
 		}
 	}
 
