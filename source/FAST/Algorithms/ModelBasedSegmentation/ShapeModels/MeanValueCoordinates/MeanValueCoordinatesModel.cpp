@@ -118,7 +118,7 @@ void MeanValueCoordinatesModel::loadMeshes(Mesh::pointer surfaceMesh,
     mA1(7,7) = 0.5;//1+dampening;
     mA1(8,8) = 0.5;//1+dampening;
     for(int i = 9; i < mStateSize; ++i)
-        mA1(i,i) = 1+dampening;//0.5;
+        mA1(i,i) = 0.5;
 
     mA2 = MatrixXf::Zero(mStateSize,mStateSize);
     mA2(0,0) = -dampening;
@@ -131,7 +131,7 @@ void MeanValueCoordinatesModel::loadMeshes(Mesh::pointer surfaceMesh,
     mA2(7,7) = 0.5;//-dampening;
     mA2(8,8) = 0.5;//-dampening;
     for(int i = 9; i < mStateSize; ++i) {
-        mA2(i,i) = -dampening;//0.5;
+        mA2(i,i) = 0.5;
     }
 
     mA3 = MatrixXf::Zero(mStateSize, mStateSize);
@@ -139,9 +139,9 @@ void MeanValueCoordinatesModel::loadMeshes(Mesh::pointer surfaceMesh,
     mProcessErrorMatrix = MatrixXf::Zero(mStateSize, mStateSize);
     for(int i = 0; i < mStateSize; ++i) {
     	if(i < 9) {
-    		mProcessErrorMatrix(i, i) = 1.5f;
+    		mProcessErrorMatrix(i, i) = 0.01f;
     	} else {
-    		mProcessErrorMatrix(i, i) = 0.001f;
+    		mProcessErrorMatrix(i, i) = 0.000001f;
     	}
     }
 
