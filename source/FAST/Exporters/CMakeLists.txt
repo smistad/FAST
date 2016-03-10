@@ -6,9 +6,13 @@ fast_add_sources(
     VTKMeshFileExporter.cpp
     VTKMeshFileExporter.hpp
 )
+fast_add_python_interfaces(
+	VTKMeshFileExporter.i
+)
 fast_add_test_sources(
     Tests/ImageExporterTests.cpp
     Tests/MetaImageExporterTests.cpp
+    Tests/VTKMeshFileExporterTests.cpp
 )
 if(FAST_VTK_INTEROP)
     fast_add_sources(
