@@ -17,6 +17,7 @@ typedef unsigned int uint;
 namespace fast {
 
 using Eigen::MatrixXf;
+using Eigen::Matrix2f;
 using Eigen::Matrix3f;
 using Eigen::Matrix4f;
 using Eigen::VectorXf;
