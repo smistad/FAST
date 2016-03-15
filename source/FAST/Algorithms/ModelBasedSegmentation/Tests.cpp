@@ -5,9 +5,11 @@
 #include "FAST/Visualization/SliceRenderer/SliceRenderer.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
+#include "FAST/Algorithms/ImageSlicer/ImageSlicer.hpp"
 #include "AppearanceModels/StepEdge/StepEdgeModel.hpp"
 #include "ShapeModels/MeanValueCoordinates/MeanValueCoordinatesModel.hpp"
 #include "ShapeModels/Ellipse/EllipseModel.hpp"
+#include "ShapeModels/Spline/SplineModel.hpp"
 
 using namespace fast;
 
@@ -42,6 +44,45 @@ TEST_CASE("Model based segmentation with mean value coordinates on 3D cardiac US
 	SimpleWindow::pointer window = SimpleWindow::New();
 	window->addRenderer(meshRenderer);
 	window->addRenderer(sliceRenderer);
+	window->start();
+}
+
+TEST_CASE("Model based segmentation with spline model on 2D cardiac US data", "[fast][ModelBasedSegmentation][visual]") {
+	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
+	streamer->setFilenameFormat("/home/smistad/CETUS/Patient1/Patient1_frame#.mhd");
+	streamer->setZeroFilling(2);
+	streamer->setStartNumber(1);
+	streamer->enableLooping();
+	streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+	streamer->update(); // TODO this should not be needed
+	streamer->setSleepTime(100);
+
+	ImageSlicer::pointer slicer = ImageSlicer::New();
+	slicer->setInputConnection(streamer->getOutputPort());
+	slicer->setOrthogonalSlicePlane(PLANE_Y);
+
+	SplineModel::pointer shapeModel = SplineModel::New();
+	shapeModel->initializeShapeToImageCenter();
+	KalmanFilter::pointer segmentation = KalmanFilter::New();
+	StepEdgeModel::pointer appearanceModel = StepEdgeModel::New();
+	appearanceModel->setLineLength(0.025);
+	appearanceModel->setLineSampleSpacing(0.025/32.0);
+	segmentation->setAppearanceModel(appearanceModel);
+	segmentation->setShapeModel(shapeModel);
+	segmentation->setInputConnection(slicer->getOutputPort());
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->setInputConnection(segmentation->getOutputPort());
+
+	ImageRenderer::pointer imageRenderer = ImageRenderer::New();
+	imageRenderer->addInputConnection(slicer->getOutputPort());
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->addRenderer(imageRenderer);
+	window->addRenderer(meshRenderer);
+	window->set2DMode();
+	window->setWidth(1980);
+	window->setHeight(1080);
 	window->start();
 }
 
