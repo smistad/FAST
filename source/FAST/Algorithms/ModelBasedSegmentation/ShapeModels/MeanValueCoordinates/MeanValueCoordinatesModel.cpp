@@ -497,7 +497,7 @@ std::vector<MatrixXf> MeanValueCoordinatesModel::getMeasurementVectors(
 		hT(2) = n(2); // tz
 
 		// Original position - centroid of original mesh
-		Vector3f posMinusC = originalMeshAccess->getVertex(j).getPosition() - mCentroid;
+		Vector3f posMinusC = originalMeshAccess->getVertex(j).getPosition() - mCentroid; // TODO I don't think this should be original vertex and centroid.., should be after local transformation?
 
 
 		// Scaling
