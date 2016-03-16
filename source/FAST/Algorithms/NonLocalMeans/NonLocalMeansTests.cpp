@@ -17,9 +17,7 @@ namespace fast{
         CHECK_THROWS(filter->setGroupSize(-4));
         CHECK_THROWS(filter->setGroupSize(0));
         CHECK_THROWS(filter->setK(-4));
-        CHECK_THROWS(filter->setK(0));
         CHECK_THROWS(filter->setEuclid(-4));
-        CHECK_THROWS(filter->setEuclid(0));
         CHECK_THROWS(filter->setSigma(-4));
         CHECK_THROWS(filter->setSigma(0));
         CHECK_THROWS(filter->setDenoiseStrength(-4));
