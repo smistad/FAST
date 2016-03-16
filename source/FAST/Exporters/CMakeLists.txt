@@ -18,12 +18,15 @@ if(FAST_VTK_INTEROP)
     fast_add_sources(
         VTKImageExporter.cpp
         VTKImageExporter.hpp
+        VTKMeshExporter.cpp
+        VTKMeshExporter.hpp
         VTKLineSetExporter.cpp
         VTKLineSetExporter.hpp
     )
     fast_add_test_sources(
         Tests/VTKImageExporterTests.cpp
         Tests/VTKLineSetExporterTests.cpp
+        Tests/VTKMeshExporterTests.cpp
     )
 endif()
 if(FAST_ITK_INTEROP)
