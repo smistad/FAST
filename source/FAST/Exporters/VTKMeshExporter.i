@@ -7,6 +7,7 @@ class VTKMeshExporter : public vtkPolyDataAlgorithm, public ProcessObject {
     public:
         vtkTypeMacro(VTKMeshExporter,vtkPolyDataAlgorithm);
         static VTKMeshExporter *New();
+        vtkAlgorithmOutput* GetOutputPort();
     private:
         VTKMeshExporter();
 };
