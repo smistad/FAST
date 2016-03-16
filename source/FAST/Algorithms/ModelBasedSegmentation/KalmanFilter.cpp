@@ -42,7 +42,13 @@ void KalmanFilter::execute() {
 		mInitialized = true;
 	}
 
-	int counter = 5;
+	int counter;
+	if(mFirstExecute) {
+		counter = mIterations;
+		mFirstExecute = false;
+	} else {
+		counter = mStartIterations;
+	}
 	while(counter--) {
 		predict();
 		estimate(image);
@@ -59,6 +65,23 @@ KalmanFilter::KalmanFilter() {
 	createOutputPort<Mesh>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
 
 	mInitialized = false;
+	mFirstExecute = true;
+	mStartIterations = 20;
+	mIterations = 5;
+}
+
+void KalmanFilter::setIterations(int iterations) {
+	if(iterations <= 0)
+		throw Exception("Kalman filter iterations must be > 0");
+
+	mIterations = iterations;
+}
+
+void KalmanFilter::setStartIterations(int iterations) {
+	if(iterations <= 0)
+		throw Exception("Kalman filter iterations must be > 0");
+
+	mStartIterations = iterations;
 }
 
 void KalmanFilter::estimate(SharedPointer<Image> image) {

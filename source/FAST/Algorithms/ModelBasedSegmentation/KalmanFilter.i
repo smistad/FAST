@@ -20,6 +20,8 @@ class KalmanFilter : public ProcessObject {
 		static SharedPointer<KalmanFilter> New();
 		void setShapeModel(SharedPointer<ShapeModel> shapeModel);
 		void setAppearanceModel(SharedPointer<AppearanceModel> appearanceModel);
+		void setIterations(int iterations);
+		void setStartIterations(int iterations);
 };
 
 %template(KalmanFilterPtr) SharedPointer<KalmanFilter>;
