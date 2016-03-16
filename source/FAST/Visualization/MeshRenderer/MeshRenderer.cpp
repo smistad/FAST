@@ -5,6 +5,7 @@
 #include "FAST/Utility.hpp"
 #include <QCursor>
 #include <boost/thread/lock_guard.hpp>
+#include <boost/shared_array.hpp>
 #include "MeshRenderer.hpp"
 #include "FAST/SceneGraph.hpp"
 
@@ -129,8 +130,10 @@ void MeshRenderer::draw2D(
     v.push_back(PBO);
     queue.enqueueAcquireGLObjects(&v);
 
-    // Transfer PBO pixels to host or map?
-    float* pixels = (float*)queue.enqueueMapBuffer(PBO, CL_TRUE, CL_MAP_WRITE, 0, width*height*sizeof(float)*4);
+    // Map would probably be better here, but doesn't work on NVIDIA, segfault surprise!
+    //float* pixels = (float*)queue.enqueueMapBuffer(PBO, CL_TRUE, CL_MAP_WRITE, 0, width*height*sizeof(float)*4);
+    boost::shared_array<float> pixels(new float[width*height*sizeof(float)*4]);
+    queue.enqueueReadBuffer(PBO, CL_TRUE, 0, width*height*4*sizeof(float), pixels.get());
 
     boost::unordered_map<uint, Mesh::pointer>::iterator it;
     for(it = mMeshToRender.begin(); it != mMeshToRender.end(); it++) {
@@ -174,9 +177,9 @@ void MeshRenderer::draw2D(
         }
     }
 
-    queue.enqueueUnmapMemObject(PBO, pixels);
+    //queue.enqueueUnmapMemObject(PBO, pixels);
+    queue.enqueueWriteBuffer(PBO, CL_TRUE, 0, width*height*4*sizeof(float), pixels.get());
     queue.enqueueReleaseGLObjects(&v);
-    queue.finish();
 }
 
 BoundingBox MeshRenderer::getBoundingBox() {
