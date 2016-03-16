@@ -9,7 +9,7 @@
 #include "AppearanceModels/StepEdge/StepEdgeModel.hpp"
 #include "ShapeModels/MeanValueCoordinates/MeanValueCoordinatesModel.hpp"
 #include "ShapeModels/Ellipse/EllipseModel.hpp"
-#include "ShapeModels/Spline/SplineModel.hpp"
+#include "ShapeModels/CardinalSpline/CardinalSplineModel.hpp"
 
 using namespace fast;
 
@@ -47,7 +47,7 @@ TEST_CASE("Model based segmentation with mean value coordinates on 3D cardiac US
 	window->start();
 }
 
-TEST_CASE("Model based segmentation with spline model on 2D cardiac US data", "[fast][ModelBasedSegmentation][visual]") {
+TEST_CASE("Model based segmentation with spline model on 2D cardiac US data", "[fast][ModelBasedSegmentation][2d][cardiac][visual]") {
 	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
 	streamer->setFilenameFormat("/home/smistad/CETUS/Patient1/Patient1_frame#.mhd");
 	streamer->setZeroFilling(2);
@@ -55,13 +55,13 @@ TEST_CASE("Model based segmentation with spline model on 2D cardiac US data", "[
 	streamer->enableLooping();
 	streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 	streamer->update(); // TODO this should not be needed
-	streamer->setSleepTime(100);
+	streamer->setSleepTime(50);
 
 	ImageSlicer::pointer slicer = ImageSlicer::New();
 	slicer->setInputConnection(streamer->getOutputPort());
 	slicer->setOrthogonalSlicePlane(PLANE_Y);
 
-	SplineModel::pointer shapeModel = SplineModel::New();
+	CardinalSplineModel::pointer shapeModel = CardinalSplineModel::New();
 	shapeModel->initializeShapeToImageCenter();
 	KalmanFilter::pointer segmentation = KalmanFilter::New();
 	StepEdgeModel::pointer appearanceModel = StepEdgeModel::New();
@@ -81,8 +81,6 @@ TEST_CASE("Model based segmentation with spline model on 2D cardiac US data", "[
 	window->addRenderer(imageRenderer);
 	window->addRenderer(meshRenderer);
 	window->set2DMode();
-	window->setWidth(1980);
-	window->setHeight(1080);
 	window->start();
 }
 

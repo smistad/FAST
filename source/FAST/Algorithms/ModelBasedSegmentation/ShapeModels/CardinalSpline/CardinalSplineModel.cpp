@@ -1,4 +1,4 @@
-#include "SplineModel.hpp"
+#include "CardinalSplineModel.hpp"
 #include "FAST/Data/Mesh.hpp"
 #include "FAST/Data/Image.hpp"
 
@@ -8,7 +8,7 @@ inline Vector2f transformPosition(Vector2f position, Matrix2f RS, Vector2f T, Ve
 	return RS*(position - C) + C + T;
 }
 
-Shape::pointer SplineModel::getShape(VectorXf state) {
+Shape::pointer CardinalSplineModel::getShape(VectorXf state) {
 
 	// Create mesh
 	std::vector<Vector2f> vertices;
@@ -96,23 +96,23 @@ Shape::pointer SplineModel::getShape(VectorXf state) {
 	return shape;
 }
 
-MatrixXf SplineModel::getStateTransitionMatrix1() {
+MatrixXf CardinalSplineModel::getStateTransitionMatrix1() {
 	return mA1;
 }
 
-MatrixXf SplineModel::getStateTransitionMatrix2() {
+MatrixXf CardinalSplineModel::getStateTransitionMatrix2() {
 	return mA2;
 }
 
-MatrixXf SplineModel::getStateTransitionMatrix3() {
+MatrixXf CardinalSplineModel::getStateTransitionMatrix3() {
 	return mA3;
 }
 
-MatrixXf SplineModel::getProcessErrorMatrix() {
+MatrixXf CardinalSplineModel::getProcessErrorMatrix() {
 	return mProcessErrorMatrix;
 }
 
-VectorXf SplineModel::getInitialState(SharedPointer<Image> image) {
+VectorXf CardinalSplineModel::getInitialState(SharedPointer<Image> image) {
 	VectorXf defaultState = VectorXf::Zero(mStateSize);
 	// Set scale to 1
 	defaultState(2) = 0.02;
@@ -137,7 +137,7 @@ VectorXf SplineModel::getInitialState(SharedPointer<Image> image) {
 	return defaultState;
 }
 
-std::vector<Vector2f> SplineModel::getLocallyDeformedVertices(VectorXf state) {
+std::vector<Vector2f> CardinalSplineModel::getLocallyDeformedVertices(VectorXf state) {
 	std::vector<Vector2f> vertices;
 	int nrOfControlPoints = mControlPoints.size();
 	mCentroid = Vector2f::Zero();
@@ -182,7 +182,7 @@ std::vector<Vector2f> SplineModel::getLocallyDeformedVertices(VectorXf state) {
 	return vertices;
 }
 
-std::vector<MatrixXf> SplineModel::getMeasurementVectors(VectorXf state,
+std::vector<MatrixXf> CardinalSplineModel::getMeasurementVectors(VectorXf state,
 		Shape::pointer shape) {
 
 	const float sx = state(2);
@@ -282,11 +282,11 @@ std::vector<MatrixXf> SplineModel::getMeasurementVectors(VectorXf state,
 	return result;
 }
 
-void SplineModel::initializeShapeToImageCenter() {
+void CardinalSplineModel::initializeShapeToImageCenter() {
 	mInitializeShapeToImageCenter = true;
 }
 
-SplineModel::SplineModel() {
+CardinalSplineModel::CardinalSplineModel() {
 	mInitializeShapeToImageCenter = false;
 
 	// Create control points

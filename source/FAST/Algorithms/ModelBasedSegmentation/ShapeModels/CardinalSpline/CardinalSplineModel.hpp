@@ -5,8 +5,8 @@
 
 namespace fast {
 
-class SplineModel : public ShapeModel {
-	FAST_OBJECT(SplineModel)
+class CardinalSplineModel : public ShapeModel {
+	FAST_OBJECT(CardinalSplineModel)
 	public:
 		Shape::pointer getShape(VectorXf state);
 		MatrixXf getStateTransitionMatrix1();
@@ -17,7 +17,7 @@ class SplineModel : public ShapeModel {
 		std::vector<MatrixXf> getMeasurementVectors(VectorXf state, Shape::pointer shape);
 		void initializeShapeToImageCenter();
 	private:
-		SplineModel();
+		CardinalSplineModel();
 		std::vector<Vector2f> getLocallyDeformedVertices(VectorXf state);
 
 		MatrixXf mA1;
