@@ -1,5 +1,5 @@
-#ifndef SPLINE_MODEL_HPP
-#define SPLINE_MODEL_HPP
+#ifndef CARDINAL_SPLINE_MODEL_HPP
+#define CARDINAL_SPLINE_MODEL_HPP
 
 #include "FAST/Algorithms/ModelBasedSegmentation/ShapeModel.hpp"
 

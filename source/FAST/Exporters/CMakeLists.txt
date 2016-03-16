@@ -28,6 +28,9 @@ if(FAST_VTK_INTEROP)
         Tests/VTKLineSetExporterTests.cpp
         Tests/VTKMeshExporterTests.cpp
     )
+    fast_add_python_interfaces(
+    	VTKMeshExporter.i
+	)
 endif()
 if(FAST_ITK_INTEROP)
     fast_add_sources(

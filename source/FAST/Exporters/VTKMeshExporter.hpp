@@ -1,5 +1,5 @@
-#ifndef VTKIMAGEEXPORTER_HPP_
-#define VTKIMAGEEXPORTER_HPP_
+#ifndef VTKMESHEXPORTER_HPP_
+#define VTKMESHEXPORTER_HPP_
 
 #include <vtkPolyDataAlgorithm.h>
 #include "FAST/ProcessObject.hpp"
