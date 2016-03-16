@@ -6,6 +6,10 @@
 typedef unsigned int uint;
 namespace fast {
 
+#define FAST_OBJECT(name) public:\
+static SharedPointer<name> New();\
+private:\
+name();\
 
 class ProcessObjectPort {
 };
