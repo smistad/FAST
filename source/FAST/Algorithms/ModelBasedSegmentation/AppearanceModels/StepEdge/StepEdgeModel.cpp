@@ -8,6 +8,7 @@ namespace fast {
 StepEdgeModel::StepEdgeModel() {
 	mLineLength = 0;
 	mLineSampleSpacing = 0;
+	mIntensityDifferenceThreshold = 20;
 }
 
 typedef struct DetectedEdge {
@@ -16,7 +17,7 @@ typedef struct DetectedEdge {
 } DetectedEdge;
 
 inline DetectedEdge findEdge(
-        std::vector<float> intensityProfile) {
+        std::vector<float> intensityProfile, const float intensityThreshold) {
     // Pre calculate partial sum
     boost::shared_array<float> sum_k(new float[intensityProfile.size()]());
     float totalSum = 0.0f;
@@ -50,10 +51,9 @@ inline DetectedEdge findEdge(
     DetectedEdge edge;
 
 
-    const float differenceThreshold = 20;
     if(bestHeightDifference >= 0) { // Black inside, white outside
         edge.edgeIndex = -1;
-    } else if(fabs(bestHeightDifference) < differenceThreshold) {
+    } else if(fabs(bestHeightDifference) < intensityThreshold) {
         edge.edgeIndex = -1;
     } else {
         edge.edgeIndex = bestK;
@@ -134,7 +134,7 @@ std::vector<Measurement> StepEdgeModel::getMeasurements(SharedPointer<Image> ima
 			m.uncertainty = 1;
 			m.displacement = 0;
 			if(startFound){
-				DetectedEdge edge = findEdge(intensityProfile);
+				DetectedEdge edge = findEdge(intensityProfile, mIntensityDifferenceThreshold);
 				if(edge.edgeIndex != -1) {
 					float d = -mLineLength/2.0f + (startPos + edge.edgeIndex)*mLineSampleSpacing;
 					const Vector3f position = points[i].getPosition() + points[i].getNormal()*d;
@@ -177,7 +177,7 @@ std::vector<Measurement> StepEdgeModel::getMeasurements(SharedPointer<Image> ima
 			m.uncertainty = 1;
 			m.displacement = 0;
 			if(startFound){
-				DetectedEdge edge = findEdge(intensityProfile);
+				DetectedEdge edge = findEdge(intensityProfile, mIntensityDifferenceThreshold);
 				if(edge.edgeIndex != -1) {
 					float d = -mLineLength/2.0f + (startPos + edge.edgeIndex)*mLineSampleSpacing;
 					const Vector2f position = points[i].getPosition() + points[i].getNormal()*d;
@@ -204,6 +204,13 @@ void StepEdgeModel::setLineSampleSpacing(float spacing) {
 	if(spacing <= 0)
 		throw Exception("Sample spacing must be > 0");
 	mLineSampleSpacing = spacing;
+}
+
+
+void StepEdgeModel::setIntensityDifferenceThreshold(float threshold) {
+	if(threshold <= 0)
+		throw Exception("Intensity difference threshold must be > 0");
+	mIntensityDifferenceThreshold = threshold;
 }
 
 }
