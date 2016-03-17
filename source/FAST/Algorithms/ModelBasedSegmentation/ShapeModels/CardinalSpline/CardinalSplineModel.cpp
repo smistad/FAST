@@ -305,8 +305,6 @@ void CardinalSplineModel::setControlPoints(std::vector<Vector2f> controlPoints) 
 
 	mControlPoints = controlPoints;
 	mStateSize = 5+2*controlPoints.size();
-	mResolution = 8;
-	mTension = 0;
 
 	    // Create state transition matrices
     const float dampening = 0.5;
@@ -343,6 +341,8 @@ CardinalSplineModel::CardinalSplineModel() {
     // Set scale to 1
     mInitialGlobalState(2) = 1;
     mInitialGlobalState(3) = 1;
+	mResolution = 8;
+	mTension = 0;
 }
 
 void CardinalSplineModel::setInitialScaling(float x, float y) {
@@ -390,6 +390,12 @@ void CardinalSplineModel::setGlobalProcessError(float error) {
 
 void CardinalSplineModel::setTension(float tension) {
 	mTension = tension;
+}
+
+void CardinalSplineModel::setResolution(int resolution) {
+	if(resolution < 2)
+		throw Exception("Resolution must be > 1");
+	mResolution = resolution;
 }
 
 } // end namespace fast

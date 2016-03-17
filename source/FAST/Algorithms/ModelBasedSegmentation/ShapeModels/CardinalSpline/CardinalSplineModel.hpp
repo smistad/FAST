@@ -29,6 +29,7 @@ class CardinalSplineModel : public ShapeModel {
 		void setLocalProcessError(float error);
 		void setGlobalProcessError(float error);
 		void setTension(float tension);
+		void setResolution(int resolution);
 	private:
 		CardinalSplineModel();
 		void assertControlPointsGiven();
