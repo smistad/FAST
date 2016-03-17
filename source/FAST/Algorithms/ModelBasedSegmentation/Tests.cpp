@@ -12,7 +12,6 @@
 #include "ShapeModels/CardinalSpline/CardinalSplineModel.hpp"
 
 using namespace fast;
-/*
 
 TEST_CASE("Model based segmentation with mean value coordinates on 3D cardiac US data", "[fast][ModelBasedSegmentation][cardiac][3d][visual]") {
 	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
@@ -48,6 +47,56 @@ TEST_CASE("Model based segmentation with mean value coordinates on 3D cardiac US
 	window->start();
 }
 
+TEST_CASE("Model based segmentation with spline model on 2D pediatric cardiac US data", "[fast][ModelBasedSegmentation][2d][cardiac][pediatric][visual]") {
+	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
+	streamer->setFilenameFormat("/home/smistad/Cardiac_2D/labelImage#.mhd");
+	streamer->setZeroFilling(2);
+	streamer->enableLooping();
+	streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+	streamer->update(); // TODO this should not be needed
+	streamer->setSleepTime(200);
+
+	// Control points for spline model
+	std::vector<Vector2f> controlPoints = {
+	        Vector2f(0, 2.5), // Apex
+	        Vector2f(0.8, 2),
+	        Vector2f(1.15, 1),
+	        Vector2f(0.8, 0),
+	        Vector2f(-0.8, 0),
+	        Vector2f(-1.15, 1),
+	        Vector2f(-0.8, 2)
+	};
+
+	CardinalSplineModel::pointer shapeModel = CardinalSplineModel::New();
+	shapeModel->setControlPoints(controlPoints);
+	shapeModel->setInitialScaling(12, 14);
+	shapeModel->setInitialRotation(M_PI);
+	shapeModel->setGlobalProcessError(0.00001f);
+	shapeModel->setLocalProcessError(0.000001f);
+	shapeModel->initializeShapeToImageCenter();
+	KalmanFilter::pointer segmentation = KalmanFilter::New();
+	StepEdgeModel::pointer appearanceModel = StepEdgeModel::New();
+	appearanceModel->setLineLength(10);
+	appearanceModel->setLineSampleSpacing(10/32.0);
+	appearanceModel->setIntensityDifferenceThreshold(40);
+	segmentation->setStartIterations(10);
+	segmentation->setAppearanceModel(appearanceModel);
+	segmentation->setShapeModel(shapeModel);
+	segmentation->setInputConnection(streamer->getOutputPort());
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->setInputConnection(segmentation->getOutputPort());
+
+	ImageRenderer::pointer imageRenderer = ImageRenderer::New();
+	imageRenderer->addInputConnection(streamer->getOutputPort());
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->addRenderer(imageRenderer);
+	window->addRenderer(meshRenderer);
+	window->set2DMode();
+	window->start();
+}
+
 TEST_CASE("Model based segmentation with spline model on 2D cardiac US data", "[fast][ModelBasedSegmentation][2d][cardiac][visual]") {
 	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
 	streamer->setFilenameFormat("/home/smistad/CETUS/Patient1/Patient1_frame#.mhd");
@@ -62,7 +111,23 @@ TEST_CASE("Model based segmentation with spline model on 2D cardiac US data", "[
 	slicer->setInputConnection(streamer->getOutputPort());
 	slicer->setOrthogonalSlicePlane(PLANE_Y);
 
+	// Control points for spline model
+	std::vector<Vector2f> controlPoints = {
+	        Vector2f(0, 3), // Apex
+	        Vector2f(0.8, 2),
+	        Vector2f(1.15, 1),
+	        Vector2f(0.8, 0),
+	        Vector2f(-0.8, 0),
+	        Vector2f(-1.15, 1),
+	        Vector2f(-0.8, 2)
+	};
+
 	CardinalSplineModel::pointer shapeModel = CardinalSplineModel::New();
+	shapeModel->setControlPoints(controlPoints);
+	shapeModel->setInitialScaling(0.02, 0.03);
+	shapeModel->setInitialRotation(M_PI);
+	shapeModel->setGlobalProcessError(0.01f);
+	shapeModel->setLocalProcessError(0.001f);
 	shapeModel->initializeShapeToImageCenter();
 	KalmanFilter::pointer segmentation = KalmanFilter::New();
 	StepEdgeModel::pointer appearanceModel = StepEdgeModel::New();
@@ -84,6 +149,7 @@ TEST_CASE("Model based segmentation with spline model on 2D cardiac US data", "[
 	window->set2DMode();
 	window->start();
 }
+
 
 TEST_CASE("Model based segmentation with ellipse model on 2D femoral nerve block US data", "[fast][ModelBasedSegmentation][visual]") {
 	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
@@ -115,5 +181,3 @@ TEST_CASE("Model based segmentation with ellipse model on 2D femoral nerve block
 	window->set2DMode();
 	window->start();
 }
-
-*/
