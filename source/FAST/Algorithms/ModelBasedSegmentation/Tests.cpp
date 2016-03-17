@@ -54,32 +54,30 @@ TEST_CASE("Model based segmentation with spline model on 2D pediatric cardiac US
 	streamer->enableLooping();
 	streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 	streamer->update(); // TODO this should not be needed
-	streamer->setSleepTime(200);
+	streamer->setSleepTime(100);
 
 	// Control points for spline model
 	std::vector<Vector2f> controlPoints = {
-	        Vector2f(0, 2.5), // Apex
-	        Vector2f(0.8, 2),
-	        Vector2f(1.15, 1),
-	        Vector2f(0.8, 0),
-	        Vector2f(-0.8, 0),
-	        Vector2f(-1.15, 1),
-	        Vector2f(-0.8, 2)
+	        Vector2f(20.0, 45.1),
+	        Vector2f(30.7, 55.2),
+	        Vector2f(45.6, 55.9),
+	        Vector2f(46.4, 40.8),
+	        Vector2f(38.7, 20.8),
+	        Vector2f(22.5, 22.5),
 	};
 
 	CardinalSplineModel::pointer shapeModel = CardinalSplineModel::New();
 	shapeModel->setControlPoints(controlPoints);
-	shapeModel->setInitialScaling(12, 14);
-	shapeModel->setInitialRotation(M_PI);
-	shapeModel->setGlobalProcessError(0.00001f);
-	shapeModel->setLocalProcessError(0.000001f);
-	shapeModel->initializeShapeToImageCenter();
+	shapeModel->setGlobalProcessError(0.000001f);
+	shapeModel->setLocalProcessError(0.0000001f);
+	shapeModel->setResolution(16);
 	KalmanFilter::pointer segmentation = KalmanFilter::New();
 	StepEdgeModel::pointer appearanceModel = StepEdgeModel::New();
 	appearanceModel->setLineLength(10);
 	appearanceModel->setLineSampleSpacing(10/32.0);
-	appearanceModel->setIntensityDifferenceThreshold(40);
-	segmentation->setStartIterations(10);
+	appearanceModel->setIntensityDifferenceThreshold(20);
+	segmentation->setStartIterations(20);
+	segmentation->setIterations(10);
 	segmentation->setAppearanceModel(appearanceModel);
 	segmentation->setShapeModel(shapeModel);
 	segmentation->setInputConnection(streamer->getOutputPort());
