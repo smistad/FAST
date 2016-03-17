@@ -6,6 +6,7 @@
 namespace fast {
 
 StepEdgeModel::StepEdgeModel() {
+	mMinimumDepth = 0;
 	mLineLength = 0;
 	mLineSampleSpacing = 0;
 	mIntensityDifferenceThreshold = 20;
@@ -19,9 +20,10 @@ typedef struct DetectedEdge {
 inline DetectedEdge findEdge(
         std::vector<float> intensityProfile, const float intensityThreshold) {
     // Pre calculate partial sum
-    boost::shared_array<float> sum_k(new float[intensityProfile.size()]());
+    const int size = intensityProfile.size();
+    boost::shared_array<float> sum_k(new float[size]());
     float totalSum = 0.0f;
-    for(int k = 0; k < intensityProfile.size(); ++k) {
+    for(int k = 0; k < size; ++k) {
         if(k == 0) {
             sum_k[k] = intensityProfile[0];
         }else{
@@ -33,18 +35,18 @@ inline DetectedEdge findEdge(
     float bestScore = std::numeric_limits<float>::max();
     int bestK = -1;
     float bestHeightDifference = 0;
-    for(int k = 0; k < intensityProfile.size()-1; ++k) {
+    for(int k = 0; k < size-1; ++k) {
         float score = 0.0f;
         for(int t = 0; t <= k; ++t) {
             score += fabs((1.0f/(k+1))*sum_k[k] - intensityProfile[t]);
         }
-        for(int t = k+1; t < intensityProfile.size(); ++t) {
-            score += fabs((1.0f/(intensityProfile.size()-k))*(totalSum-sum_k[k]) - intensityProfile[t]);
+        for(int t = k+1; t < size; ++t) {
+            score += fabs((1.0f/(size-k-1))*(totalSum-sum_k[k]) - intensityProfile[t]);
         }
         if(score < bestScore) {
             bestScore = score;
             bestK = k;
-            bestHeightDifference = (((1.0/(k+1))*sum_k[bestK] - (1.0f/(intensityProfile.size()-k))*(totalSum-sum_k[bestK])));
+            bestHeightDifference = (((1.0/(k+1))*sum_k[k] - (1.0f/(size-k-1))*(totalSum-sum_k[k])));
         }
     }
 
@@ -159,6 +161,8 @@ std::vector<Measurement> StepEdgeModel::getMeasurements(SharedPointer<Image> ima
 			for(float d = -mLineLength/2; d < mLineLength/2; d += mLineSampleSpacing) {
 				Vector2f position = points[i].getPosition() + points[i].getNormal()*d;
 				const Vector2i pixelPosition(round(position.x() / spacing.x()), round(position.y() / spacing.y()));
+				if(position.y() < mMinimumDepth)
+					continue;
 				try {
 					const float value = access->getScalar(pixelPosition);
 					if(value > 0) {
@@ -211,6 +215,12 @@ void StepEdgeModel::setIntensityDifferenceThreshold(float threshold) {
 	if(threshold <= 0)
 		throw Exception("Intensity difference threshold must be > 0");
 	mIntensityDifferenceThreshold = threshold;
+}
+
+void StepEdgeModel::setMinimumDepth(float depth) {
+	if(depth < 0)
+		throw Exception("Minimum depth must be > 0 in StepEdgeModel");
+	mMinimumDepth = depth;
 }
 
 }
