@@ -15,8 +15,6 @@ int main() {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "/US-2D.jpg");
 
-    // Define filter
-    //Filter::pointer filter = Filter::New();
 
     // Smooth image
     Filtering::pointer convolution = Filtering::New();

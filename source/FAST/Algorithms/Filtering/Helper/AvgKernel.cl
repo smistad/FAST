@@ -36,27 +36,10 @@ __kernel void CutExcess(
         valueOne = read_imagei(inputOne, sampler, pos).x;
     }
 
-    //value = (value + valueOne)/2; 
-    //if (fabs(valueOne - 0.5) > fabs(value - 0.5)){ //if valueOne more distinct
-    //    value = valueOne;
-    //}
-    //value = sqrt((value - 0.5)*(value - 0.5) + (valueOne - 0.5)*(valueOne - 0.5)); //or -0.5f if normalized
-    //Scale values to minVal
-    //value = value - minVal;
-    //valueOne = value - minVal;
-    //maxVal = maxVal - minVal;
-    //maxValOne = maxVal - minVal;
-    //maxVal = max(maxVal, -minVal);
-    //maxValOne = max(maxValOne, -minValOne);
-    //if (fabs(minVal) > maxVal) maxVal = fabs(minVal);
-    //if (fabs(minValOne) > maxValOne) maxValOne = fabs(minValOne);
-    //value = fabs(value);
-    //valueOne = fabs(valueOne);
-    //Scale values to maxVal
-    value = fabs(value)  / maxVal; //need no fabs?
+    value = fabs(value)  / maxVal;
     valueOne = fabs(valueOne) / maxValOne;
     // Calculate total magnitude
-    value = sqrt(value*value + valueOne*valueOne); //was no /2
+    value = sqrt(value*value + valueOne*valueOne);
 
     //Scale?
     if (CUT_OVERHEAD){

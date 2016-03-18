@@ -18,10 +18,6 @@
 
 using namespace fast;
 
-// #define string INPUT_FILENAME = "/US-2D.jpg";
-// #define string INPUT_FILENAME = "/retina.png";
-
-
 int main() {
     //std::string INPUT_FILENAME = "/US-2D.jpg";
     std::string INPUT_FILENAME = "/retina.png";
@@ -29,11 +25,7 @@ int main() {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR) + INPUT_FILENAME);
 
-    // Define filter
-    //Filter::pointer filter = Filter::New();
-
     // Smooth image
-    //Filtering::pointer convolution = Filtering::New();
     GaussianFiltering::pointer convolution = GaussianFiltering::New();
     convolution->setStandardDeviation(3.0);
     convolution->setMaskSize(3);
@@ -57,12 +49,8 @@ int main() {
     averageing->setInputConnection(0, convolutionX->getOutputPort());
     averageing->setInputConnection(1, convolutionY->getOutputPort());
     
-
-    //ProcessObject::pointer output = convolution;
     // Exporter image
     ImageExporter::pointer exporter = ImageExporter::New();
-    // add string with time.h (time(NULL)) etc
-    //std::cout << "FAST_TEST_DATA_DIR" << FAST_TEST_DATA_DIR << std::endl;
     std::string output_filename = std::string(FAST_TEST_DATA_DIR) + "/output/" + INPUT_FILENAME + ".output.png";
     exporter->setFilename(output_filename);
     exporter->setInputConnection(convolution->getOutputPort());
@@ -73,12 +61,10 @@ int main() {
     renderer->addInputConnection(convolution->getOutputPort());
     ImageRenderer::pointer initialRenderer = ImageRenderer::New();
     initialRenderer->addInputConnection(importer->getOutputPort());
-
     DualViewWindow::pointer window = DualViewWindow::New();
-    /*window->addRenderer(renderer);*/
+
     window->addRendererToTopLeftView(initialRenderer);
     window->addRendererToBottomRightView(renderer);
-    //window->set2DMode(); //posible to lock 2D planes in place? //posible in 2D mode? //set2DMode works in simpleView
     window->setWidth(1400);
     window->setHeight(550);
     window->setTimeout(5 * 1000); // automatically close window after 5 seconds

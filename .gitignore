@@ -1,4 +1,5 @@
 build/
+buildsource/
 TestData/
 *.cl.bin
 *cl.cache

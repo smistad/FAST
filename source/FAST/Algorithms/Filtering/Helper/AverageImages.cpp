@@ -10,10 +10,10 @@ void AverageImages::setCutOverhead(bool cut){
 }
 
 AverageImages::AverageImages() {
-    createInputPort<Image>(0); //multiple?
+    createInputPort<Image>(0); 
     createInputPort<Image>(1);
     createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/Filtering/Helper/AvgKernel.cl", "2D"); //TODO fix OpenCL
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/Filtering/Helper/AvgKernel.cl", "2D");
     //3D version?
     
     mDimensionCLCodeCompiledFor = 0;
@@ -42,11 +42,6 @@ void AverageImages::execute(){
     mOutputType = output->getDataType();
     SceneGraph::setParentNode(output, input);
     SceneGraph::setParentNode(output, input1);
-
-    /*
-    if (cutOverhead){
-        cutImageOverhead()
-    }*/
 
     if (device->isHost()) {
         switch (input->getDataType()) {
@@ -146,7 +141,6 @@ void AverageImages::recompileOpenCLCode(Image::pointer input) {
         program = getOpenCLProgram(device, "3D", buildOptions);
     }
     mKernel = cl::Kernel(program, "CutExcess");
-    //mKernel = cl::Kernel(program, "OneDirPass");
     mDimensionCLCodeCompiledFor = input->getDimensions();
     mTypeCLCodeCompiledFor = input->getDataType();
 }

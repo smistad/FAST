@@ -7,8 +7,6 @@
 #define SIMPLE_FILTERING_GUI_HPP_
 
 #include "FAST/Visualization/Window.hpp"
-//#include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
-//#include <FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp>
 #include "FAST/Algorithms/Filtering/Filtering.hpp"
 #include "FAST/Algorithms/Filtering/Helper/AverageImages.hpp"
 #include "FAST/Algorithms/Filtering/FilteringVariations/GaussianFiltering.hpp"
@@ -16,7 +14,6 @@
 #include <QLabel>
 
 #include <FAST/Importers/ImageFileImporter.hpp>
-//#include "FAST/Importers/I
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 
 namespace fast {
@@ -33,18 +30,16 @@ class SimpleFilteringGUI : public Window {
 	private:
         SimpleFilteringGUI();
 
-        //void addLabel(QLabel* label, char* text, QVBoxLayout* addTo);
         std::string numToRunType(int num);
         std::string getInputFilename(int inputnum);
         void updateRuntimes(Filtering::pointer filter, bool print=false);
-        void saveImage();//ProcessObjectPort fromPort);
+        void saveImage();
 
         Filtering::pointer mBoxFilter;
         GaussianFiltering::pointer mGaussian;
         SobelFiltering::pointer mSobelX;
         SobelFiltering::pointer mSobelY;
         AverageImages::pointer mSobelTot; //adds the two sobel images together name to change
-
 
         QLabel* mInputImageLabel;
 		QLabel* mFilterSizeLabel; 
@@ -58,12 +53,10 @@ class SimpleFilteringGUI : public Window {
 
         std::string mFilterTypeString;
         std::string mRunTypeString;
-
         std::string mFilenameSetTo;
 
         QLabel* mExecuteTimeLabel;
         QLabel* mSetupTimeLabel;
-        //QLabel* mExecuteTime2Label;
         QLabel* mSetupTime2Label;
         QLabel* mSetupTimeLocalLabel;
         QLabel* mSetupTimeLocalTwoLabel;
@@ -84,7 +77,6 @@ class SimpleFilteringGUI : public Window {
         bool mSkipSave;
         int mSleepTime_maskChange;
 };
-
 } // end namespace fast
 
 #endif

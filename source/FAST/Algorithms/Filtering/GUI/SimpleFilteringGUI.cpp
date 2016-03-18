@@ -10,7 +10,6 @@
 #include <QPushButton>
 #include <QSlider>
 #include <FAST/Importers/ImageFileImporter.hpp>
-//#include <FAST/Visualization/MeshRenderer/MeshRenderer.hpp>
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include <boost/bind.hpp>
 #include "FAST/TestDataPath.hpp"
@@ -21,7 +20,7 @@
 #include "FAST/Algorithms/Filtering/FilteringVariations/SobelFiltering.hpp"
 
 #include "FAST/Exporters/ImageExporter.hpp"
-//#include <unistd.h>
+
 #include <chrono>
 #include <thread>
 
@@ -29,14 +28,13 @@ namespace fast {
 
 SimpleFilteringGUI::SimpleFilteringGUI() {
 
-    int initialMaskSize = 7;
-    float initialStdDev = 1.0;
-    int initialRunType = 1; // 0:naive, 1:Twopass, 2:Local-Naive, 3:?, 4:Local-Twopass
-    int initialFilterType = 2; // 1:Gauss, 2:Sobel, ..
+    int initialMaskSize = 9;
+    float initialStdDev = 2.0;
+    int initialRunType = 4; // 0:naive, 1:Twopass, 2:Local-Naive, 3:?, 4:Local-Twopass
+    int initialFilterType = 1; // 1:Gauss, 2:Sobel, ..
 
-    int initialInputImage = 5; // 0:US, 1:Retina(Big) 2:CornerTest, 3:Retina, 4:CornerTestMini, 5:Test(white)
+    int initialInputImage = 1; // 0:US, 1:Retina(Big) 2:CornerTest, 3:Retina, 4:CornerTestMini, 5:Test(white)
     
-    //
     mFilterSize = initialMaskSize;
     mRunType = initialRunType;
     mRunTypeString = numToRunType(initialRunType);
@@ -49,7 +47,6 @@ SimpleFilteringGUI::SimpleFilteringGUI() {
     mView->set2DMode();
     mView->setMaximumFramerate(1);
     mView->setFixedWidth(600);
-    //enableFullscreen();
 
     // Import image
     mImporter = ImageFileImporter::New();
@@ -102,22 +99,16 @@ SimpleFilteringGUI::SimpleFilteringGUI() {
         break;
     case 2:
         mFilterTypeString = "Sobel";
-        //mOutPort = mSobelY->getOutputPort();
         mOutPort = mSobelTot->getOutputPort();
-        //renderer->addInputConnection(mSobelTot->getOutputPort());
         mFilterType = 2;
         break;
     default:
         mFilterTypeString = "Avg";
         mOutPort = mBoxFilter->getOutputPort();
         mFilterType = 0;
-        //renderer->addInputConnection(mBoxFilter->getOutputPort());
     }
     renderer->addInputConnection(mOutPort);
-    //renderer->set //remove interpolation?
     
-    //renderer->addInputConnection(mGaussian->getOutputPort());
-    //ImageRenderer::pointer 
     mInitRenderer = ImageRenderer::New();
     mInitRenderer->addInputConnection(mImporter->getOutputPort());
     mInitView = createView();
@@ -125,7 +116,6 @@ SimpleFilteringGUI::SimpleFilteringGUI() {
     mInitView->setMaximumFramerate(1);
     mInitView->addRenderer(mInitRenderer);
     mInitView->setFixedWidth(600);
-
 
     // Add to view
     mView->addRenderer(renderer);
@@ -204,8 +194,8 @@ SimpleFilteringGUI::SimpleFilteringGUI() {
     // Gaussian std dev parameter slider
     QSlider* gaussStdDevSlider = new QSlider(Qt::Horizontal);
     gaussStdDevSlider->setMinimum(1.0);
-    gaussStdDevSlider->setMaximum(4.0); //40 was 80
-    gaussStdDevSlider->setValue((initialStdDev + 2 )/ 3);//initialStdDev/2); //*2was *4
+    gaussStdDevSlider->setMaximum(4.0);
+    gaussStdDevSlider->setValue((initialStdDev + 2 )/ 3);
     gaussStdDevSlider->setFixedWidth(200);
     menuLayout->addWidget(gaussStdDevSlider);
     // Connect the value changed signal of the slider to the updateGaussStd method
@@ -214,7 +204,7 @@ SimpleFilteringGUI::SimpleFilteringGUI() {
     // RunType parameter label 
     mRunTypeLabel = new QLabel;
     std::string runLabelText = "Run type: " + mRunTypeString;
-    mRunTypeLabel->setText( runLabelText.c_str()); // "Run type: ---"
+    mRunTypeLabel->setText( runLabelText.c_str());
     menuLayout->addWidget(mRunTypeLabel);
     // RunType parameter slider
     QSlider* runTypeSlider = new QSlider(Qt::Horizontal);
@@ -238,10 +228,6 @@ SimpleFilteringGUI::SimpleFilteringGUI() {
     mSetupTimeLabel = new QLabel;
     mSetupTimeLabel->setText("Setup twopass time: -- ms");
     menuLayout->addWidget(mSetupTimeLabel);
-    /*// ExecuteTime2 parameter label 
-    mExecuteTime2Label = new QLabel;
-    mExecuteTime2Label->setText("Execute2 time: --ms");
-    menuLayout->addWidget(mExecuteTime2Label);*/
     // SetupTime2 parameter label 
     mSetupTime2Label = new QLabel;
     mSetupTime2Label->setText("Setup naive time: -- ms");
@@ -250,7 +236,7 @@ SimpleFilteringGUI::SimpleFilteringGUI() {
     mSetupTimeLocalLabel = new QLabel;
     mSetupTimeLocalLabel->setText("Setup local time: -- ms");
     menuLayout->addWidget(mSetupTimeLocalLabel);
-    // SetupTime Local Twopass parameter label  //local_twopass_cl
+    // SetupTime Local Twopass parameter label
     mSetupTimeLocalTwoLabel = new QLabel;
     mSetupTimeLocalTwoLabel->setText("Setup local twopass time: -- ms");
     menuLayout->addWidget(mSetupTimeLocalTwoLabel);
@@ -282,10 +268,6 @@ SimpleFilteringGUI::SimpleFilteringGUI() {
     mKernelLocalTwoLabel = new QLabel;
     mKernelLocalTwoLabel->setText("Kernel (local-2P) time: -- ms");
     menuLayout->addWidget(mKernelLocalTwoLabel);
-    
-    //addLabel(mKernelLocalLabel, "Kernel (local) time: -- ms", menuLayout);
-    //addLabel(mSetupTimeLocalLabel, "Setup local time: -- ms", menuLayout);
-    //mKernelLocalLabel mSetupTimeLocalLabel
 
     // Force print button
     QPushButton* printButton = new QPushButton;
@@ -295,26 +277,18 @@ SimpleFilteringGUI::SimpleFilteringGUI() {
     // Connect the clicked signal of the quit button to the stop method for the window
     QObject::connect(printButton, &QPushButton::clicked, [=]{
         SimpleFilteringGUI::updateRuntimes(mGaussian, true);
-    });// // (, this)); //this
-    //boost::bind(&SimpleFilteringGUI::updateRuntimes(mGaussian, true), this)
+    });
 
     // Add menu and view to main layout
     QHBoxLayout* layout = new QHBoxLayout;
     layout->addLayout(menuLayout);
-    layout->addWidget(mInitView); // , 0, Qt::AlignCenter);
-    layout->addWidget(mView); // , 0, Qt::AlignTop);
+    layout->addWidget(mInitView);
+    layout->addWidget(mView);
 
     mWidget->setLayout(layout);
     
     saveImage();
 }
-
-//// -- Helper functions num to some string -- ////
-/*void SimpleFilteringGUI::addLabel(QLabel* label, char* text, QVBoxLayout* addTo){
-    label = new QLabel;
-    label->setText(text);
-    addTo->addWidget(label);
-}*/
 
 std::string SimpleFilteringGUI::getInputFilename(int inputnum){
     std::string INPUT_FILENAME;
@@ -366,7 +340,6 @@ void SimpleFilteringGUI::updateRuntimes(Filtering::pointer filter, bool print){
         filter->getRuntime("naive_setup")->print();
         filter->getRuntime("local_setup")->print();
         filter->getRuntime("local_twopass_setup")->print();
-        //filter->getRuntime("create_mask")->print();
         filter->getRuntime("create_twopass_mask")->print();
         filter->getRuntime("create_naive_mask")->print();
         filter->getRuntime("twopass_cl")->print();
@@ -406,7 +379,7 @@ void SimpleFilteringGUI::updateRuntimes(Filtering::pointer filter, bool print){
     std::string createMaskTwopassText = "Create mask (twopass) time: " + std::to_string(timingLast_create_twopass_mask) + " ms";
     mCreateMaskTwopassLabel->setText(createMaskTwopassText.c_str());
     std::string createMaskNaiveText = "Create mask (naive) time: " + std::to_string(timingLast_create_naive_mask) + " ms";
-    mCreateMaskNaiveLabel->setText(createMaskNaiveText.c_str());//*/
+    mCreateMaskNaiveLabel->setText(createMaskNaiveText.c_str());
 
     std::string kernelTwopassText = "Kernel (twopass) time: " + std::to_string(timingLast_twopass_kernel) + " ms";
     mKernelTwopassLabel->setText(kernelTwopassText.c_str());
@@ -423,7 +396,6 @@ void SimpleFilteringGUI::updateInputImage(int value){
     std::string newFilename = getInputFilename(value);
     if (newFilename == mFilenameSetTo) return;
     mFilenameSetTo = newFilename;
-    //mImporter = ImageFileImporter::New();
     mImporter->setFilename(std::string(FAST_TEST_DATA_DIR) + newFilename);
     ProcessObjectPort port = mImporter->getOutputPort();
     
@@ -432,52 +404,28 @@ void SimpleFilteringGUI::updateInputImage(int value){
     mGaussian->setInputConnection(port);
     mSobelX->setInputConnection(port);
     mSobelY->setInputConnection(port);
-    /*ImageRenderer::pointer newRenderer = ImageRenderer::New();
-    newRenderer->addInputConnection(port);
-    mInitView->removeAllRenderers();
-    mInitView->addRenderer(newRenderer);
-    mInitView->setFixedWidth(600);*/
     startComputationThread();
    
     std::string text = "Input image: " + newFilename;
     mInputImageLabel->setText(text.c_str());
 
     std::this_thread::sleep_for(std::chrono::milliseconds(80));
-    saveImage();
-    /*
-    switch (mFilterType){
-    case 1:
-        updateRuntimes(mGaussian);
-        break;
-    case 2:
-        updateRuntimes(mSobelX);
-        //updateRuntimes(mSobelY);
-        break;
-    default:
-        return;
-        //mFilterTypeString = "Avg";
-        updateRuntimes(mBoxFilter);
-    }*/
-   
+    saveImage();   
 }
 void SimpleFilteringGUI::updateFilterSize(int value){
     mFilterSize = value * 2 + 1;
-    //int newMaskSize = value * 2 + 1;
-    //mFilterSize = value * 2 + 1;
     mGaussian->setMaskSize(mFilterSize);
-    //mBoxFilter->setMaskSize(mFilterSize);
     //Sobel not to be updated
 
     std::string text = "Filter size: " + boost::lexical_cast<std::string>(mFilterSize);
     mFilterSizeLabel->setText(text.c_str());
-    std::this_thread::sleep_for(std::chrono::milliseconds(mSleepTime_maskChange));//8000 15000));//15000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(mSleepTime_maskChange)); //8000 15000));
     if (mFilterType != 2) saveImage(); // if not sobel
 }
 
 void SimpleFilteringGUI::updateFilterType(int value){
     if (value == mFilterType) return;
     ImageRenderer::pointer newRenderer = ImageRenderer::New();
-    //ProcessObjectPort port;
     switch (value){
     case 1:
         mFilterTypeString = "Gauss";
@@ -485,9 +433,7 @@ void SimpleFilteringGUI::updateFilterType(int value){
         mFilterType = 1;
         break;
     case 2:
-        //return;
         mFilterTypeString = "Sobel";
-        //mOutPort = mSobelY->getOutputPort();
         mOutPort = mSobelTot->getOutputPort();
         mFilterType = 2;
         break;
@@ -497,7 +443,6 @@ void SimpleFilteringGUI::updateFilterType(int value){
         mFilterType = 0;
         mOutPort = mBoxFilter->getOutputPort();
     }
-
     newRenderer->addInputConnection(mOutPort);
 
     // Reset view to new renderer
@@ -507,7 +452,7 @@ void SimpleFilteringGUI::updateFilterType(int value){
     mView->setFixedWidth(600);
     startComputationThread();
 
-    std::string text = "Filter type: " + mFilterTypeString; //boost::lexical_cast<std::string>(value);
+    std::string text = "Filter type: " + mFilterTypeString;
     mFilterTypeLabel->setText(text.c_str());
     std::this_thread::sleep_for(std::chrono::milliseconds(180));
     saveImage();
@@ -515,8 +460,7 @@ void SimpleFilteringGUI::updateFilterType(int value){
 
 void SimpleFilteringGUI::updateGaussStd(float value){
 
-    mGaussStdDev = value*3-2; // / 2; //was /4
-    //float newStdDev = value / 4;
+    mGaussStdDev = value*3-2;
     mGaussian->setStandardDeviation(mGaussStdDev);
 
     std::string text = "Std dev (gauss): " + boost::lexical_cast<std::string>(mGaussStdDev);
@@ -524,13 +468,10 @@ void SimpleFilteringGUI::updateGaussStd(float value){
     if(mFilterType==1) saveImage(); //only if gaussian
 
     if (mFilterType == 1){
-        //for (int i = 0; i < 100; i++) updateRuntimes(mGaussian);//mGaussian->update();
-        updateRuntimes(mGaussian);// , true);
-        
-        //RuntimeMeasurementPtr ptr = mGaussian->getRuntime();  
+        updateRuntimes(mGaussian); 
     }
     else if (mFilterType == 2){
-        updateRuntimes(mSobelX);//, true);
+        updateRuntimes(mSobelX);
     }
 }
 
@@ -557,8 +498,6 @@ void SimpleFilteringGUI::saveImage(){
     
     // Exporter image
     ImageExporter::pointer exporter = ImageExporter::New();
-    // add string with time.h (time(NULL)) etc
-    //std::cout << "FAST_TEST_DATA_DIR" << FAST_TEST_DATA_DIR << std::endl;
     std::string configString;
     if (mFilterTypeString == "Sobel"){
         configString = mFilterTypeString + "-" + mRunTypeString;
@@ -569,8 +508,6 @@ void SimpleFilteringGUI::saveImage(){
         configString += mFilterTypeString + "-" + std::to_string(mFilterSize) + "-" + mRunTypeString;
         
     }
-    //std::string configString = mFilterTypeString+"-"+std::to_string(mFilterSize)+"-"+ mRunTypeString;
-    
     //add a timestamp?
     std::string output_filename = mFilenameSetTo + "_"+ configString +"_out.png";
     std::string sub_folders = "/output/GUI/"+mFilenameSetTo + "/" + mFilterTypeString + "/" + mRunTypeString + "/";
@@ -579,7 +516,5 @@ void SimpleFilteringGUI::saveImage(){
     exporter->setInputConnection(mOutPort);
     exporter->update();
     std::cout << "Saved imaged '" << output_filename << "' to '" << sub_folders << "'!" << std::endl;
-
 }
-
 }

@@ -11,7 +11,6 @@ namespace fast {
         FAST_OBJECT(Filtering)
     public:
         void setMaskSize(unsigned char maskSize);
-        //void setStandardDeviation(float stdDev);
         void setOutputType(DataType type);
         void setConvRunType(int runType);
         ~Filtering(); //virtual
@@ -25,11 +24,8 @@ namespace fast {
         virtual float createMaskValue(int x, int y, int z = 1); //was z=0
         void recompileOpenCLCode(Image::pointer input);
 
-        //void executeAlgorithmOnHost(Image::pointer, Image::pointer, float *, unsigned char); //Was not part of filtering
-
         char mMaskSize;
         char mMaskDefaultSize;
-        //float mStdDev;
         bool mIsDifferential;
         int mConvRunType; // 0 naive, 1 onepass, 2 adv..
 
@@ -51,9 +47,6 @@ namespace fast {
         int mConvRunTypeCompiledFor;
         char mMaskSizeCompiledFor;
         bool mNeedRebuild;
-
-        //std::string =  //string in C++
-
     };
 
 } // end namespace fast
