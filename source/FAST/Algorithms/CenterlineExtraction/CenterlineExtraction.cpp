@@ -27,13 +27,21 @@ Image::pointer CenterlineExtraction::calculateDistanceTransform(Image::pointer i
 	Image::pointer distance = Image::New();
 	distance->create(input->getSize(), TYPE_INT16, 1);
 
-	OpenCLImageAccess::pointer distanceAccess = distance->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
-	OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
 
 	// First initialize
 	cl::Kernel initializeKernel(program, "initialize");
-	initializeKernel.setArg(0, *inputAccess->get3DImage());
-	initializeKernel.setArg(1, *distanceAccess->get3DImage());
+
+	if(device->isWritingTo3DTexturesSupported()) {
+		OpenCLImageAccess::pointer distanceAccess = distance->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+		OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
+		initializeKernel.setArg(0, *inputAccess->get3DImage());
+		initializeKernel.setArg(1, *distanceAccess->get3DImage());
+	} else {
+		OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
+		OpenCLBufferAccess::pointer distanceAccess = distance->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+		initializeKernel.setArg(0, *inputAccess->get3DImage());
+		initializeKernel.setArg(1, *distanceAccess->get());
+	}
 
 	queue.enqueueNDRangeKernel(
 			initializeKernel,
@@ -45,7 +53,6 @@ Image::pointer CenterlineExtraction::calculateDistanceTransform(Image::pointer i
 	// Iteratively calculate distance
 	Image::pointer distance2 = Image::New();
 	distance2->create(input->getSize(), TYPE_INT16, 1);
-	OpenCLImageAccess::pointer distance2Access = distance2->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
 
 	cl::Buffer changedBuffer(
 			device->getContext(),
@@ -53,44 +60,88 @@ Image::pointer CenterlineExtraction::calculateDistanceTransform(Image::pointer i
 			sizeof(char)
     );
 
+	// TODO no 3D write support
 	cl::Kernel distanceKernel(program, "calculateDistance");
 	distanceKernel.setArg(2, changedBuffer);
-
-	cl::Image3D* clDistance = distanceAccess->get3DImage();
-	cl::Image3D* clDistance2 = distance2Access->get3DImage();
-
-	queue.enqueueCopyImage(
-			*clDistance,
-			*clDistance2,
-			createOrigoRegion(),
-			createOrigoRegion(),
-			createRegion(input->getSize())
-    );
-
 	int counter = 0;
-	while(true) {
-		// Write 0 to changedBuffer
-		char zero = 0;
-		queue.enqueueWriteBuffer(changedBuffer,CL_FALSE,0,sizeof(char),&zero);
+	if(device->isWritingTo3DTexturesSupported()) {
+		OpenCLImageAccess::pointer distanceAccess = distance->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+		OpenCLImageAccess::pointer distance2Access = distance2->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+		cl::Image3D* clDistance = distanceAccess->get3DImage();
+		cl::Image3D* clDistance2 = distance2Access->get3DImage();
 
-		if(counter % 2 == 0) {
-            distanceKernel.setArg(0, *clDistance);
-            distanceKernel.setArg(1, *clDistance2);
-		} else {
-            distanceKernel.setArg(1, *clDistance);
-            distanceKernel.setArg(0, *clDistance2);
+		queue.enqueueCopyImage(
+				*clDistance,
+				*clDistance2,
+				createOrigoRegion(),
+				createOrigoRegion(),
+				createRegion(input->getSize())
+		);
+
+		while(true) {
+			// Write 0 to changedBuffer
+			char zero = 0;
+			queue.enqueueWriteBuffer(changedBuffer,CL_FALSE,0,sizeof(char),&zero);
+
+			if(counter % 2 == 0) {
+				distanceKernel.setArg(0, *clDistance);
+				distanceKernel.setArg(1, *clDistance2);
+			} else {
+				distanceKernel.setArg(1, *clDistance);
+				distanceKernel.setArg(0, *clDistance2);
+			}
+			counter++;
+			queue.enqueueNDRangeKernel(
+				distanceKernel,
+				cl::NullRange,
+				cl::NDRange(width, height, depth),
+				cl::NullRange
+			);
+
+			queue.enqueueReadBuffer(changedBuffer,CL_TRUE,0,sizeof(char),&zero);
+			if(zero == 0) {
+				break;
+			}
 		}
-		counter++;
-        queue.enqueueNDRangeKernel(
-            distanceKernel,
-            cl::NullRange,
-            cl::NDRange(width, height, depth),
-            cl::NullRange
-        );
+	} else {
 
-		queue.enqueueReadBuffer(changedBuffer,CL_TRUE,0,sizeof(char),&zero);
-		if(zero == 0) {
-			break;
+		OpenCLBufferAccess::pointer distanceAccess = distance->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+		OpenCLBufferAccess::pointer distance2Access = distance2->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+		cl::Buffer* clDistance = distanceAccess->get();
+		cl::Buffer* clDistance2 = distance2Access->get();
+
+		queue.enqueueCopyBuffer(
+				*clDistance,
+				*clDistance2,
+				0,
+				0,
+				input->getSize().x()*input->getSize().y()*input->getSize().z()*sizeof(short)
+		);
+
+		while(true) {
+			// Write 0 to changedBuffer
+			char zero = 0;
+			queue.enqueueWriteBuffer(changedBuffer,CL_FALSE,0,sizeof(char),&zero);
+
+			if(counter % 2 == 0) {
+				distanceKernel.setArg(0, *clDistance);
+				distanceKernel.setArg(1, *clDistance2);
+			} else {
+				distanceKernel.setArg(1, *clDistance);
+				distanceKernel.setArg(0, *clDistance2);
+			}
+			counter++;
+			queue.enqueueNDRangeKernel(
+				distanceKernel,
+				cl::NullRange,
+				cl::NDRange(width, height, depth),
+				cl::NullRange
+			);
+
+			queue.enqueueReadBuffer(changedBuffer,CL_TRUE,0,sizeof(char),&zero);
+			if(zero == 0) {
+				break;
+			}
 		}
 	}
 	reportInfo() << "Calculated distance in " << counter << " steps" << reportEnd();
@@ -230,13 +281,19 @@ void CenterlineExtraction::execute() {
         cl::CommandQueue queue = device->getCommandQueue();
         OpenCLImageAccess::pointer distanceAccess = distance->getOpenCLImageAccess(ACCESS_READ, device);
         OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
-        OpenCLImageAccess::pointer candidateAccess = candidateCenterpointsImage->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
 
         // First initialize
         cl::Kernel candidateKernel(program, "findCandidateCenterpoints");
         candidateKernel.setArg(0, *inputAccess->get3DImage());
         candidateKernel.setArg(1, *distanceAccess->get3DImage());
-        candidateKernel.setArg(2, *candidateAccess->get3DImage());
+
+        if(device->isWritingTo3DTexturesSupported()) {
+			OpenCLImageAccess::pointer candidateAccess = candidateCenterpointsImage->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+			candidateKernel.setArg(2, *candidateAccess->get3DImage());
+        } else {
+			OpenCLBufferAccess::pointer candidateAccess = candidateCenterpointsImage->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+			candidateKernel.setArg(2, *candidateAccess->get());
+        }
 
         queue.enqueueNDRangeKernel(
             candidateKernel,
