@@ -45,12 +45,12 @@ TEST_CASE("Airway segmentation ALL", "[fast][AirwaySegmentation]") {
 }
 
 TEST_CASE("Airway segmentation", "[fast][AirwaySegmentation]") {
-	Reporter::setGlobalReportMethod(Reporter::COUT);
 	ImageFileImporter::pointer importer = ImageFileImporter::New();
 	importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT-Thorax.mhd");
 
 	AirwaySegmentation::pointer segmentation = AirwaySegmentation::New();
 	segmentation->setInputConnection(importer->getOutputPort());
+	segmentation->enableRuntimeMeasurements();
 
 	CenterlineExtraction::pointer centerline = CenterlineExtraction::New();
 	centerline->setInputConnection(segmentation->getOutputPort());
@@ -70,4 +70,5 @@ TEST_CASE("Airway segmentation", "[fast][AirwaySegmentation]") {
 	window->addRenderer(renderer);
 	window->addRenderer(lineRenderer);
 	window->start();
+	segmentation->getRuntime()->print();
 }

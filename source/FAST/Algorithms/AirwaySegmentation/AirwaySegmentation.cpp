@@ -84,7 +84,7 @@ Vector3i findSeedVoxel(Image::pointer volume) {
     return currentSeed;
 }
 
-int grow(uchar* segmentation, std::vector<Vector3i>* voxels, short* data, float threshold, int width, int height, int depth) {
+int grow(uchar* segmentation, const Vector3i neighbors[25], std::vector<Vector3i>* voxels, short* data, float threshold, int width, int height, int depth) {
     std::vector<Vector3i>::iterator it;
     std::stack<Vector3i> stack;
     for(it = voxels->begin(); it != voxels->end(); it++) {
@@ -97,10 +97,9 @@ int grow(uchar* segmentation, std::vector<Vector3i>* voxels, short* data, float 
         segmentation[x.x() + x.y()*width + x.z()*width*height] = 1; // TODO is this needed?
 
         // Add 26 neighbors
-        for(int a = -1; a < 2; a++) {
-        for(int b = -1; b < 2; b++) {
-        for(int c = -1; c < 2; c++) {
-            Vector3i y(x.x()+a, x.y()+b, x.z()+c);
+        for(int i = 0; i < 25; ++i) {
+        	Vector3i neighbor = neighbors[i];
+            Vector3i y(x.x()+neighbor.x(), x.y()+neighbor.y(), x.z()+neighbor.z());
 			if(y.x() < 0 || y.y() < 0 || y.z() < 0 ||
 				y.x() >= width || y.y() >= height || y.z() >= depth) {
                 continue;
@@ -111,7 +110,7 @@ int grow(uchar* segmentation, std::vector<Vector3i>* voxels, short* data, float 
                 voxels->push_back(y);
                 stack.push(y);
             }
-        }}}
+        }
     }
 
     return voxels->size();
@@ -137,18 +136,30 @@ void regionGrowing(Image::pointer volume, Segmentation::pointer segmentation, Ve
     float deltaT = 1.0f;
     float spacing = 1.0f;
 
-    float Vnew = spacing*grow(segmentationData, &voxels, data, threshold, width, height, depth);
+    // Create neighbor list
+    Vector3i neighbors[25];
+    int counter = 0;
+	for(int a = -1; a < 2; a++) {
+	for(int b = -1; b < 2; b++) {
+	for(int c = -1; c < 2; c++) {
+		if(a == 0 && b == 0 && c == 0)
+			continue;
+		neighbors[counter] = Vector3i(a,b,c);
+		counter++;
+	}}}
+
+    float Vnew = spacing*grow(segmentationData, neighbors, &voxels, data, threshold, width, height, depth);
     // Loop until explosion is detected
     do {
         VT = Vnew;
         threshold += deltaT;
-		Vnew = spacing*grow(segmentationData, &voxels, data, threshold, width, height, depth);
-        std::cout << "using threshold: " << threshold << std::endl;
-        std::cout << "gives volume size: " << Vnew << std::endl;
+		Vnew = spacing*grow(segmentationData, neighbors, &voxels, data, threshold, width, height, depth);
+        Reporter::info() << "using threshold: " << threshold << Reporter::end;
+        Reporter::info() << "gives volume size: " << Vnew << Reporter::end;
     } while(Vnew-VT < volumeIncreaseLimit || Vnew < volumeMinimum);
 
     float explosionVolume = Vnew;
-    std::cout << "Ungrowing..." << std::endl;
+	Reporter::info() << "Ungrowing.." << Vnew << Reporter::end;
     threshold -= deltaT;
     VT = Vnew;
 
@@ -158,9 +169,9 @@ void regionGrowing(Image::pointer volume, Segmentation::pointer segmentation, Ve
         voxels.push_back(seed);
 		memset(segmentationData, 0, width*height*depth);
 		segmentationData[seed.x() + seed.y()*width + seed.z()*width*height] = 1;
-        VT = spacing*grow(segmentationData, &voxels, data, threshold, width, height, depth);
-        std::cout << "using threshold: " << threshold << std::endl;
-        std::cout << "gives volume size: " << VT << std::endl;
+        VT = spacing*grow(segmentationData, neighbors, &voxels, data, threshold, width, height, depth);
+        Reporter::info() << "using threshold: " << threshold << Reporter::end;
+        Reporter::info() << "gives volume size: " << VT << Reporter::end;
         threshold -= deltaT;
     }
 }
