@@ -301,7 +301,7 @@ endif()
 
 
 set(FAST_LIBRARY FAST)
-set(FAST_LIBRARY_DIRS ${PROJECT_BINARY_DIR})
+set(FAST_LIBRARY_DIRS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
 # Create config file
 configure_file (
