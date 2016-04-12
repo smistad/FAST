@@ -5,6 +5,7 @@
 #include "FAST/Utility.hpp"
 #include <QCursor>
 #include <boost/thread/lock_guard.hpp>
+#include <boost/shared_array.hpp>
 #include "MeshRenderer.hpp"
 #include "FAST/SceneGraph.hpp"
 
@@ -51,6 +52,10 @@ void MeshRenderer::draw() {
     boost::unordered_map<uint, Mesh::pointer>::iterator it;
     for(it = mMeshToRender.begin(); it != mMeshToRender.end(); it++) {
         Mesh::pointer surfaceToRender = it->second;
+
+        if(surfaceToRender->getDimensions() != 3)
+        	continue;
+
         // Draw the triangles in the VBO
         AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(surfaceToRender);
 
@@ -107,6 +112,74 @@ void MeshRenderer::draw() {
     glDisable(GL_LIGHTING);
     glDisable(GL_NORMALIZE);
     glColor3f(1.0f, 1.0f, 1.0f); // Reset color
+}
+
+void MeshRenderer::draw2D(
+                cl::BufferGL PBO,
+                uint width,
+                uint height,
+                Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform,
+                float PBOspacing,
+                Vector2f translation
+        ) {
+    boost::lock_guard<boost::mutex> lock(mMutex);
+
+    OpenCLDevice::pointer device = getMainDevice();
+    cl::CommandQueue queue = device->getCommandQueue();
+    std::vector<cl::Memory> v;
+    v.push_back(PBO);
+    queue.enqueueAcquireGLObjects(&v);
+
+    // Map would probably be better here, but doesn't work on NVIDIA, segfault surprise!
+    //float* pixels = (float*)queue.enqueueMapBuffer(PBO, CL_TRUE, CL_MAP_WRITE, 0, width*height*sizeof(float)*4);
+    boost::shared_array<float> pixels(new float[width*height*sizeof(float)*4]);
+    queue.enqueueReadBuffer(PBO, CL_TRUE, 0, width*height*4*sizeof(float), pixels.get());
+
+    boost::unordered_map<uint, Mesh::pointer>::iterator it;
+    for(it = mMeshToRender.begin(); it != mMeshToRender.end(); it++) {
+    	Mesh::pointer mesh = it->second;
+    	if(mesh->getDimensions() != 2) // Mesh must be 2D
+    		continue;
+
+		Color color = mDefaultColor;
+        ProcessObjectPort port = getInputPort(it->first);
+        if(mInputColors.count(port) > 0) {
+            color = mInputColors[port];
+        }
+
+    	MeshAccess::pointer access = mesh->getMeshAccess(ACCESS_READ);
+        std::vector<VectorXui> lines = access->getLines();
+        std::vector<MeshVertex> vertices = access->getVertices();
+
+        // Draw each line
+        for(int i = 0; i < lines.size(); ++i) {
+        	Vector2ui line = lines[i];
+        	Vector2f a = vertices[line.x()].getPosition();
+        	Vector2f b = vertices[line.y()].getPosition();
+        	Vector2f direction = b - a;
+        	float lengthInPixels = ceil(direction.norm() / PBOspacing);
+
+        	// Draw the line
+        	for(int j = 0; j <= lengthInPixels; ++j) {
+        		Vector2f positionInMM = a + direction*((float)j/lengthInPixels);
+        		Vector2f positionInPixels = positionInMM / PBOspacing;
+
+        		int x = round(positionInPixels.x());
+        		int y = round(positionInPixels.y());
+        		y = height - 1 - y;
+        		if(x < 0 || y < 0 || x >= width || y >= height)
+        			continue;
+
+        		pixels[4*(x + y*width)] = color.getRedValue();
+        		pixels[4*(x + y*width) + 1] = color.getGreenValue();
+        		pixels[4*(x + y*width) + 2] = color.getBlueValue();
+        	}
+        }
+    }
+
+    //queue.enqueueUnmapMemObject(PBO, pixels);
+    queue.enqueueWriteBuffer(PBO, CL_TRUE, 0, width*height*4*sizeof(float), pixels.get());
+    queue.enqueueReleaseGLObjects(&v);
 }
 
 BoundingBox MeshRenderer::getBoundingBox() {

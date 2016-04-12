@@ -1,20 +1,4 @@
-fast_add_subdirectories(
-    AddTransformation
-    GradientVectorFlow
-    GaussianSmoothingFilter
-    LaplacianOfGaussian
-    SeededRegionGrowing
-    SurfaceExtraction
-    Skeletonization
-    ScaleImage
-    BinaryThresholding
-    ImageGradient
-    IterativeClosestPoint
-    TubeSegmentationAndCenterlineExtraction
-    ImageCropper
-    AirwaySegmentation
-    CenterlineExtraction
-)
+fast_add_all_subdirectories()
 fast_add_sources(
     SegmentationAlgorithm.cpp
     SegmentationAlgorithm.hpp

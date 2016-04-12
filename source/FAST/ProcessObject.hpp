@@ -23,7 +23,6 @@ class OpenCLProgram;
 
 class ProcessObject : public virtual Object {
     public:
-        ProcessObject();
         virtual ~ProcessObject() {};
         void update();
         typedef SharedPointer<ProcessObject> pointer;
@@ -84,6 +83,7 @@ class ProcessObject : public virtual Object {
             return "ProcessObject";
         }
     protected:
+        ProcessObject();
         // Flag to indicate whether the object has been modified
         // and should be executed again
         bool mIsModified;

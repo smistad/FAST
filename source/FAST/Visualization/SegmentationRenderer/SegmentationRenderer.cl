@@ -11,7 +11,7 @@ __kernel void render2D(
         __global char* fillArea
         ) {
     const int2 PBOposition = {get_global_id(0), get_global_id(1)};
-    const int linearPosition = PBOposition.x + PBOposition.y*get_global_size(0);
+    const int linearPosition = PBOposition.x + (get_global_size(1) - 1 - PBOposition.y)*get_global_size(0);
     
     float2 imagePosition = convert_float2(PBOposition)*PBOspacing;
     imagePosition.x /= imageSpacingX;
@@ -34,7 +34,6 @@ __kernel void render2D(
 
     // Is image within bounds?
     if(imagePosition.x < get_image_width(image) && imagePosition.y < get_image_height(image)) {
-        imagePosition.y = get_image_height(image) - imagePosition.y - 1; // Flip image vertically
         // Read image and put value in PBO
         uint label = read_imageui(image, sampler, imagePosition).x;
         
@@ -99,7 +98,7 @@ __kernel void render3D(
         __global char* fillArea
         ) {
     const int2 PBOposition = {get_global_id(0), get_global_id(1)};
-    const int linearPosition = PBOposition.x + PBOposition.y*get_global_size(0);
+    const int linearPosition = PBOposition.x + (get_global_size(1) - 1 - PBOposition.y)*get_global_size(0);
     
 
     float4 imagePosition = transformPosition(transform, PBOposition);
@@ -112,7 +111,6 @@ __kernel void render3D(
     if(imagePosition.x < get_image_width(image) && imagePosition.y < get_image_height(image) && imagePosition.z < get_image_depth(image) &&
         imagePosition.x >= 0 && imagePosition.y >= 0 && imagePosition.z >= 0
         ) {
-        imagePosition.y = get_image_height(image) - imagePosition.y - 1; // Flip image vertically
         // Read image and put value in PBO
         uint label = read_imageui(image, sampler, imagePosition).x;
         

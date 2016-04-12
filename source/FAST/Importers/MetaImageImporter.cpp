@@ -262,24 +262,29 @@ void MetaImageImporter::execute() {
             boost::split(values, value, boost::is_any_of(" "));
             // Remove any empty values:
             values.erase(std::remove(values.begin(), values.end(), ""), values.end());
-            if(values.size() != 3)
-                throw Exception("Offset/Origin/Position in MetaImage file did not contain 3 numbers");
-
-            offset[0] = boost::lexical_cast<float>(values[0].c_str());
-            offset[1] = boost::lexical_cast<float>(values[1].c_str());
-            offset[2] = boost::lexical_cast<float>(values[2].c_str());
+            if(values.size() != 3) {
+                reportError() << "Offset/Origin/Position in MetaImage file did not contain 3 numbers" << reportEnd();
+                reportError() << "Ignoring" << reportEnd();
+            } else {
+				offset[0] = boost::lexical_cast<float>(values[0].c_str());
+				offset[1] = boost::lexical_cast<float>(values[1].c_str());
+				offset[2] = boost::lexical_cast<float>(values[2].c_str());
+            }
         } else if(key == "TransformMatrix" || key == "Rotation" || key == "Orientation") {
             std::vector<std::string> values;
             boost::split(values, value, boost::is_any_of(" "));
             // Remove any empty values:
             values.erase(std::remove(values.begin(), values.end(), ""), values.end());
-            if(values.size() != 9)
-                throw Exception("Encountered a transform/orientation/rotation matrix with incorrect number of elements in the MetaImageImporter");
+            if(values.size() != 9) {
+                reportError() << "Encountered a transform/orientation/rotation matrix with incorrect number of elements in the MetaImageImporter" << reportEnd();
+                reportError() << "Ignoring" << reportEnd();
+            } else {
 
-            for(unsigned int i = 0; i < 3; i++) {
-            for(unsigned int j = 0; j < 3; j++) {
-                transformMatrix(j,i) = boost::lexical_cast<float>(values[j+i*3].c_str());
-            }}
+				for(unsigned int i = 0; i < 3; i++) {
+				for(unsigned int j = 0; j < 3; j++) {
+					transformMatrix(j,i) = boost::lexical_cast<float>(values[j+i*3].c_str());
+				}}
+            }
         }
 
     } while(!mhdFile.eof());

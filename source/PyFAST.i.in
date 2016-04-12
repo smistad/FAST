@@ -1,0 +1,6 @@
+%module fast
+%{
+${PYFAST_HEADER_INCLUDES}
+%}
+
+${PYFAST_INTERFACE_INCLUDES}

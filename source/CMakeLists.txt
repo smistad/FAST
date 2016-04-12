@@ -6,13 +6,29 @@ option(FAST_VTK_INTEROP "Enable interoperability with VTK" OFF)
 option(FAST_ITK_INTEROP "Enable interoperability with ITK" OFF)
 option(FAST_BUILD_TESTS "Build FAST tests." ON)
 option(BUILD_IGTLINK_TESTS "Build OpenIGTLink tests." OFF)
+option(BUILD_EXAMPLES "Build OpenIGTLink examples." OFF)
 option(FAST_BUILD_EXAMPLES "Build examples." OFF)
 option(FAST_MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
+option(FAST_MODULE_Python "Build Python wrappers" ON)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
 
+#### Set build type
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    message("-- Setting build type to 'Release' as none was specified.")
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+    # Set the possible values of build type for cmake-gui
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
+endif()
+
+## Set continous integration define
 if(FAST_CONTINUOUS_INTEGRATION)
 	add_definitions("-DFAST_CONTINUOUS_INTEGRATION")
 endif()
+
+## Set build folders
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
 #### Paths
 set(FAST_TEST_DATA_DIR "${PROJECT_SOURCE_DIR}/../TestData/" CACHE PATH "Directory of test data")
@@ -76,12 +92,46 @@ macro (fast_add_test_sources)
         set (FAST_TEST_SOURCE_FILES ${FAST_TEST_SOURCE_FILES} PARENT_SCOPE)
     endif()
 endmacro()
+macro (fast_add_python_interfaces)
+    file (RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
+    foreach (_src ${ARGN})
+        if (_relPath)
+            list (APPEND FAST_PYTHON_INTERFACE_FILES "${_relPath}/${_src}")
+        else()
+            list (APPEND FAST_PYTHON_INTERFACE_FILES "${_src}")
+        endif()
+    endforeach()
+    if (_relPath)
+        # propagate FAST_PYTHON_INTERFACE_FILES to parent directory
+        set (FAST_PYTHON_INTERFACE_FILES ${FAST_PYTHON_INTERFACE_FILES} PARENT_SCOPE)
+    endif()
+endmacro()
 macro (fast_add_subdirectories)
     file (RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
     foreach (_src ${ARGN})
         add_subdirectory(${_src})
     endforeach()
+    if (_relPath)
+        # propagate to parent directory
+        set (FAST_TEST_SOURCE_FILES ${FAST_TEST_SOURCE_FILES} PARENT_SCOPE)
+        set (FAST_SOURCE_FILES ${FAST_SOURCE_FILES} PARENT_SCOPE)
+        set (FAST_PYTHON_INTERFACE_FILES ${FAST_PYTHON_INTERFACE_FILES} PARENT_SCOPE)
+	endif()
 endmacro()
+macro (fast_add_all_subdirectories)
+	file(GLOB children RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*)
+	foreach(child ${children})
+		if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${child})
+			add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/${child})
+		endif()
+    endforeach()
+    if (_relPath)
+        # propagate to parent directory
+        set (FAST_TEST_SOURCE_FILES ${FAST_TEST_SOURCE_FILES} PARENT_SCOPE)
+        set (FAST_SOURCE_FILES ${FAST_SOURCE_FILES} PARENT_SCOPE)
+        set (FAST_PYTHON_INTERFACE_FILES ${FAST_PYTHON_INTERFACE_FILES} PARENT_SCOPE)
+	endif()
+endmacro()	
 
 
 # Headers for Qt objects
@@ -194,6 +244,9 @@ endif()
 # Note that Microsoft Visual C++ compiler enables C++11 by default
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth=300") # Fix for a bug with boost signals2
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations") # Remove deprecated warnings GCC
+endif()
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR CMAKE_COMPILER_IS_GNUCXX)
     include(CheckCXXCompilerFlag)
     check_cxx_compiler_flag(--std=c++11 SUPPORTS_STD_CXX11)
@@ -255,3 +308,47 @@ configure_file (
     "${PROJECT_SOURCE_DIR}/FASTConfig.cmake.in"
     "${PROJECT_BINARY_DIR}/FASTConfig.cmake"
 )
+
+find_package(SWIG)
+if(SWIG_FOUND AND FAST_MODULE_Python)
+	message("-- SWIG found, creating python bindings...")
+	include(${SWIG_USE_FILE})
+	find_package(PythonLibs REQUIRED)
+	include_directories(${PYTHON_INCLUDE_PATH})
+
+	include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
+	set(CMAKE_SWIG_FLAGS "")
+	
+	# Generate the PyFAST interface file
+	# Include all header files
+	foreach(FILE ${FAST_SOURCE_FILES})
+		if(${FILE} MATCHES "^.*hpp$")
+			set(PYFAST_HEADER_INCLUDES "${PYFAST_HEADER_INCLUDES}#include \"${FILE}\"\n")
+		endif()
+	endforeach()
+	
+	# Include all python interface files
+	foreach(FILE ${FAST_PYTHON_INTERFACE_FILES})
+		set(PYFAST_INTERFACE_INCLUDES "${PYFAST_INTERFACE_INCLUDES}%include \"${FILE}\"\n")
+	endforeach()
+	
+	set(PYFAST_FILE "${PROJECT_BINARY_DIR}/PyFAST.i")
+	configure_file(
+		"${PROJECT_SOURCE_DIR}/PyFAST.i.in"
+		${PYFAST_FILE}
+	)
+	
+	# Build it
+	set_source_files_properties(${PYFAST_FILE} PROPERTIES GENERATED TRUE)
+	set_source_files_properties(${PYFAST_FILE} PROPERTIES CPLUSPLUS ON)
+	swig_add_module(fast python ${PYFAST_FILE})
+	swig_link_libraries(fast ${PYTHON_LIBRARIES} FAST)
+	
+	# Move python file to lib folder
+	add_custom_command(TARGET _fast POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E rename fast.py ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/fast.py
+	)
+else()
+	message("-- SWIG not found, Python bindings will NOT be created.")
+endif()
