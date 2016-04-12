@@ -9,6 +9,7 @@
 
 using namespace fast;
 
+/*
 TEST_CASE("Airway segmentation ALL", "[fast][AirwaySegmentation]") {
 	Reporter::setGlobalReportMethod(Reporter::COUT);
 	for(int i = 1; i < 26; ++i) {
@@ -43,6 +44,7 @@ TEST_CASE("Airway segmentation ALL", "[fast][AirwaySegmentation]") {
         window->start();
 	}
 }
+*/
 
 TEST_CASE("Airway segmentation", "[fast][AirwaySegmentation]") {
 	ImageFileImporter::pointer importer = ImageFileImporter::New();
@@ -70,5 +72,5 @@ TEST_CASE("Airway segmentation", "[fast][AirwaySegmentation]") {
 	window->addRenderer(renderer);
 	window->addRenderer(lineRenderer);
 	window->start();
-	segmentation->getRuntime()->print();
+	//segmentation->getRuntime()->print();
 }
