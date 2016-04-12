@@ -187,12 +187,17 @@ Image::pointer AirwaySegmentation::convertToHU(Image::pointer image) {
 	newImage->create(image->getSize(), TYPE_INT16, 1);
 	newImage->setSpacing(image->getSpacing());
 	SceneGraph::setParentNode(newImage, image);
-	OpenCLImageAccess::pointer output = newImage->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
 
 	cl::Kernel kernel(program, "convertToHU");
 
 	kernel.setArg(0, *input->get3DImage());
-	kernel.setArg(1, *output->get3DImage());
+	if(device->isWritingTo3DTexturesSupported()) {
+		OpenCLImageAccess::pointer output = newImage->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+		kernel.setArg(1, *output->get3DImage());
+	} else {
+		OpenCLBufferAccess::pointer output = newImage->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+		kernel.setArg(1, *output->get());
+	}
 
 	device->getCommandQueue().enqueueNDRangeKernel(
 			kernel,
@@ -220,31 +225,62 @@ void AirwaySegmentation::morphologicalClosing(Segmentation::pointer segmentation
 	memset(data, 0, width*height*depth);
 	access->release();
 
-	OpenCLImageAccess::pointer input = segmentation->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
-	OpenCLImageAccess::pointer input2 = segmentation2->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
-
 	cl::Kernel dilateKernel(program, "dilate");
 	cl::Kernel erodeKernel(program, "erode");
 
-	dilateKernel.setArg(0, *input->get3DImage());
-	dilateKernel.setArg(1, *input2->get3DImage());
+	if(device->isWritingTo3DTexturesSupported()) {
+		OpenCLImageAccess::pointer input = segmentation->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+		OpenCLImageAccess::pointer input2 = segmentation2->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
 
-	device->getCommandQueue().enqueueNDRangeKernel(
-			dilateKernel,
-			cl::NullRange,
-			cl::NDRange(width, height, depth),
-			cl::NullRange
-    );
+		dilateKernel.setArg(0, *input->get3DImage());
+		dilateKernel.setArg(1, *input2->get3DImage());
 
-	erodeKernel.setArg(0, *input2->get3DImage());
-	erodeKernel.setArg(1, *input->get3DImage());
+		device->getCommandQueue().enqueueNDRangeKernel(
+				dilateKernel,
+				cl::NullRange,
+				cl::NDRange(width, height, depth),
+				cl::NullRange
+		);
 
-	device->getCommandQueue().enqueueNDRangeKernel(
-			erodeKernel,
-			cl::NullRange,
-			cl::NDRange(width, height, depth),
-			cl::NullRange
-    );
+		erodeKernel.setArg(0, *input2->get3DImage());
+		erodeKernel.setArg(1, *input->get3DImage());
+
+		device->getCommandQueue().enqueueNDRangeKernel(
+				erodeKernel,
+				cl::NullRange,
+				cl::NDRange(width, height, depth),
+				cl::NullRange
+		);
+	} else {
+		{
+			OpenCLImageAccess::pointer input = segmentation->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+			OpenCLBufferAccess::pointer input2 = segmentation2->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+
+			dilateKernel.setArg(0, *input->get3DImage());
+			dilateKernel.setArg(1, *input2->get());
+
+			device->getCommandQueue().enqueueNDRangeKernel(
+					dilateKernel,
+					cl::NullRange,
+					cl::NDRange(width, height, depth),
+					cl::NullRange
+			);
+		}
+
+		{
+			OpenCLBufferAccess::pointer input = segmentation->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+			OpenCLImageAccess::pointer input2 = segmentation2->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+			erodeKernel.setArg(0, *input2->get3DImage());
+			erodeKernel.setArg(1, *input->get());
+
+			device->getCommandQueue().enqueueNDRangeKernel(
+					erodeKernel,
+					cl::NullRange,
+					cl::NDRange(width, height, depth),
+					cl::NullRange
+			);
+		}
+	}
 }
 
 void AirwaySegmentation::execute() {
