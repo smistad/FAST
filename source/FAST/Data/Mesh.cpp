@@ -75,6 +75,7 @@ void Mesh::create(unsigned int nrOfTriangles) {
     }
     mIsInitialized = true;
     mNrOfConnections = nrOfTriangles;
+    mDimensions = 3;
 }
 
 VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
