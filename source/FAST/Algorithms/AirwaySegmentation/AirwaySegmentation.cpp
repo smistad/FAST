@@ -87,6 +87,7 @@ Vector3i findSeedVoxel(Image::pointer volume) {
 int grow(uchar* segmentation, const Vector3i neighbors[25], std::vector<Vector3i>* voxels, short* data, float threshold, int width, int height, int depth) {
     std::vector<Vector3i>::iterator it;
     std::stack<Vector3i> stack;
+    // TODO voxels coming in here consists of all voxels, should only need to add the front..
     for(it = voxels->begin(); it != voxels->end(); it++) {
         stack.push(*it);
     }
@@ -133,7 +134,7 @@ void regionGrowing(Image::pointer volume, Segmentation::pointer segmentation, Ve
     float volumeIncreaseLimit = 20000.0f;
     float volumeMinimum = 100000.0f;
     float VT = 0.0f; // volume with given threshold
-    float deltaT = 1.0f;
+    float deltaT = 2.0f;
     float spacing = 1.0f;
 
     // Create neighbor list
