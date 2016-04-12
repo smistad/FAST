@@ -46,7 +46,7 @@ TEST_CASE("Airway segmentation ALL", "[fast][AirwaySegmentation]") {
 }
 */
 
-TEST_CASE("Airway segmentation", "[fast][AirwaySegmentation]") {
+TEST_CASE("Airway segmentation", "[fast][AirwaySegmentation][visual]") {
 	ImageFileImporter::pointer importer = ImageFileImporter::New();
 	importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT-Thorax.mhd");
 
@@ -71,6 +71,7 @@ TEST_CASE("Airway segmentation", "[fast][AirwaySegmentation]") {
 	SimpleWindow::pointer window = SimpleWindow::New();
 	window->addRenderer(renderer);
 	window->addRenderer(lineRenderer);
+	window->setTimeout(1000);
 	window->start();
 	//segmentation->getRuntime()->print();
 }
