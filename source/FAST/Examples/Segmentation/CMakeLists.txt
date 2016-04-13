@@ -1,2 +1,3 @@
 fast_add_example(seededRegionGrowingSegmentation seededRegionGrowingSegmentation.cpp)
 fast_add_example(binaryThresholding binaryThresholding.cpp)
+fast_add_example(airwaySegmentation airwaySegmentation.cpp)
