@@ -15,7 +15,11 @@ __kernel void initialize(
 	uint value = read_imageui(input, sampler, pos).x;
 	if(value == 0) {
 		// Outside
+#ifdef cl_khr_3d_image_writes
 		write_imagei(distance, pos, 0);
+#else
+		distance[LPOS(pos)] = 0;
+#endif
 	} else {
 		// Inside
 		bool atBorder = false;
@@ -107,7 +111,7 @@ __kernel void findCandidateCenterpoints(
 #ifdef cl_khr_3d_image_writes
 			__write_only image3d_t output
 #else
-			__global uchar output
+			__global uchar* output
 #endif
         ) {
 	const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
