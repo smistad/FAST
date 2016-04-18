@@ -3,7 +3,7 @@
 
 namespace fast {
 
-void SimpleWindow::addRenderer(Renderer::pointer renderer) {
+void SimpleWindow::addRenderer(SharedPointer<Renderer> renderer) {
     getViews()[0]->addRenderer(renderer);
 }
 

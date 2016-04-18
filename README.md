@@ -23,15 +23,15 @@ To setup and build the framework, see the instructions for your operating system
 To start using the framework, see the [Getting started with FAST](https://github.com/smistad/FAST/wiki/Getting-started-with-FAST) guide or the [examples page](https://github.com/smistad/FAST/wiki/Examples).
 
 Build status
--------------------------
+---------------------
 **Master branch**
-* Ubuntu Linux 14.04, AMD CPU, AMD GPU - ![Build Status](http://eriksmistad.no/upload/build/FAST-Ubuntu-AMD-Master-NO-Visual.svg)
-* Mac OS X 10.9, Intel CPU, NVIDIA GPU - ![Build Status](http://eriksmistad.no/upload/build/FAST-Mac-Master.svg)
-* Windows 8.1, Intel CPU, NVIDIA GPU - ![Build Status](http://eriksmistad.no/upload/build/FAST-Windows-Master.svg)
+* Ubuntu Linux 14.04, AMD CPU, AMD GPU - ![Build Status](http://stud2057.idi.ntnu.no:8080/job/FAST%20-%20Ubuntu%20AMD%20-%20Master/badge/icon)
+* Mac OS X 10.9, Intel CPU, NVIDIA GPU - ![Build Status](http://stud2057.idi.ntnu.no:8080/job/FAST%20-%20Mac%20OS%20X%20-%20Master/badge/icon)
+* Windows 8.1, Intel CPU, NVIDIA GPU - ![Build Status](http://stud2057.idi.ntnu.no:8080/job/FAST%20-%20Windows%20NVIDIA%20-%20Master/badge/icon)
 
 **Development branch**
-* Ubuntu Linux 14.04, AMD CPU, AMD GPU - ![Build Status](http://eriksmistad.no/upload/build/FAST-Ubuntu-AMD-Development-NO-Visual.svg)
-* Mac OS X 10.9, Intel CPU, NVIDIA GPU - ![Build Status](http://eriksmistad.no/upload/build/FAST-Mac-Development.svg)
-* Windows 8.1, Intel CPU, NVIDIA GPU - ![Build Status](http://eriksmistad.no/upload/build/FAST-Windows-Development.svg)
+* Ubuntu Linux 14.04, AMD CPU, AMD GPU - ![Build Status](http://stud2057.idi.ntnu.no:8080/job/FAST%20-%20Ubuntu%20AMD%20-%20Development/badge/icon)
+* Mac OS X 10.9, Intel CPU, NVIDIA GPU - ![Build Status](http://stud2057.idi.ntnu.no:8080/job/FAST%20-%20Mac%20OS%20X%20-%20Development/badge/icon)
+* Windows 8.1, Intel CPU, NVIDIA GPU - ![Build Status](http://stud2057.idi.ntnu.no:8080/job/FAST%20-%20Windows%20NVIDIA%20-%20Development/badge/icon)
 
 ![Surface mesh extracted from a large abdominal CT scan in about 100 ms using FAST and a modern GPU.](https://github.com/smistad/FAST/wiki/images/surface_extraction.png) ![Ultrasound image segmented using binary thresholding.](https://github.com/smistad/FAST/wiki/images/binary_thresholding.png)

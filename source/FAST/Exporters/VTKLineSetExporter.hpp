@@ -12,7 +12,7 @@ namespace fast {
 class VTKLineSetExporter : public vtkAlgorithm, public ProcessObject {
     public:
         static VTKLineSetExporter *New();
-        vtkTypeRevisionMacro(VTKLineSetExporter,vtkAlgorithm);
+        vtkTypeMacro(VTKLineSetExporter,vtkAlgorithm);
         std::string getNameOfClass() const { return "VTKLineSetExporter"; };
         vtkSmartPointer<vtkPolyData> GetOutput();
         vtkSmartPointer<vtkPolyData> GetOutput(int portID);

@@ -77,10 +77,10 @@ void Reporter::setGlobalReportMethod(Type type, Method method)  {
 Reporter::Method Reporter::getMethod(Type type) const {
     Method reportMethod;
     // If a local report method is given for the type, use that, if not use the global
-    if(mLocalReporterMethods.count(mType) > 0) {
-        reportMethod = mLocalReporterMethods.at(mType);
+    if(mLocalReporterMethods.count(type) > 0) {
+        reportMethod = mLocalReporterMethods.at(type);
     } else {
-        reportMethod = mGlobalReporterMethods.at(mType);
+        reportMethod = mGlobalReporterMethods.at(type);
     }
     return reportMethod;
 }

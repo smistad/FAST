@@ -1,6 +1,7 @@
 #pragma OPENCL EXTENSION cl_khr_3d_image_writes : enable
 
 __constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
+__constant sampler_t sampler2 = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
 
 __constant int4 cubeOffsets[8] = {
         {0, 0, 0, 0},
@@ -503,13 +504,13 @@ __kernel void classifyCubes(
 
     const uchar cubeindex =
     ((first > isolevel)) |
-    ((READ_RAW_DATA(rawData, sampler, pos + cubeOffsets[1]).x > isolevel) << 1) |
-    ((READ_RAW_DATA(rawData, sampler, pos + cubeOffsets[3]).x > isolevel) << 2) |
-    ((READ_RAW_DATA(rawData, sampler, pos + cubeOffsets[2]).x > isolevel) << 3) |
-    ((READ_RAW_DATA(rawData, sampler, pos + cubeOffsets[4]).x > isolevel) << 4) |
-    ((READ_RAW_DATA(rawData, sampler, pos + cubeOffsets[5]).x > isolevel) << 5) |
-    ((READ_RAW_DATA(rawData, sampler, pos + cubeOffsets[7]).x > isolevel) << 6) |
-    ((READ_RAW_DATA(rawData, sampler, pos + cubeOffsets[6]).x > isolevel) << 7);
+    ((READ_RAW_DATA(rawData, sampler2, pos + cubeOffsets[1]).x > isolevel) << 1) |
+    ((READ_RAW_DATA(rawData, sampler2, pos + cubeOffsets[3]).x > isolevel) << 2) |
+    ((READ_RAW_DATA(rawData, sampler2, pos + cubeOffsets[2]).x > isolevel) << 3) |
+    ((READ_RAW_DATA(rawData, sampler2, pos + cubeOffsets[4]).x > isolevel) << 4) |
+    ((READ_RAW_DATA(rawData, sampler2, pos + cubeOffsets[5]).x > isolevel) << 5) |
+    ((READ_RAW_DATA(rawData, sampler2, pos + cubeOffsets[7]).x > isolevel) << 6) |
+    ((READ_RAW_DATA(rawData, sampler2, pos + cubeOffsets[6]).x > isolevel) << 7);
 
 
     // Store number of triangles and cube index

@@ -4,13 +4,14 @@
 #include "Window.hpp"
 #include "View.hpp"
 #include "Renderer.hpp"
+#include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 
 namespace fast {
 
 class SimpleWindow : public Window {
     FAST_OBJECT(SimpleWindow)
     public:
-        void addRenderer(Renderer::pointer renderer);
+        void addRenderer(SharedPointer<Renderer> renderer);
         void removeAllRenderers();
         void setMaximumFramerate(unsigned int framerate);
         void setWindowSize(unsigned int w, unsigned int h);
@@ -18,8 +19,8 @@ class SimpleWindow : public Window {
         ~SimpleWindow();
         void set2DMode();
         void set3DMode();
-    protected:
         SimpleWindow();
+    protected:
 
 };
 

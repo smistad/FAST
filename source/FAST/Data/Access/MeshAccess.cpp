@@ -5,10 +5,10 @@ namespace fast {
 
 MeshAccess::MeshAccess(
         std::vector<MeshVertex>* vertices,
-        std::vector<Vector3ui>* triangles,
+        std::vector<VectorXui>* connections,
         SharedPointer<Mesh> mesh) {
     mVertices = vertices;
-    mTriangles = triangles;
+    mConnections = connections;
     mMesh = mesh;;
 }
 
@@ -26,7 +26,10 @@ MeshVertex MeshAccess::getVertex(uint i) {
 }
 
 Vector3ui MeshAccess::getTriangle(uint i) {
-    return (*mTriangles)[i];
+    return (*mConnections)[i];
+}
+Vector2ui MeshAccess::getLine(uint i) {
+    return (*mConnections)[i];
 }
 
 std::vector<MeshVertex> MeshAccess::getVertices() {
@@ -34,8 +37,12 @@ std::vector<MeshVertex> MeshAccess::getVertices() {
     return copy;
 }
 
-std::vector<Vector3ui> MeshAccess::getTriangles() {
-    std::vector<Vector3ui> copy = *mTriangles;
+std::vector<VectorXui> MeshAccess::getTriangles() {
+    std::vector<VectorXui> copy = *mConnections;
+    return copy;
+}
+std::vector<VectorXui> MeshAccess::getLines() {
+    std::vector<VectorXui> copy = *mConnections;
     return copy;
 }
 

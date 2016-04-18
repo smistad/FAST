@@ -6,7 +6,7 @@ fast_add_sources(
     AffineTransformationFileStreamer.cpp
     AffineTransformationFileStreamer.hpp
 )
-if(MODULE_OpenIGTLink)
+if(FAST_MODULE_OpenIGTLink)
     fast_add_sources(
         IGTLinkStreamer.hpp
         IGTLinkStreamer.cpp
@@ -19,4 +19,7 @@ if(MODULE_OpenIGTLink)
 endif()
 fast_add_test_sources(
     Tests/ImageFileStreamerTests.cpp
+)
+fast_add_python_interfaces(
+	ImageFileStreamer.i
 )

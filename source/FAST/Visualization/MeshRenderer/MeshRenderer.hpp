@@ -13,13 +13,21 @@ class MeshRenderer : public Renderer {
         void addInputConnection(ProcessObjectPort port);
         void addInputConnection(ProcessObjectPort port, Color color, float opacity);
         BoundingBox getBoundingBox();
-        void draw();
         void setDefaultOpacity(float opacity);
         void setDefaultColor(Color color);
         void setDefaultSpecularReflection(float specularReflection);
         void setColor(ProcessObjectPort port, Color color);
         void setOpacity(ProcessObjectPort port, float opacity);
     private:
+        void draw();
+        void draw2D(
+                cl::BufferGL PBO,
+                uint width,
+                uint height,
+                Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform,
+                float PBOspacing,
+                Vector2f translation
+        );
         MeshRenderer();
         void execute();
 

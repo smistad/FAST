@@ -26,11 +26,11 @@ class Window : public QObject, public Object {
         void setHeight(uint height);
         void enableFullscreen();
         void disableFullscreen();
+        std::vector<View*> getViews() const;
     protected:
         Window();
         View* createView();
         View* getView(uint i) const;
-        std::vector<View*> getViews() const;
         static QGLContext* mMainGLContext;
 
         WindowWidget* mWidget;

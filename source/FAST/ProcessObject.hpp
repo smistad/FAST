@@ -23,7 +23,6 @@ class OpenCLProgram;
 
 class ProcessObject : public virtual Object {
     public:
-        ProcessObject();
         virtual ~ProcessObject() {};
         void update();
         typedef SharedPointer<ProcessObject> pointer;
@@ -84,6 +83,7 @@ class ProcessObject : public virtual Object {
             return "ProcessObject";
         }
     protected:
+        ProcessObject();
         // Flag to indicate whether the object has been modified
         // and should be executed again
         bool mIsModified;
@@ -149,7 +149,7 @@ class ProcessObjectPort {
     public:
         ProcessObjectPort(uint portID, ProcessObject::pointer processObject);
         ProcessObjectPort() {};
-        DataObject::pointer getData() const;
+        DataObject::pointer getData();
         uint getPortID() const;
         ProcessObject::pointer getProcessObject() const;
         bool isDataModified() const;
@@ -165,6 +165,7 @@ class ProcessObjectPort {
         uint mPortID;
         ProcessObject::pointer mProcessObject;
         unsigned long mTimestamp;
+        std::size_t mDataPointer;
 };
 
 
