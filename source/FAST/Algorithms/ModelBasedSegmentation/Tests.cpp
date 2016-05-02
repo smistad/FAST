@@ -12,7 +12,6 @@
 #include "ShapeModels/CardinalSpline/CardinalSplineModel.hpp"
 
 using namespace fast;
-/*
 
 TEST_CASE("Model based segmentation with mean value coordinates on 3D cardiac US data", "[fast][ModelBasedSegmentation][cardiac][3d][visual]") {
 	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
@@ -116,4 +115,3 @@ TEST_CASE("Model based segmentation with ellipse model on 2D femoral nerve block
 	window->start();
 }
 
-*/

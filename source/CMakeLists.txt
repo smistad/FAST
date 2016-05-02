@@ -229,10 +229,6 @@ if(ZLIB_FOUND)
     set(LIBRARIES ${LIBRARIES} ${ZLIB_LIBRARIES})
 endif()
 
-
-#### Add all subdirs
-fast_add_subdirectories(FAST)
-
 #### Set include dirs
 include_directories(${FAST_INCLUDE_DIRS})
 get_directory_property(hasParent PARENT_DIRECTORY)
@@ -272,6 +268,36 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR CMAKE_COMPILER_IS_GNUCXX)
     endif()
 endif()
 
+if(FAST_BUILD_EXAMPLES)
+	set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
+	if(WIN32)
+		file(WRITE ${PROJECT_BINARY_DIR}/runAllExamples.bat "")
+	else()
+		file(WRITE ${PROJECT_BINARY_DIR}/runAllExamples.sh "#!/bin/bash\n")
+	endif()
+
+	### Macro for add examples
+	macro (fast_add_example NAME)
+		add_executable(${NAME} ${ARGN})
+		target_link_libraries(${NAME} FAST)
+		if(WIN32)
+			file(APPEND ${PROJECT_BINARY_DIR}/runAllExamples.bat "bin\\${CMAKE_BUILD_TYPE}\\${NAME}.exe\r\n")
+		else()
+			file(APPEND ${PROJECT_BINARY_DIR}/runAllExamples.sh "./bin/${NAME}\n")
+		endif()
+	endmacro()
+else()
+	macro (fast_add_example NAME)
+	endmacro()
+endif()
+
+#### Add all subdirs
+fast_add_subdirectories(FAST)
+add_subdirectory(FAST/Examples)
+
+
+
+
 #### OpenMP
 find_package(OpenMP)
 if(OPENMP_FOUND)
@@ -292,9 +318,7 @@ endif()
 ## Link everything
 target_link_libraries(FAST ${LIBRARIES})
 qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
-if(FAST_BUILD_EXAMPLES)
-    add_subdirectory(FAST/Examples)
-endif()
+
 if(FAST_BUILD_TESTS)
     target_link_libraries(testFAST FAST)
 endif()
