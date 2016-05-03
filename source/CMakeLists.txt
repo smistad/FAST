@@ -359,5 +359,5 @@ if(SWIG_FOUND AND FAST_MODULE_Python)
 		COMMAND ${CMAKE_COMMAND} -E rename fast.py ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/fast.py
 	)
 else()
-	message("-- SWIG not found, Python bindings will NOT be created.")
+    message("-- SWIG not found or Python module not enabled in CMake, Python bindings will NOT be created.")
 endif()
