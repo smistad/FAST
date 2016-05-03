@@ -318,7 +318,8 @@ if(SWIG_FOUND AND FAST_MODULE_Python)
 
 	include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-	set(CMAKE_SWIG_FLAGS "")
+    set(CMAKE_SWIG_FLAGS "-DSWIG_PYTHON_INTERPRETER_NO_DEBUG") 
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSWIG_PYTHON_INTERPRETER_NO_DEBUG") # Avoid a error on windows when compiling in debug mode
 	
 	# Generate the PyFAST interface file
 	# Include all header files
