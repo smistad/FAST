@@ -1,11 +1,12 @@
 #include "ImageClassifier.hpp"
 #include "FAST/Data/Image.hpp"
-#include <caffe/caffe.hpp>
 
 namespace fast {
 
 ImageClassifier::ImageClassifier() {
 	createInputPort<Image>(0);
+
+	mModelLoaded = false;
 }
 
 // Get all available GPU devices
@@ -18,24 +19,9 @@ static void get_gpus(std::vector<int>* gpus) {
 }
 
 
-static void subtractMeanFromImage(float* pixels, Vector3ui size, std::string meanFile) {
-	caffe::BlobProto blob_proto;
-	caffe::ReadProtoFromBinaryFileOrDie(meanFile.c_str(), &blob_proto);
-
-	/* Convert from BlobProto to Blob<float> */
-	caffe::Blob<float> mean_blob;
-	mean_blob.FromProto(blob_proto);
-	float* meanPixels = mean_blob.mutable_cpu_data();
-	for(int i = 0; i < size.x()*size.y(); ++i) {
-		pixels[i] = round(pixels[i]*255);
-		pixels[i] -= meanPixels[i];
-	}
-}
-
-void ImageClassifier::execute() {
-	Image::pointer image = getStaticInputData<Image>();
-
+void ImageClassifier::loadModel(std::string modelFile, std::string trainingFile, std::string meanFile) {
 	std::vector<int> gpus;
+	/*
 	get_gpus(&gpus);
 	if (gpus.size() != 0) {
 		reportInfo() << "Use GPU with device ID " << gpus[0] << reportEnd();
@@ -43,40 +29,52 @@ void ImageClassifier::execute() {
 		caffe::Caffe::set_mode(caffe::Caffe::GPU);
 		caffe::Caffe::SetDevice(gpus[0]);
 	}
-	//caffe::Caffe::set_mode(caffe::Caffe::CPU);
-
-	std::string modelFile = "/home/smistad/workspace/caffe-test/source/models/vessel_ultrasound_lenet/deploy.prototxt";
-	std::string trainingFile = "/home/smistad/workspace/caffe-test/source/models/vessel_ultrasound_lenet/snapshot_iter_90.caffemodel";
-	std::string file = "/home/smistad/workspace/caffe-test/source/models/vessel_ultrasound_lenet/image.png";
-	std::string meanFile = "/home/smistad/workspace/caffe-test/source/models/vessel_ultrasound_lenet/mean.binaryproto";
-
+	*/
+	caffe::Caffe::set_mode(caffe::Caffe::CPU);
 	reportInfo() << "Loading model file.." << reportEnd();
-	boost::shared_ptr<caffe::Net<float> > net(new caffe::Net<float>(modelFile, caffe::TEST, caffe::Caffe::GetDefaultDevice()));
+	mNet = SharedPointer<caffe::Net<float> >(new caffe::Net<float>(modelFile, caffe::TEST, caffe::Caffe::GetDefaultDevice()));
 	reportInfo() << "Finished loading model" << reportEnd();
 
 	reportInfo() << "Loading training file.." << reportEnd();
-	net->CopyTrainedLayersFrom(trainingFile);
+	mNet->CopyTrainedLayersFrom(trainingFile);
 	reportInfo() << "Finished loading training file." << reportEnd();
 
-	if(net->num_inputs() != 1) {
+	if(mNet->num_inputs() != 1) {
 		throw Exception("Number of inputs was not 1");
 	}
-	if(net->num_outputs() != 1) {
+	if(mNet->num_outputs() != 1) {
 		throw Exception("Number of outputs was not 1");
 	}
+
+	reportInfo() << "Loading mean image file.." << reportEnd();
+	caffe::BlobProto blob_proto;
+	caffe::ReadProtoFromBinaryFileOrDie(meanFile.c_str(), &blob_proto);
+
+	mMeanBlob.FromProto(blob_proto);
+	reportInfo() << "Finished loading mean image file." << reportEnd();
+	mModelLoaded = true;
+}
+
+void ImageClassifier::execute() {
+	if(!mModelLoaded)
+		throw Exception("Model must be loaded in ImageClassifier before execution.");
+
+	Image::pointer image = getStaticInputData<Image>();
 	if(image->getDataType() != TYPE_FLOAT) {
 		throw Exception("Only float images supported currently");
 	}
 
-	caffe::Blob<float>* input_layer = net->input_blobs()[0];
+	caffe::Blob<float>* input_layer = mNet->input_blobs()[0];
 	if(input_layer->channels() != 1) {
 		throw Exception("Number of input channels was not 1");
 	}
 
+	/*
+	// What is the purpose of this??
 	input_layer->Reshape(1, 1, 64, 64);
-	/* Forward dimension change to all layers. */
-	net->Reshape();
+	mNet->Reshape();
 	std::cout << "Input layer reshaped" << std::endl;
+	*/
 
 	// TODO Resize image to fit input layer
 	// TODO Load mean image and subtract from image
@@ -84,15 +82,20 @@ void ImageClassifier::execute() {
 	// TODO Set image to input layer
 	float* input_data = input_layer->mutable_cpu_data(); // This is the input data
 	ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
-	float* image_data = (float*)access->get();
-	subtractMeanFromImage(image_data, image->getSize(), meanFile);
-	memcpy(input_data, image_data, sizeof(float)*image->getWidth()*image->getHeight());
+	float* pixels = (float*)access->get();
+	Vector3ui size = image->getSize();
+	float* meanPixels = mMeanBlob.mutable_cpu_data();
+	for(int i = 0; i < size.x()*size.y(); ++i) {
+		pixels[i] = round(pixels[i]*255);
+		pixels[i] -= meanPixels[i];
+	}
+	memcpy(input_data, pixels, sizeof(float)*image->getWidth()*image->getHeight());
 
 	// Do a forward pass
-	net->Forward();
+	mNet->Forward();
 
 	// Read output layer
-	caffe::Blob<float>* output_layer = net->output_blobs()[0];
+	caffe::Blob<float>* output_layer = mNet->output_blobs()[0];
 	const float* begin = output_layer->cpu_data();
 	const float* end = begin + output_layer->channels();
 	std::vector<float> result(begin, end);
