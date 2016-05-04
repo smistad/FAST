@@ -1,3 +1,10 @@
+// Hack for windows and swig
+%begin %{
+#if defined(_DEBUG) && defined(SWIG_PYTHON_INTERPRETER_NO_DEBUG)
+#include <crtdefs.h>
+#endif
+%}
+
 %module fast
 %{
 ${PYFAST_HEADER_INCLUDES}
