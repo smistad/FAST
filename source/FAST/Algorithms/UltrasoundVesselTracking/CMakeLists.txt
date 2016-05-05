@@ -5,9 +5,9 @@ fast_add_sources(
     VesselCrossSection.hpp
     VesselCrossSectionAccess.cpp
     VesselCrossSectionAccess.hpp
-    UltrasoundVesselDetection.cpp
-    UltrasoundVesselDetection.hpp
+#    UltrasoundVesselDetection.cpp
+#    UltrasoundVesselDetection.hpp
 )
 fast_add_test_sources(
 )
-fast_add_example(extractVesselRegionProposals extractVesselRegionProposals.cpp)
+#fast_add_example(extractVesselRegionProposals extractVesselRegionProposals.cpp)

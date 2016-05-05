@@ -1,6 +1,7 @@
 #include "ImageClassifier.hpp"
 #include "FAST/Data/Image.hpp"
 #include "FAST/Algorithms/ImageResizer/ImageResizer.hpp"
+#include "FAST/Algorithms/ScaleImage/ScaleImage.hpp"
 
 namespace fast {
 
@@ -71,9 +72,6 @@ void ImageClassifier::execute() {
 		throw Exception("Model must be loaded in ImageClassifier before execution.");
 
 	Image::pointer image = getStaticInputData<Image>();
-	if(image->getDataType() != TYPE_FLOAT) {
-		throw Exception("Only float images supported currently");
-	}
 
 	caffe::Blob<float>* input_layer = mNet->input_blobs()[0];
 	if(input_layer->channels() != 1) {
@@ -92,8 +90,13 @@ void ImageClassifier::execute() {
 	resizer->setWidth(input_layer->width());
 	resizer->setHeight(input_layer->height());
 	resizer->setInputData(image);
-	resizer->update();
-	image = resizer->getOutputData<Image>();
+
+	ScaleImage::pointer scale = ScaleImage::New();
+	scale->setInputConnection(resizer->getOutputPort());
+	scale->setHighestValue(255);
+	scale->setLowestValue(0);
+	scale->update();
+	image = scale->getOutputData<Image>();
 
 	// TODO Load mean image and subtract from image
 	// TODO convert to float
@@ -104,7 +107,6 @@ void ImageClassifier::execute() {
 	Vector3ui size = image->getSize();
 	float* meanPixels = mMeanBlob.mutable_cpu_data();
 	for(int i = 0; i < size.x()*size.y(); ++i) {
-		pixels[i] = round(pixels[i]*255);
 		pixels[i] -= meanPixels[i];
 	}
 	memcpy(input_data, pixels, sizeof(float)*image->getWidth()*image->getHeight());
