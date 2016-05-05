@@ -1,5 +1,6 @@
 #include "ImageClassifier.hpp"
 #include "FAST/Data/Image.hpp"
+#include "FAST/Algorithms/ImageResizer/ImageResizer.hpp"
 
 namespace fast {
 
@@ -55,6 +56,16 @@ void ImageClassifier::loadModel(std::string modelFile, std::string trainingFile,
 	mModelLoaded = true;
 }
 
+void ImageClassifier::setLabels(std::vector<std::string> labels) {
+	mResult.clear();
+	mLabels.clear();
+	mLabels = labels;
+}
+
+std::map<std::string, float> ImageClassifier::getResult() const {
+	return mResult;
+}
+
 void ImageClassifier::execute() {
 	if(!mModelLoaded)
 		throw Exception("Model must be loaded in ImageClassifier before execution.");
@@ -76,7 +87,14 @@ void ImageClassifier::execute() {
 	std::cout << "Input layer reshaped" << std::endl;
 	*/
 
-	// TODO Resize image to fit input layer
+	// Resize image to fit input layer
+	ImageResizer::pointer resizer = ImageResizer::New();
+	resizer->setWidth(input_layer->width());
+	resizer->setHeight(input_layer->height());
+	resizer->setInputData(image);
+	resizer->update();
+	image = resizer->getOutputData<Image>();
+
 	// TODO Load mean image and subtract from image
 	// TODO convert to float
 	// TODO Set image to input layer
@@ -99,9 +117,13 @@ void ImageClassifier::execute() {
 	const float* begin = output_layer->cpu_data();
 	const float* end = begin + output_layer->channels();
 	std::vector<float> result(begin, end);
-	std::cout << "RESULT: " << std::endl;
-	std::cout << "Not vessel: " << result[0] << std::endl;
-	std::cout << "Vessel: " << result[1] << std::endl;
+	if(mLabels.size() != result.size())
+		throw Exception("The number of labels did not match the number of predictions.");
+	reportInfo() << "RESULT: " << reportEnd();
+	for(int i = 0; i < result.size(); ++i) {
+		mResult[mLabels[i]] = result[i];
+		reportInfo() << mLabels[i] << ": " << result[i] << reportEnd();
+	}
 }
 
 }

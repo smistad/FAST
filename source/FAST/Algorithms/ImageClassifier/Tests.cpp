@@ -12,10 +12,11 @@ TEST_CASE("Image classifier", "[fast][ImageClassifier]") {
 
 	Reporter::setGlobalReportMethod(Reporter::COUT);
 	ImageFileImporter::pointer importer = ImageFileImporter::New();
-	importer->setFilename("/home/smistad/workspace/caffe-test/source/models/vessel_ultrasound_lenet/image64x64_2.png");
+    importer->setFilename("/home/smistad/workspace/caffe-test/source/models/vessel_ultrasound_lenet/image64x64.png");
 
 	ImageClassifier::pointer classifier = ImageClassifier::New();
 	classifier->loadModel(modelFile, trainingFile, meanFile);
+	classifier->setLabels({"Not vessel", "Vessel"});
 	classifier->setInputConnection(importer->getOutputPort());
 	classifier->enableRuntimeMeasurements();
 	classifier->update();

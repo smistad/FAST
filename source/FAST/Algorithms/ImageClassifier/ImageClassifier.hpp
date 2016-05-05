@@ -14,6 +14,8 @@ class ImageClassifier : public ProcessObject {
 				std::string trainingFile,
 				std::string meanFile
 		);
+		void setLabels(std::vector<std::string> labels);
+		std::map<std::string, float> getResult() const;
 	private:
 		ImageClassifier();
 		void execute();
@@ -21,6 +23,9 @@ class ImageClassifier : public ProcessObject {
 		SharedPointer<caffe::Net<float> > mNet;
 		caffe::Blob<float> mMeanBlob;
 		bool mModelLoaded;
+		// A map of label -> score
+		std::map<std::string, float> mResult;
+		std::vector<std::string> mLabels;
 
 };
 
