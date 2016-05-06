@@ -277,7 +277,9 @@ bool ProcessObject::outputPortExists(uint portID) const {
 void ProcessObject::createOpenCLProgram(std::string sourceFilename, std::string name) {
     OpenCLProgram::pointer program = OpenCLProgram::New();
     program->setName(name);
-    program->setSourceFilename(sourceFilename);
+	std::string absolutePathToFile = DeviceManager::getInstance().getKernelRootPath()+sourceFilename;
+	std::cout << "createOpenCLProgram: " << name << " from file " << absolutePathToFile << std::endl;
+	program->setSourceFilename(absolutePathToFile);
     mOpenCLPrograms[name] = program;
 }
 

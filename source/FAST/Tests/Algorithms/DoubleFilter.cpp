@@ -15,7 +15,7 @@ DoubleFilter::DoubleFilter() {
     createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
 
     // This creates an OpenCL program from a source file on disk
-    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Tests/Algorithms/DoubleFilter.cl");
+	createOpenCLProgram("Tests/Algorithms/DoubleFilter.cl");
 }
 
 /*

@@ -27,8 +27,8 @@ void LaplacianOfGaussian::setStandardDeviation(float stdDev) {
 LaplacianOfGaussian::LaplacianOfGaussian() {
     createInputPort<Image>(0);
     createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/LaplacianOfGaussian/LaplacianOfGaussian2D.cl", "2D");
-    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/LaplacianOfGaussian/LaplacianOfGaussian3D.cl", "3D");
+	createOpenCLProgram("Algorithms/LaplacianOfGaussian/LaplacianOfGaussian2D.cl", "2D");
+	createOpenCLProgram("Algorithms/LaplacianOfGaussian/LaplacianOfGaussian3D.cl", "3D");
     mStdDev = 1.0f;
     mMaskSize = 3;
     mIsModified = true;

@@ -6,7 +6,7 @@ namespace fast {
 ImageGradient::ImageGradient() {
     createInputPort<Image>(0);
     createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/ImageGradient/ImageGradient.cl");
+	createOpenCLProgram("Algorithms/ImageGradient/ImageGradient.cl");
 
     mUse16bitFormat = false;
 }
