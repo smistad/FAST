@@ -2,7 +2,7 @@
 #define VESSEL_DETECTION_FOR_2D_ULTRASOUND_HPP
 
 #include "FAST/ProcessObject.hpp"
-#include "FAST/Algorithms/UltrasoundVesselTracking/VesselCrossSection.hpp"
+#include "FAST/Algorithms/UltrasoundVesselDetection/VesselCrossSection.hpp"
 
 namespace fast {
 

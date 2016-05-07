@@ -32,10 +32,10 @@ __kernel void vesselDetection(
     const float radiusMaxInPixels = radiusMaxInMM*(1.0f/spacing);
     const float radiusStepInPixels = 2;
 
-    const int2 pos = {get_global_id(0), get_global_id(1)};
+    const int2 pos = {get_global_id(0)*2, get_global_id(1)*2};
     
-    // Should be 10 pixel + radius max within image
-    if(outOfBounds(pos, radiusMaxInPixels+10, get_image_width(image), get_image_height(image))) {
+    // Should be 10 pixel  max within image
+    if(outOfBounds(pos, 10, get_image_width(image), get_image_height(image))) {
         write_imagef(result, pos, (float4)(0,0,0,0));
         return;
     }
@@ -57,7 +57,7 @@ __kernel void vesselDetection(
                 float2 direction = {cos(alpha), sin(alpha)*scale};
                 const float2 samplePos = direction*radius + convert_float2(pos);
                 float2 gradient = read_imagef(gradients, samplerInterpolation, samplePos).xy;
-                gradient = normalize(gradient); // only direction matter
+                //gradient = normalize(gradient); // only direction matter
                 // Calculate normal
                 float2 normal = {
                         (samplePos.x-pos.x)*scale,

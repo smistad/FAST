@@ -49,6 +49,7 @@ void UltrasoundVesselDetection::execute() {
         throw Exception("The UltrasoundVesselDetection algorithm is only for 2D");
     }
 
+    mRuntimeManager->startRegularTimer("ellipse fitting");
     // Create kernel
     std::string buildOptions = "";
     if(input->getDataType() == TYPE_FLOAT) {
@@ -65,8 +66,8 @@ void UltrasoundVesselDetection::execute() {
     // Run GaussianSmoothing on input
     GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
     filter->setInputData(input);
-    filter->setMaskSize(11);
-    filter->setStandardDeviation(3);
+    filter->setMaskSize(5);
+    filter->setStandardDeviation(2);
     filter->update();
     Image::pointer smoothedImage = filter->getOutputData<Image>();
 
@@ -103,10 +104,13 @@ void UltrasoundVesselDetection::execute() {
     uint startPosY = round(minimumDepthInMM/spacing);
     uint endPosY = round(maximumDepthInMM/spacing);
 
+    // Only process every second pixel
+    cl::NDRange globalSize(input->getWidth() / 2, (endPosY-startPosY) / 2);
+    cl::NDRange kernelOffset(0, startPosY / 2);
     device->getCommandQueue().enqueueNDRangeKernel(
             kernel,
-            cl::NDRange(0, startPosY),
-            cl::NDRange(input->getWidth(), endPosY-startPosY),
+			kernelOffset,
+			globalSize,
             cl::NullRange
     );
 
@@ -120,19 +124,19 @@ void UltrasoundVesselDetection::execute() {
             0,0,
             data.get()
     );
+    mRuntimeManager->stopRegularTimer("ellipse fitting");
+    mRuntimeManager->startRegularTimer("candidate selection");
 
 	AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(input);
 	transform->scale(input->getSpacing());
 
-	// TODO sort cross sections after score, then
-
     // Find best ellipses
 	std::priority_queue<Candidate, std::vector<Candidate>, CandidateComparison> candidates;
-    for(uint x = 0; x < input->getWidth(); x++) {
-        for(uint y = startPosY; y < endPosY; y++) {
+    for(uint x = 0; x < input->getWidth(); x+=2) {
+        for(uint y = startPosY+1; y < endPosY; y+=2) {
             uint i = x + y*input->getWidth();
 
-            if(data[i*4] > 0.5) { // If score is higher than a threshold
+            if(data[i*4] > 1.5) { // If score is higher than a threshold
 				float posY = floor(data[i*4+3]/input->getWidth());
 				float posX = data[i*4+3]-posY*input->getWidth();
 				Vector3f voxelPosition(posX, posY, 0);
@@ -170,19 +174,22 @@ void UltrasoundVesselDetection::execute() {
 			mCrossSections.push_back(next.crossSection);
 		}
 	}
+	std::cout << mCrossSections.size() << " candidate vessels" << std::endl;
+    mRuntimeManager->stopRegularTimer("candidate selection");
+    mRuntimeManager->startRegularTimer("classifier");
 
 	ImageClassifier::pointer classifier = ImageClassifier::New();
-	std::string modelFile = "/home/smistad/workspace/caffe-test/source/models/vessel_ultrasound_lenet/deploy.prototxt";
-	std::string trainingFile = "/home/smistad/workspace/caffe-test/source/models/vessel_ultrasound_lenet/snapshot_iter_90.caffemodel";
-	std::string meanFile = "/home/smistad/workspace/caffe-test/source/models/vessel_ultrasound_lenet/mean.binaryproto";
+	std::string modelFile = "/home/smistad/vessel_detection_model/deploy.prototxt";
+	std::string trainingFile = "/home/smistad/vessel_detection_model/snapshot_iter_540.caffemodel";
+	std::string meanFile = "/home/smistad/vessel_detection_model/mean.binaryproto";
 	classifier->loadModel(modelFile, trainingFile, meanFile);
     Vector3ui imageSize = input->getSize();
 	const int frameSize = 40; // Nr if pixels to include around vessel
 
 	std::vector<VesselCrossSection::pointer> acceptedVessels;
 	// Create sub images and send to classifier
-    for(VesselCrossSection::pointer crossSection : mCrossSections) {
-        VesselCrossSectionAccess::pointer access = crossSection->getAccess(ACCESS_READ);
+    for(int i = 0; i < mCrossSections.size(); ++i) {
+        VesselCrossSectionAccess::pointer access = mCrossSections[i]->getAccess(ACCESS_READ);
         Vector2f imageCenter = access->getImageCenterPosition();
 
         // Radius in pixels
@@ -208,12 +215,6 @@ void UltrasoundVesselDetection::execute() {
         if(offset.y() + size.y() > imageSize.y())
                 size.y() = imageSize.y() - offset.y();
 
-        std::cout << "Center: " << imageCenter.transpose() << std::endl;
-        std::cout << "Major radius: " << majorRadius << std::endl;
-        std::cout << "Minor radius: " << minorRadius << std::endl;
-        std::cout << "Offset: " << offset.transpose() << std::endl;
-        std::cout << "Size: " << size.transpose() << std::endl;
-
         ImageCropper::pointer cropper = ImageCropper::New();
         cropper->setInputData(input);
         cropper->setOffset(offset.cast<uint>());
@@ -224,12 +225,14 @@ void UltrasoundVesselDetection::execute() {
         classifier->update();
 
         if(classifier->getResult()["Vessel"] > 0.9) {
-        	std::cout << "accepted" << std::endl;
-        	acceptedVessels.push_back(crossSection);
+        	acceptedVessels.push_back(mCrossSections[i]);
         }
     }
+    mRuntimeManager->stopRegularTimer("classifier");
 
     if(mCreateSegmentation) {
+    	std::cout << "Creating seg.." << std::endl;
+		mRuntimeManager->startRegularTimer("segmentation");
         Segmentation::pointer segmentation = getStaticOutputData<Segmentation>(0);
         segmentation->createFromImage(input);
 
@@ -255,9 +258,6 @@ void UltrasoundVesselDetection::execute() {
         //if(acceptedVessels.size() > 0) {
             VesselCrossSectionAccess::pointer access = crossSection->getAccess(ACCESS_READ);
             Vector2f imageCenter = access->getImageCenterPosition();
-            std::cout << imageCenter.transpose() << std::endl;
-            std::cout << access->getMajorRadius() << std::endl;
-            std::cout << access->getMinorRadius() << std::endl;
             kernel.setArg(0, *outputData);
             kernel.setArg(1, imageCenter.x());
             kernel.setArg(2, imageCenter.y());
@@ -271,6 +271,7 @@ void UltrasoundVesselDetection::execute() {
                     cl::NullRange
             );
         }
+		mRuntimeManager->stopRegularTimer("segmentation");
     }
 }
 

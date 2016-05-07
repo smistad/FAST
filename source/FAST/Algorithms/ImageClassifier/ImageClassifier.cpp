@@ -23,7 +23,6 @@ static void get_gpus(std::vector<int>* gpus) {
 
 void ImageClassifier::loadModel(std::string modelFile, std::string trainingFile, std::string meanFile) {
 	std::vector<int> gpus;
-	/*
 	get_gpus(&gpus);
 	if (gpus.size() != 0) {
 		reportInfo() << "Use GPU with device ID " << gpus[0] << reportEnd();
@@ -31,8 +30,8 @@ void ImageClassifier::loadModel(std::string modelFile, std::string trainingFile,
 		caffe::Caffe::set_mode(caffe::Caffe::GPU);
 		caffe::Caffe::SetDevice(gpus[0]);
 	}
-	*/
-	caffe::Caffe::set_mode(caffe::Caffe::CPU);
+	FLAGS_minloglevel = 5; // Disable cout from caffe
+	//caffe::Caffe::set_mode(caffe::Caffe::CPU);
 	reportInfo() << "Loading model file.." << reportEnd();
 	mNet = SharedPointer<caffe::Net<float> >(new caffe::Net<float>(modelFile, caffe::TEST, caffe::Caffe::GetDefaultDevice()));
 	reportInfo() << "Finished loading model" << reportEnd();
@@ -101,7 +100,6 @@ void ImageClassifier::execute() {
 	// TODO Load mean image and subtract from image
 	// TODO convert to float
 	// TODO Set image to input layer
-	float* input_data = input_layer->mutable_cpu_data(); // This is the input data
 	ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
 	float* pixels = (float*)access->get();
 	Vector3ui size = image->getSize();
@@ -109,6 +107,7 @@ void ImageClassifier::execute() {
 	for(int i = 0; i < size.x()*size.y(); ++i) {
 		pixels[i] -= meanPixels[i];
 	}
+	float* input_data = input_layer->mutable_cpu_data(); // This is the input data
 	memcpy(input_data, pixels, sizeof(float)*image->getWidth()*image->getHeight());
 
 	// Do a forward pass

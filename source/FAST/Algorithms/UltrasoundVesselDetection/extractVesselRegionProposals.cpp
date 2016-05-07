@@ -1,7 +1,7 @@
 #include "FAST/Data/Image.hpp"
 #include "FAST/Streamers/ImageFileStreamer.hpp"
-#include "FAST/Algorithms/UltrasoundVesselTracking/UltrasoundVesselDetection.hpp"
-#include "FAST/Algorithms/UltrasoundVesselTracking/VesselCrossSection.hpp"
+#include "FAST/Algorithms/UltrasoundVesselDetection/UltrasoundVesselDetection.hpp"
+#include "FAST/Algorithms/UltrasoundVesselDetection/VesselCrossSection.hpp"
 #include "FAST/Exporters/ImageExporter.hpp"
 #include "FAST/Algorithms/ImageCropper/ImageCropper.hpp"
 
@@ -28,8 +28,11 @@ int main() {
 	//streamer->setFilenameFormat("/home/smistad/ES/US-Acq_03_20150608T103739/Acquisition/US-Acq_03_20150608T103739_Image_Transducer_#.mhd");
 	//streamer->setFilenameFormat("/home/smistad/ES/US-Acq_04_20150608T103837/Acquisition/US-Acq_04_20150608T103837_Image_Transducer_#.mhd");
 	//streamer->setFilenameFormat("/home/smistad/ES/US-Acq_07_20150608T104148/Acquisition/US-Acq_07_20150608T104148_Image_Transducer_#.mhd");
-	streamer->setFilenameFormat("/home/smistad/ES/US-Acq_08_20150608T104238/Acquisition/US-Acq_08_20150608T104238_Image_Transducer_#.mhd");
-	streamer->setStepSize(50);
+	//streamer->setFilenameFormat("/home/smistad/ES/US-Acq_08_20150608T104238/Acquisition/US-Acq_08_20150608T104238_Image_Transducer_#.mhd");
+	//streamer->setFilenameFormat("/home/smistad/AssistantTestData/DHI/US-Acq_04_20150608T104910/Acquisition/US-Acq_04_20150608T104910_Image_Transducer_#.mhd");
+	//streamer->setFilenameFormat("/home/smistad/AssistantTestData/IR/US-Acq_04_20150608T112656/Acquisition/US-Acq_04_20150608T112656_Image_Transducer_#.mhd");
+	streamer->setFilenameFormat("/home/smistad/AssistantTestData/DHI/US-Acq_04_20150608T104910/Acquisition/US-Acq_04_20150608T104910_Image_Transducer_#.mhd");
+	streamer->setStepSize(10);
 	streamer->update();
 	DynamicData::pointer images = streamer->getOutputData<Image>();
 
@@ -54,7 +57,6 @@ int main() {
 		detector->update();
 		std::vector<VesselCrossSection::pointer> crossSections = detector->getCrossSections();
 		std::cout << "Found " << crossSections.size() << " cross sections" << std::endl;
-		// TODO: need to get multiple vessel cross sections from the detector
 
 		// For each detected black ellipse
 		for(VesselCrossSection::pointer crossSection : crossSections) {
@@ -83,12 +85,6 @@ int main() {
 				size.x() = imageSize.x() - offset.x();
 			if(offset.y() + size.y() > imageSize.y())
 				size.y() = imageSize.y() - offset.y();
-
-			std::cout << "Center: " << imageCenter.transpose() << std::endl;
-			std::cout << "Major radius: " << majorRadius << std::endl;
-			std::cout << "Minor radius: " << minorRadius << std::endl;
-			std::cout << "Offset: " << offset.transpose() << std::endl;
-			std::cout << "Size: " << size.transpose() << std::endl;
 
 			ImageCropper::pointer cropper = ImageCropper::New();
 			cropper->setInputData(image);
