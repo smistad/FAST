@@ -250,7 +250,7 @@ void NoneLocalMeans::recompileOpenCLCode(Image::pointer input) {
 	else {
 		filename = "Algorithms/NoneLocalMeans/NoneLocalMeans3Dgs.cl";
 	}
-	int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + filename, buildOptions);
+	int programNr = device->createProgramFromSource(filename, buildOptions);
 	mKernel = cl::Kernel(device->getProgram(programNr), "noneLocalMeans");
 	mDimensionCLCodeCompiledFor = input->getDimensions();
 	mTypeCLCodeCompiledFor = input->getDataType();

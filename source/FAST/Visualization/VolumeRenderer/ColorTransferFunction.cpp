@@ -182,7 +182,7 @@ void VolumeRenderer::execute() {
 		printf("\n%s\n",buffer);
 
         std::string str(buffer);
-        int programNr = mDevice->createProgramFromSource(std::string(FAST_ROOT_DIR) + "/Visualization/VolumeRenderer/VolumeRenderer.cl", str);
+		int programNr = mDevice->createProgramFromSource("/Visualization/VolumeRenderer/VolumeRenderer.cl", str);
         program = mDevice->getProgram(programNr);
 	
 	

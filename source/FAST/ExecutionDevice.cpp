@@ -292,6 +292,7 @@ RuntimeMeasurementsManagerPtr OpenCLDevice::getRunTimeMeasurementManager(){
 
 cl::Program OpenCLDevice::writeBinary(std::string filename, std::string buildOptions) {
     // Build program from source file and store the binary file
+
     std::string sourceCode = readFile(filename);
 
     cl::Program::Sources source(1, std::make_pair(sourceCode.c_str(), sourceCode.length()));
@@ -383,16 +384,24 @@ cl::Program OpenCLDevice::readBinary(std::string filename) {
 }
 
 cl::Program OpenCLDevice::buildProgramFromBinary(std::string filename, std::string buildOptions) {
+
+	//std::cout << "\n\n buildProgramFromBinary - START" << filename << std::endl;
     boost::lock_guard<boost::mutex> lock(buildBinaryMutex);
     cl::Program program;
 
     boost::hash<std::string> hash_function;
     std::string deviceName = getDevice(0).getInfo<CL_DEVICE_NAME>();
     std::size_t hash = hash_function(buildOptions + deviceName);
-    std::string binaryPath = std::string(OUL_OPENCL_KERNEL_BINARY_PATH);
+
+	std::string binaryPath = ""; //std::string(OUL_OPENCL_KERNEL_BINARY_PATH);
+	//std::cout << "binaryPath " << binaryPath << std::endl;
     std::string binaryFilename = binaryPath + filename + "_" + boost::lexical_cast<std::string>(hash) + ".bin";
+	std::cout << "binaryFilename " << binaryFilename << std::endl;
     std::string cacheFilename = binaryPath + filename + "_" + boost::lexical_cast<std::string>(hash) + ".cache";
-    if(binaryPath != "") {
+	//std::cout << "cacheFilename " << cacheFilename << std::endl;
+
+	/*
+	if(binaryPath != "") {
         // Remove shared path from filename
         for(int i = 0; i < std::min(filename.size(), binaryPath.size()); i++) {
             if(binaryPath[i] == filename[i]) {
@@ -404,6 +413,7 @@ cl::Program OpenCLDevice::buildProgramFromBinary(std::string filename, std::stri
             }
         }
     }
+	*/
 
     // Check if a binary file exists
     std::ifstream binaryFile(binaryFilename.c_str(), std::ios_base::binary | std::ios_base::in);
@@ -453,7 +463,7 @@ cl::Program OpenCLDevice::buildProgramFromBinary(std::string filename, std::stri
             program = readBinary(binaryFilename);
         }
     }
-
+	//std::cout << "buildProgramFromBinary - END \n\n" << std::endl;
     return program;
 }
 
