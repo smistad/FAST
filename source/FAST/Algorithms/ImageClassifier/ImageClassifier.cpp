@@ -25,7 +25,7 @@ void ImageClassifier::loadModel(std::string modelFile, std::string trainingFile,
 	std::vector<int> gpus;
 	get_gpus(&gpus);
 	if (gpus.size() != 0) {
-		reportInfo() << "Use GPU with device ID " << gpus[0] << reportEnd();
+		reportInfo() << "Use OpenCL device with ID " << gpus[0] << reportEnd();
 		caffe::Caffe::SetDevices(gpus);
 		caffe::Caffe::set_mode(caffe::Caffe::GPU);
 		caffe::Caffe::SetDevice(gpus[0]);
@@ -78,7 +78,7 @@ void ImageClassifier::execute() {
 	}
 
 	/*
-	// What is the purpose of this??
+	// nr of images x channels x width x height
 	input_layer->Reshape(1, 1, 64, 64);
 	mNet->Reshape();
 	std::cout << "Input layer reshaped" << std::endl;
@@ -96,10 +96,9 @@ void ImageClassifier::execute() {
 	scale->setLowestValue(0);
 	scale->update();
 	image = scale->getOutputData<Image>();
+	reportInfo() << "Finished image resize and scale." << reportEnd();
 
-	// TODO Load mean image and subtract from image
-	// TODO convert to float
-	// TODO Set image to input layer
+	// Set image to input layer
 	ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
 	float* pixels = (float*)access->get();
 	Vector3ui size = image->getSize();
