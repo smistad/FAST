@@ -145,9 +145,16 @@ uint ProcessObject::getNrOfOutputPorts() const {
 }
 
 void ProcessObject::setOutputData(uint outputNumber, DataObject::pointer data) {
-    mOutputData[outputNumber] = data;
+	if(mOutputData[outputNumber].size() > 0) {
+		mOutputData[outputNumber][0] = data;
+	} else {
+		mOutputData[outputNumber].push_back(data);
+	}
 }
 
+void ProcessObject::setOutputData(uint outputNumber, std::vector<DataObject::pointer> data) {
+    mOutputData[outputNumber] = data;
+}
 
 void ProcessObject::setOutputDataDynamicDependsOnInputData(uint outputNumber, uint inputNumber) {
     mOutputDynamicDependsOnInput[outputNumber] = inputNumber;
@@ -183,7 +190,12 @@ ProcessObjectPort ProcessObject::getOutputPort(uint portID) {
 }
 
 DataObject::pointer ProcessObject::getOutputDataX(uint portID) const {
-    DataObject::pointer data;
+
+    return getMultipleOutputDataX(portID)[0];
+}
+
+std::vector<DataObject::pointer> ProcessObject::getMultipleOutputDataX(uint portID) const {
+    std::vector<DataObject::pointer> data;
 
     // If output data is not created
     if(mOutputData.count(portID) == 0) {
@@ -202,6 +214,23 @@ DataObject::pointer ProcessObject::getInputData(uint inputNumber) const {
 }
 
 void ProcessObject::setInputData(uint portID, DataObject::pointer data) {
+    class EmptyProcessObject : public ProcessObject {
+        FAST_OBJECT(EmptyProcessObject)
+        public:
+        private:
+            void execute() {};
+    };
+    EmptyProcessObject::pointer PO = EmptyProcessObject::New();
+    PO->setOutputData(0, data);
+    setInputConnection(portID, PO->getOutputPort());
+    mIsModified = true;
+}
+
+void ProcessObject::setInputData(std::vector<DataObject::pointer>data) {
+    setInputData(0, data);
+}
+
+void ProcessObject::setInputData(uint portID, std::vector<DataObject::pointer> data) {
     class EmptyProcessObject : public ProcessObject {
         FAST_OBJECT(EmptyProcessObject)
         public:
@@ -248,6 +277,10 @@ ProcessObject::pointer ProcessObjectPort::getProcessObject() const {
 DataObject::pointer ProcessObjectPort::getData() {
 	mDataPointer = (std::size_t)mProcessObject->getOutputDataX(mPortID).getPtr().get();
     return mProcessObject->getOutputDataX(mPortID);
+}
+
+std::vector<DataObject::pointer> ProcessObjectPort::getMultipleData() {
+    return mProcessObject->getMultipleOutputDataX(mPortID);
 }
 
 uint ProcessObjectPort::getPortID() const {

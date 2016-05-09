@@ -42,11 +42,12 @@ class ProcessObject : public virtual Object {
         ExecutionDevice::pointer getDevice(uint deviceNumber) const;
 
         template <class DataType>
-        void createInputPort(uint portID, bool required = true, InputDataType = INPUT_STATIC_OR_DYNAMIC);
+        void createInputPort(uint portID, bool required = true, InputDataType = INPUT_STATIC_OR_DYNAMIC, bool allowMultipleData = false);
         template <class DataType>
-        void createOutputPort(uint portID, OutputDataType, int inputPortID = -1);
+        void createOutputPort(uint portID, OutputDataType, int inputPortID = -1, bool enableMultipleData = false);
 
         void setOutputData(uint outputNumber, DataObject::pointer object);
+        void setOutputData(uint outputNumber, std::vector<DataObject::pointer> data);
 
         // New pipeline methods
         void setInputConnection(ProcessObjectPort port);
@@ -54,6 +55,8 @@ class ProcessObject : public virtual Object {
         ProcessObjectPort getInputPort(uint portID) const;
         void setInputData(uint portID, DataObject::pointer);
         void setInputData(DataObject::pointer);
+        void setInputData(uint portID, std::vector<DataObject::pointer>);
+        void setInputData(std::vector<DataObject::pointer>);
         ProcessObjectPort getOutputPort();
         ProcessObjectPort getOutputPort(uint portID);
         /**
@@ -64,6 +67,17 @@ class ProcessObject : public virtual Object {
         template <class DataType>
         typename DataType::pointer getStaticInputData() const;
         /**
+         * This methods returns a vector of all static input data for a given port.
+         */
+        template <class DataType>
+        std::vector<typename DataType::pointer> getMultipleStaticInputData(uint inputNumber) const;
+        /**
+         * This methods returns a vector of all static input data for port 0.
+         */
+        template <class DataType>
+        std::vector<typename DataType::pointer> getMultipleStaticInputData() const;
+
+        /**
          * This method returns static data always. So if the output is dynamic data it will create a new frame and return that.
          */
         template <class DataType>
@@ -71,10 +85,25 @@ class ProcessObject : public virtual Object {
         template <class DataType>
         typename DataType::pointer getStaticOutputData();
 
+        /**
+         * This methods creates a new static output data and adds to the list of output data for the given port.
+         */
+        template <class DataType>
+        typename DataType::pointer addStaticOutputData(uint portID);
+        /**
+         * This methods creates a new static output data and adds to the list of output data for port 0.
+         */
+        template <class DataType>
+        typename DataType::pointer addStaticOutputData();
+
         template <class DataType>
         DataObject::pointer getOutputData(uint portID);
         template <class DataType>
         DataObject::pointer getOutputData();
+        template <class DataType>
+        std::vector<DataObject::pointer> getMultipleOutputData(uint portID);
+        template <class DataType>
+        std::vector<DataObject::pointer> getMultipleOutputData();
 
         bool inputPortExists(uint portID) const;
         bool outputPortExists(uint portID) const;
@@ -120,6 +149,7 @@ class ProcessObject : public virtual Object {
         void postExecute();
         // This fetches output data without creating it
         DataObject::pointer getOutputDataX(uint portID) const;
+        std::vector<DataObject::pointer> getMultipleOutputDataX(uint portID) const;
 
         boost::unordered_map<uint, bool> mRequiredInputs;
         boost::unordered_map<uint, bool> mReleaseAfterExecute;
@@ -130,13 +160,16 @@ class ProcessObject : public virtual Object {
 
         // New pipeline
         boost::unordered_map<uint, ProcessObjectPort> mInputConnections;
-        boost::unordered_map<uint, DataObject::pointer> mOutputData;
+        boost::unordered_map<uint, std::vector<DataObject::pointer> > mOutputData;
         // Contains a string of required port class
         boost::unordered_map<uint, std::string> mInputPortClass;
         boost::unordered_map<uint, std::string> mOutputPortClass;
         // Whether the ports accept dynamic, static or any of the two
         boost::unordered_map<uint, InputDataType> mInputPortType;
         boost::unordered_map<uint, OutputDataType> mOutputPortType;
+        // Whether the ports accept multiple data
+        boost::unordered_map<uint, bool> mInputPortMultipleData;
+        boost::unordered_map<uint, bool> mOutputPortMultipleData;
 
         boost::unordered_map<std::string, SharedPointer<OpenCLProgram> > mOpenCLPrograms;
 
@@ -150,6 +183,7 @@ class ProcessObjectPort {
         ProcessObjectPort(uint portID, ProcessObject::pointer processObject);
         ProcessObjectPort() {};
         DataObject::pointer getData();
+        std::vector<DataObject::pointer> getMultipleData();
         uint getPortID() const;
         ProcessObject::pointer getProcessObject() const;
         bool isDataModified() const;
@@ -189,18 +223,18 @@ DataObject::pointer ProcessObject::getOutputData(uint outputNumber) {
             } else {
                 data = DataType::New();
             }
-            mOutputData[outputNumber] = data;
+            mOutputData[outputNumber].push_back(data);
         } else if(mOutputPortType[outputNumber] == OUTPUT_STATIC) {
             // Create static data
             data = DataType::New();
-            mOutputData[outputNumber] = data;
+            mOutputData[outputNumber].push_back(data);
         } else {
             // Create dynamic data
             data = DynamicData::New();
-            mOutputData[outputNumber] = data;
+            mOutputData[outputNumber].push_back(data);
         }
     } else {
-        data = mOutputData[outputNumber];
+        data = mOutputData[outputNumber][0];
     }
 
     /*
@@ -256,6 +290,41 @@ typename DataType::pointer ProcessObject::getStaticInputData() const {
 }
 
 template <class DataType>
+std::vector<typename DataType::pointer> ProcessObject::getMultipleStaticInputData(uint inputNumber) const {
+    if(!inputPortExists(inputNumber))
+        throw Exception("The input port " + boost::lexical_cast<std::string>(inputNumber) + " does not exist on the ProcessObject " + getNameOfClass());
+
+    // at throws exception if element not found, while [] does not
+    ProcessObjectPort port = mInputConnections.at(inputNumber);
+    std::vector<DataObject::pointer> data = port.getMultipleData();
+    std::vector<DataObject::pointer> returnData;
+
+	if(mInputPortType.at(inputNumber) == INPUT_DYNAMIC)
+		throw Exception("Input " + boost::lexical_cast<std::string>(inputNumber) + " given to " + getNameOfClass() + " was static while dynamic was required.");
+	returnData = data;
+
+    // Try to do conversion
+    try {
+		std::vector<typename DataType::pointer> convertedReturnData;
+        // Try to cast the input data to the requested DataType
+		for(DataObject::pointer asd : returnData) {
+			typename DataType::pointer asd2 = asd;
+			convertedReturnData.push_back(asd2);
+		}
+        return convertedReturnData;
+    } catch(Exception &e) {
+        // Illegal cast means wrong input data was given to the class
+        throw Exception("Wrong input data given to " + getNameOfClass() + " \n" +
+                "Required: " + mInputPortClass.at(inputNumber) + " Requested: " + DataType::getStaticNameOfClass());
+    }
+}
+
+template <class DataType>
+std::vector<typename DataType::pointer> ProcessObject::getMultipleStaticInputData() const {
+	return getMultipleStaticInputData<DataType>(0);
+}
+
+template <class DataType>
 typename DataType::pointer ProcessObject::getStaticOutputData(uint outputNumber) {
     if(!outputPortExists(outputNumber))
         throw Exception("The output port " + boost::lexical_cast<std::string>(outputNumber) + " does not exist on the ProcessObject " + getNameOfClass());
@@ -288,6 +357,47 @@ typename DataType::pointer ProcessObject::getStaticOutputData(uint outputNumber)
 template <class DataType>
 typename DataType::pointer ProcessObject::getStaticOutputData() {
     return getStaticOutputData<DataType>(0);
+}
+
+template <class DataType>
+typename DataType::pointer ProcessObject::addStaticOutputData(uint portID) {
+	if(!outputPortExists(portID))
+        throw Exception("The output port " + boost::lexical_cast<std::string>(portID) + " does not exist on the ProcessObject " + getNameOfClass());
+
+    std::vector<DataObject::pointer> data = getMultipleOutputData<DataType>(portID);//mOutputs.at(outputNumber);
+
+	DataObject::pointer returnData = DataType::New();
+	mOutputData[portID].push_back(returnData);
+	return returnData;
+}
+
+template <class DataType>
+std::vector<DataObject::pointer> ProcessObject::getMultipleOutputData(uint outputNumber) {
+	std::vector<DataObject::pointer> data;
+
+    // If output data is not created
+    if(mOutputData.count(outputNumber) == 0) {
+        if(mOutputPortType[outputNumber] == OUTPUT_STATIC) {
+            // Create static data
+            mOutputData[outputNumber].push_back(DataType::New());
+        } else {
+        	throw Exception("Dynamic multiple data not supported yet.");
+        }
+    } else {
+        data = mOutputData[outputNumber];
+    }
+
+    return data;
+}
+template <class DataType>
+std::vector<DataObject::pointer> ProcessObject::getMultipleOutputData() {
+	return getMultipleOutputData<DataType>(0);
+
+}
+
+template <class DataType>
+typename DataType::pointer ProcessObject::addStaticOutputData() {
+    return addStaticOutputData<DataType>(0);
 }
 
 template <class DataType>
@@ -325,45 +435,51 @@ void ProcessObject::setStaticOutputData(uint portID, DataObject::pointer staticD
                 DataObject::pointer data;
                 data = DynamicData::New();
                 data->setStreamer(objectDependsOn->getStreamer());
-                mOutputData[portID] = data;
+                mOutputData[portID].push_back(data);
                 isDynamicData = true;
             }
         } else if(mOutputPortType[portID] == OUTPUT_DYNAMIC) {
             // Create dynamic data
-            mOutputData[portID] = DynamicData::New();
+            mOutputData[portID].push_back(DynamicData::New());
             isDynamicData = true;
         }
     } else {
-        if(mOutputData[portID]->isDynamicData()) {
+        if(mOutputData[portID][0]->isDynamicData()) {
             isDynamicData = true;
         }
     }
 
     if(isDynamicData) {
-        DynamicData::pointer(mOutputData[portID])->addFrame(convertedStaticData);
+        DynamicData::pointer(mOutputData[portID][0])->addFrame(convertedStaticData);
     } else {
-        mOutputData[portID] = convertedStaticData;
-        mOutputData[portID]->updateModifiedTimestamp();
+    	if(mOutputData[portID].size() == 0) {
+			mOutputData[portID].push_back(convertedStaticData);
+    	} else {
+			mOutputData[portID][0] = convertedStaticData;
+    	}
+        mOutputData[portID][0]->updateModifiedTimestamp();
     }
 }
 
 template <class DataType>
-void ProcessObject::createInputPort(uint portID, bool required, InputDataType inputDataType) {
+void ProcessObject::createInputPort(uint portID, bool required, InputDataType inputDataType, bool allowMultipleInputData) {
     if(inputPortExists(portID))
         throw Exception("Input port with ID " + boost::lexical_cast<std::string>(portID) + " already exist on " + getNameOfClass() );
 
     mRequiredInputs[portID] = required;
     mInputPortClass[portID] = DataType::getStaticNameOfClass();
     mInputPortType[portID] = inputDataType;
+    mInputPortMultipleData[portID] = allowMultipleInputData;
 }
 
 template <class DataType>
-void ProcessObject::createOutputPort(uint portID, OutputDataType outputDataType, int inputPortID) {
+void ProcessObject::createOutputPort(uint portID, OutputDataType outputDataType, int inputPortID, bool enableMultipleOutputData) {
     if(outputPortExists(portID))
         throw Exception("Output port with ID " + boost::lexical_cast<std::string>(portID) + " already exist on " + getNameOfClass() );
 
     mOutputPortClass[portID] = DataType::getStaticNameOfClass();
     mOutputPortType[portID] = outputDataType;
+    mOutputPortMultipleData[portID] = enableMultipleOutputData;
     if(outputDataType == OUTPUT_DEPENDS_ON_INPUT) {
         if(inputPortID < 0) {
             throw Exception("Output was set to depend on an input port, but no valid inputPortID was given to " + getNameOfClass() );
