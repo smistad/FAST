@@ -112,8 +112,8 @@ void UltrasoundVesselDetection::execute() {
     uint endPosY = round(maximumDepthInMM/spacing);
 
     // Only process every second pixel
-    cl::NDRange globalSize(input->getWidth(), (endPosY-startPosY));
-    cl::NDRange kernelOffset(0, startPosY);
+    cl::NDRange globalSize(input->getWidth() / 4, (endPosY-startPosY) / 4);
+    cl::NDRange kernelOffset(0, startPosY / 4);
     device->getCommandQueue().enqueueNDRangeKernel(
             kernel,
 			kernelOffset,
@@ -139,8 +139,9 @@ void UltrasoundVesselDetection::execute() {
 
     // Find best ellipses
 	std::priority_queue<Candidate, std::vector<Candidate>, CandidateComparison> candidates;
-    for(uint x = 0; x < input->getWidth(); x+=2) {
-        for(uint y = startPosY; y < endPosY; y+=2) {
+	int startPosY2 = (startPosY / 4)*4;
+    for(uint x = 0; x < input->getWidth(); x+=4) {
+        for(uint y = startPosY2; y < endPosY; y+=4) {
             uint i = x + y*input->getWidth();
 
             if(data[i*4] > 1.5) { // If score is higher than a threshold
