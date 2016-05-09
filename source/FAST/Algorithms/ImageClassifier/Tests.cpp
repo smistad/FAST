@@ -4,6 +4,7 @@
 
 using namespace fast;
 
+/*
 TEST_CASE("Image classifier", "[fast][ImageClassifier]") {
 
 	std::string modelFile = "/home/smistad/workspace/caffe-test/source/models/vessel_ultrasound_lenet/deploy.prototxt";
@@ -21,4 +22,4 @@ TEST_CASE("Image classifier", "[fast][ImageClassifier]") {
 	classifier->enableRuntimeMeasurements();
 	classifier->update();
 	classifier->getRuntime()->print();
-}
+}*/

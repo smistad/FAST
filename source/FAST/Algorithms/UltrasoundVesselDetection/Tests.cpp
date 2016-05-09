@@ -8,7 +8,7 @@
 
 using namespace fast;
 
-TEST_CASE("UltrasoundVesselDetection", "[fast][UltrasoundVesselDetection]") {
+TEST_CASE("UltrasoundVesselDetection", "[fast][UltrasoundVesselDetection][visual]") {
 	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
 	streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 	//streamer->setFilenameFormat("/home/smistad/AssistantTestData/ES/US-Acq_03_20150608T103739/Acquisition/US-Acq_03_20150608T103739_Image_Transducer_#.mhd");

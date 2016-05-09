@@ -15,7 +15,7 @@ class ImageClassifier : public ProcessObject {
 				std::string meanFile
 		);
 		void setLabels(std::vector<std::string> labels);
-		std::map<std::string, float> getResult() const;
+		std::vector<std::map<std::string, float> > getResult() const;
 	private:
 		ImageClassifier();
 		void execute();
@@ -24,7 +24,7 @@ class ImageClassifier : public ProcessObject {
 		caffe::Blob<float> mMeanBlob;
 		bool mModelLoaded;
 		// A map of label -> score
-		std::map<std::string, float> mResult;
+		std::vector<std::map<std::string, float> > mResult;
 		std::vector<std::string> mLabels;
 
 };

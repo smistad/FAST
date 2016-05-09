@@ -6,7 +6,7 @@
 namespace fast {
 
 ImageClassifier::ImageClassifier() {
-	createInputPort<Image>(0);
+	createInputPort<Image>(0, true, INPUT_STATIC_OR_DYNAMIC, true);
 
 	mModelLoaded = false;
 }
@@ -62,7 +62,7 @@ void ImageClassifier::setLabels(std::vector<std::string> labels) {
 	mLabels = labels;
 }
 
-std::map<std::string, float> ImageClassifier::getResult() const {
+std::vector<std::map<std::string, float> > ImageClassifier::getResult() const {
 	return mResult;
 }
 
@@ -70,59 +70,73 @@ void ImageClassifier::execute() {
 	if(!mModelLoaded)
 		throw Exception("Model must be loaded in ImageClassifier before execution.");
 
-	Image::pointer image = getStaticInputData<Image>();
+	std::vector<Image::pointer> images = getMultipleStaticInputData<Image>();
 
 	caffe::Blob<float>* input_layer = mNet->input_blobs()[0];
 	if(input_layer->channels() != 1) {
 		throw Exception("Number of input channels was not 1");
 	}
 
-	/*
 	// nr of images x channels x width x height
-	input_layer->Reshape(1, 1, 64, 64);
+	input_layer->Reshape(images.size(), 1, input_layer->width(), input_layer->height());
 	mNet->Reshape();
-	std::cout << "Input layer reshaped" << std::endl;
-	*/
+	reportInfo() << "Input layer reshaped" << reportEnd();
 
-	// Resize image to fit input layer
-	ImageResizer::pointer resizer = ImageResizer::New();
-	resizer->setWidth(input_layer->width());
-	resizer->setHeight(input_layer->height());
-	resizer->setInputData(image);
 
-	ScaleImage::pointer scale = ScaleImage::New();
-	scale->setInputConnection(resizer->getOutputPort());
-	scale->setHighestValue(255);
-	scale->setLowestValue(0);
-	scale->update();
-	image = scale->getOutputData<Image>();
-	reportInfo() << "Finished image resize and scale." << reportEnd();
+	std::vector<Image::pointer> preProcessedImages;
+	for(Image::pointer image : images) {
+		// Resize image to fit input layer
+		ImageResizer::pointer resizer = ImageResizer::New();
+		resizer->setWidth(input_layer->width());
+		resizer->setHeight(input_layer->height());
+		resizer->setInputData(image);
+
+		ScaleImage::pointer scale = ScaleImage::New();
+		scale->setInputConnection(resizer->getOutputPort());
+		scale->setHighestValue(255);
+		scale->setLowestValue(0);
+		scale->update();
+		preProcessedImages.push_back(scale->getOutputData<Image>());
+		reportInfo() << "Finished image resize and scale." << reportEnd();
+	}
 
 	// Set image to input layer
-	ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
-	float* pixels = (float*)access->get();
-	Vector3ui size = image->getSize();
-	float* meanPixels = mMeanBlob.mutable_cpu_data();
-	for(int i = 0; i < size.x()*size.y(); ++i) {
-		pixels[i] -= meanPixels[i];
+	int counter = 0;
+	float* input_data = input_layer->mutable_cpu_data(); // This is the input data layer
+	for(Image::pointer image : preProcessedImages) {
+		ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
+		float* pixels = (float*)access->get();
+		Vector3ui size = image->getSize();
+		float* meanPixels = mMeanBlob.mutable_cpu_data();
+		for(int i = 0; i < size.x()*size.y(); ++i) {
+			input_data[counter + i] = pixels[i] - meanPixels[i];
+		}
+		counter += size.x()*size.y();
 	}
-	float* input_data = input_layer->mutable_cpu_data(); // This is the input data
-	memcpy(input_data, pixels, sizeof(float)*image->getWidth()*image->getHeight());
 
 	// Do a forward pass
 	mNet->Forward();
 
 	// Read output layer
 	caffe::Blob<float>* output_layer = mNet->output_blobs()[0];
+	std::cout << output_layer->channels() << std::endl;
+	std::cout << output_layer->num() << std::endl;
 	const float* begin = output_layer->cpu_data();
-	const float* end = begin + output_layer->channels();
+	const float* end = begin + output_layer->channels()*output_layer->num();
 	std::vector<float> result(begin, end);
-	if(mLabels.size() != result.size())
-		throw Exception("The number of labels did not match the number of predictions.");
+	//if(mLabels.size() != result.size())
+	//	throw Exception("The number of labels did not match the number of predictions.");
 	reportInfo() << "RESULT: " << reportEnd();
-	for(int i = 0; i < result.size(); ++i) {
-		mResult[mLabels[i]] = result[i];
-		reportInfo() << mLabels[i] << ": " << result[i] << reportEnd();
+	mResult.clear();
+	int k = 0;
+	for(int i = 0; i < output_layer->num(); ++i) { // input images
+		std::map<std::string, float> mapResult;
+		for(int j = 0; j < output_layer->channels(); ++j) { // classes
+			mapResult[mLabels[j]] = result[k];
+			reportInfo() << mLabels[j] << ": " << result[k] << reportEnd();
+			++k;
+		}
+		mResult.push_back(mapResult);
 	}
 }
 

@@ -112,8 +112,8 @@ void UltrasoundVesselDetection::execute() {
     uint endPosY = round(maximumDepthInMM/spacing);
 
     // Only process every second pixel
-    cl::NDRange globalSize(input->getWidth() / 2, (endPosY-startPosY) / 2);
-    cl::NDRange kernelOffset(0, startPosY / 2);
+    cl::NDRange globalSize(input->getWidth(), (endPosY-startPosY));
+    cl::NDRange kernelOffset(0, startPosY);
     device->getCommandQueue().enqueueNDRangeKernel(
             kernel,
 			kernelOffset,
@@ -140,7 +140,7 @@ void UltrasoundVesselDetection::execute() {
     // Find best ellipses
 	std::priority_queue<Candidate, std::vector<Candidate>, CandidateComparison> candidates;
     for(uint x = 0; x < input->getWidth(); x+=2) {
-        for(uint y = startPosY+1; y < endPosY; y+=2) {
+        for(uint y = startPosY; y < endPosY; y+=2) {
             uint i = x + y*input->getWidth();
 
             if(data[i*4] > 1.5) { // If score is higher than a threshold
@@ -189,8 +189,8 @@ void UltrasoundVesselDetection::execute() {
     Vector3ui imageSize = input->getSize();
 	const int frameSize = 40; // Nr if pixels to include around vessel
 
-	std::vector<VesselCrossSection::pointer> acceptedVessels;
 	// Create sub images and send to classifier
+	std::vector<DataObject::pointer> subImages;
     for(int i = 0; i < mCrossSections.size(); ++i) {
         VesselCrossSectionAccess::pointer access = mCrossSections[i]->getAccess(ACCESS_READ);
         Vector2f imageCenter = access->getImageCenterPosition();
@@ -198,6 +198,7 @@ void UltrasoundVesselDetection::execute() {
         // Radius in pixels
         float majorRadius = access->getMajorRadius();
         float minorRadius = access->getMinorRadius();
+        std::cout << "Radius: " << majorRadius << " " << minorRadius << std::endl;
 
         Vector2i offset(
                         round(imageCenter.x() - majorRadius) - frameSize,
@@ -219,21 +220,31 @@ void UltrasoundVesselDetection::execute() {
                 size.y() = imageSize.y() - offset.y();
 
         std::cout << "To cropper" << std::endl;
+        std::cout << imageSize.transpose() << std::endl;
         std::cout << offset.transpose() << std::endl;
         std::cout << size.transpose() << std::endl;
         ImageCropper::pointer cropper = ImageCropper::New();
         cropper->setInputData(input);
         cropper->setOffset(offset.cast<uint>());
         cropper->setSize(size);
+        cropper->update();
+        subImages.push_back(cropper->getOutputData<Image>());
 
-        mClassifier->setLabels({"Not vessel", "Vessel"});
-        mClassifier->setInputConnection(cropper->getOutputPort());
-        mClassifier->update();
 
-        if(mClassifier->getResult()["Vessel"] > 0.9) {
-        	acceptedVessels.push_back(mCrossSections[i]);
-        }
     }
+	mClassifier->setLabels({"Not vessel", "Vessel"});
+	mClassifier->setInputData(subImages);
+	mClassifier->update();
+
+	std::vector<VesselCrossSection::pointer> acceptedVessels;
+	std::vector<std::map<std::string, float> > classifierResult = mClassifier->getResult();
+	int i = 0;
+	for(std::map<std::string, float> res : classifierResult) {
+		if(res["Vessel"] > 0.9) {
+			acceptedVessels.push_back(mCrossSections[i]);
+		}
+		++i;
+	}
     mRuntimeManager->stopRegularTimer("classifier");
 
     if(mCreateSegmentation) {
