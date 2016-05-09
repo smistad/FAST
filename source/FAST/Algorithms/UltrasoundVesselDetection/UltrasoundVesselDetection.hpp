@@ -6,6 +6,8 @@
 
 namespace fast {
 
+class ImageClassifier;
+
 class UltrasoundVesselDetection : public ProcessObject {
     FAST_OBJECT(UltrasoundVesselDetection)
     public:
@@ -23,6 +25,7 @@ class UltrasoundVesselDetection : public ProcessObject {
         float mDetectedFlattening;
         bool mCreateSegmentation;
         std::vector<VesselCrossSection::pointer> mCrossSections;
+        SharedPointer<ImageClassifier> mClassifier;
 };
 
 }

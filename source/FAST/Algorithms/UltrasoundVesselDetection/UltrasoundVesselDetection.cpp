@@ -29,6 +29,13 @@ UltrasoundVesselDetection::UltrasoundVesselDetection() {
     createOutputPort<PointSet>(1, OUTPUT_DEPENDS_ON_INPUT, 0);
     createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/UltrasoundVesselDetection/UltrasoundVesselDetection.cl");
     mCreateSegmentation = false;
+
+	mClassifier = ImageClassifier::New();
+	std::string modelFile = "/home/smistad/vessel_detection_model/deploy.prototxt";
+	std::string trainingFile = "/home/smistad/vessel_detection_model/snapshot_iter_540.caffemodel";
+	std::string meanFile = "/home/smistad/vessel_detection_model/mean.binaryproto";
+	mClassifier->loadModel(modelFile, trainingFile, meanFile);
+
 }
 
 struct Candidate {
@@ -178,11 +185,7 @@ void UltrasoundVesselDetection::execute() {
     mRuntimeManager->stopRegularTimer("candidate selection");
     mRuntimeManager->startRegularTimer("classifier");
 
-	ImageClassifier::pointer classifier = ImageClassifier::New();
-	std::string modelFile = "/home/smistad/vessel_detection_model/deploy.prototxt";
-	std::string trainingFile = "/home/smistad/vessel_detection_model/snapshot_iter_540.caffemodel";
-	std::string meanFile = "/home/smistad/vessel_detection_model/mean.binaryproto";
-	classifier->loadModel(modelFile, trainingFile, meanFile);
+
     Vector3ui imageSize = input->getSize();
 	const int frameSize = 40; // Nr if pixels to include around vessel
 
@@ -215,23 +218,25 @@ void UltrasoundVesselDetection::execute() {
         if(offset.y() + size.y() > imageSize.y())
                 size.y() = imageSize.y() - offset.y();
 
+        std::cout << "To cropper" << std::endl;
+        std::cout << offset.transpose() << std::endl;
+        std::cout << size.transpose() << std::endl;
         ImageCropper::pointer cropper = ImageCropper::New();
         cropper->setInputData(input);
         cropper->setOffset(offset.cast<uint>());
         cropper->setSize(size);
 
-        classifier->setLabels({"Not vessel", "Vessel"});
-        classifier->setInputConnection(cropper->getOutputPort());
-        classifier->update();
+        mClassifier->setLabels({"Not vessel", "Vessel"});
+        mClassifier->setInputConnection(cropper->getOutputPort());
+        mClassifier->update();
 
-        if(classifier->getResult()["Vessel"] > 0.9) {
+        if(mClassifier->getResult()["Vessel"] > 0.9) {
         	acceptedVessels.push_back(mCrossSections[i]);
         }
     }
     mRuntimeManager->stopRegularTimer("classifier");
 
     if(mCreateSegmentation) {
-    	std::cout << "Creating seg.." << std::endl;
 		mRuntimeManager->startRegularTimer("segmentation");
         Segmentation::pointer segmentation = getStaticOutputData<Segmentation>(0);
         segmentation->createFromImage(input);
