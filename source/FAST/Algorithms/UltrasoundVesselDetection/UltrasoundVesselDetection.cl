@@ -4,14 +4,6 @@ __constant sampler_t samplerInterpolation = CLK_NORMALIZED_COORDS_FALSE | CLK_AD
 // This is missing on some AMD platforms for some reason
 #define M_PI 3.14159265358979323846
 
-#ifdef TYPE_UINT
-#define READ_IMAGE (float)read_imageui
-#elif TYPE_INT
-#define READ_IMAGE (float)read_imagei
-#elif TYPE_FLOAT
-#define READ_IMAGE read_imagef
-#endif
-
 bool outOfBounds(int2 pos, float radius, uint width, uint height) {
     return pos.x-radius < 0 || pos.y-radius < 0 ||
             pos.x+radius >= width || pos.y+radius >= height;
@@ -24,7 +16,7 @@ __kernel void vesselDetection(
         float spacing
         ) {
     
-    const float radiusMinInMM = 3.5;
+    const float radiusMinInMM = 3;
     const float radiusMaxInMM = 6;
     const float scaleStep = 0.1;
     const uint samples = 32;
@@ -60,8 +52,8 @@ __kernel void vesselDetection(
                 //gradient = normalize(gradient); // only direction matter
                 // Calculate normal
                 float2 normal = {
-                        (samplePos.x-pos.x)*scale,
-                        (samplePos.y-pos.y)*(1.0f/scale)
+                        scale*radius*cos(alpha),//(samplePos.x-pos.x)*scale,
+                        radius*sin(alpha)//(samplePos.y-pos.y)*(1.0f/scale)
                 };
                 normal = normalize(normal);
                 fitness += dot(gradient, normal);
@@ -79,8 +71,7 @@ __kernel void vesselDetection(
                     averageBorderIntensity += read_imageui(image, samplerInterpolation, samplePos).x;
                 }
                 averageBorderIntensity /= samples;
-                if(/*averageBorderIntensity > 80 && */
-                        (averageBorderIntensity-averageLumenIntensity)/averageBorderIntensity > 0.5) { // the percentage of the intensity difference
+                if((averageBorderIntensity-averageLumenIntensity)/averageBorderIntensity > 0.5) { // the percentage of the intensity difference
                     bestFitness = fitness;
                     bestRadius = radius;
                     bestScale = scale;

@@ -119,8 +119,6 @@ void ImageClassifier::execute() {
 
 	// Read output layer
 	caffe::Blob<float>* output_layer = mNet->output_blobs()[0];
-	std::cout << output_layer->channels() << std::endl;
-	std::cout << output_layer->num() << std::endl;
 	const float* begin = output_layer->cpu_data();
 	const float* end = begin + output_layer->channels()*output_layer->num();
 	std::vector<float> result(begin, end);

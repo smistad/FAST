@@ -34,6 +34,9 @@ UltrasoundVesselDetection::UltrasoundVesselDetection() {
 	std::string modelFile = "/home/smistad/vessel_detection_model/deploy.prototxt";
 	std::string trainingFile = "/home/smistad/vessel_detection_model/snapshot_iter_540.caffemodel";
 	std::string meanFile = "/home/smistad/vessel_detection_model/mean.binaryproto";
+	//std::string modelFile = "/home/smistad/vessel_detection_model2/deploy.prototxt";
+	//std::string trainingFile = "/home/smistad/vessel_detection_model2/snapshot_iter_960.caffemodel";
+	//std::string meanFile = "/home/smistad/vessel_detection_model2/mean.binaryproto";
 	mClassifier->loadModel(modelFile, trainingFile, meanFile);
 
 }
@@ -58,16 +61,8 @@ void UltrasoundVesselDetection::execute() {
 
     mRuntimeManager->startRegularTimer("ellipse fitting");
     // Create kernel
-    std::string buildOptions = "";
-    if(input->getDataType() == TYPE_FLOAT) {
-        buildOptions = "-DTYPE_FLOAT";
-    } else if(input->getDataType() == TYPE_INT8 || input->getDataType() == TYPE_INT16) {
-        buildOptions = "-DTYPE_INT";
-    } else {
-        buildOptions = "-DTYPE_UINT";
-    }
     OpenCLDevice::pointer device = getMainDevice();
-    cl::Program program = getOpenCLProgram(device, "", buildOptions);
+    cl::Program program = getOpenCLProgram(device);
     cl::Kernel kernel(program, "vesselDetection");
 
     // Run GaussianSmoothing on input
@@ -88,15 +83,15 @@ void UltrasoundVesselDetection::execute() {
     OpenCLImageAccess::pointer gradientAccess = gradients->getOpenCLImageAccess(ACCESS_READ, device);
 
     // Create output image
+    boost::shared_array<float> zeros(new float[input->getWidth()*input->getHeight()*4]());
     cl::Image2D result = cl::Image2D(
             device->getContext(),
-            CL_MEM_WRITE_ONLY,
+            CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,
             getOpenCLImageFormat(device, CL_MEM_OBJECT_IMAGE2D, TYPE_FLOAT, 4),
-            input->getWidth(), input->getHeight()
+            input->getWidth(), input->getHeight(),
+			0,
+			zeros.get()
     );
-
-    //reportInfo() << "Minimum intensity of smoothed image is: " << smoothedImage->calculateMinimumIntensity() << Reporter::end;
-    //reportInfo() << "Maximum intensity of smoothed image is: " << smoothedImage->calculateMaximumIntensity() << Reporter::end;
 
     // Run vessel detection kernel on smoothed image and gradient
     kernel.setArg(0, *inputImageAccess->get2DImage());
@@ -108,8 +103,8 @@ void UltrasoundVesselDetection::execute() {
     const float spacing = input->getSpacing().y();
     //const float maximumDepthInMM = 20;
     const float maximumDepthInMM = input->getHeight()*spacing*0.85;
-    uint startPosY = round(minimumDepthInMM/spacing);
-    uint endPosY = round(maximumDepthInMM/spacing);
+    int startPosY = round(minimumDepthInMM/spacing);
+    int endPosY = round(maximumDepthInMM/spacing);
 
     // Only process every second pixel
     cl::NDRange globalSize(input->getWidth() / 4, (endPosY-startPosY) / 4);
@@ -140,9 +135,9 @@ void UltrasoundVesselDetection::execute() {
     // Find best ellipses
 	std::priority_queue<Candidate, std::vector<Candidate>, CandidateComparison> candidates;
 	int startPosY2 = (startPosY / 4)*4;
-    for(uint x = 0; x < input->getWidth(); x+=4) {
-        for(uint y = startPosY2; y < endPosY; y+=4) {
-            uint i = x + y*input->getWidth();
+    for(int x = 0; x < input->getWidth(); x+=4) {
+        for(int y = startPosY2; y < endPosY; y+=4) {
+            int i = x + y*input->getWidth();
 
             if(data[i*4] > 1.5) { // If score is higher than a threshold
 				float posY = floor(data[i*4+3]/input->getWidth());
@@ -188,7 +183,6 @@ void UltrasoundVesselDetection::execute() {
 
 
     Vector3ui imageSize = input->getSize();
-	const int frameSize = 40; // Nr if pixels to include around vessel
 
 	// Create sub images and send to classifier
 	std::vector<DataObject::pointer> subImages;
@@ -197,9 +191,9 @@ void UltrasoundVesselDetection::execute() {
         Vector2f imageCenter = access->getImageCenterPosition();
 
         // Radius in pixels
-        float majorRadius = access->getMajorRadius();
-        float minorRadius = access->getMinorRadius();
-        std::cout << "Radius: " << majorRadius << " " << minorRadius << std::endl;
+        const float majorRadius = access->getMajorRadius();
+        const float minorRadius = access->getMinorRadius();
+		const int frameSize = round(majorRadius); // Nr if pixels to include around vessel
 
         Vector2i offset(
                         round(imageCenter.x() - majorRadius) - frameSize,
@@ -220,31 +214,27 @@ void UltrasoundVesselDetection::execute() {
         if(offset.y() + size.y() > imageSize.y())
                 size.y() = imageSize.y() - offset.y();
 
-        std::cout << "To cropper" << std::endl;
-        std::cout << imageSize.transpose() << std::endl;
-        std::cout << offset.transpose() << std::endl;
-        std::cout << size.transpose() << std::endl;
         ImageCropper::pointer cropper = ImageCropper::New();
         cropper->setInputData(input);
         cropper->setOffset(offset.cast<uint>());
         cropper->setSize(size);
         cropper->update();
         subImages.push_back(cropper->getOutputData<Image>());
-
-
     }
-	mClassifier->setLabels({"Not vessel", "Vessel"});
-	mClassifier->setInputData(subImages);
-	mClassifier->update();
-
 	std::vector<VesselCrossSection::pointer> acceptedVessels;
-	std::vector<std::map<std::string, float> > classifierResult = mClassifier->getResult();
-	int i = 0;
-	for(std::map<std::string, float> res : classifierResult) {
-		if(res["Vessel"] > 0.9) {
-			acceptedVessels.push_back(mCrossSections[i]);
+	if(subImages.size() > 0) {
+		mClassifier->setLabels({"Not vessel", "Vessel"});
+		mClassifier->setInputData(subImages);
+		mClassifier->update();
+
+		std::vector<std::map<std::string, float> > classifierResult = mClassifier->getResult();
+		int i = 0;
+		for(std::map<std::string, float> res : classifierResult) {
+			if(res["Vessel"] > 0.9) {
+				acceptedVessels.push_back(mCrossSections[i]);
+			}
+			++i;
 		}
-		++i;
 	}
     mRuntimeManager->stopRegularTimer("classifier");
 
