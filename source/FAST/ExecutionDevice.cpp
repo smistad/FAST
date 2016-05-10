@@ -327,7 +327,7 @@ cl::Program OpenCLDevice::writeBinary(std::string absolute_filename, std::string
     FILE * cacheFile = fopen(cacheFilename.c_str(), "w");
     std::string timeStr;
     #ifdef WIN32
-	HANDLE hFile = CreateFile(filename.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+	HANDLE hFile = CreateFile(absolute_filename.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
 	FILETIME ftCreate, ftAccess, ftWrite;
 	SYSTEMTIME sysTime;
 	GetFileTime(hFile, &ftCreate, &ftAccess, &ftWrite);
@@ -405,7 +405,7 @@ cl::Program OpenCLDevice::buildProgramFromBinary(std::string absolute_filename, 
         if(pos != std::string::npos && pos2 != std::string::npos) {
             // Get modification date of file
             #ifdef WIN32
-            HANDLE hFile = CreateFile(filename.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+			HANDLE hFile = CreateFile(absolute_filename.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
             FILETIME ftCreate, ftAccess, ftWrite;
 			SYSTEMTIME sysTime;
             GetFileTime(hFile, &ftCreate, &ftAccess, &ftWrite);
