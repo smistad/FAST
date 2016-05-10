@@ -84,9 +84,9 @@ class OpenCLDevice : public ExecutionDevice {
     private:
         OpenCLDevice();
         unsigned long * mGLContext;
-        cl::Program writeBinary(std::string filename, std::string buildOptions);
+		cl::Program writeBinary(std::string absolute_filename, std::string buildOptions);
         cl::Program readBinary(std::string filename);
-        cl::Program buildProgramFromBinary(std::string filename, std::string buildOptions);
+		cl::Program buildProgramFromBinary(std::string absolute_filename, std::string buildOptions);
         cl::Program buildSources(cl::Program::Sources source, std::string buildOptions);
 
         cl::Context context;

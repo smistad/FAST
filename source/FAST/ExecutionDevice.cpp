@@ -290,10 +290,10 @@ RuntimeMeasurementsManagerPtr OpenCLDevice::getRunTimeMeasurementManager(){
 }
 
 
-cl::Program OpenCLDevice::writeBinary(std::string filename, std::string buildOptions) {
+cl::Program OpenCLDevice::writeBinary(std::string absolute_filename, std::string buildOptions) {
     // Build program from source file and store the binary file
 
-    std::string sourceCode = readFile(filename);
+	std::string sourceCode = readFile(absolute_filename);
 
     cl::Program::Sources source(1, std::make_pair(sourceCode.c_str(), sourceCode.length()));
     cl::Program program = buildSources(source, buildOptions);
@@ -307,25 +307,14 @@ cl::Program OpenCLDevice::writeBinary(std::string filename, std::string buildOpt
     boost::hash<std::string> hash_function;
     std::string deviceName = getDevice(0).getInfo<CL_DEVICE_NAME>();
     std::size_t hash = hash_function(buildOptions + deviceName);
-    std::string binaryPath = std::string(OUL_OPENCL_KERNEL_BINARY_PATH);
-    std::string binaryFilename = binaryPath + filename + "_" + boost::lexical_cast<std::string>(hash) + ".bin";
-    std::string cacheFilename = binaryPath + filename + "_" + boost::lexical_cast<std::string>(hash) + ".cache";
-    if(binaryPath != "") {
-        // Remove shared path from filename
-        for(int i = 0; i < std::min(filename.size(), binaryPath.size()); i++) {
-            if(binaryPath[i] == filename[i]) {
 
-            } else {
-                binaryFilename = binaryPath + filename.substr(i) + "_" + boost::lexical_cast<std::string>(hash) + ".bin";
-                cacheFilename = binaryPath + filename.substr(i) + "_" + boost::lexical_cast<std::string>(hash) + ".cache";
-                break;
-            }
-        }
-    }
+	std::string binaryFilename = absolute_filename + "_" + boost::lexical_cast<std::string>(hash) + ".bin";
+	std::string cacheFilename = absolute_filename + "_" + boost::lexical_cast<std::string>(hash) + ".cache";
 
     // Create directories if they don't exist
     if(binaryFilename.rfind("/") != std::string::npos) {
         std::string directoryPath = binaryFilename.substr(0, binaryFilename.rfind("/"));
+		std::cout << "Creating directory: " << directoryPath << std::endl;
         boost::filesystem::create_directories(directoryPath);
     }
     FILE * file = fopen(binaryFilename.c_str(), "wb");
@@ -349,7 +338,7 @@ cl::Program OpenCLDevice::writeBinary(std::string filename, std::string buildOpt
 	delete[] buffer;
     #else
     struct stat attrib; // create a file attribute structure
-    stat(filename.c_str(), &attrib);
+	stat(absolute_filename.c_str(), &attrib);
     timeStr = ctime(&(attrib.st_mtime));
     #endif
     VECTOR_CLASS<cl::Device> devices = context.getInfo<CL_CONTEXT_DEVICES>();
@@ -383,9 +372,8 @@ cl::Program OpenCLDevice::readBinary(std::string filename) {
     return program;
 }
 
-cl::Program OpenCLDevice::buildProgramFromBinary(std::string filename, std::string buildOptions) {
+cl::Program OpenCLDevice::buildProgramFromBinary(std::string absolute_filename, std::string buildOptions) {
 
-	//std::cout << "\n\n buildProgramFromBinary - START" << filename << std::endl;
     boost::lock_guard<boost::mutex> lock(buildBinaryMutex);
     cl::Program program;
 
@@ -393,32 +381,13 @@ cl::Program OpenCLDevice::buildProgramFromBinary(std::string filename, std::stri
     std::string deviceName = getDevice(0).getInfo<CL_DEVICE_NAME>();
     std::size_t hash = hash_function(buildOptions + deviceName);
 
-	std::string binaryPath = ""; //std::string(OUL_OPENCL_KERNEL_BINARY_PATH);
-	//std::cout << "binaryPath " << binaryPath << std::endl;
-    std::string binaryFilename = binaryPath + filename + "_" + boost::lexical_cast<std::string>(hash) + ".bin";
-	std::cout << "binaryFilename " << binaryFilename << std::endl;
-    std::string cacheFilename = binaryPath + filename + "_" + boost::lexical_cast<std::string>(hash) + ".cache";
-	//std::cout << "cacheFilename " << cacheFilename << std::endl;
-
-	/*
-	if(binaryPath != "") {
-        // Remove shared path from filename
-        for(int i = 0; i < std::min(filename.size(), binaryPath.size()); i++) {
-            if(binaryPath[i] == filename[i]) {
-
-            } else {
-                binaryFilename = binaryPath + filename.substr(i) + "_" + boost::lexical_cast<std::string>(hash) + ".bin";
-                cacheFilename = binaryPath + filename.substr(i) + "_" + boost::lexical_cast<std::string>(hash) + ".cache";
-                break;
-            }
-        }
-    }
-	*/
+	std::string binaryFilename = absolute_filename + "_" + boost::lexical_cast<std::string>(hash) + ".bin";
+	std::string cacheFilename = absolute_filename + "_" + boost::lexical_cast<std::string>(hash) + ".cache";
 
     // Check if a binary file exists
     std::ifstream binaryFile(binaryFilename.c_str(), std::ios_base::binary | std::ios_base::in);
     if(binaryFile.fail()) {
-        program = writeBinary(filename, buildOptions);
+		program = writeBinary(absolute_filename, buildOptions);
     } else {
         // Compare modified dates of binary file and source file
 
@@ -447,7 +416,7 @@ cl::Program OpenCLDevice::buildProgramFromBinary(std::string filename, std::stri
 			delete[] buffer;
             #else
             struct stat attrib; // create a file attribute structure
-            stat(filename.c_str(), &attrib);
+			stat(absolute_filename.c_str(), &attrib);
             outOfDate = strcmp(ctime(&(attrib.st_mtime)), cache.substr(0, pos).c_str()) != 0;
             #endif
             VECTOR_CLASS<cl::Device> devices = context.getInfo<CL_CONTEXT_DEVICES>();
@@ -457,13 +426,12 @@ cl::Program OpenCLDevice::buildProgramFromBinary(std::string filename, std::stri
 
         if(outOfDate || wrongDeviceID || buildOptionsChanged) {
             std::cout << "Binary is out of date. Compiling..." << std::endl;
-            program = writeBinary(filename, buildOptions);
+			program = writeBinary(absolute_filename, buildOptions);
         } else {
             //std::cout << "Binary is not out of date." << std::endl;
             program = readBinary(binaryFilename);
         }
     }
-	//std::cout << "buildProgramFromBinary - END \n\n" << std::endl;
     return program;
 }
 
