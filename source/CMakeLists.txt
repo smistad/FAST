@@ -243,29 +243,29 @@ endif()
 #### Enable C++11
 # Note that Microsoft Visual C++ compiler enables C++11 by default
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth=300") # Fix for a bug with boost signals2
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth=300" CACHE STRING "C++ compiler flags" FORCE) # Fix for a bug with boost signals2
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations") # Remove deprecated warnings GCC
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations"  CACHE STRING "C++ compiler flags" FORCE) # Remove deprecated warnings GCC
 endif()
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR CMAKE_COMPILER_IS_GNUCXX)
     include(CheckCXXCompilerFlag)
     check_cxx_compiler_flag(--std=c++11 SUPPORTS_STD_CXX11)
     check_cxx_compiler_flag(--std=c++0x SUPPORTS_STD_CXX01)
     if(SUPPORTS_STD_CXX11)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c++11")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11" CACHE STRING "C++ compiler flags" FORCE)
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c++11" CACHE STRING "C compiler flags" FORCE)
         # Permissive flag is currently needed to make ITK work with C++11
         if(FAST_ITK_INTEROP)
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpermissive")
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive"  CACHE STRING "C++ compiler flags" FORCE)
+			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpermissive"  CACHE STRING "C compiler flags" FORCE)
         endif()
     elseif(SUPPORTS_STD_CXX01)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++0x")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c++0x")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++0x"  CACHE STRING "C++ compiler flags" FORCE)
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c++0x"  CACHE STRING "C compiler flags" FORCE)
         # Permissive flag is currently needed to make ITK work with C++11
         if(FAST_ITK_INTEROP)
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpermissive")
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive" CACHE STRING "C++ compiler flags" FORCE)
+			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpermissive"  CACHE STRING "C compiler flags" FORCE)
         endif()
     else()
         message(ERROR "Compiler does not support --std=c++11 or --std=c++0x.")
@@ -276,8 +276,8 @@ endif()
 find_package(OpenMP)
 if(OPENMP_FOUND)
     message("-- OpenMP was detected. Using OpenMP to speed up some calculations.")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}" )
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}"  CACHE STRING "C compiler flags" FORCE)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}"  CACHE STRING "C++ compiler flags" FORCE)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
 endif()
 
