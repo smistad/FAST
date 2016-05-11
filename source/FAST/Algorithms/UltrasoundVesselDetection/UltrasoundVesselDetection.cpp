@@ -158,12 +158,13 @@ void UltrasoundVesselDetection::execute() {
 
 		// Check if valid
 		bool invalid = false;
+		VesselCrossSectionAccess::pointer access2 = next.crossSection->getAccess(ACCESS_READ);
+		Vector2f candidateImageCenter = access2->getImageCenterPosition();
 		for(VesselCrossSection::pointer crossSection : mCrossSections) {
 			VesselCrossSectionAccess::pointer access = crossSection->getAccess(ACCESS_READ);
 			Vector2f imageCenter = access->getImageCenterPosition();
 			float majorRadius = access->getMajorRadius();
-			VesselCrossSectionAccess::pointer access2 = next.crossSection->getAccess(ACCESS_READ);
-			if((access2->getImageCenterPosition() - imageCenter).norm() < majorRadius) {
+			if((candidateImageCenter - imageCenter).norm() < majorRadius) {
 				invalid = true;
 				break;
 			}
