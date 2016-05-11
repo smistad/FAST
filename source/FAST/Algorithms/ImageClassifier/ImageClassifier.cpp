@@ -7,6 +7,7 @@ namespace fast {
 
 ImageClassifier::ImageClassifier() {
 	createInputPort<Image>(0, true, INPUT_STATIC_OR_DYNAMIC, true);
+	createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/ImageClassifier/ImageClassifier.cl");
 
 	mModelLoaded = false;
 }
@@ -52,6 +53,16 @@ void ImageClassifier::loadModel(std::string modelFile, std::string trainingFile,
 	caffe::ReadProtoFromBinaryFileOrDie(meanFile.c_str(), &blob_proto);
 
 	mMeanBlob.FromProto(blob_proto);
+	OpenCLDevice::pointer device = getMainDevice();
+	caffe::Blob<float>* input_layer = mNet->input_blobs()[0];
+	mMeanImage = cl::Image2D(
+			device->getContext(),
+			CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+			getOpenCLImageFormat(device, CL_MEM_OBJECT_IMAGE2D, TYPE_FLOAT, 1),
+			input_layer->width(), input_layer->height(),
+			0,
+			mMeanBlob.mutable_cpu_data()
+	);
 	reportInfo() << "Finished loading mean image file." << reportEnd();
 	mModelLoaded = true;
 }
@@ -82,6 +93,10 @@ void ImageClassifier::execute() {
 	mNet->Reshape();
 	reportInfo() << "Input layer reshaped" << reportEnd();
 
+	OpenCLDevice::pointer device = getMainDevice();
+	cl::Program program = getOpenCLProgram(device);
+	cl::Kernel normalizationKernel(program, "imageNormalization");
+	normalizationKernel.setArg(1, mMeanImage);
 
 	std::vector<Image::pointer> preProcessedImages;
 	for(Image::pointer image : images) {
@@ -90,14 +105,26 @@ void ImageClassifier::execute() {
 		resizer->setWidth(input_layer->width());
 		resizer->setHeight(input_layer->height());
 		resizer->setInputData(image);
+		resizer->update();
+		Image::pointer resizedImage = resizer->getOutputData<Image>();
+		Image::pointer preProcessedImage = Image::New();
+		preProcessedImage->create(resizedImage->getSize(), TYPE_FLOAT, 1);
+		OpenCLImageAccess::pointer access = resizedImage->getOpenCLImageAccess(ACCESS_READ, device);
+		OpenCLImageAccess::pointer access2 = preProcessedImage->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+		normalizationKernel.setArg(0, *(access->get2DImage()));
+		normalizationKernel.setArg(2, *(access2->get2DImage()));
 
-		ScaleImage::pointer scale = ScaleImage::New();
-		scale->setInputConnection(resizer->getOutputPort());
-		scale->setHighestValue(255);
-		scale->setLowestValue(0);
-		scale->update();
-		preProcessedImages.push_back(scale->getOutputData<Image>());
-		reportInfo() << "Finished image resize and scale." << reportEnd();
+		device->getCommandQueue().enqueueNDRangeKernel(
+				normalizationKernel,
+				cl::NullRange,
+				cl::NDRange(resizedImage->getWidth(), resizedImage->getHeight()),
+				cl::NullRange
+		);
+		device->getCommandQueue().finish();
+
+		preProcessedImages.push_back(preProcessedImage);
+
+		reportInfo() << "Finished image resize and normalization." << reportEnd();
 	}
 
 	// Set image to input layer
@@ -107,9 +134,8 @@ void ImageClassifier::execute() {
 		ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
 		float* pixels = (float*)access->get();
 		Vector3ui size = image->getSize();
-		float* meanPixels = mMeanBlob.mutable_cpu_data();
 		for(int i = 0; i < size.x()*size.y(); ++i) {
-			input_data[counter + i] = pixels[i] - meanPixels[i];
+			input_data[counter + i] = pixels[i];
 		}
 		counter += size.x()*size.y();
 	}

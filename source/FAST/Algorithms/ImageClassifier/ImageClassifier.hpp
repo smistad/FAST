@@ -22,6 +22,7 @@ class ImageClassifier : public ProcessObject {
 
 		SharedPointer<caffe::Net<float> > mNet;
 		caffe::Blob<float> mMeanBlob;
+		cl::Image2D mMeanImage;
 		bool mModelLoaded;
 		// A map of label -> score
 		std::vector<std::map<std::string, float> > mResult;
