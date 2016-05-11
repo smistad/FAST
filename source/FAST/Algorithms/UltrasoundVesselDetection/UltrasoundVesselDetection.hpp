@@ -11,18 +11,12 @@ class ImageClassifier;
 class UltrasoundVesselDetection : public ProcessObject {
     FAST_OBJECT(UltrasoundVesselDetection)
     public:
-        void addInputConnection(ProcessObjectPort port);
-        ProcessObjectPort getOutputImagePort();
-        ProcessObjectPort getPointSetPort();
-        float getDetectedRadius() const;
-        float getDetectedFlattening() const;
+        ProcessObjectPort getOutputSegmentationPort();
         std::vector<VesselCrossSection::pointer> getCrossSections();
     private:
         UltrasoundVesselDetection();
         void execute();
 
-        float mDetectedRadius;
-        float mDetectedFlattening;
         bool mCreateSegmentation;
         std::vector<VesselCrossSection::pointer> mCrossSections;
         SharedPointer<ImageClassifier> mClassifier;

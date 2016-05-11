@@ -73,7 +73,7 @@ TEST_CASE("UltrasoundVesselDetection", "[fast][UltrasoundVesselDetection][visual
 	detector->enableRuntimeMeasurements();
 
 	SegmentationRenderer::pointer segmentationRenderer = SegmentationRenderer::New();
-	segmentationRenderer->addInputConnection(detector->getOutputImagePort());
+	segmentationRenderer->addInputConnection(detector->getOutputSegmentationPort());
 	segmentationRenderer->setFillArea(false);
 
 	ImageRenderer::pointer imageRenderer = ImageRenderer::New();

@@ -14,19 +14,14 @@
 
 namespace fast {
 
-ProcessObjectPort UltrasoundVesselDetection::getOutputImagePort() {
+ProcessObjectPort UltrasoundVesselDetection::getOutputSegmentationPort() {
     mCreateSegmentation = true;
     return getOutputPort(0);
-}
-
-ProcessObjectPort UltrasoundVesselDetection::getPointSetPort() {
-    return getOutputPort(1);
 }
 
 UltrasoundVesselDetection::UltrasoundVesselDetection() {
     createInputPort<Image>(0);
     createOutputPort<Segmentation>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-    createOutputPort<PointSet>(1, OUTPUT_DEPENDS_ON_INPUT, 0);
     createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/UltrasoundVesselDetection/UltrasoundVesselDetection.cl");
     mCreateSegmentation = false;
 
@@ -186,14 +181,14 @@ void UltrasoundVesselDetection::execute() {
 
 	// Create sub images and send to classifier
 	std::vector<DataObject::pointer> subImages;
-    for(int i = 0; i < mCrossSections.size(); ++i) {
+    for(int i = 0; i < std::min((int)mCrossSections.size(), 8); ++i) {
         VesselCrossSectionAccess::pointer access = mCrossSections[i]->getAccess(ACCESS_READ);
         Vector2f imageCenter = access->getImageCenterPosition();
 
         // Radius in pixels
         const float majorRadius = access->getMajorRadius();
         const float minorRadius = access->getMinorRadius();
-		const int frameSize = round(majorRadius); // Nr if pixels to include around vessel
+		const int frameSize = std::max((int)round(majorRadius), 50); // Nr if pixels to include around vessel
 
         Vector2i offset(
                         round(imageCenter.x() - majorRadius) - frameSize,
@@ -262,7 +257,6 @@ void UltrasoundVesselDetection::execute() {
         cl::Kernel kernel(program, "createSegmentation");
 
         for(VesselCrossSection::pointer crossSection : acceptedVessels) {
-        //if(acceptedVessels.size() > 0) {
             VesselCrossSectionAccess::pointer access = crossSection->getAccess(ACCESS_READ);
             Vector2f imageCenter = access->getImageCenterPosition();
             kernel.setArg(0, *outputData);
@@ -284,14 +278,6 @@ void UltrasoundVesselDetection::execute() {
 
 std::vector<VesselCrossSection::pointer> UltrasoundVesselDetection::getCrossSections() {
 	return mCrossSections;
-}
-
-float UltrasoundVesselDetection::getDetectedRadius() const {
-    return mDetectedRadius;
-}
-
-float UltrasoundVesselDetection::getDetectedFlattening() const {
-    return mDetectedFlattening;
 }
 
 } // end namespace fast
