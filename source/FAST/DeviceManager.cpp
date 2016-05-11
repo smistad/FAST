@@ -70,11 +70,22 @@ void DeviceManager::setKernelRootPath(std::string kernel_root_path) {
 	mKernelRootPath = kernel_root_path;
 }
 
+void DeviceManager::setWritableCachePath(std::string cache_path) {
+    mCachePath = cache_path;
+}
+
 std::string DeviceManager::getKernelRootPath() {
-	if(mKernelRootPath == ""){
-		mKernelRootPath = std::string(FAST_SOURCE_DIR);
+    if(mKernelRootPath == ""){
+        mKernelRootPath = std::string(FAST_SOURCE_DIR);
 	}
-	return mKernelRootPath;
+    return mKernelRootPath;
+}
+
+std::string DeviceManager::getWritableCachePath() {
+    if(mCachePath == ""){
+        mCachePath = std::string(OUL_OPENCL_KERNEL_BINARY_PATH);
+    }
+    return mCachePath;
 }
 
 std::vector<OpenCLDevice::pointer> DeviceManager::getDevices(DeviceCriteria criteria, bool enableVisualization) {
@@ -210,7 +221,8 @@ ExecutionDevice::pointer DeviceManager::getDefaultVisualizationDevice() {
 }
 
 DeviceManager::DeviceManager() :
-	mKernelRootPath("")
+    mKernelRootPath(""),
+    mCachePath("")
 {
     cl::Platform::get(&platforms);
     // Set one random device as default device

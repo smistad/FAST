@@ -89,6 +89,10 @@ class OpenCLDevice : public ExecutionDevice {
 		cl::Program buildProgramFromBinary(std::string absolute_filename, std::string buildOptions);
         cl::Program buildSources(cl::Program::Sources source, std::string buildOptions);
 
+        std::string getFilePathForWriting(std::string absolute_filename_of_kernel_file, std::string ending, std::size_t hash);
+        std::string getFilePathForBinary(std::string absolute_filename_of_kernel_file, std::size_t hash);
+        std::string getFilePathForCache(std::string absolute_filename_of_kernel_file, std::size_t hash);
+
         cl::Context context;
         std::vector<cl::CommandQueue> queues;
         std::map<std::string, int> programNames;

@@ -1,6 +1,7 @@
 #include "FAST/ExecutionDevice.hpp"
 #include "FAST/RuntimeMeasurementManager.hpp"
 #include "FAST/Utility.hpp"
+#include "FAST/DeviceManager.hpp"
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/lock_guard.hpp>
 #include <boost/lexical_cast.hpp>
@@ -289,6 +290,25 @@ RuntimeMeasurementsManagerPtr OpenCLDevice::getRunTimeMeasurementManager(){
 	return runtimeManager;
 }
 
+std::string tail(std::string const& source, size_t const length) {
+  if (length >= source.size()) { return source; }
+  std::string retval = source.substr(source.size() - length);
+  return retval;
+}
+
+std::string OpenCLDevice::getFilePathForWriting(std::string absolute_filename_of_kernel_file, std::string ending, std::size_t hash) {
+    std::string sub_string_of_kernel_file = tail(absolute_filename_of_kernel_file, 30);
+    return DeviceManager::getInstance().getWritableCachePath() + "/" +sub_string_of_kernel_file + "_" + boost::lexical_cast<std::string>(hash) + ending;
+}
+
+std::string OpenCLDevice::getFilePathForBinary(std::string absolute_filename_of_kernel_file, std::size_t hash) {
+    return getFilePathForWriting(absolute_filename_of_kernel_file, ".bin", hash);
+}
+
+std::string OpenCLDevice::getFilePathForCache(std::string absolute_filename_of_kernel_file, std::size_t hash) {
+    return getFilePathForWriting(absolute_filename_of_kernel_file, ".cache", hash);
+}
+
 
 cl::Program OpenCLDevice::writeBinary(std::string absolute_filename, std::string buildOptions) {
     // Build program from source file and store the binary file
@@ -308,8 +328,11 @@ cl::Program OpenCLDevice::writeBinary(std::string absolute_filename, std::string
     std::string deviceName = getDevice(0).getInfo<CL_DEVICE_NAME>();
     std::size_t hash = hash_function(buildOptions + deviceName);
 
-	std::string binaryFilename = absolute_filename + "_" + boost::lexical_cast<std::string>(hash) + ".bin";
-	std::string cacheFilename = absolute_filename + "_" + boost::lexical_cast<std::string>(hash) + ".cache";
+    //std::string binaryFilename = DeviceManager::getInstance().getWritableCachePath() + "/" + boost::lexical_cast<std::string>(hash) + ".bin";
+    std::string binaryFilename = getFilePathForBinary(absolute_filename, hash);
+    //std::string cacheFilename = DeviceManager::getInstance().getWritableCachePath() + "/" + boost::lexical_cast<std::string>(hash) + ".cache";
+    std::string cacheFilename = getFilePathForCache(absolute_filename, hash);
+    std::cout << "2 cacheFilename " << cacheFilename << std::endl;
 
     // Create directories if they don't exist
     if(binaryFilename.rfind("/") != std::string::npos) {
@@ -381,8 +404,11 @@ cl::Program OpenCLDevice::buildProgramFromBinary(std::string absolute_filename, 
     std::string deviceName = getDevice(0).getInfo<CL_DEVICE_NAME>();
     std::size_t hash = hash_function(buildOptions + deviceName);
 
-	std::string binaryFilename = absolute_filename + "_" + boost::lexical_cast<std::string>(hash) + ".bin";
-	std::string cacheFilename = absolute_filename + "_" + boost::lexical_cast<std::string>(hash) + ".cache";
+    //std::string binaryFilename = DeviceManager::getInstance().getWritableCachePath() + "/" + boost::lexical_cast<std::string>(hash) + ".bin";
+    std::string binaryFilename = getFilePathForBinary(absolute_filename, hash);
+    //std::string cacheFilename = DeviceManager::getInstance().getWritableCachePath() + "/" + boost::lexical_cast<std::string>(hash) + ".cache";
+    std::string cacheFilename = getFilePathForCache(absolute_filename, hash);
+    std::cout << "1 cacheFilename " << cacheFilename << std::endl;
 
     // Check if a binary file exists
     std::ifstream binaryFile(binaryFilename.c_str(), std::ios_base::binary | std::ios_base::in);

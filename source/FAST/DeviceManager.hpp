@@ -16,7 +16,9 @@ class DeviceManager : public Object {
     public:
         static DeviceManager& getInstance();
 		void setKernelRootPath(std::string kernel_root_path);
-		std::string getKernelRootPath();
+        void setWritableCachePath(std::string cache_path);
+        std::string getKernelRootPath();
+        std::string getWritableCachePath();
         OpenCLDevice::pointer getDevice(DeviceCriteria criteria);
         bool deviceSatisfiesCriteria(OpenCLDevice::pointer, const DeviceCriteria& criteria);
         std::vector<OpenCLDevice::pointer> getAllDevices(bool enableVisualization = false);
@@ -65,6 +67,7 @@ class DeviceManager : public Object {
 
         std::vector<cl::Platform> platforms;
 		std::string mKernelRootPath;
+        std::string mCachePath;
 };
 
 }
