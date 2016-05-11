@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 2.8.9)
 project(FAST)
 
+set(CMAKE_MODULE_PATH
+    ${CMAKE_MODULE_PATH}
+    ${PROJECT_SOURCE_DIR}/CMake)
+
+include(fastUtilities)
+
+fast_add_definitions()
+
 #### Options
 option(FAST_VTK_INTEROP "Enable interoperability with VTK" OFF)
 option(FAST_ITK_INTEROP "Enable interoperability with ITK" OFF)
@@ -61,77 +69,6 @@ if(BUILD_IGTLINK_TESTS)
 else()
     set(BUILD_TESTING OFF CACHE INTERNAL "Build OpenIGTLink tests." FORCE)
 endif()
-
-
-#### Macro for adding source files and directories
-macro (fast_add_sources)
-    file (RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
-    foreach (_src ${ARGN})
-        if (_relPath)
-            list (APPEND FAST_SOURCE_FILES "${_relPath}/${_src}")
-        else()
-            list (APPEND FAST_SOURCE_FILES "${_src}")
-        endif()
-    endforeach()
-    if (_relPath)
-        # propagate FAST_SOURCE_FILES to parent directory
-        set (FAST_SOURCE_FILES ${FAST_SOURCE_FILES} PARENT_SCOPE)
-    endif()
-endmacro()
-macro (fast_add_test_sources)
-    file (RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
-    foreach (_src ${ARGN})
-        if (_relPath)
-            list (APPEND FAST_TEST_SOURCE_FILES "${_relPath}/${_src}")
-        else()
-            list (APPEND FAST_TEST_SOURCE_FILES "${_src}")
-        endif()
-    endforeach()
-    if (_relPath)
-        # propagate FAST_TEST_SOURCE_FILES to parent directory
-        set (FAST_TEST_SOURCE_FILES ${FAST_TEST_SOURCE_FILES} PARENT_SCOPE)
-    endif()
-endmacro()
-macro (fast_add_python_interfaces)
-    file (RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
-    foreach (_src ${ARGN})
-        if (_relPath)
-            list (APPEND FAST_PYTHON_INTERFACE_FILES "${_relPath}/${_src}")
-        else()
-            list (APPEND FAST_PYTHON_INTERFACE_FILES "${_src}")
-        endif()
-    endforeach()
-    if (_relPath)
-        # propagate FAST_PYTHON_INTERFACE_FILES to parent directory
-        set (FAST_PYTHON_INTERFACE_FILES ${FAST_PYTHON_INTERFACE_FILES} PARENT_SCOPE)
-    endif()
-endmacro()
-macro (fast_add_subdirectories)
-    file (RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
-    foreach (_src ${ARGN})
-        add_subdirectory(${_src})
-    endforeach()
-    if (_relPath)
-        # propagate to parent directory
-        set (FAST_TEST_SOURCE_FILES ${FAST_TEST_SOURCE_FILES} PARENT_SCOPE)
-        set (FAST_SOURCE_FILES ${FAST_SOURCE_FILES} PARENT_SCOPE)
-        set (FAST_PYTHON_INTERFACE_FILES ${FAST_PYTHON_INTERFACE_FILES} PARENT_SCOPE)
-	endif()
-endmacro()
-macro (fast_add_all_subdirectories)
-	file(GLOB children RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*)
-	foreach(child ${children})
-		if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${child})
-			add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/${child})
-		endif()
-    endforeach()
-    if (_relPath)
-        # propagate to parent directory
-        set (FAST_TEST_SOURCE_FILES ${FAST_TEST_SOURCE_FILES} PARENT_SCOPE)
-        set (FAST_SOURCE_FILES ${FAST_SOURCE_FILES} PARENT_SCOPE)
-        set (FAST_PYTHON_INTERFACE_FILES ${FAST_PYTHON_INTERFACE_FILES} PARENT_SCOPE)
-	endif()
-endmacro()	
 
 
 # Headers for Qt objects
@@ -245,7 +182,7 @@ endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth=300") # Fix for a bug with boost signals2
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations") # Remove deprecated warnings GCC
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations") # Remove deprecated warnings GCC
 endif()
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR CMAKE_COMPILER_IS_GNUCXX)
     include(CheckCXXCompilerFlag)
@@ -280,8 +217,6 @@ if(OPENMP_FOUND)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
 endif()
-
-
 
 #### Create FAST library and executables
 add_library(FAST ${FAST_SOURCE_FILES} ${HEADERS_MOC})
