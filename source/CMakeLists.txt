@@ -7,6 +7,7 @@ option(FAST_ITK_INTEROP "Enable interoperability with ITK" OFF)
 option(FAST_BUILD_TESTS "Build FAST tests." ON)
 option(BUILD_IGTLINK_TESTS "Build OpenIGTLink tests." OFF)
 option(BUILD_EXAMPLES "Build OpenIGTLink examples." OFF)
+option(BUILD_SHARED_LIBS "Build shared libs" ON)
 option(FAST_BUILD_EXAMPLES "Build examples." OFF)
 option(FAST_MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
 option(FAST_MODULE_DeepLearning "Build deep learning module with caffe" OFF)
@@ -216,22 +217,26 @@ message("-- Using Eigen ${EIGEN3_VERSION}")
 
 ## Deep learning module
 if(FAST_MODULE_DeepLearning)
-    set(ViennaCL_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/viennacl-dev/")
-    set(OPENCL_INCLUDE_DIRS ${OpenCL_INCLUDE_DIRS})
-    set(OPENCL_LIBRARIES ${OpenCL_LIBRARIES})
+	# Set some variables for viennaCL, mark these as internal as we don't want user to change them
+    set(ViennaCL_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/viennacl-dev/" CACHE INTERNAL "")
+    set(OPENCL_INCLUDE_DIRS ${OpenCL_INCLUDE_DIRS} CACHE INTERNAL "")
+    set(OPENCL_LIBRARIES ${OpenCL_LIBRARIES} CACHE INTERNAL "")
 	add_subdirectory(viennacl-dev)
     find_package(ViennaCL PATHS "${FAST_BINARY_DIR}/viennacl-dev" REQUIRED)
-    set(BUILD_SHARED_LIBS ON)
-    set(BUILD_TOOLS OFF)
-    set(BUILD_docs OFF)
-    set(BUILD_python OFF)
-    set(BUILD_python_layers OFF)
-    set(USE_HDF5 OFF)
-    set(USE_CUDA OFF)
-    set(USE_CUDNN OFF)
-    set(USE_OPENCV OFF)
-    set(USE_LEVELDB OFF)
-    set(USE_LMDB OFF)
+    
+    # Turn off a bunch of caffe things FAST don't need
+    # Use CACHE here so that their value will show in cmake-gui
+    set(BUILD_TOOLS OFF CACHE BOOL "Build caffe tools")
+    set(BUILD_docs OFF CACHE BOOL "Build caffe docs")
+    set(BUILD_python OFF CACHE BOOL "Build caffe python")
+    set(BUILD_python_layers OFF CACHE BOOL "Build caffe python layers")
+    set(USE_HDF5 OFF CACHE BOOL "Build caffe with HDF5 support")
+    set(USE_CUDA OFF CACHE INTERNAL "") # FAST uses OpenCL
+    set(USE_CUDNN OFF CACHE INTERNAL "") # FAST uses OpenCL
+    set(USE_OPENCV OFF CACHE BOOL "Build caffe with OpenCV support")
+    set(USE_LEVELDB OFF CACHE BOOL "Build caffe with leveldb support")
+    set(USE_LMDB OFF CACHE BOOL "Build caffe with LMDB support")
+
 	add_subdirectory(caffe)
     find_package(Caffe PATHS "${FAST_BINARY_DIR}/caffe" REQUIRED)
     list(APPEND FAST_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/caffe/include/")
