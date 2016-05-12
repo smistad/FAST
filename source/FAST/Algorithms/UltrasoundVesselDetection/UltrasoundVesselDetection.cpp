@@ -163,8 +163,13 @@ void UltrasoundVesselDetection::execute() {
 		for(VesselCrossSection::pointer crossSection : mCrossSections) {
 			VesselCrossSectionAccess::pointer access = crossSection->getAccess(ACCESS_READ);
 			Vector2f imageCenter = access->getImageCenterPosition();
-			float majorRadius = access->getMajorRadius();
-			if((candidateImageCenter - imageCenter).norm() < majorRadius) {
+			float majorRadius = access->getMajorRadius() + access->getMajorRadius()*0.5f;
+			float minorRadius = access->getMinorRadius() + access->getMinorRadius()*0.5f;
+
+			// Check if candidate center is inside a previous ellipse
+			if(
+					std::pow(imageCenter.x() - candidateImageCenter.x(), 2.0f) / (majorRadius*majorRadius) +
+					std::pow(imageCenter.y() - candidateImageCenter.y(), 2.0f) / (minorRadius*minorRadius) < 1){
 				invalid = true;
 				break;
 			}
@@ -189,15 +194,16 @@ void UltrasoundVesselDetection::execute() {
         // Radius in pixels
         const float majorRadius = access->getMajorRadius();
         const float minorRadius = access->getMinorRadius();
-		const int frameSize = std::max((int)round(majorRadius), 50); // Nr if pixels to include around vessel
+		const int frameSizeX = std::max((int)round(majorRadius), 50); // Nr if pixels to include around vessel
+		const int frameSizeY = std::max((int)round(minorRadius), 50); // Nr if pixels to include around vessel
 
         Vector2i offset(
-                        round(imageCenter.x() - majorRadius) - frameSize,
-                        round(imageCenter.y() - minorRadius) - frameSize
+                        round(imageCenter.x() - majorRadius) - frameSizeX,
+                        round(imageCenter.y() - minorRadius) - frameSizeY
         );
         Vector2ui size(
-                        2*majorRadius + 2*frameSize,
-                        2*minorRadius + 2*frameSize
+                        2*majorRadius + 2*frameSizeX,
+                        2*minorRadius + 2*frameSizeY
         );
 
         // Clamp to image bounds
