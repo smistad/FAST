@@ -298,7 +298,7 @@ Shape::pointer MeanValueCoordinatesModel::getShape(VectorXf state) {
     int nrOfNans = 0;
     for(int i = 0; i < pL.size(); i++) {
     	Vector3f position = pL[i].getPosition();
-        if(isnan(position.x()) || isnan(position.y()) || isnan(position.z())) {
+        if(std::isnan(position.x()) || std::isnan(position.y()) || std::isnan(position.z())) {
             nrOfNans++;
             continue;
         }

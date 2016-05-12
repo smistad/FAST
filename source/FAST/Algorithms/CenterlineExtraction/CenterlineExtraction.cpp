@@ -411,7 +411,7 @@ void CenterlineExtraction::execute() {
 		double maxG = 0.0;
 		int maxLinearPosition = -1;
 		for(int linearPosition : Sc) {
-			if(G[linearPosition] > maxG && !isinf(G[linearPosition])) {
+			if(G[linearPosition] > maxG && !std::isinf(G[linearPosition])) {
 				maxG = G[linearPosition];
 				maxLinearPosition = linearPosition;
 			}
