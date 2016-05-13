@@ -13,12 +13,16 @@ class StepEdgeModel : public AppearanceModel {
 	public:
 		void setLineLength(float lengthInMM);
 		void setLineSampleSpacing(float spacingInMM);
+		void setIntensityDifferenceThreshold(float threshold);
+		void setMinimumDepth(float depth);
 		std::vector<Measurement> getMeasurements(SharedPointer<Image> image, SharedPointer<Shape> shape);
 	private:
 		StepEdgeModel();
 
 		float mLineLength;
 		float mLineSampleSpacing;
+		float mIntensityDifferenceThreshold;
+		float mMinimumDepth;
 
 };
 
