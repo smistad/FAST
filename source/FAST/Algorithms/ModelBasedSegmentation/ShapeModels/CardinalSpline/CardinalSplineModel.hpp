@@ -28,13 +28,22 @@ class CardinalSplineModel : public ShapeModel {
 		void setInitialTranslation(float x, float y);
 		void setLocalProcessError(float error);
 		void setGlobalProcessError(float error);
+		/*
+		 * Set a single tension for all control points
+		 */
 		void setTension(float tension);
+		/*
+		 * Set the tension value for each control point. This vector has to be
+		 * the same size as the number of control points.
+		 */
+		void setTension(std::vector<float> tension);
 		void setResolution(int resolution);
 	private:
 		CardinalSplineModel();
 		void assertControlPointsGiven();
 		void updateProcessErrorMatrix();
 		std::vector<Vector2f> getLocallyDeformedVertices(VectorXf state);
+		std::vector<float> getTensionVector(uint nrOfControlPoints) const;
 
 		MatrixXf mA1;
 		MatrixXf mA2;
@@ -47,7 +56,8 @@ class CardinalSplineModel : public ShapeModel {
 		int mResolution;
 
 		std::vector<Vector2f> mControlPoints;
-		float mTension;
+		float mGlobalTension;
+		std::vector<float> mTensionPerVertex;
 		Vector2f mCentroid;
 
 		bool mInitializeShapeToImageCenter;

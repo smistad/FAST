@@ -72,6 +72,7 @@ TEST_CASE("Model based segmentation with spline model on 2D pediatric cardiac US
 	shapeModel->setGlobalProcessError(0.000001f);
 	shapeModel->setLocalProcessError(0.0000001f);
 	shapeModel->setResolution(12);
+	shapeModel->setTension({0, 0.75, 0.75, 0, 0, 0});
 	KalmanFilter::pointer segmentation = KalmanFilter::New();
 	StepEdgeModel::pointer appearanceModel = StepEdgeModel::New();
 	appearanceModel->setLineLength(8);
