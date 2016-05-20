@@ -296,17 +296,19 @@ std::string tail(std::string const& source, size_t const length) {
   return retval;
 }
 
-std::string OpenCLDevice::getFilePathForWriting(std::string absolute_filename_of_kernel_file, std::string ending, std::size_t hash) {
+std::string OpenCLDevice::getUniqueFilePathForWriting(std::string absolute_filename_of_kernel_file, std::string ending, std::size_t hash) {
     std::string sub_string_of_kernel_file = tail(absolute_filename_of_kernel_file, 30);
+    sub_string_of_kernel_file.erase(std::remove(sub_string_of_kernel_file.begin(), sub_string_of_kernel_file.end(), '/'), sub_string_of_kernel_file.end());
+    sub_string_of_kernel_file.erase(std::remove(sub_string_of_kernel_file.begin(), sub_string_of_kernel_file.end(), '\\'), sub_string_of_kernel_file.end());
     return DeviceManager::getInstance().getWritableCachePath() + "/" +sub_string_of_kernel_file + "_" + boost::lexical_cast<std::string>(hash) + ending;
 }
 
 std::string OpenCLDevice::getFilePathForBinary(std::string absolute_filename_of_kernel_file, std::size_t hash) {
-    return getFilePathForWriting(absolute_filename_of_kernel_file, ".bin", hash);
+    return getUniqueFilePathForWriting(absolute_filename_of_kernel_file, ".bin", hash);
 }
 
 std::string OpenCLDevice::getFilePathForCache(std::string absolute_filename_of_kernel_file, std::size_t hash) {
-    return getFilePathForWriting(absolute_filename_of_kernel_file, ".cache", hash);
+    return getUniqueFilePathForWriting(absolute_filename_of_kernel_file, ".cache", hash);
 }
 
 
