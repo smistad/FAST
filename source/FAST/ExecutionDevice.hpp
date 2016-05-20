@@ -55,7 +55,7 @@ class OpenCLDevice : public ExecutionDevice {
         cl::CommandQueue getCommandQueue();
         cl::Device getDevice();
 
-        int createProgramFromSource(std::string filename, std::string buildOptions = "", bool caching = true);
+        int createProgramFromSource(std::string absolute_filename, std::string buildOptions = "", bool caching = true);
         int createProgramFromSource(std::vector<std::string> filenames, std::string buildOptions = "");
         int createProgramFromString(std::string code, std::string buildOptions = "");
         int createProgramFromSourceWithName(std::string programName, std::string filename, std::string buildOptions = "");

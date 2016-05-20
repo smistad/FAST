@@ -699,7 +699,7 @@ void View::paintGL() {
 
 		    // Initialize PBO with background color
 		    cl::CommandQueue queue = device->getCommandQueue();
-			int i = device->createProgramFromSource("/Visualization/View.cl");
+            int i = device->createProgramFromSource(DeviceManager::getInstance().getKernelRootPath()+"/Visualization/View.cl");
             cl::Kernel kernel(device->getProgram(i), "initializePBO");
             kernel.setArg(0, clPBO);
             kernel.setArg(1, mBackgroundColor.getRedValue());

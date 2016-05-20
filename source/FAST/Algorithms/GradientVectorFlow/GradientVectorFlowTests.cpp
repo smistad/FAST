@@ -157,7 +157,7 @@ TEST_CASE("Gradient vector flow with Multigrid method 3D 16 bit", "[fast][GVF][G
     MultigridGradientVectorFlow::pointer gvf = MultigridGradientVectorFlow::New();
     gvf->setInputConnection(gradient->getOutputPort());
     gvf->set16bitStorageFormat();
-    gvf->update();
+    CHECK_NOTHROW(gvf->update());
 
     CHECK(calculateGVFVectorFieldResidual(gradient->getOutputData<Image>(), gvf->getOutputData<Image>(), gvf->getMuConstant())
             < 0.001);

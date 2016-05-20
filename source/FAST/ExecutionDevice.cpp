@@ -122,7 +122,7 @@ std::string readFile(std::string filename) {
 
     std::ifstream sourceFile(filename.c_str(), std::fstream::in);
     if (sourceFile.fail())
-        throw Exception("Failed to open OpenCL source file.");
+        throw Exception("Failed to open OpenCL source file: "+filename);
 
     std::stringstream stringStream;
 
@@ -201,12 +201,12 @@ OpenCLDevice::OpenCLDevice(std::vector<cl::Device> devices, unsigned long* OpenG
     }
 }
 
-int OpenCLDevice::createProgramFromSource(std::string filename, std::string buildOptions, bool useCaching) {
+int OpenCLDevice::createProgramFromSource(std::string absolute_filename, std::string buildOptions, bool useCaching) {
     cl::Program program;
     if(useCaching) {
-        program = buildProgramFromBinary(filename, buildOptions);
+        program = buildProgramFromBinary(absolute_filename, buildOptions);
     } else {
-        std::string sourceCode = readFile(filename);
+        std::string sourceCode = readFile(absolute_filename);
         cl::Program::Sources source(1, std::make_pair(sourceCode.c_str(), sourceCode.length()));
         program = buildSources(source, buildOptions);
     }
