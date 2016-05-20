@@ -17,6 +17,7 @@ inline void stubStreamThread(ImageFileStreamer * streamer) {
 
 ImageFileStreamer::ImageFileStreamer() {
     mStreamIsStarted = false;
+    mNrOfReplays = 0;
     mIsModified = true;
     mLoop = false;
     mStartNumber = 0;
@@ -32,6 +33,10 @@ ImageFileStreamer::ImageFileStreamer() {
     mMaximumNrOfFramesSet = false;
     createOutputPort<Image>(0, OUTPUT_DYNAMIC);
     setMaximumNumberOfFrames(50); // Set default maximum number of frames to 50
+}
+
+void ImageFileStreamer::setNumberOfReplays(uint replays) {
+	mNrOfReplays = replays;
 }
 
 void ImageFileStreamer::setStreamingMode(StreamingMode mode) {
@@ -107,6 +112,7 @@ void ImageFileStreamer::producerStream() {
     }
 
     uint i = mStartNumber;
+    int replays = 0;
     while(true) {
         std::string filename = mFilenameFormat;
         std::string frameNumber = boost::lexical_cast<std::string>(i);
@@ -191,13 +197,15 @@ void ImageFileStreamer::producerStream() {
                     }
                     mFirstFrameCondition.notify_one();
                 }
-                if(mLoop) {
+                std::cout << mNrOfReplays << " " << replays << std::endl;
+                if(mLoop || (mNrOfReplays > 0 && replays != mNrOfReplays)) {
                     // Restart stream
                     if(timestampFile.is_open()) {
                         previousTimestamp = 0;
                         previousTimestampTime = std::chrono::high_resolution_clock::time_point::min();
                         timestampFile.seekg(0); // reset file to start
                     }
+                    replays++;
                     i = mStartNumber;
                     continue;
                 }
