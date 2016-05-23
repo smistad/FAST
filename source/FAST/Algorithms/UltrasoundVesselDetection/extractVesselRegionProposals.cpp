@@ -86,10 +86,10 @@ int main() {
 		streamer->update();
 		DynamicData::pointer images = streamer->getOutputData<Image>();
 
-		//int j = i / 4; // Group 4 sequences into each folder
-		//std::string targetDir = storageDir + boost::lexical_cast<std::string>(j) + "/";
-		//boost::filesystem::create_directories(targetDir);
-		std::string targetDir = storageDir;
+		// Put in subfolders
+		int j = i / 4; // Group 4 sequences into each folder
+		std::string targetDir = storageDir + boost::lexical_cast<std::string>(j) + "/";
+		boost::filesystem::create_directories(targetDir);
 
 		UltrasoundVesselDetection::pointer dummy = UltrasoundVesselDetection::New();
 
