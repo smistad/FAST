@@ -3,6 +3,7 @@
 #include "FAST/Exception.hpp"
 #include "FAST/Utility.hpp"
 #include "FAST/SceneGraph.hpp"
+#include "FAST/DeviceManager.hpp"
 
 namespace fast {
 
@@ -940,12 +941,13 @@ Image::pointer Image::copy(ExecutionDevice::pointer device) {
 }
 
 
-void Image::findDeviceWithUptodateData(ExecutionDevice::pointer* device, bool* isOpenCLImage) {
+void Image::findDeviceWithUptodateData(ExecutionDevice::pointer& device, bool& isOpenCLImage) {
+	isOpenCLImage = false;
     // Check first if there are any OpenCL images
     for(auto iterator : mCLImagesIsUpToDate) {
         if(iterator.second) {
-            *device = iterator.first;
-            *isOpenCLImage = true;
+            device = iterator.first;
+            isOpenCLImage = true;
             return;
         }
     }
@@ -953,26 +955,116 @@ void Image::findDeviceWithUptodateData(ExecutionDevice::pointer* device, bool* i
     // OpenCL buffers
     for(auto iterator : mCLBuffersIsUpToDate) {
         if(iterator.second) {
-            *device = iterator.first;
-            *isOpenCLImage = false;
+            device = iterator.first;
             return;
         }
     }
 
     // Host data
     if(mHostDataIsUpToDate) {
-        *device = Host::getInstance();
+        device = Host::getInstance();
     } else {
         throw Exception("Image has no up to date data. This should not be possible!");
     }
 }
 
-Image::pointer Image::crop(VectorXui offset, VectorXui size) {
+void Image::fill(float value) {
+    if(!isInitialized())
+        throw Exception("Image has not been initialized.");
+
+	ExecutionDevice::pointer device;
+    bool isOpenCLImage;
+    try {
+		findDeviceWithUptodateData(device, isOpenCLImage);
+    } catch(...) {
+    	// Has no data
+    	// Create an OpenCL image
+    	cl::Image* clImage;
+        OpenCLDevice::pointer clDevice = DeviceManager::getInstance().getDefaultComputationDevice();
+    	if(getDimensions() == 2) {
+			clImage = new cl::Image2D(
+				clDevice->getContext(),
+				CL_MEM_READ_WRITE,
+				getOpenCLImageFormat(clDevice, CL_MEM_OBJECT_IMAGE2D, mType, mComponents),
+				mWidth, mHeight
+			);
+    	} else {
+			clImage = new cl::Image3D(
+				clDevice->getContext(),
+				CL_MEM_READ_WRITE,
+				getOpenCLImageFormat(clDevice, CL_MEM_OBJECT_IMAGE3D, mType, mComponents),
+				mWidth, mHeight, mDepth
+			);
+    	}
+		mCLImages[clDevice] = clImage;
+		mCLImagesIsUpToDate[clDevice] = true;
+		device = clDevice;
+		isOpenCLImage = true;
+    }
+
+    if(device->isHost()) {
+        throw Exception("Not implemented yet");
+    } else {
+        OpenCLDevice::pointer clDevice = device;
+        cl::CommandQueue queue = clDevice->getCommandQueue();
+        if(isOpenCLImage) {
+            OpenCLImageAccess::pointer access = this->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
+            cl_float4 color = {value, value, value, value};
+            if(getDimensions() == 2) {
+				queue.enqueueFillImage(
+						*access->get2DImage(),
+						color,
+						createOrigoRegion(),
+						createRegion(getSize())
+				);
+			} else {
+				queue.enqueueFillImage(
+						*access->get3DImage(),
+						color,
+						createOrigoRegion(),
+						createRegion(getSize())
+				);
+			}
+        } else {
+			throw Exception("Not implemented yet");
+        }
+    }
+}
+
+Image::pointer Image::crop(VectorXi offset, VectorXi size, bool allowOutOfBoundsCropping) {
     Image::pointer newImage = Image::New();
+
+    bool needInitialization = false;
+    VectorXi newImageSize = size;
+    VectorXi copySourceOffset = offset;
+    VectorXi copyDestinationOffset = VectorXi::Zero(offset.size());
+    VectorXi copySize = size;
+    if(!allowOutOfBoundsCropping) {
+    	// Validate offset
+    	if(offset.x() < 0 || offset.y() < 0 || (getDimensions() == 3 && offset.z() < 0)) {
+    		throw Exception("Out of bounds cropping not allowed, but offset was below 0.");
+    	}
+    	// TODO validate size
+    } else {
+    	// Calculate offsets and sizes
+    	for(int i = 0; i < offset.size(); ++i) {
+    		if(offset[i] < 0) { // If offset is below zero, copy source offset should be zero
+				copySourceOffset[i] = 0;
+				copyDestinationOffset[i] = -offset[i];
+				needInitialization = true;
+				copySize[i] -= copyDestinationOffset[i];
+    		}
+    		if(copySourceOffset[i] + copySize[i] > getSize()[i]) { // If cut region is larger than image
+    			// Reduce copy size
+    			copySize[i] -= (copySourceOffset[i] + copySize[i]) - getSize()[i];
+				needInitialization = true;
+    		}
+    	}
+    }
 
     ExecutionDevice::pointer device;
     bool isOpenCLImage;
-    findDeviceWithUptodateData(&device, &isOpenCLImage);
+    findDeviceWithUptodateData(device, isOpenCLImage);
     // Handle host
     if(device->isHost()) {
         throw Exception("Not implemented yet");
@@ -981,23 +1073,37 @@ Image::pointer Image::crop(VectorXui offset, VectorXui size) {
         if(getDimensions() == 2) {
             if(offset.size() < 2 || size.size() < 2)
                 throw Exception("offset and size vectors given to Image::crop must have at least 2 components");
-            newImage->create(size, getDataType(), getNrOfComponents());
+            newImage->create(newImageSize.cast<uint>(), getDataType(), getNrOfComponents());
+            if(needInitialization)
+				newImage->fill(0);
             OpenCLImageAccess::pointer readAccess = this->getOpenCLImageAccess(ACCESS_READ, clDevice);
             OpenCLImageAccess::pointer writeAccess = newImage->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
             cl::Image2D* input = readAccess->get2DImage();
             cl::Image2D* output = writeAccess->get2DImage();
 
+            /*
+            std::cout << "New cropping:" << std::endl;
+            std::cout << offset.transpose() << std::endl;
+            std::cout << size.transpose() << std::endl;
+            std::cout << getSize().transpose() << std::endl;
+            std::cout << newImage->getSize().transpose() << std::endl;
+            std::cout << copySourceOffset.transpose() << std::endl;
+            std::cout << copyDestinationOffset.transpose() << std::endl;
+            std::cout << copySize.transpose() << std::endl;
+            */
             clDevice->getCommandQueue().enqueueCopyImage(
                     *input,
                     *output,
-                    createRegion(offset.x(), offset.y(), 0),
-                    createOrigoRegion(),
-                    createRegion(size.x(), size.y(), 1)
+                    createRegion(copySourceOffset.x(), copySourceOffset.y(), 0),
+                    createRegion(copyDestinationOffset.x(), copyDestinationOffset.y(), 0),
+                    createRegion(copySize.x(), copySize.y(), 1)
             );
         } else {
             if(offset.size() < 3 || size.size() < 3)
                 throw Exception("offset and size vectors given to Image::crop must have at least 3 components");
-            newImage->create(size, getDataType(), getNrOfComponents());
+            newImage->create(newImageSize.cast<uint>(), getDataType(), getNrOfComponents());
+            if(needInitialization)
+				newImage->fill(0);
             OpenCLImageAccess::pointer readAccess = this->getOpenCLImageAccess(ACCESS_READ, clDevice);
             OpenCLImageAccess::pointer writeAccess = newImage->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
             cl::Image3D* input = readAccess->get3DImage();
@@ -1006,9 +1112,9 @@ Image::pointer Image::crop(VectorXui offset, VectorXui size) {
             clDevice->getCommandQueue().enqueueCopyImage(
                     *input,
                     *output,
-                    createRegion(offset.x(), offset.y(), offset.z()),
-                    createOrigoRegion(),
-                    createRegion(size.x(), size.y(), size.z())
+                    createRegion(copySourceOffset.x(), copySourceOffset.y(), 0),
+                    createRegion(copyDestinationOffset.x(), copyDestinationOffset.y(), 0),
+                    createRegion(copySize.x(), copySize.y(), 1)
             );
         }
     }

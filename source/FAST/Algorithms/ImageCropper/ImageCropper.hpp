@@ -8,14 +8,20 @@ namespace fast {
 class ImageCropper : public ProcessObject {
     FAST_OBJECT(ImageCropper)
     public:
-        void setOffset(VectorXui offset);
-        void setSize(VectorXui size);
+        void setOffset(VectorXi offset);
+        void setSize(VectorXi size);
+        /*
+         * If out of bounds cropping is allowed, offset can be negative and size can be larger than image.
+         * Any pixels outside of image will be replaced with 0.
+         */
+        void allowOutOfBoundsCropping(bool allow);
     private:
         ImageCropper();
         void execute();
 
-        VectorXui mOffset;
-        VectorXui mSize;
+        VectorXi mOffset;
+        VectorXi mSize;
+        bool mAllowOutOfBoundsCropping;
 };
 
 

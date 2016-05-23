@@ -195,7 +195,7 @@ void UltrasoundVesselDetection::execute() {
                         round(imageCenter.x() - majorRadius) - frameSize,
                         round(imageCenter.y() - minorRadius) - frameSize
         );
-        Vector2ui size(
+        Vector2i size(
                         2*majorRadius + 2*frameSize,
                         2*minorRadius + 2*frameSize
         );
@@ -212,7 +212,7 @@ void UltrasoundVesselDetection::execute() {
 
         ImageCropper::pointer cropper = ImageCropper::New();
         cropper->setInputData(input);
-        cropper->setOffset(offset.cast<uint>());
+        cropper->setOffset(offset);
         cropper->setSize(size);
         cropper->update();
         subImages.push_back(cropper->getOutputData<Image>());

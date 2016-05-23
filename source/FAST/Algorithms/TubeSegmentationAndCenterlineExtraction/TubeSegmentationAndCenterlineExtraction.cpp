@@ -223,7 +223,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
         sizeY = sizeY + (4 - sizeY % 4);
         sizeZ = sizeZ + (4 - sizeZ % 4);
 
-        Image::pointer croppedImage = input->crop(Vector3ui(startX, startY, startZ), Vector3ui(sizeX, sizeY, sizeZ));
+        Image::pointer croppedImage = input->crop(Vector3i(startX, startY, startZ), Vector3i(sizeX, sizeY, sizeZ));
         input = croppedImage;
     }
 
