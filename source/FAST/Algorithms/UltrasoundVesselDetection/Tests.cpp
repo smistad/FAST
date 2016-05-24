@@ -65,7 +65,7 @@ TEST_CASE("UltrasoundVesselDetection", "[fast][UltrasoundVesselDetection][visual
 	};
 	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
 	streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
-	streamer->setFilenameFormat(recordings[6]);
+	streamer->setFilenameFormat(recordings[20]);
 	streamer->update();
 
 	UltrasoundVesselDetection::pointer detector = UltrasoundVesselDetection::New();

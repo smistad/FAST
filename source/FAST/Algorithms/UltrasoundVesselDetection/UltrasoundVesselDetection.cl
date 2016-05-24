@@ -16,7 +16,7 @@ __kernel void vesselDetection(
         float spacing
         ) {
     
-    const float radiusMinInMM = 3;
+    const float radiusMinInMM = 3.5;
     const float radiusMaxInMM = 6;
     const float scaleStep = 0.1;
     const uint samples = 32;

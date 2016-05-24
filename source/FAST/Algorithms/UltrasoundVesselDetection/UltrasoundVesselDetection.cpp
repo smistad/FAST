@@ -26,12 +26,21 @@ UltrasoundVesselDetection::UltrasoundVesselDetection() {
     mCreateSegmentation = false;
 
 	mClassifier = ImageClassifier::New();
-	std::string modelFile = "/home/smistad/vessel_detection_model/deploy.prototxt";
-	std::string trainingFile = "/home/smistad/vessel_detection_model/snapshot_iter_540.caffemodel";
-	std::string meanFile = "/home/smistad/vessel_detection_model/mean.binaryproto";
+	//std::string modelFile = "/home/smistad/vessel_detection_model/deploy.prototxt";
+	//std::string trainingFile = "/home/smistad/vessel_detection_model/snapshot_iter_540.caffemodel";
+	//std::string meanFile = "/home/smistad/vessel_detection_model/mean.binaryproto";
 	//std::string modelFile = "/home/smistad/vessel_detection_model2/deploy.prototxt";
 	//std::string trainingFile = "/home/smistad/vessel_detection_model2/snapshot_iter_960.caffemodel";
 	//std::string meanFile = "/home/smistad/vessel_detection_model2/mean.binaryproto";
+	//std::string modelFile = "/home/smistad/vessel_detection_model_gaussian/deploy.prototxt";
+	//std::string trainingFile = "/home/smistad/vessel_detection_model_gaussian/snapshot_iter_960.caffemodel";
+	//std::string meanFile = "/home/smistad/vessel_detection_model_gaussian/mean.binaryproto";
+	//std::string modelFile = "/home/smistad/vessel_detection_model_alex_no_relu/deploy.prototxt";
+	//std::string trainingFile = "/home/smistad/vessel_detection_model_alex_no_relu/snapshot_iter_630.caffemodel";
+	//std::string meanFile = "/home/smistad/vessel_detection_model_alex_no_relu/mean.binaryproto";
+	std::string modelFile = "/home/smistad/vessel_detection_model_alex_augmented/deploy.prototxt";
+	std::string trainingFile = "/home/smistad/vessel_detection_model_alex_augmented/snapshot_iter_8404.caffemodel";
+	std::string meanFile = "/home/smistad/vessel_detection_model_alex_augmented/mean.binaryproto";
 	mClassifier->loadModel(modelFile, trainingFile, meanFile);
 
 }
