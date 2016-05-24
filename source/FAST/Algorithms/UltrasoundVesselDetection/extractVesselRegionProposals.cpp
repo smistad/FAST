@@ -118,7 +118,7 @@ int main() {
 
 				Vector2i offset(
 						round(imageCenter.x() - majorRadius) - frameSize,
-						round(imageCenter.y() - minorRadius) - frameSize
+						round(imageCenter.y() - majorRadius) - frameSize
 				);
 				int size2 = 2*majorRadius + 2*frameSize;
 				Vector2i size(
@@ -140,5 +140,6 @@ int main() {
 				counter++;
 			}
 		}
+		std::cout << "Finished recording " << i << " of " << recordings.size() << std::endl;
 	}
 }
