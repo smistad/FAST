@@ -203,32 +203,23 @@ void UltrasoundVesselDetection::execute() {
         // Radius in pixels
         const float majorRadius = access->getMajorRadius();
         const float minorRadius = access->getMinorRadius();
-		const int frameSizeX = std::max((int)round(majorRadius), 50); // Nr if pixels to include around vessel
-		const int frameSizeY = std::max((int)round(minorRadius), 50); // Nr if pixels to include around vessel
+		const int frameSize = std::max((int)round(majorRadius), 50); // Nr if pixels to include around vessel
 
-        Vector2i offset(
-                        round(imageCenter.x() - majorRadius) - frameSizeX,
-                        round(imageCenter.y() - minorRadius) - frameSizeY
-        );
-        Vector2ui size(
-                        2*majorRadius + 2*frameSizeX,
-                        2*minorRadius + 2*frameSizeY
-        );
+		Vector2i offset(
+				round(imageCenter.x() - majorRadius) - frameSize,
+				round(imageCenter.y() - minorRadius) - frameSize
+		);
+		int size2 = 2*majorRadius + 2*frameSize;
+		Vector2i size(
+				size2,
+				size2
+		);
 
-        // Clamp to image bounds
-        if(offset.x() < 0)
-                offset.x() = 0;
-        if(offset.y() < 0)
-                offset.y() = 0;
-        if(offset.x() + size.x() > imageSize.x())
-                size.x() = imageSize.x() - offset.x();
-        if(offset.y() + size.y() > imageSize.y())
-                size.y() = imageSize.y() - offset.y();
-
-        ImageCropper::pointer cropper = ImageCropper::New();
-        cropper->setInputData(input);
-        cropper->setOffset(offset.cast<uint>());
-        cropper->setSize(size);
+		ImageCropper::pointer cropper = ImageCropper::New();
+		cropper->setInputData(input);
+		cropper->allowOutOfBoundsCropping(true);
+		cropper->setOffset(offset);
+		cropper->setSize(size);
         cropper->update();
         subImages.push_back(cropper->getOutputData<Image>());
     }

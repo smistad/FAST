@@ -21,7 +21,8 @@ inline std::string currentDateTime() {
 }
 
 int main() {
-	std::string storageDir = "/home/smistad/vessel_detection_dataset2/";
+	std::string storageDir = "/home/smistad/vessel_detection_dataset3/";
+	boost::filesystem::create_directories(storageDir);
 	// Set up stream
 	std::vector<std::string> recordings = {
 	"/home/smistad/AssistantTestData/1/US-Acq_03_20150608T103739/Acquisition/US-Acq_03_20150608T103739_Image_Transducer_#.mhd",
@@ -85,6 +86,7 @@ int main() {
 		streamer->update();
 		DynamicData::pointer images = streamer->getOutputData<Image>();
 
+		// Put in subfolders
 		int j = i / 4; // Group 4 sequences into each folder
 		std::string targetDir = storageDir + boost::lexical_cast<std::string>(j) + "/";
 		boost::filesystem::create_directories(targetDir);
@@ -99,12 +101,6 @@ int main() {
 			Vector3ui imageSize = image->getSize();
 			Vector3f spacing = image->getSpacing();
 
-			ImageExporter::pointer exporter = ImageExporter::New();
-			std::string filename = currentDateTime() + "-" + boost::lexical_cast<std::string>(counter) + "-original.png";
-			exporter->setFilename(targetDir + filename);
-			exporter->setInputData(image);
-			exporter->update();
-			counter++;
 			detector->setInputData(image);
 			detector->update();
 			std::vector<VesselCrossSection::pointer> crossSections = detector->getCrossSections();
@@ -124,24 +120,16 @@ int main() {
 						round(imageCenter.x() - majorRadius) - frameSize,
 						round(imageCenter.y() - minorRadius) - frameSize
 				);
-				Vector2ui size(
-						2*majorRadius + 2*frameSize,
-						2*minorRadius + 2*frameSize
+				int size2 = 2*majorRadius + 2*frameSize;
+				Vector2i size(
+						size2,
+						size2
 				);
-
-				// Clamp to image bounds
-				if(offset.x() < 0)
-					offset.x() = 0;
-				if(offset.y() < 0)
-					offset.y() = 0;
-				if(offset.x() + size.x() > imageSize.x())
-					size.x() = imageSize.x() - offset.x();
-				if(offset.y() + size.y() > imageSize.y())
-					size.y() = imageSize.y() - offset.y();
 
 				ImageCropper::pointer cropper = ImageCropper::New();
 				cropper->setInputData(image);
-				cropper->setOffset(offset.cast<uint>());
+				cropper->allowOutOfBoundsCropping(true);
+				cropper->setOffset(offset);
 				cropper->setSize(size);
 
 				ImageExporter::pointer exporter = ImageExporter::New();

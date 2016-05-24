@@ -4,7 +4,7 @@
 namespace fast {
 
 
-void ImageCropper::setOffset(VectorXui offset) {
+void ImageCropper::setOffset(VectorXi offset) {
     mOffset.x() = offset.x();
     mOffset.y() = offset.y();
     if(offset.size() > 2) {
@@ -14,7 +14,7 @@ void ImageCropper::setOffset(VectorXui offset) {
     }
 }
 
-void ImageCropper::setSize(VectorXui size) {
+void ImageCropper::setSize(VectorXi size) {
     mSize.x() = size.x();
     mSize.y() = size.y();
     if(size.size() > 2) {
@@ -28,17 +28,21 @@ ImageCropper::ImageCropper() {
     createInputPort<Image>(0);
     createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
 
-    mSize = Vector3ui::Zero();
-    mOffset = Vector3ui::Zero();
+    mSize = Vector3i::Zero();
+    mOffset = Vector3i::Zero();
+    mAllowOutOfBoundsCropping = false;
 }
 
 void ImageCropper::execute() {
-    if(mSize == Vector3ui::Zero())
+    if(mSize == Vector3i::Zero())
         throw Exception("Size must be given to ImageCropper");
 
     Image::pointer input = getStaticInputData<Image>();
-    Image::pointer output = input->crop(mOffset, mSize);
+    Image::pointer output = input->crop(mOffset, mSize, mAllowOutOfBoundsCropping);
     setStaticOutputData<Image>(0, output);
 }
 
+void ImageCropper::allowOutOfBoundsCropping(bool allow) {
+	mAllowOutOfBoundsCropping = allow;
+}
 }
