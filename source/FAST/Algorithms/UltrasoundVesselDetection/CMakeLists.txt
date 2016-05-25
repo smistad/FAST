@@ -11,4 +11,5 @@ if(FAST_MODULE_DeepLearning)
 		Tests.cpp
 	)
 	fast_add_example(extractVesselRegionProposals extractVesselRegionProposals.cpp)
+	fast_add_example(ultrasoundVesselDetection ultrasoundVesselDetection.cpp)
 endif()
