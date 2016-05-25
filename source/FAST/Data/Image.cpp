@@ -1007,17 +1007,37 @@ void Image::fill(float value) {
     } else {
         OpenCLDevice::pointer clDevice = device;
         cl::CommandQueue queue = clDevice->getCommandQueue();
+		std::string sourceFilename = std::string(FAST_SOURCE_DIR) + "/ImageFill.cl";
+		std::string programName = sourceFilename;
+		// Only create program if it doesn't exist for this device from before
+		if(!clDevice->hasProgram(programName))
+			clDevice->createProgramFromSourceWithName(programName, sourceFilename);
+		cl::Program program = clDevice->getProgram(programName);
         if(isOpenCLImage) {
             OpenCLImageAccess::pointer access = this->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
             cl_float4 color = {value, value, value, value};
             if(getDimensions() == 2) {
+				cl::Kernel kernel(program, "fillImage2D");
+				kernel.setArg(0, *access->get2DImage());
+				kernel.setArg(1, value);
+				queue.enqueueNDRangeKernel(
+						kernel,
+						cl::NullRange,
+						cl::NDRange(mWidth, mHeight),
+						cl::NullRange
+				);
+				// Ideally, we want to use the enqueueFillImage function for this, but it
+				// is not working atm on NVIDIA GPUs when visualizing at the same time
+            	/*
 				queue.enqueueFillImage(
 						*access->get2DImage(),
 						color,
 						createOrigoRegion(),
 						createRegion(getSize())
 				);
+				*/
 			} else {
+				throw Exception("Not implemented yet");
 				queue.enqueueFillImage(
 						*access->get3DImage(),
 						color,

@@ -42,7 +42,7 @@ void ImageResizer::execute() {
     Image::pointer input = getStaticInputData<Image>();
     Image::pointer output = getStaticOutputData<Image>();
 
-    if(mSize.x() == 0 || mSize.y() == 0)
+    if(mSize.x() <= 0 || mSize.y() <= 0)
     	throw Exception("Desired size must be provided to ImageResizer");
 
     // Initialize output image
