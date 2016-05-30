@@ -16,6 +16,12 @@ class StepEdgeModel : public AppearanceModel {
 		void setIntensityDifferenceThreshold(float threshold);
 		void setMinimumDepth(float depth);
 		std::vector<Measurement> getMeasurements(SharedPointer<Image> image, SharedPointer<Shape> shape);
+		enum EdgeType {
+			EDGE_TYPE_ANY,
+			EDGE_TYPE_BLACK_INSIDE_WHITE_OUTSIDE,
+			EDGE_TYPE_WHITE_INSIDE_BLACK_OUTSIDE
+		};
+		void setEdgeType(EdgeType type);
 	private:
 		StepEdgeModel();
 
@@ -23,6 +29,7 @@ class StepEdgeModel : public AppearanceModel {
 		float mLineSampleSpacing;
 		float mIntensityDifferenceThreshold;
 		float mMinimumDepth;
+		EdgeType mEdgeType;
 
 };
 

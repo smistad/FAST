@@ -10,6 +10,11 @@ StepEdgeModel::StepEdgeModel() {
 	mLineLength = 0;
 	mLineSampleSpacing = 0;
 	mIntensityDifferenceThreshold = 20;
+	mEdgeType = EDGE_TYPE_ANY;
+}
+
+void StepEdgeModel::setEdgeType(EdgeType type) {
+	mEdgeType = type;
 }
 
 typedef struct DetectedEdge {
@@ -18,7 +23,7 @@ typedef struct DetectedEdge {
 } DetectedEdge;
 
 inline DetectedEdge findEdge(
-        std::vector<float> intensityProfile, const float intensityThreshold) {
+        std::vector<float> intensityProfile, const float intensityThreshold, StepEdgeModel::EdgeType type) {
     // Pre calculate partial sum
     const int size = intensityProfile.size();
     boost::shared_array<float> sum_k(new float[size]());
@@ -53,7 +58,9 @@ inline DetectedEdge findEdge(
     DetectedEdge edge;
 
 
-    if(bestHeightDifference >= 0) { // Black inside, white outside
+    if(type == StepEdgeModel::EDGE_TYPE_BLACK_INSIDE_WHITE_OUTSIDE && bestHeightDifference >= 0) {
+        edge.edgeIndex = -1;
+    } else if(type == StepEdgeModel::EDGE_TYPE_WHITE_INSIDE_BLACK_OUTSIDE && bestHeightDifference < 0) {
         edge.edgeIndex = -1;
     } else if(fabs(bestHeightDifference) < intensityThreshold) {
         edge.edgeIndex = -1;
@@ -136,7 +143,7 @@ std::vector<Measurement> StepEdgeModel::getMeasurements(SharedPointer<Image> ima
 			m.uncertainty = 1;
 			m.displacement = 0;
 			if(startFound){
-				DetectedEdge edge = findEdge(intensityProfile, mIntensityDifferenceThreshold);
+				DetectedEdge edge = findEdge(intensityProfile, mIntensityDifferenceThreshold, mEdgeType);
 				if(edge.edgeIndex != -1) {
 					float d = -mLineLength/2.0f + (startPos + edge.edgeIndex)*mLineSampleSpacing;
 					const Vector3f position = points[i].getPosition() + points[i].getNormal()*d;
@@ -181,7 +188,7 @@ std::vector<Measurement> StepEdgeModel::getMeasurements(SharedPointer<Image> ima
 			m.uncertainty = 1;
 			m.displacement = 0;
 			if(startFound){
-				DetectedEdge edge = findEdge(intensityProfile, mIntensityDifferenceThreshold);
+				DetectedEdge edge = findEdge(intensityProfile, mIntensityDifferenceThreshold, mEdgeType);
 				if(edge.edgeIndex != -1) {
 					float d = -mLineLength/2.0f + (startPos + edge.edgeIndex)*mLineSampleSpacing;
 					const Vector2f position = points[i].getPosition() + points[i].getNormal()*d;
