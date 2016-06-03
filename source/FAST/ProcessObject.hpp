@@ -101,9 +101,9 @@ class ProcessObject : public virtual Object {
         template <class DataType>
         DataObject::pointer getOutputData();
         template <class DataType>
-        std::vector<DataObject::pointer> getMultipleOutputData(uint portID);
+        std::vector<typename DataType::pointer> getMultipleOutputData(uint portID);
         template <class DataType>
-        std::vector<DataObject::pointer> getMultipleOutputData();
+        std::vector<typename DataType::pointer> getMultipleOutputData();
 
         bool inputPortExists(uint portID) const;
         bool outputPortExists(uint portID) const;
@@ -364,7 +364,7 @@ typename DataType::pointer ProcessObject::addStaticOutputData(uint portID) {
 	if(!outputPortExists(portID))
         throw Exception("The output port " + boost::lexical_cast<std::string>(portID) + " does not exist on the ProcessObject " + getNameOfClass());
 
-    std::vector<DataObject::pointer> data = getMultipleOutputData<DataType>(portID);//mOutputs.at(outputNumber);
+    std::vector<typename DataType::pointer> data = getMultipleOutputData<DataType>(portID);//mOutputs.at(outputNumber);
 
 	DataObject::pointer returnData = DataType::New();
 	mOutputData[portID].push_back(returnData);
@@ -372,25 +372,26 @@ typename DataType::pointer ProcessObject::addStaticOutputData(uint portID) {
 }
 
 template <class DataType>
-std::vector<DataObject::pointer> ProcessObject::getMultipleOutputData(uint outputNumber) {
-	std::vector<DataObject::pointer> data;
+std::vector<typename DataType::pointer> ProcessObject::getMultipleOutputData(uint outputNumber) {
+	std::vector<typename DataType::pointer> data;
 
     // If output data is not created
     if(mOutputData.count(outputNumber) == 0) {
-        if(mOutputPortType[outputNumber] == OUTPUT_STATIC) {
+        if(mOutputPortType[outputNumber] != OUTPUT_DYNAMIC) {
             // Create static data
             mOutputData[outputNumber].push_back(DataType::New());
         } else {
         	throw Exception("Dynamic multiple data not supported yet.");
         }
     } else {
-        data = mOutputData[outputNumber];
+    	for(DataObject::pointer unconvertedData : mOutputData[outputNumber])
+			data.push_back(typename DataType::pointer(unconvertedData)); // convert from DataObject to DataType
     }
 
     return data;
 }
 template <class DataType>
-std::vector<DataObject::pointer> ProcessObject::getMultipleOutputData() {
+std::vector<typename DataType::pointer> ProcessObject::getMultipleOutputData() {
 	return getMultipleOutputData<DataType>(0);
 
 }

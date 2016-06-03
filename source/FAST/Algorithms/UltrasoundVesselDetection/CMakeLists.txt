@@ -2,6 +2,8 @@ if(FAST_MODULE_DeepLearning)
 	fast_add_sources(
 		UltrasoundVesselDetection.cpp
 		UltrasoundVesselDetection.hpp
+		UltrasoundVesselSegmentation.cpp
+		UltrasoundVesselSegmentation.hpp
 		VesselCrossSection.cpp
 		VesselCrossSection.hpp
 		VesselCrossSectionAccess.cpp
@@ -12,4 +14,5 @@ if(FAST_MODULE_DeepLearning)
 	)
 	fast_add_example(extractVesselRegionProposals extractVesselRegionProposals.cpp)
 	fast_add_example(ultrasoundVesselDetection ultrasoundVesselDetection.cpp)
+	fast_add_example(ultrasoundVesselSegmentation ultrasoundVesselSegmentation.cpp)
 endif()

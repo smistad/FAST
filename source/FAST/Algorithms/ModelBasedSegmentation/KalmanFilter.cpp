@@ -25,6 +25,12 @@ void KalmanFilter::setAppearanceModel(
 	mAppearanceModel = appearanceModel;
 }
 
+VectorXf KalmanFilter::getCurrentState() const {
+	if(!mInitialized)
+		throw Exception("Can't get current state before first execute in Kalman filter.");
+	return mCurrentState;
+}
+
 void KalmanFilter::execute() {
     reportInfo() << "Executing Kalman filter.." << reportEnd();
 	if(!mShapeModel.isValid() || !mAppearanceModel.isValid())
@@ -108,6 +114,8 @@ void KalmanFilter::estimate(SharedPointer<Image> image) {
 	mPreviousCovariance = mCurrentCovariance;
 	mCurrentCovariance = (mPredictedCovariance.inverse() + HRH).inverse();
 	mCurrentState = mPredictedState + mCurrentCovariance*HRv;
+
+	mCurrentState = mShapeModel->restrictState(mCurrentState);
 }
 
 }

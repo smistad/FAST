@@ -22,6 +22,7 @@ ProcessObjectPort UltrasoundVesselDetection::getOutputSegmentationPort() {
 UltrasoundVesselDetection::UltrasoundVesselDetection() {
     createInputPort<Image>(0);
     createOutputPort<Segmentation>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOutputPort<VesselCrossSection>(1, OUTPUT_STATIC, 0, true);
     createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/UltrasoundVesselDetection/UltrasoundVesselDetection.cl");
     mCreateSegmentation = false;
 
@@ -39,7 +40,7 @@ UltrasoundVesselDetection::UltrasoundVesselDetection() {
 	//std::string trainingFile = "/home/smistad/vessel_detection_model_alex_no_relu/snapshot_iter_630.caffemodel";
 	//std::string meanFile = "/home/smistad/vessel_detection_model_alex_no_relu/mean.binaryproto";
 	std::string modelFile = "/home/smistad/vessel_net/deploy.prototxt";
-	std::string trainingFile = "/home/smistad/vessel_net/snapshot_iter_7350.caffemodel";
+	std::string trainingFile = "/home/smistad/vessel_net/snapshot_iter_5640.caffemodel";
 	std::string meanFile = "/home/smistad/vessel_net/mean.binaryproto";
 	mClassifier->loadModel(modelFile, trainingFile, meanFile);
 
@@ -225,7 +226,7 @@ void UltrasoundVesselDetection::execute() {
     }
 	std::vector<VesselCrossSection::pointer> acceptedVessels;
 	if(subImages.size() > 0) {
-		mClassifier->setLabels({"Not vessel", "Vessel"});
+		mClassifier->setLabels({"Vessel", "Not vessel"});
 		mClassifier->setInputData(subImages);
 		mClassifier->update();
 
@@ -234,10 +235,14 @@ void UltrasoundVesselDetection::execute() {
 		for(std::map<std::string, float> res : classifierResult) {
 			if(res["Vessel"] > 0.9) {
 				acceptedVessels.push_back(mCrossSections[i]);
+				//VesselCrossSection::pointer newData = addStaticOutputData<VesselCrossSection>(1);
+				//VesselCrossSectionAccess::pointer access = mCrossSections[i]->getAccess(ACCESS_READ);
+				//newData->create(access->getGlobalCenterPosition(), access->getImageCenterPosition(), access->getMajorRadius(), access->getMinorRadius());
 			}
 			++i;
 		}
 	}
+	mAcceptedCrossSections = acceptedVessels;
     mRuntimeManager->stopRegularTimer("classifier");
 
     if(mCreateSegmentation) {
@@ -284,6 +289,9 @@ void UltrasoundVesselDetection::execute() {
 
 std::vector<VesselCrossSection::pointer> UltrasoundVesselDetection::getCrossSections() {
 	return mCrossSections;
+}
+std::vector<VesselCrossSection::pointer> UltrasoundVesselDetection::getAcceptedCrossSections() {
+	return mAcceptedCrossSections;
 }
 
 } // end namespace fast

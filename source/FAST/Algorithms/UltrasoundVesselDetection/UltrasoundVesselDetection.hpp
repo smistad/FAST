@@ -13,12 +13,14 @@ class UltrasoundVesselDetection : public ProcessObject {
     public:
         ProcessObjectPort getOutputSegmentationPort();
         std::vector<VesselCrossSection::pointer> getCrossSections();
+        std::vector<VesselCrossSection::pointer> getAcceptedCrossSections();
     private:
         UltrasoundVesselDetection();
         void execute();
 
         bool mCreateSegmentation;
         std::vector<VesselCrossSection::pointer> mCrossSections;
+        std::vector<VesselCrossSection::pointer> mAcceptedCrossSections;
         SharedPointer<ImageClassifier> mClassifier;
 };
 

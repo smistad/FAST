@@ -1,5 +1,5 @@
 #include "FAST/Testing.hpp"
-#include "UltrasoundVesselDetection.hpp"
+#include "UltrasoundVesselSegmentation.hpp"
 #include "FAST/Streamers/ImageFileStreamer.hpp"
 #include "FAST/Data/Image.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
@@ -62,6 +62,15 @@ int main(int argc, char** argv) {
 	"/home/smistad/AssistantTestData/12/1/US-2D_#.mhd",
 	"/home/smistad/AssistantTestData/12/2/US-2D_#.mhd",
 	"/home/smistad/AssistantTestData/12/3/US-2D_#.mhd",
+	"/media/smistad/New\ Volume/Assistant\ Recordings/Leuven\ 5\ feb\ 2016/2016-02-05-105012/US-2D_#.mhd",
+	"/media/smistad/New\ Volume/Assistant\ Recordings/Leuven\ 5\ feb\ 2016/2016-02-05-105257/US-2D_#.mhd",
+	"/media/smistad/New\ Volume/Assistant\ Recordings/Leuven\ 6\ feb\ 2016/2016-02-06-094808/US-2D_#.mhd",
+	"/media/smistad/New\ Volume/Assistant\ Recordings/Leuven\ 6\ feb\ 2016/2016-02-06-095237/US-2D_#.mhd",
+
+	"/media/smistad/New\ Volume/Assistant\ Recordings/Leuven\ 5\ feb\ 2016/2016-02-05-114458/US-2D_#.mhd",
+	"/media/smistad/New\ Volume/Assistant\ Recordings/Leuven\ 5\ feb\ 2016/2016-02-05-120411/US-2D_#.mhd",
+	"/media/smistad/New\ Volume/Assistant\ Recordings/Leuven\ 5\ feb\ 2016/2016-02-05-120648/US-2D_#.mhd",
+	"/media/smistad/New\ Volume/Assistant\ Recordings/Leuven\ 5\ feb\ 2016/2016-02-05-120843/US-2D_#.mhd",
 	"/media/smistad/New Volume/Carotis/2016-06-02-140622/US-2D_#.mhd",
 	"/media/smistad/New Volume/Carotis/2016-06-02-140721/US-2D_#.mhd",
 	"/media/smistad/New Volume/Carotis/2016-06-02-140846/US-2D_#.mhd",
@@ -81,12 +90,11 @@ int main(int argc, char** argv) {
 	streamer->setFilenameFormat(recordings[recordingID]);
 	streamer->update();
 
-	UltrasoundVesselDetection::pointer detector = UltrasoundVesselDetection::New();
-	detector->setInputConnection(streamer->getOutputPort());
-	detector->enableRuntimeMeasurements();
+	UltrasoundVesselSegmentation::pointer segmentation = UltrasoundVesselSegmentation::New();
+	segmentation->setInputConnection(streamer->getOutputPort());
 
 	SegmentationRenderer::pointer segmentationRenderer = SegmentationRenderer::New();
-	segmentationRenderer->addInputConnection(detector->getOutputSegmentationPort());
+	segmentationRenderer->addInputConnection(segmentation->getOutputPort());
 	segmentationRenderer->setFillArea(false);
 
 	ImageRenderer::pointer imageRenderer = ImageRenderer::New();
@@ -99,8 +107,4 @@ int main(int argc, char** argv) {
 	window->setWidth(1024);
 	window->setHeight(1024);
 	window->start();
-	detector->getRuntime("ellipse fitting")->print();
-	detector->getRuntime("candidate selection")->print();
-	detector->getRuntime("classifier")->print();
-	detector->getRuntime("segmentation")->print();
 }

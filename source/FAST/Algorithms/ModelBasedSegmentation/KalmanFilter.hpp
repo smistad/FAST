@@ -16,6 +16,7 @@ class KalmanFilter : public ProcessObject {
 		void setAppearanceModel(AppearanceModel::pointer appearanceModel);
 		void setIterations(int iterations);
 		void setStartIterations(int iterations);
+		VectorXf getCurrentState() const;
 	private:
 		KalmanFilter();
 		void execute(); // runs a loop with predict, measure and update

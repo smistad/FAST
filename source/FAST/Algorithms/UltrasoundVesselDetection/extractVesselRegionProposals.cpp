@@ -21,10 +21,11 @@ inline std::string currentDateTime() {
 }
 
 int main() {
-	std::string storageDir = "/home/smistad/vessel_detection_dataset3/";
+	std::string storageDir = "/home/smistad/vessel_validation_dataset/";
 	boost::filesystem::create_directories(storageDir);
 	// Set up stream
 	std::vector<std::string> recordings = {
+			/*
 	"/home/smistad/AssistantTestData/1/US-Acq_03_20150608T103739/Acquisition/US-Acq_03_20150608T103739_Image_Transducer_#.mhd",
 	"/home/smistad/AssistantTestData/1/US-Acq_04_20150608T103837/Acquisition/US-Acq_04_20150608T103837_Image_Transducer_#.mhd",
 	"/home/smistad/AssistantTestData/1/US-Acq_07_20150608T104148/Acquisition/US-Acq_07_20150608T104148_Image_Transducer_#.mhd",
@@ -76,7 +77,17 @@ int main() {
 	"/home/smistad/AssistantTestData/12/0/US-2D_#.mhd",
 	"/home/smistad/AssistantTestData/12/1/US-2D_#.mhd",
 	"/home/smistad/AssistantTestData/12/2/US-2D_#.mhd",
-	"/home/smistad/AssistantTestData/12/3/US-2D_#.mhd"
+	"/home/smistad/AssistantTestData/12/3/US-2D_#.mhd",
+	*/
+	"/media/smistad/New\ Volume/Assistant\ Recordings/Leuven\ 5\ feb\ 2016/2016-02-05-105012/US-2D_#.mhd",
+	"/media/smistad/New\ Volume/Assistant\ Recordings/Leuven\ 5\ feb\ 2016/2016-02-05-105257/US-2D_#.mhd",
+	"/media/smistad/New\ Volume/Assistant\ Recordings/Leuven\ 6\ feb\ 2016/2016-02-06-094808/US-2D_#.mhd",
+	"/media/smistad/New\ Volume/Assistant\ Recordings/Leuven\ 6\ feb\ 2016/2016-02-06-095237/US-2D_#.mhd",
+
+	"/media/smistad/New\ Volume/Assistant\ Recordings/Leuven\ 5\ feb\ 2016/2016-02-05-114458/US-2D_#.mhd",
+	"/media/smistad/New\ Volume/Assistant\ Recordings/Leuven\ 5\ feb\ 2016/2016-02-05-120411/US-2D_#.mhd",
+	"/media/smistad/New\ Volume/Assistant\ Recordings/Leuven\ 5\ feb\ 2016/2016-02-05-120648/US-2D_#.mhd",
+	"/media/smistad/New\ Volume/Assistant\ Recordings/Leuven\ 5\ feb\ 2016/2016-02-05-120843/US-2D_#.mhd"
 	};
 	for(int i = 0; i < recordings.size(); ++i) {
 		ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
@@ -140,6 +151,6 @@ int main() {
 				counter++;
 			}
 		}
-		std::cout << "Finished recording " << i << " of " << recordings.size() << std::endl;
+		std::cout << "Finished recording " << (i+1) << " of " << recordings.size() << std::endl;
 	}
 }
