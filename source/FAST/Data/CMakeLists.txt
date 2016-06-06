@@ -1,0 +1,32 @@
+fast_add_subdirectories(Access)
+fast_add_sources(
+    BoundingBox.cpp
+    BoundingBox.hpp
+    DataObject.cpp
+    DataObject.hpp
+    SpatialDataObject.cpp
+    SpatialDataObject.hpp
+    DynamicData.cpp
+    DynamicData.hpp
+    Image.cpp
+    Image.hpp
+    Segmentation.cpp
+    Segmentation.hpp
+    DataTypes.cpp
+    DataTypes.hpp
+    Mesh.cpp
+    Mesh.hpp
+    MeshVertex.hpp
+    PointSet.cpp
+    PointSet.hpp
+    LineSet.cpp
+    LineSet.hpp
+    Color.hpp
+    Camera.cpp
+    Camera.hpp
+)
+fast_add_test_sources(
+    Tests/DataObjectTests.cpp
+    Tests/ImageTests.cpp
+    Tests/DynamicImageTests.cpp
+)

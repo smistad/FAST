@@ -1,4 +1,4 @@
-![](http://idi.ntnu.no/~smistad/fast_logo.png)
+![](https://github.com/smistad/FAST/wiki/images/fast_logo.png)
 
 FAST (Framework for Heterogeneous Medical Image Computing and Visualization) is an open-source cross-platform framework with the main goal of making it easier to do processing and visualization of medical images on heterogeneous systems (CPU+GPU).
 
@@ -7,7 +7,7 @@ A detailed description of the framework design can be found [on the project wiki
 Erik Smistad, Mohammadmehdi Bozorgi, Frank Lindseth.  
 International Journal of Computer Assisted Radiology and Surgery. February 2015.
 
-Preprint of article can be downloaded from [here](http://www.thebigblob.com/wp-content/uploads/FAST_framework_for_heterogeneous_medical_image_computing_and_visualization.pdf).
+Preprint of article can be downloaded from [here](http://www.eriksmistad.no/wp-content/uploads/FAST_framework_for_heterogeneous_medical_image_computing_and_visualization.pdf).
 If you use FAST for research, please cite this article.
 
 Getting started with FAST
@@ -23,11 +23,13 @@ To start using the framework, see the [Getting started with FAST](https://github
 Build status
 -------------------------
 **Master branch**
-* Ubuntu Linux 14.04, AMD CPU, AMD GPU - [![Build Status](http://ans0124.idi.ntnu.no:8080/job/FAST%20-%20Ubuntu%20AMD%20-%20Master%20-%20NO%20Visual/badge/icon)](http://ans0124.idi.ntnu.no:8080/job/FAST%20-%20Ubuntu%20AMD%20-%20Master%20-%20NO%20Visual/)
-* Mac OS X 10.9, Intel CPU, NVIDIA GPU - [![Build Status](http://ans0124.idi.ntnu.no:8080/buildStatus/icon?job=FAST - Mac OS X - Master)](http://ans0124.idi.ntnu.no:8080/job/FAST%20-%20Mac%20OS%20X%20-%20Master/)
-* Windows 8.1, Intel CPU, NVIDIA GPU - [![Build Status](http://ans0124.idi.ntnu.no:8080/job/FAST%20-%20Windows%20NVIDIA%20-%20Master/badge/icon)](http://ans0124.idi.ntnu.no:8080/job/FAST%20-%20Windows%20NVIDIA%20-%20Master/)
+* Ubuntu Linux 14.04, AMD CPU, AMD GPU - ![Build Status](http://eriksmistad.no/upload/build/FAST-Ubuntu-AMD-Master-NO-Visual.svg)
+* Mac OS X 10.9, Intel CPU, NVIDIA GPU - ![Build Status](http://eriksmistad.no/upload/build/FAST-Mac-Master.svg)
+* Windows 8.1, Intel CPU, NVIDIA GPU - ![Build Status](http://eriksmistad.no/upload/build/FAST-Windows-Master.svg)
 
 **Development branch**
-* Ubuntu Linux 14.04, AMD CPU, AMD GPU - [![Build Status](http://ans0124.idi.ntnu.no:8080/job/FAST%20-%20Ubuntu%20AMD%20-%20Development%20-%20NO%20Visual/badge/icon)](http://ans0124.idi.ntnu.no:8080/job/FAST%20-%20Ubuntu%20AMD%20-%20Development%20-%20NO%20Visual/)
-* Mac OS X 10.9, Intel CPU, NVIDIA GPU - [![Build Status](http://ans0124.idi.ntnu.no:8080/buildStatus/icon?job=FAST - Mac OS X - Development)](http://ans0124.idi.ntnu.no:8080/job/FAST%20-%20Mac%20OS%20X%20-%20Development/)
-* Windows 8.1, Intel CPU, NVIDIA GPU - [![Build Status](http://ans0124.idi.ntnu.no:8080/job/FAST%20-%20Windows%20NVIDIA%20-%20Development/badge/icon)](http://ans0124.idi.ntnu.no:8080/job/FAST%20-%20Windows%20NVIDIA%20-%20Development/)
+* Ubuntu Linux 14.04, AMD CPU, AMD GPU - ![Build Status](http://eriksmistad.no/upload/build/FAST-Ubuntu-AMD-Development-NO-Visual.svg)
+* Mac OS X 10.9, Intel CPU, NVIDIA GPU - ![Build Status](http://eriksmistad.no/upload/build/FAST-Mac-Development.svg)
+* Windows 8.1, Intel CPU, NVIDIA GPU - ![Build Status](http://eriksmistad.no/upload/build/FAST-Windows-Development.svg)
+
+![Surface mesh extracted from a large abdominal CT scan in about 100 ms using FAST and a modern GPU.](https://github.com/smistad/FAST/wiki/images/surface_extraction.png) ![Ultrasound image segmented using binary thresholding.](https://github.com/smistad/FAST/wiki/images/binary_thresholding.png)

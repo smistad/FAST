@@ -2,20 +2,50 @@ cmake_minimum_required(VERSION 2.8.9)
 project(FAST)
 
 #### Options
-option(VTK_INTEROP "Enable interoperability with VTK" OFF)
-option(ITK_INTEROP "Enable interoperability with ITK" OFF)
-option(BUILD_TESTS "Build FAST tests." ON)
+option(FAST_VTK_INTEROP "Enable interoperability with VTK" OFF)
+option(FAST_ITK_INTEROP "Enable interoperability with ITK" OFF)
+option(FAST_BUILD_TESTS "Build FAST tests." ON)
 option(BUILD_IGTLINK_TESTS "Build OpenIGTLink tests." OFF)
-option(BUILD_EXAMPLES "Build examples." OFF)
-option(MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
-set(OPENCL_KERNEL_BINARY_PATH "${PROJECT_BINARY_DIR}/" CACHE STRING "Directory to put kernel binaries in. Default is build dir.")
-if(BUILD_IGTLINK_TESTS)
-    set(BUILD_TESTING ON)
-else()
-    set(BUILD_TESTING OFF)
+option(FAST_BUILD_EXAMPLES "Build examples." OFF)
+option(FAST_MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
+option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
+
+if(FAST_CONTINUOUS_INTEGRATION)
+	add_definitions("-DFAST_CONTINUOUS_INTEGRATION")
 endif()
 
-set(FAST_TEST_DATA_DIR "${PROJECT_SOURCE_DIR}/../TestData/" CACHE STRING "Directory of test data")
+#### Paths
+set(FAST_TEST_DATA_DIR "${PROJECT_SOURCE_DIR}/../TestData/" CACHE PATH "Directory of test data")
+set(FAST_TEST_DATA_DIR "${FAST_TEST_DATA_DIR}/") # Add a slash to the back
+set(FAST_OPENCL_KERNEL_BINARY_PATH "${PROJECT_BINARY_DIR}/" CACHE PATH "Directory to put kernel binaries in. Default is build dir.")
+set(FAST_OPENCL_KERNEL_BINARY_PATH "${FAST_OPENCL_KERNEL_BINARY_PATH}/") # Add a slash to the back
+set(FAST_SOURCE_DIR "${PROJECT_SOURCE_DIR}/FAST/")
+# Remove any existing "
+string(REPLACE "\"" "" FAST_OPENCL_KERNEL_BINARY_PATH ${FAST_OPENCL_KERNEL_BINARY_PATH})
+string(REPLACE "\"" "" FAST_TEST_DATA_DIR ${FAST_TEST_DATA_DIR})
+message("-- OpenCL Kernel binary path set to: ${FAST_OPENCL_KERNEL_BINARY_PATH}")
+message("-- FAST test data directory set to: \"${FAST_TEST_DATA_DIR}\"")
+
+### Create the header files Paths.hpp and TestDataPath.hpp which include all useful paths
+configure_file(
+	${CMAKE_CURRENT_SOURCE_DIR}/Paths.hpp.in 
+	${CMAKE_CURRENT_BINARY_DIR}/FAST/Paths.hpp
+)
+configure_file(
+	${CMAKE_CURRENT_SOURCE_DIR}/TestDataPath.hpp.in 
+	${CMAKE_CURRENT_BINARY_DIR}/FAST/TestDataPath.hpp
+)
+
+#### Module path
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../ ${CMAKE_MODULE_PATH}) # For finding the custom Find modules
+
+### IGT Link tests
+if(BUILD_IGTLINK_TESTS)
+    set(BUILD_TESTING ON CACHE INTERNAL "Build OpenIGTLink tests." FORCE)
+else()
+    set(BUILD_TESTING OFF CACHE INTERNAL "Build OpenIGTLink tests." FORCE)
+endif()
+
 
 #### Macro for adding source files and directories
 macro (fast_add_sources)
@@ -49,57 +79,31 @@ endmacro()
 macro (fast_add_subdirectories)
     file (RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
     foreach (_src ${ARGN})
-        list (APPEND FAST_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/${_src}")
         add_subdirectory(${_src})
     endforeach()
-    if (_relPath)
-        # propagate FAST_INCLUDE_DIRS to parent directory
-        set (FAST_INCLUDE_DIRS ${FAST_INCLUDE_DIRS} PARENT_SCOPE)
-    endif()
 endmacro()
 
 
-fast_add_sources(
-    Object.cpp
-    Object.hpp
-    SmartPointers.hpp
-    ProcessObject.cpp
-    ProcessObject.hpp
-    ExecutionDevice.cpp
-    ExecutionDevice.hpp
-    DeviceManager.cpp
-    DeviceManager.hpp
-    Exception.cpp
-    Exception.hpp
-    Utility.cpp
-    Utility.hpp
-    SceneGraph.cpp
-    SceneGraph.hpp
-    LinearTransformation.cpp
-    LinearTransformation.hpp
-)
-
 # Headers for Qt objects
 set(QT_HEADERS
-    Visualization/View.hpp
-    Visualization/WindowWidget.hpp
-    Visualization/Window.hpp
-    Visualization/ComputationThread.hpp
+    FAST/Visualization/View.hpp
+    FAST/Visualization/WindowWidget.hpp
+    FAST/Visualization/Window.hpp
+    FAST/Visualization/ComputationThread.hpp
+    FAST/Examples/Interoperability/qtInteroperability.hpp
 )
 
-# Set up some directory defines
-add_definitions("-DFAST_ROOT_DIR=\"${PROJECT_SOURCE_DIR}/../\"")
-add_definitions("-DFAST_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}/\"")
-# Remove any existing "
-string(REPLACE "\"" "" FAST_TEST_DATA_DIR ${FAST_TEST_DATA_DIR})
-message("-- FAST test data directory set to: \"${FAST_TEST_DATA_DIR}\"")
-add_definitions("-DFAST_TEST_DATA_DIR=\"${FAST_TEST_DATA_DIR}\"")
+# Set debug define if debug mode is set
+if(CMAKE_BUILD_TYPE STREQUAL Debug)
+    message("-- FAST Debug mode set")
+    add_definitions("-DFAST_DEBUG")
+endif()
 
 #### Set up library dependencies
-set(FAST_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR})
+set(FAST_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
 ## OpenIGTLink
-if(MODULE_OpenIGTLink)
+if(FAST_MODULE_OpenIGTLink)
     set(CMAKE_PREFIX_PATH "${FAST_BINARY_DIR}") # Needed to find the cmake config file of IGTL
     set(LIBRARY_OUTPUT_PATH  "${FAST_BINARY_DIR}") # Needed to output the libraries in the correct folder
     set(EXECUTABLE_OUTPUT_PATH "${FAST_BINARY_DIR}") # Needed to output the executables in correct folder
@@ -110,12 +114,21 @@ if(MODULE_OpenIGTLink)
     list(APPEND LIBRARIES ${OpenIGTLink_LIBRARIES})
 endif()
 
-## OpenCL Utility Library
-add_subdirectory(OpenCLUtilityLibrary)
-find_package(OpenCLUtilityLibrary PATHS "${FAST_BINARY_DIR}/OpenCLUtilityLibrary" REQUIRED)
-include(${OpenCLUtilityLibrary_USE_FILE})
-set(LIBRARIES ${LIBRARIES} OpenCLUtilityLibrary)
-list (APPEND FAST_INCLUDE_DIRS "${OpenCLUtilityLibrary_INCLUDE_DIRS}")
+## OpenCL
+find_package(OpenCL REQUIRED)
+list(APPEND LIBRARIES ${OpenCL_LIBRARIES})
+list(APPEND FAST_INCLUDE_DIRS "${OpenCL_INCLUDE_DIRS}")
+message("-- OpenCL include dir: ${OpenCL_INCLUDE_DIRS}")
+
+## OpenGL
+find_package(OpenGL REQUIRED)
+list(APPEND LIBRARIES ${OPENGL_LIBRARIES})
+list(APPEND FAST_INCLUDE_DIRS ${OPENGL_INCLUDE_DIR})
+# If OS is Linux, add X explicitly to library list
+if(CMAKE_SYSTEM_NAME STREQUAL Linux)
+    list(APPEND LIBRARIES X11)
+endif()
+
 
 ## Qt
 find_package(Qt5Widgets)
@@ -126,13 +139,12 @@ list (APPEND FAST_INCLUDE_DIRS "${Qt5Widgets_INCLUDE_DIRS}")
 list (APPEND FAST_INCLUDE_DIRS "${Qt5OpenGL_INCLUDE_DIRS}")
 
 ## Boost
-find_package(Boost COMPONENTS system thread iostreams REQUIRED)
+find_package(Boost COMPONENTS system thread iostreams signals filesystem chrono REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS} ${PROJECT_BINARY_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
 set(LIBRARIES ${LIBRARIES} ${Boost_LIBRARIES})
 
 ## GLEW
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../)
 find_package(GLEW REQUIRED)
 include_directories(${GLEW_INCLUDE_DIR})
 include_directories(${GLEW_INCLUDE_PATH})
@@ -140,18 +152,19 @@ set(LIBRARIES ${LIBRARIES} ${GLEW_LIBRARY})
 
 ## Eigen
 find_package(Eigen3 REQUIRED)
-include_directories(${EIGEN3_INCLUDE_DIR})
+list(APPEND FAST_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR}) 
+message("-- Using Eigen ${EIGEN3_VERSION}")
 
 ## VTK
-if(VTK_INTEROP)
+if(FAST_VTK_INTEROP)
     find_package(VTK REQUIRED)
     include(${VTK_USE_FILE})
-    message("-- Enabling VTK interoperability")
+    message("-- Enabling VTK interoperability. VTK version ${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}")
     set(LIBRARIES ${LIBRARIES} ${VTK_LIBRARIES})
 endif()
 
 ## ITK
-if(ITK_INTEROP)
+if(FAST_ITK_INTEROP)
     find_package(ITK REQUIRED)
     include(${ITK_USE_FILE})
     message("-- Enabling ITK interoperability")
@@ -168,7 +181,7 @@ endif()
 
 
 #### Add all subdirs
-fast_add_subdirectories(Algorithms Data Streamers Importers Exporters Visualization Tests)
+fast_add_subdirectories(FAST)
 
 #### Set include dirs
 include_directories(${FAST_INCLUDE_DIRS})
@@ -180,6 +193,7 @@ endif()
 #### Enable C++11
 # Note that Microsoft Visual C++ compiler enables C++11 by default
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth=300") # Fix for a bug with boost signals2
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR CMAKE_COMPILER_IS_GNUCXX)
     include(CheckCXXCompilerFlag)
     check_cxx_compiler_flag(--std=c++11 SUPPORTS_STD_CXX11)
@@ -188,7 +202,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR CMAKE_COMPILER_IS_GNUCXX)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c++11")
         # Permissive flag is currently needed to make ITK work with C++11
-        if(ITK_INTEROP)
+        if(FAST_ITK_INTEROP)
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpermissive")
         endif()
@@ -196,7 +210,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR CMAKE_COMPILER_IS_GNUCXX)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++0x")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c++0x")
         # Permissive flag is currently needed to make ITK work with C++11
-        if(ITK_INTEROP)
+        if(FAST_ITK_INTEROP)
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpermissive")
         endif()
@@ -205,24 +219,39 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR CMAKE_COMPILER_IS_GNUCXX)
     endif()
 endif()
 
+#### OpenMP
+find_package(OpenMP)
+if(OPENMP_FOUND)
+    message("-- OpenMP was detected. Using OpenMP to speed up some calculations.")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}" )
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
+endif()
+
+
+
 #### Create FAST library and executables
 add_library(FAST ${FAST_SOURCE_FILES} ${HEADERS_MOC})
-if(BUILD_TESTS)
-    if(APPLE)
-        # Do not run OUL test on Apple at the moment
-        # TODO: fix the HP OUL tests
-        add_executable(test ${FAST_TEST_SOURCE_FILES})
-    else()
-        add_executable(test ${FAST_TEST_SOURCE_FILES} ${OUL_TEST_SOURCE_FILES})
-    endif()
+if(FAST_BUILD_TESTS)
+	add_executable(testFAST ${FAST_TEST_SOURCE_FILES})
 endif()
 
 ## Link everything
 target_link_libraries(FAST ${LIBRARIES})
 qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
-if(BUILD_EXAMPLES)
-    add_subdirectory(Examples)
+if(FAST_BUILD_EXAMPLES)
+    add_subdirectory(FAST/Examples)
 endif()
-if(BUILD_TESTS)
-    target_link_libraries(test FAST)
+if(FAST_BUILD_TESTS)
+    target_link_libraries(testFAST FAST)
 endif()
+
+
+set(FAST_LIBRARY FAST)
+set(FAST_LIBRARY_DIRS ${PROJECT_BINARY_DIR})
+
+# Create config file
+configure_file (
+    "${PROJECT_SOURCE_DIR}/FASTConfig.cmake.in"
+    "${PROJECT_BINARY_DIR}/FASTConfig.cmake"
+)
