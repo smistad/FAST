@@ -22,7 +22,7 @@ using namespace fast;
 
 TEST_CASE("Pipeline A (static)", "[fast][benchmark][visual]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"/US-3Dt/US-3Dt_50.mhd");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"/US/Ball/US-3Dt_50.mhd");
     importer->enableRuntimeMeasurements();
 
     GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
@@ -66,7 +66,7 @@ TEST_CASE("Pipeline A (static)", "[fast][benchmark][visual]") {
 
 TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark][visual]") {
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
-    streamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US-3Dt/US-3Dt_#.mhd");
+    streamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US/Ball/US-3Dt_#.mhd");
     streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     streamer->enableRuntimeMeasurements();
 
@@ -107,7 +107,7 @@ TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark][visual]") {
 
 TEST_CASE("Pipeline B", "[fast][benchmark][visual]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT-Abdomen.mhd");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "/CT/CT-Abdomen.mhd");
     importer->enableRuntimeMeasurements();
 
     SeededRegionGrowing::pointer segmentation = SeededRegionGrowing::New();

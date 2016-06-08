@@ -73,7 +73,7 @@ double calculateGVFVectorFieldResidual(Image::pointer inputVectorField, Image::p
 
 TEST_CASE("Gradient vector flow with Euler method 2D 16 bit", "[fast][GVF][GradientVectorFlow][EulerGradientVectorFlow][2D]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-2D.jpg");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US/US-2D.jpg");
 
     ImageGradient::pointer gradient = ImageGradient::New();
     gradient->setInputConnection(importer->getOutputPort());
@@ -90,7 +90,7 @@ TEST_CASE("Gradient vector flow with Euler method 2D 16 bit", "[fast][GVF][Gradi
 
 TEST_CASE("Gradient vector flow with Euler method 2D 32 bit", "[fast][GVF][GradientVectorFlow][EulerGradientVectorFlow][2D]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-2D.jpg");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US/US-2D.jpg");
 
     ImageGradient::pointer gradient = ImageGradient::New();
     gradient->setInputConnection(importer->getOutputPort());
@@ -106,7 +106,7 @@ TEST_CASE("Gradient vector flow with Euler method 2D 32 bit", "[fast][GVF][Gradi
 
 TEST_CASE("Gradient vector flow with Euler method 3D 16 bit", "[fast][GVF][GradientVectorFlow][EulerGradientVectorFlow][3D]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_0.mhd");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US/Ball/US-3Dt_0.mhd");
 
     ScaleImage::pointer normalize = ScaleImage::New();
     normalize->setInputConnection(importer->getOutputPort());
@@ -126,7 +126,7 @@ TEST_CASE("Gradient vector flow with Euler method 3D 16 bit", "[fast][GVF][Gradi
 
 TEST_CASE("Gradient vector flow with Euler method 3D 32 bit", "[fast][GVF][GradientVectorFlow][EulerGradientVectorFlow][3D]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_0.mhd");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US/Ball/US-3Dt_0.mhd");
 
     ScaleImage::pointer normalize = ScaleImage::New();
     normalize->setInputConnection(importer->getOutputPort());
@@ -145,7 +145,7 @@ TEST_CASE("Gradient vector flow with Euler method 3D 32 bit", "[fast][GVF][Gradi
 
 TEST_CASE("Gradient vector flow with Multigrid method 3D 16 bit", "[fast][GVF][GradientVectorFlow][MultigridGradientVectorFlow][3D]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_0.mhd");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US/Ball/US-3Dt_0.mhd");
 
     ScaleImage::pointer normalize = ScaleImage::New();
     normalize->setInputConnection(importer->getOutputPort());
@@ -165,7 +165,7 @@ TEST_CASE("Gradient vector flow with Multigrid method 3D 16 bit", "[fast][GVF][G
 
 TEST_CASE("Gradient vector flow with Multigrid method 3D 32 bit", "[fast][GVF][GradientVectorFlow][MultigridGradientVectorFlow][3D]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-3Dt/US-3Dt_0.mhd");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US/Ball/US-3Dt_0.mhd");
 
     ScaleImage::pointer normalize = ScaleImage::New();
     normalize->setInputConnection(importer->getOutputPort());

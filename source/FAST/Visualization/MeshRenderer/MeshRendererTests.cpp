@@ -26,7 +26,7 @@ TEST_CASE("MeshRenderer on LV surface model", "[fast][MeshRenderer][visual]") {
 TEST_CASE("MeshRenderer on stream of surfaces", "[fast][MeshRenderer][visual]") {
     CHECK_NOTHROW(
         ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
-        mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
+        mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US/Ball/US-3Dt_#.mhd");
         SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
         extractor->setInputConnection(mhdStreamer->getOutputPort());
         extractor->setThreshold(200);
@@ -42,7 +42,7 @@ TEST_CASE("MeshRenderer on stream of surfaces", "[fast][MeshRenderer][visual]") 
 TEST_CASE("MeshRenderer with 2D mesh and image", "[fast][MeshRenderer][visual]") {
     CHECK_NOTHROW(
         ImageFileImporter::pointer importer = ImageFileImporter::New();
-        importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-2Dt/US-2Dt_0.mhd");
+        importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US/CarotidArtery/Right/US-2D_0.mhd");
         ImageRenderer::pointer imageRenderer = ImageRenderer::New();
         imageRenderer->addInputConnection(importer->getOutputPort());
 

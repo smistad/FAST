@@ -9,6 +9,7 @@ inline Vector2f transformPosition(Vector2f position, Matrix2f RS, Vector2f T, Ve
 }
 
 Shape::pointer CardinalSplineModel::getShape(VectorXf state) {
+	assertControlPointsGiven();
 
 	// Create mesh
 	std::vector<Vector2f> vertices;
@@ -25,6 +26,7 @@ Shape::pointer CardinalSplineModel::getShape(VectorXf state) {
 	Matrix2f RS = rotation*scaling;
 
 	Vector2f T(state(0), state(1));
+	std::vector<float> tension = getTensionVector(nrOfControlPoints);
 
 	int counter = 0;
 	for(int c = 0; c < nrOfControlPoints; ++c) {
@@ -66,8 +68,8 @@ Shape::pointer CardinalSplineModel::getShape(VectorXf state) {
 	        float at3 = -6*u*u + 6*u;
 
 			// Control point tangents calculated using central difference
-			Vector2f m0 = ((1-mTension)/2)*(y2-y0);
-			Vector2f m1 = ((1-mTension)/2)*(y3-y1);
+			Vector2f m0 = ((1-tension[c])/2)*(y2-y0);
+			Vector2f m1 = ((1-tension[(c+1) % nrOfControlPoints])/2)*(y3-y1);
 
 			// Calculate point p on spline
 			Vector2f vertex =  a0*y1 + a1*m0 + a2*m1 + a3*y2;
@@ -112,13 +114,13 @@ MatrixXf CardinalSplineModel::getProcessErrorMatrix() {
 	return mProcessErrorMatrix;
 }
 
+void CardinalSplineModel::assertControlPointsGiven() {
+	if(mControlPoints.size() == 0)
+		throw Exception("No control points have been given to the CardinalSplineModel");
+}
+
 VectorXf CardinalSplineModel::getInitialState(SharedPointer<Image> image) {
-	VectorXf defaultState = VectorXf::Zero(mStateSize);
-	// Set scale to 1
-	defaultState(2) = 0.02;
-	defaultState(3) = 0.03;
-	// Rotate 180 degrees
-	defaultState(4) = M_PI;
+	assertControlPointsGiven();
 
 	if(mInitializeShapeToImageCenter) {
 		Vector3f spacing = image->getSpacing();
@@ -131,15 +133,19 @@ VectorXf CardinalSplineModel::getInitialState(SharedPointer<Image> image) {
 
 		//Vector2f translation = imageCentroid - modelCentroid.head(2);
 		Vector2f translation = imageCentroid - mCentroid;
-		defaultState(0) = translation(0);
-		defaultState(1) = translation(1);
+		mInitialGlobalState(0) = translation(0);
+		mInitialGlobalState(1) = translation(1);
 	}
-	return defaultState;
+	VectorXf initialState = VectorXf::Zero(mStateSize);
+	initialState.head(5) = mInitialGlobalState;
+	return initialState;
 }
 
 std::vector<Vector2f> CardinalSplineModel::getLocallyDeformedVertices(VectorXf state) {
+	assertControlPointsGiven();
 	std::vector<Vector2f> vertices;
 	int nrOfControlPoints = mControlPoints.size();
+	std::vector<float> tension = getTensionVector(nrOfControlPoints);
 	mCentroid = Vector2f::Zero();
 	for(int c = 0; c < nrOfControlPoints; ++c) {
 		for(int i = 1; i < mResolution+1; ++i) {
@@ -168,8 +174,8 @@ std::vector<Vector2f> CardinalSplineModel::getLocallyDeformedVertices(VectorXf s
 	        float a3 = -2*u*u*u + 3*u*u;
 
 			// Control point tangents calculated using central difference
-			Vector2f m0 = ((1-mTension)/2)*(y2-y0);
-			Vector2f m1 = ((1-mTension)/2)*(y3-y1);
+			Vector2f m0 = ((1-tension[(c+1) % nrOfControlPoints])/2)*(y2-y0);
+			Vector2f m1 = ((1-tension[(c+2) % nrOfControlPoints])/2)*(y3-y1);
 
 			// Calculate point p on spline
 			Vector2f vertex =  a0*y1 + a1*m0 + a2*m1 + a3*y2;
@@ -184,6 +190,7 @@ std::vector<Vector2f> CardinalSplineModel::getLocallyDeformedVertices(VectorXf s
 
 std::vector<MatrixXf> CardinalSplineModel::getMeasurementVectors(VectorXf state,
 		Shape::pointer shape) {
+	assertControlPointsGiven();
 
 	const float sx = state(2);
 	const float sy = state(3);
@@ -198,6 +205,7 @@ std::vector<MatrixXf> CardinalSplineModel::getMeasurementVectors(VectorXf state,
 	std::vector<MatrixXf> result;
 
 	int nrOfControlPoints = mControlPoints.size();
+	std::vector<float> tension = getTensionVector(nrOfControlPoints);
 
 	MeshAccess::pointer access = shape->getMesh()->getMeshAccess(ACCESS_READ);
 
@@ -256,8 +264,8 @@ std::vector<MatrixXf> CardinalSplineModel::getMeasurementVectors(VectorXf state,
 	        float a3 = -2*u*u*u + 3*u*u;
 
 	        // Put in tension factor
-	        a1 *= (1.0f-mTension)/2.0f;
-	        a2 *= (1.0f-mTension)/2.0f;
+	        a1 *= (1.0f-tension[c])/2.0f;
+	        a2 *= (1.0f-tension[(c+1) % nrOfControlPoints])/2.0f;
 
 
 			MatrixXf localJacobian = MatrixXf::Zero(2, nrOfControlPoints*2);
@@ -286,21 +294,12 @@ void CardinalSplineModel::initializeShapeToImageCenter() {
 	mInitializeShapeToImageCenter = true;
 }
 
-CardinalSplineModel::CardinalSplineModel() {
-	mInitializeShapeToImageCenter = false;
+void CardinalSplineModel::setControlPoints(std::vector<Vector2f> controlPoints) {
+	if(controlPoints.size() < 3)
+		throw Exception("More than 2 control points must be given to the CardinalSplineModel");
+	mControlPoints = controlPoints;
 
-	// Create control points
-	std::vector<Vector2f> controlPoints = {
-	        Vector2f(0, 3), // Apex
-	        Vector2f(0.8, 2),
-	        Vector2f(1.15, 1),
-	        Vector2f(0.8, 0),
-	        Vector2f(-0.8, 0),
-	        Vector2f(-1.15, 1),
-	        Vector2f(-0.8, 2)
-	};
-
-	// Calculate centroid
+		// Calculate centroid
 	mCentroid = Vector2f::Zero();
 	for(Vector2f p : controlPoints) {
 		mCentroid += p;
@@ -309,8 +308,6 @@ CardinalSplineModel::CardinalSplineModel() {
 
 	mControlPoints = controlPoints;
 	mStateSize = 5+2*controlPoints.size();
-	mResolution = 8;
-	mTension = 0;
 
 	    // Create state transition matrices
     const float dampening = 0.5;
@@ -336,15 +333,107 @@ CardinalSplineModel::CardinalSplineModel() {
 
     mA3 = MatrixXf::Zero(mStateSize, mStateSize);
 
-    mProcessErrorMatrix = MatrixXf::Zero(mStateSize, mStateSize);
+
+
+
+}
+
+CardinalSplineModel::CardinalSplineModel() {
+	mInitializeShapeToImageCenter = false;
+    mInitialGlobalState = VectorXf::Zero(5);
+    // Set scale to 1
+    mInitialGlobalState(2) = 1;
+    mInitialGlobalState(3) = 1;
+	mResolution = 8;
+	mGlobalTension = -2; // Means that global tension is not set
+}
+
+void CardinalSplineModel::setInitialScaling(float x, float y) {
+	if(x <= 0 || y <= 0)
+		throw Exception("Scaling must be >= 0 in CardinalSplineModel");
+	mInitialGlobalState(2) = x;
+	mInitialGlobalState(3) = y;
+}
+
+void CardinalSplineModel::setInitialRotation(float angleInRadians) {
+	mInitialGlobalState(4) = angleInRadians;
+}
+
+void CardinalSplineModel::setInitialTranslation(float x, float y) {
+	mInitialGlobalState(0) = x;
+	mInitialGlobalState(1) = x;
+}
+
+void CardinalSplineModel::updateProcessErrorMatrix() {
+	mProcessErrorMatrix = MatrixXf::Zero(mStateSize, mStateSize);
     for(int i = 0; i < mStateSize; ++i) {
     	if(i < 5) {
-    		mProcessErrorMatrix(i, i) = 0.01f;
+    		mProcessErrorMatrix(i, i) = mGlobalProcessError;
     	} else {
-    		mProcessErrorMatrix(i, i) = 0.001f;
+    		mProcessErrorMatrix(i, i) = mLocalProcessError;
     	}
     }
 }
 
-
+void CardinalSplineModel::setLocalProcessError(float error) {
+	assertControlPointsGiven();
+	if(error < 0)
+		throw Exception("Error must be >= 0 in CardinalSplineModel");
+	mLocalProcessError = error;
+	updateProcessErrorMatrix();
 }
+
+void CardinalSplineModel::setGlobalProcessError(float error) {
+	assertControlPointsGiven();
+	if(error < 0)
+		throw Exception("Error must be >= 0 in CardinalSplineModel");
+	mGlobalProcessError = error;
+	updateProcessErrorMatrix();
+}
+
+void CardinalSplineModel::setTension(float tension) {
+	if(tension < -1 || tension > 1)
+		throw Exception("Tension has to be between -1 and 1");
+	mGlobalTension = tension;
+}
+
+void CardinalSplineModel::setTension(std::vector<float> tensions) {
+	for(float tension : tensions) {
+		if(tension < -1 || tension > 1)
+			throw Exception("Tension has to be between -1 and 1");
+	}
+	mGlobalTension = -2; // Disable global tension
+	mTensionPerVertex = tensions;
+}
+
+std::vector<float> CardinalSplineModel::getTensionVector(uint nrOfControlPoints) const {
+	std::vector<float> tensionVector;
+	float globalTension;
+	if(mGlobalTension < -1 && mTensionPerVertex.size() == 0) {
+		// No tension parameters have been given, set global tension 0
+		globalTension = 0;
+	}  else {
+		globalTension = mGlobalTension;
+	}
+
+	if(mTensionPerVertex.size() > 0) {
+		// Use per vertex tension
+		if(nrOfControlPoints != mTensionPerVertex.size())
+			throw Exception("The nr of control points must match the size of the tension vector");
+		tensionVector = mTensionPerVertex;
+	} else {
+		// Use global tension
+		for(int i = 0; i < nrOfControlPoints; ++i)
+			tensionVector.push_back(globalTension);
+	}
+
+	return tensionVector;
+}
+
+void CardinalSplineModel::setResolution(int resolution) {
+	if(resolution < 2)
+		throw Exception("Resolution must be > 1");
+	mResolution = resolution;
+}
+
+} // end namespace fast

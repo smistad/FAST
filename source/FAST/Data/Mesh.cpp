@@ -53,13 +53,22 @@ void Mesh::create(std::vector<MeshVertex> vertices, std::vector<VectorXui> conne
         // Delete old data
         freeAll();
     }
+    if(vertices.size() == 0) {
+    	create(0);
+    	return;
+    }
+
     mIsInitialized = true;
     mDimensions = vertices[0].getNrOfDimensions();
     mVertices = vertices;
     std::vector<VectorXf> positions;
     for(unsigned int i = 0; i < vertices.size(); i++) {
     	VectorXf pos = vertices[i].getPosition();
-        positions.push_back(pos);
+    	if(pos.size() == 3) {
+            positions.push_back(pos);
+    	} else {
+            positions.push_back(Vector3f(pos.x(), pos.y(), 0));
+    	}
     }
     mBoundingBox = BoundingBox(positions);
     mNrOfConnections = connections.size();
@@ -73,6 +82,7 @@ void Mesh::create(unsigned int nrOfTriangles) {
         // Delete old data
         freeAll();
     }
+    mBoundingBox = BoundingBox(Vector3f(1,1,1));
     mIsInitialized = true;
     mNrOfConnections = nrOfTriangles;
     mDimensions = 3;

@@ -15,6 +15,7 @@ class ImageFileStreamer : public Streamer, public ProcessObject {
         void setStartNumber(uint startNumber);
         void setStepSize(uint step);
         void setZeroFilling(uint digits);
+        void setNumberOfReplays(uint replays);
         void setStreamingMode(StreamingMode mode);
         void setMaximumNumberOfFrames(uint nrOfFrames);
         void setTimestampFilename(std::string filepath);
@@ -40,6 +41,7 @@ class ImageFileStreamer : public Streamer, public ProcessObject {
         void execute();
 
         bool mLoop;
+        int mNrOfReplays;
         uint mZeroFillDigits;
         uint mStartNumber;
         uint mNrOfFrames;

@@ -55,19 +55,63 @@ void KalmanFilter::execute() {
 	}
 	reportInfo() << "Current state: " << mCurrentState.transpose() << reportEnd();
     reportInfo() << "Finished one round of Kalman filter" << reportEnd();
+    if(mOutputDisplacements) {
+    	Mesh::pointer displacements = getDisplacementVectors(image);
+		setStaticOutputData<Mesh>(1, displacements);
+    }
 
 	Shape::pointer shape = mShapeModel->getShape(mCurrentState);
 	setStaticOutputData<Mesh>(0, shape->getMesh());
 }
 
+Mesh::pointer KalmanFilter::getDisplacementVectors(Image::pointer image) {
+
+	Shape::pointer shape = mShapeModel->getShape(mPredictedState);
+	Mesh::pointer mesh = shape->getMesh();
+	MeshAccess::pointer access = mesh->getMeshAccess(ACCESS_READ);
+	std::vector<Measurement> measurements = mAppearanceModel->getMeasurements(image, shape);
+
+	std::vector<MeshVertex> vertices;
+	std::vector<VectorXui> lines;
+	const uint nrOfMeasurements = measurements.size();
+	int counter = 0;
+	for(uint i = 0; i < nrOfMeasurements; ++i) {
+		Measurement m = measurements[i];
+		if(m.uncertainty < 1) {
+			MeshVertex vertex = access->getVertex(i);
+			MeshVertex v0(vertex.getPosition());
+			MeshVertex v1(vertex.getPosition() + m.displacement*vertex.getNormal());
+			vertices.push_back(v0);
+			vertices.push_back(v1);
+			lines.push_back(Vector2ui(counter, counter+1));
+			counter += 2;
+		}
+	}
+
+	Mesh::pointer output = Mesh::New();
+	output->create(vertices, lines);
+	return output;
+}
+
 KalmanFilter::KalmanFilter() {
 	createInputPort<Image>(0);
-	createOutputPort<Mesh>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+	createOutputPort<Mesh>(0, OUTPUT_DEPENDS_ON_INPUT, 0); // Segmentation
+	createOutputPort<Mesh>(1, OUTPUT_DEPENDS_ON_INPUT, 0); // Displacement
 
 	mInitialized = false;
 	mFirstExecute = true;
+	mOutputDisplacements = false;
 	mStartIterations = 20;
 	mIterations = 5;
+}
+
+ProcessObjectPort KalmanFilter::getSegmentationOutputPort() {
+	return getOutputPort(0);
+}
+
+ProcessObjectPort KalmanFilter::getDisplacementsOutputPort() {
+	mOutputDisplacements = true;
+	return getOutputPort(1);
 }
 
 void KalmanFilter::setIterations(int iterations) {
