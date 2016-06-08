@@ -197,7 +197,6 @@ void ImageFileStreamer::producerStream() {
                     }
                     mFirstFrameCondition.notify_one();
                 }
-                std::cout << mNrOfReplays << " " << replays << std::endl;
                 if(mLoop || (mNrOfReplays > 0 && replays != mNrOfReplays)) {
                     // Restart stream
                     if(timestampFile.is_open()) {

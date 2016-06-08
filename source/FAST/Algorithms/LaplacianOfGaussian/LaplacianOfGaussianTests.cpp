@@ -28,7 +28,7 @@ TEST_CASE("Even input as mask size throws exception in LaplacianOfGaussian", "[f
 
 TEST_CASE("Laplacian of Gaussian on 2D image with OpenCL", "[fast][LaplacianOfGaussian][LoG][visual]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-2D.jpg");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US/US-2D.jpg");
 
     LaplacianOfGaussian::pointer filter = LaplacianOfGaussian::New();
     filter->setInputConnection(importer->getOutputPort());

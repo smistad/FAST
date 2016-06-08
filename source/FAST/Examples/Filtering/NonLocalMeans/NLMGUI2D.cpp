@@ -31,7 +31,7 @@ NLMGUI2D::NLMGUI2D() {
 
     // Import image
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "/US-2D.jpg");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "/US/US-2D.jpg");
     //importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "/US-1-2D.png");
     
     

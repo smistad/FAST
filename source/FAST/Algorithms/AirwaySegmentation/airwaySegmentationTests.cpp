@@ -14,7 +14,7 @@ TEST_CASE("Airway segmentation ALL", "[fast][AirwaySegmentation]") {
 	Reporter::setGlobalReportMethod(Reporter::COUT);
 	for(int i = 1; i < 26; ++i) {
         ImageFileImporter::pointer importer = ImageFileImporter::New();
-        //importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT-Thorax.mhd");
+        //importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "/CT/CT-Thorax.mhd");
         std::string nr = boost::lexical_cast<std::string>(i);
         if(nr.size() == 1) {
         	nr = "0" + nr;
@@ -48,7 +48,7 @@ TEST_CASE("Airway segmentation ALL", "[fast][AirwaySegmentation]") {
 
 TEST_CASE("Airway segmentation", "[fast][AirwaySegmentation][visual]") {
 	ImageFileImporter::pointer importer = ImageFileImporter::New();
-	importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT-Thorax.mhd");
+	importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT/CT-Thorax.mhd");
 
 	AirwaySegmentation::pointer segmentation = AirwaySegmentation::New();
 	segmentation->setInputConnection(importer->getOutputPort());
