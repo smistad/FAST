@@ -15,12 +15,12 @@ using namespace fast;
 int main() {
     // Import image from file using the ImageFileImporter
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"/US-2Dt/US-2Dt_0.mhd");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US/CarotidArtery/Right/US-2D_100.mhd");
 
     // Segment image
     BinaryThresholding::pointer thresholding = BinaryThresholding::New();
     thresholding->setInputConnection(importer->getOutputPort());
-    thresholding->setLowerThreshold(30);
+    thresholding->setLowerThreshold(60);
 
     // Renderer segmentation on top of input image
     ImageRenderer::pointer imageRenderer = ImageRenderer::New();

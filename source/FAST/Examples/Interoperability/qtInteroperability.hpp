@@ -47,7 +47,7 @@ class WindowWidget : public QWidget {
             streamer->setStreamingMode(fast::STREAMING_MODE_PROCESS_ALL_FRAMES);
 
             // The hashtag here will be replaced with an integer, starting with 0 as default
-            streamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US-2Dt/US-2Dt_#.mhd");
+            streamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US/CarotidArtery/Right/US-2D_#.mhd");
 
             // Render image
             fast::ImageRenderer::pointer renderer = fast::ImageRenderer::New();
