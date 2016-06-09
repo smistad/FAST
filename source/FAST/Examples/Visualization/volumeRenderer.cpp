@@ -247,17 +247,17 @@ window->setTimeout(10*1000);
 	otf1->addAlphaPoint(184.0, 0.37);
 	otf1->addAlphaPoint(1149.0, 1.0);
 	otf1->addAlphaPoint(1504.0, 1.0);
-
+    /*
 	MetaImageImporter::pointer mhdImporterStatic = MetaImageImporter::New();
 	mhdImporterStatic->setFilename(std::string(FAST_TEST_DATA_DIR) + "/Application/CT.mhd");
 	mhdImporterStatic->enableRuntimeMeasurements();
-
+    */
 	VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
-	volumeRenderer->addInputConnection(mhdImporterStatic->getOutputPort());
+	volumeRenderer->addInputConnection(mhdStreamer->getOutputPort());
 	volumeRenderer->setColorTransferFunction(0, ctf1);
 	volumeRenderer->setOpacityTransferFunction(0, otf1);
 	volumeRenderer->enableRuntimeMeasurements();
-
+    /*
 	VTKMeshFileImporter::pointer vtkImporterVeins = VTKMeshFileImporter::New();
 	vtkImporterVeins->setFilename(std::string(FAST_TEST_DATA_DIR) + "/Application/veins.vtk");
 
@@ -275,7 +275,7 @@ window->setTimeout(10*1000);
 
 	VTKMeshFileImporter::pointer vtkImporterNerveFemoralRight = VTKMeshFileImporter::New();
 	vtkImporterNerveFemoralRight->setFilename(std::string(FAST_TEST_DATA_DIR) + "/Application/nerve_femoral_right.vtk");
-
+    
 	// Renderer image
 	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
 	//Veines
@@ -296,7 +296,7 @@ window->setTimeout(10*1000);
 	//Nerve Femora lRight
 	meshRenderer->addInputConnection(vtkImporterNerveFemoralRight->getOutputPort());
 	meshRenderer->setColor(vtkImporterNerveFemoralRight->getOutputPort(), Color(1.0f, 1.0f, 0.0f));
-
+    */
 
 	SimpleWindow::pointer window = SimpleWindow::New();
 	window->getView()->enableRuntimeMeasurements();
