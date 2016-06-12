@@ -17,6 +17,15 @@ namespace fast {
         void execute();
         void waitToFinish();
 
+        // Core functions
+        void executeAlgorithmOnHost();
+        void initVolume(Image::pointer rootFrame);
+
+        // Helper functions in class
+        void accumulateValuesInVolume(Vector3i volumePoint, float p, float w);
+        void addTransformationToFrame(Image::pointer frame, AffineTransformation::pointer addTransformation);
+        Vector2i getFrameRangeInVolume(int frameNr, int domDir, int dir);
+
         // Control variables
         bool firstFrameSet;
         bool reachedEndOfStream;
