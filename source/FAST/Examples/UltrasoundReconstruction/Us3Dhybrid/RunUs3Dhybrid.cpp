@@ -45,27 +45,35 @@ int main() {
     ctf->addRGBPoint(0.0, 0, 1, 0);
     ctf->addRGBPoint(1.0, 1, 0, 0);
 
-    volumeRenderer->setColorTransferFunction(0, ctf);
-    volumeRenderer->setOpacityTransferFunction(0, otf);
+    ColorTransferFunction::pointer ctf1 = ColorTransferFunction::New();
+    ctf1->addRGBPoint(000.0, 1.0, 0.0, 0.0);
+    ctf1->addRGBPoint(127.0, 0.0, 1.0, 0.0);
+    ctf1->addRGBPoint(255.0, 0.0, 0.0, 1.0);
+    OpacityTransferFunction::pointer otf1 = OpacityTransferFunction::New();
+    otf1->addAlphaPoint(000.0, 0.0);
+    otf1->addAlphaPoint(255.0, 1.0);
+
+    volumeRenderer->setColorTransferFunction(0, ctf1);
+    volumeRenderer->setOpacityTransferFunction(0, otf1);
 
     //Alt for now, display image
     //Image renderer
     ImageRenderer::pointer imageRenderer = ImageRenderer::New();
     imageRenderer->addInputConnection(pnnHybrid->getOutputPort());
-
-    //Exporter mhd
-    MetaImageExporter::pointer exporter2 = MetaImageExporter::New();
-    exporter2->setFilename("test.mhd");
-    exporter2->setInputConnection(pnnHybrid->getOutputPort());
-    //exporter2->setInput(pnnHybrid);
-    exporter2->update();
-
-    /*
+    
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(imageRenderer); //volumeRenderer);//renderer);
     //window->setMaximumFramerate(10); //unngå at buffer går tomt?
     //window->set2DMode();
     window->setTimeout(5 * 1000); // automatically close window after 5 seconds
     window->start();
+
+    /*
+    //Exporter mhd
+    MetaImageExporter::pointer exporter2 = MetaImageExporter::New();
+    exporter2->setFilename("US_01_20130529T084519_ScanConverted_volume_test.mhd");
+    exporter2->setInputConnection(pnnHybrid->getOutputPort());
+    //exporter2->setInput(pnnHybrid);
+    exporter2->update();
     */
 }

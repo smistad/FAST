@@ -52,6 +52,14 @@ MatrixXf BoundingBox::getCorners() const {
     return mCorners;
 }
 
+MatrixXf BoundingBox::get2DCorners() const {
+    if (!mIsInitialized)
+        throw Exception("Cannot getCorners because bounding box was not initialized.");
+    MatrixXf outCorners(4, 3);
+    outCorners << mCorners.row(0), mCorners.row(1), mCorners.row(2), mCorners.row(4);
+    return mCorners;
+}
+
 BoundingBox::BoundingBox(std::vector<Vector3f> coordinates) {
     // Find min and max of all the coordinates
     Vector3f minimum(coordinates[0].x(), coordinates[0].y(), coordinates[0].z());

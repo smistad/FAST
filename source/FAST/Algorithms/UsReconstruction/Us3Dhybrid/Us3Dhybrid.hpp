@@ -25,6 +25,7 @@ namespace fast {
         void accumulateValuesInVolume(Vector3i volumePoint, float p, float w);
         void addTransformationToFrame(Image::pointer frame, AffineTransformation::pointer addTransformation);
         Vector2i getFrameRangeInVolume(int frameNr, int domDir, int dir);
+        AffineTransformation::pointer getInverseTransformation(Image::pointer frame);
 
         // Control variables
         bool firstFrameSet;
@@ -52,6 +53,7 @@ namespace fast {
         std::vector<Vector3f> frameMaxList;
         std::vector<Vector3f> frameBaseCornerList;
         std::vector<Vector3f> framePlaneNormalList;
+        std::vector<AffineTransformation::pointer> frameInverseTransformList;
 
         // Potetial OpenCL variables
         cl::Buffer mCLMask;

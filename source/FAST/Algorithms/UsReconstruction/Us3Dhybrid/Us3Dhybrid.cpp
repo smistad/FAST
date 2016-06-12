@@ -12,7 +12,8 @@ void Us3Dhybrid::setOutputType(DataType type){
 
 Us3Dhybrid::Us3Dhybrid(){
     createInputPort<Image>(0);
-    createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0); //OUTPUT_DEPENDS_ON_INPUT necessary? TODO
+    createOutputPort<Image>(0, OUTPUT_STATIC, 0); //enum OutputDataType { OUTPUT_STATIC, OUTPUT_DYNAMIC, OUTPUT_DEPENDS_ON_INPUT };
+    //createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0); //OUTPUT_DEPENDS_ON_INPUT necessary? TODO
     //create openCL prog here
     //--//createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter2D.cl", "2D");
     //--// store different compiled for settings (dimension/variables...)
@@ -43,7 +44,7 @@ void Us3Dhybrid::waitToFinish() {
 
 void Us3Dhybrid::accumulateValuesInVolume(Vector3i volumePoint, float p, float w){
     //volAccess available from Us3Dhybrid as ImageAccess::pointer
-    float oldP = volAccess->getScalar(volumePoint, 0);
+    float oldP = volAccess->getScalar(volumePoint, 0); //out of bounds????
     float oldW = volAccess->getScalar(volumePoint, 1);
     float newP = oldP + p*w;
     float newW = oldW + w;
@@ -55,7 +56,8 @@ void Us3Dhybrid::addTransformationToFrame(Image::pointer frame, AffineTransforma
     //adds a transformation to the existing transformation on frame
     //Might just be a translation
     AffineTransformation::pointer oldImgTransform = SceneGraph::getAffineTransformationFromData(frame);
-    AffineTransformation::pointer newImgTransform = oldImgTransform->multiply(addTransformation);
+    //AffineTransformation::pointer newImgTransform = oldImgTransform->multiply(addTransformation);
+    AffineTransformation::pointer newImgTransform = addTransformation->multiply(oldImgTransform);
     //ev?
     //AffineTransformation::pointer newImgTransform = oldImgTransform + addTransformation;
     frame->getSceneGraphNode()->setTransformation(newImgTransform);
@@ -73,7 +75,7 @@ Vector2i Us3Dhybrid::getFrameRangeInVolume(int frameNr, int domDir, int dir){//I
         //We are returning range from the Y-axis
         float minimum = minCoords(1); // Y
         float maximum = maxCoords(1); // Y
-        output = Vector2i(floor(minimum), ceil(maximum));
+        output = Vector2i(floor(minimum), ceil(maximum)); //TODO eller snu om på floor/ceil for å begrense det innenfor frame mer?
     }
     else if ((domDir == 1 && dir == 0) || (domDir == 2 && dir == 0)){
         //If domDir:y or domDir:z and want a-dir
@@ -92,14 +94,30 @@ Vector2i Us3Dhybrid::getFrameRangeInVolume(int frameNr, int domDir, int dir){//I
     return output;
 }
 
+AffineTransformation::pointer Us3Dhybrid::getInverseTransformation(Image::pointer frame){
+    AffineTransformation::pointer imageTransformation = SceneGraph::getAffineTransformationFromData(frame);
+    AffineTransformation::pointer inverseTransformation = imageTransformation->getInverse();
+    return inverseTransformation;
+}
+
 // ##### ##### Other functions ##### ##### //
 
 // TODO implement
 AffineTransformation::pointer getTranslationFromVector(Vector3f minCoords){ //eller Us3Dhybrid::
     //get a transformation of translation -(minCoords) (ie. -(-10) = +10)
-    Eigen::Translation3f translation = Eigen::Translation3f(minCoords(0), minCoords(1), minCoords(2));
+    Eigen::Translation3f translation = Eigen::Translation3f(-minCoords(0), -minCoords(1), -minCoords(2));
     AffineTransformation::pointer output = AffineTransformation::New();
     output->matrix() = Eigen::Affine3f(translation).matrix();
+    return output;
+}
+
+AffineTransformation::pointer getScalingFromVector(Vector3f scale){
+    //get a scaling transformation along x, y, z dirs
+    
+    Eigen::Affine3f m;
+    m = Eigen::Scaling(scale(0), scale(1), scale(2));
+    AffineTransformation::pointer output = AffineTransformation::New();
+    output->matrix() = m.matrix();
     return output;
 }
 
@@ -155,8 +173,8 @@ Get distance from point worldPoint to plane neighFrame along the imagePlaneNorma
 */
 float getDistanceAlongNormal(Vector3f point, Vector3f normal, Vector3f planePoint, Vector3f planeNormal){
     //Should handle undefined planePoint and planeNormal TODO check
-    if (planePoint.isZero() || planeNormal.isZero()){ // != nan){// .isZero() .hasNaN() .isEmpty() || planeNormal.isEmpty()){
-        return 0.0;
+    if (planePoint.maxCoeff() < 0.0 || planePoint.maxCoeff() < 0.0){ // != nan){// .isZero() .hasNaN() .isEmpty() || planeNormal.isEmpty()){
+        return 0.0f;
     }
     //P0 = planePoint
     //L0 = point in world
@@ -167,17 +185,17 @@ float getDistanceAlongNormal(Vector3f point, Vector3f normal, Vector3f planePoin
     if (divisor == 0.0){
         if (dividend == 0.0){
             //Parallell with the plane, IN the plane
-            return 0.0;
+            return 0.0f;
         }
         else {
             //Parallell with the plane, but NOT in it
-            return 1000.0; //OR Infinite?
+            return 1000.0f; //OR Infinite?
         }
     }
     else {
 
         float distance = dividend / divisor;
-        return distance;
+        return distance; //TODO make fabs()?
     }
 }
 
@@ -315,21 +333,25 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
                 //For now use value from basePointInPlane? Find its location local in plane and accumulate just this???
 
                 //Indeks for c-dir range in domDir
-                /*Vector2i cDirRange = getDomDirRange(basePoint, domDir, dfDom, volumeSize);
+                Vector2i cDirRange = getDomDirRange(basePoint, domDir, dfDom, volumeSize);
                 //For hver c i c-dir
                 for (int c = cDirRange(0); c <= cDirRange(1); c++){
-                Vector3i volumePoint = getVolumePointLocation(a, b, c, domDir);
-                //TODO implement
-                /*Vector3f intersectionPointWorld = getIntersectionOfPlane(volumePoint, thisFrameRootPoint, imagePlaneNormal);
-                Vector3f intersectionPointLocal = getLocalIntersectionOfPlane(); //TODO from what?
-                if (intersectionWithinFrame(frame, intersectionPointLocal)){ //Or check through something else
-                // Calculate pixelvalue p and weight w
-                float p = getPixelValue(frameAccess, intersectionPointLocal);
-                float distance = getPointDistanceAlongNormal(volumePoint, intersectionPointWorld, imagePlaneNormal);
-                float w = 1 - distance / df; //Or gaussian for trail
-                accumulateValuesInVolume(volumePoint, p, w);
-                }*
-                }*/
+                    Vector3i volumePoint = getVolumePointLocation(a, b, c, domDir);
+                    float p = 256.0;
+                    //float distance = getPointDistanceAlongNormal(volumePoint, intersectionPointWorld, imagePlaneNormal);
+                    float w = 1;// -distance / df; //Or gaussian for trail
+                    accumulateValuesInVolume(volumePoint, p, w);
+                    //TODO implement
+                    /*Vector3f intersectionPointWorld = getIntersectionOfPlane(volumePoint, thisFrameRootPoint, imagePlaneNormal);
+                    Vector3f intersectionPointLocal = getLocalIntersectionOfPlane(); //TODO from what?
+                    if (intersectionWithinFrame(frame, intersectionPointLocal)){ //Or check through something else
+                    // Calculate pixelvalue p and weight w
+                    float p = getPixelValue(frameAccess, intersectionPointLocal);
+                    float distance = getPointDistanceAlongNormal(volumePoint, intersectionPointWorld, imagePlaneNormal);
+                    float w = 1 - distance / df; //Or gaussian for trail
+                    accumulateValuesInVolume(volumePoint, p, w);
+                    }*/
+                }
             }
         }
     }
@@ -364,23 +386,25 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
     //Using object-defined variables firstFrame, frameList and possible preset variables
     //Find initial transform so that firstFrame corner(0,0) is voxel(0,0,0) in volume 
     //and all pixels in this frame would be in the z=0 plane
-    AffineTransformation::pointer imageTransformation = SceneGraph::getAffineTransformationFromData(rootFrame);
-    AffineTransformation::pointer inverseSystemTransform = imageTransformation->getInverse(); //inverseTransform();
-    AffineTransformation::pointer rootTransform = imageTransformation->multiply(inverseSystemTransform);
+     //inverseTransform();
+    AffineTransformation::pointer inverseSystemTransform = getInverseTransformation(rootFrame);
+    addTransformationToFrame(rootFrame, inverseSystemTransform);
     //Transform all frames according to initial transform
     // & Find minimum
     Vector3f minCoords;
-    BoundingBox box = rootFrame->getTransformedBoundingBox();
-    Vector3f corner = box.getCorners().row(0);
+    BoundingBox box1 = rootFrame->getTransformedBoundingBox();
+    Vector3f corner = box1.getCorners().row(0);
     minCoords(0) = corner(0); 
     minCoords(1) = corner(1);
     minCoords(2) = corner(2);
     for (int i = 0; i < frameList.size(); i++){
         Image::pointer frame = frameList[i];
         // Start transforming frame
-        AffineTransformation::pointer oldImgTransform = SceneGraph::getAffineTransformationFromData(frame);
-        AffineTransformation::pointer newImgTransform = oldImgTransform->multiply(inverseSystemTransform);
-        frame->getSceneGraphNode()->setTransformation(newImgTransform);
+        if (i != 0)
+            addTransformationToFrame(frame, inverseSystemTransform);
+        //AffineTransformation::pointer oldImgTransform = SceneGraph::getAffineTransformationFromData(frame);
+        //AffineTransformation::pointer newImgTransform = oldImgTransform->multiply(inverseSystemTransform);
+        //frame->getSceneGraphNode()->setTransformation(newImgTransform);
         // Check corners for minimum
         BoundingBox box = frame->getTransformedBoundingBox();
         MatrixXf corners = box.getCorners();
@@ -408,15 +432,69 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
     maxCoords(0) = corner2(0);
     maxCoords(1) = corner2(1);
     maxCoords(2) = corner2(2);
+    for (int i = 0; i < frameList.size(); i++){
+        Image::pointer frame = frameList[i];
+        // Start transforming frame
+        if (i != 0)
+            addTransformationToFrame(frame, transformToMinimum);
+        // Check corners for minimum
+        BoundingBox box = frame->getTransformedBoundingBox();
+        MatrixXf corners = box.get2DCorners();
+        for (int j = 0; j < 4; j++){ //8
+            for (int k = 0; k < 3; k++){
+                float pointValue = corners(j, k);
+                if (pointValue < minCoords(k))
+                    minCoords(k) = pointValue;
+                if (pointValue > maxCoords(k))
+                    maxCoords(k) = pointValue;
+            }
+        }
+    }
+    //Test total results: inverseSystemTransform & transformToMinimum
+    AffineTransformation::pointer totalTransform = transformToMinimum->multiply(inverseSystemTransform);
+    Matrix4f totalMatrix = totalTransform->matrix();
+    Vector4f m0 = totalMatrix.row(0);
+    Vector4f m1 = totalMatrix.row(1);
+    Vector4f m2 = totalMatrix.row(2);
+    Vector4f m3 = totalMatrix.row(3);
+
+    // Find size current Init volume of size max-min in each direction x/y/z
+    Vector3f sizeOne = maxCoords - minCoords;
+    // Find scaling
+    Vector3f scaling = Vector3f(0.f, 0.f, 0.f);
+    Vector3f wantedSize = Vector3f(200.f, 200.f, 200.f);
+    for (int i = 0; i < 3; i++){
+        scaling(i) = wantedSize(i) / sizeOne(i);
+    }
+    
+    // Make scaling transform
+    AffineTransformation::pointer scaleTransform = getScalingFromVector(scaling); 
+    Matrix4f scaleMatrix = scaleTransform->matrix();
+    Vector4f s0 = scaleMatrix.row(0);
+    Vector4f s1 = scaleMatrix.row(1);
+    Vector4f s2 = scaleMatrix.row(2);
+    Vector4f s3 = scaleMatrix.row(3);
+    addTransformationToFrame(rootFrame, scaleTransform);
+    //Init
+    BoundingBox box3 = rootFrame->getTransformedBoundingBox();
+    Vector3f corner3 = box3.getCorners().row(0);
+    minCoords(0) = corner3(0); 
+    minCoords(1) = corner3(1);  
+    minCoords(2) = corner3(2);
+    maxCoords(0) = corner3(0);
+    maxCoords(1) = corner3(1);
+    maxCoords(2) = corner3(2);
     //Define lists to store results for each frame
     frameMinList = {}; // std::vector global Vector3f
     frameMaxList = {}; // std::vector global Vector3f
     frameBaseCornerList = {}; // std::vector global Vector3f
     framePlaneNormalList = {}; // std::vector global Vector3f
+    frameInverseTransformList = {}; // std::vector global AffineTransformation::pointer
     for (int i = 0; i < frameList.size(); i++){
         Image::pointer frame = frameList[i];
         // Start transforming frame
-        addTransformationToFrame(frame, transformToMinimum);
+        if (i != 0)
+            addTransformationToFrame(frame, scaleTransform);
         // Check corners min/max of frame
         // If not square has to use pixel points and AffineTransformation.. And more soffisticated method
         BoundingBox box = frame->getTransformedBoundingBox();
@@ -436,7 +514,7 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         for (int k = 0; k < 3; k++){
             if (minCoordsFrame(k) < minCoords(k))
                 minCoords(k) = minCoordsFrame(k);
-            if (maxCoordsFrame(k) < maxCoords(k))
+            if (maxCoordsFrame(k) > maxCoords(k))
                 maxCoords(k) = maxCoordsFrame(k);
         }
         // Store frame values for later
@@ -444,13 +522,29 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         frameMaxList.push_back(maxCoordsFrame);
         frameBaseCornerList.push_back(baseCorner);
         framePlaneNormalList.push_back(getImagePlaneNormal(frame));
+        frameInverseTransformList.push_back(getInverseTransformation(frame));
     }
 
-    //Init volume of size max-min in each direction x/y/z
+    //Test total results: inverseSystemTransform & transformToMinimum & scaleTransform
+    //AffineTransformation::pointer totalTransform = transformToMinimum->multiply(inverseSystemTransform);
+    AffineTransformation::pointer finalTransform = scaleTransform->multiply(totalTransform);// (scaleTransform->multiply(transformToMinimum))->multiply(inverseSystemTransform);// totalTransform);
+    Matrix4f finalTransformMatrix = finalTransform->matrix();
+    Vector4f f0 = finalTransformMatrix.row(0);
+    Vector4f f1 = finalTransformMatrix.row(1);
+    Vector4f f2 = finalTransformMatrix.row(2);
+    Vector4f f3 = finalTransformMatrix.row(3);
+
+    //finalTransformMatrix/finalTransform
+    //totalTransform/totalMatrix
+    Vector4f point0f = totalMatrix * Vector4f(0, 0, 0, 1);
+    Vector4f pointEndf = totalMatrix * Vector4f(280, 400, 0, 1);
+    Vector3f pointZero = totalTransform->multiply(Vector3f(0, 0, 0));
+    Vector3f pointHero = totalTransform->multiply(Vector3f(280, 400, 0));
+    // Init volume of size max - min in each direction x / y / z
     Vector3f size = maxCoords - minCoords;
     volumeSize = Vector3i(ceil(size(0)), ceil(size(1)), ceil(size(2)));
     DataType type = DataType::TYPE_FLOAT; //Endre til INT på sikt?
-    float initVal = 128.0;
+    float initVal = 128.0; //TODO 0.0;
     int components = 2; // pixelvalues & weights
     AccumulationVolume = Image::New();
     AccumulationVolume->create(volumeSize(0), volumeSize(1), volumeSize(2), type, components);
@@ -471,12 +565,14 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
     //TODO
 }
 
+/*
 void Us3Dhybrid::execute(){
     std::cout << "Iteration #:" << iterartorCounter++ << std::endl;
     DynamicData::pointer dynamicData = getInputData(0);
     while (!dynamicData->hasReachedEnd()) {
         //Image::pointer frame = dynamicData->getCurrentFrame();
-        Image::pointer frame = dynamicData->getNextFrame(this);
+        //Image::pointer frame = dynamicData->getNextFrame(this);
+        Image::pointer frame = getStaticInputData<Image>(0);
         frameList.push_back(frame);
         std::cout << "Iteration #:" << iterartorCounter++ << std::endl;
         if (!firstFrameSet){
@@ -502,8 +598,8 @@ void Us3Dhybrid::execute(){
         std::cout << "Finished!!!" << std::endl;
     }
     setStaticOutputData<Image>(0, output);
-}
-/* OLD EXECUTE 
+}*/
+/* OLD EXECUTE */
 void Us3Dhybrid::execute(){
     if (!reachedEndOfStream){
         std::cout << "Iteration #:" << iterartorCounter++ << std::endl;
@@ -542,6 +638,6 @@ void Us3Dhybrid::execute(){
         setStaticOutputData<Image>(0, output);
     }
 }
-*/
+
 
 
