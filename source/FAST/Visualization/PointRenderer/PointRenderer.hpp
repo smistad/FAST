@@ -22,6 +22,14 @@ class PointRenderer : public Renderer {
         void setColor(ProcessObjectPort input, Color color);
         void setSize(ProcessObjectPort input, float size);
         void draw();
+		void draw2D(
+                cl::BufferGL PBO,
+                uint width,
+                uint height,
+                Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform,
+                float PBOspacing,
+                Vector2f translation
+        );
         BoundingBox getBoundingBox();
     private:
         PointRenderer();
