@@ -89,9 +89,9 @@ void ImageClassifier::execute() {
 	}
 
 	// nr of images x channels x width x height
-	input_layer->Reshape(images.size(), 1, input_layer->width(), input_layer->height());
+	input_layer->Reshape(images.size(), 1, input_layer->height(), input_layer->width());
 	mNet->Reshape();
-	reportInfo() << "Input layer reshaped" << reportEnd();
+	reportInfo() << "Net reshaped" << reportEnd();
 
 	OpenCLDevice::pointer device = getMainDevice();
 	cl::Program program = getOpenCLProgram(device);
