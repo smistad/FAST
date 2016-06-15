@@ -121,16 +121,61 @@ AffineTransformation::pointer getScalingFromVector(Vector3f scale){
     return output;
 }
 
+// Vector3f intersectionPointWorld = getIntersectionOfPlane(volumePoint, distance, imagePlaneNormal);
+Vector3f Us3Dhybrid::getIntersectionOfPlane(Vector3i startPoint, float distance, Vector3f normalVector){
+    Vector3f startPointF = Vector3f(startPoint(0), startPoint(1), startPoint(2));
+    Vector3f moveDist = Vector3f(normalVector*distance);
+    //Vector3f moveDist = Vector3f(normalVector(0)*distance, normalVector(1)*distance, normalVector(2)*distance);
+    Vector3f endPoint = startPointF + moveDist;
+    //TODO add check towards target plane ?? "Project" into target plane?
+    return endPoint;
+}
+
+//Vector3f intersectionPointLocal = getLocalIntersectionOfPlane(intersectionPointWorld, thisFrameInverseTransform);
+Vector3f Us3Dhybrid::getLocalIntersectionOfPlane(Vector3f intersectionPointWorld, AffineTransformation::pointer frameInverseTransform){
+    //Plocal = InverseTransform * Pglobal
+    Vector3f intersectionPointLocal = frameInverseTransform->multiply(intersectionPointWorld);
+    return intersectionPointLocal;
+}
+
+bool Us3Dhybrid::isWithinFrame(Vector3f intersectionPointLocal, Vector3ui frameSize){
+    //Ev use untransformed boundingBox?
+    if (fabs(intersectionPointLocal(2)) > 1.0){ //If z too out of bounds //should not occure? Transformation error?
+        float badZ = intersectionPointLocal(2);
+        return false;
+    }
+    bool inside = true;
+    for (int axis = 0; axis < 2; axis++){ 
+        //For each axis X and Y
+        float point = intersectionPointLocal(axis);
+        uint size = frameSize(axis);
+        if (point < 0.0){ //Bigger val than frame on this axis
+            inside = false;
+            break;
+        }
+        if (point > float(size)){ //Bigger val than frame on this axis
+            inside = false;
+            break;
+        }
+    }
+    return inside;
+}
+
 //Seems good?
-Vector3f getBasePointInPlane(Vector3f rootPoint, Vector3f normal, int a, int b, int domDir){
+
+float Us3Dhybrid::calculatePlaneDvalue(Vector3f pointInPlane, Vector3f planeNormal){
+    float planeDvalue = -(pointInPlane(0)*planeNormal(0) + pointInPlane(1)*planeNormal(1) + pointInPlane(2)*planeNormal(2));
+    return planeDvalue;
+}
+
+Vector3f Us3Dhybrid::getBasePointInPlane(Vector3f rootPoint, Vector3f normal, float planeDvalue, int a, int b, int domDir){
     float x, y, z;
     if (domDir == 0){ //domDir: x
         y = a;
         z = b;
         //x
         if (normal(0) != 0.0){
-            x = -(normal(1)*y + normal(2)*z) / normal(0); //d utelatt?
-            //TODO finn ut om vi kan droppe d i fra planligningen
+            x = -(normal(1)*y + normal(2)*z + planeDvalue) / normal(0);
         }
     }
     else if (domDir == 1){ //domDir: y
@@ -138,7 +183,7 @@ Vector3f getBasePointInPlane(Vector3f rootPoint, Vector3f normal, int a, int b, 
         z = b;
         //y
         if (normal(1) != 0.0){
-            y = -(normal(0)*x + normal(2)*z) / normal(1); //d utelatt?
+            y = -(normal(0)*x + normal(2)*z + planeDvalue) / normal(1);
         }
     }
     else if (domDir == 2){ //domDir: z
@@ -146,13 +191,13 @@ Vector3f getBasePointInPlane(Vector3f rootPoint, Vector3f normal, int a, int b, 
         y = b;
         //z
         if (normal(2) != 0.0){
-            z = -(normal(0)*x + normal(1)*y) / normal(2); //d utelatt?
+            z = -(normal(0)*x + normal(1)*y + planeDvalue) / normal(2);
         }
     }
     return Vector3f(x, y, z);
 }
 
-float getPointDistanceAlongNormal(Vector3i A, Vector3f B, Vector3f normal){
+float Us3Dhybrid::getPointDistanceAlongNormal(Vector3i A, Vector3f B, Vector3f normal){
     // |(B-A).dot(normal)|
     // TODO check maths is performed correctly
     //float distance = Vector3f((B - A).dot(normal)).norm();
@@ -160,8 +205,8 @@ float getPointDistanceAlongNormal(Vector3i A, Vector3f B, Vector3f normal){
     Vector3f diff = (B - Af);
     //Vector3f diff = Vector3f()
     float prod = diff.dot(normal);
-    float distance = fabs(prod); //fabs((B - A).dot(normal));
-    return distance;
+    //float distance = fabs(prod); //fabs((B - A).dot(normal));
+    return prod; // IKKE abs-val for now... Needs it further. distance;
 }
 
 /*
@@ -171,7 +216,7 @@ Get distance from point worldPoint to plane neighFrame along the imagePlaneNorma
 * planePoint & planeNormal: Point and normal used to define a neighboring frame plane
 # Return distance from point to plane along normal
 */
-float getDistanceAlongNormal(Vector3f point, Vector3f normal, Vector3f planePoint, Vector3f planeNormal){
+float Us3Dhybrid::getDistanceAlongNormal(Vector3f point, Vector3f normal, Vector3f planePoint, Vector3f planeNormal){
     //Should handle undefined planePoint and planeNormal TODO check
     if (planePoint.maxCoeff() < 0.0 || planePoint.maxCoeff() < 0.0){ // != nan){// .isZero() .hasNaN() .isEmpty() || planeNormal.isEmpty()){
         return 0.0f;
@@ -199,7 +244,7 @@ float getDistanceAlongNormal(Vector3f point, Vector3f normal, Vector3f planePoin
     }
 }
 
-Vector2i getDomDirRange(Vector3f basePoint, int domDir, float dfDom, Vector3i volumeSize){
+Vector2i Us3Dhybrid::getDomDirRange(Vector3f basePoint, int domDir, float dfDom, Vector3i volumeSize){
     float rootC = basePoint(domDir);
     int domDirSize = volumeSize(domDir);
     int startC = std::max(0.0f, ceil(rootC - dfDom));
@@ -208,7 +253,7 @@ Vector2i getDomDirRange(Vector3f basePoint, int domDir, float dfDom, Vector3i vo
 }
 
 //GOOD
-Vector3i getVolumePointLocation(int a, int b, int c, int domDir){
+Vector3i Us3Dhybrid::getVolumePointLocation(int a, int b, int c, int domDir){
     int x, y, z;
     if (domDir == 0){ //domDir: x
         x = c;
@@ -228,14 +273,14 @@ Vector3i getVolumePointLocation(int a, int b, int c, int domDir){
     return Vector3i(x, y, z);
 }
 
-float calculateHalfWidth(float d1, float d2, float dv, float Rmax){
+float Us3Dhybrid::calculateHalfWidth(float d1, float d2, float dv, float Rmax){
     float furthestNeighbour = std::max(d1, d2);
     float maxTotal = std::max(furthestNeighbour, dv);
     float results = std::min(maxTotal, Rmax);
     return results;
 }
 
-int getDominatingVectorDirection(Vector3f v){
+int Us3Dhybrid::getDominatingVectorDirection(Vector3f v){
     float domVal = fabs(v(0));
     int domDir = 0;
     if (fabs(v(1)) > domVal){
@@ -249,11 +294,11 @@ int getDominatingVectorDirection(Vector3f v){
     return domDir;
 }
 
-Vector3i getRoundedIntVector3f(Vector3f v){
+Vector3i Us3Dhybrid::getRoundedIntVector3f(Vector3f v){
     return Vector3i(round(v(0)), round(v(1)), round(v(2)));
 }
 
-Vector3f getImagePlaneNormal(Image::pointer frame){ //TODO test?
+Vector3f Us3Dhybrid::getImagePlaneNormal(Image::pointer frame){ //TODO test?
     AffineTransformation::pointer imageTransformation = SceneGraph::getAffineTransformationFromData(frame);
     Vector3f p0 = imageTransformation->multiply(Vector3f(0, 0, 0));
     Vector3f p1 = imageTransformation->multiply(Vector3f(1, 0, 0));
@@ -293,6 +338,8 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
         // TODO fix storage and fetching of these
         Vector3f thisFrameRootPoint = frameBaseCornerList[frameNr];
         Vector3ui thisFrameSize = frame->getSize();
+        float thisFramePlaneDvalue = framePlaneDValueList[frameNr];
+        AffineTransformation::pointer thisFrameInverseTransform = frameInverseTransformList[frameNr];
         Vector3f lastFrameRootPoint, lastFrameNormal, nextFrameRootPoint, nextFrameNormal;
         if (frameNr != 0){
             lastFrameRootPoint = frameBaseCornerList[frameNr - 1];
@@ -322,7 +369,8 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
             //For each b in b-dir
             for (int b = bDirRange(0); b <= bDirRange(1); b++){
                 //Find basePoint in the plane based on the a and b values
-                Vector3f basePoint = getBasePointInPlane(thisFrameRootPoint, imagePlaneNormal, a, b, domDir);
+                Vector3f basePoint = getBasePointInPlane(thisFrameRootPoint, imagePlaneNormal, thisFramePlaneDvalue, a, b, domDir);
+                //TODO determine if reasonably close to plane? Elimination/speedup (use inverseTrans)
                 //Find distance to last and next frame
                 float d1 = getDistanceAlongNormal(basePoint, imagePlaneNormal, lastFrameRootPoint, lastFrameNormal);
                 float d2 = getDistanceAlongNormal(basePoint, imagePlaneNormal, nextFrameRootPoint, nextFrameNormal);
@@ -338,7 +386,9 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
                 for (int c = cDirRange(0); c <= cDirRange(1); c++){
                     Vector3i volumePoint = getVolumePointLocation(a, b, c, domDir);
                     float p = 256.0;
-                    //float distance = getPointDistanceAlongNormal(volumePoint, intersectionPointWorld, imagePlaneNormal);
+                    float distance = getPointDistanceAlongNormal(volumePoint, thisFrameRootPoint, imagePlaneNormal);
+                    Vector3f intersectionPointWorld = getIntersectionOfPlane(volumePoint, distance, imagePlaneNormal);
+                    Vector3f intersectionPointLocal = getLocalIntersectionOfPlane(intersectionPointWorld, thisFrameInverseTransform);
                     float w = 1;// -distance / df; //Or gaussian for trail
                     accumulateValuesInVolume(volumePoint, p, w);
                     //TODO implement
@@ -490,6 +540,7 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
     frameBaseCornerList = {}; // std::vector global Vector3f
     framePlaneNormalList = {}; // std::vector global Vector3f
     frameInverseTransformList = {}; // std::vector global AffineTransformation::pointer
+    framePlaneDValueList = {}; // std::vector global floats
     for (int i = 0; i < frameList.size(); i++){
         Image::pointer frame = frameList[i];
         // Start transforming frame
@@ -517,12 +568,16 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
             if (maxCoordsFrame(k) > maxCoords(k))
                 maxCoords(k) = maxCoordsFrame(k);
         }
+        // Calc plane values to store
+        Vector3f framePlaneNormal = getImagePlaneNormal(frame);
+        float framePlaneDvalue = calculatePlaneDvalue(baseCorner, framePlaneNormal);
         // Store frame values for later
         frameMinList.push_back(minCoordsFrame);
         frameMaxList.push_back(maxCoordsFrame);
         frameBaseCornerList.push_back(baseCorner);
-        framePlaneNormalList.push_back(getImagePlaneNormal(frame));
+        framePlaneNormalList.push_back(framePlaneNormal);
         frameInverseTransformList.push_back(getInverseTransformation(frame));
+        framePlaneDValueList.push_back(framePlaneDvalue);
     }
 
     //Test total results: inverseSystemTransform & transformToMinimum & scaleTransform

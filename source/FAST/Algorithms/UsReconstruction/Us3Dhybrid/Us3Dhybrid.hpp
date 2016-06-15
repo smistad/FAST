@@ -11,6 +11,7 @@ namespace fast {
         FAST_OBJECT(Us3Dhybrid)
     public:
         void setOutputType(DataType type);
+        //TODO set functions in here to be testable
         ~Us3Dhybrid();
     private:
         Us3Dhybrid();
@@ -26,6 +27,21 @@ namespace fast {
         void addTransformationToFrame(Image::pointer frame, AffineTransformation::pointer addTransformation);
         Vector2i getFrameRangeInVolume(int frameNr, int domDir, int dir);
         AffineTransformation::pointer getInverseTransformation(Image::pointer frame);
+
+        // Previously non-class helper functions
+        Vector3f getIntersectionOfPlane(Vector3i startPoint, float distance, Vector3f normalVector);
+        Vector3f getLocalIntersectionOfPlane(Vector3f intersectionPointWorld, AffineTransformation::pointer frameInverseTransform);
+        bool isWithinFrame(Vector3f intersectionPointLocal, Vector3ui frameSize);
+        float calculatePlaneDvalue(Vector3f pointInPlane, Vector3f planeNormal);
+        Vector3f getBasePointInPlane(Vector3f rootPoint, Vector3f normal, float planeDvalue, int a, int b, int domDir);
+        float getPointDistanceAlongNormal(Vector3i A, Vector3f B, Vector3f normal);
+        float getDistanceAlongNormal(Vector3f point, Vector3f normal, Vector3f planePoint, Vector3f planeNormal);
+        Vector2i getDomDirRange(Vector3f basePoint, int domDir, float dfDom, Vector3i volumeSize);
+        Vector3i getVolumePointLocation(int a, int b, int c, int domDir);
+        float calculateHalfWidth(float d1, float d2, float dv, float Rmax);
+        int getDominatingVectorDirection(Vector3f v);
+        Vector3i getRoundedIntVector3f(Vector3f v);
+        Vector3f getImagePlaneNormal(Image::pointer frame);
 
         // Control variables
         bool firstFrameSet;
@@ -54,6 +70,7 @@ namespace fast {
         std::vector<Vector3f> frameBaseCornerList;
         std::vector<Vector3f> framePlaneNormalList;
         std::vector<AffineTransformation::pointer> frameInverseTransformList;
+        std::vector<float> framePlaneDValueList;
 
         // Potetial OpenCL variables
         cl::Buffer mCLMask;
