@@ -10,13 +10,20 @@ void Us3Dhybrid::setOutputType(DataType type){
     mIsModified = true;
 }
 
+bool Us3Dhybrid::hasCalculatedVolume(){
+    return volumeCalculated;
+}
+
 Us3Dhybrid::Us3Dhybrid(){
     createInputPort<Image>(0);
     createOutputPort<Image>(0, OUTPUT_STATIC, 0); //enum OutputDataType { OUTPUT_STATIC, OUTPUT_DYNAMIC, OUTPUT_DEPENDS_ON_INPUT };
     //createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0); //OUTPUT_DEPENDS_ON_INPUT necessary? TODO
+    
     //create openCL prog here
     //--//createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter2D.cl", "2D");
     //--// store different compiled for settings (dimension/variables...)
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/UsReconstruction/Us3Dhybrid/normalizeVolume.cl", "normalizeVolume");
+
     mIsModified = true; // needed?
     mOutputTypeSet = false;
 
@@ -46,6 +53,8 @@ void Us3Dhybrid::accumulateValuesInVolume(Vector3i volumePoint, float p, float w
     //volAccess available from Us3Dhybrid as ImageAccess::pointer
     float oldP = volAccess->getScalar(volumePoint, 0); //out of bounds????
     float oldW = volAccess->getScalar(volumePoint, 1);
+    if (oldP < 0.0f) oldP = 0.0f;
+    if (oldW < 0.0f) oldW = 0.0f;
     float newP = oldP + p*w;
     float newW = oldW + w;
     volAccess->setScalar(volumePoint, newP, 0);
@@ -65,7 +74,7 @@ void Us3Dhybrid::addTransformationToFrame(Image::pointer frame, AffineTransforma
 
 Vector2i Us3Dhybrid::getFrameRangeInVolume(int frameNr, int domDir, int dir){//Image::pointer frame, int domDir, int dir){
     //domDir of x,y,z and dir of a,b
-    Vector2i output;
+    Vector2i outputRange;
     //If square just use corners //TODO implement alternative? Or done in calculation of min/max lists?
     Vector3f minCoords = frameMinList[frameNr];
     Vector3f maxCoords = frameMaxList[frameNr];
@@ -75,29 +84,85 @@ Vector2i Us3Dhybrid::getFrameRangeInVolume(int frameNr, int domDir, int dir){//I
         //We are returning range from the Y-axis
         float minimum = minCoords(1); // Y
         float maximum = maxCoords(1); // Y
-        output = Vector2i(floor(minimum), ceil(maximum)); //TODO eller snu om på floor/ceil for å begrense det innenfor frame mer?
+        //outputRange = Vector2i(floor(minimum), ceil(maximum)); //TODO eller snu om på floor/ceil for å begrense det innenfor frame mer?
+        outputRange = Vector2i(round(minimum), round(maximum));
+        //outputRange = Vector2i(ceil(minimum), floor(maximum));
     }
     else if ((domDir == 1 && dir == 0) || (domDir == 2 && dir == 0)){
         //If domDir:y or domDir:z and want a-dir
         //We are returning range from the X-axis
         float minimum = minCoords(0); // X
         float maximum = maxCoords(0); // X
-        output = Vector2i(floor(minimum), ceil(maximum));
+        //outputRange = Vector2i(floor(minimum), ceil(maximum));
+        outputRange = Vector2i(round(minimum), round(maximum));
     }
     else if ((domDir == 0 && dir == 1) || (domDir == 1 && dir == 1)){
         //If domDir:x or domDir:y and want b-dir
         //We are returning range from the Z-axis
         float minimum = minCoords(2); // Z
         float maximum = maxCoords(2); // Z
-        output = Vector2i(floor(minimum), ceil(maximum));
+        //outputRange = Vector2i(floor(minimum), ceil(maximum));
+        outputRange = Vector2i(round(minimum), round(maximum));
     }
-    return output;
+    return outputRange;
 }
 
 AffineTransformation::pointer Us3Dhybrid::getInverseTransformation(Image::pointer frame){
     AffineTransformation::pointer imageTransformation = SceneGraph::getAffineTransformationFromData(frame);
     AffineTransformation::pointer inverseTransformation = imageTransformation->getInverse();
     return inverseTransformation;
+}
+
+//float p = getPixelValue(frameAccess, intersectionPointLocal);
+float Us3Dhybrid::getPixelValue(Vector3f point){ 
+    //Gets frameAccess from Us3Dhybrid class
+    float x = point(0);
+    float y = point(1);
+    int z = round(point(2));
+    int xCeil = ceil(x);
+    int yCeil = ceil(y);
+    if (xCeil < 0 || yCeil < 0){
+        //Throw error? Should not need to occur if appropriate bufferXY in last function
+        return 0.0f;
+    }
+    int xFloor = floor(x);
+    int yFloor = floor(y);
+    if (xFloor < 0){
+        float pMaxMax = frameAccess->getScalar(Vector3i(xCeil, yCeil, z));
+        if (yFloor < 0){
+            //Case 1
+            return pMaxMax;
+        }
+        else {
+            //Case 3
+            float pMaxMin = frameAccess->getScalar(Vector3i(xCeil, yFloor, z));
+            float v = y - yFloor;
+            float pRight = pMaxMin*(1 - v) + pMaxMax*v;
+            return pRight;
+        }
+    }
+    else if (yFloor < 0){
+        //Case 2
+        float u = x - xFloor;
+        float pMinMax = frameAccess->getScalar(Vector3i(xFloor, yCeil, z));
+        float pMaxMax = frameAccess->getScalar(Vector3i(xCeil, yCeil, z));
+        float pBot = pMinMax*(1 - u) + pMaxMax*u;
+        return pBot;
+    }
+    else {
+        float pMinMin = frameAccess->getScalar(Vector3i(xFloor, yFloor, z)); //ev 0 for point(2) or round?
+        float pMinMax = frameAccess->getScalar(Vector3i(xFloor, yCeil, z));
+        float pMaxMin = frameAccess->getScalar(Vector3i(xCeil, yFloor, z));
+        float pMaxMax = frameAccess->getScalar(Vector3i(xCeil, yCeil, z));
+        //Calculate horizontal interpolation
+        float u = point(0) - floor(point(0));
+        float pTop = pMinMin*(1 - u) + pMaxMin*u;
+        float pBot = pMinMax*(1 - u) + pMaxMax*u;
+        //Calculate final vertical interpolation
+        float v = point(1) - floor(point(1));
+        float pValue = pTop*(1 - v) + pBot*v;//pBot*(1 - v) + pTop*v;
+        return pValue;
+    }  
 }
 
 // ##### ##### Other functions ##### ##### //
@@ -138,9 +203,9 @@ Vector3f Us3Dhybrid::getLocalIntersectionOfPlane(Vector3f intersectionPointWorld
     return intersectionPointLocal;
 }
 
-bool Us3Dhybrid::isWithinFrame(Vector3f intersectionPointLocal, Vector3ui frameSize){
+bool Us3Dhybrid::isWithinFrame(Vector3f intersectionPointLocal, Vector3ui frameSize, float bufferXY, float bufferZ){
     //Ev use untransformed boundingBox?
-    if (fabs(intersectionPointLocal(2)) > 1.0){ //If z too out of bounds //should not occure? Transformation error?
+    if (fabs(intersectionPointLocal(2)) > bufferZ){ //If z too out of bounds //should not occure? Transformation error?
         float badZ = intersectionPointLocal(2);
         return false;
     }
@@ -149,16 +214,27 @@ bool Us3Dhybrid::isWithinFrame(Vector3f intersectionPointLocal, Vector3ui frameS
         //For each axis X and Y
         float point = intersectionPointLocal(axis);
         uint size = frameSize(axis);
-        if (point < 0.0){ //Bigger val than frame on this axis
+        if (point + bufferXY < 0.0){ //Bigger val than frame on this axis
             inside = false;
             break;
         }
-        if (point > float(size)){ //Bigger val than frame on this axis
+        if (point - bufferXY > float(size)){ //Bigger val than frame on this axis
             inside = false;
             break;
         }
     }
     return inside;
+}
+
+bool Us3Dhybrid::volumePointOutsideVolume(Vector3i volumePoint, Vector3i volumeSize){
+    for (int k = 0; k < 3; k++){
+        int point = volumePoint(k);
+        float size = volumeSize(k);
+        if (point < 0 || point >= size){
+            return true;
+        }
+    }
+    return false;
 }
 
 //Seems good?
@@ -226,7 +302,7 @@ float Us3Dhybrid::getDistanceAlongNormal(Vector3f point, Vector3f normal, Vector
     //N = planeNormal
     //L = normal from point/origin
     float divisor = normal.dot(planeNormal);
-    float dividend = (point - planePoint).dot(planeNormal);
+    float dividend = (planePoint - point).dot(planeNormal);
     if (divisor == 0.0){
         if (dividend == 0.0){
             //Parallell with the plane, IN the plane
@@ -240,7 +316,7 @@ float Us3Dhybrid::getDistanceAlongNormal(Vector3f point, Vector3f normal, Vector
     else {
 
         float distance = dividend / divisor;
-        return distance; //TODO make fabs()?
+        return fabs(distance); //TODO make fabs()?
     }
 }
 
@@ -248,7 +324,7 @@ Vector2i Us3Dhybrid::getDomDirRange(Vector3f basePoint, int domDir, float dfDom,
     float rootC = basePoint(domDir);
     int domDirSize = volumeSize(domDir);
     int startC = std::max(0.0f, ceil(rootC - dfDom));
-    int endC = std::min(ceil(rootC + dfDom), float(domDirSize));
+    int endC = std::min(ceil(rootC + dfDom), float(domDirSize-1));
     return Vector2i(startC, endC);
 }
 
@@ -316,7 +392,6 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
     //Get access to volume on which we accumulate the values in
     // (volAccess is defined globally in Us3Dhybrid as an ImageAccess::pointer)
     volAccess = AccumulationVolume->getImageAccess(accessType::ACCESS_READ_WRITE);
-    //Vector3ui volumeSize = AccumulationVolume->getSize(); //TODO implement proper //Todo make global?
     // For each FRAME
     for (int frameNr = 0; frameNr < frameList.size(); frameNr++){
         // Get FRAME
@@ -328,14 +403,6 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
         float domVal = fabs(imagePlaneNormal(domDir));
 
         // Get current, last and next plane
-        // TODO define Vector4f? ax+by+cz+d=0? eller normal vector + point?
-        // Defining plane by normalVector and the world coordinate of the (0,0) pixel point
-        // # thisFrameRootPoint, 
-        //   # thisFrameNormal = imagePlaneNormal
-        //   # thisFrameSize
-        // # lastFrameRootPoint, lastFrameNormal
-        // # nextFrameRootPoint, nextFrameNormal
-        // TODO fix storage and fetching of these
         Vector3f thisFrameRootPoint = frameBaseCornerList[frameNr];
         Vector3ui thisFrameSize = frame->getSize();
         float thisFramePlaneDvalue = framePlaneDValueList[frameNr];
@@ -358,7 +425,10 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
         */
 
         // Get frame access
-        ImageAccess::pointer frameAccess = frame->getImageAccess(accessType::ACCESS_READ);
+        frameAccess = frame->getImageAccess(accessType::ACCESS_READ); // ImageAccess::pointer global
+        //TODOOOO
+        //T * inputData = (T*)inputAccess->get();
+        //T * outputData = (T*)outputAccess->get();
 
         // Find size of non-dominating directions in volume space (a-dir & b-dir)
         Vector2i aDirRange = getFrameRangeInVolume(frameNr, domDir, 0); //a: 0
@@ -366,53 +436,65 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
 
         //For each a in a-dir
         for (int a = aDirRange(0); a <= aDirRange(1); a++){
+            std::cout << ".";
             //For each b in b-dir
             for (int b = bDirRange(0); b <= bDirRange(1); b++){
                 //Find basePoint in the plane based on the a and b values
                 Vector3f basePoint = getBasePointInPlane(thisFrameRootPoint, imagePlaneNormal, thisFramePlaneDvalue, a, b, domDir);
                 //TODO determine if reasonably close to plane? Elimination/speedup (use inverseTrans)
                 //Find distance to last and next frame
-                float d1 = getDistanceAlongNormal(basePoint, imagePlaneNormal, lastFrameRootPoint, lastFrameNormal);
+                float d1 = getDistanceAlongNormal(basePoint, imagePlaneNormal, lastFrameRootPoint, lastFrameNormal); //TODO check if correct
                 float d2 = getDistanceAlongNormal(basePoint, imagePlaneNormal, nextFrameRootPoint, nextFrameNormal);
                 //Calculate half width df and dfDom
                 float df = calculateHalfWidth(d1, d2, dv, Rmax);
                 float dfDom = df / domVal;
-
-                //For now use value from basePointInPlane? Find its location local in plane and accumulate just this???
 
                 //Indeks for c-dir range in domDir
                 Vector2i cDirRange = getDomDirRange(basePoint, domDir, dfDom, volumeSize);
                 //For hver c i c-dir
                 for (int c = cDirRange(0); c <= cDirRange(1); c++){
                     Vector3i volumePoint = getVolumePointLocation(a, b, c, domDir);
-                    float p = 256.0;
+                    if (volumePointOutsideVolume(volumePoint, volumeSize)){
+                        continue;
+                    }
                     float distance = getPointDistanceAlongNormal(volumePoint, thisFrameRootPoint, imagePlaneNormal);
                     Vector3f intersectionPointWorld = getIntersectionOfPlane(volumePoint, distance, imagePlaneNormal);
                     Vector3f intersectionPointLocal = getLocalIntersectionOfPlane(intersectionPointWorld, thisFrameInverseTransform);
-                    float w = 1;// -distance / df; //Or gaussian for trail
-                    accumulateValuesInVolume(volumePoint, p, w);
-                    //TODO implement
-                    /*Vector3f intersectionPointWorld = getIntersectionOfPlane(volumePoint, thisFrameRootPoint, imagePlaneNormal);
-                    Vector3f intersectionPointLocal = getLocalIntersectionOfPlane(); //TODO from what?
-                    if (intersectionWithinFrame(frame, intersectionPointLocal)){ //Or check through something else
-                    // Calculate pixelvalue p and weight w
-                    float p = getPixelValue(frameAccess, intersectionPointLocal);
-                    float distance = getPointDistanceAlongNormal(volumePoint, intersectionPointWorld, imagePlaneNormal);
-                    float w = 1 - distance / df; //Or gaussian for trail
-                    accumulateValuesInVolume(volumePoint, p, w);
-                    }*/
+                    if (isWithinFrame(intersectionPointLocal, thisFrameSize, 0.5f, 0.5f)){
+                        float p = getPixelValue(intersectionPointLocal);
+                        float w = 1 - (distance / df); //Or gaussian for trail
+                        accumulateValuesInVolume(volumePoint, p, w);
+                    }
                 }
             }
         }
+        std::cout << "!" << std::endl;
+    }
+    
+    volAccess.release();
+}
+
+void Us3Dhybrid::generateOutputVolume(){
+    std::cout << "Final reconstruction calculations!" << std::endl;
+    // Finally, calculate reconstructed volume
+    setOutputType(AccumulationVolume->getDataType());
+    outputVolume = getStaticOutputData<Image>(0);
+    outputVolume->create(AccumulationVolume->getSize(), AccumulationVolume->getDataType(), 1); //1-channeled outputVolume
+
+    ExecutionDevice::pointer device = getMainDevice();
+    if (!device->isHost()) {
+        generateOutputVolume(device); // Run on GPU instead
+        return;
     }
 
-    // Finally, calculate reconstructed volume
-    output = getStaticOutputData<Image>(0);
-    output->create(AccumulationVolume->getSize(), AccumulationVolume->getDataType(), 1); //1-channeled output volume
-    ImageAccess::pointer outAccess = output->getImageAccess(ACCESS_READ_WRITE);
-    for (int x = 0; x < output->getWidth(); x++){
-        for (int y = 0; y < output->getHeight(); y++){
-            for (int z = 0; z < output->getDepth(); z++){
+    volAccess = AccumulationVolume->getImageAccess(accessType::ACCESS_READ_WRITE);
+    ImageAccess::pointer outAccess = outputVolume->getImageAccess(ACCESS_READ_WRITE);
+    //T * inputData = (T*)inputAccess->get();
+    //T * outputData = (T*)outputAccess->get();
+    for (int x = 0; x < outputVolume->getWidth(); x++){
+        std::cout << ".";
+        for (int y = 0; y < outputVolume->getHeight(); y++){
+            for (int z = 0; z < outputVolume->getDepth(); z++){
                 Vector3i location = Vector3i(x, y, z);
                 float p = volAccess->getScalar(location, 0);
                 float w = volAccess->getScalar(location, 1);
@@ -427,9 +509,67 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
         }
     }
     outAccess.release();
-
+    std::cout << "\nDONE calculations!" << std::endl;
     //Can possibly make 2D slices here or alternatively to the one above
-    volAccess.release();
+}
+
+void Us3Dhybrid::recompileNormalizeOpenCLCode(){
+    if (AccumulationVolume->getDimensions() == mDimensionCLCodeCompiledFor &&
+        AccumulationVolume->getDataType() == mTypeCLCodeCompiledFor)
+        return;
+
+    OpenCLDevice::pointer device = getMainDevice();
+    std::string buildOptions = "";
+    
+    if (!device->isWritingTo3DTexturesSupported()) {
+        switch (mOutputType) {
+        case TYPE_FLOAT:
+            buildOptions += " -DTYPE=float";
+            break;
+        case TYPE_INT8:
+            buildOptions += " -DTYPE=char";
+            break;
+        case TYPE_UINT8:
+            buildOptions += " -DTYPE=uchar";
+            break;
+        case TYPE_INT16:
+            buildOptions += " -DTYPE=short";
+            break;
+        case TYPE_UINT16:
+            buildOptions += " -DTYPE=ushort";
+            break;
+        }
+    }
+    
+    cl::Program programNormalize = getOpenCLProgram(device, "normalizeVolume", buildOptions);
+    mKernelNormalize = cl::Kernel(programNormalize, "normalizeVolume");
+
+    mDimensionCLCodeCompiledFor = outputVolume->getDimensions();
+    mTypeCLCodeCompiledFor = outputVolume->getDataType();
+}
+
+void Us3Dhybrid::generateOutputVolume(ExecutionDevice::pointer device){
+    std::cout << "Running on GPU " << device->getStaticNameOfClass() << std::endl;
+
+    OpenCLDevice::pointer clDevice = device;
+    //recompileOpenCLCode(input)
+    recompileNormalizeOpenCLCode();
+    OpenCLImageAccess::pointer inputAccess = AccumulationVolume->getOpenCLImageAccess(ACCESS_READ, device);
+    cl::NDRange globalSize = cl::NDRange(volumeSize(0), volumeSize(1), volumeSize(2));
+    OpenCLImageAccess::pointer outputAccess = outputVolume->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+    std::cout << "Access fetched" << std::endl;
+    mKernelNormalize.setArg(0, *inputAccess->get3DImage());
+    mKernelNormalize.setArg(1, *outputAccess->get3DImage());
+
+    cl::CommandQueue cmdQueue = clDevice->getCommandQueue();
+    cmdQueue.enqueueNDRangeKernel(
+        mKernelNormalize,
+        cl::NullRange,
+        globalSize,
+        cl::NullRange
+        );
+    std::cout << "Added to cmdQueue" << std::endl;
+    std::cout << "DONE calculations!" << std::endl;
 }
 
 void Us3Dhybrid::initVolume(Image::pointer rootFrame){
@@ -511,10 +651,19 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
     // Find size current Init volume of size max-min in each direction x/y/z
     Vector3f sizeOne = maxCoords - minCoords;
     // Find scaling
-    Vector3f scaling = Vector3f(0.f, 0.f, 0.f);
-    Vector3f wantedSize = Vector3f(200.f, 200.f, 200.f);
+    float maxSize = 0.f;
     for (int i = 0; i < 3; i++){
-        scaling(i) = wantedSize(i) / sizeOne(i);
+        if (sizeOne(i) > maxSize){
+            maxSize = sizeOne(i);
+        }
+    }
+    Vector3f scaling = Vector3f(0.f, 0.f, 0.f);
+    Vector3f wantedSize = Vector3f(200.f, 200.f, 200.f); //Can be smaller than 200.f or at least just scale 1 up to 200.f
+    float wantedMax = 100.f;
+    float scalingFactor = wantedMax / maxSize;
+    for (int i = 0; i < 3; i++){
+        //scaling(i) = wantedSize(i) / sizeOne(i);
+        scaling(i) = scalingFactor;
     }
     
     // Make scaling transform
@@ -597,13 +746,15 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
     Vector3f pointHero = totalTransform->multiply(Vector3f(280, 400, 0));
     // Init volume of size max - min in each direction x / y / z
     Vector3f size = maxCoords - minCoords;
-    volumeSize = Vector3i(ceil(size(0)), ceil(size(1)), ceil(size(2)));
+    volumeSize = Vector3i(ceil(size(0)) + 1, ceil(size(1)) + 1, ceil(size(2)) + 1);
     DataType type = DataType::TYPE_FLOAT; //Endre til INT på sikt?
-    float initVal = 128.0; //TODO 0.0;
     int components = 2; // pixelvalues & weights
     AccumulationVolume = Image::New();
     AccumulationVolume->create(volumeSize(0), volumeSize(1), volumeSize(2), type, components);
+    /*
+    float initVal = 128.0; //TODO 0.0;
     //Init volume to zero values and two components
+    std::cout << "Beginning volume zero initialization("<<volumeSize(0)<<").";// << std::endl;
     volAccess = AccumulationVolume->getImageAccess(accessType::ACCESS_READ_WRITE); //global volAccess ImageAccess::pointer
     for (int x = 0; x < volumeSize(0); x++){
         for (int y = 0; y < volumeSize(1); y++){
@@ -613,8 +764,11 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
                 volAccess->setScalar(location, initVal, 1); //Channel 2 - Weight
             }
         }
+        std::cout << ".";
     }
+    std::cout << "FINISHED!" << std::endl;
     volAccess->release();
+    */
 
     //Init dv (based on input frames/userdefined settings?)
     //TODO
@@ -652,9 +806,10 @@ void Us3Dhybrid::execute(){
         executeAlgorithmOnHost();
         std::cout << "Finished!!!" << std::endl;
     }
-    setStaticOutputData<Image>(0, output);
+    setStaticOutputData<Image>(0, outputVolume);
 }*/
 /* OLD EXECUTE */
+
 void Us3Dhybrid::execute(){
     if (!reachedEndOfStream){
         std::cout << "Iteration #:" << iterartorCounter++ << std::endl;
@@ -669,7 +824,8 @@ void Us3Dhybrid::execute(){
         if (dynamicImage->hasReachedEnd()) {
             reachedEndOfStream = true;
         }
-        setStaticOutputData<Image>(0, frame);
+        //mIsModified = true;
+        //setStaticOutputData<Image>(0, frame);
     }
     // When we have reached the end of stream we do just from here on
     if (reachedEndOfStream) {
@@ -688,9 +844,15 @@ void Us3Dhybrid::execute(){
             //if use GPU else :
             std::cout << "Executing on host" << std::endl;
             executeAlgorithmOnHost();
+            generateOutputVolume(); //Alternatively just fetch slices
+            volumeCalculated = true;
             std::cout << "Finished!!!" << std::endl;
         }
-        setStaticOutputData<Image>(0, output);
+        setStaticOutputData<Image>(0, outputVolume);
+        mIsModified = true;
+        
+        //TODO add these?
+        //SceneGraph::setParentNode(outputVolume, frame);
     }
 }
 

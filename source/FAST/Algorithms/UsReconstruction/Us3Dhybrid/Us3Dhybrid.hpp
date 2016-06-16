@@ -11,6 +11,7 @@ namespace fast {
         FAST_OBJECT(Us3Dhybrid)
     public:
         void setOutputType(DataType type);
+        bool hasCalculatedVolume();
         //TODO set functions in here to be testable
         ~Us3Dhybrid();
     private:
@@ -21,6 +22,11 @@ namespace fast {
         // Core functions
         void executeAlgorithmOnHost();
         void initVolume(Image::pointer rootFrame);
+        void generateOutputVolume();
+        void generateOutputVolume(ExecutionDevice::pointer device);
+
+        // Core OpenCL functions
+        void recompileNormalizeOpenCLCode();
 
         // Helper functions in class
         void accumulateValuesInVolume(Vector3i volumePoint, float p, float w);
@@ -28,10 +34,12 @@ namespace fast {
         Vector2i getFrameRangeInVolume(int frameNr, int domDir, int dir);
         AffineTransformation::pointer getInverseTransformation(Image::pointer frame);
 
+        float getPixelValue(Vector3f point); 
+
         // Previously non-class helper functions
         Vector3f getIntersectionOfPlane(Vector3i startPoint, float distance, Vector3f normalVector);
         Vector3f getLocalIntersectionOfPlane(Vector3f intersectionPointWorld, AffineTransformation::pointer frameInverseTransform);
-        bool isWithinFrame(Vector3f intersectionPointLocal, Vector3ui frameSize);
+        bool isWithinFrame(Vector3f intersectionPointLocal, Vector3ui frameSize, float bufferXY, float bufferZ);
         float calculatePlaneDvalue(Vector3f pointInPlane, Vector3f planeNormal);
         Vector3f getBasePointInPlane(Vector3f rootPoint, Vector3f normal, float planeDvalue, int a, int b, int domDir);
         float getPointDistanceAlongNormal(Vector3i A, Vector3f B, Vector3f normal);
@@ -42,6 +50,7 @@ namespace fast {
         int getDominatingVectorDirection(Vector3f v);
         Vector3i getRoundedIntVector3f(Vector3f v);
         Vector3f getImagePlaneNormal(Image::pointer frame);
+        bool volumePointOutsideVolume(Vector3i volumePoint, Vector3i volumeSize);
 
         // Control variables
         bool firstFrameSet;
@@ -59,9 +68,10 @@ namespace fast {
         // Images and volumes
         Image::pointer firstFrame;
         Vector3i volumeSize;
-        Image::pointer output;
+        Image::pointer outputVolume;
         Image::pointer AccumulationVolume;
         ImageAccess::pointer volAccess;
+        ImageAccess::pointer frameAccess;
 
         // List
         std::vector<Image::pointer> frameList; //TODO finn noe med bigger kapasitet
@@ -73,8 +83,8 @@ namespace fast {
         std::vector<float> framePlaneDValueList;
 
         // Potetial OpenCL variables
-        cl::Buffer mCLMask;
         cl::Kernel mKernel;
+        cl::Kernel mKernelNormalize;
         unsigned char mDimensionCLCodeCompiledFor;
         DataType mTypeCLCodeCompiledFor;
     };

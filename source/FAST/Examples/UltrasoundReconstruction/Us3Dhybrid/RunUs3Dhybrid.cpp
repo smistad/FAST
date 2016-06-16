@@ -22,20 +22,26 @@ int main() {
 
     std::string folder = "/rekonstruksjons_data/US_01_20130529T084519/";
     std::string nameformat = "US_01_20130529T084519_ScanConverted_#.mhd";
-
+    std::string input_filename = std::string(FAST_TEST_DATA_DIR) + folder + nameformat;
     streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     //streamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
-    streamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + folder + nameformat);
+    streamer->setFilenameFormat(input_filename);
     //streamer->setMaximumNumberOfFrames(746); //746 total
     streamer->setStartNumber(735);//200);
-    //streamer->setStepSize(2);
+    streamer->setStepSize(3);
     //streamer->enableLooping();
 
     // Reconstruction PNN
     Us3Dhybrid::pointer pnnHybrid = Us3Dhybrid::New();
     pnnHybrid->setInputConnection(streamer->getOutputPort());
 
+    while (!pnnHybrid->hasCalculatedVolume()){
+        streamer->update();
+        pnnHybrid->update();
+    }
+
     // Renderer volume
+    /*
     VolumeRenderer::pointer volumeRenderer = VolumeRenderer::New();
     volumeRenderer->addInputConnection(pnnHybrid->getOutputPort());
     OpacityTransferFunction::pointer otf = OpacityTransferFunction::New();
@@ -55,7 +61,8 @@ int main() {
 
     volumeRenderer->setColorTransferFunction(0, ctf1);
     volumeRenderer->setOpacityTransferFunction(0, otf1);
-
+    */
+    /*
     //Alt for now, display image
     //Image renderer
     ImageRenderer::pointer imageRenderer = ImageRenderer::New();
@@ -67,13 +74,15 @@ int main() {
     //window->set2DMode();
     window->setTimeout(5 * 1000); // automatically close window after 5 seconds
     window->start();
-
-    /*
-    //Exporter mhd
-    MetaImageExporter::pointer exporter2 = MetaImageExporter::New();
-    exporter2->setFilename("US_01_20130529T084519_ScanConverted_volume_test.mhd");
-    exporter2->setInputConnection(pnnHybrid->getOutputPort());
-    //exporter2->setInput(pnnHybrid);
-    exporter2->update();
     */
+    
+    //Exporter mhd
+    MetaImageExporter::pointer exporter = MetaImageExporter::New();
+    std::string output_filename = std::string(FAST_TEST_DATA_DIR) + "/output/" + nameformat + "_volume.output.png";
+    exporter->setFilename(output_filename);
+    //exporter->setFilename("Output/US_01_20130529T084519_ScanConverted_volume_test.mhd");
+    //exporter->setInputConnection(pnnHybrid->getOutputPort());
+    //exporter->setInput(pnnHybrid);
+    exporter->setInputData(pnnHybrid->getStaticOutputData<Image>());
+    exporter->update();
 }
