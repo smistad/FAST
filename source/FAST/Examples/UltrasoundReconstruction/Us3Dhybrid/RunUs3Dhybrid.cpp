@@ -27,16 +27,17 @@ int main() {
     //streamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
     streamer->setFilenameFormat(input_filename);
     //streamer->setMaximumNumberOfFrames(746); //746 total
-    streamer->setStartNumber(735);//200);
-    streamer->setStepSize(3);
+    streamer->setStartNumber(700);//735);//200);
+    //streamer->setStepSize(3);
     //streamer->enableLooping();
 
     // Reconstruction PNN
     Us3Dhybrid::pointer pnnHybrid = Us3Dhybrid::New();
     pnnHybrid->setInputConnection(streamer->getOutputPort());
+    pnnHybrid->setScaleToMax(400.0f);
 
     while (!pnnHybrid->hasCalculatedVolume()){
-        streamer->update();
+        //streamer->update();
         pnnHybrid->update();
     }
 
@@ -78,11 +79,19 @@ int main() {
     
     //Exporter mhd
     MetaImageExporter::pointer exporter = MetaImageExporter::New();
-    std::string output_filename = std::string(FAST_TEST_DATA_DIR) + "/output/" + nameformat + "_volume.output.png";
+    std::string output_filename = std::string(FAST_TEST_DATA_DIR) + "/output/" + nameformat + "_VOL.mhd";
     exporter->setFilename(output_filename);
     //exporter->setFilename("Output/US_01_20130529T084519_ScanConverted_volume_test.mhd");
     //exporter->setInputConnection(pnnHybrid->getOutputPort());
     //exporter->setInput(pnnHybrid);
-    exporter->setInputData(pnnHybrid->getStaticOutputData<Image>());
+    Image::pointer resultVolume = pnnHybrid->getStaticOutputData<Image>(0);
+    ImageAccess::pointer resAccess = resultVolume->getImageAccess(ACCESS_READ);
+    float * floatVolume = (float*)resAccess->get();
+    std::cout << "Size of volume" << resultVolume->getSize() << std::endl;
+    for (int i = 0; i < 100; i++){
+        float p = floatVolume[i];
+        float w = p*1.2;
+    }
+    exporter->setInputData(resultVolume);
     exporter->update();
 }

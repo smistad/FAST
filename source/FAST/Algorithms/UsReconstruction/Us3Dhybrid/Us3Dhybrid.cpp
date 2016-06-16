@@ -14,6 +14,10 @@ bool Us3Dhybrid::hasCalculatedVolume(){
     return volumeCalculated;
 }
 
+void Us3Dhybrid::setScaleToMax(float scaleToMax){
+    mScaleToMax = scaleToMax;
+}
+
 Us3Dhybrid::Us3Dhybrid(){
     createInputPort<Image>(0);
     createOutputPort<Image>(0, OUTPUT_STATIC, 0); //enum OutputDataType { OUTPUT_STATIC, OUTPUT_DYNAMIC, OUTPUT_DEPENDS_ON_INPUT };
@@ -30,6 +34,7 @@ Us3Dhybrid::Us3Dhybrid(){
     //volume;
     dv = 1.0;
     Rmax = 3.0; //2?
+    mScaleToMax = 100.0f;
     volumeCalculated = false;
     volumeInitialized = false;
     firstFrameSet = false;
@@ -401,7 +406,6 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
         Vector3f imagePlaneNormal = framePlaneNormalList[frameNr]; //getImagePlaneNormal(frame);
         int domDir = getDominatingVectorDirection(imagePlaneNormal);
         float domVal = fabs(imagePlaneNormal(domDir));
-
         // Get current, last and next plane
         Vector3f thisFrameRootPoint = frameBaseCornerList[frameNr];
         Vector3ui thisFrameSize = frame->getSize();
@@ -436,7 +440,7 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
 
         //For each a in a-dir
         for (int a = aDirRange(0); a <= aDirRange(1); a++){
-            std::cout << ".";
+            //std::cout << ".";
             //For each b in b-dir
             for (int b = bDirRange(0); b <= bDirRange(1); b++){
                 //Find basePoint in the plane based on the a and b values
@@ -468,33 +472,63 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
                 }
             }
         }
-        std::cout << "!" << std::endl;
+        //std::cout << "!" << std::endl;
     }
     
-    volAccess.release();
+    //volAccess->release();
 }
 
 void Us3Dhybrid::generateOutputVolume(){
     std::cout << "Final reconstruction calculations!" << std::endl;
     // Finally, calculate reconstructed volume
     setOutputType(AccumulationVolume->getDataType());
+    std::cout << "Step 1" << std::endl;
     outputVolume = getStaticOutputData<Image>(0);
+    std::cout << "Step 2" << std::endl;
     outputVolume->create(AccumulationVolume->getSize(), AccumulationVolume->getDataType(), 1); //1-channeled outputVolume
+    std::cout << "Step 3" << std::endl;
+    //outputVolume->setSpacing(Vector3f(1.0f, 1.0f, 1.0f));
+    Vector3f frameSpacing = firstFrame->getSpacing();
+    Vector3f outputSpacing = Vector3f(1.0f, 1.0f, 1.0f);
+    outputVolume->setSpacing(frameSpacing);
 
+    /*
     ExecutionDevice::pointer device = getMainDevice();
     if (!device->isHost()) {
         generateOutputVolume(device); // Run on GPU instead
         return;
     }
-
-    volAccess = AccumulationVolume->getImageAccess(accessType::ACCESS_READ_WRITE);
+    */
+    std::cout << "Step 4" << std::endl;
+    if (!volAccess)
+        volAccess = AccumulationVolume->getImageAccess(ACCESS_READ_WRITE);
+    std::cout << "Step 5" << std::endl;
     ImageAccess::pointer outAccess = outputVolume->getImageAccess(ACCESS_READ_WRITE);
+    std::cout << "Step 6" << std::endl;
     //T * inputData = (T*)inputAccess->get();
     //T * outputData = (T*)outputAccess->get();
-    for (int x = 0; x < outputVolume->getWidth(); x++){
+    float * inputData = (float*)volAccess->get();
+    float * outputData = (float*)outAccess->get();
+    std::cout << "Step 7" << std::endl;
+    uint width = outputVolume->getWidth();
+    uint height = outputVolume->getHeight();
+    uint depth = outputVolume->getDepth();
+    uint nrOfComponents = AccumulationVolume->getNrOfComponents();
+    for (uint x = 0; x < width; x++){
         std::cout << ".";
-        for (int y = 0; y < outputVolume->getHeight(); y++){
-            for (int z = 0; z < outputVolume->getDepth(); z++){
+        for (uint y = 0; y < height; y++){
+            for (uint z = 0; z < depth; z++){
+                unsigned int loc = x + y*width + z*width*height;
+                float p = inputData[loc*nrOfComponents];
+                float w = inputData[loc*nrOfComponents + 1];
+                if (w > 0.0 && p >= 0.0){ // w != 0.0 to avoid division error // This other logic to avoid uninitialized voxels
+                    float finalP = p / w;
+                    outputData[loc] = finalP;
+                }
+                else{
+                    outputData[loc] = 0.0f;
+                }
+                /*
                 Vector3i location = Vector3i(x, y, z);
                 float p = volAccess->getScalar(location, 0);
                 float w = volAccess->getScalar(location, 1);
@@ -505,10 +539,11 @@ void Us3Dhybrid::generateOutputVolume(){
                 else{
                     outAccess->setScalar(location, 0.0, 0);
                 }
+                */
             }
         }
     }
-    outAccess.release();
+    outAccess->release();
     std::cout << "\nDONE calculations!" << std::endl;
     //Can possibly make 2D slices here or alternatively to the one above
 }
@@ -570,6 +605,8 @@ void Us3Dhybrid::generateOutputVolume(ExecutionDevice::pointer device){
         );
     std::cout << "Added to cmdQueue" << std::endl;
     std::cout << "DONE calculations!" << std::endl;
+    inputAccess->release();
+    outputAccess->release();
 }
 
 void Us3Dhybrid::initVolume(Image::pointer rootFrame){
@@ -659,7 +696,7 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
     }
     Vector3f scaling = Vector3f(0.f, 0.f, 0.f);
     Vector3f wantedSize = Vector3f(200.f, 200.f, 200.f); //Can be smaller than 200.f or at least just scale 1 up to 200.f
-    float wantedMax = 100.f;
+    float wantedMax = mScaleToMax; //100.f;
     float scalingFactor = wantedMax / maxSize;
     for (int i = 0; i < 3; i++){
         //scaling(i) = wantedSize(i) / sizeOne(i);
@@ -747,11 +784,17 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
     // Init volume of size max - min in each direction x / y / z
     Vector3f size = maxCoords - minCoords;
     volumeSize = Vector3i(ceil(size(0)) + 1, ceil(size(1)) + 1, ceil(size(2)) + 1);
+    std::cout << "Final volumeSize: " << volumeSize << std::endl;
+
     DataType type = DataType::TYPE_FLOAT; //Endre til INT på sikt?
     int components = 2; // pixelvalues & weights
     AccumulationVolume = Image::New();
     AccumulationVolume->create(volumeSize(0), volumeSize(1), volumeSize(2), type, components);
     /*
+    //TODOOOO
+    //T * inputData = (T*)inputAccess->get();
+    //T * outputData = (T*)outputAccess->get();
+
     float initVal = 128.0; //TODO 0.0;
     //Init volume to zero values and two components
     std::cout << "Beginning volume zero initialization("<<volumeSize(0)<<").";// << std::endl;
@@ -830,6 +873,7 @@ void Us3Dhybrid::execute(){
     // When we have reached the end of stream we do just from here on
     if (reachedEndOfStream) {
         std::cout << "END Iteration #:" << iterartorCounter++ << std::endl;
+        //mIsModified = false;
         if (!volumeCalculated){
             if (!volumeInitialized){
                 std::cout << "Nr of frames in frameList:" << frameList.size() << std::endl;
@@ -846,13 +890,13 @@ void Us3Dhybrid::execute(){
             executeAlgorithmOnHost();
             generateOutputVolume(); //Alternatively just fetch slices
             volumeCalculated = true;
+            mIsModified = true;
             std::cout << "Finished!!!" << std::endl;
         }
-        setStaticOutputData<Image>(0, outputVolume);
-        mIsModified = true;
-        
+        //setStaticOutputData<Image>(0, outputVolume);        
         //TODO add these?
         //SceneGraph::setParentNode(outputVolume, frame);
+        volAccess->release();
     }
 }
 

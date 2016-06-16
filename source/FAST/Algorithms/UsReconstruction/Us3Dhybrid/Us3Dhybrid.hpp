@@ -12,6 +12,7 @@ namespace fast {
     public:
         void setOutputType(DataType type);
         bool hasCalculatedVolume();
+        void setScaleToMax(float scaleToMax);
         //TODO set functions in here to be testable
         ~Us3Dhybrid();
     private:
@@ -64,6 +65,7 @@ namespace fast {
         // Setting variables
         float dv; //voxel spacing
         float Rmax;
+        float mScaleToMax;
 
         // Images and volumes
         Image::pointer firstFrame;
