@@ -21,12 +21,14 @@ namespace fast {
         void waitToFinish();
 
         // Core functions
+        void executeAlgorithm();
         void executeAlgorithmOnHost();
         void initVolume(Image::pointer rootFrame);
         void generateOutputVolume();
         void generateOutputVolume(ExecutionDevice::pointer device);
 
         // Core OpenCL functions
+        void recompileAlgorithmOpenCLCode();
         void recompileNormalizeOpenCLCode();
 
         // Helper functions in class
@@ -52,6 +54,9 @@ namespace fast {
         Vector3i getRoundedIntVector3f(Vector3f v);
         Vector3f getImagePlaneNormal(Image::pointer frame);
         bool volumePointOutsideVolume(Vector3i volumePoint, Vector3i volumeSize);
+
+        // Helper OpenCL classes
+        cl_float16 transform4x4tofloat16(AffineTransformation::pointer imgTransform);
 
         // Control variables
         bool firstFrameSet;
@@ -89,6 +94,9 @@ namespace fast {
         cl::Kernel mKernelNormalize;
         unsigned char mDimensionCLCodeCompiledFor;
         DataType mTypeCLCodeCompiledFor;
+        float mDvCompiledFor;
+        float mRmaxCompiledFor;
+        Vector3i mVolumeSizeCompiledFor;
     };
 
 } // end namespace fast

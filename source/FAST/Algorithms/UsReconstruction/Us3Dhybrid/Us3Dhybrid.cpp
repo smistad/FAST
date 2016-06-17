@@ -25,6 +25,7 @@ Us3Dhybrid::Us3Dhybrid(){
     
     //create openCL prog here
     //--//createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter2D.cl", "2D");
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/UsReconstruction/Us3Dhybrid/us3Dhybrid.cl", "us3Dhybrid");
     //--// store different compiled for settings (dimension/variables...)
     createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/UsReconstruction/Us3Dhybrid/normalizeVolume.cl", "normalizeVolume");
 
@@ -389,7 +390,202 @@ Vector3f Us3Dhybrid::getImagePlaneNormal(Image::pointer frame){ //TODO test?
     return imagePlaneNormal;
 }
 
+// ##### #####OpenCL helper functions ##### ##### //
+cl_float16 Us3Dhybrid::transform4x4tofloat16(AffineTransformation::pointer imgTransform){
+    Matrix4f transformMatrix = imgTransform->matrix();
+    Vector4f m0 = transformMatrix.row(0);
+    float m00 = m0(0);
+    float m01 = m0(1);
+    float m02 = m0(2);
+    float m03 = m0(3);
+    Vector4f m1 = transformMatrix.row(1);
+    float m10 = m1(0);
+    float m11 = m1(1);
+    float m12 = m1(2);
+    float m13 = m1(3);
+    Vector4f m2 = transformMatrix.row(2);
+    float m20 = m2(0);
+    float m21 = m2(1);
+    float m22 = m2(2);
+    float m23 = m2(3);
+    Vector4f m3 = transformMatrix.row(3);
+    float m30 = m3(0);
+    float m31 = m3(1);
+    float m32 = m3(2);
+    float m33 = m3(3);
+    cl_float16 returnValue = {  m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33, };
+    return returnValue;
+}
+
 // ##### ##### CORE functions ##### ##### //
+void Us3Dhybrid::recompileAlgorithmOpenCLCode(){
+    //CHECK if dv, rmax or volumeSize changed..
+    if (AccumulationVolume->getDimensions() == mDimensionCLCodeCompiledFor &&
+        AccumulationVolume->getDataType() == mTypeCLCodeCompiledFor &&
+        dv == mDvCompiledFor &&
+        Rmax == mRmaxCompiledFor &&
+        volumeSize == mVolumeSizeCompiledFor)
+        return;
+
+    std::cout << "Recompiling Algorithm OpenCL code";
+    OpenCLDevice::pointer device = getMainDevice();
+    std::string buildOptions = "";
+
+    if (!device->isWritingTo3DTexturesSupported()) {
+        switch (mOutputType) {
+        case TYPE_FLOAT:
+            buildOptions += " -DTYPE=float";
+            break;
+        case TYPE_INT8:
+            buildOptions += " -DTYPE=char";
+            break;
+        case TYPE_UINT8:
+            buildOptions += " -DTYPE=uchar";
+            break;
+        case TYPE_INT16:
+            buildOptions += " -DTYPE=short";
+            break;
+        case TYPE_UINT16:
+            buildOptions += " -DTYPE=ushort";
+            break;
+        }
+    }
+    /*
+    int maskSize = int(mMaskSize);
+    buildOptions += " -D FILTER_SIZE=";
+    buildOptions += std::to_string(maskSize);
+    std::cout << "maskSize " << maskSize << std::endl;
+    */
+    buildOptions += " -D DV=";
+    buildOptions += std::to_string(dv);
+    std::cout << " -D DV=" << dv << std::endl;
+
+    buildOptions += " -D R_MAX=";
+    buildOptions += std::to_string(Rmax);
+    std::cout << " -D R_MAX=" << Rmax << std::endl;
+
+    buildOptions += " -D VOL_SIZE_X=";
+    buildOptions += std::to_string(volumeSize(0));
+    std::cout << " -D VOL_SIZE_X=" << Rmax << std::endl;
+    buildOptions += " -D VOL_SIZE_Y=";
+    buildOptions += std::to_string(volumeSize(1));
+    std::cout << " -D VOL_SIZE_Y=" << Rmax << std::endl;
+    buildOptions += " -D VOL_SIZE_Z=";
+    buildOptions += std::to_string(volumeSize(2));
+    std::cout << " -D VOL_SIZE_Z=" << Rmax << std::endl;
+
+    cl::Program programUs3Dhybrid = getOpenCLProgram(device, "us3Dhybrid", buildOptions);
+    mKernel = cl::Kernel(programUs3Dhybrid, "accumulateFrameToVolume");
+
+    mDimensionCLCodeCompiledFor = AccumulationVolume->getDimensions();
+    mTypeCLCodeCompiledFor = AccumulationVolume->getDataType();
+    mDvCompiledFor = dv;
+    mRmaxCompiledFor = Rmax;
+    mVolumeSizeCompiledFor = volumeSize; //or x,y,z?
+}
+
+void Us3Dhybrid::executeAlgorithm(){
+    ExecutionDevice::pointer device = getMainDevice();
+    if (device->isHost()) {
+        std::cout << "Executing on host" << std::endl;
+        executeAlgorithmOnHost(); // Run on CPU instead
+        return;
+    }
+    OpenCLDevice::pointer clDevice = device;
+    // TODO Fix a kernel and so on
+    setOutputType(AccumulationVolume->getDataType());
+    recompileAlgorithmOpenCLCode();
+    OpenCLImageAccess::pointer clVolAccess = AccumulationVolume->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
+    cl::CommandQueue cmdQueue = clDevice->getCommandQueue();
+    
+    for (int frameNr = 0; frameNr < frameList.size(); frameNr++){
+        // Get FRAME
+        std::cout << "Running for frame #" << frameNr << std::endl;
+        Image::pointer frame = frameList[frameNr];
+        // Calc imagePlaneNormal and dominating direction of it
+        Vector3f imagePlaneNormal = framePlaneNormalList[frameNr]; //getImagePlaneNormal(frame);
+        int domDir = getDominatingVectorDirection(imagePlaneNormal);
+        float domVal = fabs(imagePlaneNormal(domDir));
+        // Get current, last and next plane
+        Vector3f thisFrameRootPoint = frameBaseCornerList[frameNr];
+        Vector3ui thisFrameSize = frame->getSize();
+        float thisFramePlaneDvalue = framePlaneDValueList[frameNr];
+        AffineTransformation::pointer thisFrameInverseTransform = frameInverseTransformList[frameNr];
+        Vector3f lastFrameRootPoint, lastFrameNormal, nextFrameRootPoint, nextFrameNormal;
+        if (frameNr != 0){
+            lastFrameRootPoint = frameBaseCornerList[frameNr - 1];
+            lastFrameNormal = framePlaneNormalList[frameNr - 1];
+        }
+        if (frameNr != frameList.size() - 1){
+            nextFrameRootPoint = frameBaseCornerList[frameNr + 1];
+            nextFrameNormal = framePlaneNormalList[frameNr + 1];
+        }
+        // Get frame access
+        OpenCLImageAccess::pointer clFrameAccess = frame->getOpenCLImageAccess(ACCESS_READ, clDevice);
+
+        // Find size of non-dominating directions in volume space (a-dir & b-dir)
+        Vector2i aDirRange = getFrameRangeInVolume(frameNr, domDir, 0); //a: 0
+        Vector2i bDirRange = getFrameRangeInVolume(frameNr, domDir, 1); //b: 1
+        int aDirStart = aDirRange(0);
+        int bDirStart = bDirRange(0);
+        int aDirSize = aDirRange(1) - aDirRange(0); //mod by -1 or +1 elns?
+        int bDirSize = bDirRange(1) - bDirRange(0); //mod by -1 or +1 elns?
+        //For each a in a-dir
+        //for (int a = aDirRange(0); a <= aDirRange(1); a++){
+        //For each b in b-dir
+        //for (int b = bDirRange(0); b <= bDirRange(1); b++){
+        
+        // Define OpenCL variables
+        cl_int2 startOffset = { aDirStart, bDirStart };
+        cl_int3 volSize = { volumeSize(0), volumeSize(1), volumeSize(2) };
+        cl_float3 imgNormal = { imagePlaneNormal(0), imagePlaneNormal(1), imagePlaneNormal(2) };
+        cl_float3 imgRoot = { thisFrameRootPoint(0), thisFrameRootPoint(1), thisFrameRootPoint(2) };
+        cl_int2 imgSize = { thisFrameSize(0), thisFrameSize(1) };// int2 imgSize,
+        cl_float3 lastNormal = { lastFrameNormal(0), lastFrameNormal(1), lastFrameNormal(2) };
+        cl_float3 lastRoot = { lastFrameRootPoint(0), lastFrameRootPoint(1), lastFrameRootPoint(2) };
+        cl_float3 nextNormal = { nextFrameNormal(0), nextFrameNormal(1), nextFrameNormal(2) };
+        cl_float3 nextRoot = { nextFrameRootPoint(0), nextFrameRootPoint(1), nextFrameRootPoint(2) };
+        //store inverseAffineTransformation?
+        //thisFrameInverseTransform->matrix()
+        cl_float16 imgInvTrans = transform4x4tofloat16(thisFrameInverseTransform);
+        //cl::Buffer mCLMask; ??
+        /*mCLMask = cl::Buffer(
+        clDevice->getContext(),
+        CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+        sizeof(float)*bufferSize,
+        mMask
+        );
+        */
+        cl::NDRange globalSize = cl::NDRange(aDirSize, bDirSize);
+
+        mKernel.setArg(0, *clFrameAccess->get2DImage());
+        mKernel.setArg(1, *clVolAccess->get3DImage());
+        mKernel.setArg(2, dv); //CAN be defined in buildString
+        mKernel.setArg(3, Rmax); //CAN be defined in buildString
+        mKernel.setArg(4, domDir);
+        mKernel.setArg(5, domVal);
+        mKernel.setArg(6, volSize);// volumeSize); //Vector3i? to int3? //CAN be defined in buildString
+        mKernel.setArg(7, imgNormal);// imagePlaneNormal); //Vector3f
+        mKernel.setArg(8, imgRoot);// thisFrameRootPoint); //Vector3f
+        mKernel.setArg(9, thisFramePlaneDvalue);
+        mKernel.setArg(10, imgSize);// thisFrameSize); //Vector3i //CAN be defined in buildString MAYBE if all same size
+        mKernel.setArg(11, lastNormal);// lastFrameNormal); //Vector3f
+        mKernel.setArg(12, lastRoot);// lastFrameRootPoint); //Vector3f
+        mKernel.setArg(13, nextNormal);// nextFrameNormal); //Vector3f
+        mKernel.setArg(14, nextRoot);// nextFrameRootPoint); //Vector3f
+        mKernel.setArg(15, imgInvTrans);// thisFrameInverseTransform->matrix()); // AffineTransformation::pointer? store as something else?
+        mKernel.setArg(16, startOffset);
+        //CAN define bufferXY or bufferZ in buildString
+
+        cmdQueue.enqueueNDRangeKernel(
+            mKernel,
+            cl::NullRange,
+            globalSize,
+            cl::NullRange
+            );
+    }
+    //clFinish(cmdQueue);
+}
 
 // CPU algoritme
 //template <class T>
@@ -489,8 +685,8 @@ void Us3Dhybrid::generateOutputVolume(){
     std::cout << "Step 3" << std::endl;
     //outputVolume->setSpacing(Vector3f(1.0f, 1.0f, 1.0f));
     Vector3f frameSpacing = firstFrame->getSpacing();
-    Vector3f outputSpacing = Vector3f(1.0f, 1.0f, 1.0f);
-    outputVolume->setSpacing(frameSpacing);
+    Vector3f outputSpacing = Vector3f(0.1f, 0.1f, 0.1f);
+    outputVolume->setSpacing(outputSpacing);
 
     /*
     ExecutionDevice::pointer device = getMainDevice();
@@ -880,14 +1076,13 @@ void Us3Dhybrid::execute(){
                 std::cout << "INITIALIZING volume" << std::endl;
                 //Init cube with all corners
                 initVolume(firstFrame);
+                //zeroInitVolume();
                 volumeInitialized = true;
                 //Definer dv (oppløsning)
                 dv = 1; //ev egen function to define DV
                 //outputImg = firstFrame;
             }
-            //if use GPU else :
-            std::cout << "Executing on host" << std::endl;
-            executeAlgorithmOnHost();
+            executeAlgorithm();
             generateOutputVolume(); //Alternatively just fetch slices
             volumeCalculated = true;
             mIsModified = true;

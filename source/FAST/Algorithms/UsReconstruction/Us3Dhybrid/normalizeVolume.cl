@@ -35,14 +35,15 @@ __kernel void normalizeVolume(
     __write_only image3d_t output
     )
 {//Sizes?
-    const int4 pos = { get_global_id(0), get_global_id(1), get_global_id(2), 0 }; //x, y, z, component
+    const int3 pos = { get_global_id(0), get_global_id(1), get_global_id(2)}; //x, y, z, component
     int dataType = get_image_channel_data_type(input);
 
     float p = 0.0f;
     float w = 0.0f;
     if (dataType == CLK_FLOAT) {
-        p = read_imagef(input, sampler, pos).x;
-        w = read_imagef(input, sampler, pos).y;
+        float2 val = read_imagef(input, sampler, pos);
+        p = val.x; //ETC?
+        w = val.y;
     }
     else if (dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
         p = read_imageui(input, sampler, pos).x;
