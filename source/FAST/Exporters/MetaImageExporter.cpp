@@ -1,6 +1,7 @@
 #include "MetaImageExporter.hpp"
 #include "FAST/Data/Image.hpp"
 #include <fstream>
+#include <boost/filesystem.hpp>
 #ifdef ZLIB_ENABLED
 #include <zlib.h>
 #endif
@@ -79,6 +80,12 @@ void MetaImageExporter::execute() {
     // Check that filename ends with .mhd if not, append it
     if(mFilename.substr(mFilename.length()-4) != ".mhd") {
         mFilename += ".mhd";
+    }
+
+    // Create directories if they don't exist
+    if (mFilename.rfind("/") != std::string::npos) {
+        std::string directoryPath = mFilename.substr(0, mFilename.rfind("/"));
+        boost::filesystem::create_directories(directoryPath);
     }
 
     // Create mhd file
