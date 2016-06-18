@@ -29,6 +29,8 @@ int main() {
     int stepSize = 1; // 5; //3
     int scaleToMaxInt = 400; // 200; //400;
     float scaleToMax = float(scaleToMaxInt);
+    float voxelSpacing = 0.05; //dv
+    float maxRvalue = voxelSpacing * 10;
     
 
     streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
@@ -47,6 +49,8 @@ int main() {
     Us3Dhybrid::pointer pnnHybrid = Us3Dhybrid::New();
     pnnHybrid->setInputConnection(streamer->getOutputPort());
     pnnHybrid->setScaleToMax(scaleToMax);
+    pnnHybrid->setVoxelSpacing(voxelSpacing);
+    pnnHybrid->setRmax(maxRvalue);
 
     while (!pnnHybrid->hasCalculatedVolume()){
         //streamer->update();
@@ -118,5 +122,5 @@ int main() {
         float w = p*1.2;
     }
     exporter->setInputData(resultVolume);
-    exporter->update();
+    //exporter->update();
 }

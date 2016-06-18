@@ -16,6 +16,20 @@ bool Us3Dhybrid::hasCalculatedVolume(){
 
 void Us3Dhybrid::setScaleToMax(float scaleToMax){
     mScaleToMax = scaleToMax;
+    mIsModified = true;
+}
+
+void Us3Dhybrid::setVoxelSpacing(float voxelSpacing){
+    dv = voxelSpacing;
+    volumeCalculated = false;
+    volumeInitialized = false;
+    mIsModified = true;
+}
+
+void Us3Dhybrid::setRmax(float maxRvalue){
+    Rmax = maxRvalue;
+    volumeCalculated = false;
+    mIsModified = true;
 }
 
 Us3Dhybrid::Us3Dhybrid(){
@@ -466,13 +480,22 @@ void Us3Dhybrid::recompileAlgorithmOpenCLCode(){
 
     buildOptions += " -D VOL_SIZE_X=";
     buildOptions += std::to_string(volumeSize(0));
-    std::cout << " -D VOL_SIZE_X=" << Rmax << std::endl;
+    std::cout << " -D VOL_SIZE_X=" << volumeSize(0) << std::endl;
     buildOptions += " -D VOL_SIZE_Y=";
     buildOptions += std::to_string(volumeSize(1));
-    std::cout << " -D VOL_SIZE_Y=" << Rmax << std::endl;
+    std::cout << " -D VOL_SIZE_Y=" << volumeSize(1) << std::endl;
     buildOptions += " -D VOL_SIZE_Z=";
     buildOptions += std::to_string(volumeSize(2));
-    std::cout << " -D VOL_SIZE_Z=" << Rmax << std::endl;
+    std::cout << " -D VOL_SIZE_Z=" << volumeSize(2) << std::endl;
+
+    float bufferXY = 0.5f;
+    float bufferZ = 0.5f;
+    buildOptions += " -D BUFFER_XY=";
+    buildOptions += std::to_string(bufferXY);
+    std::cout << " -D BUFFER_XY=" << bufferXY << std::endl;
+    buildOptions += " -D BUFFER_Z=";
+    buildOptions += std::to_string(bufferZ);
+    std::cout << " -D BUFFER_Z=" << bufferZ << std::endl;
 
     cl::Program programUs3Dhybrid = getOpenCLProgram(device, "us3Dhybrid", buildOptions);
     mKernel = cl::Kernel(programUs3Dhybrid, "accumulateFrameToVolume");
@@ -560,21 +583,21 @@ void Us3Dhybrid::executeAlgorithm(){
 
         mKernel.setArg(0, *clFrameAccess->get2DImage());
         mKernel.setArg(1, *clVolAccess->get3DImage());
-        mKernel.setArg(2, dv); //CAN be defined in buildString
-        mKernel.setArg(3, Rmax); //CAN be defined in buildString
-        mKernel.setArg(4, domDir);
-        mKernel.setArg(5, domVal);
-        mKernel.setArg(6, volSize);// volumeSize); //Vector3i? to int3? //CAN be defined in buildString
-        mKernel.setArg(7, imgNormal);// imagePlaneNormal); //Vector3f
-        mKernel.setArg(8, imgRoot);// thisFrameRootPoint); //Vector3f
-        mKernel.setArg(9, thisFramePlaneDvalue);
-        mKernel.setArg(10, imgSize);// thisFrameSize); //Vector3i //CAN be defined in buildString MAYBE if all same size
-        mKernel.setArg(11, lastNormal);// lastFrameNormal); //Vector3f
-        mKernel.setArg(12, lastRoot);// lastFrameRootPoint); //Vector3f
-        mKernel.setArg(13, nextNormal);// nextFrameNormal); //Vector3f
-        mKernel.setArg(14, nextRoot);// nextFrameRootPoint); //Vector3f
-        mKernel.setArg(15, imgInvTrans);// thisFrameInverseTransform->matrix()); // AffineTransformation::pointer? store as something else?
-        mKernel.setArg(16, startOffset);
+        //mKernel.setArg(2, dv); //CAN be defined in buildString
+        //mKernel.setArg(3, Rmax); //CAN be defined in buildString
+        mKernel.setArg(2, domDir);
+        mKernel.setArg(3, domVal);
+        //mKernel.setArg(6, volSize);// volumeSize); //Vector3i? to int3? //CAN be defined in buildString
+        mKernel.setArg(4, imgNormal);// imagePlaneNormal); //Vector3f
+        mKernel.setArg(5, imgRoot);// thisFrameRootPoint); //Vector3f
+        mKernel.setArg(6, thisFramePlaneDvalue);
+        mKernel.setArg(7, imgSize);// thisFrameSize); //Vector3i //CAN be defined in buildString MAYBE if all same size
+        mKernel.setArg(8, lastNormal);// lastFrameNormal); //Vector3f
+        mKernel.setArg(9, lastRoot);// lastFrameRootPoint); //Vector3f
+        mKernel.setArg(10, nextNormal);// nextFrameNormal); //Vector3f
+        mKernel.setArg(11, nextRoot);// nextFrameRootPoint); //Vector3f
+        mKernel.setArg(12, imgInvTrans);// thisFrameInverseTransform->matrix()); // AffineTransformation::pointer? store as something else?
+        mKernel.setArg(13, startOffset);
         //CAN define bufferXY or bufferZ in buildString
 
         cmdQueue.enqueueNDRangeKernel(
@@ -890,7 +913,14 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
             maxSize = sizeOne(i);
         }
     }
+    Vector3f spacing = rootFrame->getSpacing(); 
+    spacing(2) = 0.1f; //set spacing(2) = 0.1 eller noe? er default 1.0
+    float wantedSpacing = dv;
     Vector3f scaling = Vector3f(0.f, 0.f, 0.f);
+    for (int i = 0; i < 3; i++){
+        scaling(i) = wantedSpacing / spacing(i);
+    }
+    /*
     Vector3f wantedSize = Vector3f(200.f, 200.f, 200.f); //Can be smaller than 200.f or at least just scale 1 up to 200.f
     float wantedMax = mScaleToMax; //100.f;
     float scalingFactor = wantedMax / maxSize;
@@ -898,7 +928,7 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         //scaling(i) = wantedSize(i) / sizeOne(i);
         scaling(i) = scalingFactor;
     }
-    
+    */
     // Make scaling transform
     AffineTransformation::pointer scaleTransform = getScalingFromVector(scaling); 
     Matrix4f scaleMatrix = scaleTransform->matrix();

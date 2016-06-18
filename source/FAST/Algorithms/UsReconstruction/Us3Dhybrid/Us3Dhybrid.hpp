@@ -13,6 +13,8 @@ namespace fast {
         void setOutputType(DataType type);
         bool hasCalculatedVolume();
         void setScaleToMax(float scaleToMax);
+        void setVoxelSpacing(float voxelSpacing);
+        void setRmax(float maxRvalue);
         //TODO set functions in here to be testable
         ~Us3Dhybrid();
     private:
