@@ -29,7 +29,7 @@ int main() {
     int stepSize = 1; // 5; //3
     int scaleToMaxInt = 400; // 200; //400;
     float scaleToMax = float(scaleToMaxInt);
-    float voxelSpacing = 0.05; //dv
+    float voxelSpacing = 0.3; // 0.03 / 0.01 //dv
     float maxRvalue = voxelSpacing * 10;
     
 
@@ -44,6 +44,7 @@ int main() {
     std::string streamStart = std::to_string(startNumber);
     std::string streamStep = std::to_string(stepSize);
     std::string streamScale = std::to_string(scaleToMaxInt);
+    std::string volumeSpacing = std::to_string(voxelSpacing);
 
     // Reconstruction PNN
     Us3Dhybrid::pointer pnnHybrid = Us3Dhybrid::New();
@@ -52,6 +53,9 @@ int main() {
     pnnHybrid->setVoxelSpacing(voxelSpacing);
     pnnHybrid->setRmax(maxRvalue);
 
+    //OpenCLDevice::pointer clDevice = getMainDevice();
+    //clDevice->getDevice()->getInfo();
+    //int error = clGetDeviceInfo(, CL_DEVICE_EXTENSIONS, none, None, None);
     while (!pnnHybrid->hasCalculatedVolume()){
         //streamer->update();
         pnnHybrid->update();
@@ -95,19 +99,10 @@ int main() {
     
     // Create directory if does not exist
     std::string _filePath = std::string(FAST_TEST_DATA_DIR) + "/output/" + nameformat + "/";
-    /*
-    const char* path = _filePath.c_str();
-    boost::filesystem::path dir(path);
-    if (boost::filesystem::create_directory(dir))
-    {
-        std::cerr << "Directory Created: " << _filePath << std::endl;
-    }
-    */
-
 
     //Exporter mhd
     MetaImageExporter::pointer exporter = MetaImageExporter::New();
-    std::string output_filename = _filePath + "VOLUME_" + streamScale + "voxelScale_start" + streamStart + "@step" + streamStep + ".mhd";
+    std::string output_filename = _filePath + "VOLUME_" + "volumeSpacing#" + volumeSpacing + "_start#" + streamStart + "_step#" + streamStep + ".mhd";
     //std::string output_filename = std::string(FAST_TEST_DATA_DIR) + "/output/" + "VolumeOutput.mhd";
     exporter->setFilename(output_filename);
     //exporter->setFilename("Output/US_01_20130529T084519_ScanConverted_volume_test.mhd");
@@ -122,5 +117,5 @@ int main() {
         float w = p*1.2;
     }
     exporter->setInputData(resultVolume);
-    //exporter->update();
+    exporter->update();
 }

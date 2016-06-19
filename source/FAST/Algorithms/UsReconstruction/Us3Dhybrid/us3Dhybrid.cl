@@ -250,11 +250,26 @@ bool isWithinFrame(float3 intersectionPointLocal, int2 frameSize){//, float buff
     return inside;
 }
 
-float getPixelValue(Vector3f point){
+float getFrameValue(image2d_t frame, int3 pos, int dataType){
+    int2 realPos = pos.xy;
+    float p;
+    if (dataType == CLK_FLOAT) {
+        p = read_imagef(frame, sampler, realPos).x;
+    }
+    else if (dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+        p = read_imageui(frame, sampler, realPos).x;
+    }
+    else {
+        p = read_imagei(frame, sampler, realPos).x;
+    }
+    return p;
+}
+
+float getPixelValue(image2d_t frame, float3 point, int dataType){
     //Gets frameAccess from Us3Dhybrid class
-    float x = point(0);
-    float y = point(1);
-    int z = round(point(2));
+    float x = point.x;// (0);
+    float y = point.y;// (1);
+    int z = round(point.z);// (2));
     int xCeil = ceil(x);
     int yCeil = ceil(y);
     if (xCeil < 0 || yCeil < 0){
@@ -263,15 +278,18 @@ float getPixelValue(Vector3f point){
     }
     int xFloor = floor(x);
     int yFloor = floor(y);
+    //pos.xyz = ( x, y, z );
     if (xFloor < 0){
-        float pMaxMax = frameAccess->getScalar(Vector3i(xCeil, yCeil, z));
+        float pMaxMax = getFrameValue(frame, (int3)(xCeil, yCeil, z), dataType);
+        //float pMaxMax = frameAccess->getScalar(Vector3i(xCeil, yCeil, z));
         if (yFloor < 0){
             //Case 1
             return pMaxMax;
         }
         else {
             //Case 3
-            float pMaxMin = frameAccess->getScalar(Vector3i(xCeil, yFloor, z));
+            float pMaxMin = getFrameValue(frame, (int3)(xCeil, yFloor, z), dataType);
+            //float pMaxMin = frameAccess->getScalar(Vector3i(xCeil, yFloor, z));
             float v = y - yFloor;
             float pRight = pMaxMin*(1 - v) + pMaxMax*v;
             return pRight;
@@ -280,42 +298,103 @@ float getPixelValue(Vector3f point){
     else if (yFloor < 0){
         //Case 2
         float u = x - xFloor;
-        float pMinMax = frameAccess->getScalar(Vector3i(xFloor, yCeil, z));
-        float pMaxMax = frameAccess->getScalar(Vector3i(xCeil, yCeil, z));
+        float pMinMax = getFrameValue(frame, (int3)(xFloor, yCeil, z), dataType);
+        float pMaxMax = getFrameValue(frame, (int3)(xCeil, yCeil, z), dataType);
+        //float pMinMax = frameAccess->getScalar(Vector3i(xFloor, yCeil, z));
+        //float pMaxMax = frameAccess->getScalar(Vector3i(xCeil, yCeil, z));
         float pBot = pMinMax*(1 - u) + pMaxMax*u;
         return pBot;
     }
     else {
-        float pMinMin = frameAccess->getScalar(Vector3i(xFloor, yFloor, z)); //ev 0 for point(2) or round?
-        float pMinMax = frameAccess->getScalar(Vector3i(xFloor, yCeil, z));
-        float pMaxMin = frameAccess->getScalar(Vector3i(xCeil, yFloor, z));
-        float pMaxMax = frameAccess->getScalar(Vector3i(xCeil, yCeil, z));
+        float pMinMin = getFrameValue(frame, (int3)( xFloor, yFloor, z ), dataType);
+        float pMinMax = getFrameValue(frame, (int3)( xFloor, yCeil, z ), dataType);
+        float pMaxMin = getFrameValue(frame, (int3)( xCeil, yFloor, z ), dataType);
+        float pMaxMax = getFrameValue(frame, (int3)( xCeil, yCeil, z ), dataType);
+        //float pMinMin = frameAccess->getScalar(Vector3i(xFloor, yFloor, z)); //ev 0 for point(2) or round?
+        //float pMinMax = frameAccess->getScalar(Vector3i(xFloor, yCeil, z));
+        //float pMaxMin = frameAccess->getScalar(Vector3i(xCeil, yFloor, z));
+        //float pMaxMax = frameAccess->getScalar(Vector3i(xCeil, yCeil, z));
+        
         //Calculate horizontal interpolation
-        float u = point(0) - floor(point(0));
+        float u = point.x - floor(point.x);
         float pTop = pMinMin*(1 - u) + pMaxMin*u;
         float pBot = pMinMax*(1 - u) + pMaxMax*u;
         //Calculate final vertical interpolation
-        float v = point(1) - floor(point(1));
+        float v = point.y - floor(point.y);
         float pValue = pTop*(1 - v) + pBot*v;//pBot*(1 - v) + pTop*v;
         return pValue;
     }
 }
 
-void accumulateValuesInVolume(Vector3i volumePoint, float p, float w){
+float get3DvolumeValue(image3d_t volume, int3 pos, int component, int outputDataType){
+    float p = 0.0f;
+    int4 realPos = (int4)( pos.x, pos.y, pos.z, 0 );
+    //OR TODO access both as int2 and return this // more efficient?
+    float4 res;
+    if (outputDataType == CLK_FLOAT) {
+        res = read_imagef(volume, sampler, realPos);
+        //if (component == 0) p = read_imagef(volume, sampler, realPos).x;
+        //else p = read_imagef(volume, sampler, realPos).y;
+    }
+    /*
+    else if (outputDataType == CLK_UNSIGNED_INT8 || outputDataType == CLK_UNSIGNED_INT16) {
+        if (component == 0) p = read_imageui(volume, sampler, realPos).x;
+        else p = read_imageui(volume, sampler, realPos).y;
+    }
+    else {
+        if (component == 0) p = read_imagei(volume, sampler, realPos).x;
+        else p = read_imagei(volume, sampler, realPos).y;
+    }
+    */
+    return p;
+}
+
+void set3DvolumeValue(image3d_t volume, int3 pos, float value, int component, int outputDataType){
+    //int outputDataType = get_image_channel_data_type(volume);
+    int4 realPos = { pos.x, pos.y, pos.z, component };
+    if (outputDataType == CLK_FLOAT) {
+        write_imagef(volume, realPos, value);// .x;
+        //if (component == 0)
+        //else write_imagef(volume, pos, value).y;
+        //write_imagef(output, pos, finalP);
+    }
+    else if (outputDataType == CLK_UNSIGNED_INT8 || outputDataType == CLK_UNSIGNED_INT16) {
+        write_imageui(volume, realPos, round(value));// .x;
+        //if (component == 0)
+        //else write_imageui(volume, realPos, round(value));// .y;
+        //write_imageui(output, pos, round(finalP));
+    }
+    else {
+        write_imagei(volume, realPos, round(value));// .x;
+        //if (component == 0)
+        //else write_imagei(volume, realPos, round(value));// .y;
+        //write_imagei(output, pos, round(finalP));
+    }
+}
+
+
+void accumulateValuesInVolume(image3d_t volume, int3 volumePoint, float p, float w, int outputDataType){
     //volAccess available from Us3Dhybrid as ImageAccess::pointer
-    float oldP = volAccess->getScalar(volumePoint, 0); //out of bounds????
-    float oldW = volAccess->getScalar(volumePoint, 1);
+    //barrier(CLK_GLOBAL_MEM_FENCE);//TODO add a lock to these????
+    float oldP = 0.0f;// get3DvolumeValue(volume, volumePoint, 0, outputDataType);
+    float oldW = 0.0f;//get3DvolumeValue(volume, volumePoint, 1, outputDataType);
+    //float oldP = volAccess->getScalar(volumePoint, 0); //out of bounds????
+    //float oldW = volAccess->getScalar(volumePoint, 1);
     if (oldP < 0.0f) oldP = 0.0f;
     if (oldW < 0.0f) oldW = 0.0f;
     float newP = oldP + p*w;
     float newW = oldW + w;
-    volAccess->setScalar(volumePoint, newP, 0);
-    volAccess->setScalar(volumePoint, newW, 1);
+    
+    set3DvolumeValue(volume, volumePoint, newP, 0, outputDataType);
+    set3DvolumeValue(volume, volumePoint, newW, 1, outputDataType);
+    /**/
+    //volAccess->setScalar(volumePoint, newP, 0);
+    //volAccess->setScalar(volumePoint, newW, 1);
 }
 
 __kernel void accumulateFrameToVolume(
     __read_only image2d_t frame,
-    __write_only image3d_t volume,
+    __read_write image3d_t volume,
     __private const int domDir,
     __private const float domVal,
     __private const float3 imgNormal,
@@ -344,6 +423,7 @@ __kernel void accumulateFrameToVolume(
     const int a = get_global_id(0) + startOffset.x;
     const int b = get_global_id(1) + startOffset.y;
     int dataType = get_image_channel_data_type(frame);
+    int outputDataType = get_image_channel_data_type(volume);
     //const int4 pos = { get_global_id(0), get_global_id(1), get_global_id(2), 0 };
 
     //Find basePoint in the plane based on the a and b values
@@ -373,10 +453,9 @@ __kernel void accumulateFrameToVolume(
         float3 intersectionPointLocal = getLocalIntersectionOfPlane(intersectionPointWorld, imgInvTrans);
         if (isWithinFrame(intersectionPointLocal, imgSize)){//, 0.5f, 0.5f)){
             
-            float p = getPixelValue(intersectionPointLocal);
+            float p = getPixelValue(frame, intersectionPointLocal, dataType); //TODO FIX
             float w = 1 - (distance / df); //Or gaussian for trail
-            accumulateValuesInVolume(volumePoint, p, w);
-            /**/
+            accumulateValuesInVolume(volume, volumePoint, p, w, outputDataType); //TODO FIX
         }
         
     }

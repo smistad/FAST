@@ -48,7 +48,7 @@ Us3Dhybrid::Us3Dhybrid(){
 
     //volume;
     dv = 1.0;
-    Rmax = 3.0; //2?
+    Rmax = 5.0; //2?
     mScaleToMax = 100.0f;
     volumeCalculated = false;
     volumeInitialized = false;
@@ -509,12 +509,19 @@ void Us3Dhybrid::recompileAlgorithmOpenCLCode(){
 
 void Us3Dhybrid::executeAlgorithm(){
     ExecutionDevice::pointer device = getMainDevice();
-    if (device->isHost()) {
+    if (true){//device->isHost()) {
         std::cout << "Executing on host" << std::endl;
         executeAlgorithmOnHost(); // Run on CPU instead
         return;
     }
     OpenCLDevice::pointer clDevice = device;
+    /*
+    cl::Context clContext = clDevice->getContext();
+    cl::Platform clPlatform = clDevice->getPlatform();
+    cl_int err;
+    clPlatform.getInfo(&err);
+    //clDevice->isImageFormatSupported(??)
+    */
     // TODO Fix a kernel and so on
     setOutputType(AccumulationVolume->getDataType());
     recompileAlgorithmOpenCLCode();
@@ -708,7 +715,7 @@ void Us3Dhybrid::generateOutputVolume(){
     std::cout << "Step 3" << std::endl;
     //outputVolume->setSpacing(Vector3f(1.0f, 1.0f, 1.0f));
     Vector3f frameSpacing = firstFrame->getSpacing();
-    Vector3f outputSpacing = Vector3f(0.1f, 0.1f, 0.1f);
+    Vector3f outputSpacing = Vector3f(dv, dv, dv);// 0.1f, 0.1f, 0.1f);
     outputVolume->setSpacing(outputSpacing);
 
     /*
@@ -914,11 +921,11 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         }
     }
     Vector3f spacing = rootFrame->getSpacing(); 
-    spacing(2) = 0.1f; //set spacing(2) = 0.1 eller noe? er default 1.0
+    spacing(2) = 0.3f; //set spacing(2) = 0.1 eller noe? er default 1.0
     float wantedSpacing = dv;
     Vector3f scaling = Vector3f(0.f, 0.f, 0.f);
     for (int i = 0; i < 3; i++){
-        scaling(i) = wantedSpacing / spacing(i);
+        scaling(i) = 10* spacing(i) / wantedSpacing;
     }
     /*
     Vector3f wantedSize = Vector3f(200.f, 200.f, 200.f); //Can be smaller than 200.f or at least just scale 1 up to 200.f
@@ -1043,42 +1050,6 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
     //TODO
 }
 
-/*
-void Us3Dhybrid::execute(){
-    std::cout << "Iteration #:" << iterartorCounter++ << std::endl;
-    DynamicData::pointer dynamicData = getInputData(0);
-    while (!dynamicData->hasReachedEnd()) {
-        //Image::pointer frame = dynamicData->getCurrentFrame();
-        //Image::pointer frame = dynamicData->getNextFrame(this);
-        Image::pointer frame = getStaticInputData<Image>(0);
-        frameList.push_back(frame);
-        std::cout << "Iteration #:" << iterartorCounter++ << std::endl;
-        if (!firstFrameSet){
-            firstFrame = frame;
-            firstFrameSet = true;
-        }
-    }
-
-    if (!volumeCalculated){
-        if (!volumeInitialized){
-            std::cout << "Nr of frames in frameList:" << frameList.size() << std::endl;
-            std::cout << "INITIALIZING volume" << std::endl;
-            //Init cube with all corners
-            initVolume(firstFrame);
-            volumeInitialized = true;
-            //Definer dv (oppløsning)
-            dv = 1; //ev egen function to define DV
-            //outputImg = firstFrame;
-        }
-        //if use GPU else :
-        std::cout << "Executing on host" << std::endl;
-        executeAlgorithmOnHost();
-        std::cout << "Finished!!!" << std::endl;
-    }
-    setStaticOutputData<Image>(0, outputVolume);
-}*/
-/* OLD EXECUTE */
-
 void Us3Dhybrid::execute(){
     if (!reachedEndOfStream){
         std::cout << "Iteration #:" << iterartorCounter++ << std::endl;
@@ -1109,7 +1080,7 @@ void Us3Dhybrid::execute(){
                 //zeroInitVolume();
                 volumeInitialized = true;
                 //Definer dv (oppløsning)
-                dv = 1; //ev egen function to define DV
+                //dv = 1; //ev egen function to define DV
                 //outputImg = firstFrame;
             }
             executeAlgorithm();
