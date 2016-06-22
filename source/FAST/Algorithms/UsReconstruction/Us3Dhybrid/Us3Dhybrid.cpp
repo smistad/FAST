@@ -1277,15 +1277,15 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         {
             BoundingBox boxUntransformed = rootFrame->getBoundingBox();
             MatrixXf cTrans = box2.get2DCorners();
-            MatrixXf cUtrans = box2.get2DCorners();
+            MatrixXf cUtrans = boxUntransformed.get2DCorners();
             Vector3f tZeroCorner = cTrans.row(0);
             Vector3f tEndCorner = cTrans.row(2);
             Vector3f tDist = tEndCorner - tZeroCorner;
             Vector3f uZeroCorner = cUtrans.row(0);
             Vector3f uEndCorner = cUtrans.row(2);
             Vector3f uDist = uEndCorner - uZeroCorner;
-            float scaleX = tDist.x() / uDist.x();
-            float scaleY = tDist.y() / uDist.y();
+            float scaleX = uDist.x() / tDist.x();
+            float scaleY = uDist.y() / tDist.y();
             //Ignoring Z
             Vector3f scaling = Vector3f(scaleX, scaleY, 1);
             AffineTransformation::pointer scaleTransform = getScalingFromVector(scaling);
@@ -1297,7 +1297,7 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
             //DONE scaling
         }
         
-        BoundingBox box2 = rootFrame->getTransformedBoundingBox();
+        box2 = rootFrame->getTransformedBoundingBox();
         Vector3f corner2 = box2.getCorners().row(0);
         minCoords(0) = corner2(0); //or 0
         minCoords(1) = corner2(1);//or 0
@@ -1350,7 +1350,7 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         float wantedSpacing = mVoxelSpacing; //dv
         scaling = Vector3f(0.f, 0.f, 0.f);
         for (int i = 0; i < 3; i++){
-            scaling(i) = globalScalingValue * spacing(i) / wantedSpacing;
+            scaling(i) = (spacing(i) / wantedSpacing) * globalScalingValue;
         }
         /*
         Vector3f wantedSize = Vector3f(200.f, 200.f, 200.f); //Can be smaller than 200.f or at least just scale 1 up to 200.f
@@ -1454,35 +1454,44 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         std::cout << "Final volumeSize: " << volumeSize << std::endl;
     }
 
+    // MAKE VOLUME
     DataType type = DataType::TYPE_FLOAT; //Endre til INT på sikt?
-    int components = 2; // pixelvalues & weights
+    int nrOfComponents = 2; // pixelvalues & weights
     AccumulationVolume = Image::New();
-    AccumulationVolume->create(volumeSize(0), volumeSize(1), volumeSize(2), type, components);
-    /*
-    //TODOOOO
-    //T * inputData = (T*)inputAccess->get();
-    //T * outputData = (T*)outputAccess->get();
+    AccumulationVolume->create(volumeSize(0), volumeSize(1), volumeSize(2), type, nrOfComponents);
 
-    float initVal = 128.0; //TODO 0.0;
-    //Init volume to zero values and two components
-    std::cout << "Beginning volume zero initialization("<<volumeSize(0)<<").";// << std::endl;
-    volAccess = AccumulationVolume->getImageAccess(accessType::ACCESS_READ_WRITE); //global volAccess ImageAccess::pointer
-    for (int x = 0; x < volumeSize(0); x++){
-        for (int y = 0; y < volumeSize(1); y++){
-            for (int z = 0; z < volumeSize(2); z++){
-                Vector3i location = Vector3i(x, y, z);
-                volAccess->setScalar(location, initVal, 0); //Channel 1 - Value
-                volAccess->setScalar(location, initVal, 1); //Channel 2 - Weight
+    // INITIALIZE VOLUME
+    float initVal = 0.0; 
+    {
+        //TODOOOO
+        //Init volume to zero values and two components
+        std::cout << "Beginning volume zero initialization("<<volumeSize(0)<<").";// << std::endl;
+        volAccess = AccumulationVolume->getImageAccess(accessType::ACCESS_READ_WRITE); //global volAccess ImageAccess::pointer
+        //T * inputData = (T*)inputAccess->get();
+        //T * outputData = (T*)outputAccess->get();
+        float * outputData = (float*)volAccess->get();
+        int width = volumeSize.x();
+        int height = volumeSize.y();
+        int depth = volumeSize.z();
+        for (int x = 0; x < width; x++){
+            for (int y = 0; y < height; y++){
+                for (int z = 0; z < depth; z++){
+                    Vector3i location = Vector3i(x, y, z);
+                    int loc = x*nrOfComponents + y*nrOfComponents*width + z*nrOfComponents*width*height;
+                    outputData[loc] = initVal;
+                    outputData[loc + 1] = initVal;
+                    //volAccess->setScalar(location, initVal, 0); //Channel 1 - Value
+                    //volAccess->setScalar(location, initVal, 1); //Channel 2 - Weight
+                }
             }
+            std::cout << ".";
         }
-        std::cout << ".";
+        std::cout << "FINISHED!" << std::endl;
+        volAccess->release();
     }
-    std::cout << "FINISHED!" << std::endl;
-    volAccess->release();
-    */
-
     //Init dv (based on input frames/userdefined settings?)
     //TODO
+
 }
 
 void Us3Dhybrid::execute(){

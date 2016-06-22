@@ -33,14 +33,14 @@ int main() {
     std::string folder = "/rekonstruksjons_data/US_01_20130529T084519/";
     std::string nameformat = "US_01_20130529T084519_ScanConverted_#.mhd";
     std::string input_filename = std::string(FAST_TEST_DATA_DIR) + folder + nameformat;
-    int startNumber = 500;//400;//700; //200; //700; //735;
-    int stepSize = 1; // 5; //3
+    int startNumber = 0; //400;//700; //200; //700; //735;
+    int stepSize = 5; // 5; //3
     int scaleToMaxInt = 400; // 200; //400;
     float scaleToMax = float(scaleToMaxInt);
     float voxelSpacing = 0.1f; // 0.03 / 0.01 //dv
     float globalScaling = 5.0f; //7/10 osv
-    float maxRvalue = 0.5f; // 1.0f; //2.0f;// voxelSpacing * 2 * globalScaling; //*(200/globalScaling) // *globalScaling * 3;
-    float initZSpacing = 0.1f; // 0.05f; // 0.1f / 0.02f
+    float maxRvalue = 2.0f; //0.5f// 1.0f; //2.0f;// voxelSpacing * 2 * globalScaling; //*(200/globalScaling) // *globalScaling * 3;
+    float initZSpacing = 0.5f; // 0.1f; // 0.05f; // 0.1f / 0.02f
     
     bool runVNNonly = true;
     bool runCLHybrid = false;
