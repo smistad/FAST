@@ -25,13 +25,14 @@ int main() {
     std::string folder = "/rekonstruksjons_data/US_01_20130529T084519/";
     std::string nameformat = "US_01_20130529T084519_ScanConverted_#.mhd";
     std::string input_filename = std::string(FAST_TEST_DATA_DIR) + folder + nameformat;
-    int startNumber = 730;//700; //200; //700; //735;
+    int startNumber = 400;//700; //200; //700; //735;
     int stepSize = 1; // 5; //3
     int scaleToMaxInt = 400; // 200; //400;
     float scaleToMax = float(scaleToMaxInt);
-    float voxelSpacing = 0.3; // 0.03 / 0.01 //dv
-    float maxRvalue = voxelSpacing * 10;
-    
+    float voxelSpacing = 0.1f; // 0.03 / 0.01 //dv
+    float globalScaling = 5.0f; //7/10 osv
+    float maxRvalue = 2.0f; // voxelSpacing * 2 * globalScaling; //*(200/globalScaling) // *globalScaling * 3;
+    bool runPNNonly = false;
 
     streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     //streamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
@@ -45,13 +46,20 @@ int main() {
     std::string streamStep = std::to_string(stepSize);
     std::string streamScale = std::to_string(scaleToMaxInt);
     std::string volumeSpacing = std::to_string(voxelSpacing);
-
+    std::string volumeRmax = std::to_string(maxRvalue);
+    std::string volumeGlobalScaling = std::to_string(int(globalScaling));
+    std::string runningPNN = "";
+    if (runPNNonly){
+        runningPNN += "PNN_";//std::to_string(runPNNonly);
+    }
     // Reconstruction PNN
     Us3Dhybrid::pointer pnnHybrid = Us3Dhybrid::New();
     pnnHybrid->setInputConnection(streamer->getOutputPort());
     pnnHybrid->setScaleToMax(scaleToMax);
     pnnHybrid->setVoxelSpacing(voxelSpacing);
     pnnHybrid->setRmax(maxRvalue);
+    pnnHybrid->setGlobalScaling(globalScaling);
+    pnnHybrid->setPNNrunMode(runPNNonly); //Run as PNN
 
     //OpenCLDevice::pointer clDevice = getMainDevice();
     //clDevice->getDevice()->getInfo();
@@ -60,6 +68,9 @@ int main() {
         //streamer->update();
         pnnHybrid->update();
     }
+
+
+
 
     // Renderer volume
     /*
@@ -102,7 +113,8 @@ int main() {
 
     //Exporter mhd
     MetaImageExporter::pointer exporter = MetaImageExporter::New();
-    std::string output_filename = _filePath + "VOLUME_" + "volumeSpacing#" + volumeSpacing + "_start#" + streamStart + "_step#" + streamStep + ".mhd";
+    std::string output_filename = _filePath + "VOLUME_VNN_" + runningPNN + "volSpacing#" + volumeSpacing + "_rMax#" + volumeRmax + "_start#" + streamStart + "_step#" + streamStep + "_gScale#" + volumeGlobalScaling + ".mhd";
+    std::cout << "Output filename: " << output_filename << std::endl;
     //std::string output_filename = std::string(FAST_TEST_DATA_DIR) + "/output/" + "VolumeOutput.mhd";
     exporter->setFilename(output_filename);
     //exporter->setFilename("Output/US_01_20130529T084519_ScanConverted_volume_test.mhd");

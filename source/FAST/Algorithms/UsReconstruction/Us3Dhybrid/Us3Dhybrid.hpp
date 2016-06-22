@@ -15,6 +15,8 @@ namespace fast {
         void setScaleToMax(float scaleToMax);
         void setVoxelSpacing(float voxelSpacing);
         void setRmax(float maxRvalue);
+        void setGlobalScaling(float globalScaling);
+        void setPNNrunMode(bool pnnRunMode);
         //TODO set functions in here to be testable
         ~Us3Dhybrid();
     private:
@@ -25,6 +27,8 @@ namespace fast {
         // Core functions
         void executeAlgorithm();
         void executeAlgorithmOnHost();
+        void executeFramePNN(Image::pointer frame);
+        void executeVNN();
         void initVolume(Image::pointer rootFrame);
         void generateOutputVolume();
         void generateOutputVolume(ExecutionDevice::pointer device);
@@ -32,6 +36,8 @@ namespace fast {
         // Core OpenCL functions
         void recompileAlgorithmOpenCLCode();
         void recompileNormalizeOpenCLCode();
+
+        void executeOpenCLTest();
 
         // Helper functions in class
         void accumulateValuesInVolume(Vector3i volumePoint, float p, float w);
@@ -71,8 +77,12 @@ namespace fast {
 
         // Setting variables
         float dv; //voxel spacing
+        float mVoxelSpacing;
         float Rmax;
         float mScaleToMax;
+        float globalScalingValue;
+        bool runAsPNNonly;
+        float zDirInitSpacing;
 
         // Images and volumes
         Image::pointer firstFrame;
@@ -99,6 +109,7 @@ namespace fast {
         float mDvCompiledFor;
         float mRmaxCompiledFor;
         Vector3i mVolumeSizeCompiledFor;
+        cl::Buffer mCLVolume;
     };
 
 } // end namespace fast

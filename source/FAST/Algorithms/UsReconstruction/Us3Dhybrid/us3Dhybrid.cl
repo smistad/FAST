@@ -325,7 +325,7 @@ float getPixelValue(image2d_t frame, float3 point, int dataType){
         return pValue;
     }
 }
-
+/*
 float get3DvolumeValue(image3d_t volume, int3 pos, int component, int outputDataType){
     float p = 0.0f;
     int4 realPos = (int4)( pos.x, pos.y, pos.z, 0 );
@@ -336,7 +336,7 @@ float get3DvolumeValue(image3d_t volume, int3 pos, int component, int outputData
         //if (component == 0) p = read_imagef(volume, sampler, realPos).x;
         //else p = read_imagef(volume, sampler, realPos).y;
     }
-    /*
+    *
     else if (outputDataType == CLK_UNSIGNED_INT8 || outputDataType == CLK_UNSIGNED_INT16) {
         if (component == 0) p = read_imageui(volume, sampler, realPos).x;
         else p = read_imageui(volume, sampler, realPos).y;
@@ -345,7 +345,7 @@ float get3DvolumeValue(image3d_t volume, int3 pos, int component, int outputData
         if (component == 0) p = read_imagei(volume, sampler, realPos).x;
         else p = read_imagei(volume, sampler, realPos).y;
     }
-    */
+    *
     return p;
 }
 
@@ -371,30 +371,66 @@ void set3DvolumeValue(image3d_t volume, int3 pos, float value, int component, in
         //write_imagei(output, pos, round(finalP));
     }
 }
+*/ 
 
+float get3DvolumeVectorValue(__global float * volume, int3 pos, int component){
+    //assumes 2 components
+    float p = 0.0f;
+    int loc = component + pos.x*VOL_SIZE_X * 2 + pos.y*VOL_SIZE_X*VOL_SIZE_Y * 2 + pos.z*VOL_SIZE_X*VOL_SIZE_Y*VOL_SIZE_Z * 2;
+    p = volume[loc];
+    return p;
+}
 
-void accumulateValuesInVolume(image3d_t volume, int3 volumePoint, float p, float w, int outputDataType){
+void set3DvolumeVectorValue(__global float * volume, int3 pos, float value, int component){
+    int loc = component + pos.x*VOL_SIZE_X * 2 + pos.y*VOL_SIZE_X*VOL_SIZE_Y * 2 + pos.z*VOL_SIZE_X*VOL_SIZE_Y*VOL_SIZE_Z * 2;
+    volume[loc] = value;
+}
+
+void GetSemaphor(__global int * semaphor) {
+    int occupied = atom_xchg(semaphor, 1);
+    while (occupied > 0)
+    {
+        occupied = atom_xchg(semaphor, 1);
+    }
+}
+
+void ReleaseSemaphor(__global int * semaphor)
+{
+    int prevVal = atom_xchg(semaphor, 0);
+}
+
+void accumulateValuesInVolume(__global float * volume, int3 volumePoint, float p, float w, int outputDataType, __global int * semaphor){
     //volAccess available from Us3Dhybrid as ImageAccess::pointer
     //barrier(CLK_GLOBAL_MEM_FENCE);//TODO add a lock to these????
-    float oldP = 0.0f;// get3DvolumeValue(volume, volumePoint, 0, outputDataType);
-    float oldW = 0.0f;//get3DvolumeValue(volume, volumePoint, 1, outputDataType);
-    //float oldP = volAccess->getScalar(volumePoint, 0); //out of bounds????
-    //float oldW = volAccess->getScalar(volumePoint, 1);
-    if (oldP < 0.0f) oldP = 0.0f;
-    if (oldW < 0.0f) oldW = 0.0f;
-    float newP = oldP + p*w;
-    float newW = oldW + w;
-    
-    set3DvolumeValue(volume, volumePoint, newP, 0, outputDataType);
-    set3DvolumeValue(volume, volumePoint, newW, 1, outputDataType);
-    /**/
-    //volAccess->setScalar(volumePoint, newP, 0);
-    //volAccess->setScalar(volumePoint, newW, 1);
+    int loc = volumePoint.x + volumePoint.y*VOL_SIZE_X + volumePoint.z*VOL_SIZE_X*VOL_SIZE_Y;
+    GetSemaphor(&semaphor[loc]);
+    {
+        //component + pos.x*VOL_SIZE_X * 2 + pos.y*VOL_SIZE_X*VOL_SIZE_Y * 2 + pos.z*VOL_SIZE_X*VOL_SIZE_Y*VOL_SIZE_Z * 2
+        float oldP = volume[loc * 2];//get3DvolumeVectorValue(volume, volumePoint, 0);
+        //0.0f;// get3DvolumeValue(volume, volumePoint, 0, outputDataType);
+        float oldW = volume[loc * 2 + 1];//get3DvolumeVectorValue(volume, volumePoint, 1);
+        //0.0f;//get3DvolumeValue(volume, volumePoint, 1, outputDataType);
+        //float oldP = volAccess->getScalar(volumePoint, 0); //out of bounds????
+        //float oldW = volAccess->getScalar(volumePoint, 1);
+        if (oldP < 0.0f) oldP = 0.0f;
+        if (oldW < 0.0f) oldW = 0.0f;
+        float newP = oldP + p*w;
+        float newW = oldW + w;
+
+        volume[loc * 2] = newP;
+        volume[loc * 2 + 1] = newW;
+        //set3DvolumeVectorValue(volume, volumePoint, newP, 0);// , outputDataType);
+        //set3DvolumeVectorValue(volume, volumePoint, newW, 1);// , outputDataType);
+        /**/
+        //volAccess->setScalar(volumePoint, newP, 0);
+        //volAccess->setScalar(volumePoint, newW, 1);
+    }
+    ReleaseSemaphor(&semaphor[loc]);
 }
 
 __kernel void accumulateFrameToVolume(
     __read_only image2d_t frame,
-    __read_write image3d_t volume,
+    __global float* volume,
     __private const int domDir,
     __private const float domVal,
     __private const float3 imgNormal,
@@ -406,9 +442,11 @@ __kernel void accumulateFrameToVolume(
     __private const float3 nextNormal,
     __private const float3 nextRoot,
     __private const float16 imgInvTrans,
-    __private const int2 startOffset
+    __private const int2 startOffset,
+    __private const int outputDataType,
+    __global int* semaphor
     ){
-
+    //__read_write image3d_t volume, => RESERVED for OpenCL2+
     //__const float dv, => DV
     //__const float Rmax, => R_MAX
     //__const int3 volSize, => VOL_SIZE_X/Y/Z
@@ -420,10 +458,10 @@ __kernel void accumulateFrameToVolume(
         m30, m31, m32, m33, 
     };
     */
-    const int a = get_global_id(0) + startOffset.x;
-    const int b = get_global_id(1) + startOffset.y;
+    const int a = get_global_id(0);// +startOffset.x;
+    const int b = get_global_id(1);// +startOffset.y;
     int dataType = get_image_channel_data_type(frame);
-    int outputDataType = get_image_channel_data_type(volume);
+    //int outputDataType = get_image_channel_data_type(volume);
     //const int4 pos = { get_global_id(0), get_global_id(1), get_global_id(2), 0 };
 
     //Find basePoint in the plane based on the a and b values
@@ -455,7 +493,7 @@ __kernel void accumulateFrameToVolume(
             
             float p = getPixelValue(frame, intersectionPointLocal, dataType); //TODO FIX
             float w = 1 - (distance / df); //Or gaussian for trail
-            accumulateValuesInVolume(volume, volumePoint, p, w, outputDataType); //TODO FIX
+            accumulateValuesInVolume(volume, volumePoint, p, w, outputDataType, semaphor); //TODO FIX
         }
         
     }
