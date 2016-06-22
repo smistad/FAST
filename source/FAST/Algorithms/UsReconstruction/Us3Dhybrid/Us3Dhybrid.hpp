@@ -16,7 +16,10 @@ namespace fast {
         void setVoxelSpacing(float voxelSpacing);
         void setRmax(float maxRvalue);
         void setGlobalScaling(float globalScaling);
+        void setZDirInitSpacing(float zInitSpacing);
         void setPNNrunMode(bool pnnRunMode);
+        void setVNNrunMode(bool vnnRunMode);
+        void setCLrun(bool clRunMode);
         //TODO set functions in here to be testable
         ~Us3Dhybrid();
     private:
@@ -82,6 +85,8 @@ namespace fast {
         float mScaleToMax;
         float globalScalingValue;
         bool runAsPNNonly;
+        bool runAsVNNonly;
+        bool runCLhybrid;
         float zDirInitSpacing;
 
         // Images and volumes

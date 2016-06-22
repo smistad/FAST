@@ -43,8 +43,29 @@ void Us3Dhybrid::setGlobalScaling(float globalScaling){
     mIsModified = true;
 }
 
+void Us3Dhybrid::setZDirInitSpacing(float zInitSpacing){
+    zDirInitSpacing = zInitSpacing;
+    volumeCalculated = false;
+    volumeInitialized = false;
+    mIsModified = true;
+}
+
 void Us3Dhybrid::setPNNrunMode(bool pnnRunMode){
     runAsPNNonly = pnnRunMode;
+    volumeCalculated = false;
+    volumeInitialized = false;
+    mIsModified = true;
+}
+
+void Us3Dhybrid::setVNNrunMode(bool vnnRunMode){
+    runAsVNNonly = vnnRunMode;
+    volumeCalculated = false;
+    volumeInitialized = false;
+    mIsModified = true;
+}
+
+void Us3Dhybrid::setCLrun(bool clRunMode){
+    runCLhybrid = clRunMode;
     volumeCalculated = false;
     volumeInitialized = false;
     mIsModified = true;
@@ -78,6 +99,8 @@ Us3Dhybrid::Us3Dhybrid(){
     frameList = {};
     iterartorCounter = 0;
     runAsPNNonly = false;
+    runAsVNNonly = false;
+    runCLhybrid = false;
 }
 
 Us3Dhybrid::~Us3Dhybrid(){
@@ -615,7 +638,7 @@ void Us3Dhybrid::executeOpenCLTest(){
 
 void Us3Dhybrid::executeAlgorithm(){
     ExecutionDevice::pointer device = getMainDevice();
-    if (true){//device->isHost()) {
+    if (!runCLhybrid){//device->isHost()) {
         std::cout << "Executing on host" << std::endl;
         executeAlgorithmOnHost(); // Run on CPU instead
         return;
@@ -760,12 +783,10 @@ void Us3Dhybrid::executeAlgorithm(){
 }
 
 
-
-
 void Us3Dhybrid::executeFramePNN(Image::pointer frame){
     uint width = frame->getWidth();
     uint height = frame->getHeight();
-    ImageAccess::pointer frameAccess = frame->getImageAccess(ACCESS_READ);
+    frameAccess = frame->getImageAccess(ACCESS_READ);
     //float* frameValues = (float*) frameAccess->get();
     //uint nrOfComponents = frame->getNrOfComponents();
     for (uint x = 0; x < width; x++){
@@ -875,12 +896,14 @@ void Us3Dhybrid::executeVNN(){
         std::cout << "x: " << x << std::endl;
         for (uint y = 0; y < size.y(); y++){
             std::cout << ".";
+            //Store closest?
             for (uint z = 0; z < size.z(); z++){
                 Vector3i pos = Vector3i(x, y, z);
                 Vector3f posF = Vector3f(x, y, z);
                 // Find closest plane
                 float closestDist = Rmax; // 5.0f;
                 int closestFrameNr = -1;
+                Vector3f closestCrossLocal = Vector3f(0, 0, 0);
                 float p = 0.0f;
                 for (int frameNr = 0; frameNr < frameBaseCornerList.size(); frameNr++){
                     /*std::vector<Vector3f> frameBaseCornerList;
@@ -891,18 +914,19 @@ void Us3Dhybrid::executeVNN(){
                     Vector3f planePoint = frameBaseCornerList[frameNr];
                     Vector3f planeNormal = framePlaneNormalList[frameNr];
                     float dist = getPointDistanceAlongNormal(pos, planePoint, planeNormal);
-                    if (dist < closestDist){
+                    if (fabs(dist) < closestDist){
+                        //std::cout << "Close frame nr: " << frameNr << std::endl;
                         AffineTransformation::pointer frameInvTrans = frameInverseTransformList[frameNr];
                         Image::pointer frame = frameList[frameNr];
                         Vector3f crossWorld = getIntersectionOfPlane(pos, dist, planeNormal);
                         Vector3f crossLocal = getLocalIntersectionOfPlane(crossWorld, frameInvTrans);
                         if (isWithinFrame(crossLocal, frame->getSize(), 0.5f, 0.5f)){
-                            closestDist = dist;
+                            //std::cout << "Frame = Within" << std::endl;
+                            closestDist = fabs(dist);
                             closestFrameNr = frameNr;
+                            closestCrossLocal = crossLocal;
                             //frameAccess = storedAccess[frameNr]; //
-                            frameAccess = frame->getImageAccess(ACCESS_READ);
-                            p = getPixelValue(crossLocal);
-                            frameAccess->release();
+                            
                         }
                         
                     }
@@ -932,6 +956,14 @@ void Us3Dhybrid::executeVNN(){
                 }
                 */
                 
+                if (closestFrameNr != -1){
+                    //std::cout << "Closest frameNr: " << closestFrameNr << " to pos " << pos.x() << "-" << pos.y() << "-" << pos.z() << " dist " << closestDist << std::endl;
+                    Image::pointer frame = frameList[closestFrameNr];
+                    frameAccess = frame->getImageAccess(ACCESS_READ);
+                    p = getPixelValue(closestCrossLocal);
+                    frameAccess->release();
+                }
+
                 // Store value
                 volAccess->setScalar(pos, p, 0);
                 //unsigned int loc = x + y*size.x() + z*size.x()*size.y(); // )* nrOfComponents
@@ -945,6 +977,7 @@ void Us3Dhybrid::executeVNN(){
     volAccess->release();
     std::cout << "\nDONE calculations!" << std::endl;
 }
+
 // CPU algoritme
 //template <class T>
 void Us3Dhybrid::executeAlgorithmOnHost(){
@@ -1192,185 +1225,234 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
     //Find initial transform so that firstFrame corner(0,0) is voxel(0,0,0) in volume 
     //and all pixels in this frame would be in the z=0 plane
      //inverseTransform();
+
+    //INVERSE TRANSFORM
     AffineTransformation::pointer inverseSystemTransform = getInverseTransformation(rootFrame);
-    addTransformationToFrame(rootFrame, inverseSystemTransform);
-    //Transform all frames according to initial transform
-    // & Find minimum
-    Vector3f minCoords;
-    BoundingBox box1 = rootFrame->getTransformedBoundingBox();
-    Vector3f corner = box1.getCorners().row(0);
-    minCoords(0) = corner(0); 
-    minCoords(1) = corner(1);
-    minCoords(2) = corner(2);
-    for (int i = 0; i < frameList.size(); i++){
-        Image::pointer frame = frameList[i];
-        // Start transforming frame
-        if (i != 0)
-            addTransformationToFrame(frame, inverseSystemTransform);
-        //AffineTransformation::pointer oldImgTransform = SceneGraph::getAffineTransformationFromData(frame);
-        //AffineTransformation::pointer newImgTransform = oldImgTransform->multiply(inverseSystemTransform);
-        //frame->getSceneGraphNode()->setTransformation(newImgTransform);
-        // Check corners for minimum
-        BoundingBox box = frame->getTransformedBoundingBox();
-        MatrixXf corners = box.getCorners();
-        for (int j = 0; j < 8; j++){
-            for (int k = 0; k < 3; k++){
-                float pointValue = corners(j, k);
-                if (pointValue < minCoords(k))
-                    minCoords(k) = pointValue;
+    Vector3f minCoords; {
+        addTransformationToFrame(rootFrame, inverseSystemTransform);
+        //Transform all frames according to initial transform
+        // & Find minimum
+
+        BoundingBox box1 = rootFrame->getTransformedBoundingBox();
+        Vector3f corner = box1.getCorners().row(0);
+        minCoords(0) = corner(0);
+        minCoords(1) = corner(1);
+        minCoords(2) = corner(2);
+        for (int i = 0; i < frameList.size(); i++){
+            Image::pointer frame = frameList[i];
+            // Start transforming frame
+            if (i != 0)
+                addTransformationToFrame(frame, inverseSystemTransform);
+            //AffineTransformation::pointer oldImgTransform = SceneGraph::getAffineTransformationFromData(frame);
+            //AffineTransformation::pointer newImgTransform = oldImgTransform->multiply(inverseSystemTransform);
+            //frame->getSceneGraphNode()->setTransformation(newImgTransform);
+            // Check corners for minimum
+            BoundingBox box = frame->getTransformedBoundingBox();
+            MatrixXf corners = box.getCorners();
+            for (int j = 0; j < 8; j++){
+                for (int k = 0; k < 3; k++){
+                    float pointValue = corners(j, k);
+                    if (pointValue < minCoords(k))
+                        minCoords(k) = pointValue;
+                }
             }
         }
     }
+    
   
     //Transform all frames so that minimum corner is (0,0,0) //Just translate right?
     // & Find min/max in each coordinate direction x/y/z
     // & Store min/max/base/normal for each frame
     // BIG TODO FIX THIS PART TODO TODO
+    
+    //MINIMUM TRANSFORM
     AffineTransformation::pointer transformToMinimum = getTranslationFromVector(minCoords); //TODO extract these to methods
-    addTransformationToFrame(rootFrame, transformToMinimum);
-    Vector3f maxCoords;
-    BoundingBox box2 = rootFrame->getTransformedBoundingBox();
-    Vector3f corner2 = box2.getCorners().row(0);
-    minCoords(0) = corner2(0); //or 0
-    minCoords(1) = corner2(1);//or 0
-    minCoords(2) = corner2(2);//or 0
-    maxCoords(0) = corner2(0);
-    maxCoords(1) = corner2(1);
-    maxCoords(2) = corner2(2);
-    for (int i = 0; i < frameList.size(); i++){
-        Image::pointer frame = frameList[i];
-        // Start transforming frame
-        if (i != 0)
-            addTransformationToFrame(frame, transformToMinimum);
-        // Check corners for minimum
-        BoundingBox box = frame->getTransformedBoundingBox();
-        MatrixXf corners = box.get2DCorners();
-        for (int j = 0; j < 4; j++){ //8
-            for (int k = 0; k < 3; k++){
-                float pointValue = corners(j, k);
-                if (pointValue < minCoords(k))
-                    minCoords(k) = pointValue;
-                if (pointValue > maxCoords(k))
-                    maxCoords(k) = pointValue;
+    AffineTransformation::pointer totalTransform;
+    Matrix4f totalMatrix;
+    Vector3f maxCoords; {
+        addTransformationToFrame(rootFrame, transformToMinimum);
+        BoundingBox box2 = rootFrame->getTransformedBoundingBox();
+
+        //Scale to keep pixel/voxel spacing
+        {
+            BoundingBox boxUntransformed = rootFrame->getBoundingBox();
+            MatrixXf cTrans = box2.get2DCorners();
+            MatrixXf cUtrans = box2.get2DCorners();
+            Vector3f tZeroCorner = cTrans.row(0);
+            Vector3f tEndCorner = cTrans.row(2);
+            Vector3f tDist = tEndCorner - tZeroCorner;
+            Vector3f uZeroCorner = cUtrans.row(0);
+            Vector3f uEndCorner = cUtrans.row(2);
+            Vector3f uDist = uEndCorner - uZeroCorner;
+            float scaleX = tDist.x() / uDist.x();
+            float scaleY = tDist.y() / uDist.y();
+            //Ignoring Z
+            Vector3f scaling = Vector3f(scaleX, scaleY, 1);
+            AffineTransformation::pointer scaleTransform = getScalingFromVector(scaling);
+            addTransformationToFrame(rootFrame, scaleTransform);
+            //AffineTransformation::pointer newImgTransform = addTransformation->multiply(oldImgTransform);
+            // ADD scaleTransform to transformToMinimum
+            transformToMinimum = scaleTransform->multiply(transformToMinimum); 
+
+            //DONE scaling
+        }
+        
+        BoundingBox box2 = rootFrame->getTransformedBoundingBox();
+        Vector3f corner2 = box2.getCorners().row(0);
+        minCoords(0) = corner2(0); //or 0
+        minCoords(1) = corner2(1);//or 0
+        minCoords(2) = corner2(2);//or 0
+        maxCoords(0) = corner2(0);
+        maxCoords(1) = corner2(1);
+        maxCoords(2) = corner2(2);
+        for (int i = 0; i < frameList.size(); i++){
+            Image::pointer frame = frameList[i];
+            // Start transforming frame
+            if (i != 0)
+                addTransformationToFrame(frame, transformToMinimum);
+            // Check corners for minimum
+            BoundingBox box = frame->getTransformedBoundingBox();
+            MatrixXf corners = box.get2DCorners();
+            for (int j = 0; j < 4; j++){ //8
+                for (int k = 0; k < 3; k++){
+                    float pointValue = corners(j, k);
+                    if (pointValue < minCoords(k))
+                        minCoords(k) = pointValue;
+                    if (pointValue > maxCoords(k))
+                        maxCoords(k) = pointValue;
+                }
             }
         }
+        //Test total results: inverseSystemTransform & transformToMinimum
+        //AffineTransformation::pointer 
+        totalTransform = transformToMinimum->multiply(inverseSystemTransform);
+        totalMatrix = totalTransform->matrix();
+        Vector4f m0 = totalMatrix.row(0);
+        Vector4f m1 = totalMatrix.row(1);
+        Vector4f m2 = totalMatrix.row(2);
+        Vector4f m3 = totalMatrix.row(3);
     }
-    //Test total results: inverseSystemTransform & transformToMinimum
-    AffineTransformation::pointer totalTransform = transformToMinimum->multiply(inverseSystemTransform);
-    Matrix4f totalMatrix = totalTransform->matrix();
-    Vector4f m0 = totalMatrix.row(0);
-    Vector4f m1 = totalMatrix.row(1);
-    Vector4f m2 = totalMatrix.row(2);
-    Vector4f m3 = totalMatrix.row(3);
-
-    // Find size current Init volume of size max-min in each direction x/y/z
-    Vector3f sizeOne = maxCoords - minCoords;
-    // Find scaling
-    float maxSize = 0.f;
-    for (int i = 0; i < 3; i++){
-        if (sizeOne(i) > maxSize){
-            maxSize = sizeOne(i);
+    
+    // FIND SCALING
+    Vector3f scaling; {
+        // Find size current Init volume of size max-min in each direction x/y/z
+        Vector3f sizeOne = maxCoords - minCoords;
+        // Find scaling
+        float maxSize = 0.f;
+        for (int i = 0; i < 3; i++){
+            if (sizeOne(i) > maxSize){
+                maxSize = sizeOne(i);
+            }
         }
-    }
-    Vector3f spacing = rootFrame->getSpacing(); 
-    if (zDirInitSpacing != 0.0)
-        spacing(2) = zDirInitSpacing; 
-    float wantedSpacing = mVoxelSpacing; //dv
-    Vector3f scaling = Vector3f(0.f, 0.f, 0.f);
-    for (int i = 0; i < 3; i++){
-        scaling(i) = globalScalingValue * spacing(i) / wantedSpacing;
-    }
-    /*
-    Vector3f wantedSize = Vector3f(200.f, 200.f, 200.f); //Can be smaller than 200.f or at least just scale 1 up to 200.f
-    float wantedMax = mScaleToMax; //100.f;
-    float scalingFactor = wantedMax / maxSize;
-    for (int i = 0; i < 3; i++){
+        Vector3f spacing = rootFrame->getSpacing();
+        if (zDirInitSpacing != 0.0)
+            spacing(2) = zDirInitSpacing;
+        float wantedSpacing = mVoxelSpacing; //dv
+        scaling = Vector3f(0.f, 0.f, 0.f);
+        for (int i = 0; i < 3; i++){
+            scaling(i) = globalScalingValue * spacing(i) / wantedSpacing;
+        }
+        /*
+        Vector3f wantedSize = Vector3f(200.f, 200.f, 200.f); //Can be smaller than 200.f or at least just scale 1 up to 200.f
+        float wantedMax = mScaleToMax; //100.f;
+        float scalingFactor = wantedMax / maxSize;
+        for (int i = 0; i < 3; i++){
         //scaling(i) = wantedSize(i) / sizeOne(i);
         scaling(i) = scalingFactor;
+        }
+        */
     }
-    */
-    // Make scaling transform
-    AffineTransformation::pointer scaleTransform = getScalingFromVector(scaling); 
-    Matrix4f scaleMatrix = scaleTransform->matrix();
-    Vector4f s0 = scaleMatrix.row(0);
-    Vector4f s1 = scaleMatrix.row(1);
-    Vector4f s2 = scaleMatrix.row(2);
-    Vector4f s3 = scaleMatrix.row(3);
-    addTransformationToFrame(rootFrame, scaleTransform);
-    //Init
-    BoundingBox box3 = rootFrame->getTransformedBoundingBox();
-    Vector3f corner3 = box3.getCorners().row(0);
-    minCoords(0) = corner3(0); 
-    minCoords(1) = corner3(1);  
-    minCoords(2) = corner3(2);
-    maxCoords(0) = corner3(0);
-    maxCoords(1) = corner3(1);
-    maxCoords(2) = corner3(2);
-    //Define lists to store results for each frame
-    frameMinList = {}; // std::vector global Vector3f
-    frameMaxList = {}; // std::vector global Vector3f
-    frameBaseCornerList = {}; // std::vector global Vector3f
-    framePlaneNormalList = {}; // std::vector global Vector3f
-    frameInverseTransformList = {}; // std::vector global AffineTransformation::pointer
-    framePlaneDValueList = {}; // std::vector global floats
-    for (int i = 0; i < frameList.size(); i++){
-        Image::pointer frame = frameList[i];
-        // Start transforming frame
-        if (i != 0)
-            addTransformationToFrame(frame, scaleTransform);
-        // Check corners min/max of frame
-        // If not square has to use pixel points and AffineTransformation.. And more soffisticated method
-        BoundingBox box = frame->getTransformedBoundingBox();
-        MatrixXf corners = box.getCorners();
-        Vector3f baseCorner = corners.row(0);
-        Vector3f minCoordsFrame = baseCorner;
-        Vector3f maxCoordsFrame = baseCorner;
-        for (int j = 0; j < 8; j++){
-            for (int k = 0; k < 3; k++){
-                float pointValue = corners(j, k);
-                if (pointValue < minCoordsFrame(k))
-                    minCoordsFrame(k) = pointValue;
-                if (pointValue > maxCoordsFrame(k))
-                    maxCoordsFrame(k) = pointValue;
+    
+    // SCALING TRANSFORM
+    AffineTransformation::pointer scaleTransform = getScalingFromVector(scaling);
+    AffineTransformation::pointer finalTransform;
+    Matrix4f finalTransformMatrix;
+    {
+        Matrix4f scaleMatrix = scaleTransform->matrix();
+        Vector4f s0 = scaleMatrix.row(0);
+        Vector4f s1 = scaleMatrix.row(1);
+        Vector4f s2 = scaleMatrix.row(2);
+        Vector4f s3 = scaleMatrix.row(3);
+        addTransformationToFrame(rootFrame, scaleTransform);
+        //Init
+        BoundingBox box3 = rootFrame->getTransformedBoundingBox();
+        Vector3f corner3 = box3.getCorners().row(0);
+        minCoords(0) = corner3(0);
+        minCoords(1) = corner3(1);
+        minCoords(2) = corner3(2);
+        maxCoords(0) = corner3(0);
+        maxCoords(1) = corner3(1);
+        maxCoords(2) = corner3(2);
+        //Define lists to store results for each frame
+        frameMinList = {}; // std::vector global Vector3f
+        frameMaxList = {}; // std::vector global Vector3f
+        frameBaseCornerList = {}; // std::vector global Vector3f
+        framePlaneNormalList = {}; // std::vector global Vector3f
+        frameInverseTransformList = {}; // std::vector global AffineTransformation::pointer
+        framePlaneDValueList = {}; // std::vector global floats
+        for (int i = 0; i < frameList.size(); i++){
+            Image::pointer frame = frameList[i];
+            // Start transforming frame
+            if (i != 0)
+                addTransformationToFrame(frame, scaleTransform);
+            // Check corners min/max of frame
+            // If not square has to use pixel points and AffineTransformation.. And more soffisticated method
+            BoundingBox box = frame->getTransformedBoundingBox();
+            MatrixXf corners = box.getCorners();
+            Vector3f baseCorner = corners.row(0);
+            Vector3f minCoordsFrame = baseCorner;
+            Vector3f maxCoordsFrame = baseCorner;
+            for (int j = 0; j < 8; j++){
+                for (int k = 0; k < 3; k++){
+                    float pointValue = corners(j, k);
+                    if (pointValue < minCoordsFrame(k))
+                        minCoordsFrame(k) = pointValue;
+                    if (pointValue > maxCoordsFrame(k))
+                        maxCoordsFrame(k) = pointValue;
+                }
             }
+            for (int k = 0; k < 3; k++){
+                if (minCoordsFrame(k) < minCoords(k))
+                    minCoords(k) = minCoordsFrame(k);
+                if (maxCoordsFrame(k) > maxCoords(k))
+                    maxCoords(k) = maxCoordsFrame(k);
+            }
+            // Calc plane values to store
+            Vector3f framePlaneNormal = getImagePlaneNormal(frame);
+            float framePlaneDvalue = calculatePlaneDvalue(baseCorner, framePlaneNormal);
+            // Store frame values for later
+            frameMinList.push_back(minCoordsFrame);
+            frameMaxList.push_back(maxCoordsFrame);
+            frameBaseCornerList.push_back(baseCorner);
+            framePlaneNormalList.push_back(framePlaneNormal);
+            frameInverseTransformList.push_back(getInverseTransformation(frame));
+            framePlaneDValueList.push_back(framePlaneDvalue);
         }
-        for (int k = 0; k < 3; k++){
-            if (minCoordsFrame(k) < minCoords(k))
-                minCoords(k) = minCoordsFrame(k);
-            if (maxCoordsFrame(k) > maxCoords(k))
-                maxCoords(k) = maxCoordsFrame(k);
-        }
-        // Calc plane values to store
-        Vector3f framePlaneNormal = getImagePlaneNormal(frame);
-        float framePlaneDvalue = calculatePlaneDvalue(baseCorner, framePlaneNormal);
-        // Store frame values for later
-        frameMinList.push_back(minCoordsFrame);
-        frameMaxList.push_back(maxCoordsFrame);
-        frameBaseCornerList.push_back(baseCorner);
-        framePlaneNormalList.push_back(framePlaneNormal);
-        frameInverseTransformList.push_back(getInverseTransformation(frame));
-        framePlaneDValueList.push_back(framePlaneDvalue);
+
+        //Test total results: inverseSystemTransform & transformToMinimum & scaleTransform
+        //AffineTransformation::pointer totalTransform = transformToMinimum->multiply(inverseSystemTransform);
+        finalTransform = scaleTransform->multiply(totalTransform);// (scaleTransform->multiply(transformToMinimum))->multiply(inverseSystemTransform);// totalTransform);
+        finalTransformMatrix = finalTransform->matrix();
+        Vector4f f0 = finalTransformMatrix.row(0);
+        Vector4f f1 = finalTransformMatrix.row(1);
+        Vector4f f2 = finalTransformMatrix.row(2);
+        Vector4f f3 = finalTransformMatrix.row(3);
     }
-
-    //Test total results: inverseSystemTransform & transformToMinimum & scaleTransform
-    //AffineTransformation::pointer totalTransform = transformToMinimum->multiply(inverseSystemTransform);
-    AffineTransformation::pointer finalTransform = scaleTransform->multiply(totalTransform);// (scaleTransform->multiply(transformToMinimum))->multiply(inverseSystemTransform);// totalTransform);
-    Matrix4f finalTransformMatrix = finalTransform->matrix();
-    Vector4f f0 = finalTransformMatrix.row(0);
-    Vector4f f1 = finalTransformMatrix.row(1);
-    Vector4f f2 = finalTransformMatrix.row(2);
-    Vector4f f3 = finalTransformMatrix.row(3);
-
-    //finalTransformMatrix/finalTransform
-    //totalTransform/totalMatrix
-    Vector4f point0f = totalMatrix * Vector4f(0, 0, 0, 1);
-    Vector4f pointEndf = totalMatrix * Vector4f(280, 400, 0, 1);
-    Vector3f pointZero = totalTransform->multiply(Vector3f(0, 0, 0));
-    Vector3f pointHero = totalTransform->multiply(Vector3f(280, 400, 0));
-    // Init volume of size max - min in each direction x / y / z
-    Vector3f size = maxCoords - minCoords;
-    volumeSize = Vector3i(ceil(size(0)) + 1, ceil(size(1)) + 1, ceil(size(2)) + 1);
-    std::cout << "Final volumeSize: " << volumeSize << std::endl;
+    
+    // FINAL CALCULATIONS & TEST
+    Vector3f size;
+    {
+        //finalTransformMatrix/finalTransform
+        //totalTransform/totalMatrix
+        //Vector4f point0f = totalMatrix * Vector4f(0, 0, 0, 1);
+        //Vector4f pointEndf = totalMatrix * Vector4f(280, 400, 0, 1);
+        Vector3f pointZero = totalTransform->multiply(Vector3f(0, 0, 0));
+        Vector3f pointHero = totalTransform->multiply(Vector3f(280, 400, 0));
+        // Init volume of size max - min in each direction x / y / z
+        size = maxCoords - minCoords;
+        volumeSize = Vector3i(ceil(size(0)) + 1, ceil(size(1)) + 1, ceil(size(2)) + 1);
+        std::cout << "Final volumeSize: " << volumeSize << std::endl;
+    }
 
     DataType type = DataType::TYPE_FLOAT; //Endre til INT på sikt?
     int components = 2; // pixelvalues & weights
@@ -1436,7 +1518,7 @@ void Us3Dhybrid::execute(){
                 //dv = 1; //ev egen function to define DV
                 //outputImg = firstFrame;
             }
-            if (false){
+            if (!runAsVNNonly){
                 executeAlgorithm();
                 generateOutputVolume(); //Alternatively just fetch slices
             }
