@@ -33,14 +33,14 @@ int main() {
     std::string folder = "/rekonstruksjons_data/US_01_20130529T084519/";
     std::string nameformat = "US_01_20130529T084519_ScanConverted_#.mhd";
     std::string input_filename = std::string(FAST_TEST_DATA_DIR) + folder + nameformat;
-    int startNumber = 0; //400;//700; //200; //700; //735;
-    int stepSize = 5; // 5; //3
+    int startNumber = 0; //500; //400;//700; //200; //700; //735;
+    int stepSize = 1; // 5; //3
     int scaleToMaxInt = 400; // 200; //400;
     float scaleToMax = float(scaleToMaxInt);
-    float voxelSpacing = 0.1f; // 0.03 / 0.01 //dv
-    float globalScaling = 5.0f; //7/10 osv
+    float voxelSpacing = 0.2f; // 0.03 / 0.01 //dv
+    float globalScaling = 1.0f;  //5.0f; //7/10 osv
     float maxRvalue = 2.0f; //0.5f// 1.0f; //2.0f;// voxelSpacing * 2 * globalScaling; //*(200/globalScaling) // *globalScaling * 3;
-    float initZSpacing = 0.5f; // 0.1f; // 0.05f; // 0.1f / 0.02f
+    float initZSpacing = 0.2f; // 0.1f; // 0.05f; // 0.1f / 0.02f
     
     bool runVNNonly = true;
     bool runCLHybrid = false;
@@ -92,6 +92,7 @@ int main() {
         pnnHybrid->setVoxelSpacing(voxelSpacing);
         pnnHybrid->setRmax(maxRvalue);
         pnnHybrid->setGlobalScaling(globalScaling);
+        pnnHybrid->setZDirInitSpacing(initZSpacing);
         //Priority VNN > PNN > CL > Normal
         pnnHybrid->setVNNrunMode(runVNNonly); //Run as VNN
         pnnHybrid->setCLrun(runCLHybrid); //Run as CL hybrid
@@ -144,24 +145,27 @@ int main() {
     
 
     //Exporter mhd
-    MetaImageExporter::pointer exporter = MetaImageExporter::New();
-    //std::string output_filename = _filePath + "VOLUME_" + runningStyle + "volSpacing#" + volumeSpacing + "_rMax#" + volumeRmax + "_start#" + streamStart + "_step#" + streamStep + "_gScale#" + volumeGlobalScaling + ".mhd";
+    MetaImageExporter::pointer exporter;
+    {
+        exporter = MetaImageExporter::New();
+        //std::string output_filename = _filePath + "VOLUME_" + runningStyle + "volSpacing#" + volumeSpacing + "_rMax#" + volumeRmax + "_start#" + streamStart + "_step#" + streamStep + "_gScale#" + volumeGlobalScaling + ".mhd";
     
-    exporter->setFilename(output_filename);
-    //exporter->setFilename("Output/US_01_20130529T084519_ScanConverted_volume_test.mhd");
-    //exporter->setInputConnection(pnnHybrid->getOutputPort());
-    //exporter->setInput(pnnHybrid);
-    Image::pointer resultVolume = pnnHybrid->getStaticOutputData<Image>(0);
-    /*
-    ImageAccess::pointer resAccess = resultVolume->getImageAccess(ACCESS_READ);
-    float * floatVolume = (float*)resAccess->get();
-    std::cout << "Size of volume" << resultVolume->getSize() << std::endl;
-    for (int i = 0; i < 100; i++){
-        float p = floatVolume[i];
-        float w = p*1.2;
+        exporter->setFilename(output_filename);
+        //exporter->setFilename("Output/US_01_20130529T084519_ScanConverted_volume_test.mhd");
+        //exporter->setInputConnection(pnnHybrid->getOutputPort());
+        //exporter->setInput(pnnHybrid);
+        Image::pointer resultVolume = pnnHybrid->getStaticOutputData<Image>(0);
+        /*
+        ImageAccess::pointer resAccess = resultVolume->getImageAccess(ACCESS_READ);
+        float * floatVolume = (float*)resAccess->get();
+        std::cout << "Size of volume" << resultVolume->getSize() << std::endl;
+        for (int i = 0; i < 100; i++){
+            float p = floatVolume[i];
+            float w = p*1.2;
+        }
+        */
+        exporter->setInputData(resultVolume);
+        exporter->update();
+        std::cout << "Output filename: " << output_filename << std::endl;
     }
-    */
-    exporter->setInputData(resultVolume);
-    exporter->update();
-    std::cout << "Output filename: " << output_filename << std::endl;
 }

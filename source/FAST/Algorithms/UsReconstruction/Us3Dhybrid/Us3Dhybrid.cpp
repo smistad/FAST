@@ -1338,12 +1338,14 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         // Find size current Init volume of size max-min in each direction x/y/z
         Vector3f sizeOne = maxCoords - minCoords;
         // Find scaling
+        /*
         float maxSize = 0.f;
         for (int i = 0; i < 3; i++){
             if (sizeOne(i) > maxSize){
                 maxSize = sizeOne(i);
             }
         }
+        */
         Vector3f spacing = rootFrame->getSpacing();
         if (zDirInitSpacing != 0.0)
             spacing(2) = zDirInitSpacing;
@@ -1462,14 +1464,14 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
 
     // INITIALIZE VOLUME
     float initVal = 0.0; 
-    {
+    if (!runAsVNNonly){
         //TODOOOO
         //Init volume to zero values and two components
-        std::cout << "Beginning volume zero initialization("<<volumeSize(0)<<").";// << std::endl;
+        std::cout << "Beginning volume zero initialization("<<volumeSize(0)<<"-"<<volumeSize(1)<<"-"<<volumeSize(2)<<")." << std::endl;
         volAccess = AccumulationVolume->getImageAccess(accessType::ACCESS_READ_WRITE); //global volAccess ImageAccess::pointer
         //T * inputData = (T*)inputAccess->get();
         //T * outputData = (T*)outputAccess->get();
-        float * outputData = (float*)volAccess->get();
+        //float * outputData = (float*)volAccess->get();
         int width = volumeSize.x();
         int height = volumeSize.y();
         int depth = volumeSize.z();
@@ -1477,11 +1479,11 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
             for (int y = 0; y < height; y++){
                 for (int z = 0; z < depth; z++){
                     Vector3i location = Vector3i(x, y, z);
-                    int loc = x*nrOfComponents + y*nrOfComponents*width + z*nrOfComponents*width*height;
-                    outputData[loc] = initVal;
-                    outputData[loc + 1] = initVal;
-                    //volAccess->setScalar(location, initVal, 0); //Channel 1 - Value
-                    //volAccess->setScalar(location, initVal, 1); //Channel 2 - Weight
+                    //int loc = x*nrOfComponents + y*nrOfComponents*width + z*nrOfComponents*width*height;
+                    //outputData[loc] = initVal;
+                    //outputData[loc + 1] = initVal;
+                    volAccess->setScalar(location, initVal, 0); //Channel 1 - Value
+                    volAccess->setScalar(location, initVal, 1); //Channel 2 - Weight
                 }
             }
             std::cout << ".";
