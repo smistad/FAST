@@ -2,6 +2,13 @@
 #include "FAST/Exception.hpp"
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Data/Image.hpp"
+
+//For show
+#include "FAST/Visualization/SimpleWindow.hpp"
+#include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
+#include "FAST/Exporters/ImageExporter.hpp"
+#include "FAST/TestDataPath.hpp"
+
 using namespace fast;
 
 void Us3Dhybrid::setOutputType(DataType type){
@@ -21,7 +28,14 @@ void Us3Dhybrid::setScaleToMax(float scaleToMax){
 
 void Us3Dhybrid::setVoxelSpacing(float voxelSpacing){
     mVoxelSpacing = voxelSpacing;
-    dv = 0.1f / (mVoxelSpacing*globalScalingValue);
+    //dv = 0.1f / (mVoxelSpacing*globalScalingValue);
+    volumeCalculated = false;
+    volumeInitialized = false;
+    mIsModified = true;
+}
+
+void Us3Dhybrid::setDV(float setdv){
+    dv = setdv;
     volumeCalculated = false;
     volumeInitialized = false;
     mIsModified = true;
@@ -131,6 +145,8 @@ void Us3Dhybrid::addTransformationToFrame(Image::pointer frame, AffineTransforma
     //Might just be a translation
     AffineTransformation::pointer oldImgTransform = SceneGraph::getAffineTransformationFromData(frame);
     //AffineTransformation::pointer newImgTransform = oldImgTransform->multiply(addTransformation);
+
+    //* for a coeff-wise product use: v1.cwiseProduct(v2)
     AffineTransformation::pointer newImgTransform = addTransformation->multiply(oldImgTransform);
     //ev?
     //AffineTransformation::pointer newImgTransform = oldImgTransform + addTransformation;
@@ -174,7 +190,17 @@ Vector2i Us3Dhybrid::getFrameRangeInVolume(int frameNr, int domDir, int dir){//I
 
 AffineTransformation::pointer Us3Dhybrid::getInverseTransformation(Image::pointer frame){
     AffineTransformation::pointer imageTransformation = SceneGraph::getAffineTransformationFromData(frame);
+    Matrix4f transformMatrix = imageTransformation->matrix();
+    Vector4f t0 = transformMatrix.row(0);
+    Vector4f t1 = transformMatrix.row(1);
+    Vector4f t2 = transformMatrix.row(2);
+    Vector4f t3 = transformMatrix.row(3);
     AffineTransformation::pointer inverseTransformation = imageTransformation->getInverse();
+    Matrix4f inverseTransformMatrix = inverseTransformation->matrix();
+    Vector4f i0 = inverseTransformMatrix.row(0);
+    Vector4f i1 = inverseTransformMatrix.row(1);
+    Vector4f i2 = inverseTransformMatrix.row(2);
+    Vector4f i3 = inverseTransformMatrix.row(3);
     return inverseTransformation;
 }
 
@@ -477,6 +503,201 @@ cl_float16 Us3Dhybrid::transform4x4tofloat16(AffineTransformation::pointer imgTr
 }
 
 // ##### ##### CORE functions ##### ##### //
+void Us3Dhybrid::executeFramePNN(Image::pointer frame){
+    uint width = frame->getWidth();
+    uint height = frame->getHeight();
+    frameAccess = frame->getImageAccess(ACCESS_READ);
+    //float* frameValues = (float*) frameAccess->get();
+    //uint nrOfComponents = frame->getNrOfComponents();
+    for (uint x = 0; x < width; x++){
+        for (uint y = 0; y < height; y++){
+            Vector3f pos = Vector3f(x, y, 0);
+            AffineTransformation::pointer imgTransform = SceneGraph::getAffineTransformationFromData(frame);
+            Vector3f worldPos = imgTransform->multiply(pos);
+            Vector3i worldPosDiscrete = Vector3i(round(worldPos(0)), round(worldPos(1)), round(worldPos(2)));
+            if (volumePointOutsideVolume(worldPosDiscrete, volumeSize)){
+                continue;
+            }
+            float frameP = frameAccess->getScalar(Vector3i(x, y, 0));
+            //int loc = x*width + y*width*height;
+            //Vector3ui sizes = frame->getSize();
+            //uint loc = x*nrOfComponents + y*width*nrOfComponents;
+            //x*nrOfComponents + y*nrOfComponents*width + z*nrOfComponents*width*height
+            // uint address = (position.x() + position.y()*size.x() + position.z()*size.x()*size.y())*image->getNrOfComponents() + channel;
+            //float frameP2 = frameValues[loc];
+            volAccess->setScalar(worldPosDiscrete, frameP, 0);
+            volAccess->setScalar(worldPosDiscrete, 1.0f, 1);
+            /*/ volAccess available from Us3Dhybrid as ImageAccess::pointer
+            float oldP = volAccess->getScalar(volumePoint, 0); //out of bounds????
+            float oldW = volAccess->getScalar(volumePoint, 1);
+            if (oldP < 0.0f) oldP = 0.0f;
+            if (oldW < 0.0f) oldW = 0.0f;
+            float newP = oldP + p*w;
+            float newW = oldW + w;
+            volAccess->setScalar(volumePoint, newP, 0);
+            volAccess->setScalar(volumePoint, newW, 1);
+            */
+        }
+    }
+    frameAccess->release();
+}
+
+void Us3Dhybrid::executeVNN(){
+    std::cout << "Final VNN reconstruction calculations!" << std::endl;
+    // Finally, calculate reconstructed volume
+    Vector3ui size = Vector3ui(volumeSize.x(), volumeSize.y(), volumeSize.z());
+    setOutputType(firstFrame->getDataType());
+    std::cout << "Step 1" << std::endl;
+    outputVolume = getStaticOutputData<Image>(0);
+    std::cout << "Step 2" << std::endl;
+    outputVolume->create(size, mOutputType, 1); //1-channeled outputVolume
+    std::cout << "Step 3" << std::endl;
+    volAccess = outputVolume->getImageAccess(accessType::ACCESS_READ_WRITE);
+    //float * outputData = (float*)volAccess->get();
+    /*
+    std::vector<ImageAccess::pointer> storedAccess = {};
+    for (int frameNr = 0; frameNr < frameBaseCornerList.size(); frameNr++){
+    Image::pointer frame = frameList[frameNr];
+    ImageAccess::pointer frameAcc = frame->getImageAccess(ACCESS_READ);
+    storedAccess.push_back(frameAcc);
+    }
+    */
+    std::cout << "Step 4" << std::endl;
+    /*
+    //Preprossess frames and find rough locations where they are close to frame (sample every 10/20/50pixel ie.)
+    int stepX = 50;
+    int stepY = 50;
+    int stepZ = 1;
+    float threshold = 100.0f;
+
+    std::vector<Vector3i> positions = {};
+
+    for (uint z = 0; z < size.z(); z += stepZ){
+    std::cout << "z: " << z << std::endl;
+    for (uint y = 0; y < size.y(); y += stepY){
+    //std::cout << ".";
+    for (uint x = 0; x < size.x(); x += stepX){
+    Vector3i pos = Vector3i(x, y, z);
+    std::vector<int> frameNumbers = {};
+    float closestDist = 1000.0f;
+    int closestFrameNr = -1;
+    float p = 0.0f;
+    for (int frameNr = 0; frameNr < frameBaseCornerList.size(); frameNr++){
+    //float Us3Dhybrid::getPointDistanceAlongNormal(Vector3i A, Vector3f B, Vector3f normal)
+    Vector3f planePoint = frameBaseCornerList[frameNr];
+    Vector3f planeNormal = framePlaneNormalList[frameNr];
+    float dist = getPointDistanceAlongNormal(pos, planePoint, planeNormal);
+    if (dist < closestDist){
+    AffineTransformation::pointer frameInvTrans = frameInverseTransformList[frameNr];
+    Image::pointer frame = frameList[frameNr];
+    Vector3f crossWorld = getIntersectionOfPlane(pos, dist, planeNormal);
+    Vector3f crossLocal = getLocalIntersectionOfPlane(crossWorld, frameInvTrans);
+    if (isWithinFrame(crossLocal, frame->getSize(), 0.5f, 0.5f)){
+    frameNumbers.push_back(frameNr);
+    closestDist = dist;
+    closestFrameNr = frameNr;
+    //frameAccess = storedAccess[frameNr]; //
+    frameAccess = frame->getImageAccess(ACCESS_READ);
+    p = getPixelValue(crossLocal);
+    }
+
+    }
+    }
+    }
+    }
+    }
+    */
+
+    std::cout << "Step 5" << std::endl;
+
+    std::cout << "Running with dv: " << dv << " and Rmax: " << Rmax << std::endl;
+
+    for (uint x = 0; x < size.x(); x++){
+        std::cout << "x: " << x << std::endl;
+        for (uint y = 0; y < size.y(); y++){
+            std::cout << ".";
+            //Store closest?
+            for (uint z = 0; z < size.z(); z++){
+                Vector3i pos = Vector3i(x, y, z);
+                Vector3f posF = Vector3f(x, y, z);
+                // Find closest plane
+                float closestDist = Rmax; // 5.0f;
+                int closestFrameNr = -1;
+                Vector3f closestCrossLocal = Vector3f(0, 0, 0);
+                float p = 0.0f;
+                for (int frameNr = 0; frameNr < frameBaseCornerList.size(); frameNr++){
+                    /*std::vector<Vector3f> frameBaseCornerList;
+                    std::vector<Vector3f> framePlaneNormalList;
+                    std::vector<AffineTransformation::pointer> frameInverseTransformList;
+                    std::vector<float> framePlaneDValueList;*/
+                    //float Us3Dhybrid::getPointDistanceAlongNormal(Vector3i A, Vector3f B, Vector3f normal)
+                    Vector3f planePoint = frameBaseCornerList[frameNr];
+                    Vector3f planeNormal = framePlaneNormalList[frameNr];
+                    float dist = getPointDistanceAlongNormal(pos, planePoint, planeNormal);
+                    if (fabs(dist) < closestDist){
+                        //std::cout << "Close frame nr: " << frameNr << std::endl;
+                        AffineTransformation::pointer frameInvTrans = frameInverseTransformList[frameNr];
+                        Image::pointer frame = frameList[frameNr];
+                        Vector3f crossWorld = getIntersectionOfPlane(pos, dist, planeNormal);
+                        Vector3f crossLocal = getLocalIntersectionOfPlane(crossWorld, frameInvTrans);
+                        if (isWithinFrame(crossLocal, frame->getSize(), 0.5f, 0.5f)){
+                            //std::cout << "Frame = Within" << std::endl;
+                            closestDist = fabs(dist);
+                            closestFrameNr = frameNr;
+                            closestCrossLocal = crossLocal;
+                            //frameAccess = storedAccess[frameNr]; //
+
+                        }
+
+                    }
+                }
+
+                /*
+                Vector3f intersectionPointWorld = getIntersectionOfPlane(volumePoint, distance, imagePlaneNormal);
+                Vector3f intersectionPointLocal = getLocalIntersectionOfPlane(intersectionPointWorld, thisFrameInverseTransform);
+                if (isWithinFrame(intersectionPointLocal, thisFrameSize, 0.5f, 0.5f)){
+                float p = getPixelValue(intersectionPointLocal);
+                float w = 1 - (distance / df); //Or gaussian for trail
+                accumulateValuesInVolume(volumePoint, p, w);
+                }
+
+                // Project into plane
+                Vector3f planeNormal = framePlaneNormalList[closestFrameNr];
+                AffineTransformation::pointer frameInvTrans = frameInverseTransformList[closestFrameNr];
+                Image::pointer frame = frameList[closestFrameNr];
+                Vector3f crossWorld = getIntersectionOfPlane(pos, closestDist, planeNormal);
+                Vector3f crossLocal = getLocalIntersectionOfPlane(crossWorld, frameInvTrans);
+                if (isWithinFrame(crossLocal, frame->getSize(), 0.5f, 0.5f)){
+                // Get pixel value
+                float p = getPixelValue(intersectionPointLocal);
+                }
+                else {
+
+                }
+                */
+
+                if (closestFrameNr != -1){
+                    //std::cout << "Closest frameNr: " << closestFrameNr << " to pos " << pos.x() << "-" << pos.y() << "-" << pos.z() << " dist " << closestDist << std::endl;
+                    Image::pointer frame = frameList[closestFrameNr];
+                    frameAccess = frame->getImageAccess(ACCESS_READ);
+                    p = getPixelValue(closestCrossLocal);
+                    frameAccess->release();
+                }
+
+                // Store value
+                volAccess->setScalar(pos, p, 0);
+                //unsigned int loc = x + y*size.x() + z*size.x()*size.y(); // )* nrOfComponents
+                //outputData[loc] = p;
+
+            }
+
+        }
+        std::cout << "!" << std::endl;
+    }
+    volAccess->release();
+    std::cout << "\nDONE calculations!" << std::endl;
+}
+
 void Us3Dhybrid::recompileAlgorithmOpenCLCode(){
     //CHECK if dv, rmax or volumeSize changed..
     if (AccumulationVolume->getDimensions() == mDimensionCLCodeCompiledFor &&
@@ -782,202 +1003,6 @@ void Us3Dhybrid::executeAlgorithm(){
 
 }
 
-
-void Us3Dhybrid::executeFramePNN(Image::pointer frame){
-    uint width = frame->getWidth();
-    uint height = frame->getHeight();
-    frameAccess = frame->getImageAccess(ACCESS_READ);
-    //float* frameValues = (float*) frameAccess->get();
-    //uint nrOfComponents = frame->getNrOfComponents();
-    for (uint x = 0; x < width; x++){
-        for (uint y = 0; y < height; y++){
-            Vector3f pos = Vector3f(x, y, 0);
-            AffineTransformation::pointer imgTransform = SceneGraph::getAffineTransformationFromData(frame);
-            Vector3f worldPos = imgTransform->multiply(pos);
-            Vector3i worldPosDiscrete = Vector3i(round(worldPos(0)), round(worldPos(1)), round(worldPos(2)));
-            if (volumePointOutsideVolume(worldPosDiscrete, volumeSize)){
-                continue;
-            }
-            float frameP = frameAccess->getScalar(Vector3i(x, y, 0));
-            //int loc = x*width + y*width*height;
-            //Vector3ui sizes = frame->getSize();
-            //uint loc = x*nrOfComponents + y*width*nrOfComponents;
-            //x*nrOfComponents + y*nrOfComponents*width + z*nrOfComponents*width*height
-            // uint address = (position.x() + position.y()*size.x() + position.z()*size.x()*size.y())*image->getNrOfComponents() + channel;
-            //float frameP2 = frameValues[loc];
-            volAccess->setScalar(worldPosDiscrete, frameP, 0);
-            volAccess->setScalar(worldPosDiscrete, 1.0f, 1);
-            /*/ volAccess available from Us3Dhybrid as ImageAccess::pointer
-                float oldP = volAccess->getScalar(volumePoint, 0); //out of bounds????
-            float oldW = volAccess->getScalar(volumePoint, 1);
-            if (oldP < 0.0f) oldP = 0.0f;
-            if (oldW < 0.0f) oldW = 0.0f;
-            float newP = oldP + p*w;
-            float newW = oldW + w;
-            volAccess->setScalar(volumePoint, newP, 0);
-            volAccess->setScalar(volumePoint, newW, 1);
-            */
-        }
-    }
-    frameAccess->release();
-}
-
-void Us3Dhybrid::executeVNN(){
-    std::cout << "Final VNN reconstruction calculations!" << std::endl;
-    // Finally, calculate reconstructed volume
-    Vector3ui size = Vector3ui(volumeSize.x(), volumeSize.y(), volumeSize.z());
-    setOutputType(firstFrame->getDataType());
-    std::cout << "Step 1" << std::endl;
-    outputVolume = getStaticOutputData<Image>(0);
-    std::cout << "Step 2" << std::endl;
-    outputVolume->create(size, mOutputType, 1); //1-channeled outputVolume
-    std::cout << "Step 3" << std::endl;
-    volAccess = outputVolume->getImageAccess(accessType::ACCESS_READ_WRITE);
-    //float * outputData = (float*)volAccess->get();
-    /*
-    std::vector<ImageAccess::pointer> storedAccess = {};
-    for (int frameNr = 0; frameNr < frameBaseCornerList.size(); frameNr++){
-        Image::pointer frame = frameList[frameNr];
-        ImageAccess::pointer frameAcc = frame->getImageAccess(ACCESS_READ);
-        storedAccess.push_back(frameAcc);
-    }
-    */
-    std::cout << "Step 4" << std::endl;
-    /*
-    //Preprossess frames and find rough locations where they are close to frame (sample every 10/20/50pixel ie.)
-    int stepX = 50;
-    int stepY = 50;
-    int stepZ = 1;
-    float threshold = 100.0f;
-
-    std::vector<Vector3i> positions = {};
-
-    for (uint z = 0; z < size.z(); z += stepZ){
-        std::cout << "z: " << z << std::endl;
-        for (uint y = 0; y < size.y(); y += stepY){
-            //std::cout << ".";
-            for (uint x = 0; x < size.x(); x += stepX){
-                Vector3i pos = Vector3i(x, y, z);
-                std::vector<int> frameNumbers = {};
-                float closestDist = 1000.0f;
-                int closestFrameNr = -1;
-                float p = 0.0f;
-                for (int frameNr = 0; frameNr < frameBaseCornerList.size(); frameNr++){
-                    //float Us3Dhybrid::getPointDistanceAlongNormal(Vector3i A, Vector3f B, Vector3f normal)
-                    Vector3f planePoint = frameBaseCornerList[frameNr];
-                    Vector3f planeNormal = framePlaneNormalList[frameNr];
-                    float dist = getPointDistanceAlongNormal(pos, planePoint, planeNormal);
-                    if (dist < closestDist){
-                        AffineTransformation::pointer frameInvTrans = frameInverseTransformList[frameNr];
-                        Image::pointer frame = frameList[frameNr];
-                        Vector3f crossWorld = getIntersectionOfPlane(pos, dist, planeNormal);
-                        Vector3f crossLocal = getLocalIntersectionOfPlane(crossWorld, frameInvTrans);
-                        if (isWithinFrame(crossLocal, frame->getSize(), 0.5f, 0.5f)){
-                            frameNumbers.push_back(frameNr);
-                            closestDist = dist;
-                            closestFrameNr = frameNr;
-                            //frameAccess = storedAccess[frameNr]; //
-                            frameAccess = frame->getImageAccess(ACCESS_READ);
-                            p = getPixelValue(crossLocal);
-                        }
-
-                    }
-                }
-            }
-        }
-    }
-    */
-
-    std::cout << "Step 5" << std::endl;
-
-    std::cout << "Running with dv: " << dv << " and Rmax: " << Rmax << std::endl;
-
-    for (uint x = 0; x < size.x(); x++){
-        std::cout << "x: " << x << std::endl;
-        for (uint y = 0; y < size.y(); y++){
-            std::cout << ".";
-            //Store closest?
-            for (uint z = 0; z < size.z(); z++){
-                Vector3i pos = Vector3i(x, y, z);
-                Vector3f posF = Vector3f(x, y, z);
-                // Find closest plane
-                float closestDist = Rmax; // 5.0f;
-                int closestFrameNr = -1;
-                Vector3f closestCrossLocal = Vector3f(0, 0, 0);
-                float p = 0.0f;
-                for (int frameNr = 0; frameNr < frameBaseCornerList.size(); frameNr++){
-                    /*std::vector<Vector3f> frameBaseCornerList;
-                    std::vector<Vector3f> framePlaneNormalList;
-                    std::vector<AffineTransformation::pointer> frameInverseTransformList;
-                    std::vector<float> framePlaneDValueList;*/
-                    //float Us3Dhybrid::getPointDistanceAlongNormal(Vector3i A, Vector3f B, Vector3f normal)
-                    Vector3f planePoint = frameBaseCornerList[frameNr];
-                    Vector3f planeNormal = framePlaneNormalList[frameNr];
-                    float dist = getPointDistanceAlongNormal(pos, planePoint, planeNormal);
-                    if (fabs(dist) < closestDist){
-                        //std::cout << "Close frame nr: " << frameNr << std::endl;
-                        AffineTransformation::pointer frameInvTrans = frameInverseTransformList[frameNr];
-                        Image::pointer frame = frameList[frameNr];
-                        Vector3f crossWorld = getIntersectionOfPlane(pos, dist, planeNormal);
-                        Vector3f crossLocal = getLocalIntersectionOfPlane(crossWorld, frameInvTrans);
-                        if (isWithinFrame(crossLocal, frame->getSize(), 0.5f, 0.5f)){
-                            //std::cout << "Frame = Within" << std::endl;
-                            closestDist = fabs(dist);
-                            closestFrameNr = frameNr;
-                            closestCrossLocal = crossLocal;
-                            //frameAccess = storedAccess[frameNr]; //
-                            
-                        }
-                        
-                    }
-                }
-                
-                /*
-                Vector3f intersectionPointWorld = getIntersectionOfPlane(volumePoint, distance, imagePlaneNormal);
-                    Vector3f intersectionPointLocal = getLocalIntersectionOfPlane(intersectionPointWorld, thisFrameInverseTransform);
-                    if (isWithinFrame(intersectionPointLocal, thisFrameSize, 0.5f, 0.5f)){
-                        float p = getPixelValue(intersectionPointLocal);
-                        float w = 1 - (distance / df); //Or gaussian for trail
-                        accumulateValuesInVolume(volumePoint, p, w);
-                    }
-                
-                // Project into plane
-                Vector3f planeNormal = framePlaneNormalList[closestFrameNr];
-                AffineTransformation::pointer frameInvTrans = frameInverseTransformList[closestFrameNr];
-                Image::pointer frame = frameList[closestFrameNr];
-                Vector3f crossWorld = getIntersectionOfPlane(pos, closestDist, planeNormal);
-                Vector3f crossLocal = getLocalIntersectionOfPlane(crossWorld, frameInvTrans);
-                if (isWithinFrame(crossLocal, frame->getSize(), 0.5f, 0.5f)){
-                    // Get pixel value
-                    float p = getPixelValue(intersectionPointLocal);
-                }
-                else {
-
-                }
-                */
-                
-                if (closestFrameNr != -1){
-                    //std::cout << "Closest frameNr: " << closestFrameNr << " to pos " << pos.x() << "-" << pos.y() << "-" << pos.z() << " dist " << closestDist << std::endl;
-                    Image::pointer frame = frameList[closestFrameNr];
-                    frameAccess = frame->getImageAccess(ACCESS_READ);
-                    p = getPixelValue(closestCrossLocal);
-                    frameAccess->release();
-                }
-
-                // Store value
-                volAccess->setScalar(pos, p, 0);
-                //unsigned int loc = x + y*size.x() + z*size.x()*size.y(); // )* nrOfComponents
-                //outputData[loc] = p;
-                    
-            }
-            
-        }
-        std::cout << "!" << std::endl;
-    }
-    volAccess->release();
-    std::cout << "\nDONE calculations!" << std::endl;
-}
-
 // CPU algoritme
 //template <class T>
 void Us3Dhybrid::executeAlgorithmOnHost(){
@@ -985,13 +1010,25 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
     // (volAccess is defined globally in Us3Dhybrid as an ImageAccess::pointer)
     volAccess = AccumulationVolume->getImageAccess(accessType::ACCESS_READ_WRITE);
     
+    std::cout << "Running with dv: " << dv << " and Rmax: " << Rmax << std::endl;
+
+    Vector3ui frameSize = firstFrame->getSize();
+    int * writesToPixel = new int[frameSize.x()*frameSize.y()];
+    for (int x = 0; x < frameSize.x(); x++){
+        for (int y = 0; y < frameSize.y(); y++){  
+            int loc = x + y*frameSize.x();
+            writesToPixel[loc] = 0;
+        }
+    }
+    
     int itTotal = 0;
     int it2Total = 0;
-    std::cout << "Running with dv: " << dv << " and Rmax: " << Rmax << std::endl;
+    clock_t startLoopTime = clock();    
     // For each FRAME
     for (int frameNr = 0; frameNr < frameList.size(); frameNr++){
         // Get FRAME
-        std::cout << "Running for frame #" << frameNr << std::endl;
+        std::cout << "------------------------------- Running frame #" << frameNr << "--------------" << std::endl;
+        //std::cout << "Running for frame #" << frameNr << std::endl;
         Image::pointer frame = frameList[frameNr];
         //PNN option
         if (runAsPNNonly){
@@ -1025,9 +1062,15 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
         Vector3f nextFrameNormal = Vector3f(0, 0, 0);
         */
 
+        // STATISTICS 
         float dfSum = 0.0f;
         int it = 0;
         int it2 = 0;
+        //cpu time clock()
+        //wall time time()
+        clock_t startFrameTime = clock();
+        
+        // END STATS
 
         // Get frame access
         frameAccess = frame->getImageAccess(accessType::ACCESS_READ); // ImageAccess::pointer global
@@ -1069,22 +1112,99 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
                     float distance = getPointDistanceAlongNormal(volumePoint, thisFrameRootPoint, imagePlaneNormal);
                     Vector3f intersectionPointWorld = getIntersectionOfPlane(volumePoint, distance, imagePlaneNormal);
                     Vector3f intersectionPointLocal = getLocalIntersectionOfPlane(intersectionPointWorld, thisFrameInverseTransform);
+                    if (intersectionPointLocal.x() > 35.0f || intersectionPointLocal.y() > 35.0f){
+                        bool something = false;
+                    }
                     if (isWithinFrame(intersectionPointLocal, thisFrameSize, 0.5f, 0.5f)){
                         float p = getPixelValue(intersectionPointLocal);
-                        float w = 1 - (distance / df); //Or gaussian for trail
+                        float w = 1 - (fabs(distance) / df); //Or gaussian for trail
                         accumulateValuesInVolume(volumePoint, p, w);
+
+                        if (intersectionPointLocal.x() > 35.0f || intersectionPointLocal.y() > 35.0f){
+                            bool something = false;
+                        }
+
+                        //Stats
+                        int loc = round(intersectionPointLocal.x()) + round(intersectionPointLocal.y())*frameSize.x();
+                        writesToPixel[loc]++;
                     }
                 }
             }
         }
         frameAccess->release();
         //std::cout << "!" << std::endl;
-        float dfAvg = dfSum / it;
-        std::cout << "Average df distance: " << dfAvg << " and total iterations: " << it << " subloop: " << it2 << std::endl;
-        itTotal += it;
-        it2Total += it2;
+
+        // FINAL STATS
+        float dfAvg = dfSum / it; 
+        {
+            std::cout << "Avg DF: " << dfAvg << " and tot iter.: " << it << " sub: " << it2 << std::endl;
+            itTotal += it;
+            it2Total += it2;
+            clock_t endFrameTime = clock();
+            clock_t clockTicksTaken = endFrameTime - startFrameTime;
+            double timeInSeconds = clockTicksTaken / (double)CLOCKS_PER_SEC;
+            clock_t clockTicksTakenLoop = endFrameTime - startLoopTime;
+            double timeInSecondsLoop = clockTicksTakenLoop / (double)CLOCKS_PER_SEC;
+            int minutesInLoop = timeInSecondsLoop / 60;
+            int secondsInMinute = ((int)timeInSecondsLoop) % 60;
+            int percentComplete = ((frameNr + 1) * 100) / (frameList.size());
+            int estimateTotalTimeSec = (timeInSecondsLoop / (double)(frameNr + 1)) * frameList.size();
+            int estTotMin = estimateTotalTimeSec / 60;
+            int estTotSec = estimateTotalTimeSec & 60;
+            int estimateSecRemain = (1 - ((double)(frameNr + 1) / (double)frameList.size())) * estimateTotalTimeSec;
+            int estRemMin = estimateSecRemain / 60;
+            int estRemSec = estimateSecRemain & 60;
+            std::cout << "Tick: " << clockTicksTaken << " & " << timeInSeconds << "s! " << percentComplete << "% in " << minutesInLoop << "m" << secondsInMinute << "s" << " | Est. tot: " << estTotMin << "m" << estTotSec << "s; Rem.: " << estRemMin << "m" << estRemSec << "s!" << std::endl;
+            //<< estimateTotalTimeSec << "s; Remains: " << estimateSecRemain << "s!" << std::endl; //<< "Spent "// << timeInSecondsLoop << "s or "
+            //std::cout << "Est. tot: " << estimateTotalTimeSec << "s; Remains: " << estimateSecRemain << "s!" << std::endl;
+        }
     }
-    std::cout << "Finished running with total iterations: " << itTotal << " and subloops: " << it2Total << "!" << std::endl;
+    clock_t endLoopTime = clock();
+    {
+        std::cout << " ####################################################### " << std::endl;
+        std::cout << "" << std::endl;
+        std::cout << "Finished running with total iterations: " << itTotal << " and subloops: " << it2Total << "!" << std::endl;
+
+        clock_t clockTicksTakenLoop = endLoopTime - startLoopTime;
+        double timeInSecondsLoop = clockTicksTakenLoop / (double)CLOCKS_PER_SEC;
+        int minutesInLoop = timeInSecondsLoop / 60;
+        int secondsInMinute = ((int)timeInSecondsLoop) % 60;
+        std::cout << "Algorithm spent in total " << clockTicksTakenLoop << " clock ticks and " << timeInSecondsLoop << " seconds!" << std::endl;
+        std::cout << "That is " << minutesInLoop << "minutes and " << secondsInMinute << "seconds" << std::endl;
+        std::cout << "Spent " << (timeInSecondsLoop / itTotal) << "sec per iteration and " << (timeInSecondsLoop / it2Total) << "sec per subloop!" << std::endl;
+
+        //Frame read stats
+        /*#include "FAST/Visualization/SimpleWindow.hpp"
+        #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
+        #include "FAST/TestDataPath.hpp"*/
+        //#include "FAST/Importers/ImageImporter.hpp"
+
+        Image::pointer readStatsImg = Image::New();
+        //readStatsImg->createFromImage(firstFrame);
+        readStatsImg->create(frameSize, DataType::TYPE_INT8, 1);
+        ImageAccess::pointer readImgAcc = readStatsImg->getImageAccess(ACCESS_READ_WRITE);
+        for (int x = 0; x < frameSize.x(); x++){
+            for (int y = 0; y < frameSize.y(); y++){
+                int loc = x + y*frameSize.x();
+                Vector3i pos = Vector3i(x, y, 0);
+                int value = writesToPixel[loc];
+                readImgAcc->setScalar(pos, value, 0);
+            }
+        }
+        readImgAcc->release();
+        //SimpleWindow::pointer window = SimpleWindow::New();
+        //window->addRenderer(sRenderer);
+        //window->start();
+        std::string _filePath = std::string(FAST_TEST_DATA_DIR) + "/output/";
+        std::string output_filename = _filePath + "HybridFrameReadImg.jpg";
+        std::cout << "Output filename: " << output_filename << std::endl;
+
+        ImageExporter::pointer exporter = ImageExporter::New();
+        exporter->setFilename(output_filename);
+        exporter->setInputData(readStatsImg);
+        exporter->update();
+    }
+    
     //volAccess->release();
 }
 
@@ -1099,7 +1219,7 @@ void Us3Dhybrid::generateOutputVolume(){
     std::cout << "Step 3" << std::endl;
     //outputVolume->setSpacing(Vector3f(1.0f, 1.0f, 1.0f));
     Vector3f frameSpacing = firstFrame->getSpacing();
-    float spacingVal = dv * globalScalingValue;
+    float spacingVal = mVoxelSpacing * globalScalingValue; //dv * globalScalingValue;
     Vector3f outputSpacing = Vector3f(spacingVal, spacingVal, spacingVal);// 0.1f, 0.1f, 0.1f);
     outputVolume->setSpacing(outputSpacing);
 
@@ -1292,13 +1412,13 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
             addTransformationToFrame(rootFrame, scaleTransform);
             //AffineTransformation::pointer newImgTransform = addTransformation->multiply(oldImgTransform);
             // ADD scaleTransform to transformToMinimum
-            transformToMinimum = scaleTransform->multiply(transformToMinimum); 
-
+            transformToMinimum = scaleTransform->multiply(transformToMinimum);
             //DONE scaling
         }
         
         box2 = rootFrame->getTransformedBoundingBox();
         Vector3f corner2 = box2.getCorners().row(0);
+
         minCoords(0) = corner2(0); //or 0
         minCoords(1) = corner2(1);//or 0
         minCoords(2) = corner2(2);//or 0
@@ -1323,6 +1443,7 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
                 }
             }
         }
+
         //Test total results: inverseSystemTransform & transformToMinimum
         //AffineTransformation::pointer 
         totalTransform = transformToMinimum->multiply(inverseSystemTransform);
@@ -1331,6 +1452,11 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         Vector4f m1 = totalMatrix.row(1);
         Vector4f m2 = totalMatrix.row(2);
         Vector4f m3 = totalMatrix.row(3);
+        Matrix4f minTransformMatrix = transformToMinimum->matrix();
+        Vector4f s0 = minTransformMatrix.row(0);
+        Vector4f s1 = minTransformMatrix.row(1);
+        Vector4f s2 = minTransformMatrix.row(2);
+        Vector4f s3 = minTransformMatrix.row(3);
     }
     
     // FIND SCALING
@@ -1422,12 +1548,18 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
             // Calc plane values to store
             Vector3f framePlaneNormal = getImagePlaneNormal(frame);
             float framePlaneDvalue = calculatePlaneDvalue(baseCorner, framePlaneNormal);
+            AffineTransformation::pointer frameInverseTransform = getInverseTransformation(frame);
+            Matrix4f inverseTransformMatrix = frameInverseTransform->matrix();
+            Vector4f i0 = inverseTransformMatrix.row(0);
+            Vector4f i1 = inverseTransformMatrix.row(1);
+            Vector4f i2 = inverseTransformMatrix.row(2);
+            Vector4f i3 = inverseTransformMatrix.row(3);
             // Store frame values for later
             frameMinList.push_back(minCoordsFrame);
             frameMaxList.push_back(maxCoordsFrame);
             frameBaseCornerList.push_back(baseCorner);
             framePlaneNormalList.push_back(framePlaneNormal);
-            frameInverseTransformList.push_back(getInverseTransformation(frame));
+            frameInverseTransformList.push_back(frameInverseTransform);// getInverseTransformation(frame));
             framePlaneDValueList.push_back(framePlaneDvalue);
         }
 
@@ -1454,6 +1586,14 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         size = maxCoords - minCoords;
         volumeSize = Vector3i(ceil(size(0)) + 1, ceil(size(1)) + 1, ceil(size(2)) + 1);
         std::cout << "Final volumeSize: " << volumeSize << std::endl;
+
+        //Calculate DV
+        float zSize = volumeSize.z();
+        int framesTot = frameList.size();
+        float multiplicator = 2.0f;
+        float calcDV = (round(100.0f  * multiplicator * (zSize / (float)(framesTot))) / 100.0f); //* 0.8f
+        float calcRmax = calcDV * 8.0f * multiplicator;
+        bool good = false;
     }
 
     // MAKE VOLUME
@@ -1464,7 +1604,7 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
 
     // INITIALIZE VOLUME
     float initVal = 0.0; 
-    if (!runAsVNNonly){
+    if (false && !runAsVNNonly){
         //TODOOOO
         //Init volume to zero values and two components
         std::cout << "Beginning volume zero initialization("<<volumeSize(0)<<"-"<<volumeSize(1)<<"-"<<volumeSize(2)<<")." << std::endl;

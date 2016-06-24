@@ -33,16 +33,19 @@ int main() {
     std::string folder = "/rekonstruksjons_data/US_01_20130529T084519/";
     std::string nameformat = "US_01_20130529T084519_ScanConverted_#.mhd";
     std::string input_filename = std::string(FAST_TEST_DATA_DIR) + folder + nameformat;
-    int startNumber = 0; //500; //400;//700; //200; //700; //735;
+    int startNumber = 735; // 400; //500; //400;//700; //200; //700; //735;
     int stepSize = 1; // 5; //3
     int scaleToMaxInt = 400; // 200; //400;
     float scaleToMax = float(scaleToMaxInt);
-    float voxelSpacing = 0.2f; // 0.03 / 0.01 //dv
+    float voxelSpacing = 0.5f; //0.5f; //0.2f; // 0.03 / 0.01 //dv // Større verdi gir mindre oppløsning
     float globalScaling = 1.0f;  //5.0f; //7/10 osv
-    float maxRvalue = 2.0f; //0.5f// 1.0f; //2.0f;// voxelSpacing * 2 * globalScaling; //*(200/globalScaling) // *globalScaling * 3;
-    float initZSpacing = 0.2f; // 0.1f; // 0.05f; // 0.1f / 0.02f
+    float initZSpacing = 2.0f; //1.0f // 0.2f; // 0.1f; // 0.05f; // 0.1f / 0.02f
+    //initZ - større verdi gir større z-akse i volum
+    float calcedDV = 0.1 * globalScaling * initZSpacing * voxelSpacing; // / 4.0;
+    float setDV = calcedDV;// 0.05f;
+    float maxRvalue = calcedDV * 8; //0.2f; //0.5f// 1.0f; //2.0f;// voxelSpacing * 2 * globalScaling; //*(200/globalScaling) // *globalScaling * 3;
     
-    bool runVNNonly = true;
+    bool runVNNonly = false;
     bool runCLHybrid = false;
     bool runPNNonly = false;
 
@@ -64,8 +67,9 @@ int main() {
         std::string streamStep = std::to_string(stepSize);
         std::string streamScale = std::to_string(scaleToMaxInt);
         std::string volumeSpacing = to_string_with_precision(voxelSpacing, 3);//std::to_string(voxelSpacing);
-        std::string volumeRmax = to_string_with_precision(maxRvalue, 2);//std::to_string(maxRvalue);
-        std::string volumeGlobalScaling = to_string_with_precision(globalScaling, 1);//std::to_string(int(globalScaling));
+        std::string volumeDV = to_string_with_precision(setDV, 3);
+        std::string volumeRmax = to_string_with_precision(maxRvalue, 3);//std::to_string(maxRvalue);
+        std::string volumeGlobalScaling = to_string_with_precision(globalScaling, 2);//std::to_string(int(globalScaling));
         std::string volumeZinitSpacing = to_string_with_precision(initZSpacing, 3); //std::to_string(initZSpacing);
         std::string runningStyle = "";
         if (runVNNonly){
@@ -78,7 +82,7 @@ int main() {
             runningStyle += "PNN_";//std::to_string(runPNNonly);
         }
         output_filename += _filePath + "VOLUME_" + runningStyle + "start-" + streamStart + "@" + streamStep;
-        output_filename += "(s" + volumeSpacing + "_gS" + volumeGlobalScaling + "_rMaz" + volumeRmax + "_z" + volumeZinitSpacing + ")" + ".mhd";
+        output_filename += "(s" + volumeSpacing + "_gS" + volumeGlobalScaling + "_dv" + volumeDV + "_rMaz" + volumeRmax + "_z" + volumeZinitSpacing + ")" + ".mhd";
         std::cout << "Output filename: " << output_filename << std::endl;
         //std::string output_filename = std::string(FAST_TEST_DATA_DIR) + "/output/" + "VolumeOutput.mhd";
     }
@@ -90,6 +94,7 @@ int main() {
         pnnHybrid->setInputConnection(streamer->getOutputPort());
         pnnHybrid->setScaleToMax(scaleToMax);
         pnnHybrid->setVoxelSpacing(voxelSpacing);
+        pnnHybrid->setDV(setDV);
         pnnHybrid->setRmax(maxRvalue);
         pnnHybrid->setGlobalScaling(globalScaling);
         pnnHybrid->setZDirInitSpacing(initZSpacing);

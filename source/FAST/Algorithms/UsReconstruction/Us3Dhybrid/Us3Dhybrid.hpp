@@ -14,6 +14,7 @@ namespace fast {
         bool hasCalculatedVolume();
         void setScaleToMax(float scaleToMax);
         void setVoxelSpacing(float voxelSpacing);
+        void setDV(float dv);
         void setRmax(float maxRvalue);
         void setGlobalScaling(float globalScaling);
         void setZDirInitSpacing(float zInitSpacing);
