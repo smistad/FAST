@@ -1037,7 +1037,7 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
     // For each FRAME
     for (int frameNr = 0; frameNr < frameList.size(); frameNr++){
         // Get FRAME
-        std::cout << "------------------------------- Running frame #" << frameNr << "--------------" << std::endl;
+        std::cout << "----------------------- Running frame #" << frameNr << " of tot " << frameList.size() << "--------------" << std::endl;
         Image::pointer frame = frameList[frameNr];
         //PNN option
         if (runAsPNNonly){
@@ -1095,11 +1095,16 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
         Vector2i aDirRange = getFrameRangeInVolume(frameNr, domDir, 0); //a: 0
         Vector2i bDirRange = getFrameRangeInVolume(frameNr, domDir, 1); //b: 1
         for (int a = aDirRange(0); a <= aDirRange(1); a++){ //For each a in a-dir
-            std::cout << ".";
+            //std::cout << ".";
             for (int b = bDirRange(0); b <= bDirRange(1); b++){ //For each b in b-dir
                 //Find basePoint in the plane based on the a and b values
                 Vector3f basePoint = getBasePointInPlane(thisFrameRootPoint, imagePlaneNormal, thisFramePlaneDvalue, a, b, domDir);
                 //TODO determine if reasonably close to plane? Elimination/speedup (use inverseTrans)
+                Vector3f crossLocal = getLocalIntersectionOfPlane(basePoint, thisFrameInverseTransform);
+                if (!isWithinFrame(crossLocal, thisFrameSize, 1.0f, 0.5f)){
+                    continue;
+                }
+
                 //Find distance to last and next frame
                 float d1 = getDistanceAlongNormal(basePoint, imagePlaneNormal, lastFrameRootPoint, lastFrameNormal); //TODO check if correct
                 float d2 = getDistanceAlongNormal(basePoint, imagePlaneNormal, nextFrameRootPoint, nextFrameNormal);
@@ -1123,7 +1128,7 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
                     Vector3f intersectionPointLocal = getLocalIntersectionOfPlane(intersectionPointWorld, thisFrameInverseTransform);
                     if (isWithinFrame(intersectionPointLocal, thisFrameSize, 0.5f, 0.5f)){
                         float p = getPixelValue(intersectionPointLocal);
-                        float absDist = fabs(distance);
+                        //float absDist = fabs(distance);
                         float w = 1 - (fabs(distance) / df); //Or gaussian for trail
                         accumulateValuesInVolume(volumePoint, p, w);
                         {
@@ -1136,7 +1141,7 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
             }
         }
         frameAccess->release();
-        std::cout << "!" << std::endl;
+        //std::cout << "!" << std::endl;
 
         // FINAL STATS
         float dfAvg = dfSum / it; 
@@ -1153,11 +1158,11 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
             int secondsInMinute = ((int)timeInSecondsLoop) % 60;
             int percentComplete = ((frameNr + 1) * 100) / (frameList.size());
             int estimateTotalTimeSec = (timeInSecondsLoop / (double)(frameNr + 1)) * frameList.size();
-            int estTotMin = estimateTotalTimeSec / 60;
-            int estTotSec = estimateTotalTimeSec & 60;
+            int estTotMin = floor(estimateTotalTimeSec / 60);
+            int estTotSec = estimateTotalTimeSec % 60;
             int estimateSecRemain = (1 - ((double)(frameNr + 1) / (double)frameList.size())) * estimateTotalTimeSec;
-            int estRemMin = estimateSecRemain / 60;
-            int estRemSec = estimateSecRemain & 60;
+            int estRemMin = floor(estimateSecRemain / 60);
+            int estRemSec = estimateSecRemain % 60;
             std::cout << "Tick: " << clockTicksTaken << " & " << timeInSeconds << "s! " << percentComplete << "% in " << minutesInLoop << "m" << secondsInMinute << "s" << " | Est. tot: " << estTotMin << "m" << estTotSec << "s; Rem.: " << estRemMin << "m" << estRemSec << "s!" << std::endl;
             //<< estimateTotalTimeSec << "s; Remains: " << estimateSecRemain << "s!" << std::endl; //<< "Spent "// << timeInSecondsLoop << "s or "
             //std::cout << "Est. tot: " << estimateTotalTimeSec << "s; Remains: " << estimateSecRemain << "s!" << std::endl;

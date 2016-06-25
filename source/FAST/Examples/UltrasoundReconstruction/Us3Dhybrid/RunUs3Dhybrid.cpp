@@ -33,17 +33,17 @@ int main() {
     std::string folder = "/rekonstruksjons_data/US_01_20130529T084519/";
     std::string nameformat = "US_01_20130529T084519_ScanConverted_#.mhd";
     std::string input_filename = std::string(FAST_TEST_DATA_DIR) + folder + nameformat;
-    int startNumber = 0;// 600; //735// 400; //500; //400;//700; //200; //700; //735;
+    int startNumber = 600;// 600; //735// 400; //500; //400;//700; //200; //700; //735;
     int stepSize = 1; // 5; //3
     int scaleToMaxInt = 400; // 200; //400;
     float scaleToMax = float(scaleToMaxInt);
     float voxelSpacing = 0.2f; //0.1f; //0.5f; //0.2f; // 0.03 / 0.01 //dv // Større verdi gir mindre oppløsning
     float globalScaling = 1.0f;  //5.0f; //7/10 osv
-    float initZSpacing = 0.5f; // 2.0f;          //1.0f // 0.2f; // 0.1f; // 0.05f; // 0.1f / 0.02f
+    float initZSpacing = 0.3f; //0.5f // 2.0f;          //1.0f // 0.2f; // 0.1f; // 0.05f; // 0.1f / 0.02f
     //initZ - større verdi gir større z-akse i volum
     float calcedDV = 20.0f * globalScaling * initZSpacing * voxelSpacing; // 0.1 *  // / 4.0;
-    float setDV = 0.5f; //0.2f; //0.5f; // calcedDV;// 0.05f;
-    float maxRvalue = setDV * 8; //0.2f; //0.5f// 1.0f; //2.0f;// voxelSpacing * 2 * globalScaling; //*(200/globalScaling) // *globalScaling * 3;
+    float setDV = 0.25f; //0.5f; //0.2f; //0.5f; // calcedDV;// 0.05f;
+    float maxRvalue = setDV * 6; //8; //0.2f; //0.5f// 1.0f; //2.0f;// voxelSpacing * 2 * globalScaling; //*(200/globalScaling) // *globalScaling * 3;
     
     bool runVNNonly = false;
     bool runCLHybrid = false;
