@@ -103,7 +103,7 @@ namespace fast {
         int zLocMultiplier;
         ImageAccess::pointer frameAccess;
         Vector3ui frameSize;
-        int * frameData;
+        uchar * frameData;
         uint frameChannels;
         DataType frameType;
 

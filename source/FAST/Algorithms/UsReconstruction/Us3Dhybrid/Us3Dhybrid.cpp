@@ -258,17 +258,21 @@ float Us3Dhybrid::getPixelValueData(Vector3f point){
         return floatValue;
     */
     int sizeX = frameSize.x();
-    int sizeY = frameSize.y();
+    /*int sizeY = frameSize.y();
     int yMod = xCeil + yCeil * frameSize.x();
     int yMod2 = xCeil + yCeil * sizeX;
     int chan = frameChannels;
     DataType type = frameType;
-
+    */
     int xFloor = floor(x);
     int yFloor = floor(y);
+    int locMinMin = (xFloor + yFloor * sizeX) * 3;
+    int locMinMax = (xFloor + yCeil * sizeX) * 3;
+    int locMaxMin = (xCeil + yFloor * sizeX) * 3;
+    int locMaxMax = (xCeil + yCeil * sizeX) * 3;
     if (xFloor < 0){
-        int loc = (xCeil + yCeil*frameSize.x() + z*frameSize.x()*frameSize.y())*firstFrame->getNrOfComponents() + 0;// channel;
-        int locMaxMax = (xCeil + yCeil * frameSize.x())*3;
+        //int loc = (xCeil + yCeil*frameSize.x() + z*frameSize.x()*frameSize.y())*firstFrame->getNrOfComponents() + 0;// channel;
+        //int locMaxMax = (xCeil + yCeil * sizeX) * 3;
         uchar pMaxMax = frameData[locMaxMax];
         //float pMaxMax = frameAccess->getScalar(Vector3i(xCeil, yCeil, z));
         if (yFloor < 0){
@@ -277,32 +281,32 @@ float Us3Dhybrid::getPixelValueData(Vector3f point){
         }
         else {
             //Case 3
-            int locMaxMin = (xCeil + yFloor * frameSize.x())*3;
+            //int locMaxMin = (xCeil + yFloor * sizeX) * 3;
             uchar pMaxMin = frameData[locMaxMin];
             //float pMaxMin = frameAccess->getScalar(Vector3i(xCeil, yFloor, z));
             float v = y - yFloor;
-            float pRight = ((float)pMaxMin)*(1 - v) + ((float)pMaxMax)*v;
+            float pRight = ((float)pMaxMin)*(1.0f - v) + ((float)pMaxMax)*v;
             return pRight;
         }
     }
     else if (yFloor < 0){
         //Case 2
         float u = x - xFloor;
-        int locMinMax = (xFloor + yCeil * frameSize.x()) * 3;
-        int locMaxMax = (xCeil + yCeil * frameSize.x()) * 3;
+        //int locMinMax = (xFloor + yCeil * sizeX) * 3;
+        //int locMaxMax = (xCeil + yCeil * sizeX) * 3;
         uchar pMinMax = frameData[locMinMax];
         uchar pMaxMax = frameData[locMaxMax];
         //float pMinMax = frameAccess->getScalar(Vector3i(xFloor, yCeil, z));
         //float pMaxMax = frameAccess->getScalar(Vector3i(xCeil, yCeil, z));
-        float pBot = ((float)pMinMax)*(1 - u) + ((float)pMaxMax)*u;
+        float pBot = ((float)pMinMax)*(1.0f - u) + ((float)pMaxMax)*u;
         return pBot;
     }
     else {
-        int loc = (xFloor + yFloor*frameSize.x() + z*frameSize.x()*frameSize.y())*firstFrame->getNrOfComponents() + 0;// channel;
-        int locMinMin = (xFloor + yFloor * frameSize.x()) * 3;
-        int locMinMax = (xFloor + yCeil * frameSize.x()) * 3;
-        int locMaxMin = (xCeil + yFloor * frameSize.x()) * 3;
-        int locMaxMax = (xCeil + yCeil * frameSize.x()) * 3;
+        //int loc = (xFloor + yFloor*frameSize.x() + z*frameSize.x()*frameSize.y())*firstFrame->getNrOfComponents() + 0;// channel;
+        /*int locMinMin = (xFloor + yFloor * sizeX) * 3;
+        int locMinMax = (xFloor + yCeil * sizeX) * 3;
+        int locMaxMin = (xCeil + yFloor * sizeX) * 3;
+        int locMaxMax = (xCeil + yCeil * sizeX) * 3;*/
         uchar pMinMin = frameData[locMinMin];
         uchar pMinMax = frameData[locMinMax];
         uchar pMaxMin = frameData[locMaxMin];
@@ -314,12 +318,12 @@ float Us3Dhybrid::getPixelValueData(Vector3f point){
         float pMaxMax = frameAccess->getScalar(Vector3i(xCeil, yCeil, z));
         */
         //Calculate horizontal interpolation
-        float u = point(0) - floor(point(0));
-        float pTop = ((float)pMinMin)*(1 - u) + ((float)pMaxMin)*u;
-        float pBot = ((float)pMinMax)*(1 - u) + ((float)pMaxMax)*u;
+        float u = x - xFloor; //float u = point(0) - floor(point(0));
+        float pTop = ((float)pMinMin)*(1.0f - u) + ((float)pMaxMin)*u;
+        float pBot = ((float)pMinMax)*(1.0f - u) + ((float)pMaxMax)*u;
         //Calculate final vertical interpolation
-        float v = point(1) - floor(point(1));
-        float pValue = pTop*(1 - v) + pBot*v;//pBot*(1 - v) + pTop*v;
+        float v = y - yFloor; //float v = point(1) - floor(point(1));
+        float pValue = pTop*(1.0f - v) + pBot*v;//pBot*(1 - v) + pTop*v;
         return pValue;
     }
 }
@@ -407,9 +411,36 @@ Vector3f Us3Dhybrid::getIntersectionOfPlane(Vector3i startPoint, float distance,
     return endPoint;
 }
 
+Vector3f transformAffine(Vector3f point, cl_float16 t){
+    Vector3f transformedPoint = Vector3f(0.f, 0.f, 0.f);
+    float x = point.x();
+    float y = point.y();
+    float z = point.z();
+    float f = t.s[0];
+    transformedPoint(0) = t.s[0] * x + t.s[1] * y + t.s[2] * z + t.s[3];
+    transformedPoint(1) = t.s[4] * x + t.s[5] * y + t.s[6] * z + t.s[7];
+    transformedPoint(2) = t.s[8] * x + t.s[9] * y + t.s[10] * z + t.s[11]; // + t.s[A] * z + t.s[B];
+    //Last line should be 0,0,0,1 anyway; or test and scale?
+    return transformedPoint;
+}
+
+
+
 //Vector3f intersectionPointLocal = getLocalIntersectionOfPlane(intersectionPointWorld, thisFrameInverseTransform);
 Vector3f Us3Dhybrid::getLocalIntersectionOfPlane(Vector3f intersectionPointWorld, AffineTransformation::pointer frameInverseTransform){
     //Plocal = InverseTransform * Pglobal
+    //cl_float16 imgInvTrans = transform4x4tofloat16(frameInverseTransform);
+    /*
+    Vector3f getLocalIntersectionOfPlane(Vector3f intersectionPointWorld, cl_float16 imgInvTrans){
+    //AffineTransformation::pointer frameInverseTransform){
+    //Plocal = InverseTransform * Pglobal
+    //TODO
+    Vector3f intersectionPointLocal = transformAffine(intersectionPointWorld, imgInvTrans);
+    //float3 intersectionPointLocal = frameInverseTransform->multiply(intersectionPointWorld);
+    return intersectionPointLocal;
+}
+    */
+    //Vector3f intersectionPointLocalTest = transformAffine(intersectionPointWorld, imgInvTrans);
     Vector3f intersectionPointLocal = frameInverseTransform->multiply(intersectionPointWorld);
     return intersectionPointLocal;
 }
@@ -525,7 +556,6 @@ float Us3Dhybrid::getDistanceAlongNormal(Vector3f point, Vector3f normal, Vector
         }
     }
     else {
-
         float distance = dividend / divisor;
         return fabs(distance); //TODO make fabs()?
     }
@@ -874,6 +904,11 @@ void Us3Dhybrid::recompileAlgorithmOpenCLCode(){
     buildOptions += std::to_string(volumeSize(2));
     std::cout << " -D VOL_SIZE_Z=" << volumeSize(2) << std::endl;
 
+    int vol_size_X_times_Y = volumeSize(0) * volumeSize(1);
+    buildOptions += " -D VOL_SIZE_XtY=";
+    buildOptions += std::to_string(vol_size_X_times_Y);
+    std::cout << " -D VOL_SIZE_XtY=" << vol_size_X_times_Y << std::endl;
+
     float bufferXY = 0.5f;
     float bufferZ = 0.5f;
     buildOptions += " -D BUFFER_XY=";
@@ -979,7 +1014,7 @@ void Us3Dhybrid::executeOpenCLTest(){
 
 void Us3Dhybrid::executeAlgorithm(){
     ExecutionDevice::pointer device = getMainDevice();
-    if (!runCLhybrid){//device->isHost()) {
+    if (!runCLhybrid || device->isHost()) {
         std::cout << "Executing on host" << std::endl;
         executeAlgorithmOnHost(); // Run on CPU instead
         return;
@@ -1009,17 +1044,29 @@ void Us3Dhybrid::executeAlgorithm(){
     std::cout << "Alg CL part 2" << std::endl;
     int bufferSize = volumeSize(0)*volumeSize(1)*volumeSize(2);
     int components = 2;
+    int * semaphore = new int[bufferSize];
+    for (int i = 0; i < bufferSize; i++){
+        if (i%10000 == 0)
+            std::cout << ".";
+        volumeData[i] = 0.0f;
+        volumeData[bufferSize + i] = 0.0f;
+        semaphore[i] = 0;
+    }
+    std::cout << "!" << std::endl;
+    //cl::enqueueWriteBuffer(mCLVolume, true, cl::NullRange, size_t(sizeof(float)*bufferSize*components), 1.0f, 
+    //clEnqueueFillBuffer //kanskje vi har openCL 1.1???
     mCLVolume = cl::Buffer(
         clDevice->getContext(),
-        CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR,
+        CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
         sizeof(float)*bufferSize*components,
         volumeData
-    ); //CL_MEM_READ_ONLY //CL_MEM_COPY_HOST_PTR,
+    ); //CL_MEM_READ_ONLY //CL_MEM_COPY_HOST_PTR, //CL_MEM_ALLOC_HOST_PTR
 
     cl::Buffer mCLSemaphore = cl::Buffer(
         clDevice->getContext(),
-        CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR,
-        sizeof(int)*bufferSize
+        CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+        sizeof(int)*bufferSize,
+        semaphore
     );
     std::cout << "Alg CL part 3" << std::endl;
     cl::CommandQueue cmdQueue = clDevice->getCommandQueue();
@@ -1054,8 +1101,8 @@ void Us3Dhybrid::executeAlgorithm(){
         Vector2i bDirRange = getFrameRangeInVolume(frameNr, domDir, 1); //b: 1
         int aDirStart = aDirRange(0);
         int bDirStart = bDirRange(0);
-        int aDirSize = aDirRange(1) - aDirRange(0); //mod by -1 or +1 elns?
-        int bDirSize = bDirRange(1) - bDirRange(0); //mod by -1 or +1 elns?
+        int aDirSize = aDirRange(1) - aDirRange(0) + 1; //mod by -1 or +1 elns? Tror det er +1
+        int bDirSize = bDirRange(1) - bDirRange(0) + 1; //mod by -1 or +1 elns?
         //For each a in a-dir
         //for (int a = aDirRange(0); a <= aDirRange(1); a++){
         //For each b in b-dir
@@ -1106,6 +1153,18 @@ void Us3Dhybrid::executeAlgorithm(){
         mKernel.setArg(14, outputDataType); // should be int like CLK_FLOAT
         //CAN define bufferXY or bufferZ in buildString
         mKernel.setArg(15, mCLSemaphore);
+        int sizeRun = 1;
+        int* didRun = new int[sizeRun];
+        didRun[0] = 0;
+        cl::Buffer mDidRun = cl::Buffer(
+            clDevice->getContext(),
+            CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+            sizeof(int)*sizeRun,
+            didRun
+            );
+        mKernel.setArg(16, mDidRun);
+
+        
 
         cmdQueue.enqueueNDRangeKernel(
             mKernel,
@@ -1114,7 +1173,9 @@ void Us3Dhybrid::executeAlgorithm(){
             cl::NullRange
             );
         cmdQueue.finish();
-        //cmdQueue.finish();
+        
+        int ran = didRun[0];
+        std::cout << "Did it really run til setRan? " << ran << "!" << std::endl;
         //clFinish(cmdQueue);
     }
     //mCLSemaphore
@@ -1206,7 +1267,7 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
         //TODOOOO
         //T * inputData = (T*)inputAccess->get();
         //T * outputData = (T*)outputAccess->get();
-        frameData = (int*)frameAccess->get();
+        frameData = (uchar*)frameAccess->get();
         frameSize = frame->getSize();
         frameChannels = frame->getNrOfComponents();
         frameType = frame->getDataType();
@@ -1243,13 +1304,18 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
                         continue;
                     } it2++;
                     float distance = getPointDistanceAlongNormal(volumePoint, thisFrameRootPoint, imagePlaneNormal);
-                    if (fabs(distance) >= df){ continue; }
+                    if (fabs(distance) > df){ continue; } // >=
                     Vector3f intersectionPointWorld = getIntersectionOfPlane(volumePoint, distance, imagePlaneNormal);
                     Vector3f intersectionPointLocal = getLocalIntersectionOfPlane(intersectionPointWorld, thisFrameInverseTransform);
                     if (isWithinFrame(intersectionPointLocal, thisFrameSize, 0.5f, 0.5f)){
                         //float p = getPixelValue(intersectionPointLocal);
                         float p = getPixelValueData(intersectionPointLocal);
                         //float absDist = fabs(distance);
+                        //float sd = std::max(1.0f, df); //standard deviation
+                        //float w = 1/sd * std::exp(-0.5f * distance * distance) //better for INT?
+                        //float w1 = std::exp(-0.5f * pow(distance / (sd), 2.0));
+                        //float w2 = std::exp(-0.5f * pow(distance, 2.0) / pow(sd, 2.0));
+                        //float w = 1.0f * std::exp( -0.5 * pow( distance/sd, 2.0) );//gaussian a*e^( -((x-b)^2)/ 2c^2) where x-b = distance
                         float w = 1 - (fabs(distance) / df); //Or gaussian for trail
                         //accumulateValuesInVolume(volumePoint, p, w);
                         accumulateValuesInVolumeData(volumePoint, p, w);
