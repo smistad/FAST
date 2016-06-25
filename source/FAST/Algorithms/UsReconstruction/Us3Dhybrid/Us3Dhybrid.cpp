@@ -128,6 +128,19 @@ void Us3Dhybrid::waitToFinish() {
     }
 }
 
+void Us3Dhybrid::accumulateValuesInVolumeData(Vector3i volumePoint, float p, float w){
+    //volData available from Us3Dhybrid as float *
+    int loc = (volumePoint.x() + volumePoint.y()*yLocMultiplier + volumePoint.z()*zLocMultiplier) * 2;
+    float oldP = volData[loc];
+    float oldW = volData[loc + 1];
+    if (oldP < 0.0f) oldP = 0.0f;
+    if (oldW < 0.0f) oldW = 0.0f;
+    float newP = oldP + p*w;
+    float newW = oldW + w;
+    volData[loc] = newP;
+    volData[loc + 1] = newW;
+}
+
 void Us3Dhybrid::accumulateValuesInVolume(Vector3i volumePoint, float p, float w){
     //volAccess available from Us3Dhybrid as ImageAccess::pointer
     float oldP = volAccess->getScalar(volumePoint, 0); //out of bounds????
@@ -210,6 +223,105 @@ AffineTransformation::pointer Us3Dhybrid::getInverseTransformation(Image::pointe
     Vector4f i2 = inverseTransformMatrix.row(2);
     Vector4f i3 = inverseTransformMatrix.row(3);
     return inverseTransformation;
+}
+
+float Us3Dhybrid::getPixelValueData(Vector3f point){
+    //Gets frameAccess from Us3Dhybrid class
+    float x = point(0);
+    float y = point(1);
+    int z = round(point(2));
+    int xCeil = ceil(x);
+    int yCeil = ceil(y);
+    if (xCeil < 0 || yCeil < 0 || z != 0 || xCeil > frameSize.x()-1 || yCeil > frameSize.y()-1){
+        //Throw error? Should not need to occur if appropriate bufferXY in last function
+        return 0.0f;
+    }
+    /*
+
+    //using TYPE_UINT8(1)
+    defined by: fastCaseTypeMacro(TYPE_UINT8, uchar, call)
+    if(position.x() < 0 || position.y() < 0 || position.z() < 0 ||
+            position.x() > size.x()-1 || position.y() > size.y()-1 || position.z() > size.z()-1 || channel >= image->getNrOfComponents())
+        throw OutOfBoundsException();
+
+        T value = data[(position.x() + position.y()*size.x() + position.z()*size.x()*size.y())*image->getNrOfComponents() + channel];
+
+        float floatValue;
+        if(image->getDataType() == TYPE_SNORM_INT16) {
+        floatValue = std::max(-1.0f, (float)value / 32767.0f);
+        } else if(image->getDataType() == TYPE_UNORM_INT16) {
+        floatValue = (float)value / 65535.0f;
+        } else {
+        floatValue = value;
+        }
+
+        return floatValue;
+    */
+    int sizeX = frameSize.x();
+    int sizeY = frameSize.y();
+    int yMod = xCeil + yCeil * frameSize.x();
+    int yMod2 = xCeil + yCeil * sizeX;
+    int chan = frameChannels;
+    DataType type = frameType;
+
+    int xFloor = floor(x);
+    int yFloor = floor(y);
+    if (xFloor < 0){
+        int loc = (xCeil + yCeil*frameSize.x() + z*frameSize.x()*frameSize.y())*firstFrame->getNrOfComponents() + 0;// channel;
+        int locMaxMax = (xCeil + yCeil * frameSize.x())*3;
+        uchar pMaxMax = frameData[locMaxMax];
+        //float pMaxMax = frameAccess->getScalar(Vector3i(xCeil, yCeil, z));
+        if (yFloor < 0){
+            //Case 1
+            return (float)pMaxMax;
+        }
+        else {
+            //Case 3
+            int locMaxMin = (xCeil + yFloor * frameSize.x())*3;
+            uchar pMaxMin = frameData[locMaxMin];
+            //float pMaxMin = frameAccess->getScalar(Vector3i(xCeil, yFloor, z));
+            float v = y - yFloor;
+            float pRight = ((float)pMaxMin)*(1 - v) + ((float)pMaxMax)*v;
+            return pRight;
+        }
+    }
+    else if (yFloor < 0){
+        //Case 2
+        float u = x - xFloor;
+        int locMinMax = (xFloor + yCeil * frameSize.x()) * 3;
+        int locMaxMax = (xCeil + yCeil * frameSize.x()) * 3;
+        uchar pMinMax = frameData[locMinMax];
+        uchar pMaxMax = frameData[locMaxMax];
+        //float pMinMax = frameAccess->getScalar(Vector3i(xFloor, yCeil, z));
+        //float pMaxMax = frameAccess->getScalar(Vector3i(xCeil, yCeil, z));
+        float pBot = ((float)pMinMax)*(1 - u) + ((float)pMaxMax)*u;
+        return pBot;
+    }
+    else {
+        int loc = (xFloor + yFloor*frameSize.x() + z*frameSize.x()*frameSize.y())*firstFrame->getNrOfComponents() + 0;// channel;
+        int locMinMin = (xFloor + yFloor * frameSize.x()) * 3;
+        int locMinMax = (xFloor + yCeil * frameSize.x()) * 3;
+        int locMaxMin = (xCeil + yFloor * frameSize.x()) * 3;
+        int locMaxMax = (xCeil + yCeil * frameSize.x()) * 3;
+        uchar pMinMin = frameData[locMinMin];
+        uchar pMinMax = frameData[locMinMax];
+        uchar pMaxMin = frameData[locMaxMin];
+        uchar pMaxMax = frameData[locMaxMax];
+        /*
+        float pMinMin = frameAccess->getScalar(Vector3i(xFloor, yFloor, z)); //ev 0 for point(2) or round?
+        float pMinMax = frameAccess->getScalar(Vector3i(xFloor, yCeil, z));
+        float pMaxMin = frameAccess->getScalar(Vector3i(xCeil, yFloor, z));
+        float pMaxMax = frameAccess->getScalar(Vector3i(xCeil, yCeil, z));
+        */
+        //Calculate horizontal interpolation
+        float u = point(0) - floor(point(0));
+        float pTop = ((float)pMinMin)*(1 - u) + ((float)pMaxMin)*u;
+        float pBot = ((float)pMinMax)*(1 - u) + ((float)pMaxMax)*u;
+        //Calculate final vertical interpolation
+        float v = point(1) - floor(point(1));
+        float pValue = pTop*(1 - v) + pBot*v;//pBot*(1 - v) + pTop*v;
+        return pValue;
+    }
 }
 
 //float p = getPixelValue(frameAccess, intersectionPointLocal);
@@ -1017,15 +1129,19 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
     //Get access to volume on which we accumulate the values in
     // (volAccess is defined globally in Us3Dhybrid as an ImageAccess::pointer)
     volAccess = AccumulationVolume->getImageAccess(accessType::ACCESS_READ_WRITE);
+   // float * outputData 
+    volData= (float*)volAccess->get();
+    yLocMultiplier = volumeSize.x();
+    zLocMultiplier = volumeSize.x() * volumeSize.y();
     
     std::cout << "Running with dv: " << dv << " and Rmax: " << Rmax << std::endl;
 
-    frameSize = firstFrame->getSize(); //Vector3ui
-    uint * writesToPixel = new uint[frameSize.x()*frameSize.y()];
+    Vector3ui frameSizeWrites = firstFrame->getSize(); //Vector3ui
+    uint * writesToPixel = new uint[frameSizeWrites.x()*frameSizeWrites.y()];
     {
-        for (int x = 0; x < frameSize.x(); x++){
-            for (int y = 0; y < frameSize.y(); y++){
-                int loc = x + y*frameSize.x();
+        for (int x = 0; x < frameSizeWrites.x(); x++){
+            for (int y = 0; y < frameSizeWrites.y(); y++){
+                int loc = x + y*frameSizeWrites.x();
                 writesToPixel[loc] = 0;
             }
         }
@@ -1090,6 +1206,10 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
         //TODOOOO
         //T * inputData = (T*)inputAccess->get();
         //T * outputData = (T*)outputAccess->get();
+        frameData = (int*)frameAccess->get();
+        frameSize = frame->getSize();
+        frameChannels = frame->getNrOfComponents();
+        frameType = frame->getDataType();
 
         // Find size of non-dominating directions in volume space (a-dir & b-dir)
         Vector2i aDirRange = getFrameRangeInVolume(frameNr, domDir, 0); //a: 0
@@ -1100,10 +1220,10 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
                 //Find basePoint in the plane based on the a and b values
                 Vector3f basePoint = getBasePointInPlane(thisFrameRootPoint, imagePlaneNormal, thisFramePlaneDvalue, a, b, domDir);
                 //TODO determine if reasonably close to plane? Elimination/speedup (use inverseTrans)
-                Vector3f crossLocal = getLocalIntersectionOfPlane(basePoint, thisFrameInverseTransform);
+                /*Vector3f crossLocal = getLocalIntersectionOfPlane(basePoint, thisFrameInverseTransform);
                 if (!isWithinFrame(crossLocal, thisFrameSize, 1.0f, 0.5f)){
                     continue;
-                }
+                }*/
 
                 //Find distance to last and next frame
                 float d1 = getDistanceAlongNormal(basePoint, imagePlaneNormal, lastFrameRootPoint, lastFrameNormal); //TODO check if correct
@@ -1127,10 +1247,12 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
                     Vector3f intersectionPointWorld = getIntersectionOfPlane(volumePoint, distance, imagePlaneNormal);
                     Vector3f intersectionPointLocal = getLocalIntersectionOfPlane(intersectionPointWorld, thisFrameInverseTransform);
                     if (isWithinFrame(intersectionPointLocal, thisFrameSize, 0.5f, 0.5f)){
-                        float p = getPixelValue(intersectionPointLocal);
+                        //float p = getPixelValue(intersectionPointLocal);
+                        float p = getPixelValueData(intersectionPointLocal);
                         //float absDist = fabs(distance);
                         float w = 1 - (fabs(distance) / df); //Or gaussian for trail
-                        accumulateValuesInVolume(volumePoint, p, w);
+                        //accumulateValuesInVolume(volumePoint, p, w);
+                        accumulateValuesInVolumeData(volumePoint, p, w);
                         {
                             //Stats
                             int loc = round(intersectionPointLocal.x()) + round(intersectionPointLocal.y())*frameSize.x();

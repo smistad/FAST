@@ -45,11 +45,13 @@ namespace fast {
 
         // Helper functions in class
         void accumulateValuesInVolume(Vector3i volumePoint, float p, float w);
+        void accumulateValuesInVolumeData(Vector3i volumePoint, float p, float w);
         void addTransformationToFrame(Image::pointer frame, AffineTransformation::pointer addTransformation);
         Vector2i getFrameRangeInVolume(int frameNr, int domDir, int dir);
         AffineTransformation::pointer getInverseTransformation(Image::pointer frame);
 
         float getPixelValue(Vector3f point); 
+        float getPixelValueData(Vector3f point);
 
         // Previously non-class helper functions
         Vector3f getIntersectionOfPlane(Vector3i startPoint, float distance, Vector3f normalVector);
@@ -92,12 +94,18 @@ namespace fast {
 
         // Images and volumes
         Image::pointer firstFrame;
-        Vector3i volumeSize;
-        Vector3ui frameSize;
         Image::pointer outputVolume;
         Image::pointer AccumulationVolume;
         ImageAccess::pointer volAccess;
+        Vector3i volumeSize;
+        float * volData;
+        int yLocMultiplier;
+        int zLocMultiplier;
         ImageAccess::pointer frameAccess;
+        Vector3ui frameSize;
+        int * frameData;
+        uint frameChannels;
+        DataType frameType;
 
         // List
         std::vector<Image::pointer> frameList; //TODO finn noe med bigger kapasitet

@@ -39,10 +39,10 @@ int main() {
     float scaleToMax = float(scaleToMaxInt);
     float voxelSpacing = 0.2f; //0.1f; //0.5f; //0.2f; // 0.03 / 0.01 //dv // Større verdi gir mindre oppløsning
     float globalScaling = 1.0f;  //5.0f; //7/10 osv
-    float initZSpacing = 0.3f; //0.5f // 2.0f;          //1.0f // 0.2f; // 0.1f; // 0.05f; // 0.1f / 0.02f
+    float initZSpacing = 0.5f; // 0.2f; //0.3f seems fine //0.5f // 2.0f;          //1.0f // 0.2f; // 0.1f; // 0.05f; // 0.1f / 0.02f
     //initZ - større verdi gir større z-akse i volum
     float calcedDV = 20.0f * globalScaling * initZSpacing * voxelSpacing; // 0.1 *  // / 4.0;
-    float setDV = 0.25f; //0.5f; //0.2f; //0.5f; // calcedDV;// 0.05f;
+    float setDV = initZSpacing;// 0.1f; // 0.25f; //0.5f; //0.2f; //0.5f; // calcedDV;// 0.05f;
     float maxRvalue = setDV * 6; //8; //0.2f; //0.5f// 1.0f; //2.0f;// voxelSpacing * 2 * globalScaling; //*(200/globalScaling) // *globalScaling * 3;
     
     bool runVNNonly = false;
@@ -81,7 +81,7 @@ int main() {
         else if (runPNNonly){
             runningStyle += "PNN_";//std::to_string(runPNNonly);
         }
-        output_filename += _filePath + "VOLUME_" + runningStyle + "start-" + streamStart + "@" + streamStep;
+        output_filename += _filePath + "VOLUME_data_rw_" + runningStyle + "start-" + streamStart + "@" + streamStep;
         output_filename += "(s" + volumeSpacing + "_gS" + volumeGlobalScaling + "_dv" + volumeDV + "_rMaz" + volumeRmax + "_z" + volumeZinitSpacing + ")" + ".mhd";
         std::cout << "Output filename: " << output_filename << std::endl;
         //std::string output_filename = std::string(FAST_TEST_DATA_DIR) + "/output/" + "VolumeOutput.mhd";
