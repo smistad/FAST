@@ -93,6 +93,7 @@ namespace fast {
         // Images and volumes
         Image::pointer firstFrame;
         Vector3i volumeSize;
+        Vector3ui frameSize;
         Image::pointer outputVolume;
         Image::pointer AccumulationVolume;
         ImageAccess::pointer volAccess;

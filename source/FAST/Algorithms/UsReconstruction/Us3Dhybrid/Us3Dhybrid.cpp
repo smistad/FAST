@@ -145,8 +145,16 @@ void Us3Dhybrid::addTransformationToFrame(Image::pointer frame, AffineTransforma
     //Might just be a translation
     AffineTransformation::pointer oldImgTransform = SceneGraph::getAffineTransformationFromData(frame);
     //AffineTransformation::pointer newImgTransform = oldImgTransform->multiply(addTransformation);
-
-    //* for a coeff-wise product use: v1.cwiseProduct(v2)
+    Matrix4f transformMatrix = addTransformation->matrix();
+    Vector4f t0 = transformMatrix.row(0);
+    Vector4f t1 = transformMatrix.row(1);
+    Vector4f t2 = transformMatrix.row(2);
+    Vector4f t3 = transformMatrix.row(3);
+    Matrix4f thisMatrix = oldImgTransform->matrix();
+    Vector4f i0 = thisMatrix.row(0);
+    Vector4f i1 = thisMatrix.row(1);
+    Vector4f i2 = thisMatrix.row(2);
+    Vector4f i3 = thisMatrix.row(3);
     AffineTransformation::pointer newImgTransform = addTransformation->multiply(oldImgTransform);
     //ev?
     //AffineTransformation::pointer newImgTransform = oldImgTransform + addTransformation;
@@ -212,7 +220,7 @@ float Us3Dhybrid::getPixelValue(Vector3f point){
     int z = round(point(2));
     int xCeil = ceil(x);
     int yCeil = ceil(y);
-    if (xCeil < 0 || yCeil < 0){
+    if (xCeil < 0 || yCeil < 0 || z != 0 || xCeil >= frameSize.x() || yCeil >= frameSize.y()){
         //Throw error? Should not need to occur if appropriate bufferXY in last function
         return 0.0f;
     }
@@ -259,7 +267,7 @@ float Us3Dhybrid::getPixelValue(Vector3f point){
 // ##### ##### Other functions ##### ##### //
 
 // TODO implement
-AffineTransformation::pointer getTranslationFromVector(Vector3f minCoords){ //eller Us3Dhybrid::
+AffineTransformation::pointer getTranslationFromMinCoordsVector(Vector3f minCoords){ //eller Us3Dhybrid::
     //get a transformation of translation -(minCoords) (ie. -(-10) = +10)
     Eigen::Translation3f translation = Eigen::Translation3f(-minCoords(0), -minCoords(1), -minCoords(2));
     AffineTransformation::pointer output = AffineTransformation::New();
@@ -309,7 +317,7 @@ bool Us3Dhybrid::isWithinFrame(Vector3f intersectionPointLocal, Vector3ui frameS
             inside = false;
             break;
         }
-        if (point - bufferXY > float(size)){ //Bigger val than frame on this axis
+        if (point - bufferXY > float(size-1)){ //Bigger val than frame on this axis //MAYBE remove bufferXY here? Or add plus
             inside = false;
             break;
         }
@@ -414,8 +422,8 @@ float Us3Dhybrid::getDistanceAlongNormal(Vector3f point, Vector3f normal, Vector
 Vector2i Us3Dhybrid::getDomDirRange(Vector3f basePoint, int domDir, float dfDom, Vector3i volumeSize){
     float rootC = basePoint(domDir);
     int domDirSize = volumeSize(domDir);
-    int startC = std::max(0.0f, ceil(rootC - dfDom));
-    int endC = std::min(ceil(rootC + dfDom), float(domDirSize-1));
+    int startC = std::max(0.0f, ceil(rootC - dfDom)); //std::max(0.0f, round(rootC - dfDom)); //std::max(0.0f, ceil(rootC - dfDom));
+    int endC = std::min(floor(rootC + dfDom), float(domDirSize - 1)); //std::min(round(rootC + dfDom), float(domDirSize - 1)); //std::min(ceil(rootC + dfDom), float(domDirSize - 1));
     return Vector2i(startC, endC);
 }
 
@@ -1012,30 +1020,30 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
     
     std::cout << "Running with dv: " << dv << " and Rmax: " << Rmax << std::endl;
 
-    Vector3ui frameSize = firstFrame->getSize();
-    int * writesToPixel = new int[frameSize.x()*frameSize.y()];
-    for (int x = 0; x < frameSize.x(); x++){
-        for (int y = 0; y < frameSize.y(); y++){  
-            int loc = x + y*frameSize.x();
-            writesToPixel[loc] = 0;
+    frameSize = firstFrame->getSize(); //Vector3ui
+    uint * writesToPixel = new uint[frameSize.x()*frameSize.y()];
+    {
+        for (int x = 0; x < frameSize.x(); x++){
+            for (int y = 0; y < frameSize.y(); y++){
+                int loc = x + y*frameSize.x();
+                writesToPixel[loc] = 0;
+            }
         }
     }
-    
     int itTotal = 0;
     int it2Total = 0;
-    clock_t startLoopTime = clock();    
+    clock_t startLoopTime = clock();
+    float dfSum; int it; int it2; clock_t startFrameTime; //LOCAL per frame
     // For each FRAME
     for (int frameNr = 0; frameNr < frameList.size(); frameNr++){
         // Get FRAME
         std::cout << "------------------------------- Running frame #" << frameNr << "--------------" << std::endl;
-        //std::cout << "Running for frame #" << frameNr << std::endl;
         Image::pointer frame = frameList[frameNr];
         //PNN option
         if (runAsPNNonly){
             executeFramePNN(frame);
             continue;
         }
-
         // Calc imagePlaneNormal and dominating direction of it
         Vector3f imagePlaneNormal = framePlaneNormalList[frameNr]; //getImagePlaneNormal(frame);
         int domDir = getDominatingVectorDirection(imagePlaneNormal);
@@ -1045,35 +1053,40 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
         Vector3ui thisFrameSize = frame->getSize();
         float thisFramePlaneDvalue = framePlaneDValueList[frameNr];
         AffineTransformation::pointer thisFrameInverseTransform = frameInverseTransformList[frameNr];
+        {
+            Vector3f pointVolZero = thisFrameInverseTransform->multiply(Vector3f(0, 0, 0));
+            Vector3f volMax = Vector3f(volumeSize(0) - 1.0f, volumeSize(1) - 1.0f, volumeSize(2) - 1.0f);
+            Vector3f pointVolHero = thisFrameInverseTransform->multiply(volMax);
+            Matrix4f invMatrix = thisFrameInverseTransform->matrix();
+            Vector4f t0 = invMatrix.row(0);
+            Vector4f t1 = invMatrix.row(1);
+            Vector4f t2 = invMatrix.row(2);
+            Vector4f t3 = invMatrix.row(3);
+            bool tFoo = false;
+        }
         Vector3f lastFrameRootPoint, lastFrameNormal, nextFrameRootPoint, nextFrameNormal;
-        if (frameNr != 0){
-            lastFrameRootPoint = frameBaseCornerList[frameNr - 1];
-            lastFrameNormal = framePlaneNormalList[frameNr - 1];
+        {
+            if (frameNr != 0){
+                lastFrameRootPoint = frameBaseCornerList[frameNr - 1];
+                lastFrameNormal = framePlaneNormalList[frameNr - 1];
+            }
+            if (frameNr != frameList.size() - 1){
+                nextFrameRootPoint = frameBaseCornerList[frameNr + 1];
+                nextFrameNormal = framePlaneNormalList[frameNr + 1];
+            }
         }
-        if (frameNr != frameList.size() - 1){
-            nextFrameRootPoint = frameBaseCornerList[frameNr + 1];
-            nextFrameNormal = framePlaneNormalList[frameNr + 1];
+        {
+            // STATISTICS 
+            dfSum = 0.0f;
+            it = 0;
+            it2 = 0;
+            //cpu time clock()
+            //wall time time()
+            startFrameTime = clock();
+            // END STATS
         }
-        /*//Placeholders
-        Vector3f thisFrameRootPoint = Vector3f(0, 0, 0);
-        Vector3f lastFrameRootPoint = Vector3f(0, 0, 0);
-        Vector3f lastFrameNormal = Vector3f(0, 0, 0);
-        Vector3f nextFrameRootPoint = Vector3f(0, 0, 0);
-        Vector3f nextFrameNormal = Vector3f(0, 0, 0);
-        */
-
-        // STATISTICS 
-        float dfSum = 0.0f;
-        int it = 0;
-        int it2 = 0;
-        //cpu time clock()
-        //wall time time()
-        clock_t startFrameTime = clock();
         
-        // END STATS
-
-        // Get frame access
-        frameAccess = frame->getImageAccess(accessType::ACCESS_READ); // ImageAccess::pointer global
+        frameAccess = frame->getImageAccess(accessType::ACCESS_READ); // Get frame access // ImageAccess::pointer global
         //TODOOOO
         //T * inputData = (T*)inputAccess->get();
         //T * outputData = (T*)outputAccess->get();
@@ -1081,12 +1094,9 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
         // Find size of non-dominating directions in volume space (a-dir & b-dir)
         Vector2i aDirRange = getFrameRangeInVolume(frameNr, domDir, 0); //a: 0
         Vector2i bDirRange = getFrameRangeInVolume(frameNr, domDir, 1); //b: 1
-
-        //For each a in a-dir
-        for (int a = aDirRange(0); a <= aDirRange(1); a++){
-            //std::cout << ".";
-            //For each b in b-dir
-            for (int b = bDirRange(0); b <= bDirRange(1); b++){
+        for (int a = aDirRange(0); a <= aDirRange(1); a++){ //For each a in a-dir
+            std::cout << ".";
+            for (int b = bDirRange(0); b <= bDirRange(1); b++){ //For each b in b-dir
                 //Find basePoint in the plane based on the a and b values
                 Vector3f basePoint = getBasePointInPlane(thisFrameRootPoint, imagePlaneNormal, thisFramePlaneDvalue, a, b, domDir);
                 //TODO determine if reasonably close to plane? Elimination/speedup (use inverseTrans)
@@ -1096,43 +1106,37 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
                 //Calculate half width df and dfDom
                 float df = calculateHalfWidth(d1, d2, dv, Rmax);
                 float dfDom = df / domVal;
-
-                dfSum += df;
-                it++;
-
+                {
+                    dfSum += df;
+                    it++;
+                }
                 //Indeks for c-dir range in domDir
                 Vector2i cDirRange = getDomDirRange(basePoint, domDir, dfDom, volumeSize);
-                //For hver c i c-dir
-                for (int c = cDirRange(0); c <= cDirRange(1); c++){
+                for (int c = cDirRange(0); c <= cDirRange(1); c++){ //For hver c i c-dir
                     Vector3i volumePoint = getVolumePointLocation(a, b, c, domDir);
                     if (volumePointOutsideVolume(volumePoint, volumeSize)){
                         continue;
-                    }
-                    it2++;
+                    } it2++;
                     float distance = getPointDistanceAlongNormal(volumePoint, thisFrameRootPoint, imagePlaneNormal);
+                    if (fabs(distance) >= df){ continue; }
                     Vector3f intersectionPointWorld = getIntersectionOfPlane(volumePoint, distance, imagePlaneNormal);
                     Vector3f intersectionPointLocal = getLocalIntersectionOfPlane(intersectionPointWorld, thisFrameInverseTransform);
-                    if (intersectionPointLocal.x() > 35.0f || intersectionPointLocal.y() > 35.0f){
-                        bool something = false;
-                    }
                     if (isWithinFrame(intersectionPointLocal, thisFrameSize, 0.5f, 0.5f)){
                         float p = getPixelValue(intersectionPointLocal);
+                        float absDist = fabs(distance);
                         float w = 1 - (fabs(distance) / df); //Or gaussian for trail
                         accumulateValuesInVolume(volumePoint, p, w);
-
-                        if (intersectionPointLocal.x() > 35.0f || intersectionPointLocal.y() > 35.0f){
-                            bool something = false;
+                        {
+                            //Stats
+                            int loc = round(intersectionPointLocal.x()) + round(intersectionPointLocal.y())*frameSize.x();
+                            writesToPixel[loc]++;
                         }
-
-                        //Stats
-                        int loc = round(intersectionPointLocal.x()) + round(intersectionPointLocal.y())*frameSize.x();
-                        writesToPixel[loc]++;
                     }
                 }
             }
         }
         frameAccess->release();
-        //std::cout << "!" << std::endl;
+        std::cout << "!" << std::endl;
 
         // FINAL STATS
         float dfAvg = dfSum / it; 
@@ -1157,6 +1161,7 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
             std::cout << "Tick: " << clockTicksTaken << " & " << timeInSeconds << "s! " << percentComplete << "% in " << minutesInLoop << "m" << secondsInMinute << "s" << " | Est. tot: " << estTotMin << "m" << estTotSec << "s; Rem.: " << estRemMin << "m" << estRemSec << "s!" << std::endl;
             //<< estimateTotalTimeSec << "s; Remains: " << estimateSecRemain << "s!" << std::endl; //<< "Spent "// << timeInSecondsLoop << "s or "
             //std::cout << "Est. tot: " << estimateTotalTimeSec << "s; Remains: " << estimateSecRemain << "s!" << std::endl;
+            std::cout << "" << std::endl;
         }
     }
     clock_t endLoopTime = clock();
@@ -1181,13 +1186,13 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
 
         Image::pointer readStatsImg = Image::New();
         //readStatsImg->createFromImage(firstFrame);
-        readStatsImg->create(frameSize, DataType::TYPE_INT8, 1);
+        readStatsImg->create(frameSize, DataType::TYPE_UINT16, 1);
         ImageAccess::pointer readImgAcc = readStatsImg->getImageAccess(ACCESS_READ_WRITE);
         for (int x = 0; x < frameSize.x(); x++){
             for (int y = 0; y < frameSize.y(); y++){
                 int loc = x + y*frameSize.x();
                 Vector3i pos = Vector3i(x, y, 0);
-                int value = writesToPixel[loc];
+                uint value = writesToPixel[loc];
                 readImgAcc->setScalar(pos, value, 0);
             }
         }
@@ -1346,10 +1351,15 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
     //and all pixels in this frame would be in the z=0 plane
      //inverseTransform();
 
+    Image::pointer testFrame = frameList[0];// 10]; //TO TEST THIS
+
     //INVERSE TRANSFORM
     AffineTransformation::pointer inverseSystemTransform = getInverseTransformation(rootFrame);
+    //std::vector<AffineTransformation::pointer> frameTransformList = {}; // std::vector global AffineTransformation::pointer
     Vector3f minCoords; {
         addTransformationToFrame(rootFrame, inverseSystemTransform);
+        //AffineTransformation::pointer oldImgTransform = SceneGraph::getAffineTransformationFromData(rootFrame);
+        
         //Transform all frames according to initial transform
         // & Find minimum
 
@@ -1363,6 +1373,17 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
             // Start transforming frame
             if (i != 0)
                 addTransformationToFrame(frame, inverseSystemTransform);
+
+            /*
+            if (i != 0){
+                AffineTransformation::pointer oldImgTransform = SceneGraph::getAffineTransformationFromData(rootFrame);
+            }
+            
+            AffineTransformation::pointer newImgTransform = inverseSystemTransform->multiply(oldImgTransform);
+            // TODO AT LAST Round instead: frame->getSceneGraphNode()->setTransformation(newImgTransform);
+            frameTransformList.push_back(newImgTransform);
+            */
+
             //AffineTransformation::pointer oldImgTransform = SceneGraph::getAffineTransformationFromData(frame);
             //AffineTransformation::pointer newImgTransform = oldImgTransform->multiply(inverseSystemTransform);
             //frame->getSceneGraphNode()->setTransformation(newImgTransform);
@@ -1379,41 +1400,80 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         }
     }
     
-  
-    //Transform all frames so that minimum corner is (0,0,0) //Just translate right?
-    // & Find min/max in each coordinate direction x/y/z
-    // & Store min/max/base/normal for each frame
-    // BIG TODO FIX THIS PART TODO TODO
-    
-    //MINIMUM TRANSFORM
-    AffineTransformation::pointer transformToMinimum = getTranslationFromVector(minCoords); //TODO extract these to methods
+    //Test frame 10
+    AffineTransformation::pointer testTransformation = SceneGraph::getAffineTransformationFromData(testFrame);
+    Vector3f pointZero = testTransformation->multiply(Vector3f(0, 0, 0));
+    Vector3f pointHero = testTransformation->multiply(Vector3f(350, 546, 0));
+    Matrix4f testMatrix = testTransformation->matrix();
+    Vector4f t0 = testMatrix.row(0);
+    Vector4f t1 = testMatrix.row(1);
+    Vector4f t2 = testMatrix.row(2);
+    Vector4f t3 = testMatrix.row(3);
+    bool tFoo = false;
+
+    /**Transform all frames so that minimum corner is (0,0,0) //Just translate right?
+    * & Find min/max in each coordinate direction x/y/z
+    * & Store min/max/base/normal for each frame
+    */
+    //MINIMUM TRANSFORM + scale to fit
+    AffineTransformation::pointer transformToMinimum = getTranslationFromMinCoordsVector(minCoords); //TODO extract these to methods
     AffineTransformation::pointer totalTransform;
     Matrix4f totalMatrix;
     Vector3f maxCoords; {
         addTransformationToFrame(rootFrame, transformToMinimum);
+        //Test frame 10
+        AffineTransformation::pointer testTransformationMin = SceneGraph::getAffineTransformationFromData(testFrame);
+        pointZero = testTransformationMin->multiply(Vector3f(0, 0, 0));
+        pointHero = testTransformationMin->multiply(Vector3f(350, 546, 0));
+        Matrix4f testMatrixMin = testTransformationMin->matrix();
+        t0 = testMatrix.row(0);
+        t1 = testMatrix.row(1);
+        t2 = testMatrix.row(2);
+        t3 = testMatrix.row(3);
+        tFoo = false;
+
         BoundingBox box2 = rootFrame->getTransformedBoundingBox();
 
-        //Scale to keep pixel/voxel spacing
+        //Scale to keep pixel/voxel spacing basicall nothing now - after fix! but can add scaling here!
         {
             BoundingBox boxUntransformed = rootFrame->getBoundingBox();
-            MatrixXf cTrans = box2.get2DCorners();
-            MatrixXf cUtrans = boxUntransformed.get2DCorners();
+            MatrixXf cTrans = box2.getCorners();
+            MatrixXf cUtrans = boxUntransformed.getCorners();
+            Vector3f i0 = cUtrans.row(0);
+            Vector3f i1 = cUtrans.row(1);
+            Vector3f i2 = cUtrans.row(2);
+            Vector3f i3 = cUtrans.row(3);
+            i0 = cTrans.row(0);
+            i1 = cTrans.row(1);
+            i2 = cTrans.row(2);
+            i3 = cTrans.row(3);
+            int boxSize = cUtrans.size();
             Vector3f tZeroCorner = cTrans.row(0);
-            Vector3f tEndCorner = cTrans.row(2);
+            Vector3f tEndCorner = cTrans.row(2); 
             Vector3f tDist = tEndCorner - tZeroCorner;
             Vector3f uZeroCorner = cUtrans.row(0);
-            Vector3f uEndCorner = cUtrans.row(2);
+            Vector3f uEndCorner = cUtrans.row(2); 
             Vector3f uDist = uEndCorner - uZeroCorner;
             float scaleX = uDist.x() / tDist.x();
             float scaleY = uDist.y() / tDist.y();
             //Ignoring Z
             Vector3f scaling = Vector3f(scaleX, scaleY, 1);
-            AffineTransformation::pointer scaleTransform = getScalingFromVector(scaling);
-            addTransformationToFrame(rootFrame, scaleTransform);
-            //AffineTransformation::pointer newImgTransform = addTransformation->multiply(oldImgTransform);
+            AffineTransformation::pointer scaleOneTransform = getScalingFromVector(scaling);
+            addTransformationToFrame(rootFrame, scaleOneTransform);
+            //Testing
+            box2 = rootFrame->getTransformedBoundingBox();
+            Vector3f cornerA = box2.getCorners().row(0);
+            Vector3f cornerB = box2.getCorners().row(2);
             // ADD scaleTransform to transformToMinimum
-            transformToMinimum = scaleTransform->multiply(transformToMinimum);
+            transformToMinimum = scaleOneTransform->multiply(transformToMinimum);
+            /*Matrix4f minMatrix = transformToMinimum->matrix();
+            Vector4f t0 = minMatrix.row(0);
+            Vector4f t1 = minMatrix.row(1);
+            Vector4f t2 = minMatrix.row(2);
+            Vector4f t3 = minMatrix.row(3);
+            bool foo2 = false;*/
             //DONE scaling
+
         }
         
         box2 = rootFrame->getTransformedBoundingBox();
@@ -1432,8 +1492,8 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
                 addTransformationToFrame(frame, transformToMinimum);
             // Check corners for minimum
             BoundingBox box = frame->getTransformedBoundingBox();
-            MatrixXf corners = box.get2DCorners();
-            for (int j = 0; j < 4; j++){ //8
+            MatrixXf corners = box.getCorners();
+            for (int j = 0; j < 8; j++){ //8
                 for (int k = 0; k < 3; k++){
                     float pointValue = corners(j, k);
                     if (pointValue < minCoords(k))
@@ -1459,6 +1519,17 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         Vector4f s3 = minTransformMatrix.row(3);
     }
     
+    //Test frame 10
+    AffineTransformation::pointer testTransformation2 = SceneGraph::getAffineTransformationFromData(testFrame);
+    pointZero = testTransformation2->multiply(Vector3f(0, 0, 0));
+    pointHero = testTransformation2->multiply(Vector3f(350, 546, 0));
+    Matrix4f testMatrix2 = testTransformation2->matrix();
+    t0 = testMatrix2.row(0);
+    t1 = testMatrix2.row(1);
+    t2 = testMatrix2.row(2);
+    t3 = testMatrix2.row(3);
+    tFoo = false;
+
     // FIND SCALING
     Vector3f scaling; {
         // Find size current Init volume of size max-min in each direction x/y/z
@@ -1571,8 +1642,37 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         Vector4f f1 = finalTransformMatrix.row(1);
         Vector4f f2 = finalTransformMatrix.row(2);
         Vector4f f3 = finalTransformMatrix.row(3);
+        //Print final transform matrix
+        std::cout << " ## Final transform matrix: ## " << std::endl;
+        std::cout << "________________________________________" << std::endl;
+        std::cout << "| " << f0(0) << " | " << f0(1) << " | " << f0(2) << " | " << f0(3) << " |" << std::endl;
+        std::cout << "| " << f1(0) << " | " << f1(1) << " | " << f1(2) << " | " << f1(3) << " |" << std::endl;
+        std::cout << "| " << f2(0) << " | " << f2(1) << " | " << f2(2) << " | " << f2(3) << " |" << std::endl;
+        std::cout << "| " << f3(0) << " | " << f3(1) << " | " << f3(2) << " | " << f3(3) << " |" << std::endl;
+        std::cout << "________________________________________" << std::endl;
+        std::cout << " ## End final transform matrix: ## " << std::endl;
     }
     
+
+    //Test frame 10
+    AffineTransformation::pointer testTransformation3 = SceneGraph::getAffineTransformationFromData(testFrame);
+    pointZero = testTransformation3->multiply(Vector3f(0, 0, 0));
+    pointHero = testTransformation2->multiply(Vector3f(350, 546, 0));
+    Matrix4f testMatrix3 = testTransformation3->matrix();
+    t0 = testMatrix3.row(0);
+    t1 = testMatrix3.row(1);
+    t2 = testMatrix3.row(2);
+    t3 = testMatrix3.row(3);
+    AffineTransformation::pointer testTransformationInverse = testTransformation3->getInverse();
+    Vector3f pointVolZero = testTransformationInverse->multiply(Vector3f(0, 0, 0));
+    Vector3f pointVolHero = testTransformationInverse->multiply(Vector3f(100, 100, 10));
+    Matrix4f testMatrix4 = testTransformationInverse->matrix();
+    t0 = testMatrix4.row(0);
+    t1 = testMatrix4.row(1);
+    t2 = testMatrix4.row(2);
+    t3 = testMatrix4.row(3);
+    tFoo = false;
+
     // FINAL CALCULATIONS & TEST
     Vector3f size;
     {
@@ -1580,19 +1680,23 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         //totalTransform/totalMatrix
         //Vector4f point0f = totalMatrix * Vector4f(0, 0, 0, 1);
         //Vector4f pointEndf = totalMatrix * Vector4f(280, 400, 0, 1);
-        Vector3f pointZero = totalTransform->multiply(Vector3f(0, 0, 0));
-        Vector3f pointHero = totalTransform->multiply(Vector3f(280, 400, 0));
+        pointZero = totalTransform->multiply(Vector3f(0, 0, 0));
+        pointHero = totalTransform->multiply(Vector3f(350, 546, 0));
         // Init volume of size max - min in each direction x / y / z
         size = maxCoords - minCoords;
         volumeSize = Vector3i(ceil(size(0)) + 1, ceil(size(1)) + 1, ceil(size(2)) + 1);
-        std::cout << "Final volumeSize: " << volumeSize << std::endl;
+        Vector3f pointVolZero = testTransformationInverse->multiply(Vector3f(0, 0, 0));
+        Vector3f pointVolHero = testTransformationInverse->multiply(size);
+        std::cout << "Final volumeSize:\n" << volumeSize << std::endl;
 
         //Calculate DV
         float zSize = volumeSize.z();
         int framesTot = frameList.size();
-        float multiplicator = 2.0f;
-        float calcDV = (round(100.0f  * multiplicator * (zSize / (float)(framesTot))) / 100.0f); //* 0.8f
+        float multiplicator = 1.0f;
+        float calcDV = (round(100.0f  * multiplicator * ((zSize-1) / (float)(framesTot))) / 100.0f); //* 0.8f
         float calcRmax = calcDV * 8.0f * multiplicator;
+        std::cout << "calcDV: " << calcDV << std::endl;
+        std::cout << "calcRmax: " << calcRmax << std::endl;
         bool good = false;
     }
 
