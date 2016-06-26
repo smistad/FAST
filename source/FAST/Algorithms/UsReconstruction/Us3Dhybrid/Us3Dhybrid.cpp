@@ -1045,25 +1045,27 @@ void Us3Dhybrid::executeAlgorithm(){
     int bufferSize = volumeSize(0)*volumeSize(1)*volumeSize(2);
     int components = 2;
     int * semaphore = new int[bufferSize];
-    /*for (int i = 0; i < bufferSize; i++){
-        if (i%10000 == 0)
+    for (int i = 0; i < bufferSize; i++){
+        if (i%1000000 == 0)
             std::cout << ".";
         volumeData[i] = 0.0f;
         volumeData[bufferSize + i] = 0.0f;
         semaphore[i] = 0;
     }
     std::cout << "!" << std::endl;
-    */
+
+    cl_mem_flags flags = CL_MEM_READ_WRITE;// | CL_MEM_COPY_HOST_PTR;
+    
     mCLVolume = cl::Buffer(
         clDevice->getContext(),
-        CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+        flags,
         sizeof(float)*bufferSize*components,
         volumeData
         ); //CL_MEM_READ_ONLY //CL_MEM_COPY_HOST_PTR, //CL_MEM_ALLOC_HOST_PTR
 
     cl::Buffer mCLSemaphore = cl::Buffer(
         clDevice->getContext(),
-        CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+        flags,
         sizeof(int)*bufferSize,
         semaphore
         );
@@ -1078,8 +1080,8 @@ void Us3Dhybrid::executeAlgorithm(){
     size_t fillSize = (sizeof(float)*bufferSize*components);
     //std::vector<cl::Event> events = {};
     cl_int err = '\0';
-    err = cmdQueue.enqueueFillBuffer<float>(mCLVolume, 0.0f, startLoc, fillSize);
-    err = cmdQueue.enqueueFillBuffer<int>(mCLSemaphore, 0, startLoc, (size_t)(sizeof(int)*bufferSize));
+    //err = cmdQueue.enqueueFillBuffer<float>(mCLVolume, 128.0f, startLoc, fillSize);
+    //err = cmdQueue.enqueueFillBuffer<int>(mCLSemaphore, 0, startLoc, (size_t)(sizeof(int)*bufferSize));
     cmdQueue.finish();
     std::cout << "Alg CL part 4" << std::endl;
     
@@ -1171,7 +1173,7 @@ void Us3Dhybrid::executeAlgorithm(){
         didRun[0] = 0;
         cl::Buffer mDidRun = cl::Buffer(
             clDevice->getContext(),
-            CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+            flags,
             sizeof(int)*sizeRun,
             didRun
             );
