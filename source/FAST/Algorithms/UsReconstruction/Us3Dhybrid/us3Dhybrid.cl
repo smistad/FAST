@@ -251,7 +251,7 @@ bool isWithinFrame(float3 intersectionPointLocal, int2 frameSize){//, float buff
     return inside;
 }
 
-float getFrameValue(image2d_t frame, int pos, int dataType){
+float getFrameValue(image2d_t frame, int2 pos, int dataType){
     //int2 realPos = pos.xy;
     float p;
     if (dataType == CLK_FLOAT) {

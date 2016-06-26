@@ -1045,7 +1045,7 @@ void Us3Dhybrid::executeAlgorithm(){
     int bufferSize = volumeSize(0)*volumeSize(1)*volumeSize(2);
     int components = 2;
     int * semaphore = new int[bufferSize];
-    for (int i = 0; i < bufferSize; i++){
+    /*for (int i = 0; i < bufferSize; i++){
         if (i%10000 == 0)
             std::cout << ".";
         volumeData[i] = 0.0f;
@@ -1053,23 +1053,36 @@ void Us3Dhybrid::executeAlgorithm(){
         semaphore[i] = 0;
     }
     std::cout << "!" << std::endl;
-    //cl::enqueueWriteBuffer(mCLVolume, true, cl::NullRange, size_t(sizeof(float)*bufferSize*components), 1.0f, 
-    //clEnqueueFillBuffer //kanskje vi har openCL 1.1???
+    */
     mCLVolume = cl::Buffer(
         clDevice->getContext(),
         CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
         sizeof(float)*bufferSize*components,
         volumeData
-    ); //CL_MEM_READ_ONLY //CL_MEM_COPY_HOST_PTR, //CL_MEM_ALLOC_HOST_PTR
+        ); //CL_MEM_READ_ONLY //CL_MEM_COPY_HOST_PTR, //CL_MEM_ALLOC_HOST_PTR
 
     cl::Buffer mCLSemaphore = cl::Buffer(
         clDevice->getContext(),
         CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
         sizeof(int)*bufferSize,
         semaphore
-    );
+        );
+    //cl::enqueueWriteBuffer(mCLVolume, true, cl::NullRange, size_t(sizeof(float)*bufferSize*components), 1.0f, 
+    //clEnqueueFillBuffer //kanskje vi har openCL 1.1???
     std::cout << "Alg CL part 3" << std::endl;
     cl::CommandQueue cmdQueue = clDevice->getCommandQueue();
+
+    float pattern = 0.0f;
+    
+    size_t startLoc = 0;
+    size_t fillSize = (sizeof(float)*bufferSize*components);
+    //std::vector<cl::Event> events = {};
+    cl_int err = '\0';
+    err = cmdQueue.enqueueFillBuffer<float>(mCLVolume, 0.0f, startLoc, fillSize);
+    err = cmdQueue.enqueueFillBuffer<int>(mCLSemaphore, 0, startLoc, (size_t)(sizeof(int)*bufferSize));
+    cmdQueue.finish();
+    std::cout << "Alg CL part 4" << std::endl;
+    
 
     for (int frameNr = 0; frameNr < frameList.size(); frameNr++){
         // Get FRAME
