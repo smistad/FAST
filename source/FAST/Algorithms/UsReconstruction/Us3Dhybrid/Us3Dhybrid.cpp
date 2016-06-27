@@ -857,7 +857,7 @@ void Us3Dhybrid::recompileAlgorithmOpenCLCode(){
         volumeSize == mVolumeSizeCompiledFor)
         return;
 
-    std::cout << "Recompiling Algorithm OpenCL code";
+    std::cout << "Recompiling Algorithm OpenCL code" << std::endl;
     OpenCLDevice::pointer device = getMainDevice();
     std::string buildOptions = "";
 
@@ -920,6 +920,7 @@ void Us3Dhybrid::recompileAlgorithmOpenCLCode(){
 
     cl::Program programUs3Dhybrid = getOpenCLProgram(device, "us3Dhybrid", buildOptions);
     mKernel = cl::Kernel(programUs3Dhybrid, "accumulateFrameToVolume");
+    mKernelNormalize = cl::Kernel(programUs3Dhybrid, "normalizeImage");
 
     mDimensionCLCodeCompiledFor = AccumulationVolume->getDimensions();
     mTypeCLCodeCompiledFor = AccumulationVolume->getDataType();
@@ -1013,10 +1014,12 @@ void Us3Dhybrid::executeOpenCLTest(){
 }
 
 void Us3Dhybrid::executeAlgorithm(){
+    algorithmStarted = clock();
     ExecutionDevice::pointer device = getMainDevice();
     if (!runCLhybrid || device->isHost()) {
         std::cout << "Executing on host" << std::endl;
         executeAlgorithmOnHost(); // Run on CPU instead
+        algorithmEnded = clock();
         return;
     }
     if (false){
@@ -1033,34 +1036,36 @@ void Us3Dhybrid::executeAlgorithm(){
     */
     // TODO Fix a kernel and so on
     setOutputType(AccumulationVolume->getDataType());
+    clock_t startCLinitTime = clock();
     recompileAlgorithmOpenCLCode();
-    std::cout << "Alg CL part 1" << std::endl;
     //OpenCLImageAccess::pointer clVolAccess = AccumulationVolume->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
     if (!volAccess)
         volAccess = AccumulationVolume->getImageAccess(ACCESS_READ_WRITE);
-    float * volumeData = (float*)volAccess->get();
-    //cl::Buffer 
-    //mCLVolume;
-    std::cout << "Alg CL part 2" << std::endl;
+    //float * volumeData = (float*)volAccess->get();
     int bufferSize = volumeSize(0)*volumeSize(1)*volumeSize(2);
     int components = 2;
     int * semaphore = new int[bufferSize];
+    unsigned int * volumeAccumulationData = new unsigned int[bufferSize*components];
     for (int i = 0; i < bufferSize; i++){
-        if (i%1000000 == 0)
+        if (i%50000000 == 0)
             std::cout << ".";
-        volumeData[i] = 0.0f;
-        volumeData[bufferSize + i] = 0.0f;
+        volumeAccumulationData[i] = 0; //volumeData
+        volumeAccumulationData[bufferSize + i] = 0;
+        //volumeData[i] = 0.0f; //volumeData
+        //volumeData[bufferSize + i] = 0.0f;
         semaphore[i] = 0;
     }
     std::cout << "!" << std::endl;
 
     cl_mem_flags flags = CL_MEM_READ_WRITE;// | CL_MEM_COPY_HOST_PTR;
     
+    size_t sizeUI = sizeof(unsigned int)*bufferSize*components;
+    size_t sizeFLOAT = sizeof(float)*bufferSize*components;
     mCLVolume = cl::Buffer(
         clDevice->getContext(),
         flags,
-        sizeof(float)*bufferSize*components,
-        volumeData
+        sizeUI,
+        volumeAccumulationData
         ); //CL_MEM_READ_ONLY //CL_MEM_COPY_HOST_PTR, //CL_MEM_ALLOC_HOST_PTR
 
     cl::Buffer mCLSemaphore = cl::Buffer(
@@ -1069,11 +1074,21 @@ void Us3Dhybrid::executeAlgorithm(){
         sizeof(int)*bufferSize,
         semaphore
         );
+
+    int sizeRun = 1;
+    int* didRun = new int[sizeRun];
+    didRun[0] = 0;
+    cl::Buffer mDidRun = cl::Buffer(
+        clDevice->getContext(),
+        flags,
+        sizeof(int)*sizeRun,
+        didRun
+        );
+
     //cl::enqueueWriteBuffer(mCLVolume, true, cl::NullRange, size_t(sizeof(float)*bufferSize*components), 1.0f, 
     //clEnqueueFillBuffer //kanskje vi har openCL 1.1???
-    std::cout << "Alg CL part 3" << std::endl;
     cl::CommandQueue cmdQueue = clDevice->getCommandQueue();
-
+    /*
     float pattern = 0.0f;
     
     size_t startLoc = 0;
@@ -1082,13 +1097,14 @@ void Us3Dhybrid::executeAlgorithm(){
     cl_int err = '\0';
     //err = cmdQueue.enqueueFillBuffer<float>(mCLVolume, 128.0f, startLoc, fillSize);
     //err = cmdQueue.enqueueFillBuffer<int>(mCLSemaphore, 0, startLoc, (size_t)(sizeof(int)*bufferSize));
+    */
     cmdQueue.finish();
-    std::cout << "Alg CL part 4" << std::endl;
-    
-
-    for (int frameNr = 0; frameNr < frameList.size(); frameNr++){
+    std::cout << " ### Running " << frameList.size() << " frames on GPU! ### " << std::endl;
+    clock_t startLoopTime = clock();
+    int nrOfFrames = frameList.size();
+    for (int frameNr = 0; frameNr < nrOfFrames; frameNr++){
         // Get FRAME
-        std::cout << "Running for frame #" << frameNr << std::endl;
+        //std::cout << "Running for frame #" << frameNr << std::endl;
         Image::pointer frame = frameList[frameNr];
         // Calc imagePlaneNormal and dominating direction of it
         Vector3f imagePlaneNormal = framePlaneNormalList[frameNr]; //getImagePlaneNormal(frame);
@@ -1168,18 +1184,8 @@ void Us3Dhybrid::executeAlgorithm(){
         mKernel.setArg(14, outputDataType); // should be int like CLK_FLOAT
         //CAN define bufferXY or bufferZ in buildString
         mKernel.setArg(15, mCLSemaphore);
-        int sizeRun = 1;
-        int* didRun = new int[sizeRun];
-        didRun[0] = 0;
-        cl::Buffer mDidRun = cl::Buffer(
-            clDevice->getContext(),
-            flags,
-            sizeof(int)*sizeRun,
-            didRun
-            );
-        mKernel.setArg(16, mDidRun);
-
         
+        mKernel.setArg(16, mDidRun);
 
         cmdQueue.enqueueNDRangeKernel(
             mKernel,
@@ -1190,13 +1196,28 @@ void Us3Dhybrid::executeAlgorithm(){
         cmdQueue.finish();
         
         int ran = didRun[0];
-        std::cout << "Did it really run til setRan? " << ran << "!" << std::endl;
+        //std::cout << "Did it really run til setRan? " << ran << "!" << std::endl;
         //clFinish(cmdQueue);
     }
-    //mCLSemaphore
-    //clFinish(cmdQueue);
-    //cmdQueue.finish();
 
+    cmdQueue.finish();
+
+    clock_t endLoopTime = clock();
+    {
+        //std::cout << " ####################################################### " << std::endl;
+        //std::cout << "" << std::endl;
+
+        clock_t clockTicksTakenLoop = endLoopTime - startLoopTime;
+        double timeInSecondsLoop = clockTicksTakenLoop / (double)CLOCKS_PER_SEC;
+        int minutesInLoop = timeInSecondsLoop / 60;
+        int secondsInMinute = ((int)timeInSecondsLoop) % 60;
+        std::cout << "Algorithm main loop spent in total " << clockTicksTakenLoop << " clock ticks and " << timeInSecondsLoop << " seconds!" << std::endl;
+        std::cout << "That is " << minutesInLoop << "minutes and " << secondsInMinute << "sec! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
+        //std::cout << "Spent " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
+        //std::cout << "" << std::endl;
+        std::cout << " ####################################################### " << std::endl;
+    }
+    algorithmEnded = clock();
 }
 
 // CPU algoritme
@@ -1422,38 +1443,38 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
 }
 
 void Us3Dhybrid::generateOutputVolume(){
+    normalizationStarted = clock();
     std::cout << "Final reconstruction calculations!" << std::endl;
     // Finally, calculate reconstructed volume
     setOutputType(AccumulationVolume->getDataType());
-    std::cout << "Step 1" << std::endl;
     outputVolume = getStaticOutputData<Image>(0);
-    std::cout << "Step 2" << std::endl;
-    outputVolume->create(AccumulationVolume->getSize(), AccumulationVolume->getDataType(), 1); //1-channeled outputVolume
-    std::cout << "Step 3" << std::endl;
+    DataType outputType = AccumulationVolume->getDataType();
+    ExecutionDevice::pointer device = getMainDevice();
+        
+    outputVolume->create(AccumulationVolume->getSize(), outputType, 1); //1-channeled outputVolume
+    //std::cout << "Step 1" << std::endl;
     //outputVolume->setSpacing(Vector3f(1.0f, 1.0f, 1.0f));
     Vector3f frameSpacing = firstFrame->getSpacing();
     float spacingVal = mVoxelSpacing * globalScalingValue; //dv * globalScalingValue;
     Vector3f outputSpacing = Vector3f(spacingVal, spacingVal, spacingVal);// 0.1f, 0.1f, 0.1f);
     outputVolume->setSpacing(outputSpacing);
+    //ADD TRANSFORMATION in world space
 
-    /*
-    ExecutionDevice::pointer device = getMainDevice();
-    if (!device->isHost()) {
+    
+    if (runCLhybrid && !device->isHost()) {
         generateOutputVolume(device); // Run on GPU instead
+        normalizationEnded = clock();
         return;
     }
-    */
-    std::cout << "Step 4" << std::endl;
     if (!volAccess)
         volAccess = AccumulationVolume->getImageAccess(ACCESS_READ_WRITE);
-    std::cout << "Step 5" << std::endl;
     ImageAccess::pointer outAccess = outputVolume->getImageAccess(ACCESS_READ_WRITE);
-    std::cout << "Step 6" << std::endl;
+    
     //T * inputData = (T*)inputAccess->get();
     //T * outputData = (T*)outputAccess->get();
     float * inputData = (float*)volAccess->get();
     float * outputData = (float*)outAccess->get();
-    std::cout << "Step 7" << std::endl;
+    std::cout << "Step 2" << std::endl;
     uint width = outputVolume->getWidth();
     uint height = outputVolume->getHeight();
     uint depth = outputVolume->getDepth();
@@ -1490,6 +1511,7 @@ void Us3Dhybrid::generateOutputVolume(){
     outAccess->release();
     std::cout << "\nDONE calculations!" << std::endl;
     //Can possibly make 2D slices here or alternatively to the one above
+    normalizationEnded = clock();
 }
 
 void Us3Dhybrid::recompileNormalizeOpenCLCode(){
@@ -1528,29 +1550,38 @@ void Us3Dhybrid::recompileNormalizeOpenCLCode(){
 }
 
 void Us3Dhybrid::generateOutputVolume(ExecutionDevice::pointer device){
-    std::cout << "Running on GPU " << device->getStaticNameOfClass() << std::endl;
+    std::cout << "Running on GPU " << std::endl;
 
     OpenCLDevice::pointer clDevice = device;
     //recompileOpenCLCode(input)
-    recompileNormalizeOpenCLCode();
-    OpenCLImageAccess::pointer inputAccess = AccumulationVolume->getOpenCLImageAccess(ACCESS_READ, device);
+    //recompileNormalizeOpenCLCode(); //utgår? compilert med executeAlgoritm
+    //OpenCLImageAccess::pointer inputAccess = AccumulationVolume->getOpenCLImageAccess(ACCESS_READ, device);
     cl::NDRange globalSize = cl::NDRange(volumeSize(0), volumeSize(1), volumeSize(2));
     OpenCLImageAccess::pointer outputAccess = outputVolume->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
-    std::cout << "Access fetched" << std::endl;
-    mKernelNormalize.setArg(0, *inputAccess->get3DImage());
-    mKernelNormalize.setArg(1, *outputAccess->get3DImage());
+    //std::cout << "Access fetched" << std::endl;
+    //mCLVolume er cl::Buffer av unsigned int * 
+    mKernelNormalize.setArg(0, *outputAccess->get3DImage());
+    mKernelNormalize.setArg(1, mCLVolume);//*inputAccess->get3DImage());
 
     cl::CommandQueue cmdQueue = clDevice->getCommandQueue();
+    cmdQueue.finish(); //Make sure it is complete with previous work
     cmdQueue.enqueueNDRangeKernel(
         mKernelNormalize,
         cl::NullRange,
         globalSize,
         cl::NullRange
         );
-    std::cout << "Added to cmdQueue" << std::endl;
-    std::cout << "DONE calculations!" << std::endl;
-    inputAccess->release();
+    //std::cout << "Added to cmdQueue" << std::endl;
+    //std::cout << "DONE calculations!" << std::endl;
+    //inputAccess->release();
+    cmdQueue.finish();
+    //outputAccess->
     outputAccess->release();
+
+    //float maximum = outputVolume->calculateMaximumIntensity();
+    //float minimum = outputVolume->calculateMinimumIntensity();
+    //std::cout << "OUTPUT VALUES - max: " << maximum << " min: " << minimum << std::endl;
+    
 }
 
 void Us3Dhybrid::initVolume(Image::pointer rootFrame){
@@ -1559,6 +1590,7 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
     //and all pixels in this frame would be in the z=0 plane
      //inverseTransform();
 
+    initVolumeStarted = clock();
     Image::pointer testFrame = frameList[0];// 10]; //TO TEST THIS
 
     //INVERSE TRANSFORM
@@ -1946,28 +1978,36 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
     //Init dv (based on input frames/userdefined settings?)
     //TODO
 
+    initVolumeEnded = clock();
 }
 
 void Us3Dhybrid::execute(){
     if (!reachedEndOfStream){
+        //iterartorCounter++;
         std::cout << "Iteration #:" << iterartorCounter++ << std::endl;
+        /*if (iterartorCounter % 100 == 0){
+
+            std::cout << "Iteration #:" << iterartorCounter << std::endl;
+        }*/
         Image::pointer frame = getStaticInputData<Image>(0);
         frameList.push_back(frame);
         if (!firstFrameSet){
             firstFrame = frame;
             firstFrameSet = true;
+            loadingStarted = clock();
         }
         // Sjekk om vi har nådd slutten
         DynamicData::pointer dynamicImage = getInputData(0);
         if (dynamicImage->hasReachedEnd()) {
             reachedEndOfStream = true;
+            loadingEnded = clock();
         }
         //mIsModified = true;
         //setStaticOutputData<Image>(0, frame);
     }
     // When we have reached the end of stream we do just from here on
     if (reachedEndOfStream) {
-        std::cout << "END Iteration #:" << iterartorCounter++ << std::endl;
+        std::cout << "Loading completed.." << std::endl;
         //mIsModified = false;
         if (!volumeCalculated){
             if (!volumeInitialized){
@@ -1992,11 +2032,91 @@ void Us3Dhybrid::execute(){
             volumeCalculated = true;
             mIsModified = true;
             std::cout << "Finished!!!" << std::endl;
+            printEndStats();
         }
         //setStaticOutputData<Image>(0, outputVolume);        
         //TODO add these?
         //SceneGraph::setParentNode(outputVolume, frame);
         volAccess->release();
+    }
+}
+
+/*
+clock_t loadingStarted;
+clock_t loadingEnded;
+clock_t initVolumeStarted;
+clock_t initVolumeEnded;
+clock_t algorithmStarted;
+clock_t algorithmEnded;
+clock_t normalizationStarted;
+clock_t normalizationEnded;
+*/
+
+void Us3Dhybrid::printEndStats(){
+    clock_t endTotalTime = clock();
+    int nrOfFrames = frameList.size();
+    {
+        std::cout << " #################### FINAL STATS ###################### " << std::endl;
+        std::cout << "" << std::endl;
+        std::cout << " ### LOADING: ### "; 
+        {
+            clock_t clockTicksTakenLoop = loadingEnded - loadingStarted;
+            double timeInSecondsLoop = clockTicksTakenLoop / (double)CLOCKS_PER_SEC;
+            int minutesInLoop = timeInSecondsLoop / 60;
+            int secondsInMinute = ((int)timeInSecondsLoop) % 60;
+            std::cout << "Took " << minutesInLoop << "minutes and " << secondsInMinute << "seconds! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
+            std::cout << "" << std::endl;
+        }
+        std::cout << " ### INITIALIZATION: ### ";
+        {
+            clock_t clockTicksTakenLoop = initVolumeEnded - initVolumeStarted;
+            double timeInSecondsLoop = clockTicksTakenLoop / (double)CLOCKS_PER_SEC;
+            int minutesInLoop = timeInSecondsLoop / 60;
+            int secondsInMinute = ((int)timeInSecondsLoop) % 60;
+            std::cout << "Took " << minutesInLoop << "minutes and " << secondsInMinute << "seconds! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
+            std::cout << "" << std::endl;
+        }
+        std::cout << " ### ALGORITHM: ### ";
+        {
+            clock_t clockTicksTakenLoop = algorithmEnded - algorithmStarted;
+            double timeInSecondsLoop = clockTicksTakenLoop / (double)CLOCKS_PER_SEC;
+            int minutesInLoop = timeInSecondsLoop / 60;
+            int secondsInMinute = ((int)timeInSecondsLoop) % 60;
+            std::cout << "Took " << minutesInLoop << "minutes and " << secondsInMinute << "seconds! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
+            std::cout << "" << std::endl;
+        }
+
+        std::cout << " ### NORMALIZATION: ### ";
+        {
+            clock_t clockTicksTakenLoop = normalizationEnded - normalizationStarted;
+            double timeInSecondsLoop = clockTicksTakenLoop / (double)CLOCKS_PER_SEC;
+            int minutesInLoop = timeInSecondsLoop / 60;
+            int secondsInMinute = ((int)timeInSecondsLoop) % 60;
+            std::cout << "Took " << minutesInLoop << "minutes and " << secondsInMinute << "seconds! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
+            std::cout << "" << std::endl;
+        }
+
+        std::cout << " ####################################################### " << std::endl;
+        std::cout << "" << std::endl;
+        std::cout << " ### TOTAL: ### ";
+        {
+            clock_t clockTicksTakenLoop = endTotalTime - loadingStarted;
+            double timeInSecondsLoop = clockTicksTakenLoop / (double)CLOCKS_PER_SEC;
+            int minutesInLoop = timeInSecondsLoop / 60;
+            int secondsInMinute = ((int)timeInSecondsLoop) % 60;
+            std::cout << "Took " << minutesInLoop << "minutes and " << secondsInMinute << "seconds! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
+            std::cout << "" << std::endl;
+        }
+        /*
+        clock_t clockTicksTakenLoop = endLoopTime - startLoopTime;
+        double timeInSecondsLoop = clockTicksTakenLoop / (double)CLOCKS_PER_SEC;
+        int minutesInLoop = timeInSecondsLoop / 60;
+        int secondsInMinute = ((int)timeInSecondsLoop) % 60;
+        std::cout << "Algorithm spent in total " << clockTicksTakenLoop << " clock ticks and " << timeInSecondsLoop << " seconds!" << std::endl;
+        std::cout << "That is " << minutesInLoop << "minutes and " << secondsInMinute << "seconds" << std::endl;
+        std::cout << "Spent " << (timeInSecondsLoop / nrOfFrames) << "sec per frame!" << std::endl;
+        */
+        std::cout << " ####################################################### " << std::endl;
     }
 }
 

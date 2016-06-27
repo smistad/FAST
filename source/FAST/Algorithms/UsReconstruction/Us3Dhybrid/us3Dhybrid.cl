@@ -1,3 +1,9 @@
+#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable
+#pragma OPENCL EXTENSION cl_khr_local_int32_base_atomics : enable
+#pragma OPENCL EXTENSION cl_khr_global_int32_extended_atomics : enable
+#pragma OPENCL EXTENSION cl_khr_local_int32_extended_atomics : enable
+//#pragma OPENCL EXTENSION cl_khr_3d_image_writes : enable
+
 __constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
 
 float dotProd(float3 A, float3 B){
@@ -508,7 +514,8 @@ void accumulateValuesInVolumeData(__global float * volume, int3 volumePoint, flo
         float newP = oldP + p*w;
         float newW = oldW + w;
         volume[loc2] = newP;
-        volume[loc2 + 1] = newW;
+        volume[loc2 + 1] = newW;  //ev bruk int og atomic increment (atom_inc)
+        //or atomic_add (for int/long/uint/ulong) to add addition
         //set3DvolumeVectorValue(volume, volumePoint, newP, 0);// , outputDataType);
         //set3DvolumeVectorValue(volume, volumePoint, newW, 1);// , outputDataType);
         /**/
@@ -518,9 +525,18 @@ void accumulateValuesInVolumeData(__global float * volume, int3 volumePoint, flo
     ReleaseSemaphor(&semaphor[loc]);
 }
 
+void accumulateValuesInVolumeUInt(__global unsigned int * volume, int3 volumePoint, float p, float w){
+    int locP = (volumePoint.x + volumePoint.y*VOL_SIZE_X + volumePoint.z*VOL_SIZE_XtY) * 2;//VOL_SIZE_X*VOL_SIZE_Y;
+    int locW = locP + 1;
+    unsigned int addW = round((w*1000.0f)); //resolution on 100
+    unsigned int addP = round((p*w*1000.0f)); // ev (p*w)/100?
+    atomic_add(&volume[locP], addP);
+    atomic_add(&volume[locW], addW);
+}
+
 __kernel void accumulateFrameToVolume(
     __read_only image2d_t frame,
-    __global float* volume,
+    __global unsigned int* volume,
     __private const int domDir,
     __private const float domVal,
     __private const float3 imgNormal,
@@ -541,6 +557,8 @@ __kernel void accumulateFrameToVolume(
     //__const float dv, => DV
     //__const float Rmax, => R_MAX
     //__const int3 volSize, => VOL_SIZE_X/Y/Z
+    //__global float* volume, => Replaced by unsigned int
+    //__global unsigned int* volume,
     /*
     cl_float16 imgInvTrans = {  
         m00, m01, m02, m03,
@@ -559,12 +577,18 @@ __kernel void accumulateFrameToVolume(
     float3 basePoint = getBasePointInPlane(imgRoot, imgNormal, imgPlaneDvalue, a, b, domDir);
     //TODO determine if reasonably close to plane? Elimination/speedup (use inverseTrans)
     //Find distance to last and next frame
-    int3 volumePointZero = (int3)(basePoint.x, basePoint.y, basePoint.z);
-    float p = 256.0f;
-    float w = 1.0f;
-    ran[0] = 1;
-    accumulateValuesInVolumeData(volume, volumePointZero, p, w, outputDataType, semaphor);
-    return;
+    /*int3 volumePointZero = (int3)(basePoint.x, basePoint.y, basePoint.z);
+    float p = 5.0f;// 256.0f;
+    float3 crossLocal = getLocalIntersectionOfPlane(basePoint, imgInvTrans);
+    if (isWithinFrame(crossLocal, imgSize)){
+        p = getPixelValue(frame, crossLocal, imgSize, dataType);
+    }
+    float w = 1.0f;*/
+    //ran[0] = 1;
+    atom_inc(&ran[0]);
+    //accumulateValuesInVolumeData(volume, volumePointZero, p, w, outputDataType, semaphor);
+    //accumulateValuesInVolumeUInt(volume, volumePointZero, p, w);
+    //return;
     float d1 = getDistanceAlongNormal(basePoint, imgNormal, lastRoot, lastNormal); //TODO check if correct
     float d2 = getDistanceAlongNormal(basePoint, imgNormal, nextRoot, nextNormal);
     //Calculate half width df and dfDom
@@ -586,11 +610,68 @@ __kernel void accumulateFrameToVolume(
         float3 intersectionPointWorld = getIntersectionOfPlane(volumePoint, distance, imgNormal);
         float3 intersectionPointLocal = getLocalIntersectionOfPlane(intersectionPointWorld, imgInvTrans);
         if (isWithinFrame(intersectionPointLocal, imgSize)){//, 0.5f, 0.5f)){
-            float p = 256.0f;// getPixelValue(frame, intersectionPointLocal, imgSize, dataType); //TODO FIX
-            float w = 1.0f;// 1 - (fabs(distance) / df); //Or gaussian for trail
-            accumulateValuesInVolumeData(volume, volumePoint, p, w, outputDataType, semaphor); //TODO FIX
+            //float p = 256.0f;// getPixelValue(frame, intersectionPointLocal, imgSize, dataType); //TODO FIX
+            //float w = 1.0f;// 1 - (fabs(distance) / df); //Or gaussian for trail
+            float p = getPixelValue(frame, intersectionPointLocal, imgSize, dataType); //TODO FIX
+            float w = 1.0f -(fabs(distance) / df); //Or gaussian for trail
+            //accumulateValuesInVolumeData(volume, volumePoint, p, w, outputDataType, semaphor); //TODO FIX
+            accumulateValuesInVolumeUInt(volume, volumePoint, p, w);
         }
         
     }
     
+}
+
+__kernel void inc(global int * num){
+    atom_inc(&num[0]);
+}
+
+/*
+float getFrameValue(image2d_t frame, int2 pos, int dataType){
+    //int2 realPos = pos.xy;
+    float p;
+    if (dataType == CLK_FLOAT) {
+        p = read_imagef(frame, sampler, pos).x;
+    }
+    else if (dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+        p = read_imageui(frame, sampler, pos).x;
+    }
+    else {
+        p = read_imagei(frame, sampler, pos).x;
+    }
+    return p;
+}
+*/
+
+__kernel void normalizeImage(
+    __write_only image3d_t outputVolume,
+    __global unsigned int* volume
+    ){
+    const int x = get_global_id(0);
+    const int y = get_global_id(1);
+    const int z = get_global_id(2);
+    int locP = (x + y*VOL_SIZE_X + z*VOL_SIZE_XtY) * 2;//VOL_SIZE_X*VOL_SIZE_Y;
+    int locW = locP + 1;
+    int4 pos = (int4)(x, y, z, 0);
+    //float value = ((float)volume[locP]) / ((float)volume[locW]);
+    unsigned int p = volume[locP];
+    unsigned int w = volume[locW];
+    //unsigned int div = 128;
+    float value = 0.0f;// 128.0f;
+    if (w != 0){
+        value = (float)p / (float) w;
+        //value = div; //* 65535.0f;
+        //value = (float)div;// *65535.0f;
+    }
+    //writeVolumeValue();
+    int outputDataType = get_image_channel_data_type(outputVolume);
+    if (outputDataType == CLK_FLOAT) {
+        write_imagef(outputVolume, pos, value);
+    }
+    else if (outputDataType == CLK_UNSIGNED_INT8 || outputDataType == CLK_UNSIGNED_INT16) {
+        write_imageui(outputVolume, pos, round(value)); //div
+    }
+    else {
+        write_imagei(outputVolume, pos, round(value));
+    }
 }

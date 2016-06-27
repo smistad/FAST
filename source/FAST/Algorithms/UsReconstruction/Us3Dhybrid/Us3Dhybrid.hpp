@@ -21,6 +21,8 @@ namespace fast {
         void setPNNrunMode(bool pnnRunMode);
         void setVNNrunMode(bool vnnRunMode);
         void setCLrun(bool clRunMode);
+        void printEndStats();
+        void setVerbosity(int verbosity); //TODO USE
         //TODO set functions in here to be testable
         ~Us3Dhybrid();
     private:
@@ -80,6 +82,17 @@ namespace fast {
         int iterartorCounter;
         DataType mOutputType;
         bool mOutputTypeSet;
+
+        // Benchmark variables
+        clock_t loadingStarted;
+        clock_t loadingEnded;
+        clock_t initVolumeStarted;
+        clock_t initVolumeEnded;
+        clock_t algorithmStarted;
+        clock_t algorithmEnded;
+        clock_t normalizationStarted;
+        clock_t normalizationEnded;
+        int verbosityLevel; //TODO USE
 
         // Setting variables
         float dv; //voxel spacing

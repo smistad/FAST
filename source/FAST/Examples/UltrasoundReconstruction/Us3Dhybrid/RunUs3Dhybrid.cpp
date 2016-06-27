@@ -37,16 +37,16 @@ int main() {
     int stepSize = 1; // 5; //3
     int scaleToMaxInt = 400; // 200; //400;
     float scaleToMax = float(scaleToMaxInt);
-    float voxelSpacing = 0.2f; //0.1f; //0.5f; //0.2f; // 0.03 / 0.01 //dv // Større verdi gir mindre oppløsning
+    float voxelSpacing = 0.15f; //0.1f; //0.5f; //0.2f; // 0.03 / 0.01 //dv // Større verdi gir mindre oppløsning
     float globalScaling = 1.0f;  //5.0f; //7/10 osv
-    float initZSpacing = 0.3f;//1.0f; // 0.5f; // 0.2f; //0.3f seems fine //0.5f // 2.0f;          //1.0f // 0.2f; // 0.1f; // 0.05f; // 0.1f / 0.02f
+    float initZSpacing = 1.0f; //0.3f;// 0.5f; // 0.2f; //0.3f seems fine //0.5f // 2.0f;          //1.0f // 0.2f; // 0.1f; // 0.05f; // 0.1f / 0.02f
     //initZ - større verdi gir større z-akse i volum
     float calcedDV =  0.5f / (3.0f*voxelSpacing) * globalScaling * initZSpacing; //was 5.0f // 0.1 *  // / 4.0;
     float setDV = calcedDV;// 0.1f; // 0.25f; //0.5f; //0.2f; //0.5f; // calcedDV;// 0.05f;
     float maxRvalue = setDV * 10; //8; //0.2f; //0.5f// 1.0f; //2.0f;// voxelSpacing * 2 * globalScaling; //*(200/globalScaling) // *globalScaling * 3;
     
     bool runVNNonly = false;
-    bool runCLHybrid = false;// true; //false;
+    bool runCLHybrid = true; //false;
     bool runPNNonly = false;
 
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
