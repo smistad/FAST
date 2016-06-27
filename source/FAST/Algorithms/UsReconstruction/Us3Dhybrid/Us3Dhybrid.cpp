@@ -1044,47 +1044,22 @@ void Us3Dhybrid::executeAlgorithm(){
     //float * volumeData = (float*)volAccess->get();
     int bufferSize = volumeSize(0)*volumeSize(1)*volumeSize(2);
     int components = 2;
-    int * semaphore = new int[bufferSize];
+    //int * semaphore = new int[bufferSize];
     unsigned int * volumeAccumulationData = new unsigned int[bufferSize*components];
     for (int i = 0; i < bufferSize; i++){
         if (i%50000000 == 0)
             std::cout << ".";
-        volumeAccumulationData[i] = 0; //volumeData
+        volumeAccumulationData[i] = 0;
         volumeAccumulationData[bufferSize + i] = 0;
-        //volumeData[i] = 0.0f; //volumeData
-        //volumeData[bufferSize + i] = 0.0f;
-        semaphore[i] = 0;
+        //semaphore[i] = 0;
     }
     std::cout << "!" << std::endl;
 
-    cl_mem_flags flags = CL_MEM_READ_WRITE;// | CL_MEM_COPY_HOST_PTR;
-    
-    size_t sizeUI = sizeof(unsigned int)*bufferSize*components;
-    size_t sizeFLOAT = sizeof(float)*bufferSize*components;
-    mCLVolume = cl::Buffer(
-        clDevice->getContext(),
-        flags,
-        sizeUI,
-        volumeAccumulationData
-        ); //CL_MEM_READ_ONLY //CL_MEM_COPY_HOST_PTR, //CL_MEM_ALLOC_HOST_PTR
-
-    cl::Buffer mCLSemaphore = cl::Buffer(
-        clDevice->getContext(),
-        flags,
-        sizeof(int)*bufferSize,
-        semaphore
-        );
-
-    int sizeRun = 1;
-    int* didRun = new int[sizeRun];
-    didRun[0] = 0;
-    cl::Buffer mDidRun = cl::Buffer(
-        clDevice->getContext(),
-        flags,
-        sizeof(int)*sizeRun,
-        didRun
-        );
-
+    cl_mem_flags flags = CL_MEM_READ_WRITE;// | CL_MEM_COPY_HOST_PTR; //CL_MEM_READ_ONLY //CL_MEM_COPY_HOST_PTR, //CL_MEM_ALLOC_HOST_PTR
+    //size_t sizeUI = sizeof(unsigned int)*bufferSize*components;
+    //size_t sizeFLOAT = sizeof(float)*bufferSize*components;
+    mCLVolume = cl::Buffer(clDevice->getContext(), flags, sizeof(unsigned int)*bufferSize*components, volumeAccumulationData); //CL_MEM_READ_ONLY //CL_MEM_COPY_HOST_PTR, //CL_MEM_ALLOC_HOST_PTR
+    //cl::Buffer mCLSemaphore = cl::Buffer(clDevice->getContext(), flags, sizeof(int)*bufferSize, semaphore);
     //cl::enqueueWriteBuffer(mCLVolume, true, cl::NullRange, size_t(sizeof(float)*bufferSize*components), 1.0f, 
     //clEnqueueFillBuffer //kanskje vi har openCL 1.1???
     cl::CommandQueue cmdQueue = clDevice->getCommandQueue();
@@ -1181,11 +1156,9 @@ void Us3Dhybrid::executeAlgorithm(){
         mKernel.setArg(11, nextRoot);// nextFrameRootPoint); //Vector3f
         mKernel.setArg(12, imgInvTrans);// thisFrameInverseTransform->matrix()); // AffineTransformation::pointer? store as something else?
         mKernel.setArg(13, startOffset);
-        mKernel.setArg(14, outputDataType); // should be int like CLK_FLOAT
+        //mKernel.setArg(14, outputDataType); // should be int like CLK_FLOAT
         //CAN define bufferXY or bufferZ in buildString
-        mKernel.setArg(15, mCLSemaphore);
-        
-        mKernel.setArg(16, mDidRun);
+        //mKernel.setArg(15, mCLSemaphore);
 
         cmdQueue.enqueueNDRangeKernel(
             mKernel,
@@ -1194,9 +1167,6 @@ void Us3Dhybrid::executeAlgorithm(){
             cl::NullRange
             );
         cmdQueue.finish();
-        
-        int ran = didRun[0];
-        //std::cout << "Did it really run til setRan? " << ran << "!" << std::endl;
         //clFinish(cmdQueue);
     }
 
@@ -1985,6 +1955,8 @@ void Us3Dhybrid::execute(){
     if (!reachedEndOfStream){
         //iterartorCounter++;
         std::cout << "Iteration #:" << iterartorCounter++ << std::endl;
+        //std::cout << " " << iterartorCounter++;
+        
         /*if (iterartorCounter % 100 == 0){
 
             std::cout << "Iteration #:" << iterartorCounter << std::endl;
@@ -1992,15 +1964,18 @@ void Us3Dhybrid::execute(){
         Image::pointer frame = getStaticInputData<Image>(0);
         frameList.push_back(frame);
         if (!firstFrameSet){
+            std::cout << "Starting loading.." << std::endl;
             firstFrame = frame;
             firstFrameSet = true;
             loadingStarted = clock();
         }
+        //std::cout << ".";
         // Sjekk om vi har nådd slutten
         DynamicData::pointer dynamicImage = getInputData(0);
         if (dynamicImage->hasReachedEnd()) {
             reachedEndOfStream = true;
             loadingEnded = clock();
+            //std::cout << "" << std::endl;
         }
         //mIsModified = true;
         //setStaticOutputData<Image>(0, frame);

@@ -548,10 +548,7 @@ __kernel void accumulateFrameToVolume(
     __private const float3 nextNormal,
     __private const float3 nextRoot,
     __private const float16 imgInvTrans,
-    __private const int2 startOffset,
-    __private const int outputDataType,
-    __global int* semaphor,
-    __global int* ran
+    __private const int2 startOffset
     ){
     //__read_write image3d_t volume, => RESERVED for OpenCL2+
     //__const float dv, => DV
@@ -559,6 +556,8 @@ __kernel void accumulateFrameToVolume(
     //__const int3 volSize, => VOL_SIZE_X/Y/Z
     //__global float* volume, => Replaced by unsigned int
     //__global unsigned int* volume,
+    //__private const int outputDataType,
+    
     /*
     cl_float16 imgInvTrans = {  
         m00, m01, m02, m03,
@@ -585,7 +584,7 @@ __kernel void accumulateFrameToVolume(
     }
     float w = 1.0f;*/
     //ran[0] = 1;
-    atom_inc(&ran[0]);
+    //atom_inc(&ran[0]);
     //accumulateValuesInVolumeData(volume, volumePointZero, p, w, outputDataType, semaphor);
     //accumulateValuesInVolumeUInt(volume, volumePointZero, p, w);
     //return;
