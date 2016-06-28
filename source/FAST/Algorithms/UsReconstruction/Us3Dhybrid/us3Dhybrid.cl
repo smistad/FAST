@@ -528,8 +528,8 @@ void accumulateValuesInVolumeData(__global float * volume, int3 volumePoint, flo
 void accumulateValuesInVolumeUInt(__global unsigned int * volume, int3 volumePoint, float p, float w){
     int locP = (volumePoint.x + volumePoint.y*VOL_SIZE_X + volumePoint.z*VOL_SIZE_XtY) * 2;//VOL_SIZE_X*VOL_SIZE_Y;
     int locW = locP + 1;
-    unsigned int addW = round((w*1000.0f)); //resolution on 100
-    unsigned int addP = round((p*w*1000.0f)); // ev (p*w)/100?
+    unsigned int addW = round((w * UINT_GRANULARITY)); //resolution on 100
+    unsigned int addP = round((p * w * UINT_GRANULARITY)); // ev (p*w)/100?
     atomic_add(&volume[locP], addP);
     atomic_add(&volume[locW], addW);
 }
@@ -593,6 +593,8 @@ __kernel void accumulateFrameToVolume(
     //Calculate half width df and dfDom
     float df = calculateHalfWidth(d1, d2);// , dv, Rmax);
     float dfDom = df / domVal;
+
+    float gaussianK = 1.0f / (df*SQRT_2_PI);
     
     //Indeks for c-dir range in domDir
     int2 cDirRange = getDomDirRange(basePoint, domDir, dfDom);// , volumeSize);
@@ -603,7 +605,8 @@ __kernel void accumulateFrameToVolume(
             continue;
         }
         float distance = getPointDistanceAlongNormal(volumePoint, basePoint, imgNormal);
-        if (fabs(distance) > df){
+        float absDistance = fabs(distance);
+        if (absDistance > df){
             continue;
         }
         float3 intersectionPointWorld = getIntersectionOfPlane(volumePoint, distance, imgNormal);
@@ -612,7 +615,10 @@ __kernel void accumulateFrameToVolume(
             //float p = 256.0f;// getPixelValue(frame, intersectionPointLocal, imgSize, dataType); //TODO FIX
             //float w = 1.0f;// 1 - (fabs(distance) / df); //Or gaussian for trail
             float p = getPixelValue(frame, intersectionPointLocal, imgSize, dataType); //TODO FIX
-            float w = 1.0f -(fabs(distance) / df); //Or gaussian for trail
+            //float w = 1.0f - (absDistance / df); //Or gaussian for trail
+            float w = gaussianK * exp2((-0.5f*absDistance*absDistance) / (df*df));
+            //float w = 1.0f - ((absDistance*absDistance) / (df*df));
+            //float w = sqrt((absDistance / df));
             //accumulateValuesInVolumeData(volume, volumePoint, p, w, outputDataType, semaphor); //TODO FIX
             accumulateValuesInVolumeUInt(volume, volumePoint, p, w);
         }

@@ -904,10 +904,7 @@ void Us3Dhybrid::recompileAlgorithmOpenCLCode(){
     buildOptions += std::to_string(volumeSize(2));
     std::cout << " -D VOL_SIZE_Z=" << volumeSize(2) << std::endl;
 
-    int vol_size_X_times_Y = volumeSize(0) * volumeSize(1);
-    buildOptions += " -D VOL_SIZE_XtY=";
-    buildOptions += std::to_string(vol_size_X_times_Y);
-    std::cout << " -D VOL_SIZE_XtY=" << vol_size_X_times_Y << std::endl;
+    
 
     float bufferXY = 0.5f;
     float bufferZ = 0.5f;
@@ -917,6 +914,22 @@ void Us3Dhybrid::recompileAlgorithmOpenCLCode(){
     buildOptions += " -D BUFFER_Z=";
     buildOptions += std::to_string(bufferZ);
     std::cout << " -D BUFFER_Z=" << bufferZ << std::endl;
+
+    float granularity = 1000.0f;
+    buildOptions += " -D UINT_GRANULARITY=";
+    buildOptions += std::to_string(granularity);
+    std::cout << " -D UINT_GRANULARITY=" << granularity << std::endl;
+
+    // Precalcs
+    int vol_size_X_times_Y = volumeSize(0) * volumeSize(1);
+    buildOptions += " -D VOL_SIZE_XtY=";
+    buildOptions += std::to_string(vol_size_X_times_Y);
+    std::cout << " -D VOL_SIZE_XtY=" << vol_size_X_times_Y << std::endl;
+
+    float sqrt2pi = std::sqrt(2 * M_PI);
+    buildOptions += " -D SQRT_2_PI=";
+    buildOptions += std::to_string(sqrt2pi);
+    std::cout << " -D SQRT_2_PI=" << sqrt2pi << std::endl;
 
     cl::Program programUs3Dhybrid = getOpenCLProgram(device, "us3Dhybrid", buildOptions);
     mKernel = cl::Kernel(programUs3Dhybrid, "accumulateFrameToVolume");
@@ -1075,7 +1088,7 @@ void Us3Dhybrid::executeAlgorithm(){
     */
     cmdQueue.finish();
     std::cout << " ### Running " << frameList.size() << " frames on GPU! ### " << std::endl;
-    clock_t startLoopTime = clock();
+    algorithmLoopStarted = clock();
     int nrOfFrames = frameList.size();
     for (int frameNr = 0; frameNr < nrOfFrames; frameNr++){
         // Get FRAME
@@ -1172,12 +1185,12 @@ void Us3Dhybrid::executeAlgorithm(){
 
     cmdQueue.finish();
 
-    clock_t endLoopTime = clock();
-    {
+    algorithmLoopEnded = clock();
+    if (false && verbosityLevel >= 7){
         //std::cout << " ####################################################### " << std::endl;
         //std::cout << "" << std::endl;
 
-        clock_t clockTicksTakenLoop = endLoopTime - startLoopTime;
+        clock_t clockTicksTakenLoop = algorithmLoopEnded - algorithmLoopStarted;
         double timeInSecondsLoop = clockTicksTakenLoop / (double)CLOCKS_PER_SEC;
         int minutesInLoop = timeInSecondsLoop / 60;
         int secondsInMinute = ((int)timeInSecondsLoop) % 60;
@@ -1964,7 +1977,7 @@ void Us3Dhybrid::execute(){
         Image::pointer frame = getStaticInputData<Image>(0);
         frameList.push_back(frame);
         if (!firstFrameSet){
-            std::cout << "Starting loading.." << std::endl;
+            //std::cout << "Starting loading.." << std::endl;
             firstFrame = frame;
             firstFrameSet = true;
             loadingStarted = clock();
@@ -1975,7 +1988,7 @@ void Us3Dhybrid::execute(){
         if (dynamicImage->hasReachedEnd()) {
             reachedEndOfStream = true;
             loadingEnded = clock();
-            //std::cout << "" << std::endl;
+            std::cout << "" << std::endl;
         }
         //mIsModified = true;
         //setStaticOutputData<Image>(0, frame);
@@ -2023,9 +2036,70 @@ clock_t initVolumeStarted;
 clock_t initVolumeEnded;
 clock_t algorithmStarted;
 clock_t algorithmEnded;
+clock_t algorithmLoopStarted;
+clock_t algorithmLoopEnded;
 clock_t normalizationStarted;
 clock_t normalizationEnded;
 */
+
+double Us3Dhybrid::calculateRuntime(int part){
+    clock_t startTime;
+    clock_t endTime;
+    switch (part){
+        case 1:
+            //std::cout << "Case 1" << std::endl;
+            startTime = loadingStarted;
+            endTime = loadingEnded;
+            break;
+        case 2:
+            //std::cout << "Case 2" << std::endl;
+            startTime = initVolumeStarted;
+            endTime = initVolumeEnded;
+            break;
+        case 3:
+            //std::cout << "Case 3" << std::endl;
+            startTime = algorithmStarted;
+            endTime = algorithmEnded;
+            break;
+        case 4:
+            //std::cout << "Case 4" << std::endl;
+            startTime = algorithmLoopStarted;
+            endTime = algorithmLoopEnded;
+            break;
+        case 5:
+            //std::cout << "Case 5" << std::endl;
+            startTime = normalizationStarted;
+            endTime = normalizationEnded;
+            break;
+        default:
+            //std::cout << "Case Def" << std::endl;
+            startTime = loadingStarted;
+            endTime = normalizationEnded;
+            break;
+    }
+    clock_t clockTicksTakenLoop = endTime - startTime;
+    double timeInSecondsLoop = clockTicksTakenLoop / (double)CLOCKS_PER_SEC;
+    return timeInSecondsLoop;
+}
+
+Vector3i splitSecondsToParts(double timeInSecondsLoop){
+    int minutesInLoop = timeInSecondsLoop / 60;
+    int secondsInMinute = ((int)timeInSecondsLoop) % 60;
+    int hundredsInSecond = round((timeInSecondsLoop - floor(timeInSecondsLoop)) * 100.0f);// 1000.0f);
+    return Vector3i(minutesInLoop, secondsInMinute, hundredsInSecond);
+}
+
+std::string hundredIntToString(int hundred){
+    std::string output = "";
+    if (hundred < 10){
+        output += "0";
+        /*if (hundred < 100){
+            output += "0";
+        }*/
+    }
+    output += std::to_string(hundred);
+    return output;
+}
 
 void Us3Dhybrid::printEndStats(){
     clock_t endTotalTime = clock();
@@ -2035,40 +2109,47 @@ void Us3Dhybrid::printEndStats(){
         std::cout << "" << std::endl;
         std::cout << " ### LOADING: ### "; 
         {
-            clock_t clockTicksTakenLoop = loadingEnded - loadingStarted;
-            double timeInSecondsLoop = clockTicksTakenLoop / (double)CLOCKS_PER_SEC;
-            int minutesInLoop = timeInSecondsLoop / 60;
-            int secondsInMinute = ((int)timeInSecondsLoop) % 60;
-            std::cout << "Took " << minutesInLoop << "minutes and " << secondsInMinute << "seconds! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
+            double timeInSecondsLoop = calculateRuntime(1);
+            Vector3i splitMinSecSub = splitSecondsToParts(timeInSecondsLoop);
+            std::cout << "Took " << splitMinSecSub.x() << "min " << splitMinSecSub.y() << "." << hundredIntToString(splitMinSecSub.z()) << "sec! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
             std::cout << "" << std::endl;
         }
         std::cout << " ### INITIALIZATION: ### ";
         {
-            clock_t clockTicksTakenLoop = initVolumeEnded - initVolumeStarted;
-            double timeInSecondsLoop = clockTicksTakenLoop / (double)CLOCKS_PER_SEC;
-            int minutesInLoop = timeInSecondsLoop / 60;
-            int secondsInMinute = ((int)timeInSecondsLoop) % 60;
-            std::cout << "Took " << minutesInLoop << "minutes and " << secondsInMinute << "seconds! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
+            double timeInSecondsLoop = calculateRuntime(2);
+            Vector3i splitMinSecSub = splitSecondsToParts(timeInSecondsLoop);
+            std::cout << "Took " << splitMinSecSub.x() << "min " << splitMinSecSub.y() << "." << hundredIntToString(splitMinSecSub.z()) << "sec! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
             std::cout << "" << std::endl;
         }
         std::cout << " ### ALGORITHM: ### ";
         {
-            clock_t clockTicksTakenLoop = algorithmEnded - algorithmStarted;
-            double timeInSecondsLoop = clockTicksTakenLoop / (double)CLOCKS_PER_SEC;
-            int minutesInLoop = timeInSecondsLoop / 60;
-            int secondsInMinute = ((int)timeInSecondsLoop) % 60;
-            std::cout << "Took " << minutesInLoop << "minutes and " << secondsInMinute << "seconds! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
+            double timeInSecondsLoop = calculateRuntime(3);
+            Vector3i splitMinSecSub = splitSecondsToParts(timeInSecondsLoop);
+            std::cout << "Took " << splitMinSecSub.x() << "min " << splitMinSecSub.y() << "." << hundredIntToString(splitMinSecSub.z()) << "sec! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
+            //std::cout << "" << std::endl;
+            std::cout << "   # Inner loop: #   ";
+            {
+                double timeInSecondsLoop2 = calculateRuntime(4);
+                Vector3i splitMinSecSub2 = splitSecondsToParts(timeInSecondsLoop);
+                std::cout << "Took " << splitMinSecSub2.x() << "min " << splitMinSecSub2.y() << "." << hundredIntToString(splitMinSecSub2.z()) << "sec! " << (timeInSecondsLoop2 / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
+            }
             std::cout << "" << std::endl;
         }
-
         std::cout << " ### NORMALIZATION: ### ";
         {
+            double timeInSecondsLoop = calculateRuntime(5);
+            Vector3i splitMinSecSub = splitSecondsToParts(timeInSecondsLoop);
+            std::cout << "Took " << splitMinSecSub.x() << "min " << splitMinSecSub.y() << "." << hundredIntToString(splitMinSecSub.z()) << "sec! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
+            std::cout << "" << std::endl;
+            /*
             clock_t clockTicksTakenLoop = normalizationEnded - normalizationStarted;
             double timeInSecondsLoop = clockTicksTakenLoop / (double)CLOCKS_PER_SEC;
             int minutesInLoop = timeInSecondsLoop / 60;
             int secondsInMinute = ((int)timeInSecondsLoop) % 60;
-            std::cout << "Took " << minutesInLoop << "minutes and " << secondsInMinute << "seconds! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
+            int hundredsInSecond = round((timeInSecondsLoop - floor(timeInSecondsLoop)) * 100.0f);
+            std::cout << "Took " << minutesInLoop << "min " << secondsInMinute << "." << hundredsInSecond << "sec! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
             std::cout << "" << std::endl;
+            */
         }
 
         std::cout << " ####################################################### " << std::endl;
@@ -2077,9 +2158,8 @@ void Us3Dhybrid::printEndStats(){
         {
             clock_t clockTicksTakenLoop = endTotalTime - loadingStarted;
             double timeInSecondsLoop = clockTicksTakenLoop / (double)CLOCKS_PER_SEC;
-            int minutesInLoop = timeInSecondsLoop / 60;
-            int secondsInMinute = ((int)timeInSecondsLoop) % 60;
-            std::cout << "Took " << minutesInLoop << "minutes and " << secondsInMinute << "seconds! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
+            Vector3i splitMinSecSub = splitSecondsToParts(timeInSecondsLoop);
+            std::cout << "Took " << splitMinSecSub.x() << "min " << splitMinSecSub.y() << "." << hundredIntToString(splitMinSecSub.z()) << "sec! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
             std::cout << "" << std::endl;
         }
         /*

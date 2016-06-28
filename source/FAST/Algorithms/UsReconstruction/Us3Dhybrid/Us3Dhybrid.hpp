@@ -11,7 +11,6 @@ namespace fast {
         FAST_OBJECT(Us3Dhybrid)
     public:
         void setOutputType(DataType type);
-        bool hasCalculatedVolume();
         void setScaleToMax(float scaleToMax);
         void setVoxelSpacing(float voxelSpacing);
         void setDV(float dv);
@@ -23,7 +22,10 @@ namespace fast {
         void setCLrun(bool clRunMode);
         void printEndStats();
         void setVerbosity(int verbosity); //TODO USE
-        //TODO set functions in here to be testable
+
+        //Returns something
+        bool hasCalculatedVolume();
+        double calculateRuntime(int part);
         ~Us3Dhybrid();
     private:
         Us3Dhybrid();
@@ -90,6 +92,8 @@ namespace fast {
         clock_t initVolumeEnded;
         clock_t algorithmStarted;
         clock_t algorithmEnded;
+        clock_t algorithmLoopStarted;
+        clock_t algorithmLoopEnded;
         clock_t normalizationStarted;
         clock_t normalizationEnded;
         int verbosityLevel; //TODO USE
