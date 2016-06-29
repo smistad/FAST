@@ -174,6 +174,11 @@ void Us3Dhybrid::addTransformationToFrame(Image::pointer frame, AffineTransforma
     frame->getSceneGraphNode()->setTransformation(newImgTransform);
 }
 
+AffineTransformation::pointer addTransformation(AffineTransformation::pointer base, AffineTransformation::pointer add){
+    AffineTransformation::pointer newImgTransform = add->multiply(base);
+    return newImgTransform;
+}
+
 Vector2i Us3Dhybrid::getFrameRangeInVolume(int frameNr, int domDir, int dir){//Image::pointer frame, int domDir, int dir){
     //domDir of x,y,z and dir of a,b
     Vector2i outputRange;
@@ -1435,6 +1440,9 @@ void Us3Dhybrid::generateOutputVolume(){
     outputVolume = getStaticOutputData<Image>(0);
     DataType outputType = AccumulationVolume->getDataType();
     ExecutionDevice::pointer device = getMainDevice();
+    if (runCLhybrid && !device->isHost()) {
+        outputType = TYPE_UINT8;
+    }
         
     outputVolume->create(AccumulationVolume->getSize(), outputType, 1); //1-channeled outputVolume
     //std::cout << "Step 1" << std::endl;
@@ -1444,6 +1452,8 @@ void Us3Dhybrid::generateOutputVolume(){
     Vector3f outputSpacing = Vector3f(spacingVal, spacingVal, spacingVal);// 0.1f, 0.1f, 0.1f);
     outputVolume->setSpacing(outputSpacing);
     //ADD TRANSFORMATION in world space
+    //outputVolume
+    outputVolume->getSceneGraphNode()->setTransformation(volumeTransform);
 
     
     if (runCLhybrid && !device->isHost()) {
@@ -1579,6 +1589,7 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
     Image::pointer testFrame = frameList[0];// 10]; //TO TEST THIS
 
     //INVERSE TRANSFORM
+    AffineTransformation::pointer rootTransformation = SceneGraph::getAffineTransformationFromData(rootFrame);
     AffineTransformation::pointer inverseSystemTransform = getInverseTransformation(rootFrame);
     //std::vector<AffineTransformation::pointer> frameTransformList = {}; // std::vector global AffineTransformation::pointer
     Vector3f minCoords; {
@@ -1625,40 +1636,48 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         }
     }
     
-    //Test frame 10
-    AffineTransformation::pointer testTransformation = SceneGraph::getAffineTransformationFromData(testFrame);
-    Vector3f pointZero = testTransformation->multiply(Vector3f(0, 0, 0));
-    Vector3f pointHero = testTransformation->multiply(Vector3f(350, 546, 0));
-    Matrix4f testMatrix = testTransformation->matrix();
-    Vector4f t0 = testMatrix.row(0);
-    Vector4f t1 = testMatrix.row(1);
-    Vector4f t2 = testMatrix.row(2);
-    Vector4f t3 = testMatrix.row(3);
-    bool tFoo = false;
+    AffineTransformation::pointer testTransformation; {
+        //Test frame 10
+        testTransformation = SceneGraph::getAffineTransformationFromData(testFrame);
+        Vector3f pointZero = testTransformation->multiply(Vector3f(0, 0, 0));
+        Vector3f pointHero = testTransformation->multiply(Vector3f(350, 546, 0));
+        Matrix4f testMatrix = testTransformation->matrix();
+        Vector4f t0 = testMatrix.row(0);
+        Vector4f t1 = testMatrix.row(1);
+        Vector4f t2 = testMatrix.row(2);
+        Vector4f t3 = testMatrix.row(3);
+        Vector3f pointVolumeBase = rootTransformation->multiply(minCoords);
+        bool tFoo = false;
+    }
+    
 
     /**Transform all frames so that minimum corner is (0,0,0) //Just translate right?
     * & Find min/max in each coordinate direction x/y/z
     * & Store min/max/base/normal for each frame
     */
     //MINIMUM TRANSFORM + scale to fit
+    Vector3f translationDone = -minCoords;
     AffineTransformation::pointer transformToMinimum = getTranslationFromMinCoordsVector(minCoords); //TODO extract these to methods
     AffineTransformation::pointer totalTransform;
     Matrix4f totalMatrix;
     Vector3f maxCoords; {
         addTransformationToFrame(rootFrame, transformToMinimum);
-        //Test frame 10
-        AffineTransformation::pointer testTransformationMin = SceneGraph::getAffineTransformationFromData(testFrame);
-        pointZero = testTransformationMin->multiply(Vector3f(0, 0, 0));
-        pointHero = testTransformationMin->multiply(Vector3f(350, 546, 0));
-        Matrix4f testMatrixMin = testTransformationMin->matrix();
-        t0 = testMatrix.row(0);
-        t1 = testMatrix.row(1);
-        t2 = testMatrix.row(2);
-        t3 = testMatrix.row(3);
-        tFoo = false;
+        {
+            //Test frame 10
+            AffineTransformation::pointer testTransformationMin = SceneGraph::getAffineTransformationFromData(testFrame);
+            Vector3f pointZero = testTransformationMin->multiply(Vector3f(0, 0, 0));
+            Vector3f pointHero = testTransformationMin->multiply(Vector3f(350, 546, 0));
+            Matrix4f testMatrixMin = testTransformationMin->matrix();
+            Vector4f t0 = testMatrixMin.row(0);
+            Vector4f t1 = testMatrixMin.row(1);
+            Vector4f t2 = testMatrixMin.row(2);
+            Vector4f t3 = testMatrixMin.row(3);
+            bool tFoo = false;
+        }
+        
 
         BoundingBox box2 = rootFrame->getTransformedBoundingBox();
-
+        /*
         //Scale to keep pixel/voxel spacing basicall nothing now - after fix! but can add scaling here!
         {
             BoundingBox boxUntransformed = rootFrame->getBoundingBox();
@@ -1683,6 +1702,7 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
             float scaleY = uDist.y() / tDist.y();
             //Ignoring Z
             Vector3f scaling = Vector3f(scaleX, scaleY, 1);
+            std::cout << "SCALING by: " << scaleX << " - " << scaleY << std::endl;
             AffineTransformation::pointer scaleOneTransform = getScalingFromVector(scaling);
             addTransformationToFrame(rootFrame, scaleOneTransform);
             //Testing
@@ -1690,18 +1710,19 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
             Vector3f cornerA = box2.getCorners().row(0);
             Vector3f cornerB = box2.getCorners().row(2);
             // ADD scaleTransform to transformToMinimum
-            transformToMinimum = scaleOneTransform->multiply(transformToMinimum);
+            //transformToMinimum = scaleOneTransform->multiply(transformToMinimum);
+            transformToMinimum = addTransformation(transformToMinimum, scaleOneTransform);
             /*Matrix4f minMatrix = transformToMinimum->matrix();
             Vector4f t0 = minMatrix.row(0);
             Vector4f t1 = minMatrix.row(1);
             Vector4f t2 = minMatrix.row(2);
             Vector4f t3 = minMatrix.row(3);
-            bool foo2 = false;*/
+            bool foo2 = false;*
             //DONE scaling
 
         }
         
-        box2 = rootFrame->getTransformedBoundingBox();
+        box2 = rootFrame->getTransformedBoundingBox(); */
         Vector3f corner2 = box2.getCorners().row(0);
 
         minCoords(0) = corner2(0); //or 0
@@ -1731,7 +1752,9 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
 
         //Test total results: inverseSystemTransform & transformToMinimum
         //AffineTransformation::pointer 
-        totalTransform = transformToMinimum->multiply(inverseSystemTransform);
+        
+        //totalTransform = transformToMinimum->multiply(inverseSystemTransform);
+        totalTransform = addTransformation(inverseSystemTransform, transformToMinimum);
         totalMatrix = totalTransform->matrix();
         Vector4f m0 = totalMatrix.row(0);
         Vector4f m1 = totalMatrix.row(1);
@@ -1744,16 +1767,19 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         Vector4f s3 = minTransformMatrix.row(3);
     }
     
-    //Test frame 10
-    AffineTransformation::pointer testTransformation2 = SceneGraph::getAffineTransformationFromData(testFrame);
-    pointZero = testTransformation2->multiply(Vector3f(0, 0, 0));
-    pointHero = testTransformation2->multiply(Vector3f(350, 546, 0));
-    Matrix4f testMatrix2 = testTransformation2->matrix();
-    t0 = testMatrix2.row(0);
-    t1 = testMatrix2.row(1);
-    t2 = testMatrix2.row(2);
-    t3 = testMatrix2.row(3);
-    tFoo = false;
+    AffineTransformation::pointer testTransformation2; {
+        //Test frame 10
+        testTransformation2 = SceneGraph::getAffineTransformationFromData(testFrame);
+        Vector3f pointZero = testTransformation2->multiply(Vector3f(0, 0, 0));
+        Vector3f pointHero = testTransformation2->multiply(Vector3f(350, 546, 0));
+        Matrix4f testMatrix2 = testTransformation2->matrix();
+        Vector4f t0 = testMatrix2.row(0);
+        Vector4f t1 = testMatrix2.row(1);
+        Vector4f t2 = testMatrix2.row(2);
+        Vector4f t3 = testMatrix2.row(3);
+        bool tFoo = false;
+    }
+    
 
     // FIND SCALING
     Vector3f scaling; {
@@ -1769,14 +1795,16 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         }
         */
         Vector3f spacing = rootFrame->getSpacing();
-        std::cout << "Original spacing: " << spacing(0) << " " << spacing(1) << " " << spacing(2) << " ; But wants " << mVoxelSpacing << std::endl;
         if (zDirInitSpacing != 0.0)
             spacing(2) = zDirInitSpacing;
+        std::cout << "Original spacing: " << spacing(0) << " " << spacing(1) << " " << spacing(2) << " ; But wants " << mVoxelSpacing << std::endl;
         float wantedSpacing = mVoxelSpacing; //dv
         scaling = Vector3f(0.f, 0.f, 0.f);
         for (int i = 0; i < 3; i++){
-            scaling(i) = (spacing(i) / wantedSpacing) * globalScalingValue;
+            //scaling(i) = (spacing(i) / wantedSpacing) * globalScalingValue;
+            scaling(i) = wantedSpacing / spacing(i);
         }
+        bool foo = false;
         /*
         Vector3f wantedSize = Vector3f(200.f, 200.f, 200.f); //Can be smaller than 200.f or at least just scale 1 up to 200.f
         float wantedMax = mScaleToMax; //100.f;
@@ -1862,7 +1890,9 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
 
         //Test total results: inverseSystemTransform & transformToMinimum & scaleTransform
         //AffineTransformation::pointer totalTransform = transformToMinimum->multiply(inverseSystemTransform);
-        finalTransform = scaleTransform->multiply(totalTransform);// (scaleTransform->multiply(transformToMinimum))->multiply(inverseSystemTransform);// totalTransform);
+        
+        //finalTransform = scaleTransform->multiply(totalTransform);// (scaleTransform->multiply(transformToMinimum))->multiply(inverseSystemTransform);// totalTransform);
+        finalTransform = addTransformation(totalTransform, scaleTransform);
         finalTransformMatrix = finalTransform->matrix();
         Vector4f f0 = finalTransformMatrix.row(0);
         Vector4f f1 = finalTransformMatrix.row(1);
@@ -1879,25 +1909,27 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         std::cout << " ## End final transform matrix: ## " << std::endl;
     }
     
-
-    //Test frame 10
-    AffineTransformation::pointer testTransformation3 = SceneGraph::getAffineTransformationFromData(testFrame);
-    pointZero = testTransformation3->multiply(Vector3f(0, 0, 0));
-    pointHero = testTransformation2->multiply(Vector3f(350, 546, 0));
-    Matrix4f testMatrix3 = testTransformation3->matrix();
-    t0 = testMatrix3.row(0);
-    t1 = testMatrix3.row(1);
-    t2 = testMatrix3.row(2);
-    t3 = testMatrix3.row(3);
-    AffineTransformation::pointer testTransformationInverse = testTransformation3->getInverse();
-    Vector3f pointVolZero = testTransformationInverse->multiply(Vector3f(0, 0, 0));
-    Vector3f pointVolHero = testTransformationInverse->multiply(Vector3f(100, 100, 10));
-    Matrix4f testMatrix4 = testTransformationInverse->matrix();
-    t0 = testMatrix4.row(0);
-    t1 = testMatrix4.row(1);
-    t2 = testMatrix4.row(2);
-    t3 = testMatrix4.row(3);
-    tFoo = false;
+    AffineTransformation::pointer testTransformation3;
+    AffineTransformation::pointer testTransformationInverse; {
+        //Test frame 10
+        testTransformation3 = SceneGraph::getAffineTransformationFromData(testFrame);
+        Vector3f pointZero = testTransformation3->multiply(Vector3f(0, 0, 0));
+        Vector3f pointHero = testTransformation2->multiply(Vector3f(350, 546, 0));
+        Matrix4f testMatrix3 = testTransformation3->matrix();
+        Vector4f t0 = testMatrix3.row(0);
+        Vector4f t1 = testMatrix3.row(1);
+        Vector4f t2 = testMatrix3.row(2);
+        Vector4f t3 = testMatrix3.row(3);
+        testTransformationInverse = testTransformation3->getInverse();
+        Vector3f pointVolZero = testTransformationInverse->multiply(Vector3f(0, 0, 0));
+        Vector3f pointVolHero = testTransformationInverse->multiply(Vector3f(100, 100, 10));
+        Matrix4f testMatrix4 = testTransformationInverse->matrix();
+        t0 = testMatrix4.row(0);
+        t1 = testMatrix4.row(1);
+        t2 = testMatrix4.row(2);
+        t3 = testMatrix4.row(3);
+        bool tFoo = false;
+    }
 
     // FINAL CALCULATIONS & TEST
     Vector3f size;
@@ -1906,8 +1938,8 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         //totalTransform/totalMatrix
         //Vector4f point0f = totalMatrix * Vector4f(0, 0, 0, 1);
         //Vector4f pointEndf = totalMatrix * Vector4f(280, 400, 0, 1);
-        pointZero = totalTransform->multiply(Vector3f(0, 0, 0));
-        pointHero = totalTransform->multiply(Vector3f(350, 546, 0));
+        Vector3f pointZero = totalTransform->multiply(Vector3f(0, 0, 0));
+        Vector3f pointHero = totalTransform->multiply(Vector3f(350, 546, 0));
         // Init volume of size max - min in each direction x / y / z
         size = maxCoords - minCoords;
         volumeSize = Vector3i(ceil(size(0)) + 1, ceil(size(1)) + 1, ceil(size(2)) + 1);
@@ -1924,6 +1956,25 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         std::cout << "calcDV: " << calcDV << std::endl;
         std::cout << "calcRmax: " << calcRmax << std::endl;
         bool good = false;
+    }
+
+    // CALCULATE VOLUME TRANSFORM
+    volumeTransform = AffineTransformation::New(); //AffineTransformation::pointer 
+    {
+        //Inverse scaling
+        Vector3f invScaling = Vector3f(1.0f, 1.0f, 1.0f);
+        for (int i = 0; i < 2; i++){
+            invScaling(i) = 1.0f/scaling(i); 
+        }
+        AffineTransformation::pointer inverseScaling = getScalingFromVector(invScaling);
+
+        AffineTransformation::pointer inverseTranslation = getTranslationFromMinCoordsVector(translationDone);
+
+        // rootTransformation
+
+        volumeTransform = addTransformation(volumeTransform, inverseScaling);
+        volumeTransform = addTransformation(volumeTransform, inverseTranslation);
+        volumeTransform = addTransformation(volumeTransform, rootTransformation);
     }
 
     // MAKE VOLUME
@@ -1979,6 +2030,7 @@ void Us3Dhybrid::execute(){
             //std::cout << "Starting loading.." << std::endl;
             firstFrame = frame;
             firstFrameSet = true;
+            Vector3f spacingFirst = firstFrame->getSpacing();
             loadingStarted = clock();
         }
         //std::cout << ".";

@@ -122,14 +122,14 @@ int main() {
     float voxelSpacing = 0.2f;// 0.15f; //0.1f; //0.5f; //0.2f; // 0.03 / 0.01 //dv // Større verdi gir mindre oppløsning
     float RmaxMultiplier = 10.0f;
 
-    int runInputSet = 2; //1/2
+    int runInputSet = 0; //1/2
     std::string folder = "";
     std::string nameformat = "";
     if (runInputSet == 0){
         folder = "/rekonstruksjons_data/US_01_20130529T084519/";
         nameformat = "US_01_20130529T084519_ScanConverted_#.mhd";
-        voxelSpacing = 0.15f;
-        initZSpacing = 1.0f;
+        voxelSpacing = 0.239013f; // 0.1f;  0.15f;
+        initZSpacing = 0.05f;// 1.0f;
         dvConstant = 0.15f; //0.30f;
         RmaxMultiplier = 10.0f;
     }
@@ -161,7 +161,7 @@ int main() {
     bool runCLHybrid = true; //false;
     bool runPNNonly = false;
 
-    bool singleTest = false;//false;
+    bool singleTest = true;//false;
 
     if (!singleTest){
         std::string testPlace = "test2/";
@@ -197,7 +197,7 @@ int main() {
         
         runAlgorithmAndExportImage(
             setDVsuggestion, maxRvalueSuggestion, 
-            input_filename, nameformat, voxelSpacing, "",
+            input_filename, nameformat, voxelSpacing, "volTransform/",
             startNumber, stepSize, initZSpacing,
             runVNNonly, runCLHybrid, runPNNonly
             );

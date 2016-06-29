@@ -661,10 +661,11 @@ __kernel void normalizeImage(
     //float value = ((float)volume[locP]) / ((float)volume[locW]);
     unsigned int p = volume[locP];
     unsigned int w = volume[locW];
-    //unsigned int div = 128;
+    unsigned int div = 128;
     float value = 0.0f;// 128.0f;
     if (w != 0){
         value = (float)p / (float) w;
+        div = p / w;
         //value = div; //* 65535.0f;
         //value = (float)div;// *65535.0f;
     }

@@ -116,6 +116,7 @@ namespace fast {
         ImageAccess::pointer volAccess;
         Vector3i volumeSize;
         float * volData;
+        AffineTransformation::pointer volumeTransform;
         int yLocMultiplier;
         int zLocMultiplier;
         ImageAccess::pointer frameAccess;
