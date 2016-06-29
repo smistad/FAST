@@ -1028,6 +1028,8 @@ void Us3Dhybrid::executeOpenCLTest(){
 
 void Us3Dhybrid::executeAlgorithm(){
     algorithmStarted = clock();
+    int voxelCount = volumeSize(0)*volumeSize(1)*volumeSize(2);
+    std::cout << "Running algorithm with " << voxelCount / 1000000 << "M voxel output volume!" << std::endl;
     ExecutionDevice::pointer device = getMainDevice();
     if (!runCLhybrid || device->isHost()) {
         std::cout << "Executing on host" << std::endl;
@@ -1767,6 +1769,7 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         }
         */
         Vector3f spacing = rootFrame->getSpacing();
+        std::cout << "Original spacing: " << spacing(0) << " " << spacing(1) << " " << spacing(2) << " ; But wants " << mVoxelSpacing << std::endl;
         if (zDirInitSpacing != 0.0)
             spacing(2) = zDirInitSpacing;
         float wantedSpacing = mVoxelSpacing; //dv
@@ -1970,10 +1973,6 @@ void Us3Dhybrid::execute(){
         std::cout << "Iteration #:" << iterartorCounter++ << std::endl;
         //std::cout << " " << iterartorCounter++;
         
-        /*if (iterartorCounter % 100 == 0){
-
-            std::cout << "Iteration #:" << iterartorCounter << std::endl;
-        }*/
         Image::pointer frame = getStaticInputData<Image>(0);
         frameList.push_back(frame);
         if (!firstFrameSet){
@@ -2130,7 +2129,7 @@ void Us3Dhybrid::printEndStats(){
             std::cout << "   # Inner loop: #   ";
             {
                 double timeInSecondsLoop2 = calculateRuntime(4);
-                Vector3i splitMinSecSub2 = splitSecondsToParts(timeInSecondsLoop);
+                Vector3i splitMinSecSub2 = splitSecondsToParts(timeInSecondsLoop2);
                 std::cout << "Took " << splitMinSecSub2.x() << "min " << splitMinSecSub2.y() << "." << hundredIntToString(splitMinSecSub2.z()) << "sec! " << (timeInSecondsLoop2 / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
             }
             std::cout << "" << std::endl;

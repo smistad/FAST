@@ -91,6 +91,7 @@ void runAlgorithmAndExportImage(
     {
         exporter = MetaImageExporter::New();
         exporter->setFilename(output_filename);
+        exporter->enableCompression();
         Image::pointer resultVolume = pnnHybrid->getStaticOutputData<Image>(0);
 
         exporter->setInputData(resultVolume);
@@ -107,37 +108,78 @@ int main() {
     //std::nameformat = 'US-2Dt_#.mhd';
 
     // SETTINGS
-    std::string folder = "/rekonstruksjons_data/US_01_20130529T084519/";
-    std::string nameformat = "US_01_20130529T084519_ScanConverted_#.mhd";
-    std::string input_filename = std::string(FAST_TEST_DATA_DIR) + folder + nameformat;
+      
+
+    
     int startNumber = 0; //0;// 735// 400; //500; //400;//700; //200; //700; //735;
     int stepSize = 1; // 5; //3
     int scaleToMaxInt = 400; // 200; //400;
     float scaleToMax = float(scaleToMaxInt);
-    float voxelSpacing = 0.15f; //0.1f; //0.5f; //0.2f; // 0.03 / 0.01 //dv // Større verdi gir mindre oppløsning
     float globalScaling = 1.0f;  //5.0f; //7/10 osv
     float initZSpacing = 1.0f; //0.3f;// 0.5f; // 0.2f; //0.3f seems fine //0.5f // 2.0f;          //1.0f // 0.2f; // 0.1f; // 0.05f; // 0.1f / 0.02f
     //initZ - større verdi gir større z-akse i volum
-    float calcedDV =  0.5f / (3.0f*voxelSpacing) * globalScaling * initZSpacing; //was 5.0f // 0.1 *  // / 4.0;
     float dvConstant = 2 * 0.15f; //0.2f ev (0.5f/3.0f)~=0.1667..
-    float calcedDV2 = dvConstant * (1.0f / voxelSpacing) * initZSpacing; //*globalScaling
-    float setDVsuggestion = 3.0f;// calcedDV2;// 0.1f; // 0.25f; //0.5f; //0.2f; //0.5f; // calcedDV;// 0.05f;
-    float maxRvalueSuggestion = 10.0f;// setDVsuggestion * 5;// 10; //8; //0.2f; //0.5f// 1.0f; //2.0f;// voxelSpacing * 2 * globalScaling; //*(200/globalScaling) // *globalScaling * 3;
+    float voxelSpacing = 0.2f;// 0.15f; //0.1f; //0.5f; //0.2f; // 0.03 / 0.01 //dv // Større verdi gir mindre oppløsning
+    float RmaxMultiplier = 10.0f;
+
+    int runInputSet = 2; //1/2
+    std::string folder = "";
+    std::string nameformat = "";
+    if (runInputSet == 0){
+        folder = "/rekonstruksjons_data/US_01_20130529T084519/";
+        nameformat = "US_01_20130529T084519_ScanConverted_#.mhd";
+        voxelSpacing = 0.15f;
+        initZSpacing = 1.0f;
+        dvConstant = 0.15f; //0.30f;
+        RmaxMultiplier = 10.0f;
+    }
+    else if (runInputSet == 1){
+        folder = "Ultrasound Data Sets 2/084_Tumor_OK.cx3/084_Tumor_OK.cx3/US_Acq/US-Acq_01_19700101T102623/";
+        nameformat = "US-Acq_01_19700101T102623_Tissue_#.mhd";
+        voxelSpacing = 0.15f; //0.1f;
+        initZSpacing = 0.3f; //0.2f;
+        dvConstant = 0.30f; //0.5f
+        RmaxMultiplier = 8.0f;// 45.0f;// 25.0f;// 10.0f;
+    }
+    else if (runInputSet == 2){
+        folder = "Ultrasound Data Sets 2/084_Tumor_OK.cx3/084_Tumor_OK.cx3/US_Acq/US-Acq_03_19700101T103031/";
+        nameformat = "US-Acq_03_19700101T103031_Tissue_#.mhd";
+        voxelSpacing = 0.1f; // 0.15f; //0.1f;
+        initZSpacing = 0.05f;// 1f; //0.2f;
+        dvConstant = 0.30f; //0.5f
+        RmaxMultiplier = 8.0f;// 45.0f;// 25.0f;// 10.0f;
+    }
     
+
+    std::string input_filename = std::string(FAST_TEST_DATA_DIR) + folder + nameformat;
+    float calcedDV = 0.5f / (3.0f*voxelSpacing) * globalScaling * initZSpacing; //was 5.0f // 0.1 *  // / 4.0;
+    
+    float calcedDV2 = dvConstant * (1.0f / voxelSpacing) * initZSpacing; //*globalScaling
+    float setDVsuggestion = calcedDV2;// 3.0f;// calcedDV2;// 0.1f; // 0.25f; //0.5f; //0.2f; //0.5f; // calcedDV;// 0.05f;
+    float maxRvalueSuggestion = setDVsuggestion * RmaxMultiplier;// 10.0f;// setDVsuggestion * 5;// 10; //8; //0.2f; //0.5f// 1.0f; //2.0f;// voxelSpacing * 2 * globalScaling; //*(200/globalScaling) // *globalScaling * 3;
     bool runVNNonly = false;
     bool runCLHybrid = true; //false;
     bool runPNNonly = false;
 
-    bool singleTest = true;
+    bool singleTest = false;//false;
 
     if (!singleTest){
         std::string testPlace = "test2/";
         float dvStart = 0.2f;
         float dvEnd = 2.2f;// 1.0f;
-        float calcedDVstep = 0.4f;// calcedDV / 5.0f;
+        float calcedDVstep = 0.2f;// calcedDV / 5.0f;
+        int rStart = 4;
+        int rEnd = 40;
+        int rStep = 4;
         float rMaxMaximum = 15.0f;
+        int dvValues = (dvEnd - dvStart) / calcedDVstep; //+1?
+        int rMaxValues = (rEnd - rStart) / rStep; //+1?
+        int totalRuns = dvValues * rMaxValues;
+
+
+
         for (float setDV = dvStart; setDV <= dvEnd; setDV += calcedDVstep){
-            for (int rMultiplier = 4; rMultiplier <= 20; rMultiplier += 4){
+            for (int rMultiplier = 4; rMultiplier <= 40; rMultiplier += 4){
                 float maxRvalue = setDV * rMultiplier;
                 if (maxRvalue > rMaxMaximum)
                     continue;
@@ -151,8 +193,8 @@ int main() {
         }
     }
     else {
-        runAlgorithmAndExportImage(setDVsuggestion, maxRvalueSuggestion, input_filename, nameformat, voxelSpacing); //Runs CL
-        /*
+        //runAlgorithmAndExportImage(setDVsuggestion, maxRvalueSuggestion, input_filename, nameformat, voxelSpacing); //Runs CL
+        
         runAlgorithmAndExportImage(
             setDVsuggestion, maxRvalueSuggestion, 
             input_filename, nameformat, voxelSpacing, "",
@@ -160,7 +202,7 @@ int main() {
             runVNNonly, runCLHybrid, runPNNonly
             );
 
-        */
+        
     }
 }
 
