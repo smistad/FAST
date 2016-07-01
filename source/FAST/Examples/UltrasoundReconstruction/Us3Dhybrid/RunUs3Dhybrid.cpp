@@ -129,8 +129,8 @@ int main() {
         folder = "/rekonstruksjons_data/US_01_20130529T084519/";
         nameformat = "US_01_20130529T084519_ScanConverted_#.mhd";
         voxelSpacing = 0.239013f; // 0.1f;  0.15f;
-        initZSpacing = 0.6f;// 0.5f;//0.05f;// 1.0f;
-        dvConstant = 0.15f; //0.30f;
+        initZSpacing = 0.1f;// 0.6f;// 0.5f;//0.05f;// 1.0f;
+        dvConstant = 1.0f;// 0.3f;// 0.15f; //0.30f;
         RmaxMultiplier = 10.0f;
     }
     else if (runInputSet == 1){
@@ -146,7 +146,7 @@ int main() {
         nameformat = "US-Acq_03_19700101T103031_Tissue_#.mhd";
         voxelSpacing = 0.1f; // 0.15f; //0.1f;
         initZSpacing = 0.2f;//0.05f;// 1f; //0.2f;
-        dvConstant = 0.30f; //0.5f
+        dvConstant = 1.0f; // 0.30f; //0.5f
         RmaxMultiplier = 8.0f;// 45.0f;// 25.0f;// 10.0f;
     }
     
@@ -197,7 +197,7 @@ int main() {
         
         runAlgorithmAndExportImage(
             setDVsuggestion, maxRvalueSuggestion, 
-            input_filename, nameformat, voxelSpacing, "volTransform/",
+            input_filename, nameformat, voxelSpacing, "testTransform/",
             startNumber, stepSize, initZSpacing,
             runVNNonly, runCLHybrid, runPNNonly
             );

@@ -1030,7 +1030,9 @@ BoundingBox Image::getTransformedBoundingBox() const {
     AffineTransformation::pointer T = SceneGraph::getAffineTransformationFromData(DataObject::pointer(mPtr.lock()));
 
     // Add image spacing
-    //T->scale(getSpacing()); //TESTING
+    Vector3f spacing = getSpacing();
+    float s0 = spacing(0);
+    T->scale(getSpacing()); //TESTING
 
     return getBoundingBox().getTransformedBoundingBox(T);
 }

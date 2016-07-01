@@ -52,6 +52,7 @@ namespace fast {
         void accumulateValuesInVolumeData(Vector3i volumePoint, float p, float w);
         void addTransformationToFrame(Image::pointer frame, AffineTransformation::pointer addTransformation);
         Vector2i getFrameRangeInVolume(int frameNr, int domDir, int dir);
+        AffineTransformation::pointer getTransform(Image::pointer frame);
         AffineTransformation::pointer getInverseTransformation(Image::pointer frame);
 
         float getPixelValue(Vector3f point); 
@@ -117,6 +118,8 @@ namespace fast {
         Vector3i volumeSize;
         float * volData;
         AffineTransformation::pointer volumeTransform;
+        AffineTransformation::pointer worldToVolumeTransform;
+        AffineTransformation::pointer volumeToWorldTransform;
         int yLocMultiplier;
         int zLocMultiplier;
         ImageAccess::pointer frameAccess;
