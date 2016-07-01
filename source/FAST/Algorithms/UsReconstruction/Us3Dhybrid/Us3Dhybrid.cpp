@@ -396,6 +396,13 @@ AffineTransformation::pointer getTranslationFromMinCoordsVector(Vector3f minCoor
     return output;
 }
 
+AffineTransformation::pointer getTranslationFromVector(Vector3f v){ //eller Us3Dhybrid::
+    Eigen::Translation3f translation = Eigen::Translation3f(v(0), v(1), v(2));
+    AffineTransformation::pointer output = AffineTransformation::New();
+    output->matrix() = Eigen::Affine3f(translation).matrix();
+    return output;
+}
+
 AffineTransformation::pointer getScalingFromVector(Vector3f scale){
     //get a scaling transformation along x, y, z dirs
     
@@ -1656,8 +1663,8 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
     * & Store min/max/base/normal for each frame
     */
     //MINIMUM TRANSFORM + scale to fit
-    Vector3f translationDone = -minCoords;
-    AffineTransformation::pointer transformToMinimum = getTranslationFromMinCoordsVector(minCoords); //TODO extract these to methods
+    Vector3f translationDone = Vector3f(-minCoords(0), -minCoords(1), -minCoords(2));
+    AffineTransformation::pointer transformToMinimum = getTranslationFromVector(translationDone); //TODO extract these to methods
     AffineTransformation::pointer totalTransform;
     Matrix4f totalMatrix;
     Vector3f maxCoords; {
@@ -1801,8 +1808,8 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         float wantedSpacing = mVoxelSpacing; //dv
         scaling = Vector3f(0.f, 0.f, 0.f);
         for (int i = 0; i < 3; i++){
-            //scaling(i) = (spacing(i) / wantedSpacing) * globalScalingValue;
-            scaling(i) = wantedSpacing / spacing(i);
+            scaling(i) = (spacing(i) / wantedSpacing) * globalScalingValue;
+            //scaling(i) = wantedSpacing / spacing(i);
         }
         bool foo = false;
         /*
@@ -1964,11 +1971,13 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         //Inverse scaling
         Vector3f invScaling = Vector3f(1.0f, 1.0f, 1.0f);
         for (int i = 0; i < 2; i++){
-            invScaling(i) = 1.0f/scaling(i); 
+            invScaling(i) = 1.0f / mVoxelSpacing; //scaling(i); 
         }
         AffineTransformation::pointer inverseScaling = getScalingFromVector(invScaling);
 
-        AffineTransformation::pointer inverseTranslation = getTranslationFromMinCoordsVector(translationDone);
+        Vector3f reTranslate = Vector3f(-translationDone(0), -translationDone(1), -translationDone(2));
+        Vector3f pointVolumeBase = rootTransformation->multiply(reTranslate);
+        AffineTransformation::pointer inverseTranslation = getTranslationFromVector(translationDone);
 
         // rootTransformation
 

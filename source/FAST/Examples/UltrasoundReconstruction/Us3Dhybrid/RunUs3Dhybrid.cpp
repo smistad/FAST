@@ -122,14 +122,14 @@ int main() {
     float voxelSpacing = 0.2f;// 0.15f; //0.1f; //0.5f; //0.2f; // 0.03 / 0.01 //dv // Større verdi gir mindre oppløsning
     float RmaxMultiplier = 10.0f;
 
-    int runInputSet = 0; //1/2
+    int runInputSet = 2; //1/2
     std::string folder = "";
     std::string nameformat = "";
     if (runInputSet == 0){
         folder = "/rekonstruksjons_data/US_01_20130529T084519/";
         nameformat = "US_01_20130529T084519_ScanConverted_#.mhd";
         voxelSpacing = 0.239013f; // 0.1f;  0.15f;
-        initZSpacing = 0.05f;// 1.0f;
+        initZSpacing = 0.6f;// 0.5f;//0.05f;// 1.0f;
         dvConstant = 0.15f; //0.30f;
         RmaxMultiplier = 10.0f;
     }
@@ -145,7 +145,7 @@ int main() {
         folder = "Ultrasound Data Sets 2/084_Tumor_OK.cx3/084_Tumor_OK.cx3/US_Acq/US-Acq_03_19700101T103031/";
         nameformat = "US-Acq_03_19700101T103031_Tissue_#.mhd";
         voxelSpacing = 0.1f; // 0.15f; //0.1f;
-        initZSpacing = 0.05f;// 1f; //0.2f;
+        initZSpacing = 0.2f;//0.05f;// 1f; //0.2f;
         dvConstant = 0.30f; //0.5f
         RmaxMultiplier = 8.0f;// 45.0f;// 25.0f;// 10.0f;
     }
