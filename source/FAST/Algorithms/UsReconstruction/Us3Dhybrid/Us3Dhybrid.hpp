@@ -7,6 +7,15 @@
 
 namespace fast {
 
+    enum Us3DRunMode {
+        clHybrid = 0,
+        cpuHybrid = 1,
+        clVNN = 2,
+        cpuVNN = 3,
+        clPNN = 4,
+        cpuPNN = 5
+    };
+
     class Us3Dhybrid : public ProcessObject {
         FAST_OBJECT(Us3Dhybrid)
     public:
@@ -18,6 +27,7 @@ namespace fast {
         void setVolumeSize(int sizeMillions);
         void setGlobalScaling(float globalScaling);
         void setZDirInitSpacing(float zInitSpacing);
+        void setRunMode(Us3DRunMode runType);
         void setPNNrunMode(bool pnnRunMode);
         void setVNNrunMode(bool vnnRunMode);
         void setCLrun(bool clRunMode);
@@ -104,9 +114,10 @@ namespace fast {
         float dv; //voxel spacing
         float mVoxelSpacing;
         float Rmax;
-        int volumeSizeMillion;
+        int mVolSizeM;
         float mScaleToMax;
         float globalScalingValue;
+        Us3DRunMode mRunType;
         bool runAsPNNonly;
         bool runAsVNNonly;
         bool runCLhybrid;

@@ -48,7 +48,7 @@ void Us3Dhybrid::setRmax(float maxRvalue){
 }
 
 void Us3Dhybrid::setVolumeSize(int sizeMillions){
-    volumeSizeMillion = sizeMillions;
+    mVolSizeM = sizeMillions;
     volumeCalculated = false;
     volumeInitialized = false;
     mIsModified = true;
@@ -68,6 +68,13 @@ void Us3Dhybrid::setZDirInitSpacing(float zInitSpacing){
     zDirInitSpacing = zInitSpacing;
     volumeCalculated = false;
     volumeInitialized = false;
+    mIsModified = true;
+}
+
+void Us3Dhybrid::setRunMode(Us3DRunMode runType){
+    mRunType = runType;
+    volumeCalculated = false;
+    volumeInitialized = false; //Necessary?
     mIsModified = true;
 }
 
@@ -113,7 +120,7 @@ Us3Dhybrid::Us3Dhybrid(){
     setVoxelSpacing(0.1f);
     Rmax = 5.0; //2?
     mScaleToMax = 100.0f;
-    volumeSizeMillion = 32;
+    mVolSizeM = 32;
     volumeCalculated = false;
     volumeInitialized = false;
     firstFrameSet = false;
@@ -1849,7 +1856,7 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
     Vector3f scaling; {
         // Find size current Init volume of size max-min in each direction x/y/z
         Vector3f sizeOne = maxCoords - minCoords;
-        float wantedVolumeSize = volumeSizeMillion * 1000 * 1000; //128
+        float wantedVolumeSize = mVolSizeM * 1000 * 1000; //128
         float currentVolumeSize = sizeOne(0) * sizeOne(1) * sizeOne(2);
         float scaleSpacing = std::cbrtf((wantedVolumeSize / currentVolumeSize));
         float finalVolumeSize = ceil(sizeOne(0)*scaleSpacing) * ceil(sizeOne(1)*scaleSpacing) * ceil(sizeOne(2)*scaleSpacing);
