@@ -889,13 +889,14 @@ void Us3Dhybrid::executeVNN(){
 
 void Us3Dhybrid::recompileAlgorithmOpenCLCode(){
     //CHECK if dv, rmax or volumeSize changed..
+    /*
     if (AccumulationVolume->getDimensions() == mDimensionCLCodeCompiledFor &&
         AccumulationVolume->getDataType() == mTypeCLCodeCompiledFor &&
         dv == mDvCompiledFor &&
         Rmax == mRmaxCompiledFor &&
         volumeSize == mVolumeSizeCompiledFor)
         return;
-
+    */
     std::cout << "Recompiling Algorithm OpenCL code" << std::endl;
     OpenCLDevice::pointer device = getMainDevice();
     std::string buildOptions = "";
@@ -974,8 +975,8 @@ void Us3Dhybrid::recompileAlgorithmOpenCLCode(){
     mKernel = cl::Kernel(programUs3Dhybrid, "accumulateFrameToVolume");
     mKernelNormalize = cl::Kernel(programUs3Dhybrid, "normalizeImage");
 
-    mDimensionCLCodeCompiledFor = AccumulationVolume->getDimensions();
-    mTypeCLCodeCompiledFor = AccumulationVolume->getDataType();
+    //mDimensionCLCodeCompiledFor = AccumulationVolume->getDimensions();
+    //mTypeCLCodeCompiledFor = AccumulationVolume->getDataType();
     mDvCompiledFor = dv;
     mRmaxCompiledFor = Rmax;
     mVolumeSizeCompiledFor = volumeSize; //or x,y,z?
@@ -1089,12 +1090,12 @@ void Us3Dhybrid::executeAlgorithm(){
     //clDevice->isImageFormatSupported(??)
     */
     // TODO Fix a kernel and so on
-    setOutputType(AccumulationVolume->getDataType());
+    setOutputType(firstFrame->getDataType());
     clock_t startCLinitTime = clock();
     recompileAlgorithmOpenCLCode();
     //OpenCLImageAccess::pointer clVolAccess = AccumulationVolume->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
-    if (!volAccess)
-        volAccess = AccumulationVolume->getImageAccess(ACCESS_READ_WRITE);
+    //if (!volAccess)
+    //    volAccess = AccumulationVolume->getImageAccess(ACCESS_READ_WRITE);
     //float * volumeData = (float*)volAccess->get();
     int bufferSize = volumeSize(0)*volumeSize(1)*volumeSize(2);
     int components = 2;
@@ -1181,7 +1182,7 @@ void Us3Dhybrid::executeAlgorithm(){
         //store inverseAffineTransformation?
         //thisFrameInverseTransform->matrix()
         cl_float16 imgInvTrans = transform4x4tofloat16(thisFrameInverseTransform);
-        cl_int outputDataType = AccumulationVolume->getDataType();
+        //cl_int outputDataType = AccumulationVolume->getDataType();
         //cl::Buffer mCLMask; ??
         /*mCLMask = cl::Buffer(
         clDevice->getContext(),
@@ -1470,15 +1471,16 @@ void Us3Dhybrid::generateOutputVolume(){
     normalizationStarted = clock();
     std::cout << "Final reconstruction calculations!" << std::endl;
     // Finally, calculate reconstructed volume
-    setOutputType(AccumulationVolume->getDataType());
+    setOutputType(firstFrame->getDataType());
     outputVolume = getStaticOutputData<Image>(0);
-    DataType outputType = AccumulationVolume->getDataType();
+    DataType outputType = firstFrame->getDataType();
     ExecutionDevice::pointer device = getMainDevice();
     if (runCLhybrid && !device->isHost()) {
         outputType = TYPE_UINT8;
     }
-        
-    outputVolume->create(AccumulationVolume->getSize(), outputType, 1); //1-channeled outputVolume
+    
+
+    outputVolume->create(Vector3ui(volumeSize(0), volumeSize(1), volumeSize(2)), outputType, 1); //1-channeled outputVolume
     //std::cout << "Step 1" << std::endl;
     //outputVolume->setSpacing(Vector3f(1.0f, 1.0f, 1.0f));
     Vector3f frameSpacing = firstFrame->getSpacing();
@@ -2075,15 +2077,16 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         */
     }
 
-    // MAKE VOLUME
-    DataType type = DataType::TYPE_FLOAT; //Endre til INT på sikt?
-    int nrOfComponents = 2; // pixelvalues & weights
-    AccumulationVolume = Image::New();
-    AccumulationVolume->create(volumeSize(0), volumeSize(1), volumeSize(2), type, nrOfComponents);
+    
 
     // INITIALIZE VOLUME
     float initVal = 0.0; 
     if (false && !runAsVNNonly){
+        // MAKE VOLUME
+        DataType type = DataType::TYPE_FLOAT; //Endre til INT på sikt?
+        int nrOfComponents = 2; // pixelvalues & weights
+        AccumulationVolume = Image::New();
+        AccumulationVolume->create(volumeSize(0), volumeSize(1), volumeSize(2), type, nrOfComponents);
         //TODOOOO
         //Init volume to zero values and two components
         std::cout << "Beginning volume zero initialization("<<volumeSize(0)<<"-"<<volumeSize(1)<<"-"<<volumeSize(2)<<")." << std::endl;
@@ -2174,7 +2177,7 @@ void Us3Dhybrid::execute(){
         //setStaticOutputData<Image>(0, outputVolume);        
         //TODO add these?
         //SceneGraph::setParentNode(outputVolume, frame);
-        volAccess->release();
+        //volAccess->release();
     }
 }
 
