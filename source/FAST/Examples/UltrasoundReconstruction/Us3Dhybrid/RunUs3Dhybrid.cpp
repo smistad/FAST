@@ -25,7 +25,7 @@ std::string to_string_with_precision(const T a_value, const int n = 6)
 void runAlgorithmAndExportImage(
     float setDV, float maxRvalue, 
     std::string input_filename, std::string nameformat, float voxelSpacing = 0.1f, std::string testPlace = "",
-    int startNumber = 0, int stepSize = 1, float initZSpacing = 1.0f,
+    int startNumber = 0, int stepSize = 1, int volumeSizeMil = 32, float initZSpacing = 1.0f,
     bool runVNNonly = false, bool runCLHybrid = true, bool runPNNonly = false
     ){
 
@@ -48,6 +48,7 @@ void runAlgorithmAndExportImage(
         std::string volumeSpacing = to_string_with_precision(voxelSpacing, 3);//std::to_string(voxelSpacing);
         std::string volumeDV = to_string_with_precision(setDV, 3);
         std::string volumeRmax = to_string_with_precision(maxRvalue, 3);//std::to_string(maxRvalue);
+        std::string volumeSizeMillion = std::to_string(volumeSizeMil);//to_string_with_precision(maxRvalue, 3);
         //std::string volumeGlobalScaling = to_string_with_precision(globalScaling, 2);//std::to_string(int(globalScaling));
         std::string volumeZinitSpacing = to_string_with_precision(initZSpacing, 3); //std::to_string(initZSpacing);
         std::string runningStyle = "";
@@ -60,8 +61,9 @@ void runAlgorithmAndExportImage(
         else if (runPNNonly){
             runningStyle += "PNN_";//std::to_string(runPNNonly);
         }
-        output_filename += _filePath + "VOLUME_" + runningStyle + "start-" + streamStart + "@" + streamStep;
-        output_filename += "(s" + volumeSpacing + "_dv" + volumeDV + "_rMax" + volumeRmax + "_z" + volumeZinitSpacing + ")" + ".mhd";
+        output_filename += _filePath + "VOLUME_" + runningStyle + volumeSizeMillion + "M_" + "start-" + streamStart + "@" + streamStep;// +".mhd";
+        //output_filename += "(s" + volumeSpacing + "_dv" + volumeDV + "_rMax" + volumeRmax + "_z" + volumeZinitSpacing + ")" + ".mhd";
+        output_filename += "(dv" + volumeDV + "_rMax" + volumeRmax + "_z" + volumeZinitSpacing + ")" + ".mhd"; //s" + volumeSpacing + "_
         //+ "_gS" + volumeGlobalScaling
         std::cout << "Output filename: " << output_filename << std::endl;
     }
@@ -75,6 +77,7 @@ void runAlgorithmAndExportImage(
         pnnHybrid->setVoxelSpacing(voxelSpacing);
         pnnHybrid->setDV(setDV);
         pnnHybrid->setRmax(maxRvalue);
+        pnnHybrid->setVolumeSize(volumeSizeMil);
         //pnnHybrid->setGlobalScaling(globalScaling);
         pnnHybrid->setZDirInitSpacing(initZSpacing);
         //Priority VNN > PNN > CL > Normal
@@ -121,8 +124,9 @@ int main() {
     float dvConstant = 2 * 0.15f; //0.2f ev (0.5f/3.0f)~=0.1667..
     float voxelSpacing = 0.2f;// 0.15f; //0.1f; //0.5f; //0.2f; // 0.03 / 0.01 //dv // Større verdi gir mindre oppløsning
     float RmaxMultiplier = 10.0f;
+    int volumeSizeMillions = 32;// 128;
 
-    int runInputSet = 2; //1/2
+    int runInputSet = 0; //1/2
     std::string folder = "";
     std::string nameformat = "";
     if (runInputSet == 0){
@@ -155,7 +159,8 @@ int main() {
     float calcedDV = 0.5f / (3.0f*voxelSpacing) * globalScaling * initZSpacing; //was 5.0f // 0.1 *  // / 4.0;
     
     float calcedDV2 = dvConstant * (1.0f / voxelSpacing) * initZSpacing; //*globalScaling
-    float setDVsuggestion = calcedDV2;// 3.0f;// calcedDV2;// 0.1f; // 0.25f; //0.5f; //0.2f; //0.5f; // calcedDV;// 0.05f;
+    float calcedDV3 = dvConstant;
+    float setDVsuggestion = calcedDV3;// 3.0f;// calcedDV2;// 0.1f; // 0.25f; //0.5f; //0.2f; //0.5f; // calcedDV;// 0.05f;
     float maxRvalueSuggestion = setDVsuggestion * RmaxMultiplier;// 10.0f;// setDVsuggestion * 5;// 10; //8; //0.2f; //0.5f// 1.0f; //2.0f;// voxelSpacing * 2 * globalScaling; //*(200/globalScaling) // *globalScaling * 3;
     bool runVNNonly = false;
     bool runCLHybrid = true; //false;
@@ -186,7 +191,7 @@ int main() {
                 runAlgorithmAndExportImage(
                     setDV, maxRvalue, 
                     input_filename, nameformat, voxelSpacing, testPlace,
-                    startNumber, stepSize, initZSpacing,
+                    startNumber, stepSize, volumeSizeMillions, initZSpacing,
                     runVNNonly, runCLHybrid, runPNNonly
                     );
             }
@@ -198,7 +203,7 @@ int main() {
         runAlgorithmAndExportImage(
             setDVsuggestion, maxRvalueSuggestion, 
             input_filename, nameformat, voxelSpacing, "testTransform/",
-            startNumber, stepSize, initZSpacing,
+            startNumber, stepSize, volumeSizeMillions, initZSpacing,
             runVNNonly, runCLHybrid, runPNNonly
             );
 

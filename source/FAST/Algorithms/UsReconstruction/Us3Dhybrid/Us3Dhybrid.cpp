@@ -47,6 +47,13 @@ void Us3Dhybrid::setRmax(float maxRvalue){
     mIsModified = true;
 }
 
+void Us3Dhybrid::setVolumeSize(int sizeMillions){
+    volumeSizeMillion = sizeMillions;
+    volumeCalculated = false;
+    volumeInitialized = false;
+    mIsModified = true;
+}
+
 void Us3Dhybrid::setGlobalScaling(float globalScaling){
     float oldScaling = globalScalingValue;
     globalScalingValue = globalScaling;
@@ -106,6 +113,7 @@ Us3Dhybrid::Us3Dhybrid(){
     setVoxelSpacing(0.1f);
     Rmax = 5.0; //2?
     mScaleToMax = 100.0f;
+    volumeSizeMillion = 32;
     volumeCalculated = false;
     volumeInitialized = false;
     firstFrameSet = false;
@@ -1841,7 +1849,7 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
     Vector3f scaling; {
         // Find size current Init volume of size max-min in each direction x/y/z
         Vector3f sizeOne = maxCoords - minCoords;
-        float wantedVolumeSize = 32 * 1000 * 1000; //128
+        float wantedVolumeSize = volumeSizeMillion * 1000 * 1000; //128
         float currentVolumeSize = sizeOne(0) * sizeOne(1) * sizeOne(2);
         float scaleSpacing = std::cbrtf((wantedVolumeSize / currentVolumeSize));
         float finalVolumeSize = ceil(sizeOne(0)*scaleSpacing) * ceil(sizeOne(1)*scaleSpacing) * ceil(sizeOne(2)*scaleSpacing);
@@ -2022,7 +2030,7 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         //transformToMinimum translation
         worldToVolumeTransform = addTransformation(worldToVolumeTransform, transformToMinimum);
         //scaling 
-        worldToVolumeTransform = addTransformation(worldToVolumeTransform, transformToMinimum);
+        //worldToVolumeTransform = addTransformation(worldToVolumeTransform, transformToMinimum);
 
         Matrix4f w2vMatrix = worldToVolumeTransform->matrix();
         Vector4f t0 = w2vMatrix.row(0);

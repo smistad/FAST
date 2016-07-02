@@ -15,6 +15,7 @@ namespace fast {
         void setVoxelSpacing(float voxelSpacing);
         void setDV(float dv);
         void setRmax(float maxRvalue);
+        void setVolumeSize(int sizeMillions);
         void setGlobalScaling(float globalScaling);
         void setZDirInitSpacing(float zInitSpacing);
         void setPNNrunMode(bool pnnRunMode);
@@ -103,6 +104,7 @@ namespace fast {
         float dv; //voxel spacing
         float mVoxelSpacing;
         float Rmax;
+        int volumeSizeMillion;
         float mScaleToMax;
         float globalScalingValue;
         bool runAsPNNonly;
