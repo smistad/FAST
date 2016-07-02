@@ -124,9 +124,9 @@ int main() {
     float dvConstant = 2 * 0.15f; //0.2f ev (0.5f/3.0f)~=0.1667..
     float voxelSpacing = 0.2f;// 0.15f; //0.1f; //0.5f; //0.2f; // 0.03 / 0.01 //dv // Større verdi gir mindre oppløsning
     float RmaxMultiplier = 10.0f;
-    int volumeSizeMillions = 128;// 256;// 32;// 128;  //crash at 512
+    int volumeSizeMillions = 256;// 128;// 256;// 32;// 128;  //crash at 512
 
-    int runInputSet = 2; //1/2
+    int runInputSet = 0; //1/2
     std::string folder = "";
     std::string nameformat = "";
     if (runInputSet == 0){
@@ -202,7 +202,7 @@ int main() {
         
         runAlgorithmAndExportImage(
             setDVsuggestion, maxRvalueSuggestion, 
-            input_filename, nameformat, voxelSpacing, "testTransform/",
+            input_filename, nameformat, voxelSpacing, "testTwoArrays/",
             startNumber, stepSize, volumeSizeMillions, initZSpacing,
             runVNNonly, runCLHybrid, runPNNonly
             );

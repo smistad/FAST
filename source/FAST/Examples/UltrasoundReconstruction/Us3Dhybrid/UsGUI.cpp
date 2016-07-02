@@ -238,7 +238,8 @@ namespace fast {
         //RMAX
         //ZSpacing
         //textfield for outputSubfolder?
-        //
+        //ADD button to RUN (check out exit button etc for ideas)
+        //TODO maybe add view again?
 
 
 
