@@ -149,6 +149,8 @@ void runAlgorithmAndExportImageOld(
 }
 
 int main() {
+
+    //Make run here instead????
     UsGUI::pointer window = UsGUI::New();
 
     window->start();

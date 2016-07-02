@@ -8,9 +8,11 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QSlider>
-#include <FAST/Importers/ImageFileImporter.hpp>
-#include <FAST/Visualization/MeshRenderer/MeshRenderer.hpp>
 #include <boost/bind.hpp>
+
+#include "FAST/Streamers/ImageFileStreamer.hpp"
+#include "FAST/Exporters/MetaImageExporter.hpp"
+#include "FAST/Algorithms/UsReconstruction/Us3Dhybrid/Us3Dhybrid.hpp"
 #include "FAST/TestDataPath.hpp"
 
 namespace fast {
@@ -49,37 +51,92 @@ namespace fast {
         default:
             return false;
         }
-        std::string text = "Input set: " + mInputFormat;
+        std::string text = mInputBaseLabel + mInputFormat;
         mInputLabel->setText(text.c_str());
         return true;
     }
 
     void UsGUI::setRunType(int runMode){
         mRunType = (Us3DRunMode)runMode;
-        std::string text = "Run mode: ";// +std::to_string((Us3DRunMode)runMode);
+        std::string text = mRunTypeBaseLabel;// +std::to_string((Us3DRunMode)runMode);
         switch ((Us3DRunMode)runMode){
         case Us3DRunMode::clHybrid:
             text += "clHybrid";
             break;
         case Us3DRunMode::cpuHybrid:
-            text += "clHybrid";
+            text += "cpuHybrid";
             break;
         case Us3DRunMode::clVNN:
-            text += "clHybrid";
+            text += "clVNN";
             break;
         case Us3DRunMode::cpuVNN:
-            text += "clHybrid";
+            text += "cpuVNN";
             break;
         case Us3DRunMode::clPNN:
-            text += "clHybrid";
+            text += "clPNN";
             break;
         case Us3DRunMode::cpuPNN:
-            text += "clHybrid";
+            text += "cpuPNN";
             break;
         default:
             text += "-";
         }
         mRunTypeLabel->setText(text.c_str());
+    }
+
+    void UsGUI::setDV(float dv){
+        mDV = dv;
+        std::string text = mDvBaseLabel;
+        text += boost::lexical_cast<std::string>(dv);
+        mDvLabel->setText(text.c_str());
+    }
+    void UsGUI::setDVSlider(int dvInt){
+        float dv = dvInt * dvGran;
+        setDV(dv);
+    }
+
+    void UsGUI::setRmax(float rMax){
+        mRmax = rMax;
+        std::string text = mRmaxBaseLabel;
+        text += boost::lexical_cast<std::string>(rMax);
+        mRmaxLabel->setText(text.c_str());
+    }
+    void UsGUI::setRmaxSlider(int rMaxInt){
+        float rMax = rMaxInt * rMaxGran;
+        setRmax(rMax);
+    }
+
+    void UsGUI::setZspacing(float zSpac){
+        mZspacing = zSpac;
+        std::string text = mZspacingBaseLabel;
+        text += boost::lexical_cast<std::string>(zSpac);
+        mZspacingLabel->setText(text.c_str());
+    }
+    void UsGUI::setZspacingSlider(int zSpacInt){
+        float zSpac = zSpacInt * zSpacingGran;
+        setZspacing(zSpac);
+    }
+
+    void UsGUI::setVolSizeM(int volStep){
+        int volSizeM;
+        switch (volStep){
+        case 0:
+            volSizeM = 32;
+            break;
+        case 1:
+            volSizeM = 64;
+            break;
+        case 2:
+            volSizeM = 128;
+            break;
+        case 3:
+            volSizeM = 256;
+            break;
+        }
+        mVolSizeM = volSizeM;
+        std::string text = mVolSizeMBaseLabel;
+        text += boost::lexical_cast<std::string>(volSizeM);
+        mVolSizeMLabel->setText(text.c_str());
     }
 
     void UsGUI::runAlgorithmAndExportImage(
@@ -152,19 +209,57 @@ namespace fast {
         }
     }
 
+    void UsGUI::runAlgorithmAndExportImage(){
+        //calc input_filename?
+        std::string input_filename = std::string(FAST_TEST_DATA_DIR) + mInputFolder + mInputFormat;
+        runAlgorithmAndExportImage(
+            mDV, mRmax,
+            input_filename, mInputFormat, "",
+            mVolSizeM, mZspacing, mRunType,
+            mStreamStart, mStreamStep
+            );
+    }
+
     UsGUI::UsGUI(){
         int SLIDER_WIDTH = 400;
+        {
+            mInputBaseLabel = "Input set: ";
+            mRunTypeBaseLabel = "Run type: ";
+            mDvBaseLabel = "DV: ";
+            mRmaxBaseLabel = "Rmax: ";
+            mZspacingBaseLabel = "Init Z-spacing: ";
+            mVolSizeMBaseLabel = "VolSize(M): ";
+        }
         int inputSliderMax = 3;
         int runTypeSliderMax = 5;
+        int volSizeMMax = 256; //32 /64/128/256
+        {
+            dvMax = 5.0f;
+            rMaxMax = 30.0f; //eller change to multiplier?
+            zSpacingMax = 1.0f;
 
-        mInputNr = 0;
-        mOutputSubFolder = "";
-        mRunType = Us3DRunMode::clHybrid;
-        mDV = 1.0f;
-        mRmax = 1.0f;
-        mZspacing = 0.1f;
-        //bool mCalcZspacing; //avg/max of two others //TODO?
-
+            dvGran = 0.1f; //Granularity
+            rMaxGran = 0.5f; //Granularity 0.2/0.5?
+            zSpacingGran = 0.05f;
+        }
+        int dvSliderMax = ceil(dvMax / dvGran);
+        int rMaxSliderMax = ceil(rMaxMax / rMaxGran);
+        int zSpacingSliderMax = ceil(zSpacingMax / zSpacingGran);
+        int volSizeMSliderMax = 3;
+        
+        {
+            mInputNr = 0;
+            mOutputSubFolder = "";
+            mRunType = Us3DRunMode::clHybrid;
+            mDV = 1.0f;
+            mRmax = 1.0f;
+            mZspacing = 0.1f;
+            mVolSizeM = 128; //=2
+            mVolSizeMController = 2;
+            //bool mCalcZspacing; //avg/max of two others //TODO?
+            mStreamStart = 0;
+            mStreamStep = 1;
+        }
         /*
         // Create a 3D view
         View* view = createView();
@@ -192,56 +287,120 @@ namespace fast {
             quitButton->setText("Quit");
             quitButton->setFixedWidth(200);
             menuLayout->addWidget(quitButton);
-
             // Connect the clicked signal of the quit button to the stop method for the window
             QObject::connect(quitButton, &QPushButton::clicked, boost::bind(&Window::stop, this));
         }
-        
-
         // LABELS AND SLIDERS
         mInputLabel = new QLabel;
         {
-            mInputLabel->setText("Input set: -");
+            mInputLabel->setText(mInputBaseLabel.c_str());
             menuLayout->addWidget(mInputLabel);
             setInputNr(mInputNr);
 
-            QSlider* slider = new QSlider(Qt::Horizontal);
-            slider->setMinimum(0);
-            slider->setMaximum(inputSliderMax);
-            slider->setValue(mInputNr);
-            slider->setFixedWidth(SLIDER_WIDTH);
-            menuLayout->addWidget(slider);
+            mInputSlider = new QSlider(Qt::Horizontal);
+            mInputSlider->setMinimum(0);
+            mInputSlider->setMaximum(inputSliderMax);
+            mInputSlider->setValue(mInputNr);
+            mInputSlider->setFixedWidth(SLIDER_WIDTH);
+            menuLayout->addWidget(mInputSlider);
 
             // Connect the value changed signal of the slider to the setInputNr method
-            QObject::connect(slider, &QSlider::valueChanged, boost::bind(&UsGUI::setInputNr, this, _1));
+            QObject::connect(mInputSlider, &QSlider::valueChanged, boost::bind(&UsGUI::setInputNr, this, _1));
         }
-
         mRunTypeLabel = new QLabel;
         {
-            mRunTypeLabel->setText("Run type: -");
+            mRunTypeLabel->setText(mRunTypeBaseLabel.c_str());
             menuLayout->addWidget(mRunTypeLabel);
             setRunType(mRunType);
 
-            QSlider* slider = new QSlider(Qt::Horizontal);
-            slider->setMinimum(0);
-            slider->setMaximum(runTypeSliderMax);
-            slider->setValue(mRunType);
-            slider->setFixedWidth(SLIDER_WIDTH);
-            menuLayout->addWidget(slider);
+            mRunTypeSlider = new QSlider(Qt::Horizontal);
+            mRunTypeSlider->setMinimum(0);
+            mRunTypeSlider->setMaximum(runTypeSliderMax);
+            mRunTypeSlider->setValue(mRunType);
+            mRunTypeSlider->setFixedWidth(SLIDER_WIDTH);
+            menuLayout->addWidget(mRunTypeSlider);
 
             // Connect the value changed signal of the slider to the setInputNr method
-            QObject::connect(slider, &QSlider::valueChanged, boost::bind(&UsGUI::setRunType, this, _1));
+            QObject::connect(mRunTypeSlider, &QSlider::valueChanged, boost::bind(&UsGUI::setRunType, this, _1));
+        }
+        mDvLabel = new QLabel;
+        {
+            mDvLabel->setText(mDvBaseLabel.c_str());
+            menuLayout->addWidget(mDvLabel);
+            setDV(mDV);
+
+            mDvSlider = new QSlider(Qt::Horizontal);
+            mDvSlider->setMinimum(0);
+            mDvSlider->setMaximum(dvSliderMax);
+            mDvSlider->setValue( (mDV/dvGran) );
+            mDvSlider->setFixedWidth(SLIDER_WIDTH);
+            menuLayout->addWidget(mDvSlider);
+
+            // Connect the value changed signal of the slider to the setInputNr method
+            QObject::connect(mDvSlider, &QSlider::valueChanged, boost::bind(&UsGUI::setDVSlider, this, _1));
+        }
+        mRmaxLabel = new QLabel;
+        {
+            mRmaxLabel->setText(mRmaxBaseLabel.c_str());
+            menuLayout->addWidget(mRmaxLabel);
+            setRmax(mRmax);
+
+            mRmaxSlider = new QSlider(Qt::Horizontal);
+            mRmaxSlider->setMinimum(0);
+            mRmaxSlider->setMaximum(rMaxSliderMax);
+            mRmaxSlider->setValue((mRmax / rMaxGran));
+            mRmaxSlider->setFixedWidth(SLIDER_WIDTH);
+            menuLayout->addWidget(mRmaxSlider);
+
+            // Connect the value changed signal of the slider to the setInputNr method
+            QObject::connect(mRmaxSlider, &QSlider::valueChanged, boost::bind(&UsGUI::setRmaxSlider, this, _1));
+        }
+        mZspacingLabel = new QLabel;
+        {
+            mZspacingLabel->setText(mZspacingBaseLabel.c_str());
+            menuLayout->addWidget(mZspacingLabel);
+            setZspacing(mZspacing);
+
+            mZspacingSlider = new QSlider(Qt::Horizontal);
+            mZspacingSlider->setMinimum(0);
+            mZspacingSlider->setMaximum(zSpacingSliderMax);
+            mZspacingSlider->setValue((mZspacing / zSpacingGran));
+            mZspacingSlider->setFixedWidth(SLIDER_WIDTH);
+            menuLayout->addWidget(mZspacingSlider);
+
+            // Connect the value changed signal of the slider to the setInputNr method
+            QObject::connect(mZspacingSlider, &QSlider::valueChanged, boost::bind(&UsGUI::setZspacingSlider, this, _1));
+        }
+        mVolSizeMLabel = new QLabel;
+        {
+            mVolSizeMLabel->setText(mVolSizeMBaseLabel.c_str());
+            menuLayout->addWidget(mVolSizeMLabel);
+            //setRmax(mRmax);
+            setVolSizeM(mVolSizeMController);
+
+            mVolSizeMSlider = new QSlider(Qt::Horizontal);
+            mVolSizeMSlider->setMinimum(0);
+            mVolSizeMSlider->setMaximum(volSizeMSliderMax);
+            mVolSizeMSlider->setValue(mVolSizeMController);
+            mVolSizeMSlider->setFixedWidth(SLIDER_WIDTH);
+            menuLayout->addWidget(mVolSizeMSlider);
+
+            // Connect the value changed signal of the slider to the setInputNr method
+            QObject::connect(mVolSizeMSlider, &QSlider::valueChanged, boost::bind(&UsGUI::setVolSizeM, this, _1));
+        }
+        
+        // RUN button
+        QPushButton* runButton = new QPushButton;
+        {
+            runButton->setText("Run");
+            runButton->setFixedWidth(SLIDER_WIDTH);
+            menuLayout->addWidget(runButton);
+            // Connect the clicked signal of the quit button to the stop method for the window
+            QObject::connect(runButton, &QPushButton::clicked, boost::bind(&UsGUI::runAlgorithmAndExportImage, this));
         }
 
-        //Labels TODO
-        //DV
-        //RMAX
-        //ZSpacing
         //textfield for outputSubfolder?
-        //ADD button to RUN (check out exit button etc for ideas)
         //TODO maybe add view again?
-
-
 
         // Add menu and view to main layout
         QHBoxLayout* layout = new QHBoxLayout;
@@ -250,12 +409,5 @@ namespace fast {
 
         mWidget->setLayout(layout);
     }
-
-
-    /*
-    // Update label
-        std::string text = "Smoothing: " + boost::lexical_cast<std::string>(standardDeviation)+" mm";
-        mSmoothingLabel->setText(text.c_str());
-    */
 
 }
