@@ -127,6 +127,7 @@ Us3Dhybrid::Us3Dhybrid(){
     reachedEndOfStream = false;
     frameList = {};
     iterartorCounter = 0;
+    mRunType = Us3DRunMode::clHybrid;
     runAsPNNonly = false;
     runAsVNNonly = false;
     runCLhybrid = false;
@@ -731,11 +732,63 @@ void Us3Dhybrid::executeFramePNN(Image::pointer frame){
     frameAccess->release();
 }
 
+void Us3Dhybrid::executeCLFramePNN(Image::pointer frame, int frameNr, OpenCLDevice::pointer clDevice, cl::CommandQueue cmdQueue){
+    //FROM GLOBAL
+    // mCLVolume
+    
+    uint width = frame->getWidth();
+    uint height = frame->getHeight();
+    frame->getOpenCLImageAccess(ACCESS_READ, clDevice);
+    AffineTransformation::pointer imgTransform = getTransform(frame);
+
+    OpenCLImageAccess::pointer clFrameAccess = frame->getOpenCLImageAccess(ACCESS_READ, clDevice);
+
+    // Calc imagePlaneNormal and dominating direction of it
+    Vector3f imagePlaneNormal = framePlaneNormalList[frameNr]; //getImagePlaneNormal(frame);
+    int domDir = getDominatingVectorDirection(imagePlaneNormal);
+    float domVal = fabs(imagePlaneNormal(domDir));
+    // Get current, last and next plane
+    Vector3f thisFrameRootPoint = frameBaseCornerList[frameNr];
+    Vector3ui thisFrameSize = frame->getSize();
+    float thisFramePlaneDvalue = framePlaneDValueList[frameNr];
+    AffineTransformation::pointer thisFrameInverseTransform = frameInverseTransformList[frameNr];
+
+
+    // Define OpenCL variables
+    //cl_int2 startOffset = { aDirStart, bDirStart };
+    cl_int3 volSize = { volumeSize(0), volumeSize(1), volumeSize(2) };
+    cl_float3 imgNormal = { imagePlaneNormal(0), imagePlaneNormal(1), imagePlaneNormal(2) };
+    cl_float3 imgRoot = { thisFrameRootPoint(0), thisFrameRootPoint(1), thisFrameRootPoint(2) };
+    cl_int2 imgSize = { thisFrameSize(0), thisFrameSize(1) };// int2 imgSize,
+    cl_float16 imgTrans = transform4x4tofloat16(imgTransform);
+    cl::NDRange globalSize = cl::NDRange(width, height);
+    //cl::NDRange workOffset = cl::NDRange(aDirStart, bDirStart); // ev. cl::NullRange
+
+    mKernelPNN.setArg(0, *clFrameAccess->get2DImage());
+    mKernelPNN.setArg(1, mCLVolume);// *clVolAccess->get3DImage());
+    mKernelPNN.setArg(2, domDir);
+    mKernelPNN.setArg(3, domVal);
+    mKernelPNN.setArg(4, imgNormal);// imagePlaneNormal); //Vector3f
+    mKernelPNN.setArg(5, imgRoot);// thisFrameRootPoint); //Vector3f
+    mKernelPNN.setArg(6, thisFramePlaneDvalue);
+    mKernelPNN.setArg(7, imgSize);// thisFrameSize); //Vector3i //CAN be defined in buildString MAYBE if all same size
+    mKernelPNN.setArg(8, imgTrans);// thisFrameInverseTransform->matrix()); // AffineTransformation::pointer? store as something else?
+
+    cmdQueue.enqueueNDRangeKernel(
+        mKernelPNN,
+        cl::NullRange,
+        globalSize,
+        cl::NullRange
+        );
+    cmdQueue.finish();
+}
+
 void Us3Dhybrid::executeVNN(){
     std::cout << "Final VNN reconstruction calculations!" << std::endl;
     // Finally, calculate reconstructed volume
     Vector3ui size = Vector3ui(volumeSize.x(), volumeSize.y(), volumeSize.z());
     setOutputType(firstFrame->getDataType());
+    frameSize = firstFrame->getSize();
     std::cout << "Step 1" << std::endl;
     outputVolume = getStaticOutputData<Image>(0);
     std::cout << "Step 2" << std::endl;
@@ -974,6 +1027,7 @@ void Us3Dhybrid::recompileAlgorithmOpenCLCode(){
     cl::Program programUs3Dhybrid = getOpenCLProgram(device, "us3Dhybrid", buildOptions);
     mKernel = cl::Kernel(programUs3Dhybrid, "accumulateFrameToVolume");
     mKernelNormalize = cl::Kernel(programUs3Dhybrid, "normalizeImage");
+    mKernelPNN = cl::Kernel(programUs3Dhybrid, "addPNNFrame");
 
     //mDimensionCLCodeCompiledFor = AccumulationVolume->getDimensions();
     //mTypeCLCodeCompiledFor = AccumulationVolume->getDataType();
@@ -1071,7 +1125,7 @@ void Us3Dhybrid::executeAlgorithm(){
     int voxelCount = volumeSize(0)*volumeSize(1)*volumeSize(2);
     std::cout << "Running algorithm with " << voxelCount / 1000000 << "M voxel output volume!" << std::endl;
     ExecutionDevice::pointer device = getMainDevice();
-    if (!runCLhybrid || device->isHost()) {
+    if ((mRunType != Us3DRunMode::clHybrid && mRunType != Us3DRunMode::clPNN) || device->isHost()) { //!runCLhybrid
         std::cout << "Executing on host" << std::endl;
         executeAlgorithmOnHost(); // Run on CPU instead
         algorithmEnded = clock();
@@ -1136,6 +1190,10 @@ void Us3Dhybrid::executeAlgorithm(){
         // Get FRAME
         //std::cout << "Running for frame #" << frameNr << std::endl;
         Image::pointer frame = frameList[frameNr];
+        if (mRunType == Us3DRunMode::clPNN){//runAsPNNonly){
+            executeCLFramePNN(frame, frameNr, clDevice, cmdQueue);
+            continue;
+        }
         // Calc imagePlaneNormal and dominating direction of it
         Vector3f imagePlaneNormal = framePlaneNormalList[frameNr]; //getImagePlaneNormal(frame);
         int domDir = getDominatingVectorDirection(imagePlaneNormal);
@@ -1210,7 +1268,7 @@ void Us3Dhybrid::executeAlgorithm(){
         mKernel.setArg(10, nextNormal);// nextFrameNormal); //Vector3f
         mKernel.setArg(11, nextRoot);// nextFrameRootPoint); //Vector3f
         mKernel.setArg(12, imgInvTrans);// thisFrameInverseTransform->matrix()); // AffineTransformation::pointer? store as something else?
-        mKernel.setArg(13, startOffset);
+        //mKernel.setArg(13, startOffset);
         //mKernel.setArg(14, outputDataType); // should be int like CLK_FLOAT
         //CAN define bufferXY or bufferZ in buildString
         //mKernel.setArg(15, mCLSemaphore);
@@ -1278,7 +1336,7 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
         std::cout << "----------------------- Running frame #" << frameNr << " of tot " << frameList.size() << "--------------" << std::endl;
         Image::pointer frame = frameList[frameNr];
         //PNN option
-        if (runAsPNNonly){
+        if (mRunType == Us3DRunMode::cpuPNN){//runAsPNNonly){
             executeFramePNN(frame);
             continue;
         }
@@ -1475,7 +1533,7 @@ void Us3Dhybrid::generateOutputVolume(){
     outputVolume = getStaticOutputData<Image>(0);
     DataType outputType = firstFrame->getDataType();
     ExecutionDevice::pointer device = getMainDevice();
-    if (runCLhybrid && !device->isHost()) {
+    if ( (mRunType == Us3DRunMode::clHybrid || mRunType == Us3DRunMode::clHybrid)  && !device->isHost()) {
         outputType = TYPE_UINT8;
     }
     
@@ -1495,7 +1553,7 @@ void Us3Dhybrid::generateOutputVolume(){
     outputVolume->getSceneGraphNode()->setTransformation(volumeToWorldTransform);
 
     
-    if (runCLhybrid && !device->isHost()) {
+    if ((mRunType == Us3DRunMode::clHybrid || mRunType == Us3DRunMode::clPNN) && !device->isHost()) {
         generateOutputVolume(device); // Run on GPU instead
         normalizationEnded = clock();
         return;
@@ -2078,41 +2136,44 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
     }
 
     
-
-    // INITIALIZE VOLUME
-    float initVal = 0.0; 
-    if (false && !runAsVNNonly){
+    if (mRunType != Us3DRunMode::clHybrid && mRunType != Us3DRunMode::clPNN){// && mRunType != Us3DRunMode::cpuHybrid){ OR clPNN?
         // MAKE VOLUME
         DataType type = DataType::TYPE_FLOAT; //Endre til INT på sikt?
         int nrOfComponents = 2; // pixelvalues & weights
         AccumulationVolume = Image::New();
         AccumulationVolume->create(volumeSize(0), volumeSize(1), volumeSize(2), type, nrOfComponents);
-        //TODOOOO
-        //Init volume to zero values and two components
-        std::cout << "Beginning volume zero initialization("<<volumeSize(0)<<"-"<<volumeSize(1)<<"-"<<volumeSize(2)<<")." << std::endl;
-        volAccess = AccumulationVolume->getImageAccess(accessType::ACCESS_READ_WRITE); //global volAccess ImageAccess::pointer
-        //T * inputData = (T*)inputAccess->get();
-        //T * outputData = (T*)outputAccess->get();
-        //float * outputData = (float*)volAccess->get();
-        int width = volumeSize.x();
-        int height = volumeSize.y();
-        int depth = volumeSize.z();
-        for (int x = 0; x < width; x++){
-            for (int y = 0; y < height; y++){
-                for (int z = 0; z < depth; z++){
-                    Vector3i location = Vector3i(x, y, z);
-                    //int loc = x*nrOfComponents + y*nrOfComponents*width + z*nrOfComponents*width*height;
-                    //outputData[loc] = initVal;
-                    //outputData[loc + 1] = initVal;
-                    volAccess->setScalar(location, initVal, 0); //Channel 1 - Value
-                    volAccess->setScalar(location, initVal, 1); //Channel 2 - Weight
+        if (mRunType == Us3DRunMode::cpuPNN){
+            //if (false && !runAsVNNonly){
+            //Init volume to zero values and two components
+            std::cout << "Beginning volume zero initialization(" << volumeSize(0) << "-" << volumeSize(1) << "-" << volumeSize(2) << ")." << std::endl;
+            volAccess = AccumulationVolume->getImageAccess(accessType::ACCESS_READ_WRITE); //global volAccess ImageAccess::pointer
+            //T * inputData = (T*)inputAccess->get();
+            //T * outputData = (T*)outputAccess->get();
+            //float * outputData = (float*)volAccess->get();
+            float initVal = 0.0; // INITIALIZE VOLUME
+            int width = volumeSize.x();
+            int height = volumeSize.y();
+            int depth = volumeSize.z();
+            for (int x = 0; x < width; x++){
+                for (int y = 0; y < height; y++){
+                    for (int z = 0; z < depth; z++){
+                        Vector3i location = Vector3i(x, y, z);
+                        //int loc = x*nrOfComponents + y*nrOfComponents*width + z*nrOfComponents*width*height;
+                        //outputData[loc] = initVal;
+                        //outputData[loc + 1] = initVal;
+                        volAccess->setScalar(location, initVal, 0); //Channel 1 - Value
+                        volAccess->setScalar(location, initVal, 1); //Channel 2 - Weight
+                    }
                 }
+                std::cout << ".";
             }
-            std::cout << ".";
+            std::cout << "FINISHED!" << std::endl;
+            volAccess->release();
         }
-        std::cout << "FINISHED!" << std::endl;
-        volAccess->release();
     }
+    
+    
+    
     //Init dv (based on input frames/userdefined settings?)
     //TODO
 
@@ -2161,12 +2222,13 @@ void Us3Dhybrid::execute(){
                 //dv = 1; //ev egen function to define DV
                 //outputImg = firstFrame;
             }
-            if (!runAsVNNonly){
-                executeAlgorithm();
-                generateOutputVolume(); //Alternatively just fetch slices
+            if (mRunType == Us3DRunMode::clVNN || mRunType == Us3DRunMode::cpuVNN){
+                executeVNN();
             }
             else {
-                executeVNN();
+                //if (!runAsVNNonly){
+                executeAlgorithm();
+                generateOutputVolume(); //Alternatively just fetch slices
             }
             
             volumeCalculated = true;

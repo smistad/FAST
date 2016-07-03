@@ -207,6 +207,18 @@ namespace fast {
                 pnnHybrid->update();
             }
         }
+
+        MetaImageExporter::pointer exporter;
+        {
+            exporter = MetaImageExporter::New();
+            exporter->setFilename(output_filename);
+            exporter->enableCompression();
+            Image::pointer resultVolume = pnnHybrid->getStaticOutputData<Image>(0);
+
+            exporter->setInputData(resultVolume);
+            exporter->update();
+            std::cout << "Output filename: " << output_filename << std::endl;
+        }
     }
 
     void UsGUI::runAlgorithmAndExportImage(){

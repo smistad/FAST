@@ -23,6 +23,91 @@ std::string to_string_with_precision(const T a_value, const int n = 6)
 }
 
 void runAlgorithmAndExportImage(
+    float setDV, float maxRvalue,
+    std::string input_filename, std::string nameformat, std::string output_subfolder,
+    int volSizeM, float initZspacing,
+    Us3DRunMode runType,
+    int startNumber, int stepSize
+    ){
+
+    if (runType == Us3DRunMode::clVNN){// || runType == Us3DRunMode::clPNN){
+        return; //Unimplemented runType
+    }
+    std::cout << "## RUNNING with settings - setDV: " << setDV << " & rMax: " << maxRvalue << " ##" << std::endl;
+    ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
+    {
+        streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+        streamer->setFilenameFormat(input_filename);
+        streamer->setStartNumber(startNumber);
+        streamer->setStepSize(stepSize);
+    }
+
+    std::string output_filename = ""; {
+        // Create directory if does not exist
+        std::string _filePath = std::string(FAST_TEST_DATA_DIR) + "/output/" + nameformat + "/" + output_subfolder;
+        std::string streamStart = std::to_string(startNumber);
+        std::string streamStep = std::to_string(stepSize);
+        std::string volumeDV = to_string_with_precision(setDV, 3);
+        std::string volumeRmax = to_string_with_precision(maxRvalue, 3);
+        std::string volumeSizeMillion = std::to_string(volSizeM);
+        std::string volumeZinitSpacing = to_string_with_precision(initZspacing, 3);
+        std::string runningStyle = "";
+        switch (runType){
+        case Us3DRunMode::clHybrid:
+            runningStyle += "CL_";
+            break;
+        case Us3DRunMode::cpuHybrid:
+            break;
+        case Us3DRunMode::cpuVNN:
+            runningStyle += "VNN_";
+            break;
+        case Us3DRunMode::cpuPNN:
+            runningStyle += "PNN_";
+            break;
+        case Us3DRunMode::clPNN:
+            runningStyle += "PNN-CL_";
+            break;
+        default:
+            std::cout << "Run type " << (Us3DRunMode)runType << " is not implemented. Quitting.." << std::endl;
+            return;
+        }
+
+        output_filename += _filePath + "VOLUME_" + runningStyle + volumeSizeMillion + "M_" + "start-" + streamStart + "@" + streamStep;
+        output_filename += "(dv" + volumeDV + "_rMax" + volumeRmax + "_z" + volumeZinitSpacing + ")" + ".mhd";
+        std::cout << "Output filename: " << output_filename << std::endl;
+    }
+
+    Us3Dhybrid::pointer pnnHybrid;
+    {
+        // Reconstruction PNN
+        pnnHybrid = Us3Dhybrid::New();
+        pnnHybrid->setInputConnection(streamer->getOutputPort());
+        pnnHybrid->setDV(setDV);
+        pnnHybrid->setRmax(maxRvalue);
+        pnnHybrid->setVolumeSize(volSizeM);
+        pnnHybrid->setZDirInitSpacing(initZspacing);
+        //Priority VNN > PNN > CL > Normal
+        pnnHybrid->setRunMode(runType);
+
+        while (!pnnHybrid->hasCalculatedVolume()){
+            pnnHybrid->update();
+        }
+    }
+
+    MetaImageExporter::pointer exporter;
+    {
+        exporter = MetaImageExporter::New();
+        exporter->setFilename(output_filename);
+        exporter->enableCompression();
+        Image::pointer resultVolume = pnnHybrid->getStaticOutputData<Image>(0);
+
+        exporter->setInputData(resultVolume);
+        exporter->update();
+        std::cout << "Output filename: " << output_filename << std::endl;
+    }
+}
+
+void runAlgorithmAndExportImage(
     float setDV, float maxRvalue, 
     std::string input_filename, std::string nameformat, float voxelSpacing = 0.1f, std::string testPlace = "",
     int startNumber = 0, int stepSize = 1, int volumeSizeMil = 32, float initZSpacing = 1.0f,
@@ -124,7 +209,7 @@ int main() {
     float dvConstant = 2 * 0.15f; //0.2f ev (0.5f/3.0f)~=0.1667..
     float voxelSpacing = 0.2f;// 0.15f; //0.1f; //0.5f; //0.2f; // 0.03 / 0.01 //dv // Større verdi gir mindre oppløsning
     float RmaxMultiplier = 10.0f;
-    int volumeSizeMillions = 256;// 128;// 256;// 32;// 128;  //crash at 512
+    int volumeSizeMillions = 8; // 32; // 128;// 256; // 256;// 128;// 256;// 32;// 128;  //crash at 512
 
     int runInputSet = 0; //1/2
     std::string folder = "";
@@ -134,7 +219,7 @@ int main() {
         nameformat = "US_01_20130529T084519_ScanConverted_#.mhd";
         voxelSpacing = 0.239013f; // 0.1f;  0.15f;
         initZSpacing = 0.1f;// 0.6f;// 0.5f;//0.05f;// 1.0f;
-        dvConstant = 1.0f;// 0.3f;// 0.15f; //0.30f;
+        dvConstant = 0.5f;// 1.0f;// 0.3f;// 0.15f; //0.30f;
         RmaxMultiplier = 10.0f;
     }
     else if (runInputSet == 1){
@@ -165,6 +250,7 @@ int main() {
     bool runVNNonly = false;
     bool runCLHybrid = true; //false;
     bool runPNNonly = false;
+    Us3DRunMode runMode = Us3DRunMode::cpuVNN; //clPNN; //cpuVNN; //cpuHybrid; // clHybrid;
 
     bool singleTest = true;//false;
 
@@ -189,24 +275,40 @@ int main() {
                 if (maxRvalue > rMaxMaximum)
                     continue;
                 runAlgorithmAndExportImage(
+                    setDV, maxRvalue,
+                    input_filename, nameformat, testPlace,
+                    volumeSizeMillions, initZSpacing,
+                    runMode,
+                    startNumber, stepSize
+                    );
+                /*
+                runAlgorithmAndExportImage(
                     setDV, maxRvalue, 
                     input_filename, nameformat, voxelSpacing, testPlace,
                     startNumber, stepSize, volumeSizeMillions, initZSpacing,
                     runVNNonly, runCLHybrid, runPNNonly
                     );
+                */
             }
         }
     }
     else {
         //runAlgorithmAndExportImage(setDVsuggestion, maxRvalueSuggestion, input_filename, nameformat, voxelSpacing); //Runs CL
-        
+        /*
         runAlgorithmAndExportImage(
             setDVsuggestion, maxRvalueSuggestion, 
             input_filename, nameformat, voxelSpacing, "testTwoArrays/",
             startNumber, stepSize, volumeSizeMillions, initZSpacing,
             runVNNonly, runCLHybrid, runPNNonly
             );
-
+        */
+        runAlgorithmAndExportImage(
+            setDVsuggestion, maxRvalueSuggestion,
+            input_filename, nameformat, "",
+            volumeSizeMillions, initZSpacing,
+            runMode,
+            startNumber, stepSize
+            );
         
     }
 }

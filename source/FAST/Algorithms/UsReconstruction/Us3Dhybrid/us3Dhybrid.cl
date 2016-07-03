@@ -547,8 +547,7 @@ __kernel void accumulateFrameToVolume(
     __private const float3 lastRoot,
     __private const float3 nextNormal,
     __private const float3 nextRoot,
-    __private const float16 imgInvTrans,
-    __private const int2 startOffset
+    __private const float16 imgInvTrans
     ){
     //__read_write image3d_t volume, => RESERVED for OpenCL2+
     //__const float dv, => DV
@@ -625,6 +624,58 @@ __kernel void accumulateFrameToVolume(
         
     }
     
+}
+
+__kernel void addPNNFrame(
+    __read_only image2d_t frame,
+    __global unsigned int* volume,
+    __private const int domDir,
+    __private const float domVal,
+    __private const float3 imgNormal,
+    __private const float3 imgRoot,
+    __private const float imgPlaneDvalue,
+    __private const int2 imgSize,
+    __private const float16 imgTrans
+    ){
+
+    const int x = get_global_id(0);
+    const int y = get_global_id(1);
+    int dataType = get_image_channel_data_type(frame);
+
+    float3 pos = (float3)(x, y, 0);
+    
+    float3 volPos = transformAffine(pos, imgTrans);
+    int3 volPosDiscrete = (int3)(volPos.x, volPos.y, volPos.z);
+    if (volumePointOutsideVolume(volPosDiscrete)){
+        return;
+    }
+    int2 pos2 = (int2)(x, y);
+    float frameP = getFrameValue(frame, pos2, dataType);
+    //Ev use normal to add lower weight value to next/previous
+    accumulateValuesInVolumeUInt(volume, volPosDiscrete, frameP, 1.0f);
+    //volAccess->setScalar(worldPosDiscrete, frameP, 0);
+    //volAccess->setScalar(worldPosDiscrete, 1.0f, 1);
+    //float getFrameValue(image2d_t frame, int2 pos, int dataType)
+    //float3 transformAffine(float3 point, float16 t)
+    /*
+    Vector3f pos = Vector3f(x, y, 0);
+    //AffineTransformation::pointer imgTransform = SceneGraph::getAffineTransformationFromData(frame);
+    AffineTransformation::pointer imgTransform = getTransform(frame);
+    Vector3f worldPos = imgTransform->multiply(pos);
+    Vector3i worldPosDiscrete = Vector3i(round(worldPos(0)), round(worldPos(1)), round(worldPos(2)));
+    if (volumePointOutsideVolume(worldPosDiscrete, volumeSize)){
+        continue;
+    }
+    float frameP = frameAccess->getScalar(Vector3i(x, y, 0));
+    //int loc = x*width + y*width*height;
+    //Vector3ui sizes = frame->getSize();
+    //uint loc = x*nrOfComponents + y*width*nrOfComponents;
+    //x*nrOfComponents + y*nrOfComponents*width + z*nrOfComponents*width*height
+    // uint address = (position.x() + position.y()*size.x() + position.z()*size.x()*size.y())*image->getNrOfComponents() + channel;
+    //float frameP2 = frameValues[loc];
+    volAccess->setScalar(worldPosDiscrete, frameP, 0);
+    volAccess->setScalar(worldPosDiscrete, 1.0f, 1);
+    */
 }
 
 __kernel void inc(global int * num){

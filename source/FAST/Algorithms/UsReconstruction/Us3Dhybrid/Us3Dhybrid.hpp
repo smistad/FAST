@@ -47,6 +47,8 @@ namespace fast {
         void executeAlgorithm();
         void executeAlgorithmOnHost();
         void executeFramePNN(Image::pointer frame);
+        void executeCLFramePNN(Image::pointer frame, int frameNr, OpenCLDevice::pointer clDevice,
+            cl::CommandQueue cmdQueue);
         void executeVNN();
         void initVolume(Image::pointer rootFrame);
         void generateOutputVolume();
@@ -153,6 +155,7 @@ namespace fast {
         // Potetial OpenCL variables
         cl::Kernel mKernel;
         cl::Kernel mKernelNormalize;
+        cl::Kernel mKernelPNN;
         unsigned char mDimensionCLCodeCompiledFor;
         DataType mTypeCLCodeCompiledFor;
         float mDvCompiledFor;
