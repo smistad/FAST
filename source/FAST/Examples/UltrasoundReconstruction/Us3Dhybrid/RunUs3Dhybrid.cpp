@@ -25,7 +25,7 @@ std::string to_string_with_precision(const T a_value, const int n = 6)
 void runAlgorithmAndExportImage(
     float setDV, float maxRvalue,
     std::string input_filename, std::string nameformat, std::string output_subfolder,
-    int volSizeM, float initZspacing,
+    int volSizeM, float initZspacing, int HF_gridSize,
     Us3DRunMode runType,
     int startNumber, int stepSize
     ){
@@ -51,6 +51,7 @@ void runAlgorithmAndExportImage(
         std::string volumeRmax = to_string_with_precision(maxRvalue, 3);
         std::string volumeSizeMillion = std::to_string(volSizeM);
         std::string volumeZinitSpacing = to_string_with_precision(initZspacing, 3);
+        std::string volumeHFgridSize = std::to_string(HF_gridSize);
         std::string runningStyle = "";
         switch (runType){
         case Us3DRunMode::clHybrid:
@@ -62,10 +63,10 @@ void runAlgorithmAndExportImage(
             runningStyle += "VNN_";
             break;
         case Us3DRunMode::cpuPNN:
-            runningStyle += "PNN_";
+            runningStyle += volumeHFgridSize+"_PNN_";
             break;
         case Us3DRunMode::clPNN:
-            runningStyle += "PNN-CL_";
+            runningStyle += volumeHFgridSize+"_PNN-CL_";
             break;
         default:
             std::cout << "Run type " << (Us3DRunMode)runType << " is not implemented. Quitting.." << std::endl;
@@ -86,6 +87,7 @@ void runAlgorithmAndExportImage(
         pnnHybrid->setRmax(maxRvalue);
         pnnHybrid->setVolumeSize(volSizeM);
         pnnHybrid->setZDirInitSpacing(initZspacing);
+        pnnHybrid->setHFgridSize(HF_gridSize);
         //Priority VNN > PNN > CL > Normal
         pnnHybrid->setRunMode(runType);
 
@@ -209,7 +211,8 @@ int main() {
     float dvConstant = 2 * 0.15f; //0.2f ev (0.5f/3.0f)~=0.1667..
     float voxelSpacing = 0.2f;// 0.15f; //0.1f; //0.5f; //0.2f; // 0.03 / 0.01 //dv // Større verdi gir mindre oppløsning
     float RmaxMultiplier = 10.0f;
-    int volumeSizeMillions = 1;// 32; // 32; // 32; // 128;// 256; // 256;// 128;// 256;// 32;// 128;  //crash at 512
+    int volumeSizeMillions = 128;// 256; // 32; // 128;// 256; // 256;// 128;// 256;// 32;// 128;  //crash at 512
+    int holeFill_gridSize = 13;
 
     int runInputSet = 0; //1/2
     std::string folder = "";
@@ -277,7 +280,7 @@ int main() {
                 runAlgorithmAndExportImage(
                     setDV, maxRvalue,
                     input_filename, nameformat, testPlace,
-                    volumeSizeMillions, initZSpacing,
+                    volumeSizeMillions, initZSpacing, holeFill_gridSize,
                     runMode,
                     startNumber, stepSize
                     );
@@ -305,7 +308,7 @@ int main() {
         runAlgorithmAndExportImage(
             setDVsuggestion, maxRvalueSuggestion,
             input_filename, nameformat, "",
-            volumeSizeMillions, initZSpacing,
+            volumeSizeMillions, initZSpacing, holeFill_gridSize,
             runMode,
             startNumber, stepSize
             );

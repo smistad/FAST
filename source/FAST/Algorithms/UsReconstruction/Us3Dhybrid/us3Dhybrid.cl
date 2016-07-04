@@ -787,15 +787,15 @@ __kernel void normalizeHoleFillVolume(
             }
         }
     }*/
-    if (voxelValue < 0.0f){//true){
+    if (voxelValue < -0.5f){//true){
         //MEMBLOCK //REALLY IMPORTANT ONE
-        barrier(CLK_LOCAL_MEM_FENCE);
+        //barrier(CLK_LOCAL_MEM_FENCE);
         //All data is read to local, perform calculation
         
 
-        int minX = xG; //x; //or max this and 0? or sampler handles it?
-        int minY = yG; //y;
-        int minZ = zG; //z;
+        int minX = xG - HALF_WIDTH; //x; //or max this and 0? or sampler handles it?
+        int minY = yG - HALF_WIDTH; //y;
+        int minZ = zG - HALF_WIDTH; //z;
         int maxX = minX + HALF_WIDTH_X2;
         int maxY = minY + HALF_WIDTH_X2;
         int maxZ = minZ + HALF_WIDTH_X2;
@@ -805,10 +805,12 @@ __kernel void normalizeHoleFillVolume(
         for (int xi = minX; xi <= maxX; xi++){
             for (int yi = minY; yi <= maxY; yi++){
                 for (int zi = minZ; zi <= maxZ; zi++){
-                    int loc = (xi + yi*LSIZE_MEM_X + zi*LSIZE_MEM_XtY);
+                    if (xi == xG && yi == yG && zi == zG){ continue; }
+                    //int loc = (xi + yi*LSIZE_MEM_X + zi*LSIZE_MEM_XtY);
+                    int loc = (xi + yi*VOL_SIZE_X + zi*VOL_SIZE_XtY);
                     //float locValue = localStorage[loc];
                     float locValue = readAndNormalize(volume, loc, -1.0f);
-                    if (locValue >= 0.0f){ //ev > -0.5? for inaccuracy?
+                    if (locValue >= -0.5f){ //ev > -0.5? for inaccuracy?
                         accumulationValue += locValue;
                         counter++;
                     }

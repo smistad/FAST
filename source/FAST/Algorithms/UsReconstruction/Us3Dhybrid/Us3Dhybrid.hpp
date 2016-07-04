@@ -27,6 +27,7 @@ namespace fast {
         void setVolumeSize(int sizeMillions);
         void setGlobalScaling(float globalScaling);
         void setZDirInitSpacing(float zInitSpacing);
+        void setHFgridSize(int gridSize);
         void setRunMode(Us3DRunMode runType);
         void setPNNrunMode(bool pnnRunMode);
         void setVNNrunMode(bool vnnRunMode);

@@ -71,6 +71,33 @@ void Us3Dhybrid::setZDirInitSpacing(float zInitSpacing){
     mIsModified = true;
 }
 
+void Us3Dhybrid::setHFgridSize(int gridSize){
+    HF_gridSize = gridSize; // 5;// 3;// 5; //TODO setter?
+    HF_halfWidth = (HF_gridSize - 1) / 2;
+    int halfWidthX2 = HF_halfWidth * 2;
+    int localMemSizeMax = 1024; // times 4bytes per float 
+    HF_localSize = Vector3i(16, 8, 8); //(16,4,2)@5 //(16,4,4)@3 //+HWx2 på hver akse skal være under 4kb, dvs 1024 med float /2048 m short / 4096 m char
+    int it = 0;
+    int localMemSize = (HF_localSize.x() + halfWidthX2) * (HF_localSize.y() + halfWidthX2) * (HF_localSize.z() + halfWidthX2);
+    while (localMemSize > localMemSizeMax){
+        if (HF_localSize.y() > 1){//it < 5){
+            if ((it % 2) == 0){
+                HF_localSize.z() = HF_localSize.z() - 1; /// 2; //
+            }
+            else{
+                HF_localSize.y() = HF_localSize.y() - 1; /// 2; //- 1;
+            }
+        }
+        else {
+            HF_localSize.x() = HF_localSize.x() -1;
+        }
+        it++;
+        localMemSize = (HF_localSize.x() + halfWidthX2) * (HF_localSize.y() + halfWidthX2) * (HF_localSize.z() + halfWidthX2);
+    }
+    
+    HF_localMemSize = Vector3i(HF_localSize.x() + halfWidthX2, HF_localSize.y() + halfWidthX2, HF_localSize.z() + halfWidthX2);
+}
+
 void Us3Dhybrid::setRunMode(Us3DRunMode runType){
     mRunType = runType;
     volumeCalculated = false;
@@ -133,11 +160,7 @@ Us3Dhybrid::Us3Dhybrid(){
     runCLhybrid = false;
 
     //Hole filling
-    HF_gridSize = 5;// 3;// 5; //TODO setter?
-    HF_localSize = Vector3i(16, 4, 2); //+HWx2 på hver akse skal være under 4kb, dvs 1024 med float /2048 m short / 4096 m char
-    HF_halfWidth = (HF_gridSize - 1) / 2;
-    int halfWidthX2 = HF_halfWidth * 2;
-    HF_localMemSize = Vector3i(HF_localSize.x() + halfWidthX2, HF_localSize.y() + halfWidthX2, HF_localSize.z() + halfWidthX2);
+    setHFgridSize(3);// 5);
 }
 
 Us3Dhybrid::~Us3Dhybrid(){
@@ -831,9 +854,9 @@ Vector2f Us3Dhybrid::findClosestPlane(Vector3i pos, int closestFrameNrLast, int 
             if (fabs(dist) < fabs(negClosestDist)){
                 negClosestDist = dist;// fabs(dist);
                 negClosestFrameNr = negFrame;
-                if (fabs(dist) < fabs(closestDist)) negImproving = true;
-                else negImproving = false;
             }
+            if (fabs(dist) < fabs(closestDist) && fabs(dist) < fabs(negClosestDist)) negImproving = true;
+            else negImproving = false;
             /*
             Vector3f planePoint = frameBaseCornerList[negFrame];
             Vector3f planeNormal = framePlaneNormalList[negFrame];
@@ -859,9 +882,9 @@ Vector2f Us3Dhybrid::findClosestPlane(Vector3i pos, int closestFrameNrLast, int 
             if (fabs(dist) < fabs(posClosestDist)){
                 posClosestDist = dist;// fabs(dist);
                 posClosestFrameNr = posFrame;
-                if (fabs(dist) < fabs(closestDist)) posImproving = true;
-                else posImproving = false;
             }
+            if (fabs(dist) < fabs(closestDist) && fabs(dist) < fabs(posClosestDist)) posImproving = true;
+            else posImproving = false;
             /*Vector3f planePoint = frameBaseCornerList[posFrame];
             Vector3f planeNormal = framePlaneNormalList[posFrame];
             float dist = getPointDistanceAlongNormal(pos, planePoint, planeNormal);
@@ -930,12 +953,15 @@ void Us3Dhybrid::executeVNN2(){
     int bruteIt2 = 0;
     int it = 0;
     int itZero = 0;
+    int nonZeroIt = 0;
     //Find closest for 0,0,0
     float closestMaxRange = 10000.0f;
-    Vector2f closestLast = findClosestPlaneBrute(Vector3i(0, 0, 0), closestMaxRange);
-    closestMaxRange = 3.0f; //Rmax
-    int closestFrameNrLast = round(closestLast(0));
-    float closestDistLast = closestLast(1);
+    //Vector2f closestLast = findClosestPlaneBrute(Vector3i(0, 0, 0), closestMaxRange);
+    float Mmodifier = std::cbrtf(((float)mVolSizeM));
+    closestMaxRange = 3.0f * Mmodifier; //Rmax
+    std::cout << "Max distance for closest search: " << closestMaxRange << std::endl;
+    //int closestFrameNrLast = round(closestLast(0));
+    //float closestDistLast = closestLast(1);
     /*
     float closestDistLast = 10000.0f;// Rmax; // 5.0f;
     int closestFrameNrLast = -1;
@@ -968,9 +994,9 @@ void Us3Dhybrid::executeVNN2(){
     */
     for (uint z = 0; z < depth; z++){//for (uint x = 0; x < width; x++){
         std::cout << "z: " << z << std::endl; //std::cout << "x: " << x << std::endl;
-        //Vector2f closestLast = findClosestPlaneBrute(Vector3i(0, 0, 0), closestMaxRange);
-        //int closestFrameNrLast = round(closestLast(0));
-        //float closestDistLast = closestLast(1);
+        Vector2f closestLast = findClosestPlaneBrute(Vector3i(0, 0, z), closestMaxRange);
+        int closestFrameNrLast = round(closestLast(0));
+        float closestDistLast = closestLast(1);
         for (uint y = 0; y < height; y++){
             //if ( (y % 50) == 0){
              //   std::cout << ".";
@@ -997,15 +1023,19 @@ void Us3Dhybrid::executeVNN2(){
                     closestDist = closest1(1);
                 }
                 else{
-                    closest2 = findClosestPlane(pos, closestFrameNrLast, 10, closestMaxRange*2);// closestMaxRange);
+                    closest2 = findClosestPlane(pos, closestFrameNrLast, 5, closestMaxRange*2);// closestMaxRange);
                     closestFrameNr = round(closest2(0));
                     closestDist = closest2(1);
+                    if (closestFrameNr != -1){ nonZeroIt++; }
+                    /*
                     if (closestFrameNr == -1){
                         closest3 = findClosestPlaneBrute(pos, closestMaxRange);//closestMaxRange);
                         bruteIt2++;
                         closestFrameNr = round(closest3(0));
                         closestDist = closest3(1);
                     }
+                    */
+                    
                 }
                 
                 
@@ -1060,8 +1090,8 @@ void Us3Dhybrid::executeVNN2(){
             }
 
         }
-        std::cout << "!" << std::endl;
-        std::cout << "Iterations: [B1: " << bruteIt << " B2: "<< bruteIt2 << " zero: " << itZero << "] out of " << it << " total iterations!" << std::endl;
+        //std::cout << "!" << std::endl;
+        std::cout << "Iterations: [B1: " << bruteIt <<  " zero: " << itZero << " close: "<< nonZeroIt << "] out of " << it << " tot!" << std::endl; //" B2: "<< bruteIt2 <<
     }
     volAccess->release();
     std::cout << "\nDONE calculations!" << std::endl;
