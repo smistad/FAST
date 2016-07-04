@@ -21,7 +21,7 @@ inline std::string currentDateTime() {
 }
 
 int main() {
-	std::string storageDir = "/home/smistad/carotis_validation_dataset/";
+	std::string storageDir = "/home/smistad/carotis_validation_dataset_daniel/";
 	boost::filesystem::create_directories(storageDir);
 	// Set up stream
 	std::vector<std::string> recordings = {
@@ -90,10 +90,16 @@ int main() {
 	"/media/smistad/New\ Volume/Assistant\ Recordings/Leuven\ 5\ feb\ 2016/2016-02-05-120648/US-2D_#.mhd",
 	"/media/smistad/New\ Volume/Assistant\ Recordings/Leuven\ 5\ feb\ 2016/2016-02-05-120843/US-2D_#.mhd"
 	*/
-			"/media/smistad/New Volume/Carotis/2016-06-02-140622/US-2D_#.mhd",
-			"/media/smistad/New Volume/Carotis/2016-06-02-140721/US-2D_#.mhd",
-			"/media/smistad/New Volume/Carotis/2016-06-02-140846/US-2D_#.mhd",
-			"/media/smistad/New Volume/Carotis/2016-06-02-140923/US-2D_#.mhd"
+			/*
+			"/media/smistad/New Volume/Carotis/Erik/2016-06-02-140622/US-2D_#.mhd",
+			"/media/smistad/New Volume/Carotis/Erik/2016-06-02-140721/US-2D_#.mhd",
+			"/media/smistad/New Volume/Carotis/Erik/2016-06-02-140846/US-2D_#.mhd",
+			"/media/smistad/New Volume/Carotis/Erik/2016-06-02-140923/US-2D_#.mhd",
+			*/
+			"/media/smistad/New Volume/Carotis/Daniel/2016-06-27-143748-carotis_daniel/US-2D_#.mhd",
+			"/media/smistad/New Volume/Carotis/Daniel/2016-06-27-143814-carotis_daniel/US-2D_#.mhd",
+			"/media/smistad/New Volume/Carotis/Daniel/2016-06-27-143917-carotis_daniel/US-2D_#.mhd",
+			"/media/smistad/New Volume/Carotis/Daniel/2016-06-27-144043-carotis_daniel/US-2D_#.mhd"
 	};
 	for(int i = 0; i < recordings.size(); ++i) {
 		ImageFileStreamer::pointer streamer = ImageFileStreamer::New();

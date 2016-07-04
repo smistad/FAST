@@ -71,10 +71,10 @@ int main(int argc, char** argv) {
 	"/media/smistad/New\ Volume/Assistant\ Recordings/Leuven\ 5\ feb\ 2016/2016-02-05-120411/US-2D_#.mhd",
 	"/media/smistad/New\ Volume/Assistant\ Recordings/Leuven\ 5\ feb\ 2016/2016-02-05-120648/US-2D_#.mhd",
 	"/media/smistad/New\ Volume/Assistant\ Recordings/Leuven\ 5\ feb\ 2016/2016-02-05-120843/US-2D_#.mhd",
-	"/media/smistad/New Volume/Carotis/2016-06-02-140622/US-2D_#.mhd",
-	"/media/smistad/New Volume/Carotis/2016-06-02-140721/US-2D_#.mhd",
-	"/media/smistad/New Volume/Carotis/2016-06-02-140846/US-2D_#.mhd",
-	"/media/smistad/New Volume/Carotis/2016-06-02-140923/US-2D_#.mhd"
+	"/media/smistad/New Volume/Carotis/Erik/2016-06-02-140622/US-2D_#.mhd",
+	"/media/smistad/New Volume/Carotis/Erik/2016-06-02-140721/US-2D_#.mhd",
+	"/media/smistad/New Volume/Carotis/Erik/2016-06-02-140846/US-2D_#.mhd",
+	"/media/smistad/New Volume/Carotis/Erik/2016-06-02-140923/US-2D_#.mhd"
 	};
 	uint recordingID = 0;
 	if(argc != 2) {

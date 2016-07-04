@@ -40,7 +40,7 @@ UltrasoundVesselDetection::UltrasoundVesselDetection() {
 	//std::string trainingFile = "/home/smistad/vessel_detection_model_alex_no_relu/snapshot_iter_630.caffemodel";
 	//std::string meanFile = "/home/smistad/vessel_detection_model_alex_no_relu/mean.binaryproto";
 	std::string modelFile = "/home/smistad/vessel_net/deploy.prototxt";
-	std::string trainingFile = "/home/smistad/vessel_net/snapshot_iter_5640.caffemodel";
+	std::string trainingFile = "/home/smistad/vessel_net/snapshot_iter_3800.caffemodel";
 	std::string meanFile = "/home/smistad/vessel_net/mean.binaryproto";
 	mClassifier->loadModel(modelFile, trainingFile, meanFile);
 
