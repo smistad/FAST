@@ -793,30 +793,39 @@ __kernel void normalizeHoleFillVolume(
         //All data is read to local, perform calculation
         
 
-        int minX = xG - HALF_WIDTH; //x; //or max this and 0? or sampler handles it?
-        int minY = yG - HALF_WIDTH; //y;
-        int minZ = zG - HALF_WIDTH; //z;
-        int maxX = minX + HALF_WIDTH_X2;
-        int maxY = minY + HALF_WIDTH_X2;
-        int maxZ = minZ + HALF_WIDTH_X2;
+        
 
         float accumulationValue = 0.0f;
         int counter = 0;
-        for (int xi = minX; xi <= maxX; xi++){
-            for (int yi = minY; yi <= maxY; yi++){
-                for (int zi = minZ; zi <= maxZ; zi++){
-                    if (xi == xG && yi == yG && zi == zG){ continue; }
-                    //int loc = (xi + yi*LSIZE_MEM_X + zi*LSIZE_MEM_XtY);
-                    int loc = (xi + yi*VOL_SIZE_X + zi*VOL_SIZE_XtY);
-                    //float locValue = localStorage[loc];
-                    float locValue = readAndNormalize(volume, loc, -1.0f);
-                    if (locValue >= -0.5f){ //ev > -0.5? for inaccuracy?
-                        accumulationValue += locValue;
-                        counter++;
+        int HW_boost = 0;
+        while (counter == 0 && HW_boost < 3){
+            int minX = xG - HALF_WIDTH - HW_boost; //x; //or max this and 0? or sampler handles it?
+            int minY = yG - HALF_WIDTH - HW_boost; //y;
+            int minZ = zG - HALF_WIDTH - HW_boost; //z;
+            int maxX = minX + HALF_WIDTH_X2 + (2 * HW_boost);
+            int maxY = minY + HALF_WIDTH_X2 + (2 * HW_boost);
+            int maxZ = minZ + HALF_WIDTH_X2 + (2 * HW_boost);
+            //Can restructure to avoid overlap!
+            //  Starts at 0 HW and adds up to HALF_WIDTH(max) ie. 0,1,2,3 for GridSize 7
+            // 0 means checking the node itself
+            for (int xi = minX; xi <= maxX; xi++){
+                for (int yi = minY; yi <= maxY; yi++){
+                    for (int zi = minZ; zi <= maxZ; zi++){
+                        if (xi == xG && yi == yG && zi == zG){ continue; }
+                        //int loc = (xi + yi*LSIZE_MEM_X + zi*LSIZE_MEM_XtY);
+                        int loc = (xi + yi*VOL_SIZE_X + zi*VOL_SIZE_XtY);
+                        //float locValue = localStorage[loc];
+                        float locValue = readAndNormalize(volume, loc, -1.0f);
+                        if (locValue >= -0.5f){ //ev > -0.5? for inaccuracy?
+                            accumulationValue += locValue;
+                            counter++;
+                        }
                     }
                 }
             }
+            HW_boost++;
         }
+        
         //float 
         voxelValue = accumulationValue / counter;
     }

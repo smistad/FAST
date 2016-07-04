@@ -66,7 +66,7 @@ void runAlgorithmAndExportImage(
             runningStyle += volumeHFgridSize+"_PNN_";
             break;
         case Us3DRunMode::clPNN:
-            runningStyle += volumeHFgridSize+"_PNN-CL_";
+            runningStyle += volumeHFgridSize+"_progressive_PNN-CL_";
             break;
         default:
             std::cout << "Run type " << (Us3DRunMode)runType << " is not implemented. Quitting.." << std::endl;
@@ -211,8 +211,8 @@ int main() {
     float dvConstant = 2 * 0.15f; //0.2f ev (0.5f/3.0f)~=0.1667..
     float voxelSpacing = 0.2f;// 0.15f; //0.1f; //0.5f; //0.2f; // 0.03 / 0.01 //dv // Større verdi gir mindre oppløsning
     float RmaxMultiplier = 10.0f;
-    int volumeSizeMillions = 128;// 256; // 32; // 128;// 256; // 256;// 128;// 256;// 32;// 128;  //crash at 512
-    int holeFill_gridSize = 13;
+    int volumeSizeMillions = 32;// 256; // 32; // 128;// 256; // 256;// 128;// 256;// 32;// 128;  //crash at 512
+    int holeFill_gridSize = 3;// 13;
 
     int runInputSet = 0; //1/2
     std::string folder = "";
