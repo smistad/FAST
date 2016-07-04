@@ -131,6 +131,13 @@ Us3Dhybrid::Us3Dhybrid(){
     runAsPNNonly = false;
     runAsVNNonly = false;
     runCLhybrid = false;
+
+    //Hole filling
+    HF_gridSize = 5;// 3;// 5; //TODO setter?
+    HF_localSize = Vector3i(16, 4, 2); //+HWx2 på hver akse skal være under 4kb, dvs 1024 med float /2048 m short / 4096 m char
+    HF_halfWidth = (HF_gridSize - 1) / 2;
+    int halfWidthX2 = HF_halfWidth * 2;
+    HF_localMemSize = Vector3i(HF_localSize.x() + halfWidthX2, HF_localSize.y() + halfWidthX2, HF_localSize.z() + halfWidthX2);
 }
 
 Us3Dhybrid::~Us3Dhybrid(){
@@ -783,9 +790,290 @@ void Us3Dhybrid::executeCLFramePNN(Image::pointer frame, int frameNr, OpenCLDevi
     cmdQueue.finish();
 }
 
+float Us3Dhybrid::findDistToPlane(Vector3i pos, int frameNr, float closestDist, bool noFrameCheck){
+    Vector3f planePoint = frameBaseCornerList[frameNr];
+    Vector3f planeNormal = framePlaneNormalList[frameNr];
+    float dist = getPointDistanceAlongNormal(pos, planePoint, planeNormal);
+    if (fabs(dist) < fabs(closestDist)){
+        AffineTransformation::pointer frameInvTrans = frameInverseTransformList[frameNr];
+        //Image::pointer frame = frameList[negFrame];
+        Vector3f crossWorld = getIntersectionOfPlane(pos, dist, planeNormal);
+        Vector3f crossLocal = getLocalIntersectionOfPlane(crossWorld, frameInvTrans);
+        if (noFrameCheck || isWithinFrame(crossLocal, frameSize, 0.5f, 0.5f)){
+            closestDist = dist; // fabs(dist);
+            //closestFrameNr = frameNr;
+            //closestCrossLocal = crossLocal;
+        }
+    }
+    return closestDist;
+}
+
+Vector2f Us3Dhybrid::findClosestPlane(Vector3i pos, int closestFrameNrLast, int minOffset, float closestMaxRange){
+    int closestFrameNr = closestFrameNrLast;
+    //Vector3f closestCrossLocal = Vector3f(0, 0, 0); // closestCrossLocalLast;//
+    float closestDist = findDistToPlane(pos, closestFrameNrLast);// , 10000.0f, true);
+    if (closestDist == closestMaxRange){
+        return Vector2f(-1, closestDist);
+    }
+    //1000.0f; //closestDistLast; // 5.0f;
+
+    float negClosestDist = closestMaxRange;// 10000.0f;
+    float posClosestDist = closestMaxRange; // 10000.0f;
+    int negClosestFrameNr = -1;
+    int posClosestFrameNr = -1;
+    bool negImproving = true;
+    bool posImproving = true;
+    int minOffsetTest = minOffset;
+    for (int frameOffset = 1; frameOffset < frameBaseCornerList.size(); frameOffset++){
+        int negFrame = closestFrameNrLast - frameOffset;
+        if (negFrame >= 0 && (negImproving || frameOffset <= minOffsetTest)){
+            float dist = findDistToPlane(pos, closestFrameNrLast, negClosestDist);
+            if (fabs(dist) < fabs(negClosestDist)){
+                negClosestDist = dist;// fabs(dist);
+                negClosestFrameNr = negFrame;
+                if (fabs(dist) < fabs(closestDist)) negImproving = true;
+                else negImproving = false;
+            }
+            /*
+            Vector3f planePoint = frameBaseCornerList[negFrame];
+            Vector3f planeNormal = framePlaneNormalList[negFrame];
+            float dist = getPointDistanceAlongNormal(pos, planePoint, planeNormal);
+            if (fabs(dist) < closestDist){
+            AffineTransformation::pointer frameInvTrans = frameInverseTransformList[negFrame];
+            //Image::pointer frame = frameList[negFrame];
+            Vector3f crossWorld = getIntersectionOfPlane(pos, dist, planeNormal);
+            Vector3f crossLocal = getLocalIntersectionOfPlane(crossWorld, frameInvTrans);
+            if (isWithinFrame(crossLocal, frameSize, 0.5f, 0.5f)){
+            closestDist = fabs(dist);
+            closestFrameNr = negFrame;
+            closestCrossLocal = crossLocal;
+            }
+            }*/
+        }
+        else {
+            negImproving = false;
+        }
+        int posFrame = closestFrameNrLast + frameOffset;
+        if (posFrame < frameBaseCornerList.size() && (posImproving || frameOffset <= minOffsetTest)){
+            float dist = findDistToPlane(pos, closestFrameNrLast, posClosestDist);
+            if (fabs(dist) < fabs(posClosestDist)){
+                posClosestDist = dist;// fabs(dist);
+                posClosestFrameNr = posFrame;
+                if (fabs(dist) < fabs(closestDist)) posImproving = true;
+                else posImproving = false;
+            }
+            /*Vector3f planePoint = frameBaseCornerList[posFrame];
+            Vector3f planeNormal = framePlaneNormalList[posFrame];
+            float dist = getPointDistanceAlongNormal(pos, planePoint, planeNormal);
+            if (fabs(dist) < closestDist){
+            AffineTransformation::pointer frameInvTrans = frameInverseTransformList[posFrame];
+            //Image::pointer frame = frameList[posFrame];
+            Vector3f crossWorld = getIntersectionOfPlane(pos, dist, planeNormal);
+            Vector3f crossLocal = getLocalIntersectionOfPlane(crossWorld, frameInvTrans);
+            if (isWithinFrame(crossLocal, frameSize, 0.5f, 0.5f)){
+            closestDist = fabs(dist);
+            closestFrameNr = posFrame;
+            closestCrossLocal = crossLocal;
+            }
+            }*/
+
+        }
+        else{
+            posImproving = false;
+        }
+
+        if (negImproving && posImproving && frameOffset > minOffsetTest){
+            break; //STOP loop
+        }
+    }
+    {
+        if (fabs(negClosestDist) < fabs(closestDist)){
+            closestFrameNr = negClosestFrameNr;
+            closestDist = negClosestDist;
+        }
+        if (fabs(posClosestDist) < fabs(closestDist)){
+            closestFrameNr = posClosestFrameNr;
+            closestDist = posClosestDist;
+        }
+    }
+    return Vector2f(closestFrameNr, closestDist);
+}
+
+Vector2f Us3Dhybrid::findClosestPlaneBrute(Vector3i pos, float closestMaxRange){
+    float closestDist = closestMaxRange;// Rmax; // 5.0f;
+    int closestFrameNr = -1;
+    for (int frameNr = 0; frameNr < frameBaseCornerList.size(); frameNr++){
+        float dist = findDistToPlane(pos, frameNr, closestDist, false);
+        if (fabs(dist) < fabs(closestDist)){
+            closestDist = dist;// fabs(dist);
+            closestFrameNr = frameNr;
+        }
+    }
+    return Vector2f(closestFrameNr, closestDist);
+}
+
+void Us3Dhybrid::executeVNN2(){
+    std::cout << "Final VNN [v.2] reconstruction calculations!" << std::endl;
+    algorithmStarted = clock();
+    // Finally, calculate reconstructed volume
+    ExecutionDevice::pointer device;
+    initOutputVolume(device);
+
+    std::cout << "Step 5" << std::endl;
+    volAccess = outputVolume->getImageAccess(accessType::ACCESS_READ_WRITE);
+    std::cout << "Running with dv: " << dv << " and Rmax: " << Rmax << std::endl;
+    frameSize = firstFrame->getSize();
+    uint width = (uint)volumeSize.x();
+    uint height = (uint)volumeSize.y();
+    uint depth = (uint)volumeSize.z();
+    int bruteIt = 0;
+    int bruteIt2 = 0;
+    int it = 0;
+    int itZero = 0;
+    //Find closest for 0,0,0
+    float closestMaxRange = 10000.0f;
+    Vector2f closestLast = findClosestPlaneBrute(Vector3i(0, 0, 0), closestMaxRange);
+    closestMaxRange = 3.0f; //Rmax
+    int closestFrameNrLast = round(closestLast(0));
+    float closestDistLast = closestLast(1);
+    /*
+    float closestDistLast = 10000.0f;// Rmax; // 5.0f;
+    int closestFrameNrLast = -1;
+    Vector3f closestCrossLocalLast = Vector3f(0, 0, 0);
+    {
+        Vector3i posZero = Vector3i(0, 0, 0);
+        for (int frameNr = 0; frameNr < frameBaseCornerList.size(); frameNr++){
+            float closestDist = findDistToPlane(posZero, frameNr, closestDistLast, true);
+            if (closestDist < closestDistLast){
+                closestDistLast = fabs(closestDist);
+                closestFrameNrLast = frameNr;
+            }
+            /*
+            Vector3f planePoint = frameBaseCornerList[frameNr];
+            Vector3f planeNormal = framePlaneNormalList[frameNr];
+            float dist = getPointDistanceAlongNormal(posZero, planePoint, planeNormal);
+            if (fabs(dist) < closestDistLast){
+                AffineTransformation::pointer frameInvTrans = frameInverseTransformList[frameNr];
+                //Image::pointer frame = frameList[frameNr];
+                Vector3f crossWorld = getIntersectionOfPlane(posZero, dist, planeNormal);
+                Vector3f crossLocal = getLocalIntersectionOfPlane(crossWorld, frameInvTrans);
+                //if (isWithinFrame(crossLocal, frameSize, 0.5f, 0.5f)){
+                    closestDistLast = fabs(dist);
+                    closestFrameNrLast = frameNr;
+                    closestCrossLocalLast = crossLocal;
+                //}
+            }*
+        }
+    }
+    */
+    for (uint z = 0; z < depth; z++){//for (uint x = 0; x < width; x++){
+        std::cout << "z: " << z << std::endl; //std::cout << "x: " << x << std::endl;
+        //Vector2f closestLast = findClosestPlaneBrute(Vector3i(0, 0, 0), closestMaxRange);
+        //int closestFrameNrLast = round(closestLast(0));
+        //float closestDistLast = closestLast(1);
+        for (uint y = 0; y < height; y++){
+            //if ( (y % 50) == 0){
+             //   std::cout << ".";
+            //}
+            //Store closest?
+            for (uint x = 0; x < width; x++){//for (uint z = 0; z < depth; z++){
+                uint rX = x;
+                if (y % 2 == 0){ rX = width - rX - 1; } //ZIG_ZAGGING for more reuse of last
+                Vector3i pos = Vector3i(rX, y, z);
+                //Vector3f posF = Vector3f(rX, y, z);
+                it++;
+                float p = 0.0f;
+                // Find closest plane
+                Vector2f closest;
+                Vector2f closest1;
+                Vector2f closest2;
+                Vector2f closest3;
+                int closestFrameNr;
+                float closestDist;
+                if (closestFrameNrLast == -1){
+                    closest1 = findClosestPlaneBrute(pos, closestMaxRange);// closestMaxRange);
+                    bruteIt++;
+                    closestFrameNr = round(closest1(0));
+                    closestDist = closest1(1);
+                }
+                else{
+                    closest2 = findClosestPlane(pos, closestFrameNrLast, 10, closestMaxRange*2);// closestMaxRange);
+                    closestFrameNr = round(closest2(0));
+                    closestDist = closest2(1);
+                    if (closestFrameNr == -1){
+                        closest3 = findClosestPlaneBrute(pos, closestMaxRange);//closestMaxRange);
+                        bruteIt2++;
+                        closestFrameNr = round(closest3(0));
+                        closestDist = closest3(1);
+                    }
+                }
+                
+                
+                /*
+                float closestDist = Rmax; // 5.0f;
+                int closestFrameNr = -1;
+                Vector3f closestCrossLocal = Vector3f(0, 0, 0);
+                float p = 0.0f;
+                for (int frameNr = 0; frameNr < frameBaseCornerList.size(); frameNr++){
+                    Vector3f planePoint = frameBaseCornerList[frameNr];
+                    Vector3f planeNormal = framePlaneNormalList[frameNr];
+                    float dist = getPointDistanceAlongNormal(pos, planePoint, planeNormal);
+                    if (fabs(dist) < closestDist){
+                        AffineTransformation::pointer frameInvTrans = frameInverseTransformList[frameNr];
+                        //Image::pointer frame = frameList[frameNr];
+                        Vector3f crossWorld = getIntersectionOfPlane(pos, dist, planeNormal);
+                        Vector3f crossLocal = getLocalIntersectionOfPlane(crossWorld, frameInvTrans);
+                        if (isWithinFrame(crossLocal, frameSize, 0.5f, 0.5f)){
+                            closestDist = fabs(dist);
+                            closestFrameNr = frameNr;
+                            closestCrossLocal = crossLocal;
+                        }
+                    }
+                }*/
+                
+                if (closestFrameNr != -1){
+                    //FIND cross point
+                    Vector3f closestCrossLocal = Vector3f(0, 0, 0);
+                    {
+                        Vector3f planeNormal = framePlaneNormalList[closestFrameNr];
+                        AffineTransformation::pointer frameInvTrans = frameInverseTransformList[closestFrameNr];
+                        Vector3f crossWorld = getIntersectionOfPlane(pos, closestDist, planeNormal);
+                        Vector3f crossLocal = getLocalIntersectionOfPlane(crossWorld, frameInvTrans);
+                        closestCrossLocal = crossLocal;
+                    }
+                    //std::cout << "Closest frameNr: " << closestFrameNr << " to pos " << pos.x() << "-" << pos.y() << "-" << pos.z() << " dist " << closestDist << std::endl;
+                    Image::pointer frame = frameList[closestFrameNr];
+                    frameAccess = frame->getImageAccess(ACCESS_READ);
+                    p = getPixelValue(closestCrossLocal);
+                    frameAccess->release();
+
+                    closestFrameNrLast = closestFrameNr;
+                    closestDistLast = closestDist;
+                }
+                if (p == 0.0f){
+                    itZero++;
+                }
+                // Store value
+                volAccess->setScalar(pos, p, 0);
+                //unsigned int loc = x + y*size.x() + z*size.x()*size.y(); // )* nrOfComponents
+                //outputData[loc] = p;
+            }
+
+        }
+        std::cout << "!" << std::endl;
+        std::cout << "Iterations: [B1: " << bruteIt << " B2: "<< bruteIt2 << " zero: " << itZero << "] out of " << it << " total iterations!" << std::endl;
+    }
+    volAccess->release();
+    std::cout << "\nDONE calculations!" << std::endl;
+    algorithmEnded = clock();
+}
+
 void Us3Dhybrid::executeVNN(){
     std::cout << "Final VNN reconstruction calculations!" << std::endl;
     // Finally, calculate reconstructed volume
+    ExecutionDevice::pointer device;
+    initOutputVolume(device);
+    /*
     Vector3ui size = Vector3ui(volumeSize.x(), volumeSize.y(), volumeSize.z());
     setOutputType(firstFrame->getDataType());
     frameSize = firstFrame->getSize();
@@ -794,8 +1082,8 @@ void Us3Dhybrid::executeVNN(){
     std::cout << "Step 2" << std::endl;
     outputVolume->create(size, mOutputType, 1); //1-channeled outputVolume
     std::cout << "Step 3" << std::endl;
-    volAccess = outputVolume->getImageAccess(accessType::ACCESS_READ_WRITE);
-    //float * outputData = (float*)volAccess->get();
+    
+    //float * outputData = (float*)volAccess->get(); */
     /*
     std::vector<ImageAccess::pointer> storedAccess = {};
     for (int frameNr = 0; frameNr < frameBaseCornerList.size(); frameNr++){
@@ -804,7 +1092,7 @@ void Us3Dhybrid::executeVNN(){
     storedAccess.push_back(frameAcc);
     }
     */
-    std::cout << "Step 4" << std::endl;
+    //std::cout << "Step 4" << std::endl;
     /*
     //Preprossess frames and find rough locations where they are close to frame (sample every 10/20/50pixel ie.)
     int stepX = 50;
@@ -851,15 +1139,19 @@ void Us3Dhybrid::executeVNN(){
     */
 
     std::cout << "Step 5" << std::endl;
-
+    volAccess = outputVolume->getImageAccess(accessType::ACCESS_READ_WRITE);
     std::cout << "Running with dv: " << dv << " and Rmax: " << Rmax << std::endl;
-
-    for (uint x = 0; x < size.x(); x++){
+    frameSize = firstFrame->getSize();
+    uint width = (uint)volumeSize.x();
+    uint height = (uint)volumeSize.y();
+    uint depth = (uint)volumeSize.z();
+    
+    for (uint x = 0; x < width; x++){
         std::cout << "x: " << x << std::endl;
-        for (uint y = 0; y < size.y(); y++){
+        for (uint y = 0; y < height; y++){
             std::cout << ".";
             //Store closest?
-            for (uint z = 0; z < size.z(); z++){
+            for (uint z = 0; z < depth; z++){
                 Vector3i pos = Vector3i(x, y, z);
                 Vector3f posF = Vector3f(x, y, z);
                 // Find closest plane
@@ -879,10 +1171,10 @@ void Us3Dhybrid::executeVNN(){
                     if (fabs(dist) < closestDist){
                         //std::cout << "Close frame nr: " << frameNr << std::endl;
                         AffineTransformation::pointer frameInvTrans = frameInverseTransformList[frameNr];
-                        Image::pointer frame = frameList[frameNr];
+                        //Image::pointer frame = frameList[frameNr];
                         Vector3f crossWorld = getIntersectionOfPlane(pos, dist, planeNormal);
                         Vector3f crossLocal = getLocalIntersectionOfPlane(crossWorld, frameInvTrans);
-                        if (isWithinFrame(crossLocal, frame->getSize(), 0.5f, 0.5f)){
+                        if (isWithinFrame(crossLocal, frameSize, 0.5f, 0.5f)){ //
                             //std::cout << "Frame = Within" << std::endl;
                             closestDist = fabs(dist);
                             closestFrameNr = frameNr;
@@ -1013,6 +1305,53 @@ void Us3Dhybrid::recompileAlgorithmOpenCLCode(){
     buildOptions += std::to_string(granularity);
     std::cout << " -D UINT_GRANULARITY=" << granularity << std::endl;
 
+    
+    // Hole filling buildOpts
+    int halfWidthX2 = HF_halfWidth * 2;
+    {
+        {
+            int lSizeX = HF_localSize.x();
+            buildOptions += " -D LSIZE_X=";
+            buildOptions += std::to_string(lSizeX);
+            std::cout << " -D LSIZE_X=" << lSizeX << std::endl;
+            int lSizeY = HF_localSize.y();
+            buildOptions += " -D LSIZE_Y=";
+            buildOptions += std::to_string(lSizeY);
+            std::cout << " -D LSIZE_Y=" << lSizeY << std::endl;
+            int lSizeZ = HF_localSize.z();
+            buildOptions += " -D LSIZE_Z=";
+            buildOptions += std::to_string(lSizeZ);
+            std::cout << " -D LSIZE_Z=" << lSizeZ << std::endl;
+        }
+        {
+            buildOptions += " -D HALF_WIDTH=";
+            buildOptions += std::to_string(HF_halfWidth);
+            std::cout << " -D HALF_WIDTH=" << HF_halfWidth << std::endl;
+            buildOptions += " -D HALF_WIDTH_X2=";
+            buildOptions += std::to_string(halfWidthX2);
+            std::cout << " -D HALF_WIDTH_X2=" << halfWidthX2 << std::endl;
+        }
+        {
+            int lSizeX = HF_localMemSize.x();
+            buildOptions += " -D LSIZE_MEM_X=";
+            buildOptions += std::to_string(lSizeX);
+            std::cout << " -D LSIZE_MEM_X=" << lSizeX << std::endl;
+            int lSizeY = HF_localMemSize.y();
+            buildOptions += " -D LSIZE_MEM_Y=";
+            buildOptions += std::to_string(lSizeY);
+            std::cout << " -D LSIZE_MEM_Y=" << lSizeY << std::endl;
+            int lSizeZ = HF_localMemSize.z();
+            buildOptions += " -D LSIZE_MEM_Z=";
+            buildOptions += std::to_string(lSizeZ);
+            std::cout << " -D LSIZE_MEM_Z=" << lSizeZ << std::endl;
+
+            int lSizeXtimesY = lSizeX * lSizeY;
+            buildOptions += " -D LSIZE_MEM_XtY=";
+            buildOptions += std::to_string(lSizeXtimesY);
+            std::cout << " -D LSIZE_MEM_XtY=" << lSizeXtimesY << std::endl;
+        }
+    }
+
     // Precalcs
     int vol_size_X_times_Y = volumeSize(0) * volumeSize(1);
     buildOptions += " -D VOL_SIZE_XtY=";
@@ -1026,8 +1365,9 @@ void Us3Dhybrid::recompileAlgorithmOpenCLCode(){
 
     cl::Program programUs3Dhybrid = getOpenCLProgram(device, "us3Dhybrid", buildOptions);
     mKernel = cl::Kernel(programUs3Dhybrid, "accumulateFrameToVolume");
-    mKernelNormalize = cl::Kernel(programUs3Dhybrid, "normalizeImage");
+    mKernelNormalize = cl::Kernel(programUs3Dhybrid, "normalizeVolume");
     mKernelPNN = cl::Kernel(programUs3Dhybrid, "addPNNFrame");
+    mKernelHfNorm = cl::Kernel(programUs3Dhybrid, "normalizeHoleFillVolume");
 
     //mDimensionCLCodeCompiledFor = AccumulationVolume->getDimensions();
     //mTypeCLCodeCompiledFor = AccumulationVolume->getDataType();
@@ -1525,18 +1865,15 @@ void Us3Dhybrid::executeAlgorithmOnHost(){
     //volAccess->release();
 }
 
-void Us3Dhybrid::generateOutputVolume(){
-    normalizationStarted = clock();
-    std::cout << "Final reconstruction calculations!" << std::endl;
-    // Finally, calculate reconstructed volume
+void Us3Dhybrid::initOutputVolume(ExecutionDevice::pointer device){
     setOutputType(firstFrame->getDataType());
     outputVolume = getStaticOutputData<Image>(0);
     DataType outputType = firstFrame->getDataType();
-    ExecutionDevice::pointer device = getMainDevice();
-    if ( (mRunType == Us3DRunMode::clHybrid || mRunType == Us3DRunMode::clHybrid)  && !device->isHost()) {
+    
+    if ((mRunType == Us3DRunMode::clHybrid || mRunType == Us3DRunMode::clHybrid) && !device->isHost()) {
         outputType = TYPE_UINT8;
     }
-    
+
 
     outputVolume->create(Vector3ui(volumeSize(0), volumeSize(1), volumeSize(2)), outputType, 1); //1-channeled outputVolume
     //std::cout << "Step 1" << std::endl;
@@ -1551,10 +1888,22 @@ void Us3Dhybrid::generateOutputVolume(){
     //SceneGraphNode::pointer parent = SceneGraphNode::New();
     //outputVolume->getSceneGraphNode()->setParent(parent);
     outputVolume->getSceneGraphNode()->setTransformation(volumeToWorldTransform);
+}
 
+void Us3Dhybrid::generateOutputVolume(){
+    normalizationStarted = clock();
+    std::cout << "Final reconstruction calculations!" << std::endl;
+    // Finally, calculate reconstructed volume
+    ExecutionDevice::pointer device = getMainDevice();
+    initOutputVolume(device);
     
     if ((mRunType == Us3DRunMode::clHybrid || mRunType == Us3DRunMode::clPNN) && !device->isHost()) {
-        generateOutputVolume(device); // Run on GPU instead
+        if (mRunType == Us3DRunMode::clPNN){ //Maybe also cpuPNN?
+            generateOutputVolumeWithHoleFilling(device);
+        }
+        else{
+            generateOutputVolume(device); // Run on GPU instead
+        }
         normalizationEnded = clock();
         return;
     }
@@ -1674,6 +2023,120 @@ void Us3Dhybrid::generateOutputVolume(ExecutionDevice::pointer device){
     //float minimum = outputVolume->calculateMinimumIntensity();
     //std::cout << "OUTPUT VALUES - max: " << maximum << " min: " << minimum << std::endl;
     
+}
+
+void Us3Dhybrid::generateOutputVolumeWithHoleFilling(ExecutionDevice::pointer device){
+    std::cout << "Running with HOLE FILLING on GPU " << std::endl;
+
+    if (false){
+        generateOutputVolume(device);
+        ImageAccess::pointer outputAccess = outputVolume->getImageAccess(ACCESS_READ_WRITE);
+        //unsigned int* outputData = (unsigned int*)outputAccess->get();
+        
+        uint width = volumeSize(0);
+        uint height = volumeSize(1);
+        uint depth = volumeSize(2);
+        uint* finalData = new uint[width*height*depth];
+        int holesFilled = 0;
+        for (uint x = 0; x < width; x++){
+            std::cout << "x: " << x << std::endl;
+            for (uint y = 0; y < height; y++){
+                //std::cout << ".";
+                for (uint z = 0; z < depth; z++){
+                    uint loc = x + y*width + z*width*height;
+                    //uint value = outputData[loc];
+                    Vector3i pos = Vector3i(x, y, z);
+                    uint value = outputAccess->getScalar(pos, 0);
+                    if (value == 0){
+                        uint sumVal = 0;
+                        uint counter = 0;
+                        for (uint xGrid = std::max((uint)0, x - HF_halfWidth); xGrid <= std::min(width-1, x + HF_halfWidth); xGrid++){
+                            for (uint yGrid = std::max((uint)0, y - HF_halfWidth); yGrid <= std::min(height-1, y + HF_halfWidth); yGrid++){
+                                for (uint zGrid = std::max((uint)0, z - HF_halfWidth); zGrid <= std::min(depth-1, z + HF_halfWidth); zGrid++){
+                                    //uint locGrid = xGrid + yGrid*width + zGrid*width*height;
+                                    //uint valGrid = outputData[locGrid];
+                                    Vector3i posGrid = Vector3i(xGrid, yGrid, zGrid);
+                                    uint valGrid = outputAccess->getScalar(posGrid, 0);
+                                    if (valGrid != 0){
+                                        sumVal += valGrid;
+                                        counter++;
+                                    }
+                                }
+                            }
+                        }
+                        if (counter != 0){
+                            uint newValue = sumVal / counter;
+                            value = newValue;
+                            //outputData[loc] = newValue;
+                            //outputAccess->setScalar(pos, newValue, 0);
+                        }
+                        holesFilled++;
+                    }
+                    finalData[loc] = value;
+                }
+            }
+            
+        }
+        std::cout << "Filled " << holesFilled << " holes!" << std::endl;
+
+        for (uint x = 0; x < width; x++){
+            std::cout << "x: " << x << std::endl;
+            for (uint y = 0; y < height; y++){
+                //std::cout << ".";
+                for (uint z = 0; z < depth; z++){
+                    Vector3i pos = Vector3i(x, y, z);
+                    uint loc = x + y*width + z*width*height;
+                    uint value = finalData[loc];
+                    outputAccess->setScalar(pos, value, 0);
+                }
+            }
+        }
+
+
+        outputAccess->release();
+        return;
+    }
+
+    //generateOutputVolume(device);
+
+    OpenCLDevice::pointer clDevice = device;
+
+    int localWidth = HF_localSize(0);
+    int localHeight = HF_localSize(1);
+    int localDepth = HF_localSize(2);
+    int globalWidth = volumeSize(0);
+    int globalHeight = volumeSize(1);
+    int globalDepth = volumeSize(2);
+    {
+       // globalWidth = globalWidth + localWidth - (globalWidth % localWidth);
+        //globalHeight = globalHeight + +localHeight - (globalHeight % localHeight);
+        //globalDepth = globalDepth + localDepth - (globalDepth % localDepth);
+    }
+    cl::NDRange globalSize = cl::NDRange(globalWidth, globalHeight, globalDepth); //Må være multiple av localSize
+    cl::NDRange localSize = cl::NullRange;// cl::NDRange(localWidth, localHeight, localDepth);
+    int localMemSize = HF_localMemSize(0) * HF_localMemSize(1) * HF_localMemSize(2) * sizeof(cl_float); // HF_localMemSize(0) * HF_localMemSize(1) *HF_localMemSize(2);
+    OpenCLImageAccess::pointer outputAccess = outputVolume->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+
+    //mCLVolume er cl::Buffer av unsigned int * 
+    mKernelHfNorm.setArg(0, *outputAccess->get3DImage());
+    mKernelHfNorm.setArg(1, mCLVolume);//*inputAccess->get3DImage());
+    //mKernelHfNorm.setArg(2, localMemSize, NULL);
+
+    cl::CommandQueue cmdQueue = clDevice->getCommandQueue();
+    cmdQueue.finish(); //Make sure it is complete with previous work
+    cmdQueue.enqueueNDRangeKernel(
+        mKernelHfNorm,
+        cl::NullRange,
+        globalSize,
+        localSize
+        );
+    cmdQueue.finish();
+    outputAccess->release();
+
+    //float maximum = outputVolume->calculateMaximumIntensity();
+    //float minimum = outputVolume->calculateMinimumIntensity();
+    //std::cout << "OUTPUT VALUES - max: " << maximum << " min: " << minimum << std::endl;
+
 }
 
 void Us3Dhybrid::initVolume(Image::pointer rootFrame){
@@ -2136,7 +2599,7 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
     }
 
     
-    if (mRunType != Us3DRunMode::clHybrid && mRunType != Us3DRunMode::clPNN){// && mRunType != Us3DRunMode::cpuHybrid){ OR clPNN?
+    if (mRunType != Us3DRunMode::clHybrid && mRunType != Us3DRunMode::clPNN && mRunType != Us3DRunMode::cpuVNN){// && mRunType != Us3DRunMode::cpuHybrid){ OR clPNN?
         // MAKE VOLUME
         DataType type = DataType::TYPE_FLOAT; //Endre til INT på sikt?
         int nrOfComponents = 2; // pixelvalues & weights
@@ -2198,7 +2661,7 @@ void Us3Dhybrid::execute(){
         //std::cout << ".";
         // Sjekk om vi har nådd slutten
         DynamicData::pointer dynamicImage = getInputData(0);
-        if (dynamicImage->hasReachedEnd()) {
+        if (dynamicImage->hasReachedEnd()){// || frameList.size() >= 100) {
             reachedEndOfStream = true;
             loadingEnded = clock();
             std::cout << "" << std::endl;
@@ -2223,7 +2686,8 @@ void Us3Dhybrid::execute(){
                 //outputImg = firstFrame;
             }
             if (mRunType == Us3DRunMode::clVNN || mRunType == Us3DRunMode::cpuVNN){
-                executeVNN();
+                //executeVNN();
+                executeVNN2();
             }
             else {
                 //if (!runAsVNNonly){
@@ -2354,6 +2818,7 @@ void Us3Dhybrid::printEndStats(){
             double timeInSecondsLoop = calculateRuntime(5);
             Vector3i splitMinSecSub = splitSecondsToParts(timeInSecondsLoop);
             std::cout << "Took " << splitMinSecSub.x() << "min " << splitMinSecSub.y() << "." << hundredIntToString(splitMinSecSub.z()) << "sec! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
+            std::cout << "   " << (timeInSecondsLoop / (double)mVolSizeM)*1000.0 << "ms per M voxel!" << std::endl;
             std::cout << "" << std::endl;
             /*
             clock_t clockTicksTakenLoop = normalizationEnded - normalizationStarted;
@@ -2373,7 +2838,8 @@ void Us3Dhybrid::printEndStats(){
             clock_t clockTicksTakenLoop = endTotalTime - loadingStarted;
             double timeInSecondsLoop = clockTicksTakenLoop / (double)CLOCKS_PER_SEC;
             Vector3i splitMinSecSub = splitSecondsToParts(timeInSecondsLoop);
-            std::cout << "Took " << splitMinSecSub.x() << "min " << splitMinSecSub.y() << "." << hundredIntToString(splitMinSecSub.z()) << "sec! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
+            std::cout << "Took " << splitMinSecSub.x() << "min " << splitMinSecSub.y() << "." << hundredIntToString(splitMinSecSub.z()) << "sec! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << (timeInSecondsLoop / (double)mVolSizeM)*1000.0 << "ms per M voxel!" << std::endl;
+            std::cout << "\tTook " << (timeInSecondsLoop / (double)mVolSizeM)*1000.0 << "ms per M voxel!" << std::endl;
             std::cout << "" << std::endl;
         }
         /*
@@ -2388,6 +2854,3 @@ void Us3Dhybrid::printEndStats(){
         std::cout << " ####################################################### " << std::endl;
     }
 }
-
-
-

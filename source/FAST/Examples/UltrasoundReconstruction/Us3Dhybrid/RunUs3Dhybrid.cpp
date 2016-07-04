@@ -199,7 +199,7 @@ int main() {
       
 
     
-    int startNumber = 0; //0;// 735// 400; //500; //400;//700; //200; //700; //735;
+    int startNumber = 0;// 735// 400; //500; //400;//700; //200; //700; //735;
     int stepSize = 1; // 5; //3
     int scaleToMaxInt = 400; // 200; //400;
     float scaleToMax = float(scaleToMaxInt);
@@ -209,7 +209,7 @@ int main() {
     float dvConstant = 2 * 0.15f; //0.2f ev (0.5f/3.0f)~=0.1667..
     float voxelSpacing = 0.2f;// 0.15f; //0.1f; //0.5f; //0.2f; // 0.03 / 0.01 //dv // Større verdi gir mindre oppløsning
     float RmaxMultiplier = 10.0f;
-    int volumeSizeMillions = 8; // 32; // 128;// 256; // 256;// 128;// 256;// 32;// 128;  //crash at 512
+    int volumeSizeMillions = 1;// 32; // 32; // 32; // 128;// 256; // 256;// 128;// 256;// 32;// 128;  //crash at 512
 
     int runInputSet = 0; //1/2
     std::string folder = "";
@@ -250,7 +250,7 @@ int main() {
     bool runVNNonly = false;
     bool runCLHybrid = true; //false;
     bool runPNNonly = false;
-    Us3DRunMode runMode = Us3DRunMode::cpuVNN; //clPNN; //cpuVNN; //cpuHybrid; // clHybrid;
+    Us3DRunMode runMode = Us3DRunMode::cpuVNN; // cpuVNN; //clPNN; //cpuVNN; //cpuHybrid; // clHybrid;
 
     bool singleTest = true;//false;
 

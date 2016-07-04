@@ -50,9 +50,12 @@ namespace fast {
         void executeCLFramePNN(Image::pointer frame, int frameNr, OpenCLDevice::pointer clDevice,
             cl::CommandQueue cmdQueue);
         void executeVNN();
+        void executeVNN2();
         void initVolume(Image::pointer rootFrame);
+        void initOutputVolume(ExecutionDevice::pointer device);
         void generateOutputVolume();
         void generateOutputVolume(ExecutionDevice::pointer device);
+        void generateOutputVolumeWithHoleFilling(ExecutionDevice::pointer device);
 
         // Core OpenCL functions
         void recompileAlgorithmOpenCLCode();
@@ -67,6 +70,9 @@ namespace fast {
         Vector2i getFrameRangeInVolume(int frameNr, int domDir, int dir);
         AffineTransformation::pointer getTransform(Image::pointer frame);
         AffineTransformation::pointer getInverseTransformation(Image::pointer frame);
+        float findDistToPlane(Vector3i pos, int frameNr, float closestDist = 10000.0f, bool noFrameCheck = false); //VNN
+        Vector2f findClosestPlane(Vector3i pos, int closestFrameNrLast, int minOffset = 5, float closestMaxRange = 10000.0f); //VNN
+        Vector2f findClosestPlaneBrute(Vector3i pos, float closestMaxRange);
 
         float getPixelValue(Vector3f point); 
         float getPixelValueData(Vector3f point);
@@ -125,6 +131,12 @@ namespace fast {
         bool runCLhybrid;
         float zDirInitSpacing;
 
+        // Hole filling settings
+        int HF_gridSize;
+        Vector3i HF_localSize;
+        int HF_halfWidth;
+        Vector3i HF_localMemSize;
+
         // Images and volumes
         Image::pointer firstFrame;
         Image::pointer outputVolume;
@@ -156,6 +168,7 @@ namespace fast {
         cl::Kernel mKernel;
         cl::Kernel mKernelNormalize;
         cl::Kernel mKernelPNN;
+        cl::Kernel mKernelHfNorm;
         unsigned char mDimensionCLCodeCompiledFor;
         DataType mTypeCLCodeCompiledFor;
         float mDvCompiledFor;
