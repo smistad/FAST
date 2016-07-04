@@ -98,6 +98,12 @@ void Us3Dhybrid::setHFgridSize(int gridSize){
     HF_localMemSize = Vector3i(HF_localSize.x() + halfWidthX2, HF_localSize.y() + halfWidthX2, HF_localSize.z() + halfWidthX2);
 }
 
+void Us3Dhybrid::setHFprogressive(bool prog){
+    HF_progressive = prog;
+    volumeCalculated = false;
+    mIsModified = true;
+}
+
 void Us3Dhybrid::setRunMode(Us3DRunMode runType){
     mRunType = runType;
     volumeCalculated = false;
@@ -161,6 +167,7 @@ Us3Dhybrid::Us3Dhybrid(){
 
     //Hole filling
     setHFgridSize(3);// 5);
+    HF_progressive = true;
 }
 
 Us3Dhybrid::~Us3Dhybrid(){
@@ -1334,6 +1341,11 @@ void Us3Dhybrid::recompileAlgorithmOpenCLCode(){
     buildOptions += " -D UINT_GRANULARITY=";
     buildOptions += std::to_string(granularity);
     std::cout << " -D UINT_GRANULARITY=" << granularity << std::endl;
+
+    bool progressivePNN = HF_progressive; //true;
+    buildOptions += " -D PROGRESSIVE_PNN=";
+    buildOptions += std::to_string(progressivePNN);
+    std::cout << " -D PROGRESSIVE_PNN=" << progressivePNN << std::endl;
 
     
     // Hole filling buildOpts

@@ -28,6 +28,7 @@ namespace fast {
         void setGlobalScaling(float globalScaling);
         void setZDirInitSpacing(float zInitSpacing);
         void setHFgridSize(int gridSize);
+        void setHFprogressive(bool prog);
         void setRunMode(Us3DRunMode runType);
         void setPNNrunMode(bool pnnRunMode);
         void setVNNrunMode(bool vnnRunMode);
@@ -133,6 +134,7 @@ namespace fast {
         float zDirInitSpacing;
 
         // Hole filling settings
+        bool HF_progressive;
         int HF_gridSize;
         Vector3i HF_localSize;
         int HF_halfWidth;

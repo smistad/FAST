@@ -25,7 +25,7 @@ std::string to_string_with_precision(const T a_value, const int n = 6)
 void runAlgorithmAndExportImage(
     float setDV, float maxRvalue,
     std::string input_filename, std::string nameformat, std::string output_subfolder,
-    int volSizeM, float initZspacing, int HF_gridSize,
+    int volSizeM, float initZspacing, int HF_gridSize, bool HF_progressive,
     Us3DRunMode runType,
     int startNumber, int stepSize
     ){
@@ -63,10 +63,11 @@ void runAlgorithmAndExportImage(
             runningStyle += "VNN_";
             break;
         case Us3DRunMode::cpuPNN:
-            runningStyle += volumeHFgridSize+"_PNN_";
+            runningStyle += volumeHFgridSize+"_PNN_"; //HF prog here?
             break;
         case Us3DRunMode::clPNN:
-            runningStyle += volumeHFgridSize+"_progressive_PNN-CL_";
+            runningStyle += volumeHFgridSize+"_PNN-CL_";
+            if (HF_progressive){ runningStyle += "progressive_";  }
             break;
         default:
             std::cout << "Run type " << (Us3DRunMode)runType << " is not implemented. Quitting.." << std::endl;
@@ -88,6 +89,7 @@ void runAlgorithmAndExportImage(
         pnnHybrid->setVolumeSize(volSizeM);
         pnnHybrid->setZDirInitSpacing(initZspacing);
         pnnHybrid->setHFgridSize(HF_gridSize);
+        pnnHybrid->setHFprogressive(HF_progressive);
         //Priority VNN > PNN > CL > Normal
         pnnHybrid->setRunMode(runType);
 
@@ -213,6 +215,7 @@ int main() {
     float RmaxMultiplier = 10.0f;
     int volumeSizeMillions = 32;// 256; // 32; // 128;// 256; // 256;// 128;// 256;// 32;// 128;  //crash at 512
     int holeFill_gridSize = 3;// 13;
+    bool holeFill_progressive = true;
 
     int runInputSet = 0; //1/2
     std::string folder = "";
@@ -280,7 +283,7 @@ int main() {
                 runAlgorithmAndExportImage(
                     setDV, maxRvalue,
                     input_filename, nameformat, testPlace,
-                    volumeSizeMillions, initZSpacing, holeFill_gridSize,
+                    volumeSizeMillions, initZSpacing, holeFill_gridSize, holeFill_progressive,
                     runMode,
                     startNumber, stepSize
                     );
@@ -308,7 +311,7 @@ int main() {
         runAlgorithmAndExportImage(
             setDVsuggestion, maxRvalueSuggestion,
             input_filename, nameformat, "",
-            volumeSizeMillions, initZSpacing, holeFill_gridSize,
+            volumeSizeMillions, initZSpacing, holeFill_gridSize, holeFill_progressive,
             runMode,
             startNumber, stepSize
             );
