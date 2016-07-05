@@ -798,7 +798,7 @@ __kernel void normalizeHoleFillVolume(
         float accumulationValue = 0.0f;
         int counter = 0;
         int HW_boost = 0;
-        while (counter == 0 && HW_boost < 3 && (PROGRESSIVE_PNN || HW_boost == 0){
+        while ( (counter == 0) && (HW_boost < 3) && (PROGRESSIVE_PNN || (HW_boost == 0)) ){
             int minX = xG - HALF_WIDTH - HW_boost; //x; //or max this and 0? or sampler handles it?
             int minY = yG - HALF_WIDTH - HW_boost; //y;
             int minZ = zG - HALF_WIDTH - HW_boost; //z;

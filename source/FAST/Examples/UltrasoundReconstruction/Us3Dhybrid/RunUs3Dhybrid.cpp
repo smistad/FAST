@@ -24,7 +24,7 @@ std::string to_string_with_precision(const T a_value, const int n = 6)
 
 void runAlgorithmAndExportImage(
     float setDV, float maxRvalue,
-    std::string input_filename, std::string nameformat, std::string output_subfolder,
+    std::string input_filename, std::string nameformat, std::string output_subfolder, std::string nickname,
     int volSizeM, float initZspacing, int HF_gridSize, bool HF_progressive,
     Us3DRunMode runType,
     int startNumber, int stepSize
@@ -67,15 +67,15 @@ void runAlgorithmAndExportImage(
             break;
         case Us3DRunMode::clPNN:
             runningStyle += volumeHFgridSize+"_PNN-CL_";
-            if (HF_progressive){ runningStyle += "progressive_";  }
+            if (HF_progressive){ runningStyle += "prog_";  }
             break;
         default:
             std::cout << "Run type " << (Us3DRunMode)runType << " is not implemented. Quitting.." << std::endl;
             return;
         }
 
-        output_filename += _filePath + "VOLUME_" + runningStyle + volumeSizeMillion + "M_" + "start-" + streamStart + "@" + streamStep;
-        output_filename += "(dv" + volumeDV + "_rMax" + volumeRmax + "_z" + volumeZinitSpacing + ")" + ".mhd";
+        output_filename += _filePath + "VOL_" + runningStyle + volumeSizeMillion + "M_" + nickname;
+        output_filename += "(dv" + volumeDV + "_rMax" + volumeRmax + "_z" + volumeZinitSpacing + "_start" + streamStart + "@" + streamStep + ")" + ".mhd";
         std::cout << "Output filename: " << output_filename << std::endl;
     }
 
@@ -213,24 +213,27 @@ int main() {
     float dvConstant = 2 * 0.15f; //0.2f ev (0.5f/3.0f)~=0.1667..
     float voxelSpacing = 0.2f;// 0.15f; //0.1f; //0.5f; //0.2f; // 0.03 / 0.01 //dv // Større verdi gir mindre oppløsning
     float RmaxMultiplier = 10.0f;
-    int volumeSizeMillions = 32;// 256; // 32; // 128;// 256; // 256;// 128;// 256;// 32;// 128;  //crash at 512
+    int volumeSizeMillions = 4; // 32;// 256; // 32; // 128;// 256; // 256;// 128;// 256;// 32;// 128;  //crash at 512
     int holeFill_gridSize = 3;// 13;
     bool holeFill_progressive = true;
 
-    int runInputSet = 0; //1/2
+    int runInputSet = 3;// 1; //1/2
     std::string folder = "";
     std::string nameformat = "";
+    std::string nickname = "";
     if (runInputSet == 0){
         folder = "/rekonstruksjons_data/US_01_20130529T084519/";
         nameformat = "US_01_20130529T084519_ScanConverted_#.mhd";
+        nickname = "set-19SC_";
         voxelSpacing = 0.239013f; // 0.1f;  0.15f;
         initZSpacing = 0.1f;// 0.6f;// 0.5f;//0.05f;// 1.0f;
         dvConstant = 0.5f;// 1.0f;// 0.3f;// 0.15f; //0.30f;
         RmaxMultiplier = 10.0f;
     }
     else if (runInputSet == 1){
-        folder = "Ultrasound Data Sets 2/084_Tumor_OK.cx3/084_Tumor_OK.cx3/US_Acq/US-Acq_01_19700101T102623/";
+        folder = "Ultrasound Data Sets 2/084_Tumor_OK.cx3/084_Tumor_OK.cx3/US_Acq/US-Acq_01_19700101T102623/"; //HAS CORRUPT EXAMPLE
         nameformat = "US-Acq_01_19700101T102623_Tissue_#.mhd";
+        nickname = "set-84_102623_";
         voxelSpacing = 0.15f; //0.1f;
         initZSpacing = 0.3f; //0.2f;
         dvConstant = 1.0f; // 0.30f; //0.5f
@@ -239,7 +242,16 @@ int main() {
     else if (runInputSet == 2){
         folder = "Ultrasound Data Sets 2/084_Tumor_OK.cx3/084_Tumor_OK.cx3/US_Acq/US-Acq_03_19700101T103031/";
         nameformat = "US-Acq_03_19700101T103031_Tissue_#.mhd";
+        nickname = "set-84_103031_";
         voxelSpacing = 0.1f; // 0.15f; //0.1f;
+        initZSpacing = 0.2f;//0.05f;// 1f; //0.2f;
+        dvConstant = 1.0f; // 0.30f; //0.5f
+        RmaxMultiplier = 8.0f;// 45.0f;// 25.0f;// 10.0f;
+    }
+    else if (runInputSet == 3){
+        folder = "Ultrasound Data Sets 2/084_Tumor_OK.cx3/084_Tumor_OK.cx3/US_Acq/US-Acq_06_19700101T122413/";
+        nameformat = "US-Acq_06_19700101T122413_Tissue_#.mhd";
+        nickname = "set-84_122413_";
         initZSpacing = 0.2f;//0.05f;// 1f; //0.2f;
         dvConstant = 1.0f; // 0.30f; //0.5f
         RmaxMultiplier = 8.0f;// 45.0f;// 25.0f;// 10.0f;
@@ -282,7 +294,7 @@ int main() {
                     continue;
                 runAlgorithmAndExportImage(
                     setDV, maxRvalue,
-                    input_filename, nameformat, testPlace,
+                    input_filename, nameformat, testPlace, nickname,
                     volumeSizeMillions, initZSpacing, holeFill_gridSize, holeFill_progressive,
                     runMode,
                     startNumber, stepSize
@@ -310,7 +322,7 @@ int main() {
         */
         runAlgorithmAndExportImage(
             setDVsuggestion, maxRvalueSuggestion,
-            input_filename, nameformat, "",
+            input_filename, nameformat, "", nickname,
             volumeSizeMillions, initZSpacing, holeFill_gridSize, holeFill_progressive,
             runMode,
             startNumber, stepSize

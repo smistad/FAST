@@ -967,6 +967,7 @@ void Us3Dhybrid::executeVNN2(){
     float Mmodifier = std::cbrtf(((float)mVolSizeM));
     closestMaxRange = 3.0f * Mmodifier; //Rmax
     std::cout << "Max distance for closest search: " << closestMaxRange << std::endl;
+    std::cout << "" << std::endl;
     //int closestFrameNrLast = round(closestLast(0));
     //float closestDistLast = closestLast(1);
     /*
@@ -1001,6 +1002,7 @@ void Us3Dhybrid::executeVNN2(){
     */
     for (uint z = 0; z < depth; z++){//for (uint x = 0; x < width; x++){
         std::cout << "z: " << z << std::endl; //std::cout << "x: " << x << std::endl;
+        clock_t startFrameTime = clock();
         Vector2f closestLast = findClosestPlaneBrute(Vector3i(0, 0, z), closestMaxRange);
         int closestFrameNrLast = round(closestLast(0));
         float closestDistLast = closestLast(1);
@@ -1024,24 +1026,24 @@ void Us3Dhybrid::executeVNN2(){
                 int closestFrameNr;
                 float closestDist;
                 if (closestFrameNrLast == -1){
-                    closest1 = findClosestPlaneBrute(pos, closestMaxRange);// closestMaxRange);
+                    closest1 = findClosestPlaneBrute(pos, closestMaxRange);
                     bruteIt++;
                     closestFrameNr = round(closest1(0));
                     closestDist = closest1(1);
                 }
                 else{
-                    closest2 = findClosestPlane(pos, closestFrameNrLast, 5, closestMaxRange*2);// closestMaxRange);
+                    closest2 = findClosestPlane(pos, closestFrameNrLast, 5, closestMaxRange);// *2);   
                     closestFrameNr = round(closest2(0));
                     closestDist = closest2(1);
                     if (closestFrameNr != -1){ nonZeroIt++; }
-                    /*
+                    /**/
                     if (closestFrameNr == -1){
-                        closest3 = findClosestPlaneBrute(pos, closestMaxRange);//closestMaxRange);
+                        closest3 = findClosestPlaneBrute(pos, closestMaxRange);
                         bruteIt2++;
                         closestFrameNr = round(closest3(0));
                         closestDist = closest3(1);
                     }
-                    */
+                    /**/
                     
                 }
                 
@@ -1098,7 +1100,25 @@ void Us3Dhybrid::executeVNN2(){
 
         }
         //std::cout << "!" << std::endl;
-        std::cout << "Iterations: [B1: " << bruteIt <<  " zero: " << itZero << " close: "<< nonZeroIt << "] out of " << it << " tot!" << std::endl; //" B2: "<< bruteIt2 <<
+        std::cout << "Iterations: [B1: " << bruteIt << " B2: " << bruteIt2 << " zero : " << itZero << " close : " << nonZeroIt << "] out of " << it << " tot!" << std::endl; //" B2: "<< bruteIt2 <<
+        {
+            clock_t algorithmTimestamp = clock();
+            clock_t clockTicksTaken = algorithmTimestamp - startFrameTime;
+            double timeInSeconds = clockTicksTaken / (double)CLOCKS_PER_SEC;
+            clock_t clockTicksTakenLoop = algorithmTimestamp - algorithmStarted;
+            double timeInSecondsLoop = clockTicksTakenLoop / (double)CLOCKS_PER_SEC;
+            int minutesInLoop = timeInSecondsLoop / 60;
+            int secondsInMinute = ((int)timeInSecondsLoop) % 60;
+            int percentComplete = ((z + 1) * 100) / (depth);
+            int estimateTotalTimeSec = (timeInSecondsLoop / (double)(z + 1)) * depth;
+            int estTotMin = floor(estimateTotalTimeSec / 60);
+            int estTotSec = estimateTotalTimeSec % 60;
+            int estimateSecRemain = (1 - ((double)(z + 1) / (double)depth)) * estimateTotalTimeSec;
+            int estRemMin = floor(estimateSecRemain / 60);
+            int estRemSec = estimateSecRemain % 60;
+            std::cout << "Tick: " << clockTicksTaken << " & " << timeInSeconds << "s! " << percentComplete << "% in " << minutesInLoop << "m" << secondsInMinute << "s" << " | Est. tot: " << estTotMin << "m" << estTotSec << "s; Rem.: " << estRemMin << "m" << estRemSec << "s!" << std::endl;
+            std::cout << "" << std::endl;
+        }        
     }
     volAccess->release();
     std::cout << "\nDONE calculations!" << std::endl;
@@ -2859,8 +2879,8 @@ void Us3Dhybrid::printEndStats(){
         {
             double timeInSecondsLoop = calculateRuntime(5);
             Vector3i splitMinSecSub = splitSecondsToParts(timeInSecondsLoop);
-            std::cout << "Took " << splitMinSecSub.x() << "min " << splitMinSecSub.y() << "." << hundredIntToString(splitMinSecSub.z()) << "sec! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
-            std::cout << "   " << (timeInSecondsLoop / (double)mVolSizeM)*1000.0 << "ms per M voxel!" << std::endl;
+            std::cout << "Took " << splitMinSecSub.x() << "min " << splitMinSecSub.y() << "." << hundredIntToString(splitMinSecSub.z()) << "sec! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame! " << (timeInSecondsLoop / (double)mVolSizeM)*1000.0 << "ms per M voxel!" << std::endl;
+            //std::cout << "   " << (timeInSecondsLoop / (double)mVolSizeM)*1000.0 << "ms per M voxel!" << std::endl;
             std::cout << "" << std::endl;
             /*
             clock_t clockTicksTakenLoop = normalizationEnded - normalizationStarted;
@@ -2880,8 +2900,8 @@ void Us3Dhybrid::printEndStats(){
             clock_t clockTicksTakenLoop = endTotalTime - loadingStarted;
             double timeInSecondsLoop = clockTicksTakenLoop / (double)CLOCKS_PER_SEC;
             Vector3i splitMinSecSub = splitSecondsToParts(timeInSecondsLoop);
-            std::cout << "Took " << splitMinSecSub.x() << "min " << splitMinSecSub.y() << "." << hundredIntToString(splitMinSecSub.z()) << "sec! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << (timeInSecondsLoop / (double)mVolSizeM)*1000.0 << "ms per M voxel!" << std::endl;
-            std::cout << "\tTook " << (timeInSecondsLoop / (double)mVolSizeM)*1000.0 << "ms per M voxel!" << std::endl;
+            std::cout << "Took " << splitMinSecSub.x() << "min " << splitMinSecSub.y() << "." << hundredIntToString(splitMinSecSub.z()) << "sec! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame! " << (timeInSecondsLoop / (double)mVolSizeM)*1000.0 << "ms per M voxel!" << std::endl;
+            //std::cout << "\tTook " << (timeInSecondsLoop / (double)mVolSizeM)*1000.0 << "ms per M voxel!" << std::endl;
             std::cout << "" << std::endl;
         }
         /*
