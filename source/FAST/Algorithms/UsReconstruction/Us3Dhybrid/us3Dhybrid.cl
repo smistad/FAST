@@ -798,17 +798,17 @@ __kernel void normalizeHoleFillVolume(
         int HW_boost = 0;
         while ((counter == 0) && (PROGRESSIVE_PNN || (HW_boost == 0)) && (HW_boost < 3)){
             //int minX = xG - HALF_WIDTH - HW_boost; //or max this and 0? or sampler handles it?
-            int minX = min2i((xG - HALF_WIDTH - HW_boost), 0); //x; //or max this and 0? or sampler handles it?
+            int minX = max2i((xG - HALF_WIDTH - HW_boost), 0); //x; //or max this and 0? or sampler handles it?
             //int minY = yG - HALF_WIDTH - HW_boost;
-            int minY = min2i((yG - HALF_WIDTH - HW_boost), 0); //yG - HALF_WIDTH - HW_boost; //y;
+            int minY = max2i((yG - HALF_WIDTH - HW_boost), 0); //yG - HALF_WIDTH - HW_boost; //y;
             //int minZ = zG - HALF_WIDTH - HW_boost;
-            int minZ = min2i((zG - HALF_WIDTH - HW_boost), 0); //zG - HALF_WIDTH - HW_boost; //z;
-            //int maxX = minX + HALF_WIDTH_X2 + (2 * HW_boost);
-            int maxX = max2i((minX + HALF_WIDTH_X2 + (2 * HW_boost)), ((int)VOL_SIZE_X) );
-            //int maxY = minY + HALF_WIDTH_X2 + (2 * HW_boost);
-            int maxY = max2i((minY + HALF_WIDTH_X2 + (2 * HW_boost)), ((int)VOL_SIZE_Y) ); // minY + HALF_WIDTH_X2 + (2 * HW_boost);
-            //int maxZ = minZ + HALF_WIDTH_X2 + (2 * HW_boost);
-            int maxZ = max2i((minZ + HALF_WIDTH_X2 + (2 * HW_boost)), ((int)VOL_SIZE_Z) ); //minZ + HALF_WIDTH_X2 + (2 * HW_boost);
+            int minZ = max2i((zG - HALF_WIDTH - HW_boost), 0); //zG - HALF_WIDTH - HW_boost; //z;
+            int maxX = minX + HALF_WIDTH_X2 + (2 * HW_boost);
+            maxX = min2i(maxX, ((int)VOL_SIZE_X-1));
+            int maxY = minY + HALF_WIDTH_X2 + (2 * HW_boost);
+            maxY = min2i(maxY, ((int)VOL_SIZE_Y-1)); // minY + HALF_WIDTH_X2 + (2 * HW_boost);
+            int maxZ = minZ + HALF_WIDTH_X2 + (2 * HW_boost);
+            maxZ = min2i(maxZ, ((int)VOL_SIZE_Z-1)); //minZ + HALF_WIDTH_X2 + (2 * HW_boost);
             
             //Can restructure to avoid overlap!
             //  Starts at 0 HW and adds up to HALF_WIDTH(max) ie. 0,1,2,3 for GridSize 7
@@ -832,7 +832,7 @@ __kernel void normalizeHoleFillVolume(
         }
         
         //float 
-        if (counter != 0){
+        if (counter != 0 && accumulationValue >= 0.0f){
             voxelValue = accumulationValue / counter;
         }
         else {
