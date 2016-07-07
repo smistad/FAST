@@ -44,7 +44,9 @@ void runAlgorithmAndExportImage(
 
     std::string output_filename = ""; {
         // Create directory if does not exist
-        std::string _filePath = std::string(FAST_TEST_DATA_DIR) + "/output/" + nameformat + "/" + output_subfolder;
+        std::string folder = nameformat;
+        if (nickname != ""){ folder = nickname + "/" + nameformat; }
+        std::string _filePath = std::string(FAST_TEST_DATA_DIR) + "/output/" + folder + "/" + output_subfolder;
         std::string streamStart = std::to_string(startNumber);
         std::string streamStep = std::to_string(stepSize);
         std::string volumeDV = to_string_with_precision(setDV, 3);
@@ -55,7 +57,7 @@ void runAlgorithmAndExportImage(
         std::string runningStyle = "";
         switch (runType){
         case Us3DRunMode::clHybrid:
-            runningStyle += "CL_";
+            runningStyle += "CL_gauss_";
             break;
         case Us3DRunMode::cpuHybrid:
             break;
@@ -213,9 +215,9 @@ int main() {
     float dvConstant = 2 * 0.15f; //0.2f ev (0.5f/3.0f)~=0.1667..
     float voxelSpacing = 0.2f;// 0.15f; //0.1f; //0.5f; //0.2f; // 0.03 / 0.01 //dv // Større verdi gir mindre oppløsning
     float RmaxMultiplier = 10.0f;
-    int volumeSizeMillions = 4; // 32;// 256; // 32; // 128;// 256; // 256;// 128;// 256;// 32;// 128;  //crash at 512
-    int holeFill_gridSize = 3;// 13;
-    bool holeFill_progressive = true;
+    int volumeSizeMillions = 32; // 4; // 32;// 256; // 32; // 128;// 256; // 256;// 128;// 256;// 32;// 128;  //crash at 512
+    int holeFill_gridSize = 5;// 13;
+    bool holeFill_progressive = false; //true;
 
     int runInputSet = 3;// 1; //1/2
     std::string folder = "";
@@ -224,7 +226,7 @@ int main() {
     if (runInputSet == 0){
         folder = "/rekonstruksjons_data/US_01_20130529T084519/";
         nameformat = "US_01_20130529T084519_ScanConverted_#.mhd";
-        nickname = "set-19SC_";
+        nickname = "set-19SC";
         voxelSpacing = 0.239013f; // 0.1f;  0.15f;
         initZSpacing = 0.1f;// 0.6f;// 0.5f;//0.05f;// 1.0f;
         dvConstant = 0.5f;// 1.0f;// 0.3f;// 0.15f; //0.30f;
@@ -233,26 +235,62 @@ int main() {
     else if (runInputSet == 1){
         folder = "Ultrasound Data Sets 2/084_Tumor_OK.cx3/084_Tumor_OK.cx3/US_Acq/US-Acq_01_19700101T102623/"; //HAS CORRUPT EXAMPLE
         nameformat = "US-Acq_01_19700101T102623_Tissue_#.mhd";
-        nickname = "set-84_102623_";
+        nickname = "set-84_102623";
         voxelSpacing = 0.15f; //0.1f;
-        initZSpacing = 0.3f; //0.2f;
+        initZSpacing = 0.1f; //0.2f;
         dvConstant = 1.0f; // 0.30f; //0.5f
         RmaxMultiplier = 15.0f; // 8.0f;// 45.0f;// 25.0f;// 10.0f;
     }
     else if (runInputSet == 2){
-        folder = "Ultrasound Data Sets 2/084_Tumor_OK.cx3/084_Tumor_OK.cx3/US_Acq/US-Acq_03_19700101T103031/";
-        nameformat = "US-Acq_03_19700101T103031_Tissue_#.mhd";
-        nickname = "set-84_103031_";
+        folder = "Ultrasound Data Sets 2/084_Tumor_OK.cx3/084_Tumor_OK.cx3/US_Acq/US-Acq_02_19700101T102827/";
+        nameformat = "US-Acq_02_19700101T102827_Tissue_#.mhd";
+        nickname = "set-84_102827";
         voxelSpacing = 0.1f; // 0.15f; //0.1f;
-        initZSpacing = 0.2f;//0.05f;// 1f; //0.2f;
+        initZSpacing = 0.1f;//0.05f;// 1f; //0.2f;
         dvConstant = 1.0f; // 0.30f; //0.5f
         RmaxMultiplier = 8.0f;// 45.0f;// 25.0f;// 10.0f;
     }
     else if (runInputSet == 3){
+        folder = "Ultrasound Data Sets 2/084_Tumor_OK.cx3/084_Tumor_OK.cx3/US_Acq/US-Acq_03_19700101T103031/";
+        nameformat = "US-Acq_03_19700101T103031_Tissue_#.mhd";
+        nickname = "set-84_103031";
+        voxelSpacing = 0.1f; // 0.15f; //0.1f;
+        initZSpacing = 0.1f;//0.05f;// 1f; //0.2f;
+        dvConstant = 1.0f; // 0.30f; //0.5f
+        RmaxMultiplier = 8.0f;// 45.0f;// 25.0f;// 10.0f;
+    }
+    else if (runInputSet == 4){
+        folder = "Ultrasound Data Sets 2/084_Tumor_OK.cx3/084_Tumor_OK.cx3/US_Acq/US-Acq_04_19700101T115706/";
+        nameformat = "US-Acq_04_19700101T115706_Tissue_#.mhd";
+        nickname = "set-84_115706";
+        voxelSpacing = 0.1f; // 0.15f; //0.1f;
+        initZSpacing = 0.1f;//0.05f;// 1f; //0.2f;
+        dvConstant = 1.0f; // 0.30f; //0.5f
+        RmaxMultiplier = 8.0f;// 45.0f;// 25.0f;// 10.0f;
+    }
+    else if (runInputSet == 5){
         folder = "Ultrasound Data Sets 2/084_Tumor_OK.cx3/084_Tumor_OK.cx3/US_Acq/US-Acq_06_19700101T122413/";
         nameformat = "US-Acq_06_19700101T122413_Tissue_#.mhd";
-        nickname = "set-84_122413_";
-        initZSpacing = 0.2f;//0.05f;// 1f; //0.2f;
+        nickname = "set-84_122413";
+        initZSpacing = 0.1f;//0.05f;// 1f; //0.2f;
+        dvConstant = 1.0f; // 0.30f; //0.5f
+        RmaxMultiplier = 8.0f;// 45.0f;// 25.0f;// 10.0f;
+    }
+    else if (runInputSet == 6){
+        folder = "Ultrasound Data Sets 2/071_Tumor.cx3/071_Tumor.cx3/US_Acq/US-Acq_01_19700101T103046/";
+        //US-Acq_01_19700101T103046_Tissue_# ?? like example output?
+        nameformat = "US-Acq_01_19700101T103046_Tissue_#.mhd";
+        //nameformat = "US-Acq_01_19700101T103046_ScanConverted_#.mhd";
+        nickname = "set-71_103046";
+        initZSpacing = 0.1f;//0.05f;// 1f; //0.2f;
+        dvConstant = 1.0f; // 0.30f; //0.5f
+        RmaxMultiplier = 8.0f;// 45.0f;// 25.0f;// 10.0f;
+    }
+    else if (runInputSet == 7){
+        folder = "Ultrasound Data Sets 2/072_Tumor_OK.cx3/072_Tumor_OK.cx3/US_Acq/US-Acq_02_19700101T104535/";
+        nameformat = "US-Acq_02_19700101T104535_Tissue_#.mhd";
+        nickname = "set-72_104535";
+        initZSpacing = 0.1f;//0.05f;// 1f; //0.2f;
         dvConstant = 1.0f; // 0.30f; //0.5f
         RmaxMultiplier = 8.0f;// 45.0f;// 25.0f;// 10.0f;
     }
@@ -268,27 +306,29 @@ int main() {
     bool runVNNonly = false;
     bool runCLHybrid = true; //false;
     bool runPNNonly = false;
-    Us3DRunMode runMode = Us3DRunMode::cpuVNN; // cpuVNN; //clPNN; //cpuVNN; //cpuHybrid; // clHybrid;
+    Us3DRunMode runMode = Us3DRunMode::clPNN; // cpuVNN; //clPNN; //cpuVNN; //cpuHybrid; // clHybrid;
 
     bool singleTest = true;//false;
 
     if (!singleTest){
-        std::string testPlace = "test2/";
-        float dvStart = 0.2f;
+        std::string testPlace = "test-clHybrid-gaussian/";
+        float dvStart = 1.0f; // 0.5f;
         float dvEnd = 2.2f;// 1.0f;
-        float calcedDVstep = 0.2f;// calcedDV / 5.0f;
+        float calcedDVstep = 0.5f;// calcedDV / 5.0f;
         int rStart = 4;
-        int rEnd = 40;
+        int rEnd = 20;
         int rStep = 4;
-        float rMaxMaximum = 15.0f;
-        int dvValues = (dvEnd - dvStart) / calcedDVstep; //+1?
-        int rMaxValues = (rEnd - rStart) / rStep; //+1?
+        float rMaxMaximum = 30.0f;
+        int dvValues = 1 +((dvEnd - dvStart) / calcedDVstep); //+1?
+        int rMaxValues = 1 +((rEnd - rStart) / rStep); //+1?
         int totalRuns = dvValues * rMaxValues;
-
+        std::cout << " ##### RUNNING MANY TESTS ##### " << std::endl;
+        std::cout << " Testing with " << dvValues << " values of dv and " << rMaxValues << " values of rMax!" << std::endl;
+        std::cout << " For a total max of " << totalRuns << " runs!" << std::endl;
 
 
         for (float setDV = dvStart; setDV <= dvEnd; setDV += calcedDVstep){
-            for (int rMultiplier = 4; rMultiplier <= 40; rMultiplier += 4){
+            for (int rMultiplier = rStart; rMultiplier <= rEnd; rMultiplier += rStep){
                 float maxRvalue = setDV * rMultiplier;
                 if (maxRvalue > rMaxMaximum)
                     continue;

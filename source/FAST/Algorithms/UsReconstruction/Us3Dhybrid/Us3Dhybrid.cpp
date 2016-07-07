@@ -1032,7 +1032,8 @@ void Us3Dhybrid::executeVNN2(){
                     closestDist = closest1(1);
                 }
                 else{
-                    closest2 = findClosestPlane(pos, closestFrameNrLast, 5, closestMaxRange);// *2);   
+                    float closeness = std::min(closestDistLast + 0.5f, closestMaxRange);
+                    closest2 = findClosestPlane(pos, closestFrameNrLast, 5, closeness);// closestMaxRange);// *2);   
                     closestFrameNr = round(closest2(0));
                     closestDist = closest2(1);
                     if (closestFrameNr != -1){ nonZeroIt++; }
@@ -1100,7 +1101,9 @@ void Us3Dhybrid::executeVNN2(){
 
         }
         //std::cout << "!" << std::endl;
-        std::cout << "Iterations: [B1: " << bruteIt << " B2: " << bruteIt2 << " zero : " << itZero << " close : " << nonZeroIt << "] out of " << it << " tot!" << std::endl; //" B2: "<< bruteIt2 <<
+
+        int percentZero = (itZero * 100) / (it);
+        std::cout << "[B1: " << bruteIt << " B2: " << bruteIt2 << " zero: " << itZero << "(" << percentZero << "%) close : " << nonZeroIt << "] of " << it << " tot it!" << std::endl; //" B2: "<< bruteIt2 <<
         {
             clock_t algorithmTimestamp = clock();
             clock_t clockTicksTaken = algorithmTimestamp - startFrameTime;

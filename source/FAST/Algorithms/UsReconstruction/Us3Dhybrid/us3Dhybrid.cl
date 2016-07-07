@@ -616,6 +616,7 @@ __kernel void accumulateFrameToVolume(
             float p = getPixelValue(frame, intersectionPointLocal, imgSize, dataType); //TODO FIX
             //float w = 1.0f - (absDistance / df); //Or gaussian for trail
             float w = gaussianK * exp2((-0.5f*absDistance*absDistance) / (df*df));
+
             //float w = 1.0f - ((absDistance*absDistance) / (df*df));
             //float w = sqrt((absDistance / df));
             //accumulateValuesInVolumeData(volume, volumePoint, p, w, outputDataType, semaphor); //TODO FIX
@@ -792,19 +793,23 @@ __kernel void normalizeHoleFillVolume(
         //barrier(CLK_LOCAL_MEM_FENCE);
         //All data is read to local, perform calculation
         
-
-        
-
         float accumulationValue = 0.0f;
         int counter = 0;
         int HW_boost = 0;
-        while ( (counter == 0) && (HW_boost < 3) && (PROGRESSIVE_PNN || (HW_boost == 0)) ){
-            int minX = xG - HALF_WIDTH - HW_boost; //x; //or max this and 0? or sampler handles it?
-            int minY = yG - HALF_WIDTH - HW_boost; //y;
-            int minZ = zG - HALF_WIDTH - HW_boost; //z;
-            int maxX = minX + HALF_WIDTH_X2 + (2 * HW_boost);
-            int maxY = minY + HALF_WIDTH_X2 + (2 * HW_boost);
-            int maxZ = minZ + HALF_WIDTH_X2 + (2 * HW_boost);
+        while ((counter == 0) && (PROGRESSIVE_PNN || (HW_boost == 0)) && (HW_boost < 3)){
+            //int minX = xG - HALF_WIDTH - HW_boost; //or max this and 0? or sampler handles it?
+            int minX = min2i((xG - HALF_WIDTH - HW_boost), 0); //x; //or max this and 0? or sampler handles it?
+            //int minY = yG - HALF_WIDTH - HW_boost;
+            int minY = min2i((yG - HALF_WIDTH - HW_boost), 0); //yG - HALF_WIDTH - HW_boost; //y;
+            //int minZ = zG - HALF_WIDTH - HW_boost;
+            int minZ = min2i((zG - HALF_WIDTH - HW_boost), 0); //zG - HALF_WIDTH - HW_boost; //z;
+            //int maxX = minX + HALF_WIDTH_X2 + (2 * HW_boost);
+            int maxX = max2i((minX + HALF_WIDTH_X2 + (2 * HW_boost)), ((int)VOL_SIZE_X) );
+            //int maxY = minY + HALF_WIDTH_X2 + (2 * HW_boost);
+            int maxY = max2i((minY + HALF_WIDTH_X2 + (2 * HW_boost)), ((int)VOL_SIZE_Y) ); // minY + HALF_WIDTH_X2 + (2 * HW_boost);
+            //int maxZ = minZ + HALF_WIDTH_X2 + (2 * HW_boost);
+            int maxZ = max2i((minZ + HALF_WIDTH_X2 + (2 * HW_boost)), ((int)VOL_SIZE_Z) ); //minZ + HALF_WIDTH_X2 + (2 * HW_boost);
+            
             //Can restructure to avoid overlap!
             //  Starts at 0 HW and adds up to HALF_WIDTH(max) ie. 0,1,2,3 for GridSize 7
             // 0 means checking the node itself
@@ -827,7 +832,13 @@ __kernel void normalizeHoleFillVolume(
         }
         
         //float 
-        voxelValue = accumulationValue / counter;
+        if (counter != 0){
+            voxelValue = accumulationValue / counter;
+        }
+        else {
+            voxelValue = 0.0f;
+        }
+        
     }
     
     //barrier(CLK_LOCAL_MEM_FENCE);
