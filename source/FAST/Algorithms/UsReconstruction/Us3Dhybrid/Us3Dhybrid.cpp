@@ -1569,7 +1569,7 @@ void Us3Dhybrid::executeOpenCLTest(){
 
 void Us3Dhybrid::executeAlgorithm(){
     algorithmStarted = clock();
-    if (mVerbosityLevel >= 6){
+    if (mVerbosityLevel >= 4){
         int voxelCount = volumeSize(0)*volumeSize(1)*volumeSize(2);
         std::cout << "Running algorithm with " << voxelCount / 1000000 << "M voxel output volume!" << std::endl;
     }
@@ -1643,6 +1643,16 @@ void Us3Dhybrid::executeAlgorithm(){
     }
     algorithmLoopStarted = clock();
     int nrOfFrames = frameList.size();
+    //Predefinables
+    Vector3f lastFrameRootPoint, lastFrameNormal, nextFrameRootPoint, nextFrameNormal;
+    cl_float3 lastNormal = { lastFrameNormal(0), lastFrameNormal(1), lastFrameNormal(2) };
+    cl_float3 lastRoot = { lastFrameRootPoint(0), lastFrameRootPoint(1), lastFrameRootPoint(2) };
+    nextFrameRootPoint = frameBaseCornerList[0];
+    nextFrameNormal = framePlaneNormalList[0];
+    cl_float3 nextNormal = { nextFrameNormal(0), nextFrameNormal(1), nextFrameNormal(2) };
+    cl_float3 nextRoot = { nextFrameRootPoint(0), nextFrameRootPoint(1), nextFrameRootPoint(2) };
+    cl_int3 volSize = { volumeSize(0), volumeSize(1), volumeSize(2) };
+
     for (int frameNr = 0; frameNr < nrOfFrames; frameNr++){
         // Get FRAME
         //std::cout << "Running for frame #" << frameNr << std::endl;
@@ -1660,6 +1670,7 @@ void Us3Dhybrid::executeAlgorithm(){
         Vector3ui thisFrameSize = frame->getSize();
         float thisFramePlaneDvalue = framePlaneDValueList[frameNr];
         AffineTransformation::pointer thisFrameInverseTransform = frameInverseTransformList[frameNr];
+        /*
         Vector3f lastFrameRootPoint, lastFrameNormal, nextFrameRootPoint, nextFrameNormal;
         if (frameNr != 0){
             lastFrameRootPoint = frameBaseCornerList[frameNr - 1];
@@ -1669,6 +1680,7 @@ void Us3Dhybrid::executeAlgorithm(){
             nextFrameRootPoint = frameBaseCornerList[frameNr + 1];
             nextFrameNormal = framePlaneNormalList[frameNr + 1];
         }
+        */
         // Get frame access
         OpenCLImageAccess::pointer clFrameAccess = frame->getOpenCLImageAccess(ACCESS_READ, clDevice);
 
@@ -1686,14 +1698,19 @@ void Us3Dhybrid::executeAlgorithm(){
         
         // Define OpenCL variables
         cl_int2 startOffset = { aDirStart, bDirStart };
-        cl_int3 volSize = { volumeSize(0), volumeSize(1), volumeSize(2) };
-        cl_float3 imgNormal = { imagePlaneNormal(0), imagePlaneNormal(1), imagePlaneNormal(2) };
-        cl_float3 imgRoot = { thisFrameRootPoint(0), thisFrameRootPoint(1), thisFrameRootPoint(2) };
-        cl_int2 imgSize = { thisFrameSize(0), thisFrameSize(1) };// int2 imgSize,
-        cl_float3 lastNormal = { lastFrameNormal(0), lastFrameNormal(1), lastFrameNormal(2) };
-        cl_float3 lastRoot = { lastFrameRootPoint(0), lastFrameRootPoint(1), lastFrameRootPoint(2) };
+        
+        cl_float3 imgNormal = nextNormal;// { imagePlaneNormal(0), imagePlaneNormal(1), imagePlaneNormal(2) };
+        cl_float3 imgRoot = nextRoot; // { thisFrameRootPoint(0), thisFrameRootPoint(1), thisFrameRootPoint(2) };
+
+        if (frameNr != frameList.size() - 1){
+            nextFrameRootPoint = frameBaseCornerList[frameNr + 1];
+            nextFrameNormal = framePlaneNormalList[frameNr + 1];
+        }
         cl_float3 nextNormal = { nextFrameNormal(0), nextFrameNormal(1), nextFrameNormal(2) };
         cl_float3 nextRoot = { nextFrameRootPoint(0), nextFrameRootPoint(1), nextFrameRootPoint(2) };
+        
+        cl_int2 imgSize = { thisFrameSize(0), thisFrameSize(1) };// int2 imgSize,
+        
         //store inverseAffineTransformation?
         //thisFrameInverseTransform->matrix()
         cl_float16 imgInvTrans = transform4x4tofloat16(thisFrameInverseTransform);
@@ -2783,7 +2800,7 @@ void Us3Dhybrid::execute(){
                 std::cout << "Starting loading.." << std::endl;
             }
             frameList.reserve(1000);
-            Sleep(20);
+            Sleep(10);
             firstFrame = frame;
             firstFrameSet = true;
             Vector3f spacingFirst = firstFrame->getSpacing();
@@ -2801,7 +2818,8 @@ void Us3Dhybrid::execute(){
         //setStaticOutputData<Image>(0, frame);
         if (frameList.size() + 10 > frameList.capacity()){
             frameList.reserve(frameList.size() + 50);
-            std::cout << "Capacity n size " << frameList.capacity() << " " << frameList.size() << std::endl;
+            //std::cout << "Capacity n size " << frameList.capacity() << " " << frameList.size() << std::endl;
+            Sleep(1);
         }
         /*
         while (frameList.capacity() == frameList.size()){
@@ -2902,6 +2920,14 @@ double Us3Dhybrid::calculateRuntime(int part){
             startTime = normalizationStarted;
             endTime = normalizationEnded;
             break;
+        case 7:
+            startTime = initVolumeStarted;
+            endTime = normalizationEnded;
+            break;
+        case 8: 
+            startTime = algorithmStarted;
+            endTime = normalizationEnded;
+            break;
         default:
             //std::cout << "Case Def" << std::endl;
             startTime = loadingStarted;
@@ -3000,8 +3026,20 @@ void Us3Dhybrid::printEndStats(){
             clock_t clockTicksTakenLoop = endTotalTime - loadingStarted;
             double timeInSecondsLoop = clockTicksTakenLoop / (double)CLOCKS_PER_SEC;
             Vector3i splitMinSecSub = splitSecondsToParts(timeInSecondsLoop);
-            std::cout << "Took " << splitMinSecSub.x() << "min " << splitMinSecSub.y() << "." << hundredIntToString(splitMinSecSub.z()) << "sec! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame! " << (timeInSecondsLoop / (double)mVolSizeM)*1000.0 << "ms per M voxel!" << std::endl;
+            std::cout << splitMinSecSub.x() << "min " << splitMinSecSub.y() << "." << hundredIntToString(splitMinSecSub.z()) << "sec! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame! " << (timeInSecondsLoop / (double)mVolSizeM)*1000.0 << "ms per M voxel!" << std::endl;
             //std::cout << "\tTook " << (timeInSecondsLoop / (double)mVolSizeM)*1000.0 << "ms per M voxel!" << std::endl;
+            std::cout << "   # i2norm: #  ";
+            {
+                double timeInSecondsLoop2 = calculateRuntime(7);
+                Vector3i splitMinSecSub2 = splitSecondsToParts(timeInSecondsLoop2);
+                std::cout << splitMinSecSub2.x() << "m " << splitMinSecSub2.y() << "." << hundredIntToString(splitMinSecSub2.z()) << "s! " << (timeInSecondsLoop2 / nrOfFrames)*1000.0 << "ms per frame! " << (timeInSecondsLoop2 / (double)mVolSizeM)*1000.0 << "ms per M voxel!" << std::endl;
+            }
+            std::cout << "   # a2norm: #  ";
+            {
+                double timeInSecondsLoop2 = calculateRuntime(8);
+                Vector3i splitMinSecSub2 = splitSecondsToParts(timeInSecondsLoop2);
+                std::cout << splitMinSecSub2.x() << "m " << splitMinSecSub2.y() << "." << hundredIntToString(splitMinSecSub2.z()) << "s! " << (timeInSecondsLoop2 / nrOfFrames)*1000.0 << "ms per frame! " << (timeInSecondsLoop2 / (double)mVolSizeM)*1000.0 << "ms per M voxel!" << std::endl;
+            }
             std::cout << "" << std::endl;
         }
         /*

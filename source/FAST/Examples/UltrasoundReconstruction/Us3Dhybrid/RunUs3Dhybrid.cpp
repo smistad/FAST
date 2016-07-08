@@ -317,7 +317,7 @@ int main() {
     Us3DRunMode runMode = Us3DRunMode::clHybrid; // cpuVNN; //clPNN; //cpuVNN; //cpuHybrid; // clHybrid;
     bool runHybridWeightGaussian = true;
 
-    bool singleTest = true;//false;
+    bool singleTest = false;//false;
 
     if (!singleTest){
         std::string testPlace = "testRun2/"; //"test-clHybrid-gaussian/";
