@@ -111,6 +111,13 @@ void Us3Dhybrid::setRunMode(Us3DRunMode runType){
     mIsModified = true;
 }
 
+void Us3Dhybrid::setGaussianWeightMode(bool useGaussianWeight){
+    mUseGaussianWeight = useGaussianWeight;
+    volumeCalculated = false;
+    volumeInitialized = false; //Necessary?
+    mIsModified = true;
+}
+
 void Us3Dhybrid::setPNNrunMode(bool pnnRunMode){
     runAsPNNonly = pnnRunMode;
     volumeCalculated = false;
@@ -1370,6 +1377,10 @@ void Us3Dhybrid::recompileAlgorithmOpenCLCode(){
     buildOptions += std::to_string(progressivePNN);
     std::cout << " -D PROGRESSIVE_PNN=" << progressivePNN << std::endl;
 
+    bool gaussianWeight = mUseGaussianWeight; //true;
+    buildOptions += " -D USE_GAUSSIAN_WEIGHT=";
+    buildOptions += std::to_string(gaussianWeight);
+    std::cout << " -D USE_GAUSSIAN_WEIGHT=" << gaussianWeight << std::endl;
     
     // Hole filling buildOpts
     int halfWidthX2 = HF_halfWidth * 2;
@@ -2711,13 +2722,17 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
 void Us3Dhybrid::execute(){
     if (!reachedEndOfStream){
         //iterartorCounter++;
-        std::cout << "Iteration #:" << iterartorCounter++ << std::endl;
+        //std::cout << "Iteration #:" << iterartorCounter++ << std::endl;
+        //std::cout << " #" << iterartorCounter++;// << std::endl;// << iterartorCounter++ << std::endl;
         //std::cout << " " << iterartorCounter++;
+        //std::cout << "." << std::flush;
         
         Image::pointer frame = getStaticInputData<Image>(0);
+        
         frameList.push_back(frame);
+        
         if (!firstFrameSet){
-            //std::cout << "Starting loading.." << std::endl;
+            std::cout << "Starting loading.." << std::endl;
             firstFrame = frame;
             firstFrameSet = true;
             Vector3f spacingFirst = firstFrame->getSpacing();
@@ -2729,10 +2744,13 @@ void Us3Dhybrid::execute(){
         if (dynamicImage->hasReachedEnd()){// || frameList.size() >= 100) {
             reachedEndOfStream = true;
             loadingEnded = clock();
-            std::cout << "" << std::endl;
+            //std::cout << "" << std::endl;
         }
         //mIsModified = true;
         //setStaticOutputData<Image>(0, frame);
+        while (frameList.capacity() == frameList.size()){
+            Sleep(1); //std::vector needs time to adjust
+        }
     }
     // When we have reached the end of stream we do just from here on
     if (reachedEndOfStream) {

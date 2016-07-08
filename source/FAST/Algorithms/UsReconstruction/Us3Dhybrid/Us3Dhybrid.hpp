@@ -30,6 +30,7 @@ namespace fast {
         void setHFgridSize(int gridSize);
         void setHFprogressive(bool prog);
         void setRunMode(Us3DRunMode runType);
+        void setGaussianWeightMode(bool useGaussianWeight);
         void setPNNrunMode(bool pnnRunMode);
         void setVNNrunMode(bool vnnRunMode);
         void setCLrun(bool clRunMode);
@@ -128,6 +129,7 @@ namespace fast {
         float mScaleToMax;
         float globalScalingValue;
         Us3DRunMode mRunType;
+        bool mUseGaussianWeight;
         bool runAsPNNonly;
         bool runAsVNNonly;
         bool runCLhybrid;

@@ -26,7 +26,7 @@ void runAlgorithmAndExportImage(
     float setDV, float maxRvalue,
     std::string input_filename, std::string nameformat, std::string output_subfolder, std::string nickname,
     int volSizeM, float initZspacing, int HF_gridSize, bool HF_progressive,
-    Us3DRunMode runType,
+    Us3DRunMode runType, bool hybridWeightGaussian,
     int startNumber, int stepSize
     ){
 
@@ -57,7 +57,9 @@ void runAlgorithmAndExportImage(
         std::string runningStyle = "";
         switch (runType){
         case Us3DRunMode::clHybrid:
-            runningStyle += "CL_gauss_";
+            runningStyle += "CL_";
+            if (hybridWeightGaussian){ runningStyle += "gauss_"; }
+            else { runningStyle += "linear_"; }
             break;
         case Us3DRunMode::cpuHybrid:
             break;
@@ -94,6 +96,7 @@ void runAlgorithmAndExportImage(
         pnnHybrid->setHFprogressive(HF_progressive);
         //Priority VNN > PNN > CL > Normal
         pnnHybrid->setRunMode(runType);
+        pnnHybrid->setGaussianWeightMode(hybridWeightGaussian);
 
         while (!pnnHybrid->hasCalculatedVolume()){
             pnnHybrid->update();
@@ -202,9 +205,6 @@ int main() {
     //std::nameformat = 'US-2Dt_#.mhd';
 
     // SETTINGS
-      
-
-    
     int startNumber = 0;// 735// 400; //500; //400;//700; //200; //700; //735;
     int stepSize = 1; // 5; //3
     int scaleToMaxInt = 400; // 200; //400;
@@ -219,7 +219,7 @@ int main() {
     int holeFill_gridSize = 5;// 13;
     bool holeFill_progressive = false; //true;
 
-    int runInputSet = 3;// 1; //1/2
+    int runInputSet = 5;// 1; //1/2
     std::string folder = "";
     std::string nameformat = "";
     std::string nickname = "";
@@ -257,7 +257,7 @@ int main() {
         voxelSpacing = 0.1f; // 0.15f; //0.1f;
         initZSpacing = 0.1f;//0.05f;// 1f; //0.2f;
         dvConstant = 1.0f; // 0.30f; //0.5f
-        RmaxMultiplier = 8.0f;// 45.0f;// 25.0f;// 10.0f;
+        RmaxMultiplier = 4.0f;// 45.0f;// 25.0f;// 10.0f;
     }
     else if (runInputSet == 4){
         folder = "Ultrasound Data Sets 2/084_Tumor_OK.cx3/084_Tumor_OK.cx3/US_Acq/US-Acq_04_19700101T115706/";
@@ -274,7 +274,7 @@ int main() {
         nickname = "set-84_122413";
         initZSpacing = 0.1f;//0.05f;// 1f; //0.2f;
         dvConstant = 1.0f; // 0.30f; //0.5f
-        RmaxMultiplier = 8.0f;// 45.0f;// 25.0f;// 10.0f;
+        RmaxMultiplier = 4.0f;// 45.0f;// 25.0f;// 10.0f;
     }
     else if (runInputSet == 6){
         folder = "Ultrasound Data Sets 2/071_Tumor.cx3/071_Tumor.cx3/US_Acq/US-Acq_01_19700101T103046/";
@@ -307,16 +307,17 @@ int main() {
     bool runCLHybrid = true; //false;
     bool runPNNonly = false;
     Us3DRunMode runMode = Us3DRunMode::clPNN; // cpuVNN; //clPNN; //cpuVNN; //cpuHybrid; // clHybrid;
+    bool runHybridWeightGaussian = true;
 
-    bool singleTest = true;//false;
+    bool singleTest = false;//false;
 
     if (!singleTest){
-        std::string testPlace = "test-clHybrid-gaussian/";
-        float dvStart = 1.0f; // 0.5f;
-        float dvEnd = 2.2f;// 1.0f;
+        std::string testPlace = "testRun1/"; //"test-clHybrid-gaussian/";
+        float dvStart = 1.0f; // 0.5f; // 0.5f;
+        float dvEnd = 1.1f;// 1.0f;
         float calcedDVstep = 0.5f;// calcedDV / 5.0f;
         int rStart = 4;
-        int rEnd = 20;
+        int rEnd = 12;
         int rStep = 4;
         float rMaxMaximum = 30.0f;
         int dvValues = 1 +((dvEnd - dvStart) / calcedDVstep); //+1?
@@ -326,29 +327,69 @@ int main() {
         std::cout << " Testing with " << dvValues << " values of dv and " << rMaxValues << " values of rMax!" << std::endl;
         std::cout << " For a total max of " << totalRuns << " runs!" << std::endl;
 
-
-        for (float setDV = dvStart; setDV <= dvEnd; setDV += calcedDVstep){
-            for (int rMultiplier = rStart; rMultiplier <= rEnd; rMultiplier += rStep){
-                float maxRvalue = setDV * rMultiplier;
-                if (maxRvalue > rMaxMaximum)
-                    continue;
-                runAlgorithmAndExportImage(
+        clock_t startTests = clock();
+        int testsIt = 0;
+        runMode = Us3DRunMode::clHybrid;
+        for (int i = 0; i < 2; i++){
+            if (i == 0){
+                runHybridWeightGaussian = true; 
+            }
+            else{
+                runHybridWeightGaussian = false;
+            }
+            for (float setDV = dvStart; setDV <= dvEnd; setDV += calcedDVstep){
+                for (int rMultiplier = rStart; rMultiplier <= rEnd; rMultiplier += rStep){
+                    float maxRvalue = setDV * rMultiplier;
+                    if (maxRvalue > rMaxMaximum)
+                        continue;
+                    runAlgorithmAndExportImage(
+                        setDV, maxRvalue,
+                        input_filename, nameformat, testPlace, nickname,
+                        volumeSizeMillions, initZSpacing, holeFill_gridSize, holeFill_progressive,
+                        runMode, runHybridWeightGaussian,
+                        startNumber, stepSize
+                        );
+                    testsIt++;
+                    /*
+                    runAlgorithmAndExportImage(
                     setDV, maxRvalue,
-                    input_filename, nameformat, testPlace, nickname,
-                    volumeSizeMillions, initZSpacing, holeFill_gridSize, holeFill_progressive,
-                    runMode,
-                    startNumber, stepSize
-                    );
-                /*
-                runAlgorithmAndExportImage(
-                    setDV, maxRvalue, 
                     input_filename, nameformat, voxelSpacing, testPlace,
                     startNumber, stepSize, volumeSizeMillions, initZSpacing,
                     runVNNonly, runCLHybrid, runPNNonly
                     );
-                */
+                    */
+                }
             }
         }
+        
+        // RUN PNN tests
+        for (int gridSize = 3; gridSize <= 5; gridSize += 2){
+            runAlgorithmAndExportImage(
+                0.0f, 0.0f,
+                input_filename, nameformat, testPlace, nickname,
+                volumeSizeMillions, initZSpacing, gridSize, false,
+                Us3DRunMode::clPNN, runHybridWeightGaussian,
+                startNumber, stepSize
+                );
+            testsIt++;
+        }
+        // RUN PNN progressive tests
+        runAlgorithmAndExportImage(
+            0.0f, 0.0f,
+            input_filename, nameformat, testPlace, nickname,
+            volumeSizeMillions, initZSpacing, 3.0f, true,
+            Us3DRunMode::clPNN, runHybridWeightGaussian,
+            startNumber, stepSize
+            );
+        testsIt++;
+        
+        
+        clock_t endTests = clock();
+        clock_t clockTicksTakenLoop = endTests - startTests;
+        double timeInSecondsLoop = clockTicksTakenLoop / (double)CLOCKS_PER_SEC;
+        std::cout << " - - - " << std::endl;
+        std::cout << "It took " << timeInSecondsLoop << "sec to test run all "<< testsIt <<" configs!" << std::endl;
+
     }
     else {
         //runAlgorithmAndExportImage(setDVsuggestion, maxRvalueSuggestion, input_filename, nameformat, voxelSpacing); //Runs CL
@@ -364,14 +405,12 @@ int main() {
             setDVsuggestion, maxRvalueSuggestion,
             input_filename, nameformat, "", nickname,
             volumeSizeMillions, initZSpacing, holeFill_gridSize, holeFill_progressive,
-            runMode,
+            runMode, runHybridWeightGaussian,
             startNumber, stepSize
             );
         
     }
 }
-
-
 
 
 /*

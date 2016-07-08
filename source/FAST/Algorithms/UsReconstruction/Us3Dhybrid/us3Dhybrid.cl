@@ -615,9 +615,15 @@ __kernel void accumulateFrameToVolume(
             //float w = 1.0f;// 1 - (fabs(distance) / df); //Or gaussian for trail
             float p = getPixelValue(frame, intersectionPointLocal, imgSize, dataType); //TODO FIX
             //float w = 1.0f - (absDistance / df); //Or gaussian for trail
-            float w = gaussianK * exp2((-0.5f*absDistance*absDistance) / (df*df));
-
+            float w;
+            if (USE_GAUSSIAN_WEIGHT){
+                w = gaussianK * exp2((-0.5f*absDistance*absDistance) / (df*df));
+            }
+            else{
+                w = 1.0f - (absDistance / df);
+            }
             //float w = 1.0f - ((absDistance*absDistance) / (df*df));
+
             //float w = sqrt((absDistance / df));
             //accumulateValuesInVolumeData(volume, volumePoint, p, w, outputDataType, semaphor); //TODO FIX
             accumulateValuesInVolumeUInt(volume, volumePoint, p, w);
