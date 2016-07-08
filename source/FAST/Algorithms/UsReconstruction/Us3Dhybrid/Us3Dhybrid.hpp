@@ -34,6 +34,7 @@ namespace fast {
         void setPNNrunMode(bool pnnRunMode);
         void setVNNrunMode(bool vnnRunMode);
         void setCLrun(bool clRunMode);
+        void printSettings();
         void printEndStats();
         void setVerbosity(int verbosity); //TODO USE
 
@@ -107,6 +108,7 @@ namespace fast {
         int iterartorCounter;
         DataType mOutputType;
         bool mOutputTypeSet;
+        int mVerbosityLevel; //TODO USE
 
         // Benchmark variables
         clock_t loadingStarted;
@@ -119,7 +121,8 @@ namespace fast {
         clock_t algorithmLoopEnded;
         clock_t normalizationStarted;
         clock_t normalizationEnded;
-        int verbosityLevel; //TODO USE
+        clock_t recompileStarted;
+        clock_t recompileEnded;
 
         // Setting variables
         float dv; //voxel spacing

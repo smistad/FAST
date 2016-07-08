@@ -118,6 +118,9 @@ void Us3Dhybrid::setGaussianWeightMode(bool useGaussianWeight){
     mIsModified = true;
 }
 
+void Us3Dhybrid::setVerbosity(int verbosity){
+    mVerbosityLevel = verbosity;
+}
 void Us3Dhybrid::setPNNrunMode(bool pnnRunMode){
     runAsPNNonly = pnnRunMode;
     volumeCalculated = false;
@@ -147,6 +150,7 @@ Us3Dhybrid::Us3Dhybrid(){
     //create openCL prog here
     //--//createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter2D.cl", "2D");
     createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/UsReconstruction/Us3Dhybrid/us3Dhybrid.cl", "us3Dhybrid");
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/UsReconstruction/Us3Dhybrid/us3Dpnn.cl", "us3Dpnn");
     //--// store different compiled for settings (dimension/variables...)
     createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/UsReconstruction/Us3Dhybrid/normalizeVolume.cl", "normalizeVolume");
 
@@ -950,15 +954,20 @@ Vector2f Us3Dhybrid::findClosestPlaneBrute(Vector3i pos, float closestMaxRange){
 }
 
 void Us3Dhybrid::executeVNN2(){
-    std::cout << "Final VNN [v.2] reconstruction calculations!" << std::endl;
+    if (mVerbosityLevel >= 5){
+        std::cout << "Final VNN [v.2] reconstruction calculations!" << std::endl;
+        std::cout << "Running with dv: " << dv << " and Rmax: " << Rmax << std::endl;
+    }
+    
     algorithmStarted = clock();
     // Finally, calculate reconstructed volume
     ExecutionDevice::pointer device;
     initOutputVolume(device);
-
-    std::cout << "Step 5" << std::endl;
+    if (mVerbosityLevel >= 7){
+        std::cout << "Step 5" << std::endl;
+    }
     volAccess = outputVolume->getImageAccess(accessType::ACCESS_READ_WRITE);
-    std::cout << "Running with dv: " << dv << " and Rmax: " << Rmax << std::endl;
+    
     frameSize = firstFrame->getSize();
     uint width = (uint)volumeSize.x();
     uint height = (uint)volumeSize.y();
@@ -1300,6 +1309,7 @@ void Us3Dhybrid::executeVNN(){
 }
 
 void Us3Dhybrid::recompileAlgorithmOpenCLCode(){
+    recompileStarted = clock();
     //CHECK if dv, rmax or volumeSize changed..
     /*
     if (AccumulationVolume->getDimensions() == mDimensionCLCodeCompiledFor &&
@@ -1309,7 +1319,9 @@ void Us3Dhybrid::recompileAlgorithmOpenCLCode(){
         volumeSize == mVolumeSizeCompiledFor)
         return;
     */
-    std::cout << "Recompiling Algorithm OpenCL code" << std::endl;
+    if (mVerbosityLevel >= 6){
+        std::cout << "Recompiling Algorithm OpenCL code" << std::endl;
+    }
     OpenCLDevice::pointer device = getMainDevice();
     std::string buildOptions = "";
 
@@ -1338,118 +1350,137 @@ void Us3Dhybrid::recompileAlgorithmOpenCLCode(){
     buildOptions += std::to_string(maskSize);
     std::cout << "maskSize " << maskSize << std::endl;
     */
-    buildOptions += " -D DV=";
-    buildOptions += std::to_string(dv);
-    std::cout << " -D DV=" << dv << std::endl;
 
-    buildOptions += " -D R_MAX=";
-    buildOptions += std::to_string(Rmax);
-    std::cout << " -D R_MAX=" << Rmax << std::endl;
+    if (mRunType == Us3DRunMode::clHybrid){
+        buildOptions += " -D DV=";
+        buildOptions += std::to_string(dv);
+        //std::cout << " -D DV=" << dv << std::endl;
 
+        buildOptions += " -D R_MAX=";
+        buildOptions += std::to_string(Rmax);
+        //std::cout << " -D R_MAX=" << Rmax << std::endl;
+
+        bool gaussianWeight = mUseGaussianWeight; //true;
+        buildOptions += " -D USE_GAUSSIAN_WEIGHT=";
+        buildOptions += std::to_string(gaussianWeight);
+        //std::cout << " -D USE_GAUSSIAN_WEIGHT=" << gaussianWeight << std::endl;
+
+        float bufferXY = 0.5f;
+        float bufferZ = 0.5f;
+        buildOptions += " -D BUFFER_XY=";
+        buildOptions += std::to_string(bufferXY);
+        //std::cout << " -D BUFFER_XY=" << bufferXY << std::endl;
+        buildOptions += " -D BUFFER_Z=";
+        buildOptions += std::to_string(bufferZ);
+        //std::cout << " -D BUFFER_Z=" << bufferZ << std::endl;
+
+        // Precalcs
+        float sqrt2pi = std::sqrt(2 * M_PI);
+        buildOptions += " -D SQRT_2_PI=";
+        buildOptions += std::to_string(sqrt2pi);
+        //std::cout << " -D SQRT_2_PI=" << sqrt2pi << std::endl;
+    }
+
+    if (mRunType == Us3DRunMode::clPNN){
+        bool progressivePNN = HF_progressive; //true;
+        buildOptions += " -D PROGRESSIVE_PNN=";
+        buildOptions += std::to_string(progressivePNN);
+        //std::cout << " -D PROGRESSIVE_PNN=" << progressivePNN << std::endl;
+
+
+
+        // Hole filling buildOpts
+        int halfWidthX2 = HF_halfWidth * 2;
+        {
+            {
+                int lSizeX = HF_localSize.x();
+                buildOptions += " -D LSIZE_X=";
+                buildOptions += std::to_string(lSizeX);
+                //std::cout << " -D LSIZE_X=" << lSizeX << std::endl;
+                int lSizeY = HF_localSize.y();
+                buildOptions += " -D LSIZE_Y=";
+                buildOptions += std::to_string(lSizeY);
+                //std::cout << " -D LSIZE_Y=" << lSizeY << std::endl;
+                int lSizeZ = HF_localSize.z();
+                buildOptions += " -D LSIZE_Z=";
+                buildOptions += std::to_string(lSizeZ);
+                //std::cout << " -D LSIZE_Z=" << lSizeZ << std::endl;
+            }
+            {
+            buildOptions += " -D HALF_WIDTH=";
+            buildOptions += std::to_string(HF_halfWidth);
+            //std::cout << " -D HALF_WIDTH=" << HF_halfWidth << std::endl;
+            buildOptions += " -D HALF_WIDTH_X2=";
+            buildOptions += std::to_string(halfWidthX2);
+            //std::cout << " -D HALF_WIDTH_X2=" << halfWidthX2 << std::endl;
+        }
+            {
+                int lSizeX = HF_localMemSize.x();
+                buildOptions += " -D LSIZE_MEM_X=";
+                buildOptions += std::to_string(lSizeX);
+                //std::cout << " -D LSIZE_MEM_X=" << lSizeX << std::endl;
+                int lSizeY = HF_localMemSize.y();
+                buildOptions += " -D LSIZE_MEM_Y=";
+                buildOptions += std::to_string(lSizeY);
+                //std::cout << " -D LSIZE_MEM_Y=" << lSizeY << std::endl;
+                int lSizeZ = HF_localMemSize.z();
+                buildOptions += " -D LSIZE_MEM_Z=";
+                buildOptions += std::to_string(lSizeZ);
+                //std::cout << " -D LSIZE_MEM_Z=" << lSizeZ << std::endl;
+
+                int lSizeXtimesY = lSizeX * lSizeY;
+                buildOptions += " -D LSIZE_MEM_XtY=";
+                buildOptions += std::to_string(lSizeXtimesY);
+                //std::cout << " -D LSIZE_MEM_XtY=" << lSizeXtimesY << std::endl;
+            }
+        }
+
+    }
+    
     buildOptions += " -D VOL_SIZE_X=";
     buildOptions += std::to_string(volumeSize(0));
-    std::cout << " -D VOL_SIZE_X=" << volumeSize(0) << std::endl;
+    //std::cout << " -D VOL_SIZE_X=" << volumeSize(0) << std::endl;
     buildOptions += " -D VOL_SIZE_Y=";
     buildOptions += std::to_string(volumeSize(1));
-    std::cout << " -D VOL_SIZE_Y=" << volumeSize(1) << std::endl;
+    //std::cout << " -D VOL_SIZE_Y=" << volumeSize(1) << std::endl;
     buildOptions += " -D VOL_SIZE_Z=";
     buildOptions += std::to_string(volumeSize(2));
-    std::cout << " -D VOL_SIZE_Z=" << volumeSize(2) << std::endl;
+    //std::cout << " -D VOL_SIZE_Z=" << volumeSize(2) << std::endl;
 
-    
-
-    float bufferXY = 0.5f;
-    float bufferZ = 0.5f;
-    buildOptions += " -D BUFFER_XY=";
-    buildOptions += std::to_string(bufferXY);
-    std::cout << " -D BUFFER_XY=" << bufferXY << std::endl;
-    buildOptions += " -D BUFFER_Z=";
-    buildOptions += std::to_string(bufferZ);
-    std::cout << " -D BUFFER_Z=" << bufferZ << std::endl;
+    int vol_size_X_times_Y = volumeSize(0) * volumeSize(1);
+    buildOptions += " -D VOL_SIZE_XtY=";
+    buildOptions += std::to_string(vol_size_X_times_Y);
+    //std::cout << " -D VOL_SIZE_XtY=" << vol_size_X_times_Y << std::endl;
 
     float granularity = 1000.0f;
     buildOptions += " -D UINT_GRANULARITY=";
     buildOptions += std::to_string(granularity);
-    std::cout << " -D UINT_GRANULARITY=" << granularity << std::endl;
+    //std::cout << " -D UINT_GRANULARITY=" << granularity << std::endl;
 
-    bool progressivePNN = HF_progressive; //true;
-    buildOptions += " -D PROGRESSIVE_PNN=";
-    buildOptions += std::to_string(progressivePNN);
-    std::cout << " -D PROGRESSIVE_PNN=" << progressivePNN << std::endl;
-
-    bool gaussianWeight = mUseGaussianWeight; //true;
-    buildOptions += " -D USE_GAUSSIAN_WEIGHT=";
-    buildOptions += std::to_string(gaussianWeight);
-    std::cout << " -D USE_GAUSSIAN_WEIGHT=" << gaussianWeight << std::endl;
-    
-    // Hole filling buildOpts
-    int halfWidthX2 = HF_halfWidth * 2;
-    {
-        {
-            int lSizeX = HF_localSize.x();
-            buildOptions += " -D LSIZE_X=";
-            buildOptions += std::to_string(lSizeX);
-            std::cout << " -D LSIZE_X=" << lSizeX << std::endl;
-            int lSizeY = HF_localSize.y();
-            buildOptions += " -D LSIZE_Y=";
-            buildOptions += std::to_string(lSizeY);
-            std::cout << " -D LSIZE_Y=" << lSizeY << std::endl;
-            int lSizeZ = HF_localSize.z();
-            buildOptions += " -D LSIZE_Z=";
-            buildOptions += std::to_string(lSizeZ);
-            std::cout << " -D LSIZE_Z=" << lSizeZ << std::endl;
-        }
-        {
-            buildOptions += " -D HALF_WIDTH=";
-            buildOptions += std::to_string(HF_halfWidth);
-            std::cout << " -D HALF_WIDTH=" << HF_halfWidth << std::endl;
-            buildOptions += " -D HALF_WIDTH_X2=";
-            buildOptions += std::to_string(halfWidthX2);
-            std::cout << " -D HALF_WIDTH_X2=" << halfWidthX2 << std::endl;
-        }
-        {
-            int lSizeX = HF_localMemSize.x();
-            buildOptions += " -D LSIZE_MEM_X=";
-            buildOptions += std::to_string(lSizeX);
-            std::cout << " -D LSIZE_MEM_X=" << lSizeX << std::endl;
-            int lSizeY = HF_localMemSize.y();
-            buildOptions += " -D LSIZE_MEM_Y=";
-            buildOptions += std::to_string(lSizeY);
-            std::cout << " -D LSIZE_MEM_Y=" << lSizeY << std::endl;
-            int lSizeZ = HF_localMemSize.z();
-            buildOptions += " -D LSIZE_MEM_Z=";
-            buildOptions += std::to_string(lSizeZ);
-            std::cout << " -D LSIZE_MEM_Z=" << lSizeZ << std::endl;
-
-            int lSizeXtimesY = lSizeX * lSizeY;
-            buildOptions += " -D LSIZE_MEM_XtY=";
-            buildOptions += std::to_string(lSizeXtimesY);
-            std::cout << " -D LSIZE_MEM_XtY=" << lSizeXtimesY << std::endl;
-        }
+    if (mVerbosityLevel >= 4){
+        std::cout << " ### CL Program buildOptions: ###\n" << buildOptions << std::endl;
     }
-
-    // Precalcs
-    int vol_size_X_times_Y = volumeSize(0) * volumeSize(1);
-    buildOptions += " -D VOL_SIZE_XtY=";
-    buildOptions += std::to_string(vol_size_X_times_Y);
-    std::cout << " -D VOL_SIZE_XtY=" << vol_size_X_times_Y << std::endl;
-
-    float sqrt2pi = std::sqrt(2 * M_PI);
-    buildOptions += " -D SQRT_2_PI=";
-    buildOptions += std::to_string(sqrt2pi);
-    std::cout << " -D SQRT_2_PI=" << sqrt2pi << std::endl;
-
-    cl::Program programUs3Dhybrid = getOpenCLProgram(device, "us3Dhybrid", buildOptions);
-    mKernel = cl::Kernel(programUs3Dhybrid, "accumulateFrameToVolume");
-    mKernelNormalize = cl::Kernel(programUs3Dhybrid, "normalizeVolume");
-    mKernelPNN = cl::Kernel(programUs3Dhybrid, "addPNNFrame");
-    mKernelHfNorm = cl::Kernel(programUs3Dhybrid, "normalizeHoleFillVolume");
+    //cl::Program programUs3Dhybrid = getOpenCLProgram(device, "us3Dhybrid", buildOptions);
+    
+    if (mRunType == Us3DRunMode::clHybrid){
+        cl::Program programUs3Dhybrid = getOpenCLProgram(device, "us3Dhybrid", buildOptions);
+        mKernel = cl::Kernel(programUs3Dhybrid, "accumulateFrameToVolume");
+        cl::Program programNormalize = getOpenCLProgram(device, "normalizeVolume", buildOptions);
+        mKernelNormalize = cl::Kernel(programNormalize, "normalizeVolume");
+    }
+    if (mRunType == Us3DRunMode::clPNN){
+        cl::Program programUs3Dpnn = getOpenCLProgram(device, "us3Dpnn", buildOptions);
+        mKernelPNN = cl::Kernel(programUs3Dpnn, "addPNNFrame");
+        mKernelHfNorm = cl::Kernel(programUs3Dpnn, "normalizeHoleFillVolume");
+    }
+    
 
     //mDimensionCLCodeCompiledFor = AccumulationVolume->getDimensions();
     //mTypeCLCodeCompiledFor = AccumulationVolume->getDataType();
     mDvCompiledFor = dv;
     mRmaxCompiledFor = Rmax;
     mVolumeSizeCompiledFor = volumeSize; //or x,y,z?
+    recompileEnded = clock();
 }
 
 void Us3Dhybrid::executeOpenCLTest(){
@@ -1538,8 +1569,10 @@ void Us3Dhybrid::executeOpenCLTest(){
 
 void Us3Dhybrid::executeAlgorithm(){
     algorithmStarted = clock();
-    int voxelCount = volumeSize(0)*volumeSize(1)*volumeSize(2);
-    std::cout << "Running algorithm with " << voxelCount / 1000000 << "M voxel output volume!" << std::endl;
+    if (mVerbosityLevel >= 6){
+        int voxelCount = volumeSize(0)*volumeSize(1)*volumeSize(2);
+        std::cout << "Running algorithm with " << voxelCount / 1000000 << "M voxel output volume!" << std::endl;
+    }
     ExecutionDevice::pointer device = getMainDevice();
     if ((mRunType != Us3DRunMode::clHybrid && mRunType != Us3DRunMode::clPNN) || device->isHost()) { //!runCLhybrid
         std::cout << "Executing on host" << std::endl;
@@ -1569,25 +1602,31 @@ void Us3Dhybrid::executeAlgorithm(){
     //float * volumeData = (float*)volAccess->get();
     int bufferSize = volumeSize(0)*volumeSize(1)*volumeSize(2);
     int components = 2;
+    //unsigned int * volumeAccumulationData = new unsigned int[bufferSize*components];
+
     //int * semaphore = new int[bufferSize];
-    unsigned int * volumeAccumulationData = new unsigned int[bufferSize*components];
-    for (int i = 0; i < bufferSize; i++){
-        if (i%50000000 == 0)
+    /*
+     for (int i = 0; i < bufferSize; i++){
+        if (mVerbosityLevel >= 6 && i%50000000 == 0)
             std::cout << ".";
         volumeAccumulationData[i] = 0;
         volumeAccumulationData[bufferSize + i] = 0;
         //semaphore[i] = 0;
     }
-    std::cout << "!" << std::endl;
+    if (mVerbosityLevel >= 6){
+        std::cout << "!" << std::endl;
+    }*/
 
     cl_mem_flags flags = CL_MEM_READ_WRITE;// | CL_MEM_COPY_HOST_PTR; //CL_MEM_READ_ONLY //CL_MEM_COPY_HOST_PTR, //CL_MEM_ALLOC_HOST_PTR
     //size_t sizeUI = sizeof(unsigned int)*bufferSize*components;
     //size_t sizeFLOAT = sizeof(float)*bufferSize*components;
-    mCLVolume = cl::Buffer(clDevice->getContext(), flags, sizeof(unsigned int)*bufferSize*components, volumeAccumulationData); //CL_MEM_READ_ONLY //CL_MEM_COPY_HOST_PTR, //CL_MEM_ALLOC_HOST_PTR
+    mCLVolume = cl::Buffer(clDevice->getContext(), flags, sizeof(unsigned int)*bufferSize*components);// , volumeAccumulationData); //CL_MEM_READ_ONLY //CL_MEM_COPY_HOST_PTR, //CL_MEM_ALLOC_HOST_PTR
     //cl::Buffer mCLSemaphore = cl::Buffer(clDevice->getContext(), flags, sizeof(int)*bufferSize, semaphore);
     //cl::enqueueWriteBuffer(mCLVolume, true, cl::NullRange, size_t(sizeof(float)*bufferSize*components), 1.0f, 
     //clEnqueueFillBuffer //kanskje vi har openCL 1.1???
     cl::CommandQueue cmdQueue = clDevice->getCommandQueue();
+    size_t fillSize = (sizeof(unsigned int)*bufferSize*components);
+    cmdQueue.enqueueFillBuffer<unsigned int>(mCLVolume, 0, (size_t) 0, fillSize);
     /*
     float pattern = 0.0f;
     
@@ -1599,7 +1638,9 @@ void Us3Dhybrid::executeAlgorithm(){
     //err = cmdQueue.enqueueFillBuffer<int>(mCLSemaphore, 0, startLoc, (size_t)(sizeof(int)*bufferSize));
     */
     cmdQueue.finish();
-    std::cout << " ### Running " << frameList.size() << " frames on GPU! ### " << std::endl;
+    if (mVerbosityLevel >= 6){
+        std::cout << " ### Running " << frameList.size() << " frames on GPU! ### " << std::endl;
+    }
     algorithmLoopStarted = clock();
     int nrOfFrames = frameList.size();
     for (int frameNr = 0; frameNr < nrOfFrames; frameNr++){
@@ -1702,7 +1743,7 @@ void Us3Dhybrid::executeAlgorithm(){
     cmdQueue.finish();
 
     algorithmLoopEnded = clock();
-    if (false && verbosityLevel >= 7){
+    if (false && mVerbosityLevel >= 7){
         //std::cout << " ####################################################### " << std::endl;
         //std::cout << "" << std::endl;
 
@@ -1968,7 +2009,10 @@ void Us3Dhybrid::initOutputVolume(ExecutionDevice::pointer device){
 
 void Us3Dhybrid::generateOutputVolume(){
     normalizationStarted = clock();
-    std::cout << "Final reconstruction calculations!" << std::endl;
+    if (mVerbosityLevel >= 6){
+        std::cout << "Final reconstruction calculations!" << std::endl;
+    }
+    
     // Finally, calculate reconstructed volume
     ExecutionDevice::pointer device = getMainDevice();
     initOutputVolume(device);
@@ -1991,13 +2035,17 @@ void Us3Dhybrid::generateOutputVolume(){
     //T * outputData = (T*)outputAccess->get();
     float * inputData = (float*)volAccess->get();
     float * outputData = (float*)outAccess->get();
-    std::cout << "Step 2" << std::endl;
+    if (mVerbosityLevel >= 7){
+        std::cout << "Step 2" << std::endl;
+    }
     uint width = outputVolume->getWidth();
     uint height = outputVolume->getHeight();
     uint depth = outputVolume->getDepth();
     uint nrOfComponents = AccumulationVolume->getNrOfComponents();
     for (uint x = 0; x < width; x++){
-        std::cout << ".";
+        if (mVerbosityLevel >= 6){
+            std::cout << ".";
+        }
         for (uint y = 0; y < height; y++){
             for (uint z = 0; z < depth; z++){
                 unsigned int loc = x + y*width + z*width*height;
@@ -2026,7 +2074,9 @@ void Us3Dhybrid::generateOutputVolume(){
         }
     }
     outAccess->release();
-    std::cout << "\nDONE calculations!" << std::endl;
+    if (mVerbosityLevel >= 6){
+        std::cout << "\nDONE calculations!" << std::endl;
+    }
     //Can possibly make 2D slices here or alternatively to the one above
     normalizationEnded = clock();
 }
@@ -2067,8 +2117,9 @@ void Us3Dhybrid::recompileNormalizeOpenCLCode(){
 }
 
 void Us3Dhybrid::generateOutputVolume(ExecutionDevice::pointer device){
-    std::cout << "Running on GPU " << std::endl;
-
+    if (mVerbosityLevel >= 6){
+        std::cout << "Running on GPU " << std::endl;
+    }
     OpenCLDevice::pointer clDevice = device;
     //recompileOpenCLCode(input)
     //recompileNormalizeOpenCLCode(); //utgår? compilert med executeAlgoritm
@@ -2102,8 +2153,9 @@ void Us3Dhybrid::generateOutputVolume(ExecutionDevice::pointer device){
 }
 
 void Us3Dhybrid::generateOutputVolumeWithHoleFilling(ExecutionDevice::pointer device){
-    std::cout << "Running with HOLE FILLING on GPU " << std::endl;
-
+    if (mVerbosityLevel >= 6){
+        std::cout << "Running with HOLE FILLING on GPU " << std::endl;
+    }
     if (false){
         generateOutputVolume(device);
         ImageAccess::pointer outputAccess = outputVolume->getImageAccess(ACCESS_READ_WRITE);
@@ -2222,31 +2274,39 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
      //inverseTransform();
 
     initVolumeStarted = clock();
-    Image::pointer testFrame = frameList[0];// 10]; //TO TEST THIS
+    Image::pointer testFrame;
+    if (mVerbosityLevel >= 7){
+        testFrame = frameList[0];// 10]; //TO TEST THIS
+    }
+    
 
     //APPLY SPACING TO ALL FRAMES
     Vector3f oldSpacing; {
         for (int i = 0; i < frameList.size(); i++){
             Image::pointer frame = frameList[i];
             AffineTransformation::pointer imageTransformation = SceneGraph::getAffineTransformationFromData(frame);
-            Vector3f pointZero = imageTransformation->multiply(Vector3f(0, 0, 0));
-            Vector3f pointHero = imageTransformation->multiply(Vector3f(350, 546, 0));
-            Matrix4f testMatrix = imageTransformation->matrix();
-            Vector4f t0 = testMatrix.row(0);
-            Vector4f t1 = testMatrix.row(1);
-            Vector4f t2 = testMatrix.row(2);
-            Vector4f t3 = testMatrix.row(3);
+            if (mVerbosityLevel >= 7){
+                Vector3f pointZero = imageTransformation->multiply(Vector3f(0, 0, 0));
+                Vector3f pointHero = imageTransformation->multiply(Vector3f(350, 546, 0));
+                Matrix4f testMatrix = imageTransformation->matrix();
+                Vector4f t0 = testMatrix.row(0);
+                Vector4f t1 = testMatrix.row(1);
+                Vector4f t2 = testMatrix.row(2);
+                Vector4f t3 = testMatrix.row(3);
+            }
             oldSpacing = frame->getSpacing();
             //Apply Z-scaling?
             oldSpacing(2) = zDirInitSpacing;
             imageTransformation->scale(oldSpacing);
-            Vector3f pointVolZero = imageTransformation->multiply(Vector3f(0, 0, 0));
-            Vector3f pointVolHero = imageTransformation->multiply(Vector3f(350, 546, 0));
-            Matrix4f scaledTransformMatrix = imageTransformation->matrix();
-            Vector4f i0 = scaledTransformMatrix.row(0);
-            Vector4f i1 = scaledTransformMatrix.row(1);
-            Vector4f i2 = scaledTransformMatrix.row(2);
-            Vector4f i3 = scaledTransformMatrix.row(3);
+            if (mVerbosityLevel >= 7){
+                Vector3f pointVolZero = imageTransformation->multiply(Vector3f(0, 0, 0));
+                Vector3f pointVolHero = imageTransformation->multiply(Vector3f(350, 546, 0));
+                Matrix4f scaledTransformMatrix = imageTransformation->matrix();
+                Vector4f i0 = scaledTransformMatrix.row(0);
+                Vector4f i1 = scaledTransformMatrix.row(1);
+                Vector4f i2 = scaledTransformMatrix.row(2);
+                Vector4f i3 = scaledTransformMatrix.row(3);
+            }
             frame->getSceneGraphNode()->setTransformation(imageTransformation);
             Vector3f newSpacing = Vector3f(1.0f, 1.0f, 1.0f);
             frame->setSpacing(newSpacing);
@@ -2257,7 +2317,8 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
     //INVERSE TRANSFORM
     AffineTransformation::pointer inverseSystemTransform = getInverseTransformation(rootFrame);
     //std::vector<AffineTransformation::pointer> frameTransformList = {}; // std::vector global AffineTransformation::pointer
-    Vector3f minCoords; {
+    Vector3f minCoords;
+    Vector3f maxCoords; {
         addTransformationToFrame(rootFrame, inverseSystemTransform);
         //AffineTransformation::pointer oldImgTransform = SceneGraph::getAffineTransformationFromData(rootFrame);
         
@@ -2297,12 +2358,16 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
                     float pointValue = corners(j, k);
                     if (pointValue < minCoords(k))
                         minCoords(k) = pointValue;
+                    if (pointValue > maxCoords(k))
+                        maxCoords(k) = pointValue;
                 }
             }
         }
     }
     
-    AffineTransformation::pointer testTransformation; {
+    
+    AffineTransformation::pointer testTransformation; 
+    if (mVerbosityLevel >= 7){
         //Test frame 10
         //testTransformation = SceneGraph::getAffineTransformationFromData(testFrame);
         testTransformation = getTransform(testFrame);
@@ -2325,11 +2390,13 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
     //MINIMUM TRANSFORM + scale to fit
     Vector3f translationDone = Vector3f(-minCoords(0), -minCoords(1), -minCoords(2));
     AffineTransformation::pointer transformToMinimum = getTranslationFromVector(translationDone); //TODO extract these to methods
+    
+    /*
     AffineTransformation::pointer totalTransform;
     Matrix4f totalMatrix;
     Vector3f maxCoords; {
         addTransformationToFrame(rootFrame, transformToMinimum);
-        {
+        if (mVerbosityLevel >= 7){
             //Test frame 10
             //AffineTransformation::pointer testTransformationMin = SceneGraph::getAffineTransformationFromData(testFrame);
             AffineTransformation::pointer testTransformationMin = getTransform(testFrame);
@@ -2345,82 +2412,38 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         
 
         BoundingBox box2 = rootFrame->getTransformedBoundingBox();
-        /*
-        //Scale to keep pixel/voxel spacing basicall nothing now - after fix! but can add scaling here!
-        {
-            BoundingBox boxUntransformed = rootFrame->getBoundingBox();
-            MatrixXf cTrans = box2.getCorners();
-            MatrixXf cUtrans = boxUntransformed.getCorners();
-            Vector3f i0 = cUtrans.row(0);
-            Vector3f i1 = cUtrans.row(1);
-            Vector3f i2 = cUtrans.row(2);
-            Vector3f i3 = cUtrans.row(3);
-            i0 = cTrans.row(0);
-            i1 = cTrans.row(1);
-            i2 = cTrans.row(2);
-            i3 = cTrans.row(3);
-            int boxSize = cUtrans.size();
-            Vector3f tZeroCorner = cTrans.row(0);
-            Vector3f tEndCorner = cTrans.row(2); 
-            Vector3f tDist = tEndCorner - tZeroCorner;
-            Vector3f uZeroCorner = cUtrans.row(0);
-            Vector3f uEndCorner = cUtrans.row(2); 
-            Vector3f uDist = uEndCorner - uZeroCorner;
-            float scaleX = uDist.x() / tDist.x();
-            float scaleY = uDist.y() / tDist.y();
-            //Ignoring Z
-            Vector3f scaling = Vector3f(scaleX, scaleY, 1);
-            std::cout << "SCALING by: " << scaleX << " - " << scaleY << std::endl;
-            AffineTransformation::pointer scaleOneTransform = getScalingFromVector(scaling);
-            addTransformationToFrame(rootFrame, scaleOneTransform);
-            //Testing
-            box2 = rootFrame->getTransformedBoundingBox();
-            Vector3f cornerA = box2.getCorners().row(0);
-            Vector3f cornerB = box2.getCorners().row(2);
-            // ADD scaleTransform to transformToMinimum
-            //transformToMinimum = scaleOneTransform->multiply(transformToMinimum);
-            transformToMinimum = addTransformation(transformToMinimum, scaleOneTransform);
-            /*Matrix4f minMatrix = transformToMinimum->matrix();
-            Vector4f t0 = minMatrix.row(0);
-            Vector4f t1 = minMatrix.row(1);
-            Vector4f t2 = minMatrix.row(2);
-            Vector4f t3 = minMatrix.row(3);
-            bool foo2 = false;*
-            //DONE scaling
 
-        }
-        
-        box2 = rootFrame->getTransformedBoundingBox(); */
-        Vector3f corner2 = box2.getCorners().row(0);
+    Vector3f corner2 = box2.getCorners().row(0);
 
-        minCoords(0) = corner2(0); //or 0
-        minCoords(1) = corner2(1);//or 0
-        minCoords(2) = corner2(2);//or 0
-        maxCoords(0) = corner2(0);
-        maxCoords(1) = corner2(1);
-        maxCoords(2) = corner2(2);
-        for (int i = 0; i < frameList.size(); i++){
-            Image::pointer frame = frameList[i];
-            // Start transforming frame
-            if (i != 0)
-                addTransformationToFrame(frame, transformToMinimum);
-            // Check corners for minimum
-            BoundingBox box = frame->getTransformedBoundingBox();
-            MatrixXf corners = box.getCorners();
-            for (int j = 0; j < 8; j++){ //8
-                for (int k = 0; k < 3; k++){
-                    float pointValue = corners(j, k);
-                    if (pointValue < minCoords(k))
-                        minCoords(k) = pointValue;
-                    if (pointValue > maxCoords(k))
-                        maxCoords(k) = pointValue;
-                }
+    minCoords(0) = corner2(0); //or 0
+    minCoords(1) = corner2(1);//or 0
+    minCoords(2) = corner2(2);//or 0
+    maxCoords(0) = corner2(0);
+    maxCoords(1) = corner2(1);
+    maxCoords(2) = corner2(2);
+    for (int i = 0; i < frameList.size(); i++){
+        Image::pointer frame = frameList[i];
+        // Start transforming frame
+        if (i != 0)
+            addTransformationToFrame(frame, transformToMinimum);
+        // Check corners for minimum
+        BoundingBox box = frame->getTransformedBoundingBox();
+        MatrixXf corners = box.getCorners();
+        for (int j = 0; j < 8; j++){ //8
+            for (int k = 0; k < 3; k++){
+                float pointValue = corners(j, k);
+                if (pointValue < minCoords(k))
+                    minCoords(k) = pointValue;
+                if (pointValue > maxCoords(k))
+                    maxCoords(k) = pointValue;
             }
         }
+    }
 
-        //Test total results: inverseSystemTransform & transformToMinimum
-        //AffineTransformation::pointer 
-        
+    //Test total results: inverseSystemTransform & transformToMinimum
+    //AffineTransformation::pointer 
+
+    if (mVerbosityLevel >= 7){
         //totalTransform = transformToMinimum->multiply(inverseSystemTransform);
         totalTransform = addTransformation(inverseSystemTransform, transformToMinimum);
         totalMatrix = totalTransform->matrix();
@@ -2435,8 +2458,11 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         Vector4f s3 = minTransformMatrix.row(3);
         bool tFoo = false;
     }
-    
-    AffineTransformation::pointer testTransformation2; {
+    }
+    */
+
+    AffineTransformation::pointer testTransformation2; 
+    if (mVerbosityLevel >= 7){
         //Test frame 10
         //testTransformation2 = SceneGraph::getAffineTransformationFromData(testFrame);
         testTransformation2 = getTransform(testFrame);
@@ -2458,8 +2484,10 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         float wantedVolumeSize = mVolSizeM * 1000 * 1000; //128
         float currentVolumeSize = sizeOne(0) * sizeOne(1) * sizeOne(2);
         float scaleSpacing = std::cbrtf((wantedVolumeSize / currentVolumeSize));
-        float finalVolumeSize = ceil(sizeOne(0)*scaleSpacing) * ceil(sizeOne(1)*scaleSpacing) * ceil(sizeOne(2)*scaleSpacing);
-        Vector3f sizeFinal = Vector3f(sizeOne(0)*scaleSpacing, sizeOne(1)*scaleSpacing, sizeOne(2)*scaleSpacing);
+        if (mVerbosityLevel >= 7){
+            float finalVolumeSize = ceil(sizeOne(0)*scaleSpacing) * ceil(sizeOne(1)*scaleSpacing) * ceil(sizeOne(2)*scaleSpacing);
+            Vector3f sizeFinal = Vector3f(sizeOne(0)*scaleSpacing, sizeOne(1)*scaleSpacing, sizeOne(2)*scaleSpacing);
+        }
         scaling = Vector3f(scaleSpacing, scaleSpacing, scaleSpacing);
         mVoxelSpacing = 1.0f / scaleSpacing;
         /*
@@ -2487,15 +2515,17 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
     
     // SCALING TRANSFORM
     AffineTransformation::pointer scaleTransform = getScalingFromVector(scaling);
-    AffineTransformation::pointer finalTransform;
+    AffineTransformation::pointer finalTransform = addTransformation(transformToMinimum, scaleTransform);
     Matrix4f finalTransformMatrix;
     {
-        Matrix4f scaleMatrix = scaleTransform->matrix();
-        Vector4f s0 = scaleMatrix.row(0);
-        Vector4f s1 = scaleMatrix.row(1);
-        Vector4f s2 = scaleMatrix.row(2);
-        Vector4f s3 = scaleMatrix.row(3);
-        addTransformationToFrame(rootFrame, scaleTransform);
+        if (mVerbosityLevel >= 7){
+            Matrix4f scaleMatrix = scaleTransform->matrix();
+            Vector4f s0 = scaleMatrix.row(0);
+            Vector4f s1 = scaleMatrix.row(1);
+            Vector4f s2 = scaleMatrix.row(2);
+            Vector4f s3 = scaleMatrix.row(3);
+        }
+        addTransformationToFrame(rootFrame, finalTransform);// scaleTransform);
         //Init
         BoundingBox box3 = rootFrame->getTransformedBoundingBox();
         Vector3f corner3 = box3.getCorners().row(0);
@@ -2516,7 +2546,7 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
             Image::pointer frame = frameList[i];
             // Start transforming frame
             if (i != 0)
-                addTransformationToFrame(frame, scaleTransform);
+                addTransformationToFrame(frame, finalTransform);//scaleTransform);
             // Check corners min/max of frame
             // If not square has to use pixel points and AffineTransformation.. And more soffisticated method
             BoundingBox box = frame->getTransformedBoundingBox();
@@ -2543,11 +2573,13 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
             Vector3f framePlaneNormal = getImagePlaneNormal(frame);
             float framePlaneDvalue = calculatePlaneDvalue(baseCorner, framePlaneNormal);
             AffineTransformation::pointer frameInverseTransform = getInverseTransformation(frame);
-            Matrix4f inverseTransformMatrix = frameInverseTransform->matrix();
-            Vector4f i0 = inverseTransformMatrix.row(0);
-            Vector4f i1 = inverseTransformMatrix.row(1);
-            Vector4f i2 = inverseTransformMatrix.row(2);
-            Vector4f i3 = inverseTransformMatrix.row(3);
+            if (mVerbosityLevel >= 7){
+                Matrix4f inverseTransformMatrix = frameInverseTransform->matrix();
+                Vector4f i0 = inverseTransformMatrix.row(0);
+                Vector4f i1 = inverseTransformMatrix.row(1);
+                Vector4f i2 = inverseTransformMatrix.row(2);
+                Vector4f i3 = inverseTransformMatrix.row(3);
+            }
             // Store frame values for later
             frameMinList.push_back(minCoordsFrame);
             frameMaxList.push_back(maxCoordsFrame);
@@ -2560,26 +2592,34 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         //Test total results: inverseSystemTransform & transformToMinimum & scaleTransform
         //AffineTransformation::pointer totalTransform = transformToMinimum->multiply(inverseSystemTransform);
         
-        //finalTransform = scaleTransform->multiply(totalTransform);// (scaleTransform->multiply(transformToMinimum))->multiply(inverseSystemTransform);// totalTransform);
-        finalTransform = addTransformation(totalTransform, scaleTransform);
-        finalTransformMatrix = finalTransform->matrix();
-        Vector4f f0 = finalTransformMatrix.row(0);
-        Vector4f f1 = finalTransformMatrix.row(1);
-        Vector4f f2 = finalTransformMatrix.row(2);
-        Vector4f f3 = finalTransformMatrix.row(3);
-        //Print final transform matrix
-        std::cout << " ## Final transform matrix: ## " << std::endl;
-        std::cout << "________________________________________" << std::endl;
-        std::cout << "| " << f0(0) << " | " << f0(1) << " | " << f0(2) << " | " << f0(3) << " |" << std::endl;
-        std::cout << "| " << f1(0) << " | " << f1(1) << " | " << f1(2) << " | " << f1(3) << " |" << std::endl;
-        std::cout << "| " << f2(0) << " | " << f2(1) << " | " << f2(2) << " | " << f2(3) << " |" << std::endl;
-        std::cout << "| " << f3(0) << " | " << f3(1) << " | " << f3(2) << " | " << f3(3) << " |" << std::endl;
-        std::cout << "________________________________________" << std::endl;
-        std::cout << " ## End final transform matrix: ## " << std::endl;
+        /*
+        if (mVerbosityLevel >= 7){
+            //finalTransform = scaleTransform->multiply(totalTransform);// (scaleTransform->multiply(transformToMinimum))->multiply(inverseSystemTransform);// totalTransform);
+            finalTransform = addTransformation(totalTransform, scaleTransform);
+            finalTransformMatrix = finalTransform->matrix();
+            Vector4f f0 = finalTransformMatrix.row(0);
+            Vector4f f1 = finalTransformMatrix.row(1);
+            Vector4f f2 = finalTransformMatrix.row(2);
+            Vector4f f3 = finalTransformMatrix.row(3);
+            if (mVerbosityLevel >= 6){
+                //Print final transform matrix
+                std::cout << " ## Final transform matrix: ## " << std::endl;
+                std::cout << "________________________________________" << std::endl;
+                std::cout << "| " << f0(0) << " | " << f0(1) << " | " << f0(2) << " | " << f0(3) << " |" << std::endl;
+                std::cout << "| " << f1(0) << " | " << f1(1) << " | " << f1(2) << " | " << f1(3) << " |" << std::endl;
+                std::cout << "| " << f2(0) << " | " << f2(1) << " | " << f2(2) << " | " << f2(3) << " |" << std::endl;
+                std::cout << "| " << f3(0) << " | " << f3(1) << " | " << f3(2) << " | " << f3(3) << " |" << std::endl;
+                std::cout << "________________________________________" << std::endl;
+                std::cout << " ## End final transform matrix: ## " << std::endl;
+            }
+        }
+        */
     }
     
+        
     AffineTransformation::pointer testTransformation3;
-    AffineTransformation::pointer testTransformationInverse; {
+    AffineTransformation::pointer testTransformationInverse; 
+    if (mVerbosityLevel >= 7){
         //Test frame 10
         //testTransformation3 = SceneGraph::getAffineTransformationFromData(testFrame);
         testTransformation3 = getTransform(testFrame);
@@ -2604,28 +2644,34 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
     // FINAL CALCULATIONS & TEST
     Vector3f size;
     {
-        //finalTransformMatrix/finalTransform
-        //totalTransform/totalMatrix
-        //Vector4f point0f = totalMatrix * Vector4f(0, 0, 0, 1);
-        //Vector4f pointEndf = totalMatrix * Vector4f(280, 400, 0, 1);
-        Vector3f pointZero = totalTransform->multiply(Vector3f(0, 0, 0));
-        Vector3f pointHero = totalTransform->multiply(Vector3f(350, 546, 0));
-        // Init volume of size max - min in each direction x / y / z
+        if (mVerbosityLevel >= 7){
+            //finalTransformMatrix/finalTransform
+            //totalTransform/totalMatrix
+            //Vector4f point0f = totalMatrix * Vector4f(0, 0, 0, 1);
+            //Vector4f pointEndf = totalMatrix * Vector4f(280, 400, 0, 1);
+            //Vector3f pointZero = totalTransform->multiply(Vector3f(0, 0, 0));
+            //Vector3f pointHero = totalTransform->multiply(Vector3f(350, 546, 0));
+            // Init volume of size max - min in each direction x / y / z
+        
+            Vector3f pointVolZero = testTransformationInverse->multiply(Vector3f(0, 0, 0));
+            //Vector3f pointVolHero = testTransformationInverse->multiply(size);
+        }
         size = maxCoords - minCoords;
         volumeSize = Vector3i(ceil(size(0)) + 1, ceil(size(1)) + 1, ceil(size(2)) + 1);
-        Vector3f pointVolZero = testTransformationInverse->multiply(Vector3f(0, 0, 0));
-        Vector3f pointVolHero = testTransformationInverse->multiply(size);
-        std::cout << "Final volumeSize:\n" << volumeSize << std::endl;
-
-        //Calculate DV
-        float zSize = volumeSize.z();
-        int framesTot = frameList.size();
-        float multiplicator = 1.0f;
-        float calcDV = (round(100.0f  * multiplicator * ((zSize-1) / (float)(framesTot))) / 100.0f); //* 0.8f
-        float calcRmax = calcDV * 8.0f * multiplicator;
-        std::cout << "calcDV: " << calcDV << std::endl;
-        std::cout << "calcRmax: " << calcRmax << std::endl;
-        bool good = false;
+        if (mVerbosityLevel >= 5){
+            std::cout << "Final volumeSize:\n" << volumeSize << std::endl;
+        }
+        if (mVerbosityLevel >= 7){
+            //Calculate DV
+            float zSize = volumeSize.z();
+            int framesTot = frameList.size();
+            float multiplicator = 1.0f;
+            float calcDV = (round(100.0f  * multiplicator * ((zSize-1) / (float)(framesTot))) / 100.0f); //* 0.8f
+            float calcRmax = calcDV * 8.0f * multiplicator;
+            std::cout << "calcDV: " << calcDV << std::endl;
+            std::cout << "calcRmax: " << calcRmax << std::endl;
+            bool good = false;
+        }
     }
 
     // CALCULATE VOLUME TRANSFORM
@@ -2638,22 +2684,24 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         //scaling 
         //worldToVolumeTransform = addTransformation(worldToVolumeTransform, transformToMinimum);
 
-        Matrix4f w2vMatrix = worldToVolumeTransform->matrix();
-        Vector4f t0 = w2vMatrix.row(0);
-        Vector4f t1 = w2vMatrix.row(1);
-        Vector4f t2 = w2vMatrix.row(2);
-        Vector4f t3 = w2vMatrix.row(3);
-
+        if (mVerbosityLevel >= 7){
+            Matrix4f w2vMatrix = worldToVolumeTransform->matrix();
+            Vector4f t0 = w2vMatrix.row(0);
+            Vector4f t1 = w2vMatrix.row(1);
+            Vector4f t2 = w2vMatrix.row(2);
+            Vector4f t3 = w2vMatrix.row(3);
+        }
         //Volume loc to world loc
         volumeToWorldTransform = worldToVolumeTransform->getInverse();
 
-        Matrix4f v2wMatrix = volumeToWorldTransform->matrix();
-        Vector4f i0 = v2wMatrix.row(0);
-        Vector4f i1 = v2wMatrix.row(1);
-        Vector4f i2 = v2wMatrix.row(2);
-        Vector4f i3 = v2wMatrix.row(3);
-        bool tFoo = false;
-
+        if (mVerbosityLevel >= 7){
+            Matrix4f v2wMatrix = volumeToWorldTransform->matrix();
+            Vector4f i0 = v2wMatrix.row(0);
+            Vector4f i1 = v2wMatrix.row(1);
+            Vector4f i2 = v2wMatrix.row(2);
+            Vector4f i3 = v2wMatrix.row(3);
+            bool tFoo = false;
+        }
         /*
         //Inverse scaling
         Vector3f invScaling = Vector3f(1.0f, 1.0f, 1.0f);
@@ -2684,6 +2732,7 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         if (mRunType == Us3DRunMode::cpuPNN){
             //if (false && !runAsVNNonly){
             //Init volume to zero values and two components
+            
             std::cout << "Beginning volume zero initialization(" << volumeSize(0) << "-" << volumeSize(1) << "-" << volumeSize(2) << ")." << std::endl;
             volAccess = AccumulationVolume->getImageAccess(accessType::ACCESS_READ_WRITE); //global volAccess ImageAccess::pointer
             //T * inputData = (T*)inputAccess->get();
@@ -2711,8 +2760,6 @@ void Us3Dhybrid::initVolume(Image::pointer rootFrame){
         }
     }
     
-    
-    
     //Init dv (based on input frames/userdefined settings?)
     //TODO
 
@@ -2730,9 +2777,13 @@ void Us3Dhybrid::execute(){
         Image::pointer frame = getStaticInputData<Image>(0);
         
         frameList.push_back(frame);
-        
+        Sleep(1);
         if (!firstFrameSet){
-            std::cout << "Starting loading.." << std::endl;
+            if (mVerbosityLevel >= 5){
+                std::cout << "Starting loading.." << std::endl;
+            }
+            frameList.reserve(1000);
+            Sleep(20);
             firstFrame = frame;
             firstFrameSet = true;
             Vector3f spacingFirst = firstFrame->getSpacing();
@@ -2748,18 +2799,29 @@ void Us3Dhybrid::execute(){
         }
         //mIsModified = true;
         //setStaticOutputData<Image>(0, frame);
+        if (frameList.size() + 10 > frameList.capacity()){
+            frameList.reserve(frameList.size() + 50);
+            std::cout << "Capacity n size " << frameList.capacity() << " " << frameList.size() << std::endl;
+        }
+        /*
         while (frameList.capacity() == frameList.size()){
             Sleep(1); //std::vector needs time to adjust
         }
+        */
+        
     }
     // When we have reached the end of stream we do just from here on
     if (reachedEndOfStream) {
-        std::cout << "Loading completed.." << std::endl;
+        if (mVerbosityLevel >= 5){
+            std::cout << "Loading completed.." << std::endl;
+        }
         //mIsModified = false;
         if (!volumeCalculated){
             if (!volumeInitialized){
-                std::cout << "Nr of frames in frameList:" << frameList.size() << std::endl;
-                std::cout << "INITIALIZING volume" << std::endl;
+                if (mVerbosityLevel >= 6){
+                    std::cout << "Nr of frames in frameList:" << frameList.size() << std::endl;
+                    std::cout << "INITIALIZING volume" << std::endl;
+                }
                 //Init cube with all corners
                 initVolume(firstFrame);
                 //zeroInitVolume();
@@ -2767,7 +2829,9 @@ void Us3Dhybrid::execute(){
                 //Definer dv (oppløsning)
                 //dv = 1; //ev egen function to define DV
                 //outputImg = firstFrame;
+                printSettings();
             }
+            
             if (mRunType == Us3DRunMode::clVNN || mRunType == Us3DRunMode::cpuVNN){
                 //executeVNN();
                 executeVNN2();
@@ -2780,7 +2844,9 @@ void Us3Dhybrid::execute(){
             
             volumeCalculated = true;
             mIsModified = true;
-            std::cout << "Finished!!!" << std::endl;
+            if (mVerbosityLevel >= 7){
+                std::cout << "Finished!!!" << std::endl;
+            }
             printEndStats();
         }
         //setStaticOutputData<Image>(0, outputVolume);        
@@ -2823,11 +2889,15 @@ double Us3Dhybrid::calculateRuntime(int part){
             endTime = algorithmEnded;
             break;
         case 4:
+            startTime = recompileStarted;
+            endTime = recompileEnded;
+            break;
+        case 5:
             //std::cout << "Case 4" << std::endl;
             startTime = algorithmLoopStarted;
             endTime = algorithmLoopEnded;
             break;
-        case 5:
+        case 6:
             //std::cout << "Case 5" << std::endl;
             startTime = normalizationStarted;
             endTime = normalizationEnded;
@@ -2863,6 +2933,9 @@ std::string hundredIntToString(int hundred){
 }
 
 void Us3Dhybrid::printEndStats(){
+    if (mVerbosityLevel <= 1){
+        return;
+    }
     clock_t endTotalTime = clock();
     int nrOfFrames = frameList.size();
     {
@@ -2888,9 +2961,15 @@ void Us3Dhybrid::printEndStats(){
             Vector3i splitMinSecSub = splitSecondsToParts(timeInSecondsLoop);
             std::cout << "Took " << splitMinSecSub.x() << "min " << splitMinSecSub.y() << "." << hundredIntToString(splitMinSecSub.z()) << "sec! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
             //std::cout << "" << std::endl;
-            std::cout << "   # Inner loop: #   ";
+            /*std::cout << "   # Recompile: #   ";
             {
                 double timeInSecondsLoop2 = calculateRuntime(4);
+                Vector3i splitMinSecSub2 = splitSecondsToParts(timeInSecondsLoop2);
+                std::cout << "Took " << splitMinSecSub2.x() << "min " << splitMinSecSub2.y() << "." << hundredIntToString(splitMinSecSub2.z()) << "sec! " << (timeInSecondsLoop2 / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
+            }*/
+            std::cout << "   # Inner loop: #   ";
+            {
+                double timeInSecondsLoop2 = calculateRuntime(5);
                 Vector3i splitMinSecSub2 = splitSecondsToParts(timeInSecondsLoop2);
                 std::cout << "Took " << splitMinSecSub2.x() << "min " << splitMinSecSub2.y() << "." << hundredIntToString(splitMinSecSub2.z()) << "sec! " << (timeInSecondsLoop2 / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
             }
@@ -2898,7 +2977,7 @@ void Us3Dhybrid::printEndStats(){
         }
         std::cout << " ### NORMALIZATION: ### ";
         {
-            double timeInSecondsLoop = calculateRuntime(5);
+            double timeInSecondsLoop = calculateRuntime(6);
             Vector3i splitMinSecSub = splitSecondsToParts(timeInSecondsLoop);
             std::cout << "Took " << splitMinSecSub.x() << "min " << splitMinSecSub.y() << "." << hundredIntToString(splitMinSecSub.z()) << "sec! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame! " << (timeInSecondsLoop / (double)mVolSizeM)*1000.0 << "ms per M voxel!" << std::endl;
             //std::cout << "   " << (timeInSecondsLoop / (double)mVolSizeM)*1000.0 << "ms per M voxel!" << std::endl;
@@ -2936,4 +3015,8 @@ void Us3Dhybrid::printEndStats(){
         */
         std::cout << " ####################################################### " << std::endl;
     }
+}
+
+void Us3Dhybrid::printSettings(){
+
 }

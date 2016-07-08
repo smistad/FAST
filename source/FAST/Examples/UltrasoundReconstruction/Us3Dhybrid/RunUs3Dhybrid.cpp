@@ -22,12 +22,13 @@ std::string to_string_with_precision(const T a_value, const int n = 6)
     return out.str();
 }
 
+std::string breakString = "\n\n";
 void runAlgorithmAndExportImage(
     float setDV, float maxRvalue,
     std::string input_filename, std::string nameformat, std::string output_subfolder, std::string nickname,
     int volSizeM, float initZspacing, int HF_gridSize, bool HF_progressive,
     Us3DRunMode runType, bool hybridWeightGaussian,
-    int startNumber, int stepSize
+    int startNumber, int stepSize, int verbosity
     ){
 
     if (runType == Us3DRunMode::clVNN){// || runType == Us3DRunMode::clPNN){
@@ -80,7 +81,9 @@ void runAlgorithmAndExportImage(
 
         output_filename += _filePath + "VOL_" + runningStyle + volumeSizeMillion + "M_" + nickname;
         output_filename += "(dv" + volumeDV + "_rMax" + volumeRmax + "_z" + volumeZinitSpacing + "_start" + streamStart + "@" + streamStep + ")" + ".mhd";
-        std::cout << "Output filename: " << output_filename << std::endl;
+        if (verbosity >= 7){
+            std::cout << "Output filename: " << output_filename << std::endl;
+        }
     }
 
     Us3Dhybrid::pointer pnnHybrid;
@@ -97,6 +100,7 @@ void runAlgorithmAndExportImage(
         //Priority VNN > PNN > CL > Normal
         pnnHybrid->setRunMode(runType);
         pnnHybrid->setGaussianWeightMode(hybridWeightGaussian);
+        pnnHybrid->setVerbosity(verbosity);
 
         while (!pnnHybrid->hasCalculatedVolume()){
             pnnHybrid->update();
@@ -114,6 +118,8 @@ void runAlgorithmAndExportImage(
         exporter->update();
         std::cout << "Output filename: " << output_filename << std::endl;
     }
+
+    std::cout << breakString;
 }
 
 void runAlgorithmAndExportImage(
@@ -215,11 +221,12 @@ int main() {
     float dvConstant = 2 * 0.15f; //0.2f ev (0.5f/3.0f)~=0.1667..
     float voxelSpacing = 0.2f;// 0.15f; //0.1f; //0.5f; //0.2f; // 0.03 / 0.01 //dv // Større verdi gir mindre oppløsning
     float RmaxMultiplier = 10.0f;
-    int volumeSizeMillions = 32; // 4; // 32;// 256; // 32; // 128;// 256; // 256;// 128;// 256;// 32;// 128;  //crash at 512
+    int volumeSizeMillions = 256; // 4; // 32;// 256; // 32; // 128;// 256; // 256;// 128;// 256;// 32;// 128;  //crash at 512
     int holeFill_gridSize = 5;// 13;
     bool holeFill_progressive = false; //true;
+    int verbosity = 4;
 
-    int runInputSet = 5;// 1; //1/2
+    int runInputSet = 7;// 1; //1/2
     std::string folder = "";
     std::string nameformat = "";
     std::string nickname = "";
@@ -288,6 +295,7 @@ int main() {
     }
     else if (runInputSet == 7){
         folder = "Ultrasound Data Sets 2/072_Tumor_OK.cx3/072_Tumor_OK.cx3/US_Acq/US-Acq_02_19700101T104535/";
+        //nameformat = "US-Acq_02_19700101T104535_ScanConverted_#.mhd"; //corrupt #25..
         nameformat = "US-Acq_02_19700101T104535_Tissue_#.mhd";
         nickname = "set-72_104535";
         initZSpacing = 0.1f;//0.05f;// 1f; //0.2f;
@@ -306,13 +314,13 @@ int main() {
     bool runVNNonly = false;
     bool runCLHybrid = true; //false;
     bool runPNNonly = false;
-    Us3DRunMode runMode = Us3DRunMode::clPNN; // cpuVNN; //clPNN; //cpuVNN; //cpuHybrid; // clHybrid;
+    Us3DRunMode runMode = Us3DRunMode::clHybrid; // cpuVNN; //clPNN; //cpuVNN; //cpuHybrid; // clHybrid;
     bool runHybridWeightGaussian = true;
 
-    bool singleTest = false;//false;
+    bool singleTest = true;//false;
 
     if (!singleTest){
-        std::string testPlace = "testRun1/"; //"test-clHybrid-gaussian/";
+        std::string testPlace = "testRun2/"; //"test-clHybrid-gaussian/";
         float dvStart = 1.0f; // 0.5f; // 0.5f;
         float dvEnd = 1.1f;// 1.0f;
         float calcedDVstep = 0.5f;// calcedDV / 5.0f;
@@ -330,7 +338,7 @@ int main() {
         clock_t startTests = clock();
         int testsIt = 0;
         runMode = Us3DRunMode::clHybrid;
-        for (int i = 0; i < 2; i++){
+        for (int i = 0; i < 2; i++){ //2
             if (i == 0){
                 runHybridWeightGaussian = true; 
             }
@@ -347,7 +355,7 @@ int main() {
                         input_filename, nameformat, testPlace, nickname,
                         volumeSizeMillions, initZSpacing, holeFill_gridSize, holeFill_progressive,
                         runMode, runHybridWeightGaussian,
-                        startNumber, stepSize
+                        startNumber, stepSize, verbosity
                         );
                     testsIt++;
                     /*
@@ -369,7 +377,7 @@ int main() {
                 input_filename, nameformat, testPlace, nickname,
                 volumeSizeMillions, initZSpacing, gridSize, false,
                 Us3DRunMode::clPNN, runHybridWeightGaussian,
-                startNumber, stepSize
+                startNumber, stepSize, verbosity
                 );
             testsIt++;
         }
@@ -379,7 +387,7 @@ int main() {
             input_filename, nameformat, testPlace, nickname,
             volumeSizeMillions, initZSpacing, 3.0f, true,
             Us3DRunMode::clPNN, runHybridWeightGaussian,
-            startNumber, stepSize
+            startNumber, stepSize, verbosity
             );
         testsIt++;
         
@@ -406,7 +414,7 @@ int main() {
             input_filename, nameformat, "", nickname,
             volumeSizeMillions, initZSpacing, holeFill_gridSize, holeFill_progressive,
             runMode, runHybridWeightGaussian,
-            startNumber, stepSize
+            startNumber, stepSize, verbosity
             );
         
     }
