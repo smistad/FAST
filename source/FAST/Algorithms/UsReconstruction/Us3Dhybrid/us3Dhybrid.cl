@@ -6,12 +6,14 @@
 
 __constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
 
+//#
 float dotProd(float3 A, float3 B){
     float sum = 0.0f;
     sum = A.x * B.x + A.y * B.y + A.z * B.z; //TODO check
     return sum;
 }
 
+//#
 float3 transformAffine(float3 point, float16 t){
     float3 transformedPoint = { 0.f, 0.f, 0.f };
     float x = point.x;
@@ -23,7 +25,7 @@ float3 transformAffine(float3 point, float16 t){
     //Last line should be 0,0,0,1 anyway; or test and scale?
     return transformedPoint;
 }
-
+//#
 float getFloat3DirValue(float3 v, int dir){
     if (dir == 0){
         return v.x;
@@ -46,8 +48,8 @@ int getInt3DirValue(int3 v, int dir){
         return v.z;
     }
 }
-//TODO replace all Vector3f as float3? and normal(0) etc with normal.x?
-//TODO Function funker ikke? inline everything?
+
+//#
 float3 getBasePointInPlane(float3 rootPoint, float3 normal, float planeDvalue, int a, int b, int domDir){
     float x, y, z;
     if (domDir == 0){ //domDir: x
@@ -77,6 +79,7 @@ float3 getBasePointInPlane(float3 rootPoint, float3 normal, float planeDvalue, i
     return (float3)(x, y, z);
 }
 
+//#
 float max3(float a, float b, float c){
     float maximum = a;
     if (b > maximum){
@@ -86,12 +89,12 @@ float max3(float a, float b, float c){
     }
     return maximum;
 }
-
+//#
 int max2i(int a, int b){
     if (a > b) { return a; }
     else { return b; }
 }
-
+//#
 int min2i(int a, int b){
     if (a < b) { return a; }
     else { return b; }
@@ -101,18 +104,20 @@ float max2f(float a, float b){
     if (a > b) { return a; }
     else { return b; }
 }
-
+//#
 float min2f(float a, float b){
     if (a < b) { return a; }
     else { return b; }
 }
 
+//#
 float maxCoeff(float3 v){
     float maximum = max3(v.x, v.y, v.z);
     //maximum = max(maximum, v.z);
     return maximum;
 }
 
+//#
 float getDistanceAlongNormal(float3 point, float3 normal, float3 planePoint, float3 planeNormal){
     //Should handle undefined planePoint and planeNormal TODO check
     if (maxCoeff(planeNormal) < 0.0 || maxCoeff(planePoint) < 0.0){ //TODO change?
@@ -139,7 +144,7 @@ float getDistanceAlongNormal(float3 point, float3 normal, float3 planePoint, flo
         return fabs(distance); //TODO make fabs()?
     }
 }
-
+//#
 float calculateHalfWidth(float d1, float d2){//, float dv, float Rmax){
     //float furthestNeighbour = max(d1, d2);
     float maxTotal = max3(d1, d2, DV); //max(furthestNeighbour, DV);
@@ -147,6 +152,7 @@ float calculateHalfWidth(float d1, float d2){//, float dv, float Rmax){
     return results;
 }
 
+//#
 int2 getDomDirRange(float3 basePoint, int domDir, float dfDom){//, int3 volumeSize){
     //getFloatDirValue(float3 v, int dir)
     float rootC = getFloat3DirValue(basePoint, domDir);//basePoint(domDir);
@@ -161,7 +167,7 @@ int2 getDomDirRange(float3 basePoint, int domDir, float dfDom){//, int3 volumeSi
     int2 results = { startC, endC };
     return results;
 }
-
+//#
 int3 getVolumePointLocation(int a, int b, int c, int domDir){
     //int x, y, z;
     int3 result;
@@ -182,7 +188,7 @@ int3 getVolumePointLocation(int a, int b, int c, int domDir){
     }
     return result; //Vector3i(x, y, z);
 }
-
+//#
 bool volumePointOutsideVolume(int3 volumePoint){//, Vector3i volumeSize){
     if (volumePoint.x < 0 || volumePoint.x >= VOL_SIZE_X){
         return true;
@@ -203,7 +209,7 @@ bool volumePointOutsideVolume(int3 volumePoint){//, Vector3i volumeSize){
     }*/
     return false;
 }
-
+//#
 float getPointDistanceAlongNormal(int3 A, float3 B, float3 normal){
     // |(B-A).dot(normal)|
     float3 Af = {(float)A.x, (float)A.y, (float)A.z};
@@ -213,7 +219,7 @@ float getPointDistanceAlongNormal(int3 A, float3 B, float3 normal){
     //float distance = fabs(prod); //fabs((B - A).dot(normal));
     return distance; // IKKE abs-val for now... Needs it further. distance;
 }
-
+//#
 float3 getIntersectionOfPlane(int3 startPoint, float distance, float3 normalVector){
     float3 startPointF = {(float)startPoint.x, (float)startPoint.y, (float)startPoint.z};//float3(startPoint(0), startPoint(1), startPoint(2));
     float3 moveDist = { distance*normalVector.x, distance*normalVector.y, distance*normalVector.z }; //float3(normalVector*distance);
@@ -222,7 +228,7 @@ float3 getIntersectionOfPlane(int3 startPoint, float distance, float3 normalVect
     //TODO add check towards target plane ?? "Project" into target plane?
     return endPoint;
 }
-
+//#
 float3 getLocalIntersectionOfPlane(float3 intersectionPointWorld, float16 imgInvTrans){ 
     //AffineTransformation::pointer frameInverseTransform){
     //Plocal = InverseTransform * Pglobal
@@ -231,7 +237,7 @@ float3 getLocalIntersectionOfPlane(float3 intersectionPointWorld, float16 imgInv
     //float3 intersectionPointLocal = frameInverseTransform->multiply(intersectionPointWorld);
     return intersectionPointLocal;
 }
-//getInt3DirValue
+//#
 bool isWithinFrame(float3 intersectionPointLocal, int2 frameSize){//, float bufferXY, float bufferZ){
     //Ev use untransformed boundingBox?
     if (-BUFFER_Z > intersectionPointLocal.z > BUFFER_Z){ //If z too out of bounds //should not occure? Transformation error?
@@ -256,7 +262,7 @@ bool isWithinFrame(float3 intersectionPointLocal, int2 frameSize){//, float buff
     }
     return inside;
 }
-
+//#
 float getFrameValue(image2d_t frame, int2 pos, int dataType){
     //int2 realPos = pos.xy;
     float p;
@@ -271,7 +277,7 @@ float getFrameValue(image2d_t frame, int2 pos, int dataType){
     }
     return p;
 }
-
+/*
 float getPixelValueData(unsigned char* frameData, float3 point, int2 frameSize, int dataType){ //Vector3f point){
     //Gets frameAccess from Us3Dhybrid class
     float x = point.x;// (0);
@@ -330,7 +336,7 @@ float getPixelValueData(unsigned char* frameData, float3 point, int2 frameSize, 
         /*int locMinMin = (xFloor + yFloor * sizeX) * 3;
         int locMinMax = (xFloor + yCeil * sizeX) * 3;
         int locMaxMin = (xCeil + yFloor * sizeX) * 3;
-        int locMaxMax = (xCeil + yCeil * sizeX) * 3;*/
+        int locMaxMax = (xCeil + yCeil * sizeX) * 3;*
         unsigned char pMinMin = frameData[locMinMin];
         unsigned char pMinMax = frameData[locMinMax];
         unsigned char pMaxMin = frameData[locMaxMin];
@@ -340,7 +346,7 @@ float getPixelValueData(unsigned char* frameData, float3 point, int2 frameSize, 
         float pMinMax = frameAccess->getScalar(Vector3i(xFloor, yCeil, z));
         float pMaxMin = frameAccess->getScalar(Vector3i(xCeil, yFloor, z));
         float pMaxMax = frameAccess->getScalar(Vector3i(xCeil, yCeil, z));
-        */
+        *
         //Calculate horizontal interpolation
         float u = x - xFloor; //float u = point(0) - floor(point(0));
         float pTop = ((float)pMinMin)*(1.0f - u) + ((float)pMaxMin)*u;
@@ -351,7 +357,9 @@ float getPixelValueData(unsigned char* frameData, float3 point, int2 frameSize, 
         return pValue;
     }
 }
+*/
 
+//#
 float getPixelValue(image2d_t frame, float3 point, int2 frameSize, int dataType){
     //Gets frameAccess from Us3Dhybrid class
     float x = point.x;// (0);
@@ -469,6 +477,7 @@ void set3DvolumeValue(image3d_t volume, int3 pos, float value, int component, in
 }
 */ 
 
+/*
 float get3DvolumeVectorValue(__global float * volume, int3 pos, int component){
     //assumes 2 components
     float p = 0.0f;
@@ -518,13 +527,12 @@ void accumulateValuesInVolumeData(__global float * volume, int3 volumePoint, flo
         //or atomic_add (for int/long/uint/ulong) to add addition
         //set3DvolumeVectorValue(volume, volumePoint, newP, 0);// , outputDataType);
         //set3DvolumeVectorValue(volume, volumePoint, newW, 1);// , outputDataType);
-        /**/
         //volAccess->setScalar(volumePoint, newP, 0);
         //volAccess->setScalar(volumePoint, newW, 1);
     }
     ReleaseSemaphor(&semaphor[loc]);
 }
-
+*/
 void accumulateValuesInVolumeUInt(__global unsigned int * volume, int3 volumePoint, float p, float w){
     int locP = (volumePoint.x + volumePoint.y*VOL_SIZE_X + volumePoint.z*VOL_SIZE_XtY) * 2;//VOL_SIZE_X*VOL_SIZE_Y;
     int locW = locP + 1;
@@ -616,14 +624,19 @@ __kernel void accumulateFrameToVolume(
             float p = getPixelValue(frame, intersectionPointLocal, imgSize, dataType); //TODO FIX
             //float w = 1.0f - (absDistance / df); //Or gaussian for trail
             float w;
+            #if USE_GAUSSIAN_WEIGHT
+                w = gaussianK * exp2((-0.5f*absDistance*absDistance) / (df*df));
+            #else
+                w = 1.0f - (absDistance / df);
+            #endif
+            /*
             if (USE_GAUSSIAN_WEIGHT){
                 w = gaussianK * exp2((-0.5f*absDistance*absDistance) / (df*df));
             }
             else{
                 w = 1.0f - (absDistance / df);
-            }
+            }*/
             //float w = 1.0f - ((absDistance*absDistance) / (df*df));
-
             //float w = sqrt((absDistance / df));
             //accumulateValuesInVolumeData(volume, volumePoint, p, w, outputDataType, semaphor); //TODO FIX
             accumulateValuesInVolumeUInt(volume, volumePoint, p, w);

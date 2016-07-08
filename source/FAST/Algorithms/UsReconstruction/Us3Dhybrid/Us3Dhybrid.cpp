@@ -1605,8 +1605,23 @@ void Us3Dhybrid::executeAlgorithm(){
     //unsigned int * volumeAccumulationData = new unsigned int[bufferSize*components];
 
     //int * semaphore = new int[bufferSize];
-    /*
-     for (int i = 0; i < bufferSize; i++){
+    
+
+    cl_mem_flags flags = CL_MEM_READ_WRITE;// | CL_MEM_COPY_HOST_PTR; //CL_MEM_READ_ONLY //CL_MEM_COPY_HOST_PTR, //CL_MEM_ALLOC_HOST_PTR
+    //size_t sizeUI = sizeof(unsigned int)*bufferSize*components;
+    //size_t sizeFLOAT = sizeof(float)*bufferSize*components;
+    size_t fillSize = (sizeof(unsigned int)*bufferSize*components);
+    //mCLVolume = cl::Buffer(clDevice->getContext(), flags, fillSize);// , volumeAccumulationData); //CL_MEM_READ_ONLY //CL_MEM_COPY_HOST_PTR, //CL_MEM_ALLOC_HOST_PTR
+    //cl::Buffer mCLSemaphore = cl::Buffer(clDevice->getContext(), flags, sizeof(int)*bufferSize, semaphore);
+    //cl::enqueueWriteBuffer(mCLVolume, true, cl::NullRange, size_t(sizeof(float)*bufferSize*components), 1.0f, 
+    //clEnqueueFillBuffer //kanskje vi har openCL 1.1???
+    cl::CommandQueue cmdQueue = clDevice->getCommandQueue();
+    #if CL_VERSION_1_2
+    mCLVolume = cl::Buffer(clDevice->getContext(), flags, fillSize);
+    cmdQueue.enqueueFillBuffer<unsigned int>(mCLVolume, 0, (size_t) 0, fillSize);
+    #else
+    unsigned int * volumeAccumulationData = new unsigned int[bufferSize*components];
+    for (int i = 0; i < bufferSize; i++){
         if (mVerbosityLevel >= 6 && i%50000000 == 0)
             std::cout << ".";
         volumeAccumulationData[i] = 0;
@@ -1615,18 +1630,10 @@ void Us3Dhybrid::executeAlgorithm(){
     }
     if (mVerbosityLevel >= 6){
         std::cout << "!" << std::endl;
-    }*/
-
-    cl_mem_flags flags = CL_MEM_READ_WRITE;// | CL_MEM_COPY_HOST_PTR; //CL_MEM_READ_ONLY //CL_MEM_COPY_HOST_PTR, //CL_MEM_ALLOC_HOST_PTR
-    //size_t sizeUI = sizeof(unsigned int)*bufferSize*components;
-    //size_t sizeFLOAT = sizeof(float)*bufferSize*components;
-    mCLVolume = cl::Buffer(clDevice->getContext(), flags, sizeof(unsigned int)*bufferSize*components);// , volumeAccumulationData); //CL_MEM_READ_ONLY //CL_MEM_COPY_HOST_PTR, //CL_MEM_ALLOC_HOST_PTR
-    //cl::Buffer mCLSemaphore = cl::Buffer(clDevice->getContext(), flags, sizeof(int)*bufferSize, semaphore);
-    //cl::enqueueWriteBuffer(mCLVolume, true, cl::NullRange, size_t(sizeof(float)*bufferSize*components), 1.0f, 
-    //clEnqueueFillBuffer //kanskje vi har openCL 1.1???
-    cl::CommandQueue cmdQueue = clDevice->getCommandQueue();
-    size_t fillSize = (sizeof(unsigned int)*bufferSize*components);
-    cmdQueue.enqueueFillBuffer<unsigned int>(mCLVolume, 0, (size_t) 0, fillSize);
+    }
+    mCLVolume = cl::Buffer(clDevice->getContext(), flags, fillSize, volumeAccumulationData);
+    #endif
+    
     /*
     float pattern = 0.0f;
     
@@ -1696,6 +1703,8 @@ void Us3Dhybrid::executeAlgorithm(){
         //For each b in b-dir
         //for (int b = bDirRange(0); b <= bDirRange(1); b++){
         
+        //TODO Can precalc a/b DirRange and float16 transform in InitVolume for reuse in case of Real-time/batch system! TODO
+
         // Define OpenCL variables
         cl_int2 startOffset = { aDirStart, bDirStart };
         
@@ -1755,6 +1764,8 @@ void Us3Dhybrid::executeAlgorithm(){
             );
         cmdQueue.finish();
         //clFinish(cmdQueue);
+        lastNormal = imgNormal;
+        lastRoot = imgRoot;
     }
 
     cmdQueue.finish();
