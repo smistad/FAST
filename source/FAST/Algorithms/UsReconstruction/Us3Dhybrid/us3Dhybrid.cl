@@ -624,11 +624,14 @@ __kernel void accumulateFrameToVolume(
             float p = getPixelValue(frame, intersectionPointLocal, imgSize, dataType); //TODO FIX
             //float w = 1.0f - (absDistance / df); //Or gaussian for trail
             float w;
+            //w = gaussianK * exp2((-0.5f*absDistance*absDistance) / (df*df));
             #if USE_GAUSSIAN_WEIGHT
                 w = gaussianK * exp2((-0.5f*absDistance*absDistance) / (df*df));
             #else
                 w = 1.0f - (absDistance / df);
             #endif
+                
+
             /*
             if (USE_GAUSSIAN_WEIGHT){
                 w = gaussianK * exp2((-0.5f*absDistance*absDistance) / (df*df));

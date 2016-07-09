@@ -30,7 +30,7 @@ std::string RuntimeMeasurement::print() const {
 	} else {
 		buffer << "Total: " << sum << " ms" << std::endl;
 		buffer << "Average: " << sum / samples << " ms" << std::endl;
-		buffer << "Standard deviation: " << "TODO" << " ms" << std::endl; //TODO
+		//buffer << "Standard deviation: " << "TODO" << " ms" << std::endl; //TODO
 		buffer << "Number of samples: " << samples << std::endl;
 	}
 	buffer << "----------------------------------------------------" << std::endl;

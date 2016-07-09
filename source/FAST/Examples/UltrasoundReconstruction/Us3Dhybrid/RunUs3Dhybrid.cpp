@@ -221,12 +221,12 @@ int main() {
     float dvConstant = 2 * 0.15f; //0.2f ev (0.5f/3.0f)~=0.1667..
     float voxelSpacing = 0.2f;// 0.15f; //0.1f; //0.5f; //0.2f; // 0.03 / 0.01 //dv // Større verdi gir mindre oppløsning
     float RmaxMultiplier = 10.0f;
-    int volumeSizeMillions = 256; // 4; // 32;// 256; // 32; // 128;// 256; // 256;// 128;// 256;// 32;// 128;  //crash at 512
+    int volumeSizeMillions = 32; // 4; // 32;// 256; // 32; // 128;// 256; // 256;// 128;// 256;// 32;// 128;  //crash at 512
     int holeFill_gridSize = 5;// 13;
     bool holeFill_progressive = false; //true;
     int verbosity = 4;
 
-    int runInputSet = 7;// 1; //1/2
+    int runInputSet = 4;// 1; //1/2
     std::string folder = "";
     std::string nameformat = "";
     std::string nickname = "";
@@ -320,7 +320,7 @@ int main() {
     bool singleTest = false;//false;
 
     if (!singleTest){
-        std::string testPlace = "testRun2/"; //"test-clHybrid-gaussian/";
+        std::string testPlace = "testRun4/"; //"test-clHybrid-gaussian/";
         float dvStart = 1.0f; // 0.5f; // 0.5f;
         float dvEnd = 1.1f;// 1.0f;
         float calcedDVstep = 0.5f;// calcedDV / 5.0f;
@@ -370,27 +370,28 @@ int main() {
             }
         }
         
-        // RUN PNN tests
-        for (int gridSize = 3; gridSize <= 5; gridSize += 2){
+        if (true){
+            // RUN PNN tests
+            for (int gridSize = 3; gridSize <= 7; gridSize += 2){
+                runAlgorithmAndExportImage(
+                    0.0f, 0.0f,
+                    input_filename, nameformat, testPlace, nickname,
+                    volumeSizeMillions, initZSpacing, gridSize, false,
+                    Us3DRunMode::clPNN, runHybridWeightGaussian,
+                    startNumber, stepSize, verbosity
+                    );
+                testsIt++;
+            }
+            // RUN PNN progressive tests
             runAlgorithmAndExportImage(
                 0.0f, 0.0f,
                 input_filename, nameformat, testPlace, nickname,
-                volumeSizeMillions, initZSpacing, gridSize, false,
+                volumeSizeMillions, initZSpacing, 7, true,
                 Us3DRunMode::clPNN, runHybridWeightGaussian,
                 startNumber, stepSize, verbosity
                 );
             testsIt++;
         }
-        // RUN PNN progressive tests
-        runAlgorithmAndExportImage(
-            0.0f, 0.0f,
-            input_filename, nameformat, testPlace, nickname,
-            volumeSizeMillions, initZSpacing, 3.0f, true,
-            Us3DRunMode::clPNN, runHybridWeightGaussian,
-            startNumber, stepSize, verbosity
-            );
-        testsIt++;
-        
         
         clock_t endTests = clock();
         clock_t clockTicksTakenLoop = endTests - startTests;

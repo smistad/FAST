@@ -75,21 +75,21 @@ void Us3Dhybrid::setHFgridSize(int gridSize){
     HF_gridSize = gridSize; // 5;// 3;// 5; //TODO setter?
     HF_halfWidth = (HF_gridSize - 1) / 2;
     int halfWidthX2 = HF_halfWidth * 2;
-    int localMemSizeMax = 1024; // times 4bytes per float 
+    int localMemSizeMax = 1024; //=work group size (check Geeks3D Gpu caps viewer)// times 4bytes per float 
     HF_localSize = Vector3i(16, 8, 8); //(16,4,2)@5 //(16,4,4)@3 //+HWx2 på hver akse skal være under 4kb, dvs 1024 med float /2048 m short / 4096 m char
     int it = 0;
     int localMemSize = (HF_localSize.x() + halfWidthX2) * (HF_localSize.y() + halfWidthX2) * (HF_localSize.z() + halfWidthX2);
-    while (localMemSize > localMemSizeMax){
-        if (HF_localSize.y() > 1){//it < 5){
-            if ((it % 2) == 0){
-                HF_localSize.z() = HF_localSize.z() - 1; /// 2; //
+    while (localMemSize > localMemSizeMax){       
+        if (HF_localSize.y() > 1 && it != 10){ // && !(HF_localSize.y()==2 && HF_localSize.z()==2)
+            if ((it % 2) == 0 || (it > 10) && (it%2) == 1){
+                HF_localSize.z() = HF_localSize.z() - 1;// / 2; //
             }
             else{
-                HF_localSize.y() = HF_localSize.y() - 1; /// 2; //- 1;
+                HF_localSize.y() = HF_localSize.y() - 1;// / 2; //- 1;
             }
         }
         else {
-            HF_localSize.x() = HF_localSize.x() -1;
+            HF_localSize.x() = HF_localSize.x() / 2;// -1;
         }
         it++;
         localMemSize = (HF_localSize.x() + halfWidthX2) * (HF_localSize.y() + halfWidthX2) * (HF_localSize.z() + halfWidthX2);
@@ -153,6 +153,7 @@ Us3Dhybrid::Us3Dhybrid(){
     createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/UsReconstruction/Us3Dhybrid/us3Dpnn.cl", "us3Dpnn");
     //--// store different compiled for settings (dimension/variables...)
     createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/UsReconstruction/Us3Dhybrid/normalizeVolume.cl", "normalizeVolume");
+    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/UsReconstruction/Us3Dhybrid/normalizePnnVolume.cl", "normalizePnnVol");
 
     mIsModified = true; // needed?
     mOutputTypeSet = false;
@@ -822,6 +823,8 @@ void Us3Dhybrid::executeCLFramePNN(Image::pointer frame, int frameNr, OpenCLDevi
     mKernelPNN.setArg(7, imgSize);// thisFrameSize); //Vector3i //CAN be defined in buildString MAYBE if all same size
     mKernelPNN.setArg(8, imgTrans);// thisFrameInverseTransform->matrix()); // AffineTransformation::pointer? store as something else?
 
+    cmdQueue.finish();
+    mRuntimeManager->startRegularTimer("clPNNFrame");
     cmdQueue.enqueueNDRangeKernel(
         mKernelPNN,
         cl::NullRange,
@@ -829,6 +832,7 @@ void Us3Dhybrid::executeCLFramePNN(Image::pointer frame, int frameNr, OpenCLDevi
         cl::NullRange
         );
     cmdQueue.finish();
+    mRuntimeManager->stopRegularTimer("clPNNFrame");
 }
 
 float Us3Dhybrid::findDistToPlane(Vector3i pos, int frameNr, float closestDist, bool noFrameCheck){
@@ -1462,6 +1466,7 @@ void Us3Dhybrid::recompileAlgorithmOpenCLCode(){
     }
     //cl::Program programUs3Dhybrid = getOpenCLProgram(device, "us3Dhybrid", buildOptions);
     
+
     if (mRunType == Us3DRunMode::clHybrid){
         cl::Program programUs3Dhybrid = getOpenCLProgram(device, "us3Dhybrid", buildOptions);
         mKernel = cl::Kernel(programUs3Dhybrid, "accumulateFrameToVolume");
@@ -1471,6 +1476,7 @@ void Us3Dhybrid::recompileAlgorithmOpenCLCode(){
     if (mRunType == Us3DRunMode::clPNN){
         cl::Program programUs3Dpnn = getOpenCLProgram(device, "us3Dpnn", buildOptions);
         mKernelPNN = cl::Kernel(programUs3Dpnn, "addPNNFrame");
+        //cl::Program programNormalizeHF = getOpenCLProgram(device, "normalizePnnVol", buildOptions);
         mKernelHfNorm = cl::Kernel(programUs3Dpnn, "normalizeHoleFillVolume");
     }
     
@@ -1651,14 +1657,7 @@ void Us3Dhybrid::executeAlgorithm(){
     algorithmLoopStarted = clock();
     int nrOfFrames = frameList.size();
     //Predefinables
-    Vector3f lastFrameRootPoint, lastFrameNormal, nextFrameRootPoint, nextFrameNormal;
-    cl_float3 lastNormal = { lastFrameNormal(0), lastFrameNormal(1), lastFrameNormal(2) };
-    cl_float3 lastRoot = { lastFrameRootPoint(0), lastFrameRootPoint(1), lastFrameRootPoint(2) };
-    nextFrameRootPoint = frameBaseCornerList[0];
-    nextFrameNormal = framePlaneNormalList[0];
-    cl_float3 nextNormal = { nextFrameNormal(0), nextFrameNormal(1), nextFrameNormal(2) };
-    cl_float3 nextRoot = { nextFrameRootPoint(0), nextFrameRootPoint(1), nextFrameRootPoint(2) };
-    cl_int3 volSize = { volumeSize(0), volumeSize(1), volumeSize(2) };
+    cl_int3 volSize = { volumeSize(0), volumeSize(1), volumeSize(2) }; //send med in case of real-time? istedefor def
 
     for (int frameNr = 0; frameNr < nrOfFrames; frameNr++){
         // Get FRAME
@@ -1677,7 +1676,7 @@ void Us3Dhybrid::executeAlgorithm(){
         Vector3ui thisFrameSize = frame->getSize();
         float thisFramePlaneDvalue = framePlaneDValueList[frameNr];
         AffineTransformation::pointer thisFrameInverseTransform = frameInverseTransformList[frameNr];
-        /*
+        
         Vector3f lastFrameRootPoint, lastFrameNormal, nextFrameRootPoint, nextFrameNormal;
         if (frameNr != 0){
             lastFrameRootPoint = frameBaseCornerList[frameNr - 1];
@@ -1687,7 +1686,7 @@ void Us3Dhybrid::executeAlgorithm(){
             nextFrameRootPoint = frameBaseCornerList[frameNr + 1];
             nextFrameNormal = framePlaneNormalList[frameNr + 1];
         }
-        */
+        
         // Get frame access
         OpenCLImageAccess::pointer clFrameAccess = frame->getOpenCLImageAccess(ACCESS_READ, clDevice);
 
@@ -1708,15 +1707,12 @@ void Us3Dhybrid::executeAlgorithm(){
         // Define OpenCL variables
         cl_int2 startOffset = { aDirStart, bDirStart };
         
-        cl_float3 imgNormal = nextNormal;// { imagePlaneNormal(0), imagePlaneNormal(1), imagePlaneNormal(2) };
-        cl_float3 imgRoot = nextRoot; // { thisFrameRootPoint(0), thisFrameRootPoint(1), thisFrameRootPoint(2) };
-
-        if (frameNr != frameList.size() - 1){
-            nextFrameRootPoint = frameBaseCornerList[frameNr + 1];
-            nextFrameNormal = framePlaneNormalList[frameNr + 1];
-        }
+        cl_float3 lastNormal = { lastFrameNormal(0), lastFrameNormal(1), lastFrameNormal(2) };
+        cl_float3 lastRoot = { lastFrameRootPoint(0), lastFrameRootPoint(1), lastFrameRootPoint(2) };
         cl_float3 nextNormal = { nextFrameNormal(0), nextFrameNormal(1), nextFrameNormal(2) };
         cl_float3 nextRoot = { nextFrameRootPoint(0), nextFrameRootPoint(1), nextFrameRootPoint(2) };
+        cl_float3 imgNormal = { imagePlaneNormal(0), imagePlaneNormal(1), imagePlaneNormal(2) };
+        cl_float3 imgRoot = { thisFrameRootPoint(0), thisFrameRootPoint(1), thisFrameRootPoint(2) };
         
         cl_int2 imgSize = { thisFrameSize(0), thisFrameSize(1) };// int2 imgSize,
         
@@ -1756,16 +1752,19 @@ void Us3Dhybrid::executeAlgorithm(){
         //CAN define bufferXY or bufferZ in buildString
         //mKernel.setArg(15, mCLSemaphore);
 
+        cmdQueue.finish();
+        mRuntimeManager->startRegularTimer("clHybridFrame");
+        //mRuntimeManager->startCLTimer("clHybridFrameCL", cmdQueue);
         cmdQueue.enqueueNDRangeKernel(
             mKernel,
             workOffset,
             globalSize,
             cl::NullRange
             );
+        //mRuntimeManager->stopCLTimer("clHybridFrameCL", cmdQueue);
         cmdQueue.finish();
-        //clFinish(cmdQueue);
-        lastNormal = imgNormal;
-        lastRoot = imgRoot;
+        mRuntimeManager->stopRegularTimer("clHybridFrame");
+        
     }
 
     cmdQueue.finish();
@@ -2254,7 +2253,7 @@ void Us3Dhybrid::generateOutputVolumeWithHoleFilling(ExecutionDevice::pointer de
     }
 
     //generateOutputVolume(device);
-
+    bool useLocalStorage = true;
     OpenCLDevice::pointer clDevice = device;
 
     int localWidth = HF_localSize(0);
@@ -2263,20 +2262,25 @@ void Us3Dhybrid::generateOutputVolumeWithHoleFilling(ExecutionDevice::pointer de
     int globalWidth = volumeSize(0);
     int globalHeight = volumeSize(1);
     int globalDepth = volumeSize(2);
-    {
-       // globalWidth = globalWidth + localWidth - (globalWidth % localWidth);
-        //globalHeight = globalHeight + +localHeight - (globalHeight % localHeight);
-        //globalDepth = globalDepth + localDepth - (globalDepth % localDepth);
+    if (useLocalStorage){
+        globalWidth = globalWidth + localWidth - (globalWidth % localWidth);
+        globalHeight = globalHeight + +localHeight - (globalHeight % localHeight);
+        globalDepth = globalDepth + localDepth - (globalDepth % localDepth);
     }
     cl::NDRange globalSize = cl::NDRange(globalWidth, globalHeight, globalDepth); //Må være multiple av localSize
-    cl::NDRange localSize = cl::NullRange;// cl::NDRange(localWidth, localHeight, localDepth);
-    int localMemSize = HF_localMemSize(0) * HF_localMemSize(1) * HF_localMemSize(2) * sizeof(cl_float); // HF_localMemSize(0) * HF_localMemSize(1) *HF_localMemSize(2);
+    cl::NDRange localSize = cl::NullRange;
+    if (useLocalStorage){
+        localSize = cl::NDRange(localWidth, localHeight, localDepth);
+    }
+    size_t localMemSize = HF_localMemSize(0) * HF_localMemSize(1) * HF_localMemSize(2) * sizeof(cl_float); // HF_localMemSize(0) * HF_localMemSize(1) *HF_localMemSize(2);
     OpenCLImageAccess::pointer outputAccess = outputVolume->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
 
     //mCLVolume er cl::Buffer av unsigned int * 
     mKernelHfNorm.setArg(0, *outputAccess->get3DImage());
     mKernelHfNorm.setArg(1, mCLVolume);//*inputAccess->get3DImage());
-    //mKernelHfNorm.setArg(2, localMemSize, NULL);
+    if (useLocalStorage){
+        mKernelHfNorm.setArg(2, localMemSize, NULL);
+    }
 
     cl::CommandQueue cmdQueue = clDevice->getCommandQueue();
     cmdQueue.finish(); //Make sure it is complete with previous work
@@ -2812,6 +2816,7 @@ void Us3Dhybrid::execute(){
             }
             frameList.reserve(1000);
             Sleep(10);
+            mRuntimeManager->enable();
             firstFrame = frame;
             firstFrameSet = true;
             Vector3f spacingFirst = firstFrame->getSpacing();
@@ -3062,6 +3067,19 @@ void Us3Dhybrid::printEndStats(){
         std::cout << "That is " << minutesInLoop << "minutes and " << secondsInMinute << "seconds" << std::endl;
         std::cout << "Spent " << (timeInSecondsLoop / nrOfFrames) << "sec per frame!" << std::endl;
         */
+        if (mRunType == Us3DRunMode::clHybrid){
+            std::cout << mRuntimeManager->isEnabled() << std::endl;
+            mRuntimeManager->printAll();
+            //mRuntimeManager->print("clHybridFrame");
+            //mRuntimeManager->print("clHybridFrameCL");
+            //getRuntime("clHybridFrame")->print();
+        }
+        else if (mRunType = Us3DRunMode::clPNN){
+            //this->
+            mRuntimeManager->printAll();
+            //mRuntimeManager->print("clHybridFrame");
+        }
+        
         std::cout << " ####################################################### " << std::endl;
     }
 }
