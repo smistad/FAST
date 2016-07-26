@@ -623,8 +623,8 @@ Get distance from point worldPoint to plane neighFrame along the imagePlaneNorma
 */
 float Us3Dhybrid::getDistanceAlongNormal(Vector3f point, Vector3f normal, Vector3f planePoint, Vector3f planeNormal){
     //Should handle undefined planePoint and planeNormal TODO check
-    if (planePoint.maxCoeff() < 0.0 || planePoint.maxCoeff() < 0.0){ // != nan){// .isZero() .hasNaN() .isEmpty() || planeNormal.isEmpty()){
-        return 0.0f;
+    if (planePoint.maxCoeff() < 0.0 || planeNormal.maxCoeff() < 0.0){ // != nan){// .isZero() .hasNaN() .isEmpty() || planeNormal.isEmpty()){
+        return 0.0f; //changed second part to planeNormal.maxCoeff() instead of planePoint double check
     }
     //P0 = planePoint
     //L0 = point in world
@@ -745,13 +745,13 @@ void Us3Dhybrid::executeFramePNN(Image::pointer frame){
     uint width = frame->getWidth();
     uint height = frame->getHeight();
     frameAccess = frame->getImageAccess(ACCESS_READ);
+    AffineTransformation::pointer imgTransform = getTransform(frame);
     //float* frameValues = (float*) frameAccess->get();
     //uint nrOfComponents = frame->getNrOfComponents();
     for (uint x = 0; x < width; x++){
         for (uint y = 0; y < height; y++){
             Vector3f pos = Vector3f(x, y, 0);
             //AffineTransformation::pointer imgTransform = SceneGraph::getAffineTransformationFromData(frame);
-            AffineTransformation::pointer imgTransform = getTransform(frame);
             Vector3f worldPos = imgTransform->multiply(pos);
             Vector3i worldPosDiscrete = Vector3i(round(worldPos(0)), round(worldPos(1)), round(worldPos(2)));
             if (volumePointOutsideVolume(worldPosDiscrete, volumeSize)){
