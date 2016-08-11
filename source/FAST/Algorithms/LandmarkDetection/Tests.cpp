@@ -31,13 +31,18 @@ TEST_CASE("Landmark detection", "[fast][LandmarkDetection]") {
 
 TEST_CASE("Landmark detection stream", "[fast][LandmarkDetection][dynamic]") {
 	ImageFileStreamer::pointer importer = ImageFileStreamer::New();
-	//importer->setFilenameFormat("/home/smistad/AssistantTestData/0/US-Acq_01_20150608T102019/Acquisition/US-Acq_01_20150608T102019_Image_Transducer_#.mhd");
-	//importer->setFilenameFormat("/home/smistad/AssistantTestData/2/US-Acq_01_20150608T104544/Acquisition/US-Acq_01_20150608T104544_Image_Transducer_#.mhd");
-	importer->setFilenameFormat("/home/smistad/AssistantTestData/4/US-Acq_01_20150608T112522/Acquisition/US-Acq_01_20150608T112522_Image_Transducer_#.mhd");
-	importer->setSleepTime(100);
 	LandmarkDetection::pointer detector = LandmarkDetection::New();
+	//importer->setFilenameFormat("/home/smistad/AssistantTestData/0/US-Acq_01_20150608T102019/Acquisition/US-Acq_01_20150608T102019_Image_Transducer_#.mhd");
+	//importer->setFilenameFormat("/home/smistad/AssistantTestData/1/US-Acq_01_20150608T103428/Acquisition/US-Acq_01_20150608T103428_Image_Transducer_#.mhd");
+	//importer->setFilenameFormat("/home/smistad/AssistantTestData/2/US-Acq_01_20150608T104544/Acquisition/US-Acq_01_20150608T104544_Image_Transducer_#.mhd");
+	//importer->setFilenameFormat("/home/smistad/AssistantTestData/2/US-Acq_02_20150608T104623/Acquisition/US-Acq_02_20150608T104623_Image_Transducer_#.mhd");
+	//importer->setFilenameFormat("/home/smistad/AssistantTestData/4/US-Acq_01_20150608T112522/Acquisition/US-Acq_01_20150608T112522_Image_Transducer_#.mhd");
+	importer->setFilenameFormat("/home/smistad/AssistantTestData/1/2016-08-09-right/US-2D_#.mhd");
+	//importer->setFilenameFormat("/home/smistad/AssistantTestData/1/2016-08-09-left/US-2D_#.mhd");
+	//detector->setMirrorImage(true); // Set this to true for left side images
+	importer->setSleepTime(75);
 	detector->setInputConnection(importer->getOutputPort());
-	detector->loadModel("/home/smistad/Dropbox/Notebooks/Model based segmentation/training/net_deploy.prototxt", "/home/smistad/snapshots/_iter_1000.caffemodel");
+	detector->loadModel("/home/smistad/workspace/DNN-AM/femoral_appearance_model_net/net_deploy.prototxt", "/home/smistad/snapshots/_iter_1000.caffemodel");
 
 	PointRenderer::pointer pointRenderer = PointRenderer::New();
 	pointRenderer->setInputConnection(detector->getOutputPort());
@@ -49,8 +54,9 @@ TEST_CASE("Landmark detection stream", "[fast][LandmarkDetection][dynamic]") {
 	window->addRenderer(imageRenderer);
 	window->addRenderer(pointRenderer);
 	window->set2DMode();
-	window->setWidth(1024);
-	window->setHeight(1024);
+	//window->enableFullscreen();
+	window->setWidth(1920);
+	window->setHeight(1080);
 	window->start();
 
 }

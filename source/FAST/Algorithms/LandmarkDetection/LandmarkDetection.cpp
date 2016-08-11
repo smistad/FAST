@@ -10,6 +10,11 @@ LandmarkDetection::LandmarkDetection() {
 	createOutputPort<PointSet>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
 	createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/LandmarkDetection/LandmarkDetection.cl");
 	mModelLoaded = false;
+	mMirrorImage = false;
+}
+
+void LandmarkDetection::setMirrorImage(bool mirrorImage) {
+	mMirrorImage = mirrorImage;
 }
 
 // Get all available GPU devices
@@ -70,9 +75,12 @@ void LandmarkDetection::execute() {
 	cl::Program program = getOpenCLProgram(device);
 	cl::Kernel normalizationKernel(program, "imageNormalization");
 
+	// The size of the input layer is the target size
+	// However, we want to preserve the aspect ratio, and cut the bottom or add zeros if it is too large or small
 	// Resize, put preserve aspect ratio
 	float scale = (float)input_layer->width() / image->getWidth();
 	int height = round(scale*image->getHeight());
+	reportInfo() << "Target size: " << input_layer->width() << " " << input_layer->height() << reportEnd();
 
 	// Resize image to fit input layer
 	ImageResizer::pointer resizer = ImageResizer::New();
@@ -81,6 +89,7 @@ void LandmarkDetection::execute() {
 	resizer->setInputData(image);
 	resizer->update();
 	Image::pointer resizedImage = resizer->getOutputData<Image>();
+	// The pre processed image is of the target size, and is also normalized
 	Image::pointer preProcessedImage = Image::New();
 	preProcessedImage->create(input_layer->width(), input_layer->height(), TYPE_FLOAT, 1);
 	{
@@ -106,8 +115,15 @@ void LandmarkDetection::execute() {
 	float* pixels = (float*)access->get();
 	Vector3ui size = preProcessedImage->getSize();
 	// In a 4D blob, the value at index (0, 0, h, w) is physically located at index (h) * W + w., which is y*width + x, same as FAST
-	for(int i = 0; i < size.x()*size.y(); ++i) {
-		input_data[i] = pixels[i];
+	if(mMirrorImage) {
+		for(int y = 0; y < size.y(); ++y) {
+		for(int x = 0; x < size.x(); ++x) {
+			input_data[x + y*size.x()] = pixels[(size.x() - x - 1) + y*size.x()];
+		}}
+	} else {
+		for(int i = 0; i < size.x()*size.y(); ++i) {
+			input_data[i] = pixels[i];
+		}
 	}
 
 	// Do a forward pass
@@ -126,7 +142,9 @@ void LandmarkDetection::execute() {
 
 	for(int i = 0; i < result.size(); i += 2) {
 		// Convert from normalized coordinates
-		Vector3f landmark(result[i]*height + width/2.0f, result[i+1]*height + width/2.0f, 0);
+		if(mMirrorImage)
+			result[i] *= -1;
+		Vector3f landmark((result[i]*height + width*0.5f), (result[i+1]*height + width*0.5f), 0);
 		// Convert to mm
 		landmark.x() *= image->getSpacing().x();
 		landmark.y() *= image->getSpacing().y();

@@ -13,6 +13,7 @@ class LandmarkDetection : public ProcessObject {
 				std::string modelFile,
 				std::string weightsFile
 		);
+		void setMirrorImage(bool mirrorImage);
 	private:
 		LandmarkDetection();
 		void execute();
@@ -20,6 +21,7 @@ class LandmarkDetection : public ProcessObject {
 		SharedPointer<caffe::Net<float> > mNet;
 		caffe::Blob<float> mMeanBlob;
 		bool mModelLoaded;
+		bool mMirrorImage;
 
 };
 

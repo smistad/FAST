@@ -1,8 +1,8 @@
 __constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_NONE | CLK_FILTER_NEAREST;
 
 __kernel void imageNormalization(
-	__read_only image2d_t input,
-	__write_only image2d_t output
+	__read_only image2d_t input, // input has size target_width, input_height
+	__write_only image2d_t output // output has size target_width, target_height
 	) {
 	
 	const int2 pos = {get_global_id(0), get_global_id(1)};
@@ -10,6 +10,7 @@ __kernel void imageNormalization(
 	const int target_height = get_image_height(output);
 
 	if(pos.y < get_image_height(input)) {
+		// If current y pos is small than input height, use input pixel, because we are inside image
 		float value;
 		if(dataType == CLK_FLOAT) {
 			value = read_imagef(input, sampler, pos).x;
@@ -20,7 +21,9 @@ __kernel void imageNormalization(
 		}	
 		
 		write_imagef(output, pos, value / 255);
-	} else {
+	} else { 
+		// If current y pos is larger than input height, set 0, because we are outside image
+		// This means that target_height > input_height
 		write_imagef(output, pos, 0);
 	}	
 
