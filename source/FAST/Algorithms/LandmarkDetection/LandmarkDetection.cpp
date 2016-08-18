@@ -2,12 +2,14 @@
 #include "FAST/Data/Image.hpp"
 #include "FAST/Data/PointSet.hpp"
 #include "FAST/Algorithms/ImageResizer/ImageResizer.hpp"
+#include "FAST/Data/Mesh.hpp"
+#include <boost/algorithm/string.hpp>
 
 namespace fast {
 
 LandmarkDetection::LandmarkDetection() {
 	createInputPort<Image>(0);
-	createOutputPort<PointSet>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+	createOutputPort<Mesh>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
 	createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/LandmarkDetection/LandmarkDetection.cl");
 	mModelLoaded = false;
 	mMirrorImage = false;
@@ -26,7 +28,7 @@ static void get_gpus(std::vector<int>* gpus) {
     }
 }
 
-void LandmarkDetection::loadModel(std::string modelFile, std::string trainingFile) {
+void LandmarkDetection::loadModel(std::string modelFile, std::string trainingFile, std::string objectsFile) {
 	std::vector<int> gpus;
 	get_gpus(&gpus);
 	if (gpus.size() != 0) {
@@ -51,6 +53,47 @@ void LandmarkDetection::loadModel(std::string modelFile, std::string trainingFil
 	if(mNet->num_outputs() != 1) {
 		throw Exception("Number of outputs was not 1");
 	}
+
+	reportInfo() << "Loading objects file.." << reportEnd();
+	mOutputMesh = Mesh::New();
+	std::vector<MeshVertex> vertices;
+	std::vector<VectorXui> connections;
+
+	std::ifstream file(objectsFile);
+	int vertexCount = 0;
+	while(!file.eof()) {
+		std::string line;
+		std::getline(file, line);
+
+		std::vector<std::string> tokens;
+		boost::split(tokens, line, boost::is_any_of(" "));
+
+		if(tokens[0] == "object") {
+			int objectLabel = std::stoi(tokens[1]);
+			int nrOfVertices = std::stoi(tokens[2]);
+			int nrOfLines = std::stoi(tokens[3]);
+
+			// Create vertices
+			for(int i = 0; i < nrOfVertices; ++i) {
+				MeshVertex vertex(Vector2f::Zero());
+				vertex.setLabel(objectLabel);
+				vertices.push_back(vertex);
+			}
+
+			// Get lines
+			for(int i = 0; i < nrOfLines; ++i) {
+				std::getline(file, line);
+				std::vector<std::string> indices;
+				boost::split(indices, line, boost::is_any_of(" "));
+				Vector2ui connection(vertexCount + std::stoi(indices[0]), vertexCount + std::stoi(indices[1]));
+				connections.push_back(connection);
+			}
+			vertexCount += nrOfVertices;
+		}
+	}
+
+	mOutputMesh->create(vertices, connections);
+	reportInfo() << "Finished loading objects file." << reportEnd();
 
 	mModelLoaded = true;
 }
@@ -136,23 +179,27 @@ void LandmarkDetection::execute() {
 	std::vector<float> result(begin, end);
 	//if(mLabels.size() != result.size())
 	//	throw Exception("The number of labels did not match the number of predictions.");
-	std::vector<Vector3f> points;
 	float width = image->getWidth();
 	height = image->getHeight();
 
+	MeshAccess::pointer meshAccess = mOutputMesh->getMeshAccess(ACCESS_READ_WRITE);
+	int j = 0;
 	for(int i = 0; i < result.size(); i += 2) {
 		// Convert from normalized coordinates
 		if(mMirrorImage)
 			result[i] *= -1;
-		Vector3f landmark((result[i]*height + width*0.5f), (result[i+1]*height + width*0.5f), 0);
+		Vector2f landmark((result[i]*height + width*0.5f), (result[i+1]*height + width*0.5f));
 		// Convert to mm
 		landmark.x() *= image->getSpacing().x();
 		landmark.y() *= image->getSpacing().y();
-		points.push_back(landmark);
+
+		MeshVertex vertex = meshAccess->getVertex(j);
+		vertex.setPosition(landmark);
+		meshAccess->setVertex(j, vertex);
+		j++;
 	}
 
-	PointSet::pointer output = getStaticOutputData<PointSet>();
-	output->create(points);
+	setStaticOutputData<Mesh>(0, mOutputMesh);
 
 }
 

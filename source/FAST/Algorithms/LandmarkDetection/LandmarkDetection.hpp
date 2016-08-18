@@ -6,12 +6,15 @@
 
 namespace fast {
 
+class Mesh;
+
 class LandmarkDetection : public ProcessObject {
 	FAST_OBJECT(LandmarkDetection)
 	public:
 		void loadModel(
 				std::string modelFile,
-				std::string weightsFile
+				std::string weightsFile,
+				std::string objectsFile
 		);
 		void setMirrorImage(bool mirrorImage);
 	private:
@@ -22,6 +25,8 @@ class LandmarkDetection : public ProcessObject {
 		caffe::Blob<float> mMeanBlob;
 		bool mModelLoaded;
 		bool mMirrorImage;
+
+		SharedPointer<Mesh> mOutputMesh;
 
 };
 

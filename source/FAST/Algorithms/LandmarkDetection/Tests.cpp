@@ -1,7 +1,7 @@
 #include "FAST/Testing.hpp"
 #include "LandmarkDetection.hpp"
 #include "FAST/Importers/ImageFileImporter.hpp"
-#include "FAST/Visualization/PointRenderer/PointRenderer.hpp"
+#include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 #include "FAST/Streamers/ImageFileStreamer.hpp"
@@ -13,17 +13,17 @@ TEST_CASE("Landmark detection", "[fast][LandmarkDetection]") {
 	importer->setFilename("/home/smistad/Dropbox/Notebooks/Model based segmentation/datasets/2/3/US-2D_250.png");
 	LandmarkDetection::pointer detector = LandmarkDetection::New();
 	detector->setInputConnection(importer->getOutputPort());
-	detector->loadModel("/home/smistad/Dropbox/Notebooks/Model based segmentation/training/net_deploy.prototxt", "/home/smistad/snapshots/_iter_1000.caffemodel");
+	detector->loadModel("/home/smistad/Dropbox/Notebooks/Model based segmentation/training/net_deploy.prototxt", "/home/smistad/snapshots/_iter_1000.caffemodel", "/home/smistad/workspace/DNN-AM/objects.txt");
 
-	PointRenderer::pointer pointRenderer = PointRenderer::New();
-	pointRenderer->setInputConnection(detector->getOutputPort());
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->setInputConnection(detector->getOutputPort());
 
 	ImageRenderer::pointer imageRenderer = ImageRenderer::New();
 	imageRenderer->setInputConnection(importer->getOutputPort());
 
 	SimpleWindow::pointer window = SimpleWindow::New();
 	window->addRenderer(imageRenderer);
-	window->addRenderer(pointRenderer);
+	window->addRenderer(meshRenderer);
 	window->set2DMode();
 	window->start();
 
@@ -42,17 +42,17 @@ TEST_CASE("Landmark detection stream", "[fast][LandmarkDetection][dynamic]") {
 	//detector->setMirrorImage(true); // Set this to true for left side images
 	importer->setSleepTime(75);
 	detector->setInputConnection(importer->getOutputPort());
-	detector->loadModel("/home/smistad/workspace/DNN-AM/femoral_appearance_model_net/net_deploy.prototxt", "/home/smistad/snapshots/_iter_1000.caffemodel");
+	detector->loadModel("/home/smistad/workspace/DNN-AM/femoral_appearance_model_net/net_deploy.prototxt", "/home/smistad/snapshots/_iter_1000.caffemodel", "/home/smistad/workspace/DNN-AM/objects.txt");
 
-	PointRenderer::pointer pointRenderer = PointRenderer::New();
-	pointRenderer->setInputConnection(detector->getOutputPort());
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->setInputConnection(detector->getOutputPort());
 
 	ImageRenderer::pointer imageRenderer = ImageRenderer::New();
 	imageRenderer->setInputConnection(importer->getOutputPort());
 
 	SimpleWindow::pointer window = SimpleWindow::New();
 	window->addRenderer(imageRenderer);
-	window->addRenderer(pointRenderer);
+	window->addRenderer(meshRenderer);
 	window->set2DMode();
 	//window->enableFullscreen();
 	window->setWidth(1920);
