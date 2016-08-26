@@ -234,7 +234,7 @@ int main() {
     bool holeFill_progressive = false; //true;
     int verbosity = 4;
 
-    int runInputSet = 0;// 1; //1/2
+    int runInputSet = 7;// 1; //1/2
     std::string folder = "";
     std::string nameformat = "";
     std::string nickname = "";
@@ -256,7 +256,7 @@ int main() {
         dvConstant = 1.0f; // 0.30f; //0.5f
         RmaxMultiplier = 15.0f; // 8.0f;// 45.0f;// 25.0f;// 10.0f;
     }
-    else if (runInputSet == 2){
+    else if (runInputSet == 2){ //NOT usable??
         folder = "Ultrasound Data Sets 2/084_Tumor_OK.cx3/084_Tumor_OK.cx3/US_Acq/US-Acq_02_19700101T102827/";
         nameformat = "US-Acq_02_19700101T102827_Tissue_#.mhd";
         nickname = "set-84_102827";

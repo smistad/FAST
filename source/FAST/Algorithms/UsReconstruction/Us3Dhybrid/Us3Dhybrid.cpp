@@ -2011,6 +2011,7 @@ void Us3Dhybrid::executeAlphaAlgorithm(){
         std::cout << " ####################################################### " << std::endl;
     }
     algorithmEnded = clock();
+    normalizationEnded = clock();
 }
 
 // CPU algoritme
