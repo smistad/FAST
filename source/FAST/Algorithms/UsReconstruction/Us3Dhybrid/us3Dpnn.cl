@@ -154,18 +154,23 @@ __kernel void normalizeHoleFillVolume(
     const int z = get_local_id(2);
 
     //LOCAL OFFSET?
-    if (xG >= VOL_SIZE_X || yG >= VOL_SIZE_Y || zG >= VOL_SIZE_Z){
-        return;
-    }
+    
     int locGlobal = (xG + yG*VOL_SIZE_X + zG*VOL_SIZE_XtY); //Component later
     //float voxelValue = 0.0f; // readAndNormalize(volume, locGlobal, 0.0f);
     float voxelValue = readAndNormalize(volume, locGlobal, -1.0f);
 
-    for (int addX = 0; (x + addX) < LSIZE_MEM_X && (xG + addX) < VOL_SIZE_X; addX += LSIZE_X){
-        for (int addY = 0; (y + addY) < LSIZE_MEM_Y && (yG + addY) < VOL_SIZE_Y; addY += LSIZE_Y){
-            for (int addZ = 0; (z + addZ) < LSIZE_MEM_Z && (zG + addZ) < VOL_SIZE_Z; addZ += LSIZE_Z){
-                int locGlobal = ((xG + addX) + (yG + addY)*VOL_SIZE_X + (zG + addZ)*VOL_SIZE_XtY);
-                float val = readAndNormalize(volume, locGlobal, -1.0f);
+    for (int addX = 0; (x + addX) < LSIZE_MEM_X; addX += LSIZE_X){ // && (xG + addX) < VOL_SIZE_X
+        for (int addY = 0; (y + addY) < LSIZE_MEM_Y; addY += LSIZE_Y){ // && (yG + addY) < VOL_SIZE_Y
+            for (int addZ = 0; (z + addZ) < LSIZE_MEM_Z; addZ += LSIZE_Z){ // && (zG + addZ) < VOL_SIZE_Z
+                float val = -1.0f;// 0.0f;
+                if (((xG + addX - HALF_WIDTH) < 0) || ((yG + addY - HALF_WIDTH) < 0) || ((zG + addZ - HALF_WIDTH) < 0) ||
+                    ((xG + addX - HALF_WIDTH) >= VOL_SIZE_X) || ((yG + addY - HALF_WIDTH) >= VOL_SIZE_Y) || ((zG + addZ - HALF_WIDTH) >= VOL_SIZE_Z)){
+                    //continue; //What should happen then??
+                }
+                else {
+                    int locGlobal = ((xG + addX - HALF_WIDTH) + (yG + addY - HALF_WIDTH)*VOL_SIZE_X + (zG + addZ - HALF_WIDTH)*VOL_SIZE_XtY);
+                    val = readAndNormalize(volume, locGlobal, -1.0f);
+                }
                 setLocalValue(sharedMem, (x + addX), (y + addY), (z + addZ), val);
             }
         }
@@ -269,35 +274,48 @@ __kernel void normalizeHoleFillVolume(
 
     }
     */
-    int locLocal = (x + y*LSIZE_MEM_X + z*LSIZE_MEM_XtY);
+
+    if (xG >= VOL_SIZE_X || yG >= VOL_SIZE_Y || zG >= VOL_SIZE_Z){
+        return;
+    }
+
+    int xOut = x + HALF_WIDTH;
+    int yOut = y + HALF_WIDTH;
+    int zOut = z + HALF_WIDTH;
+
+    int locLocal = (xOut + yOut*LSIZE_MEM_X + zOut*LSIZE_MEM_XtY);
     voxelValue = sharedMem[locLocal];
-    if (voxelValue < -0.5f){//true){
+    //if (voxelValue < -0.5f){
+    //    voxelValue = 0.0f;
+    //}false &&
+    if ( voxelValue < -0.5f){//true){
         //MEMBLOCK //REALLY IMPORTANT ONE
         //barrier(CLK_LOCAL_MEM_FENCE);
         //All data is read to local, perform calculation
 
         float accumulationValue = 0.0f;
         int counter = 0;
+
         
         #if PROGRESSIVE_PNN
             //int HW_boost = 0;
             //int halfWidth = 0;
             int HW_prog = 0;
-            while ((counter == 0) && HW_prog <= HALF_WIDTH){
+            while ((counter == 0) && HW_prog < HALF_WIDTH){
                 HW_prog++;
             //while ((counter == 0) && (PROGRESSIVE_PNN || (HW_boost == 0)) && (HW_boost < 3)){
                 //int minX = xG - HALF_WIDTH - HW_boost; //or max this and 0? or sampler handles it?
-                int minX = max2i((x - HW_prog), 0); //x; //or max this and 0? or sampler handles it?
+                int minX = xOut - HW_prog; // max2i((x - HW_prog), 0); //x; //or max this and 0? or sampler handles it?
                 //int minY = yG - HALF_WIDTH - HW_boost;
-                int minY = max2i((y - HW_prog), 0); //yG - HALF_WIDTH - HW_boost; //y;
+                int minY = yOut - HW_prog; // max2i((y - HW_prog), 0); //yG - HALF_WIDTH - HW_boost; //y;
                 //int minZ = zG - HALF_WIDTH - HW_boost;
-                int minZ = max2i((z - HW_prog), 0); //zG - HALF_WIDTH - HW_boost; //z;
-                int maxX = x + HW_prog;
-                maxX = min2i(maxX, ((int)VOL_SIZE_X - 1));
-                int maxY = y + HW_prog;
-                maxY = min2i(maxY, ((int)VOL_SIZE_Y - 1)); // minY + HALF_WIDTH_X2 + (2 * HW_boost);
-                int maxZ = z + HW_prog;
-                maxZ = min2i(maxZ, ((int)VOL_SIZE_Z - 1)); //minZ + HALF_WIDTH_X2 + (2 * HW_boost);
+                int minZ = zOut - HW_prog; // max2i((z - HW_prog), 0); //zG - HALF_WIDTH - HW_boost; //z;
+                int maxX = xOut + HW_prog; // min2i((xOut + HW_prog), ((int)VOL_SIZE_X - 1));
+                //maxX = 
+                int maxY = yOut + HW_prog; // min2i((yOut + HW_prog), ((int)VOL_SIZE_Y - 1));
+                // yOut + HW_prog; maxY = min2i(maxY, ((int)VOL_SIZE_Y - 1)); // minY + HALF_WIDTH_X2 + (2 * HW_boost);
+                int maxZ = zOut + HW_prog; // min2i((zOut + HW_prog), ((int)VOL_SIZE_Z - 1));
+                //zOut + HW_prog; maxZ = min2i(maxZ, ((int)VOL_SIZE_Z - 1)); //minZ + HALF_WIDTH_X2 + (2 * HW_boost);
 
                 //Can restructure to avoid overlap!
                 //  Starts at 0 HW and adds up to HALF_WIDTH(max) ie. 0,1,2,3 for GridSize 7
@@ -305,7 +323,7 @@ __kernel void normalizeHoleFillVolume(
                 for (int xi = minX; xi <= maxX; xi++){
                     for (int yi = minY; yi <= maxY; yi++){
                         for (int zi = minZ; zi <= maxZ; zi++){
-                            if (xi == x && yi == y && zi == z){ continue; }
+                            if (xi == xOut && yi == yOut && zi == zOut){ continue; }
                             int loc = (xi + yi*LSIZE_MEM_X + zi*LSIZE_MEM_XtY);
                             float locValue = sharedMem[loc];
                             //int loc = (xi + yi*VOL_SIZE_X + zi*VOL_SIZE_XtY);
@@ -320,20 +338,20 @@ __kernel void normalizeHoleFillVolume(
                 //HW_boost++;
             }
         #else
-            int minX = max2i((x - HALF_WIDTH), 0); 
-            int minY = max2i((y - HALF_WIDTH), 0);
-            int minZ = max2i((z - HALF_WIDTH), 0);
-            int maxX = min2i(x + HALF_WIDTH, ((int)VOL_SIZE_X - 1));
-            int maxY = min2i(y + HALF_WIDTH, ((int)VOL_SIZE_Y - 1));
-            int maxZ = min2i(z + HALF_WIDTH, ((int)VOL_SIZE_Z - 1));
+            int minX = x; //max2i((x - HALF_WIDTH), 0); 
+            int minY = y; // max2i((y - HALF_WIDTH), 0);
+            int minZ = z; // max2i((z - HALF_WIDTH), 0);
+            int maxX = x + HALF_WIDTH_X2;// min2i(x + HALF_WIDTH_X2, ((int)VOL_SIZE_X - 1));// min2i(x + HALF_WIDTH, ((int)VOL_SIZE_X - 1));
+            int maxY = y + HALF_WIDTH_X2;// min2i(y + HALF_WIDTH_X2, ((int)VOL_SIZE_Y - 1));// min2i(y + HALF_WIDTH, ((int)VOL_SIZE_Y - 1));
+            int maxZ = z + HALF_WIDTH_X2;// min2i(z + HALF_WIDTH_X2, ((int)VOL_SIZE_Z - 1));// min2i(z + HALF_WIDTH, ((int)VOL_SIZE_Z - 1));
             for (int xi = minX; xi <= maxX; xi++){
                 for (int yi = minY; yi <= maxY; yi++){
                     for (int zi = minZ; zi <= maxZ; zi++){
-                        if (xi == x && yi == y && zi == z){ continue; }
+                        if (xi == xOut && yi == yOut && zi == zOut){ continue; }
                         int loc = (xi + yi*LSIZE_MEM_X + zi*LSIZE_MEM_XtY);
                         float locValue = sharedMem[loc];
                         if (locValue >= -0.5f){ //ev > -0.5? for inaccuracy?
-                            accumulationValue += locValue;
+                            accumulationValue += locValue; //3*
                             counter++;
                         }
                     }
