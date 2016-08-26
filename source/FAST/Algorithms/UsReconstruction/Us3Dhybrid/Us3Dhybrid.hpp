@@ -13,7 +13,9 @@ namespace fast {
         clVNN = 2,
         cpuVNN = 3,
         clPNN = 4,
-        cpuPNN = 5
+        cpuPNN = 5,
+        alphaCLHybrid = 6,
+        alphaCLPNN = 7
     };
 
     class Us3Dhybrid : public ProcessObject {
@@ -49,6 +51,7 @@ namespace fast {
 
         // Core functions
         void executeAlgorithm();
+        void executeAlphaAlgorithm();
         void executeAlgorithmOnHost();
         void executeFramePNN(Image::pointer frame);
         void executeCLFramePNN(Image::pointer frame, int frameNr, OpenCLDevice::pointer clDevice,

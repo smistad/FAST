@@ -649,8 +649,138 @@ __kernel void accumulateFrameToVolume(
     
 }
 
-/*
-__kernel void inc(global int * num){
-atom_inc(&num[0]);
-}
-*/
+//Alpha blending with Semaphores
+    void GetSemaphor(__global int * semaphor) {
+        int occupied = atom_xchg(semaphor, 1);
+        while (occupied > 0)
+        {
+            occupied = atom_xchg(semaphor, 1);
+        }
+    }
+
+    void ReleaseSemaphor(__global int * semaphor)
+    {
+        int prevVal = atom_xchg(semaphor, 0);
+    }
+
+    unsigned int alphaBlendValuesInVolumeUInt(__global float * volume, int3 volumePoint, float p, float w, __global int * semaphor){
+        int loc = volumePoint.x + volumePoint.y*VOL_SIZE_X + volumePoint.z*VOL_SIZE_XtY;//VOL_SIZE_X*VOL_SIZE_Y;
+        unsigned int updatedP = 0;
+        GetSemaphor(&semaphor[loc]);
+        {
+            int loc2 = loc * 2;
+            float oldP = volume[loc2];
+            float oldW = volume[loc2 + 1];
+
+            float newW = oldW + w;
+            float alpha = w / newW;
+            float newP = oldP*(1 - alpha) + p*alpha;
+            updatedP = round(newP);
+            //if (oldP < 0.0f) oldP = 0.0f;
+            //if (oldW < 0.0f) oldW = 0.0f;
+            //float newP = oldP + p*w;
+            //float newW = oldW + w;
+            volume[loc2] = newP;
+            volume[loc2 + 1] = newW;  //ev bruk int og atomic increment (atom_inc)
+        }
+        ReleaseSemaphor(&semaphor[loc]);
+        return updatedP;
+    }
+
+    float setVolumeValue(image2d_t frame, int2 pos, int dataType){
+        //int2 realPos = pos.xy;
+        float p;
+        if (dataType == CLK_FLOAT) {
+            p = read_imagef(frame, sampler, pos).x;
+        }
+        else if (dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+            p = read_imageui(frame, sampler, pos).x;
+        }
+        else {
+            p = read_imagei(frame, sampler, pos).x;
+        }
+        return p;
+    }
+
+    __kernel void alphaBlendFrameToVolume( //Requires work group of 1! (?)
+        __read_only image2d_t frame,
+        __global float* volume,
+        __private const int domDir,
+        __private const float domVal,
+        __private const float3 imgNormal,
+        __private const float3 imgRoot,
+        __private const float imgPlaneDvalue,
+        __private const int2 imgSize,
+        __private const float3 lastNormal,
+        __private const float3 lastRoot,
+        __private const float3 nextNormal,
+        __private const float3 nextRoot,
+        __private const float16 imgInvTrans,
+        __global int* semaphor,
+        __write_only image3d_t outputVolume
+        ){
+        //mKernel.setArg(13, mCLSemaphore);
+       // mKernel.setArg(14, outputAccess->get3DImage());
+        const int a = get_global_id(0);// +startOffset.x;
+        const int b = get_global_id(1);// +startOffset.y;
+        int dataType = get_image_channel_data_type(frame);
+
+        //Find basePoint in the plane based on the a and b values
+        float3 basePoint = getBasePointInPlane(imgRoot, imgNormal, imgPlaneDvalue, a, b, domDir);
+        //TODO determine if reasonably close to plane? Elimination/speedup (use inverseTrans)
+        //Find distance to last and next frame
+        float d1 = getDistanceAlongNormal(basePoint, imgNormal, lastRoot, lastNormal); //TODO check if correct
+        float d2 = getDistanceAlongNormal(basePoint, imgNormal, nextRoot, nextNormal);
+        //Calculate half width df and dfDom
+        float df = calculateHalfWidth(d1, d2);// , dv, Rmax);
+        float dfDom = df / domVal;
+
+        float gaussianK = 1.0f / (df*SQRT_2_PI);
+
+        //Indeks for c-dir range in domDir
+        int2 cDirRange = getDomDirRange(basePoint, domDir, dfDom);// , volumeSize);
+        //For hver c i c-dir
+        for (int c = cDirRange.x; c <= cDirRange.y; c++){
+            int3 volumePoint = getVolumePointLocation(a, b, c, domDir);
+            if (volumePointOutsideVolume(volumePoint)){ //, volumeSize)){
+                continue;
+            }
+            float distance = getPointDistanceAlongNormal(volumePoint, basePoint, imgNormal);
+            float absDistance = fabs(distance);
+            if (absDistance > df){
+                continue;
+            }
+            float3 intersectionPointWorld = getIntersectionOfPlane(volumePoint, distance, imgNormal);
+            float3 intersectionPointLocal = getLocalIntersectionOfPlane(intersectionPointWorld, imgInvTrans);
+            if (isWithinFrame(intersectionPointLocal, imgSize)){//, 0.5f, 0.5f)){
+                //float p = 256.0f;// getPixelValue(frame, intersectionPointLocal, imgSize, dataType); //TODO FIX
+                //float w = 1.0f;// 1 - (fabs(distance) / df); //Or gaussian for trail
+                float p = getPixelValue(frame, intersectionPointLocal, imgSize, dataType); //TODO FIX
+                //float w = 1.0f - (absDistance / df); //Or gaussian for trail
+                float w;
+                //w = gaussianK * exp2((-0.5f*absDistance*absDistance) / (df*df));
+                #if USE_GAUSSIAN_WEIGHT
+                    w = gaussianK * exp2((-0.5f*absDistance*absDistance) / (df*df));
+                #else
+                    w = 1.0f - (absDistance / df);
+                #endif
+                //accumulateValuesInVolumeUInt(volume, volumePoint, p, w);
+                uint updatedP = alphaBlendValuesInVolumeUInt(volume, volumePoint, p, w, semaphor);
+                int4 pos = { volumePoint.x, volumePoint.y, volumePoint.z, 0 };
+                write_imageui(outputVolume, pos, updatedP);
+                //output->setScalar(volumePoint, updatedP, 0);
+                /*int outputDataType = get_image_channel_data_type(outputVolume);
+                if (outputDataType == CLK_FLOAT) {
+                    write_imagef(outputVolume, volumePoint, value);
+                }
+                else if (outputDataType == CLK_UNSIGNED_INT8 || outputDataType == CLK_UNSIGNED_INT16) {
+                    write_imageui(outputVolume, volumePoint, round(value)); //div
+                }
+                else {
+                    write_imagei(outputVolume, volumePoint, round(value));
+                }*/
+            }
+
+        }
+
+    }

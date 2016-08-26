@@ -1355,7 +1355,7 @@ void Us3Dhybrid::recompileAlgorithmOpenCLCode(){
     std::cout << "maskSize " << maskSize << std::endl;
     */
 
-    if (mRunType == Us3DRunMode::clHybrid){
+    if (mRunType == Us3DRunMode::clHybrid || mRunType == Us3DRunMode::alphaCLHybrid){
         buildOptions += " -D DV=";
         buildOptions += std::to_string(dv);
         //std::cout << " -D DV=" << dv << std::endl;
@@ -1479,6 +1479,10 @@ void Us3Dhybrid::recompileAlgorithmOpenCLCode(){
         //cl::Program programNormalizeHF = getOpenCLProgram(device, "normalizePnnVol", buildOptions);
         mKernelHfNorm = cl::Kernel(programUs3Dpnn, "normalizeHoleFillVolume");
     }
+    if (mRunType == Us3DRunMode::alphaCLHybrid){
+        cl::Program programUs3Dhybrid = getOpenCLProgram(device, "us3Dhybrid", buildOptions);
+        mKernel = cl::Kernel(programUs3Dhybrid, "alphaBlendFrameToVolume");
+    }
     
 
     //mDimensionCLCodeCompiledFor = AccumulationVolume->getDimensions();
@@ -1580,10 +1584,14 @@ void Us3Dhybrid::executeAlgorithm(){
         std::cout << "Running algorithm with " << voxelCount / 1000000 << "M voxel output volume!" << std::endl;
     }
     ExecutionDevice::pointer device = getMainDevice();
-    if ((mRunType != Us3DRunMode::clHybrid && mRunType != Us3DRunMode::clPNN) || device->isHost()) { //!runCLhybrid
+    if ((mRunType != Us3DRunMode::clHybrid && mRunType != Us3DRunMode::clPNN && mRunType != Us3DRunMode::alphaCLHybrid) || device->isHost()) { //!runCLhybrid
         std::cout << "Executing on host" << std::endl;
         executeAlgorithmOnHost(); // Run on CPU instead
         algorithmEnded = clock();
+        return;
+    }
+    else if (mRunType == Us3DRunMode::alphaCLHybrid){
+        executeAlphaAlgorithm();
         return;
     }
     if (false){
@@ -1769,6 +1777,213 @@ void Us3Dhybrid::executeAlgorithm(){
 
     cmdQueue.finish();
 
+    algorithmLoopEnded = clock();
+    if (false && mVerbosityLevel >= 7){
+        //std::cout << " ####################################################### " << std::endl;
+        //std::cout << "" << std::endl;
+
+        clock_t clockTicksTakenLoop = algorithmLoopEnded - algorithmLoopStarted;
+        double timeInSecondsLoop = clockTicksTakenLoop / (double)CLOCKS_PER_SEC;
+        int minutesInLoop = timeInSecondsLoop / 60;
+        int secondsInMinute = ((int)timeInSecondsLoop) % 60;
+        std::cout << "Algorithm main loop spent in total " << clockTicksTakenLoop << " clock ticks and " << timeInSecondsLoop << " seconds!" << std::endl;
+        std::cout << "That is " << minutesInLoop << "minutes and " << secondsInMinute << "sec! " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
+        //std::cout << "Spent " << (timeInSecondsLoop / nrOfFrames)*1000.0 << "ms per frame!" << std::endl;
+        //std::cout << "" << std::endl;
+        std::cout << " ####################################################### " << std::endl;
+    }
+    algorithmEnded = clock();
+}
+
+void Us3Dhybrid::executeAlphaAlgorithm(){
+    algorithmStarted = clock();
+    if (mVerbosityLevel >= 4){
+        int voxelCount = volumeSize(0)*volumeSize(1)*volumeSize(2);
+        std::cout << "Running ALPHA algorithm with " << voxelCount / 1000000 << "M voxel output volume!" << std::endl;
+    }
+    ExecutionDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer clDevice = device;
+    /*
+    cl::Context clContext = clDevice->getContext();
+    cl::Platform clPlatform = clDevice->getPlatform();
+    cl_int err;
+    clPlatform.getInfo(&err);
+    //clDevice->isImageFormatSupported(??)
+    */
+    // TODO Fix a kernel and so on
+    setOutputType(firstFrame->getDataType());
+    clock_t startCLinitTime = clock();
+    recompileAlgorithmOpenCLCode();
+    //OpenCLImageAccess::pointer clVolAccess = AccumulationVolume->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
+    //if (!volAccess)
+    //    volAccess = AccumulationVolume->getImageAccess(ACCESS_READ_WRITE);
+    //float * volumeData = (float*)volAccess->get();
+    int bufferSize = volumeSize(0)*volumeSize(1)*volumeSize(2);
+    int components = 2;
+    //unsigned int * volumeAccumulationData = new unsigned int[bufferSize*components];
+
+    //int * semaphore = new int[bufferSize];
+
+
+    cl_mem_flags flags = CL_MEM_READ_WRITE;// | CL_MEM_COPY_HOST_PTR; //CL_MEM_READ_ONLY //CL_MEM_COPY_HOST_PTR, //CL_MEM_ALLOC_HOST_PTR
+    //size_t sizeUI = sizeof(unsigned int)*bufferSize*components;
+    //size_t sizeFLOAT = sizeof(float)*bufferSize*components;
+    size_t fillSize = (sizeof(float)*bufferSize*components);
+    //mCLVolume = cl::Buffer(clDevice->getContext(), flags, fillSize);// , volumeAccumulationData); //CL_MEM_READ_ONLY //CL_MEM_COPY_HOST_PTR, //CL_MEM_ALLOC_HOST_PTR
+    //cl::Buffer mCLSemaphore = cl::Buffer(clDevice->getContext(), flags, sizeof(int)*bufferSize, semaphore);
+    //cl::enqueueWriteBuffer(mCLVolume, true, cl::NullRange, size_t(sizeof(float)*bufferSize*components), 1.0f, 
+    //clEnqueueFillBuffer //kanskje vi har openCL 1.1???
+    cl::CommandQueue cmdQueue = clDevice->getCommandQueue();
+#if CL_VERSION_1_2
+    mCLVolume = cl::Buffer(clDevice->getContext(), flags, fillSize);
+    cmdQueue.enqueueFillBuffer<float>(mCLVolume, 0.0f, (size_t)0, fillSize);
+
+    size_t semSize = (sizeof(int)*bufferSize);
+    cl::Buffer mCLSemaphore = cl::Buffer(clDevice->getContext(), flags, semSize);
+    cmdQueue.enqueueFillBuffer<int>(mCLSemaphore, 0, (size_t)0, semSize);
+
+#else
+    unsigned int * volumeAccumulationData = new float[bufferSize*components];
+    int * semaphore = new int[bufferSize];
+    for (int i = 0; i < bufferSize; i++){
+        if (mVerbosityLevel >= 6 && i % 50000000 == 0)
+            std::cout << ".";
+        volumeAccumulationData[i] = 0.0f;
+        volumeAccumulationData[bufferSize + i] = 0.0f;
+        semaphore[i] = 0;
+    }
+    if (mVerbosityLevel >= 6){
+        std::cout << "!" << std::endl;
+    }
+    mCLVolume = cl::Buffer(clDevice->getContext(), flags, fillSize, volumeAccumulationData);
+    cl::Buffer mCLSemaphore = cl::Buffer(clDevice->getContext(), flags, semSize, semaphore);
+#endif
+
+    cmdQueue.finish();
+
+    //Initilize output volume
+    initOutputVolume(device);
+    OpenCLImageAccess::pointer outputAccess = outputVolume->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+
+    if (mVerbosityLevel >= 6){
+        std::cout << " ### Running " << frameList.size() << " frames on GPU! ### " << std::endl;
+    }
+    algorithmLoopStarted = clock();
+    int nrOfFrames = frameList.size();
+    //Predefinables
+    cl_int3 volSize = { volumeSize(0), volumeSize(1), volumeSize(2) }; //send med in case of real-time? istedefor def
+
+    for (int frameNr = 0; frameNr < nrOfFrames; frameNr++){
+        // Get FRAME
+        //std::cout << "Running for frame #" << frameNr << std::endl;
+        Image::pointer frame = frameList[frameNr];
+        if (mRunType == Us3DRunMode::clPNN){ //alphaPNN?
+            executeCLFramePNN(frame, frameNr, clDevice, cmdQueue);
+            continue;
+        }
+        // Calc imagePlaneNormal and dominating direction of it
+        Vector3f imagePlaneNormal = framePlaneNormalList[frameNr]; //getImagePlaneNormal(frame);
+        int domDir = getDominatingVectorDirection(imagePlaneNormal);
+        float domVal = fabs(imagePlaneNormal(domDir));
+        // Get current, last and next plane
+        Vector3f thisFrameRootPoint = frameBaseCornerList[frameNr];
+        Vector3ui thisFrameSize = frame->getSize();
+        float thisFramePlaneDvalue = framePlaneDValueList[frameNr];
+        AffineTransformation::pointer thisFrameInverseTransform = frameInverseTransformList[frameNr];
+
+        Vector3f lastFrameRootPoint, lastFrameNormal, nextFrameRootPoint, nextFrameNormal;
+        if (frameNr != 0){
+            lastFrameRootPoint = frameBaseCornerList[frameNr - 1];
+            lastFrameNormal = framePlaneNormalList[frameNr - 1];
+        }
+        if (frameNr != frameList.size() - 1){
+            nextFrameRootPoint = frameBaseCornerList[frameNr + 1];
+            nextFrameNormal = framePlaneNormalList[frameNr + 1];
+        }
+
+        // Get frame access
+        OpenCLImageAccess::pointer clFrameAccess = frame->getOpenCLImageAccess(ACCESS_READ, clDevice);
+
+        // Find size of non-dominating directions in volume space (a-dir & b-dir)
+        Vector2i aDirRange = getFrameRangeInVolume(frameNr, domDir, 0); //a: 0
+        Vector2i bDirRange = getFrameRangeInVolume(frameNr, domDir, 1); //b: 1
+        int aDirStart = aDirRange(0);
+        int bDirStart = bDirRange(0);
+        int aDirSize = aDirRange(1) - aDirRange(0) + 1; //mod by -1 or +1 elns? Tror det er +1
+        int bDirSize = bDirRange(1) - bDirRange(0) + 1; //mod by -1 or +1 elns?
+        //For each a in a-dir
+        //for (int a = aDirRange(0); a <= aDirRange(1); a++){
+        //For each b in b-dir
+        //for (int b = bDirRange(0); b <= bDirRange(1); b++){
+
+        //TODO Can precalc a/b DirRange and float16 transform in InitVolume for reuse in case of Real-time/batch system! TODO
+
+        // Define OpenCL variables
+        cl_int2 startOffset = { aDirStart, bDirStart };
+
+        cl_float3 lastNormal = { lastFrameNormal(0), lastFrameNormal(1), lastFrameNormal(2) };
+        cl_float3 lastRoot = { lastFrameRootPoint(0), lastFrameRootPoint(1), lastFrameRootPoint(2) };
+        cl_float3 nextNormal = { nextFrameNormal(0), nextFrameNormal(1), nextFrameNormal(2) };
+        cl_float3 nextRoot = { nextFrameRootPoint(0), nextFrameRootPoint(1), nextFrameRootPoint(2) };
+        cl_float3 imgNormal = { imagePlaneNormal(0), imagePlaneNormal(1), imagePlaneNormal(2) };
+        cl_float3 imgRoot = { thisFrameRootPoint(0), thisFrameRootPoint(1), thisFrameRootPoint(2) };
+
+        cl_int2 imgSize = { thisFrameSize(0), thisFrameSize(1) };// int2 imgSize,
+
+        //store inverseAffineTransformation?
+        //thisFrameInverseTransform->matrix()
+        cl_float16 imgInvTrans = transform4x4tofloat16(thisFrameInverseTransform);
+        //cl_int outputDataType = AccumulationVolume->getDataType();
+        //cl::Buffer mCLMask; ??
+        /*mCLMask = cl::Buffer(
+        clDevice->getContext(),
+        CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+        sizeof(float)*bufferSize,
+        mMask
+        );
+        */
+        cl::NDRange globalSize = cl::NDRange(aDirSize, bDirSize);
+        cl::NDRange workOffset = cl::NDRange(aDirStart, bDirStart); // ev. cl::NullRange
+
+        mKernel.setArg(0, *clFrameAccess->get2DImage());
+        mKernel.setArg(1, mCLVolume);// *clVolAccess->get3DImage());
+        //mKernel.setArg(2, dv); //CAN be defined in buildString
+        //mKernel.setArg(3, Rmax); //CAN be defined in buildString
+        mKernel.setArg(2, domDir);
+        mKernel.setArg(3, domVal);
+        //mKernel.setArg(6, volSize);// volumeSize); //Vector3i? to int3? //CAN be defined in buildString
+        mKernel.setArg(4, imgNormal);// imagePlaneNormal); //Vector3f
+        mKernel.setArg(5, imgRoot);// thisFrameRootPoint); //Vector3f
+        mKernel.setArg(6, thisFramePlaneDvalue);
+        mKernel.setArg(7, imgSize);// thisFrameSize); //Vector3i //CAN be defined in buildString MAYBE if all same size
+        mKernel.setArg(8, lastNormal);// lastFrameNormal); //Vector3f
+        mKernel.setArg(9, lastRoot);// lastFrameRootPoint); //Vector3f
+        mKernel.setArg(10, nextNormal);// nextFrameNormal); //Vector3f
+        mKernel.setArg(11, nextRoot);// nextFrameRootPoint); //Vector3f
+        mKernel.setArg(12, imgInvTrans);// thisFrameInverseTransform->matrix()); // AffineTransformation::pointer? store as something else?
+        //mKernel.setArg(13, startOffset);
+        //mKernel.setArg(14, outputDataType); // should be int like CLK_FLOAT
+        //CAN define bufferXY or bufferZ in buildString
+        mKernel.setArg(13, mCLSemaphore);
+        mKernel.setArg(14, *outputAccess->get3DImage());
+
+        cmdQueue.finish();
+        mRuntimeManager->startRegularTimer("clHybridFrame");
+        //mRuntimeManager->startCLTimer("clHybridFrameCL", cmdQueue);
+        cmdQueue.enqueueNDRangeKernel(
+            mKernel,
+            workOffset,
+            globalSize,
+            cl::NullRange
+            );
+        //mRuntimeManager->stopCLTimer("clHybridFrameCL", cmdQueue);
+        cmdQueue.finish();
+        mRuntimeManager->stopRegularTimer("clHybridFrame");
+
+    }
+
+    cmdQueue.finish();
+    outputAccess->release();
     algorithmLoopEnded = clock();
     if (false && mVerbosityLevel >= 7){
         //std::cout << " ####################################################### " << std::endl;
@@ -2014,7 +2229,7 @@ void Us3Dhybrid::initOutputVolume(ExecutionDevice::pointer device){
     outputVolume = getStaticOutputData<Image>(0);
     DataType outputType = firstFrame->getDataType();
     
-    if ((mRunType == Us3DRunMode::clHybrid || mRunType == Us3DRunMode::clHybrid) && !device->isHost()) {
+    if ((mRunType == Us3DRunMode::clHybrid || mRunType == Us3DRunMode::clPNN) && !device->isHost()) {
         outputType = TYPE_UINT8;
     }
 
@@ -2873,7 +3088,9 @@ void Us3Dhybrid::execute(){
             else {
                 //if (!runAsVNNonly){
                 executeAlgorithm();
-                generateOutputVolume(); //Alternatively just fetch slices
+                if (mRunType != Us3DRunMode::alphaCLHybrid){
+                    generateOutputVolume(); //Alternatively just fetch slices
+                }
             }
             
             volumeCalculated = true;

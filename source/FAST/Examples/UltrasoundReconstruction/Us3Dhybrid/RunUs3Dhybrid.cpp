@@ -74,6 +74,14 @@ void runAlgorithmAndExportImage(
             runningStyle += volumeHFgridSize+"_PNN-CL_";
             if (HF_progressive){ runningStyle += "prog_";  }
             break;
+        case Us3DRunMode::alphaCLHybrid:
+            runningStyle += volumeHFgridSize + "_alphaCL_";
+            if (hybridWeightGaussian){ runningStyle += "gauss_"; }
+            else { runningStyle += "linear_"; }
+            break;
+        case Us3DRunMode::alphaCLPNN:
+            runningStyle += volumeHFgridSize + "_PNN-alphaCL_"; 
+            break;
         default:
             std::cout << "Run type " << (Us3DRunMode)runType << " is not implemented. Quitting.." << std::endl;
             return;
@@ -226,7 +234,7 @@ int main() {
     bool holeFill_progressive = false; //true;
     int verbosity = 4;
 
-    int runInputSet = 4;// 1; //1/2
+    int runInputSet = 0;// 1; //1/2
     std::string folder = "";
     std::string nameformat = "";
     std::string nickname = "";
@@ -317,10 +325,10 @@ int main() {
     Us3DRunMode runMode = Us3DRunMode::clHybrid; // cpuVNN; //clPNN; //cpuVNN; //cpuHybrid; // clHybrid;
     bool runHybridWeightGaussian = true;
 
-    bool singleTest = false;//false;
+    bool singleTest = true;//false;
 
     if (!singleTest){
-        std::string testPlace = "testRun4/"; //"test-clHybrid-gaussian/";
+        std::string testPlace = "testRun5/"; //"test-clHybrid-gaussian/";
         float dvStart = 1.0f; // 0.5f; // 0.5f;
         float dvEnd = 1.1f;// 1.0f;
         float calcedDVstep = 0.5f;// calcedDV / 5.0f;
