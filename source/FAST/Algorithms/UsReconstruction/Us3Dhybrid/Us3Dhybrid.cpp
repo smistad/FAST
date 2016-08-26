@@ -1590,10 +1590,6 @@ void Us3Dhybrid::executeAlgorithm(){
         algorithmEnded = clock();
         return;
     }
-    else if (mRunType == Us3DRunMode::alphaCLHybrid){
-        executeAlphaAlgorithm();
-        return;
-    }
     if (false){
         executeOpenCLTest();
     }
@@ -1859,11 +1855,26 @@ void Us3Dhybrid::executeAlphaAlgorithm(){
     cl::Buffer mCLSemaphore = cl::Buffer(clDevice->getContext(), flags, semSize, semaphore);
 #endif
 
-    cmdQueue.finish();
-
     //Initilize output volume
     initOutputVolume(device);
     OpenCLImageAccess::pointer outputAccess = outputVolume->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+#if CL_VERSION_1_2
+    cl_uint4 fillValue = { 0, 0, 0, 0 };
+    cl::size_t<3> origin;
+    origin[0] = 0;
+    origin[1] = 0;
+    origin[2] = 0;
+    cl::size_t<3> imgSize;
+    imgSize[0] = volumeSize(0);
+    imgSize[1] = volumeSize(1);
+    imgSize[2] = volumeSize(2);
+    //size_t imgSize = (size_t)(volumeSize(0), volumeSize(1), volumeSize(2));
+    cmdQueue.enqueueFillImage(*outputAccess->get3DImage(), fillValue, origin, imgSize);
+    //cmdQueue.enqueueFillBuffer(outputAccess, 0, (size_t)0, imgSize);
+#endif
+    cmdQueue.finish();
+
+    
 
     if (mVerbosityLevel >= 6){
         std::cout << " ### Running " << frameList.size() << " frames on GPU! ### " << std::endl;
@@ -1968,7 +1979,7 @@ void Us3Dhybrid::executeAlphaAlgorithm(){
         mKernel.setArg(14, *outputAccess->get3DImage());
 
         cmdQueue.finish();
-        mRuntimeManager->startRegularTimer("clHybridFrame");
+        mRuntimeManager->startRegularTimer("clHybridFrame"); //rename?
         //mRuntimeManager->startCLTimer("clHybridFrameCL", cmdQueue);
         cmdQueue.enqueueNDRangeKernel(
             mKernel,
@@ -3085,12 +3096,13 @@ void Us3Dhybrid::execute(){
                 //executeVNN();
                 executeVNN2();
             }
+            else if (mRunType == Us3DRunMode::alphaCLHybrid){
+                executeAlphaAlgorithm();
+            }
             else {
                 //if (!runAsVNNonly){
                 executeAlgorithm();
-                if (mRunType != Us3DRunMode::alphaCLHybrid){
-                    generateOutputVolume(); //Alternatively just fetch slices
-                }
+                generateOutputVolume(); //Alternatively just fetch slices
             }
             
             volumeCalculated = true;

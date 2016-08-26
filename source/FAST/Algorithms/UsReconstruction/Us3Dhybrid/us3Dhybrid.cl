@@ -671,7 +671,7 @@ __kernel void accumulateFrameToVolume(
             int loc2 = loc * 2;
             float oldP = volume[loc2];
             float oldW = volume[loc2 + 1];
-
+            //if (oldP < 0.0f){ oldP = 0.1f; }
             float newW = oldW + w;
             float alpha = w / newW;
             float newP = oldP*(1 - alpha) + p*alpha;
@@ -682,24 +682,11 @@ __kernel void accumulateFrameToVolume(
             //float newW = oldW + w;
             volume[loc2] = newP;
             volume[loc2 + 1] = newW;  //ev bruk int og atomic increment (atom_inc)
+
+            //Update volume here?
         }
         ReleaseSemaphor(&semaphor[loc]);
         return updatedP;
-    }
-
-    float setVolumeValue(image2d_t frame, int2 pos, int dataType){
-        //int2 realPos = pos.xy;
-        float p;
-        if (dataType == CLK_FLOAT) {
-            p = read_imagef(frame, sampler, pos).x;
-        }
-        else if (dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
-            p = read_imageui(frame, sampler, pos).x;
-        }
-        else {
-            p = read_imagei(frame, sampler, pos).x;
-        }
-        return p;
     }
 
     __kernel void alphaBlendFrameToVolume( //Requires work group of 1! (?)
@@ -735,8 +722,9 @@ __kernel void accumulateFrameToVolume(
         float df = calculateHalfWidth(d1, d2);// , dv, Rmax);
         float dfDom = df / domVal;
 
-        float gaussianK = 1.0f / (df*SQRT_2_PI);
-
+        #if USE_GAUSSIAN_WEIGHT
+            float gaussianK = 1.0f / (df*SQRT_2_PI); //if block?
+        #endif
         //Indeks for c-dir range in domDir
         int2 cDirRange = getDomDirRange(basePoint, domDir, dfDom);// , volumeSize);
         //For hver c i c-dir

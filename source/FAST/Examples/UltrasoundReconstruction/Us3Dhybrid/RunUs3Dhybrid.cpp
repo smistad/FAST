@@ -75,7 +75,7 @@ void runAlgorithmAndExportImage(
             if (HF_progressive){ runningStyle += "prog_";  }
             break;
         case Us3DRunMode::alphaCLHybrid:
-            runningStyle += volumeHFgridSize + "_alphaCL_";
+            runningStyle += "alphaCL_";
             if (hybridWeightGaussian){ runningStyle += "gauss_"; }
             else { runningStyle += "linear_"; }
             break;
@@ -322,13 +322,13 @@ int main() {
     bool runVNNonly = false;
     bool runCLHybrid = true; //false;
     bool runPNNonly = false;
-    Us3DRunMode runMode = Us3DRunMode::clHybrid; // cpuVNN; //clPNN; //cpuVNN; //cpuHybrid; // clHybrid;
+    Us3DRunMode runMode = Us3DRunMode::alphaCLHybrid; // cpuVNN; //clPNN; //cpuVNN; //cpuHybrid; // clHybrid;
     bool runHybridWeightGaussian = true;
 
-    bool singleTest = true;//false;
+    bool singleTest = false;//false;
 
     if (!singleTest){
-        std::string testPlace = "testRun5/"; //"test-clHybrid-gaussian/";
+        std::string testPlace = "testRun6/"; //"test-clHybrid-gaussian/";
         float dvStart = 1.0f; // 0.5f; // 0.5f;
         float dvEnd = 1.1f;// 1.0f;
         float calcedDVstep = 0.5f;// calcedDV / 5.0f;
@@ -345,35 +345,43 @@ int main() {
 
         clock_t startTests = clock();
         int testsIt = 0;
-        runMode = Us3DRunMode::clHybrid;
-        for (int i = 0; i < 2; i++){ //2
-            if (i == 0){
-                runHybridWeightGaussian = true; 
+        for (int rm = 0; rm < 2; rm++){
+            if (rm == 0){
+                runMode = Us3DRunMode::clHybrid;
             }
             else{
-                runHybridWeightGaussian = false;
+                runMode = Us3DRunMode::alphaCLHybrid;
             }
-            for (float setDV = dvStart; setDV <= dvEnd; setDV += calcedDVstep){
-                for (int rMultiplier = rStart; rMultiplier <= rEnd; rMultiplier += rStep){
-                    float maxRvalue = setDV * rMultiplier;
-                    if (maxRvalue > rMaxMaximum)
-                        continue;
-                    runAlgorithmAndExportImage(
+            //runMode = Us3DRunMode::clHybrid;
+            for (int i = 0; i < 2; i++){ //2
+                if (i == 0){
+                    runHybridWeightGaussian = true;
+                }
+                else{
+                    runHybridWeightGaussian = false;
+                }
+                for (float setDV = dvStart; setDV <= dvEnd; setDV += calcedDVstep){
+                    for (int rMultiplier = rStart; rMultiplier <= rEnd; rMultiplier += rStep){
+                        float maxRvalue = setDV * rMultiplier;
+                        if (maxRvalue > rMaxMaximum)
+                            continue;
+                        runAlgorithmAndExportImage(
+                            setDV, maxRvalue,
+                            input_filename, nameformat, testPlace, nickname,
+                            volumeSizeMillions, initZSpacing, holeFill_gridSize, holeFill_progressive,
+                            runMode, runHybridWeightGaussian,
+                            startNumber, stepSize, verbosity
+                            );
+                        testsIt++;
+                        /*
+                        runAlgorithmAndExportImage(
                         setDV, maxRvalue,
-                        input_filename, nameformat, testPlace, nickname,
-                        volumeSizeMillions, initZSpacing, holeFill_gridSize, holeFill_progressive,
-                        runMode, runHybridWeightGaussian,
-                        startNumber, stepSize, verbosity
+                        input_filename, nameformat, voxelSpacing, testPlace,
+                        startNumber, stepSize, volumeSizeMillions, initZSpacing,
+                        runVNNonly, runCLHybrid, runPNNonly
                         );
-                    testsIt++;
-                    /*
-                    runAlgorithmAndExportImage(
-                    setDV, maxRvalue,
-                    input_filename, nameformat, voxelSpacing, testPlace,
-                    startNumber, stepSize, volumeSizeMillions, initZSpacing,
-                    runVNNonly, runCLHybrid, runPNNonly
-                    );
-                    */
+                        */
+                    }
                 }
             }
         }
