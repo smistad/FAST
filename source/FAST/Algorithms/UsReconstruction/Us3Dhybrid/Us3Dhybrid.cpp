@@ -2011,6 +2011,7 @@ void Us3Dhybrid::executeAlphaAlgorithm(){
         std::cout << " ####################################################### " << std::endl;
     }
     algorithmEnded = clock();
+    normalizationStarted = clock();
     normalizationEnded = clock();
 }
 
@@ -3188,7 +3189,7 @@ double Us3Dhybrid::calculateRuntime(int part){
 Vector3i splitSecondsToParts(double timeInSecondsLoop){
     int minutesInLoop = timeInSecondsLoop / 60;
     int secondsInMinute = ((int)timeInSecondsLoop) % 60;
-    int hundredsInSecond = round((timeInSecondsLoop - floor(timeInSecondsLoop)) * 100.0f);// 1000.0f);
+    int hundredsInSecond = round((timeInSecondsLoop - floor(timeInSecondsLoop)) * 1000.0f);// 1000.0f);
     return Vector3i(minutesInLoop, secondsInMinute, hundredsInSecond);
 }
 
@@ -3196,9 +3197,9 @@ std::string hundredIntToString(int hundred){
     std::string output = "";
     if (hundred < 10){
         output += "0";
-        /*if (hundred < 100){
+        if (hundred < 100){
             output += "0";
-        }*/
+        }
     }
     output += std::to_string(hundred);
     return output;
@@ -3210,6 +3211,14 @@ void Us3Dhybrid::printEndStats(){
     }
     clock_t endTotalTime = clock();
     int nrOfFrames = frameList.size();
+    if (mVerbosityLevel <= 2){
+        //Print sth (inner loop, norm, init2norm time)
+        double timeInSecondsInnerLoop = calculateRuntime(5);
+        double timeInSecondsNormalize = calculateRuntime(6);
+        double timeInSecondsInit2Norm = calculateRuntime(7);
+        std::cout << " # Inner loop: " << timeInSecondsInnerLoop*1000.0f << "ms! - Normalize: " << timeInSecondsNormalize*1000.0f << "ms! - Init2Norm: " << timeInSecondsInit2Norm*1000.0f << "ms! # " << std::endl;
+        return;
+    }
     {
         std::cout << " #################### FINAL STATS ###################### " << std::endl;
         std::cout << "" << std::endl;

@@ -34,7 +34,9 @@ void runAlgorithmAndExportImage(
     if (runType == Us3DRunMode::clVNN){// || runType == Us3DRunMode::clPNN){
         return; //Unimplemented runType
     }
-    std::cout << "## RUNNING with settings - setDV: " << setDV << " & rMax: " << maxRvalue << " ##" << std::endl;
+    if (verbosity >= 3){
+        std::cout << "## RUNNING with settings - setDV: " << setDV << " & rMax: " << maxRvalue << " ##" << std::endl;
+    }
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
     {
         streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
@@ -124,10 +126,15 @@ void runAlgorithmAndExportImage(
 
         exporter->setInputData(resultVolume);
         exporter->update();
-        std::cout << "Output filename: " << output_filename << std::endl;
+        if (verbosity >= 3){
+            std::cout << "Output filename: " << output_filename << std::endl;
+        }
     }
 
-    std::cout << breakString;
+    if (verbosity >= 3){
+        std::cout << breakString;
+    }
+    
 }
 
 void runAlgorithmAndExportImage(
@@ -211,7 +218,152 @@ void runAlgorithmAndExportImage(
     }
 }
 
+/* TO DISABLE OPEN_CL CACHE (not just CUDA) */
+void enable_cuda_build_cache(bool enable)
+{
+#ifdef _MSC_VER
+    if (enable)
+        _putenv("CUDA_CACHE_DISABLE=0");
+    else
+        _putenv("CUDA_CACHE_DISABLE=1");
+#else // GCC
+    if (enable)
+        putenv("CUDA_CACHE_DISABLE=0");
+    else
+        putenv("CUDA_CACHE_DISABLE=1");
+#endif
+}
+
+void printRunSettings(Vector4i runSetting){
+    Us3DRunMode runMode = (Us3DRunMode)runSetting(0);
+    int volSizeM = runSetting(1);
+    int rMax = runSetting(2);
+    int holeFill_gridSize = 3;
+    bool runHybridWeightGaussian = false;
+    std::string runModeString = "";
+    if (runMode == Us3DRunMode::clPNN){
+        holeFill_gridSize = runSetting(3);
+        runModeString = "PNN";
+        runModeString += "_" + std::to_string(holeFill_gridSize);
+    }
+    else if (runMode == Us3DRunMode::clHybrid || runMode == Us3DRunMode::alphaCLHybrid){
+        runModeString = "Hybrid";
+        if (runMode == Us3DRunMode::alphaCLHybrid){ runModeString += "_alpha"; }
+        if (runSetting(3) == 1){
+            runHybridWeightGaussian = true; //use gaussian weighting
+            runModeString += "_gaussian";
+        }
+        runModeString += "_" + std::to_string(rMax);
+    }
+    std::cout << " - RunMode: " << runModeString << " - " << volSizeM << "M - " << std::endl;
+}
+
+void runPerformanceTests(){
+
+    clock_t testStart = clock();
+    /* ### SETTINGS ### */
+    int startNumber = 0;
+    int stepSize = 1;
+    int verbosity = 2;
+    int maxIterations = 3;
+    std::string sub_folder = "performanceTests/";
+
+    // SET 1 : 72-104535
+    std::string set1folder = "Ultrasound Data Sets 2/072_Tumor_OK.cx3/072_Tumor_OK.cx3/US_Acq/US-Acq_02_19700101T104535/";
+    std::string set1nameformat = "US-Acq_02_19700101T104535_Tissue_#.mhd";
+    std::string set1nickname = "set-72_104535";
+    float set1initZSpacing = 0.1f;//??
+    
+    // SET 2 : 84-103031
+    std::string set2folder = "Ultrasound Data Sets 2/084_Tumor_OK.cx3/084_Tumor_OK.cx3/US_Acq/US-Acq_03_19700101T103031/";
+    std::string set2nameformat = "US-Acq_03_19700101T103031_Tissue_#.mhd";
+    std::string set2nickname = "set-84_103031";
+    float set2initZSpacing = 0.1f;//??
+
+    //Run modes
+    std::vector<Vector4i> runAlgorithms = {};
+
+    Vector4i gauss8 = Vector4i(Us3DRunMode::clHybrid, 32, 8, 1); //type, M, Rmax, HF/(gauss/lin)
+    Vector4i linear8 = Vector4i(Us3DRunMode::clHybrid, 32, 8, 0);
+    Vector4i linear8_256 = Vector4i(Us3DRunMode::clHybrid, 256, 8, 0);
+    Vector4i linear16 = Vector4i(Us3DRunMode::clHybrid, 32, 16, 0);
+    Vector4i alphaLin8 = Vector4i(Us3DRunMode::alphaCLHybrid, 32, 8, 0);
+    Vector4i pnn5 = Vector4i(Us3DRunMode::clPNN, 32, 0, 5);
+    Vector4i pnn7 = Vector4i(Us3DRunMode::clPNN, 32, 0, 7);
+    Vector4i pnn7_256 = Vector4i(Us3DRunMode::clPNN, 256, 0, 7);
+    {
+        runAlgorithms.push_back(gauss8);
+        runAlgorithms.push_back(linear8);
+        runAlgorithms.push_back(linear8_256);
+        runAlgorithms.push_back(linear16);
+        runAlgorithms.push_back(alphaLin8);
+        runAlgorithms.push_back(pnn5);
+        runAlgorithms.push_back(pnn7);
+        runAlgorithms.push_back(pnn7_256);
+    }
+
+    /* ### Initialization ### */
+    enable_cuda_build_cache(false); //to ensure consistent initialization times
+
+    /* ### Run loop ### */
+    for (int setNR = 1; setNR <= 2; setNR++){
+        std::string folder = "";
+        std::string nameformat = "";
+        std::string nickname = "";
+        float initZspacing = 0.1f;
+        if (setNR == 1){
+            folder = set1folder;
+            nameformat = set1nameformat;
+            nickname = set1nickname;
+            initZspacing = set1initZSpacing;
+        }
+        else if (setNR == 2){
+            folder = set2folder;
+            nameformat = set2nameformat;
+            nickname = set2nickname;
+            initZspacing = set2initZSpacing;
+        }
+        std::string input_filename = std::string(FAST_TEST_DATA_DIR) + folder + nameformat;
+        std::cout << "\n\n ### SET " << setNR << " running: " << nickname << "! ### \n" << std::endl;
+        for (int runSettingNR = 0; runSettingNR < runAlgorithms.size(); runSettingNR++){
+            Vector4i runSetting = runAlgorithms[runSettingNR];
+            Us3DRunMode runMode = (Us3DRunMode)runSetting(0);
+            int volSizeM = runSetting(1);
+            int rMax = runSetting(2);
+            int holeFill_gridSize = 3;
+            bool runHybridWeightGaussian = false;
+            if (runMode == Us3DRunMode::clPNN){
+                holeFill_gridSize = runSetting(3);
+            }
+            else {
+                if (runSetting(3) == 1){
+                    runHybridWeightGaussian = true; //use gaussian weighting
+                }
+            }
+            printRunSettings(runSetting);
+            //std::cout << " - RunMode: " << runMode << " - " << volSizeM << "M - " << " - " << std::endl;
+            for (int iteration = 0; iteration < maxIterations; iteration++){
+                runAlgorithmAndExportImage(
+                    1.0f, rMax,
+                    input_filename, nameformat, sub_folder, nickname,
+                    volSizeM, initZspacing, holeFill_gridSize, false,
+                    runMode, runHybridWeightGaussian,
+                    startNumber, stepSize, verbosity
+                    );
+            }
+            clock_t testCurrentTime = clock();
+            clock_t clockTicksTaken = testCurrentTime - testStart;
+            double timeInSeconds = clockTicksTaken / (double)CLOCKS_PER_SEC;
+            std::cout << " ## Time used so far " << timeInSeconds << "sec! ## \n" << std::endl;
+        }
+    }
+}
+
+
 int main() {
+
+    runPerformanceTests();
+    return 0;
     // Import images from files using the ImageFileStreamer
     
     // The hashtag here will be replaced with an integer, starting with 0 as default
@@ -229,8 +381,8 @@ int main() {
     float dvConstant = 2 * 0.15f; //0.2f ev (0.5f/3.0f)~=0.1667..
     float voxelSpacing = 0.2f;// 0.15f; //0.1f; //0.5f; //0.2f; // 0.03 / 0.01 //dv // Større verdi gir mindre oppløsning
     float RmaxMultiplier = 10.0f;
-    int volumeSizeMillions = 32; // 4; // 32;// 256; // 32; // 128;// 256; // 256;// 128;// 256;// 32;// 128;  //crash at 512
-    int holeFill_gridSize = 5;// 13;
+    int volumeSizeMillions = 256;// 32; // 4; // 32;// 256; // 32; // 128;// 256; // 256;// 128;// 256;// 32;// 128;  //crash at 512
+    int holeFill_gridSize = 7;// 13;
     bool holeFill_progressive = false; //true;
     int verbosity = 4;
 
@@ -322,10 +474,10 @@ int main() {
     bool runVNNonly = false;
     bool runCLHybrid = true; //false;
     bool runPNNonly = false;
-    Us3DRunMode runMode = Us3DRunMode::alphaCLHybrid; // cpuVNN; //clPNN; //cpuVNN; //cpuHybrid; // clHybrid;
+    Us3DRunMode runMode = Us3DRunMode::clHybrid; // cpuVNN; //clPNN; //cpuVNN; //cpuHybrid; // clHybrid;
     bool runHybridWeightGaussian = true;
 
-    bool singleTest = false;//false;
+    bool singleTest = true;//false;
 
     if (!singleTest){
         std::string testPlace = "testRun6/"; //"test-clHybrid-gaussian/";
