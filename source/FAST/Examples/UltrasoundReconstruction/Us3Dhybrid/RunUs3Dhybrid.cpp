@@ -325,7 +325,7 @@ void runPerformanceTests(){
         }
         std::string input_filename = std::string(FAST_TEST_DATA_DIR) + folder + nameformat;
         std::cout << "\n\n ### SET " << setNR << " running: " << nickname << "! ### \n" << std::endl;
-        for (int runSettingNR = 0; runSettingNR < 1; runSettingNR++){ //runAlgorithms.size()
+        for (int runSettingNR = 0; runSettingNR < runAlgorithms.size(); runSettingNR++){ //runAlgorithms.size() //1
             Vector4i runSetting = runAlgorithms[runSettingNR];
             Us3DRunMode runMode = (Us3DRunMode)runSetting(0);
             int volSizeM = runSetting(1);
@@ -357,6 +357,9 @@ void runPerformanceTests(){
             std::cout << " ## Time used so far " << timeInSeconds << "sec! ## \n" << std::endl;
         }
     }
+
+    std::cout << " # # # FINISHED! # # # " << std::endl;
+    Sleep(600 * 1000);
 }
 
 
