@@ -355,7 +355,9 @@ void runPerformanceTests(){
             clock_t clockTicksTaken = testCurrentTime - testStart;
             double timeInSeconds = clockTicksTaken / (double)CLOCKS_PER_SEC;
             std::cout << " ## Time used so far " << timeInSeconds << "sec! ## \n" << std::endl;
+            Sleep(10 * 1000);
         }
+        Sleep(60 * 1000);
     }
 
     std::cout << " # # # FINISHED! # # # " << std::endl;
