@@ -1659,6 +1659,7 @@ void Us3Dhybrid::executeAlgorithm(){
         std::cout << " ### Running " << frameList.size() << " frames on GPU! ### " << std::endl;
     }
     algorithmLoopStarted = clock();
+    mRuntimeManager->startRegularTimer("algorithmInner");
     int nrOfFrames = frameList.size();
     //Predefinables
     cl_int3 volSize = { volumeSize(0), volumeSize(1), volumeSize(2) }; //send med in case of real-time? istedefor def
@@ -1773,6 +1774,7 @@ void Us3Dhybrid::executeAlgorithm(){
 
     cmdQueue.finish();
 
+    mRuntimeManager->stopRegularTimer("algorithmInner");
     algorithmLoopEnded = clock();
     if (false && mVerbosityLevel >= 7){
         //std::cout << " ####################################################### " << std::endl;
@@ -1880,6 +1882,7 @@ void Us3Dhybrid::executeAlphaAlgorithm(){
         std::cout << " ### Running " << frameList.size() << " frames on GPU! ### " << std::endl;
     }
     algorithmLoopStarted = clock();
+    mRuntimeManager->startRegularTimer("algorithmInner");
     int nrOfFrames = frameList.size();
     //Predefinables
     cl_int3 volSize = { volumeSize(0), volumeSize(1), volumeSize(2) }; //send med in case of real-time? istedefor def
@@ -1995,6 +1998,7 @@ void Us3Dhybrid::executeAlphaAlgorithm(){
 
     cmdQueue.finish();
     outputAccess->release();
+    mRuntimeManager->stopRegularTimer("algorithmInner");
     algorithmLoopEnded = clock();
     if (false && mVerbosityLevel >= 7){
         //std::cout << " ####################################################### " << std::endl;
@@ -2263,6 +2267,7 @@ void Us3Dhybrid::initOutputVolume(ExecutionDevice::pointer device){
 }
 
 void Us3Dhybrid::generateOutputVolume(){
+    mRuntimeManager->startRegularTimer("normalization");
     normalizationStarted = clock();
     if (mVerbosityLevel >= 6){
         std::cout << "Final reconstruction calculations!" << std::endl;
@@ -2280,6 +2285,7 @@ void Us3Dhybrid::generateOutputVolume(){
             generateOutputVolume(device); // Run on GPU instead
         }
         normalizationEnded = clock();
+        mRuntimeManager->stopRegularTimer("normalization");
         return;
     }
     if (!volAccess)
@@ -2334,6 +2340,7 @@ void Us3Dhybrid::generateOutputVolume(){
     }
     //Can possibly make 2D slices here or alternatively to the one above
     normalizationEnded = clock();
+    mRuntimeManager->stopRegularTimer("normalization");
 }
 
 void Us3Dhybrid::recompileNormalizeOpenCLCode(){
@@ -3085,6 +3092,7 @@ void Us3Dhybrid::execute(){
                     std::cout << "INITIALIZING volume" << std::endl;
                 }
                 //Init cube with all corners
+                mRuntimeManager->startRegularTimer("init2norm");
                 initVolume(firstFrame);
                 //zeroInitVolume();
                 volumeInitialized = true;
@@ -3107,6 +3115,7 @@ void Us3Dhybrid::execute(){
                 generateOutputVolume(); //Alternatively just fetch slices
             }
             
+            mRuntimeManager->stopRegularTimer("init2norm");
             volumeCalculated = true;
             mIsModified = true;
             if (mVerbosityLevel >= 7){
@@ -3211,13 +3220,19 @@ void Us3Dhybrid::printEndStats(){
     }
     clock_t endTotalTime = clock();
     int nrOfFrames = frameList.size();
-    if (mVerbosityLevel <= 2){
+    if (mVerbosityLevel <= 4){ //2
         //Print sth (inner loop, norm, init2norm time)
         double timeInSecondsInnerLoop = calculateRuntime(5);
+        double innerTime = mRuntimeManager->getTiming("algorithmInner")->getSum();
         double timeInSecondsNormalize = calculateRuntime(6);
+        double normTime = mRuntimeManager->getTiming("normalization")->getSum();
         double timeInSecondsInit2Norm = calculateRuntime(7);
-        std::cout << " # Inner loop: " << timeInSecondsInnerLoop*1000.0f << "ms! - Normalize: " << timeInSecondsNormalize*1000.0f << "ms! - Init2Norm: " << timeInSecondsInit2Norm*1000.0f << "ms! # " << std::endl;
-        return;
+        double init2normTime = mRuntimeManager->getTiming("init2norm")->getSum();
+        std::cout << " # Inner: " << innerTime << "ms!(" << round(timeInSecondsInnerLoop*1000.0f) << ") - Norm: " << normTime << "ms!(" << round(timeInSecondsNormalize*1000.0f) << ") - I2Norm : " << init2normTime << "ms!(" << round(timeInSecondsInit2Norm*1000.0f) << ") # " << std::endl;
+        //mRuntimeManager->print("normalization");
+        if (mVerbosityLevel <= 2){
+            return;
+        }
     }
     {
         std::cout << " #################### FINAL STATS ###################### " << std::endl;
