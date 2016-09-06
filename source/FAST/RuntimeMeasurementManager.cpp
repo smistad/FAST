@@ -74,7 +74,7 @@ void RuntimeMeasurementsManager::startRegularTimer(std::string name) {
 	if (!enabled)
 		return;
 
-	startTimes[name] = boost::chrono::system_clock::now();
+    startTimes[name] = boost::chrono::high_resolution_clock::now(); // system_clock::now();
 }
 
 void RuntimeMeasurementsManager::stopRegularTimer(std::string name) {
@@ -84,7 +84,7 @@ void RuntimeMeasurementsManager::stopRegularTimer(std::string name) {
 	if(startTimes.count(name) == 0)
 	    return;
 
-	boost::chrono::duration<double, boost::milli> time = boost::chrono::system_clock::now() - startTimes[name];
+    boost::chrono::duration<double, boost::milli> time = boost::chrono::high_resolution_clock::now() - startTimes[name]; //system_clock
     if (timings.count(name) == 0) {
 		// No timings with this name exists, create a new one
 		RuntimeMeasurementPtr runtime(new RuntimeMeasurement(name));
