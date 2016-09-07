@@ -23,6 +23,7 @@ class ShapeModel : public Object {
 		virtual MatrixXf getProcessErrorMatrix() = 0;
 		virtual VectorXf getInitialState(SharedPointer<Image> image) = 0;
 		virtual std::vector<MatrixXf> getMeasurementVectors(VectorXf state, Shape::pointer shape) = 0;
+		virtual VectorXf restrictState(VectorXf state) { return state; };
 	private:
 
 };
