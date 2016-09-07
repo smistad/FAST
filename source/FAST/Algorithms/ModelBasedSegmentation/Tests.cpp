@@ -50,21 +50,21 @@ TEST_CASE("Model based segmentation with mean value coordinates on 3D cardiac US
 
 TEST_CASE("Model based segmentation with spline model on 2D pediatric cardiac US data", "[fast][ModelBasedSegmentation][2d][cardiac][pediatric][visual]") {
 	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
-	streamer->setFilenameFormat("/home/smistad/Cardiac_2D/labelImage#.mhd");
+	streamer->setFilenameFormat("/home/smistad/Cardiac_2D/test2/labelImage#.mhd");
 	streamer->setZeroFilling(2);
 	streamer->enableLooping();
 	streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 	streamer->update(); // TODO this should not be needed
-	streamer->setSleepTime(200);
+	streamer->setSleepTime(500);
 
 	// Control points for spline model
 	std::vector<Vector2f> controlPoints = {
-	        Vector2f(20.0, 45.1),
-	        Vector2f(30.7, 55.2),
-	        Vector2f(45.6, 55.9),
-	        Vector2f(46.4, 40.8),
-	        Vector2f(38.7, 20.8),
-	        Vector2f(22.5, 22.5),
+			Vector2f(2.822184520427274634e+01, 2.204189742133431196e+01),
+			Vector2f(2.805852557576601924e+01, 3.001778981203989716e+01),
+			Vector2f(2.981067073476717511e+01, 4.219496931887970703e+01),
+			Vector2f(4.537380221088420029e+01, 4.078267995844019822e+01),
+			Vector2f(4.447638939087526921e+01, 2.948818130187507691e+01),
+			Vector2f(3.884196391885149779e+01, 2.151228891116949882e+01)
 	};
 
 	CardinalSplineModel::pointer shapeModel = CardinalSplineModel::New();
@@ -72,13 +72,15 @@ TEST_CASE("Model based segmentation with spline model on 2D pediatric cardiac US
 	shapeModel->setGlobalProcessError(0.000001f);
 	shapeModel->setLocalProcessError(0.0000001f);
 	shapeModel->setResolution(12);
-	shapeModel->setTension({0, 0.75, 0.75, 0, 0, 0});
+	shapeModel->setScalingLimit(0.5);
+	//shapeModel->setTension({0, 0.75, 0.75, 0, 0, 0});
 	KalmanFilter::pointer segmentation = KalmanFilter::New();
 	StepEdgeModel::pointer appearanceModel = StepEdgeModel::New();
-	appearanceModel->setLineLength(8);
-	appearanceModel->setLineSampleSpacing(8/32.0);
+	appearanceModel->setLineLength(6);
+	appearanceModel->setLineSampleSpacing(6/32.0);
 	appearanceModel->setIntensityDifferenceThreshold(20);
-	appearanceModel->setMinimumDepth(15);
+	appearanceModel->setEdgeType(StepEdgeModel::EDGE_TYPE_BLACK_INSIDE_WHITE_OUTSIDE);
+	appearanceModel->setMinimumDepth(10);
 	segmentation->setStartIterations(10);
 	segmentation->setIterations(10);
 	segmentation->setAppearanceModel(appearanceModel);
