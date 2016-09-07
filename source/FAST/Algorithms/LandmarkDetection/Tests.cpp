@@ -42,10 +42,13 @@ TEST_CASE("Landmark detection stream", "[fast][LandmarkDetection][dynamic]") {
 	//detector->setMirrorImage(true); // Set this to true for left side images
 	importer->setSleepTime(75);
 	detector->setInputConnection(importer->getOutputPort());
-	detector->loadModel("/home/smistad/workspace/DNN-AM/femoral_appearance_model_net/net_deploy.prototxt", "/home/smistad/snapshots/_iter_1000.caffemodel", "/home/smistad/workspace/DNN-AM/objects.txt");
+	detector->loadModel("/home/smistad/workspace/DNN-AM/femoral_appearance_model_net2/net_deploy.prototxt", "/home/smistad/workspace/DNN-AM/femoral_appearance_model_net2/_iter_1000.caffemodel", "/home/smistad/workspace/DNN-AM/femoral_appearance_model_net2/objects.txt");
 
 	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
 	meshRenderer->setInputConnection(detector->getOutputPort());
+	meshRenderer->setColor(0, Color::Red());
+	meshRenderer->setColor(1, Color::Yellow());
+	meshRenderer->setLineSize(4);
 
 	ImageRenderer::pointer imageRenderer = ImageRenderer::New();
 	imageRenderer->setInputConnection(importer->getOutputPort());
