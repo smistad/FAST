@@ -79,6 +79,8 @@ Shape::pointer CardinalSplineModel::getShape(VectorXf state) {
 			Vector2f normal(-tangent.y(), tangent.x());
 
 			vertices.push_back(vertex);
+			if(!mClockwise)
+				normal = - normal;
 			normals.push_back(normal);
 			// TODO check this:
 			if(counter < nrOfControlPoints*mResolution-1) {
@@ -301,10 +303,15 @@ void CardinalSplineModel::setControlPoints(std::vector<Vector2f> controlPoints) 
 
 		// Calculate centroid
 	mCentroid = Vector2f::Zero();
+	float sum = 0.0f;
+	Vector2f previous = controlPoints[controlPoints.size() - 1];
 	for(Vector2f p : controlPoints) {
 		mCentroid += p;
+		sum += (p.x() - previous.x())*(p.y() + previous.y());
+		previous = p;
 	}
 	mCentroid /= controlPoints.size();
+	mClockwise = sum > 0;
 
 	mControlPoints = controlPoints;
 	mStateSize = 5+2*controlPoints.size();

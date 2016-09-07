@@ -59,6 +59,7 @@ class CardinalSplineModel : public ShapeModel {
 		float mGlobalTension;
 		std::vector<float> mTensionPerVertex;
 		Vector2f mCentroid;
+		bool mClockwise; // True if control points are in clockwise order
 
 		bool mInitializeShapeToImageCenter;
 
