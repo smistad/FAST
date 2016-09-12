@@ -3,6 +3,7 @@
 #include "FAST/Exception.hpp"
 #include "FAST/Utility.hpp"
 #include "FAST/SceneGraph.hpp"
+#include "FAST/DeviceManager.hpp"
 
 namespace fast {
 
@@ -470,6 +471,22 @@ void Image::create(
 }
 
 void Image::create(
+        VectorXui size,
+        DataType type,
+        unsigned int nrOfComponents,
+        const void* data) {
+
+    if(size.rows() > 2 && size.z() > 1) {
+        // 3D
+        create(size.x(), size.y(), size.z(), type, nrOfComponents, DeviceManager::getInstance().getDefaultComputationDevice(), data);
+    } else {
+        // 2D
+        create(size.x(), size.y(), type, nrOfComponents, DeviceManager::getInstance().getDefaultComputationDevice(), data);
+    }
+}
+
+
+void Image::create(
         unsigned int width,
         unsigned int height,
         unsigned int depth,
@@ -539,6 +556,17 @@ void Image::create(
 void Image::create(
         unsigned int width,
         unsigned int height,
+        unsigned int depth,
+        DataType type,
+        unsigned int nrOfComponents,
+        const void* data) {
+
+	create(width, height, depth, type, nrOfComponents, DeviceManager::getInstance().getDefaultComputationDevice(), data);
+}
+
+void Image::create(
+        unsigned int width,
+        unsigned int height,
         DataType type,
         unsigned int nrOfComponents) {
 
@@ -602,6 +630,16 @@ void Image::create(
     }
     updateModifiedTimestamp();
     mIsInitialized = true;
+}
+
+void Image::create(
+        unsigned int width,
+        unsigned int height,
+        DataType type,
+        unsigned int nrOfComponents,
+        const void* data) {
+
+	create(width, height, type, nrOfComponents, DeviceManager::getInstance().getDefaultComputationDevice(), data);
 }
 
 bool Image::isInitialized() const {
@@ -697,6 +735,10 @@ Vector3f fast::Image::getSpacing() const {
 
 void fast::Image::setSpacing(Vector3f spacing) {
     mSpacing = spacing;
+}
+
+void fast::Image::setSpacing(float x, float y, float z) {
+	setSpacing(Vector3f(x, y, z));
 }
 
 void Image::calculateMaxAndMinIntensity() {
