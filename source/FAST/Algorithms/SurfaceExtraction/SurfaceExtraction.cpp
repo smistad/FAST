@@ -303,8 +303,8 @@ void SurfaceExtraction::execute() {
     // Apply spacing scaling to BB
     AffineTransformation::pointer T = AffineTransformation::New();
     T->scale(input->getSpacing());
-    output->setBoundingBox(box.getTransformedBoundingBox(T));
     output->create(totalSum);
+    output->setBoundingBox(box.getTransformedBoundingBox(T));
 
     if(totalSum == 0) {
         reportInfo() << "No triangles were extracted. Check isovalue." << Reporter::end;

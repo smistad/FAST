@@ -31,7 +31,7 @@ NLMGUI3D::NLMGUI3D() {
 
     // Import image
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "/US-3Dt/US-3Dt_0.mhd");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "/US/Ball/US-3Dt_0.mhd");
     
     
     // Smooth images

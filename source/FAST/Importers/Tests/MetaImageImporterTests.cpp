@@ -19,38 +19,38 @@ TEST_CASE("Import non-existing file to MetaImageImporter", "[fast][MetaImageImpo
 
 TEST_CASE("Import 2D MetaImage file to host", "[fast][MetaImageImporter]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US-2Dt/US-2Dt_0.mhd");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US/CarotidArtery/Right/US-2D_0.mhd");
     importer->setMainDevice(Host::getInstance());
     importer->update();
     Image::pointer image = importer->getOutputData<Image>(0);
     AffineTransformation::pointer T = image->getSceneGraphNode()->getTransformation();
 
     // Check attributes of image
-    CHECK(image->getWidth() == 471);
-    CHECK(image->getHeight() == 616);
+    CHECK(image->getWidth() == 492);
+    CHECK(image->getHeight() == 380);
     CHECK(image->getDepth() == 1);
     CHECK(image->getDimensions() == 2);
-    CHECK(image->getSpacing().x() == Approx(0.081));
-    CHECK(image->getSpacing().y() == Approx(0.081));
+    CHECK(image->getSpacing().x() == Approx(0.079));
+    CHECK(image->getSpacing().y() == Approx(0.079));
     CHECK(image->getSpacing().z() == Approx(1.0));
-    CHECK(T->translation().x() == Approx(32.2747));
-    CHECK(T->translation().y() == Approx(-2.02993));
-    CHECK(T->translation().z() == Approx(170.997));
-    CHECK(T->linear()(0,0) == Approx(-0.963423));
-    CHECK(T->linear()(1,0) == Approx(-0.263617));
-    CHECK(T->linear()(2,0) == Approx(-0.0481956));
-    CHECK(T->linear()(0,1) == Approx(0.0225832));
-    CHECK(T->linear()(1,1) == Approx(0.0993386));
-    CHECK(T->linear()(2,1) == Approx(-0.994797));
-    CHECK(T->linear()(0,2) == Approx(0.267034));
-    CHECK(T->linear()(1,2) == Approx(-0.959499));
-    CHECK(T->linear()(2,2) == Approx(-0.089752));
+    CHECK(T->translation().x() == Approx(182.658));
+    CHECK(T->translation().y() == Approx(-42.554));
+    CHECK(T->translation().z() == Approx(116.602));
+    CHECK(T->linear()(0,0) == Approx(0.247264));
+    CHECK(T->linear()(1,0) == Approx(0.836318));
+    CHECK(T->linear()(2,0) == Approx(0.489349));
+    CHECK(T->linear()(0,1) == Approx(0.816965));
+    CHECK(T->linear()(1,1) == Approx(-0.451445));
+    CHECK(T->linear()(2,1) == Approx(0.358714));
+    CHECK(T->linear()(0,2) == Approx(-0.520911));
+    CHECK(T->linear()(1,2) == Approx(-0.311053));
+    CHECK(T->linear()(2,2) == Approx(0.794878));
     CHECK(image->getDataType() == TYPE_UINT8);
 }
 
 TEST_CASE("Import 3D MetaImage file to host", "[fast][MetaImageImporter]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_0.mhd");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US/Ball/US-3Dt_0.mhd");
     importer->setMainDevice(Host::getInstance());
     importer->update();
     Image::pointer image = importer->getOutputData<Image>(0);
@@ -84,7 +84,7 @@ TEST_CASE("Import MetaImage file to OpenCL device", "[fast][MetaImageImporter]")
     OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
 
     MetaImageImporter::pointer importer = MetaImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_0.mhd");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US/Ball/US-3Dt_0.mhd");
     importer->setMainDevice(device);
     importer->update();
     Image::pointer image = importer->getOutputData<Image>(0);

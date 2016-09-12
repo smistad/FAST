@@ -25,10 +25,10 @@ int main(int argc, char ** argv) {
 
     /*
     MetaImageImporter::pointer importer = MetaImageImporter::New();
-    importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_0.mhd");
+    importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US/Ball/US-3Dt_0.mhd");
     Image::pointer image = importer->getOutput();
     //ImageFileStreamer::pointer importer = ImageFileStreamer::New();
-    //importer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
+    //importer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US/Ball/US-3Dt_#.mhd");
     //DynamicImage::pointer image = importer->getOutput();
     SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
     extractor->setInput(image);
@@ -52,7 +52,7 @@ int main(int argc, char ** argv) {
     */
 	/*
     MetaImageImporter::pointer importer = MetaImageImporter::New();
-    importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_0.mhd");
+    importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US/Ball/US-3Dt_0.mhd");
     SliceRenderer::pointer renderer = SliceRenderer::New();
     renderer->setSlicePlane(PLANE_Y);
     renderer->setInput(importer->getOutput());
@@ -64,7 +64,7 @@ int main(int argc, char ** argv) {
 	/*
 
     ImageImporter::pointer importer2 = ImageImporter::New();
-    importer2->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-2D.jpg");
+    importer2->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US/US-2D.jpg");
     ImageRenderer::pointer renderer2 = ImageRenderer::New();
     renderer2->setInput(importer2->getOutput());
     SimpleWindow::pointer window2 = SimpleWindow::New();
@@ -76,7 +76,7 @@ int main(int argc, char ** argv) {
 
     /*
     ImageFileStreamer::pointer importer = ImageFileStreamer::New();
-    importer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
+    importer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US/Ball/US-3Dt_#.mhd");
     SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
     extractor->setInput(importer->getOutput());
     extractor->setThreshold(200);
@@ -93,7 +93,7 @@ int main(int argc, char ** argv) {
     /*
     // Example of importing, processing and exporting a 2D image
     ImageImporter::pointer importer = ImageImporter::New();
-    importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US-2D.jpg");
+    importer->setFilename(std::string(FAST_ROOT_DIR)+"TestData/US/US-2D.jpg");
     GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
     filter->setInput(importer->getOutput());
     filter->setMaskSize(7);
@@ -123,7 +123,7 @@ window->setTimeout(10*1000);
 	
 /*
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
-    mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US-3Dt/US-3Dt_#.mhd");
+    mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US/Ball/US-3Dt_#.mhd");
     MeshRenderer::pointer surfaceRenderer = MeshRenderer::New();
     surfaceRenderer->setInput(mhdStreamer->getOutput());
     surfaceRenderer->setThreshold(200);
@@ -140,7 +140,7 @@ window->setTimeout(10*1000);
 	
 
 	ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
-	mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-3Dt/US-3Dt_#.mhd");
+	mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US/Ball/US-3Dt_#.mhd");
 
 	MetaImageImporter::pointer mhdImporter = MetaImageImporter::New();
 	mhdImporter->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");

@@ -11,13 +11,13 @@ using namespace fast;
 
 TEST_CASE("DualViewWindow with horizontal mode", "[fast][DualViewWindow][visual]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US-2D.jpg");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US/US-2D.jpg");
 
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->setInputConnection(importer->getOutputPort());
 
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
-    mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US-3Dt/US-3Dt_#.mhd");
+    mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US/Ball/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
     SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
@@ -37,13 +37,13 @@ TEST_CASE("DualViewWindow with horizontal mode", "[fast][DualViewWindow][visual]
 
 TEST_CASE("DualViewWindow with vertical mode", "[fast][DualViewWindow][visual]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US-2D.jpg");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US/US-2D.jpg");
 
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->setInputConnection(importer->getOutputPort());
 
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
-    mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US-3Dt/US-3Dt_#.mhd");
+    mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US/Ball/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
     SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
