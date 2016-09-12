@@ -1,25 +1,22 @@
 %include "FAST/ProcessObject.i"
+%include "FAST/Data/Image.i"
 %include "std_string.i"
-%shared_ptr(fast::ImageFileStreamer);
+%shared_ptr(fast::ManualImageStreamer);
 
 namespace fast {
 
-enum StreamingMode { STREAMING_MODE_NEWEST_FRAME_ONLY, STREAMING_MODE_STORE_ALL_FRAMES, STREAMING_MODE_PROCESS_ALL_FRAMES };
 
-class ImageFileStreamer : public Streamer, public ProcessObject {
+class ManualImageStreamer : public Streamer, public ProcessObject {
     public:
-    	static SharedPointer<ImageFileStreamer> New();
-        void setFilenameFormat(std::string str);
+    	static SharedPointer<ManualImageStreamer> New();
+    	void addImage(SharedPointer<Image> image);
         void setStartNumber(uint startNumber);
         void setStepSize(uint step);
-        void setZeroFilling(uint digits);
-        void setStreamingMode(StreamingMode mode);
-        void setMaximumNumberOfFrames(uint nrOfFrames);
-        void setTimestampFilename(std::string filepath);
         void enableLooping();
         void disableLooping();
+        void setSleepTime(uint milliseconds);
 };
 
-%template(ImageFileStreamerPtr) SharedPointer<ImageFileStreamer>;
+%template(ManualImageStreamerPtr) SharedPointer<ManualImageStreamer>;
 
 }
