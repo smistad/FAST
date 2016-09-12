@@ -14,6 +14,8 @@ void KalmanFilter::predict() {
 	mPredictedState = A1*mCurrentState + A2*mPreviousState + A3*mDefaultState;
 	mPredictedCovariance = A1*mCurrentCovariance*A1.transpose() + A2*mPreviousCovariance*A2.transpose() +
 			A1*mCurrentCovariance*A2.transpose() + A2*mPreviousCovariance*A1.transpose() + mShapeModel->getProcessErrorMatrix();
+
+	mPredictedState = mShapeModel->restrictState(mPredictedState);
 }
 
 void KalmanFilter::setShapeModel(ShapeModel::pointer shapeModel) {
@@ -147,11 +149,13 @@ void KalmanFilter::estimate(SharedPointer<Image> image) {
 		}
 	}
 
+
 	// Update covariance and state
 	mPreviousState = mCurrentState;
 	mPreviousCovariance = mCurrentCovariance;
 	mCurrentCovariance = (mPredictedCovariance.inverse() + HRH).inverse();
 	mCurrentState = mPredictedState + mCurrentCovariance*HRv;
+	mCurrentState = mShapeModel->restrictState(mCurrentState);
 }
 
 }
