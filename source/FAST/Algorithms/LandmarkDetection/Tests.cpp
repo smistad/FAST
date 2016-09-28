@@ -57,9 +57,9 @@ TEST_CASE("Landmark detection stream", "[fast][LandmarkDetection][dynamic]") {
 	window->addRenderer(imageRenderer);
 	window->addRenderer(meshRenderer);
 	window->set2DMode();
-	//window->enableFullscreen();
-	window->setWidth(1920);
-	window->setHeight(1080);
+	window->enableFullscreen();
+	window->setWidth(1024);
+	window->setHeight(1024);
 	window->start();
 
 }

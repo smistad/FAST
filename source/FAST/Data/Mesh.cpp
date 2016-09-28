@@ -54,14 +54,18 @@ void Mesh::create(std::vector<MeshVertex> vertices, std::vector<VectorXui> conne
         freeAll();
     }
     mIsInitialized = true;
-    mDimensions = vertices[0].getNrOfDimensions();
     mVertices = vertices;
     std::vector<VectorXf> positions;
     for(unsigned int i = 0; i < vertices.size(); i++) {
     	VectorXf pos = vertices[i].getPosition();
         positions.push_back(pos);
     }
-    mBoundingBox = BoundingBox(positions);
+	if(vertices.size() > 0) {
+		mDimensions = vertices[0].getNrOfDimensions();
+		mBoundingBox = BoundingBox(positions);
+	} else {
+		mBoundingBox = BoundingBox(Vector3f(0,0,0)); // TODO Fix
+	}
     mNrOfConnections = connections.size();
     mConnections = connections;
     mHostHasData = true;

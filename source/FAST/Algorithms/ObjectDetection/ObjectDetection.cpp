@@ -123,57 +123,56 @@ void ObjectDetection::execute() {
 	mNet->Forward();
 
 	// Read output layer
-	caffe::Blob<float>* output_layer = mNet->output_blobs()[0];
-	const float* begin = output_layer->cpu_data();
-	const float* end = begin + output_layer->channels()*output_layer->num();
-	std::cout << output_layer->channels()*output_layer->num() << " outputs" << std::endl;
-	std::vector<float> result(begin, end);
-	for(float a : result) {
-		std::cout << a << " ";
-	}
-	std::cout << std::endl;
-	//if(mLabels.size() != result.size())
-	//	throw Exception("The number of labels did not match the number of predictions.");
-	float width = image->getWidth();
-	height = image->getHeight();
+	boost::shared_ptr<caffe::Blob<float> > softmax_layer = mNet->blob_by_name("softmax");
+	std::vector<float> softmax_result(softmax_layer->cpu_data(), softmax_layer->cpu_data() + softmax_layer->channels()*softmax_layer->num());
 
-	Mesh::pointer mesh = getStaticOutputData<Mesh>();
 	std::vector<MeshVertex> vertices;
+	std::vector<VectorXui> lines;
+	Mesh::pointer mesh = getStaticOutputData<Mesh>();
+	if(softmax_result[1] > 0.9) {
+		boost::shared_ptr<caffe::Blob<float> > center_layer = mNet->blob_by_name("center_fc");
+		std::vector<float> center_result(center_layer->cpu_data(), center_layer->cpu_data() + center_layer->channels()*center_layer->num());
+		boost::shared_ptr<caffe::Blob<float> > size_layer = mNet->blob_by_name("size_fc");
+		std::vector<float> size_result(size_layer->cpu_data(), size_layer->cpu_data() + size_layer->channels()*size_layer->num());
+		//if(mLabels.size() != result.size())
+		//	throw Exception("The number of labels did not match the number of predictions.");
+		float width = image->getWidth();
+		height = image->getHeight();
 
-	// Convert from normalized coordinates
-	Vector2f center(result[0]*input_layer->width()/scale, result[1]*input_layer->height()/scale);
 
-	float bboxWidth = result[2]*input_layer->width()/scale;
-	float bboxHeight = result[3]*input_layer->height()/scale;
+		// Convert from normalized coordinates
+		Vector2f center(center_result[0]*input_layer->width()/scale, center_result[1]*input_layer->height()/scale);
 
-	Vector2f corner1 = center;
-	corner1.x() -= bboxWidth*0.5;
-	corner1.y() -= bboxHeight*0.5;
-	corner1 = applySpacing(corner1, image->getSpacing());
-	Vector2f corner2 = center;
-	corner2.x() -= bboxWidth*0.5;
-	corner2.y() += bboxHeight*0.5;
-	corner2 = applySpacing(corner2, image->getSpacing());
-	Vector2f corner3 = center;
-	corner3.x() += bboxWidth*0.5;
-	corner3.y() += bboxHeight*0.5;
-	corner3 = applySpacing(corner3, image->getSpacing());
-	Vector2f corner4 = center;
-	corner4.x() += bboxWidth*0.5;
-	corner4.y() -= bboxHeight*0.5;
-	corner4 = applySpacing(corner4, image->getSpacing());
+		float bboxWidth = size_result[0]*input_layer->width()/scale;
+		float bboxHeight = size_result[1]*input_layer->height()/scale;
 
-	vertices.push_back(MeshVertex(corner1));
-	vertices.push_back(MeshVertex(corner2));
-	vertices.push_back(MeshVertex(corner3));
-	vertices.push_back(MeshVertex(corner4));
+		Vector2f corner1 = center;
+		corner1.x() -= bboxWidth*0.5;
+		corner1.y() -= bboxHeight*0.5;
+		corner1 = applySpacing(corner1, image->getSpacing());
+		Vector2f corner2 = center;
+		corner2.x() -= bboxWidth*0.5;
+		corner2.y() += bboxHeight*0.5;
+		corner2 = applySpacing(corner2, image->getSpacing());
+		Vector2f corner3 = center;
+		corner3.x() += bboxWidth*0.5;
+		corner3.y() += bboxHeight*0.5;
+		corner3 = applySpacing(corner3, image->getSpacing());
+		Vector2f corner4 = center;
+		corner4.x() += bboxWidth*0.5;
+		corner4.y() -= bboxHeight*0.5;
+		corner4 = applySpacing(corner4, image->getSpacing());
 
-	std::vector<VectorXui> lines = {
-			Vector2ui(0, 1),
-			Vector2ui(1, 2),
-			Vector2ui(2, 3),
-			Vector2ui(3, 0)
-	};
+		vertices.push_back(MeshVertex(corner1));
+		vertices.push_back(MeshVertex(corner2));
+		vertices.push_back(MeshVertex(corner3));
+		vertices.push_back(MeshVertex(corner4));
+
+		lines.push_back(Vector2ui(0, 1));
+		lines.push_back(Vector2ui(1, 2));
+		lines.push_back(Vector2ui(2, 3));
+		lines.push_back(Vector2ui(3, 0));
+	}
 
 	mesh->create(vertices, lines);
 }
