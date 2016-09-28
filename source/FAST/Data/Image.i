@@ -15,7 +15,13 @@
 %define numpy_to_fast_creator(TYPE, NAME)
 %apply (TYPE* IN_ARRAY2, int DIM1, int DIM2) {(TYPE* data, int w, int h)};
 %inline %{
-void* numpy_to_fast_##NAME(TYPE* data, int w, int h) {
+void* numpy_to_fast_##NAME##_2d(TYPE* data, int w, int h) {
+	return static_cast<void*>(data);
+}
+%}
+%apply (TYPE* IN_ARRAY3, int DIM1, int DIM2, int DIM3) {(TYPE* data, int w, int h, int d)};
+%inline %{
+void* numpy_to_fast_##NAME##_3d(TYPE* data, int w, int h, int d) {
 	return static_cast<void*>(data);
 }
 %}
