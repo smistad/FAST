@@ -10,10 +10,11 @@
 #include "ShapeModels/MeanValueCoordinates/MeanValueCoordinatesModel.hpp"
 #include "ShapeModels/Ellipse/EllipseModel.hpp"
 #include "ShapeModels/CardinalSpline/CardinalSplineModel.hpp"
+#include "FAST/Algorithms/MeshToSegmentation/MeshToSegmentation.hpp"
+#include "FAST/Importers/ImageFileImporter.hpp"
 
 using namespace fast;
 
-/*
 TEST_CASE("Model based segmentation with mean value coordinates on 3D cardiac US data", "[fast][ModelBasedSegmentation][cardiac][3d][visual]") {
 	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
 	streamer->setFilenameFormat("/home/smistad/CETUS/Patient1/Patient1_frame#.mhd");
@@ -53,7 +54,7 @@ TEST_CASE("Model based segmentation with spline model on 2D pediatric cardiac US
 	streamer->setFilenameFormat("/home/smistad/Cardiac_2D/test2/labelImage#.mhd");
 	streamer->setZeroFilling(2);
 	streamer->enableLooping();
-	streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+	//streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 	streamer->update(); // TODO this should not be needed
 	streamer->setSleepTime(500);
 
@@ -87,12 +88,16 @@ TEST_CASE("Model based segmentation with spline model on 2D pediatric cardiac US
 	segmentation->setShapeModel(shapeModel);
 	segmentation->setInputConnection(streamer->getOutputPort());
 
+    MeshToSegmentation::pointer meshToSeg = MeshToSegmentation::New();
+    meshToSeg->setInputConnection(0, segmentation->getOutputPort());
+	meshToSeg->setInputConnection(1, streamer->getOutputPort());
+
 	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
 	meshRenderer->addInputConnection(segmentation->getOutputPort());
 	meshRenderer->addInputConnection(segmentation->getDisplacementsOutputPort(), Color::Red(), 1.0);
 
 	ImageRenderer::pointer imageRenderer = ImageRenderer::New();
-	imageRenderer->addInputConnection(streamer->getOutputPort());
+	imageRenderer->addInputConnection(meshToSeg->getOutputPort());
 
 	SimpleWindow::pointer window = SimpleWindow::New();
 	window->addRenderer(imageRenderer);
@@ -101,6 +106,7 @@ TEST_CASE("Model based segmentation with spline model on 2D pediatric cardiac US
 	window->start();
 }
 
+/*
 TEST_CASE("Model based segmentation with spline model on 2D pediatric aorta US data", "[fast][ModelBasedSegmentation][2d][aorta][pediatric][visual]") {
 	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
 	streamer->setFilenameFormat("/home/smistad/Data/aorta_us/labelImage#.mhd");

@@ -6,6 +6,7 @@
 namespace fast {
 
 class MeshToSegmentation : public SegmentationAlgorithm {
+	FAST_OBJECT(MeshToSegmentation)
 	public:
 	private:
 		MeshToSegmentation();

@@ -1,6 +1,7 @@
 #include "MeshToSegmentation.hpp"
 #include "FAST/Data/Mesh.hpp"
 #include "FAST/Data/Segmentation.hpp"
+#include "FAST/Utility.hpp"
 
 namespace fast {
 
@@ -35,33 +36,44 @@ void MeshToSegmentation::execute() {
 
 	OpenCLDevice::pointer device = mainDevice;
 
-	// TODO need to get OpenCL buffer access to the mesh somehow
+	// TODO image and mesh scene graph has to be taken into account
 
 	cl::Program program = getOpenCLProgram(device);
 	cl::CommandQueue queue = device->getCommandQueue();
+	MeshOpenCLAccess::pointer meshAccess = mesh->getOpenCLAccess(ACCESS_READ, device);
 	if(two_dim_data) {
 		cl::Kernel kernel(program, "mesh_to_segmentation_2d");
 		OpenCLImageAccess::pointer outputAccess = segmentation->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
-		kernel.setArg(0, );
-		kernel.setArg(1, *outputAccess->get2DImage());
+		kernel.setArg(0, *meshAccess->getCoordinatesBuffer());
+		kernel.setArg(1, *meshAccess->getConnectionsBuffer());
+        kernel.setArg(2, mesh->getNrOfLines());
+		kernel.setArg(3, *outputAccess->get2DImage());
+		kernel.setArg(4, segmentation->getSpacing().x());
+		kernel.setArg(5, segmentation->getSpacing().y());
 		queue.enqueueNDRangeKernel(
 				kernel,
 				cl::NullRange,
-				createRegion(segmentation->getSize()),
+				cl::NDRange(segmentation->getWidth(), segmentation->getHeight()),
 				cl::NullRange
 		);
 	} else {
 		cl::Kernel kernel(program, "mesh_to_segmentation_3d");
 		OpenCLBufferAccess::pointer outputAccess = segmentation->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
-		kernel.setArg(0, );
-		kernel.setArg(1, *outputAccess->get());
+		kernel.setArg(0, *meshAccess->getCoordinatesBuffer());
+		kernel.setArg(1, *meshAccess->getConnectionsBuffer());
+		kernel.setArg(2, mesh->getNrOfTriangles());
+		kernel.setArg(3, *outputAccess->get());
+		kernel.setArg(4, segmentation->getSpacing().x());
+		kernel.setArg(5, segmentation->getSpacing().y());
+		kernel.setArg(6, segmentation->getSpacing().z());
 		queue.enqueueNDRangeKernel(
 				kernel,
 				cl::NullRange,
-				createRegion(segmentation->getSize()),
+				cl::NDRange(segmentation->getWidth(), segmentation->getHeight(), segmentation->getDepth()),
 				cl::NullRange
 		);
 	}
+    reportInfo() << "FINISHED MESH SEGMENTATION" << reportEnd();
 }
 
 }
