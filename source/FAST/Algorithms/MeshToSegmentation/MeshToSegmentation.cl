@@ -26,7 +26,7 @@ char get_line_intersection(float p0_x, float p0_y, float p1_x, float p1_y,
 __kernel void mesh_to_segmentation_2d(
 		__global float2* coordinates,
 		__global uint2* lines,
-		__private int nrOfLines,
+		__private uint nrOfLines,
 		__write_only image2d_t segmentation,
 		__private float spacingX,
 		__private float spacingY
@@ -81,10 +81,50 @@ __kernel void mesh_to_segmentation_2d(
 	write_imageui(segmentation, pos, intersections % 2 == 0 ? 0:255);
 }
 
+int rayIntersectsTriangle(float3 p, float3 d, float3 v0, float3 v1, float3 v2) {
+
+	float3 e1,e2,h,s,q;
+	float a,f,u,v;
+	e1 = v1 - v0;
+	e2 = v2 - v0;
+
+	h = cross(d, e2);
+	a = dot(e1,h);
+
+	if (a > -0.00000000001f && a < 0.00000000001f)
+        return 0;
+
+	f = 1.0f/a;
+	s = p - v0;
+	u = f * (dot(s,h));
+
+	if (u < 0.0 || u > 1.0)
+		return 0;
+
+	q = cross(s,e1);
+	v = f * dot(d,q);
+
+	if (v < 0.0 || u + v > 1.0)
+        return 0;
+
+	// at this stage we can compute t to find out where
+	// the intersection point is on the line
+	float t = f * dot(e2,q);
+
+	if (t > 0.00000001f) { // ray intersection
+        return 1;
+
+	} else { // this means that there is a line intersection
+		 // but not a ray intersection
+		 return 0;
+     }
+
+}
+
 __kernel void mesh_to_segmentation_3d(
-		__global float3* coordinates,
-		__global uint3* triangles,
-		__private int nrOfTriangles,
+		__global float* coordinates,
+		__global uint* triangles,
+		__private uint nrOfTriangles,
 		__global uchar* segmentation,
 		__private float spacingX,
 		__private float spacingY,
@@ -96,5 +136,30 @@ __kernel void mesh_to_segmentation_3d(
 	// For each triangle, check if ray (arbitrary direction) from this pixel intersects
 	// See: http://geomalgorithms.com/a06-_intersect-2.html#intersect3D_RayTriangle()
 	// Count number of intersections, if even: not inside, if odd: inside
+	int intersections = 0;
 
+	// Ray start point
+    float3 P0 = {pos.x*spacingX, pos.y*spacingY, pos.z*spacingZ};
+    if(P0.y == 0) {
+        // There is a strange problem if y component is exactly zero
+        // This is a hack to avoid this
+        P0.y = 0.00001;
+    }
+
+    // Set arbitrarty direction
+    float3 P1 = P0;
+    P1.x += 0.1;
+
+    for(int i = 0; i < nrOfTriangles; i++) {
+        const uint3 triangle = vload3(i, triangles);
+        const float3 u = vload3(triangle.x, coordinates);
+        const float3 v = vload3(triangle.y, coordinates);
+        const float3 w = vload3(triangle.z, coordinates);
+
+        if(rayIntersectsTriangle(P0, P1, u, v, w) >= 1) {
+            intersections++;
+        }
+    }
+
+	segmentation[pos.x + pos.y*get_global_size(0) + pos.z*get_global_size(0)*get_global_size(1)] = intersections % 2 == 0 ? 0:255;
 }

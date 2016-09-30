@@ -13,6 +13,7 @@ MeshToSegmentation::MeshToSegmentation() {
 }
 
 void MeshToSegmentation::execute() {
+    reportInfo() << "In mesh to seg exec" << reportEnd();
 	Mesh::pointer mesh = getStaticInputData<Mesh>(0);
 	Image::pointer image = getStaticInputData<Image>(1);
 
@@ -41,6 +42,7 @@ void MeshToSegmentation::execute() {
 	cl::Program program = getOpenCLProgram(device);
 	cl::CommandQueue queue = device->getCommandQueue();
 	MeshOpenCLAccess::pointer meshAccess = mesh->getOpenCLAccess(ACCESS_READ, device);
+	reportInfo() << "Got mesh opencl access" << reportEnd();
 	if(two_dim_data) {
 		cl::Kernel kernel(program, "mesh_to_segmentation_2d");
 		OpenCLImageAccess::pointer outputAccess = segmentation->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
@@ -59,6 +61,8 @@ void MeshToSegmentation::execute() {
 	} else {
 		cl::Kernel kernel(program, "mesh_to_segmentation_3d");
 		OpenCLBufferAccess::pointer outputAccess = segmentation->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+		queue.finish();
+		reportInfo() << "Got segmentation opencl access" << reportEnd();
 		kernel.setArg(0, *meshAccess->getCoordinatesBuffer());
 		kernel.setArg(1, *meshAccess->getConnectionsBuffer());
 		kernel.setArg(2, mesh->getNrOfTriangles());
@@ -72,8 +76,9 @@ void MeshToSegmentation::execute() {
 				cl::NDRange(segmentation->getWidth(), segmentation->getHeight(), segmentation->getDepth()),
 				cl::NullRange
 		);
+        queue.finish();
 	}
-    reportInfo() << "FINISHED MESH SEGMENTATION" << reportEnd();
+	std::cout << "Mesh to seg finished" << std::endl;
 }
 
 }

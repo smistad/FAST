@@ -1,9 +1,19 @@
 %include "FAST/SmartPointers.i"
+%include "FAST/Data/Image.i"
 
 %shared_ptr(fast::Object)
 %shared_ptr(fast::ProcessObject)
 
+%inline %{
+fast::SharedPointer<fast::Image> getNextFrame(fast::SharedPointer<fast::ProcessObject> po) {
+    fast::DynamicData::pointer dd = po->getOutputData<fast::Image>();
+    fast::Image::pointer image = dd->getNextFrame(po);
+    return image;
+}
+%}
+
 typedef unsigned int uint;
+typedef unsigned char uchar;
 namespace fast {
 
 #define FAST_OBJECT(name) public:\
@@ -23,9 +33,21 @@ class ProcessObject : public Object {
         ProcessObjectPort getOutputPort();
         void setInputConnection(ProcessObjectPort port);
         void setInputConnection(uint connectionID, ProcessObjectPort port);
+        template <class T>
+        SharedPointer<T> getStaticOutputData();
+        template <class T>
+        SharedPointer<T> getStaticOutputData(int port);
+        %template(getStaticImageOutputData) getStaticOutputData<Image>;
+
+        template <class T>
+        SharedPointer<DataObject> getOutputData();
+        %template(getImageOutputData) getOutputData<Image>;
     protected:
     	ProcessObject();
     	virtual void execute() = 0;
 };
+
+
+
 
 } // end namespace fast

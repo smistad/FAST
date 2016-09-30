@@ -11,7 +11,7 @@
 #include "ShapeModels/Ellipse/EllipseModel.hpp"
 #include "ShapeModels/CardinalSpline/CardinalSplineModel.hpp"
 #include "FAST/Algorithms/MeshToSegmentation/MeshToSegmentation.hpp"
-#include "FAST/Importers/ImageFileImporter.hpp"
+#include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
 
 using namespace fast;
 
@@ -36,8 +36,16 @@ TEST_CASE("Model based segmentation with mean value coordinates on 3D cardiac US
 	segmentation->setShapeModel(shapeModel);
 	segmentation->setInputConnection(streamer->getOutputPort());
 
+
+	MeshToSegmentation::pointer meshToSeg = MeshToSegmentation::New();
+	meshToSeg->setInputConnection(0, segmentation->getOutputPort());
+	meshToSeg->setInputConnection(1, streamer->getOutputPort());
+
+	SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
+	extraction->setInputConnection(meshToSeg->getOutputPort());
+
 	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
-	meshRenderer->setInputConnection(segmentation->getOutputPort());
+	meshRenderer->setInputConnection(extraction->getOutputPort());
 
 	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
 	sliceRenderer->setInputConnection(streamer->getOutputPort());
@@ -55,7 +63,7 @@ TEST_CASE("Model based segmentation with spline model on 2D pediatric cardiac US
 	streamer->setZeroFilling(2);
 	streamer->enableLooping();
 	//streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
-	streamer->update(); // TODO this should not be needed
+	//streamer->update(); // TODO this should not be needed
 	streamer->setSleepTime(500);
 
 	// Control points for spline model

@@ -35,6 +35,22 @@ numpy_to_fast_creator(unsigned int, uint32)
 numpy_to_fast_creator(short, int16)
 numpy_to_fast_creator(unsigned short, uint16)
 
+%define fast_to_numpy_creator(TYPE, NAME)
+%apply (TYPE* INPLACE_ARRAY1, int DIM1) {(TYPE* data, int size)};
+%inline %{
+void fast_to_numpy_##NAME##(TYPE* data, int size, fast::SharedPointer<fast::Image> fastImage) {
+    fast::ImageAccess::pointer access = fastImage->getImageAccess(ACCESS_READ);
+    memcpy(data, access->get(), size*sizeof(TYPE));
+}
+%}
+%enddef
+
+fast_to_numpy_creator(unsigned char, uint8)
+fast_to_numpy_creator(char, int8)
+fast_to_numpy_creator(unsigned short, uint16)
+fast_to_numpy_creator(short, int16)
+fast_to_numpy_creator(float, float)
+
 namespace fast {
 
 %ignore Object;
