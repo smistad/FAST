@@ -13,7 +13,6 @@ MeshToSegmentation::MeshToSegmentation() {
 }
 
 void MeshToSegmentation::execute() {
-    reportInfo() << "In mesh to seg exec" << reportEnd();
 	Mesh::pointer mesh = getStaticInputData<Mesh>(0);
 	Image::pointer image = getStaticInputData<Image>(1);
 
@@ -52,6 +51,7 @@ void MeshToSegmentation::execute() {
 		kernel.setArg(3, *outputAccess->get2DImage());
 		kernel.setArg(4, segmentation->getSpacing().x());
 		kernel.setArg(5, segmentation->getSpacing().y());
+		kernel.setArg(6, (uchar)mLabel);
 		queue.enqueueNDRangeKernel(
 				kernel,
 				cl::NullRange,
@@ -61,8 +61,6 @@ void MeshToSegmentation::execute() {
 	} else {
 		cl::Kernel kernel(program, "mesh_to_segmentation_3d");
 		OpenCLBufferAccess::pointer outputAccess = segmentation->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
-		queue.finish();
-		reportInfo() << "Got segmentation opencl access" << reportEnd();
 		kernel.setArg(0, *meshAccess->getCoordinatesBuffer());
 		kernel.setArg(1, *meshAccess->getConnectionsBuffer());
 		kernel.setArg(2, mesh->getNrOfTriangles());
@@ -70,15 +68,14 @@ void MeshToSegmentation::execute() {
 		kernel.setArg(4, segmentation->getSpacing().x());
 		kernel.setArg(5, segmentation->getSpacing().y());
 		kernel.setArg(6, segmentation->getSpacing().z());
+        kernel.setArg(7, (uchar)mLabel);
 		queue.enqueueNDRangeKernel(
 				kernel,
 				cl::NullRange,
 				cl::NDRange(segmentation->getWidth(), segmentation->getHeight(), segmentation->getDepth()),
 				cl::NullRange
 		);
-        queue.finish();
 	}
-	std::cout << "Mesh to seg finished" << std::endl;
 }
 
 }
