@@ -15,6 +15,7 @@
 
 using namespace fast;
 
+/*
 TEST_CASE("Model based segmentation with mean value coordinates on 3D cardiac US data", "[fast][ModelBasedSegmentation][cardiac][3d][visual]") {
 	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
 	streamer->setFilenameFormat("/home/smistad/CETUS/Patient1/Patient1_frame#.mhd");
@@ -114,7 +115,6 @@ TEST_CASE("Model based segmentation with spline model on 2D pediatric cardiac US
 	window->start();
 }
 
-/*
 TEST_CASE("Model based segmentation with spline model on 2D pediatric aorta US data", "[fast][ModelBasedSegmentation][2d][aorta][pediatric][visual]") {
 	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
 	streamer->setFilenameFormat("/home/smistad/Data/aorta_us/labelImage#.mhd");

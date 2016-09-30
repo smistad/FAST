@@ -53,6 +53,7 @@ TEST_CASE("MeshToSegmentation 2D", "[fast][MeshToSegmentation][2d]") {
     window->addRendererToTopLeftView(imageRenderer);
     window->getBottomRightView()->set2DMode();
     window->getTopLeftView()->set2DMode();
+    window->setTimeout(500);
     window->start();
 }
 
@@ -123,5 +124,6 @@ TEST_CASE("MeshToSegmentation 3D", "[fast][MeshToSegmentation][3d]") {
     window->addRendererToTopLeftView(imageRenderer);
     //window->getBottomRightView()->set2DMode();
     //window->getTopLeftView()->set2DMode();
+    window->setTimeout(500);
     window->start();
 }
