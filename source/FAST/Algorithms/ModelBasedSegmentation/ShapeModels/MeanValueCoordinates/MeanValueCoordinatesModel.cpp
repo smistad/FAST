@@ -6,6 +6,10 @@ namespace fast {
 
 MeanValueCoordinatesModel::MeanValueCoordinatesModel() {
 	mInitializeShapeToImageCenter = false;
+	mInitialScaling = Vector3f(0.8, 0.8, 0.8);
+	mInitialTranslation = Vector3f::Zero();
+	mGlobalProcessError = 0.01;
+	mLocalProcessError = 0.000001;
 }
 
 inline float sign(float v) {
@@ -139,9 +143,9 @@ void MeanValueCoordinatesModel::loadMeshes(Mesh::pointer surfaceMesh,
     mProcessErrorMatrix = MatrixXf::Zero(mStateSize, mStateSize);
     for(int i = 0; i < mStateSize; ++i) {
     	if(i < 9) {
-    		mProcessErrorMatrix(i, i) = 0.01f;
+    		mProcessErrorMatrix(i, i) = mGlobalProcessError;
     	} else {
-    		mProcessErrorMatrix(i, i) = 0.000001f;
+    		mProcessErrorMatrix(i, i) = mLocalProcessError;
     	}
     }
 
@@ -298,7 +302,7 @@ Shape::pointer MeanValueCoordinatesModel::getShape(VectorXf state) {
     int nrOfNans = 0;
     for(int i = 0; i < pL.size(); i++) {
     	Vector3f position = pL[i].getPosition();
-        if(isnan(position.x()) || isnan(position.y()) || isnan(position.z())) {
+        if(std::isnan(position.x()) || std::isnan(position.y()) || std::isnan(position.z())) {
             nrOfNans++;
             continue;
         }
@@ -563,10 +567,25 @@ VectorXf MeanValueCoordinatesModel::getInitialState(Image::pointer image) {
 		volumeCentroid = transformMatrix->multiply(volumeCentroid);
 		Vector3f translation = volumeCentroid - modelCentroid;
 
-		return getState(translation, Vector3f(0.8, 0.8, 0.8), Vector3f::Zero());
+		return getState(translation, mInitialScaling, Vector3f::Zero());
 	} else {
-		return getState(Vector3f::Zero(), Vector3f(1, 1, 1), Vector3f::Zero());
+		return getState(mInitialTranslation, mInitialScaling, Vector3f::Zero());
 	}
+}
+
+void MeanValueCoordinatesModel::setInitialScaling(float x, float y, float z) {
+	mInitialScaling = Vector3f(x, y, z);
+
+}
+void MeanValueCoordinatesModel::setInitialTranslation(float x, float y, float z) {
+	mInitialTranslation = Vector3f(x, y, z);
+
+}
+void MeanValueCoordinatesModel::setLocalProcessError(float error) {
+	mLocalProcessError = error;
+}
+void MeanValueCoordinatesModel::setGlobalProcessError(float error) {
+	mGlobalProcessError = error;
 }
 
 } // end namespace fast

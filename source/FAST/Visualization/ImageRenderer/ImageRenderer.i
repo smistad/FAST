@@ -8,6 +8,7 @@ class ImageRenderer : public Renderer {
     public:
     	static SharedPointer<ImageRenderer> New();
         void addInputConnection(ProcessObjectPort port);
+        void setInputData(SharedPointer<DataObject> data);
 	private:
     	ImageRenderer();
 };

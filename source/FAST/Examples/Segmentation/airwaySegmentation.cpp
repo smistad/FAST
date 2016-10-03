@@ -17,7 +17,7 @@ using namespace fast;
 int main() {
 	// Import CT data
 	ImageFileImporter::pointer importer = ImageFileImporter::New();
-	importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT-Thorax.mhd");
+	importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT/CT-Thorax.mhd");
 
 	// Do airway segmenetation
 	AirwaySegmentation::pointer segmentation = AirwaySegmentation::New();

@@ -8,7 +8,9 @@
 #include "FAST/Data/DataTypes.hpp"
 #include "FAST/Data/Access/VertexBufferObjectAccess.hpp"
 #include "FAST/Data/Access/MeshAccess.hpp"
+#include "FAST/Data/Access/MeshOpenCLAccess.hpp"
 #include <boost/thread/condition_variable.hpp>
+#include <boost/unordered_map.hpp>
 
 namespace fast {
 
@@ -21,6 +23,7 @@ class Mesh : public SpatialDataObject {
         void create(unsigned int nrOfTriangles);
         VertexBufferObjectAccess::pointer getVertexBufferObjectAccess(accessType access, OpenCLDevice::pointer device);
         MeshAccess::pointer getMeshAccess(accessType access);
+        MeshOpenCLAccess::pointer getOpenCLAccess(accessType access, OpenCLDevice::pointer device);
         unsigned int getNrOfTriangles() const;
         unsigned int getNrOfLines() const;
         unsigned int getNrOfVertices() const;
@@ -31,6 +34,8 @@ class Mesh : public SpatialDataObject {
         Mesh();
         void freeAll();
         void free(ExecutionDevice::pointer device);
+        void setAllDataToOutOfDate();
+        void updateOpenCLBufferData(OpenCLDevice::pointer device);
 
         bool mIsInitialized;
         uchar mDimensions;
@@ -47,9 +52,15 @@ class Mesh : public SpatialDataObject {
         std::vector<MeshVertex> mVertices;
         std::vector<VectorXui> mConnections;
 
+        // OpenCL buffer data
+        boost::unordered_map<OpenCLDevice::pointer, cl::Buffer*> mCoordinatesBuffers;
+        boost::unordered_map<OpenCLDevice::pointer, cl::Buffer*> mConnectionBuffers;
+        boost::unordered_map<OpenCLDevice::pointer, bool> mCLBuffersIsUpToDate;
+
         // Declare as friends so they can get access to the accessFinished methods
         friend class MeshAccess;
         friend class VertexBufferObjectAccess;
+        friend class MeshOpenCLAccess;
 };
 
 } // end namespace fast

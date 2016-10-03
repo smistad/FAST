@@ -23,6 +23,9 @@ class Image : public SpatialDataObject {
         void create(VectorXui size, DataType type, uint nrOfComponents, ExecutionDevice::pointer device, const void * data);
         void create(uint width, uint height, DataType type, uint nrOfComponents, ExecutionDevice::pointer device, const void * data);
         void create(uint width, uint height, uint depth, DataType type, uint nrOfComponents, ExecutionDevice::pointer device, const void * data);
+        void create(VectorXui size, DataType type, uint nrOfComponents, const void * data);
+        void create(uint width, uint height, DataType type, uint nrOfComponents, const void * data);
+        void create(uint width, uint height, uint depth, DataType type, uint nrOfComponents, const void * data);
 
         OpenCLImageAccess::pointer getOpenCLImageAccess(accessType type, OpenCLDevice::pointer);
         OpenCLBufferAccess::pointer getOpenCLBufferAccess(accessType type, OpenCLDevice::pointer);
@@ -39,6 +42,7 @@ class Image : public SpatialDataObject {
         uint getNrOfComponents() const;
         Vector3f getSpacing() const;
         void setSpacing(Vector3f spacing);
+        void setSpacing(float x, float y, float z);
 
         float calculateMaximumIntensity();
         float calculateMinimumIntensity();

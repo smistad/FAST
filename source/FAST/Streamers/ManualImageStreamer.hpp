@@ -1,5 +1,5 @@
-#ifndef META_IMAGE_STREAMER_HPP
-#define META_IMAGE_STREAMER_HPP
+#ifndef MANUAL_IMAGE_STREAMER_HPP
+#define MANUAL_IMAGE_STREAMER_HPP
 
 #include "FAST/SmartPointers.hpp"
 #include "FAST/Streamers/Streamer.hpp"
@@ -8,17 +8,18 @@
 
 namespace fast {
 
-class ImageFileStreamer : public Streamer, public ProcessObject {
-    FAST_OBJECT(ImageFileStreamer)
+class Image;
+
+class ManualImageStreamer : public Streamer, public ProcessObject {
+    FAST_OBJECT(ManualImageStreamer)
     public:
-        void setFilenameFormat(std::string str);
+    	void addImage(SharedPointer<Image> image);
         void setStartNumber(uint startNumber);
         void setStepSize(uint step);
         void setZeroFilling(uint digits);
         void setNumberOfReplays(uint replays);
         void setStreamingMode(StreamingMode mode);
         void setMaximumNumberOfFrames(uint nrOfFrames);
-        void setTimestampFilename(std::string filepath);
         void enableLooping();
         void disableLooping();
         /**
@@ -33,9 +34,9 @@ class ImageFileStreamer : public Streamer, public ProcessObject {
          */
         void producerStream();
 
-        ~ImageFileStreamer();
+        ~ManualImageStreamer();
     private:
-        ImageFileStreamer();
+        ManualImageStreamer();
 
         // Update the streamer if any parameters have changed
         void execute();
@@ -58,9 +59,7 @@ class ImageFileStreamer : public Streamer, public ProcessObject {
         bool mFirstFrameIsInserted;
         bool mHasReachedEnd;
 
-        std::string mFilenameFormat;
-        std::string mTimestampFilename;
-
+        std::vector<SharedPointer<Image> > mImages;
 };
 
 } // end namespace fast

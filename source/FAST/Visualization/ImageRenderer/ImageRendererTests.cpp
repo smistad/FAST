@@ -8,7 +8,7 @@ using namespace fast;
 
 TEST_CASE("ImageRenderer with single 2D image in 2D mode", "[fast][ImageRenderer][visual]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US-2D.jpg");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US/US-2D.jpg");
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->setInputConnection(importer->getOutputPort());
     SimpleWindow::pointer window = SimpleWindow::New();
@@ -21,7 +21,7 @@ TEST_CASE("ImageRenderer with single 2D image in 2D mode", "[fast][ImageRenderer
 
 TEST_CASE("ImageRenderer with dynamic 2D image in 2D mode", "[fast][ImageRenderer][visual]") {
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
-    streamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US-2Dt/US-2Dt_#.mhd");
+    streamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US/CarotidArtery/Right/US-2D_#.mhd");
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->setInputConnection(streamer->getOutputPort());
     SimpleWindow::pointer window = SimpleWindow::New();
@@ -34,7 +34,7 @@ TEST_CASE("ImageRenderer with dynamic 2D image in 2D mode", "[fast][ImageRendere
 
 TEST_CASE("ImageRenderer with single 3D image in 2D mode and Axial plane", "[fast][ImageRenderer][visual]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"CT-Abdomen.mhd");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"/CT/CT-Abdomen.mhd");
 
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->setInputConnection(importer->getOutputPort());
@@ -50,7 +50,7 @@ TEST_CASE("ImageRenderer with single 3D image in 2D mode and Axial plane", "[fas
 
 TEST_CASE("ImageRenderer with single 3D image in 2D mode and Coronal plane", "[fast][ImageRenderer][visual]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"CT-Abdomen.mhd");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"/CT/CT-Abdomen.mhd");
 
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->setInputConnection(importer->getOutputPort());
@@ -66,7 +66,7 @@ TEST_CASE("ImageRenderer with single 3D image in 2D mode and Coronal plane", "[f
 
 TEST_CASE("ImageRenderer with single 3D image in 2D mode in Sagittal plane", "[fast][ImageRenderer][visual]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"CT-Abdomen.mhd");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"/CT/CT-Abdomen.mhd");
 
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->setInputConnection(importer->getOutputPort());
@@ -82,7 +82,7 @@ TEST_CASE("ImageRenderer with single 3D image in 2D mode in Sagittal plane", "[f
 
 TEST_CASE("ImageRenderer with single 3D image in 2D mode and custom plane", "[fast][ImageRenderer][visual]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"CT-Abdomen.mhd");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"/CT/CT-Abdomen.mhd");
 
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->setInputConnection(importer->getOutputPort());

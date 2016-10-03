@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
     if(argc > 1) {
 		streamer->setFilenameFormat(argv[1]);
     } else {
-		streamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US-2Dt/US-2Dt_#.mhd");
+        streamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US/CarotidArtery/Right/US-2D_#.mhd");
     }
 
     // Renderer image

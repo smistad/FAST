@@ -31,3 +31,6 @@ fast_add_test_sources(
     Tests/ImageTests.cpp
     Tests/DynamicImageTests.cpp
 )
+fast_add_python_interfaces(
+	Image.i
+)

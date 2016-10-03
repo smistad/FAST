@@ -15,7 +15,7 @@ using namespace fast;
 int main() {
     // Import CT image
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT-Abdomen.mhd");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT/CT-Abdomen.mhd");
 
     // Perform region growing segmentation
     SeededRegionGrowing::pointer segmentation = SeededRegionGrowing::New();

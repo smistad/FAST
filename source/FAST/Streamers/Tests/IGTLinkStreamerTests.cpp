@@ -10,7 +10,7 @@ using namespace fast;
 TEST_CASE("Stream 2D images using IGTLinkStreamer", "[IGTLinkStreamer][fast][IGTLink][visual]") {
 
     ImageFileStreamer::pointer fileStreamer = ImageFileStreamer::New();
-    fileStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US-2Dt/US-2Dt_#.mhd");
+    fileStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US/CarotidArtery/Right/US-2D_#.mhd");
     fileStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     DummyIGTLServer server;
     server.setImageStreamer(fileStreamer);

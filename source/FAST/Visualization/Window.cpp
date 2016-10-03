@@ -5,6 +5,28 @@ namespace fast {
 
 QGLContext* Window::mMainGLContext = NULL;
 
+class FASTApplication : public QApplication {
+public:
+    FASTApplication(int &argc, char **argv) :
+            QApplication(argc, argv) {}
+
+    virtual ~FASTApplication() {}
+
+    // reimplemented from QApplication so we can throw exceptions in slots
+    virtual bool notify(QObject *receiver, QEvent *event) {
+        try {
+            return QApplication::notify(receiver, event);
+        } catch(Exception &e) {
+            Reporter::error() << "FAST exception caught in Qt event handler " << e.what() << Reporter::end;
+        } catch(cl::Error &e) {
+            Reporter::error() << "OpenCL exception caught in Qt event handler " << e.what() << "(" << e.err() << ")" << Reporter::end;
+        } catch(std::exception &e) {
+            Reporter::error() << "Std exception caught in Qt event handler " << e.what() << Reporter::end;
+        }
+        return false;
+    }
+};
+
 Window::Window() {
     mThread = NULL;
     mTimeout = 0;
@@ -36,7 +58,7 @@ void Window::initializeQtApp() {
         // Create some dummy argc and argv options as QApplication requires it
         int* argc = new int[1];
         *argc = 0;
-        QApplication* app = new QApplication(*argc,NULL);
+        QApplication* app = new FASTApplication(*argc,NULL);
     }
 
     // There is a bug in AMD OpenCL related to comma (,) as decimal point

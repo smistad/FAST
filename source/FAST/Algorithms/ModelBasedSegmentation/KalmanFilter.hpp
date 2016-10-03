@@ -8,6 +8,7 @@
 namespace fast {
 
 class Image;
+class Mesh;
 
 class KalmanFilter : public ProcessObject {
 	FAST_OBJECT(KalmanFilter)
@@ -17,11 +18,14 @@ class KalmanFilter : public ProcessObject {
 		void setIterations(int iterations);
 		void setStartIterations(int iterations);
 		VectorXf getCurrentState() const;
+		ProcessObjectPort getSegmentationOutputPort();
+		ProcessObjectPort getDisplacementsOutputPort();
 	private:
 		KalmanFilter();
 		void execute(); // runs a loop with predict, measure and update
 		void predict();
 		void estimate(SharedPointer<Image> image);
+		SharedPointer<Mesh> getDisplacementVectors(SharedPointer<Image> image);
 
 		AppearanceModel::pointer mAppearanceModel;
 		ShapeModel::pointer mShapeModel;
@@ -37,6 +41,7 @@ class KalmanFilter : public ProcessObject {
 
 		bool mInitialized;
 		bool mFirstExecute;
+		bool mOutputDisplacements;
 
 		int mIterations;
 		int mStartIterations;

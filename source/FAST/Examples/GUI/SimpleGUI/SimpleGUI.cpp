@@ -25,7 +25,7 @@ SimpleGUI::SimpleGUI() {
 
     // Import image
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "/CT-Abdomen.mhd");
+    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT/CT-Abdomen.mhd");
 
     // Smooth image
     mSmoothing = GaussianSmoothingFilter::New();

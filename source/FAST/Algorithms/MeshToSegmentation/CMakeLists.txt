@@ -1,0 +1,10 @@
+fast_add_sources(
+	MeshToSegmentation.cpp
+	MeshToSegmentation.hpp
+)
+fast_add_test_sources(
+	Tests.cpp
+)
+fast_add_python_interfaces(
+    MeshToSegmentation.i
+)
