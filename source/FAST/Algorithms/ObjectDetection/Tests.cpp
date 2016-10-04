@@ -30,7 +30,8 @@ TEST_CASE("Object detection stream", "[fast][ObjectDetection][dynamic]") {
 	//detector->setMirrorImage(true); // Set this to true for left side images
 	importer->setSleepTime(75);
 	detector->setInputConnection(importer->getOutputPort());
-	detector->loadModel("/home/smistad/workspace/detect_femoral_artery/net_deploy.prototxt", "/home/smistad/workspace/detect_femoral_artery/_iter_3000.caffemodel");
+	detector->loadModel("/home/smistad/workspace/detect_femoral_artery/net_deploy.prototxt",
+						"/home/smistad/workspace/detect_femoral_artery/_iter_6000.caffemodel");
 
 	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
 	meshRenderer->setInputConnection(detector->getOutputPort());
