@@ -10,7 +10,8 @@ RidgeEdgeModel::RidgeEdgeModel() {
 	mLineLength = 0;
 	mLineSampleSpacing = 0;
 	mIntensityDifferenceThreshold = 20;
-	mSizes.push_back(1);
+    std::vector<float> sizes = {1, 1.5, 2, 2.5, 3, 3.5, 4};
+	mSizes = sizes;
 }
 
 typedef struct DetectedEdge {
@@ -40,7 +41,7 @@ inline DetectedEdge findEdge(
 		for(int k = 1; k < line_length - size; ++k) {
 			float score = 0.0f;
 			// A 1
-			float average1 = sum_k[k] / k;
+			float average1 = sum_k[k] / (k+1);
 			for(int t = 0; t <= k; ++t) {
 				score += fabs(average1 - intensityProfile[t]);
 			}
@@ -52,7 +53,7 @@ inline DetectedEdge findEdge(
 			}
 
 			// A 3
-			float average3 = (sum_k[line_length-1] - sum_k[k+size]) / (line_length - k - size);
+			float average3 = (sum_k[line_length-1] - sum_k[k+size]) / (line_length - 1 - k - size);
 			for(int t = k + size + 1; t < line_length; ++t) {
 				score += fabs(average3 - intensityProfile[t]);
 			}
@@ -113,11 +114,10 @@ std::vector<Measurement> RidgeEdgeModel::getMeasurements(SharedPointer<Image> im
 		// Convert from mm to steps (approx)
 		int steps = round(size / mLineSampleSpacing);
 		// Make divisible by 2 for convienience
-		if(steps % 2 != 0) {
+		if(steps % 2 != 0 && steps == 0) {
 			steps++;
 		}
 		sizesInSteps.push_back(steps);
-		reportInfo() << "Added step size: " << steps << reportEnd();
 	}
 
 	// For each point on the shape do a line search in the direction of the normal
