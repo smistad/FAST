@@ -140,9 +140,9 @@ void ObjectDetection::execute() {
 	// Read output layer
 	boost::shared_ptr<caffe::Blob<float> > softmax_layer = mNet->blob_by_name("softmax");
 	std::vector<float> softmax_result(softmax_layer->cpu_data(), softmax_layer->cpu_data() + softmax_layer->channels()*softmax_layer->num());
-	boost::shared_ptr<caffe::Blob<float> > center_layer = mNet->blob_by_name("center_fc");
+	boost::shared_ptr<caffe::Blob<float> > center_layer = mNet->blob_by_name("center_fc_final");
 	std::vector<float> center_result(center_layer->cpu_data(), center_layer->cpu_data() + center_layer->channels()*center_layer->num());
-	boost::shared_ptr<caffe::Blob<float> > size_layer = mNet->blob_by_name("size_fc");
+	boost::shared_ptr<caffe::Blob<float> > size_layer = mNet->blob_by_name("size_fc_final");
 	std::vector<float> size_result(size_layer->cpu_data(), size_layer->cpu_data() + size_layer->channels()*size_layer->num());
 
 	std::vector<MeshVertex> vertices;

@@ -31,7 +31,7 @@ TEST_CASE("Object detection stream", "[fast][ObjectDetection][dynamic]") {
 	importer->setSleepTime(75);
 	detector->setInputConnection(importer->getOutputPort());
 	detector->loadModel("/home/smistad/workspace/detect_femoral_artery/net_deploy.prototxt",
-						"/home/smistad/workspace/detect_femoral_artery/_iter_6000.caffemodel");
+						"/home/smistad/workspace/detect_femoral_artery/models/_iter_6000.caffemodel");
 
 	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
 	meshRenderer->setInputConnection(detector->getOutputPort());
