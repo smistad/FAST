@@ -1,6 +1,10 @@
 %include "FAST/Algorithms/ModelBasedSegmentation/KalmanFilter.i"
+%include "std_vector.i"
 %shared_ptr(fast::RidgeEdgeModel)
 
+namespace std {
+   %template(FloatVector) vector<float>;
+}
 
 namespace fast {
 
