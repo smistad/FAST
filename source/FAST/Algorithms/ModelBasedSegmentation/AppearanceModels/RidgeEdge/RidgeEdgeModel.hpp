@@ -16,9 +16,11 @@ class RidgeEdgeModel : public AppearanceModel {
 		void setIntensityDifferenceThreshold(float threshold);
 		void setMinimumDepth(float depth);
     	void setRidgeSizes(std::vector<float> sizes);
-		std::vector<Measurement> getMeasurements(SharedPointer<Image> image, SharedPointer<Shape> shape);
+		std::vector<Measurement> getMeasurements(SharedPointer<Image> image, SharedPointer<Shape> shape, ExecutionDevice::pointer device);
 	private:
 		RidgeEdgeModel();
+        std::vector<Measurement> getMeasurementsOnHost(SharedPointer<Image> image, SharedPointer<Shape> shape);
+        std::vector<Measurement> getMeasurementsOnDevice(SharedPointer<Image> image, SharedPointer<Shape> shape, OpenCLDevice::pointer device);
 
 		float mLineLength;
 		float mLineSampleSpacing;
