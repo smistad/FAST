@@ -45,43 +45,31 @@ __kernel void edgeDetection2D(
     float sumInRidge = 0.0f;
     float sumAfterRidge = 0.0f;
     int startPos = -1;
-    int endPos = nrOfSamples - 1;
-    for(int i = 0; i <= nrOfSamples; i++) {
+    int endPos = -1;
+    for(int i = 0; i < nrOfSamples; i++) {
         if(startPos == -1 && intensityProfile[i] > 0)
             startPos = i;
         if(startPos >= 0 && intensityProfile[i] == 0) {
             endPos = i;
-            break;
         }
-        if(i <= sampleNr) {
-            sumBeforeRidge += intensityProfile[i];
-        } else if(i <= sampleNr + size) {
-            sumInRidge += intensityProfile[i];
-        } else {
-            sumAfterRidge += intensityProfile[i];
+        if(startPos >= 0 && endPos == -1) {
+            if(i <= sampleNr) {
+                sumBeforeRidge += intensityProfile[i];
+            } else if(i <= sampleNr + size) {
+                sumInRidge += intensityProfile[i];
+            }
         }
     }
+    if(endPos < 0)
+        endPos = nrOfSamples - 1;
 
-    // Calculate the total score
-    float totalScore = 0.0f;
+    // Calculate intensity diffs
     const float averageBeforeRidge = sumBeforeRidge / (sampleNr+1 - startPos);
     const float averageInRidge = sumInRidge / size;
-    const float averageAfterRidge = sumAfterRidge / (nrOfSamples - size);
-    for(int i = startPos; i <= sampleNr; i++) {
-        totalScore += fabs(averageBeforeRidge - intensityProfile[i]);
-    }
-    for(int i = sampleNr+1; i <= min(sampleNr+size, endPos); i++) {
-        totalScore += fabs(averageInRidge - intensityProfile[i]);
-    }
-    for(int i = sampleNr+size+1; i < min(nrOfSamples, endPos); i++) {
-        totalScore += fabs(averageAfterRidge - intensityProfile[i]);
-    }
-
 
     const float intensityDifference = averageInRidge - averageBeforeRidge;
 
-    results[(sampleNr + pointNr*nrOfSamples)*2] = totalScore;
-    results[(sampleNr + pointNr*nrOfSamples)*2+1] = intensityDifference;
+    results[sampleNr + pointNr*nrOfSamples] = intensityDifference;
 
 
     // TODO

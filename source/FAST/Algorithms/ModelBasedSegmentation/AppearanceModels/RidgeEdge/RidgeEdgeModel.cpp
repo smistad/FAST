@@ -34,7 +34,7 @@ inline DetectedEdge findEdge(
         totalSum += intensityProfile[k];
     }
 
-    float bestScore = std::numeric_limits<float>::max();
+    float bestScore = std::numeric_limits<float>::min();
     int bestK = -1;
     float intensityDifference = 0;
     for(int k = 4; k < line_length - size; ++k) {
@@ -50,12 +50,15 @@ inline DetectedEdge findEdge(
         for(int t = k+1; t <= k+size; ++t) {
             score += fabs(average2 - intensityProfile[t]);
         }
+
+        // A 3
 		float average3 = (sum_k[line_length-1] - sum_k[k+size]) / (line_length - 1 - k - size);
 		for(int t = k + size + 1; t < line_length; ++t) {
         	score += fabs(average3 - intensityProfile[t]);
        	}
 
-		if(score < bestScore) {
+		score = fabs(average2 - average1);
+		if(score > bestScore) {
             bestScore = score;
             bestK = k;
             intensityDifference = average2 - average1;
@@ -77,6 +80,20 @@ inline DetectedEdge findEdge(
     return edge;
 }
 
+
+int RidgeEdgeModel::convertRidgeSizeToSamples() {
+	const int nrOfSamples = ceil(mLineLength / mLineSampleSpacing);
+	int ridgeSizeInSteps = round(mRidgeSize / mLineSampleSpacing);
+    if(ridgeSizeInSteps == 0)
+        ridgeSizeInSteps = 1;
+	if(ridgeSizeInSteps < 6)
+		reportWarning() << "Warning only " << ridgeSizeInSteps << " samples are used for detecting ridge. Consider increasing the minimum ridge size or lower the line sample spacing." << reportEnd();
+    if(ridgeSizeInSteps >= nrOfSamples)
+		throw Exception("Ridge size too large compared to the line length");
+
+	return ridgeSizeInSteps;
+}
+
 std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnHost(SharedPointer<Image> image, SharedPointer<Shape> shape) {
 	std::vector<Measurement> measurements;
 	Mesh::pointer predictedMesh = shape->getMesh();
@@ -86,11 +103,7 @@ std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnHost(SharedPointer<Ima
 	ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
 
     // Convert from mm to steps (approx)
-    int ridgeSizeInSteps = round(mRidgeSize / mLineSampleSpacing);
-    if(ridgeSizeInSteps == 0)
-        ridgeSizeInSteps = 1;
-	if(ridgeSizeInSteps < 4)
-		reportWarning() << "Warning only " << ridgeSizeInSteps << " samples are used for detecting ridge" << reportEnd();
+	int ridgeSizeInSteps = convertRidgeSizeToSamples();
 
 	// For each point on the shape do a line search in the direction of the normal
 	// Return set of displacements and uncertainties
@@ -201,10 +214,7 @@ std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnHost(SharedPointer<Ima
 	return measurements;
 }
 
-
 std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnDevice(SharedPointer<Image> image, SharedPointer<Shape> shape, OpenCLDevice::pointer device) {
-	// TODO implement minimum depth
-
 	Mesh::pointer predictedMesh = shape->getMesh();
 	MeshAccess::pointer predictedMeshAccess = predictedMesh->getMeshAccess(ACCESS_READ);
 	std::vector<MeshVertex> points = predictedMeshAccess->getVertices();
@@ -222,14 +232,7 @@ std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnDevice(SharedPointer<I
 
 	const int nrOfSamples = ceil(mLineLength / mLineSampleSpacing);
 
-    // Convert from mm to steps (approx)
-    int ridgeSizeInSteps = round(mRidgeSize / mLineSampleSpacing);
-    if(ridgeSizeInSteps == 0)
-        ridgeSizeInSteps = 1;
-	if(ridgeSizeInSteps < 4)
-		reportWarning() << "Warning only " << ridgeSizeInSteps << " samples are used for detecting ridge" << reportEnd();
-    if(ridgeSizeInSteps >= nrOfSamples)
-		throw Exception("Ridge size too large");
+    int ridgeSizeInSteps = convertRidgeSizeToSamples();
 
 	// TODO the read only buffers here can be cached
 	cl::Buffer pointsBuffer(
@@ -241,7 +244,7 @@ std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnDevice(SharedPointer<I
 	cl::Buffer resultBuffer(
 			device->getContext(),
 			CL_MEM_WRITE_ONLY,
-			2*points.size()*nrOfSamples*sizeof(float)
+			points.size()*nrOfSamples*sizeof(float)
 	);
 
 	// Create kernel
@@ -272,11 +275,12 @@ std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnDevice(SharedPointer<I
 			cl::NDRange(nrOfSamples, pointSize),
 			cl::NDRange(nrOfSamples, 1)
 	);
+    queue.finish();
 
 
 	// Transfer data back
-	boost::shared_array<float> resultArray(new float[pointSize*nrOfSamples*2]);
-	queue.enqueueReadBuffer(resultBuffer, CL_TRUE, 0, 2*pointSize*nrOfSamples*sizeof(float), resultArray.get());
+	boost::shared_array<float> resultArray(new float[pointSize*nrOfSamples]);
+	queue.enqueueReadBuffer(resultBuffer, CL_TRUE, 0, pointSize*nrOfSamples*sizeof(float), resultArray.get());
 
 	std::vector<Measurement> measurements;
 	for(int i = 0; i < pointSize; ++i) {
@@ -284,13 +288,13 @@ std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnDevice(SharedPointer<I
 		m.uncertainty = 1;
 		m.displacement = 0;
 		// Minimize score
-		float bestScore = std::numeric_limits<float>::max();
+		float bestScore = std::numeric_limits<float>::min();
 		float bestUncertainty = 0.0f;
 		int edgeIndex = -1;
         for(int sampleNr = 4; sampleNr < nrOfSamples - ridgeSizeInSteps; ++sampleNr) {
-            float score = resultArray[(sampleNr + i*nrOfSamples) * 2];
-            float intensityDifference = resultArray[(sampleNr + i*nrOfSamples) * 2 + 1];
-            if(score < bestScore) {
+            float intensityDifference = resultArray[sampleNr + i*nrOfSamples];
+			float score = fabs(intensityDifference);
+            if(score > bestScore) {
 			   if((mEdgeType == EDGE_TYPE_BLACK_INSIDE_WHITE_OUTSIDE && intensityDifference > mIntensityDifferenceThreshold) ||
                    (mEdgeType == EDGE_TYPE_WHITE_INSIDE_BLACK_OUTSIDE && -intensityDifference > mIntensityDifferenceThreshold) ||
                    (mEdgeType == EDGE_TYPE_ANY && fabs(intensityDifference) > mIntensityDifferenceThreshold)) {

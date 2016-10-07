@@ -27,6 +27,7 @@ class RidgeEdgeModel : public AppearanceModel {
 		RidgeEdgeModel();
         std::vector<Measurement> getMeasurementsOnHost(SharedPointer<Image> image, SharedPointer<Shape> shape);
         std::vector<Measurement> getMeasurementsOnDevice(SharedPointer<Image> image, SharedPointer<Shape> shape, OpenCLDevice::pointer device);
+        int convertRidgeSizeToSamples();
 
 		float mLineLength;
 		float mLineSampleSpacing;
@@ -34,7 +35,6 @@ class RidgeEdgeModel : public AppearanceModel {
 		float mMinimumDepth;
     	float mRidgeSize;
         EdgeType mEdgeType;
-
 };
 
 }

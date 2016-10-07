@@ -16,7 +16,7 @@
 
 using namespace fast;
 
-
+/*
 TEST_CASE("Model based segmentation with mean value coordinates on 3D cardiac US data", "[fast][ModelBasedSegmentation][cardiac][3d][visual]") {
 	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
 	streamer->setFilenameFormat("/home/smistad/CETUS/Patient1/Patient1_frame#.mhd");
@@ -73,7 +73,6 @@ TEST_CASE("Model based segmentation with spline model on 2D pediatric cardiac US
 	streamer->setZeroFilling(2);
 	streamer->enableLooping();
 	streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
-	//streamer->update(); // TODO this should not be needed
 	//streamer->setSleepTime(500);
 
 	// Control points for spline model
@@ -237,8 +236,6 @@ TEST_CASE("Model based segmentation with spline model on 2D cardiac US data", "[
 }
 
 
-
-
 TEST_CASE("Model based segmentation with ellipse model on 2D femoral nerve block US data", "[fast][ModelBasedSegmentation][femoral][2d][visual]") {
 	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
 	streamer->setFilenameFormat("/home/smistad/AssistantTestData/0/US-Acq_01_20150608T102019/Acquisition/US-Acq_01_20150608T102019_Image_Transducer_#.mhd");
@@ -269,3 +266,4 @@ TEST_CASE("Model based segmentation with ellipse model on 2D femoral nerve block
 	window->set2DMode();
 	window->start();
 }
+ */
