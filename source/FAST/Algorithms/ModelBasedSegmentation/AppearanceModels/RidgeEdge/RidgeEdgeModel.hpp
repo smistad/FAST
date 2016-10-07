@@ -15,8 +15,14 @@ class RidgeEdgeModel : public AppearanceModel {
 		void setLineSampleSpacing(float spacingInMM);
 		void setIntensityDifferenceThreshold(float threshold);
 		void setMinimumDepth(float depth);
-    	void setRidgeSizes(std::vector<float> sizes);
+        void setMinimumRidgeSize(float sizeInMM);
 		std::vector<Measurement> getMeasurements(SharedPointer<Image> image, SharedPointer<Shape> shape, ExecutionDevice::pointer device);
+        enum EdgeType {
+			EDGE_TYPE_ANY,
+			EDGE_TYPE_BLACK_INSIDE_WHITE_OUTSIDE,
+			EDGE_TYPE_WHITE_INSIDE_BLACK_OUTSIDE
+		};
+		void setEdgeType(EdgeType type);
 	private:
 		RidgeEdgeModel();
         std::vector<Measurement> getMeasurementsOnHost(SharedPointer<Image> image, SharedPointer<Shape> shape);
@@ -26,7 +32,8 @@ class RidgeEdgeModel : public AppearanceModel {
 		float mLineSampleSpacing;
 		float mIntensityDifferenceThreshold;
 		float mMinimumDepth;
-    	std::vector<float> mSizes;
+    	float mRidgeSize;
+        EdgeType mEdgeType;
 
 };
 

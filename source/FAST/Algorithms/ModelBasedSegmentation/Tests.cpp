@@ -16,7 +16,7 @@
 
 using namespace fast;
 
-/*
+
 TEST_CASE("Model based segmentation with mean value coordinates on 3D cardiac US data", "[fast][ModelBasedSegmentation][cardiac][3d][visual]") {
 	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
 	streamer->setFilenameFormat("/home/smistad/CETUS/Patient1/Patient1_frame#.mhd");
@@ -31,9 +31,12 @@ TEST_CASE("Model based segmentation with mean value coordinates on 3D cardiac US
 			"/home/smistad/Dropbox/Programmering/Mean value coordinates/cetus_control_mesh.vtk");
 	shapeModel->initializeShapeToImageCenter();
 	KalmanFilter::pointer segmentation = KalmanFilter::New();
-	StepEdgeModel::pointer appearanceModel = StepEdgeModel::New();
+	RidgeEdgeModel::pointer appearanceModel = RidgeEdgeModel::New();
 	appearanceModel->setLineLength(0.025);
-	appearanceModel->setLineSampleSpacing(0.025/32.0);
+	appearanceModel->setLineSampleSpacing(0.025/48.0);
+	appearanceModel->setEdgeType(RidgeEdgeModel::EDGE_TYPE_BLACK_INSIDE_WHITE_OUTSIDE);
+	appearanceModel->setIntensityDifferenceThreshold(20);
+    appearanceModel->setMinimumRidgeSize(3.0f/1000);
 	segmentation->setAppearanceModel(appearanceModel);
 	segmentation->setShapeModel(shapeModel);
 	segmentation->setInputConnection(streamer->getOutputPort());
@@ -47,21 +50,26 @@ TEST_CASE("Model based segmentation with mean value coordinates on 3D cardiac US
 	extraction->setInputConnection(meshToSeg->getOutputPort());
 
 	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
-	meshRenderer->setInputConnection(extraction->getOutputPort());
+	meshRenderer->setInputConnection(segmentation->getOutputPort());
+	meshRenderer->setDefaultOpacity(0.5);
 
 	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
 	sliceRenderer->setInputConnection(streamer->getOutputPort());
 	sliceRenderer->setSlicePlane(PLANE_Y);
+	SliceRenderer::pointer sliceRenderer2 = SliceRenderer::New();
+	sliceRenderer2->setInputConnection(streamer->getOutputPort());
+	sliceRenderer2->setSlicePlane(PLANE_X);
 
 	SimpleWindow::pointer window = SimpleWindow::New();
-	window->addRenderer(meshRenderer);
 	window->addRenderer(sliceRenderer);
+	window->addRenderer(sliceRenderer2);
+	window->addRenderer(meshRenderer);
 	window->start();
 }
 
 TEST_CASE("Model based segmentation with spline model on 2D pediatric cardiac US data", "[fast][ModelBasedSegmentation][2d][cardiac][pediatric][visual]") {
 	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
-	streamer->setFilenameFormat("/home/smistad/Cardiac_2D/test2/labelImage#.mhd");
+	streamer->setFilenameFormat("/home/smistad/Cardiac_2D/test3/labelImage#.mhd");
 	streamer->setZeroFilling(2);
 	streamer->enableLooping();
 	streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
@@ -70,20 +78,20 @@ TEST_CASE("Model based segmentation with spline model on 2D pediatric cardiac US
 
 	// Control points for spline model
 	std::vector<Vector2f> controlPoints = {
-			Vector2f(2.822184520427274634e+01, 2.204189742133431196e+01),
-			Vector2f(2.805852557576601924e+01, 3.001778981203989716e+01),
-			Vector2f(2.981067073476717511e+01, 4.219496931887970703e+01),
-			Vector2f(4.537380221088420029e+01, 4.078267995844019822e+01),
-			Vector2f(4.447638939087526921e+01, 2.948818130187507691e+01),
-			Vector2f(3.884196391885149779e+01, 2.151228891116949882e+01)
+//			Vector2f(2.822184520427274634e+01, 2.204189742133431196e+01),
+//			Vector2f(2.805852557576601924e+01, 3.001778981203989716e+01),
+//			Vector2f(2.981067073476717511e+01, 4.219496931887970703e+01),
+//			Vector2f(4.537380221088420029e+01, 4.078267995844019822e+01),
+//			Vector2f(4.447638939087526921e+01, 2.948818130187507691e+01),
+//			Vector2f(3.884196391885149779e+01, 2.151228891116949882e+01)
 
-//			Vector2f(3.270129660437638819e+01, 1.680781070226831275e+01),
-//			Vector2f(3.016050498811447511e+01, 1.302153299960351518e+01),
-//			Vector2f(2.301053848817431202e+01, 2.308916615809692985e+01),
-//			Vector2f(2.181487184522752543e+01, 3.815631858720144720e+01),
-//			Vector2f(3.344448267586006551e+01, 3.616354084895680643e+01),
-//			Vector2f(3.404642157769151112e+01, 2.871465768827996001e+01),
-//			Vector2f(3.344448267586006551e+01, 2.229205506279907567e+01),
+			Vector2f(3.270129660437638819e+01, 1.680781070226831275e+01),
+			Vector2f(3.016050498811447511e+01, 1.302153299960351518e+01),
+			Vector2f(2.301053848817431202e+01, 2.308916615809692985e+01),
+			Vector2f(2.181487184522752543e+01, 3.815631858720144720e+01),
+			Vector2f(3.344448267586006551e+01, 3.616354084895680643e+01),
+			Vector2f(3.404642157769151112e+01, 2.871465768827996001e+01),
+			Vector2f(3.344448267586006551e+01, 2.229205506279907567e+01),
 	};
 
 	CardinalSplineModel::pointer shapeModel = CardinalSplineModel::New();
@@ -92,14 +100,14 @@ TEST_CASE("Model based segmentation with spline model on 2D pediatric cardiac US
 	shapeModel->setLocalProcessError(0.0000001f);
 	shapeModel->setResolution(12);
 	shapeModel->setScalingLimit(0.5);
-	//shapeModel->setTension({0, 0.75, 0.75, 0, 0, 0});
+    //shapeModel->setInitialScaling(1.5, 1.5);
 	KalmanFilter::pointer segmentation = KalmanFilter::New();
 	RidgeEdgeModel::pointer appearanceModel = RidgeEdgeModel::New();
-	appearanceModel->setLineLength(10);
-	appearanceModel->setLineSampleSpacing(10/64.0);
-	appearanceModel->setIntensityDifferenceThreshold(5);
-	appearanceModel->setRidgeSizes({1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5});
+	appearanceModel->setLineLength(8);
+	appearanceModel->setLineSampleSpacing(8.0/48.0);
+	appearanceModel->setIntensityDifferenceThreshold(30);
 	appearanceModel->setMinimumDepth(10);
+    appearanceModel->setEdgeType(RidgeEdgeModel::EDGE_TYPE_BLACK_INSIDE_WHITE_OUTSIDE);
 	segmentation->setStartIterations(10);
 	segmentation->setIterations(10);
 	segmentation->setAppearanceModel(appearanceModel);
@@ -149,11 +157,12 @@ TEST_CASE("Model based segmentation with spline model on 2D pediatric aorta US d
 	shapeModel->setLocalProcessError(0.00001f);
 	shapeModel->setResolution(12);
 	KalmanFilter::pointer segmentation = KalmanFilter::New();
-	StepEdgeModel::pointer appearanceModel = StepEdgeModel::New();
+	RidgeEdgeModel::pointer appearanceModel = RidgeEdgeModel::New();
 	appearanceModel->setLineLength(8);
 	appearanceModel->setLineSampleSpacing(8/32.0);
 	appearanceModel->setIntensityDifferenceThreshold(10);
 	appearanceModel->setMinimumDepth(15);
+    appearanceModel->setEdgeType(RidgeEdgeModel::EDGE_TYPE_BLACK_INSIDE_WHITE_OUTSIDE);
 	segmentation->setStartIterations(10);
 	segmentation->setIterations(10);
 	segmentation->setAppearanceModel(appearanceModel);
@@ -230,9 +239,9 @@ TEST_CASE("Model based segmentation with spline model on 2D cardiac US data", "[
 
 
 
-TEST_CASE("Model based segmentation with ellipse model on 2D femoral nerve block US data", "[fast][ModelBasedSegmentation][visual]") {
+TEST_CASE("Model based segmentation with ellipse model on 2D femoral nerve block US data", "[fast][ModelBasedSegmentation][femoral][2d][visual]") {
 	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
-	streamer->setFilenameFormat("/home/smistad/AssistantTestData/FL/US-Acq_01_20150608T102019/Acquisition/US-Acq_01_20150608T102019_Image_Transducer_#.mhd");
+	streamer->setFilenameFormat("/home/smistad/AssistantTestData/0/US-Acq_01_20150608T102019/Acquisition/US-Acq_01_20150608T102019_Image_Transducer_#.mhd");
 	streamer->setStartNumber(26);
 	streamer->enableLooping();
 	streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
@@ -260,4 +269,3 @@ TEST_CASE("Model based segmentation with ellipse model on 2D femoral nerve block
 	window->set2DMode();
 	window->start();
 }
-*/
