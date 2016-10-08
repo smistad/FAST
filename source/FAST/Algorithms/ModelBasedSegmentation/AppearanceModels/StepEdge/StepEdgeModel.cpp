@@ -89,7 +89,7 @@ inline float getValue(void* pixelPointer, Image::pointer image, const Vector4f& 
 }
 
 
-std::vector<Measurement> StepEdgeModel::getMeasurements(SharedPointer<Image> image, SharedPointer<Shape> shape) {
+std::vector<Measurement> StepEdgeModel::getMeasurements(SharedPointer<Image> image, SharedPointer<Shape> shape, ExecutionDevice::pointer device) {
 	if(mLineLength == 0 || mLineSampleSpacing == 0)
 		throw Exception("Line length and sample spacing must be given to the StepEdgeModel");
 

@@ -22,7 +22,7 @@ class Measurement {
 class AppearanceModel : public Object {
 	public:
 		typedef SharedPointer<AppearanceModel> pointer;
-		virtual std::vector<Measurement> getMeasurements(SharedPointer<Image> image, SharedPointer<Shape> shape) = 0;
+		virtual std::vector<Measurement> getMeasurements(SharedPointer<Image> image, SharedPointer<Shape> shape, ExecutionDevice::pointer device) = 0;
 
 
 };

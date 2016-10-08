@@ -77,7 +77,7 @@ Mesh::pointer KalmanFilter::getDisplacementVectors(Image::pointer image) {
 	Shape::pointer shape = mShapeModel->getShape(mPredictedState);
 	Mesh::pointer mesh = shape->getMesh();
 	MeshAccess::pointer access = mesh->getMeshAccess(ACCESS_READ);
-	std::vector<Measurement> measurements = mAppearanceModel->getMeasurements(image, shape);
+	std::vector<Measurement> measurements = mAppearanceModel->getMeasurements(image, shape, getMainDevice());
 
 	std::vector<MeshVertex> vertices;
 	std::vector<VectorXui> lines;
@@ -139,7 +139,7 @@ void KalmanFilter::setStartIterations(int iterations) {
 void KalmanFilter::estimate(SharedPointer<Image> image) {
 
 	Shape::pointer shape = mShapeModel->getShape(mPredictedState);
-	std::vector<Measurement> measurements = mAppearanceModel->getMeasurements(image, shape);
+	std::vector<Measurement> measurements = mAppearanceModel->getMeasurements(image, shape, getMainDevice());
 	std::vector<MatrixXf> measurementVectors = mShapeModel->getMeasurementVectors(mPredictedState, shape);
 
 	// Assimilate the measurements into HRH and HRv
