@@ -1,9 +1,0 @@
-if(FAST_MODULE_DeepLearning)
-	fast_add_sources(
-		ImageClassifier.cpp
-		ImageClassifier.hpp
-	)
-	fast_add_test_sources(
-		Tests.cpp
-	)
-endif()
