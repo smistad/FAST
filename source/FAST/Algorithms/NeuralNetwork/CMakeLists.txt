@@ -1,0 +1,9 @@
+fast_add_sources(
+    NeuralNetwork.cpp
+    NeuralNetwork.hpp
+    ImageClassifier.cpp
+    ImageClassifier.hpp
+)
+fast_add_test_sources(
+    Tests.cpp
+)

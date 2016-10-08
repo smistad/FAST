@@ -2,30 +2,21 @@
 #define IMAGE_CLASSIFIER_HPP
 
 #include "FAST/ProcessObject.hpp"
+#include "NeuralNetwork.hpp"
 #include <caffe/caffe.hpp>
 
 namespace fast {
 
-class ImageClassifier : public ProcessObject {
+class ImageClassifier : public NeuralNetwork {
 	FAST_OBJECT(ImageClassifier)
 	public:
-		void loadModel(
-				std::string modelFile,
-				std::string trainingFile,
-				std::string meanFile
-		);
 		void setLabels(std::vector<std::string> labels);
-		std::vector<std::map<std::string, float> > getResult() const;
+		std::vector<std::map<std::string, float> > getClassification(std::string outputLayerName = "");
 	private:
 		ImageClassifier();
 		void execute();
 
-		SharedPointer<caffe::Net<float> > mNet;
-		caffe::Blob<float> mMeanBlob;
-		cl::Image2D mMeanImage;
-		bool mModelLoaded;
 		// A map of label -> score
-		std::vector<std::map<std::string, float> > mResult;
 		std::vector<std::string> mLabels;
 
 };

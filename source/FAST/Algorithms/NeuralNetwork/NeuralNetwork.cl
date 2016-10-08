@@ -1,6 +1,6 @@
 __constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_NONE | CLK_FILTER_NEAREST;
 
-__kernel void imageNormalization(
+__kernel void subtractMeanImage(
 	__read_only image2d_t input,
 	__read_only image2d_t meanImage,
 	__write_only image2d_t output
@@ -15,7 +15,7 @@ __kernel void imageNormalization(
 		value = read_imagei(input, sampler, pos).x;
 	} else {
 		value = read_imageui(input, sampler, pos).x;
-	}	
+	}
 	value -= read_imagef(meanImage, sampler, pos).x;
 	
 	write_imagef(output, pos, value);

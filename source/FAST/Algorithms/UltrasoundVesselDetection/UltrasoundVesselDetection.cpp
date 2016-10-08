@@ -10,7 +10,7 @@
 #include <queue>
 #include "FAST/Algorithms/UltrasoundVesselDetection/UltrasoundVesselDetection.hpp"
 #include "FAST/Algorithms/ImageCropper/ImageCropper.hpp"
-#include "FAST/Algorithms/ImageClassifier/ImageClassifier.hpp"
+#include "FAST/Algorithms/NeuralNetwork/ImageClassifier.hpp"
 
 namespace fast {
 
@@ -42,7 +42,8 @@ UltrasoundVesselDetection::UltrasoundVesselDetection() {
 	std::string modelFile = "/home/smistad/vessel_net/deploy.prototxt";
 	std::string trainingFile = "/home/smistad/vessel_net/snapshot_iter_7600.caffemodel";
 	std::string meanFile = "/home/smistad/vessel_net/mean.binaryproto";
-	mClassifier->loadModel(modelFile, trainingFile, meanFile);
+	mClassifier->loadNetworkAndWeights(modelFile, trainingFile);
+    mClassifier->loadBinaryMeanImage(meanFile);
 
 }
 
@@ -230,7 +231,7 @@ void UltrasoundVesselDetection::execute() {
 		mClassifier->setInputData(subImages);
 		mClassifier->update();
 
-		std::vector<std::map<std::string, float> > classifierResult = mClassifier->getResult();
+		std::vector<std::map<std::string, float> > classifierResult = mClassifier->getClassification();
 		int i = 0;
 		for(std::map<std::string, float> res : classifierResult) {
 			if(res["Vessel"] > 0.9) {
