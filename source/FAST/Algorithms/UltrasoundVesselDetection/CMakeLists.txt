@@ -1,4 +1,4 @@
-if(FAST_MODULE_DeepLearning)
+if(FAST_MODULE_NeuralNetwork)
 	fast_add_sources(
 		UltrasoundVesselDetection.cpp
 		UltrasoundVesselDetection.hpp

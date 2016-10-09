@@ -10,7 +10,7 @@ option(BUILD_EXAMPLES "Build OpenIGTLink examples." OFF)
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 option(FAST_BUILD_EXAMPLES "Build examples." OFF)
 option(FAST_MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
-option(FAST_MODULE_DeepLearning "Build deep learning module with caffe" OFF)
+option(FAST_MODULE_NeuralNetwork "Build neural network module with caffe" OFF)
 option(FAST_MODULE_Python "Build Python wrappers" ON)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
 
@@ -215,8 +215,8 @@ find_package(Eigen3 REQUIRED)
 list(APPEND FAST_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR}) 
 message("-- Using Eigen ${EIGEN3_VERSION}")
 
-## Deep learning module
-if(FAST_MODULE_DeepLearning)
+## Neural network module
+if(FAST_MODULE_NeuralNetwork)
 	# Set some variables for viennaCL, mark these as internal as we don't want user to change them
     set(ViennaCL_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/viennacl-dev/" CACHE INTERNAL "")
     set(OPENCL_INCLUDE_DIRS ${OpenCL_INCLUDE_DIRS} CACHE INTERNAL "")
