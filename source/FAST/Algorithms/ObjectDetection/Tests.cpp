@@ -10,7 +10,7 @@
 using namespace fast;
 
 
-TEST_CASE("Object detection stream", "[fast][ObjectDetection][dynamic]") {
+TEST_CASE("Object detection stream", "[fast][ObjectDetection][dynamic][visual]") {
 	ImageFileStreamer::pointer importer = ImageFileStreamer::New();
 	ObjectDetection::pointer detector = ObjectDetection::New();
 	//importer->setFilenameFormat("/home/smistad/AssistantTestData/0/US-Acq_01_20150608T102019/Acquisition/US-Acq_01_20150608T102019_Image_Transducer_#.mhd");
@@ -30,7 +30,7 @@ TEST_CASE("Object detection stream", "[fast][ObjectDetection][dynamic]") {
 	//detector->setMirrorImage(true); // Set this to true for left side images
 	importer->setSleepTime(75);
 	detector->setInputConnection(importer->getOutputPort());
-	detector->loadModel("/home/smistad/workspace/detect_femoral_artery/net_deploy.prototxt",
+	detector->loadNetworkAndWeights("/home/smistad/workspace/detect_femoral_artery/net_deploy.prototxt",
 						"/home/smistad/workspace/detect_femoral_artery/models/_iter_6000.caffemodel");
 
 	MeshRenderer::pointer meshRenderer = MeshRenderer::New();

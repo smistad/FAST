@@ -11,42 +11,6 @@ ObjectDetection::ObjectDetection() {
 	createInputPort<Image>(0);
 	createOutputPort<Mesh>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
 	createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/ObjectDetection/ObjectDetection.cl");
-	mModelLoaded = false;
-}
-
-// Get all available GPU devices
-static void get_gpus(std::vector<int>* gpus) {
-    int count = 0;
-    count = caffe::Caffe::EnumerateDevices(true);
-    for (int i = 0; i < count; ++i) {
-      gpus->push_back(i);
-    }
-}
-
-void ObjectDetection::loadModel(std::string modelFile, std::string trainingFile) {
-	std::vector<int> gpus;
-	get_gpus(&gpus);
-	if (gpus.size() != 0) {
-		reportInfo() << "Use OpenCL device with ID " << gpus[0] << reportEnd();
-		caffe::Caffe::SetDevices(gpus);
-		caffe::Caffe::set_mode(caffe::Caffe::GPU);
-		caffe::Caffe::SetDevice(gpus[0]);
-	}
-	//FLAGS_minloglevel = 5; // Disable cout from caffe
-	//caffe::Caffe::set_mode(caffe::Caffe::CPU);
-	reportInfo() << "Loading model file.." << reportEnd();
-	mNet = SharedPointer<caffe::Net<float> >(new caffe::Net<float>(modelFile, caffe::TEST, caffe::Caffe::GetDefaultDevice()));
-	reportInfo() << "Finished loading model" << reportEnd();
-
-	reportInfo() << "Loading training file.." << reportEnd();
-	mNet->CopyTrainedLayersFrom(trainingFile);
-	reportInfo() << "Finished loading training file." << reportEnd();
-
-	if(mNet->num_inputs() != 1) {
-		throw Exception("Number of inputs was not 1");
-	}
-
-	mModelLoaded = true;
 }
 
 Vector2f applySpacing(Vector2f p, Vector3f spacing) {
@@ -61,14 +25,14 @@ void ObjectDetection::execute() {
 
 	Image::pointer image = getStaticInputData<Image>();
 
-	caffe::Blob<float>* input_layer = mNet->input_blobs()[0];
+	caffe::Blob<float>* input_layer = mNetwork->input_blobs()[0];
 	if(input_layer->channels() != 1) {
 		throw Exception("Number of input channels was not 1");
 	}
 
 	// nr of images x channels x width x height
 	input_layer->Reshape(2, 1, input_layer->height(), input_layer->width());
-	mNet->Reshape();
+	mNetwork->Reshape();
 	reportInfo() << "Net reshaped" << reportEnd();
 
 	OpenCLDevice::pointer device = getMainDevice();
@@ -133,17 +97,14 @@ void ObjectDetection::execute() {
 	}
 
 	// Do a forward pass
-	mNet->Forward();
+	mNetwork->Forward();
 
 	// TODO fix this for left and right:
 
-	// Read output layer
-	boost::shared_ptr<caffe::Blob<float> > softmax_layer = mNet->blob_by_name("softmax");
-	std::vector<float> softmax_result(softmax_layer->cpu_data(), softmax_layer->cpu_data() + softmax_layer->channels()*softmax_layer->num());
-	boost::shared_ptr<caffe::Blob<float> > center_layer = mNet->blob_by_name("center_fc_final");
-	std::vector<float> center_result(center_layer->cpu_data(), center_layer->cpu_data() + center_layer->channels()*center_layer->num());
-	boost::shared_ptr<caffe::Blob<float> > size_layer = mNet->blob_by_name("size_fc_final");
-	std::vector<float> size_result(size_layer->cpu_data(), size_layer->cpu_data() + size_layer->channels()*size_layer->num());
+	// Read outputs
+	std::vector<float> softmax_result = getNetworkOutput("softmax");
+	std::vector<float> center_result = getNetworkOutput("center_fc_final");
+	std::vector<float> size_result = getNetworkOutput("size_fc_final");
 
 	std::vector<MeshVertex> vertices;
 	std::vector<VectorXui> lines;
