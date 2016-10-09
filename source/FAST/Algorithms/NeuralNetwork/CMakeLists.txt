@@ -3,7 +3,10 @@ fast_add_sources(
     NeuralNetwork.hpp
     ImageClassifier.cpp
     ImageClassifier.hpp
+    DNNAppearanceModel.cpp
+    DNNAppearanceModel.hpp
 )
 fast_add_test_sources(
-    Tests.cpp
+    ImageClassifierTests.cpp
+    DNNAppearanceModelTests.cpp
 )

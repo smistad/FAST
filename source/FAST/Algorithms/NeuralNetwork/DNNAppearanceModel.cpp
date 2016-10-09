@@ -1,4 +1,4 @@
-#include "LandmarkDetection.hpp"
+#include "DNNAppearanceModel.hpp"
 #include "FAST/Data/Image.hpp"
 #include "FAST/Data/PointSet.hpp"
 #include "FAST/Algorithms/ImageResizer/ImageResizer.hpp"
@@ -7,53 +7,19 @@
 
 namespace fast {
 
-LandmarkDetection::LandmarkDetection() {
+DNNAppearanceModel::DNNAppearanceModel() {
 	createInputPort<Image>(0);
 	createOutputPort<Mesh>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-	createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/LandmarkDetection/LandmarkDetection.cl");
-	mModelLoaded = false;
+	createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/NeuralNetwork/DNNAppearanceModel.cl");
 	mMirrorImage = false;
+	mObjectsLoaded = false;
 }
 
-void LandmarkDetection::setMirrorImage(bool mirrorImage) {
+void DNNAppearanceModel::setMirrorImage(bool mirrorImage) {
 	mMirrorImage = mirrorImage;
 }
 
-// Get all available GPU devices
-static void get_gpus(std::vector<int>* gpus) {
-    int count = 0;
-    count = caffe::Caffe::EnumerateDevices(true);
-    for (int i = 0; i < count; ++i) {
-      gpus->push_back(i);
-    }
-}
-
-void LandmarkDetection::loadModel(std::string modelFile, std::string trainingFile, std::string objectsFile) {
-	std::vector<int> gpus;
-	get_gpus(&gpus);
-	if (gpus.size() != 0) {
-		reportInfo() << "Use OpenCL device with ID " << gpus[0] << reportEnd();
-		caffe::Caffe::SetDevices(gpus);
-		caffe::Caffe::set_mode(caffe::Caffe::GPU);
-		caffe::Caffe::SetDevice(gpus[0]);
-	}
-	//FLAGS_minloglevel = 5; // Disable cout from caffe
-	//caffe::Caffe::set_mode(caffe::Caffe::CPU);
-	reportInfo() << "Loading model file.." << reportEnd();
-	mNet = SharedPointer<caffe::Net<float> >(new caffe::Net<float>(modelFile, caffe::TEST, caffe::Caffe::GetDefaultDevice()));
-	reportInfo() << "Finished loading model" << reportEnd();
-
-	reportInfo() << "Loading training file.." << reportEnd();
-	mNet->CopyTrainedLayersFrom(trainingFile);
-	reportInfo() << "Finished loading training file." << reportEnd();
-
-	if(mNet->num_inputs() != 1) {
-		throw Exception("Number of inputs was not 1");
-	}
-	if(mNet->num_outputs() != 1) {
-		throw Exception("Number of outputs was not 1");
-	}
-
+void DNNAppearanceModel::loadObjects(std::string objectsFile) {
 	reportInfo() << "Loading objects file.." << reportEnd();
 	mOutputMesh = Mesh::New();
 	std::vector<MeshVertex> vertices;
@@ -94,24 +60,25 @@ void LandmarkDetection::loadModel(std::string modelFile, std::string trainingFil
 
 	mOutputMesh->create(vertices, connections);
 	reportInfo() << "Finished loading objects file." << reportEnd();
-
-	mModelLoaded = true;
+    mObjectsLoaded = true;
 }
 
-void LandmarkDetection::execute() {
+void DNNAppearanceModel::execute() {
 	if(!mModelLoaded)
-		throw Exception("Model must be loaded in ImageClassifier before execution.");
+		throw Exception("Model must be loaded before execution.");
+	if(!mObjectsLoaded)
+		throw Exception("Objects must be loaded before execution.");
 
 	Image::pointer image = getStaticInputData<Image>();
 
-	caffe::Blob<float>* input_layer = mNet->input_blobs()[0];
+	caffe::Blob<float>* input_layer = mNetwork->input_blobs()[0];
 	if(input_layer->channels() != 1) {
 		throw Exception("Number of input channels was not 1");
 	}
 
 	// nr of images x channels x width x height
 	input_layer->Reshape(1, 1, input_layer->height(), input_layer->width());
-	mNet->Reshape();
+	mNetwork->Reshape();
 	reportInfo() << "Net reshaped" << reportEnd();
 
 	OpenCLDevice::pointer device = getMainDevice();
@@ -170,13 +137,10 @@ void LandmarkDetection::execute() {
 	}
 
 	// Do a forward pass
-	mNet->Forward();
+	mNetwork->Forward();
 
 	// Read output layer
-	caffe::Blob<float>* output_layer = mNet->output_blobs()[0];
-	const float* begin = output_layer->cpu_data();
-	const float* end = begin + output_layer->channels()*output_layer->num();
-	std::vector<float> result(begin, end);
+	std::vector<float> result = getNetworkOutput();
 	//if(mLabels.size() != result.size())
 	//	throw Exception("The number of labels did not match the number of predictions.");
 	float width = image->getWidth();

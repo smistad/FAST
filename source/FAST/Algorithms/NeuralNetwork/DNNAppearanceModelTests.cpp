@@ -1,5 +1,5 @@
 #include "FAST/Testing.hpp"
-#include "LandmarkDetection.hpp"
+#include "DNNAppearanceModel.hpp"
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
@@ -8,12 +8,14 @@
 
 using namespace fast;
 
-TEST_CASE("Landmark detection", "[fast][LandmarkDetection]") {
+TEST_CASE("Landmark detection", "[fast][DNNAppearanceModel][visual]") {
 	ImageFileImporter::pointer importer = ImageFileImporter::New();
-	importer->setFilename("/home/smistad/Dropbox/Notebooks/Model based segmentation/datasets/2/3/US-2D_250.png");
-	LandmarkDetection::pointer detector = LandmarkDetection::New();
+	importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US/FemoralArtery/Right/US-Acq_03_20150608T103739_Image_Transducer_100.mhd");
+	DNNAppearanceModel::pointer detector = DNNAppearanceModel::New();
 	detector->setInputConnection(importer->getOutputPort());
-	detector->loadModel("/home/smistad/Dropbox/Notebooks/Model based segmentation/training/net_deploy.prototxt", "/home/smistad/snapshots/_iter_1000.caffemodel", "/home/smistad/workspace/DNN-AM/objects.txt");
+	detector->loadNetworkAndWeights("/home/smistad/workspace/DNN-AM/femoral_appearance_model_net2/net_deploy.prototxt",
+									"/home/smistad/workspace/DNN-AM/femoral_appearance_model_net2/_iter_1000.caffemodel");
+	detector->loadObjects("/home/smistad/workspace/DNN-AM/femoral_appearance_model_net2/objects.txt");
 
 	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
 	meshRenderer->setInputConnection(detector->getOutputPort());
@@ -29,9 +31,9 @@ TEST_CASE("Landmark detection", "[fast][LandmarkDetection]") {
 
 }
 
-TEST_CASE("Landmark detection stream", "[fast][LandmarkDetection][dynamic]") {
+TEST_CASE("Landmark detection stream", "[fast][DNNAppearanceModel][dynamic][visual]") {
 	ImageFileStreamer::pointer importer = ImageFileStreamer::New();
-	LandmarkDetection::pointer detector = LandmarkDetection::New();
+	DNNAppearanceModel::pointer detector = DNNAppearanceModel::New();
 	//importer->setFilenameFormat("/home/smistad/AssistantTestData/0/US-Acq_01_20150608T102019/Acquisition/US-Acq_01_20150608T102019_Image_Transducer_#.mhd");
 	//importer->setFilenameFormat("/home/smistad/AssistantTestData/1/US-Acq_01_20150608T103428/Acquisition/US-Acq_01_20150608T103428_Image_Transducer_#.mhd");
 	//importer->setFilenameFormat("/home/smistad/AssistantTestData/2/US-Acq_01_20150608T104544/Acquisition/US-Acq_01_20150608T104544_Image_Transducer_#.mhd");
@@ -42,7 +44,9 @@ TEST_CASE("Landmark detection stream", "[fast][LandmarkDetection][dynamic]") {
 	//detector->setMirrorImage(true); // Set this to true for left side images
 	importer->setSleepTime(75);
 	detector->setInputConnection(importer->getOutputPort());
-	detector->loadModel("/home/smistad/workspace/DNN-AM/femoral_appearance_model_net2/net_deploy.prototxt", "/home/smistad/workspace/DNN-AM/femoral_appearance_model_net2/_iter_1000.caffemodel", "/home/smistad/workspace/DNN-AM/femoral_appearance_model_net2/objects.txt");
+    detector->loadNetworkAndWeights("/home/smistad/workspace/DNN-AM/femoral_appearance_model_net2/net_deploy.prototxt",
+                        "/home/smistad/workspace/DNN-AM/femoral_appearance_model_net2/_iter_1000.caffemodel");
+	detector->loadObjects("/home/smistad/workspace/DNN-AM/femoral_appearance_model_net2/objects.txt");
 
 	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
 	meshRenderer->setInputConnection(detector->getOutputPort());
