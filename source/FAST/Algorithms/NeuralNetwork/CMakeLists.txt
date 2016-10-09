@@ -5,8 +5,11 @@ fast_add_sources(
     ImageClassifier.hpp
     DNNAppearanceModel.cpp
     DNNAppearanceModel.hpp
+    ObjectDetection.cpp
+    ObjectDetection.hpp
 )
 fast_add_test_sources(
     ImageClassifierTests.cpp
     DNNAppearanceModelTests.cpp
+    ObjectDetectionTests.cpp
 )

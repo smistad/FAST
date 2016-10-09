@@ -10,7 +10,7 @@ namespace fast {
 ObjectDetection::ObjectDetection() {
 	createInputPort<Image>(0);
 	createOutputPort<Mesh>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-	createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/ObjectDetection/ObjectDetection.cl");
+	createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/NeuralNetwork/ObjectDetection.cl");
 }
 
 Vector2f applySpacing(Vector2f p, Vector3f spacing) {
