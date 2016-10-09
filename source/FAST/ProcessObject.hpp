@@ -465,7 +465,7 @@ void ProcessObject::setStaticOutputData(uint portID, DataObject::pointer staticD
 template <class DataType>
 void ProcessObject::createInputPort(uint portID, bool required, InputDataType inputDataType, bool allowMultipleInputData) {
     if(inputPortExists(portID))
-        throw Exception("Input port with ID " + boost::lexical_cast<std::string>(portID) + " already exist on " + getNameOfClass() );
+        reportWarning() << "Overriding input port with ID " + boost::lexical_cast<std::string>(portID) + " on " + getNameOfClass() << reportEnd();
 
     mRequiredInputs[portID] = required;
     mInputPortClass[portID] = DataType::getStaticNameOfClass();
@@ -476,7 +476,7 @@ void ProcessObject::createInputPort(uint portID, bool required, InputDataType in
 template <class DataType>
 void ProcessObject::createOutputPort(uint portID, OutputDataType outputDataType, int inputPortID, bool enableMultipleOutputData) {
     if(outputPortExists(portID))
-        throw Exception("Output port with ID " + boost::lexical_cast<std::string>(portID) + " already exist on " + getNameOfClass() );
+        reportWarning() << "Overriding output port with ID " + boost::lexical_cast<std::string>(portID) + " on " + getNameOfClass() << reportEnd();
 
     mOutputPortClass[portID] = DataType::getStaticNameOfClass();
     mOutputPortType[portID] = outputDataType;
