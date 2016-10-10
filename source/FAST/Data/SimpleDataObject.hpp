@@ -6,6 +6,20 @@
 
 namespace fast {
 
+// Workaround for data types with comma (,)
+template<typename T> struct argument_type;
+template<typename T, typename U> struct argument_type<T(U)> { typedef U type; };
+
+// A macro for creating new simple data objects
+#define FAST_SIMPLE_DATA_OBJECT(NAME, DATA_TYPE)                                            \
+    class NAME : public SimpleDataObject<argument_type<void(DATA_TYPE)>::type > {                                      \
+	FAST_OBJECT(NAME)                                                                       \
+public:                                                                                     \
+    typedef DataAccess<argument_type<void(DATA_TYPE)>::type >::pointer access;                                \
+private:                                                                                    \
+	NAME() {};                                                                              \
+};                                                                                          \
+
 // Forward declarations
 template <class DataType>
 class DataAccess;

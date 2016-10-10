@@ -7,15 +7,9 @@
 
 namespace fast {
 
-// The data object used as output from the ImageClassifier
-class ImageClassification : public SimpleDataObject<std::map<std::string, float> > {
-	FAST_OBJECT(ImageClassification)
-public:
-    typedef DataAccess<std::map<std::string, float> >::pointer access;
-private:
-	ImageClassification() {};
+// Create the data object used as output from the ImageClassifier
+FAST_SIMPLE_DATA_OBJECT(ImageClassification, (std::map<std::string, float>))
 
-};
 
 class ImageClassifier : public NeuralNetwork {
 	FAST_OBJECT(ImageClassifier)
