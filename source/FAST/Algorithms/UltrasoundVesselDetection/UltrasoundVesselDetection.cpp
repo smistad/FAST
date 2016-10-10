@@ -231,10 +231,11 @@ void UltrasoundVesselDetection::execute() {
 		mClassifier->setInputData(subImages);
 		mClassifier->update();
 
-		std::vector<std::map<std::string, float> > classifierResult = mClassifier->getClassification();
+		std::vector<ImageClassification::pointer> classifierResult = mClassifier->getMultipleOutputData<ImageClassification>(0);
 		int i = 0;
-		for(std::map<std::string, float> res : classifierResult) {
-			if(res["Vessel"] > 0.9) {
+		for(ImageClassification::pointer data : classifierResult) {
+            ImageClassification::access access = data->getAccess(ACCESS_READ);
+			if(access->getData()["Vessel"] > 0.9) {
 				acceptedVessels.push_back(mCrossSections[i]);
 				//VesselCrossSection::pointer newData = addStaticOutputData<VesselCrossSection>(1);
 				//VesselCrossSectionAccess::pointer access = mCrossSections[i]->getAccess(ACCESS_READ);

@@ -25,6 +25,7 @@ fast_add_sources(
     Color.hpp
     Camera.cpp
     Camera.hpp
+    SimpleDataObject.hpp
 )
 fast_add_test_sources(
     Tests/DataObjectTests.cpp
