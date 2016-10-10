@@ -178,6 +178,9 @@ void ProcessObject::setInputConnection(ProcessObjectPort port) {
 
 void ProcessObject::setInputConnection(uint connectionID, ProcessObjectPort port) {
     mInputConnections[connectionID] = port;
+
+    // Clear output data
+    mOutputData.clear();
 }
 
 ProcessObjectPort ProcessObject::getOutputPort() {

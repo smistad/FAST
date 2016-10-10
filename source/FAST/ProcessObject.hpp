@@ -364,8 +364,6 @@ typename DataType::pointer ProcessObject::addStaticOutputData(uint portID) {
 	if(!outputPortExists(portID))
         throw Exception("The output port " + boost::lexical_cast<std::string>(portID) + " does not exist on the ProcessObject " + getNameOfClass());
 
-    std::vector<typename DataType::pointer> data = getMultipleOutputData<DataType>(portID);//mOutputs.at(outputNumber);
-
 	DataObject::pointer returnData = DataType::New();
 	mOutputData[portID].push_back(returnData);
 	return returnData;
@@ -379,13 +377,13 @@ std::vector<typename DataType::pointer> ProcessObject::getMultipleOutputData(uin
     if(mOutputData.count(outputNumber) == 0) {
         if(mOutputPortType[outputNumber] != OUTPUT_DYNAMIC) {
             // Create static data
-            mOutputData[outputNumber].push_back(DataType::New());
+            //mOutputData[outputNumber].push_back(DataType::New());
         } else {
         	throw Exception("Dynamic multiple data not supported yet.");
         }
     } else {
-    	for(DataObject::pointer unconvertedData : mOutputData[outputNumber])
-			data.push_back(typename DataType::pointer(unconvertedData)); // convert from DataObject to DataType
+        for(DataObject::pointer unconvertedData : mOutputData[outputNumber])
+            data.push_back(typename DataType::pointer(unconvertedData)); // convert from DataObject to DataType
     }
 
     return data;

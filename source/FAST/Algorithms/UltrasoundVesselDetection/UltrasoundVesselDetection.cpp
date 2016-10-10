@@ -235,8 +235,9 @@ void UltrasoundVesselDetection::execute() {
 		int i = 0;
 		for(ImageClassification::pointer data : classifierResult) {
             ImageClassification::access access = data->getAccess(ACCESS_READ);
-			if(access->getData()["Vessel"] > 0.9) {
-				acceptedVessels.push_back(mCrossSections[i]);
+            std::map<std::string, float> scores = access->getData();
+			if(scores["Vessel"] > 0.9) {
+				acceptedVessels.push_back(mCrossSections.at(i));
 				//VesselCrossSection::pointer newData = addStaticOutputData<VesselCrossSection>(1);
 				//VesselCrossSectionAccess::pointer access = mCrossSections[i]->getAccess(ACCESS_READ);
 				//newData->create(access->getGlobalCenterPosition(), access->getImageCenterPosition(), access->getMajorRadius(), access->getMinorRadius());
