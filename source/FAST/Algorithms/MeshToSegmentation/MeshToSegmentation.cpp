@@ -10,14 +10,18 @@ MeshToSegmentation::MeshToSegmentation() {
 	createInputPort<Image>(1);
 	createOutputPort<Segmentation>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
 	createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/MeshToSegmentation/MeshToSegmentation.cl");
+
+	mResolution = Vector3i::Zero();
+}
+
+void MeshToSegmentation::setOutputImageResolution(uint x, uint y, uint z) {
+	mResolution = Vector3i(x, y, z);
 }
 
 void MeshToSegmentation::execute() {
 	Mesh::pointer mesh = getStaticInputData<Mesh>(0);
 	Image::pointer image = getStaticInputData<Image>(1);
 
-	Segmentation::pointer segmentation = getStaticOutputData<Segmentation>();
-	segmentation->createFromImage(image);
 
 	bool two_dim_data = true;
 	if(mesh->getDimensions() == 2 && image->getDimensions() == 2) {
@@ -26,6 +30,29 @@ void MeshToSegmentation::execute() {
 		two_dim_data = false;
 	} else {
 		throw Exception("Dimensions of mesh and image in mesh to segmentation doesn't match.");
+	}
+
+    Segmentation::pointer segmentation = getStaticOutputData<Segmentation>();
+	// Initialize output segmentation image and size
+    if(mResolution == Vector3i::Zero()) {
+        // If resolution is not specified, use input image resolution
+		segmentation->createFromImage(image);
+	} else {
+		reportError() << "ASDASDASASA" << reportEnd();
+		// Use specified resolution
+        if(two_dim_data) {
+			segmentation->create(mResolution.x(), mResolution.y(), TYPE_UINT8, 1);
+		} else {
+			segmentation->create(mResolution.x(), mResolution.y(), mResolution.z(), TYPE_UINT8, 1);
+		}
+
+		// Set correct spacing
+		float widthInMM = image->getSpacing().x()*image->getWidth();
+		float heightInMM = image->getSpacing().y()*image->getHeight();
+		float depthInMM = image->getSpacing().z()*image->getDepth();
+		segmentation->setSpacing(widthInMM/mResolution.x(), heightInMM/mResolution.y(), depthInMM/mResolution.z());
+
+		SceneGraph::setParentNode(segmentation, image);
 	}
 
 	ExecutionDevice::pointer mainDevice = getMainDevice();

@@ -41,8 +41,9 @@ TEST_CASE("MeshToSegmentation 2D", "[fast][MeshToSegmentation][2d]") {
     MeshToSegmentation::pointer meshToSeg = MeshToSegmentation::New();
     meshToSeg->setInputData(0, mesh);
     meshToSeg->setInputConnection(1, importer->getOutputPort());
+    //meshToSeg->setOutputImageResolution(50, 50);
 
-    ImageRenderer::pointer segRenderer = ImageRenderer::New();
+    SegmentationRenderer::pointer segRenderer = SegmentationRenderer::New();
     segRenderer->addInputConnection(meshToSeg->getOutputPort());
     ImageRenderer::pointer imageRenderer = ImageRenderer::New();
     imageRenderer->addInputConnection(importer->getOutputPort());
@@ -51,9 +52,10 @@ TEST_CASE("MeshToSegmentation 2D", "[fast][MeshToSegmentation][2d]") {
     window->setWidth(1024);
     window->addRendererToBottomRightView(segRenderer);
     window->addRendererToTopLeftView(imageRenderer);
+    window->addRendererToTopLeftView(segRenderer);
     window->getBottomRightView()->set2DMode();
     window->getTopLeftView()->set2DMode();
-    window->setTimeout(500);
+    //window->setTimeout(500);
     window->start();
 }
 
@@ -105,10 +107,8 @@ TEST_CASE("MeshToSegmentation 3D", "[fast][MeshToSegmentation][3d]") {
     MeshToSegmentation::pointer meshToSeg = MeshToSegmentation::New();
     meshToSeg->setInputData(0, mesh);
     meshToSeg->setInputConnection(1, importer->getOutputPort());
+    meshToSeg->setOutputImageResolution(40, 40, 40);
 
-    SliceRenderer::pointer segRenderer = SliceRenderer::New();
-    segRenderer->setInputConnection(meshToSeg->getOutputPort());
-    segRenderer->setSliceToRender(50);
     SliceRenderer::pointer imageRenderer = SliceRenderer::New();
     imageRenderer->setInputConnection(importer->getOutputPort());
 

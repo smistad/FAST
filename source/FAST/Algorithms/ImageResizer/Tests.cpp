@@ -9,7 +9,7 @@ using namespace fast;
 
 TEST_CASE("ImageResizer 2D", "[fast][ImageResizer]") {
 	ImageFileImporter::pointer importer = ImageFileImporter::New();
-	importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US-2D.jpg");
+	importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US/US-2D.jpg");
 	ImageResizer::pointer resizer = ImageResizer::New();
 	resizer->setInputConnection(importer->getOutputPort());
 	resizer->setWidth(64);
