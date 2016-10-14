@@ -39,9 +39,12 @@ UltrasoundVesselDetection::UltrasoundVesselDetection() {
 	//std::string modelFile = "/home/smistad/vessel_detection_model_alex_no_relu/deploy.prototxt";
 	//std::string trainingFile = "/home/smistad/vessel_detection_model_alex_no_relu/snapshot_iter_630.caffemodel";
 	//std::string meanFile = "/home/smistad/vessel_detection_model_alex_no_relu/mean.binaryproto";
-	std::string modelFile = "/home/smistad/vessel_net/deploy.prototxt";
-	std::string trainingFile = "/home/smistad/vessel_net/snapshot_iter_7600.caffemodel";
-	std::string meanFile = "/home/smistad/vessel_net/mean.binaryproto";
+	//std::string modelFile = "/home/smistad/vessel_net/deploy.prototxt";
+	//std::string trainingFile = "/home/smistad/vessel_net/snapshot_iter_7600.caffemodel";
+	//std::string meanFile = "/home/smistad/vessel_net/mean.binaryproto";
+    std::string modelFile = "/home/smistad/vessel_net_1/deploy.prototxt";
+    std::string trainingFile = "/home/smistad/vessel_net_1/snapshot_iter_4550.caffemodel";
+    std::string meanFile = "/home/smistad/vessel_net_1/mean.binaryproto";
 	mClassifier->loadNetworkAndWeights(modelFile, trainingFile);
     mClassifier->loadBinaryMeanImage(meanFile);
 

@@ -14,5 +14,7 @@ if(FAST_MODULE_NeuralNetwork)
         DNNAppearanceModelTests.cpp
         ObjectDetectionTests.cpp
     )
-    fast_add_example(arteryDetection arteryDetection.cpp)
+    if(FAST_MODULE_OpenIGTLink)
+        fast_add_example(arteryDetection arteryDetection.cpp)
+    endif()
 endif()

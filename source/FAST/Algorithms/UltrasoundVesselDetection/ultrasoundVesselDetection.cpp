@@ -62,10 +62,10 @@ int main(int argc, char** argv) {
 	"/home/smistad/AssistantTestData/12/1/US-2D_#.mhd",
 	"/home/smistad/AssistantTestData/12/2/US-2D_#.mhd",
 	"/home/smistad/AssistantTestData/12/3/US-2D_#.mhd",
-	"/media/smistad/New Volume/Carotis/2016-06-02-140622/US-2D_#.mhd",
-	"/media/smistad/New Volume/Carotis/2016-06-02-140721/US-2D_#.mhd",
-	"/media/smistad/New Volume/Carotis/2016-06-02-140846/US-2D_#.mhd",
-	"/media/smistad/New Volume/Carotis/2016-06-02-140923/US-2D_#.mhd"
+	"/media/smistad/New Volume/Carotis/Erik/2016-06-02-140622/US-2D_#.mhd",
+	"/media/smistad/New Volume/Carotis/Erik/2016-06-02-140721/US-2D_#.mhd",
+	"/media/smistad/New Volume/Carotis/Erik/2016-06-02-140846/US-2D_#.mhd",
+	"/media/smistad/New Volume/Carotis/Erik/2016-06-02-140923/US-2D_#.mhd"
 	};
 	uint recordingID = 0;
 	if(argc != 2) {
@@ -96,8 +96,8 @@ int main(int argc, char** argv) {
 	window->addRenderer(imageRenderer);
 	window->addRenderer(segmentationRenderer);
 	window->set2DMode();
-	window->setWidth(1024);
-	window->setHeight(1024);
+	window->setWidth(1920);
+	window->setHeight(1080);
 	window->start();
 	detector->getRuntime("ellipse fitting")->print();
 	detector->getRuntime("candidate selection")->print();
