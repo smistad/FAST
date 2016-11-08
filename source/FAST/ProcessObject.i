@@ -5,10 +5,15 @@
 %shared_ptr(fast::ProcessObject)
 
 %inline %{
-fast::SharedPointer<fast::Image> getNextFrame(fast::SharedPointer<fast::ProcessObject> po) {
+fast::SharedPointer<fast::Image> getNextFrameImage(fast::SharedPointer<fast::ProcessObject> po) {
     fast::DynamicData::pointer dd = po->getOutputData<fast::Image>();
     fast::Image::pointer image = dd->getNextFrame(po);
     return image;
+}
+fast::SharedPointer<fast::Mesh> getNextFrameMesh(fast::SharedPointer<fast::ProcessObject> po) {
+    fast::DynamicData::pointer dd = po->getOutputData<fast::Mesh>();
+    fast::Mesh::pointer mesh = dd->getNextFrame(po);
+    return mesh;
 }
 %}
 

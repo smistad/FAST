@@ -34,4 +34,5 @@ fast_add_test_sources(
 )
 fast_add_python_interfaces(
 	Image.i
+    Mesh.i
 )
