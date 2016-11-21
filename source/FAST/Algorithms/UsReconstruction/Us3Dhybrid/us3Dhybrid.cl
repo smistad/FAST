@@ -601,7 +601,14 @@ __kernel void accumulateFrameToVolume(
     float df = calculateHalfWidth(d1, d2);// , dv, Rmax);
     float dfDom = df / domVal;
 
-    float gaussianK = 1.0f / (df*SQRT_2_PI);
+    #if USE_GAUSSIAN_WEIGHT
+        float gaussianK = 1.0f / (df*SQRT_2_PI); //if block?
+        //float gaussianK = 1.0f - (df - 0.5f) / (R_MAX);
+        float dfPI = df/PI_DEF;//df*PI_DEF; //times * konstant 0.7-1.3 ish
+        if (dfPI < 1.0f){
+            dfPI = 1.0f;
+        }
+    #endif
     
     //Indeks for c-dir range in domDir
     int2 cDirRange = getDomDirRange(basePoint, domDir, dfDom);// , volumeSize);
@@ -625,12 +632,15 @@ __kernel void accumulateFrameToVolume(
             //float w = 1.0f - (absDistance / df); //Or gaussian for trail
             float w;
             //w = gaussianK * exp2((-0.5f*absDistance*absDistance) / (df*df));
+            float bright_w = 1 + (p / 255.0f);
             #if USE_GAUSSIAN_WEIGHT
                 w = gaussianK * exp2((-0.5f*absDistance*absDistance) / (df*df));
+                //w = exp2((-0.5f*absDistance*absDistance) / (dfPI*dfPI)); //gaussianK * 
             #else
                 w = 1.0f - (absDistance / df);
             #endif
                 
+           //w = w * bright_w; //
 
             /*
             if (USE_GAUSSIAN_WEIGHT){
@@ -723,7 +733,9 @@ __kernel void accumulateFrameToVolume(
         float dfDom = df / domVal;
 
         #if USE_GAUSSIAN_WEIGHT
-            float gaussianK = 1.0f / (df*SQRT_2_PI); //if block?
+            //float gaussianK = 1.0f / (df*SQRT_2_PI); //if block?
+            float gaussianK = 1.0f - (df-0.5f) / (R_MAX);
+            float dfPI = df*PI_DEF; //times * konstant 0.7-1.3 ish
         #endif
         //Indeks for c-dir range in domDir
         int2 cDirRange = getDomDirRange(basePoint, domDir, dfDom);// , volumeSize);
@@ -748,7 +760,7 @@ __kernel void accumulateFrameToVolume(
                 float w;
                 //w = gaussianK * exp2((-0.5f*absDistance*absDistance) / (df*df));
                 #if USE_GAUSSIAN_WEIGHT
-                    w = gaussianK * exp2((-0.5f*absDistance*absDistance) / (df*df));
+                    w = gaussianK * exp2((-0.5f*absDistance*absDistance) / (dfPI*dfPI)); //gaussianK * 
                 #else
                     w = 1.0f - (absDistance / df);
                 #endif

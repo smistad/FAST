@@ -1379,6 +1379,9 @@ void Us3Dhybrid::recompileAlgorithmOpenCLCode(){
         //std::cout << " -D BUFFER_Z=" << bufferZ << std::endl;
 
         // Precalcs
+        float pi_def = M_PI;
+        buildOptions += " -D PI_DEF=";
+        buildOptions += std::to_string(pi_def);
         float sqrt2pi = std::sqrt(2 * M_PI);
         buildOptions += " -D SQRT_2_PI=";
         buildOptions += std::to_string(sqrt2pi);
@@ -3081,8 +3084,9 @@ void Us3Dhybrid::execute(){
     }
     // When we have reached the end of stream we do just from here on
     if (reachedEndOfStream) {
-        if (mVerbosityLevel >= 5){
+        if (mVerbosityLevel >= 2){ //5
             std::cout << "Loading completed.." << std::endl;
+            std::cout << frameList.size() << std::endl;
         }
         //mIsModified = false;
         if (!volumeCalculated){
@@ -3228,7 +3232,7 @@ void Us3Dhybrid::printEndStats(){
         double normTime = mRuntimeManager->getTiming("normalization")->getSum();
         double timeInSecondsInit2Norm = calculateRuntime(7);
         double init2normTime = mRuntimeManager->getTiming("init2norm")->getSum();
-        std::cout << " # Inner: " << innerTime << "ms!(" << round(timeInSecondsInnerLoop*1000.0f) << ") - Norm: " << normTime << "ms!(" << round(timeInSecondsNormalize*1000.0f) << ") - I2Norm : " << init2normTime << "ms!(" << round(timeInSecondsInit2Norm*1000.0f) << ") # " << std::endl;
+        std::cout << " #Inner: " << innerTime << "ms!(" << round(timeInSecondsInnerLoop*1000.0f) << ") - Norm: " << normTime << "ms!(" << round(timeInSecondsNormalize*1000.0f) << ") - I2Norm : " << init2normTime << "ms!(" << round(timeInSecondsInit2Norm*1000.0f) << ")#" << std::endl;
         //mRuntimeManager->print("normalization");
         if (mVerbosityLevel <= 2){
             return;

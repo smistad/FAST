@@ -325,7 +325,7 @@ void runPerformanceTests(){
         }
         std::string input_filename = std::string(FAST_TEST_DATA_DIR) + folder + nameformat;
         std::cout << "\n\n ### SET " << setNR << " running: " << nickname << "! ### \n" << std::endl;
-        for (int runSettingNR = 0; runSettingNR < runAlgorithms.size(); runSettingNR++){ //runAlgorithms.size() //1
+        for (int runSettingNR = 0; runSettingNR < 1; runSettingNR++){ //runAlgorithms.size() //1
             Vector4i runSetting = runAlgorithms[runSettingNR];
             Us3DRunMode runMode = (Us3DRunMode)runSetting(0);
             int volSizeM = runSetting(1);
@@ -342,7 +342,7 @@ void runPerformanceTests(){
             }
             printRunSettings(runSetting);
             //std::cout << " - RunMode: " << runMode << " - " << volSizeM << "M - " << " - " << std::endl;
-            for (int iteration = 0; iteration < maxIterations; iteration++){
+            for (int iteration = 0; iteration < 1; iteration++){ //maxIterations //1
                 runAlgorithmAndExportImage(
                     1.0f, rMax,
                     input_filename, nameformat, sub_folder, nickname,
@@ -354,7 +354,7 @@ void runPerformanceTests(){
             clock_t testCurrentTime = clock();
             clock_t clockTicksTaken = testCurrentTime - testStart;
             double timeInSeconds = clockTicksTaken / (double)CLOCKS_PER_SEC;
-            std::cout << " ## Time used so far " << timeInSeconds << "sec! ## \n" << std::endl;
+            std::cout << " ## Time used so far " << timeInSeconds << "sec! ##\n" << std::endl;
             Sleep(10 * 1000);
         }
         Sleep(60 * 1000);
@@ -367,8 +367,11 @@ void runPerformanceTests(){
 
 int main() {
 
-    runPerformanceTests();
-    return 0;
+    if (false){
+        runPerformanceTests();
+        return 0;
+    }
+
     // Import images from files using the ImageFileStreamer
     
     // The hashtag here will be replaced with an integer, starting with 0 as default
@@ -386,12 +389,12 @@ int main() {
     float dvConstant = 2 * 0.15f; //0.2f ev (0.5f/3.0f)~=0.1667..
     float voxelSpacing = 0.2f;// 0.15f; //0.1f; //0.5f; //0.2f; // 0.03 / 0.01 //dv // Større verdi gir mindre oppløsning
     float RmaxMultiplier = 10.0f;
-    int volumeSizeMillions = 256;// 32; // 4; // 32;// 256; // 32; // 128;// 256; // 256;// 128;// 256;// 32;// 128;  //crash at 512
+    int volumeSizeMillions = 32;// 32; // 4; // 32;// 256; // 32; // 128;// 256; // 256;// 128;// 256;// 32;// 128;  //crash at 512
     int holeFill_gridSize = 7;// 13;
     bool holeFill_progressive = false; //true;
     int verbosity = 4;
 
-    int runInputSet = 7;// 1; //1/2
+    int runInputSet = 7; //6/7 // 1; //1/2
     std::string folder = "";
     std::string nameformat = "";
     std::string nickname = "";
@@ -475,12 +478,14 @@ int main() {
     float calcedDV2 = dvConstant * (1.0f / voxelSpacing) * initZSpacing; //*globalScaling
     float calcedDV3 = dvConstant;
     float setDVsuggestion = calcedDV3;// 3.0f;// calcedDV2;// 0.1f; // 0.25f; //0.5f; //0.2f; //0.5f; // calcedDV;// 0.05f;
-    float maxRvalueSuggestion = setDVsuggestion * RmaxMultiplier;// 10.0f;// setDVsuggestion * 5;// 10; //8; //0.2f; //0.5f// 1.0f; //2.0f;// voxelSpacing * 2 * globalScaling; //*(200/globalScaling) // *globalScaling * 3;
+    float maxRvalueSuggestion = 8.0f;// setDVsuggestion * RmaxMultiplier;       // 10.0f;// setDVsuggestion * 5;// 10; //8; //0.2f; //0.5f// 1.0f; //2.0f;// voxelSpacing * 2 * globalScaling; //*(200/globalScaling) // *globalScaling * 3;
     bool runVNNonly = false;
     bool runCLHybrid = true; //false;
     bool runPNNonly = false;
     Us3DRunMode runMode = Us3DRunMode::clHybrid; // cpuVNN; //clPNN; //cpuVNN; //cpuHybrid; // clHybrid;
     bool runHybridWeightGaussian = true;
+
+    enable_cuda_build_cache(false);
 
     bool singleTest = true;//false;
 
@@ -585,7 +590,7 @@ int main() {
         */
         runAlgorithmAndExportImage(
             setDVsuggestion, maxRvalueSuggestion,
-            input_filename, nameformat, "", nickname,
+            input_filename, nameformat, "tests1/", nickname,
             volumeSizeMillions, initZSpacing, holeFill_gridSize, holeFill_progressive,
             runMode, runHybridWeightGaussian,
             startNumber, stepSize, verbosity
