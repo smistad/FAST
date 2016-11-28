@@ -171,9 +171,9 @@ OpenCLDevice::OpenCLDevice(std::vector<cl::Device> devices, unsigned long* OpenG
                 (cl_context_properties)wglGetCurrentDC()
         );
 #else
-        std::cout << "current glX context is " << OpenGLContext << std::endl;
+        reportInfo() << "Created OpenCL context with glX context " << OpenGLContext << reportEnd();
         Display * display = XOpenDisplay(0);
-        std::cout << "current display is " << display << std::endl;
+        reportInfo() << "and X display " << display << reportEnd();
         cps = createInteropContextProperties(
                 this->platform,
                 (cl_context_properties)OpenGLContext,
