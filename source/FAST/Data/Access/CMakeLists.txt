@@ -10,6 +10,8 @@ fast_add_sources(
     VertexBufferObjectAccess.hpp
     MeshAccess.cpp
     MeshAccess.hpp
+    MeshOpenCLAccess.cpp
+    MeshOpenCLAccess.hpp
     PointSetAccess.cpp
     PointSetAccess.hpp
     LineSetAccess.cpp

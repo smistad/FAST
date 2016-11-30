@@ -1,5 +1,16 @@
 __constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
 
+float4 readPixelAsFloat(image3d_t image, sampler_t sampler, int4 pos) {
+    int dataType = get_image_channel_data_type(image);
+    if(dataType == CLK_FLOAT) {
+        return read_imagef(image, sampler, pos);
+    } else if(dataType == CLK_SIGNED_INT8 || dataType == CLK_SIGNED_INT16) {
+        return convert_float4(read_imagei(image, sampler, pos));
+    } else {
+        return convert_float4(read_imageui(image, sampler, pos));
+    }
+}
+
 __kernel void renderToTexture(
         __read_only image3d_t image,
         __write_only image2d_t texture,
@@ -22,13 +33,7 @@ __kernel void renderToTexture(
     }
 
     // TODO components support
-#ifdef TYPE_FLOAT
-    float value = read_imagef(image, sampler, pos).x;
-#elif TYPE_UINT
-    float value = read_imageui(image, sampler, pos).x;
-#else
-    float value = read_imagei(image, sampler, pos).x;
-#endif
+    float value = readPixelAsFloat(image, sampler, pos).x;
     value = (value - level + window/2) / window;
     value = clamp(value, 0.0f, 1.0f);
     //printf("value: %f\n", value);

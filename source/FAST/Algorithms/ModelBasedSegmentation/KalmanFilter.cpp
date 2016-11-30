@@ -14,6 +14,8 @@ void KalmanFilter::predict() {
 	mPredictedState = A1*mCurrentState + A2*mPreviousState + A3*mDefaultState;
 	mPredictedCovariance = A1*mCurrentCovariance*A1.transpose() + A2*mPreviousCovariance*A2.transpose() +
 			A1*mCurrentCovariance*A2.transpose() + A2*mPreviousCovariance*A1.transpose() + mShapeModel->getProcessErrorMatrix();
+
+	mPredictedState = mShapeModel->restrictState(mPredictedState);
 }
 
 void KalmanFilter::setShapeModel(ShapeModel::pointer shapeModel) {
@@ -23,6 +25,12 @@ void KalmanFilter::setShapeModel(ShapeModel::pointer shapeModel) {
 void KalmanFilter::setAppearanceModel(
 		AppearanceModel::pointer appearanceModel) {
 	mAppearanceModel = appearanceModel;
+}
+
+VectorXf KalmanFilter::getCurrentState() const {
+	if(!mInitialized)
+		throw Exception("Can't get current state before first execute in Kalman filter.");
+	return mCurrentState;
 }
 
 void KalmanFilter::execute() {
@@ -69,7 +77,7 @@ Mesh::pointer KalmanFilter::getDisplacementVectors(Image::pointer image) {
 	Shape::pointer shape = mShapeModel->getShape(mPredictedState);
 	Mesh::pointer mesh = shape->getMesh();
 	MeshAccess::pointer access = mesh->getMeshAccess(ACCESS_READ);
-	std::vector<Measurement> measurements = mAppearanceModel->getMeasurements(image, shape);
+	std::vector<Measurement> measurements = mAppearanceModel->getMeasurements(image, shape, getMainDevice());
 
 	std::vector<MeshVertex> vertices;
 	std::vector<VectorXui> lines;
@@ -131,7 +139,7 @@ void KalmanFilter::setStartIterations(int iterations) {
 void KalmanFilter::estimate(SharedPointer<Image> image) {
 
 	Shape::pointer shape = mShapeModel->getShape(mPredictedState);
-	std::vector<Measurement> measurements = mAppearanceModel->getMeasurements(image, shape);
+	std::vector<Measurement> measurements = mAppearanceModel->getMeasurements(image, shape, getMainDevice());
 	std::vector<MatrixXf> measurementVectors = mShapeModel->getMeasurementVectors(mPredictedState, shape);
 
 	// Assimilate the measurements into HRH and HRv
@@ -147,11 +155,13 @@ void KalmanFilter::estimate(SharedPointer<Image> image) {
 		}
 	}
 
+
 	// Update covariance and state
 	mPreviousState = mCurrentState;
 	mPreviousCovariance = mCurrentCovariance;
 	mCurrentCovariance = (mPredictedCovariance.inverse() + HRH).inverse();
 	mCurrentState = mPredictedState + mCurrentCovariance*HRv;
+	mCurrentState = mShapeModel->restrictState(mCurrentState);
 }
 
 }

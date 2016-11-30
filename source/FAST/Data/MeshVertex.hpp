@@ -18,9 +18,12 @@ class MeshVertex {
 		void setNormal(VectorXf normal);
 		std::vector<int> getConnections() const;
 		void addConnection(int index);
+		void setLabel(int label);
+		int getLabel();
     private:
         VectorXf mPosition;
         VectorXf mNormal;
+        int mLabel;
         std::vector<int> mConnections;
 };
 

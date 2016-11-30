@@ -10,11 +10,15 @@
 
 using namespace fast;
 
-int main() {
+int main(int argc, char** argv) {
     // Import images from files using the ImageFileStreamer
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
     // The hashtag here will be replaced with an integer, starting with 0 as default
-    streamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US/CarotidArtery/Right/US-2D_#.mhd");
+    if(argc > 1) {
+		streamer->setFilenameFormat(argv[1]);
+    } else {
+        streamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US/CarotidArtery/Right/US-2D_#.mhd");
+    }
 
     // Renderer image
     ImageRenderer::pointer renderer = ImageRenderer::New();

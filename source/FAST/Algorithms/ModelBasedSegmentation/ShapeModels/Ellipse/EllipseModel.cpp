@@ -112,4 +112,24 @@ void EllipseModel::setInitialState(Vector2f position, float majorRadius, float m
 	mInitialState = Vector4f(position.x(), position.y(), majorRadius, minorRadius);
 }
 
+VectorXf EllipseModel::restrictState(VectorXf state) {
+	if(state(2) < 3.5) {
+		state(2) = 3.5;
+	}
+	if(state(3) < 3.5) {
+		state(3) = 3.5;
+	}
+	if(state(2) > 6) {
+		state(2) = 6;
+	}
+	if(state(3) > 6) {
+		state(3) = 6;
+	}
+	if(state(2) < state(3))
+		state(3) = state(2);
+
+	return state;
+
+}
+
 }

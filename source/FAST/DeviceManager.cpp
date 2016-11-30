@@ -69,6 +69,9 @@ DeviceManager& DeviceManager::getInstance() {
 std::vector<OpenCLDevice::pointer> DeviceManager::getDevices(DeviceCriteria criteria, bool enableVisualization) {
     unsigned long * glContext = NULL;
     QGLWidget* widget = NULL;
+#ifdef FAST_DISABLE_GL_INTEROP
+    enableVisualization = false;
+#endif
     if(enableVisualization) {
         // Create GL context
 
@@ -90,15 +93,15 @@ std::vector<OpenCLDevice::pointer> DeviceManager::getDevices(DeviceCriteria crit
         criteria.setCapabilityCriteria(DEVICE_CAPABILITY_OPENGL_INTEROP);
     }
     std::vector<PlatformDevices> platformDevices = getDevices(criteria);
+    std::vector<cl::Device> validDevices = getDevicesForBestPlatform(criteria, platformDevices);
 
     std::vector<OpenCLDevice::pointer> executionDevices;
-    for(unsigned int i = 0; i < platformDevices.size(); i++) {
-    for(unsigned int j = 0; j < platformDevices[i].second.size(); j++) {
+    for(unsigned int i = 0; i < validDevices.size(); i++) {
         std::vector<cl::Device> deviceVector;
-        deviceVector.push_back(platformDevices[i].second[j]);
+        deviceVector.push_back(validDevices[i]);
         OpenCLDevice * device = new OpenCLDevice(deviceVector, glContext);
         executionDevices.push_back(OpenCLDevice::pointer(device));
-    }}
+    }
 
     // Cleanup widget, widget has to be alive when creating device
     delete widget;
@@ -482,11 +485,11 @@ std::vector<cl::Device> DeviceManager::getDevicesForBestPlatform(
         throw Exception("No valid OpenCL platforms!");
     } else {
         // Select the devices from the bestPlatform
-        for (int i = 0; i < sortedPlatformDevices[bestPlatform].size(); i++) {
+        for (int i = 0; i < std::min((int)deviceCriteria.getDeviceCountMaxCriteria(), (int)sortedPlatformDevices[bestPlatform].size()); i++) {
             validDevices.push_back(sortedPlatformDevices[bestPlatform][i]);
         }
 		reportInfo() << "The platform " << platformDevices[bestPlatform].first.getInfo<CL_PLATFORM_NAME>() << " was selected as the best platform." << Reporter::end;
-		reportInfo() << "A total of " << sortedPlatformDevices[bestPlatform].size() << " devices were selected for the context from this platform:" << Reporter::end;
+		reportInfo() << "A total of " << validDevices.size() << " devices were selected for the context from this platform:" << Reporter::end;
 
 		for (int i = 0; i < validDevices.size(); i++) {
 			//reporter.report("Device " + number(i) + ": " + validDevices[i].getInfo<CL_DEVICE_NAME>(), INFO);
@@ -562,8 +565,12 @@ std::vector<PlatformDevices> DeviceManager::getDevices(
             bool accepted = true;
             for (int k = 0; k < capabilityCriteria.size(); k++) {
                 if (capabilityCriteria[k] == DEVICE_CAPABILITY_OPENGL_INTEROP) {
-                    if (!deviceHasOpenGLInteropCapability(devices[j]))
+                    if (!deviceHasOpenGLInteropCapability(devices[j])) {
                         accepted = false;
+                        reportInfo() << "Device has NOT OpenGL interop capability" << Reporter::end;
+                    } else {
+                        reportInfo() << "Device has OpenGL interop capability" << Reporter::end;
+                    }
                 }
             }
             if (accepted) {
@@ -573,6 +580,7 @@ std::vector<PlatformDevices> DeviceManager::getDevices(
             	reportInfo() << "The device was NOT accepted." << Reporter::end;
             }
         }
+
         if(acceptedDevices.size() > 0)
             platformDevices.push_back(std::make_pair(validPlatforms[i], acceptedDevices));
     }

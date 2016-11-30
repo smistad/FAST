@@ -14,6 +14,7 @@ class MeshAccess {
     public:
         MeshAccess(std::vector<MeshVertex>* vertices, std::vector<VectorXui>* connections, SharedPointer<Mesh> mesh);
         MeshVertex getVertex(uint i);
+        void setVertex(uint i, MeshVertex);
         Vector3ui getTriangle(uint i);
         Vector2ui getLine(uint i);
         std::vector<VectorXui> getTriangles();

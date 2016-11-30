@@ -12,6 +12,8 @@
 #include <GL/gl.h>
 #else
 #include <GL/glx.h>
+#include <boost/shared_array.hpp>
+
 #endif
 #endif
 
@@ -59,7 +61,6 @@ void Mesh::create(std::vector<MeshVertex> vertices, std::vector<VectorXui> conne
     }
 
     mIsInitialized = true;
-    mDimensions = vertices[0].getNrOfDimensions();
     mVertices = vertices;
     std::vector<VectorXf> positions;
     for(unsigned int i = 0; i < vertices.size(); i++) {
@@ -70,7 +71,12 @@ void Mesh::create(std::vector<MeshVertex> vertices, std::vector<VectorXui> conne
             positions.push_back(Vector3f(pos.x(), pos.y(), 0));
     	}
     }
-    mBoundingBox = BoundingBox(positions);
+	if(vertices.size() > 0) {
+		mDimensions = vertices[0].getNrOfDimensions();
+		mBoundingBox = BoundingBox(positions);
+	} else {
+		mBoundingBox = BoundingBox(Vector3f(0,0,0)); // TODO Fix
+	}
     mNrOfConnections = connections.size();
     mConnections = connections;
     mHostHasData = true;
@@ -108,7 +114,7 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
         updateModifiedTimestamp();
     }
     if(!mVBOHasData) {
-        // TODO create VBO
+        // VBO has not allocated data: Create VBO
         // Have to have a drawable available before glewInit and glGenBuffers
 #if defined(__APPLE__) || defined(__MACOSX)
 #else
@@ -210,7 +216,7 @@ bool operator==(const MeshVertex& a, const MeshVertex& b) {
 
 MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
     if(!mIsInitialized) {
-        throw Exception("Surface has not been initialized.");
+        throw Exception("Mesh has not been initialized.");
     }
 
     blockIfBeingWrittenTo();
@@ -224,6 +230,7 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
         updateModifiedTimestamp();
     }
     if(!mHostHasData) {
+        // Host has not allocated data
     	if(mDimensions == 2)
     		throw Exception("Not implemented for 2D");
         // Get all vertices with normals from VBO (including duplicates)
@@ -287,6 +294,108 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
 	return std::move(accessObject);
 }
 
+void Mesh::updateOpenCLBufferData(OpenCLDevice::pointer device) {
+    // If buffer is up to date, no need to update
+    if(mCLBuffersIsUpToDate.count(device) > 0 && mCLBuffersIsUpToDate[device] == true)
+        return;
+
+    if(!mHostHasData)
+        throw Exception("Mesh currently need host data before getting CL buffer data");
+
+    if(mCLBuffersIsUpToDate.count(device) == 0) {
+        reportInfo() << "Creating OpenCL buffers for mesh" << reportEnd();
+        // Allocate OpenCL buffers, need to know how many coordinates and how many connections
+        size_t bufferSize = sizeof(float)*getDimensions()*mVertices.size();
+        cl::Buffer* coordinatesBuffer = new cl::Buffer(device->getContext(), CL_MEM_READ_WRITE, bufferSize);
+        bufferSize = sizeof(int)*getDimensions()*mNrOfConnections;
+        cl::Buffer* connectionsBuffer = new cl::Buffer(device->getContext(), CL_MEM_READ_WRITE, bufferSize);
+        mCoordinatesBuffers[device] = coordinatesBuffer;
+        mConnectionBuffers[device] = connectionsBuffer;
+    }
+
+    if(mHostHasData && mHostDataIsUpToDate) {
+        reportInfo() << "Transfer data from host to CL buffers" << reportEnd();
+        // TODO Update data from host
+
+        // Transfer coordinates
+        cl::CommandQueue queue = device->getCommandQueue();
+        {
+            boost::shared_array<float> coordinatesData(new float[getDimensions() * mVertices.size()]);
+            int i = 0;
+            for (MeshVertex vertex : mVertices) {
+                coordinatesData[i] = vertex.getPosition().x();
+                coordinatesData[i + 1] = vertex.getPosition().y();
+                if (getDimensions() == 3) {
+                    coordinatesData[i + 2] = vertex.getPosition().z();
+                }
+                i += getDimensions();
+            }
+            size_t bufferSize = sizeof(float) * getDimensions() * mVertices.size();
+            queue.enqueueWriteBuffer(*mCoordinatesBuffers[device], CL_TRUE, 0, bufferSize, coordinatesData.get());
+        }
+
+        // Transfer connections
+        {
+            boost::shared_array<uint> data(new uint[getDimensions() * mConnections.size()]);
+            int i = 0;
+            for (VectorXui connection : mConnections) {
+                data[i] = connection.x();
+                data[i + 1] = connection.y();
+                if (getDimensions() == 3) {
+                    data[i + 2] = connection.z();
+                }
+                i += getDimensions();
+            }
+            size_t bufferSize = sizeof(uint) * getDimensions() * mConnections.size();
+            queue.enqueueWriteBuffer(*mConnectionBuffers[device], CL_TRUE, 0, bufferSize, data.get());
+        }
+
+    } else if(mVBOHasData && mVBODataIsUpToDate) {
+        // TODO update data from VBO
+        throw Exception("Mesh currently need host data before getting CL buffer data");
+    } else {
+        // No data to update from
+    }
+
+    mCLBuffersIsUpToDate[device] = true;
+}
+
+void Mesh::setAllDataToOutOfDate() {
+    mHostDataIsUpToDate = false;
+    mVBODataIsUpToDate = false;
+    boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+    for(it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end(); it++) {
+        it->second = false;
+    }
+}
+
+MeshOpenCLAccess::pointer Mesh::getOpenCLAccess(accessType type, OpenCLDevice::pointer device) {
+     if(!mIsInitialized) {
+        throw Exception("Surface has not been initialized.");
+    }
+
+    blockIfBeingWrittenTo();
+
+    if(type == ACCESS_READ_WRITE) {
+    	blockIfBeingAccessed();
+        boost::unique_lock<boost::mutex> lock(mDataIsBeingWrittenToMutex);
+        mDataIsBeingWrittenTo = true;
+    }
+    updateOpenCLBufferData(device);
+    if(type == ACCESS_READ_WRITE) {
+        setAllDataToOutOfDate();
+        updateModifiedTimestamp();
+    }
+    mCLBuffersIsUpToDate[device] = true;
+    {
+        boost::unique_lock<boost::mutex> lock(mDataIsBeingAccessedMutex);
+        mDataIsBeingAccessed = true;
+    }
+
+    MeshOpenCLAccess::pointer accessObject(new MeshOpenCLAccess(mCoordinatesBuffers[device], mConnectionBuffers[device], mPtr.lock()));
+	return std::move(accessObject);
+}
+
 Mesh::~Mesh() {
     freeAll();
 }
@@ -294,7 +403,9 @@ Mesh::~Mesh() {
 Mesh::Mesh() {
     mIsInitialized = false;
     mVBOHasData = false;
+    mVBODataIsUpToDate = false;
     mHostHasData = false;
+    mHostDataIsUpToDate = false;
 }
 
 void Mesh::freeAll() {
@@ -309,10 +420,38 @@ void Mesh::freeAll() {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
     mVBOHasData = false;
+
+    // For each CL buffer delete it
+    boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+    for(it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end(); it++) {
+        delete mConnectionBuffers[it->first];
+        delete mCoordinatesBuffers[it->first];
+    }
+    mCoordinatesBuffers.clear();
+    mConnectionBuffers.clear();
+    mCLBuffersIsUpToDate.clear();
+
+    mVertices.clear();
+    mConnections.clear();
+    mHostHasData = false;
 }
 
 void Mesh::free(ExecutionDevice::pointer device) {
     // TODO
+    if(device->isHost()) {
+        mVertices.clear();
+        mConnections.clear();
+        mHostHasData = false;
+    } else {
+        OpenCLDevice::pointer clDevice = device;
+        if(mCLBuffersIsUpToDate.count(clDevice) > 0) {
+            mCLBuffersIsUpToDate.erase(clDevice);
+            delete mConnectionBuffers[clDevice];
+            delete mCoordinatesBuffers[clDevice];
+            mConnectionBuffers.erase(clDevice);
+            mCoordinatesBuffers.erase(clDevice);
+        }
+    }
 }
 
 unsigned int Mesh::getNrOfTriangles() const {

@@ -38,6 +38,11 @@ class CardinalSplineModel : public ShapeModel {
 		 */
 		void setTension(std::vector<float> tension);
 		void setResolution(int resolution);
+		VectorXf restrictState(VectorXf state);
+		/*
+		 * Set min and max limit for scaling
+		 */
+		void setScalingLimit(float min = -1, float max = -1);
 	private:
 		CardinalSplineModel();
 		void assertControlPointsGiven();
@@ -54,11 +59,13 @@ class CardinalSplineModel : public ShapeModel {
 		VectorXf mInitialGlobalState;
 		int mStateSize;
 		int mResolution;
+		float mMinScaling, mMaxScaling;
 
 		std::vector<Vector2f> mControlPoints;
 		float mGlobalTension;
 		std::vector<float> mTensionPerVertex;
 		Vector2f mCentroid;
+		bool mClockwise; // True if control points are in clockwise order
 
 		bool mInitializeShapeToImageCenter;
 

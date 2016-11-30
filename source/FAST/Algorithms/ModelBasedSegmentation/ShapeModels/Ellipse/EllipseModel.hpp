@@ -19,6 +19,7 @@ class EllipseModel : public ShapeModel {
 		 */
 		void setInitialState(Vector2f position, float majorRadius, float minorRadius);
 		VectorXf getInitialState(SharedPointer<Image> image);
+		VectorXf restrictState(VectorXf state);
 	private:
 		EllipseModel();
 		Matrix4f mStateTransitionMatrix1;

@@ -20,6 +20,10 @@ MeshAccess::~MeshAccess() {
 	release();
 }
 
+void MeshAccess::setVertex(uint i, MeshVertex vertex) {
+    (*mVertices)[i] = vertex;
+}
+
 
 MeshVertex MeshAccess::getVertex(uint i) {
     return (*mVertices)[i];

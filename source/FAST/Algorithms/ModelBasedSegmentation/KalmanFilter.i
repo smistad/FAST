@@ -22,6 +22,7 @@ class KalmanFilter : public ProcessObject {
 		void setAppearanceModel(SharedPointer<AppearanceModel> appearanceModel);
 		void setIterations(int iterations);
 		void setStartIterations(int iterations);
+		ProcessObjectPort getDisplacementsOutputPort();
 };
 
 %template(KalmanFilterPtr) SharedPointer<KalmanFilter>;

@@ -4,7 +4,7 @@ __constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP |
 
 __kernel void initialize(
 	__read_only image3d_t input,
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
 	__write_only image3d_t distance
 #else
 	__global short* distance
@@ -15,7 +15,7 @@ __kernel void initialize(
 	uint value = read_imageui(input, sampler, pos).x;
 	if(value == 0) {
 		// Outside
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
 		write_imagei(distance, pos, 0);
 #else
 		distance[LPOS(pos)] = 0;
@@ -33,13 +33,13 @@ __kernel void initialize(
             }
         }}}
         if(atBorder) {
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
             write_imagei(distance, pos, 0);
 #else
 			distance[LPOS(pos)] = 0;
 #endif
         } else {
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
             write_imagei(distance, pos, -1);
 #else
 			distance[LPOS(pos)] = -1;
@@ -58,7 +58,7 @@ __constant int4 neighbors[] = {
 };
 
 __kernel void calculateDistance(
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
 	__read_only image3d_t input,
 	__write_only image3d_t output,
 #else
@@ -68,7 +68,7 @@ __kernel void calculateDistance(
 	__global char* changed
 	) {
 	const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
 	int value = read_imagei(input, sampler, pos).x;
 #else
 	int value = input[LPOS(pos)];
@@ -77,7 +77,7 @@ __kernel void calculateDistance(
 		int minNeighborDistance = 999999;
         for(int i = 0; i < 6; ++i) {
         	int4 nPos = neighbors[i] + pos;
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
 			int value2 = read_imagei(input, sampler, nPos).x;
 #else
 			int value2 = input[LPOS(nPos)];
@@ -89,7 +89,7 @@ __kernel void calculateDistance(
         
         if(minNeighborDistance < 999999) {
         	// Valid neighbor found
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
         	write_imagei(output, pos, minNeighborDistance+1);
 #else
 			output[LPOS(pos)] = minNeighborDistance+1;
@@ -97,7 +97,7 @@ __kernel void calculateDistance(
         	changed[0] = 1;
         }
 	} else {
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
         write_imagei(output, pos, value);
 #else
 		output[LPOS(pos)] = value;
@@ -108,7 +108,7 @@ __kernel void calculateDistance(
 __kernel void findCandidateCenterpoints(
 			__read_only image3d_t segmentation,
 			__read_only image3d_t distanceImage,
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
 			__write_only image3d_t output
 #else
 			__global uchar* output
@@ -131,7 +131,7 @@ __kernel void findCandidateCenterpoints(
             }
         }}}
 
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
         if(!invalid) {
         	write_imageui(output, pos, 1);
         } else {

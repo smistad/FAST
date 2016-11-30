@@ -17,11 +17,13 @@ class MeshRenderer : public Renderer {
         void setDefaultColor(Color color);
         void setDefaultSpecularReflection(float specularReflection);
         void setColor(ProcessObjectPort port, Color color);
+        void setColor(int label, Color color);
         void setOpacity(ProcessObjectPort port, float opacity);
+        void setLineSize(int size);
     private:
         void draw();
         void draw2D(
-                cl::BufferGL PBO,
+                cl::Buffer PBO,
                 uint width,
                 uint height,
                 Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform,
@@ -32,12 +34,14 @@ class MeshRenderer : public Renderer {
         void execute();
 
         boost::unordered_map<ProcessObjectPort, Color> mInputColors;
+        boost::unordered_map<int, Color> mLabelColors;
         boost::unordered_map<ProcessObjectPort, float> mInputOpacities;
         boost::unordered_map<uint, Mesh::pointer> mMeshToRender;
         Color mDefaultColor;
         float mDefaultSpecularReflection;
         float mDefaultOpacity;
         boost::mutex mMutex;
+        int mLineSize;
 };
 
 } // namespace fast

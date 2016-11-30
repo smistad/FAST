@@ -1,3 +1,4 @@
+#include <GL/glew.h>
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Data/Image.hpp"
@@ -333,31 +334,52 @@ void SurfaceExtraction::execute() {
 
     VertexBufferObjectAccess::pointer VBOaccess = output->getVertexBufferObjectAccess(ACCESS_READ_WRITE, device);
     GLuint* VBO_ID = VBOaccess->get();
+#ifndef FAST_DISABLE_GL_INTEROP
     cl::BufferGL VBOBuffer = cl::BufferGL(device->getContext(), CL_MEM_WRITE_ONLY, *VBO_ID);
+    std::vector<cl::Memory> v;
+    v.push_back(VBOBuffer);
+    queue.enqueueAcquireGLObjects(&v);
+#else
+    cl::Buffer VBOBuffer = cl::Buffer(
+        device->getContext(),
+        CL_MEM_WRITE_ONLY,
+        sizeof(float)*totalSum*18
+    );
+#endif
     traverseHPKernel.setArg(i, VBOBuffer);
     traverseHPKernel.setArg(i+1, mThreshold);
     traverseHPKernel.setArg(i+2, totalSum);
     traverseHPKernel.setArg(i+3, input->getSpacing().x());
     traverseHPKernel.setArg(i+4, input->getSpacing().y());
     traverseHPKernel.setArg(i+5, input->getSpacing().z());
-    //cl_event syncEvent = clCreateEventFromGLsyncKHR((cl_context)context(), (cl_GLsync)glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0), 0);
-    //glFinish();
-    std::vector<cl::Memory> v;
-    v.push_back(VBOBuffer);
-    //vector<Event> events;
-    //Event e;
-    //events.push_back(Event(syncEvent));
-    queue.enqueueAcquireGLObjects(&v);
 
     // Increase the global_work_size so that it is divideable by 64
     int global_work_size = totalSum + 64 - (totalSum - 64*(totalSum / 64));
     // Run a NDRange kernel over this buffer which traverses back to the base level
     queue.enqueueNDRangeKernel(traverseHPKernel, cl::NullRange, cl::NDRange(global_work_size), cl::NDRange(64));
 
-    cl::Event traversalEvent;
-    queue.enqueueReleaseGLObjects(&v, 0, &traversalEvent);
-//  traversalSync = glCreateSyncFromCLeventARB((cl_context)context(), (cl_event)traversalEvent(), 0); // Need the GL_ARB_cl_event extension
+#ifndef FAST_DISABLE_GL_INTEROP
+    queue.enqueueReleaseGLObjects(&v);
     queue.finish();
+#else
+    // Transfer OpenCL buffer data to CPU
+    float* data = new float[18*totalSum];
+    queue.enqueueReadBuffer(
+        VBOBuffer,
+        CL_TRUE,
+        0,
+        sizeof(float)*18*totalSum,
+        data
+    );
+
+    // Transfer CPU data to VBO
+    glBindBuffer(GL_ARRAY_BUFFER, *VBO_ID);
+    glBufferData(GL_ARRAY_BUFFER, totalSum*18*sizeof(float), data, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glFinish();
+
+    delete[] data;
+#endif
 
 }
 

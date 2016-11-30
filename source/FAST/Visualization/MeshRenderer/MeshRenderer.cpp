@@ -32,6 +32,15 @@ MeshRenderer::MeshRenderer() : Renderer() {
     mDefaultColor = Color::Green();
     mDefaultSpecularReflection = 0.8f;
     createInputPort<Mesh>(0, false);
+    mLineSize = 1;
+}
+
+void MeshRenderer::setLineSize(int size) {
+	if(size <= 0)
+		throw Exception("Line size must be greather than 0");
+
+	mLineSize = size;
+
 }
 
 void MeshRenderer::execute() {
@@ -115,7 +124,7 @@ void MeshRenderer::draw() {
 }
 
 void MeshRenderer::draw2D(
-                cl::BufferGL PBO,
+                cl::Buffer PBO,
                 uint width,
                 uint height,
                 Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform,
@@ -126,9 +135,11 @@ void MeshRenderer::draw2D(
 
     OpenCLDevice::pointer device = getMainDevice();
     cl::CommandQueue queue = device->getCommandQueue();
+#ifndef FAST_DISABLE_GL_INTEROP
     std::vector<cl::Memory> v;
     v.push_back(PBO);
     queue.enqueueAcquireGLObjects(&v);
+#endif
 
     // Map would probably be better here, but doesn't work on NVIDIA, segfault surprise!
     //float* pixels = (float*)queue.enqueueMapBuffer(PBO, CL_TRUE, CL_MAP_WRITE, 0, width*height*sizeof(float)*4);
@@ -154,32 +165,60 @@ void MeshRenderer::draw2D(
         // Draw each line
         for(int i = 0; i < lines.size(); ++i) {
         	Vector2ui line = lines[i];
+        	int label = vertices[line.x()].getLabel();
+        	Color useColor = color;
+        	if(mLabelColors.count(label) > 0)
+        		useColor = mLabelColors[label];
+
         	Vector2f a = vertices[line.x()].getPosition();
         	Vector2f b = vertices[line.y()].getPosition();
         	Vector2f direction = b - a;
         	float lengthInPixels = ceil(direction.norm() / PBOspacing);
 
         	// Draw the line
-        	for(int j = 0; j <= lengthInPixels; ++j) {
-        		Vector2f positionInMM = a + direction*((float)j/lengthInPixels);
-        		Vector2f positionInPixels = positionInMM / PBOspacing;
+        	int size = mLineSize;
+        	if(size == 1) {
+				for(int j = 0; j <= lengthInPixels; ++j) {
+					Vector2f positionInMM = a + direction*((float)j/lengthInPixels);
+					Vector2f positionInPixels = positionInMM / PBOspacing;
 
-        		int x = round(positionInPixels.x());
-        		int y = round(positionInPixels.y());
-        		y = height - 1 - y;
-        		if(x < 0 || y < 0 || x >= width || y >= height)
-        			continue;
+					int x = round(positionInPixels.x());
+					int y = round(positionInPixels.y());
+					y = height - 1 - y;
+					if(x < 0 || y < 0 || x >= width || y >= height)
+						continue;
 
-        		pixels[4*(x + y*width)] = color.getRedValue();
-        		pixels[4*(x + y*width) + 1] = color.getGreenValue();
-        		pixels[4*(x + y*width) + 2] = color.getBlueValue();
+					pixels[4*(x + y*width)] = useColor.getRedValue();
+					pixels[4*(x + y*width) + 1] = useColor.getGreenValue();
+					pixels[4*(x + y*width) + 2] = useColor.getBlueValue();
+				}
+        	} else {
+				size = size/2;
+				for(int j = 0; j <= lengthInPixels; ++j) {
+					Vector2f positionInMM = a + direction*((float)j/lengthInPixels);
+					Vector2f positionInPixels = positionInMM / PBOspacing;
+					for(int x2 = -size; x2 <= size; ++x2) {
+					for(int y2 = -size; y2 <= size; ++y2) {
+						int x = round(positionInPixels.x()) + x2;
+						int y = round(positionInPixels.y()) + y2;
+						y = height - 1 - y;
+						if(x < 0 || y < 0 || x >= width || y >= height)
+							continue;
+
+						pixels[4*(x + y*width)] = useColor.getRedValue();
+						pixels[4*(x + y*width) + 1] = useColor.getGreenValue();
+						pixels[4*(x + y*width) + 2] = useColor.getBlueValue();
+					}}
+				}
         	}
         }
     }
 
     //queue.enqueueUnmapMemObject(PBO, pixels);
     queue.enqueueWriteBuffer(PBO, CL_TRUE, 0, width*height*4*sizeof(float), pixels.get());
+#ifndef FAST_DISABLE_GL_INTEROP
     queue.enqueueReleaseGLObjects(&v);
+#endif
 }
 
 BoundingBox MeshRenderer::getBoundingBox() {
@@ -196,6 +235,10 @@ BoundingBox MeshRenderer::getBoundingBox() {
 
 void MeshRenderer::setDefaultColor(Color color) {
     mDefaultColor = color;
+}
+
+void MeshRenderer::setColor(int label, Color color) {
+	mLabelColors[label] = color;
 }
 
 void MeshRenderer::setColor(ProcessObjectPort port, Color color) {

@@ -34,7 +34,7 @@ __kernel void GVF2DIteration(__read_only image2d_t init_vector_field, __read_onl
 
 
 // If device supports writing to 3D textures
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
 
 __kernel void GVF3DCopy(__read_only image3d_t input, __write_only image3d_t output) {
     int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};

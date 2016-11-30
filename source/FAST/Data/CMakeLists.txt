@@ -25,9 +25,14 @@ fast_add_sources(
     Color.hpp
     Camera.cpp
     Camera.hpp
+    SimpleDataObject.hpp
 )
 fast_add_test_sources(
     Tests/DataObjectTests.cpp
     Tests/ImageTests.cpp
     Tests/DynamicImageTests.cpp
+)
+fast_add_python_interfaces(
+	Image.i
+    Mesh.i
 )
