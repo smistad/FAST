@@ -32,6 +32,18 @@ TEST_CASE("ImageRenderer with dynamic 2D image in 2D mode", "[fast][ImageRendere
     CHECK_NOTHROW(window->start());
 }
 
+TEST_CASE("ImageRenderer with dynamic 2D image in 3D mode", "[fast][ImageRenderer][visual]") {
+    ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
+    streamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US/CarotidArtery/Right/US-2D_#.mhd");
+    ImageRenderer::pointer renderer = ImageRenderer::New();
+    renderer->setInputConnection(streamer->getOutputPort());
+    SimpleWindow::pointer window = SimpleWindow::New();
+    window->addRenderer(renderer);
+    window->setTimeout(1000);
+
+    CHECK_NOTHROW(window->start());
+}
+
 TEST_CASE("ImageRenderer with single 3D image in 2D mode and Axial plane", "[fast][ImageRenderer][visual]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"/CT/CT-Abdomen.mhd");
