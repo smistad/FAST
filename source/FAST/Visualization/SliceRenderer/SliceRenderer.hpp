@@ -21,16 +21,8 @@ class SliceRenderer : public Renderer {
         void recompileOpenCLCode(Image::pointer input);
 
         Image::pointer mImageToRender;
-#if defined(CL_VERSION_1_2)
-        cl::ImageGL mImageGL;
-#else
-        cl::Image2DGL mImageGL;
-#endif
         GLuint mTexture;
         bool mTextureIsCreated;
-
-        cl::Kernel mKernel;
-        DataType mTypeCLCodeCompiledFor;
 
         unsigned int mSliceNr;
         PlaneType mSlicePlane;
