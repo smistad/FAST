@@ -66,6 +66,28 @@ DeviceManager& DeviceManager::getInstance() {
     return instance;
 }
 
+void DeviceManager::setKernelRootPath(std::string kernel_root_path) {
+	mKernelRootPath = kernel_root_path;
+}
+
+void DeviceManager::setWritableCachePath(std::string cache_path) {
+    mCachePath = cache_path;
+}
+
+std::string DeviceManager::getKernelRootPath() {
+    if(mKernelRootPath == ""){
+        mKernelRootPath = std::string(FAST_SOURCE_DIR);
+	}
+    return mKernelRootPath;
+}
+
+std::string DeviceManager::getWritableCachePath() {
+    if(mCachePath == ""){
+        mCachePath = std::string(OUL_OPENCL_KERNEL_BINARY_PATH);
+    }
+    return mCachePath;
+}
+
 std::vector<OpenCLDevice::pointer> DeviceManager::getDevices(DeviceCriteria criteria, bool enableVisualization) {
     unsigned long * glContext = NULL;
     QGLWidget* widget = NULL;
@@ -201,7 +223,10 @@ ExecutionDevice::pointer DeviceManager::getDefaultVisualizationDevice() {
     return mDefaultVisualizationDevice;
 }
 
-DeviceManager::DeviceManager() {
+DeviceManager::DeviceManager() :
+    mKernelRootPath(""),
+    mCachePath("")
+{
     cl::Platform::get(&platforms);
     // Set one random device as default device
     setDefaultDevice(getOneOpenCLDevice(true));

@@ -72,6 +72,6 @@ TEST_CASE("Airway segmentation", "[fast][AirwaySegmentation][visual]") {
 	window->addRenderer(renderer);
 	window->addRenderer(lineRenderer);
 	window->setTimeout(1000);
-	window->start();
+    CHECK_NOTHROW(window->start());
 	//segmentation->getRuntime()->print();
 }

@@ -9,9 +9,9 @@ using namespace fast;
 NonLocalMeans::NonLocalMeans() {
 	createInputPort<Image>(0);
 	createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/NonLocalMeans/NonLocalMeans2Dgs.cl", "2D");
-    //createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/NonLocalMeans/NonLocalMeans2Dgaussian.cl", "2Dg");
-    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/NonLocalMeans/NonLocalMeans3Dgs.cl", "3D");
+	createOpenCLProgram("Algorithms/NonLocalMeans/NonLocalMeans2Dgs.cl", "2D");
+	//createOpenCLProgram("Algorithms/NonLocalMeans/NonLocalMeans2Dgaussian.cl", "2Dg");
+	createOpenCLProgram("Algorithms/NonLocalMeans/NonLocalMeans3Dgs.cl", "3D");
 	windowSize = 11;
 	groupSize = 3;
 	sigma = 0.3f;
@@ -191,7 +191,7 @@ void NonLocalMeans::recompileOpenCLCode(Image::pointer input) {
     if(input->getDimensions() == 2) {
         program = getOpenCLProgram(device, "2D", buildOptions);
     } else {
-        //createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/NoneLocalMeans/NoneLocalMeans3Dgs.cl", "3D");
+		//createOpenCLProgram("Algorithms/NoneLocalMeans/NoneLocalMeans3Dgs.cl", "3D");
         program = getOpenCLProgram(device, "3D", buildOptions);
     }
     mKernel = cl::Kernel(program, "noneLocalMeans");
@@ -250,7 +250,7 @@ void NoneLocalMeans::recompileOpenCLCode(Image::pointer input) {
 	else {
 		filename = "Algorithms/NoneLocalMeans/NoneLocalMeans3Dgs.cl";
 	}
-	int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + filename, buildOptions);
+	int programNr = device->createProgramFromSource(filename, buildOptions);
 	mKernel = cl::Kernel(device->getProgram(programNr), "noneLocalMeans");
 	mDimensionCLCodeCompiledFor = input->getDimensions();
 	mTypeCLCodeCompiledFor = input->getDataType();

@@ -15,6 +15,10 @@ typedef std::pair<cl::Platform, std::vector<cl::Device> > PlatformDevices;
 class DeviceManager : public Object {
     public:
         static DeviceManager& getInstance();
+		void setKernelRootPath(std::string kernel_root_path);
+        void setWritableCachePath(std::string cache_path);
+        std::string getKernelRootPath();
+        std::string getWritableCachePath();
         OpenCLDevice::pointer getDevice(DeviceCriteria criteria);
         bool deviceSatisfiesCriteria(OpenCLDevice::pointer, const DeviceCriteria& criteria);
         std::vector<OpenCLDevice::pointer> getAllDevices(bool enableVisualization = false);
@@ -62,6 +66,8 @@ class DeviceManager : public Object {
         std::string getDevicePlatform(DevicePlatform devicePlatform);
 
         std::vector<cl::Platform> platforms;
+		std::string mKernelRootPath;
+        std::string mCachePath;
 };
 
 }

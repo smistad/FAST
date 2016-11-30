@@ -21,5 +21,5 @@ TEST_CASE("Image slicer", "[fast][ImageSlicer][visual]") {
 	window->addRenderer(renderer);
 	window->set2DMode();
 	window->setTimeout(1000);
-	window->start();
+    CHECK_NOTHROW(window->start());
 }

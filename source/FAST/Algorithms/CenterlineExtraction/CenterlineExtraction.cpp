@@ -13,7 +13,7 @@ CenterlineExtraction::CenterlineExtraction() {
 	createInputPort<Image>(0);
 	createOutputPort<LineSet>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
 
-	createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/CenterlineExtraction/CenterlineExtraction.cl");
+	createOpenCLProgram("Algorithms/CenterlineExtraction/CenterlineExtraction.cl");
 }
 
 Image::pointer CenterlineExtraction::calculateDistanceTransform(Image::pointer input) {

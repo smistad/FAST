@@ -46,7 +46,7 @@ void SegmentationRenderer::setFillArea(bool fillArea) {
 
 SegmentationRenderer::SegmentationRenderer() {
     createInputPort<Segmentation>(0, false);
-    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "/Visualization/SegmentationRenderer/SegmentationRenderer.cl");
+	createOpenCLProgram("/Visualization/SegmentationRenderer/SegmentationRenderer.cl");
     mIsModified = false;
     mColorsModified = true;
     mFillAreaModified = true;

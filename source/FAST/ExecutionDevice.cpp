@@ -1,6 +1,7 @@
 #include "FAST/ExecutionDevice.hpp"
 #include "FAST/RuntimeMeasurementManager.hpp"
 #include "FAST/Utility.hpp"
+#include "FAST/DeviceManager.hpp"
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/lock_guard.hpp>
 #include <boost/lexical_cast.hpp>
@@ -121,7 +122,7 @@ std::string readFile(std::string filename) {
 
     std::ifstream sourceFile(filename.c_str(), std::fstream::in);
     if (sourceFile.fail())
-        throw Exception("Failed to open OpenCL source file.");
+        throw Exception("Failed to open OpenCL source file: "+filename);
 
     std::stringstream stringStream;
 
@@ -200,12 +201,12 @@ OpenCLDevice::OpenCLDevice(std::vector<cl::Device> devices, unsigned long* OpenG
     }
 }
 
-int OpenCLDevice::createProgramFromSource(std::string filename, std::string buildOptions, bool useCaching) {
+int OpenCLDevice::createProgramFromSource(std::string absolute_filename, std::string buildOptions, bool useCaching) {
     cl::Program program;
     if(useCaching) {
-        program = buildProgramFromBinary(filename, buildOptions);
+        program = buildProgramFromBinary(absolute_filename, buildOptions);
     } else {
-        std::string sourceCode = readFile(filename);
+        std::string sourceCode = readFile(absolute_filename);
         cl::Program::Sources source(1, std::make_pair(sourceCode.c_str(), sourceCode.length()));
         program = buildSources(source, buildOptions);
     }
@@ -289,10 +290,32 @@ RuntimeMeasurementsManagerPtr OpenCLDevice::getRunTimeMeasurementManager(){
 	return runtimeManager;
 }
 
+std::string tail(std::string const& source, size_t const length) {
+  if (length >= source.size()) { return source; }
+  std::string retval = source.substr(source.size() - length);
+  return retval;
+}
 
-cl::Program OpenCLDevice::writeBinary(std::string filename, std::string buildOptions) {
+std::string OpenCLDevice::getUniqueFilePathForWriting(std::string absolute_filename_of_kernel_file, std::string ending, std::size_t hash) {
+    std::string sub_string_of_kernel_file = tail(absolute_filename_of_kernel_file, 30);
+    sub_string_of_kernel_file.erase(std::remove(sub_string_of_kernel_file.begin(), sub_string_of_kernel_file.end(), '/'), sub_string_of_kernel_file.end());
+    sub_string_of_kernel_file.erase(std::remove(sub_string_of_kernel_file.begin(), sub_string_of_kernel_file.end(), '\\'), sub_string_of_kernel_file.end());
+    return DeviceManager::getInstance().getWritableCachePath() + "/" +sub_string_of_kernel_file + "_" + boost::lexical_cast<std::string>(hash) + ending;
+}
+
+std::string OpenCLDevice::getFilePathForBinary(std::string absolute_filename_of_kernel_file, std::size_t hash) {
+    return getUniqueFilePathForWriting(absolute_filename_of_kernel_file, ".bin", hash);
+}
+
+std::string OpenCLDevice::getFilePathForCache(std::string absolute_filename_of_kernel_file, std::size_t hash) {
+    return getUniqueFilePathForWriting(absolute_filename_of_kernel_file, ".cache", hash);
+}
+
+
+cl::Program OpenCLDevice::writeBinary(std::string absolute_filename, std::string buildOptions) {
     // Build program from source file and store the binary file
-    std::string sourceCode = readFile(filename);
+
+	std::string sourceCode = readFile(absolute_filename);
 
     cl::Program::Sources source(1, std::make_pair(sourceCode.c_str(), sourceCode.length()));
     cl::Program program = buildSources(source, buildOptions);
@@ -306,25 +329,17 @@ cl::Program OpenCLDevice::writeBinary(std::string filename, std::string buildOpt
     boost::hash<std::string> hash_function;
     std::string deviceName = getDevice(0).getInfo<CL_DEVICE_NAME>();
     std::size_t hash = hash_function(buildOptions + deviceName);
-    std::string binaryPath = std::string(OUL_OPENCL_KERNEL_BINARY_PATH);
-    std::string binaryFilename = binaryPath + filename + "_" + boost::lexical_cast<std::string>(hash) + ".bin";
-    std::string cacheFilename = binaryPath + filename + "_" + boost::lexical_cast<std::string>(hash) + ".cache";
-    if(binaryPath != "") {
-        // Remove shared path from filename
-        for(int i = 0; i < std::min(filename.size(), binaryPath.size()); i++) {
-            if(binaryPath[i] == filename[i]) {
 
-            } else {
-                binaryFilename = binaryPath + filename.substr(i) + "_" + boost::lexical_cast<std::string>(hash) + ".bin";
-                cacheFilename = binaryPath + filename.substr(i) + "_" + boost::lexical_cast<std::string>(hash) + ".cache";
-                break;
-            }
-        }
-    }
+    //std::string binaryFilename = DeviceManager::getInstance().getWritableCachePath() + "/" + boost::lexical_cast<std::string>(hash) + ".bin";
+    std::string binaryFilename = getFilePathForBinary(absolute_filename, hash);
+    //std::string cacheFilename = DeviceManager::getInstance().getWritableCachePath() + "/" + boost::lexical_cast<std::string>(hash) + ".cache";
+    std::string cacheFilename = getFilePathForCache(absolute_filename, hash);
+    std::cout << "2 cacheFilename " << cacheFilename << std::endl;
 
     // Create directories if they don't exist
     if(binaryFilename.rfind("/") != std::string::npos) {
         std::string directoryPath = binaryFilename.substr(0, binaryFilename.rfind("/"));
+		std::cout << "Creating directory: " << directoryPath << std::endl;
         boost::filesystem::create_directories(directoryPath);
     }
     FILE * file = fopen(binaryFilename.c_str(), "wb");
@@ -337,7 +352,7 @@ cl::Program OpenCLDevice::writeBinary(std::string filename, std::string buildOpt
     FILE * cacheFile = fopen(cacheFilename.c_str(), "w");
     std::string timeStr;
     #ifdef WIN32
-	HANDLE hFile = CreateFile(filename.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+	HANDLE hFile = CreateFile(absolute_filename.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
 	FILETIME ftCreate, ftAccess, ftWrite;
 	SYSTEMTIME sysTime;
 	GetFileTime(hFile, &ftCreate, &ftAccess, &ftWrite);
@@ -348,7 +363,7 @@ cl::Program OpenCLDevice::writeBinary(std::string filename, std::string buildOpt
 	delete[] buffer;
     #else
     struct stat attrib; // create a file attribute structure
-    stat(filename.c_str(), &attrib);
+	stat(absolute_filename.c_str(), &attrib);
     timeStr = ctime(&(attrib.st_mtime));
     #endif
     VECTOR_CLASS<cl::Device> devices = context.getInfo<CL_CONTEXT_DEVICES>();
@@ -382,33 +397,25 @@ cl::Program OpenCLDevice::readBinary(std::string filename) {
     return program;
 }
 
-cl::Program OpenCLDevice::buildProgramFromBinary(std::string filename, std::string buildOptions) {
+cl::Program OpenCLDevice::buildProgramFromBinary(std::string absolute_filename, std::string buildOptions) {
+
     boost::lock_guard<boost::mutex> lock(buildBinaryMutex);
     cl::Program program;
 
     boost::hash<std::string> hash_function;
     std::string deviceName = getDevice(0).getInfo<CL_DEVICE_NAME>();
     std::size_t hash = hash_function(buildOptions + deviceName);
-    std::string binaryPath = std::string(OUL_OPENCL_KERNEL_BINARY_PATH);
-    std::string binaryFilename = binaryPath + filename + "_" + boost::lexical_cast<std::string>(hash) + ".bin";
-    std::string cacheFilename = binaryPath + filename + "_" + boost::lexical_cast<std::string>(hash) + ".cache";
-    if(binaryPath != "") {
-        // Remove shared path from filename
-        for(int i = 0; i < std::min(filename.size(), binaryPath.size()); i++) {
-            if(binaryPath[i] == filename[i]) {
 
-            } else {
-                binaryFilename = binaryPath + filename.substr(i) + "_" + boost::lexical_cast<std::string>(hash) + ".bin";
-                cacheFilename = binaryPath + filename.substr(i) + "_" + boost::lexical_cast<std::string>(hash) + ".cache";
-                break;
-            }
-        }
-    }
+    //std::string binaryFilename = DeviceManager::getInstance().getWritableCachePath() + "/" + boost::lexical_cast<std::string>(hash) + ".bin";
+    std::string binaryFilename = getFilePathForBinary(absolute_filename, hash);
+    //std::string cacheFilename = DeviceManager::getInstance().getWritableCachePath() + "/" + boost::lexical_cast<std::string>(hash) + ".cache";
+    std::string cacheFilename = getFilePathForCache(absolute_filename, hash);
+    std::cout << "1 cacheFilename " << cacheFilename << std::endl;
 
     // Check if a binary file exists
     std::ifstream binaryFile(binaryFilename.c_str(), std::ios_base::binary | std::ios_base::in);
     if(binaryFile.fail()) {
-        program = writeBinary(filename, buildOptions);
+		program = writeBinary(absolute_filename, buildOptions);
     } else {
         // Compare modified dates of binary file and source file
 
@@ -426,7 +433,7 @@ cl::Program OpenCLDevice::buildProgramFromBinary(std::string filename, std::stri
         if(pos != std::string::npos && pos2 != std::string::npos) {
             // Get modification date of file
             #ifdef WIN32
-            HANDLE hFile = CreateFile(filename.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+			HANDLE hFile = CreateFile(absolute_filename.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
             FILETIME ftCreate, ftAccess, ftWrite;
 			SYSTEMTIME sysTime;
             GetFileTime(hFile, &ftCreate, &ftAccess, &ftWrite);
@@ -437,7 +444,7 @@ cl::Program OpenCLDevice::buildProgramFromBinary(std::string filename, std::stri
 			delete[] buffer;
             #else
             struct stat attrib; // create a file attribute structure
-            stat(filename.c_str(), &attrib);
+			stat(absolute_filename.c_str(), &attrib);
             outOfDate = strcmp(ctime(&(attrib.st_mtime)), cache.substr(0, pos).c_str()) != 0;
             #endif
             VECTOR_CLASS<cl::Device> devices = context.getInfo<CL_CONTEXT_DEVICES>();
@@ -447,13 +454,12 @@ cl::Program OpenCLDevice::buildProgramFromBinary(std::string filename, std::stri
 
         if(outOfDate || wrongDeviceID || buildOptionsChanged) {
             std::cout << "Binary is out of date. Compiling..." << std::endl;
-            program = writeBinary(filename, buildOptions);
+			program = writeBinary(absolute_filename, buildOptions);
         } else {
             //std::cout << "Binary is not out of date." << std::endl;
             program = readBinary(binaryFilename);
         }
     }
-
     return program;
 }
 

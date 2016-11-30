@@ -62,7 +62,7 @@ void SeededRegionGrowing::recompileOpenCLCode(Image::pointer input) {
     } else {
         filename = "Algorithms/SeededRegionGrowing/SeededRegionGrowing3D.cl";
     }
-    int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + filename, buildOptions);
+	int programNr = device->createProgramFromSource(filename, buildOptions);
     mKernel = cl::Kernel(device->getProgram(programNr), "seededRegionGrowing");
     mDimensionCLCodeCompiledFor = input->getDimensions();
     mTypeCLCodeCompiledFor = input->getDataType();

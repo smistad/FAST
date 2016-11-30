@@ -25,7 +25,7 @@ void Skeletonization::execute() {
     OpenCLDevice::pointer device = getMainDevice();
 
     // Create kernel
-    int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "Algorithms/Skeletonization/Skeletonization2D.cl");
+	int programNr = device->createProgramFromSource("Algorithms/Skeletonization/Skeletonization2D.cl");
     cl::Program program = device->getProgram(programNr);
     cl::Kernel kernel1(program, "thinningStep1");
     cl::Kernel kernel2(program, "thinningStep2");

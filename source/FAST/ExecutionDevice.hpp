@@ -55,7 +55,7 @@ class OpenCLDevice : public ExecutionDevice {
         cl::CommandQueue getCommandQueue();
         cl::Device getDevice();
 
-        int createProgramFromSource(std::string filename, std::string buildOptions = "", bool caching = true);
+        int createProgramFromSource(std::string absolute_filename, std::string buildOptions = "", bool caching = true);
         int createProgramFromSource(std::vector<std::string> filenames, std::string buildOptions = "");
         int createProgramFromString(std::string code, std::string buildOptions = "");
         int createProgramFromSourceWithName(std::string programName, std::string filename, std::string buildOptions = "");
@@ -84,10 +84,14 @@ class OpenCLDevice : public ExecutionDevice {
     private:
         OpenCLDevice();
         unsigned long * mGLContext;
-        cl::Program writeBinary(std::string filename, std::string buildOptions);
+		cl::Program writeBinary(std::string absolute_filename, std::string buildOptions);
         cl::Program readBinary(std::string filename);
-        cl::Program buildProgramFromBinary(std::string filename, std::string buildOptions);
+		cl::Program buildProgramFromBinary(std::string absolute_filename, std::string buildOptions);
         cl::Program buildSources(cl::Program::Sources source, std::string buildOptions);
+
+        std::string getUniqueFilePathForWriting(std::string absolute_filename_of_kernel_file, std::string ending, std::size_t hash);
+        std::string getFilePathForBinary(std::string absolute_filename_of_kernel_file, std::size_t hash);
+        std::string getFilePathForCache(std::string absolute_filename_of_kernel_file, std::size_t hash);
 
         cl::Context context;
         std::vector<cl::CommandQueue> queues;

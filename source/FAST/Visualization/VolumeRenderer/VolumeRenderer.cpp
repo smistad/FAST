@@ -427,9 +427,9 @@ void VolumeRenderer::execute() {
         std::string str(buffer);
 		int programNr;
 		if (includeGeometry)
-			programNr = mDevice->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/VolumeRenderer/VolumeRendererWithGeo.cl", str);
+			programNr = mDevice->createProgramFromSource("/Visualization/VolumeRenderer/VolumeRendererWithGeo.cl", str);
 		else
-			programNr = mDevice->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/VolumeRenderer/VolumeRendererNoGeo.cl", str);
+			programNr = mDevice->createProgramFromSource("/Visualization/VolumeRenderer/VolumeRendererNoGeo.cl", str);
         program = mDevice->getProgram(programNr);
 		renderKernel = cl::Kernel(program, "d_render");
 
