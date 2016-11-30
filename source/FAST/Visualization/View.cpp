@@ -741,7 +741,6 @@ void View::paintGL() {
                 clPBO,
                 CL_TRUE,
                 0,
-                width()*height()*4*sizeof(float),,
                 width()*height()*4*sizeof(float),
                 data
             );
