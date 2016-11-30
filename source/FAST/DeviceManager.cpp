@@ -69,6 +69,9 @@ DeviceManager& DeviceManager::getInstance() {
 std::vector<OpenCLDevice::pointer> DeviceManager::getDevices(DeviceCriteria criteria, bool enableVisualization) {
     unsigned long * glContext = NULL;
     QGLWidget* widget = NULL;
+#ifdef FAST_DISABLE_GL_INTEROP
+    enableVisualization = false;
+#endif
     if(enableVisualization) {
         // Create GL context
 
