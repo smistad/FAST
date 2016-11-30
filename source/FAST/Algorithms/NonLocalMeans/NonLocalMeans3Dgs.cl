@@ -1,7 +1,7 @@
 //#pragma OPENCL EXTENSION cl_khr_3d_image_writes : enable
 __constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
 
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
 __kernel void noneLocalMeans(
 		__read_only image3d_t input,
 		__write_only image3d_t output,
