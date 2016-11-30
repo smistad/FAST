@@ -81,14 +81,7 @@ void ImageRenderer::draw() {
         OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
         cl::Image2D* clImage = access->get2DImage();
 
-        std::string kernelName = "renderToTextureInt";
-        if(input->getDataType() == TYPE_FLOAT) {
-            kernelName = "renderToTextureFloat";
-        } else if(input->getDataType() == TYPE_UINT8 || input->getDataType() == TYPE_UINT16) {
-            kernelName = "renderToTextureUint";
-        }
-
-        mKernel = cl::Kernel(getOpenCLProgram(device, "3D"), kernelName.c_str());
+        mKernel = cl::Kernel(getOpenCLProgram(device, "3D"), "renderToTexture");
         // Run kernel to fill the texture
         cl::CommandQueue queue = device->getCommandQueue();
 
