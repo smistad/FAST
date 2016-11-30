@@ -24,6 +24,13 @@ cl::Program OpenCLProgram::build(SharedPointer<OpenCLDevice> device,
     if(mSourceFilename == "")
         throw Exception("No source filename was given to OpenCLProgram. Therefore build operation is not possible.");
 
+    // Add fast_3d_image_writes flag if it is supported
+    if(device->isWritingTo3DTexturesSupported()) {
+        if(buildOptions.size() > 0)
+            buildOptions += " ";
+        buildOptions += "-Dfast_3d_image_writes";
+    }
+
     if(buildExists(device, buildOptions))
         return mOpenCLPrograms[device][buildOptions];
 

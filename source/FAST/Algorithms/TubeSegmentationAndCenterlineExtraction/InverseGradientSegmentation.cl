@@ -4,7 +4,7 @@ __constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_T
 
 __kernel void initGrowing(
         __read_only image3d_t centerline,
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
         __write_only image3d_t initSegmentation
 #else
     __global uchar * initSegmentation
@@ -28,7 +28,7 @@ __kernel void initGrowing(
             n.y = pos.y + b;
             n.z = pos.z + c;
             if(read_imageui(centerline, sampler, n).x == 0 && length((float3)(a,b,c)) <= N) {
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
                 write_imageui(initSegmentation, n, 2);
 #else
                 if(n.x >= 0 && n.y >= 0 && n.z >= 0 &&
@@ -44,7 +44,7 @@ __kernel void initGrowing(
 __kernel void grow(
         __read_only image3d_t currentSegmentation,
         __read_only image3d_t gvf,
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
         __write_only image3d_t nextSegmentation,
 #else
         __global uchar* nextSegmentation,
@@ -56,7 +56,7 @@ __kernel void grow(
     char value = read_imageui(currentSegmentation, sampler, X).x;
     // value of 2, means to check it, 1 means it is already accepted
     if(value == 1) {
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
         write_imageui(nextSegmentation, X, 1);
 #else
         nextSegmentation[LPOS(X)] = 1;
@@ -108,7 +108,7 @@ __kernel void grow(
                     }}}
 
                     if(Z.x == X.x && Z.y == X.y && Z.z == X.z) {
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
                         write_imageui(nextSegmentation, X, 1);
                         write_imageui(nextSegmentation, Y, 2);
 #else
@@ -131,7 +131,7 @@ __kernel void grow(
             stop[0] = 0;
         } else {
             // X was not accepted
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
             write_imageui(nextSegmentation, X, 0);
 #else
             nextSegmentation[LPOS(X)] = 0;
@@ -142,7 +142,7 @@ __kernel void grow(
 
 __kernel void dilate(
         __read_only image3d_t volume, 
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
         __write_only image3d_t result
 #else
         __global uchar * result
@@ -155,7 +155,7 @@ __kernel void dilate(
             for(int b = -1; b < 2 ; b++) {
                 for(int c = -1; c < 2 ; c++) {
                     int4 nPos = pos + (int4)(a,b,c,0);
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
                     write_imageui(result, nPos, 1);
 #else
                     // Check if in bounds
@@ -171,7 +171,7 @@ __kernel void dilate(
 
 __kernel void erode(
         __read_only image3d_t volume, 
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
         __write_only image3d_t result
 #else
         __global uchar * result
@@ -189,7 +189,7 @@ __kernel void erode(
                 }
             }
         }
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
         write_imageui(result, pos, keep ? 1 : 0);
     } else {
         write_imageui(result, pos, 0);

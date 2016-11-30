@@ -100,7 +100,7 @@ __kernel void createMinMaxImage2DLevel(
     WRITE_IMAGE(writeLevel, pos, result);
 }
 
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
 __kernel void createFirstMinMaxImage3DLevel(
         __read_only image3d_t image,
         __write_only image3d_t firstLevel
