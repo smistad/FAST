@@ -24,7 +24,7 @@ class Renderer : public ProcessObject {
         void setIntensityWindow(float window);
         float getIntensityWindow();
         virtual void draw2D(
-                cl::BufferGL PBO,
+                cl::Buffer PBO,
                 uint width,
                 uint height,
                 Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform,

@@ -14,6 +14,8 @@ option(FAST_MODULE_NeuralNetwork "Build neural network module with caffe" OFF)
 option(FAST_MODULE_Python "Build Python wrappers" ON)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
 
+option(FAST_DISABLE_GL_INTEROP "Disable OpenCL/OpenGL interoparbility" OFF)
+
 #### Set build type
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     message("-- Setting build type to 'Release' as none was specified.")
@@ -25,6 +27,10 @@ endif()
 ## Set continous integration define
 if(FAST_CONTINUOUS_INTEGRATION)
 	add_definitions("-DFAST_CONTINUOUS_INTEGRATION")
+endif()
+
+if(FAST_DISABLE_GL_INTEROP)
+    add_definitions("-DFAST_DISABLE_GL_INTEROP")
 endif()
 
 ## Set build folders

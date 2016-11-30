@@ -83,7 +83,7 @@ void SegmentationRenderer::execute() {
 void SegmentationRenderer::draw() {
 }
 
-void SegmentationRenderer::draw2D(cl::BufferGL PBO, uint width, uint height,
+void SegmentationRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
         Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform, float PBOspacing,
         Vector2f translation
         ) {
