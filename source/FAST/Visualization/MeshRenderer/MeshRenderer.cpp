@@ -135,11 +135,11 @@ void MeshRenderer::draw2D(
 
     OpenCLDevice::pointer device = getMainDevice();
     cl::CommandQueue queue = device->getCommandQueue();
-#ifndef FAST_DISABLE_GL_INTEROP
     std::vector<cl::Memory> v;
-    v.push_back(PBO);
-    queue.enqueueAcquireGLObjects(&v);
-#endif
+    if(DeviceManager::isGLInteropEnabled()) {
+        v.push_back(PBO);
+        queue.enqueueAcquireGLObjects(&v);
+    }
 
     // Map would probably be better here, but doesn't work on NVIDIA, segfault surprise!
     //float* pixels = (float*)queue.enqueueMapBuffer(PBO, CL_TRUE, CL_MAP_WRITE, 0, width*height*sizeof(float)*4);
@@ -216,9 +216,9 @@ void MeshRenderer::draw2D(
 
     //queue.enqueueUnmapMemObject(PBO, pixels);
     queue.enqueueWriteBuffer(PBO, CL_TRUE, 0, width*height*4*sizeof(float), pixels.get());
-#ifndef FAST_DISABLE_GL_INTEROP
-    queue.enqueueReleaseGLObjects(&v);
-#endif
+    if(DeviceManager::isGLInteropEnabled()) {
+        queue.enqueueReleaseGLObjects(&v);
+    }
 }
 
 BoundingBox MeshRenderer::getBoundingBox() {

@@ -131,11 +131,11 @@ void SegmentationRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
 
 
     cl::CommandQueue queue = device->getCommandQueue();
-#ifndef FAST_DISABLE_GL_INTEROP
     std::vector<cl::Memory> v;
-    v.push_back(PBO);
-    queue.enqueueAcquireGLObjects(&v);
-#endif
+    if(DeviceManager::isGLInteropEnabled()) {
+        v.push_back(PBO);
+        queue.enqueueAcquireGLObjects(&v);
+    }
 
     // Create an aux PBO
     cl::Buffer PBO2(
@@ -212,9 +212,9 @@ void SegmentationRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
         // Copy PBO2 to PBO
         queue.enqueueCopyBuffer(PBO2, PBO, 0, 0, sizeof(float)*width*height*4);
     }
-#ifndef FAST_DISABLE_GL_INTEROP
-    queue.enqueueReleaseGLObjects(&v);
-#endif
+    if(DeviceManager::isGLInteropEnabled()) {
+        queue.enqueueReleaseGLObjects(&v);
+    }
     queue.finish();
 
 }

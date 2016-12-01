@@ -92,51 +92,45 @@ void ImageRenderer::draw() {
             mTexturesToRender.erase(inputNr);
         }
 
-#ifndef FAST_DISABLE_GL_INTEROP
-        // Create OpenGL texture
-        GLuint textureID;
-        glGenTextures(1, &textureID);
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, clImage->getImageInfo<CL_IMAGE_WIDTH>(), clImage->getImageInfo<CL_IMAGE_HEIGHT>(), 0, GL_RGBA, GL_FLOAT, 0);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glFinish();
-
-        // Create CL-GL image
-        #if defined(CL_VERSION_1_2)
-            cl::ImageGL mImageGL = cl::ImageGL(
-                    device->getContext(),
-                    CL_MEM_READ_WRITE,
-                    GL_TEXTURE_2D,
-                    0,
-                    textureID
-            );
-        #else
-            cl::Image2DGL mImageGL = cl::Image2DGL(
-                    device->getContext(),
-                    CL_MEM_READ_WRITE,
-                    GL_TEXTURE_2D,
-                    0,
-                    textureID
-            );
-        #endif
+        cl::Image2D image;
+        cl::ImageGL imageGL;
         std::vector<cl::Memory> v;
-        v.push_back(mImageGL);
-        queue.enqueueAcquireGLObjects(&v);
-#else
-    cl::Image2D mImageGL = cl::Image2D(
-        device->getContext(),
-        CL_MEM_READ_WRITE,
-        cl::ImageFormat(CL_RGBA, CL_FLOAT),
-        input->getWidth(), input->getHeight()
-    );
-#endif
+        GLuint textureID;
+        if(DeviceManager::isGLInteropEnabled()) {
+            // Create OpenGL texture
+            glGenTextures(1, &textureID);
+            glBindTexture(GL_TEXTURE_2D, textureID);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, clImage->getImageInfo<CL_IMAGE_WIDTH>(),
+                         clImage->getImageInfo<CL_IMAGE_HEIGHT>(), 0, GL_RGBA, GL_FLOAT, 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glFinish();
+
+            // Create CL-GL image
+            imageGL = cl::ImageGL(
+                    device->getContext(),
+                    CL_MEM_READ_WRITE,
+                    GL_TEXTURE_2D,
+                    0,
+                    textureID
+            );
+            mKernel.setArg(1, imageGL);
+            v.push_back(imageGL);
+            queue.enqueueAcquireGLObjects(&v);
+        } else {
+            image = cl::Image2D(
+                    device->getContext(),
+                    CL_MEM_READ_WRITE,
+                    cl::ImageFormat(CL_RGBA, CL_FLOAT),
+                    input->getWidth(), input->getHeight()
+            );
+            mKernel.setArg(1, image);
+        }
 
 
 
         mKernel.setArg(0, *clImage);
-        mKernel.setArg(1, mImageGL);
         mKernel.setArg(2, level);
         mKernel.setArg(3, window);
         queue.enqueueNDRangeKernel(
@@ -146,31 +140,31 @@ void ImageRenderer::draw() {
                 cl::NullRange
         );
 
-#ifndef FAST_DISABLE_GL_INTEROP
-        queue.enqueueReleaseGLObjects(&v);
-#else
-        // Copy data from CL image to CPU
-        float* data = new float[input->getWidth()*input->getHeight()*4];
-        queue.enqueueReadImage(
-            mImageGL,
-            CL_TRUE,
-            createOrigoRegion(),
-            createRegion(input->getWidth(), input->getHeight(), 1),
-            0, 0,
-            data
-        );
-        // Copy data from CPU to GL texture
-        GLuint textureID;
-        glGenTextures(1, &textureID);
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, clImage->getImageInfo<CL_IMAGE_WIDTH>(), clImage->getImageInfo<CL_IMAGE_HEIGHT>(), 0, GL_RGBA, GL_FLOAT, data);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glFinish();
-        delete[] data;
+        if(DeviceManager::isGLInteropEnabled()) {
+            queue.enqueueReleaseGLObjects(&v);
+        } else {
+            // Copy data from CL image to CPU
+            float *data = new float[input->getWidth() * input->getHeight() * 4];
+            queue.enqueueReadImage(
+                    image,
+                    CL_TRUE,
+                    createOrigoRegion(),
+                    createRegion(input->getWidth(), input->getHeight(), 1),
+                    0, 0,
+                    data
+            );
+            // Copy data from CPU to GL texture
+            glGenTextures(1, &textureID);
+            glBindTexture(GL_TEXTURE_2D, textureID);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, clImage->getImageInfo<CL_IMAGE_WIDTH>(),
+                         clImage->getImageInfo<CL_IMAGE_HEIGHT>(), 0, GL_RGBA, GL_FLOAT, data);
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glFinish();
+            delete[] data;
+        }
 
-#endif
         mTexturesToRender[inputNr] = textureID;
         mImageUsed[inputNr] = input;
         queue.finish();
@@ -212,11 +206,11 @@ void ImageRenderer::draw2D(cl::Buffer PBO, uint width, uint height, Eigen::Trans
 
     OpenCLDevice::pointer device = getMainDevice();
     cl::CommandQueue queue = device->getCommandQueue();
-#ifndef FAST_DISABLE_GL_INTEROP
     std::vector<cl::Memory> v;
-    v.push_back(PBO);
-    queue.enqueueAcquireGLObjects(&v);
-#endif
+    if(!DeviceManager::isGLInteropEnabled()) {
+        v.push_back(PBO);
+        queue.enqueueAcquireGLObjects(&v);
+    }
 
     // Create an aux PBO
     cl::Buffer PBO2(
@@ -303,9 +297,9 @@ void ImageRenderer::draw2D(cl::Buffer PBO, uint width, uint height, Eigen::Trans
         // Copy PBO2 to PBO
         queue.enqueueCopyBuffer(PBO2, PBO, 0, 0, sizeof(float)*width*height*4);
     }
-#ifndef FAST_DISABLE_GL_INTEROP
-    queue.enqueueReleaseGLObjects(&v);
-#endif
+    if(!DeviceManager::isGLInteropEnabled()) {
+        queue.enqueueReleaseGLObjects(&v);
+    }
     queue.finish();
 }
 

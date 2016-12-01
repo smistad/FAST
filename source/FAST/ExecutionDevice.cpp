@@ -33,9 +33,6 @@ namespace fast {
 
 
 OpenCLPlatformVendor OpenCLDevice::getPlatformVendor() {
-    std::map<OpenCLPlatformVendor, std::vector<std::string>> keywords;
-    keywords[PLATFORM_VENDOR_INTEL] = {'intel'};
-    keywords[PLATFORM_VENDOR_INTEL] = {'intel'};
 }
 
 DeviceVendor OpenCLDevice::getDeviceVendor() {

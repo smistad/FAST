@@ -111,51 +111,44 @@ void SliceRenderer::execute() {
         glDeleteTextures(1, &mTexture);
     }
 
-#ifndef FAST_DISABLE_GL_INTEROP
-    // Create OpenGL texture
-    glGenTextures(1, &mTexture);
-    glBindTexture(GL_TEXTURE_2D, mTexture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mWidth, mHeight, 0, GL_RGBA, GL_FLOAT, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glFinish();
-
-    // Create CL-GL image
-#if defined(CL_VERSION_1_2)
-    // TODO this sometimes locks. Why???
-    cl::ImageGL mImageGL = cl::ImageGL(
-            device->getContext(),
-            CL_MEM_READ_WRITE,
-            GL_TEXTURE_2D,
-            0,
-            mTexture
-    );
-#else
-    cl::Image2DGL mImageGL = cl::Image2DGL(
-            device->getContext(),
-            CL_MEM_READ_WRITE,
-            GL_TEXTURE_2D,
-            0,
-            mTexture
-    );
-#endif
-    // Run kernel to fill the texture
-    std::vector<cl::Memory> v;
-    v.push_back(mImageGL);
-    queue.enqueueAcquireGLObjects(&v);
-#else
-    cl::Image2D mImageGL = cl::Image2D(
-        device->getContext(),
-        CL_MEM_READ_WRITE,
-        cl::ImageFormat(CL_RGBA, CL_FLOAT),
-        mWidth, mHeight
-    );
-#endif
-
     cl::Kernel kernel = cl::Kernel(getOpenCLProgram(device), "renderToTexture");
+    std::vector<cl::Memory> v;
+    cl::Image2D image;
+    if(DeviceManager::isGLInteropEnabled()) {
+        // Create OpenGL texture
+        glGenTextures(1, &mTexture);
+        glBindTexture(GL_TEXTURE_2D, mTexture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mWidth, mHeight, 0, GL_RGBA, GL_FLOAT, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glFinish();
+
+        // Create CL-GL image
+        // TODO this sometimes locks. Why???
+        cl::ImageGL mImageGL = cl::ImageGL(
+                device->getContext(),
+                CL_MEM_READ_WRITE,
+                GL_TEXTURE_2D,
+                0,
+                mTexture
+        );
+
+        // Run kernel to fill the texture
+        v.push_back(mImageGL);
+        queue.enqueueAcquireGLObjects(&v);
+        kernel.setArg(1, mImageGL);
+    } else {
+        image = cl::Image2D(
+                device->getContext(),
+                CL_MEM_READ_WRITE,
+                cl::ImageFormat(CL_RGBA, CL_FLOAT),
+                mWidth, mHeight
+        );
+        kernel.setArg(1, image);
+    }
+
     kernel.setArg(0, *clImage);
-    kernel.setArg(1, mImageGL);
     kernel.setArg(2, sliceNr);
     kernel.setArg(3, level);
     kernel.setArg(4, window);
@@ -167,29 +160,29 @@ void SliceRenderer::execute() {
             cl::NullRange
     );
 
-#ifndef FAST_DISABLE_GL_INTEROP
-    queue.enqueueReleaseGLObjects(&v);
-#else
-    // Copy data from CL image to CPU
-    float* data = new float[mWidth*mHeight*4];
-    queue.enqueueReadImage(
-        mImageGL,
-        CL_TRUE,
-        createOrigoRegion(),
-        createRegion(mWidth, mHeight, 1),
-        0, 0,
-        data
-    );
-    // Copy data from CPU to GL texture
-    glGenTextures(1, &mTexture);
-    glBindTexture(GL_TEXTURE_2D, mTexture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mWidth, mHeight, 0, GL_RGBA, GL_FLOAT, data);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glFinish();
-    delete[] data;
-#endif
+    if(DeviceManager::isGLInteropEnabled()) {
+        queue.enqueueReleaseGLObjects(&v);
+    } else {
+        // Copy data from CL image to CPU
+        float *data = new float[mWidth * mHeight * 4];
+        queue.enqueueReadImage(
+                image,
+                CL_TRUE,
+                createOrigoRegion(),
+                createRegion(mWidth, mHeight, 1),
+                0, 0,
+                data
+        );
+        // Copy data from CPU to GL texture
+        glGenTextures(1, &mTexture);
+        glBindTexture(GL_TEXTURE_2D, mTexture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mWidth, mHeight, 0, GL_RGBA, GL_FLOAT, data);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glFinish();
+        delete[] data;
+    }
     queue.finish();
 
     mTextureIsCreated = true;

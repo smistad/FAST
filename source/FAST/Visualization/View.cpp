@@ -695,15 +695,16 @@ void View::paintGL() {
 		if(mIsIn2DMode) {
 		    // Create PBO BufferGL object
 		    OpenCLDevice::pointer device = getMainDevice();
-#ifdef FAST_DISABLE_GL_INTEROP
-            cl::Buffer clPBO(
-                device->getContext(),
-                CL_MEM_READ_WRITE,
-                sizeof(float)*4*width()*height()
-            );
-#else
-		    cl::BufferGL clPBO(device->getContext(), CL_MEM_READ_WRITE, mPBO);
-#endif
+            cl::Buffer clPBO;
+            if(!DeviceManager::isGLInteropEnabled()) {
+                clPBO = cl::Buffer(
+                        device->getContext(),
+                        CL_MEM_READ_WRITE,
+                        sizeof(float) * 4 * width() * height()
+                );
+            } else {
+                clPBO = cl::BufferGL(device->getContext(), CL_MEM_READ_WRITE, mPBO);
+            }
 
 		    // Initialize PBO with background color
 		    cl::CommandQueue queue = device->getCommandQueue();
@@ -713,20 +714,20 @@ void View::paintGL() {
             kernel.setArg(1, mBackgroundColor.getRedValue());
             kernel.setArg(2, mBackgroundColor.getGreenValue());
             kernel.setArg(3, mBackgroundColor.getBlueValue());
-#ifndef FAST_DISABLE_GL_INTEROP
             std::vector<cl::Memory> v;
-            v.push_back(clPBO);
-            queue.enqueueAcquireGLObjects(&v);
-#endif
+            if(!DeviceManager::isGLInteropEnabled()) {
+                v.push_back(clPBO);
+                queue.enqueueAcquireGLObjects(&v);
+            }
             queue.enqueueNDRangeKernel(
                     kernel,
                     cl::NullRange,
                     cl::NDRange(width()*height()),
                     cl::NullRange
             );
-#ifndef FAST_DISABLE_GL_INTEROP
-            queue.enqueueReleaseGLObjects(&v);
-#endif
+            if(!DeviceManager::isGLInteropEnabled()) {
+                queue.enqueueReleaseGLObjects(&v);
+            }
 
             mRuntimeManager->startRegularTimer("draw2D");
             for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
@@ -734,22 +735,23 @@ void View::paintGL() {
             }
             mRuntimeManager->stopRegularTimer("draw2D");
 
-#ifdef FAST_DISABLE_GL_INTEROP
-            // Copy data from clPBO back to CPU and send it to mPBO
-            float* data = new float[width()*height()*4];
-            queue.enqueueReadBuffer(
-                clPBO,
-                CL_TRUE,
-                0,
-                width()*height()*4*sizeof(float),
-                data
-            );
-            glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, mPBO);
-            glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, width() * height() * sizeof(GLfloat) * 4, data, GL_STREAM_DRAW_ARB);
-            glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
-            glFinish();
-            delete[] data;
-#endif
+            if(!DeviceManager::isGLInteropEnabled()) {
+                // Copy data from clPBO back to CPU and send it to mPBO
+                float *data = new float[width() * height() * 4];
+                queue.enqueueReadBuffer(
+                        clPBO,
+                        CL_TRUE,
+                        0,
+                        width() * height() * 4 * sizeof(float),
+                        data
+                );
+                glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, mPBO);
+                glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, width() * height() * sizeof(GLfloat) * 4, data,
+                                GL_STREAM_DRAW_ARB);
+                glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
+                glFinish();
+                delete[] data;
+            }
 
             // Paint the PBO
             glDisable(GL_DEPTH_TEST);
