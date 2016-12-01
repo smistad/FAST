@@ -49,6 +49,22 @@ class Host : public ExecutionDevice {
 
 };
 
+
+enum OpenCLPlatformVendor {
+    PLATFORM_VENDOR_APPLE,
+    PLATFORM_VENDOR_AMD,
+    PLATFORM_VENDOR_INTEL,
+    PLATFORM_VENDOR_NVIDIA,
+    PLATFORM_VENDOR_UKNOWN
+};
+
+enum DeviceVendor {
+    DEVICE_VENDOR_AMD,
+    DEVICE_VENDOR_INTEL,
+    DEVICE_VENDOR_NVIDIA,
+    DEVICE_VENDOR_UKNOWN
+};
+
 class OpenCLDevice : public ExecutionDevice {
     FAST_OBJECT(OpenCLDevice)
     public:
@@ -66,6 +82,9 @@ class OpenCLDevice : public ExecutionDevice {
         bool hasProgram(std::string name);
 
         bool isImageFormatSupported(cl_channel_order order, cl_channel_type type, cl_mem_object_type imageType);
+
+        OpenCLPlatformVendor getPlatformVendor();
+        DeviceVendor getDeviceVendor();
 
         cl::CommandQueue getQueue(unsigned int i);
         cl::Device getDevice(unsigned int i);
