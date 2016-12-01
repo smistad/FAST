@@ -10,7 +10,7 @@ option(BUILD_EXAMPLES "Build OpenIGTLink examples." OFF)
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 option(FAST_BUILD_EXAMPLES "Build examples." OFF)
 option(FAST_MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
-option(FAST_MODULE_NeuralNetwork "Build neural network module with caffe" OFF)
+option(FAST_MODULE_NeuralNetwork "Build neural network module using tensorflow" OFF)
 option(FAST_MODULE_Python "Build Python wrappers" ON)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
 
@@ -223,31 +223,10 @@ message("-- Using Eigen ${EIGEN3_VERSION}")
 
 ## Neural network module
 if(FAST_MODULE_NeuralNetwork)
-	# Set some variables for viennaCL, mark these as internal as we don't want user to change them
-    set(ViennaCL_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/viennacl-dev/" CACHE INTERNAL "")
-    set(OPENCL_INCLUDE_DIRS ${OpenCL_INCLUDE_DIRS} CACHE INTERNAL "")
-    set(OPENCL_LIBRARIES ${OpenCL_LIBRARIES} CACHE INTERNAL "")
-	add_subdirectory(viennacl-dev)
-    find_package(ViennaCL PATHS "${FAST_BINARY_DIR}/viennacl-dev" REQUIRED)
-    
-    # Turn off a bunch of caffe things FAST don't need
-    # Use CACHE here so that their value will show in cmake-gui
-    set(BUILD_TOOLS OFF CACHE BOOL "Build caffe tools")
-    set(BUILD_docs OFF CACHE BOOL "Build caffe docs")
-    set(BUILD_python OFF CACHE BOOL "Build caffe python")
-    set(BUILD_python_layers OFF CACHE BOOL "Build caffe python layers")
-    set(USE_HDF5 OFF CACHE BOOL "Build caffe with HDF5 support")
-    set(USE_CUDA OFF CACHE INTERNAL "") # FAST uses OpenCL
-    set(USE_CUDNN OFF CACHE INTERNAL "") # FAST uses OpenCL
-    set(USE_OPENCV OFF CACHE BOOL "Build caffe with OpenCV support")
-    set(USE_LEVELDB OFF CACHE BOOL "Build caffe with leveldb support")
-    set(USE_LMDB OFF CACHE BOOL "Build caffe with LMDB support")
-
-	add_subdirectory(caffe)
-    find_package(Caffe PATHS "${FAST_BINARY_DIR}/caffe" REQUIRED)
-    list(APPEND FAST_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/caffe/include/")
-    list(APPEND FAST_INCLUDE_DIRS "${FAST_BINARY_DIR}/caffe/include/")
-    list(APPEND LIBRARIES ${Caffe_LIBRARIES})
+    find_package(TensorFlow REQUIRED)
+    list(APPEND FAST_INCLUDE_DIRS ${TensorFlow_INCLUDE_DIR})
+    list(APPEND LIBRARIES ${TensorFlow_LIBRARY})
+    message("-- Neural network module enabled. Tensorflow include dir: ${TensorFlow_INCLUDE_DIR}. Library: ${TensorFlow_LIBRARY}")
 endif()
 
 ## VTK

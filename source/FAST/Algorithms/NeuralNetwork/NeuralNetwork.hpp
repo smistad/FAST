@@ -2,7 +2,7 @@
 #define NEURAL_NETWORK_HPP_
 
 #include "FAST/ProcessObject.hpp"
-#include <caffe/caffe.hpp>
+#include <tensorflow/core/public/session.h>
 
 namespace fast {
 
@@ -10,9 +10,7 @@ class Image;
 
 class NeuralNetwork : public ProcessObject {
 public:
-    void loadNetwork(std::string networkFilename);
-    void loadWeights(std::string weightsFilename);
-    void loadNetworkAndWeights(std::string networkFilename, std::string weightsFilename);
+    void load(std::string networkFilename);
     /**
      * This method is for loading a binary proto mean file
      * @param filename
@@ -29,7 +27,7 @@ public:
     // Keep aspect ratio and entire width: if height to high, cut on bottom, if height too low, add
 protected:
     NeuralNetwork();
-    SharedPointer<caffe::Net<float> > mNetwork;
+    UniquePointer<tensorflow::Session> mSession;
     bool mModelLoaded;
     cl::Image2D mMeanImage;
     bool mMeanImageLoaded;

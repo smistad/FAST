@@ -1,52 +1,42 @@
-#include <caffe/include/caffe/blob.hpp>
 #include "NeuralNetwork.hpp"
 #include "FAST/Data/Image.hpp"
 #include "FAST/Algorithms/ImageResizer/ImageResizer.hpp"
 
+#include <tensorflow/core/framework/step_stats.pb.h>
+#include <tensorflow/core/framework/tensor.h>
+#include <tensorflow/core/framework/types.pb.h>
+#include <tensorflow/core/lib/strings/stringprintf.h>
+#include <tensorflow/core/platform/env.h>
+#include <tensorflow/core/platform/logging.h>
+#include <tensorflow/core/platform/mutex.h>
+#include <tensorflow/core/platform/types.h>
+#include <tensorflow/core/public/session.h>
+
 namespace fast {
 
-// Get all available GPU devices
-static void get_gpus(std::vector<int>* gpus) {
-    int count = 0;
-    count = caffe::Caffe::EnumerateDevices(true);
-    for (int i = 0; i < count; ++i) {
-      gpus->push_back(i);
-    }
-}
 
-void NeuralNetwork::loadNetwork(std::string networkFilename) {
-	std::vector<int> gpus;
-	get_gpus(&gpus);
-	if (gpus.size() != 0) {
-		reportInfo() << "Use OpenCL device with ID " << gpus[0] << reportEnd();
-		caffe::Caffe::SetDevices(gpus);
-		caffe::Caffe::set_mode(caffe::Caffe::GPU);
-		caffe::Caffe::SetDevice(gpus[0]);
-	}
-	FLAGS_minloglevel = 5; // Disable cout from caffe
-	//caffe::Caffe::set_mode(caffe::Caffe::CPU);
-	reportInfo() << "Loading neural network.." << reportEnd();
-	mNetwork = SharedPointer<caffe::Net<float> >(new caffe::Net<float>(networkFilename, caffe::TEST, caffe::Caffe::GetDefaultDevice()));
-	reportInfo() << "Finished loading neural network" << reportEnd();
-	mModelLoaded = false;
-}
+void NeuralNetwork::load(std::string networkFilename) {
 
-void NeuralNetwork::loadWeights(std::string weightsFilename) {
-    // Network must be loaded before weights
-	if(!mNetwork.isValid()) {
-		throw Exception("Must load network definition before loading weights");
+	tensorflow::SessionOptions options;
+	tensorflow::ConfigProto &config = options.config;
+	mSession.reset(tensorflow::NewSession(options));
+	tensorflow::GraphDef tensorflow_graph;
+
+    ReadBinaryProto(tensorflow::Env::Default(), networkFilename, &tensorflow_graph);
+
+	reportInfo() << "Creating session." << reportEnd();
+	tensorflow::Status s = mSession->Create(tensorflow_graph);
+	if (!s.ok()) {
+		throw Exception("Could not create TensorFlow Graph");
 	}
 
-	reportInfo() << "Loading training file.." << reportEnd();
-	mNetwork->CopyTrainedLayersFrom(weightsFilename);
-	reportInfo() << "Finished loading training file." << reportEnd();
-    mModelLoaded = true;
+	// Clear the proto to save memory space.
+	tensorflow_graph.Clear();
+	reportInfo() << "TensorFlow graph loaded from: " << networkFilename << reportEnd();
+
+	mModelLoaded = true;
 }
 
-void NeuralNetwork::loadNetworkAndWeights(std::string networkFilename, std::string weightsFilename) {
-    loadNetwork(networkFilename);
-    loadWeights(weightsFilename);
-}
 
 NeuralNetwork::NeuralNetwork() {
 	createInputPort<Image>(0, true, INPUT_STATIC_OR_DYNAMIC, true);
