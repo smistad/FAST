@@ -71,8 +71,9 @@ DeviceManager& DeviceManager::getInstance() {
 std::vector<OpenCLDevice::pointer> DeviceManager::getDevices(DeviceCriteria criteria, bool enableVisualization) {
     unsigned long * glContext = NULL;
     QGLWidget* widget = NULL;
-    if(!isGLInteropEnabled())
+    if(!isGLInteropEnabled()) {
         enableVisualization = false;
+    }
     if(enableVisualization) {
         // Create GL context
 
@@ -211,7 +212,7 @@ DeviceManager::DeviceManager() {
     // TODO If NVIDIA platform is present on linux: disable OpenGL interop
     for(cl::Platform platform : platforms) {
         if(platform.getInfo<CL_PLATFORM_VENDOR>().find("NVIDIA") != std::string::npos) {
-            reportWarning() << "NVIDIA platform was found on this platform, disabling OpenGL interop" << reportEnd();
+            reportWarning() << "NVIDIA platform was detecteing, disabling OpenGL interop" << reportEnd();
             mDisableGLInterop = true;
         }
     }
