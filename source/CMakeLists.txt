@@ -223,6 +223,9 @@ message("-- Using Eigen ${EIGEN3_VERSION}")
 
 ## Neural network module
 if(FAST_MODULE_NeuralNetwork)
+    find_package(Protobuf REQUIRED)
+    list(APPEND FAST_INCLUDE_DIRS ${Protobuf_INCLUDE_DIRS})
+    list(APPEND LIBRARIES ${Protobuf_LIBRARIES})
     find_package(TensorFlow REQUIRED)
     list(APPEND FAST_INCLUDE_DIRS ${TensorFlow_INCLUDE_DIR})
     list(APPEND LIBRARIES ${TensorFlow_LIBRARY})
