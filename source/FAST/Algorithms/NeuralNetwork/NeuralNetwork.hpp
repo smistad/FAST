@@ -11,26 +11,23 @@ class Image;
 class NeuralNetwork : public ProcessObject {
 public:
     void load(std::string networkFilename);
-    /**
-     * This method is for loading a binary proto mean file
-     * @param filename
-     */
-    void loadBinaryMeanImage(std::string filename);
+    void setInputParameters(std::string inputNodeNames, int width, int height);
+    void setOutputParameters(std::vector<std::string> > outputNodeNames);
 
     // Use this if only 1 network output layer
     std::vector<float> getNetworkOutput();
+
     // Get output by layer name
     std::vector<float> getNetworkOutput(std::string layerName);
 
-    // TYPES OF DATA SIZE ADOPTION
-    // Fit image to width and height (default), SQUASH
-    // Keep aspect ratio and entire width: if height to high, cut on bottom, if height too low, add
 protected:
     NeuralNetwork();
     UniquePointer<tensorflow::Session> mSession;
     bool mModelLoaded;
-    cl::Image2D mMeanImage;
-    bool mMeanImageLoaded;
+    int mWidth;
+    int mHeight;
+    std::string mInputName;
+    std::vector<std::string> > mOutputNames;
 
     void execute();
 

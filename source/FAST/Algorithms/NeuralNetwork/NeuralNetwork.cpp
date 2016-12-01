@@ -14,6 +14,7 @@
 
 namespace fast {
 
+// See here for reference: https://github.com/tensorflow/tensorflow/blob/86f5ab7474825da756838b34e1b4eac93f5fc68a/tensorflow/contrib/android/jni/tensorflow_inference_jni.cc
 
 void NeuralNetwork::load(std::string networkFilename) {
 
@@ -51,6 +52,7 @@ void NeuralNetwork::execute() {
 
 	std::vector<Image::pointer> images = getMultipleStaticInputData<Image>();
 
+	/*
 	// Assuming only one input layer here
 	caffe::Blob<float>* input_layer = mNetwork->input_blobs()[0];
 
@@ -74,29 +76,80 @@ void NeuralNetwork::execute() {
 	}
 
 	// TODO normalization?
+	 */
 
 	executeNetwork(images);
 }
 
 std::vector<float> NeuralNetwork::getNetworkOutput() {
+	/*
 	caffe::Blob<float>* layerData = mNetwork->output_blobs()[0];
 	std::vector<float> result(
 			layerData->cpu_data(),
             layerData->cpu_data() + layerData->num()*layerData->channels()*layerData->height()*layerData->width()
 	);
     return result;
+    */
 }
 
 std::vector<float> NeuralNetwork::getNetworkOutput(std::string layerName) {
+	/*
     boost::shared_ptr<caffe::Blob<float> > layerData = mNetwork->blob_by_name(layerName);
     std::vector<float> result(
 			layerData->cpu_data(),
 			layerData->cpu_data() + layerData->num()*layerData->channels()*layerData->height()*layerData->width()
 	);
 	return result;
+	 */
 }
 
 void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
+	// Create input tensor
+	tensorflow::Tensor input_tensor(
+			tensorflow::DT_FLOAT,
+			tensorflow::TensorShape({1, mHeight, mWidth, 1})
+	);
+
+	auto input_tensor_mapped = input_tensor.tensor<float, 4>();
+
+    // TODO support multiple images
+	// TODO need to reshape network to support this
+	reportInfo() << "TensorFlow: Copying Data." << reportEnd();
+    Image::pointer image = images[0];
+	ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
+	for (int i = 0; i < mHeight; ++i) { // y
+		for (int j = 0; j < mWidth; ++j) { // x
+			input_tensor_mapped(0, i, j, 0) = access->getScalar(Vector2i(j, i)) / 255;
+		}
+	}
+
+    // TODO Need to know names of inputs and outputs in advance
+	// Input: Only single for now
+	// Output: Can be multiple
+
+	std::vector <std::pair<std::string, tensorflow::Tensor>> input_tensors(
+			{{mInputName, input_tensor}});
+
+	std::vector <tensorflow::Tensor> output_tensors;
+	std::vector <std::string> output_names({mOutputName});
+
+	tensorflow::Status s;
+	s = mSession->Run(input_tensors, output_names, {}, &output_tensors);
+
+	if (!s.ok()) {
+		reportError() << "Error during inference: " << s << reportEnd();
+	}
+
+	tensorflow::Tensor *output = &output_tensors[0];
+
+	const auto outputData = output->flat<float>(); // This is some sort of Eigen tensor type
+	std::vector<float> resultData;
+	for (int i = 0; i < outputData.size(); ++i) {
+		resultData.push_back(outputData(i));
+	}
+
+
+	/*
  	// TODO, gives images directly to GPU
 	// Set images to input layer
 	reportInfo() << "Adding input data to input layer.." << reportEnd();
@@ -122,9 +175,11 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 	reportInfo() << "Neural network foward pass executing..." << reportEnd();
 	mNetwork->Forward();
 	reportInfo() << "Neural network foward pass finished" << reportEnd();
+	 */
 }
 
 std::vector<SharedPointer<Image>> NeuralNetwork::resizeImages(const std::vector<SharedPointer<Image>> &images) {
+	/*
 	reportInfo() << "Resizing images.." << reportEnd();
 	caffe::Blob<float>* input_layer = mNetwork->input_blobs()[0];
     std::vector<Image::pointer> resizedImages;
@@ -145,9 +200,11 @@ std::vector<SharedPointer<Image>> NeuralNetwork::resizeImages(const std::vector<
 	}
 
 	return resizedImages;
+	 */
 }
 
 void NeuralNetwork::loadBinaryMeanImage(std::string filename) {
+	/*
 	// Network must be loaded first
 	if(!mNetwork.isValid()) {
 		throw Exception("Must load network definition before loading weights");
@@ -173,6 +230,7 @@ void NeuralNetwork::loadBinaryMeanImage(std::string filename) {
 	reportInfo() << "Finished loading mean image file." << reportEnd();
 
 	mMeanImageLoaded = true;
+	 */
 }
 
 std::vector<SharedPointer<Image> > NeuralNetwork::subtractMeanImage(const std::vector<SharedPointer<Image> >& images) {

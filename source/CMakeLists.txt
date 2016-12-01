@@ -210,20 +210,23 @@ include_directories(${GLEW_INCLUDE_DIR})
 include_directories(${GLEW_INCLUDE_PATH})
 set(LIBRARIES ${LIBRARIES} ${GLEW_LIBRARY})
 
-## Eigen
-find_package(Eigen3 REQUIRED)
-list(APPEND FAST_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR}) 
-message("-- Using Eigen ${EIGEN3_VERSION}")
 
 ## Neural network module
 if(FAST_MODULE_NeuralNetwork)
     find_package(Protobuf REQUIRED)
     list(APPEND FAST_INCLUDE_DIRS ${Protobuf_INCLUDE_DIRS})
     list(APPEND LIBRARIES ${Protobuf_LIBRARIES})
+    find_package(Eigen REQUIRED)
+    include_directories(${Eigen_INCLUDE_DIRS})
     find_package(TensorFlow REQUIRED)
     list(APPEND FAST_INCLUDE_DIRS ${TensorFlow_INCLUDE_DIR})
     list(APPEND LIBRARIES ${TensorFlow_LIBRARY})
     message("-- Neural network module enabled. Tensorflow include dir: ${TensorFlow_INCLUDE_DIR}. Library: ${TensorFlow_LIBRARY}")
+else()
+    ## Eigen
+    find_package(Eigen3 REQUIRED)
+    list(APPEND FAST_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
+    message("-- Using Eigen ${EIGEN3_VERSION}")
 endif()
 
 ## VTK
