@@ -1,5 +1,27 @@
 __constant sampler_t interpolationSampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_LINEAR;
 
+float4 readPixelAsFloat(image2d_t image, sampler_t sampler, float2 pos) {
+    int dataType = get_image_channel_data_type(image);
+    if(dataType == CLK_FLOAT) {
+        return read_imagef(image, sampler, pos);
+    } else if(dataType == CLK_SIGNED_INT8 || dataType == CLK_SIGNED_INT16) {
+        return convert_float4(read_imagei(image, sampler, pos));
+    } else {
+        return convert_float4(read_imageui(image, sampler, pos));
+    }
+}
+
+float4 readPixelAsFloat3D(image3d_t image, sampler_t sampler, float4 pos) {
+    int dataType = get_image_channel_data_type(image);
+    if(dataType == CLK_FLOAT) {
+        return read_imagef(image, sampler, pos);
+    } else if(dataType == CLK_SIGNED_INT8 || dataType == CLK_SIGNED_INT16) {
+        return convert_float4(read_imagei(image, sampler, pos));
+    } else {
+        return convert_float4(read_imageui(image, sampler, pos));
+    }
+}
+
 __kernel void render2Dimage(
         __read_only image2d_t image,
         __global float* PBOread,
@@ -23,21 +45,8 @@ __kernel void render2Dimage(
     // Is image within bounds?
     if(imagePosition.x < get_image_width(image) && imagePosition.y < get_image_height(image)) {
         // Read image and put value in PBO
-        float4 value;
-        int dataType = get_image_channel_data_type(image);
-        switch(dataType) {
-            case CLK_FLOAT:
-                value = read_imagef(image, interpolationSampler, imagePosition);
-            break;
-            case CLK_UNSIGNED_INT8:
-            case CLK_UNSIGNED_INT16:
-                value = convert_float4(read_imageui(image, interpolationSampler, imagePosition));
-            break;
-            case CLK_SIGNED_INT8:
-            case CLK_SIGNED_INT16:
-                value = convert_float4(read_imagei(image, interpolationSampler, imagePosition));
-            break;
-        }
+        float4 value = readPixelAsFloat(image, interpolationSampler, imagePosition);
+
         if(get_image_channel_order(image) == CLK_R) {
             value.y = value.x;
             value.z = value.x;
@@ -96,21 +105,7 @@ __kernel void render3Dimage(
         imagePosition.x >= 0 && imagePosition.y >= 0 && imagePosition.z >= 0
         ) {
         // Read image and put value in PBO
-        float4 value;
-        int dataType = get_image_channel_data_type(image);
-        switch(dataType) {
-            case CLK_FLOAT:
-                value = read_imagef(image, interpolationSampler, imagePosition);
-            break;
-            case CLK_UNSIGNED_INT8:
-            case CLK_UNSIGNED_INT16:
-                value = convert_float4(read_imageui(image, interpolationSampler, imagePosition));
-            break;
-            case CLK_SIGNED_INT8:
-            case CLK_SIGNED_INT16:
-                value = convert_float4(read_imagei(image, interpolationSampler, imagePosition));
-            break;
-        }
+        float4 value = readPixelAsFloat3D(image, interpolationSampler, imagePosition);
         if(get_image_channel_order(image) == CLK_R) {
             value.y = value.x;
             value.z = value.x;

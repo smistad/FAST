@@ -17,6 +17,7 @@ class KalmanFilter : public ProcessObject {
 		void setAppearanceModel(AppearanceModel::pointer appearanceModel);
 		void setIterations(int iterations);
 		void setStartIterations(int iterations);
+		VectorXf getCurrentState() const;
 		ProcessObjectPort getSegmentationOutputPort();
 		ProcessObjectPort getDisplacementsOutputPort();
 	private:

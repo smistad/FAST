@@ -6,10 +6,12 @@ namespace fast {
 MeshVertex::MeshVertex(VectorXf position) {
 	mPosition = position;
 	mNormal = VectorXf::Zero(mPosition.size());
+	mLabel = 0;
 }
 MeshVertex::MeshVertex(VectorXf position, VectorXf normal) {
 	mPosition = position;
 	mNormal = normal;
+	mLabel = 0;
 }
 
 MeshVertex::MeshVertex(VectorXf position, VectorXf normal,
@@ -17,6 +19,15 @@ MeshVertex::MeshVertex(VectorXf position, VectorXf normal,
 	mPosition = position;
 	mNormal = normal;
 	mConnections = connections;
+	mLabel = 0;
+}
+
+void MeshVertex::setLabel(int label) {
+	mLabel = label;
+}
+
+int MeshVertex::getLabel() {
+	return mLabel;
 }
 
 uchar MeshVertex::getNrOfDimensions() const {

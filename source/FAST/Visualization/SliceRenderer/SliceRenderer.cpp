@@ -46,6 +46,7 @@ void SliceRenderer::execute() {
     }
 
     OpenCLDevice::pointer device = getMainDevice();
+    cl::CommandQueue queue = device->getCommandQueue();
 
     // Determine slice nr and width and height of the texture to render to
     unsigned int sliceNr;
@@ -110,56 +111,78 @@ void SliceRenderer::execute() {
         glDeleteTextures(1, &mTexture);
     }
 
-    // Create OpenGL texture
-    glGenTextures(1, &mTexture);
-    glBindTexture(GL_TEXTURE_2D, mTexture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mWidth, mHeight, 0, GL_RGBA, GL_FLOAT, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glFinish();
-
-    // Create CL-GL image
-#if defined(CL_VERSION_1_2)
-    // TODO this sometimes locks. Why???
-    mImageGL = cl::ImageGL(
-            device->getContext(),
-            CL_MEM_READ_WRITE,
-            GL_TEXTURE_2D,
-            0,
-            mTexture
-    );
-#else
-    mImageGL = cl::Image2DGL(
-            device->getContext(),
-            CL_MEM_READ_WRITE,
-            GL_TEXTURE_2D,
-            0,
-            mTexture
-    );
-#endif
-
-    // Run kernel to fill the texture
-    cl::CommandQueue queue = device->getCommandQueue();
+    cl::Kernel kernel = cl::Kernel(getOpenCLProgram(device), "renderToTexture");
     std::vector<cl::Memory> v;
-    v.push_back(mImageGL);
-    queue.enqueueAcquireGLObjects(&v);
+    cl::Image2D image;
+    if(DeviceManager::isGLInteropEnabled()) {
+        // Create OpenGL texture
+        glGenTextures(1, &mTexture);
+        glBindTexture(GL_TEXTURE_2D, mTexture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mWidth, mHeight, 0, GL_RGBA, GL_FLOAT, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glFinish();
 
-    recompileOpenCLCode(mImageToRender);
-    mKernel.setArg(0, *clImage);
-    mKernel.setArg(1, mImageGL);
-    mKernel.setArg(2, sliceNr);
-    mKernel.setArg(3, level);
-    mKernel.setArg(4, window);
-    mKernel.setArg(5, slicePlaneNr);
+        // Create CL-GL image
+        // TODO this sometimes locks. Why???
+        cl::ImageGL mImageGL = cl::ImageGL(
+                device->getContext(),
+                CL_MEM_READ_WRITE,
+                GL_TEXTURE_2D,
+                0,
+                mTexture
+        );
+
+        // Run kernel to fill the texture
+        v.push_back(mImageGL);
+        queue.enqueueAcquireGLObjects(&v);
+        kernel.setArg(1, mImageGL);
+    } else {
+        image = cl::Image2D(
+                device->getContext(),
+                CL_MEM_READ_WRITE,
+                cl::ImageFormat(CL_RGBA, CL_FLOAT),
+                mWidth, mHeight
+        );
+        kernel.setArg(1, image);
+    }
+
+    kernel.setArg(0, *clImage);
+    kernel.setArg(2, sliceNr);
+    kernel.setArg(3, level);
+    kernel.setArg(4, window);
+    kernel.setArg(5, slicePlaneNr);
     queue.enqueueNDRangeKernel(
-            mKernel,
+            kernel,
             cl::NullRange,
             cl::NDRange(mWidth, mHeight),
             cl::NullRange
     );
 
-    queue.enqueueReleaseGLObjects(&v);
+    if(DeviceManager::isGLInteropEnabled()) {
+        queue.enqueueReleaseGLObjects(&v);
+    } else {
+        // Copy data from CL image to CPU
+        float *data = new float[mWidth * mHeight * 4];
+        queue.enqueueReadImage(
+                image,
+                CL_TRUE,
+                createOrigoRegion(),
+                createRegion(mWidth, mHeight, 1),
+                0, 0,
+                data
+        );
+        // Copy data from CPU to GL texture
+        glGenTextures(1, &mTexture);
+        glBindTexture(GL_TEXTURE_2D, mTexture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mWidth, mHeight, 0, GL_RGBA, GL_FLOAT, data);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glFinish();
+        delete[] data;
+    }
     queue.finish();
 
     mTextureIsCreated = true;
@@ -168,30 +191,6 @@ void SliceRenderer::execute() {
 void SliceRenderer::setInputConnection(ProcessObjectPort port) {
     releaseInputAfterExecute(0, false);
     ProcessObject::setInputConnection(0, port);
-}
-
-void SliceRenderer::recompileOpenCLCode(Image::pointer input) {
-    // Check if code has to be recompiled
-    bool recompile = false;
-    if(!mTextureIsCreated) {
-        recompile = true;
-    } else {
-        if(mTypeCLCodeCompiledFor != input->getDataType())
-            recompile = true;
-    }
-    if(!recompile)
-        return;
-    std::string buildOptions = "";
-    if(input->getDataType() == TYPE_FLOAT) {
-        buildOptions = "-DTYPE_FLOAT";
-    } else if(input->getDataType() == TYPE_INT8 || input->getDataType() == TYPE_INT16) {
-        buildOptions = "-DTYPE_INT";
-    } else {
-        buildOptions = "-DTYPE_UINT";
-    }
-    OpenCLDevice::pointer device = getMainDevice();
-    mKernel = cl::Kernel(getOpenCLProgram(device, "", buildOptions), "renderToTexture");
-    mTypeCLCodeCompiledFor = input->getDataType();
 }
 
 

@@ -7,6 +7,7 @@
 #include <GL/gl.h>
 #endif
 #include <boost/thread/lock_guard.hpp>
+#include <boost/shared_array.hpp>
 
 namespace fast {
 
@@ -55,6 +56,70 @@ void PointRenderer::draw() {
         glPopMatrix();
     }
     glColor3f(1.0f, 1.0f, 1.0f); // Reset color
+}
+void PointRenderer::draw2D(
+                cl::BufferGL PBO,
+                uint width,
+                uint height,
+                Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform,
+                float PBOspacing,
+                Vector2f translation
+        ) {
+    boost::lock_guard<boost::mutex> lock(mMutex);
+
+    OpenCLDevice::pointer device = getMainDevice();
+    cl::CommandQueue queue = device->getCommandQueue();
+    std::vector<cl::Memory> v;
+    v.push_back(PBO);
+    queue.enqueueAcquireGLObjects(&v);
+
+    // Map would probably be better here, but doesn't work on NVIDIA, segfault surprise!
+    //float* pixels = (float*)queue.enqueueMapBuffer(PBO, CL_TRUE, CL_MAP_WRITE, 0, width*height*sizeof(float)*4);
+    boost::shared_array<float> pixels(new float[width*height*sizeof(float)*4]);
+    queue.enqueueReadBuffer(PBO, CL_TRUE, 0, width*height*4*sizeof(float), pixels.get());
+
+    boost::unordered_map<uint, PointSet::pointer>::iterator it;
+    for(it = mPointSetsToRender.begin(); it != mPointSetsToRender.end(); it++) {
+    	PointSet::pointer points = it->second;
+
+		Color color = mDefaultColor;
+        ProcessObjectPort port = getInputPort(it->first);
+        if(mInputColors.count(port) > 0) {
+            color = mInputColors[port];
+        }
+
+    	PointSetAccess::pointer access = points->getAccess(ACCESS_READ);
+        std::vector<Vector3f> vertices = access->getPoints();
+
+        // Draw each line
+        int size = 3;
+        for(int i = 0; i < vertices.size(); ++i) {
+        	Vector2f position = vertices[i].head(2); // In mm
+        	Vector2i positinInPixles(
+        			round(position.x() / PBOspacing),
+        			round(position.y() / PBOspacing)
+        	);
+
+        	// Draw the line
+        	for(int j = -size; j <= size; ++j) {
+        	for(int k = -size; k <= size; ++k) {
+
+        		int x = positinInPixles.x() + j;
+        		int y = positinInPixles.y() + k;
+        		y = height - 1 - y;
+        		if(x < 0 || y < 0 || x >= width || y >= height)
+        			continue;
+
+        		pixels[4*(x + y*width)] = color.getRedValue();
+        		pixels[4*(x + y*width) + 1] = color.getGreenValue();
+        		pixels[4*(x + y*width) + 2] = color.getBlueValue();
+        	}}
+        }
+    }
+
+    //queue.enqueueUnmapMemObject(PBO, pixels);
+    queue.enqueueWriteBuffer(PBO, CL_TRUE, 0, width*height*4*sizeof(float), pixels.get());
+    queue.enqueueReleaseGLObjects(&v);
 }
 
 BoundingBox PointRenderer::getBoundingBox() {

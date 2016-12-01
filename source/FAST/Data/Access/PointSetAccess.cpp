@@ -12,6 +12,10 @@ Vector3f PointSetAccess::getPoint(uint i) const {
     return mPointSet->at(i);
 }
 
+std::vector<Vector3f> PointSetAccess::getPoints() const {
+	return *mPointSet;
+}
+
 void PointSetAccess::setPoint(uint i, const Vector3f point) {
     mPointSet->at(i) = point;
 }

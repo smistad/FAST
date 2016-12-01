@@ -48,7 +48,7 @@ __kernel void gradient2D(
 
 __kernel void gradient3D(
         __read_only image3d_t input,
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
         __write_only image3d_t output
 #else
         __global VECTOR_FIELD_TYPE* output
@@ -62,7 +62,7 @@ __kernel void gradient3D(
             (readImageAsFloat3D(input, sampler, pos+(int4)(0,1,0,0)) - readImageAsFloat3D(input, sampler, pos-(int4)(0,1,0,0)))*0.5f,
             (readImageAsFloat3D(input, sampler, pos+(int4)(0,0,1,0)) - readImageAsFloat3D(input, sampler, pos-(int4)(0,0,1,0)))*0.5f
     };
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
     write_imagef(output, pos, gradient.xyzz);
 #else 
     vstore3(FLOAT_TO_SNORM16_3(gradient), pos.x + pos.y*get_global_size(0) + pos.z*get_global_size(0)*get_global_size(1), output);

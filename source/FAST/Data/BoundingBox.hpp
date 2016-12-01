@@ -20,6 +20,8 @@ class BoundingBox {
         BoundingBox getTransformedBoundingBox(AffineTransformation::pointer transform) const;
         bool isInitialized() const;
     private:
+        void initialize(std::vector<Vector2f>);
+        void initialize(std::vector<Vector3f>);
         void createCorners(Vector3f pos, Vector3f size);
         MatrixXf mCorners;
         bool mIsInitialized;

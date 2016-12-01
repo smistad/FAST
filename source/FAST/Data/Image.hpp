@@ -23,6 +23,9 @@ class Image : public SpatialDataObject {
         void create(VectorXui size, DataType type, uint nrOfComponents, ExecutionDevice::pointer device, const void * data);
         void create(uint width, uint height, DataType type, uint nrOfComponents, ExecutionDevice::pointer device, const void * data);
         void create(uint width, uint height, uint depth, DataType type, uint nrOfComponents, ExecutionDevice::pointer device, const void * data);
+        void create(VectorXui size, DataType type, uint nrOfComponents, const void * data);
+        void create(uint width, uint height, DataType type, uint nrOfComponents, const void * data);
+        void create(uint width, uint height, uint depth, DataType type, uint nrOfComponents, const void * data);
 
         OpenCLImageAccess::pointer getOpenCLImageAccess(accessType type, OpenCLDevice::pointer);
         OpenCLBufferAccess::pointer getOpenCLBufferAccess(accessType type, OpenCLDevice::pointer);
@@ -39,6 +42,7 @@ class Image : public SpatialDataObject {
         uint getNrOfComponents() const;
         Vector3f getSpacing() const;
         void setSpacing(Vector3f spacing);
+        void setSpacing(float x, float y, float z);
 
         float calculateMaximumIntensity();
         float calculateMinimumIntensity();
@@ -48,7 +52,10 @@ class Image : public SpatialDataObject {
         Image::pointer copy(ExecutionDevice::pointer device);
 
         // Create a new image which is a cropped version of this image
-        Image::pointer crop(VectorXui offset, VectorXui size);
+        Image::pointer crop(VectorXi offset, VectorXi size, bool allowOutOfBoundsCropping = false);
+
+        // Fill entire image with a value
+        void fill(float value);
 
         // Override
         BoundingBox getTransformedBoundingBox() const;
@@ -56,7 +63,7 @@ class Image : public SpatialDataObject {
     protected:
         Image();
 
-        void findDeviceWithUptodateData(ExecutionDevice::pointer* device, bool* isOpenCLImage);
+        void findDeviceWithUptodateData(ExecutionDevice::pointer& device, bool& isOpenCLImage);
 
         // OpenCL Images
         boost::unordered_map<OpenCLDevice::pointer, cl::Image*> mCLImages;

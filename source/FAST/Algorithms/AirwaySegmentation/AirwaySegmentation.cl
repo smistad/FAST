@@ -5,7 +5,7 @@ __constant sampler_t sampler2 = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP 
 
 __kernel void convertToHU(
 	__read_only image3d_t input,
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
 	__write_only image3d_t output
 #else
 	__global short* output
@@ -15,7 +15,7 @@ __kernel void convertToHU(
 	
 	int value = read_imageui(input, sampler, pos).x;
 	value -= 1024;
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
 	write_imagei(output, pos, value);
 #else
 	output[LPOS(pos)] = value;
@@ -24,7 +24,7 @@ __kernel void convertToHU(
 
 __kernel void dilate(
         __read_only image3d_t volume, 
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
         __write_only image3d_t result
 #else
         __global uchar * result
@@ -38,7 +38,7 @@ __kernel void dilate(
         for(int b = -N; b <= N; ++b) {
         for(int c = -N; c <= N; ++c) {
             int4 nPos = pos + (int4)(a,b,c,0);
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
             write_imageui(result, nPos, 1);
 #else
             // Check if in bounds
@@ -53,7 +53,7 @@ __kernel void dilate(
 
 __kernel void erode(
         __read_only image3d_t volume, 
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
         __write_only image3d_t result
 #else
         __global uchar * result
@@ -71,7 +71,7 @@ __kernel void erode(
         for(int c = -N; c <= N; ++c) {
             keep = (read_imageui(volume, sampler2, pos + (int4)(a,b,c,0)).x == 1 && keep);
         }}}
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
         write_imageui(result, pos, keep ? 1 : 0);
     } else {
         write_imageui(result, pos, 0);

@@ -79,6 +79,8 @@ Shape::pointer CardinalSplineModel::getShape(VectorXf state) {
 			Vector2f normal(-tangent.y(), tangent.x());
 
 			vertices.push_back(vertex);
+			if(!mClockwise)
+				normal = - normal;
 			normals.push_back(normal);
 			// TODO check this:
 			if(counter < nrOfControlPoints*mResolution-1) {
@@ -301,10 +303,15 @@ void CardinalSplineModel::setControlPoints(std::vector<Vector2f> controlPoints) 
 
 		// Calculate centroid
 	mCentroid = Vector2f::Zero();
+	float sum = 0.0f;
+	Vector2f previous = controlPoints[controlPoints.size() - 1];
 	for(Vector2f p : controlPoints) {
 		mCentroid += p;
+		sum += (p.x() - previous.x())*(p.y() + previous.y());
+		previous = p;
 	}
 	mCentroid /= controlPoints.size();
+	mClockwise = sum > 0;
 
 	mControlPoints = controlPoints;
 	mStateSize = 5+2*controlPoints.size();
@@ -315,8 +322,8 @@ void CardinalSplineModel::setControlPoints(std::vector<Vector2f> controlPoints) 
     mA1 = MatrixXf::Zero(mStateSize,mStateSize);
     mA1(0,0) = 1+dampening; // translation x
     mA1(1,1) = 1+dampening; // translation y
-    mA1(2,2) = 1+dampening; // scaling x
-    mA1(3,3) = 1+dampening; // scaling y
+    mA1(2,2) = 0.5; // scaling x
+    mA1(3,3) = 0.5; // scaling y
     mA1(4,4) = 0.5; // rotation
     for(int i = 5; i < mStateSize; ++i)
         mA1(i,i) = 0.5;
@@ -324,8 +331,8 @@ void CardinalSplineModel::setControlPoints(std::vector<Vector2f> controlPoints) 
     mA2 = MatrixXf::Zero(mStateSize,mStateSize);
     mA2(0,0) = -dampening;
     mA2(1,1) = -dampening;
-    mA2(2,2) = -dampening;
-    mA2(3,3) = -dampening;
+    mA2(2,2) = 0.5;
+    mA2(3,3) = 0.5;
     mA2(4,4) = 0.5;//-dampening;
     for(int i = 5; i < mStateSize; ++i) {
         mA2(i,i) = 0.5;
@@ -346,6 +353,8 @@ CardinalSplineModel::CardinalSplineModel() {
     mInitialGlobalState(3) = 1;
 	mResolution = 8;
 	mGlobalTension = -2; // Means that global tension is not set
+	mMinScaling = 0.1;
+	mMaxScaling = -1;
 }
 
 void CardinalSplineModel::setInitialScaling(float x, float y) {
@@ -434,6 +443,32 @@ void CardinalSplineModel::setResolution(int resolution) {
 	if(resolution < 2)
 		throw Exception("Resolution must be > 1");
 	mResolution = resolution;
+}
+
+VectorXf CardinalSplineModel::restrictState(VectorXf state) {
+	// Restrict scaling to be positive
+	if(state(2) < mMinScaling)
+		state(2) = mMinScaling;
+	if(state(3) < mMinScaling)
+		state(3) = mMinScaling;
+
+	if(mMaxScaling > 0) {
+		if(state(2) > mMaxScaling)
+			state(2) = mMaxScaling;
+		if(state(3) < mMaxScaling)
+			state(3) = mMaxScaling;
+	}
+
+	return state;
+}
+
+void CardinalSplineModel::setScalingLimit(float min, float max) {
+	if(min >= 0) {
+		mMinScaling = min;
+	}
+	if(max > 0) {
+		mMaxScaling = max;
+	}
 }
 
 } // end namespace fast

@@ -25,7 +25,7 @@ __kernel void scaleImage2D(
     write_imagef(output, pos, value);
 }
 
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
 __kernel void scaleImage3D(
         __read_only image3d_t input,
         __write_only image3d_t output,

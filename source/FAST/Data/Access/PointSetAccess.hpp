@@ -13,6 +13,7 @@ class PointSetAccess {
     public:
         PointSetAccess(std::vector<Vector3f>* points, SharedPointer<PointSet> object);
         Vector3f getPoint(uint i) const;
+        std::vector<Vector3f> getPoints() const;
         void setPoint(uint i, const Vector3f point);
         void addPoint(const Vector3f point);
         MatrixXf getPointSetAsMatrix() const;

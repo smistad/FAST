@@ -1,3 +1,9 @@
 [submodule "source/OpenIGTLink"]
 	path = source/OpenIGTLink
 	url = https://github.com/openigtlink/OpenIGTLink.git
+[submodule "source/caffe"]
+	path = source/caffe
+	url = https://github.com/smistad/caffe.git
+[submodule "source/viennacl-dev"]
+	path = source/viennacl-dev
+	url = https://github.com/viennacl/viennacl-dev.git

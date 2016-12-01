@@ -23,6 +23,10 @@ class MeanValueCoordinatesModel : public ShapeModel {
 		VectorXf getInitialState(SharedPointer<Image> image);
 		std::vector<MatrixXf> getMeasurementVectors(VectorXf state, Shape::pointer shape);
 		void initializeShapeToImageCenter();
+		void setInitialScaling(float x, float y, float z);
+		void setInitialTranslation(float x, float y, float z);
+		void setLocalProcessError(float error);
+		void setGlobalProcessError(float error);
 	private:
 		MeanValueCoordinatesModel();
 		VectorXf getState(Vector3f translation, Vector3f scale, Vector3f rotation);
@@ -56,6 +60,10 @@ class MeanValueCoordinatesModel : public ShapeModel {
 		MatrixXf mProcessErrorMatrix;
 
 		bool mInitializeShapeToImageCenter;
+		Vector3f mInitialScaling;
+		Vector3f mInitialTranslation;
+		float mLocalProcessError;
+		float mGlobalProcessError;
 
 };
 

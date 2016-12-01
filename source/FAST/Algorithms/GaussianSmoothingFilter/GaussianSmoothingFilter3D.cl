@@ -1,6 +1,6 @@
 __constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
 
-#ifdef cl_khr_3d_image_writes
+#ifdef fast_3d_image_writes
 __kernel void gaussianSmoothing(
         __read_only image3d_t input,
         __constant float * mask,

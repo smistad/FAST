@@ -81,6 +81,10 @@ void ImageRenderer::draw() {
         OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
         cl::Image2D* clImage = access->get2DImage();
 
+        mKernel = cl::Kernel(getOpenCLProgram(device, "3D"), "renderToTexture");
+        // Run kernel to fill the texture
+        cl::CommandQueue queue = device->getCommandQueue();
+
         glEnable(GL_TEXTURE_2D);
         if(mTexturesToRender.count(inputNr) > 0) {
             // Delete old texture
@@ -88,54 +92,45 @@ void ImageRenderer::draw() {
             mTexturesToRender.erase(inputNr);
         }
 
-        // Create OpenGL texture
+        cl::Image2D image;
+        cl::ImageGL imageGL;
+        std::vector<cl::Memory> v;
         GLuint textureID;
-        glGenTextures(1, &textureID);
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, clImage->getImageInfo<CL_IMAGE_WIDTH>(), clImage->getImageInfo<CL_IMAGE_HEIGHT>(), 0, GL_RGBA, GL_FLOAT, 0);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glFinish();
+        if(DeviceManager::isGLInteropEnabled()) {
+            // Create OpenGL texture
+            glGenTextures(1, &textureID);
+            glBindTexture(GL_TEXTURE_2D, textureID);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, clImage->getImageInfo<CL_IMAGE_WIDTH>(),
+                         clImage->getImageInfo<CL_IMAGE_HEIGHT>(), 0, GL_RGBA, GL_FLOAT, 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glFinish();
 
-        mTexturesToRender[inputNr] = textureID;
-        mImageUsed[inputNr] = input;
-
-        // Create CL-GL image
-        #if defined(CL_VERSION_1_2)
-            cl::ImageGL mImageGL = cl::ImageGL(
+            // Create CL-GL image
+            imageGL = cl::ImageGL(
                     device->getContext(),
                     CL_MEM_READ_WRITE,
                     GL_TEXTURE_2D,
                     0,
                     textureID
             );
-        #else
-            cl::Image2DGL mImageGL = cl::Image2DGL(
+            mKernel.setArg(1, imageGL);
+            v.push_back(imageGL);
+            queue.enqueueAcquireGLObjects(&v);
+        } else {
+            image = cl::Image2D(
                     device->getContext(),
                     CL_MEM_READ_WRITE,
-                    GL_TEXTURE_2D,
-                    0,
-                    textureID
+                    cl::ImageFormat(CL_RGBA, CL_FLOAT),
+                    input->getWidth(), input->getHeight()
             );
-        #endif
-
-        std::string kernelName = "renderToTextureInt";
-        if(input->getDataType() == TYPE_FLOAT) {
-            kernelName = "renderToTextureFloat";
-        } else if(input->getDataType() == TYPE_UINT8 || input->getDataType() == TYPE_UINT16) {
-            kernelName = "renderToTextureUint";
+            mKernel.setArg(1, image);
         }
 
-        mKernel = cl::Kernel(getOpenCLProgram(device, "3D"), kernelName.c_str());
-        // Run kernel to fill the texture
-        cl::CommandQueue queue = device->getCommandQueue();
-        std::vector<cl::Memory> v;
-        v.push_back(mImageGL);
-        queue.enqueueAcquireGLObjects(&v);
+
 
         mKernel.setArg(0, *clImage);
-        mKernel.setArg(1, mImageGL);
         mKernel.setArg(2, level);
         mKernel.setArg(3, window);
         queue.enqueueNDRangeKernel(
@@ -145,7 +140,33 @@ void ImageRenderer::draw() {
                 cl::NullRange
         );
 
-        queue.enqueueReleaseGLObjects(&v);
+        if(DeviceManager::isGLInteropEnabled()) {
+            queue.enqueueReleaseGLObjects(&v);
+        } else {
+            // Copy data from CL image to CPU
+            float *data = new float[input->getWidth() * input->getHeight() * 4];
+            queue.enqueueReadImage(
+                    image,
+                    CL_TRUE,
+                    createOrigoRegion(),
+                    createRegion(input->getWidth(), input->getHeight(), 1),
+                    0, 0,
+                    data
+            );
+            // Copy data from CPU to GL texture
+            glGenTextures(1, &textureID);
+            glBindTexture(GL_TEXTURE_2D, textureID);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, clImage->getImageInfo<CL_IMAGE_WIDTH>(),
+                         clImage->getImageInfo<CL_IMAGE_HEIGHT>(), 0, GL_RGBA, GL_FLOAT, data);
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glFinish();
+            delete[] data;
+        }
+
+        mTexturesToRender[inputNr] = textureID;
+        mImageUsed[inputNr] = input;
         queue.finish();
     }
 
@@ -180,14 +201,16 @@ void ImageRenderer::draw() {
     }
 }
 
-void ImageRenderer::draw2D(cl::BufferGL PBO, uint width, uint height, Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform, float PBOspacing, Vector2f translation) {
+void ImageRenderer::draw2D(cl::Buffer PBO, uint width, uint height, Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform, float PBOspacing, Vector2f translation) {
     boost::lock_guard<boost::mutex> lock(mMutex);
 
     OpenCLDevice::pointer device = getMainDevice();
     cl::CommandQueue queue = device->getCommandQueue();
     std::vector<cl::Memory> v;
-    v.push_back(PBO);
-    queue.enqueueAcquireGLObjects(&v);
+    if(DeviceManager::isGLInteropEnabled()) {
+        v.push_back(PBO);
+        queue.enqueueAcquireGLObjects(&v);
+    }
 
     // Create an aux PBO
     cl::Buffer PBO2(
@@ -274,7 +297,9 @@ void ImageRenderer::draw2D(cl::BufferGL PBO, uint width, uint height, Eigen::Tra
         // Copy PBO2 to PBO
         queue.enqueueCopyBuffer(PBO2, PBO, 0, 0, sizeof(float)*width*height*4);
     }
-    queue.enqueueReleaseGLObjects(&v);
+    if(DeviceManager::isGLInteropEnabled()) {
+        queue.enqueueReleaseGLObjects(&v);
+    }
     queue.finish();
 }
 
