@@ -207,7 +207,7 @@ void ImageRenderer::draw2D(cl::Buffer PBO, uint width, uint height, Eigen::Trans
     OpenCLDevice::pointer device = getMainDevice();
     cl::CommandQueue queue = device->getCommandQueue();
     std::vector<cl::Memory> v;
-    if(!DeviceManager::isGLInteropEnabled()) {
+    if(DeviceManager::isGLInteropEnabled()) {
         v.push_back(PBO);
         queue.enqueueAcquireGLObjects(&v);
     }
@@ -297,7 +297,7 @@ void ImageRenderer::draw2D(cl::Buffer PBO, uint width, uint height, Eigen::Trans
         // Copy PBO2 to PBO
         queue.enqueueCopyBuffer(PBO2, PBO, 0, 0, sizeof(float)*width*height*4);
     }
-    if(!DeviceManager::isGLInteropEnabled()) {
+    if(DeviceManager::isGLInteropEnabled()) {
         queue.enqueueReleaseGLObjects(&v);
     }
     queue.finish();

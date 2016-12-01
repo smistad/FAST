@@ -336,7 +336,7 @@ void SurfaceExtraction::execute() {
     GLuint* VBO_ID = VBOaccess->get();
     cl::Buffer VBOBuffer;
     std::vector<cl::Memory> v;
-    if(!DeviceManager::isGLInteropEnabled()) {
+    if(DeviceManager::isGLInteropEnabled()) {
         VBOBuffer = cl::BufferGL(device->getContext(), CL_MEM_WRITE_ONLY, *VBO_ID);
         v.push_back(VBOBuffer);
         queue.enqueueAcquireGLObjects(&v);
@@ -359,7 +359,7 @@ void SurfaceExtraction::execute() {
     // Run a NDRange kernel over this buffer which traverses back to the base level
     queue.enqueueNDRangeKernel(traverseHPKernel, cl::NullRange, cl::NDRange(global_work_size), cl::NDRange(64));
 
-    if(!DeviceManager::isGLInteropEnabled()) {
+    if(DeviceManager::isGLInteropEnabled()) {
         queue.enqueueReleaseGLObjects(&v);
         queue.finish();
     } else {

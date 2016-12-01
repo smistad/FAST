@@ -715,7 +715,7 @@ void View::paintGL() {
             kernel.setArg(2, mBackgroundColor.getGreenValue());
             kernel.setArg(3, mBackgroundColor.getBlueValue());
             std::vector<cl::Memory> v;
-            if(!DeviceManager::isGLInteropEnabled()) {
+            if(DeviceManager::isGLInteropEnabled()) {
                 v.push_back(clPBO);
                 queue.enqueueAcquireGLObjects(&v);
             }
@@ -725,7 +725,7 @@ void View::paintGL() {
                     cl::NDRange(width()*height()),
                     cl::NullRange
             );
-            if(!DeviceManager::isGLInteropEnabled()) {
+            if(DeviceManager::isGLInteropEnabled()) {
                 queue.enqueueReleaseGLObjects(&v);
             }
 
