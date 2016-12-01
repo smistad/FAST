@@ -44,6 +44,7 @@ class DeviceManager : public Object {
         std::vector<cl::Device> getDevicesForBestPlatform(
                 const DeviceCriteria& deviceCriteria,
                std::vector<PlatformDevices> &platformDevices);
+    	static bool isGLInteropEnabled();
     private:
 	unsigned long * mGLContext;
         DeviceManager();
@@ -62,6 +63,7 @@ class DeviceManager : public Object {
         std::string getDevicePlatform(DevicePlatform devicePlatform);
 
         std::vector<cl::Platform> platforms;
+        static bool mDisableGLInterop;
 };
 
 }

@@ -18,6 +18,8 @@
 
 namespace fast {
 
+bool DeviceManager::mDisableGLInterop = false;
+
 inline cl_context_properties* createInteropContextProperties(
         const cl::Platform &platform,
         cl_context_properties OpenGLContext,
@@ -69,9 +71,9 @@ DeviceManager& DeviceManager::getInstance() {
 std::vector<OpenCLDevice::pointer> DeviceManager::getDevices(DeviceCriteria criteria, bool enableVisualization) {
     unsigned long * glContext = NULL;
     QGLWidget* widget = NULL;
-#ifdef FAST_DISABLE_GL_INTEROP
-    enableVisualization = false;
-#endif
+    if(!isGLInteropEnabled()) {
+        enableVisualization = false;
+    }
     if(enableVisualization) {
         // Create GL context
 
@@ -203,8 +205,25 @@ ExecutionDevice::pointer DeviceManager::getDefaultVisualizationDevice() {
 
 DeviceManager::DeviceManager() {
     cl::Platform::get(&platforms);
+
+    mDisableGLInterop = false;
+    // Only check on linux/mac
+#ifndef _WIN32
+    // TODO If NVIDIA platform is present on linux: disable OpenGL interop
+    for(cl::Platform platform : platforms) {
+        if(platform.getInfo<CL_PLATFORM_VENDOR>().find("NVIDIA") != std::string::npos) {
+            reportWarning() << "NVIDIA platform was detecteing, disabling OpenGL interop" << reportEnd();
+            mDisableGLInterop = true;
+        }
+    }
+#endif
+
     // Set one random device as default device
     setDefaultDevice(getOneOpenCLDevice(true));
+}
+
+bool DeviceManager::isGLInteropEnabled() {
+    return !mDisableGLInterop;
 }
 
 OpenCLDevice::pointer DeviceManager::getDevice(

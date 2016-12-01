@@ -334,18 +334,19 @@ void SurfaceExtraction::execute() {
 
     VertexBufferObjectAccess::pointer VBOaccess = output->getVertexBufferObjectAccess(ACCESS_READ_WRITE, device);
     GLuint* VBO_ID = VBOaccess->get();
-#ifndef FAST_DISABLE_GL_INTEROP
-    cl::BufferGL VBOBuffer = cl::BufferGL(device->getContext(), CL_MEM_WRITE_ONLY, *VBO_ID);
+    cl::Buffer VBOBuffer;
     std::vector<cl::Memory> v;
-    v.push_back(VBOBuffer);
-    queue.enqueueAcquireGLObjects(&v);
-#else
-    cl::Buffer VBOBuffer = cl::Buffer(
-        device->getContext(),
-        CL_MEM_WRITE_ONLY,
-        sizeof(float)*totalSum*18
-    );
-#endif
+    if(DeviceManager::isGLInteropEnabled()) {
+        VBOBuffer = cl::BufferGL(device->getContext(), CL_MEM_WRITE_ONLY, *VBO_ID);
+        v.push_back(VBOBuffer);
+        queue.enqueueAcquireGLObjects(&v);
+    } else {
+        VBOBuffer = cl::Buffer(
+                device->getContext(),
+                CL_MEM_WRITE_ONLY,
+                sizeof(float) * totalSum * 18
+        );
+    }
     traverseHPKernel.setArg(i, VBOBuffer);
     traverseHPKernel.setArg(i+1, mThreshold);
     traverseHPKernel.setArg(i+2, totalSum);
@@ -358,28 +359,28 @@ void SurfaceExtraction::execute() {
     // Run a NDRange kernel over this buffer which traverses back to the base level
     queue.enqueueNDRangeKernel(traverseHPKernel, cl::NullRange, cl::NDRange(global_work_size), cl::NDRange(64));
 
-#ifndef FAST_DISABLE_GL_INTEROP
-    queue.enqueueReleaseGLObjects(&v);
-    queue.finish();
-#else
-    // Transfer OpenCL buffer data to CPU
-    float* data = new float[18*totalSum];
-    queue.enqueueReadBuffer(
-        VBOBuffer,
-        CL_TRUE,
-        0,
-        sizeof(float)*18*totalSum,
-        data
-    );
+    if(DeviceManager::isGLInteropEnabled()) {
+        queue.enqueueReleaseGLObjects(&v);
+        queue.finish();
+    } else {
+        // Transfer OpenCL buffer data to CPU
+        float *data = new float[18 * totalSum];
+        queue.enqueueReadBuffer(
+                VBOBuffer,
+                CL_TRUE,
+                0,
+                sizeof(float) * 18 * totalSum,
+                data
+        );
 
-    // Transfer CPU data to VBO
-    glBindBuffer(GL_ARRAY_BUFFER, *VBO_ID);
-    glBufferData(GL_ARRAY_BUFFER, totalSum*18*sizeof(float), data, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glFinish();
+        // Transfer CPU data to VBO
+        glBindBuffer(GL_ARRAY_BUFFER, *VBO_ID);
+        glBufferData(GL_ARRAY_BUFFER, totalSum * 18 * sizeof(float), data, GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glFinish();
 
-    delete[] data;
-#endif
+        delete[] data;
+    }
 
 }
 
