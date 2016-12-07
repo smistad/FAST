@@ -30,6 +30,7 @@ class ProcessObject : public virtual Object {
         // Runtime stuff
         RuntimeMeasurementPtr getRuntime();
         RuntimeMeasurementPtr getRuntime(std::string name);
+        RuntimeMeasurementsManagerPtr getAllRuntimes();
         void enableRuntimeMeasurements();
         void disableRuntimeMeasurements();
 

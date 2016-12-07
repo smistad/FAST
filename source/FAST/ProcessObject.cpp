@@ -62,6 +62,10 @@ RuntimeMeasurementPtr ProcessObject::getRuntime(std::string name) {
     return mRuntimeManager->getTiming(name);
 }
 
+RuntimeMeasurementsManagerPtr ProcessObject::getAllRuntimes() {
+    return mRuntimeManager;
+}
+
 void ProcessObject::setInputRequired(uint portID, bool required) {
     mRequiredInputs[portID] = required;
 }
