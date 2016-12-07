@@ -14,7 +14,7 @@
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Algorithms/BinaryThresholding/BinaryThresholding.hpp"
 #include "FAST/Importers/VTKPointSetFileImporter.hpp"
-#include "FAST/Algorithms/IterativeClosestPoint/IterativeClosestPoint.hpp"
+//#include "FAST/Algorithms/IterativeClosestPoint/IterativeClosestPoint.hpp"
 #include "FAST/Visualization/PointRenderer/PointRenderer.hpp"
 #include "FAST/SceneGraph.hpp"
 
@@ -203,6 +203,7 @@ TEST_CASE("Pipeline C", "[fast][benchmark][visual]") {
     Reporter::info() << "Total runtime was: " << total << Reporter::end;
 }
 
+/*
 TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
     VTKPointSetFileImporter::pointer importerA = VTKPointSetFileImporter::New();
     importerA->setFilename(std::string(FAST_TEST_DATA_DIR) + "Surface_LV.vtk");
@@ -260,3 +261,4 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
             window->getView()->getRuntime("draw")->getAverage();
     Reporter::info() << "Total runtime was: " << total << Reporter::end;
 }
+ */

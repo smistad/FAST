@@ -11,6 +11,8 @@ ObjectDetection::ObjectDetection() {
 	createInputPort<Image>(0);
 	createOutputPort<Mesh>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
 	createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/NeuralNetwork/ObjectDetection.cl");
+
+    mOutputNames = {"Sigmoid", "Sigmoid_1", "Sigmoid_2"};
 }
 
 Vector2f applySpacing(Vector2f p, Vector3f spacing) {
@@ -20,21 +22,116 @@ Vector2f applySpacing(Vector2f p, Vector3f spacing) {
 }
 
 void ObjectDetection::execute() {
-	if(!mModelLoaded)
-		throw Exception("Model must be loaded in ImageClassifier before execution.");
-
 	Image::pointer image = getStaticInputData<Image>();
 
-	caffe::Blob<float>* input_layer = mNetwork->input_blobs()[0];
-	if(input_layer->channels() != 1) {
-		throw Exception("Number of input channels was not 1");
+	mRuntimeManager->startRegularTimer("resize_images");
+    if(mWidth < 0 || mHeight < 0)
+		throw Exception("Network input layer width and height has to be specified before running the network");
+
+    // The size of the input layer is the target size
+	// However, we want to preserve the aspect ratio, and cut the bottom or add zeros if it is too large or small
+	// Resize, put preserve aspect ratio
+    float scale = (float)mWidth / image->getWidth();
+	int height = round(scale*image->getHeight());
+
+	// Resize image to fit input layer
+	ImageResizer::pointer resizer = ImageResizer::New();
+	resizer->setWidth(mWidth); // This is the target width
+	resizer->setHeight(height);
+	resizer->setInputData(image);
+	resizer->update();
+
+	Image::pointer resizedImage = resizer->getOutputData<Image>();
+	// The pre processed image is of the target size, and is also normalized
+	Image::pointer preProcessedImageLeft = Image::New();
+	preProcessedImageLeft->create(mWidth, mHeight, TYPE_FLOAT, 1);
+	OpenCLDevice::pointer device = getMainDevice();
+	cl::Program program = getOpenCLProgram(device);
+	cl::Kernel normalizationKernel(program, "imageNormalization");
+	{
+		OpenCLImageAccess::pointer access = resizedImage->getOpenCLImageAccess(ACCESS_READ, device);
+		OpenCLImageAccess::pointer accessLeft = preProcessedImageLeft->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+		normalizationKernel.setArg(0, *(access->get2DImage()));
+		normalizationKernel.setArg(1, *(accessLeft->get2DImage()));
+
+		device->getCommandQueue().enqueueNDRangeKernel(
+				normalizationKernel,
+				cl::NullRange,
+				cl::NDRange(mWidth, mHeight),
+				cl::NullRange
+		);
+		device->getCommandQueue().finish();
+	}
+	mRuntimeManager->stopRegularTimer("resize_images");
+
+	executeNetwork({preProcessedImageLeft});
+
+	mRuntimeManager->startRegularTimer("create_mesh");
+    // Get outputs
+	std::vector<float> detectorResult = getNetworkOutput("Sigmoid");
+	std::vector<float> positionResult = getNetworkOutput("Sigmoid_1");
+	std::vector<float> sizeResult = getNetworkOutput("Sigmoid_2");
+
+	std::vector<MeshVertex> vertices;
+	std::vector<VectorXui> lines;
+	Mesh::pointer mesh = getStaticOutputData<Mesh>();
+
+
+    const int nbObjects = detectorResult.size();
+    int counter = 0;
+
+    for(int objectID = 0; objectID < nbObjects; ++objectID) {
+		std::cout << detectorResult[objectID] << std::endl;
+		if(detectorResult[objectID] < 0.9)
+			continue;
+
+        float width = image->getWidth();
+        float height = image->getHeight();
+
+
+        // Convert from normalized coordinates
+        std::cout << positionResult[objectID*2] << " " << positionResult[objectID*2+1] << std::endl;
+        Vector2f center((positionResult[objectID*2] * mWidth) / scale,
+                        positionResult[1+objectID*2] * mHeight / scale);
+		std::cout << center.transpose() << std::endl;
+		std::cout << sizeResult[objectID*2] << " " << sizeResult[objectID*2+1] << std::endl;
+        float bboxWidth = sizeResult[objectID*2] * mWidth / scale;
+        float bboxHeight = sizeResult[1+objectID*2] * mHeight / scale;
+		std::cout << bboxWidth << " " << bboxHeight << std::endl;
+
+        Vector2f corner1 = center;
+        corner1.x() -= bboxWidth * 0.5;
+        corner1.y() -= bboxHeight * 0.5;
+        corner1 = applySpacing(corner1, image->getSpacing());
+        Vector2f corner2 = center;
+        corner2.x() -= bboxWidth * 0.5;
+        corner2.y() += bboxHeight * 0.5;
+        corner2 = applySpacing(corner2, image->getSpacing());
+        Vector2f corner3 = center;
+        corner3.x() += bboxWidth * 0.5;
+        corner3.y() += bboxHeight * 0.5;
+        corner3 = applySpacing(corner3, image->getSpacing());
+        Vector2f corner4 = center;
+        corner4.x() += bboxWidth * 0.5;
+        corner4.y() -= bboxHeight * 0.5;
+        corner4 = applySpacing(corner4, image->getSpacing());
+
+        vertices.push_back(MeshVertex(corner1));
+        vertices.push_back(MeshVertex(corner2));
+        vertices.push_back(MeshVertex(corner3));
+        vertices.push_back(MeshVertex(corner4));
+
+        lines.push_back(Vector2ui(0+counter*4, 1+counter*4));
+        lines.push_back(Vector2ui(1+counter*4, 2+counter*4));
+        lines.push_back(Vector2ui(2+counter*4, 3+counter*4));
+        lines.push_back(Vector2ui(3+counter*4, 0+counter*4));
+        counter++;
 	}
 
-	// nr of images x channels x width x height
-	input_layer->Reshape(2, 1, input_layer->height(), input_layer->width());
-	mNetwork->Reshape();
-	reportInfo() << "Net reshaped" << reportEnd();
+    mesh->create(vertices, lines);
+	mRuntimeManager->stopRegularTimer("create_mesh");
 
+    /*
 	OpenCLDevice::pointer device = getMainDevice();
 	cl::Program program = getOpenCLProgram(device);
 	cl::Kernel normalizationKernel(program, "imageNormalization");
@@ -171,6 +268,7 @@ void ObjectDetection::execute() {
 	}
 
 	mesh->create(vertices, lines);
+     */
 }
 
 

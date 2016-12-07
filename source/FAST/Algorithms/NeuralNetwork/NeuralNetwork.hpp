@@ -12,10 +12,10 @@ class NeuralNetwork : public ProcessObject {
 public:
     void load(std::string networkFilename);
     void setInputParameters(std::string inputNodeNames, int width, int height);
-    void setOutputParameters(std::vector<std::string> > outputNodeNames);
+    void setOutputParameters(std::vector<std::string> outputNodeNames);
 
-    // Use this if only 1 network output layer
-    std::vector<float> getNetworkOutput();
+    // Return all network outputs
+    std::map<std::string, std::vector<float> > getNetworkOutput();
 
     // Get output by layer name
     std::vector<float> getNetworkOutput(std::string layerName);
@@ -27,13 +27,13 @@ protected:
     int mWidth;
     int mHeight;
     std::string mInputName;
-    std::vector<std::string> > mOutputNames;
+    std::vector<std::string> mOutputNames;
+    std::map<std::string, std::vector<float> > mOutputData;
 
     void execute();
 
     void executeNetwork(const std::vector<SharedPointer<Image> >& images);
     std::vector<SharedPointer<Image> > resizeImages(const std::vector<SharedPointer<Image> >& images);
-    std::vector<SharedPointer<Image> > subtractMeanImage(const std::vector<SharedPointer<Image> >& images);
 };
 
 }

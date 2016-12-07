@@ -6,13 +6,13 @@ if(FAST_MODULE_NeuralNetwork)
         #ImageClassifier.hpp
         #DNNAppearanceModel.cpp
         #DNNAppearanceModel.hpp
-        #ObjectDetection.cpp
-        #ObjectDetection.hpp
+        ObjectDetection.cpp
+        ObjectDetection.hpp
     )
     fast_add_test_sources(
         #ImageClassifierTests.cpp
         #DNNAppearanceModelTests.cpp
-        #ObjectDetectionTests.cpp
+        ObjectDetectionTests.cpp
     )
     if(FAST_MODULE_OpenIGTLink)
         #fast_add_example(arteryDetection arteryDetection.cpp)

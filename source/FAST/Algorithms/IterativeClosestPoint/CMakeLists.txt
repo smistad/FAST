@@ -1,7 +1,7 @@
 fast_add_sources(
-    IterativeClosestPoint.cpp
-    IterativeClosestPoint.hpp
+    #IterativeClosestPoint.cpp
+    #terativeClosestPoint.hpp
 )
 fast_add_test_sources(
-    IterativeClosestPointTests.cpp
+    #IterativeClosestPointTests.cpp
 )

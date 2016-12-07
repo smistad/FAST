@@ -12,26 +12,16 @@ using namespace fast;
 
 TEST_CASE("Object detection stream", "[fast][ObjectDetection][dynamic][visual]") {
 	ImageFileStreamer::pointer importer = ImageFileStreamer::New();
-	ObjectDetection::pointer detector = ObjectDetection::New();
-	//importer->setFilenameFormat("/home/smistad/AssistantTestData/0/US-Acq_01_20150608T102019/Acquisition/US-Acq_01_20150608T102019_Image_Transducer_#.mhd");
-	//importer->setFilenameFormat("/home/smistad/AssistantTestData/1/US-Acq_01_20150608T103428/Acquisition/US-Acq_01_20150608T103428_Image_Transducer_#.mhd");
-	importer->setFilenameFormat("/home/smistad/AssistantTestData/1/US-Acq_03_20150608T103739/Acquisition/US-Acq_03_20150608T103739_Image_Transducer_#.mhd");
-	//importer->setFilenameFormat("/home/smistad/AssistantTestData/2/US-Acq_01_20150608T104544/Acquisition/US-Acq_01_20150608T104544_Image_Transducer_#.mhd");
-	//importer->setFilenameFormat("/home/smistad/AssistantTestData/2/US-Acq_02_20150608T104623/Acquisition/US-Acq_02_20150608T104623_Image_Transducer_#.mhd");
-	//importer->setFilenameFormat("/home/smistad/AssistantTestData/2/US-Acq_03_20150608T104805/Acquisition/US-Acq_03_20150608T104805_Image_Transducer_#.mhd");
-	//importer->setFilenameFormat("/home/smistad/AssistantTestData/2/US-Acq_04_20150608T104910/Acquisition/US-Acq_04_20150608T104910_Image_Transducer_#.mhd");
-	//importer->setFilenameFormat("/home/smistad/AssistantTestData/4/US-Acq_01_20150608T112522/Acquisition/US-Acq_01_20150608T112522_Image_Transducer_#.mhd");
-	//importer->setFilenameFormat("/home/smistad/AssistantTestData/9/0/US-2D_#.mhd");
-	//importer->setFilenameFormat("/home/smistad/AssistantTestData/9/2/US-2D_#.mhd");
-	//importer->setFilenameFormat("/home/smistad/AssistantTestData/11/2/US-2D_#.mhd");
-	//importer->setFilenameFormat("/media/smistad/New Volume/Carotis/Daniel/2016-06-27-143748-carotis_daniel/US-2D_#.mhd");
-	//importer->setFilenameFormat("/home/smistad/AssistantTestData/1/2016-08-09-right/US-2D_#.mhd");
-	//importer->setFilenameFormat("/home/smistad/AssistantTestData/1/2016-08-09-left/US-2D_#.mhd");
-	//detector->setMirrorImage(true); // Set this to true for left side images
+    //importer->setFilenameFormat("/media/smistad/New Volume/EyeGuide/Axille/0/2016-10-07-135111/US-2D_#.mhd");
+    importer->setFilenameFormat("/media/smistad/New Volume/EyeGuide/Axille/1/2016-10-07-135630/US-2D_#.mhd");
 	importer->setSleepTime(75);
+
+	ObjectDetection::pointer detector = ObjectDetection::New();
+	//detector->setMirrorImage(true); // Set this to true for left side images
+    detector->enableRuntimeMeasurements();
 	detector->setInputConnection(importer->getOutputPort());
-	detector->loadNetworkAndWeights("/home/smistad/workspace/detect_femoral_artery/net_deploy.prototxt",
-						"/home/smistad/workspace/detect_femoral_artery/models/_iter_6000.caffemodel");
+    detector->load("/home/smistad/workspace/eyeguide_keras/models/network_graph.pb");
+	detector->setInputParameters("input_image", 256, 256);
 
 	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
 	meshRenderer->setInputConnection(detector->getOutputPort());
@@ -49,5 +39,7 @@ TEST_CASE("Object detection stream", "[fast][ObjectDetection][dynamic][visual]")
 	window->setWidth(1920);
 	window->setHeight(1080);
 	window->start();
+
+	detector->getAllRuntimes()->printAll();
 
 }
