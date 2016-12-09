@@ -2,8 +2,8 @@ if(FAST_MODULE_NeuralNetwork)
     fast_add_sources(
         NeuralNetwork.cpp
         NeuralNetwork.hpp
-        #ImageClassifier.cpp
-        #ImageClassifier.hpp
+        ImageClassifier.cpp
+        ImageClassifier.hpp
         #DNNAppearanceModel.cpp
         #DNNAppearanceModel.hpp
         ObjectDetection.cpp

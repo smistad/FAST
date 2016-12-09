@@ -13,7 +13,7 @@ using namespace fast;
 TEST_CASE("Object detection stream", "[fast][ObjectDetection][dynamic][visual]") {
 	ImageFileStreamer::pointer importer = ImageFileStreamer::New();
     //importer->setFilenameFormat("/media/smistad/New Volume/EyeGuide/Axille/0/2016-10-07-135111/US-2D_#.mhd");
-    importer->setFilenameFormat("/media/smistad/New Volume/EyeGuide/Axille/1/2016-10-07-135630/US-2D_#.mhd");
+    importer->setFilenameFormat("/media/extra/EyeGuide/Axille/1/2016-10-07-135630/US-2D_#.mhd");
 	importer->setSleepTime(75);
 
 	ObjectDetection::pointer detector = ObjectDetection::New();

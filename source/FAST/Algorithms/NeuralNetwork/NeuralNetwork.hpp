@@ -14,11 +14,13 @@ public:
     void setInputParameters(std::string inputNodeNames, int width, int height);
     void setOutputParameters(std::vector<std::string> outputNodeNames);
 
-    // Return all network outputs
-    std::map<std::string, std::vector<float> > getNetworkOutput();
+    // Use this if only one output node
+    // output[i][j] will return output value j for input image i
+    std::vector<std::vector<float> > getNetworkOutput();
 
     // Get output by layer name
-    std::vector<float> getNetworkOutput(std::string layerName);
+    // output[i][j] will return output value j for input image i
+    std::vector<std::vector<float> > getNetworkOutput(std::string layerName);
 
 protected:
     NeuralNetwork();
@@ -28,7 +30,7 @@ protected:
     int mHeight;
     std::string mInputName;
     std::vector<std::string> mOutputNames;
-    std::map<std::string, std::vector<float> > mOutputData;
+    std::map<std::string, std::vector<std::vector<float>> > mOutputData;
 
     void execute();
 

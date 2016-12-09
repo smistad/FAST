@@ -68,9 +68,9 @@ void ObjectDetection::execute() {
 
 	mRuntimeManager->startRegularTimer("create_mesh");
     // Get outputs
-	std::vector<float> detectorResult = getNetworkOutput("Sigmoid");
-	std::vector<float> positionResult = getNetworkOutput("Sigmoid_1");
-	std::vector<float> sizeResult = getNetworkOutput("Sigmoid_2");
+	std::vector<float> detectorResult = getNetworkOutput("Sigmoid")[0];
+	std::vector<float> positionResult = getNetworkOutput("Sigmoid_1")[0];
+	std::vector<float> sizeResult = getNetworkOutput("Sigmoid_2")[0];
 
 	std::vector<MeshVertex> vertices;
 	std::vector<VectorXui> lines;

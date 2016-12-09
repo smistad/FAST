@@ -71,11 +71,14 @@ void NeuralNetwork::setInputParameters(std::string inputNodeNames, int width, in
 	mInputName = inputNodeNames;
 }
 
-std::map<std::string, std::vector<float> > NeuralNetwork::getNetworkOutput() {
-	return mOutputData;
+std::vector<std::vector<float> > NeuralNetwork::getNetworkOutput() {
+    if(mOutputData.size() != 1)
+		throw Exception("If network has more than 1 output can't return network output without name.");
+
+	return mOutputData[mOutputNames[0]];
 }
 
-std::vector<float> NeuralNetwork::getNetworkOutput(std::string name) {
+std::vector<std::vector<float> > NeuralNetwork::getNetworkOutput(std::string name) {
 	return mOutputData.at(name);
 }
 
@@ -87,26 +90,30 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 	if(mOutputNames.size() == 0)
 		throw Exception("An output name must ge given to the NeuralNetwork before execution");
 
+    int batchSize = images.size();
+	if(batchSize == 0)
+		throw Exception("Need at least one image to execute network.");
+
 	// Create input tensor
 	tensorflow::Tensor input_tensor(
 			tensorflow::DT_FLOAT,
-			tensorflow::TensorShape({1, mHeight, mWidth, 1})
+			tensorflow::TensorShape({batchSize, mHeight, mWidth, 1})
 	);
 
 	auto input_tensor_mapped = input_tensor.tensor<float, 4>();
 
-    // TODO support multiple images
-	// TODO need to reshape network to support this?
-	reportInfo() << "TensorFlow: Copying Data." << reportEnd();
-    Image::pointer image = images[0];
-	if(image->getWidth() != mWidth || image->getHeight() != mHeight)
-		throw Exception("Input image sent to executeNetwork was of incrorrect size");
-
 	mRuntimeManager->startRegularTimer("input_data_copy");
-	ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
-	for (int i = 0; i < mHeight; ++i) { // y
-		for (int j = 0; j < mWidth; ++j) { // x
-			input_tensor_mapped(0, i, j, 0) = access->getScalar(Vector2i(j, i)) / 255.0f;
+	reportInfo() << "TensorFlow: Copying Data." << reportEnd();
+	for(int n = 0; n < batchSize; ++n) {
+		Image::pointer image = images[n];
+		if (image->getWidth() != mWidth || image->getHeight() != mHeight)
+			throw Exception("Input image sent to executeNetwork was of incrorrect size");
+
+		ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
+		for (int i = 0; i < mHeight; ++i) { // y
+			for (int j = 0; j < mWidth; ++j) { // x
+				input_tensor_mapped(n, i, j, 0) = access->getScalar(Vector2i(j, i)) / 255.0f;
+			}
 		}
 	}
 	mRuntimeManager->stopRegularTimer("input_data_copy");
@@ -142,10 +149,15 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 		tensorflow::Tensor *output = &output_tensors[j];
         std::string outputName = mOutputNames[j];
 
-		const auto outputData = output->flat<float>(); // This is some sort of Eigen tensor type
-		std::vector<float> resultData;
-		for (int i = 0; i < outputData.size(); ++i) {
-			resultData.push_back(outputData(i));
+		//const auto outputData = output->flat<float>(); // This is some sort of Eigen tensor type
+        auto output_tensor_mapped = output->tensor<float, 2>();
+		std::vector<std::vector<float>> resultData;
+		for(int n = 0; n < batchSize; ++n) {
+            std::vector<float> outputValues;
+			for (int i = 0; i < output_tensor_mapped.dimension(1); ++i) {
+				outputValues.push_back(output_tensor_mapped(0, i));
+			}
+			resultData.push_back(outputValues);
 		}
 
 		mOutputData[outputName] = resultData;
