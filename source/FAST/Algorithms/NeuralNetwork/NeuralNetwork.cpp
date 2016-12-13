@@ -24,7 +24,12 @@ void NeuralNetwork::load(std::string networkFilename) {
 	mSession.reset(tensorflow::NewSession(options));
 	tensorflow::GraphDef tensorflow_graph;
 
-    ReadBinaryProto(tensorflow::Env::Default(), networkFilename, &tensorflow_graph);
+	{
+		tensorflow::Status s = ReadBinaryProto(tensorflow::Env::Default(), networkFilename, &tensorflow_graph);
+		if (!s.ok()) {
+			throw Exception("Could not read TensorFlow graph file " + networkFilename);
+		}
+	}
 
 	reportInfo() << "Creating session." << reportEnd();
 	tensorflow::Status s = mSession->Create(tensorflow_graph);
