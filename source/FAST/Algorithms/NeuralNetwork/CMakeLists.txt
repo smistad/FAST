@@ -10,7 +10,7 @@ if(FAST_MODULE_NeuralNetwork)
         ObjectDetection.hpp
     )
     fast_add_test_sources(
-        #ImageClassifierTests.cpp
+        ImageClassifierTests.cpp
         #DNNAppearanceModelTests.cpp
         ObjectDetectionTests.cpp
     )

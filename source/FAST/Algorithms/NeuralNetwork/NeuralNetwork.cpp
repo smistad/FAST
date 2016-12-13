@@ -70,6 +70,9 @@ void NeuralNetwork::setInputParameters(std::string inputNodeNames, int width, in
 	mHeight = height;
 	mInputName = inputNodeNames;
 }
+void NeuralNetwork::setOutputParameters(std::vector<std::string> outputNodeNames) {
+    mOutputNames = outputNodeNames;
+}
 
 std::vector<std::vector<float> > NeuralNetwork::getNetworkOutput() {
     if(mOutputData.size() != 1)
@@ -141,7 +144,7 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 	mRuntimeManager->stopRegularTimer("network_execution");
 
 	if (!s.ok()) {
-		reportError() << "Error during inference: " << s << reportEnd();
+		throw Exception("Error during inference: " + s.ToString());
 	}
 	reportInfo() << "Finished executing network" << reportEnd();
 
