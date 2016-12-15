@@ -31,6 +31,19 @@ void NeuralNetwork::load(std::string networkFilename) {
 		}
 	}
 
+	// Assume first node is input node
+	mInputName = tensorflow_graph.node(0).name();
+    //auto attributes = tensorflow_graph.node(0).attr();
+	//std::cout << attributes["shape"].shape() << std::endl;
+	/*
+    for(int i = 0; i < tensorflow_graph.node_size(); ++i) {
+		tensorflow::NodeDef node = tensorflow_graph.node(i);
+		reportInfo() << "Node " << i << " with name " << node.name() << reportEnd();
+        reportInfo() << "Op name " << node.op() << reportEnd();
+		reportInfo() << "inputs: " << node.input_size() << reportEnd();
+	}
+	 */
+
 	reportInfo() << "Creating session." << reportEnd();
 	tensorflow::Status s = mSession->Create(tensorflow_graph);
 	if (!s.ok()) {
@@ -46,6 +59,9 @@ void NeuralNetwork::load(std::string networkFilename) {
 	mModelLoaded = true;
 }
 
+void NeuralNetwork::setScaleFactor(float factor) {
+    mScaleFactor = factor;
+}
 
 NeuralNetwork::NeuralNetwork() {
 	createInputPort<Image>(0, true, INPUT_STATIC_OR_DYNAMIC, true);
@@ -53,13 +69,15 @@ NeuralNetwork::NeuralNetwork() {
 	mInputName = "";
 	mWidth = -1;
 	mHeight = -1;
+	mScaleFactor = 1.0f;
 	createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/NeuralNetwork/NeuralNetwork.cl");
 }
 
 void NeuralNetwork::execute() {
 
 
-	std::vector<Image::pointer> images = getMultipleStaticInputData<Image>();
+    Image::pointer image = getStaticInputData<Image>();
+	std::vector<Image::pointer> images = {image};//getMultipleStaticInputData<Image>();
 
 	if(mWidth < 0 || mHeight < 0)
 		throw Exception("Network input layer width and height has to be specified before running the network");
@@ -70,10 +88,9 @@ void NeuralNetwork::execute() {
 }
 
 
-void NeuralNetwork::setInputParameters(std::string inputNodeNames, int width, int height) {
+void NeuralNetwork::setInputSize(int width, int height) {
 	mWidth = width;
 	mHeight = height;
-	mInputName = inputNodeNames;
 }
 void NeuralNetwork::setOutputParameters(std::vector<std::string> outputNodeNames) {
     mOutputNames = outputNodeNames;
@@ -120,7 +137,7 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 		ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
 		for (int i = 0; i < mHeight; ++i) { // y
 			for (int j = 0; j < mWidth; ++j) { // x
-				input_tensor_mapped(n, i, j, 0) = access->getScalar(Vector2i(j, i)) / 255.0f;
+				input_tensor_mapped(n, i, j, 0) = access->getScalar(Vector2i(j, i))*mScaleFactor;
 			}
 		}
 	}

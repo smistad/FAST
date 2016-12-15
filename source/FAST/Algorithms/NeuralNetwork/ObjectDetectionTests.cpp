@@ -21,7 +21,8 @@ TEST_CASE("Object detection stream", "[fast][ObjectDetection][dynamic][visual]")
     detector->enableRuntimeMeasurements();
 	detector->setInputConnection(importer->getOutputPort());
     detector->load("/home/smistad/workspace/eyeguide_keras/models/network_graph.pb");
-	detector->setInputParameters("input_image", 256, 256);
+	detector->setInputSize(256, 256);
+    detector->setScaleFactor(1.0f/255.0f);
 
 	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
 	meshRenderer->setInputConnection(detector->getOutputPort());

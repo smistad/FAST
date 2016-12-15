@@ -11,8 +11,9 @@ class Image;
 class NeuralNetwork : public ProcessObject {
 public:
     void load(std::string networkFilename);
-    void setInputParameters(std::string inputNodeNames, int width, int height);
+    void setInputSize(int width, int height);
     void setOutputParameters(std::vector<std::string> outputNodeNames);
+    void setScaleFactor(float scale);
 
     // Use this if only one output node
     // output[i][j] will return output value j for input image i
@@ -28,6 +29,7 @@ protected:
     bool mModelLoaded;
     int mWidth;
     int mHeight;
+    float mScaleFactor;
     std::string mInputName;
     std::vector<std::string> mOutputNames;
     std::map<std::string, std::vector<std::vector<float>> > mOutputData;

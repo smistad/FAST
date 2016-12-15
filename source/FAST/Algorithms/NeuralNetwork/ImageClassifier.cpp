@@ -27,6 +27,8 @@ void ImageClassifier::execute() {
 	} else {
 		result = getNetworkOutput(mOutputName);
 	}
+	ImageClassification::pointer output = getStaticOutputData<ImageClassification>(0);
+	//ImageClassification::pointer output = addStaticOutputData<ImageClassification>(0);
 	for(int i = 0; i < result.size(); ++i) { // for each input image
 		std::map<std::string, float> mapResult;
 		for(int j = 0; j < result[i].size(); ++j) { // for each class
@@ -34,8 +36,7 @@ void ImageClassifier::execute() {
 			reportInfo() << mLabels[j] << ": " << result[i][j] << reportEnd();
 		}
 
-		ImageClassification::pointer result = addStaticOutputData<ImageClassification>(0);
-		result->create(mapResult);
+		output->create(mapResult);
 	}
 
 }
