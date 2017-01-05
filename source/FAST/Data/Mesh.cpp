@@ -3,6 +3,7 @@
 #include "FAST/Visualization/SimpleWindow.hpp"
 #include <QApplication>
 #include <boost/thread.hpp>
+#include <boost/shared_array.hpp>
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenGL/OpenGL.h>
@@ -12,7 +13,6 @@
 #include <GL/gl.h>
 #else
 #include <GL/glx.h>
-#include <boost/shared_array.hpp>
 
 #endif
 #endif
