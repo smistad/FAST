@@ -83,8 +83,8 @@ class OpenCLDevice : public ExecutionDevice {
 
         bool isImageFormatSupported(cl_channel_order order, cl_channel_type type, cl_mem_object_type imageType);
 
-        OpenCLPlatformVendor getPlatformVendor();
-        DeviceVendor getDeviceVendor();
+        //OpenCLPlatformVendor getPlatformVendor();
+        //DeviceVendor getDeviceVendor();
 
         cl::CommandQueue getQueue(unsigned int i);
         cl::Device getDevice(unsigned int i);

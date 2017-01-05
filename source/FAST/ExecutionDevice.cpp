@@ -31,14 +31,6 @@
 
 namespace fast {
 
-
-OpenCLPlatformVendor OpenCLDevice::getPlatformVendor() {
-}
-
-DeviceVendor OpenCLDevice::getDeviceVendor() {
-
-}
-
 inline cl_context_properties* createInteropContextProperties(
         const cl::Platform &platform,
         cl_context_properties OpenGLContext,
