@@ -40,6 +40,12 @@ foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
     set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/lib )
 endforeach( OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES )
 
+## Turn off shared libs on windows
+if(WIN32)
+	message("-- Windows detected, turning BUILD_SHARED_LIBS off")
+	set(BUILD_SHARED_LIBS OFF)
+endif()
+
 #### Paths
 set(FAST_TEST_DATA_DIR "${PROJECT_SOURCE_DIR}/../TestData/" CACHE PATH "Directory of test data")
 set(FAST_TEST_DATA_DIR "${FAST_TEST_DATA_DIR}/") # Add a slash to the back
@@ -278,11 +284,12 @@ endif()
 #### Enable C++11
 # Note that Microsoft Visual C++ compiler enables C++11 by default
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth=300") # Fix for a bug with boost signals2
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations") # Remove deprecated warnings GCC
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth=300") # Fix for a bug with boost signals2
 endif()
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR CMAKE_COMPILER_IS_GNUCXX)
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" OR CMAKE_COMPILER_IS_GNUCXX)
     include(CheckCXXCompilerFlag)
     check_cxx_compiler_flag(--std=c++11 SUPPORTS_STD_CXX11)
     check_cxx_compiler_flag(--std=c++0x SUPPORTS_STD_CXX01)
@@ -347,18 +354,16 @@ if(OPENMP_FOUND)
 endif()
 
 
-
 #### Create FAST library and executables
 add_library(FAST ${FAST_SOURCE_FILES} ${HEADERS_MOC})
-if(FAST_BUILD_TESTS)
-	add_executable(testFAST ${FAST_TEST_SOURCE_FILES})
-endif()
 
 ## Link everything
 target_link_libraries(FAST ${LIBRARIES})
 qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
 
+## Build test executable
 if(FAST_BUILD_TESTS)
+	add_executable(testFAST ${FAST_TEST_SOURCE_FILES})
     target_link_libraries(testFAST FAST)
 endif()
 
