@@ -1,9 +1,10 @@
 build/
+build_Debug/
+build_Release/
 TestData/
+.idea/
 *.cl.bin
 *cl.cache
 .cproject
-
 .project
-
 *.xml
