@@ -122,18 +122,16 @@ void IterativeClosestPoint::execute() {
         invertTransform = true;
 
         // Apply initial transformations
-        //currentTransformation = fixedPointTransform.getTransform();
         movingPoints = fixedPointTransform*movingPoints.colwise().homogeneous();
         fixedPoints = initialMovingTransform*fixedPoints.colwise().homogeneous();
     } else {
         // Apply initial transformations
-        //currentTransformation = initialMovingTransform.getTransform();
         movingPoints = initialMovingTransform*movingPoints.colwise().homogeneous();
         fixedPoints = fixedPointTransform*fixedPoints.colwise().homogeneous();
     }
+	MatrixXf movedPoints = currentTransformation*(movingPoints.colwise().homogeneous());
     do {
-        previousError = error;
-        MatrixXf movedPoints = currentTransformation*(movingPoints.colwise().homogeneous());
+        previousError = error;        
 
         // Match closest points using current transformation
         MatrixXf rearrangedFixedPoints = rearrangeMatrixToClosestPoints(
@@ -177,8 +175,11 @@ void IterativeClosestPoint::execute() {
         // Update current transformation
         currentTransformation = updateTransform*currentTransformation;
 
-        // Calculate RMS error
-        MatrixXf distance = rearrangedFixedPoints - currentTransformation*(movingPoints.colwise().homogeneous());
+		// Move points
+		movedPoints = currentTransformation*(movingPoints.colwise().homogeneous());
+
+        // Calculate RMS error		
+		MatrixXf distance = rearrangedFixedPoints - movedPoints;
         error = 0;
         for(uint i = 0; i < distance.cols(); i++) {
             error += pow(distance.col(i).norm(),2);
@@ -186,7 +187,7 @@ void IterativeClosestPoint::execute() {
         error = sqrt(error / distance.cols());
 
         iterations++;
-        reportInfo() << "Error: " << error << Reporter::end;
+        reportInfo() << "ICP error: " << error << Reporter::end;
         // To continue, change in error has to be above min error change and nr of iterations less than max iterations
     } while(previousError-error > mMinErrorChange && iterations < mMaxIterations);
 
