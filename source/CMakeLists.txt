@@ -219,17 +219,13 @@ set(LIBRARIES ${LIBRARIES} ${GLEW_LIBRARY})
 
 ## Neural network module
 if(FAST_MODULE_NeuralNetwork)
-    find_package(Protobuf REQUIRED)
-    list(APPEND FAST_INCLUDE_DIRS ${Protobuf_INCLUDE_DIRS})
-    list(APPEND LIBRARIES ${Protobuf_LIBRARIES})
-    find_package(Eigen REQUIRED)
-    include_directories(${Eigen_INCLUDE_DIRS})
-    list(APPEND FAST_INCLUDE_DIRS ${Eigen_INCLUDE_DIRS})
+    ## Tensorflow
     find_package(TensorFlow REQUIRED)
-    list(APPEND FAST_INCLUDE_DIRS ${TensorFlow_INCLUDE_DIR})
-    list(APPEND LIBRARIES ${TensorFlow_LIBRARY})
-    message("-- Neural network module enabled. Tensorflow include dir: ${TensorFlow_INCLUDE_DIR}. Library: ${TensorFlow_LIBRARY}")
+    list(APPEND FAST_INCLUDE_DIRS ${Tensorflow_INCLUDE_DIR})
+    list(APPEND LIBRARIES ${Tensorflow_LIBRARY})
+    message("-- Neural network module enabled.")
 else()
+    # If tensorflow neural network module is enabled, a newer version of Eigen is already included in the tensorflow include dir
     ## Eigen
     find_package(Eigen3 REQUIRED)
     list(APPEND FAST_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
