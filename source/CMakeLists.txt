@@ -220,7 +220,7 @@ set(LIBRARIES ${LIBRARIES} ${GLEW_LIBRARY})
 ## Neural network module
 if(FAST_MODULE_NeuralNetwork)
     ## Tensorflow
-    find_package(TensorFlow REQUIRED)
+    find_package(Tensorflow REQUIRED)
     list(APPEND FAST_INCLUDE_DIRS ${Tensorflow_INCLUDE_DIR})
     list(APPEND LIBRARIES ${Tensorflow_LIBRARY})
     message("-- Neural network module enabled.")
