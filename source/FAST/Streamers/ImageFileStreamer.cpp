@@ -25,7 +25,6 @@ ImageFileStreamer::ImageFileStreamer() {
     thread = NULL;
     mFirstFrameIsInserted = false;
     mHasReachedEnd = false;
-    mFilenameFormat = "";
     mTimestampFilename = "";
     mNrOfFrames = 0;
     mSleepTime = 0;
@@ -65,7 +64,7 @@ void ImageFileStreamer::setTimestampFilename(std::string filepath) {
 
 void ImageFileStreamer::execute() {
     getOutputData<Image>(0)->setStreamer(mPtr.lock());
-    if(mFilenameFormat == "")
+    if(mFilenameFormats.size() == 0)
         throw Exception("No filename format was given to the ImageFileStreamer");
     if(!mStreamIsStarted) {
         // Check that first frame exists before starting streamer
@@ -84,7 +83,17 @@ void ImageFileStreamer::execute() {
 void ImageFileStreamer::setFilenameFormat(std::string str) {
     if(str.find("#") == std::string::npos)
         throw Exception("Filename format must include a hash tag # which will be replaced by a integer starting from 0.");
-    mFilenameFormat = str;
+
+    mFilenameFormats.clear();
+    mFilenameFormats.push_back(str);
+}
+
+void ImageFileStreamer::setFilenameFormats(std::vector<std::string> strs) {
+    for(std::string str : strs) {
+        if(str.find("#") == std::string::npos)
+            throw Exception("Filename format must include a hash tag # which will be replaced by a integer starting from 0.");
+    }
+    mFilenameFormats = strs;
 }
 
 void ImageFileStreamer::producerStream() {
@@ -113,8 +122,9 @@ void ImageFileStreamer::producerStream() {
 
     uint i = mStartNumber;
     int replays = 0;
+    int currentSequence = 0;
     while(true) {
-        std::string filename = mFilenameFormat;
+        std::string filename = mFilenameFormats[currentSequence];
         std::string frameNumber = boost::lexical_cast<std::string>(i);
         if(mZeroFillDigits > 0 && frameNumber.size() < mZeroFillDigits) {
             std::string zeroFilling = "";
@@ -197,7 +207,9 @@ void ImageFileStreamer::producerStream() {
                     }
                     mFirstFrameCondition.notify_one();
                 }
-                if(mLoop || (mNrOfReplays > 0 && replays != mNrOfReplays)) {
+                if(mLoop ||
+                        (mNrOfReplays > 0 && replays != mNrOfReplays) ||
+                        (currentSequence < mFilenameFormats.size()-1)) {
                     // Restart stream
                     if(timestampFile.is_open()) {
                         previousTimestamp = 0;
@@ -206,6 +218,11 @@ void ImageFileStreamer::producerStream() {
                     }
                     replays++;
                     i = mStartNumber;
+                    currentSequence++;
+                    // Go to first sequence if looping is enabled
+                    if(mLoop && currentSequence == mFilenameFormats.size()) {
+                        currentSequence = 0;
+                    }
                     continue;
                 }
                 mHasReachedEnd = true;

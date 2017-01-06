@@ -12,6 +12,7 @@ class ImageFileStreamer : public Streamer, public ProcessObject {
     FAST_OBJECT(ImageFileStreamer)
     public:
         void setFilenameFormat(std::string str);
+        void setFilenameFormats(std::vector<std::string> strings);
         void setStartNumber(uint startNumber);
         void setStepSize(uint step);
         void setZeroFilling(uint digits);
@@ -58,7 +59,7 @@ class ImageFileStreamer : public Streamer, public ProcessObject {
         bool mFirstFrameIsInserted;
         bool mHasReachedEnd;
 
-        std::string mFilenameFormat;
+        std::vector<std::string> mFilenameFormats;
         std::string mTimestampFilename;
 
 };

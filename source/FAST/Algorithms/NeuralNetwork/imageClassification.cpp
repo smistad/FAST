@@ -47,8 +47,23 @@ int main() {
 
     Reporter::setGlobalReportMethod(Reporter::COUT);
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
-    //streamer->setFilenameFormat("/media/extra/GRUE_images/Clinic001/F4AFP6A2/US-2D_#.png");
-    streamer->setFilenameFormat("/media/extra/GRUE_images/Clinic001/F4AFP0HG/US-2D_#.png");
+    streamer->setFilenameFormats({
+         "/media/extra/GRUE_images/Clinic001/F4AFP0HG/US-2D_#.png",
+         "/media/extra/GRUE_images/Clinic001/F4AFP2HM/US-2D_#.png",
+         "/media/extra/GRUE_images/Clinic001/F4AFP3PQ/US-2D_#.png",
+         "/media/extra/GRUE_images/Clinic001/F4AFP4PU/US-2D_#.png",
+         "/media/extra/GRUE_images/Clinic001/F4AFP5I0/US-2D_#.png",
+         "/media/extra/GRUE_images/Clinic001/F4AFP6A2/US-2D_#.png",
+         "/media/extra/GRUE_images/Clinic001/F4AFP7I4/US-2D_#.png",
+         "/media/extra/GRUE_images/Clinic001/F4AFP8I6/US-2D_#.png",
+         "/media/extra/GRUE_images/Clinic001/F4AFP39O/US-2D_#.png",
+         "/media/extra/GRUE_images/Clinic001/F4AFP49S/US-2D_#.png",
+         "/media/extra/GRUE_images/Clinic001/F4AFPE2U/US-2D_#.png",
+         "/media/extra/GRUE_images/Clinic001/F4AFPIBA/US-2D_#.png",
+         "/media/extra/GRUE_images/Clinic001/F4AFPIRC/US-2D_#.png",
+         "/media/extra/GRUE_images/Clinic001/F4AFPLBO/US-2D_#.png",
+         "/media/extra/GRUE_images/Clinic001/F4AFPMJQ/US-2D_#.png",
+    });
     streamer->enableLooping();
     streamer->setSleepTime(50);
 
@@ -77,10 +92,12 @@ int main() {
 
     TextRenderer::pointer textRenderer = TextRenderer::New();
     textRenderer->setView(window->getView());
-    textRenderer->setPosition(Vector2i(10, 20));
+    textRenderer->setPosition(Vector2i(10, 40));
+    textRenderer->setFontSize(32);
     textRenderer->setInputConnection(classToText->getOutputPort());
 
     window->addRenderer(renderer);
+    window->setWindowSize(1024, 1024);
     window->addRenderer(textRenderer);
     window->set2DMode();
     window->start();
