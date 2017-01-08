@@ -10,7 +10,7 @@ namespace fast {
 
 class View;
 
-FAST_SIMPLE_DATA_OBJECT(Text, (std::string))
+FAST_SIMPLE_DATA_OBJECT(Text, std::string)
 
 class TextRenderer : public Renderer {
     FAST_OBJECT(TextRenderer)
