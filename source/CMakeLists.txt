@@ -42,7 +42,6 @@ endforeach( OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES )
 
 ## Turn off shared libs on windows
 if(WIN32)
-	message("-- Windows detected, turning BUILD_SHARED_LIBS off")
 	set(BUILD_SHARED_LIBS OFF)
 endif()
 
@@ -221,15 +220,38 @@ set(LIBRARIES ${LIBRARIES} ${GLEW_LIBRARY})
 if(FAST_MODULE_NeuralNetwork)
     ## Tensorflow
     find_package(Tensorflow REQUIRED)
-    list(APPEND FAST_INCLUDE_DIRS ${Tensorflow_INCLUDE_DIR})
-    list(APPEND LIBRARIES ${Tensorflow_LIBRARY})
-    message("-- Neural network module enabled.")
+    list(APPEND FAST_INCLUDE_DIRS ${Tensorflow_INCLUDE_DIRS})
+    list(APPEND LIBRARIES ${Tensorflow_LIBRARIES})
+    message("-- Neural network module enabled: ${Tensorflow_INCLUDE_DIRS} ${Tensorflow_LIBRARIES}")
+	add_definitions("-DZLIB_ENABLED") # Tell FAST to use ZLIB
+if(WIN32)
+	# Some definitions needed to compile with tensorflow on windows
+	# These are taken from tensorflow/contrib/cmake/CMakeLists.txt
+	add_definitions(-DEIGEN_AVOID_STL_ARRAY)
+  add_definitions(-DNOMINMAX -D_WIN32_WINNT=0x0A00 -DLANG_CXX11 -DCOMPILER_MSVC -D__VERSION__=\"MSVC\")
+  add_definitions(-DWIN32 -DOS_WIN -D_MBCS -DWIN64 -DPLATFORM_WINDOWS)
+  add_definitions(-DTENSORFLOW_USE_EIGEN_THREADPOOL -DEIGEN_HAS_C99_MATH -D_ITERATOR_DEBUG_LEVEL=0)
+  # Suppress warnings to reduce build log size.
+  add_definitions(/wd4267 /wd4244 /wd4800 /wd4503 /wd4554 /wd4996 /wd4348 /wd4018)
+  add_definitions(/wd4099 /wd4146 /wd4267 /wd4305 /wd4307)
+  add_definitions(/wd4715 /wd4722 /wd4723 /wd4838 /wd4309 /wd4334)
+  # To get rid of this error: Not found: No session factory registered for the given session options: {target: "" config: } Registered factories are {}.
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /WHOLEARCHIVE:\"${Tensorflow_LIBRARY}\"")
+endif()
 else()
     # If tensorflow neural network module is enabled, a newer version of Eigen is already included in the tensorflow include dir
     ## Eigen
     find_package(Eigen3 REQUIRED)
     list(APPEND FAST_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
     message("-- Using Eigen ${EIGEN3_VERSION}")
+
+	## Z lib for compressed data (zraw)
+	find_package(ZLIB)
+	if(ZLIB_FOUND)
+		add_definitions("-DZLIB_ENABLED") # Tell FAST to use ZLIB
+		include_directories(${ZLIB_INCLUDE_DIRS})
+		set(LIBRARIES ${LIBRARIES} ${ZLIB_LIBRARIES})
+	endif()
 endif()
 
 ## VTK
@@ -248,13 +270,7 @@ if(FAST_ITK_INTEROP)
     set(LIBRARIES ${LIBRARIES} ${ITK_LIBRARIES})
 endif()
 
-## Z lib for compressed data (zraw)
-find_package(ZLIB)
-if(ZLIB_FOUND)
-    add_definitions("-DZLIB_ENABLED") # Tell FAST to use ZLIB
-    include_directories(${ZLIB_INCLUDE_DIRS})
-    set(LIBRARIES ${LIBRARIES} ${ZLIB_LIBRARIES})
-endif()
+
 
 #### Set include dirs
 include_directories(${FAST_INCLUDE_DIRS})
@@ -317,6 +333,11 @@ if(FAST_BUILD_EXAMPLES)
 else()
 	macro (fast_add_example NAME)
 	endmacro()
+endif()
+
+if(WIN32)
+	# Build with multiple processes on windows
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
 endif()
 
 #### Add all subdirs
