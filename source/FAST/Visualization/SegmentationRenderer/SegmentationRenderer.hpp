@@ -4,7 +4,8 @@
 #include "FAST/Visualization/Renderer.hpp"
 #include "FAST/Data/Segmentation.hpp"
 #include "FAST/Data/Color.hpp"
-#include <boost/unordered_map.hpp>
+#include "FAST/Utility.hpp"
+#include <unordered_map>
 #include <boost/thread/mutex.hpp>
 
 namespace fast {
@@ -33,11 +34,11 @@ class SegmentationRenderer : public Renderer {
         bool mColorsModified;
         bool mFillAreaModified;
 
-        boost::unordered_map<uint, Image::pointer> mImagesToRender;
-        boost::unordered_map<uint, GLuint> mTexturesToRender;
-        boost::unordered_map<uint, Image::pointer> mImageUsed;
-        boost::unordered_map<Segmentation::LabelType, Color> mLabelColors;
-        boost::unordered_map<Segmentation::LabelType, bool> mLabelFillArea;
+        std::unordered_map<uint, Image::pointer> mImagesToRender;
+        std::unordered_map<uint, GLuint> mTexturesToRender;
+        std::unordered_map<uint, Image::pointer> mImageUsed;
+        std::unordered_map<Segmentation::LabelType, Color> mLabelColors;
+        std::unordered_map<Segmentation::LabelType, bool> mLabelFillArea;
         bool mFillArea;
         cl::Buffer mColorBuffer, mFillAreaBuffer;
         boost::mutex mMutex;

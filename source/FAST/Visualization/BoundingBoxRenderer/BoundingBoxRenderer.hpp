@@ -4,7 +4,7 @@
 #include "FAST/Visualization/Renderer.hpp"
 #include "FAST/Data/BoundingBox.hpp"
 #include <boost/thread/mutex.hpp>
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 
 namespace fast {
 
@@ -18,7 +18,7 @@ class BoundingBoxRenderer : public Renderer {
         void draw();
         BoundingBox getBoundingBox();
 
-        boost::unordered_map<uint, BoundingBox> mBoxesToRender;
+        std::unordered_map<uint, BoundingBox> mBoxesToRender;
         boost::mutex mMutex;
 };
 

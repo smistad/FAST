@@ -54,7 +54,7 @@ ImageRenderer::ImageRenderer() : Renderer() {
 void ImageRenderer::draw() {
     boost::lock_guard<boost::mutex> lock(mMutex);
 
-    boost::unordered_map<uint, Image::pointer>::iterator it;
+    std::unordered_map<uint, Image::pointer>::iterator it;
     for(it = mImagesToRender.begin(); it != mImagesToRender.end(); it++) {
         Image::pointer input = it->second;
         uint inputNr = it->first;
@@ -219,7 +219,7 @@ void ImageRenderer::draw2D(cl::Buffer PBO, uint width, uint height, Eigen::Trans
             sizeof(float)*width*height*4
     );
 
-    boost::unordered_map<uint, Image::pointer>::iterator it;
+    std::unordered_map<uint, Image::pointer>::iterator it;
     for(it = mImagesToRender.begin(); it != mImagesToRender.end(); it++) {
         Image::pointer input = it->second;
         // Determine level and window
@@ -306,7 +306,7 @@ void ImageRenderer::draw2D(cl::Buffer PBO, uint width, uint height, Eigen::Trans
 BoundingBox ImageRenderer::getBoundingBox() {
     std::vector<Vector3f> coordinates;
 
-    boost::unordered_map<uint, Image::pointer>::iterator it;
+    std::unordered_map<uint, Image::pointer>::iterator it;
     for(it = mImagesToRender.begin(); it != mImagesToRender.end(); it++) {
         BoundingBox transformedBoundingBox;
         transformedBoundingBox = it->second->getTransformedBoundingBox();

@@ -240,7 +240,7 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         std::vector<MeshVertex> vertices;
         std::vector<VectorXui> triangles;
-        boost::unordered_map<MeshVertex, uint, KeyHasher> vertexList;
+        std::unordered_map<MeshVertex, uint, KeyHasher> vertexList;
         for(int t = 0; t < mNrOfConnections; t++) {
             Vector3ui triangle;
             for(int v = 0; v < 3; v++) {
@@ -363,7 +363,7 @@ void Mesh::updateOpenCLBufferData(OpenCLDevice::pointer device) {
 void Mesh::setAllDataToOutOfDate() {
     mHostDataIsUpToDate = false;
     mVBODataIsUpToDate = false;
-    boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+    std::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
     for(it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end(); it++) {
         it->second = false;
     }
@@ -422,7 +422,7 @@ void Mesh::freeAll() {
     mVBOHasData = false;
 
     // For each CL buffer delete it
-    boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+    std::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
     for(it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end(); it++) {
         delete mConnectionBuffers[it->first];
         delete mCoordinatesBuffers[it->first];

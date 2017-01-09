@@ -58,7 +58,7 @@ void MeshRenderer::draw() {
     glShadeModel(GL_SMOOTH);
     glEnable(GL_LIGHTING);
 
-    boost::unordered_map<uint, Mesh::pointer>::iterator it;
+    std::unordered_map<uint, Mesh::pointer>::iterator it;
     for(it = mMeshToRender.begin(); it != mMeshToRender.end(); it++) {
         Mesh::pointer surfaceToRender = it->second;
 
@@ -146,7 +146,7 @@ void MeshRenderer::draw2D(
     boost::shared_array<float> pixels(new float[width*height*sizeof(float)*4]);
     queue.enqueueReadBuffer(PBO, CL_TRUE, 0, width*height*4*sizeof(float), pixels.get());
 
-    boost::unordered_map<uint, Mesh::pointer>::iterator it;
+    std::unordered_map<uint, Mesh::pointer>::iterator it;
     for(it = mMeshToRender.begin(); it != mMeshToRender.end(); it++) {
     	Mesh::pointer mesh = it->second;
     	if(mesh->getDimensions() != 2) // Mesh must be 2D

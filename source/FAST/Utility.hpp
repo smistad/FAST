@@ -116,7 +116,24 @@ static inline void trim(std::string &s) {
     rtrim(s);
 }
 
+template <class T>
+static inline void hash_combine(std::size_t& seed, const T& v)
+{
+    std::hash<T> hasher;
+    seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+}
+
 } // end namespace fast
 
+// Hasher for enums
+namespace std {
+    template<class E>class hash {
+        using sfinae = typename std::enable_if<std::is_enum<E>::value, E>::type;
+    public:
+        size_t operator()(const E&e) const {
+            return std::hash<typename std::underlying_type<E>::type>()(e);
+        }
+    };
+};
 
 #endif /* UTILITY_HPP_ */

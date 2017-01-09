@@ -9,7 +9,7 @@
 #include "FAST/Data/Access/OpenCLImageAccess.hpp"
 #include "FAST/Data/Access/OpenCLBufferAccess.hpp"
 #include "FAST/Data/Access/ImageAccess.hpp"
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 
 namespace fast {
 
@@ -66,12 +66,12 @@ class Image : public SpatialDataObject {
         void findDeviceWithUptodateData(ExecutionDevice::pointer& device, bool& isOpenCLImage);
 
         // OpenCL Images
-        boost::unordered_map<OpenCLDevice::pointer, cl::Image*> mCLImages;
-        boost::unordered_map<OpenCLDevice::pointer, bool> mCLImagesIsUpToDate;
+        std::unordered_map<OpenCLDevice::pointer, cl::Image*> mCLImages;
+        std::unordered_map<OpenCLDevice::pointer, bool> mCLImagesIsUpToDate;
 
         // OpenCL Buffers
-        boost::unordered_map<OpenCLDevice::pointer, cl::Buffer*> mCLBuffers;
-        boost::unordered_map<OpenCLDevice::pointer, bool> mCLBuffersIsUpToDate;
+        std::unordered_map<OpenCLDevice::pointer, cl::Buffer*> mCLBuffers;
+        std::unordered_map<OpenCLDevice::pointer, bool> mCLBuffersIsUpToDate;
 
         // Host data
         void * mHostData;

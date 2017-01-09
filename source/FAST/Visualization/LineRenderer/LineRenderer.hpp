@@ -27,10 +27,10 @@ class LineRenderer : public Renderer {
         float mDefaultLineWidth;
         Color mDefaultColor;
         bool mDefaultDrawOnTop;
-        boost::unordered_map<ProcessObjectPort, float> mInputWidths;
-        boost::unordered_map<ProcessObjectPort, Color> mInputColors;
-        boost::unordered_map<ProcessObjectPort, bool> mInputDrawOnTop;
-        boost::unordered_map<uint, LineSet::pointer> mLineSetsToRender;
+        std::unordered_map<ProcessObjectPort, float> mInputWidths;
+        std::unordered_map<ProcessObjectPort, Color> mInputColors;
+        std::unordered_map<ProcessObjectPort, bool> mInputDrawOnTop;
+        std::unordered_map<uint, LineSet::pointer> mLineSetsToRender;
         boost::mutex mMutex;
 };
 

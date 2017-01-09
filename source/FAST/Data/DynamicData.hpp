@@ -4,7 +4,7 @@
 #include "FAST/Streamers/Streamer.hpp"
 #include "FAST/Data/DataObject.hpp"
 #include <vector>
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include <boost/thread/mutex.hpp>
 #include <boost/interprocess/sync/interprocess_semaphore.hpp>
 #include <boost/interprocess/sync/named_semaphore.hpp>
@@ -38,12 +38,12 @@ class DynamicData : public DataObject {
         // set to true
         //unsigned long mCurrentFrame;
 
-        boost::unordered_map<WeakPointer<Object>, uint> mConsumerFrameCounters;
+        std::unordered_map<WeakPointer<Object>, uint> mConsumerFrameCounters;
         uint getLowestFrameCount() const;
         void removeOldFrames(uint frameCounter);
         void setAllConsumersUpToDate();
         // Maps frame counter to a data
-        boost::unordered_map<uint, DataObject::pointer> mFrames2;
+        std::unordered_map<uint, DataObject::pointer> mFrames2;
         // This is the frame number of HEAD
         unsigned long mCurrentFrameCounter;
         // Only used with newest frame only:

@@ -52,7 +52,7 @@ bool OpenCLProgram::buildExists(SharedPointer<OpenCLDevice> device,
     if(mOpenCLPrograms.count(device) == 0) {
         hasBuild = false;
     } else {
-        const boost::unordered_map<std::string, cl::Program> programs = mOpenCLPrograms.at(device);
+        const std::map<std::string, cl::Program> programs = mOpenCLPrograms.at(device);
         if(programs.count(buildOptions) == 0)
             hasBuild = false;
     }

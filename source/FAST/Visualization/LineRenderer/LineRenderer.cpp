@@ -16,7 +16,7 @@ void LineRenderer::draw() {
     boost::lock_guard<boost::mutex> lock(mMutex);
 
     // For all input data
-    boost::unordered_map<uint, LineSet::pointer>::iterator it;
+    std::unordered_map<uint, LineSet::pointer>::iterator it;
     for(it = mLineSetsToRender.begin(); it != mLineSetsToRender.end(); it++) {
         LineSet::pointer points = it->second;
         LineSetAccess::pointer access = points->getAccess(ACCESS_READ);

@@ -10,7 +10,7 @@
 #include "FAST/Data/Access/MeshAccess.hpp"
 #include "FAST/Data/Access/MeshOpenCLAccess.hpp"
 #include <boost/thread/condition_variable.hpp>
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 
 namespace fast {
 
@@ -53,9 +53,9 @@ class Mesh : public SpatialDataObject {
         std::vector<VectorXui> mConnections;
 
         // OpenCL buffer data
-        boost::unordered_map<OpenCLDevice::pointer, cl::Buffer*> mCoordinatesBuffers;
-        boost::unordered_map<OpenCLDevice::pointer, cl::Buffer*> mConnectionBuffers;
-        boost::unordered_map<OpenCLDevice::pointer, bool> mCLBuffersIsUpToDate;
+        std::unordered_map<OpenCLDevice::pointer, cl::Buffer*> mCoordinatesBuffers;
+        std::unordered_map<OpenCLDevice::pointer, cl::Buffer*> mConnectionBuffers;
+        std::unordered_map<OpenCLDevice::pointer, bool> mCLBuffersIsUpToDate;
 
         // Declare as friends so they can get access to the accessFinished methods
         friend class MeshAccess;

@@ -2,7 +2,8 @@
 #define PIPELINE_OBJECT_HPP
 
 #include "FAST/SmartPointers.hpp"
-#include <boost/unordered_map.hpp>
+#include "FAST/Utility.hpp"
+#include <unordered_map>
 #include <vector>
 #include "FAST/Object.hpp"
 #include "FAST/Data/DataObject.hpp"
@@ -11,15 +12,42 @@
 #include "FAST/ExecutionDevice.hpp"
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Data/DynamicData.hpp"
-
+namespace fast{
+    class ProcessObjectPort;
+}
+namespace std {
+    template <>
+    class hash<fast::ProcessObjectPort>{
+    public:
+        size_t operator()(const fast::ProcessObjectPort &object) const;
+    };
+};
 namespace fast {
 
 
 enum InputDataType { INPUT_STATIC, INPUT_DYNAMIC, INPUT_STATIC_OR_DYNAMIC };
 enum OutputDataType { OUTPUT_STATIC, OUTPUT_DYNAMIC, OUTPUT_DEPENDS_ON_INPUT };
 
-class ProcessObjectPort;
 class OpenCLProgram;
+class ProcessObject;
+
+class ProcessObjectPort {
+    public:
+        ProcessObjectPort(uint portID, SharedPointer<ProcessObject> processObject);
+        ProcessObjectPort() {};
+        DataObject::pointer getData();
+        std::vector<DataObject::pointer> getMultipleData();
+        uint getPortID() const;
+        SharedPointer<ProcessObject> getProcessObject() const;
+        bool isDataModified() const;
+        void updateTimestamp();
+        bool operator==(const ProcessObjectPort &other) const;
+    private:
+        uint mPortID;
+        SharedPointer<ProcessObject> mProcessObject;
+        unsigned long mTimestamp;
+        std::size_t mDataPointer;
+};
 
 class ProcessObject : public virtual Object {
     public:
@@ -152,56 +180,37 @@ class ProcessObject : public virtual Object {
         DataObject::pointer getOutputDataX(uint portID) const;
         std::vector<DataObject::pointer> getMultipleOutputDataX(uint portID) const;
 
-        boost::unordered_map<uint, bool> mRequiredInputs;
-        boost::unordered_map<uint, bool> mReleaseAfterExecute;
-        boost::unordered_map<uint, std::vector<uint> > mInputDevices;
-        boost::unordered_map<uint, ExecutionDevice::pointer> mDevices;
-        boost::unordered_map<uint, uint> mOutputDynamicDependsOnInput;
-        boost::unordered_map<uint, DeviceCriteria> mDeviceCriteria;
+        std::unordered_map<uint, bool> mRequiredInputs;
+        std::unordered_map<uint, bool> mReleaseAfterExecute;
+        std::unordered_map<uint, std::vector<uint> > mInputDevices;
+        std::unordered_map<uint, ExecutionDevice::pointer> mDevices;
+        std::unordered_map<uint, uint> mOutputDynamicDependsOnInput;
+        std::unordered_map<uint, DeviceCriteria> mDeviceCriteria;
 
         // New pipeline
-        boost::unordered_map<uint, ProcessObjectPort> mInputConnections;
-        boost::unordered_map<uint, std::vector<DataObject::pointer> > mOutputData;
+        std::unordered_map<uint, ProcessObjectPort> mInputConnections;
+        std::unordered_map<uint, std::vector<DataObject::pointer> > mOutputData;
         // Contains a string of required port class
-        boost::unordered_map<uint, std::string> mInputPortClass;
-        boost::unordered_map<uint, std::string> mOutputPortClass;
+        std::unordered_map<uint, std::string> mInputPortClass;
+        std::unordered_map<uint, std::string> mOutputPortClass;
         // Whether the ports accept dynamic, static or any of the two
-        boost::unordered_map<uint, InputDataType> mInputPortType;
-        boost::unordered_map<uint, OutputDataType> mOutputPortType;
+        std::unordered_map<uint, InputDataType> mInputPortType;
+        std::unordered_map<uint, OutputDataType> mOutputPortType;
         // Whether the ports accept multiple data
-        boost::unordered_map<uint, bool> mInputPortMultipleData;
-        boost::unordered_map<uint, bool> mOutputPortMultipleData;
+        std::unordered_map<uint, bool> mInputPortMultipleData;
+        std::unordered_map<uint, bool> mOutputPortMultipleData;
 
-        boost::unordered_map<std::string, SharedPointer<OpenCLProgram> > mOpenCLPrograms;
+        std::unordered_map<std::string, SharedPointer<OpenCLProgram> > mOpenCLPrograms;
 
         friend class DynamicData;
         friend class ProcessObjectPort;
 };
 
 
-class ProcessObjectPort {
-    public:
-        ProcessObjectPort(uint portID, ProcessObject::pointer processObject);
-        ProcessObjectPort() {};
-        DataObject::pointer getData();
-        std::vector<DataObject::pointer> getMultipleData();
-        uint getPortID() const;
-        ProcessObject::pointer getProcessObject() const;
-        bool isDataModified() const;
-        void updateTimestamp();
-        bool operator==(const ProcessObjectPort &other) const;
-        friend std::size_t hash_value(fast::ProcessObjectPort const& obj) {
-            std::size_t seed = 0;
-            boost::hash_combine(seed, obj.getProcessObject().getPtr().get());
-            boost::hash_combine(seed, obj.getPortID());
-            return seed;
-        }
-    private:
-        uint mPortID;
-        ProcessObject::pointer mProcessObject;
-        unsigned long mTimestamp;
-        std::size_t mDataPointer;
-};
+
+
+
+
 
 
 
@@ -489,5 +498,6 @@ void ProcessObject::createOutputPort(uint portID, OutputDataType outputDataType,
 }
 
 }; // end namespace fast
+
 
 #endif

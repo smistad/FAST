@@ -4,7 +4,7 @@
 #include "FAST/SmartPointers.hpp"
 #include "FAST/Object.hpp"
 #include "FAST/ExecutionDevice.hpp"
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include "FAST/Streamers/Streamer.hpp"
 #include <boost/thread/condition_variable.hpp>
 
@@ -45,7 +45,7 @@ class DataObject : public Object {
         boost::condition_variable mDataIsBeingAccessedCondition;
         bool mDataIsBeingAccessed;
     private:
-        boost::unordered_map<WeakPointer<ExecutionDevice>, unsigned int> mReferenceCount;
+        std::unordered_map<WeakPointer<ExecutionDevice>, unsigned int> mReferenceCount;
 
         // This is only used for dynamic data, it is defined here for to make the convienice function getStaticOutput/InputData to work
         WeakPointer<Streamer> mStreamer;

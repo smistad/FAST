@@ -154,7 +154,7 @@ void Image::updateOpenCLImageData(OpenCLDevice::pointer device) {
 			transferCLImageFromHost(device);
 			updated = true;
 		} else {
-			boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+			std::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
 			for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
 				it++) {
 				if (it->second == true) {
@@ -258,7 +258,7 @@ void Image::updateOpenCLBufferData(OpenCLDevice::pointer device) {
             transferCLBufferFromHost(device);
             updated = true;
         } else {
-            boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+            std::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
             for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
                     it++) {
                 if (it->second == true) {
@@ -330,7 +330,7 @@ void Image::updateHostData() {
     }
 
     // Find which data is up to date
-    boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+    std::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
     for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
             it++) {
         if (it->second == true) {
@@ -356,7 +356,7 @@ void Image::updateHostData() {
 
 void Image::setAllDataToOutOfDate() {
     mHostDataIsUpToDate = false;
-    boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+    std::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
     for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end();
             it++) {
         it->second = false;
@@ -666,7 +666,7 @@ void Image::free(ExecutionDevice::pointer device) {
 
 void Image::freeAll() {
     // Delete OpenCL Images
-    boost::unordered_map<OpenCLDevice::pointer, cl::Image*>::iterator it;
+    std::unordered_map<OpenCLDevice::pointer, cl::Image*>::iterator it;
     for (it = mCLImages.begin(); it != mCLImages.end(); it++) {
         delete it->second;
     }
@@ -674,7 +674,7 @@ void Image::freeAll() {
     mCLImagesIsUpToDate.clear();
 
     // Delete OpenCL buffers
-    boost::unordered_map<OpenCLDevice::pointer, cl::Buffer*>::iterator it2;
+    std::unordered_map<OpenCLDevice::pointer, cl::Buffer*>::iterator it2;
     for (it2 = mCLBuffers.begin(); it2 != mCLBuffers.end(); it2++) {
         delete it2->second;
     }
@@ -773,7 +773,7 @@ void Image::calculateMaxAndMinIntensity() {
             // TODO the logic here can be improved. For instance choose the best device
             // Find some OpenCL image data or buffer data that is up to date
             bool found = false;
-            boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+            std::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
             for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end(); it++) {
                 if(it->second == true) {
                     OpenCLDevice::pointer device = it->first;
@@ -851,7 +851,7 @@ float Image::calculateAverageIntensity() {
             // TODO the logic here can be improved. For instance choose the best device
             // Find some OpenCL image data or buffer data that is up to date
             bool found = false;
-            boost::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
+            std::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
             for (it = mCLImagesIsUpToDate.begin(); it != mCLImagesIsUpToDate.end(); it++) {
                 if(it->second == true) {
                     OpenCLDevice::pointer device = it->first;

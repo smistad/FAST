@@ -7,8 +7,8 @@
 #include <list>
 #include <stack>
 #include <unordered_set>
-#include <boost/unordered_map.hpp>
-using boost::unordered_map;
+#include <unordered_map>
+using std::unordered_map;
 
 namespace fast {
 

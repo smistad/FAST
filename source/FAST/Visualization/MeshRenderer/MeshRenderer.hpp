@@ -33,10 +33,10 @@ class MeshRenderer : public Renderer {
         MeshRenderer();
         void execute();
 
-        boost::unordered_map<ProcessObjectPort, Color> mInputColors;
-        boost::unordered_map<int, Color> mLabelColors;
-        boost::unordered_map<ProcessObjectPort, float> mInputOpacities;
-        boost::unordered_map<uint, Mesh::pointer> mMeshToRender;
+        std::unordered_map<ProcessObjectPort, Color> mInputColors;
+        std::unordered_map<int, Color> mLabelColors;
+        std::unordered_map<ProcessObjectPort, float> mInputOpacities;
+        std::unordered_map<uint, Mesh::pointer> mMeshToRender;
         Color mDefaultColor;
         float mDefaultSpecularReflection;
         float mDefaultOpacity;

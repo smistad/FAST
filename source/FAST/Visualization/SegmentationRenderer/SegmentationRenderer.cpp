@@ -15,7 +15,7 @@ void SegmentationRenderer::addInputConnection(ProcessObjectPort port) {
 BoundingBox SegmentationRenderer::getBoundingBox() {
     std::vector<Vector3f> coordinates;
 
-    boost::unordered_map<uint, Image::pointer>::iterator it;
+    std::unordered_map<uint, Image::pointer>::iterator it;
     for(it = mImagesToRender.begin(); it != mImagesToRender.end(); it++) {
         BoundingBox transformedBoundingBox;
         transformedBoundingBox = it->second->getTransformedBoundingBox();
@@ -93,7 +93,7 @@ void SegmentationRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
     if(mColorsModified) {
         // Transfer colors to device (this doesn't have to happen every render call..)
         boost::shared_array<float> colorData(new float[3*mLabelColors.size()]);
-        boost::unordered_map<Segmentation::LabelType, Color>::iterator it;
+        std::unordered_map<Segmentation::LabelType, Color>::iterator it;
         for(it = mLabelColors.begin(); it != mLabelColors.end(); it++) {
             colorData[it->first*3] = it->second.getRedValue();
             colorData[it->first*3+1] = it->second.getGreenValue();
@@ -111,7 +111,7 @@ void SegmentationRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
     if(mFillAreaModified) {
         // Transfer colors to device (this doesn't have to happen every render call..)
         boost::shared_array<char> fillAreaData(new char[mLabelColors.size()]);
-        boost::unordered_map<Segmentation::LabelType, Color>::iterator it;
+        std::unordered_map<Segmentation::LabelType, Color>::iterator it;
         for(it = mLabelColors.begin(); it != mLabelColors.end(); it++) {
             if(mLabelFillArea.count(it->first) == 0) {
                 // Use default value
@@ -144,7 +144,7 @@ void SegmentationRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
             sizeof(float)*width*height*4
     );
 
-    boost::unordered_map<uint, Image::pointer>::iterator it;
+    std::unordered_map<uint, Image::pointer>::iterator it;
     for(it = mImagesToRender.begin(); it != mImagesToRender.end(); it++) {
         Image::pointer input = it->second;
 

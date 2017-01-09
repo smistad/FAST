@@ -3,7 +3,7 @@
 
 #include <boost/signals2.hpp>
 #include <boost/thread.hpp>
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include "FAST/SmartPointers.hpp"
 #include "FAST/Streamers/Streamer.hpp"
 #include "FAST/ProcessObject.hpp"
@@ -66,7 +66,7 @@ class IGTLinkStreamer : public Streamer, public ProcessObject {
 
         igtl::ClientSocket::Pointer mSocket;
 
-        boost::unordered_map<std::string, uint> mOutputPortDeviceNames;
+        std::unordered_map<std::string, uint> mOutputPortDeviceNames;
 
         template <class T>
         DynamicData::pointer getOutputDataFromDeviceName(std::string deviceName);

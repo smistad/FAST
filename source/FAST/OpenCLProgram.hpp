@@ -3,7 +3,7 @@
 
 #include "Object.hpp"
 #include "SmartPointers.hpp"
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 
 namespace cl {
 
@@ -30,7 +30,7 @@ class OpenCLProgram : public Object {
 
         std::string mName;
         std::string mSourceFilename;
-        boost::unordered_map<SharedPointer<OpenCLDevice>, boost::unordered_map<std::string, cl::Program> > mOpenCLPrograms;
+        std::unordered_map<SharedPointer<OpenCLDevice>, std::map<std::string, cl::Program> > mOpenCLPrograms;
 };
 
 } // end namespace fast

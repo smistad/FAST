@@ -38,10 +38,10 @@ class PointRenderer : public Renderer {
         float mDefaultPointSize;
         Color mDefaultColor;
         bool mDefaultDrawOnTop;
-        boost::unordered_map<ProcessObjectPort, float> mInputSizes;
-        boost::unordered_map<ProcessObjectPort, Color> mInputColors;
-        boost::unordered_map<ProcessObjectPort, bool> mInputDrawOnTop;
-        boost::unordered_map<uint, PointSet::pointer> mPointSetsToRender;
+        std::unordered_map<ProcessObjectPort, float> mInputSizes;
+        std::unordered_map<ProcessObjectPort, Color> mInputColors;
+        std::unordered_map<ProcessObjectPort, bool> mInputDrawOnTop;
+        std::unordered_map<uint, PointSet::pointer> mPointSetsToRender;
         boost::mutex mMutex;
 };
 

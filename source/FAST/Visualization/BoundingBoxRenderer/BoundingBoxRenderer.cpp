@@ -37,7 +37,7 @@ void BoundingBoxRenderer::draw() {
     boost::lock_guard<boost::mutex> lock(mMutex);
 
     // Draw each bounding box
-    boost::unordered_map<uint, BoundingBox>::iterator it;
+    std::unordered_map<uint, BoundingBox>::iterator it;
     glBegin(GL_LINES);
     glColor3f(0.0f, 1.0f, 0.0f);
     for(it = mBoxesToRender.begin(); it != mBoxesToRender.end(); ++it) {
@@ -64,7 +64,7 @@ void BoundingBoxRenderer::draw() {
 
 BoundingBox BoundingBoxRenderer::getBoundingBox() {
     std::vector<Vector3f> coordinates;
-    boost::unordered_map<uint, BoundingBox>::iterator it;
+    std::unordered_map<uint, BoundingBox>::iterator it;
     for(it = mBoxesToRender.begin(); it != mBoxesToRender.end(); ++it) {
         BoundingBox transformedBoundingBox = it->second;
         MatrixXf corners = transformedBoundingBox.getCorners();

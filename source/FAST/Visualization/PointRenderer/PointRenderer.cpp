@@ -14,7 +14,7 @@ namespace fast {
 void PointRenderer::draw() {
     boost::lock_guard<boost::mutex> lock(mMutex);
 
-    boost::unordered_map<uint, PointSet::pointer>::iterator it;
+    std::unordered_map<uint, PointSet::pointer>::iterator it;
     for(it = mPointSetsToRender.begin(); it != mPointSetsToRender.end(); it++) {
         PointSet::pointer points = it->second;
         PointSetAccess::pointer access = points->getAccess(ACCESS_READ);
@@ -78,7 +78,7 @@ void PointRenderer::draw2D(
     boost::shared_array<float> pixels(new float[width*height*sizeof(float)*4]);
     queue.enqueueReadBuffer(PBO, CL_TRUE, 0, width*height*4*sizeof(float), pixels.get());
 
-    boost::unordered_map<uint, PointSet::pointer>::iterator it;
+    std::unordered_map<uint, PointSet::pointer>::iterator it;
     for(it = mPointSetsToRender.begin(); it != mPointSetsToRender.end(); it++) {
     	PointSet::pointer points = it->second;
 

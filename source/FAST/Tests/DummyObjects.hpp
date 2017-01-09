@@ -4,7 +4,7 @@
 #include "FAST/ProcessObject.hpp"
 #include "FAST/Data/SpatialDataObject.hpp"
 #include "FAST/Data/DynamicData.hpp"
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 
 namespace fast {
 
@@ -24,7 +24,7 @@ class DummyDataObject : public SpatialDataObject {
             mFreed[device] = true;
         };
         void freeAll() {};
-        boost::unordered_map<ExecutionDevice::pointer, bool> mFreed;
+        std::unordered_map<ExecutionDevice::pointer, bool> mFreed;
 };
 
 

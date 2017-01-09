@@ -24,9 +24,9 @@ class ImageRenderer : public Renderer {
                 Vector2f translation
         );
 
-        boost::unordered_map<uint, Image::pointer> mImagesToRender;
-        boost::unordered_map<uint, GLuint> mTexturesToRender;
-        boost::unordered_map<uint, Image::pointer> mImageUsed;
+        std::unordered_map<uint, Image::pointer> mImagesToRender;
+        std::unordered_map<uint, GLuint> mTexturesToRender;
+        std::unordered_map<uint, Image::pointer> mImageUsed;
 
         cl::Kernel mKernel;
 

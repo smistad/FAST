@@ -12,7 +12,7 @@ ProcessObject::ProcessObject() : mIsModified(false), mRuntimeManager(new Runtime
 void ProcessObject::update() {
     bool aParentHasBeenModified = false;
     // TODO check mInputConnections here instead
-    boost::unordered_map<uint, ProcessObjectPort>::iterator it;
+    std::unordered_map<uint, ProcessObjectPort>::iterator it;
     for(it = mInputConnections.begin(); it != mInputConnections.end(); it++) {
         // Update input connection
         ProcessObjectPort& port = it->second; // use reference here to make sure timestamp is updated
@@ -77,7 +77,7 @@ void ProcessObject::releaseInputAfterExecute(uint inputNumber,
 
 void ProcessObject::preExecute() {
     // Check that required inputs are present
-    boost::unordered_map<uint, bool>::iterator it;
+    std::unordered_map<uint, bool>::iterator it;
     for(it = mRequiredInputs.begin(); it != mRequiredInputs.end(); it++) {
         if(it->second) { // if required
             // Check that input exist and is valid
@@ -90,7 +90,7 @@ void ProcessObject::preExecute() {
 
 void ProcessObject::postExecute() {
     // TODO Release input data if they are marked as "release after execute"
-    boost::unordered_map<uint, bool>::iterator it;
+    std::unordered_map<uint, bool>::iterator it;
     for(it = mReleaseAfterExecute.begin(); it != mReleaseAfterExecute.end(); it++) {
         if(it->second) {
             std::vector<uint>::iterator it2;
@@ -104,7 +104,7 @@ void ProcessObject::postExecute() {
 
 void ProcessObject::changeDeviceOnInputs(uint deviceNumber, ExecutionDevice::pointer device) {
     // TODO For each input, release old device and retain on new device
-    boost::unordered_map<uint, ProcessObjectPort>::iterator it;
+    std::unordered_map<uint, ProcessObjectPort>::iterator it;
     for(it = mInputConnections.begin(); it != mInputConnections.end(); it++) {
         std::vector<uint>::iterator it2;
         for(it2 = mInputDevices[it->first].begin(); it2 != mInputDevices[it->first].end(); it2++) {
@@ -260,7 +260,7 @@ ProcessObjectPort ProcessObject::getInputPort(uint portID) const {
 
 
 void ProcessObject::updateTimestamp(DataObject::pointer data) {
-    boost::unordered_map<uint, ProcessObjectPort>::iterator it;
+    std::unordered_map<uint, ProcessObjectPort>::iterator it;
     for(it = mInputConnections.begin(); it != mInputConnections.end(); it++) {
         ProcessObjectPort& port = it->second;
         if(port.getData() == data) {
@@ -336,3 +336,12 @@ cl::Program ProcessObject::getOpenCLProgram(
 }
 
 } // namespace fast
+
+namespace std {
+size_t hash<fast::ProcessObjectPort>::operator()(const fast::ProcessObjectPort &object) const {
+    std::size_t seed = 0;
+    fast::hash_combine(seed, object.getProcessObject().getPtr().get());
+    fast::hash_combine(seed, object.getPortID());
+    return seed;
+}
+} // end namespace std

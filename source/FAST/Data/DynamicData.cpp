@@ -43,7 +43,7 @@ uint DynamicData::getLowestFrameCount() const {
     if(mConsumerFrameCounters.size() == 0)
         return 0;
 
-    boost::unordered_map<WeakPointer<Object>, uint>::const_iterator it;
+    std::unordered_map<WeakPointer<Object>, uint>::const_iterator it;
     uint lowestFrameCount = std::numeric_limits<uint>::max();
     for(it = mConsumerFrameCounters.begin(); it != mConsumerFrameCounters.end(); it++) {
         if(it->second < lowestFrameCount) {
@@ -56,7 +56,7 @@ uint DynamicData::getLowestFrameCount() const {
 
 void DynamicData::removeOldFrames(uint frameCounter) {
     // TODO this could be implemented in a faster way
-    boost::unordered_map<uint, DataObject::pointer>::iterator it = mFrames2.begin();
+    std::unordered_map<uint, DataObject::pointer>::iterator it = mFrames2.begin();
     while(it != mFrames2.end()) {
         if(it->first < frameCounter) {
             it = mFrames2.erase(it);
@@ -92,7 +92,7 @@ DataObject::pointer DynamicData::getNextFrame(Object::pointer processObject) {
 
 void DynamicData::setAllConsumersUpToDate() {
     unsigned long timestamp = getTimestamp();
-    boost::unordered_map<WeakPointer<Object>, uint>::iterator it;
+    std::unordered_map<WeakPointer<Object>, uint>::iterator it;
     for(it = mConsumerFrameCounters.begin(); it != mConsumerFrameCounters.end(); it++) {
         ProcessObject::pointer consumer = ProcessObject::pointer(it->first.lock());
         consumer->updateTimestamp(mPtr.lock());
@@ -115,7 +115,7 @@ DataObject::pointer DynamicData::getNextFrame(WeakPointer<Object> processObject)
             uint thisFrameCounter = mConsumerFrameCounters[processObject]; // Current consumer frame counter
 
             // If any other frame counters are less or equal, we do not want to remove frame
-            boost::unordered_map<WeakPointer<Object>, uint>::const_iterator it;
+            std::unordered_map<WeakPointer<Object>, uint>::const_iterator it;
             for(it = mConsumerFrameCounters.begin(); it != mConsumerFrameCounters.end(); it++) {
                 if(it->second <= thisFrameCounter) {
                     frameShouldBeRemoved = false;
@@ -169,7 +169,7 @@ DataObject::pointer DynamicData::getNextFrame(WeakPointer<Object> processObject)
         if(mFrames2.size() > 0) { // Update timestamp if there are more frames available
             updateModifiedTimestamp();
             // For each consumer
-            boost::unordered_map<WeakPointer<Object>, uint>::iterator it;
+            std::unordered_map<WeakPointer<Object>, uint>::iterator it;
             for(it = mConsumerFrameCounters.begin(); it != mConsumerFrameCounters.end(); it++) {
                 // Check if next frame is available
                 if(mFrames2.count(it->second) == 0) {

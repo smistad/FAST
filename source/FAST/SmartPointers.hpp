@@ -159,18 +159,23 @@ WeakPointer<T> &WeakPointer<T>::operator=(const SharedPointer<T> &other) {
 } // end namespace fast
 
 
-// A custum boost hashing function for the SharedPointers so that they can be used
-// in unordered data structures. TODO verify that this works
-namespace boost {
-template <class U>
-std::size_t hash_value(fast::SharedPointer<U> const& obj) {
-    return (std::size_t)obj.getPtr().get();
-}
-template <class U>
-std::size_t hash_value(fast::WeakPointer<U> const& obj) {
-    return (std::size_t)obj.lock().getPtr().get();
-}
-}
+// Custom hashing functions for the smart pointers so that they can be used in unordered_map etc.
 
+namespace std {
+    template <class U>
+    class hash<fast::SharedPointer<U> >{
+    public:
+        size_t operator()(const fast::SharedPointer<U> &object) const {
+            return (std::size_t)object.getPtr().get();
+        }
+    };
+    template <class U>
+    class hash<fast::WeakPointer<U> >{
+    public:
+        size_t operator()(const fast::WeakPointer<U> &object) const {
+            return (std::size_t)object.lock().getPtr().get();
+        }
+    };
+};
 
 #endif /* SMARTPOINTERS_HPP_ */
