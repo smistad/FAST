@@ -5,7 +5,8 @@
 #include <map>
 #include "CL/OpenCL.hpp"
 #include "RuntimeMeasurement.hpp"
-#include <boost/chrono.hpp>
+#include <chrono>
+#include <memory>
 
 namespace fast {
 
@@ -40,10 +41,10 @@ private:
 	std::map<std::string, RuntimeMeasurementPtr> timings;
 	std::map<std::string, unsigned int> numberings;
 	std::map<std::string, cl::Event> startEvents;
-	std::map<std::string, boost::chrono::system_clock::time_point> startTimes;
+	std::map<std::string, std::chrono::system_clock::time_point> startTimes;
 };
 
-typedef boost::shared_ptr<class RuntimeMeasurementsManager> RuntimeMeasurementsManagerPtr;
+typedef std::shared_ptr<class RuntimeMeasurementsManager> RuntimeMeasurementsManagerPtr;
 
 } //namespace fast
 

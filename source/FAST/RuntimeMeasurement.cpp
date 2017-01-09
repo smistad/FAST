@@ -1,6 +1,7 @@
 #include "RuntimeMeasurement.hpp"
 #include <iostream>
 #include <sstream>
+#include <cmath>
 
 namespace fast {
 
@@ -73,7 +74,7 @@ double RuntimeMeasurement::getAverage() const {
 }
 
 double RuntimeMeasurement::getStdDeviation() const {
-    return sqrt(mRunningVariance / mSamples);
+    return std::sqrt(mRunningVariance / mSamples);
 }
 
 unsigned int RuntimeMeasurement::getSamples() const {

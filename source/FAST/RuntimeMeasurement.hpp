@@ -3,7 +3,7 @@
 
 #include <string>
 #include <stdio.h>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace fast {
 /**
@@ -35,7 +35,7 @@ private:
 	std::string mName;
 };
 
-typedef boost::shared_ptr<class RuntimeMeasurement> RuntimeMeasurementPtr;
+typedef std::shared_ptr<class RuntimeMeasurement> RuntimeMeasurementPtr;
 
 }
 ;
