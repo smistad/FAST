@@ -6,8 +6,7 @@
 #include <vector>
 #include <list>
 #include <stack>
-#include <boost/unordered_set.hpp>
-using boost::unordered_set;
+#include <unordered_set>
 #include <boost/unordered_map.hpp>
 using boost::unordered_map;
 
@@ -315,7 +314,7 @@ void extractCenterlines(
         if(centerlines[LPOS(p.x,p.y,p.z)] == 1)
             continue;
 
-        unordered_set<int> newCenterlines;
+        std::unordered_set<int> newCenterlines;
         newCenterlines.insert(LPOS(p.x,p.y,p.z));
         int distance = 1;
         int connections = 0;
@@ -490,7 +489,7 @@ void extractCenterlines(
             //std::cout << "------------------- New centerlines added #" << counter << " -------------------------" << std::endl;
 
 
-            unordered_set<int>::iterator usit;
+            std::unordered_set<int>::iterator usit;
             if(prevConnection == -1) {
                 // No connections
                 for(usit = newCenterlines.begin(); usit != newCenterlines.end(); usit++) {

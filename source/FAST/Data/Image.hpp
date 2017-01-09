@@ -10,7 +10,7 @@
 #include "FAST/Data/Access/OpenCLBufferAccess.hpp"
 #include "FAST/Data/Access/ImageAccess.hpp"
 #include <boost/unordered_map.hpp>
-#include <boost/unordered_set.hpp>
+
 namespace fast {
 
 class Image : public SpatialDataObject {
