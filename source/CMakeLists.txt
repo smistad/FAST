@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8.9)
 project(FAST)
+include(../cmake/macros.cmake)
 
 #### Options
 option(FAST_VTK_INTEROP "Enable interoperability with VTK" OFF)
@@ -76,78 +77,6 @@ if(BUILD_IGTLINK_TESTS)
 else()
     set(BUILD_TESTING OFF CACHE INTERNAL "Build OpenIGTLink tests." FORCE)
 endif()
-
-
-#### Macro for adding source files and directories
-macro (fast_add_sources)
-    file (RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
-    foreach (_src ${ARGN})
-        if (_relPath)
-            list (APPEND FAST_SOURCE_FILES "${_relPath}/${_src}")
-        else()
-            list (APPEND FAST_SOURCE_FILES "${_src}")
-        endif()
-    endforeach()
-    if (_relPath)
-        # propagate FAST_SOURCE_FILES to parent directory
-        set (FAST_SOURCE_FILES ${FAST_SOURCE_FILES} PARENT_SCOPE)
-    endif()
-endmacro()
-macro (fast_add_test_sources)
-    file (RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
-    foreach (_src ${ARGN})
-        if (_relPath)
-            list (APPEND FAST_TEST_SOURCE_FILES "${_relPath}/${_src}")
-        else()
-            list (APPEND FAST_TEST_SOURCE_FILES "${_src}")
-        endif()
-    endforeach()
-    if (_relPath)
-        # propagate FAST_TEST_SOURCE_FILES to parent directory
-        set (FAST_TEST_SOURCE_FILES ${FAST_TEST_SOURCE_FILES} PARENT_SCOPE)
-    endif()
-endmacro()
-macro (fast_add_python_interfaces)
-    file (RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
-    foreach (_src ${ARGN})
-        if (_relPath)
-            list (APPEND FAST_PYTHON_INTERFACE_FILES "${_relPath}/${_src}")
-        else()
-            list (APPEND FAST_PYTHON_INTERFACE_FILES "${_src}")
-        endif()
-    endforeach()
-    if (_relPath)
-        # propagate FAST_PYTHON_INTERFACE_FILES to parent directory
-        set (FAST_PYTHON_INTERFACE_FILES ${FAST_PYTHON_INTERFACE_FILES} PARENT_SCOPE)
-    endif()
-endmacro()
-macro (fast_add_subdirectories)
-    file (RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
-    foreach (_src ${ARGN})
-        add_subdirectory(${_src})
-    endforeach()
-    if (_relPath)
-        # propagate to parent directory
-        set (FAST_TEST_SOURCE_FILES ${FAST_TEST_SOURCE_FILES} PARENT_SCOPE)
-        set (FAST_SOURCE_FILES ${FAST_SOURCE_FILES} PARENT_SCOPE)
-        set (FAST_PYTHON_INTERFACE_FILES ${FAST_PYTHON_INTERFACE_FILES} PARENT_SCOPE)
-	endif()
-endmacro()
-macro (fast_add_all_subdirectories)
-	file(GLOB children RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*)
-	foreach(child ${children})
-		if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${child})
-			add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/${child})
-		endif()
-    endforeach()
-    if (_relPath)
-        # propagate to parent directory
-        set (FAST_TEST_SOURCE_FILES ${FAST_TEST_SOURCE_FILES} PARENT_SCOPE)
-        set (FAST_SOURCE_FILES ${FAST_SOURCE_FILES} PARENT_SCOPE)
-        set (FAST_PYTHON_INTERFACE_FILES ${FAST_PYTHON_INTERFACE_FILES} PARENT_SCOPE)
-	endif()
-endmacro()	
-
 
 # Headers for Qt objects
 set(QT_HEADERS
@@ -312,6 +241,9 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" OR CMAKE_COMPILER_IS_GNUCXX)
     endif()
 endif()
 
+#### Add all subdirs
+fast_add_subdirectories(FAST)
+
 if(FAST_BUILD_EXAMPLES)
 	set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 	if(WIN32)
@@ -319,32 +251,13 @@ if(FAST_BUILD_EXAMPLES)
 	else()
 		file(WRITE ${PROJECT_BINARY_DIR}/runAllExamples.sh "#!/bin/bash\n")
 	endif()
-
-	### Macro for add examples
-	macro (fast_add_example NAME)
-		add_executable(${NAME} ${ARGN})
-		target_link_libraries(${NAME} FAST)
-		if(WIN32)
-			file(APPEND ${PROJECT_BINARY_DIR}/runAllExamples.bat "bin\\${CMAKE_BUILD_TYPE}\\${NAME}.exe\r\n")
-		else()
-			file(APPEND ${PROJECT_BINARY_DIR}/runAllExamples.sh "./bin/${NAME}\n")
-		endif()
-	endmacro()
-else()
-	macro (fast_add_example NAME)
-	endmacro()
+    add_subdirectory(FAST/Examples)
 endif()
 
 if(WIN32)
 	# Build with multiple processes on windows
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
 endif()
-
-#### Add all subdirs
-fast_add_subdirectories(FAST)
-add_subdirectory(FAST/Examples)
-
-
 
 
 #### OpenMP
