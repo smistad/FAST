@@ -45,7 +45,7 @@ class WeakPointer {
         SharedPointer<T> lock() const {
             return SharedPointer<T>(mWeakPtr.lock());
         };
-        boost::weak_ptr<T> getPtr() const { return mWeakPtr; };
+        std::weak_ptr<T> getPtr() const { return mWeakPtr; };
         WeakPointer<T> &operator=(const SharedPointer<T> &other);
         bool operator==(const WeakPointer<T> &other) const {
             // Check if the two weak pointers, point to the same objecs
@@ -58,7 +58,7 @@ class WeakPointer {
             }
         }
     private:
-        boost::weak_ptr<T> mWeakPtr;
+        std::weak_ptr<T> mWeakPtr;
 
 };
 
@@ -71,45 +71,45 @@ class SharedPointer {
 
         }
 		SharedPointer(T* object) {
-            mSmartPtr = boost::shared_ptr<T>(object);
+            mSmartPtr = std::shared_ptr<T>(object);
         }
         template <class D>
         SharedPointer(T* p, D d) {
-        	mSmartPtr = boost::shared_ptr<T>(p, d);
+        	mSmartPtr = std::shared_ptr<T>(p, d);
         }
 
         template <class U>
-        SharedPointer(boost::shared_ptr<U> sharedPtr) {
-            mSmartPtr = boost::dynamic_pointer_cast<T>(sharedPtr);
+        SharedPointer(std::shared_ptr<U> sharedPtr) {
+            mSmartPtr = std::dynamic_pointer_cast<T>(sharedPtr);
         }
 
         template <class U>
         SharedPointer(SharedPointer<U> object) {
             if(!object.isValid())
                 throw Exception("Cast from " + U::getStaticNameOfClass() + " to " + T::getStaticNameOfClass() + " failed because object was invalid (uninitialized or deleted).");
-            boost::shared_ptr<T> ptr = boost::dynamic_pointer_cast<T>(object.getPtr());
+            std::shared_ptr<T> ptr = std::dynamic_pointer_cast<T>(object.getPtr());
             if(ptr == NULL)
                 throw Exception("Illegal cast from " + U::getStaticNameOfClass() + " to " + T::getStaticNameOfClass());
-            mSmartPtr = boost::shared_ptr<T>(ptr);
+            mSmartPtr = std::shared_ptr<T>(ptr);
         }
         template <class U>
         SharedPointer(WeakPointer<U> object) {
             if(!object.isValid())
                 throw Exception("Cast from " + U::getStaticNameOfClass() + " to " + T::getStaticNameOfClass() + " failed because object was invalid (uninitialized or deleted).");
-            boost::shared_ptr<T> ptr = boost::dynamic_pointer_cast<T>(object.getPtr().lock());
+            std::shared_ptr<T> ptr = std::dynamic_pointer_cast<T>(object.getPtr().lock());
             if(ptr == NULL)
                 throw Exception("Illegal cast from " + U::getStaticNameOfClass() + " to " + T::getStaticNameOfClass());
-            mSmartPtr = boost::shared_ptr<T>(ptr);
+            mSmartPtr = std::shared_ptr<T>(ptr);
         }
 
         template <class U>
         SharedPointer<T> &operator=(const SharedPointer<U> &other) {
             if(!other.isValid())
                 throw Exception("Cast from " + U::getStaticNameOfClass() + " to " + T::getStaticNameOfClass() + " failed because object was invalid (uninitialized or deleted).");
-            boost::shared_ptr<T> ptr = boost::dynamic_pointer_cast<T>(other.getPtr());
+            std::shared_ptr<T> ptr = std::dynamic_pointer_cast<T>(other.getPtr());
             if(ptr == NULL)
                 throw Exception("Illegal cast from " + U::getStaticNameOfClass() + " to " + T::getStaticNameOfClass());
-            mSmartPtr = boost::shared_ptr<T>(ptr);
+            mSmartPtr = std::shared_ptr<T>(ptr);
             return *this;
         }
 
@@ -141,10 +141,10 @@ class SharedPointer {
         	return mSmartPtr.get();
         }
 
-        boost::shared_ptr<T> getPtr() const { return mSmartPtr; };
-        boost::shared_ptr<T> & getReferenceToPointer() { return mSmartPtr; };
+        std::shared_ptr<T> getPtr() const { return mSmartPtr; };
+        std::shared_ptr<T> & getReferenceToPointer() { return mSmartPtr; };
     private:
-        boost::shared_ptr<T> mSmartPtr;
+        std::shared_ptr<T> mSmartPtr;
 
 };
 
@@ -158,6 +158,7 @@ WeakPointer<T> &WeakPointer<T>::operator=(const SharedPointer<T> &other) {
 }
 
 } // end namespace fast
+
 
 // A custum boost hashing function for the SharedPointers so that they can be used
 // in unordered data structures. TODO verify that this works
