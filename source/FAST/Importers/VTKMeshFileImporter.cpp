@@ -63,9 +63,9 @@ void VTKMeshFileImporter::execute() {
 
         for(int i = 0; i < tokens.size(); i += 3) {
             Vector3f v;
-            v(0) = boost::lexical_cast<float>(tokens[i]);
-            v(1) = boost::lexical_cast<float>(tokens[i+1]);
-            v(2) = boost::lexical_cast<float>(tokens[i+2]);
+            v(0) = std::stof(tokens[i]);
+            v(1) = std::stof(tokens[i+1]);
+            v(2) = std::stof(tokens[i+2]);
             vertices.push_back(v);
         }
     }
@@ -90,7 +90,7 @@ void VTKMeshFileImporter::execute() {
         std::vector<std::string> tokens;
         boost::split(tokens, line, boost::is_any_of(" "));
 
-        if(boost::lexical_cast<int>(tokens[0]) != 3) {
+        if(std::stoi(tokens[0]) != 3) {
             throw Exception("The VTKMeshFileImporter currently only supports reading files with triangles. Encountered a non-triangle. Aborting.");
         }
         if(tokens.size() != 4) {
@@ -98,9 +98,9 @@ void VTKMeshFileImporter::execute() {
         }
 
         Vector3ui triangle;
-        triangle(0) = boost::lexical_cast<uint>(tokens[1]);
-        triangle(1) = boost::lexical_cast<uint>(tokens[2]);
-        triangle(2) = boost::lexical_cast<uint>(tokens[3]);
+        triangle(0) = std::stoi(tokens[1]);
+        triangle(1) = std::stoi(tokens[2]);
+        triangle(2) = std::stoi(tokens[3]);
 
         triangles.push_back(triangle);
 
@@ -131,15 +131,15 @@ void VTKMeshFileImporter::execute() {
 
             for(int i = 0; i < tokens.size(); i += 3) {
                 Vector3f v;
-                v(0) = boost::lexical_cast<float>(tokens[i]);
-                v(1) = boost::lexical_cast<float>(tokens[i+1]);
-                v(2) = boost::lexical_cast<float>(tokens[i+2]);
+                v(0) = std::stof(tokens[i]);
+                v(1) = std::stof(tokens[i+1]);
+                v(2) = std::stof(tokens[i+2]);
                 normals.push_back(v);
             }
         }
 
         if(normals.size() != vertices.size()) {
-            std::string message = "Read different amount of vertices (" + boost::lexical_cast<std::string>(vertices.size()) + ") and normals (" + boost::lexical_cast<std::string>(normals.size()) + ").";
+            std::string message = "Read different amount of vertices (" + std::to_string(vertices.size()) + ") and normals (" + std::to_string(normals.size()) + ").";
             throw Exception(message);
         }
     }

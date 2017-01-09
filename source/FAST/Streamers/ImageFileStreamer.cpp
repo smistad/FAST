@@ -125,7 +125,7 @@ void ImageFileStreamer::producerStream() {
     int currentSequence = 0;
     while(true) {
         std::string filename = mFilenameFormats[currentSequence];
-        std::string frameNumber = boost::lexical_cast<std::string>(i);
+        std::string frameNumber = std::to_string(i);
         if(mZeroFillDigits > 0 && frameNumber.size() < mZeroFillDigits) {
             std::string zeroFilling = "";
             for(uint z = 0; z < mZeroFillDigits-frameNumber.size(); z++) {
@@ -149,7 +149,7 @@ void ImageFileStreamer::producerStream() {
                 std::string line;
                 std::getline(timestampFile, line);
                 if(line != "") {
-                    unsigned long timestamp = boost::lexical_cast<unsigned long>(line);
+                    unsigned long timestamp = std::stoul(line);
                     image->setCreationTimestamp(timestamp);
                     // Wait as long as necessary before adding image
                     auto timePassed = std::chrono::duration_cast<std::chrono::milliseconds>(

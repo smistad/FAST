@@ -111,7 +111,7 @@ void SimpleGUI::updateThreshold(int value) {
 	mSurfaceExtraction->setThreshold(value);
 
 	// Update label
-	std::string text = "Threshold: " + boost::lexical_cast<std::string>(value) + " HU";
+	std::string text = "Threshold: " + std::to_string(value) + " HU";
 	mThresholdLabel->setText(text.c_str());
 }
 
@@ -121,7 +121,7 @@ void SimpleGUI::updateSmoothingParameter(int value) {
 	mSmoothing->setStandardDeviation(standardDeviation);
 
 	// Update label
-	std::string text = "Smoothing: " + boost::lexical_cast<std::string>(standardDeviation) + " mm";
+	std::string text = "Smoothing: " + std::to_string(standardDeviation) + " mm";
 	mSmoothingLabel->setText(text.c_str());
 }
 

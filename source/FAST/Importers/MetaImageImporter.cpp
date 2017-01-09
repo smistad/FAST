@@ -160,18 +160,18 @@ void MetaImageImporter::execute() {
             if(imageIs3D) {
                 if(values.size() != 3)
                     throw Exception("DimSize in MetaImage file did not contain 3 numbers");
-                depth = boost::lexical_cast<int>(values[2]);
+                depth = std::stoi(values[2]);
             } else {
                 if(values.size() != 2)
                     throw Exception("DimSize in MetaImage file did not contain 2 numbers");
             }
-            width = boost::lexical_cast<int>(values[0]);
-            height = boost::lexical_cast<int>(values[1]);
+            width = std::stoi(values[0]);
+            height = std::stoi(values[1]);
             sizeFound = true;
         } else if(key == "CompressedData" && value == "True") {
             isCompressed = true;
         } else if(key == "CompressedDataSize") {
-            compressedDataSize = boost::lexical_cast<int>(value);
+            compressedDataSize = std::stoi(value);
         } else if(key == "ElementDataFile") {
             rawFilename = value;
             rawFilenameFound = true;
@@ -205,7 +205,7 @@ void MetaImageImporter::execute() {
                 throw Exception("Trying to read volume of unsupported data type", __LINE__, __FILE__);
             }
         } else if(key == "ElementNumberOfChannels") {
-            nrOfComponents = boost::lexical_cast<int>(value.c_str());
+            nrOfComponents = std::stoi(value.c_str());
             if(nrOfComponents <= 0)
                 throw Exception("Error in reading the number of components in the MetaImageImporter");
         } else if(key == "ElementSpacing") {
@@ -216,19 +216,19 @@ void MetaImageImporter::execute() {
             if(imageIs3D) {
                 if(values.size() != 3)
                     throw Exception("ElementSpacing in MetaImage file did not contain 3 numbers");
-                spacing[0] = boost::lexical_cast<float>(values[0]);
-                spacing[1] = boost::lexical_cast<float>(values[1]);
-                spacing[2] = boost::lexical_cast<float>(values[2]);
+                spacing[0] = std::stof(values[0]);
+                spacing[1] = std::stof(values[1]);
+                spacing[2] = std::stof(values[2]);
             } else {
                 if(values.size() != 2 && values.size() != 3)
                     throw Exception("ElementSpacing in MetaImage file did not contain 2 or 3 numbers");
 
-                spacing[0] = boost::lexical_cast<float>(values[0]);
-                spacing[1] = boost::lexical_cast<float>(values[1]);
+                spacing[0] = std::stof(values[0]);
+                spacing[1] = std::stof(values[1]);
                 if(values.size() == 2) {
                     spacing[2] = 1;
                 } else {
-                    spacing[2] = boost::lexical_cast<float>(values[2]);
+                    spacing[2] = std::stof(values[2]);
                 }
             }
 
@@ -242,19 +242,19 @@ void MetaImageImporter::execute() {
             if(imageIs3D) {
                 if(values.size() != 3)
                     throw Exception("CenterOfRotation in MetaImage file did not contain 3 numbers");
-                centerOfRotation[0] = boost::lexical_cast<float>(values[0]);
-                centerOfRotation[1] = boost::lexical_cast<float>(values[1]);
-                centerOfRotation[2] = boost::lexical_cast<float>(values[2]);
+                centerOfRotation[0] = std::stof(values[0]);
+                centerOfRotation[1] = std::stof(values[1]);
+                centerOfRotation[2] = std::stof(values[2]);
             } else {
                 if(values.size() != 2 && values.size() != 3)
                     throw Exception("CenterOfRotation in MetaImage file did not contain 2 or 3 numbers");
 
-                centerOfRotation[0] = boost::lexical_cast<float>(values[0]);
-                centerOfRotation[1] = boost::lexical_cast<float>(values[1]);
+                centerOfRotation[0] = std::stof(values[0]);
+                centerOfRotation[1] = std::stof(values[1]);
                 if(values.size() == 2) {
                     centerOfRotation[2] = 0;
                 } else {
-                    centerOfRotation[2] = boost::lexical_cast<float>(values[2]);
+                    centerOfRotation[2] = std::stof(values[2]);
                 }
             }
         } else if(key == "Offset" || key == "Origin" || key == "Position") {
@@ -266,9 +266,9 @@ void MetaImageImporter::execute() {
                 reportError() << "Offset/Origin/Position in MetaImage file did not contain 3 numbers" << reportEnd();
                 reportError() << "Ignoring" << reportEnd();
             } else {
-				offset[0] = boost::lexical_cast<float>(values[0].c_str());
-				offset[1] = boost::lexical_cast<float>(values[1].c_str());
-				offset[2] = boost::lexical_cast<float>(values[2].c_str());
+				offset[0] = std::stof(values[0].c_str());
+				offset[1] = std::stof(values[1].c_str());
+				offset[2] = std::stof(values[2].c_str());
             }
         } else if(key == "TransformMatrix" || key == "Rotation" || key == "Orientation") {
             std::vector<std::string> values;
@@ -282,7 +282,7 @@ void MetaImageImporter::execute() {
 
 				for(unsigned int i = 0; i < 3; i++) {
 				for(unsigned int j = 0; j < 3; j++) {
-					transformMatrix(j,i) = boost::lexical_cast<float>(values[j+i*3].c_str());
+					transformMatrix(j,i) = std::stof(values[j+i*3].c_str());
 				}}
             }
         }

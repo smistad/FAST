@@ -85,7 +85,7 @@ NLMGUI3D::NLMGUI3D() {
     //mSmoothingLabel->setText("DenoiseStrength: 300");
     //menuLayout->addWidget(mSmoothingLabel);
     nlmStrengthLabel = new QLabel;
-    std::string text1 = "Denoise Strength: " + boost::lexical_cast<std::string>(0.3) + " ";
+    std::string text1 = "Denoise Strength: " + std::to_string(0.3) + " ";
     nlmStrengthLabel->setText(text1.c_str());
     menuLayout->addWidget(nlmStrengthLabel);
     // Smoothing parameter slider
@@ -104,7 +104,7 @@ NLMGUI3D::NLMGUI3D() {
     //mThresholdLabel->setText("Threshold: 100 HU");
     //menuLayout->addWidget(mThresholdLabel);
     nlmSigmaLabel = new QLabel;
-    std::string text2 = "Sigma: " + boost::lexical_cast<std::string>(0.65) + " ";
+    std::string text2 = "Sigma: " + std::to_string(0.65) + " ";
     nlmSigmaLabel->setText(text2.c_str());
     menuLayout->addWidget(nlmSigmaLabel);
     // Sigma slider
@@ -120,7 +120,7 @@ NLMGUI3D::NLMGUI3D() {
 
     //GroupSize Label + Slider
     nlmGroupSizeLabel = new QLabel;
-    std::string text3 = "Group Size: " + boost::lexical_cast<std::string>(3) + " ";
+    std::string text3 = "Group Size: " + std::to_string(3) + " ";
     nlmGroupSizeLabel->setText(text3.c_str());
     menuLayout->addWidget(nlmGroupSizeLabel);
     QSlider* slider3 = new QSlider(Qt::Horizontal);
@@ -133,7 +133,7 @@ NLMGUI3D::NLMGUI3D() {
     
     //WindowSize Label + Slider
     nlmWindowSizeLabel = new QLabel;
-    std::string text4 = "Window Size: " + boost::lexical_cast<std::string>(5) + " ";
+    std::string text4 = "Window Size: " + std::to_string(5) + " ";
     nlmWindowSizeLabel->setText(text4.c_str());
     menuLayout->addWidget(nlmWindowSizeLabel);
     QSlider* slider4 = new QSlider(Qt::Horizontal);
@@ -146,7 +146,7 @@ NLMGUI3D::NLMGUI3D() {
     
     //K Label + Slider
     nlmKLabel = new QLabel;
-    std::string text5 = "K Version: " + boost::lexical_cast<std::string>(0) + " ";
+    std::string text5 = "K Version: " + std::to_string(0) + " ";
     nlmKLabel->setText(text5.c_str());
     menuLayout->addWidget(nlmKLabel);
     QSlider* slider5 = new QSlider(Qt::Horizontal);
@@ -159,7 +159,7 @@ NLMGUI3D::NLMGUI3D() {
     
     //Threshhold
     mThresholdLabel = new QLabel;
-    std::string text7 = "Threshold: " + boost::lexical_cast<std::string>(0) + " ";
+    std::string text7 = "Threshold: " + std::to_string(0) + " ";
     mThresholdLabel->setText(text7.c_str());
     menuLayout->addWidget(mThresholdLabel);
     QSlider* slider6 = new QSlider(Qt::Horizontal);
@@ -188,7 +188,7 @@ void NLMGUI3D::updateThreshold(int value) {
 	mSurfaceExtraction->setThreshold(value);
 
 	// Update label
-	std::string text = "Threshold: " + boost::lexical_cast<std::string>(value) + " HU";
+	std::string text = "Threshold: " + std::to_string(value) + " HU";
 	mThresholdLabel->setText(text.c_str());
 }
 
@@ -196,7 +196,7 @@ void NLMGUI3D::updateDenoiseParameter(int value){
     float newDs = value/1000.0f;
     nlmSmoothing->setDenoiseStrength(newDs);
     //Her skal jeg update label
-    std::string text = "Denoise Strength: " + boost::lexical_cast<std::string>(newDs) + " ";
+    std::string text = "Denoise Strength: " + std::to_string(newDs) + " ";
     nlmStrengthLabel->setText(text.c_str());
     nlmSmoothing->getRuntime()->print();
 }
@@ -204,7 +204,7 @@ void NLMGUI3D::updateGroupSize(int value){
     if(value > 0 && value % 2 == 1){
         nlmSmoothing->setGroupSize((uint)value);
         //update label
-        std::string text = "GroupSize: " + boost::lexical_cast<std::string>(value) + " ";
+        std::string text = "GroupSize: " + std::to_string(value) + " ";
         nlmGroupSizeLabel->setText(text.c_str());
         //nlmSmoothing->update();
         nlmSmoothing->getRuntime()->print();
@@ -215,7 +215,7 @@ void NLMGUI3D::updateWindowSize(int value){
     if(value > 0 && value % 2 ==  1){
         nlmSmoothing->setWindowSize((uint)value);
         //update label
-        std::string text = "WindowSize: " + boost::lexical_cast<std::string>(value) + " ";
+        std::string text = "WindowSize: " + std::to_string(value) + " ";
         nlmWindowSizeLabel->setText(text.c_str());
         nlmSmoothing->getRuntime()->print();
     }
@@ -224,7 +224,7 @@ void NLMGUI3D::updateWindowSize(int value){
     
 void NLMGUI3D::updateK(int value){
     nlmSmoothing->setK((uint)value);
-    std::string text = "Kversion: " + boost::lexical_cast<std::string>(value) + " ";
+    std::string text = "Kversion: " + std::to_string(value) + " ";
     nlmKLabel->setText(text.c_str());
     nlmSmoothing->getRuntime()->print();
 }
@@ -234,7 +234,7 @@ void NLMGUI3D::updateSigma(int value){
     
     
     //update label
-    std::string text = "Sigma: " + boost::lexical_cast<std::string>(newS) + " ";
+    std::string text = "Sigma: " + std::to_string(newS) + " ";
     nlmSigmaLabel->setText(text.c_str());
     nlmSmoothing->getRuntime()->print();
 }

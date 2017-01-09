@@ -206,7 +206,7 @@ std::vector<DataObject::pointer> ProcessObject::getMultipleOutputDataX(uint port
 
     // If output data is not created
     if(mOutputData.count(portID) == 0) {
-        throw Exception("Could not find output data for port " + boost::lexical_cast<std::string>(portID) + " in " + getNameOfClass());
+        throw Exception("Could not find output data for port " + std::to_string(portID) + " in " + getNameOfClass());
     } else {
         data = mOutputData.at(portID);
     }

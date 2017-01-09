@@ -2,11 +2,10 @@
 #define SMARTPOINTERS_HPP_
 
 #define NOMINMAX // Removes windows min and max macros
-#include <boost/shared_ptr.hpp>
-#include <boost/weak_ptr.hpp>
 #include "FAST/Exception.hpp"
 #include "FAST/Reporter.hpp"
 #include "FAST/Paths.hpp"
+#include <memory>
 
 #define FAST_OBJECT(className)                                  \
     public:                                                     \

@@ -62,9 +62,9 @@ void VTKLineSetFileImporter::execute() {
 
         for(int i = 0; i < tokens.size(); i += 3) {
             Vector3f v;
-            v(0) = boost::lexical_cast<float>(tokens[i]);
-            v(1) = boost::lexical_cast<float>(tokens[i+1]);
-            v(2) = boost::lexical_cast<float>(tokens[i+2]);
+            v(0) = std::stof(tokens[i]);
+            v(1) = std::stof(tokens[i+1]);
+            v(2) = std::stof(tokens[i+2]);
             vertices.push_back(v);
         }
     }
@@ -93,8 +93,8 @@ void VTKLineSetFileImporter::execute() {
         }
 
         Vector2ui line;
-        line(0) = boost::lexical_cast<uint>(tokens[1]);
-        line(1) = boost::lexical_cast<uint>(tokens[2]);
+        line(0) = std::stoi(tokens[1]);
+        line(1) = std::stoi(tokens[2]);
 
         lines.push_back(line);
     }

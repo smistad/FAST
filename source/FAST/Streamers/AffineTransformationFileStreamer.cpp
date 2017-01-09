@@ -90,7 +90,7 @@ void AffineTransformationFileStreamer::producerStream() {
 			boost::trim(elements[0]);
 			if(elements.size() != 4 && elements.size() > 1) {
 				throw Exception("Error reading transformation file " + mFilename + " expected 4 numbers per line, "
-						+ boost::lexical_cast<std::string>(elements.size()) + " found.");
+						+ std::to_string(elements.size()) + " found.");
 			} else if(elements.size() == 1 && elements[0] == "") {
 				reportInfo() << "Reached end of stream" << Reporter::end;
 				// If there where no files found at all, we need to release the execute method
@@ -119,10 +119,10 @@ void AffineTransformationFileStreamer::producerStream() {
 			}
 
 			matrix.row(row) = Vector4f(
-					boost::lexical_cast<float>(elements[0]),
-					boost::lexical_cast<float>(elements[1]),
-					boost::lexical_cast<float>(elements[2]),
-					boost::lexical_cast<float>(elements[3]));
+					std::stof(elements[0]),
+					std::stof(elements[1]),
+					std::stof(elements[2]),
+					std::stof(elements[3]));
 		}
 
 		if(restart)
@@ -136,7 +136,7 @@ void AffineTransformationFileStreamer::producerStream() {
 			std::string line;
 			std::getline(timestampFile, line);
 			if(line != "") {
-				unsigned long timestamp = boost::lexical_cast<unsigned long>(line);
+				unsigned long timestamp = std::stoul(line);
 				transformation->setCreationTimestamp(timestamp);
 				// Wait as long as necessary before adding image
 				auto timePassed = std::chrono::duration_cast<std::chrono::milliseconds>(

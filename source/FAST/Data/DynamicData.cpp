@@ -9,9 +9,9 @@ DynamicData::~DynamicData() {
     delete emptyCount;
 
 #if defined(__APPLE__) || defined(__MACOSX)
-    std::string name = "FAST_fill_count_" + boost::lexical_cast<std::string>(mSemaphoreNumber);
+    std::string name = "FAST_fill_count_" + std::to_string(mSemaphoreNumber);
     boost::interprocess::named_semaphore::remove(name.c_str());
-    name = "FAST_empty_count_" + boost::lexical_cast<std::string>(mSemaphoreNumber);
+    name = "FAST_empty_count_" + std::to_string(mSemaphoreNumber);
     boost::interprocess::named_semaphore::remove(name.c_str());
 #endif
 }
@@ -26,9 +26,9 @@ void DynamicData::setMaximumNumberOfFrames(uint nrOfFrames) {
 
         // Use named semaphore if Mac
 #if defined(__APPLE__) || defined(__MACOSX)
-        std::string name = "FAST_fill_count_" + boost::lexical_cast<std::string>(mSemaphoreNumber);
+        std::string name = "FAST_fill_count_" + std::to_string(mSemaphoreNumber);
         boost::interprocess::named_semaphore::remove(name.c_str());
-        std::string name2 = "FAST_empty_count_" + boost::lexical_cast<std::string>(mSemaphoreNumber);
+        std::string name2 = "FAST_empty_count_" + std::to_string(mSemaphoreNumber);
         boost::interprocess::named_semaphore::remove(name2.c_str());
         fillCount = new boost::interprocess::named_semaphore(boost::interprocess::create_only, name.c_str(), 0);
         emptyCount = new boost::interprocess::named_semaphore(boost::interprocess::create_only, name2.c_str(), nrOfFrames);

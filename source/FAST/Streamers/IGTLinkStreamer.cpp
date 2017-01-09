@@ -120,11 +120,11 @@ void IGTLinkStreamer::updateFirstFrameSetFlag() {
 
 void IGTLinkStreamer::producerStream() {
     mSocket = igtl::ClientSocket::New();
-    reportInfo() << "Trying to connect to Open IGT Link server " << mAddress << ":" << boost::lexical_cast<std::string>(mPort) << Reporter::end;;
+    reportInfo() << "Trying to connect to Open IGT Link server " << mAddress << ":" << std::to_string(mPort) << Reporter::end;;
     //mSocket->SetTimeout(3); // try to connect for 3 seconds
     int r = mSocket->ConnectToServer(mAddress.c_str(), mPort);
     if(r != 0) {
-		reportInfo() << "Failed to connect to Open IGT Link server " << mAddress << ":" << boost::lexical_cast<std::string>(mPort) << Reporter::end;;
+		reportInfo() << "Failed to connect to Open IGT Link server " << mAddress << ":" << std::to_string(mPort) << Reporter::end;;
         mIsModified = true;
         mStreamIsStarted = false;
         mStop = true;

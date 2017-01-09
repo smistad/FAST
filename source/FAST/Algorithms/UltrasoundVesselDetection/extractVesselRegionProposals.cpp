@@ -111,7 +111,7 @@ int main() {
 
 		// Put in subfolders
 		int j = i / 4; // Group 4 sequences into each folder
-		std::string targetDir = storageDir + boost::lexical_cast<std::string>(j) + "/";
+		std::string targetDir = storageDir + std::to_string(j) + "/";
 		boost::filesystem::create_directories(targetDir);
 
 		UltrasoundVesselDetection::pointer dummy = UltrasoundVesselDetection::New();
@@ -156,7 +156,7 @@ int main() {
 				cropper->setSize(size);
 
 				ImageExporter::pointer exporter = ImageExporter::New();
-				std::string filename = currentDateTime() + "-" + boost::lexical_cast<std::string>(counter) + ".png";
+				std::string filename = currentDateTime() + "-" + std::to_string(counter) + ".png";
 				exporter->setFilename(targetDir + filename);
 				exporter->setInputConnection(cropper->getOutputPort());
 				exporter->update();

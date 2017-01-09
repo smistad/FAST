@@ -63,9 +63,9 @@ void VTKPointSetFileImporter::execute() {
 
         for(int i = 0; i < tokens.size(); i += 3) {
             Vector3f v;
-            v(0) = boost::lexical_cast<float>(tokens[i]);
-            v(1) = boost::lexical_cast<float>(tokens[i+1]);
-            v(2) = boost::lexical_cast<float>(tokens[i+2]);
+            v(0) = std::stof(tokens[i]);
+            v(1) = std::stof(tokens[i+1]);
+            v(2) = std::stof(tokens[i+2]);
             vertices.push_back(v);
         }
     }

@@ -257,7 +257,7 @@ DataObject::pointer ProcessObject::getOutputData() {
 template <class DataType>
 typename DataType::pointer ProcessObject::getStaticInputData(uint inputNumber) const {
     if(!inputPortExists(inputNumber))
-        throw Exception("The input port " + boost::lexical_cast<std::string>(inputNumber) + " does not exist on the ProcessObject " + getNameOfClass());
+        throw Exception("The input port " + std::to_string(inputNumber) + " does not exist on the ProcessObject " + getNameOfClass());
 
     // at throws exception if element not found, while [] does not
     ProcessObjectPort port = mInputConnections.at(inputNumber);
@@ -265,11 +265,11 @@ typename DataType::pointer ProcessObject::getStaticInputData(uint inputNumber) c
     DataObject::pointer returnData;
     if(data->isDynamicData()) {
         if(mInputPortType.at(inputNumber) == INPUT_STATIC)
-            throw Exception("Input " + boost::lexical_cast<std::string>(inputNumber) + " given to " + getNameOfClass() + " was dynamic while static was required.");
+            throw Exception("Input " + std::to_string(inputNumber) + " given to " + getNameOfClass() + " was dynamic while static was required.");
         returnData = typename DynamicData::pointer(data)->getNextFrame(mPtr);
     } else {
         if(mInputPortType.at(inputNumber) == INPUT_DYNAMIC)
-            throw Exception("Input " + boost::lexical_cast<std::string>(inputNumber) + " given to " + getNameOfClass() + " was static while dynamic was required.");
+            throw Exception("Input " + std::to_string(inputNumber) + " given to " + getNameOfClass() + " was static while dynamic was required.");
         returnData = data;
     }
 
@@ -293,7 +293,7 @@ typename DataType::pointer ProcessObject::getStaticInputData() const {
 template <class DataType>
 std::vector<typename DataType::pointer> ProcessObject::getMultipleStaticInputData(uint inputNumber) const {
     if(!inputPortExists(inputNumber))
-        throw Exception("The input port " + boost::lexical_cast<std::string>(inputNumber) + " does not exist on the ProcessObject " + getNameOfClass());
+        throw Exception("The input port " + std::to_string(inputNumber) + " does not exist on the ProcessObject " + getNameOfClass());
 
     // at throws exception if element not found, while [] does not
     ProcessObjectPort port = mInputConnections.at(inputNumber);
@@ -301,7 +301,7 @@ std::vector<typename DataType::pointer> ProcessObject::getMultipleStaticInputDat
     std::vector<DataObject::pointer> returnData;
 
 	if(mInputPortType.at(inputNumber) == INPUT_DYNAMIC)
-		throw Exception("Input " + boost::lexical_cast<std::string>(inputNumber) + " given to " + getNameOfClass() + " was static while dynamic was required.");
+		throw Exception("Input " + std::to_string(inputNumber) + " given to " + getNameOfClass() + " was static while dynamic was required.");
 	returnData = data;
 
     // Try to do conversion
@@ -328,7 +328,7 @@ std::vector<typename DataType::pointer> ProcessObject::getMultipleStaticInputDat
 template <class DataType>
 typename DataType::pointer ProcessObject::getStaticOutputData(uint outputNumber) {
     if(!outputPortExists(outputNumber))
-        throw Exception("The output port " + boost::lexical_cast<std::string>(outputNumber) + " does not exist on the ProcessObject " + getNameOfClass());
+        throw Exception("The output port " + std::to_string(outputNumber) + " does not exist on the ProcessObject " + getNameOfClass());
 
     // at throws exception if element not found, while [] does not
     DataObject::pointer data = getOutputData<DataType>(outputNumber);//mOutputs.at(outputNumber);
@@ -363,7 +363,7 @@ typename DataType::pointer ProcessObject::getStaticOutputData() {
 template <class DataType>
 typename DataType::pointer ProcessObject::addStaticOutputData(uint portID) {
 	if(!outputPortExists(portID))
-        throw Exception("The output port " + boost::lexical_cast<std::string>(portID) + " does not exist on the ProcessObject " + getNameOfClass());
+        throw Exception("The output port " + std::to_string(portID) + " does not exist on the ProcessObject " + getNameOfClass());
 
 	DataObject::pointer returnData = DataType::New();
 	mOutputData[portID].push_back(returnData);
@@ -404,7 +404,7 @@ template <class DataType>
 void ProcessObject::setStaticOutputData(uint portID, DataObject::pointer staticData) {
 
     if(!outputPortExists(portID)) {
-        throw Exception("Output port " + boost::lexical_cast<std::string>(portID) + " does not exist on process object " + getNameOfClass());
+        throw Exception("Output port " + std::to_string(portID) + " does not exist on process object " + getNameOfClass());
     }
 
     // Do type checking to see that supplied staticData is of required type
@@ -464,7 +464,7 @@ void ProcessObject::setStaticOutputData(uint portID, DataObject::pointer staticD
 template <class DataType>
 void ProcessObject::createInputPort(uint portID, bool required, InputDataType inputDataType, bool allowMultipleInputData) {
     if(inputPortExists(portID))
-        reportWarning() << "Overriding input port with ID " + boost::lexical_cast<std::string>(portID) + " on " + getNameOfClass() << reportEnd();
+        reportWarning() << "Overriding input port with ID " + std::to_string(portID) + " on " + getNameOfClass() << reportEnd();
 
     mRequiredInputs[portID] = required;
     mInputPortClass[portID] = DataType::getStaticNameOfClass();
@@ -475,7 +475,7 @@ void ProcessObject::createInputPort(uint portID, bool required, InputDataType in
 template <class DataType>
 void ProcessObject::createOutputPort(uint portID, OutputDataType outputDataType, int inputPortID, bool enableMultipleOutputData) {
     if(outputPortExists(portID))
-        reportWarning() << "Overriding output port with ID " + boost::lexical_cast<std::string>(portID) + " on " + getNameOfClass() << reportEnd();
+        reportWarning() << "Overriding output port with ID " + std::to_string(portID) + " on " + getNameOfClass() << reportEnd();
 
     mOutputPortClass[portID] = DataType::getStaticNameOfClass();
     mOutputPortType[portID] = outputDataType;
