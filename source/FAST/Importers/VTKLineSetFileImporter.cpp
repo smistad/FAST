@@ -1,8 +1,7 @@
 #include "VTKLineSetFileImporter.hpp"
 #include "FAST/Data/LineSet.hpp"
+#include "FAST/Utility.hpp"
 #include <fstream>
-
-#include <boost/algorithm/string.hpp>
 
 namespace fast {
 
@@ -48,7 +47,7 @@ void VTKLineSetFileImporter::execute() {
         throw Exception("Found no points in the VTK file");
     }
     while(getline(file, line)) {
-        boost::trim(line);
+        trim(line);
         if(line.size() == 0)
             break;
 
@@ -57,8 +56,7 @@ void VTKLineSetFileImporter::execute() {
             break;
         }
 
-        std::vector<std::string> tokens;
-        boost::split(tokens, line, boost::is_any_of(" "));
+        std::vector<std::string> tokens = split(line);
 
         for(int i = 0; i < tokens.size(); i += 3) {
             Vector3f v;
@@ -76,7 +74,7 @@ void VTKLineSetFileImporter::execute() {
         throw Exception("Found no lines in the VTK file");
     }
     while(getline(file, line)) {
-        boost::trim(line);
+        trim(line);
         if(line.size() == 0)
             break;
 
@@ -85,8 +83,7 @@ void VTKLineSetFileImporter::execute() {
             break;
         }
 
-        std::vector<std::string> tokens;
-        boost::split(tokens, line, boost::is_any_of(" "));
+        std::vector<std::string> tokens = split(line);
 
         if(tokens.size() != 3) {
             throw Exception("Error while reading lines in VTKLineSetFileImporter. Check format.");

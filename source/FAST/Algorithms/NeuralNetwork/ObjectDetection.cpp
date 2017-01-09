@@ -3,7 +3,6 @@
 #include "FAST/Data/PointSet.hpp"
 #include "FAST/Algorithms/ImageResizer/ImageResizer.hpp"
 #include "FAST/Data/Mesh.hpp"
-#include <boost/algorithm/string.hpp>
 
 namespace fast {
 

@@ -1,5 +1,4 @@
-
-#include <boost/algorithm/string.hpp>
+#include "FAST/Utility.hpp"
 #include <fstream>
 #include "VTKMeshFileImporter.hpp"
 #include "FAST/Data/Mesh.hpp"
@@ -49,7 +48,7 @@ void VTKMeshFileImporter::execute() {
         throw Exception("Found no vertices in the VTK surface file");
     }
     while(getline(file, line)) {
-        boost::trim(line);
+        trim(line);
         if(line.size() == 0)
             break;
 
@@ -58,8 +57,7 @@ void VTKMeshFileImporter::execute() {
             break;
         }
 
-        std::vector<std::string> tokens;
-        boost::split(tokens, line, boost::is_any_of(" "));
+        std::vector<std::string> tokens = split(line);
 
         for(int i = 0; i < tokens.size(); i += 3) {
             Vector3f v;
@@ -77,7 +75,7 @@ void VTKMeshFileImporter::execute() {
         throw Exception("Found no triangles in the VTK surface file");
     }
     while(getline(file, line)) {
-        boost::trim(line);
+        trim(line);
         if(line.size() == 0)
             break;
 
@@ -87,8 +85,7 @@ void VTKMeshFileImporter::execute() {
         }
 
 
-        std::vector<std::string> tokens;
-        boost::split(tokens, line, boost::is_any_of(" "));
+        std::vector<std::string> tokens = split(line);
 
         if(std::stoi(tokens[0]) != 3) {
             throw Exception("The VTKMeshFileImporter currently only supports reading files with triangles. Encountered a non-triangle. Aborting.");
@@ -117,7 +114,7 @@ void VTKMeshFileImporter::execute() {
         }
     } else {
         while(getline(file, line)) {
-            boost::trim(line);
+            trim(line);
             if(line.size() == 0)
                 break;
 
@@ -126,8 +123,7 @@ void VTKMeshFileImporter::execute() {
                 break;
             }
 
-            std::vector<std::string> tokens;
-            boost::split(tokens, line, boost::is_any_of(" "));
+            std::vector<std::string> tokens = split(line);
 
             for(int i = 0; i < tokens.size(); i += 3) {
                 Vector3f v;

@@ -1,9 +1,9 @@
 #include "MetaImageImporter.hpp"
 #include "FAST/Exception.hpp"
 #include "FAST/Data/Image.hpp"
+#include "FAST/Utility.hpp"
 #include <fstream>
 #include <boost/iostreams/device/mapped_file.hpp>
-#include <boost/algorithm/string.hpp>
 
 #ifdef ZLIB_ENABLED
 #include <zlib.h>
@@ -142,18 +142,18 @@ void MetaImageImporter::execute() {
 
     do{
         std::getline(mhdFile, line);
-        boost::trim(line);
+        trim(line);
         if(line.size() == 0) // line is empty
             continue;
         int firstSpace = line.find(" ");
         std::string key = line.substr(0, firstSpace);
-        boost::trim(key);
+        trim(key);
         int equalSignPos = line.find("=");
         std::string value = line.substr(equalSignPos+1);
-        boost::trim(value);
+        trim(value);
         if(key == "DimSize") {
-            std::vector<std::string> values;
-            boost::split(values, value, boost::is_any_of(" "));
+            std::vector<std::string> values = split(value);
+
             // Remove any empty values:
             values.erase(std::remove(values.begin(), values.end(), ""), values.end());
 
@@ -209,8 +209,7 @@ void MetaImageImporter::execute() {
             if(nrOfComponents <= 0)
                 throw Exception("Error in reading the number of components in the MetaImageImporter");
         } else if(key == "ElementSpacing") {
-            std::vector<std::string> values;
-            boost::split(values, value, boost::is_any_of(" "));
+            std::vector<std::string> values = split(value);
             // Remove any empty values:
             values.erase(std::remove(values.begin(), values.end(), ""), values.end());
             if(imageIs3D) {
@@ -235,8 +234,7 @@ void MetaImageImporter::execute() {
 
         } else if(key == "CenterOfRotation") {
             //reportInfo() << "WARNING: CenterOfRotation in Metaimage file ignored" << Reporter::end;
-            std::vector<std::string> values;
-            boost::split(values, value, boost::is_any_of(" "));
+            std::vector<std::string> values = split(value);
             // Remove any empty values:
             values.erase(std::remove(values.begin(), values.end(), ""), values.end());
             if(imageIs3D) {
@@ -258,8 +256,7 @@ void MetaImageImporter::execute() {
                 }
             }
         } else if(key == "Offset" || key == "Origin" || key == "Position") {
-            std::vector<std::string> values;
-            boost::split(values, value, boost::is_any_of(" "));
+            std::vector<std::string> values = split(value);
             // Remove any empty values:
             values.erase(std::remove(values.begin(), values.end(), ""), values.end());
             if(values.size() != 3) {
@@ -271,8 +268,7 @@ void MetaImageImporter::execute() {
 				offset[2] = std::stof(values[2].c_str());
             }
         } else if(key == "TransformMatrix" || key == "Rotation" || key == "Orientation") {
-            std::vector<std::string> values;
-            boost::split(values, value, boost::is_any_of(" "));
+            std::vector<std::string> values = split(value);
             // Remove any empty values:
             values.erase(std::remove(values.begin(), values.end(), ""), values.end());
             if(values.size() != 9) {

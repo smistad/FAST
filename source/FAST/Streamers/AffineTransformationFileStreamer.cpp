@@ -1,7 +1,6 @@
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Exception.hpp"
-
-#include <boost/algorithm/string.hpp>
+#include "FAST/Utility.hpp"
 #include "AffineTransformationFileStreamer.hpp"
 #include "FAST/AffineTransformation.hpp"
 #include <fstream>
@@ -85,9 +84,9 @@ void AffineTransformationFileStreamer::producerStream() {
 		bool restart = false;
 		for(int row = 0; row < 3; ++row) {
 			std::getline(transformationFile, line);
-			boost::split(elements, line, boost::is_any_of(" "));
+			elements = split(line);
 
-			boost::trim(elements[0]);
+			trim(elements[0]);
 			if(elements.size() != 4 && elements.size() > 1) {
 				throw Exception("Error reading transformation file " + mFilename + " expected 4 numbers per line, "
 						+ std::to_string(elements.size()) + " found.");

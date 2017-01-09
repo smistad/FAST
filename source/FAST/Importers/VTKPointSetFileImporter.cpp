@@ -1,7 +1,6 @@
 #include "VTKPointSetFileImporter.hpp"
 #include "FAST/Data/PointSet.hpp"
-
-#include <boost/algorithm/string.hpp>
+#include "FAST/Utility.hpp"
 #include <fstream>
 
 namespace fast {
@@ -49,7 +48,7 @@ void VTKPointSetFileImporter::execute() {
         throw Exception("Found no vertices in the VTK surface file");
     }
     while(getline(file, line)) {
-        boost::trim(line);
+        trim(line);
         if(line.size() == 0)
             break;
 
@@ -58,8 +57,7 @@ void VTKPointSetFileImporter::execute() {
             break;
         }
 
-        std::vector<std::string> tokens;
-        boost::split(tokens, line, boost::is_any_of(" "));
+        std::vector<std::string> tokens = split(line);
 
         for(int i = 0; i < tokens.size(); i += 3) {
             Vector3f v;

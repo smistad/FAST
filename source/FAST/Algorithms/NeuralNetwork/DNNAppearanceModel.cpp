@@ -3,7 +3,7 @@
 #include "FAST/Data/PointSet.hpp"
 #include "FAST/Algorithms/ImageResizer/ImageResizer.hpp"
 #include "FAST/Data/Mesh.hpp"
-#include <boost/algorithm/string.hpp>
+#include "FAST/Utility.hpp"
 
 namespace fast {
 
@@ -31,8 +31,7 @@ void DNNAppearanceModel::loadObjects(std::string objectsFile) {
 		std::string line;
 		std::getline(file, line);
 
-		std::vector<std::string> tokens;
-		boost::split(tokens, line, boost::is_any_of(" "));
+		std::vector<std::string> tokens = split(line);
 
 		if(tokens[0] == "object") {
 			int objectLabel = std::stoi(tokens[1]);
@@ -49,8 +48,7 @@ void DNNAppearanceModel::loadObjects(std::string objectsFile) {
 			// Get lines
 			for(int i = 0; i < nrOfLines; ++i) {
 				std::getline(file, line);
-				std::vector<std::string> indices;
-				boost::split(indices, line, boost::is_any_of(" "));
+				std::vector<std::string> indices = split(line);
 				Vector2ui connection(vertexCount + std::stoi(indices[0]), vertexCount + std::stoi(indices[1]));
 				connections.push_back(connection);
 			}
