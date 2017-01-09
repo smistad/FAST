@@ -1,6 +1,6 @@
 #include "VTKPointSetFileImporter.hpp"
 #include "FAST/Data/PointSet.hpp"
-#include <boost/lexical_cast.hpp>
+
 #include <boost/algorithm/string.hpp>
 #include <fstream>
 

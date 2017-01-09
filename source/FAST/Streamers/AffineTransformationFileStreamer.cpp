@@ -1,6 +1,6 @@
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Exception.hpp"
-#include <boost/lexical_cast.hpp>
+
 #include <boost/algorithm/string.hpp>
 #include "AffineTransformationFileStreamer.hpp"
 #include "FAST/AffineTransformation.hpp"

@@ -86,6 +86,14 @@ cl::size_t<3> createOrigoRegion();
 
 std::string getCLErrorString(cl_int err);
 
+/**
+ * Function for splitting a string
+ * @param input string
+ * @param delimiter string
+ * @return vector of strings
+ */
+std::vector<std::string> split(const std::string& input, const std::string& delimiter);
+
 } // end namespace fast
 
 

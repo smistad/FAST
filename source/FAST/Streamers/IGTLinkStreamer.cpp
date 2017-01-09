@@ -2,7 +2,7 @@
 #include "FAST/Data/Image.hpp"
 #include "FAST/AffineTransformation.hpp"
 #include <boost/shared_array.hpp>
-#include <boost/lexical_cast.hpp>
+
 
 #include "igtlOSUtil.h"
 #include "igtlMessageHeader.h"

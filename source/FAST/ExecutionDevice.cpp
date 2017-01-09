@@ -3,7 +3,7 @@
 #include "FAST/Utility.hpp"
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/lock_guard.hpp>
-#include <boost/lexical_cast.hpp>
+
 #include <boost/filesystem.hpp>
 #include <boost/functional/hash.hpp>
 #include <fstream>

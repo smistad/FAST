@@ -1,7 +1,7 @@
 #include "FAST/ProcessObject.hpp"
 #include "FAST/Exception.hpp"
 #include "FAST/OpenCLProgram.hpp"
-#include <boost/lexical_cast.hpp>
+
 
 namespace fast {
 

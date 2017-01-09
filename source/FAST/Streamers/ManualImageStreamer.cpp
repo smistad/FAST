@@ -1,7 +1,7 @@
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Exception.hpp"
-#include <boost/lexical_cast.hpp>
+
 #include "ManualImageStreamer.hpp"
 #include "FAST/Data/Image.hpp"
 #include <fstream>

@@ -1,6 +1,6 @@
 #include "FAST/Utility.hpp"
-#include "FAST/Utility.hpp"
 #include <cmath>
+#include <regex>
 
 namespace fast {
 
@@ -521,6 +521,16 @@ std::string getCLErrorString(cl_int err) {
     default:
         return std::string("Unknown");
     }
+}
+
+
+std::vector<std::string> split(const std::string& input, const std::string& delimiter) {
+    // passing -1 as the submatch index parameter performs splitting
+    std::regex re(delimiter);
+    std::sregex_token_iterator
+            first{input.begin(), input.end(), re, -1},
+            last;
+    return {first, last};
 }
 
 } // end namespace fast

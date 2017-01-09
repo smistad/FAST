@@ -4,7 +4,7 @@
 #include <fstream>
 #include <boost/iostreams/device/mapped_file.hpp>
 #include <boost/algorithm/string.hpp>
-#include <boost/lexical_cast.hpp>
+
 #ifdef ZLIB_ENABLED
 #include <zlib.h>
 #endif
