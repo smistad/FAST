@@ -12,7 +12,7 @@
 #include <FAST/Visualization/MeshRenderer/MeshRenderer.hpp>
 #include "FAST/Exporters/ImageExporter.hpp"
 //#include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
-#include <boost/bind.hpp>
+#include <functional>
 #include "FAST/TestDataPath.hpp"
 
 namespace fast {
@@ -88,7 +88,7 @@ NLMGUI2D::NLMGUI2D() {
     menuLayout->addWidget(quitButton);
 
     // Connect the clicked signal of the quit button to the stop method for the window
-    QObject::connect(quitButton, &QPushButton::clicked, boost::bind(&Window::stop, this));
+    QObject::connect(quitButton, &QPushButton::clicked, std::bind(&Window::stop, this));
 
     // Smoothing parameter label
     //mSmoothingLabel = new QLabel;
@@ -107,7 +107,7 @@ NLMGUI2D::NLMGUI2D() {
     menuLayout->addWidget(slider);
 
     // Connect the value changed signal of the slider to the updateSmoothingParameter method
-    QObject::connect(slider, &QSlider::valueChanged, boost::bind(&NLMGUI2D::updateDenoiseParameter, this, _1));
+    QObject::connect(slider, &QSlider::valueChanged, std::bind(&NLMGUI2D::updateDenoiseParameter, this, std::placeholders::_1));
 
     // Threshold label
     //mThresholdLabel = new QLabel;
@@ -126,7 +126,7 @@ NLMGUI2D::NLMGUI2D() {
     menuLayout->addWidget(slider2);
 
     // Connect the value changed signal of the slider to the updateSigma method
-    QObject::connect(slider2, &QSlider::valueChanged, boost::bind(&NLMGUI2D::updateSigma, this, _1));
+    QObject::connect(slider2, &QSlider::valueChanged, std::bind(&NLMGUI2D::updateSigma, this, std::placeholders::_1));
 
     //GroupSize Label + Slider
     nlmGroupSizeLabel = new QLabel;
@@ -139,7 +139,7 @@ NLMGUI2D::NLMGUI2D() {
     slider3->setValue(3);
     slider3->setFixedWidth(300);
     menuLayout->addWidget(slider3);
-    QObject::connect(slider3, &QSlider::valueChanged, boost::bind(&NLMGUI2D::updateGroupSize, this, _1));
+    QObject::connect(slider3, &QSlider::valueChanged, std::bind(&NLMGUI2D::updateGroupSize, this, std::placeholders::_1));
     
     //WindowSize Label + Slider
     nlmWindowSizeLabel = new QLabel;
@@ -152,7 +152,7 @@ NLMGUI2D::NLMGUI2D() {
     slider4->setValue(5);
     slider4->setFixedWidth(300);
     menuLayout->addWidget(slider4);
-    QObject::connect(slider4, &QSlider::valueChanged, boost::bind(&NLMGUI2D::updateWindowSize, this, _1));
+    QObject::connect(slider4, &QSlider::valueChanged, std::bind(&NLMGUI2D::updateWindowSize, this, std::placeholders::_1));
     
     //K Label + Slider
     nlmKLabel = new QLabel;
@@ -165,7 +165,7 @@ NLMGUI2D::NLMGUI2D() {
     slider5->setValue(0);
     slider5->setFixedWidth(300);
     menuLayout->addWidget(slider5);
-    QObject::connect(slider5, &QSlider::valueChanged, boost::bind(&NLMGUI2D::updateK, this, _1));
+    QObject::connect(slider5, &QSlider::valueChanged, std::bind(&NLMGUI2D::updateK, this, std::placeholders::_1));
     
     nlmELabel = new QLabel;
     std::string text7 = "Euclid Version: " + std::to_string(0) + " ";
@@ -177,7 +177,7 @@ NLMGUI2D::NLMGUI2D() {
     slider6->setValue(0);
     slider6->setFixedWidth(300);
     menuLayout->addWidget(slider6);
-    QObject::connect(slider6, &QSlider::valueChanged, boost::bind(&NLMGUI2D::updateE, this, _1));
+    QObject::connect(slider6, &QSlider::valueChanged, std::bind(&NLMGUI2D::updateE, this, std::placeholders::_1));
     
     timerLabel = new QLabel;
     std::string text6 = "Kernal time: -- ms" ;

@@ -383,7 +383,7 @@ void IGTLinkStreamer::execute() {
         }
 
         mStreamIsStarted = true;
-        thread = new boost::thread(boost::bind(&IGTLinkStreamer::producerStream, this));
+        thread = new boost::thread(std::bind(&IGTLinkStreamer::producerStream, this));
     }
 
     // Wait here for first frame

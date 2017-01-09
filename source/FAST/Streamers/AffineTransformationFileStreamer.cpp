@@ -41,7 +41,7 @@ void AffineTransformationFileStreamer::execute() {
         // Check that first frame exists before starting streamer
 
         mStreamIsStarted = true;
-        thread = new boost::thread(boost::bind(&AffineTransformationFileStreamer::producerStream, this));
+        thread = new boost::thread(std::bind(&AffineTransformationFileStreamer::producerStream, this));
     }
 
     // Wait here for first frame

@@ -10,7 +10,7 @@
 #include <QSlider>
 #include <FAST/Importers/ImageFileImporter.hpp>
 #include <FAST/Visualization/MeshRenderer/MeshRenderer.hpp>
-#include <boost/bind.hpp>
+#include <functional>
 #include "FAST/TestDataPath.hpp"
 
 namespace fast {
@@ -65,7 +65,7 @@ SimpleGUI::SimpleGUI() {
     menuLayout->addWidget(quitButton);
 
     // Connect the clicked signal of the quit button to the stop method for the window
-    QObject::connect(quitButton, &QPushButton::clicked, boost::bind(&Window::stop, this));
+    QObject::connect(quitButton, &QPushButton::clicked, std::bind(&Window::stop, this));
 
     // Smoothing parameter label
     mSmoothingLabel = new QLabel;
@@ -81,7 +81,7 @@ SimpleGUI::SimpleGUI() {
     menuLayout->addWidget(slider);
 
     // Connect the value changed signal of the slider to the updateSmoothingParameter method
-    QObject::connect(slider, &QSlider::valueChanged, boost::bind(&SimpleGUI::updateSmoothingParameter, this, _1));
+    QObject::connect(slider, &QSlider::valueChanged, std::bind(&SimpleGUI::updateSmoothingParameter, this, std::placeholders::_1));
 
     // Threshold label
     mThresholdLabel = new QLabel;
@@ -97,7 +97,7 @@ SimpleGUI::SimpleGUI() {
     menuLayout->addWidget(slider2);
 
     // Connect the value changed signal of the slider to the updateThreshold method
-    QObject::connect(slider2, &QSlider::valueChanged, boost::bind(&SimpleGUI::updateThreshold, this, _1));
+    QObject::connect(slider2, &QSlider::valueChanged, std::bind(&SimpleGUI::updateThreshold, this, std::placeholders::_1));
 
     // Add menu and view to main layout
     QHBoxLayout* layout = new QHBoxLayout;
