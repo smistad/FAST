@@ -3,8 +3,7 @@
 #include "FAST/Utility.hpp"
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/lock_guard.hpp>
-
-#include <boost/filesystem.hpp>
+#include <QDir>
 #include <boost/functional/hash.hpp>
 #include <fstream>
 
@@ -324,7 +323,10 @@ cl::Program OpenCLDevice::writeBinary(std::string filename, std::string buildOpt
     // Create directories if they don't exist
     if(binaryFilename.rfind("/") != std::string::npos) {
         std::string directoryPath = binaryFilename.substr(0, binaryFilename.rfind("/"));
-        boost::filesystem::create_directories(directoryPath);
+        QDir dir(directoryPath.c_str());
+        if (!dir.exists()) {
+            dir.mkpath(".");
+        }
     }
     FILE * file = fopen(binaryFilename.c_str(), "wb");
     if(!file)
