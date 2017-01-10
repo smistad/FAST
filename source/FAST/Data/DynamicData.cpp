@@ -5,15 +5,7 @@ namespace fast {
 
 
 DynamicData::~DynamicData() {
-    delete fillCount;
-    delete emptyCount;
 
-#if defined(__APPLE__) || defined(__MACOSX)
-    std::string name = "FAST_fill_count_" + std::to_string(mSemaphoreNumber);
-    boost::interprocess::named_semaphore::remove(name.c_str());
-    name = "FAST_empty_count_" + std::to_string(mSemaphoreNumber);
-    boost::interprocess::named_semaphore::remove(name.c_str());
-#endif
 }
 
 void DynamicData::setMaximumNumberOfFrames(uint nrOfFrames) {
@@ -21,21 +13,9 @@ void DynamicData::setMaximumNumberOfFrames(uint nrOfFrames) {
     if(mFrames2.size() > 0)
         throw Exception("Must call setMaximumNumberOfFrames before streaming is started");
     if(mMaximumNrOfFrames > 0) {
-        delete fillCount;
-        delete emptyCount;
 
-        // Use named semaphore if Mac
-#if defined(__APPLE__) || defined(__MACOSX)
-        std::string name = "FAST_fill_count_" + std::to_string(mSemaphoreNumber);
-        boost::interprocess::named_semaphore::remove(name.c_str());
-        std::string name2 = "FAST_empty_count_" + std::to_string(mSemaphoreNumber);
-        boost::interprocess::named_semaphore::remove(name2.c_str());
-        fillCount = new boost::interprocess::named_semaphore(boost::interprocess::create_only, name.c_str(), 0);
-        emptyCount = new boost::interprocess::named_semaphore(boost::interprocess::create_only, name2.c_str(), nrOfFrames);
-#else
-        fillCount = new boost::interprocess::interprocess_semaphore(0);
-        emptyCount = new boost::interprocess::interprocess_semaphore(nrOfFrames);
-#endif
+        fillCount = UniquePointer<LightweightSemaphore>(new LightweightSemaphore(0));
+        emptyCount = UniquePointer<LightweightSemaphore>(new LightweightSemaphore(nrOfFrames));
     }
 }
 
@@ -195,7 +175,7 @@ DataObject::pointer DynamicData::getNextFrame(WeakPointer<Object> processObject)
     mStreamMutex.unlock();
     // Producer consumer
     if(mMaximumNrOfFrames > 0 && streamer->getStreamingMode() == STREAMING_MODE_PROCESS_ALL_FRAMES) {
-        emptyCount->post(); // increment
+        emptyCount->signal(); // increment
     }
 
     return returnData;
@@ -252,7 +232,7 @@ void DynamicData::addFrame(DataObject::pointer frame) {
     mCurrentFrameCounter++;
     mStreamMutex.unlock();
     if(mMaximumNrOfFrames > 0 && streamer->getStreamingMode() == STREAMING_MODE_PROCESS_ALL_FRAMES) {
-        fillCount->post(); // increment
+        fillCount->signal(); // increment
     }
 }
 
@@ -261,15 +241,7 @@ DynamicData::DynamicData() {
     mMaximumNrOfFrames = 0;
     mIsDynamicData = true;
     mHasReachedEnd = false;
-    fillCount = NULL;
-    emptyCount = NULL;
     updateModifiedTimestamp();
-
-#if defined(__APPLE__) || defined(__MACOSX)
-    static uint namedSemaphoresCount = 0;
-    mSemaphoreNumber = namedSemaphoresCount;
-    namedSemaphoresCount++;
-#endif
 }
 
 

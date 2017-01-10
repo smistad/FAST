@@ -128,7 +128,7 @@ void IGTLinkStreamer::producerStream() {
         mIsModified = true;
         mStreamIsStarted = false;
         mStop = true;
-        connectionLostSignal();
+        //connectionLostSignal();
         {
             std::lock_guard<std::mutex> lock(mFirstFrameMutex);
 			mFirstFrameIsInserted = true;
@@ -166,7 +166,7 @@ void IGTLinkStreamer::producerStream() {
         // Receive generic header from the socket
         int r = mSocket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
         if(r == 0) {
-            connectionLostSignal();
+            //connectionLostSignal();
             mSocket->CloseSocket();
             break;
         }
@@ -186,7 +186,7 @@ void IGTLinkStreamer::producerStream() {
         reportInfo() << "TIMESTAMP converted: " << timestamp << reportEnd();
         if(strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0) {
             if(mInFreezeMode) {
-                unfreezeSignal();
+                //unfreezeSignal();
                 mInFreezeMode = false;
             }
             statusMessageCounter = 0;
@@ -237,7 +237,7 @@ void IGTLinkStreamer::producerStream() {
             }
         } else if(strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0) {
             if(mInFreezeMode) {
-                unfreezeSignal();
+                //unfreezeSignal();
                 mInFreezeMode = false;
             }
             statusMessageCounter = 0;
@@ -304,7 +304,7 @@ void IGTLinkStreamer::producerStream() {
             if(statusMessageCounter > 3 && !mInFreezeMode) {
                 reportInfo() << "3 STATUS MESSAGE received, freeze detected" << Reporter::end;
                 mInFreezeMode = true;
-                freezeSignal();
+                //freezeSignal();
 
                 // If no frames has been inserted, stop
                 if(!mFirstFrameIsInserted) {
@@ -393,8 +393,8 @@ void IGTLinkStreamer::execute() {
     }
     {
         std::unique_lock<std::mutex> lock(mStopMutex);
-        if(!mStop)
-            connectionEstablishedSignal(); // send signal
+        //if(!mStop)
+        //    connectionEstablishedSignal(); // send signal
     }
 }
 

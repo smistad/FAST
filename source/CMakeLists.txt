@@ -132,12 +132,6 @@ set(LIBRARIES ${LIBRARIES} ${QT_LIBRARIES})
 list (APPEND FAST_INCLUDE_DIRS "${Qt5Widgets_INCLUDE_DIRS}")
 list (APPEND FAST_INCLUDE_DIRS "${Qt5OpenGL_INCLUDE_DIRS}")
 
-## Boost
-find_package(Boost COMPONENTS system thread iostreams signals filesystem chrono REQUIRED)
-include_directories(${Boost_INCLUDE_DIRS} ${PROJECT_BINARY_DIR})
-link_directories(${Boost_LIBRARY_DIRS})
-set(LIBRARIES ${LIBRARIES} ${Boost_LIBRARIES})
-
 ## GLEW
 find_package(GLEW REQUIRED)
 include_directories(${GLEW_INCLUDE_DIR})
@@ -153,20 +147,20 @@ if(FAST_MODULE_NeuralNetwork)
     list(APPEND LIBRARIES ${Tensorflow_LIBRARIES})
     message("-- Neural network module enabled: ${Tensorflow_INCLUDE_DIRS} ${Tensorflow_LIBRARIES}")
 	add_definitions("-DZLIB_ENABLED") # Tell FAST to use ZLIB
-if(WIN32)
-	# Some definitions needed to compile with tensorflow on windows
-	# These are taken from tensorflow/contrib/cmake/CMakeLists.txt
-	add_definitions(-DEIGEN_AVOID_STL_ARRAY)
-  add_definitions(-DNOMINMAX -D_WIN32_WINNT=0x0A00 -DLANG_CXX11 -DCOMPILER_MSVC -D__VERSION__=\"MSVC\")
-  add_definitions(-DWIN32 -DOS_WIN -D_MBCS -DWIN64 -DPLATFORM_WINDOWS)
-  add_definitions(-DTENSORFLOW_USE_EIGEN_THREADPOOL -DEIGEN_HAS_C99_MATH -D_ITERATOR_DEBUG_LEVEL=0)
-  # Suppress warnings to reduce build log size.
-  add_definitions(/wd4267 /wd4244 /wd4800 /wd4503 /wd4554 /wd4996 /wd4348 /wd4018)
-  add_definitions(/wd4099 /wd4146 /wd4267 /wd4305 /wd4307)
-  add_definitions(/wd4715 /wd4722 /wd4723 /wd4838 /wd4309 /wd4334)
-  # To get rid of this error: Not found: No session factory registered for the given session options: {target: "" config: } Registered factories are {}.
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /WHOLEARCHIVE:\"${Tensorflow_LIBRARY}\"")
-endif()
+    if(WIN32)
+        # Some definitions needed to compile with tensorflow on windows
+        # These are taken from tensorflow/contrib/cmake/CMakeLists.txt
+        add_definitions(-DEIGEN_AVOID_STL_ARRAY)
+        add_definitions(-DNOMINMAX -D_WIN32_WINNT=0x0A00 -DLANG_CXX11 -DCOMPILER_MSVC -D__VERSION__=\"MSVC\")
+        add_definitions(-DWIN32 -DOS_WIN -D_MBCS -DWIN64 -DPLATFORM_WINDOWS)
+        add_definitions(-DTENSORFLOW_USE_EIGEN_THREADPOOL -DEIGEN_HAS_C99_MATH -D_ITERATOR_DEBUG_LEVEL=0)
+        # Suppress warnings to reduce build log size.
+        add_definitions(/wd4267 /wd4244 /wd4800 /wd4503 /wd4554 /wd4996 /wd4348 /wd4018)
+        add_definitions(/wd4099 /wd4146 /wd4267 /wd4305 /wd4307)
+        add_definitions(/wd4715 /wd4722 /wd4723 /wd4838 /wd4309 /wd4334)
+        # To get rid of this error: Not found: No session factory registered for the given session options: {target: "" config: } Registered factories are {}.
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /WHOLEARCHIVE:\"${Tensorflow_LIBRARY}\"")
+    endif()
 else()
     # If tensorflow neural network module is enabled, a newer version of Eigen is already included in the tensorflow include dir
     ## Eigen
@@ -210,11 +204,9 @@ endif()
 
 #### Enable C++11
 # Note that Microsoft Visual C++ compiler enables C++11 by default
-
-
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations") # Remove deprecated warnings GCC
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth=300") # Fix for a bug with boost signals2
+	#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth=300") # Fix for a bug with boost signals2
 endif()
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" OR CMAKE_COMPILER_IS_GNUCXX)
     include(CheckCXXCompilerFlag)

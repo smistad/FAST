@@ -6,8 +6,7 @@
 #include <vector>
 #include <unordered_map>
 #include <mutex>
-#include <boost/interprocess/sync/interprocess_semaphore.hpp>
-#include <boost/interprocess/sync/named_semaphore.hpp>
+#include "FAST/Semaphore.hpp"
 
 
 namespace fast {
@@ -51,15 +50,8 @@ class DynamicData : public DataObject {
 
         uint mMaximumNrOfFrames;
 
-        // Use named semaphore if Mac
-#if defined(__APPLE__) || defined(__MACOSX)
-        uint mSemaphoreNumber;
-        boost::interprocess::named_semaphore* fillCount;
-        boost::interprocess::named_semaphore* emptyCount;
-#else
-        boost::interprocess::interprocess_semaphore* fillCount;
-        boost::interprocess::interprocess_semaphore* emptyCount;
-#endif
+        UniquePointer<LightweightSemaphore> fillCount;
+        UniquePointer<LightweightSemaphore> emptyCount;
 
         std::mutex mStreamMutex;
 

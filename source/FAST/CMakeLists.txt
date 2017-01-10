@@ -28,6 +28,7 @@ fast_add_sources(
     RuntimeMeasurement.hpp
     DeviceCriteria.cpp
     DeviceCriteria.hpp
+    Semaphore.hpp
 )
 fast_add_python_interfaces(
 	ProcessObject.i
