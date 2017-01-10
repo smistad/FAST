@@ -3,7 +3,6 @@
 #include "FAST/Data/Image.hpp"
 #include "FAST/Utility.hpp"
 #include <fstream>
-#include <boost/iostreams/device/mapped_file.hpp>
 
 #ifdef ZLIB_ENABLED
 #include <zlib.h>
@@ -45,14 +44,20 @@ inline void * readRawData(std::string rawFilename, unsigned int width, unsigned 
     if(compressed) {
 #ifdef ZLIB_ENABLED
         // Read compressed data
-        boost::iostreams::mapped_file_source file;
-        file.open(rawFilename, width*height*depth*nrOfComponents*sizeof(T));
+        std::ifstream file(rawFilename);
         if(!file.is_open())
             throw FileNotFoundException(rawFilename);
-        Bytef* fileData = (Bytef*)file.data();
+
+        // Determine the file length
+        file.seekg(0, std::ios_base::end);
+        std::size_t size = file.tellg();
+        file.seekg(0, std::ios_base::beg);
+
+        Bytef* fileData = new Bytef[size];
+        file.read((char*)&fileData[0], size);
+        file.close();
 
         unsigned long uncompressedSize = sizeof(T)*width*height*depth*nrOfComponents;
-        unsigned long fileSize = file.size();
 		int z_result = uncompress(
             (Bytef*)data,       // destination for the uncompressed
                                     // data.  This should be the size of
@@ -79,16 +84,24 @@ inline void * readRawData(std::string rawFilename, unsigned int width, unsigned 
             break;
         }
         file.close();
+        delete[] fileData;
 #else
         throw Exception("Error reading MetaImage. Compressed raw files (.zraw) currently not supported.");
 #endif
     } else {
-        boost::iostreams::mapped_file_source file;
-        file.open(rawFilename, width*height*depth*nrOfComponents*sizeof(T));
+        std::ifstream file(rawFilename);
         if(!file.is_open())
             throw FileNotFoundException(rawFilename);
-        T * fileData = (T*)file.data();
-        memcpy(data,fileData,width*height*depth*nrOfComponents*sizeof(T));
+
+        // Determine the file length
+        file.seekg(0, std::ios_base::end);
+        std::size_t size = file.tellg();
+        file.seekg(0, std::ios_base::beg);
+        std::size_t expectedSize = width*height*depth*nrOfComponents*sizeof(T);
+        if(size != expectedSize)
+            throw Exception("Unexpected file system when opening" + rawFilename + " expected: " + std::to_string(expectedSize) + " got: " + std::to_string(size));
+
+        file.read((char*)&data[0], size);
         file.close();
     }
     return data;
@@ -309,6 +322,7 @@ void MetaImageImporter::execute() {
         data = readRawData<float>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
     }
 
+    // TODO have a way to avoid a data copy here
     if(imageIs3D) {
         output->create(width,height,depth,type,nrOfComponents,getMainDevice(),data);
     } else {
