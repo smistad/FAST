@@ -133,9 +133,8 @@ std::string readFile(std::string filename) {
     return retval;
 }
 
-OpenCLDevice::OpenCLDevice(std::vector<cl::Device> devices, unsigned long* OpenGLContext) :
-		runtimeManager(new RuntimeMeasurementsManager())
-	{
+OpenCLDevice::OpenCLDevice(std::vector<cl::Device> devices, unsigned long* OpenGLContext) {
+    runtimeManager = RuntimeMeasurementsManager::New();
     mIsHost = false;
     mGLContext = OpenGLContext;
     profilingEnabled = false;
@@ -281,7 +280,7 @@ cl::Program OpenCLDevice::buildSources(cl::Program::Sources source, std::string 
     return program;
 }
 
-RuntimeMeasurementsManagerPtr OpenCLDevice::getRunTimeMeasurementManager(){
+RuntimeMeasurementsManager::pointer OpenCLDevice::getRunTimeMeasurementManager(){
 	return runtimeManager;
 }
 

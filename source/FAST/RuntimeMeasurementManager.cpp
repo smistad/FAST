@@ -59,7 +59,7 @@ void RuntimeMeasurementsManager::stopCLTimer(std::string name, cl::CommandQueue 
 	endEvent.getProfilingInfo<cl_ulong>(CL_PROFILING_COMMAND_START, &end);
 	if (timings.count(name) == 0) {
 		// No timings with this name exists, create a new one
-		RuntimeMeasurementPtr runtime(new RuntimeMeasurement(name));
+		RuntimeMeasurement::pointer runtime(new RuntimeMeasurement(name));
 		runtime->addSample((end - start) * 1.0e-6);
 		timings[name] =  runtime;
 	} else {
@@ -87,7 +87,7 @@ void RuntimeMeasurementsManager::stopRegularTimer(std::string name) {
 	std::chrono::duration<double, std::milli> time = std::chrono::system_clock::now() - startTimes[name];
     if (timings.count(name) == 0) {
 		// No timings with this name exists, create a new one
-		RuntimeMeasurementPtr runtime(new RuntimeMeasurement(name));
+		RuntimeMeasurement::pointer runtime(new RuntimeMeasurement(name));
 
 		runtime->addSample(time.count());
 		timings[name] =  runtime;
@@ -118,10 +118,10 @@ void RuntimeMeasurementsManager::stopNumberedRegularTimer(std::string name) {
 		return;
 }
 
-RuntimeMeasurementPtr RuntimeMeasurementsManager::getTiming(std::string name) {
+RuntimeMeasurement::pointer RuntimeMeasurementsManager::getTiming(std::string name) {
     if(timings.count(name) == 0) {
         // Create a new empty timing
-		RuntimeMeasurementPtr runtime(new RuntimeMeasurement(name));
+		RuntimeMeasurement::pointer runtime(new RuntimeMeasurement(name));
 		timings[name] = runtime;
     }
 
@@ -139,7 +139,7 @@ void RuntimeMeasurementsManager::printAll() {
 	if (!enabled)
 		return;
 
-	std::map<std::string, RuntimeMeasurementPtr>::iterator it;
+	std::map<std::string, RuntimeMeasurement::pointer>::iterator it;
 	for (it = timings.begin(); it != timings.end(); it++) {
 		it->second->print();
 	}

@@ -2,16 +2,16 @@
 #define TIMING_HPP_
 
 #include <string>
-#include <stdio.h>
 #include <memory>
+#include "FAST/Object.hpp"
 
 namespace fast {
 /**
  * A class for a runtime measurement
  */
-class RuntimeMeasurement {
-
+class RuntimeMeasurement : public Object {
 public:
+	typedef SharedPointer<RuntimeMeasurement> pointer;
 	RuntimeMeasurement(std::string name);
 	void addSample(double runtime);
 	double getSum() const;
@@ -35,10 +35,6 @@ private:
 	std::string mName;
 };
 
-typedef std::shared_ptr<class RuntimeMeasurement> RuntimeMeasurementPtr;
-
-}
-;
-// end namespace
+}; // end namespace
 
 #endif /* TIMING_HPP_ */

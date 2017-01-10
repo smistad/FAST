@@ -98,7 +98,7 @@ class OpenCLDevice : public ExecutionDevice {
             return getDevice().getInfo<CL_DEVICE_NAME>();
         }
         bool isWritingTo3DTexturesSupported();
-        RuntimeMeasurementsManagerPtr getRunTimeMeasurementManager();
+        RuntimeMeasurementsManager::pointer getRunTimeMeasurementManager();
         ~OpenCLDevice();
     private:
         OpenCLDevice();
@@ -116,7 +116,7 @@ class OpenCLDevice : public ExecutionDevice {
         cl::Platform platform;
 
         bool profilingEnabled;
-        RuntimeMeasurementsManagerPtr runtimeManager;
+        RuntimeMeasurementsManager::pointer runtimeManager;
 
 };
 

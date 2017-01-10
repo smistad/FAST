@@ -5,8 +5,9 @@
 
 namespace fast {
 
-ProcessObject::ProcessObject() : mIsModified(false), mRuntimeManager(new RuntimeMeasurementsManager) {
-     mDevices[0] = DeviceManager::getInstance().getDefaultComputationDevice();
+ProcessObject::ProcessObject() : mIsModified(false) {
+    mDevices[0] = DeviceManager::getInstance().getDefaultComputationDevice();
+    mRuntimeManager = RuntimeMeasurementsManager::New();
 }
 
 void ProcessObject::update() {
@@ -54,15 +55,15 @@ void ProcessObject::disableRuntimeMeasurements() {
     mRuntimeManager->disable();
 }
 
-RuntimeMeasurementPtr ProcessObject::getRuntime() {
+RuntimeMeasurement::pointer ProcessObject::getRuntime() {
     return mRuntimeManager->getTiming("execute");
 }
 
-RuntimeMeasurementPtr ProcessObject::getRuntime(std::string name) {
+RuntimeMeasurement::pointer ProcessObject::getRuntime(std::string name) {
     return mRuntimeManager->getTiming(name);
 }
 
-RuntimeMeasurementsManagerPtr ProcessObject::getAllRuntimes() {
+RuntimeMeasurementsManager::pointer ProcessObject::getAllRuntimes() {
     return mRuntimeManager;
 }
 

@@ -7,14 +7,13 @@
 #include "RuntimeMeasurement.hpp"
 #include <chrono>
 #include <memory>
+#include "FAST/SmartPointers.hpp"
 
 namespace fast {
 
-class RuntimeMeasurementsManager {
-
+class RuntimeMeasurementsManager : public Object {
+	FAST_OBJECT(RuntimeMeasurementsManager)
 public:
-	RuntimeMeasurementsManager();
-
 	void enable();
 	void disable();
 	bool isEnabled();
@@ -31,20 +30,19 @@ public:
 	void startNumberedRegularTimer(std::string name);
 	void stopNumberedRegularTimer(std::string name);
 
-	RuntimeMeasurementPtr getTiming(std::string name);
+	RuntimeMeasurement::pointer getTiming(std::string name);
 
 	void print(std::string name);
 	void printAll();
 
 private:
+	RuntimeMeasurementsManager();
 	bool enabled;
-	std::map<std::string, RuntimeMeasurementPtr> timings;
+	std::map<std::string, RuntimeMeasurement::pointer> timings;
 	std::map<std::string, unsigned int> numberings;
 	std::map<std::string, cl::Event> startEvents;
 	std::map<std::string, std::chrono::system_clock::time_point> startTimes;
 };
-
-typedef std::shared_ptr<class RuntimeMeasurementsManager> RuntimeMeasurementsManagerPtr;
 
 } //namespace fast
 
