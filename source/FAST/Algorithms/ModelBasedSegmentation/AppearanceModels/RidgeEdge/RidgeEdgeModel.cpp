@@ -1,7 +1,7 @@
 #include "RidgeEdgeModel.hpp"
 #include "FAST/Data/Image.hpp"
 #include "FAST/Algorithms/ModelBasedSegmentation/Shape.hpp"
-#include <boost/shared_array.hpp>
+
 
 namespace fast {
 
@@ -23,7 +23,7 @@ inline DetectedEdge findEdge(
         std::vector<float> intensityProfile, const float intensityThreshold, const int size, const RidgeEdgeModel::EdgeType edgeType) {
     // Pre calculate partial sum
     const int line_length = intensityProfile.size();
-    boost::shared_array<float> sum_k(new float[line_length]());
+    UniquePointer<float[]> sum_k(new float[line_length]());
     float totalSum = 0.0f;
     for(int k = 0; k < line_length; ++k) {
         if(k == 0) {
@@ -220,7 +220,7 @@ std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnDevice(SharedPointer<I
 	std::vector<MeshVertex> points = predictedMeshAccess->getVertices();
 
 	cl::CommandQueue queue = device->getCommandQueue();
-	boost::shared_array<float> pointsArray(new float[points.size()*2*2]);
+	UniquePointer<float[]> pointsArray(new float[points.size()*2*2]);
 	for(int i = 0; i < points.size(); i++) {
 		pointsArray[i*2*2] = points[i].getPosition().x();
 		pointsArray[i*2*2+1] = points[i].getPosition().y();
@@ -279,7 +279,7 @@ std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnDevice(SharedPointer<I
 
 
 	// Transfer data back
-	boost::shared_array<float> resultArray(new float[pointSize*nrOfSamples]);
+	UniquePointer<float[]> resultArray(new float[pointSize*nrOfSamples]);
 	queue.enqueueReadBuffer(resultBuffer, CL_TRUE, 0, pointSize*nrOfSamples*sizeof(float), resultArray.get());
 
 	std::vector<Measurement> measurements;

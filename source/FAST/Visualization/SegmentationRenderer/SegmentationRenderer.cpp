@@ -1,6 +1,6 @@
 #include "SegmentationRenderer.hpp"
 
-#include <boost/shared_array.hpp>
+
 
 namespace fast {
 
@@ -92,7 +92,7 @@ void SegmentationRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
 
     if(mColorsModified) {
         // Transfer colors to device (this doesn't have to happen every render call..)
-        boost::shared_array<float> colorData(new float[3*mLabelColors.size()]);
+        UniquePointer<float[]> colorData(new float[3*mLabelColors.size()]);
         std::unordered_map<Segmentation::LabelType, Color>::iterator it;
         for(it = mLabelColors.begin(); it != mLabelColors.end(); it++) {
             colorData[it->first*3] = it->second.getRedValue();
@@ -110,7 +110,7 @@ void SegmentationRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
 
     if(mFillAreaModified) {
         // Transfer colors to device (this doesn't have to happen every render call..)
-        boost::shared_array<char> fillAreaData(new char[mLabelColors.size()]);
+        UniquePointer<char[]> fillAreaData(new char[mLabelColors.size()]);
         std::unordered_map<Segmentation::LabelType, Color>::iterator it;
         for(it = mLabelColors.begin(); it != mLabelColors.end(); it++) {
             if(mLabelFillArea.count(it->first) == 0) {

@@ -1,7 +1,7 @@
 #include "StepEdgeModel.hpp"
 #include "FAST/Data/Image.hpp"
 #include "FAST/Algorithms/ModelBasedSegmentation/Shape.hpp"
-#include <boost/shared_array.hpp>
+
 
 namespace fast {
 
@@ -26,7 +26,7 @@ inline DetectedEdge findEdge(
         std::vector<float> intensityProfile, const float intensityThreshold, StepEdgeModel::EdgeType type) {
     // Pre calculate partial sum
     const int size = intensityProfile.size();
-    boost::shared_array<float> sum_k(new float[size]());
+    UniquePointer<float[]> sum_k(new float[size]());
     float totalSum = 0.0f;
     for(int k = 0; k < size; ++k) {
         if(k == 0) {

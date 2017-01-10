@@ -1,7 +1,7 @@
 #include "IGTLinkStreamer.hpp"
 #include "FAST/Data/Image.hpp"
 #include "FAST/AffineTransformation.hpp"
-#include <boost/shared_array.hpp>
+
 
 
 #include "igtlOSUtil.h"
@@ -75,8 +75,8 @@ inline Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer mes
         image->create(width, height, depth, type, message->GetNumComponents(), device, data);
     }
 
-    boost::shared_array<float> spacing(new float[3]);
-    boost::shared_array<float> offset(new float[3]);
+    UniquePointer<float[]> spacing(new float[3]);
+    UniquePointer<float[]> offset(new float[3]);
     message->GetSpacing(spacing.get());
     message->GetOrigin(offset.get());
     igtl::Matrix4x4 matrix;

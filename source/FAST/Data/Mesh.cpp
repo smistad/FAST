@@ -3,7 +3,7 @@
 #include "FAST/Visualization/SimpleWindow.hpp"
 #include <QApplication>
 #include <thread>
-#include <boost/shared_array.hpp>
+
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenGL/OpenGL.h>
@@ -319,7 +319,7 @@ void Mesh::updateOpenCLBufferData(OpenCLDevice::pointer device) {
         // Transfer coordinates
         cl::CommandQueue queue = device->getCommandQueue();
         {
-            boost::shared_array<float> coordinatesData(new float[getDimensions() * mVertices.size()]);
+            UniquePointer<float[]> coordinatesData(new float[getDimensions() * mVertices.size()]);
             int i = 0;
             for (MeshVertex vertex : mVertices) {
                 coordinatesData[i] = vertex.getPosition().x();
@@ -335,7 +335,7 @@ void Mesh::updateOpenCLBufferData(OpenCLDevice::pointer device) {
 
         // Transfer connections
         {
-            boost::shared_array<uint> data(new uint[getDimensions() * mConnections.size()]);
+            UniquePointer<uint[]> data(new uint[getDimensions() * mConnections.size()]);
             int i = 0;
             for (VectorXui connection : mConnections) {
                 data[i] = connection.x();

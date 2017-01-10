@@ -7,7 +7,7 @@
 #include <GL/gl.h>
 #endif
 
-#include <boost/shared_array.hpp>
+
 
 namespace fast {
 
@@ -75,7 +75,7 @@ void PointRenderer::draw2D(
 
     // Map would probably be better here, but doesn't work on NVIDIA, segfault surprise!
     //float* pixels = (float*)queue.enqueueMapBuffer(PBO, CL_TRUE, CL_MAP_WRITE, 0, width*height*sizeof(float)*4);
-    boost::shared_array<float> pixels(new float[width*height*sizeof(float)*4]);
+    UniquePointer<float[]> pixels(new float[width*height*sizeof(float)*4]);
     queue.enqueueReadBuffer(PBO, CL_TRUE, 0, width*height*4*sizeof(float), pixels.get());
 
     std::unordered_map<uint, PointSet::pointer>::iterator it;

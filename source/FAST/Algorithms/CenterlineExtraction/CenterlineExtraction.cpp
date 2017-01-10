@@ -2,10 +2,10 @@
 #include "FAST/Data/Segmentation.hpp"
 #include "FAST/Data/LineSet.hpp"
 #include "FAST/Utility.hpp"
-#include <boost/shared_array.hpp>
 #include <unordered_set>
 #include <stack>
 #include "FAST/Exporters/MetaImageExporter.hpp"
+#include "../../SmartPointers.hpp"
 
 namespace fast {
 
@@ -168,7 +168,7 @@ inline Vector3i position3D(int pos, Vector3i size) {
 	return Vector3i(x,y,z);
 }
 
-inline double solveQuadratic(boost::shared_array<double> G, boost::shared_array<double> speed, Vector3i pos, Vector3i size) {
+inline double solveQuadratic(const UniquePointer<double[]>& G, const UniquePointer<double[]>& speed, Vector3i pos, Vector3i size) {
 
 	std::vector<double> abc = {
             std::min(G[linearPosition(pos + Vector3i(1,0,0), size)], G[linearPosition(pos - Vector3i(1,0,0), size)]),
@@ -214,7 +214,7 @@ inline double solveQuadratic(boost::shared_array<double> G, boost::shared_array<
 	}
 }
 
-inline void growFromPointsAdded(std::vector<Vector3i> points, boost::shared_array<double> G, std::unordered_set<int>& Sc, std::unordered_set<int>& processed, Vector3i size) {
+inline void growFromPointsAdded(std::vector<Vector3i> points, const UniquePointer<double[]>& G, std::unordered_set<int>& Sc, std::unordered_set<int>& processed, Vector3i size) {
 
 	std::stack<Vector3i> stack;
 	stack.push(points[0]);
@@ -317,7 +317,7 @@ void CenterlineExtraction::execute() {
 	uchar* candidateArray = (uchar*)candidateAccess->get();
 	int maxDistance = 0;
 	int maxIndex = 0;
-	boost::shared_array<bool> isInL(new bool[totalSize]);
+	UniquePointer<bool[]> isInL(new bool[totalSize]);
 	std::unordered_set<int> Sc;
 	for(int i = 0; i < totalSize; ++i) {
 		if(inputArray[i] == 1) {
@@ -342,8 +342,8 @@ void CenterlineExtraction::execute() {
 
 	// Calculate speed term
 	double beta = 1.0 / (0.02*maxDistance);
-	boost::shared_array<double> speed(new double[totalSize]);
-	boost::shared_array<double> G(new double[totalSize]);
+	UniquePointer<double[]> speed(new double[totalSize]);
+	UniquePointer<double[]> G(new double[totalSize]);
 	for(int i = 0; i < totalSize; ++i) {
 		speed[i] = exp(beta*distanceArray[i]);
 		G[i] = std::numeric_limits<double>::infinity();

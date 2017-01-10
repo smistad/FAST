@@ -4,7 +4,7 @@
 #include "FAST/Algorithms/ModelBasedSegmentation/ShapeModel.hpp"
 #include "FAST/Algorithms/ModelBasedSegmentation/Shape.hpp"
 #include "FAST/Data/Mesh.hpp"
-#include <boost/shared_array.hpp>
+
 
 namespace fast {
 
@@ -50,8 +50,8 @@ class MeanValueCoordinatesModel : public ShapeModel {
 		Mesh::pointer mControlMesh;
 		Vector3f mCentroid;
 
-		boost::shared_array<float> mNormalizedWeights;
-		boost::shared_array<float> mNormalizedWeightsPerNode;
+		UniquePointer<float[]> mNormalizedWeights;
+		UniquePointer<float[]> mNormalizedWeightsPerNode;
 
 		uint mStateSize;
 		MatrixXf mA1;

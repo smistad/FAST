@@ -155,8 +155,8 @@ void MeanValueCoordinatesModel::loadMeshes(Mesh::pointer surfaceMesh,
     std::vector<MeshVertex> vertices = getOriginalVertices();
 
     // Allocate memory for the weights
-    mNormalizedWeights = boost::shared_array<float>(new float[vertices.size()*(mControlMesh->getNrOfTriangles()*3)]());
-    mNormalizedWeightsPerNode = boost::shared_array<float>(new float[vertices.size()*mControlMesh->getNrOfVertices()]);
+    mNormalizedWeights = UniquePointer<float[]>(new float[vertices.size()*(mControlMesh->getNrOfTriangles()*3)]());
+    mNormalizedWeightsPerNode = UniquePointer<float[]>(new float[vertices.size()*mControlMesh->getNrOfVertices()]);
 
     mCentroid = Vector3f::Zero();
     for(int vertexNr = 0; vertexNr < vertices.size(); vertexNr++) {

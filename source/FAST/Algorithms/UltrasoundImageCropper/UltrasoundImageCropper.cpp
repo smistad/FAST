@@ -1,6 +1,6 @@
 #include "UltrasoundImageCropper.hpp"
 #include "FAST/Data/Image.hpp"
-#include <boost/shared_array.hpp>
+
 #include "FAST/Utility.hpp"
 
 namespace fast {
@@ -50,7 +50,7 @@ void UltrasoundImageCropper::execute() {
             cl::NullRange
     );
 
-    boost::shared_array<uchar> result(new uchar[width + height]);
+    UniquePointer<uchar[]> result(new uchar[width + height]);
     queue.enqueueReadBuffer(rays, CL_TRUE, 0, sizeof(uchar)*(width + height), result.get());
     int minX = 0;
     int maxX = width;

@@ -6,7 +6,6 @@
 #include "FAST/Algorithms/ImageGradient/ImageGradient.hpp"
 #include "FAST/Utility.hpp"
 #include "FAST/SceneGraph.hpp"
-#include <boost/shared_array.hpp>
 #include <queue>
 #include "FAST/Algorithms/UltrasoundVesselDetection/UltrasoundVesselDetection.hpp"
 #include "FAST/Algorithms/ImageCropper/ImageCropper.hpp"
@@ -92,7 +91,7 @@ void UltrasoundVesselDetection::execute() {
     OpenCLImageAccess::pointer gradientAccess = gradients->getOpenCLImageAccess(ACCESS_READ, device);
 
     // Create output image
-    boost::shared_array<float> zeros(new float[input->getWidth()*input->getHeight()*4]());
+    UniquePointer<float[]> zeros(new float[input->getWidth()*input->getHeight()*4]());
     cl::Image2D result = cl::Image2D(
             device->getContext(),
             CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -126,7 +125,7 @@ void UltrasoundVesselDetection::execute() {
     );
 
     // Get result back
-    boost::shared_array<float> data(new float[input->getWidth()*input->getHeight()*4]);
+    UniquePointer<float[]> data(new float[input->getWidth()*input->getHeight()*4]);
     device->getCommandQueue().enqueueReadImage(
             result,
             CL_TRUE,
@@ -262,7 +261,7 @@ void UltrasoundVesselDetection::execute() {
         OpenCLImageAccess::pointer writeAccess = segmentation->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
         cl::Image2D* outputData = writeAccess->get2DImage();
         // Create all zero data
-        boost::shared_array<uchar> zeroData(new uchar[input->getWidth()*input->getHeight()]());
+        UniquePointer<uchar[]> zeroData(new uchar[input->getWidth()*input->getHeight()]());
         device->getCommandQueue().enqueueWriteImage(
                 *outputData,
                 CL_TRUE,
