@@ -3,8 +3,8 @@
 
 #include "FAST/Object.hpp"
 #include <QThread>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition_variable.hpp>
+#include <mutex>
+#include <condition_variable>
 #include <vector>
 
 
@@ -29,8 +29,8 @@ class ComputationThread : public QObject, public Object {
 
         bool mUpdateThreadIsStopped;
         bool mIsRunning;
-        boost::condition_variable mUpdateThreadConditionVariable;
-        boost::mutex mUpdateThreadMutex;
+        std::condition_variable mUpdateThreadConditionVariable;
+        std::mutex mUpdateThreadMutex;
 
         QThread* mMainThread;
 

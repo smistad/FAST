@@ -10,7 +10,7 @@
 #include <QCursor>
 #include "ColorTransferFunction.hpp"
 #include "OpacityTransferFunction.hpp"
-#include <boost/thread/lock_guard.hpp>
+
 
 
 namespace fast {
@@ -272,7 +272,7 @@ void VolumeRenderer::setModelViewMatrix(GLfloat mView[16]){
 }
 void VolumeRenderer::execute() {
 
-	boost::lock_guard<boost::mutex> lock(mMutex);
+	std::lock_guard<std::mutex> lock(mMutex);
 
 	if (!inputs.empty())
 		inputs.clear();
@@ -616,7 +616,7 @@ void VolumeRenderer::execute() {
 
 void VolumeRenderer::draw() {
 	
-	boost::lock_guard<boost::mutex> lock(mMutex);
+	std::lock_guard<std::mutex> lock(mMutex);
 
 	if(!mOutputIsCreated)
         return;

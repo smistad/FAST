@@ -9,7 +9,7 @@
 #include "FAST/Data/Access/VertexBufferObjectAccess.hpp"
 #include "FAST/Data/Access/MeshAccess.hpp"
 #include "FAST/Data/Access/MeshOpenCLAccess.hpp"
-#include <boost/thread/condition_variable.hpp>
+#include <condition_variable>
 #include <unordered_map>
 
 namespace fast {

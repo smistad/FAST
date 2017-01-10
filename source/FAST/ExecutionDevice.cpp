@@ -1,8 +1,8 @@
 #include "FAST/ExecutionDevice.hpp"
 #include "FAST/RuntimeMeasurementManager.hpp"
 #include "FAST/Utility.hpp"
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/lock_guard.hpp>
+#include <mutex>
+
 #include <QDir>
 #include <boost/functional/hash.hpp>
 #include <fstream>
@@ -96,7 +96,7 @@ OpenCLDevice::OpenCLDevice() {
 }
 
 
-boost::mutex buildBinaryMutex; // a global mutex
+std::mutex buildBinaryMutex; // a global mutex
 
 bool OpenCLDevice::isImageFormatSupported(cl_channel_order order, cl_channel_type type, cl_mem_object_type imageType) {
     std::vector<cl::ImageFormat> formats;
@@ -384,7 +384,7 @@ cl::Program OpenCLDevice::readBinary(std::string filename) {
 }
 
 cl::Program OpenCLDevice::buildProgramFromBinary(std::string filename, std::string buildOptions) {
-    boost::lock_guard<boost::mutex> lock(buildBinaryMutex);
+    std::lock_guard<std::mutex> lock(buildBinaryMutex);
     cl::Program program;
 
     boost::hash<std::string> hash_function;

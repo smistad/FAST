@@ -31,7 +31,7 @@ class SliceRenderer : public Renderer {
         unsigned int mWidth;
         unsigned int mHeight;
 
-        boost::mutex mMutex;
+        std::mutex mMutex;
 };
 
 }

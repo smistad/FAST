@@ -29,7 +29,7 @@ void DummyIGTLServer::setImageStreamer(
 
 void DummyIGTLServer::start() {
     // Create a new thread which runs the server
-    mThread = boost::thread(std::bind(&DummyIGTLServer::stream, this));
+    mThread = std::thread(std::bind(&DummyIGTLServer::stream, this));
 }
 
 DummyIGTLServer::~DummyIGTLServer() {

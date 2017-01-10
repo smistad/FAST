@@ -31,7 +31,7 @@ class LineRenderer : public Renderer {
         std::unordered_map<ProcessObjectPort, Color> mInputColors;
         std::unordered_map<ProcessObjectPort, bool> mInputDrawOnTop;
         std::unordered_map<uint, LineSet::pointer> mLineSetsToRender;
-        boost::mutex mMutex;
+        std::mutex mMutex;
 };
 
 }

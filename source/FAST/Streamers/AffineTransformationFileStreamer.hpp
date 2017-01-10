@@ -4,7 +4,7 @@
 #include "FAST/SmartPointers.hpp"
 #include "FAST/Streamers/Streamer.hpp"
 #include "FAST/ProcessObject.hpp"
-#include <boost/thread.hpp>
+#include <thread>
 
 namespace fast {
 
@@ -38,9 +38,9 @@ class AffineTransformationFileStreamer : public Streamer, public ProcessObject {
         bool mLoop;
         uint mSleepTime;
 
-        boost::thread *thread;
-        boost::mutex mFirstFrameMutex;
-        boost::condition_variable mFirstFrameCondition;
+        std::thread *thread;
+        std::mutex mFirstFrameMutex;
+        std::condition_variable mFirstFrameCondition;
 
         uint mNrOfFrames;
         uint mMaximumNrOfFrames;

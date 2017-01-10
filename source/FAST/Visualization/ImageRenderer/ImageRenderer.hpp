@@ -30,7 +30,7 @@ class ImageRenderer : public Renderer {
 
         cl::Kernel mKernel;
 
-        boost::mutex mMutex;
+        std::mutex mMutex;
 
 };
 

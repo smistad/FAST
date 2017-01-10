@@ -18,14 +18,14 @@ PointSetAccess::pointer PointSet::getAccess(accessType access) {
     if(access == ACCESS_READ_WRITE) {
     	blockIfBeingAccessed();
     	{
-            boost::unique_lock<boost::mutex> lock(mDataIsBeingWrittenToMutex);
+            std::unique_lock<std::mutex> lock(mDataIsBeingWrittenToMutex);
             mDataIsBeingWrittenTo = true;
     	}
         updateModifiedTimestamp();
     }
 
     {
-        boost::unique_lock<boost::mutex> lock(mDataIsBeingAccessedMutex);
+        std::unique_lock<std::mutex> lock(mDataIsBeingAccessedMutex);
         mDataIsBeingAccessed = true;
     }
     // TODO should send a parameter whether writing is allowed or not to PointSetAccess

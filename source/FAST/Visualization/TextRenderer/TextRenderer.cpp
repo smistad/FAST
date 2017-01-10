@@ -1,4 +1,4 @@
-#include <boost/thread/lock_guard.hpp>
+
 #include "TextRenderer.hpp"
 #include "FAST/Visualization/View.hpp"
 
@@ -23,7 +23,7 @@ void TextRenderer::setView(View* view) {
 }
 
 void TextRenderer::execute() {
-    boost::lock_guard<boost::mutex> lock(mMutex);
+    std::lock_guard<std::mutex> lock(mMutex);
 
     Text::pointer text = getStaticInputData<Text>();
     Text::access access = text->getAccess(ACCESS_READ);
@@ -31,7 +31,7 @@ void TextRenderer::execute() {
 }
 
 void TextRenderer::draw() {
-    boost::lock_guard<boost::mutex> lock(mMutex);
+    std::lock_guard<std::mutex> lock(mMutex);
 
     if(mView != NULL) {
         if(mText != "") {
@@ -72,7 +72,7 @@ void TextRenderer::setStyle(TextStyleType textStyleType) {
 void TextRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
                           Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform, float PBOspacing,
                           Vector2f translation) {
-    boost::lock_guard<boost::mutex> lock(mMutex);
+    std::lock_guard<std::mutex> lock(mMutex);
 
     // TODO select a safe background color here, that is different from set color
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);

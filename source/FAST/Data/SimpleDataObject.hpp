@@ -111,7 +111,7 @@ typename AccessObject::pointer SimpleDataObject<DataType, AccessObject>::getAcce
     if(type == ACCESS_READ_WRITE) {
     	blockIfBeingAccessed();
     	{
-    		boost::lock_guard<boost::mutex> lock(mDataIsBeingWrittenToMutex);
+    		std::lock_guard<std::mutex> lock(mDataIsBeingWrittenToMutex);
             mDataIsBeingWrittenTo = true;
     	}
         updateModifiedTimestamp();
@@ -119,7 +119,7 @@ typename AccessObject::pointer SimpleDataObject<DataType, AccessObject>::getAcce
 
 
     {
-        boost::lock_guard<boost::mutex> lock(mDataIsBeingAccessedMutex);
+        std::lock_guard<std::mutex> lock(mDataIsBeingAccessedMutex);
         mDataIsBeingAccessed = true;
     }
 

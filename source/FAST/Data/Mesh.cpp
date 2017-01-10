@@ -2,8 +2,9 @@
 #include "Mesh.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 #include <QApplication>
-#include <boost/thread.hpp>
+#include <thread>
 #include <boost/shared_array.hpp>
+#include <boost/unordered_map.hpp>
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenGL/OpenGL.h>
@@ -108,7 +109,7 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
     if (type == ACCESS_READ_WRITE) {
     	blockIfBeingAccessed();
     	{
-            boost::unique_lock<boost::mutex> lock(mDataIsBeingWrittenToMutex);
+            std::unique_lock<std::mutex> lock(mDataIsBeingWrittenToMutex);
             mDataIsBeingWrittenTo = true;
     	}
         updateModifiedTimestamp();
@@ -178,7 +179,7 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
     }
 
     {
-        boost::unique_lock<boost::mutex> lock(mDataIsBeingAccessedMutex);
+        std::unique_lock<std::mutex> lock(mDataIsBeingAccessedMutex);
         mDataIsBeingAccessed = true;
     }
 
@@ -224,7 +225,7 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
     if(type == ACCESS_READ_WRITE) {
     	blockIfBeingAccessed();
     	{
-    		boost::lock_guard<boost::mutex> lock(mDataIsBeingWrittenToMutex);
+    		std::lock_guard<std::mutex> lock(mDataIsBeingWrittenToMutex);
             mDataIsBeingWrittenTo = true;
     	}
         updateModifiedTimestamp();
@@ -286,7 +287,7 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
     }
 
     {
-        boost::lock_guard<boost::mutex> lock(mDataIsBeingAccessedMutex);
+        std::lock_guard<std::mutex> lock(mDataIsBeingAccessedMutex);
         mDataIsBeingAccessed = true;
     }
 
@@ -378,7 +379,7 @@ MeshOpenCLAccess::pointer Mesh::getOpenCLAccess(accessType type, OpenCLDevice::p
 
     if(type == ACCESS_READ_WRITE) {
     	blockIfBeingAccessed();
-        boost::unique_lock<boost::mutex> lock(mDataIsBeingWrittenToMutex);
+        std::unique_lock<std::mutex> lock(mDataIsBeingWrittenToMutex);
         mDataIsBeingWrittenTo = true;
     }
     updateOpenCLBufferData(device);
@@ -388,7 +389,7 @@ MeshOpenCLAccess::pointer Mesh::getOpenCLAccess(accessType type, OpenCLDevice::p
     }
     mCLBuffersIsUpToDate[device] = true;
     {
-        boost::unique_lock<boost::mutex> lock(mDataIsBeingAccessedMutex);
+        std::unique_lock<std::mutex> lock(mDataIsBeingAccessedMutex);
         mDataIsBeingAccessed = true;
     }
 

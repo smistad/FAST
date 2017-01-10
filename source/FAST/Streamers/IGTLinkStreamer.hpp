@@ -2,7 +2,7 @@
 #define IGTLINK_STREAMER_HPP
 
 #include <boost/signals2.hpp>
-#include <boost/thread.hpp>
+#include <thread>
 #include <unordered_map>
 #include "FAST/SmartPointers.hpp"
 #include "FAST/Streamers/Streamer.hpp"
@@ -50,10 +50,10 @@ class IGTLinkStreamer : public Streamer, public ProcessObject {
         uint mMaximumNrOfFrames;
         bool mMaximumNrOfFramesSet;
 
-        boost::thread *thread;
-        boost::mutex mFirstFrameMutex;
-        boost::mutex mStopMutex;
-        boost::condition_variable mFirstFrameCondition;
+        std::thread *thread;
+        std::mutex mFirstFrameMutex;
+        std::mutex mStopMutex;
+        std::condition_variable mFirstFrameCondition;
 
         bool mStreamIsStarted;
         bool mFirstFrameIsInserted;

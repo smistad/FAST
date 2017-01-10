@@ -16,7 +16,7 @@
 #include <CL/cl_gl.h>
 #endif
 #endif
-#include <boost/thread/lock_guard.hpp>
+
 
 using namespace fast;
 
@@ -25,7 +25,7 @@ using namespace fast;
 #endif
 
 void ImageRenderer::execute() {
-    boost::lock_guard<boost::mutex> lock(mMutex);
+    std::lock_guard<std::mutex> lock(mMutex);
 
     // This simply gets the input data for each connection and puts it into a data structure
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
@@ -52,7 +52,7 @@ ImageRenderer::ImageRenderer() : Renderer() {
 }
 
 void ImageRenderer::draw() {
-    boost::lock_guard<boost::mutex> lock(mMutex);
+    std::lock_guard<std::mutex> lock(mMutex);
 
     std::unordered_map<uint, Image::pointer>::iterator it;
     for(it = mImagesToRender.begin(); it != mImagesToRender.end(); it++) {
@@ -202,7 +202,7 @@ void ImageRenderer::draw() {
 }
 
 void ImageRenderer::draw2D(cl::Buffer PBO, uint width, uint height, Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform, float PBOspacing, Vector2f translation) {
-    boost::lock_guard<boost::mutex> lock(mMutex);
+    std::lock_guard<std::mutex> lock(mMutex);
 
     OpenCLDevice::pointer device = getMainDevice();
     cl::CommandQueue queue = device->getCommandQueue();

@@ -13,14 +13,14 @@ DataObject::DataObject() :
 }
 
 void DataObject::blockIfBeingWrittenTo() {
-    boost::unique_lock<boost::mutex> lock(mDataIsBeingWrittenToMutex);
+    std::unique_lock<std::mutex> lock(mDataIsBeingWrittenToMutex);
     while(mDataIsBeingWrittenTo) {
         mDataIsBeingWrittenToCondition.wait(lock);
     }
 }
 
 void DataObject::blockIfBeingAccessed() {
-    boost::unique_lock<boost::mutex> lock(mDataIsBeingAccessedMutex);
+    std::unique_lock<std::mutex> lock(mDataIsBeingAccessedMutex);
     while(mDataIsBeingAccessed) {
         mDataIsBeingWrittenToCondition.wait(lock);
     }
@@ -28,13 +28,13 @@ void DataObject::blockIfBeingAccessed() {
 
 void DataObject::accessFinished() {
 	{
-        boost::unique_lock<boost::mutex> lock(mDataIsBeingWrittenToMutex);
+        std::unique_lock<std::mutex> lock(mDataIsBeingWrittenToMutex);
         mDataIsBeingWrittenTo = false;
 	}
 	mDataIsBeingWrittenToCondition.notify_one();
 
 	{
-        boost::unique_lock<boost::mutex> lock(mDataIsBeingAccessedMutex);
+        std::unique_lock<std::mutex> lock(mDataIsBeingAccessedMutex);
         mDataIsBeingAccessed = false;
 	}
 	mDataIsBeingAccessedCondition.notify_one();

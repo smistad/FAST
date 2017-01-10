@@ -4,7 +4,7 @@
 #include "FAST/Utility.hpp"
 #include "FAST/Data/Image.hpp"
 #include "FAST/SceneGraph.hpp"
-#include <boost/thread/lock_guard.hpp>
+
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
 #include <OpenGL/gl.h>
@@ -28,7 +28,7 @@ using namespace fast;
 
 
 void SliceRenderer::execute() {
-    boost::lock_guard<boost::mutex> lock(mMutex);
+    std::lock_guard<std::mutex> lock(mMutex);
     mImageToRender = getStaticInputData<Image>(0);
 
     if(mImageToRender->getDimensions() != 3)
@@ -205,7 +205,7 @@ SliceRenderer::SliceRenderer() : Renderer() {
 }
 
 void SliceRenderer::draw() {
-    boost::lock_guard<boost::mutex> lock(mMutex);
+    std::lock_guard<std::mutex> lock(mMutex);
     if(!mTextureIsCreated)
         return;
 

@@ -40,7 +40,7 @@ class MeshRenderer : public Renderer {
         Color mDefaultColor;
         float mDefaultSpecularReflection;
         float mDefaultOpacity;
-        boost::mutex mMutex;
+        std::mutex mMutex;
         int mLineSize;
 };
 

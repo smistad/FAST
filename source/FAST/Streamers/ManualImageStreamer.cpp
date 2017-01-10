@@ -69,11 +69,11 @@ void ManualImageStreamer::execute() {
         // Check that first frame exists before starting streamer
 
         mStreamIsStarted = true;
-        thread = new boost::thread(&stubStreamThread, this);
+        thread = new std::thread(&stubStreamThread, this);
     }
 
     // Wait here for first frame
-    boost::unique_lock<boost::mutex> lock(mFirstFrameMutex);
+    std::unique_lock<std::mutex> lock(mFirstFrameMutex);
     while(!mFirstFrameIsInserted) {
         mFirstFrameCondition.wait(lock);
     }
@@ -93,7 +93,7 @@ void ManualImageStreamer::producerStream() {
                 try {
                     ptr->addFrame(image);
                     if(mSleepTime > 0)
-                        boost::this_thread::sleep(boost::posix_time::milliseconds(mSleepTime));
+                        std::this_thread::sleep_for(std::chrono::milliseconds(mSleepTime));
                 } catch(NoMoreFramesException &e) {
                     throw e;
                 } catch(Exception &e) {
@@ -102,7 +102,7 @@ void ManualImageStreamer::producerStream() {
                 }
                 if(!mFirstFrameIsInserted) {
                     {
-                        boost::lock_guard<boost::mutex> lock(mFirstFrameMutex);
+                        std::lock_guard<std::mutex> lock(mFirstFrameMutex);
                         mFirstFrameIsInserted = true;
                     }
                     mFirstFrameCondition.notify_one();
@@ -119,7 +119,7 @@ void ManualImageStreamer::producerStream() {
                 // If there where no files found at all, we need to release the execute method
                 if(!mFirstFrameIsInserted) {
                     {
-                        boost::lock_guard<boost::mutex> lock(mFirstFrameMutex);
+                        std::lock_guard<std::mutex> lock(mFirstFrameMutex);
                         mFirstFrameIsInserted = true;
                     }
                     mFirstFrameCondition.notify_one();
@@ -142,7 +142,7 @@ void ManualImageStreamer::producerStream() {
 
 ManualImageStreamer::~ManualImageStreamer() {
     if(mStreamIsStarted) {
-        if(thread->get_id() != boost::this_thread::get_id()) { // avoid deadlock
+        if(thread->get_id() != std::this_thread::get_id()) { // avoid deadlock
             thread->join();
         }
         delete thread;

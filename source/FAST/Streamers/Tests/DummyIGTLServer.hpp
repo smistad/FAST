@@ -2,7 +2,7 @@
 #define DUMMY_IGTL_IMAGE_SERVER_HPP
 
 #include "FAST/Streamers/ImageFileStreamer.hpp"
-#include <boost/thread.hpp>
+#include <thread>
 
 namespace fast {
 
@@ -19,7 +19,7 @@ class DummyIGTLServer {
         uint mPort;
         uint mFPS;
         ImageFileStreamer::pointer mStreamer;
-        boost::thread mThread;
+        std::thread mThread;
 
 };
 

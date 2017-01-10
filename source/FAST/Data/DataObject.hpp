@@ -6,7 +6,7 @@
 #include "FAST/ExecutionDevice.hpp"
 #include <unordered_map>
 #include "FAST/Streamers/Streamer.hpp"
-#include <boost/thread/condition_variable.hpp>
+#include <condition_variable>
 
 namespace fast {
 
@@ -37,12 +37,12 @@ class DataObject : public Object {
         void blockIfBeingWrittenTo();
         void blockIfBeingAccessed();
 
-        boost::mutex mDataIsBeingWrittenToMutex;
-        boost::condition_variable mDataIsBeingWrittenToCondition;
+        std::mutex mDataIsBeingWrittenToMutex;
+        std::condition_variable mDataIsBeingWrittenToCondition;
         bool mDataIsBeingWrittenTo;
 
-        boost::mutex mDataIsBeingAccessedMutex;
-        boost::condition_variable mDataIsBeingAccessedCondition;
+        std::mutex mDataIsBeingAccessedMutex;
+        std::condition_variable mDataIsBeingAccessedCondition;
         bool mDataIsBeingAccessed;
     private:
         std::unordered_map<WeakPointer<ExecutionDevice>, unsigned int> mReferenceCount;

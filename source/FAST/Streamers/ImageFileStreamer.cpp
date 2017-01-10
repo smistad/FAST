@@ -70,11 +70,11 @@ void ImageFileStreamer::execute() {
         // Check that first frame exists before starting streamer
 
         mStreamIsStarted = true;
-        thread = new boost::thread(&stubStreamThread, this);
+        thread = new std::thread(&stubStreamThread, this);
     }
 
     // Wait here for first frame
-    boost::unique_lock<boost::mutex> lock(mFirstFrameMutex);
+    std::unique_lock<std::mutex> lock(mFirstFrameMutex);
     while(!mFirstFrameIsInserted) {
         mFirstFrameCondition.wait(lock);
     }
@@ -159,7 +159,7 @@ void ImageFileStreamer::producerStream() {
                     //reportInfo() << "Time passed: " << timePassed.count() << reportEnd();
                     while(timestamp > previousTimestamp + timePassed.count()) {
                         // Wait
-                        boost::this_thread::sleep(boost::posix_time::milliseconds(timestamp-(long)previousTimestamp-timePassed.count()));
+                        std::this_thread::sleep_for(std::chrono::milliseconds(timestamp-(long)previousTimestamp-timePassed.count()));
                         timePassed = std::chrono::duration_cast<std::chrono::milliseconds>(
                             std::chrono::high_resolution_clock::now() - previousTimestampTime);
                         //reportInfo() << "wait" << reportEnd();
@@ -176,7 +176,7 @@ void ImageFileStreamer::producerStream() {
                 try {
                     ptr->addFrame(image);
                     if(mSleepTime > 0)
-                        boost::this_thread::sleep(boost::posix_time::milliseconds(mSleepTime));
+                        std::this_thread::sleep_for(std::chrono::milliseconds(mSleepTime));
                 } catch(NoMoreFramesException &e) {
                     throw e;
                 } catch(Exception &e) {
@@ -185,7 +185,7 @@ void ImageFileStreamer::producerStream() {
                 }
                 if(!mFirstFrameIsInserted) {
                     {
-                        boost::lock_guard<boost::mutex> lock(mFirstFrameMutex);
+                        std::lock_guard<std::mutex> lock(mFirstFrameMutex);
                         mFirstFrameIsInserted = true;
                     }
                     mFirstFrameCondition.notify_one();
@@ -202,7 +202,7 @@ void ImageFileStreamer::producerStream() {
                 // If there where no files found at all, we need to release the execute method
                 if(!mFirstFrameIsInserted) {
                     {
-                        boost::lock_guard<boost::mutex> lock(mFirstFrameMutex);
+                        std::lock_guard<std::mutex> lock(mFirstFrameMutex);
                         mFirstFrameIsInserted = true;
                     }
                     mFirstFrameCondition.notify_one();
@@ -237,7 +237,7 @@ void ImageFileStreamer::producerStream() {
 
 ImageFileStreamer::~ImageFileStreamer() {
     if(mStreamIsStarted) {
-        if(thread->get_id() != boost::this_thread::get_id()) { // avoid deadlock
+        if(thread->get_id() != std::this_thread::get_id()) { // avoid deadlock
             thread->join();
         }
         delete thread;

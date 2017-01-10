@@ -2,7 +2,7 @@
 #include "FAST/Data/Access/LineSetAccess.hpp"
 #include "FAST/Data/LineSet.hpp"
 #include "FAST/SceneGraph.hpp"
-#include <boost/thread/lock_guard.hpp>
+
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenGL/OpenGL.h>
 #include <OpenGL/gl.h>
@@ -13,7 +13,7 @@
 namespace fast {
 
 void LineRenderer::draw() {
-    boost::lock_guard<boost::mutex> lock(mMutex);
+    std::lock_guard<std::mutex> lock(mMutex);
 
     // For all input data
     std::unordered_map<uint, LineSet::pointer>::iterator it;
@@ -84,7 +84,7 @@ LineRenderer::LineRenderer() {
 }
 
 void LineRenderer::execute() {
-    boost::lock_guard<boost::mutex> lock(mMutex);
+    std::lock_guard<std::mutex> lock(mMutex);
 
     // This simply gets the input data for each connection and puts it into a data structure
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {

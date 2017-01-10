@@ -198,7 +198,7 @@ OpenCLBufferAccess::pointer Image::getOpenCLBufferAccess(
 
     if(type == ACCESS_READ_WRITE) {
     	blockIfBeingAccessed();
-        boost::unique_lock<boost::mutex> lock(mDataIsBeingWrittenToMutex);
+        std::unique_lock<std::mutex> lock(mDataIsBeingWrittenToMutex);
         mDataIsBeingWrittenTo = true;
     }
     updateOpenCLBufferData(device);
@@ -208,7 +208,7 @@ OpenCLBufferAccess::pointer Image::getOpenCLBufferAccess(
     }
     mCLBuffersIsUpToDate[device] = true;
     {
-        boost::unique_lock<boost::mutex> lock(mDataIsBeingAccessedMutex);
+        std::unique_lock<std::mutex> lock(mDataIsBeingAccessedMutex);
         mDataIsBeingAccessed = true;
     }
 
@@ -379,7 +379,7 @@ OpenCLImageAccess::pointer Image::getOpenCLImageAccess(
     // Check for write access
     if(type == ACCESS_READ_WRITE) {
     	blockIfBeingAccessed();
-    	boost::lock_guard<boost::mutex> lock(mDataIsBeingWrittenToMutex);
+    	std::lock_guard<std::mutex> lock(mDataIsBeingWrittenToMutex);
         mDataIsBeingWrittenTo = true;
     }
     updateOpenCLImageData(device);
@@ -388,7 +388,7 @@ OpenCLImageAccess::pointer Image::getOpenCLImageAccess(
         updateModifiedTimestamp();
     }
     {
-        boost::lock_guard<boost::mutex> lock(mDataIsBeingAccessedMutex);
+        std::lock_guard<std::mutex> lock(mDataIsBeingAccessedMutex);
         mDataIsBeingAccessed = true;
     }
     mCLImagesIsUpToDate[device] = true;
@@ -422,7 +422,7 @@ ImageAccess::pointer Image::getImageAccess(accessType type) {
 
     if(type == ACCESS_READ_WRITE) {
     	blockIfBeingAccessed();
-        boost::unique_lock<boost::mutex> lock(mDataIsBeingWrittenToMutex);
+        std::unique_lock<std::mutex> lock(mDataIsBeingWrittenToMutex);
         mDataIsBeingWrittenTo = true;
     }
     updateHostData();
@@ -432,7 +432,7 @@ ImageAccess::pointer Image::getImageAccess(accessType type) {
     }
     mHostDataIsUpToDate = true;
     {
-        boost::unique_lock<boost::mutex> lock(mDataIsBeingAccessedMutex);
+        std::unique_lock<std::mutex> lock(mDataIsBeingAccessedMutex);
         mDataIsBeingAccessed = true;
     }
 

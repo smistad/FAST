@@ -1,6 +1,6 @@
 #include "FAST/Testing.hpp"
 #include "FAST/DeviceManager.hpp"
-#include <boost/thread.hpp>
+#include <thread>
 #include "FAST/Streamers/ImageFileStreamer.hpp"
 #include "FAST/Tests/DummyObjects.hpp"
 #include "FAST/Data/Image.hpp"
@@ -50,7 +50,7 @@ TEST_CASE("ImageFileStreamer streaming to host with streaming mode NEWEST set", 
             Image::pointer frame = image->getNextFrame(PO);
         }
         // Must make this thread sleep a little so that streamer will get a chance to import data
-        boost::this_thread::sleep(boost::posix_time::milliseconds(20));
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
     );
 }
@@ -72,7 +72,7 @@ TEST_CASE("ImageFileStreamer streaming to host with streaming mode PROCESS_ALL s
             Image::pointer frame = image->getNextFrame(PO);
         }
         // Must make this thread sleep a little so that streamer will get a chance to import data
-        boost::this_thread::sleep(boost::posix_time::milliseconds(20));
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
     );
 }
@@ -94,7 +94,7 @@ TEST_CASE("ImageFileStreamer streaming to host with streaming mode STORE_ALL set
             Image::pointer frame = image->getNextFrame(PO);
         }
         // Must make this thread sleep a little so that streamer will get a chance to import data
-        boost::this_thread::sleep(boost::posix_time::milliseconds(20));
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
     );
 }
@@ -118,7 +118,7 @@ TEST_CASE("ImageFileStreamer with streaming mode STORE_ALL and maximum number of
                 Image::pointer frame = image->getNextFrame(PO);
             }
             // Must make this thread sleep a little so that streamer will get a chance to import data
-            boost::this_thread::sleep(boost::posix_time::milliseconds(20));
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
         }
     );
 }
@@ -135,7 +135,7 @@ TEST_CASE("ImageFileStreamer with streaming mode PROCESS_ALL and maximum number 
     DynamicData::pointer image = mhdStreamer->getOutputData<Image>(0);
     unsigned long currentTimestamp = image->getTimestamp();
     // Must make this thread sleep a little so that streamer will get a chance to import data
-    boost::this_thread::sleep(boost::posix_time::milliseconds(500));
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
     CHECK(image->getSize() == 4);
 }
 
@@ -157,7 +157,7 @@ TEST_CASE("ImageFileStreamer with streaming mode STORE_ALL and maximum number of
                 Image::pointer frame = image->getNextFrame(PO);
             }
             // Must make this thread sleep a little so that streamer will get a chance to import data
-            boost::this_thread::sleep(boost::posix_time::milliseconds(20));
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
         }
     );
 }
@@ -181,7 +181,7 @@ TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode NEWE
             Image::pointer frame = image->getNextFrame(PO);
         }
         // Must make this thread sleep a little so that streamer will get a chance to import data
-        boost::this_thread::sleep(boost::posix_time::milliseconds(20));
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
     );
 }
@@ -205,7 +205,7 @@ TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode PROC
             Image::pointer frame = image->getNextFrame(PO);
         }
         // Must make this thread sleep a little so that streamer will get a chance to import data
-        boost::this_thread::sleep(boost::posix_time::milliseconds(20));
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
     );
 }
@@ -229,7 +229,7 @@ TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode STOR
             Image::pointer frame = image->getNextFrame(PO);
         }
         // Must make this thread sleep a little so that streamer will get a chance to import data
-        boost::this_thread::sleep(boost::posix_time::milliseconds(20));
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
     );
 }

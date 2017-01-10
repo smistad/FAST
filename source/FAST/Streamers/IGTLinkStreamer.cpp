@@ -109,7 +109,7 @@ void IGTLinkStreamer::updateFirstFrameSetFlag() {
 
     if(allHaveGotData) {
         {
-            boost::lock_guard<boost::mutex> lock(mFirstFrameMutex);
+            std::lock_guard<std::mutex> lock(mFirstFrameMutex);
             mFirstFrameIsInserted = true;
         }
         mFirstFrameCondition.notify_one();
@@ -130,7 +130,7 @@ void IGTLinkStreamer::producerStream() {
         mStop = true;
         connectionLostSignal();
         {
-            boost::lock_guard<boost::mutex> lock(mFirstFrameMutex);
+            std::lock_guard<std::mutex> lock(mFirstFrameMutex);
 			mFirstFrameIsInserted = true;
         }
         mFirstFrameCondition.notify_one();
@@ -151,7 +151,7 @@ void IGTLinkStreamer::producerStream() {
 
     while(true) {
         {
-            boost::unique_lock<boost::mutex> lock(mStopMutex);
+            std::unique_lock<std::mutex> lock(mStopMutex);
             if(mStop) {
                 mStreamIsStarted = false;
                 mFirstFrameIsInserted = false;
@@ -309,7 +309,7 @@ void IGTLinkStreamer::producerStream() {
                 // If no frames has been inserted, stop
                 if(!mFirstFrameIsInserted) {
 					{
-						boost::lock_guard<boost::mutex> lock(mFirstFrameMutex);
+						std::lock_guard<std::mutex> lock(mFirstFrameMutex);
 						mFirstFrameIsInserted = true;
 					}
 					mStop = true;
@@ -333,7 +333,7 @@ void IGTLinkStreamer::producerStream() {
     }
     // Make sure we end the waiting thread if first frame has not been inserted
     {
-        boost::lock_guard<boost::mutex> lock(mFirstFrameMutex);
+        std::lock_guard<std::mutex> lock(mFirstFrameMutex);
         if(!mFirstFrameIsInserted)
             mFirstFrameIsInserted = true;
     }
@@ -344,7 +344,7 @@ void IGTLinkStreamer::producerStream() {
 IGTLinkStreamer::~IGTLinkStreamer() {
     if(mStreamIsStarted) {
         stop();
-        if(thread->get_id() != boost::this_thread::get_id()) { // avoid deadlock
+        if(thread->get_id() != std::this_thread::get_id()) { // avoid deadlock
             thread->join();
         }
         delete thread;
@@ -367,7 +367,7 @@ IGTLinkStreamer::IGTLinkStreamer() {
 }
 
 void IGTLinkStreamer::stop() {
-    boost::unique_lock<boost::mutex> lock(mStopMutex);
+    std::unique_lock<std::mutex> lock(mStopMutex);
     mStop = true;
 }
 
@@ -383,16 +383,16 @@ void IGTLinkStreamer::execute() {
         }
 
         mStreamIsStarted = true;
-        thread = new boost::thread(std::bind(&IGTLinkStreamer::producerStream, this));
+        thread = new std::thread(std::bind(&IGTLinkStreamer::producerStream, this));
     }
 
     // Wait here for first frame
-    boost::unique_lock<boost::mutex> lock(mFirstFrameMutex);
+    std::unique_lock<std::mutex> lock(mFirstFrameMutex);
     while(!mFirstFrameIsInserted) {
         mFirstFrameCondition.wait(lock);
     }
     {
-        boost::unique_lock<boost::mutex> lock(mStopMutex);
+        std::unique_lock<std::mutex> lock(mStopMutex);
         if(!mStop)
             connectionEstablishedSignal(); // send signal
     }

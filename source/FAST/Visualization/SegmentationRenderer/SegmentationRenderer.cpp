@@ -1,5 +1,5 @@
 #include "SegmentationRenderer.hpp"
-#include <boost/thread/lock_guard.hpp>
+
 #include <boost/shared_array.hpp>
 
 namespace fast {
@@ -70,7 +70,7 @@ SegmentationRenderer::SegmentationRenderer() {
 }
 
 void SegmentationRenderer::execute() {
-    boost::lock_guard<boost::mutex> lock(mMutex);
+    std::lock_guard<std::mutex> lock(mMutex);
 
     // This simply gets the input data for each connection and puts it into a data structure
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
@@ -87,7 +87,7 @@ void SegmentationRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
         Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform, float PBOspacing,
         Vector2f translation
         ) {
-    boost::lock_guard<boost::mutex> lock(mMutex);
+    std::lock_guard<std::mutex> lock(mMutex);
     OpenCLDevice::pointer device = getMainDevice();
 
     if(mColorsModified) {

@@ -6,7 +6,7 @@
 #include "FAST/Data/Color.hpp"
 #include "FAST/Utility.hpp"
 #include <unordered_map>
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 
 namespace fast {
 
@@ -41,7 +41,7 @@ class SegmentationRenderer : public Renderer {
         std::unordered_map<Segmentation::LabelType, bool> mLabelFillArea;
         bool mFillArea;
         cl::Buffer mColorBuffer, mFillAreaBuffer;
-        boost::mutex mMutex;
+        std::mutex mMutex;
 
 };
 

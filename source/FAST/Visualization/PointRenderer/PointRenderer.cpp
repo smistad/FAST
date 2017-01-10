@@ -6,13 +6,13 @@
 #else
 #include <GL/gl.h>
 #endif
-#include <boost/thread/lock_guard.hpp>
+
 #include <boost/shared_array.hpp>
 
 namespace fast {
 
 void PointRenderer::draw() {
-    boost::lock_guard<boost::mutex> lock(mMutex);
+    std::lock_guard<std::mutex> lock(mMutex);
 
     std::unordered_map<uint, PointSet::pointer>::iterator it;
     for(it = mPointSetsToRender.begin(); it != mPointSetsToRender.end(); it++) {
@@ -65,7 +65,7 @@ void PointRenderer::draw2D(
                 float PBOspacing,
                 Vector2f translation
         ) {
-    boost::lock_guard<boost::mutex> lock(mMutex);
+    std::lock_guard<std::mutex> lock(mMutex);
 
     OpenCLDevice::pointer device = getMainDevice();
     cl::CommandQueue queue = device->getCommandQueue();
@@ -142,7 +142,7 @@ PointRenderer::PointRenderer() {
 }
 
 void PointRenderer::execute() {
-    boost::lock_guard<boost::mutex> lock(mMutex);
+    std::lock_guard<std::mutex> lock(mMutex);
 
     // This simply gets the input data for each connection and puts it into a data structure
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {

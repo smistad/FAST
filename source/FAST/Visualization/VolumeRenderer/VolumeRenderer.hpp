@@ -62,7 +62,7 @@ class VolumeRenderer : public Renderer {
 		bool mDoTransformations;
         //unsigned int windowWidth, windowHeight;
 
-		boost::mutex mMutex;
+		std::mutex mMutex;
 
         cl::Program program;
 		cl::Context clContext;

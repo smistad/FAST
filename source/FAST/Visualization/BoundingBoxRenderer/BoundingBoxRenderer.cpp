@@ -1,7 +1,7 @@
 #include "BoundingBoxRenderer.hpp"
 #include "FAST/Data/BoundingBox.hpp"
 #include "FAST/Data/SpatialDataObject.hpp"
-#include <boost/thread/lock_guard.hpp>
+
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenGL/OpenGL.h>
 #include <OpenGL/gl.h>
@@ -25,7 +25,7 @@ BoundingBoxRenderer::BoundingBoxRenderer() {
 }
 
 void BoundingBoxRenderer::execute() {
-    boost::lock_guard<boost::mutex> lock(mMutex);
+    std::lock_guard<std::mutex> lock(mMutex);
 
     for(uint i = 0; i < getNrOfInputData(); ++i) {
         SpatialDataObject::pointer data = getStaticInputData<SpatialDataObject>(i);
@@ -34,7 +34,7 @@ void BoundingBoxRenderer::execute() {
 }
 
 void BoundingBoxRenderer::draw() {
-    boost::lock_guard<boost::mutex> lock(mMutex);
+    std::lock_guard<std::mutex> lock(mMutex);
 
     // Draw each bounding box
     std::unordered_map<uint, BoundingBox>::iterator it;

@@ -29,7 +29,7 @@ bool ComputationThread::isRunning() {
 void ComputationThread::run() {
     // This is run in the secondary (computation thread)
     {
-        boost::unique_lock<boost::mutex> lock(mUpdateThreadMutex); // this locks the mutex
+        std::unique_lock<std::mutex> lock(mUpdateThreadMutex); // this locks the mutex
         mIsRunning = true;
     }
     QGLContext* mainGLContext = Window::getMainGLContext();
@@ -39,7 +39,7 @@ void ComputationThread::run() {
         for(int i = 0; i < mViews.size(); i++) {
             mViews[i]->updateAllRenderers();
         }
-        boost::unique_lock<boost::mutex> lock(mUpdateThreadMutex); // this locks the mutex
+        std::unique_lock<std::mutex> lock(mUpdateThreadMutex); // this locks the mutex
         if(mUpdateThreadIsStopped) {
             // Move GL context back to main thread
             mainGLContext->moveToThread(mMainThread);
@@ -56,7 +56,7 @@ void ComputationThread::run() {
 
 void ComputationThread::stop() {
     // This is run in the main thread
-    boost::unique_lock<boost::mutex> lock(mUpdateThreadMutex); // this locks the mutex
+    std::unique_lock<std::mutex> lock(mUpdateThreadMutex); // this locks the mutex
     mUpdateThreadIsStopped = true;
     // Block until mIsRunning is set to false
     while(mIsRunning) {

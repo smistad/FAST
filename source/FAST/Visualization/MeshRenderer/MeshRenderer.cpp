@@ -4,7 +4,7 @@
 #include "FAST/Visualization/View.hpp"
 #include "FAST/Utility.hpp"
 #include <QCursor>
-#include <boost/thread/lock_guard.hpp>
+
 #include <boost/shared_array.hpp>
 #include "MeshRenderer.hpp"
 #include "FAST/SceneGraph.hpp"
@@ -44,7 +44,7 @@ void MeshRenderer::setLineSize(int size) {
 }
 
 void MeshRenderer::execute() {
-    boost::lock_guard<boost::mutex> lock(mMutex);
+    std::lock_guard<std::mutex> lock(mMutex);
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
         Mesh::pointer input = getStaticInputData<Mesh>(inputNr);
         mMeshToRender[inputNr] = input;
@@ -52,7 +52,7 @@ void MeshRenderer::execute() {
 }
 
 void MeshRenderer::draw() {
-    boost::lock_guard<boost::mutex> lock(mMutex);
+    std::lock_guard<std::mutex> lock(mMutex);
 
     glEnable(GL_NORMALIZE);
     glShadeModel(GL_SMOOTH);
@@ -131,7 +131,7 @@ void MeshRenderer::draw2D(
                 float PBOspacing,
                 Vector2f translation
         ) {
-    boost::lock_guard<boost::mutex> lock(mMutex);
+    std::lock_guard<std::mutex> lock(mMutex);
 
     OpenCLDevice::pointer device = getMainDevice();
     cl::CommandQueue queue = device->getCommandQueue();

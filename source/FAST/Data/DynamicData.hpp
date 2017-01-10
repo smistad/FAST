@@ -5,7 +5,7 @@
 #include "FAST/Data/DataObject.hpp"
 #include <vector>
 #include <unordered_map>
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 #include <boost/interprocess/sync/interprocess_semaphore.hpp>
 #include <boost/interprocess/sync/named_semaphore.hpp>
 
@@ -61,7 +61,7 @@ class DynamicData : public DataObject {
         boost::interprocess::interprocess_semaphore* emptyCount;
 #endif
 
-        boost::mutex mStreamMutex;
+        std::mutex mStreamMutex;
 
         bool mHasReachedEnd;
     protected:

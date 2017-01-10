@@ -3,7 +3,7 @@
 
 #include "FAST/Visualization/Renderer.hpp"
 #include "FAST/Data/Color.hpp"
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 #include <FAST/Data/SimpleDataObject.hpp>
 
 namespace fast {
@@ -36,7 +36,7 @@ private:
         void execute();
         void draw();
 
-        boost::mutex mMutex;
+        std::mutex mMutex;
         View* mView;
 
         std::string mText;
