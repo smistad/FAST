@@ -1,5 +1,6 @@
 #include "DataComparison.hpp"
 #include "FAST/Utility.hpp"
+#define _USE_MATH_DEFINES
 #include <cmath>
 #include <ctime>
 

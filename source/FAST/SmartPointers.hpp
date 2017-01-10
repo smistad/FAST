@@ -2,6 +2,7 @@
 #define SMARTPOINTERS_HPP_
 
 #define NOMINMAX // Removes windows min and max macros
+#define _USE_MATH_DEFINES
 #include "FAST/Exception.hpp"
 #include "FAST/Reporter.hpp"
 #include "FAST/Paths.hpp"

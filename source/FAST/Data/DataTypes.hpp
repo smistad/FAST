@@ -2,11 +2,11 @@
 #define DATA_TYPES_HPP
 
 #define NOMINMAX // Removes windows min and max macros
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include "FAST/Exception.hpp"
 #include "CL/OpenCL.hpp"
 #include "FAST/ExecutionDevice.hpp"
-#define _USE_MATH_DEFINES
-#include <cmath>
 #include <iostream>
 #include <Eigen/Dense>
 

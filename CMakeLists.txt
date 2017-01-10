@@ -160,14 +160,20 @@ if(FAST_MODULE_NeuralNetwork)
         # To get rid of this error: Not found: No session factory registered for the given session options: {target: "" config: } Registered factories are {}.
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /WHOLEARCHIVE:\"${Tensorflow_LIBRARY}\"")
     endif()
+
+	## Z lib for compressed data (zraw)
+    find_package(ZLIB)
+    if(ZLIB_FOUND)
+        include_directories(${ZLIB_INCLUDE_DIRS})
+    endif()
 else()
     # If tensorflow neural network module is enabled, a newer version of Eigen is already included in the tensorflow include dir
     ## Eigen
     find_package(Eigen3 REQUIRED)
     list(APPEND FAST_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
     message("-- Using Eigen ${EIGEN3_VERSION}")
-
-    ## Z lib for compressed data (zraw)
+	
+	## Z lib for compressed data (zraw)
     find_package(ZLIB)
     if(ZLIB_FOUND)
         add_definitions("-DZLIB_ENABLED") # Tell FAST to use ZLIB
@@ -175,6 +181,8 @@ else()
         set(LIBRARIES ${LIBRARIES} ${ZLIB_LIBRARIES})
     endif()
 endif()
+
+
 
 ## VTK
 if(FAST_VTK_INTEROP)

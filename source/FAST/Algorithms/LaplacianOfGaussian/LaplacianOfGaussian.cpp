@@ -1,3 +1,5 @@
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include "FAST/Exception.hpp"
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Data/Image.hpp"

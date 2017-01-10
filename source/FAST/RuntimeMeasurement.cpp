@@ -1,6 +1,7 @@
 #include "RuntimeMeasurement.hpp"
 #include <iostream>
 #include <sstream>
+#define _USE_MATH_DEFINES
 #include <cmath>
 
 namespace fast {
