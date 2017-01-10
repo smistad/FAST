@@ -4,7 +4,6 @@
 #include <QApplication>
 #include <thread>
 #include <boost/shared_array.hpp>
-#include <boost/unordered_map.hpp>
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenGL/OpenGL.h>
@@ -192,17 +191,16 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
 class KeyHasher {
     public:
         std::size_t operator()(const MeshVertex& v) const {
-            using boost::hash_value;
-            using boost::hash_combine;
 
             // Start with a hash value of 0    .
             std::size_t seed = 0;
 
             // Modify 'seed' by XORing and bit-shifting in
             // one member of 'Key' after the other:
-            hash_combine(seed,hash_value(v.getPosition()[0]));
-            hash_combine(seed,hash_value(v.getPosition()[1]));
-            hash_combine(seed,hash_value(v.getPosition()[2]));
+            // http://en.cppreference.com/w/cpp/utility/hash
+            hash_combine(seed, std::hash<float>{}(v.getPosition().x()));
+            hash_combine(seed, std::hash<float>{}(v.getPosition().y()));
+            hash_combine(seed, std::hash<float>{}(v.getPosition().z()));
 
             // Return the result.
             return seed;

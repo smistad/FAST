@@ -2,9 +2,7 @@
 #include "FAST/RuntimeMeasurementManager.hpp"
 #include "FAST/Utility.hpp"
 #include <mutex>
-
 #include <QDir>
-#include <boost/functional/hash.hpp>
 #include <fstream>
 
 #if defined(__APPLE__) || defined(__MACOSX)
@@ -301,9 +299,8 @@ cl::Program OpenCLDevice::writeBinary(std::string filename, std::string buildOpt
     VECTOR_CLASS<char *> binaries;
     binaries = program.getInfo<CL_PROGRAM_BINARIES>();
 
-    boost::hash<std::string> hash_function;
     std::string deviceName = getDevice(0).getInfo<CL_DEVICE_NAME>();
-    std::size_t hash = hash_function(buildOptions + deviceName);
+    std::size_t hash = std::hash<std::string>{}(buildOptions + deviceName);
     std::string binaryPath = std::string(OUL_OPENCL_KERNEL_BINARY_PATH);
     std::string binaryFilename = binaryPath + filename + "_" + std::to_string(hash) + ".bin";
     std::string cacheFilename = binaryPath + filename + "_" + std::to_string(hash) + ".cache";
@@ -387,9 +384,8 @@ cl::Program OpenCLDevice::buildProgramFromBinary(std::string filename, std::stri
     std::lock_guard<std::mutex> lock(buildBinaryMutex);
     cl::Program program;
 
-    boost::hash<std::string> hash_function;
     std::string deviceName = getDevice(0).getInfo<CL_DEVICE_NAME>();
-    std::size_t hash = hash_function(buildOptions + deviceName);
+    std::size_t hash = std::hash<std::string>{}(buildOptions + deviceName);
     std::string binaryPath = std::string(OUL_OPENCL_KERNEL_BINARY_PATH);
     std::string binaryFilename = binaryPath + filename + "_" + std::to_string(hash) + ".bin";
     std::string cacheFilename = binaryPath + filename + "_" + std::to_string(hash) + ".cache";

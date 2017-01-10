@@ -4,7 +4,7 @@
 #include "FAST/Algorithms/UltrasoundVesselDetection/VesselCrossSection.hpp"
 #include "FAST/Exporters/ImageExporter.hpp"
 #include "FAST/Algorithms/ImageCropper/ImageCropper.hpp"
-#include "boost/filesystem.hpp"
+#include <QDir>
 
 using namespace fast;
 
@@ -22,7 +22,10 @@ inline std::string currentDateTime() {
 
 int main() {
 	std::string storageDir = "/home/smistad/carotis_validation_dataset_daniel/";
-	boost::filesystem::create_directories(storageDir);
+    QDir dir(storageDir.c_str());
+    if (!dir.exists()) {
+        dir.mkpath(".");
+    }
 	// Set up stream
 	std::vector<std::string> recordings = {
 			/*
@@ -112,7 +115,10 @@ int main() {
 		// Put in subfolders
 		int j = i / 4; // Group 4 sequences into each folder
 		std::string targetDir = storageDir + std::to_string(j) + "/";
-		boost::filesystem::create_directories(targetDir);
+		QDir dir(targetDir.c_str());
+		if (!dir.exists()) {
+			dir.mkpath(".");
+		}
 
 		UltrasoundVesselDetection::pointer dummy = UltrasoundVesselDetection::New();
 
