@@ -296,8 +296,12 @@ find_package(SWIG)
 if(SWIG_FOUND AND FAST_MODULE_Python)
     message("-- SWIG found, creating python bindings...")
     include(${SWIG_USE_FILE})
+
     find_package(PythonLibs REQUIRED)
-    include_directories(${PYTHON_INCLUDE_PATH})
+    include_directories(${PYTHON_INCLUDE_DIRS})
+
+	find_package(NumPy REQUIRED)
+    include_directories(${PYTHON_NUMPY_INCLUDE_DIR})
 
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
