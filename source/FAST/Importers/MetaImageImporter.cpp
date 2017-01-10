@@ -44,7 +44,7 @@ inline void * readRawData(std::string rawFilename, unsigned int width, unsigned 
     if(compressed) {
 #ifdef ZLIB_ENABLED
         // Read compressed data
-        std::ifstream file(rawFilename);
+        std::ifstream file(rawFilename, std::ifstream::binary | std::ifstream::in);
         if(!file.is_open())
             throw FileNotFoundException(rawFilename);
 
@@ -89,7 +89,7 @@ inline void * readRawData(std::string rawFilename, unsigned int width, unsigned 
         throw Exception("Error reading MetaImage. Compressed raw files (.zraw) currently not supported.");
 #endif
     } else {
-        std::ifstream file(rawFilename);
+        std::ifstream file(rawFilename, std::ifstream::binary | std::ifstream::in);
         if(!file.is_open())
             throw FileNotFoundException(rawFilename);
 
