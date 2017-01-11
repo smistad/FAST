@@ -118,15 +118,10 @@ list(APPEND LIBRARIES ${QT_LIBRARIES})
 list(APPEND FAST_INCLUDE_DIRS "${Qt5Widgets_INCLUDE_DIRS}")
 list(APPEND FAST_INCLUDE_DIRS "${Qt5OpenGL_INCLUDE_DIRS}")
 
-## GLEW
-find_package(GLEW REQUIRED)
-include_directories(${GLEW_INCLUDE_DIR})
-include_directories(${GLEW_INCLUDE_PATH})
-list(APPEND LIBRARIES ${GLEW_LIBRARY})
-
 # External dependencies to be downloaded and built
 include(cmake/ExternalEigen.cmake)
 include(cmake/ExternalZlib.cmake)
+include(cmake/ExternalGLEW.cmake)
 list(APPEND FAST_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include)
 
 ## Neural network module
