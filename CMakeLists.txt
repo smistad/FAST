@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.9)
 project(FAST)
-include(cmake/macros.cmake)
+include(cmake/Macros.cmake)
 
 #### Options
 option(FAST_VTK_INTEROP "Enable interoperability with VTK" OFF)
@@ -71,13 +71,6 @@ configure_file(
 #### Module path
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/ ${CMAKE_MODULE_PATH}) # For finding the custom Find modules
 
-### IGT Link tests
-if(BUILD_IGTLINK_TESTS)
-    set(BUILD_TESTING ON CACHE INTERNAL "Build OpenIGTLink tests." FORCE)
-else()
-    set(BUILD_TESTING OFF CACHE INTERNAL "Build OpenIGTLink tests." FORCE)
-endif()
-
 # Headers for Qt objects
 set(QT_HEADERS
         source/FAST/Visualization/View.hpp
@@ -96,16 +89,6 @@ endif()
 #### Set up library dependencies
 set(FAST_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/source/ ${CMAKE_CURRENT_BINARY_DIR})
 
-## OpenIGTLink
-if(FAST_MODULE_OpenIGTLink)
-    set(LIBRARY_OUTPUT_PATH  "${FAST_BINARY_DIR}") # Needed to output the libraries in the correct folder
-    set(EXECUTABLE_OUTPUT_PATH "${FAST_BINARY_DIR}") # Needed to output the executables in correct folder
-    add_subdirectory(source/OpenIGTLink)
-    find_package(OpenIGTLink PATHS "${FAST_BINARY_DIR}/source/OpenIGTLink" REQUIRED)
-    include(${OpenIGTLink_USE_FILE})
-    list(APPEND FAST_INCLUDE_DIRS ${OpenIGTLink_INCLUDE_DIRS})
-    list(APPEND LIBRARIES ${OpenIGTLink_LIBRARIES})
-endif()
 
 ## OpenCL
 find_package(OpenCL REQUIRED)
@@ -200,44 +183,14 @@ if(FAST_ITK_INTEROP)
     set(LIBRARIES ${LIBRARIES} ${ITK_LIBRARIES})
 endif()
 
-
+include(cmake/ModuleOpenIGTLink.cmake)
+include(cmake/Cpp11.cmake)
 
 #### Set include dirs
 include_directories(${FAST_INCLUDE_DIRS})
 get_directory_property(hasParent PARENT_DIRECTORY)
 if(hasParent)
     set (FAST_INCLUDE_DIRS ${FAST_INCLUDE_DIRS} PARENT_SCOPE)
-endif()
-
-#### Enable C++11
-# Note that Microsoft Visual C++ compiler enables C++11 by default
-if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations") # Remove deprecated warnings GCC
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth=300") # Fix for a bug with boost signals2
-endif()
-if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" OR CMAKE_COMPILER_IS_GNUCXX)
-    include(CheckCXXCompilerFlag)
-    check_cxx_compiler_flag(--std=c++11 SUPPORTS_STD_CXX11)
-    check_cxx_compiler_flag(--std=c++0x SUPPORTS_STD_CXX01)
-    if(SUPPORTS_STD_CXX11)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c++11")
-        # Permissive flag is currently needed to make ITK work with C++11
-        if(FAST_ITK_INTEROP)
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpermissive")
-        endif()
-    elseif(SUPPORTS_STD_CXX01)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++0x")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c++0x")
-        # Permissive flag is currently needed to make ITK work with C++11
-        if(FAST_ITK_INTEROP)
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpermissive")
-        endif()
-    else()
-        message(ERROR "Compiler does not support --std=c++11 or --std=c++0x.")
-    endif()
 endif()
 
 #### Add all subdirs
@@ -292,51 +245,4 @@ configure_file (
         "${PROJECT_BINARY_DIR}/FASTConfig.cmake"
 )
 
-find_package(SWIG)
-if(SWIG_FOUND AND FAST_MODULE_Python)
-    message("-- SWIG found, creating python bindings...")
-    include(${SWIG_USE_FILE})
-
-    find_package(PythonLibs REQUIRED)
-    include_directories(${PYTHON_INCLUDE_DIRS})
-
-	find_package(NumPy REQUIRED)
-    include_directories(${PYTHON_NUMPY_INCLUDE_DIR})
-
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-
-    set(CMAKE_SWIG_FLAGS "")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSWIG_PYTHON_INTERPRETER_NO_DEBUG") # Avoid a error on windows when compiling in debug mode
-
-    # Generate the PyFAST interface file
-    # Include all header files
-    foreach(FILE ${FAST_SOURCE_FILES})
-        if(${FILE} MATCHES "^.*hpp$")
-            set(PYFAST_HEADER_INCLUDES "${PYFAST_HEADER_INCLUDES}#include \"${FILE}\"\n")
-        endif()
-    endforeach()
-
-    # Include all python interface files
-    foreach(FILE ${FAST_PYTHON_INTERFACE_FILES})
-        set(PYFAST_INTERFACE_INCLUDES "${PYFAST_INTERFACE_INCLUDES}%include \"${FILE}\"\n")
-    endforeach()
-
-    set(PYFAST_FILE "${PROJECT_BINARY_DIR}/PyFAST.i")
-    configure_file(
-            "${PROJECT_SOURCE_DIR}/source/PyFAST.i.in"
-            ${PYFAST_FILE}
-    )
-
-    # Build it
-    set_source_files_properties(${PYFAST_FILE} PROPERTIES GENERATED TRUE)
-    set_source_files_properties(${PYFAST_FILE} PROPERTIES CPLUSPLUS ON)
-    swig_add_module(fast python ${PYFAST_FILE})
-    swig_link_libraries(fast ${PYTHON_LIBRARIES} FAST)
-
-    # Move python file to lib folder
-    add_custom_command(TARGET _fast POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E rename fast.py ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/fast.py
-            )
-else()
-    message("-- SWIG not found or Python module not enabled in CMake, Python bindings will NOT be created.")
-endif()
+include(cmake/ModulePython.cmake)
