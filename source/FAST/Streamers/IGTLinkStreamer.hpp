@@ -7,7 +7,7 @@
 #include "FAST/SmartPointers.hpp"
 #include "FAST/Streamers/Streamer.hpp"
 #include "FAST/ProcessObject.hpp"
-#include "igtlClientSocket.h"
+#include <igtl/igtlClientSocket.h>
 
 namespace fast {
 

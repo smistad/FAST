@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.9)
+cmake_minimum_required(VERSION 2.8.12)
 project(FAST)
 include(cmake/Macros.cmake)
 
@@ -42,8 +42,11 @@ foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
 endforeach( OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES )
 
 ## Turn off shared libs on windows
+# TODO remove?
 if(WIN32)
     set(BUILD_SHARED_LIBS OFF)
+    # Build with multiple processes on windows
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
 endif()
 
 #### Paths
@@ -88,72 +91,15 @@ if(CMAKE_BUILD_TYPE STREQUAL Debug)
     add_definitions("-DFAST_DEBUG")
 endif()
 
-#### Set up library dependencies
+# Set FAST include dirs
 set(FAST_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/source/ ${CMAKE_CURRENT_BINARY_DIR})
 
-
-## OpenCL
-find_package(OpenCL REQUIRED)
-list(APPEND LIBRARIES ${OpenCL_LIBRARIES})
-list(APPEND FAST_INCLUDE_DIRS "${OpenCL_INCLUDE_DIRS}")
-message("-- OpenCL include dir: ${OpenCL_INCLUDE_DIRS}")
-
-## OpenGL
-find_package(OpenGL REQUIRED)
-list(APPEND LIBRARIES ${OPENGL_LIBRARIES})
-list(APPEND FAST_INCLUDE_DIRS ${OPENGL_INCLUDE_DIR})
-# If OS is Linux, also need X
-if(CMAKE_SYSTEM_NAME STREQUAL Linux)
-    find_package(X11 REQUIRED)
-    list(APPEND FAST_INCLUDE_DIRS ${X11_INCLUDE_DIR})
-    list(APPEND LIBRARIES ${X11_LIBRARIES})
-endif()
-
-
-## Qt
-find_package(Qt5Widgets)
-find_package(Qt5OpenGL)
-qt5_wrap_cpp(HEADERS_MOC ${QT_HEADERS})
-list(APPEND LIBRARIES ${QT_LIBRARIES})
-list(APPEND FAST_INCLUDE_DIRS "${Qt5Widgets_INCLUDE_DIRS}")
-list(APPEND FAST_INCLUDE_DIRS "${Qt5OpenGL_INCLUDE_DIRS}")
-
-# External dependencies to be downloaded and built
-include(cmake/ExternalEigen.cmake)
-include(cmake/ExternalZlib.cmake)
-include(cmake/ExternalGLEW.cmake)
-list(APPEND FAST_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include)
-
-## Neural network module
-if(FAST_MODULE_NeuralNetwork)
-    ## Tensorflow
-    find_package(Tensorflow REQUIRED)
-    list(APPEND FAST_INCLUDE_DIRS ${Tensorflow_INCLUDE_DIRS})
-    # TODO remove zlib from Tensorflow_LIBRARIES
-    list(APPEND LIBRARIES ${Tensorflow_LIBRARIES})
-    message("-- Neural network module enabled: ${Tensorflow_INCLUDE_DIRS} ${Tensorflow_LIBRARIES}")
-    if(WIN32)
-        # Some definitions needed to compile with tensorflow on windows
-        # These are taken from tensorflow/contrib/cmake/CMakeLists.txt
-        add_definitions(-DEIGEN_AVOID_STL_ARRAY)
-        add_definitions(-DNOMINMAX -D_WIN32_WINNT=0x0A00 -DLANG_CXX11 -DCOMPILER_MSVC -D__VERSION__=\"MSVC\")
-        add_definitions(-DWIN32 -DOS_WIN -D_MBCS -DWIN64 -DPLATFORM_WINDOWS)
-        add_definitions(-DTENSORFLOW_USE_EIGEN_THREADPOOL -DEIGEN_HAS_C99_MATH -D_ITERATOR_DEBUG_LEVEL=0)
-        # Suppress warnings to reduce build log size.
-        add_definitions(/wd4267 /wd4244 /wd4800 /wd4503 /wd4554 /wd4996 /wd4348 /wd4018)
-        add_definitions(/wd4099 /wd4146 /wd4267 /wd4305 /wd4307)
-        add_definitions(/wd4715 /wd4722 /wd4723 /wd4838 /wd4309 /wd4334)
-        # To get rid of this error: Not found: No session factory registered for the given session options: {target: "" config: } Registered factories are {}.
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /WHOLEARCHIVE:\"${Tensorflow_LIBRARY}\"")
-    endif()
-endif()
-
-include(cmake/ModuleVTK.cmake)
-include(cmake/ModuleITK.cmake)
-include(cmake/ModuleOpenIGTLink.cmake)
-
+# Some extra build settings (C++11 and OpenMP)
 include(cmake/Cpp11.cmake)
 include(cmake/OpenMP.cmake)
+
+# This will setup all of FAST's depedencies
+include(cmake/Depdendencies.cmake)
 
 #### Set include dirs
 include_directories(${FAST_INCLUDE_DIRS})
@@ -174,12 +120,6 @@ if(FAST_BUILD_EXAMPLES)
     endif()
     add_subdirectory(source/FAST/Examples)
 endif()
-
-if(WIN32)
-    # Build with multiple processes on windows
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
-endif()
-
 
 #### Create FAST library and executables
 add_library(FAST ${FAST_SOURCE_FILES} ${HEADERS_MOC})

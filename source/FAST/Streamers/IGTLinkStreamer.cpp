@@ -1,16 +1,13 @@
 #include "IGTLinkStreamer.hpp"
 #include "FAST/Data/Image.hpp"
 #include "FAST/AffineTransformation.hpp"
-
-
-
-#include "igtlOSUtil.h"
-#include "igtlMessageHeader.h"
-#include "igtlTransformMessage.h"
-#include "igtlPositionMessage.h"
-#include "igtlImageMessage.h"
-#include "igtlStatusMessage.h"
-#include "igtlStringMessage.h"
+#include <igtl/igtlOSUtil.h>
+#include <igtl/igtlMessageHeader.h>
+#include <igtl/igtlTransformMessage.h>
+#include <igtl/igtlPositionMessage.h>
+#include <igtl/igtlImageMessage.h>
+#include <igtl/igtlStatusMessage.h>
+#include <igtl/igtlStringMessage.h>
 
 namespace fast {
 

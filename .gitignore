@@ -1,6 +1,4 @@
-build/
-build_Debug/
-build_Release/
+build*/
 TestData/
 .idea/
 *.cl.bin

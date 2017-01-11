@@ -1,9 +1,9 @@
 #include "DummyIGTLServer.hpp"
 
-#include "igtlServerSocket.h"
-#include "igtlImageMessage.h"
-#include "igtlTransformMessage.h"
-#include "igtlOSUtil.h"
+#include <igtl/igtlServerSocket.h>
+#include <igtl/igtlImageMessage.h>
+#include <igtl/igtlTransformMessage.h>
+#include <igtl/igtlOSUtil.h>
 #include "FAST/Tests/DummyObjects.hpp"
 #include "FAST/Data/Image.hpp"
 
