@@ -124,6 +124,8 @@ include_directories(${GLEW_INCLUDE_DIR})
 include_directories(${GLEW_INCLUDE_PATH})
 list(APPEND LIBRARIES ${GLEW_LIBRARY})
 
+include(cmake/ExternalEigen.cmake)
+#list(APPEND FAST_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include)
 
 ## Neural network module
 if(FAST_MODULE_NeuralNetwork)
@@ -155,11 +157,7 @@ if(FAST_MODULE_NeuralNetwork)
     endif()
 else()
     # If tensorflow neural network module is enabled, a newer version of Eigen is already included in the tensorflow include dir
-    ## Eigen
-    find_package(Eigen3 REQUIRED)
-    list(APPEND FAST_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
-    message("-- Using Eigen ${EIGEN3_VERSION}")
-	
+
 	## Z lib for compressed data (zraw)
     find_package(ZLIB)
     if(ZLIB_FOUND)
@@ -204,6 +202,7 @@ endif()
 
 #### Create FAST library and executables
 add_library(FAST ${FAST_SOURCE_FILES} ${HEADERS_MOC})
+add_dependencies(FAST ${FAST_EXTERNAL_DEPENDENCIES})
 
 ## Link everything
 target_link_libraries(FAST ${LIBRARIES})
