@@ -4,9 +4,7 @@
 #include "FAST/Utility.hpp"
 #include <fstream>
 
-#ifdef ZLIB_ENABLED
 #include <zlib.h>
-#endif
 using namespace fast;
 
 void MetaImageImporter::setFilename(std::string filename) {
@@ -42,7 +40,6 @@ template <class T>
 inline void * readRawData(std::string rawFilename, unsigned int width, unsigned int height, unsigned int depth, unsigned int nrOfComponents, bool compressed, std::size_t compressedFileSize) {
     T * data = new T[width*height*depth*nrOfComponents];
     if(compressed) {
-#ifdef ZLIB_ENABLED
         // Read compressed data
         std::ifstream file(rawFilename, std::ifstream::binary | std::ifstream::in);
         if(!file.is_open())
@@ -85,9 +82,6 @@ inline void * readRawData(std::string rawFilename, unsigned int width, unsigned 
         }
         file.close();
         delete[] fileData;
-#else
-        throw Exception("Error reading MetaImage. Compressed raw files (.zraw) currently not supported.");
-#endif
     } else {
         std::ifstream file(rawFilename, std::ifstream::binary | std::ifstream::in);
         if(!file.is_open())
