@@ -3,13 +3,13 @@ project(FAST)
 include(cmake/Macros.cmake)
 
 #### Options
-option(FAST_VTK_INTEROP "Enable interoperability with VTK" OFF)
-option(FAST_ITK_INTEROP "Enable interoperability with ITK" OFF)
 option(FAST_BUILD_TESTS "Build FAST tests." ON)
 option(BUILD_IGTLINK_TESTS "Build OpenIGTLink tests." OFF)
 option(BUILD_EXAMPLES "Build OpenIGTLink examples." OFF)
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 option(FAST_BUILD_EXAMPLES "Build examples." OFF)
+option(FAST_MODULE_VTK "Enable interoperability with VTK" OFF)
+option(FAST_MODULE_ITK "Enable interoperability with ITK" OFF)
 option(FAST_MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
 option(FAST_MODULE_NeuralNetwork "Build neural network module using tensorflow" OFF)
 option(FAST_MODULE_Python "Build Python wrappers" ON)
@@ -19,11 +19,11 @@ option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     message("-- Setting build type to 'Release' as none was specified.")
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
-    # Set the possible values of build type for cmake-gui
+    # Set the possible values of build types for cmake-gui
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
 endif()
 
-## Set continous integration define
+## Set continous integration define, used to enabled auto-close application on examples
 if(FAST_CONTINUOUS_INTEGRATION)
     add_definitions("-DFAST_CONTINUOUS_INTEGRATION")
 endif()
@@ -59,6 +59,7 @@ message("-- OpenCL Kernel binary path set to: ${FAST_OPENCL_KERNEL_BINARY_PATH}"
 message("-- FAST test data directory set to: \"${FAST_TEST_DATA_DIR}\"")
 
 ### Create the header files Paths.hpp and TestDataPath.hpp which include all useful paths
+# TODO don't use preprocessor defines for this, use constant string or static functions
 configure_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/source/Paths.hpp.in
         ${CMAKE_CURRENT_BINARY_DIR}/FAST/Paths.hpp
@@ -72,6 +73,7 @@ configure_file(
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/ ${CMAKE_MODULE_PATH}) # For finding the custom Find modules
 
 # Headers for Qt objects
+# TODO make a macro for adding these
 set(QT_HEADERS
         source/FAST/Visualization/View.hpp
         source/FAST/Visualization/WindowWidget.hpp
@@ -100,9 +102,11 @@ message("-- OpenCL include dir: ${OpenCL_INCLUDE_DIRS}")
 find_package(OpenGL REQUIRED)
 list(APPEND LIBRARIES ${OPENGL_LIBRARIES})
 list(APPEND FAST_INCLUDE_DIRS ${OPENGL_INCLUDE_DIR})
-# If OS is Linux, add X explicitly to library list
+# If OS is Linux, also need X
 if(CMAKE_SYSTEM_NAME STREQUAL Linux)
-    list(APPEND LIBRARIES X11)
+    find_package(X11 REQUIRED)
+    list(APPEND FAST_INCLUDE_DIRS ${X11_INCLUDE_DIR})
+    list(APPEND LIBRARIES ${X11_LIBRARIES})
 endif()
 
 
@@ -110,15 +114,15 @@ endif()
 find_package(Qt5Widgets)
 find_package(Qt5OpenGL)
 qt5_wrap_cpp(HEADERS_MOC ${QT_HEADERS})
-set(LIBRARIES ${LIBRARIES} ${QT_LIBRARIES})
-list (APPEND FAST_INCLUDE_DIRS "${Qt5Widgets_INCLUDE_DIRS}")
-list (APPEND FAST_INCLUDE_DIRS "${Qt5OpenGL_INCLUDE_DIRS}")
+list(APPEND LIBRARIES ${QT_LIBRARIES})
+list(APPEND FAST_INCLUDE_DIRS "${Qt5Widgets_INCLUDE_DIRS}")
+list(APPEND FAST_INCLUDE_DIRS "${Qt5OpenGL_INCLUDE_DIRS}")
 
 ## GLEW
 find_package(GLEW REQUIRED)
 include_directories(${GLEW_INCLUDE_DIR})
 include_directories(${GLEW_INCLUDE_PATH})
-set(LIBRARIES ${LIBRARIES} ${GLEW_LIBRARY})
+list(APPEND LIBRARIES ${GLEW_LIBRARY})
 
 
 ## Neural network module
@@ -128,7 +132,6 @@ if(FAST_MODULE_NeuralNetwork)
     list(APPEND FAST_INCLUDE_DIRS ${Tensorflow_INCLUDE_DIRS})
     list(APPEND LIBRARIES ${Tensorflow_LIBRARIES})
     message("-- Neural network module enabled: ${Tensorflow_INCLUDE_DIRS} ${Tensorflow_LIBRARIES}")
-    add_definitions("-DZLIB_ENABLED") # Tell FAST to use ZLIB
     if(WIN32)
         # Some definitions needed to compile with tensorflow on windows
         # These are taken from tensorflow/contrib/cmake/CMakeLists.txt
@@ -145,9 +148,10 @@ if(FAST_MODULE_NeuralNetwork)
     endif()
 
 	## Z lib for compressed data (zraw)
-    find_package(ZLIB)
+    find_package(ZLIB REQUIRED)
     if(ZLIB_FOUND)
-        include_directories(${ZLIB_INCLUDE_DIRS})
+        add_definitions("-DZLIB_ENABLED") # Tell FAST to use ZLIB
+        list(APPEND FAST_INCLUDE_DIRS ${ZLIB_INCLUDE_DIRS})
     endif()
 else()
     # If tensorflow neural network module is enabled, a newer version of Eigen is already included in the tensorflow include dir
@@ -160,31 +164,17 @@ else()
     find_package(ZLIB)
     if(ZLIB_FOUND)
         add_definitions("-DZLIB_ENABLED") # Tell FAST to use ZLIB
-        include_directories(${ZLIB_INCLUDE_DIRS})
-        set(LIBRARIES ${LIBRARIES} ${ZLIB_LIBRARIES})
+        list(APPEND FAST_INCLUDE_DIRS ${ZLIB_INCLUDE_DIRS})
+        list(APPEND LIBRARIES ${ZLIB_LIBRARIES})
     endif()
 endif()
 
-
-
-## VTK
-if(FAST_VTK_INTEROP)
-    find_package(VTK REQUIRED)
-    include(${VTK_USE_FILE})
-    message("-- Enabling VTK interoperability. VTK version ${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}")
-    set(LIBRARIES ${LIBRARIES} ${VTK_LIBRARIES})
-endif()
-
-## ITK
-if(FAST_ITK_INTEROP)
-    find_package(ITK REQUIRED)
-    include(${ITK_USE_FILE})
-    message("-- Enabling ITK interoperability")
-    set(LIBRARIES ${LIBRARIES} ${ITK_LIBRARIES})
-endif()
-
+include(cmake/ModuleVTK.cmake)
+include(cmake/ModuleITK.cmake)
 include(cmake/ModuleOpenIGTLink.cmake)
+
 include(cmake/Cpp11.cmake)
+include(cmake/OpenMP.cmake)
 
 #### Set include dirs
 include_directories(${FAST_INCLUDE_DIRS})
@@ -212,16 +202,6 @@ if(WIN32)
 endif()
 
 
-#### OpenMP
-find_package(OpenMP)
-if(OPENMP_FOUND)
-    message("-- OpenMP was detected. Using OpenMP to speed up some calculations.")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}" )
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
-endif()
-
-
 #### Create FAST library and executables
 add_library(FAST ${FAST_SOURCE_FILES} ${HEADERS_MOC})
 
@@ -246,3 +226,4 @@ configure_file (
 )
 
 include(cmake/ModulePython.cmake)
+include(cmake/InstallFAST.cmake)
