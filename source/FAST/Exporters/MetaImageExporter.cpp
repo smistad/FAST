@@ -1,9 +1,7 @@
 #include "MetaImageExporter.hpp"
 #include "FAST/Data/Image.hpp"
 #include <fstream>
-#ifdef ZLIB_ENABLED
 #include <zlib.h>
-#endif
 
 namespace fast {
 
@@ -28,7 +26,6 @@ inline std::size_t writeToRawFile(std::string filename, T * data, unsigned int n
     }
     std::size_t returnSize;
     if(useCompression) {
-#ifdef ZLIB_ENABLED
         // Have to allocate enough memory for compression: 1.1*DATA_SIZE_IN_BYTES + 12
         std::size_t sizeDataCompressed = compressBound(sizeof(T)*numberOfElements);
         std::size_t sizeDataOriginal = sizeof(T)*numberOfElements;
@@ -54,7 +51,6 @@ inline std::size_t writeToRawFile(std::string filename, T * data, unsigned int n
         returnSize = sizeDataCompressed;
         fclose(file);
         free(writeData);
-#endif
     } else {
         returnSize = sizeof(T)*numberOfElements;
         fwrite(data, sizeof(T), numberOfElements, file);
@@ -66,11 +62,6 @@ inline std::size_t writeToRawFile(std::string filename, T * data, unsigned int n
 }
 
 void MetaImageExporter::execute() {
-#ifndef ZLIB_ENABLED
-    if(mUseCompression)
-        throw Exception("You enabled compression on the MetaImageExporter, however FAST is not compiled with zlib which is required to do so.");
-#endif
-
     if(mFilename == "")
         throw Exception("No filename was given to the MetaImageExporter");
 
@@ -117,11 +108,9 @@ void MetaImageExporter::execute() {
     // Save to raw file
     // set rawFilename, by removing the end .mhd from mFilename and add .raw
     std::string extension = ".raw";
-#ifdef ZLIB_ENABLED
     if(mUseCompression) {
         extension = ".zraw";
     }
-#endif
     std::string rawFilename = mFilename.substr(0,mFilename.length()-4) + extension;
     const unsigned int numberOfElements = input->getWidth()*input->getHeight()*
             input->getDepth()*input->getNrOfComponents();
@@ -152,12 +141,10 @@ void MetaImageExporter::execute() {
         break;
     }
 
-#ifdef ZLIB_ENABLED
     if(mUseCompression) {
         mhdFile << "CompressedData = True" << "\n";
         mhdFile << "CompressedDataSize = " << compressedSize << "\n";
     }
-#endif
 
     // Remove any path information from rawFilename
     std::size_t slashPos = rawFilename.find_last_of('/');

@@ -124,14 +124,17 @@ include_directories(${GLEW_INCLUDE_DIR})
 include_directories(${GLEW_INCLUDE_PATH})
 list(APPEND LIBRARIES ${GLEW_LIBRARY})
 
+# External dependencies to be downloaded and built
 include(cmake/ExternalEigen.cmake)
-#list(APPEND FAST_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include)
+include(cmake/ExternalZlib.cmake)
+list(APPEND FAST_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include)
 
 ## Neural network module
 if(FAST_MODULE_NeuralNetwork)
     ## Tensorflow
     find_package(Tensorflow REQUIRED)
     list(APPEND FAST_INCLUDE_DIRS ${Tensorflow_INCLUDE_DIRS})
+    # TODO remove zlib from Tensorflow_LIBRARIES
     list(APPEND LIBRARIES ${Tensorflow_LIBRARIES})
     message("-- Neural network module enabled: ${Tensorflow_INCLUDE_DIRS} ${Tensorflow_LIBRARIES}")
     if(WIN32)
@@ -147,23 +150,6 @@ if(FAST_MODULE_NeuralNetwork)
         add_definitions(/wd4715 /wd4722 /wd4723 /wd4838 /wd4309 /wd4334)
         # To get rid of this error: Not found: No session factory registered for the given session options: {target: "" config: } Registered factories are {}.
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /WHOLEARCHIVE:\"${Tensorflow_LIBRARY}\"")
-    endif()
-
-	## Z lib for compressed data (zraw)
-    find_package(ZLIB REQUIRED)
-    if(ZLIB_FOUND)
-        add_definitions("-DZLIB_ENABLED") # Tell FAST to use ZLIB
-        list(APPEND FAST_INCLUDE_DIRS ${ZLIB_INCLUDE_DIRS})
-    endif()
-else()
-    # If tensorflow neural network module is enabled, a newer version of Eigen is already included in the tensorflow include dir
-
-	## Z lib for compressed data (zraw)
-    find_package(ZLIB)
-    if(ZLIB_FOUND)
-        add_definitions("-DZLIB_ENABLED") # Tell FAST to use ZLIB
-        list(APPEND FAST_INCLUDE_DIRS ${ZLIB_INCLUDE_DIRS})
-        list(APPEND LIBRARIES ${ZLIB_LIBRARIES})
     endif()
 endif()
 
