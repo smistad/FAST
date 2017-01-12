@@ -1,6 +1,6 @@
 # This will automatically download the FAST test data zip file and unzip it
 # The data will only be downloaded if not already present
-
+if(${FAST_DOWNLOAD_TEST_DATA})
 if(NOT EXISTS ${FAST_TEST_DATA_DIR})
     message("-- TestData folder does not exists. Downloading data ...")
     set(TEST_DATA_FILENAME ${PROJECT_SOURCE_DIR}/FAST_Test_Data.zip)
@@ -29,4 +29,5 @@ if(NOT EXISTS ${FAST_TEST_DATA_DIR})
     endif()
 else()
     message("-- TestData folder exists. Skip download of data.")
+endif()
 endif()
