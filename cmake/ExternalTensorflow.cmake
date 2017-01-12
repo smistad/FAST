@@ -13,6 +13,10 @@ ExternalProject_Add(tensorflow
         BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
         GIT_REPOSITORY "https://github.com/smistad/tensorflow.git"
         GIT_TAG "master"
+        # Need to override this because tensorflow creates a file in the source dir
+        # and cmake files to stash these files
+        UPDATE_COMMAND
+            ${GIT_EXECUTABLE} pull origin master
         # Must use CONFIGURE_COMMAND because CMakeLists.txt is not in the src root of tensorflow
         CONFIGURE_COMMAND
             ${CMAKE_COMMAND}
@@ -25,10 +29,6 @@ ExternalProject_Add(tensorflow
             -DCMAKE_VERBOSE_MAKEFILE:BOOL=OFF
             -DCMAKE_INSTALL_MESSAGE:BOOL=LAZY
             -DCMAKE_INSTALL_PREFIX:STRING=${FAST_EXTERNAL_INSTALL_DIR}
-        # Need to override this because tensorflow creates a file in the source dir
-        # and cmake files to stash these files
-        UPDATE_COMMAND
-            ${GIT_EXECUTABLE} pull origin master
 
 )
 

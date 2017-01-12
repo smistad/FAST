@@ -30,24 +30,18 @@ endif()
 
 ## Set build folders
 # First for the generic no-config case (e.g. with mingw)
+cmake_policy(SET CMP0043 OLD)
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin )
 set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
 set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
 # Second, for multi-config builds (e.g. msvc)
 foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
+    # Force libs and bins to go into bin and lib directory instead of Release/Debug
     string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG )
     set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/bin )
     set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/lib )
     set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/lib )
 endforeach( OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES )
-
-## Turn off shared libs on windows
-# TODO remove?
-if(WIN32)
-    set(BUILD_SHARED_LIBS OFF)
-    # Build with multiple processes on windows
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
-endif()
 
 #### Paths
 set(FAST_TEST_DATA_DIR "${PROJECT_SOURCE_DIR}/TestData/" CACHE PATH "Directory of test data")
@@ -100,6 +94,9 @@ include(cmake/OpenMP.cmake)
 
 # This will setup all of FAST's depedencies
 include(cmake/Depdendencies.cmake)
+
+# This will download the test data
+include(cmake/DownloadTestData.cmake)
 
 #### Set include dirs
 include_directories(${FAST_INCLUDE_DIRS})

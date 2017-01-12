@@ -1,0 +1,32 @@
+# This will automatically download the FAST test data zip file and unzip it
+# The data will only be downloaded if not already present
+
+if(NOT EXISTS ${FAST_TEST_DATA_DIR})
+    message("-- TestData folder does not exists. Downloading data ...")
+    set(TEST_DATA_FILENAME ${PROJECT_SOURCE_DIR}/FAST_Test_Data.zip)
+    # Download
+    file(DOWNLOAD
+            "http://www.idi.ntnu.no/~smistad/FAST_Test_Data.zip"
+            ${TEST_DATA_FILENAME}
+            SHOW_PROGRESS
+            STATUS DOWNLOAD_STATUS
+            INACTIVITY_TIMEOUT 30
+    )
+    list(GET DOWNLOAD_STATUS 0 STATUS_CODE)
+    list(GET DOWNLOAD_STATUS 1 STATUS_DESC)
+    if(NOT ${STATUS_CODE} EQUAL 0)
+        message("-- Download of test data failed: ${STATUS_DESC}")
+        # TODO Try other download URL
+    else()
+        # Unzip
+        execute_process(
+                COMMAND ${CMAKE_COMMAND}
+                -E tar xzf ${TEST_DATA_FILENAME}
+                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        )
+        # Delete zip
+        file(REMOVE ${TEST_DATA_FILENAME})
+    endif()
+else()
+    message("-- TestData folder exists. Skip download of data.")
+endif()
