@@ -7,7 +7,7 @@
 #include "Renderer.hpp"
 #include "Plane.hpp"
 #include <vector>
-#include <QtOpenGL/QGLWidget>
+#include <QGLWidget>
 #include <QTimer>
 
 namespace fast {
