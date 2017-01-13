@@ -13,6 +13,6 @@ if(FAST_MODULE_NeuralNetwork)
 		Tests.cpp
 	)
 	fast_add_example(extractVesselRegionProposals extractVesselRegionProposals.cpp)
-	fast_add_example(ultrasoundVesselDetection ultrasoundVesselDetection.cpp)
-	fast_add_example(ultrasoundVesselSegmentation ultrasoundVesselSegmentation.cpp)
+	fast_add_example(ultrasoundVesselDetection ultrasoundVesselDetectionExample.cpp)
+	fast_add_example(ultrasoundVesselSegmentation ultrasoundVesselSegmentationExample.cpp)
 endif()
