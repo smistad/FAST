@@ -11,6 +11,8 @@ option(FAST_BUILD_EXAMPLES "Build examples." OFF)
 option(FAST_DOWNLOAD_TEST_DATA "Download test data automatically (> 1 GB)" ON)
 option(FAST_MODULE_VTK "Enable interoperability with VTK" OFF)
 option(FAST_MODULE_ITK "Enable interoperability with ITK" OFF)
+option(FAST_MODULE_Visualization "Enable visualization capabilities using Qt5.
+Without this module, all visualization in FAST will be disabled." ON)
 option(FAST_MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
 option(FAST_MODULE_NeuralNetwork "Build neural network module using tensorflow" OFF)
 option(FAST_MODULE_Python "Build Python wrappers" ON)
@@ -125,7 +127,9 @@ add_dependencies(FAST ${FAST_EXTERNAL_DEPENDENCIES})
 
 ## Link everything
 target_link_libraries(FAST ${LIBRARIES})
-qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
+if(${FAST_MODULE_Visualization})
+    qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
+endif()
 
 ## Build test executable
 if(FAST_BUILD_TESTS)

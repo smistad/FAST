@@ -20,12 +20,16 @@ if(CMAKE_SYSTEM_NAME STREQUAL Linux)
 endif()
 
 ## Qt
-find_package(Qt5Widgets)
-find_package(Qt5OpenGL)
-qt5_wrap_cpp(HEADERS_MOC ${QT_HEADERS})
-list(APPEND LIBRARIES ${QT_LIBRARIES})
-list(APPEND FAST_INCLUDE_DIRS "${Qt5Widgets_INCLUDE_DIRS}")
-list(APPEND FAST_INCLUDE_DIRS "${Qt5OpenGL_INCLUDE_DIRS}")
+if(${FAST_MODULE_Visualization})
+    find_package(Qt5Widgets)
+    find_package(Qt5OpenGL)
+    qt5_wrap_cpp(HEADERS_MOC ${QT_HEADERS})
+    list(APPEND LIBRARIES ${QT_LIBRARIES})
+    list(APPEND FAST_INCLUDE_DIRS "${Qt5Widgets_INCLUDE_DIRS}")
+    list(APPEND FAST_INCLUDE_DIRS "${Qt5OpenGL_INCLUDE_DIRS}")
+else()
+    #add_definitions("-DFAST_NO_VISUALIZATION")
+endif()
 
 ## External depedencies
 include(cmake/ExternalEigen.cmake)
