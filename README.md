@@ -13,6 +13,8 @@ If you use FAST for research, please cite this article.
 Getting started with FAST
 -------------------------
 
+[![Join the chat at https://gitter.im/smistad/FAST](https://badges.gitter.im/smistad/FAST.svg)](https://gitter.im/smistad/FAST?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 To setup and build the framework, see the instructions for your operating system:
 * [Linux (Ubuntu)](https://github.com/smistad/FAST/wiki/Linux-instructions)
 * [Windows](https://github.com/smistad/FAST/wiki/Windows-instructions)
