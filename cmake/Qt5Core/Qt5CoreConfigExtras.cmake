@@ -51,7 +51,7 @@ foreach(_dir ${_qt5_corelib_extra_includes})
 endforeach()
 
 list(APPEND Qt5Core_INCLUDE_DIRS ${_qt5_corelib_extra_includes})
-set_property(TARGET Qt5::Core APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${_qt5_corelib_extra_includes})
+#set_property(TARGET Qt5::Core APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${_qt5_corelib_extra_includes})
 set(_qt5_corelib_extra_includes)
 
 # Targets using Qt need to use the POSITION_INDEPENDENT_CODE property. The

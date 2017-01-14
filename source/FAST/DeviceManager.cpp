@@ -209,10 +209,10 @@ DeviceManager::DeviceManager() {
     mDisableGLInterop = false;
     // Only check on linux/mac
 #ifndef _WIN32
-    // TODO If NVIDIA platform is present on linux: disable OpenGL interop
+    // If NVIDIA platform is present on linux: disable OpenGL interop
     for(cl::Platform platform : platforms) {
         if(platform.getInfo<CL_PLATFORM_VENDOR>().find("NVIDIA") != std::string::npos) {
-            reportWarning() << "NVIDIA platform was detecteing, disabling OpenGL interop" << reportEnd();
+            reportWarning() << "NVIDIA platform was detected, disabling OpenGL interop" << reportEnd();
             mDisableGLInterop = true;
         }
     }
@@ -459,7 +459,7 @@ std::vector<cl::Device> DeviceManager::getDevicesForBestPlatform(
             devicePlatformVendorMismatch[i] = devicePlatformMismatch(
                     platformDevices[i].second[j], platformDevices[i].first);
             if (devicePlatformVendorMismatch[i]) {
-            	//reporter.report("A device-platform mismatch was detected.", INFO);
+            	reportInfo() << "A device-platform mismatch was detected." << reportEnd();
             }
         }
     }
@@ -554,10 +554,21 @@ std::vector<PlatformDevices> DeviceManager::getDevices(
     // Create a vector of devices for each platform
     std::vector<PlatformDevices> platformDevices;
     for (int i = 0; i < validPlatforms.size(); i++) {
+        std::vector<cl::Device> devices;
     	reportInfo() << "Platform " << i << ": " <<  validPlatforms[i].getInfo<CL_PLATFORM_VENDOR>() << Reporter::end;
+        if(devices.size() == 0) {
+            reportInfo() << "No devices found for this platform, skipping to next." << reportEnd();
+            continue;
+        }
+
+        try {
+            reportInfo() << "This platform has " << validPlatforms[i].getDevices(CL_DEVICE_TYPE_ALL, &devices) <<
+                         " available devices in total" << reportEnd();
+        } catch(cl::Error &error) {
+            throw Exception("There was an error while getting OpenCL devices: " + std::string(error.what()));
+        }
 
         // Next, get all devices of correct type for each of those platforms
-        std::vector<cl::Device> devices;
         cl_device_type deviceType;
         if (deviceCriteria.getTypeCriteria() == DEVICE_TYPE_ANY) {
             deviceType = CL_DEVICE_TYPE_ALL;
@@ -572,9 +583,9 @@ std::vector<PlatformDevices> DeviceManager::getDevices(
         try {
             validPlatforms[i].getDevices(deviceType, &devices);
         } catch (cl::Error &error) {
-            // Do nothing?
+            throw Exception("There was an error while getting OpenCL devices: " + std::string(error.what()));
         }
-        reportInfo() << devices.size() << " devices found for this platform." << Reporter::end;
+        reportInfo() << devices.size() << " selected." << Reporter::end;
 
         // Go through each device and see if they have the correct capabilities (if any)
         std::vector<cl::Device> acceptedDevices;

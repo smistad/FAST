@@ -4,8 +4,8 @@
 ## OpenCL
 find_package(OpenCL REQUIRED)
 list(APPEND LIBRARIES ${OpenCL_LIBRARIES})
-list(APPEND FAST_INCLUDE_DIRS "${OpenCL_INCLUDE_DIRS}")
-message("-- OpenCL include dir: ${OpenCL_INCLUDE_DIRS}")
+#list(APPEND FAST_INCLUDE_DIRS "${OpenCL_INCLUDE_DIRS}")
+#message("-- OpenCL include dir: ${OpenCL_INCLUDE_DIRS}")
 message("-- OpenCL library: ${OpenCL_LIBRARIES}")
 
 ## OpenGL
@@ -33,12 +33,14 @@ if(${FAST_MODULE_Visualization})
     set(Qt5OpenGL_DIR ${PROJECT_SOURCE_DIR}/cmake/Qt5OpenGL)
     find_package(Qt5Widgets REQUIRED PATHS ${PROJECT_SOURCE_DIR}/cmake/)
     find_package(Qt5OpenGL REQUIRED PATHS ${PROJECT_SOURCE_DIR}/cmake/)
-    set(CMAKE_AUTOMOC ON)
-    add_definitions("-fPIC") # Get rid of Qt error with position independent code
+    #set(CMAKE_AUTOMOC ON)
+    if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+        add_definitions("-fPIC") # Get rid of Qt error with position independent code
+    endif()
     #include(cmake/Qt5CoreMacros.cmake) # Need this for the qt5_use_modules macro
     #include(${PROJECT_BINARY_DIR}/lib/cmake/Qt5Gui/Qt5GuiConfig.cmake)
     #include(${PROJECT_BINARY_DIR}/lib/cmake/Qt5Widgets/Qt5WidgetsConfig.cmake)
-    #qt5_wrap_cpp(HEADERS_MOC ${QT_HEADERS})
+    qt5_wrap_cpp(HEADERS_MOC ${QT_HEADERS})
     #list(APPEND LIBRARIES ${QT_LIBRARIES})
     #list(APPEND FAST_INCLUDE_DIRS "${Qt5Widgets_INCLUDE_DIRS}")
     #list(APPEND FAST_INCLUDE_DIRS "${Qt5OpenGL_INCLUDE_DIRS}")

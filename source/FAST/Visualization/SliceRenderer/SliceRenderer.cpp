@@ -16,7 +16,7 @@
 #else
 #include <GL/glx.h>
 #include <CL/cl_gl.h>
-#include <GL/glu.h>
+
 #endif
 #endif
 

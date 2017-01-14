@@ -11,17 +11,17 @@ set(Qt5Widgets_VERSION_STRING 5.7.1)
 set(Qt5Widgets_LIBRARIES Qt5::Widgets)
 
 macro(_qt5_Widgets_check_file_exists file)
-    if(NOT EXISTS "${file}" )
-        message(FATAL_ERROR "The imported target \"Qt5::Widgets\" references the file
-   \"${file}\"
-but this file does not exist.  Possible reasons include:
-* The file was deleted, renamed, or moved to another location.
-* An install or uninstall procedure did not complete successfully.
-* The installation package was faulty and contained
-   \"${CMAKE_CURRENT_LIST_FILE}\"
-but not all the files it references.
-")
-    endif()
+    #if(NOT EXISTS "${file}" )
+    #    message(FATAL_ERROR "The imported target \"Qt5::Widgets\" references the file
+    #\"${file}\"
+    #but this file does not exist.  Possible reasons include:
+    #* The file was deleted, renamed, or moved to another location.
+    #* An install or uninstall procedure did not complete successfully.
+    #* The installation package was faulty and contained
+    #   \"${CMAKE_CURRENT_LIST_FILE}\"
+    #but not all the files it references.
+    #")
+    #    endif()
 endmacro()
 
 macro(_populate_Widgets_target_properties Configuration LIB_LOCATION IMPLIB_LOCATION)
@@ -41,13 +41,13 @@ endmacro()
 
 if (NOT TARGET Qt5::Widgets)
 
-    set(_Qt5Widgets_OWN_INCLUDE_DIRS "${_qt5Widgets_install_prefix}/include/" "${_qt5Widgets_install_prefix}/include/QtWidgets")
+    #set(_Qt5Widgets_OWN_INCLUDE_DIRS "${_qt5Widgets_install_prefix}/include/" "${_qt5Widgets_install_prefix}/include/QtWidgets")
     set(Qt5Widgets_PRIVATE_INCLUDE_DIRS "")
     include("${CMAKE_CURRENT_LIST_DIR}/ExtraSourceIncludes.cmake" OPTIONAL)
 
-    foreach(_dir ${_Qt5Widgets_OWN_INCLUDE_DIRS})
-        _qt5_Widgets_check_file_exists(${_dir})
-    endforeach()
+    #foreach(_dir ${_Qt5Widgets_OWN_INCLUDE_DIRS})
+    #    _qt5_Widgets_check_file_exists(${_dir})
+    #endforeach()
 
     # Only check existence of private includes if the Private component is
     # specified.
@@ -112,8 +112,8 @@ if (NOT TARGET Qt5::Widgets)
 
     add_library(Qt5::Widgets SHARED IMPORTED)
 
-    set_property(TARGET Qt5::Widgets PROPERTY
-      INTERFACE_INCLUDE_DIRECTORIES ${_Qt5Widgets_OWN_INCLUDE_DIRS})
+    #set_property(TARGET Qt5::Widgets PROPERTY
+    #  INTERFACE_INCLUDE_DIRECTORIES ${_Qt5Widgets_OWN_INCLUDE_DIRS})
     set_property(TARGET Qt5::Widgets PROPERTY
       INTERFACE_COMPILE_DEFINITIONS QT_WIDGETS_LIB)
 

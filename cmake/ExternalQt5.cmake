@@ -20,6 +20,7 @@ ExternalProject_Add(qt5
             -no-pulseaudio;
             -no-alsa;
             -nomake tools;
+            -nomake tests;
             -skip qt3d;
             -skip qtactiveqt;
             -skip qtandroidextras;
@@ -63,23 +64,23 @@ ExternalProject_Add(qt5
             -qt-xkbcommon;
             -no-directfb;
             -no-linuxfb;
-            -fontconfig
+            -fontconfig;
         BUILD_COMMAND
             make -j4
         INSTALL_COMMAND
             make -j4 install
 )
 
-#set(Qt5Widgets_LIBRARY ${FAST_EXTERNAL_INSTALL_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}Qt5Widgets${CMAKE_SHARED_LIBRARY_SUFFIX})
-#set(Qt5OpenGL_LIBRARY ${FAST_EXTERNAL_INSTALL_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}Qt5OpenGL${CMAKE_SHARED_LIBRARY_SUFFIX})
+set(Qt5Widgets_LIBRARY ${FAST_EXTERNAL_INSTALL_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}Qt5Widgets${CMAKE_SHARED_LIBRARY_SUFFIX})
+set(Qt5OpenGL_LIBRARY ${FAST_EXTERNAL_INSTALL_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}Qt5OpenGL${CMAKE_SHARED_LIBRARY_SUFFIX})
 #set(Qt5Gui_LIBRARY ${FAST_EXTERNAL_INSTALL_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}Qt5Gui${CMAKE_SHARED_LIBRARY_SUFFIX})
 #set(Qt5Core_LIBRARY ${FAST_EXTERNAL_INSTALL_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}Qt5Core${CMAKE_SHARED_LIBRARY_SUFFIX})
-#list(APPEND LIBRARIES ${Qt5Widgets_LIBRARY})
-#list(APPEND LIBRARIES ${Qt5OpenGL_LIBRARY})
+list(APPEND LIBRARIES ${Qt5Widgets_LIBRARY})
+list(APPEND LIBRARIES ${Qt5OpenGL_LIBRARY})
 #list(APPEND LIBRARIES ${Qt5Core_LIBRARY})
 #list(APPEND LIBRARIES ${Qt5Gui_LIBRARY})
-list(APPEND LIBRARIES Qt5::Widgets)
-list(APPEND LIBRARIES Qt5::OpenGL)
+#list(APPEND LIBRARIES Qt5::Widgets)
+#list(APPEND LIBRARIES Qt5::OpenGL)
 list(APPEND FAST_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtWidgets)
 list(APPEND FAST_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtOpenGL)
 list(APPEND FAST_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtCore)

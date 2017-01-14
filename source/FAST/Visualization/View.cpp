@@ -18,11 +18,11 @@
 #else
 #if _WIN32
 #include <GL/gl.h>
-#include <GL/glu.h>
+
 #include <CL/cl_gl.h>
 #else
 #include <GL/glx.h>
-#include <GL/glu.h>
+
 #include <CL/cl_gl.h>
 #endif
 #endif
@@ -516,7 +516,7 @@ void View::initializeGL() {
                 aspect = (float) (this->width()) / this->height();
                 fieldOfViewX = aspect * fieldOfViewY;
             }
-            gluPerspective(fieldOfViewY, aspect, zNear, zFar);
+            loadPerspectiveMatrix(fieldOfViewY, aspect, zNear, zFar);
         }
 	}
 	else
@@ -561,7 +561,7 @@ void View::initializeGL() {
 
 				aspect = (float)this->width() / this->height();
 				fieldOfViewX = aspect*fieldOfViewY;
-				gluPerspective(fieldOfViewY, aspect, zNear, zFar);
+				loadPerspectiveMatrix(fieldOfViewY, aspect, zNear, zFar);
 				// Initialize camera
 
 				// Get bounding boxes of all objects
@@ -955,7 +955,7 @@ void View::resizeGL(int width, int height) {
         glViewport(0, 0, width, height);
         aspect = (float)width/height;
         fieldOfViewX = aspect*fieldOfViewY;
-        gluPerspective(fieldOfViewY, aspect, zNear, zFar);
+        loadPerspectiveMatrix(fieldOfViewY, aspect, zNear, zFar);
     }
 
 	if (mVolumeRenderers.size() > 0)

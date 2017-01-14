@@ -11,17 +11,17 @@ set(Qt5Core_VERSION_STRING 5.7.1)
 set(Qt5Core_LIBRARIES Qt5::Core)
 
 macro(_qt5_Core_check_file_exists file)
-    if(NOT EXISTS "${file}" )
-        message(FATAL_ERROR "The imported target \"Qt5::Core\" references the file
-   \"${file}\"
-but this file does not exist.  Possible reasons include:
-* The file was deleted, renamed, or moved to another location.
-* An install or uninstall procedure did not complete successfully.
-* The installation package was faulty and contained
-   \"${CMAKE_CURRENT_LIST_FILE}\"
-but not all the files it references.
-")
-    endif()
+    #if(NOT EXISTS "${file}" )
+    #    message(FATAL_ERROR "The imported target \"Qt5::Core\" references the file
+    #\"${file}\"
+    #but this file does not exist.  Possible reasons include:
+    #* The file was deleted, renamed, or moved to another location.
+    #* An install or uninstall procedure did not complete successfully.
+    #* The installation package was faulty and contained
+    #   \"${CMAKE_CURRENT_LIST_FILE}\"
+    #but not all the files it references.
+    #")
+    #    endif()
 endmacro()
 
 macro(_populate_Core_target_properties Configuration LIB_LOCATION IMPLIB_LOCATION)
@@ -112,8 +112,8 @@ if (NOT TARGET Qt5::Core)
 
     add_library(Qt5::Core SHARED IMPORTED)
 
-    set_property(TARGET Qt5::Core PROPERTY
-      INTERFACE_INCLUDE_DIRECTORIES ${_Qt5Core_OWN_INCLUDE_DIRS})
+    #set_property(TARGET Qt5::Core PROPERTY
+    #  INTERFACE_INCLUDE_DIRECTORIES ${_Qt5Core_OWN_INCLUDE_DIRS})
     set_property(TARGET Qt5::Core PROPERTY
       INTERFACE_COMPILE_DEFINITIONS QT_CORE_LIB)
 

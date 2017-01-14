@@ -75,13 +75,13 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/ ${CMAKE_MODULE_PATH}) # For f
 
 # Headers for Qt objects
 # TODO make a macro for adding these
-#set(QT_HEADERS
-#        source/FAST/Visualization/View.hpp
-#        source/FAST/Visualization/WindowWidget.hpp
-#        source/FAST/Visualization/Window.hpp
-#        source/FAST/Visualization/ComputationThread.hpp
-#        source/FAST/Examples/Interoperability/qtInteroperability.hpp
-#)
+set(QT_HEADERS
+        source/FAST/Visualization/View.hpp
+        source/FAST/Visualization/WindowWidget.hpp
+        source/FAST/Visualization/Window.hpp
+        source/FAST/Visualization/ComputationThread.hpp
+        source/FAST/Examples/Interoperability/qtInteroperability.hpp
+)
 
 # Set debug define if debug mode is set
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
@@ -126,13 +126,13 @@ endif()
 if(WIN32)
 	set(BUILD_SHARED_LIBS OFF)
 endif()
-add_library(FAST ${FAST_SOURCE_FILES})
+add_library(FAST ${FAST_SOURCE_FILES} ${HEADERS_MOC})
 add_dependencies(FAST ${FAST_EXTERNAL_DEPENDENCIES})
 
 ## Link everything
 target_link_libraries(FAST ${LIBRARIES})
 if(${FAST_MODULE_Visualization})
-    #qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
+    qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
 endif()
 
 ## Build test executable

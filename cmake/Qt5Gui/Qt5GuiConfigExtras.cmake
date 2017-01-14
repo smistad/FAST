@@ -14,7 +14,7 @@ unset(_GL_INCDIRS)
 # optional.
 
 list(APPEND Qt5Gui_INCLUDE_DIRS ${_qt5gui_OPENGL_INCLUDE_DIR})
-set_property(TARGET Qt5::Gui APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${_qt5gui_OPENGL_INCLUDE_DIR})
+#set_property(TARGET Qt5::Gui APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${_qt5gui_OPENGL_INCLUDE_DIR})
 
 unset(_qt5gui_OPENGL_INCLUDE_DIR CACHE)
 
@@ -44,7 +44,7 @@ macro(_qt5gui_find_extra_libs Name Libs LibDir IncDirs)
                 unset(Qt5Gui_${_cmake_lib_name}_LIBRARY CACHE)
             else()
                 add_library(Qt5::Gui_${_cmake_lib_name} SHARED IMPORTED)
-                set_property(TARGET Qt5::Gui_${_cmake_lib_name} APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${Qt5Gui_${Name}_INCLUDE_DIRS})
+                #set_property(TARGET Qt5::Gui_${_cmake_lib_name} APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${Qt5Gui_${Name}_INCLUDE_DIRS})
 
                 set_property(TARGET Qt5::Gui_${_cmake_lib_name} APPEND PROPERTY IMPORTED_CONFIGURATIONS RELEASE)
                 _qt5_Gui_check_file_exists("${Qt5Gui_${_cmake_lib_name}_LIBRARY}")
