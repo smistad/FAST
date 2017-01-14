@@ -126,7 +126,7 @@ ExternalProject_Add(qt5
         URL ${URL}
 	URL_HASH ${URL_HASH}
         CONFIGURE_COMMAND
-            ${FAST_EXTERNAL_BUILD_DIR}/qt5/src/qt5/configure.bat
+            ${FAST_EXTERNAL_BUILD_DIR}/qt5/src/qt5/configure
             -prefix ${FAST_EXTERNAL_INSTALL_DIR};
  		${OPTIONS}
         BUILD_COMMAND
