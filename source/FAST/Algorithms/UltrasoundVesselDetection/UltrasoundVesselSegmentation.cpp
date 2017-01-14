@@ -5,7 +5,7 @@
 #include "FAST/Algorithms/ModelBasedSegmentation/KalmanFilter.hpp"
 #include "FAST/Data/Segmentation.hpp"
 #include "FAST/Utility.hpp"
-
+#include <boost/shared_array.hpp>
 
 namespace fast {
 
@@ -165,7 +165,7 @@ void UltrasoundVesselSegmentation::createSegmentation(Image::pointer image) {
 	OpenCLImageAccess::pointer writeAccess = segmentation->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
 	cl::Image2D* outputData = writeAccess->get2DImage();
 	// Create all zero data
-	UniquePointer<uchar[]> zeroData(new uchar[segmentation->getWidth()*segmentation->getHeight()]());
+	boost::shared_array<uchar> zeroData(new uchar[segmentation->getWidth()*segmentation->getHeight()]());
 	device->getCommandQueue().enqueueWriteImage(
 			*outputData,
 			CL_TRUE,

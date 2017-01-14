@@ -123,7 +123,9 @@ if(FAST_BUILD_EXAMPLES)
 endif()
 
 #### Create FAST library and executables
-#add_library(FAST ${FAST_SOURCE_FILES} ${HEADERS_MOC})
+if(WIN32)
+	set(BUILD_SHARED_LIBS OFF)
+endif()
 add_library(FAST ${FAST_SOURCE_FILES})
 add_dependencies(FAST ${FAST_EXTERNAL_DEPENDENCIES})
 
