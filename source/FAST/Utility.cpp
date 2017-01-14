@@ -534,4 +534,12 @@ std::vector<std::string> split(const std::string& input, const std::string& deli
     return {first, last};
 }
 
+void loadPerspectiveMatrix(float fovy, float aspect, float zNear, float zFar) {
+	float ymax = zNear * tan(fovy * M_PI / 360.0);
+	float ymin = -ymax;
+	float xmin = ymin * aspect;
+	float xmax = ymax * aspect;
+	glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
+}
+
 } // end namespace fast

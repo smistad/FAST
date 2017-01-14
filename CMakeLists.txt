@@ -125,6 +125,8 @@ endif()
 #### Create FAST library and executables
 if(WIN32)
 	set(BUILD_SHARED_LIBS OFF)
+	# Parallel build in MSVC
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" "/MP")
 endif()
 add_library(FAST ${FAST_SOURCE_FILES} ${HEADERS_MOC})
 add_dependencies(FAST ${FAST_EXTERNAL_DEPENDENCIES})
