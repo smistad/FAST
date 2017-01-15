@@ -5,8 +5,8 @@ include(cmake/Externals.cmake)
 if(WIN32)
 	#set(BUILD_COMMAND set CL=/MP; nmake)
 	set(BUILD_COMMAND nmake)
-	set(URL "http://download.qt.io/official_releases/qt/5.7/5.7.1/single/qt-everywhere-opensource-src-5.7.1.zip")
-	set(URL_HASH SHA256=4e50c645ff614d831712f5ef19a4087b4c00824920c79e96fee17d9373b42cf3)
+	set(URL "http://download.qt.io/official_releases/qt/5.7/5.7.1/submodules/qtbase-opensource-src-5.7.1.zip")
+	set(URL_HASH SHA256=3570b8a107903615fef0faddcdbe80b35d788a80979a9f6d0de420c3339f45bf)
 	set(OPTIONS  
             -opensource;
             -confirm-license;
@@ -17,41 +17,7 @@ if(WIN32)
             -no-qml-debug;
             -nomake tools;
             -nomake tests;
-            -skip qt3d;
-            -skip qtactiveqt;
-            -skip qtandroidextras;
-            -skip qtcanvas3d;
-            -skip qtcharts;
-            -skip qtconnectivity;
-            -skip qtdatavis3d;
-            -skip qtdeclarative;
-            -skip qtdoc;
-            -skip qtgamepad;
-            -skip qtgraphicaleffects;
-            -skip qtlocation;
-            -skip qtmacextras;
-            -skip qtmultimedia;
-            -skip qtpurchasing;
-            -skip qtquickcontrols;
-            -skip qtquickcontrols2;
-            -skip qtscript;
-            -skip qtscxml;
-            -skip qtsensors;
-            -skip qtserialbus;
-            -skip qtserialport;
-            -skip qtsvg;
-            -skip qttools;
-            -skip qttranslations;
-            -skip qtvirtualkeyboard;
-            -skip qtwayland;
-            -skip qtwebchannel;
-            -skip webengine;
-            -skip qtwebsockets;
-            -skip qtwebview;
-            -skip qtwinextras;
-            -skip qtx11extras;
-            -skip qtxmlpatterns;
-            -opengl desktop;
+              -opengl desktop;
             -qt-zlib;
             -qt-libpng;
             -qt-libjpeg;
@@ -73,40 +39,6 @@ else()
             -no-alsa;
             -nomake tools;
             -nomake tests;
-            -skip qt3d;
-            -skip qtactiveqt;
-            -skip qtandroidextras;
-            -skip qtcanvas3d;
-            -skip qtcharts;
-            -skip qtconnectivity;
-            -skip qtdatavis3d;
-            -skip qtdeclarative;
-            -skip qtdoc;
-            -skip qtgamepad;
-            -skip qtgraphicaleffects;
-            -skip qtlocation;
-            -skip qtmacextras;
-            -skip qtmultimedia;
-            -skip qtpurchasing;
-            -skip qtquickcontrols;
-            -skip qtquickcontrols2;
-            -skip qtscript;
-            -skip qtscxml;
-            -skip qtsensors;
-            -skip qtserialbus;
-            -skip qtserialport;
-            -skip qtsvg;
-            -skip qttools;
-            -skip qttranslations;
-            -skip qtvirtualkeyboard;
-            -skip qtwayland;
-            -skip qtwebchannel;
-            -skip webengine;
-            -skip qtwebsockets;
-            -skip qtwebview;
-            -skip qtwinextras;
-            -skip qtx11extras;
-            -skip qtxmlpatterns;
             -opengl desktop;
             -qt-zlib;
             -qt-libpng;
