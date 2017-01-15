@@ -2,6 +2,7 @@
 #define ULTRASOUND_VESSEL_SEGMENTATION_HPP
 
 #include "FAST/ProcessObject.hpp"
+#include <deque>
 
 namespace fast {
 
