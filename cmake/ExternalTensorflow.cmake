@@ -35,14 +35,17 @@ ExternalProject_Add(tensorflow
 if(WIN32)
     # Tensorflow is built static on windows, need to include all dependecies
     list(APPEND LIBRARIES
-        ${CMAKE_STATIC_LIBRARY_PREFIX}tensorflow${CMAKE_STATIC_LIBRARY_SUFFIX}
-        ${CMAKE_STATIC_LIBRARY_PREFIX}protobuf${CMAKE_STATIC_LIBRARY_SUFFIX}
-        ${CMAKE_STATIC_LIBRARY_PREFIX}jpeg${CMAKE_STATIC_LIBRARY_SUFFIX}
-        ${CMAKE_STATIC_LIBRARY_PREFIX}png${CMAKE_STATIC_LIBRARY_SUFFIX}
-        ${CMAKE_STATIC_LIBRARY_PREFIX}gif${CMAKE_STATIC_LIBRARY_SUFFIX}
-        ${CMAKE_STATIC_LIBRARY_PREFIX}jsoncpp${CMAKE_STATIC_LIBRARY_SUFFIX}
-        ${CMAKE_STATIC_LIBRARY_PREFIX}farmhash${CMAKE_STATIC_LIBRARY_SUFFIX}
-        ${CMAKE_STATIC_LIBRARY_PREFIX}highwayhash${CMAKE_STATIC_LIBRARY_SUFFIX}
+        tensorflow.lib
+        libprotobuf.lib
+        libjpeg.lib
+        libpng12_static.lib
+        giflib.lib
+        jsoncpp.lib
+        farmhash.lib
+        highwayhash.lib
+	gpr.lib
+	grpc_unsecure.lib
+	grpc++_unsecure.lib
     )
     set(Tensorflow_LIBRARY ${FAST_EXTERNAL_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}tensorflow${CMAKE_STATIC_LIBRARY_SUFFIX})
 else(WIN32)
