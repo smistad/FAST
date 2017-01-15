@@ -8,7 +8,7 @@ ExternalProject_Add(glew
         # The original GLEW library of https://github.com/nigels-com/glew/ has not proper cmake setup
         # Use this repo instead
         GIT_REPOSITORY "https://github.com/Perlmint/glew-cmake.git"
-        GIT_TAG "db1e93ef4c63f627ddc73cb12925a61d4f88e2b1"
+        GIT_TAG "9aec204e2ef0d4fa9f948b9193b4f409e38d905f"
         CONFIGURE_COMMAND
             ${CMAKE_COMMAND}
 		${FAST_EXTERNAL_BUILD_DIR}/glew/src/glew/build/cmake/
