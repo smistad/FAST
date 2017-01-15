@@ -75,6 +75,7 @@ endmacro()
 ### Macro for add examples
 macro (fast_add_example NAME)
     if(FAST_BUILD_EXAMPLES)
+	list(APPEND FAST_EXAMPLES ${NAME})
         add_executable(${NAME} ${ARGN})
         target_link_libraries(${NAME} FAST)
         if(WIN32)
