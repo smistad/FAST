@@ -556,16 +556,17 @@ std::vector<PlatformDevices> DeviceManager::getDevices(
     for (int i = 0; i < validPlatforms.size(); i++) {
         std::vector<cl::Device> devices;
     	reportInfo() << "Platform " << i << ": " <<  validPlatforms[i].getInfo<CL_PLATFORM_VENDOR>() << Reporter::end;
-        if(devices.size() == 0) {
-            reportInfo() << "No devices found for this platform, skipping to next." << reportEnd();
-            continue;
-        }
 
         try {
             reportInfo() << "This platform has " << validPlatforms[i].getDevices(CL_DEVICE_TYPE_ALL, &devices) <<
                          " available devices in total" << reportEnd();
         } catch(cl::Error &error) {
             throw Exception("There was an error while getting OpenCL devices: " + std::string(error.what()));
+        }
+
+        if(devices.size() == 0) {
+            reportInfo() << "No devices found for this platform, skipping to next." << reportEnd();
+            continue;
         }
 
         // Next, get all devices of correct type for each of those platforms
