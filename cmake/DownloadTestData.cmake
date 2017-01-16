@@ -2,7 +2,7 @@
 # The data will only be downloaded if not already present
 if(${FAST_DOWNLOAD_TEST_DATA})
 if(NOT EXISTS ${FAST_TEST_DATA_DIR})
-    message("-- TestData folder does not exists. Downloading data ...")
+    message("-- data folder does not exists. Downloading data ...")
     set(TEST_DATA_FILENAME ${PROJECT_SOURCE_DIR}/FAST_Test_Data.zip)
     # Download
     file(DOWNLOAD
@@ -28,6 +28,6 @@ if(NOT EXISTS ${FAST_TEST_DATA_DIR})
         file(REMOVE ${TEST_DATA_FILENAME})
     endif()
 else()
-    message("-- TestData folder exists. Skip download of data.")
+    message("-- data folder exists. Skip download of data.")
 endif()
 endif()
