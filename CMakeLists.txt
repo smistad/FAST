@@ -109,8 +109,12 @@ if(hasParent)
     set (FAST_INCLUDE_DIRS ${FAST_INCLUDE_DIRS} PARENT_SCOPE)
 endif()
 
+# Set up RPATH with relative path so that binaries will find libraries in the lib folder (linux only?)
+set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+
 #### Add all subdirs
 fast_add_subdirectories(source/FAST)
+
 
 if(FAST_BUILD_EXAMPLES)
     set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})

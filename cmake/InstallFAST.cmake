@@ -10,10 +10,7 @@ install(TARGETS testFAST
 	DESTINATION bin
 )
 
-# TODO Install examples
-install(TARGETS ${FAST_EXAMPLES}
-	DESTINATION bin
-)
+# Examples are installed in the macro fast_add_example
 
 # Install dependency libraries
 if(WIN32)
@@ -22,7 +19,7 @@ if(WIN32)
 		DESTINATION bin
 	)
 else()
-	file(GLOB SOs ${PROJECT_BINARY_DIR}/lib/*.so)
+	file(GLOB SOs ${PROJECT_BINARY_DIR}/lib/*.so*)
 	install(FILES ${SOs}
 		DESTINATION lib
 	)
@@ -52,4 +49,7 @@ install(DIRECTORY ${FAST_SOURCE_DIR}
 	FILES_MATCHING PATTERN "*.cl"
 )
 
-# TODO Install CMake files
+# Install CMake files
+install(FILES ${PROJECT_BINARY_DIR}/FASTConfig.cmake
+    DESTINATION cmake
+)
