@@ -25,8 +25,8 @@ if(WIN32)
 	)
 else()
 	set(BUILD_COMMAND make -j4)
-	set(URL "http://download.qt.io/official_releases/qt/5.7/5.7.1/single/qt-everywhere-opensource-src-5.7.1.tar.gz")
-	set(URL_HASH SHA256=c86684203be61ae7b33a6cf33c23ec377f246d697bd9fb737d16f0ad798f89b7)
+	set(URL "http://download.qt.io/official_releases/qt/5.7/5.7.1/submodules/qtbase-opensource-src-5.7.1.tar.gz")
+	set(URL_HASH SHA256=95f83e532d23b3ddbde7973f380ecae1bac13230340557276f75f2e37984e410)
 	set(OPTIONS    
             -opensource;
             -confirm-license;
