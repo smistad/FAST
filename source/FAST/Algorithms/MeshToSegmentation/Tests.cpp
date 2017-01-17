@@ -12,7 +12,7 @@
 
 using namespace fast;
 
-TEST_CASE("MeshToSegmentation 2D", "[fast][MeshToSegmentation][2d]") {
+TEST_CASE("MeshToSegmentation 2D", "[fast][MeshToSegmentation][2d][visual]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US/CarotidArtery/Right/US-2D_0.mhd");
 
@@ -55,11 +55,11 @@ TEST_CASE("MeshToSegmentation 2D", "[fast][MeshToSegmentation][2d]") {
     window->addRendererToTopLeftView(segRenderer);
     window->getBottomRightView()->set2DMode();
     window->getTopLeftView()->set2DMode();
-    //window->setTimeout(500);
+    window->setTimeout(500);
     window->start();
 }
 
-TEST_CASE("MeshToSegmentation 3D", "[fast][MeshToSegmentation][3d]") {
+TEST_CASE("MeshToSegmentation 3D", "[fast][MeshToSegmentation][3d][visual]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US/Ball/US-3Dt_0.mhd");
 

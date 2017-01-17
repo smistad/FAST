@@ -38,7 +38,6 @@ void MeshToSegmentation::execute() {
         // If resolution is not specified, use input image resolution
 		segmentation->createFromImage(image);
 	} else {
-		reportError() << "ASDASDASASA" << reportEnd();
 		// Use specified resolution
         if(two_dim_data) {
 			segmentation->create(mResolution.x(), mResolution.y(), TYPE_UINT8, 1);
