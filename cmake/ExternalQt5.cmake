@@ -32,7 +32,7 @@ else()
             -confirm-license;
             -release;
             -no-compile-examples;         
-		-no-openssl;
+            -no-openssl;
             -no-libproxy;
             -no-qml-debug;
             -no-pulseaudio;
@@ -58,9 +58,9 @@ ExternalProject_Add(qt5
         URL ${URL}
 	URL_HASH ${URL_HASH}
         CONFIGURE_COMMAND
-            ${FAST_EXTERNAL_BUILD_DIR}/qt5/src/qt5/configure
-            -prefix ${FAST_EXTERNAL_INSTALL_DIR};
- 		${OPTIONS}
+            "${FAST_EXTERNAL_BUILD_DIR}/qt5/src/qt5/configure"
+            -prefix "${FAST_EXTERNAL_INSTALL_DIR}";
+            ${OPTIONS}
         BUILD_COMMAND
             ${BUILD_COMMAND}
         INSTALL_COMMAND
