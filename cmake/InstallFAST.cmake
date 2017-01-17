@@ -55,6 +55,7 @@ install(FILES ${PROJECT_BINARY_DIR}/FASTConfig.cmake
 )
 
 # Install Python wrapper
+if(FAST_MODULE_Python)
 install(TARGETS _fast
         DESTINATION python
 )
@@ -62,3 +63,4 @@ install(FILES
     ${PROJECT_BINARY_DIR}/lib/fast.py
     DESTINATION python
 )
+endif()
