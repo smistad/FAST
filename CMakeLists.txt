@@ -15,7 +15,7 @@ option(FAST_MODULE_Visualization "Enable visualization capabilities using Qt5.
 Without this module, all visualization in FAST will be disabled." ON)
 option(FAST_MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
 option(FAST_MODULE_NeuralNetwork "Build neural network module using tensorflow" OFF)
-option(FAST_MODULE_Python "Build Python wrappers" ON)
+option(FAST_MODULE_Python "Build Python wrappers" OFF)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
 
 #### Set build type
