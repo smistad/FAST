@@ -23,7 +23,17 @@ else()
 	install(FILES ${SOs}
 		DESTINATION fast/lib
 	)
+	# Install Qt plugins
+	install(DIRECTORY ${PROJECT_BINARY_DIR}/plugins/
+        DESTINATION fast/QtPlugins/
+        FILES_MATCHING PATTERN "*.so"
+    )
+	# Install qt.conf
+    install(FILES ${PROJECT_SOURCE_DIR}/cmake/qt.conf
+        DESTINATION fast/bin
+    )
 endif()
+
 
 # Install headers
 install(DIRECTORY ${FAST_SOURCE_DIR}
