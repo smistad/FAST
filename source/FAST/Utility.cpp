@@ -525,6 +525,16 @@ std::string getCLErrorString(cl_int err) {
     }
 }
 
+std::string replace(std::string str, std::string find, std::string replacement) {
+    while(true) {
+        int pos = str.find(find);
+        if(pos == std::string::npos)
+            break;
+        str.replace(pos, find.size(), replacement);
+    }
+
+    return str;
+}
 
 std::vector<std::string> split(const std::string& input, const std::string& delimiter) {
     // passing -1 as the submatch index parameter performs splitting

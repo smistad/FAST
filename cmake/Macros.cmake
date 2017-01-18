@@ -81,7 +81,7 @@ macro (fast_add_example NAME)
         add_executable(${NAME} ${ARGN})
         target_link_libraries(${NAME} FAST)
         install(TARGETS ${NAME}
-                DESTINATION bin
+                DESTINATION fast/bin
         )
         if(WIN32)
             file(APPEND ${PROJECT_BINARY_DIR}/runAllExamples.bat "bin\\${NAME}.exe\r\n")

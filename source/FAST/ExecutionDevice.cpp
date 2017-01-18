@@ -300,10 +300,10 @@ cl::Program OpenCLDevice::writeBinary(std::string filename, std::string buildOpt
     std::string deviceName = getDevice(0).getInfo<CL_DEVICE_NAME>();
     std::size_t hash = std::hash<std::string>{}(buildOptions + deviceName);
     std::string binaryPath = Config::getKernelBinaryPath();
-    std::string find = "/source/FAST/";
-    int startPos = filename.rfind(find);
-    std::string binaryFilename = binaryPath + filename.substr(startPos + find.size()) + "_" + std::to_string(hash) + ".bin";
-    std::string cacheFilename = binaryPath + filename.substr(startPos + find.size()) + "_" + std::to_string(hash) + ".cache";
+    // TODO fix this for both install and build
+    std::string kernelSourcePath = Config::getKernelSourcePath();
+    std::string binaryFilename = binaryPath + filename.substr(kernelSourcePath.size()) + "_" + std::to_string(hash) + ".bin";
+    std::string cacheFilename = binaryPath + filename.substr(kernelSourcePath.size()) + "_" + std::to_string(hash) + ".cache";
 
     // Create directories if they don't exist
     if(binaryFilename.rfind("/") != std::string::npos) {
@@ -375,10 +375,9 @@ cl::Program OpenCLDevice::buildProgramFromBinary(std::string filename, std::stri
     std::string deviceName = getDevice(0).getInfo<CL_DEVICE_NAME>();
     std::size_t hash = std::hash<std::string>{}(buildOptions + deviceName);
     std::string binaryPath = Config::getKernelBinaryPath();
-    std::string find = "/source/FAST/";
-    int startPos = filename.rfind(find);
-    std::string binaryFilename = binaryPath + filename.substr(startPos + find.size()) + "_" + std::to_string(hash) + ".bin";
-    std::string cacheFilename = binaryPath + filename.substr(startPos + find.size()) + "_" + std::to_string(hash) + ".cache";
+    std::string kernelSourcePath = Config::getKernelSourcePath();
+    std::string binaryFilename = binaryPath + filename.substr(kernelSourcePath.size()) + "_" + std::to_string(hash) + ".bin";
+    std::string cacheFilename = binaryPath + filename.substr(kernelSourcePath.size()) + "_" + std::to_string(hash) + ".cache";
 
     // Check if a binary file exists
     std::ifstream binaryFile(binaryFilename.c_str(), std::ios_base::binary | std::ios_base::in);
@@ -421,7 +420,7 @@ cl::Program OpenCLDevice::buildProgramFromBinary(std::string filename, std::stri
         }
 
         if(outOfDate || wrongDeviceID || buildOptionsChanged) {
-            Reporter::info() << "Binary is out of date. Compiling..." << Reporter::end;
+            Reporter::warning() << "Kernel binary " << filename.substr(kernelSourcePath.size()) << " is out of date. Compiling..." << Reporter::end;
             program = writeBinary(filename, buildOptions);
         } else {
             //std::cout << "Binary is not out of date." << std::endl;

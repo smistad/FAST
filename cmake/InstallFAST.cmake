@@ -2,12 +2,12 @@
 
 # Install FAST library
 install(TARGETS FAST
-	DESTINATION lib
+	DESTINATION fast/lib
 )
 
 # Install test executable
 install(TARGETS testFAST
-	DESTINATION bin
+	DESTINATION fast/bin
 )
 
 # Examples are installed in the macro fast_add_example
@@ -16,53 +16,63 @@ install(TARGETS testFAST
 if(WIN32)
 	file(GLOB DLLs ${PROJECT_BINARY_DIR}/bin/*.dll)
 	install(FILES ${DLLs}
-		DESTINATION bin
+		DESTINATION fast/bin
 	)
 else()
 	file(GLOB SOs ${PROJECT_BINARY_DIR}/lib/*.so*)
 	install(FILES ${SOs}
-		DESTINATION lib
+		DESTINATION fast/lib
 	)
 endif()
 
 # Install headers
 install(DIRECTORY ${FAST_SOURCE_DIR}
-	DESTINATION include/FAST/
+	DESTINATION fast/include/FAST/
 	FILES_MATCHING PATTERN "*.hpp"
 )
 install(DIRECTORY ${FAST_SOURCE_DIR}
-	DESTINATION include/FAST/
+	DESTINATION fast/include/FAST/
 	FILES_MATCHING PATTERN "*.h"
 )
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/source/CL/
-	DESTINATION include/CL/
+	DESTINATION fast/include/CL/
 	FILES_MATCHING PATTERN "*.h"
 )
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/source/CL/
-	DESTINATION include/CL/
+	DESTINATION fast/include/CL/
 	FILES_MATCHING PATTERN "*.hpp"
 )
 
 # Install OpenCL kernels
 install(DIRECTORY ${FAST_SOURCE_DIR}
-	DESTINATION kernels/FAST/
+	DESTINATION fast/kernels/
 	FILES_MATCHING PATTERN "*.cl"
 )
 
 # Install CMake files
 install(FILES ${PROJECT_BINARY_DIR}/FASTConfig.cmake
-    DESTINATION cmake
+    DESTINATION fast/cmake
 )
 
 # Install Python wrapper
 install(TARGETS _fast
-    DESTINATION python
+    DESTINATION fast/python
 )
 install(FILES ${PROJECT_BINARY_DIR}/lib/fast.py
-    DESTINATION python
+    DESTINATION fast/python
 )
 
 # Copy configuration file
-install(FILES ${PROJECT_BINARY_DIR}/fast_configuration.txt
-    DESTINATION bin
+# Create new configuration file for install
+
+set(CONFIG_KERNEL_SOURCE_PATH "KernelSourcePath = @ROOT@/kernels/")
+set(CONFIG_KERNEL_BINARY_PATH "KernelBinaryPath = @ROOT@/kernel_binaries/")
+set(CONFIG_KERNEL_TEST_PATH "")
+configure_file(
+    "${PROJECT_SOURCE_DIR}/source/fast_configuration.txt.in"
+    "${PROJECT_BINARY_DIR}/fast_configuration_install.txt"
+)
+install(FILES ${PROJECT_BINARY_DIR}/fast_configuration_install.txt
+    RENAME fast_configuration.txt
+    DESTINATION fast/
 )

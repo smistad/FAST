@@ -67,7 +67,6 @@ std::string Config::getKernelBinaryPath() {
     return mKernelBinaryPath;
 }
 
-
 void Config::loadConfiguration() {
     if(mConfigurationLoaded)
         return;
@@ -75,20 +74,20 @@ void Config::loadConfiguration() {
     // Read and parse configuration file
     // It should reside in the build folder when compiling, and in the root folder when using release
     std::string filename = getPath() + "fast_configuration.txt";
-    Reporter::info() << "Loaded configuration file: " << filename << Reporter::end;
     std::ifstream file(filename);
     if(!file.is_open()) {
-        Reporter::info() << "Unable to open the configuration file " << filename << " using defaults." << Reporter::end;
+        Reporter::warning() << "Unable to open the configuration file " << filename << " using defaults." << Reporter::end;
         mConfigurationLoaded = true;
         return;
     }
+    Reporter::info() << "Loaded configuration file: " << filename << Reporter::end;
 
     std::string line;
     std::getline(file, line);
     while(!file.eof()) {
         trim(line);
-        if(line[0] == '#') {
-            // Comment, skip line
+        if(line[0] == '#' || line.size() == 0) {
+            // Comment or empty line, skip
             std::getline(file, line);
             continue;
         }
@@ -101,6 +100,7 @@ void Config::loadConfiguration() {
         std::string value = list[1];
         trim(key);
         trim(value);
+        value = replace(value, "@ROOT@", getPath());
 
         if(key == "TestDataPath") {
             mTestDataPath = value;

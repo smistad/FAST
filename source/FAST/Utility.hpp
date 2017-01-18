@@ -116,6 +116,8 @@ static inline void trim(std::string &s) {
     rtrim(s);
 }
 
+std::string replace(std::string str, std::string find, std::string replacement);
+
 template <class T>
 static inline void hash_combine(std::size_t& seed, const T& v)
 {
