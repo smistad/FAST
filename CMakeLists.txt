@@ -144,7 +144,7 @@ if(NOT FAST_TEST_DATA_DIR STREQUAL "")
     # Remove any existing "
     string(REPLACE "\"" "" FAST_TEST_DATA_DIR ${FAST_TEST_DATA_DIR})
     message("-- FAST test data directory set to: \"${FAST_TEST_DATA_DIR}\"")
-    set(CONFIG_TEST_DATA_PATH "TestDataDir = ${FAST_TEST_DATA_DIR}/")
+    set(CONFIG_TEST_DATA_PATH "TestDataPath = ${FAST_TEST_DATA_DIR}/")
 endif()
 if(NOT FAST_OPENCL_KERNEL_BINARY_PATH STREQUAL "")
     # Remove any existing "
