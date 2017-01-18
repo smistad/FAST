@@ -12,6 +12,3 @@ ${PYFAST_HEADER_INCLUDES}
 %}
 
 ${PYFAST_INTERFACE_INCLUDES}
-
-// Define some useful paths
-%constant TEST_DATA_DIR = "${FAST_TEST_DATA_DIR}";

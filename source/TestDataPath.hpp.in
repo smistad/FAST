@@ -1,6 +1,0 @@
-#ifndef TEST_DATA_PATH_HPP_
-#define TEST_DATA_PATH_HPP_
-
-#define FAST_TEST_DATA_DIR "${FAST_TEST_DATA_DIR}"
-
-#endif

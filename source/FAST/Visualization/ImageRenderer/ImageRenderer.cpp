@@ -46,8 +46,8 @@ void ImageRenderer::addInputConnection(ProcessObjectPort port) {
 
 ImageRenderer::ImageRenderer() : Renderer() {
     createInputPort<Image>(0, false);
-    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "/Visualization/ImageRenderer/ImageRenderer.cl", "3D");
-    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "/Visualization/ImageRenderer/ImageRenderer2D.cl", "2D");
+    createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer.cl", "3D");
+    createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer2D.cl", "2D");
     mIsModified = false;
 }
 

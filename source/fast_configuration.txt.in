@@ -1,0 +1,3 @@
+#TestDataPath = /path/to/data/
+#KernelSourcePath = /path/to/kernel/source/FAST/
+#KernelBinaryPath = /path/to/kernel/binary/

@@ -14,7 +14,7 @@ namespace fast {
         createOutputPort<Segmentation>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
         mDetector = UltrasoundVesselDetection::New();
         mFramesToKeep = 10;
-        createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/UltrasoundVesselDetection/UltrasoundVesselDetection.cl");
+        createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/UltrasoundVesselDetection/UltrasoundVesselDetection.cl");
     }
 
     void UltrasoundVesselSegmentation::execute() {

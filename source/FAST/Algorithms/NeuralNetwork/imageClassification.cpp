@@ -100,14 +100,13 @@ int main() {
     streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
     ImageClassifier::pointer classifier = ImageClassifier::New();
-    classifier->load("/home/smistad/Downloads/cvc_inc_merged");
+    classifier->load("/home/smistad/Downloads/cvc_alex_110117");
     classifier->setInputSize(128,128);
     classifier->setOutputParameters({"Softmax"});
     classifier->setLabels({
                                   "Parasternal short axis",
                                   "Parasternal long axis",
                                   "Apical two-chamber",
-                                  "Apical five-chamber",
                                   "Apical four-chamber",
                                   "Apical long axis"
                           });

@@ -41,7 +41,7 @@ inline uint getPeakMemoryUsage(Image::pointer input, bool use16bit, bool writing
 EulerGradientVectorFlow::EulerGradientVectorFlow() {
     createInputPort<Image>(0);
     createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/GradientVectorFlow/EulerGradientVectorFlow.cl");
+    createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/GradientVectorFlow/EulerGradientVectorFlow.cl");
     mIterations = 0;
     mMu = 0.05f;
     mUse16bitFormat = true;

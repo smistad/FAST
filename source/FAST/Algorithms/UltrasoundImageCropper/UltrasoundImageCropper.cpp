@@ -10,7 +10,7 @@ UltrasoundImageCropper::UltrasoundImageCropper() {
     createInputPort<Image>(0);
     createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
 
-    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "/UltrasoundImageCropper/UltrasoundImageCropper.cl");
+    createOpenCLProgram(Config::getKernelSourcePath() + "/UltrasoundImageCropper/UltrasoundImageCropper.cl");
 }
 
 void UltrasoundImageCropper::execute() {

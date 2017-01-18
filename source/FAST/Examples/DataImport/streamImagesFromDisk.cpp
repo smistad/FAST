@@ -6,7 +6,7 @@
 #include "FAST/Streamers/ImageFileStreamer.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
-#include "FAST/TestDataPath.hpp"
+
 
 using namespace fast;
 
@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
     if(argc > 1) {
 		streamer->setFilenameFormat(argv[1]);
     } else {
-        streamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US/CarotidArtery/Right/US-2D_#.mhd");
+        streamer->setFilenameFormat(Config::getTestDataPath()+"/US/CarotidArtery/Right/US-2D_#.mhd");
     }
 
     // Renderer image

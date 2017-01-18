@@ -5,7 +5,6 @@
 #define _USE_MATH_DEFINES
 #include "FAST/Exception.hpp"
 #include "FAST/Reporter.hpp"
-#include "FAST/Paths.hpp"
 #include <memory>
 
 #define FAST_OBJECT(className)                                  \

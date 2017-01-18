@@ -36,9 +36,9 @@ TEST_CASE("ICP on two point sets", "[fast][IterativeClosestPoint][icp]") {
     Vector3f rotation(0.5, 0, 0);
 
     VTKPointSetFileImporter::pointer importerA = VTKPointSetFileImporter::New();
-    importerA->setFilename(std::string(FAST_TEST_DATA_DIR) + "Surface_LV.vtk");
+    importerA->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
     VTKPointSetFileImporter::pointer importerB = VTKPointSetFileImporter::New();
-    importerB->setFilename(std::string(FAST_TEST_DATA_DIR) + "Surface_LV.vtk");
+    importerB->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
 
     // Apply a transformation to B surface
     AffineTransformation::pointer transformation = AffineTransformation::New();
@@ -78,9 +78,9 @@ TEST_CASE("ICP on two point sets where moving point set is larger than the fixed
     Vector3f rotation(0.0, 0.5, 0.0);
 
     VTKPointSetFileImporter::pointer importerA = VTKPointSetFileImporter::New();
-    importerA->setFilename(std::string(FAST_TEST_DATA_DIR) + "Surface_LV.vtk");
+    importerA->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
     VTKPointSetFileImporter::pointer importerB = VTKPointSetFileImporter::New();
-    importerB->setFilename(std::string(FAST_TEST_DATA_DIR) + "Surface_LV.vtk");
+    importerB->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
 
     // Apply a transformation to B surface
     AffineTransformation::pointer transformation = AffineTransformation::New();
@@ -125,9 +125,9 @@ TEST_CASE("ICP on two point sets which are already transformed by scene graph", 
     Vector3f rotation(0.5, 0, 0);
 
     VTKPointSetFileImporter::pointer importerA = VTKPointSetFileImporter::New();
-    importerA->setFilename(std::string(FAST_TEST_DATA_DIR) + "Surface_LV.vtk");
+    importerA->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
     VTKPointSetFileImporter::pointer importerB = VTKPointSetFileImporter::New();
-    importerB->setFilename(std::string(FAST_TEST_DATA_DIR) + "Surface_LV.vtk");
+    importerB->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
 
     importerA->update();
     importerB->update();

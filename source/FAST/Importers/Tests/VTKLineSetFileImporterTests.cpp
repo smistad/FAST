@@ -7,7 +7,7 @@ using namespace fast;
 
 TEST_CASE("VTKLineSetFileImporter", "[fast][VTKLineSetFileImporter]") {
     VTKLineSetFileImporter::pointer importer = VTKLineSetFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "centerline.vtk");
+    importer->setFilename(Config::getTestDataPath() + "centerline.vtk");
     importer->update();
     LineSet::pointer lineSet = importer->getOutputData<LineSet>(0);
 

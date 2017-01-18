@@ -1,4 +1,5 @@
 #include "FAST/Utility.hpp"
+#include "FAST/Config.hpp"
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <regex>
@@ -83,7 +84,7 @@ void getIntensitySumFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D im
         buildOptions = "-DTYPE_INT16";
         break;
     }
-    std::string sourceFilename = std::string(FAST_SOURCE_DIR) + "/ImageSum.cl";
+    std::string sourceFilename = Config::getKernelSourcePath() + "/ImageSum.cl";
     std::string programName = sourceFilename + buildOptions;
     // Only create program if it doesn't exist for this device from before
     if(!device->hasProgram(programName))
@@ -163,7 +164,7 @@ void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image
         buildOptions = "-DTYPE_INT16";
         break;
     }
-    std::string sourceFilename = std::string(FAST_SOURCE_DIR) + "/ImageMinMax.cl";
+    std::string sourceFilename = Config::getKernelSourcePath() + "/ImageMinMax.cl";
     std::string programName = sourceFilename + buildOptions;
     // Only create program if it doesn't exist for this device from before
     if(!device->hasProgram(programName))
@@ -264,7 +265,7 @@ void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D image
         buildOptions = "-DTYPE_INT16";
         break;
     }
-    std::string sourceFilename = std::string(FAST_SOURCE_DIR) + "/ImageMinMax.cl";
+    std::string sourceFilename = Config::getKernelSourcePath() + "/ImageMinMax.cl";
     std::string programName = sourceFilename + buildOptions;
     // Only create program if it doesn't exist for this device from before
     if(!device->hasProgram(programName))
@@ -348,7 +349,7 @@ void getMaxAndMinFromOpenCLBuffer(OpenCLDevice::pointer device, cl::Buffer buffe
         buildOptions = "-DTYPE_INT16";
         break;
     }
-    std::string sourceFilename = std::string(FAST_SOURCE_DIR) + "/ImageMinMax.cl";
+    std::string sourceFilename = Config::getKernelSourcePath() + "/ImageMinMax.cl";
     std::string programName = sourceFilename + buildOptions;
     // Only create program if it doesn't exist for this device from before
     if(!device->hasProgram(programName))

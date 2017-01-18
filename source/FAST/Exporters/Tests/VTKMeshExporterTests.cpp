@@ -12,7 +12,7 @@ using namespace fast;
 
 TEST_CASE("VTKMeshExporter 3D", "[fast][VTK][VTKMeshExporter]") {
     VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "Surface_LV.vtk");
+    importer->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
 
     vtkSmartPointer<VTKMeshExporter> exporter = VTKMeshExporter::New();
     exporter->setInputConnection(importer->getOutputPort());

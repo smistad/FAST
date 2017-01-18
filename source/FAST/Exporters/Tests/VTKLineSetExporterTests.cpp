@@ -11,7 +11,7 @@ using namespace fast;
 
 TEST_CASE("VTKLineSetExporter", "[fast][VTK][VTKLineSetExporter]") {
     VTKLineSetFileImporter::pointer importer = VTKLineSetFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "centerline.vtk");
+    importer->setFilename(Config::getTestDataPath() + "centerline.vtk");
 
     vtkSmartPointer<VTKLineSetExporter> exporter = VTKLineSetExporter::New();
     exporter->setInputConnection(importer->getOutputPort());

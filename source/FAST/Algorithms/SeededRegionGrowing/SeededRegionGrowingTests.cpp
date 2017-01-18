@@ -14,7 +14,7 @@ TEST_CASE("2D Seeded region growing on OpenCL device", "[fast][SeededRegionGrowi
     for(int i = 0; i < devices.size(); i++) {
         INFO("Device " << devices[i]->getName());
         ImageImporter::pointer importer = ImageImporter::New();
-        importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US/US-2D.jpg");
+        importer->setFilename(Config::getTestDataPath() + "US/US-2D.jpg");
         importer->setMainDevice(devices[i]);
 
         SeededRegionGrowing::pointer algorithm = SeededRegionGrowing::New();
@@ -46,7 +46,7 @@ TEST_CASE("3D Seeded region growing on OpenCL device", "[fast][SeededRegionGrowi
     for(int i = 0; i < devices.size(); i++) {
         INFO("Device " << devices[i]->getName());
         MetaImageImporter::pointer importer = MetaImageImporter::New();
-        importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US/Ball/US-3Dt_0.mhd");
+        importer->setFilename(Config::getTestDataPath() + "US/Ball/US-3Dt_0.mhd");
         importer->setMainDevice(devices[i]);
 
         SeededRegionGrowing::pointer algorithm = SeededRegionGrowing::New();
@@ -72,7 +72,7 @@ TEST_CASE("3D Seeded region growing on OpenCL device", "[fast][SeededRegionGrowi
 
 TEST_CASE("3D Seeded region growing on Host", "[fast][SeededRegionGrowing]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US/Ball/US-3Dt_0.mhd");
+    importer->setFilename(Config::getTestDataPath() + "US/Ball/US-3Dt_0.mhd");
 
     SeededRegionGrowing::pointer algorithm = SeededRegionGrowing::New();
     algorithm->setInputConnection(importer->getOutputPort());

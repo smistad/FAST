@@ -59,17 +59,6 @@ string(REPLACE "\"" "" FAST_TEST_DATA_DIR ${FAST_TEST_DATA_DIR})
 message("-- OpenCL Kernel binary path set to: ${FAST_OPENCL_KERNEL_BINARY_PATH}")
 message("-- FAST test data directory set to: \"${FAST_TEST_DATA_DIR}\"")
 
-### Create the header files Paths.hpp and TestDataPath.hpp which include all useful paths
-# TODO don't use preprocessor defines for this, use constant string or static functions
-configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/Paths.hpp.in
-        ${CMAKE_CURRENT_BINARY_DIR}/FAST/Paths.hpp
-)
-configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/TestDataPath.hpp.in
-        ${CMAKE_CURRENT_BINARY_DIR}/FAST/TestDataPath.hpp
-)
-
 #### Module path
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/ ${CMAKE_MODULE_PATH}) # For finding the custom Find modules
 
@@ -152,9 +141,14 @@ set(FAST_LIBRARY FAST)
 set(FAST_LIBRARY_DIRS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
 # Create config file
-configure_file (
+configure_file(
         "${PROJECT_SOURCE_DIR}/source/FASTConfig.cmake.in"
         "${PROJECT_BINARY_DIR}/FASTConfig.cmake"
+)
+
+configure_file(
+        "${PROJECT_SOURCE_DIR}/source/fast_configuration.txt.in"
+        "${PROJECT_BINARY_DIR}/fast_configuration.cmake"
 )
 
 include(cmake/ModulePython.cmake)

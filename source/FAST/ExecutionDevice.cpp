@@ -4,6 +4,7 @@
 #include <mutex>
 #include <QDir>
 #include <fstream>
+#include "FAST/Config.hpp"
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
@@ -35,7 +36,6 @@ inline cl_context_properties* createInteropContextProperties(
 #if defined(__APPLE__) || defined(__MACOSX)
     // Apple (untested)
     // TODO: create GL context for Apple
-std::cout << "trying to get share group of gl context" << std::endl;
 CGLSetCurrentContext((CGLContextObj)OpenGLContext);
 CGLShareGroupObj shareGroup = CGLGetShareGroup((CGLContextObj)OpenGLContext);
 if(shareGroup == NULL)
@@ -44,7 +44,6 @@ throw Exception("Not able to get sharegroup");
     cps[0] = CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE;
     cps[1] = (cl_context_properties)shareGroup;
     cps[2] = 0;
-std::cout << "success " << shareGroup << std::endl;
 
 #else
 #ifdef _WIN32
@@ -117,7 +116,7 @@ std::string readFile(std::string filename) {
 
     std::ifstream sourceFile(filename.c_str(), std::fstream::in);
     if (sourceFile.fail())
-        throw Exception("Failed to open OpenCL source file.");
+        throw Exception("Failed to open OpenCL source file: " + filename);
 
     std::stringstream stringStream;
 
@@ -300,21 +299,11 @@ cl::Program OpenCLDevice::writeBinary(std::string filename, std::string buildOpt
 
     std::string deviceName = getDevice(0).getInfo<CL_DEVICE_NAME>();
     std::size_t hash = std::hash<std::string>{}(buildOptions + deviceName);
-    std::string binaryPath = std::string(OUL_OPENCL_KERNEL_BINARY_PATH);
-    std::string binaryFilename = binaryPath + filename + "_" + std::to_string(hash) + ".bin";
-    std::string cacheFilename = binaryPath + filename + "_" + std::to_string(hash) + ".cache";
-    if(binaryPath != "") {
-        // Remove shared path from filename
-        for(int i = 0; i < std::min(filename.size(), binaryPath.size()); i++) {
-            if(binaryPath[i] == filename[i]) {
-
-            } else {
-                binaryFilename = binaryPath + filename.substr(i) + "_" + std::to_string(hash) + ".bin";
-                cacheFilename = binaryPath + filename.substr(i) + "_" + std::to_string(hash) + ".cache";
-                break;
-            }
-        }
-    }
+    std::string binaryPath = Config::getKernelBinaryPath();
+    std::string find = "/source/FAST/";
+    int startPos = filename.rfind(find);
+    std::string binaryFilename = binaryPath + filename.substr(startPos + find.size()) + "_" + std::to_string(hash) + ".bin";
+    std::string cacheFilename = binaryPath + filename.substr(startPos + find.size()) + "_" + std::to_string(hash) + ".cache";
 
     // Create directories if they don't exist
     if(binaryFilename.rfind("/") != std::string::npos) {
@@ -326,7 +315,7 @@ cl::Program OpenCLDevice::writeBinary(std::string filename, std::string buildOpt
     }
     FILE * file = fopen(binaryFilename.c_str(), "wb");
     if(!file)
-        printf("could not write to file\n");
+        throw Exception("Could not write kernel binary to file: " + binaryFilename);
     fwrite(binaries[0], sizeof(char), (int)binarySizes[0], file);
     fclose(file);
 
@@ -385,21 +374,11 @@ cl::Program OpenCLDevice::buildProgramFromBinary(std::string filename, std::stri
 
     std::string deviceName = getDevice(0).getInfo<CL_DEVICE_NAME>();
     std::size_t hash = std::hash<std::string>{}(buildOptions + deviceName);
-    std::string binaryPath = std::string(OUL_OPENCL_KERNEL_BINARY_PATH);
-    std::string binaryFilename = binaryPath + filename + "_" + std::to_string(hash) + ".bin";
-    std::string cacheFilename = binaryPath + filename + "_" + std::to_string(hash) + ".cache";
-    if(binaryPath != "") {
-        // Remove shared path from filename
-        for(int i = 0; i < std::min(filename.size(), binaryPath.size()); i++) {
-            if(binaryPath[i] == filename[i]) {
-
-            } else {
-                binaryFilename = binaryPath + filename.substr(i) + "_" + std::to_string(hash) + ".bin";
-                cacheFilename = binaryPath + filename.substr(i) + "_" + std::to_string(hash) + ".cache";
-                break;
-            }
-        }
-    }
+    std::string binaryPath = Config::getKernelBinaryPath();
+    std::string find = "/source/FAST/";
+    int startPos = filename.rfind(find);
+    std::string binaryFilename = binaryPath + filename.substr(startPos + find.size()) + "_" + std::to_string(hash) + ".bin";
+    std::string cacheFilename = binaryPath + filename.substr(startPos + find.size()) + "_" + std::to_string(hash) + ".cache";
 
     // Check if a binary file exists
     std::ifstream binaryFile(binaryFilename.c_str(), std::ios_base::binary | std::ios_base::in);
@@ -442,7 +421,7 @@ cl::Program OpenCLDevice::buildProgramFromBinary(std::string filename, std::stri
         }
 
         if(outOfDate || wrongDeviceID || buildOptionsChanged) {
-            std::cout << "Binary is out of date. Compiling..." << std::endl;
+            Reporter::info() << "Binary is out of date. Compiling..." << Reporter::end;
             program = writeBinary(filename, buildOptions);
         } else {
             //std::cout << "Binary is not out of date." << std::endl;

@@ -4,6 +4,7 @@
 #include "FAST/Utility.hpp"
 #include "FAST/SceneGraph.hpp"
 #include "FAST/DeviceManager.hpp"
+#include "FAST/Config.hpp"
 
 namespace fast {
 
@@ -1048,7 +1049,7 @@ void Image::fill(float value) {
     } else {
         OpenCLDevice::pointer clDevice = device;
         cl::CommandQueue queue = clDevice->getCommandQueue();
-		std::string sourceFilename = std::string(FAST_SOURCE_DIR) + "/ImageFill.cl";
+		std::string sourceFilename = Config::getKernelSourcePath() + "/ImageFill.cl";
 		std::string programName = sourceFilename;
 		// Only create program if it doesn't exist for this device from before
 		if(!clDevice->hasProgram(programName))

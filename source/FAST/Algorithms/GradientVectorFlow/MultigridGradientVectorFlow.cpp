@@ -569,7 +569,7 @@ void MultigridGradientVectorFlow::set32bitStorageFormat() {
 MultigridGradientVectorFlow::MultigridGradientVectorFlow() {
     createInputPort<Image>(0);
     createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/GradientVectorFlow/MultigridGradientVectorFlow.cl");
+    createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/GradientVectorFlow/MultigridGradientVectorFlow.cl");
     mIterations = 10;
     mMu = 0.1f;
     mUse16bitFormat = true;

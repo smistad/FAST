@@ -6,14 +6,14 @@
 #include "FAST/Importers/VTKMeshFileImporter.hpp"
 #include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
-#include "FAST/TestDataPath.hpp"
+
 
 using namespace fast;
 
 int main() {
     // Import mesh from vtk file using the VTKMeshFileImporter
     VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"/Surface_LV.vtk");
+    importer->setFilename(Config::getTestDataPath()+"/Surface_LV.vtk");
 
     // Renderer image
     MeshRenderer::pointer renderer = MeshRenderer::New();

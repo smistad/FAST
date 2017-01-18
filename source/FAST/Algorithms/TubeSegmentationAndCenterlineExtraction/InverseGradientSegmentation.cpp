@@ -39,7 +39,7 @@ void InverseGradientSegmentation::execute() {
     cl::Image3D* volume = segmentationOutputAccess->get3DImage();
 
     device->createProgramFromSourceWithName("inverseGradientSegmentation",
-            std::string(FAST_SOURCE_DIR) + "Algorithms/TubeSegmentationAndCenterlineExtraction/InverseGradientSegmentation.cl");
+            Config::getKernelSourcePath() + "Algorithms/TubeSegmentationAndCenterlineExtraction/InverseGradientSegmentation.cl");
     cl::Program program(device->getProgram("inverseGradientSegmentation"));
 
 

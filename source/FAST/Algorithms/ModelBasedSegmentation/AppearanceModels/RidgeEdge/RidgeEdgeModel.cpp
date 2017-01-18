@@ -1,6 +1,7 @@
 #include "RidgeEdgeModel.hpp"
 #include "FAST/Data/Image.hpp"
 #include "FAST/Algorithms/ModelBasedSegmentation/Shape.hpp"
+#include "FAST/Config.hpp"
 
 
 namespace fast {
@@ -248,7 +249,7 @@ std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnDevice(SharedPointer<I
 	);
 
 	// Create kernel
-	int programNr = device->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "Algorithms/ModelBasedSegmentation/AppearanceModels/RidgeEdge/RidgeEdgeModel.cl");
+	int programNr = device->createProgramFromSource(Config::getKernelSourcePath() + "Algorithms/ModelBasedSegmentation/AppearanceModels/RidgeEdge/RidgeEdgeModel.cl");
 	cl::Program program = device->getProgram(programNr);
 	cl::Kernel kernel(program, "edgeDetection2D");
 

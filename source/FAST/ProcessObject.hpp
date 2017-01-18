@@ -12,6 +12,8 @@
 #include "FAST/ExecutionDevice.hpp"
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Data/DynamicData.hpp"
+#include "FAST/Config.hpp"
+
 namespace fast{
     class ProcessObjectPort;
 }

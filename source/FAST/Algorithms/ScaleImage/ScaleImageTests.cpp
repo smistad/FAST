@@ -7,7 +7,7 @@ namespace fast {
 
 TEST_CASE("Scale image 2D", "[fast][ScaleImage]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US/CarotidArtery/Right/US-2D_0.mhd");
+    importer->setFilename(Config::getTestDataPath() + "US/CarotidArtery/Right/US-2D_0.mhd");
 
     ScaleImage::pointer normalize = ScaleImage::New();
     normalize->setInputConnection(importer->getOutputPort());
@@ -21,7 +21,7 @@ TEST_CASE("Scale image 2D", "[fast][ScaleImage]") {
 
 TEST_CASE("Scale image 3D", "[fast][ScaleImage]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "/CT/CT-Abdomen.mhd");
+    importer->setFilename(Config::getTestDataPath() + "/CT/CT-Abdomen.mhd");
 
     ScaleImage::pointer normalize = ScaleImage::New();
     normalize->setInputConnection(importer->getOutputPort());
@@ -35,7 +35,7 @@ TEST_CASE("Scale image 3D", "[fast][ScaleImage]") {
 
 TEST_CASE("Scale image 2D with high and low set", "[fast][ScaleImage]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US/CarotidArtery/Right/US-2D_0.mhd");
+    importer->setFilename(Config::getTestDataPath() + "US/CarotidArtery/Right/US-2D_0.mhd");
 
     ScaleImage::pointer normalize = ScaleImage::New();
     normalize->setInputConnection(importer->getOutputPort());
@@ -51,7 +51,7 @@ TEST_CASE("Scale image 2D with high and low set", "[fast][ScaleImage]") {
 
 TEST_CASE("Scale image 3D with high and low set", "[fast][ScaleImage]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "/CT/CT-Abdomen.mhd");
+    importer->setFilename(Config::getTestDataPath() + "/CT/CT-Abdomen.mhd");
 
     ScaleImage::pointer normalize = ScaleImage::New();
     normalize->setInputConnection(importer->getOutputPort());

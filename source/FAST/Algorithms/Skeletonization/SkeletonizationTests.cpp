@@ -9,7 +9,7 @@ using namespace fast;
 
 TEST_CASE("Skeletonization on 2D image", "[fast][Skeletonization][visual]") {
     ImageImporter::pointer importer = ImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "retina.png");
+    importer->setFilename(Config::getTestDataPath() + "retina.png");
 
     BinaryThresholding::pointer thresholding = BinaryThresholding::New();
     thresholding->setInputConnection(importer->getOutputPort());

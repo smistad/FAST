@@ -8,14 +8,14 @@
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
-#include "FAST/TestDataPath.hpp"
+
 
 using namespace fast;
 
 int main() {
     // Import image from file using the ImageFileImporter
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US/CarotidArtery/Right/US-2D_100.mhd");
+    importer->setFilename(Config::getTestDataPath()+"US/CarotidArtery/Right/US-2D_100.mhd");
 
     // Segment image
     BinaryThresholding::pointer thresholding = BinaryThresholding::New();

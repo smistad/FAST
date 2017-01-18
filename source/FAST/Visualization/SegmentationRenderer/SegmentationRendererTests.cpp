@@ -10,7 +10,7 @@ using namespace fast;
 
 TEST_CASE("SegmentationRenderer on a thresholded 2D image", "[fast][SegmentationRenderer][visual]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US/CarotidArtery/Right/US-2D_0.mhd");
+    importer->setFilename(Config::getTestDataPath() + "US/CarotidArtery/Right/US-2D_0.mhd");
 
     BinaryThresholding::pointer segmentation = BinaryThresholding::New();
     segmentation->setInputConnection(importer->getOutputPort());
@@ -32,7 +32,7 @@ TEST_CASE("SegmentationRenderer on a thresholded 2D image", "[fast][Segmentation
 
 TEST_CASE("SegmentationRenderer on a thresholded 3D image", "[fast][SegmentationRenderer][visual]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "/CT/CT-Abdomen.mhd");
+    importer->setFilename(Config::getTestDataPath() + "/CT/CT-Abdomen.mhd");
 
     BinaryThresholding::pointer segmentation = BinaryThresholding::New();
     segmentation->setInputConnection(importer->getOutputPort());
@@ -55,7 +55,7 @@ TEST_CASE("SegmentationRenderer on a thresholded 3D image", "[fast][Segmentation
 
 TEST_CASE("SegmentationRenderer on a thresholded 3D image with draw contours only", "[fast][SegmentationRenderer][visual]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "/CT/CT-Abdomen.mhd");
+    importer->setFilename(Config::getTestDataPath() + "/CT/CT-Abdomen.mhd");
 
     BinaryThresholding::pointer segmentation = BinaryThresholding::New();
     segmentation->setInputConnection(importer->getOutputPort());
@@ -79,7 +79,7 @@ TEST_CASE("SegmentationRenderer on a thresholded 3D image with draw contours onl
 
 TEST_CASE("SegmentationRenderer on a stream of thresholded 2D images", "[fast][SegmentationRenderer][visual]") {
     ImageFileStreamer::pointer importer = ImageFileStreamer::New();
-    importer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US/CarotidArtery/Right/US-2D_#.mhd");
+    importer->setFilenameFormat(Config::getTestDataPath() + "US/CarotidArtery/Right/US-2D_#.mhd");
 
     BinaryThresholding::pointer segmentation = BinaryThresholding::New();
     segmentation->setInputConnection(importer->getOutputPort());
@@ -102,7 +102,7 @@ TEST_CASE("SegmentationRenderer on a stream of thresholded 2D images", "[fast][S
 
 TEST_CASE("SegmentationRenderer on a stream of thresholded 2D images with draw contours only", "[fast][SegmentationRenderer][visual]") {
     ImageFileStreamer::pointer importer = ImageFileStreamer::New();
-    importer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US/CarotidArtery/Right/US-2D_#.mhd");
+    importer->setFilenameFormat(Config::getTestDataPath() + "US/CarotidArtery/Right/US-2D_#.mhd");
 
     BinaryThresholding::pointer segmentation = BinaryThresholding::New();
     segmentation->setInputConnection(importer->getOutputPort());
@@ -125,7 +125,7 @@ TEST_CASE("SegmentationRenderer on a stream of thresholded 2D images with draw c
 
 TEST_CASE("SegmentationRenderer on a stream of thresholded 2D images and set different color", "[fast][SegmentationRenderer][visual]") {
     ImageFileStreamer::pointer importer = ImageFileStreamer::New();
-    importer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR) + "US/CarotidArtery/Right/US-2D_#.mhd");
+    importer->setFilenameFormat(Config::getTestDataPath() + "US/CarotidArtery/Right/US-2D_#.mhd");
 
     BinaryThresholding::pointer segmentation = BinaryThresholding::New();
     segmentation->setInputConnection(importer->getOutputPort());

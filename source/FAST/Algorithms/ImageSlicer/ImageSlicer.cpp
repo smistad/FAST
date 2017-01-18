@@ -20,7 +20,7 @@ void ImageSlicer::setArbitrarySlicePlane(Plane slicePlane) {
 ImageSlicer::ImageSlicer() : mArbitrarySlicePlane(Plane(Vector3f(1,0,0))) {
 	createInputPort<Image>(0);
 	createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-	createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/ImageSlicer/ImageSlicer.cl");
+	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageSlicer/ImageSlicer.cl");
 
 	mArbitrarySlicing = false;
 	mOrthogonalSlicing = false;

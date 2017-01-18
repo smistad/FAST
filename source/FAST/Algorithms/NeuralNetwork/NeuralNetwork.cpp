@@ -70,7 +70,7 @@ NeuralNetwork::NeuralNetwork() {
 	mWidth = -1;
 	mHeight = -1;
 	mScaleFactor = 1.0f;
-	createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/NeuralNetwork/NeuralNetwork.cl");
+	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/NeuralNetwork/NeuralNetwork.cl");
 }
 
 void NeuralNetwork::execute() {

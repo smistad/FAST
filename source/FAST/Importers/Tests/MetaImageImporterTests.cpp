@@ -19,7 +19,7 @@ TEST_CASE("Import non-existing file to MetaImageImporter", "[fast][MetaImageImpo
 
 TEST_CASE("Import 2D MetaImage file to host", "[fast][MetaImageImporter]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US/CarotidArtery/Right/US-2D_0.mhd");
+    importer->setFilename(Config::getTestDataPath()+"US/CarotidArtery/Right/US-2D_0.mhd");
     importer->setMainDevice(Host::getInstance());
     importer->update();
     Image::pointer image = importer->getOutputData<Image>(0);
@@ -50,7 +50,7 @@ TEST_CASE("Import 2D MetaImage file to host", "[fast][MetaImageImporter]") {
 
 TEST_CASE("Import 3D MetaImage file to host", "[fast][MetaImageImporter]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US/Ball/US-3Dt_0.mhd");
+    importer->setFilename(Config::getTestDataPath()+"US/Ball/US-3Dt_0.mhd");
     importer->setMainDevice(Host::getInstance());
     importer->update();
     Image::pointer image = importer->getOutputData<Image>(0);
@@ -84,7 +84,7 @@ TEST_CASE("Import MetaImage file to OpenCL device", "[fast][MetaImageImporter]")
     OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
 
     MetaImageImporter::pointer importer = MetaImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US/Ball/US-3Dt_0.mhd");
+    importer->setFilename(Config::getTestDataPath()+"US/Ball/US-3Dt_0.mhd");
     importer->setMainDevice(device);
     importer->update();
     Image::pointer image = importer->getOutputData<Image>(0);
@@ -104,7 +104,7 @@ TEST_CASE("Import MetaImage file to OpenCL device", "[fast][MetaImageImporter]")
 /*
 TEST_CASE("Import compressed raw file with MetaImage", "[fast][MetaImageImporter][visual]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US-2D-compressed.mhd");
+    importer->setFilename(Config::getTestDataPath()+"US-2D-compressed.mhd");
     importer->update();
 
     ImageRenderer::pointer renderer = ImageRenderer::New();

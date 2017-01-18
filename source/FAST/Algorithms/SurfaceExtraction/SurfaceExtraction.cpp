@@ -389,8 +389,8 @@ SurfaceExtraction::SurfaceExtraction() {
     mHPSize = 0;
     createInputPort<Image>(0);
     createOutputPort<Mesh>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "/Algorithms/SurfaceExtraction/SurfaceExtraction.cl");
-    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "/Algorithms/SurfaceExtraction/SurfaceExtraction_no_3d_write.cl", "no_3d_write");
+    createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/SurfaceExtraction/SurfaceExtraction.cl");
+    createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/SurfaceExtraction/SurfaceExtraction_no_3d_write.cl", "no_3d_write");
 }
 
 

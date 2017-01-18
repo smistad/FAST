@@ -10,14 +10,14 @@
 #include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
 #include "FAST/Visualization/LineRenderer/LineRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
-#include "FAST/TestDataPath.hpp"
+
 
 using namespace fast;
 
 int main() {
 	// Import CT data
 	ImageFileImporter::pointer importer = ImageFileImporter::New();
-	importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT/CT-Thorax.mhd");
+	importer->setFilename(Config::getTestDataPath() + "CT/CT-Thorax.mhd");
 
 	// Do airway segmenetation
 	AirwaySegmentation::pointer segmentation = AirwaySegmentation::New();

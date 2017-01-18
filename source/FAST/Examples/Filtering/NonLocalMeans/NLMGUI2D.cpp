@@ -13,7 +13,7 @@
 #include "FAST/Exporters/ImageExporter.hpp"
 //#include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include <functional>
-#include "FAST/TestDataPath.hpp"
+
 
 namespace fast {
 
@@ -31,8 +31,8 @@ NLMGUI2D::NLMGUI2D() {
 
     // Import image
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "/US/US-2D.jpg");
-    //importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "/US-1-2D.png");
+    importer->setFilename(Config::getTestDataPath() + "/US/US-2D.jpg");
+    //importer->setFilename(Config::getTestDataPath() + "/US-1-2D.png");
     
     
     // Smooth images

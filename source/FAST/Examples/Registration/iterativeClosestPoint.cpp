@@ -2,17 +2,17 @@
 #include "FAST/Importers/VTKPointSetFileImporter.hpp"
 #include "FAST/Visualization/PointRenderer/PointRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
-#include "FAST/TestDataPath.hpp"
+
 
 using namespace fast;
 
 int main() {
     // Import two point sets A and B
     VTKPointSetFileImporter::pointer importerA = VTKPointSetFileImporter::New();
-    importerA->setFilename(std::string(FAST_TEST_DATA_DIR) + "Surface_LV.vtk");
+    importerA->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
 
     VTKPointSetFileImporter::pointer importerB = VTKPointSetFileImporter::New();
-    importerB->setFilename(std::string(FAST_TEST_DATA_DIR) + "Surface_LV.vtk");
+    importerB->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
 
     // Apply a transformation to point set B
     Vector3f translation(0.01, 0, 0.01);

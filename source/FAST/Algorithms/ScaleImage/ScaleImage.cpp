@@ -6,7 +6,7 @@ namespace fast {
 ScaleImage::ScaleImage() {
     createInputPort<Image>(0);
     createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/ScaleImage/ScaleImage.cl");
+    createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ScaleImage/ScaleImage.cl");
     mLow = 0.0f;
     mHigh = 1.0f;
 }

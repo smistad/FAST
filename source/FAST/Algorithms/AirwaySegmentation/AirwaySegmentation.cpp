@@ -10,7 +10,7 @@ AirwaySegmentation::AirwaySegmentation() {
 	createInputPort<Image>(0);
 	createOutputPort<Segmentation>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
 
-	createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/AirwaySegmentation/AirwaySegmentation.cl");
+	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/AirwaySegmentation/AirwaySegmentation.cl");
 }
 
 Vector3i findSeedVoxel(Image::pointer volume) {
