@@ -1,7 +1,7 @@
-# Build Python bindings if module is enabled and SWIG is found
+# Build Python bindings (requires SWIG installed)
 
-find_package(SWIG)
-if(SWIG_FOUND AND FAST_MODULE_Python)
+if(FAST_MODULE_Python)
+    find_package(SWIG REQUIRED)
     message("-- SWIG found, creating python bindings...")
     include(${SWIG_USE_FILE})
 

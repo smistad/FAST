@@ -6,6 +6,7 @@
 
 using namespace fast;
 
+/*
 TEST_CASE("Image classifier", "[fast][ImageClassifier]") {
 
 	Reporter::setGlobalReportMethod(Reporter::COUT);
@@ -34,3 +35,4 @@ TEST_CASE("Image classifier", "[fast][ImageClassifier]") {
 
 	classifier->getRuntime()->print();
 }
+*/

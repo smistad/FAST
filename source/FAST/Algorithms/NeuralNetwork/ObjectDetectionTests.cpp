@@ -9,7 +9,7 @@
 
 using namespace fast;
 
-
+/*
 TEST_CASE("Object detection stream", "[fast][ObjectDetection][dynamic][visual]") {
 	ImageFileStreamer::pointer importer = ImageFileStreamer::New();
     //importer->setFilenameFormat("/media/smistad/New Volume/EyeGuide/Axille/0/2016-10-07-135111/US-2D_#.mhd");
@@ -44,3 +44,4 @@ TEST_CASE("Object detection stream", "[fast][ObjectDetection][dynamic][visual]")
 	detector->getAllRuntimes()->printAll();
 
 }
+*/
