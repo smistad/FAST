@@ -16,6 +16,7 @@ namespace fast {
 
 std::string getPath() {
     std::string path;
+	std::string slash = "/";
 #if defined(__APPLE__) || defined(__MACOSX)
     char exepath[1024] = {0};
     uint32_t size = sizeof(exepath);
@@ -27,6 +28,7 @@ std::string getPath() {
     DWORD ret = GetModuleFileNameA(NULL, exepath, sizeof(exepath));
     if(ret == 0)
         throw Exception("Error reading module file name in getPath()");
+	slash = "\\";
 #else
     char exepath[PATH_MAX + 1] = {0};
     ssize_t ret = readlink("/proc/self/exe", exepath, 1024);
@@ -35,11 +37,11 @@ std::string getPath() {
 #endif
     // Find last / and remove binary name
     path = std::string(exepath);
-    int lastSlashPos = path.rfind("/");
+    int lastSlashPos = path.rfind(slash);
     path = path.substr(0, lastSlashPos);
-    lastSlashPos = path.rfind("/");
+    lastSlashPos = path.rfind(slash);
     path = path.substr(0, lastSlashPos);
-    path = path + "/";
+    path = path + slash;
 
     return path;
 }
