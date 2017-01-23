@@ -129,22 +129,4 @@ void loadPerspectiveMatrix(float fovy, float aspect, float zNear, float zFar);
 
 } // end namespace fast
 
-// Hasher for enums
-// This is not needed on windows and mac for some reason
-#ifndef _WIN32
-#if defined(__APPLE__)
-#else
-namespace std {
-    template<class E>
-	class hash {
-        using sfinae = typename std::enable_if<std::is_enum<E>::value, E>::type;
-    public:
-        size_t operator()(const E&e) const {
-            return std::hash<typename std::underlying_type<E>::type>()(e);
-        }
-    };
-};
-#endif
-#endif
-
 #endif /* UTILITY_HPP_ */

@@ -93,7 +93,7 @@ void SegmentationRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
     if(mColorsModified) {
         // Transfer colors to device (this doesn't have to happen every render call..)
         UniquePointer<float[]> colorData(new float[3*mLabelColors.size()]);
-        std::unordered_map<Segmentation::LabelType, Color>::iterator it;
+        std::unordered_map<int, Color>::iterator it;
         for(it = mLabelColors.begin(); it != mLabelColors.end(); it++) {
             colorData[it->first*3] = it->second.getRedValue();
             colorData[it->first*3+1] = it->second.getGreenValue();
@@ -111,7 +111,7 @@ void SegmentationRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
     if(mFillAreaModified) {
         // Transfer colors to device (this doesn't have to happen every render call..)
         UniquePointer<char[]> fillAreaData(new char[mLabelColors.size()]);
-        std::unordered_map<Segmentation::LabelType, Color>::iterator it;
+        std::unordered_map<int, Color>::iterator it;
         for(it = mLabelColors.begin(); it != mLabelColors.end(); it++) {
             if(mLabelFillArea.count(it->first) == 0) {
                 // Use default value
