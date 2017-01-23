@@ -130,8 +130,10 @@ void loadPerspectiveMatrix(float fovy, float aspect, float zNear, float zFar);
 } // end namespace fast
 
 // Hasher for enums
-// This is not working on windows:
+// This is not needed on windows and mac for some reason
 #ifndef _WIN32
+#if defined(__APPLE__)
+#else
 namespace std {
     template<class E>
 	class hash {
@@ -142,6 +144,7 @@ namespace std {
         }
     };
 };
+#endif
 #endif
 
 #endif /* UTILITY_HPP_ */
