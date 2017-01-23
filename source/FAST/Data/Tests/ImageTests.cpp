@@ -1347,6 +1347,8 @@ TEST_CASE("calculateMaximum/MinimumIntensity returns the maximum/minimum intensi
 
             float min,max;
             getMaxAndMinFromData(data, width*height*depth*nrOfComponents, &min, &max, type);
+            INFO("Components " << nrOfComponents);
+            INFO("Type " << typeNr);
             CHECK(image->calculateMaximumIntensity() == Approx(max));
             CHECK(image->calculateMinimumIntensity() == Approx(min));
             deleteArray(data, type);

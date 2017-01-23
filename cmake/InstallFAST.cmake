@@ -72,6 +72,7 @@ install(TARGETS _fast
 install(FILES ${PROJECT_BINARY_DIR}/lib/fast.py
     DESTINATION fast/python
 )
+endif()
 
 # Copy configuration file
 # Create new configuration file for install
@@ -87,4 +88,4 @@ install(FILES ${PROJECT_BINARY_DIR}/fast_configuration_install.txt
     RENAME fast_configuration.txt
     DESTINATION fast/
 )
-endif()
+

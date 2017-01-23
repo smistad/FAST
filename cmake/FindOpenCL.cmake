@@ -122,6 +122,7 @@ else()
     PATHS
       /usr/local/cuda/lib64
       ENV AMDAPPSDKROOT/lib/sdk
+      /opt/amdgpu-pro/lib/x86_64-linux-gnu/
     )
 endif()
 

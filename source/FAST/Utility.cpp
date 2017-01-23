@@ -265,6 +265,12 @@ void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D image
         buildOptions = "-DTYPE_INT16";
         break;
     }
+    // Add fast_3d_image_writes flag if it is supported
+    if(device->isWritingTo3DTexturesSupported()) {
+        if(buildOptions.size() > 0)
+            buildOptions += " ";
+        buildOptions += "-Dfast_3d_image_writes";
+    }
     std::string sourceFilename = Config::getKernelSourcePath() + "/ImageMinMax.cl";
     std::string programName = sourceFilename + buildOptions;
     // Only create program if it doesn't exist for this device from before
