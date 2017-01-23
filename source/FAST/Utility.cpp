@@ -3,6 +3,11 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <regex>
+#if defined(__APPLE__) || defined(__MACOSX)
+#include <OpenGL/gl.h>
+#else
+#include <GL/gl.h>
+#endif
 
 namespace fast {
 
