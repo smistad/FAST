@@ -27,7 +27,27 @@ else()
 	set(BUILD_COMMAND make -j4)
 	set(URL "http://download.qt.io/official_releases/qt/5.7/5.7.1/submodules/qtbase-opensource-src-5.7.1.tar.gz")
 	set(URL_HASH SHA256=95f83e532d23b3ddbde7973f380ecae1bac13230340557276f75f2e37984e410)
-	set(OPTIONS    
+    if(APPLE)
+        set(OPTIONS
+            -opensource;
+            -confirm-license;
+            -release;
+            -no-compile-examples;
+            -no-openssl;
+            -no-libproxy;
+            -no-qml-debug;
+            -no-pulseaudio;
+            -no-alsa;
+            -nomake tools;
+            -nomake tests;
+            -opengl desktop;
+            -qt-zlib;
+            -qt-libpng;
+            -qt-libjpeg;
+            -no-directfb;
+        )
+    else()
+        set(OPTIONS
             -opensource;
             -confirm-license;
             -release;
@@ -49,7 +69,8 @@ else()
             -no-directfb;
             -no-linuxfb;
             -fontconfig;
-	)
+        )
+    endif()
 endif()
 
 ExternalProject_Add(qt5
