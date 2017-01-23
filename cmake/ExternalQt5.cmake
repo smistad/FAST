@@ -45,6 +45,7 @@ else()
             -qt-libpng;
             -qt-libjpeg;
             -no-directfb;
+            -no-framework;
         )
     else()
         set(OPTIONS
