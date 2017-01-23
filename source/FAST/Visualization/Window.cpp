@@ -7,8 +7,8 @@ QGLContext* Window::mMainGLContext = NULL;
 
 class FASTApplication : public QApplication {
 public:
-    FASTApplication(int &argc, char **argv) :
-            QApplication(argc, argv) {}
+    FASTApplication(int &argc, char **argv) : QApplication(argc, argv) {
+    }
 
     virtual ~FASTApplication() {}
 

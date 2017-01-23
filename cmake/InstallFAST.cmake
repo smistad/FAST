@@ -25,6 +25,16 @@ else()
 	)
 endif()
 
+# Install Qt plugins
+install(DIRECTORY ${PROJECT_BINARY_DIR}/plugins/
+    DESTINATION fast/QtPlugins/
+)
+
+# Install qt.conf
+install(FILES ${PROJECT_SOURCE_DIR}/cmake/qt.conf
+    DESTINATION fast/bin
+)
+
 # Install headers
 install(DIRECTORY ${FAST_SOURCE_DIR}
 	DESTINATION fast/include/FAST/
