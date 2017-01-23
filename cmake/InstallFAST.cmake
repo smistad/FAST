@@ -28,7 +28,6 @@ endif()
 # Install Qt plugins
 install(DIRECTORY ${PROJECT_BINARY_DIR}/plugins/
     DESTINATION fast/QtPlugins/
-    FILES_MATCHING PATTERN "*.so"
 )
 
 # Install qt.conf
