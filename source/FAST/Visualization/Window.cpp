@@ -66,8 +66,8 @@ void Window::initializeQtApp() {
     struct lconv * lc;
     lc = localeconv();
     if(strcmp(lc->decimal_point, ",") == 0) {
-        Reporter::warning() << "WARNING: Your system uses comma as decimal point." << Reporter::end;
-        Reporter::warning() << "WARNING: This will now be changed to dot to avoid any comma related bugs." << Reporter::end;
+        Reporter::warning() << "Your system uses comma as decimal point." << Reporter::end;
+        Reporter::warning() << "This will now be changed to dot to avoid any comma related bugs." << Reporter::end;
         setlocale(LC_NUMERIC, "C");
         // Check again to be sure
         lc = localeconv();

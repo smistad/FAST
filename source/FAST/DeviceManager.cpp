@@ -27,7 +27,6 @@ inline cl_context_properties* createInteropContextProperties(
 #if defined(__APPLE__) || defined(__MACOSX)
     // Apple (untested)
     // TODO: create GL context for Apple
-std::cout << "trying to get share group of gl context" << std::endl;
 CGLSetCurrentContext((CGLContextObj)OpenGLContext);
 CGLShareGroupObj shareGroup = CGLGetShareGroup((CGLContextObj)OpenGLContext);
 if(shareGroup == NULL)
@@ -36,7 +35,6 @@ throw Exception("Not able to get sharegroup");
     cps[0] = CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE;
     cps[1] = (cl_context_properties)shareGroup;
     cps[2] = 0;
-std::cout << "success " << shareGroup << std::endl;
 
 #else
 #ifdef _WIN32
@@ -73,6 +71,7 @@ std::vector<OpenCLDevice::pointer> DeviceManager::getDevices(DeviceCriteria crit
     QGLWidget* widget = NULL;
     if(!isGLInteropEnabled()) {
         enableVisualization = false;
+        fast::Window::getMainGLContext(); // Still have to create GL context
     }
     if(enableVisualization) {
         // Create GL context
@@ -270,13 +269,9 @@ bool DeviceManager::deviceHasOpenGLInteropCapability(const cl::Device &device) {
 #endif
 #if defined(__APPLE__) || defined(__MACOSX)
 
-std::cout << glContext << std::endl;
-std::cout << CGLGetCurrentContext() << std::endl;
-std::cout << "trying to get share group of gl context" << std::endl;
 CGLShareGroupObj shareGroup = CGLGetShareGroup((CGLContextObj)glContext);
 if(shareGroup == NULL)
 throw Exception("Not able to get sharegroup");
-std::cout << "success " << shareGroup << std::endl;
 
     cl_context_properties cps[] = {
         CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE,
@@ -293,7 +288,6 @@ std::cout << "success " << shareGroup << std::endl;
   clGetContextInfo(clContext, CL_CONTEXT_DEVICES, 0, NULL, &size);
 
   num_devices = size / sizeof(cl_device_id);
-std::cout << num_devices << "!!!!!!!" << std::endl;
 */
     clGetGLContextInfoAPPLE(clContext, glContext, CL_CGL_DEVICE_FOR_CURRENT_VIRTUAL_SCREEN_APPLE, 32 * sizeof(cl_device_id), &cl_gl_device_ids, &returnSize);
 
