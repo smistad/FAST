@@ -23,7 +23,16 @@ std::string getPath() {
     int ret = _NSGetExecutablePath(exepath, &size);
     if(0 != ret)
         throw Exception("Error getting executable path in getPath()");
-#elif _WIN32
+    path = std::string(exepath);
+    std::cout << path << std::endl;
+    int lastSlashPos = path.rfind("/./");
+    path = path.substr(0, lastSlashPos);
+    lastSlashPos = path.rfind(slash);
+    path = path.substr(0, lastSlashPos);
+    path = path + slash;
+    std::cout << path << std::endl;
+#else
+#ifdef _WIN32
     char exepath[MAX_PATH + 1] = {0};
     DWORD ret = GetModuleFileNameA(NULL, exepath, sizeof(exepath));
     if(ret == 0)
@@ -42,6 +51,8 @@ std::string getPath() {
     lastSlashPos = path.rfind(slash);
     path = path.substr(0, lastSlashPos);
     path = path + slash;
+#endif
+
 
     return path;
 }
