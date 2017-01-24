@@ -24,13 +24,13 @@ std::string getPath() {
     if(0 != ret)
         throw Exception("Error getting executable path in getPath()");
     path = std::string(exepath);
-    std::cout << path << std::endl;
     int lastSlashPos = path.rfind("/./");
     path = path.substr(0, lastSlashPos);
-    lastSlashPos = path.rfind(slash);
-    path = path.substr(0, lastSlashPos);
+    if(path.substr(path.size()-4) == "/bin") {
+        lastSlashPos = path.rfind(slash);
+        path = path.substr(0, lastSlashPos);
+    }
     path = path + slash;
-    std::cout << path << std::endl;
 #else
 #ifdef _WIN32
     char exepath[MAX_PATH + 1] = {0};
