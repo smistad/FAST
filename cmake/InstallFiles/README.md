@@ -19,13 +19,12 @@ Licenses
 =========================
 This FAST release is bundled with the following third-party software: 
 
-* Qt5
-* Eigen
-* zlib
-* GLEW
-* OpenIGTLink
-* NumPy
+* [Qt5](https://www.qt.io)
+* [Eigen](http://eigen.tuxfamily.org)
+* [zlib](http://www.zlib.net)
+* [GLEW](https://github.com/Perlmint/glew-cmake)
+* [OpenIGTLink](http://openigtlink.org)
+* [NumPy](http://www.numpy.org)
+* [Semaphore C++11 implementation by Jeff Preshing](https://github.com/preshing/cpp11-on-multicore).
 
 The license of each software can be found in the licenses folder.
-
-

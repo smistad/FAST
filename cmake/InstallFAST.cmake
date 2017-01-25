@@ -126,3 +126,8 @@ install(FILES ${FAST_EXTERNAL_BUILD_DIR}/OpenIGTLink/src/OpenIGTLink/LICENSE.txt
 install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/NumPy_LICENSE.txt
 		DESTINATION fast/licenses/numpy/
 )
+
+# Semaphore implementation
+install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/Semaphore_LICENSE.txt
+		DESTINATION fast/licenses/semaphore/
+)
