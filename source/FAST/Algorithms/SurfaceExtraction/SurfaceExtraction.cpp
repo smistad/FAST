@@ -95,10 +95,7 @@ void SurfaceExtraction::execute() {
                 bufferSize /= 8;
             }
 
-            cubeIndexesBuffer = cl::Buffer(clContext, CL_MEM_WRITE_ONLY, sizeof(char)*SIZE*SIZE*SIZE);
-            cubeIndexesImage = cl::Image3D(clContext, CL_MEM_READ_ONLY,
-                    cl::ImageFormat(CL_R, CL_UNSIGNED_INT8),
-                    SIZE, SIZE, SIZE);
+            cubeIndexesBuffer = cl::Buffer(clContext, CL_MEM_READ_WRITE, sizeof(char)*SIZE*SIZE*SIZE);
         }
 
         // Compile program
@@ -131,39 +128,21 @@ void SurfaceExtraction::execute() {
         classifyCubesKernel.setArg(0, images[0]);
         classifyCubesKernel.setArg(1, *clImage);
         classifyCubesKernel.setArg(2, mThreshold);
-        device->getCommandQueue().enqueueNDRangeKernel(
-                classifyCubesKernel,
-                cl::NullRange,
-                cl::NDRange(SIZE, SIZE, SIZE),
-                cl::NullRange
-        );
     } else {
         classifyCubesKernel.setArg(0, buffers[0]);
         classifyCubesKernel.setArg(1, cubeIndexesBuffer);
         classifyCubesKernel.setArg(2, *clImage);
         classifyCubesKernel.setArg(3, mThreshold);
-        device->getCommandQueue().enqueueNDRangeKernel(
-                classifyCubesKernel,
-                cl::NullRange,
-                cl::NDRange(SIZE, SIZE, SIZE),
-                cl::NullRange
-        );
-
-        cl::size_t<3> offset;
-        offset[0] = 0;
-        offset[1] = 0;
-        offset[2] = 0;
-        cl::size_t<3> region;
-        region[0] = SIZE;
-        region[1] = SIZE;
-        region[2] = SIZE;
-
-        // Copy buffer to image
-        device->getCommandQueue().enqueueCopyBufferToImage(cubeIndexesBuffer, cubeIndexesImage, 0, offset, region);
     }
+    cl::CommandQueue queue = device->getCommandQueue();
+    queue.enqueueNDRangeKernel(
+            classifyCubesKernel,
+            cl::NullRange,
+            cl::NDRange(SIZE, SIZE, SIZE),
+            cl::NullRange
+    );
 
     // Construct HP
-    cl::CommandQueue queue = device->getCommandQueue();
 
     if(writingTo3DTextures) {
         // Run base to first level
@@ -325,7 +304,7 @@ void SurfaceExtraction::execute() {
         i += 1;
     } else {
         traverseHPKernel.setArg(0, *clImage);
-        traverseHPKernel.setArg(1, cubeIndexesImage);
+        traverseHPKernel.setArg(1, cubeIndexesBuffer);
         for(i = 0; i < buffers.size(); i++) {
             traverseHPKernel.setArg(i+2, buffers[i]);
         }

@@ -21,7 +21,6 @@ class SurfaceExtraction : public ProcessObject {
         std::vector<cl::Buffer> buffers;
 
         cl::Buffer cubeIndexesBuffer;
-        cl::Image3D cubeIndexesImage;
 };
 
 } // end namespace fast

@@ -19,7 +19,7 @@ public:
         } catch(Exception &e) {
             Reporter::error() << "FAST exception caught in Qt event handler " << e.what() << Reporter::end;
         } catch(cl::Error &e) {
-            Reporter::error() << "OpenCL exception caught in Qt event handler " << e.what() << "(" << e.err() << ")" << Reporter::end;
+            Reporter::error() << "OpenCL exception caught in Qt event handler " << e.what() << "(" << getCLErrorString(e.err()) << ")" << Reporter::end;
         } catch(std::exception &e) {
             Reporter::error() << "Std exception caught in Qt event handler " << e.what() << Reporter::end;
         }
