@@ -1,6 +1,6 @@
 // http://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
 char get_line_intersection(float p0_x, float p0_y, float p1_x, float p1_y,
-    float p2_x, float p2_y, float p3_x, float p3_y, float *i_x, float *i_y)
+    float p2_x, float p2_y, float p3_x, float p3_y, float* i_x, float* i_y)
 {
     float s1_x, s1_y, s2_x, s2_y;
     s1_x = p1_x - p0_x;     s1_y = p1_y - p0_y;
@@ -13,10 +13,8 @@ char get_line_intersection(float p0_x, float p0_y, float p1_x, float p1_y,
     if (s >= 0 && s <= 1 && t >= 0 && t <= 1)
     {
         // Collision detected
-        if (i_x != NULL)
-            *i_x = p0_x + (t * s1_x);
-        if (i_y != NULL)
-            *i_y = p0_y + (t * s1_y);
+        *i_x = p0_x + (t * s1_x);
+        *i_y = p0_y + (t * s1_y);
         return 1;
     }
 
@@ -67,7 +65,7 @@ __kernel void mesh_to_segmentation_2d(
 	        continue;
 	    }
 
-        float x,y;
+        float x, y;
         if(get_line_intersection(x1, y1, 0, y2, x3, y3, x4, y4, &x, &y) == 1) {
             // Have we hit an edge point?
             if(fabs(x-x4) < t && fabs(y-y4) < t) {
