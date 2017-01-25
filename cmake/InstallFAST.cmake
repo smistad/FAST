@@ -31,7 +31,7 @@ install(DIRECTORY ${PROJECT_BINARY_DIR}/plugins/
 )
 
 # Install qt.conf
-install(FILES ${PROJECT_SOURCE_DIR}/cmake/qt.conf
+install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/qt.conf
     DESTINATION fast/bin
 )
 
@@ -89,3 +89,40 @@ install(FILES ${PROJECT_BINARY_DIR}/fast_configuration_install.txt
     DESTINATION fast/
 )
 
+# Install FAST license file
+install(FILES ${PROJECT_SOURCE_DIR}/LICENSE
+    DESTINATION fast/licenses/fast/
+)
+# Install README
+install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/README.md
+    DESTINATION fast/
+)
+
+# Install license files for depedencies
+# Qt5
+file(GLOB LICENSE_FILES ${FAST_EXTERNAL_BUILD_DIR}/qt5/src/qt5/LICENSE.*)
+install(FILES ${LICENSE_FILES}
+		DESTINATION fast/licenses/qt5/
+)
+# GLEW
+install(FILES ${FAST_EXTERNAL_BUILD_DIR}/glew/src/glew/LICENSE.txt
+		DESTINATION fast/licenses/glew/
+)
+# Eigen
+file(GLOB LICENSE_FILES ${FAST_EXTERNAL_BUILD_DIR}/eigen/src/eigen/COPYING.*)
+install(FILES ${LICENSE_FILES}
+		DESTINATION fast/licenses/eigen/
+)
+# zlib
+install(FILES ${FAST_EXTERNAL_BUILD_DIR}/zlib/src/zlib/README
+		DESTINATION fast/licenses/zlib/
+)
+# OpenIGTLink
+install(FILES ${FAST_EXTERNAL_BUILD_DIR}/OpenIGTLink/src/OpenIGTLink/LICENSE.txt
+		DESTINATION fast/licenses/OpenIGTLink/
+)
+
+# NumPy (numpy.i file)
+install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/NumPy_LICENSE.txt
+		DESTINATION fast/licenses/numpy/
+)
