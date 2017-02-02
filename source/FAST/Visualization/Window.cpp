@@ -4,13 +4,16 @@
 namespace fast {
 
 QGLContext* Window::mMainGLContext = NULL;
+QApplication* Window::mQApp = NULL;
 
 class FASTApplication : public QApplication {
 public:
     FASTApplication(int &argc, char **argv) : QApplication(argc, argv) {
     }
 
-    virtual ~FASTApplication() {}
+    virtual ~FASTApplication() {
+        Reporter::info() << "FASTApplication (QApplication) is destroyed" << Reporter::end;
+    }
 
     // reimplemented from QApplication so we can throw exceptions in slots
     virtual bool notify(QObject *receiver, QEvent *event) {
@@ -55,10 +58,13 @@ void Window::disableFullscreen() {
 void Window::initializeQtApp() {
     // Make sure only one QApplication is created
     if(!QApplication::instance()) {
+        Reporter::info() << "Creating new QApp" << Reporter::end;
         // Create some dummy argc and argv options as QApplication requires it
         int* argc = new int[1];
         *argc = 0;
-        QApplication* app = new FASTApplication(*argc,NULL);
+        mQApp = new FASTApplication(*argc,NULL);
+    } else {
+        Reporter::info() << "QApp already exists.." << Reporter::end;
     }
 
     // There is a bug in AMD OpenCL related to comma (,) as decimal point
@@ -148,6 +154,11 @@ Window::~Window() {
         delete mThread;
         mThread = NULL;
     }
+    delete mQApp;
+    // GL context is already deleted, set pointer to NULL
+    if(mMainGLContext != NULL) {
+        mMainGLContext = NULL;
+    }
     reportInfo() << "Window destroyed" << Reporter::end;
 }
 
@@ -172,11 +183,7 @@ void Window::startComputationThread() {
         mThread->moveToThread(thread);
         connect(thread, SIGNAL(started()), mThread, SLOT(run()));
         connect(mThread, SIGNAL(finished()), thread, SLOT(quit()));
-        //connect(mThread, SIGNAL(finished()), mThread, SLOT(deleteLater()));
         connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-
-        // Make sure this thread is deleted after it is finished
-        //connect(mThread, SIGNAL(finished()), mThread, SLOT(deleteLater()));
 
         for(int i = 0; i < getViews().size(); i++)
             mThread->addView(getViews()[i]);

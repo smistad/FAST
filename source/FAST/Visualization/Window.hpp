@@ -39,6 +39,7 @@ class Window : public QObject, public Object {
         unsigned int mTimeout;
         QEventLoop* mEventLoop;
         ComputationThread* mThread;
+        static QApplication* mQApp;
     public slots:
         void stop();
 
