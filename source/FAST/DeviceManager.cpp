@@ -1,4 +1,4 @@
-#include "FAST/DeviceManager.hpp"
+
 #include "FAST/Exception.hpp"
 #include "FAST/Visualization/Window.hpp"
 #include <QApplication>
@@ -19,6 +19,7 @@
 namespace fast {
 
 bool DeviceManager::mDisableGLInterop = false;
+DeviceManager* DeviceManager::mInstance = NULL;
 
 inline cl_context_properties* createInteropContextProperties(
         const cl::Platform &platform,
@@ -61,9 +62,19 @@ throw Exception("Not able to get sharegroup");
     return cps;
 }
 
-DeviceManager& DeviceManager::getInstance() {
-    static DeviceManager instance;
-    return instance;
+DeviceManager* DeviceManager::getInstance() {
+    if(mInstance == NULL) {
+        mInstance = new DeviceManager();
+    }
+
+    return mInstance;
+}
+
+void DeviceManager::deleteInstance() {
+    if(mInstance != NULL) {
+        delete mInstance;
+        mInstance = NULL;
+    }
 }
 
 std::vector<OpenCLDevice::pointer> DeviceManager::getDevices(DeviceCriteria criteria, bool enableVisualization) {
@@ -203,6 +214,7 @@ ExecutionDevice::pointer DeviceManager::getDefaultVisualizationDevice() {
 }
 
 DeviceManager::DeviceManager() {
+    Reporter::info() << "Device manager initialize.." << Reporter::end;
     cl::Platform::get(&platforms);
 
     mDisableGLInterop = false;

@@ -479,10 +479,10 @@ void Image::create(
 
     if(size.rows() > 2 && size.z() > 1) {
         // 3D
-        create(size.x(), size.y(), size.z(), type, nrOfComponents, DeviceManager::getInstance().getDefaultComputationDevice(), data);
+        create(size.x(), size.y(), size.z(), type, nrOfComponents, DeviceManager::getInstance()->getDefaultComputationDevice(), data);
     } else {
         // 2D
-        create(size.x(), size.y(), type, nrOfComponents, DeviceManager::getInstance().getDefaultComputationDevice(), data);
+        create(size.x(), size.y(), type, nrOfComponents, DeviceManager::getInstance()->getDefaultComputationDevice(), data);
     }
 }
 
@@ -562,7 +562,7 @@ void Image::create(
         unsigned int nrOfComponents,
         const void* data) {
 
-	create(width, height, depth, type, nrOfComponents, DeviceManager::getInstance().getDefaultComputationDevice(), data);
+	create(width, height, depth, type, nrOfComponents, DeviceManager::getInstance()->getDefaultComputationDevice(), data);
 }
 
 void Image::create(
@@ -640,7 +640,7 @@ void Image::create(
         unsigned int nrOfComponents,
         const void* data) {
 
-	create(width, height, type, nrOfComponents, DeviceManager::getInstance().getDefaultComputationDevice(), data);
+	create(width, height, type, nrOfComponents, DeviceManager::getInstance()->getDefaultComputationDevice(), data);
 }
 
 bool Image::isInitialized() const {
@@ -1022,7 +1022,7 @@ void Image::fill(float value) {
     	// Has no data
     	// Create an OpenCL image
     	cl::Image* clImage;
-        OpenCLDevice::pointer clDevice = DeviceManager::getInstance().getDefaultComputationDevice();
+        OpenCLDevice::pointer clDevice = DeviceManager::getInstance()->getDefaultComputationDevice();
     	if(getDimensions() == 2) {
 			clImage = new cl::Image2D(
 				clDevice->getContext(),
