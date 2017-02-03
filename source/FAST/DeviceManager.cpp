@@ -64,6 +64,7 @@ throw Exception("Not able to get sharegroup");
 
 DeviceManager* DeviceManager::getInstance() {
     if(mInstance == NULL) {
+        Window::initializeQtApp();
         mInstance = new DeviceManager();
     }
 

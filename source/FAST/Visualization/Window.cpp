@@ -170,8 +170,8 @@ void Window::setTimeout(unsigned int milliseconds) {
 
 QGLContext* Window::getMainGLContext() {
     if(mMainGLContext == NULL) {
-        //throw Exception("No OpenGL context created");
-        initializeQtApp();
+        throw Exception("No OpenGL context created");
+        //initializeQtApp();
     }
 
     return mMainGLContext;
