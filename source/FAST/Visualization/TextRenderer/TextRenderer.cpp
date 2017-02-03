@@ -45,7 +45,7 @@ void TextRenderer::draw() {
             } else if (mStyle == STYLE_ITALIC) {
                 font.setItalic(true);
             }
-            mView->renderText((int) mPosition2D.x(), (int) mPosition2D.y(), mText.c_str(), font);
+            //mView->renderText((int) mPosition2D.x(), (int) mPosition2D.y(), mText.c_str(), font);
             glColor3f(1.0f, 1.0f, 1.0f);
         }
     } else {
@@ -90,7 +90,7 @@ void TextRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
             } else if (mStyle == STYLE_ITALIC) {
                 font.setItalic(true);
             }
-            mView->renderText((int) mPosition2D.x(), (int) mPosition2D.y(), mText.c_str(), font);
+            //mView->renderText((int) mPosition2D.x(), (int) mPosition2D.y(), mText.c_str(), font);
             glColor3f(1.0f, 1.0f, 1.0f);
         }
     } else {
@@ -98,6 +98,7 @@ void TextRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
     }
 
     //mView->swapBuffers();
+    /*
     QImage image = mView->grabFrameBuffer();
     // TODO get clPBO data
     OpenCLDevice::pointer device = getMainDevice();
@@ -137,6 +138,7 @@ void TextRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
     );
 
     delete[] data;
+     */
 
     // TODO clear buffer glClear
     //glClearColor(1.0f, 1.0f, 1.0f, 1.0f);

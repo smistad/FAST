@@ -88,10 +88,11 @@ View::View() : mViewingPlane(Plane::Axial()) {
 	NonVolumesTurn=true;
 
     // Creating custom Qt GL context for the view which shares with the primary GL context
-    QGLContext* context = new QGLContext(QGLFormat::defaultFormat(), this);
-    context->create(fast::Window::getMainGLContext());
-    this->setContext(context);
-    if(!context->isValid() || !context->isSharing()) {
+    QOpenGLContext* context = new QOpenGLContext(this);
+    context->setShareContext(fast::Window::getMainGLContext());
+    context->setFormat(QSurfaceFormat::defaultFormat());
+    context->create();
+    if(!context->isValid() || context->shareContext() == 0) {
         reportInfo() << "The custom Qt GL context is invalid!" << Reporter::end;
         exit(-1);
     }

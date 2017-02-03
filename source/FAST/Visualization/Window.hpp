@@ -3,7 +3,7 @@
 
 #include "FAST/Object.hpp"
 #include "WindowWidget.hpp"
-#include <QGLContext>
+#include <QOpenGLContext>
 #include <QEventLoop>
 #include "ComputationThread.hpp"
 #include "View.hpp"
@@ -15,7 +15,7 @@ class Window : public QObject, public Object {
     Q_OBJECT
     public:
         static void initializeQtApp();
-        static QGLContext* getMainGLContext();
+        static QOpenGLContext* getMainGLContext();
         // Makes the window close after a specific number of ms
         virtual void setTimeout(unsigned int milliseconds);
         ~Window();
@@ -32,7 +32,7 @@ class Window : public QObject, public Object {
         Window();
         View* createView();
         View* getView(uint i) const;
-        static QGLContext* mMainGLContext;
+        static QOpenGLContext* mMainGLContext;
 
         WindowWidget* mWidget;
         unsigned int mWidth, mHeight;
@@ -40,7 +40,7 @@ class Window : public QObject, public Object {
         unsigned int mTimeout;
         QEventLoop* mEventLoop;
         ComputationThread* mThread;
-        static QApplication* mQApp;
+        static QSharedPointer<QApplication> mQApp;
     public slots:
         void stop();
 

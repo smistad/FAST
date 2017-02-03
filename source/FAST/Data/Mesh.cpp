@@ -125,7 +125,7 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
             SimpleWindow::initializeQtApp();
 
             // Need a drawable for this to work
-            QGLWidget* widget = new QGLWidget;
+            QOpenGLWidget* widget = new QOpenGLWidget;
             widget->show();
             widget->hide(); // TODO should probably delete widget as well
             reportInfo() << "created a drawable" << Reporter::end;

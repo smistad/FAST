@@ -81,7 +81,7 @@ void DeviceManager::deleteInstance() {
 
 std::vector<OpenCLDevice::pointer> DeviceManager::getDevices(DeviceCriteria criteria, bool enableVisualization) {
     unsigned long * glContext = NULL;
-    QGLWidget* widget = NULL;
+    QOpenGLWidget* widget = NULL;
     if(!isGLInteropEnabled()) {
         enableVisualization = false;
         fast::Window::getMainGLContext(); // Still have to create GL context
@@ -90,7 +90,10 @@ std::vector<OpenCLDevice::pointer> DeviceManager::getDevices(DeviceCriteria crit
         // Create GL context
 
 		// Make sure only one QApplication is created
-		fast::Window::getMainGLContext()->makeCurrent();
+        std::cout << "ADASDASDASD" << std::endl;
+		if(!fast::Window::getMainGLContext()->makeCurrent(fast::Window::getMainGLContext()->surface())) {
+            throw Exception("Failed to make gl context current");
+        }
 #if defined(__APPLE__) || defined(__MACOSX)
 		CGLContextObj appleContext = CGLGetCurrentContext();
 		reportInfo() << "Initial GL context: " << CGLGetCurrentContext() << Reporter::end;
@@ -265,7 +268,7 @@ bool DeviceManager::deviceHasOpenGLInteropCapability(const cl::Device &device) {
     cl::Platform platform = device.getInfo<CL_DEVICE_PLATFORM>();
     // Get all devices that are capable of OpenGL interop with this platform
     // Create properties for CL-GL context
-		fast::Window::getMainGLContext()->makeCurrent();
+		fast::Window::getMainGLContext()->makeCurrent(fast::Window::getMainGLContext()->surface());
 		unsigned long* glContext;
 #if defined(__APPLE__) || defined(__MACOSX)
 		CGLContextObj appleContext = CGLGetCurrentContext();

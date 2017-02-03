@@ -17,7 +17,7 @@
 #include <QApplication>
 #include <QVBoxLayout>
 #include <QPushButton>
-#include <QGLContext>
+#include <QOpenGLContext>
 
 
 class WindowWidget : public QWidget {
@@ -93,13 +93,13 @@ class WindowWidget : public QWidget {
 
                 mThread->addView(mView);
 
-                QGLContext* mainGLContext = fast::Window::getMainGLContext();
+                QOpenGLContext* mainGLContext = fast::Window::getMainGLContext();
                 if(!mainGLContext->isValid()) {
                     throw fast::Exception("QGL context is invalid!");
                 }
 
                 // Context must be current in this thread before it can be moved to another thread
-                mainGLContext->makeCurrent();
+                mainGLContext->makeCurrent(mainGLContext->surface());
                 mainGLContext->moveToThread(thread);
                 mainGLContext->doneCurrent();
                 thread->start();
