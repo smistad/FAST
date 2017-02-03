@@ -72,7 +72,8 @@ DeviceManager* DeviceManager::getInstance() {
 
 void DeviceManager::deleteInstance() {
     if(mInstance != NULL) {
-        delete mInstance;
+        // TODO this creates a memory leak, but deleting this instance causes seg fault for some reason
+        //delete mInstance;
         mInstance = NULL;
     }
 }

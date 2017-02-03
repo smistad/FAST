@@ -76,7 +76,6 @@ void Window::initializeQtApp() {
                 throw Exception("Qt GL context is invalid!");
             }
         }
-        //DeviceManager::deleteInstance();
     } else {
         Reporter::info() << "QApp already exists.." << Reporter::end;
     }
@@ -156,12 +155,12 @@ Window::~Window() {
         delete mThread;
         mThread = NULL;
     }
-    mMainGLContext->
     delete mQApp;
     // GL context is already deleted, set pointer to NULL
     if(mMainGLContext != NULL) {
         mMainGLContext = NULL;
     }
+    DeviceManager::deleteInstance();
     reportInfo() << "Window destroyed" << Reporter::end;
 }
 
@@ -171,8 +170,8 @@ void Window::setTimeout(unsigned int milliseconds) {
 
 QGLContext* Window::getMainGLContext() {
     if(mMainGLContext == NULL) {
-        throw Exception("No OpenGL context created");
-        //initializeQtApp();
+        //throw Exception("No OpenGL context created");
+        initializeQtApp();
     }
 
     return mMainGLContext;

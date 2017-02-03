@@ -27,6 +27,7 @@ class Window : public QObject, public Object {
         void enableFullscreen();
         void disableFullscreen();
         std::vector<View*> getViews() const;
+        static void cleanup();
     protected:
         Window();
         View* createView();
