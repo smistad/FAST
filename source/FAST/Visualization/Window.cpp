@@ -1,10 +1,13 @@
 #include "Window.hpp"
 #include <QApplication>
+#include <QOffscreenSurface>
+#include <QOpenGLContext>
+#include <QEventLoop>
 
 namespace fast {
 
 QOpenGLContext* Window::mMainGLContext = NULL;
-QSharedPointer<QApplication> Window::mQApp;
+QApplication* Window::mQApp = NULL;
 
 class FASTApplication : public QApplication {
 public:
@@ -63,20 +66,23 @@ void Window::initializeQtApp() {
         // Create some dummy argc and argv options as QApplication requires it
         int* argc = new int[1];
         *argc = 0;
-        mQApp = QSharedPointer<QApplication>(new FASTApplication(*argc,NULL));
+        QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
+        mQApp = new FASTApplication(*argc,NULL);
          // Create computation GL context, if it doesn't exist
         if(mMainGLContext == NULL) {
             Reporter::info() << "Creating new GL context for computation thread" << Reporter::end;
-            // Dummy widget
-            QOpenGLWidget* widget = new QOpenGLWidget;
 
             // Create GL context to be shared with the CL contexts
-            mMainGLContext = new QOpenGLContext(widget); // by including widget here the context becomes valid
-            mMainGLContext->setFormat(QSurfaceFormat::defaultFormat());
+            QOffscreenSurface* surface = new QOffscreenSurface();
+            surface->setFormat(QSurfaceFormat::defaultFormat());
+            surface->create();
+            mMainGLContext = QOpenGLContext::globalShareContext();
+            mMainGLContext->setFormat(surface->format());
             mMainGLContext->create();
             if(!mMainGLContext->isValid()) {
                 throw Exception("Qt GL context is invalid!");
             }
+            mMainGLContext->makeCurrent(surface);
         }
     } else {
         Reporter::info() << "QApp already exists.." << Reporter::end;
@@ -149,8 +155,8 @@ Window::~Window() {
     //if(mEventLoop != NULL)
     //    delete mEventLoop;
     reportInfo() << "Deleting widget" << Reporter::end;
-    if(mWidget != NULL)
-        delete mWidget;
+    //if(mWidget != NULL)
+        //delete mWidget;
     reportInfo() << "Finished deleting window widget" << Reporter::end;
     if(mThread != NULL) {
         mThread->stop();
@@ -158,12 +164,10 @@ Window::~Window() {
         mThread = NULL;
     }
 
-    //delete mQApp;
     // GL context is already deleted, set pointer to NULL
     //if(mMainGLContext != NULL) {
     //    mMainGLContext = NULL;
     //}
-    //DeviceManager::deleteInstance();
     reportInfo() << "Window destroyed" << Reporter::end;
 }
 

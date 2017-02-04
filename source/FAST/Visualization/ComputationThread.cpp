@@ -1,6 +1,7 @@
 #include "ComputationThread.hpp"
 #include "SimpleWindow.hpp"
 #include "View.hpp"
+#include <QOpenGLContext>
 
 namespace fast {
 

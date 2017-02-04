@@ -1,7 +1,7 @@
+#include <QApplication>
 #include <GL/glew.h>
 #include "Mesh.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
-#include <QApplication>
 #include <thread>
 
 
@@ -129,12 +129,13 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
             widget->show();
             widget->hide(); // TODO should probably delete widget as well
             reportInfo() << "created a drawable" << Reporter::end;
+            Window::getMainGLContext()->makeCurrent(Window::getMainGLContext()->surface());
         }
 #endif
 #endif
-        GLenum err = glewInit();
-        if(err != GLEW_OK)
-            throw Exception("GLEW init error");
+        //GLenum err = glewInit();
+        //if(err != GLEW_OK)
+        //    throw Exception("GLEW init error");
         glGenBuffers(1, &mVBOID);
         glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
         if(mHostHasData) {

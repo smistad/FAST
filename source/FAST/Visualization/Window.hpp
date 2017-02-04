@@ -3,11 +3,14 @@
 
 #include "FAST/Object.hpp"
 #include "WindowWidget.hpp"
-#include <QOpenGLContext>
-#include <QEventLoop>
 #include "ComputationThread.hpp"
 #include "View.hpp"
 #include <vector>
+#include <QOpenGLContext>
+
+class QOpenGLContext;
+class QEventLoop;
+class QApplication;
 
 namespace fast {
 
@@ -40,7 +43,7 @@ class Window : public QObject, public Object {
         unsigned int mTimeout;
         QEventLoop* mEventLoop;
         ComputationThread* mThread;
-        static QSharedPointer<QApplication> mQApp;
+        static QApplication* mQApp;
     public slots:
         void stop();
 

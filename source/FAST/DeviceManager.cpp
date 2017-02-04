@@ -2,6 +2,7 @@
 #include "FAST/Exception.hpp"
 #include "FAST/Visualization/Window.hpp"
 #include <QApplication>
+#include <QOpenGLContext>
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
