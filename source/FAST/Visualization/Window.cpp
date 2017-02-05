@@ -1,7 +1,7 @@
+#include <GL/glew.h>
 #include "Window.hpp"
 #include <QApplication>
 #include <QOffscreenSurface>
-#include <QOpenGLContext>
 #include <QEventLoop>
 
 namespace fast {
@@ -83,6 +83,9 @@ void Window::initializeQtApp() {
                 throw Exception("Qt GL context is invalid!");
             }
             mMainGLContext->makeCurrent(surface);
+            GLenum err = glewInit();
+            if(err != GLEW_OK)
+                throw Exception("GLEW init error");
         }
     } else {
         Reporter::info() << "QApp already exists.." << Reporter::end;
@@ -202,10 +205,9 @@ void Window::startComputationThread() {
             throw Exception("QGL context is invalid!");
         }
 
-        // Context must be current in this thread before it can be moved to another thread
-        mainGLContext->makeCurrent(mainGLContext->surface());
-        mainGLContext->moveToThread(thread);
+        //mainGLContext->makeCurrent(mainGLContext->surface());
         mainGLContext->doneCurrent();
+        mainGLContext->moveToThread(thread);
         thread->start();
         reportInfo() << "Computation thread started" << Reporter::end;
     }
