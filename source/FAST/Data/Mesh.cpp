@@ -123,7 +123,7 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
 #else
         // If no Window is present, create a dummy gl context
         if(!QApplication::instance()) { // TODO make this work on all platforms
-            //Window::initializeQtApp();
+            Window::initializeQtApp();
 
             // Need a drawable for this to work
             //QOpenGLWidget* widget = new QOpenGLWidget;
@@ -133,12 +133,12 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
         }
 #endif
 #endif
-        if(!Window::getMainGLContext()->makeCurrent(Window::getMainGLContext()->surface())) {
+        if(!Window::getMainGLContext()->makeCurrent(Window::getSurface())) {
             throw Exception("Unable to set GL context current");
         }
         //std::cout << "WEEE" << std::endl;
         long unsigned int* glContext = (long unsigned int*)glXGetCurrentContext();
-        reportInfo() << "Current GLX context " << glContext << Reporter::end;
+        reportInfo() << "Current GLX context in mesh is " << glContext << Reporter::end;
         glGenBuffers(1, &mVBOID);
         glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
         if(mHostHasData) {

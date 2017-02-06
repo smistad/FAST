@@ -499,11 +499,8 @@ void View::initializeGL() {
             glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
         } else {
             // Update all renderes, so that getBoundingBox works
-            std::cout << "asd" << std::endl;
-            context()->doneCurrent();
             for (unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
                 mNonVolumeRenderers[i]->update();
-            std::cout << "asd2" << std::endl;
             if(!mCameraSet && getNrOfInputData() == 0) {
                 // If camera is not set explicitly by user, FAST has to calculate it
                 recalculateCamera();

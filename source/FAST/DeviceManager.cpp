@@ -92,7 +92,7 @@ std::vector<OpenCLDevice::pointer> DeviceManager::getDevices(DeviceCriteria crit
 
 		// Make sure only one QApplication is created
         std::cout << "ADASDASDASD" << std::endl;
-		if(!fast::Window::getMainGLContext()->makeCurrent(fast::Window::getMainGLContext()->surface())) {
+		if(!Window::getMainGLContext()->makeCurrent(Window::getSurface())) {
             throw Exception("Failed to make gl context current");
         }
 #if defined(__APPLE__) || defined(__MACOSX)

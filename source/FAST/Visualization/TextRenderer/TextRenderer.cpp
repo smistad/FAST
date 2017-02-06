@@ -1,6 +1,7 @@
 
 #include "TextRenderer.hpp"
 #include "FAST/Visualization/View.hpp"
+#include <QPainter>
 
 namespace fast {
 
@@ -35,9 +36,7 @@ void TextRenderer::draw() {
 
     if(mView != NULL) {
         if(mText != "") {
-            std::cout << "rendering text " << mText << std::endl;
             Color color = mColor;
-            glColor3f(color.getRedValue(), color.getGreenValue(), color.getBlueValue());
             QFont font;
             font.setPointSize(mFontSize);
             if (mStyle == STYLE_BOLD) {
@@ -45,8 +44,12 @@ void TextRenderer::draw() {
             } else if (mStyle == STYLE_ITALIC) {
                 font.setItalic(true);
             }
-            //mView->renderText((int) mPosition2D.x(), (int) mPosition2D.y(), mText.c_str(), font);
-            glColor3f(1.0f, 1.0f, 1.0f);
+            QColor fontColor = QColor(round(color.getRedValue()*255), round(color.getGreenValue()*255), round(color.getBlueValue()*255));
+            QPainter painter;
+            painter.setPen(fontColor);
+            painter.setFont(font);
+            painter.drawText(mPosition2D.x(), mPosition2D.y(), mText.c_str());
+            painter.end();
         }
     } else {
     	reportWarning() << "View must be given to text render in order for it to work." << reportEnd();
@@ -80,9 +83,7 @@ void TextRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
 
     if (mView != NULL) {
         if (mText != "") {
-            std::cout << "rendering text " << mText << std::endl;
             Color color = mColor;
-            glColor4f(color.getRedValue(), color.getGreenValue(), color.getBlueValue(), 1.0f);
             QFont font;
             font.setPointSize(mFontSize);
             if (mStyle == STYLE_BOLD) {
@@ -90,16 +91,20 @@ void TextRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
             } else if (mStyle == STYLE_ITALIC) {
                 font.setItalic(true);
             }
-            //mView->renderText((int) mPosition2D.x(), (int) mPosition2D.y(), mText.c_str(), font);
-            glColor3f(1.0f, 1.0f, 1.0f);
+            // Render text
+            QColor fontColor = QColor(round(color.getRedValue()*255), round(color.getGreenValue()*255), round(color.getBlueValue()*255));
+            QPainter painter(mView);
+            painter.setPen(fontColor);
+            painter.setFont(font);
+            painter.drawText(mPosition2D.x(), mPosition2D.y(), mText.c_str());
+            painter.end();
         }
     } else {
         reportWarning() << "View must be given to text render in order for it to work." << reportEnd();
     }
 
     //mView->swapBuffers();
-    /*
-    QImage image = mView->grabFrameBuffer();
+    QImage image = mView->grabFramebuffer();
     // TODO get clPBO data
     OpenCLDevice::pointer device = getMainDevice();
     cl::CommandQueue queue = device->getCommandQueue();
@@ -138,7 +143,6 @@ void TextRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
     );
 
     delete[] data;
-     */
 
     // TODO clear buffer glClear
     //glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
