@@ -14,7 +14,9 @@ typedef std::pair<cl::Platform, std::vector<cl::Device> > PlatformDevices;
  */
 class DeviceManager : public Object {
     public:
-        static DeviceManager& getInstance();
+        static DeviceManager* getInstance();
+        static bool hasInstance();
+		static void deleteInstance();
         OpenCLDevice::pointer getDevice(DeviceCriteria criteria);
         bool deviceSatisfiesCriteria(OpenCLDevice::pointer, const DeviceCriteria& criteria);
         std::vector<OpenCLDevice::pointer> getAllDevices(bool enableVisualization = false);
@@ -45,8 +47,10 @@ class DeviceManager : public Object {
                 const DeviceCriteria& deviceCriteria,
                std::vector<PlatformDevices> &platformDevices);
     	static bool isGLInteropEnabled();
+    	void initialize();
     private:
-	unsigned long * mGLContext;
+        unsigned long * mGLContext;
+    	static DeviceManager* mInstance;
         DeviceManager();
         DeviceManager(DeviceManager const&); // Don't implement
         void operator=(DeviceManager const&); // Don't implement

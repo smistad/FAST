@@ -10,7 +10,7 @@
 namespace fast {
 
 TEST_CASE("2D Seeded region growing on OpenCL device", "[fast][SeededRegionGrowing]") {
-    std::vector<OpenCLDevice::pointer> devices = DeviceManager::getInstance().getAllDevices();
+    std::vector<OpenCLDevice::pointer> devices = DeviceManager::getInstance()->getAllDevices();
     for(int i = 0; i < devices.size(); i++) {
         INFO("Device " << devices[i]->getName());
         ImageImporter::pointer importer = ImageImporter::New();
@@ -42,7 +42,7 @@ TEST_CASE("2D Seeded region growing on OpenCL device", "[fast][SeededRegionGrowi
 
 
 TEST_CASE("3D Seeded region growing on OpenCL device", "[fast][SeededRegionGrowing]") {
-    std::vector<OpenCLDevice::pointer> devices = DeviceManager::getInstance().getAllDevices();
+    std::vector<OpenCLDevice::pointer> devices = DeviceManager::getInstance()->getAllDevices();
     for(int i = 0; i < devices.size(); i++) {
         INFO("Device " << devices[i]->getName());
         MetaImageImporter::pointer importer = MetaImageImporter::New();

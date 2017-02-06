@@ -80,8 +80,8 @@ TEST_CASE("Import 3D MetaImage file to host", "[fast][MetaImageImporter]") {
 }
 
 TEST_CASE("Import MetaImage file to OpenCL device", "[fast][MetaImageImporter]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
 
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename(Config::getTestDataPath()+"US/Ball/US-3Dt_0.mhd");

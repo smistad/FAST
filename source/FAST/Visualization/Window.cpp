@@ -63,6 +63,19 @@ void Window::initializeQtApp() {
         int* argc = new int[1];
         *argc = 0;
         mQApp = new FASTApplication(*argc,NULL);
+         // Create computation GL context, if it doesn't exist
+        if(mMainGLContext == NULL) {
+            Reporter::info() << "Creating new GL context for computation thread" << Reporter::end;
+            // Dummy widget
+            QGLWidget* widget = new QGLWidget;
+
+            // Create GL context to be shared with the CL contexts
+            mMainGLContext = new QGLContext(QGLFormat::defaultFormat(), widget); // by including widget here the context becomes valid
+            mMainGLContext->create();
+            if(!mMainGLContext->isValid()) {
+                throw Exception("Qt GL context is invalid!");
+            }
+        }
     } else {
         Reporter::info() << "QApp already exists.." << Reporter::end;
     }
@@ -81,20 +94,8 @@ void Window::initializeQtApp() {
             throw Exception("Failed to convert decimal point to dot.");
         }
     }
-
-    // Create computation GL context, if it doesn't exist
-    if(mMainGLContext == NULL) {
-        // Dummy widget
-        QGLWidget* widget = new QGLWidget;
-
-        // Create GL context to be shared with the CL contexts
-        mMainGLContext = new QGLContext(QGLFormat::defaultFormat(), widget); // by including widget here the context becomes valid
-        mMainGLContext->create();
-        if(!mMainGLContext->isValid()) {
-            throw Exception("Qt GL context is invalid!");
-        }
-    }
 }
+
 
 void Window::stop() {
     reportInfo() << "Stop signal recieved.." << Reporter::end;
@@ -159,6 +160,7 @@ Window::~Window() {
     if(mMainGLContext != NULL) {
         mMainGLContext = NULL;
     }
+    DeviceManager::deleteInstance();
     reportInfo() << "Window destroyed" << Reporter::end;
 }
 
@@ -168,7 +170,8 @@ void Window::setTimeout(unsigned int milliseconds) {
 
 QGLContext* Window::getMainGLContext() {
     if(mMainGLContext == NULL) {
-        initializeQtApp();
+        throw Exception("No OpenGL context created");
+        //initializeQtApp();
     }
 
     return mMainGLContext;

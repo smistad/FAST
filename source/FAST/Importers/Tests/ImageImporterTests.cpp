@@ -32,8 +32,8 @@ TEST_CASE("Import Image file to host", "[fast][ImageImporter]") {
 }
 
 TEST_CASE("Import Image file to OpenCL device", "[fast][MetaImageImporter]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
 
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "US/US-2D.jpg");

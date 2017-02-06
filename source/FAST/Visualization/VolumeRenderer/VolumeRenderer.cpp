@@ -229,7 +229,7 @@ void VolumeRenderer::setUserTransform(int volumeIndex, const float userTransform
 VolumeRenderer::VolumeRenderer() : Renderer() {
     createInputPort<Image>(0, false);
 
-    mDevice = DeviceManager::getInstance().getDefaultVisualizationDevice();
+    mDevice = DeviceManager::getInstance()->getDefaultVisualizationDevice();
 	clContext = mDevice->getContext();
 
 	mInputIsModified = true;

@@ -6,7 +6,7 @@
 namespace fast {
 
 ProcessObject::ProcessObject() : mIsModified(false) {
-    mDevices[0] = DeviceManager::getInstance().getDefaultComputationDevice();
+    mDevices[0] = DeviceManager::getInstance()->getDefaultComputationDevice();
     mRuntimeManager = RuntimeMeasurementsManager::New();
 }
 
@@ -128,7 +128,7 @@ ExecutionDevice::pointer ProcessObject::getMainDevice() const {
 void ProcessObject::setDevice(uint deviceNumber,
         ExecutionDevice::pointer device) {
     if(mDeviceCriteria.count(deviceNumber) > 0) {
-        if(!DeviceManager::getInstance().deviceSatisfiesCriteria(device, mDeviceCriteria[deviceNumber]))
+        if(!DeviceManager::getInstance()->deviceSatisfiesCriteria(device, mDeviceCriteria[deviceNumber]))
             throw Exception("Tried to set device which does not satisfy device criteria");
     }
     if(mDevices.count(deviceNumber) > 0) {
@@ -167,13 +167,13 @@ void ProcessObject::setOutputDataDynamicDependsOnInputData(uint outputNumber, ui
 
 void ProcessObject::setMainDeviceCriteria(const DeviceCriteria& criteria) {
     mDeviceCriteria[0] = criteria;
-    mDevices[0] = DeviceManager::getInstance().getDevice(criteria);
+    mDevices[0] = DeviceManager::getInstance()->getDevice(criteria);
 }
 
 void ProcessObject::setDeviceCriteria(uint deviceNumber,
         const DeviceCriteria& criteria) {
     mDeviceCriteria[deviceNumber] = criteria;
-    mDevices[deviceNumber] = DeviceManager::getInstance().getDevice(criteria);
+    mDevices[deviceNumber] = DeviceManager::getInstance()->getDevice(criteria);
 }
 
 // New pipeline

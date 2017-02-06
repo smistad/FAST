@@ -164,8 +164,8 @@ TEST_CASE("ImageFileStreamer with streaming mode STORE_ALL and maximum number of
 
 TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode NEWEST set", "[fast][ImageFileStreamer]") {
     DummyProcessObject::pointer PO = DummyProcessObject::New();
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"US/Ball/US-3Dt_#.mhd");
@@ -188,8 +188,8 @@ TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode NEWE
 
 TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode PROCESS_ALL set", "[fast][ImageFileStreamer]") {
     DummyProcessObject::pointer PO = DummyProcessObject::New();
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"US/Ball/US-3Dt_#.mhd");
     mhdStreamer->setMainDevice(device);
@@ -212,8 +212,8 @@ TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode PROC
 
 TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode STORE_ALL set", "[fast][ImageFileStreamer]") {
     DummyProcessObject::pointer PO = DummyProcessObject::New();
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"US/Ball/US-3Dt_#.mhd");
     mhdStreamer->setMainDevice(device);

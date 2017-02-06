@@ -53,8 +53,8 @@ TEST_CASE("Create a 3D image on host", "[fast][image]") {
 }
 
 TEST_CASE("Create a 2D image on an OpenCL device", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
 
     unsigned int width = 256;
     unsigned int height = 512;
@@ -68,8 +68,8 @@ TEST_CASE("Create a 2D image on an OpenCL device", "[fast][image]") {
 }
 
 TEST_CASE("Create a 3D image on an OpenCL device", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
 
     unsigned int width = 256;
     unsigned int height = 512;
@@ -84,8 +84,8 @@ TEST_CASE("Create a 3D image on an OpenCL device", "[fast][image]") {
 }
 
 TEST_CASE("Create a 2D image on an OpenCL device with data", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
 
     unsigned int width = 256;
     unsigned int height = 512;
@@ -104,8 +104,8 @@ TEST_CASE("Create a 2D image on an OpenCL device with data", "[fast][image]") {
 }
 
 TEST_CASE("Create a 3D image on an OpenCL device with data", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
 
     unsigned int width = 40;
     unsigned int height = 64;
@@ -172,8 +172,8 @@ TEST_CASE("Create a 3D image on host with input data", "[fast][image]") {
 }
 
 TEST_CASE("Create a 2D image on host and request access to OpenCL buffer", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
 
     unsigned int width = 256;
     unsigned int height = 512;
@@ -198,8 +198,8 @@ TEST_CASE("Create a 2D image on host and request access to OpenCL buffer", "[fas
     }
 }
 TEST_CASE("Create a 3D image on host and request access to OpenCL buffer", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
 
     unsigned int width = 40;
     unsigned int height = 64;
@@ -226,8 +226,8 @@ TEST_CASE("Create a 3D image on host and request access to OpenCL buffer", "[fas
 }
 
 TEST_CASE("Create a 2D image on host and request access to OpenCL Image", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
 
     unsigned int width = 256;
     unsigned int height = 512;
@@ -253,8 +253,8 @@ TEST_CASE("Create a 2D image on host and request access to OpenCL Image", "[fast
 }
 
 TEST_CASE("Create a 3D image on host and request access to OpenCL Image", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
 
     unsigned int width = 40;
     unsigned int height = 64;
@@ -281,8 +281,8 @@ TEST_CASE("Create a 3D image on host and request access to OpenCL Image", "[fast
 }
 
 TEST_CASE("Create a 2D image on a CL device and request access to OpenCL buffer", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
 
     unsigned int width = 256;
     unsigned int height = 512;
@@ -308,8 +308,8 @@ TEST_CASE("Create a 2D image on a CL device and request access to OpenCL buffer"
 }
 
 TEST_CASE("Create a 3D image on CL device and request access to OpenCL buffer", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
 
     unsigned int width = 40;
     unsigned int height = 64;
@@ -336,8 +336,8 @@ TEST_CASE("Create a 3D image on CL device and request access to OpenCL buffer", 
 }
 
 TEST_CASE("Create a 2D image and change host data", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
 
     unsigned int width = 256;
     unsigned int height = 512;
@@ -383,8 +383,8 @@ TEST_CASE("Create a 2D image and change host data", "[fast][image]") {
 }
 
 TEST_CASE("Create a 3D image and change host data", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
 
     unsigned int width = 40;
     unsigned int height = 40;
@@ -431,8 +431,8 @@ TEST_CASE("Create a 3D image and change host data", "[fast][image]") {
 }
 
 TEST_CASE("Create a 2D image and change buffer data", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
 
     unsigned int width = 256;
     unsigned int height = 512;
@@ -507,8 +507,8 @@ TEST_CASE("Create a 2D image and change buffer data", "[fast][image]") {
 }
 
 TEST_CASE("Create a 3D image and change buffer data", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
 
     unsigned int width = 32;
     unsigned int height = 64;
@@ -585,8 +585,8 @@ TEST_CASE("Create a 3D image and change buffer data", "[fast][image]") {
 }
 
 TEST_CASE("Create a 2D image and change image data", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
 
     unsigned int width = 256;
     unsigned int height = 512;
@@ -656,8 +656,8 @@ TEST_CASE("Create a 2D image and change image data", "[fast][image]") {
 }
 
 TEST_CASE("Create a 3D image and change image data", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
 
     // check if device has 3D write capabilities, if not abort test
     if(device->getDevice().getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") == std::string::npos) {
@@ -734,8 +734,8 @@ TEST_CASE("Create a 3D image and change image data", "[fast][image]") {
 }
 
 TEST_CASE("Create 2D image on one OpenCL device and request it on another OpenCL device", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    std::vector<OpenCLDevice::pointer> devices = deviceManager.getAllDevices();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    std::vector<OpenCLDevice::pointer> devices = deviceManager->getAllDevices();
 
     // If system only has 1 device, skip this test
     if(devices.size() <= 1)
@@ -770,8 +770,8 @@ TEST_CASE("Create 2D image on one OpenCL device and request it on another OpenCL
 }
 
 TEST_CASE("Create 3D image on one OpenCL device and request it on another OpenCL device", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    std::vector<OpenCLDevice::pointer> devices = deviceManager.getAllDevices();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    std::vector<OpenCLDevice::pointer> devices = deviceManager->getAllDevices();
 
     // If system only has 1 device, skip this test
     if(devices.size() <= 1)
@@ -808,8 +808,8 @@ TEST_CASE("Create 3D image on one OpenCL device and request it on another OpenCL
 
 
 TEST_CASE("Create 2D image on one OpenCL device and request it on another OpenCL device as buffer", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    std::vector<OpenCLDevice::pointer> devices = deviceManager.getAllDevices();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    std::vector<OpenCLDevice::pointer> devices = deviceManager->getAllDevices();
 
     // If system only has 1 device, skip this test
     if(devices.size() <= 1)
@@ -844,8 +844,8 @@ TEST_CASE("Create 2D image on one OpenCL device and request it on another OpenCL
 }
 
 TEST_CASE("Create 3D image on one OpenCL device and request it on another OpenCL device as buffer", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    std::vector<OpenCLDevice::pointer> devices = deviceManager.getAllDevices();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    std::vector<OpenCLDevice::pointer> devices = deviceManager->getAllDevices();
 
     // If system only has 1 device, skip this test
     if(devices.size() <= 1)
@@ -881,8 +881,8 @@ TEST_CASE("Create 3D image on one OpenCL device and request it on another OpenCL
 }
 
 TEST_CASE("Uninitialized image throws exception", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     Image::pointer image = Image::New();
 
     CHECK_THROWS(image->getImageAccess(ACCESS_READ));
@@ -899,8 +899,8 @@ TEST_CASE("Uninitialized image throws exception", "[fast][image]") {
 }
 
 TEST_CASE("Multiple read access to 2D image should not throw exception", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     Image::pointer image = Image::New();
     image->create(256, 256, TYPE_FLOAT, 1);
 
@@ -911,8 +911,8 @@ TEST_CASE("Multiple read access to 2D image should not throw exception", "[fast]
 }
 
 TEST_CASE("Multiple read access to 3D image should not throw exception", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     Image::pointer image = Image::New();
     image->create(64, 64, 32, TYPE_FLOAT, 1);
 
@@ -926,8 +926,8 @@ TEST_CASE("Multiple read access to 3D image should not throw exception", "[fast]
 
 /*
 TEST_CASE("Requesting access to a 2D image that is being written to should throw exception", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     Image::pointer image = Image::New();
     image->create(256, 256, TYPE_FLOAT, 1);
 
@@ -957,8 +957,8 @@ TEST_CASE("Requesting access to a 2D image that is being written to should throw
 }
 
 TEST_CASE("Requesting access to a 3D image that is being written to should throw exception", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     Image::pointer image = Image::New();
     image->create(32,32,32, TYPE_FLOAT, 1);
 
@@ -996,8 +996,8 @@ TEST_CASE("Requesting access to a 2D image that has been released should not thr
 
 	
 
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     Image::pointer image = Image::New();
     image->create(256, 256, TYPE_FLOAT, 1);
 
@@ -1030,8 +1030,8 @@ TEST_CASE("Requesting access to a 2D image that has been released should not thr
 }
 
 TEST_CASE("Requesting access to a 3D image that has been released should not throw exception", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     Image::pointer image = Image::New();
     image->create(32,32,32, TYPE_FLOAT, 1);
 
@@ -1065,8 +1065,8 @@ TEST_CASE("Requesting access to a 3D image that has been released should not thr
 
 /*
 TEST_CASE("Requesting write access to a 2D image that is being read from should throw exception", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     Image::pointer image = Image::New();
     image->create(256, 256, TYPE_FLOAT, 1);
 
@@ -1090,8 +1090,8 @@ TEST_CASE("Requesting write access to a 2D image that is being read from should 
 }
 
 TEST_CASE("Requesting write access to a 3D image that is being read from should throw exception", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     Image::pointer image = Image::New();
     image->create(32,32,32, TYPE_FLOAT, 1);
 
@@ -1116,8 +1116,8 @@ TEST_CASE("Requesting write access to a 3D image that is being read from should 
 */
 
 TEST_CASE("Requesting write access to a 2D image that has been released should not throw exception", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     Image::pointer image = Image::New();
     image->create(256, 256, TYPE_FLOAT, 1);
 
@@ -1144,8 +1144,8 @@ TEST_CASE("Requesting write access to a 2D image that has been released should n
 }
 
 TEST_CASE("Requesting write access to a 3D image that has been released should not throw exception", "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     Image::pointer image = Image::New();
     image->create(32,32,32, TYPE_FLOAT, 1);
 
@@ -1228,8 +1228,8 @@ inline float getSumFromData(void* data, unsigned int nrOfElements, DataType type
 }
 
 TEST_CASE("calculateAverageIntensity returns the average intensity of a 2D image stored as OpenCL image" , "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     unsigned int width = 31;
     unsigned int height = 64;
 
@@ -1300,8 +1300,8 @@ TEST_CASE("calculateAverageIntensity returns the average intensity of a 3D image
 }
 
 TEST_CASE("calculateMaximum/MinimumIntensity returns the maximum/minimum intensity of a 2D image stored as OpenCL image" , "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     unsigned int width = 31;
     unsigned int height = 64;
 
@@ -1327,8 +1327,8 @@ TEST_CASE("calculateMaximum/MinimumIntensity returns the maximum/minimum intensi
 }
 
 TEST_CASE("calculateMaximum/MinimumIntensity returns the maximum/minimum intensity of a 3D image stored as OpenCL image" , "[fast][image]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     unsigned int width = 32;
     unsigned int height = 43;
     unsigned int depth = 11;

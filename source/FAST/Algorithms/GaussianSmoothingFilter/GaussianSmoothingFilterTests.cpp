@@ -26,8 +26,8 @@ TEST_CASE("Even input as mask size throws exception in GaussianSmoothingFilter",
 
 /*
 TEST_CASE("Correct output with small 3x3 2D image as input to GaussianSmoothingFilter on OpenCLDevice", "[fast][GaussianSmoothingFilter]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
     filter->setMaskSize(3);
     filter->setStandardDeviation(1.0);
@@ -112,8 +112,8 @@ TEST_CASE("Correct output with small 3x3 2D image as input to GaussianSmoothingF
 }
 
 TEST_CASE("Correct output with small 3x3x3 3D image as input to GaussianSmoothingFilter on OpenCLDevice", "[fast][GaussianSmoothingFilter]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
     filter->setMaskSize(3);
     filter->setStandardDeviation(1.0);

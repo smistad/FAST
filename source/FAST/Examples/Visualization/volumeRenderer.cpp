@@ -20,8 +20,8 @@ int main(int argc, char ** argv) {
 
     // TODO this causes problem for some reason??
     // Get a GPU device and set it as the default device
-    //DeviceManager& deviceManager = DeviceManager::getInstance();
-    //deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(true));
+    //DeviceManager* deviceManager = DeviceManager::getInstance();
+    //deviceManager.setDefaultDevice(deviceManager->getOneGPUDevice(true));
 
     /*
     MetaImageImporter::pointer importer = MetaImageImporter::New();
