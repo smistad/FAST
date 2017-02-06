@@ -182,58 +182,6 @@ TEST_CASE("Model based segmentation with spline model on 2D pediatric aorta US d
 	window->start();
 }
 
-TEST_CASE("Model based segmentation with spline model on 2D cardiac US data", "[fast][ModelBasedSegmentation][2d][cardiac][visual]") {
-	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
-	streamer->setFilenameFormat("/home/smistad/CETUS/Patient1/Patient1_frame#.mhd");
-	streamer->setZeroFilling(2);
-	streamer->setStartNumber(1);
-	streamer->enableLooping();
-	streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
-	streamer->update(); // TODO this should not be needed
-	streamer->setSleepTime(50);
-
-	ImageSlicer::pointer slicer = ImageSlicer::New();
-	slicer->setInputConnection(streamer->getOutputPort());
-	slicer->setOrthogonalSlicePlane(PLANE_Y);
-
-	// Control points for spline model
-	std::vector<Vector2f> controlPoints = {
-	        Vector2f(0, 3), // Apex
-	        Vector2f(0.8, 2),
-	        Vector2f(1.15, 1),
-	        Vector2f(0.8, 0),
-	        Vector2f(-0.8, 0),
-	        Vector2f(-1.15, 1),
-	        Vector2f(-0.8, 2)
-	};
-
-	CardinalSplineModel::pointer shapeModel = CardinalSplineModel::New();
-	shapeModel->setControlPoints(controlPoints);
-	shapeModel->setInitialScaling(0.02, 0.03);
-	shapeModel->setInitialRotation(M_PI);
-	shapeModel->setGlobalProcessError(0.01f);
-	shapeModel->setLocalProcessError(0.001f);
-	shapeModel->initializeShapeToImageCenter();
-	KalmanFilter::pointer segmentation = KalmanFilter::New();
-	StepEdgeModel::pointer appearanceModel = StepEdgeModel::New();
-	appearanceModel->setLineLength(0.025);
-	appearanceModel->setLineSampleSpacing(0.025/32.0);
-	segmentation->setAppearanceModel(appearanceModel);
-	segmentation->setShapeModel(shapeModel);
-	segmentation->setInputConnection(slicer->getOutputPort());
-
-	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
-	meshRenderer->setInputConnection(segmentation->getOutputPort());
-
-	ImageRenderer::pointer imageRenderer = ImageRenderer::New();
-	imageRenderer->addInputConnection(slicer->getOutputPort());
-
-	SimpleWindow::pointer window = SimpleWindow::New();
-	window->addRenderer(imageRenderer);
-	window->addRenderer(meshRenderer);
-	window->set2DMode();
-	window->start();
-}
 
 
 TEST_CASE("Model based segmentation with ellipse model on 2D femoral nerve block US data", "[fast][ModelBasedSegmentation][femoral][2d][visual]") {
@@ -267,3 +215,74 @@ TEST_CASE("Model based segmentation with ellipse model on 2D femoral nerve block
 	window->start();
 }
  */
+
+
+TEST_CASE("Model based segmentation with spline model on 2D cardiac US data", "[fast][ModelBasedSegmentation][2d][cardiac][visual]") {
+	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
+	streamer->setFilenameFormat(Config::getTestDataPath()+"US/Heart/ApicalTwoChamber/US-2D_#.mhd");
+    //streamer->setFilenameFormat(Config::getTestDataPath()+"US/Heart/ApicalFourChamber/US-2D_#.mhd");
+	//streamer->setFilenameFormat("/home/smistad/data/ultrasound_smistad_heart/1234/H1ADBNGK/US-2D_#.mhd");
+	//streamer->setFilenameFormat("/home/smistad/data/ultrasound_smistad_heart/1234/H1ADCKOO/US-2D_#.mhd");
+	//streamer->setFilenameFormat("/home/smistad/data/ultrasound_smistad_heart/1234/H1ADCL8Q/US-2D_#.mhd");
+
+	streamer->enableLooping();
+	streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+	streamer->setSleepTime(50);
+
+	// Control points for spline model
+	std::vector<Vector2f> controlPoints = {
+			Vector2f(89,22), // Apex
+			Vector2f(100,31),
+			Vector2f(108,50),
+			Vector2f(114,63),
+			Vector2f(117,80),
+			Vector2f(113,95),
+			Vector2f(96,102),
+			Vector2f(75,99),
+			Vector2f(73,81),
+			Vector2f(75,61),
+			Vector2f(72,43),
+			Vector2f(80,31),
+	};
+
+	CardinalSplineModel::pointer shapeModel = CardinalSplineModel::New();
+	shapeModel->setControlPoints(controlPoints);
+	// Increasing these will put more weight on the measurements instead of the model, and vica versa
+	shapeModel->setGlobalProcessError(0.000001f);
+	shapeModel->setLocalProcessError(0.001f);
+	shapeModel->initializeShapeToImageCenter();
+	KalmanFilter::pointer segmentation = KalmanFilter::New();
+	/*
+	RidgeEdgeModel::pointer appearanceModel = RidgeEdgeModel::New();
+	appearanceModel->setEdgeType(RidgeEdgeModel::EDGE_TYPE_BLACK_INSIDE_WHITE_OUTSIDE);
+	appearanceModel->setIntensityDifferenceThreshold(20);
+	appearanceModel->setMinimumRidgeSize(3.0f);
+	 */
+	StepEdgeModel::pointer appearanceModel = StepEdgeModel::New();
+	appearanceModel->setEdgeType(StepEdgeModel::EDGE_TYPE_BLACK_INSIDE_WHITE_OUTSIDE);
+	appearanceModel->setIntensityDifferenceThreshold(20);
+
+	appearanceModel->setLineLength(30.0);
+	appearanceModel->setLineSampleSpacing(30.0/48.0);
+	segmentation->setAppearanceModel(appearanceModel);
+	segmentation->setShapeModel(shapeModel);
+	segmentation->setInputConnection(streamer->getOutputPort());
+    segmentation->setIterations(10);
+	segmentation->setStartIterations(5);
+
+	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
+	meshRenderer->addInputConnection(segmentation->getOutputPort());
+	meshRenderer->addInputConnection(segmentation->getDisplacementsOutputPort(), Color::Red(), 1.0);
+
+	ImageRenderer::pointer imageRenderer = ImageRenderer::New();
+	imageRenderer->addInputConnection(streamer->getOutputPort());
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->getView()->setBackgroundColor(Color::Black());
+	window->addRenderer(imageRenderer);
+	window->addRenderer(meshRenderer);
+	window->setWindowSize(1024, 1024);
+	window->set2DMode();
+	window->setTimeout(1000);
+	window->start();
+}
