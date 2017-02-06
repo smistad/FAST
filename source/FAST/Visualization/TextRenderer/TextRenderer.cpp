@@ -113,16 +113,15 @@ void TextRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
 
     for (int y = 0; y < height; ++y) {
         QRgb *line = (QRgb *) image.scanLine(y);
-
         for (int x = 0; x < width; ++x) {
             QRgb* pixel = line + x;
             QColor color(*pixel);
             // Only write, if not color is not background color
             if(color.green() > 0.001f || color.red() > 0.001f || color.blue() > 0.001f) {
-                data[(x + (width - 1 - y) * width) * 4] = (float) color.red() / 255.0f;
-                data[(x + (width - 1 - y) * width) * 4 + 1] = (float) color.green() / 255.0f;
-                data[(x + (width - 1 - y) * width) * 4 + 2] = (float) color.blue() / 255.0f;
-                data[(x + (width - 1 - y) * width) * 4 + 3] = 1.0f;
+                data[(x + (height - 1 - y) * width) * 4] = (float) color.red() / 255.0f;
+                data[(x + (height - 1 - y) * width) * 4 + 1] = (float) color.green() / 255.0f;
+                data[(x + (height - 1 - y) * width) * 4 + 2] = (float) color.blue() / 255.0f;
+                data[(x + (height - 1 - y) * width) * 4 + 3] = 1.0f;
             }
         }
     }
