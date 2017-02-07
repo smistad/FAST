@@ -136,9 +136,6 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
         if(!Window::getMainGLContext()->makeCurrent(Window::getSurface())) {
             throw Exception("Unable to set GL context current");
         }
-        //std::cout << "WEEE" << std::endl;
-        long unsigned int* glContext = (long unsigned int*)glXGetCurrentContext();
-        reportInfo() << "Current GLX context in mesh is " << glContext << Reporter::end;
         glGenBuffers(1, &mVBOID);
         glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
         if(mHostHasData) {
