@@ -1,9 +1,13 @@
+#include <GL/glew.h>
 #include "Window.hpp"
 #include <QApplication>
+#include <QOffscreenSurface>
+#include <QEventLoop>
 
 namespace fast {
 
-QGLContext* Window::mMainGLContext = NULL;
+QOpenGLContext* Window::mMainGLContext = NULL;
+QOffscreenSurface* Window::mSurface = NULL;
 QApplication* Window::mQApp = NULL;
 
 class FASTApplication : public QApplication {
@@ -55,6 +59,10 @@ void Window::disableFullscreen() {
     mFullscreen = false;
 }
 
+void Window::cleanup() {
+    delete mQApp;
+}
+
 void Window::initializeQtApp() {
     // Make sure only one QApplication is created
     if(!QApplication::instance()) {
@@ -62,19 +70,29 @@ void Window::initializeQtApp() {
         // Create some dummy argc and argv options as QApplication requires it
         int* argc = new int[1];
         *argc = 0;
+        QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
         mQApp = new FASTApplication(*argc,NULL);
          // Create computation GL context, if it doesn't exist
         if(mMainGLContext == NULL) {
             Reporter::info() << "Creating new GL context for computation thread" << Reporter::end;
-            // Dummy widget
-            QGLWidget* widget = new QGLWidget;
 
             // Create GL context to be shared with the CL contexts
-            mMainGLContext = new QGLContext(QGLFormat::defaultFormat(), widget); // by including widget here the context becomes valid
+            mSurface = new QOffscreenSurface();
+            mSurface->setFormat(QSurfaceFormat::defaultFormat());
+            mSurface->create();
+            mMainGLContext = new QOpenGLContext;
+            mMainGLContext->setShareContext(QOpenGLContext::globalShareContext());
+            mMainGLContext->setFormat(mSurface->format());
             mMainGLContext->create();
             if(!mMainGLContext->isValid()) {
                 throw Exception("Qt GL context is invalid!");
             }
+            mMainGLContext->makeCurrent(mSurface);
+            GLenum err = glewInit();
+            if(err != GLEW_OK)
+                throw Exception("GLEW init error");
+            mMainGLContext->doneCurrent();
+            //atexit(cleanup);
         }
     } else {
         Reporter::info() << "QApp already exists.." << Reporter::end;
@@ -147,20 +165,15 @@ Window::~Window() {
     //if(mEventLoop != NULL)
     //    delete mEventLoop;
     reportInfo() << "Deleting widget" << Reporter::end;
-    if(mWidget != NULL)
-        delete mWidget;
+    //if(mWidget != NULL)
+        //delete mWidget;
     reportInfo() << "Finished deleting window widget" << Reporter::end;
     if(mThread != NULL) {
         mThread->stop();
         delete mThread;
         mThread = NULL;
     }
-    delete mQApp;
-    // GL context is already deleted, set pointer to NULL
-    if(mMainGLContext != NULL) {
-        mMainGLContext = NULL;
-    }
-    DeviceManager::deleteInstance();
+
     reportInfo() << "Window destroyed" << Reporter::end;
 }
 
@@ -168,7 +181,7 @@ void Window::setTimeout(unsigned int milliseconds) {
     mTimeout = milliseconds;
 }
 
-QGLContext* Window::getMainGLContext() {
+QOpenGLContext* Window::getMainGLContext() {
     if(mMainGLContext == NULL) {
         throw Exception("No OpenGL context created");
         //initializeQtApp();
@@ -186,19 +199,18 @@ void Window::startComputationThread() {
         mThread->moveToThread(thread);
         connect(thread, SIGNAL(started()), mThread, SLOT(run()));
         connect(mThread, SIGNAL(finished()), thread, SLOT(quit()));
-        connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+        //connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
 
         for(int i = 0; i < getViews().size(); i++)
             mThread->addView(getViews()[i]);
-        QGLContext* mainGLContext = Window::getMainGLContext();
+        QOpenGLContext* mainGLContext = Window::getMainGLContext();
         if(!mainGLContext->isValid()) {
             throw Exception("QGL context is invalid!");
         }
 
-        // Context must be current in this thread before it can be moved to another thread
-        mainGLContext->makeCurrent();
-        mainGLContext->moveToThread(thread);
+        mainGLContext->makeCurrent(mainGLContext->surface());
         mainGLContext->doneCurrent();
+        mainGLContext->moveToThread(thread);
         thread->start();
         reportInfo() << "Computation thread started" << Reporter::end;
     }
@@ -228,6 +240,10 @@ void Window::setWidth(uint width) {
 
 void Window::setHeight(uint height) {
     mHeight = height;
+}
+
+QSurface* Window::getSurface() {
+    return mSurface;
 }
 
 } // end namespace fast

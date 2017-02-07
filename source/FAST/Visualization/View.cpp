@@ -87,14 +87,6 @@ View::View() : mViewingPlane(Plane::Axial()) {
 
 	NonVolumesTurn=true;
 
-    // Creating custom Qt GL context for the view which shares with the primary GL context
-    QGLContext* context = new QGLContext(QGLFormat::defaultFormat(), this);
-    context->create(fast::Window::getMainGLContext());
-    this->setContext(context);
-    if(!context->isValid() || !context->isSharing()) {
-        reportInfo() << "The custom Qt GL context is invalid!" << Reporter::end;
-        exit(-1);
-    }
 }
 
 void View::setCameraInputConnection(ProcessObjectPort port) {
@@ -678,15 +670,18 @@ void View::initializeGL() {
 
 
 void View::paintGL() {
+
 	mRuntimeManager->startRegularTimer("paint");
 
 	glClearColor(mBackgroundColor.getRedValue(), mBackgroundColor.getGreenValue(), mBackgroundColor.getBlueValue(), 1.0f);
 	if (mNonVolumeRenderers.size() > 0 ) //it can be "only nonVolume renderers" or "nonVolume + Volume renderes" together
 	{
+        /*
 		if (mVolumeRenderers.size()>0)
 			glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 		else
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+         */
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glMatrixMode(GL_MODELVIEW);

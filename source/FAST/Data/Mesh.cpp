@@ -1,8 +1,9 @@
-#include <GL/glew.h>
-#include "Mesh.hpp"
-#include "FAST/Visualization/SimpleWindow.hpp"
 #include <QApplication>
+#include <GL/glew.h>
+#include "FAST/Visualization/Window.hpp"
+#include "Mesh.hpp"
 #include <thread>
+#include "FAST/Utility.hpp"
 
 
 #if defined(__APPLE__) || defined(__MACOSX)
@@ -122,19 +123,22 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
 #else
         // If no Window is present, create a dummy gl context
         if(!QApplication::instance()) { // TODO make this work on all platforms
-            SimpleWindow::initializeQtApp();
+            Window::initializeQtApp();
 
             // Need a drawable for this to work
-            QGLWidget* widget = new QGLWidget;
-            widget->show();
-            widget->hide(); // TODO should probably delete widget as well
-            reportInfo() << "created a drawable" << Reporter::end;
+            //QOpenGLWidget* widget = new QOpenGLWidget;
+            //widget->show();
+            //widget->hide(); // TODO should probably delete widget as well
+            //reportInfo() << "created a drawable" << Reporter::end;
         }
 #endif
 #endif
-        GLenum err = glewInit();
-        if(err != GLEW_OK)
-            throw Exception("GLEW init error");
+        if(!Window::getMainGLContext()->makeCurrent(Window::getSurface())) {
+            throw Exception("Unable to set GL context current");
+        }
+        //std::cout << "WEEE" << std::endl;
+        long unsigned int* glContext = (long unsigned int*)glXGetCurrentContext();
+        reportInfo() << "Current GLX context in mesh is " << glContext << Reporter::end;
         glGenBuffers(1, &mVBOID);
         glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
         if(mHostHasData) {

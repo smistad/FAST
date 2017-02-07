@@ -7,14 +7,14 @@
 #include "Renderer.hpp"
 #include "Plane.hpp"
 #include <vector>
-#include <QGLWidget>
+#include <QOpenGLWidget>
 #include <QTimer>
 
 namespace fast {
 
 class ComputationThread;
 
-class View : public QGLWidget, public ProcessObject {
+class View : public QOpenGLWidget, public ProcessObject {
     //FAST_OBJECT(View)
     Q_OBJECT
     public:
