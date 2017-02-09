@@ -8,7 +8,6 @@ namespace fast {
 
 QOpenGLContext* Window::mMainGLContext = NULL;
 QOffscreenSurface* Window::mSurface = NULL;
-QApplication* Window::mQApp = NULL;
 
 class FASTApplication : public QApplication {
 public:
@@ -42,7 +41,6 @@ Window::Window() {
     mWidget = new WindowWidget;
     mEventLoop = new QEventLoop(mWidget);
     mWidget->connect(mWidget, SIGNAL(widgetHasClosed()), this, SLOT(stop()));
-    mWidget->setWindowTitle("FAST");
     mWidget->setContentsMargins(0, 0, 0, 0);
 
     // default window size
@@ -59,8 +57,12 @@ void Window::disableFullscreen() {
     mFullscreen = false;
 }
 
+void Window::setTitle(std::string title) {
+    mWidget->setWindowTitle(title.c_str());
+}
+
 void Window::cleanup() {
-    delete mQApp;
+    //delete QApplication::instance();
 }
 
 void Window::initializeQtApp() {
@@ -71,7 +73,7 @@ void Window::initializeQtApp() {
         int* argc = new int[1];
         *argc = 0;
         QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
-        mQApp = new FASTApplication(*argc,NULL);
+        QApplication* app = new FASTApplication(*argc,NULL);
          // Create computation GL context, if it doesn't exist
         if(mMainGLContext == NULL) {
             Reporter::info() << "Creating new GL context for computation thread" << Reporter::end;
@@ -92,7 +94,7 @@ void Window::initializeQtApp() {
             if(err != GLEW_OK)
                 throw Exception("GLEW init error");
             mMainGLContext->doneCurrent();
-            //atexit(cleanup);
+            atexit(cleanup);
         }
     } else {
         Reporter::info() << "QApp already exists.." << Reporter::end;

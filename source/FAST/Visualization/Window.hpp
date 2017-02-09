@@ -10,7 +10,6 @@
 
 class QOpenGLContext;
 class QEventLoop;
-class QApplication;
 class QOffscreenSurface;
 
 namespace fast {
@@ -31,6 +30,7 @@ class Window : public QObject, public Object {
         void setHeight(uint height);
         void enableFullscreen();
         void disableFullscreen();
+        void setTitle(std::string);
         std::vector<View*> getViews() const;
         static void cleanup();
     protected:
@@ -46,7 +46,6 @@ class Window : public QObject, public Object {
         unsigned int mTimeout;
         QEventLoop* mEventLoop;
         ComputationThread* mThread;
-        static QApplication* mQApp;
     public slots:
         void stop();
 
