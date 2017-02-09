@@ -8,12 +8,6 @@
 #include <chrono>
 
 namespace fast {
-/**
- * Dummy function to get into the class again
- */
-inline void stubStreamThread(ImageFileStreamer * streamer) {
-    streamer->producerStream();
-}
 
 ImageFileStreamer::ImageFileStreamer() {
     mStreamIsStarted = false;
@@ -22,7 +16,6 @@ ImageFileStreamer::ImageFileStreamer() {
     mLoop = false;
     mStartNumber = 0;
     mZeroFillDigits = 0;
-    thread = NULL;
     mFirstFrameIsInserted = false;
     mHasReachedEnd = false;
     mTimestampFilename = "";
@@ -67,10 +60,10 @@ void ImageFileStreamer::execute() {
     if(mFilenameFormats.size() == 0)
         throw Exception("No filename format was given to the ImageFileStreamer");
     if(!mStreamIsStarted) {
-        // Check that first frame exists before starting streamer
+        // TODO Check that first frame exists before starting streamer
 
         mStreamIsStarted = true;
-        thread = new std::thread(&stubStreamThread, this);
+        mThread = new std::thread(std::bind(&ImageFileStreamer::producerStream, this));
     }
 
     // Wait here for first frame
@@ -237,10 +230,11 @@ void ImageFileStreamer::producerStream() {
 
 ImageFileStreamer::~ImageFileStreamer() {
     if(mStreamIsStarted) {
-        if(thread->get_id() != std::this_thread::get_id()) { // avoid deadlock
-            thread->join();
+        if(mThread->get_id() != std::this_thread::get_id()) { // avoid deadlock
+            mThread->join();
+            delete mThread;
+            mThread = NULL;
         }
-        delete thread;
     }
 }
 

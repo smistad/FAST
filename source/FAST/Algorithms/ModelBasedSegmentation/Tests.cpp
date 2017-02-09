@@ -219,8 +219,9 @@ TEST_CASE("Model based segmentation with ellipse model on 2D femoral nerve block
 
 TEST_CASE("Model based segmentation with spline model on 2D cardiac US data", "[fast][ModelBasedSegmentation][2d][cardiac][visual]") {
 	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
-	streamer->setFilenameFormat(Config::getTestDataPath()+"US/Heart/ApicalTwoChamber/US-2D_#.mhd");
-    //streamer->setFilenameFormat(Config::getTestDataPath()+"US/Heart/ApicalFourChamber/US-2D_#.mhd");
+	//streamer->setFilenameFormat(Config::getTestDataPath()+"US/Heart/ApicalTwoChamber/US-2D_#.mhd");
+	//streamer->setFilenameFormat(Config::getTestDataPath()+"US/Heart/ApicalLongAxis/US-2D_#.mhd");
+    streamer->setFilenameFormat(Config::getTestDataPath()+"US/Heart/ApicalFourChamber/US-2D_#.mhd");
 	//streamer->setFilenameFormat("/home/smistad/data/ultrasound_smistad_heart/1234/H1ADBNGK/US-2D_#.mhd");
 	//streamer->setFilenameFormat("/home/smistad/data/ultrasound_smistad_heart/1234/H1ADCKOO/US-2D_#.mhd");
 	//streamer->setFilenameFormat("/home/smistad/data/ultrasound_smistad_heart/1234/H1ADCL8Q/US-2D_#.mhd");
@@ -283,6 +284,6 @@ TEST_CASE("Model based segmentation with spline model on 2D cardiac US data", "[
 	window->addRenderer(meshRenderer);
 	window->setWindowSize(1024, 1024);
 	window->set2DMode();
-	window->setTimeout(1000);
+	//window->setTimeout(1000);
 	window->start();
 }

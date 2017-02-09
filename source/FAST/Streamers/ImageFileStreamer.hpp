@@ -51,7 +51,7 @@ class ImageFileStreamer : public Streamer, public ProcessObject {
         uint mSleepTime;
         uint mStepSize;
 
-        std::thread *thread;
+        std::thread *mThread;
         std::mutex mFirstFrameMutex;
         std::condition_variable mFirstFrameCondition;
 

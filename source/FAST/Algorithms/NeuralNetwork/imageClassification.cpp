@@ -48,18 +48,18 @@ int main() {
     Reporter::setGlobalReportMethod(Reporter::COUT);
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
     streamer->setFilenameFormats({
-         "/home/smistad/data/ultrasound_smistad_heart/1234/H1AD8S80/US-2D_#.mhd",
-         "/home/smistad/data/ultrasound_smistad_heart/1234/H1AD9B04/US-2D_#.mhd",
-         "/home/smistad/data/ultrasound_smistad_heart/1234/H1AD9EG6/US-2D_#.mhd",
-         "/home/smistad/data/ultrasound_smistad_heart/1234/H1AD9L08/US-2D_#.mhd",
-         "/home/smistad/data/ultrasound_smistad_heart/1234/H1AD9282/US-2D_#.mhd",
-         "/home/smistad/data/ultrasound_smistad_heart/1234/H1ADA3OA/US-2D_#.mhd",
-         "/home/smistad/data/ultrasound_smistad_heart/1234/H1ADAK8C/US-2D_#.mhd",
-         "/home/smistad/data/ultrasound_smistad_heart/1234/H1ADAKGE/US-2D_#.mhd",
-         "/home/smistad/data/ultrasound_smistad_heart/1234/H1ADB1GG/US-2D_#.mhd",
          "/home/smistad/data/ultrasound_smistad_heart/1234/H1ADB20I/US-2D_#.mhd",
          "/home/smistad/data/ultrasound_smistad_heart/1234/H1ADBNGK/US-2D_#.mhd",
          "/home/smistad/data/ultrasound_smistad_heart/1234/H1ADC6OM/US-2D_#.mhd",
+         "/home/smistad/data/ultrasound_smistad_heart/1234/H1AD8S80/US-2D_#.mhd",
+         "/home/smistad/data/ultrasound_smistad_heart/1234/H1AD9B04/US-2D_#.mhd",
+         "/home/smistad/data/ultrasound_smistad_heart/1234/H1AD9EG6/US-2D_#.mhd",
+         //"/home/smistad/data/ultrasound_smistad_heart/1234/H1AD9L08/US-2D_#.mhd",
+         //"/home/smistad/data/ultrasound_smistad_heart/1234/H1AD9282/US-2D_#.mhd",
+         //"/home/smistad/data/ultrasound_smistad_heart/1234/H1ADA3OA/US-2D_#.mhd",
+         //"/home/smistad/data/ultrasound_smistad_heart/1234/H1ADAK8C/US-2D_#.mhd",
+         //"/home/smistad/data/ultrasound_smistad_heart/1234/H1ADAKGE/US-2D_#.mhd",
+         //"/home/smistad/data/ultrasound_smistad_heart/1234/H1ADB1GG/US-2D_#.mhd",
          "/home/smistad/data/ultrasound_smistad_heart/1234/H1ADCKOO/US-2D_#.mhd",
          "/home/smistad/data/ultrasound_smistad_heart/1234/H1ADCL8Q/US-2D_#.mhd",
          "/home/smistad/data/ultrasound_smistad_heart/1234/H1ADFN0S/US-2D_#.mhd",
@@ -100,7 +100,7 @@ int main() {
     streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
     ImageClassifier::pointer classifier = ImageClassifier::New();
-    classifier->load("/home/smistad/Downloads/cvc_alex_110117");
+    classifier->load("/home/smistad/Downloads/cvc_alex_060217");
     classifier->setInputSize(128,128);
     classifier->setOutputParameters({"Softmax"});
     classifier->setLabels({
@@ -128,10 +128,14 @@ int main() {
     textRenderer->setInputConnection(classToText->getOutputPort());
 
     window->addRenderer(renderer);
-    window->setWindowSize(1024, 1024);
     window->addRenderer(textRenderer);
+    window->setWindowSize(1024, 1024);
+    //window->enableFullscreen();
     window->set2DMode();
+    window->getView()->setBackgroundColor(Color::Black());
     window->start();
 
     classifier->getRuntime()->print();
+    classifier->getRuntime("input_data_copy")->print();
+    classifier->getRuntime("network_execution")->print();
 }
