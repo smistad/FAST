@@ -8,6 +8,8 @@ if(FAST_MODULE_NeuralNetwork)
         #DNNAppearanceModel.hpp
         ObjectDetection.cpp
         ObjectDetection.hpp
+        ShapeRegressor.cpp
+        ShapeRegressor.hpp
     )
     fast_add_test_sources(
         ImageClassifierTests.cpp
@@ -15,6 +17,7 @@ if(FAST_MODULE_NeuralNetwork)
         ObjectDetectionTests.cpp
     )
     fast_add_example(imageClassification imageClassification.cpp)
+    fast_add_example(leftVentricleSegmentation leftVentricleSegmentation.cpp)
     if(FAST_MODULE_OpenIGTLink)
         #fast_add_example(arteryDetection arteryDetection.cpp)
     endif()

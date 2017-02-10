@@ -33,6 +33,7 @@ protected:
     std::string mInputName;
     std::vector<std::string> mOutputNames;
     std::map<std::string, std::vector<std::vector<float>> > mOutputData;
+    SharedPointer<Image> mImage;
 
     void execute();
 

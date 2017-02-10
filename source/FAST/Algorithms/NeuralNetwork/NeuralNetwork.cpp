@@ -76,8 +76,8 @@ NeuralNetwork::NeuralNetwork() {
 void NeuralNetwork::execute() {
 
 
-    Image::pointer image = getStaticInputData<Image>();
-	std::vector<Image::pointer> images = {image};//getMultipleStaticInputData<Image>();
+    mImage = getStaticInputData<Image>();
+	std::vector<Image::pointer> images = {mImage};//getMultipleStaticInputData<Image>();
 
 	if(mWidth < 0 || mHeight < 0)
 		throw Exception("Network input layer width and height has to be specified before running the network");

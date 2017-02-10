@@ -27,20 +27,22 @@ void ImageImporter::execute() {
     // R, G, B, A components for each pixel
 
     // TODO: do some conversion to requested output format, also color vs. no color
-    float * convertedPixelData = new float[image.width()*image.height()];
+    uchar* convertedPixelData = new uchar[image.width()*image.height()];
     for(int i = 0; i < image.width()*image.height(); i++) {
         // Converted to grayscale
-        convertedPixelData[i] = (1.0f/255.0f)*(float)(pixelData[i*4]+pixelData[i*4+1]+pixelData[i*4+2])/3.0f;
+        convertedPixelData[i] = (uchar)round((pixelData[i*4]+pixelData[i*4+1]+pixelData[i*4+2])/3.0f);
     }
 
     // Transfer to texture(if OpenCL) or copy raw pixel data (if host)
     Image::pointer output = getOutputData<Image>();
-    output->create(image.width(),
+    output->create(
+            image.width(),
             image.height(),
-            TYPE_FLOAT,
+            TYPE_UINT8,
             1,
             getMainDevice(),
-            convertedPixelData);
+            convertedPixelData
+    );
     delete[] convertedPixelData;
 }
 
