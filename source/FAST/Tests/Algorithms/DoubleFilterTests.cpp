@@ -24,7 +24,8 @@ TEST_CASE("DoubleFilter on OpenCL device", "[fast][DoubleFilter]") {
     uchar* outputData = (uchar*)outputAccess->get();
     bool success = true;
     for(unsigned int i = 0; i < input->getWidth()*input->getHeight(); i++) {
-        if(inputData[i]*2-(char)outputData[i] != 0) {
+        uchar result = inputData[i]*2;
+        if(result != outputData[i]) {
             success = false;
             break;
         }
@@ -53,7 +54,8 @@ TEST_CASE("DoubleFilter on Host", "[fast][DoubleFilter]") {
     uchar* outputData = (uchar*)outputAccess->get();
     bool success = true;
     for(unsigned int i = 0; i < input->getWidth()*input->getHeight(); i++) {
-        if(inputData[i]*2-(char)outputData[i] != 0) {
+        uchar result = inputData[i]*2;
+        if(result != outputData[i]) {
             success = false;
             break;
         }
