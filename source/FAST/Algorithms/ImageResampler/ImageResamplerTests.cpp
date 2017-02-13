@@ -13,7 +13,6 @@ TEST_CASE("ImageResampler 2D", "[fast][ImageResampler][visual]") {
     ImageResampler::pointer resampler = ImageResampler::New();
     resampler->setOutputSpacing(0.1f, 0.1f);
     resampler->setInputConnection(importer->getOutputPort());
-    resampler->enableRuntimeMeasurements();
 
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->addInputConnection(resampler->getOutputPort());
@@ -23,17 +22,15 @@ TEST_CASE("ImageResampler 2D", "[fast][ImageResampler][visual]") {
     window->set2DMode();
     window->setTimeout(500);
     window->start();
-    resampler->getRuntime()->print();
 }
 
-TEST_CASE("ImageResampler 3D", "[fast][ImageResampler][visual]") {
+TEST_CASE("ImageResampler 3D CT", "[fast][ImageResampler][visual]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath() + "CT/CT-Abdomen.mhd");
 
     ImageResampler::pointer resampler = ImageResampler::New();
     resampler->setOutputSpacing(1.0f, 1.0f, 1.0f);
     resampler->setInputConnection(importer->getOutputPort());
-    resampler->enableRuntimeMeasurements();
 
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->addInputConnection(resampler->getOutputPort());
@@ -44,5 +41,4 @@ TEST_CASE("ImageResampler 3D", "[fast][ImageResampler][visual]") {
     window->getView()->setViewingPlane(Plane::Coronal());
     window->setTimeout(500);
     window->start();
-    resampler->getRuntime()->print();
 }

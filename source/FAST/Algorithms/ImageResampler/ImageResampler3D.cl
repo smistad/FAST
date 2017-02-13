@@ -13,7 +13,7 @@ float readImageAsFloat3D(__read_only image3d_t image, sampler_t sampler, float4 
 
 __kernel void resample3D(
         __read_only image3d_t input,
-        __global short* output,
+        __global OUTPUT_TYPE* output,
         __private float scaleX,
         __private float scaleY,
         __private float scaleZ

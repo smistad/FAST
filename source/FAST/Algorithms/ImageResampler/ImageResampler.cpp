@@ -1,5 +1,6 @@
 #include "ImageResampler.hpp"
 #include "FAST/Data/Image.hpp"
+#include "FAST/Utility.hpp"
 
 namespace fast {
 
@@ -71,7 +72,8 @@ void ImageResampler::execute() {
                 cl::NullRange
         );
     } else {
-        cl::Program program = getOpenCLProgram(device, "3D");
+        std::string buildOptions = std::string("-DOUTPUT_TYPE=") + getCTypeAsString(output->getDataType());
+        cl::Program program = getOpenCLProgram(device, "3D", buildOptions);
         cl::Kernel kernel(program, "resample3D");
 
         OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
