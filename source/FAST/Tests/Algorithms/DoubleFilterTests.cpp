@@ -20,11 +20,11 @@ TEST_CASE("DoubleFilter on OpenCL device", "[fast][DoubleFilter]") {
     ImageAccess::pointer inputAccess = input->getImageAccess(ACCESS_READ);
     ImageAccess::pointer outputAccess = output->getImageAccess(ACCESS_READ);
 
-    float* inputData = (float*)inputAccess->get();
-    float* outputData = (float*)outputAccess->get();
+    uchar* inputData = (uchar*)inputAccess->get();
+    uchar* outputData = (uchar*)outputAccess->get();
     bool success = true;
     for(unsigned int i = 0; i < input->getWidth()*input->getHeight(); i++) {
-        if(fabs(inputData[i]*2-outputData[i]) > 0.001) {
+        if(inputData[i]*2-(char)outputData[i] != 0) {
             success = false;
             break;
         }
@@ -49,11 +49,11 @@ TEST_CASE("DoubleFilter on Host", "[fast][DoubleFilter]") {
     ImageAccess::pointer inputAccess = input->getImageAccess(ACCESS_READ);
     ImageAccess::pointer outputAccess = output->getImageAccess(ACCESS_READ);
 
-    float* inputData = (float*)inputAccess->get();
-    float* outputData = (float*)outputAccess->get();
+    uchar* inputData = (uchar*)inputAccess->get();
+    uchar* outputData = (uchar*)outputAccess->get();
     bool success = true;
     for(unsigned int i = 0; i < input->getWidth()*input->getHeight(); i++) {
-        if(fabs(inputData[i]*2-outputData[i]) > 0.001) {
+        if(inputData[i]*2-(char)outputData[i] != 0) {
             success = false;
             break;
         }
