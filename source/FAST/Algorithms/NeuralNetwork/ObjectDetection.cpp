@@ -83,6 +83,7 @@ void ObjectDetection::execute() {
 
     const int nbObjects = detectorResult.size();
     int counter = 0;
+    bool mDrawBoxes = false;
 
     for(int objectID = 0; objectID < nbObjects; ++objectID) {
 		std::cout << detectorResult[objectID] << std::endl;
@@ -99,26 +100,34 @@ void ObjectDetection::execute() {
                         positionResult[1+objectID*2] * mHeight / scale);
 		std::cout << center.transpose() << std::endl;
 		std::cout << sizeResult[objectID*2] << " " << sizeResult[objectID*2+1] << std::endl;
-        float bboxWidth = sizeResult[objectID*2] * mWidth / scale;
-        float bboxHeight = sizeResult[1+objectID*2] * mHeight / scale;
-		std::cout << bboxWidth << " " << bboxHeight << std::endl;
 
-        Vector2f corner1 = center;
-        corner1.x() -= bboxWidth * 0.5;
-        corner1.y() -= bboxHeight * 0.5;
-        corner1 = applySpacing(corner1, image->getSpacing());
-        Vector2f corner2 = center;
-        corner2.x() -= bboxWidth * 0.5;
-        corner2.y() += bboxHeight * 0.5;
-        corner2 = applySpacing(corner2, image->getSpacing());
-        Vector2f corner3 = center;
-        corner3.x() += bboxWidth * 0.5;
-        corner3.y() += bboxHeight * 0.5;
-        corner3 = applySpacing(corner3, image->getSpacing());
-        Vector2f corner4 = center;
-        corner4.x() += bboxWidth * 0.5;
-        corner4.y() -= bboxHeight * 0.5;
-        corner4 = applySpacing(corner4, image->getSpacing());
+		Vector2f corner1 = center;
+		Vector2f corner2 = center;
+		Vector2f corner3 = center;
+		Vector2f corner4 = center;
+        if(mDrawBoxes) {
+			float bboxWidth = sizeResult[objectID * 2] * mWidth / scale;
+			float bboxHeight = sizeResult[1 + objectID * 2] * mHeight / scale;
+			std::cout << bboxWidth << " " << bboxHeight << std::endl;
+
+			corner1.x() -= bboxWidth * 0.5;
+			corner1.y() -= bboxHeight * 0.5;
+			corner2.x() -= bboxWidth * 0.5;
+			corner2.y() += bboxHeight * 0.5;
+			corner3.x() += bboxWidth * 0.5;
+			corner3.y() += bboxHeight * 0.5;
+			corner4.x() += bboxWidth * 0.5;
+			corner4.y() -= bboxHeight * 0.5;
+		} else {
+			corner1.x() -= 5;
+			corner2.x() += 5;
+			corner3.y() -= 5;
+			corner4.y() += 5;
+		}
+		corner1 = applySpacing(corner1, image->getSpacing());
+		corner2 = applySpacing(corner2, image->getSpacing());
+		corner3 = applySpacing(corner3, image->getSpacing());
+		corner4 = applySpacing(corner4, image->getSpacing());
 
         MeshVertex vertex = MeshVertex(corner1);
 		vertex.setLabel(objectID+1);
@@ -133,10 +142,15 @@ void ObjectDetection::execute() {
 		vertex.setLabel(objectID+1);
 		vertices.push_back(vertex);
 
-        lines.push_back(Vector2ui(0+counter*4, 1+counter*4));
-        lines.push_back(Vector2ui(1+counter*4, 2+counter*4));
-        lines.push_back(Vector2ui(2+counter*4, 3+counter*4));
-        lines.push_back(Vector2ui(3+counter*4, 0+counter*4));
+        if(mDrawBoxes) {
+			lines.push_back(Vector2ui(0 + counter * 4, 1 + counter * 4));
+			lines.push_back(Vector2ui(1 + counter * 4, 2 + counter * 4));
+			lines.push_back(Vector2ui(2 + counter * 4, 3 + counter * 4));
+			lines.push_back(Vector2ui(3 + counter * 4, 0 + counter * 4));
+		} else {
+			lines.push_back(Vector2ui(0 + counter * 4, 1 + counter * 4));
+			lines.push_back(Vector2ui(2 + counter * 4, 3 + counter * 4));
+		}
         counter++;
 	}
 
