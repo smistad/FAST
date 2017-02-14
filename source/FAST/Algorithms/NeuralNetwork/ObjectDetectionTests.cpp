@@ -9,10 +9,10 @@
 
 using namespace fast;
 
+/*
 TEST_CASE("Object detection stream", "[fast][ObjectDetection][dynamic][visual]") {
 	ImageFileStreamer::pointer importer = ImageFileStreamer::New();
     importer->setFilenameFormat("/media/extra/EyeGuide/Axille/0/2016-10-07-135111/US-2D_#.mhd");
-    /*
     importer->setFilenameFormats({
          "/home/smistad/data/eyeguide/axillary_nerve_block/5/2016Dec30_082229/#.png",
          "/home/smistad/data/eyeguide/axillary_nerve_block/5/2016Dec30_082309/#.png",
@@ -23,7 +23,6 @@ TEST_CASE("Object detection stream", "[fast][ObjectDetection][dynamic][visual]")
          "/home/smistad/data/eyeguide/axillary_nerve_block/6/2016Dec30_084715/#.png",
 		 "/home/smistad/data/eyeguide/axillary_nerve_block/6/2016Dec30_084746/#.png",
      });
-     */
     importer->setStartNumber(1);
 	importer->setSleepTime(50);
 
@@ -60,3 +59,4 @@ TEST_CASE("Object detection stream", "[fast][ObjectDetection][dynamic][visual]")
 	detector->getAllRuntimes()->printAll();
 
 }
+ */
