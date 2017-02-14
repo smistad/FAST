@@ -11,7 +11,8 @@ ObjectDetection::ObjectDetection() {
 	createOutputPort<Mesh>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
 	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/NeuralNetwork/ObjectDetection.cl");
 
-    mOutputNames = {"Sigmoid", "Sigmoid_1", "Sigmoid_2"};
+    //mOutputNames = {"Sigmoid", "Sigmoid_1", "Sigmoid_2"};
+	mOutputNames = {"concat_v2"};
 }
 
 Vector2f applySpacing(Vector2f p, Vector3f spacing) {
@@ -67,9 +68,13 @@ void ObjectDetection::execute() {
 
 	mRuntimeManager->startRegularTimer("create_mesh");
     // Get outputs
-	std::vector<float> detectorResult = getNetworkOutput("Sigmoid")[0];
-	std::vector<float> positionResult = getNetworkOutput("Sigmoid_1")[0];
-	std::vector<float> sizeResult = getNetworkOutput("Sigmoid_2")[0];
+	std::vector<float> result = getNetworkOutput("concat_v2")[0];
+	std::vector<float> detectorResult(result.begin(), result.begin()+5);
+	std::vector<float> positionResult(result.begin()+5, result.begin()+15);
+	std::vector<float> sizeResult(result.begin()+15, result.end());
+	//std::vector<float> detectorResult = getNetworkOutput("Sigmoid")[0];
+	//std::vector<float> positionResult = getNetworkOutput("Sigmoid_1")[0];
+	//std::vector<float> sizeResult = getNetworkOutput("Sigmoid_2")[0];
 
 	std::vector<MeshVertex> vertices;
 	std::vector<VectorXui> lines;
@@ -115,10 +120,18 @@ void ObjectDetection::execute() {
         corner4.y() -= bboxHeight * 0.5;
         corner4 = applySpacing(corner4, image->getSpacing());
 
-        vertices.push_back(MeshVertex(corner1));
-        vertices.push_back(MeshVertex(corner2));
-        vertices.push_back(MeshVertex(corner3));
-        vertices.push_back(MeshVertex(corner4));
+        MeshVertex vertex = MeshVertex(corner1);
+		vertex.setLabel(objectID+1);
+        vertices.push_back(vertex);
+		vertex = MeshVertex(corner2);
+		vertex.setLabel(objectID+1);
+		vertices.push_back(vertex);
+		vertex = MeshVertex(corner3);
+		vertex.setLabel(objectID+1);
+		vertices.push_back(vertex);
+		vertex = MeshVertex(corner4);
+		vertex.setLabel(objectID+1);
+		vertices.push_back(vertex);
 
         lines.push_back(Vector2ui(0+counter*4, 1+counter*4));
         lines.push_back(Vector2ui(1+counter*4, 2+counter*4));
