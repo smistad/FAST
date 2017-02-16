@@ -13,7 +13,7 @@ AirwaySegmentation::AirwaySegmentation() {
 	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/AirwaySegmentation/AirwaySegmentation.cl");
 }
 
-Vector3i findSeedVoxel(Image::pointer volume) {
+inline Vector3i findSeedVoxel(Image::pointer volume) {
 
 	ImageAccess::pointer access = volume->getImageAccess(ACCESS_READ);
 	short* data = (short*)access->get();

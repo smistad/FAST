@@ -15,6 +15,7 @@
 using namespace fast;
 
 int main() {
+    Reporter::setGlobalReportMethod(Reporter::COUT);
     // Import image from file using the ImageFileImporter
     ImageFileImporter::pointer importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath()+"CT/CT-Thorax.mhd");
