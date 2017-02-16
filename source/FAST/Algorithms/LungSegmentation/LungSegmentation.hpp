@@ -5,12 +5,16 @@
 
 namespace fast {
 
+class Image;
+
 class LungSegmentation : public ProcessObject {
     FAST_OBJECT(LungSegmentation)
 public:
 private:
     LungSegmentation();
     void execute();
+
+    Vector3i findSeedVoxel(SharedPointer<Image> input);
 };
 
 }

@@ -1,11 +1,11 @@
 #include "Dilation.hpp"
-#include "FAST/Data/Segmentation.hpp"
+#include "FAST/Data/Image.hpp"
 
 namespace fast {
 
 Dilation::Dilation() {
-    createInputPort<Segmentation>(0);
-    createOutputPort<Segmentation>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createInputPort<Image>(0);
+    createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/Morphology/Dilation.cl");
     mSize = 3;
 }
@@ -21,9 +21,12 @@ void Dilation::setStructuringElementSize(int size) {
 }
 
 void Dilation::execute() {
-    Segmentation::pointer input = getStaticInputData<Segmentation>();
+    Image::pointer input = getStaticInputData<Image>();
+    if(input->getDataType() != TYPE_UINT8) {
+        throw Exception("Data type of image given to Dilation must be UINT8");
+    }
 
-    Segmentation::pointer output = getStaticOutputData<Segmentation>();
+    Image::pointer output = getStaticOutputData<Image>();
     output->createFromImage(input);
     output->fill(0);
 

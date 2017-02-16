@@ -75,6 +75,17 @@ class OutOfBoundsException : public Exception {
         OutOfBoundsException(std::string message, int line, const char * file): Exception(message,line,file) {};
 };
 
+class NotImplementedException : public Exception {
+    public:
+        NotImplementedException() : Exception() {
+            setMessage("Not implementet");
+        };
+        NotImplementedException(int line, const char * file) : Exception(line,file) {
+            setMessage("Not implementet");
+
+        };
+};
+
 } // end namespace fast
 
 

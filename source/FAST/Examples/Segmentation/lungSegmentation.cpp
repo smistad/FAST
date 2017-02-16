@@ -32,14 +32,18 @@ int main() {
     SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
     extraction->setInputConnection(segmentation->getOutputPort());
 
+    SurfaceExtraction::pointer extraction2 = SurfaceExtraction::New();
+    extraction2->setInputConnection(segmentation->getOutputPort(1));
+
     MeshRenderer::pointer meshRenderer = MeshRenderer::New();
-    meshRenderer->addInputConnection(extraction->getOutputPort());
+    meshRenderer->addInputConnection(extraction->getOutputPort(), Color::Green(), 0.6f);
+    meshRenderer->addInputConnection(extraction2->getOutputPort(), Color::Red(), 1.0f);
 
     SimpleWindow::pointer window = SimpleWindow::New();
-    window->addRenderer(imageRenderer);
-    window->addRenderer(segmentationRenderer);
-    window->set2DMode();
-    //window->addRenderer(meshRenderer);
+    //window->addRenderer(imageRenderer);
+    //window->addRenderer(segmentationRenderer);
+    //window->set2DMode();
+    window->addRenderer(meshRenderer);
 #ifdef FAST_CONTINUOUS_INTEGRATION
     // This will automatically close the window after 5 seconds, used for CI testing
     window->setTimeout(5*1000);
