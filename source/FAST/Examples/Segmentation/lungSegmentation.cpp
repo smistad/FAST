@@ -15,34 +15,28 @@
 using namespace fast;
 
 int main() {
-    Reporter::setGlobalReportMethod(Reporter::COUT);
     // Import image from file using the ImageFileImporter
     ImageFileImporter::pointer importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath()+"CT/CT-Thorax.mhd");
 
+    // Perform lung segmentation (this will also extract the airways using AirwaySegmentation)
     LungSegmentation::pointer segmentation = LungSegmentation::New();
     segmentation->setInputConnection(importer->getOutputPort());
 
-    // Renderer segmentation on top of input image
-    ImageRenderer::pointer imageRenderer = ImageRenderer::New();
-    imageRenderer->addInputConnection(importer->getOutputPort());
-    SegmentationRenderer::pointer segmentationRenderer = SegmentationRenderer::New();
-    segmentationRenderer->addInputConnection(segmentation->getOutputPort());
-
+    // Extract lung surface
     SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
     extraction->setInputConnection(segmentation->getOutputPort());
 
+    // Extract airway surface
     SurfaceExtraction::pointer extraction2 = SurfaceExtraction::New();
     extraction2->setInputConnection(segmentation->getOutputPort(1));
 
+    // Render both surfaces with different color
     MeshRenderer::pointer meshRenderer = MeshRenderer::New();
     meshRenderer->addInputConnection(extraction->getOutputPort(), Color::Green(), 0.6f);
     meshRenderer->addInputConnection(extraction2->getOutputPort(), Color::Red(), 1.0f);
 
     SimpleWindow::pointer window = SimpleWindow::New();
-    //window->addRenderer(imageRenderer);
-    //window->addRenderer(segmentationRenderer);
-    //window->set2DMode();
     window->addRenderer(meshRenderer);
 #ifdef FAST_CONTINUOUS_INTEGRATION
     // This will automatically close the window after 5 seconds, used for CI testing
