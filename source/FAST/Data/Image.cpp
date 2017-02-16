@@ -1089,7 +1089,13 @@ void Image::fill(float value) {
 				);
 			}
         } else {
-			throw Exception("Not implemented yet");
+            OpenCLBufferAccess::pointer access = this->getOpenCLBufferAccess(ACCESS_READ_WRITE, clDevice);
+            queue.enqueueFillBuffer(
+                    *access->get(),
+                    value,
+                    0,
+                    getBufferSize()
+            );
         }
     }
 }
