@@ -1,6 +1,6 @@
 #include "Renderer.hpp"
 
-using namespace fast;
+namespace fast {
 
 Renderer::Renderer() {
     mWindow = -1;
@@ -16,7 +16,7 @@ float Renderer::getIntensityLevel() {
 }
 
 void Renderer::setIntensityWindow(float window) {
-    if(window <= 0)
+    if (window <= 0)
         throw Exception("Intensity window has to be above 0.");
     mWindow = window;
 }
@@ -25,5 +25,8 @@ float Renderer::getIntensityWindow() {
     return mWindow;
 }
 
+void Renderer::addInputConnection(ProcessObjectPort port) {
+   throw Exception("This renderer does not support arbitrary number of input connections through the addInputConnection method");
+}
 
-
+}
