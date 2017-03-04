@@ -100,7 +100,7 @@ __kernel void updateLevelSetFunction(
     float curvature = ((nPlus.x-nMinus.x)+(nPlus.y-nMinus.y)+(nPlus.z-nMinus.z))*0.5f;
 
     // Calculate speed term
-    float speed = -(1.0f-alpha)*(epsilon-fabs(threshold-read_imagei(input,sampler,pos).x)) + alpha*curvature;
+    float speed = -(1.0f-alpha)*max(-epsilon, (epsilon-fabs(threshold-read_imagei(input,sampler,pos).x)))/epsilon + alpha*curvature;
 
     // Determine gradient based on speed direction
     float3 gradient;

@@ -3,7 +3,10 @@
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
 #include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
+#include "FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp"
+#include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
+#include "FAST/Visualization/DualViewWindow.hpp"
 
 using namespace fast;
 
@@ -15,8 +18,8 @@ TEST_CASE("Level set segmentation", "[fast][levelset][visual]") {
     LevelSetSegmentation::pointer segmentation = LevelSetSegmentation::New();
     segmentation->setIntensityMean(150);
     segmentation->setIntensityVariance(50);
-    segmentation->setCurvatureWeight(0.99);
-    segmentation->setMaxIterations(1000);
+    segmentation->setCurvatureWeight(0.75);
+    segmentation->setMaxIterations(5000);
     segmentation->addSeedPoint(Vector3i(149, 210, 345), 10);
     segmentation->setInputConnection(importer->getOutputPort());
     segmentation->update();
@@ -27,9 +30,18 @@ TEST_CASE("Level set segmentation", "[fast][levelset][visual]") {
     MeshRenderer::pointer renderer = MeshRenderer::New();
     renderer->addInputConnection(extraction->getOutputPort());
 
-    SimpleWindow::pointer window = SimpleWindow::New();
-    window->addRenderer(renderer);
-    window->set3DMode();
+    SegmentationRenderer::pointer segRenderer = SegmentationRenderer::New();
+    segRenderer->addInputConnection(segmentation->getOutputPort());
+
+    ImageRenderer::pointer imageRenderer = ImageRenderer::New();
+    imageRenderer->addInputConnection(importer->getOutputPort());
+
+    DualViewWindow::pointer window = DualViewWindow::New();
+    window->getTopLeftView()->addRenderer(renderer);
+    window->getTopLeftView()->set3DMode();
+    window->getBottomRightView()->addRenderer(imageRenderer);
+    window->getBottomRightView()->addRenderer(segRenderer);
+    window->getBottomRightView()->set2DMode();
     window->start();
 }
- */
+    */

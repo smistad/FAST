@@ -155,7 +155,7 @@ void LevelSetSegmentation::execute() {
             }
 
             // Calculate max speed and deltaT for next round
-            deltaT = 1.0f/speed->calculateMaximumIntensity();
+            deltaT = 0.5/speed->calculateMaximumIntensity();
         }
         if(mIterations % 2 != 0) {
             // Phi_2 was written to in the last iteration, copy this to the result
