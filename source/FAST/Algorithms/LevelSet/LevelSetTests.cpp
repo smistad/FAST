@@ -16,7 +16,7 @@ TEST_CASE("Level set segmentation", "[fast][levelset][visual]") {
     segmentation->setIntensityMean(150);
     segmentation->setIntensityVariance(50);
     segmentation->setCurvatureWeight(0.99);
-    segmentation->setMaxIterations(5000);
+    segmentation->setMaxIterations(1000);
     segmentation->addSeedPoint(Vector3i(149, 210, 345), 10);
     segmentation->setInputConnection(importer->getOutputPort());
     segmentation->update();

@@ -89,6 +89,9 @@ void LevelSetSegmentation::execute() {
     cl::size_t<3> origin = createOrigoRegion();
     cl::size_t<3> region = createRegion(size);
 
+    Vector3f spacing = input->getSpacing();
+    const float minimumSpacing = std::min(std::min(spacing.x(), spacing.y()), spacing.z());
+
     if(!device->isWritingTo3DTexturesSupported()) {
         // Create auxillary buffer
         cl::Buffer writeBuffer = cl::Buffer(
@@ -119,13 +122,19 @@ void LevelSetSegmentation::execute() {
                 input->getDepth()
         );
 
+        Image::pointer speed = Image::New();
+        speed->create(input->getSize(), TYPE_FLOAT, 1);
+
         OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
         kernel.setArg(0, *access->get3DImage());
         kernel.setArg(3, mIntensityMean);
         kernel.setArg(4, mIntensityVariance);
         kernel.setArg(5, mCurvatureWeight);
+
+        float deltaT = 0.0001;
         for(int i = 0; i < mIterations; i++) {
-            reportInfo() << "Iteration: " << i << reportEnd();
+            kernel.setArg(7, deltaT);
+            reportInfo() << "Iteration: " << i << " delta t: " << deltaT << reportEnd();
             if(i % 2 == 0) {
                 kernel.setArg(1, phi_1);
                 kernel.setArg(2, phi_2);
@@ -133,13 +142,20 @@ void LevelSetSegmentation::execute() {
                 kernel.setArg(1, phi_2);
                 kernel.setArg(2, phi_1);
             }
-            queue.enqueueNDRangeKernel(
-                    kernel,
-                    cl::NullRange,
-                    cl::NDRange(size.x(),size.y(),size.z()),
-                    cl::NullRange
-            );
-            queue.finish();
+            {
+                OpenCLImageAccess::pointer speedAccess = speed->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+                kernel.setArg(6, *speedAccess->get3DImage());
+                queue.enqueueNDRangeKernel(
+                        kernel,
+                        cl::NullRange,
+                        cl::NDRange(size.x(), size.y(), size.z()),
+                        cl::NullRange
+                );
+                queue.finish();
+            }
+
+            // Calculate max speed and deltaT for next round
+            deltaT = 1.0f/speed->calculateMaximumIntensity();
         }
         if(mIterations % 2 != 0) {
             // Phi_2 was written to in the last iteration, copy this to the result

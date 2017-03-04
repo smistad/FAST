@@ -15,7 +15,9 @@ __kernel void updateLevelSetFunction(
         PHI_WRITE_TYPE phi_write,
         __private float threshold,
         __private float epsilon,
-        __private float alpha
+        __private float alpha,
+        PHI_WRITE_TYPE speedStorage,
+        __private float deltaT
 ) {
     int x = get_global_id(0);
     int y = get_global_id(1);
@@ -112,7 +114,7 @@ __kernel void updateLevelSetFunction(
 
     // Stability CFL
     // max(fabs(speed*gradient.length()))
-    float deltaT = 0.25;
+    WRITE_RESULT(speedStorage, pos, fabs(speed*length(gradient)));
 
     // Update the level set function phi
     WRITE_RESULT(phi_write, pos, read_imagef(phi_read,sampler,pos).x + deltaT*speed*length(gradient));
