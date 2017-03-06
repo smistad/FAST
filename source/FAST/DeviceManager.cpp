@@ -237,6 +237,11 @@ DeviceManager::DeviceManager() {
 
     // Set one random device as default device
     setDefaultDevice(getOneOpenCLDevice(true));
+
+    OpenCLDevice::pointer device = getDefaultComputationDevice();
+    if(!device->isWritingTo3DTexturesSupported()) {
+        reportWarning() << "Writing to directly to 3D textures/images is not supported on main device" << reportEnd();
+    }
 }
 
 bool DeviceManager::isGLInteropEnabled() {
