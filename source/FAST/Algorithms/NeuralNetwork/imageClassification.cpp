@@ -48,7 +48,13 @@ int main() {
     Reporter::setGlobalReportMethod(Reporter::COUT);
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
     streamer->setFilenameFormats({
-         "/home/smistad/data/ultrasound_smistad_heart/1234/H1AD8S80/US-2D_#.mhd",
+
+                                         Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_#.mhd",
+                                         Config::getTestDataPath() + "US/Heart/ApicalTwoChamber/US-2D_#.mhd",
+                                         Config::getTestDataPath() + "US/Heart/ApicalLongAxis/US-2D_#.mhd",
+            Config::getTestDataPath() + "US/Heart/ParasternalLongAxis/US-2D_#.mhd",
+            Config::getTestDataPath() + "US/Heart/ParasternalShortAxis/US-2D_#.mhd",
+                                         "/home/smistad/data/ultrasound_smistad_heart/1234/H1AD8S80/US-2D_#.mhd",
          "/home/smistad/data/ultrasound_smistad_heart/1234/H1AD9B04/US-2D_#.mhd",
          "/home/smistad/data/ultrasound_smistad_heart/1234/H1AD9EG6/US-2D_#.mhd",
          "/home/smistad/data/ultrasound_smistad_heart/1234/H1AD9L08/US-2D_#.mhd",
@@ -96,12 +102,12 @@ int main() {
          "/media/extra/GRUE_images/Clinic001/F4AFPMJQ/US-2D_#.png",
     });
     streamer->enableLooping();
-    streamer->setSleepTime(50);
+    streamer->setSleepTime(25);
     streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
     ImageClassifier::pointer classifier = ImageClassifier::New();
     classifier->setScaleFactor(1.0f/255.0f);
-    classifier->load("/home/smistad/Downloads/cvc_best_epoch");
+    classifier->load("/home/smistad/Downloads/cvc_net");
     classifier->setInputSize(128,128);
     classifier->setOutputParameters({"Softmax"});
     classifier->setLabels({
@@ -129,7 +135,9 @@ int main() {
     textRenderer->setInputConnection(classToText->getOutputPort());
 
     window->addRenderer(renderer);
-    window->setWindowSize(1024, 1024);
+    window->setWindowSize(1280, 1024);
+    window->getView()->setBackgroundColor(Color::Black());
+    window->enableFullscreen();
     window->addRenderer(textRenderer);
     window->set2DMode();
     window->start();
