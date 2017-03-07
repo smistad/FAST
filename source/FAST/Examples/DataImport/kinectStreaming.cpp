@@ -25,8 +25,10 @@ int main(int argc, char** argv) {
     DualViewWindow::pointer window = DualViewWindow::New();
     window->getTopLeftView()->addRenderer(renderer);
     window->getTopLeftView()->set2DMode();
+    window->getTopLeftView()->setBackgroundColor(Color::Black());
     window->getBottomRightView()->addRenderer(renderer2);
     window->getBottomRightView()->set2DMode();
+    window->getBottomRightView()->setBackgroundColor(Color::Black());
     window->enableFullscreen();
 #ifdef FAST_CONTINUOUS_INTEGRATION
     // This will automatically close the window after 5 seconds, used for CI testing
