@@ -3,6 +3,7 @@
 
 #include "FAST/ProcessObject.hpp"
 #include "Streamer.hpp"
+#include <thread>
 
 namespace fast {
 
@@ -17,6 +18,14 @@ class KinectStreamer : public Streamer, public ProcessObject {
 
         void execute();
 
+        bool mStreamIsStarted;
+        bool mFirstFrameIsInserted;
+        bool mHasReachedEnd;
+        uint mNrOfFrames;
+
+        std::thread* mThread;
+        std::mutex mFirstFrameMutex;
+        std::condition_variable mFirstFrameCondition;
 };
 
 }
