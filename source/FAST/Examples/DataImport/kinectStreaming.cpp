@@ -5,7 +5,7 @@
  */
 #include "FAST/Streamers/KinectStreamer.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
-#include "FAST/Visualization/SimpleWindow.hpp"
+#include "FAST/Visualization/DualViewWindow.hpp"
 
 
 using namespace fast;
@@ -16,11 +16,18 @@ int main(int argc, char** argv) {
     // Renderer image
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->addInputConnection(streamer->getOutputPort());
-    renderer->setIntensityLevel(1000);
-    renderer->setIntensityWindow(500);
-    SimpleWindow::pointer window = SimpleWindow::New();
-    window->addRenderer(renderer);
-    window->set2DMode();
+
+    ImageRenderer::pointer renderer2 = ImageRenderer::New();
+    renderer2->addInputConnection(streamer->getOutputPort(1));
+    renderer2->setIntensityLevel(1000);
+    renderer2->setIntensityWindow(500);
+
+    DualViewWindow::pointer window = DualViewWindow::New();
+    window->getTopLeftView()->addRenderer(renderer);
+    window->getTopLeftView()->set2DMode();
+    window->getBottomRightView()->addRenderer(renderer2);
+    window->getBottomRightView()->set2DMode();
+    window->enableFullscreen();
 #ifdef FAST_CONTINUOUS_INTEGRATION
     // This will automatically close the window after 5 seconds, used for CI testing
     window->setTimeout(5*1000);

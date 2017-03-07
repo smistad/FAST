@@ -8,7 +8,7 @@ namespace fast {
 
 KinectStreamer::KinectStreamer() {
     createOutputPort<Image>(0, OUTPUT_DYNAMIC); // RGB
-    //createOutputPort<Image>(1, OUTPUT_DYNAMIC); // Depth image
+    createOutputPort<Image>(1, OUTPUT_DYNAMIC); // Depth image
     mNrOfFrames = 0;
     mHasReachedEnd = false;
     mFirstFrameIsInserted = false;
@@ -17,7 +17,7 @@ KinectStreamer::KinectStreamer() {
 
 void KinectStreamer::execute() {
     getOutputData<Image>(0)->setStreamer(mPtr.lock());
-    //getOutputData<Image>(1)->setStreamer(mPtr.lock());
+    getOutputData<Image>(1)->setStreamer(mPtr.lock());
     if(!mStreamIsStarted) {
         // Check that first frame exists before starting streamer
 
@@ -71,21 +71,31 @@ void KinectStreamer::producerStream() {
         libfreenect2::Frame *ir = frames[libfreenect2::Frame::Ir];
         libfreenect2::Frame *depth = frames[libfreenect2::Frame::Depth];
 
-
         registration->apply(rgb, depth, &undistorted, &registered);
 
-        std::cout << "Status: " << registered.status << std::endl;
-
         float* depth_data = (float*)undistorted.data;
-        unsigned int* rgb_data = (unsigned int*)registered.data;
+        unsigned char* rgb_data = (unsigned char*)registered.data;
 
-        Image::pointer image = Image::New();
-        image->create(512, 424, TYPE_FLOAT, 1, depth_data);
+        Image::pointer depthImage = Image::New();
+        depthImage->create(512, 424, TYPE_FLOAT, 1, depth_data);
 
-        DynamicData::pointer ptr = getOutputData<Image>();
-        if(ptr.isValid()) {
+        Image::pointer rgbImage = Image::New();
+        if(rgb->format == libfreenect2::Frame::Format::BGRX) {
+            // Have to swap B and R channel
+            for(int i = 0; i < 512*424; ++i) {
+                uchar blue = rgb_data[i*4];
+                rgb_data[i*4] = rgb_data[i*4+2];
+                rgb_data[i*4+2] = blue;
+            }
+        }
+        rgbImage->create(512, 424, TYPE_UINT8, 4, rgb_data);
+
+        DynamicData::pointer ddRGB = getOutputData<Image>(0);
+        DynamicData::pointer ddDepth = getOutputData<Image>(1);
+        if(ddRGB.isValid() && ddDepth.isValid()) {
             try {
-                ptr->addFrame(image);
+                ddRGB->addFrame(rgbImage);
+                ddDepth->addFrame(depthImage);
             } catch(NoMoreFramesException &e) {
                 throw e;
             } catch(Exception &e) {
