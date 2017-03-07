@@ -20,8 +20,9 @@ class WindowWidget : public QWidget {
         WindowWidget();
         void keyPressEvent(QKeyEvent* event);
         void closeEvent(QCloseEvent* event);
-        void addView(View* view);
+        View* addView();
         std::vector<View*> getViews() const;
+        void clearViews();
         ~WindowWidget();
     private:
         std::vector<View*> mViews;

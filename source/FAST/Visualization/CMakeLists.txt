@@ -6,6 +6,8 @@ fast_add_sources(
     SimpleWindow.hpp
     DualViewWindow.cpp
     DualViewWindow.hpp
+    MultiViewWindow.cpp
+    MultiViewWindow.hpp
     WindowWidget.cpp
     WindowWidget.hpp
     ComputationThread.cpp

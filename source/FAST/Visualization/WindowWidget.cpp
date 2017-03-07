@@ -27,8 +27,13 @@ WindowWidget::~WindowWidget() {
 WindowWidget::WindowWidget() {
 }
 
-void WindowWidget::addView(View* view) {
+View* WindowWidget::addView() {
+    View* view = new View(this);
     mViews.push_back(view);
+}
+
+void WindowWidget::clearViews() {
+    mViews.clear();
 }
 
 std::vector<View*> WindowWidget::getViews() const {
