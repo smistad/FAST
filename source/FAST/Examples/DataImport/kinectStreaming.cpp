@@ -30,12 +30,11 @@ int main(int argc, char** argv) {
     DualViewWindow::pointer window = DualViewWindow::New();
     window->getTopLeftView()->addRenderer(renderer);
     window->getTopLeftView()->set2DMode();
-    window->getTopLeftView()->setMaximumWidth(512);
     window->getTopLeftView()->setBackgroundColor(Color::Black());
     window->getBottomRightView()->addRenderer(renderer3);
     window->getBottomRightView()->set3DMode();
     // Adjust camera
-    window->getBottomRightView()->setLookAt(Vector3f(0,0,-500), Vector3f(0,0,1000), Vector3f(0,-1,0), 500, 5000);
+    window->getBottomRightView()->setLookAt(Vector3f(0,-500,-500), Vector3f(0,0,1000), Vector3f(0,-1,0), 500, 5000);
     window->enableFullscreen();
 #ifdef FAST_CONTINUOUS_INTEGRATION
     // This will automatically close the window after 5 seconds, used for CI testing
