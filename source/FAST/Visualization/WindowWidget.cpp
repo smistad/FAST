@@ -28,8 +28,9 @@ WindowWidget::WindowWidget() {
 }
 
 View* WindowWidget::addView() {
-    View* view = new View(this);
+    View* view = new View();
     mViews.push_back(view);
+    return view;
 }
 
 void WindowWidget::clearViews() {

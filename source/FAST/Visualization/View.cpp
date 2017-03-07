@@ -59,7 +59,7 @@ void View::set2DPixelSpacing(float spacing) {
 	mPBOspacing = spacing;
 }
 
-View::View(QWidget* parent) : QOpenGLWidget(parent), mViewingPlane(Plane::Axial()) {
+View::View() : mViewingPlane(Plane::Axial()) {
     createInputPort<Camera>(0, false);
 
     mBackgroundColor = Color::White();

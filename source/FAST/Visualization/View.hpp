@@ -45,7 +45,7 @@ class View : public QOpenGLWidget, public ProcessObject {
 		std::string getNameOfClass() const {
 		    return "View";
 		};
-        View(QWidget* parent);
+        View();
     private:
 
 		std::vector<Renderer::pointer> mNonVolumeRenderers;
