@@ -5,6 +5,7 @@
  */
 #include "FAST/Streamers/KinectStreamer.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
+#include "FAST/Visualization/PointRenderer/PointRenderer.hpp"
 #include "FAST/Visualization/DualViewWindow.hpp"
 
 
@@ -22,13 +23,19 @@ int main(int argc, char** argv) {
     renderer2->setIntensityLevel(1000);
     renderer2->setIntensityWindow(500);
 
+    PointRenderer::pointer renderer3 = PointRenderer::New();
+    renderer3->addInputConnection(streamer->getOutputPort(2));
+    renderer3->setDefaultSize(2);
+
     DualViewWindow::pointer window = DualViewWindow::New();
     window->getTopLeftView()->addRenderer(renderer);
     window->getTopLeftView()->set2DMode();
+    window->getTopLeftView()->setMaximumWidth(512);
     window->getTopLeftView()->setBackgroundColor(Color::Black());
-    window->getBottomRightView()->addRenderer(renderer2);
-    window->getBottomRightView()->set2DMode();
-    window->getBottomRightView()->setBackgroundColor(Color::Black());
+    window->getBottomRightView()->addRenderer(renderer3);
+    window->getBottomRightView()->set3DMode();
+    // Adjust camera
+    window->getBottomRightView()->setLookAt(Vector3f(0,0,-500), Vector3f(0,0,1000), Vector3f(0,-1,0), 500, 5000);
     window->enableFullscreen();
 #ifdef FAST_CONTINUOUS_INTEGRATION
     // This will automatically close the window after 5 seconds, used for CI testing

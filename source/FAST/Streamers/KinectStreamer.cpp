@@ -3,12 +3,14 @@
 #include <libfreenect2/frame_listener_impl.h>
 #include <libfreenect2/registration.h>
 #include "FAST/Data/Image.hpp"
+#include "FAST/Data/PointSet.hpp"
 
 namespace fast {
 
 KinectStreamer::KinectStreamer() {
     createOutputPort<Image>(0, OUTPUT_DYNAMIC); // RGB
     createOutputPort<Image>(1, OUTPUT_DYNAMIC); // Depth image
+    createOutputPort<PointSet>(2, OUTPUT_DYNAMIC); // Point cloud
     mNrOfFrames = 0;
     mHasReachedEnd = false;
     mFirstFrameIsInserted = false;
@@ -18,6 +20,7 @@ KinectStreamer::KinectStreamer() {
 void KinectStreamer::execute() {
     getOutputData<Image>(0)->setStreamer(mPtr.lock());
     getOutputData<Image>(1)->setStreamer(mPtr.lock());
+    getOutputData<Image>(2)->setStreamer(mPtr.lock());
     if(!mStreamIsStarted) {
         // Check that first frame exists before starting streamer
 
@@ -56,8 +59,8 @@ void KinectStreamer::producerStream() {
     if(!dev->start())
         throw Exception("Failed to start Kinect device streaming");
 
-    std::cout << "device serial: " << dev->getSerialNumber() << std::endl;
-    std::cout << "device firmware: " << dev->getFirmwareVersion() << std::endl;
+    reportInfo() << "Kinect device serial: " << dev->getSerialNumber() << reportEnd();
+    reportInfo() << "Kinect device firmware: " << dev->getFirmwareVersion() << reportEnd();
 
     libfreenect2::Registration *registration = new libfreenect2::Registration(dev->getIrCameraParams(),
                                                                               dev->getColorCameraParams());
@@ -90,16 +93,35 @@ void KinectStreamer::producerStream() {
         }
         rgbImage->create(512, 424, TYPE_UINT8, 4, rgb_data);
 
+        // Create point cloud
+        std::vector<Vector3f> points;
+        for(int r=0; r<424; ++r) {
+            for(int c = 0; c < 512; ++c) {
+                float x, y, z, color;
+                registration->getPointXYZRGB(&undistorted, &registered, r, c, x, y, z, color);
+                if(!std::isnan(x)) {
+                    Vector3f point(x*1000, y*1000, z*1000);
+                    //std::cout << point.transpose() << std::endl;
+                    points.push_back(point);
+                }
+            }
+        }
+        PointSet::pointer cloud = PointSet::New();
+        cloud->create(points);
+
         DynamicData::pointer ddRGB = getOutputData<Image>(0);
         DynamicData::pointer ddDepth = getOutputData<Image>(1);
+        DynamicData::pointer ddPoint = getOutputData<PointSet>(2);
         if(ddRGB.isValid() && ddDepth.isValid()) {
             try {
                 ddRGB->addFrame(rgbImage);
                 ddDepth->addFrame(depthImage);
+                ddPoint->addFrame(cloud);
             } catch(NoMoreFramesException &e) {
                 throw e;
             } catch(Exception &e) {
                 reportInfo() << "streamer has been deleted, stop" << Reporter::end;
+                listener.release(frames);
                 break;
             }
             if(!mFirstFrameIsInserted) {
@@ -111,10 +133,10 @@ void KinectStreamer::producerStream() {
             }
         } else {
             reportInfo() << "DynamicImage object destroyed, stream can stop." << Reporter::end;
+            listener.release(frames);
             break;
         }
         mNrOfFrames++;
-
         listener.release(frames);
     }
 
