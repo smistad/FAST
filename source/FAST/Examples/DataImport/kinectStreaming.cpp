@@ -8,25 +8,28 @@
 #include "FAST/Visualization/PointRenderer/PointRenderer.hpp"
 #include "FAST/Visualization/MultiViewWindow.hpp"
 
-
 using namespace fast;
 
 int main(int argc, char** argv) {
+    // Setup streaming
     KinectStreamer::pointer streamer = KinectStreamer::New();
 
-    // Renderer image
+    // Renderer RGB image
     ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->addInputConnection(streamer->getOutputPort());
+    renderer->addInputConnection(streamer->getOutputPort(0));
 
+    // Renderer depth image
     ImageRenderer::pointer renderer2 = ImageRenderer::New();
     renderer2->addInputConnection(streamer->getOutputPort(1));
     renderer2->setIntensityLevel(1000);
     renderer2->setIntensityWindow(500);
 
+    // Render point cloud
     PointRenderer::pointer renderer3 = PointRenderer::New();
     renderer3->addInputConnection(streamer->getOutputPort(2));
     renderer3->setDefaultSize(2);
 
+    // Setup window
     MultiViewWindow::pointer window = MultiViewWindow::New();
     window->setTitle("FAST Kinect Streaming");
     window->setHeight(512);
