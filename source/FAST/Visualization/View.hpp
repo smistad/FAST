@@ -30,7 +30,7 @@ class View : public QOpenGLWidget, public ProcessObject {
         void set2DMode();
         void set3DMode();
         void setViewingPlane(Plane plane);
-        void setLookAt(Vector3f cameraPosition, Vector3f targetPosition, Vector3f cameraUpVector);
+        void setLookAt(Vector3f cameraPosition, Vector3f targetPosition, Vector3f cameraUpVector, float zNear = 0.1, float zFar = 1000);
         void updateAllRenderers();
         void stopPipelineUpdateThread();
         void resumePipelineUpdateThread();

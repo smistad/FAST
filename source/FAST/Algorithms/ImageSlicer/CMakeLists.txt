@@ -5,3 +5,6 @@ fast_add_sources(
 fast_add_test_sources(
 	ImageSlicerTests.cpp
 )
+fast_add_python_interfaces(
+    ImageSlicer.i
+)

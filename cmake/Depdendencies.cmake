@@ -58,6 +58,7 @@ include(cmake/ModuleVTK.cmake)
 include(cmake/ModuleITK.cmake)
 include(cmake/ModuleOpenIGTLink.cmake)
 include(cmake/ModuleNeuralNetwork.cmake)
+include(cmake/ModuleKinect.cmake)
 
 # Make sure FAST can find external includes and libaries
 link_directories(${FAST_EXTERNAL_INSTALL_DIR}/lib/)

@@ -36,7 +36,7 @@ class WindowWidget : public QWidget {
             layout->addWidget(button);
 
             // Create a FAST view and add to layout
-            mView = new fast::View;
+            mView = new fast::View();
             mView->set2DMode();
             layout->addWidget(mView);
 

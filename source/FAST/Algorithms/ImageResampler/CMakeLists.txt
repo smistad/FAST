@@ -5,3 +5,6 @@ fast_add_sources(
 fast_add_test_sources(
         ImageResamplerTests.cpp
 )
+fast_add_python_interfaces(
+        ImageResampler.i
+)

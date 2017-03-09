@@ -5,6 +5,7 @@ namespace fast {
 
 Plane::Plane(Vector3f normal) {
     mNormal = normal;
+    std::cout << "plane created with: " << normal.transpose() << std::endl;
     mNormal.normalize();
     mHasPosition = false;
 }
