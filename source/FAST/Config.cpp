@@ -87,6 +87,7 @@ void Config::loadConfiguration() {
     // Read and parse configuration file
     // It should reside in the build folder when compiling, and in the root folder when using release
     std::string filename = getPath() + "fast_configuration.txt";
+    //std::string filename = "/home/smistad/workspace/FAST/build_Debug/fast_configuration.txt";
     std::ifstream file(filename);
     if(!file.is_open()) {
         Reporter::warning() << "Unable to open the configuration file " << filename << " using defaults." << Reporter::end;

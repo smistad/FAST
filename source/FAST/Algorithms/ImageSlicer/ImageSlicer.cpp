@@ -29,6 +29,8 @@ ImageSlicer::ImageSlicer() : mArbitrarySlicePlane(Plane(Vector3f(1,0,0))) {
 void ImageSlicer::execute() {
 	Image::pointer input = getStaticInputData<Image>();
 	Image::pointer output = getStaticOutputData<Image>();
+    std::cout << "w: " << input->getWidth();
+    std::cout << mArbitrarySlicePlane.getNormal().transpose() << std::endl;
 
 	if(input->getDimensions() != 3)
 		throw Exception("Image slicer can only be used for 3D images");
