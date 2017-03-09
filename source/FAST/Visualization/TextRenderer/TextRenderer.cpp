@@ -104,7 +104,7 @@ void TextRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
     }
 
     //mView->swapBuffers();
-    QImage image = mView->grabFramebuffer();
+    QImage image = mView->grabFrameBuffer();
     // TODO get clPBO data
     OpenCLDevice::pointer device = getMainDevice();
     cl::CommandQueue queue = device->getCommandQueue();

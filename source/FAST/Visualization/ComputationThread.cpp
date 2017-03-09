@@ -1,7 +1,7 @@
 #include "ComputationThread.hpp"
 #include "SimpleWindow.hpp"
 #include "View.hpp"
-#include <QOpenGLContext>
+#include <QGLContext>
 
 namespace fast {
 
@@ -33,8 +33,8 @@ void ComputationThread::run() {
         std::unique_lock<std::mutex> lock(mUpdateThreadMutex); // this locks the mutex
         mIsRunning = true;
     }
-    QOpenGLContext* mainGLContext = Window::getMainGLContext();
-    mainGLContext->makeCurrent(Window::getSurface());
+    QGLContext* mainGLContext = Window::getMainGLContext();
+    mainGLContext->makeCurrent();
 
     while(true) {
         for(int i = 0; i < mViews.size(); i++) {

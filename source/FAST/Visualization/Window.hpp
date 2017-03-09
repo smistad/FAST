@@ -6,9 +6,9 @@
 #include "ComputationThread.hpp"
 #include "View.hpp"
 #include <vector>
-#include <QOpenGLContext>
+#include <QGLContext>
 
-class QOpenGLContext;
+class QGLContext;
 class QEventLoop;
 class QOffscreenSurface;
 
@@ -18,8 +18,7 @@ class Window : public QObject, public Object {
     Q_OBJECT
     public:
         static void initializeQtApp();
-        static QOpenGLContext* getMainGLContext();
-        static QSurface* getSurface();
+        static QGLContext* getMainGLContext();
         // Makes the window close after a specific number of ms
         virtual void setTimeout(unsigned int milliseconds);
         ~Window();
@@ -37,8 +36,7 @@ class Window : public QObject, public Object {
         Window();
         View* createView();
         View* getView(uint i) const;
-        static QOpenGLContext* mMainGLContext;
-        static QOffscreenSurface* mSurface;
+        static QGLContext* mMainGLContext;
 
         WindowWidget* mWidget;
         unsigned int mWidth, mHeight;

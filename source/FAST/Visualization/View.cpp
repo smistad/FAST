@@ -87,6 +87,13 @@ View::View() : mViewingPlane(Plane::Axial()) {
 
 	NonVolumesTurn=true;
 
+    QGLContext* context = new QGLContext(QGLFormat::defaultFormat(), this);
+    context->create(fast::Window::getMainGLContext());
+    this->setContext(context);
+    if(!context->isValid() || !context->isSharing()) {
+        reportInfo() << "The custom Qt GL context is invalid!" << Reporter::end;
+        exit(-1);
+    }
 }
 
 void View::setCameraInputConnection(ProcessObjectPort port) {
