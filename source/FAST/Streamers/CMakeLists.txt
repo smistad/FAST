@@ -19,6 +19,12 @@ if(FAST_MODULE_OpenIGTLink)
         Tests/DummyIGTLServer.hpp
     )
 endif()
+if(FAST_MODULE_Kinect)
+    fast_add_sources(
+            KinectStreamer.cpp
+            KinectStreamer.hpp
+    )
+endif()
 fast_add_test_sources(
     Tests/ImageFileStreamerTests.cpp
 )

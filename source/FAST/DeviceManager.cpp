@@ -2,7 +2,7 @@
 #include "FAST/Exception.hpp"
 #include "FAST/Visualization/Window.hpp"
 #include <QApplication>
-#include <QOpenGLContext>
+#include <QGLContext>
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
@@ -82,7 +82,6 @@ void DeviceManager::deleteInstance() {
 
 std::vector<OpenCLDevice::pointer> DeviceManager::getDevices(DeviceCriteria criteria, bool enableVisualization) {
     unsigned long * glContext = NULL;
-    QOpenGLWidget* widget = NULL;
     if(!isGLInteropEnabled()) {
         enableVisualization = false;
         fast::Window::getMainGLContext(); // Still have to create GL context
@@ -91,10 +90,7 @@ std::vector<OpenCLDevice::pointer> DeviceManager::getDevices(DeviceCriteria crit
         // Create GL context
 
 		// Make sure only one QApplication is created
-        std::cout << "ADASDASDASD" << std::endl;
-		if(!Window::getMainGLContext()->makeCurrent(Window::getSurface())) {
-            throw Exception("Failed to make gl context current");
-        }
+		Window::getMainGLContext()->makeCurrent();
 #if defined(__APPLE__) || defined(__MACOSX)
 		CGLContextObj appleContext = CGLGetCurrentContext();
 		reportInfo() << "Initial GL context: " << CGLGetCurrentContext() << Reporter::end;
@@ -120,9 +116,6 @@ std::vector<OpenCLDevice::pointer> DeviceManager::getDevices(DeviceCriteria crit
         OpenCLDevice * device = new OpenCLDevice(deviceVector, glContext);
         executionDevices.push_back(OpenCLDevice::pointer(device));
     }
-
-    // Cleanup widget, widget has to be alive when creating device
-    delete widget;
 
     return executionDevices;
 }
@@ -274,7 +267,7 @@ bool DeviceManager::deviceHasOpenGLInteropCapability(const cl::Device &device) {
     cl::Platform platform = device.getInfo<CL_DEVICE_PLATFORM>();
     // Get all devices that are capable of OpenGL interop with this platform
     // Create properties for CL-GL context
-		fast::Window::getMainGLContext()->makeCurrent(fast::Window::getMainGLContext()->surface());
+		Window::getMainGLContext()->makeCurrent();
 		unsigned long* glContext;
 #if defined(__APPLE__) || defined(__MACOSX)
 		CGLContextObj appleContext = CGLGetCurrentContext();

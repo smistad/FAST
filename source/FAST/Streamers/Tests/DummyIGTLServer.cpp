@@ -113,12 +113,13 @@ void DummyIGTLServer::stream() {
     igtl::Socket::Pointer socket;
     DynamicData::pointer dataStream = mStreamer->getOutputData<Image>();
     DummyProcessObject::pointer dummy = DummyProcessObject::New();
+    int framesSent = 0;
     while(true) {
         // Waiting for Connection
         socket = serverSocket->WaitForConnection(1000);
         if(socket.IsNotNull()) { // if client connected
             mStreamer->update();
-            while(!dataStream->hasReachedEnd()) {
+            while(!dataStream->hasReachedEnd() && framesSent < 25) {
                 // Get next image from streamer
                 Image::pointer image = dataStream->getNextFrame(dummy);
 
@@ -135,6 +136,7 @@ void DummyIGTLServer::stream() {
                 socket->Send(transformMsg->GetPackPointer(), transformMsg->GetPackSize());
 
                 igtl::Sleep(interval); // wait
+                framesSent++;
             }
             break;
         }

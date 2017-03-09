@@ -126,16 +126,13 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
             Window::initializeQtApp();
 
             // Need a drawable for this to work
-            //QOpenGLWidget* widget = new QOpenGLWidget;
+            //QGLWidget* widget = new QGLWidget;
             //widget->show();
             //widget->hide(); // TODO should probably delete widget as well
             //reportInfo() << "created a drawable" << Reporter::end;
         }
 #endif
 #endif
-        if(!Window::getMainGLContext()->makeCurrent(Window::getSurface())) {
-            throw Exception("Unable to set GL context current");
-        }
         glGenBuffers(1, &mVBOID);
         glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
         if(mHostHasData) {

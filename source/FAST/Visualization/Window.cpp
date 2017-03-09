@@ -6,8 +6,7 @@
 
 namespace fast {
 
-QOpenGLContext* Window::mMainGLContext = NULL;
-QOffscreenSurface* Window::mSurface = NULL;
+QGLContext* Window::mMainGLContext = NULL;
 
 class FASTApplication : public QApplication {
 public:
@@ -72,29 +71,18 @@ void Window::initializeQtApp() {
         // Create some dummy argc and argv options as QApplication requires it
         int* argc = new int[1];
         *argc = 0;
-        QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
         QApplication* app = new FASTApplication(*argc,NULL);
          // Create computation GL context, if it doesn't exist
         if(mMainGLContext == NULL) {
             Reporter::info() << "Creating new GL context for computation thread" << Reporter::end;
 
             // Create GL context to be shared with the CL contexts
-            mSurface = new QOffscreenSurface();
-            mSurface->setFormat(QSurfaceFormat::defaultFormat());
-            mSurface->create();
-            mMainGLContext = new QOpenGLContext;
-            mMainGLContext->setShareContext(QOpenGLContext::globalShareContext());
-            mMainGLContext->setFormat(mSurface->format());
+            QGLWidget* widget = new QGLWidget;
+            mMainGLContext = new QGLContext(QGLFormat::defaultFormat(), widget); // by including widget here the context becomes valid
             mMainGLContext->create();
             if(!mMainGLContext->isValid()) {
                 throw Exception("Qt GL context is invalid!");
             }
-            mMainGLContext->makeCurrent(mSurface);
-            GLenum err = glewInit();
-            if(err != GLEW_OK)
-                throw Exception("GLEW init error");
-            mMainGLContext->doneCurrent();
-            atexit(cleanup);
         }
     } else {
         Reporter::info() << "QApp already exists.." << Reporter::end;
@@ -132,8 +120,7 @@ void Window::stop() {
 }
 
 View* Window::createView() {
-    View* view = new View();
-    mWidget->addView(view);
+    View* view = mWidget->addView();
 
     return view;
 }
@@ -183,7 +170,7 @@ void Window::setTimeout(unsigned int milliseconds) {
     mTimeout = milliseconds;
 }
 
-QOpenGLContext* Window::getMainGLContext() {
+QGLContext* Window::getMainGLContext() {
     if(mMainGLContext == NULL) {
         throw Exception("No OpenGL context created");
         //initializeQtApp();
@@ -205,12 +192,11 @@ void Window::startComputationThread() {
 
         for(int i = 0; i < getViews().size(); i++)
             mThread->addView(getViews()[i]);
-        QOpenGLContext* mainGLContext = Window::getMainGLContext();
+        QGLContext* mainGLContext = Window::getMainGLContext();
         if(!mainGLContext->isValid()) {
             throw Exception("QGL context is invalid!");
         }
 
-        mainGLContext->makeCurrent(mainGLContext->surface());
         mainGLContext->doneCurrent();
         mainGLContext->moveToThread(thread);
         thread->start();
@@ -242,10 +228,6 @@ void Window::setWidth(uint width) {
 
 void Window::setHeight(uint height) {
     mHeight = height;
-}
-
-QSurface* Window::getSurface() {
-    return mSurface;
 }
 
 } // end namespace fast

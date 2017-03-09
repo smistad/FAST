@@ -26,7 +26,7 @@ if(${FAST_DOWNLOAD_TEST_DATA})
             # Unzip
             execute_process(
                     COMMAND ${CMAKE_COMMAND}
-                    -E tar xzf ${TEST_DATA_FILENAME}
+                    -E tar xzf ${TEST_DATA_FILENAME} /data/ ${TEST_DATA_DIR}
                     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
             )
             # Delete zip

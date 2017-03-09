@@ -16,6 +16,7 @@ Without this module, all visualization in FAST will be disabled." ON)
 option(FAST_MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
 option(FAST_MODULE_NeuralNetwork "Build neural network module using tensorflow" OFF)
 option(FAST_MODULE_Python "Build Python wrappers" OFF)
+option(FAST_MODULE_Kinect "Build kinect module" OFF)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
 
 #### Set build type

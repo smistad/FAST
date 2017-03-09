@@ -35,4 +35,5 @@ fast_add_sources(
 fast_add_python_interfaces(
 	ProcessObject.i
 	numpy.i
+    Config.i
 )

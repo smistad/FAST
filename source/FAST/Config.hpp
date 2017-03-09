@@ -10,12 +10,17 @@ public:
     static std::string getTestDataPath();
     static std::string getKernelSourcePath();
     static std::string getKernelBinaryPath();
+    static void setConfigFilename(std::string filename);
+    static void setBasePath(std::string path);
 private:
     static void loadConfiguration();
+    static std::string getPath();
     static bool mConfigurationLoaded;
     static std::string mTestDataPath;
     static std::string mKernelSourcePath;
     static std::string mKernelBinaryPath;
+    static std::string mConfigFilename;
+    static std::string mBasePath;
 };
 
 }

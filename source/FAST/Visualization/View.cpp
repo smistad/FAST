@@ -87,13 +87,20 @@ View::View() : mViewingPlane(Plane::Axial()) {
 
 	NonVolumesTurn=true;
 
+    QGLContext* context = new QGLContext(QGLFormat::defaultFormat(), this);
+    context->create(fast::Window::getMainGLContext());
+    this->setContext(context);
+    if(!context->isValid() || !context->isSharing()) {
+        reportInfo() << "The custom Qt GL context is invalid!" << Reporter::end;
+        exit(-1);
+    }
 }
 
 void View::setCameraInputConnection(ProcessObjectPort port) {
     setInputConnection(0, port);
 }
 
-void View::setLookAt(Vector3f cameraPosition, Vector3f targetPosition, Vector3f cameraUpVector) {
+void View::setLookAt(Vector3f cameraPosition, Vector3f targetPosition, Vector3f cameraUpVector, float z_near, float z_far) {
     mCameraPosition = cameraPosition;
     mRotationPoint = targetPosition;
     // Equations based on gluLookAt https://www.opengl.org/sdk/docs/man2/xhtml/gluLookAt.xml
@@ -121,8 +128,8 @@ void View::setLookAt(Vector3f cameraPosition, Vector3f targetPosition, Vector3f 
     M(2,2) = -F[2];
 
     // Must calculate this somehow
-    zNear = 1;
-    zFar = 1000;
+    zNear = z_near;
+    zFar = z_far;
 
     m3DViewingTransformation = AffineTransformation::Identity();
     m3DViewingTransformation.rotate(M);
