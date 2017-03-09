@@ -44,12 +44,9 @@ void TextRenderer::draw() {
             } else if (mStyle == STYLE_ITALIC) {
                 font.setItalic(true);
             }
-            QColor fontColor = QColor(round(color.getRedValue()*255), round(color.getGreenValue()*255), round(color.getBlueValue()*255));
-            QPainter painter;
-            painter.setPen(fontColor);
-            painter.setFont(font);
-            painter.drawText(mPosition2D.x(), mPosition2D.y(), mText.c_str());
-            painter.end();
+            glColor3f(color.getRedValue(), color.getGreenValue(), color.getBlueValue());
+            mView->renderText(mPosition2D.x(), mPosition2D.y(), mText.c_str(), font);
+            glColor3f(1.0f, 1.0f, 1.0f);
         }
     } else {
     	reportWarning() << "View must be given to text render in order for it to work." << reportEnd();
@@ -92,12 +89,17 @@ void TextRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
                 font.setItalic(true);
             }
             // Render text
+            /*
             QColor fontColor = QColor(round(color.getRedValue()*255), round(color.getGreenValue()*255), round(color.getBlueValue()*255));
             QPainter painter(mView);
             painter.setPen(fontColor);
             painter.setFont(font);
             painter.drawText(mPosition2D.x(), mPosition2D.y(), mText.c_str());
             painter.end();
+             */
+            glColor3f(color.getRedValue(), color.getGreenValue(), color.getBlueValue());
+            mView->renderText(mPosition2D.x(), mPosition2D.y(), mText.c_str(), font);
+            glColor3f(1.0f, 1.0f, 1.0f);
         }
     } else {
         reportWarning() << "View must be given to text render in order for it to work." << reportEnd();
