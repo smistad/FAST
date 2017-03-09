@@ -8,9 +8,12 @@
 #include "AppearanceModels/RidgeEdge/RidgeEdgeModel.hpp"
 #include "ShapeModels/CardinalSpline/CardinalSplineModel.hpp"
 #include "FAST/Exporters/VTKMeshFileExporter.hpp"
+#include "FAST/Algorithms/MeshToSegmentation/MeshToSegmentation.hpp"
 #include <chrono>
 #include "FAST/Exporters/StreamExporter.hpp"
+#include "FAST/Exporters/MetaImageExporter.hpp"
 #include <fstream>
+#include <FAST/Importers/ImageFileImporter.hpp>
 
 using namespace fast;
 
@@ -100,6 +103,12 @@ int main(int argc, char** argv) {
         segmentation->setIterations(10);
         segmentation->setStartIterations(20);
 
+        // Get first frame to get size of image
+        ImageFileImporter::pointer importer = ImageFileImporter::New();
+        importer->setFilename(path + "US-2D_0.mhd");
+        importer->update();
+        Image::pointer image = importer->getOutputData<Image>();
+
         // Run through recording once first,
         if(prerun) {
             ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
@@ -168,10 +177,21 @@ int main(int argc, char** argv) {
                     if(mesh == previous)
                         continue;
                     std::cout << "Exporting frame " << i << std::endl;
+                    MeshToSegmentation::pointer meshToSeg = MeshToSegmentation::New();
+                    meshToSeg->setInputData(0, mesh);
+                    meshToSeg->setInputData(1, image);
+
+                    MetaImageExporter::pointer exporter = MetaImageExporter::New();
+                    exporter->setInputConnection(meshToSeg->getOutputPort());
+                    exporter->setFilename(path + "segmentation_" + std::to_string(i) + ".mhd");
+                    exporter->update();
+
+                    /*
                     VTKMeshFileExporter::pointer exporter = VTKMeshFileExporter::New();
                     exporter->setInputData(mesh);
                     exporter->setFilename(path + "segmentation_mesh_" + std::to_string(i) + ".vtk");
                     exporter->update();
+                     */
                     std::cout << "Finished exporting." << std::endl;
                     previous = mesh;
                     i++;

@@ -46,7 +46,7 @@ void BinaryThresholding::execute() {
         }
         cl::Kernel kernel;
         if(mLowerThresholdSet && mUpperThresholdSet) {
-            kernel = cl::Kernel(program, "tresholding");
+            kernel = cl::Kernel(program, "thresholding");
             kernel.setArg(3, mLowerThreshold);
             kernel.setArg(4, mUpperThreshold);
         } else if(mLowerThresholdSet) {

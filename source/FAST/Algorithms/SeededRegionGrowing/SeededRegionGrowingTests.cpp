@@ -21,7 +21,7 @@ TEST_CASE("2D Seeded region growing on OpenCL device", "[fast][SeededRegionGrowi
         algorithm->setInputConnection(importer->getOutputPort());
         algorithm->addSeedPoint(45,248);
         algorithm->addSeedPoint(321,181);
-        algorithm->setIntensityRange(0.1,1.0);
+        algorithm->setIntensityRange(26,255);
         algorithm->setMainDevice(devices[i]);
         algorithm->update();
         Segmentation::pointer result = algorithm->getOutputData<Segmentation>();

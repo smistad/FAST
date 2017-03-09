@@ -96,12 +96,12 @@ int main() {
          "/media/extra/GRUE_images/Clinic001/F4AFPMJQ/US-2D_#.png",
     });
     streamer->enableLooping();
-    streamer->setSleepTime(50);
+    streamer->setSleepTime(25);
     streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
     ImageClassifier::pointer classifier = ImageClassifier::New();
     classifier->setScaleFactor(1.0f/255.0f);
-    classifier->load("/home/smistad/Downloads/cvc_best_epoch");
+    classifier->load("/home/smistad/Downloads/cvc_net");
     classifier->setInputSize(128,128);
     classifier->setOutputParameters({"Softmax"});
     classifier->setLabels({

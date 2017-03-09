@@ -45,7 +45,7 @@ void SegmentationRenderer::setFillArea(bool fillArea) {
 }
 
 SegmentationRenderer::SegmentationRenderer() {
-    createInputPort<Segmentation>(0, false);
+    createInputPort<Image>(0, false);
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/SegmentationRenderer/SegmentationRenderer.cl");
     mIsModified = false;
     mColorsModified = true;
@@ -74,7 +74,10 @@ void SegmentationRenderer::execute() {
 
     // This simply gets the input data for each connection and puts it into a data structure
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
-        Segmentation::pointer input = getStaticInputData<Segmentation>(inputNr);
+        Image::pointer input = getStaticInputData<Image>(inputNr);
+        if(input->getDataType() != TYPE_UINT8) {
+            throw Exception("Data type of image given to SegmentationRenderer must be UINT8");
+        }
 
         mImagesToRender[inputNr] = input;
     }

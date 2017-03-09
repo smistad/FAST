@@ -12,9 +12,19 @@ using namespace fast;
 /*
 TEST_CASE("Object detection stream", "[fast][ObjectDetection][dynamic][visual]") {
 	ImageFileStreamer::pointer importer = ImageFileStreamer::New();
-    //importer->setFilenameFormat("/media/smistad/New Volume/EyeGuide/Axille/0/2016-10-07-135111/US-2D_#.mhd");
-    importer->setFilenameFormat("/media/extra/EyeGuide/Axille/1/2016-10-07-135630/US-2D_#.mhd");
-	importer->setSleepTime(75);
+    importer->setFilenameFormat("/media/extra/EyeGuide/Axille/0/2016-10-07-135111/US-2D_#.mhd");
+    importer->setFilenameFormats({
+         "/home/smistad/data/eyeguide/axillary_nerve_block/5/2016Dec30_082229/#.png",
+         "/home/smistad/data/eyeguide/axillary_nerve_block/5/2016Dec30_082309/#.png",
+         "/home/smistad/data/eyeguide/axillary_nerve_block/5/2016Dec30_082046/#.png",
+         "/home/smistad/data/eyeguide/axillary_nerve_block/5/2016Dec30_082309/#.png",
+         "/home/smistad/data/eyeguide/axillary_nerve_block/11/2017Jan18_094316/#.png",
+		 "/home/smistad/data/eyeguide/axillary_nerve_block/11/2017Jan18_094418/#.png",
+         "/home/smistad/data/eyeguide/axillary_nerve_block/6/2016Dec30_084715/#.png",
+		 "/home/smistad/data/eyeguide/axillary_nerve_block/6/2016Dec30_084746/#.png",
+     });
+    importer->setStartNumber(1);
+	importer->setSleepTime(50);
 
 	ObjectDetection::pointer detector = ObjectDetection::New();
 	//detector->setMirrorImage(true); // Set this to true for left side images
@@ -26,7 +36,11 @@ TEST_CASE("Object detection stream", "[fast][ObjectDetection][dynamic][visual]")
 
 	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
 	meshRenderer->setInputConnection(detector->getOutputPort());
-	meshRenderer->setDefaultColor(Color::Red());
+	meshRenderer->setColor(1, Color::Red());
+	meshRenderer->setColor(2, Color(0.2, 0.2, 1.0));
+	meshRenderer->setColor(3, Color::Green());
+	meshRenderer->setColor(4, Color::Purple());
+	meshRenderer->setColor(5, Color::Cyan());
 	meshRenderer->setLineSize(4);
 
 	ImageRenderer::pointer imageRenderer = ImageRenderer::New();
@@ -36,6 +50,7 @@ TEST_CASE("Object detection stream", "[fast][ObjectDetection][dynamic][visual]")
 	window->addRenderer(imageRenderer);
 	window->addRenderer(meshRenderer);
 	window->set2DMode();
+	window->getView()->setBackgroundColor(Color::Black());
 	//window->enableFullscreen();
 	window->setWidth(1920);
 	window->setHeight(1080);
@@ -44,4 +59,4 @@ TEST_CASE("Object detection stream", "[fast][ObjectDetection][dynamic][visual]")
 	detector->getAllRuntimes()->printAll();
 
 }
-*/
+ */

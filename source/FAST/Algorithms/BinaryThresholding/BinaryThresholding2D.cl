@@ -25,7 +25,7 @@ __kernel void thresholding(
     const float value = getIntensity(image, pos);
    
     uchar writeValue = 0;
-    if(value >= lowerThreshold && value <= lowerThreshold) {
+    if(value >= lowerThreshold && value <= upperThreshold) {
         writeValue = label;
     }
     write_imageui(segmentation, pos, writeValue);

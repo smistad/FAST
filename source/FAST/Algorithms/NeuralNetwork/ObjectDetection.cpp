@@ -11,7 +11,8 @@ ObjectDetection::ObjectDetection() {
 	createOutputPort<Mesh>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
 	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/NeuralNetwork/ObjectDetection.cl");
 
-    mOutputNames = {"Sigmoid", "Sigmoid_1", "Sigmoid_2"};
+    //mOutputNames = {"Sigmoid", "Sigmoid_1", "Sigmoid_2"};
+	mOutputNames = {"concat_v2"};
 }
 
 Vector2f applySpacing(Vector2f p, Vector3f spacing) {
@@ -67,9 +68,13 @@ void ObjectDetection::execute() {
 
 	mRuntimeManager->startRegularTimer("create_mesh");
     // Get outputs
-	std::vector<float> detectorResult = getNetworkOutput("Sigmoid")[0];
-	std::vector<float> positionResult = getNetworkOutput("Sigmoid_1")[0];
-	std::vector<float> sizeResult = getNetworkOutput("Sigmoid_2")[0];
+	std::vector<float> result = getNetworkOutput("concat_v2")[0];
+	std::vector<float> detectorResult(result.begin(), result.begin()+5);
+	std::vector<float> positionResult(result.begin()+5, result.begin()+15);
+	std::vector<float> sizeResult(result.begin()+15, result.end());
+	//std::vector<float> detectorResult = getNetworkOutput("Sigmoid")[0];
+	//std::vector<float> positionResult = getNetworkOutput("Sigmoid_1")[0];
+	//std::vector<float> sizeResult = getNetworkOutput("Sigmoid_2")[0];
 
 	std::vector<MeshVertex> vertices;
 	std::vector<VectorXui> lines;
@@ -78,6 +83,7 @@ void ObjectDetection::execute() {
 
     const int nbObjects = detectorResult.size();
     int counter = 0;
+    bool mDrawBoxes = false;
 
     for(int objectID = 0; objectID < nbObjects; ++objectID) {
 		std::cout << detectorResult[objectID] << std::endl;
@@ -94,36 +100,57 @@ void ObjectDetection::execute() {
                         positionResult[1+objectID*2] * mHeight / scale);
 		std::cout << center.transpose() << std::endl;
 		std::cout << sizeResult[objectID*2] << " " << sizeResult[objectID*2+1] << std::endl;
-        float bboxWidth = sizeResult[objectID*2] * mWidth / scale;
-        float bboxHeight = sizeResult[1+objectID*2] * mHeight / scale;
-		std::cout << bboxWidth << " " << bboxHeight << std::endl;
 
-        Vector2f corner1 = center;
-        corner1.x() -= bboxWidth * 0.5;
-        corner1.y() -= bboxHeight * 0.5;
-        corner1 = applySpacing(corner1, image->getSpacing());
-        Vector2f corner2 = center;
-        corner2.x() -= bboxWidth * 0.5;
-        corner2.y() += bboxHeight * 0.5;
-        corner2 = applySpacing(corner2, image->getSpacing());
-        Vector2f corner3 = center;
-        corner3.x() += bboxWidth * 0.5;
-        corner3.y() += bboxHeight * 0.5;
-        corner3 = applySpacing(corner3, image->getSpacing());
-        Vector2f corner4 = center;
-        corner4.x() += bboxWidth * 0.5;
-        corner4.y() -= bboxHeight * 0.5;
-        corner4 = applySpacing(corner4, image->getSpacing());
+		Vector2f corner1 = center;
+		Vector2f corner2 = center;
+		Vector2f corner3 = center;
+		Vector2f corner4 = center;
+        if(mDrawBoxes) {
+			float bboxWidth = sizeResult[objectID * 2] * mWidth / scale;
+			float bboxHeight = sizeResult[1 + objectID * 2] * mHeight / scale;
+			std::cout << bboxWidth << " " << bboxHeight << std::endl;
 
-        vertices.push_back(MeshVertex(corner1));
-        vertices.push_back(MeshVertex(corner2));
-        vertices.push_back(MeshVertex(corner3));
-        vertices.push_back(MeshVertex(corner4));
+			corner1.x() -= bboxWidth * 0.5;
+			corner1.y() -= bboxHeight * 0.5;
+			corner2.x() -= bboxWidth * 0.5;
+			corner2.y() += bboxHeight * 0.5;
+			corner3.x() += bboxWidth * 0.5;
+			corner3.y() += bboxHeight * 0.5;
+			corner4.x() += bboxWidth * 0.5;
+			corner4.y() -= bboxHeight * 0.5;
+		} else {
+			corner1.x() -= 5;
+			corner2.x() += 5;
+			corner3.y() -= 5;
+			corner4.y() += 5;
+		}
+		corner1 = applySpacing(corner1, image->getSpacing());
+		corner2 = applySpacing(corner2, image->getSpacing());
+		corner3 = applySpacing(corner3, image->getSpacing());
+		corner4 = applySpacing(corner4, image->getSpacing());
 
-        lines.push_back(Vector2ui(0+counter*4, 1+counter*4));
-        lines.push_back(Vector2ui(1+counter*4, 2+counter*4));
-        lines.push_back(Vector2ui(2+counter*4, 3+counter*4));
-        lines.push_back(Vector2ui(3+counter*4, 0+counter*4));
+        MeshVertex vertex = MeshVertex(corner1);
+		vertex.setLabel(objectID+1);
+        vertices.push_back(vertex);
+		vertex = MeshVertex(corner2);
+		vertex.setLabel(objectID+1);
+		vertices.push_back(vertex);
+		vertex = MeshVertex(corner3);
+		vertex.setLabel(objectID+1);
+		vertices.push_back(vertex);
+		vertex = MeshVertex(corner4);
+		vertex.setLabel(objectID+1);
+		vertices.push_back(vertex);
+
+        if(mDrawBoxes) {
+			lines.push_back(Vector2ui(0 + counter * 4, 1 + counter * 4));
+			lines.push_back(Vector2ui(1 + counter * 4, 2 + counter * 4));
+			lines.push_back(Vector2ui(2 + counter * 4, 3 + counter * 4));
+			lines.push_back(Vector2ui(3 + counter * 4, 0 + counter * 4));
+		} else {
+			lines.push_back(Vector2ui(0 + counter * 4, 1 + counter * 4));
+			lines.push_back(Vector2ui(2 + counter * 4, 3 + counter * 4));
+		}
         counter++;
 	}
 

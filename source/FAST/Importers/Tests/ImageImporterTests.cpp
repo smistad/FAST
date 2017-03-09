@@ -28,10 +28,10 @@ TEST_CASE("Import Image file to host", "[fast][ImageImporter]") {
     CHECK(image->getHeight() == 512);
     CHECK(image->getDepth() == 1);
     CHECK(image->getDimensions() == 2);
-    CHECK(image->getDataType() == TYPE_FLOAT);
+    CHECK(image->getDataType() == TYPE_UINT8);
 }
 
-TEST_CASE("Import Image file to OpenCL device", "[fast][MetaImageImporter]") {
+TEST_CASE("Import Image file to OpenCL device", "[fast][ImageImporter]") {
     DeviceManager* deviceManager = DeviceManager::getInstance();
     OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
 
@@ -46,6 +46,6 @@ TEST_CASE("Import Image file to OpenCL device", "[fast][MetaImageImporter]") {
     CHECK(image->getHeight() == 512);
     CHECK(image->getDepth() == 1);
     CHECK(image->getDimensions() == 2);
-    CHECK(image->getDataType() == TYPE_FLOAT);
+    CHECK(image->getDataType() == TYPE_UINT8);
 }
 

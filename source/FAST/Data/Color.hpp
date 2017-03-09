@@ -39,6 +39,9 @@ class Color : public Vector3f {
         static Color Purple() {
             return Color(1, 0, 1);
         }
+        static Color Cyan() {
+            return Color(0, 1, 1);
+        }
 
 };
 
