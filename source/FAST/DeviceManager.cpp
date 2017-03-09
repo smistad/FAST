@@ -82,7 +82,6 @@ void DeviceManager::deleteInstance() {
 
 std::vector<OpenCLDevice::pointer> DeviceManager::getDevices(DeviceCriteria criteria, bool enableVisualization) {
     unsigned long * glContext = NULL;
-    QOpenGLWidget* widget = NULL;
     if(!isGLInteropEnabled()) {
         enableVisualization = false;
         fast::Window::getMainGLContext(); // Still have to create GL context
@@ -91,7 +90,6 @@ std::vector<OpenCLDevice::pointer> DeviceManager::getDevices(DeviceCriteria crit
         // Create GL context
 
 		// Make sure only one QApplication is created
-        std::cout << "ADASDASDASD" << std::endl;
 		if(!Window::getMainGLContext()->makeCurrent(Window::getSurface())) {
             throw Exception("Failed to make gl context current");
         }
@@ -120,9 +118,6 @@ std::vector<OpenCLDevice::pointer> DeviceManager::getDevices(DeviceCriteria crit
         OpenCLDevice * device = new OpenCLDevice(deviceVector, glContext);
         executionDevices.push_back(OpenCLDevice::pointer(device));
     }
-
-    // Cleanup widget, widget has to be alive when creating device
-    delete widget;
 
     return executionDevices;
 }
