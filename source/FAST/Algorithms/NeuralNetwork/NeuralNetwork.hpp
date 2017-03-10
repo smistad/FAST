@@ -3,6 +3,7 @@
 
 #include "FAST/ProcessObject.hpp"
 #include <tensorflow/core/public/session.h>
+#include <tensorflow/core/framework/tensor.h>
 
 namespace fast {
 
@@ -17,11 +18,11 @@ public:
 
     // Use this if only one output node
     // output[i][j] will return output value j for input image i
-    std::vector<std::vector<float> > getNetworkOutput();
+    std::vector<tensorflow::Tensor> getNetworkOutput();
 
     // Get output by layer name
     // output[i][j] will return output value j for input image i
-    std::vector<std::vector<float> > getNetworkOutput(std::string layerName);
+    std::vector<tensorflow::Tensor> getNetworkOutput(std::string layerName);
 
 protected:
     NeuralNetwork();
@@ -32,7 +33,7 @@ protected:
     float mScaleFactor;
     std::string mInputName;
     std::vector<std::string> mOutputNames;
-    std::map<std::string, std::vector<std::vector<float>> > mOutputData;
+    std::map<std::string, tensorflow::Tensor> mOutputData;
     SharedPointer<Image> mImage;
 
     void execute();

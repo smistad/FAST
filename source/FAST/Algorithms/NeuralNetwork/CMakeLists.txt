@@ -2,14 +2,16 @@ if(FAST_MODULE_NeuralNetwork)
     fast_add_sources(
         NeuralNetwork.cpp
         NeuralNetwork.hpp
-        ImageClassifier.cpp
-        ImageClassifier.hpp
+        #ImageClassifier.cpp
+        #ImageClassifier.hpp
         #DNNAppearanceModel.cpp
         #DNNAppearanceModel.hpp
-        ObjectDetection.cpp
-        ObjectDetection.hpp
-        ShapeRegressor.cpp
-        ShapeRegressor.hpp
+        #ObjectDetection.cpp
+        #ObjectDetection.hpp
+        #ShapeRegressor.cpp
+        #ShapeRegressor.hpp
+        PixelClassification.cpp
+        PixelClassification.hpp
     )
     fast_add_test_sources(
         ImageClassifierTests.cpp

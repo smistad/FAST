@@ -96,14 +96,14 @@ void NeuralNetwork::setOutputParameters(std::vector<std::string> outputNodeNames
     mOutputNames = outputNodeNames;
 }
 
-std::vector<std::vector<float> > NeuralNetwork::getNetworkOutput() {
+std::vector<tensorflow::Tensor> NeuralNetwork::getNetworkOutput() {
     if(mOutputData.size() != 1)
 		throw Exception("If network has more than 1 output can't return network output without name.");
 
 	return mOutputData[mOutputNames[0]];
 }
 
-std::vector<std::vector<float> > NeuralNetwork::getNetworkOutput(std::string name) {
+std::vector<tensorflow::Tensor> NeuralNetwork::getNetworkOutput(std::string name) {
 	return mOutputData.at(name);
 }
 
@@ -174,18 +174,7 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 		tensorflow::Tensor *output = &output_tensors[j];
         std::string outputName = mOutputNames[j];
 
-		//const auto outputData = output->flat<float>(); // This is some sort of Eigen tensor type
-        auto output_tensor_mapped = output->tensor<float, 2>();
-		std::vector<std::vector<float>> resultData;
-		for(int n = 0; n < batchSize; ++n) {
-            std::vector<float> outputValues;
-			for (int i = 0; i < output_tensor_mapped.dimension(1); ++i) {
-				outputValues.push_back(output_tensor_mapped(0, i));
-			}
-			resultData.push_back(outputValues);
-		}
-
-		mOutputData[outputName] = resultData;
+		mOutputData[outputName] = output_tensors[j];
 	}
 	reportInfo() << "Finished parsing output" << reportEnd();
 
