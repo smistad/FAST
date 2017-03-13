@@ -25,6 +25,7 @@ WindowWidget::~WindowWidget() {
 }
 
 WindowWidget::WindowWidget() {
+    setWindowTitle("FAST");
 }
 
 View* WindowWidget::addView() {
