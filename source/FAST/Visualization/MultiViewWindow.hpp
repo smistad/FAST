@@ -14,7 +14,6 @@ class MultiViewWindow : public Window {
         void setNrOfViews(int viewCount);
         void addRenderer(int viewIndex, Renderer::pointer renderer);
         void removeAllRenderers();
-        View* getView(int viewIndex);
         void setHorizontalMode();
         void setVerticalMode();
         ~MultiViewWindow();

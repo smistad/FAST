@@ -31,11 +31,11 @@ class Window : public QObject, public Object {
         void disableFullscreen();
         void setTitle(std::string);
         std::vector<View*> getViews() const;
+        View* getView(uint i) const;
         static void cleanup();
     protected:
         Window();
         View* createView();
-        View* getView(uint i) const;
         static QGLContext* mMainGLContext;
 
         WindowWidget* mWidget;

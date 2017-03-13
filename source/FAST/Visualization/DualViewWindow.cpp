@@ -6,25 +6,25 @@ namespace fast {
 
 void DualViewWindow::addRendererToTopLeftView(
         Renderer::pointer renderer) {
-    getViews()[0]->addRenderer(renderer);
+    getView(0)->addRenderer(renderer);
 }
 
 void DualViewWindow::addRendererToBottomRightView(
         Renderer::pointer renderer) {
-    getViews()[1]->addRenderer(renderer);
+    getView(1)->addRenderer(renderer);
 }
 
 void DualViewWindow::removeAllRenderers() {
-    getViews()[0]->removeAllRenderers();
-    getViews()[1]->removeAllRenderers();
+    getView(0)->removeAllRenderers();
+    getView(1)->removeAllRenderers();
 }
 
 View* DualViewWindow::getTopLeftView() const {
-    return getViews()[0];
+    return getView(0);
 }
 
 View* DualViewWindow::getBottomRightView() const {
-    return getViews()[1];
+    return getView(1);
 }
 
 void DualViewWindow::setHorizontalMode() {
@@ -56,16 +56,16 @@ void DualViewWindow::createLayout() {
     // Add new layout
     if(mVerticalMode) {
         QVBoxLayout* mainLayout = new QVBoxLayout;
-        mainLayout->addWidget(getViews()[0]);
-        mainLayout->addWidget(getViews()[1]);
-        mainLayout->setContentsMargins(0, 0, 0, 0);
+        mainLayout->addWidget(getView(0));
+        mainLayout->addWidget(getView(1));
         mWidget->setLayout(mainLayout);
+        mainLayout->setContentsMargins(0, 0, 0, 0);
     } else {
         QHBoxLayout* mainLayout = new QHBoxLayout;
-        mainLayout->addWidget(getViews()[0]);
-        mainLayout->addWidget(getViews()[1]);
-        mainLayout->setContentsMargins(0, 0, 0, 0);
+        mainLayout->addWidget(getView(0));
+        mainLayout->addWidget(getView(1));
         mWidget->setLayout(mainLayout);
+        mainLayout->setContentsMargins(0, 0, 0, 0);
     }
 }
 

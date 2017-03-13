@@ -9,7 +9,7 @@ void MultiViewWindow::addRenderer(
         Renderer::pointer renderer) {
     if(getViews().size() == 0)
         throw Exception("You must set the nr of views before adding renderers to MultiViewWindow");
-    getViews().at(viewIndex)->addRenderer(renderer);
+    getView(viewIndex)->addRenderer(renderer);
 }
 
 void MultiViewWindow::removeAllRenderers() {
@@ -17,10 +17,6 @@ void MultiViewWindow::removeAllRenderers() {
     for(View* view : views) {
         view->removeAllRenderers();
     }
-}
-
-View* MultiViewWindow::getView(int viewIndex) {
-    return getViews().at(viewIndex);
 }
 
 void MultiViewWindow::setNrOfViews(int viewCount) {

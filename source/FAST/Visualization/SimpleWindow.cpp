@@ -28,7 +28,6 @@ SimpleWindow::SimpleWindow() {
     QHBoxLayout* mainLayout = new QHBoxLayout;
     mainLayout->addWidget(view);
     mWidget->setLayout(mainLayout);
-    mWidget->setWindowTitle("FAST");
     mWidget->setContentsMargins(0, 0, 0, 0);
     mainLayout->setContentsMargins(0, 0, 0, 0);
 }
