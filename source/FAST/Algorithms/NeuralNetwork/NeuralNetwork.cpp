@@ -35,14 +35,15 @@ void NeuralNetwork::load(std::string networkFilename) {
 	mInputName = tensorflow_graph.node(0).name();
     //auto attributes = tensorflow_graph.node(0).attr();
 	//std::cout << attributes["shape"].shape() << std::endl;
-	/*
     for(int i = 0; i < tensorflow_graph.node_size(); ++i) {
 		tensorflow::NodeDef node = tensorflow_graph.node(i);
-		reportInfo() << "Node " << i << " with name " << node.name() << reportEnd();
-        reportInfo() << "Op name " << node.op() << reportEnd();
-		reportInfo() << "inputs: " << node.input_size() << reportEnd();
+        if(node.name() == "keras_learning_phase") {
+			mHasKerasLearningPhaseTensor = true;
+			//reportInfo() << "Node " << i << " with name " << node.name() << reportEnd();
+			//reportInfo() << "Op name " << node.op() << reportEnd();
+			//reportInfo() << "inputs: " << node.input_size() << reportEnd();
+		}
 	}
-	 */
 
 	reportInfo() << "Creating session." << reportEnd();
 	tensorflow::Status s = mSession->Create(tensorflow_graph);
@@ -66,6 +67,7 @@ void NeuralNetwork::setScaleFactor(float factor) {
 NeuralNetwork::NeuralNetwork() {
 	createInputPort<Image>(0, true, INPUT_STATIC_OR_DYNAMIC, true);
 	mModelLoaded = false;
+	mHasKerasLearningPhaseTensor = false;
 	mInputName = "";
 	mWidth = -1;
 	mHeight = -1;
@@ -96,14 +98,14 @@ void NeuralNetwork::setOutputParameters(std::vector<std::string> outputNodeNames
     mOutputNames = outputNodeNames;
 }
 
-std::vector<tensorflow::Tensor> NeuralNetwork::getNetworkOutput() {
-    if(mOutputData.size() != 1)
+tensorflow::Tensor NeuralNetwork::getNetworkOutput() {
+    if(mOutputNames.size() != 1)
 		throw Exception("If network has more than 1 output can't return network output without name.");
 
 	return mOutputData[mOutputNames[0]];
 }
 
-std::vector<tensorflow::Tensor> NeuralNetwork::getNetworkOutput(std::string name) {
+tensorflow::Tensor NeuralNetwork::getNetworkOutput(std::string name) {
 	return mOutputData.at(name);
 }
 
@@ -147,16 +149,20 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 	// Input: Only single for now
 	// Output: Can be multiple
 
-	// Create a scalar tensor which tells the system we are NOT doing training
-	tensorflow::Tensor input_tensor2(
-			tensorflow::DT_BOOL,
-			tensorflow::TensorShape() // Scalar
-	);
-	auto input_tensor_mapped2 = input_tensor2.tensor<bool, 0>();
-	input_tensor_mapped2(0) = false;
 
 	std::vector <std::pair<std::string, tensorflow::Tensor>> input_tensors(
-			{{mInputName, input_tensor}, {"keras_learning_phase", input_tensor2}});
+			{{mInputName, input_tensor}});
+
+	if(mHasKerasLearningPhaseTensor) {
+		// Create a scalar tensor which tells the system we are NOT doing training
+		tensorflow::Tensor input_tensor2(
+				tensorflow::DT_BOOL,
+				tensorflow::TensorShape() // Scalar
+		);
+		auto input_tensor_mapped2 = input_tensor2.tensor<bool, 0>();
+		input_tensor_mapped2(0) = false;
+		input_tensors.push_back(std::make_pair("keras_learning_phase", input_tensor2));
+	}
 
 	std::vector <tensorflow::Tensor> output_tensors;
 
@@ -169,11 +175,9 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 		throw Exception("Error during inference: " + s.ToString());
 	}
 	reportInfo() << "Finished executing network" << reportEnd();
-
+    // Store all output data
     for(int j = 0; j < mOutputNames.size(); ++j) {
-		tensorflow::Tensor *output = &output_tensors[j];
         std::string outputName = mOutputNames[j];
-
 		mOutputData[outputName] = output_tensors[j];
 	}
 	reportInfo() << "Finished parsing output" << reportEnd();

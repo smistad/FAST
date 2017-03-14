@@ -130,7 +130,7 @@ int main() {
 
     window->addRenderer(renderer);
     window->addRenderer(textRenderer);
-    window->setWindowSize(1024, 1024);
+    window->setSize(1024, 1024);
     //window->enableFullscreen();
     window->set2DMode();
     window->getView()->setBackgroundColor(Color::Black());

@@ -17,17 +17,16 @@ public:
     void setScaleFactor(float scale);
 
     // Use this if only one output node
-    // output[i][j] will return output value j for input image i
-    std::vector<tensorflow::Tensor> getNetworkOutput();
+    tensorflow::Tensor getNetworkOutput();
 
     // Get output by layer name
-    // output[i][j] will return output value j for input image i
-    std::vector<tensorflow::Tensor> getNetworkOutput(std::string layerName);
+    tensorflow::Tensor getNetworkOutput(std::string layerName);
 
 protected:
     NeuralNetwork();
     UniquePointer<tensorflow::Session> mSession;
     bool mModelLoaded;
+    bool mHasKerasLearningPhaseTensor;
     int mWidth;
     int mHeight;
     float mScaleFactor;

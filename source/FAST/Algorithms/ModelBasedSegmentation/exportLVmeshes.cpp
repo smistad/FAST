@@ -145,7 +145,7 @@ int main(int argc, char** argv) {
             window->getView()->setBackgroundColor(Color::Black());
             window->addRenderer(imageRenderer);
             window->addRenderer(meshRenderer);
-            window->setWindowSize(1024, 1024);
+            window->setSize(1024, 1024);
             window->set2DMode();
             window->setTimeout(10000);
             window->setTitle(path);

@@ -27,6 +27,7 @@ class Window : public QObject, public Object {
         void stopComputationThread();
         void setWidth(uint width);
         void setHeight(uint height);
+        void setSize(uint width, uint height);
         void enableFullscreen();
         void disableFullscreen();
         void setTitle(std::string);

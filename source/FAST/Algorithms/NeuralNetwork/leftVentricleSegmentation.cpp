@@ -1,9 +1,13 @@
+#include <FAST/Visualization/DualViewWindow.hpp>
+#include <FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp>
+#include <FAST/Algorithms/ImageResampler/ImageResampler.hpp>
 #include "FAST/Testing.hpp"
 #include "ShapeRegressor.hpp"
 #include "FAST/Streamers/ImageFileStreamer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
+#include "PixelClassification.hpp"
 
 using namespace fast;
 
@@ -69,30 +73,32 @@ int main() {
     streamer->setSleepTime(50);
     streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
-    ShapeRegressor::pointer regressor = ShapeRegressor::New();
-    regressor->load("/home/smistad/workspace/left-ventricle-segmentation/models/test.tfl");
-    regressor->setInputSize(256, 256);
-    regressor->setScaleFactor(1.0f/255.0f);
-    regressor->setInputConnection(streamer->getOutputPort());
-    regressor->enableRuntimeMeasurements();
+    PixelClassification::pointer segmentation = PixelClassification::New();
+    segmentation->setNrOfClasses(2);
+    segmentation->load("/home/smistad/workspace/left-ventricle-segmentation/models/test_fcn.tfl");
+    segmentation->setInputSize(256, 256);
+    segmentation->setScaleFactor(1.0f/255.0f);
+    segmentation->setOutputParameters({"Reshape_21"});
+    segmentation->setInputConnection(streamer->getOutputPort());
+    segmentation->enableRuntimeMeasurements();
 
-    ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->setInputConnection(streamer->getOutputPort());
+    SegmentationRenderer::pointer renderer = SegmentationRenderer::New();
+    renderer->setFillArea(false);
+    renderer->setInputConnection(segmentation->getOutputPort(1));
 
-    MeshRenderer::pointer meshRenderer = MeshRenderer::New();
-    meshRenderer->setInputConnection(regressor->getOutputPort());
+    ImageRenderer::pointer renderer2 = ImageRenderer::New();
+    renderer2->setInputConnection(streamer->getOutputPort());
 
     SimpleWindow::pointer window = SimpleWindow::New();
 
+    window->addRenderer(renderer2);
     window->addRenderer(renderer);
-    window->addRenderer(meshRenderer);
-    window->setWindowSize(1024, 1024);
-    //window->enableFullscreen();
+    window->setSize(1024, 1024);
     window->set2DMode();
     window->getView()->setBackgroundColor(Color::Black());
     window->start();
 
-    regressor->getRuntime()->print();
-    regressor->getRuntime("input_data_copy")->print();
-    regressor->getRuntime("network_execution")->print();
+    segmentation->getRuntime()->print();
+    segmentation->getRuntime("input_data_copy")->print();
+    segmentation->getRuntime("network_execution")->print();
 }
