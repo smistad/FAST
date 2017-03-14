@@ -35,14 +35,15 @@ void NeuralNetwork::load(std::string networkFilename) {
 	mInputName = tensorflow_graph.node(0).name();
     //auto attributes = tensorflow_graph.node(0).attr();
 	//std::cout << attributes["shape"].shape() << std::endl;
-	/*
     for(int i = 0; i < tensorflow_graph.node_size(); ++i) {
 		tensorflow::NodeDef node = tensorflow_graph.node(i);
-		reportInfo() << "Node " << i << " with name " << node.name() << reportEnd();
-        reportInfo() << "Op name " << node.op() << reportEnd();
-		reportInfo() << "inputs: " << node.input_size() << reportEnd();
+        if(node.name() == "keras_learning_phase") {
+			mHasKerasLearningPhaseTensor = true;
+			//reportInfo() << "Node " << i << " with name " << node.name() << reportEnd();
+			//reportInfo() << "Op name " << node.op() << reportEnd();
+			//reportInfo() << "inputs: " << node.input_size() << reportEnd();
+		}
 	}
-	 */
 
 	reportInfo() << "Creating session." << reportEnd();
 	tensorflow::Status s = mSession->Create(tensorflow_graph);
@@ -66,6 +67,7 @@ void NeuralNetwork::setScaleFactor(float factor) {
 NeuralNetwork::NeuralNetwork() {
 	createInputPort<Image>(0, true, INPUT_STATIC_OR_DYNAMIC, true);
 	mModelLoaded = false;
+	mHasKerasLearningPhaseTensor = false;
 	mInputName = "";
 	mWidth = -1;
 	mHeight = -1;
@@ -76,8 +78,8 @@ NeuralNetwork::NeuralNetwork() {
 void NeuralNetwork::execute() {
 
 
-    Image::pointer image = getStaticInputData<Image>();
-	std::vector<Image::pointer> images = {image};//getMultipleStaticInputData<Image>();
+    mImage = getStaticInputData<Image>();
+	std::vector<Image::pointer> images = {mImage};//getMultipleStaticInputData<Image>();
 
 	if(mWidth < 0 || mHeight < 0)
 		throw Exception("Network input layer width and height has to be specified before running the network");
@@ -96,14 +98,14 @@ void NeuralNetwork::setOutputParameters(std::vector<std::string> outputNodeNames
     mOutputNames = outputNodeNames;
 }
 
-std::vector<std::vector<float> > NeuralNetwork::getNetworkOutput() {
-    if(mOutputData.size() != 1)
+tensorflow::Tensor NeuralNetwork::getNetworkOutput() {
+    if(mOutputNames.size() != 1)
 		throw Exception("If network has more than 1 output can't return network output without name.");
 
 	return mOutputData[mOutputNames[0]];
 }
 
-std::vector<std::vector<float> > NeuralNetwork::getNetworkOutput(std::string name) {
+tensorflow::Tensor NeuralNetwork::getNetworkOutput(std::string name) {
 	return mOutputData.at(name);
 }
 
@@ -147,16 +149,20 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 	// Input: Only single for now
 	// Output: Can be multiple
 
-	// Create a scalar tensor which tells the system we are NOT doing training
-	tensorflow::Tensor input_tensor2(
-			tensorflow::DT_BOOL,
-			tensorflow::TensorShape() // Scalar
-	);
-	auto input_tensor_mapped2 = input_tensor2.tensor<bool, 0>();
-	input_tensor_mapped2(0) = false;
 
 	std::vector <std::pair<std::string, tensorflow::Tensor>> input_tensors(
-			{{mInputName, input_tensor}, {"keras_learning_phase", input_tensor2}});
+			{{mInputName, input_tensor}});
+
+	if(mHasKerasLearningPhaseTensor) {
+		// Create a scalar tensor which tells the system we are NOT doing training
+		tensorflow::Tensor input_tensor2(
+				tensorflow::DT_BOOL,
+				tensorflow::TensorShape() // Scalar
+		);
+		auto input_tensor_mapped2 = input_tensor2.tensor<bool, 0>();
+		input_tensor_mapped2(0) = false;
+		input_tensors.push_back(std::make_pair("keras_learning_phase", input_tensor2));
+	}
 
 	std::vector <tensorflow::Tensor> output_tensors;
 
@@ -169,23 +175,10 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 		throw Exception("Error during inference: " + s.ToString());
 	}
 	reportInfo() << "Finished executing network" << reportEnd();
-
+    // Store all output data
     for(int j = 0; j < mOutputNames.size(); ++j) {
-		tensorflow::Tensor *output = &output_tensors[j];
         std::string outputName = mOutputNames[j];
-
-		//const auto outputData = output->flat<float>(); // This is some sort of Eigen tensor type
-        auto output_tensor_mapped = output->tensor<float, 2>();
-		std::vector<std::vector<float>> resultData;
-		for(int n = 0; n < batchSize; ++n) {
-            std::vector<float> outputValues;
-			for (int i = 0; i < output_tensor_mapped.dimension(1); ++i) {
-				outputValues.push_back(output_tensor_mapped(0, i));
-			}
-			resultData.push_back(outputValues);
-		}
-
-		mOutputData[outputName] = resultData;
+		mOutputData[outputName] = output_tensors[j];
 	}
 	reportInfo() << "Finished parsing output" << reportEnd();
 

@@ -230,4 +230,9 @@ void Window::setHeight(uint height) {
     mHeight = height;
 }
 
+void Window::setSize(uint width, uint height) {
+    setWidth(width);
+    setHeight(height);
+}
+
 } // end namespace fast

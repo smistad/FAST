@@ -32,11 +32,6 @@ SimpleWindow::SimpleWindow() {
     mainLayout->setContentsMargins(0, 0, 0, 0);
 }
 
-void SimpleWindow::setWindowSize(unsigned int w, unsigned int h) {
-    mWidth = w;
-    mHeight = h;
-}
-
 void SimpleWindow::set2DMode() {
     getView()->set2DMode();
 }
