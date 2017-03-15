@@ -8,11 +8,14 @@ class PixelClassification : public NeuralNetwork {
     FAST_OBJECT(PixelClassification)
     public:
         void setNrOfClasses(uint classes);
+        void setHeatmapOutput();
+        void setSegmentationOutput();
     private:
         PixelClassification();
         void execute();
 
         int mNrOfClasses;
+        bool mHeatmapOutput;
 
 };
 

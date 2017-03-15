@@ -9,6 +9,15 @@ PixelClassification::PixelClassification() {
     createInputPort<Image>(0);
 
     mNrOfClasses = -1;
+    mHeatmapOutput = false;
+}
+
+void PixelClassification::setHeatmapOutput() {
+    mHeatmapOutput = true;
+}
+
+void PixelClassification::setSegmentationOutput() {
+    mHeatmapOutput = false;
 }
 
 void PixelClassification::setNrOfClasses(uint classes) {
@@ -31,17 +40,28 @@ void PixelClassification::execute() {
 
     // TODO assuming only one input image for now
     // For each class
-    float threshold = 0.5;
     for(int j = 0; j < mNrOfClasses; j++) {
-        Segmentation::pointer output = Segmentation::New();
-        uchar* data = new uchar[outputWidth*outputHeight];
-        for(int x = 0; x < outputWidth; ++x) {
-            for (int y = 0; y < outputHeight; ++y) {
-                data[x+y*outputWidth] = tensor_mapped(0, y, x, j) > threshold ? j : 0;
+        Image::pointer output = Image::New();
+        if(mHeatmapOutput) {
+            float *data = new float[outputWidth * outputHeight];
+            for (int x = 0; x < outputWidth; ++x) {
+                for (int y = 0; y < outputHeight; ++y) {
+                    data[x + y * outputWidth] = tensor_mapped(0, y, x, j);// > threshold ? j : 0;
+                }
             }
+            output->create(outputWidth, outputHeight, TYPE_FLOAT, 1, data);
+            delete[] data;
+        } else {
+            uchar *data = new uchar[outputWidth * outputHeight];
+            const float threshold = 0.5;
+            for (int x = 0; x < outputWidth; ++x) {
+                for (int y = 0; y < outputHeight; ++y) {
+                    data[x + y * outputWidth] = tensor_mapped(0, y, x, j) > threshold ? j : 0;
+                }
+            }
+            output->create(outputWidth, outputHeight, TYPE_UINT8, 1, data);
+            delete[] data;
         }
-        output->create(outputWidth, outputHeight, TYPE_UINT8, 1, data);
-        delete[] data;
         ImageResizer::pointer resizer = ImageResizer::New();
         resizer->setInputData(output);
         resizer->setWidth(mImage->getWidth());
