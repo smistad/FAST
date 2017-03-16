@@ -51,7 +51,6 @@ endif()
 ## External depedencies
 include(cmake/ExternalEigen.cmake)
 include(cmake/ExternalZlib.cmake)
-include(cmake/ExternalGLEW.cmake)
 
 # Optional modules
 include(cmake/ModuleVTK.cmake)

@@ -1,6 +1,5 @@
 #define _USE_MATH_DEFINES
 
-#include <GL/glew.h>
 #include "View.hpp"
 #include "FAST/Data/Camera.hpp"
 #include "FAST/Exception.hpp"
@@ -11,6 +10,7 @@
 #include "FAST/Utility.hpp"
 #include "SimpleWindow.hpp"
 #include "FAST/Utility.hpp"
+#include <QOpenGLFunctions_3_3_Core>
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
@@ -302,7 +302,6 @@ void View::reinitialize() {
 }
 
 void View::initializeGL() {
-	glewInit();
 	glEnable(GL_TEXTURE_2D);
 
 	glGenTextures(1, &renderedDepthText);
@@ -336,21 +335,23 @@ void View::initializeGL() {
 
 	glBindTexture(GL_TEXTURE_2D, 0); // unbind texture
 
-	glGenFramebuffers(1,&fbo);
-	glBindFramebuffer(GL_FRAMEBUFFER,fbo);
+    QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
+    fun->initializeOpenGLFunctions();
+	fun->glGenFramebuffers(1,&fbo);
+	fun->glBindFramebuffer(GL_FRAMEBUFFER,fbo);
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderedTexture0, 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, renderedDepthText, 0);
+	fun->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderedTexture0, 0);
+	fun->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, renderedDepthText, 0);
 
-	glBindFramebuffer(GL_FRAMEBUFFER,0);
+	fun->glBindFramebuffer(GL_FRAMEBUFFER,0);
 
 
-	glGenFramebuffers(1,&fbo2);
-	glBindFramebuffer(GL_FRAMEBUFFER,fbo2);
+	fun->glGenFramebuffers(1,&fbo2);
+	fun->glBindFramebuffer(GL_FRAMEBUFFER,fbo2);
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderedTexture1, 0);
+	fun->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderedTexture1, 0);
 
-	glBindFramebuffer(GL_FRAMEBUFFER,0);
+	fun->glBindFramebuffer(GL_FRAMEBUFFER,0);
 
 
 	initShader();
@@ -361,11 +362,11 @@ void View::initializeGL() {
 		if (mVolumeRenderers.size()>0)
 		{	
 			((VolumeRenderer::pointer)mVolumeRenderers[0])->setIncludeGeometry(true);
-			glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+			fun->glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 		}
 		else
 		{
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			fun->glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
 
         // Set up viewport and projection transformation
@@ -500,10 +501,10 @@ void View::initializeGL() {
 
             glOrtho(0.0, width(), 0.0, height(), -1.0, 1.0);
             // create pixel buffer object for display
-            glGenBuffersARB(1, &mPBO);
-            glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, mPBO);
-            glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, width() * height() * sizeof(GLfloat) * 4, NULL, GL_STREAM_DRAW_ARB);
-            glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
+            fun->glGenBuffers(1, &mPBO);
+            fun->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, mPBO);
+            fun->glBufferData(GL_PIXEL_UNPACK_BUFFER_ARB, width() * height() * sizeof(GLfloat) * 4, NULL, GL_STREAM_DRAW_ARB);
+            fun->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
         } else {
             // Update all renderes, so that getBoundingBox works
             for (unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
@@ -537,7 +538,7 @@ void View::initializeGL() {
 			glMatrixMode(GL_PROJECTION);
 			glPopMatrix();
 
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			fun->glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
 			// Set up viewport and projection transformation
@@ -679,6 +680,8 @@ void View::initializeGL() {
 void View::paintGL() {
 
 	mRuntimeManager->startRegularTimer("paint");
+    QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
+    fun->initializeOpenGLFunctions();
 
 	glClearColor(mBackgroundColor.getRedValue(), mBackgroundColor.getGreenValue(), mBackgroundColor.getBlueValue(), 1.0f);
 	if (mNonVolumeRenderers.size() > 0 ) //it can be "only nonVolume renderers" or "nonVolume + Volume renderes" together
@@ -747,10 +750,10 @@ void View::paintGL() {
                         width() * height() * 4 * sizeof(float),
                         data
                 );
-                glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, mPBO);
-                glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, width() * height() * sizeof(GLfloat) * 4, data,
+                fun->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, mPBO);
+                fun->glBufferData(GL_PIXEL_UNPACK_BUFFER_ARB, width() * height() * sizeof(GLfloat) * 4, data,
                                 GL_STREAM_DRAW_ARB);
-                glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
+                fun->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
                 glFinish();
                 delete[] data;
             }
@@ -759,9 +762,9 @@ void View::paintGL() {
             glDisable(GL_DEPTH_TEST);
             glDisable(GL_TEXTURE_2D);
             glRasterPos2i(0, 0);
-            glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, mPBO);
+            fun->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, mPBO);
             glDrawPixels(width(), height(), GL_RGBA, GL_FLOAT, 0);
-            glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
+            fun->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 		} else {
 			// Create headlight
 			glEnable(GL_LIGHT0);
@@ -792,7 +795,7 @@ void View::paintGL() {
             if (mVolumeRenderers.size()>0)
             {
                     //Rendere to Textures (offscreen)
-                    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+                    fun->glBindFramebuffer(GL_FRAMEBUFFER, fbo);
                     glEnable(GL_TEXTURE_2D);
                     glEnable(GL_DEPTH_TEST);
             }
@@ -809,7 +812,7 @@ void View::paintGL() {
             if (mVolumeRenderers.size()>0)
             {
                     //Rendere to Back buffer
-                    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                    fun->glBindFramebuffer(GL_FRAMEBUFFER, 0);
                     getDepthBufferFromGeo();
                     renderVolumes();
             }
@@ -822,7 +825,7 @@ void View::paintGL() {
 
 		if (mVolumeRenderers.size() > 0) // confirms that only Volume renderers exict
 		{
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			fun->glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glMatrixMode(GL_MODELVIEW);
@@ -854,9 +857,11 @@ void View::paintGL() {
 
 void View::renderVolumes()
 {
+    QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
+    fun->initializeOpenGLFunctions();
 
 		//Rendere to Back buffer
-		glBindFramebuffer(GL_FRAMEBUFFER,0);
+		fun->glBindFramebuffer(GL_FRAMEBUFFER,0);
 
 		
 		glMatrixMode(GL_PROJECTION);
@@ -891,6 +896,8 @@ void View::renderVolumes()
 void View::getDepthBufferFromGeo()
 {
 
+    QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
+    fun->initializeOpenGLFunctions();
 	/*Converting the depth buffer texture from GL format to CL format >>>*/
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
@@ -905,14 +912,14 @@ void View::getDepthBufferFromGeo()
 	glOrtho(0, this->width(), 0, this->height(), 0, 512);
 
 	// Render to Second Texture
-	glBindFramebuffer(GL_FRAMEBUFFER, fbo2);
+	fun->glBindFramebuffer(GL_FRAMEBUFFER, fbo2);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, renderedDepthText);
-	int loc = glGetUniformLocation(programGLSL, "renderedDepthText");
-	glUniform1i(loc, renderedDepthText);
+	int loc = fun->glGetUniformLocation(programGLSL, "renderedDepthText");
+	fun->glUniform1i(loc, renderedDepthText);
 
-	glUseProgram(programGLSL);
+	fun->glUseProgram(programGLSL);
 
 	glBegin(GL_QUADS);
 	glTexCoord2f(0, 0);
@@ -925,13 +932,13 @@ void View::getDepthBufferFromGeo()
 	glVertex2f(0,  this->height());
 	glEnd();
 
-	glUseProgram(0);
+	fun->glUseProgram(0);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 
 	//Rendere to Back buffer
-	glBindFramebuffer(GL_FRAMEBUFFER,0);
+	fun->glBindFramebuffer(GL_FRAMEBUFFER,0);
 
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
@@ -942,17 +949,19 @@ void View::getDepthBufferFromGeo()
 
 void View::resizeGL(int width, int height) {
 
+    QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
+    fun->initializeOpenGLFunctions();
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     if(mIsIn2DMode) {
         glViewport(0, 0, width, height);
         glOrtho(0.0, width, 0.0, height, -1.0, 1.0);
         if(mPBO != 0)
-            glDeleteBuffersARB(1, &mPBO);
-        glGenBuffersARB(1, &mPBO);
-        glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, mPBO);
-        glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, width * height * sizeof(GLfloat) * 4, 0, GL_STREAM_DRAW_ARB);
-        glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
+            fun->glDeleteBuffers(1, &mPBO);
+        fun->glGenBuffers(1, &mPBO);
+        fun->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, mPBO);
+        fun->glBufferData(GL_PIXEL_UNPACK_BUFFER_ARB, width * height * sizeof(GLfloat) * 4, 0, GL_STREAM_DRAW_ARB);
+        fun->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
     } else {
         glViewport(0, 0, width, height);
         aspect = (float)width/height;
@@ -1112,34 +1121,36 @@ void View::setViewingPlane(Plane plane) {
 void View::initShader()
 {
 
+    QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
+    fun->initializeOpenGLFunctions();
 	//Read our shaders into the appropriate buffers
 	std::string vertexSource =		"#version 120\nuniform sampler2D renderedDepthText;\n void main(){ gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * gl_Vertex; \ngl_TexCoord[0] = gl_MultiTexCoord0;}\n";//Get source code for vertex shader.
 	std::string fragmentSource =	"#version 120\nuniform sampler2D renderedDepthText;\nvoid main(){ \ngl_FragColor = texture2D(renderedDepthText, gl_TexCoord[0].st); }\n";//Get source code for fragment shader.
 
 	//Create an empty vertex shader handle
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	GLuint vertexShader = fun->glCreateShader(GL_VERTEX_SHADER);
 
 	//Send the vertex shader source code to GL
 	//Note that std::string's .c_str is NULL character terminated.
 	const GLchar *source = (const GLchar *)vertexSource.c_str();
-	glShaderSource(vertexShader, 1, &source, 0);
+	fun->glShaderSource(vertexShader, 1, &source, 0);
 
 	//Compile the vertex shader
-	glCompileShader(vertexShader);
+	fun->glCompileShader(vertexShader);
 
 	GLint isCompiled = 0;
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &isCompiled);
+	fun->glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &isCompiled);
 	if(isCompiled == GL_FALSE)
 	{
 		GLint maxLength = 0;
-		glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &maxLength);
+		fun->glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &maxLength);
 
 		//The maxLength includes the NULL character
 		std::vector<GLchar> infoLog(maxLength);
-		glGetShaderInfoLog(vertexShader, maxLength, &maxLength, &infoLog[0]);
+		fun->glGetShaderInfoLog(vertexShader, maxLength, &maxLength, &infoLog[0]);
 
 		//We don't need the shader anymore.
-		glDeleteShader(vertexShader);
+		fun->glDeleteShader(vertexShader);
 
 		//Use the infoLog as you see fit.
 
@@ -1148,30 +1159,30 @@ void View::initShader()
 	}
 
 	//Create an empty fragment shader handle
-	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	GLuint fragmentShader = fun->glCreateShader(GL_FRAGMENT_SHADER);
 
 	//Send the fragment shader source code to GL
 	//Note that std::string's .c_str is NULL character terminated.
 	source = (const GLchar *)fragmentSource.c_str();
-	glShaderSource(fragmentShader, 1, &source, 0);
+	fun->glShaderSource(fragmentShader, 1, &source, 0);
 
 	//Compile the fragment shader
-	glCompileShader(fragmentShader);
+	fun->glCompileShader(fragmentShader);
 
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &isCompiled);
+	fun->glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &isCompiled);
 	if(isCompiled == GL_FALSE)
 	{
 		GLint maxLength = 0;
-		glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &maxLength);
+		fun->glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &maxLength);
 
 		//The maxLength includes the NULL character
 		std::vector<GLchar> infoLog(maxLength);
-		glGetShaderInfoLog(fragmentShader, maxLength, &maxLength, &infoLog[0]);
+		fun->glGetShaderInfoLog(fragmentShader, maxLength, &maxLength, &infoLog[0]);
 
 		//We don't need the shader anymore.
-		glDeleteShader(fragmentShader);
+		fun->glDeleteShader(fragmentShader);
 		//Either of them. Don't leak shaders.
-		glDeleteShader(vertexShader);
+		fun->glDeleteShader(vertexShader);
 
 		//Use the infoLog as you see fit.
 
@@ -1182,32 +1193,32 @@ void View::initShader()
 //Vertex and fragment shaders are successfully compiled.
 //Now time to link them together into a program.
 //Get a program object.
-programGLSL = glCreateProgram();
+programGLSL = fun->glCreateProgram();
 
 //Attach our shaders to our program
-glAttachShader(programGLSL, vertexShader);
-glAttachShader(programGLSL, fragmentShader);
+fun->glAttachShader(programGLSL, vertexShader);
+fun->glAttachShader(programGLSL, fragmentShader);
 
 //Link our program
-glLinkProgram(programGLSL);
+fun->glLinkProgram(programGLSL);
 
 //Note the different functions here: glGetProgram* instead of glGetShader*.
 GLint isLinked = 0;
-glGetProgramiv(programGLSL, GL_LINK_STATUS, (int *)&isLinked);
+fun->glGetProgramiv(programGLSL, GL_LINK_STATUS, (int *)&isLinked);
 if(isLinked == GL_FALSE)
 {
 	GLint maxLength = 0;
-	glGetProgramiv(programGLSL, GL_INFO_LOG_LENGTH, &maxLength);
+	fun->glGetProgramiv(programGLSL, GL_INFO_LOG_LENGTH, &maxLength);
 
 	//The maxLength includes the NULL character
 	std::vector<GLchar> infoLog(maxLength);
-	glGetProgramInfoLog(programGLSL, maxLength, &maxLength, &infoLog[0]);
+	fun->glGetProgramInfoLog(programGLSL, maxLength, &maxLength, &infoLog[0]);
 
 	//We don't need the program anymore.
-	glDeleteProgram(programGLSL);
+	fun->glDeleteProgram(programGLSL);
 	//Don't leak shaders either.
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
+	fun->glDeleteShader(vertexShader);
+	fun->glDeleteShader(fragmentShader);
 
 	//Use the infoLog as you see fit.
 
@@ -1216,8 +1227,8 @@ if(isLinked == GL_FALSE)
 }
 
 //Always detach shaders after a successful link.
-glDetachShader(programGLSL, vertexShader);
-glDetachShader(programGLSL, fragmentShader);
+fun->glDetachShader(programGLSL, vertexShader);
+fun->glDetachShader(programGLSL, fragmentShader);
 }
 
 /********************************************************************************************************/

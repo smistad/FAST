@@ -1,4 +1,3 @@
-#include <GL/glew.h>
 #include "Window.hpp"
 #include <QApplication>
 #include <QOffscreenSurface>
