@@ -1,6 +1,7 @@
 #include "FAST/ProcessObject.hpp"
 #include "FAST/Exception.hpp"
 #include "FAST/OpenCLProgram.hpp"
+#include <unordered_set>
 
 
 namespace fast {
@@ -12,9 +13,16 @@ ProcessObject::ProcessObject() : mIsModified(false) {
 
 void ProcessObject::update() {
     bool aParentHasBeenModified = false;
-    // TODO check mInputConnections here instead
     std::unordered_map<uint, ProcessObjectPort>::iterator it;
+    // If this object has multiple connection to the same parent this is used to avoid updating that parent many times
+    std::unordered_set<ProcessObject::pointer> parents;
     for(it = mInputConnections.begin(); it != mInputConnections.end(); it++) {
+        if(parents.count(it->second.getProcessObject()) == 0) {
+            parents.insert(it->second.getProcessObject());
+        } else {
+            // Skip; already updated
+            continue;
+        }
         // Update input connection
         ProcessObjectPort& port = it->second; // use reference here to make sure timestamp is updated
         port.getProcessObject()->update();
@@ -32,7 +40,6 @@ void ProcessObject::update() {
         }
     }
 
-    // If this process object itself has been modified or a parent object (input)
     // has been modified, execute is called
     if(this->mIsModified || aParentHasBeenModified) {
         this->mRuntimeManager->startRegularTimer("execute");
@@ -296,7 +303,8 @@ uint ProcessObjectPort::getPortID() const {
 }
 
 bool ProcessObjectPort::isDataModified() const {
-    return mTimestamp != mProcessObject->getOutputDataX(mPortID)->getTimestamp() || (mDataPointer != 0 && mDataPointer != (std::size_t)mProcessObject->getOutputDataX(mPortID).getPtr().get());
+    return mTimestamp != mProcessObject->getOutputDataX(mPortID)->getTimestamp() ||
+            (mDataPointer != 0 && mDataPointer != (std::size_t)mProcessObject->getOutputDataX(mPortID).getPtr().get());
 }
 
 void ProcessObjectPort::updateTimestamp() {
