@@ -5,8 +5,8 @@ include(cmake/Externals.cmake)
 if(WIN32)
 	#set(BUILD_COMMAND set CL=/MP; nmake)
 	set(BUILD_COMMAND nmake)
-	set(URL "http://download.qt.io/official_releases/qt/5.7/5.7.1/submodules/qtbase-opensource-src-5.7.1.zip")
-	set(URL_HASH SHA256=3570b8a107903615fef0faddcdbe80b35d788a80979a9f6d0de420c3339f45bf)
+	set(URL "http://download.qt.io/official_releases/qt/5.8/5.8.0/submodules/qtbase-opensource-src-5.8.0.zip")
+	set(URL_HASH SHA256=4899c64c27249690a0a6b46208408d9dcc7043f42e175417e2f7634710f8f3fa)
 	set(OPTIONS  
             -opensource;
             -confirm-license;
@@ -25,8 +25,8 @@ if(WIN32)
 	)
 else()
 	set(BUILD_COMMAND make -j4)
-	set(URL "http://download.qt.io/official_releases/qt/5.7/5.7.1/submodules/qtbase-opensource-src-5.7.1.tar.gz")
-	set(URL_HASH SHA256=95f83e532d23b3ddbde7973f380ecae1bac13230340557276f75f2e37984e410)
+	set(URL "http://download.qt.io/official_releases/qt/5.8/5.8.0/submodules/qtbase-opensource-src-5.8.0.tar.gz")
+	set(URL_HASH SHA256=0f6ecd94abd148f1ea4ad08905308af973c6fad9e8fca7491d68dbc8fbd88872)
     if(APPLE)
         set(OPTIONS
             -opensource;
@@ -36,8 +36,6 @@ else()
             -no-openssl;
             -no-libproxy;
             -no-qml-debug;
-            -no-pulseaudio;
-            -no-alsa;
             -nomake tools;
             -nomake tests;
             -opengl desktop;
@@ -56,8 +54,6 @@ else()
             -no-openssl;
             -no-libproxy;
             -no-qml-debug;
-            -no-pulseaudio;
-            -no-alsa;
             -nomake tools;
             -nomake tests;
             -opengl desktop;
