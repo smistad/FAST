@@ -31,7 +31,7 @@ class Image : public SpatialDataObject {
         OpenCLBufferAccess::pointer getOpenCLBufferAccess(accessType type, OpenCLDevice::pointer);
         ImageAccess::pointer getImageAccess(accessType type);
 
-        ~Image() { freeAll(); };
+        ~Image();
 
         uint getWidth() const;
         uint getHeight() const;

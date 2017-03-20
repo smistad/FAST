@@ -1210,6 +1210,10 @@ BoundingBox Image::getTransformedBoundingBox() const {
     return getBoundingBox().getTransformedBoundingBox(T);
 }
 
+Image::~Image() {
+    freeAll();
+}
+
 } // end namespace fast;
 
 

@@ -344,6 +344,9 @@ cl::Program ProcessObject::getOpenCLProgram(
     return program->build(device, buildOptions);
 }
 
+ProcessObject::~ProcessObject() {
+}
+
 } // namespace fast
 
 namespace std {

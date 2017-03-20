@@ -53,7 +53,7 @@ class ProcessObjectPort {
 
 class ProcessObject : public virtual Object {
     public:
-        virtual ~ProcessObject() {};
+        virtual ~ProcessObject();
         void update();
         typedef SharedPointer<ProcessObject> pointer;
 
