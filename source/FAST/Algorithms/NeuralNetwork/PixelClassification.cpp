@@ -53,7 +53,7 @@ void PixelClassification::execute() {
             delete[] data;
         } else {
             uchar *data = new uchar[outputWidth * outputHeight];
-            const float threshold = 0.5;
+            const float threshold = 0.75;
             for (int x = 0; x < outputWidth; ++x) {
                 for (int y = 0; y < outputHeight; ++y) {
                     data[x + y * outputWidth] = tensor_mapped(0, y, x, j) > threshold ? j : 0;

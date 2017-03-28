@@ -107,10 +107,7 @@ file(GLOB LICENSE_FILES ${FAST_EXTERNAL_BUILD_DIR}/qt5/src/qt5/LICENSE.*)
 install(FILES ${LICENSE_FILES}
 		DESTINATION fast/licenses/qt5/
 )
-# GLEW
-install(FILES ${FAST_EXTERNAL_BUILD_DIR}/glew/src/glew/LICENSE.txt
-		DESTINATION fast/licenses/glew/
-)
+
 # Eigen
 file(GLOB LICENSE_FILES ${FAST_EXTERNAL_BUILD_DIR}/eigen/src/eigen/COPYING.*)
 install(FILES ${LICENSE_FILES}

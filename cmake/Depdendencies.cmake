@@ -22,12 +22,7 @@ endif()
 ## Qt
 if(${FAST_MODULE_Visualization})
     include(cmake/ExternalQt5.cmake)
-    # TODO issue: These Config files are not available until after build of Qt5
-    # One possibility is to copy cmake files to our cmake folder, but some of them seem to be generated
-    # If not possible, need to trigger build of qt5 in the configure step of FAST
-    # Main issue is that MOC doesn't work without either CMAKE_AUTOMOC or the qt5_wrap_cpp macro
-        # ExtraIncludeSources.cmake has absolute paths, but its optional?
-        set(Qt5Core_DIR ${PROJECT_SOURCE_DIR}/cmake/Qt5Core)
+    set(Qt5Core_DIR ${PROJECT_SOURCE_DIR}/cmake/Qt5Core)
     set(Qt5Gui_DIR ${PROJECT_SOURCE_DIR}/cmake/Qt5Gui)
     set(Qt5Widgets_DIR ${PROJECT_SOURCE_DIR}/cmake/Qt5Widgets)
     set(Qt5OpenGL_DIR ${PROJECT_SOURCE_DIR}/cmake/Qt5OpenGL)
@@ -51,7 +46,6 @@ endif()
 ## External depedencies
 include(cmake/ExternalEigen.cmake)
 include(cmake/ExternalZlib.cmake)
-include(cmake/ExternalGLEW.cmake)
 
 # Optional modules
 include(cmake/ModuleVTK.cmake)

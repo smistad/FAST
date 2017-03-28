@@ -1,4 +1,3 @@
-#include <GL/glew.h>
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Data/Image.hpp"
@@ -6,6 +5,7 @@
 #include "FAST/Utility.hpp"
 #include "FAST/Utility.hpp"
 #include "FAST/SceneGraph.hpp"
+#include <QOpenGLFunctions_3_3_Core>
 
 namespace fast {
 
@@ -353,9 +353,11 @@ void SurfaceExtraction::execute() {
         );
 
         // Transfer CPU data to VBO
-        glBindBuffer(GL_ARRAY_BUFFER, *VBO_ID);
-        glBufferData(GL_ARRAY_BUFFER, totalSum * 18 * sizeof(float), data, GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
+        fun->initializeOpenGLFunctions();
+        fun->glBindBuffer(GL_ARRAY_BUFFER, *VBO_ID);
+        fun->glBufferData(GL_ARRAY_BUFFER, totalSum * 18 * sizeof(float), data, GL_STATIC_DRAW);
+        fun->glBindBuffer(GL_ARRAY_BUFFER, 0);
         glFinish();
 
         delete[] data;

@@ -1,9 +1,9 @@
-#include <GL/glew.h>
 #include "FAST/Utility.hpp"
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Visualization/View.hpp"
 #include "FAST/Utility.hpp"
 #include <QCursor>
+#include <QOpenGLFunctions_3_3_Core>
 
 
 #include "MeshRenderer.hpp"
@@ -57,6 +57,8 @@ void MeshRenderer::draw() {
     glEnable(GL_NORMALIZE);
     glShadeModel(GL_SMOOTH);
     glEnable(GL_LIGHTING);
+    QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
+    fun->initializeOpenGLFunctions();
 
     std::unordered_map<uint, Mesh::pointer>::iterator it;
     for(it = mMeshToRender.begin(); it != mMeshToRender.end(); it++) {
@@ -98,7 +100,7 @@ void MeshRenderer::draw() {
         GLuint* VBO_ID = access->get();
 
         // Normal Buffer
-        glBindBuffer(GL_ARRAY_BUFFER, *VBO_ID);
+        fun->glBindBuffer(GL_ARRAY_BUFFER, *VBO_ID);
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_NORMAL_ARRAY);
 
@@ -108,7 +110,7 @@ void MeshRenderer::draw() {
         glDrawArrays(GL_TRIANGLES, 0, surfaceToRender->getNrOfTriangles()*3);
 
         // Release buffer
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        fun->glBindBuffer(GL_ARRAY_BUFFER, 0);
         glDisableClientState(GL_VERTEX_ARRAY);
         glDisableClientState(GL_NORMAL_ARRAY);
         if(opacity < 1) {

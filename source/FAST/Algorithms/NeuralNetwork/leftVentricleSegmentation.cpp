@@ -1,6 +1,7 @@
 #include <FAST/Visualization/DualViewWindow.hpp>
 #include <FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp>
 #include <FAST/Algorithms/ImageResampler/ImageResampler.hpp>
+#include <FAST/Visualization/HeatmapRenderer/HeatmapRenderer.hpp>
 #include "FAST/Testing.hpp"
 #include "ShapeRegressor.hpp"
 #include "FAST/Streamers/ImageFileStreamer.hpp"
@@ -15,13 +16,31 @@ int main() {
     Reporter::setGlobalReportMethod(Reporter::COUT);
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
     streamer->setFilenameFormats({
-            "/media/extra/GRUE_MHD/Clinic002/F4HESG80/US-2D_#.mhd",
-                    "/media/extra/GRUE_MHD/Clinic002/F47KQ2LM/US-2D_#.mhd",
-                    "/media/extra/GRUE_MHD/Clinic002/F47KQ3TQ/US-2D_#.mhd",
-                    "/media/extra/GRUE_MHD/Clinic002/F47KQ4LS/US-2D_#.mhd",
-                    "/media/extra/GRUE_MHD/Clinic002/F47KQ6M2/US-2D_#.mhd",
-                    "/media/extra/GRUE_MHD/Clinic002/F47KQ7U6/US-2D_#.mhd",
-                    "/media/extra/GRUE_MHD/Clinic002/F47KQ9O4/US-2D_#.mhd",
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KT5OE/US-2D_#.mhd",
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KT6GG/US-2D_#.mhd",
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KT7OK/US-2D_#.mhd",
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KT50C/US-2D_#.mhd",
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KT70I/US-2D_#.mhd",
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KT80M/US-2D_#.mhd",
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KT88O/US-2D_#.mhd",
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KT98S/US-2D_#.mhd",
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KTA0U/US-2D_#.mhd",
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KTD1I/US-2D_#.mhd",
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KTG1S/US-2D_#.mhd",
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KTGPU/US-2D_#.mhd",
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KTHA0/US-2D_#.mhd",
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KTI22/US-2D_#.mhd",
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KTII4/US-2D_#.mhd",
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KTJ26/US-2D_#.mhd",
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KTJQ8/US-2D_#.mhd",
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KTL2C/US-2D_#.mhd",
+//            "/media/extra/GRUE_MHD/Clinic002/F4HESG80/US-2D_#.mhd",
+//                    "/media/extra/GRUE_MHD/Clinic002/F47KQ2LM/US-2D_#.mhd",
+//                    "/media/extra/GRUE_MHD/Clinic002/F47KQ3TQ/US-2D_#.mhd",
+//                    "/media/extra/GRUE_MHD/Clinic002/F47KQ4LS/US-2D_#.mhd",
+//                    "/media/extra/GRUE_MHD/Clinic002/F47KQ6M2/US-2D_#.mhd",
+//                    "/media/extra/GRUE_MHD/Clinic002/F47KQ7U6/US-2D_#.mhd",
+//                    "/media/extra/GRUE_MHD/Clinic002/F47KQ9O4/US-2D_#.mhd",
          //"/home/smistad/data/ultrasound_smistad_heart/1234/H1ADB20I/US-2D_#.mhd",
          "/home/smistad/data/ultrasound_smistad_heart/1234/H1ADBNGK/US-2D_#.mhd",
          "/home/smistad/data/ultrasound_smistad_heart/1234/H1ADC6OM/US-2D_#.mhd",
@@ -78,21 +97,26 @@ int main() {
     segmentation->load("/home/smistad/workspace/left-ventricle-segmentation/models/test_fcn.tfl");
     segmentation->setInputSize(256, 256);
     segmentation->setScaleFactor(1.0f/255.0f);
-    segmentation->setOutputParameters({"Reshape_21"});
+    segmentation->setOutputParameters({"Reshape_24"});
     segmentation->setInputConnection(streamer->getOutputPort());
+    segmentation->setHeatmapOutput();
     segmentation->enableRuntimeMeasurements();
 
-    SegmentationRenderer::pointer renderer = SegmentationRenderer::New();
-    renderer->setFillArea(false);
-    renderer->setInputConnection(segmentation->getOutputPort(1));
+    SegmentationRenderer::pointer segmentationRenderer = SegmentationRenderer::New();
+    segmentationRenderer->setFillArea(false);
+    segmentationRenderer->setInputConnection(segmentation->getOutputPort(1));
 
-    ImageRenderer::pointer renderer2 = ImageRenderer::New();
-    renderer2->setInputConnection(streamer->getOutputPort());
+    ImageRenderer::pointer imageRenderer = ImageRenderer::New();
+    imageRenderer->setInputConnection(streamer->getOutputPort());
+
+    HeatmapRenderer::pointer heatmapRenderer = HeatmapRenderer::New();
+    heatmapRenderer->addInputConnection(segmentation->getOutputPort(1), Color::Green());
 
     SimpleWindow::pointer window = SimpleWindow::New();
 
-    window->addRenderer(renderer2);
-    window->addRenderer(renderer);
+    window->addRenderer(imageRenderer);
+    //window->addRenderer(segmentationRenderer);
+    window->addRenderer(heatmapRenderer);
     window->setSize(1024, 1024);
     window->set2DMode();
     window->getView()->setBackgroundColor(Color::Black());

@@ -51,6 +51,7 @@ int main() {
     window->addRenderer(renderer);
     window->getView()->enableRuntimeMeasurements();
     window->setSize(1024, 1024);
+    window->getView()->set2DPixelSpacing(0.3);
     window->set2DMode();
     window->getView()->setBackgroundColor(Color::Black());
     window->start();

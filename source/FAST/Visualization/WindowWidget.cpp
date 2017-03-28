@@ -21,7 +21,10 @@ void WindowWidget::closeEvent(QCloseEvent* event) {
 }
 
 WindowWidget::~WindowWidget() {
-    //reportInfo() << "DESTROYING window widget" << Reporter::end;
+    Reporter::info() << "DESTROYING window widget and all related views" << Reporter::end;
+    for(View* view : mViews) {
+        delete view;
+    }
 }
 
 WindowWidget::WindowWidget() {

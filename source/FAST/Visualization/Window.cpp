@@ -1,4 +1,3 @@
-#include <GL/glew.h>
 #include "Window.hpp"
 #include <QApplication>
 #include <QOffscreenSurface>
@@ -154,8 +153,10 @@ Window::~Window() {
     //if(mEventLoop != NULL)
     //    delete mEventLoop;
     reportInfo() << "Deleting widget" << Reporter::end;
-    //if(mWidget != NULL)
-        //delete mWidget;
+    if(mWidget != NULL) {
+        delete mWidget;
+        mWidget = NULL;
+    }
     reportInfo() << "Finished deleting window widget" << Reporter::end;
     if(mThread != NULL) {
         mThread->stop();
