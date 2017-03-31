@@ -21,7 +21,7 @@ fast_add_test_sources(
     Tests/VTKSurfaceFileImporterTests.cpp
     Tests/VTKLineSetFileImporterTests.cpp
 )
-if(FAST_MODULE_VISUALIZATION)
+if(FAST_MODULE_Visualization)
 fast_add_test_sources(
     Tests/ImageImporterTests.cpp
     Tests/ImageFileImporterTests.cpp

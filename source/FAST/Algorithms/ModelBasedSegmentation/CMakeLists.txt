@@ -7,7 +7,7 @@ fast_add_sources(
 	Shape.cpp
 	Shape.hpp
 )
-if(FAST_MODULE_VISUALIZATION)
+if(FAST_MODULE_Visualization)
 fast_add_test_sources(
 	Tests.cpp
 )

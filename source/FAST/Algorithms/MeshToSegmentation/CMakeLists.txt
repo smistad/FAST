@@ -2,7 +2,7 @@ fast_add_sources(
 	MeshToSegmentation.cpp
 	MeshToSegmentation.hpp
 )
-if(FAST_MODULE_VISUALIZATION)
+if(FAST_MODULE_Visualization)
 fast_add_test_sources(
 	Tests.cpp
 )

@@ -2,7 +2,7 @@ fast_add_sources(
         ImageResampler.cpp
         ImageResampler.hpp
 )
-if(FAST_MODULE_VISUALIZATION)
+if(FAST_MODULE_Visualization)
 fast_add_test_sources(
         ImageResamplerTests.cpp
 )

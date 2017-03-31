@@ -13,7 +13,7 @@ if(FAST_MODULE_NeuralNetwork)
         PixelClassification.cpp
         PixelClassification.hpp
     )
-    if(FAST_MODULE_VISUALIZATION)
+    if(FAST_MODULE_Visualization)
     fast_add_test_sources(
         ImageClassifierTests.cpp
         #DNNAppearanceModelTests.cpp

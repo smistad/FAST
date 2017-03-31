@@ -10,7 +10,7 @@ fast_add_sources(
     InverseGradientSegmentation.cpp
     InverseGradientSegmentation.hpp
 )
-if(FAST_MODULE_VISUALIZATION)
+if(FAST_MODULE_Visualization)
 fast_add_test_sources(
     TubeSegmentationAndCenterlineExtractionTests.cpp
 )

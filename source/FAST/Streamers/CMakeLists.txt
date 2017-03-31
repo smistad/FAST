@@ -13,7 +13,7 @@ if(FAST_MODULE_OpenIGTLink)
         IGTLinkStreamer.hpp
         IGTLinkStreamer.cpp
     )
-    if(FAST_MODULE_VISUALIZATION)
+    if(FAST_MODULE_Visualization)
     fast_add_test_sources(
         Tests/IGTLinkStreamerTests.cpp
         Tests/DummyIGTLServer.cpp

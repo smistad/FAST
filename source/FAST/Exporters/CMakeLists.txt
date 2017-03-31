@@ -17,7 +17,7 @@ fast_add_test_sources(
     Tests/MetaImageExporterTests.cpp
     Tests/VTKMeshFileExporterTests.cpp
 )
-if(FAST_MODULE_VISUALIZATION)
+if(FAST_MODULE_Visualization)
 fast_add_test_sources(
     Tests/ImageExporterTests.cpp
 )
