@@ -17,12 +17,16 @@ fast_add_python_interfaces(
 	ImageFileImporter.i
 )
 fast_add_test_sources(
-    Tests/ImageImporterTests.cpp
     Tests/MetaImageImporterTests.cpp
     Tests/VTKSurfaceFileImporterTests.cpp
     Tests/VTKLineSetFileImporterTests.cpp
+)
+if(FAST_MODULE_VISUALIZATION)
+fast_add_test_sources(
+    Tests/ImageImporterTests.cpp
     Tests/ImageFileImporterTests.cpp
 )
+endif()
 if(FAST_VTK_INTEROP)
     fast_add_sources(
         VTKImageImporter.cpp
