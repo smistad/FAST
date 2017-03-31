@@ -1,8 +1,9 @@
-
+#include "FAST/DeviceManager.hpp"
 #include "FAST/Exception.hpp"
+#include <algorithm>
+#ifdef FAST_MODULE_VISUALIZATION
 #include "FAST/Visualization/Window.hpp"
-#include <QApplication>
-#include <QGLContext>
+#endif
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
@@ -65,7 +66,9 @@ throw Exception("Not able to get sharegroup");
 
 DeviceManager* DeviceManager::getInstance() {
     if(mInstance == NULL) {
+#ifdef FAST_MODULE_VISUALIZATION
         Window::initializeQtApp();
+#endif
         mInstance = new DeviceManager();
     }
 
@@ -84,13 +87,16 @@ std::vector<OpenCLDevice::pointer> DeviceManager::getDevices(DeviceCriteria crit
     unsigned long * glContext = NULL;
     if(!isGLInteropEnabled()) {
         enableVisualization = false;
+#ifdef FAST_MODULE_VISUALIZATION
         fast::Window::getMainGLContext(); // Still have to create GL context
+#endif
     }
     if(enableVisualization) {
         // Create GL context
 
-		// Make sure only one QApplication is created
+#ifdef FAST_MODULE_VISUALIZATION
 		Window::getMainGLContext()->makeCurrent();
+#endif
 #if defined(__APPLE__) || defined(__MACOSX)
 		CGLContextObj appleContext = CGLGetCurrentContext();
 		reportInfo() << "Initial GL context: " << CGLGetCurrentContext() << Reporter::end;
@@ -267,7 +273,9 @@ bool DeviceManager::deviceHasOpenGLInteropCapability(const cl::Device &device) {
     cl::Platform platform = device.getInfo<CL_DEVICE_PLATFORM>();
     // Get all devices that are capable of OpenGL interop with this platform
     // Create properties for CL-GL context
+#ifdef FAST_MODULE_VISUALIZATION
 		Window::getMainGLContext()->makeCurrent();
+#endif
 		unsigned long* glContext;
 #if defined(__APPLE__) || defined(__MACOSX)
 		CGLContextObj appleContext = CGLGetCurrentContext();

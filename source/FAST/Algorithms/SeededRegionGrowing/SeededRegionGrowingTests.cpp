@@ -2,8 +2,6 @@
 #include "SeededRegionGrowing.hpp"
 #include "FAST/Importers/ImageImporter.hpp"
 #include "FAST/Importers/MetaImageImporter.hpp"
-#include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
-#include "FAST/Visualization/SimpleWindow.hpp"
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Data/Segmentation.hpp"
 

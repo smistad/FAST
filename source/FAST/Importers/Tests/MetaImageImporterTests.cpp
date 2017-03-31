@@ -1,8 +1,7 @@
 #include "FAST/Testing.hpp"
 #include "FAST/Importers/MetaImageImporter.hpp"
 #include "FAST/DeviceManager.hpp"
-#include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
-#include "FAST/Visualization/SimpleWindow.hpp"
+#include "FAST/Data/Image.hpp"
 
 using namespace fast;
 
@@ -101,16 +100,3 @@ TEST_CASE("Import MetaImage file to OpenCL device", "[fast][MetaImageImporter]")
     CHECK(image->getDataType() == TYPE_UINT8);
 }
 
-/*
-TEST_CASE("Import compressed raw file with MetaImage", "[fast][MetaImageImporter][visual]") {
-    MetaImageImporter::pointer importer = MetaImageImporter::New();
-    importer->setFilename(Config::getTestDataPath()+"US-2D-compressed.mhd");
-    importer->update();
-
-    ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->addInputConnection(importer->getOutputPort());
-    SimpleWindow::pointer window = SimpleWindow::New();
-    window->addRenderer(renderer);
-    window->start();
-}
-*/

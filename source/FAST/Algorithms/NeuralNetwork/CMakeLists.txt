@@ -13,11 +13,13 @@ if(FAST_MODULE_NeuralNetwork)
         PixelClassification.cpp
         PixelClassification.hpp
     )
+    if(FAST_MODULE_VISUALIZATION)
     fast_add_test_sources(
         ImageClassifierTests.cpp
         #DNNAppearanceModelTests.cpp
         ObjectDetectionTests.cpp
     )
+    endif()
     fast_add_example(imageClassification imageClassification.cpp)
     fast_add_example(leftVentricleSegmentation leftVentricleSegmentation.cpp)
     fast_add_example(axillaryHeatmap axillaryHeatmap.cpp)

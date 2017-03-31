@@ -2,9 +2,11 @@ fast_add_sources(
 	ImageSlicer.cpp
 	ImageSlicer.hpp
 )
+if(FAST_MODULE_VISUALIZATION)
 fast_add_test_sources(
 	ImageSlicerTests.cpp
 )
+endif()
 fast_add_python_interfaces(
     ImageSlicer.i
 )

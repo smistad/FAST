@@ -86,6 +86,17 @@ class NotImplementedException : public Exception {
         };
 };
 
+class DoesNotExistException : public Exception {
+    public:
+        DoesNotExistException(std::string msg) : Exception(msg) {};
+};
+
+class ExistException : public Exception {
+    public:
+        ExistException(std::string msg) : Exception(msg) {};
+
+};
+
 } // end namespace fast
 
 
