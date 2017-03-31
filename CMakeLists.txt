@@ -100,13 +100,17 @@ fast_add_subdirectories(source/FAST)
 
 
 if(FAST_BUILD_EXAMPLES)
-    set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
-    if(WIN32)
-        file(WRITE ${PROJECT_BINARY_DIR}/runAllExamples.bat "")
+    if(FAST_MODULE_VISUALIZATION)
+        set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
+        if(WIN32)
+            file(WRITE ${PROJECT_BINARY_DIR}/runAllExamples.bat "")
+        else()
+            file(WRITE ${PROJECT_BINARY_DIR}/runAllExamples.sh "#!/bin/bash\n")
+        endif()
+        add_subdirectory(source/FAST/Examples)
     else()
-        file(WRITE ${PROJECT_BINARY_DIR}/runAllExamples.sh "#!/bin/bash\n")
+        message("-- Not building examples since visualization module is disabled.")
     endif()
-    add_subdirectory(source/FAST/Examples)
 endif()
 
 #### Create FAST library and executables
@@ -120,7 +124,7 @@ add_dependencies(FAST ${FAST_EXTERNAL_DEPENDENCIES})
 
 ## Link everything
 target_link_libraries(FAST ${LIBRARIES})
-if(${FAST_MODULE_Visualization})
+if(FAST_MODULE_Visualization)
     qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
 endif()
 
