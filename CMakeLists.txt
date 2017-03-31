@@ -19,6 +19,9 @@ option(FAST_MODULE_Python "Build Python wrappers" OFF)
 option(FAST_MODULE_Kinect "Build kinect module" OFF)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
 
+# Python version
+set(FAST_Python_Version "" CACHE STRING "Specify which Python version to build python wrappers with. E.g. 2 or 3")
+
 #### Set build type
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     message("-- Setting build type to 'Release' as none was specified.")
