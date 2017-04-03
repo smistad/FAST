@@ -421,7 +421,7 @@ Mesh::Mesh() {
 void Mesh::freeAll() {
     // TODO finish
     if(mVBOHasData) {
-#ifdef FAST_MODULE_VISULIZATION
+#ifdef FAST_MODULE_VISUALIZATION
         Window::getMainGLContext()->makeCurrent(); // Need an active context to delete the mesh VBO
         QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
         fun->initializeOpenGLFunctions();
