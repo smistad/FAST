@@ -20,7 +20,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL Linux)
 endif()
 
 ## Qt
-if(${FAST_MODULE_Visualization})
+if(FAST_MODULE_Visualization)
     include(cmake/ExternalQt5.cmake)
     set(Qt5Core_DIR ${PROJECT_SOURCE_DIR}/cmake/Qt5Core)
     set(Qt5Gui_DIR ${PROJECT_SOURCE_DIR}/cmake/Qt5Gui)
@@ -39,8 +39,7 @@ if(${FAST_MODULE_Visualization})
     #list(APPEND LIBRARIES ${QT_LIBRARIES})
     #list(APPEND FAST_INCLUDE_DIRS "${Qt5Widgets_INCLUDE_DIRS}")
     #list(APPEND FAST_INCLUDE_DIRS "${Qt5OpenGL_INCLUDE_DIRS}")
-else()
-    #add_definitions("-DFAST_NO_VISUALIZATION")
+    add_definitions("-DFAST_MODULE_VISUALIZATION")
 endif()
 
 ## External depedencies

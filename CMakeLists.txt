@@ -19,6 +19,9 @@ option(FAST_MODULE_Python "Build Python wrappers" OFF)
 option(FAST_MODULE_Kinect "Build kinect module" OFF)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
 
+# Python version
+set(FAST_Python_Version "" CACHE STRING "Specify which Python version to build python wrappers with. E.g. 2 or 3")
+
 #### Set build type
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     message("-- Setting build type to 'Release' as none was specified.")
@@ -100,13 +103,17 @@ fast_add_subdirectories(source/FAST)
 
 
 if(FAST_BUILD_EXAMPLES)
-    set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
-    if(WIN32)
-        file(WRITE ${PROJECT_BINARY_DIR}/runAllExamples.bat "")
+    if(FAST_MODULE_VISUALIZATION)
+        set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
+        if(WIN32)
+            file(WRITE ${PROJECT_BINARY_DIR}/runAllExamples.bat "")
+        else()
+            file(WRITE ${PROJECT_BINARY_DIR}/runAllExamples.sh "#!/bin/bash\n")
+        endif()
+        add_subdirectory(source/FAST/Examples)
     else()
-        file(WRITE ${PROJECT_BINARY_DIR}/runAllExamples.sh "#!/bin/bash\n")
+        message("-- Not building examples since visualization module is disabled.")
     endif()
-    add_subdirectory(source/FAST/Examples)
 endif()
 
 #### Create FAST library and executables
@@ -120,7 +127,7 @@ add_dependencies(FAST ${FAST_EXTERNAL_DEPENDENCIES})
 
 ## Link everything
 target_link_libraries(FAST ${LIBRARIES})
-if(${FAST_MODULE_Visualization})
+if(FAST_MODULE_Visualization)
     qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
 endif()
 

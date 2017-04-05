@@ -73,7 +73,7 @@ double calculateGVFVectorFieldResidual(Image::pointer inputVectorField, Image::p
 
 TEST_CASE("Gradient vector flow with Euler method 2D 16 bit", "[fast][GVF][GradientVectorFlow][EulerGradientVectorFlow][2D]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "US/US-2D.jpg");
+    importer->setFilename(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
 
     ScaleImage::pointer normalize = ScaleImage::New();
     normalize->setInputConnection(importer->getOutputPort());
@@ -93,7 +93,7 @@ TEST_CASE("Gradient vector flow with Euler method 2D 16 bit", "[fast][GVF][Gradi
 
 TEST_CASE("Gradient vector flow with Euler method 2D 32 bit", "[fast][GVF][GradientVectorFlow][EulerGradientVectorFlow][2D]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "US/US-2D.jpg");
+    importer->setFilename(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
 
     ScaleImage::pointer normalize = ScaleImage::New();
     normalize->setInputConnection(importer->getOutputPort());

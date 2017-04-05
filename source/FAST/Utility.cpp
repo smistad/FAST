@@ -3,10 +3,16 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <regex>
+#ifdef _WIN32
+#else
+// Needed for making directory
+#include <sys/types.h>
+#include <sys/stat.h>
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
+#endif
 #endif
 
 namespace fast {
@@ -562,6 +568,63 @@ void loadPerspectiveMatrix(float fovy, float aspect, float zNear, float zFar) {
 	float xmin = ymin * aspect;
 	float xmax = ymax * aspect;
 	glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
+}
+
+void createDirectory(std::string path) {
+    int error = 0;
+#if defined(_WIN32)
+    error = _mkdir(path.c_str()); // can be used on Windows
+#else
+    mode_t nMode = 0733; // UNIX style permissions
+    error = mkdir(path.c_str(), nMode); // can be used on non-Windows
+#endif
+    if (error != 0) {
+        if(error == EEXIST) {
+            throw ExistException("Unable to create directory at " + path + ": Directory already exists.");
+        } else if(error == ENOENT) {
+            throw DoesNotExistException("Unable to create directory at " + path + ": Path was not found.");
+        } else {
+            throw Exception("Unable to create directory at " + path + ": Unknown error.");
+        }
+    }
+}
+
+
+void createDirectories(std::string path) {
+    // Replace \ with / so that this will work on windows
+    path = replace(path, "\\", "/");
+    std::vector<std::string> directories = split(path, "/");
+    std::vector<std::string> filteredDirectories;
+
+    // Fix any path with /../ in path
+    for(int i = 0; i < directories.size(); ++i) {
+        trim(directories[i]);
+        //std::cout << directories[i] << std::endl;
+        if(directories[i] == "..") {
+            // Pop previous
+            filteredDirectories.pop_back();
+        } else if(directories[i].size() > 0) {
+            filteredDirectories.push_back(directories[i]);
+        }
+    }
+
+    directories = filteredDirectories;
+#ifdef _WIN32
+    std::string currentPath = directories[0];
+#else
+    std::string currentPath = "/" + directories[0];
+#endif
+    // Create each directory needed
+    for(int i = 1; i < directories.size(); ++i) {
+        currentPath += "/" + directories[i];
+        try {
+            createDirectory(currentPath);
+        } catch(ExistException &e) {
+            continue;
+        } catch(Exception &e) {
+            continue;
+        }
+    }
 }
 
 } // end namespace fast

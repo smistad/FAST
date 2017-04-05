@@ -2,7 +2,6 @@
 #include "FAST/RuntimeMeasurementManager.hpp"
 #include "FAST/Utility.hpp"
 #include <mutex>
-#include <QDir>
 #include <fstream>
 #include "FAST/Config.hpp"
 
@@ -308,10 +307,11 @@ cl::Program OpenCLDevice::writeBinary(std::string filename, std::string buildOpt
     // Create directories if they don't exist
     if(binaryFilename.rfind("/") != std::string::npos) {
         std::string directoryPath = binaryFilename.substr(0, binaryFilename.rfind("/"));
-        QDir dir(directoryPath.c_str());
-        if (!dir.exists()) {
-            dir.mkpath(".");
-        }
+//        QDir dir(directoryPath.c_str());
+//        if (!dir.exists()) {
+//            dir.mkpath(".");
+//        }
+        createDirectories(directoryPath);
     }
     FILE * file = fopen(binaryFilename.c_str(), "wb");
     if(!file)

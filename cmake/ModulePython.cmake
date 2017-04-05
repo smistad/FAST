@@ -5,7 +5,11 @@ if(FAST_MODULE_Python)
     message("-- SWIG found, creating python bindings...")
     include(${SWIG_USE_FILE})
 
-    find_package(PythonLibs REQUIRED)
+    if(FAST_Python_Version)
+        find_package(PythonLibs ${FAST_Python_Version} EXACT REQUIRED)
+    else()
+        find_package(PythonLibs REQUIRED)
+    endif()
     include_directories(${PYTHON_INCLUDE_DIRS})
 
     find_package(NumPy REQUIRED)

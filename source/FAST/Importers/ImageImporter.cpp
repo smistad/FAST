@@ -1,5 +1,7 @@
 #include "ImageImporter.hpp"
+#ifdef FAST_MODULE_VISUALIZATION
 #include <QImage>
+#endif
 #include "FAST/Data/DataTypes.hpp"
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Exception.hpp"
@@ -7,6 +9,7 @@
 using namespace fast;
 
 void ImageImporter::execute() {
+#ifdef FAST_MODULE_VISUALIZATION
     if(mFilename == "")
         throw Exception("No filename was supplied to the ImageImporter");
 
@@ -44,6 +47,9 @@ void ImageImporter::execute() {
             convertedPixelData
     );
     delete[] convertedPixelData;
+#else
+    throw Exception("The ImageImporter need Qt to work, but the visualization module is disabled");
+#endif
 }
 
 ImageImporter::ImageImporter() {

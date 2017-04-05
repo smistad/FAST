@@ -1,8 +1,10 @@
 #include "FAST/Exporters/ImageExporter.hpp"
-#include <QImage>
 #include "FAST/Exception.hpp"
 #include "FAST/Utility.hpp"
 #include "FAST/Data/Image.hpp"
+#ifdef FAST_MODULE_VISUALIZATION
+#include <QImage>
+#endif
 
 namespace fast {
 
@@ -18,6 +20,7 @@ ImageExporter::ImageExporter() {
 }
 
 void ImageExporter::execute() {
+#ifdef FAST_MODULE_VISUALIZATION
     if(mFilename == "")
         throw Exception("No filename given to ImageExporter");
 
@@ -64,6 +67,9 @@ void ImageExporter::execute() {
 
     image.save(QString(mFilename.c_str()));
 
+#else
+    throw Exception("The ImageExporter need Qt to work, but the visualization module is disabled");
+#endif
 }
 
 }; // end namespace fast

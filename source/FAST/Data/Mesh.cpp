@@ -1,9 +1,12 @@
-#include <QApplication>
-#include "FAST/Visualization/Window.hpp"
 #include "Mesh.hpp"
 #include <thread>
 #include "FAST/Utility.hpp"
+
+#ifdef FAST_MODULE_VISUALIZATION
+#include "FAST/Visualization/Window.hpp"
+#include <QApplication>
 #include <QOpenGLFunctions_3_3_Core>
+#endif
 
 
 #if defined(__APPLE__) || defined(__MACOSX)
@@ -116,6 +119,7 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
     }
     if(!mVBOHasData) {
         // VBO has not allocated data: Create VBO
+#ifdef FAST_MODULE_VISUALIZATION
 #if defined(__APPLE__) || defined(__MACOSX)
 #else
 #if _WIN32
@@ -169,7 +173,9 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
 
         mVBOHasData = true;
         mVBODataIsUpToDate = true;
-
+#else
+        throw Exception("Creating mesh with VBO is disabled as FAST module visualization is disabled.");
+#endif
     } else {
         if(!mVBODataIsUpToDate) {
             // TODO Update data
@@ -228,6 +234,7 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
         updateModifiedTimestamp();
     }
     if(!mHostHasData) {
+#ifdef FAST_MODULE_VISUALIZATION
         // Host has not allocated data
     	if(mDimensions == 2)
     		throw Exception("Not implemented for 2D");
@@ -279,6 +286,9 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
         mHostHasData = true;
         mHostDataIsUpToDate = true;
         delete[] data;
+#else
+        throw Exception("Creating mesh with VBO is disabled as FAST module visualization is disabled.");
+#endif
     } else {
         if(!mHostDataIsUpToDate) {
             throw Exception("Not implemented yet!");
@@ -411,6 +421,7 @@ Mesh::Mesh() {
 void Mesh::freeAll() {
     // TODO finish
     if(mVBOHasData) {
+#ifdef FAST_MODULE_VISUALIZATION
         Window::getMainGLContext()->makeCurrent(); // Need an active context to delete the mesh VBO
         QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
         fun->initializeOpenGLFunctions();
@@ -423,6 +434,7 @@ void Mesh::freeAll() {
         // Ideally it should be 0, but then the data is not deleted..
         //fun->glBufferData(GL_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
         //fun->glBindBuffer(GL_ARRAY_BUFFER, 0);
+#endif
     }
     mVBOHasData = false;
 

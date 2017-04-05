@@ -5,7 +5,9 @@
 #include "FAST/Utility.hpp"
 #include "FAST/Utility.hpp"
 #include "FAST/SceneGraph.hpp"
+#ifdef FAST_MODULE_VISUALIZATION
 #include <QOpenGLFunctions_3_3_Core>
+#endif
 
 namespace fast {
 
@@ -343,6 +345,7 @@ void SurfaceExtraction::execute() {
         queue.finish();
     } else {
         // Transfer OpenCL buffer data to CPU
+#ifdef FAST_MODULE_VISUALIZATION
         float *data = new float[18 * totalSum];
         queue.enqueueReadBuffer(
                 VBOBuffer,
@@ -361,6 +364,9 @@ void SurfaceExtraction::execute() {
         glFinish();
 
         delete[] data;
+#else
+        throw Exception("SurfaceExtraction algorithm is disabled since FAST module visualization is disabled");
+#endif
     }
 
 }

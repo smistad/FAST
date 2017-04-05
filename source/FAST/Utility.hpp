@@ -116,6 +116,9 @@ static inline void trim(std::string &s) {
     rtrim(s);
 }
 
+/*
+ * Replace all occurences of from to to in str
+ */
 std::string replace(std::string str, std::string find, std::string replacement);
 
 template <class T>
@@ -126,6 +129,20 @@ static inline void hash_combine(std::size_t& seed, const T& v)
 }
 
 void loadPerspectiveMatrix(float fovy, float aspect, float zNear, float zFar);
+
+/*
+ * Creates a directory at the given path.
+ * Throws exception if it fails
+ */
+void createDirectory(std::string path);
+
+/*
+ * Creates all directories in the given path.
+ * Throws exception if it fails
+ */
+void createDirectories(std::string path);
+
+
 
 } // end namespace fast
 

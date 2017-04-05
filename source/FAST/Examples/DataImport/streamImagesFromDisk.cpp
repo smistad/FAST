@@ -19,6 +19,7 @@ int main(int argc, char** argv) {
     } else {
         streamer->setFilenameFormat(Config::getTestDataPath()+"/US/CarotidArtery/Right/US-2D_#.mhd");
     }
+    streamer->setSleepTime(50);
 
     // Renderer image
     ImageRenderer::pointer renderer = ImageRenderer::New();

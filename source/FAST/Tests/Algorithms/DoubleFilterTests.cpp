@@ -1,13 +1,13 @@
 #include "FAST/Testing.hpp"
-#include "FAST/Importers/ImageImporter.hpp"
+#include "FAST/Importers/ImageFileImporter.hpp"
 #include "DoubleFilter.hpp"
 #include "FAST/Data/Image.hpp"
 
 using namespace fast;
 
 TEST_CASE("DoubleFilter on OpenCL device", "[fast][DoubleFilter]") {
-    ImageImporter::pointer importer = ImageImporter::New();
-    importer->setFilename(Config::getTestDataPath()+"US/US-2D.jpg");
+    ImageFileImporter::pointer importer = ImageFileImporter::New();
+    importer->setFilename(Config::getTestDataPath()+"US/Heart/ApicalFourChamber/US-2D_0.mhd");
 
     DoubleFilter::pointer filter = DoubleFilter::New();
     filter->setInputConnection(importer->getOutputPort());
@@ -34,8 +34,8 @@ TEST_CASE("DoubleFilter on OpenCL device", "[fast][DoubleFilter]") {
 }
 
 TEST_CASE("DoubleFilter on Host", "[fast][DoubleFilter]") {
-    ImageImporter::pointer importer = ImageImporter::New();
-    importer->setFilename(Config::getTestDataPath()+"US/US-2D.jpg");
+    ImageFileImporter::pointer importer = ImageFileImporter::New();
+    importer->setFilename(Config::getTestDataPath()+"US/Heart/ApicalFourChamber/US-2D_0.mhd");
 
     DoubleFilter::pointer filter = DoubleFilter::New();
     filter->setInputConnection(importer->getOutputPort());
