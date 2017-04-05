@@ -28,10 +28,6 @@ __kernel void render2D(
         intensity = 0;
     // Avoid multiple colors on top of eachother
     if(color.x != color.y || color.y != color.z || color.x != color.z) {
-        // TODO select somehow which color should be used
-        // Get lower and highest color component
-        //float lowest = min(color);
-        //float highest = max(color);
         if(color.w < intensity) {
             intensity = min(intensity, maxOpacity);
             float lowest = min(color.x, min(color.y, color.z));
