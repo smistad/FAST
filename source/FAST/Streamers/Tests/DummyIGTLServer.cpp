@@ -119,7 +119,7 @@ void DummyIGTLServer::stream() {
         socket = serverSocket->WaitForConnection(1000);
         if(socket.IsNotNull()) { // if client connected
             mStreamer->update();
-            while(!dataStream->hasReachedEnd() && framesSent < 25) {
+            while(!dataStream->hasReachedEnd() && framesSent < 50) {
                 // Get next image from streamer
                 Image::pointer image = dataStream->getNextFrame(dummy);
 
@@ -143,6 +143,8 @@ void DummyIGTLServer::stream() {
     }
 
     socket->CloseSocket();
+    serverSocket->CloseSocket();
+    Reporter::info() << "Closed IGT Link server socket" << Reporter::end;
 }
 
 

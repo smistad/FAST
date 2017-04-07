@@ -6,7 +6,7 @@ ExternalProject_Add(OpenIGTLink
         PREFIX ${FAST_EXTERNAL_BUILD_DIR}/OpenIGTLink
         BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/OpenIGTLink
         GIT_REPOSITORY "https://github.com/openigtlink/OpenIGTLink.git"
-        GIT_TAG "5a501817c2da52e81db4db3eca6dd5111f94fed9"
+        GIT_TAG "v2.1"
         CMAKE_ARGS
             -DBUILD_SHARED_LIBS=ON
             -DBUILD_TESTING=OFF
