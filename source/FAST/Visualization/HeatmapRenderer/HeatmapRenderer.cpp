@@ -29,7 +29,6 @@ void HeatmapRenderer::execute() {
             throw Exception("Data type of image given to HeatmapRenderer must be FLOAT");
         }
 
-        std::cout << "HEATMAP recieved input" << std::endl;
         mImagesToRender[inputNr] = input;
     }
 }
@@ -42,6 +41,7 @@ void HeatmapRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
                              Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform, float PBOspacing,
                              Vector2f translation) {
 
+    mRuntimeManager->startRegularTimer("draw2D");
     std::lock_guard<std::mutex> lock(mMutex);
     OpenCLDevice::pointer device = getMainDevice();
 
@@ -59,14 +59,13 @@ void HeatmapRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
             sizeof(float)*width*height*4
     );
 
+    cl::Kernel kernel(getOpenCLProgram(device), "render2D");
     std::unordered_map<uint, Image::pointer>::iterator it;
     for(it = mImagesToRender.begin(); it != mImagesToRender.end(); it++) {
         Image::pointer input = it->second;
 
 
         if(input->getDimensions() == 2) {
-            std::string kernelName = "render2D";
-            cl::Kernel kernel(getOpenCLProgram(device), kernelName.c_str());
             // Run kernel to fill the texture
 
             OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
@@ -100,6 +99,7 @@ void HeatmapRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
     }
     queue.finish();
 
+    mRuntimeManager->stopRegularTimer("draw2D");
 }
 
 BoundingBox HeatmapRenderer::getBoundingBox() {

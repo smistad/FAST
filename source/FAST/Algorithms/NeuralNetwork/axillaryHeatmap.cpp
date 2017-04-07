@@ -17,6 +17,7 @@ int main() {
          "/home/smistad/data/eyeguide/axillary_nerve_block/17/2017Feb13_150433/#.png",
          "/home/smistad/data/eyeguide/axillary_nerve_block/17/2017Feb13_150648/#.png",
          "/home/smistad/data/eyeguide/axillary_nerve_block/17/2017Feb13_150824/#.png",
+         "/home/smistad/data/eyeguide/axillary_nerve_block/5/2016Dec30_082009/#.png",
                                  });
     streamer->enableLooping();
     streamer->setStartNumber(1);
@@ -39,6 +40,7 @@ int main() {
     renderer->addInputConnection(segmentation->getOutputPort(3), Color::Green());
     renderer->addInputConnection(segmentation->getOutputPort(4), Color::Purple());
     renderer->addInputConnection(segmentation->getOutputPort(5), Color::Cyan());
+    renderer->enableRuntimeMeasurements();
 
     ImageRenderer::pointer renderer2 = ImageRenderer::New();
     renderer2->setInputConnection(streamer->getOutputPort());
@@ -47,13 +49,14 @@ int main() {
 
     window->addRenderer(renderer2);
     window->addRenderer(renderer);
-    window->setSize(2560, 1440);
+    window->getView()->enableRuntimeMeasurements();
+    window->setSize(1024, 1024);
     window->getView()->set2DPixelSpacing(0.3);
     window->set2DMode();
     window->getView()->setBackgroundColor(Color::Black());
     window->start();
 
-    segmentation->getRuntime()->print();
-    segmentation->getRuntime("input_data_copy")->print();
-    segmentation->getRuntime("network_execution")->print();
+    segmentation->getAllRuntimes()->printAll();
+    renderer->getAllRuntimes()->printAll();
+    window->getView()->getAllRuntimes()->printAll();
 }

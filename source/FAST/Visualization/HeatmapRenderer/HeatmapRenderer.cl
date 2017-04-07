@@ -20,11 +20,30 @@ __kernel void render2D(
     imagePosition = round(imagePosition);
 
     float4 color = vload4(linearPosition, PBOread);
-    const float maxOpacity = 0.5;
+    const float maxOpacity = 0.2;
+    const float minConfidence = 0.5;
 
     float intensity = read_imagef(image, sampler, imagePosition).x;
-    intensity = min(intensity, maxOpacity);
-    color = color*(1.0f - intensity) + intensity*(float4)(red, green, blue, 1.0f);
+    if(intensity < minConfidence)
+        intensity = 0;
+    // Avoid multiple colors on top of eachother
+    if(color.x != color.y || color.y != color.z || color.x != color.z) {
+        if(color.w < intensity) {
+            intensity = min(intensity, maxOpacity);
+            float lowest = min(color.x, min(color.y, color.z));
+            color.x = lowest;
+            color.y = lowest;
+            color.z = lowest;
+            color = color + intensity * (float4)(red, green, blue, 1.0f);
+            color.w = intensity;
+            color = clamp(color, 0.0f, 1.0f);
+        }
+    } else {
+        intensity = min(intensity, maxOpacity);
+        color = color + intensity * (float4)(red, green, blue, 1.0f);
+        color.w = intensity;
+        color = clamp(color, 0.0f, 1.0f);
+    }
 
 
     // Write to PBO
