@@ -13,6 +13,7 @@ class ImageImporter : public Importer {
         ~ImageImporter() {};
     private:
         ImageImporter();
+        uchar* readBMPFile(std::string filename, int &width, int &height);
         std::string mFilename;
         void execute();
 
