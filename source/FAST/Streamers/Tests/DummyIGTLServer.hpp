@@ -12,14 +12,17 @@ class DummyIGTLServer {
         ~DummyIGTLServer();
         void setPort(uint port);
         void setFramesPerSecond(uint fps);
+        void setMaximumFramesToSend(uint frames);
         void setImageStreamer(ImageFileStreamer::pointer streamer);
         void start();
         void stream();
     private:
         uint mPort;
         uint mFPS;
+        int mFrames;
         ImageFileStreamer::pointer mStreamer;
         std::thread mThread;
+
 
 };
 

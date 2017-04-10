@@ -15,6 +15,7 @@ TEST_CASE("Stream 2D images using IGTLinkStreamer", "[IGTLinkStreamer][fast][IGT
     DummyIGTLServer server;
     server.setImageStreamer(fileStreamer);
     server.setPort(18944);
+    server.setMaximumFramesToSend(50);
     server.start();
 
     IGTLinkStreamer::pointer streamer = IGTLinkStreamer::New();
