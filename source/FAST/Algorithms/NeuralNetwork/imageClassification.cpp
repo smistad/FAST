@@ -5,43 +5,7 @@
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/TextRenderer/TextRenderer.hpp"
 
-namespace fast {
-
-    class ClassificationToText : public ProcessObject {
-        FAST_OBJECT(ClassificationToText)
-    private:
-        ClassificationToText() {
-            createInputPort<ImageClassification>(0);
-            createOutputPort<Text>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-        }
-        void execute() {
-            ImageClassification::pointer classification = getStaticInputData<ImageClassification>();
-            Text::pointer text = getStaticOutputData<Text>();
-
-            // Find classification with max
-            ImageClassification::access access = classification->getAccess(ACCESS_READ);
-            std::map<std::string, float> values = access->getData();
-            float max = 0;
-            std::string label;
-            for (auto &&item : values) {
-                if(item.second > max) {
-                    max = item.second;
-                    label = item.first;
-                }
-            }
-
-            Text::access access2 = text->getAccess(ACCESS_READ_WRITE);
-            char buffer[8];
-            std::sprintf(buffer, "%.2f", max);
-            std::string result = label + ": " + buffer;
-            access2->setData(result);
-        }
-    };
-
-}
-
 using namespace fast;
-
 
 int main() {
 
