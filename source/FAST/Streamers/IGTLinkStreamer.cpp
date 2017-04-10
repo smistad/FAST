@@ -238,7 +238,7 @@ void IGTLinkStreamer::producerStream() {
                 mInFreezeMode = false;
             }
             statusMessageCounter = 0;
-            reportInfo() << "Receiving IMAGE data type." << Reporter::end;
+            reportInfo() << "Receiving IMAGE data type from device " << headerMsg->GetDeviceName() << Reporter::end;
 
             // Create a message buffer to receive transform data
             igtl::ImageMessage::Pointer imgMsg;
@@ -336,6 +336,7 @@ void IGTLinkStreamer::producerStream() {
     }
     mFirstFrameCondition.notify_one();
     mSocket->CloseSocket();
+    reportInfo() << "OpenIGTLink socket closed" << reportEnd();
 }
 
 IGTLinkStreamer::~IGTLinkStreamer() {
