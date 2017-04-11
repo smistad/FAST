@@ -9,6 +9,7 @@ class QLineEdit;
 namespace fast {
 
 class IGTLinkStreamer;
+class OpenIGTLinkClient;
 
 class GUI : public Window {
     FAST_OBJECT(GUI)
@@ -23,10 +24,10 @@ class GUI : public Window {
         QLineEdit* port;
         bool mConnected;
         SharedPointer<IGTLinkStreamer> mStreamer;
+        SharedPointer<OpenIGTLinkClient> mClient;
 
         QPushButton* recordButton;
         QLineEdit* storageDir;
-        bool mRecording;
 };
 
 } // end namespace fast

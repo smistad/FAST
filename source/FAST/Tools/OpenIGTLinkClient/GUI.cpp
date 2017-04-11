@@ -5,15 +5,19 @@
 #include <QLineEdit>
 #include <QDir>
 #include <QLabel>
+#include <QImage>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 #include <FAST/Streamers/IGTLinkStreamer.hpp>
+#include "OpenIGTLinkClient.hpp"
 
 
 namespace fast {
 
 GUI::GUI() {
 
-    mRecording = false;
+    const int menuWidth = 300;
+
+    mClient = OpenIGTLinkClient::New();
     mConnected = false;
 
     // Create a 2D view
@@ -32,9 +36,17 @@ GUI::GUI() {
     // Menu items should be aligned to the top
     menuLayout->setAlignment(Qt::AlignTop);
 
+    // Logo
+    QImage* image = new QImage;
+    image->load("/home/smistad/workspace/FAST/FAST_logo_square.png");
+    QLabel* logo = new QLabel;
+    logo->setPixmap(QPixmap::fromImage(image->scaled(300, (300.0f/image->width())*image->height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation)));
+    logo->adjustSize();
+    menuLayout->addWidget(logo);
+
     // Title label
     QLabel* title = new QLabel;
-    title->setText("FAST\nOpenIGTLink\nClient");
+    title->setText("OpenIGTLink\nClient");
     QFont font;
     font.setPointSize(24);
     title->setFont(font);
@@ -44,7 +56,7 @@ GUI::GUI() {
     QPushButton* quitButton = new QPushButton;
     quitButton->setText("Quit");
     quitButton->setStyleSheet("QPushButton { background-color: red; color: white; }");
-    quitButton->setFixedWidth(200);
+    quitButton->setFixedWidth(menuWidth);
     menuLayout->addWidget(quitButton);
 
     // Connect the clicked signal of the quit button to the stop method for the window
@@ -57,7 +69,7 @@ GUI::GUI() {
 
     address = new QLineEdit;
     address->setText("localhost");
-    address->setFixedWidth(200);
+    address->setFixedWidth(menuWidth);
     menuLayout->addWidget(address);
 
     QLabel* portLabel = new QLabel;
@@ -66,12 +78,12 @@ GUI::GUI() {
 
     port = new QLineEdit;
     port->setText("18944");
-    port->setFixedWidth(200);
+    port->setFixedWidth(menuWidth);
     menuLayout->addWidget(port);
 
     connectButton = new QPushButton;
     connectButton->setText("Connect");
-    connectButton->setFixedWidth(200);
+    connectButton->setFixedWidth(menuWidth);
     connectButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
     menuLayout->addWidget(connectButton);
 
@@ -82,13 +94,13 @@ GUI::GUI() {
     menuLayout->addWidget(storageDirLabel);
 
     storageDir = new QLineEdit;
-    storageDir->setText(QDir::homePath());
-    storageDir->setFixedWidth(200);
+    storageDir->setText(QDir::homePath() + QDir::separator() + QString("FAST_Recordings"));
+    storageDir->setFixedWidth(menuWidth);
     menuLayout->addWidget(storageDir);
 
     recordButton = new QPushButton;
     recordButton->setText("Record");
-    recordButton->setFixedWidth(200);
+    recordButton->setFixedWidth(menuWidth);
     recordButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
     menuLayout->addWidget(recordButton);
 
@@ -117,8 +129,10 @@ void GUI::connect() {
         mStreamer->setConnectionAddress(address->text().toStdString());
         mStreamer->setConnectionPort(std::stoi(port->text().toStdString()));
 
+        mClient->setInputConnection(mStreamer->getOutputPort<Image>("tissue"));
+
         ImageRenderer::pointer renderer = ImageRenderer::New();
-        renderer->addInputConnection(mStreamer->getOutputPort<Image>("tissue"));
+        renderer->addInputConnection(mClient->getOutputPort());
         mStreamer->update();
 
         getView(0)->addRenderer(renderer);
@@ -134,18 +148,17 @@ void GUI::connect() {
 }
 
 void GUI::record() {
-    if(mRecording) {
-        // Stop
-        recordButton->setText("Record");
-        recordButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
-        storageDir->setDisabled(false);
-        mRecording = false;
-    } else {
+    bool recording = mClient->toggleRecord(storageDir->text().toStdString());
+    if(recording) {
         // Start
         recordButton->setText("Stop record");
         recordButton->setStyleSheet("QPushButton { background-color: red; color: white; }");
         storageDir->setDisabled(true);
-        mRecording = true;
+    } else {
+        // Stop
+        recordButton->setText("Record");
+        recordButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
+        storageDir->setDisabled(false);
     }
 }
 
