@@ -5,6 +5,7 @@
 
 class QPushButton;
 class QLineEdit;
+class QLabel;
 
 namespace fast {
 
@@ -16,6 +17,7 @@ class GUI : public Window {
     public:
         void record();
         void connect();
+        void updateMessages();
     private:
         GUI();
 
@@ -26,6 +28,7 @@ class GUI : public Window {
         SharedPointer<IGTLinkStreamer> mStreamer;
         SharedPointer<OpenIGTLinkClient> mClient;
 
+        QLabel* recordingInformation;
         QPushButton* recordButton;
         QLineEdit* storageDir;
 };

@@ -9,6 +9,9 @@ class OpenIGTLinkClient : public ProcessObject {
     FAST_OBJECT(OpenIGTLinkClient)
     public:
         bool toggleRecord(std::string storageDir);
+        bool isRecording();
+        std::string getRecordingName();
+        uint getFramesStored();
     private:
         OpenIGTLinkClient();
         void execute();
@@ -16,6 +19,7 @@ class OpenIGTLinkClient : public ProcessObject {
         bool mRecording;
         uint mRecordFrameNr;
         std::string mRecordStoragePath;
+        std::string mRecordingName;
 };
 
 }

@@ -9,6 +9,7 @@
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 #include <FAST/Streamers/IGTLinkStreamer.hpp>
 #include "OpenIGTLinkClient.hpp"
+#include <QMessageBox>
 
 
 namespace fast {
@@ -104,6 +105,10 @@ GUI::GUI() {
     recordButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
     menuLayout->addWidget(recordButton);
 
+    recordingInformation = new QLabel;
+    recordingInformation->setFixedWidth(menuWidth);
+    menuLayout->addWidget(recordingInformation);
+
     QObject::connect(recordButton, &QPushButton::clicked, std::bind(&GUI::record, this));
 
     // Add menu and view to main layout
@@ -112,6 +117,12 @@ GUI::GUI() {
     layout->addWidget(view);
 
     mWidget->setLayout(layout);
+
+    // Update messages frequently
+    QTimer* timer = new QTimer(this);
+    timer->start(1000/5); // in milliseconds
+    timer->setSingleShot(false);
+    QObject::connect(timer, &QTimer::timeout, std::bind(&GUI::updateMessages, this));
 }
 
 void GUI::connect() {
@@ -143,22 +154,40 @@ void GUI::connect() {
         address->setDisabled(true);
         port->setDisabled(true);
         mConnected = true;
-
     }
 }
 
 void GUI::record() {
+    if(!mConnected) {
+        // Can't record if not connected
+        QMessageBox* message = new QMessageBox;
+        message->setWindowTitle("Error");
+        message->setText("You have to connect to a server before recording.");
+        message->show();
+        return;
+    }
     bool recording = mClient->toggleRecord(storageDir->text().toStdString());
     if(recording) {
+        std::string msg = "Recording to: " + mClient->getRecordingName();
+        recordingInformation->setText(msg.c_str());
         // Start
-        recordButton->setText("Stop record");
+        recordButton->setText("Stop recording");
         recordButton->setStyleSheet("QPushButton { background-color: red; color: white; }");
         storageDir->setDisabled(true);
     } else {
         // Stop
+        recordingInformation->setText("");
         recordButton->setText("Record");
         recordButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
         storageDir->setDisabled(false);
+    }
+}
+
+void GUI::updateMessages() {
+    if(mClient->isRecording()) {
+        std::string msg = "Recording to: " + mClient->getRecordingName() + "\n";
+        msg += std::to_string(mClient->getFramesStored()) + " frames stored";
+        recordingInformation->setText(msg.c_str());
     }
 }
 
