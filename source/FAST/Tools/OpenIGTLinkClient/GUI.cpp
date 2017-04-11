@@ -139,12 +139,20 @@ void GUI::connect() {
         mStreamer = IGTLinkStreamer::New();
         mStreamer->setConnectionAddress(address->text().toStdString());
         mStreamer->setConnectionPort(std::stoi(port->text().toStdString()));
-
         mClient->setInputConnection(mStreamer->getOutputPort<Image>("tissue"));
+        try {
+            mStreamer->update();
+        } catch(Exception &e) {
+            QMessageBox* message = new QMessageBox;
+            message->setWindowTitle("Error");
+            message->setText(e.what());
+            message->show();
+            return;
+        }
+
 
         ImageRenderer::pointer renderer = ImageRenderer::New();
         renderer->addInputConnection(mClient->getOutputPort());
-        mStreamer->update();
 
         getView(0)->addRenderer(renderer);
         getView(0)->reinitialize();

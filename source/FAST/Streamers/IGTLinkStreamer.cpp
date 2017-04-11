@@ -116,25 +116,7 @@ void IGTLinkStreamer::updateFirstFrameSetFlag() {
 }
 
 void IGTLinkStreamer::producerStream() {
-    mSocket = igtl::ClientSocket::New();
-    reportInfo() << "Trying to connect to Open IGT Link server " << mAddress << ":" << std::to_string(mPort) << Reporter::end;;
-    //mSocket->SetTimeout(3); // try to connect for 3 seconds
-    int r = mSocket->ConnectToServer(mAddress.c_str(), mPort);
-    if(r != 0) {
-		reportInfo() << "Failed to connect to Open IGT Link server " << mAddress << ":" << std::to_string(mPort) << Reporter::end;;
-        mIsModified = true;
-        mStreamIsStarted = false;
-        mStop = true;
-        //connectionLostSignal();
-        {
-            std::lock_guard<std::mutex> lock(mFirstFrameMutex);
-			mFirstFrameIsInserted = true;
-        }
-        mFirstFrameCondition.notify_one();
-        reportInfo() << "Connection lost signal sent" << reportEnd();
-        //throw Exception("Cannot connect to the Open IGT Link server.");
-        return;
-    }
+
     reportInfo() << "Connected to Open IGT Link server" << Reporter::end;;
 
     // Create a message buffer to receive header
@@ -378,6 +360,13 @@ void IGTLinkStreamer::execute() {
         for(uint i = 0; i < getNrOfOutputPorts(); i++) {
             DynamicData::pointer data = ProcessObject::getOutputPort(i).getData();
             data->setMaximumNumberOfFrames(mMaximumNrOfFrames);
+        }
+
+        mSocket = igtl::ClientSocket::New();
+        reportInfo() << "Trying to connect to Open IGT Link server " << mAddress << ":" << std::to_string(mPort) << Reporter::end;
+        int r = mSocket->ConnectToServer(mAddress.c_str(), mPort);
+        if(r != 0) {
+            throw Exception("Failed to connect to Open IGT Link server " + mAddress + ":" + std::to_string(mPort));
         }
 
         mStreamIsStarted = true;
