@@ -95,3 +95,20 @@ macro (fast_add_example NAME)
         endif()
     endif()
 endmacro()
+
+### Macro for add tool
+macro (fast_add_tool NAME)
+    if(FAST_BUILD_TOOLS)
+        list(APPEND FAST_TOOLS ${NAME})
+        add_executable(${NAME} ${ARGN})
+        target_link_libraries(${NAME} FAST)
+        install(TARGETS ${NAME}
+                DESTINATION fast/bin
+        )
+        file (RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
+        if(_relPath)
+            # propagate to parent directory
+            set(FAST_TOOLS ${FAST_TOOLS} PARENT_SCOPE)
+        endif()
+    endif()
+endmacro()
