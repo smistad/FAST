@@ -64,6 +64,11 @@ install(FILES ${PROJECT_BINARY_DIR}/FASTConfig.cmake
     DESTINATION fast/cmake
 )
 
+# Install docs
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/doc/
+		DESTINATION fast/doc/
+)
+
 # Install Python wrapper
 if(FAST_MODULE_Python)
 install(TARGETS _fast
@@ -82,7 +87,8 @@ endif()
 
 set(CONFIG_KERNEL_SOURCE_PATH "KernelSourcePath = @ROOT@/kernels/")
 set(CONFIG_KERNEL_BINARY_PATH "KernelBinaryPath = @ROOT@/kernel_binaries/")
-set(CONFIG_KERNEL_TEST_PATH "")
+set(CONFIG_KERNEL_BINARY_PATH "DocumentationPath = @ROOT@/doc/")
+set(CONFIG_TEST_DATA_PATH "TestDataPath = @ROOT@/data/")
 configure_file(
     "${PROJECT_SOURCE_DIR}/source/fast_configuration.txt.in"
     "${PROJECT_BINARY_DIR}/fast_configuration_install.txt"

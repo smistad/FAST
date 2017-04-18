@@ -41,7 +41,7 @@ GUI::GUI() {
 
     // Logo
     QImage* image = new QImage;
-    image->load("/home/smistad/workspace/FAST/FAST_logo_square.png");
+    image->load((Config::getDocumentationPath() + "images/FAST_logo_square.png").c_str());
     QLabel* logo = new QLabel;
     logo->setPixmap(QPixmap::fromImage(image->scaled(300, (300.0f/image->width())*image->height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation)));
     logo->adjustSize();
