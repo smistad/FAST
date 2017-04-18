@@ -7,6 +7,7 @@ class QPushButton;
 class QLineEdit;
 class QLabel;
 class QElapsedTimer;
+class QComboBox;
 
 namespace fast {
 
@@ -18,6 +19,7 @@ class GUI : public Window {
     public:
         void record();
         void connect();
+        void selectStream();
         void updateMessages();
     private:
         GUI();
@@ -33,6 +35,7 @@ class GUI : public Window {
         QPushButton* recordButton;
         QElapsedTimer* mRecordTimer;
         QLineEdit* storageDir;
+        QComboBox* mSelectStream;
 };
 
 } // end namespace fast

@@ -11,6 +11,7 @@
 #include "OpenIGTLinkClient.hpp"
 #include <QMessageBox>
 #include <QElapsedTimer>
+#include <QComboBox>
 
 
 namespace fast {
@@ -23,15 +24,28 @@ GUI::GUI() {
     mConnected = false;
     mRecordTimer = new QElapsedTimer;
 
-    // Create a 2D view
+    // Create view layout
+    QVBoxLayout* viewLayout = new QVBoxLayout;
+    QHBoxLayout* selectStreamLayout = new QHBoxLayout;
+    viewLayout->addLayout(selectStreamLayout);
+
+    QLabel* selectStreamLabel = new QLabel;
+    selectStreamLabel->setText("Active input stream: ");
+    selectStreamLabel->setFixedHeight(30);
+    selectStreamLabel->setFixedWidth(150);
+    selectStreamLayout->addWidget(selectStreamLabel);
+
+    mSelectStream = new QComboBox;
+    selectStreamLayout->addWidget(mSelectStream);
+    QObject::connect(mSelectStream, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), std::bind(&GUI::selectStream, this));
+
     View* view = createView();
     view->set2DMode();
     view->setBackgroundColor(Color::Black());
     setWidth(1280);
     setHeight(768);
     setTitle("FAST - OpenIGTLink Client");
-
-    // Create and add GUI elements
+    viewLayout->addWidget(view);
 
     // First create the menu layout
     QVBoxLayout* menuLayout = new QVBoxLayout;
@@ -114,7 +128,7 @@ GUI::GUI() {
     // Add menu and view to main layout
     QHBoxLayout* layout = new QHBoxLayout;
     layout->addLayout(menuLayout);
-    layout->addWidget(view);
+    layout->addLayout(viewLayout);
 
     mWidget->setLayout(layout);
 
@@ -124,6 +138,43 @@ GUI::GUI() {
     timer->setSingleShot(false);
     QObject::connect(timer, &QTimer::timeout, std::bind(&GUI::updateMessages, this));
     connectButton->setFocus();
+}
+
+void GUI::selectStream() {
+    std::string streamName = mSelectStream->currentText().toStdString();
+    reportInfo() << "Changing to " << streamName << " stream " << reportEnd();
+
+    // Stop computation thread before removing renderers
+    stopComputationThread();
+    getView(0)->removeAllRenderers();
+    mStreamer->stop(); // This should probably block until it has stopped
+    reportInfo() << "Disconnected" << reportEnd();
+    startComputationThread();
+
+    reportInfo() << "Trying to connect..." << reportEnd();
+    mStreamer = IGTLinkStreamer::New();
+    mStreamer->setConnectionAddress(mAddress->text().toStdString());
+    mStreamer->setConnectionPort(std::stoi(mPort->text().toStdString()));
+    mClient->setInputConnection(mStreamer->getOutputPort<Image>(streamName));
+    try {
+        mStreamer->update();
+    } catch(Exception &e) {
+        QMessageBox* message = new QMessageBox;
+        message->setWindowTitle("Error");
+        message->setText(e.what());
+        message->show();
+        return;
+    }
+    reportInfo() << "Connected to OpenIGTLink server." << reportEnd();
+
+    ImageRenderer::pointer renderer = ImageRenderer::New();
+    renderer->addInputConnection(mClient->getOutputPort());
+
+    getView(0)->addRenderer(renderer);
+    // This causes seg fault for some reason... wrong thread maybe?
+    //getView(0)->reinitialize();
+
+    recordButton->setFocus();
 }
 
 void GUI::connect() {
@@ -141,12 +192,13 @@ void GUI::connect() {
         mPort->setDisabled(false);
         mConnected = false;
         connectButton->setFocus();
+        mSelectStream->clear();
     } else {
         reportInfo() << "Trying to connect..." << reportEnd();
         mStreamer = IGTLinkStreamer::New();
         mStreamer->setConnectionAddress(mAddress->text().toStdString());
         mStreamer->setConnectionPort(std::stoi(mPort->text().toStdString()));
-        mClient->setInputConnection(mStreamer->getOutputPort<Image>("tissue"));
+        mClient->setInputConnection(mStreamer->getOutputPort());
         try {
             mStreamer->update();
         } catch(Exception &e) {
@@ -170,6 +222,19 @@ void GUI::connect() {
         mPort->setDisabled(true);
         mConnected = true;
         recordButton->setFocus();
+
+        // Get all stream names and put in select box
+        int activeIndex = 0;
+        std::vector<std::string> activeStreams = mStreamer->getActiveStreamNames();
+        int counter = 0;
+        for(std::string streamName : mStreamer->getStreamNames()) {
+            mSelectStream->addItem(streamName.c_str());
+            if(streamName == activeStreams[0]) {
+               activeIndex = counter;
+            }
+            ++counter;
+        }
+        mSelectStream->setCurrentIndex(activeIndex);
     }
 }
 

@@ -39,6 +39,18 @@ uint IGTLinkStreamer::getNrOfFrames() const {
     return mNrOfFrames;
 }
 
+std::set<std::string> IGTLinkStreamer::getStreamNames() {
+    return mStreamNames;
+}
+
+std::vector<std::string> IGTLinkStreamer::getActiveStreamNames() {
+    std::vector<std::string> activeStreams;
+    for(auto stream : mOutputPortDeviceNames) {
+        activeStreams.push_back(stream.first);
+    }
+    return activeStreams;
+}
+
 inline Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer message, ExecutionDevice::pointer device) {
     Image::pointer image = Image::New();
     int width, height, depth;
@@ -160,6 +172,9 @@ void IGTLinkStreamer::producerStream() {
         headerMsg->GetTimeStamp(ts);
 
         reportInfo() << "Device name: " << headerMsg->GetDeviceName() << Reporter::end;
+        if(mStreamNames.count(headerMsg->GetDeviceName()) == 0) {
+            mStreamNames.insert(headerMsg->GetDeviceName());
+        }
 
         unsigned long timestamp = round(ts->GetTimeStamp()*1000); // convert to milliseconds
         reportInfo() << "TIMESTAMP converted: " << timestamp << reportEnd();
@@ -235,6 +250,11 @@ void IGTLinkStreamer::producerStream() {
             // If you want to skip CRC check, call Unpack() without argument.
             int c = imgMsg->Unpack(1);
             if(c & igtl::MessageHeader::UNPACK_BODY) { // if CRC check is OK
+                if(mOutputPortDeviceNames.count("") > 0) {
+                    // If no specific output ports have been specified, choose this first one
+                    mOutputPortDeviceNames[headerMsg->GetDeviceName()] = mOutputPortDeviceNames[""];
+                    mOutputPortDeviceNames.erase("");
+                }
                 // Retrive the image data
                 int size[3]; // image dimension
                 float spacing[3]; // spacing (mm/pixel)

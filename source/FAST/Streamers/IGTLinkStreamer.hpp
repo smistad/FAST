@@ -8,18 +8,29 @@
 #include "FAST/Streamers/Streamer.hpp"
 #include "FAST/ProcessObject.hpp"
 #include <igtl/igtlClientSocket.h>
+#include <set>
 
 namespace fast {
+
+class Image;
 
 class IGTLinkStreamer : public Streamer, public ProcessObject {
     FAST_OBJECT(IGTLinkStreamer)
     public:
+		std::set<std::string> getStreamNames();
+		std::vector<std::string> getActiveStreamNames();
         void setConnectionAddress(std::string address);
         void setConnectionPort(uint port);
         void setStreamingMode(StreamingMode mode);
         void setMaximumNumberOfFrames(uint nrOfFrames);
         bool hasReachedEnd() const;
         uint getNrOfFrames() const;
+
+		/**
+		 * Will select first image stream
+		 * @return
+		 */
+		ProcessObjectPort getOutputPort();
 
         template<class T>
         ProcessObjectPort getOutputPort(std::string deviceName);
@@ -66,6 +77,7 @@ class IGTLinkStreamer : public Streamer, public ProcessObject {
 
         igtl::ClientSocket::Pointer mSocket;
 
+		std::set<std::string> mStreamNames;
         std::unordered_map<std::string, uint> mOutputPortDeviceNames;
 
         template <class T>
@@ -73,6 +85,18 @@ class IGTLinkStreamer : public Streamer, public ProcessObject {
         void updateFirstFrameSetFlag();
 };
 
+ProcessObjectPort IGTLinkStreamer::getOutputPort() {
+	uint portID;
+	if(mOutputPortDeviceNames.count("") == 0) {
+		portID = getNrOfOutputPorts();
+		createOutputPort<Image>(portID, OUTPUT_DYNAMIC);
+		getOutputData<Image>(portID); // This initializes the output data
+		mOutputPortDeviceNames[""] = portID;
+	} else {
+		portID = mOutputPortDeviceNames[""];
+	}
+    return ProcessObject::getOutputPort(portID);
+}
 
 template<class T>
 ProcessObjectPort IGTLinkStreamer::getOutputPort(std::string deviceName) {
@@ -95,6 +119,7 @@ DynamicData::pointer IGTLinkStreamer::getOutputDataFromDeviceName(std::string de
 
     return getOutputData<T>(mOutputPortDeviceNames[deviceName]);
 }
+
 
 } // end namespace
 
