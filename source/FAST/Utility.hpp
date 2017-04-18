@@ -17,7 +17,16 @@ namespace fast {
 
 double log2(double n);
 double round(double n);
+double round(double n, int decimals);
 int pow(int a, int b);
+
+template <typename ...Args>
+std::string format(std::string format, Args && ... args) {
+    auto size = std::snprintf(nullptr, 0, format.c_str(), std::forward<Args>(args)...);
+    std::string output(size + 1, '\0');
+    std::sprintf(&output[0], format.c_str(), std::forward<Args>(args)...);
+    return output;
+}
 
 template<class T>
 T min(T a, T b) {

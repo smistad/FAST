@@ -10,6 +10,7 @@
 #include <FAST/Streamers/IGTLinkStreamer.hpp>
 #include "OpenIGTLinkClient.hpp"
 #include <QMessageBox>
+#include <QElapsedTimer>
 
 
 namespace fast {
@@ -20,6 +21,7 @@ GUI::GUI() {
 
     mClient = OpenIGTLinkClient::New();
     mConnected = false;
+    mRecordTimer = new QElapsedTimer;
 
     // Create a 2D view
     View* view = createView();
@@ -55,7 +57,7 @@ GUI::GUI() {
 
     // Quit button
     QPushButton* quitButton = new QPushButton;
-    quitButton->setText("Quit");
+    quitButton->setText("Quit (q)");
     quitButton->setStyleSheet("QPushButton { background-color: red; color: white; }");
     quitButton->setFixedWidth(menuWidth);
     menuLayout->addWidget(quitButton);
@@ -68,19 +70,19 @@ GUI::GUI() {
     addressLabel->setText("Server address");
     menuLayout->addWidget(addressLabel);
 
-    address = new QLineEdit;
-    address->setText("localhost");
-    address->setFixedWidth(menuWidth);
-    menuLayout->addWidget(address);
+    mAddress = new QLineEdit;
+    mAddress->setText("localhost");
+    mAddress->setFixedWidth(menuWidth);
+    menuLayout->addWidget(mAddress);
 
     QLabel* portLabel = new QLabel;
     portLabel->setText("Server port");
     menuLayout->addWidget(portLabel);
 
-    port = new QLineEdit;
-    port->setText("18944");
-    port->setFixedWidth(menuWidth);
-    menuLayout->addWidget(port);
+    mPort = new QLineEdit;
+    mPort->setText("18944");
+    mPort->setFixedWidth(menuWidth);
+    menuLayout->addWidget(mPort);
 
     connectButton = new QPushButton;
     connectButton->setText("Connect");
@@ -107,6 +109,7 @@ GUI::GUI() {
 
     recordingInformation = new QLabel;
     recordingInformation->setFixedWidth(menuWidth);
+    recordingInformation->setStyleSheet("QLabel { font-size: 14px; }");
     menuLayout->addWidget(recordingInformation);
 
     QObject::connect(recordButton, &QPushButton::clicked, std::bind(&GUI::record, this));
@@ -123,6 +126,7 @@ GUI::GUI() {
     timer->start(1000/5); // in milliseconds
     timer->setSingleShot(false);
     QObject::connect(timer, &QTimer::timeout, std::bind(&GUI::updateMessages, this));
+    connectButton->setFocus();
 }
 
 void GUI::connect() {
@@ -134,14 +138,15 @@ void GUI::connect() {
 
         connectButton->setText("Connect");
         connectButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
-        address->setDisabled(false);
-        port->setDisabled(false);
+        mAddress->setDisabled(false);
+        mPort->setDisabled(false);
         mConnected = false;
+        connectButton->setFocus();
     } else {
         reportInfo() << "Trying to connect..." << reportEnd();
         mStreamer = IGTLinkStreamer::New();
-        mStreamer->setConnectionAddress(address->text().toStdString());
-        mStreamer->setConnectionPort(std::stoi(port->text().toStdString()));
+        mStreamer->setConnectionAddress(mAddress->text().toStdString());
+        mStreamer->setConnectionPort(std::stoi(mPort->text().toStdString()));
         mClient->setInputConnection(mStreamer->getOutputPort<Image>("tissue"));
         try {
             mStreamer->update();
@@ -162,8 +167,8 @@ void GUI::connect() {
 
         connectButton->setText("Disconnect");
         connectButton->setStyleSheet("QPushButton { background-color: red; color: white; }");
-        address->setDisabled(true);
-        port->setDisabled(true);
+        mAddress->setDisabled(true);
+        mPort->setDisabled(true);
         mConnected = true;
         recordButton->setFocus();
     }
@@ -180,6 +185,7 @@ void GUI::record() {
     }
     bool recording = mClient->toggleRecord(storageDir->text().toStdString());
     if(recording) {
+        mRecordTimer->start();
         std::string msg = "Recording to: " + mClient->getRecordingName();
         recordingInformation->setText(msg.c_str());
         // Start
@@ -189,7 +195,10 @@ void GUI::record() {
         recordButton->setFocus();
     } else {
         // Stop
-        recordingInformation->setText("");
+        std::string msg = "Recording saved in: " + mClient->getRecordingName() + "\n";
+        msg += std::to_string(mClient->getFramesStored()) + " frames stored\n";
+        msg += format("%.1f seconds", (float)mRecordTimer->elapsed()/1000.0f);
+        recordingInformation->setText(msg.c_str());
         recordButton->setText("Record (spacebar)");
         recordButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
         storageDir->setDisabled(false);
@@ -200,7 +209,8 @@ void GUI::record() {
 void GUI::updateMessages() {
     if(mClient->isRecording()) {
         std::string msg = "Recording to: " + mClient->getRecordingName() + "\n";
-        msg += std::to_string(mClient->getFramesStored()) + " frames stored";
+        msg += std::to_string(mClient->getFramesStored()) + " frames stored\n";
+        msg += format("%.1f seconds", (float)mRecordTimer->elapsed()/1000.0f);
         recordingInformation->setText(msg.c_str());
     }
 }

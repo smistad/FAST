@@ -6,6 +6,7 @@
 class QPushButton;
 class QLineEdit;
 class QLabel;
+class QElapsedTimer;
 
 namespace fast {
 
@@ -22,14 +23,15 @@ class GUI : public Window {
         GUI();
 
         QPushButton* connectButton;
-        QLineEdit* address;
-        QLineEdit* port;
+        QLineEdit* mAddress;
+        QLineEdit* mPort;
         bool mConnected;
         SharedPointer<IGTLinkStreamer> mStreamer;
         SharedPointer<OpenIGTLinkClient> mClient;
 
         QLabel* recordingInformation;
         QPushButton* recordButton;
+        QElapsedTimer* mRecordTimer;
         QLineEdit* storageDir;
 };
 
