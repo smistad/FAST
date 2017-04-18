@@ -49,10 +49,7 @@ GUI::GUI() {
 
     // Title label
     QLabel* title = new QLabel;
-    title->setText("OpenIGTLink\nClient");
-    QFont font;
-    font.setPointSize(24);
-    title->setFont(font);
+    title->setText("<div style=\"text-align: center; font-weight: bold; font-size: 24px;\">OpenIGTLink<br>Client</div>");
     menuLayout->addWidget(title);
 
     // Quit button
