@@ -131,10 +131,12 @@ GUI::GUI() {
 
 void GUI::connect() {
     if(mConnected) {
-        // Have to somehow stop the rendering loop before doing this?
+        // Stop computation thread before removing renderers
+        stopComputationThread();
         getView(0)->removeAllRenderers();
         mStreamer->stop(); // This should probably block until it has stopped
         reportInfo() << "Disconnected" << reportEnd();
+        startComputationThread();
 
         connectButton->setText("Connect");
         connectButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
