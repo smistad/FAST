@@ -17,8 +17,11 @@ class Image;
 class IGTLinkStreamer : public Streamer, public ProcessObject {
     FAST_OBJECT(IGTLinkStreamer)
     public:
-		std::set<std::string> getStreamNames();
-		std::vector<std::string> getActiveStreamNames();
+		std::set<std::string> getImageStreamNames();
+		std::set<std::string> getTransformStreamNames();
+		std::vector<std::string> getActiveImageStreamNames();
+		std::vector<std::string> getActiveTransformStreamNames();
+		std::string getStreamDescription(std::string streamName);
         void setConnectionAddress(std::string address);
         void setConnectionPort(uint port);
         void setStreamingMode(StreamingMode mode);
@@ -77,7 +80,9 @@ class IGTLinkStreamer : public Streamer, public ProcessObject {
 
         igtl::ClientSocket::Pointer mSocket;
 
-		std::set<std::string> mStreamNames;
+		std::set<std::string> mImageStreamNames;
+		std::set<std::string> mTransformStreamNames;
+		std::unordered_map<std::string, std::string> mStreamDescriptions;
         std::unordered_map<std::string, uint> mOutputPortDeviceNames;
 
         template <class T>

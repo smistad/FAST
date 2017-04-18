@@ -23,12 +23,14 @@ class GUI : public Window {
         void updateMessages();
     private:
         GUI();
+        void refreshStreams();
 
         QPushButton* connectButton;
         QLineEdit* mAddress;
         QLineEdit* mPort;
         bool mConnected;
         SharedPointer<IGTLinkStreamer> mStreamer;
+        std::vector<std::string> mStreamNames;
         SharedPointer<OpenIGTLinkClient> mClient;
 
         QLabel* recordingInformation;
@@ -36,6 +38,7 @@ class GUI : public Window {
         QElapsedTimer* mRecordTimer;
         QLineEdit* storageDir;
         QComboBox* mSelectStream;
+
 };
 
 } // end namespace fast

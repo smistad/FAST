@@ -39,14 +39,32 @@ uint IGTLinkStreamer::getNrOfFrames() const {
     return mNrOfFrames;
 }
 
-std::set<std::string> IGTLinkStreamer::getStreamNames() {
-    return mStreamNames;
+std::set<std::string> IGTLinkStreamer::getImageStreamNames() {
+    return mImageStreamNames;
 }
 
-std::vector<std::string> IGTLinkStreamer::getActiveStreamNames() {
+std::set<std::string> IGTLinkStreamer::getTransformStreamNames() {
+    return mTransformStreamNames;
+}
+
+std::string IGTLinkStreamer::getStreamDescription(std::string streamName) {
+    return mStreamDescriptions.at(streamName);
+}
+
+std::vector<std::string> IGTLinkStreamer::getActiveImageStreamNames() {
     std::vector<std::string> activeStreams;
     for(auto stream : mOutputPortDeviceNames) {
-        activeStreams.push_back(stream.first);
+        if(mImageStreamNames.count(stream.first) > 0)
+            activeStreams.push_back(stream.first);
+    }
+    return activeStreams;
+}
+
+std::vector<std::string> IGTLinkStreamer::getActiveTransformStreamNames() {
+    std::vector<std::string> activeStreams;
+    for(auto stream : mOutputPortDeviceNames) {
+        if(mTransformStreamNames.count(stream.first) > 0)
+            activeStreams.push_back(stream.first);
     }
     return activeStreams;
 }
@@ -172,13 +190,12 @@ void IGTLinkStreamer::producerStream() {
         headerMsg->GetTimeStamp(ts);
 
         reportInfo() << "Device name: " << headerMsg->GetDeviceName() << Reporter::end;
-        if(mStreamNames.count(headerMsg->GetDeviceName()) == 0) {
-            mStreamNames.insert(headerMsg->GetDeviceName());
-        }
 
         unsigned long timestamp = round(ts->GetTimeStamp()*1000); // convert to milliseconds
         reportInfo() << "TIMESTAMP converted: " << timestamp << reportEnd();
         if(strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0) {
+            mTransformStreamNames.insert(headerMsg->GetDeviceName());
+            mStreamDescriptions[headerMsg->GetDeviceName()] = "Transform";
             if(mInFreezeMode) {
                 //unfreezeSignal();
                 mInFreezeMode = false;
@@ -230,6 +247,7 @@ void IGTLinkStreamer::producerStream() {
                 mNrOfFrames++;
             }
         } else if(strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0) {
+            mImageStreamNames.insert(headerMsg->GetDeviceName());
             if(mInFreezeMode) {
                 //unfreezeSignal();
                 mInFreezeMode = false;
@@ -265,6 +283,15 @@ void IGTLinkStreamer::producerStream() {
                 imgMsg->GetDimensions(size);
                 imgMsg->GetSpacing(spacing);
                 imgMsg->GetSubVolume(svsize, svoffset);
+
+                std::string description = "";
+                if(size[2] == 1) {
+                    description = "2D, " + std::to_string(size[0]) + "x" + std::to_string(size[1]);
+                } else {
+                    description = "3D, " + std::to_string(size[0]) + "x" + std::to_string(size[1]) + "x" + std::to_string(size[2]);
+                }
+                description += ", " + std::to_string(imgMsg->GetNumComponents()) + " channels, " + std::to_string(imgMsg->GetScalarSize()*8) + "bit";
+                mStreamDescriptions[headerMsg->GetDeviceName()] = description;
 
                 DynamicData::pointer ptr;
                 try {

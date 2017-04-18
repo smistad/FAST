@@ -137,11 +137,18 @@ GUI::GUI() {
     timer->start(1000/5); // in milliseconds
     timer->setSingleShot(false);
     QObject::connect(timer, &QTimer::timeout, std::bind(&GUI::updateMessages, this));
+
+    // Update streams info now and then
+    QTimer* timer2 = new QTimer(this);
+    timer2->start(1000); // in milliseconds
+    timer2->setSingleShot(false);
+    QObject::connect(timer2, &QTimer::timeout, std::bind(&GUI::refreshStreams, this));
+
     connectButton->setFocus();
 }
 
 void GUI::selectStream() {
-    std::string streamName = mSelectStream->currentText().toStdString();
+    std::string streamName = mStreamNames[mSelectStream->currentIndex()];
     reportInfo() << "Changing to " << streamName << " stream " << reportEnd();
 
     // Stop computation thread before removing renderers
@@ -175,6 +182,7 @@ void GUI::selectStream() {
     //getView(0)->reinitialize();
 
     recordButton->setFocus();
+    //refreshStreams();
 }
 
 void GUI::connect() {
@@ -222,15 +230,22 @@ void GUI::connect() {
         mPort->setDisabled(true);
         mConnected = true;
         recordButton->setFocus();
+        //refreshStreams();
+    }
+}
 
-        // Get all stream names and put in select box
+void GUI::refreshStreams() {// Get all stream names and put in select box
+    if(mConnected) {
         int activeIndex = 0;
-        std::vector<std::string> activeStreams = mStreamer->getActiveStreamNames();
+        std::vector<std::string> activeStreams = mStreamer->getActiveImageStreamNames();
         int counter = 0;
-        for(std::string streamName : mStreamer->getStreamNames()) {
-            mSelectStream->addItem(streamName.c_str());
+        mStreamNames.clear();
+        mSelectStream->clear();
+        for(std::string streamName : mStreamer->getImageStreamNames()) {
+            mSelectStream->addItem((streamName + " (" + mStreamer->getStreamDescription(streamName) + ")").c_str());
+            mStreamNames.push_back(streamName);
             if(streamName == activeStreams[0]) {
-               activeIndex = counter;
+                activeIndex = counter;
             }
             ++counter;
         }
