@@ -100,7 +100,7 @@ GUI::GUI() {
     menuLayout->addWidget(storageDir);
 
     recordButton = new QPushButton;
-    recordButton->setText("Record");
+    recordButton->setText("Record (spacebar)");
     recordButton->setFixedWidth(menuWidth);
     recordButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
     menuLayout->addWidget(recordButton);
@@ -127,8 +127,10 @@ GUI::GUI() {
 
 void GUI::connect() {
     if(mConnected) {
+        // Have to somehow stop the rendering loop before doing this?
+        getView(0)->removeAllRenderers();
         mStreamer->stop(); // This should probably block until it has stopped
-        //getView(0)->removeAllRenderers();
+        reportInfo() << "Disconnected" << reportEnd();
 
         connectButton->setText("Connect");
         connectButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
@@ -136,6 +138,7 @@ void GUI::connect() {
         port->setDisabled(false);
         mConnected = false;
     } else {
+        reportInfo() << "Trying to connect..." << reportEnd();
         mStreamer = IGTLinkStreamer::New();
         mStreamer->setConnectionAddress(address->text().toStdString());
         mStreamer->setConnectionPort(std::stoi(port->text().toStdString()));
@@ -149,7 +152,7 @@ void GUI::connect() {
             message->show();
             return;
         }
-
+        reportInfo() << "Connected to OpenIGTLink server." << reportEnd();
 
         ImageRenderer::pointer renderer = ImageRenderer::New();
         renderer->addInputConnection(mClient->getOutputPort());
@@ -162,6 +165,7 @@ void GUI::connect() {
         address->setDisabled(true);
         port->setDisabled(true);
         mConnected = true;
+        recordButton->setFocus();
     }
 }
 
@@ -179,15 +183,17 @@ void GUI::record() {
         std::string msg = "Recording to: " + mClient->getRecordingName();
         recordingInformation->setText(msg.c_str());
         // Start
-        recordButton->setText("Stop recording");
+        recordButton->setText("Stop recording (spacebar)");
         recordButton->setStyleSheet("QPushButton { background-color: red; color: white; }");
         storageDir->setDisabled(true);
+        recordButton->setFocus();
     } else {
         // Stop
         recordingInformation->setText("");
-        recordButton->setText("Record");
+        recordButton->setText("Record (spacebar)");
         recordButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
         storageDir->setDisabled(false);
+        recordButton->setFocus();
     }
 }
 
