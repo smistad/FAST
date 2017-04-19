@@ -20,6 +20,7 @@ class GUI : public Window {
         void record();
         void connect();
         void selectStream();
+        void selectPipeline();
         void updateMessages();
     private:
         GUI();
@@ -36,6 +37,7 @@ class GUI : public Window {
         QElapsedTimer* mRecordTimer;
         QLineEdit* storageDir;
         QComboBox* mSelectStream;
+        QComboBox* mSelectPipeline;
 };
 
 } // end namespace fast
