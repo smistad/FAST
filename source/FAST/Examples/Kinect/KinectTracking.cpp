@@ -39,9 +39,10 @@ Mesh::pointer KinectTracking::getTargetCloud(KinectStreamer::pointer streamer) {
         for(int x = 0; x < mAnnotationImage->getWidth(); ++x) {
             try {
                 if(access->getScalar(Vector2i(x, y)) == 1) {
-                    std::cout << "hmf" << std::endl;
                     MeshVertex vertex = streamer->getPoint(x, y);
-                    outputVertices.push_back(vertex);
+                    if(!std::isnan(vertex.getPosition().x())) {
+                        outputVertices.push_back(vertex);
+                    }
                 }
             } catch (Exception &e) {
 
