@@ -8,6 +8,7 @@ namespace fast {
 class KinectTrackingGUI : public Window {
     FAST_OBJECT(KinectTrackingGUI)
     public:
+        void mouseMoveEvent(QMouseEvent* event);
     private:
         KinectTrackingGUI();
 
