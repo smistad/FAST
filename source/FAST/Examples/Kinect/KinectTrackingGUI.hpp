@@ -5,12 +5,18 @@
 
 namespace fast {
 
+class KinectStreamer;
+class KinectTracking;
+
 class KinectTrackingGUI : public Window {
     FAST_OBJECT(KinectTrackingGUI)
     public:
-        void mouseMoveEvent(QMouseEvent* event);
+        void extractPointCloud();
     private:
         KinectTrackingGUI();
+
+        SharedPointer<KinectStreamer> mStreamer;
+        SharedPointer<KinectTracking> mTracking;
 
 };
 

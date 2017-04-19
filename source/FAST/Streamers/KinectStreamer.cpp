@@ -15,6 +15,7 @@ KinectStreamer::KinectStreamer() {
     mHasReachedEnd = false;
     mFirstFrameIsInserted = false;
     mIsModified = true;
+    registration = NULL;
 }
 
 void KinectStreamer::execute() {
@@ -34,6 +35,26 @@ void KinectStreamer::execute() {
     while(!mFirstFrameIsInserted) {
         mFirstFrameCondition.wait(lock);
     }
+}
+
+
+MeshVertex KinectStreamer::getPoint(int x, int y) {
+    float x2, y2, z2, rgb;
+    Color color;
+    if(registration != NULL) {
+        registration->getPointXYZRGB(mUndistorted, mRegistered, y, x, x2, y2, z2, rgb);
+        const uint8_t *p = reinterpret_cast<uint8_t*>(&rgb);
+        uint8_t red = p[0];
+        uint8_t green = p[1];
+        uint8_t blue = p[2];
+        color = Color(red/255.0f, green/255.0f, blue/255.0f);
+    } else {
+        throw Exception();
+    }
+
+    MeshVertex vertex(Vector3f(x2*1000, y2*1000, z2*1000));
+    vertex.setColor(color);
+    return vertex;
 }
 
 void KinectStreamer::producerStream() {
@@ -63,7 +84,7 @@ void KinectStreamer::producerStream() {
     reportInfo() << "Kinect device serial: " << dev->getSerialNumber() << reportEnd();
     reportInfo() << "Kinect device firmware: " << dev->getFirmwareVersion() << reportEnd();
 
-    libfreenect2::Registration *registration = new libfreenect2::Registration(dev->getIrCameraParams(),
+    registration = new libfreenect2::Registration(dev->getIrCameraParams(),
                                                                               dev->getColorCameraParams());
     libfreenect2::Frame undistorted(512, 424, 4), registered(512, 424, 4);
 
@@ -86,6 +107,8 @@ void KinectStreamer::producerStream() {
         libfreenect2::Frame *depth = frames[libfreenect2::Frame::Depth];
 
         registration->apply(rgb, depth, &undistorted, &registered);
+        mUndistorted = &undistorted;
+        mRegistered = &registered;
 
         float* depth_data = (float*)undistorted.data;
         unsigned char* rgb_data = (unsigned char*)registered.data;

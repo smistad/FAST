@@ -4,6 +4,7 @@
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include <QVBoxLayout>
 #include <FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp>
+#include <FAST/Visualization/PointRenderer/PointRenderer.hpp>
 
 namespace fast {
 
@@ -18,6 +19,15 @@ class MouseListener : public QObject {
         View* mView;
 };
 
+class KeyPressListener : public QObject {
+    public:
+        KeyPressListener(KinectTrackingGUI* gui, QWidget* widget);
+    protected:
+        bool eventFilter(QObject *obj, QEvent *event);
+    private:
+        KinectTrackingGUI* mGUI;
+};
+
 MouseListener::MouseListener(KinectTracking::pointer tracking, View* view) : QObject(view) {
     mTracking = tracking;
     mPreviousMousePosition = Vector2i(-1, -1);
@@ -27,16 +37,37 @@ MouseListener::MouseListener(KinectTracking::pointer tracking, View* view) : QOb
 bool MouseListener::eventFilter(QObject *obj, QEvent *event) {
     if(event->type() == QEvent::MouseMove) {
         // Releay mouse movement to tracking
-        QMouseEvent *keyEvent = static_cast<QMouseEvent *>(event);
+        QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
         float spacing = mView->get2DPixelSpacing();
         if(mPreviousMousePosition.x() == -1 && mPreviousMousePosition.y() == -1) {
-            mPreviousMousePosition = Vector2i(keyEvent->x()*spacing, keyEvent->y()*spacing);
+            mPreviousMousePosition = Vector2i(mouseEvent->x() * spacing, mouseEvent->y() * spacing);
         } else {
-            Vector2i current(keyEvent->x()*spacing, keyEvent->y()*spacing);
+            Vector2i current(mouseEvent->x() * spacing, mouseEvent->y() * spacing);
             mTracking->addLine(mPreviousMousePosition, current);
             mPreviousMousePosition = current;
         }
-        return true;
+    }
+
+    // standard event processing
+    return QObject::eventFilter(obj, event);
+}
+
+
+KeyPressListener::KeyPressListener(KinectTrackingGUI* gui, QWidget* parent) : QObject(parent) {
+    mGUI = gui;
+}
+
+bool KeyPressListener::eventFilter(QObject *obj, QEvent *event) {
+    if(event->type() == QEvent::KeyPress) {
+        std::cout << "Key event" << std::endl;
+        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+        if(keyEvent->key() == Qt::Key_Enter || keyEvent->key() == Qt::Key_Return) {
+            std::cout << "Extracting target cloud!" << std::endl;
+            mGUI->extractPointCloud();
+            return true;
+        } else {
+            return QObject::eventFilter(obj, event);
+        }
     } else {
         // standard event processing
         return QObject::eventFilter(obj, event);
@@ -47,34 +78,57 @@ KinectTrackingGUI::KinectTrackingGUI() {
     View* view = createView();
 
     // Setup streaming
-    KinectStreamer::pointer streamer = KinectStreamer::New();
+    mStreamer = KinectStreamer::New();
 
     // Tracking
-    KinectTracking::pointer tracking = KinectTracking::New();
-    tracking->setInputConnection(streamer->getOutputPort(0));
+    mTracking = KinectTracking::New();
+    mTracking->setInputConnection(0, mStreamer->getOutputPort(0));
+    mTracking->setInputConnection(1, mStreamer->getOutputPort(2));
 
-    // Set up mouse listener
-    view->installEventFilter(new MouseListener(tracking, view));
+    // Set up mouse and key listener
+    view->installEventFilter(new MouseListener(mTracking, view));
+    mWidget->installEventFilter(new KeyPressListener(this, mWidget));
 
     // Renderer RGB image
     ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->addInputConnection(tracking->getOutputPort(0));
+    renderer->addInputConnection(mTracking->getOutputPort(0));
 
     SegmentationRenderer::pointer annotationRenderer = SegmentationRenderer::New();
-    annotationRenderer->addInputConnection(tracking->getOutputPort(1));
+    annotationRenderer->addInputConnection(mTracking->getOutputPort(1));
     annotationRenderer->setFillArea(false);
 
     view->set2DMode();
     view->setBackgroundColor(Color::Black());
     view->addRenderer(renderer);
     view->addRenderer(annotationRenderer);
-    setWidth(1280);
-    setHeight(768);
+    setWidth(1024);
+    setHeight(848);
     setTitle("FAST - Kinect Object Tracking");
 
     QVBoxLayout* layout = new QVBoxLayout;
     layout->addWidget(view);
     mWidget->setLayout(layout);
+}
+
+void KinectTrackingGUI::extractPointCloud() {
+    stopComputationThread();
+    getView(0)->removeAllRenderers();
+
+    PointRenderer::pointer cloudRenderer = PointRenderer::New();
+    cloudRenderer->setDefaultSize(1.5);
+    std::cout << "ASD" << std::endl;
+    Mesh::pointer mesh = mTracking->getTargetCloud(mStreamer);
+    std::cout << "ASD2" << std::endl;
+    cloudRenderer->addInputData(mesh);
+    std::cout << "ASD3" << std::endl;
+    cloudRenderer->addInputConnection(mStreamer->getOutputPort(2));
+
+    getView(0)->set3DMode();
+    getView(0)->addRenderer(cloudRenderer);
+    getView(0)->setLookAt(Vector3f(0,-500,-500), Vector3f(0,0,1000), Vector3f(0,-1,0), 500, 5000);
+    getView(0)->reinitialize();
+
+    startComputationThread();
 }
 
 }

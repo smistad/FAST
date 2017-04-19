@@ -11,6 +11,7 @@
 using namespace fast;
 
 int main(int argc, char** argv) {
+    Reporter::setGlobalReportMethod(Reporter::COUT);
     // Setup streaming
     KinectStreamer::pointer streamer = KinectStreamer::New();
 
