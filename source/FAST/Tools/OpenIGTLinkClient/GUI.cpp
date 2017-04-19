@@ -44,6 +44,7 @@ GUI::GUI() {
     view->setBackgroundColor(Color::Black());
     setWidth(1280);
     setHeight(768);
+    enableMaximized();
     setTitle("FAST - OpenIGTLink Client");
     viewLayout->addWidget(view);
 

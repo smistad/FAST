@@ -28,6 +28,8 @@ class Window : public QObject, public Object {
         void setWidth(uint width);
         void setHeight(uint height);
         void setSize(uint width, uint height);
+        void enableMaximized();
+        void disableMaximized();
         void enableFullscreen();
         void disableFullscreen();
         void setTitle(std::string);
@@ -41,7 +43,7 @@ class Window : public QObject, public Object {
 
         WindowWidget* mWidget;
         unsigned int mWidth, mHeight;
-        bool mFullscreen;
+        bool mFullscreen, mMaximized;
         unsigned int mTimeout;
         QEventLoop* mEventLoop;
         ComputationThread* mThread;
