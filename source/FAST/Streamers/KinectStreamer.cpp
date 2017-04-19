@@ -154,8 +154,7 @@ void KinectStreamer::producerStream() {
     reportInfo() << "Stopping kinect streamer" << Reporter::end;
     dev->stop();
     dev->close();
-
-    // TODO proper cleanup
+    delete dev;
 }
 
 bool KinectStreamer::hasReachedEnd() const {
