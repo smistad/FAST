@@ -10,6 +10,7 @@ public:
     static std::string getTestDataPath();
     static std::string getKernelSourcePath();
     static std::string getKernelBinaryPath();
+    static std::string getDocumentationPath();
     static void setConfigFilename(std::string filename);
     static void setBasePath(std::string path);
 private:
@@ -19,6 +20,7 @@ private:
     static std::string mTestDataPath;
     static std::string mKernelSourcePath;
     static std::string mKernelBinaryPath;
+    static std::string mDocumentationPath;
     static std::string mConfigFilename;
     static std::string mBasePath;
 };

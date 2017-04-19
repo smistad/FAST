@@ -32,8 +32,6 @@ class View : public QGLWidget, public ProcessObject {
         void setViewingPlane(Plane plane);
         void setLookAt(Vector3f cameraPosition, Vector3f targetPosition, Vector3f cameraUpVector, float zNear = 0.1, float zFar = 1000);
         void updateAllRenderers();
-        void stopPipelineUpdateThread();
-        void resumePipelineUpdateThread();
         void quit();
         void reinitialize();
         bool hasQuit() const;

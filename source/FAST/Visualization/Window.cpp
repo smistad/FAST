@@ -2,6 +2,7 @@
 #include <QApplication>
 #include <QOffscreenSurface>
 #include <QEventLoop>
+#include <QDesktopWidget>
 
 namespace fast {
 
@@ -45,6 +46,8 @@ Window::Window() {
     mWidth = 512;
     mHeight = 512;
     mFullscreen = false;
+
+
 }
 
 void Window::enableFullscreen() {
@@ -126,6 +129,14 @@ View* Window::createView() {
 
 void Window::start() {
     mWidget->resize(mWidth,mHeight);
+
+    // Move window to center
+    QDesktopWidget *desktop = QApplication::desktop();
+    int screenWidth = desktop->width();
+    int screenHeight = desktop->height();
+    int x = (screenWidth - mWidth) / 2;
+    int y = (screenHeight - mHeight) / 2;
+    mWidget->move(x, y);
 
     if(mFullscreen) {
         mWidget->showFullScreen();

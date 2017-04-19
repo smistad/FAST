@@ -68,6 +68,7 @@ std::string Config::mBasePath = "";
 std::string Config::mTestDataPath = getPath() + "../data/";
 std::string Config::mKernelSourcePath = getPath() + "../source/FAST/";
 std::string Config::mKernelBinaryPath = getPath() + "kernel_binaries/";
+std::string Config::mDocumentationPath = getPath() + "../doc/";
 
 std::string Config::getTestDataPath() {
     loadConfiguration();
@@ -84,6 +85,11 @@ std::string Config::getKernelBinaryPath() {
     return mKernelBinaryPath;
 }
 
+std::string Config::getDocumentationPath() {
+    loadConfiguration();
+    return mDocumentationPath;
+}
+
 void Config::setConfigFilename(std::string filename) {
     mConfigFilename = filename;
     loadConfiguration();
@@ -96,6 +102,7 @@ void Config::setBasePath(std::string path) {
     mTestDataPath = getPath() + "../data/";
     mKernelSourcePath = getPath() + "../source/FAST/";
     mKernelBinaryPath = getPath() + "kernel_binaries/";
+    mDocumentationPath = getPath() + "../doc/";
     loadConfiguration();
 }
 
@@ -146,6 +153,8 @@ void Config::loadConfiguration() {
             mKernelSourcePath = value;
         } else if(key == "KernelBinaryPath") {
             mKernelBinaryPath = value;
+        } else if(key == "DocumentationPath") {
+            mDocumentationPath = value;
         } else {
             throw Exception("Error parsing configuration file. Unrecognized key: " + key);
         }
@@ -157,6 +166,7 @@ void Config::loadConfiguration() {
     Reporter::info() << "Test data path: " << mTestDataPath << Reporter::end;
     Reporter::info() << "Kernel source path: " << mKernelSourcePath << Reporter::end;
     Reporter::info() << "Kernel binary path: " << mKernelBinaryPath << Reporter::end;
+    Reporter::info() << "Documentation path: " << mDocumentationPath << Reporter::end;
 
     mConfigurationLoaded = true;
 }

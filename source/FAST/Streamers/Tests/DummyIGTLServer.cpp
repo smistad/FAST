@@ -12,6 +12,7 @@ namespace fast {
 DummyIGTLServer::DummyIGTLServer() {
     mFPS = 10;
     mPort = 18944;
+    mFrames = std::numeric_limits<int>::max();
 }
 
 void DummyIGTLServer::setPort(uint port) {
@@ -20,6 +21,10 @@ void DummyIGTLServer::setPort(uint port) {
 
 void DummyIGTLServer::setFramesPerSecond(uint fps) {
     mFPS = fps;
+}
+
+void DummyIGTLServer::setMaximumFramesToSend(uint frames) {
+    mFrames = frames;
 }
 
 void DummyIGTLServer::setImageStreamer(
@@ -101,10 +106,8 @@ inline igtl::TransformMessage::Pointer createIGTLTransformMessage(Image::pointer
 
 void DummyIGTLServer::stream() {
     // Prepare server socket
-    igtl::ServerSocket::Pointer serverSocket;
-    serverSocket = igtl::ServerSocket::New();
+    igtl::ServerSocket::Pointer serverSocket = igtl::ServerSocket::New();
     int r = serverSocket->CreateServer(mPort);
-    int interval = (int) (1000.0 / mFPS);
 
     if(r < 0) {
         throw Exception("Cannot create a server socket.");
@@ -114,12 +117,13 @@ void DummyIGTLServer::stream() {
     DynamicData::pointer dataStream = mStreamer->getOutputData<Image>();
     DummyProcessObject::pointer dummy = DummyProcessObject::New();
     int framesSent = 0;
+    int interval = (int) (1000.0 / mFPS);
     while(true) {
         // Waiting for Connection
         socket = serverSocket->WaitForConnection(1000);
         if(socket.IsNotNull()) { // if client connected
             mStreamer->update();
-            while(!dataStream->hasReachedEnd() && framesSent < 25) {
+            while(!dataStream->hasReachedEnd() && framesSent < mFrames) {
                 // Get next image from streamer
                 Image::pointer image = dataStream->getNextFrame(dummy);
 
@@ -143,6 +147,8 @@ void DummyIGTLServer::stream() {
     }
 
     socket->CloseSocket();
+    serverSocket->CloseSocket();
+    Reporter::info() << "Closed IGT Link server socket" << Reporter::end;
 }
 
 

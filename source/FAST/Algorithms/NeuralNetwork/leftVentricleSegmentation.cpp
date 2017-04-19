@@ -94,7 +94,7 @@ int main() {
 
     PixelClassification::pointer segmentation = PixelClassification::New();
     segmentation->setNrOfClasses(2);
-    segmentation->load("/home/smistad/workspace/left-ventricle-segmentation/models/test_fcn.tfl");
+    segmentation->load("/home/smistad/workspace/left-ventricle-segmentation/models/tensorflow_lv_segmentation_model.pb");
     segmentation->setInputSize(256, 256);
     segmentation->setScaleFactor(1.0f/255.0f);
     segmentation->setOutputParameters({"Reshape_24"});
