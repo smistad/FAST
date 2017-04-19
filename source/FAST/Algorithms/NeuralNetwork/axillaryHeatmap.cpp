@@ -18,7 +18,9 @@ int main() {
          "/home/smistad/data/eyeguide/axillary_nerve_block/17/2017Feb13_150648/#.png",
          "/home/smistad/data/eyeguide/axillary_nerve_block/17/2017Feb13_150824/#.png",
          "/home/smistad/data/eyeguide/axillary_nerve_block/5/2016Dec30_082009/#.png",
-                                 });
+         "/home/smistad/data/eyeguide/axillary_nerve_block/5/2016Dec30_082046/#.png",
+         "/home/smistad/data/eyeguide/axillary_nerve_block/5/2016Dec30_082110/#.png",
+    });
     streamer->enableLooping();
     streamer->setStartNumber(1);
     streamer->setSleepTime(50);
@@ -29,14 +31,14 @@ int main() {
     segmentation->load("/home/smistad/workspace/eyeguide_keras/models/network_graph.pb");
     segmentation->setInputSize(256, 256);
     segmentation->setScaleFactor(1.0f/255.0f);
-    segmentation->setOutputParameters({"Reshape_21"});
+    segmentation->setOutputParameters({"Reshape_18"});
     segmentation->setInputConnection(streamer->getOutputPort());
     segmentation->setHeatmapOutput();
     segmentation->enableRuntimeMeasurements();
 
     HeatmapRenderer::pointer renderer = HeatmapRenderer::New();
     renderer->addInputConnection(segmentation->getOutputPort(1), Color::Red());
-    renderer->addInputConnection(segmentation->getOutputPort(2), Color::Blue());
+    renderer->addInputConnection(segmentation->getOutputPort(2), Color::Yellow());
     renderer->addInputConnection(segmentation->getOutputPort(3), Color::Green());
     renderer->addInputConnection(segmentation->getOutputPort(4), Color::Purple());
     renderer->addInputConnection(segmentation->getOutputPort(5), Color::Cyan());
@@ -50,7 +52,8 @@ int main() {
     window->addRenderer(renderer2);
     window->addRenderer(renderer);
     window->getView()->enableRuntimeMeasurements();
-    window->setSize(1024, 1024);
+    window->setSize(1920, 1080);
+    //window->enableFullscreen();
     window->getView()->set2DPixelSpacing(0.3);
     window->set2DMode();
     window->getView()->setBackgroundColor(Color::Black());
