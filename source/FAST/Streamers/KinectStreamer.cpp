@@ -25,6 +25,7 @@ void KinectStreamer::execute() {
         // Check that first frame exists before starting streamer
 
         mStreamIsStarted = true;
+        mStop = false;
         mThread = new std::thread(std::bind(&KinectStreamer::producerStream, this));
     }
 
@@ -41,10 +42,10 @@ void KinectStreamer::producerStream() {
     libfreenect2::PacketPipeline *pipeline = 0;
     std::string serial = "";
 
-    if (freenect2.enumerateDevices() == 0) {
+    if(freenect2.enumerateDevices() == 0) {
         throw Exception("Unable to find any Kinect devices");
     }
-    if (serial == "") {
+    if(serial == "") {
         serial = freenect2.getDefaultDeviceSerialNumber();
     }
     pipeline = new libfreenect2::OpenGLPacketPipeline();
@@ -66,8 +67,18 @@ void KinectStreamer::producerStream() {
                                                                               dev->getColorCameraParams());
     libfreenect2::Frame undistorted(512, 424, 4), registered(512, 424, 4);
 
-    while (true) {
-        if (!listener.waitForNewFrame(frames, 10 * 1000)) { // 10 seconds
+    while(true) {
+        {
+            // Check if stop signal is sent
+            std::unique_lock<std::mutex> lock(mStopMutex);
+            if(mStop) {
+                mStreamIsStarted = false;
+                mFirstFrameIsInserted = false;
+                mHasReachedEnd = false;
+                break;
+            }
+        }
+        if(!listener.waitForNewFrame(frames, 10 * 1000)) { // 10 seconds
             throw Exception("Kinect streaming timeout");
         }
         libfreenect2::Frame *rgb = frames[libfreenect2::Frame::Color];
@@ -140,6 +151,7 @@ void KinectStreamer::producerStream() {
         listener.release(frames);
     }
 
+    reportInfo() << "Stopping kinect streamer" << Reporter::end;
     dev->stop();
     dev->close();
 
@@ -152,6 +164,18 @@ bool KinectStreamer::hasReachedEnd() const {
 
 uint KinectStreamer::getNrOfFrames() const {
     return mNrOfFrames;
+}
+
+KinectStreamer::~KinectStreamer() {
+    if(mStreamIsStarted) {
+        stop();
+        mThread->join();
+    }
+}
+
+void KinectStreamer::stop() {
+    std::unique_lock<std::mutex> lock(mStopMutex);
+    mStop = true;
 }
 
 }

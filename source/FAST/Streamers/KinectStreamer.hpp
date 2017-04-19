@@ -13,6 +13,8 @@ class KinectStreamer : public Streamer, public ProcessObject {
         void producerStream();
         bool hasReachedEnd() const;
         uint getNrOfFrames() const;
+        ~KinectStreamer();
+        void stop();
     private:
         KinectStreamer();
 
@@ -21,10 +23,12 @@ class KinectStreamer : public Streamer, public ProcessObject {
         bool mStreamIsStarted;
         bool mFirstFrameIsInserted;
         bool mHasReachedEnd;
+        bool mStop;
         uint mNrOfFrames;
 
         std::thread* mThread;
         std::mutex mFirstFrameMutex;
+        std::mutex mStopMutex;
         std::condition_variable mFirstFrameCondition;
 };
 
