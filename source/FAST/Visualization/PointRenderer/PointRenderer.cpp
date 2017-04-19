@@ -14,11 +14,11 @@ namespace fast {
 void PointRenderer::draw() {
     std::lock_guard<std::mutex> lock(mMutex);
 
-    std::unordered_map<uint, PointSet::pointer>::iterator it;
+    std::unordered_map<uint, Mesh::pointer>::iterator it;
     for(it = mPointSetsToRender.begin(); it != mPointSetsToRender.end(); it++) {
-        PointSet::pointer points = it->second;
-        PointSetAccess::pointer access = points->getAccess(ACCESS_READ);
-        MatrixXf pointMatrix = access->getPointSetAsMatrix();
+        Mesh::pointer points = it->second;
+        MeshAccess::pointer access = points->getMeshAccess(ACCESS_READ);
+        std::vector<MeshVertex> vertices = access->getVertices();
 
         AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(points);
 
@@ -31,12 +31,15 @@ void PointRenderer::draw() {
         } else {
             glPointSize(mDefaultPointSize);
         }
+        bool hasColor = false;
         if(mInputColors.count(port) > 0) {
             Color c = mInputColors[port];
             glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
-        } else {
+            hasColor = true;
+        } else if(mDefaultColorSet) {
             Color c = mDefaultColor;
             glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
+            hasColor = true;
         }
         bool drawOnTop;
         if(mInputDrawOnTop.count(port) > 0) {
@@ -47,8 +50,13 @@ void PointRenderer::draw() {
         if(drawOnTop)
             glDisable(GL_DEPTH_TEST);
         glBegin(GL_POINTS);
-        for(uint i = 0; i < pointMatrix.cols(); i++) {
-            glVertex3f(pointMatrix(0, i), pointMatrix(1, i), pointMatrix(2, i));
+        for(MeshVertex vertex : vertices) {
+            Vector3f position = vertex.getPosition();
+            if(!hasColor) {
+                Color c = vertex.getColor();
+                glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
+            }
+            glVertex3f(position.x(), position.y(), position.z());
         }
         glEnd();
         if(drawOnTop)
@@ -57,6 +65,7 @@ void PointRenderer::draw() {
     }
     glColor3f(1.0f, 1.0f, 1.0f); // Reset color
 }
+
 void PointRenderer::draw2D(
                 cl::BufferGL PBO,
                 uint width,
@@ -78,9 +87,9 @@ void PointRenderer::draw2D(
     UniquePointer<float[]> pixels(new float[width*height*sizeof(float)*4]);
     queue.enqueueReadBuffer(PBO, CL_TRUE, 0, width*height*4*sizeof(float), pixels.get());
 
-    std::unordered_map<uint, PointSet::pointer>::iterator it;
+    std::unordered_map<uint, Mesh::pointer>::iterator it;
     for(it = mPointSetsToRender.begin(); it != mPointSetsToRender.end(); it++) {
-    	PointSet::pointer points = it->second;
+    	Mesh::pointer points = it->second;
 
 		Color color = mDefaultColor;
         ProcessObjectPort port = getInputPort(it->first);
@@ -88,13 +97,13 @@ void PointRenderer::draw2D(
             color = mInputColors[port];
         }
 
-    	PointSetAccess::pointer access = points->getAccess(ACCESS_READ);
-        std::vector<Vector3f> vertices = access->getPoints();
+    	MeshAccess::pointer access = points->getMeshAccess(ACCESS_READ);
+        std::vector<MeshVertex> vertices = access->getVertices();
 
         // Draw each line
         int size = 3;
         for(int i = 0; i < vertices.size(); ++i) {
-        	Vector2f position = vertices[i].head(2); // In mm
+        	Vector2f position = vertices[i].getPosition().head(2); // In mm
         	Vector2i positinInPixles(
         			round(position.x() / PBOspacing),
         			round(position.y() / PBOspacing)
@@ -125,7 +134,7 @@ void PointRenderer::draw2D(
 BoundingBox PointRenderer::getBoundingBox() {
     std::vector<Vector3f> coordinates;
     for(uint i = 0; i < getNrOfInputData(); i++) {
-        BoundingBox transformedBoundingBox = getStaticInputData<PointSet>(i)->getTransformedBoundingBox();
+        BoundingBox transformedBoundingBox = getStaticInputData<Mesh>(i)->getTransformedBoundingBox();
         MatrixXf corners = transformedBoundingBox.getCorners();
         for(uint j = 0; j < 8; j++) {
             coordinates.push_back((Vector3f)corners.row(j));
@@ -136,9 +145,9 @@ BoundingBox PointRenderer::getBoundingBox() {
 
 PointRenderer::PointRenderer() {
     mDefaultPointSize = 10;
-    mDefaultColor = Color::Red();
+    mDefaultColorSet = false;
     mDefaultDrawOnTop = false;
-    createInputPort<PointSet>(0, false);
+    createInputPort<Mesh>(0, false);
 }
 
 void PointRenderer::execute() {
@@ -146,7 +155,7 @@ void PointRenderer::execute() {
 
     // This simply gets the input data for each connection and puts it into a data structure
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
-        PointSet::pointer input = getStaticInputData<PointSet>(inputNr);
+        Mesh::pointer input = getStaticInputData<Mesh>(inputNr);
 
         mPointSetsToRender[inputNr] = input;
     }
@@ -156,7 +165,7 @@ void PointRenderer::execute() {
 void PointRenderer::addInputConnection(ProcessObjectPort port) {
     uint nr = getNrOfInputData();
     if(nr > 0)
-        createInputPort<PointSet>(nr);
+        createInputPort<Mesh>(nr);
     releaseInputAfterExecute(nr, false);
     setInputConnection(nr, port);
 }
@@ -168,13 +177,13 @@ void PointRenderer::addInputConnection(ProcessObjectPort port, Color color,
     setSize(port, size);
 }
 
-void PointRenderer::addInputData(PointSet::pointer data) {
+void PointRenderer::addInputData(Mesh::pointer data) {
     uint nr = getNrOfInputData();
     releaseInputAfterExecute(nr, false);
     setInputData(nr, data);
 }
 
-void PointRenderer::addInputData(PointSet::pointer data, Color color, float size) {
+void PointRenderer::addInputData(Mesh::pointer data, Color color, float size) {
     uint nr = getNrOfInputData();
     addInputData(data);
     ProcessObjectPort port = getInputPort(nr);
@@ -185,6 +194,7 @@ void PointRenderer::addInputData(PointSet::pointer data, Color color, float size
 
 void PointRenderer::setDefaultColor(Color color) {
     mDefaultColor = color;
+    mDefaultColorSet = true;
 }
 
 void PointRenderer::setDefaultSize(float size) {

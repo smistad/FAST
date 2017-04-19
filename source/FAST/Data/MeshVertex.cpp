@@ -7,26 +7,30 @@ MeshVertex::MeshVertex(VectorXf position) {
 	mPosition = position;
 	mNormal = VectorXf::Zero(mPosition.size());
 	mLabel = 0;
+	mColor = Color::Red();
 }
-MeshVertex::MeshVertex(VectorXf position, VectorXf normal) {
-	mPosition = position;
+MeshVertex::MeshVertex(VectorXf position, VectorXf normal) : MeshVertex(position) {
 	mNormal = normal;
-	mLabel = 0;
 }
 
 MeshVertex::MeshVertex(VectorXf position, VectorXf normal,
-		std::vector<int> connections) {
-	mPosition = position;
-	mNormal = normal;
+		std::vector<int> connections) : MeshVertex(position, normal) {
 	mConnections = connections;
-	mLabel = 0;
+}
+
+void MeshVertex::setColor(Color color) {
+	mColor = color;
+}
+
+Color MeshVertex::getColor() const {
+	return mColor;
 }
 
 void MeshVertex::setLabel(int label) {
 	mLabel = label;
 }
 
-int MeshVertex::getLabel() {
+int MeshVertex::getLabel() const {
 	return mLabel;
 }
 

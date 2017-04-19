@@ -3,14 +3,14 @@
 #include <libfreenect2/frame_listener_impl.h>
 #include <libfreenect2/registration.h>
 #include "FAST/Data/Image.hpp"
-#include "FAST/Data/PointSet.hpp"
+#include "FAST/Data/Mesh.hpp"
 
 namespace fast {
 
 KinectStreamer::KinectStreamer() {
     createOutputPort<Image>(0, OUTPUT_DYNAMIC); // RGB
     createOutputPort<Image>(1, OUTPUT_DYNAMIC); // Depth image
-    createOutputPort<PointSet>(2, OUTPUT_DYNAMIC); // Point cloud
+    createOutputPort<Mesh>(2, OUTPUT_DYNAMIC); // Point cloud
     mNrOfFrames = 0;
     mHasReachedEnd = false;
     mFirstFrameIsInserted = false;
@@ -105,24 +105,30 @@ void KinectStreamer::producerStream() {
         rgbImage->create(512, 424, TYPE_UINT8, 4, rgb_data);
 
         // Create point cloud
-        std::vector<Vector3f> points;
+        std::vector<MeshVertex> points;
         for(int r=0; r<424; ++r) {
             for(int c = 0; c < 512; ++c) {
                 float x, y, z, color;
                 registration->getPointXYZRGB(&undistorted, &registered, r, c, x, y, z, color);
                 if(!std::isnan(x)) {
-                    Vector3f point(x*1000, y*1000, z*1000);
+                    // Decode color channels
+                    const uint8_t *p = reinterpret_cast<uint8_t*>(&color);
+                    uint8_t red = p[0];
+                    uint8_t green = p[1];
+                    uint8_t blue = p[2];
+                    MeshVertex point(Vector3f(x*1000, y*1000, z*1000));
+                    point.setColor(Color(red/255.0f, green/255.0f, blue/255.0f));
                     //std::cout << point.transpose() << std::endl;
                     points.push_back(point);
                 }
             }
         }
-        PointSet::pointer cloud = PointSet::New();
+        Mesh::pointer cloud = Mesh::New();
         cloud->create(points);
 
         DynamicData::pointer ddRGB = getOutputData<Image>(0);
         DynamicData::pointer ddDepth = getOutputData<Image>(1);
-        DynamicData::pointer ddPoint = getOutputData<PointSet>(2);
+        DynamicData::pointer ddPoint = getOutputData<Mesh>(2);
         if(ddRGB.isValid() && ddDepth.isValid()) {
             try {
                 ddRGB->addFrame(rgbImage);
