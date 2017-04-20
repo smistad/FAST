@@ -3,18 +3,19 @@
 #include <libfreenect2/frame_listener_impl.h>
 #include <libfreenect2/registration.h>
 #include "FAST/Data/Image.hpp"
-#include "FAST/Data/PointSet.hpp"
+#include "FAST/Data/Mesh.hpp"
 
 namespace fast {
 
 KinectStreamer::KinectStreamer() {
     createOutputPort<Image>(0, OUTPUT_DYNAMIC); // RGB
     createOutputPort<Image>(1, OUTPUT_DYNAMIC); // Depth image
-    createOutputPort<PointSet>(2, OUTPUT_DYNAMIC); // Point cloud
+    createOutputPort<Mesh>(2, OUTPUT_DYNAMIC); // Point cloud
     mNrOfFrames = 0;
     mHasReachedEnd = false;
     mFirstFrameIsInserted = false;
     mIsModified = true;
+    registration = NULL;
 }
 
 void KinectStreamer::execute() {
@@ -25,6 +26,7 @@ void KinectStreamer::execute() {
         // Check that first frame exists before starting streamer
 
         mStreamIsStarted = true;
+        mStop = false;
         mThread = new std::thread(std::bind(&KinectStreamer::producerStream, this));
     }
 
@@ -35,16 +37,36 @@ void KinectStreamer::execute() {
     }
 }
 
+
+MeshVertex KinectStreamer::getPoint(int x, int y) {
+    float x2, y2, z2, rgb;
+    Color color;
+    if(registration != NULL) {
+        registration->getPointXYZRGB(mUndistorted, mRegistered, y, x, x2, y2, z2, rgb);
+        const uint8_t *p = reinterpret_cast<uint8_t*>(&rgb);
+        uint8_t red = p[0];
+        uint8_t green = p[1];
+        uint8_t blue = p[2];
+        color = Color(red/255.0f, green/255.0f, blue/255.0f);
+    } else {
+        throw Exception();
+    }
+
+    MeshVertex vertex(Vector3f(x2*1000, y2*1000, z2*1000));
+    vertex.setColor(color);
+    return vertex;
+}
+
 void KinectStreamer::producerStream() {
     libfreenect2::Freenect2 freenect2;
     libfreenect2::Freenect2Device *dev = 0;
     libfreenect2::PacketPipeline *pipeline = 0;
     std::string serial = "";
 
-    if (freenect2.enumerateDevices() == 0) {
+    if(freenect2.enumerateDevices() == 0) {
         throw Exception("Unable to find any Kinect devices");
     }
-    if (serial == "") {
+    if(serial == "") {
         serial = freenect2.getDefaultDeviceSerialNumber();
     }
     pipeline = new libfreenect2::OpenGLPacketPipeline();
@@ -62,12 +84,22 @@ void KinectStreamer::producerStream() {
     reportInfo() << "Kinect device serial: " << dev->getSerialNumber() << reportEnd();
     reportInfo() << "Kinect device firmware: " << dev->getFirmwareVersion() << reportEnd();
 
-    libfreenect2::Registration *registration = new libfreenect2::Registration(dev->getIrCameraParams(),
+    registration = new libfreenect2::Registration(dev->getIrCameraParams(),
                                                                               dev->getColorCameraParams());
     libfreenect2::Frame undistorted(512, 424, 4), registered(512, 424, 4);
 
-    while (true) {
-        if (!listener.waitForNewFrame(frames, 10 * 1000)) { // 10 seconds
+    while(true) {
+        {
+            // Check if stop signal is sent
+            std::unique_lock<std::mutex> lock(mStopMutex);
+            if(mStop) {
+                mStreamIsStarted = false;
+                mFirstFrameIsInserted = false;
+                mHasReachedEnd = false;
+                break;
+            }
+        }
+        if(!listener.waitForNewFrame(frames, 10 * 1000)) { // 10 seconds
             throw Exception("Kinect streaming timeout");
         }
         libfreenect2::Frame *rgb = frames[libfreenect2::Frame::Color];
@@ -75,6 +107,8 @@ void KinectStreamer::producerStream() {
         libfreenect2::Frame *depth = frames[libfreenect2::Frame::Depth];
 
         registration->apply(rgb, depth, &undistorted, &registered);
+        mUndistorted = &undistorted;
+        mRegistered = &registered;
 
         float* depth_data = (float*)undistorted.data;
         unsigned char* rgb_data = (unsigned char*)registered.data;
@@ -94,24 +128,30 @@ void KinectStreamer::producerStream() {
         rgbImage->create(512, 424, TYPE_UINT8, 4, rgb_data);
 
         // Create point cloud
-        std::vector<Vector3f> points;
+        std::vector<MeshVertex> points;
         for(int r=0; r<424; ++r) {
             for(int c = 0; c < 512; ++c) {
                 float x, y, z, color;
                 registration->getPointXYZRGB(&undistorted, &registered, r, c, x, y, z, color);
                 if(!std::isnan(x)) {
-                    Vector3f point(x*1000, y*1000, z*1000);
+                    // Decode color channels
+                    const uint8_t *p = reinterpret_cast<uint8_t*>(&color);
+                    uint8_t red = p[0];
+                    uint8_t green = p[1];
+                    uint8_t blue = p[2];
+                    MeshVertex point(Vector3f(x*1000, y*1000, z*1000));
+                    point.setColor(Color(red/255.0f, green/255.0f, blue/255.0f));
                     //std::cout << point.transpose() << std::endl;
                     points.push_back(point);
                 }
             }
         }
-        PointSet::pointer cloud = PointSet::New();
+        Mesh::pointer cloud = Mesh::New();
         cloud->create(points);
 
         DynamicData::pointer ddRGB = getOutputData<Image>(0);
         DynamicData::pointer ddDepth = getOutputData<Image>(1);
-        DynamicData::pointer ddPoint = getOutputData<PointSet>(2);
+        DynamicData::pointer ddPoint = getOutputData<Mesh>(2);
         if(ddRGB.isValid() && ddDepth.isValid()) {
             try {
                 ddRGB->addFrame(rgbImage);
@@ -140,10 +180,10 @@ void KinectStreamer::producerStream() {
         listener.release(frames);
     }
 
+    reportInfo() << "Stopping kinect streamer" << Reporter::end;
     dev->stop();
     dev->close();
-
-    // TODO proper cleanup
+    delete dev;
 }
 
 bool KinectStreamer::hasReachedEnd() const {
@@ -152,6 +192,18 @@ bool KinectStreamer::hasReachedEnd() const {
 
 uint KinectStreamer::getNrOfFrames() const {
     return mNrOfFrames;
+}
+
+KinectStreamer::~KinectStreamer() {
+    if(mStreamIsStarted) {
+        stop();
+        mThread->join();
+    }
+}
+
+void KinectStreamer::stop() {
+    std::unique_lock<std::mutex> lock(mStopMutex);
+    mStop = true;
 }
 
 }

@@ -46,16 +46,25 @@ Window::Window() {
     mWidth = 512;
     mHeight = 512;
     mFullscreen = false;
-
-
+    mMaximized = false;
 }
 
 void Window::enableFullscreen() {
     mFullscreen = true;
+    disableMaximized();
 }
 
 void Window::disableFullscreen() {
     mFullscreen = false;
+}
+
+void Window::enableMaximized() {
+    mMaximized = true;
+    disableFullscreen();
+}
+
+void Window::disableMaximized() {
+    mMaximized = false;
 }
 
 void Window::setTitle(std::string title) {
@@ -128,19 +137,23 @@ View* Window::createView() {
 }
 
 void Window::start() {
-    mWidget->resize(mWidth,mHeight);
 
-    // Move window to center
     QDesktopWidget *desktop = QApplication::desktop();
     int screenWidth = desktop->width();
     int screenHeight = desktop->height();
-    int x = (screenWidth - mWidth) / 2;
-    int y = (screenHeight - mHeight) / 2;
-    mWidget->move(x, y);
 
+    mWidget->resize(mWidth,mHeight);
     if(mFullscreen) {
         mWidget->showFullScreen();
+    } else if(mMaximized) {
+        //mWidth = screenWidth;
+        //mHeight = screenHeight;
+        mWidget->showMaximized();
     } else {
+        // Move window to center
+        int x = (screenWidth - mWidth) / 2;
+        int y = (screenHeight - mHeight) / 2;
+        mWidget->move(x, y);
         mWidget->show();
     }
 

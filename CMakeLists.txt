@@ -104,7 +104,7 @@ fast_add_subdirectories(source/FAST)
 
 
 if(FAST_BUILD_EXAMPLES)
-    if(FAST_MODULE_VISUALIZATION)
+    if(FAST_MODULE_Visualization)
         set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
         if(WIN32)
             file(WRITE ${PROJECT_BINARY_DIR}/runAllExamples.bat "")

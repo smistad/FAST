@@ -44,6 +44,7 @@ class View : public QGLWidget, public ProcessObject {
 		    return "View";
 		};
         View();
+		float get2DPixelSpacing();
     private:
 
 		std::vector<Renderer::pointer> mNonVolumeRenderers;

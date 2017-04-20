@@ -27,7 +27,9 @@ GUI::GUI() {
     // Create view layout
     QVBoxLayout* viewLayout = new QVBoxLayout;
     QHBoxLayout* selectStreamLayout = new QHBoxLayout;
+    QHBoxLayout* selectPipelineLayout = new QHBoxLayout;
     viewLayout->addLayout(selectStreamLayout);
+    viewLayout->addLayout(selectPipelineLayout);
 
     QLabel* selectStreamLabel = new QLabel;
     selectStreamLabel->setText("Active input stream: ");
@@ -39,11 +41,25 @@ GUI::GUI() {
     selectStreamLayout->addWidget(mSelectStream);
     QObject::connect(mSelectStream, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), std::bind(&GUI::selectStream, this));
 
+    QLabel* selectPipelineLabel = new QLabel;
+    selectPipelineLabel->setText("Active pipeline: ");
+    selectPipelineLabel->setFixedHeight(30);
+    selectPipelineLabel->setFixedWidth(150);
+    selectPipelineLayout->addWidget(selectPipelineLabel);
+
+    mSelectPipeline = new QComboBox;
+    mSelectPipeline->addItem("Default (ImageRenderer)");
+    mSelectPipeline->addItem("Cardiac view classification");
+    mSelectPipeline->addItem("Left ventricle segmentation");
+    selectPipelineLayout->addWidget(mSelectPipeline);
+    QObject::connect(mSelectPipeline, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), std::bind(&GUI::selectPipeline, this));
+
     View* view = createView();
     view->set2DMode();
     view->setBackgroundColor(Color::Black());
     setWidth(1280);
     setHeight(768);
+    enableMaximized();
     setTitle("FAST - OpenIGTLink Client");
     viewLayout->addWidget(view);
 
@@ -145,6 +161,10 @@ GUI::GUI() {
     QObject::connect(timer2, &QTimer::timeout, std::bind(&GUI::refreshStreams, this));
 
     connectButton->setFocus();
+}
+
+void GUI::selectPipeline() {
+    recordButton->setFocus();
 }
 
 void GUI::selectStream() {

@@ -140,4 +140,10 @@ void ImageAccess::setVector(VectorXi position, Vector4f value) {
     }
 }
 
+void ImageAccess::setVector(uint position, Vector4f value) {
+    for(uchar i = 0; i < mImage->getNrOfComponents(); ++i) {
+        setScalar(position, value[i], i);
+    }
+}
+
 } // end namespace fast

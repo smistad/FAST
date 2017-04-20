@@ -70,18 +70,22 @@ class FileNotFoundException : public Exception {
 
 class OutOfBoundsException : public Exception {
     public:
-        OutOfBoundsException() : Exception() {};
-        OutOfBoundsException(int line, const char * file) : Exception(line,file) {};
+        OutOfBoundsException() : Exception() {
+            setMessage("Out of bounds.");
+        };
+        OutOfBoundsException(int line, const char * file) : Exception(line,file) {
+            setMessage("Out of bounds.");
+        };
         OutOfBoundsException(std::string message, int line, const char * file): Exception(message,line,file) {};
 };
 
 class NotImplementedException : public Exception {
     public:
         NotImplementedException() : Exception() {
-            setMessage("Not implementet");
+            setMessage("Not implemented");
         };
         NotImplementedException(int line, const char * file) : Exception(line,file) {
-            setMessage("Not implementet");
+            setMessage("Not implemented");
 
         };
 };

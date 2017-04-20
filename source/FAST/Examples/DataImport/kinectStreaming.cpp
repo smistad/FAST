@@ -11,6 +11,7 @@
 using namespace fast;
 
 int main(int argc, char** argv) {
+    Reporter::setGlobalReportMethod(Reporter::COUT);
     // Setup streaming
     KinectStreamer::pointer streamer = KinectStreamer::New();
 
@@ -27,7 +28,7 @@ int main(int argc, char** argv) {
     // Render point cloud
     PointRenderer::pointer renderer3 = PointRenderer::New();
     renderer3->addInputConnection(streamer->getOutputPort(2));
-    renderer3->setDefaultSize(2);
+    renderer3->setDefaultSize(1.5);
 
     // Setup window
     MultiViewWindow::pointer window = MultiViewWindow::New();

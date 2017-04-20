@@ -51,6 +51,10 @@ void View::removeAllRenderers() {
     mNonVolumeRenderers.clear();
 }
 
+float View::get2DPixelSpacing() {
+    return mPBOspacing*mScale2D;
+}
+
 void View::setBackgroundColor(Color color) {
 	mBackgroundColor = color;
 }
@@ -1039,25 +1043,24 @@ void View::mouseMoveEvent(QMouseEvent* event) {
 }
 
 void View::mousePressEvent(QMouseEvent* event) {
-
-
-	if(event->button() == Qt::LeftButton) {
-		mLeftMouseButtonIsPressed = true;
-		// Move cursor to center of window
-		int cx = width()/2;
-		int cy = height()/2;
-		QCursor::setPos(mapToGlobal(QPoint(cx,cy)));
-	} else if(event->button() == Qt::MiddleButton) {
-		previousX = event->x();
-		previousY = event->y();
-		mMiddleMouseButtonIsPressed = true;
-	}
+    if(!mIsIn2DMode) {
+        if (event->button() == Qt::LeftButton) {
+            mLeftMouseButtonIsPressed = true;
+            // Move cursor to center of window
+            int cx = width() / 2;
+            int cy = height() / 2;
+            QCursor::setPos(mapToGlobal(QPoint(cx, cy)));
+        } else if (event->button() == Qt::MiddleButton) {
+            previousX = event->x();
+            previousY = event->y();
+            mMiddleMouseButtonIsPressed = true;
+        }
+    }
 
 	if (mVolumeRenderers.size()>0)
 	{
 		((VolumeRenderer::pointer)(mVolumeRenderers[0]))->mouseEvents();
 	}
-
 }
 
 void View::wheelEvent(QWheelEvent* event) {
