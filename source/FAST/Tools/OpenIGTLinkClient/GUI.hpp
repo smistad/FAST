@@ -2,6 +2,7 @@
 #define FAST_OPENIGTLINKCLIENT_GUI_HPP_
 
 #include "FAST/Visualization/Window.hpp"
+#include "FAST/Pipeline.hpp"
 
 class QPushButton;
 class QLineEdit;
@@ -32,6 +33,7 @@ class GUI : public Window {
         bool mConnected;
         SharedPointer<IGTLinkStreamer> mStreamer;
         std::vector<std::string> mStreamNames;
+        std::vector<Pipeline> mPipelines;
         SharedPointer<OpenIGTLinkClient> mClient;
 
         QLabel* recordingInformation;

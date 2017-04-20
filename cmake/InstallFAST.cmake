@@ -87,7 +87,8 @@ endif()
 
 set(CONFIG_KERNEL_SOURCE_PATH "KernelSourcePath = @ROOT@/kernels/")
 set(CONFIG_KERNEL_BINARY_PATH "KernelBinaryPath = @ROOT@/kernel_binaries/")
-set(CONFIG_KERNEL_BINARY_PATH "DocumentationPath = @ROOT@/doc/")
+set(CONFIG_DOCUMENTATION_PATH "DocumentationPath = @ROOT@/doc/")
+set(CONFIG_PIPELINE_PATH "PipelinePath = @ROOT@/pipelines/")
 set(CONFIG_TEST_DATA_PATH "TestDataPath = @ROOT@/data/")
 configure_file(
     "${PROJECT_SOURCE_DIR}/source/fast_configuration.txt.in"

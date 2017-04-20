@@ -11,6 +11,7 @@ public:
     static std::string getKernelSourcePath();
     static std::string getKernelBinaryPath();
     static std::string getDocumentationPath();
+    static std::string getPipelinePath();
     static void setConfigFilename(std::string filename);
     static void setBasePath(std::string path);
 private:
@@ -21,6 +22,7 @@ private:
     static std::string mKernelSourcePath;
     static std::string mKernelBinaryPath;
     static std::string mDocumentationPath;
+    static std::string mPipelinePath;
     static std::string mConfigFilename;
     static std::string mBasePath;
 };

@@ -69,6 +69,7 @@ std::string Config::mTestDataPath = getPath() + "../data/";
 std::string Config::mKernelSourcePath = getPath() + "../source/FAST/";
 std::string Config::mKernelBinaryPath = getPath() + "kernel_binaries/";
 std::string Config::mDocumentationPath = getPath() + "../doc/";
+std::string Config::mPipelinePath = getPath() + "../pipelines/";
 
 std::string Config::getTestDataPath() {
     loadConfiguration();
@@ -90,6 +91,11 @@ std::string Config::getDocumentationPath() {
     return mDocumentationPath;
 }
 
+std::string Config::getPipelinePath() {
+    loadConfiguration();
+    return mPipelinePath;
+}
+
 void Config::setConfigFilename(std::string filename) {
     mConfigFilename = filename;
     loadConfiguration();
@@ -103,6 +109,7 @@ void Config::setBasePath(std::string path) {
     mKernelSourcePath = getPath() + "../source/FAST/";
     mKernelBinaryPath = getPath() + "kernel_binaries/";
     mDocumentationPath = getPath() + "../doc/";
+    mPipelinePath = getPath() + "../pipelines/";
     loadConfiguration();
 }
 
@@ -155,6 +162,8 @@ void Config::loadConfiguration() {
             mKernelBinaryPath = value;
         } else if(key == "DocumentationPath") {
             mDocumentationPath = value;
+        } else if(key == "PipelinePath") {
+            mPipelinePath = value;
         } else {
             throw Exception("Error parsing configuration file. Unrecognized key: " + key);
         }
@@ -167,6 +176,7 @@ void Config::loadConfiguration() {
     Reporter::info() << "Kernel source path: " << mKernelSourcePath << Reporter::end;
     Reporter::info() << "Kernel binary path: " << mKernelBinaryPath << Reporter::end;
     Reporter::info() << "Documentation path: " << mDocumentationPath << Reporter::end;
+    Reporter::info() << "Pipeline path: " << mPipelinePath << Reporter::end;
 
     mConfigurationLoaded = true;
 }

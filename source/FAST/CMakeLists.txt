@@ -31,7 +31,14 @@ fast_add_sources(
     DeviceCriteria.cpp
     DeviceCriteria.hpp
     Semaphore.hpp
+    Attribute.hpp
 )
+if(FAST_MODULE_Visualization)
+    fast_add_sources(
+        Pipeline.hpp
+        Pipeline.cpp
+	)
+endif()
 fast_add_python_interfaces(
 	ProcessObject.i
 	numpy.i
