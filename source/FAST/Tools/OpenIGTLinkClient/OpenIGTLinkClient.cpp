@@ -33,7 +33,7 @@ void OpenIGTLinkClient::execute() {
         MetaImageExporter::pointer exporter = MetaImageExporter::New();
         exporter->setFilename(mRecordStoragePath + "US-2D_" + std::to_string(mRecordFrameNr) + ".mhd");
         exporter->setInputData(image);
-        exporter->enableCompression();
+        //exporter->enableCompression();
         exporter->update();
         ++mRecordFrameNr;
 

@@ -184,9 +184,16 @@ void GUI::selectPipeline() {
     int selectedPipeline = mSelectPipeline->currentIndex();
 
     Pipeline pipeline = mPipelines.at(selectedPipeline);
-    std::vector<SharedPointer<Renderer>> renderers = pipeline.setup(mClient->getOutputPort());
-    for(auto renderer : renderers) {
-        getView(0)->addRenderer(renderer);
+    try {
+        std::vector<SharedPointer<Renderer>> renderers = pipeline.setup(mClient->getOutputPort());
+        for(auto renderer : renderers) {
+            getView(0)->addRenderer(renderer);
+        }
+    } catch(Exception &e) {
+        QMessageBox* message = new QMessageBox;
+        message->setWindowTitle("Error");
+        message->setText(e.what());
+        message->show();
     }
 
     startComputationThread();

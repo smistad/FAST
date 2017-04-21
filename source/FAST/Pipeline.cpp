@@ -38,12 +38,14 @@ inline SharedPointer<ProcessObject> parseProcessObject(
 
     // Get inputs
     bool inputFound = false;
-    while(file.eof()) {
+    while(!file.eof()) {
+        std::cout << line << std::endl;
         trim(line);
-        if(line.size() == 0)
-            throw Exception("Expecting Input token when parsing object " + objectName + " but line was empty.");
+        if(line == "")
+            break;
 
         std::vector<std::string> tokens = split(line);
+        std::cout << tokens[0] << std::endl;
         if(tokens[0] != "Input" || tokens.size() < 3)
             throw Exception("Expecting Input token when parsing object " + objectName + " but got " + line);
 
@@ -53,7 +55,7 @@ inline SharedPointer<ProcessObject> parseProcessObject(
         if(tokens.size() == 4)
             outputPortID = std::stoi(tokens[3]);
 
-        if(processObjects.count(inputID) == 0)
+        if(inputID != "PipelineInput" && processObjects.count(inputID) == 0)
             throw Exception("Input with id " + inputID + " was not found before " + objectID);
 
         inputFound = true;
@@ -72,6 +74,7 @@ inline SharedPointer<ProcessObject> parseProcessObject(
                 object->setInputConnection(inputPortID, processObjects.at(inputID)->getOutputPort(outputPortID));
             }
         }
+        std::getline(file, line);
     }
 
     if(!inputFound)

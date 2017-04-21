@@ -1,2 +1,5 @@
 PipelineName "Image renderer"
 PipelineDescription "asdasd asd"
+
+Renderer renderer ImageRenderer
+Input 0 PipelineInput
