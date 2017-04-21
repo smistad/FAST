@@ -29,7 +29,6 @@ GUI::GUI() {
     mConnected = false;
     mRecordTimer = new QElapsedTimer;
 
-    // Create view layout
     QVBoxLayout* viewLayout = new QVBoxLayout;
     QHBoxLayout* selectStreamLayout = new QHBoxLayout;
     QHBoxLayout* selectPipelineLayout = new QHBoxLayout;
@@ -54,9 +53,16 @@ GUI::GUI() {
 
     mSelectPipeline = new QComboBox;
     mPipelines = getAvailablePipelines();
+    int index = 0;
+    int counter = 0;
     for(auto pipeline : mPipelines) {
         mSelectPipeline->addItem((pipeline.getName() + " (" + pipeline.getDescription() + ")").c_str());
+        if(pipeline.getName() == "Image renderer") {
+            index = counter;
+        }
+        ++counter;
     }
+    mSelectPipeline->setCurrentIndex(index);
 
     selectPipelineLayout->addWidget(mSelectPipeline);
     QObject::connect(mSelectPipeline, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), std::bind(&GUI::selectPipeline, this));
@@ -177,67 +183,11 @@ void GUI::selectPipeline() {
 
     int selectedPipeline = mSelectPipeline->currentIndex();
 
-    if(selectedPipeline == 0) {
-        ImageRenderer::pointer renderer = ImageRenderer::New();
-        renderer->addInputConnection(mClient->getOutputPort());
-
+    Pipeline pipeline = mPipelines.at(selectedPipeline);
+    std::vector<SharedPointer<Renderer>> renderers = pipeline.setup(mClient->getOutputPort());
+    for(auto renderer : renderers) {
         getView(0)->addRenderer(renderer);
-    } else if(selectedPipeline == 1) {
-        ImageClassifier::pointer classifier = ImageClassifier::New();
-        classifier->setScaleFactor(1.0f / 255.0f);
-        classifier->load("/home/smistad/Downloads/cvc_net");
-        classifier->setInputSize(128, 128);
-        classifier->setOutputParameters({"Softmax"});
-        classifier->setLabels({
-                                      "Parasternal short axis",
-                                      "Parasternal long axis",
-                                      "Apical two-chamber",
-                                      "Apical four-chamber",
-                                      "Apical long axis"
-                              });
-        classifier->setInputConnection(mClient->getOutputPort());
-        classifier->enableRuntimeMeasurements();
-
-        ClassificationToText::pointer classToText = ClassificationToText::New();
-        classToText->setInputConnection(classifier->getOutputPort());
-
-        ImageRenderer::pointer renderer = ImageRenderer::New();
-        renderer->setInputConnection(mClient->getOutputPort());
-
-        TextRenderer::pointer textRenderer = TextRenderer::New();
-        textRenderer->setView(getView(0));
-        textRenderer->setPosition(Vector2i(10, 40));
-        textRenderer->setFontSize(32);
-        textRenderer->setInputConnection(classToText->getOutputPort());
-
-        getView(0)->addRenderer(renderer);
-        getView(0)->addRenderer(textRenderer);
-    } else {
-        PixelClassification::pointer segmentation = PixelClassification::New();
-        segmentation->setNrOfClasses(2);
-        segmentation->load("/home/smistad/workspace/left-ventricle-segmentation/models/tensorflow_lv_segmentation_model.pb");
-        segmentation->setInputSize(256, 256);
-        segmentation->setScaleFactor(1.0f/255.0f);
-        segmentation->setOutputParameters({"Reshape_24"});
-        segmentation->setInputConnection(mClient->getOutputPort());
-        //segmentation->setHeatmapOutput();
-        segmentation->enableRuntimeMeasurements();
-
-        SegmentationRenderer::pointer segmentationRenderer = SegmentationRenderer::New();
-        segmentationRenderer->setFillArea(false);
-        segmentationRenderer->setInputConnection(segmentation->getOutputPort(1));
-
-        ImageRenderer::pointer imageRenderer = ImageRenderer::New();
-        imageRenderer->setInputConnection(mClient->getOutputPort());
-
-        HeatmapRenderer::pointer heatmapRenderer = HeatmapRenderer::New();
-        heatmapRenderer->addInputConnection(segmentation->getOutputPort(1), Color::Green());
-
-        getView(0)->addRenderer(imageRenderer);
-        //getView(0)->addRenderer(heatmapRenderer);
-        getView(0)->addRenderer(segmentationRenderer);
     }
-
 
     startComputationThread();
 
@@ -271,14 +221,10 @@ void GUI::selectStream() {
     }
     reportInfo() << "Connected to OpenIGTLink server." << reportEnd();
 
-    ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->addInputConnection(mClient->getOutputPort());
-
-    getView(0)->addRenderer(renderer);
+    selectPipeline();
     // This causes seg fault for some reason... wrong thread maybe?
     //getView(0)->reinitialize();
 
-    mSelectPipeline->setCurrentIndex(0);
     recordButton->setFocus();
     //refreshStreams();
 }

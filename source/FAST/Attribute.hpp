@@ -33,7 +33,30 @@ class Attribute {
     public:
         Attribute(std::string name, std::string description, AttributeType type) :
                 mName(name), mDescription(description), mType(type) {
+        }
 
+        void setValue(std::shared_ptr<AttributeValue> value) {
+            mValues.insert(mValues.begin(), value);
+        }
+
+        std::shared_ptr<AttributeValue> getValue() const {
+            return mValues.at(0);
+        }
+
+        void setValues(std::vector<std::shared_ptr<AttributeValue>> values) {
+            mValues = values;
+        }
+
+        std::vector<std::shared_ptr<AttributeValue>> getValues() const {
+            return mValues;
+        }
+
+        std::string getName() const {
+            return mName;
+        }
+
+        AttributeType getType() const {
+            return mType;
         }
     private:
         std::string mName;

@@ -13,6 +13,7 @@
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Data/DynamicData.hpp"
 #include "FAST/Config.hpp"
+#include "FAST/Attribute.hpp"
 
 namespace fast{
     class ProcessObjectPort;
@@ -173,6 +174,10 @@ class ProcessObject : public virtual Object {
                 std::string buildOptions = ""
         );
 
+        template <class T>
+        void createAttribute(std::string name, std::string description, AttributeType type, T initialValue);
+        void setAttributes(std::vector<Attribute> attributes);
+        virtual void loadAttributes();
     private:
         void updateTimestamp(DataObject::pointer data);
         void changeDeviceOnInputs(uint deviceNumber, ExecutionDevice::pointer device);
@@ -203,6 +208,8 @@ class ProcessObject : public virtual Object {
         std::unordered_map<uint, bool> mOutputPortMultipleData;
 
         std::unordered_map<std::string, SharedPointer<OpenCLProgram> > mOpenCLPrograms;
+
+        std::unordered_map<std::string, Attribute> mAttributes;
 
         friend class DynamicData;
         friend class ProcessObjectPort;
@@ -497,6 +504,29 @@ void ProcessObject::createOutputPort(uint portID, OutputDataType outputDataType,
         }
         setOutputDataDynamicDependsOnInputData(portID, inputPortID);
     }
+}
+
+
+template <class T>
+void ProcessObject::createAttribute(std::string name, std::string description, AttributeType type, T initialValue) {
+    Attribute attribute(name, description, type);
+    std::shared_ptr<AttributeValue> value;
+    switch(type) {
+        case ATTRIBUTE_TYPE_BOOLEAN:
+            value = std::make_shared<AttributeValue>(new AttributeValueBoolean(initialValue));
+            break;
+        case ATTRIBUTE_TYPE_FLOAT:
+            value = std::make_shared<AttributeValue>(new AttributeValueFloat(initialValue));
+            break;
+        case ATTRIBUTE_TYPE_INTEGER:
+            value = std::make_shared<AttributeValue>(new AttributeValueInteger(initialValue));
+            break;
+        case ATTRIBUTE_TYPE_STRING:
+            value = std::make_shared<AttributeValue>(new AttributeValueString(initialValue));
+            break;
+    }
+    attribute.setValue(value);
+    mAttributes[name] = attribute;
 }
 
 }; // end namespace fast

@@ -347,6 +347,26 @@ cl::Program ProcessObject::getOpenCLProgram(
 ProcessObject::~ProcessObject() {
 }
 
+void ProcessObject::setAttributes(std::vector<Attribute> attributes) {
+    for(Attribute attribute : attributes) {
+        std::string name = attribute.getName();
+        if(mAttributes.count(name) == 0) {
+            throw Exception("Attribute " + name + " not found for process object " + getNameOfClass());
+        }
+
+        Attribute localAttribute = mAttributes.at(name);
+        if(localAttribute.getType() != attribute.getType())
+            throw Exception("Attribute " + name + " for process object " + getNameOfClass() + " had different type then the one loaded.");
+
+        mAttributes.at(name).setValues(attribute.getValues());
+    }
+}
+
+void ProcessObject::loadAttributes() {
+    throw Exception("The process object " + getNameOfClass() + " has not implemented the loadAttributes method and therefore cannot be loaded from fast pipeline files (.fpl).");
+}
+
+
 } // namespace fast
 
 namespace std {
