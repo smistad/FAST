@@ -32,6 +32,7 @@ fast_add_sources(
     DeviceCriteria.hpp
     Semaphore.hpp
     Attribute.hpp
+    ProcessObjectRegistry.hpp
 )
 if(FAST_MODULE_Visualization)
     fast_add_sources(

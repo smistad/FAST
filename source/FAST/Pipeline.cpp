@@ -3,7 +3,7 @@
 #include "ProcessObject.hpp"
 #include <QDirIterator>
 #include <fstream>
-#include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
+#include "FAST/ProcessObjectRegistry.hpp"
 
 namespace fast {
 
@@ -14,11 +14,7 @@ Pipeline::Pipeline(std::string name, std::string description, std::string filena
 }
 
 inline SharedPointer<ProcessObject> getProcessObject(std::string name) {
-    if(name == "ImageRenderer") {
-        return ImageRenderer::New();
-    }
-
-    throw Exception("Not able to find process object when parsing pipeline file " + name);
+    return ProcessObjectRegistry::create(name);
 }
 
 inline SharedPointer<ProcessObject> parseProcessObject(
@@ -39,13 +35,11 @@ inline SharedPointer<ProcessObject> parseProcessObject(
     // Get inputs
     bool inputFound = false;
     while(!file.eof()) {
-        std::cout << line << std::endl;
         trim(line);
         if(line == "")
             break;
 
         std::vector<std::string> tokens = split(line);
-        std::cout << tokens[0] << std::endl;
         if(tokens[0] != "Input" || tokens.size() < 3)
             throw Exception("Expecting Input token when parsing object " + objectName + " but got " + line);
 
