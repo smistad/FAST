@@ -5,7 +5,7 @@ namespace fast {
 
 ImageClassifier::ImageClassifier() {
 	createOutputPort<ImageClassification>(0, OUTPUT_DEPENDS_ON_INPUT, 0, true);
-
+	createStringAttribute("labels", "Name of each class", "");
 	mOutputName = "";
 }
 
@@ -38,6 +38,11 @@ void ImageClassifier::execute() {
 		output->create(mapResult);
 	}
 
+}
+
+void ImageClassifier::loadAttributes() {
+	NeuralNetwork::loadAttributes();
+	setLabels(getStringListAttribute("labels"));
 }
 
 }

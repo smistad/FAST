@@ -30,7 +30,7 @@ class TextRenderer : public Renderer {
     void
     draw2D(cl::Buffer PBO, uint width, uint height, Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform,
            float PBOspacing, Vector2f translation) override;
-
+    void loadAttributes();
 private:
         TextRenderer();
         void execute();

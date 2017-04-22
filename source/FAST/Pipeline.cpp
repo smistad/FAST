@@ -58,10 +58,13 @@ inline SharedPointer<ProcessObject> parseProcessObject(
 
         if(isRenderer) {
             SharedPointer<Renderer> renderer = object;
+            // TODO fix text renderer no supprt addInput
             if(inputID == "PipelineInput") {
-                renderer->addInputConnection(pipelineInput);
+                //renderer->addInputConnection(pipelineInput);
+                renderer->setInputConnection(0, pipelineInput);
             } else {
-                renderer->addInputConnection(processObjects.at(inputID)->getOutputPort(outputPortID));
+                //renderer->addInputConnection(processObjects.at(inputID)->getOutputPort(outputPortID));
+                renderer->setInputConnection(0, processObjects.at(inputID)->getOutputPort(outputPortID));
             }
         } else {
             if(inputID == "PipelineInput") {
@@ -114,7 +117,7 @@ std::vector<SharedPointer<Renderer>> Pipeline::setup(ProcessObjectPort input) {
     std::unordered_map<std::string, SharedPointer<ProcessObject> > processObjects;
     std::vector<SharedPointer<Renderer> > renderers;
 
-    // TODO retrieve all POs and renderers
+    // Retrieve all POs and renderers
     while(!file.eof()) {
         trim(line);
 
@@ -124,17 +127,22 @@ std::vector<SharedPointer<Renderer>> Pipeline::setup(ProcessObjectPort input) {
         }
 
         std::vector<std::string> tokens = split(line);
-        if(tokens.size() != 3) {
-            throw Exception("Unable to parse pipeline file " + mFilename + ", expected 3 tokens but got line " + line);
-        }
 
         std::string key = tokens[0];
-        std::string id = tokens[1];
-        std::string object = tokens[2];
 
         if(key == "ProcessObject") {
+            if(tokens.size() != 3) {
+                throw Exception("Unable to parse pipeline file " + mFilename + ", expected 3 tokens but got line " + line);
+            }
+            std::string id = tokens[1];
+            std::string object = tokens[2];
             processObjects[id] = parseProcessObject(object, id, file, processObjects, input);
         } else if(key == "Renderer") {
+            if(tokens.size() != 3) {
+                throw Exception("Unable to parse pipeline file " + mFilename + ", expected 3 tokens but got line " + line);
+            }
+            std::string id = tokens[1];
+            std::string object = tokens[2];
             renderers.push_back(parseProcessObject(object, id, file, processObjects, input, true));
         }
 

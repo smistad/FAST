@@ -22,6 +22,7 @@ public:
     // Get output by layer name
     tensorflow::Tensor getNetworkOutput(std::string layerName);
 
+    void loadAttributes();
 protected:
     NeuralNetwork();
     UniquePointer<tensorflow::Session> mSession;

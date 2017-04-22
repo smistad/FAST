@@ -219,48 +219,54 @@ void MetaImageImporter::execute() {
             std::vector<std::string> values = split(value);
             // Remove any empty values:
             values.erase(std::remove(values.begin(), values.end(), ""), values.end());
-            if(imageIs3D) {
-                if(values.size() != 3)
-                    throw Exception("ElementSpacing in MetaImage file did not contain 3 numbers");
-                spacing[0] = std::stof(values[0]);
-                spacing[1] = std::stof(values[1]);
-                spacing[2] = std::stof(values[2]);
-            } else {
-                if(values.size() != 2 && values.size() != 3)
-                    throw Exception("ElementSpacing in MetaImage file did not contain 2 or 3 numbers");
-
-                spacing[0] = std::stof(values[0]);
-                spacing[1] = std::stof(values[1]);
-                if(values.size() == 2) {
-                    spacing[2] = 1;
-                } else {
+            try {
+                if(imageIs3D) {
+                    if(values.size() != 3)
+                        throw Exception("ElementSpacing in MetaImage file did not contain 3 numbers");
+                    spacing[0] = std::stof(values[0]);
+                    spacing[1] = std::stof(values[1]);
                     spacing[2] = std::stof(values[2]);
+                } else {
+                    if(values.size() != 2 && values.size() != 3)
+                        throw Exception("ElementSpacing in MetaImage file did not contain 2 or 3 numbers");
+
+                    spacing[0] = std::stof(values[0]);
+                    spacing[1] = std::stof(values[1]);
+                    if(values.size() == 2) {
+                        spacing[2] = 1;
+                    } else {
+                        spacing[2] = std::stof(values[2]);
+                    }
                 }
+            } catch(std::out_of_range &e) {
+                reportWarning() << "Out of range exception occured when center of rotation values from metaimage file" << reportEnd();
             }
-
-
         } else if(key == "CenterOfRotation") {
             //reportInfo() << "WARNING: CenterOfRotation in Metaimage file ignored" << Reporter::end;
             std::vector<std::string> values = split(value);
             // Remove any empty values:
             values.erase(std::remove(values.begin(), values.end(), ""), values.end());
-            if(imageIs3D) {
-                if(values.size() != 3)
-                    throw Exception("CenterOfRotation in MetaImage file did not contain 3 numbers");
-                centerOfRotation[0] = std::stof(values[0]);
-                centerOfRotation[1] = std::stof(values[1]);
-                centerOfRotation[2] = std::stof(values[2]);
-            } else {
-                if(values.size() != 2 && values.size() != 3)
-                    throw Exception("CenterOfRotation in MetaImage file did not contain 2 or 3 numbers");
-
-                centerOfRotation[0] = std::stof(values[0]);
-                centerOfRotation[1] = std::stof(values[1]);
-                if(values.size() == 2) {
-                    centerOfRotation[2] = 0;
-                } else {
+            try {
+                if(imageIs3D) {
+                    if(values.size() != 3)
+                        throw Exception("CenterOfRotation in MetaImage file did not contain 3 numbers");
+                    centerOfRotation[0] = std::stof(values[0]);
+                    centerOfRotation[1] = std::stof(values[1]);
                     centerOfRotation[2] = std::stof(values[2]);
+                } else {
+                    if(values.size() != 2 && values.size() != 3)
+                        throw Exception("CenterOfRotation in MetaImage file did not contain 2 or 3 numbers");
+
+                    centerOfRotation[0] = std::stof(values[0]);
+                    centerOfRotation[1] = std::stof(values[1]);
+                    if(values.size() == 2) {
+                        centerOfRotation[2] = 0;
+                    } else {
+                        centerOfRotation[2] = std::stof(values[2]);
+                    }
                 }
+            } catch(std::out_of_range &e) {
+                reportWarning() << "Out of range exception occured when center of rotation values from metaimage file" << reportEnd();
             }
         } else if(key == "Offset" || key == "Origin" || key == "Position") {
             std::vector<std::string> values = split(value);
@@ -270,9 +276,13 @@ void MetaImageImporter::execute() {
                 reportError() << "Offset/Origin/Position in MetaImage file did not contain 3 numbers" << reportEnd();
                 reportError() << "Ignoring" << reportEnd();
             } else {
-				offset[0] = std::stof(values[0].c_str());
-				offset[1] = std::stof(values[1].c_str());
-				offset[2] = std::stof(values[2].c_str());
+                try {
+                    offset[0] = std::stof(values[0].c_str());
+                    offset[1] = std::stof(values[1].c_str());
+                    offset[2] = std::stof(values[2].c_str());
+                } catch(std::out_of_range &e) {
+                    reportWarning() << "Out of range exception occured when reading offset values from metaimage file" << reportEnd();
+                }
             }
         } else if(key == "TransformMatrix" || key == "Rotation" || key == "Orientation") {
             std::vector<std::string> values = split(value);
@@ -283,10 +293,14 @@ void MetaImageImporter::execute() {
                 reportError() << "Ignoring" << reportEnd();
             } else {
 
+                try {
 				for(unsigned int i = 0; i < 3; i++) {
 				for(unsigned int j = 0; j < 3; j++) {
-					transformMatrix(j,i) = std::stof(values[j+i*3].c_str());
+                        transformMatrix(j, i) = std::stof(values[j + i * 3].c_str());
 				}}
+                } catch(std::out_of_range &e) {
+                    reportWarning() << "Out of range exception occured when reading transform matrix values from metaimage file" << reportEnd();
+                }
             }
         }
 

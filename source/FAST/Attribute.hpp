@@ -38,7 +38,11 @@ class Attribute {
         }
 
         void setValue(std::shared_ptr<AttributeValue> value) {
-            mValues.insert(mValues.begin(), value);
+            if(mValues.size() == 0) {
+                mValues.push_back(value);
+            } else {
+                mValues[0] = value;
+            }
         }
 
         std::shared_ptr<AttributeValue> getValue() const {

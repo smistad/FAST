@@ -1,1 +1,4 @@
-fast_add_subdirectories(OpenIGTLinkClient)
+fast_add_subdirectories(
+    OpenIGTLinkClient
+    OpenIGTLinkServer
+)

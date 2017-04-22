@@ -187,6 +187,11 @@ void GUI::selectPipeline() {
     try {
         std::vector<SharedPointer<Renderer>> renderers = pipeline.setup(mClient->getOutputPort());
         for(auto renderer : renderers) {
+            // A hack for text renderer which needs a reference to the view
+            if(renderer->getNameOfClass() == "TextRenderer") {
+                TextRenderer::pointer textRenderer = renderer;
+                textRenderer->setView(getView(0));
+            }
             getView(0)->addRenderer(renderer);
         }
     } catch(Exception &e) {

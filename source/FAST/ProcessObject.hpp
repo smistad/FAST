@@ -185,6 +185,10 @@ class ProcessObject : public virtual Object {
         int getIntegerAttribute(std::string name);
         bool getBooleanAttribute(std::string name);
         std::string getStringAttribute(std::string name);
+        std::vector<float> getFloatListAttribute(std::string name);
+        std::vector<int> getIntegerListAttribute(std::string name);
+        std::vector<bool> getBooleanListAttribute(std::string name);
+        std::vector<std::string> getStringListAttribute(std::string name);
     private:
         void updateTimestamp(DataObject::pointer data);
         void changeDeviceOnInputs(uint deviceNumber, ExecutionDevice::pointer device);

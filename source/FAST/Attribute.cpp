@@ -26,7 +26,7 @@ void Attribute::parseStringInput(std::string input) {
         std::vector<std::shared_ptr<AttributeValue>> values;
         for(auto string : strings) {
             string = replace(string, "\"", "");
-            std::shared_ptr<AttributeValueString> value = std::make_shared<AttributeValueString>(input);
+            std::shared_ptr<AttributeValueString> value = std::make_shared<AttributeValueString>(string);
             values.push_back(value);
         }
         setValues(values);
@@ -52,7 +52,6 @@ void Attribute::parseFloatInput(std::string input) {
     std::vector<std::string> strings = split(input, " ");
     std::vector<std::shared_ptr<AttributeValue>> values;
     for(auto string : strings) {
-        std::cout << string << std::endl;
         float floatValue = std::stof(string);
         std::shared_ptr<AttributeValueFloat> value = std::make_shared<AttributeValueFloat>(floatValue);
         values.push_back(value);

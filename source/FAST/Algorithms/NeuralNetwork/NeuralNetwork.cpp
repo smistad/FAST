@@ -73,6 +73,10 @@ NeuralNetwork::NeuralNetwork() {
 	mHeight = -1;
 	mScaleFactor = 1.0f;
 	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/NeuralNetwork/NeuralNetwork.cl");
+	createStringAttribute("model", "Path to neural network tensorflow model", "");
+	createIntegerAttribute("input_size", "Image input size", 128);
+	createFloatAttribute("scale_factor", "Scale factor", mScaleFactor);
+	createStringAttribute("output_names", "Name of output nodes", "");
 }
 
 void NeuralNetwork::execute() {
@@ -206,5 +210,13 @@ std::vector<SharedPointer<Image>> NeuralNetwork::resizeImages(const std::vector<
 	return resizedImages;
 }
 
+void NeuralNetwork::loadAttributes() {
+	load(getStringAttribute("model"));
+	std::vector<int> inputSize = getIntegerListAttribute("input_size");
+	setInputSize(inputSize.at(0), inputSize.at(1));
+	std::vector<std::string> outputNames = getStringListAttribute("output_names");
+	setOutputParameters(outputNames);
+	setScaleFactor(getFloatAttribute("scale_factor"));
+}
 
 };

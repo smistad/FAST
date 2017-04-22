@@ -411,6 +411,20 @@ float ProcessObject::getFloatAttribute(std::string name) {
     return value->get();
 }
 
+std::vector<float> ProcessObject::getFloatListAttribute(std::string name) {
+    auto attribute = getAttribute(name);
+    if(attribute->getType() != ATTRIBUTE_TYPE_FLOAT)
+        throw Exception("Attribute " + name + " is not of type float in process object " + getNameOfClass());
+
+    std::vector<std::shared_ptr<AttributeValue>> values = attribute->getValues();
+    std::vector<float> list;
+    for(auto &&value : values) {
+        auto floatValue = std::dynamic_pointer_cast<AttributeValueFloat>(value);
+        list.push_back(floatValue->get());
+    }
+    return list;
+}
+
 int ProcessObject::getIntegerAttribute(std::string name) {
     auto attribute = getAttribute(name);
     if(attribute->getType() != ATTRIBUTE_TYPE_INTEGER)
@@ -418,6 +432,20 @@ int ProcessObject::getIntegerAttribute(std::string name) {
 
     std::shared_ptr<AttributeValueInteger> value = std::dynamic_pointer_cast<AttributeValueInteger>(attribute->getValue());
     return value->get();
+}
+
+std::vector<int> ProcessObject::getIntegerListAttribute(std::string name) {
+    auto attribute = getAttribute(name);
+    if(attribute->getType() != ATTRIBUTE_TYPE_INTEGER)
+        throw Exception("Attribute " + name + " is not of type integer in process object " + getNameOfClass());
+
+    std::vector<std::shared_ptr<AttributeValue>> values = attribute->getValues();
+    std::vector<int> list;
+    for(auto &&value : values) {
+        auto floatValue = std::dynamic_pointer_cast<AttributeValueInteger>(value);
+        list.push_back(floatValue->get());
+    }
+    return list;
 }
 
 bool ProcessObject::getBooleanAttribute(std::string name) {
@@ -429,6 +457,21 @@ bool ProcessObject::getBooleanAttribute(std::string name) {
     return value->get();
 }
 
+
+std::vector<bool> ProcessObject::getBooleanListAttribute(std::string name) {
+    auto attribute = getAttribute(name);
+    if(attribute->getType() != ATTRIBUTE_TYPE_BOOLEAN)
+        throw Exception("Attribute " + name + " is not of type boolean in process object " + getNameOfClass());
+
+    std::vector<std::shared_ptr<AttributeValue>> values = attribute->getValues();
+    std::vector<bool> list;
+    for(auto &&value : values) {
+        auto floatValue = std::dynamic_pointer_cast<AttributeValueBoolean>(value);
+        list.push_back(floatValue->get());
+    }
+    return list;
+}
+
 std::string ProcessObject::getStringAttribute(std::string name) {
     auto attribute = getAttribute(name);
     if(attribute->getType() != ATTRIBUTE_TYPE_STRING)
@@ -437,6 +480,22 @@ std::string ProcessObject::getStringAttribute(std::string name) {
     std::shared_ptr<AttributeValueString> value = std::dynamic_pointer_cast<AttributeValueString>(attribute->getValue());
     return value->get();
 }
+
+
+std::vector<std::string> ProcessObject::getStringListAttribute(std::string name) {
+    auto attribute = getAttribute(name);
+    if(attribute->getType() != ATTRIBUTE_TYPE_STRING)
+        throw Exception("Attribute " + name + " is not of type string in process object " + getNameOfClass());
+
+    std::vector<std::shared_ptr<AttributeValue>> values = attribute->getValues();
+    std::vector<std::string> list;
+    for(auto &&value : values) {
+        auto floatValue = std::dynamic_pointer_cast<AttributeValueString>(value);
+        list.push_back(floatValue->get());
+    }
+    return list;
+}
+
 
 
 } // namespace fast

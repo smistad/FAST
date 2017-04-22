@@ -1,3 +1,4 @@
+if(FAST_MODULE_OpenIGTLink)
 fast_add_tool(OpenIGTLinkClient
         main.cpp
         GUI.cpp
@@ -5,3 +6,4 @@ fast_add_tool(OpenIGTLinkClient
         OpenIGTLinkClient.cpp
         OpenIGTLinkClient.hpp
 )
+endif()

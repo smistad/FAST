@@ -17,6 +17,8 @@ TextRenderer::TextRenderer() {
 	mPosition2D = Vector2i::Zero();
 	mColor = Color::Green();
     mText = "";
+    createIntegerAttribute("position", "Position of text in view", 0);
+    createIntegerAttribute("font_size", "Font size", mFontSize);
 }
 
 void TextRenderer::setView(View* view) {
@@ -73,6 +75,11 @@ void TextRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
                           Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform, float PBOspacing,
                           Vector2f translation) {
     std::lock_guard<std::mutex> lock(mMutex);
+
+    if(mPosition2D == Vector2i::Zero()) {
+        // If no position has been set. Set it to upper left corner
+        mPosition2D = Vector2i(10, mFontSize + 10);
+    }
 
     // TODO select a safe background color here, that is different from set color
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -148,6 +155,13 @@ void TextRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
     // TODO clear buffer glClear
     //glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     //glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void TextRenderer::loadAttributes() {
+    std::vector<int> position = getIntegerListAttribute("position");
+    if(position.size() == 2)
+        setPosition(Vector2i(position.at(0), position.at(1)));
+    setFontSize(getIntegerAttribute("font_size"));
 }
 
 } // end namespace fast

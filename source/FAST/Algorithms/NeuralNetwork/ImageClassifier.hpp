@@ -19,6 +19,7 @@ class ImageClassifier : public NeuralNetwork {
 	public:
 		void setLabels(std::vector<std::string> labels);
         void setOutputName(std::string outputName);
+        void loadAttributes();
 	private:
 		ImageClassifier();
 		void execute();

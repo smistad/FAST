@@ -9,6 +9,7 @@
 #include "FAST/SmartPointers.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include <FAST/Visualization/TextRenderer/TextRenderer.hpp>
+#include <FAST/Algorithms/NeuralNetwork/ImageClassifier.hpp>
 
 namespace fast {
 
@@ -61,6 +62,9 @@ static bool _registered_##Derived = ProcessObjectRegistry::registerPO(#Derived, 
 
 FAST_REGISTER_PO(ImageRenderer)
 FAST_REGISTER_PO(TextRenderer)
+FAST_REGISTER_PO(ImageClassifier)
+FAST_REGISTER_PO(ClassificationToText)
+
 }
 
 #endif
