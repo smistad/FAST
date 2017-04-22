@@ -119,7 +119,7 @@ endmacro()
 
 ### Macro for add process objects
 macro(fast_add_process_object NAME HEADERFILE)
-    file (RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
+    file (RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}/source/" "${CMAKE_CURRENT_SOURCE_DIR}")
     list(APPEND FAST_PROCESS_OBJECT_NAMES ${NAME})
     if(_relPath)
         list(APPEND FAST_PROCESS_OBJECT_HEADER_FILES ${_relPath}/${HEADERFILE})
