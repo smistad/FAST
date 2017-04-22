@@ -53,6 +53,11 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/source/CL/
 	FILES_MATCHING PATTERN "*.hpp"
 )
 
+# Install created headers
+install(FILES ${PROJECT_BINARY_DIR}/ProcessObjectList.hpp
+    DESTINATION fast/include/FAST/
+)
+
 # Install OpenCL kernels
 install(DIRECTORY ${FAST_SOURCE_DIR}
 	DESTINATION fast/kernels/

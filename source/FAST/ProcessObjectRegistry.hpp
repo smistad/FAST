@@ -7,11 +7,6 @@
 #include "FAST/ProcessObject.hpp"
 #include "FAST/Exception.hpp"
 #include "FAST/SmartPointers.hpp"
-#include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
-#include <FAST/Visualization/TextRenderer/TextRenderer.hpp>
-#include <FAST/Algorithms/NeuralNetwork/ImageClassifier.hpp>
-#include <FAST/Algorithms/NeuralNetwork/PixelClassification.hpp>
-#include <FAST/Visualization/HeatmapRenderer/HeatmapRenderer.hpp>
 
 namespace fast {
 
