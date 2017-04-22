@@ -31,6 +31,7 @@ fast_add_sources(
     DeviceCriteria.cpp
     DeviceCriteria.hpp
     Semaphore.hpp
+    Attribute.cpp
     Attribute.hpp
     ProcessObjectRegistry.hpp
 )

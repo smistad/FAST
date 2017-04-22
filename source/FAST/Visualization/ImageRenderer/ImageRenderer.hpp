@@ -11,6 +11,7 @@ class ImageRenderer : public Renderer {
     public:
         void addInputConnection(ProcessObjectPort port);
         BoundingBox getBoundingBox();
+        void loadAttributes();
     private:
         ImageRenderer();
         void execute();

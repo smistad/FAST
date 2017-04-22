@@ -13,7 +13,7 @@
 namespace fast {
 
 /**
- * This class implementes the C++ registry pattern which is used to keep
+ * This class implements the C++ registry pattern which is used to keep
  * a registry of process objects so that we can instantiate process objects
  * using only a string of its name.
  */

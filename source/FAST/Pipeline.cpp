@@ -40,8 +40,10 @@ inline SharedPointer<ProcessObject> parseProcessObject(
             break;
 
         std::vector<std::string> tokens = split(line);
-        if(tokens[0] != "Input" || tokens.size() < 3)
-            throw Exception("Expecting Input token when parsing object " + objectName + " but got " + line);
+        if(tokens[0] != "Input")
+            break;
+        if(tokens.size() < 3)
+            throw Exception("Expecting at least 3 items on input line when parsing object " + objectName + " but got " + line);
 
         int inputPortID = std::stoi(tokens[1]);
         std::string inputID = tokens[2];
@@ -74,12 +76,36 @@ inline SharedPointer<ProcessObject> parseProcessObject(
     if(!inputFound)
         throw Exception("No inputs were found for process object " + objectName);
 
-    // TODO Continue to scan file attributes
+    std::cout << "attributes.." << std::endl;
+    // Continue to scan file for attributes
+    while(!file.eof()) {
+        trim(line);
+        if(line == "")
+            break;
+
+        std::vector<std::string> tokens = split(line);
+        if(tokens[0] != "Attribute")
+            throw Exception("Expecting attribute when parsing object " + objectName + " but got line " + line);
+
+        if(tokens.size() < 3)
+            throw Exception("Expecting at least 3 items on attribute line when parsing object " + objectName + " but got " + line);
+
+        std::string name = tokens[1];
+
+        std::shared_ptr<Attribute> attribute = object->getAttribute(name);
+        std::string attributeValues = line.substr(line.find(name) + name.size());
+        trim(attributeValues);
+        std::cout << "parse input.." << std::endl;
+        attribute->parseInput(attributeValues);
+        std::getline(file, line);
+    }
+
 
     return object;
 }
 
 std::vector<SharedPointer<Renderer>> Pipeline::setup(ProcessObjectPort input) {
+    std::cout << "setting up pipeline.." << std::endl;
     // Parse file again, retrieve process objects, set attributes and create the pipeline
     std::ifstream file(mFilename);
     std::string line = "";
@@ -117,6 +143,17 @@ std::vector<SharedPointer<Renderer>> Pipeline::setup(ProcessObjectPort input) {
 
     if(renderers.size() == 0)
         throw Exception("No renderers were found when parsing pipeline file " + mFilename);
+
+    // For each PO, load attributes
+    for(auto processObject : processObjects) {
+        processObject.second->loadAttributes();
+    }
+
+    // For each renderer, load attributes
+    for(auto renderer : renderers) {
+        renderer->loadAttributes();
+    }
+    std::cout << "finished" << std::endl;
 
     return renderers;
 }

@@ -143,6 +143,9 @@ class ProcessObject : public virtual Object {
         static std::string getStaticNameOfClass() {
             return "ProcessObject";
         }
+        virtual void loadAttributes();
+        std::shared_ptr<Attribute> getAttribute(std::string name);
+        void setAttributes(std::vector<std::shared_ptr<Attribute>> attributes);
     protected:
         ProcessObject();
         // Flag to indicate whether the object has been modified
@@ -174,10 +177,14 @@ class ProcessObject : public virtual Object {
                 std::string buildOptions = ""
         );
 
-        template <class T>
-        void createAttribute(std::string name, std::string description, AttributeType type, T initialValue);
-        void setAttributes(std::vector<Attribute> attributes);
-        virtual void loadAttributes();
+        void createFloatAttribute(std::string name, std::string description, float initialValue);
+        void createIntegerAttribute(std::string name, std::string description, int initialValue);
+        void createBooleanAttribute(std::string name, std::string description, bool initialValue);
+        void createStringAttribute(std::string name, std::string description, std::string initialValue);
+        float getFloatAttribute(std::string name);
+        int getIntegerAttribute(std::string name);
+        bool getBooleanAttribute(std::string name);
+        std::string getStringAttribute(std::string name);
     private:
         void updateTimestamp(DataObject::pointer data);
         void changeDeviceOnInputs(uint deviceNumber, ExecutionDevice::pointer device);
@@ -209,7 +216,7 @@ class ProcessObject : public virtual Object {
 
         std::unordered_map<std::string, SharedPointer<OpenCLProgram> > mOpenCLPrograms;
 
-        std::unordered_map<std::string, Attribute> mAttributes;
+        std::unordered_map<std::string, std::shared_ptr<Attribute>> mAttributes;
 
         friend class DynamicData;
         friend class ProcessObjectPort;
@@ -507,27 +514,6 @@ void ProcessObject::createOutputPort(uint portID, OutputDataType outputDataType,
 }
 
 
-template <class T>
-void ProcessObject::createAttribute(std::string name, std::string description, AttributeType type, T initialValue) {
-    Attribute attribute(name, description, type);
-    std::shared_ptr<AttributeValue> value;
-    switch(type) {
-        case ATTRIBUTE_TYPE_BOOLEAN:
-            value = std::make_shared<AttributeValue>(new AttributeValueBoolean(initialValue));
-            break;
-        case ATTRIBUTE_TYPE_FLOAT:
-            value = std::make_shared<AttributeValue>(new AttributeValueFloat(initialValue));
-            break;
-        case ATTRIBUTE_TYPE_INTEGER:
-            value = std::make_shared<AttributeValue>(new AttributeValueInteger(initialValue));
-            break;
-        case ATTRIBUTE_TYPE_STRING:
-            value = std::make_shared<AttributeValue>(new AttributeValueString(initialValue));
-            break;
-    }
-    attribute.setValue(value);
-    mAttributes[name] = attribute;
-}
 
 }; // end namespace fast
 

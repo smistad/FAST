@@ -10,6 +10,8 @@ namespace fast {
 enum AttributeType { ATTRIBUTE_TYPE_STRING, ATTRIBUTE_TYPE_FLOAT, ATTRIBUTE_TYPE_INTEGER, ATTRIBUTE_TYPE_BOOLEAN};
 
 class AttributeValue {
+    public:
+        virtual ~AttributeValue() {};
 };
 
 #define CREATE_ATTRIBUTE_VALUE_OBJECT(NAME, TYPE)                   \
@@ -58,7 +60,14 @@ class Attribute {
         AttributeType getType() const {
             return mType;
         }
+
+        void parseInput(std::string input);
     private:
+        void parseBooleanInput(std::string input);
+        void parseStringInput(std::string input);
+        void parseFloatInput(std::string input);
+        void parseIntegerInput(std::string input);
+
         std::string mName;
         std::string mDescription;
         AttributeType mType;
