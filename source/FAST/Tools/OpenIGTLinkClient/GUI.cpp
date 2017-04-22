@@ -7,16 +7,12 @@
 #include <QLabel>
 #include <QImage>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
+#include <FAST/Visualization/TextRenderer/TextRenderer.hpp>
 #include <FAST/Streamers/IGTLinkStreamer.hpp>
 #include "OpenIGTLinkClient.hpp"
 #include <QMessageBox>
 #include <QElapsedTimer>
 #include <QComboBox>
-#include <FAST/Visualization/TextRenderer/TextRenderer.hpp>
-#include <FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp>
-#include <FAST/Visualization/HeatmapRenderer/HeatmapRenderer.hpp>
-#include "FAST/Algorithms/NeuralNetwork/ImageClassifier.hpp"
-#include "FAST/Algorithms/NeuralNetwork/PixelClassification.hpp"
 
 
 namespace fast {
