@@ -30,42 +30,7 @@ GUI::GUI() {
     mRecordTimer = new QElapsedTimer;
 
     QVBoxLayout* viewLayout = new QVBoxLayout;
-    QHBoxLayout* selectStreamLayout = new QHBoxLayout;
-    QHBoxLayout* selectPipelineLayout = new QHBoxLayout;
-    viewLayout->addLayout(selectStreamLayout);
-    viewLayout->addLayout(selectPipelineLayout);
 
-    QLabel* selectStreamLabel = new QLabel;
-    selectStreamLabel->setText("Active input stream: ");
-    selectStreamLabel->setFixedHeight(30);
-    selectStreamLabel->setFixedWidth(150);
-    selectStreamLayout->addWidget(selectStreamLabel);
-
-    mSelectStream = new QComboBox;
-    selectStreamLayout->addWidget(mSelectStream);
-    QObject::connect(mSelectStream, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), std::bind(&GUI::selectStream, this));
-
-    QLabel* selectPipelineLabel = new QLabel;
-    selectPipelineLabel->setText("Active pipeline: ");
-    selectPipelineLabel->setFixedHeight(30);
-    selectPipelineLabel->setFixedWidth(150);
-    selectPipelineLayout->addWidget(selectPipelineLabel);
-
-    mSelectPipeline = new QComboBox;
-    mPipelines = getAvailablePipelines();
-    int index = 0;
-    int counter = 0;
-    for(auto pipeline : mPipelines) {
-        mSelectPipeline->addItem((pipeline.getName() + " (" + pipeline.getDescription() + ")").c_str());
-        if(pipeline.getName() == "Image renderer") {
-            index = counter;
-        }
-        ++counter;
-    }
-    mSelectPipeline->setCurrentIndex(index);
-
-    selectPipelineLayout->addWidget(mSelectPipeline);
-    QObject::connect(mSelectPipeline, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), std::bind(&GUI::selectPipeline, this));
 
     View* view = createView();
     view->set2DMode();
@@ -76,17 +41,14 @@ GUI::GUI() {
     setTitle("FAST - OpenIGTLink Client");
     viewLayout->addWidget(view);
 
-    // First create the menu layout
     QVBoxLayout* menuLayout = new QVBoxLayout;
-
-    // Menu items should be aligned to the top
     menuLayout->setAlignment(Qt::AlignTop);
 
     // Logo
     QImage* image = new QImage;
     image->load((Config::getDocumentationPath() + "images/FAST_logo_square.png").c_str());
     QLabel* logo = new QLabel;
-    logo->setPixmap(QPixmap::fromImage(image->scaled(300, (300.0f/image->width())*image->height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation)));
+    logo->setPixmap(QPixmap::fromImage(image->scaled(menuWidth, ((float)menuWidth/image->width())*image->height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation)));
     logo->adjustSize();
     menuLayout->addWidget(logo);
 
@@ -172,6 +134,36 @@ GUI::GUI() {
     timer2->start(1000); // in milliseconds
     timer2->setSingleShot(false);
     QObject::connect(timer2, &QTimer::timeout, std::bind(&GUI::refreshStreams, this));
+
+    QLabel* selectStreamLabel = new QLabel;
+    selectStreamLabel->setText("Active input stream");
+    menuLayout->addWidget(selectStreamLabel);
+
+    mSelectStream = new QComboBox;
+    mSelectStream->setFixedWidth(menuWidth);
+    menuLayout->addWidget(mSelectStream);
+    QObject::connect(mSelectStream, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), std::bind(&GUI::selectStream, this));
+
+    QLabel* selectPipelineLabel = new QLabel;
+    selectPipelineLabel->setText("Active pipeline");
+    menuLayout->addWidget(selectPipelineLabel);
+
+    mSelectPipeline = new QComboBox;
+    mSelectPipeline->setFixedWidth(menuWidth);
+    mPipelines = getAvailablePipelines();
+    int index = 0;
+    int counter = 0;
+    for(auto pipeline : mPipelines) {
+        mSelectPipeline->addItem((pipeline.getName() + " (" + pipeline.getDescription() + ")").c_str());
+        if(pipeline.getName() == "Image renderer") {
+            index = counter;
+        }
+        ++counter;
+    }
+    mSelectPipeline->setCurrentIndex(index);
+
+    menuLayout->addWidget(mSelectPipeline);
+    QObject::connect(mSelectPipeline, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), std::bind(&GUI::selectPipeline, this));
 
     connectButton->setFocus();
 }
