@@ -3,7 +3,7 @@
 #include "ProcessObject.hpp"
 #include <QDirIterator>
 #include <fstream>
-#include "FAST/ProcessObjectRegistry.hpp"
+#include "ProcessObjectList.hpp"
 
 namespace fast {
 

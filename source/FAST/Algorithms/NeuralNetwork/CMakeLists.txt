@@ -13,6 +13,9 @@ if(FAST_MODULE_NeuralNetwork)
         PixelClassification.cpp
         PixelClassification.hpp
     )
+    fast_add_process_object(ImageClassifier ImageClassifier.hpp)
+    fast_add_process_object(ClassificationToText ImageClassifier.hpp)
+    fast_add_process_object(PixelClassification PixelClassification.hpp)
     if(FAST_MODULE_Visualization)
     fast_add_test_sources(
         ImageClassifierTests.cpp

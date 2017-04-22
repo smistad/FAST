@@ -167,5 +167,18 @@ configure_file(
         "${PROJECT_BINARY_DIR}/fast_configuration.txt"
 )
 
+foreach(FILE ${FAST_PROCESS_OBJECT_HEADER_FILES})
+    set(FAST_PROCESS_OBJECT_INCLUDES "${FAST_PROCESS_OBJECT_INCLUDES}#include \"${FILE}\"\n")
+endforeach()
+
+foreach(NAME ${FAST_PROCESS_OBJECT_NAMES})
+    set(FAST_PROCESS_OBJECT_REGISTRATION "${FAST_PROCESS_OBJECT_REGISTRATION}FAST_REGISTER_PO(${NAME})\n")
+endforeach()
+
+configure_file(
+        "${PROJECT_SOURCE_DIR}/source/ProcessObjectList.hpp.in"
+        "${PROJECT_BINARY_DIR}/ProcessObjectList.hpp"
+)
+
 include(cmake/ModulePython.cmake)
 include(cmake/InstallFAST.cmake)

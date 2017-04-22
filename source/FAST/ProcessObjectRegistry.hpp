@@ -62,12 +62,6 @@ class ProcessObjectRegistry {
 #define FAST_REGISTER_PO(Derived)         \
 static bool _registered_##Derived = ProcessObjectRegistry::registerPO(#Derived, FAST_REGISTER_DERIVED(Derived));
 
-FAST_REGISTER_PO(ImageRenderer)
-FAST_REGISTER_PO(TextRenderer)
-FAST_REGISTER_PO(ImageClassifier)
-FAST_REGISTER_PO(ClassificationToText)
-FAST_REGISTER_PO(PixelClassification)
-FAST_REGISTER_PO(HeatmapRenderer)
 
 }
 
