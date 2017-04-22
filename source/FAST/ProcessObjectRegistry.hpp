@@ -10,6 +10,8 @@
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include <FAST/Visualization/TextRenderer/TextRenderer.hpp>
 #include <FAST/Algorithms/NeuralNetwork/ImageClassifier.hpp>
+#include <FAST/Algorithms/NeuralNetwork/PixelClassification.hpp>
+#include <FAST/Visualization/HeatmapRenderer/HeatmapRenderer.hpp>
 
 namespace fast {
 
@@ -64,6 +66,8 @@ FAST_REGISTER_PO(ImageRenderer)
 FAST_REGISTER_PO(TextRenderer)
 FAST_REGISTER_PO(ImageClassifier)
 FAST_REGISTER_PO(ClassificationToText)
+FAST_REGISTER_PO(PixelClassification)
+FAST_REGISTER_PO(HeatmapRenderer)
 
 }
 

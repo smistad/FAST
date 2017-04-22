@@ -10,9 +10,11 @@ class PixelClassification : public NeuralNetwork {
         void setNrOfClasses(uint classes);
         void setHeatmapOutput();
         void setSegmentationOutput();
+        void loadAttributes();
     private:
         PixelClassification();
         void execute();
+
 
         int mNrOfClasses;
         bool mHeatmapOutput;
