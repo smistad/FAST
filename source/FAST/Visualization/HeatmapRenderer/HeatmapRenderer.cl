@@ -20,8 +20,8 @@ __kernel void render2D(
     imagePosition = round(imagePosition);
 
     float4 color = vload4(linearPosition, PBOread);
-    const float maxOpacity = 0.2;
-    const float minConfidence = 0.5;
+    const float maxOpacity = 0.4; // 0.2
+    const float minConfidence = 0.0; // 0.5
 
     float intensity = read_imagef(image, sampler, imagePosition).x;
     if(intensity < minConfidence)
