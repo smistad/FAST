@@ -162,6 +162,12 @@ GUI::GUI() {
     menuLayout->addWidget(mSelectPipeline);
     QObject::connect(mSelectPipeline, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), std::bind(&GUI::selectPipeline, this));
 
+    QPushButton* refreshPipeline = new QPushButton;
+    refreshPipeline->setText("Refresh pipeline");
+    refreshPipeline->setStyleSheet("QPushButton { background-color: green; color: white; }");
+    QObject::connect(refreshPipeline, &QPushButton::clicked, std::bind(&GUI::selectPipeline, this));
+    menuLayout->addWidget(refreshPipeline);
+
     connectButton->setFocus();
 }
 
@@ -192,6 +198,7 @@ void GUI::selectPipeline() {
 
     startComputationThread();
 
+    /*
     PipelineWidget* pipelineWidget = new PipelineWidget(pipeline, mWidget);
     pipelineWidget->setFixedWidth(menuWidth);
     if(mPipelineWidget == nullptr) {
@@ -200,6 +207,7 @@ void GUI::selectPipeline() {
         menuLayout->replaceWidget(mPipelineWidget, pipelineWidget);
     }
     mPipelineWidget = pipelineWidget;
+     */
 
     recordButton->setFocus();
 }
