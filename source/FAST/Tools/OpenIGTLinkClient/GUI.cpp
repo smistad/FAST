@@ -19,11 +19,12 @@ namespace fast {
 
 GUI::GUI() {
 
-    const int menuWidth = 300;
+    menuWidth = 300;
 
     mClient = OpenIGTLinkClient::New();
     mConnected = false;
     mRecordTimer = new QElapsedTimer;
+    mPipelineWidget = nullptr;
 
     QVBoxLayout* viewLayout = new QVBoxLayout;
 
@@ -37,7 +38,7 @@ GUI::GUI() {
     setTitle("FAST - OpenIGTLink Client");
     viewLayout->addWidget(view);
 
-    QVBoxLayout* menuLayout = new QVBoxLayout;
+    menuLayout = new QVBoxLayout;
     menuLayout->setAlignment(Qt::AlignTop);
 
     // Logo
@@ -191,6 +192,15 @@ void GUI::selectPipeline() {
 
     startComputationThread();
 
+    PipelineWidget* pipelineWidget = new PipelineWidget(pipeline, mWidget);
+    pipelineWidget->setFixedWidth(menuWidth);
+    if(mPipelineWidget == nullptr) {
+        menuLayout->addWidget(pipelineWidget);
+    } else {
+        menuLayout->replaceWidget(mPipelineWidget, pipelineWidget);
+    }
+    mPipelineWidget = pipelineWidget;
+
     recordButton->setFocus();
 }
 
@@ -262,11 +272,14 @@ void GUI::connect() {
         }
         reportInfo() << "Connected to OpenIGTLink server." << reportEnd();
 
+        // TODO This part before selectPipeline should be unnecessary, but reinitialize seg faults if not
         ImageRenderer::pointer renderer = ImageRenderer::New();
         renderer->addInputConnection(mClient->getOutputPort());
 
         getView(0)->addRenderer(renderer);
         getView(0)->reinitialize();
+
+        selectPipeline();
 
         connectButton->setText("Disconnect");
         connectButton->setStyleSheet("QPushButton { background-color: red; color: white; }");

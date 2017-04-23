@@ -3,6 +3,7 @@
 #include "ProcessObject.hpp"
 #include <QDirIterator>
 #include <fstream>
+#include <QLabel>
 #include "ProcessObjectList.hpp"
 
 namespace fast {
@@ -17,13 +18,11 @@ inline SharedPointer<ProcessObject> getProcessObject(std::string name) {
     return ProcessObjectRegistry::create(name);
 }
 
-inline SharedPointer<ProcessObject> parseProcessObject(
+void Pipeline::parseProcessObject(
         std::string objectName,
         std::string objectID,
         std::ifstream& file,
-        const std::unordered_map<std::string, SharedPointer<ProcessObject>>& processObjects,
-        const ProcessObjectPort& pipelineInput,
-        bool isRenderer = false
+        bool isRenderer
     ) {
 
     // Create object
@@ -51,26 +50,26 @@ inline SharedPointer<ProcessObject> parseProcessObject(
         if(tokens.size() == 4)
             outputPortID = std::stoi(tokens[3]);
 
-        if(inputID != "PipelineInput" && processObjects.count(inputID) == 0)
+        if(inputID != "PipelineInput" && mProcessObjects.count(inputID) == 0)
             throw Exception("Input with id " + inputID + " was not found before " + objectID);
 
         inputFound = true;
+
 
         if(isRenderer) {
             SharedPointer<Renderer> renderer = object;
             // TODO fix text renderer no supprt addInput
             if(inputID == "PipelineInput") {
-                //renderer->addInputConnection(pipelineInput);
-                renderer->setInputConnection(0, pipelineInput);
+                mInputProcessObjects[objectID] = 0;
             } else {
                 //renderer->addInputConnection(processObjects.at(inputID)->getOutputPort(outputPortID));
-                renderer->setInputConnection(0, processObjects.at(inputID)->getOutputPort(outputPortID));
+                renderer->setInputConnection(0, mProcessObjects.at(inputID)->getOutputPort(outputPortID));
             }
         } else {
             if(inputID == "PipelineInput") {
-                object->setInputConnection(inputPortID, pipelineInput);
+                mInputProcessObjects[objectID] = inputPortID;
             } else {
-                object->setInputConnection(inputPortID, processObjects.at(inputID)->getOutputPort(outputPortID));
+                object->setInputConnection(inputPortID, mProcessObjects.at(inputID)->getOutputPort(outputPortID));
             }
         }
         std::getline(file, line);
@@ -103,19 +102,21 @@ inline SharedPointer<ProcessObject> parseProcessObject(
         std::getline(file, line);
     }
 
-
-    return object;
+    mProcessObjects[objectID] = object;
+    if(isRenderer) {
+        mRenderers.push_back(objectID);
+    }
 }
 
-std::vector<SharedPointer<Renderer>> Pipeline::setup(ProcessObjectPort input) {
-    std::cout << "setting up pipeline.." << std::endl;
+void Pipeline::parsePipelineFile() {
     // Parse file again, retrieve process objects, set attributes and create the pipeline
     std::ifstream file(mFilename);
     std::string line = "";
     std::getline(file, line);
 
-    std::unordered_map<std::string, SharedPointer<ProcessObject> > processObjects;
-    std::vector<SharedPointer<Renderer> > renderers;
+    mProcessObjects.clear();
+    mInputProcessObjects.clear();
+    mRenderers.clear();
 
     // Retrieve all POs and renderers
     while(!file.eof()) {
@@ -136,32 +137,43 @@ std::vector<SharedPointer<Renderer>> Pipeline::setup(ProcessObjectPort input) {
             }
             std::string id = tokens[1];
             std::string object = tokens[2];
-            processObjects[id] = parseProcessObject(object, id, file, processObjects, input);
+            parseProcessObject(object, id, file);
         } else if(key == "Renderer") {
             if(tokens.size() != 3) {
                 throw Exception("Unable to parse pipeline file " + mFilename + ", expected 3 tokens but got line " + line);
             }
             std::string id = tokens[1];
             std::string object = tokens[2];
-            renderers.push_back(parseProcessObject(object, id, file, processObjects, input, true));
+            parseProcessObject(object, id, file, true);
         }
 
         std::getline(file, line);
     }
 
-    if(renderers.size() == 0)
+    if(mRenderers.size() == 0)
         throw Exception("No renderers were found when parsing pipeline file " + mFilename);
 
     // For each PO, load attributes
-    for(auto processObject : processObjects) {
+    for(auto processObject : mProcessObjects) {
         processObject.second->loadAttributes();
     }
 
-    // For each renderer, load attributes
-    for(auto renderer : renderers) {
-        renderer->loadAttributes();
-    }
     std::cout << "finished" << std::endl;
+}
+std::vector<SharedPointer<Renderer>> Pipeline::setup(ProcessObjectPort input) {
+    std::cout << "setting up pipeline.." << std::endl;
+    parsePipelineFile();
+
+    // Set input process object port to all needed
+    for(std::pair<std::string, uint> inputPort : mInputProcessObjects) {
+        mProcessObjects[inputPort.first]->setInputConnection(inputPort.second, input);
+    }
+
+    // Get renderers
+    std::vector<SharedPointer<Renderer>> renderers;
+    for(auto renderer : mRenderers) {
+        renderers.push_back(mProcessObjects[renderer]);
+    }
 
     return renderers;
 }
@@ -217,6 +229,40 @@ std::vector<Pipeline> getAvailablePipelines() {
         file.close();
     }
     return pipelines;
+}
+
+std::unordered_map<std::string, SharedPointer<ProcessObject>> Pipeline::getProcessObjects() {
+    if(mProcessObjects.size() == 0)
+        parsePipelineFile();
+
+    return mProcessObjects;
+}
+
+
+PipelineWidget::PipelineWidget(Pipeline pipeline, QWidget* parent) : QToolBox(parent) {
+    auto processObjects = pipeline.getProcessObjects();
+    for(auto object : processObjects) {
+        QLabel* asd = new QLabel(this);
+        asd->setText("weee");
+        addItem(asd, (object.first + " - " + object.second->getNameOfClass()).c_str());
+    }
+    setCurrentIndex(processObjects.size()-1);
+
+    setStyleSheet(
+            "QToolBox::tab {\n"
+            "    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n"
+            "                                stop: 0 #689fb6, stop: 1.0 #6d93a7);\n"
+            "    border: 1px solid #004d5b;\n"
+            "    border-radius: 2px;\n"
+            "    color: white;\n"
+            "}\n"
+            "\n"
+            "QToolBox::tab:selected { \n"
+            "    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n"
+            "                                stop: 0 #2e8eb6, stop: 1.0 #4084a7);\n"
+            "}"
+    );
+
 }
 
 }

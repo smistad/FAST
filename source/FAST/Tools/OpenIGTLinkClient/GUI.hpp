@@ -9,11 +9,13 @@ class QLineEdit;
 class QLabel;
 class QElapsedTimer;
 class QComboBox;
+class QVBoxLayout;
 
 namespace fast {
 
 class IGTLinkStreamer;
 class OpenIGTLinkClient;
+class PipelineWidget;
 
 class GUI : public Window {
     FAST_OBJECT(GUI)
@@ -42,6 +44,9 @@ class GUI : public Window {
         QLineEdit* storageDir;
         QComboBox* mSelectStream;
         QComboBox* mSelectPipeline;
+        QVBoxLayout* menuLayout;
+        int menuWidth;
+        PipelineWidget* mPipelineWidget;
 };
 
 } // end namespace fast
