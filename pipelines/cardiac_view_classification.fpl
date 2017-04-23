@@ -12,7 +12,6 @@ Attribute labels "Parasternal short axis" "Parasternal long axis" "Apical 2-cham
 ProcessObject classToText ClassificationToText
 Input 0 classifier 0
 
-
 Renderer imageRenderer ImageRenderer
 Input 0 PipelineInput
 Attribute window 255

@@ -6,6 +6,7 @@
 #include <QDir>
 #include <QLabel>
 #include <QImage>
+#include <QInputDialog>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 #include <FAST/Visualization/TextRenderer/TextRenderer.hpp>
 #include <FAST/Streamers/IGTLinkStreamer.hpp>
@@ -13,6 +14,7 @@
 #include <QMessageBox>
 #include <QElapsedTimer>
 #include <QComboBox>
+#include <QDesktopServices>
 
 
 namespace fast {
@@ -164,11 +166,32 @@ GUI::GUI() {
 
     QPushButton* refreshPipeline = new QPushButton;
     refreshPipeline->setText("Refresh pipeline");
-    refreshPipeline->setStyleSheet("QPushButton { background-color: green; color: white; }");
+    refreshPipeline->setStyleSheet("QPushButton { background-color: blue; color: white; }");
     QObject::connect(refreshPipeline, &QPushButton::clicked, std::bind(&GUI::selectPipeline, this));
     menuLayout->addWidget(refreshPipeline);
 
+    QPushButton* editPipeline = new QPushButton;
+    editPipeline->setText("Edit pipeline");
+    editPipeline->setStyleSheet("QPushButton { background-color: blue; color: white; }");
+    QObject::connect(editPipeline, &QPushButton::clicked, std::bind(&GUI::editPipeline, this));
+    menuLayout->addWidget(editPipeline);
+
     connectButton->setFocus();
+}
+
+/*
+void GUI::newPipeline() {
+    QInputDialog* dialog = new QInputDialog(this) ;
+    dialog->setLabelText("Enter filename of new pipeline");
+    dialog->setOkButtonText("Create pipeline");
+    dialog->show();
+}
+ */
+
+void GUI::editPipeline() {
+    int selectedPipeline = mSelectPipeline->currentIndex();
+    Pipeline pipeline = mPipelines.at(selectedPipeline);
+    QDesktopServices::openUrl(QUrl(("file://" + pipeline.getFilename()).c_str()));
 }
 
 void GUI::selectPipeline() {
@@ -177,7 +200,6 @@ void GUI::selectPipeline() {
     getView(0)->removeAllRenderers();
 
     int selectedPipeline = mSelectPipeline->currentIndex();
-
     Pipeline pipeline = mPipelines.at(selectedPipeline);
     try {
         std::vector<SharedPointer<Renderer>> renderers = pipeline.setup(mClient->getOutputPort());

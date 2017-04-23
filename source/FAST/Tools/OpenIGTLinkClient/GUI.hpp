@@ -24,6 +24,7 @@ class GUI : public Window {
         void connect();
         void selectStream();
         void selectPipeline();
+        void editPipeline();
         void updateMessages();
     private:
         GUI();
