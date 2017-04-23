@@ -29,7 +29,8 @@ __kernel void render2D(
     // Avoid multiple colors on top of eachother
     if(color.x != color.y || color.y != color.z || color.x != color.z) {
         if(color.w < intensity) {
-            intensity = min(intensity, maxOpacity);
+            //intensity = min(intensity, maxOpacity);
+            intensity *= maxOpacity;
             float lowest = min(color.x, min(color.y, color.z));
             color.x = lowest;
             color.y = lowest;
@@ -39,7 +40,8 @@ __kernel void render2D(
             color = clamp(color, 0.0f, 1.0f);
         }
     } else {
-        intensity = min(intensity, maxOpacity);
+        //intensity = min(intensity, maxOpacity);
+        intensity *= maxOpacity;
         color = color + intensity * (float4)(red, green, blue, 1.0f);
         color.w = intensity;
         color = clamp(color, 0.0f, 1.0f);
