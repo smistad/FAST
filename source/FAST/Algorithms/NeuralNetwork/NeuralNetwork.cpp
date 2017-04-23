@@ -73,10 +73,10 @@ NeuralNetwork::NeuralNetwork() {
 	mHeight = -1;
 	mScaleFactor = 1.0f;
 	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/NeuralNetwork/NeuralNetwork.cl");
-	createStringAttribute("model", "Path to neural network tensorflow model", "");
-	createIntegerAttribute("input_size", "Image input size", 128);
-	createFloatAttribute("scale_factor", "Scale factor", mScaleFactor);
-	createStringAttribute("output_names", "Name of output nodes", "");
+	createStringAttribute("model", "Model path", "Path to neural network tensorflow model", "");
+	createIntegerAttribute("input_size", "Input size", "Image input size", 128);
+	createFloatAttribute("scale_factor", "Scale factor", "Scale factor", mScaleFactor);
+	createStringAttribute("output_names", "Output names", "Name of output nodes", "");
 }
 
 void NeuralNetwork::execute() {

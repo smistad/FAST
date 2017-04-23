@@ -17,8 +17,8 @@ TextRenderer::TextRenderer() {
 	mPosition2D = Vector2i::Zero();
 	mColor = Color::Green();
     mText = "";
-    createIntegerAttribute("position", "Position of text in view", 0);
-    createIntegerAttribute("font_size", "Font size", mFontSize);
+    createIntegerAttribute("position", "Text position", "Position of text in view", 0);
+    createIntegerAttribute("font_size", "Font size", "Font size", mFontSize);
 }
 
 void TextRenderer::setView(View* view) {

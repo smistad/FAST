@@ -4,6 +4,9 @@
 #include <QDirIterator>
 #include <fstream>
 #include <QLabel>
+#include <QVBoxLayout>
+#include <QLineEdit>
+#include <QCheckBox>
 #include "ProcessObjectList.hpp"
 
 namespace fast {
@@ -242,9 +245,8 @@ std::unordered_map<std::string, SharedPointer<ProcessObject>> Pipeline::getProce
 PipelineWidget::PipelineWidget(Pipeline pipeline, QWidget* parent) : QToolBox(parent) {
     auto processObjects = pipeline.getProcessObjects();
     for(auto object : processObjects) {
-        QLabel* asd = new QLabel(this);
-        asd->setText("weee");
-        addItem(asd, (object.first + " - " + object.second->getNameOfClass()).c_str());
+        ProcessObjectWidget* widget = new ProcessObjectWidget(object.second, this);
+        addItem(widget, (object.first + " - " + object.second->getNameOfClass()).c_str());
     }
     setCurrentIndex(processObjects.size()-1);
 
@@ -262,7 +264,46 @@ PipelineWidget::PipelineWidget(Pipeline pipeline, QWidget* parent) : QToolBox(pa
             "                                stop: 0 #2e8eb6, stop: 1.0 #4084a7);\n"
             "}"
     );
+}
 
+ProcessObjectWidget::ProcessObjectWidget(SharedPointer<ProcessObject> po, QWidget *parent) : QWidget(parent) {
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    auto attributes = po->getAttributes();
+    for(auto attr : attributes) {
+        std::string id = attr.first;
+        std::shared_ptr<Attribute> attribute = attr.second;
+
+        QLabel* label = new QLabel(this);
+        label->setText(attribute->getName().c_str());
+        layout->addWidget(label);
+
+        if(attribute->getType() == ATTRIBUTE_TYPE_STRING) {
+            QLineEdit *textBox = new QLineEdit(this);
+            std::shared_ptr<AttributeValueString> stringAttribute = std::dynamic_pointer_cast<AttributeValueString>(
+                    attribute->getValue());
+            textBox->setText(stringAttribute->get().c_str());
+            layout->addWidget(textBox);
+        } else if(attribute->getType() == ATTRIBUTE_TYPE_FLOAT) {
+            QLineEdit *textBox = new QLineEdit(this);
+            std::shared_ptr<AttributeValueFloat> stringAttribute = std::dynamic_pointer_cast<AttributeValueFloat>(
+                    attribute->getValue());
+            textBox->setText(std::to_string(stringAttribute->get()).c_str());
+            layout->addWidget(textBox);
+        } else if(attribute->getType() == ATTRIBUTE_TYPE_INTEGER) {
+            QLineEdit *textBox = new QLineEdit(this);
+            std::shared_ptr<AttributeValueInteger> stringAttribute = std::dynamic_pointer_cast<AttributeValueInteger>(
+                    attribute->getValue());
+            textBox->setText(std::to_string(stringAttribute->get()).c_str());
+            layout->addWidget(textBox);
+        } else if(attribute->getType() == ATTRIBUTE_TYPE_BOOLEAN) {
+            QCheckBox *checkBox = new QCheckBox(this);
+            std::shared_ptr<AttributeValueBoolean> stringAttribute = std::dynamic_pointer_cast<AttributeValueBoolean>(
+                    attribute->getValue());
+            checkBox->setChecked(stringAttribute->get());
+            layout->addWidget(checkBox);
+        }
+    }
+    setLayout(layout);
 }
 
 }

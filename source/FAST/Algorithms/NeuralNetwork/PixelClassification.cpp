@@ -11,8 +11,8 @@ PixelClassification::PixelClassification() {
     mNrOfClasses = -1;
     mHeatmapOutput = false;
 
-    createIntegerAttribute("classes", "Number of possible classes for each pixel", 2);
-    createBooleanAttribute("heatmap_output", "Enable heatmap output instead of segmentation", false);
+    createIntegerAttribute("classes", "Classes", "Number of possible classes for each pixel", 2);
+    createBooleanAttribute("heatmap_output", "Output heatmap", "Enable heatmap output instead of segmentation", false);
 }
 
 void PixelClassification::setHeatmapOutput() {

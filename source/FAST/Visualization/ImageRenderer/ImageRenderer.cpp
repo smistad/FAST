@@ -49,8 +49,8 @@ ImageRenderer::ImageRenderer() : Renderer() {
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer.cl", "3D");
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer2D.cl", "2D");
     mIsModified = false;
-    createFloatAttribute("window", "Intensity window", -1);
-    createFloatAttribute("level", "Intensity level", -1);
+    createFloatAttribute("window", "Intensity window", "Intensity window", -1);
+    createFloatAttribute("level", "Intensity level", "Intensity level", -1);
 }
 
 void ImageRenderer::loadAttributes() {

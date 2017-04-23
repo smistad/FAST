@@ -54,6 +54,11 @@ class PipelineWidget : public QToolBox {
 
 };
 
+class ProcessObjectWidget : public QWidget {
+    public:
+        ProcessObjectWidget(SharedPointer<ProcessObject> po, QWidget* parent = nullptr);
+};
+
 } // end namespace fast
 
 #endif

@@ -33,8 +33,8 @@ CREATE_ATTRIBUTE_VALUE_OBJECT(Boolean, bool)
 
 class Attribute {
     public:
-        Attribute(std::string name, std::string description, AttributeType type) :
-                mName(name), mDescription(description), mType(type) {
+        Attribute(std::string id, std::string name, std::string description, AttributeType type) :
+                mID(id), mName(name), mDescription(description), mType(type) {
         }
 
         void setValue(std::shared_ptr<AttributeValue> value) {
@@ -61,6 +61,10 @@ class Attribute {
             return mName;
         }
 
+        std::string getID() const {
+            return mID;
+        }
+
         AttributeType getType() const {
             return mType;
         }
@@ -72,6 +76,7 @@ class Attribute {
         void parseFloatInput(std::string input);
         void parseIntegerInput(std::string input);
 
+        std::string mID;
         std::string mName;
         std::string mDescription;
         AttributeType mType;
