@@ -116,12 +116,10 @@ void KinectTrackingGUI::extractPointCloud() {
 
     PointRenderer::pointer cloudRenderer = PointRenderer::New();
     cloudRenderer->setDefaultSize(1.5);
-    std::cout << "ASD" << std::endl;
-    Mesh::pointer mesh = mTracking->getTargetCloud(mStreamer);
-    std::cout << "ASD2" << std::endl;
-    cloudRenderer->addInputData(mesh);
-    std::cout << "ASD3" << std::endl;
+    mTracking->calculateTargetCloud(mStreamer);
+    cloudRenderer->addInputConnection(mTracking->getOutputPort(2));
     cloudRenderer->addInputConnection(mStreamer->getOutputPort(2));
+    cloudRenderer->setColor(mTracking->getOutputPort(2), Color::Green());
 
     getView(0)->set3DMode();
     getView(0)->addRenderer(cloudRenderer);

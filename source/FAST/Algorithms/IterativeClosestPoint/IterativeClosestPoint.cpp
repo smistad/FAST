@@ -7,8 +7,8 @@
 namespace fast {
 
 IterativeClosestPoint::IterativeClosestPoint() {
-    createInputPort<PointSet>(0);
-    createInputPort<PointSet>(1);
+    createInputPort<Mesh>(0);
+    createInputPort<Mesh>(1);
     mMaxIterations = 100;
     mMinErrorChange = 1e-5;
     mError = -1;
@@ -18,16 +18,16 @@ IterativeClosestPoint::IterativeClosestPoint() {
 }
 
 
-void IterativeClosestPoint::setFixedPointSetPort(ProcessObjectPort port) {
+void IterativeClosestPoint::setFixedMeshPort(ProcessObjectPort port) {
     setInputConnection(0, port);
 }
-void IterativeClosestPoint::setMovingPointSetPort(ProcessObjectPort port) {
+void IterativeClosestPoint::setMovingMeshPort(ProcessObjectPort port) {
     setInputConnection(1, port);
 }
-void IterativeClosestPoint::setFixedPointSet(PointSet::pointer data) {
+void IterativeClosestPoint::setFixedMesh(Mesh::pointer data) {
     setInputData(0, data);
 }
-void IterativeClosestPoint::setMovingPointSet(PointSet::pointer data) {
+void IterativeClosestPoint::setMovingMesh(Mesh::pointer data) {
     setInputData(1, data);
 }
 
@@ -94,22 +94,46 @@ void IterativeClosestPoint::execute() {
     uint iterations = 0;
 
     // Get access to the two point sets
-    PointSetAccess::pointer accessFixedSet = ((PointSet::pointer)getStaticInputData<PointSet>(0))->getAccess(ACCESS_READ);
-    PointSetAccess::pointer accessMovingSet = ((PointSet::pointer)getStaticInputData<PointSet>(1))->getAccess(ACCESS_READ);
+    MeshAccess::pointer accessFixedSet = getStaticInputData<Mesh>(0)->getMeshAccess(ACCESS_READ);
+    MeshAccess::pointer accessMovingSet =getStaticInputData<Mesh>(1)->getMeshAccess(ACCESS_READ);
 
     // Get transformations of point sets
-    AffineTransformation::pointer fixedPointTransform2 = SceneGraph::getAffineTransformationFromData(getStaticInputData<PointSet>(0));
+    AffineTransformation::pointer fixedPointTransform2 = SceneGraph::getAffineTransformationFromData(getStaticInputData<Mesh>(0));
     Eigen::Affine3f fixedPointTransform;
     fixedPointTransform.matrix() = fixedPointTransform2->matrix();
-    AffineTransformation::pointer initialMovingTransform2 = SceneGraph::getAffineTransformationFromData(getStaticInputData<PointSet>(1));
+    AffineTransformation::pointer initialMovingTransform2 = SceneGraph::getAffineTransformationFromData(getStaticInputData<Mesh>(1));
     Eigen::Affine3f initialMovingTransform;
     initialMovingTransform.matrix() = initialMovingTransform2->matrix();
 
-    // These matrices are Nx3
-    MatrixXf fixedPoints = accessFixedSet->getPointSetAsMatrix();
-    MatrixXf movingPoints = accessMovingSet->getPointSetAsMatrix();
+    // These matrices are 3xN, where N is number of vertices
+    std::vector<MeshVertex> fixedVertices = accessFixedSet->getVertices();
+    std::vector<MeshVertex> movingVertices = accessMovingSet->getVertices();
+    MatrixXf movingPoints = MatrixXf::Zero(3, movingVertices.size());
 
+    // TODO filter out points in fixed which are very far away from moving
+    Vector3f centroid = Vector3f::Zero();
+    for(int i = 0; i < movingVertices.size(); ++i) {
+        movingPoints.col(i) = movingVertices[i].getPosition();
+        centroid += movingVertices[i].getPosition();
+    }
+    centroid /= movingVertices.size();
+
+    std::vector<Vector3f> filteredFixedPoints;
+    for(int i = 0; i < fixedVertices.size(); ++i) {
+        if((centroid - fixedVertices[i].getPosition()).norm() < 10*10)
+            filteredFixedPoints.push_back(fixedVertices[i].getPosition());
+    }
+
+    MatrixXf fixedPoints = MatrixXf::Zero(3, filteredFixedPoints.size());
+    for(int i = 0; i < filteredFixedPoints.size(); ++i) {
+        fixedPoints.col(i) = filteredFixedPoints[i];
+    }
+    reportInfo() << fixedVertices.size() << " points reduced to " << filteredFixedPoints.size() << reportEnd();
     Eigen::Affine3f currentTransformation = Eigen::Affine3f::Identity();
+    if(filteredFixedPoints.size() == 0) {
+        mTransformation->matrix() = currentTransformation.matrix();
+        return;
+    }
 
     // Want to choose the smallest one as moving
     bool invertTransform = false;
@@ -137,6 +161,7 @@ void IterativeClosestPoint::execute() {
         MatrixXf rearrangedFixedPoints = rearrangeMatrixToClosestPoints(
                 fixedPoints, movedPoints);
 
+        reportInfo() << "Processing " << rearrangedFixedPoints.cols() << " points in ICP" << reportEnd();
         // Get centroids
         Vector3f centroidFixed = getCentroid(rearrangedFixedPoints);
         //reportInfo() << "Centroid fixed: " << Reporter::end;
@@ -200,5 +225,10 @@ void IterativeClosestPoint::execute() {
     mTransformation->matrix() = currentTransformation.matrix();
 }
 
+void IterativeClosestPoint::setMaximumNrOfIterations(uint iterations) {
+    if(iterations == 0)
+        throw Exception("Max nr of iterations can't be 0");
+    mMaxIterations = iterations;
+}
 
 }

@@ -13,13 +13,15 @@ class KinectTracking : public ProcessObject {
     FAST_OBJECT(KinectTracking)
     public:
         void addLine(Vector2i start, Vector2i end);
-        SharedPointer<Mesh> getTargetCloud(SharedPointer<KinectStreamer> streamer);
+        void calculateTargetCloud(SharedPointer<KinectStreamer> streamer);
     private:
         KinectTracking();
         void execute();
 
         SharedPointer<Image> mAnnotationImage;
         SharedPointer<Mesh> mCurrentCloud;
+        SharedPointer<Mesh> mTargetCloud;
+        bool mTargetCloudExtracted;
 };
 
 }
