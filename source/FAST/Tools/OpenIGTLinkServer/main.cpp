@@ -1,4 +1,5 @@
 #include "FAST/Streamers/Tests/DummyIGTLServer.hpp"
+#include "GUI.hpp"
 
 using namespace fast;
 
@@ -13,12 +14,9 @@ int main(int argc, char** argv) {
         paths.push_back(std::string(argv[i]));
     }
 
-    ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
-    streamer->setFilenameFormats(paths);
-    streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
-    streamer->enableLooping();
 
-    DummyIGTLServer server;
-    server.setImageStreamer(streamer);
-    server.start();
+    GUI::pointer window = GUI::New();
+    window->getReporter().setReportMethod(Reporter::COUT);
+    window->setFilenameFormats(paths);
+    window->start();
 }
