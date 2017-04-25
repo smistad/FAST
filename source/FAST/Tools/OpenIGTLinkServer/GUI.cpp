@@ -26,11 +26,37 @@ GUI::GUI() {
     QVBoxLayout* layout = new QVBoxLayout(mWidget);
 
     // Setup GUI
+    // Logo
+    QImage* image = new QImage;
+    image->load((Config::getDocumentationPath() + "images/FAST_logo_square.png").c_str());
+    QLabel* logo = new QLabel;
+    logo->setPixmap(QPixmap::fromImage(image->scaled(mWidth, ((float)mWidth/image->width())*image->height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation)));
+    logo->adjustSize();
+    layout->addWidget(logo);
+
+    // Title label
+    QLabel* title = new QLabel;
+    title->setText("<div style=\"text-align: center; font-weight: bold; font-size: 24px;\">OpenIGTLink<br>Server</div>");
+    layout->addWidget(title);
+
+    // Quit button
+    QPushButton* quitButton = new QPushButton;
+    quitButton->setText("Quit (q)");
+    quitButton->setStyleSheet("QPushButton { font-size: 24px; background-color: red; color: white; }");
+    QObject::connect(quitButton, &QPushButton::clicked, std::bind(&Window::stop, this));
+    layout->addWidget(quitButton);
+
+
     mStartStopButton = new QPushButton;
     mStartStopButton->setText("Start streaming");
-    mStartStopButton->setStyleSheet("QPushButton { color: white; background-color: green; }");
+    mStartStopButton->setStyleSheet("QPushButton { font-size: 24px; color: white; background-color: green; }");
     layout->addWidget(mStartStopButton);
     QObject::connect(mStartStopButton, &QPushButton::clicked, std::bind(&GUI::toggleServer, this));
+
+    mStatus = new QLabel;
+    mStatus->setText("Current status: Server not running");
+    mStatus->setStyleSheet("QLabel { font-size: 24px; }");
+    layout->addWidget(mStatus);
 
     mWidget->setLayout(layout);
     mStartStopButton->setFocus();
@@ -50,7 +76,7 @@ void GUI::toggleServer() {
         mStop = false;
         mThread = new std::thread(std::bind(&GUI::streamData, this));
         mStartStopButton->setText("Stop streaming");
-        mStartStopButton->setStyleSheet("QPushButton { color: white; background-color: red; }");
+        mStartStopButton->setStyleSheet("QPushButton { font-size: 24px; color: white; background-color: red; }");
     } else {
         // TODO stop server
         mStop = true;
@@ -61,7 +87,7 @@ void GUI::toggleServer() {
 
         // Update button
         mStartStopButton->setText("Start streaming");
-        mStartStopButton->setStyleSheet("QPushButton { color: white; background-color: green; }");
+        mStartStopButton->setStyleSheet("QPushButton { font-size: 24px; color: white; background-color: green; }");
     }
     mRunning = !mRunning;
 }
@@ -72,6 +98,7 @@ void GUI::setFilenameFormats(std::vector<std::string> formats) {
 
 GUI::~GUI() {
     if(mThread != nullptr) {
+        mStop = true;
         mThread->join();
         delete mThread;
     }
@@ -133,11 +160,13 @@ void GUI::streamData() {
         while(true) {
             // Waiting for Connection
             igtl::ClientSocket::Pointer socket = mServerSocket->WaitForConnection(1000);
+            mStatus->setText("Current status: No connections");
             if(socket.IsNotNull()) { // if client connected
                 std::string clientAddress;
                 int clientPort;
                 socket->GetSocketAddressAndPort(clientAddress, clientPort);
                 reportInfo() << "Connection established with client " << clientAddress << reportEnd();
+                mStatus->setText(("Current status: 1 connection - " + clientAddress + ":" + std::to_string(clientPort)).c_str());
                 DummyProcessObject::pointer dummy = DummyProcessObject::New();
                 ImageFileStreamer::pointer dataStreamer = ImageFileStreamer::New();
                 dataStreamer->enableLooping();
@@ -145,7 +174,7 @@ void GUI::streamData() {
                 dataStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
                 dataStreamer->update();
                 DynamicData::pointer dataStream = dataStreamer->getOutputData<Image>();
-                int framesSent = 0;
+                long unsigned int framesSent = 0;
                 while(true) {
                     if(mStop) {
                         break;
@@ -158,7 +187,7 @@ void GUI::streamData() {
                     igtl::ImageMessage::Pointer imgMsg = createIGTLImageMessage(image);
 
                     imgMsg->Pack();
-                    reportInfo() << "Sending image frame..." << reportEnd();
+                    reportInfo() << "Sending image frame " << framesSent << reportEnd();
                     int result = socket->Send(imgMsg->GetPackPointer(), imgMsg->GetPackSize());
                     if(result == 0) {
                         reportInfo() << "Connection lost" << reportEnd();
@@ -177,10 +206,12 @@ void GUI::streamData() {
     } catch(std::exception &e) {
         reportInfo() << "Exception caugt while streaming data" << reportEnd();
         mServerSocket->CloseSocket();
+        mStatus->setText("Current status: Server not running");
         throw e;
     }
 
     reportInfo() << "Closing server socket" << reportEnd();
+    mStatus->setText("Current status: Server not running");
     mServerSocket->CloseSocket();
 }
 

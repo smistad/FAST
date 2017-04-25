@@ -7,6 +7,7 @@
 
 
 class QPushButton;
+class QLabel;
 
 namespace fast {
 
@@ -22,6 +23,7 @@ class GUI : public Window {
 
         std::vector<std::string> mFilenameFormats;
         QPushButton* mStartStopButton;
+        QLabel* mStatus;
         bool mRunning;
         int mPort;
         bool mStop;
