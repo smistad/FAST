@@ -23,6 +23,12 @@ KinectTracking::KinectTracking() {
     mTargetCloud = Mesh::New();
     mTargetCloud->create(0);
     mTargetCloudExtracted = false;
+    getReporter().setReportMethod(Reporter::COUT);
+}
+
+void KinectTracking::restart() {
+    mTargetCloudExtracted = false;
+    mAnnotationImage->fill(0);
 }
 
 void KinectTracking::execute() {
@@ -31,16 +37,21 @@ void KinectTracking::execute() {
 
     // When target cloud has been extracted, run ICP, and output this mesh
     if(mTargetCloudExtracted) {
-        // TODO ICP
-        std::cout << "Running ICP" << std::endl;
+        reportInfo() << "Running ICP" << reportEnd();
         IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
+        icp->enableRuntimeMeasurements();
         icp->setFixedMesh(meshInput);
         icp->setMovingMesh(mTargetCloud);
+        icp->setDistanceThreshold(100);
+        //icp->setMinimumErrorChange(0.5);
+        icp->setRandomPointSampling(400);
         icp->getReporter().setReportMethod(Reporter::COUT);
-        icp->setMaximumNrOfIterations(10);
+        icp->setMaximumNrOfIterations(5);
         icp->update();
-        AffineTransformation::pointer transform = icp->getOutputTransformation();
-        mTargetCloud->getSceneGraphNode()->setTransformation(transform);
+        reportInfo() << "Finished ICP in " << icp->getRuntime()->getSum() << " ms" << reportEnd();
+        AffineTransformation::pointer currentTransform = mTargetCloud->getSceneGraphNode()->getTransformation();
+        AffineTransformation::pointer newTransform = icp->getOutputTransformation();
+        mTargetCloud->getSceneGraphNode()->setTransformation(newTransform->multiply(currentTransform));
     }
 
     setStaticOutputData<Image>(0, input);

@@ -18,6 +18,7 @@ class KinectStreamer : public Streamer, public ProcessObject {
     FAST_OBJECT(KinectStreamer);
     public:
         void producerStream();
+        void setPointCloudFiltering(bool enabled);
         bool hasReachedEnd() const;
         uint getNrOfFrames() const;
         /**
@@ -38,6 +39,7 @@ class KinectStreamer : public Streamer, public ProcessObject {
         bool mFirstFrameIsInserted;
         bool mHasReachedEnd;
         bool mStop;
+        bool mPointCloudFilterEnabled;
         uint mNrOfFrames;
 
         std::thread* mThread;

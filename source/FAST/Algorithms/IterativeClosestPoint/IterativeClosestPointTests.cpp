@@ -1,33 +1,68 @@
 #include "FAST/Testing.hpp"
 #include "FAST/Algorithms/IterativeClosestPoint/IterativeClosestPoint.hpp"
-#include "FAST/Importers/VTKPointSetFileImporter.hpp"
+#include "FAST/Importers/VTKMeshFileImporter.hpp"
 
 namespace fast {
 
 TEST_CASE("IterativeClosestPoint", "[fast][IterativeClosestPoint][icp]") {
 
-    PointSet::pointer A = PointSet::New();
-    PointSetAccess::pointer accessA = A->getAccess(ACCESS_READ_WRITE);
-    accessA->addPoint(Vector3f(2,2,1));
-	accessA->addPoint(Vector3f(6, 2, 2));
-	accessA->addPoint(Vector3f(2, 6, 1));
-	accessA->release();
+    std::vector<MeshVertex> vertices;
+    vertices.push_back(MeshVertex(Vector3f(2,2,1)));
+    vertices.push_back(MeshVertex(Vector3f(6,2,2)));
+    vertices.push_back(MeshVertex(Vector3f(2,6,1)));
+    Mesh::pointer A = Mesh::New();
+    A->create(vertices);
 
-    PointSet::pointer B = PointSet::New();
-	PointSetAccess::pointer accessB = B->getAccess(ACCESS_READ_WRITE);
-	accessB->addPoint(Vector3f(3, 2, 0));
-	accessB->addPoint(Vector3f(7, 0, 0));
-	accessB->addPoint(Vector3f(9, 5, 0));
-	accessB->addPoint(Vector3f(2, 1, 1));
-	accessB->addPoint(Vector3f(2, 1, 8));
-	accessB->release();
+    std::vector<MeshVertex> verticesB;
+    verticesB.push_back(MeshVertex(Vector3f(3,2,0)));
+    verticesB.push_back(MeshVertex(Vector3f(7,0,0)));
+    verticesB.push_back(MeshVertex(Vector3f(9,5,0)));
+    verticesB.push_back(MeshVertex(Vector3f(2,1,1)));
+    verticesB.push_back(MeshVertex(Vector3f(2,1,8)));
+    Mesh::pointer B = Mesh::New();
+    B->create(verticesB);
 
     IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
     icp->setInputData(0, B);
     icp->setInputData(1, A);
 
     CHECK_NOTHROW(icp->update());
+}
 
+TEST_CASE("ICP on two point sets translation only", "[fast][IterativeClosestPoint][icp]") {
+
+    Vector3f translation(0.01, 0, 0.01);
+
+    VTKMeshFileImporter::pointer importerA = VTKMeshFileImporter::New();
+    importerA->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
+    VTKMeshFileImporter::pointer importerB = VTKMeshFileImporter::New();
+    importerB->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
+
+    // Apply a transformation to B surface
+    AffineTransformation::pointer transformation = AffineTransformation::New();
+    transformation->translate(translation);
+    importerB->update();
+    Mesh::pointer B = importerB->getOutputData<Mesh>(0);
+    B->getSceneGraphNode()->setTransformation(transformation);
+
+    // Do ICP registration
+    IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
+    icp->setTransformationType(IterativeClosestPoint::TRANSLATION);
+    icp->setMovingMeshPort(importerA->getOutputPort());
+    icp->setFixedMeshPort(importerB->getOutputPort());
+    icp->update();
+
+    // Validate result
+    importerA->getStaticOutputData<Mesh>(0)->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
+    Vector3f detectedRotation = icp->getOutputTransformation()->getEulerAngles();
+    Vector3f detectedTranslation = icp->getOutputTransformation()->translation();
+
+    CHECK(detectedTranslation.x() == Approx(translation.x()));
+    CHECK(detectedTranslation.y() == Approx(translation.y()));
+    CHECK(detectedTranslation.z() == Approx(translation.z()));
+    CHECK(detectedRotation.x() == Approx(0));
+    CHECK(detectedRotation.y() == Approx(0));
+    CHECK(detectedRotation.z() == Approx(0));
 }
 
 TEST_CASE("ICP on two point sets", "[fast][IterativeClosestPoint][icp]") {
@@ -35,9 +70,9 @@ TEST_CASE("ICP on two point sets", "[fast][IterativeClosestPoint][icp]") {
     Vector3f translation(0.01, 0, 0.01);
     Vector3f rotation(0.5, 0, 0);
 
-    VTKPointSetFileImporter::pointer importerA = VTKPointSetFileImporter::New();
+    VTKMeshFileImporter::pointer importerA = VTKMeshFileImporter::New();
     importerA->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
-    VTKPointSetFileImporter::pointer importerB = VTKPointSetFileImporter::New();
+    VTKMeshFileImporter::pointer importerB = VTKMeshFileImporter::New();
     importerB->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
 
     // Apply a transformation to B surface
@@ -49,65 +84,17 @@ TEST_CASE("ICP on two point sets", "[fast][IterativeClosestPoint][icp]") {
     * Eigen::AngleAxisf(rotation.z(), Vector3f::UnitZ());
     transformation->rotate(R);
     importerB->update();
-    PointSet::pointer B = importerB->getOutputData<PointSet>(0);
+    Mesh::pointer B = importerB->getOutputData<Mesh>(0);
     B->getSceneGraphNode()->setTransformation(transformation);
 
     // Do ICP registration
     IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
-    icp->setMovingPointSetPort(importerA->getOutputPort());
-    icp->setFixedPointSetPort(importerB->getOutputPort());
+    icp->setMovingMeshPort(importerA->getOutputPort());
+    icp->setFixedMeshPort(importerB->getOutputPort());
     icp->update();
 
     // Validate result
-    importerA->getStaticOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
-    Vector3f detectedRotation = icp->getOutputTransformation()->getEulerAngles();
-    Vector3f detectedTranslation = icp->getOutputTransformation()->translation();
-
-    CHECK(detectedTranslation.x() == Approx(translation.x()));
-    CHECK(detectedTranslation.y() == Approx(translation.y()));
-    CHECK(detectedTranslation.z() == Approx(translation.z()));
-    CHECK(detectedRotation.x() == Approx(rotation.x()));
-    CHECK(detectedRotation.y() == Approx(rotation.y()));
-    CHECK(detectedRotation.z() == Approx(rotation.z()));
-}
-
-
-TEST_CASE("ICP on two point sets where moving point set is larger than the fixed", "[fast][IterativeClosestPoint][icp]") {
-
-    Vector3f translation(0.01, 0, 0.01);
-    Vector3f rotation(0.0, 0.5, 0.0);
-
-    VTKPointSetFileImporter::pointer importerA = VTKPointSetFileImporter::New();
-    importerA->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
-    VTKPointSetFileImporter::pointer importerB = VTKPointSetFileImporter::New();
-    importerB->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
-
-    // Apply a transformation to B surface
-    AffineTransformation::pointer transformation = AffineTransformation::New();
-    transformation->translate(translation);
-    Matrix3f R;
-    R = Eigen::AngleAxisf(rotation.x(), Vector3f::UnitX())
-    * Eigen::AngleAxisf(rotation.y(), Vector3f::UnitY())
-    * Eigen::AngleAxisf(rotation.z(), Vector3f::UnitZ());
-    transformation->rotate(R);
-    importerB->update();
-    PointSet::pointer B = importerB->getOutputData<PointSet>(0);
-    B->getSceneGraphNode()->setTransformation(transformation);
-
-    importerA->update();
-    PointSet::pointer A = importerA->getOutputData<PointSet>(0);
-    PointSetAccess::pointer access = A->getAccess(ACCESS_READ_WRITE);
-    access->addPoint(access->getPoint(0));
-    access->release();
-
-    // Do ICP registration
-    IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
-    icp->setMovingPointSet(A);
-    icp->setFixedPointSetPort(importerB->getOutputPort());
-    icp->update();
-
-    // Validate result
-    importerA->getStaticOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
+    importerA->getStaticOutputData<Mesh>(0)->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
     Vector3f detectedRotation = icp->getOutputTransformation()->getEulerAngles();
     Vector3f detectedTranslation = icp->getOutputTransformation()->translation();
 
@@ -124,15 +111,15 @@ TEST_CASE("ICP on two point sets which are already transformed by scene graph", 
     Vector3f translation(0.01, 0, 0.01);
     Vector3f rotation(0.5, 0, 0);
 
-    VTKPointSetFileImporter::pointer importerA = VTKPointSetFileImporter::New();
+    VTKMeshFileImporter::pointer importerA = VTKMeshFileImporter::New();
     importerA->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
-    VTKPointSetFileImporter::pointer importerB = VTKPointSetFileImporter::New();
+    VTKMeshFileImporter::pointer importerB = VTKMeshFileImporter::New();
     importerB->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
 
     importerA->update();
     importerB->update();
-    PointSet::pointer A = importerA->getOutputData<PointSet>();
-    PointSet::pointer B = importerB->getOutputData<PointSet>();
+    Mesh::pointer A = importerA->getOutputData<Mesh>();
+    Mesh::pointer B = importerB->getOutputData<Mesh>();
 
     AffineTransformation::pointer FASTtransformInit = AffineTransformation::New();
     SceneGraph::insertParentNodeToData(A, FASTtransformInit);
@@ -150,12 +137,12 @@ TEST_CASE("ICP on two point sets which are already transformed by scene graph", 
 
     // Do ICP registration
     IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
-    icp->setMovingPointSetPort(importerA->getOutputPort());
-    icp->setFixedPointSetPort(importerB->getOutputPort());
+    icp->setMovingMeshPort(importerA->getOutputPort());
+    icp->setFixedMeshPort(importerB->getOutputPort());
     icp->update();
 
     // Validate result
-    importerA->getStaticOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
+    importerA->getStaticOutputData<Mesh>(0)->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
     Vector3f detectedRotation = icp->getOutputTransformation()->getEulerAngles();
     Vector3f detectedTranslation = icp->getOutputTransformation()->translation();
 

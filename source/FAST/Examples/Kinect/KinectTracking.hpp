@@ -14,6 +14,7 @@ class KinectTracking : public ProcessObject {
     public:
         void addLine(Vector2i start, Vector2i end);
         void calculateTargetCloud(SharedPointer<KinectStreamer> streamer);
+        void restart();
     private:
         KinectTracking();
         void execute();

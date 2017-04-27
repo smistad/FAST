@@ -12,6 +12,7 @@ class KinectTrackingGUI : public Window {
     FAST_OBJECT(KinectTrackingGUI)
     public:
         void extractPointCloud();
+        void restart();
     private:
         KinectTrackingGUI();
 

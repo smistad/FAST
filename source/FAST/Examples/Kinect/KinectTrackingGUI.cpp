@@ -3,6 +3,7 @@
 #include "FAST/Streamers/KinectStreamer.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include <QVBoxLayout>
+#include <QPushButton>
 #include <FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp>
 #include <FAST/Visualization/PointRenderer/PointRenderer.hpp>
 
@@ -35,6 +36,9 @@ MouseListener::MouseListener(KinectTracking::pointer tracking, View* view) : QOb
 }
 
 bool MouseListener::eventFilter(QObject *obj, QEvent *event) {
+    if(event->type() == QEvent::MouseButtonRelease) {
+        mPreviousMousePosition = Vector2i(-1, -1);
+    }
     if(event->type() == QEvent::MouseMove) {
         // Releay mouse movement to tracking
         QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
@@ -79,6 +83,7 @@ KinectTrackingGUI::KinectTrackingGUI() {
 
     // Setup streaming
     mStreamer = KinectStreamer::New();
+    mStreamer->setPointCloudFiltering(true);
 
     // Tracking
     mTracking = KinectTracking::New();
@@ -106,6 +111,13 @@ KinectTrackingGUI::KinectTrackingGUI() {
     setTitle("FAST - Kinect Object Tracking");
 
     QVBoxLayout* layout = new QVBoxLayout;
+
+    QPushButton* restartButton = new QPushButton;
+    restartButton->setText("Restart");
+    restartButton->setStyleSheet("QPushButton { background-color: green; font-size: 24px; color: white; }");
+    QObject::connect(restartButton, &QPushButton::clicked, std::bind(&KinectTrackingGUI::restart, this));
+
+    layout->addWidget(restartButton);
     layout->addWidget(view);
     mWidget->setLayout(layout);
 }
@@ -125,6 +137,30 @@ void KinectTrackingGUI::extractPointCloud() {
     getView(0)->addRenderer(cloudRenderer);
     getView(0)->setLookAt(Vector3f(0,-500,-500), Vector3f(0,0,1000), Vector3f(0,-1,0), 500, 5000);
     getView(0)->reinitialize();
+
+    startComputationThread();
+}
+
+void KinectTrackingGUI::restart() {
+    View* view = getView(0);
+    stopComputationThread();
+    view->removeAllRenderers();
+
+    mTracking->restart();
+
+    // Renderer RGB image
+    ImageRenderer::pointer renderer = ImageRenderer::New();
+    renderer->addInputConnection(mTracking->getOutputPort(0));
+
+    SegmentationRenderer::pointer annotationRenderer = SegmentationRenderer::New();
+    annotationRenderer->addInputConnection(mTracking->getOutputPort(1));
+    annotationRenderer->setFillArea(false);
+
+    view->set2DMode();
+    view->setBackgroundColor(Color::Black());
+    view->addRenderer(renderer);
+    view->addRenderer(annotationRenderer);
+    view->reinitialize();
 
     startComputationThread();
 }
