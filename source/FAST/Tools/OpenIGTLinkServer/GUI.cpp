@@ -5,6 +5,7 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QMessageBox>
+#include <QListWidget>
 #include <igtl/igtlImageMessage.h>
 #include <igtl/igtlTransformMessage.h>
 #include <igtl/igtlOSUtil.h>
@@ -58,6 +59,22 @@ GUI::GUI() {
     mStatus->setStyleSheet("QLabel { font-size: 24px; }");
     layout->addWidget(mStatus);
 
+    QLabel* listLabel = new QLabel;
+    listLabel->setText("Recordings");
+    listLabel->setStyleSheet("QLabel { font-size: 24px; }");
+    layout->addWidget(listLabel);
+
+    mList = new QListWidget;
+    layout->addWidget(mList);
+
+    QPushButton* addButton = new QPushButton;
+    addButton->setText("Add recordings");
+    layout->addWidget(addButton);
+
+    QPushButton* deleteButton = new QPushButton;
+    deleteButton->setText("Delete selected recording");
+    layout->addWidget(deleteButton);
+
     mWidget->setLayout(layout);
     mStartStopButton->setFocus();
 }
@@ -94,6 +111,8 @@ void GUI::toggleServer() {
 
 void GUI::setFilenameFormats(std::vector<std::string> formats) {
     mFilenameFormats = formats;
+    for(auto format : formats)
+        mList->addItem(format.c_str());
 }
 
 GUI::~GUI() {
