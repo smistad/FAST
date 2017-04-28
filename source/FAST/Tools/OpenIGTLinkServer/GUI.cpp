@@ -6,6 +6,7 @@
 #include <QHBoxLayout>
 #include <QMessageBox>
 #include <QListWidget>
+#include <QFileDialog>
 #include <igtl/igtlImageMessage.h>
 #include <igtl/igtlTransformMessage.h>
 #include <igtl/igtlOSUtil.h>
@@ -69,23 +70,57 @@ GUI::GUI() {
 
     QPushButton* addButton = new QPushButton;
     addButton->setText("Add recordings");
+    QObject::connect(addButton, &QPushButton::clicked, std::bind(&GUI::addRecording, this));
     layout->addWidget(addButton);
 
     QPushButton* deleteButton = new QPushButton;
-    deleteButton->setText("Delete selected recording");
+    deleteButton->setText("Delete selected recordings");
+    QObject::connect(deleteButton, &QPushButton::clicked, std::bind(&GUI::removeRecordings, this));
     layout->addWidget(deleteButton);
 
     mWidget->setLayout(layout);
     mStartStopButton->setFocus();
 }
 
+void GUI::addRecording() {
+    QFileDialog fileDialog(mWidget);
+    fileDialog.setNameFilter("Image recordings (*_0.mhd *_0.png *_0.jpg *_0.bmp)");
+    QStringList filenames;
+    if(fileDialog.exec()) {
+        filenames = fileDialog.selectedFiles();
+        for(QString qfilename : filenames) {
+            std::string filename = qfilename.toStdString();
+            filename = replace(filename, "_0.", "_#.");
+            mList->addItem(filename.c_str());
+        }
+    }
+}
+
+void GUI::removeRecordings() {
+    qDeleteAll(mList->selectedItems());
+}
+
 void GUI::toggleServer() {
     if(!mRunning) {
-        // TODO start server
+        // Add recordings
+        mFilenameFormats.clear();
+        for(int i = 0; i < mList->count(); ++i) {
+            QString filename = mList->item(i)->text();
+            mFilenameFormats.push_back(filename.toStdString());
+        }
+        if(mFilenameFormats.size() == 0) {
+            QMessageBox* message = new QMessageBox(mWidget);
+            message->setWindowTitle("Error");
+            message->setText("No recordings selected");
+            message->show();
+            return;
+        }
+        // Start server
         mServerSocket = igtl::ServerSocket::New();
         int result = mServerSocket->CreateServer(mPort);
         if(result < 0) {
             QMessageBox* message = new QMessageBox(mWidget);
+            message->setWindowTitle("Error");
             message->setText("Unable to create server socket.");
             message->show();
             return;
@@ -95,7 +130,7 @@ void GUI::toggleServer() {
         mStartStopButton->setText("Stop streaming");
         mStartStopButton->setStyleSheet("QPushButton { font-size: 24px; color: white; background-color: red; }");
     } else {
-        // TODO stop server
+        // Stop server
         mStop = true;
         // Wait for streamData thread to stop, then delete it
         mThread->join();
@@ -110,7 +145,6 @@ void GUI::toggleServer() {
 }
 
 void GUI::setFilenameFormats(std::vector<std::string> formats) {
-    mFilenameFormats = formats;
     for(auto format : formats)
         mList->addItem(format.c_str());
 }

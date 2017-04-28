@@ -17,6 +17,8 @@ class GUI : public Window {
     public:
         void toggleServer();
         void setFilenameFormats(std::vector<std::string> formats);
+        void addRecording();
+        void removeRecordings();
         ~GUI();
     private:
         GUI();
