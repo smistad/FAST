@@ -109,9 +109,17 @@ install(FILES ${PROJECT_SOURCE_DIR}/LICENSE
     DESTINATION fast/licenses/fast/
 )
 # Install README
-install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/README.md
-    DESTINATION fast/
-)
+if(FAST_MODULE_NeuralNetwork)
+	install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/README_neural_network.md
+        DESTINATION fast/
+        RENAME README.md
+    )
+else()
+    install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/README_default.md
+        DESTINATION fast/
+        RENAME README.md
+    )
+endif()
 
 # Install license files for depedencies
 # Qt5
@@ -143,3 +151,10 @@ install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/NumPy_LICENSE.txt
 install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/Semaphore_LICENSE.txt
 		DESTINATION fast/licenses/semaphore/
 )
+
+if(FAST_MODULE_NeuralNetwork)
+    # Tensorflow license
+	install(FILES ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/LICENSE
+        DESTINATION fast/licenses/tensorflow/
+    )
+endif()
