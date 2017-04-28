@@ -71,7 +71,12 @@ install(FILES ${PROJECT_BINARY_DIR}/FASTConfig.cmake
 
 # Install docs
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/doc/
-		DESTINATION fast/doc/
+    DESTINATION fast/doc/
+)
+
+# Install pipelines
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/pipelines/
+    DESTINATION fast/pipelines/
 )
 
 # Install Python wrapper
