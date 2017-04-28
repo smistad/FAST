@@ -2,6 +2,7 @@
 #include "KinectTracking.hpp"
 #include "FAST/Data/Image.hpp"
 #include "FAST/Data/Mesh.hpp"
+#include "FAST/Algorithms/IterativeClosestPoint/IterativeClosestPoint.hpp"
 
 namespace fast {
 
@@ -12,11 +13,21 @@ KinectTracking::KinectTracking() {
 
     createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
     createOutputPort<Image>(1, OUTPUT_STATIC); // Annotation image
-    //createOutputPort<Mesh>(2, OUTPUT_STATIC); // Target cloud
+    createOutputPort<Mesh>(2, OUTPUT_STATIC); // Target cloud
 
     // Create annotation image
     mAnnotationImage = Image::New();
     mAnnotationImage->create(512, 424, TYPE_UINT8, 1);
+    mAnnotationImage->fill(0);
+
+    mTargetCloud = Mesh::New();
+    mTargetCloud->create(0);
+    mTargetCloudExtracted = false;
+    getReporter().setReportMethod(Reporter::COUT);
+}
+
+void KinectTracking::restart() {
+    mTargetCloudExtracted = false;
     mAnnotationImage->fill(0);
 }
 
@@ -24,12 +35,32 @@ void KinectTracking::execute() {
     Image::pointer input = getStaticInputData<Image>();
     Mesh::pointer meshInput = getStaticInputData<Mesh>(1);
 
+    // When target cloud has been extracted, run ICP, and output this mesh
+    if(mTargetCloudExtracted) {
+        reportInfo() << "Running ICP" << reportEnd();
+        IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
+        icp->enableRuntimeMeasurements();
+        icp->setFixedMesh(meshInput);
+        icp->setMovingMesh(mTargetCloud);
+        icp->setDistanceThreshold(100);
+        //icp->setMinimumErrorChange(0.5);
+        icp->setRandomPointSampling(400);
+        icp->getReporter().setReportMethod(Reporter::COUT);
+        icp->setMaximumNrOfIterations(5);
+        icp->update();
+        reportInfo() << "Finished ICP in " << icp->getRuntime()->getSum() << " ms" << reportEnd();
+        AffineTransformation::pointer currentTransform = mTargetCloud->getSceneGraphNode()->getTransformation();
+        AffineTransformation::pointer newTransform = icp->getOutputTransformation();
+        mTargetCloud->getSceneGraphNode()->setTransformation(newTransform->multiply(currentTransform));
+    }
+
     setStaticOutputData<Image>(0, input);
     setStaticOutputData<Image>(1, mAnnotationImage);
+    setStaticOutputData<Mesh>(2, mTargetCloud);
     mCurrentCloud = meshInput;
 }
 
-Mesh::pointer KinectTracking::getTargetCloud(KinectStreamer::pointer streamer) {
+void KinectTracking::calculateTargetCloud(KinectStreamer::pointer streamer) {
     std::cout << "Creating target cloud..." << std::endl;
     ImageAccess::pointer access = mAnnotationImage->getImageAccess(ACCESS_READ);
     MeshAccess::pointer meshAccess = mCurrentCloud->getMeshAccess(ACCESS_READ);
@@ -50,10 +81,10 @@ Mesh::pointer KinectTracking::getTargetCloud(KinectStreamer::pointer streamer) {
         }
     }
 
-    Mesh::pointer output = Mesh::New();
-    output->create(outputVertices);
+    mTargetCloud = Mesh::New();
+    mTargetCloud->create(outputVertices);
     std::cout << "Created target cloud." << std::endl;
-    return output;
+    mTargetCloudExtracted = true;
 }
 
 void KinectTracking::addLine(Vector2i start, Vector2i end) {

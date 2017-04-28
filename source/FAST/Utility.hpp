@@ -18,7 +18,17 @@ namespace fast {
 double log2(double n);
 double round(double n);
 double round(double n, int decimals);
-int pow(int a, int b);
+
+/**
+ * Does simply x^2 = x*x
+ * @tparam T
+ * @param x a numeric value
+ * @return x*x
+ */
+template <class T>
+T square(T x) {
+    return x*x;
+}
 
 template <typename ...Args>
 std::string format(std::string format, Args && ... args) {

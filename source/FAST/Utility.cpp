@@ -30,12 +30,6 @@ double round(double n, int decimals) {
     return round(n*factor)/factor;
 }
 
-int pow(int a, int b) {
-    return (int)std::pow((double)a, (double)b);
-}
-
-
-
 void* allocateDataArray(unsigned int voxels, DataType type, unsigned int nrOfComponents) {
     unsigned int size = voxels*nrOfComponents;
     void * data;

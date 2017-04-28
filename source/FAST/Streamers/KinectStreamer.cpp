@@ -15,7 +15,12 @@ KinectStreamer::KinectStreamer() {
     mHasReachedEnd = false;
     mFirstFrameIsInserted = false;
     mIsModified = true;
+    mPointCloudFilterEnabled = false;
     registration = NULL;
+}
+
+void KinectStreamer::setPointCloudFiltering(bool enabled) {
+    mPointCloudFilterEnabled = enabled;
 }
 
 void KinectStreamer::execute() {
@@ -134,6 +139,28 @@ void KinectStreamer::producerStream() {
                 float x, y, z, color;
                 registration->getPointXYZRGB(&undistorted, &registered, r, c, x, y, z, color);
                 if(!std::isnan(x)) {
+                    // TODO, for each valid neigbhor; is the depth similar
+                    if(mPointCloudFilterEnabled) {
+                        int invalidNeighbors = 0;
+                        const int size = 1;
+                        for(int a = -size; a <= size; ++a) {
+                            for(int b = -size; b <= size; ++b) {
+                                if(r + a < 0 || r + a >= 424 || c + b < 0 || c + b >= 512)
+                                    continue;
+                                float x2, y2, z2, color2;
+                                registration->getPointXYZRGB(&undistorted, &registered, r + a, c + b, x2, y2, z2,
+                                                             color2);
+                                if(std::isnan(x2))
+                                    invalidNeighbors++;
+                                if(fabs(z - z2) * 1000 > 10)
+                                    invalidNeighbors++;
+
+                            }
+                        }
+                        if (invalidNeighbors > 0)
+                            continue;
+                    }
+
                     // Decode color channels
                     const uint8_t *p = reinterpret_cast<uint8_t*>(&color);
                     uint8_t red = p[0];

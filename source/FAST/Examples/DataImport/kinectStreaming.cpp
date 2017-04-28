@@ -11,9 +11,9 @@
 using namespace fast;
 
 int main(int argc, char** argv) {
-    Reporter::setGlobalReportMethod(Reporter::COUT);
     // Setup streaming
     KinectStreamer::pointer streamer = KinectStreamer::New();
+    streamer->setPointCloudFiltering(true);
 
     // Renderer RGB image
     ImageRenderer::pointer renderer = ImageRenderer::New();
@@ -45,6 +45,7 @@ int main(int argc, char** argv) {
     window->addRenderer(2, renderer3);
     // Adjust camera
     window->getView(2)->setLookAt(Vector3f(0,-500,-500), Vector3f(0,0,1000), Vector3f(0,-1,0), 500, 5000);
+    window->getView(2)->setBackgroundColor(Color::Black());
     //window->enableFullscreen();
 #ifdef FAST_CONTINUOUS_INTEGRATION
     // This will automatically close the window after 5 seconds, used for CI testing
