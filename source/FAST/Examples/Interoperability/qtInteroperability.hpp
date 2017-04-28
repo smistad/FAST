@@ -18,7 +18,7 @@
 #include <QVBoxLayout>
 #include <QPushButton>
 #include <QGLContext>
-#include "FAST/TestDataPath.hpp"
+
 
 class WindowWidget : public QWidget {
     Q_OBJECT
@@ -36,7 +36,7 @@ class WindowWidget : public QWidget {
             layout->addWidget(button);
 
             // Create a FAST view and add to layout
-            mView = new fast::View;
+            mView = new fast::View();
             mView->set2DMode();
             layout->addWidget(mView);
 
@@ -47,7 +47,7 @@ class WindowWidget : public QWidget {
             streamer->setStreamingMode(fast::STREAMING_MODE_PROCESS_ALL_FRAMES);
 
             // The hashtag here will be replaced with an integer, starting with 0 as default
-            streamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"/US/CarotidArtery/Right/US-2D_#.mhd");
+            streamer->setFilenameFormat(fast::Config::getTestDataPath()+"/US/CarotidArtery/Right/US-2D_#.mhd");
 
             // Render image
             fast::ImageRenderer::pointer renderer = fast::ImageRenderer::New();

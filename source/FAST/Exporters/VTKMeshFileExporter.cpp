@@ -5,13 +5,9 @@
 
 namespace fast {
 
-void VTKMeshFileExporter::setFilename(std::string filename) {
-    mFilename = filename;
-}
 
 VTKMeshFileExporter::VTKMeshFileExporter() {
     createInputPort<Mesh>(0);
-    mFilename = "";
 }
 
 void VTKMeshFileExporter::execute() {

@@ -1,0 +1,12 @@
+#ifndef FAST_PROCESS_OBJECT_LIST_HPP_
+#define FAST_PROCESS_OBJECT_LIST_HPP_
+
+#include "FAST/ProcessObjectRegistry.hpp"
+
+${FAST_PROCESS_OBJECT_INCLUDES}
+
+namespace fast {
+${FAST_PROCESS_OBJECT_REGISTRATION}
+}
+
+#endif

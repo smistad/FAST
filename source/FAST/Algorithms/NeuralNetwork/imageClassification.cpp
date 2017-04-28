@@ -5,61 +5,25 @@
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/TextRenderer/TextRenderer.hpp"
 
-namespace fast {
-
-    class ClassificationToText : public ProcessObject {
-        FAST_OBJECT(ClassificationToText)
-    private:
-        ClassificationToText() {
-            createInputPort<ImageClassification>(0);
-            createOutputPort<Text>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-        }
-        void execute() {
-            ImageClassification::pointer classification = getStaticInputData<ImageClassification>();
-            Text::pointer text = getStaticOutputData<Text>();
-
-            // Find classification with max
-            ImageClassification::access access = classification->getAccess(ACCESS_READ);
-            std::map<std::string, float> values = access->getData();
-            float max = 0;
-            std::string label;
-            for (auto &&item : values) {
-                if(item.second > max) {
-                    max = item.second;
-                    label = item.first;
-                }
-            }
-
-            Text::access access2 = text->getAccess(ACCESS_READ_WRITE);
-            char buffer[8];
-            std::sprintf(buffer, "%.2f", max);
-            std::string result = label + ": " + buffer;
-            access2->setData(result);
-        }
-    };
-
-}
-
 using namespace fast;
-
 
 int main() {
 
     Reporter::setGlobalReportMethod(Reporter::COUT);
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
     streamer->setFilenameFormats({
-         "/home/smistad/data/ultrasound_smistad_heart/1234/H1AD8S80/US-2D_#.mhd",
-         "/home/smistad/data/ultrasound_smistad_heart/1234/H1AD9B04/US-2D_#.mhd",
-         "/home/smistad/data/ultrasound_smistad_heart/1234/H1AD9EG6/US-2D_#.mhd",
-         "/home/smistad/data/ultrasound_smistad_heart/1234/H1AD9L08/US-2D_#.mhd",
-         "/home/smistad/data/ultrasound_smistad_heart/1234/H1AD9282/US-2D_#.mhd",
-         "/home/smistad/data/ultrasound_smistad_heart/1234/H1ADA3OA/US-2D_#.mhd",
-         "/home/smistad/data/ultrasound_smistad_heart/1234/H1ADAK8C/US-2D_#.mhd",
-         "/home/smistad/data/ultrasound_smistad_heart/1234/H1ADAKGE/US-2D_#.mhd",
-         "/home/smistad/data/ultrasound_smistad_heart/1234/H1ADB1GG/US-2D_#.mhd",
          "/home/smistad/data/ultrasound_smistad_heart/1234/H1ADB20I/US-2D_#.mhd",
          "/home/smistad/data/ultrasound_smistad_heart/1234/H1ADBNGK/US-2D_#.mhd",
          "/home/smistad/data/ultrasound_smistad_heart/1234/H1ADC6OM/US-2D_#.mhd",
+         "/home/smistad/data/ultrasound_smistad_heart/1234/H1AD8S80/US-2D_#.mhd",
+         "/home/smistad/data/ultrasound_smistad_heart/1234/H1AD9B04/US-2D_#.mhd",
+         "/home/smistad/data/ultrasound_smistad_heart/1234/H1AD9EG6/US-2D_#.mhd",
+         //"/home/smistad/data/ultrasound_smistad_heart/1234/H1AD9L08/US-2D_#.mhd",
+         //"/home/smistad/data/ultrasound_smistad_heart/1234/H1AD9282/US-2D_#.mhd",
+         //"/home/smistad/data/ultrasound_smistad_heart/1234/H1ADA3OA/US-2D_#.mhd",
+         //"/home/smistad/data/ultrasound_smistad_heart/1234/H1ADAK8C/US-2D_#.mhd",
+         //"/home/smistad/data/ultrasound_smistad_heart/1234/H1ADAKGE/US-2D_#.mhd",
+         //"/home/smistad/data/ultrasound_smistad_heart/1234/H1ADB1GG/US-2D_#.mhd",
          "/home/smistad/data/ultrasound_smistad_heart/1234/H1ADCKOO/US-2D_#.mhd",
          "/home/smistad/data/ultrasound_smistad_heart/1234/H1ADCL8Q/US-2D_#.mhd",
          "/home/smistad/data/ultrasound_smistad_heart/1234/H1ADFN0S/US-2D_#.mhd",
@@ -96,21 +60,21 @@ int main() {
          "/media/extra/GRUE_images/Clinic001/F4AFPMJQ/US-2D_#.png",
     });
     streamer->enableLooping();
-    streamer->setSleepTime(50);
+    streamer->setSleepTime(25);
     streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
     ImageClassifier::pointer classifier = ImageClassifier::New();
-    classifier->load("/home/smistad/Downloads/cvc_inc_merged");
+    classifier->setScaleFactor(1.0f/255.0f);
+    classifier->load("/home/smistad/Downloads/cvc_net");
     classifier->setInputSize(128,128);
     classifier->setOutputParameters({"Softmax"});
     classifier->setLabels({
-                                  "Parasternal short axis",
-                                  "Parasternal long axis",
-                                  "Apical two-chamber",
-                                  "Apical five-chamber",
-                                  "Apical four-chamber",
-                                  "Apical long axis"
-                          });
+                              "Parasternal short axis",
+                              "Parasternal long axis",
+                              "Apical two-chamber",
+                              "Apical four-chamber",
+                              "Apical long axis"
+                      });
     classifier->setInputConnection(streamer->getOutputPort());
     classifier->enableRuntimeMeasurements();
 
@@ -129,10 +93,14 @@ int main() {
     textRenderer->setInputConnection(classToText->getOutputPort());
 
     window->addRenderer(renderer);
-    window->setWindowSize(1024, 1024);
     window->addRenderer(textRenderer);
+    window->setSize(1024, 1024);
+    //window->enableFullscreen();
     window->set2DMode();
+    window->getView()->setBackgroundColor(Color::Black());
     window->start();
 
     classifier->getRuntime()->print();
+    classifier->getRuntime("input_data_copy")->print();
+    classifier->getRuntime("network_execution")->print();
 }

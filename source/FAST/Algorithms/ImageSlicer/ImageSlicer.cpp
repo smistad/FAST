@@ -20,7 +20,7 @@ void ImageSlicer::setArbitrarySlicePlane(Plane slicePlane) {
 ImageSlicer::ImageSlicer() : mArbitrarySlicePlane(Plane(Vector3f(1,0,0))) {
 	createInputPort<Image>(0);
 	createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-	createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/ImageSlicer/ImageSlicer.cl");
+	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageSlicer/ImageSlicer.cl");
 
 	mArbitrarySlicing = false;
 	mOrthogonalSlicing = false;
@@ -29,6 +29,8 @@ ImageSlicer::ImageSlicer() : mArbitrarySlicePlane(Plane(Vector3f(1,0,0))) {
 void ImageSlicer::execute() {
 	Image::pointer input = getStaticInputData<Image>();
 	Image::pointer output = getStaticOutputData<Image>();
+    std::cout << "w: " << input->getWidth();
+    std::cout << mArbitrarySlicePlane.getNormal().transpose() << std::endl;
 
 	if(input->getDimensions() != 3)
 		throw Exception("Image slicer can only be used for 3D images");
@@ -129,8 +131,186 @@ void ImageSlicer::orthogonalSlicing(Image::pointer input, Image::pointer output)
     // TODO set scene graph transformation
 }
 
+bool inline cornersAreAdjacent(Vector3f cornerA, Vector3f cornerB, Image::pointer input) {
+    // Check if cornerA and cornerB are lying in any of the planes of the BB
+    AffineTransformation::pointer transformation = SceneGraph::getAffineTransformationFromData(input);
+    // Transform back to pixel space
+    cornerA = transformation->inverse()*cornerA;
+    cornerB = transformation->inverse()*cornerB;
+    // Define the eight planes of the image
+    std::vector<Plane> planes;
+    planes.push_back(Plane(Vector3f(0,1,0), Vector3f(0, input->getHeight(), 0))); // Top
+    planes.push_back(Plane(Vector3f(0,1,0), Vector3f(0, 0, 0))); // Bottom
+    planes.push_back(Plane(Vector3f(0,0,1), Vector3f(0, 0, 0))); // Front
+    planes.push_back(Plane(Vector3f(0,0,1), Vector3f(0, 0, input->getDepth()))); // Back
+    planes.push_back(Plane(Vector3f(1,0,0), Vector3f(0, 0, 0))); // Left
+    planes.push_back(Plane(Vector3f(1,0,0), Vector3f(input->getWidth(), 0, 0))); // Right
+
+    for(Plane plane : planes) {
+        Vector3f lineDirection = cornerB - cornerA;
+
+        // Check if both corners lie on this plane
+        if(
+            fabs((cornerA-plane.getPosition()).dot(plane.getNormal())) < 0.00001 &&
+            fabs((cornerB-plane.getPosition()).dot(plane.getNormal())) < 0.00001
+            ) {
+            std::cout << "ADJACENT" << std::endl;
+            return true;
+        }
+    }
+    std::cout << "NOT ADJACENT" << std::endl;
+
+    return false;
+}
+
+void inline getWidth(std::vector<Vector3f> intersectionPoints, Image::pointer input) {
+
+}
+
 void ImageSlicer::arbitrarySlicing(Image::pointer input, Image::pointer output) {
-	// TODO
+    BoundingBox compoundedBB = input->getTransformedBoundingBox();
+    MatrixXf corners = compoundedBB.getCorners();
+    if(!mArbitrarySlicePlane.hasPosition()) {
+        // Set slice position to centroid of BB
+        Vector3f centroid = Vector3f::Zero();
+        for(int i = 0; i < 7; i++) {
+            Vector3f corner = corners.row(i);
+            centroid += corner;
+        }
+        centroid /= 8;
+        mArbitrarySlicePlane.setPosition(centroid);
+    }
+
+    // Calculate x corner points of the compounded BB using plane line intersections
+    std::vector<Vector3f> intersectionPoints;
+    Vector3f intersectionCentroid(0,0,0);
+    for(int i = 0; i < 7; i++) {
+        Vector3f cornerA = corners.row(i);
+        for(int j = i+1; j < 8; j++) {
+            Vector3f cornerB = corners.row(j);
+            if((cornerA.x() == cornerB.x() && cornerA.y() == cornerB.y()) ||
+                    (cornerA.y() == cornerB.y() && cornerA.z() == cornerB.z()) ||
+                    (cornerA.x() == cornerB.x() && cornerA.z() == cornerB.z())) {
+                try {
+                    // Calculate intersection with the plane
+                    Vector3f intersectionPoint = mArbitrarySlicePlane.getIntersectionPoint(cornerA, cornerB);
+                    intersectionPoints.push_back(intersectionPoint);
+                    intersectionCentroid += intersectionPoint;
+                } catch(Exception &e) {
+                    // No intersection found
+                }
+            }
+        }
+    }
+
+
+    if(intersectionPoints.size() == 0)
+       throw Exception("Failed to find intersection points");
+
+    std::cout << "Found " << intersectionPoints.size() << " intersection points" << std::endl;
+    AffineTransformation::pointer transformation = SceneGraph::getAffineTransformationFromData(input);
+    float longestEdgeMM = -1;
+    int longestEdgePixels;
+    for(Vector3f cornerA : intersectionPoints) {
+        std::cout << cornerA.transpose() << std::endl;
+        for(Vector3f cornerB : intersectionPoints) {
+            //if(cornersAreAdjacent(cornerA, cornerB, input)) {
+                // Get length in pixels
+                // Get length in mm
+                float lengthMM = (cornerA - cornerB).norm();
+                if(longestEdgeMM < lengthMM) {
+                    longestEdgeMM = lengthMM;
+                    Vector3f cornerApixels = transformation->inverse()*cornerA;
+                    Vector3f cornerBpixels = transformation->inverse()*cornerB;
+                    longestEdgePixels = (int)round((cornerApixels - cornerBpixels).norm());
+                }
+            //}
+        }
+    }
+
+    output->create(longestEdgePixels, longestEdgePixels, input->getDataType(), input->getNrOfComponents());
+    float spacing = longestEdgeMM / longestEdgePixels;
+    output->setSpacing(spacing, spacing, 1);
+
+    // Register PBO corners to these intersection points
+    // Want the transformation to get from PBO pixel position to mm position
+    intersectionCentroid /= intersectionPoints.size();
+
+    // PBO normal
+    Vector3f imageNormal = Vector3f(0, 0, 1); // moving
+
+    Vector3f planeNormal = mArbitrarySlicePlane.getNormal();
+
+    // Find rotation matrix between image normal and slice plane normal following http://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
+    Vector3f v = imageNormal.cross(planeNormal);
+    float s = v.norm();
+    float c = imageNormal.dot(planeNormal);
+    Matrix3f R;
+    if (c == 1) { // planes are already aligned
+        R = Matrix3f::Identity();
+    } else {
+        Matrix3f vx = Matrix3f::Zero();
+        // Matrix positions are on y,x form
+        vx(0, 1) = -v.z();
+        vx(1, 0) = v.z();
+        vx(0, 2) = v.y();
+        vx(2, 0) = -v.y();
+        vx(1, 2) = -v.x();
+        vx(2, 1) = v.x();
+
+        R = Matrix3f::Identity() + vx + vx * vx * ((1.0f - c) / (s * s));
+    }
+
+    // Rotate a position back
+    Vector3f rotatedPosition = R * Vector3f(longestEdgePixels * 0.5, longestEdgePixels * 0.5, 0);
+
+    // Estimate translation
+    Vector3f translation = intersectionCentroid - rotatedPosition;
+
+    Eigen::Affine3f sliceTransformation;
+    sliceTransformation.linear() = R;
+    sliceTransformation.translation() = translation;
+    sliceTransformation.scale(spacing);
+
+    OpenCLDevice::pointer device = getMainDevice();
+
+    // Get transform of the image
+    AffineTransformation::pointer dataTransform = SceneGraph::getAffineTransformationFromData(input);
+    dataTransform->scale(input->getSpacing()); // Apply image spacing
+
+    // Transfer transformations
+    Eigen::Affine3f transform = dataTransform->inverse()*sliceTransformation;
+
+    cl::Buffer transformBuffer(
+            device->getContext(),
+            CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+            16*sizeof(float),
+            transform.data()
+    );
+
+     cl::Kernel kernel(getOpenCLProgram(device), "arbitrarySlicing");
+    // Run kernel to fill the texture
+
+    OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
+    OpenCLImageAccess::pointer access2 = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+    cl::Image3D* clImage = access->get3DImage();
+    kernel.setArg(0, *clImage);
+    kernel.setArg(1, *access2->get2DImage()); // Write to this
+    kernel.setArg(2, transformBuffer);
+
+    // Run the draw 3D image kernel
+    device->getCommandQueue().enqueueNDRangeKernel(
+            kernel,
+            cl::NullRange,
+            cl::NDRange(longestEdgePixels, longestEdgePixels),
+            cl::NullRange
+    );
+    device->getCommandQueue().finish();
+
+
+    AffineTransformation::pointer T = AffineTransformation::New();
+    T->matrix() = sliceTransformation.matrix();
+    output->getSceneGraphNode()->setTransformation(T);
 }
 
 }

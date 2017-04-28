@@ -1,6 +1,7 @@
 #include "ComputationThread.hpp"
 #include "SimpleWindow.hpp"
 #include "View.hpp"
+#include <QGLContext>
 
 namespace fast {
 
@@ -42,8 +43,8 @@ void ComputationThread::run() {
         std::unique_lock<std::mutex> lock(mUpdateThreadMutex); // this locks the mutex
         if(mUpdateThreadIsStopped) {
             // Move GL context back to main thread
-            mainGLContext->moveToThread(mMainThread);
             mainGLContext->doneCurrent();
+            mainGLContext->moveToThread(mMainThread);
             mIsRunning = false;
             break;
         }

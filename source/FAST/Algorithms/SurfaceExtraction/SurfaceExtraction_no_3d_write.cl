@@ -601,7 +601,7 @@ __constant char triTable[4096] =
 
 __kernel void traverseHP(
         __read_only image3d_t rawData,
-        __read_only image3d_t cubeIndexes,
+        __global uchar* cubeIndexes,
         __global uchar * hp0, // Largest HP
         __global uchar * hp1,
         __global ushort * hp2,
@@ -658,7 +658,7 @@ __kernel void traverseHP(
     char vertexNr = 0;
 
     // max 5 triangles
-    uchar cubeindex = read_imageui(cubeIndexes, sampler, cubePosition).x;
+    uchar cubeindex = cubeIndexes[cubePosition.x+cubePosition.y*SIZE+cubePosition.z*SIZE*SIZE];
     for(int i = (target-cubePosition.s3)*3; i < (target-cubePosition.s3+1)*3; i++) { // for each vertex in triangle
         const uchar edge = triTable[cubeindex*16 + i];
         const int3 point0 = (int3)(cubePosition.x + offsets3[edge*6], cubePosition.y + offsets3[edge*6+1], cubePosition.z + offsets3[edge*6+2]);

@@ -1,8 +1,7 @@
 #include "FAST/Testing.hpp"
 #include "FAST/Importers/MetaImageImporter.hpp"
 #include "FAST/DeviceManager.hpp"
-#include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
-#include "FAST/Visualization/SimpleWindow.hpp"
+#include "FAST/Data/Image.hpp"
 
 using namespace fast;
 
@@ -19,7 +18,7 @@ TEST_CASE("Import non-existing file to MetaImageImporter", "[fast][MetaImageImpo
 
 TEST_CASE("Import 2D MetaImage file to host", "[fast][MetaImageImporter]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US/CarotidArtery/Right/US-2D_0.mhd");
+    importer->setFilename(Config::getTestDataPath()+"US/CarotidArtery/Right/US-2D_0.mhd");
     importer->setMainDevice(Host::getInstance());
     importer->update();
     Image::pointer image = importer->getOutputData<Image>(0);
@@ -50,7 +49,7 @@ TEST_CASE("Import 2D MetaImage file to host", "[fast][MetaImageImporter]") {
 
 TEST_CASE("Import 3D MetaImage file to host", "[fast][MetaImageImporter]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US/Ball/US-3Dt_0.mhd");
+    importer->setFilename(Config::getTestDataPath()+"US/Ball/US-3Dt_0.mhd");
     importer->setMainDevice(Host::getInstance());
     importer->update();
     Image::pointer image = importer->getOutputData<Image>(0);
@@ -80,11 +79,11 @@ TEST_CASE("Import 3D MetaImage file to host", "[fast][MetaImageImporter]") {
 }
 
 TEST_CASE("Import MetaImage file to OpenCL device", "[fast][MetaImageImporter]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
 
     MetaImageImporter::pointer importer = MetaImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US/Ball/US-3Dt_0.mhd");
+    importer->setFilename(Config::getTestDataPath()+"US/Ball/US-3Dt_0.mhd");
     importer->setMainDevice(device);
     importer->update();
     Image::pointer image = importer->getOutputData<Image>(0);
@@ -101,16 +100,3 @@ TEST_CASE("Import MetaImage file to OpenCL device", "[fast][MetaImageImporter]")
     CHECK(image->getDataType() == TYPE_UINT8);
 }
 
-/*
-TEST_CASE("Import compressed raw file with MetaImage", "[fast][MetaImageImporter][visual]") {
-    MetaImageImporter::pointer importer = MetaImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US-2D-compressed.mhd");
-    importer->update();
-
-    ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->addInputConnection(importer->getOutputPort());
-    SimpleWindow::pointer window = SimpleWindow::New();
-    window->addRenderer(renderer);
-    window->start();
-}
-*/

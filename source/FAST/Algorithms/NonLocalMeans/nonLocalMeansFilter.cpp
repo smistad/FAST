@@ -17,8 +17,8 @@ using namespace fast;
 int main() {
     // Import image from file using the ImageFileImporter
     ImageImporter::pointer importer = ImageImporter::New();
-    //importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"/skull256.mhd");
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"/grayscaleMirror.jpg");
+    //importer->setFilename(Config::getTestDataPath()+"/skull256.mhd");
+    importer->setFilename(Config::getTestDataPath()+"/grayscaleMirror.jpg");
     
     /*
     //K = 1, dvs K = gamle versjonen, M_PI gaus

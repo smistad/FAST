@@ -13,15 +13,15 @@ TEST_CASE("Update timestamp on DataObject", "[fast][DataObject]") {
 }
 
 TEST_CASE("Calling release on a DataObject that has not been retained by any devices throws an exception", "[fast][DataObject]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     DummyDataObject::pointer data = DummyDataObject::New();
     CHECK_THROWS(data->release(device));
 }
 
 TEST_CASE("Calling retain and then release on DataObject triggers free on that device", "[fast][DataObject]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     DummyDataObject::pointer data = DummyDataObject::New();
     data->retain(device);
     data->release(device);
@@ -29,8 +29,8 @@ TEST_CASE("Calling retain and then release on DataObject triggers free on that d
 }
 
 TEST_CASE("Calling retain on DataObject on two devices and then release on one device only triggers free on that device", "[fast][DataObject]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     DummyDataObject::pointer data = DummyDataObject::New();
     Host::pointer host = Host::getInstance();
     data->retain(device);
@@ -41,8 +41,8 @@ TEST_CASE("Calling retain on DataObject on two devices and then release on one d
 }
 
 TEST_CASE("Calling retain twice on DataObject and then release once should not trigger free on that device", "[fast][DataObject]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     DummyDataObject::pointer data = DummyDataObject::New();
     data->retain(device);
     data->retain(device);
@@ -51,8 +51,8 @@ TEST_CASE("Calling retain twice on DataObject and then release once should not t
 }
 
 TEST_CASE("Calling retain twice on DataObject and then release twice triggers free on that device", "[fast][DataObject]") {
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     DummyDataObject::pointer data = DummyDataObject::New();
     data->retain(device);
     data->retain(device);

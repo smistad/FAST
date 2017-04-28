@@ -39,6 +39,36 @@ uint IGTLinkStreamer::getNrOfFrames() const {
     return mNrOfFrames;
 }
 
+std::set<std::string> IGTLinkStreamer::getImageStreamNames() {
+    return mImageStreamNames;
+}
+
+std::set<std::string> IGTLinkStreamer::getTransformStreamNames() {
+    return mTransformStreamNames;
+}
+
+std::string IGTLinkStreamer::getStreamDescription(std::string streamName) {
+    return mStreamDescriptions.at(streamName);
+}
+
+std::vector<std::string> IGTLinkStreamer::getActiveImageStreamNames() {
+    std::vector<std::string> activeStreams;
+    for(auto stream : mOutputPortDeviceNames) {
+        if(mImageStreamNames.count(stream.first) > 0)
+            activeStreams.push_back(stream.first);
+    }
+    return activeStreams;
+}
+
+std::vector<std::string> IGTLinkStreamer::getActiveTransformStreamNames() {
+    std::vector<std::string> activeStreams;
+    for(auto stream : mOutputPortDeviceNames) {
+        if(mTransformStreamNames.count(stream.first) > 0)
+            activeStreams.push_back(stream.first);
+    }
+    return activeStreams;
+}
+
 inline Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer message, ExecutionDevice::pointer device) {
     Image::pointer image = Image::New();
     int width, height, depth;
@@ -116,25 +146,7 @@ void IGTLinkStreamer::updateFirstFrameSetFlag() {
 }
 
 void IGTLinkStreamer::producerStream() {
-    mSocket = igtl::ClientSocket::New();
-    reportInfo() << "Trying to connect to Open IGT Link server " << mAddress << ":" << std::to_string(mPort) << Reporter::end;;
-    //mSocket->SetTimeout(3); // try to connect for 3 seconds
-    int r = mSocket->ConnectToServer(mAddress.c_str(), mPort);
-    if(r != 0) {
-		reportInfo() << "Failed to connect to Open IGT Link server " << mAddress << ":" << std::to_string(mPort) << Reporter::end;;
-        mIsModified = true;
-        mStreamIsStarted = false;
-        mStop = true;
-        //connectionLostSignal();
-        {
-            std::lock_guard<std::mutex> lock(mFirstFrameMutex);
-			mFirstFrameIsInserted = true;
-        }
-        mFirstFrameCondition.notify_one();
-        reportInfo() << "Connection lost signal sent" << reportEnd();
-        //throw Exception("Cannot connect to the Open IGT Link server.");
-        return;
-    }
+
     reportInfo() << "Connected to Open IGT Link server" << Reporter::end;;
 
     // Create a message buffer to receive header
@@ -182,6 +194,8 @@ void IGTLinkStreamer::producerStream() {
         unsigned long timestamp = round(ts->GetTimeStamp()*1000); // convert to milliseconds
         reportInfo() << "TIMESTAMP converted: " << timestamp << reportEnd();
         if(strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0) {
+            mTransformStreamNames.insert(headerMsg->GetDeviceName());
+            mStreamDescriptions[headerMsg->GetDeviceName()] = "Transform";
             if(mInFreezeMode) {
                 //unfreezeSignal();
                 mInFreezeMode = false;
@@ -233,12 +247,13 @@ void IGTLinkStreamer::producerStream() {
                 mNrOfFrames++;
             }
         } else if(strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0) {
+            mImageStreamNames.insert(headerMsg->GetDeviceName());
             if(mInFreezeMode) {
                 //unfreezeSignal();
                 mInFreezeMode = false;
             }
             statusMessageCounter = 0;
-            reportInfo() << "Receiving IMAGE data type." << Reporter::end;
+            reportInfo() << "Receiving IMAGE data type from device " << headerMsg->GetDeviceName() << Reporter::end;
 
             // Create a message buffer to receive transform data
             igtl::ImageMessage::Pointer imgMsg;
@@ -253,6 +268,11 @@ void IGTLinkStreamer::producerStream() {
             // If you want to skip CRC check, call Unpack() without argument.
             int c = imgMsg->Unpack(1);
             if(c & igtl::MessageHeader::UNPACK_BODY) { // if CRC check is OK
+                if(mOutputPortDeviceNames.count("") > 0) {
+                    // If no specific output ports have been specified, choose this first one
+                    mOutputPortDeviceNames[headerMsg->GetDeviceName()] = mOutputPortDeviceNames[""];
+                    mOutputPortDeviceNames.erase("");
+                }
                 // Retrive the image data
                 int size[3]; // image dimension
                 float spacing[3]; // spacing (mm/pixel)
@@ -263,6 +283,15 @@ void IGTLinkStreamer::producerStream() {
                 imgMsg->GetDimensions(size);
                 imgMsg->GetSpacing(spacing);
                 imgMsg->GetSubVolume(svsize, svoffset);
+
+                std::string description = "";
+                if(size[2] == 1) {
+                    description = "2D, " + std::to_string(size[0]) + "x" + std::to_string(size[1]);
+                } else {
+                    description = "3D, " + std::to_string(size[0]) + "x" + std::to_string(size[1]) + "x" + std::to_string(size[2]);
+                }
+                description += ", " + std::to_string(imgMsg->GetNumComponents()) + " channels, " + std::to_string(imgMsg->GetScalarSize()*8) + "bit";
+                mStreamDescriptions[headerMsg->GetDeviceName()] = description;
 
                 DynamicData::pointer ptr;
                 try {
@@ -336,6 +365,7 @@ void IGTLinkStreamer::producerStream() {
     }
     mFirstFrameCondition.notify_one();
     mSocket->CloseSocket();
+    reportInfo() << "OpenIGTLink socket closed" << reportEnd();
 }
 
 IGTLinkStreamer::~IGTLinkStreamer() {
@@ -377,6 +407,13 @@ void IGTLinkStreamer::execute() {
         for(uint i = 0; i < getNrOfOutputPorts(); i++) {
             DynamicData::pointer data = ProcessObject::getOutputPort(i).getData();
             data->setMaximumNumberOfFrames(mMaximumNrOfFrames);
+        }
+
+        mSocket = igtl::ClientSocket::New();
+        reportInfo() << "Trying to connect to Open IGT Link server " << mAddress << ":" << std::to_string(mPort) << Reporter::end;
+        int r = mSocket->ConnectToServer(mAddress.c_str(), mPort);
+        if(r != 0) {
+            throw Exception("Failed to connect to Open IGT Link server " + mAddress + ":" + std::to_string(mPort));
         }
 
         mStreamIsStarted = true;

@@ -5,15 +5,23 @@ fast_add_sources(
     MetaImageExporter.hpp
     VTKMeshFileExporter.cpp
     VTKMeshFileExporter.hpp
+    FileExporter.cpp
+    FileExporter.hpp
+    StreamExporter.cpp
+    StreamExporter.hpp
 )
 fast_add_python_interfaces(
 	VTKMeshFileExporter.i
 )
 fast_add_test_sources(
-    Tests/ImageExporterTests.cpp
     Tests/MetaImageExporterTests.cpp
     Tests/VTKMeshFileExporterTests.cpp
 )
+if(FAST_MODULE_Visualization)
+fast_add_test_sources(
+    Tests/ImageExporterTests.cpp
+)
+endif()
 if(FAST_VTK_INTEROP)
     fast_add_sources(
         VTKImageExporter.cpp

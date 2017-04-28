@@ -21,14 +21,24 @@ void WindowWidget::closeEvent(QCloseEvent* event) {
 }
 
 WindowWidget::~WindowWidget() {
-    //reportInfo() << "DESTROYING window widget" << Reporter::end;
+    Reporter::info() << "DESTROYING window widget and all related views" << Reporter::end;
+    for(View* view : mViews) {
+        delete view;
+    }
 }
 
 WindowWidget::WindowWidget() {
+    setWindowTitle("FAST");
 }
 
-void WindowWidget::addView(View* view) {
+View* WindowWidget::addView() {
+    View* view = new View();
     mViews.push_back(view);
+    return view;
+}
+
+void WindowWidget::clearViews() {
+    mViews.clear();
 }
 
 std::vector<View*> WindowWidget::getViews() const {

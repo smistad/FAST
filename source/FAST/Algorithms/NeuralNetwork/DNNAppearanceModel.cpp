@@ -10,7 +10,7 @@ namespace fast {
 DNNAppearanceModel::DNNAppearanceModel() {
 	createInputPort<Image>(0);
 	createOutputPort<Mesh>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-	createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/NeuralNetwork/DNNAppearanceModel.cl");
+	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/NeuralNetwork/DNNAppearanceModel.cl");
 	mMirrorImage = false;
 	mObjectsLoaded = false;
 }

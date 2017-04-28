@@ -12,11 +12,19 @@ if(FAST_MODULE_OpenIGTLink)
     fast_add_sources(
         IGTLinkStreamer.hpp
         IGTLinkStreamer.cpp
-    )
-    fast_add_test_sources(
-        Tests/IGTLinkStreamerTests.cpp
         Tests/DummyIGTLServer.cpp
         Tests/DummyIGTLServer.hpp
+    )
+    if(FAST_MODULE_Visualization)
+    fast_add_test_sources(
+        Tests/IGTLinkStreamerTests.cpp
+    )
+    endif()
+endif()
+if(FAST_MODULE_Kinect)
+    fast_add_sources(
+        KinectStreamer.cpp
+        KinectStreamer.hpp
     )
 endif()
 fast_add_test_sources(

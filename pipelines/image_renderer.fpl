@@ -1,0 +1,7 @@
+PipelineName "Image renderer"
+PipelineDescription "Only image renderer"
+
+Renderer renderer ImageRenderer
+Input 0 PipelineInput
+Attribute window 255
+Attribute level 127.5 

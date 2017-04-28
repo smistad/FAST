@@ -6,14 +6,14 @@
 #include "FAST/Importers/VTKLineSetFileImporter.hpp"
 #include "FAST/Visualization/LineRenderer/LineRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
-#include "FAST/TestDataPath.hpp"
+
 
 using namespace fast;
 
 int main() {
     // Import line set from vtk file
     VTKLineSetFileImporter::pointer importer = VTKLineSetFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "centerline.vtk");
+    importer->setFilename(Config::getTestDataPath() + "centerline.vtk");
 
     // Renderer image
     LineRenderer::pointer renderer = LineRenderer::New();

@@ -118,18 +118,22 @@ if(WIN32)
   endif()
 else()
   find_library(OpenCL_LIBRARY
-    NAMES OpenCL)
+    NAMES OpenCL
+    PATHS
+      /usr/local/cuda/lib64
+      ENV AMDAPPSDKROOT/lib/sdk
+      /opt/amdgpu-pro/lib/x86_64-linux-gnu/
+    )
 endif()
 
 set(OpenCL_LIBRARIES ${OpenCL_LIBRARY})
 set(OpenCL_INCLUDE_DIRS ${OpenCL_INCLUDE_DIR})
-message(STATUS "OpenCL_INCLUDE_DIRS " ${OpenCL_INCLUDE_DIRS})
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(
   OpenCL
   FOUND_VAR OpenCL_FOUND
-  REQUIRED_VARS OpenCL_LIBRARY OpenCL_INCLUDE_DIR
+  REQUIRED_VARS OpenCL_LIBRARY 
   VERSION_VAR OpenCL_VERSION_STRING)
 
 mark_as_advanced(

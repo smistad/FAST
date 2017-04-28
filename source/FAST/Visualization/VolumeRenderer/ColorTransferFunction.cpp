@@ -1,4 +1,3 @@
-//#include <GL/glew.h>
 #include "ColorTransferFunction.hpp"
 #include "FAST/Data/Image.hpp"
 #include <limits.h>
@@ -42,7 +41,7 @@ double ColorTransferFunction::getXMin(){
 VolumeRenderer::VolumeRenderer() : Renderer() {
 
 	
-    mDevice = boost::static_pointer_cast<OpenCLDevice>(DeviceManager::getInstance().getDefaultVisualizationDevice());
+    mDevice = boost::static_pointer_cast<OpenCLDevice>(DeviceManager::getInstance()->getDefaultVisualizationDevice());
 
 
 	updated=false;
@@ -111,7 +110,6 @@ void VolumeRenderer::execute() {
 
     setOpenGLContext(mDevice->getGLContext());
 
-    glewInit();
     glEnable(GL_NORMALIZE);
     glEnable(GL_DEPTH_TEST);
     // Set background color

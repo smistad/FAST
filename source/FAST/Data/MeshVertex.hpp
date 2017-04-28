@@ -2,6 +2,7 @@
 #define MESHVERTEX_HPP_
 
 #include "DataTypes.hpp"
+#include "Color.hpp"
 #include <vector>
 
 namespace fast {
@@ -19,10 +20,13 @@ class MeshVertex {
 		std::vector<int> getConnections() const;
 		void addConnection(int index);
 		void setLabel(int label);
-		int getLabel();
+		int getLabel() const;
+		void setColor(Color color);
+		Color getColor() const;
     private:
         VectorXf mPosition;
         VectorXf mNormal;
+		Color mColor;
         int mLabel;
         std::vector<int> mConnections;
 };

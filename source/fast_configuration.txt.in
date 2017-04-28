@@ -1,0 +1,12 @@
+## FAST Configuration file
+#TestDataPath = /path/to/data/
+#KernelSourcePath = /path/to/kernel/source/FAST/
+#KernelBinaryPath = /path/to/kernel/binary/
+#DocumentationPath = /path/to/doc/
+#PipelinePath = /path/to/pipeline/
+
+@CONFIG_TEST_DATA_PATH@
+@CONFIG_KERNEL_SOURCE_PATH@
+@CONFIG_KERNEL_BINARY_PATH@
+@CONFIG_DOCUMENTATION_PATH@
+@CONFIG_PIPELINE_PATH@

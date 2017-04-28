@@ -18,6 +18,7 @@ class Renderer : public ProcessObject {
     public:
         typedef SharedPointer<Renderer> pointer;
         virtual void draw() = 0;
+        virtual void addInputConnection(ProcessObjectPort port);
         virtual BoundingBox getBoundingBox() = 0;
         void setIntensityLevel(float level);
         float getIntensityLevel();

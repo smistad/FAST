@@ -35,10 +35,8 @@ class SegmentationRenderer : public Renderer {
         bool mFillAreaModified;
 
         std::unordered_map<uint, Image::pointer> mImagesToRender;
-        std::unordered_map<uint, GLuint> mTexturesToRender;
-        std::unordered_map<uint, Image::pointer> mImageUsed;
-        std::unordered_map<Segmentation::LabelType, Color> mLabelColors;
-        std::unordered_map<Segmentation::LabelType, bool> mLabelFillArea;
+        std::unordered_map<int, Color> mLabelColors;
+        std::unordered_map<int, bool> mLabelFillArea;
         bool mFillArea;
         cl::Buffer mColorBuffer, mFillAreaBuffer;
         std::mutex mMutex;

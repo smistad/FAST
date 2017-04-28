@@ -36,7 +36,7 @@ TEST_CASE("Wrong filename format given to ImageFileStreamer", "[fast][ImageFileS
 TEST_CASE("ImageFileStreamer streaming to host with streaming mode NEWEST set", "[fast][ImageFileStreamer]") {
     DummyProcessObject::pointer PO = DummyProcessObject::New();
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
-    mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US/Ball/US-3Dt_#.mhd");
+    mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"US/Ball/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     mhdStreamer->setMainDevice(Host::getInstance());
     CHECK_NOTHROW(
@@ -58,7 +58,7 @@ TEST_CASE("ImageFileStreamer streaming to host with streaming mode NEWEST set", 
 TEST_CASE("ImageFileStreamer streaming to host with streaming mode PROCESS_ALL set", "[fast][ImageFileStreamer]") {
     DummyProcessObject::pointer PO = DummyProcessObject::New();
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
-    mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US/Ball/US-3Dt_#.mhd");
+    mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"US/Ball/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     mhdStreamer->setMainDevice(Host::getInstance());
     CHECK_NOTHROW(
@@ -80,7 +80,7 @@ TEST_CASE("ImageFileStreamer streaming to host with streaming mode PROCESS_ALL s
 TEST_CASE("ImageFileStreamer streaming to host with streaming mode STORE_ALL set", "[fast][ImageFileStreamer]") {
     DummyProcessObject::pointer PO = DummyProcessObject::New();
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
-    mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US/Ball/US-3Dt_#.mhd");
+    mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"US/Ball/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
     mhdStreamer->setMainDevice(Host::getInstance());
     CHECK_NOTHROW(
@@ -103,7 +103,7 @@ TEST_CASE("ImageFileStreamer streaming to host with streaming mode STORE_ALL set
 TEST_CASE("ImageFileStreamer with streaming mode STORE_ALL and maximum number of frames throws when limit is reached", "[fast][ImageFileStreamer]") {
     DummyProcessObject::pointer PO = DummyProcessObject::New();
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
-    mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US/Ball/US-3Dt_#.mhd");
+    mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"US/Ball/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
     mhdStreamer->setMaximumNumberOfFrames(4);
     mhdStreamer->setMainDevice(Host::getInstance());
@@ -127,7 +127,7 @@ TEST_CASE("ImageFileStreamer with streaming mode STORE_ALL and maximum number of
 TEST_CASE("ImageFileStreamer with streaming mode PROCESS_ALL and maximum number of frames stops producing when limit is reached", "[fast][ImageFileStreamer]") {
     DummyProcessObject::pointer PO = DummyProcessObject::New();
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
-    mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US/Ball/US-3Dt_#.mhd");
+    mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"US/Ball/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     mhdStreamer->setMaximumNumberOfFrames(4);
     mhdStreamer->setMainDevice(Host::getInstance());
@@ -142,7 +142,7 @@ TEST_CASE("ImageFileStreamer with streaming mode PROCESS_ALL and maximum number 
 TEST_CASE("ImageFileStreamer with streaming mode STORE_ALL and maximum number of frames set", "[fast][ImageFileStreamer]") {
     DummyProcessObject::pointer PO = DummyProcessObject::New();
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
-    mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US/Ball/US-3Dt_#.mhd");
+    mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"US/Ball/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     mhdStreamer->setMaximumNumberOfFrames(4);
     mhdStreamer->setMainDevice(Host::getInstance());
@@ -164,11 +164,11 @@ TEST_CASE("ImageFileStreamer with streaming mode STORE_ALL and maximum number of
 
 TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode NEWEST set", "[fast][ImageFileStreamer]") {
     DummyProcessObject::pointer PO = DummyProcessObject::New();
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
-    mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US/Ball/US-3Dt_#.mhd");
+    mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"US/Ball/US-3Dt_#.mhd");
     mhdStreamer->setMainDevice(device);
     CHECK_NOTHROW(
     mhdStreamer->update(); // this starts the streamer
@@ -188,10 +188,10 @@ TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode NEWE
 
 TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode PROCESS_ALL set", "[fast][ImageFileStreamer]") {
     DummyProcessObject::pointer PO = DummyProcessObject::New();
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
-    mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US/Ball/US-3Dt_#.mhd");
+    mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"US/Ball/US-3Dt_#.mhd");
     mhdStreamer->setMainDevice(device);
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     CHECK_NOTHROW(
@@ -212,10 +212,10 @@ TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode PROC
 
 TEST_CASE("ImageFileStreamer streaming to OpenCL device with streaming mode STORE_ALL set", "[fast][ImageFileStreamer]") {
     DummyProcessObject::pointer PO = DummyProcessObject::New();
-    DeviceManager& deviceManager = DeviceManager::getInstance();
-    OpenCLDevice::pointer device = deviceManager.getOneOpenCLDevice();
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
-    mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US/Ball/US-3Dt_#.mhd");
+    mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"US/Ball/US-3Dt_#.mhd");
     mhdStreamer->setMainDevice(device);
     mhdStreamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
     CHECK_NOTHROW(

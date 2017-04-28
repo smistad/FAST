@@ -2,6 +2,8 @@ fast_add_sources(
 	AirwaySegmentation.cpp
 	AirwaySegmentation.hpp
 )
+if(FAST_MODULE_Visualization)
 fast_add_test_sources(
 	airwaySegmentationTests.cpp
 )
+endif()

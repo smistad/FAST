@@ -1,8 +1,12 @@
-#include <GL/glew.h>
 #include "Mesh.hpp"
-#include "FAST/Visualization/SimpleWindow.hpp"
-#include <QApplication>
 #include <thread>
+#include "FAST/Utility.hpp"
+
+#ifdef FAST_MODULE_VISUALIZATION
+#include "FAST/Visualization/Window.hpp"
+#include <QApplication>
+#include <QOpenGLFunctions_3_3_Core>
+#endif
 
 
 #if defined(__APPLE__) || defined(__MACOSX)
@@ -115,28 +119,27 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
     }
     if(!mVBOHasData) {
         // VBO has not allocated data: Create VBO
-        // Have to have a drawable available before glewInit and glGenBuffers
+#ifdef FAST_MODULE_VISUALIZATION
 #if defined(__APPLE__) || defined(__MACOSX)
 #else
 #if _WIN32
 #else
         // If no Window is present, create a dummy gl context
         if(!QApplication::instance()) { // TODO make this work on all platforms
-            SimpleWindow::initializeQtApp();
+            Window::initializeQtApp();
 
             // Need a drawable for this to work
-            QGLWidget* widget = new QGLWidget;
-            widget->show();
-            widget->hide(); // TODO should probably delete widget as well
-            reportInfo() << "created a drawable" << Reporter::end;
+            //QGLWidget* widget = new QGLWidget;
+            //widget->show();
+            //widget->hide(); // TODO should probably delete widget as well
+            //reportInfo() << "created a drawable" << Reporter::end;
         }
 #endif
 #endif
-        GLenum err = glewInit();
-        if(err != GLEW_OK)
-            throw Exception("GLEW init error");
-        glGenBuffers(1, &mVBOID);
-        glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
+        QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
+        fun->initializeOpenGLFunctions();
+        fun->glGenBuffers(1, &mVBOID);
+        fun->glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
         if(mHostHasData) {
             // If host has data, transfer it.
             // Create data arrays with vertices and normals interleaved
@@ -155,12 +158,12 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
                     counter += 6;
                 }
             }
-            glBufferData(GL_ARRAY_BUFFER, mNrOfConnections*18*sizeof(float), data, GL_STATIC_DRAW);
+            fun->glBufferData(GL_ARRAY_BUFFER, mNrOfConnections*18*sizeof(float), data, GL_STATIC_DRAW);
             delete[] data;
         } else {
-            glBufferData(GL_ARRAY_BUFFER, mNrOfConnections*18*sizeof(float), NULL, GL_STATIC_DRAW);
+            fun->glBufferData(GL_ARRAY_BUFFER, mNrOfConnections*18*sizeof(float), NULL, GL_STATIC_DRAW);
         }
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        fun->glBindBuffer(GL_ARRAY_BUFFER, 0);
         glFinish();
         if(glGetError() == GL_OUT_OF_MEMORY) {
         	throw Exception("OpenGL out of memory while creating mesh data for VBO");
@@ -170,7 +173,9 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
 
         mVBOHasData = true;
         mVBODataIsUpToDate = true;
-
+#else
+        throw Exception("Creating mesh with VBO is disabled as FAST module visualization is disabled.");
+#endif
     } else {
         if(!mVBODataIsUpToDate) {
             // TODO Update data
@@ -229,14 +234,17 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
         updateModifiedTimestamp();
     }
     if(!mHostHasData) {
+#ifdef FAST_MODULE_VISUALIZATION
         // Host has not allocated data
     	if(mDimensions == 2)
     		throw Exception("Not implemented for 2D");
         // Get all vertices with normals from VBO (including duplicates)
         float* data = new float[mNrOfConnections*18];
-        glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
-        glGetBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float)*mNrOfConnections*18, data);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
+        fun->initializeOpenGLFunctions();
+        fun->glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
+        fun->glGetBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float)*mNrOfConnections*18, data);
+        fun->glBindBuffer(GL_ARRAY_BUFFER, 0);
         std::vector<MeshVertex> vertices;
         std::vector<VectorXui> triangles;
         std::unordered_map<MeshVertex, uint, KeyHasher> vertexList;
@@ -278,6 +286,9 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
         mHostHasData = true;
         mHostDataIsUpToDate = true;
         delete[] data;
+#else
+        throw Exception("Creating mesh with VBO is disabled as FAST module visualization is disabled.");
+#endif
     } else {
         if(!mHostDataIsUpToDate) {
             throw Exception("Not implemented yet!");
@@ -410,13 +421,20 @@ Mesh::Mesh() {
 void Mesh::freeAll() {
     // TODO finish
     if(mVBOHasData) {
+#ifdef FAST_MODULE_VISUALIZATION
+        Window::getMainGLContext()->makeCurrent(); // Need an active context to delete the mesh VBO
+        QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
+        fun->initializeOpenGLFunctions();
         // glDeleteBuffer is not used due to multi-threading issues..
-        //glDeleteBuffers(1, &mVBOID);
-        glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
+        fun->glDeleteBuffers(1, &mVBOID);
+
+        // OLD delete method:
+        //fun->glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
         // This should delete the data, by replacing it with 1 byte buffer
         // Ideally it should be 0, but then the data is not deleted..
-        glBufferData(GL_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        //fun->glBufferData(GL_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
+        //fun->glBindBuffer(GL_ARRAY_BUFFER, 0);
+#endif
     }
     mVBOHasData = false;
 

@@ -10,7 +10,7 @@ using namespace fast;
 
 TEST_CASE("Landmark detection", "[fast][DNNAppearanceModel][visual]") {
 	ImageFileImporter::pointer importer = ImageFileImporter::New();
-	importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US/FemoralArtery/Right/US-Acq_03_20150608T103739_Image_Transducer_100.mhd");
+	importer->setFilename(Config::getTestDataPath() + "US/FemoralArtery/Right/US-Acq_03_20150608T103739_Image_Transducer_100.mhd");
 	DNNAppearanceModel::pointer detector = DNNAppearanceModel::New();
 	detector->setInputConnection(importer->getOutputPort());
 	detector->loadNetworkAndWeights("/home/smistad/workspace/DNN-AM/femoral_appearance_model_net2/net_deploy.prototxt",

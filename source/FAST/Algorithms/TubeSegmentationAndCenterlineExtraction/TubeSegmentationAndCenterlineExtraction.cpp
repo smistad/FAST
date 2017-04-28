@@ -18,7 +18,7 @@ TubeSegmentationAndCenterlineExtraction::TubeSegmentationAndCenterlineExtraction
     createOutputPort<LineSet>(1, OUTPUT_DEPENDS_ON_INPUT, 0);
     createOutputPort<Image>(2, OUTPUT_DEPENDS_ON_INPUT, 0);
 
-    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/TubeSegmentationAndCenterlineExtraction/TubeSegmentationAndCenterlineExtraction.cl");
+    createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/TubeSegmentationAndCenterlineExtraction/TubeSegmentationAndCenterlineExtraction.cl");
 
     mSensitivity = 0.5;
     mMinimumRadius = 1;

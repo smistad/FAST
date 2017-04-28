@@ -1,13 +1,13 @@
 #include "FAST/Testing.hpp"
-#include "FAST/Importers/ImageImporter.hpp"
+#include "FAST/Importers/ImageFileImporter.hpp"
 #include "DoubleFilter.hpp"
 #include "FAST/Data/Image.hpp"
 
 using namespace fast;
 
 TEST_CASE("DoubleFilter on OpenCL device", "[fast][DoubleFilter]") {
-    ImageImporter::pointer importer = ImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US/US-2D.jpg");
+    ImageFileImporter::pointer importer = ImageFileImporter::New();
+    importer->setFilename(Config::getTestDataPath()+"US/Heart/ApicalFourChamber/US-2D_0.mhd");
 
     DoubleFilter::pointer filter = DoubleFilter::New();
     filter->setInputConnection(importer->getOutputPort());
@@ -20,11 +20,12 @@ TEST_CASE("DoubleFilter on OpenCL device", "[fast][DoubleFilter]") {
     ImageAccess::pointer inputAccess = input->getImageAccess(ACCESS_READ);
     ImageAccess::pointer outputAccess = output->getImageAccess(ACCESS_READ);
 
-    float* inputData = (float*)inputAccess->get();
-    float* outputData = (float*)outputAccess->get();
+    uchar* inputData = (uchar*)inputAccess->get();
+    uchar* outputData = (uchar*)outputAccess->get();
     bool success = true;
     for(unsigned int i = 0; i < input->getWidth()*input->getHeight(); i++) {
-        if(fabs(inputData[i]*2-outputData[i]) > 0.001) {
+        uchar result = inputData[i]*2;
+        if(result != outputData[i]) {
             success = false;
             break;
         }
@@ -33,8 +34,8 @@ TEST_CASE("DoubleFilter on OpenCL device", "[fast][DoubleFilter]") {
 }
 
 TEST_CASE("DoubleFilter on Host", "[fast][DoubleFilter]") {
-    ImageImporter::pointer importer = ImageImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"US/US-2D.jpg");
+    ImageFileImporter::pointer importer = ImageFileImporter::New();
+    importer->setFilename(Config::getTestDataPath()+"US/Heart/ApicalFourChamber/US-2D_0.mhd");
 
     DoubleFilter::pointer filter = DoubleFilter::New();
     filter->setInputConnection(importer->getOutputPort());
@@ -49,11 +50,12 @@ TEST_CASE("DoubleFilter on Host", "[fast][DoubleFilter]") {
     ImageAccess::pointer inputAccess = input->getImageAccess(ACCESS_READ);
     ImageAccess::pointer outputAccess = output->getImageAccess(ACCESS_READ);
 
-    float* inputData = (float*)inputAccess->get();
-    float* outputData = (float*)outputAccess->get();
+    uchar* inputData = (uchar*)inputAccess->get();
+    uchar* outputData = (uchar*)outputAccess->get();
     bool success = true;
     for(unsigned int i = 0; i < input->getWidth()*input->getHeight(); i++) {
-        if(fabs(inputData[i]*2-outputData[i]) > 0.001) {
+        uchar result = inputData[i]*2;
+        if(result != outputData[i]) {
             success = false;
             break;
         }

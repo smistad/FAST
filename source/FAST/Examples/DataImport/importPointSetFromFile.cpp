@@ -6,14 +6,14 @@
 #include "FAST/Importers/VTKPointSetFileImporter.hpp"
 #include "FAST/Visualization/PointRenderer/PointRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
-#include "FAST/TestDataPath.hpp"
+
 
 using namespace fast;
 
 int main() {
     // Import line set from vtk file
     VTKPointSetFileImporter::pointer importer = VTKPointSetFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "Surface_LV.vtk");
+    importer->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
 
     // Renderer image
     PointRenderer::pointer renderer = PointRenderer::New();

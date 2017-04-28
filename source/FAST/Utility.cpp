@@ -1,7 +1,19 @@
 #include "FAST/Utility.hpp"
+#include "FAST/Config.hpp"
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <regex>
+#ifdef _WIN32
+#else
+// Needed for making directory
+#include <sys/types.h>
+#include <sys/stat.h>
+#if defined(__APPLE__) || defined(__MACOSX)
+#include <OpenGL/gl.h>
+#else
+#include <GL/gl.h>
+#endif
+#endif
 
 namespace fast {
 
@@ -13,8 +25,9 @@ double round(double n) {
 	return (n - floor(n) > 0.5) ? ceil(n) : floor(n);
 }
 
-int pow(int a, int b) {
-    return (int)std::pow((double)a, (double)b);
+double round(double n, int decimals) {
+    int factor = decimals*10;
+    return round(n*factor)/factor;
 }
 
 void* allocateDataArray(unsigned int voxels, DataType type, unsigned int nrOfComponents) {
@@ -83,7 +96,7 @@ void getIntensitySumFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D im
         buildOptions = "-DTYPE_INT16";
         break;
     }
-    std::string sourceFilename = std::string(FAST_SOURCE_DIR) + "/ImageSum.cl";
+    std::string sourceFilename = Config::getKernelSourcePath() + "/ImageSum.cl";
     std::string programName = sourceFilename + buildOptions;
     // Only create program if it doesn't exist for this device from before
     if(!device->hasProgram(programName))
@@ -163,7 +176,7 @@ void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image
         buildOptions = "-DTYPE_INT16";
         break;
     }
-    std::string sourceFilename = std::string(FAST_SOURCE_DIR) + "/ImageMinMax.cl";
+    std::string sourceFilename = Config::getKernelSourcePath() + "/ImageMinMax.cl";
     std::string programName = sourceFilename + buildOptions;
     // Only create program if it doesn't exist for this device from before
     if(!device->hasProgram(programName))
@@ -264,7 +277,13 @@ void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D image
         buildOptions = "-DTYPE_INT16";
         break;
     }
-    std::string sourceFilename = std::string(FAST_SOURCE_DIR) + "/ImageMinMax.cl";
+    // Add fast_3d_image_writes flag if it is supported
+    if(device->isWritingTo3DTexturesSupported()) {
+        if(buildOptions.size() > 0)
+            buildOptions += " ";
+        buildOptions += "-Dfast_3d_image_writes";
+    }
+    std::string sourceFilename = Config::getKernelSourcePath() + "/ImageMinMax.cl";
     std::string programName = sourceFilename + buildOptions;
     // Only create program if it doesn't exist for this device from before
     if(!device->hasProgram(programName))
@@ -348,7 +367,7 @@ void getMaxAndMinFromOpenCLBuffer(OpenCLDevice::pointer device, cl::Buffer buffe
         buildOptions = "-DTYPE_INT16";
         break;
     }
-    std::string sourceFilename = std::string(FAST_SOURCE_DIR) + "/ImageMinMax.cl";
+    std::string sourceFilename = Config::getKernelSourcePath() + "/ImageMinMax.cl";
     std::string programName = sourceFilename + buildOptions;
     // Only create program if it doesn't exist for this device from before
     if(!device->hasProgram(programName))
@@ -524,6 +543,16 @@ std::string getCLErrorString(cl_int err) {
     }
 }
 
+std::string replace(std::string str, std::string find, std::string replacement) {
+    while(true) {
+        int pos = str.find(find);
+        if(pos == std::string::npos)
+            break;
+        str.replace(pos, find.size(), replacement);
+    }
+
+    return str;
+}
 
 std::vector<std::string> split(const std::string& input, const std::string& delimiter) {
     // passing -1 as the submatch index parameter performs splitting
@@ -532,6 +561,71 @@ std::vector<std::string> split(const std::string& input, const std::string& deli
             first{input.begin(), input.end(), re, -1},
             last;
     return {first, last};
+}
+
+void loadPerspectiveMatrix(float fovy, float aspect, float zNear, float zFar) {
+	float ymax = zNear * tan(fovy * M_PI / 360.0);
+	float ymin = -ymax;
+	float xmin = ymin * aspect;
+	float xmax = ymax * aspect;
+	glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
+}
+
+void createDirectory(std::string path) {
+    int error = 0;
+#if defined(_WIN32)
+    error = _mkdir(path.c_str()); // can be used on Windows
+#else
+    mode_t nMode = 0733; // UNIX style permissions
+    error = mkdir(path.c_str(), nMode); // can be used on non-Windows
+#endif
+    if (error != 0) {
+        if(error == EEXIST) {
+            throw ExistException("Unable to create directory at " + path + ": Directory already exists.");
+        } else if(error == ENOENT) {
+            throw DoesNotExistException("Unable to create directory at " + path + ": Path was not found.");
+        } else {
+            throw Exception("Unable to create directory at " + path + ": Unknown error.");
+        }
+    }
+}
+
+
+void createDirectories(std::string path) {
+    // Replace \ with / so that this will work on windows
+    path = replace(path, "\\", "/");
+    std::vector<std::string> directories = split(path, "/");
+    std::vector<std::string> filteredDirectories;
+
+    // Fix any path with /../ in path
+    for(int i = 0; i < directories.size(); ++i) {
+        trim(directories[i]);
+        //std::cout << directories[i] << std::endl;
+        if(directories[i] == "..") {
+            // Pop previous
+            filteredDirectories.pop_back();
+        } else if(directories[i].size() > 0) {
+            filteredDirectories.push_back(directories[i]);
+        }
+    }
+
+    directories = filteredDirectories;
+#ifdef _WIN32
+    std::string currentPath = directories[0];
+#else
+    std::string currentPath = "/" + directories[0];
+#endif
+    // Create each directory needed
+    for(int i = 1; i < directories.size(); ++i) {
+        currentPath += "/" + directories[i];
+        try {
+            createDirectory(currentPath);
+        } catch(ExistException &e) {
+            continue;
+        } catch(Exception &e) {
+            continue;
+        }
+    }
 }
 
 } // end namespace fast

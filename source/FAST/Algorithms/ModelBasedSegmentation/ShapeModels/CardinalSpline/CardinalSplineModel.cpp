@@ -317,28 +317,31 @@ void CardinalSplineModel::setControlPoints(std::vector<Vector2f> controlPoints) 
 	mStateSize = 5+2*controlPoints.size();
 
 	    // Create state transition matrices
-    const float dampening = 0.5;
+    const float dampening = 0.25;
 
     mA1 = MatrixXf::Zero(mStateSize,mStateSize);
     mA1(0,0) = 1+dampening; // translation x
     mA1(1,1) = 1+dampening; // translation y
-    mA1(2,2) = 0.5; // scaling x
-    mA1(3,3) = 0.5; // scaling y
-    mA1(4,4) = 0.5; // rotation
+    mA1(2,2) = 0.25; // scaling x
+    mA1(3,3) = 0.25; // scaling y
+    mA1(4,4) = 0.1; // rotation
     for(int i = 5; i < mStateSize; ++i)
-        mA1(i,i) = 0.5;
+        mA1(i,i) = 0.3;
 
     mA2 = MatrixXf::Zero(mStateSize,mStateSize);
     mA2(0,0) = -dampening;
     mA2(1,1) = -dampening;
-    mA2(2,2) = 0.5;
-    mA2(3,3) = 0.5;
-    mA2(4,4) = 0.5;//-dampening;
+    mA2(2,2) = 0.25;
+    mA2(3,3) = 0.25;
+    mA2(4,4) = 0.1;
     for(int i = 5; i < mStateSize; ++i) {
-        mA2(i,i) = 0.5;
+        mA2(i,i) = 0.3;
     }
 
     mA3 = MatrixXf::Zero(mStateSize, mStateSize);
+	for(int i = 2; i < mStateSize; ++i) {
+        mA3(i,i) = 1 - mA1(i,i) - mA2(i,i);
+    }
 
 
 

@@ -1,7 +1,9 @@
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Exception.hpp"
+#include <algorithm>
+#ifdef FAST_MODULE_VISUALIZATION
 #include "FAST/Visualization/Window.hpp"
-#include <QApplication>
+#endif
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
@@ -19,6 +21,7 @@
 namespace fast {
 
 bool DeviceManager::mDisableGLInterop = false;
+DeviceManager* DeviceManager::mInstance = NULL;
 
 inline cl_context_properties* createInteropContextProperties(
         const cl::Platform &platform,
@@ -27,7 +30,6 @@ inline cl_context_properties* createInteropContextProperties(
 #if defined(__APPLE__) || defined(__MACOSX)
     // Apple (untested)
     // TODO: create GL context for Apple
-std::cout << "trying to get share group of gl context" << std::endl;
 CGLSetCurrentContext((CGLContextObj)OpenGLContext);
 CGLShareGroupObj shareGroup = CGLGetShareGroup((CGLContextObj)OpenGLContext);
 if(shareGroup == NULL)
@@ -36,7 +38,6 @@ throw Exception("Not able to get sharegroup");
     cps[0] = CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE;
     cps[1] = (cl_context_properties)shareGroup;
     cps[2] = 0;
-std::cout << "success " << shareGroup << std::endl;
 
 #else
 #ifdef _WIN32
@@ -63,22 +64,39 @@ std::cout << "success " << shareGroup << std::endl;
     return cps;
 }
 
-DeviceManager& DeviceManager::getInstance() {
-    static DeviceManager instance;
-    return instance;
+DeviceManager* DeviceManager::getInstance() {
+    if(mInstance == NULL) {
+#ifdef FAST_MODULE_VISUALIZATION
+        Window::initializeQtApp();
+#endif
+        mInstance = new DeviceManager();
+    }
+
+    return mInstance;
+}
+
+void DeviceManager::deleteInstance() {
+    if(mInstance != NULL) {
+        // TODO this creates a memory leak, but deleting this instance causes seg fault for some reason
+        //delete mInstance;
+        mInstance = NULL;
+    }
 }
 
 std::vector<OpenCLDevice::pointer> DeviceManager::getDevices(DeviceCriteria criteria, bool enableVisualization) {
     unsigned long * glContext = NULL;
-    QGLWidget* widget = NULL;
     if(!isGLInteropEnabled()) {
         enableVisualization = false;
+#ifdef FAST_MODULE_VISUALIZATION
+        fast::Window::getMainGLContext(); // Still have to create GL context
+#endif
     }
     if(enableVisualization) {
         // Create GL context
 
-		// Make sure only one QApplication is created
-		fast::Window::getMainGLContext()->makeCurrent();
+#ifdef FAST_MODULE_VISUALIZATION
+		Window::getMainGLContext()->makeCurrent();
+#endif
 #if defined(__APPLE__) || defined(__MACOSX)
 		CGLContextObj appleContext = CGLGetCurrentContext();
 		reportInfo() << "Initial GL context: " << CGLGetCurrentContext() << Reporter::end;
@@ -104,9 +122,6 @@ std::vector<OpenCLDevice::pointer> DeviceManager::getDevices(DeviceCriteria crit
         OpenCLDevice * device = new OpenCLDevice(deviceVector, glContext);
         executionDevices.push_back(OpenCLDevice::pointer(device));
     }
-
-    // Cleanup widget, widget has to be alive when creating device
-    delete widget;
 
     return executionDevices;
 }
@@ -204,15 +219,16 @@ ExecutionDevice::pointer DeviceManager::getDefaultVisualizationDevice() {
 }
 
 DeviceManager::DeviceManager() {
+    Reporter::info() << "Device manager initialize.." << Reporter::end;
     cl::Platform::get(&platforms);
 
     mDisableGLInterop = false;
     // Only check on linux/mac
 #ifndef _WIN32
-    // TODO If NVIDIA platform is present on linux: disable OpenGL interop
+    // If NVIDIA platform is present on linux: disable OpenGL interop
     for(cl::Platform platform : platforms) {
         if(platform.getInfo<CL_PLATFORM_VENDOR>().find("NVIDIA") != std::string::npos) {
-            reportWarning() << "NVIDIA platform was detecteing, disabling OpenGL interop" << reportEnd();
+            reportWarning() << "NVIDIA platform was detected, disabling OpenGL interop" << reportEnd();
             mDisableGLInterop = true;
         }
     }
@@ -220,6 +236,11 @@ DeviceManager::DeviceManager() {
 
     // Set one random device as default device
     setDefaultDevice(getOneOpenCLDevice(true));
+
+    OpenCLDevice::pointer device = getDefaultComputationDevice();
+    if(!device->isWritingTo3DTexturesSupported()) {
+        reportWarning() << "Writing to directly to 3D textures/images is not supported on main device" << reportEnd();
+    }
 }
 
 bool DeviceManager::isGLInteropEnabled() {
@@ -252,7 +273,9 @@ bool DeviceManager::deviceHasOpenGLInteropCapability(const cl::Device &device) {
     cl::Platform platform = device.getInfo<CL_DEVICE_PLATFORM>();
     // Get all devices that are capable of OpenGL interop with this platform
     // Create properties for CL-GL context
-		fast::Window::getMainGLContext()->makeCurrent();
+#ifdef FAST_MODULE_VISUALIZATION
+		Window::getMainGLContext()->makeCurrent();
+#endif
 		unsigned long* glContext;
 #if defined(__APPLE__) || defined(__MACOSX)
 		CGLContextObj appleContext = CGLGetCurrentContext();
@@ -270,13 +293,9 @@ bool DeviceManager::deviceHasOpenGLInteropCapability(const cl::Device &device) {
 #endif
 #if defined(__APPLE__) || defined(__MACOSX)
 
-std::cout << glContext << std::endl;
-std::cout << CGLGetCurrentContext() << std::endl;
-std::cout << "trying to get share group of gl context" << std::endl;
 CGLShareGroupObj shareGroup = CGLGetShareGroup((CGLContextObj)glContext);
 if(shareGroup == NULL)
 throw Exception("Not able to get sharegroup");
-std::cout << "success " << shareGroup << std::endl;
 
     cl_context_properties cps[] = {
         CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE,
@@ -293,7 +312,6 @@ std::cout << "success " << shareGroup << std::endl;
   clGetContextInfo(clContext, CL_CONTEXT_DEVICES, 0, NULL, &size);
 
   num_devices = size / sizeof(cl_device_id);
-std::cout << num_devices << "!!!!!!!" << std::endl;
 */
     clGetGLContextInfoAPPLE(clContext, glContext, CL_CGL_DEVICE_FOR_CURRENT_VIRTUAL_SCREEN_APPLE, 32 * sizeof(cl_device_id), &cl_gl_device_ids, &returnSize);
 
@@ -459,7 +477,7 @@ std::vector<cl::Device> DeviceManager::getDevicesForBestPlatform(
             devicePlatformVendorMismatch[i] = devicePlatformMismatch(
                     platformDevices[i].second[j], platformDevices[i].first);
             if (devicePlatformVendorMismatch[i]) {
-            	//reporter.report("A device-platform mismatch was detected.", INFO);
+            	reportInfo() << "A device-platform mismatch was detected." << reportEnd();
             }
         }
     }
@@ -554,10 +572,22 @@ std::vector<PlatformDevices> DeviceManager::getDevices(
     // Create a vector of devices for each platform
     std::vector<PlatformDevices> platformDevices;
     for (int i = 0; i < validPlatforms.size(); i++) {
+        std::vector<cl::Device> devices;
     	reportInfo() << "Platform " << i << ": " <<  validPlatforms[i].getInfo<CL_PLATFORM_VENDOR>() << Reporter::end;
 
+        try {
+            reportInfo() << "This platform has " << validPlatforms[i].getDevices(CL_DEVICE_TYPE_ALL, &devices) <<
+                         " available devices in total" << reportEnd();
+        } catch(cl::Error &error) {
+            throw Exception("There was an error while getting OpenCL devices: " + std::string(error.what()));
+        }
+
+        if(devices.size() == 0) {
+            reportInfo() << "No devices found for this platform, skipping to next." << reportEnd();
+            continue;
+        }
+
         // Next, get all devices of correct type for each of those platforms
-        std::vector<cl::Device> devices;
         cl_device_type deviceType;
         if (deviceCriteria.getTypeCriteria() == DEVICE_TYPE_ANY) {
             deviceType = CL_DEVICE_TYPE_ALL;
@@ -572,9 +602,9 @@ std::vector<PlatformDevices> DeviceManager::getDevices(
         try {
             validPlatforms[i].getDevices(deviceType, &devices);
         } catch (cl::Error &error) {
-            // Do nothing?
+            throw Exception("There was an error while getting OpenCL devices: " + std::string(error.what()));
         }
-        reportInfo() << devices.size() << " devices found for this platform." << Reporter::end;
+        reportInfo() << devices.size() << " selected." << Reporter::end;
 
         // Go through each device and see if they have the correct capabilities (if any)
         std::vector<cl::Device> acceptedDevices;

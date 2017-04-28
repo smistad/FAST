@@ -2,7 +2,7 @@
 #define POINT_RENDERER_HPP_
 
 #include "FAST/Visualization/Renderer.hpp"
-#include "FAST/Data/PointSet.hpp"
+#include "FAST/Data/Mesh.hpp"
 #include "FAST/Data/Color.hpp"
 #include <mutex>
 
@@ -13,8 +13,8 @@ class PointRenderer : public Renderer {
     public:
         void addInputConnection(ProcessObjectPort port);
         void addInputConnection(ProcessObjectPort port, Color color, float size);
-        void addInputData(PointSet::pointer data);
-        void addInputData(PointSet::pointer data, Color color, float size);
+        void addInputData(Mesh::pointer data);
+        void addInputData(Mesh::pointer data, Color color, float size);
         void setDefaultColor(Color color);
         void setDefaultSize(float size);
         void setDefaultDrawOnTop(bool drawOnTop);
@@ -38,10 +38,11 @@ class PointRenderer : public Renderer {
         float mDefaultPointSize;
         Color mDefaultColor;
         bool mDefaultDrawOnTop;
+        bool mDefaultColorSet;
         std::unordered_map<ProcessObjectPort, float> mInputSizes;
         std::unordered_map<ProcessObjectPort, Color> mInputColors;
         std::unordered_map<ProcessObjectPort, bool> mInputDrawOnTop;
-        std::unordered_map<uint, PointSet::pointer> mPointSetsToRender;
+        std::unordered_map<uint, Mesh::pointer> mPointSetsToRender;
         std::mutex mMutex;
 };
 

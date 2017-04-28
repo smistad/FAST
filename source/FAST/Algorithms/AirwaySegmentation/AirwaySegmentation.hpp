@@ -14,6 +14,7 @@ class AirwaySegmentation : public SegmentationAlgorithm {
 	private:
 		AirwaySegmentation();
 		void execute();
+		static Vector3i findSeedVoxel(SharedPointer<Image> volume);
 
 		SharedPointer<Image> convertToHU(SharedPointer<Image> image);
 		void morphologicalClosing(SharedPointer<Segmentation> segmentation);

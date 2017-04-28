@@ -17,7 +17,26 @@ namespace fast {
 
 double log2(double n);
 double round(double n);
-int pow(int a, int b);
+double round(double n, int decimals);
+
+/**
+ * Does simply x^2 = x*x
+ * @tparam T
+ * @param x a numeric value
+ * @return x*x
+ */
+template <class T>
+T square(T x) {
+    return x*x;
+}
+
+template <typename ...Args>
+std::string format(std::string format, Args && ... args) {
+    auto size = std::snprintf(nullptr, 0, format.c_str(), std::forward<Args>(args)...);
+    std::string output(size + 1, '\0');
+    std::sprintf(&output[0], format.c_str(), std::forward<Args>(args)...);
+    return output;
+}
 
 template<class T>
 T min(T a, T b) {
@@ -116,6 +135,11 @@ static inline void trim(std::string &s) {
     rtrim(s);
 }
 
+/*
+ * Replace all occurences of from to to in str
+ */
+std::string replace(std::string str, std::string find, std::string replacement);
+
 template <class T>
 static inline void hash_combine(std::size_t& seed, const T& v)
 {
@@ -123,21 +147,22 @@ static inline void hash_combine(std::size_t& seed, const T& v)
     seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
 }
 
-} // end namespace fast
+void loadPerspectiveMatrix(float fovy, float aspect, float zNear, float zFar);
 
-// Hasher for enums
-// This is not working on windows:
-#ifndef _WIN32
-namespace std {
-    template<class E>
-	class hash {
-        using sfinae = typename std::enable_if<std::is_enum<E>::value, E>::type;
-    public:
-        size_t operator()(const E&e) const {
-            return std::hash<typename std::underlying_type<E>::type>()(e);
-        }
-    };
-};
-#endif
+/*
+ * Creates a directory at the given path.
+ * Throws exception if it fails
+ */
+void createDirectory(std::string path);
+
+/*
+ * Creates all directories in the given path.
+ * Throws exception if it fails
+ */
+void createDirectories(std::string path);
+
+
+
+} // end namespace fast
 
 #endif /* UTILITY_HPP_ */

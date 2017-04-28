@@ -1,7 +1,7 @@
 #define _USE_MATH_DEFINES
 
-#include <GL/glew.h>
 #include "VolumeRenderer.hpp"
+#include <QOpenGLFunctions_3_3_Core>
 #include "FAST/Data/Image.hpp"
 #include "FAST/Utility.hpp"
 #include "FAST/DeviceManager.hpp"
@@ -229,7 +229,7 @@ void VolumeRenderer::setUserTransform(int volumeIndex, const float userTransform
 VolumeRenderer::VolumeRenderer() : Renderer() {
     createInputPort<Image>(0, false);
 
-    mDevice = DeviceManager::getInstance().getDefaultVisualizationDevice();
+    mDevice = DeviceManager::getInstance()->getDefaultVisualizationDevice();
 	clContext = mDevice->getContext();
 
 	mInputIsModified = true;
@@ -427,9 +427,9 @@ void VolumeRenderer::execute() {
         std::string str(buffer);
 		int programNr;
 		if (includeGeometry)
-			programNr = mDevice->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/VolumeRenderer/VolumeRendererWithGeo.cl", str);
+			programNr = mDevice->createProgramFromSource(Config::getKernelSourcePath() + "/Visualization/VolumeRenderer/VolumeRendererWithGeo.cl", str);
 		else
-			programNr = mDevice->createProgramFromSource(std::string(FAST_SOURCE_DIR) + "/Visualization/VolumeRenderer/VolumeRendererNoGeo.cl", str);
+			programNr = mDevice->createProgramFromSource(Config::getKernelSourcePath() + "/Visualization/VolumeRenderer/VolumeRendererNoGeo.cl", str);
         program = mDevice->getProgram(programNr);
 		renderKernel = cl::Kernel(program, "d_render");
 
@@ -437,14 +437,16 @@ void VolumeRenderer::execute() {
 
 		mInputIsModified = false;
 	}
-    
-	if(!pbo) 
+
+	if(!pbo)
 	{
 		// create pixel buffer object for display
-		glGenBuffersARB(1, &pbo);
-		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pbo);
-		glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, mHeight * mWidth * sizeof(GLubyte) * 4, 0, GL_STREAM_DRAW_ARB);
-		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
+		QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
+		fun->initializeOpenGLFunctions();
+		fun->glGenBuffers(1, &pbo);
+		fun->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo);
+		fun->glBufferData(GL_PIXEL_UNPACK_BUFFER_ARB, mHeight * mWidth * sizeof(GLubyte) * 4, 0, GL_STREAM_DRAW_ARB);
+		fun->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 			
 		// Create CL-GL image
 		pbo_cl = cl::BufferGL(clContext, CL_MEM_WRITE_ONLY, pbo);
@@ -632,9 +634,11 @@ void VolumeRenderer::draw() {
     glDisable(GL_DEPTH_TEST);
 	glDisable(GL_TEXTURE_2D);
     glRasterPos2i(0, 0);
-    glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pbo);
+	QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
+	fun->initializeOpenGLFunctions();
+    fun->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo);
 	glDrawPixels(mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-    glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
+    fun->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 	
 }
 

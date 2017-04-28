@@ -1,19 +1,15 @@
 #ifndef VTK_MESH_FILE_EXPORTER_HPP
 #define VTK_MESH_FILE_EXPORTER_HPP
 
-#include "FAST/ProcessObject.hpp"
+#include "FAST/Exporters/FileExporter.hpp"
 
 namespace fast {
 
-class VTKMeshFileExporter : public ProcessObject {
+class VTKMeshFileExporter : public FileExporter {
     FAST_OBJECT(VTKMeshFileExporter);
-    public:
-        void setFilename(std::string filename);
     private:
         VTKMeshFileExporter();
         void execute();
-
-        std::string mFilename;
 };
 
 }

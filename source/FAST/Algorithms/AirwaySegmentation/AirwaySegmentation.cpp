@@ -10,10 +10,10 @@ AirwaySegmentation::AirwaySegmentation() {
 	createInputPort<Image>(0);
 	createOutputPort<Segmentation>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
 
-	createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/AirwaySegmentation/AirwaySegmentation.cl");
+	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/AirwaySegmentation/AirwaySegmentation.cl");
 }
 
-Vector3i findSeedVoxel(Image::pointer volume) {
+Vector3i AirwaySegmentation::findSeedVoxel(Image::pointer volume) {
 
 	ImageAccess::pointer access = volume->getImageAccess(ACCESS_READ);
 	short* data = (short*)access->get();
@@ -272,6 +272,9 @@ void AirwaySegmentation::execute() {
 	// Convert to signed HU if unsigned
 	if(image->getDataType() == TYPE_UINT16) {
 		image = convertToHU(image);
+	}
+	if(image->getDataType() != TYPE_INT16) {
+		throw Exception("Input image to airway segmentation must be of data type INT16");
 	}
 
 	// Smooth image

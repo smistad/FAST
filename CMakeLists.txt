@@ -8,13 +8,20 @@ option(BUILD_IGTLINK_TESTS "Build OpenIGTLink tests." OFF)
 option(BUILD_EXAMPLES "Build OpenIGTLink examples." OFF)
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 option(FAST_BUILD_EXAMPLES "Build examples." OFF)
+option(FAST_BUILD_TOOLS "Build tools." ON)
 option(FAST_DOWNLOAD_TEST_DATA "Download test data automatically (> 1 GB)" ON)
 option(FAST_MODULE_VTK "Enable interoperability with VTK" OFF)
 option(FAST_MODULE_ITK "Enable interoperability with ITK" OFF)
+option(FAST_MODULE_Visualization "Enable visualization capabilities using Qt5.
+Without this module, all visualization in FAST will be disabled." ON)
 option(FAST_MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
 option(FAST_MODULE_NeuralNetwork "Build neural network module using tensorflow" OFF)
-option(FAST_MODULE_Python "Build Python wrappers" ON)
+option(FAST_MODULE_Python "Build Python wrappers" OFF)
+option(FAST_MODULE_Kinect "Build kinect module" OFF)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
+
+# Python version
+set(FAST_Python_Version "" CACHE STRING "Specify which Python version to build python wrappers with. E.g. 2 or 3")
 
 #### Set build type
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -28,6 +35,7 @@ endif()
 if(FAST_CONTINUOUS_INTEGRATION)
     add_definitions("-DFAST_CONTINUOUS_INTEGRATION")
 endif()
+
 
 ## Set build folders
 # First for the generic no-config case (e.g. with mingw)
@@ -45,27 +53,9 @@ foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
 endforeach( OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES )
 
 #### Paths
-set(FAST_TEST_DATA_DIR "${PROJECT_SOURCE_DIR}/TestData/" CACHE PATH "Directory of test data")
-set(FAST_TEST_DATA_DIR "${FAST_TEST_DATA_DIR}/") # Add a slash to the back
-set(FAST_OPENCL_KERNEL_BINARY_PATH "${PROJECT_BINARY_DIR}/" CACHE PATH "Directory to put kernel binaries in. Default is build dir.")
-set(FAST_OPENCL_KERNEL_BINARY_PATH "${FAST_OPENCL_KERNEL_BINARY_PATH}/") # Add a slash to the back
+set(FAST_TEST_DATA_DIR "" CACHE PATH "Directory of test data. Default is ROOT/data/.")
+set(FAST_OPENCL_KERNEL_BINARY_PATH "" CACHE PATH "Directory to put kernel binaries in. Default is build dir.")
 set(FAST_SOURCE_DIR "${PROJECT_SOURCE_DIR}/source/FAST/")
-# Remove any existing "
-string(REPLACE "\"" "" FAST_OPENCL_KERNEL_BINARY_PATH ${FAST_OPENCL_KERNEL_BINARY_PATH})
-string(REPLACE "\"" "" FAST_TEST_DATA_DIR ${FAST_TEST_DATA_DIR})
-message("-- OpenCL Kernel binary path set to: ${FAST_OPENCL_KERNEL_BINARY_PATH}")
-message("-- FAST test data directory set to: \"${FAST_TEST_DATA_DIR}\"")
-
-### Create the header files Paths.hpp and TestDataPath.hpp which include all useful paths
-# TODO don't use preprocessor defines for this, use constant string or static functions
-configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/Paths.hpp.in
-        ${CMAKE_CURRENT_BINARY_DIR}/FAST/Paths.hpp
-)
-configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/TestDataPath.hpp.in
-        ${CMAKE_CURRENT_BINARY_DIR}/FAST/TestDataPath.hpp
-)
 
 #### Module path
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/ ${CMAKE_MODULE_PATH}) # For finding the custom Find modules
@@ -106,26 +96,41 @@ if(hasParent)
     set (FAST_INCLUDE_DIRS ${FAST_INCLUDE_DIRS} PARENT_SCOPE)
 endif()
 
+# Set up RPATH with relative path so that binaries will find libraries in the lib folder (linux only?)
+set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+
 #### Add all subdirs
 fast_add_subdirectories(source/FAST)
 
+
 if(FAST_BUILD_EXAMPLES)
-    set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
-    if(WIN32)
-        file(WRITE ${PROJECT_BINARY_DIR}/runAllExamples.bat "")
+    if(FAST_MODULE_Visualization)
+        set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
+        if(WIN32)
+            file(WRITE ${PROJECT_BINARY_DIR}/runAllExamples.bat "")
+        else()
+            file(WRITE ${PROJECT_BINARY_DIR}/runAllExamples.sh "#!/bin/bash\n")
+        endif()
+        add_subdirectory(source/FAST/Examples)
     else()
-        file(WRITE ${PROJECT_BINARY_DIR}/runAllExamples.sh "#!/bin/bash\n")
+        message("-- Not building examples since visualization module is disabled.")
     endif()
-    add_subdirectory(source/FAST/Examples)
 endif()
 
 #### Create FAST library and executables
+if(WIN32)
+	set(BUILD_SHARED_LIBS OFF)
+	# Parallel build in MSVC
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" "/MP")
+endif()
 add_library(FAST ${FAST_SOURCE_FILES} ${HEADERS_MOC})
 add_dependencies(FAST ${FAST_EXTERNAL_DEPENDENCIES})
 
 ## Link everything
 target_link_libraries(FAST ${LIBRARIES})
-qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
+if(FAST_MODULE_Visualization)
+    qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
+endif()
 
 ## Build test executable
 if(FAST_BUILD_TESTS)
@@ -138,9 +143,41 @@ set(FAST_LIBRARY FAST)
 set(FAST_LIBRARY_DIRS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
 # Create config file
-configure_file (
+configure_file(
         "${PROJECT_SOURCE_DIR}/source/FASTConfig.cmake.in"
         "${PROJECT_BINARY_DIR}/FASTConfig.cmake"
+)
+
+# If test data dir has been set by user, write it to config file
+if(NOT FAST_TEST_DATA_DIR STREQUAL "")
+    # Remove any existing "
+    string(REPLACE "\"" "" FAST_TEST_DATA_DIR ${FAST_TEST_DATA_DIR})
+    message("-- FAST test data directory set to: \"${FAST_TEST_DATA_DIR}\"")
+    set(CONFIG_TEST_DATA_PATH "TestDataPath = ${FAST_TEST_DATA_DIR}/")
+endif()
+if(NOT FAST_OPENCL_KERNEL_BINARY_PATH STREQUAL "")
+    # Remove any existing "
+    string(REPLACE "\"" "" FAST_OPENCL_KERNEL_BINARY_PATH ${FAST_OPENCL_KERNEL_BINARY_PATH})
+    message("-- OpenCL Kernel binary path set to: ${FAST_OPENCL_KERNEL_BINARY_PATH}")
+    set(CONFIG_KERNEL_BINARY_PATH "KernelBinaryPath = ${FAST_OPENCL_KERNEL_BINARY_PATH}/")
+endif()
+
+configure_file(
+        "${PROJECT_SOURCE_DIR}/source/fast_configuration.txt.in"
+        "${PROJECT_BINARY_DIR}/fast_configuration.txt"
+)
+
+foreach(FILE ${FAST_PROCESS_OBJECT_HEADER_FILES})
+    set(FAST_PROCESS_OBJECT_INCLUDES "${FAST_PROCESS_OBJECT_INCLUDES}#include \"${FILE}\"\n")
+endforeach()
+
+foreach(NAME ${FAST_PROCESS_OBJECT_NAMES})
+    set(FAST_PROCESS_OBJECT_REGISTRATION "${FAST_PROCESS_OBJECT_REGISTRATION}FAST_REGISTER_PO(${NAME})\n")
+endforeach()
+
+configure_file(
+        "${PROJECT_SOURCE_DIR}/source/ProcessObjectList.hpp.in"
+        "${PROJECT_BINARY_DIR}/ProcessObjectList.hpp"
 )
 
 include(cmake/ModulePython.cmake)

@@ -9,7 +9,7 @@ MeshToSegmentation::MeshToSegmentation() {
 	createInputPort<Mesh>(0);
 	createInputPort<Image>(1);
 	createOutputPort<Segmentation>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-	createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/MeshToSegmentation/MeshToSegmentation.cl");
+	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/MeshToSegmentation/MeshToSegmentation.cl");
 
 	mResolution = Vector3i::Zero();
 }
@@ -38,7 +38,6 @@ void MeshToSegmentation::execute() {
         // If resolution is not specified, use input image resolution
 		segmentation->createFromImage(image);
 	} else {
-		reportError() << "ASDASDASASA" << reportEnd();
 		// Use specified resolution
         if(two_dim_data) {
 			segmentation->create(mResolution.x(), mResolution.y(), TYPE_UINT8, 1);

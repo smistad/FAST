@@ -5,10 +5,14 @@ fast_add_test_sources(
     DataComparison.hpp
     DummyObjects.hpp
     ProcessObjectTests.cpp
-    SceneGraphTests.cpp
     Algorithms/DoubleFilter.cpp
     Algorithms/DoubleFilter.hpp
     Algorithms/DoubleFilterTests.cpp
+    SceneGraphTests.cpp
+)
+if(FAST_MODULE_Visualization)
+fast_add_test_sources(
     SystemTests.cpp
     Benchmarks.cpp
 )
+endif()

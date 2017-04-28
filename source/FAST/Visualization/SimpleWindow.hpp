@@ -4,7 +4,6 @@
 #include "Window.hpp"
 #include "View.hpp"
 #include "Renderer.hpp"
-#include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 
 namespace fast {
 
@@ -14,7 +13,6 @@ class SimpleWindow : public Window {
         void addRenderer(SharedPointer<Renderer> renderer);
         void removeAllRenderers();
         void setMaximumFramerate(unsigned int framerate);
-        void setWindowSize(unsigned int w, unsigned int h);
         View* getView() const;
         ~SimpleWindow();
         void set2DMode();

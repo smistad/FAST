@@ -7,7 +7,7 @@
 #include "Renderer.hpp"
 #include "Plane.hpp"
 #include <vector>
-#include <QtOpenGL/QGLWidget>
+#include <QGLWidget>
 #include <QTimer>
 
 namespace fast {
@@ -30,10 +30,8 @@ class View : public QGLWidget, public ProcessObject {
         void set2DMode();
         void set3DMode();
         void setViewingPlane(Plane plane);
-        void setLookAt(Vector3f cameraPosition, Vector3f targetPosition, Vector3f cameraUpVector);
+        void setLookAt(Vector3f cameraPosition, Vector3f targetPosition, Vector3f cameraUpVector, float zNear = 0.1, float zFar = 1000);
         void updateAllRenderers();
-        void stopPipelineUpdateThread();
-        void resumePipelineUpdateThread();
         void quit();
         void reinitialize();
         bool hasQuit() const;
@@ -46,6 +44,7 @@ class View : public QGLWidget, public ProcessObject {
 		    return "View";
 		};
         View();
+		float get2DPixelSpacing();
     private:
 
 		std::vector<Renderer::pointer> mNonVolumeRenderers;

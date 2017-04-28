@@ -16,7 +16,7 @@
 #else
 #include <GL/glx.h>
 #include <CL/cl_gl.h>
-#include <GL/glu.h>
+
 #endif
 #endif
 
@@ -196,7 +196,7 @@ void SliceRenderer::setInputConnection(ProcessObjectPort port) {
 
 SliceRenderer::SliceRenderer() : Renderer() {
     createInputPort<Image>(0, false);
-    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "/Visualization/SliceRenderer/SliceRenderer.cl");
+    createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/SliceRenderer/SliceRenderer.cl");
     mTextureIsCreated = false;
     mIsModified = true;
     mSlicePlane = PLANE_Z;

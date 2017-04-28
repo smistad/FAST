@@ -11,7 +11,7 @@
 #include <FAST/Importers/ImageFileImporter.hpp>
 #include <FAST/Visualization/MeshRenderer/MeshRenderer.hpp>
 #include <functional>
-#include "FAST/TestDataPath.hpp"
+
 
 namespace fast {
 
@@ -25,7 +25,7 @@ SimpleGUI::SimpleGUI() {
 
     // Import image
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "CT/CT-Abdomen.mhd");
+    importer->setFilename(Config::getTestDataPath() + "CT/CT-Abdomen.mhd");
 
     // Smooth image
     mSmoothing = GaussianSmoothingFilter::New();

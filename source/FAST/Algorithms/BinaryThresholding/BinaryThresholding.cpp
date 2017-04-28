@@ -20,8 +20,8 @@ BinaryThresholding::BinaryThresholding() {
     mUpperThresholdSet = false;
     createInputPort<Image>(0);
     createOutputPort<Segmentation>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/BinaryThresholding/BinaryThresholding3D.cl", "3D");
-    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/BinaryThresholding/BinaryThresholding2D.cl", "2D");
+    createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/BinaryThresholding/BinaryThresholding3D.cl", "3D");
+    createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/BinaryThresholding/BinaryThresholding2D.cl", "2D");
 }
 
 void BinaryThresholding::execute() {
@@ -46,7 +46,7 @@ void BinaryThresholding::execute() {
         }
         cl::Kernel kernel;
         if(mLowerThresholdSet && mUpperThresholdSet) {
-            kernel = cl::Kernel(program, "tresholding");
+            kernel = cl::Kernel(program, "thresholding");
             kernel.setArg(3, mLowerThreshold);
             kernel.setArg(4, mUpperThreshold);
         } else if(mLowerThresholdSet) {

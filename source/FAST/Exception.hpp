@@ -70,9 +70,35 @@ class FileNotFoundException : public Exception {
 
 class OutOfBoundsException : public Exception {
     public:
-        OutOfBoundsException() : Exception() {};
-        OutOfBoundsException(int line, const char * file) : Exception(line,file) {};
+        OutOfBoundsException() : Exception() {
+            setMessage("Out of bounds.");
+        };
+        OutOfBoundsException(int line, const char * file) : Exception(line,file) {
+            setMessage("Out of bounds.");
+        };
         OutOfBoundsException(std::string message, int line, const char * file): Exception(message,line,file) {};
+};
+
+class NotImplementedException : public Exception {
+    public:
+        NotImplementedException() : Exception() {
+            setMessage("Not implemented");
+        };
+        NotImplementedException(int line, const char * file) : Exception(line,file) {
+            setMessage("Not implemented");
+
+        };
+};
+
+class DoesNotExistException : public Exception {
+    public:
+        DoesNotExistException(std::string msg) : Exception(msg) {};
+};
+
+class ExistException : public Exception {
+    public:
+        ExistException(std::string msg) : Exception(msg) {};
+
 };
 
 } // end namespace fast

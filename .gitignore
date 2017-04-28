@@ -6,3 +6,5 @@ TestData/
 .cproject
 .project
 *.xml
+data
+*.zip

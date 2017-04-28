@@ -73,10 +73,13 @@ double calculateGVFVectorFieldResidual(Image::pointer inputVectorField, Image::p
 
 TEST_CASE("Gradient vector flow with Euler method 2D 16 bit", "[fast][GVF][GradientVectorFlow][EulerGradientVectorFlow][2D]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US/US-2D.jpg");
+    importer->setFilename(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
+
+    ScaleImage::pointer normalize = ScaleImage::New();
+    normalize->setInputConnection(importer->getOutputPort());
 
     ImageGradient::pointer gradient = ImageGradient::New();
-    gradient->setInputConnection(importer->getOutputPort());
+    gradient->setInputConnection(normalize->getOutputPort());
     gradient->set16bitStorageFormat();
 
     EulerGradientVectorFlow::pointer gvf = EulerGradientVectorFlow::New();
@@ -90,10 +93,13 @@ TEST_CASE("Gradient vector flow with Euler method 2D 16 bit", "[fast][GVF][Gradi
 
 TEST_CASE("Gradient vector flow with Euler method 2D 32 bit", "[fast][GVF][GradientVectorFlow][EulerGradientVectorFlow][2D]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US/US-2D.jpg");
+    importer->setFilename(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_0.mhd");
+
+    ScaleImage::pointer normalize = ScaleImage::New();
+    normalize->setInputConnection(importer->getOutputPort());
 
     ImageGradient::pointer gradient = ImageGradient::New();
-    gradient->setInputConnection(importer->getOutputPort());
+    gradient->setInputConnection(normalize->getOutputPort());
 
     EulerGradientVectorFlow::pointer gvf = EulerGradientVectorFlow::New();
     gvf->setInputConnection(gradient->getOutputPort());
@@ -106,7 +112,7 @@ TEST_CASE("Gradient vector flow with Euler method 2D 32 bit", "[fast][GVF][Gradi
 
 TEST_CASE("Gradient vector flow with Euler method 3D 16 bit", "[fast][GVF][GradientVectorFlow][EulerGradientVectorFlow][3D]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US/Ball/US-3Dt_0.mhd");
+    importer->setFilename(Config::getTestDataPath() + "US/Ball/US-3Dt_0.mhd");
 
     ScaleImage::pointer normalize = ScaleImage::New();
     normalize->setInputConnection(importer->getOutputPort());
@@ -126,7 +132,7 @@ TEST_CASE("Gradient vector flow with Euler method 3D 16 bit", "[fast][GVF][Gradi
 
 TEST_CASE("Gradient vector flow with Euler method 3D 32 bit", "[fast][GVF][GradientVectorFlow][EulerGradientVectorFlow][3D]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US/Ball/US-3Dt_0.mhd");
+    importer->setFilename(Config::getTestDataPath() + "US/Ball/US-3Dt_0.mhd");
 
     ScaleImage::pointer normalize = ScaleImage::New();
     normalize->setInputConnection(importer->getOutputPort());
@@ -145,7 +151,7 @@ TEST_CASE("Gradient vector flow with Euler method 3D 32 bit", "[fast][GVF][Gradi
 
 TEST_CASE("Gradient vector flow with Multigrid method 3D 16 bit", "[fast][GVF][GradientVectorFlow][MultigridGradientVectorFlow][3D]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US/Ball/US-3Dt_0.mhd");
+    importer->setFilename(Config::getTestDataPath() + "US/Ball/US-3Dt_0.mhd");
 
     ScaleImage::pointer normalize = ScaleImage::New();
     normalize->setInputConnection(importer->getOutputPort());
@@ -165,7 +171,7 @@ TEST_CASE("Gradient vector flow with Multigrid method 3D 16 bit", "[fast][GVF][G
 
 TEST_CASE("Gradient vector flow with Multigrid method 3D 32 bit", "[fast][GVF][GradientVectorFlow][MultigridGradientVectorFlow][3D]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR) + "US/Ball/US-3Dt_0.mhd");
+    importer->setFilename(Config::getTestDataPath() + "US/Ball/US-3Dt_0.mhd");
 
     ScaleImage::pointer normalize = ScaleImage::New();
     normalize->setInputConnection(importer->getOutputPort());

@@ -1,0 +1,22 @@
+PipelineName "Cardiac view classification"
+PipelineDescription "Neural network"
+
+ProcessObject classifier ImageClassifier
+Input 0 PipelineInput
+Attribute model "/home/smistad/Downloads/cvc_net"
+Attribute input_size 128 128
+Attribute output_names "Softmax"
+Attribute scale_factor 0.003921569
+Attribute labels "Parasternal short axis" "Parasternal long axis" "Apical 2-chamber" "Apical 4-chamber" "Apical long axis"
+
+ProcessObject classToText ClassificationToText
+Input 0 classifier 0
+
+Renderer imageRenderer ImageRenderer
+Input 0 PipelineInput
+Attribute window 255
+Attribute level 127.5 
+
+Renderer textRenderer TextRenderer
+Input 0 classToText
+Attribute font_size 40

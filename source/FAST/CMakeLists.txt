@@ -1,6 +1,8 @@
 #### Add all subdirs
-fast_add_subdirectories(Algorithms Data Streamers Importers Exporters Visualization Tests)
+fast_add_subdirectories(Algorithms Data Streamers Importers Exporters Visualization Tests Tools)
 fast_add_sources(
+    Config.cpp
+    Config.hpp
     Object.cpp
     Object.hpp
     SmartPointers.hpp
@@ -29,8 +31,18 @@ fast_add_sources(
     DeviceCriteria.cpp
     DeviceCriteria.hpp
     Semaphore.hpp
+    Attribute.cpp
+    Attribute.hpp
+    ProcessObjectRegistry.hpp
 )
+if(FAST_MODULE_Visualization)
+    fast_add_sources(
+        Pipeline.hpp
+        Pipeline.cpp
+	)
+endif()
 fast_add_python_interfaces(
 	ProcessObject.i
 	numpy.i
+    Config.i
 )

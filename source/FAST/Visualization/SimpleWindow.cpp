@@ -28,14 +28,8 @@ SimpleWindow::SimpleWindow() {
     QHBoxLayout* mainLayout = new QHBoxLayout;
     mainLayout->addWidget(view);
     mWidget->setLayout(mainLayout);
-    mWidget->setWindowTitle("FAST");
     mWidget->setContentsMargins(0, 0, 0, 0);
     mainLayout->setContentsMargins(0, 0, 0, 0);
-}
-
-void SimpleWindow::setWindowSize(unsigned int w, unsigned int h) {
-    mWidth = w;
-    mHeight = h;
 }
 
 void SimpleWindow::set2DMode() {

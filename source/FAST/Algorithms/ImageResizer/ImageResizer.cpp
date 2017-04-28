@@ -33,7 +33,7 @@ ImageResizer::ImageResizer() {
 	createInputPort<Image>(0);
 	createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
 
-    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/ImageResizer/ImageResizer.cl");
+    createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageResizer/ImageResizer.cl");
 
 	mSize = Vector3i::Zero();
 }

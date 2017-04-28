@@ -6,14 +6,14 @@
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
-#include "FAST/TestDataPath.hpp"
+
 
 using namespace fast;
 
 int main() {
     // Import image from file using the ImageFileImporter
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(std::string(FAST_TEST_DATA_DIR)+"/US/US-2D.jpg");
+    importer->setFilename(Config::getTestDataPath()+"/US/US-2D.jpg");
 
     // Renderer image
     ImageRenderer::pointer renderer = ImageRenderer::New();

@@ -5,7 +5,6 @@
 #define _USE_MATH_DEFINES
 #include "FAST/Exception.hpp"
 #include "FAST/Reporter.hpp"
-#include "FAST/Paths.hpp"
 #include <memory>
 
 #define FAST_OBJECT(className)                                  \
@@ -87,29 +86,26 @@ class SharedPointer {
         SharedPointer(SharedPointer<U> object) {
             if(!object.isValid())
                 throw Exception("Cast from " + U::getStaticNameOfClass() + " to " + T::getStaticNameOfClass() + " failed because object was invalid (uninitialized or deleted).");
-            std::shared_ptr<T> ptr = std::dynamic_pointer_cast<T>(object.getPtr());
-            if(ptr == NULL)
+            mSmartPtr = std::dynamic_pointer_cast<T>(object.getPtr());
+            if(mSmartPtr == NULL)
                 throw Exception("Illegal cast from " + U::getStaticNameOfClass() + " to " + T::getStaticNameOfClass());
-            mSmartPtr = std::shared_ptr<T>(ptr);
         }
         template <class U>
         SharedPointer(WeakPointer<U> object) {
             if(!object.isValid())
                 throw Exception("Cast from " + U::getStaticNameOfClass() + " to " + T::getStaticNameOfClass() + " failed because object was invalid (uninitialized or deleted).");
-            std::shared_ptr<T> ptr = std::dynamic_pointer_cast<T>(object.getPtr().lock());
-            if(ptr == NULL)
+            mSmartPtr = std::dynamic_pointer_cast<T>(object.getPtr().lock());
+            if(mSmartPtr == NULL)
                 throw Exception("Illegal cast from " + U::getStaticNameOfClass() + " to " + T::getStaticNameOfClass());
-            mSmartPtr = std::shared_ptr<T>(ptr);
         }
 
         template <class U>
         SharedPointer<T> &operator=(const SharedPointer<U> &other) {
             if(!other.isValid())
                 throw Exception("Cast from " + U::getStaticNameOfClass() + " to " + T::getStaticNameOfClass() + " failed because object was invalid (uninitialized or deleted).");
-            std::shared_ptr<T> ptr = std::dynamic_pointer_cast<T>(other.getPtr());
-            if(ptr == NULL)
+            mSmartPtr = std::dynamic_pointer_cast<T>(other.getPtr());
+            if(mSmartPtr == NULL)
                 throw Exception("Illegal cast from " + U::getStaticNameOfClass() + " to " + T::getStaticNameOfClass());
-            mSmartPtr = std::shared_ptr<T>(ptr);
             return *this;
         }
 

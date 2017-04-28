@@ -45,8 +45,8 @@ void SegmentationRenderer::setFillArea(bool fillArea) {
 }
 
 SegmentationRenderer::SegmentationRenderer() {
-    createInputPort<Segmentation>(0, false);
-    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "/Visualization/SegmentationRenderer/SegmentationRenderer.cl");
+    createInputPort<Image>(0, false);
+    createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/SegmentationRenderer/SegmentationRenderer.cl");
     mIsModified = false;
     mColorsModified = true;
     mFillAreaModified = true;
@@ -74,7 +74,10 @@ void SegmentationRenderer::execute() {
 
     // This simply gets the input data for each connection and puts it into a data structure
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
-        Segmentation::pointer input = getStaticInputData<Segmentation>(inputNr);
+        Image::pointer input = getStaticInputData<Image>(inputNr);
+        if(input->getDataType() != TYPE_UINT8) {
+            throw Exception("Data type of image given to SegmentationRenderer must be UINT8");
+        }
 
         mImagesToRender[inputNr] = input;
     }
@@ -93,7 +96,7 @@ void SegmentationRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
     if(mColorsModified) {
         // Transfer colors to device (this doesn't have to happen every render call..)
         UniquePointer<float[]> colorData(new float[3*mLabelColors.size()]);
-        std::unordered_map<Segmentation::LabelType, Color>::iterator it;
+        std::unordered_map<int, Color>::iterator it;
         for(it = mLabelColors.begin(); it != mLabelColors.end(); it++) {
             colorData[it->first*3] = it->second.getRedValue();
             colorData[it->first*3+1] = it->second.getGreenValue();
@@ -111,7 +114,7 @@ void SegmentationRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
     if(mFillAreaModified) {
         // Transfer colors to device (this doesn't have to happen every render call..)
         UniquePointer<char[]> fillAreaData(new char[mLabelColors.size()]);
-        std::unordered_map<Segmentation::LabelType, Color>::iterator it;
+        std::unordered_map<int, Color>::iterator it;
         for(it = mLabelColors.begin(); it != mLabelColors.end(); it++) {
             if(mLabelFillArea.count(it->first) == 0) {
                 // Use default value

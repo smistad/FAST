@@ -12,7 +12,7 @@
 #include "FAST/Visualization/VolumeRenderer/ColorTransferFunction.hpp"
 #include "FAST/Visualization/VolumeRenderer/OpacityTransferFunction.hpp"
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
-#include "FAST/TestDataPath.hpp"
+
 
 using namespace fast;
 
@@ -20,8 +20,8 @@ int main(int argc, char ** argv) {
 
     // TODO this causes problem for some reason??
     // Get a GPU device and set it as the default device
-    //DeviceManager& deviceManager = DeviceManager::getInstance();
-    //deviceManager.setDefaultDevice(deviceManager.getOneGPUDevice(true));
+    //DeviceManager* deviceManager = DeviceManager::getInstance();
+    //deviceManager.setDefaultDevice(deviceManager->getOneGPUDevice(true));
 
     /*
     MetaImageImporter::pointer importer = MetaImageImporter::New();
@@ -140,13 +140,13 @@ window->setTimeout(10*1000);
 	
 
 	ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
-	mhdStreamer->setFilenameFormat(std::string(FAST_TEST_DATA_DIR)+"US/Ball/US-3Dt_#.mhd");
+	mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"US/Ball/US-3Dt_#.mhd");
 
 	MetaImageImporter::pointer mhdImporter = MetaImageImporter::New();
-	mhdImporter->setFilename(std::string(FAST_TEST_DATA_DIR) + "skull256.mhd");
+	mhdImporter->setFilename(Config::getTestDataPath() + "skull256.mhd");
 
 	MetaImageImporter::pointer mhdImporter2 = MetaImageImporter::New();
-	mhdImporter2->setFilename(std::string(FAST_TEST_DATA_DIR) + "v8.mhd");
+	mhdImporter2->setFilename(Config::getTestDataPath() + "v8.mhd");
 
 	
     SliceRenderer::pointer sRenderer = SliceRenderer::New();

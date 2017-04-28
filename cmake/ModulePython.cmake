@@ -1,11 +1,15 @@
-# Build Python bindings if module is enabled and SWIG is found
+# Build Python bindings (requires SWIG installed)
 
-find_package(SWIG)
-if(SWIG_FOUND AND FAST_MODULE_Python)
+if(FAST_MODULE_Python)
+    find_package(SWIG REQUIRED)
     message("-- SWIG found, creating python bindings...")
     include(${SWIG_USE_FILE})
 
-    find_package(PythonLibs REQUIRED)
+    if(FAST_Python_Version)
+        find_package(PythonLibs ${FAST_Python_Version} EXACT REQUIRED)
+    else()
+        find_package(PythonLibs REQUIRED)
+    endif()
     include_directories(${PYTHON_INCLUDE_DIRS})
 
     find_package(NumPy REQUIRED)
@@ -38,13 +42,16 @@ if(SWIG_FOUND AND FAST_MODULE_Python)
     # Build it
     set_source_files_properties(${PYFAST_FILE} PROPERTIES GENERATED TRUE)
     set_source_files_properties(${PYFAST_FILE} PROPERTIES CPLUSPLUS ON)
+    set(CMAKE_SWIG_OUTDIR ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/fast/)
+    file(MAKE_DIRECTORY ${CMAKE_SWIG_OUTDIR})
     swig_add_module(fast python ${PYFAST_FILE})
     swig_link_libraries(fast ${PYTHON_LIBRARIES} FAST)
+    set_target_properties(_fast PROPERTIES INSTALL_RPATH "$ORIGIN/../../lib")
 
-    # Move python file to lib folder
-    add_custom_command(TARGET _fast POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E rename fast.py ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/fast.py
-            )
+    configure_file(
+            "${PROJECT_SOURCE_DIR}/source/__init__.py.in"
+            ${CMAKE_SWIG_OUTDIR}__init__.py
+    )
 else()
-    message("-- SWIG not found or Python module not enabled in CMake, Python bindings will NOT be created.")
+    message("-- Python module not enabled in CMake, Python bindings will NOT be created.")
 endif()

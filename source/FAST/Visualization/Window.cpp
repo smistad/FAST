@@ -1,5 +1,8 @@
 #include "Window.hpp"
 #include <QApplication>
+#include <QOffscreenSurface>
+#include <QEventLoop>
+#include <QDesktopWidget>
 
 namespace fast {
 
@@ -7,10 +10,12 @@ QGLContext* Window::mMainGLContext = NULL;
 
 class FASTApplication : public QApplication {
 public:
-    FASTApplication(int &argc, char **argv) :
-            QApplication(argc, argv) {}
+    FASTApplication(int &argc, char **argv) : QApplication(argc, argv) {
+    }
 
-    virtual ~FASTApplication() {}
+    virtual ~FASTApplication() {
+        Reporter::info() << "FASTApplication (QApplication) is destroyed" << Reporter::end;
+    }
 
     // reimplemented from QApplication so we can throw exceptions in slots
     virtual bool notify(QObject *receiver, QEvent *event) {
@@ -19,7 +24,7 @@ public:
         } catch(Exception &e) {
             Reporter::error() << "FAST exception caught in Qt event handler " << e.what() << Reporter::end;
         } catch(cl::Error &e) {
-            Reporter::error() << "OpenCL exception caught in Qt event handler " << e.what() << "(" << e.err() << ")" << Reporter::end;
+            Reporter::error() << "OpenCL exception caught in Qt event handler " << e.what() << "(" << getCLErrorString(e.err()) << ")" << Reporter::end;
         } catch(std::exception &e) {
             Reporter::error() << "Std exception caught in Qt event handler " << e.what() << Reporter::end;
         }
@@ -35,30 +40,63 @@ Window::Window() {
     mWidget = new WindowWidget;
     mEventLoop = new QEventLoop(mWidget);
     mWidget->connect(mWidget, SIGNAL(widgetHasClosed()), this, SLOT(stop()));
-    mWidget->setWindowTitle("FAST");
     mWidget->setContentsMargins(0, 0, 0, 0);
 
     // default window size
     mWidth = 512;
     mHeight = 512;
     mFullscreen = false;
+    mMaximized = false;
 }
 
 void Window::enableFullscreen() {
     mFullscreen = true;
+    disableMaximized();
 }
 
 void Window::disableFullscreen() {
     mFullscreen = false;
 }
 
+void Window::enableMaximized() {
+    mMaximized = true;
+    disableFullscreen();
+}
+
+void Window::disableMaximized() {
+    mMaximized = false;
+}
+
+void Window::setTitle(std::string title) {
+    mWidget->setWindowTitle(title.c_str());
+}
+
+void Window::cleanup() {
+    //delete QApplication::instance();
+}
+
 void Window::initializeQtApp() {
     // Make sure only one QApplication is created
     if(!QApplication::instance()) {
+        Reporter::info() << "Creating new QApp" << Reporter::end;
         // Create some dummy argc and argv options as QApplication requires it
         int* argc = new int[1];
         *argc = 0;
         QApplication* app = new FASTApplication(*argc,NULL);
+         // Create computation GL context, if it doesn't exist
+        if(mMainGLContext == NULL) {
+            Reporter::info() << "Creating new GL context for computation thread" << Reporter::end;
+
+            // Create GL context to be shared with the CL contexts
+            QGLWidget* widget = new QGLWidget;
+            mMainGLContext = new QGLContext(QGLFormat::defaultFormat(), widget); // by including widget here the context becomes valid
+            mMainGLContext->create();
+            if(!mMainGLContext->isValid()) {
+                throw Exception("Qt GL context is invalid!");
+            }
+        }
+    } else {
+        Reporter::info() << "QApp already exists.." << Reporter::end;
     }
 
     // There is a bug in AMD OpenCL related to comma (,) as decimal point
@@ -66,8 +104,8 @@ void Window::initializeQtApp() {
     struct lconv * lc;
     lc = localeconv();
     if(strcmp(lc->decimal_point, ",") == 0) {
-        Reporter::warning() << "WARNING: Your system uses comma as decimal point." << Reporter::end;
-        Reporter::warning() << "WARNING: This will now be changed to dot to avoid any comma related bugs." << Reporter::end;
+        Reporter::warning() << "Your system uses comma as decimal point." << Reporter::end;
+        Reporter::warning() << "This will now be changed to dot to avoid any comma related bugs." << Reporter::end;
         setlocale(LC_NUMERIC, "C");
         // Check again to be sure
         lc = localeconv();
@@ -75,20 +113,8 @@ void Window::initializeQtApp() {
             throw Exception("Failed to convert decimal point to dot.");
         }
     }
-
-    // Create computation GL context, if it doesn't exist
-    if(mMainGLContext == NULL) {
-        // Dummy widget
-        QGLWidget* widget = new QGLWidget;
-
-        // Create GL context to be shared with the CL contexts
-        mMainGLContext = new QGLContext(QGLFormat::defaultFormat(), widget); // by including widget here the context becomes valid
-        mMainGLContext->create();
-        if(!mMainGLContext->isValid()) {
-            throw Exception("Qt GL context is invalid!");
-        }
-    }
 }
+
 
 void Window::stop() {
     reportInfo() << "Stop signal recieved.." << Reporter::end;
@@ -105,18 +131,29 @@ void Window::stop() {
 }
 
 View* Window::createView() {
-    View* view = new View();
-    mWidget->addView(view);
+    View* view = mWidget->addView();
 
     return view;
 }
 
 void Window::start() {
-    mWidget->resize(mWidth,mHeight);
 
+    QDesktopWidget *desktop = QApplication::desktop();
+    int screenWidth = desktop->width();
+    int screenHeight = desktop->height();
+
+    mWidget->resize(mWidth,mHeight);
     if(mFullscreen) {
         mWidget->showFullScreen();
+    } else if(mMaximized) {
+        //mWidth = screenWidth;
+        //mHeight = screenHeight;
+        mWidget->showMaximized();
     } else {
+        // Move window to center
+        int x = (screenWidth - mWidth) / 2;
+        int y = (screenHeight - mHeight) / 2;
+        mWidget->move(x, y);
         mWidget->show();
     }
 
@@ -140,14 +177,17 @@ Window::~Window() {
     //if(mEventLoop != NULL)
     //    delete mEventLoop;
     reportInfo() << "Deleting widget" << Reporter::end;
-    if(mWidget != NULL)
+    if(mWidget != NULL) {
         delete mWidget;
+        mWidget = NULL;
+    }
     reportInfo() << "Finished deleting window widget" << Reporter::end;
     if(mThread != NULL) {
         mThread->stop();
         delete mThread;
         mThread = NULL;
     }
+
     reportInfo() << "Window destroyed" << Reporter::end;
 }
 
@@ -157,7 +197,8 @@ void Window::setTimeout(unsigned int milliseconds) {
 
 QGLContext* Window::getMainGLContext() {
     if(mMainGLContext == NULL) {
-        initializeQtApp();
+        throw Exception("No OpenGL context created");
+        //initializeQtApp();
     }
 
     return mMainGLContext;
@@ -172,11 +213,7 @@ void Window::startComputationThread() {
         mThread->moveToThread(thread);
         connect(thread, SIGNAL(started()), mThread, SLOT(run()));
         connect(mThread, SIGNAL(finished()), thread, SLOT(quit()));
-        //connect(mThread, SIGNAL(finished()), mThread, SLOT(deleteLater()));
-        connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-
-        // Make sure this thread is deleted after it is finished
-        //connect(mThread, SIGNAL(finished()), mThread, SLOT(deleteLater()));
+        //connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
 
         for(int i = 0; i < getViews().size(); i++)
             mThread->addView(getViews()[i]);
@@ -185,10 +222,8 @@ void Window::startComputationThread() {
             throw Exception("QGL context is invalid!");
         }
 
-        // Context must be current in this thread before it can be moved to another thread
-        mainGLContext->makeCurrent();
-        mainGLContext->moveToThread(thread);
         mainGLContext->doneCurrent();
+        mainGLContext->moveToThread(thread);
         thread->start();
         reportInfo() << "Computation thread started" << Reporter::end;
     }
@@ -218,6 +253,11 @@ void Window::setWidth(uint width) {
 
 void Window::setHeight(uint height) {
     mHeight = height;
+}
+
+void Window::setSize(uint width, uint height) {
+    setWidth(width);
+    setHeight(height);
 }
 
 } // end namespace fast

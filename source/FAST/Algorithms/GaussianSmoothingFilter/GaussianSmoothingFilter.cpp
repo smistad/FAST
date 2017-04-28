@@ -33,8 +33,8 @@ void GaussianSmoothingFilter::setStandardDeviation(float stdDev) {
 GaussianSmoothingFilter::GaussianSmoothingFilter() {
     createInputPort<Image>(0);
     createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter2D.cl", "2D");
-    createOpenCLProgram(std::string(FAST_SOURCE_DIR) + "Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter3D.cl", "3D");
+    createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter2D.cl", "2D");
+    createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter3D.cl", "3D");
     mStdDev = 0.5f;
     mMaskSize = -1;
     mIsModified = true;
