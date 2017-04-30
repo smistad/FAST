@@ -4,6 +4,7 @@
 #include <cmath>
 #include <regex>
 #ifdef _WIN32
+#include <direct.h> // Needed for _mkdir
 #else
 // Needed for making directory
 #include <sys/types.h>

@@ -90,18 +90,7 @@ class IGTLinkStreamer : public Streamer, public ProcessObject {
         void updateFirstFrameSetFlag();
 };
 
-ProcessObjectPort IGTLinkStreamer::getOutputPort() {
-	uint portID;
-	if(mOutputPortDeviceNames.count("") == 0) {
-		portID = getNrOfOutputPorts();
-		createOutputPort<Image>(portID, OUTPUT_DYNAMIC);
-		getOutputData<Image>(portID); // This initializes the output data
-		mOutputPortDeviceNames[""] = portID;
-	} else {
-		portID = mOutputPortDeviceNames[""];
-	}
-    return ProcessObject::getOutputPort(portID);
-}
+
 
 template<class T>
 ProcessObjectPort IGTLinkStreamer::getOutputPort(std::string deviceName) {
