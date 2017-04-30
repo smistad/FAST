@@ -207,6 +207,18 @@ inline igtl::ImageMessage::Pointer createIGTLImageMessage(Image::pointer image) 
 
 
 void GUI::streamData() {
+	// Hack to make this work on windows (get issues with switching GL context to thread): 
+	// 1. Create a new GL context in this thread	
+	QGLWidget* widget = new QGLWidget;
+	QGLContext* mainGLContext = new QGLContext(QGLFormat::defaultFormat(), widget); // by including widget here the context becomes valid
+	mainGLContext->create();
+	if (!mainGLContext->isValid()) {
+		throw Exception("Qt GL context is invalid!");
+	}
+	// 2. Substitute the GL context in the window with this one
+	mMainGLContext = mainGLContext;
+	mainGLContext->makeCurrent();
+
     std::chrono::duration<int, std::milli> interaval(1000 / mFPS);
     reportInfo() << "Listening for new connections on port " << mPort << reportEnd();
     try {
