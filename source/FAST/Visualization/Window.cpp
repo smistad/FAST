@@ -3,6 +3,7 @@
 #include <QOffscreenSurface>
 #include <QEventLoop>
 #include <QDesktopWidget>
+#include <QIcon>
 
 namespace fast {
 
@@ -83,6 +84,10 @@ void Window::initializeQtApp() {
         int* argc = new int[1];
         *argc = 0;
         QApplication* app = new FASTApplication(*argc,NULL);
+
+        // Set default window icon
+        QApplication::setWindowIcon(QIcon((Config::getDocumentationPath() + "images/fast_icon.png").c_str()));
+
          // Create computation GL context, if it doesn't exist
         if(mMainGLContext == NULL) {
             Reporter::info() << "Creating new GL context for computation thread" << Reporter::end;
