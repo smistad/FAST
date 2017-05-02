@@ -3,7 +3,7 @@
  *
  * If you edit this example, please also update the wiki and source code file in the repository.
  */
-#include "FAST/Importers/VTKPointSetFileImporter.hpp"
+#include "FAST/Importers/VTKMeshFileImporter.hpp"
 #include "FAST/Visualization/PointRenderer/PointRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 
@@ -12,7 +12,7 @@ using namespace fast;
 
 int main() {
     // Import line set from vtk file
-    VTKPointSetFileImporter::pointer importer = VTKPointSetFileImporter::New();
+    VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
     importer->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
 
     // Renderer image
