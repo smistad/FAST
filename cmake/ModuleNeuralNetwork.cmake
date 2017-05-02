@@ -6,10 +6,12 @@ if(FAST_MODULE_NeuralNetwork)
     ## Tensorflow
     #list(APPEND FAST_INCLUDE_DIRS ${Tensorflow_INCLUDE_DIRS})
     message("-- Neural network module with tensorflow enabled.")
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+    add_definitions(-DEIGEN_AVOID_STL_ARRAY)
+    set(CMAKE_CXX_STANDARD 14)
     if(WIN32)
         # Some definitions needed to compile with tensorflow on windows
         # These are taken from tensorflow/contrib/cmake/CMakeLists.txt
-        add_definitions(-DEIGEN_AVOID_STL_ARRAY)
         add_definitions(-DNOMINMAX -D_WIN32_WINNT=0x0A00 -DLANG_CXX11 -DCOMPILER_MSVC -D__VERSION__=\"MSVC\")
         add_definitions(-DWIN32 -DOS_WIN -D_MBCS -DWIN64 -DPLATFORM_WINDOWS)
         add_definitions(-DTENSORFLOW_USE_EIGEN_THREADPOOL -DEIGEN_HAS_C99_MATH -D_ITERATOR_DEBUG_LEVEL=0)

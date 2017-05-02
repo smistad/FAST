@@ -12,7 +12,7 @@ ExternalProject_Add(tensorflow
         PREFIX ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
         BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
         GIT_REPOSITORY "https://github.com/smistad/tensorflow.git"
-        GIT_TAG "master"
+        GIT_TAG "version-master"
         # Need to override this because tensorflow creates a file in the source dir
         # and cmake files to stash these files
         UPDATE_COMMAND
@@ -25,6 +25,10 @@ ExternalProject_Add(tensorflow
             -DCMAKE_BUILD_TYPE:STRING=Release
             -Dtensorflow_BUILD_PYTHON_BINDINGS=OFF
             -Dtensorflow_BUILD_CC_EXAMPLE=OFF
+            -Dtensorflow_BUILD_SHARED_LIB=ON
+            -Dtensorflow_BUILD_CONTRIB_KERNELS=OFF
+            -Dtensorflow_ENABLE_GRPC_SUPPORT=OFF
+            -Dtensorflow_OPTIMIZE_FOR_NATIVE_ARCH=ON
             #-Dtensorflow_ENABLE_GPU=ON     # Will only work on NVIDIA for windows atm
             -DCMAKE_VERBOSE_MAKEFILE:BOOL=OFF
             -DCMAKE_INSTALL_MESSAGE:BOOL=LAZY
