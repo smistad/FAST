@@ -4,9 +4,6 @@ include(cmake/Macros.cmake)
 
 #### Options
 option(FAST_BUILD_TESTS "Build FAST tests." ON)
-option(BUILD_IGTLINK_TESTS "Build OpenIGTLink tests." OFF)
-option(BUILD_EXAMPLES "Build OpenIGTLink examples." OFF)
-option(BUILD_SHARED_LIBS "Build shared libs" ON)
 option(FAST_BUILD_EXAMPLES "Build examples." OFF)
 option(FAST_BUILD_TOOLS "Build tools." ON)
 option(FAST_DOWNLOAD_TEST_DATA "Download test data automatically (> 1 GB)" ON)
@@ -93,7 +90,7 @@ include(cmake/DownloadTestData.cmake)
 include_directories(${FAST_INCLUDE_DIRS})
 get_directory_property(hasParent PARENT_DIRECTORY)
 if(hasParent)
-    set (FAST_INCLUDE_DIRS ${FAST_INCLUDE_DIRS} PARENT_SCOPE)
+    set(FAST_INCLUDE_DIRS ${FAST_INCLUDE_DIRS} PARENT_SCOPE)
 endif()
 
 # Set up RPATH with relative path so that binaries will find libraries in the lib folder (linux only?)
@@ -118,6 +115,7 @@ if(FAST_BUILD_EXAMPLES)
 endif()
 
 #### Create FAST library and executables
+set(BUILD_SHARED_LIBS ON)
 if(WIN32)
 	set(BUILD_SHARED_LIBS OFF)
 	# Parallel build in MSVC
@@ -144,8 +142,8 @@ set(FAST_LIBRARY_DIRS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
 # Create config file
 configure_file(
-        "${PROJECT_SOURCE_DIR}/source/FASTConfig.cmake.in"
-        "${PROJECT_BINARY_DIR}/FASTConfig.cmake"
+    "${PROJECT_SOURCE_DIR}/source/FASTConfig.cmake.in"
+    "${PROJECT_BINARY_DIR}/FASTConfig.cmake"
 )
 
 # If test data dir has been set by user, write it to config file
@@ -163,8 +161,8 @@ if(NOT FAST_OPENCL_KERNEL_BINARY_PATH STREQUAL "")
 endif()
 
 configure_file(
-        "${PROJECT_SOURCE_DIR}/source/fast_configuration.txt.in"
-        "${PROJECT_BINARY_DIR}/fast_configuration.txt"
+    "${PROJECT_SOURCE_DIR}/source/fast_configuration.txt.in"
+    "${PROJECT_BINARY_DIR}/fast_configuration.txt"
 )
 
 foreach(FILE ${FAST_PROCESS_OBJECT_HEADER_FILES})
@@ -176,8 +174,8 @@ foreach(NAME ${FAST_PROCESS_OBJECT_NAMES})
 endforeach()
 
 configure_file(
-        "${PROJECT_SOURCE_DIR}/source/ProcessObjectList.hpp.in"
-        "${PROJECT_BINARY_DIR}/ProcessObjectList.hpp"
+    "${PROJECT_SOURCE_DIR}/source/ProcessObjectList.hpp.in"
+    "${PROJECT_BINARY_DIR}/ProcessObjectList.hpp"
 )
 
 include(cmake/ModulePython.cmake)
