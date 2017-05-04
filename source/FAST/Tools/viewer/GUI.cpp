@@ -39,6 +39,7 @@ GUI::GUI() {
     viewLayout->addWidget(view);
 
     menuLayout = new QVBoxLayout;
+    menuLayout->setAlignment(Qt::AlignTop);
 
     // Logo
     QImage* image = new QImage;
@@ -51,6 +52,7 @@ GUI::GUI() {
     // Title label
     QLabel* title = new QLabel;
     title->setText("<div style=\"text-align: center; font-weight: bold; font-size: 24px;\">Viewer</div>");
+    title->setFixedHeight(32);
     menuLayout->addWidget(title);
 
     // Quit button
@@ -63,14 +65,16 @@ GUI::GUI() {
     // Connect the clicked signal of the quit button to the stop method for the window
     QObject::connect(quitButton, &QPushButton::clicked, std::bind(&Window::stop, this));
 
-
-
     QLabel* inputListLabel = new QLabel;
+    inputListLabel->setFixedHeight(24);
     inputListLabel->setText("Input data");
+    inputListLabel->setStyleSheet("QLabel { font-weight: bold; }");
     menuLayout->addWidget(inputListLabel);
 
     mList = new QListWidget;
     mList->setFixedWidth(menuWidth);
+    mList->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    mList->setFixedHeight(100);
     mList->setSelectionMode(QAbstractItemView::ExtendedSelection); // Allow multiple items to be selected
     QObject::connect(mList, &QListWidget::itemSelectionChanged, std::bind(&GUI::selectInputData, this));
     menuLayout->addWidget(mList);
@@ -83,6 +87,8 @@ GUI::GUI() {
 
     QLabel* selectPipelineLabel = new QLabel;
     selectPipelineLabel->setText("Active pipeline");
+    selectPipelineLabel->setStyleSheet("QLabel { font-weight: bold; }");
+    selectPipelineLabel->setFixedHeight(24);
     menuLayout->addWidget(selectPipelineLabel);
 
     mSelectPipeline = new QComboBox;
@@ -181,11 +187,9 @@ void GUI::selectPipeline() {
 }
 
 void GUI::selectInputData() {
-    std::cout << "in selectInputData" << std::endl;
     std::vector<std::string> inputData;
     for(QListWidgetItem* widget : mList->selectedItems()) {
         inputData.push_back(widget->text().toStdString());
-        std::cout << "selecting " << widget->text().toStdString() << std::endl;
     }
     mStreamer = ImageFileStreamer::New();
     mStreamer->setFilenameFormats(inputData);
