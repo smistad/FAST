@@ -36,8 +36,8 @@ ExternalProject_Add(tensorflow
 
 )
 
-if(WIN32)
-    # Tensorflow is built static on windows, need to include all dependecies
+#if(WIN32)
+#    # Tensorflow is built static on windows, need to include all dependecies
 #    list(APPEND LIBRARIES
 #        tensorflow.lib
 #        libprotobuf.lib
@@ -51,11 +51,14 @@ if(WIN32)
 #        grpc_unsecure.lib
 #        grpc++_unsecure.lib
 #    )
-    set(Tensorflow_LIBRARY ${FAST_EXTERNAL_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}tensorflow${CMAKE_STATIC_LIBRARY_SUFFIX})
-else(WIN32)
-    list(APPEND LIBRARIES
-        ${CMAKE_SHARED_LIBRARY_PREFIX}tensorflow${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-    set(Tensorflow_LIBRARY ${FAST_EXTERNAL_INSTALL_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}tensorflow${CMAKE_SHARED_LIBRARY_SUFFIX})
-endif(WIN32)
+#    set(Tensorflow_LIBRARY ${FAST_EXTERNAL_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}tensorflow${CMAKE_STATIC_LIBRARY_SUFFIX})
+#else(WIN32)
+#    list(APPEND LIBRARIES
+#        ${CMAKE_SHARED_LIBRARY_PREFIX}tensorflow${CMAKE_SHARED_LIBRARY_SUFFIX}
+#    )
+#    set(Tensorflow_LIBRARY ${FAST_EXTERNAL_INSTALL_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}tensorflow${CMAKE_SHARED_LIBRARY_SUFFIX})
+#endif(WIN32)
+list(APPEND LIBRARIES
+    ${CMAKE_SHARED_LIBRARY_PREFIX}tensorflow${CMAKE_SHARED_LIBRARY_SUFFIX}
+)
 list(APPEND FAST_EXTERNAL_DEPENDENCIES tensorflow)
