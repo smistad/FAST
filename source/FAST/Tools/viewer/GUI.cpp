@@ -122,6 +122,24 @@ GUI::GUI() {
     QObject::connect(editPipeline, &QPushButton::clicked, std::bind(&GUI::editPipeline, this));
     menuLayout->addWidget(editPipeline);
 
+    // Playback
+    QHBoxLayout* playbackLayout = new QHBoxLayout;
+
+    mPlayPauseButton = new QPushButton;
+    mPlayPauseButton->setText("Play");
+    mPlayPauseButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
+    mPlayPauseButton->setFixedHeight(100);
+    QObject::connect(mPlayPauseButton, &QPushButton::clicked, std::bind(&GUI::playPause, this));
+    playbackLayout->addWidget(mPlayPauseButton);
+
+    QSlider* slider = new QSlider(Qt::Horizontal);
+    playbackLayout->addWidget(slider);
+    slider->setTickInterval(10);
+    slider->setRange(0, 1234);
+    slider->setTickPosition(QSlider::TicksAbove);
+
+    viewLayout->addLayout(playbackLayout);
+
     // Add menu and view to main layout
     QHBoxLayout* layout = new QHBoxLayout;
     layout->addLayout(menuLayout);
@@ -149,6 +167,17 @@ void GUI::editPipeline() {
 void GUI::selectPipeline() {
     // Stop computation thread before removing renderers
     stopComputationThread();
+
+    std::vector<std::string> inputData;
+    for(QListWidgetItem* widget : mList->selectedItems()) {
+        inputData.push_back(widget->text().toStdString());
+    }
+    mStreamer = ImageFileStreamer::New();
+    mStreamer->setFilenameFormats(inputData);
+    mStreamer->enableLooping();
+    mStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+    mStreamer->setSleepTime(50);
+
     getView(0)->removeAllRenderers();
 
     int selectedPipeline = mSelectPipeline->currentIndex();
@@ -162,7 +191,6 @@ void GUI::selectPipeline() {
                 textRenderer->setView(getView(0));
             }
             getView(0)->addRenderer(renderer);
-            std::cout << "added a renderer" << std::endl;
         }
         getView(0)->reinitialize();
     } catch(Exception &e) {
@@ -187,15 +215,6 @@ void GUI::selectPipeline() {
 }
 
 void GUI::selectInputData() {
-    std::vector<std::string> inputData;
-    for(QListWidgetItem* widget : mList->selectedItems()) {
-        inputData.push_back(widget->text().toStdString());
-    }
-    mStreamer = ImageFileStreamer::New();
-    mStreamer->setFilenameFormats(inputData);
-    mStreamer->enableLooping();
-    mStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
-    mStreamer->setSleepTime(50);
     selectPipeline();
 }
 
@@ -210,6 +229,16 @@ void GUI::addInputData() {
             filename = replace(filename, "_0.", "_#.");
             mList->addItem(filename.c_str());
         }
+    }
+}
+
+void GUI::playPause() {
+    if(mPlayPauseButton->text() == "Play") {
+        mPlayPauseButton->setText("Pause");
+        mPlayPauseButton->setStyleSheet("QPushButton { background-color: red; color: white; }");
+    } else {
+        mPlayPauseButton->setText("Play");
+        mPlayPauseButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
     }
 }
 

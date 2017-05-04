@@ -24,6 +24,7 @@ class GUI : public Window {
         void editPipeline();
         void addInputData();
         void selectInputData();
+        void playPause();
     private:
         GUI();
         void refreshStreams();
@@ -34,6 +35,7 @@ class GUI : public Window {
 
         QListWidget* mList;
         QComboBox* mSelectPipeline;
+        QPushButton* mPlayPauseButton;
         QVBoxLayout* menuLayout;
         int menuWidth;
         PipelineWidget* mPipelineWidget;
