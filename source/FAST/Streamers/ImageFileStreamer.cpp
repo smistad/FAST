@@ -82,6 +82,8 @@ void ImageFileStreamer::setFilenameFormat(std::string str) {
 }
 
 void ImageFileStreamer::setFilenameFormats(std::vector<std::string> strs) {
+    if(strs.size() == 0)
+        throw Exception("setFilenameFormats received a vector of size 0");
     for(std::string str : strs) {
         if(str.find("#") == std::string::npos)
             throw Exception("Filename format must include a hash tag # which will be replaced by a integer starting from 0.");
