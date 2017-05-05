@@ -3,6 +3,8 @@
 #include "FAST/Data/Image.hpp"
 #include "FAST/Data/Mesh.hpp"
 #include "FAST/Algorithms/IterativeClosestPoint/IterativeClosestPoint.hpp"
+#include <FAST/Exporters/VTKMeshFileExporter.hpp>
+#include <QDir>
 
 namespace fast {
 
@@ -31,6 +33,20 @@ void KinectTracking::restart() {
     mAnnotationImage->fill(0);
 }
 
+bool KinectTracking::toggleRecord(std::string path) {
+    mRecording = !mRecording;
+    if(mRecording) {
+        // Make sure path ends with a slash
+        if(path[path.size() - 1] != '/')
+            path += "/";
+        mRecordingName = currentDateTime();
+        mStoragePath = (QString(path.c_str()) + QDir::separator() + QString(mRecordingName.c_str()) + QDir::separator()).toStdString();
+        createDirectories(mStoragePath);
+        mFrameCounter = 0;
+    }
+    return mRecording;
+}
+
 void KinectTracking::execute() {
     Image::pointer input = getStaticInputData<Image>();
     Mesh::pointer meshInput = getStaticInputData<Mesh>(1);
@@ -52,6 +68,15 @@ void KinectTracking::execute() {
         AffineTransformation::pointer currentTransform = mTargetCloud->getSceneGraphNode()->getTransformation();
         AffineTransformation::pointer newTransform = icp->getOutputTransformation();
         mTargetCloud->getSceneGraphNode()->setTransformation(newTransform->multiply(currentTransform));
+    }
+
+    if(mRecording) {
+        VTKMeshFileExporter::pointer exporter = VTKMeshFileExporter::New();
+        exporter->setInputData(meshInput);
+        exporter->setWriteNormals(false);
+        exporter->setFilename(mStoragePath + std::to_string(mFrameCounter) + ".vtk");
+        exporter->update();
+        ++mFrameCounter;
     }
 
     setStaticOutputData<Image>(0, input);
@@ -110,6 +135,18 @@ void KinectTracking::addLine(Vector2i start, Vector2i end) {
             }
         }
     }
+}
+
+std::string KinectTracking::getRecordingName() const {
+    return mRecordingName;
+}
+
+uint KinectTracking::getFramesStored() const {
+    return mFrameCounter;
+}
+
+bool KinectTracking::isRecording() const {
+    return mRecording;
 }
 
 }

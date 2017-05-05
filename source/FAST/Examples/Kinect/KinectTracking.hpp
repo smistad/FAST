@@ -15,6 +15,10 @@ class KinectTracking : public ProcessObject {
         void addLine(Vector2i start, Vector2i end);
         void calculateTargetCloud(SharedPointer<KinectStreamer> streamer);
         void restart();
+        bool toggleRecord(std::string path);
+        std::string getRecordingName() const;
+        uint getFramesStored() const;
+        bool isRecording() const;
     private:
         KinectTracking();
         void execute();
@@ -22,7 +26,11 @@ class KinectTracking : public ProcessObject {
         SharedPointer<Image> mAnnotationImage;
         SharedPointer<Mesh> mCurrentCloud;
         SharedPointer<Mesh> mTargetCloud;
-        bool mTargetCloudExtracted;
+        bool mTargetCloudExtracted = false;
+        bool mRecording = false;
+        std::string mStoragePath;
+        std::string mRecordingName;
+        uint mFrameCounter;
 };
 
 }

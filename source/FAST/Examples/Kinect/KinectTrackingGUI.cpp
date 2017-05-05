@@ -4,6 +4,10 @@
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include <QVBoxLayout>
 #include <QPushButton>
+#include <QLabel>
+#include <QLineEdit>
+#include <QDir>
+#include <QElapsedTimer>
 #include <FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp>
 #include <FAST/Visualization/PointRenderer/PointRenderer.hpp>
 
@@ -81,6 +85,8 @@ bool KeyPressListener::eventFilter(QObject *obj, QEvent *event) {
 KinectTrackingGUI::KinectTrackingGUI() {
     View* view = createView();
 
+    mRecordTimer = new QElapsedTimer;
+
     // Setup streaming
     mStreamer = KinectStreamer::New();
     mStreamer->setPointCloudFiltering(true);
@@ -101,25 +107,75 @@ KinectTrackingGUI::KinectTrackingGUI() {
     SegmentationRenderer::pointer annotationRenderer = SegmentationRenderer::New();
     annotationRenderer->addInputConnection(mTracking->getOutputPort(1));
     annotationRenderer->setFillArea(false);
+    const int menuWidth = 300;
 
     view->set2DMode();
     view->setBackgroundColor(Color::Black());
     view->addRenderer(renderer);
     view->addRenderer(annotationRenderer);
-    setWidth(1024);
+    setWidth(1024 + menuWidth);
     setHeight(848);
     setTitle("FAST - Kinect Object Tracking");
 
-    QVBoxLayout* layout = new QVBoxLayout;
+    QVBoxLayout* menuLayout = new QVBoxLayout;
+    menuLayout->setAlignment(Qt::AlignTop);
+
+    // Logo
+    QImage* image = new QImage;
+    image->load((Config::getDocumentationPath() + "images/FAST_logo_square.png").c_str());
+    QLabel* logo = new QLabel;
+    logo->setPixmap(QPixmap::fromImage(image->scaled(menuWidth, ((float)menuWidth/image->width())*image->height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation)));
+    logo->adjustSize();
+    menuLayout->addWidget(logo);
+
+    // Title label
+    QLabel* title = new QLabel;
+    title->setText("<div style=\"text-align: center; font-weight: bold; font-size: 24px;\">Kinect<br>Object Tracking</div>");
+    menuLayout->addWidget(title);
+
+    // Quit button
+    QPushButton* quitButton = new QPushButton;
+    quitButton->setText("Quit (q)");
+    quitButton->setStyleSheet("QPushButton { background-color: red; color: white; }");
+    quitButton->setFixedWidth(menuWidth);
+    menuLayout->addWidget(quitButton);
 
     QPushButton* restartButton = new QPushButton;
     restartButton->setText("Restart");
-    restartButton->setStyleSheet("QPushButton { background-color: green; font-size: 24px; color: white; }");
+    restartButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
     QObject::connect(restartButton, &QPushButton::clicked, std::bind(&KinectTrackingGUI::restart, this));
+    menuLayout->addWidget(restartButton);
 
-    layout->addWidget(restartButton);
+    QLabel* storageDirLabel = new QLabel;
+    storageDirLabel->setText("Storage directory");
+    menuLayout->addWidget(storageDirLabel);
+
+    mStorageDir = new QLineEdit;
+    mStorageDir->setText(QDir::homePath() + QDir::separator() + QString("FAST_Kinect_Recordings"));
+    mStorageDir->setFixedWidth(menuWidth);
+    menuLayout->addWidget(mStorageDir);
+
+    mRecordButton = new QPushButton;
+    mRecordButton->setText("Record");
+    mRecordButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
+    QObject::connect(mRecordButton, &QPushButton::clicked, std::bind(&KinectTrackingGUI::toggleRecord, this));
+    menuLayout->addWidget(mRecordButton);
+
+    mRecordingInformation = new QLabel;
+    mRecordingInformation->setFixedWidth(menuWidth);
+    mRecordingInformation->setStyleSheet("QLabel { font-size: 14px; }");
+    menuLayout->addWidget(mRecordingInformation);
+
+    QHBoxLayout* layout = new QHBoxLayout;
+    layout->addLayout(menuLayout);
     layout->addWidget(view);
     mWidget->setLayout(layout);
+
+    // Update messages frequently
+    QTimer* timer = new QTimer(this);
+    timer->start(1000/5); // in milliseconds
+    timer->setSingleShot(false);
+    QObject::connect(timer, &QTimer::timeout, std::bind(&KinectTrackingGUI::updateMessages, this));
 }
 
 void KinectTrackingGUI::extractPointCloud() {
@@ -163,6 +219,31 @@ void KinectTrackingGUI::restart() {
     view->reinitialize();
 
     startComputationThread();
+}
+
+void KinectTrackingGUI::toggleRecord() {
+    bool recording = mTracking->toggleRecord(mStorageDir->text().toStdString());
+    if(recording) {
+        mRecordButton->setText("Stop recording");
+        mRecordButton->setStyleSheet("QPushButton { background-color: red; color: white; }");
+        mStorageDir->setDisabled(true);
+        mRecordTimer->start();
+        std::string msg = "Recording to: " + mTracking->getRecordingName();
+        mRecordingInformation->setText(msg.c_str());
+    } else {
+        mRecordButton->setText("Record");
+        mRecordButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
+        mStorageDir->setDisabled(false);
+    }
+}
+
+void KinectTrackingGUI::updateMessages() {
+    if(mTracking->isRecording()) {
+        std::string msg = "Recording to: " + mTracking->getRecordingName() + "\n";
+        msg += std::to_string(mTracking->getFramesStored()) + " frames stored\n";
+        msg += format("%.1f seconds", (float)mRecordTimer->elapsed()/1000.0f);
+        mRecordingInformation->setText(msg.c_str());
+    }
 }
 
 }

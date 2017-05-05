@@ -3,6 +3,11 @@
 
 #include "FAST/Visualization/Window.hpp"
 
+class QPushButton;
+class QLineEdit;
+class QLabel;
+class QElapsedTimer;
+
 namespace fast {
 
 class KinectStreamer;
@@ -13,11 +18,17 @@ class KinectTrackingGUI : public Window {
     public:
         void extractPointCloud();
         void restart();
+        void toggleRecord();
+        void updateMessages();
     private:
         KinectTrackingGUI();
 
         SharedPointer<KinectStreamer> mStreamer;
         SharedPointer<KinectTracking> mTracking;
+        QPushButton* mRecordButton;
+        QLineEdit* mStorageDir;
+        QLabel* mRecordingInformation;
+        QElapsedTimer* mRecordTimer;
 
 };
 
