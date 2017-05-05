@@ -17,7 +17,6 @@ class NoMoreFramesException : public Exception {
 class Streamer {
     public:
         typedef SharedPointer<Streamer> pointer;
-        virtual void producerStream() = 0;
         virtual ~Streamer() {};
         virtual void setStreamingMode(StreamingMode mode);
         virtual StreamingMode getStreamingMode() const;
