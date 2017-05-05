@@ -8,7 +8,6 @@ if(FAST_MODULE_NeuralNetwork)
     message("-- Neural network module with tensorflow enabled.")
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
     add_definitions(-DEIGEN_AVOID_STL_ARRAY)
-    set(CMAKE_CXX_STANDARD 14)
     if(WIN32)
         # Some definitions needed to compile with tensorflow on windows
         # These are taken from tensorflow/contrib/cmake/CMakeLists.txt
@@ -20,6 +19,6 @@ if(FAST_MODULE_NeuralNetwork)
         add_definitions(/wd4099 /wd4146 /wd4267 /wd4305 /wd4307)
         add_definitions(/wd4715 /wd4722 /wd4723 /wd4838 /wd4309 /wd4334)
         # To get rid of this error: Not found: No session factory registered for the given session options: {target: "" config: } Registered factories are {}.
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /WHOLEARCHIVE:\"${Tensorflow_LIBRARY}\"")
+        #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /WHOLEARCHIVE:\"${Tensorflow_LIBRARY}\"")
     endif()
 endif()
