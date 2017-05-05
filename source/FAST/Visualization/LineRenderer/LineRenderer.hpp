@@ -3,7 +3,7 @@
 
 #include "FAST/Visualization/Renderer.hpp"
 #include "FAST/Data/Color.hpp"
-#include "FAST/Data/LineSet.hpp"
+#include "FAST/Data/Mesh.hpp"
 
 namespace fast {
 
@@ -30,7 +30,7 @@ class LineRenderer : public Renderer {
         std::unordered_map<ProcessObjectPort, float> mInputWidths;
         std::unordered_map<ProcessObjectPort, Color> mInputColors;
         std::unordered_map<ProcessObjectPort, bool> mInputDrawOnTop;
-        std::unordered_map<uint, LineSet::pointer> mLineSetsToRender;
+        std::unordered_map<uint, Mesh::pointer> mMeshsToRender;
         std::mutex mMutex;
 };
 

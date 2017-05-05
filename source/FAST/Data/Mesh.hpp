@@ -17,6 +17,7 @@ namespace fast {
 class Mesh : public SpatialDataObject {
     FAST_OBJECT(Mesh)
     public:
+        void create(std::vector<Vector3f> vertices, std::vector<Vector3f> normals);
         void create(std::vector<Vector3f> vertices, std::vector<Vector3f> normals, std::vector<VectorXui> triangles);
         void create(std::vector<Vector2f> vertices, std::vector<Vector2f> normals, std::vector<VectorXui> lines);
         void create(std::vector<MeshVertex> vertices, std::vector<VectorXui> connections = std::vector<VectorXui>());

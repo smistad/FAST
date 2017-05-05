@@ -25,6 +25,29 @@ namespace fast {
 
 void Mesh::create(
         std::vector<Vector3f> vertices,
+        std::vector<Vector3f> normals
+        ) {
+    if(mIsInitialized) {
+        // Delete old data
+        freeAll();
+    }
+    mIsInitialized = true;
+    mDimensions = 3;
+
+    for(unsigned int i = 0; i < vertices.size(); i++) {
+        MeshVertex v(vertices[i], normals[i]);
+        mVertices.push_back(v);
+    }
+
+    mBoundingBox = BoundingBox(vertices);
+    mNrOfConnections = 0;
+    mHostHasData = true;
+    mHostDataIsUpToDate = true;
+    updateModifiedTimestamp();
+}
+
+void Mesh::create(
+        std::vector<Vector3f> vertices,
         std::vector<Vector3f> normals,
         std::vector<VectorXui> triangles) {
     if(mIsInitialized) {
