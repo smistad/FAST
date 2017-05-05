@@ -9,10 +9,15 @@ namespace fast {
 VTKMeshFileExporter::VTKMeshFileExporter() {
     createInputPort<Mesh>(0);
     mWriteNormals = true;
+    mWriteColors = true;
 }
 
 void VTKMeshFileExporter::setWriteNormals(bool writeNormals) {
     mWriteNormals = writeNormals;
+}
+
+void VTKMeshFileExporter::setWriteColors(bool writeColors)  {
+    mWriteColors = writeColors;
 }
 
 void VTKMeshFileExporter::execute() {
@@ -96,6 +101,16 @@ void VTKMeshFileExporter::execute() {
                     file << normal.x() << " " << normal.y() << " 0" << "\n";
                 }
             }
+        }
+    }
+
+    if(mWriteColors) {
+        file << "POINT_DATA " << vertices.size() << "\n";
+        file << "VECTORS vertex_colors float\n";
+        for(int i = 0; i < vertices.size(); i++) {
+            MeshVertex vertex = vertices[i];
+            Color color = vertex.getColor();
+            file << color.x() << " " << color.y() << " " << color.z() << "\n";
         }
     }
 

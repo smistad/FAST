@@ -9,11 +9,13 @@ class VTKMeshFileExporter : public FileExporter {
     FAST_OBJECT(VTKMeshFileExporter);
     public:
         void setWriteNormals(bool writeNormals);
+        void setWriteColors(bool writeColors);
     private:
         VTKMeshFileExporter();
         void execute();
 
         bool mWriteNormals;
+        bool mWriteColors;
 };
 
 }
