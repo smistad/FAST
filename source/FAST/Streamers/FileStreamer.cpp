@@ -43,7 +43,7 @@ void FileStreamer::setSleepTime(uint milliseconds) {
 
 void FileStreamer::setMaximumNumberOfFrames(uint nrOfFrames) {
     mMaximumNrOfFrames = nrOfFrames;
-    DynamicData::pointer data = getOutputData<Image>(0);
+    DynamicData::pointer data = getDynamicOutputData();
     data->setMaximumNumberOfFrames(nrOfFrames);
 }
 
@@ -52,7 +52,7 @@ void FileStreamer::setTimestampFilename(std::string filepath) {
 }
 
 void FileStreamer::execute() {
-    getOutputData<Image>(0)->setStreamer(mPtr.lock());
+    getDynamicOutputData()->setStreamer(mPtr.lock());
     if(mFilenameFormats.size() == 0)
         throw Exception("No filename format was given to the FileStreamer");
     if(!mStreamIsStarted) {
@@ -156,7 +156,7 @@ void FileStreamer::producerStream() {
                     previousTimestampTime = std::chrono::high_resolution_clock::now();
                 }
             }
-            DynamicData::pointer ptr = getOutputData<Image>();
+            DynamicData::pointer ptr = getDynamicOutputData();
             if(ptr.isValid()) {
                 try {
                     ptr->addFrame(dataFrame);

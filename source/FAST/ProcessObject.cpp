@@ -500,6 +500,37 @@ std::unordered_map<std::string, std::shared_ptr<Attribute>> ProcessObject::getAt
     return mAttributes;
 }
 
+DynamicData::pointer ProcessObject::getDynamicOutputData(uint outputNumber) {
+    DynamicData::pointer data;
+
+    // If output data is not created
+    if(mOutputData.count(outputNumber) == 0) {
+        // Is output dependent on any input?
+        if(mOutputDynamicDependsOnInput.count(outputNumber) > 0) {
+            uint inputNumber = mOutputDynamicDependsOnInput[outputNumber];
+            if(mInputConnections.count(inputNumber) == 0)
+                throw Exception("Must call input before output.");
+            ProcessObjectPort port = mInputConnections[inputNumber];
+            DataObject::pointer objectDependsOn = port.getData();
+            data = DynamicData::New();
+            data->setStreamer(objectDependsOn->getStreamer());
+            mOutputData[outputNumber].push_back(data);
+        } else {
+            // Create dynamic data
+            data = DynamicData::New();
+            mOutputData[outputNumber].push_back(data);
+        }
+    } else {
+        data = mOutputData[outputNumber][0];
+    }
+
+    return data;
+}
+
+DynamicData::pointer ProcessObject::getDynamicOutputData() {
+    return getDynamicOutputData(0);
+}
+
 
 
 } // namespace fast

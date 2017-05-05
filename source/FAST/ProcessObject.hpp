@@ -137,6 +137,9 @@ class ProcessObject : public virtual Object {
         template <class DataType>
         std::vector<typename DataType::pointer> getMultipleOutputData();
 
+        DynamicData::pointer getDynamicOutputData(uint portID);
+        DynamicData::pointer getDynamicOutputData();
+
         bool inputPortExists(uint portID) const;
         bool outputPortExists(uint portID) const;
         virtual std::string getNameOfClass() const = 0;
