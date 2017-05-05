@@ -1,10 +1,11 @@
 #include "FAST/Streamers/Tests/DummyIGTLServer.hpp"
+#include "GUI.hpp"
 
 using namespace fast;
 
 int main(int argc, char** argv) {
-    if(argc < 2 || std::string(argv[1]) == "--help") {
-        std::cout << "usage: " << argv[0] << " /path/to/stream/image_#.mhd [/path/to/second/stream/image_#.mhd ...]" << std::endl;
+    if(argc > 1 && std::string(argv[1]) == "--help") {
+        std::cout << "usage: " << argv[0] << " [/path/to/stream/image_#.mhd /path/to/second/stream/image_#.mhd ...]" << std::endl;
         return 0;
     }
 
@@ -13,12 +14,9 @@ int main(int argc, char** argv) {
         paths.push_back(std::string(argv[i]));
     }
 
-    ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
-    streamer->setFilenameFormats(paths);
-    streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
-    streamer->enableLooping();
 
-    DummyIGTLServer server;
-    server.setImageStreamer(streamer);
-    server.start();
+    GUI::pointer window = GUI::New();
+    window->getReporter().setReportMethod(Reporter::COUT);
+    window->setFilenameFormats(paths);
+    window->start();
 }

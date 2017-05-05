@@ -196,6 +196,8 @@ std::string Pipeline::getFilename() const {
 std::vector<Pipeline> getAvailablePipelines() {
     std::vector<Pipeline> pipelines;
     std::string path = Config::getPipelinePath();
+    if(!QDir(path.c_str()).exists())
+        throw Exception("Pipeline path " + path + " does not exist");
     // List all files in this directory ending with .fpl
     QDirIterator it(path.c_str(), QStringList() << "*.fpl", QDir::Files, QDirIterator::Subdirectories);
     while(it.hasNext()) {

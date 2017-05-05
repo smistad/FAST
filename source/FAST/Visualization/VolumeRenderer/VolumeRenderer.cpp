@@ -1,7 +1,7 @@
 #define _USE_MATH_DEFINES
 
 #include "VolumeRenderer.hpp"
-#include <QOpenGLFunctions_3_3_Core>
+#include <QOpenGLFunctions_3_3_Compatibility>
 #include "FAST/Data/Image.hpp"
 #include "FAST/Utility.hpp"
 #include "FAST/DeviceManager.hpp"
@@ -10,8 +10,6 @@
 #include <QCursor>
 #include "ColorTransferFunction.hpp"
 #include "OpacityTransferFunction.hpp"
-
-
 
 namespace fast {
 
@@ -334,6 +332,8 @@ void VolumeRenderer::execute() {
 	//GLfloat modelView[16];
 	//glMatrixMode(GL_MODELVIEW);
 	//glGetFloatv(GL_MODELVIEW_MATRIX, modelView);
+	QOpenGLFunctions_3_3_Compatibility *fun = new QOpenGLFunctions_3_3_Compatibility;
+	fun->initializeOpenGLFunctions();
 
 	glPushMatrix();
 
@@ -353,11 +353,11 @@ void VolumeRenderer::execute() {
 		if (doUserTransforms[i])
 			switch(i)
 			{
-				case 0: glMultTransposeMatrixf(mUserTransform0); break;
-				case 1: glMultTransposeMatrixf(mUserTransform1); break;
-				case 2: glMultTransposeMatrixf(mUserTransform2); break;
-				case 3: glMultTransposeMatrixf(mUserTransform3); break;
-				case 4: glMultTransposeMatrixf(mUserTransform4); break;
+				case 0: fun->glMultTransposeMatrixf(mUserTransform0); break;
+				case 1: fun->glMultTransposeMatrixf(mUserTransform1); break;
+				case 2: fun->glMultTransposeMatrixf(mUserTransform2); break;
+				case 3: fun->glMultTransposeMatrixf(mUserTransform3); break;
+				case 4: fun->glMultTransposeMatrixf(mUserTransform4); break;
 			}
 		
 
@@ -441,8 +441,7 @@ void VolumeRenderer::execute() {
 	if(!pbo)
 	{
 		// create pixel buffer object for display
-		QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
-		fun->initializeOpenGLFunctions();
+
 		fun->glGenBuffers(1, &pbo);
 		fun->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo);
 		fun->glBufferData(GL_PIXEL_UNPACK_BUFFER_ARB, mHeight * mWidth * sizeof(GLubyte) * 4, 0, GL_STREAM_DRAW_ARB);
@@ -634,7 +633,7 @@ void VolumeRenderer::draw() {
     glDisable(GL_DEPTH_TEST);
 	glDisable(GL_TEXTURE_2D);
     glRasterPos2i(0, 0);
-	QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
+	QOpenGLFunctions_3_3_Compatibility *fun = new QOpenGLFunctions_3_3_Compatibility;
 	fun->initializeOpenGLFunctions();
     fun->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo);
 	glDrawPixels(mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, 0);

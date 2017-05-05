@@ -2,7 +2,7 @@
 
 FAST (Framework for Heterogeneous Medical Image Computing and Visualization) is an open-source cross-platform framework with the main goal of making it easier to do processing and visualization of medical images on heterogeneous systems (CPU+GPU).
 
-To start using the framework, please see the [project wiki](https://github.com/smistad/FAST/wiki/).
+To start using the framework, please see the [project wiki](https://github.com/smistad/FAST/wiki/). To run the examples in this release download the [test data](https://github.com/smistad/FAST/wiki/Test-data) and put it in the same folder as this readme.
 
 A detailed description of the framework design can be found [on the project wiki](https://github.com/smistad/FAST/wiki/Framework-Design) or in the research article:  
 [FAST: framework for heterogeneous medical image computing and visualization](http://dx.doi.org/10.1007/s11548-015-1158-5).  
@@ -24,6 +24,7 @@ This FAST release is bundled with the following third-party software:
 * [zlib](http://www.zlib.net)
 * [OpenIGTLink](http://openigtlink.org)
 * [NumPy](http://www.numpy.org)
+* [TensorFlow](http://tensorflow.org)
 * [Semaphore C++11 implementation by Jeff Preshing](https://github.com/preshing/cpp11-on-multicore).
 
 The license of each software can be found in the licenses folder.

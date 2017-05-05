@@ -918,7 +918,7 @@ void View::getDepthBufferFromGeo()
 	// Render to Second Texture
 	fun->glBindFramebuffer(GL_FRAMEBUFFER, fbo2);
 
-	glActiveTexture(GL_TEXTURE0);
+	fun->glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, renderedDepthText);
 	int loc = fun->glGetUniformLocation(programGLSL, "renderedDepthText");
 	fun->glUniform1i(loc, renderedDepthText);

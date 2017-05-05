@@ -5,7 +5,7 @@ namespace fast {
 
 HeatmapRenderer::HeatmapRenderer() {
     createInputPort<Image>(0, false);
-    mColors[0] = Color::Red();
+    mColors[0] = Color::Green();
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/HeatmapRenderer/HeatmapRenderer.cl");
     mIsModified = false;
 }

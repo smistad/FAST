@@ -21,6 +21,20 @@ void IGTLinkStreamer::setConnectionPort(uint port) {
     mIsModified = true;
 }
 
+ProcessObjectPort IGTLinkStreamer::getOutputPort() {
+	uint portID;
+	if (mOutputPortDeviceNames.count("") == 0) {
+		portID = getNrOfOutputPorts();
+		createOutputPort<Image>(portID, OUTPUT_DYNAMIC);
+		getOutputData<Image>(portID); // This initializes the output data
+		mOutputPortDeviceNames[""] = portID;
+	}
+	else {
+		portID = mOutputPortDeviceNames[""];
+	}
+	return ProcessObject::getOutputPort(portID);
+}
+
 void IGTLinkStreamer::setStreamingMode(StreamingMode mode) {
     if(mode == STREAMING_MODE_STORE_ALL_FRAMES && !mMaximumNrOfFramesSet)
         setMaximumNumberOfFrames(0);

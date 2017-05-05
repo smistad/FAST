@@ -5,9 +5,10 @@ include(cmake/Externals.cmake)
 if(WIN32)
 	#set(BUILD_COMMAND set CL=/MP; nmake)
 	set(BUILD_COMMAND nmake)
+	set(CONFIGURE_COMMAND ${FAST_EXTERNAL_BUILD_DIR}/qt5/src/qt5/configure.bat)
 	set(URL "http://download.qt.io/official_releases/qt/5.8/5.8.0/submodules/qtbase-opensource-src-5.8.0.zip")
 	set(URL_HASH SHA256=4899c64c27249690a0a6b46208408d9dcc7043f42e175417e2f7634710f8f3fa)
-	set(OPTIONS  
+	set(OPTIONS
             -opensource;
             -confirm-license;
             -release;
@@ -25,6 +26,7 @@ if(WIN32)
 	)
 else()
 	set(BUILD_COMMAND make -j4)
+	set(CONFIGURE_COMMAND ${FAST_EXTERNAL_BUILD_DIR}/qt5/src/qt5/configure)
 	set(URL "http://download.qt.io/official_releases/qt/5.8/5.8.0/submodules/qtbase-opensource-src-5.8.0.tar.gz")
 	set(URL_HASH SHA256=0f6ecd94abd148f1ea4ad08905308af973c6fad9e8fca7491d68dbc8fbd88872)
     if(APPLE)
@@ -76,7 +78,7 @@ ExternalProject_Add(qt5
         URL ${URL}
         URL_HASH ${URL_HASH}
         CONFIGURE_COMMAND
-            ${FAST_EXTERNAL_BUILD_DIR}/qt5/src/qt5/configure
+            ${CONFIGURE_COMMAND}
             -prefix ${FAST_EXTERNAL_INSTALL_DIR};
             ${OPTIONS}
         BUILD_COMMAND
