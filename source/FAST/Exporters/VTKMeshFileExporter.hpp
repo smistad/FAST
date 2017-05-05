@@ -7,9 +7,13 @@ namespace fast {
 
 class VTKMeshFileExporter : public FileExporter {
     FAST_OBJECT(VTKMeshFileExporter);
+    public:
+        void setWriteNormals(bool writeNormals);
     private:
         VTKMeshFileExporter();
         void execute();
+
+        bool mWriteNormals;
 };
 
 }
