@@ -1,16 +1,16 @@
-#ifndef META_IMAGE_STREAMER_HPP
-#define META_IMAGE_STREAMER_HPP
+#ifndef FAST_MESH_FILE_STREAMER_HPP_
+#define FAST_MESH_FILE_STREAMER_HPP_
 
 #include "FAST/Streamers/FileStreamer.hpp"
 
 namespace fast {
 
-class ImageFileStreamer : public FileStreamer {
-    FAST_OBJECT(ImageFileStreamer)
+class MeshFileStreamer : public FileStreamer {
+    FAST_OBJECT(MeshFileStreamer)
     protected:
         DataObject::pointer getDataFrame(std::string filename);
     private:
-        ImageFileStreamer();
+        MeshFileStreamer();
 
 };
 

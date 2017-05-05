@@ -8,6 +8,11 @@ namespace fast {
 
 VTKMeshFileExporter::VTKMeshFileExporter() {
     createInputPort<Mesh>(0);
+    mWriteNormals = true;
+}
+
+void VTKMeshFileExporter::setWriteNormals(bool writeNormals) {
+    mWriteNormals = writeNormals;
 }
 
 void VTKMeshFileExporter::execute() {
@@ -49,42 +54,48 @@ void VTKMeshFileExporter::execute() {
     if(dimensions == 3) {
 		// Write triangles
 		std::vector<VectorXui> triangles = access->getTriangles();
-		file << "POLYGONS " << mesh->getNrOfTriangles() << " " << mesh->getNrOfTriangles()*4 << "\n";
-		for(int i = 0; i < triangles.size(); i++) {
-			Vector3ui triangle = triangles[i];
-			file << "3 " << triangle.x() << " " << triangle.y() << " " << triangle.z() << "\n";
-		}
+        if(triangles.size() > 0) {
+            file << "POLYGONS " << mesh->getNrOfTriangles() << " " << mesh->getNrOfTriangles() * 4 << "\n";
+            for(int i = 0; i < triangles.size(); i++) {
+                Vector3ui triangle = triangles[i];
+                file << "3 " << triangle.x() << " " << triangle.y() << " " << triangle.z() << "\n";
+            }
+        }
     } else {
     	// Write lines
 		std::vector<VectorXui> lines = access->getLines();
-		file << "LINES " << mesh->getNrOfLines() << " " << mesh->getNrOfLines()*3 << "\n";
-		for(int i = 0; i < lines.size(); i++) {
-			Vector2ui line = lines[i];
-			file << "2 " << line.x() << " " << line.y() << "\n";
-		}
+        if(lines.size() > 0) {
+            file << "LINES " << mesh->getNrOfLines() << " " << mesh->getNrOfLines() * 3 << "\n";
+            for(int i = 0; i < lines.size(); i++) {
+                Vector2ui line = lines[i];
+                file << "2 " << line.x() << " " << line.y() << "\n";
+            }
+        }
     }
 
     // Write.getNormal()s
-    file << "POINT_DATA " << vertices.size() << "\n";
-    file << "NORMALS Normals float\n";
-    for(int i = 0; i < vertices.size(); i++) {
-        MeshVertex vertex = vertices[i];
-        VectorXf normal = vertex.getNormal();
+    if(mWriteNormals) {
+        file << "POINT_DATA " << vertices.size() << "\n";
+        file << "NORMALS Normals float\n";
+        for(int i = 0; i < vertices.size(); i++) {
+            MeshVertex vertex = vertices[i];
+            VectorXf normal = vertex.getNormal();
 
-        if(dimensions == 3)
-			normal = transform->linear()*normal; // Transform the normal
+            if(dimensions == 3)
+                normal = transform->linear() * normal; // Transform the normal
 
-        // Normalize it
-        float length = normal.norm();
-        if(length == 0) { // prevent NaN situations
-			file << "0 1 0\n";
-        } else {
-        	normal.normalize();
-			if(dimensions == 3) {
-				file << normal.x() << " " << normal.y() << " " << normal.z() << "\n";
-			} else {
-				file << normal.x() << " " << normal.y() << " 0" << "\n";
-			}
+            // Normalize it
+            float length = normal.norm();
+            if(length == 0) { // prevent NaN situations
+                file << "0 1 0\n";
+            } else {
+                normal.normalize();
+                if(dimensions == 3) {
+                    file << normal.x() << " " << normal.y() << " " << normal.z() << "\n";
+                } else {
+                    file << normal.x() << " " << normal.y() << " 0" << "\n";
+                }
+            }
         }
     }
 

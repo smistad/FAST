@@ -1,8 +1,12 @@
 fast_add_sources(
     Streamer.cpp
     Streamer.hpp
+    FileStreamer.cpp
+    FileStreamer.hpp
     ImageFileStreamer.cpp
     ImageFileStreamer.hpp
+    MeshFileStreamer.cpp
+    MeshFileStreamer.hpp
     ManualImageStreamer.cpp
     ManualImageStreamer.hpp
     AffineTransformationFileStreamer.cpp

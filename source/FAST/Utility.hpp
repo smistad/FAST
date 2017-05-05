@@ -162,6 +162,12 @@ void createDirectory(std::string path);
 void createDirectories(std::string path);
 
 
+/**
+ * Returns a string of the current date
+ * @param format see http://en.cppreference.com/w/cpp/chrono/c/strftime
+ * @return
+ */
+std::string currentDateTime(std::string format = "%Y-%m-%d-%H%M%S");
 
 } // end namespace fast
 

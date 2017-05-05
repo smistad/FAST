@@ -53,6 +53,14 @@ inline double colorDistance(Vector3f e1, Vector3f e2) {
     return sqrt((((512+rmean)*r*r)>>8) + 4*g*g + (((767-rmean)*b*b)>>8));
 }
 
+inline Vector3f RGB2YIQ(Vector3f rgb) {
+    Matrix3f matrix;
+    matrix << 0.299, 0.587, 0.114,
+        0.596, -0.274, -0.322,
+        0.211, -0.523, 0.312;
+    return matrix*rgb;
+}
+
 /**
  * Create a new matrix which is matrix A rearranged.
  * This matrix has the same size as B
@@ -60,26 +68,24 @@ inline double colorDistance(Vector3f e1, Vector3f e2) {
 inline MatrixXf rearrangeMatrixToClosestPoints(const MatrixXf A, const MatrixXf B, const MatrixXf Acolors, const MatrixXf Bcolors, float colorWeight) {
     MatrixXf result = MatrixXf::Constant(B.rows(), B.cols(), 0);
 
-    struct CorrespondingPoint {
-        float distance;
-        Vector3f a;
-        Vector3f b;
-    };
-    std::vector<CorrespondingPoint> points;
-
+    Vector3f colorWeights(0.1, 1.0, 1.0);
     // For each point in B, find the closest point in A
 #pragma omp parallel for
     for(uint b = 0; b < B.cols(); ++b) {
         Vector3f pointInB = B.col(b);
-        Vector3f Bcolor = Bcolors.col(b);
+        Vector3f Bcolor = RGB2YIQ(Bcolors.col(b));
         float minDistance = std::numeric_limits<float>::max();
         uint closestPoint = 0;
         for(uint a = 0; a < A.cols(); ++a) {
             Vector3f pointInA = A.col(a);
-            Vector3f Acolor = Acolors.col(a);
+            Vector3f Acolor = RGB2YIQ(Acolors.col(a));
+            VectorXf distanceVector = VectorXf::Zero(6);
+            distanceVector.head(3) = pointInA - pointInB;
+            distanceVector(3) = (Acolor.x() - Bcolor.x())*colorWeights.x();
+            distanceVector(4) = (Acolor.y() - Bcolor.y())*colorWeights.y();
+            distanceVector(5) = (Acolor.z() - Bcolor.z())*colorWeights.z();
+            //float distance = distanceVector.norm();
             float distance = (pointInA-pointInB).norm();
-                    //colorWeight*(Acolor.dot(Bcolor) + 1.0f)*0.5f;
-                    //colorWeight*(Acolor-Bcolor).norm();
             //std::cout << colorDistance(Acolor, Bcolor) << std::endl;
             //if(colorDistance(Acolor, Bcolor) < 100) {
                 if(distance < minDistance) {
