@@ -163,3 +163,9 @@ if(FAST_MODULE_NeuralNetwork)
         DESTINATION fast/licenses/tensorflow/
     )
 endif()
+
+if(FAST_BUILD_DOCS)
+	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html
+        DESTINATION fast/doc
+    )
+endif()

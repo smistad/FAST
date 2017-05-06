@@ -6,6 +6,7 @@ include(cmake/Macros.cmake)
 option(FAST_BUILD_TESTS "Build FAST tests." ON)
 option(FAST_BUILD_EXAMPLES "Build examples." OFF)
 option(FAST_BUILD_TOOLS "Build tools." ON)
+option(FAST_BUILD_DOCS "Build API documentation" OFF)
 option(FAST_DOWNLOAD_TEST_DATA "Download test data automatically (> 1 GB)" ON)
 option(FAST_MODULE_VTK "Enable interoperability with VTK" OFF)
 option(FAST_MODULE_ITK "Enable interoperability with ITK" OFF)
@@ -85,6 +86,10 @@ include(cmake/Depdendencies.cmake)
 
 # This will download the test data
 include(cmake/DownloadTestData.cmake)
+
+if(FAST_BUILD_DOCS)
+    include(cmake/Documentation.cmake)
+endif()
 
 #### Set include dirs
 include_directories(${FAST_INCLUDE_DIRS})
