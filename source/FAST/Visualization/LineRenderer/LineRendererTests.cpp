@@ -1,12 +1,12 @@
 #include "FAST/Testing.hpp"
-#include "FAST/Importers/VTKLineSetFileImporter.hpp"
+#include "FAST/Importers/VTKMeshFileImporter.hpp"
 #include "LineRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 
 using namespace fast;
 
 TEST_CASE("LineRenderer", "[fast][LineRenderer][visual]") {
-    VTKLineSetFileImporter::pointer importer = VTKLineSetFileImporter::New();
+    VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
     importer->setFilename(Config::getTestDataPath() + "centerline.vtk");
 
     LineRenderer::pointer renderer = LineRenderer::New();

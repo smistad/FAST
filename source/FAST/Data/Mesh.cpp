@@ -24,60 +24,10 @@
 namespace fast {
 
 void Mesh::create(
-        std::vector<Vector3f> vertices,
-        std::vector<Vector3f> normals
-        ) {
-    if(mIsInitialized) {
-        // Delete old data
-        freeAll();
-    }
-    mIsInitialized = true;
-    mDimensions = 3;
-
-    for(unsigned int i = 0; i < vertices.size(); i++) {
-        MeshVertex v(vertices[i], normals[i]);
-        mVertices.push_back(v);
-    }
-
-    mBoundingBox = BoundingBox(vertices);
-    mNrOfConnections = 0;
-    mHostHasData = true;
-    mHostDataIsUpToDate = true;
-    updateModifiedTimestamp();
-}
-
-void Mesh::create(
-        std::vector<Vector3f> vertices,
-        std::vector<Vector3f> normals,
-        std::vector<VectorXui> triangles) {
-    if(mIsInitialized) {
-        // Delete old data
-        freeAll();
-    }
-    mIsInitialized = true;
-    mDimensions = 3;
-
-    for(unsigned int i = 0; i < vertices.size(); i++) {
-        MeshVertex v(vertices[i], normals[i]);
-        mVertices.push_back(v);
-    }
-
-    for(unsigned int i = 0; i < triangles.size(); i++) {
-        mVertices[triangles[i].x()].addConnection(i);
-        mVertices[triangles[i].y()].addConnection(i);
-        mVertices[triangles[i].z()].addConnection(i);
-    }
-
-    mBoundingBox = BoundingBox(vertices);
-    mNrOfConnections = triangles.size();
-    mConnections = triangles;
-    mHostHasData = true;
-    mHostDataIsUpToDate = true;
-    updateModifiedTimestamp();
-}
-
-
-void Mesh::create(std::vector<MeshVertex> vertices, std::vector<VectorXui> connections) {
+        std::vector<MeshVertex> vertices,
+        std::vector<MeshLine> lines,
+        std::vector<MeshTriangle> triangles
+    ) {
      if(mIsInitialized) {
         // Delete old data
         freeAll();
@@ -89,25 +39,22 @@ void Mesh::create(std::vector<MeshVertex> vertices, std::vector<VectorXui> conne
 
     mIsInitialized = true;
     mVertices = vertices;
-    std::vector<VectorXf> positions;
+    std::vector<Vector3f> positions;
     for(unsigned int i = 0; i < vertices.size(); i++) {
     	VectorXf pos = vertices[i].getPosition();
-    	if(pos.size() == 3) {
-            positions.push_back(pos);
-    	} else {
-            positions.push_back(Vector3f(pos.x(), pos.y(), 0));
-    	}
+        positions.push_back(pos);
     }
 	if(vertices.size() > 0) {
-		mDimensions = vertices[0].getNrOfDimensions();
 		mBoundingBox = BoundingBox(positions);
 	} else {
 		mBoundingBox = BoundingBox(Vector3f(0,0,0)); // TODO Fix
 	}
-    mNrOfConnections = connections.size();
-    mConnections = connections;
+    mLines = lines;
+    mTriangles = triangles;
+    mNrOfTriangles = triangles.size();
     mHostHasData = true;
     mHostDataIsUpToDate = true;
+    updateModifiedTimestamp();
 }
 
 void Mesh::create(unsigned int nrOfTriangles) {
@@ -117,8 +64,7 @@ void Mesh::create(unsigned int nrOfTriangles) {
     }
     mBoundingBox = BoundingBox(Vector3f(1,1,1));
     mIsInitialized = true;
-    mNrOfConnections = nrOfTriangles;
-    mDimensions = 3;
+    mNrOfTriangles = nrOfTriangles;
 }
 
 VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
@@ -126,9 +72,6 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
         OpenCLDevice::pointer device) {
     if(!mIsInitialized)
         throw Exception("Mesh has not been initialized.");
-
-	if(mDimensions == 2)
-		throw Exception("Not implemented for 2D");
 
     blockIfBeingWrittenTo();
 
@@ -167,11 +110,11 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
             // If host has data, transfer it.
             // Create data arrays with vertices and normals interleaved
             uint counter = 0;
-            float* data = new float[mNrOfConnections*18];
-            for(uint i = 0; i < mNrOfConnections; i++) {
-                Vector3ui triangle = mConnections[i];
+            float* data = new float[mNrOfTriangles*18];
+            for(uint i = 0; i < mNrOfTriangles; i++) {
+                MeshTriangle triangle = mTriangles[i];
                 for(uint j = 0; j < 3; j++) {
-                    MeshVertex vertex = mVertices[triangle[j]];
+                    MeshVertex vertex = mVertices[triangle.getEndpoint(j)];
                     for(uint k = 0; k < 3; k++) {
                         data[counter+k] = vertex.getPosition()[k];
                         //reportInfo() << data[counter+k] << Reporter::end;
@@ -181,18 +124,17 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
                     counter += 6;
                 }
             }
-            fun->glBufferData(GL_ARRAY_BUFFER, mNrOfConnections*18*sizeof(float), data, GL_STATIC_DRAW);
+            fun->glBufferData(GL_ARRAY_BUFFER, mNrOfTriangles*18*sizeof(float), data, GL_STATIC_DRAW);
             delete[] data;
         } else {
-            fun->glBufferData(GL_ARRAY_BUFFER, mNrOfConnections*18*sizeof(float), NULL, GL_STATIC_DRAW);
+            fun->glBufferData(GL_ARRAY_BUFFER, mNrOfTriangles*18*sizeof(float), NULL, GL_STATIC_DRAW);
         }
         fun->glBindBuffer(GL_ARRAY_BUFFER, 0);
         glFinish();
         if(glGetError() == GL_OUT_OF_MEMORY) {
         	throw Exception("OpenGL out of memory while creating mesh data for VBO");
         }
-        //reportInfo() << "Created VBO with ID " << mVBOID << " and " << mNrOfConnections << " of triangles" << Reporter::end;
-        // TODO Transfer data if any exist
+        //reportInfo() << "Created VBO with ID " << mVBOID << " and " << mNrOfTriangles << " of triangles" << Reporter::end;
 
         mVBOHasData = true;
         mVBODataIsUpToDate = true;
@@ -259,20 +201,18 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
     if(!mHostHasData) {
 #ifdef FAST_MODULE_VISUALIZATION
         // Host has not allocated data
-    	if(mDimensions == 2)
-    		throw Exception("Not implemented for 2D");
         // Get all vertices with normals from VBO (including duplicates)
-        float* data = new float[mNrOfConnections*18];
+        float* data = new float[mNrOfTriangles*18];
         QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
         fun->initializeOpenGLFunctions();
         fun->glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
-        fun->glGetBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float)*mNrOfConnections*18, data);
+        fun->glGetBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float)*mNrOfTriangles*18, data);
         fun->glBindBuffer(GL_ARRAY_BUFFER, 0);
         std::vector<MeshVertex> vertices;
-        std::vector<VectorXui> triangles;
+        std::vector<MeshTriangle> triangles;
         std::unordered_map<MeshVertex, uint, KeyHasher> vertexList;
-        for(int t = 0; t < mNrOfConnections; t++) {
-            Vector3ui triangle;
+        for(int t = 0; t < mNrOfTriangles; t++) {
+            uint endpoints[3];
             for(int v = 0; v < 3; v++) {
             	Vector3f position;
             	Vector3f normal;
@@ -283,7 +223,7 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
                 normal[1] = data[t*18+v*6+4];
                 normal[2] = data[t*18+v*6+5];
                 MeshVertex vertex(position, normal);
-                vertex.addConnection(t);
+                //vertex.addConnection(t);
 
                 // Only add if not a duplicate
                 if(vertexList.count(vertex) > 0) {
@@ -292,19 +232,20 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
                     const uint duplicateIndex = vertexList[vertex];
                     // Add this triangle to the duplicate
                     MeshVertex& duplicate = vertices[duplicateIndex];
-                    duplicate.addConnection(t);
+                    //duplicate.addConnection(t);
                     // Add the vertex to this triangle
-                    triangle[v] = duplicateIndex;
+                    endpoints[v] = duplicateIndex;
                 } else {
                     // If duplicate was not found, add it to the list
                     vertices.push_back(vertex);
-                    triangle[v] = vertices.size()-1;
+                    endpoints[v] = vertices.size()-1;
                     vertexList[vertex] = vertices.size()-1;
                 }
             }
+            MeshTriangle triangle(endpoints[0], endpoints[1], endpoints[2]);
             triangles.push_back(triangle);
         }
-        mConnections = triangles;
+        mTriangles = triangles;
         mVertices = vertices;
         mHostHasData = true;
         mHostDataIsUpToDate = true;
@@ -323,7 +264,7 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
         mDataIsBeingAccessed = true;
     }
 
-    MeshAccess::pointer accessObject(new MeshAccess(&mVertices,&mConnections,mPtr.lock()));
+    MeshAccess::pointer accessObject(new MeshAccess(&mVertices, &mLines, &mTriangles, mPtr.lock()));
 	return std::move(accessObject);
 }
 
@@ -337,13 +278,27 @@ void Mesh::updateOpenCLBufferData(OpenCLDevice::pointer device) {
 
     if(mCLBuffersIsUpToDate.count(device) == 0) {
         reportInfo() << "Creating OpenCL buffers for mesh" << reportEnd();
+
         // Allocate OpenCL buffers, need to know how many coordinates and how many connections
-        size_t bufferSize = sizeof(float)*getDimensions()*mVertices.size();
+        size_t bufferSize = sizeof(float) * 3 * mVertices.size();
         cl::Buffer* coordinatesBuffer = new cl::Buffer(device->getContext(), CL_MEM_READ_WRITE, bufferSize);
-        bufferSize = sizeof(int)*getDimensions()*mNrOfConnections;
-        cl::Buffer* connectionsBuffer = new cl::Buffer(device->getContext(), CL_MEM_READ_WRITE, bufferSize);
         mCoordinatesBuffers[device] = coordinatesBuffer;
-        mConnectionBuffers[device] = connectionsBuffer;
+
+        if(mLines.size() > 0) {
+            bufferSize = sizeof(int) * 2 * mLines.size();
+            cl::Buffer *lineBuffer = new cl::Buffer(device->getContext(), CL_MEM_READ_WRITE, bufferSize);
+            mLinesBuffers[device] = lineBuffer;
+        } else {
+            mLinesBuffers[device] = nullptr;
+        }
+
+        if(mTriangles.size() > 0) {
+            bufferSize = sizeof(int) * 3 * mTriangles.size();
+            cl::Buffer *triangleBuffer = new cl::Buffer(device->getContext(), CL_MEM_READ_WRITE, bufferSize);
+            mTrianglesBuffers[device] = triangleBuffer;
+        } else {
+            mTrianglesBuffers[device] = nullptr;
+        }
     }
 
     if(mHostHasData && mHostDataIsUpToDate) {
@@ -353,35 +308,45 @@ void Mesh::updateOpenCLBufferData(OpenCLDevice::pointer device) {
         // Transfer coordinates
         cl::CommandQueue queue = device->getCommandQueue();
         {
-            UniquePointer<float[]> coordinatesData(new float[getDimensions() * mVertices.size()]);
+            UniquePointer<float[]> coordinatesData(new float[3 * mVertices.size()]);
             int i = 0;
             for (MeshVertex vertex : mVertices) {
                 coordinatesData[i] = vertex.getPosition().x();
                 coordinatesData[i + 1] = vertex.getPosition().y();
-                if (getDimensions() == 3) {
-                    coordinatesData[i + 2] = vertex.getPosition().z();
-                }
-                i += getDimensions();
+                coordinatesData[i + 2] = vertex.getPosition().z();
+                i += 3;
             }
-            size_t bufferSize = sizeof(float) * getDimensions() * mVertices.size();
+            size_t bufferSize = sizeof(float) * 3 * mVertices.size();
             queue.enqueueWriteBuffer(*mCoordinatesBuffers[device], CL_TRUE, 0, bufferSize, coordinatesData.get());
         }
 
-        // Transfer connections
-        {
-            UniquePointer<uint[]> data(new uint[getDimensions() * mConnections.size()]);
+        // Transfer lines
+        if(mLines.size() > 0) {
+            UniquePointer<uint[]> data(new uint[2 * mLines.size()]);
             int i = 0;
-            for (VectorXui connection : mConnections) {
-                data[i] = connection.x();
-                data[i + 1] = connection.y();
-                if (getDimensions() == 3) {
-                    data[i + 2] = connection.z();
-                }
-                i += getDimensions();
+            for(MeshLine line : mLines) {
+                data[i] = line.getEndpoint1();
+                data[i + 1] = line.getEndpoint2();
+                i += 2;
             }
-            size_t bufferSize = sizeof(uint) * getDimensions() * mConnections.size();
-            queue.enqueueWriteBuffer(*mConnectionBuffers[device], CL_TRUE, 0, bufferSize, data.get());
+            size_t bufferSize = sizeof(uint) * 2 * mLines.size();
+            queue.enqueueWriteBuffer(*mLinesBuffers[device], CL_TRUE, 0, bufferSize, data.get());
         }
+
+        // Transfer triangles
+        if(mTriangles.size() > 0) {
+            UniquePointer<uint[]> data(new uint[3 * mTriangles.size()]);
+            int i = 0;
+            for(MeshTriangle triangle : mTriangles) {
+                data[i] = triangle.getEndpoint1();
+                data[i + 1] = triangle.getEndpoint2();
+                data[i + 2] = triangle.getEndpoint3();
+                i += 3;
+            }
+            size_t bufferSize = sizeof(uint) * 3 * mTriangles.size();
+            queue.enqueueWriteBuffer(*mTrianglesBuffers[device], CL_TRUE, 0, bufferSize, data.get());
+        }
+
 
     } else if(mVBOHasData && mVBODataIsUpToDate) {
         // TODO update data from VBO
@@ -425,7 +390,7 @@ MeshOpenCLAccess::pointer Mesh::getOpenCLAccess(accessType type, OpenCLDevice::p
         mDataIsBeingAccessed = true;
     }
 
-    MeshOpenCLAccess::pointer accessObject(new MeshOpenCLAccess(mCoordinatesBuffers[device], mConnectionBuffers[device], mPtr.lock()));
+    MeshOpenCLAccess::pointer accessObject(new MeshOpenCLAccess(mCoordinatesBuffers[device], mLinesBuffers[device], mTrianglesBuffers[device], mPtr.lock()));
 	return std::move(accessObject);
 }
 
@@ -464,15 +429,20 @@ void Mesh::freeAll() {
     // For each CL buffer delete it
     std::unordered_map<OpenCLDevice::pointer, bool>::iterator it;
     for(it = mCLBuffersIsUpToDate.begin(); it != mCLBuffersIsUpToDate.end(); it++) {
-        delete mConnectionBuffers[it->first];
+        if(mLinesBuffers.count(it->first) > 0)
+            delete mLinesBuffers[it->first];
+        if(mTrianglesBuffers.count(it->first) > 0)
+            delete mTrianglesBuffers[it->first];
         delete mCoordinatesBuffers[it->first];
     }
     mCoordinatesBuffers.clear();
-    mConnectionBuffers.clear();
+    mLinesBuffers.clear();
+    mTrianglesBuffers.clear();
     mCLBuffersIsUpToDate.clear();
 
     mVertices.clear();
-    mConnections.clear();
+    mLines.clear();
+    mTriangles.clear();
     mHostHasData = false;
 }
 
@@ -480,25 +450,30 @@ void Mesh::free(ExecutionDevice::pointer device) {
     // TODO
     if(device->isHost()) {
         mVertices.clear();
-        mConnections.clear();
+        mLines.clear();
+        mTriangles.clear();
         mHostHasData = false;
     } else {
         OpenCLDevice::pointer clDevice = device;
         if(mCLBuffersIsUpToDate.count(clDevice) > 0) {
             mCLBuffersIsUpToDate.erase(clDevice);
-            delete mConnectionBuffers[clDevice];
+            if(mLinesBuffers.count(clDevice) > 0)
+                delete mLinesBuffers[clDevice];
+            if(mTrianglesBuffers.count(clDevice) > 0)
+                delete mTrianglesBuffers[clDevice];
             delete mCoordinatesBuffers[clDevice];
-            mConnectionBuffers.erase(clDevice);
+            mLinesBuffers.erase(clDevice);
+            mTrianglesBuffers.erase(clDevice);
             mCoordinatesBuffers.erase(clDevice);
         }
     }
 }
 
-unsigned int Mesh::getNrOfTriangles() const {
-    return mNrOfConnections;
+int Mesh::getNrOfTriangles() const {
+    return mNrOfTriangles;
 }
 
-unsigned int Mesh::getNrOfVertices() const {
+int Mesh::getNrOfVertices() const {
     return mVertices.size();
 }
 
@@ -506,39 +481,8 @@ void Mesh::setBoundingBox(BoundingBox box) {
     mBoundingBox = box;
 }
 
-void Mesh::create(std::vector<Vector2f> vertices, std::vector<Vector2f> normals,
-		std::vector<VectorXui> lines) {
-    if(mIsInitialized) {
-        // Delete old data
-        freeAll();
-    }
-    mIsInitialized = true;
-    mDimensions = 2;
-
-    for(unsigned int i = 0; i < vertices.size(); i++) {
-        MeshVertex v(vertices[i], normals[i]);
-        mVertices.push_back(v);
-    }
-
-    for(unsigned int i = 0; i < lines.size(); i++) {
-        mVertices[lines[i].x()].addConnection(i);
-        mVertices[lines[i].y()].addConnection(i);
-    }
-
-    mBoundingBox = BoundingBox(vertices);
-    mNrOfConnections = lines.size();
-    mConnections = lines;
-    mHostHasData = true;
-    mHostDataIsUpToDate = true;
-    updateModifiedTimestamp();
-}
-
-unsigned int Mesh::getNrOfLines() const {
-	return mNrOfConnections;
-}
-
-uchar Mesh::getDimensions() const {
-	return mDimensions;
+int Mesh::getNrOfLines() const {
+	return mLines.size();
 }
 
 } // end namespace fast

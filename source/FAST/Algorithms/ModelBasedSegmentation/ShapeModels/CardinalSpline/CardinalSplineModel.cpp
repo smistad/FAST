@@ -12,9 +12,8 @@ Shape::pointer CardinalSplineModel::getShape(VectorXf state) {
 	assertControlPointsGiven();
 
 	// Create mesh
-	std::vector<Vector2f> vertices;
-	std::vector<Vector2f> normals;
-	std::vector<VectorXui> lines;
+	std::vector<MeshVertex> vertices;
+	std::vector<MeshLine> lines;
 
 	int nrOfControlPoints = mControlPoints.size();
 
@@ -72,28 +71,28 @@ Shape::pointer CardinalSplineModel::getShape(VectorXf state) {
 			Vector2f m1 = ((1-tension[(c+1) % nrOfControlPoints])/2)*(y3-y1);
 
 			// Calculate point p on spline
-			Vector2f vertex =  a0*y1 + a1*m0 + a2*m1 + a3*y2;
+			Vector2f position = a0*y1 + a1*m0 + a2*m1 + a3*y2;
 			// Calculate tangent for point p on spline
 			Vector2f tangent = at0*y1 + at1*m0 + at2*m1 + at3*y2;
 			tangent.normalize();
 			Vector2f normal(-tangent.y(), tangent.x());
-
-			vertices.push_back(vertex);
 			if(!mClockwise)
-				normal = - normal;
-			normals.push_back(normal);
-			// TODO check this:
+				normal = -normal;
+
+			MeshVertex vertex(Vector3f(position.x(), position.y(), 0), Vector3f(normal.x(), normal.y(), 0));
+            vertices.push_back(vertex);
+
 			if(counter < nrOfControlPoints*mResolution-1) {
-				lines.push_back(Vector2ui(counter, counter + 1));
+				lines.push_back(MeshLine(counter, counter + 1));
 			} else {
-				lines.push_back(Vector2ui(counter, 0));
+				lines.push_back(MeshLine(counter, 0));
 			}
 			counter++;
 		}
 	}
 
 	Mesh::pointer mesh = Mesh::New();
-	mesh->create(vertices, normals, lines);
+	mesh->create(vertices, lines);
 
 	Shape::pointer shape = Shape::New();
 	shape->setMesh(mesh);
@@ -216,7 +215,7 @@ std::vector<MatrixXf> CardinalSplineModel::getMeasurementVectors(VectorXf state,
 	int counter = 0;
 	for(int c = 0; c < nrOfControlPoints; ++c) {
 		for(int i = 1; i < mResolution+1; ++i) {
-			Vector2f normal = access->getVertex(counter).getNormal();
+			Vector2f normal = access->getVertex(counter).getNormal().head(2);
 			VectorXf h = VectorXf::Zero(mStateSize);
 
 			// GLOBAL PART

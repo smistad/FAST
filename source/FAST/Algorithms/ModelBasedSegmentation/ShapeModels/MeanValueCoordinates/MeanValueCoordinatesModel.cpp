@@ -50,22 +50,22 @@ std::vector<MeshVertex> MeanValueCoordinatesModel::getDeformedVertices(
     // TODO this loop could be run in parallel
     for(int i = 0; i < vertices.size(); i++) {
         // Find the normal of all triangles
-        std::vector<int> triangles = vertices[i].getConnections();
+        std::vector<uint> triangles = mModelVertexTrianglesMap[i];//vertices[i].getConnections();
         Vector3f average = Vector3f::Constant(0);
         int counter = 0;
         for(int j = 0; j < triangles.size(); j++) {
-            Vector3ui triangle = modelMeshAccess->getTriangle(triangles[j]);
+            MeshTriangle triangle = modelMeshAccess->getTriangle(triangles[j]);
             Vector3f a;
             Vector3f b;
-            if(triangle.x() == i) {
-                a = newVertices[triangle.y()].getPosition()-newVertices[i].getPosition();
-                b = newVertices[triangle.z()].getPosition()-newVertices[i].getPosition();
-            } else if(triangle.y() == i) {
-                a = newVertices[triangle.x()].getPosition()-newVertices[i].getPosition();
-                b = newVertices[triangle.z()].getPosition()-newVertices[i].getPosition();
+            if(triangle.getEndpoint1() == i) {
+                a = newVertices[triangle.getEndpoint2()].getPosition()-newVertices[i].getPosition();
+                b = newVertices[triangle.getEndpoint3()].getPosition()-newVertices[i].getPosition();
+            } else if(triangle.getEndpoint2() == i) {
+                a = newVertices[triangle.getEndpoint1()].getPosition()-newVertices[i].getPosition();
+                b = newVertices[triangle.getEndpoint3()].getPosition()-newVertices[i].getPosition();
             } else {
-                a = newVertices[triangle.x()].getPosition()-newVertices[i].getPosition();
-                b = newVertices[triangle.y()].getPosition()-newVertices[i].getPosition();
+                a = newVertices[triangle.getEndpoint1()].getPosition()-newVertices[i].getPosition();
+                b = newVertices[triangle.getEndpoint2()].getPosition()-newVertices[i].getPosition();
             }
             Vector3f faceNormal = a.cross(b);
             faceNormal.normalize();
@@ -154,6 +154,22 @@ void MeanValueCoordinatesModel::loadMeshes(Mesh::pointer surfaceMesh,
     // Calculate the weights using the original vertices of the model
     std::vector<MeshVertex> vertices = getOriginalVertices();
 
+    // Calculate vertex triangle maps
+    std::vector<MeshTriangle> triangles = access->getTriangles();
+    for(uint i = 0; i < triangles.size(); ++i) {
+        MeshTriangle triangle = triangles[i];
+        mModelVertexTrianglesMap[triangle.getEndpoint1()].push_back(i);
+        mModelVertexTrianglesMap[triangle.getEndpoint2()].push_back(i);
+        mModelVertexTrianglesMap[triangle.getEndpoint3()].push_back(i);
+    }
+    triangles = access2->getTriangles();
+    for(uint i = 0; i < triangles.size(); ++i) {
+        MeshTriangle triangle = triangles[i];
+        mControlVertexTrianglesMap[triangle.getEndpoint1()].push_back(i);
+        mControlVertexTrianglesMap[triangle.getEndpoint2()].push_back(i);
+        mControlVertexTrianglesMap[triangle.getEndpoint3()].push_back(i);
+    }
+
     // Allocate memory for the weights
     mNormalizedWeights = UniquePointer<float[]>(new float[vertices.size()*(mControlMesh->getNrOfTriangles()*3)]());
     mNormalizedWeightsPerNode = UniquePointer<float[]>(new float[vertices.size()*mControlMesh->getNrOfVertices()]);
@@ -172,10 +188,10 @@ void MeanValueCoordinatesModel::loadMeshes(Mesh::pointer surfaceMesh,
         }
 
         for(int t = 0; t < mControlMesh->getNrOfTriangles(); t++) {
-            Vector3ui triangle = access2->getTriangle(t);
-            const int t1 = triangle.x();
-            const int t2 = triangle.y();
-            const int t3 = triangle.z();
+            MeshTriangle triangle = access2->getTriangle(t);
+            const int t1 = triangle.getEndpoint1();
+            const int t2 = triangle.getEndpoint2();
+            const int t3 = triangle.getEndpoint3();
 
             const float l1 = (u[t2]-u[t3]).norm();
             const float l2 = (u[t3]-u[t1]).norm();
@@ -360,13 +376,13 @@ Shape::pointer MeanValueCoordinatesModel::getShape(VectorXf state) {
         Vector4f n(nv(0), nv(1), nv(2), 1.0);
         n = RS*n;
         n.normalize();
-        MeshVertex newVertex(v.head(3), n.head(3), pL[i].getConnections());
+        MeshVertex newVertex(v.head(3), n.head(3));
         result.push_back(newVertex);
     }
 
     MeshAccess::pointer meshAccess = mSurfaceMesh->getMeshAccess(ACCESS_READ);
     Mesh::pointer mesh = Mesh::New();
-    mesh->create(result, meshAccess->getTriangles());
+    mesh->create(result, {}, meshAccess->getTriangles());
 	Shape::pointer shape = Shape::New();
 	shape->setMesh(mesh);
 
@@ -402,18 +418,19 @@ void MeanValueCoordinatesModel::setNormalizedWeightPerNode(
     // Go trough triangle vector
     MeshAccess::pointer access = mControlMesh->getMeshAccess(ACCESS_READ);
     MeshVertex controlNode = access->getVertex(controlNodeNr);
-    for(int i = 0; i < controlNode.getConnections().size(); i++) {
-        uint t = controlNode.getConnections()[i];
-        Vector3ui triangle = access->getTriangle(t);
+    std::vector<uint> triangles = mControlVertexTrianglesMap[controlNodeNr];
+    for(int i = 0; i < triangles.size(); i++) {
+        uint t = triangles[i];
+        MeshTriangle triangle = access->getTriangle(t);
 
         // For each occurence of controlNodeNr, get the weight
-        if(triangle.x() == controlNodeNr){
+        if(triangle.getEndpoint1() == controlNodeNr){
             weight += getNormalizedWeight(vertexNr, t, 0);
         }
-        if(triangle.y() == controlNodeNr){
+        if(triangle.getEndpoint2() == controlNodeNr){
             weight += getNormalizedWeight(vertexNr, t, 1);
         }
-        if(triangle.z() == controlNodeNr){
+        if(triangle.getEndpoint3() == controlNodeNr){
             weight += getNormalizedWeight(vertexNr, t, 2);
         }
     }

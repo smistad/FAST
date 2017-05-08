@@ -9,26 +9,49 @@ namespace fast {
 
 class MeshVertex {
     public:
-		MeshVertex(VectorXf position);
-		MeshVertex(VectorXf position, VectorXf normal);
-		MeshVertex(VectorXf position, VectorXf normal, std::vector<int> connections);
-		uchar getNrOfDimensions() const;
-		VectorXf getPosition() const;
-		VectorXf getNormal() const;
-		void setPosition(VectorXf position);
-		void setNormal(VectorXf normal);
-		std::vector<int> getConnections() const;
-		void addConnection(int index);
+		MeshVertex(Vector3f position);
+		MeshVertex(Vector3f position, Vector3f normal);
+		Vector3f getPosition() const;
+		Vector3f getNormal() const;
+		void setPosition(Vector3f position);
+		void setNormal(Vector3f normal);
 		void setLabel(int label);
 		int getLabel() const;
 		void setColor(Color color);
 		Color getColor() const;
     private:
-        VectorXf mPosition;
-        VectorXf mNormal;
+        Vector3f mPosition;
+        Vector3f mNormal;
 		Color mColor;
         int mLabel;
-        std::vector<int> mConnections;
+};
+
+class MeshConnection {
+	public:
+        int getEndpoint(uint index);
+		int getEndpoint1();
+		int getEndpoint2();
+        Color getColor();
+		void setEndpoint(int endpointIndex, int vertexIndex);
+		void setEndpoint1(uint index);
+		void setEndpoint2(uint index);
+		void setColor(Color color);
+	protected:
+        VectorXui mEndpoints;
+		Color mColor;
+		MeshConnection() {};
+};
+
+class MeshLine : public MeshConnection {
+	public:
+		MeshLine(uint endpoint1, uint endpoint2, Color color = Color::Red());
+};
+
+class MeshTriangle : public MeshConnection {
+	public:
+		MeshTriangle(uint endpoint1, uint endpoint2, uint endpoint3, Color color = Color::Red());
+		int getEndpoint3();
+		void setEndpoint3(uint index);
 };
 
 } // end namespace fast

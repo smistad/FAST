@@ -79,56 +79,8 @@ void BoundingBox::initialize(std::vector<Vector3f> coordinates) {
     createCorners(minimum, size);
 }
 
-
-void BoundingBox::initialize(std::vector<Vector2f> coordinates) {
-    if(coordinates.size() == 0) {
-        mIsInitialized = true;
-        createCorners(Vector3f::Zero(), Vector3f::Ones());
-    }
-    // Find min and max of all the coordinates
-    Vector3f minimum(coordinates[0].x(), coordinates[0].y(), 0);
-    Vector3f maximum(coordinates[0].x(), coordinates[0].y(), 0);
-    for(uint i = 1; i < coordinates.size(); i++) {
-        Vector2f coordinate = coordinates[i];
-        for(uint j = 0; j < 2; j++) {
-            if(coordinate[j] < minimum[j]) {
-                minimum[j] = coordinate[j];
-            }
-            if(coordinate[j] > maximum[j]) {
-                maximum[j] = coordinate[j];
-            }
-        }
-    }
-
-    // Make new bounding box
-    Vector3f size(maximum.x()-minimum.x(), maximum.y()-minimum.y(), 0);
-    mIsInitialized = true;
-    createCorners(minimum, size);
-}
-
-BoundingBox::BoundingBox(std::vector<Vector2f> coordinates) {
-	initialize(coordinates);
-}
-
 BoundingBox::BoundingBox(std::vector<Vector3f> coordinates) {
 	initialize(coordinates);
-}
-
-BoundingBox::BoundingBox(std::vector<VectorXf> coordinates) {
-    // Find min and max of all the coordinates
-	if(coordinates[0].size() == 2) {
-		std::vector<Vector2f> coordinates2;
-		for(VectorXf v : coordinates) {
-			coordinates2.push_back(Vector2f(v.x(), v.y()));
-		}
-		initialize(coordinates2);
-	} else {
-		std::vector<Vector3f> coordinates2;
-		for(VectorXf v : coordinates) {
-			coordinates2.push_back(Vector3f(v.x(), v.y(), v.z()));
-		}
-		initialize(coordinates2);
-	}
 }
 
 BoundingBox BoundingBox::getTransformedBoundingBox(

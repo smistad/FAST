@@ -1,7 +1,7 @@
 #include "TubeSegmentationAndCenterlineExtraction.hpp"
 #include "FAST/Data/Image.hpp"
 #include "FAST/Data/Segmentation.hpp"
-#include "FAST/Data/LineSet.hpp"
+#include "FAST/Data/Mesh.hpp"
 #include "FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp"
 #include "FAST/Algorithms/GradientVectorFlow/EulerGradientVectorFlow.hpp"
 #include "FAST/Algorithms/GradientVectorFlow/MultigridGradientVectorFlow.hpp"
@@ -15,7 +15,7 @@ TubeSegmentationAndCenterlineExtraction::TubeSegmentationAndCenterlineExtraction
 
     createInputPort<Image>(0);
     createOutputPort<Segmentation>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-    createOutputPort<LineSet>(1, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOutputPort<Mesh>(1, OUTPUT_DEPENDS_ON_INPUT, 0);
     createOutputPort<Image>(2, OUTPUT_DEPENDS_ON_INPUT, 0);
 
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/TubeSegmentationAndCenterlineExtraction/TubeSegmentationAndCenterlineExtraction.cl");
@@ -146,7 +146,7 @@ inline void floodFill(ImageAccess::pointer& access, Vector3ui size, Vector3i sta
     }
 }
 
-inline void keepLargestObject(Segmentation::pointer segmentation, LineSet::pointer& centerlines) {
+inline void keepLargestObject(Segmentation::pointer segmentation, Mesh::pointer& centerlines) {
     ImageAccess::pointer access = segmentation->getImageAccess(ACCESS_READ_WRITE);
     const int width = segmentation->getWidth();
     const int height = segmentation->getHeight();
@@ -174,26 +174,26 @@ inline void keepLargestObject(Segmentation::pointer segmentation, LineSet::point
         segmentationArray[position.x() + position.y()*size.x() + position.z()*size.x()*size.y()] = 1;
     }
 
-    LineSet::pointer newCenterlines = LineSet::New();
+    Mesh::pointer newCenterlines = Mesh::New();
     {
         // Remove centerlines of small objects as well
-        LineSetAccess::pointer lineAccess = centerlines->getAccess(ACCESS_READ);
-        LineSetAccess::pointer newLineAccess = newCenterlines->getAccess(ACCESS_READ_WRITE);
+        MeshAccess::pointer lineAccess = centerlines->getMeshAccess(ACCESS_READ);
+        MeshAccess::pointer newLineAccess = newCenterlines->getMeshAccess(ACCESS_READ_WRITE);
         Vector3f spacing = segmentation->getSpacing();
         uint j = 0;
-        for(uint i = 0; i < lineAccess->getNrOfLines(); ++i) {
-            Vector2ui line = lineAccess->getLine(i);
-            Vector3f pointA = lineAccess->getPoint(line.x());
-            Vector3f pointB = lineAccess->getPoint(line.y());
-            Vector3f pointAinVoxelSpace(pointA.x() / spacing.x(), pointA.y() / spacing.y(), pointA.z() / spacing.z());
+        for(uint i = 0; i < centerlines->getNrOfLines(); ++i) {
+            MeshLine line = lineAccess->getLine(i);
+            MeshVertex pointA = lineAccess->getVertex(line.getEndpoint1());
+            MeshVertex pointB = lineAccess->getVertex(line.getEndpoint2());
+            Vector3f pointAinVoxelSpace(pointA.getPosition().x() / spacing.x(), pointA.getPosition().y() / spacing.y(), pointA.getPosition().z() / spacing.z());
             if(access->getScalar(pointAinVoxelSpace.cast<int>()) == 1) {
-                newLineAccess->addPoint(pointA);
-                newLineAccess->addPoint(pointB);
-                newLineAccess->addLine(j, j + 1);
+                newLineAccess->addVertex(pointA);
+                newLineAccess->addVertex(pointB);
+                newLineAccess->addLine(MeshLine(j, j + 1));
                 j += 2;
             }
         }
-        Reporter::info() << "Size of new centerlines " << newLineAccess->getNrOfPoints() << Reporter::end;
+        Reporter::info() << "Size of new centerlines " << newCenterlines->getNrOfVertices() << Reporter::end;
     }
     centerlines = newCenterlines;
     SceneGraph::setParentNode(centerlines, segmentation);
@@ -293,7 +293,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
     RidgeTraversalCenterlineExtraction::pointer centerlineExtraction = RidgeTraversalCenterlineExtraction::New();
     Image::pointer TDF;
     InverseGradientSegmentation::pointer segmentation = InverseGradientSegmentation::New();
-    LineSet::pointer centerline;
+    Mesh::pointer centerline;
     if(smallTDF.isValid() && largeTDF.isValid()) {
         // Both small and large TDF has been executed, need to merge the two.
         TDF = largeTDF;
@@ -306,7 +306,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
         centerlineExtraction->setInputData(4, gradients);
         centerlineExtraction->setInputData(5, smallRadius);
         centerlineExtraction->update();
-        centerline = centerlineExtraction->getOutputData<LineSet>();
+        centerline = centerlineExtraction->getOutputData<Mesh>();
 
         // Segmentation
         // TODO: Use only dilation for smallTDF
@@ -328,7 +328,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
             gradients = GVFfield;
         }
         centerlineExtraction->update();
-        centerline = centerlineExtraction->getOutputData<LineSet>();
+        centerline = centerlineExtraction->getOutputData<Mesh>();
 
         // Segmentation
         segmentation->setInputConnection(centerlineExtraction->getOutputPort(1));
@@ -343,7 +343,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
     keepLargestObject(segmentationVolume, centerline);
 
     setStaticOutputData<Segmentation>(0, segmentationVolume);
-    setStaticOutputData<LineSet>(1, centerline);
+    setStaticOutputData<Mesh>(1, centerline);
     setStaticOutputData<Image>(2, TDF);
 }
 

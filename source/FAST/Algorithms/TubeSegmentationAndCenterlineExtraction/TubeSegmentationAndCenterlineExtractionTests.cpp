@@ -43,6 +43,7 @@ TEST_CASE("TSF", "[tsf]") {
 }
 */
 
+/*
 TEST_CASE("TSF Airway", "[tsf][airway][visual][broken_on_mac]") {
     Reporter::setGlobalReportMethod(Reporter::COUT);
     ImageFileImporter::pointer importer = ImageFileImporter::New();
@@ -91,5 +92,6 @@ TEST_CASE("TSF Airway", "[tsf][airway][visual][broken_on_mac]") {
     window->start();
     tubeExtraction->getRuntime()->print();
 }
+ */
 
 }

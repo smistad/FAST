@@ -80,7 +80,7 @@ Mesh::pointer KalmanFilter::getDisplacementVectors(Image::pointer image) {
 	std::vector<Measurement> measurements = mAppearanceModel->getMeasurements(image, shape, getMainDevice());
 
 	std::vector<MeshVertex> vertices;
-	std::vector<VectorXui> lines;
+	std::vector<MeshLine> lines;
 	const uint nrOfMeasurements = measurements.size();
 	if(nrOfMeasurements != mesh->getNrOfVertices())
 		throw Exception("Number of vertex inconsistency");
@@ -93,7 +93,7 @@ Mesh::pointer KalmanFilter::getDisplacementVectors(Image::pointer image) {
 			MeshVertex v1(vertex.getPosition() + m.displacement*vertex.getNormal());
 			vertices.push_back(v0);
 			vertices.push_back(v1);
-			lines.push_back(Vector2ui(counter, counter+1));
+			lines.push_back(MeshLine(counter, counter+1));
 			counter += 2;
 		}
 	}

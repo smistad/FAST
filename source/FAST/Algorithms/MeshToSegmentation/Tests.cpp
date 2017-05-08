@@ -17,26 +17,20 @@ TEST_CASE("MeshToSegmentation 2D", "[fast][MeshToSegmentation][2d][visual]") {
     importer->setFilename(Config::getTestDataPath()+"US/CarotidArtery/Right/US-2D_0.mhd");
 
     Mesh::pointer mesh = Mesh::New();
-    std::vector<Vector2f> vertices = {
-            Vector2f(1, 1),
-            Vector2f(1, 25),
-            Vector2f(25, 20),
-            Vector2f(20, 1)
+    std::vector<MeshVertex> vertices = {
+            MeshVertex(Vector3f(1, 1, 0)),
+            MeshVertex(Vector3f(1, 25, 0)),
+            MeshVertex(Vector3f(25, 20, 0)),
+            MeshVertex(Vector3f(20, 1, 0)),
     };
-    std::vector<Vector2f> normals = {
-            Vector2f(10, 10),
-            Vector2f(10, 100),
-            Vector2f(100, 100),
-            Vector2f(100, 10)
-    };
-    std::vector<VectorXui> connections = {
-            Vector2ui(0, 1),
-            Vector2ui(1, 2),
-            Vector2ui(2, 3),
-            Vector2ui(3, 0)
+    std::vector<MeshLine> lines = {
+            MeshLine(0, 1),
+            MeshLine(1, 2),
+            MeshLine(2, 3),
+            MeshLine(3, 0)
     };
 
-    mesh->create(vertices, normals, connections);
+    mesh->create(vertices, lines);
 
     MeshToSegmentation::pointer meshToSeg = MeshToSegmentation::New();
     meshToSeg->setInputData(0, mesh);
@@ -64,45 +58,31 @@ TEST_CASE("MeshToSegmentation 3D", "[fast][MeshToSegmentation][3d][visual]") {
     importer->setFilename(Config::getTestDataPath()+"US/Ball/US-3Dt_0.mhd");
 
     Mesh::pointer mesh = Mesh::New();
-    std::vector<Vector3f> vertices = {
-            Vector3f(1, 1, 1),
-            Vector3f(1, 1, 10),
-            Vector3f(1, 10, 10),
+    std::vector<MeshVertex> vertices = {
+            MeshVertex(Vector3f(1, 1, 1)),
+            MeshVertex(Vector3f(1, 1, 10)),
+            MeshVertex(Vector3f(1, 10, 10)),
 
-            Vector3f(1, 1, 1),
-            Vector3f(1, 1, 10),
-            Vector3f(30, 15, 15),
+            MeshVertex(Vector3f(1, 1, 1)),
+            MeshVertex(Vector3f(1, 1, 10)),
+            MeshVertex(Vector3f(30, 15, 15)),
 
-            Vector3f(1, 1, 10),
-            Vector3f(1, 10, 10),
-            Vector3f(30, 15, 15),
+            MeshVertex(Vector3f(1, 1, 10)),
+            MeshVertex(Vector3f(1, 10, 10)),
+            MeshVertex(Vector3f(30, 15, 15)),
 
-            Vector3f(1, 1, 1),
-            Vector3f(1, 10, 10),
-            Vector3f(30, 15, 15)
+            MeshVertex(Vector3f(1, 1, 1)),
+            MeshVertex(Vector3f(1, 10, 10)),
+            MeshVertex(Vector3f(30, 15, 15))
     };
-    std::vector<Vector3f> normals = {
-            Vector3f(1, 1, 1),
-            Vector3f(1, 1, 2),
-            Vector3f(1, 2, 2),
-            Vector3f(1, 1, 1),
-            Vector3f(1, 1, 2),
-            Vector3f(3, 1.5, 1.5),
-            Vector3f(1, 1, 2),
-            Vector3f(1, 2, 2),
-            Vector3f(3, 1.5, 1.5),
-            Vector3f(1, 1, 1),
-            Vector3f(1, 2, 2),
-            Vector3f(3, 1.5, 1.5)
-    };
-    std::vector<VectorXui> connections = {
-            Vector3ui(0, 1, 2),
-            Vector3ui(3, 4, 5),
-            Vector3ui(6, 7, 8),
-            Vector3ui(9, 10, 11)
+    std::vector<MeshTriangle> triangles = {
+            MeshTriangle(0, 1, 2),
+            MeshTriangle(3, 4, 5),
+            MeshTriangle(6, 7, 8),
+            MeshTriangle(9, 10, 11)
     };
 
-    mesh->create(vertices, normals, connections);
+    mesh->create(vertices, {}, triangles);
 
     MeshToSegmentation::pointer meshToSeg = MeshToSegmentation::New();
     meshToSeg->setInputData(0, mesh);

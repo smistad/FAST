@@ -1,10 +1,6 @@
 fast_add_sources(
     VTKMeshFileImporter.cpp
     VTKMeshFileImporter.hpp
-    VTKPointSetFileImporter.cpp
-    VTKPointSetFileImporter.hpp
-    VTKLineSetFileImporter.cpp
-    VTKLineSetFileImporter.hpp
     MetaImageImporter.cpp
     MetaImageImporter.hpp
     ImageImporter.cpp
@@ -18,8 +14,7 @@ fast_add_python_interfaces(
 )
 fast_add_test_sources(
     Tests/MetaImageImporterTests.cpp
-    Tests/VTKSurfaceFileImporterTests.cpp
-    Tests/VTKLineSetFileImporterTests.cpp
+    Tests/VTKMeshFileImporterTests.cpp
     Tests/ImageImporterTests.cpp
     Tests/ImageFileImporterTests.cpp
 )

@@ -18,10 +18,6 @@ fast_add_sources(
     Mesh.hpp
     MeshVertex.cpp
     MeshVertex.hpp
-    PointSet.cpp
-    PointSet.hpp
-    LineSet.cpp
-    LineSet.hpp
     Color.hpp
     Camera.cpp
     Camera.hpp

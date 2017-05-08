@@ -64,9 +64,6 @@ void MeshRenderer::draw() {
     for(it = mMeshToRender.begin(); it != mMeshToRender.end(); it++) {
         Mesh::pointer surfaceToRender = it->second;
 
-        if(surfaceToRender->getDimensions() != 3)
-        	continue;
-
         // Draw the triangles in the VBO
         AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(surfaceToRender);
 
@@ -151,8 +148,6 @@ void MeshRenderer::draw2D(
     std::unordered_map<uint, Mesh::pointer>::iterator it;
     for(it = mMeshToRender.begin(); it != mMeshToRender.end(); it++) {
     	Mesh::pointer mesh = it->second;
-    	if(mesh->getDimensions() != 2) // Mesh must be 2D
-    		continue;
 
 		Color color = mDefaultColor;
         ProcessObjectPort port = getInputPort(it->first);
@@ -161,19 +156,19 @@ void MeshRenderer::draw2D(
         }
 
     	MeshAccess::pointer access = mesh->getMeshAccess(ACCESS_READ);
-        std::vector<VectorXui> lines = access->getLines();
+        std::vector<MeshLine> lines = access->getLines();
         std::vector<MeshVertex> vertices = access->getVertices();
 
         // Draw each line
         for(int i = 0; i < lines.size(); ++i) {
-        	Vector2ui line = lines[i];
-        	int label = vertices[line.x()].getLabel();
+        	MeshLine line = lines[i];
+        	int label = vertices[line.getEndpoint1()].getLabel();
         	Color useColor = color;
         	if(mLabelColors.count(label) > 0)
         		useColor = mLabelColors[label];
 
-        	Vector2f a = vertices[line.x()].getPosition();
-        	Vector2f b = vertices[line.y()].getPosition();
+        	Vector2f a = vertices[line.getEndpoint1()].getPosition().head(2);
+        	Vector2f b = vertices[line.getEndpoint2()].getPosition().head(2);
         	Vector2f direction = b - a;
         	float lengthInPixels = ceil(direction.norm() / PBOspacing);
 

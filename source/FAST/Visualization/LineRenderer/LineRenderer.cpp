@@ -49,9 +49,9 @@ void LineRenderer::draw() {
         if(drawOnTop)
             glDisable(GL_DEPTH_TEST);
         glBegin(GL_LINES);
-        for(VectorXui line : access->getLines()) {
-            Vector3f a = access->getVertex(line.x()).getPosition();
-            Vector3f b = access->getVertex(line.y()).getPosition();
+        for(MeshLine line : access->getLines()) {
+            Vector3f a = access->getVertex(line.getEndpoint1()).getPosition();
+            Vector3f b = access->getVertex(line.getEndpoint2()).getPosition();
             glVertex3f(a.x(), a.y(), a.z());
             glVertex3f(b.x(), b.y(), b.z());
         }
@@ -88,7 +88,6 @@ void LineRenderer::execute() {
     // This simply gets the input data for each connection and puts it into a data structure
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
         Mesh::pointer input = getStaticInputData<Mesh>(inputNr);
-
         mMeshsToRender[inputNr] = input;
     }
 }
@@ -100,6 +99,7 @@ void LineRenderer::addInputConnection(ProcessObjectPort port) {
         createInputPort<Mesh>(nr);
     releaseInputAfterExecute(nr, false);
     setInputConnection(nr, port);
+    mIsModified = true;
 }
 
 void LineRenderer::addInputConnection(ProcessObjectPort port, Color color,
@@ -120,7 +120,6 @@ void LineRenderer::setDefaultLineWidth(float width) {
 void LineRenderer::setDefaultDrawOnTop(bool drawOnTop) {
     mDefaultDrawOnTop = drawOnTop;
 }
-
 
 void LineRenderer::setDrawOnTop(ProcessObjectPort port, bool drawOnTop) {
     mInputDrawOnTop[port] = drawOnTop;

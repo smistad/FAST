@@ -1,17 +1,17 @@
 #include "CenterlineExtraction.hpp"
 #include "FAST/Data/Segmentation.hpp"
-#include "FAST/Data/LineSet.hpp"
+#include "FAST/Data/Mesh.hpp"
 #include "FAST/Utility.hpp"
 #include <unordered_set>
 #include <stack>
 #include "FAST/Exporters/MetaImageExporter.hpp"
-#include "../../SmartPointers.hpp"
+#include "FAST/SmartPointers.hpp"
 
 namespace fast {
 
 CenterlineExtraction::CenterlineExtraction() {
 	createInputPort<Image>(0);
-	createOutputPort<LineSet>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+	createOutputPort<Mesh>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
 
 	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/CenterlineExtraction/CenterlineExtraction.cl");
 }
@@ -252,9 +252,6 @@ inline void growFromPointsAdded(std::vector<Vector3i> points, const UniquePointe
 void CenterlineExtraction::execute() {
 	Image::pointer input = getStaticInputData<Image>();
 	Vector3f spacing = input->getSpacing();
-	LineSet::pointer output = getStaticOutputData<LineSet>();
-	SceneGraph::setParentNode(output, input);
-	LineSetAccess::pointer outputAccess = output->getAccess(ACCESS_READ_WRITE);
 
 	// Do distance transform
 	Image::pointer distance = calculateDistanceTransform(input);
@@ -403,6 +400,8 @@ void CenterlineExtraction::execute() {
     	neighbors2.push_back(Vector3i(a,b,c));
     }}}
 
+	std::vector<MeshVertex> vertices;
+	std::vector<MeshLine> lines;
     std::unordered_set<int> refinedCenterline;
     std::unordered_set<int> processed;
 	// Do backtrace
@@ -479,17 +478,21 @@ void CenterlineExtraction::execute() {
 
 		if(pointsToAdd.size() > 10) { // minimum length
 			growFromPointsAdded(pointsToAdd, G, Sc, processed, size);
-			int counter = outputAccess->getNrOfPoints();
-            outputAccess->addPoint(pointsToAdd[0].cast<float>().cwiseProduct(spacing));
+			int counter = vertices.size();
+            vertices.push_back(MeshVertex(pointsToAdd[0].cast<float>().cwiseProduct(spacing)));
             refinedCenterline.insert(linearPosition(pointsToAdd[0], size));
 			for(int i = 1; i < pointsToAdd.size(); ++i) {
                 refinedCenterline.insert(linearPosition(pointsToAdd[i], size));
-				outputAccess->addPoint(pointsToAdd[i].cast<float>().cwiseProduct(spacing));
-				outputAccess->addLine(counter, counter+1);
+				vertices.push_back(MeshVertex(pointsToAdd[i].cast<float>().cwiseProduct(spacing)));
+				lines.push_back(MeshLine(counter, counter+1));
 				counter += 1;
 			}
 		}
 	}
+
+	Mesh::pointer output = getStaticOutputData<Mesh>();
+    output->create(vertices, lines);
+	SceneGraph::setParentNode(output, input);
 }
 
 

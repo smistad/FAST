@@ -22,16 +22,6 @@ void MeshToSegmentation::execute() {
 	Mesh::pointer mesh = getStaticInputData<Mesh>(0);
 	Image::pointer image = getStaticInputData<Image>(1);
 
-
-	bool two_dim_data = true;
-	if(mesh->getDimensions() == 2 && image->getDimensions() == 2) {
-		two_dim_data = true;
-	} else if(mesh->getDimensions() == 3 && image->getDimensions() == 3) {
-		two_dim_data = false;
-	} else {
-		throw Exception("Dimensions of mesh and image in mesh to segmentation doesn't match.");
-	}
-
     Segmentation::pointer segmentation = getStaticOutputData<Segmentation>();
 	// Initialize output segmentation image and size
     if(mResolution == Vector3i::Zero()) {
@@ -39,7 +29,7 @@ void MeshToSegmentation::execute() {
 		segmentation->createFromImage(image);
 	} else {
 		// Use specified resolution
-        if(two_dim_data) {
+        if(image->getDimensions() == 2) {
 			segmentation->create(mResolution.x(), mResolution.y(), TYPE_UINT8, 1);
 		} else {
 			segmentation->create(mResolution.x(), mResolution.y(), mResolution.z(), TYPE_UINT8, 1);
@@ -64,15 +54,15 @@ void MeshToSegmentation::execute() {
 
 	// TODO image and mesh scene graph has to be taken into account
 
+    MeshOpenCLAccess::pointer meshAccess = mesh->getOpenCLAccess(ACCESS_READ, device);
+    reportInfo() << "Got mesh opencl access" << reportEnd();
 	cl::Program program = getOpenCLProgram(device);
 	cl::CommandQueue queue = device->getCommandQueue();
-	MeshOpenCLAccess::pointer meshAccess = mesh->getOpenCLAccess(ACCESS_READ, device);
-	reportInfo() << "Got mesh opencl access" << reportEnd();
-	if(two_dim_data) {
+	if(image->getDimensions() == 2) {
 		cl::Kernel kernel(program, "mesh_to_segmentation_2d");
 		OpenCLImageAccess::pointer outputAccess = segmentation->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
 		kernel.setArg(0, *meshAccess->getCoordinatesBuffer());
-		kernel.setArg(1, *meshAccess->getConnectionsBuffer());
+		kernel.setArg(1, *meshAccess->getLineBuffer());
         kernel.setArg(2, mesh->getNrOfLines());
 		kernel.setArg(3, *outputAccess->get2DImage());
 		kernel.setArg(4, segmentation->getSpacing().x());
@@ -88,7 +78,7 @@ void MeshToSegmentation::execute() {
 		cl::Kernel kernel(program, "mesh_to_segmentation_3d");
 		OpenCLBufferAccess::pointer outputAccess = segmentation->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
 		kernel.setArg(0, *meshAccess->getCoordinatesBuffer());
-		kernel.setArg(1, *meshAccess->getConnectionsBuffer());
+		kernel.setArg(1, *meshAccess->getTriangleBuffer());
 		kernel.setArg(2, mesh->getNrOfTriangles());
 		kernel.setArg(3, *outputAccess->get());
 		kernel.setArg(4, segmentation->getSpacing().x());
@@ -102,6 +92,7 @@ void MeshToSegmentation::execute() {
 				cl::NullRange
 		);
 	}
+    queue.finish();
 }
 
 }

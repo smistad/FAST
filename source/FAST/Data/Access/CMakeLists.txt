@@ -12,10 +12,6 @@ fast_add_sources(
     MeshAccess.hpp
     MeshOpenCLAccess.cpp
     MeshOpenCLAccess.hpp
-    PointSetAccess.cpp
-    PointSetAccess.hpp
-    LineSetAccess.cpp
-    LineSetAccess.hpp
     CameraAccess.cpp
     CameraAccess.hpp
 )

@@ -48,6 +48,8 @@ class MeanValueCoordinatesModel : public ShapeModel {
 
 		Mesh::pointer mSurfaceMesh;
 		Mesh::pointer mControlMesh;
+		std::unordered_map<uint, std::vector<uint>> mModelVertexTrianglesMap;
+		std::unordered_map<uint, std::vector<uint>> mControlVertexTrianglesMap;
 		Vector3f mCentroid;
 
 		UniquePointer<float[]> mNormalizedWeights;

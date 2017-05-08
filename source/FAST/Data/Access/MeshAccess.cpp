@@ -5,10 +5,12 @@ namespace fast {
 
 MeshAccess::MeshAccess(
         std::vector<MeshVertex>* vertices,
-        std::vector<VectorXui>* connections,
+        std::vector<MeshLine>* lines,
+        std::vector<MeshTriangle>* triangles,
         SharedPointer<Mesh> mesh) {
     mVertices = vertices;
-    mConnections = connections;
+    mLines = lines;
+    mTriangles = triangles;
     mMesh = mesh;;
 }
 
@@ -24,16 +26,24 @@ void MeshAccess::setVertex(uint i, MeshVertex vertex) {
     (*mVertices)[i] = vertex;
 }
 
-
 MeshVertex MeshAccess::getVertex(uint i) {
     return (*mVertices)[i];
 }
 
-Vector3ui MeshAccess::getTriangle(uint i) {
-    return (*mConnections)[i];
+MeshTriangle MeshAccess::getTriangle(uint i) {
+    return (*mTriangles)[i];
 }
-Vector2ui MeshAccess::getLine(uint i) {
-    return (*mConnections)[i];
+
+void MeshAccess::setLine(uint i, MeshLine line) {
+    (*mLines)[i] = line;
+}
+
+MeshLine MeshAccess::getLine(uint i) {
+    return (*mLines)[i];
+}
+
+void MeshAccess::setTriangle(uint i, MeshTriangle triangle) {
+    (*mTriangles)[i] = triangle;
 }
 
 std::vector<MeshVertex> MeshAccess::getVertices() {
@@ -41,13 +51,25 @@ std::vector<MeshVertex> MeshAccess::getVertices() {
     return copy;
 }
 
-std::vector<VectorXui> MeshAccess::getTriangles() {
-    std::vector<VectorXui> copy = *mConnections;
+std::vector<MeshTriangle> MeshAccess::getTriangles() {
+    std::vector<MeshTriangle> copy = *mTriangles;
     return copy;
 }
-std::vector<VectorXui> MeshAccess::getLines() {
-    std::vector<VectorXui> copy = *mConnections;
+std::vector<MeshLine> MeshAccess::getLines() {
+    std::vector<MeshLine> copy = *mLines;
     return copy;
+}
+
+void MeshAccess::addVertex(MeshVertex v) {
+    mVertices->push_back(v);
+}
+
+void MeshAccess::addTriangle(MeshTriangle t) {
+    mTriangles->push_back(t);
+}
+
+void MeshAccess::addLine(MeshLine l) {
+    mLines->push_back(l);
 }
 
 } // end namespace fast

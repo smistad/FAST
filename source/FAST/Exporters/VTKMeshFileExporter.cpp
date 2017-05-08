@@ -26,8 +26,6 @@ void VTKMeshFileExporter::execute() {
 
     Mesh::pointer mesh = getStaticInputData<Mesh>();
 
-    char dimensions = mesh->getDimensions();
-
     // Get transformation
     AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(mesh);
 
@@ -48,33 +46,25 @@ void VTKMeshFileExporter::execute() {
     file << "POINTS " << vertices.size() << " float\n";
     for(int i = 0; i < vertices.size(); i++) {
         MeshVertex vertex = vertices[i];
-        if(dimensions == 3) {
-			vertex.getPosition() = (transform->matrix()*vertex.getPosition().homogeneous()).head(3);
-			file << vertex.getPosition().x() << " " << vertex.getPosition().y() << " " << vertex.getPosition().z() << "\n";
-        } else {
-			file << vertex.getPosition().x() << " " << vertex.getPosition().y() << " " << 0 << "\n";
-        }
+        vertex.getPosition() = (transform->matrix()*vertex.getPosition().homogeneous()).head(3);
+        file << vertex.getPosition().x() << " " << vertex.getPosition().y() << " " << vertex.getPosition().z() << "\n";
     }
 
-    if(dimensions == 3) {
-		// Write triangles
-		std::vector<VectorXui> triangles = access->getTriangles();
-        if(triangles.size() > 0) {
-            file << "POLYGONS " << mesh->getNrOfTriangles() << " " << mesh->getNrOfTriangles() * 4 << "\n";
-            for(int i = 0; i < triangles.size(); i++) {
-                Vector3ui triangle = triangles[i];
-                file << "3 " << triangle.x() << " " << triangle.y() << " " << triangle.z() << "\n";
-            }
+    if(mesh->getNrOfTriangles() > 0) {
+        std::vector<MeshTriangle> triangles = access->getTriangles();
+        // Write triangles
+        file << "POLYGONS " << mesh->getNrOfTriangles() << " " << mesh->getNrOfTriangles() * 4 << "\n";
+        for(MeshTriangle triangle : triangles) {
+            file << "3 " << triangle.getEndpoint1() << " " << triangle.getEndpoint2() << " " << triangle.getEndpoint3()
+                 << "\n";
         }
-    } else {
+    }
+    if(mesh->getNrOfLines() > 0) {
     	// Write lines
-		std::vector<VectorXui> lines = access->getLines();
-        if(lines.size() > 0) {
-            file << "LINES " << mesh->getNrOfLines() << " " << mesh->getNrOfLines() * 3 << "\n";
-            for(int i = 0; i < lines.size(); i++) {
-                Vector2ui line = lines[i];
-                file << "2 " << line.x() << " " << line.y() << "\n";
-            }
+		std::vector<MeshLine> lines = access->getLines();
+        file << "LINES " << mesh->getNrOfLines() << " " << mesh->getNrOfLines() * 3 << "\n";
+        for(MeshLine line : lines) {
+            file << "2 " << line.getEndpoint1() << " " << line.getEndpoint2() << "\n";
         }
     }
 
@@ -86,8 +76,7 @@ void VTKMeshFileExporter::execute() {
             MeshVertex vertex = vertices[i];
             VectorXf normal = vertex.getNormal();
 
-            if(dimensions == 3)
-                normal = transform->linear() * normal; // Transform the normal
+            normal = transform->linear() * normal; // Transform the normal
 
             // Normalize it
             float length = normal.norm();
@@ -95,11 +84,7 @@ void VTKMeshFileExporter::execute() {
                 file << "0 1 0\n";
             } else {
                 normal.normalize();
-                if(dimensions == 3) {
-                    file << normal.x() << " " << normal.y() << " " << normal.z() << "\n";
-                } else {
-                    file << normal.x() << " " << normal.y() << " 0" << "\n";
-                }
+                file << normal.x() << " " << normal.y() << " " << normal.z() << "\n";
             }
         }
     }

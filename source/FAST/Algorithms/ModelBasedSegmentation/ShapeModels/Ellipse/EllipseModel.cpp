@@ -34,28 +34,28 @@ Shape::pointer EllipseModel::getShape(VectorXf state) {
     float flattening = 1.0f - state(3)/state(2);
     float predictedRadius = state(2);
 
-    std::vector<Vector2f> positions;
-    std::vector<Vector2f> normals;
+    std::vector<MeshVertex> vertices;
 	for(int i = 0; i < mNrOfNodes; ++i) {
         float alpha = 2.0*M_PI*i/mNrOfNodes;
         Vector2f direction(cos(alpha), (1-flattening)*sin(alpha));
         Vector2f position = center + direction*predictedRadius;
-        positions.push_back(position);
+        Vector3f position3D(position.x(), position.y(), 0);
 
         Vector2f normal((1-flattening)*predictedRadius*cos(alpha), predictedRadius*sin(alpha));
         normal.normalize();
-        normals.push_back(normal);
+        Vector3f normal3D(normal.x(), normal.y(), 0);
+        vertices.push_back(MeshVertex(position3D, normal3D));
 	}
-	std::vector<VectorXui> connections;
+	std::vector<MeshLine> connections;
 	for(int i = 0; i < mNrOfNodes-1; ++i) {
-		Vector2ui line(i, i+1);
+		MeshLine line(i, i+1);
 		connections.push_back(line);
 	}
-	Vector2ui line(mNrOfNodes-1, 0);
+	MeshLine line(mNrOfNodes-1, 0);
 	connections.push_back(line);
 
 	Mesh::pointer mesh = Mesh::New();
-	mesh->create(positions, normals, connections);
+	mesh->create(vertices, connections);
 	Shape::pointer shape = Shape::New();
 	shape->setMesh(mesh);
 	return shape;

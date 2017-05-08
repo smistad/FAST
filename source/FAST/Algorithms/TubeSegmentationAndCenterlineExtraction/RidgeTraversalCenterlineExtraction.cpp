@@ -1,6 +1,6 @@
 #include "RidgeTraversalCenterlineExtraction.hpp"
 #include "FAST/Data/Image.hpp"
-#include "FAST/Data/LineSet.hpp"
+#include "FAST/Data/Mesh.hpp"
 #include "FAST/Data/Segmentation.hpp"
 #include <queue>
 #include <vector>
@@ -22,7 +22,7 @@ RidgeTraversalCenterlineExtraction::RidgeTraversalCenterlineExtraction() {
     createInputPort<Image>(4, false);
     createInputPort<Image>(5, false);
 
-    createOutputPort<LineSet>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOutputPort<Mesh>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
     createOutputPort<Segmentation>(1, OUTPUT_DEPENDS_ON_INPUT, 0);
 }
 
@@ -212,15 +212,15 @@ void doEigen(ImageAccess::pointer& vectorField, Vector3i pos, Vector3ui size, bo
     *e3 = eigenvectors.col(2);
 }
 
-void copyToLineSet(std::stack<CenterlinePoint> points, std::vector<Vector3f>& vertices, std::vector<Vector2ui>& lines, Vector3f spacing) {
+void copyToLineSet(std::stack<CenterlinePoint> points, std::vector<MeshVertex>& vertices, std::vector<MeshLine>& lines, Vector3f spacing) {
     while(!points.empty()) {
         CenterlinePoint point = points.top();
         points.pop();
         if(point.previousPos.x() != -1) {
             const uint pos = vertices.size();
-            vertices.push_back(point.pos.cast<float>().cwiseProduct(spacing));
-            vertices.push_back(point.previousPos.cast<float>().cwiseProduct(spacing));
-            lines.push_back(Vector2ui(pos, pos+1));
+            vertices.push_back(MeshVertex(point.pos.cast<float>().cwiseProduct(spacing)));
+            vertices.push_back(MeshVertex(point.previousPos.cast<float>().cwiseProduct(spacing)));
+            lines.push_back(MeshLine(pos, pos+1));
         }
     }
 }
@@ -232,8 +232,8 @@ void extractCenterlines(
         int* centerlines,
         unordered_map<int, int>& centerlineDistances,
         unordered_map<int, std::stack<CenterlinePoint> >& centerlineStacks,
-        std::vector<Vector3f>& vertices,
-        std::vector<Vector2ui>& lines,
+        std::vector<MeshVertex>& vertices,
+        std::vector<MeshLine>& lines,
         int maxBelowTlow,
         bool* useFirstRadius
     ) {
@@ -545,7 +545,6 @@ void extractCenterlines(
 
 void RidgeTraversalCenterlineExtraction::execute() {
 
-    LineSet::pointer centerlineOutput = getStaticOutputData<LineSet>(0);
     Segmentation::pointer centerlineVolumeOutput = getStaticOutputData<Segmentation>(1);
 
     Image::pointer TDF = getStaticInputData<Image>(0);
@@ -562,8 +561,8 @@ void RidgeTraversalCenterlineExtraction::execute() {
     // Create a map of centerline stacks
     unordered_map<int, std::stack<CenterlinePoint> > centerlineStacks;
 
-    std::vector<Vector3f> vertices;
-    std::vector<Vector2ui> lines;
+    std::vector<MeshVertex> vertices;
+    std::vector<MeshLine> lines;
 
     uint firstLimit;
     int counter = 1;
@@ -646,6 +645,7 @@ void RidgeTraversalCenterlineExtraction::execute() {
 
     delete[] centerlines;
 
+    Mesh::pointer centerlineOutput = getStaticOutputData<Mesh>(0);
     centerlineOutput->create(vertices, lines);
     centerlineVolumeOutput->create(size.x(), size.y(), size.z(), TYPE_UINT8, 1, getMainDevice(), returnCenterlines);
     delete[] returnCenterlines;

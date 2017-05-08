@@ -48,14 +48,12 @@ TEST_CASE("MeshRenderer with 2D mesh and image", "[fast][MeshRenderer][visual]")
 
         // Create a simple 2D mesh with a single line
         Mesh::pointer mesh = Mesh::New();
-        Vector2f vertex0(0, 0);
-        Vector2f vertex1(10, 10);
-        std::vector<Vector2f> vertices;
-        vertices.push_back(vertex0);
-        vertices.push_back(vertex1);
-        std::vector<VectorXui> lines;
-        lines.push_back(Vector2ui(0,1));
-        mesh->create(vertices, vertices, lines);
+        std::vector<MeshVertex> vertices;
+        vertices.push_back(MeshVertex(Vector3f(0, 0, 0)));
+        vertices.push_back(MeshVertex(Vector3f(10, 10, 0)));
+        std::vector<MeshLine> lines;
+        lines.push_back(MeshLine(0,1));
+        mesh->create(vertices, lines);
 
         MeshRenderer::pointer renderer = MeshRenderer::New();
         renderer->setInputData(mesh);

@@ -12,20 +12,31 @@ class Mesh;
 
 class MeshAccess {
     public:
-        MeshAccess(std::vector<MeshVertex>* vertices, std::vector<VectorXui>* connections, SharedPointer<Mesh> mesh);
+        MeshAccess(
+				std::vector<MeshVertex>* vertices,
+				std::vector<MeshLine>* lines,
+				std::vector<MeshTriangle>* triangles,
+				SharedPointer<Mesh> mesh
+		);
         MeshVertex getVertex(uint i);
         void setVertex(uint i, MeshVertex);
-        Vector3ui getTriangle(uint i);
-        Vector2ui getLine(uint i);
-        std::vector<VectorXui> getTriangles();
-        std::vector<VectorXui> getLines();
+        void addVertex(MeshVertex v);
+        MeshTriangle getTriangle(uint i);
+		void setTriangle(uint i, MeshTriangle);
+		void addTriangle(MeshTriangle t);
+        MeshLine getLine(uint i);
+		void setLine(uint i, MeshLine);
+		void addLine(MeshLine l);
+        std::vector<MeshTriangle> getTriangles();
+        std::vector<MeshLine> getLines();
         std::vector<MeshVertex> getVertices();
         void release();
         ~MeshAccess();
 		typedef UniquePointer<MeshAccess> pointer;
     private:
         std::vector<MeshVertex>* mVertices;
-        std::vector<VectorXui>* mConnections;
+        std::vector<MeshLine>* mLines;
+		std::vector<MeshTriangle>* mTriangles;
         SharedPointer<Mesh> mMesh;
 };
 

@@ -11,16 +11,18 @@ class Mesh;
 class MeshOpenCLAccess {
 public:
     typedef UniquePointer<MeshOpenCLAccess> pointer;
-    MeshOpenCLAccess(cl::Buffer* coordinatesBuffer, cl::Buffer* connectionsBuffer, SharedPointer<Mesh> mesh);
+    MeshOpenCLAccess(cl::Buffer* coordinatesBuffer, cl::Buffer* lineBuffer, cl::Buffer* triangleBuffer, SharedPointer<Mesh> mesh);
     cl::Buffer* getCoordinatesBuffer() const;
-    cl::Buffer* getConnectionsBuffer() const;
+    cl::Buffer* getLineBuffer() const;
+    cl::Buffer* getTriangleBuffer() const;
     void release();
     ~MeshOpenCLAccess();
 private:
     MeshOpenCLAccess(const MeshOpenCLAccess& other);
     MeshOpenCLAccess& operator=(const MeshOpenCLAccess& other);
     cl::Buffer* mCoordinates;
-    cl::Buffer* mConnections;
+    cl::Buffer* mLineBuffer;
+    cl::Buffer* mTriangleBuffer;
     SharedPointer<Mesh> mMesh;
     bool mIsDeleted;
 };

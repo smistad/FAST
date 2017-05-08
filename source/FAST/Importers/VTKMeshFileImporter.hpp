@@ -16,14 +16,17 @@ class VTKMeshFileImporter : public Importer {
         VTKMeshFileImporter();
         void execute();
 
-        void processPoints(std::ifstream& file, std::string line);
-        void processLines(std::ifstream& file, std::string line);
-        void processTriangles(std::ifstream& file, std::string line);
-        void processNormals(std::ifstream& file, std::string line);
+        void processPoints(std::ifstream& file, std::string& line);
+        void processLines(std::ifstream& file, std::string& line);
+        void processTriangles(std::ifstream& file, std::string& line);
+        void processNormals(std::ifstream& file, std::string& line);
+        void processVectors(std::ifstream& file, std::string& line);
 
         std::string mFilename;
         std::vector<MeshVertex> mVertices;
-        std::map<std::string, std::function<void(std::ifstream&, std::string)>> mFunctions;
+        std::vector<MeshLine> mLines;
+        std::vector<MeshTriangle> mTriangles;
+        std::map<std::string, std::function<void(std::ifstream&, std::string&)>> mFunctions;
 };
 
 } // end namespace fast
