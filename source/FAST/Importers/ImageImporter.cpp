@@ -45,14 +45,16 @@ uchar* ImageImporter::readBMPFile(std::string filename, int &width, int &height)
             throw Exception("Error reading bmp image");
 
         // Convert BGR to RGB
-        for(int x = 0; x < width; ++x) {
-            /*
-            pixels[y*width+x+0] = row[x+2];
-            pixels[y*width+x+1] = row[x+1];
-            pixels[y*width+x+2] = row[x+0];
-             */
-            // Grayscale only atm
-            pixels[y*width+x] = (uchar)round((row[x*3] + row[x*3+1] + row[x*3+2])/3.0f);
+        if(mGrayscale) {
+            for(int x = 0; x < width; ++x) {
+                pixels[y*width+x] = (uchar)round((row[x*3] + row[x*3+1] + row[x*3+2])/3.0f);
+            }
+        } else {
+            for(int x = 0; x < width; ++x) {
+                pixels[y * width + x + 0] = row[x + 2];
+                pixels[y * width + x + 1] = row[x + 1];
+                pixels[y * width + x + 2] = row[x + 0];
+            }
         }
     }
 
@@ -86,10 +88,17 @@ void ImageImporter::execute() {
     // R, G, B, A components for each pixel
 
     // TODO: do some conversion to requested output format, also color vs. no color
-    convertedPixelData = new uchar[image.width()*image.height()];
-    for(int i = 0; i < image.width()*image.height(); i++) {
-        // Converted to grayscale
-        convertedPixelData[i] = (uchar)round((pixelData[i*4]+pixelData[i*4+1]+pixelData[i*4+2])/3.0f);
+    convertedPixelData = new uchar[image.width()*image.height()*3];
+    if(mGrayscale) {
+        for(int i = 0; i < image.width() * image.height(); i++) {
+            convertedPixelData[i] = (uchar)round((pixelData[i*4]+pixelData[i*4+1]+pixelData[i*4+2])/3.0f);
+        }
+    } else {
+        for(int i = 0; i < image.width() * image.height(); i++) {
+            convertedPixelData[i * 3] = pixelData[i * 4 + 2];
+            convertedPixelData[i * 3 + 1] = pixelData[i * 4 + 1];
+            convertedPixelData[i * 3 + 2] = pixelData[i * 4 + 0];
+        }
     }
 
     width = image.width();
@@ -112,7 +121,7 @@ void ImageImporter::execute() {
             width,
             height,
             TYPE_UINT8,
-            1,
+            3,
             getMainDevice(),
             convertedPixelData
     );
@@ -122,7 +131,12 @@ void ImageImporter::execute() {
 ImageImporter::ImageImporter() {
     mFilename = "";
     mIsModified = true;
+    mGrayscale = true;
     createOutputPort<Image>(0, OUTPUT_STATIC);
+}
+
+void ImageImporter::setGrayscale(bool grayscale) {
+    mGrayscale = grayscale;
 }
 
 void ImageImporter::setFilename(std::string filename) {
