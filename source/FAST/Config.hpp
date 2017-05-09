@@ -5,6 +5,11 @@
 
 namespace fast {
 
+/**
+ * A static class for handling loading of the fast configuration file
+ * which contains several paths to kernel source files, test data etc.
+ * which are needed at runtime.
+ */
 class Config {
 public:
     static std::string getTestDataPath();

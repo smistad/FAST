@@ -52,6 +52,10 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/source/CL/
 	DESTINATION fast/include/CL/
 	FILES_MATCHING PATTERN "*.hpp"
 )
+install(DIRECTORY ${PROJECT_BINARY_DIR}/include/
+    DESTINATION fast/include/
+)
+
 
 # Install created headers
 install(FILES ${PROJECT_BINARY_DIR}/ProcessObjectList.hpp
@@ -65,7 +69,7 @@ install(DIRECTORY ${FAST_SOURCE_DIR}
 )
 
 # Install CMake files
-install(FILES ${PROJECT_BINARY_DIR}/FASTConfig.cmake
+install(FILES ${PROJECT_BINARY_DIR}/FASTConfig.cmake ${PROJECT_SOURCE_DIR}/cmake/FASTUse.cmake
     DESTINATION fast/cmake
 )
 

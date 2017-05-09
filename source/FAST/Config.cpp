@@ -10,6 +10,7 @@
 #include <windows.h>
 #else
 #include <zconf.h>
+#include <dlfcn.h>
 #endif
 
 namespace fast {
@@ -19,41 +20,36 @@ std::string Config::getPath() {
         return mBasePath;
     std::string path;
 	std::string slash = "/";
-#if defined(__APPLE__) || defined(__MACOSX)
-    char exepath[1024] = {0};
-    uint32_t size = sizeof(exepath);
-    int ret = _NSGetExecutablePath(exepath, &size);
-    if(0 != ret)
-        throw Exception("Error getting executable path in getPath()");
-    path = std::string(exepath);
-    int lastSlashPos = path.rfind("/./");
-    path = path.substr(0, lastSlashPos);
-    if(path.substr(path.size()-4) == "/bin") {
-        lastSlashPos = path.rfind(slash);
-        path = path.substr(0, lastSlashPos);
-    }
-    path = path + slash;
-#else
+    // Find path of the FAST dynamic library
+    // The fast_configuration.txt file should lie in the folder below
 #ifdef _WIN32
-    char exepath[MAX_PATH + 1] = {0};
-    DWORD ret = GetModuleFileNameA(NULL, exepath, sizeof(exepath));
-    if(ret == 0)
-        throw Exception("Error reading module file name in getPath()");
-	slash = "\\";
+    // http://stackoverflow.com/questions/6924195/get-dll-path-at-runtime
+    HMODULE hm = NULL;
+
+    if(!GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+            GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+            (LPCSTR) &localFunc,
+            &hm)) {
+        int ret = GetLastError();
+        throw Exception("Error reading dyanmic library address in getPath()");
+    }
+    char dlpath[MAX_PATH];
+    GetModuleFileNameA(hm, path, sizeof(path));
 #else
-    char exepath[PATH_MAX + 1] = {0};
-    ssize_t ret = readlink("/proc/self/exe", exepath, 1024);
-    if(ret == -1)
-        throw Exception("Error reading /proc/self/exe in getPath()");
+    // http://stackoverflow.com/questions/1681060/library-path-when-dynamically-loaded
+    Dl_info dl_info;
+    int ret = dladdr((void *)&Config::getPath, &dl_info);
+    if(ret == 0)
+        throw Exception("Error reading dynamic library address in getPath()");
+    const char* dlpath = dl_info.dli_fname;
 #endif
     // Find last / and remove binary name
-    path = std::string(exepath);
+    path = std::string(dlpath);
     int lastSlashPos = path.rfind(slash);
     path = path.substr(0, lastSlashPos);
     lastSlashPos = path.rfind(slash);
     path = path.substr(0, lastSlashPos);
     path = path + slash;
-#endif
 
 
     return path;

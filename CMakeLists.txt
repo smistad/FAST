@@ -130,7 +130,7 @@ add_library(FAST ${FAST_SOURCE_FILES} ${HEADERS_MOC})
 add_dependencies(FAST ${FAST_EXTERNAL_DEPENDENCIES})
 
 ## Link everything
-target_link_libraries(FAST ${LIBRARIES})
+target_link_libraries(FAST ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES})
 if(FAST_MODULE_Visualization)
     qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
 endif()
@@ -142,13 +142,13 @@ if(FAST_BUILD_TESTS)
 endif()
 
 
-set(FAST_LIBRARY FAST)
-set(FAST_LIBRARY_DIRS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+set(CONF_FAST_LIBRARIES FAST ${LIBRARIES})
 
 # Create config file
 configure_file(
-    "${PROJECT_SOURCE_DIR}/source/FASTConfig.cmake.in"
+    "${PROJECT_SOURCE_DIR}/cmake/FASTConfig.cmake.in"
     "${PROJECT_BINARY_DIR}/FASTConfig.cmake"
+        @ONLY
 )
 
 # If test data dir has been set by user, write it to config file

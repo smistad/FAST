@@ -20,14 +20,10 @@ std::vector<float> fast_get_vertex_data(fast::SharedPointer<fast::Mesh> mesh) {
     for(fast::MeshVertex v : vertices) {
         result.push_back(v.getPosition().x());
         result.push_back(v.getPosition().y());
-        if(mesh->getDimensions() > 2) {
-            result.push_back(v.getPosition().z());
-        }
+        result.push_back(v.getPosition().z());
         result.push_back(v.getNormal().x());
         result.push_back(v.getNormal().y());
-        if(mesh->getDimensions() > 2) {
-            result.push_back(v.getNormal().z());
-        }
+        result.push_back(v.getNormal().z());
     }
     return result;
 }
@@ -49,10 +45,9 @@ class SpatialDataObject : public DataObject {
 class Mesh : public SpatialDataObject {
     FAST_OBJECT(Mesh)
     public:
-        unsigned int getNrOfTriangles() const;
-        unsigned int getNrOfLines() const;
-        unsigned int getNrOfVertices() const;
-        uchar getDimensions() const;
+        int getNrOfTriangles() const;
+        int getNrOfLines() const;
+        int getNrOfVertices() const;
     protected:
         Mesh();
 };
