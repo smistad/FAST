@@ -3,13 +3,11 @@
 #include "Utility.hpp"
 #include <fstream>
 
-// Includes needed to get path of executable
-#if defined(__APPLE__) || defined(__MACOSX)
-#include <mach-o/dyld.h>
-#elif _WIN32
+// Includes needed to get path of dynamic library
+#ifdef _WIN32
 #include <windows.h>
 #else
-#include <zconf.h>
+#define __USE_GNU 1
 #include <dlfcn.h>
 #endif
 
