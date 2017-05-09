@@ -17,7 +17,7 @@ std::string Config::getPath() {
     if(mBasePath != "")
         return mBasePath;
     std::string path;
-	std::string slash = "/";
+	char slash = '/';
     // Find path of the FAST dynamic library
     // The fast_configuration.txt file should lie in the folder below
 #ifdef _WIN32
@@ -33,6 +33,7 @@ std::string Config::getPath() {
     }
     char dlpath[MAX_PATH];
     GetModuleFileNameA(hm, path, sizeof(path));
+    slash = '\\'; // use this slash on windows
 #else
     // http://stackoverflow.com/questions/1681060/library-path-when-dynamically-loaded
     Dl_info dl_info;
@@ -42,23 +43,15 @@ std::string Config::getPath() {
     const char* dlpath = dl_info.dli_fname;
 #endif
     path = std::string(dlpath);
-    std::cout << path << std::endl;
 
-    // Remove lib name
-    int lastSlashPos = path.rfind(slash);
-    path = path.substr(0, lastSlashPos);
-    std::cout << path << std::endl;
-
-    // Remove lib folder from path
-    lastSlashPos = path.rfind(slash);
-    path = path.substr(0, lastSlashPos);
-    std::cout << path << std::endl;
-#if defined(__APPLE__) || defined(__MACOSX)
-    // Remove one more on mac
-    lastSlashPos = path.rfind(slash);
-    path = path.substr(0, lastSlashPos);
-#endif
-    path = path + slash;
+    // Remove lib name and lib folder
+    int lastSlashPos = path.rfind("lib");
+    path = path.substr(0, lastSlashPos-4);
+    // Make sure only one slash at the end
+    while(path[path.size() - 1] == slash) {
+        path = path.substr(0, path.size()-1);
+    }
+    path = path + slash; // Make sure there is a slash at the end
 
 
     return path;
