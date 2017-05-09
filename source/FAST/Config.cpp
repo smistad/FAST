@@ -41,12 +41,23 @@ std::string Config::getPath() {
         throw Exception("Error reading dynamic library address in getPath()");
     const char* dlpath = dl_info.dli_fname;
 #endif
-    // Find last / and remove binary name
     path = std::string(dlpath);
+    std::cout << path << std::endl;
+
+    // Remove lib name
     int lastSlashPos = path.rfind(slash);
     path = path.substr(0, lastSlashPos);
+    std::cout << path << std::endl;
+
+    // Remove lib folder from path
     lastSlashPos = path.rfind(slash);
     path = path.substr(0, lastSlashPos);
+    std::cout << path << std::endl;
+#if defined(__APPLE__) || defined(__MACOSX)
+    // Remove one more on mac
+    lastSlashPos = path.rfind(slash);
+    path = path.substr(0, lastSlashPos);
+#endif
     path = path + slash;
 
 
