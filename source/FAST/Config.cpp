@@ -47,10 +47,6 @@ std::string Config::getPath() {
     // Remove lib name and lib folder
     int lastSlashPos = path.rfind("lib");
     path = path.substr(0, lastSlashPos-4);
-    // Make sure only one slash at the end
-    while(path[path.size() - 1] == slash) {
-        path = path.substr(0, path.size()-1);
-    }
     path = path + slash; // Make sure there is a slash at the end
 
 
