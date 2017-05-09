@@ -1,6 +1,7 @@
 #ifndef WINDOW_HPP_
 #define WINDOW_HPP_
 
+#include "FASTExport.hpp"
 #include "FAST/Object.hpp"
 #include "WindowWidget.hpp"
 #include "ComputationThread.hpp"
@@ -39,7 +40,7 @@ class Window : public QObject, public Object {
     protected:
         Window();
         View* createView();
-        static QGLContext* mMainGLContext;
+        static FAST_EXPORT QGLContext* mMainGLContext;
 
         WindowWidget* mWidget;
         unsigned int mWidth, mHeight;

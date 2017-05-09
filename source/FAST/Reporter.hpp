@@ -3,6 +3,7 @@
 
 #include <map>
 #include <iostream>
+#include "FASTExport.hpp"
 
 #undef ERROR // undefine some windows garbage
 
@@ -15,7 +16,7 @@ class ReporterEnd {
 
 class Reporter {
     public:
-        static ReporterEnd end;
+        static FAST_EXPORT ReporterEnd end;
         static Reporter info();
         static Reporter warning();
         static Reporter error();

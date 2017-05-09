@@ -1,5 +1,7 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.4.3)
+
 project(FAST)
+
 include(cmake/Macros.cmake)
 
 #### Options
@@ -120,14 +122,17 @@ if(FAST_BUILD_EXAMPLES)
 endif()
 
 #### Create FAST library and executables
-set(BUILD_SHARED_LIBS ON)
+set(WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
+add_library(FAST SHARED ${FAST_SOURCE_FILES} ${HEADERS_MOC})
+add_dependencies(FAST ${FAST_EXTERNAL_DEPENDENCIES})
 if(WIN32)
-	set(BUILD_SHARED_LIBS OFF)
+	include(GenerateExportHeader)
+	generate_export_header(FAST EXPORT_FILE_NAME FASTExport.hpp)	
+	set_target_properties(FAST PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
+	
 	# Parallel build in MSVC
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" "/MP")
 endif()
-add_library(FAST ${FAST_SOURCE_FILES} ${HEADERS_MOC})
-add_dependencies(FAST ${FAST_EXTERNAL_DEPENDENCIES})
 
 ## Link everything
 target_link_libraries(FAST ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES})

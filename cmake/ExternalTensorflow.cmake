@@ -36,13 +36,16 @@ ExternalProject_Add(tensorflow
 
 )
 
-list(APPEND LIBRARIES
-    ${CMAKE_SHARED_LIBRARY_PREFIX}tensorflow${CMAKE_SHARED_LIBRARY_SUFFIX}
-)
+
 # For windows we need this protobuf static lib for some reason..
 if(WIN32)
     list(APPEND LIBRARIES
+	tensorflow.lib
         libprotobuf.lib
     )
+else(WIN32)
+list(APPEND LIBRARIES
+    ${CMAKE_SHARED_LIBRARY_PREFIX}tensorflow${CMAKE_SHARED_LIBRARY_SUFFIX}
+)
 endif(WIN32)
 list(APPEND FAST_EXTERNAL_DEPENDENCIES tensorflow)

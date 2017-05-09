@@ -18,6 +18,9 @@ if(WIN32)
 	install(FILES ${DLLs}
 		DESTINATION fast/bin
 	)
+	install(FILES ${PROJECT_BINARY_DIR}/FASTExport.hpp
+		DESTINATION fast/include
+	)
 else()
 	file(GLOB SOs ${PROJECT_BINARY_DIR}/lib/*.so*)
 	install(FILES ${SOs}
