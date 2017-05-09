@@ -26,13 +26,13 @@ std::string Config::getPath() {
 
     if(!GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
             GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-            (LPCSTR) &localFunc,
+            (LPCSTR) &Config::getPath(),
             &hm)) {
         int ret = GetLastError();
         throw Exception("Error reading dyanmic library address in getPath()");
     }
     char dlpath[MAX_PATH];
-    GetModuleFileNameA(hm, path, sizeof(path));
+    GetModuleFileNameA(hm, dlpath, sizeof(dlpath));
     slash = "\\"; // use this slash on windows
 #else
     // http://stackoverflow.com/questions/1681060/library-path-when-dynamically-loaded
