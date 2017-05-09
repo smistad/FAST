@@ -17,7 +17,7 @@ std::string Config::getPath() {
     if(mBasePath != "")
         return mBasePath;
     std::string path;
-	char slash = '/';
+	std::string slash = "/";
     // Find path of the FAST dynamic library
     // The fast_configuration.txt file should lie in the folder below
 #ifdef _WIN32
@@ -33,7 +33,7 @@ std::string Config::getPath() {
     }
     char dlpath[MAX_PATH];
     GetModuleFileNameA(hm, path, sizeof(path));
-    slash = '\\'; // use this slash on windows
+    slash = "\\"; // use this slash on windows
 #else
     // http://stackoverflow.com/questions/1681060/library-path-when-dynamically-loaded
     Dl_info dl_info;
@@ -45,8 +45,8 @@ std::string Config::getPath() {
     path = std::string(dlpath);
 
     // Remove lib name and lib folder
-    int lastSlashPos = path.rfind(slash + "lib" + slash);
-    path = path.substr(0, lastSlashPos-5);
+    int libPos = path.rfind(slash + "lib" + slash);
+    path = path.substr(0, libPos);
     path = path + slash; // Make sure there is a slash at the end
 
 
