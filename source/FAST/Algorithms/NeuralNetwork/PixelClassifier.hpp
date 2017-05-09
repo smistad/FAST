@@ -1,18 +1,18 @@
-#ifndef FAST_PIXEL_CLASSIFICATION_HPP_
-#define FAST_PIXEL_CLASSIFICATION_HPP_
+#ifndef FAST_PIXEL_CLASSIFIER_HPP_
+#define FAST_PIXEL_CLASSIFIER_HPP_
 
 #include "NeuralNetwork.hpp"
 
 namespace fast {
-class PixelClassification : public NeuralNetwork {
-    FAST_OBJECT(PixelClassification)
+class PixelClassifier : public NeuralNetwork {
+    FAST_OBJECT(PixelClassifier)
     public:
         void setNrOfClasses(uint classes);
         void setHeatmapOutput();
         void setSegmentationOutput();
         void loadAttributes();
     private:
-        PixelClassification();
+        PixelClassifier();
         void execute();
 
 

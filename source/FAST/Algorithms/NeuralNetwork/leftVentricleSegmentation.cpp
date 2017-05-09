@@ -8,7 +8,7 @@
 #include "FAST/Visualization/SimpleWindow.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
-#include "PixelClassification.hpp"
+#include "PixelClassifier.hpp"
 
 using namespace fast;
 
@@ -92,7 +92,7 @@ int main() {
     streamer->setSleepTime(50);
     streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
-    PixelClassification::pointer segmentation = PixelClassification::New();
+    PixelClassifier::pointer segmentation = PixelClassifier::New();
     segmentation->setNrOfClasses(2);
     segmentation->load("/home/smistad/workspace/left-ventricle-segmentation/models/tensorflow_lv_segmentation_model.pb");
     segmentation->setInputSize(256, 256);

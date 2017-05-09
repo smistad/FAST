@@ -6,7 +6,7 @@
 #include "FAST/Visualization/SimpleWindow.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
-#include "FAST/Algorithms/NeuralNetwork/PixelClassification.hpp"
+#include "FAST/Algorithms/NeuralNetwork/PixelClassifier.hpp"
 
 using namespace fast;
 
@@ -26,7 +26,7 @@ int main() {
     streamer->setSleepTime(50);
     streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
-    PixelClassification::pointer segmentation = PixelClassification::New();
+    PixelClassifier::pointer segmentation = PixelClassifier::New();
     segmentation->setNrOfClasses(6);
     segmentation->load("/home/smistad/workspace/eyeguide_keras/models/network_graph.pb");
     segmentation->setInputSize(256, 256);

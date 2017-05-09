@@ -1,11 +1,11 @@
 #include <FAST/Data/Segmentation.hpp>
 #include <FAST/Algorithms/ImageResizer/ImageResizer.hpp>
-#include "PixelClassification.hpp"
+#include "PixelClassifier.hpp"
 #include "FAST/Data/Image.hpp"
 
 namespace fast {
 
-PixelClassification::PixelClassification() {
+PixelClassifier::PixelClassifier() {
     createInputPort<Image>(0);
 
     mNrOfClasses = -1;
@@ -15,22 +15,22 @@ PixelClassification::PixelClassification() {
     createBooleanAttribute("heatmap_output", "Output heatmap", "Enable heatmap output instead of segmentation", false);
 }
 
-void PixelClassification::setHeatmapOutput() {
+void PixelClassifier::setHeatmapOutput() {
     mHeatmapOutput = true;
 }
 
-void PixelClassification::setSegmentationOutput() {
+void PixelClassifier::setSegmentationOutput() {
     mHeatmapOutput = false;
 }
 
-void PixelClassification::setNrOfClasses(uint classes) {
+void PixelClassifier::setNrOfClasses(uint classes) {
     mNrOfClasses = classes;
     for(int i = 0; i < mNrOfClasses; i++) {
         createOutputPort<Image>(i, OUTPUT_DEPENDS_ON_INPUT, 0);
     }
 }
 
-void PixelClassification::execute() {
+void PixelClassifier::execute() {
     if(mNrOfClasses <= 0) {
         throw Exception("You must set the nr of classes to pixel classification.");
     }
@@ -78,7 +78,7 @@ void PixelClassification::execute() {
 
 }
 
-void PixelClassification::loadAttributes() {
+void PixelClassifier::loadAttributes() {
     NeuralNetwork::loadAttributes();
     setNrOfClasses(getIntegerAttribute("classes"));
     if(getBooleanAttribute("heatmap_output")) {

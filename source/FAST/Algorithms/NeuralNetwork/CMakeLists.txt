@@ -10,12 +10,12 @@ if(FAST_MODULE_NeuralNetwork)
         #ObjectDetection.hpp
         #ShapeRegressor.cpp
         #ShapeRegressor.hpp
-        PixelClassification.cpp
-        PixelClassification.hpp
+            PixelClassifier.cpp
+            PixelClassifier.hpp
     )
     fast_add_process_object(ImageClassifier ImageClassifier.hpp)
     fast_add_process_object(ClassificationToText ImageClassifier.hpp)
-    fast_add_process_object(PixelClassification PixelClassification.hpp)
+    fast_add_process_object(PixelClassification PixelClassifier.hpp)
     if(FAST_MODULE_Visualization)
     fast_add_test_sources(
         ImageClassifierTests.cpp
