@@ -16,6 +16,7 @@
 #include <FAST/Streamers/MeshFileStreamer.hpp>
 #include <FAST/Exporters/VTKMeshFileExporter.hpp>
 #include <FAST/Importers/VTKMeshFileImporter.hpp>
+#include <include/QtWidgets/QProgressDialog>
 
 namespace fast {
 
@@ -96,7 +97,7 @@ KinectTrackingGUI::KinectTrackingGUI() {
     // Setup streaming
     mStreamer = KinectStreamer::New();
     mStreamer->setPointCloudFiltering(true);
-    mStreamer->setMaxRange(2);
+    mStreamer->setMaxRange(2); // All points above 2 meters are excluded
 
     // Tracking
     mTracking = KinectTracking::New();
@@ -116,13 +117,14 @@ KinectTrackingGUI::KinectTrackingGUI() {
     annotationRenderer->setFillArea(false);
     const int menuWidth = 300;
 
+    setTitle("FAST - Kinect Object Tracking");
+    setWidth(1024 + menuWidth);
+    setHeight(848);
+    enableMaximized();
     view->set2DMode();
     view->setBackgroundColor(Color::Black());
     view->addRenderer(renderer);
     view->addRenderer(annotationRenderer);
-    setWidth(1024 + menuWidth);
-    setHeight(848);
-    setTitle("FAST - Kinect Object Tracking");
 
     QVBoxLayout* menuLayout = new QVBoxLayout;
     menuLayout->setAlignment(Qt::AlignTop);
@@ -145,6 +147,7 @@ KinectTrackingGUI::KinectTrackingGUI() {
     quitButton->setText("Quit (q)");
     quitButton->setStyleSheet("QPushButton { background-color: red; color: white; }");
     quitButton->setFixedWidth(menuWidth);
+    QObject::connect(quitButton, &QPushButton::clicked, std::bind(&Window::stop, this));
     menuLayout->addWidget(quitButton);
 
     QPushButton* restartButton = new QPushButton;
@@ -162,6 +165,14 @@ KinectTrackingGUI::KinectTrackingGUI() {
     mStorageDir->setFixedWidth(menuWidth);
     menuLayout->addWidget(mStorageDir);
 
+    QLabel* recordingNameLabel = new QLabel;
+    recordingNameLabel->setText("Recording name");
+    menuLayout->addWidget(recordingNameLabel);
+
+    mRecordingNameLineEdit = new QLineEdit;
+    mRecordingNameLineEdit->setFixedWidth(menuWidth);
+    menuLayout->addWidget(mRecordingNameLineEdit);
+
     mRecordButton = new QPushButton;
     mRecordButton->setText("Record");
     mRecordButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
@@ -177,13 +188,14 @@ KinectTrackingGUI::KinectTrackingGUI() {
     menuLayout->addWidget(mRecordingsList);
     mRecordingsList->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     mRecordingsList->setFixedHeight(100);
+    mRecordingsList->setSortingEnabled(true);
     refreshRecordingsList();
 
-    QPushButton* playButton = new QPushButton;
-    playButton->setText("Play");
-    playButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
-    menuLayout->addWidget(playButton);
-    QObject::connect(playButton, &QPushButton::clicked, std::bind(&KinectTrackingGUI::playRecording, this));
+    mPlayButton = new QPushButton;
+    mPlayButton->setText("Play");
+    mPlayButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
+    menuLayout->addWidget(mPlayButton);
+    QObject::connect(mPlayButton, &QPushButton::clicked, std::bind(&KinectTrackingGUI::playRecording, this));
 
     QHBoxLayout* layout = new QHBoxLayout;
     layout->addLayout(menuLayout);
@@ -195,57 +207,94 @@ KinectTrackingGUI::KinectTrackingGUI() {
     timer->start(1000/5); // in milliseconds
     timer->setSingleShot(false);
     QObject::connect(timer, &QTimer::timeout, std::bind(&KinectTrackingGUI::updateMessages, this));
+
 }
 
 void KinectTrackingGUI::playRecording() {
-    auto selectedItems = mRecordingsList->selectedItems();
-    if(selectedItems.size() == 0) {
-        // Show error message
-        QMessageBox* message = new QMessageBox;
-        message->setWindowTitle("Error");
-        message->setText("You did not select a recording.");
-        message->show();
-        return;
-    }
-    mStreamer->stop();
-    std::string selectedRecording = (
-            mStorageDir->text() +
-            QDir::separator() +
-            selectedItems[0]->text() +
-            QDir::separator()
+    mPlaying = !mPlaying;
+    if(!mPlaying) {
+        mPlayButton->setText("Play");
+        mPlayButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
+        restart();
+    } else {
+        auto selectedItems = mRecordingsList->selectedItems();
+        if(selectedItems.size() == 0) {
+            // Show error message
+            QMessageBox *message = new QMessageBox;
+            message->setWindowTitle("Error");
+            message->setText("You did not select a recording.");
+            message->show();
+            return;
+        }
+        mStreamer->stop();
+        std::string selectedRecording = (
+                mStorageDir->text() +
+                QDir::separator() +
+                selectedItems[0]->text() +
+                QDir::separator()
         ).toStdString();
 
-    stopComputationThread();
-    getView(0)->removeAllRenderers();
 
-    // Set up streaming from disk
-    MeshFileStreamer::pointer streamer = MeshFileStreamer::New();
-    streamer->setFilenameFormat(selectedRecording + "#.vtk");
-    //streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
-    streamer->enableLooping();
-    streamer->update();
+        // Set up streaming from disk
+        MeshFileStreamer::pointer streamer = MeshFileStreamer::New();
+        streamer->setFilenameFormat(selectedRecording + "#.vtk");
+        streamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
 
-    // Load target cloud
-    VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
-    importer->setFilename(selectedRecording + "target.vtk");
-    importer->update();
-    Mesh::pointer targetCloud = importer->getOutputData<Mesh>();
+        // Get the number of files
+        QDirIterator it(selectedRecording.c_str());
+        int numFiles = 0;
+        while(it.hasNext()) {
+            it.next();
+            if(it.fileName().size() > 4 && it.fileName() != "target.vtk")
+                numFiles++;
+        }
+        std::cout << "FILES: " << numFiles << std::endl;
+        streamer->setMaximumNumberOfFrames(numFiles);
+        streamer->update(); // start loading
 
-    mTracking->setInputConnection(1, streamer->getOutputPort());
-    mTracking->setTargetCloud(targetCloud);
+        QProgressDialog progress("Loading recording ...", "Abort", 0, numFiles, mWidget);
+        progress.setWindowTitle("Loading");
+        progress.setWindowModality(Qt::WindowModal);
+        progress.show();
 
-    PointRenderer::pointer cloudRenderer = PointRenderer::New();
-    cloudRenderer->setDefaultSize(1.5);
-    cloudRenderer->addInputConnection(mTracking->getOutputPort(2));
-    cloudRenderer->addInputConnection(streamer->getOutputPort(0));
-    cloudRenderer->setColor(mTracking->getOutputPort(2), Color::Green());
+        while(streamer->getNrOfFrames() != numFiles) {
+            progress.setValue(streamer->getNrOfFrames());
+            if(progress.wasCanceled()) {
+                restart();
+                return;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+        std::cout << "Finished loading" << std::endl;
+        progress.setValue(numFiles);
 
-    getView(0)->set3DMode();
-    getView(0)->addRenderer(cloudRenderer);
-    getView(0)->setLookAt(Vector3f(0,-500,-500), Vector3f(0,0,1000), Vector3f(0,-1,0), 500, 5000);
-    getView(0)->reinitialize();
+        stopComputationThread();
+        getView(0)->removeAllRenderers();
 
-    startComputationThread();
+        // Load target cloud
+        VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
+        importer->setFilename(selectedRecording + "target.vtk");
+        importer->update();
+        Mesh::pointer targetCloud = importer->getOutputData<Mesh>();
+
+        mTracking->setInputConnection(1, streamer->getOutputPort());
+        mTracking->setTargetCloud(targetCloud);
+
+        PointRenderer::pointer cloudRenderer = PointRenderer::New();
+        cloudRenderer->setDefaultSize(1.5);
+        cloudRenderer->addInputConnection(mTracking->getOutputPort(2));
+        cloudRenderer->addInputConnection(streamer->getOutputPort(0));
+        cloudRenderer->setColor(mTracking->getOutputPort(2), Color::Green());
+
+        getView(0)->set3DMode();
+        getView(0)->addRenderer(cloudRenderer);
+        getView(0)->setLookAt(Vector3f(0, -500, -500), Vector3f(0, 0, 1000), Vector3f(0, -1, 0), 500, 5000);
+        getView(0)->reinitialize();
+
+        startComputationThread();
+        mPlayButton->setText("Stop");
+        mPlayButton->setStyleSheet("QPushButton { background-color: red; color: white; }");
+    }
 }
 
 
@@ -260,7 +309,11 @@ void KinectTrackingGUI::extractPointCloud() {
     if(mRecording) {
         // Create recording path
         std::string path = mStorageDir->text().toStdString();
-        mRecordingName = currentDateTime();
+        if(mRecordingNameLineEdit->text() != "") {
+            mRecordingName =  currentDateTime() + " " + mRecordingNameLineEdit->text().toStdString();
+        } else {
+            mRecordingName = currentDateTime();
+        }
         std::string recordingPath = (QString(path.c_str()) + QDir::separator() + QString(mRecordingName.c_str()) + QDir::separator()).toStdString();
         createDirectories(recordingPath);
 
@@ -293,6 +346,13 @@ void KinectTrackingGUI::restart() {
     stopComputationThread();
     view->removeAllRenderers();
 
+    // Setup streaming
+    mStreamer = KinectStreamer::New();
+    mStreamer->setPointCloudFiltering(true);
+    mStreamer->setMaxRange(2); // All points above 2 meters are excluded
+
+    mTracking->setInputConnection(0, mStreamer->getOutputPort(0));
+    mTracking->setInputConnection(1, mStreamer->getOutputPort(2));
     mTracking->restart();
 
     // Renderer RGB image
@@ -324,6 +384,7 @@ void KinectTrackingGUI::toggleRecord() {
         mRecordButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
         mStorageDir->setDisabled(false);
         mTracking->stopRecording();
+        refreshRecordingsList();
     }
 }
 

@@ -1,4 +1,4 @@
-#include "FAST/DeviceManager.hpp"
+
 #include "FAST/Exception.hpp"
 #include "FileStreamer.hpp"
 #include <fstream>

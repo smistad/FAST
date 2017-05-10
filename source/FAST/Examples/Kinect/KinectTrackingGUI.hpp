@@ -29,12 +29,15 @@ class KinectTrackingGUI : public Window {
         SharedPointer<KinectStreamer> mStreamer;
         SharedPointer<KinectTracking> mTracking;
         QPushButton* mRecordButton;
+        QPushButton* mPlayButton;
         QLineEdit* mStorageDir;
+        QLineEdit* mRecordingNameLineEdit;
         QLabel* mRecordingInformation;
         QElapsedTimer* mRecordTimer;
         QListWidget* mRecordingsList;
 
         bool mRecording = false;
+        bool mPlaying = false;
         std::string mRecordingName;
 
 };

@@ -53,6 +53,12 @@ inline double colorDistance(Vector3f e1, Vector3f e2) {
     return sqrt((((512+rmean)*r*r)>>8) + 4*g*g + (((767-rmean)*b*b)>>8));
 }
 
+/**
+ * Convert RGB vector to YIQ color space.
+ * Y is luminance, while I and Q represent the color in a 2D space.
+ * @param rgb
+ * @return
+ */
 inline Vector3f RGB2YIQ(Vector3f rgb) {
     Matrix3f matrix;
     matrix << 0.299, 0.587, 0.114,
@@ -65,10 +71,10 @@ inline Vector3f RGB2YIQ(Vector3f rgb) {
  * Create a new matrix which is matrix A rearranged.
  * This matrix has the same size as B
  */
-inline MatrixXf rearrangeMatrixToClosestPoints(const MatrixXf A, const MatrixXf B, const MatrixXf Acolors, const MatrixXf Bcolors, float colorWeight) {
+inline MatrixXf rearrangeMatrixToClosestPoints(const MatrixXf& A, const MatrixXf& B, const MatrixXf& Acolors, const MatrixXf& Bcolors, float colorWeight) {
     MatrixXf result = MatrixXf::Constant(B.rows(), B.cols(), 0);
 
-    Vector3f colorWeights(0.1, 1.0, 1.0);
+    Vector3f colorWeights(100.0, 1000.0, 1000.0);
     // For each point in B, find the closest point in A
 #pragma omp parallel for
     for(uint b = 0; b < B.cols(); ++b) {
@@ -84,8 +90,9 @@ inline MatrixXf rearrangeMatrixToClosestPoints(const MatrixXf A, const MatrixXf 
             distanceVector(3) = (Acolor.x() - Bcolor.x())*colorWeights.x();
             distanceVector(4) = (Acolor.y() - Bcolor.y())*colorWeights.y();
             distanceVector(5) = (Acolor.z() - Bcolor.z())*colorWeights.z();
-            //float distance = distanceVector.norm();
-            float distance = (pointInA-pointInB).norm();
+            //std::cout << distanceVector.tail(3) << std::endl;
+            float distance = distanceVector.norm();
+            //float distance = (pointInA-pointInB).norm();
             //std::cout << colorDistance(Acolor, Bcolor) << std::endl;
             //if(colorDistance(Acolor, Bcolor) < 100) {
                 if(distance < minDistance) {
@@ -152,18 +159,22 @@ void IterativeClosestPoint::execute() {
 
     // Select from moving
     if(mRandomSamplingPoints > 0) {
-        std::default_random_engine distributionEngine;
-        std::uniform_int_distribution<int> distribution(0, movingVertices.size() - 1);
-        int samplesLeft = mRandomSamplingPoints;
         std::vector<MeshVertex> filteredMovingPoints;
-        std::unordered_set<int> usedIndices;
-        while(samplesLeft > 0) {
-            int index = distribution(distributionEngine);
-            if(usedIndices.count(index) > 0)
-                continue;
-            filteredMovingPoints.push_back(movingVertices[index]);
-            usedIndices.insert(index);
-            --samplesLeft;
+        if(movingVertices.size() > mRandomSamplingPoints) {
+            std::default_random_engine distributionEngine;
+            std::uniform_int_distribution<int> distribution(0, movingVertices.size() - 1);
+            int samplesLeft = mRandomSamplingPoints;
+            std::unordered_set<int> usedIndices;
+            while(samplesLeft > 0) {
+                int index = distribution(distributionEngine);
+                if(usedIndices.count(index) > 0)
+                    continue;
+                filteredMovingPoints.push_back(movingVertices[index]);
+                usedIndices.insert(index);
+                --samplesLeft;
+            }
+        } else {
+            filteredMovingPoints = movingVertices;
         }
         movingPoints = MatrixXf::Zero(3, filteredMovingPoints.size());
         movingColors = MatrixXf::Zero(3, filteredMovingPoints.size());
@@ -189,12 +200,30 @@ void IterativeClosestPoint::execute() {
                 filteredFixedPoints.push_back(fixedVertices[i]);
         }
 
+        if(mRandomSamplingPoints > 0 && mRandomSamplingPoints < filteredFixedPoints.size()) {
+            std::default_random_engine distributionEngine;
+            std::uniform_int_distribution<int> distribution(0, filteredFixedPoints.size() - 1);
+            int samplesLeft = mRandomSamplingPoints;
+            std::vector<MeshVertex> newFixedPoints;
+            std::unordered_set<int> usedIndices;
+            while(samplesLeft > 0) {
+                int index = distribution(distributionEngine);
+                if(usedIndices.count(index) > 0)
+                    continue;
+                newFixedPoints.push_back(filteredFixedPoints[index]);
+                usedIndices.insert(index);
+                --samplesLeft;
+            }
+
+            filteredFixedPoints = newFixedPoints;
+        }
         fixedPoints = MatrixXf::Zero(3, filteredFixedPoints.size());
         fixedColors = MatrixXf::Zero(3, filteredFixedPoints.size());
         for(int i = 0; i < filteredFixedPoints.size(); ++i) {
             fixedPoints.col(i) = filteredFixedPoints[i].getPosition();
             fixedColors.col(i) = filteredFixedPoints[i].getColor();
         }
+
         reportInfo() << fixedVertices.size() << " points reduced to " << filteredFixedPoints.size() << reportEnd();
     } else {
         fixedPoints = MatrixXf::Zero(3, fixedVertices.size());
@@ -203,7 +232,7 @@ void IterativeClosestPoint::execute() {
         }
     }
     Eigen::Affine3f currentTransformation = Eigen::Affine3f::Identity();
-    if(fixedPoints.size() == 0) {
+    if(fixedPoints.size() == 0 || movingPoints.size() == 0) {
         mTransformation->matrix() = currentTransformation.matrix();
         return;
     }
@@ -266,8 +295,10 @@ void IterativeClosestPoint::execute() {
 
         // Calculate RMS error
         // Should we rearrange the points here?
+        mRuntimeManager->startRegularTimer("find_closest");
         rearrangedFixedPoints = rearrangeMatrixToClosestPoints(
                 fixedPoints, movedPoints, fixedColors, movingColors, colorWeight);
+        mRuntimeManager->stopRegularTimer("find_closest");
 		MatrixXf distance = rearrangedFixedPoints - movedPoints;
         error = 0;
         for(uint i = 0; i < distance.cols(); i++) {
