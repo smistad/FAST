@@ -7,6 +7,7 @@ class QPushButton;
 class QLineEdit;
 class QLabel;
 class QElapsedTimer;
+class QListWidget;
 
 namespace fast {
 
@@ -20,6 +21,8 @@ class KinectTrackingGUI : public Window {
         void restart();
         void toggleRecord();
         void updateMessages();
+        void playRecording();
+        void refreshRecordingsList();
     private:
         KinectTrackingGUI();
 
@@ -29,6 +32,7 @@ class KinectTrackingGUI : public Window {
         QLineEdit* mStorageDir;
         QLabel* mRecordingInformation;
         QElapsedTimer* mRecordTimer;
+        QListWidget* mRecordingsList;
 
 };
 
