@@ -14,6 +14,10 @@
 
 namespace fast {
 
+/**
+ * The mesh data object contains vertices and optionally a set of lines and/or triangles.
+ * Each vertex is represented as a MeshVertex and the lines and triangles as MeshLine and MeshTriangle respectively.
+ */
 class Mesh : public SpatialDataObject {
     FAST_OBJECT(Mesh)
     public:
