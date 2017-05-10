@@ -14,6 +14,8 @@
 #include <FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp>
 #include <FAST/Visualization/PointRenderer/PointRenderer.hpp>
 #include <FAST/Streamers/MeshFileStreamer.hpp>
+#include <FAST/Exporters/VTKMeshFileExporter.hpp>
+#include <FAST/Importers/VTKMeshFileImporter.hpp>
 
 namespace fast {
 
@@ -94,6 +96,7 @@ KinectTrackingGUI::KinectTrackingGUI() {
     // Setup streaming
     mStreamer = KinectStreamer::New();
     mStreamer->setPointCloudFiltering(true);
+    mStreamer->setMaxRange(2);
 
     // Tracking
     mTracking = KinectTracking::New();
@@ -204,25 +207,38 @@ void KinectTrackingGUI::playRecording() {
         message->show();
         return;
     }
+    mStreamer->stop();
     std::string selectedRecording = (
             mStorageDir->text() +
             QDir::separator() +
             selectedItems[0]->text() +
             QDir::separator()
         ).toStdString();
-    selectedRecording += "#.vtk";
-    std::cout << selectedRecording << std::endl;
 
     stopComputationThread();
     getView(0)->removeAllRenderers();
 
+    // Set up streaming from disk
     MeshFileStreamer::pointer streamer = MeshFileStreamer::New();
-    streamer->setFilenameFormat(selectedRecording);
+    streamer->setFilenameFormat(selectedRecording + "#.vtk");
+    //streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     streamer->enableLooping();
+    streamer->update();
+
+    // Load target cloud
+    VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
+    importer->setFilename(selectedRecording + "target.vtk");
+    importer->update();
+    Mesh::pointer targetCloud = importer->getOutputData<Mesh>();
+
+    mTracking->setInputConnection(1, streamer->getOutputPort());
+    mTracking->setTargetCloud(targetCloud);
 
     PointRenderer::pointer cloudRenderer = PointRenderer::New();
-    cloudRenderer->setDefaultSize(1);
-    cloudRenderer->addInputConnection(streamer->getOutputPort());
+    cloudRenderer->setDefaultSize(1.5);
+    cloudRenderer->addInputConnection(mTracking->getOutputPort(2));
+    cloudRenderer->addInputConnection(streamer->getOutputPort(0));
+    cloudRenderer->setColor(mTracking->getOutputPort(2), Color::Green());
 
     getView(0)->set3DMode();
     getView(0)->addRenderer(cloudRenderer);
@@ -238,9 +254,28 @@ void KinectTrackingGUI::extractPointCloud() {
     stopComputationThread();
     getView(0)->removeAllRenderers();
 
+    mTracking->calculateTargetCloud(mStreamer);
+
+    // If recording is enabled: Store the target cloud, then activate recording on tracking object
+    if(mRecording) {
+        // Create recording path
+        std::string path = mStorageDir->text().toStdString();
+        mRecordingName = currentDateTime();
+        std::string recordingPath = (QString(path.c_str()) + QDir::separator() + QString(mRecordingName.c_str()) + QDir::separator()).toStdString();
+        createDirectories(recordingPath);
+
+        // Store target cloud
+        VTKMeshFileExporter::pointer exporter = VTKMeshFileExporter::New();
+        exporter->setInputData(mTracking->getTargetCloud());
+        exporter->setFilename(recordingPath + "target.vtk");
+        exporter->update();
+
+        // Start saving point clouds
+        mTracking->startRecording(recordingPath);
+    }
+
     PointRenderer::pointer cloudRenderer = PointRenderer::New();
     cloudRenderer->setDefaultSize(1.5);
-    mTracking->calculateTargetCloud(mStreamer);
     cloudRenderer->addInputConnection(mTracking->getOutputPort(2));
     cloudRenderer->addInputConnection(mStreamer->getOutputPort(2));
     cloudRenderer->setColor(mTracking->getOutputPort(2), Color::Green());
@@ -278,24 +313,23 @@ void KinectTrackingGUI::restart() {
 }
 
 void KinectTrackingGUI::toggleRecord() {
-    bool recording = mTracking->toggleRecord(mStorageDir->text().toStdString());
-    if(recording) {
+    mRecording = !mRecording;
+    if(mRecording) {
         mRecordButton->setText("Stop recording");
         mRecordButton->setStyleSheet("QPushButton { background-color: red; color: white; }");
         mStorageDir->setDisabled(true);
         mRecordTimer->start();
-        std::string msg = "Recording to: " + mTracking->getRecordingName();
-        mRecordingInformation->setText(msg.c_str());
     } else {
         mRecordButton->setText("Record");
         mRecordButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
         mStorageDir->setDisabled(false);
+        mTracking->stopRecording();
     }
 }
 
 void KinectTrackingGUI::updateMessages() {
     if(mTracking->isRecording()) {
-        std::string msg = "Recording to: " + mTracking->getRecordingName() + "\n";
+        std::string msg = "Recording to: " + mRecordingName + "\n";
         msg += std::to_string(mTracking->getFramesStored()) + " frames stored\n";
         msg += format("%.1f seconds", (float)mRecordTimer->elapsed()/1000.0f);
         mRecordingInformation->setText(msg.c_str());

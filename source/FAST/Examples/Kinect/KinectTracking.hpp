@@ -15,8 +15,10 @@ class KinectTracking : public ProcessObject {
         void addLine(Vector2i start, Vector2i end);
         void calculateTargetCloud(SharedPointer<KinectStreamer> streamer);
         void restart();
-        bool toggleRecord(std::string path);
-        std::string getRecordingName() const;
+        void startRecording(std::string path);
+        void stopRecording();
+        void setTargetCloud(SharedPointer<Mesh> target);
+        SharedPointer<Mesh> getTargetCloud() const;
         uint getFramesStored() const;
         bool isRecording() const;
     private:

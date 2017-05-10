@@ -34,6 +34,9 @@ class KinectTrackingGUI : public Window {
         QElapsedTimer* mRecordTimer;
         QListWidget* mRecordingsList;
 
+        bool mRecording = false;
+        std::string mRecordingName;
+
 };
 
 }

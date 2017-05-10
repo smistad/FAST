@@ -138,8 +138,11 @@ void KinectStreamer::producerStream() {
             for(int c = 0; c < 512; ++c) {
                 float x, y, z, color;
                 registration->getPointXYZRGB(&undistorted, &registered, r, c, x, y, z, color);
+                if(z < mMinRange || z > mMaxRange) {
+                    continue;
+                }
                 if(!std::isnan(x)) {
-                    // TODO, for each valid neigbhor; is the depth similar
+                    // for each valid neigbhor; is the depth similar
                     if(mPointCloudFilterEnabled) {
                         int invalidNeighbors = 0;
                         const int size = 1;
@@ -231,6 +234,18 @@ KinectStreamer::~KinectStreamer() {
 void KinectStreamer::stop() {
     std::unique_lock<std::mutex> lock(mStopMutex);
     mStop = true;
+}
+
+void KinectStreamer::setMaxRange(float range) {
+    if(range < 0)
+        throw Exception("Range has to be >= 0");
+    mMaxRange = range;
+}
+
+void KinectStreamer::setMinRange(float range) {
+    if(range < 0)
+        throw Exception("Range has to be >= 0");
+    mMinRange = range;
 }
 
 }
