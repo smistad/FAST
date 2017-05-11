@@ -216,7 +216,7 @@ void GUI::streamData() {
 		throw Exception("Qt GL context is invalid!");
 	}
 	// 2. Substitute the GL context in the window with this one
-	mMainGLContext = mainGLContext;
+    setMainGLContext(mainGLContext);
 	mainGLContext->makeCurrent();
 
     std::chrono::duration<int, std::milli> interaval(1000 / mFPS);

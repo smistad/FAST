@@ -36,9 +36,9 @@ int main() {
     // Apply transformation to A
     importerA->getStaticOutputData<PointSet>()->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
 
-    Reporter::info() << "Registration result: " << Reporter::end;
-    Reporter::info() << "Rotation: " << icp->getOutputTransformation()->getEulerAngles().transpose() << Reporter::end;
-    Reporter::info() << "Translation:" << icp->getOutputTransformation()->translation().transpose() << Reporter::end;
+    Reporter::info() << "Registration result: " << Reporter::end();
+    Reporter::info() << "Rotation: " << icp->getOutputTransformation()->getEulerAngles().transpose() << Reporter::end();
+    Reporter::info() << "Translation:" << icp->getOutputTransformation()->translation().transpose() << Reporter::end();
 
     // Visualize the two point sets
     PointRenderer::pointer renderer = PointRenderer::New();

@@ -95,7 +95,7 @@ View::View() : mViewingPlane(Plane::Axial()) {
     context->create(fast::Window::getMainGLContext());
     this->setContext(context);
     if(!context->isValid() || !context->isSharing()) {
-        reportInfo() << "The custom Qt GL context is invalid!" << Reporter::end;
+        reportInfo() << "The custom Qt GL context is invalid!" << Reporter::end();
         exit(-1);
     }
 }
@@ -151,7 +151,7 @@ bool View::hasQuit() const {
 }
 
 View::~View() {
-    reportInfo() << "DESTROYING view object" << Reporter::end;
+    reportInfo() << "DESTROYING view object" << Reporter::end();
     quit();
 }
 
@@ -203,7 +203,7 @@ void View::recalculateCamera() {
             // Get max and min of x and y coordinates of the transformed b boxes
             BoundingBox box = mNonVolumeRenderers[i]->getBoundingBox();
             MatrixXf corners = box.getCorners();
-            //reportInfo() << box << Reporter::end;
+            //reportInfo() << box << Reporter::end();
             for (int j = 0; j < 8; j++) {
                 for (uint k = 0; k < 3; k++) {
                     if (corners(j, k) < min[k])
@@ -265,7 +265,7 @@ void View::recalculateCamera() {
         Qy = Eigen::AngleAxisf(angleY*M_PI/180.0f, Vector3f::UnitY());
         Eigen::Quaternionf Q = Qx*Qy;
 
-        //reportInfo() << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << Reporter::end;
+        //reportInfo() << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << Reporter::end();
         // Initialize rotation point to centroid of object
         mRotationPoint = centroid;
         // Calculate initiali translation of camera
@@ -280,19 +280,19 @@ void View::recalculateCamera() {
                 / tan(fieldOfViewX * 0.5);
         float z_height = (max[yDirection] - min[yDirection]) * 0.5
                 / tan(fieldOfViewY * 0.5);
-        //reportInfo() << "asd: " << z_width << " " << z_height << Reporter::end;
+        //reportInfo() << "asd: " << z_width << " " << z_height << Reporter::end();
         float minimumTranslationToSeeEntireObject = (
                 z_width < z_height ? z_height : z_width);
         float boundingBoxDepth = (max[zDirection] - min[zDirection]);
-        //reportInfo() << "minimum translation to see entire object: " << minimumTranslationToSeeEntireObject  << Reporter::end;
-        //reportInfo() << "half depth of bounding box " << boundingBoxDepth*0.5 << Reporter::end;
+        //reportInfo() << "minimum translation to see entire object: " << minimumTranslationToSeeEntireObject  << Reporter::end();
+        //reportInfo() << "half depth of bounding box " << boundingBoxDepth*0.5 << Reporter::end();
         mCameraPosition[2] += -minimumTranslationToSeeEntireObject
                 - boundingBoxDepth * 0.5; // half of the depth of the bounding box
-        //reportInfo() << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << Reporter::end;
+        //reportInfo() << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << Reporter::end();
         zFar = (minimumTranslationToSeeEntireObject + boundingBoxDepth) * 2;
         zNear = std::min(minimumTranslationToSeeEntireObject * 0.5, 0.1);
-        //reportInfo() << "set zFar to " << zFar << Reporter::end;
-        //reportInfo() << "set zNear to " << zNear << Reporter::end;
+        //reportInfo() << "set zFar to " << zFar << Reporter::end();
+        //reportInfo() << "set zNear to " << zNear << Reporter::end();
         m3DViewingTransformation = AffineTransformation::Identity();
         m3DViewingTransformation.pretranslate(-mRotationPoint); // Move to rotation point
         m3DViewingTransformation.prerotate(Q.toRotationMatrix()); // Rotate
@@ -418,9 +418,9 @@ void View::initializeGL() {
 
             if(mPBOspacing < 0)
 				mPBOspacing = longestEdgeDistance / std::min(width(), height());
-            reportInfo() << "current width and height " << width() << " " << height() << Reporter::end;
-            reportInfo() << "longest edge distance " << longestEdgeDistance << Reporter::end;
-            reportInfo() << "PBO spacing set to " << mPBOspacing << Reporter::end;
+            reportInfo() << "current width and height " << width() << " " << height() << Reporter::end();
+            reportInfo() << "longest edge distance " << longestEdgeDistance << Reporter::end();
+            reportInfo() << "PBO spacing set to " << mPBOspacing << Reporter::end();
 
             // Get the centroid of the bounding boxes
             if(!mViewingPlane.hasPosition()) {
@@ -456,7 +456,7 @@ void View::initializeGL() {
             }
 
             if(intersectionPoints.size() == 0) {
-                reportInfo() << "Failed to find intersection points" << Reporter::end;
+                reportInfo() << "Failed to find intersection points" << Reporter::end();
             } else {
                 // Register PBO corners to these intersection points
                 // Want the transformation to get from PBO pixel position to mm position
@@ -645,7 +645,7 @@ void View::initializeGL() {
 				centroid[1] = max[1] - (max[1]-min[1])*0.5;
 				centroid[2] = max[2] - (max[2]-min[2])*0.5;
 
-				reportInfo() << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << Reporter::end;
+				reportInfo() << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << Reporter::end();
 
 				// Initialize rotation point to centroid of object
 				mRotationPoint = centroid;
@@ -663,7 +663,7 @@ void View::initializeGL() {
 						-50; // border
 				//cameraPosition[2] = 00.0;
 
-				//reportInfo() << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << Reporter::end;
+				//reportInfo() << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << Reporter::end();
 
                 m3DViewingTransformation = AffineTransformation::Identity();
                 m3DViewingTransformation.pretranslate(-mRotationPoint); // Move to rotation point
@@ -677,7 +677,7 @@ void View::initializeGL() {
 			}
 		}
 	}
-	reportInfo() << "finished init GL" << Reporter::end;
+	reportInfo() << "finished init GL" << Reporter::end();
 }
 
 

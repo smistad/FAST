@@ -122,11 +122,11 @@ void Config::loadConfiguration() {
     //std::string filename = "/home/smistad/workspace/FAST/build_Debug/lib/fast_configuration.txt";
     std::ifstream file(filename);
     if(!file.is_open()) {
-        Reporter::warning() << "Unable to open the configuration file " << filename << ". Using defaults instead." << Reporter::end;
+        Reporter::warning() << "Unable to open the configuration file " << filename << ". Using defaults instead." << Reporter::end();
         mConfigurationLoaded = true;
         return;
     }
-    Reporter::info() << "Loaded configuration file: " << filename << Reporter::end;
+    Reporter::info() << "Loaded configuration file: " << filename << Reporter::end();
 
     std::string line;
     std::getline(file, line);
@@ -166,11 +166,11 @@ void Config::loadConfiguration() {
     }
     file.close();
 
-    Reporter::info() << "Test data path: " << mTestDataPath << Reporter::end;
-    Reporter::info() << "Kernel source path: " << mKernelSourcePath << Reporter::end;
-    Reporter::info() << "Kernel binary path: " << mKernelBinaryPath << Reporter::end;
-    Reporter::info() << "Documentation path: " << mDocumentationPath << Reporter::end;
-    Reporter::info() << "Pipeline path: " << mPipelinePath << Reporter::end;
+    Reporter::info() << "Test data path: " << mTestDataPath << Reporter::end();
+    Reporter::info() << "Kernel source path: " << mKernelSourcePath << Reporter::end();
+    Reporter::info() << "Kernel binary path: " << mKernelBinaryPath << Reporter::end();
+    Reporter::info() << "Documentation path: " << mDocumentationPath << Reporter::end();
+    Reporter::info() << "Pipeline path: " << mPipelinePath << Reporter::end();
 
     mConfigurationLoaded = true;
 }

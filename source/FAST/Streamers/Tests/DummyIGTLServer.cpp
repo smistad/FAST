@@ -148,7 +148,7 @@ void DummyIGTLServer::stream() {
 
     socket->CloseSocket();
     serverSocket->CloseSocket();
-    Reporter::info() << "Closed IGT Link server socket" << Reporter::end;
+    Reporter::info() << "Closed IGT Link server socket" << Reporter::end();
 }
 
 

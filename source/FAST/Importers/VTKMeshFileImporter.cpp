@@ -195,7 +195,7 @@ void VTKMeshFileImporter::execute() {
     }
 
     output->create(mVertices, mLines, mTriangles);
-    reportInfo() << "MESH IMPORTED: vertices " << mVertices.size() << " lines " << mLines.size() << " triangles " << mTriangles.size() << Reporter::end;
+    reportInfo() << "MESH IMPORTED: vertices " << mVertices.size() << " lines " << mLines.size() << " triangles " << mTriangles.size() << Reporter::end();
 }
 
 } // end namespace fast

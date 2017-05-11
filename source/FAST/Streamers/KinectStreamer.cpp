@@ -187,7 +187,7 @@ void KinectStreamer::producerStream() {
             } catch(NoMoreFramesException &e) {
                 throw e;
             } catch(Exception &e) {
-                reportInfo() << "streamer has been deleted, stop" << Reporter::end;
+                reportInfo() << "streamer has been deleted, stop" << Reporter::end();
                 listener.release(frames);
                 break;
             }
@@ -199,7 +199,7 @@ void KinectStreamer::producerStream() {
                 mFirstFrameCondition.notify_one();
             }
         } else {
-            reportInfo() << "DynamicImage object destroyed, stream can stop." << Reporter::end;
+            reportInfo() << "DynamicImage object destroyed, stream can stop." << Reporter::end();
             listener.release(frames);
             break;
         }
@@ -207,7 +207,7 @@ void KinectStreamer::producerStream() {
         listener.release(frames);
     }
 
-    reportInfo() << "Stopping kinect streamer" << Reporter::end;
+    reportInfo() << "Stopping kinect streamer" << Reporter::end();
     dev->stop();
     dev->close();
     delete dev;

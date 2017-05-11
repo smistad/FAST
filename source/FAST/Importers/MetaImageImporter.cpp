@@ -242,7 +242,7 @@ void MetaImageImporter::execute() {
                 reportWarning() << "Out of range exception occured when center of rotation values from metaimage file" << reportEnd();
             }
         } else if(key == "CenterOfRotation") {
-            //reportInfo() << "WARNING: CenterOfRotation in Metaimage file ignored" << Reporter::end;
+            //reportInfo() << "WARNING: CenterOfRotation in Metaimage file ignored" << Reporter::end();
             std::vector<std::string> values = split(value);
             // Remove any empty values:
             values.erase(std::remove(values.begin(), values.end(), ""), values.end());

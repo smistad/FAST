@@ -167,7 +167,7 @@ inline void keepLargestObject(Segmentation::pointer segmentation, Mesh::pointer&
         }
     }}}
 
-    Reporter::info() << "Size of largest object: " << largestObject.size() << Reporter::end;
+    Reporter::info() << "Size of largest object: " << largestObject.size() << Reporter::end();
 
     // Store the largest object
     for(Vector3i position : largestObject) {
@@ -193,7 +193,7 @@ inline void keepLargestObject(Segmentation::pointer segmentation, Mesh::pointer&
                 j += 2;
             }
         }
-        Reporter::info() << "Size of new centerlines " << newCenterlines->getNrOfVertices() << Reporter::end;
+        Reporter::info() << "Size of new centerlines " << newCenterlines->getNrOfVertices() << Reporter::end();
     }
     centerlines = newCenterlines;
     SceneGraph::setParentNode(centerlines, segmentation);
@@ -249,11 +249,11 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
         } else {
             smoothedImage = input;
         }
-        reportInfo() << "finished smoothing" << Reporter::end;
+        reportInfo() << "finished smoothing" << Reporter::end();
 
         // Create gradients and cap intensity
         GVFfield = createGradients(smoothedImage);
-        reportInfo() << "finished gradients" << Reporter::end;
+        reportInfo() << "finished gradients" << Reporter::end();
 
         // GVF
         GVFfield = runGradientVectorFlow(GVFfield);
@@ -339,7 +339,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
     Segmentation::pointer segmentationVolume = segmentation->getOutputData<Segmentation>();
 
     // TODO get largest segmentation object
-    reportInfo() << "Removing small objects..." << Reporter::end;
+    reportInfo() << "Removing small objects..." << Reporter::end();
     keepLargestObject(segmentationVolume, centerline);
 
     setStaticOutputData<Segmentation>(0, segmentationVolume);
@@ -350,7 +350,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
 
 Image::pointer TubeSegmentationAndCenterlineExtraction::runGradientVectorFlow(Image::pointer vectorField) {
     OpenCLDevice::pointer device = getMainDevice();
-    reportInfo() << "Running GVF.." << Reporter::end;
+    reportInfo() << "Running GVF.." << Reporter::end();
     MultigridGradientVectorFlow::pointer gvf = MultigridGradientVectorFlow::New();
     gvf->setInputData(vectorField);
     //gvf->set32bitStorageFormat();
@@ -358,7 +358,7 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::runGradientVectorFlow(Im
     gvf->setIterations(10);
     gvf->setMuConstant(0.199);
     gvf->update();
-    reportInfo() << "GVF finished" << Reporter::end;
+    reportInfo() << "GVF finished" << Reporter::end();
     return gvf->getOutputData<Image>();
 }
 
@@ -376,7 +376,7 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::createGradients(Image::p
 
     OpenCLImageAccess::pointer access = image->getOpenCLImageAccess(ACCESS_READ, device);
     cl::Program program =  getOpenCLProgram(device, "", "-DVECTORS_16BIT");
-    reportInfo() << "build gradients program" << Reporter::end;
+    reportInfo() << "build gradients program" << Reporter::end();
 
     // Convert to float 0-1
     cl::Kernel toFloatKernel(program, "toFloat");
@@ -504,9 +504,9 @@ void TubeSegmentationAndCenterlineExtraction::runNonCircularTubeDetectionFilter(
     OpenCLBufferAccess::pointer radiusAccess = radius->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
     OpenCLImageAccess::pointer vectorFieldAccess = vectorField->getOpenCLImageAccess(ACCESS_READ, device);
 
-    reportInfo() << "building TDF program" << Reporter::end;
+    reportInfo() << "building TDF program" << Reporter::end();
     cl::Program program = getOpenCLProgram(device);
-    reportInfo() << "build TDF program" << Reporter::end;
+    reportInfo() << "build TDF program" << Reporter::end();
     cl::Kernel kernel(program, "nonCircularTDF");
 
     kernel.setArg(0, *(vectorFieldAccess->get3DImage()));

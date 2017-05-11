@@ -16,7 +16,7 @@ class FAST_EXPORT  ReporterEnd {
 
 class FAST_EXPORT  Reporter {
     public:
-        static FAST_EXPORT ReporterEnd end;
+        static ReporterEnd end();
         static Reporter info();
         static Reporter warning();
         static Reporter error();

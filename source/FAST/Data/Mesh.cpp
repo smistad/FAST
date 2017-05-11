@@ -98,7 +98,7 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
             //QGLWidget* widget = new QGLWidget;
             //widget->show();
             //widget->hide(); // TODO should probably delete widget as well
-            //reportInfo() << "created a drawable" << Reporter::end;
+            //reportInfo() << "created a drawable" << Reporter::end();
         }
 #endif
 #endif
@@ -117,10 +117,10 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
                     MeshVertex vertex = mVertices[triangle.getEndpoint(j)];
                     for(uint k = 0; k < 3; k++) {
                         data[counter+k] = vertex.getPosition()[k];
-                        //reportInfo() << data[counter+k] << Reporter::end;
+                        //reportInfo() << data[counter+k] << Reporter::end();
                         data[counter+3+k] = vertex.getNormal()[k];
                     }
-                    //reportInfo() << "...." << Reporter::end;
+                    //reportInfo() << "...." << Reporter::end();
                     counter += 6;
                 }
             }
@@ -134,7 +134,7 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
         if(glGetError() == GL_OUT_OF_MEMORY) {
         	throw Exception("OpenGL out of memory while creating mesh data for VBO");
         }
-        //reportInfo() << "Created VBO with ID " << mVBOID << " and " << mNrOfTriangles << " of triangles" << Reporter::end;
+        //reportInfo() << "Created VBO with ID " << mVBOID << " and " << mNrOfTriangles << " of triangles" << Reporter::end();
 
         mVBOHasData = true;
         mVBODataIsUpToDate = true;

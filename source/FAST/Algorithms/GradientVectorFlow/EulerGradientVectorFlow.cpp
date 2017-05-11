@@ -85,21 +85,21 @@ void EulerGradientVectorFlow::execute2DGVF(Image::pointer input, Image::pointer 
     cl::ImageFormat storageFormat;
     if(mUse16bitFormat) { // (CL_SNORM_INT16 is not core)
         if(device->isImageFormatSupported(CL_RG, CL_SNORM_INT16, CL_MEM_OBJECT_IMAGE2D)) {
-            reportInfo() << "Using 16 bit floats for GVF" << Reporter::end;
+            reportInfo() << "Using 16 bit floats for GVF" << Reporter::end();
             storageFormat = cl::ImageFormat(CL_RG, CL_SNORM_INT16);
         } else if(device->isImageFormatSupported(CL_RGBA, CL_SNORM_INT16, CL_MEM_OBJECT_IMAGE2D)) {
-            reportInfo() << "Using 16 bit floats for GVF" << Reporter::end;
+            reportInfo() << "Using 16 bit floats for GVF" << Reporter::end();
             storageFormat = cl::ImageFormat(CL_RGBA, CL_SNORM_INT16);
         } else if(device->isImageFormatSupported(CL_RG, CL_FLOAT, CL_MEM_OBJECT_IMAGE2D)) {
-            reportInfo() << "16 bit floats not supported. Using 32 bit for GVF instead." << Reporter::end;
+            reportInfo() << "16 bit floats not supported. Using 32 bit for GVF instead." << Reporter::end();
             storageFormat = cl::ImageFormat(CL_RG, CL_FLOAT);
         } else {
-            reportInfo() << "16 bit floats not supported. Using 32 bit for GVF instead." << Reporter::end;
+            reportInfo() << "16 bit floats not supported. Using 32 bit for GVF instead." << Reporter::end();
             storageFormat = cl::ImageFormat(CL_RGBA, CL_FLOAT);
         }
 
     } else {
-        reportInfo() << "Using 32 bit floats for GVF" << Reporter::end;
+        reportInfo() << "Using 32 bit floats for GVF" << Reporter::end();
         // Check if two channel texture is supported
         if(device->isImageFormatSupported(CL_RG, CL_FLOAT, CL_MEM_OBJECT_IMAGE2D)) {
             storageFormat = cl::ImageFormat(CL_RG, CL_FLOAT);
@@ -108,7 +108,7 @@ void EulerGradientVectorFlow::execute2DGVF(Image::pointer input, Image::pointer 
         }
     }
     reportInfo() << "Euler GVF using a maximum of " <<
-            getPeakMemoryUsage(input, storageFormat.image_channel_data_type == CL_SNORM_INT16, device->isWritingTo3DTexturesSupported()) / (1024*1024) << " MB" << Reporter::end;
+            getPeakMemoryUsage(input, storageFormat.image_channel_data_type == CL_SNORM_INT16, device->isWritingTo3DTexturesSupported()) / (1024*1024) << " MB" << Reporter::end();
 
     cl::Kernel iterationKernel(program, "GVF2DIteration");
     OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
@@ -199,18 +199,18 @@ void EulerGradientVectorFlow::execute3DGVF(Image::pointer input, Image::pointer 
     if(mUse16bitFormat) {
         // Is 16 bit supported(CL_SNORM_INT16 is not core)?
         if(device->isImageFormatSupported(CL_RGBA, CL_SNORM_INT16, CL_MEM_OBJECT_IMAGE3D)) {
-            reportInfo() << "Using 16 bit floats for GVF" << Reporter::end;
+            reportInfo() << "Using 16 bit floats for GVF" << Reporter::end();
             storageFormat = cl::ImageFormat(CL_RGBA, CL_SNORM_INT16);
         } else {
-            reportInfo() << "16 bit floats not supported. Using 32 bit for GVF instead." << Reporter::end;
+            reportInfo() << "16 bit floats not supported. Using 32 bit for GVF instead." << Reporter::end();
             storageFormat = cl::ImageFormat(CL_RGBA, CL_FLOAT);
         }
     } else {
-        reportInfo() << "Using 32 bit floats for GVF" << Reporter::end;
+        reportInfo() << "Using 32 bit floats for GVF" << Reporter::end();
         storageFormat = cl::ImageFormat(CL_RGBA, CL_FLOAT);
     }
     reportInfo() << "Euler GVF using a maximum of " <<
-            getPeakMemoryUsage(input, storageFormat.image_channel_data_type == CL_SNORM_INT16, device->isWritingTo3DTexturesSupported()) / (1024*1024) << " MB" << Reporter::end;
+            getPeakMemoryUsage(input, storageFormat.image_channel_data_type == CL_SNORM_INT16, device->isWritingTo3DTexturesSupported()) / (1024*1024) << " MB" << Reporter::end();
 
     cl::Kernel iterationKernel(program, "GVF3DIteration");
     OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
@@ -303,25 +303,25 @@ void EulerGradientVectorFlow::execute3DGVFNo3DWrite(Image::pointer input, Image:
         if(device->isImageFormatSupported(CL_RGBA, CL_SNORM_INT16, CL_MEM_OBJECT_IMAGE3D)) {
             vectorFieldSize = sizeof(short);
             buildOptions = "-DVECTORS_16BIT";
-            reportInfo() << "Using 16 bit floats for GVF" << Reporter::end;
+            reportInfo() << "Using 16 bit floats for GVF" << Reporter::end();
             storageFormat = cl::ImageFormat(CL_RGBA, CL_SNORM_INT16);
         } else {
-            reportInfo() << "16 bit floats not supported. Using 32 bit for GVF instead." << Reporter::end;
+            reportInfo() << "16 bit floats not supported. Using 32 bit for GVF instead." << Reporter::end();
             storageFormat = cl::ImageFormat(CL_RGBA, CL_FLOAT);
         }
     } else {
-        reportInfo() << "Using 32 bit floats for GVF" << Reporter::end;
+        reportInfo() << "Using 32 bit floats for GVF" << Reporter::end();
         storageFormat = cl::ImageFormat(CL_RGBA, CL_FLOAT);
     }
     reportInfo() << "Euler GVF using a maximum of " <<
-            getPeakMemoryUsage(input, storageFormat.image_channel_data_type == CL_SNORM_INT16, device->isWritingTo3DTexturesSupported()) / (1024*1024) << " MB" << Reporter::end;
+            getPeakMemoryUsage(input, storageFormat.image_channel_data_type == CL_SNORM_INT16, device->isWritingTo3DTexturesSupported()) / (1024*1024) << " MB" << Reporter::end();
     cl::Program program = getOpenCLProgram(device, "", buildOptions);
 
     cl::Kernel iterationKernel(program, "GVF3DIteration");
     cl::Kernel initKernel(program, "GVF3DInit");
     cl::Kernel finishKernel(program, "GVF3DFinish");
 
-	reportInfo() << "Starting Euler GVF" << Reporter::end;
+	reportInfo() << "Starting Euler GVF" << Reporter::end();
     OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
     cl::Image3D* inputVectorField = access->get3DImage();
 

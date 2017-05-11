@@ -153,12 +153,12 @@ void regionGrowing(Image::pointer volume, Segmentation::pointer segmentation, Ve
         VT = Vnew;
         threshold += deltaT;
 		Vnew = spacing*grow(segmentationData, neighbors, &voxels, data, threshold, width, height, depth);
-        Reporter::info() << "using threshold: " << threshold << Reporter::end;
-        Reporter::info() << "gives volume size: " << Vnew << Reporter::end;
+        Reporter::info() << "using threshold: " << threshold << Reporter::end();
+        Reporter::info() << "gives volume size: " << Vnew << Reporter::end();
     } while(Vnew-VT < volumeIncreaseLimit || Vnew < volumeMinimum);
 
     float explosionVolume = Vnew;
-	Reporter::info() << "Ungrowing.." << Vnew << Reporter::end;
+	Reporter::info() << "Ungrowing.." << Vnew << Reporter::end();
     threshold -= deltaT;
     VT = Vnew;
 
@@ -169,8 +169,8 @@ void regionGrowing(Image::pointer volume, Segmentation::pointer segmentation, Ve
 		memset(segmentationData, 0, width*height*depth);
 		segmentationData[seed.x() + seed.y()*width + seed.z()*width*height] = 1;
         VT = spacing*grow(segmentationData, neighbors, &voxels, data, threshold, width, height, depth);
-        Reporter::info() << "using threshold: " << threshold << Reporter::end;
-        Reporter::info() << "gives volume size: " << VT << Reporter::end;
+        Reporter::info() << "using threshold: " << threshold << Reporter::end();
+        Reporter::info() << "gives volume size: " << VT << Reporter::end();
         threshold -= deltaT;
     }
 }

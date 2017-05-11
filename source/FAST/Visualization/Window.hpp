@@ -20,6 +20,7 @@ class FAST_EXPORT  Window : public QObject, public Object {
     public:
         static void initializeQtApp();
         static QGLContext* getMainGLContext();
+        static void setMainGLContext(QGLContext* context);
         // Makes the window close after a specific number of ms
         virtual void setTimeout(unsigned int milliseconds);
         ~Window();
@@ -40,7 +41,6 @@ class FAST_EXPORT  Window : public QObject, public Object {
     protected:
         Window();
         View* createView();
-        static FAST_EXPORT QGLContext* mMainGLContext;
 
         WindowWidget* mWidget;
         unsigned int mWidth, mHeight;
@@ -48,6 +48,8 @@ class FAST_EXPORT  Window : public QObject, public Object {
         unsigned int mTimeout;
         QEventLoop* mEventLoop;
         ComputationThread* mThread;
+    private:
+        static QGLContext* mMainGLContext;
     public slots:
         void stop();
 

@@ -289,7 +289,7 @@ void SurfaceExtraction::execute() {
     output->setBoundingBox(box.getTransformedBoundingBox(T));
 
     if(totalSum == 0) {
-        reportInfo() << "No triangles were extracted. Check isovalue." << Reporter::end;
+        reportInfo() << "No triangles were extracted. Check isovalue." << Reporter::end();
         return;
     }
     reportInfo() << totalSum << " nr of triangles were extracted with the SurfaceExtraction algorithm." << reportEnd();

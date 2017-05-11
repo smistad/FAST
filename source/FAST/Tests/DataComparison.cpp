@@ -62,9 +62,9 @@ bool compareDataArrays(void* data1, void* data2, unsigned int nrOfVoxels, DataTy
         for(unsigned int i = 0; i < nrOfVoxels; i++) {
             if(data1c[i] != data2c[i]) {
             	/*
-                reportInfo() << i << Reporter::end;
-                reportInfo() << data1c[i] << Reporter::end;
-                reportInfo() << data2c[i] << Reporter::end;
+                reportInfo() << i << Reporter::end();
+                reportInfo() << data1c[i] << Reporter::end();
+                reportInfo() << data2c[i] << Reporter::end();
                 */
                 success = false;
                 break;

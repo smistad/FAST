@@ -223,11 +223,11 @@ void IterativeClosestPoint::execute() {
         reportInfo() << "Processing " << rearrangedFixedPoints.cols() << " points in ICP" << reportEnd();
         // Get centroids
         Vector3f centroidFixed = getCentroid(rearrangedFixedPoints);
-        //reportInfo() << "Centroid fixed: " << Reporter::end;
-        //reportInfo() << centroidFixed << Reporter::end;
+        //reportInfo() << "Centroid fixed: " << Reporter::end();
+        //reportInfo() << centroidFixed << Reporter::end();
         Vector3f centroidMoving = getCentroid(movedPoints);
-        //reportInfo() << "Centroid moving: " << Reporter::end;
-        //reportInfo() << centroidMoving << Reporter::end;
+        //reportInfo() << "Centroid moving: " << Reporter::end();
+        //reportInfo() << centroidMoving << Reporter::end();
 
         Eigen::Affine3f updateTransform = Eigen::Affine3f::Identity();
 
@@ -276,7 +276,7 @@ void IterativeClosestPoint::execute() {
         error = sqrt(error / distance.cols());
 
         iterations++;
-        reportInfo() << "ICP error: " << error << Reporter::end;
+        reportInfo() << "ICP error: " << error << Reporter::end();
         // To continue, change in error has to be above min error change and nr of iterations less than max iterations
     } while(previousError-error > mMinErrorChange && iterations < mMaxIterations);
 

@@ -82,7 +82,7 @@ bool OpenCLDevice::isWritingTo3DTexturesSupported() {
 }
 
 OpenCLDevice::~OpenCLDevice() {
-     //reportInfo() << "DESTROYING opencl device object..." << Reporter::end;
+     //reportInfo() << "DESTROYING opencl device object..." << Reporter::end();
      // Make sure that all queues are finished
      getQueue(0).finish();
 }
@@ -268,10 +268,10 @@ cl::Program OpenCLDevice::buildSources(cl::Program::Sources source, std::string 
     } catch(cl::Error &error) {
         if(error.err() == CL_BUILD_PROGRAM_FAILURE) {
             for(unsigned int i=0; i<devices.size(); i++){
-            	reportError() << "Build log, device " << i << "\n" << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[i]) << Reporter::end;
+            	reportError() << "Build log, device " << i << "\n" << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[i]) << Reporter::end();
             }
         }
-        reportError() << getCLErrorString(error.err()) << Reporter::end;
+        reportError() << getCLErrorString(error.err()) << Reporter::end();
 
         throw error;
     }
@@ -420,7 +420,7 @@ cl::Program OpenCLDevice::buildProgramFromBinary(std::string filename, std::stri
         }
 
         if(outOfDate || wrongDeviceID || buildOptionsChanged) {
-            Reporter::warning() << "Kernel binary " << filename.substr(kernelSourcePath.size()) << " is out of date. Compiling..." << Reporter::end;
+            Reporter::warning() << "Kernel binary " << filename.substr(kernelSourcePath.size()) << " is out of date. Compiling..." << Reporter::end();
             program = writeBinary(filename, buildOptions);
         } else {
             //std::cout << "Binary is not out of date." << std::endl;

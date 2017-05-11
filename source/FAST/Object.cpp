@@ -36,7 +36,7 @@ Reporter& Object::getReporter() {
 }
 
 ReporterEnd Object::reportEnd() const {
-    return Reporter::end;
+    return Reporter::end();
 }
 
 } // end namespace fast

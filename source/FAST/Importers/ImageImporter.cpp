@@ -25,7 +25,7 @@ uchar* ImageImporter::readBMPFile(std::string filename, int &width, int &height)
     // Get width and height
     width = *(int*)&header[18];
     height = *(int*)&header[22];
-    reportInfo() << "Loaded image with size " << width << " "  << height << Reporter::end;
+    reportInfo() << "Loaded image with size " << width << " "  << height << Reporter::end();
 
     // Calculate padding; the width as to be dividable by 4.
     // Padding is added at the end
@@ -73,11 +73,11 @@ void ImageImporter::execute() {
 #ifdef FAST_MODULE_VISUALIZATION
     // Load image from disk using Qt
     QImage image;
-    reportInfo() << "Trying to load image..." << Reporter::end;
+    reportInfo() << "Trying to load image..." << Reporter::end();
     if(!image.load(mFilename.c_str())) {
         throw FileNotFoundException(mFilename);
     }
-    reportInfo() << "Loaded image with size " << image.width() << " "  << image.height() << Reporter::end;
+    reportInfo() << "Loaded image with size " << image.width() << " "  << image.height() << Reporter::end();
 
     // Convert image to make sure color tables are not used
     QImage convertedImage = image.convertToFormat(QImage::Format_RGB32);
