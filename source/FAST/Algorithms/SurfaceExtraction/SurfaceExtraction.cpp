@@ -284,7 +284,7 @@ void SurfaceExtraction::execute() {
     BoundingBox box = input->getBoundingBox();
     // Apply spacing scaling to BB
     AffineTransformation::pointer T = AffineTransformation::New();
-    T->scale(input->getSpacing());
+    T->getTransform().scale(input->getSpacing());
     output->create(totalSum);
     output->setBoundingBox(box.getTransformedBoundingBox(T));
 

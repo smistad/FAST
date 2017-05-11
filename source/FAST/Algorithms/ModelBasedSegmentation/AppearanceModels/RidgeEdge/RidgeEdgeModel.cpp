@@ -110,12 +110,12 @@ std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnHost(SharedPointer<Ima
 	// Return set of displacements and uncertainties
 	if(image->getDimensions() == 3) {
 		AffineTransformation::pointer transformMatrix = SceneGraph::getAffineTransformationFromData(image);
-		transformMatrix->scale(image->getSpacing());
-		Matrix4f inverseTransformMatrix = transformMatrix->matrix().inverse();
+		transformMatrix->getTransform().scale(image->getSpacing());
+		Matrix4f inverseTransformMatrix = transformMatrix->getTransform().matrix().inverse();
 
 		// Get model scene graph transform
 		AffineTransformation::pointer modelTransformation = SceneGraph::getAffineTransformationFromData(shape->getMesh());
-		MatrixXf modelTransformMatrix = modelTransformation->affine();
+		MatrixXf modelTransformMatrix = modelTransformation->getTransform().affine();
 
 		// Do edge detection for each vertex
 		int counter = 0;

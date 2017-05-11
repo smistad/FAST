@@ -124,13 +124,13 @@ inline Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer mes
     message->GetMatrix(matrix);
     image->setSpacing(Vector3f(spacing[0], spacing[1], spacing[2]));
     AffineTransformation::pointer T = AffineTransformation::New();
-    T->translation() = Vector3f(offset[0], offset[1], offset[2]);
+    T->getTransform().translation() = Vector3f(offset[0], offset[1], offset[2]);
     Matrix3f fastMatrix;
     for(int i = 0; i < 3; i++) {
     for(int j = 0; j < 3; j++) {
         fastMatrix(i,j) = matrix[i][j];
     }}
-    T->linear() = fastMatrix;
+    T->getTransform().linear() = fastMatrix;
     image->getSceneGraphNode()->setTransformation(T);
 
 
@@ -246,7 +246,7 @@ void IGTLinkStreamer::producerStream() {
                 }
                 try {
                     AffineTransformation::pointer T = AffineTransformation::New();
-                    T->matrix() = fastMatrix;
+                    T->getTransform().matrix() = fastMatrix;
                     T->setCreationTimestamp(timestamp);
                     ptr->addFrame(T);
                 } catch(NoMoreFramesException &e) {

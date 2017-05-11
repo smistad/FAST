@@ -137,10 +137,10 @@ void IterativeClosestPoint::execute() {
     // Get transformations of point sets
     AffineTransformation::pointer fixedPointTransform2 = SceneGraph::getAffineTransformationFromData(fixedMesh);
     Eigen::Affine3f fixedPointTransform;
-    fixedPointTransform.matrix() = fixedPointTransform2->matrix();
+    fixedPointTransform.matrix() = fixedPointTransform2->getTransform().matrix();
     AffineTransformation::pointer initialMovingTransform2 = SceneGraph::getAffineTransformationFromData(movingMesh);
     Eigen::Affine3f initialMovingTransform;
-    initialMovingTransform.matrix() = initialMovingTransform2->matrix();
+    initialMovingTransform.matrix() = initialMovingTransform2->getTransform().matrix();
 
     // These matrices are 3xN, where N is number of vertices
     std::vector<MeshVertex> fixedVertices = accessFixedSet->getVertices();
@@ -169,7 +169,7 @@ void IterativeClosestPoint::execute() {
         movingColors = MatrixXf::Zero(3, filteredMovingPoints.size());
         for(int i = 0; i < filteredMovingPoints.size(); ++i) {
             movingPoints.col(i) = filteredMovingPoints[i].getPosition();
-            movingColors.col(i) = filteredMovingPoints[i].getColor();
+            movingColors.col(i) = filteredMovingPoints[i].getColor().asVector();
         }
     } else {
         // Select all moving points
@@ -193,7 +193,7 @@ void IterativeClosestPoint::execute() {
         fixedColors = MatrixXf::Zero(3, filteredFixedPoints.size());
         for(int i = 0; i < filteredFixedPoints.size(); ++i) {
             fixedPoints.col(i) = filteredFixedPoints[i].getPosition();
-            fixedColors.col(i) = filteredFixedPoints[i].getColor();
+            fixedColors.col(i) = filteredFixedPoints[i].getColor().asVector();
         }
         reportInfo() << fixedVertices.size() << " points reduced to " << filteredFixedPoints.size() << reportEnd();
     } else {
@@ -204,7 +204,7 @@ void IterativeClosestPoint::execute() {
     }
     Eigen::Affine3f currentTransformation = Eigen::Affine3f::Identity();
     if(fixedPoints.size() == 0) {
-        mTransformation->matrix() = currentTransformation.matrix();
+        mTransformation->getTransform().matrix() = currentTransformation.matrix();
         return;
     }
     fixedPoints = fixedPointTransform*fixedPoints.colwise().homogeneous();
@@ -287,7 +287,7 @@ void IterativeClosestPoint::execute() {
     reportInfo() << "Final transform: " << currentTransformation.matrix() << reportEnd();
 
     mError = error;
-    mTransformation->matrix() = currentTransformation.matrix();
+    mTransformation->getTransform().matrix() = currentTransformation.matrix();
 }
 
 void IterativeClosestPoint::setMaximumNrOfIterations(uint iterations) {

@@ -135,7 +135,7 @@ void View::setLookAt(Vector3f cameraPosition, Vector3f targetPosition, Vector3f 
     zNear = z_near;
     zFar = z_far;
 
-    m3DViewingTransformation = AffineTransformation::Identity();
+    m3DViewingTransformation = Affine3f::Identity();
     m3DViewingTransformation.rotate(M);
     m3DViewingTransformation.translate(-mCameraPosition);
 
@@ -293,7 +293,7 @@ void View::recalculateCamera() {
         zNear = std::min(minimumTranslationToSeeEntireObject * 0.5, 0.1);
         //reportInfo() << "set zFar to " << zFar << Reporter::end();
         //reportInfo() << "set zNear to " << zNear << Reporter::end();
-        m3DViewingTransformation = AffineTransformation::Identity();
+        m3DViewingTransformation = Affine3f::Identity();
         m3DViewingTransformation.pretranslate(-mRotationPoint); // Move to rotation point
         m3DViewingTransformation.prerotate(Q.toRotationMatrix()); // Rotate
         m3DViewingTransformation.pretranslate(mRotationPoint); // Move back from rotation point
@@ -665,7 +665,7 @@ void View::initializeGL() {
 
 				//reportInfo() << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << Reporter::end();
 
-                m3DViewingTransformation = AffineTransformation::Identity();
+                m3DViewingTransformation = Affine3f::Identity();
                 m3DViewingTransformation.pretranslate(-mRotationPoint); // Move to rotation point
                 m3DViewingTransformation.prerotate(Q.toRotationMatrix()); // Rotate
                 m3DViewingTransformation.pretranslate(mRotationPoint); // Move back from rotation point

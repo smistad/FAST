@@ -68,7 +68,7 @@ void MeshRenderer::draw() {
         AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(surfaceToRender);
 
         glPushMatrix();
-        glMultMatrixf(transform->data());
+        glMultMatrixf(transform->getTransform().data());
 
         float opacity = mDefaultOpacity;
         Color color = mDefaultColor;

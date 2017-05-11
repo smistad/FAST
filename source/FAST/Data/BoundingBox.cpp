@@ -90,7 +90,7 @@ BoundingBox BoundingBox::getTransformedBoundingBox(
     MatrixXf newCorners = MatrixXf::Constant(8,3,0);
     for(uint i = 0; i < 8; i++) {
         Vector3f vertex = mCorners.row(i);
-        Vector3f transformedVertex = (transform->matrix()*vertex.homogeneous()).head(3);
+        Vector3f transformedVertex = (transform->getTransform().matrix()*vertex.homogeneous()).head(3);
         newCorners.row(i) = transformedVertex;
     }
     return BoundingBox(newCorners);

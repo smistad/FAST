@@ -6,7 +6,7 @@
 
 namespace fast {
 
-class FAST_EXPORT  AffineTransformation : public DataObject, public Affine3f {
+class FAST_EXPORT  AffineTransformation : public DataObject {
     FAST_OBJECT(AffineTransformation);
     public:
         AffineTransformation();
@@ -16,9 +16,11 @@ class FAST_EXPORT  AffineTransformation : public DataObject, public Affine3f {
         AffineTransformation& operator=(const Affine3f& transform);
         Vector3f getEulerAngles() const;
         ~AffineTransformation() {};
+        Affine3f getTransform() const;
         void free(ExecutionDevice::pointer device) {};
         void freeAll() {};
     private:
+        Affine3f mTransform;
 };
 
 } // end namespace fast

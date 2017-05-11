@@ -23,7 +23,7 @@ void PointRenderer::draw() {
         AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(points);
 
         glPushMatrix();
-        glMultMatrixf(transform->data());
+        glMultMatrixf(transform->getTransform().data());
 
         ProcessObjectPort port = getInputPort(it->first);
         if(mInputSizes.count(port) > 0) {

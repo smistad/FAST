@@ -138,7 +138,7 @@ namespace fast {
         mRuntimeManager->startRegularTimer("candidate selection");
 
         AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(input);
-        transform->scale(input->getSpacing());
+        transform->getTransform().scale(input->getSpacing());
 
         // Find best ellipses
         std::priority_queue<Candidate, std::vector<Candidate>, CandidateComparison> candidates;

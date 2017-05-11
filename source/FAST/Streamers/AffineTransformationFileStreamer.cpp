@@ -128,7 +128,7 @@ void AffineTransformationFileStreamer::producerStream() {
 			continue;
 
 		AffineTransformation::pointer transformation = AffineTransformation::New();
-		transformation->matrix() = matrix;
+		transformation->getTransform().matrix() = matrix;
 
 		// Set and use timestamp if available
 		if(mTimestampFilename != "") {

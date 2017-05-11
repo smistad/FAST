@@ -71,7 +71,7 @@ Eigen::Affine3f SceneGraph::getEigenAffineTransformationFromData(
     AffineTransformation::pointer transformation = getAffineTransformationFromNode(currentNode);
 
     Eigen::Affine3f result;
-    result.matrix() = transformation->matrix();
+    result.matrix() = transformation->getTransform().matrix();
 
     return result;
 }

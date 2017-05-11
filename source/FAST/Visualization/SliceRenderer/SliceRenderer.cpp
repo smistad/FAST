@@ -210,8 +210,8 @@ void SliceRenderer::draw() {
         return;
 
     AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(mImageToRender);
-    transform->scale(mImageToRender->getSpacing());
-    glMultMatrixf(transform->data());
+    transform->getTransform().scale(mImageToRender->getSpacing());
+    glMultMatrixf(transform->getTransform().data());
 
     glBindTexture(GL_TEXTURE_2D, mTexture);
 
@@ -285,7 +285,7 @@ BoundingBox SliceRenderer::getBoundingBox() {
     }
     BoundingBox shrinkedBox(corners);
     AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(mImageToRender);
-    transform->scale(mImageToRender->getSpacing());
+    transform->getTransform().scale(mImageToRender->getSpacing());
     BoundingBox transformedBoundingBox = shrinkedBox.getTransformedBoundingBox(transform);
     return transformedBoundingBox;
 }

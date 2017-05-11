@@ -64,7 +64,7 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
         Affine3f m2DViewingTransformation;
 
         // Camera
-        AffineTransformation m3DViewingTransformation;
+        Affine3f m3DViewingTransformation;
 		Vector3f mRotationPoint;
 		Vector3f mCameraPosition;
 		bool mCameraSet;

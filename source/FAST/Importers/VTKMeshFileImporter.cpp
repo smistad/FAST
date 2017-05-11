@@ -126,11 +126,10 @@ void VTKMeshFileImporter::processVectors(std::ifstream& file, std::string& line)
         if(name == "vertex_colors") {
             std::vector<std::string> tokens = split(line);
             for(int i = 0; i < tokens.size(); i += 3) {
-                Color c;
-                c(0) = std::stof(tokens[i]);
-                c(1) = std::stof(tokens[i + 1]);
-                c(2) = std::stof(tokens[i + 2]);
-                mVertices.at(counter).setColor(c);
+                float red = std::stof(tokens[i]);
+                float green = std::stof(tokens[i + 1]);
+                float blue = std::stof(tokens[i + 2]);
+                mVertices.at(counter).setColor(Color(red, green, blue));
                 ++counter;
             }
         }

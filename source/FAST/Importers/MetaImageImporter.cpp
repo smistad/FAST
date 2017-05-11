@@ -341,8 +341,8 @@ void MetaImageImporter::execute() {
 
     // Create transformation
     AffineTransformation::pointer T = AffineTransformation::New();
-    T->translation() = offset;
-    T->linear() = transformMatrix;
+    T->getTransform().translation() = offset;
+    T->getTransform().linear() = transformMatrix;
     output->getSceneGraphNode()->setTransformation(T);
 
     // Clean up
