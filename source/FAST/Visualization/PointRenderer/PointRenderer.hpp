@@ -26,7 +26,7 @@ class FAST_EXPORT  PointRenderer : public Renderer {
                 cl::BufferGL PBO,
                 uint width,
                 uint height,
-                Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform,
+                Affine3f pixelToViewportTransform,
                 float PBOspacing,
                 Vector2f translation
         );
