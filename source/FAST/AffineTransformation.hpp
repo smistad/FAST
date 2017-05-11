@@ -6,14 +6,14 @@
 
 namespace fast {
 
-class FAST_EXPORT  AffineTransformation : public DataObject, public Eigen::Affine3f {
+class FAST_EXPORT  AffineTransformation : public DataObject, public Affine3f {
     FAST_OBJECT(AffineTransformation);
     public:
         AffineTransformation();
-        AffineTransformation(const Eigen::Affine3f& transform);
+        AffineTransformation(const Affine3f& transform);
         AffineTransformation::pointer multiply(AffineTransformation::pointer);
         Vector3f multiply(Vector3f);
-        AffineTransformation& operator=(const Eigen::Affine3f& transform);
+        AffineTransformation& operator=(const Affine3f& transform);
         Vector3f getEulerAngles() const;
         ~AffineTransformation() {};
         void free(ExecutionDevice::pointer device) {};

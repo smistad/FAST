@@ -9,7 +9,7 @@ namespace fast {
 class FAST_EXPORT  CameraAccess {
     public:
         CameraAccess(Vector3f* position, Vector3f* upVector, Vector3f* target);
-        Eigen::Affine3f getCameraTransformation() const;
+        Affine3f getCameraTransformation() const;
         Vector3f getTargetPosition() const;
         Vector3f getPosition() const;
         Vector3f getUpVector() const;

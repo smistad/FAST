@@ -61,7 +61,7 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
 		void renderVolumes();
 
 		Plane mViewingPlane;
-        Eigen::Affine3f m2DViewingTransformation;
+        Affine3f m2DViewingTransformation;
 
         // Camera
         AffineTransformation m3DViewingTransformation;
