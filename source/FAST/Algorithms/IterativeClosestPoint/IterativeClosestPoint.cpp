@@ -185,8 +185,10 @@ void IterativeClosestPoint::execute() {
     } else {
         // Select all moving points
         movingPoints = MatrixXf::Zero(3, movingVertices.size());
+        movingColors = MatrixXf::Zero(3, movingVertices.size());
         for(int i = 0; i < movingVertices.size(); ++i) {
             movingPoints.col(i) = movingVertices[i].getPosition();
+            movingColors.col(i) = movingVertices[i].getColor();
         }
     }
     movingPoints = initialMovingTransform*movingPoints.colwise().homogeneous();
@@ -227,8 +229,10 @@ void IterativeClosestPoint::execute() {
         reportInfo() << fixedVertices.size() << " points reduced to " << filteredFixedPoints.size() << reportEnd();
     } else {
         fixedPoints = MatrixXf::Zero(3, fixedVertices.size());
+        fixedColors = MatrixXf::Zero(3, fixedVertices.size());
         for(int i = 0; i < fixedVertices.size(); ++i) {
             fixedPoints.col(i) = fixedVertices[i].getPosition();
+            fixedColors.col(i) = fixedVertices[i].getColor();
         }
     }
     Eigen::Affine3f currentTransformation = Eigen::Affine3f::Identity();
