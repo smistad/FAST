@@ -7,7 +7,7 @@ namespace fast {
 
 class Image;
 
-class MultigridGradientVectorFlow : public ProcessObject {
+class FAST_EXPORT  MultigridGradientVectorFlow : public ProcessObject {
     FAST_OBJECT(MultigridGradientVectorFlow)
     public:
         void setIterations(uint iterations);

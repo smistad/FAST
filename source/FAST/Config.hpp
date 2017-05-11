@@ -11,15 +11,15 @@ namespace fast {
  * which contains several paths to kernel source files, test data etc.
  * which are needed at runtime.
  */
-class Config {
+class FAST_EXPORT  Config {
 public:
-    static FAST_EXPORT std::string getTestDataPath();
-    static FAST_EXPORT std::string getKernelSourcePath();
-    static FAST_EXPORT std::string getKernelBinaryPath();
-    static FAST_EXPORT std::string getDocumentationPath();
-    static FAST_EXPORT std::string getPipelinePath();
-    static FAST_EXPORT void setConfigFilename(std::string filename);
-    static FAST_EXPORT void setBasePath(std::string path);
+    static std::string getTestDataPath();
+    static std::string getKernelSourcePath();
+    static std::string getKernelBinaryPath();
+    static std::string getDocumentationPath();
+    static std::string getPipelinePath();
+    static void setConfigFilename(std::string filename);
+    static void setBasePath(std::string path);
 private:
     static void loadConfiguration();
     static std::string getPath();

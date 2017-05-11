@@ -12,7 +12,7 @@ namespace fast {
 
 class View;
 
-class ComputationThread : public QObject, public Object {
+class FAST_EXPORT  ComputationThread : public QObject, public Object {
     Q_OBJECT
     public:
         ComputationThread(QThread* mainThread);

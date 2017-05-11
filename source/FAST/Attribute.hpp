@@ -1,6 +1,7 @@
 #ifndef FAST_ATTRIBUTE_HPP_
 #define FAST_ATTRIBUTE_HPP_
 
+#include "FASTExport.hpp"
 #include <string>
 #include <memory>
 #include <vector>
@@ -9,7 +10,7 @@ namespace fast {
 
 enum AttributeType { ATTRIBUTE_TYPE_STRING, ATTRIBUTE_TYPE_FLOAT, ATTRIBUTE_TYPE_INTEGER, ATTRIBUTE_TYPE_BOOLEAN};
 
-class AttributeValue {
+class FAST_EXPORT  AttributeValue {
     public:
         virtual ~AttributeValue() {};
 };
@@ -31,7 +32,7 @@ CREATE_ATTRIBUTE_VALUE_OBJECT(Integer, int)
 CREATE_ATTRIBUTE_VALUE_OBJECT(Boolean, bool)
 
 
-class Attribute {
+class FAST_EXPORT  Attribute {
     public:
         Attribute(std::string id, std::string name, std::string description, AttributeType type) :
                 mID(id), mName(name), mDescription(description), mType(type) {

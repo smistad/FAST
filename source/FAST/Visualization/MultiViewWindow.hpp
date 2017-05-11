@@ -8,7 +8,7 @@
 
 namespace fast {
 
-class MultiViewWindow : public Window {
+class FAST_EXPORT  MultiViewWindow : public Window {
     FAST_OBJECT(MultiViewWindow)
     public:
         void setNrOfViews(int viewCount);

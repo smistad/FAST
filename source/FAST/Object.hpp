@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class Object {
+class FAST_EXPORT  Object {
     public:
         typedef SharedPointer<Object> pointer;
         virtual ~Object() {};

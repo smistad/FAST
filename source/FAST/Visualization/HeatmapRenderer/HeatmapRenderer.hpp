@@ -8,7 +8,7 @@ namespace fast {
 
 class Image;
 
-class HeatmapRenderer : public Renderer {
+class FAST_EXPORT  HeatmapRenderer : public Renderer {
     FAST_OBJECT(HeatmapRenderer);
     public:
         void addInputConnection(ProcessObjectPort port, Color color = Color::Red());

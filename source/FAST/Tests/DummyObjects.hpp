@@ -9,7 +9,7 @@
 namespace fast {
 
 // Create a dummy class that extends the DataObject which is an abstract class
-class DummyDataObject : public SpatialDataObject {
+class FAST_EXPORT  DummyDataObject : public SpatialDataObject {
     FAST_OBJECT(DummyDataObject)
     public:
         bool hasBeenFreed(ExecutionDevice::pointer device) {
@@ -29,7 +29,7 @@ class DummyDataObject : public SpatialDataObject {
 
 
 // Create a dummy class that extends the ProcessObject which is an abstract class
-class DummyProcessObject : public ProcessObject {
+class FAST_EXPORT  DummyProcessObject : public ProcessObject {
     FAST_OBJECT(DummyProcessObject)
     public:
         void setIsModified() { mIsModified = true; };

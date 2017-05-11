@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class ImageCropper : public ProcessObject {
+class FAST_EXPORT  ImageCropper : public ProcessObject {
     FAST_OBJECT(ImageCropper)
     public:
         void setOffset(VectorXi offset);

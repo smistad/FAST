@@ -7,7 +7,7 @@
 namespace fast {
 
 // TODO inheritance here should probably not be public..
-class Segmentation : public Image {
+class FAST_EXPORT  Segmentation : public Image {
     FAST_OBJECT(Segmentation)
     public:
         void createFromImage(Image::pointer image);

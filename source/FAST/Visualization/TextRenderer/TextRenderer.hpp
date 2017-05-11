@@ -12,7 +12,7 @@ class View;
 
 FAST_SIMPLE_DATA_OBJECT(Text, std::string)
 
-class TextRenderer : public Renderer {
+class FAST_EXPORT  TextRenderer : public Renderer {
     FAST_OBJECT(TextRenderer)
     public:
         BoundingBox getBoundingBox();

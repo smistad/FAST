@@ -18,7 +18,7 @@ namespace fast {
 
 class Mesh;
 
-class VertexBufferObjectAccess {
+class FAST_EXPORT  VertexBufferObjectAccess {
     public:
         GLuint* get() const;
         VertexBufferObjectAccess(GLuint VBOID, SharedPointer<Mesh> mesh);

@@ -7,7 +7,7 @@ namespace fast {
 
 class Image;
 
-class CenterlineExtraction : public ProcessObject {
+class FAST_EXPORT  CenterlineExtraction : public ProcessObject {
 	FAST_OBJECT(CenterlineExtraction)
     public:
     private:

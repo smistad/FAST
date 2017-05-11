@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class ImageResampler : public ProcessObject {
+class FAST_EXPORT  ImageResampler : public ProcessObject {
     FAST_OBJECT(ImageResampler)
 public:
     void setOutputSpacing(float spacingX, float spacingY);

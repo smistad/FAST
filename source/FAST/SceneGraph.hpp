@@ -7,7 +7,7 @@
 namespace fast {
 
 
-class SceneGraphNode : public Object {
+class FAST_EXPORT  SceneGraphNode : public Object {
     FAST_OBJECT(SceneGraphNode)
     public:
         void setTransformation(AffineTransformation::pointer transformation);

@@ -9,7 +9,7 @@ namespace fast {
 /**
  * A class for a runtime measurement
  */
-class RuntimeMeasurement : public Object {
+class FAST_EXPORT  RuntimeMeasurement : public Object {
 public:
 	typedef SharedPointer<RuntimeMeasurement> pointer;
 	RuntimeMeasurement(std::string name);

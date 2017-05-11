@@ -7,7 +7,7 @@ namespace fast {
 
 class Image;
 
-class LungSegmentation : public ProcessObject {
+class FAST_EXPORT  LungSegmentation : public ProcessObject {
     FAST_OBJECT(LungSegmentation)
 public:
 private:

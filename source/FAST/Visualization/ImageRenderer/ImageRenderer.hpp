@@ -6,7 +6,7 @@
 
 namespace fast {
 
-class ImageRenderer : public Renderer {
+class FAST_EXPORT  ImageRenderer : public Renderer {
     FAST_OBJECT(ImageRenderer)
     public:
         void addInputConnection(ProcessObjectPort port);

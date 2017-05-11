@@ -7,7 +7,7 @@
 
 namespace fast {
 
-class LaplacianOfGaussian : public ProcessObject {
+class FAST_EXPORT  LaplacianOfGaussian : public ProcessObject {
     FAST_OBJECT(LaplacianOfGaussian)
     public:
         void setMaskSize(unsigned char maskSize);

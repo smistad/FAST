@@ -6,7 +6,7 @@
 
 namespace fast {
 
-class AffineTransformation : public DataObject, public Eigen::Affine3f {
+class FAST_EXPORT  AffineTransformation : public DataObject, public Eigen::Affine3f {
     FAST_OBJECT(AffineTransformation);
     public:
         AffineTransformation();

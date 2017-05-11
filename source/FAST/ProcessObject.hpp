@@ -34,7 +34,7 @@ enum OutputDataType { OUTPUT_STATIC, OUTPUT_DYNAMIC, OUTPUT_DEPENDS_ON_INPUT };
 class OpenCLProgram;
 class ProcessObject;
 
-class ProcessObjectPort {
+class FAST_EXPORT  ProcessObjectPort {
     public:
         ProcessObjectPort(uint portID, SharedPointer<ProcessObject> processObject);
         ProcessObjectPort() {};
@@ -52,7 +52,7 @@ class ProcessObjectPort {
         std::size_t mDataPointer;
 };
 
-class ProcessObject : public virtual Object {
+class FAST_EXPORT  ProcessObject : public virtual Object {
     public:
         virtual ~ProcessObject();
         void update();

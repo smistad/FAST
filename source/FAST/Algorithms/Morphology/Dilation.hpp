@@ -4,7 +4,7 @@
 #include "FAST/ProcessObject.hpp"
 
 namespace fast {
-class Dilation : public ProcessObject {
+class FAST_EXPORT  Dilation : public ProcessObject {
     FAST_OBJECT(Dilation)
 public:
     /**

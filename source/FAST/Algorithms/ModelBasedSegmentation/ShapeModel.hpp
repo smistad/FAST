@@ -13,7 +13,7 @@ class Image;
  * These objects describe a deformable shape, its parameters
  * and how it is allowed to change in space and time.
  */
-class ShapeModel : public Object {
+class FAST_EXPORT  ShapeModel : public Object {
 	public:
 		typedef SharedPointer<ShapeModel> pointer;
 		virtual Shape::pointer getShape(VectorXf state) = 0;

@@ -7,7 +7,7 @@
 
 namespace fast {
 
-class VesselCrossSection : public DataObject {
+class FAST_EXPORT  VesselCrossSection : public DataObject {
     FAST_OBJECT(VesselCrossSection)
     public:
         void create(Vector3f globalCenterPosition, Vector2f mImageCenterPosition, float mMajorRadius, float mMinorRadius);

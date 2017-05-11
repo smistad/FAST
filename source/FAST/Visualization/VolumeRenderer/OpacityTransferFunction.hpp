@@ -6,7 +6,7 @@
 
 namespace fast {
 
-class AlphaPoint
+class FAST_EXPORT  AlphaPoint
 {
 public:
 	AlphaPoint(double x, double a){
@@ -16,7 +16,7 @@ public:
   double X;
   double A;
 };
-class OpacityTransferFunction : public Object {
+class FAST_EXPORT  OpacityTransferFunction : public Object {
     FAST_OBJECT(OpacityTransferFunction)
     public:
         void addAlphaPoint(double x, double a);

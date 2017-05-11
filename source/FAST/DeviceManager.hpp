@@ -12,7 +12,7 @@ typedef std::pair<cl::Platform, std::vector<cl::Device> > PlatformDevices;
 /**
  * Singleton class for retrieving and setting default execution devices
  */
-class DeviceManager : public Object {
+class FAST_EXPORT  DeviceManager : public Object {
     public:
         static DeviceManager* getInstance();
         static bool hasInstance();

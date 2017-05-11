@@ -15,7 +15,7 @@ namespace fast {
  * a registry of process objects so that we can instantiate process objects
  * using only a string of its name.
  */
-class ProcessObjectRegistry {
+class FAST_EXPORT  ProcessObjectRegistry {
     public:
         using ctor_t = std::function<SharedPointer<ProcessObject>()>;
         using map_t = std::unordered_map<std::string, ctor_t>;

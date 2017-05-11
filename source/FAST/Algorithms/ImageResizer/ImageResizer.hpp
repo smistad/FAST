@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class ImageResizer : public ProcessObject {
+class FAST_EXPORT  ImageResizer : public ProcessObject {
 	FAST_OBJECT(ImageResizer)
 	public:
 		void setWidth(int width);

@@ -7,7 +7,7 @@
 namespace fast {
 
 
-class SliceRenderer : public Renderer {
+class FAST_EXPORT  SliceRenderer : public Renderer {
     FAST_OBJECT(SliceRenderer)
     public:
         void setInputConnection(ProcessObjectPort port);

@@ -25,7 +25,7 @@ class SimpleDataObject;
 
 
 template <class DataType>
-class DataAccess {
+class FAST_EXPORT  DataAccess {
 public:
     DataAccess(DataType* data, SharedPointer<SimpleDataObject<DataType> > dataObject);
     DataType getData();
@@ -69,7 +69,7 @@ DataAccess<DataType>::~DataAccess() {
 
 
 template <class DataType, typename AccessObject>
-class SimpleDataObject : public DataObject {
+class FAST_EXPORT  SimpleDataObject : public DataObject {
 public:
     void create(DataType data);
     typename AccessObject::pointer getAccess(accessType type);

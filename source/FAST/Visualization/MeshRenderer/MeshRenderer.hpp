@@ -7,7 +7,7 @@
 
 namespace fast {
 
-class MeshRenderer : public Renderer {
+class FAST_EXPORT  MeshRenderer : public Renderer {
     FAST_OBJECT(MeshRenderer)
     public:
         void addInputConnection(ProcessObjectPort port);

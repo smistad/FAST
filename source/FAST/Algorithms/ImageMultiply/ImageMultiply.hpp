@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class ImageMultiply : public ProcessObject {
+class FAST_EXPORT  ImageMultiply : public ProcessObject {
     FAST_OBJECT(ImageMultiply)
     public:
     private:

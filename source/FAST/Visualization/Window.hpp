@@ -15,7 +15,7 @@ class QOffscreenSurface;
 
 namespace fast {
 
-class Window : public QObject, public Object {
+class FAST_EXPORT  Window : public QObject, public Object {
     Q_OBJECT
     public:
         static void initializeQtApp();

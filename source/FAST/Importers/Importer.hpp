@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class Importer : public ProcessObject {
+class FAST_EXPORT  Importer : public ProcessObject {
 
 };
 

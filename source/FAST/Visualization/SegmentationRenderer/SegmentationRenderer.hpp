@@ -10,7 +10,7 @@
 
 namespace fast {
 
-class SegmentationRenderer : public Renderer {
+class FAST_EXPORT  SegmentationRenderer : public Renderer {
     FAST_OBJECT(SegmentationRenderer)
     public:
         void addInputConnection(ProcessObjectPort port);

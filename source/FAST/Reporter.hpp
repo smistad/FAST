@@ -10,11 +10,11 @@
 namespace fast {
 
 // Use to signal end of report line
-class ReporterEnd {
+class FAST_EXPORT  ReporterEnd {
 
 };
 
-class Reporter {
+class FAST_EXPORT  Reporter {
     public:
         static FAST_EXPORT ReporterEnd end;
         static Reporter info();

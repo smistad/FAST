@@ -7,7 +7,7 @@
 
 namespace fast {
 
-class Camera : public DataObject {
+class FAST_EXPORT  Camera : public DataObject {
     FAST_OBJECT(Camera)
     public:
         void create(Vector3f position, Vector3f upVector, Vector3f target);

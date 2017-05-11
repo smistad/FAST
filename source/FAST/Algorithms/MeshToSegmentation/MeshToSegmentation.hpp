@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class MeshToSegmentation : public SegmentationAlgorithm {
+class FAST_EXPORT  MeshToSegmentation : public SegmentationAlgorithm {
 	FAST_OBJECT(MeshToSegmentation)
 	public:
         /**

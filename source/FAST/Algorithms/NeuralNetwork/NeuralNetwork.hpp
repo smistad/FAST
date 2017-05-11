@@ -9,7 +9,7 @@ namespace fast {
 
 class Image;
 
-class NeuralNetwork : public ProcessObject {
+class FAST_EXPORT  NeuralNetwork : public ProcessObject {
 public:
     void load(std::string networkFilename);
     void setInputSize(int width, int height);

@@ -10,7 +10,7 @@
 namespace fast {
 
 template<class TImage>
-class ITKImageExporter: public itk::ImageSource<TImage>, public ProcessObject {
+class FAST_EXPORT  ITKImageExporter: public itk::ImageSource<TImage>, public ProcessObject {
     public:
         /** Standard class typedefs. */
         typedef ITKImageExporter Self;

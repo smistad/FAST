@@ -8,7 +8,7 @@ namespace fast {
 
 class Mesh;
 
-class MeshOpenCLAccess {
+class FAST_EXPORT  MeshOpenCLAccess {
 public:
     typedef UniquePointer<MeshOpenCLAccess> pointer;
     MeshOpenCLAccess(cl::Buffer* coordinatesBuffer, cl::Buffer* lineBuffer, cl::Buffer* triangleBuffer, SharedPointer<Mesh> mesh);

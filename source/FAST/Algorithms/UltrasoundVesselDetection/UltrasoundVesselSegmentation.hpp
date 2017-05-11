@@ -11,14 +11,14 @@ class KalmanFilter;
 class UltrasoundVesselDetection;
 class Image;
 
-class TrackedVessel : public Object {
+class FAST_EXPORT  TrackedVessel : public Object {
 	FAST_OBJECT(TrackedVessel)
 public:
 	SharedPointer<KalmanFilter> filter;
 	int framesSinceRefshed;
 };
 
-class UltrasoundVesselSegmentation : public ProcessObject {
+class FAST_EXPORT  UltrasoundVesselSegmentation : public ProcessObject {
 	FAST_OBJECT(UltrasoundVesselSegmentation)
 	public:
 

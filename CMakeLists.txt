@@ -122,14 +122,12 @@ if(FAST_BUILD_EXAMPLES)
 endif()
 
 #### Create FAST library and executables
-set(WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 add_library(FAST SHARED ${FAST_SOURCE_FILES} ${HEADERS_MOC})
 add_dependencies(FAST ${FAST_EXTERNAL_DEPENDENCIES})
+include(GenerateExportHeader)
+generate_export_header(FAST EXPORT_FILE_NAME FASTExport.hpp)
 if(WIN32)
-	include(GenerateExportHeader)
-	generate_export_header(FAST EXPORT_FILE_NAME FASTExport.hpp)	
-	set_target_properties(FAST PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
-	
+
 	# Parallel build in MSVC
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" "/MP")
 endif()

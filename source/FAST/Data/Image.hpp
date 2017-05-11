@@ -13,7 +13,7 @@
 
 namespace fast {
 
-class Image : public SpatialDataObject {
+class FAST_EXPORT  Image : public SpatialDataObject {
     FAST_OBJECT(Image)
     public:
         void createFromImage(Image::pointer image);

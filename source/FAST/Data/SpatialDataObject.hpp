@@ -7,7 +7,7 @@
 
 namespace fast {
 
-class SpatialDataObject : public DataObject {
+class FAST_EXPORT  SpatialDataObject : public DataObject {
     public:
         typedef SharedPointer<SpatialDataObject> pointer;
         SpatialDataObject();

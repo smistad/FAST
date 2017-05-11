@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class UltrasoundImageCropper : public ProcessObject {
+class FAST_EXPORT  UltrasoundImageCropper : public ProcessObject {
     FAST_OBJECT(UltrasoundImageCropper)
     public:
     private:

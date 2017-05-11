@@ -9,7 +9,7 @@ class vtkPolyData;
 
 namespace fast {
 
-class VTKLineSetExporter : public vtkAlgorithm, public ProcessObject {
+class FAST_EXPORT  VTKLineSetExporter : public vtkAlgorithm, public ProcessObject {
     public:
         static VTKLineSetExporter *New();
         vtkTypeMacro(VTKLineSetExporter,vtkAlgorithm);

@@ -9,7 +9,7 @@ namespace fast {
 
 QGLContext* Window::mMainGLContext = NULL;
 
-class FASTApplication : public QApplication {
+class FAST_EXPORT  FASTApplication : public QApplication {
 public:
     FASTApplication(int &argc, char **argv) : QApplication(argc, argv) {
     }

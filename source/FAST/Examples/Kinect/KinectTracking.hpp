@@ -9,7 +9,7 @@ class Image;
 class Mesh;
 class KinectStreamer;
 
-class KinectTracking : public ProcessObject {
+class FAST_EXPORT  KinectTracking : public ProcessObject {
     FAST_OBJECT(KinectTracking)
     public:
         void addLine(Vector2i start, Vector2i end);

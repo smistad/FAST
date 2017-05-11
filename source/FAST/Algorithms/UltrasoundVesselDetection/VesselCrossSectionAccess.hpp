@@ -6,7 +6,7 @@
 
 namespace fast {
 
-class VesselCrossSectionAccess {
+class FAST_EXPORT  VesselCrossSectionAccess {
     public:
         VesselCrossSectionAccess(Vector3f* globalCenterPosition,
         Vector2f* imageCenterPosition, float* majorRadius, float* minorRadius);

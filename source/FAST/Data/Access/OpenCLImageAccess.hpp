@@ -10,7 +10,7 @@ namespace fast {
 class Image;
 class OpenCLDevice;
 
-class OpenCLImageAccess {
+class FAST_EXPORT  OpenCLImageAccess {
     public:
         cl::Image* get() const;
         cl::Image2D* get2DImage() const;

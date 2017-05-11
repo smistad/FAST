@@ -3,6 +3,7 @@
 
 #define NOMINMAX // Removes windows min and max macros
 #define _USE_MATH_DEFINES
+#include "FASTExport.hpp"
 #include "FAST/Exception.hpp"
 #include "FAST/Reporter.hpp"
 #include <memory>
@@ -35,7 +36,7 @@ template <class T>
 class SharedPointer;
 
 template <class T>
-class WeakPointer {
+class FAST_EXPORT  WeakPointer {
     public:
         WeakPointer() {};
         WeakPointer(const SharedPointer<T> object) {
@@ -64,7 +65,7 @@ class WeakPointer {
 class Object;
 
 template <class T>
-class SharedPointer {
+class FAST_EXPORT  SharedPointer {
     public:
         SharedPointer() {
 

@@ -13,7 +13,7 @@ namespace fast {
 
 class Renderer;
 
-class Pipeline {
+class FAST_EXPORT  Pipeline {
     public:
         Pipeline(std::string name, std::string description, std::string filename);
         std::vector<SharedPointer<Renderer> > setup(ProcessObjectPort input);
@@ -48,13 +48,13 @@ class Pipeline {
  */
 std::vector<Pipeline> getAvailablePipelines();
 
-class PipelineWidget : public QToolBox {
+class FAST_EXPORT  PipelineWidget : public QToolBox {
     public:
         PipelineWidget(Pipeline pipeline, QWidget* parent = nullptr);
 
 };
 
-class ProcessObjectWidget : public QWidget {
+class FAST_EXPORT  ProcessObjectWidget : public QWidget {
     public:
         ProcessObjectWidget(SharedPointer<ProcessObject> po, QWidget* parent = nullptr);
 };

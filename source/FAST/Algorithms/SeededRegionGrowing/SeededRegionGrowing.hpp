@@ -7,7 +7,7 @@
 
 namespace fast {
 
-class SeededRegionGrowing : public ProcessObject {
+class FAST_EXPORT  SeededRegionGrowing : public ProcessObject {
     FAST_OBJECT(SeededRegionGrowing)
     public:
         void setIntensityRange(float min, float max);

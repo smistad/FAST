@@ -17,7 +17,7 @@ class IGTLinkStreamer;
 class OpenIGTLinkClient;
 class PipelineWidget;
 
-class GUI : public Window {
+class FAST_EXPORT  GUI : public Window {
     FAST_OBJECT(GUI)
     public:
         void record();

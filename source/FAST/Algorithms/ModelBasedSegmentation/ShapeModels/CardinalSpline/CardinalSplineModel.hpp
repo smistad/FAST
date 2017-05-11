@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class CardinalSplineModel : public ShapeModel {
+class FAST_EXPORT  CardinalSplineModel : public ShapeModel {
 	FAST_OBJECT(CardinalSplineModel)
 	public:
 		Shape::pointer getShape(VectorXf state);

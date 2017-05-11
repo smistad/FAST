@@ -7,7 +7,7 @@
 
 namespace fast {
 
-class ExecutionDevice : public Object {
+class FAST_EXPORT  ExecutionDevice : public Object {
     public:
         typedef SharedPointer<ExecutionDevice> pointer;
         bool isHost() {return mIsHost;};
@@ -21,7 +21,7 @@ class ExecutionDevice : public Object {
 };
 
 class DeviceManager; // Forward declaration
-class Host : public ExecutionDevice {
+class FAST_EXPORT  Host : public ExecutionDevice {
     public:
         typedef SharedPointer<Host> pointer;
         static Host::pointer getInstance() {
@@ -65,7 +65,7 @@ enum DeviceVendor {
     DEVICE_VENDOR_UKNOWN
 };
 
-class OpenCLDevice : public ExecutionDevice {
+class FAST_EXPORT  OpenCLDevice : public ExecutionDevice {
     FAST_OBJECT(OpenCLDevice)
     public:
         cl::CommandQueue getCommandQueue();

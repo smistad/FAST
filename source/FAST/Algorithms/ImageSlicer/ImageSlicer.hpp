@@ -9,7 +9,7 @@ namespace fast {
 
 class Image;
 
-class ImageSlicer : public ProcessObject {
+class FAST_EXPORT  ImageSlicer : public ProcessObject {
 	FAST_OBJECT(ImageSlicer)
 	public:
 		void setOrthogonalSlicePlane(PlaneType orthogonalSlicePlane, int sliceNr = -1);

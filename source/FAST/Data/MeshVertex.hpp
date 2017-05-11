@@ -7,7 +7,7 @@
 
 namespace fast {
 
-class MeshVertex {
+class FAST_EXPORT  MeshVertex {
     public:
 		MeshVertex(Vector3f position);
 		MeshVertex(Vector3f position, Vector3f normal);
@@ -26,7 +26,7 @@ class MeshVertex {
         int mLabel;
 };
 
-class MeshConnection {
+class FAST_EXPORT  MeshConnection {
 	public:
         int getEndpoint(uint index);
 		int getEndpoint1();
@@ -42,12 +42,12 @@ class MeshConnection {
 		MeshConnection() {};
 };
 
-class MeshLine : public MeshConnection {
+class FAST_EXPORT  MeshLine : public MeshConnection {
 	public:
 		MeshLine(uint endpoint1, uint endpoint2, Color color = Color::Red());
 };
 
-class MeshTriangle : public MeshConnection {
+class FAST_EXPORT  MeshTriangle : public MeshConnection {
 	public:
 		MeshTriangle(uint endpoint1, uint endpoint2, uint endpoint3, Color color = Color::Red());
 		int getEndpoint3();

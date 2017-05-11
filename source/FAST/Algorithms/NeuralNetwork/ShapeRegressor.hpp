@@ -6,7 +6,7 @@
 
 namespace fast {
 
-class ShapeRegressor : public NeuralNetwork {
+class FAST_EXPORT  ShapeRegressor : public NeuralNetwork {
 	FAST_OBJECT(ShapeRegressor)
 	public:
 	private:

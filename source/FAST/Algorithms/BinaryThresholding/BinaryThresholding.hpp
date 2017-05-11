@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class BinaryThresholding : public SegmentationAlgorithm {
+class FAST_EXPORT  BinaryThresholding : public SegmentationAlgorithm {
     FAST_OBJECT(BinaryThresholding)
     public:
         void setLowerThreshold(float threshold);

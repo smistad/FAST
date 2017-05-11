@@ -7,7 +7,7 @@
 
 namespace fast {
 
-class VTKImageImporter : public vtkImageAlgorithm, public ProcessObject {
+class FAST_EXPORT  VTKImageImporter : public vtkImageAlgorithm, public ProcessObject {
     public:
         static VTKImageImporter *New();
         std::string getNameOfClass() const { return "VTKImageExporter"; };

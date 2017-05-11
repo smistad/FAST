@@ -7,7 +7,7 @@
 
 namespace fast {
 
-class IterativeClosestPoint : public ProcessObject {
+class FAST_EXPORT  IterativeClosestPoint : public ProcessObject {
     FAST_OBJECT(IterativeClosestPoint)
     public:
         typedef enum { RIGID, TRANSLATION } TransformationType;

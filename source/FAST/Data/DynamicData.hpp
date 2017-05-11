@@ -11,7 +11,7 @@
 
 namespace fast {
 
-class DynamicData : public DataObject {
+class FAST_EXPORT  DynamicData : public DataObject {
     FAST_OBJECT(DynamicData)
     public:
         void setMaximumNumberOfFrames(uint nrOfFrames);

@@ -6,7 +6,7 @@
 
 namespace fast {
 
-class TubeSegmentationAndCenterlineExtraction : public ProcessObject {
+class FAST_EXPORT  TubeSegmentationAndCenterlineExtraction : public ProcessObject {
     FAST_OBJECT(TubeSegmentationAndCenterlineExtraction)
     public:
         void loadPreset();

@@ -6,7 +6,7 @@
 
 namespace fast {
 
-class VTKMeshExporter : public vtkPolyDataAlgorithm, public ProcessObject {
+class FAST_EXPORT  VTKMeshExporter : public vtkPolyDataAlgorithm, public ProcessObject {
     public:
         vtkTypeMacro(VTKMeshExporter,vtkPolyDataAlgorithm);
         static VTKMeshExporter *New();

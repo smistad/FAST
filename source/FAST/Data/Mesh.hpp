@@ -14,7 +14,7 @@
 
 namespace fast {
 
-class Mesh : public SpatialDataObject {
+class FAST_EXPORT  Mesh : public SpatialDataObject {
     FAST_OBJECT(Mesh)
     public:
         void create(

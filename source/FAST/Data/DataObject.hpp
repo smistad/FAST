@@ -10,7 +10,7 @@
 
 namespace fast {
 
-class DataObject : public Object {
+class FAST_EXPORT  DataObject : public Object {
     public:
         DataObject();
         typedef SharedPointer<DataObject> pointer;

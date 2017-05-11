@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class ImageInverter : public ProcessObject {
+class FAST_EXPORT  ImageInverter : public ProcessObject {
     FAST_OBJECT(ImageInverter)
     public:
     private:

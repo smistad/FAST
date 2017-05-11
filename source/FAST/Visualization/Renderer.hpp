@@ -14,7 +14,7 @@ namespace fast {
 class View;
 class BoundingBox;
 
-class Renderer : public ProcessObject {
+class FAST_EXPORT  Renderer : public ProcessObject {
     public:
         typedef SharedPointer<Renderer> pointer;
         virtual void draw() = 0;

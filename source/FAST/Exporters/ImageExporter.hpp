@@ -6,7 +6,7 @@
 
 namespace fast {
 
-class ImageExporter : public ProcessObject {
+class FAST_EXPORT  ImageExporter : public ProcessObject {
     FAST_OBJECT(ImageExporter)
     public:
         void setFilename(std::string filename);

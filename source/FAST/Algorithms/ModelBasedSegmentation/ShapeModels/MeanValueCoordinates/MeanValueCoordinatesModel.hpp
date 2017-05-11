@@ -10,7 +10,7 @@ namespace fast {
 
 class Image;
 
-class MeanValueCoordinatesModel : public ShapeModel {
+class FAST_EXPORT  MeanValueCoordinatesModel : public ShapeModel {
 	FAST_OBJECT(MeanValueCoordinatesModel)
 	public:
 		void loadMeshes(std::string surfaceMeshFilename, std::string controlMeshFilename);

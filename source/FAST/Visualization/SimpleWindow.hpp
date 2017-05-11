@@ -7,7 +7,7 @@
 
 namespace fast {
 
-class SimpleWindow : public Window {
+class FAST_EXPORT  SimpleWindow : public Window {
     FAST_OBJECT(SimpleWindow)
     public:
         void addRenderer(SharedPointer<Renderer> renderer);

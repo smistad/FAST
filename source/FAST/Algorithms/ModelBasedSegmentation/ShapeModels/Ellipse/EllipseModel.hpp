@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class EllipseModel : public ShapeModel {
+class FAST_EXPORT  EllipseModel : public ShapeModel {
 	FAST_OBJECT(EllipseModel)
 	public:
 		Shape::pointer getShape(VectorXf state);

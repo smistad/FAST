@@ -10,7 +10,7 @@ namespace fast {
 
 class Mesh;
 
-class MeshAccess {
+class FAST_EXPORT  MeshAccess {
     public:
         MeshAccess(
 				std::vector<MeshVertex>* vertices,

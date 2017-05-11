@@ -14,7 +14,7 @@
 
 namespace fast {
 
-class WindowWidget : public QWidget {
+class FAST_EXPORT  WindowWidget : public QWidget {
     Q_OBJECT
     public:
         WindowWidget();

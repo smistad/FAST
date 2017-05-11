@@ -3,7 +3,7 @@
 
 namespace fast {
 
-class GaussianSmoothingFilter : public ProcessObject {
+class FAST_EXPORT  GaussianSmoothingFilter : public ProcessObject {
     public:
     	static SharedPointer<GaussianSmoothingFilter> New();
         void setMaskSize(unsigned char maskSize);

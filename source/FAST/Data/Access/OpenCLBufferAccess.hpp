@@ -9,7 +9,7 @@ namespace fast {
 class Image;
 class OpenCLDevice;
 
-class OpenCLBufferAccess {
+class FAST_EXPORT  OpenCLBufferAccess {
     public:
         cl::Buffer* get() const;
         OpenCLBufferAccess(cl::Buffer* buffer,  SharedPointer<Image> image);

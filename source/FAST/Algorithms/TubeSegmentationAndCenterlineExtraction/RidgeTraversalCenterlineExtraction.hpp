@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class RidgeTraversalCenterlineExtraction : public ProcessObject {
+class FAST_EXPORT  RidgeTraversalCenterlineExtraction : public ProcessObject {
     FAST_OBJECT(RidgeTraversalCenterlineExtraction)
     public:
     private:

@@ -8,7 +8,7 @@ namespace fast {
 class Image;
 class Shape;
 
-class RidgeEdgeModel : public AppearanceModel {
+class FAST_EXPORT  RidgeEdgeModel : public AppearanceModel {
 	FAST_OBJECT(RidgeEdgeModel)
 	public:
 		void setLineLength(float lengthInMM);
