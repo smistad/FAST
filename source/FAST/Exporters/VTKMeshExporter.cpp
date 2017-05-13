@@ -42,34 +42,31 @@ int VTKMeshExporter::RequestData(
     for(int i = 0; i < input->getNrOfVertices(); i++) {
     	MeshVertex v = access->getVertex(i);
     	VectorXf position = v.getPosition();
-		if(input->getDimensions() == 2) {
-			points->SetPoint(i, position.x(), position.y(), 0);
-		} else {
-			points->SetPoint(i, position.x(), position.y(), position.z());
-		}
+        points->SetPoint(i, position.x(), position.y(), position.z());
 	}
 	output->SetPoints(points);
 
-    vtkSmartPointer<vtkCellArray> polys = vtkSmartPointer<vtkCellArray>::New();
-    if(input->getDimensions() == 2) {
-		for(int i = 0; i < input->getNrOfLines(); i++) {
-			VectorXui line = access->getLine(i);
-			polys->InsertNextCell(2);
-			polys->InsertCellPoint(line.x());
-			polys->InsertCellPoint(line.y());
-		}
-		output->SetLines(polys);
-    } else {
-    	for(int i = 0; i < input->getNrOfTriangles(); i++) {
-			VectorXui triangle = access->getTriangle(i);
-			polys->InsertNextCell(3);
-			polys->InsertCellPoint(triangle.x());
-			polys->InsertCellPoint(triangle.y());
-			polys->InsertCellPoint(triangle.z());
-		}
-		output->SetPolys(polys);
+    if(input->getNrOfLines() > 0) {
+        vtkSmartPointer<vtkCellArray> polys = vtkSmartPointer<vtkCellArray>::New();
+        for(int i = 0; i < input->getNrOfLines(); i++) {
+            MeshLine line = access->getLine(i);
+            polys->InsertNextCell(2);
+            polys->InsertCellPoint(line.getEndpoint1());
+            polys->InsertCellPoint(line.getEndpoint2());
+        }
+        output->SetLines(polys);
     }
-    // TODO if 3D, also export normals
+    if(input->getNrOfTriangles() > 0) {
+        vtkSmartPointer<vtkCellArray> polys = vtkSmartPointer<vtkCellArray>::New();
+        for(int i = 0; i < input->getNrOfTriangles(); i++) {
+            MeshTriangle triangle = access->getTriangle(i);
+            polys->InsertNextCell(3);
+            polys->InsertCellPoint(triangle.getEndpoint1());
+            polys->InsertCellPoint(triangle.getEndpoint2());
+            polys->InsertCellPoint(triangle.getEndpoint3());
+        }
+        output->SetPolys(polys);
+    }
 
     return 1;
 }
