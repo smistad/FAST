@@ -22,6 +22,7 @@ endif()
 set(FAST_FOUND 1)
 
 set(FAST_INCLUDE_DIRS
+    "${CMAKE_CURRENT_LIST_DIR}/../source/"
     "${CMAKE_CURRENT_LIST_DIR}/../include/"
     "${CMAKE_CURRENT_LIST_DIR}/../include/QtCore"
     "${CMAKE_CURRENT_LIST_DIR}/../include/QtWidgets"
