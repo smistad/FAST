@@ -96,8 +96,9 @@ KinectTrackingGUI::KinectTrackingGUI() {
 
     // Setup streaming
     mStreamer = KinectStreamer::New();
+    mStreamer->getReporter().setReportMethod(Reporter::COUT);
     mStreamer->setPointCloudFiltering(true);
-    mStreamer->setMaxRange(2); // All points above 2 meters are excluded
+    mStreamer->setMaxRange(3); // All points above x meters are excluded
 
     // Tracking
     mTracking = KinectTracking::New();
@@ -260,6 +261,7 @@ void KinectTrackingGUI::playRecording() {
         while(streamer->getNrOfFrames() != numFiles) {
             progress.setValue(streamer->getNrOfFrames());
             if(progress.wasCanceled()) {
+                streamer->stop();
                 restart();
                 return;
             }
@@ -348,8 +350,9 @@ void KinectTrackingGUI::restart() {
 
     // Setup streaming
     mStreamer = KinectStreamer::New();
+    mStreamer->getReporter().setReportMethod(Reporter::COUT);
     mStreamer->setPointCloudFiltering(true);
-    mStreamer->setMaxRange(2); // All points above 2 meters are excluded
+    mStreamer->setMaxRange(3); // All points above x meters are excluded
 
     mTracking->setInputConnection(0, mStreamer->getOutputPort(0));
     mTracking->setInputConnection(1, mStreamer->getOutputPort(2));
