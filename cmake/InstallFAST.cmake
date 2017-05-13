@@ -71,7 +71,7 @@ install(DIRECTORY ${FAST_SOURCE_DIR}
 )
 
 # Install CMake files
-install(FILES ${PROJECT_BINARY_DIR}/FASTConfig.cmake ${PROJECT_SOURCE_DIR}/cmake/FASTUse.cmake
+install(FILES ${PROJECT_BINARY_DIR}/FASTConfig.cmake ${PROJECT_BINARY_DIR}/FASTUse.cmake
     DESTINATION fast/cmake
 )
 
