@@ -17,6 +17,11 @@ public:
     static std::string getKernelBinaryPath();
     static std::string getDocumentationPath();
     static std::string getPipelinePath();
+    static void setTestDataPath(std::string path);
+    static void setKernelSourcePath(std::string path);
+    static void setKernelBinaryPath(std::string path);
+    static void setDocumentationPath(std::string path);
+    static void setPipelinePath(std::string path);
     static void setConfigFilename(std::string filename);
     static void setBasePath(std::string path);
 private:

@@ -175,4 +175,24 @@ void Config::loadConfiguration() {
     mConfigurationLoaded = true;
 }
 
+void Config::setTestDataPath(std::string path) {
+    mTestDataPath = path;
+}
+
+void Config::setKernelSourcePath(std::string path) {
+    mKernelSourcePath = path;
+}
+
+void Config::setKernelBinaryPath(std::string path) {
+    mKernelBinaryPath = path;
+}
+
+void Config::setDocumentationPath(std::string path) {
+    mDocumentationPath = path;
+}
+
+void Config::setPipelinePath(std::string path) {
+    mPipelinePath = path;
+}
+
 }; // end namespace fast
