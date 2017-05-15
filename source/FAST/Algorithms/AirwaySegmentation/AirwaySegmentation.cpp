@@ -285,13 +285,23 @@ void AirwaySegmentation::execute() {
 	image = filter->getOutputData<Image>();
 
 	// Find seed voxel
-	Vector3i seed = findSeedVoxel(image);
+	Vector3i seed;
+	if(mUseManualSeedPoint) {
+		seed = mSeedPoint;
+		// Validate seed point
+		if(seed.x() < 0 || seed.y() < 0 || seed.z() < 0 ||
+				seed.x() >= image->getWidth() || seed.y() >= image->getHeight() || seed.z() >= image->getDepth()) {
+			throw Exception("Seed point was not inside image in AirwaySegmentation");
+		}
+	} else {
+		seed = findSeedVoxel(image);
+	}
 
 	if(seed == Vector3i::Zero()) {
 		throw Exception("No seed found.");
 	}
 
-	reportInfo() << "Seed found at " << seed.transpose() << reportEnd();
+	reportInfo() << "Using seed point: " << seed.transpose() << reportEnd();
 
 	// Do the region growing
 	Segmentation::pointer segmentation = getStaticOutputData<Segmentation>();
@@ -300,6 +310,15 @@ void AirwaySegmentation::execute() {
 	// Do morphological closing to remove holes in segmentation
 	morphologicalClosing(segmentation);
 
+}
+
+void AirwaySegmentation::setSeedPoint(int x, int y, int z) {
+    setSeedPoint(Vector3i(x, y, z));
+}
+
+void AirwaySegmentation::setSeedPoint(Vector3i seed) {
+	mSeedPoint = seed;
+	mUseManualSeedPoint = true;
 }
 
 }
