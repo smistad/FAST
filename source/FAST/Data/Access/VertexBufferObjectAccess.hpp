@@ -2,17 +2,18 @@
 #define VERTEXBUFFEROBJECTACCESS_HPP_
 
 #if defined(__APPLE__) || defined(__MACOSX)
-#include <OpenGL/OpenGL.h>
+
 #else
 #if _WIN32
 #include <windows.h>
-#include <GL/gl.h>
+
 #else
-#include <GL/gl.h>
+
 #endif
 #endif
 
 #include "FAST/SmartPointers.hpp"
+#include <QOpenGLFunctions_3_0>
 
 namespace fast {
 

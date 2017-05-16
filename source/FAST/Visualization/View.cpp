@@ -11,13 +11,12 @@
 #include "SimpleWindow.hpp"
 #include "FAST/Utility.hpp"
 #include <QOpenGLFunctions_3_3_Core>
+#include <QOpenGLFunctions_3_0>
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
-#include <OpenGL/OpenGL.h>
 #else
 #if _WIN32
-#include <GL/gl.h>
 
 #include <CL/cl_gl.h>
 #else
@@ -900,54 +899,54 @@ void View::renderVolumes()
 void View::getDepthBufferFromGeo()
 {
 
-    QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
+    QOpenGLFunctions_3_0 *fun = new QOpenGLFunctions_3_0;
     fun->initializeOpenGLFunctions();
 	/*Converting the depth buffer texture from GL format to CL format >>>*/
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
+	fun->glMatrixMode(GL_MODELVIEW);
+	fun->glPushMatrix();
+	fun->glMatrixMode(GL_PROJECTION);
+	fun->glPushMatrix();
 
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glViewport(0,0,this->width(),this->height());
-	glOrtho(0, this->width(), 0, this->height(), 0, 512);
+	fun->glMatrixMode(GL_MODELVIEW);
+	fun->glLoadIdentity();
+	fun->glMatrixMode(GL_PROJECTION);
+	fun->glLoadIdentity();
+	fun->glViewport(0,0,this->width(),this->height());
+	fun->glOrtho(0, this->width(), 0, this->height(), 0, 512);
 
 	// Render to Second Texture
 	fun->glBindFramebuffer(GL_FRAMEBUFFER, fbo2);
 
 	fun->glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, renderedDepthText);
+	fun->glBindTexture(GL_TEXTURE_2D, renderedDepthText);
 	int loc = fun->glGetUniformLocation(programGLSL, "renderedDepthText");
 	fun->glUniform1i(loc, renderedDepthText);
 
 	fun->glUseProgram(programGLSL);
 
-	glBegin(GL_QUADS);
-	glTexCoord2f(0, 0);
-	glVertex2f(0,0);
-	glTexCoord2f(1.0, 0);
-	glVertex2f(this->width(),0);
-	glTexCoord2f(1.0, 1.0);
-	glVertex2f(this->width(), this->height());
-	glTexCoord2f(0, 1.0);
-	glVertex2f(0,  this->height());
-	glEnd();
+	fun->glBegin(GL_QUADS);
+	fun->glTexCoord2f(0, 0);
+	fun->glVertex2f(0,0);
+	fun->glTexCoord2f(1.0, 0);
+	fun->glVertex2f(this->width(),0);
+	fun->glTexCoord2f(1.0, 1.0);
+	fun->glVertex2f(this->width(), this->height());
+	fun->glTexCoord2f(0, 1.0);
+	fun->glVertex2f(0,  this->height());
+	fun->glEnd();
 
 	fun->glUseProgram(0);
 
-	glBindTexture(GL_TEXTURE_2D, 0);
+	fun->glBindTexture(GL_TEXTURE_2D, 0);
 
 
 	//Rendere to Back buffer
 	fun->glBindFramebuffer(GL_FRAMEBUFFER,0);
 
-	glMatrixMode(GL_MODELVIEW);
-	glPopMatrix();
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
+	fun->glMatrixMode(GL_MODELVIEW);
+	fun->glPopMatrix();
+	fun->glMatrixMode(GL_PROJECTION);
+	fun->glPopMatrix();
 
 }
 

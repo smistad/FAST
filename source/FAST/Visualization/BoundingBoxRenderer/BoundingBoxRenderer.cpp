@@ -1,13 +1,7 @@
 #include "BoundingBoxRenderer.hpp"
 #include "FAST/Data/BoundingBox.hpp"
 #include "FAST/Data/SpatialDataObject.hpp"
-
-#if defined(__APPLE__) || defined(__MACOSX)
-#include <OpenGL/OpenGL.h>
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
+#include <QOpenGLFunctions_3_0>
 
 namespace fast {
 
@@ -38,8 +32,9 @@ void BoundingBoxRenderer::draw() {
 
     // Draw each bounding box
     std::unordered_map<uint, BoundingBox>::iterator it;
-    glBegin(GL_LINES);
-    glColor3f(0.0f, 1.0f, 0.0f);
+    QOpenGLFunctions_3_0* fun = new QOpenGLFunctions_3_0;
+    fun->glBegin(GL_LINES);
+    fun->glColor3f(0.0f, 1.0f, 0.0f);
     for(it = mBoxesToRender.begin(); it != mBoxesToRender.end(); ++it) {
         BoundingBox box = it->second;
         MatrixXf corners = box.getCorners();
@@ -52,14 +47,14 @@ void BoundingBoxRenderer::draw() {
                 if((A.x() != B.x() ? 1 : 0) +
                     (A.y() != B.y() ? 1 : 0) +
                     (A.z() != B.z() ? 1 : 0) == 1) {
-                    glVertex3f(A.x(), A.y(), A.z());
-                    glVertex3f(B.x(), B.y(), B.z());
+                    fun->glVertex3f(A.x(), A.y(), A.z());
+                    fun->glVertex3f(B.x(), B.y(), B.z());
                 }
 
             }
         }
     }
-    glEnd();
+    fun->glEnd();
 }
 
 BoundingBox BoundingBoxRenderer::getBoundingBox() {

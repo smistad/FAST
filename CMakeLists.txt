@@ -133,9 +133,10 @@ if(WIN32)
 endif()
 
 ## Link everything
+message("-- LIBS: ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES}")
 target_link_libraries(FAST ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES})
 if(FAST_MODULE_Visualization)
-    qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
+    qt5_use_modules(FAST Widgets ) # Add Qt 5 modules
 endif()
 
 ## Build test executable
