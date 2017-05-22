@@ -88,13 +88,14 @@ void ImageImporter::execute() {
     // R, G, B, A components for each pixel
 
     // TODO: do some conversion to requested output format, also color vs. no color
-    convertedPixelData = new uchar[image.width()*image.height()*3];
     if(mGrayscale) {
+        convertedPixelData = new uchar[image.width()*image.height()];
         for(int i = 0; i < image.width() * image.height(); i++) {
             convertedPixelData[i] = (uchar)round((pixelData[i*4]+pixelData[i*4+1]+pixelData[i*4+2])/3.0f);
         }
     } else {
         for(int i = 0; i < image.width() * image.height(); i++) {
+            convertedPixelData = new uchar[image.width()*image.height()*3];
             convertedPixelData[i * 3] = pixelData[i * 4 + 2];
             convertedPixelData[i * 3 + 1] = pixelData[i * 4 + 1];
             convertedPixelData[i * 3 + 2] = pixelData[i * 4 + 0];
@@ -121,7 +122,7 @@ void ImageImporter::execute() {
             width,
             height,
             TYPE_UINT8,
-            3,
+            mGrayscale ? 1 : 3,
             getMainDevice(),
             convertedPixelData
     );
