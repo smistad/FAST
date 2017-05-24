@@ -8,7 +8,7 @@ namespace fast {
 /**
  * This is an example filter which doubles the value of each element in an image
  */
-class FAST_EXPORT  DoubleFilter : public ProcessObject {
+class DoubleFilter : public ProcessObject {
     FAST_OBJECT(DoubleFilter)
     private:
         // Constructor

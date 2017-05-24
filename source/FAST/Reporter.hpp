@@ -75,7 +75,7 @@ Reporter operator<<(Reporter report, const T& content) {
 }
 
 template <>
-Reporter operator<<(Reporter report, const ReporterEnd& end);
+FAST_EXPORT Reporter operator<<(Reporter report, const ReporterEnd& end);
 
 } // end namespace fast
 
