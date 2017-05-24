@@ -247,8 +247,8 @@ void GUI::selectStream() {
 
     reportInfo() << "Trying to connect..." << reportEnd();
     mStreamer = IGTLinkStreamer::New();
-    mStreamer->setConnectionAddress(mAddress->text().toStdString());
-    mStreamer->setConnectionPort(std::stoi(mPort->text().toStdString()));
+    mStreamer->setConnectionAddress(mAddress->text().toUtf8().constData());
+    mStreamer->setConnectionPort(std::stoi(mPort->text().toUtf8().constData()));
     mClient->setInputConnection(mStreamer->getOutputPort<Image>(streamName));
     try {
         mStreamer->update();
@@ -288,8 +288,8 @@ void GUI::connect() {
     } else {
         reportInfo() << "Trying to connect..." << reportEnd();
         mStreamer = IGTLinkStreamer::New();
-        mStreamer->setConnectionAddress(mAddress->text().toStdString());
-        mStreamer->setConnectionPort(std::stoi(mPort->text().toStdString()));
+        mStreamer->setConnectionAddress(mAddress->text().toUtf8().constData());
+        mStreamer->setConnectionPort(std::stoi(mPort->text().toUtf8().constData()));
         mClient->setInputConnection(mStreamer->getOutputPort());
         try {
             mStreamer->update();
@@ -349,7 +349,7 @@ void GUI::record() {
         message->show();
         return;
     }
-    bool recording = mClient->toggleRecord(storageDir->text().toStdString());
+    bool recording = mClient->toggleRecord(storageDir->text().toUtf8().constData());
     if(recording) {
         mRecordTimer->start();
         std::string msg = "Recording to: " + mClient->getRecordingName();

@@ -106,7 +106,7 @@ void GUI::toggleServer() {
         mFilenameFormats.clear();
         for(int i = 0; i < mList->count(); ++i) {
             QString filename = mList->item(i)->text();
-            mFilenameFormats.push_back(filename.toStdString());
+            mFilenameFormats.push_back(std::string(filename.toUtf8().constData()));
         }
         if(mFilenameFormats.size() == 0) {
             QMessageBox* message = new QMessageBox(mWidget);

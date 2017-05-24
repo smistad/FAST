@@ -39,7 +39,7 @@ bool OpenIGTLinkClient::toggleRecord(std::string storageDir) {
     if(mRecording) {
         mRecordFrameNr = 0;
         mRecordingName = currentDateTime();
-        mRecordStoragePath = (QString(storageDir.c_str()) + QDir::separator() + QString(mRecordingName.c_str()) + QDir::separator()).toStdString();
+        mRecordStoragePath = (QString(storageDir.c_str()) + QDir::separator() + QString(mRecordingName.c_str()) + QDir::separator()).toUtf8().constData();
         createDirectories(mRecordStoragePath);
     }
     return mRecording;

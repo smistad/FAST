@@ -233,7 +233,7 @@ void KinectTrackingGUI::playRecording() {
                 QDir::separator() +
                 selectedItems[0]->text() +
                 QDir::separator()
-        ).toStdString();
+        ).toUtf8().constData();
 
 
         // Set up streaming from disk
@@ -310,13 +310,13 @@ void KinectTrackingGUI::extractPointCloud() {
     // If recording is enabled: Store the target cloud, then activate recording on tracking object
     if(mRecording) {
         // Create recording path
-        std::string path = mStorageDir->text().toStdString();
+        std::string path = mStorageDir->text().toUtf8().constData();
         if(mRecordingNameLineEdit->text() != "") {
-            mRecordingName =  currentDateTime() + " " + mRecordingNameLineEdit->text().toStdString();
+            mRecordingName =  currentDateTime() + " " + mRecordingNameLineEdit->text().toUtf8().constData();
         } else {
             mRecordingName = currentDateTime();
         }
-        std::string recordingPath = (QString(path.c_str()) + QDir::separator() + QString(mRecordingName.c_str()) + QDir::separator()).toStdString();
+        std::string recordingPath = (QString(path.c_str()) + QDir::separator() + QString(mRecordingName.c_str()) + QDir::separator()).toUtf8().constData();
         createDirectories(recordingPath);
 
         // Store target cloud
