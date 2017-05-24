@@ -430,7 +430,7 @@ void DeviceManager::sortDevicesAccordingToPreference(
 
 DevicePlatform DeviceManager::getDevicePlatform(std::string platformVendor) {
     DevicePlatform retval;
-    if (platformVendor.find("Advanced Micro Devices, Inc.") != std::string::npos) {
+    if (platformVendor.find("Advanced Micro Devices") != std::string::npos || platformVendor.find("AMD") != std::string::npos) {
         retval = DEVICE_PLATFORM_AMD;
     } else if (platformVendor.find("Apple") != std::string::npos) {
         retval = DEVICE_PLATFORM_APPLE;
@@ -438,7 +438,9 @@ DevicePlatform DeviceManager::getDevicePlatform(std::string platformVendor) {
         retval = DEVICE_PLATFORM_INTEL;
     } else if (platformVendor.find("NVIDIA") != std::string::npos) {
         retval = DEVICE_PLATFORM_NVIDIA;
-    }
+	} else {
+		throw Exception("Unrecognized device platform vendor " + platformVendor);
+	}
     return retval;
 }
 
