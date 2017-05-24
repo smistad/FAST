@@ -5,10 +5,12 @@ install(TARGETS FAST
 	DESTINATION fast/lib
 )
 
-# Install test executable
-install(TARGETS testFAST
-	DESTINATION fast/bin
-)
+if(FAST_BUILD_TESTS)
+	# Install test executable
+	install(TARGETS testFAST
+		DESTINATION fast/bin
+	)
+endif(FAST_BUILD_TESTS)
 
 # Examples are installed in the macro fast_add_example
 
