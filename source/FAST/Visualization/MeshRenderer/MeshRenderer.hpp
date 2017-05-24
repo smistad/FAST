@@ -4,11 +4,10 @@
 #include "FAST/Data/Mesh.hpp"
 #include "FAST/Data/Color.hpp"
 #include "FAST/Visualization/Renderer.hpp"
-#include <QOpenGLFunctions_3_0>
 
 namespace fast {
 
-class FAST_EXPORT  MeshRenderer : public Renderer, protected QOpenGLFunctions_3_0 {
+class FAST_EXPORT  MeshRenderer : public Renderer {
     FAST_OBJECT(MeshRenderer)
     public:
         void addInputConnection(ProcessObjectPort port);

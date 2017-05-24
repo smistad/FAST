@@ -5,11 +5,10 @@
 #include "FAST/Data/Mesh.hpp"
 #include "FAST/Data/Color.hpp"
 #include <mutex>
-#include <QOpenGLFunctions>
 
 namespace fast {
 
-class FAST_EXPORT  PointRenderer : public Renderer, protected QOpenGLFunctions_3_0 {
+class FAST_EXPORT  PointRenderer : public Renderer {
     FAST_OBJECT(PointRenderer)
     public:
         void addInputConnection(ProcessObjectPort port);

@@ -7,11 +7,10 @@
 #include "FAST/Data/Image.hpp"
 #include "ColorTransferFunction.hpp"
 #include "OpacityTransferFunction.hpp"
-#include <QOpenGLFunctions_3_0>
 
 namespace fast {
 
-class FAST_EXPORT  VolumeRenderer : public Renderer, protected QOpenGLFunctions_3_0 {
+class FAST_EXPORT  VolumeRenderer : public Renderer {
     FAST_OBJECT(VolumeRenderer)
     public:
         void addInputConnection(ProcessObjectPort port);
