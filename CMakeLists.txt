@@ -152,10 +152,15 @@ endif()
 
 set(CONF_FAST_LIBRARIES FAST ${LIBRARIES})
 
-# Create config file
+# Create config and use file
 configure_file(
     "${PROJECT_SOURCE_DIR}/cmake/FASTConfig.cmake.in"
     "${PROJECT_BINARY_DIR}/FASTConfig.cmake"
+        @ONLY
+)
+configure_file(
+        "${PROJECT_SOURCE_DIR}/cmake/FASTUse.cmake.in"
+        "${PROJECT_BINARY_DIR}/FASTUse.cmake"
         @ONLY
 )
 

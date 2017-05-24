@@ -7,6 +7,7 @@ class QPushButton;
 class QLineEdit;
 class QLabel;
 class QElapsedTimer;
+class QListWidget;
 
 namespace fast {
 
@@ -20,15 +21,24 @@ class FAST_EXPORT  KinectTrackingGUI : public Window {
         void restart();
         void toggleRecord();
         void updateMessages();
+        void playRecording();
+        void refreshRecordingsList();
     private:
         KinectTrackingGUI();
 
         SharedPointer<KinectStreamer> mStreamer;
         SharedPointer<KinectTracking> mTracking;
         QPushButton* mRecordButton;
+        QPushButton* mPlayButton;
         QLineEdit* mStorageDir;
+        QLineEdit* mRecordingNameLineEdit;
         QLabel* mRecordingInformation;
         QElapsedTimer* mRecordTimer;
+        QListWidget* mRecordingsList;
+
+        bool mRecording = false;
+        bool mPlaying = false;
+        std::string mRecordingName;
 
 };
 

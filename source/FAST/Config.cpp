@@ -190,6 +190,26 @@ namespace fast {
 			loadConfiguration();
 		}
 
+		void setTestDataPath(std::string path) {
+			mTestDataPath = path;
+		}
+
+		void setKernelSourcePath(std::string path) {
+			mKernelSourcePath = path;
+		}
+
+		void setKernelBinaryPath(std::string path) {
+			mKernelBinaryPath = path;
+		}
+
+		void setDocumentationPath(std::string path) {
+			mDocumentationPath = path;
+		}
+
+		void setPipelinePath(std::string path) {
+			mPipelinePath = path;
+		}
+
 	} // end namespace Config
 
 }; // end namespace fast

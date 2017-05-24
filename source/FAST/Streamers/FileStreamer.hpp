@@ -31,6 +31,10 @@ class FAST_EXPORT  FileStreamer : public Streamer, public ProcessObject {
         bool hasReachedEnd() const;
         uint getNrOfFrames() const;
         void producerStream();
+        /**
+         * Stops the streaming thread, and will not return until this thread is stopped.
+         */
+        void stop();
 
         ~FileStreamer();
     protected:
@@ -52,10 +56,12 @@ class FAST_EXPORT  FileStreamer : public Streamer, public ProcessObject {
         std::thread *mThread;
         std::mutex mFirstFrameMutex;
         std::condition_variable mFirstFrameCondition;
+        std::mutex mStopMutex;
 
         bool mStreamIsStarted;
         bool mFirstFrameIsInserted;
         bool mHasReachedEnd;
+        bool mStop;
 
         std::vector<std::string> mFilenameFormats;
         std::string mTimestampFilename;

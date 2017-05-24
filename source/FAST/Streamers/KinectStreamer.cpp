@@ -14,6 +14,7 @@ KinectStreamer::KinectStreamer() {
     mNrOfFrames = 0;
     mHasReachedEnd = false;
     mFirstFrameIsInserted = false;
+    mStreamIsStarted = false;
     mIsModified = true;
     mPointCloudFilterEnabled = false;
     registration = NULL;
@@ -63,6 +64,7 @@ MeshVertex KinectStreamer::getPoint(int x, int y) {
 }
 
 void KinectStreamer::producerStream() {
+    reportInfo() << "Trying to set up kinect stream..." << reportEnd();
     libfreenect2::Freenect2 freenect2;
     libfreenect2::Freenect2Device *dev = 0;
     libfreenect2::PacketPipeline *pipeline = 0;
@@ -138,8 +140,11 @@ void KinectStreamer::producerStream() {
             for(int c = 0; c < 512; ++c) {
                 float x, y, z, color;
                 registration->getPointXYZRGB(&undistorted, &registered, r, c, x, y, z, color);
+                if(z < mMinRange || z > mMaxRange) {
+                    continue;
+                }
                 if(!std::isnan(x)) {
-                    // TODO, for each valid neigbhor; is the depth similar
+                    // for each valid neigbhor; is the depth similar
                     if(mPointCloudFilterEnabled) {
                         int invalidNeighbors = 0;
                         const int size = 1;
@@ -168,7 +173,6 @@ void KinectStreamer::producerStream() {
                     uint8_t blue = p[2];
                     MeshVertex point(Vector3f(x*1000, y*1000, z*1000));
                     point.setColor(Color(red/255.0f, green/255.0f, blue/255.0f));
-                    //std::cout << point.transpose() << std::endl;
                     points.push_back(point);
                 }
             }
@@ -231,6 +235,18 @@ KinectStreamer::~KinectStreamer() {
 void KinectStreamer::stop() {
     std::unique_lock<std::mutex> lock(mStopMutex);
     mStop = true;
+}
+
+void KinectStreamer::setMaxRange(float range) {
+    if(range < 0)
+        throw Exception("Range has to be >= 0");
+    mMaxRange = range;
+}
+
+void KinectStreamer::setMinRange(float range) {
+    if(range < 0)
+        throw Exception("Range has to be >= 0");
+    mMinRange = range;
 }
 
 }

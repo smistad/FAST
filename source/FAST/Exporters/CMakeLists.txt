@@ -22,25 +22,22 @@ fast_add_test_sources(
     Tests/ImageExporterTests.cpp
 )
 endif()
-if(FAST_VTK_INTEROP)
+if(FAST_MODULE_VTK)
     fast_add_sources(
         VTKImageExporter.cpp
         VTKImageExporter.hpp
         VTKMeshExporter.cpp
         VTKMeshExporter.hpp
-        VTKLineSetExporter.cpp
-        VTKLineSetExporter.hpp
     )
     fast_add_test_sources(
         Tests/VTKImageExporterTests.cpp
-        Tests/VTKLineSetExporterTests.cpp
         Tests/VTKMeshExporterTests.cpp
     )
     fast_add_python_interfaces(
     	VTKMeshExporter.i
 	)
 endif()
-if(FAST_ITK_INTEROP)
+if(FAST_MODULE_ITK)
     fast_add_sources(
         ITKImageExporter.hpp
     )

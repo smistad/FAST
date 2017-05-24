@@ -5,10 +5,12 @@ install(TARGETS FAST
 	DESTINATION fast/lib
 )
 
-# Install test executable
-install(TARGETS testFAST
-	DESTINATION fast/bin
-)
+if(FAST_BUILD_TESTS)
+    # Install test executable
+    install(TARGETS testFAST
+        DESTINATION fast/bin
+    )
+endif()
 
 # Examples are installed in the macro fast_add_example
 
@@ -72,7 +74,7 @@ install(DIRECTORY ${FAST_SOURCE_DIR}
 )
 
 # Install CMake files
-install(FILES ${PROJECT_BINARY_DIR}/FASTConfig.cmake ${PROJECT_SOURCE_DIR}/cmake/FASTUse.cmake
+install(FILES ${PROJECT_BINARY_DIR}/FASTConfig.cmake ${PROJECT_BINARY_DIR}/FASTUse.cmake
     DESTINATION fast/cmake
 )
 

@@ -11,9 +11,11 @@ MeshFileStreamer::MeshFileStreamer() {
 
 DataObject::pointer MeshFileStreamer::getDataFrame(std::string filename) {
     VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
+    //importer->enableRuntimeMeasurements();
     importer->setFilename(filename);
     importer->setMainDevice(getMainDevice());
     importer->update();
+    //importer->getAllRuntimes()->printAll();
     return importer->getOutputData<Mesh>();
 }
 

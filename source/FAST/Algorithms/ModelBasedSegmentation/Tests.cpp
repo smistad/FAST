@@ -19,7 +19,7 @@ using namespace fast;
 /*
 TEST_CASE("Model based segmentation with mean value coordinates on 3D cardiac US data", "[fast][ModelBasedSegmentation][cardiac][3d][visual]") {
 	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
-	streamer->setFilenameFormat("/home/smistad/CETUS/Patient1/Patient1_frame#.mhd");
+	streamer->setFilenameFormat("/media/extra/CETUS/Patient1/Patient1_frame#.mhd");
 	streamer->setZeroFilling(2);
 	streamer->setStartNumber(1);
 	streamer->enableLooping();
@@ -27,8 +27,8 @@ TEST_CASE("Model based segmentation with mean value coordinates on 3D cardiac US
 	//streamer->setSleepTime(2000);
 
 	MeanValueCoordinatesModel::pointer shapeModel = MeanValueCoordinatesModel::New();
-	shapeModel->loadMeshes("/home/smistad/Dropbox/Programmering/Mean value coordinates/cetus_model_mesh_small.vtk",
-			"/home/smistad/Dropbox/Programmering/Mean value coordinates/cetus_control_mesh.vtk");
+	shapeModel->loadMeshes(Config::getTestDataPath() + "cetus_model_mesh_small.vtk",
+			Config::getTestDataPath() + "cetus_control_mesh.vtk");
 	shapeModel->initializeShapeToImageCenter();
 	KalmanFilter::pointer segmentation = KalmanFilter::New();
 	RidgeEdgeModel::pointer appearanceModel = RidgeEdgeModel::New();

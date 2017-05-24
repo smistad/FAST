@@ -1,4 +1,4 @@
-#include "FAST/DeviceManager.hpp"
+
 #include "FAST/Exception.hpp"
 #include "FileStreamer.hpp"
 #include <fstream>
@@ -21,6 +21,7 @@ FileStreamer::FileStreamer() {
     mSleepTime = 0;
     mStepSize = 1;
     mMaximumNrOfFramesSet = false;
+    mStop = false;
 }
 
 void FileStreamer::setNumberOfReplays(uint replays) {
@@ -113,6 +114,15 @@ void FileStreamer::producerStream() {
     int replays = 0;
     int currentSequence = 0;
     while(true) {
+        {
+            std::unique_lock<std::mutex> lock(mStopMutex);
+            if(mStop) {
+                mStreamIsStarted = false;
+                mFirstFrameIsInserted = false;
+                mHasReachedEnd = false;
+                break;
+            }
+        }
         std::string filename = mFilenameFormats[currentSequence];
         std::string frameNumber = std::to_string(i);
         if(mZeroFillDigits > 0 && frameNumber.size() < mZeroFillDigits) {
@@ -223,7 +233,7 @@ void FileStreamer::producerStream() {
 FileStreamer::~FileStreamer() {
     if(mStreamIsStarted) {
         if(mThread->get_id() != std::this_thread::get_id()) { // avoid deadlock
-            mThread->join();
+            stop();
             delete mThread;
             mThread = NULL;
         }
@@ -254,6 +264,15 @@ void FileStreamer::setStepSize(uint stepSize) {
     if(stepSize == 0)
         throw Exception("Step size given to FileStreamer can't be 0");
     mStepSize = stepSize;
+}
+
+void FileStreamer::stop() {
+    {
+        std::unique_lock<std::mutex> lock(mStopMutex);
+        mStop = true;
+    }
+    mThread->join();
+    std::cout << "File streamer thread returned" << std::endl;
 }
 
 } // end namespace fast

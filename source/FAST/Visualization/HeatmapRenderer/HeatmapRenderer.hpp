@@ -11,6 +11,8 @@ class Image;
 class FAST_EXPORT  HeatmapRenderer : public Renderer {
     FAST_OBJECT(HeatmapRenderer);
     public:
+        void setMinConfidence(float confidence);
+        void setMaxOpacity(float opacity);
         void addInputConnection(ProcessObjectPort port, Color color = Color::Red());
         BoundingBox getBoundingBox();
     private:
@@ -29,6 +31,8 @@ class FAST_EXPORT  HeatmapRenderer : public Renderer {
         std::unordered_map<uint, SharedPointer<Image> > mImagesToRender;
         std::unordered_map<uint, Color> mColors;
         std::mutex mMutex;
+        float mMaxOpacity = 0.4;
+        float mMinConfidence = 0.0f;
 };
 
 }

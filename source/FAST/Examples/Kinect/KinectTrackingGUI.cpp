@@ -8,8 +8,15 @@
 #include <QLineEdit>
 #include <QDir>
 #include <QElapsedTimer>
+#include <QListWidget>
+#include <QDirIterator>
+#include <QMessageBox>
 #include <FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp>
 #include <FAST/Visualization/PointRenderer/PointRenderer.hpp>
+#include <FAST/Streamers/MeshFileStreamer.hpp>
+#include <FAST/Exporters/VTKMeshFileExporter.hpp>
+#include <FAST/Importers/VTKMeshFileImporter.hpp>
+#include <include/QtWidgets/QProgressDialog>
 
 namespace fast {
 
@@ -89,7 +96,9 @@ KinectTrackingGUI::KinectTrackingGUI() {
 
     // Setup streaming
     mStreamer = KinectStreamer::New();
+    mStreamer->getReporter().setReportMethod(Reporter::COUT);
     mStreamer->setPointCloudFiltering(true);
+    mStreamer->setMaxRange(3); // All points above x meters are excluded
 
     // Tracking
     mTracking = KinectTracking::New();
@@ -109,13 +118,14 @@ KinectTrackingGUI::KinectTrackingGUI() {
     annotationRenderer->setFillArea(false);
     const int menuWidth = 300;
 
+    setTitle("FAST - Kinect Object Tracking");
+    setWidth(1024 + menuWidth);
+    setHeight(848);
+    enableMaximized();
     view->set2DMode();
     view->setBackgroundColor(Color::Black());
     view->addRenderer(renderer);
     view->addRenderer(annotationRenderer);
-    setWidth(1024 + menuWidth);
-    setHeight(848);
-    setTitle("FAST - Kinect Object Tracking");
 
     QVBoxLayout* menuLayout = new QVBoxLayout;
     menuLayout->setAlignment(Qt::AlignTop);
@@ -138,6 +148,7 @@ KinectTrackingGUI::KinectTrackingGUI() {
     quitButton->setText("Quit (q)");
     quitButton->setStyleSheet("QPushButton { background-color: red; color: white; }");
     quitButton->setFixedWidth(menuWidth);
+    QObject::connect(quitButton, &QPushButton::clicked, std::bind(&Window::stop, this));
     menuLayout->addWidget(quitButton);
 
     QPushButton* restartButton = new QPushButton;
@@ -155,6 +166,14 @@ KinectTrackingGUI::KinectTrackingGUI() {
     mStorageDir->setFixedWidth(menuWidth);
     menuLayout->addWidget(mStorageDir);
 
+    QLabel* recordingNameLabel = new QLabel;
+    recordingNameLabel->setText("Recording name");
+    menuLayout->addWidget(recordingNameLabel);
+
+    mRecordingNameLineEdit = new QLineEdit;
+    mRecordingNameLineEdit->setFixedWidth(menuWidth);
+    menuLayout->addWidget(mRecordingNameLineEdit);
+
     mRecordButton = new QPushButton;
     mRecordButton->setText("Record");
     mRecordButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
@@ -166,6 +185,19 @@ KinectTrackingGUI::KinectTrackingGUI() {
     mRecordingInformation->setStyleSheet("QLabel { font-size: 14px; }");
     menuLayout->addWidget(mRecordingInformation);
 
+    mRecordingsList = new QListWidget;
+    menuLayout->addWidget(mRecordingsList);
+    mRecordingsList->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    mRecordingsList->setFixedHeight(100);
+    mRecordingsList->setSortingEnabled(true);
+    refreshRecordingsList();
+
+    mPlayButton = new QPushButton;
+    mPlayButton->setText("Play");
+    mPlayButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
+    menuLayout->addWidget(mPlayButton);
+    QObject::connect(mPlayButton, &QPushButton::clicked, std::bind(&KinectTrackingGUI::playRecording, this));
+
     QHBoxLayout* layout = new QHBoxLayout;
     layout->addLayout(menuLayout);
     layout->addWidget(view);
@@ -176,15 +208,129 @@ KinectTrackingGUI::KinectTrackingGUI() {
     timer->start(1000/5); // in milliseconds
     timer->setSingleShot(false);
     QObject::connect(timer, &QTimer::timeout, std::bind(&KinectTrackingGUI::updateMessages, this));
+
 }
+
+void KinectTrackingGUI::playRecording() {
+    mPlaying = !mPlaying;
+    if(!mPlaying) {
+        mPlayButton->setText("Play");
+        mPlayButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
+        restart();
+    } else {
+        auto selectedItems = mRecordingsList->selectedItems();
+        if(selectedItems.size() == 0) {
+            // Show error message
+            QMessageBox *message = new QMessageBox;
+            message->setWindowTitle("Error");
+            message->setText("You did not select a recording.");
+            message->show();
+            return;
+        }
+        mStreamer->stop();
+        std::string selectedRecording = (
+                mStorageDir->text() +
+                QDir::separator() +
+                selectedItems[0]->text() +
+                QDir::separator()
+        ).toStdString();
+
+
+        // Set up streaming from disk
+        MeshFileStreamer::pointer streamer = MeshFileStreamer::New();
+        streamer->setFilenameFormat(selectedRecording + "#.vtk");
+        streamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
+
+        // Get the number of files
+        QDirIterator it(selectedRecording.c_str());
+        int numFiles = 0;
+        while(it.hasNext()) {
+            it.next();
+            if(it.fileName().size() > 4 && it.fileName() != "target.vtk")
+                numFiles++;
+        }
+        std::cout << "FILES: " << numFiles << std::endl;
+        streamer->setMaximumNumberOfFrames(numFiles);
+        streamer->update(); // start loading
+
+        QProgressDialog progress("Loading recording ...", "Abort", 0, numFiles, mWidget);
+        progress.setWindowTitle("Loading");
+        progress.setWindowModality(Qt::WindowModal);
+        progress.show();
+
+        while(streamer->getNrOfFrames() != numFiles) {
+            progress.setValue(streamer->getNrOfFrames());
+            if(progress.wasCanceled()) {
+                streamer->stop();
+                restart();
+                return;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+        std::cout << "Finished loading" << std::endl;
+        progress.setValue(numFiles);
+
+        stopComputationThread();
+        getView(0)->removeAllRenderers();
+
+        // Load target cloud
+        VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
+        importer->setFilename(selectedRecording + "target.vtk");
+        importer->update();
+        Mesh::pointer targetCloud = importer->getOutputData<Mesh>();
+
+        mTracking->setInputConnection(1, streamer->getOutputPort());
+        mTracking->setTargetCloud(targetCloud);
+
+        PointRenderer::pointer cloudRenderer = PointRenderer::New();
+        cloudRenderer->setDefaultSize(1.5);
+        cloudRenderer->addInputConnection(mTracking->getOutputPort(2));
+        cloudRenderer->addInputConnection(streamer->getOutputPort(0));
+        cloudRenderer->setColor(mTracking->getOutputPort(2), Color::Green());
+
+        getView(0)->set3DMode();
+        getView(0)->addRenderer(cloudRenderer);
+        getView(0)->setLookAt(Vector3f(0, -500, -500), Vector3f(0, 0, 1000), Vector3f(0, -1, 0), 500, 5000);
+        getView(0)->reinitialize();
+
+        startComputationThread();
+        mPlayButton->setText("Stop");
+        mPlayButton->setStyleSheet("QPushButton { background-color: red; color: white; }");
+    }
+}
+
+
 
 void KinectTrackingGUI::extractPointCloud() {
     stopComputationThread();
     getView(0)->removeAllRenderers();
 
+    mTracking->calculateTargetCloud(mStreamer);
+
+    // If recording is enabled: Store the target cloud, then activate recording on tracking object
+    if(mRecording) {
+        // Create recording path
+        std::string path = mStorageDir->text().toStdString();
+        if(mRecordingNameLineEdit->text() != "") {
+            mRecordingName =  currentDateTime() + " " + mRecordingNameLineEdit->text().toStdString();
+        } else {
+            mRecordingName = currentDateTime();
+        }
+        std::string recordingPath = (QString(path.c_str()) + QDir::separator() + QString(mRecordingName.c_str()) + QDir::separator()).toStdString();
+        createDirectories(recordingPath);
+
+        // Store target cloud
+        VTKMeshFileExporter::pointer exporter = VTKMeshFileExporter::New();
+        exporter->setInputData(mTracking->getTargetCloud());
+        exporter->setFilename(recordingPath + "target.vtk");
+        exporter->update();
+
+        // Start saving point clouds
+        mTracking->startRecording(recordingPath);
+    }
+
     PointRenderer::pointer cloudRenderer = PointRenderer::New();
     cloudRenderer->setDefaultSize(1.5);
-    mTracking->calculateTargetCloud(mStreamer);
     cloudRenderer->addInputConnection(mTracking->getOutputPort(2));
     cloudRenderer->addInputConnection(mStreamer->getOutputPort(2));
     cloudRenderer->setColor(mTracking->getOutputPort(2), Color::Green());
@@ -202,6 +348,14 @@ void KinectTrackingGUI::restart() {
     stopComputationThread();
     view->removeAllRenderers();
 
+    // Setup streaming
+    mStreamer = KinectStreamer::New();
+    mStreamer->getReporter().setReportMethod(Reporter::COUT);
+    mStreamer->setPointCloudFiltering(true);
+    mStreamer->setMaxRange(3); // All points above x meters are excluded
+
+    mTracking->setInputConnection(0, mStreamer->getOutputPort(0));
+    mTracking->setInputConnection(1, mStreamer->getOutputPort(2));
     mTracking->restart();
 
     // Renderer RGB image
@@ -222,27 +376,39 @@ void KinectTrackingGUI::restart() {
 }
 
 void KinectTrackingGUI::toggleRecord() {
-    bool recording = mTracking->toggleRecord(mStorageDir->text().toStdString());
-    if(recording) {
+    mRecording = !mRecording;
+    if(mRecording) {
         mRecordButton->setText("Stop recording");
         mRecordButton->setStyleSheet("QPushButton { background-color: red; color: white; }");
         mStorageDir->setDisabled(true);
         mRecordTimer->start();
-        std::string msg = "Recording to: " + mTracking->getRecordingName();
-        mRecordingInformation->setText(msg.c_str());
     } else {
         mRecordButton->setText("Record");
         mRecordButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
         mStorageDir->setDisabled(false);
+        mTracking->stopRecording();
+        refreshRecordingsList();
     }
 }
 
 void KinectTrackingGUI::updateMessages() {
     if(mTracking->isRecording()) {
-        std::string msg = "Recording to: " + mTracking->getRecordingName() + "\n";
+        std::string msg = "Recording to: " + mRecordingName + "\n";
         msg += std::to_string(mTracking->getFramesStored()) + " frames stored\n";
         msg += format("%.1f seconds", (float)mRecordTimer->elapsed()/1000.0f);
         mRecordingInformation->setText(msg.c_str());
+    }
+}
+
+void KinectTrackingGUI::refreshRecordingsList() {
+    // Get all folders in the folder mStorageDir
+    QDirIterator it(mStorageDir->text());
+    mRecordingsList->clear();
+    while(it.hasNext()) {
+        it.next();
+        QString next = it.fileName();
+        if(next.size() > 4)
+            mRecordingsList->addItem(next);
     }
 }
 

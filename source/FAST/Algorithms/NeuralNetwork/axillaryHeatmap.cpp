@@ -42,6 +42,8 @@ int main() {
     renderer->addInputConnection(segmentation->getOutputPort(3), Color::Green());
     renderer->addInputConnection(segmentation->getOutputPort(4), Color::Purple());
     renderer->addInputConnection(segmentation->getOutputPort(5), Color::Cyan());
+    renderer->setMaxOpacity(0.2);
+    renderer->setMinConfidence(0.25);
     renderer->enableRuntimeMeasurements();
 
     ImageRenderer::pointer renderer2 = ImageRenderer::New();

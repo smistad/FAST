@@ -79,6 +79,8 @@ void HeatmapRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
             kernel.setArg(6, mColors[it->first].getRedValue());
             kernel.setArg(7, mColors[it->first].getGreenValue());
             kernel.setArg(8, mColors[it->first].getBlueValue());
+            kernel.setArg(9, mMinConfidence);
+            kernel.setArg(10, mMaxOpacity);
 
             // Run the draw 2D kernel
             queue.enqueueNDRangeKernel(
@@ -116,6 +118,18 @@ BoundingBox HeatmapRenderer::getBoundingBox() {
         }
     }
     return BoundingBox(coordinates);
+}
+
+void HeatmapRenderer::setMinConfidence(float confidence) {
+    if(confidence < 0 || confidence > 1)
+        throw Exception("Confidence given to setMinimumConfidence has to be within [0, 1]", __LINE__, __FILE__);
+    mMinConfidence = confidence;
+}
+
+void HeatmapRenderer::setMaxOpacity(float opacity) {
+    if(opacity < 0 || opacity > 1)
+        throw Exception("Opacity given to setMaxOpacity has to be within [0, 1]", __LINE__, __FILE__);
+    mMaxOpacity = opacity;
 }
 
 }

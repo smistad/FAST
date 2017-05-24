@@ -29,22 +29,19 @@ KinectTracking::KinectTracking() {
 }
 
 void KinectTracking::restart() {
+    stopRecording();
     mTargetCloudExtracted = false;
     mAnnotationImage->fill(0);
 }
 
-bool KinectTracking::toggleRecord(std::string path) {
-    mRecording = !mRecording;
-    if(mRecording) {
-        // Make sure path ends with a slash
-        if(path[path.size() - 1] != '/')
-            path += "/";
-        mRecordingName = currentDateTime();
-        mStoragePath = (QString(path.c_str()) + QDir::separator() + QString(mRecordingName.c_str()) + QDir::separator()).toStdString();
-        createDirectories(mStoragePath);
-        mFrameCounter = 0;
-    }
-    return mRecording;
+void KinectTracking::startRecording(std::string path) {
+    mStoragePath = path;
+    mFrameCounter = 0;
+    mRecording = true;
+}
+
+void KinectTracking::stopRecording() {
+    mRecording = false;
 }
 
 void KinectTracking::execute() {
@@ -58,13 +55,14 @@ void KinectTracking::execute() {
         icp->enableRuntimeMeasurements();
         icp->setFixedMesh(meshInput);
         icp->setMovingMesh(mTargetCloud);
-        icp->setDistanceThreshold(100);
+        icp->setDistanceThreshold(150); // All points further away than 10 cm from the centroid is removed
         //icp->setMinimumErrorChange(0.5);
-        icp->setRandomPointSampling(400);
+        icp->setRandomPointSampling(300);
         icp->getReporter().setReportMethod(Reporter::COUT);
-        icp->setMaximumNrOfIterations(5);
+        icp->setMaximumNrOfIterations(10);
         icp->update();
-        reportInfo() << "Finished ICP in " << icp->getRuntime()->getSum() << " ms" << reportEnd();
+        reportInfo() << "Finished ICP in: " << reportEnd();
+        icp->getAllRuntimes()->printAll();
         AffineTransformation::pointer currentTransform = mTargetCloud->getSceneGraphNode()->getTransformation();
         AffineTransformation::pointer newTransform = icp->getOutputTransformation();
         mTargetCloud->getSceneGraphNode()->setTransformation(newTransform->multiply(currentTransform));
@@ -113,6 +111,8 @@ void KinectTracking::calculateTargetCloud(KinectStreamer::pointer streamer) {
 }
 
 void KinectTracking::addLine(Vector2i start, Vector2i end) {
+    if(mTargetCloudExtracted)
+        return;
     std::cout << "Drawing from: " << start.transpose() << " to " << end.transpose() << std::endl;
     // Draw line in some auxillary image
     ImageAccess::pointer access = mAnnotationImage->getImageAccess(ACCESS_READ_WRITE);
@@ -137,16 +137,21 @@ void KinectTracking::addLine(Vector2i start, Vector2i end) {
     }
 }
 
-std::string KinectTracking::getRecordingName() const {
-    return mRecordingName;
-}
-
 uint KinectTracking::getFramesStored() const {
     return mFrameCounter;
 }
 
 bool KinectTracking::isRecording() const {
     return mRecording;
+}
+
+SharedPointer<Mesh> KinectTracking::getTargetCloud() const {
+    return mTargetCloud;
+}
+
+void KinectTracking::setTargetCloud(Mesh::pointer target) {
+    mTargetCloud = target;
+    mTargetCloudExtracted = true;
 }
 
 }

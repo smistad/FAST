@@ -24,31 +24,16 @@ TEST_CASE("VTKMeshExporter 3D", "[fast][VTK][VTKMeshExporter]") {
     CHECK(mesh->GetPolys()->GetNumberOfCells() == 768);
 }
 
-TEST_CASE("VTKMeshExporter 2D", "[fast][VTK][VTKMeshExporter]") {
-	Mesh::pointer mesh = Mesh::New();
-	std::vector<Vector2f> vertices = {
-			Vector2f(0, 0),
-			Vector2f(1, 0),
-			Vector2f(0, 1.5)
-	};
-	std::vector<Vector2f> normals = {
-			Vector2f(1, 0),
-			Vector2f(0, 1),
-			Vector2f(1, 1)
-	};
-	std::vector<VectorXui> lines = {
-			Vector2ui(0, 1),
-			Vector2ui(1, 2)
-	};
-	mesh->create(vertices, normals, lines);
+TEST_CASE("VTKMeshExporter centerline", "[fast][VTK][VTKMeshExporter]") {
+    VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
+    importer->setFilename(Config::getTestDataPath() + "centerline.vtk");
 
     vtkSmartPointer<VTKMeshExporter> exporter = VTKMeshExporter::New();
-    exporter->setInputData(mesh);
+    exporter->setInputConnection(importer->getOutputPort());
 
     exporter->Update();
-    vtkSmartPointer<vtkPolyData> polydata = exporter->GetOutput();
+    vtkSmartPointer<vtkPolyData> lines = exporter->GetOutput();
 
-    CHECK(polydata->GetPoints()->GetNumberOfPoints() == 3);
-    CHECK(polydata->GetLines()->GetNumberOfCells() == 2);
+    CHECK(lines->GetPoints()->GetNumberOfPoints() == 89);
+    CHECK(lines->GetLines()->GetNumberOfCells() == 97);
 }
-
