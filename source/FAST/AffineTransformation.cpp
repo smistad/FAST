@@ -9,13 +9,17 @@ AffineTransformation::AffineTransformation() {
     mTransform.matrix() = Eigen::Matrix4f::Identity();
 }
 
-AffineTransformation::AffineTransformation(const Eigen::Affine3f& transform) {
+AffineTransformation::AffineTransformation(const Affine3f& transform) {
     mTransform.matrix() = transform.matrix();
 }
 
-AffineTransformation& AffineTransformation::operator=(const Eigen::Affine3f& transform) {
+AffineTransformation& AffineTransformation::operator=(const Affine3f& transform) {
     mTransform.matrix() = transform.matrix();
     return *this;
+}
+
+void AffineTransformation::setTransform(Affine3f transform) {
+	mTransform = transform;
 }
 
 Vector3f AffineTransformation::getEulerAngles() const {
