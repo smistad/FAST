@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.4.3)
+﻿cmake_minimum_required(VERSION 3.4.3)
 
 project(FAST)
 
@@ -103,6 +103,12 @@ endif()
 # Set up RPATH with relative path so that binaries will find libraries in the lib folder (linux only?)
 set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
 
+if(WIN32)
+	# Parallel build in MSVC
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /nologo /MD /EHsc")
+endif()
+
 #### Add all subdirs
 fast_add_subdirectories(source/FAST)
 
@@ -121,22 +127,20 @@ if(FAST_BUILD_EXAMPLES)
     endif()
 endif()
 
+
+
 #### Create FAST library and executables
 add_library(FAST SHARED ${FAST_SOURCE_FILES} ${HEADERS_MOC})
 add_dependencies(FAST ${FAST_EXTERNAL_DEPENDENCIES})
 include(GenerateExportHeader)
 generate_export_header(FAST EXPORT_FILE_NAME FASTExport.hpp)
-if(WIN32)
 
-	# Parallel build in MSVC
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" "/MP")
-endif()
 
 ## Link everything
 message("-- LIBS: ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES}")
-target_link_libraries(FAST ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES})
+target_link_libraries(FAST PUBLIC ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES} PRIVATE ${OPENGL_LIBRARIES})
 if(FAST_MODULE_Visualization)
-    qt5_use_modules(FAST Widgets ) # Add Qt 5 modules
+    qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
 endif()
 
 ## Build test executable

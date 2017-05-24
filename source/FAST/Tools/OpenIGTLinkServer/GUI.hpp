@@ -12,7 +12,7 @@ class QListWidget;
 
 namespace fast {
 
-class FAST_EXPORT  GUI : public Window {
+class GUI : public Window {
     FAST_OBJECT(GUI)
     public:
         void toggleServer();

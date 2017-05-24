@@ -5,6 +5,7 @@
 #include "FAST/Data/Color.hpp"
 #include <mutex>
 #include <FAST/Data/SimpleDataObject.hpp>
+#include <QOpenGLFunctions_3_0>
 
 namespace fast {
 
@@ -12,7 +13,7 @@ class View;
 
 FAST_SIMPLE_DATA_OBJECT(Text, std::string)
 
-class FAST_EXPORT  TextRenderer : public Renderer {
+class FAST_EXPORT  TextRenderer : public Renderer, protected QOpenGLFunctions_3_0 {
     FAST_OBJECT(TextRenderer)
     public:
         BoundingBox getBoundingBox();

@@ -17,7 +17,7 @@ namespace fast {
 class PipelineWidget;
 class ImageFileStreamer;
 
-class FAST_EXPORT  GUI : public Window {
+class GUI : public Window {
     FAST_OBJECT(GUI)
     public:
         void selectPipeline();

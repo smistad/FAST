@@ -43,11 +43,13 @@ GUI::GUI() {
 
     // Logo
     QImage* image = new QImage;
+	std::cout << "asd" << std::endl;
     image->load((Config::getDocumentationPath() + "images/FAST_logo_square.png").c_str());
     QLabel* logo = new QLabel;
     logo->setPixmap(QPixmap::fromImage(image->scaled(menuWidth, ((float)menuWidth/image->width())*image->height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation)));
     logo->adjustSize();
     menuLayout->addWidget(logo);
+	std::cout << "asd2" << std::endl;
 
     // Title label
     QLabel* title = new QLabel;
@@ -78,6 +80,7 @@ GUI::GUI() {
     mList->setSelectionMode(QAbstractItemView::ExtendedSelection); // Allow multiple items to be selected
     QObject::connect(mList, &QListWidget::itemSelectionChanged, std::bind(&GUI::selectInputData, this));
     menuLayout->addWidget(mList);
+	std::cout << "asd3" << std::endl;
 
     QPushButton* addButton = new QPushButton;
     addButton->setText("Add input data");
@@ -93,7 +96,9 @@ GUI::GUI() {
 
     mSelectPipeline = new QComboBox;
     mSelectPipeline->setFixedWidth(menuWidth);
+	std::cout << "asd4" << std::endl;
     mPipelines = getAvailablePipelines();
+	std::cout << "asd5" << std::endl;
     int index = 0;
     int counter = 0;
     for(auto pipeline : mPipelines) {
@@ -146,6 +151,7 @@ GUI::GUI() {
     layout->addLayout(viewLayout);
 
     mWidget->setLayout(layout);
+	std::cout << "Finished viewer setup" << std::endl;
 
 }
 
@@ -170,7 +176,8 @@ void GUI::selectPipeline() {
 
     std::vector<std::string> inputData;
     for(QListWidgetItem* widget : mList->selectedItems()) {
-        inputData.push_back(widget->text().toStdString());
+		std::string asd = widget->text().toUtf8();
+        inputData.push_back(asd);
     }
     mStreamer = ImageFileStreamer::New();
     mStreamer->setFilenameFormats(inputData);
@@ -225,7 +232,7 @@ void GUI::addInputData() {
     if(fileDialog.exec()) {
         filenames = fileDialog.selectedFiles();
         for(QString qfilename : filenames) {
-            std::string filename = qfilename.toStdString();
+			std::string filename = qfilename.toUtf8();
             filename = replace(filename, "_0.", "_#.");
             mList->addItem(filename.c_str());
         }

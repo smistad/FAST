@@ -71,12 +71,12 @@ inline MatrixXf rearrangeMatrixToClosestPoints(const MatrixXf A, const MatrixXf 
     Vector3f colorWeights(0.1, 1.0, 1.0);
     // For each point in B, find the closest point in A
 #pragma omp parallel for
-    for(uint b = 0; b < B.cols(); ++b) {
+    for(int b = 0; b < B.cols(); ++b) {
         Vector3f pointInB = B.col(b);
         Vector3f Bcolor = RGB2YIQ(Bcolors.col(b));
         float minDistance = std::numeric_limits<float>::max();
         uint closestPoint = 0;
-        for(uint a = 0; a < A.cols(); ++a) {
+        for(int a = 0; a < A.cols(); ++a) {
             Vector3f pointInA = A.col(a);
             Vector3f Acolor = RGB2YIQ(Acolors.col(a));
             VectorXf distanceVector = VectorXf::Zero(6);

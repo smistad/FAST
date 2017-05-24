@@ -11,10 +11,11 @@
 #include "FAST/Data/Access/MeshOpenCLAccess.hpp"
 #include <condition_variable>
 #include <unordered_map>
+#include <QOpenGLFunctions_3_0>
 
 namespace fast {
 
-class FAST_EXPORT  Mesh : public SpatialDataObject {
+class FAST_EXPORT  Mesh : public SpatialDataObject, protected QOpenGLFunctions_3_0 {
     FAST_OBJECT(Mesh)
     public:
         void create(

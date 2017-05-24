@@ -17,7 +17,7 @@
 #include <OpenCL/cl_gl.h>
 #else
 #if _WIN32
-
+#include <gl/GL.h>
 #include <CL/cl_gl.h>
 #else
 #include <GL/glx.h>

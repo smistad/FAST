@@ -13,166 +13,183 @@
 
 namespace fast {
 
-std::string Config::getPath() {
-    if(mBasePath != "")
-        return mBasePath;
-    std::string path;
-	std::string slash = "/";
-    // Find path of the FAST dynamic library
-    // The fast_configuration.txt file should lie in the folder below
+	namespace Config {
+		namespace {
+			// Initialize global variables, put in anonymous namespace to hide them
+			bool mConfigurationLoaded = false;
+			std::string mConfigFilename = "";
+			std::string mBasePath = "";
+			std::string mTestDataPath;
+			std::string mKernelSourcePath;
+			std::string mKernelBinaryPath;
+			std::string mDocumentationPath;
+			std::string mPipelinePath;
+		}
+
+		std::string getPath() {
+			if (mBasePath != "")
+				return mBasePath;
+			std::string path = "";
+			std::string slash = "/";
+			// Find path of the FAST dynamic library
+			// The fast_configuration.txt file should lie in the folder below
 #ifdef _WIN32
-    // http://stackoverflow.com/questions/6924195/get-dll-path-at-runtime
-    HMODULE hm = NULL;
+			// http://stackoverflow.com/questions/6924195/get-dll-path-at-runtime
+			HMODULE hm = NULL;
 
-    if(!GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-            GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-            (LPCSTR) &Config::getPath(),
-            &hm)) {
-        int ret = GetLastError();
-        throw Exception("Error reading dyanmic library address in getPath()");
-    }
-    char dlpath[MAX_PATH];
-    GetModuleFileNameA(hm, dlpath, sizeof(dlpath));
-    slash = "\\"; // use this slash on windows
+			if (!GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+				GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+				(LPCSTR)&getPath,
+				&hm)) {
+				int ret = GetLastError();
+				throw Exception("Error reading dyanmic library address in getPath()");
+			}
+			char dlpath[MAX_PATH];
+			GetModuleFileNameA(hm, dlpath, sizeof(dlpath));
+			path = std::string(dlpath);
+			path = replace(path, "\\", "/"); // Replace windows \ with /
+			// Remove lib name and bin folder
+			int libPos = path.rfind(slash + "bin" + slash);
 #else
-    // http://stackoverflow.com/questions/1681060/library-path-when-dynamically-loaded
-    Dl_info dl_info;
-    int ret = dladdr((void *)&Config::getPath, &dl_info);
-    if(ret == 0)
-        throw Exception("Error reading dynamic library address in getPath()");
-    const char* dlpath = dl_info.dli_fname;
+			// http://stackoverflow.com/questions/1681060/library-path-when-dynamically-loaded
+			Dl_info dl_info;
+			int ret = dladdr((void *)&getPath, &dl_info);
+			if (ret == 0)
+				throw Exception("Error reading dynamic library address in getPath()");
+			const char* dlpath = dl_info.dli_fname;
+			path = std::string(dlpath);
+			// Remove lib name and lib folder
+			int libPos = path.rfind(slash + "lib" + slash);
 #endif
-    path = std::string(dlpath);
 
-    // Remove lib name and lib folder
-    int libPos = path.rfind(slash + "lib" + slash);
-    path = path.substr(0, libPos);
-    path = path + slash; // Make sure there is a slash at the end
+			path = path.substr(0, libPos);
+			path = path + slash; // Make sure there is a slash at the end
 
+			return path;
+		}
+		
+		void loadConfiguration() {
+			if (mConfigurationLoaded)
+				return;
 
-    return path;
-}
+			// Set default paths
+			mTestDataPath = getPath() + "../data/";
+			mKernelSourcePath = getPath() + "../source/FAST/";
+			mKernelBinaryPath = getPath() + "kernel_binaries/";
+			mDocumentationPath = getPath() + "../doc/";
+			mPipelinePath = getPath() + "../pipelines/";
+			// Read and parse configuration file
+			// It should reside in the build folder when compiling, and in the root folder when using release
+			std::string filename;
+			if (mConfigFilename == "") {
+				filename = getPath() + "fast_configuration.txt";
+			}
+			else {
+				filename = mConfigFilename;
+			}
+			//std::string filename = "/home/smistad/workspace/FAST/build_Debug/lib/fast_configuration.txt";
+			std::ifstream file(filename);
+			if (!file.is_open()) {
+				Reporter::warning() << "Unable to open the configuration file " << filename << ". Using defaults instead." << Reporter::end();
+				mConfigurationLoaded = true;
+				return;
+			}
+			Reporter::info() << "Loaded configuration file: " << filename << Reporter::end();
 
-// Initialize statics
-bool Config::mConfigurationLoaded = false;
-std::string Config::mConfigFilename = "";
-std::string Config::mBasePath = "";
+			std::string line;
+			std::getline(file, line);
+			while (!file.eof()) {
+				trim(line);
+				if (line[0] == '#' || line.size() == 0) {
+					// Comment or empty line, skip
+					std::getline(file, line);
+					continue;
+				}
+				std::vector<std::string> list = split(line, "=");
+				if (list.size() != 2) {
+					throw Exception("Error parsing configuration file. Expected key = value pair, got: " + line);
+				}
 
-// Default paths
-std::string Config::mTestDataPath = getPath() + "../data/";
-std::string Config::mKernelSourcePath = getPath() + "../source/FAST/";
-std::string Config::mKernelBinaryPath = getPath() + "kernel_binaries/";
-std::string Config::mDocumentationPath = getPath() + "../doc/";
-std::string Config::mPipelinePath = getPath() + "../pipelines/";
+				std::string key = list[0];
+				std::string value = list[1];
+				trim(key);
+				trim(value);
+				value = replace(value, "@ROOT@", getPath());
 
-std::string Config::getTestDataPath() {
-    loadConfiguration();
-    return mTestDataPath;
-}
+				if (key == "TestDataPath") {
+					mTestDataPath = value;
+				}
+				else if (key == "KernelSourcePath") {
+					mKernelSourcePath = value;
+				}
+				else if (key == "KernelBinaryPath") {
+					mKernelBinaryPath = value;
+				}
+				else if (key == "DocumentationPath") {
+					mDocumentationPath = value;
+				}
+				else if (key == "PipelinePath") {
+					mPipelinePath = value;
+				}
+				else {
+					throw Exception("Error parsing configuration file. Unrecognized key: " + key);
+				}
 
-std::string Config::getKernelSourcePath() {
-    loadConfiguration();
-    return mKernelSourcePath;
-}
+				std::getline(file, line);
+			}
+			file.close();
 
-std::string Config::getKernelBinaryPath() {
-    loadConfiguration();
-    return mKernelBinaryPath;
-}
+			Reporter::info() << "Test data path: " << mTestDataPath << Reporter::end();
+			Reporter::info() << "Kernel source path: " << mKernelSourcePath << Reporter::end();
+			Reporter::info() << "Kernel binary path: " << mKernelBinaryPath << Reporter::end();
+			Reporter::info() << "Documentation path: " << mDocumentationPath << Reporter::end();
+			Reporter::info() << "Pipeline path: " << mPipelinePath << Reporter::end();
 
-std::string Config::getDocumentationPath() {
-    loadConfiguration();
-    return mDocumentationPath;
-}
+			mConfigurationLoaded = true;
+		}
 
-std::string Config::getPipelinePath() {
-    loadConfiguration();
-    return mPipelinePath;
-}
+		std::string getTestDataPath() {
+			loadConfiguration();
+			return mTestDataPath;
+		}
 
-void Config::setConfigFilename(std::string filename) {
-    mConfigFilename = filename;
-    loadConfiguration();
-}
+		std::string getKernelSourcePath() {
+			loadConfiguration();
+			return mKernelSourcePath;
+		}
 
-void Config::setBasePath(std::string path) {
-    mBasePath = path;
-    if(mBasePath[mBasePath.size()-1] != '/')
-        mBasePath += "/";
-    mTestDataPath = getPath() + "../data/";
-    mKernelSourcePath = getPath() + "../source/FAST/";
-    mKernelBinaryPath = getPath() + "kernel_binaries/";
-    mDocumentationPath = getPath() + "../doc/";
-    mPipelinePath = getPath() + "../pipelines/";
-    loadConfiguration();
-}
+		std::string getKernelBinaryPath() {
+			loadConfiguration();
+			return mKernelBinaryPath;
+		}
 
-void Config::loadConfiguration() {
-    if(mConfigurationLoaded)
-        return;
+		std::string getDocumentationPath() {
+			loadConfiguration();
+			return mDocumentationPath;
+		}
 
-    // Read and parse configuration file
-    // It should reside in the build folder when compiling, and in the root folder when using release
-    std::string filename;
-    if(mConfigFilename == "") {
-        filename = getPath() + "fast_configuration.txt";
-    } else {
-        filename = mConfigFilename;
-    }
-    //std::string filename = "/home/smistad/workspace/FAST/build_Debug/lib/fast_configuration.txt";
-    std::ifstream file(filename);
-    if(!file.is_open()) {
-        Reporter::warning() << "Unable to open the configuration file " << filename << ". Using defaults instead." << Reporter::end();
-        mConfigurationLoaded = true;
-        return;
-    }
-    Reporter::info() << "Loaded configuration file: " << filename << Reporter::end();
+		std::string getPipelinePath() {
+			loadConfiguration();
+			return mPipelinePath;
+		}
 
-    std::string line;
-    std::getline(file, line);
-    while(!file.eof()) {
-        trim(line);
-        if(line[0] == '#' || line.size() == 0) {
-            // Comment or empty line, skip
-            std::getline(file, line);
-            continue;
-        }
-        std::vector<std::string> list = split(line, "=");
-        if(list.size() != 2) {
-            throw Exception("Error parsing configuration file. Expected key = value pair, got: " + line);
-        }
+		void setConfigFilename(std::string filename) {
+			mConfigFilename = filename;
+			loadConfiguration();
+		}
 
-        std::string key = list[0];
-        std::string value = list[1];
-        trim(key);
-        trim(value);
-        value = replace(value, "@ROOT@", getPath());
+		void setBasePath(std::string path) {
+			mBasePath = path;
+			if (mBasePath[mBasePath.size() - 1] != '/')
+				mBasePath += "/";
+			mTestDataPath = getPath() + "../data/";
+			mKernelSourcePath = getPath() + "../source/FAST/";
+			mKernelBinaryPath = getPath() + "kernel_binaries/";
+			mDocumentationPath = getPath() + "../doc/";
+			mPipelinePath = getPath() + "../pipelines/";
+			loadConfiguration();
+		}
 
-        if(key == "TestDataPath") {
-            mTestDataPath = value;
-        } else if(key == "KernelSourcePath") {
-            mKernelSourcePath = value;
-        } else if(key == "KernelBinaryPath") {
-            mKernelBinaryPath = value;
-        } else if(key == "DocumentationPath") {
-            mDocumentationPath = value;
-        } else if(key == "PipelinePath") {
-            mPipelinePath = value;
-        } else {
-            throw Exception("Error parsing configuration file. Unrecognized key: " + key);
-        }
-
-        std::getline(file, line);
-    }
-    file.close();
-
-    Reporter::info() << "Test data path: " << mTestDataPath << Reporter::end();
-    Reporter::info() << "Kernel source path: " << mKernelSourcePath << Reporter::end();
-    Reporter::info() << "Kernel binary path: " << mKernelBinaryPath << Reporter::end();
-    Reporter::info() << "Documentation path: " << mDocumentationPath << Reporter::end();
-    Reporter::info() << "Pipeline path: " << mPipelinePath << Reporter::end();
-
-    mConfigurationLoaded = true;
-}
+	} // end namespace Config
 
 }; // end namespace fast

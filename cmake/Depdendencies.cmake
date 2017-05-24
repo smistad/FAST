@@ -9,7 +9,7 @@ list(APPEND FAST_SYSTEM_LIBRARIES ${OpenCL_LIBRARIES})
 message("-- OpenCL library: ${OpenCL_LIBRARIES}")
 
 ## OpenGL
-#find_package(OpenGL REQUIRED)
+find_package(OpenGL REQUIRED)
 #list(APPEND FAST_SYSTEM_LIBRARIES ${OPENGL_LIBRARIES})
 #list(APPEND FAST_INCLUDE_DIRS ${OPENGL_INCLUDE_DIR})
 # If OS is Linux, also need X

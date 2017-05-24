@@ -3,10 +3,11 @@
 
 #include "FAST/Visualization/Renderer.hpp"
 #include "FAST/Data/Image.hpp"
+#include <QOpenGLFunctions_3_0>
 
 namespace fast {
 
-class FAST_EXPORT  ImageRenderer : public Renderer {
+class FAST_EXPORT  ImageRenderer : public Renderer, protected QOpenGLFunctions_3_0 {
     FAST_OBJECT(ImageRenderer)
     public:
         void addInputConnection(ProcessObjectPort port);

@@ -46,7 +46,7 @@ class FAST_EXPORT  Pipeline {
  * Retrieve a list of all pipelines stored in .fpl files in the specified pipeline directory
  * @return
  */
-std::vector<Pipeline> getAvailablePipelines();
+FAST_EXPORT std::vector<Pipeline> getAvailablePipelines();
 
 class FAST_EXPORT  PipelineWidget : public QToolBox {
     public:

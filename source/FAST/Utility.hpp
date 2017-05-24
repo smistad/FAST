@@ -15,9 +15,9 @@
 
 namespace fast {
 
-double log2(double n);
-double round(double n);
-double round(double n, int decimals);
+FAST_EXPORT double log2(double n);
+FAST_EXPORT double round(double n);
+FAST_EXPORT double round(double n, int decimals);
 
 /**
  * Does simply x^2 = x*x
@@ -59,8 +59,8 @@ T sign(T value) {
     }
 }
 
-unsigned int getPowerOfTwoSize(unsigned int size);
-void* allocateDataArray(unsigned int voxels, DataType type, unsigned int nrOfComponents);
+FAST_EXPORT unsigned int getPowerOfTwoSize(unsigned int size);
+FAST_EXPORT void* allocateDataArray(unsigned int voxels, DataType type, unsigned int nrOfComponents);
 template <class T>
 float getSumFromOpenCLImageResult(void* voidData, unsigned int size, unsigned int nrOfComponents) {
     T* data = (T*)voidData;
@@ -71,10 +71,10 @@ float getSumFromOpenCLImageResult(void* voidData, unsigned int size, unsigned in
     return sum;
 }
 
-void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image, DataType type, float* min, float* max);
-void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D image, DataType type, float* min, float* max);
-void getMaxAndMinFromOpenCLBuffer(OpenCLDevice::pointer device, cl::Buffer buffer, unsigned int size, DataType type, float* min, float* max);
-void getIntensitySumFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image, DataType type, float* sum);
+FAST_EXPORT void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image, DataType type, float* min, float* max);
+FAST_EXPORT void getMaxAndMinFromOpenCLImage(OpenCLDevice::pointer device, cl::Image3D image, DataType type, float* min, float* max);
+FAST_EXPORT void getMaxAndMinFromOpenCLBuffer(OpenCLDevice::pointer device, cl::Buffer buffer, unsigned int size, DataType type, float* min, float* max);
+FAST_EXPORT void getIntensitySumFromOpenCLImage(OpenCLDevice::pointer device, cl::Image2D image, DataType type, float* sum);
 
 template <class T>
 void getMaxAndMinFromData(void* voidData, unsigned int nrOfElements, float* min, float* max) {
@@ -103,11 +103,11 @@ float getSumFromData(void* voidData, unsigned int nrOfElements) {
     return sum;
 }
 
-cl::size_t<3> createRegion(unsigned int x, unsigned int y, unsigned int z);
-cl::size_t<3> createRegion(Vector3ui size);
-cl::size_t<3> createOrigoRegion();
+FAST_EXPORT cl::size_t<3> createRegion(unsigned int x, unsigned int y, unsigned int z);
+FAST_EXPORT cl::size_t<3> createRegion(Vector3ui size);
+FAST_EXPORT cl::size_t<3> createOrigoRegion();
 
-std::string getCLErrorString(cl_int err);
+FAST_EXPORT std::string getCLErrorString(cl_int err);
 
 /**
  * Function for splitting a string
@@ -115,7 +115,7 @@ std::string getCLErrorString(cl_int err);
  * @param delimiter string
  * @return vector of strings
  */
-std::vector<std::string> split(const std::string& input, const std::string& delimiter = " ");
+FAST_EXPORT std::vector<std::string> split(const std::string& input, const std::string& delimiter = " ");
 
 // trim from start (in place)
 static inline void ltrim(std::string &s) {
@@ -138,7 +138,7 @@ static inline void trim(std::string &s) {
 /*
  * Replace all occurences of from to to in str
  */
-std::string replace(std::string str, std::string find, std::string replacement);
+FAST_EXPORT std::string replace(std::string str, std::string find, std::string replacement);
 
 template <class T>
 static inline void hash_combine(std::size_t& seed, const T& v)
@@ -147,19 +147,19 @@ static inline void hash_combine(std::size_t& seed, const T& v)
     seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
 }
 
-void loadPerspectiveMatrix(float fovy, float aspect, float zNear, float zFar);
+FAST_EXPORT void loadPerspectiveMatrix(float fovy, float aspect, float zNear, float zFar);
 
 /*
  * Creates a directory at the given path.
  * Throws exception if it fails
  */
-void createDirectory(std::string path);
+FAST_EXPORT void createDirectory(std::string path);
 
 /*
  * Creates all directories in the given path.
  * Throws exception if it fails
  */
-void createDirectories(std::string path);
+FAST_EXPORT void createDirectories(std::string path);
 
 
 /**
@@ -167,7 +167,7 @@ void createDirectories(std::string path);
  * @param format see http://en.cppreference.com/w/cpp/chrono/c/strftime
  * @return
  */
-std::string currentDateTime(std::string format = "%Y-%m-%d-%H%M%S");
+FAST_EXPORT std::string currentDateTime(std::string format = "%Y-%m-%d-%H%M%S");
 
 } // end namespace fast
 

@@ -3,7 +3,6 @@
 
 #define NOMINMAX // Removes windows min and max macros
 #define _USE_MATH_DEFINES
-#include "FASTExport.hpp"
 #include "FAST/Exception.hpp"
 #include "FAST/Reporter.hpp"
 #include <memory>
@@ -36,7 +35,7 @@ template <class T>
 class SharedPointer;
 
 template <class T>
-class FAST_EXPORT  WeakPointer {
+class WeakPointer {
     public:
         WeakPointer() {};
         WeakPointer(const SharedPointer<T> object) {
@@ -46,7 +45,11 @@ class FAST_EXPORT  WeakPointer {
             return SharedPointer<T>(mWeakPtr.lock());
         };
         std::weak_ptr<T> getPtr() const { return mWeakPtr; };
-        WeakPointer<T> &operator=(const SharedPointer<T> &other);
+        WeakPointer<T> &operator=(const SharedPointer<T> &other) {
+            mWeakPtr = other.getPtr();
+            return *this;
+        }
+
         bool operator==(const WeakPointer<T> &other) const {
             // Check if the two weak pointers, point to the same objecs
             SharedPointer<T> object1 = mWeakPtr.lock();
@@ -65,7 +68,7 @@ class FAST_EXPORT  WeakPointer {
 class Object;
 
 template <class T>
-class FAST_EXPORT  SharedPointer {
+class SharedPointer {
     public:
         SharedPointer() {
 
@@ -148,11 +151,6 @@ class FAST_EXPORT  SharedPointer {
 template <class T>
 using UniquePointer = std::unique_ptr<T>;
 
-template <class T>
-WeakPointer<T> &WeakPointer<T>::operator=(const SharedPointer<T> &other) {
-    mWeakPtr = other.getPtr();
-    return *this;
-}
 
 } // end namespace fast
 

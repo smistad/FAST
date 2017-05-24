@@ -10,7 +10,7 @@
 
 #else
 #if _WIN32
-
+#include <GL/gl.h>
 #include <CL/cl_gl.h>
 #else
 #include <GL/glx.h>
