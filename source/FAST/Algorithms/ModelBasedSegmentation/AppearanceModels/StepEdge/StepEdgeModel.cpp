@@ -104,8 +104,7 @@ std::vector<Measurement> StepEdgeModel::getMeasurements(SharedPointer<Image> ima
 	// Return set of displacements and uncertainties
 	if(image->getDimensions() == 3) {
 		AffineTransformation::pointer transformMatrix = SceneGraph::getAffineTransformationFromData(image);
-		transformMatrix->getTransform().scale(image->getSpacing());
-		Matrix4f inverseTransformMatrix = transformMatrix->getTransform().matrix().inverse();
+		Matrix4f inverseTransformMatrix = transformMatrix->getTransform().scale(image->getSpacing()).matrix().inverse();
 
 		// Get model scene graph transform
 		AffineTransformation::pointer modelTransformation = SceneGraph::getAffineTransformationFromData(shape->getMesh());

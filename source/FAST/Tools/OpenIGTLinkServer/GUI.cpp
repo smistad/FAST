@@ -89,7 +89,7 @@ void GUI::addRecording() {
     if(fileDialog.exec()) {
         filenames = fileDialog.selectedFiles();
         for(QString qfilename : filenames) {
-            std::string filename = qfilename.toStdString();
+            std::string filename = qfilename.toUtf8().constData();
             filename = replace(filename, "_0.", "_#.");
             mList->addItem(filename.c_str());
         }

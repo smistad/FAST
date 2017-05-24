@@ -201,7 +201,7 @@ std::vector<Pipeline> getAvailablePipelines() {
     // List all files in this directory ending with .fpl
     QDirIterator it(path.c_str(), QStringList() << "*.fpl", QDir::Files, QDirIterator::Subdirectories);
     while(it.hasNext()) {
-		std::string filename = it.next().toUtf8();
+		std::string filename = it.next().toUtf8().constData();
 		std::cout << filename << std::endl;
         std::ifstream file(filename);
 		if (!file.is_open()) {

@@ -27,7 +27,7 @@ Vector3f AffineTransformation::getEulerAngles() const {
     return rotationMatrix.eulerAngles(0, 1, 2);
 }
 
-Affine3f AffineTransformation::getTransform() const {
+Affine3f& AffineTransformation::getTransform() {
     return mTransform;
 }
 

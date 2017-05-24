@@ -1,7 +1,7 @@
 namespace fast {
 
 template <class T>
-class FAST_EXPORT  SharedPointer {
+class SharedPointer {
     public:
     	SharedPointer();
 		SharedPointer(T* object);

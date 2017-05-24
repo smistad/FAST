@@ -16,7 +16,7 @@ class FAST_EXPORT  AffineTransformation : public DataObject {
         AffineTransformation& operator=(const Affine3f& transform);
         Vector3f getEulerAngles() const;
         ~AffineTransformation() {};
-        Affine3f getTransform() const;
+        Affine3f& getTransform();
 		void setTransform(Affine3f transform);
         void free(ExecutionDevice::pointer device) {};
         void freeAll() {};

@@ -176,7 +176,7 @@ void GUI::selectPipeline() {
 
     std::vector<std::string> inputData;
     for(QListWidgetItem* widget : mList->selectedItems()) {
-		std::string asd = widget->text().toUtf8();
+		std::string asd = widget->text().toUtf8().constData();
         inputData.push_back(asd);
     }
     mStreamer = ImageFileStreamer::New();
@@ -232,7 +232,7 @@ void GUI::addInputData() {
     if(fileDialog.exec()) {
         filenames = fileDialog.selectedFiles();
         for(QString qfilename : filenames) {
-			std::string filename = qfilename.toUtf8();
+			std::string filename = qfilename.toUtf8().constData();
             filename = replace(filename, "_0.", "_#.");
             mList->addItem(filename.c_str());
         }

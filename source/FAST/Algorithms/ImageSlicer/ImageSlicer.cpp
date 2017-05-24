@@ -267,7 +267,7 @@ void ImageSlicer::arbitrarySlicing(Image::pointer input, Image::pointer output) 
     // Estimate translation
     Vector3f translation = intersectionCentroid - rotatedPosition;
 
-    Eigen::Affine3f sliceTransformation;
+    Affine3f sliceTransformation = Affine3f::Identity();
     sliceTransformation.linear() = R;
     sliceTransformation.translation() = translation;
     sliceTransformation.scale(spacing);
@@ -276,10 +276,9 @@ void ImageSlicer::arbitrarySlicing(Image::pointer input, Image::pointer output) 
 
     // Get transform of the image
     AffineTransformation::pointer dataTransform = SceneGraph::getAffineTransformationFromData(input);
-    dataTransform->getTransform().scale(input->getSpacing()); // Apply image spacing
 
     // Transfer transformations
-    Eigen::Affine3f transform = dataTransform->getTransform().inverse()*sliceTransformation;
+    Eigen::Affine3f transform = dataTransform->getTransform().scale(input->getSpacing()).inverse()*sliceTransformation;
 
     cl::Buffer transformBuffer(
             device->getContext(),
@@ -309,7 +308,7 @@ void ImageSlicer::arbitrarySlicing(Image::pointer input, Image::pointer output) 
 
 
     AffineTransformation::pointer T = AffineTransformation::New();
-    T->getTransform().matrix() = sliceTransformation.matrix();
+    T->setTransform(sliceTransformation);
     output->getSceneGraphNode()->setTransformation(T);
 }
 

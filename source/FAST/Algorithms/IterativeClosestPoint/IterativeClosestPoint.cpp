@@ -143,10 +143,10 @@ void IterativeClosestPoint::execute() {
 
     // Get transformations of point sets
     AffineTransformation::pointer fixedPointTransform2 = SceneGraph::getAffineTransformationFromData(fixedMesh);
-    Eigen::Affine3f fixedPointTransform;
+    Affine3f fixedPointTransform;
     fixedPointTransform.matrix() = fixedPointTransform2->getTransform().matrix();
     AffineTransformation::pointer initialMovingTransform2 = SceneGraph::getAffineTransformationFromData(movingMesh);
-    Eigen::Affine3f initialMovingTransform;
+    Affine3f initialMovingTransform;
     initialMovingTransform.matrix() = initialMovingTransform2->getTransform().matrix();
 
     // These matrices are 3xN, where N is number of vertices
@@ -235,9 +235,9 @@ void IterativeClosestPoint::execute() {
             fixedColors.col(i) = fixedVertices[i].getColor().asVector();
         }
     }
-    Eigen::Affine3f currentTransformation = Eigen::Affine3f::Identity();
+    Affine3f currentTransformation = Affine3f::Identity();
     if(fixedPoints.size() == 0 || movingPoints.size() == 0) {
-        mTransformation->getTransform().matrix() = currentTransformation.matrix();
+        mTransformation->setTransform(currentTransformation);
         return;
     }
     fixedPoints = fixedPointTransform*fixedPoints.colwise().homogeneous();
@@ -322,7 +322,7 @@ void IterativeClosestPoint::execute() {
     reportInfo() << "Final transform: " << currentTransformation.matrix() << reportEnd();
 
     mError = error;
-    mTransformation->getTransform().matrix() = currentTransformation.matrix();
+    mTransformation->setTransform(currentTransformation);
 }
 
 void IterativeClosestPoint::setMaximumNrOfIterations(uint iterations) {
