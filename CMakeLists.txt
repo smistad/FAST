@@ -138,7 +138,7 @@ generate_export_header(FAST EXPORT_FILE_NAME FASTExport.hpp)
 
 ## Link everything
 message("-- LIBS: ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES}")
-target_link_libraries(FAST PUBLIC ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES} PRIVATE ${OPENGL_LIBRARIES})
+target_link_libraries(FAST PUBLIC ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES})
 if(FAST_MODULE_Visualization)
     qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
 endif()
