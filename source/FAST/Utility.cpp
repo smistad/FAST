@@ -10,9 +10,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #if defined(__APPLE__) || defined(__MACOSX)
-
+#include <OpenGL/gl.h>
 #else
-
+#include <GL/gl.h>
 #endif
 #endif
 
