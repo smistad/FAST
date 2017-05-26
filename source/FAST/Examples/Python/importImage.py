@@ -1,6 +1,6 @@
 import fast
 importer = fast.ImageFileImporter.New()
-importer.setFilename(fast.Config.getTestDataPath() + 'US-2D.jpg')
+importer.setFilename(fast.getTestDataPath() + 'US/US-2D.bmp')
 
 renderer = fast.ImageRenderer.New()
 renderer.setInputConnection(importer.getOutputPort())
