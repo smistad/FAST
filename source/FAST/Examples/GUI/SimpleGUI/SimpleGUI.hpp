@@ -13,7 +13,7 @@
 
 namespace fast {
 
-class FAST_EXPORT  SimpleGUI : public Window {
+class SimpleGUI : public Window {
 	FAST_OBJECT(SimpleGUI)
 	public:
 		void updateThreshold(int value);

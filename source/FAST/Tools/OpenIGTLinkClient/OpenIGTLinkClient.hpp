@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class FAST_EXPORT  OpenIGTLinkClient : public ProcessObject {
+class OpenIGTLinkClient : public ProcessObject {
     FAST_OBJECT(OpenIGTLinkClient)
     public:
         bool toggleRecord(std::string storageDir);
