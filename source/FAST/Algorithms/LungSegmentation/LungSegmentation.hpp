@@ -13,6 +13,7 @@ public:
 private:
     LungSegmentation();
     void execute();
+    SharedPointer<Image> convertToHU(SharedPointer<Image> image);
 
     Vector3i findSeedVoxel(SharedPointer<Image> input);
 };

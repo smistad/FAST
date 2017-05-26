@@ -14,10 +14,14 @@
 
 using namespace fast;
 
-int main() {
+int main(int argc, char** argv) {
     // Import image from file using the ImageFileImporter
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(Config::getTestDataPath()+"CT/CT-Thorax.mhd");
+    if(argc > 1) {
+        importer->setFilename(argv[1]);
+    } else {
+        importer->setFilename(Config::getTestDataPath() + "CT/CT-Thorax.mhd");
+    }
 
     // Perform lung segmentation (this will also extract the airways using AirwaySegmentation)
     LungSegmentation::pointer segmentation = LungSegmentation::New();

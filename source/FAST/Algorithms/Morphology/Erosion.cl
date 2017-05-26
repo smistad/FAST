@@ -19,7 +19,10 @@ __kernel void erode(
         for(int a = -size; a <= size; a++) {
             for(int b = -size; b <= size; b++) {
                 for(int c = -size; c <= size; c++) {
-                    keep = (read_imageui(volume, sampler, pos + (int4)(a,b,c,0)).x == 1 && keep);
+                    int4 n = (int4)(a,b,c,0);
+                    if(length(convert_float4(n)) > size)
+                        continue;
+                    keep = (read_imageui(volume, sampler, pos + n).x == 1 && keep);
                 }
             }
         }
