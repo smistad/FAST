@@ -139,6 +139,9 @@ void LungSegmentation::execute() {
     // Next we want to get airways so we can remove those from the segmentation
     // Get airways
     AirwaySegmentation::pointer airwaySegmentation = AirwaySegmentation::New();
+    if(mUseManualSeedPoint) {
+        airwaySegmentation->setSeedPoint(mSeedPoint);
+    }
     airwaySegmentation->setInputData(input);
 
     // Dilate airways
@@ -171,6 +174,15 @@ void LungSegmentation::execute() {
     setStaticOutputData<Image>(0, image);
     Image::pointer airways = airwaySegmentation->getStaticOutputData<Segmentation>();
     setStaticOutputData<Image>(1, airways);
+}
+
+void LungSegmentation::setAirwaySeedPoint(int x, int y, int z) {
+    setAirwaySeedPoint(Vector3i(x, y, z));
+}
+
+void LungSegmentation::setAirwaySeedPoint(Vector3i seed) {
+    mSeedPoint = seed;
+    mUseManualSeedPoint = true;
 }
 
 }
