@@ -52,7 +52,7 @@ void Dilation::execute() {
             cl::NullRange
         );
     } else {
-        OpenCLImageAccess::pointer access2 = input->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+        OpenCLImageAccess::pointer access2 = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
         dilateKernel.setArg(1, *access2->get3DImage());
 
         queue.enqueueNDRangeKernel(
