@@ -9,7 +9,7 @@ option(FAST_BUILD_TESTS "Build FAST tests." ON)
 option(FAST_BUILD_EXAMPLES "Build examples." OFF)
 option(FAST_BUILD_TOOLS "Build tools." ON)
 option(FAST_BUILD_DOCS "Build API documentation" OFF)
-option(FAST_DOWNLOAD_TEST_DATA "Download test data automatically (> 1 GB)" ON)
+option(FAST_DOWNLOAD_TEST_DATA "Download test data automatically (> 1 GB)" OFF)
 option(FAST_MODULE_VTK "Enable interoperability with VTK" OFF)
 option(FAST_MODULE_ITK "Enable interoperability with ITK" OFF)
 option(FAST_MODULE_Visualization "Enable visualization capabilities using Qt5.
