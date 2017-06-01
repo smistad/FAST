@@ -19,6 +19,7 @@ option(FAST_MODULE_NeuralNetwork "Build neural network module using tensorflow" 
 option(FAST_MODULE_Python "Build Python wrappers" OFF)
 option(FAST_MODULE_Kinect "Build kinect module" OFF)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
+option(FAST_AUTO_BUILD_QT5 "Auto download and build Qt 5.8. Turn this OFF if you want to use pre-built binaries you already have on your machine." ON)
 
 # Python version
 set(FAST_Python_Version "" CACHE STRING "Specify which Python version to build python wrappers with. E.g. 2 or 3")
