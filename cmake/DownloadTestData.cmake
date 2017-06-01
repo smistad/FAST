@@ -3,6 +3,7 @@
 if(${FAST_DOWNLOAD_TEST_DATA})
     if(FAST_TEST_DATA_DIR STREQUAL "")
         set(TEST_DATA_DIR "${PROJECT_SOURCE_DIR}/data/")
+        set(FAST_TEST_DATA_DIR ${TEST_DATA_DIR})
     else()
         set(TEST_DATA_DIR "${FAST_TEST_DATA_DIR}")
     endif()
