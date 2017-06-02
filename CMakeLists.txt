@@ -19,6 +19,7 @@ option(FAST_MODULE_NeuralNetwork "Build neural network module using tensorflow" 
 option(FAST_MODULE_Python "Build Python wrappers" OFF)
 option(FAST_MODULE_Kinect "Build kinect module" OFF)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
+option(FAST_BUILD_QT5 "Download and build Qt 5.8. Turn this OFF if you want to use pre-built binaries you already have on your machine." ON)
 
 # Python version
 set(FAST_Python_Version "" CACHE STRING "Specify which Python version to build python wrappers with. E.g. 2 or 3")
@@ -139,16 +140,12 @@ generate_export_header(FAST EXPORT_FILE_NAME FASTExport.hpp)
 ## Link everything
 message("-- LIBS: ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES}")
 target_link_libraries(FAST PUBLIC ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES})
-if(FAST_MODULE_Visualization)
-    qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
-endif()
 
 ## Build test executable
 if(FAST_BUILD_TESTS)
     add_executable(testFAST ${FAST_TEST_SOURCE_FILES})
     target_link_libraries(testFAST FAST)
 endif()
-
 
 set(CONF_FAST_LIBRARIES FAST ${LIBRARIES})
 
@@ -164,13 +161,20 @@ configure_file(
         @ONLY
 )
 
-# If test data dir has been set by user, write it to config file
+# Set paths needed at runtime to be written to config file
+set(CONFIG_TEST_DATA_PATH "TestDataPath = ${CMAKE_CURRENT_SOURCE_DIR}/data/")
+set(CONFIG_DOCUMENTATION_PATH "DocumentationPath = ${CMAKE_CURRENT_SOURCE_DIR}/doc/")
+set(CONFIG_KERNEL_SOURCE_PATH "KernelSourcePath = ${CMAKE_CURRENT_SOURCE_DIR}/source/FAST/")
+set(CONFIG_PIPELINE_PATH "PipelinePath = ${CMAKE_CURRENT_SOURCE_DIR}/pipelines/")
+
+# If test data dir has been set by user, use that instead
 if(NOT FAST_TEST_DATA_DIR STREQUAL "")
     # Remove any existing "
     string(REPLACE "\"" "" FAST_TEST_DATA_DIR ${FAST_TEST_DATA_DIR})
     message("-- FAST test data directory set to: \"${FAST_TEST_DATA_DIR}\"")
     set(CONFIG_TEST_DATA_PATH "TestDataPath = ${FAST_TEST_DATA_DIR}/")
 endif()
+# If OpenCL kernel binary path has been set by user, write it to the config
 if(NOT FAST_OPENCL_KERNEL_BINARY_PATH STREQUAL "")
     # Remove any existing "
     string(REPLACE "\"" "" FAST_OPENCL_KERNEL_BINARY_PATH ${FAST_OPENCL_KERNEL_BINARY_PATH})
@@ -178,6 +182,7 @@ if(NOT FAST_OPENCL_KERNEL_BINARY_PATH STREQUAL "")
     set(CONFIG_KERNEL_BINARY_PATH "KernelBinaryPath = ${FAST_OPENCL_KERNEL_BINARY_PATH}/")
 endif()
 
+# configure the configuration file.
 configure_file(
     "${PROJECT_SOURCE_DIR}/source/fast_configuration.txt.in"
     "${PROJECT_BINARY_DIR}/fast_configuration.txt"
