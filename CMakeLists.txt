@@ -19,7 +19,7 @@ option(FAST_MODULE_NeuralNetwork "Build neural network module using tensorflow" 
 option(FAST_MODULE_Python "Build Python wrappers" OFF)
 option(FAST_MODULE_Kinect "Build kinect module" OFF)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
-option(FAST_AUTO_BUILD_QT5 "Auto download and build Qt 5.8. Turn this OFF if you want to use pre-built binaries you already have on your machine." ON)
+option(FAST_BUILD_QT5 "Download and build Qt 5.8. Turn this OFF if you want to use pre-built binaries you already have on your machine." ON)
 
 # Python version
 set(FAST_Python_Version "" CACHE STRING "Specify which Python version to build python wrappers with. E.g. 2 or 3")
@@ -140,16 +140,12 @@ generate_export_header(FAST EXPORT_FILE_NAME FASTExport.hpp)
 ## Link everything
 message("-- LIBS: ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES}")
 target_link_libraries(FAST PUBLIC ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES})
-if(FAST_MODULE_Visualization)
-    qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
-endif()
 
 ## Build test executable
 if(FAST_BUILD_TESTS)
     add_executable(testFAST ${FAST_TEST_SOURCE_FILES})
     target_link_libraries(testFAST FAST)
 endif()
-
 
 set(CONF_FAST_LIBRARIES FAST ${LIBRARIES})
 

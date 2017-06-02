@@ -16,7 +16,7 @@
 #include <FAST/Streamers/MeshFileStreamer.hpp>
 #include <FAST/Exporters/VTKMeshFileExporter.hpp>
 #include <FAST/Importers/VTKMeshFileImporter.hpp>
-#include <include/QtWidgets/QProgressDialog>
+#include <QProgressDialog>
 
 namespace fast {
 

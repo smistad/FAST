@@ -12,7 +12,7 @@
 #include <igtl/igtlOSUtil.h>
 #include <FAST/Streamers/ImageFileStreamer.hpp>
 #include <FAST/Data/Image.hpp>
-#include <include/QtCore/QMetaType>
+#include <QMetaType>
 #include <FAST/Tests/DummyObjects.hpp>
 
 namespace fast {

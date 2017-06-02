@@ -6,7 +6,7 @@ endif()
 get_filename_component(_qt5Gui_install_prefix "${FAST_EXTERNAL_INSTALL_DIR}" ABSOLUTE)
 
 # For backwards compatibility only. Use Qt5Gui_VERSION instead.
-set(Qt5Gui_VERSION_STRING 5.7.1)
+set(Qt5Gui_VERSION_STRING 5.8.0)
 
 set(Qt5Gui_LIBRARIES Qt5::Gui)
 
@@ -83,7 +83,7 @@ if (NOT TARGET Qt5::Gui)
     foreach(_module_dep ${_Qt5Gui_MODULE_DEPENDENCIES})
         if (NOT Qt5${_module_dep}_FOUND)
             find_package(Qt5${_module_dep}
-                5.7.1 ${_Qt5Gui_FIND_VERSION_EXACT}
+                5.8.0 ${_Qt5Gui_FIND_VERSION_EXACT}
                 ${_Qt5Gui_DEPENDENCIES_FIND_QUIET}
                 ${_Qt5Gui_FIND_DEPENDENCIES_REQUIRED}
                 PATHS "${CMAKE_CURRENT_LIST_DIR}/.." NO_DEFAULT_PATH
@@ -117,7 +117,7 @@ if (NOT TARGET Qt5::Gui)
     set_property(TARGET Qt5::Gui PROPERTY
       INTERFACE_COMPILE_DEFINITIONS QT_GUI_LIB)
 
-    _populate_Gui_target_properties(RELEASE "libQt5Gui.so.5.7.1" "" )
+    _populate_Gui_target_properties(RELEASE "libQt5Gui.so.5.8.0" "" )
 
 
 
