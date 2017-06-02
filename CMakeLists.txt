@@ -9,7 +9,7 @@ option(FAST_BUILD_TESTS "Build FAST tests." ON)
 option(FAST_BUILD_EXAMPLES "Build examples." OFF)
 option(FAST_BUILD_TOOLS "Build tools." ON)
 option(FAST_BUILD_DOCS "Build API documentation" OFF)
-option(FAST_DOWNLOAD_TEST_DATA "Download test data automatically (> 1 GB)" ON)
+option(FAST_DOWNLOAD_TEST_DATA "Download test data automatically (> 1 GB)" OFF)
 option(FAST_MODULE_VTK "Enable interoperability with VTK" OFF)
 option(FAST_MODULE_ITK "Enable interoperability with ITK" OFF)
 option(FAST_MODULE_Visualization "Enable visualization capabilities using Qt5.
@@ -19,6 +19,7 @@ option(FAST_MODULE_NeuralNetwork "Build neural network module using tensorflow" 
 option(FAST_MODULE_Python "Build Python wrappers" OFF)
 option(FAST_MODULE_Kinect "Build kinect module" OFF)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
+option(FAST_AUTO_BUILD_QT5 "Auto download and build Qt 5.8. Turn this OFF if you want to use pre-built binaries you already have on your machine." ON)
 
 # Python version
 set(FAST_Python_Version "" CACHE STRING "Specify which Python version to build python wrappers with. E.g. 2 or 3")
@@ -178,6 +179,11 @@ if(NOT FAST_OPENCL_KERNEL_BINARY_PATH STREQUAL "")
     set(CONFIG_KERNEL_BINARY_PATH "KernelBinaryPath = ${FAST_OPENCL_KERNEL_BINARY_PATH}/")
 endif()
 
+# set the default kernel source path since there is no variable the user can set for this path.
+set(CONFIG_KERNEL_SOURCE_PATH "KernelSourcePath = ${CMAKE_CURRENT_SOURCE_DIR}/source/FAST/")
+set(CONFIG_PIPELINE_PATH "PipelinePath = ${CMAKE_CURRENT_SOURCE_DIR}/pipelines/")
+
+# configure the configuration file.
 configure_file(
     "${PROJECT_SOURCE_DIR}/source/fast_configuration.txt.in"
     "${PROJECT_BINARY_DIR}/fast_configuration.txt"
