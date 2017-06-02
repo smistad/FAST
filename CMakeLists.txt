@@ -161,23 +161,26 @@ configure_file(
         @ONLY
 )
 
-# If test data dir has been set by user, write it to config file
+# Set paths needed at runtime to be written to config file
+set(CONFIG_TEST_DATA_PATH "TestDataPath = ${CMAKE_CURRENT_SOURCE_DIR}/data/")
+set(CONFIG_DOCUMENTATION_PATH "DocumentationPath = ${CMAKE_CURRENT_SOURCE_DIR}/doc/")
+set(CONFIG_KERNEL_SOURCE_PATH "KernelSourcePath = ${CMAKE_CURRENT_SOURCE_DIR}/source/FAST/")
+set(CONFIG_PIPELINE_PATH "PipelinePath = ${CMAKE_CURRENT_SOURCE_DIR}/pipelines/")
+
+# If test data dir has been set by user, use that instead
 if(NOT FAST_TEST_DATA_DIR STREQUAL "")
     # Remove any existing "
     string(REPLACE "\"" "" FAST_TEST_DATA_DIR ${FAST_TEST_DATA_DIR})
     message("-- FAST test data directory set to: \"${FAST_TEST_DATA_DIR}\"")
     set(CONFIG_TEST_DATA_PATH "TestDataPath = ${FAST_TEST_DATA_DIR}/")
 endif()
+# If OpenCL kernel binary path has been set by user, write it to the config
 if(NOT FAST_OPENCL_KERNEL_BINARY_PATH STREQUAL "")
     # Remove any existing "
     string(REPLACE "\"" "" FAST_OPENCL_KERNEL_BINARY_PATH ${FAST_OPENCL_KERNEL_BINARY_PATH})
     message("-- OpenCL Kernel binary path set to: ${FAST_OPENCL_KERNEL_BINARY_PATH}")
     set(CONFIG_KERNEL_BINARY_PATH "KernelBinaryPath = ${FAST_OPENCL_KERNEL_BINARY_PATH}/")
 endif()
-
-# set the default kernel source path since there is no variable the user can set for this path.
-set(CONFIG_KERNEL_SOURCE_PATH "KernelSourcePath = ${CMAKE_CURRENT_SOURCE_DIR}/source/FAST/")
-set(CONFIG_PIPELINE_PATH "PipelinePath = ${CMAKE_CURRENT_SOURCE_DIR}/pipelines/")
 
 # configure the configuration file.
 configure_file(
