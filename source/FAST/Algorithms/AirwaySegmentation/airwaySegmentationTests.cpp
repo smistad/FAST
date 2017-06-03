@@ -3,7 +3,7 @@
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
 #include "FAST/Algorithms/CenterlineExtraction/CenterlineExtraction.hpp"
-#include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
+#include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Visualization/LineRenderer/LineRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 
@@ -31,7 +31,7 @@ TEST_CASE("Airway segmentation ALL", "[fast][AirwaySegmentation]") {
         SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
         extraction->setInputConnection(segmentation->getOutputPort());
 
-        MeshRenderer::pointer renderer = MeshRenderer::New();
+        TriangleRenderer::pointer renderer = TriangleRenderer::New();
         renderer->addInputConnection(extraction->getOutputPort());
 
         LineRenderer::pointer lineRenderer = LineRenderer::New();
@@ -61,7 +61,7 @@ TEST_CASE("Airway segmentation", "[fast][AirwaySegmentation][visual]") {
 	SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
 	extraction->setInputConnection(segmentation->getOutputPort());
 
-	MeshRenderer::pointer renderer = MeshRenderer::New();
+	TriangleRenderer::pointer renderer = TriangleRenderer::New();
 	renderer->addInputConnection(extraction->getOutputPort());
 
 	LineRenderer::pointer lineRenderer = LineRenderer::New();

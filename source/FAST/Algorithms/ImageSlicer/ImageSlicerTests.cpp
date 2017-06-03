@@ -2,7 +2,7 @@
 #include "ImageSlicer.hpp"
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
-#include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
+#include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 
@@ -41,12 +41,12 @@ TEST_CASE("Image slicer, arbitrary slice", "[fast][ImageSlicer][visual]") {
 	SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
 	extraction->setInputConnection(importer->getOutputPort());
 
-	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
-    meshRenderer->addInputConnection(extraction->getOutputPort());
+	TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();
+    TriangleRenderer->addInputConnection(extraction->getOutputPort());
 
 	SimpleWindow::pointer window = SimpleWindow::New();
 	window->addRenderer(renderer);
-	window->addRenderer(meshRenderer);
+	window->addRenderer(TriangleRenderer);
 	window->set3DMode();
 	window->setTimeout(1000);
 	window->start();
@@ -67,12 +67,12 @@ TEST_CASE("Image slicer, arbitrary slice 2", "[fast][ImageSlicer][visual]") {
 	SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
 	extraction->setInputConnection(importer->getOutputPort());
 
-	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
-    meshRenderer->addInputConnection(extraction->getOutputPort());
+	TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();
+    TriangleRenderer->addInputConnection(extraction->getOutputPort());
 
 	SimpleWindow::pointer window = SimpleWindow::New();
 	window->addRenderer(renderer);
-	window->addRenderer(meshRenderer);
+	window->addRenderer(TriangleRenderer);
 	window->set3DMode();
 	window->setTimeout(1000);
 	window->start();
@@ -93,12 +93,12 @@ TEST_CASE("Image slicer, arbitrary slice 3", "[fast][ImageSlicer][visual]") {
 	SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
 	extraction->setInputConnection(importer->getOutputPort());
 
-	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
-    meshRenderer->addInputConnection(extraction->getOutputPort());
+	TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();
+    TriangleRenderer->addInputConnection(extraction->getOutputPort());
 
 	SimpleWindow::pointer window = SimpleWindow::New();
 	window->addRenderer(renderer);
-	window->addRenderer(meshRenderer);
+	window->addRenderer(TriangleRenderer);
 	window->set3DMode();
 	window->setTimeout(1000);
 	window->start();

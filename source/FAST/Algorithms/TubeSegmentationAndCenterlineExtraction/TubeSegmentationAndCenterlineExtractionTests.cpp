@@ -4,7 +4,7 @@
 #include "FAST/Visualization/SliceRenderer/SliceRenderer.hpp"
 #include "FAST/Visualization/LineRenderer/LineRenderer.hpp"
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
-#include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
+#include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 #include "FAST/Algorithms/ImageCropper/ImageCropper.hpp"
 
@@ -32,12 +32,12 @@ TEST_CASE("TSF", "[tsf]") {
     SurfaceExtraction::pointer surfaceExtraction = SurfaceExtraction::New();
     surfaceExtraction->setInputConnection(tubeExtraction->getSegmentationOutputPort());
 
-    MeshRenderer::pointer meshRenderer = MeshRenderer::New();
-    meshRenderer->addInputConnection(surfaceExtraction->getOutputPort());
+    TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();
+    TriangleRenderer->addInputConnection(surfaceExtraction->getOutputPort());
 
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
-    window->addRenderer(meshRenderer);
+    window->addRenderer(TriangleRenderer);
     window->addRenderer(lineRenderer);
     window->start();
 }
@@ -81,12 +81,12 @@ TEST_CASE("TSF Airway", "[tsf][airway][visual][broken_on_mac]") {
     SurfaceExtraction::pointer surfaceExtraction = SurfaceExtraction::New();
     surfaceExtraction->setInputConnection(tubeExtraction->getSegmentationOutputPort());
 
-    MeshRenderer::pointer meshRenderer = MeshRenderer::New();
-    meshRenderer->addInputConnection(surfaceExtraction->getOutputPort());
+    TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();
+    TriangleRenderer->addInputConnection(surfaceExtraction->getOutputPort());
 
     SimpleWindow::pointer window = SimpleWindow::New();
     //window->addRenderer(renderer);
-    window->addRenderer(meshRenderer);
+    window->addRenderer(TriangleRenderer);
     window->addRenderer(lineRenderer);
     window->setTimeout(3*1000);
     window->start();

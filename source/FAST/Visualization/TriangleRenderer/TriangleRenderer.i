@@ -1,11 +1,11 @@
 %include "FAST/Visualization/Renderer.i"
-%shared_ptr(fast::MeshRenderer)
+%shared_ptr(fast::TriangleRenderer)
 
 namespace fast {
 
-class MeshRenderer : public Renderer {
+class TriangleRenderer : public Renderer {
     public:
-    	static SharedPointer<MeshRenderer> New();
+    	static SharedPointer<TriangleRenderer> New();
         void addInputConnection(ProcessObjectPort port);
         //void addInputConnection(ProcessObjectPort port, Color color, float opacity);
         void setDefaultOpacity(float opacity);
@@ -15,6 +15,6 @@ class MeshRenderer : public Renderer {
         //void setOpacity(ProcessObjectPort port, float opacity);
 };
 
-%template(MeshRendererPtr) SharedPointer<MeshRenderer>;
+%template(TriangleRendererPtr) SharedPointer<TriangleRenderer>;
 
 }

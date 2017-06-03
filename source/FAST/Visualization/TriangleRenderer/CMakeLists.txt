@@ -1,0 +1,10 @@
+fast_add_sources(
+    TriangleRenderer.cpp
+    TriangleRenderer.hpp
+)
+fast_add_test_sources(
+    TriangleRendererTests.cpp
+)
+fast_add_python_interfaces(
+	TriangleRenderer.i
+)

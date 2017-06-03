@@ -9,7 +9,7 @@
 #include <QPushButton>
 #include <QSlider>
 #include <FAST/Importers/ImageFileImporter.hpp>
-#include <FAST/Visualization/MeshRenderer/MeshRenderer.hpp>
+#include <FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp>
 #include <functional>
 
 
@@ -38,7 +38,7 @@ SimpleGUI::SimpleGUI() {
     mSurfaceExtraction->setThreshold(100);
 
     // Set up rendering
-    MeshRenderer::pointer renderer = MeshRenderer::New();
+    TriangleRenderer::pointer renderer = TriangleRenderer::New();
     renderer->addInputConnection(mSurfaceExtraction->getOutputPort());
     view->addRenderer(renderer);
 

@@ -1,4 +1,4 @@
-#include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
+#include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Streamers/ImageFileStreamer.hpp"
 #include "FAST/Testing.hpp"
 #include "FAST/Importers/MetaImageImporter.hpp"
@@ -52,7 +52,7 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and S
     );
 }
 
-TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter, SurfaceExtraction and MeshRenderer on OpenCL device", "[fast][SystemTests][visual]") {
+TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter, SurfaceExtraction and TriangleRenderer on OpenCL device", "[fast][SystemTests][visual]") {
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"US/Ball/US-3Dt_#.mhd");
     mhdStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
@@ -66,7 +66,7 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter, Surf
     extractor->setInputConnection(filter->getOutputPort());
     extractor->setThreshold(200);
 
-    MeshRenderer::pointer renderer = MeshRenderer::New();
+    TriangleRenderer::pointer renderer = TriangleRenderer::New();
     renderer->addInputConnection(extractor->getOutputPort());
 
     SimpleWindow::pointer window = SimpleWindow::New();

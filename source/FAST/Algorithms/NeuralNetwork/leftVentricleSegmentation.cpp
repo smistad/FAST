@@ -7,7 +7,7 @@
 #include "FAST/Streamers/ImageFileStreamer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
-#include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
+#include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "PixelClassifier.hpp"
 
 using namespace fast;

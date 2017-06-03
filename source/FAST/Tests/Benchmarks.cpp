@@ -1,5 +1,5 @@
 #include "FAST/Streamers/ImageFileStreamer.hpp"
-#include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
+#include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Testing.hpp"
 #include "FAST/Importers/MetaImageImporter.hpp"
 #include "FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp"
@@ -35,7 +35,7 @@ TEST_CASE("Pipeline A (static)", "[fast][benchmark][visual]") {
     extractor->setInputConnection(filter->getOutputPort());
     extractor->setThreshold(200);
 
-    MeshRenderer::pointer renderer = MeshRenderer::New();
+    TriangleRenderer::pointer renderer = TriangleRenderer::New();
     renderer->enableRuntimeMeasurements();
     renderer->addInputConnection(extractor->getOutputPort());
 
@@ -80,7 +80,7 @@ TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark][visual]") {
     extractor->setThreshold(200);
     extractor->enableRuntimeMeasurements();
 
-    MeshRenderer::pointer renderer = MeshRenderer::New();
+    TriangleRenderer::pointer renderer = TriangleRenderer::New();
     renderer->addInputConnection(extractor->getOutputPort());
     renderer->enableRuntimeMeasurements();
 
@@ -133,7 +133,7 @@ TEST_CASE("Pipeline B", "[fast][benchmark][visual]") {
     exporter->update();
     */
 
-    MeshRenderer::pointer surfaceRenderer = MeshRenderer::New();
+    TriangleRenderer::pointer surfaceRenderer = TriangleRenderer::New();
     surfaceRenderer->addInputConnection(extraction->getOutputPort());
     surfaceRenderer->enableRuntimeMeasurements();
 

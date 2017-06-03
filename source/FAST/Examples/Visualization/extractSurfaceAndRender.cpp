@@ -5,7 +5,7 @@
  */
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
-#include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
+#include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 
 
@@ -22,7 +22,7 @@ int main() {
     extraction->setThreshold(300);
 
     // Render and visualize the mesh
-    MeshRenderer::pointer surfaceRenderer = MeshRenderer::New();
+    TriangleRenderer::pointer surfaceRenderer = TriangleRenderer::New();
     surfaceRenderer->setInputConnection(extraction->getOutputPort());
 
 	SimpleWindow::pointer window = SimpleWindow::New();

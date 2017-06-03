@@ -9,7 +9,7 @@
 #include <QPushButton>
 #include <QSlider>
 #include <FAST/Importers/ImageFileImporter.hpp>
-#include <FAST/Visualization/MeshRenderer/MeshRenderer.hpp>
+#include <FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp>
 #include "FAST/Exporters/ImageExporter.hpp"
 //#include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include <functional>
@@ -58,7 +58,7 @@ NLMGUI2D::NLMGUI2D() {
     renderer = ImageRenderer::New();
     //ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->addInputConnection(nlmSmoothing->getOutputPort());
-    //MeshRenderer::pointer renderer = MeshRenderer::New();
+    //TriangleRenderer::pointer renderer = TriangleRenderer::New();
     //renderer->addInputConnection(mSurfaceExtraction->getOutputPort());
     view->addRenderer(renderer);
     

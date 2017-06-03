@@ -1,5 +1,5 @@
-#ifndef SURFACERENDERER_HPP_
-#define SURFACERENDERER_HPP_
+#ifndef FAST_TRIANGLE_RENDERER_HPP_
+#define FAST_TRIANGLE_RENDERER_HPP_
 
 #include "FAST/Data/Mesh.hpp"
 #include "FAST/Data/Color.hpp"
@@ -7,8 +7,8 @@
 
 namespace fast {
 
-class FAST_EXPORT  MeshRenderer : public Renderer {
-    FAST_OBJECT(MeshRenderer)
+class FAST_EXPORT TriangleRenderer : public Renderer {
+    FAST_OBJECT(TriangleRenderer)
     public:
         void addInputConnection(ProcessObjectPort port);
         void addInputConnection(ProcessObjectPort port, Color color, float opacity);
@@ -35,7 +35,7 @@ class FAST_EXPORT  MeshRenderer : public Renderer {
                 float PBOspacing,
                 Vector2f translation
         );
-        MeshRenderer();
+        TriangleRenderer();
         void execute();
 
         std::unordered_map<ProcessObjectPort, Color> mInputColors;
@@ -52,7 +52,4 @@ class FAST_EXPORT  MeshRenderer : public Renderer {
 
 } // namespace fast
 
-
-
-
-#endif /* SURFACERENDERER_HPP_ */
+#endif

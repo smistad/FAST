@@ -4,7 +4,7 @@
  * If you edit this example, please also update the wiki and source code file in the repository.
  */
 #include "FAST/Importers/VTKMeshFileImporter.hpp"
-#include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
+#include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 
 
@@ -16,7 +16,7 @@ int main() {
     importer->setFilename(Config::getTestDataPath()+"/Surface_LV.vtk");
 
     // Renderer image
-    MeshRenderer::pointer renderer = MeshRenderer::New();
+    TriangleRenderer::pointer renderer = TriangleRenderer::New();
     renderer->addInputConnection(importer->getOutputPort());
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);

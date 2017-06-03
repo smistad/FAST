@@ -2,7 +2,7 @@
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/DualViewWindow.hpp"
-#include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
+#include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Streamers/ImageFileStreamer.hpp"
 #include "FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp"
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
@@ -24,7 +24,7 @@ TEST_CASE("DualViewWindow with horizontal mode", "[fast][DualViewWindow][visual]
     extractor->setInputConnection(mhdStreamer->getOutputPort());
     extractor->setThreshold(200);
 
-    MeshRenderer::pointer renderer2 = MeshRenderer::New();
+    TriangleRenderer::pointer renderer2 = TriangleRenderer::New();
     renderer2->addInputConnection(extractor->getOutputPort());
 
     DualViewWindow::pointer window = DualViewWindow::New();
@@ -50,7 +50,7 @@ TEST_CASE("DualViewWindow with vertical mode", "[fast][DualViewWindow][visual]")
     extractor->setInputConnection(mhdStreamer->getOutputPort());
     extractor->setThreshold(200);
 
-    MeshRenderer::pointer renderer2 = MeshRenderer::New();
+    TriangleRenderer::pointer renderer2 = TriangleRenderer::New();
     renderer2->addInputConnection(extractor->getOutputPort());
 
     DualViewWindow::pointer window = DualViewWindow::New();
