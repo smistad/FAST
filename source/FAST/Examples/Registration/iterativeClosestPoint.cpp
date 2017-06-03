@@ -1,6 +1,6 @@
 #include "FAST/Algorithms/IterativeClosestPoint/IterativeClosestPoint.hpp"
 #include "FAST/Importers/VTKPointSetFileImporter.hpp"
-#include "FAST/Visualization/PointRenderer/PointRenderer.hpp"
+#include "FAST/Visualization/VertexRenderer/VertexRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 
 
@@ -41,7 +41,7 @@ int main() {
     Reporter::info() << "Translation:" << icp->getOutputTransformation()->getTransform().translation().transpose() << Reporter::end();
 
     // Visualize the two point sets
-    PointRenderer::pointer renderer = PointRenderer::New();
+    VertexRenderer::pointer renderer = VertexRenderer::New();
     renderer->addInputConnection(importerA->getOutputPort(), Color::Blue(), 10);
     renderer->addInputConnection(importerB->getOutputPort(), Color::Green(), 5);
     renderer->setDefaultDrawOnTop(true);

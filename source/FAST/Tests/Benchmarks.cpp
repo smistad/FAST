@@ -14,7 +14,7 @@
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Algorithms/BinaryThresholding/BinaryThresholding.hpp"
 //#include "FAST/Algorithms/IterativeClosestPoint/IterativeClosestPoint.hpp"
-#include "FAST/Visualization/PointRenderer/PointRenderer.hpp"
+#include "FAST/Visualization/VertexRenderer/VertexRenderer.hpp"
 #include "FAST/SceneGraph.hpp"
 
 using namespace fast;
@@ -234,7 +234,7 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
     Reporter::info() << icp->getOutputTransformation()->getTransform().translation() << Reporter::end();
 
 
-    PointRenderer::pointer renderer = PointRenderer::New();
+    VertexRenderer::pointer renderer = VertexRenderer::New();
     renderer->addInputConnection(importerA->getOutputPort(), Color::Blue(), 10);
     renderer->addInputConnection(importerB->getOutputPort(), Color::Green(), 5);
     renderer->setDefaultDrawOnTop(true);

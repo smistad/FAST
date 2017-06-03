@@ -12,7 +12,7 @@
 #include <QDirIterator>
 #include <QMessageBox>
 #include <FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp>
-#include <FAST/Visualization/PointRenderer/PointRenderer.hpp>
+#include <FAST/Visualization/VertexRenderer/VertexRenderer.hpp>
 #include <FAST/Streamers/MeshFileStreamer.hpp>
 #include <FAST/Exporters/VTKMeshFileExporter.hpp>
 #include <FAST/Importers/VTKMeshFileImporter.hpp>
@@ -282,7 +282,7 @@ void KinectTrackingGUI::playRecording() {
         mTracking->setInputConnection(1, streamer->getOutputPort());
         mTracking->setTargetCloud(targetCloud);
 
-        PointRenderer::pointer cloudRenderer = PointRenderer::New();
+        VertexRenderer::pointer cloudRenderer = VertexRenderer::New();
         cloudRenderer->setDefaultSize(1.5);
         cloudRenderer->addInputConnection(mTracking->getOutputPort(2));
         cloudRenderer->addInputConnection(streamer->getOutputPort(0));
@@ -329,7 +329,7 @@ void KinectTrackingGUI::extractPointCloud() {
         mTracking->startRecording(recordingPath);
     }
 
-    PointRenderer::pointer cloudRenderer = PointRenderer::New();
+    VertexRenderer::pointer cloudRenderer = VertexRenderer::New();
     cloudRenderer->setDefaultSize(1.5);
     cloudRenderer->addInputConnection(mTracking->getOutputPort(2));
     cloudRenderer->addInputConnection(mStreamer->getOutputPort(2));

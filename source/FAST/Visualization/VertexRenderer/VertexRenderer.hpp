@@ -8,8 +8,8 @@
 
 namespace fast {
 
-class FAST_EXPORT  PointRenderer : public Renderer {
-    FAST_OBJECT(PointRenderer)
+class FAST_EXPORT  VertexRenderer : public Renderer {
+    FAST_OBJECT(VertexRenderer)
     public:
         void addInputConnection(ProcessObjectPort port);
         void addInputConnection(ProcessObjectPort port, Color color, float size);
@@ -32,7 +32,7 @@ class FAST_EXPORT  PointRenderer : public Renderer {
         );
         BoundingBox getBoundingBox();
     private:
-        PointRenderer();
+        VertexRenderer();
         void execute();
 
         float mDefaultPointSize;

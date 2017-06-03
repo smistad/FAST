@@ -1,6 +1,6 @@
 #include "FAST/Testing.hpp"
 #include "FAST/Importers/ImageFileImporter.hpp"
-#include "FAST/Visualization/PointRenderer/PointRenderer.hpp"
+#include "FAST/Visualization/VertexRenderer/VertexRenderer.hpp"
 #include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
