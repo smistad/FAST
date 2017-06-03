@@ -14,6 +14,11 @@ class FAST_EXPORT  MeshRenderer : public Renderer {
         void addInputConnection(ProcessObjectPort port, Color color, float opacity);
         BoundingBox getBoundingBox();
         void setDefaultOpacity(float opacity);
+        /**
+         * Enable/disable renderer of wireframe instead of filled polygons
+         * @param wireframe
+         */
+        void setWireframe(bool wireframe);
         void setDefaultColor(Color color);
         void setDefaultSpecularReflection(float specularReflection);
         void setColor(ProcessObjectPort port, Color color);
@@ -42,6 +47,7 @@ class FAST_EXPORT  MeshRenderer : public Renderer {
         float mDefaultOpacity;
         std::mutex mMutex;
         int mLineSize;
+        bool mWireframe;
 };
 
 } // namespace fast

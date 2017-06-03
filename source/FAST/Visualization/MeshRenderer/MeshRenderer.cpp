@@ -33,6 +33,11 @@ MeshRenderer::MeshRenderer() : Renderer() {
     mDefaultSpecularReflection = 0.8f;
     createInputPort<Mesh>(0, false);
     mLineSize = 1;
+    mWireframe = false;
+}
+
+void MeshRenderer::setWireframe(bool wireframe) {
+    mWireframe = wireframe;
 }
 
 void MeshRenderer::setLineSize(int size) {
@@ -60,9 +65,12 @@ void MeshRenderer::draw() {
     QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
     fun->initializeOpenGLFunctions();
 
+    if(mWireframe)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
     std::unordered_map<uint, Mesh::pointer>::iterator it;
-    for(it = mMeshToRender.begin(); it != mMeshToRender.end(); it++) {
-        Mesh::pointer surfaceToRender = it->second;
+    for(auto it : mMeshToRender) {
+        Mesh::pointer surfaceToRender = it.second;
 
         // Draw the triangles in the VBO
         AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(surfaceToRender);
@@ -72,7 +80,7 @@ void MeshRenderer::draw() {
 
         float opacity = mDefaultOpacity;
         Color color = mDefaultColor;
-        ProcessObjectPort port = getInputPort(it->first);
+        ProcessObjectPort port = getInputPort(it.first);
         if(mInputOpacities.count(port) > 0) {
             opacity = mInputOpacities[port];
         }
@@ -119,6 +127,8 @@ void MeshRenderer::draw() {
 
     glDisable(GL_LIGHTING);
     glDisable(GL_NORMALIZE);
+    if(mWireframe)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glColor3f(1.0f, 1.0f, 1.0f); // Reset color
 }
 
