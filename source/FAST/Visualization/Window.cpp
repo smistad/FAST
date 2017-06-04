@@ -47,7 +47,7 @@ Window::Window() {
             // 4K screens
             Reporter::info() << "Large screen detected with width: " << screenWidth << Reporter::end();
             Reporter::info() << "Scaling default font with factor 2" << Reporter::end();
-            mGUIScalingFactor = 2;
+            mGUIScalingFactor = 1.75;
         } else {
             Reporter::info() << "Medium large screen detected with width: " << screenWidth << Reporter::end();
             Reporter::info() << "Scaling default font with factor 1.5" << Reporter::end();
