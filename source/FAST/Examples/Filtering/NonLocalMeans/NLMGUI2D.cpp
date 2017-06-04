@@ -21,15 +21,17 @@ namespace fast {
 
 NLMGUI2D::NLMGUI2D() {
 
+
     viewOrig = createView();
+    viewOrig->setBackgroundColor(Color::Black());
     viewOrig->set2DMode();
-    //viewOrig->set3DMode();
-    // Create a 3D view
-    //View* view = createView();
     view = createView();
-    //view->set3DMode();
+    view->setBackgroundColor(Color::Black());
     view->set2DMode();
-    //enableFullscreen();
+
+    setWidth(getScreenWidth());
+    setHeight(getScreenHeight());
+    enableMaximized();
 
     // Import image
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
@@ -43,32 +45,21 @@ NLMGUI2D::NLMGUI2D() {
     scaleImage->setLowestValue(0.0f);
     scaleImage->setInputConnection(streamer->getOutputPort());
 
-    
     // Smooth images
     nlmSmoothing = NonLocalMeans::New();
     nlmSmoothing->setInputConnection(scaleImage->getOutputPort());
-    nlmSmoothing->setSigma(0.2f);
+    nlmSmoothing->setSigma(0.3f);
     nlmSmoothing->setGroupSize(5);
-    nlmSmoothing->setWindowSize(11);
-    nlmSmoothing->setDenoiseStrength(0.3);
-    nlmSmoothing->setK(1);
+    nlmSmoothing->setWindowSize(21);
+    nlmSmoothing->setDenoiseStrength(0.32);
+    nlmSmoothing->setK(2);
     nlmSmoothing->setEuclid(1);
     nlmSmoothing->enableRuntimeMeasurements();
-    //mSmoothing = GaussianSmoothingFilter::New();
-    //mSmoothing->setInputConnection(importer->getOutputPort());
-    //mSmoothing->setStandardDeviation(1);
-
-    // Set up surface extraction
-    //mSurfaceExtraction = SurfaceExtraction::New();
-    //mSurfaceExtraction->setInputConnection(nlmSmoothing->getOutputPort());
-    //mSurfaceExtraction->setThreshold(100);
 
     // Set up rendering
     renderer = ImageRenderer::New();
-    //ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->addInputConnection(nlmSmoothing->getOutputPort());
-    //TriangleRenderer::pointer renderer = TriangleRenderer::New();
-    //renderer->addInputConnection(mSurfaceExtraction->getOutputPort());
+    renderer->setIntensityLevel(0.6);
     view->addRenderer(renderer);
     
     rendererOrig = ImageRenderer::New();
@@ -198,18 +189,9 @@ NLMGUI2D::NLMGUI2D() {
     layout->addWidget(viewOrig);
     layout->addWidget(view);
     
-
     mWidget->setLayout(layout);
 }
-    
-void NLMGUI2D::updateThreshold(int value) {
-	mSurfaceExtraction->setThreshold(value);
 
-	// Update label
-	std::string text = "Threshold: " + std::to_string(value) + " HU";
-	mThresholdLabel->setText(text.c_str());
-}
-    
 void NLMGUI2D::updateE(int value){
     nlmSmoothing->setEuclid(value);
     //Her skal jeg update label
@@ -224,7 +206,6 @@ void NLMGUI2D::updateDenoiseParameter(int value){
     //Her skal jeg update label
     std::string text = "Denoise Strength: " + std::to_string(newDs) + " ";
     nlmStrengthLabel->setText(text.c_str());
-    nlmSmoothing->getRuntime()->print();
 }
 void NLMGUI2D::updateGroupSize(int value){
     if(value > 0 && value % 2 == 1){

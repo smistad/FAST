@@ -19,7 +19,6 @@ namespace fast {
 class NLMGUI2D : public Window {
 	FAST_OBJECT(NLMGUI2D)
 	public:
-		void updateThreshold(int value);
         void updateDenoiseParameter(int value);
         void updateGroupSize(int value);
         void updateWindowSize(int value);
