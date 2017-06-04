@@ -36,9 +36,9 @@ NLMGUI2D::NLMGUI2D() {
     // Import image
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
     streamer->setFilenameFormat(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_#.mhd");
-    streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+    streamer->setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     streamer->enableLooping();
-    streamer->setSleepTime(200);
+    streamer->setSleepTime(100);
 
     ScaleImage::pointer scaleImage = ScaleImage::New();
     scaleImage->setHighestValue(1.0f);
@@ -50,9 +50,9 @@ NLMGUI2D::NLMGUI2D() {
     nlmSmoothing->setInputConnection(scaleImage->getOutputPort());
     nlmSmoothing->setSigma(0.3f);
     nlmSmoothing->setGroupSize(5);
-    nlmSmoothing->setWindowSize(21);
-    nlmSmoothing->setDenoiseStrength(0.32);
-    nlmSmoothing->setK(2);
+    nlmSmoothing->setWindowSize(51);
+    nlmSmoothing->setDenoiseStrength(0.06);
+    nlmSmoothing->setK(4);
     nlmSmoothing->setEuclid(1);
     nlmSmoothing->enableRuntimeMeasurements();
 

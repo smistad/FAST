@@ -35,7 +35,7 @@ void NonLocalMeans::setK(char newK){
         throw Exception("NoneLocalMeans K must be >= 0.");
     }
     k = newK;
-    //mIsModified = true;
+    mIsModified = true;
     recompile = true;
 }
 
@@ -44,7 +44,7 @@ void NonLocalMeans::setEuclid(char e){
         throw Exception("NoneLocalMeans Euclid must be >= 0.");
     }
     e = euclid;
-    //mIsModified = true;
+    mIsModified = true;
     recompile = true;
 }
 
@@ -55,7 +55,7 @@ void NonLocalMeans::setWindowSize(char wS) {
 		throw Exception("NoneLocalMeans window size must be odd.");
 
 	windowSize = wS;
-    //mIsModified = true;
+    mIsModified = true;
 	recompile = true;
 }
 
@@ -66,7 +66,7 @@ void NonLocalMeans::setGroupSize(char gS) {
 		throw Exception("NoneLocalMeans group size must be odd.");
 
 	groupSize = gS;
-    //mIsModified = true;
+    mIsModified = true;
 	recompile = true;
 }
 
@@ -76,7 +76,7 @@ void NonLocalMeans::setDenoiseStrength(float dS){
 
     std::cout << "CHANGING DENOISE TO: " << dS << std::endl;
 	denoiseStrength = dS;
-    //mIsModified = true;
+    mIsModified = true;
 	//recompile = true;
 }
 
@@ -85,7 +85,7 @@ void NonLocalMeans::setSigma(float s){
         throw Exception("NoneLocalMeans sigma must be greater then 0.");
     
     sigma = s;
-    //mIsModified = true;
+    mIsModified = true;
     recompile = true;
 }
 
