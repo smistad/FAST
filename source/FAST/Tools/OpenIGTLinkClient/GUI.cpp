@@ -22,7 +22,7 @@ namespace fast {
 
 GUI::GUI() {
 
-    menuWidth = 300;
+    menuWidth = getScreenWidth()/6;
 
     mClient = OpenIGTLinkClient::New();
     mConnected = false;
