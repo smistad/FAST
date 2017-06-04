@@ -3,12 +3,13 @@
 
 #include <QWidget>
 #include <string>
+#include "FASTExport.hpp"
 
 class QTextEdit;
 
 namespace fast {
 
-class PipelineEditor : public QWidget {
+class FAST_EXPORT PipelineEditor : public QWidget {
     public:
         PipelineEditor(std::string filename);
         void save();
