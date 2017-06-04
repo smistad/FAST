@@ -38,6 +38,21 @@ class FAST_EXPORT  Window : public QObject, public Object {
         std::vector<View*> getViews() const;
         View* getView(uint i) const;
         static void cleanup();
+        /**
+         * Get screen width in pixels
+         * @return width in pixels
+         */
+        int getScreenWidth() const;
+        /**
+         * Get screen height in pixels
+         * @return height in pixels
+         */
+        int getScreenHeight() const;
+        /**
+         * Get GUI scaling factor
+         * @return
+         */
+        float getScalingFactor() const;
     protected:
         Window();
         View* createView();
@@ -46,6 +61,7 @@ class FAST_EXPORT  Window : public QObject, public Object {
         unsigned int mWidth, mHeight;
         bool mFullscreen, mMaximized;
         unsigned int mTimeout;
+        float mGUIScalingFactor = 1.0f;
         QEventLoop* mEventLoop;
         ComputationThread* mThread;
     private:

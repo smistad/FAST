@@ -19,13 +19,16 @@
 #include <QInputDialog>
 #include <FAST/PipelineEditor.hpp>
 #include <fstream>
+#include <QDesktopWidget>
+#include <QApplication>
 
 
 namespace fast {
 
 GUI::GUI() {
 
-    menuWidth = 300;
+    QDesktopWidget* desktop = QApplication::desktop();
+    menuWidth = desktop->width()*(1.0f/6.0f);
     mPipelineWidget = nullptr;
     mStreamer = ImageFileStreamer::New();
 
@@ -35,8 +38,8 @@ GUI::GUI() {
     View* view = createView();
     view->set2DMode();
     view->setBackgroundColor(Color::Black());
-    setWidth(1280);
-    setHeight(768);
+    setWidth(desktop->width());
+    setHeight(desktop->height());
     enableMaximized();
     setTitle("FAST - Viewer");
     viewLayout->addWidget(view);
@@ -46,18 +49,16 @@ GUI::GUI() {
 
     // Logo
     QImage* image = new QImage;
-	std::cout << "asd" << std::endl;
     image->load((Config::getDocumentationPath() + "images/FAST_logo_square.png").c_str());
     QLabel* logo = new QLabel;
     logo->setPixmap(QPixmap::fromImage(image->scaled(menuWidth, ((float)menuWidth/image->width())*image->height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation)));
     logo->adjustSize();
     menuLayout->addWidget(logo);
-	std::cout << "asd2" << std::endl;
 
     // Title label
     QLabel* title = new QLabel;
     title->setText("<div style=\"text-align: center; font-weight: bold; font-size: 24px;\">Viewer</div>");
-    title->setFixedHeight(32);
+    //title->setFixedHeight(32);
     menuLayout->addWidget(title);
 
     // Quit button
@@ -71,7 +72,7 @@ GUI::GUI() {
     QObject::connect(quitButton, &QPushButton::clicked, std::bind(&Window::stop, this));
 
     QLabel* inputListLabel = new QLabel;
-    inputListLabel->setFixedHeight(24);
+    //inputListLabel->setFixedHeight(24);
     inputListLabel->setText("Input data");
     inputListLabel->setStyleSheet("QLabel { font-weight: bold; }");
     menuLayout->addWidget(inputListLabel);
@@ -79,11 +80,10 @@ GUI::GUI() {
     mList = new QListWidget;
     mList->setFixedWidth(menuWidth);
     mList->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    mList->setFixedHeight(100);
+    mList->setFixedHeight(200);
     mList->setSelectionMode(QAbstractItemView::ExtendedSelection); // Allow multiple items to be selected
     QObject::connect(mList, &QListWidget::itemSelectionChanged, std::bind(&GUI::selectInputData, this));
     menuLayout->addWidget(mList);
-	std::cout << "asd3" << std::endl;
 
     QPushButton* addButton = new QPushButton;
     addButton->setText("Add input data");
@@ -94,14 +94,12 @@ GUI::GUI() {
     QLabel* selectPipelineLabel = new QLabel;
     selectPipelineLabel->setText("Active pipeline");
     selectPipelineLabel->setStyleSheet("QLabel { font-weight: bold; }");
-    selectPipelineLabel->setFixedHeight(24);
+    //selectPipelineLabel->setFixedHeight(24);
     menuLayout->addWidget(selectPipelineLabel);
 
     mSelectPipeline = new QComboBox;
     mSelectPipeline->setFixedWidth(menuWidth);
-	std::cout << "asd4" << std::endl;
     mPipelines = getAvailablePipelines();
-	std::cout << "asd5" << std::endl;
     int index = 0;
     int counter = 0;
     for(auto pipeline : mPipelines) {
@@ -143,7 +141,7 @@ GUI::GUI() {
     mPlayPauseButton = new QPushButton;
     mPlayPauseButton->setText("Play");
     mPlayPauseButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
-    mPlayPauseButton->setFixedHeight(100);
+    //mPlayPauseButton->setFixedHeight(100);
     QObject::connect(mPlayPauseButton, &QPushButton::clicked, std::bind(&GUI::playPause, this));
     playbackLayout->addWidget(mPlayPauseButton);
 

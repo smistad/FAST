@@ -21,7 +21,9 @@ SimpleGUI::SimpleGUI() {
     View* view = createView();
     view->set3DMode();
 
-    enableFullscreen();
+    setWidth(std::min(1920, getScreenWidth()));
+    setHeight(std::min(1080, getScreenHeight()));
+    enableMaximized();
 
     // Import image
     ImageFileImporter::pointer importer = ImageFileImporter::New();
@@ -52,16 +54,17 @@ SimpleGUI::SimpleGUI() {
 
     // Title label
     QLabel* title = new QLabel;
-    title->setText("Menu");
+    title->setText("Simple GUI<br>Example");
     QFont font;
-    font.setPointSize(28);
+    font.setPointSize((int)round(18*getScalingFactor()));
     title->setFont(font);
     menuLayout->addWidget(title);
 
 	// Quit button
+    const int width = getScreenWidth()/6.0f;
     QPushButton* quitButton = new QPushButton;
     quitButton->setText("Quit");
-    quitButton->setFixedWidth(200);
+    quitButton->setFixedWidth(width);
     menuLayout->addWidget(quitButton);
 
     // Connect the clicked signal of the quit button to the stop method for the window
@@ -77,7 +80,7 @@ SimpleGUI::SimpleGUI() {
     slider->setMinimum(0);
     slider->setMaximum(3);
     slider->setValue(1);
-    slider->setFixedWidth(200);
+    slider->setFixedWidth(width);
     menuLayout->addWidget(slider);
 
     // Connect the value changed signal of the slider to the updateSmoothingParameter method
@@ -93,7 +96,7 @@ SimpleGUI::SimpleGUI() {
     slider2->setMinimum(-100);
     slider2->setMaximum(300);
     slider2->setValue(100);
-    slider2->setFixedWidth(200);
+    slider2->setFixedWidth(width);
     menuLayout->addWidget(slider2);
 
     // Connect the value changed signal of the slider to the updateThreshold method

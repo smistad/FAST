@@ -9,7 +9,7 @@ namespace fast {
 
 QGLContext* Window::mMainGLContext = NULL;
 
-class FAST_EXPORT  FASTApplication : public QApplication {
+class FAST_EXPORT FASTApplication : public QApplication {
 public:
     FASTApplication(int &argc, char **argv) : QApplication(argc, argv) {
     }
@@ -37,6 +37,26 @@ Window::Window() {
     mThread = NULL;
     mTimeout = 0;
     initializeQtApp();
+
+    // Scaling GUI
+    QFont defaultFont = QApplication::font();
+    QDesktopWidget *desktop = QApplication::desktop();
+    int screenWidth = desktop->width();
+    if(defaultFont.pointSize() < 10 && screenWidth > 2000) {
+        if(screenWidth > 3000) {
+            // 4K screens
+            Reporter::info() << "Large screen detected with width: " << screenWidth << Reporter::end();
+            Reporter::info() << "Scaling default font with factor 2" << Reporter::end();
+            mGUIScalingFactor = 2;
+        } else {
+            Reporter::info() << "Medium large screen detected with width: " << screenWidth << Reporter::end();
+            Reporter::info() << "Scaling default font with factor 1.5" << Reporter::end();
+            mGUIScalingFactor = 1.5;
+        }
+    }
+    defaultFont.setPointSize((int)round(defaultFont.pointSize() * mGUIScalingFactor));
+    QApplication::setFont(defaultFont);
+
 	mEventLoop = NULL;
     mWidget = new WindowWidget;
     mEventLoop = new QEventLoop(mWidget);
@@ -267,6 +287,20 @@ void Window::setHeight(uint height) {
 void Window::setSize(uint width, uint height) {
     setWidth(width);
     setHeight(height);
+}
+
+float Window::getScalingFactor() const {
+    return mGUIScalingFactor;
+}
+
+int Window::getScreenWidth() const {
+    QDesktopWidget *desktop = QApplication::desktop();
+    return desktop->width();
+}
+
+int Window::getScreenHeight() const {
+    QDesktopWidget *desktop = QApplication::desktop();
+    return desktop->height();
 }
 
 } // end namespace fast
