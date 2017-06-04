@@ -16,7 +16,9 @@
 #include <QDesktopServices>
 #include <QListWidget>
 #include <QFileDialog>
+#include <QInputDialog>
 #include <FAST/PipelineEditor.hpp>
+#include <fstream>
 
 
 namespace fast {
@@ -128,6 +130,13 @@ GUI::GUI() {
     QObject::connect(editPipeline, &QPushButton::clicked, std::bind(&GUI::editPipeline, this));
     menuLayout->addWidget(editPipeline);
 
+    QPushButton* newPipeline = new QPushButton;
+    newPipeline->setText("New pipeline");
+    newPipeline->setStyleSheet("QPushButton { background-color: blue; color: white; }");
+    newPipeline->setFixedWidth(menuWidth);
+    QObject::connect(newPipeline, &QPushButton::clicked, std::bind(&GUI::newPipeline, this));
+    menuLayout->addWidget(newPipeline);
+
     // Playback
     QHBoxLayout* playbackLayout = new QHBoxLayout;
 
@@ -156,14 +165,34 @@ GUI::GUI() {
 
 }
 
-/*
 void GUI::newPipeline() {
-    QInputDialog* dialog = new QInputDialog(this) ;
-    dialog->setLabelText("Enter filename of new pipeline");
-    dialog->setOkButtonText("Create pipeline");
-    dialog->show();
+    bool ok;
+    QString text = QInputDialog::getText(mWidget, "Create new pipeline", "Enter filename of new pipeline:", QLineEdit::Normal, "", &ok);
+
+    if(ok && !text.isEmpty()) {
+        std::string filename = (const char*)text.toUtf8();
+        // Make sure file ends with .fpl
+        if(filename.substr(filename.size() - 3) != "fpl")
+            filename += ".fpl";
+
+        // Create pipeline file with template
+        std::ofstream file(Config::getPipelinePath() + filename);
+        file << "# New pipeline template\n"
+         "PipelineName \"<Pipeline name here>\"\n"
+        "PipelineDescription \"<Pipeline description here>\"\n\n"
+
+        "# Pipeline needs at least 1 renderer\n"
+        "Renderer renderer ImageRenderer\n"
+        "Input 0 PipelineInput\n"
+        "Attribute window 255\n"
+        "Attribute level 127.5\n";
+        file.close();
+
+        PipelineEditor *editor = new PipelineEditor(filename);
+        QObject::connect(editor, &PipelineEditor::saved, std::bind(&GUI::selectPipeline, this));
+        editor->show();
+    }
 }
- */
 
 void GUI::editPipeline() {
     int selectedPipeline = mSelectPipeline->currentIndex();

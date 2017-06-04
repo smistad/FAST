@@ -22,6 +22,7 @@ class GUI : public Window {
     public:
         void selectPipeline();
         void editPipeline();
+        void newPipeline();
         void addInputData();
         void selectInputData();
         void playPause();
