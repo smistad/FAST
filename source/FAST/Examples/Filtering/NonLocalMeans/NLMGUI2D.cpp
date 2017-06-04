@@ -13,6 +13,8 @@
 #include "FAST/Exporters/ImageExporter.hpp"
 //#include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include <functional>
+#include <FAST/Algorithms/ScaleImage/ScaleImage.hpp>
+#include <FAST/Streamers/ImageFileStreamer.hpp>
 
 
 namespace fast {
@@ -30,18 +32,25 @@ NLMGUI2D::NLMGUI2D() {
     //enableFullscreen();
 
     // Import image
-    ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "/US/US-2D.jpg");
-    //importer->setFilename(Config::getTestDataPath() + "/US-1-2D.png");
-    
+    ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
+    streamer->setFilenameFormat(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_#.mhd");
+    streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+    streamer->enableLooping();
+    streamer->setSleepTime(200);
+
+    ScaleImage::pointer scaleImage = ScaleImage::New();
+    scaleImage->setHighestValue(1.0f);
+    scaleImage->setLowestValue(0.0f);
+    scaleImage->setInputConnection(streamer->getOutputPort());
+
     
     // Smooth images
     nlmSmoothing = NonLocalMeans::New();
-    nlmSmoothing->setInputConnection(importer->getOutputPort());
-    nlmSmoothing->setSigma(0.65f);
+    nlmSmoothing->setInputConnection(scaleImage->getOutputPort());
+    nlmSmoothing->setSigma(0.2f);
     nlmSmoothing->setGroupSize(5);
     nlmSmoothing->setWindowSize(11);
-    nlmSmoothing->setDenoiseStrength(0.300);
+    nlmSmoothing->setDenoiseStrength(0.3);
     nlmSmoothing->setK(1);
     nlmSmoothing->setEuclid(1);
     nlmSmoothing->enableRuntimeMeasurements();
@@ -63,7 +72,7 @@ NLMGUI2D::NLMGUI2D() {
     view->addRenderer(renderer);
     
     rendererOrig = ImageRenderer::New();
-    rendererOrig->addInputConnection(importer->getOutputPort());
+    rendererOrig->addInputConnection(streamer->getOutputPort());
     viewOrig->addRenderer(rendererOrig);
     // Create and add GUI elements
 
