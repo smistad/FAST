@@ -57,8 +57,12 @@ GUI::GUI() {
 
     // Title label
     QLabel* title = new QLabel;
-    title->setText("<div style=\"text-align: center; font-weight: bold; font-size: 24px;\">Viewer</div>");
-    //title->setFixedHeight(32);
+    title->setText("Viewer");
+	QFont font;
+	font.setPixelSize(24 * getScalingFactor());
+	font.setWeight(QFont::Bold);
+	title->setFont(font);
+	title->setAlignment(Qt::AlignCenter);
     menuLayout->addWidget(title);
 
     // Quit button

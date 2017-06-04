@@ -38,31 +38,34 @@ GUI::GUI() {
 
     // Title label
     QLabel* title = new QLabel;
-    title->setText("<div style=\"text-align: center; font-weight: bold; font-size: 24px;\">OpenIGTLink<br>Server</div>");
+    title->setText("OpenIGTLink<br>Server");
+	QFont font;
+	font.setPixelSize(24 * getScalingFactor());
+	font.setWeight(QFont::Bold);
+	title->setFont(font);
+	title->setAlignment(Qt::AlignCenter);
     layout->addWidget(title);
 
     // Quit button
     QPushButton* quitButton = new QPushButton;
     quitButton->setText("Quit (q)");
-    quitButton->setStyleSheet("QPushButton { font-size: 24px; background-color: red; color: white; }");
+    quitButton->setStyleSheet("QPushButton { background-color: red; color: white; }");
     QObject::connect(quitButton, &QPushButton::clicked, std::bind(&Window::stop, this));
     layout->addWidget(quitButton);
 
 
     mStartStopButton = new QPushButton;
     mStartStopButton->setText("Start streaming");
-    mStartStopButton->setStyleSheet("QPushButton { font-size: 24px; color: white; background-color: green; }");
+    mStartStopButton->setStyleSheet("QPushButton { color: white; background-color: green; }");
     layout->addWidget(mStartStopButton);
     QObject::connect(mStartStopButton, &QPushButton::clicked, std::bind(&GUI::toggleServer, this));
 
     mStatus = new QLabel;
     mStatus->setText("Current status: Server not running");
-    mStatus->setStyleSheet("QLabel { font-size: 24px; }");
     layout->addWidget(mStatus);
 
     QLabel* listLabel = new QLabel;
     listLabel->setText("Recordings");
-    listLabel->setStyleSheet("QLabel { font-size: 24px; }");
     layout->addWidget(listLabel);
 
     mList = new QListWidget;
