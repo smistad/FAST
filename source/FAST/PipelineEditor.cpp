@@ -72,6 +72,8 @@ void PipelineEditor::save() {
     std::string text = std::string(mEditor->toPlainText().toUtf8());
     file << text;
     file.close();
+    emit saved();
 }
+
 
 }

@@ -169,6 +169,7 @@ void GUI::editPipeline() {
     int selectedPipeline = mSelectPipeline->currentIndex();
     Pipeline pipeline = mPipelines.at(selectedPipeline);
     PipelineEditor* editor = new PipelineEditor(pipeline.getFilename());
+    QObject::connect(editor, &PipelineEditor::saved, std::bind(&GUI::selectPipeline, this));
     editor->show();
 }
 

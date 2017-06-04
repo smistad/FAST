@@ -69,6 +69,7 @@ set(QT_HEADERS
         source/FAST/Visualization/Window.hpp
         source/FAST/Visualization/ComputationThread.hpp
         source/FAST/Examples/Interoperability/qtInteroperability.hpp
+        source/FAST/PipelineEditor.hpp
 )
 
 # Set debug define if debug mode is set
