@@ -15,6 +15,7 @@
 #include <QElapsedTimer>
 #include <QComboBox>
 #include <QDesktopServices>
+#include <FAST/PipelineEditor.hpp>
 
 
 namespace fast {
@@ -191,7 +192,8 @@ void GUI::newPipeline() {
 void GUI::editPipeline() {
     int selectedPipeline = mSelectPipeline->currentIndex();
     Pipeline pipeline = mPipelines.at(selectedPipeline);
-    QDesktopServices::openUrl(QUrl(("file://" + pipeline.getFilename()).c_str()));
+    PipelineEditor* editor = new PipelineEditor(pipeline.getFilename());
+    editor->show();
 }
 
 void GUI::selectPipeline() {
