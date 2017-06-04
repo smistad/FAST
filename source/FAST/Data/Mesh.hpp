@@ -27,7 +27,7 @@ class FAST_EXPORT Mesh : public SpatialDataObject {
                 std::vector<MeshTriangle> triangles = {}
         );
         void create(unsigned int nrOfTriangles);
-        VertexBufferObjectAccess::pointer getVertexBufferObjectAccess(accessType access, OpenCLDevice::pointer device);
+        VertexBufferObjectAccess::pointer getVertexBufferObjectAccess(accessType access);
         MeshAccess::pointer getMeshAccess(accessType access);
         MeshOpenCLAccess::pointer getOpenCLAccess(accessType access, OpenCLDevice::pointer device);
         int getNrOfTriangles() const;

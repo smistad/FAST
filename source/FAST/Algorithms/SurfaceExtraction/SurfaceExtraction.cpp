@@ -315,7 +315,7 @@ void SurfaceExtraction::execute() {
         i += 2;
     }
 
-    VertexBufferObjectAccess::pointer VBOaccess = output->getVertexBufferObjectAccess(ACCESS_READ_WRITE, device);
+    VertexBufferObjectAccess::pointer VBOaccess = output->getVertexBufferObjectAccess(ACCESS_READ_WRITE);
     GLuint* VBO_ID = VBOaccess->get();
     cl::Buffer VBOBuffer;
     std::vector<cl::Memory> v;

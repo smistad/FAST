@@ -101,7 +101,7 @@ void TriangleRenderer::draw() {
         GLfloat shininess[] = { 16.0f };
         glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
 
-        VertexBufferObjectAccess::pointer access = surfaceToRender->getVertexBufferObjectAccess(ACCESS_READ, getMainDevice());
+        VertexBufferObjectAccess::pointer access = surfaceToRender->getVertexBufferObjectAccess(ACCESS_READ);
         GLuint* VBO_ID = access->get();
 
         // Normal Buffer
@@ -123,6 +123,7 @@ void TriangleRenderer::draw() {
             glDisable(GL_BLEND);
         }
         glPopMatrix();
+        glFinish();
     }
 
     glDisable(GL_LIGHTING);
