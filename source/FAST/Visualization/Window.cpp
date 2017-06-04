@@ -107,21 +107,21 @@ void Window::initializeQtApp() {
 
         // Set default window icon
         QApplication::setWindowIcon(QIcon((Config::getDocumentationPath() + "images/fast_icon.png").c_str()));
-
-         // Create computation GL context, if it doesn't exist
-        if(mMainGLContext == NULL) {
-            Reporter::info() << "Creating new GL context for computation thread" << Reporter::end();
-
-            // Create GL context to be shared with the CL contexts
-            QGLWidget* widget = new QGLWidget;
-            mMainGLContext = new QGLContext(QGLFormat::defaultFormat(), widget); // by including widget here the context becomes valid
-            mMainGLContext->create();
-            if(!mMainGLContext->isValid()) {
-                throw Exception("Qt GL context is invalid!");
-            }
-        }
     } else {
         Reporter::info() << "QApp already exists.." << Reporter::end();
+    }
+
+     // Create computation GL context, if it doesn't exist
+    if(mMainGLContext == NULL) {
+        Reporter::info() << "Creating new GL context for computation thread" << Reporter::end();
+
+        // Create GL context to be shared with the CL contexts
+        QGLWidget* widget = new QGLWidget;
+        mMainGLContext = new QGLContext(QGLFormat::defaultFormat(), widget); // by including widget here the context becomes valid
+        mMainGLContext->create();
+        if(!mMainGLContext->isValid()) {
+            throw Exception("Qt GL context is invalid!");
+        }
     }
 
     // There is a bug in AMD OpenCL related to comma (,) as decimal point
@@ -222,8 +222,8 @@ void Window::setTimeout(unsigned int milliseconds) {
 
 QGLContext* Window::getMainGLContext() {
     if(mMainGLContext == NULL) {
-        throw Exception("No OpenGL context created");
-        //initializeQtApp();
+        //throw Exception("No OpenGL context created");
+        initializeQtApp();
     }
 
     return mMainGLContext;
