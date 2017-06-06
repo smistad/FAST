@@ -74,6 +74,7 @@ void NonLocalMeans::setDenoiseStrength(float dS){
 	if (dS <= 0)
 		throw Exception("NoneLocalMeans denoise strength must be greater then 0.");
 
+    std::cout << "CHANGING DENOISE TO: " << dS << std::endl;
 	denoiseStrength = dS;
     mIsModified = true;
 	//recompile = true;
@@ -172,7 +173,8 @@ void NonLocalMeans::recompileOpenCLCode(Image::pointer input) {
     if(input->getDimensions() == mDimensionCLCodeCompiledFor &&
        input->getDataType() == mTypeCLCodeCompiledFor && !recompile)
         return;
-    
+
+    std::cout << "RECOMPILING..." << std::endl;
     recompile = false;
     OpenCLDevice::pointer device = getMainDevice();
     std::string buildOptions = "";
@@ -256,9 +258,11 @@ void NoneLocalMeans::recompileOpenCLCode(Image::pointer input) {
 	mTypeCLCodeCompiledFor = input->getDataType();
 }*/
 void NonLocalMeans::execute() {
+    std::cout << "EXECUTE" << std::endl;
     Image::pointer input = getStaticInputData<Image>(0);
     Image::pointer output = getStaticOutputData<Image>(0);
-    
+    std::cout << "GOT DATA" << std::endl;
+
     // Initialize output image
     ExecutionDevice::pointer device = getMainDevice();
     if(mOutputTypeSet) {
@@ -284,6 +288,7 @@ void NonLocalMeans::execute() {
         
         OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
         if(input->getDimensions() == 2) {
+            std::cout << "DOING CL" << std::endl;
             OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
             mKernel.setArg(2, (denoiseStrength*denoiseStrength));
             mKernel.setArg(3, (sigma*sigma));

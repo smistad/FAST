@@ -3,19 +3,20 @@
 
 #include <map>
 #include <iostream>
+#include "FASTExport.hpp"
 
 #undef ERROR // undefine some windows garbage
 
 namespace fast {
 
 // Use to signal end of report line
-class ReporterEnd {
+class FAST_EXPORT  ReporterEnd {
 
 };
 
-class Reporter {
+class FAST_EXPORT  Reporter {
     public:
-        static ReporterEnd end;
+        static ReporterEnd end();
         static Reporter info();
         static Reporter warning();
         static Reporter error();
@@ -74,7 +75,7 @@ Reporter operator<<(Reporter report, const T& content) {
 }
 
 template <>
-Reporter operator<<(Reporter report, const ReporterEnd& end);
+FAST_EXPORT Reporter operator<<(Reporter report, const ReporterEnd& end);
 
 } // end namespace fast
 

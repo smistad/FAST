@@ -15,13 +15,14 @@
 #include <QElapsedTimer>
 #include <QComboBox>
 #include <QDesktopServices>
+#include <FAST/PipelineEditor.hpp>
 
 
 namespace fast {
 
 GUI::GUI() {
 
-    menuWidth = 300;
+    menuWidth = getScreenWidth()/6;
 
     mClient = OpenIGTLinkClient::New();
     mConnected = false;
@@ -53,7 +54,12 @@ GUI::GUI() {
 
     // Title label
     QLabel* title = new QLabel;
-    title->setText("<div style=\"text-align: center; font-weight: bold; font-size: 24px;\">OpenIGTLink<br>Client</div>");
+    title->setText("OpenIGTLink<br>Client");
+	QFont font;
+	font.setPixelSize(24 * getScalingFactor());
+	font.setWeight(QFont::Bold);
+	title->setFont(font);
+	title->setAlignment(Qt::AlignCenter);
     menuLayout->addWidget(title);
 
     // Quit button
@@ -191,7 +197,9 @@ void GUI::newPipeline() {
 void GUI::editPipeline() {
     int selectedPipeline = mSelectPipeline->currentIndex();
     Pipeline pipeline = mPipelines.at(selectedPipeline);
-    QDesktopServices::openUrl(QUrl(("file://" + pipeline.getFilename()).c_str()));
+    PipelineEditor* editor = new PipelineEditor(pipeline.getFilename());
+    QObject::connect(editor, &PipelineEditor::saved, std::bind(&GUI::selectPipeline, this));
+    editor->show();
 }
 
 void GUI::selectPipeline() {
@@ -247,8 +255,8 @@ void GUI::selectStream() {
 
     reportInfo() << "Trying to connect..." << reportEnd();
     mStreamer = IGTLinkStreamer::New();
-    mStreamer->setConnectionAddress(mAddress->text().toStdString());
-    mStreamer->setConnectionPort(std::stoi(mPort->text().toStdString()));
+    mStreamer->setConnectionAddress(mAddress->text().toUtf8().constData());
+    mStreamer->setConnectionPort(std::stoi(mPort->text().toUtf8().constData()));
     mClient->setInputConnection(mStreamer->getOutputPort<Image>(streamName));
     try {
         mStreamer->update();
@@ -288,8 +296,8 @@ void GUI::connect() {
     } else {
         reportInfo() << "Trying to connect..." << reportEnd();
         mStreamer = IGTLinkStreamer::New();
-        mStreamer->setConnectionAddress(mAddress->text().toStdString());
-        mStreamer->setConnectionPort(std::stoi(mPort->text().toStdString()));
+        mStreamer->setConnectionAddress(mAddress->text().toUtf8().constData());
+        mStreamer->setConnectionPort(std::stoi(mPort->text().toUtf8().constData()));
         mClient->setInputConnection(mStreamer->getOutputPort());
         try {
             mStreamer->update();
@@ -349,7 +357,7 @@ void GUI::record() {
         message->show();
         return;
     }
-    bool recording = mClient->toggleRecord(storageDir->text().toStdString());
+    bool recording = mClient->toggleRecord(storageDir->text().toUtf8().constData());
     if(recording) {
         mRecordTimer->start();
         std::string msg = "Recording to: " + mClient->getRecordingName();

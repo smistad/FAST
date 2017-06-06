@@ -6,7 +6,7 @@
 
 namespace fast {
 
-class SetTransformation : public ProcessObject {
+class FAST_EXPORT  SetTransformation : public ProcessObject {
     FAST_OBJECT(SetTransformation)
     public:
         void setTransformationInputConnection(ProcessObjectPort port);

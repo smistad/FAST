@@ -10,7 +10,7 @@ namespace fast {
  * image to a value between 0 and 1 (default) or other
  * values if set.
  */
-class ScaleImage : public ProcessObject {
+class FAST_EXPORT  ScaleImage : public ProcessObject {
     FAST_OBJECT(ScaleImage);
     public:
         void setLowestValue(float value);

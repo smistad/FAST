@@ -9,61 +9,61 @@
 #include <QPushButton>
 #include <QSlider>
 #include <FAST/Importers/ImageFileImporter.hpp>
-#include <FAST/Visualization/MeshRenderer/MeshRenderer.hpp>
+#include <FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp>
 #include "FAST/Exporters/ImageExporter.hpp"
 //#include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include <functional>
+#include <FAST/Algorithms/ScaleImage/ScaleImage.hpp>
+#include <FAST/Streamers/ImageFileStreamer.hpp>
 
 
 namespace fast {
 
 NLMGUI2D::NLMGUI2D() {
 
+
     viewOrig = createView();
+    viewOrig->setBackgroundColor(Color::Black());
     viewOrig->set2DMode();
-    //viewOrig->set3DMode();
-    // Create a 3D view
-    //View* view = createView();
     view = createView();
-    //view->set3DMode();
+    view->setBackgroundColor(Color::Black());
     view->set2DMode();
-    //enableFullscreen();
+
+    setWidth(getScreenWidth());
+    setHeight(getScreenHeight());
+    enableMaximized();
 
     // Import image
-    ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "/US/US-2D.jpg");
-    //importer->setFilename(Config::getTestDataPath() + "/US-1-2D.png");
-    
-    
+    ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
+    streamer->setFilenameFormat(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_#.mhd");
+    streamer->setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
+    streamer->enableLooping();
+    streamer->setSleepTime(100);
+
+    ScaleImage::pointer scaleImage = ScaleImage::New();
+    scaleImage->setHighestValue(1.0f);
+    scaleImage->setLowestValue(0.0f);
+    scaleImage->setInputConnection(streamer->getOutputPort());
+
     // Smooth images
     nlmSmoothing = NonLocalMeans::New();
-    nlmSmoothing->setInputConnection(importer->getOutputPort());
-    nlmSmoothing->setSigma(0.65f);
+    nlmSmoothing->setInputConnection(scaleImage->getOutputPort());
+    nlmSmoothing->setSigma(0.3f);
     nlmSmoothing->setGroupSize(5);
-    nlmSmoothing->setWindowSize(11);
-    nlmSmoothing->setDenoiseStrength(0.300);
-    nlmSmoothing->setK(1);
+    nlmSmoothing->setWindowSize(51);
+    nlmSmoothing->setDenoiseStrength(0.06);
+    nlmSmoothing->setK(4);
     nlmSmoothing->setEuclid(1);
     nlmSmoothing->enableRuntimeMeasurements();
-    //mSmoothing = GaussianSmoothingFilter::New();
-    //mSmoothing->setInputConnection(importer->getOutputPort());
-    //mSmoothing->setStandardDeviation(1);
-
-    // Set up surface extraction
-    //mSurfaceExtraction = SurfaceExtraction::New();
-    //mSurfaceExtraction->setInputConnection(nlmSmoothing->getOutputPort());
-    //mSurfaceExtraction->setThreshold(100);
 
     // Set up rendering
     renderer = ImageRenderer::New();
-    //ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->addInputConnection(nlmSmoothing->getOutputPort());
-    //MeshRenderer::pointer renderer = MeshRenderer::New();
-    //renderer->addInputConnection(mSurfaceExtraction->getOutputPort());
+    renderer->setIntensityLevel(0.6);
     view->addRenderer(renderer);
     
     rendererOrig = ImageRenderer::New();
-    rendererOrig->addInputConnection(importer->getOutputPort());
+    rendererOrig->addInputConnection(streamer->getOutputPort());
     viewOrig->addRenderer(rendererOrig);
     // Create and add GUI elements
 
@@ -189,18 +189,9 @@ NLMGUI2D::NLMGUI2D() {
     layout->addWidget(viewOrig);
     layout->addWidget(view);
     
-
     mWidget->setLayout(layout);
 }
-    
-void NLMGUI2D::updateThreshold(int value) {
-	mSurfaceExtraction->setThreshold(value);
 
-	// Update label
-	std::string text = "Threshold: " + std::to_string(value) + " HU";
-	mThresholdLabel->setText(text.c_str());
-}
-    
 void NLMGUI2D::updateE(int value){
     nlmSmoothing->setEuclid(value);
     //Her skal jeg update label
@@ -215,7 +206,6 @@ void NLMGUI2D::updateDenoiseParameter(int value){
     //Her skal jeg update label
     std::string text = "Denoise Strength: " + std::to_string(newDs) + " ";
     nlmStrengthLabel->setText(text.c_str());
-    nlmSmoothing->getRuntime()->print();
 }
 void NLMGUI2D::updateGroupSize(int value){
     if(value > 0 && value % 2 == 1){

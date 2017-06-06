@@ -10,7 +10,7 @@ namespace fast {
 
 class Image;
 
-class ManualImageStreamer : public Streamer, public ProcessObject {
+class FAST_EXPORT  ManualImageStreamer : public Streamer, public ProcessObject {
     FAST_OBJECT(ManualImageStreamer)
     public:
     	void addImage(SharedPointer<Image> image);

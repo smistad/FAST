@@ -9,7 +9,7 @@ namespace fast {
  * Class used to represent a mesh shape.
  *
  */
-class Shape : public Object {
+class FAST_EXPORT  Shape : public Object {
 	FAST_OBJECT(Shape)
 	public:
 		Mesh::pointer getMesh() const;

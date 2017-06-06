@@ -97,7 +97,7 @@ void ManualImageStreamer::producerStream() {
                 } catch(NoMoreFramesException &e) {
                     throw e;
                 } catch(Exception &e) {
-                    reportInfo() << "streamer has been deleted, stop" << Reporter::end;
+                    reportInfo() << "streamer has been deleted, stop" << Reporter::end();
                     break;
                 }
                 if(!mFirstFrameIsInserted) {
@@ -108,14 +108,14 @@ void ManualImageStreamer::producerStream() {
                     mFirstFrameCondition.notify_one();
                 }
             } else {
-                reportInfo() << "DynamicImage object destroyed, stream can stop." << Reporter::end;
+                reportInfo() << "DynamicImage object destroyed, stream can stop." << Reporter::end();
                 break;
             }
             mNrOfFrames++;
             i += mStepSize;
         } catch(std::out_of_range &e) {
             if(i > 0) {
-                reportInfo() << "Reached end of stream" << Reporter::end;
+                reportInfo() << "Reached end of stream" << Reporter::end();
                 // If there where no files found at all, we need to release the execute method
                 if(!mFirstFrameIsInserted) {
                     {

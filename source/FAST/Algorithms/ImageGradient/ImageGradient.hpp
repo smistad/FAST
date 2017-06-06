@@ -6,7 +6,7 @@
 
 namespace fast {
 
-class ImageGradient : public ProcessObject {
+class FAST_EXPORT  ImageGradient : public ProcessObject {
     FAST_OBJECT(ImageGradient);
     public:
         /**

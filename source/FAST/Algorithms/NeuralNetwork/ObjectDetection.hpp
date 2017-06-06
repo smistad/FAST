@@ -6,7 +6,7 @@
 
 namespace fast {
 
-class ObjectDetection : public NeuralNetwork {
+class FAST_EXPORT  ObjectDetection : public NeuralNetwork {
 	FAST_OBJECT(ObjectDetection)
 	public:
 		void setMirrorImage(bool mirrorImage);

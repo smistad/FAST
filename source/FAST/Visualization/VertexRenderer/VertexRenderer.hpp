@@ -8,8 +8,8 @@
 
 namespace fast {
 
-class PointRenderer : public Renderer {
-    FAST_OBJECT(PointRenderer)
+class FAST_EXPORT  VertexRenderer : public Renderer {
+    FAST_OBJECT(VertexRenderer)
     public:
         void addInputConnection(ProcessObjectPort port);
         void addInputConnection(ProcessObjectPort port, Color color, float size);
@@ -26,13 +26,13 @@ class PointRenderer : public Renderer {
                 cl::BufferGL PBO,
                 uint width,
                 uint height,
-                Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform,
+                Affine3f pixelToViewportTransform,
                 float PBOspacing,
                 Vector2f translation
         );
         BoundingBox getBoundingBox();
     private:
-        PointRenderer();
+        VertexRenderer();
         void execute();
 
         float mDefaultPointSize;

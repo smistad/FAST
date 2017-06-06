@@ -14,7 +14,7 @@ namespace fast {
 class View;
 class BoundingBox;
 
-class Renderer : public ProcessObject {
+class FAST_EXPORT  Renderer : public ProcessObject {
     public:
         typedef SharedPointer<Renderer> pointer;
         virtual void draw() = 0;
@@ -28,7 +28,7 @@ class Renderer : public ProcessObject {
                 cl::Buffer PBO,
                 uint width,
                 uint height,
-                Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform,
+                Affine3f pixelToViewportTransform,
                 float PBOspacing,
                 Vector2f translation
         ) {};

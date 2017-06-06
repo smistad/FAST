@@ -579,9 +579,9 @@ VectorXf MeanValueCoordinatesModel::getInitialState(Image::pointer image) {
 		Shape::pointer defaultShape = getShape(defaultState);
 		Vector3f modelCentroid = defaultShape->getCentroid();
 
-		AffineTransformation::pointer transformMatrix = SceneGraph::getAffineTransformationFromData(currentFrame);
-		transformMatrix->scale(currentFrame->getSpacing());
-		volumeCentroid = transformMatrix->multiply(volumeCentroid);
+        Affine3f transform = SceneGraph::getAffineTransformationFromData(currentFrame)->getTransform();
+		transform.scale(currentFrame->getSpacing());
+		volumeCentroid = transform*volumeCentroid;
 		Vector3f translation = volumeCentroid - modelCentroid;
 
 		return getState(translation, mInitialScaling, Vector3f::Zero());

@@ -15,7 +15,7 @@ namespace fast {
 
 class OpenCLDevice;
 
-class OpenCLProgram : public Object {
+class FAST_EXPORT  OpenCLProgram : public Object {
     FAST_OBJECT(OpenCLProgram)
     public:
         void setName(std::string name);

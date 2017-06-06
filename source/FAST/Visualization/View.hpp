@@ -14,7 +14,7 @@ namespace fast {
 
 class ComputationThread;
 
-class View : public QGLWidget, public ProcessObject {
+class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
     //FAST_OBJECT(View)
     Q_OBJECT
     public:
@@ -61,10 +61,10 @@ class View : public QGLWidget, public ProcessObject {
 		void renderVolumes();
 
 		Plane mViewingPlane;
-        Eigen::Affine3f m2DViewingTransformation;
+        Affine3f m2DViewingTransformation;
 
         // Camera
-        AffineTransformation m3DViewingTransformation;
+        Affine3f m3DViewingTransformation;
 		Vector3f mRotationPoint;
 		Vector3f mCameraPosition;
 		bool mCameraSet;

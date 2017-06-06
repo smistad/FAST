@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class Skeletonization : public ProcessObject {
+class FAST_EXPORT  Skeletonization : public ProcessObject {
     FAST_OBJECT(Skeletonization)
     public:
     private:

@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class InverseGradientSegmentation : public ProcessObject {
+class FAST_EXPORT  InverseGradientSegmentation : public ProcessObject {
     FAST_OBJECT(InverseGradientSegmentation)
     public:
         void setCenterlineInputConnection(ProcessObjectPort port);

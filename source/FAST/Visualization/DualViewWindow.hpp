@@ -8,7 +8,7 @@
 
 namespace fast {
 
-class DualViewWindow : public Window {
+class FAST_EXPORT  DualViewWindow : public Window {
     FAST_OBJECT(DualViewWindow)
     public:
         void addRendererToTopLeftView(Renderer::pointer renderer);

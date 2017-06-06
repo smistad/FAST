@@ -60,6 +60,8 @@ void ScaleImage::execute() {
             kernel.setArg(6, output->getNrOfComponents());
         }
     }
+    output->setSpacing(input->getSpacing());
+    SceneGraph::setParentNode(output, input);
 
     kernel.setArg(2, minimum);
     kernel.setArg(3, maximum);

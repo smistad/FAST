@@ -20,7 +20,7 @@ public:
   double G;
   double B;
 };
-class ColorTransferFunction : public Object {
+class FAST_EXPORT  ColorTransferFunction : public Object {
     FAST_OBJECT(ColorTransferFunction)
     public:
 

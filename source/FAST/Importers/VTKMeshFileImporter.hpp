@@ -8,7 +8,7 @@
 
 namespace fast {
 
-class VTKMeshFileImporter : public Importer {
+class FAST_EXPORT  VTKMeshFileImporter : public Importer {
     FAST_OBJECT(VTKMeshFileImporter)
     public:
         void setFilename(std::string filename);

@@ -17,7 +17,6 @@ std::map<Reporter::Type, Reporter::Method> Reporter::mGlobalReporterMethods =
         {ERROR, COUT}
 };
 #endif
-ReporterEnd Reporter::end = ReporterEnd();
 
 Reporter::Reporter(Type type) {
     mType = type;
@@ -89,6 +88,11 @@ template <>
 Reporter operator<<(Reporter report, const ReporterEnd& end) {
     report.processEnd();
     return report;
+}
+
+ReporterEnd Reporter::end() {
+    return ReporterEnd();
+
 }
 
 } // end namespace fast

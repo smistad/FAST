@@ -8,7 +8,7 @@ namespace fast {
 
 class Image;
 
-class HeatmapRenderer : public Renderer {
+class FAST_EXPORT  HeatmapRenderer : public Renderer {
     FAST_OBJECT(HeatmapRenderer);
     public:
         void setMinConfidence(float confidence);
@@ -23,7 +23,7 @@ class HeatmapRenderer : public Renderer {
                 cl::Buffer PBO,
                 uint width,
                 uint height,
-                Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform,
+                Affine3f pixelToViewportTransform,
                 float PBOspacing,
                 Vector2f translation
         );

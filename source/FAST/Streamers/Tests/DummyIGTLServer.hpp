@@ -1,12 +1,13 @@
 #ifndef DUMMY_IGTL_IMAGE_SERVER_HPP
 #define DUMMY_IGTL_IMAGE_SERVER_HPP
 
+#include "FASTExport.hpp"
 #include "FAST/Streamers/ImageFileStreamer.hpp"
 #include <thread>
 
 namespace fast {
 
-class DummyIGTLServer {
+class FAST_EXPORT DummyIGTLServer {
     public:
         DummyIGTLServer();
         ~DummyIGTLServer();

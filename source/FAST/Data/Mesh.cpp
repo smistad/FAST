@@ -68,8 +68,7 @@ void Mesh::create(unsigned int nrOfTriangles) {
 }
 
 VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
-        accessType type,
-        OpenCLDevice::pointer device) {
+        accessType type) {
     if(!mIsInitialized)
         throw Exception("Mesh has not been initialized.");
 
@@ -98,7 +97,7 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
             //QGLWidget* widget = new QGLWidget;
             //widget->show();
             //widget->hide(); // TODO should probably delete widget as well
-            //reportInfo() << "created a drawable" << Reporter::end;
+            //reportInfo() << "created a drawable" << Reporter::end();
         }
 #endif
 #endif
@@ -117,10 +116,10 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
                     MeshVertex vertex = mVertices[triangle.getEndpoint(j)];
                     for(uint k = 0; k < 3; k++) {
                         data[counter+k] = vertex.getPosition()[k];
-                        //reportInfo() << data[counter+k] << Reporter::end;
+                        //reportInfo() << data[counter+k] << Reporter::end();
                         data[counter+3+k] = vertex.getNormal()[k];
                     }
-                    //reportInfo() << "...." << Reporter::end;
+                    //reportInfo() << "...." << Reporter::end();
                     counter += 6;
                 }
             }
@@ -134,7 +133,7 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
         if(glGetError() == GL_OUT_OF_MEMORY) {
         	throw Exception("OpenGL out of memory while creating mesh data for VBO");
         }
-        //reportInfo() << "Created VBO with ID " << mVBOID << " and " << mNrOfTriangles << " of triangles" << Reporter::end;
+        //reportInfo() << "Created VBO with ID " << mVBOID << " and " << mNrOfTriangles << " of triangles" << Reporter::end();
 
         mVBOHasData = true;
         mVBODataIsUpToDate = true;
@@ -410,18 +409,21 @@ void Mesh::freeAll() {
     // TODO finish
     if(mVBOHasData) {
 #ifdef FAST_MODULE_VISUALIZATION
+        // Need mutual exclusive write lock to delete data
+        //VertexBufferObjectAccess::pointer access = getVertexBufferObjectAccess(ACCESS_READ_WRITE);
         Window::getMainGLContext()->makeCurrent(); // Need an active context to delete the mesh VBO
         QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
         fun->initializeOpenGLFunctions();
         // glDeleteBuffer is not used due to multi-threading issues..
-        fun->glDeleteBuffers(1, &mVBOID);
+        //fun->glDeleteBuffers(1, &mVBOID);
 
         // OLD delete method:
-        //fun->glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
+        fun->glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
         // This should delete the data, by replacing it with 1 byte buffer
         // Ideally it should be 0, but then the data is not deleted..
-        //fun->glBufferData(GL_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
-        //fun->glBindBuffer(GL_ARRAY_BUFFER, 0);
+        fun->glBufferData(GL_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
+        fun->glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glFinish();
 #endif
     }
     mVBOHasData = false;

@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class Plane {
+class FAST_EXPORT  Plane {
     public:
         Plane(Vector3f normal);
         Plane(Vector3f normal, Vector3f position);

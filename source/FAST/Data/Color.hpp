@@ -5,18 +5,25 @@
 
 namespace fast {
 
-class Color : public Vector3f {
+class FAST_EXPORT  Color {
+    private:
+        Vector3f mColorVector;
     public:
-        Color() : Vector3f(0,0,0) {};
-        Color(float red, float green, float blue) : Vector3f(red, green, blue) {};
+        Color() : mColorVector(Vector3f(0, 0, 0)) {};
+
+        Color(float red, float green, float blue) : mColorVector(Vector3f(red, green, blue)) {};
+
+        Vector3f asVector() const {
+            return mColorVector;
+        }
         float getRedValue() const {
-            return x();
+            return mColorVector.x();
         }
         float getGreenValue() const {
-            return y();
+            return mColorVector.y();
         }
         float getBlueValue() const {
-            return z();
+            return mColorVector.z();
         }
         static Color Red() {
             return Color(1,0,0);

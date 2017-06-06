@@ -8,7 +8,7 @@ namespace fast {
 
 class ImageClassifier;
 
-class UltrasoundVesselDetection : public ProcessObject {
+class FAST_EXPORT  UltrasoundVesselDetection : public ProcessObject {
     FAST_OBJECT(UltrasoundVesselDetection)
     public:
         ProcessObjectPort getOutputSegmentationPort();

@@ -46,7 +46,7 @@ void VTKMeshFileExporter::execute() {
     file << "POINTS " << vertices.size() << " float\n";
     for(int i = 0; i < vertices.size(); i++) {
         MeshVertex vertex = vertices[i];
-        vertex.getPosition() = (transform->matrix()*vertex.getPosition().homogeneous()).head(3);
+        vertex.getPosition() = (transform->getTransform().matrix()*vertex.getPosition().homogeneous()).head(3);
         file << vertex.getPosition().x() << " " << vertex.getPosition().y() << " " << vertex.getPosition().z() << "\n";
     }
 
@@ -76,7 +76,7 @@ void VTKMeshFileExporter::execute() {
             MeshVertex vertex = vertices[i];
             VectorXf normal = vertex.getNormal();
 
-            normal = transform->linear() * normal; // Transform the normal
+            normal = transform->getTransform().linear() * normal; // Transform the normal
 
             // Normalize it
             float length = normal.norm();
@@ -95,7 +95,7 @@ void VTKMeshFileExporter::execute() {
         for(int i = 0; i < vertices.size(); i++) {
             MeshVertex vertex = vertices[i];
             Color color = vertex.getColor();
-            file << color.x() << " " << color.y() << " " << color.z() << "\n";
+            file << color.getRedValue() << " " << color.getGreenValue() << " " << color.getBlueValue() << "\n";
         }
     }
 

@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class StreamExporter : public ProcessObject {
+class FAST_EXPORT  StreamExporter : public ProcessObject {
     FAST_OBJECT(StreamExporter)
     public:
         void setFilenameFormat(std::string format);

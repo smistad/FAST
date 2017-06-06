@@ -1,4 +1,4 @@
-#include "PointRenderer.hpp"
+#include "VertexRenderer.hpp"
 #include "FAST/SceneGraph.hpp"
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenGL/OpenGL.h>
@@ -11,7 +11,7 @@
 
 namespace fast {
 
-void PointRenderer::draw() {
+void VertexRenderer::draw() {
     std::lock_guard<std::mutex> lock(mMutex);
 
     std::unordered_map<uint, Mesh::pointer>::iterator it;
@@ -23,7 +23,7 @@ void PointRenderer::draw() {
         AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(points);
 
         glPushMatrix();
-        glMultMatrixf(transform->data());
+        glMultMatrixf(transform->getTransform().data());
 
         ProcessObjectPort port = getInputPort(it->first);
         if(mInputSizes.count(port) > 0) {
@@ -66,7 +66,7 @@ void PointRenderer::draw() {
     glColor3f(1.0f, 1.0f, 1.0f); // Reset color
 }
 
-void PointRenderer::draw2D(
+void VertexRenderer::draw2D(
                 cl::BufferGL PBO,
                 uint width,
                 uint height,
@@ -131,7 +131,7 @@ void PointRenderer::draw2D(
     queue.enqueueReleaseGLObjects(&v);
 }
 
-BoundingBox PointRenderer::getBoundingBox() {
+BoundingBox VertexRenderer::getBoundingBox() {
     std::vector<Vector3f> coordinates;
     for(uint i = 0; i < getNrOfInputData(); i++) {
         BoundingBox transformedBoundingBox = getStaticInputData<Mesh>(i)->getTransformedBoundingBox();
@@ -143,14 +143,14 @@ BoundingBox PointRenderer::getBoundingBox() {
     return BoundingBox(coordinates);
 }
 
-PointRenderer::PointRenderer() {
+VertexRenderer::VertexRenderer() {
     mDefaultPointSize = 10;
     mDefaultColorSet = false;
     mDefaultDrawOnTop = false;
     createInputPort<Mesh>(0, false);
 }
 
-void PointRenderer::execute() {
+void VertexRenderer::execute() {
     std::lock_guard<std::mutex> lock(mMutex);
 
     // This simply gets the input data for each connection and puts it into a data structure
@@ -162,7 +162,7 @@ void PointRenderer::execute() {
 }
 
 
-void PointRenderer::addInputConnection(ProcessObjectPort port) {
+void VertexRenderer::addInputConnection(ProcessObjectPort port) {
     uint nr = getNrOfInputData();
     if(nr > 0)
         createInputPort<Mesh>(nr);
@@ -170,20 +170,20 @@ void PointRenderer::addInputConnection(ProcessObjectPort port) {
     setInputConnection(nr, port);
 }
 
-void PointRenderer::addInputConnection(ProcessObjectPort port, Color color,
+void VertexRenderer::addInputConnection(ProcessObjectPort port, Color color,
         float size) {
     addInputConnection(port);
     setColor(port, color);
     setSize(port, size);
 }
 
-void PointRenderer::addInputData(Mesh::pointer data) {
+void VertexRenderer::addInputData(Mesh::pointer data) {
     uint nr = getNrOfInputData();
     releaseInputAfterExecute(nr, false);
     setInputData(nr, data);
 }
 
-void PointRenderer::addInputData(Mesh::pointer data, Color color, float size) {
+void VertexRenderer::addInputData(Mesh::pointer data, Color color, float size) {
     uint nr = getNrOfInputData();
     addInputData(data);
     ProcessObjectPort port = getInputPort(nr);
@@ -192,29 +192,29 @@ void PointRenderer::addInputData(Mesh::pointer data, Color color, float size) {
 }
 
 
-void PointRenderer::setDefaultColor(Color color) {
+void VertexRenderer::setDefaultColor(Color color) {
     mDefaultColor = color;
     mDefaultColorSet = true;
 }
 
-void PointRenderer::setDefaultSize(float size) {
+void VertexRenderer::setDefaultSize(float size) {
     mDefaultPointSize = size;
 }
 
-void PointRenderer::setDefaultDrawOnTop(bool drawOnTop) {
+void VertexRenderer::setDefaultDrawOnTop(bool drawOnTop) {
     mDefaultDrawOnTop = drawOnTop;
 }
 
 
-void PointRenderer::setDrawOnTop(ProcessObjectPort port, bool drawOnTop) {
+void VertexRenderer::setDrawOnTop(ProcessObjectPort port, bool drawOnTop) {
     mInputDrawOnTop[port] = drawOnTop;
 }
 
-void PointRenderer::setColor(ProcessObjectPort port, Color color) {
+void VertexRenderer::setColor(ProcessObjectPort port, Color color) {
     mInputColors[port] = color;
 }
 
-void PointRenderer::setSize(ProcessObjectPort port, float size) {
+void VertexRenderer::setSize(ProcessObjectPort port, float size) {
     mInputSizes[port] = size;
 }
 

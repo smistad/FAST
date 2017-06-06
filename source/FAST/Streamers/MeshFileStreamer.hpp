@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class MeshFileStreamer : public FileStreamer {
+class FAST_EXPORT  MeshFileStreamer : public FileStreamer {
     FAST_OBJECT(MeshFileStreamer)
     protected:
         DataObject::pointer getDataFrame(std::string filename);

@@ -24,7 +24,7 @@ class MeshVertex;
  * Output port 1: Registered depth image
  * Output port 2: Registered point cloud
  */
-class KinectStreamer : public Streamer, public ProcessObject {
+class FAST_EXPORT KinectStreamer : public Streamer, public ProcessObject {
     FAST_OBJECT(KinectStreamer);
     public:
         void producerStream();

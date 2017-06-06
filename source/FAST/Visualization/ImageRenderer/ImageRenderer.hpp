@@ -6,7 +6,7 @@
 
 namespace fast {
 
-class ImageRenderer : public Renderer {
+class FAST_EXPORT  ImageRenderer : public Renderer {
     FAST_OBJECT(ImageRenderer)
     public:
         void addInputConnection(ProcessObjectPort port);
@@ -20,7 +20,7 @@ class ImageRenderer : public Renderer {
                 cl::Buffer PBO,
                 uint width,
                 uint height,
-                Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform,
+                Affine3f pixelToViewportTransform,
                 float PBOspacing,
                 Vector2f translation
         );

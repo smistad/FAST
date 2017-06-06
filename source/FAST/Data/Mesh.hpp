@@ -18,7 +18,7 @@ namespace fast {
  * \brief The mesh data object contains vertices and optionally a set of lines and/or triangles.
  *      Each vertex is represented as a MeshVertex and the lines and triangles as MeshLine and MeshTriangle respectively.
  */
-class Mesh : public SpatialDataObject {
+class FAST_EXPORT Mesh : public SpatialDataObject {
     FAST_OBJECT(Mesh)
     public:
         void create(
@@ -27,7 +27,7 @@ class Mesh : public SpatialDataObject {
                 std::vector<MeshTriangle> triangles = {}
         );
         void create(unsigned int nrOfTriangles);
-        VertexBufferObjectAccess::pointer getVertexBufferObjectAccess(accessType access, OpenCLDevice::pointer device);
+        VertexBufferObjectAccess::pointer getVertexBufferObjectAccess(accessType access);
         MeshAccess::pointer getMeshAccess(accessType access);
         MeshOpenCLAccess::pointer getOpenCLAccess(accessType access, OpenCLDevice::pointer device);
         int getNrOfTriangles() const;

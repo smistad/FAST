@@ -14,7 +14,7 @@ UltrasoundImageCropper::UltrasoundImageCropper() {
 }
 
 void UltrasoundImageCropper::execute() {
-    reportInfo() << "EXECUTING THE IMAGE CROPPER" << Reporter::end;
+    reportInfo() << "EXECUTING THE IMAGE CROPPER" << Reporter::end();
     Image::pointer image = getStaticInputData<Image>();
 
     if(image->getDimensions() != 2) {
@@ -84,8 +84,8 @@ void UltrasoundImageCropper::execute() {
     // Crop image
     const int newWidth = maxX - minX;
     const int newHeight = maxY - minY;
-    reportInfo() << "Min/Max X and Y " << minX << " " << maxX << " " << minY << " " << maxY << Reporter::end;
-    reportInfo() << "Cropped image to size " << newWidth << " " << newHeight << Reporter::end;
+    reportInfo() << "Min/Max X and Y " << minX << " " << maxX << " " << minY << " " << maxY << Reporter::end();
+    reportInfo() << "Cropped image to size " << newWidth << " " << newHeight << Reporter::end();
     Image::pointer outputImage = getStaticOutputData<Image>();
     outputImage->create(newWidth, newHeight, image->getDataType(), image->getNrOfComponents());
     outputImage->setSpacing(image->getSpacing());

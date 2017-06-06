@@ -29,6 +29,7 @@ using Eigen::Vector2f;
 using Eigen::Vector4i;
 using Eigen::Vector3i;
 using Eigen::Vector2i;
+using Eigen::Affine3f;
 typedef Eigen::Matrix<uint, Eigen::Dynamic, 1> VectorXui;
 typedef Eigen::Matrix<uint, 4, 1> Vector4ui;
 typedef Eigen::Matrix<uint, 3, 1> Vector3ui;
@@ -47,7 +48,7 @@ enum DataType {
 enum PlaneType {PLANE_X, PLANE_Y, PLANE_Z};
 
 // Returns the C type for a DataType as a string
-std::string getCTypeAsString(DataType type);
+FAST_EXPORT std::string getCTypeAsString(DataType type);
 
 #define fastCaseTypeMacro(fastType, cType, call) case fastType: {typedef cType FAST_TYPE; call;} break;
 
@@ -60,14 +61,14 @@ std::string getCTypeAsString(DataType type);
         fastCaseTypeMacro(TYPE_SNORM_INT16, short, call) \
         fastCaseTypeMacro(TYPE_UNORM_INT16, ushort, call) \
 
-cl::ImageFormat getOpenCLImageFormat(OpenCLDevice::pointer, cl_mem_object_type imageType, DataType type, unsigned int components);
+FAST_EXPORT cl::ImageFormat getOpenCLImageFormat(OpenCLDevice::pointer, cl_mem_object_type imageType, DataType type, unsigned int components);
 
-size_t getSizeOfDataType(DataType type, unsigned int nrOfComponents);
+FAST_EXPORT size_t getSizeOfDataType(DataType type, unsigned int nrOfComponents);
 
-float getDefaultIntensityLevel(DataType type);
-float getDefaultIntensityWindow(DataType type);
+FAST_EXPORT float getDefaultIntensityLevel(DataType type);
+FAST_EXPORT float getDefaultIntensityWindow(DataType type);
 
-void deleteArray(void * data, DataType type);
+FAST_EXPORT void deleteArray(void * data, DataType type);
 
 } // end namespace
 #endif

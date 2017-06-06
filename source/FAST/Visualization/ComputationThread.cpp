@@ -20,7 +20,7 @@ void ComputationThread::clearViews() {
 }
 
 ComputationThread::~ComputationThread() {
-    reportInfo() << "Computation thread object destroyed" << Reporter::end;
+    reportInfo() << "Computation thread object destroyed" << Reporter::end();
 }
 
 bool ComputationThread::isRunning() {
@@ -51,7 +51,7 @@ void ComputationThread::run() {
     }
 
     emit finished();
-    reportInfo() << "Computation thread has finished in run()" << Reporter::end;
+    reportInfo() << "Computation thread has finished in run()" << Reporter::end();
     mUpdateThreadConditionVariable.notify_one();
 }
 

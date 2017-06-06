@@ -10,7 +10,7 @@
 namespace fast {
 
 template <class TImage>
-class ITKImageImporter : public ProcessObject {
+class FAST_EXPORT  ITKImageImporter : public ProcessObject {
     FAST_OBJECT(ITKImageImporter)
     public:
         void setInput(typename TImage::Pointer image);

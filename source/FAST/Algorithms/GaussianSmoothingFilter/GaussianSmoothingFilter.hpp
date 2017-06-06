@@ -7,7 +7,7 @@
 
 namespace fast {
 
-class GaussianSmoothingFilter : public ProcessObject {
+class FAST_EXPORT  GaussianSmoothingFilter : public ProcessObject {
     FAST_OBJECT(GaussianSmoothingFilter)
     public:
         void setMaskSize(unsigned char maskSize);

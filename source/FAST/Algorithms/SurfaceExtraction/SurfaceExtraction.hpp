@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class SurfaceExtraction : public ProcessObject {
+class FAST_EXPORT  SurfaceExtraction : public ProcessObject {
     FAST_OBJECT(SurfaceExtraction)
     public:
         void setThreshold(float threshold);

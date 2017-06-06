@@ -5,12 +5,12 @@
 
 namespace fast {
 
-%ignore AppearanceModel;
+%nodefaultctor AppearanceModel;
 class AppearanceModel : public Object {
 };
 %template(AppearanceModelPtr) SharedPointer<AppearanceModel>;
 
-%ignore ShapeModel;
+%nodefaultctor ShapeModel;
 class ShapeModel : public Object {
 };
 %template(ShapeModelPtr) SharedPointer<ShapeModel>;

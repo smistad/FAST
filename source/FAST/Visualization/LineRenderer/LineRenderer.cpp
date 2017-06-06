@@ -24,7 +24,7 @@ void LineRenderer::draw() {
         AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(points);
 
         glPushMatrix();
-        glMultMatrixf(transform->data());
+        glMultMatrixf(transform->getTransform().data());
 
         ProcessObjectPort port = getInputPort(it->first);
 

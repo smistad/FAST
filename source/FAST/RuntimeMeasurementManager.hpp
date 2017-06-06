@@ -11,7 +11,7 @@
 
 namespace fast {
 
-class RuntimeMeasurementsManager : public Object {
+class FAST_EXPORT  RuntimeMeasurementsManager : public Object {
 	FAST_OBJECT(RuntimeMeasurementsManager)
 public:
 	void enable();

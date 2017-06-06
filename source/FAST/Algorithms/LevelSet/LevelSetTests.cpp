@@ -2,7 +2,7 @@
 #include "LevelSetSegmentation.hpp"
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
-#include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
+#include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
@@ -27,7 +27,7 @@ TEST_CASE("Level set segmentation", "[fast][levelset][visual]") {
     SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
     extraction->setInputConnection(segmentation->getOutputPort());
 
-    MeshRenderer::pointer renderer = MeshRenderer::New();
+    TriangleRenderer::pointer renderer = TriangleRenderer::New();
     renderer->addInputConnection(extraction->getOutputPort());
 
     SegmentationRenderer::pointer segRenderer = SegmentationRenderer::New();

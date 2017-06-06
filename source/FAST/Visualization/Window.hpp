@@ -1,6 +1,7 @@
 #ifndef WINDOW_HPP_
 #define WINDOW_HPP_
 
+#include "FASTExport.hpp"
 #include "FAST/Object.hpp"
 #include "WindowWidget.hpp"
 #include "ComputationThread.hpp"
@@ -14,11 +15,12 @@ class QOffscreenSurface;
 
 namespace fast {
 
-class Window : public QObject, public Object {
+class FAST_EXPORT  Window : public QObject, public Object {
     Q_OBJECT
     public:
         static void initializeQtApp();
         static QGLContext* getMainGLContext();
+        static void setMainGLContext(QGLContext* context);
         // Makes the window close after a specific number of ms
         virtual void setTimeout(unsigned int milliseconds);
         ~Window();
@@ -36,17 +38,34 @@ class Window : public QObject, public Object {
         std::vector<View*> getViews() const;
         View* getView(uint i) const;
         static void cleanup();
+        /**
+         * Get screen width in pixels
+         * @return width in pixels
+         */
+        int getScreenWidth() const;
+        /**
+         * Get screen height in pixels
+         * @return height in pixels
+         */
+        int getScreenHeight() const;
+        /**
+         * Get GUI scaling factor
+         * @return
+         */
+        float getScalingFactor() const;
     protected:
         Window();
         View* createView();
-        static QGLContext* mMainGLContext;
 
         WindowWidget* mWidget;
         unsigned int mWidth, mHeight;
         bool mFullscreen, mMaximized;
         unsigned int mTimeout;
+        float mGUIScalingFactor = 1.0f;
         QEventLoop* mEventLoop;
         ComputationThread* mThread;
+    private:
+        static QGLContext* mMainGLContext;
     public slots:
         void stop();
 

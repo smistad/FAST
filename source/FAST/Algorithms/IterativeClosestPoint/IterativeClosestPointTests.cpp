@@ -39,11 +39,13 @@ TEST_CASE("ICP on two point sets translation only", "[fast][IterativeClosestPoin
     importerB->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
 
     // Apply a transformation to B surface
-    AffineTransformation::pointer transformation = AffineTransformation::New();
-    transformation->translate(translation);
+    Affine3f transform = Affine3f::Identity();
+    transform.translate(translation);
     importerB->update();
     Mesh::pointer B = importerB->getOutputData<Mesh>(0);
-    B->getSceneGraphNode()->setTransformation(transformation);
+    AffineTransformation::pointer T = AffineTransformation::New();
+    T->setTransform(transform);
+    B->getSceneGraphNode()->setTransformation(T);
 
     // Do ICP registration
     IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
@@ -55,7 +57,7 @@ TEST_CASE("ICP on two point sets translation only", "[fast][IterativeClosestPoin
     // Validate result
     importerA->getStaticOutputData<Mesh>(0)->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
     Vector3f detectedRotation = icp->getOutputTransformation()->getEulerAngles();
-    Vector3f detectedTranslation = icp->getOutputTransformation()->translation();
+    Vector3f detectedTranslation = icp->getOutputTransformation()->getTransform().translation();
 
     CHECK(detectedTranslation.x() == Approx(translation.x()));
     CHECK(detectedTranslation.y() == Approx(translation.y()));
@@ -76,16 +78,18 @@ TEST_CASE("ICP on two point sets", "[fast][IterativeClosestPoint][icp]") {
     importerB->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
 
     // Apply a transformation to B surface
-    AffineTransformation::pointer transformation = AffineTransformation::New();
-    transformation->translate(translation);
+    Affine3f transform = Affine3f::Identity();
+    transform.translate(translation);
     Matrix3f R;
     R = Eigen::AngleAxisf(rotation.x(), Vector3f::UnitX())
     * Eigen::AngleAxisf(rotation.y(), Vector3f::UnitY())
     * Eigen::AngleAxisf(rotation.z(), Vector3f::UnitZ());
-    transformation->rotate(R);
+    transform.rotate(R);
     importerB->update();
     Mesh::pointer B = importerB->getOutputData<Mesh>(0);
-    B->getSceneGraphNode()->setTransformation(transformation);
+    AffineTransformation::pointer T = AffineTransformation::New();
+    T->setTransform(transform);
+    B->getSceneGraphNode()->setTransformation(T);
 
     // Do ICP registration
     IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
@@ -96,7 +100,7 @@ TEST_CASE("ICP on two point sets", "[fast][IterativeClosestPoint][icp]") {
     // Validate result
     importerA->getStaticOutputData<Mesh>(0)->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
     Vector3f detectedRotation = icp->getOutputTransformation()->getEulerAngles();
-    Vector3f detectedTranslation = icp->getOutputTransformation()->translation();
+    Vector3f detectedTranslation = icp->getOutputTransformation()->getTransform().translation();
 
     CHECK(detectedTranslation.x() == Approx(translation.x()));
     CHECK(detectedTranslation.y() == Approx(translation.y()));
@@ -126,14 +130,16 @@ TEST_CASE("ICP on two point sets which are already transformed by scene graph", 
     SceneGraph::insertParentNodeToData(B, FASTtransformInit);
 
     // Apply a transformation to B surface
-    AffineTransformation::pointer transformation = AffineTransformation::New();
-    transformation->translate(translation);
+    Affine3f transform = Affine3f::Identity();
+    transform.translate(translation);
     Matrix3f R;
     R = Eigen::AngleAxisf(rotation.x(), Vector3f::UnitX())
     * Eigen::AngleAxisf(rotation.y(), Vector3f::UnitY())
     * Eigen::AngleAxisf(rotation.z(), Vector3f::UnitZ());
-    transformation->rotate(R);
-    B->getSceneGraphNode()->setTransformation(transformation);
+    transform.rotate(R);
+    AffineTransformation::pointer T = AffineTransformation::New();
+    T->setTransform(transform);
+    B->getSceneGraphNode()->setTransformation(T);
 
     // Do ICP registration
     IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
@@ -144,7 +150,7 @@ TEST_CASE("ICP on two point sets which are already transformed by scene graph", 
     // Validate result
     importerA->getStaticOutputData<Mesh>(0)->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
     Vector3f detectedRotation = icp->getOutputTransformation()->getEulerAngles();
-    Vector3f detectedTranslation = icp->getOutputTransformation()->translation();
+    Vector3f detectedTranslation = icp->getOutputTransformation()->getTransform().translation();
 
     CHECK(detectedTranslation.x() == Approx(translation.x()));
     CHECK(detectedTranslation.y() == Approx(translation.y()));

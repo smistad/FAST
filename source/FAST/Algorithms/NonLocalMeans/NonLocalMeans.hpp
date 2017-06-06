@@ -7,7 +7,7 @@
 
 namespace fast {
 
-class NonLocalMeans : public ProcessObject {
+class FAST_EXPORT  NonLocalMeans : public ProcessObject {
 	FAST_OBJECT(NonLocalMeans)
 	public:
 		//void setSigma(unsigned char s);

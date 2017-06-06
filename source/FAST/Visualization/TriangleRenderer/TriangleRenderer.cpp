@@ -6,12 +6,12 @@
 #include <QOpenGLFunctions_3_3_Core>
 
 
-#include "MeshRenderer.hpp"
+#include "TriangleRenderer.hpp"
 #include "FAST/SceneGraph.hpp"
 
 namespace fast {
 
-void MeshRenderer::addInputConnection(ProcessObjectPort port) {
+void TriangleRenderer::addInputConnection(ProcessObjectPort port) {
     uint nr = getNrOfInputData();
     if(nr > 0)
         createInputPort<Mesh>(nr);
@@ -20,22 +20,27 @@ void MeshRenderer::addInputConnection(ProcessObjectPort port) {
     mIsModified = true;
 }
 
-void MeshRenderer::addInputConnection(ProcessObjectPort port, Color color, float opacity) {
+void TriangleRenderer::addInputConnection(ProcessObjectPort port, Color color, float opacity) {
     addInputConnection(port);
     mInputColors[port] = color;
     mInputOpacities[port] = opacity;
 }
 
 
-MeshRenderer::MeshRenderer() : Renderer() {
+TriangleRenderer::TriangleRenderer() : Renderer() {
     mDefaultOpacity = 1;
     mDefaultColor = Color::Green();
     mDefaultSpecularReflection = 0.8f;
     createInputPort<Mesh>(0, false);
     mLineSize = 1;
+    mWireframe = false;
 }
 
-void MeshRenderer::setLineSize(int size) {
+void TriangleRenderer::setWireframe(bool wireframe) {
+    mWireframe = wireframe;
+}
+
+void TriangleRenderer::setLineSize(int size) {
 	if(size <= 0)
 		throw Exception("Line size must be greather than 0");
 
@@ -43,7 +48,7 @@ void MeshRenderer::setLineSize(int size) {
 
 }
 
-void MeshRenderer::execute() {
+void TriangleRenderer::execute() {
     std::lock_guard<std::mutex> lock(mMutex);
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
         Mesh::pointer input = getStaticInputData<Mesh>(inputNr);
@@ -51,7 +56,7 @@ void MeshRenderer::execute() {
     }
 }
 
-void MeshRenderer::draw() {
+void TriangleRenderer::draw() {
     std::lock_guard<std::mutex> lock(mMutex);
 
     glEnable(GL_NORMALIZE);
@@ -60,19 +65,22 @@ void MeshRenderer::draw() {
     QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
     fun->initializeOpenGLFunctions();
 
+    if(mWireframe)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
     std::unordered_map<uint, Mesh::pointer>::iterator it;
-    for(it = mMeshToRender.begin(); it != mMeshToRender.end(); it++) {
-        Mesh::pointer surfaceToRender = it->second;
+    for(auto it : mMeshToRender) {
+        Mesh::pointer surfaceToRender = it.second;
 
         // Draw the triangles in the VBO
         AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(surfaceToRender);
 
         glPushMatrix();
-        glMultMatrixf(transform->data());
+        glMultMatrixf(transform->getTransform().data());
 
         float opacity = mDefaultOpacity;
         Color color = mDefaultColor;
-        ProcessObjectPort port = getInputPort(it->first);
+        ProcessObjectPort port = getInputPort(it.first);
         if(mInputOpacities.count(port) > 0) {
             opacity = mInputOpacities[port];
         }
@@ -93,7 +101,7 @@ void MeshRenderer::draw() {
         GLfloat shininess[] = { 16.0f };
         glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
 
-        VertexBufferObjectAccess::pointer access = surfaceToRender->getVertexBufferObjectAccess(ACCESS_READ, getMainDevice());
+        VertexBufferObjectAccess::pointer access = surfaceToRender->getVertexBufferObjectAccess(ACCESS_READ);
         GLuint* VBO_ID = access->get();
 
         // Normal Buffer
@@ -115,14 +123,17 @@ void MeshRenderer::draw() {
             glDisable(GL_BLEND);
         }
         glPopMatrix();
+        glFinish();
     }
 
     glDisable(GL_LIGHTING);
     glDisable(GL_NORMALIZE);
+    if(mWireframe)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glColor3f(1.0f, 1.0f, 1.0f); // Reset color
 }
 
-void MeshRenderer::draw2D(
+void TriangleRenderer::draw2D(
                 cl::Buffer PBO,
                 uint width,
                 uint height,
@@ -218,7 +229,7 @@ void MeshRenderer::draw2D(
     }
 }
 
-BoundingBox MeshRenderer::getBoundingBox() {
+BoundingBox TriangleRenderer::getBoundingBox() {
     std::vector<Vector3f> coordinates;
     for(uint i = 0; i < getNrOfInputData(); i++) {
         BoundingBox transformedBoundingBox = mMeshToRender[i]->getTransformedBoundingBox();
@@ -230,23 +241,23 @@ BoundingBox MeshRenderer::getBoundingBox() {
     return BoundingBox(coordinates);
 }
 
-void MeshRenderer::setDefaultColor(Color color) {
+void TriangleRenderer::setDefaultColor(Color color) {
     mDefaultColor = color;
 }
 
-void MeshRenderer::setColor(int label, Color color) {
+void TriangleRenderer::setColor(int label, Color color) {
 	mLabelColors[label] = color;
 }
 
-void MeshRenderer::setColor(ProcessObjectPort port, Color color) {
+void TriangleRenderer::setColor(ProcessObjectPort port, Color color) {
     mInputColors[port] = color;
 }
 
-void MeshRenderer::setOpacity(ProcessObjectPort port, float opacity) {
+void TriangleRenderer::setOpacity(ProcessObjectPort port, float opacity) {
     mInputOpacities[port] = opacity;
 }
 
-void MeshRenderer::setDefaultOpacity(float opacity) {
+void TriangleRenderer::setDefaultOpacity(float opacity) {
     mDefaultOpacity = opacity;
     if(mDefaultOpacity > 1) {
         mDefaultOpacity = 1;
@@ -255,7 +266,7 @@ void MeshRenderer::setDefaultOpacity(float opacity) {
     }
 }
 
-void MeshRenderer::setDefaultSpecularReflection(float specularReflection) {
+void TriangleRenderer::setDefaultSpecularReflection(float specularReflection) {
     mDefaultSpecularReflection = specularReflection;
 }
 

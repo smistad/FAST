@@ -7,7 +7,7 @@
 
 namespace fast {
 
-class LineRenderer : public Renderer {
+class FAST_EXPORT  LineRenderer : public Renderer {
     FAST_OBJECT(LineRenderer)
     public:
         void addInputConnection(ProcessObjectPort port);

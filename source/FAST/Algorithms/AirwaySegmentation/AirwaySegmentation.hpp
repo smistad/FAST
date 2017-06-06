@@ -8,7 +8,7 @@ namespace fast {
 class Image;
 class Segmentation;
 
-class AirwaySegmentation : public SegmentationAlgorithm {
+class FAST_EXPORT  AirwaySegmentation : public SegmentationAlgorithm {
 	FAST_OBJECT(AirwaySegmentation)
 	public:
 	    void setSeedPoint(int x, int y, int z);

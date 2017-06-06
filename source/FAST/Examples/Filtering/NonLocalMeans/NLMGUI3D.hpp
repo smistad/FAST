@@ -16,7 +16,7 @@
 
 namespace fast {
 
-class NLMGUI3D : public Window {
+class FAST_EXPORT  NLMGUI3D : public Window {
 	FAST_OBJECT(NLMGUI3D)
 	public:
 		void updateThreshold(int value);

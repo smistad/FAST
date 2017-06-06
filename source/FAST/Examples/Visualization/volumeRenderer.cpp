@@ -6,7 +6,7 @@
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/SliceRenderer/SliceRenderer.hpp"
 #include "FAST/Visualization/VolumeRenderer/VolumeRenderer.hpp"
-#include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
+#include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Importers/MetaImageImporter.hpp"
 #include "FAST/Streamers/ImageFileStreamer.hpp"
 #include "FAST/Visualization/VolumeRenderer/ColorTransferFunction.hpp"
@@ -36,7 +36,7 @@ int main(int argc, char ** argv) {
     Surface::pointer surface = extractor->getOutput();
     //extractor->update();
 
-    MeshRenderer::pointer surfaceRenderer = MeshRenderer::New();
+    TriangleRenderer::pointer surfaceRenderer = TriangleRenderer::New();
     surfaceRenderer->setInput(surface);
     SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
     sliceRenderer->setInput(image);
@@ -83,7 +83,7 @@ int main(int argc, char ** argv) {
     Surface::pointer surface = extractor->getOutput();
     extractor->update();
 
-    MeshRenderer::pointer surfaceRenderer = MeshRenderer::New();
+    TriangleRenderer::pointer surfaceRenderer = TriangleRenderer::New();
     surfaceRenderer->setInput(surface);
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(surfaceRenderer);
@@ -124,7 +124,7 @@ window->setTimeout(10*1000);
 /*
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(std::string(FAST_ROOT_DIR)+"TestData/US/Ball/US-3Dt_#.mhd");
-    MeshRenderer::pointer surfaceRenderer = MeshRenderer::New();
+    TriangleRenderer::pointer surfaceRenderer = TriangleRenderer::New();
     surfaceRenderer->setInput(mhdStreamer->getOutput());
     surfaceRenderer->setThreshold(200);
     SimpleWindow::pointer window = SimpleWindow::New();

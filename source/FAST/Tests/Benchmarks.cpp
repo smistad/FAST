@@ -1,5 +1,5 @@
 #include "FAST/Streamers/ImageFileStreamer.hpp"
-#include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
+#include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Testing.hpp"
 #include "FAST/Importers/MetaImageImporter.hpp"
 #include "FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp"
@@ -14,7 +14,7 @@
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Algorithms/BinaryThresholding/BinaryThresholding.hpp"
 //#include "FAST/Algorithms/IterativeClosestPoint/IterativeClosestPoint.hpp"
-#include "FAST/Visualization/PointRenderer/PointRenderer.hpp"
+#include "FAST/Visualization/VertexRenderer/VertexRenderer.hpp"
 #include "FAST/SceneGraph.hpp"
 
 using namespace fast;
@@ -35,7 +35,7 @@ TEST_CASE("Pipeline A (static)", "[fast][benchmark][visual]") {
     extractor->setInputConnection(filter->getOutputPort());
     extractor->setThreshold(200);
 
-    MeshRenderer::pointer renderer = MeshRenderer::New();
+    TriangleRenderer::pointer renderer = TriangleRenderer::New();
     renderer->enableRuntimeMeasurements();
     renderer->addInputConnection(extractor->getOutputPort());
 
@@ -60,7 +60,7 @@ TEST_CASE("Pipeline A (static)", "[fast][benchmark][visual]") {
             extractor->getRuntime()->getSum() +
             renderer->getRuntime()->getSum() +
             window->getView()->getRuntime("draw")->getAverage();
-    Reporter::info() << "Total runtime was: " << total << Reporter::end;
+    Reporter::info() << "Total runtime was: " << total << Reporter::end();
 }
 
 TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark][visual]") {
@@ -80,7 +80,7 @@ TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark][visual]") {
     extractor->setThreshold(200);
     extractor->enableRuntimeMeasurements();
 
-    MeshRenderer::pointer renderer = MeshRenderer::New();
+    TriangleRenderer::pointer renderer = TriangleRenderer::New();
     renderer->addInputConnection(extractor->getOutputPort());
     renderer->enableRuntimeMeasurements();
 
@@ -101,7 +101,7 @@ TEST_CASE("Pipeline A (dynamic)", "[fast][benchmark][visual]") {
 		renderer->getRuntime()->getSum() +
             window->getView()->getRuntime("draw")->getAverage();
 	total = total / 84; // number of frames
-    Reporter::info() << "Average runtime was: " << total << Reporter::end << Reporter::end;
+    Reporter::info() << "Average runtime was: " << total << Reporter::end() << Reporter::end();
 }
 
 TEST_CASE("Pipeline B", "[fast][benchmark][visual]") {
@@ -133,7 +133,7 @@ TEST_CASE("Pipeline B", "[fast][benchmark][visual]") {
     exporter->update();
     */
 
-    MeshRenderer::pointer surfaceRenderer = MeshRenderer::New();
+    TriangleRenderer::pointer surfaceRenderer = TriangleRenderer::New();
     surfaceRenderer->addInputConnection(extraction->getOutputPort());
     surfaceRenderer->enableRuntimeMeasurements();
 
@@ -162,7 +162,7 @@ TEST_CASE("Pipeline B", "[fast][benchmark][visual]") {
                 surfaceRenderer->getRuntime()->getSum() +
                 sliceRenderer->getRuntime()->getSum() +
             window->getView()->getRuntime("draw")->getAverage();
-    Reporter::info() << "Total runtime was: " << total << Reporter::end;
+    Reporter::info() << "Total runtime was: " << total << Reporter::end();
 }
 
 TEST_CASE("Pipeline C", "[fast][benchmark][visual]") {
@@ -199,7 +199,7 @@ TEST_CASE("Pipeline C", "[fast][benchmark][visual]") {
             skeletonization->getRuntime()->getSum() +
             renderer->getRuntime()->getSum() +
             window->getView()->getRuntime("draw")->getAverage();
-    Reporter::info() << "Total runtime was: " << total << Reporter::end;
+    Reporter::info() << "Total runtime was: " << total << Reporter::end();
 }
 
 /*
@@ -213,12 +213,12 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
 
     // Apply a transformation to B surface
     AffineTransformation::pointer transformation = AffineTransformation::New();
-    transformation->translate(Vector3f(0.01, 0, 0.01));
+    transformation->getTransform().translate(Vector3f(0.01, 0, 0.01));
     Matrix3f R;
     R = Eigen::AngleAxisf(0.5, Vector3f::UnitX())
     * Eigen::AngleAxisf(0, Vector3f::UnitY())
     * Eigen::AngleAxisf(0, Vector3f::UnitZ());
-    transformation->rotate(R);
+    transformation->getTransform().rotate(R);
     importerB->update();
     importerB->getStaticOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(transformation);
 
@@ -227,14 +227,14 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
     icp->setFixedPointSetPort(importerB->getOutputPort());
     icp->enableRuntimeMeasurements();
     icp->update();
-    Reporter::info() << icp->getOutputTransformation()->affine() << Reporter::end;
+    Reporter::info() << icp->getOutputTransformation()->getTransform().affine() << Reporter::end();
     importerA->getStaticOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
-    Reporter::info() << "result: " << Reporter::end;
-    Reporter::info() << icp->getOutputTransformation()->getEulerAngles() << Reporter::end;
-    Reporter::info() << icp->getOutputTransformation()->translation() << Reporter::end;
+    Reporter::info() << "result: " << Reporter::end();
+    Reporter::info() << icp->getOutputTransformation()->getEulerAngles() << Reporter::end();
+    Reporter::info() << icp->getOutputTransformation()->getTransform().translation() << Reporter::end();
 
 
-    PointRenderer::pointer renderer = PointRenderer::New();
+    VertexRenderer::pointer renderer = VertexRenderer::New();
     renderer->addInputConnection(importerA->getOutputPort(), Color::Blue(), 10);
     renderer->addInputConnection(importerB->getOutputPort(), Color::Green(), 5);
     renderer->setDefaultDrawOnTop(true);
@@ -247,7 +247,7 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
     window->setTimeout(2000);
     window->start();
 
-    Reporter::info() << "Pipeline D" << Reporter::end << "===================" << Reporter::end;
+    Reporter::info() << "Pipeline D" << Reporter::end() << "===================" << Reporter::end();
     importerA->getRuntime()->print();
     importerB->getRuntime()->print();
     icp->getRuntime()->print();
@@ -258,6 +258,6 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
             icp->getRuntime()->getSum() +
             renderer->getRuntime()->getSum() +
             window->getView()->getRuntime("draw")->getAverage();
-    Reporter::info() << "Total runtime was: " << total << Reporter::end;
+    Reporter::info() << "Total runtime was: " << total << Reporter::end();
 }
  */

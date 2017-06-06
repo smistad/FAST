@@ -6,7 +6,7 @@
 
 namespace fast {
 
-class SegmentationAlgorithm : public ProcessObject {
+class FAST_EXPORT  SegmentationAlgorithm : public ProcessObject {
     public:
         virtual void setLabel(Segmentation::LabelType label);
         virtual Segmentation::LabelType getLabel() const;

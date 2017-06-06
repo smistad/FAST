@@ -826,7 +826,7 @@ float Image::calculateAverageIntensity() {
     if(!mAverageInitialized || mAverageIntensityTimestamp != getTimestamp()) {
         unsigned int nrOfElements = mWidth*mHeight*mDepth;
         if(mHostHasData && mHostDataIsUpToDate) {
-            reportInfo() << "calculating sum on host" << Reporter::end;
+            reportInfo() << "calculating sum on host" << Reporter::end();
             // Host data is up to date, calculate min and max on host
             ImageAccess::pointer access = getImageAccess(ACCESS_READ);
             void* data = access->get();
@@ -848,7 +848,7 @@ float Image::calculateAverageIntensity() {
                 break;
             }
         } else {
-            reportInfo() << "calculating sum with OpenCL" << Reporter::end;
+            reportInfo() << "calculating sum with OpenCL" << Reporter::end();
             // TODO the logic here can be improved. For instance choose the best device
             // Find some OpenCL image data or buffer data that is up to date
             bool found = false;
@@ -1192,11 +1192,11 @@ Image::pointer Image::crop(VectorXi offset, VectorXi size, bool allowOutOfBounds
     AffineTransformation::pointer T = AffineTransformation::New();
     newImage->setSpacing(getSpacing());
     // Multiply with spacing here to convert voxel translation to world(mm) translation
-    T->translation() = getSpacing().cwiseProduct(getDimensions() == 2 ? Vector3f(offset.x(), offset.y(), 0) : Vector3f(offset.x(), offset.y(), offset.z()));
+    T->getTransform().translation() = getSpacing().cwiseProduct(getDimensions() == 2 ? Vector3f(offset.x(), offset.y(), 0) : Vector3f(offset.x(), offset.y(), offset.z()));
     newImage->getSceneGraphNode()->setTransformation(T);
     SceneGraph::setParentNode(newImage, mPtr.lock());
-    reportInfo() << SceneGraph::getAffineTransformationFromData(newImage)->matrix() << Reporter::end;
-    reportInfo() << SceneGraph::getAffineTransformationFromData(mPtr.lock())->matrix() << Reporter::end;
+    reportInfo() << SceneGraph::getAffineTransformationFromData(newImage)->getTransform().matrix() << Reporter::end();
+    reportInfo() << SceneGraph::getAffineTransformationFromData(mPtr.lock())->getTransform().matrix() << Reporter::end();
 
     return newImage;
 }
@@ -1205,7 +1205,7 @@ BoundingBox Image::getTransformedBoundingBox() const {
     AffineTransformation::pointer T = SceneGraph::getAffineTransformationFromData(DataObject::pointer(mPtr.lock()));
 
     // Add image spacing
-    T->scale(getSpacing());
+    T->getTransform().scale(getSpacing());
 
     return getBoundingBox().getTransformedBoundingBox(T);
 }

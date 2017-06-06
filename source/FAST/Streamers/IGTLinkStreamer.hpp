@@ -9,12 +9,13 @@
 #include "FAST/ProcessObject.hpp"
 #include <igtl/igtlClientSocket.h>
 #include <set>
+#include "FASTExport.hpp"
 
 namespace fast {
 
 class Image;
 
-class IGTLinkStreamer : public Streamer, public ProcessObject {
+class FAST_EXPORT IGTLinkStreamer : public Streamer, public ProcessObject {
     FAST_OBJECT(IGTLinkStreamer)
     public:
 		std::set<std::string> getImageStreamNames();

@@ -91,7 +91,7 @@ void AffineTransformationFileStreamer::producerStream() {
 				throw Exception("Error reading transformation file " + mFilename + " expected 4 numbers per line, "
 						+ std::to_string(elements.size()) + " found.");
 			} else if(elements.size() == 1 && elements[0] == "") {
-				reportInfo() << "Reached end of stream" << Reporter::end;
+				reportInfo() << "Reached end of stream" << Reporter::end();
 				// If there where no files found at all, we need to release the execute method
 				if(!mFirstFrameIsInserted) {
 					{
@@ -128,7 +128,7 @@ void AffineTransformationFileStreamer::producerStream() {
 			continue;
 
 		AffineTransformation::pointer transformation = AffineTransformation::New();
-		transformation->matrix() = matrix;
+		transformation->getTransform().matrix() = matrix;
 
 		// Set and use timestamp if available
 		if(mTimestampFilename != "") {
@@ -166,7 +166,7 @@ void AffineTransformationFileStreamer::producerStream() {
 			} catch(NoMoreFramesException &e) {
 				throw e;
 			} catch(Exception &e) {
-				reportInfo() << "streamer has been deleted, stop" << Reporter::end;
+				reportInfo() << "streamer has been deleted, stop" << Reporter::end();
 				break;
 			}
 			if(!mFirstFrameIsInserted) {
@@ -177,7 +177,7 @@ void AffineTransformationFileStreamer::producerStream() {
 				mFirstFrameCondition.notify_one();
 			}
 		} else {
-			reportInfo() << "DynamicData object destroyed, stream can stop." << Reporter::end;
+			reportInfo() << "DynamicData object destroyed, stream can stop." << Reporter::end();
 			break;
 		}
 		mNrOfFrames++;

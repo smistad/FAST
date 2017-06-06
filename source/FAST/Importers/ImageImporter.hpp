@@ -6,7 +6,7 @@
 
 namespace fast {
 
-class ImageImporter : public Importer {
+class FAST_EXPORT  ImageImporter : public Importer {
     FAST_OBJECT(ImageImporter)
     public:
         void setFilename(std::string filename);

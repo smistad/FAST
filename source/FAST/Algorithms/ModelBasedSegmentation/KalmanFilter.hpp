@@ -10,7 +10,7 @@ namespace fast {
 class Image;
 class Mesh;
 
-class KalmanFilter : public ProcessObject {
+class FAST_EXPORT  KalmanFilter : public ProcessObject {
 	FAST_OBJECT(KalmanFilter)
 	public:
 		void setShapeModel(ShapeModel::pointer shapeModel);

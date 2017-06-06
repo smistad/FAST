@@ -7,14 +7,20 @@ namespace fast {
 
 class Image;
 
-class LungSegmentation : public ProcessObject {
+class FAST_EXPORT LungSegmentation : public ProcessObject {
     FAST_OBJECT(LungSegmentation)
 public:
+    void setAirwaySeedPoint(int x, int y, int z);
+    void setAirwaySeedPoint(Vector3i seed);
 private:
     LungSegmentation();
     void execute();
+    SharedPointer<Image> convertToHU(SharedPointer<Image> image);
 
     Vector3i findSeedVoxel(SharedPointer<Image> input);
+
+    Vector3i mSeedPoint;
+    bool mUseManualSeedPoint = false;
 };
 
 }

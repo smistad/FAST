@@ -1,6 +1,7 @@
 #ifndef DEVICECRITERIA_HPP_
 #define DEVICECRITERIA_HPP_
 
+#include "FASTExport.hpp"
 #include <vector>
 
 namespace fast {
@@ -17,7 +18,7 @@ enum DevicePreference {DEVICE_PREFERENCE_NONE, DEVICE_PREFERENCE_NOT_CONNECTED_T
 /**
  * Class used to set up a set of criteria for choosing devices
  */
-class DeviceCriteria {
+class FAST_EXPORT  DeviceCriteria {
     public:
         DeviceCriteria();
         void setPlatformCriteria(DevicePlatform platform);

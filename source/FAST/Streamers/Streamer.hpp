@@ -9,12 +9,12 @@ namespace fast {
 
 enum StreamingMode { STREAMING_MODE_NEWEST_FRAME_ONLY, STREAMING_MODE_STORE_ALL_FRAMES, STREAMING_MODE_PROCESS_ALL_FRAMES };
 
-class NoMoreFramesException : public Exception {
+class FAST_EXPORT  NoMoreFramesException : public Exception {
     public:
         NoMoreFramesException(std::string message) : Exception(message) {};
 };
 
-class Streamer {
+class FAST_EXPORT  Streamer {
     public:
         typedef SharedPointer<Streamer> pointer;
         virtual ~Streamer() {};

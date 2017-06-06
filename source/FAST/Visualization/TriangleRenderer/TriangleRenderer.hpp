@@ -1,5 +1,5 @@
-#ifndef SURFACERENDERER_HPP_
-#define SURFACERENDERER_HPP_
+#ifndef FAST_TRIANGLE_RENDERER_HPP_
+#define FAST_TRIANGLE_RENDERER_HPP_
 
 #include "FAST/Data/Mesh.hpp"
 #include "FAST/Data/Color.hpp"
@@ -7,13 +7,18 @@
 
 namespace fast {
 
-class MeshRenderer : public Renderer {
-    FAST_OBJECT(MeshRenderer)
+class FAST_EXPORT TriangleRenderer : public Renderer {
+    FAST_OBJECT(TriangleRenderer)
     public:
         void addInputConnection(ProcessObjectPort port);
         void addInputConnection(ProcessObjectPort port, Color color, float opacity);
         BoundingBox getBoundingBox();
         void setDefaultOpacity(float opacity);
+        /**
+         * Enable/disable renderer of wireframe instead of filled polygons
+         * @param wireframe
+         */
+        void setWireframe(bool wireframe);
         void setDefaultColor(Color color);
         void setDefaultSpecularReflection(float specularReflection);
         void setColor(ProcessObjectPort port, Color color);
@@ -26,11 +31,11 @@ class MeshRenderer : public Renderer {
                 cl::Buffer PBO,
                 uint width,
                 uint height,
-                Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform,
+                Affine3f pixelToViewportTransform,
                 float PBOspacing,
                 Vector2f translation
         );
-        MeshRenderer();
+        TriangleRenderer();
         void execute();
 
         std::unordered_map<ProcessObjectPort, Color> mInputColors;
@@ -42,11 +47,9 @@ class MeshRenderer : public Renderer {
         float mDefaultOpacity;
         std::mutex mMutex;
         int mLineSize;
+        bool mWireframe;
 };
 
 } // namespace fast
 
-
-
-
-#endif /* SURFACERENDERER_HPP_ */
+#endif

@@ -7,7 +7,7 @@
 
 namespace fast {
 
-class VTKImageExporter : public vtkImageAlgorithm, public ProcessObject {
+class FAST_EXPORT  VTKImageExporter : public vtkImageAlgorithm, public ProcessObject {
     public:
         vtkTypeMacro(VTKImageExporter,vtkImageAlgorithm);
         static VTKImageExporter *New();

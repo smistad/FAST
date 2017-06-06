@@ -8,7 +8,7 @@ namespace fast {
 
 class Mesh;
 
-class DNNAppearanceModel : public NeuralNetwork {
+class FAST_EXPORT  DNNAppearanceModel : public NeuralNetwork {
 	FAST_OBJECT(DNNAppearanceModel)
 	public:
 		void loadObjects(

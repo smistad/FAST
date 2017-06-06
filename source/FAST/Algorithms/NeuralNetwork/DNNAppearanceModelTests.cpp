@@ -1,7 +1,7 @@
 #include "FAST/Testing.hpp"
 #include "DNNAppearanceModel.hpp"
 #include "FAST/Importers/ImageFileImporter.hpp"
-#include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
+#include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 #include "FAST/Streamers/ImageFileStreamer.hpp"
@@ -17,15 +17,15 @@ TEST_CASE("Landmark detection", "[fast][DNNAppearanceModel][visual]") {
 									"/home/smistad/workspace/DNN-AM/femoral_appearance_model_net2/_iter_1000.caffemodel");
 	detector->loadObjects("/home/smistad/workspace/DNN-AM/femoral_appearance_model_net2/objects.txt");
 
-	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
-	meshRenderer->setInputConnection(detector->getOutputPort());
+	TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();
+	TriangleRenderer->setInputConnection(detector->getOutputPort());
 
 	ImageRenderer::pointer imageRenderer = ImageRenderer::New();
 	imageRenderer->setInputConnection(importer->getOutputPort());
 
 	SimpleWindow::pointer window = SimpleWindow::New();
 	window->addRenderer(imageRenderer);
-	window->addRenderer(meshRenderer);
+	window->addRenderer(TriangleRenderer);
 	window->set2DMode();
 	window->start();
 
@@ -48,18 +48,18 @@ TEST_CASE("Landmark detection stream", "[fast][DNNAppearanceModel][dynamic][visu
                         "/home/smistad/workspace/DNN-AM/femoral_appearance_model_net2/_iter_1000.caffemodel");
 	detector->loadObjects("/home/smistad/workspace/DNN-AM/femoral_appearance_model_net2/objects.txt");
 
-	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
-	meshRenderer->setInputConnection(detector->getOutputPort());
-	meshRenderer->setColor(0, Color::Red());
-	meshRenderer->setColor(1, Color::Yellow());
-	meshRenderer->setLineSize(4);
+	TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();
+	TriangleRenderer->setInputConnection(detector->getOutputPort());
+	TriangleRenderer->setColor(0, Color::Red());
+	TriangleRenderer->setColor(1, Color::Yellow());
+	TriangleRenderer->setLineSize(4);
 
 	ImageRenderer::pointer imageRenderer = ImageRenderer::New();
 	imageRenderer->setInputConnection(importer->getOutputPort());
 
 	SimpleWindow::pointer window = SimpleWindow::New();
 	window->addRenderer(imageRenderer);
-	window->addRenderer(meshRenderer);
+	window->addRenderer(TriangleRenderer);
 	window->set2DMode();
 	window->enableFullscreen();
 	window->setWidth(1024);

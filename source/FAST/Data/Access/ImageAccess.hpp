@@ -8,7 +8,7 @@ namespace fast {
 
 class Image;
 
-class ImageAccess {
+class FAST_EXPORT  ImageAccess {
     public:
         ImageAccess(void* data, SharedPointer<Image> image);
         void* get();

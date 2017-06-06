@@ -14,7 +14,7 @@ typedef std::map<std::string, float> classifications;
 FAST_SIMPLE_DATA_OBJECT(ImageClassification, classifications)
 
 
-class ImageClassifier : public NeuralNetwork {
+class FAST_EXPORT  ImageClassifier : public NeuralNetwork {
 	FAST_OBJECT(ImageClassifier)
 	public:
 		void setLabels(std::vector<std::string> labels);
@@ -34,7 +34,7 @@ class ImageClassifier : public NeuralNetwork {
 /*
  * ProcessObject to convert a classification into text
  */
-class ClassificationToText : public ProcessObject {
+class FAST_EXPORT  ClassificationToText : public ProcessObject {
     FAST_OBJECT(ClassificationToText)
 private:
     ClassificationToText() {

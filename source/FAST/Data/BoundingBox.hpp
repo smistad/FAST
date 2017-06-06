@@ -6,7 +6,7 @@
 
 namespace fast {
 
-class BoundingBox {
+class FAST_EXPORT  BoundingBox {
     public:
         BoundingBox(Vector3f pos, Vector3f size);
         BoundingBox(Vector3f size);

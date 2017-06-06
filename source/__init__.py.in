@@ -2,4 +2,4 @@ from .fast import *
 import os
 # Set base path in config to be two directories up from where the python module is
 path = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..'))
-Config.setBasePath(path)
+setBasePath(path)

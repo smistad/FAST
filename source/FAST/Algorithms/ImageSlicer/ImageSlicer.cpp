@@ -135,8 +135,8 @@ bool inline cornersAreAdjacent(Vector3f cornerA, Vector3f cornerB, Image::pointe
     // Check if cornerA and cornerB are lying in any of the planes of the BB
     AffineTransformation::pointer transformation = SceneGraph::getAffineTransformationFromData(input);
     // Transform back to pixel space
-    cornerA = transformation->inverse()*cornerA;
-    cornerB = transformation->inverse()*cornerB;
+    cornerA = transformation->getTransform().inverse()*cornerA;
+    cornerB = transformation->getTransform().inverse()*cornerB;
     // Define the eight planes of the image
     std::vector<Plane> planes;
     planes.push_back(Plane(Vector3f(0,1,0), Vector3f(0, input->getHeight(), 0))); // Top
@@ -220,8 +220,8 @@ void ImageSlicer::arbitrarySlicing(Image::pointer input, Image::pointer output) 
                 float lengthMM = (cornerA - cornerB).norm();
                 if(longestEdgeMM < lengthMM) {
                     longestEdgeMM = lengthMM;
-                    Vector3f cornerApixels = transformation->inverse()*cornerA;
-                    Vector3f cornerBpixels = transformation->inverse()*cornerB;
+                    Vector3f cornerApixels = transformation->getTransform().inverse()*cornerA;
+                    Vector3f cornerBpixels = transformation->getTransform().inverse()*cornerB;
                     longestEdgePixels = (int)round((cornerApixels - cornerBpixels).norm());
                 }
             //}
@@ -267,7 +267,7 @@ void ImageSlicer::arbitrarySlicing(Image::pointer input, Image::pointer output) 
     // Estimate translation
     Vector3f translation = intersectionCentroid - rotatedPosition;
 
-    Eigen::Affine3f sliceTransformation;
+    Affine3f sliceTransformation = Affine3f::Identity();
     sliceTransformation.linear() = R;
     sliceTransformation.translation() = translation;
     sliceTransformation.scale(spacing);
@@ -276,10 +276,9 @@ void ImageSlicer::arbitrarySlicing(Image::pointer input, Image::pointer output) 
 
     // Get transform of the image
     AffineTransformation::pointer dataTransform = SceneGraph::getAffineTransformationFromData(input);
-    dataTransform->scale(input->getSpacing()); // Apply image spacing
 
     // Transfer transformations
-    Eigen::Affine3f transform = dataTransform->inverse()*sliceTransformation;
+    Eigen::Affine3f transform = dataTransform->getTransform().scale(input->getSpacing()).inverse()*sliceTransformation;
 
     cl::Buffer transformBuffer(
             device->getContext(),
@@ -309,7 +308,7 @@ void ImageSlicer::arbitrarySlicing(Image::pointer input, Image::pointer output) 
 
 
     AffineTransformation::pointer T = AffineTransformation::New();
-    T->matrix() = sliceTransformation.matrix();
+    T->setTransform(sliceTransformation);
     output->getSceneGraphNode()->setTransformation(T);
 }
 

@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class LevelSetSegmentation : public ProcessObject {
+class FAST_EXPORT  LevelSetSegmentation : public ProcessObject {
     FAST_OBJECT(LevelSetSegmentation)
     public:
         void addSeedPoint(Vector3i position, float size);

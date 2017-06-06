@@ -7,7 +7,7 @@
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
 #include "FAST/Algorithms/CenterlineExtraction/CenterlineExtraction.hpp"
-#include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
+#include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Visualization/LineRenderer/LineRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 
@@ -33,7 +33,7 @@ int main() {
 	extraction->setInputConnection(segmentation->getOutputPort());
 
 	// Set up renderers and window
-	MeshRenderer::pointer renderer = MeshRenderer::New();
+	TriangleRenderer::pointer renderer = TriangleRenderer::New();
 	renderer->addInputConnection(extraction->getOutputPort());
 
 	LineRenderer::pointer lineRenderer = LineRenderer::New();

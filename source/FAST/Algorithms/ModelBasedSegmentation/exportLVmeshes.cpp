@@ -1,7 +1,7 @@
 #include "FAST/Testing.hpp"
 #include "FAST/Streamers/ImageFileStreamer.hpp"
 #include "KalmanFilter.hpp"
-#include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
+#include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 #include "AppearanceModels/StepEdge/StepEdgeModel.hpp"
@@ -134,9 +134,9 @@ int main(int argc, char** argv) {
 
         if(visualize) {
             streamer2->enableLooping();
-            MeshRenderer::pointer meshRenderer = MeshRenderer::New();
-            meshRenderer->addInputConnection(segmentation->getOutputPort());
-            //meshRenderer->addInputConnection(segmentation->getDisplacementsOutputPort(), Color::Red(), 1.0);
+            TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();
+            TriangleRenderer->addInputConnection(segmentation->getOutputPort());
+            //TriangleRenderer->addInputConnection(segmentation->getDisplacementsOutputPort(), Color::Red(), 1.0);
 
             ImageRenderer::pointer imageRenderer = ImageRenderer::New();
             imageRenderer->addInputConnection(streamer2->getOutputPort());
@@ -144,7 +144,7 @@ int main(int argc, char** argv) {
             SimpleWindow::pointer window = SimpleWindow::New();
             window->getView()->setBackgroundColor(Color::Black());
             window->addRenderer(imageRenderer);
-            window->addRenderer(meshRenderer);
+            window->addRenderer(TriangleRenderer);
             window->setSize(1024, 1024);
             window->set2DMode();
             window->setTimeout(10000);

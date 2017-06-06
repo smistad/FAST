@@ -12,7 +12,7 @@ TEST_CASE("DoubleFilter on OpenCL device", "[fast][DoubleFilter]") {
     DoubleFilter::pointer filter = DoubleFilter::New();
     filter->setInputConnection(importer->getOutputPort());
     filter->update();
-    Reporter::info() << "finished update" << Reporter::end;
+    Reporter::info() << "finished update" << Reporter::end();
 
     Image::pointer input = importer->getOutputData<Image>(0);
     Image::pointer output = filter->getOutputData<Image>(0);
@@ -41,7 +41,7 @@ TEST_CASE("DoubleFilter on Host", "[fast][DoubleFilter]") {
     filter->setInputConnection(importer->getOutputPort());
     filter->setMainDevice(Host::getInstance());
     filter->update();
-    Reporter::info() << "finished update" << Reporter::end;
+    Reporter::info() << "finished update" << Reporter::end();
 
     Image::pointer input = importer->getOutputData<Image>(0);
     Image::pointer output = filter->getOutputData<Image>(0);

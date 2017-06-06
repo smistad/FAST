@@ -2,7 +2,7 @@
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "FAST/Streamers/ImageFileStreamer.hpp"
 #include "FAST/Testing.hpp"
-#include "MeshRenderer.hpp"
+#include "TriangleRenderer.hpp"
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
@@ -10,11 +10,11 @@
 
 using namespace fast;
 
-TEST_CASE("MeshRenderer on LV surface model", "[fast][MeshRenderer][visual]") {
+TEST_CASE("TriangleRenderer on LV surface model", "[fast][TriangleRenderer][visual]") {
     CHECK_NOTHROW(
         VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
         importer->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
-        MeshRenderer::pointer renderer = MeshRenderer::New();
+        TriangleRenderer::pointer renderer = TriangleRenderer::New();
         renderer->addInputConnection(importer->getOutputPort());
         SimpleWindow::pointer window = SimpleWindow::New();
         window->addRenderer(renderer);
@@ -23,14 +23,14 @@ TEST_CASE("MeshRenderer on LV surface model", "[fast][MeshRenderer][visual]") {
     );
 }
 
-TEST_CASE("MeshRenderer on stream of surfaces", "[fast][MeshRenderer][visual]") {
+TEST_CASE("TriangleRenderer on stream of surfaces", "[fast][TriangleRenderer][visual]") {
     CHECK_NOTHROW(
         ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
         mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"US/Ball/US-3Dt_#.mhd");
         SurfaceExtraction::pointer extractor = SurfaceExtraction::New();
         extractor->setInputConnection(mhdStreamer->getOutputPort());
         extractor->setThreshold(200);
-        MeshRenderer::pointer renderer = MeshRenderer::New();
+        TriangleRenderer::pointer renderer = TriangleRenderer::New();
         renderer->addInputConnection(extractor->getOutputPort());
         SimpleWindow::pointer window = SimpleWindow::New();
         window->addRenderer(renderer);
@@ -39,7 +39,7 @@ TEST_CASE("MeshRenderer on stream of surfaces", "[fast][MeshRenderer][visual]") 
     );
 }
 
-TEST_CASE("MeshRenderer with 2D mesh and image", "[fast][MeshRenderer][visual]") {
+TEST_CASE("TriangleRenderer with 2D mesh and image", "[fast][TriangleRenderer][visual]") {
     CHECK_NOTHROW(
         ImageFileImporter::pointer importer = ImageFileImporter::New();
         importer->setFilename(Config::getTestDataPath() + "US/CarotidArtery/Right/US-2D_0.mhd");
@@ -55,7 +55,7 @@ TEST_CASE("MeshRenderer with 2D mesh and image", "[fast][MeshRenderer][visual]")
         lines.push_back(MeshLine(0,1));
         mesh->create(vertices, lines);
 
-        MeshRenderer::pointer renderer = MeshRenderer::New();
+        TriangleRenderer::pointer renderer = TriangleRenderer::New();
         renderer->setInputData(mesh);
         SimpleWindow::pointer window = SimpleWindow::New();
         window->set2DMode();

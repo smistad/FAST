@@ -10,9 +10,9 @@ TEST_CASE("AffineTransformation object is initialized to 4x4 identity matrix", "
     bool correctValues = true;
     for(int i = 0; i < 4; i++) {
         for(int j = 0; j < 4; j++) {
-            if(i == j && T->matrix()(i,j) != 1) {
+            if(i == j && T->getTransform().matrix()(i,j) != 1) {
                 correctValues = false;
-            } else if(i != j && T->matrix()(i,j) != 0) {
+            } else if(i != j && T->getTransform().matrix()(i,j) != 0) {
                 correctValues = false;
             }
         }
@@ -26,7 +26,7 @@ TEST_CASE("Inversion of linear transformation") {
 TEST_CASE("Get linear transformation from node to its parent root", "[fast][SceneGraph]") {
 
     AffineTransformation::pointer T = AffineTransformation::New();
-    T->matrix()(1,3) = 2.0;
+    T->getTransform().matrix()(1,3) = 2.0;
     DummyDataObject::pointer dummy = DummyDataObject::New();
     SceneGraphNode::pointer node = dummy->getSceneGraphNode();
     node->setTransformation(T);
@@ -35,7 +35,7 @@ TEST_CASE("Get linear transformation from node to its parent root", "[fast][Scen
     bool correctValues = true;
     for(int i = 0; i < 4; i++) {
         for(int j = 0; j < 4; j++) {
-            if(T2->matrix()(i,j) != T->matrix()(i,j))
+            if(T2->getTransform().matrix()(i,j) != T->getTransform().matrix()(i,j))
                 correctValues = false;
         }
     }

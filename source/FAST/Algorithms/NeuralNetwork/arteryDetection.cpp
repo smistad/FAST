@@ -2,7 +2,7 @@
 #include "FAST/Algorithms/UltrasoundImageCropper/UltrasoundImageCropper.hpp"
 #include "ObjectDetection.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
-#include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
+#include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 
 using namespace fast;
@@ -24,12 +24,12 @@ int main() {
     // Visualize
     ImageRenderer::pointer imageRenderer = ImageRenderer::New();
     imageRenderer->addInputConnection(cropper->getOutputPort());
-    MeshRenderer::pointer meshRenderer = MeshRenderer::New();
-    meshRenderer->addInputConnection(detection->getOutputPort());
+    TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();
+    TriangleRenderer->addInputConnection(detection->getOutputPort());
 
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(imageRenderer);
-    window->addRenderer(meshRenderer);
+    window->addRenderer(TriangleRenderer);
     window->set2DMode();
     window->setWidth(1920);
     window->setHeight(1080);

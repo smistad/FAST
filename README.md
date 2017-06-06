@@ -22,16 +22,12 @@ To setup and build the framework, see the instructions for your operating system
 
 To start using the framework, see the [Getting started with FAST](https://github.com/smistad/FAST/wiki/Getting-started-with-FAST) guide or the [examples page](https://github.com/smistad/FAST/wiki/Examples).
 
-Build status
+Build status of development branch
 ---------------------
-**Master branch**
-* Ubuntu Linux 14.04, AMD CPU, AMD GPU - ![Build Status](http://jenkins.eriksmistad.no/job/FAST%20-%20Ubuntu%20AMD%20-%20Master/badge/icon)
-* Mac OS X 10.9, Intel CPU, NVIDIA GPU - ![Build Status](http://jenkins.eriksmistad.no/job/FAST%20-%20Mac%20OS%20X%20-%20Master/badge/icon)
-* Windows 8.1, Intel CPU, NVIDIA GPU - ![Build Status](http://jenkins.eriksmistad.no/job/FAST%20-%20Windows%20NVIDIA%20-%20Master/badge/icon)
-
-**Development branch**
-* Ubuntu Linux 14.04, AMD CPU, AMD GPU - ![Build Status](http://jenkins.eriksmistad.no/job/FAST%20-%20Ubuntu%20AMD%20-%20Development/badge/icon)
-* Mac OS X 10.9, Intel CPU, NVIDIA GPU - ![Build Status](http://jenkins.eriksmistad.no/job/FAST%20-%20Mac%20OS%20X%20-%20Development/badge/icon)
-* Windows 8.1, Intel CPU, NVIDIA GPU - ![Build Status](http://jenkins.eriksmistad.no/job/FAST%20-%20Windows%20NVIDIA%20-%20Development/badge/icon)
+* Ubuntu Linux 16.04, Intel CPU, NVIDIA GPU - ![Build Status](https://jenkins.eriksmistad.no/job/Ubuntu_16.04_NVIDIA_Development/badge/icon)
+* Ubuntu Linux 16.04, Intel CPU, AMD GPU - ![Build Status](https://jenkins.eriksmistad.no/job/Ubuntu_16.04_AMD_Development/badge/icon)
+* Mac OS X 10.12, Intel CPU, NVIDIA GPU - ![Build Status](https://jenkins.eriksmistad.no/job/Mac_10.12_NVIDIA_Development/badge/icon)
+* Windows 10, AMD CPU, AMD GPU - ![Build Status](https://jenkins.eriksmistad.no/job/Windows_10_AMD_Development/badge/icon)
+* Windows 10, Intel CPU, NVIDIA GPU - ![Build Status](https://jenkins.eriksmistad.no/job/Windows_10_NVIDIA_Development/badge/icon)
 
 ![Surface mesh extracted from a large abdominal CT scan in about 100 ms using FAST and a modern GPU.](https://github.com/smistad/FAST/wiki/images/surface_extraction.png) ![Ultrasound image segmented using binary thresholding.](https://github.com/smistad/FAST/wiki/images/binary_thresholding.png)

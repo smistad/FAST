@@ -39,6 +39,8 @@ if(FAST_MODULE_Visualization)
     fast_add_sources(
         Pipeline.hpp
         Pipeline.cpp
+        PipelineEditor.hpp
+        PipelineEditor.cpp
 	)
 endif()
 fast_add_python_interfaces(

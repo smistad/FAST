@@ -5,7 +5,7 @@
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp"
 #include "FAST/Visualization/SliceRenderer/SliceRenderer.hpp"
-#include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
+#include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 #include "FAST/Visualization/DualViewWindow.hpp"
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
@@ -95,12 +95,12 @@ TEST_CASE("MeshToSegmentation 3D", "[fast][MeshToSegmentation][3d][visual]") {
     SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
     extraction->setInputConnection(meshToSeg->getOutputPort());
 
-    MeshRenderer::pointer meshRenderer = MeshRenderer::New();
-    meshRenderer->setInputConnection(extraction->getOutputPort());
+    TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();
+    TriangleRenderer->setInputConnection(extraction->getOutputPort());
 
     DualViewWindow::pointer window = DualViewWindow::New();
     window->setWidth(1024);
-    window->addRendererToBottomRightView(meshRenderer);
+    window->addRendererToBottomRightView(TriangleRenderer);
     window->addRendererToTopLeftView(imageRenderer);
     //window->getBottomRightView()->set2DMode();
     //window->getTopLeftView()->set2DMode();

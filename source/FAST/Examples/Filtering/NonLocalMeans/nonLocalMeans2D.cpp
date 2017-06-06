@@ -15,8 +15,6 @@ int main() {
     window->setTimeout(5*1000);
     
 #endif
-    window->setWidth(1600);
-    window->setHeight(600);
     window->start();
 
 	return 0;

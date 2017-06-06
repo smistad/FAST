@@ -8,7 +8,7 @@
 
 namespace fast {
 
-class AffineTransformationFileStreamer : public Streamer, public ProcessObject {
+class FAST_EXPORT  AffineTransformationFileStreamer : public Streamer, public ProcessObject {
     FAST_OBJECT(AffineTransformationFileStreamer)
     public:
         void setFilename(std::string str);

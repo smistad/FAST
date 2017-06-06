@@ -4,7 +4,7 @@
 #include "NeuralNetwork.hpp"
 
 namespace fast {
-class PixelClassifier : public NeuralNetwork {
+class FAST_EXPORT  PixelClassifier : public NeuralNetwork {
     FAST_OBJECT(PixelClassifier)
     public:
         void setNrOfClasses(uint classes);

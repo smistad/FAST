@@ -16,13 +16,19 @@
 #include <QDesktopServices>
 #include <QListWidget>
 #include <QFileDialog>
+#include <QInputDialog>
+#include <FAST/PipelineEditor.hpp>
+#include <fstream>
+#include <QDesktopWidget>
+#include <QApplication>
 
 
 namespace fast {
 
 GUI::GUI() {
 
-    menuWidth = 300;
+    QDesktopWidget* desktop = QApplication::desktop();
+    menuWidth = desktop->width()*(1.0f/6.0f);
     mPipelineWidget = nullptr;
     mStreamer = ImageFileStreamer::New();
 
@@ -32,8 +38,8 @@ GUI::GUI() {
     View* view = createView();
     view->set2DMode();
     view->setBackgroundColor(Color::Black());
-    setWidth(1280);
-    setHeight(768);
+    setWidth(desktop->width());
+    setHeight(desktop->height());
     enableMaximized();
     setTitle("FAST - Viewer");
     viewLayout->addWidget(view);
@@ -51,8 +57,12 @@ GUI::GUI() {
 
     // Title label
     QLabel* title = new QLabel;
-    title->setText("<div style=\"text-align: center; font-weight: bold; font-size: 24px;\">Viewer</div>");
-    title->setFixedHeight(32);
+    title->setText("Viewer");
+	QFont font;
+	font.setPixelSize(24 * getScalingFactor());
+	font.setWeight(QFont::Bold);
+	title->setFont(font);
+	title->setAlignment(Qt::AlignCenter);
     menuLayout->addWidget(title);
 
     // Quit button
@@ -66,7 +76,7 @@ GUI::GUI() {
     QObject::connect(quitButton, &QPushButton::clicked, std::bind(&Window::stop, this));
 
     QLabel* inputListLabel = new QLabel;
-    inputListLabel->setFixedHeight(24);
+    //inputListLabel->setFixedHeight(24);
     inputListLabel->setText("Input data");
     inputListLabel->setStyleSheet("QLabel { font-weight: bold; }");
     menuLayout->addWidget(inputListLabel);
@@ -74,7 +84,7 @@ GUI::GUI() {
     mList = new QListWidget;
     mList->setFixedWidth(menuWidth);
     mList->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    mList->setFixedHeight(100);
+    mList->setFixedHeight(200);
     mList->setSelectionMode(QAbstractItemView::ExtendedSelection); // Allow multiple items to be selected
     QObject::connect(mList, &QListWidget::itemSelectionChanged, std::bind(&GUI::selectInputData, this));
     menuLayout->addWidget(mList);
@@ -88,7 +98,7 @@ GUI::GUI() {
     QLabel* selectPipelineLabel = new QLabel;
     selectPipelineLabel->setText("Active pipeline");
     selectPipelineLabel->setStyleSheet("QLabel { font-weight: bold; }");
-    selectPipelineLabel->setFixedHeight(24);
+    //selectPipelineLabel->setFixedHeight(24);
     menuLayout->addWidget(selectPipelineLabel);
 
     mSelectPipeline = new QComboBox;
@@ -122,13 +132,20 @@ GUI::GUI() {
     QObject::connect(editPipeline, &QPushButton::clicked, std::bind(&GUI::editPipeline, this));
     menuLayout->addWidget(editPipeline);
 
+    QPushButton* newPipeline = new QPushButton;
+    newPipeline->setText("New pipeline");
+    newPipeline->setStyleSheet("QPushButton { background-color: blue; color: white; }");
+    newPipeline->setFixedWidth(menuWidth);
+    QObject::connect(newPipeline, &QPushButton::clicked, std::bind(&GUI::newPipeline, this));
+    menuLayout->addWidget(newPipeline);
+
     // Playback
     QHBoxLayout* playbackLayout = new QHBoxLayout;
 
     mPlayPauseButton = new QPushButton;
     mPlayPauseButton->setText("Play");
     mPlayPauseButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
-    mPlayPauseButton->setFixedHeight(100);
+    //mPlayPauseButton->setFixedHeight(100);
     QObject::connect(mPlayPauseButton, &QPushButton::clicked, std::bind(&GUI::playPause, this));
     playbackLayout->addWidget(mPlayPauseButton);
 
@@ -146,22 +163,45 @@ GUI::GUI() {
     layout->addLayout(viewLayout);
 
     mWidget->setLayout(layout);
+	std::cout << "Finished viewer setup" << std::endl;
 
 }
 
-/*
 void GUI::newPipeline() {
-    QInputDialog* dialog = new QInputDialog(this) ;
-    dialog->setLabelText("Enter filename of new pipeline");
-    dialog->setOkButtonText("Create pipeline");
-    dialog->show();
+    bool ok;
+    QString text = QInputDialog::getText(mWidget, "Create new pipeline", "Enter filename of new pipeline:", QLineEdit::Normal, "", &ok);
+
+    if(ok && !text.isEmpty()) {
+        std::string filename = (const char*)text.toUtf8();
+        // Make sure file ends with .fpl
+        if(filename.substr(filename.size() - 3) != "fpl")
+            filename += ".fpl";
+
+        // Create pipeline file with template
+        std::ofstream file(Config::getPipelinePath() + filename);
+        file << "# New pipeline template\n"
+         "PipelineName \"<Pipeline name here>\"\n"
+        "PipelineDescription \"<Pipeline description here>\"\n\n"
+
+        "# Pipeline needs at least 1 renderer\n"
+        "Renderer renderer ImageRenderer\n"
+        "Input 0 PipelineInput\n"
+        "Attribute window 255\n"
+        "Attribute level 127.5\n";
+        file.close();
+
+        PipelineEditor *editor = new PipelineEditor(filename);
+        QObject::connect(editor, &PipelineEditor::saved, std::bind(&GUI::selectPipeline, this));
+        editor->show();
+    }
 }
- */
 
 void GUI::editPipeline() {
     int selectedPipeline = mSelectPipeline->currentIndex();
     Pipeline pipeline = mPipelines.at(selectedPipeline);
-    QDesktopServices::openUrl(QUrl(("file://" + pipeline.getFilename()).c_str()));
+    PipelineEditor* editor = new PipelineEditor(pipeline.getFilename());
+    QObject::connect(editor, &PipelineEditor::saved, std::bind(&GUI::selectPipeline, this));
+    editor->show();
 }
 
 void GUI::selectPipeline() {
@@ -170,7 +210,8 @@ void GUI::selectPipeline() {
 
     std::vector<std::string> inputData;
     for(QListWidgetItem* widget : mList->selectedItems()) {
-        inputData.push_back(widget->text().toStdString());
+		std::string asd = widget->text().toUtf8().constData();
+        inputData.push_back(asd);
     }
     mStreamer = ImageFileStreamer::New();
     mStreamer->setFilenameFormats(inputData);
@@ -225,7 +266,7 @@ void GUI::addInputData() {
     if(fileDialog.exec()) {
         filenames = fileDialog.selectedFiles();
         for(QString qfilename : filenames) {
-            std::string filename = qfilename.toStdString();
+			std::string filename = qfilename.toUtf8().constData();
             filename = replace(filename, "_0.", "_#.");
             mList->addItem(filename.c_str());
         }

@@ -242,7 +242,7 @@ void MetaImageImporter::execute() {
                 reportWarning() << "Out of range exception occured when center of rotation values from metaimage file" << reportEnd();
             }
         } else if(key == "CenterOfRotation") {
-            //reportInfo() << "WARNING: CenterOfRotation in Metaimage file ignored" << Reporter::end;
+            //reportInfo() << "WARNING: CenterOfRotation in Metaimage file ignored" << Reporter::end();
             std::vector<std::string> values = split(value);
             // Remove any empty values:
             values.erase(std::remove(values.begin(), values.end(), ""), values.end());
@@ -340,9 +340,12 @@ void MetaImageImporter::execute() {
     output->setSpacing(spacing);
 
     // Create transformation
-    AffineTransformation::pointer T = AffineTransformation::New();
-    T->translation() = offset;
-    T->linear() = transformMatrix;
+    
+	Affine3f matrix = Affine3f::Identity();
+	matrix.translation() = offset;
+	matrix.linear() = transformMatrix;
+	AffineTransformation::pointer T = AffineTransformation::New();
+	T->setTransform(matrix);
     output->getSceneGraphNode()->setTransformation(T);
 
     // Clean up

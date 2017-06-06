@@ -94,7 +94,7 @@ inline igtl::TransformMessage::Pointer createIGTLTransformMessage(Image::pointer
     AffineTransformation::pointer T = image->getSceneGraphNode()->getTransformation();
     for(int i = 0; i < 4; i++) {
     for(int j = 0; j < 4; j++) {
-        matrix[i][j] = T->matrix()(i,j);
+        matrix[i][j] = T->getTransform().matrix()(i,j);
     }}
 
     igtl::TransformMessage::Pointer message = igtl::TransformMessage::New();
@@ -148,7 +148,7 @@ void DummyIGTLServer::stream() {
 
     socket->CloseSocket();
     serverSocket->CloseSocket();
-    Reporter::info() << "Closed IGT Link server socket" << Reporter::end;
+    Reporter::info() << "Closed IGT Link server socket" << Reporter::end();
 }
 
 

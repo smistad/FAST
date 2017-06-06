@@ -7,7 +7,7 @@ namespace fast {
 
 class Image;
 
-class EulerGradientVectorFlow : public ProcessObject {
+class FAST_EXPORT  EulerGradientVectorFlow : public ProcessObject {
     FAST_OBJECT(EulerGradientVectorFlow)
     public:
         void setIterations(uint iterations);

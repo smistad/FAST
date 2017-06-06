@@ -346,7 +346,7 @@ void VolumeRenderer::execute() {
 		{
 			AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(inputs[i]);
 
-            glMultMatrixf(transform->data());
+            glMultMatrixf(transform->getTransform().data());
 		}
 
 		

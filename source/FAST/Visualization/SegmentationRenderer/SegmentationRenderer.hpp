@@ -10,7 +10,7 @@
 
 namespace fast {
 
-class SegmentationRenderer : public Renderer {
+class FAST_EXPORT  SegmentationRenderer : public Renderer {
     FAST_OBJECT(SegmentationRenderer)
     public:
         void addInputConnection(ProcessObjectPort port);
@@ -26,7 +26,7 @@ class SegmentationRenderer : public Renderer {
                 cl::Buffer PBO,
                 uint width,
                 uint height,
-                Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform,
+                Affine3f pixelToViewportTransform,
                 float PBOspacing,
                 Vector2f translation
         );

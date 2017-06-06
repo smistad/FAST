@@ -1,6 +1,7 @@
 #ifndef EXCEPTIONS_HPP_
 #define EXCEPTIONS_HPP_
 
+#include "FASTExport.hpp"
 #include <exception>
 #include <string>
 #include <sstream>
@@ -11,7 +12,7 @@ inline std::string intToString(int number) {
     ss << number;//add number to the stream
     return ss.str();//return a string with the contents of the stream
 }
-class Exception : public std::exception {
+class FAST_EXPORT  Exception : public std::exception {
     public:
         Exception() {
             this->line = -1;
@@ -58,7 +59,7 @@ class Exception : public std::exception {
         std::string message;
 };
 
-class FileNotFoundException : public Exception {
+class FAST_EXPORT  FileNotFoundException : public Exception {
     public:
         FileNotFoundException(std::string filename) : Exception() {
             setMessage("Could not open the file " + filename);
@@ -68,7 +69,7 @@ class FileNotFoundException : public Exception {
         FileNotFoundException(std::string message, int line, const char * file): Exception(message,line,file) {};
 };
 
-class OutOfBoundsException : public Exception {
+class FAST_EXPORT  OutOfBoundsException : public Exception {
     public:
         OutOfBoundsException() : Exception() {
             setMessage("Out of bounds.");
@@ -79,7 +80,7 @@ class OutOfBoundsException : public Exception {
         OutOfBoundsException(std::string message, int line, const char * file): Exception(message,line,file) {};
 };
 
-class NotImplementedException : public Exception {
+class FAST_EXPORT  NotImplementedException : public Exception {
     public:
         NotImplementedException() : Exception() {
             setMessage("Not implemented");
@@ -90,12 +91,12 @@ class NotImplementedException : public Exception {
         };
 };
 
-class DoesNotExistException : public Exception {
+class FAST_EXPORT  DoesNotExistException : public Exception {
     public:
         DoesNotExistException(std::string msg) : Exception(msg) {};
 };
 
-class ExistException : public Exception {
+class FAST_EXPORT  ExistException : public Exception {
     public:
         ExistException(std::string msg) : Exception(msg) {};
 

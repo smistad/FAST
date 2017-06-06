@@ -1,6 +1,6 @@
 #include "FAST/Algorithms/IterativeClosestPoint/IterativeClosestPoint.hpp"
 #include "FAST/Importers/VTKPointSetFileImporter.hpp"
-#include "FAST/Visualization/PointRenderer/PointRenderer.hpp"
+#include "FAST/Visualization/VertexRenderer/VertexRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 
 
@@ -18,12 +18,12 @@ int main() {
     Vector3f translation(0.01, 0, 0.01);
     Vector3f rotation(0.5, 0, 0);
     AffineTransformation::pointer transformation = AffineTransformation::New();
-    transformation->translate(translation);
+    transformation->getTransform().translate(translation);
     Matrix3f R;
     R = Eigen::AngleAxisf(rotation.x(), Vector3f::UnitX())
     * Eigen::AngleAxisf(rotation.y(), Vector3f::UnitY())
     * Eigen::AngleAxisf(rotation.z(), Vector3f::UnitZ());
-    transformation->rotate(R);
+    transformation->getTransform()->rotate(R);
     importerB->update();
     importerB->getStaticOutputData<PointSet>()->getSceneGraphNode()->setTransformation(transformation);
 
@@ -36,12 +36,12 @@ int main() {
     // Apply transformation to A
     importerA->getStaticOutputData<PointSet>()->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
 
-    Reporter::info() << "Registration result: " << Reporter::end;
-    Reporter::info() << "Rotation: " << icp->getOutputTransformation()->getEulerAngles().transpose() << Reporter::end;
-    Reporter::info() << "Translation:" << icp->getOutputTransformation()->translation().transpose() << Reporter::end;
+    Reporter::info() << "Registration result: " << Reporter::end();
+    Reporter::info() << "Rotation: " << icp->getOutputTransformation()->getEulerAngles().transpose() << Reporter::end();
+    Reporter::info() << "Translation:" << icp->getOutputTransformation()->getTransform().translation().transpose() << Reporter::end();
 
     // Visualize the two point sets
-    PointRenderer::pointer renderer = PointRenderer::New();
+    VertexRenderer::pointer renderer = VertexRenderer::New();
     renderer->addInputConnection(importerA->getOutputPort(), Color::Blue(), 10);
     renderer->addInputConnection(importerB->getOutputPort(), Color::Green(), 5);
     renderer->setDefaultDrawOnTop(true);

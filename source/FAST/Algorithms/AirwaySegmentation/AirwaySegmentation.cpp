@@ -21,7 +21,7 @@ Vector3i AirwaySegmentation::findSeedVoxel(Image::pointer volume) {
     int slice = volume->getDepth()*0.6;
 
     int threshold = -700;
-    int Tseed = -1000;
+    int Tseed = -950;
     float minArea = 7.5f*7.5f*3.14f; // min radius of 7.5
     float maxArea = 25.0f*25.0f*3.14f; // max radius of 25.0
     Vector3i currentSeed(0,0,0);
@@ -84,15 +84,14 @@ Vector3i AirwaySegmentation::findSeedVoxel(Image::pointer volume) {
     return currentSeed;
 }
 
-int grow(uchar* segmentation, std::vector<Vector3i> neighbors, std::vector<Vector3i>* voxels, short* data, float threshold, int width, int height, int depth) {
-    std::vector<Vector3i>::iterator it;
+static int grow(uchar* segmentation, std::vector<Vector3i> neighbors, std::vector<Vector3i>& voxels, short* data, float threshold, int width, int height, int depth, float previousVolume, float volumeIncreaseLimit, int volumeMinimum) {
     std::stack<Vector3i> stack;
     // TODO voxels coming in here consists of all voxels, should only need to add the front..
-    for(it = voxels->begin(); it != voxels->end(); it++) {
-        stack.push(*it);
+    for(Vector3i voxel : voxels) {
+        stack.push(voxel);
     }
 
-    while(!stack.empty()) {
+    while(!stack.empty() && (voxels.size() - previousVolume < volumeIncreaseLimit || voxels.size() < volumeMinimum)) {
         Vector3i x = stack.top();
         stack.pop();
         segmentation[x.x() + x.y()*width + x.z()*width*height] = 1; // TODO is this needed?
@@ -108,75 +107,73 @@ int grow(uchar* segmentation, std::vector<Vector3i> neighbors, std::vector<Vecto
 
             if(data[y.x() + y.y()*width + y.z()*width*height] <= threshold && segmentation[y.x() + y.y()*width + y.z()*width*height] == 0) {
 				segmentation[y.x() + y.y()*width + y.z()*width*height] = 1;
-                voxels->push_back(y);
+                voxels.push_back(y);
                 stack.push(y);
             }
         }
     }
 
-    return voxels->size();
+    return voxels.size();
 }
 
-void regionGrowing(Image::pointer volume, Segmentation::pointer segmentation, Vector3i seed) {
-    int width = volume->getWidth();
-    int height = volume->getHeight();
-    int depth = volume->getDepth();
+void regionGrowing(Image::pointer volume, Segmentation::pointer segmentation, const Vector3i seed) {
+    const int width = volume->getWidth();
+    const int height = volume->getHeight();
+    const int depth = volume->getDepth();
 	segmentation->createFromImage(volume);
 	ImageAccess::pointer access = volume->getImageAccess(ACCESS_READ);
 	short* data = (short*)access->get();
 	ImageAccess::pointer access2 = segmentation->getImageAccess(ACCESS_READ_WRITE);
 	uchar* segmentationData = (uchar*)access2->get();
 	memset(segmentationData, 0, width*height*depth);
-    std::vector<Vector3i> voxels;
+    std::vector<Vector3i> voxels; // All voxels currently in segmentation
     segmentationData[seed.x() + seed.y()*width + seed.z()*width*height] = 1;
     voxels.push_back(seed);
     float threshold = data[seed.x() + seed.y()*width + seed.z()*width*height];
-    float volumeIncreaseLimit = 20000.0f;
-    float volumeMinimum = 100000.0f;
+    const float volumeIncreaseLimit = 20000.0f; // how much the volume is allowed to increase per step
+    const float volumeMinimum = 100000.0f; // minimum volume size of airways
     float VT = 0.0f; // volume with given threshold
     float deltaT = 2.0f;
     float spacing = 1.0f;
 
     // Create neighbor list
-    std::vector<Vector3i> neighbors;
+    std::vector<Vector3i> neighborList;
 	for(int a = -1; a < 2; a++) {
 	for(int b = -1; b < 2; b++) {
 	for(int c = -1; c < 2; c++) {
 		if(a == 0 && b == 0 && c == 0)
 			continue;
-		neighbors.push_back(Vector3i(a,b,c));
+		neighborList.push_back(Vector3i(a,b,c));
 	}}}
 
-    float Vnew = spacing*grow(segmentationData, neighbors, &voxels, data, threshold, width, height, depth);
+    float Vnew = spacing*grow(segmentationData, neighborList, voxels, data, threshold, width, height, depth, VT, volumeIncreaseLimit, volumeMinimum);
     // Loop until explosion is detected
     do {
         VT = Vnew;
         threshold += deltaT;
-		Vnew = spacing*grow(segmentationData, neighbors, &voxels, data, threshold, width, height, depth);
-        Reporter::info() << "using threshold: " << threshold << Reporter::end;
-        Reporter::info() << "gives volume size: " << Vnew << Reporter::end;
+        // Growing is stopped if it goes over the volumeIncreaseLimit
+		Vnew = spacing*grow(segmentationData, neighborList, voxels, data, threshold, width, height, depth, VT, volumeIncreaseLimit, volumeMinimum);
+        Reporter::info() << "using threshold: " << threshold << Reporter::end();
+        Reporter::info() << "gives volume size: " << Vnew << Reporter::end();
+		Reporter::info() << "volume diff: " << Vnew - VT << Reporter::end();
     } while(Vnew-VT < volumeIncreaseLimit || Vnew < volumeMinimum);
 
     float explosionVolume = Vnew;
-	Reporter::info() << "Ungrowing.." << Vnew << Reporter::end;
+	Reporter::info() << "Ungrowing.." << Reporter::end();
     threshold -= deltaT;
     VT = Vnew;
 
-    // Ungrow until the volume is less than 95% of V
-    while(VT >= 0.95f*explosionVolume) {
-        voxels.clear();
-        voxels.push_back(seed);
-		memset(segmentationData, 0, width*height*depth);
-		segmentationData[seed.x() + seed.y()*width + seed.z()*width*height] = 1;
-        VT = spacing*grow(segmentationData, neighbors, &voxels, data, threshold, width, height, depth);
-        Reporter::info() << "using threshold: " << threshold << Reporter::end;
-        Reporter::info() << "gives volume size: " << VT << Reporter::end;
-        threshold -= deltaT;
-    }
+    // Ungrow one step
+    voxels.clear();
+    voxels.push_back(seed);
+    memset(segmentationData, 0, width*height*depth);
+    segmentationData[seed.x() + seed.y()*width + seed.z()*width*height] = 1;
+    VT = spacing*grow(segmentationData, neighborList, voxels, data, threshold, width, height, depth, VT, std::numeric_limits<float>::max(), volumeMinimum);
+    Reporter::info() << "using threshold: " << threshold << Reporter::end();
+    Reporter::info() << "gives volume size: " << VT << Reporter::end();
 }
 
 Image::pointer AirwaySegmentation::convertToHU(Image::pointer image) {
-	// TODO need support for no 3d write
 	OpenCLDevice::pointer device = getMainDevice();
 	cl::Program program = getOpenCLProgram(device);
 

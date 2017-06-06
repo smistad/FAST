@@ -1,7 +1,7 @@
 #include "FAST/Testing.hpp"
 #include "FAST/Importers/ImageFileImporter.hpp"
-#include "FAST/Visualization/PointRenderer/PointRenderer.hpp"
-#include "FAST/Visualization/MeshRenderer/MeshRenderer.hpp"
+#include "FAST/Visualization/VertexRenderer/VertexRenderer.hpp"
+#include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 #include "FAST/Streamers/ImageFileStreamer.hpp"
@@ -34,21 +34,21 @@ TEST_CASE("Object detection stream", "[fast][ObjectDetection][dynamic][visual]")
 	detector->setInputSize(256, 256);
     detector->setScaleFactor(1.0f/255.0f);
 
-	MeshRenderer::pointer meshRenderer = MeshRenderer::New();
-	meshRenderer->setInputConnection(detector->getOutputPort());
-	meshRenderer->setColor(1, Color::Red());
-	meshRenderer->setColor(2, Color(0.2, 0.2, 1.0));
-	meshRenderer->setColor(3, Color::Green());
-	meshRenderer->setColor(4, Color::Purple());
-	meshRenderer->setColor(5, Color::Cyan());
-	meshRenderer->setLineSize(4);
+	TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();
+	TriangleRenderer->setInputConnection(detector->getOutputPort());
+	TriangleRenderer->setColor(1, Color::Red());
+	TriangleRenderer->setColor(2, Color(0.2, 0.2, 1.0));
+	TriangleRenderer->setColor(3, Color::Green());
+	TriangleRenderer->setColor(4, Color::Purple());
+	TriangleRenderer->setColor(5, Color::Cyan());
+	TriangleRenderer->setLineSize(4);
 
 	ImageRenderer::pointer imageRenderer = ImageRenderer::New();
 	imageRenderer->setInputConnection(importer->getOutputPort());
 
 	SimpleWindow::pointer window = SimpleWindow::New();
 	window->addRenderer(imageRenderer);
-	window->addRenderer(meshRenderer);
+	window->addRenderer(TriangleRenderer);
 	window->set2DMode();
 	window->getView()->setBackgroundColor(Color::Black());
 	//window->enableFullscreen();

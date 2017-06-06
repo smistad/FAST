@@ -10,7 +10,7 @@
 
 namespace fast {
 
-class VolumeRenderer : public Renderer {
+class FAST_EXPORT  VolumeRenderer : public Renderer {
     FAST_OBJECT(VolumeRenderer)
     public:
         void addInputConnection(ProcessObjectPort port);

@@ -1,5 +1,7 @@
-cmake_minimum_required(VERSION 2.8.12)
+﻿cmake_minimum_required(VERSION 2.8.11)
+
 project(FAST)
+
 include(cmake/Macros.cmake)
 
 #### Options
@@ -7,7 +9,7 @@ option(FAST_BUILD_TESTS "Build FAST tests." ON)
 option(FAST_BUILD_EXAMPLES "Build examples." OFF)
 option(FAST_BUILD_TOOLS "Build tools." ON)
 option(FAST_BUILD_DOCS "Build API documentation" OFF)
-option(FAST_DOWNLOAD_TEST_DATA "Download test data automatically (> 1 GB)" ON)
+option(FAST_DOWNLOAD_TEST_DATA "Download test data automatically (> 1 GB)" OFF)
 option(FAST_MODULE_VTK "Enable interoperability with VTK" OFF)
 option(FAST_MODULE_ITK "Enable interoperability with ITK" OFF)
 option(FAST_MODULE_Visualization "Enable visualization capabilities using Qt5.
@@ -17,6 +19,7 @@ option(FAST_MODULE_NeuralNetwork "Build neural network module using tensorflow" 
 option(FAST_MODULE_Python "Build Python wrappers" OFF)
 option(FAST_MODULE_Kinect "Build kinect module" OFF)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
+option(FAST_BUILD_QT5 "Download and build Qt 5.8. Turn this OFF if you want to use pre-built binaries you already have on your machine." ON)
 
 # Python version
 set(FAST_Python_Version "" CACHE STRING "Specify which Python version to build python wrappers with. E.g. 2 or 3")
@@ -66,6 +69,7 @@ set(QT_HEADERS
         source/FAST/Visualization/Window.hpp
         source/FAST/Visualization/ComputationThread.hpp
         source/FAST/Examples/Interoperability/qtInteroperability.hpp
+        source/FAST/PipelineEditor.hpp
 )
 
 # Set debug define if debug mode is set
@@ -101,6 +105,12 @@ endif()
 # Set up RPATH with relative path so that binaries will find libraries in the lib folder (linux only?)
 set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
 
+if(WIN32)
+	# Parallel build in MSVC
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /nologo /MD /EHsc")
+endif()
+
 #### Add all subdirs
 fast_add_subdirectories(source/FAST)
 
@@ -119,19 +129,19 @@ if(FAST_BUILD_EXAMPLES)
     endif()
 endif()
 
+
+
 #### Create FAST library and executables
-set(BUILD_SHARED_LIBS ON)
-if(WIN32)
-	set(BUILD_SHARED_LIBS OFF)
-	# Parallel build in MSVC
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
-endif()
-add_library(FAST ${FAST_SOURCE_FILES} ${HEADERS_MOC})
+add_library(FAST SHARED ${FAST_SOURCE_FILES} ${HEADERS_MOC})
 add_dependencies(FAST ${FAST_EXTERNAL_DEPENDENCIES})
+include(GenerateExportHeader)
+generate_export_header(FAST EXPORT_FILE_NAME FASTExport.hpp)
+
 
 ## Link everything
-target_link_libraries(FAST ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES})
-if(FAST_MODULE_Visualization)
+message("-- LIBS: ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES}")
+target_link_libraries(FAST PUBLIC ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES})
+if(FAST_MODULE_Visualization AND FAST_BUILD_QT5)
     qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
 endif()
 
@@ -140,7 +150,6 @@ if(FAST_BUILD_TESTS)
     add_executable(testFAST ${FAST_TEST_SOURCE_FILES})
     target_link_libraries(testFAST FAST)
 endif()
-
 
 set(CONF_FAST_LIBRARIES FAST ${LIBRARIES})
 
@@ -156,13 +165,20 @@ configure_file(
         @ONLY
 )
 
-# If test data dir has been set by user, write it to config file
+# Set paths needed at runtime to be written to config file
+set(CONFIG_TEST_DATA_PATH "TestDataPath = ${CMAKE_CURRENT_SOURCE_DIR}/data/")
+set(CONFIG_DOCUMENTATION_PATH "DocumentationPath = ${CMAKE_CURRENT_SOURCE_DIR}/doc/")
+set(CONFIG_KERNEL_SOURCE_PATH "KernelSourcePath = ${CMAKE_CURRENT_SOURCE_DIR}/source/FAST/")
+set(CONFIG_PIPELINE_PATH "PipelinePath = ${CMAKE_CURRENT_SOURCE_DIR}/pipelines/")
+
+# If test data dir has been set by user, use that instead
 if(NOT FAST_TEST_DATA_DIR STREQUAL "")
     # Remove any existing "
     string(REPLACE "\"" "" FAST_TEST_DATA_DIR ${FAST_TEST_DATA_DIR})
     message("-- FAST test data directory set to: \"${FAST_TEST_DATA_DIR}\"")
     set(CONFIG_TEST_DATA_PATH "TestDataPath = ${FAST_TEST_DATA_DIR}/")
 endif()
+# If OpenCL kernel binary path has been set by user, write it to the config
 if(NOT FAST_OPENCL_KERNEL_BINARY_PATH STREQUAL "")
     # Remove any existing "
     string(REPLACE "\"" "" FAST_OPENCL_KERNEL_BINARY_PATH ${FAST_OPENCL_KERNEL_BINARY_PATH})
@@ -170,6 +186,7 @@ if(NOT FAST_OPENCL_KERNEL_BINARY_PATH STREQUAL "")
     set(CONFIG_KERNEL_BINARY_PATH "KernelBinaryPath = ${FAST_OPENCL_KERNEL_BINARY_PATH}/")
 endif()
 
+# configure the configuration file.
 configure_file(
     "${PROJECT_SOURCE_DIR}/source/fast_configuration.txt.in"
     "${PROJECT_BINARY_DIR}/fast_configuration.txt"
