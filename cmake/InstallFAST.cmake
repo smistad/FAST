@@ -24,7 +24,7 @@ if(WIN32)
 		DESTINATION fast/bin
 	)
 elseif(APPLE)
-	file(GLOB SOs ${PROJECT_BINARY_DIR}/lib/*.dylib*)
+	file(GLOB SOs ${PROJECT_BINARY_DIR}/lib/*.dylib)
 	install(FILES ${SOs}
         DESTINATION fast/lib
     )
