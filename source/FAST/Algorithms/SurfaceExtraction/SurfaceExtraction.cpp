@@ -6,7 +6,8 @@
 #include "FAST/Utility.hpp"
 #include "FAST/SceneGraph.hpp"
 #ifdef FAST_MODULE_VISUALIZATION
-#include <QOpenGLFunctions_3_3_Core>
+#include <QGLFunctions>
+#include "FAST/Visualization/Window.hpp"
 #endif
 
 namespace fast {
@@ -358,8 +359,7 @@ void SurfaceExtraction::execute() {
         );
 
         // Transfer CPU data to VBO
-        QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
-        fun->initializeOpenGLFunctions();
+        QGLFunctions *fun = Window::getMainGLContext()->functions();
         fun->glBindBuffer(GL_ARRAY_BUFFER, *VBO_ID);
         fun->glBufferData(GL_ARRAY_BUFFER, totalSum * 18 * sizeof(float), data, GL_STATIC_DRAW);
         fun->glBindBuffer(GL_ARRAY_BUFFER, 0);

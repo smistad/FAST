@@ -3,7 +3,8 @@
 #include "FAST/Visualization/View.hpp"
 #include "FAST/Utility.hpp"
 #include <QCursor>
-#include <QOpenGLFunctions_3_3_Core>
+#include <QGLFunctions>
+#include "FAST/Visualization/Window.hpp"
 
 
 #include "TriangleRenderer.hpp"
@@ -62,8 +63,7 @@ void TriangleRenderer::draw() {
     glEnable(GL_NORMALIZE);
     glShadeModel(GL_SMOOTH);
     glEnable(GL_LIGHTING);
-    QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
-    fun->initializeOpenGLFunctions();
+    QGLFunctions *fun = Window::getMainGLContext()->functions();
 
     if(mWireframe)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

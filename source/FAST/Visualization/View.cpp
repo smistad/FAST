@@ -10,7 +10,7 @@
 #include "FAST/Utility.hpp"
 #include "SimpleWindow.hpp"
 #include "FAST/Utility.hpp"
-#include <QOpenGLFunctions_3_3_Core>
+#include <QGLFunctions>
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
@@ -307,6 +307,7 @@ void View::reinitialize() {
 
 void View::initializeGL() {
 	glEnable(GL_TEXTURE_2D);
+    QGLFunctions *fun = Window::getMainGLContext()->functions();
 
 	glGenTextures(1, &renderedDepthText);
 	glBindTexture(GL_TEXTURE_2D, renderedDepthText);
@@ -339,8 +340,6 @@ void View::initializeGL() {
 
 	glBindTexture(GL_TEXTURE_2D, 0); // unbind texture
 
-    QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
-    fun->initializeOpenGLFunctions();
 	fun->glGenFramebuffers(1,&fbo);
 	fun->glBindFramebuffer(GL_FRAMEBUFFER,fbo);
 
@@ -684,8 +683,7 @@ void View::initializeGL() {
 void View::paintGL() {
 
 	mRuntimeManager->startRegularTimer("paint");
-    QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
-    fun->initializeOpenGLFunctions();
+    QGLFunctions *fun = Window::getMainGLContext()->functions();
 
 	glClearColor(mBackgroundColor.getRedValue(), mBackgroundColor.getGreenValue(), mBackgroundColor.getBlueValue(), 1.0f);
 	if (mNonVolumeRenderers.size() > 0 ) //it can be "only nonVolume renderers" or "nonVolume + Volume renderes" together
@@ -861,8 +859,7 @@ void View::paintGL() {
 
 void View::renderVolumes()
 {
-    QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
-    fun->initializeOpenGLFunctions();
+    QGLFunctions *fun = Window::getMainGLContext()->functions();
 
 		//Rendere to Back buffer
 		fun->glBindFramebuffer(GL_FRAMEBUFFER,0);
@@ -900,8 +897,7 @@ void View::renderVolumes()
 void View::getDepthBufferFromGeo()
 {
 
-    QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
-    fun->initializeOpenGLFunctions();
+    QGLFunctions *fun = Window::getMainGLContext()->functions();
 	/*Converting the depth buffer texture from GL format to CL format >>>*/
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
@@ -953,8 +949,7 @@ void View::getDepthBufferFromGeo()
 
 void View::resizeGL(int width, int height) {
 
-    QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
-    fun->initializeOpenGLFunctions();
+    QGLFunctions *fun = Window::getMainGLContext()->functions();
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     if(mIsIn2DMode) {
@@ -1124,8 +1119,7 @@ void View::setViewingPlane(Plane plane) {
 void View::initShader()
 {
 
-    QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
-    fun->initializeOpenGLFunctions();
+    QGLFunctions *fun = Window::getMainGLContext()->functions();
 	//Read our shaders into the appropriate buffers
 	std::string vertexSource =		"#version 120\nuniform sampler2D renderedDepthText;\n void main(){ gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * gl_Vertex; \ngl_TexCoord[0] = gl_MultiTexCoord0;}\n";//Get source code for vertex shader.
 	std::string fragmentSource =	"#version 120\nuniform sampler2D renderedDepthText;\nvoid main(){ \ngl_FragColor = texture2D(renderedDepthText, gl_TexCoord[0].st); }\n";//Get source code for fragment shader.
