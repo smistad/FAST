@@ -5,7 +5,7 @@
 #ifdef FAST_MODULE_VISUALIZATION
 #include "FAST/Visualization/Window.hpp"
 #include <QApplication>
-#include <QOpenGLFunctions_3_3_Core>
+#include <QGLFunctions>
 #endif
 
 
@@ -101,8 +101,7 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
         }
 #endif
 #endif
-        QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
-        fun->initializeOpenGLFunctions();
+        QGLFunctions *fun = Window::getMainGLContext()->functions();
         fun->glGenBuffers(1, &mVBOID);
         fun->glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
         if(mHostHasData) {
@@ -202,10 +201,9 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
         // Host has not allocated data
         // Get all vertices with normals from VBO (including duplicates)
         float* data = new float[mNrOfTriangles*18];
-        QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
-        fun->initializeOpenGLFunctions();
+        QGLFunctions *fun = Window::getMainGLContext()->functions();
         fun->glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
-        fun->glGetBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float)*mNrOfTriangles*18, data);
+        fun->glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float)*mNrOfTriangles*18, data);
         fun->glBindBuffer(GL_ARRAY_BUFFER, 0);
         std::vector<MeshVertex> vertices;
         std::vector<MeshTriangle> triangles;
@@ -412,8 +410,7 @@ void Mesh::freeAll() {
         // Need mutual exclusive write lock to delete data
         //VertexBufferObjectAccess::pointer access = getVertexBufferObjectAccess(ACCESS_READ_WRITE);
         Window::getMainGLContext()->makeCurrent(); // Need an active context to delete the mesh VBO
-        QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
-        fun->initializeOpenGLFunctions();
+        QGLFunctions *fun = Window::getMainGLContext()->functions();
         // glDeleteBuffer is not used due to multi-threading issues..
         //fun->glDeleteBuffers(1, &mVBOID);
 
