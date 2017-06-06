@@ -102,8 +102,13 @@ if(hasParent)
     set(FAST_INCLUDE_DIRS ${FAST_INCLUDE_DIRS} PARENT_SCOPE)
 endif()
 
-# Set up RPATH with relative path so that binaries will find libraries in the lib folder (linux only?)
-set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+# Set up RPATH with relative path so that binaries will find libraries in the lib folder
+if(APPLE)
+    set(CMAKE_MACOSX_RPATH ON)
+    set(CMAKE_INSTALL_RPATH "@loader_path/../lib")
+else()
+    set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+endif()
 
 if(WIN32)
 	# Parallel build in MSVC

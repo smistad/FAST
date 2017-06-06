@@ -15,14 +15,19 @@ endif()
 # Examples are installed in the macro fast_add_example
 
 # Install dependency libraries
+install(FILES ${PROJECT_BINARY_DIR}/FASTExport.hpp
+    DESTINATION fast/include
+)
 if(WIN32)
 	file(GLOB DLLs ${PROJECT_BINARY_DIR}/bin/*.dll)
 	install(FILES ${DLLs}
 		DESTINATION fast/bin
 	)
-	install(FILES ${PROJECT_BINARY_DIR}/FASTExport.hpp
-		DESTINATION fast/include
-	)
+elseif(APPLE)
+	file(GLOB SOs ${PROJECT_BINARY_DIR}/lib/*.dylib*)
+	install(FILES ${SOs}
+        DESTINATION fast/lib
+    )
 else()
 	file(GLOB SOs ${PROJECT_BINARY_DIR}/lib/*.so*)
 	install(FILES ${SOs}
