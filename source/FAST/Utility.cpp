@@ -2,7 +2,6 @@
 #include "FAST/Config.hpp"
 #define _USE_MATH_DEFINES
 #include <cmath>
-#include <regex>
 #ifdef _WIN32
 #include <direct.h> // Needed for _mkdir
 #else
@@ -556,12 +555,14 @@ std::string replace(std::string str, std::string find, std::string replacement) 
 }
 
 std::vector<std::string> split(const std::string& input, const std::string& delimiter) {
-    // passing -1 as the submatch index parameter performs splitting
-    std::regex re(delimiter);
-    std::sregex_token_iterator
-            first{input.begin(), input.end(), re, -1},
-            last;
-    return {first, last};
+    char* cstr = const_cast<char*>(input.c_str());
+    char* current = strtok(cstr, delimiter.c_str());
+    std::vector<std::string> parts;
+    while(current != NULL) {
+        parts.push_back(std::string(current));
+        current = strtok(NULL, delimiter.c_str());
+    }
+    return parts;
 }
 
 void loadPerspectiveMatrix(float fovy, float aspect, float zNear, float zFar) {
