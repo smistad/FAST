@@ -167,6 +167,7 @@ OpenCLDevice::pointer DeviceManager::getOneOpenCLDevice(
     // Check if a GPU is available first, if not choose any
     criteria.setTypeCriteria(DEVICE_TYPE_GPU);
     criteria.setDeviceCountCriteria(1);
+    criteria.setDevicePreference(DEVICE_PREFERENCE_COMPUTE_UNITS);
     std::vector<OpenCLDevice::pointer> devices = getDevices(criteria,enableVisualization);
     if(devices.size() > 0) {
         return devices[0];
@@ -238,8 +239,9 @@ DeviceManager::DeviceManager() {
     setDefaultDevice(getOneOpenCLDevice(true));
 
     OpenCLDevice::pointer device = getDefaultComputationDevice();
+    reportInfo() << "The following device was selected as main device: " << device->getName() << reportEnd();
     if(!device->isWritingTo3DTexturesSupported()) {
-        reportWarning() << "Writing to directly to 3D textures/images is not supported on main device" << reportEnd();
+        reportWarning() << "Writing directly to 3D textures/images is not supported on main device" << reportEnd();
     }
 }
 
@@ -398,6 +400,7 @@ void DeviceManager::sortDevicesAccordingToPreference(
                 break;
             case DEVICE_PREFERENCE_COMPUTE_UNITS:
                 das.score = device.getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>();
+                reportInfo() << device.getInfo<CL_DEVICE_NAME>() << " has " << device.getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>() << " compute units" << reportEnd();
                 break;
             case DEVICE_PREFERENCE_GLOBAL_MEMORY:
                 das.score = device.getInfo<CL_DEVICE_GLOBAL_MEM_SIZE>()
@@ -529,6 +532,7 @@ std::vector<cl::Device> DeviceManager::getDevicesForBestPlatform(
         }
 		reportInfo() << "The platform " << platformDevices[bestPlatform].first.getInfo<CL_PLATFORM_NAME>() << " was selected as the best platform." << Reporter::end();
 		reportInfo() << "A total of " << validDevices.size() << " devices were selected for the context from this platform:" << Reporter::end();
+        reportInfo() << "The best device was: " << validDevices[0].getInfo<CL_DEVICE_NAME>() << reportEnd();
 
 		for (int i = 0; i < validDevices.size(); i++) {
 			//reporter.report("Device " + number(i) + ": " + validDevices[i].getInfo<CL_DEVICE_NAME>(), INFO);
