@@ -7,6 +7,8 @@ ExternalProject_Add(zlib
         BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/zlib
         GIT_REPOSITORY "https://github.com/madler/zlib.git"
         GIT_TAG "v1.2.8"
+        CMAKE_ARGS
+            -DCMAKE_MACOSX_RPATH=ON
         CMAKE_CACHE_ARGS
             -DCMAKE_BUILD_TYPE:STRING=Release
             -DCMAKE_VERBOSE_MAKEFILE:BOOL=OFF
