@@ -26,6 +26,9 @@ void NeuralNetwork::load(std::string networkFilename) {
     tensorflow::port::InitMain(argv[0], &argc, &argv);
 	tensorflow::SessionOptions options;
 	tensorflow::ConfigProto &config = options.config;
+	tensorflow::GPUOptions* gpuOptions = config.mutable_gpu_options();
+	gpuOptions->set_allow_growth(true); // Set this so that tensorflow will not use up all GPU memory
+	//gpuOptions->set_per_process_gpu_memory_fraction(0.5);
 	mSession.reset(tensorflow::NewSession(options));
 	tensorflow::GraphDef tensorflow_graph;
 
@@ -38,8 +41,6 @@ void NeuralNetwork::load(std::string networkFilename) {
 
 	// Assume first node is input node
 	mInputName = tensorflow_graph.node(0).name();
-    //auto attributes = tensorflow_graph.node(0).attr();
-	//std::cout << attributes["shape"].shape() << std::endl;
     for(int i = 0; i < tensorflow_graph.node_size(); ++i) {
 		tensorflow::NodeDef node = tensorflow_graph.node(i);
         //reportInfo() << "Node " << i << " with name " << node.name() << reportEnd();
@@ -85,8 +86,6 @@ NeuralNetwork::NeuralNetwork() {
 }
 
 void NeuralNetwork::execute() {
-
-
     mImage = getStaticInputData<Image>();
 	std::vector<Image::pointer> images = {mImage};//getMultipleStaticInputData<Image>();
 

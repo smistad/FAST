@@ -91,7 +91,7 @@ int main() {
                                               */
     });
     streamer->enableLooping();
-    streamer->setSleepTime(50);
+    //streamer->setSleepTime(50);
     streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
     PixelClassifier::pointer segmentation = PixelClassifier::New();

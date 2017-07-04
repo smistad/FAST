@@ -64,6 +64,11 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/source/CL/
 )
 install(DIRECTORY ${PROJECT_BINARY_DIR}/include/
     DESTINATION fast/include/
+    FILES_MATCHING PATTERN "*.h"
+)
+install(DIRECTORY ${PROJECT_BINARY_DIR}/include/
+    DESTINATION fast/include/
+    FILES_MATCHING PATTERN "*.hpp"
 )
 
 
