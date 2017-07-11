@@ -70,9 +70,14 @@ void NeuralNetwork::setScaleFactor(float factor) {
     mScaleFactor = factor;
 }
 
+void NeuralNetwork::setPreserveAspectRatio(bool preserve) {
+    mPreserveAspectRatio = preserve;
+}
+
 NeuralNetwork::NeuralNetwork() {
 	createInputPort<Image>(0, true, INPUT_STATIC_OR_DYNAMIC, true);
 	mModelLoaded = false;
+	mPreserveAspectRatio = false;
 	mInputName = "";
 	mWidth = -1;
 	mHeight = -1;
@@ -203,6 +208,7 @@ std::vector<SharedPointer<Image>> NeuralNetwork::resizeImages(const std::vector<
             resizer->setWidth(mWidth);
             resizer->setHeight(mHeight);
             resizer->setInputData(image);
+			resizer->setPreserveAspectRatio(mPreserveAspectRatio);
             resizer->update();
             Image::pointer resizedImage = resizer->getOutputData<Image>();
             resizedImages.push_back(resizedImage);

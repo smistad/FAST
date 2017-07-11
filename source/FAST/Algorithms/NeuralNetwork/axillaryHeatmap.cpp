@@ -15,7 +15,8 @@ int main() {
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
     streamer->setFilenameFormats({
          //"/home/smistad/data/eyeguide/axillary_nerve_block/1/2016-10-07-135630/US-2D_#.mhd",
-         "/home/smistad/data/eyeguide/axillary_nerve_block/16/2017Feb13_114646/#.png",
+         //"/home/smistad/data/eyeguide/axillary_nerve_block/1/2016-10-07-135630/US-2D_#.mhd",
+         //"/home/smistad/data/eyeguide/axillary_nerve_block/16/2017Feb13_114646/#.png",
          "/home/smistad/data/eyeguide/axillary_nerve_block/17/2017Feb13_150433/#.png",
          "/home/smistad/data/eyeguide/axillary_nerve_block/17/2017Feb13_150648/#.png",
          "/home/smistad/data/eyeguide/axillary_nerve_block/17/2017Feb13_150824/#.png",
@@ -30,12 +31,13 @@ int main() {
 
     PixelClassifier::pointer segmentation = PixelClassifier::New();
     segmentation->setNrOfClasses(6);
-    segmentation->load("/home/smistad/workspace/eyeguide_keras/models/network_graph.pb");
+    segmentation->load("/home/smistad/workspace/eyeguide_keras/models/network_graph_new.pb");
     segmentation->setInputSize(256, 256);
     segmentation->setScaleFactor(1.0f/255.0f);
-    segmentation->setOutputParameters({"Reshape_18"});
+    segmentation->setOutputParameters({"conv2d_23/truediv"});
     segmentation->setInputConnection(streamer->getOutputPort());
     segmentation->setHeatmapOutput();
+    segmentation->setPreserveAspectRatio(true);
     segmentation->enableRuntimeMeasurements();
 
     HeatmapRenderer::pointer renderer = HeatmapRenderer::New();
@@ -45,7 +47,7 @@ int main() {
     renderer->addInputConnection(segmentation->getOutputPort(4), Color::Purple());
     renderer->addInputConnection(segmentation->getOutputPort(5), Color::Cyan());
     renderer->setMaxOpacity(0.2);
-    renderer->setMinConfidence(0.4);
+    renderer->setMinConfidence(0.2);
     renderer->enableRuntimeMeasurements();
 
     ImageRenderer::pointer renderer2 = ImageRenderer::New();

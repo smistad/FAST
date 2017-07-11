@@ -29,6 +29,10 @@ void ImageResizer::setSize(VectorXi size) {
 		setDepth(size.z());
 }
 
+void ImageResizer::setPreserveAspectRatio(bool preserve) {
+    mPreserveAspectRatio = preserve;
+}
+
 ImageResizer::ImageResizer() {
 	createInputPort<Image>(0);
 	createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
@@ -36,6 +40,7 @@ ImageResizer::ImageResizer() {
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageResizer/ImageResizer.cl");
 
 	mSize = Vector3i::Zero();
+    mPreserveAspectRatio = false;
 }
 
 void ImageResizer::execute() {
@@ -71,7 +76,15 @@ void ImageResizer::execute() {
         cl::Kernel kernel;
         OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
         if(input->getDimensions() == 2) {
-            kernel = cl::Kernel(program, "resize2D");
+            if(mPreserveAspectRatio) {
+                float scale = (float)output->getWidth() / input->getWidth();
+                output->setSpacing(scale*input->getSpacing());
+                int newHeight = (int)round(input->getHeight()*scale);
+                kernel = cl::Kernel(program, "resize2DpreserveAspect");
+                kernel.setArg(2, newHeight);
+            } else {
+                kernel = cl::Kernel(program, "resize2D");
+            }
             OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
             kernel.setArg(0, *inputAccess->get2DImage());
             kernel.setArg(1, *outputAccess->get2DImage());
@@ -91,6 +104,8 @@ void ImageResizer::execute() {
             }
             */
         }
+
+
 
         device->getCommandQueue().enqueueNDRangeKernel(
                 kernel,

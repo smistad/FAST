@@ -12,11 +12,13 @@ class FAST_EXPORT  ImageResizer : public ProcessObject {
 		void setHeight(int height);
 		void setDepth(int depth);
 		void setSize(VectorXi size);
+		void setPreserveAspectRatio(bool preserve);
 	private:
 		ImageResizer();
 		void execute();
 
 		Vector3i mSize;
+		bool mPreserveAspectRatio;
 };
 
 }
