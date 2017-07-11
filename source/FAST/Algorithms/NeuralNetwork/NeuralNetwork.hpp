@@ -27,7 +27,7 @@ protected:
     NeuralNetwork();
     UniquePointer<tensorflow::Session> mSession;
     bool mModelLoaded;
-    bool mHasKerasLearningPhaseTensor;
+    std::vector<std::string> mLearningPhaseTensors;
     int mWidth;
     int mHeight;
     float mScaleFactor;
