@@ -69,6 +69,7 @@ void PixelClassifier::execute() {
         resizer->setInputData(output);
         resizer->setWidth(mImage->getWidth());
         resizer->setHeight(mImage->getHeight());
+        resizer->setPreserveAspectRatio(mPreserveAspectRatio);
         resizer->update();
 
         Image::pointer resizedOutput = resizer->getOutputData<Image>();

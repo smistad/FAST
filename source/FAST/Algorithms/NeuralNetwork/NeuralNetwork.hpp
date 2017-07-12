@@ -15,6 +15,7 @@ public:
     void setInputSize(int width, int height);
     void setOutputParameters(std::vector<std::string> outputNodeNames);
     void setScaleFactor(float scale);
+    void setPreserveAspectRatio(bool preserve);
 
     // Use this if only one output node
     tensorflow::Tensor getNetworkOutput();
@@ -27,7 +28,8 @@ protected:
     NeuralNetwork();
     UniquePointer<tensorflow::Session> mSession;
     bool mModelLoaded;
-    bool mHasKerasLearningPhaseTensor;
+    bool mPreserveAspectRatio;
+    std::vector<std::string> mLearningPhaseTensors;
     int mWidth;
     int mHeight;
     float mScaleFactor;

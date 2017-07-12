@@ -46,8 +46,8 @@ void NeuralNetwork::load(std::string networkFilename) {
         //reportInfo() << "Node " << i << " with name " << node.name() << reportEnd();
         //reportInfo() << "Op name " << node.op() << reportEnd();
         //reportInfo() << "inputs: " << node.input_size() << reportEnd();
-        if(node.name() == "keras_learning_phase") {
-			mHasKerasLearningPhaseTensor = true;
+        if(node.name().find("keras_learning_phase") != std::string::npos) {
+			mLearningPhaseTensors.push_back(node.name());
 		}
 	}
 
@@ -70,10 +70,14 @@ void NeuralNetwork::setScaleFactor(float factor) {
     mScaleFactor = factor;
 }
 
+void NeuralNetwork::setPreserveAspectRatio(bool preserve) {
+    mPreserveAspectRatio = preserve;
+}
+
 NeuralNetwork::NeuralNetwork() {
 	createInputPort<Image>(0, true, INPUT_STATIC_OR_DYNAMIC, true);
 	mModelLoaded = false;
-	mHasKerasLearningPhaseTensor = false;
+	mPreserveAspectRatio = false;
 	mInputName = "";
 	mWidth = -1;
 	mHeight = -1;
@@ -161,16 +165,16 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 	std::vector <std::pair<std::string, tensorflow::Tensor>> input_tensors(
 			{{mInputName, input_tensor}});
 
-	if(mHasKerasLearningPhaseTensor) {
-		// Create a scalar tensor which tells the system we are NOT doing training
-		tensorflow::Tensor input_tensor2(
-				tensorflow::DT_BOOL,
-				tensorflow::TensorShape() // Scalar
-		);
-		auto input_tensor_mapped2 = input_tensor2.tensor<bool, 0>();
-		input_tensor_mapped2(0) = false;
-		input_tensors.push_back(std::make_pair("keras_learning_phase", input_tensor2));
-	}
+    for(std::string name : mLearningPhaseTensors) {
+        // Create a scalar tensor which tells the system we are NOT doing training
+        tensorflow::Tensor input_tensor2(
+                tensorflow::DT_BOOL,
+                tensorflow::TensorShape() // Scalar
+        );
+        auto input_tensor_mapped2 = input_tensor2.tensor<bool, 0>();
+        input_tensor_mapped2(0) = false;
+        input_tensors.push_back(std::make_pair(name, input_tensor2));
+    }
 
 	std::vector <tensorflow::Tensor> output_tensors;
 
@@ -204,6 +208,7 @@ std::vector<SharedPointer<Image>> NeuralNetwork::resizeImages(const std::vector<
             resizer->setWidth(mWidth);
             resizer->setHeight(mHeight);
             resizer->setInputData(image);
+			resizer->setPreserveAspectRatio(mPreserveAspectRatio);
             resizer->update();
             Image::pointer resizedImage = resizer->getOutputData<Image>();
             resizedImages.push_back(resizedImage);
