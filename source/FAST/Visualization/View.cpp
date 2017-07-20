@@ -169,16 +169,56 @@ void View::setMaximumFramerate(unsigned int framerate) {
 void View::execute() {
 }
 
-
-
-void View::updateAllRenderers() {
-    for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
-        mNonVolumeRenderers[i]->update();
+void View::updateRenderersInput() {
+    for(Renderer::pointer renderer : mNonVolumeRenderers) {
+        int i = 0;
+        while(true) {
+            try {
+                renderer->getInputPort(i).getProcessObject()->update();
+                i++;
+            } catch(...) {
+                break;
+            }
+        }
     }
-    for(unsigned int i = 0; i < mVolumeRenderers.size(); i++) {
-        mVolumeRenderers[i]->update();
+    for(Renderer::pointer renderer : mVolumeRenderers) {
+        int i = 0;
+        while(true) {
+            try {
+                renderer->getInputPort(i).getProcessObject()->update();
+                i++;
+            } catch(...) {
+                break;
+            }
+        }
     }
+}
 
+void View::updateRenderers() {
+    for(Renderer::pointer renderer : mNonVolumeRenderers) {
+        renderer->execute();
+    }
+    for(Renderer::pointer renderer : mVolumeRenderers) {
+        renderer->execute();
+    }
+}
+
+void View::lockRenderers() {
+    for(Renderer::pointer renderer : mNonVolumeRenderers) {
+        renderer->lock();
+    }
+    for(Renderer::pointer renderer : mVolumeRenderers) {
+        renderer->lock();
+    }
+}
+
+void View::unlockRenderers() {
+    for(Renderer::pointer renderer : mNonVolumeRenderers) {
+        renderer->unlock();
+    }
+    for(Renderer::pointer renderer : mVolumeRenderers) {
+        renderer->unlock();
+    }
 }
 
 void View::recalculateCamera() {

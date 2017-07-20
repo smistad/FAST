@@ -3,10 +3,8 @@
 
 #include "FAST/SmartPointers.hpp"
 #include "FAST/ProcessObject.hpp"
-#include <QKeyEvent>
-#include <QMouseEvent>
-#include <QResizeEvent>
 #include "FAST/Data/BoundingBox.hpp"
+#include <mutex>
 
 
 namespace fast {
@@ -20,6 +18,7 @@ class FAST_EXPORT  Renderer : public ProcessObject {
         virtual void draw() = 0;
         virtual void addInputConnection(ProcessObjectPort port);
         virtual BoundingBox getBoundingBox() = 0;
+
         void setIntensityLevel(float level);
         float getIntensityLevel();
         void setIntensityWindow(float window);
@@ -38,6 +37,17 @@ class FAST_EXPORT  Renderer : public ProcessObject {
         // Level and window intensities
         float mWindow;
         float mLevel;
+
+        std::mutex mMutex;
+        /**
+         * This will lock the renderer mutex. Used by the compute thread.
+         */
+        void lock();
+        /**
+         * This will unlock the renderer mutex. Used by the compute thread.
+         */
+        void unlock();
+        friend class View;
 };
 
 }

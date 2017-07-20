@@ -29,4 +29,12 @@ void Renderer::addInputConnection(ProcessObjectPort port) {
    throw Exception("This renderer does not support arbitrary number of input connections through the addInputConnection method");
 }
 
+void Renderer::lock() {
+    mMutex.lock();
+}
+
+void Renderer::unlock() {
+    mMutex.unlock();
+}
+
 }

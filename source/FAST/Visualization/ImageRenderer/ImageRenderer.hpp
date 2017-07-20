@@ -31,8 +31,6 @@ class FAST_EXPORT  ImageRenderer : public Renderer {
 
         cl::Kernel mKernel;
 
-        std::mutex mMutex;
-
 };
 
 }

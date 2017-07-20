@@ -37,8 +37,19 @@ void ComputationThread::run() {
     mainGLContext->makeCurrent();
 
     while(true) {
-        for(int i = 0; i < mViews.size(); i++) {
-            mViews[i]->updateAllRenderers();
+        // Update renderers' input before lock mutexes. This will ensure that renderering can happen while computing
+        for(View* view : mViews) {
+            view->updateRenderersInput();
+        }
+        // Lock mutex of all renderers before update renderers. This will ensure that rendering is synchronized.
+        for(View* view : mViews) {
+            view->lockRenderers();
+        }
+        for(View* view : mViews) {
+            view->updateRenderers();
+        }
+        for(View* view : mViews) {
+            view->unlockRenderers();
         }
         std::unique_lock<std::mutex> lock(mUpdateThreadMutex); // this locks the mutex
         if(mUpdateThreadIsStopped) {

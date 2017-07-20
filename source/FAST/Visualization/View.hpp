@@ -9,6 +9,8 @@
 #include <vector>
 #include <QGLWidget>
 #include <QTimer>
+#include <QKeyEvent>
+#include <QMouseEvent>
 
 namespace fast {
 
@@ -31,7 +33,6 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
         void set3DMode();
         void setViewingPlane(Plane plane);
         void setLookAt(Vector3f cameraPosition, Vector3f targetPosition, Vector3f cameraUpVector, float zNear = 0.1, float zFar = 1000);
-        void updateAllRenderers();
         void quit();
         void reinitialize();
         bool hasQuit() const;
@@ -96,6 +97,12 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
         void initializeGL();
         void paintGL();
         void resizeGL(int width, int height);
+		void updateRenderersInput();
+		void updateRenderers();
+		void lockRenderers();
+		void unlockRenderers();
+
+    friend class ComputationThread;
 
 };
 
