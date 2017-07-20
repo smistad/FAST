@@ -138,6 +138,7 @@ void FileStreamer::producerStream() {
                 frameNumber
         );
         try {
+            reportInfo() << "Filestreamer reading " << filename << reportEnd();
             DataObject::pointer dataFrame = getDataFrame(filename);
             // Set and use timestamp if available
             if(mTimestampFilename != "") {
@@ -272,7 +273,7 @@ void FileStreamer::stop() {
         mStop = true;
     }
     mThread->join();
-    std::cout << "File streamer thread returned" << std::endl;
+    reportInfo() << "File streamer thread returned" << reportEnd();
 }
 
 } // end namespace fast

@@ -188,7 +188,7 @@ NLMGUI2D::NLMGUI2D() {
     layout->addLayout(menuLayout);
     layout->addWidget(viewOrig);
     layout->addWidget(view);
-    
+
     mWidget->setLayout(layout);
 }
 

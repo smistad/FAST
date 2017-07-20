@@ -1,3 +1,4 @@
+#include <FAST/Streamers/ImageFileStreamer.hpp>
 #include "FAST/Testing.hpp"
 #include "FAST/Data/Image.hpp"
 #include "FAST/Streamers/Streamer.hpp"
@@ -539,4 +540,23 @@ TEST_CASE("DynamicData with more than one consumer object returns correct frame 
     CHECK(frame2 == frame2PO2);
 }
 
+TEST_CASE("Get frames from dynamic data one by one", "[fast][dynamicdata]") {
 
+    ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
+    streamer->setFilenameFormat(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_#.mhd");
+    streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+    streamer->update();
+    DynamicData::pointer stream = streamer->getDynamicOutputData();
+
+    int counter = 0;
+    DummyProcessObject::pointer po = DummyProcessObject::New();
+    while(!stream->hasReachedEnd()) {
+        streamer->update();
+        std::cout << "Getting next frame.." << std::endl;
+        Image::pointer image = stream->getNextFrame(po);
+        counter++;
+        std::cout << counter << std::endl;
+    }
+
+    CHECK(counter == 100);
+}

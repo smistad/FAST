@@ -266,8 +266,19 @@ bool DynamicData::hasReachedEnd() {
                 mHasReachedEnd = true;
             break;
         case STREAMING_MODE_PROCESS_ALL_FRAMES:
-            if(streamer->hasReachedEnd() && mFrames2.size() == 0)
+            /*
+            if(streamer->hasReachedEnd()) {
                 mHasReachedEnd = true;
+                for(auto counter : mConsumerFrameCounters) {
+                    if(counter.second < streamer->getNrOfFrames()-1) {
+                        mHasReachedEnd = false;
+                    }
+                }
+            }
+             */
+            if(streamer->hasReachedEnd() && mFrames2.size() == 0) {
+                mHasReachedEnd = true;
+            }
             break;
         case STREAMING_MODE_STORE_ALL_FRAMES:
             if(streamer->hasReachedEnd() && streamer->getNrOfFrames() == getLowestFrameCount())
