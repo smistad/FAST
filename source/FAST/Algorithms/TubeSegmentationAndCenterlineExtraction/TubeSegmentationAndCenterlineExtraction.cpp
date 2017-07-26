@@ -102,15 +102,15 @@ void TubeSegmentationAndCenterlineExtraction::enableAutomaticCropping(
     }
 }
 
-ProcessObjectPort TubeSegmentationAndCenterlineExtraction::getSegmentationOutputPort() {
+DataPort::pointer TubeSegmentationAndCenterlineExtraction::getSegmentationOutputPort() {
     return getOutputPort(0);
 }
 
-ProcessObjectPort TubeSegmentationAndCenterlineExtraction::getCenterlineOutputPort() {
+DataPort::pointer TubeSegmentationAndCenterlineExtraction::getCenterlineOutputPort() {
     return getOutputPort(1);
 }
 
-ProcessObjectPort TubeSegmentationAndCenterlineExtraction::getTDFOutputPort() {
+DataPort::pointer TubeSegmentationAndCenterlineExtraction::getTDFOutputPort() {
     return getOutputPort(2);
 }
 
@@ -243,8 +243,9 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
             filter->setStandardDeviation(mStDevBlurLarge);
             //filter->setMaskSize(7);
             filter->setOutputType(TYPE_FLOAT);
-            filter->update();
-            smoothedImage = filter->getOutputData<Image>();
+            DataPort::pointer port = filter->getOutputPort();
+            filter->update(0);
+            smoothedImage = port->getNextFrame();
             smoothedImage->setSpacing(spacing);
         } else {
             smoothedImage = input;
@@ -276,8 +277,9 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
             filter->setStandardDeviation(mStDevBlurSmall);
             //filter->setMaskSize(7);
             filter->setOutputType(TYPE_FLOAT);
-            filter->update();
-            smoothedImage = filter->getOutputData<Image>();
+            auto port = filter->getOutputPort();
+            filter->update(0);
+            smoothedImage = port->getNextFrame();
             smoothedImage->setSpacing(spacing);
         } else {
             smoothedImage = input;
@@ -305,14 +307,15 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
         centerlineExtraction->setInputData(3, smallTDF);
         centerlineExtraction->setInputData(4, gradients);
         centerlineExtraction->setInputData(5, smallRadius);
-        centerlineExtraction->update();
-        centerline = centerlineExtraction->getOutputData<Mesh>();
+        auto port = centerlineExtraction->getOutputPort();
+        centerlineExtraction->update(0);
+        centerline = port->getNextFrame();
 
         // Segmentation
         // TODO: Use only dilation for smallTDF
         segmentation->setInputConnection(centerlineExtraction->getOutputPort(1));
         segmentation->setInputData(1, GVFfield);
-        segmentation->update();
+
     } else {
         // Only small or large TDF has been used
         if(smallTDF.isValid()) {
@@ -327,24 +330,26 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
             centerlineExtraction->setInputData(2, largeRadius);
             gradients = GVFfield;
         }
-        centerlineExtraction->update();
-        centerline = centerlineExtraction->getOutputData<Mesh>();
+        auto port = centerlineExtraction->getOutputPort();
+        centerlineExtraction->update(0);
+        centerline = port->getNextFrame();
 
         // Segmentation
         segmentation->setInputConnection(centerlineExtraction->getOutputPort(1));
         segmentation->setInputData(1, gradients);
-        segmentation->update();
     }
 
-    Segmentation::pointer segmentationVolume = segmentation->getOutputData<Segmentation>();
+    auto segPort = segmentation->getOutputPort();
+    segmentation->update(0);
+    Segmentation::pointer segmentationVolume = segPort->getNextFrame();
 
     // TODO get largest segmentation object
     reportInfo() << "Removing small objects..." << Reporter::end();
     keepLargestObject(segmentationVolume, centerline);
 
-    setStaticOutputData<Segmentation>(0, segmentationVolume);
-    setStaticOutputData<Mesh>(1, centerline);
-    setStaticOutputData<Image>(2, TDF);
+    addOutputData(0, segmentationVolume);
+    addOutputData(1, centerline);
+    addOutputData(2, TDF);
 }
 
 
@@ -357,9 +362,10 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::runGradientVectorFlow(Im
     gvf->set16bitStorageFormat();
     gvf->setIterations(10);
     gvf->setMuConstant(0.199);
-    gvf->update();
+    DataPort::pointer port = gvf->getOutputPort();
+    gvf->update(0);
     reportInfo() << "GVF finished" << Reporter::end();
-    return gvf->getOutputData<Image>();
+    return port->getNextFrame();
 }
 
 Image::pointer TubeSegmentationAndCenterlineExtraction::createGradients(Image::pointer image) {

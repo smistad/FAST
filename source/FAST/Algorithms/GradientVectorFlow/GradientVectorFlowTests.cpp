@@ -81,13 +81,15 @@ TEST_CASE("Gradient vector flow with Euler method 2D 16 bit", "[fast][GVF][Gradi
     ImageGradient::pointer gradient = ImageGradient::New();
     gradient->setInputConnection(normalize->getOutputPort());
     gradient->set16bitStorageFormat();
+    auto gradientPort = gradient->getOutputPort();
 
     EulerGradientVectorFlow::pointer gvf = EulerGradientVectorFlow::New();
     gvf->setInputConnection(gradient->getOutputPort());
     gvf->set16bitStorageFormat();
-    gvf->update();
+    auto gvfPort = gvf->getOutputPort();
+    gvf->update(0);
 
-    CHECK(calculateGVFVectorFieldResidual(gradient->getOutputData<Image>(), gvf->getOutputData<Image>(), gvf->getMuConstant())
+    CHECK(calculateGVFVectorFieldResidual(gradientPort->getNextFrame(), gvfPort->getNextFrame(), gvf->getMuConstant())
             < 0.001);
 }
 
@@ -100,14 +102,16 @@ TEST_CASE("Gradient vector flow with Euler method 2D 32 bit", "[fast][GVF][Gradi
 
     ImageGradient::pointer gradient = ImageGradient::New();
     gradient->setInputConnection(normalize->getOutputPort());
+    auto gradientPort = gradient->getOutputPort();
 
     EulerGradientVectorFlow::pointer gvf = EulerGradientVectorFlow::New();
     gvf->setInputConnection(gradient->getOutputPort());
     gvf->set32bitStorageFormat();
-    gvf->update();
+    auto gvfPort = gvf->getOutputPort();
+    gvf->update(0);
 
-    CHECK(calculateGVFVectorFieldResidual(gradient->getOutputData<Image>(), gvf->getOutputData<Image>(), gvf->getMuConstant())
-            < 0.001);
+    CHECK(calculateGVFVectorFieldResidual(gradientPort->getNextFrame(), gvfPort->getNextFrame(), gvf->getMuConstant())
+          < 0.001);
 }
 
 TEST_CASE("Gradient vector flow with Euler method 3D 16 bit", "[fast][GVF][GradientVectorFlow][EulerGradientVectorFlow][3D]") {
@@ -120,14 +124,16 @@ TEST_CASE("Gradient vector flow with Euler method 3D 16 bit", "[fast][GVF][Gradi
     ImageGradient::pointer gradient = ImageGradient::New();
     gradient->setInputConnection(normalize->getOutputPort());
     gradient->set16bitStorageFormat();
+    auto gradientPort = gradient->getOutputPort();
 
     EulerGradientVectorFlow::pointer gvf = EulerGradientVectorFlow::New();
     gvf->setInputConnection(gradient->getOutputPort());
     gvf->set16bitStorageFormat();
-    gvf->update();
+    auto gvfPort = gvf->getOutputPort();
+    gvf->update(0);
 
-    CHECK(calculateGVFVectorFieldResidual(gradient->getOutputData<Image>(), gvf->getOutputData<Image>(), gvf->getMuConstant())
-            < 0.001);
+    CHECK(calculateGVFVectorFieldResidual(gradientPort->getNextFrame(), gvfPort->getNextFrame(), gvf->getMuConstant())
+          < 0.001);
 }
 
 TEST_CASE("Gradient vector flow with Euler method 3D 32 bit", "[fast][GVF][GradientVectorFlow][EulerGradientVectorFlow][3D]") {
@@ -139,14 +145,16 @@ TEST_CASE("Gradient vector flow with Euler method 3D 32 bit", "[fast][GVF][Gradi
 
     ImageGradient::pointer gradient = ImageGradient::New();
     gradient->setInputConnection(normalize->getOutputPort());
+    auto gradientPort = gradient->getOutputPort();
 
     EulerGradientVectorFlow::pointer gvf = EulerGradientVectorFlow::New();
     gvf->setInputConnection(gradient->getOutputPort());
     gvf->set32bitStorageFormat();
-    gvf->update();
+    auto gvfPort = gvf->getOutputPort();
+    gvf->update(0);
 
-    CHECK(calculateGVFVectorFieldResidual(gradient->getOutputData<Image>(), gvf->getOutputData<Image>(), gvf->getMuConstant())
-            < 0.001);
+    CHECK(calculateGVFVectorFieldResidual(gradientPort->getNextFrame(), gvfPort->getNextFrame(), gvf->getMuConstant())
+          < 0.001);
 }
 
 TEST_CASE("Gradient vector flow with Multigrid method 3D 16 bit", "[fast][GVF][GradientVectorFlow][MultigridGradientVectorFlow][3D]") {
@@ -159,14 +167,16 @@ TEST_CASE("Gradient vector flow with Multigrid method 3D 16 bit", "[fast][GVF][G
     ImageGradient::pointer gradient = ImageGradient::New();
     gradient->setInputConnection(normalize->getOutputPort());
     gradient->set16bitStorageFormat();
+    auto gradientPort = gradient->getOutputPort();
 
     MultigridGradientVectorFlow::pointer gvf = MultigridGradientVectorFlow::New();
     gvf->setInputConnection(gradient->getOutputPort());
     gvf->set16bitStorageFormat();
-    gvf->update();
+    auto gvfPort = gvf->getOutputPort();
+    gvf->update(0);
 
-    CHECK(calculateGVFVectorFieldResidual(gradient->getOutputData<Image>(), gvf->getOutputData<Image>(), gvf->getMuConstant())
-            < 0.001);
+    CHECK(calculateGVFVectorFieldResidual(gradientPort->getNextFrame(), gvfPort->getNextFrame(), gvf->getMuConstant())
+          < 0.001);
 }
 
 TEST_CASE("Gradient vector flow with Multigrid method 3D 32 bit", "[fast][GVF][GradientVectorFlow][MultigridGradientVectorFlow][3D]") {
@@ -178,14 +188,16 @@ TEST_CASE("Gradient vector flow with Multigrid method 3D 32 bit", "[fast][GVF][G
 
     ImageGradient::pointer gradient = ImageGradient::New();
     gradient->setInputConnection(normalize->getOutputPort());
+    auto gradientPort = gradient->getOutputPort();
 
     MultigridGradientVectorFlow::pointer gvf = MultigridGradientVectorFlow::New();
     gvf->setInputConnection(gradient->getOutputPort());
     gvf->set32bitStorageFormat();
-    gvf->update();
+    auto gvfPort = gvf->getOutputPort();
+    gvf->update(0);
 
-    CHECK(calculateGVFVectorFieldResidual(gradient->getOutputData<Image>(), gvf->getOutputData<Image>(), gvf->getMuConstant())
-            < 0.001);
+    CHECK(calculateGVFVectorFieldResidual(gradientPort->getNextFrame(), gvfPort->getNextFrame(), gvf->getMuConstant())
+          < 0.001);
 }
 
 }

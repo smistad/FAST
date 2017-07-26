@@ -419,4 +419,8 @@ std::unordered_map<std::string, std::shared_ptr<Attribute>> ProcessObject::getAt
     return mAttributes;
 }
 
+int ProcessObject::getNrOfInputConnections() const {
+    return mInputConnections.size();
+}
+
 } // namespace fast

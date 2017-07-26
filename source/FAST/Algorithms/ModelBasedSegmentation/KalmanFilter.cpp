@@ -65,11 +65,11 @@ void KalmanFilter::execute() {
     reportInfo() << "Finished one round of Kalman filter" << reportEnd();
     if(mOutputDisplacements) {
     	Mesh::pointer displacements = getDisplacementVectors(image);
-		setStaticOutputData<Mesh>(1, displacements);
+		addOutputData(1, displacements);
     }
 
 	Shape::pointer shape = mShapeModel->getShape(mCurrentState);
-	setStaticOutputData<Mesh>(0, shape->getMesh());
+	addOutputData(0, shape->getMesh());
 }
 
 Mesh::pointer KalmanFilter::getDisplacementVectors(Image::pointer image) {
@@ -115,11 +115,11 @@ KalmanFilter::KalmanFilter() {
 	mIterations = 5;
 }
 
-ProcessObjectPort KalmanFilter::getSegmentationOutputPort() {
+DataPort::pointer KalmanFilter::getSegmentationOutputPort() {
 	return getOutputPort(0);
 }
 
-ProcessObjectPort KalmanFilter::getDisplacementsOutputPort() {
+DataPort::pointer KalmanFilter::getDisplacementsOutputPort() {
 	mOutputDisplacements = true;
 	return getOutputPort(1);
 }

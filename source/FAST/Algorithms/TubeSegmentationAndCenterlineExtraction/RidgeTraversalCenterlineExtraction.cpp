@@ -576,7 +576,7 @@ void RidgeTraversalCenterlineExtraction::execute() {
 
     // Check to see if more than two inputs were provided, if so run again..
     Image::pointer radius2;
-    if(getNrOfInputData() > 3) {
+    if(getNrOfInputConnections() > 3) {
         // Run again for small
         Image::pointer TDF = getInputData<Image>(3);
         Image::pointer vectorField = getInputData<Image>(4);

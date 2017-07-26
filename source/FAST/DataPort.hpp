@@ -47,7 +47,7 @@ class DataPort {
         SharedPointer<ProcessObject> mProcessObject;
         std::unordered_map<uint64_t, DataObject::pointer> mFrames;
         uint64_t mFrameCounter = 0;
-        uint64_t mCurrentTiemstep = 0;
+        uint64_t mCurrentTimestep = 0;
         StreamingMode mStreamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES;
         bool mChanged = false;
         std::mutex mMutex;

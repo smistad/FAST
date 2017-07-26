@@ -7,21 +7,21 @@ namespace fast {
 void DataPort::addFrame(DataObject::pointer object) {
     {
         if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES && !mIsStaticData) {
-            std::cout << "Waiting to add " << mCurrentTiemstep << std::endl;
+            std::cout << "Waiting to add " << mCurrentTimestep << std::endl;
             mEmptyCount->wait();
             std::cout << "OK to add" << std::endl;
         }
         std::lock_guard<std::mutex> lock(mMutex);
         if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES || mStreamingMode == STREAMING_MODE_STORE_ALL_FRAMES) {
-            std::cout << "Adding frame with nr " << mCurrentTiemstep << std::endl;
-            mFrames[mCurrentTiemstep] = object;
+            std::cout << "Adding frame with nr " << mCurrentTimestep << std::endl;
+            mFrames[mCurrentTimestep] = object;
         } else if(mStreamingMode == STREAMING_MODE_NEWEST_FRAME_ONLY) {
-            if(mFrames.count(mCurrentTiemstep) == 0) {
-                std::cout << "Adding frame with nr " << mCurrentTiemstep << std::endl;
-                mFrames[mCurrentTiemstep] = object;
+            if(mFrames.count(mCurrentTimestep) == 0) {
+                std::cout << "Adding frame with nr " << mCurrentTimestep << std::endl;
+                mFrames[mCurrentTimestep] = object;
             } else {
-                std::cout << "Adding frame with nr " << mCurrentTiemstep + 1 << std::endl;
-                mFrames[mCurrentTiemstep + 1] = object;
+                std::cout << "Adding frame with nr " << mCurrentTimestep + 1 << std::endl;
+                mFrames[mCurrentTimestep + 1] = object;
             }
         }
         mFrameCounter++;
@@ -46,27 +46,27 @@ DataObject::pointer DataPort::getNextFrame() {
         // If timestemp frame is not present, block until it is here
         if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES && !mIsStaticData) {
             // Do this using semaphore
-            std::cout << "Waiting to get " << mCurrentTiemstep << std::endl;
+            std::cout << "Waiting to get " << mCurrentTimestep << std::endl;
             mFillCount->wait();
             std::cout << "OK to get" << std::endl;
             lock.lock();
         } else {
             lock.lock();
             // Do this using condition variable
-            while(mFrames.count(mCurrentTiemstep) == 0) {
-                std::cout << "Waiting for " << mCurrentTiemstep << std::endl;
+            while(mFrames.count(mCurrentTimestep) == 0) {
+                std::cout << "Waiting for " << mCurrentTimestep << std::endl;
                 mFrameConditionVariable.wait(lock);
             }
         }
 
-        std::cout << "Trying to get frame at " << mCurrentTiemstep << std::endl;
-        data = mFrames.at(mCurrentTiemstep);
+        std::cout << "Trying to get frame at " << mCurrentTimestep << std::endl;
+        data = mFrames.at(mCurrentTimestep);
 
         if(mStreamingMode != STREAMING_MODE_STORE_ALL_FRAMES) {
             // Find old frames to delete
             std::vector<uint64_t> framesToDelete;
             for(auto frame : mFrames) {
-                if(frame.first < mCurrentTiemstep) {
+                if(frame.first < mCurrentTimestep) {
                     framesToDelete.push_back(frame.first);
                 }
             }
@@ -89,8 +89,8 @@ DataObject::pointer DataPort::getNextFrame() {
 void DataPort::moveDataToNextTimestep() {
     std::lock_guard<std::mutex> lock(mMutex);
     std::cout << "Moving data.." << std::endl;
-    mFrames[mCurrentTiemstep] = mFrames.at(mCurrentTiemstep - 1);
-    mFrames.erase(mCurrentTiemstep - 1);
+    mFrames[mCurrentTimestep] = mFrames.at(mCurrentTimestep - 1);
+    mFrames.erase(mCurrentTimestep - 1);
     mIsStaticData = true;
 }
 
@@ -99,7 +99,7 @@ void DataPort::setStreamingMode(StreamingMode mode) {
 }
 
 void DataPort::setTimestep(uint64_t timestep) {
-    mCurrentTiemstep = timestep;
+    mCurrentTimestep = timestep;
 }
 
 DataPort::DataPort(SharedPointer<ProcessObject> processObject) {

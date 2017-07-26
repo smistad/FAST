@@ -43,12 +43,12 @@ class FAST_EXPORT  ProcessObject : public virtual Object {
         void setDeviceCriteria(uint deviceNumber, const DeviceCriteria& criteria);
         ExecutionDevice::pointer getDevice(uint deviceNumber) const;
 
-
         DataPort::pointer getOutputPort(uint portID = 0);
         void setInputConnection(DataPort::pointer port);
         void setInputConnection(uint portID, DataPort::pointer port);
         void setInputData(DataObject::pointer data);
         void setInputData(uint portID, DataObject::pointer data);
+        int getNrOfInputConnections() const;
 
         virtual std::string getNameOfClass() const = 0;
         static std::string getStaticNameOfClass() {
@@ -81,6 +81,7 @@ class FAST_EXPORT  ProcessObject : public virtual Object {
         void addOutputData(uint portID, DataObject::pointer data);
 
         virtual void waitToFinish() {};
+
 
         RuntimeMeasurementsManager::pointer mRuntimeManager;
 

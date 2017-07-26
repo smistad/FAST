@@ -6,12 +6,12 @@
 namespace fast {
 
 void InverseGradientSegmentation::setCenterlineInputConnection(
-        ProcessObjectPort port) {
+        DataPort::pointer port) {
     setInputConnection(0, port);
 }
 
 void InverseGradientSegmentation::setVectorFieldInputConnection(
-        ProcessObjectPort port) {
+        DataPort::pointer port) {
     setInputConnection(1, port);
 }
 
