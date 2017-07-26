@@ -197,10 +197,9 @@ void View::updateRenderersInput(uint64_t timestep, StreamingMode mode) {
 void View::updateRenderers(uint64_t timestep, StreamingMode mode) {
     for(Renderer::pointer renderer : mNonVolumeRenderers) {
         renderer->execute();
-        //renderer->update(timestep, mode);
     }
     for(Renderer::pointer renderer : mVolumeRenderers) {
-        renderer->update(timestep, mode);
+        renderer->execute();
     }
 }
 

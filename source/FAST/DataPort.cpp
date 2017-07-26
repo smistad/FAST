@@ -13,9 +13,9 @@ void DataPort::addFrame(DataObject::pointer object) {
         }
         std::lock_guard<std::mutex> lock(mMutex);
         if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES || mStreamingMode == STREAMING_MODE_STORE_ALL_FRAMES) {
-            std::cout << "Adding frame with nr " << mFrameCounter << std::endl;
             if(mCurrentTimestep > mFrameCounter)
                 mFrameCounter = mCurrentTimestep;
+            std::cout << "Adding frame with nr " << mFrameCounter << std::endl;
             mFrames[mFrameCounter] = object;
         } else if(mStreamingMode == STREAMING_MODE_NEWEST_FRAME_ONLY) {
             if(mFrames.count(mCurrentTimestep) == 0) {
