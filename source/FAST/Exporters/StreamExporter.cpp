@@ -12,7 +12,7 @@ void StreamExporter::setExporter(SharedPointer<FileExporter> exporter) {
 }
 
 StreamExporter::StreamExporter() {
-    createInputPort<DataObject>(0, INPUT_DYNAMIC);
+    createInputPort<DataObject>(0);
     mFilenameFormat = "";
     mFrameCounter = 0;
     mFinished = false;
@@ -35,11 +35,10 @@ void StreamExporter::execute() {
     DataObject::pointer data = getInputData<DataObject>();
     mExporter->setInputData(data);
     mExporter->setFilename(filename);
-    mExporter->update();
+    mExporter->update(0);
     mFrameCounter++;
-    DynamicData::pointer dynamicData = getInputData(0);
-    if(dynamicData->hasReachedEnd())
-        mFinished = true;
+    //if(dynamicData->hasReachedEnd())
+    //    mFinished = true;
 }
 
 }
