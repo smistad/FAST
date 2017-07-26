@@ -8,7 +8,7 @@ using namespace fast;
 
 NonLocalMeans::NonLocalMeans() {
 	createInputPort<Image>(0);
-	createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+	createOutputPort<Image>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/NonLocalMeans/NonLocalMeans2Dgs.cl", "2D");
     //createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/NonLocalMeans/NonLocalMeans2Dgaussian.cl", "2Dg");
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/NonLocalMeans/NonLocalMeans3Dgs.cl", "3D");
@@ -259,8 +259,8 @@ void NoneLocalMeans::recompileOpenCLCode(Image::pointer input) {
 }*/
 void NonLocalMeans::execute() {
     std::cout << "EXECUTE" << std::endl;
-    Image::pointer input = getStaticInputData<Image>(0);
-    Image::pointer output = getStaticOutputData<Image>(0);
+    Image::pointer input = getInputData<Image>(0);
+    Image::pointer output = getOutputData<Image>(0);
     std::cout << "GOT DATA" << std::endl;
 
     // Initialize output image
@@ -341,8 +341,8 @@ void NonLocalMeans::execute() {
 
 /*
 void NoneLocalMeans::execute() {
-	Image::pointer input = getStaticInputData<Image>(0);
-	Image::pointer output = getStaticOutputData<Image>(0);
+	Image::pointer input = getInputData<Image>(0);
+	Image::pointer output = getOutputData<Image>(0);
     
 	// Initialize output image
 	ExecutionDevice::pointer device = getMainDevice();

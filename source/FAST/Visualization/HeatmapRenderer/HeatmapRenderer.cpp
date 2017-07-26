@@ -24,7 +24,7 @@ void HeatmapRenderer::execute() {
 
     // This simply gets the input data for each connection and puts it into a data structure
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
-        Image::pointer input = getStaticInputData<Image>(inputNr);
+        Image::pointer input = getInputData<Image>(inputNr);
         if(input->getDataType() != TYPE_FLOAT) {
             throw Exception("Data type of image given to HeatmapRenderer must be FLOAT");
         }

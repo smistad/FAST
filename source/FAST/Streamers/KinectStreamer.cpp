@@ -8,9 +8,9 @@
 namespace fast {
 
 KinectStreamer::KinectStreamer() {
-    createOutputPort<Image>(0, OUTPUT_DYNAMIC); // RGB
-    createOutputPort<Image>(1, OUTPUT_DYNAMIC); // Depth image
-    createOutputPort<Mesh>(2, OUTPUT_DYNAMIC); // Point cloud
+    createOutputPort<Image>(0); // RGB
+    createOutputPort<Image>(1); // Depth image
+    createOutputPort<Mesh>(2); // Point cloud
     mNrOfFrames = 0;
     mHasReachedEnd = false;
     mFirstFrameIsInserted = false;

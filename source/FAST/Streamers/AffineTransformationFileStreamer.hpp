@@ -8,7 +8,7 @@
 
 namespace fast {
 
-class FAST_EXPORT  AffineTransformationFileStreamer : public Streamer, public ProcessObject {
+class FAST_EXPORT  AffineTransformationFileStreamer : public Streamer {
     FAST_OBJECT(AffineTransformationFileStreamer)
     public:
         void setFilename(std::string str);
@@ -20,7 +20,7 @@ class FAST_EXPORT  AffineTransformationFileStreamer : public Streamer, public Pr
          * Set a sleep time after each frame is read
          */
         void setSleepTime(uint milliseconds);
-        bool hasReachedEnd() const;
+        bool hasReachedEnd();
         uint getNrOfFrames() const;
         /**
          * This method runs in a separate thread and adds frames to the

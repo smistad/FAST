@@ -32,7 +32,7 @@ void GaussianSmoothingFilter::setStandardDeviation(float stdDev) {
 
 GaussianSmoothingFilter::GaussianSmoothingFilter() {
     createInputPort<Image>(0);
-    createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOutputPort<Image>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter2D.cl", "2D");
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter3D.cl", "3D");
     mStdDev = 0.5f;
@@ -198,8 +198,8 @@ void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, float *
 }
 
 void GaussianSmoothingFilter::execute() {
-    Image::pointer input = getStaticInputData<Image>(0);
-    Image::pointer output = getStaticOutputData<Image>(0);
+    Image::pointer input = getInputData<Image>(0);
+    Image::pointer output = getOutputData<Image>(0);
 
     char maskSize = mMaskSize;
     if(maskSize <= 0) // If mask size is not set calculate it instead

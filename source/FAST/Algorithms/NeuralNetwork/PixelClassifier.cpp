@@ -26,7 +26,7 @@ void PixelClassifier::setSegmentationOutput() {
 void PixelClassifier::setNrOfClasses(uint classes) {
     mNrOfClasses = classes;
     for(int i = 0; i < mNrOfClasses; i++) {
-        createOutputPort<Image>(i, OUTPUT_DEPENDS_ON_INPUT, 0);
+        createOutputPort<Image>(i);
     }
 }
 

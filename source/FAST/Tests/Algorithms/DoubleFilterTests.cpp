@@ -8,14 +8,16 @@ using namespace fast;
 TEST_CASE("DoubleFilter on OpenCL device", "[fast][DoubleFilter]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath()+"US/Heart/ApicalFourChamber/US-2D_0.mhd");
+    DataPort::pointer importerPort = importer->getOutputPort();
 
     DoubleFilter::pointer filter = DoubleFilter::New();
     filter->setInputConnection(importer->getOutputPort());
-    filter->update();
+    DataPort::pointer filterPort = filter->getOutputPort();
+    filter->update(0);
     Reporter::info() << "finished update" << Reporter::end();
 
-    Image::pointer input = importer->getOutputData<Image>(0);
-    Image::pointer output = filter->getOutputData<Image>(0);
+    Image::pointer input = importerPort->getNextFrame();
+    Image::pointer output = filterPort->getNextFrame();
     input->retain(filter->getMainDevice());
     ImageAccess::pointer inputAccess = input->getImageAccess(ACCESS_READ);
     ImageAccess::pointer outputAccess = output->getImageAccess(ACCESS_READ);
@@ -36,15 +38,17 @@ TEST_CASE("DoubleFilter on OpenCL device", "[fast][DoubleFilter]") {
 TEST_CASE("DoubleFilter on Host", "[fast][DoubleFilter]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath()+"US/Heart/ApicalFourChamber/US-2D_0.mhd");
+    DataPort::pointer importerPort = importer->getOutputPort();
 
     DoubleFilter::pointer filter = DoubleFilter::New();
     filter->setInputConnection(importer->getOutputPort());
     filter->setMainDevice(Host::getInstance());
-    filter->update();
+    DataPort::pointer filterPort = filter->getOutputPort();
+    filter->update(0);
     Reporter::info() << "finished update" << Reporter::end();
 
-    Image::pointer input = importer->getOutputData<Image>(0);
-    Image::pointer output = filter->getOutputData<Image>(0);
+    Image::pointer input = importerPort->getNextFrame();
+    Image::pointer output = filterPort->getNextFrame();
     input->retain(filter->getMainDevice());
 
     ImageAccess::pointer inputAccess = input->getImageAccess(ACCESS_READ);

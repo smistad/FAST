@@ -94,7 +94,7 @@ NeuralNetwork::NeuralNetwork() {
 }
 
 void NeuralNetwork::execute() {
-    mImage = getStaticInputData<Image>();
+    mImage = getInputData<Image>();
 	std::vector<Image::pointer> images = {mImage};//getMultipleStaticInputData<Image>();
 
 	if(mWidth < 0 || mHeight < 0)

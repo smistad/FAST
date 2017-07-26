@@ -13,7 +13,7 @@ void VTKMeshFileImporter::setFilename(std::string filename) {
 VTKMeshFileImporter::VTKMeshFileImporter() {
     mFilename = "";
     mIsModified = true;
-    createOutputPort<Mesh>(0, OUTPUT_STATIC);
+    createOutputPort<Mesh>(0);
     mFunctions["POINTS"] = std::bind(&VTKMeshFileImporter::processPoints, this, std::placeholders::_1, std::placeholders::_2);
     mFunctions["NORMALS"] = std::bind(&VTKMeshFileImporter::processNormals, this, std::placeholders::_1, std::placeholders::_2);
     mFunctions["LINES"] = std::bind(&VTKMeshFileImporter::processLines, this, std::placeholders::_1, std::placeholders::_2);

@@ -7,21 +7,22 @@ using namespace fast;
 
 TEST_CASE("No filename set to MetaImageImporter", "[fast][MetaImageImporter]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
-    CHECK_THROWS(importer->update());
+    CHECK_THROWS(importer->update(0));
 }
 
 TEST_CASE("Import non-existing file to MetaImageImporter", "[fast][MetaImageImporter]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename("asdasdasdsad");
-    CHECK_THROWS_AS(importer->update(), FileNotFoundException);
+    CHECK_THROWS_AS(importer->update(0), FileNotFoundException);
 }
 
 TEST_CASE("Import 2D MetaImage file to host", "[fast][MetaImageImporter]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename(Config::getTestDataPath()+"US/CarotidArtery/Right/US-2D_0.mhd");
     importer->setMainDevice(Host::getInstance());
-    importer->update();
-    Image::pointer image = importer->getOutputData<Image>(0);
+    DataPort::pointer port = importer->getOutputPort();
+    importer->update(0);
+    Image::pointer image = port->getNextFrame();
     AffineTransformation::pointer T = image->getSceneGraphNode()->getTransformation();
 
     // Check attributes of image
@@ -51,8 +52,9 @@ TEST_CASE("Import 3D MetaImage file to host", "[fast][MetaImageImporter]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename(Config::getTestDataPath()+"US/Ball/US-3Dt_0.mhd");
     importer->setMainDevice(Host::getInstance());
-    importer->update();
-    Image::pointer image = importer->getOutputData<Image>(0);
+    DataPort::pointer port = importer->getOutputPort();
+    importer->update(0);
+    Image::pointer image = port->getNextFrame();
     AffineTransformation::pointer T = image->getSceneGraphNode()->getTransformation();
 
     // Check attributes of image
@@ -85,8 +87,9 @@ TEST_CASE("Import MetaImage file to OpenCL device", "[fast][MetaImageImporter]")
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename(Config::getTestDataPath()+"US/Ball/US-3Dt_0.mhd");
     importer->setMainDevice(device);
-    importer->update();
-    Image::pointer image = importer->getOutputData<Image>(0);
+    DataPort::pointer port = importer->getOutputPort();
+    importer->update(0);
+    Image::pointer image = port->getNextFrame();
     AffineTransformation::pointer T = image->getSceneGraphNode()->getTransformation();
 
     // Check attributes of image

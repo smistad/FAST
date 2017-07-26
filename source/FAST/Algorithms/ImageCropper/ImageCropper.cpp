@@ -26,7 +26,7 @@ void ImageCropper::setSize(VectorXi size) {
 
 ImageCropper::ImageCropper() {
     createInputPort<Image>(0);
-    createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOutputPort<Image>(0);
 
     mSize = Vector3i::Zero();
     mOffset = Vector3i::Zero();
@@ -37,9 +37,9 @@ void ImageCropper::execute() {
     if(mSize == Vector3i::Zero())
         throw Exception("Size must be given to ImageCropper");
 
-    Image::pointer input = getStaticInputData<Image>();
+    Image::pointer input = getInputData<Image>();
     Image::pointer output = input->crop(mOffset, mSize, mAllowOutOfBoundsCropping);
-    setStaticOutputData<Image>(0, output);
+    addOutputData(0, output);
 }
 
 void ImageCropper::allowOutOfBoundsCropping(bool allow) {

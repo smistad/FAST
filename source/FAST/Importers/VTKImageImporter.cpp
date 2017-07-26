@@ -13,7 +13,7 @@ vtkStandardNewMacro(VTKImageImporter);
 VTKImageImporter::VTKImageImporter() {
     this->SetNumberOfOutputPorts(0);
     this->SetNumberOfInputPorts(1);
-    createOutputPort<Image>(0, OUTPUT_STATIC);
+    createOutputPort<Image>(0);
     mIsModified = true;
 }
 
@@ -97,7 +97,7 @@ int VTKImageImporter::RequestData(
     // Get the input data
     vtkImageData* input = vtkImageData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
 
-    transferVTKDataToFAST(input, getStaticOutputData<Image>());
+    transferVTKDataToFAST(input, getOutputData<Image>());
 
     return 1;
 }

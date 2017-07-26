@@ -6,13 +6,13 @@ namespace fast {
 
 ImageInverter::ImageInverter() {
     createInputPort<Image>(0);
-    createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOutputPort<Image>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageInverter/ImageInverter.cl");
 }
 
 void ImageInverter::execute() {
-    Image::pointer input = getStaticInputData<Image>();
-    Image::pointer output = getStaticOutputData<Image>();
+    Image::pointer input = getInputData<Image>();
+    Image::pointer output = getOutputData<Image>();
 
     float max = input->calculateMaximumIntensity();
     float min = input->calculateMinimumIntensity();

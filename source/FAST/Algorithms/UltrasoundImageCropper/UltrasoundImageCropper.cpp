@@ -8,14 +8,14 @@ namespace fast {
 
 UltrasoundImageCropper::UltrasoundImageCropper() {
     createInputPort<Image>(0);
-    createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOutputPort<Image>(0);
 
     createOpenCLProgram(Config::getKernelSourcePath() + "/UltrasoundImageCropper/UltrasoundImageCropper.cl");
 }
 
 void UltrasoundImageCropper::execute() {
     reportInfo() << "EXECUTING THE IMAGE CROPPER" << Reporter::end();
-    Image::pointer image = getStaticInputData<Image>();
+    Image::pointer image = getInputData<Image>();
 
     if(image->getDimensions() != 2) {
         throw Exception("THe UltrasoundImageCropper is only for 2D images");
@@ -86,7 +86,7 @@ void UltrasoundImageCropper::execute() {
     const int newHeight = maxY - minY;
     reportInfo() << "Min/Max X and Y " << minX << " " << maxX << " " << minY << " " << maxY << Reporter::end();
     reportInfo() << "Cropped image to size " << newWidth << " " << newHeight << Reporter::end();
-    Image::pointer outputImage = getStaticOutputData<Image>();
+    Image::pointer outputImage = getOutputData<Image>();
     outputImage->create(newWidth, newHeight, image->getDataType(), image->getNrOfComponents());
     outputImage->setSpacing(image->getSpacing());
     outputImage->setCreationTimestamp(image->getCreationTimestamp());

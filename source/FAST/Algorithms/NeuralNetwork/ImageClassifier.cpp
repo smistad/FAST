@@ -4,7 +4,7 @@
 namespace fast {
 
 ImageClassifier::ImageClassifier() {
-	createOutputPort<ImageClassification>(0, OUTPUT_DEPENDS_ON_INPUT, 0, true);
+	createOutputPort<ImageClassification>(0);
 	createStringAttribute("labels", "Labels", "Name of each class", "");
 	mOutputName = "";
 }
@@ -27,7 +27,7 @@ void ImageClassifier::execute() {
 		result = getNetworkOutput(mOutputName);
 	}
 	Eigen::Tensor<float, 2, 1> tensor = result.tensor<float, 2>();
-	ImageClassification::pointer output = getStaticOutputData<ImageClassification>(0);
+	ImageClassification::pointer output = getOutputData<ImageClassification>(0);
 	for(int i = 0; i < tensor.dimension(0); ++i) { // for each input image
 		std::map<std::string, float> mapResult;
 		for(int j = 0; j < tensor.dimension(1); ++j) { // for each class

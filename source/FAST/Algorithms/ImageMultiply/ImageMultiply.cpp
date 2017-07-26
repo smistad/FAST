@@ -6,14 +6,14 @@ namespace fast {
 ImageMultiply::ImageMultiply() {
     createInputPort<Image>(0);
     createInputPort<Image>(1);
-    createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOutputPort<Image>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageMultiply/ImageMultiply.cl");
 }
 
 void ImageMultiply::execute() {
-    Image::pointer input1 = getStaticInputData<Image>(0);
-    Image::pointer input2 = getStaticInputData<Image>(1);
-    Image::pointer output = getStaticOutputData<Image>();
+    Image::pointer input1 = getInputData<Image>(0);
+    Image::pointer input2 = getInputData<Image>(1);
+    Image::pointer output = getOutputData<Image>();
 
     if(input1->getDimensions() == 2)
         throw NotImplementedException(__LINE__, __FILE__);

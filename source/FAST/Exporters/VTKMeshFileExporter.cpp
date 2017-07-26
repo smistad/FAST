@@ -24,7 +24,7 @@ void VTKMeshFileExporter::execute() {
     if(mFilename == "")
         throw Exception("No filename given to the VTKMeshFileExporter");
 
-    Mesh::pointer mesh = getStaticInputData<Mesh>();
+    Mesh::pointer mesh = getInputData<Mesh>();
 
     // Get transformation
     AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(mesh);

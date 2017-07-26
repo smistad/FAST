@@ -38,7 +38,7 @@ void KalmanFilter::execute() {
 	if(!mShapeModel.isValid() || !mAppearanceModel.isValid())
 		throw Exception("Shape and appearance model must be given to the Kalman filter before execution.");
 
-	Image::pointer image = getStaticInputData<Image>();
+	Image::pointer image = getInputData<Image>();
 
 	if(!mInitialized) {
 		// Initialize state using shape model
@@ -105,8 +105,8 @@ Mesh::pointer KalmanFilter::getDisplacementVectors(Image::pointer image) {
 
 KalmanFilter::KalmanFilter() {
 	createInputPort<Image>(0);
-	createOutputPort<Mesh>(0, OUTPUT_DEPENDS_ON_INPUT, 0); // Segmentation
-	createOutputPort<Mesh>(1, OUTPUT_DEPENDS_ON_INPUT, 0); // Displacement
+	createOutputPort<Mesh>(0); // Segmentation
+	createOutputPort<Mesh>(1); // Displacement
 
 	mInitialized = false;
 	mFirstExecute = true;

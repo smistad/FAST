@@ -13,9 +13,9 @@ KinectTracking::KinectTracking() {
     createInputPort<Image>(0);
     createInputPort<Mesh>(1);
 
-    createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-    createOutputPort<Image>(1, OUTPUT_STATIC); // Annotation image
-    createOutputPort<Mesh>(2, OUTPUT_STATIC); // Target cloud
+    createOutputPort<Image>(0);
+    createOutputPort<Image>(1); // Annotation image
+    createOutputPort<Mesh>(2); // Target cloud
 
     // Create annotation image
     mAnnotationImage = Image::New();
@@ -45,8 +45,8 @@ void KinectTracking::stopRecording() {
 }
 
 void KinectTracking::execute() {
-    Image::pointer input = getStaticInputData<Image>();
-    Mesh::pointer meshInput = getStaticInputData<Mesh>(1);
+    Image::pointer input = getInputData<Image>();
+    Mesh::pointer meshInput = getInputData<Mesh>(1);
 
     // When target cloud has been extracted, run ICP, and output this mesh
     if(mTargetCloudExtracted) {

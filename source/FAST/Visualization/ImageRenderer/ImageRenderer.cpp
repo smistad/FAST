@@ -27,7 +27,7 @@ using namespace fast;
 void ImageRenderer::execute() {
     // This simply gets the input data for each connection and puts it into a data structure
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
-        Image::pointer input = getStaticInputData<Image>(inputNr);
+        Image::pointer input = getInputData<Image>(inputNr);
 
         mImagesToRender[inputNr] = input;
     }

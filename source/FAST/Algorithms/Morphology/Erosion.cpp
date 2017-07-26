@@ -5,7 +5,7 @@ namespace fast {
 
 Erosion::Erosion() {
     createInputPort<Image>(0);
-    createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOutputPort<Image>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/Morphology/Erosion.cl");
     mSize = 3;
 }
@@ -21,12 +21,12 @@ void Erosion::setStructuringElementSize(int size) {
 }
 
 void Erosion::execute() {
-    Image::pointer input = getStaticInputData<Image>();
+    Image::pointer input = getInputData<Image>();
     if(input->getDataType() != TYPE_UINT8) {
         throw Exception("Data type of image given to Dilation must be UINT8");
     }
 
-    Image::pointer output = getStaticOutputData<Image>();
+    Image::pointer output = getOutputData<Image>();
     output->createFromImage(input);
     output->fill(0);
 

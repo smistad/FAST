@@ -3,6 +3,7 @@ fast_add_test_sources(
     CatchMain.cpp
     DataComparison.cpp
     DataComparison.hpp
+    DummyObjects.cpp
     DummyObjects.hpp
     ProcessObjectTests.cpp
     Algorithms/DoubleFilter.cpp

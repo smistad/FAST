@@ -28,7 +28,7 @@ void BoundingBoxRenderer::execute() {
     std::lock_guard<std::mutex> lock(mMutex);
 
     for(uint i = 0; i < getNrOfInputData(); ++i) {
-        SpatialDataObject::pointer data = getStaticInputData<SpatialDataObject>(i);
+        SpatialDataObject::pointer data = getInputData<SpatialDataObject>(i);
         mBoxesToRender[i] = data->getTransformedBoundingBox();
     }
 }

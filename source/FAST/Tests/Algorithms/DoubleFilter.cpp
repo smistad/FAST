@@ -12,7 +12,7 @@ DoubleFilter::DoubleFilter() {
     // is a static image, the output will also be a static image,
     // and if the input is a dynamic image, the output will also
     // be a dynamic image.
-    createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOutputPort<Image>(0);
 
     // This creates an OpenCL program from a source file on disk
     createOpenCLProgram(Config::getKernelSourcePath() + "Tests/Algorithms/DoubleFilter.cl");
@@ -38,8 +38,8 @@ inline void executeAlgorithmOnHost(Image::pointer input, Image::pointer output) 
 
 void DoubleFilter::execute() {
     // Get input and output data
-    Image::pointer input = getStaticInputData<Image>();
-    Image::pointer output = getStaticOutputData<Image>();
+    Image::pointer input = getInputData<Image>();
+    Image::pointer output = getOutputData<Image>();
 
     // Initialize output image
     output->createFromImage(input);

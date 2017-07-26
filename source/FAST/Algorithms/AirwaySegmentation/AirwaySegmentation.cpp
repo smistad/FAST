@@ -8,7 +8,7 @@ namespace fast {
 
 AirwaySegmentation::AirwaySegmentation() {
 	createInputPort<Image>(0);
-	createOutputPort<Segmentation>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+	createOutputPort<Segmentation>(0);
 
 	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/AirwaySegmentation/AirwaySegmentation.cl");
 }
@@ -264,7 +264,7 @@ void AirwaySegmentation::morphologicalClosing(Segmentation::pointer segmentation
 }
 
 void AirwaySegmentation::execute() {
-	Image::pointer image = getStaticInputData<Image>();
+	Image::pointer image = getInputData<Image>();
 
 	// Convert to signed HU if unsigned
 	if(image->getDataType() == TYPE_UINT16) {
@@ -278,8 +278,9 @@ void AirwaySegmentation::execute() {
 	GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
 	filter->setInputData(image);
 	filter->setStandardDeviation(0.5);
-	filter->update();
-	image = filter->getOutputData<Image>();
+	DataPort::pointer port = filter->getOutputPort();
+	filter->update(0);
+	image = port->getNextFrame();
 
 	// Find seed voxel
 	Vector3i seed;
@@ -301,7 +302,7 @@ void AirwaySegmentation::execute() {
 	reportInfo() << "Using seed point: " << seed.transpose() << reportEnd();
 
 	// Do the region growing
-	Segmentation::pointer segmentation = getStaticOutputData<Segmentation>();
+	Segmentation::pointer segmentation = getOutputData<Segmentation>();
 	regionGrowing(image, segmentation, seed);
 
 	// Do morphological closing to remove holes in segmentation

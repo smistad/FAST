@@ -5,24 +5,24 @@
 namespace fast {
 
 
-void SetTransformation::setTransformationInputConnection(ProcessObjectPort port) {
+void SetTransformation::setTransformationInputConnection(DataPort::pointer port) {
     setInputConnection(1, port);
 }
 
 SetTransformation::SetTransformation() {
     createInputPort<SpatialDataObject>(0);
     createInputPort<AffineTransformation>(1);
-    createOutputPort<SpatialDataObject>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOutputPort<SpatialDataObject>(0);
 }
 
 void SetTransformation::execute() {
-    SpatialDataObject::pointer data = getStaticInputData<SpatialDataObject>(0);
-    AffineTransformation::pointer transform = getStaticInputData<AffineTransformation>(1);
+    SpatialDataObject::pointer data = getInputData<SpatialDataObject>(0);
+    AffineTransformation::pointer transform = getInputData<AffineTransformation>(1);
     SceneGraphNode::pointer dataNode = data->getSceneGraphNode();
 
     dataNode->setTransformation(transform);
 
-    setStaticOutputData<SpatialDataObject>(0, data);
+    addOutputData(0, data);
 }
 
 }

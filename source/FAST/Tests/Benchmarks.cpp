@@ -220,7 +220,7 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
     * Eigen::AngleAxisf(0, Vector3f::UnitZ());
     transformation->getTransform().rotate(R);
     importerB->update();
-    importerB->getStaticOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(transformation);
+    importerB->getOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(transformation);
 
     IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
     icp->setMovingPointSetPort(importerA->getOutputPort());
@@ -228,7 +228,7 @@ TEST_CASE("Pipeline D", "[fast][benchmark][visual]") {
     icp->enableRuntimeMeasurements();
     icp->update();
     Reporter::info() << icp->getOutputTransformation()->getTransform().affine() << Reporter::end();
-    importerA->getStaticOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
+    importerA->getOutputData<PointSet>(0)->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
     Reporter::info() << "result: " << Reporter::end();
     Reporter::info() << icp->getOutputTransformation()->getEulerAngles() << Reporter::end();
     Reporter::info() << icp->getOutputTransformation()->getTransform().translation() << Reporter::end();

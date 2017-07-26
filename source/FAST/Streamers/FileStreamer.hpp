@@ -11,7 +11,7 @@ namespace fast {
 /**
  * Abstract FileStreamer class
  */
-class FAST_EXPORT  FileStreamer : public Streamer, public ProcessObject {
+class FAST_EXPORT  FileStreamer : public ProcessObject {
     public:
         void setFilenameFormat(std::string str);
         void setFilenameFormats(std::vector<std::string> strings);
@@ -28,7 +28,7 @@ class FAST_EXPORT  FileStreamer : public Streamer, public ProcessObject {
          * Set a sleep time after each frame is read
          */
         void setSleepTime(uint milliseconds);
-        bool hasReachedEnd() const;
+        bool hasReachedEnd();
         uint getNrOfFrames() const;
         void producerStream();
         /**

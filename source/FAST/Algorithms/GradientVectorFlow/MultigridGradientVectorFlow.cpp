@@ -568,7 +568,7 @@ void MultigridGradientVectorFlow::set32bitStorageFormat() {
 
 MultigridGradientVectorFlow::MultigridGradientVectorFlow() {
     createInputPort<Image>(0);
-    createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOutputPort<Image>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/GradientVectorFlow/MultigridGradientVectorFlow.cl");
     mIterations = 10;
     mMu = 0.1f;
@@ -576,7 +576,7 @@ MultigridGradientVectorFlow::MultigridGradientVectorFlow() {
 }
 
 void MultigridGradientVectorFlow::execute() {
-    Image::pointer input = getStaticInputData<Image>();
+    Image::pointer input = getInputData<Image>();
     OpenCLDevice::pointer device = getMainDevice();
 
     if((input->getDimensions() == 2 && input->getNrOfComponents() != 2) ||
@@ -585,7 +585,7 @@ void MultigridGradientVectorFlow::execute() {
     }
 
     // Create output, currently only type float is output, not normalized 16 bit
-    Image::pointer output = getStaticOutputData<Image>();
+    Image::pointer output = getOutputData<Image>();
     output->create(input->getSize(), TYPE_FLOAT, input->getNrOfComponents());
     output->setSpacing(input->getSpacing());
     SceneGraph::setParentNode(output, input);

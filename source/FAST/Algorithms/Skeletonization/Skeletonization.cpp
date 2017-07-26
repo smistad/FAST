@@ -8,12 +8,12 @@ namespace fast {
 
 Skeletonization::Skeletonization() {
     createInputPort<Segmentation>(0);
-    createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOutputPort<Image>(0);
 }
 
 void Skeletonization::execute() {
-    Segmentation::pointer input = getStaticInputData<Segmentation>();
-    Image::pointer output = getStaticOutputData<Image>();
+    Segmentation::pointer input = getInputData<Segmentation>();
+    Image::pointer output = getOutputData<Image>();
     SceneGraph::setParentNode(output, input);
 
     if(input->getDimensions() != 2)

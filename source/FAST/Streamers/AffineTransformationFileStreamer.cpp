@@ -18,11 +18,7 @@ AffineTransformationFileStreamer::AffineTransformationFileStreamer() {
     mTimestampFilename = "";
     mSleepTime = 0;
     mNrOfFrames = 0;
-    createOutputPort<AffineTransformation>(0, OUTPUT_DYNAMIC);
-}
-
-void AffineTransformationFileStreamer::setStreamingMode(StreamingMode mode) {
-    Streamer::setStreamingMode(mode);
+    createOutputPort<AffineTransformation>(0);
 }
 
 void AffineTransformationFileStreamer::setSleepTime(uint milliseconds) {
@@ -34,7 +30,6 @@ void AffineTransformationFileStreamer::setTimestampFilename(std::string filepath
 }
 
 void AffineTransformationFileStreamer::execute() {
-    getOutputData<AffineTransformation>(0)->setStreamer(mPtr.lock());
     if(mFilename == "")
         throw Exception("No filename was given to the AffineTransformationFileStreamer");
     if(!mStreamIsStarted) {
@@ -157,29 +152,16 @@ void AffineTransformationFileStreamer::producerStream() {
 				previousTimestampTime = std::chrono::high_resolution_clock::now();
 			}
 		}
-		DynamicData::pointer ptr = getOutputData<AffineTransformation>();
-		if(ptr.isValid()) {
-			try {
-				ptr->addFrame(transformation);
-				if(mSleepTime > 0)
-					std::this_thread::sleep_for(std::chrono::milliseconds(mSleepTime));
-			} catch(NoMoreFramesException &e) {
-				throw e;
-			} catch(Exception &e) {
-				reportInfo() << "streamer has been deleted, stop" << Reporter::end();
-				break;
-			}
-			if(!mFirstFrameIsInserted) {
-				{
-					std::lock_guard<std::mutex> lock(mFirstFrameMutex);
-					mFirstFrameIsInserted = true;
-				}
-				mFirstFrameCondition.notify_one();
-			}
-		} else {
-			reportInfo() << "DynamicData object destroyed, stream can stop." << Reporter::end();
-			break;
-		}
+        addOutputData(0, transformation);
+        if(mSleepTime > 0)
+            std::this_thread::sleep_for(std::chrono::milliseconds(mSleepTime));
+        if(!mFirstFrameIsInserted) {
+            {
+                std::lock_guard<std::mutex> lock(mFirstFrameMutex);
+                mFirstFrameIsInserted = true;
+            }
+            mFirstFrameCondition.notify_one();
+        }
 		mNrOfFrames++;
     }
 }
@@ -198,7 +180,7 @@ AffineTransformationFileStreamer::~AffineTransformationFileStreamer() {
     }
 }
 
-bool AffineTransformationFileStreamer::hasReachedEnd() const {
+bool AffineTransformationFileStreamer::hasReachedEnd() {
     return mHasReachedEnd;
 }
 

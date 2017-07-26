@@ -98,7 +98,7 @@ ProcessObjectPort IGTLinkStreamer::getOutputPort(std::string deviceName) {
 	uint portID;
 	if(mOutputPortDeviceNames.count(deviceName) == 0) {
 		portID = getNrOfOutputPorts();
-		createOutputPort<T>(portID, OUTPUT_DYNAMIC);
+		createOutputPort<T>(portID);
 		getOutputData<T>(portID); // This initializes the output data
 		mOutputPortDeviceNames[deviceName] = portID;
 	} else {

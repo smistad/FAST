@@ -66,7 +66,7 @@ void LineRenderer::draw() {
 BoundingBox LineRenderer::getBoundingBox() {
     std::vector<Vector3f> coordinates;
     for(uint i = 0; i < getNrOfInputData(); i++) {
-        BoundingBox transformedBoundingBox = getStaticInputData<Mesh>(i)->getTransformedBoundingBox();
+        BoundingBox transformedBoundingBox = getInputData<Mesh>(i)->getTransformedBoundingBox();
         MatrixXf corners = transformedBoundingBox.getCorners();
         for(uint j = 0; j < 8; j++) {
             coordinates.push_back((Vector3f)corners.row(j));
@@ -87,7 +87,7 @@ void LineRenderer::execute() {
 
     // This simply gets the input data for each connection and puts it into a data structure
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
-        Mesh::pointer input = getStaticInputData<Mesh>(inputNr);
+        Mesh::pointer input = getInputData<Mesh>(inputNr);
         mMeshsToRender[inputNr] = input;
     }
 }

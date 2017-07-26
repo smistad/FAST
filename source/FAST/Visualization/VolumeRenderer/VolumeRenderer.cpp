@@ -47,7 +47,7 @@ void VolumeRenderer::addInputConnection(ProcessObjectPort port) {
 		    createInputPort<Image>(nr);
 	//	releaseInputAfterExecute(nr, false);
 		setInputConnection(nr, port);
-		//mInputs.push_back(getStaticInputData<Image>(0));
+		//mInputs.push_back(getInputData<Image>(0));
 		
 		//addParent(mInputs[numberOfVolumes]);
 		numberOfVolumes++;
@@ -300,7 +300,7 @@ void VolumeRenderer::execute() {
 			inputs.push_back( mInputs[i]);
 		}
 		*/
-		inputs.push_back(getStaticInputData<Image>(i));
+		inputs.push_back(getInputData<Image>(i));
 		if(inputs[i]->getDimensions() != 3)
 		{
 			char errorMessage[255];

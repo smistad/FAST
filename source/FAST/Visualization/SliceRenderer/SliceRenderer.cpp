@@ -29,7 +29,7 @@ using namespace fast;
 
 void SliceRenderer::execute() {
     std::lock_guard<std::mutex> lock(mMutex);
-    mImageToRender = getStaticInputData<Image>(0);
+    mImageToRender = getInputData<Image>(0);
 
     if(mImageToRender->getDimensions() != 3)
         throw Exception("The SliceRenderer only supports 3D images");

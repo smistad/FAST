@@ -32,7 +32,7 @@ void StreamExporter::execute() {
     std::string filename = replace(mFilenameFormat, "#", std::to_string(mFrameCounter));
     reportInfo() << "Exporting " << filename << reportEnd();
 
-    DataObject::pointer data = getStaticInputData<DataObject>();
+    DataObject::pointer data = getInputData<DataObject>();
     mExporter->setInputData(data);
     mExporter->setFilename(filename);
     mExporter->update();

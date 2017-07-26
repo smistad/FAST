@@ -5,18 +5,16 @@
 namespace fast {
 
 MeshFileStreamer::MeshFileStreamer() {
-    createOutputPort<Mesh>(0, OUTPUT_DYNAMIC);
-    setMaximumNumberOfFrames(50); // Set default maximum number of frames to 50
+    createOutputPort<Mesh>(0);
 }
 
 DataObject::pointer MeshFileStreamer::getDataFrame(std::string filename) {
     VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
-    //importer->enableRuntimeMeasurements();
     importer->setFilename(filename);
     importer->setMainDevice(getMainDevice());
-    importer->update();
-    //importer->getAllRuntimes()->printAll();
-    return importer->getOutputData<Mesh>();
+    DataPort::pointer port = importer->getOutputPort();
+    importer->update(0);
+    return port->getNextFrame();
 }
 
 }

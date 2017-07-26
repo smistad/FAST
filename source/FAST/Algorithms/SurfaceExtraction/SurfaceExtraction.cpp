@@ -27,7 +27,7 @@ inline unsigned int getRequiredHistogramPyramidSize(Image::pointer input) {
 }
 
 void SurfaceExtraction::execute() {
-    Image::pointer input = getStaticInputData<Image>(0);
+    Image::pointer input = getInputData<Image>(0);
 
     if(input->getDimensions() != 3)
         throw Exception("The SurfaceExtraction object only supports 3D images");
@@ -280,7 +280,7 @@ void SurfaceExtraction::execute() {
         delete[] sum;
     }
 
-    Mesh::pointer output = getStaticOutputData<Mesh>(0);
+    Mesh::pointer output = getOutputData<Mesh>(0);
     SceneGraph::setParentNode(output, input);
     BoundingBox box = input->getBoundingBox();
     // Apply spacing scaling to BB
@@ -377,7 +377,7 @@ SurfaceExtraction::SurfaceExtraction() {
     mThreshold = 0.0f;
     mHPSize = 0;
     createInputPort<Image>(0);
-    createOutputPort<Mesh>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOutputPort<Mesh>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/SurfaceExtraction/SurfaceExtraction.cl");
     createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/SurfaceExtraction/SurfaceExtraction_no_3d_write.cl", "no_3d_write");
 }

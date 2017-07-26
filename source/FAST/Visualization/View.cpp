@@ -825,7 +825,7 @@ void View::paintGL() {
 			// Apply camera transformations
 			if(getNrOfInputData() > 0) {
 			    // Has camera input connection, get camera
-			    Camera::pointer camera = getStaticInputData<Camera>(0);
+			    Camera::pointer camera = getInputData<Camera>(0);
 			    CameraAccess::pointer access = camera->getAccess(ACCESS_READ);
                 glMultMatrixf(m3DViewingTransformation.data());
 			    glMultMatrixf(access->getCameraTransformation().data());

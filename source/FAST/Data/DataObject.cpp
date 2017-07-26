@@ -5,8 +5,7 @@ namespace fast {
 
 DataObject::DataObject() :
         mTimestampModified(0),
-        mTimestampCreated(0),
-        mIsDynamicData(false) {
+        mTimestampCreated(0) {
 
     mDataIsBeingAccessed = false;
     mDataIsBeingWrittenTo = false;
@@ -38,10 +37,6 @@ void DataObject::accessFinished() {
         mDataIsBeingAccessed = false;
 	}
 	mDataIsBeingAccessedCondition.notify_one();
-}
-
-bool DataObject::isDynamicData() const {
-    return mIsDynamicData;
 }
 
 unsigned long DataObject::getTimestamp() const {
@@ -78,14 +73,6 @@ void DataObject::release(ExecutionDevice::pointer device) {
     if(mReferenceCount[device] == 0) {
         this->free(device);
     }
-}
-
-void DataObject::setStreamer(Streamer::pointer streamer) {
-    mStreamer = streamer;
-}
-
-Streamer::pointer DataObject::getStreamer() {
-    return mStreamer.lock();
 }
 
 } // end namespace fast

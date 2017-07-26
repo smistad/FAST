@@ -99,7 +99,7 @@ inline void fast::ITKImageExporter<TImage>::GenerateData() {
 
     update(); // Update FAST pipeline
 
-    Image::pointer input = getStaticInputData<Image>();
+    Image::pointer input = getInputData<Image>();
     if(input->getDimensions() != TImage::ImageDimension)
         throw Exception("The dimension of the input and output images of the ITKImageExporter are unequal.");
 

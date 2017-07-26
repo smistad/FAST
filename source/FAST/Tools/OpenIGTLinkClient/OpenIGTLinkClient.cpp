@@ -8,13 +8,13 @@ namespace fast {
 
 OpenIGTLinkClient::OpenIGTLinkClient() {
     createInputPort<Image>(0);
-    createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOutputPort<Image>(0);
 
     mRecording = false;
 }
 
 void OpenIGTLinkClient::execute() {
-    Image::pointer image = getStaticInputData<Image>(0);
+    Image::pointer image = getInputData<Image>(0);
 
     if(mRecording) {
         // Save frame to disk

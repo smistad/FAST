@@ -14,9 +14,9 @@ namespace fast {
 TubeSegmentationAndCenterlineExtraction::TubeSegmentationAndCenterlineExtraction() {
 
     createInputPort<Image>(0);
-    createOutputPort<Segmentation>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-    createOutputPort<Mesh>(1, OUTPUT_DEPENDS_ON_INPUT, 0);
-    createOutputPort<Image>(2, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOutputPort<Segmentation>(0);
+    createOutputPort<Mesh>(1);
+    createOutputPort<Image>(2);
 
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/TubeSegmentationAndCenterlineExtraction/TubeSegmentationAndCenterlineExtraction.cl");
 
@@ -201,7 +201,7 @@ inline void keepLargestObject(Segmentation::pointer segmentation, Mesh::pointer&
 
 
 void TubeSegmentationAndCenterlineExtraction::execute() {
-    Image::pointer input = getStaticInputData<Image>();
+    Image::pointer input = getInputData<Image>();
     Vector3f spacing = input->getSpacing();
     Vector3ui size = input->getSize();
     float smallestSpacing = spacing.minCoeff();

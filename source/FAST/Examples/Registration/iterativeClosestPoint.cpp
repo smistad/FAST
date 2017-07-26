@@ -25,7 +25,7 @@ int main() {
     * Eigen::AngleAxisf(rotation.z(), Vector3f::UnitZ());
     transformation->getTransform()->rotate(R);
     importerB->update();
-    importerB->getStaticOutputData<PointSet>()->getSceneGraphNode()->setTransformation(transformation);
+    importerB->getOutputData<PointSet>()->getSceneGraphNode()->setTransformation(transformation);
 
     // Perform the registration
     IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
@@ -34,7 +34,7 @@ int main() {
     icp->update();
 
     // Apply transformation to A
-    importerA->getStaticOutputData<PointSet>()->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
+    importerA->getOutputData<PointSet>()->getSceneGraphNode()->setTransformation(icp->getOutputTransformation());
 
     Reporter::info() << "Registration result: " << Reporter::end();
     Reporter::info() << "Rotation: " << icp->getOutputTransformation()->getEulerAngles().transpose() << Reporter::end();

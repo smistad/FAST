@@ -8,7 +8,7 @@ namespace fast {
 
 ObjectDetection::ObjectDetection() {
 	createInputPort<Image>(0);
-	createOutputPort<Mesh>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+	createOutputPort<Mesh>(0);
 	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/NeuralNetwork/ObjectDetection.cl");
 
     //mOutputNames = {"Sigmoid", "Sigmoid_1", "Sigmoid_2"};
@@ -22,7 +22,7 @@ Vector2f applySpacing(Vector2f p, Vector3f spacing) {
 }
 
 void ObjectDetection::execute() {
-	Image::pointer image = getStaticInputData<Image>();
+	Image::pointer image = getInputData<Image>();
 
 	mRuntimeManager->startRegularTimer("resize_images");
     if(mWidth < 0 || mHeight < 0)
@@ -78,7 +78,7 @@ void ObjectDetection::execute() {
 
 	std::vector<MeshVertex> vertices;
 	std::vector<VectorXui> lines;
-	Mesh::pointer mesh = getStaticOutputData<Mesh>();
+	Mesh::pointer mesh = getOutputData<Mesh>();
 
 
     const int nbObjects = detectorResult.size();
@@ -231,7 +231,7 @@ void ObjectDetection::execute() {
 
 	std::vector<MeshVertex> vertices;
 	std::vector<VectorXui> lines;
-	Mesh::pointer mesh = getStaticOutputData<Mesh>();
+	Mesh::pointer mesh = getOutputData<Mesh>();
 
     bool found_vessel = false;
 	for(int i = 0; i < 2; ++i) { // For left and right

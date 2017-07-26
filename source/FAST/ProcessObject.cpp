@@ -1,6 +1,7 @@
 #include "FAST/ProcessObject.hpp"
 #include "FAST/Exception.hpp"
 #include "FAST/OpenCLProgram.hpp"
+#include "FAST/Streamers/Streamer.hpp"
 #include <unordered_set>
 
 
@@ -11,47 +12,147 @@ ProcessObject::ProcessObject() : mIsModified(false) {
     mRuntimeManager = RuntimeMeasurementsManager::New();
 }
 
-void ProcessObject::update() {
-    bool aParentHasBeenModified = false;
-    std::unordered_map<uint, ProcessObjectPort>::iterator it;
-    // If this object has multiple connection to the same parent this is used to avoid updating that parent many times
-    std::unordered_set<ProcessObject::pointer> parents;
-    for(it = mInputConnections.begin(); it != mInputConnections.end(); it++) {
-        if(parents.count(it->second.getProcessObject()) == 0) {
-            parents.insert(it->second.getProcessObject());
-        } else {
-            // Skip; already updated
-            continue;
-        }
-        // Update input connection
-        ProcessObjectPort& port = it->second; // use reference here to make sure timestamp is updated
-        port.getProcessObject()->update();
+static bool isStreamer(ProcessObject* po) {
+    Streamer* derived_ptr = dynamic_cast<Streamer *>(po);
+    bool isStreamer = true;
+    if(derived_ptr == nullptr)
+        isStreamer = false;
 
-        // Check if the data object has been updated
-        DataObject::pointer data;
-        try {
-            if(port.isDataModified()) {
-                aParentHasBeenModified = true;
-                // Update timestamp
-                port.updateTimestamp();
-            }
-        } catch(Exception &e) {
-            // Data was not found
+    return isStreamer;
+}
+
+void ProcessObject::update(uint64_t timestep, StreamingMode streamingMode) {
+    // Call update all parents
+    bool newInputData = false;
+    for(auto parent : mInputConnections) {
+        DataPort::pointer port = parent.second;
+        port->setChanged(false);
+        port->setTimestep(timestep);
+        port->setStreamingMode(streamingMode);
+        port->getProcessObject()->update(timestep, streamingMode);
+        // If parent PO is streamer, newInputData is always true
+        if(port->getChanged() || isStreamer(port->getProcessObject().get()))
+            newInputData = true;
+    }
+
+    // Set timestep and streaming mode for output connections
+    for(auto outputPorts : mOutputConnections) {
+        for(auto output : outputPorts.second) {
+            DataPort::pointer port = output.lock();
+            port->setTimestep(timestep);
+            port->setStreamingMode(streamingMode);
         }
     }
 
-    // has been modified, execute is called
-    if(this->mIsModified || aParentHasBeenModified) {
+    // If this object is modified, or any parents has new data for this PO: Call execute
+    std::cout << getNameOfClass() << ": new data " << newInputData << std::endl;
+    if(mIsModified || newInputData) {
         this->mRuntimeManager->startRegularTimer("execute");
         // set isModified to false before executing to avoid recursive update calls
-        this->mIsModified = false;
-        this->preExecute();
-        this->execute();
-        this->postExecute();
+        mIsModified = false;
+        preExecute();
+        execute();
+        postExecute();
         if(this->mRuntimeManager->isEnabled())
             this->waitToFinish();
         this->mRuntimeManager->stopRegularTimer("execute");
+    } else if(!isStreamer(this)) {
+        // If this object did not need to execute AND is not a streamer. Move the data to next timestep.
+        for(auto outputPorts : mOutputConnections) {
+            for(auto output : outputPorts.second) {
+                DataPort::pointer port = output.lock();
+                port->moveDataToNextTimestep();
+            }
+        }
     }
+}
+
+DataPort::pointer ProcessObject::getOutputPort(uint portID) {
+    validateOutputPortExists(portID);
+    // Create DataPort, and it to list and return it
+    DataPort::pointer port = SharedPointer<DataPort>(new DataPort(mPtr.lock()));
+
+    if(mOutputConnections.count(portID) == 0)
+        mOutputConnections[portID] = std::vector<WeakPointer<DataPort>>();
+
+    mOutputConnections[portID].push_back(WeakPointer<DataPort>(port));
+
+    return port;
+}
+
+void ProcessObject::setInputConnection(uint portID, DataPort::pointer port) {
+    validateInputPortExists(portID);;
+    if(port->getProcessObject().get() == this)
+        throw Exception("Can't set setInputConnection on self");
+    mInputConnections[portID] = port;
+}
+
+void ProcessObject::setInputConnection(DataPort::pointer port) {
+    setInputConnection(0, port);
+}
+
+void ProcessObject::addOutputData(uint portID, DataObject::pointer data) {
+    validateOutputPortExists(portID);
+
+    // Add it to all output connections, if any connections exist
+    if(mOutputConnections.count(portID) > 0) {
+        for(auto output : mOutputConnections.at(portID)) {
+            if(!output.getPtr().expired()) {
+                DataPort::pointer port = output.lock();
+                port->addFrame(data);
+            }
+        }
+    }
+}
+
+void ProcessObject::setInputData(DataObject::pointer data) {
+    setInputData(0, data);
+}
+
+class EmptyProcessObject : public ProcessObject {
+    FAST_OBJECT(EmptyProcessObject)
+    public:
+        void setOutputData(DataObject::pointer data) {
+            mData = data;
+            mIsModified = true;
+        };
+    private:
+        EmptyProcessObject() {
+            createOutputPort<DataObject>(0);
+        };
+        void execute() {
+            addOutputData(0, mData);
+        };
+        DataObject::pointer mData;
+};
+
+void ProcessObject::setInputData(uint portID, DataObject::pointer data) {
+    validateInputPortExists(portID);
+    EmptyProcessObject::pointer PO = EmptyProcessObject::New();
+    PO->setOutputData(data);
+    setInputConnection(portID, PO->getOutputPort());
+    mIsModified = true;
+}
+
+void ProcessObject::preExecute() {
+    // Validate that all required input connections have been set
+    for(auto input : mInputPorts) {
+        if(input.second) { // if required
+            if(mInputConnections.count(input.first) == 0) {
+                throw Exception("Input port " + std::to_string(input.first) + " on process object " + getNameOfClass() + " is missing its required connection.");
+            }
+        }
+    }
+}
+
+void ProcessObject::validateInputPortExists(uint portID) {
+    if(mInputPorts.count(portID) == 0)
+        throw Exception(getNameOfClass() + " has no input port with ID " + std::to_string(portID));
+}
+
+void ProcessObject::validateOutputPortExists(uint portID) {
+    if(mOutputPorts.count(portID) == 0)
+        throw Exception(getNameOfClass() + " has no output port with ID " + std::to_string(portID));
 }
 
 void ProcessObject::enableRuntimeMeasurements() {
@@ -74,29 +175,8 @@ RuntimeMeasurementsManager::pointer ProcessObject::getAllRuntimes() {
     return mRuntimeManager;
 }
 
-void ProcessObject::setInputRequired(uint portID, bool required) {
-    mRequiredInputs[portID] = required;
-}
-
-void ProcessObject::releaseInputAfterExecute(uint inputNumber,
-        bool release) {
-    mReleaseAfterExecute[inputNumber] = release;
-}
-
-void ProcessObject::preExecute() {
-    // Check that required inputs are present
-    std::unordered_map<uint, bool>::iterator it;
-    for(it = mRequiredInputs.begin(); it != mRequiredInputs.end(); it++) {
-        if(it->second) { // if required
-            // Check that input exist and is valid
-            if(mInputConnections.count(it->first) == 0/* || !mInputConnections[it->first].isValid()*/) {
-                throw Exception("A process object is missing a required input data.");
-            }
-        }
-    }
-}
-
 void ProcessObject::postExecute() {
+    /*
     // TODO Release input data if they are marked as "release after execute"
     std::unordered_map<uint, bool>::iterator it;
     for(it = mReleaseAfterExecute.begin(); it != mReleaseAfterExecute.end(); it++) {
@@ -108,9 +188,11 @@ void ProcessObject::postExecute() {
             }
         }
     }
+     */
 }
 
 void ProcessObject::changeDeviceOnInputs(uint deviceNumber, ExecutionDevice::pointer device) {
+    /*
     // TODO For each input, release old device and retain on new device
     std::unordered_map<uint, ProcessObjectPort>::iterator it;
     for(it = mInputConnections.begin(); it != mInputConnections.end(); it++) {
@@ -122,6 +204,7 @@ void ProcessObject::changeDeviceOnInputs(uint deviceNumber, ExecutionDevice::poi
             }
         }
     }
+     */
 }
 
 void ProcessObject::setMainDevice(ExecutionDevice::pointer device) {
@@ -148,30 +231,6 @@ ExecutionDevice::pointer ProcessObject::getDevice(uint deviceNumber) const {
     return mDevices.at(deviceNumber);
 }
 
-uint ProcessObject::getNrOfInputData() const {
-    return mInputConnections.size();
-}
-
-uint ProcessObject::getNrOfOutputPorts() const {
-    return mOutputPortType.size();
-}
-
-void ProcessObject::setOutputData(uint outputNumber, DataObject::pointer data) {
-	if(mOutputData[outputNumber].size() > 0) {
-		mOutputData[outputNumber][0] = data;
-	} else {
-		mOutputData[outputNumber].push_back(data);
-	}
-}
-
-void ProcessObject::setOutputData(uint outputNumber, std::vector<DataObject::pointer> data) {
-    mOutputData[outputNumber] = data;
-}
-
-void ProcessObject::setOutputDataDynamicDependsOnInputData(uint outputNumber, uint inputNumber) {
-    mOutputDynamicDependsOnInput[outputNumber] = inputNumber;
-}
-
 void ProcessObject::setMainDeviceCriteria(const DeviceCriteria& criteria) {
     mDeviceCriteria[0] = criteria;
     mDevices[0] = DeviceManager::getInstance()->getDevice(criteria);
@@ -181,146 +240,6 @@ void ProcessObject::setDeviceCriteria(uint deviceNumber,
         const DeviceCriteria& criteria) {
     mDeviceCriteria[deviceNumber] = criteria;
     mDevices[deviceNumber] = DeviceManager::getInstance()->getDevice(criteria);
-}
-
-// New pipeline
-void ProcessObject::setInputConnection(ProcessObjectPort port) {
-    setInputConnection(0, port);
-}
-
-void ProcessObject::setInputConnection(uint connectionID, ProcessObjectPort port) {
-    mInputConnections[connectionID] = port;
-
-    // Clear output data
-    mOutputData.clear();
-}
-
-ProcessObjectPort ProcessObject::getOutputPort() {
-    return getOutputPort(0);
-}
-
-ProcessObjectPort ProcessObject::getOutputPort(uint portID) {
-    ProcessObjectPort port(portID, mPtr.lock());
-    return port;
-}
-
-DataObject::pointer ProcessObject::getOutputDataX(uint portID) const {
-
-    return getMultipleOutputDataX(portID)[0];
-}
-
-std::vector<DataObject::pointer> ProcessObject::getMultipleOutputDataX(uint portID) const {
-    std::vector<DataObject::pointer> data;
-
-    // If output data is not created
-    if(mOutputData.count(portID) == 0) {
-        throw Exception("Could not find output data for port " + std::to_string(portID) + " in " + getNameOfClass());
-    } else {
-        data = mOutputData.at(portID);
-    }
-
-    return data;
-}
-
-DataObject::pointer ProcessObject::getInputData(uint inputNumber) const {
-    // at throws exception if element not found, while [] does not
-    ProcessObjectPort port = mInputConnections.at(inputNumber);
-    return port.getData();
-}
-
-void ProcessObject::setInputData(uint portID, DataObject::pointer data) {
-    class EmptyProcessObject : public ProcessObject {
-        FAST_OBJECT(EmptyProcessObject)
-        public:
-        private:
-            void execute() {};
-    };
-    EmptyProcessObject::pointer PO = EmptyProcessObject::New();
-    PO->setOutputData(0, data);
-    setInputConnection(portID, PO->getOutputPort());
-    mIsModified = true;
-}
-
-void ProcessObject::setInputData(std::vector<DataObject::pointer>data) {
-    setInputData(0, data);
-}
-
-void ProcessObject::setInputData(uint portID, std::vector<DataObject::pointer> data) {
-    class EmptyProcessObject : public ProcessObject {
-        FAST_OBJECT(EmptyProcessObject)
-        public:
-        private:
-            void execute() {};
-    };
-    EmptyProcessObject::pointer PO = EmptyProcessObject::New();
-    PO->setOutputData(0, data);
-    setInputConnection(portID, PO->getOutputPort());
-    mIsModified = true;
-}
-
-void ProcessObject::setInputData(DataObject::pointer data) {
-    setInputData(0, data);
-}
-
-ProcessObjectPort ProcessObject::getInputPort(uint portID) const {
-    return mInputConnections.at(portID);
-}
-
-
-void ProcessObject::updateTimestamp(DataObject::pointer data) {
-    std::unordered_map<uint, ProcessObjectPort>::iterator it;
-    for(it = mInputConnections.begin(); it != mInputConnections.end(); it++) {
-        ProcessObjectPort& port = it->second;
-        if(port.getData() == data) {
-            port.updateTimestamp();
-        }
-    }
-}
-
-ProcessObjectPort::ProcessObjectPort(uint portID,
-        ProcessObject::pointer processObject) {
-    mPortID = portID;
-    mProcessObject = processObject;
-    mTimestamp = 0;
-    mDataPointer = 0;
-}
-
-ProcessObject::pointer ProcessObjectPort::getProcessObject() const {
-    return mProcessObject;
-}
-
-DataObject::pointer ProcessObjectPort::getData() {
-	mDataPointer = (std::size_t)mProcessObject->getOutputDataX(mPortID).getPtr().get();
-    return mProcessObject->getOutputDataX(mPortID);
-}
-
-std::vector<DataObject::pointer> ProcessObjectPort::getMultipleData() {
-    return mProcessObject->getMultipleOutputDataX(mPortID);
-}
-
-uint ProcessObjectPort::getPortID() const {
-    return mPortID;
-}
-
-bool ProcessObjectPort::isDataModified() const {
-    return mTimestamp != mProcessObject->getOutputDataX(mPortID)->getTimestamp() ||
-            (mDataPointer != 0 && mDataPointer != (std::size_t)mProcessObject->getOutputDataX(mPortID).getPtr().get());
-}
-
-void ProcessObjectPort::updateTimestamp() {
-    mTimestamp = getData()->getTimestamp();
-}
-
-bool ProcessObjectPort::operator==(const ProcessObjectPort &other) const {
-    return mPortID == other.getPortID() && mProcessObject == other.getProcessObject();
-}
-
-bool ProcessObject::inputPortExists(uint portID) const {
-    return mInputPortType.count(portID) > 0;
-}
-
-bool ProcessObject::outputPortExists(uint portID) const {
-    return mOutputPortType.count(portID) > 0;
 }
 
 void ProcessObject::createOpenCLProgram(std::string sourceFilename, std::string name) {
@@ -500,46 +419,4 @@ std::unordered_map<std::string, std::shared_ptr<Attribute>> ProcessObject::getAt
     return mAttributes;
 }
 
-DynamicData::pointer ProcessObject::getDynamicOutputData(uint outputNumber) {
-    DynamicData::pointer data;
-
-    // If output data is not created
-    if(mOutputData.count(outputNumber) == 0) {
-        // Is output dependent on any input?
-        if(mOutputDynamicDependsOnInput.count(outputNumber) > 0) {
-            uint inputNumber = mOutputDynamicDependsOnInput[outputNumber];
-            if(mInputConnections.count(inputNumber) == 0)
-                throw Exception("Must call input before output.");
-            ProcessObjectPort port = mInputConnections[inputNumber];
-            DataObject::pointer objectDependsOn = port.getData();
-            data = DynamicData::New();
-            data->setStreamer(objectDependsOn->getStreamer());
-            mOutputData[outputNumber].push_back(data);
-        } else {
-            // Create dynamic data
-            data = DynamicData::New();
-            mOutputData[outputNumber].push_back(data);
-        }
-    } else {
-        data = mOutputData[outputNumber][0];
-    }
-
-    return data;
-}
-
-DynamicData::pointer ProcessObject::getDynamicOutputData() {
-    return getDynamicOutputData(0);
-}
-
-
-
 } // namespace fast
-
-namespace std {
-size_t hash<fast::ProcessObjectPort>::operator()(const fast::ProcessObjectPort &object) const {
-    std::size_t seed = 0;
-    fast::hash_combine(seed, object.getProcessObject().getPtr().get());
-    fast::hash_combine(seed, object.getPortID());
-    return seed;
-}
-} // end namespace std

@@ -11,14 +11,14 @@ namespace fast {
 
     UltrasoundVesselSegmentation::UltrasoundVesselSegmentation() {
         createInputPort<Image>(0);
-        createOutputPort<Segmentation>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+        createOutputPort<Segmentation>(0);
         mDetector = UltrasoundVesselDetection::New();
         mFramesToKeep = 10;
         createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/UltrasoundVesselDetection/UltrasoundVesselDetection.cl");
     }
 
     void UltrasoundVesselSegmentation::execute() {
-        Image::pointer image = getStaticInputData<Image>();
+        Image::pointer image = getInputData<Image>();
 
         mDetector->setInputData(image);
         mDetector->update();
@@ -156,7 +156,7 @@ namespace fast {
     }
 
     void UltrasoundVesselSegmentation::createSegmentation(Image::pointer image) {
-        Segmentation::pointer segmentation = getStaticOutputData<Segmentation>(0);
+        Segmentation::pointer segmentation = getOutputData<Segmentation>(0);
         segmentation->createFromImage(image);
         OpenCLDevice::pointer device = getMainDevice();
         cl::Program program = getOpenCLProgram(device);

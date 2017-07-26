@@ -52,7 +52,7 @@ void TriangleRenderer::setLineSize(int size) {
 void TriangleRenderer::execute() {
     std::lock_guard<std::mutex> lock(mMutex);
     for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
-        Mesh::pointer input = getStaticInputData<Mesh>(inputNr);
+        Mesh::pointer input = getInputData<Mesh>(inputNr);
         mMeshToRender[inputNr] = input;
     }
 }

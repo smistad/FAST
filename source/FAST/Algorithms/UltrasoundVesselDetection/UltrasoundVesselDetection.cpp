@@ -20,7 +20,7 @@ namespace fast {
 
     UltrasoundVesselDetection::UltrasoundVesselDetection() {
         createInputPort<Image>(0);
-        createOutputPort<Segmentation>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+        createOutputPort<Segmentation>(0);
         createOutputPort<VesselCrossSection>(1, OUTPUT_STATIC, 0, true);
         createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/UltrasoundVesselDetection/UltrasoundVesselDetection.cl");
         mCreateSegmentation = false;
@@ -62,7 +62,7 @@ namespace fast {
     };
 
     void UltrasoundVesselDetection::execute() {
-        Image::pointer input = getStaticInputData<Image>();
+        Image::pointer input = getInputData<Image>();
         if(input->getDimensions() != 2) {
             throw Exception("The UltrasoundVesselDetection algorithm is only for 2D");
         }
@@ -254,7 +254,7 @@ namespace fast {
 
         if(mCreateSegmentation) {
             mRuntimeManager->startRegularTimer("segmentation");
-            Segmentation::pointer segmentation = getStaticOutputData<Segmentation>(0);
+            Segmentation::pointer segmentation = getOutputData<Segmentation>(0);
             segmentation->createFromImage(input);
 
             OpenCLDevice::pointer device = getMainDevice();

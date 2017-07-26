@@ -22,8 +22,8 @@ RidgeTraversalCenterlineExtraction::RidgeTraversalCenterlineExtraction() {
     createInputPort<Image>(4, false);
     createInputPort<Image>(5, false);
 
-    createOutputPort<Mesh>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-    createOutputPort<Segmentation>(1, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOutputPort<Mesh>(0);
+    createOutputPort<Segmentation>(1);
 }
 
 typedef struct point {
@@ -545,9 +545,9 @@ void extractCenterlines(
 
 void RidgeTraversalCenterlineExtraction::execute() {
 
-    Segmentation::pointer centerlineVolumeOutput = getStaticOutputData<Segmentation>(1);
+    Segmentation::pointer centerlineVolumeOutput = getOutputData<Segmentation>(1);
 
-    Image::pointer TDF = getStaticInputData<Image>(0);
+    Image::pointer TDF = getInputData<Image>(0);
     Vector3ui size = TDF->getSize();
     const int totalSize = size.x()*size.y()*size.z();
     int TreeMin = 20;
@@ -567,9 +567,9 @@ void RidgeTraversalCenterlineExtraction::execute() {
     uint firstLimit;
     int counter = 1;
     bool* useFirstRadius = new bool[totalSize]();
-    Image::pointer radius = getStaticInputData<Image>(2);
+    Image::pointer radius = getInputData<Image>(2);
     {
-        Image::pointer vectorField = getStaticInputData<Image>(1);
+        Image::pointer vectorField = getInputData<Image>(1);
         extractCenterlines(TDF, vectorField, radius, centerlines, centerlineDistances, centerlineStacks, vertices, lines, 12, useFirstRadius);
         // TODO do inverse gradient segmentation here?
     }
@@ -578,9 +578,9 @@ void RidgeTraversalCenterlineExtraction::execute() {
     Image::pointer radius2;
     if(getNrOfInputData() > 3) {
         // Run again for small
-        Image::pointer TDF = getStaticInputData<Image>(3);
-        Image::pointer vectorField = getStaticInputData<Image>(4);
-        radius2 = getStaticInputData<Image>(5);
+        Image::pointer TDF = getInputData<Image>(3);
+        Image::pointer vectorField = getInputData<Image>(4);
+        radius2 = getInputData<Image>(5);
         extractCenterlines(TDF, vectorField, radius2, centerlines, centerlineDistances, centerlineStacks, vertices, lines, 0, useFirstRadius);
 
         // TODO do dilation segmentation here?
@@ -645,7 +645,7 @@ void RidgeTraversalCenterlineExtraction::execute() {
 
     delete[] centerlines;
 
-    Mesh::pointer centerlineOutput = getStaticOutputData<Mesh>(0);
+    Mesh::pointer centerlineOutput = getOutputData<Mesh>(0);
     centerlineOutput->create(vertices, lines);
     centerlineVolumeOutput->create(size.x(), size.y(), size.z(), TYPE_UINT8, 1, getMainDevice(), returnCenterlines);
     delete[] returnCenterlines;
