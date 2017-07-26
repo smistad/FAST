@@ -2,8 +2,6 @@
 #include "ImageResizer.hpp"
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "FAST/Data/Image.hpp"
-#include "FAST/Visualization/SimpleWindow.hpp"
-#include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 
 using namespace fast;
 

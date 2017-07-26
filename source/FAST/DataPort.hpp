@@ -1,0 +1,66 @@
+#ifndef DATA_PORT_HPP_
+#define DATA_PORT_HPP_
+#include <unordered_map>
+#include <mutex>
+#include <condition_variable>
+#include "FAST/Data/DataObject.hpp"
+#include "FAST/Semaphore.hpp"
+#include "FAST/Streamers/Streamer.hpp"
+
+namespace fast {
+
+class ProcessObject;
+
+class DataPort {
+    public:
+        explicit DataPort(SharedPointer<ProcessObject> processObject);
+
+        void addFrame(DataObject::pointer data);
+
+        DataObject::pointer getNextFrame();
+
+        void setTimestep(uint64_t timestep);
+
+        void setStreamingMode(StreamingMode mode);
+
+        SharedPointer<ProcessObject> getProcessObject() const;
+
+        void setChanged(bool changed);
+
+        bool getChanged();
+
+        uint64_t getFrameCounter() const;
+
+        /**
+         * If a process object does not execeute one update iteration; it should call this method.
+         */
+        void moveDataToNextTimestep();
+
+        void setMaximumNumberOfFrames(uint frames);
+
+        typedef SharedPointer<DataPort> pointer;
+    private:
+        /**
+         * The process object which produce data for this port
+         */
+        SharedPointer<ProcessObject> mProcessObject;
+        std::unordered_map<uint64_t, DataObject::pointer> mFrames;
+        uint64_t mFrameCounter = 0;
+        uint64_t mCurrentTiemstep = 0;
+        StreamingMode mStreamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES;
+        bool mChanged = false;
+        std::mutex mMutex;
+        std::condition_variable mFrameConditionVariable;
+        /**
+         * Used to define buffer size for the producer consumer model used in streaming mode PROCESS_ALL_FRAMES
+         */
+        uint mMaximumNumberOfFrames;
+        UniquePointer<LightweightSemaphore> mFillCount;
+        UniquePointer<LightweightSemaphore> mEmptyCount;
+
+        bool mIsStaticData = false;
+};
+
+}
+
+#endif

@@ -34,6 +34,8 @@ fast_add_sources(
     Attribute.cpp
     Attribute.hpp
     ProcessObjectRegistry.hpp
+    DataPort.cpp
+    DataPort.hpp
 )
 if(FAST_MODULE_Visualization)
     fast_add_sources(
