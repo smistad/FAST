@@ -10,7 +10,7 @@ namespace fast {
 class FAST_EXPORT  SliceRenderer : public Renderer {
     FAST_OBJECT(SliceRenderer)
     public:
-        void setInputConnection(ProcessObjectPort port);
+        void setInputConnection(DataPort::pointer port);
         void setSliceToRender(unsigned int sliceNr);
         void setSlicePlane(PlaneType plane);
         BoundingBox getBoundingBox();

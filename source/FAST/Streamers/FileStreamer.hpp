@@ -11,7 +11,7 @@ namespace fast {
 /**
  * Abstract FileStreamer class
  */
-class FAST_EXPORT  FileStreamer : public ProcessObject {
+class FAST_EXPORT  FileStreamer : public Streamer {
     public:
         void setFilenameFormat(std::string str);
         void setFilenameFormats(std::vector<std::string> strings);

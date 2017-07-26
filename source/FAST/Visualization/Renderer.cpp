@@ -25,7 +25,7 @@ float Renderer::getIntensityWindow() {
     return mWindow;
 }
 
-void Renderer::addInputConnection(ProcessObjectPort port) {
+void Renderer::addInputConnection(DataPort::pointer port) {
    throw Exception("This renderer does not support arbitrary number of input connections through the addInputConnection method");
 }
 

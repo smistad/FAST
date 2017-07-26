@@ -9,7 +9,7 @@ namespace fast {
 class FAST_EXPORT  ImageRenderer : public Renderer {
     FAST_OBJECT(ImageRenderer)
     public:
-        void addInputConnection(ProcessObjectPort port);
+        void addInputConnection(DataPort::pointer port);
         BoundingBox getBoundingBox();
         void loadAttributes();
     private:

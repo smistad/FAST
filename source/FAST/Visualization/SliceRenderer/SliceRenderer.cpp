@@ -188,8 +188,7 @@ void SliceRenderer::execute() {
     mTextureIsCreated = true;
 }
 
-void SliceRenderer::setInputConnection(ProcessObjectPort port) {
-    releaseInputAfterExecute(0, false);
+void SliceRenderer::setInputConnection(DataPort::pointer port) {
     ProcessObject::setInputConnection(0, port);
 }
 

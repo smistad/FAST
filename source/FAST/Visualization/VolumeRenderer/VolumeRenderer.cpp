@@ -34,7 +34,7 @@ void VolumeRenderer::setProjectionParameters(float fov, float aspect, float near
 	projectionMatrix14= (-2.0*zFar*zNear) / (zFar-zNear);
 	mIsModified = true;
 }
-void VolumeRenderer::addInputConnection(ProcessObjectPort port) {
+void VolumeRenderer::addInputConnection(DataPort::pointer port) {
 
 	
 
@@ -42,7 +42,7 @@ void VolumeRenderer::addInputConnection(ProcessObjectPort port) {
         throw Exception("Not a correct number of volumes is given to VolumeRenderer");
 	if(numberOfVolumes<maxNumberOfVolumes)
 	{
-		uint nr = getNrOfInputData();
+		uint nr = getNrOfInputConnections();
 		if(nr > 0)
 		    createInputPort<Image>(nr);
 	//	releaseInputAfterExecute(nr, false);

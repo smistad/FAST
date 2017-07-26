@@ -26,18 +26,17 @@ using namespace fast;
 
 void ImageRenderer::execute() {
     // This simply gets the input data for each connection and puts it into a data structure
-    for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
+    for(uint inputNr = 0; inputNr < getNrOfInputConnections(); inputNr++) {
         Image::pointer input = getInputData<Image>(inputNr);
 
         mImagesToRender[inputNr] = input;
     }
 }
 
-void ImageRenderer::addInputConnection(ProcessObjectPort port) {
-    uint nr = getNrOfInputData();
+void ImageRenderer::addInputConnection(DataPort::pointer port) {
+    uint nr = getNrOfInputConnections();
     if(nr > 0)
         createInputPort<Image>(nr);
-    releaseInputAfterExecute(nr, false);
     setInputConnection(nr, port);
 }
 

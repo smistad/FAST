@@ -10,13 +10,13 @@ TEST_CASE("No filename given to the ImageExporter", "[fast][ImageExporter]") {
     Image::pointer image = Image::New();
     ImageExporter::pointer exporter = ImageExporter::New();
     exporter->setInputData(image);
-    CHECK_THROWS(exporter->update());
+    CHECK_THROWS(exporter->update(0));
 }
 
 TEST_CASE("No input given to the ImageExporter", "[fast][ImageExporter]") {
     ImageExporter::pointer exporter = ImageExporter::New();
     exporter->setFilename("asd");
-    CHECK_THROWS(exporter->update());
+    CHECK_THROWS(exporter->update(0));
 }
 
 
@@ -26,7 +26,7 @@ TEST_CASE("If 3D image is given as input to ImageExporter it throws exception", 
     ImageExporter::pointer exporter = ImageExporter::New();
     exporter->setFilename("asd");
     exporter->setInputData(image);
-    CHECK_THROWS(exporter->update());
+    CHECK_THROWS(exporter->update(0));
 }
 
 TEST_CASE("Write 2D image with the ImageExporter", "[fast][ImageExporter]") {
@@ -42,12 +42,13 @@ TEST_CASE("Write 2D image with the ImageExporter", "[fast][ImageExporter]") {
     ImageExporter::pointer exporter = ImageExporter::New();
     exporter->setFilename("ImageExporterTest.jpg");
     exporter->setInputData(image);
-    exporter->update();
+    exporter->update(0);
 
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename("ImageExporterTest.jpg");
-    Image::pointer image2 = importer->getOutputData<Image>();
-    importer->update();
+    auto port = exporter->getOutputPort();
+    importer->update(0);
+    Image::pointer image2 = port->getNextFrame();
 
     CHECK(width == image2->getWidth());
     CHECK(height == image2->getHeight());

@@ -165,8 +165,8 @@ TEST_CASE("Simple pipeline with static data", "[process_all_frames][ProcessObjec
     }
 
     importer->setModified();
-    timestep = 0;
-    while(timestep < 3) {
+    //timestep = 0;
+    while(timestep < 6) {
         po1->update(timestep, STREAMING_MODE_PROCESS_ALL_FRAMES);
         timestep++;
         DummyDataObject::pointer image = port->getNextFrame();
@@ -191,8 +191,8 @@ TEST_CASE("Simple pipeline with static data, NEWEST_FRAME", "[ProcessObject][fas
     }
 
     importer->setModified();
-    timestep = 0;
-    while(timestep < 3) {
+    //timestep = 0;
+    while(timestep < 6) {
         po1->update(timestep, STREAMING_MODE_NEWEST_FRAME_ONLY);
         timestep++;
         DummyDataObject::pointer image = port->getNextFrame();
@@ -217,8 +217,8 @@ TEST_CASE("Simple pipeline with static data, STORE_ALL", "[ProcessObject][fast]"
     }
 
     importer->setModified();
-    timestep = 0;
-    while(timestep < 3) {
+    //timestep = 0;
+    while(timestep < 6) {
         po1->update(timestep, STREAMING_MODE_STORE_ALL_FRAMES);
         timestep++;
         DummyDataObject::pointer image = port->getNextFrame();

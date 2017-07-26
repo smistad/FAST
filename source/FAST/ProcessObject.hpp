@@ -44,6 +44,7 @@ class FAST_EXPORT  ProcessObject : public virtual Object {
         ExecutionDevice::pointer getDevice(uint deviceNumber) const;
 
         DataPort::pointer getOutputPort(uint portID = 0);
+        DataPort::pointer getInputPort(uint portID = 0);
         void setInputConnection(DataPort::pointer port);
         void setInputConnection(uint portID, DataPort::pointer port);
         void setInputData(DataObject::pointer data);

@@ -28,7 +28,7 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
         void mouseReleaseEvent(QMouseEvent* event);
         void wheelEvent(QWheelEvent* event);
         void setMaximumFramerate(unsigned int framerate);
-        void setCameraInputConnection(ProcessObjectPort port);
+        void setCameraInputConnection(DataPort::pointer port);
         void set2DMode();
         void set3DMode();
         void setViewingPlane(Plane plane);
@@ -97,8 +97,8 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
         void initializeGL();
         void paintGL();
         void resizeGL(int width, int height);
-		void updateRenderersInput();
-		void updateRenderers();
+		void updateRenderersInput(uint64_t timestep, StreamingMode mode);
+		void updateRenderers(uint64_t timestep, StreamingMode mode);
 		void lockRenderers();
 		void unlockRenderers();
 

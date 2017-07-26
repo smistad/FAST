@@ -12,16 +12,15 @@
 
 namespace fast {
 
-void TriangleRenderer::addInputConnection(ProcessObjectPort port) {
-    uint nr = getNrOfInputData();
+void TriangleRenderer::addInputConnection(DataPort::pointer port) {
+    uint nr = getNrOfInputConnections();
     if(nr > 0)
         createInputPort<Mesh>(nr);
-    releaseInputAfterExecute(nr, false);
     setInputConnection(nr, port);
     mIsModified = true;
 }
 
-void TriangleRenderer::addInputConnection(ProcessObjectPort port, Color color, float opacity) {
+void TriangleRenderer::addInputConnection(DataPort::pointer port, Color color, float opacity) {
     addInputConnection(port);
     mInputColors[port] = color;
     mInputOpacities[port] = opacity;
@@ -51,7 +50,7 @@ void TriangleRenderer::setLineSize(int size) {
 
 void TriangleRenderer::execute() {
     std::lock_guard<std::mutex> lock(mMutex);
-    for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
+    for(uint inputNr = 0; inputNr < getNrOfInputConnections(); inputNr++) {
         Mesh::pointer input = getInputData<Mesh>(inputNr);
         mMeshToRender[inputNr] = input;
     }
@@ -80,13 +79,15 @@ void TriangleRenderer::draw() {
 
         float opacity = mDefaultOpacity;
         Color color = mDefaultColor;
-        ProcessObjectPort port = getInputPort(it.first);
+        /*
+        DataPort::pointer port = getInputPort(it.first);
         if(mInputOpacities.count(port) > 0) {
             opacity = mInputOpacities[port];
         }
         if(mInputColors.count(port) > 0) {
             color = mInputColors[port];
         }
+         */
 
         // Set material properties
         if(opacity < 1) {
@@ -161,10 +162,12 @@ void TriangleRenderer::draw2D(
     	Mesh::pointer mesh = it->second;
 
 		Color color = mDefaultColor;
-        ProcessObjectPort port = getInputPort(it->first);
+        /*
+        DataPort::pointer port = getInputPort(it->first);
         if(mInputColors.count(port) > 0) {
             color = mInputColors[port];
         }
+         */
 
     	MeshAccess::pointer access = mesh->getMeshAccess(ACCESS_READ);
         std::vector<MeshLine> lines = access->getLines();
@@ -231,7 +234,7 @@ void TriangleRenderer::draw2D(
 
 BoundingBox TriangleRenderer::getBoundingBox() {
     std::vector<Vector3f> coordinates;
-    for(uint i = 0; i < getNrOfInputData(); i++) {
+    for(uint i = 0; i < getNrOfInputConnections(); i++) {
         BoundingBox transformedBoundingBox = mMeshToRender[i]->getTransformedBoundingBox();
         MatrixXf corners = transformedBoundingBox.getCorners();
         for(uint j = 0; j < 8; j++) {
@@ -249,11 +252,11 @@ void TriangleRenderer::setColor(int label, Color color) {
 	mLabelColors[label] = color;
 }
 
-void TriangleRenderer::setColor(ProcessObjectPort port, Color color) {
+void TriangleRenderer::setColor(DataPort::pointer port, Color color) {
     mInputColors[port] = color;
 }
 
-void TriangleRenderer::setOpacity(ProcessObjectPort port, float opacity) {
+void TriangleRenderer::setOpacity(DataPort::pointer port, float opacity) {
     mInputOpacities[port] = opacity;
 }
 

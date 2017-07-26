@@ -76,7 +76,7 @@ void FileStreamer::setFilenameFormats(std::vector<std::string> strs) {
 }
 
 void FileStreamer::producerStream() {
-    Streamer::pointer pointerToSelf = mPtr.lock(); // try to avoid this object from being destroyed until this function is finished
+    //Streamer::pointer pointerToSelf = mPtr.lock(); // try to avoid this object from being destroyed until this function is finished
 
     // Read timestamp file if available
     std::ifstream timestampFile;

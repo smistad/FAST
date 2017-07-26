@@ -10,11 +10,10 @@ HeatmapRenderer::HeatmapRenderer() {
     mIsModified = false;
 }
 
-void HeatmapRenderer::addInputConnection(ProcessObjectPort port, Color color) {
-    uint nr = getNrOfInputData();
+void HeatmapRenderer::addInputConnection(DataPort::pointer port, Color color) {
+    uint nr = getNrOfInputConnections();
     if(nr > 0)
         createInputPort<Image>(nr);
-    releaseInputAfterExecute(nr, false);
     setInputConnection(nr, port);
     mColors[nr] = color;
 }
@@ -23,7 +22,7 @@ void HeatmapRenderer::execute() {
     std::lock_guard<std::mutex> lock(mMutex);
 
     // This simply gets the input data for each connection and puts it into a data structure
-    for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
+    for(uint inputNr = 0; inputNr < getNrOfInputConnections(); inputNr++) {
         Image::pointer input = getInputData<Image>(inputNr);
         if(input->getDataType() != TYPE_FLOAT) {
             throw Exception("Data type of image given to HeatmapRenderer must be FLOAT");

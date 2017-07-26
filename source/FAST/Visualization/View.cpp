@@ -100,7 +100,7 @@ View::View() : mViewingPlane(Plane::Axial()) {
     }
 }
 
-void View::setCameraInputConnection(ProcessObjectPort port) {
+void View::setCameraInputConnection(DataPort::pointer port) {
     setInputConnection(0, port);
 }
 
@@ -169,12 +169,12 @@ void View::setMaximumFramerate(unsigned int framerate) {
 void View::execute() {
 }
 
-void View::updateRenderersInput() {
+void View::updateRenderersInput(uint64_t timestep, StreamingMode mode) {
     for(Renderer::pointer renderer : mNonVolumeRenderers) {
         int i = 0;
         while(true) {
             try {
-                renderer->getInputPort(i).getProcessObject()->update();
+                renderer->getInputPort(i)->getProcessObject()->update(timestep, mode);
                 i++;
             } catch(...) {
                 break;
@@ -185,7 +185,7 @@ void View::updateRenderersInput() {
         int i = 0;
         while(true) {
             try {
-                renderer->getInputPort(i).getProcessObject()->update();
+                renderer->getInputPort(i)->getProcessObject()->update(timestep, mode);
                 i++;
             } catch(...) {
                 break;
@@ -194,12 +194,13 @@ void View::updateRenderersInput() {
     }
 }
 
-void View::updateRenderers() {
+void View::updateRenderers(uint64_t timestep, StreamingMode mode) {
     for(Renderer::pointer renderer : mNonVolumeRenderers) {
         renderer->execute();
+        //renderer->update(timestep, mode);
     }
     for(Renderer::pointer renderer : mVolumeRenderers) {
-        renderer->execute();
+        renderer->update(timestep, mode);
     }
 }
 
@@ -420,8 +421,9 @@ void View::initializeGL() {
         glEnable(GL_TEXTURE_2D);
         if(mIsIn2DMode) {
             // Update all renders
+            std::cout << "UPDATING ALL RENDERERS" << std::endl;
             for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
-                mNonVolumeRenderers[i]->update();
+                mNonVolumeRenderers[i]->update(0);
 
             // Derive a good spacing for the PBO
             // Find longest edge of the BB
@@ -551,8 +553,8 @@ void View::initializeGL() {
         } else {
             // Update all renderes, so that getBoundingBox works
             for (unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
-                mNonVolumeRenderers[i]->update();
-            if(!mCameraSet && getNrOfInputData() == 0) {
+                mNonVolumeRenderers[i]->update(0);
+            if(!mCameraSet && getNrOfInputConnections() == 0) {
                 // If camera is not set explicitly by user, FAST has to calculate it
                 recalculateCamera();
             } else {
@@ -574,7 +576,7 @@ void View::initializeGL() {
 			glMatrixMode(GL_PROJECTION);
 			glPushMatrix();
 
-			mVolumeRenderers[0]->update();
+			mVolumeRenderers[0]->update(0);
 
 			glMatrixMode(GL_MODELVIEW);
 			glPopMatrix();
@@ -823,7 +825,7 @@ void View::paintGL() {
 			glLightfv(GL_LIGHT0, GL_POSITION, position);
 
 			// Apply camera transformations
-			if(getNrOfInputData() > 0) {
+			if(getNrOfInputConnections() > 0) {
 			    // Has camera input connection, get camera
 			    Camera::pointer camera = getInputData<Camera>(0);
 			    CameraAccess::pointer access = camera->getAccess(ACCESS_READ);

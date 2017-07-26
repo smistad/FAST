@@ -26,7 +26,7 @@ void LineRenderer::draw() {
         glPushMatrix();
         glMultMatrixf(transform->getTransform().data());
 
-        ProcessObjectPort port = getInputPort(it->first);
+        DataPort::pointer port = getInputPort(it->first);
 
         if(mInputWidths.count(port) > 0) {
             glLineWidth(mInputWidths[port]);
@@ -65,8 +65,9 @@ void LineRenderer::draw() {
 
 BoundingBox LineRenderer::getBoundingBox() {
     std::vector<Vector3f> coordinates;
-    for(uint i = 0; i < getNrOfInputData(); i++) {
-        BoundingBox transformedBoundingBox = getInputData<Mesh>(i)->getTransformedBoundingBox();
+    for(uint i = 0; i < getNrOfInputConnections(); i++) {
+        Mesh::pointer data = getInputData<Mesh>(i);
+        BoundingBox transformedBoundingBox = data->getTransformedBoundingBox();
         MatrixXf corners = transformedBoundingBox.getCorners();
         for(uint j = 0; j < 8; j++) {
             coordinates.push_back((Vector3f)corners.row(j));
@@ -86,23 +87,22 @@ void LineRenderer::execute() {
     std::lock_guard<std::mutex> lock(mMutex);
 
     // This simply gets the input data for each connection and puts it into a data structure
-    for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
+    for(uint inputNr = 0; inputNr < getNrOfInputConnections(); inputNr++) {
         Mesh::pointer input = getInputData<Mesh>(inputNr);
         mMeshsToRender[inputNr] = input;
     }
 }
 
 
-void LineRenderer::addInputConnection(ProcessObjectPort port) {
-    uint nr = getNrOfInputData();
+void LineRenderer::addInputConnection(DataPort::pointer port) {
+    uint nr = getNrOfInputConnections();
     if(nr > 0)
         createInputPort<Mesh>(nr);
-    releaseInputAfterExecute(nr, false);
     setInputConnection(nr, port);
     mIsModified = true;
 }
 
-void LineRenderer::addInputConnection(ProcessObjectPort port, Color color,
+void LineRenderer::addInputConnection(DataPort::pointer port, Color color,
         float width) {
     addInputConnection(port);
     setColor(port, color);
@@ -121,15 +121,15 @@ void LineRenderer::setDefaultDrawOnTop(bool drawOnTop) {
     mDefaultDrawOnTop = drawOnTop;
 }
 
-void LineRenderer::setDrawOnTop(ProcessObjectPort port, bool drawOnTop) {
+void LineRenderer::setDrawOnTop(DataPort::pointer port, bool drawOnTop) {
     mInputDrawOnTop[port] = drawOnTop;
 }
 
-void LineRenderer::setColor(ProcessObjectPort port, Color color) {
+void LineRenderer::setColor(DataPort::pointer port, Color color) {
     mInputColors[port] = color;
 }
 
-void LineRenderer::setWidth(ProcessObjectPort port, float width) {
+void LineRenderer::setWidth(DataPort::pointer port, float width) {
     mInputWidths[port] = width;
 }
 

@@ -2,6 +2,7 @@
 #define COMPUTATION_THREAD_HPP
 
 #include "FAST/Object.hpp"
+#include "FAST/DataPort.hpp"
 #include <QThread>
 #include <mutex>
 #include <condition_variable>
@@ -21,6 +22,15 @@ class FAST_EXPORT  ComputationThread : public QObject, public Object {
         void stop();
         void addView(View* view);
         void clearViews();
+        static uint64_t getTimestep() {
+            return mTimestep;
+        }
+        static void setTimestep(uint64_t timestep) {
+            mTimestep = timestep;
+        }
+        static void setStreamingMode(StreamingMode mode) {
+            mStreamingMode = mode;
+        }
     public slots:
         void run();
     signals:
@@ -35,6 +45,9 @@ class FAST_EXPORT  ComputationThread : public QObject, public Object {
         QThread* mMainThread;
 
         std::vector<View*> mViews;
+
+        static uint64_t mTimestep;
+        static StreamingMode mStreamingMode;
 };
 
 }

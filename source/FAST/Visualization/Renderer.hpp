@@ -16,7 +16,7 @@ class FAST_EXPORT  Renderer : public ProcessObject {
     public:
         typedef SharedPointer<Renderer> pointer;
         virtual void draw() = 0;
-        virtual void addInputConnection(ProcessObjectPort port);
+        virtual void addInputConnection(DataPort::pointer port);
         virtual BoundingBox getBoundingBox() = 0;
 
         void setIntensityLevel(float level);

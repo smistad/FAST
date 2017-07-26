@@ -11,12 +11,11 @@
 
 namespace fast {
 
-void BoundingBoxRenderer::addInputConnection(ProcessObjectPort port) {
-    uint portID = getNrOfInputData();
+void BoundingBoxRenderer::addInputConnection(DataPort::pointer port) {
+    uint portID = getNrOfInputConnections();
     if(portID > 0)
         createInputPort<SpatialDataObject>(portID);
     setInputConnection(portID, port);
-    releaseInputAfterExecute(portID, false);
     mIsModified = true;
 }
 
@@ -27,7 +26,7 @@ BoundingBoxRenderer::BoundingBoxRenderer() {
 void BoundingBoxRenderer::execute() {
     std::lock_guard<std::mutex> lock(mMutex);
 
-    for(uint i = 0; i < getNrOfInputData(); ++i) {
+    for(uint i = 0; i < getNrOfInputConnections(); ++i) {
         SpatialDataObject::pointer data = getInputData<SpatialDataObject>(i);
         mBoxesToRender[i] = data->getTransformedBoundingBox();
     }

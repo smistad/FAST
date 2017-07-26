@@ -25,7 +25,8 @@ void VertexRenderer::draw() {
         glPushMatrix();
         glMultMatrixf(transform->getTransform().data());
 
-        ProcessObjectPort port = getInputPort(it->first);
+        /*
+        DataPort::pointer port = getInputPort(it->first);
         if(mInputSizes.count(port) > 0) {
             glPointSize(mInputSizes[port]);
         } else {
@@ -49,18 +50,23 @@ void VertexRenderer::draw() {
         }
         if(drawOnTop)
             glDisable(GL_DEPTH_TEST);
+         */
         glBegin(GL_POINTS);
         for(MeshVertex vertex : vertices) {
             Vector3f position = vertex.getPosition();
+            /*
             if(!hasColor) {
                 Color c = vertex.getColor();
                 glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
             }
+             */
             glVertex3f(position.x(), position.y(), position.z());
         }
         glEnd();
+        /*
         if(drawOnTop)
             glEnable(GL_DEPTH_TEST);
+            */
         glPopMatrix();
     }
     glColor3f(1.0f, 1.0f, 1.0f); // Reset color
@@ -92,10 +98,12 @@ void VertexRenderer::draw2D(
     	Mesh::pointer points = it->second;
 
 		Color color = mDefaultColor;
-        ProcessObjectPort port = getInputPort(it->first);
+        /*
+        DataPort::pointer port = getInputPort(it->first);
         if(mInputColors.count(port) > 0) {
             color = mInputColors[port];
         }
+         */
 
     	MeshAccess::pointer access = points->getMeshAccess(ACCESS_READ);
         std::vector<MeshVertex> vertices = access->getVertices();
@@ -133,8 +141,9 @@ void VertexRenderer::draw2D(
 
 BoundingBox VertexRenderer::getBoundingBox() {
     std::vector<Vector3f> coordinates;
-    for(uint i = 0; i < getNrOfInputData(); i++) {
-        BoundingBox transformedBoundingBox = getInputData<Mesh>(i)->getTransformedBoundingBox();
+    for(uint i = 0; i < getNrOfInputConnections(); i++) {
+        Mesh::pointer data = getInputData<Mesh>(i);
+        BoundingBox transformedBoundingBox = data->getTransformedBoundingBox();
         MatrixXf corners = transformedBoundingBox.getCorners();
         for(uint j = 0; j < 8; j++) {
             coordinates.push_back((Vector3f)corners.row(j));
@@ -154,7 +163,7 @@ void VertexRenderer::execute() {
     std::lock_guard<std::mutex> lock(mMutex);
 
     // This simply gets the input data for each connection and puts it into a data structure
-    for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
+    for(uint inputNr = 0; inputNr < getNrOfInputConnections(); inputNr++) {
         Mesh::pointer input = getInputData<Mesh>(inputNr);
 
         mPointSetsToRender[inputNr] = input;
@@ -162,15 +171,14 @@ void VertexRenderer::execute() {
 }
 
 
-void VertexRenderer::addInputConnection(ProcessObjectPort port) {
-    uint nr = getNrOfInputData();
+void VertexRenderer::addInputConnection(DataPort::pointer port) {
+    uint nr = getNrOfInputConnections();
     if(nr > 0)
         createInputPort<Mesh>(nr);
-    releaseInputAfterExecute(nr, false);
     setInputConnection(nr, port);
 }
 
-void VertexRenderer::addInputConnection(ProcessObjectPort port, Color color,
+void VertexRenderer::addInputConnection(DataPort::pointer port, Color color,
         float size) {
     addInputConnection(port);
     setColor(port, color);
@@ -178,17 +186,18 @@ void VertexRenderer::addInputConnection(ProcessObjectPort port, Color color,
 }
 
 void VertexRenderer::addInputData(Mesh::pointer data) {
-    uint nr = getNrOfInputData();
-    releaseInputAfterExecute(nr, false);
+    uint nr = getNrOfInputConnections();
     setInputData(nr, data);
 }
 
 void VertexRenderer::addInputData(Mesh::pointer data, Color color, float size) {
-    uint nr = getNrOfInputData();
+    uint nr = getNrOfInputConnections();
     addInputData(data);
-    ProcessObjectPort port = getInputPort(nr);
+    /*
+    DataPort::pointer port = getInputPort(nr);
     setColor(port, color);
     setSize(port, size);
+     */
 }
 
 
@@ -206,15 +215,15 @@ void VertexRenderer::setDefaultDrawOnTop(bool drawOnTop) {
 }
 
 
-void VertexRenderer::setDrawOnTop(ProcessObjectPort port, bool drawOnTop) {
+void VertexRenderer::setDrawOnTop(DataPort::pointer port, bool drawOnTop) {
     mInputDrawOnTop[port] = drawOnTop;
 }
 
-void VertexRenderer::setColor(ProcessObjectPort port, Color color) {
+void VertexRenderer::setColor(DataPort::pointer port, Color color) {
     mInputColors[port] = color;
 }
 
-void VertexRenderer::setSize(ProcessObjectPort port, float size) {
+void VertexRenderer::setSize(DataPort::pointer port, float size) {
     mInputSizes[port] = size;
 }
 

@@ -8,7 +8,7 @@ namespace fast {
 
 TEST_CASE("No input given to LaplacianOfGaussian throws exception", "[fast][LaplacianOfGaussian][LoG]") {
     LaplacianOfGaussian::pointer filter = LaplacianOfGaussian::New();
-    CHECK_THROWS(filter->update());
+    CHECK_THROWS(filter->update(0));
 }
 
 TEST_CASE("Negative or zero sigma and mask size input throws exception in LaplacianOfGaussian" , "[fast][LaplacianOfGaussian][LoG]") {

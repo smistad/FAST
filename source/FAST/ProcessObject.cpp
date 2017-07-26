@@ -80,11 +80,16 @@ DataPort::pointer ProcessObject::getOutputPort(uint portID) {
     return port;
 }
 
+DataPort::pointer ProcessObject::getInputPort(uint portID) {
+    return mInputConnections.at(portID);
+}
+
 void ProcessObject::setInputConnection(uint portID, DataPort::pointer port) {
     validateInputPortExists(portID);;
     if(port->getProcessObject().get() == this)
         throw Exception("Can't set setInputConnection on self");
     mInputConnections[portID] = port;
+    mIsModified = true;
 }
 
 void ProcessObject::setInputConnection(DataPort::pointer port) {

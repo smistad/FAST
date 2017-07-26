@@ -10,8 +10,8 @@ namespace fast {
 class FAST_EXPORT TriangleRenderer : public Renderer {
     FAST_OBJECT(TriangleRenderer)
     public:
-        void addInputConnection(ProcessObjectPort port);
-        void addInputConnection(ProcessObjectPort port, Color color, float opacity);
+        void addInputConnection(DataPort::pointer port);
+        void addInputConnection(DataPort::pointer port, Color color, float opacity);
         BoundingBox getBoundingBox();
         void setDefaultOpacity(float opacity);
         /**
@@ -21,9 +21,9 @@ class FAST_EXPORT TriangleRenderer : public Renderer {
         void setWireframe(bool wireframe);
         void setDefaultColor(Color color);
         void setDefaultSpecularReflection(float specularReflection);
-        void setColor(ProcessObjectPort port, Color color);
+        void setColor(DataPort::pointer port, Color color);
         void setColor(int label, Color color);
-        void setOpacity(ProcessObjectPort port, float opacity);
+        void setOpacity(DataPort::pointer port, float opacity);
         void setLineSize(int size);
     private:
         void draw();
@@ -38,9 +38,9 @@ class FAST_EXPORT TriangleRenderer : public Renderer {
         TriangleRenderer();
         void execute();
 
-        std::unordered_map<ProcessObjectPort, Color> mInputColors;
+        std::unordered_map<DataPort::pointer, Color> mInputColors;
         std::unordered_map<int, Color> mLabelColors;
-        std::unordered_map<ProcessObjectPort, float> mInputOpacities;
+        std::unordered_map<DataPort::pointer, float> mInputOpacities;
         std::unordered_map<uint, Mesh::pointer> mMeshToRender;
         Color mDefaultColor;
         float mDefaultSpecularReflection;

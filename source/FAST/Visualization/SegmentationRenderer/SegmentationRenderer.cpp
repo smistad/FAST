@@ -4,11 +4,10 @@
 
 namespace fast {
 
-void SegmentationRenderer::addInputConnection(ProcessObjectPort port) {
-    uint nr = getNrOfInputData();
+void SegmentationRenderer::addInputConnection(DataPort::pointer port) {
+    uint nr = getNrOfInputConnections();
     if(nr > 0)
         createInputPort<Segmentation>(nr);
-    releaseInputAfterExecute(nr, false);
     setInputConnection(nr, port);
 }
 
@@ -73,7 +72,7 @@ void SegmentationRenderer::execute() {
     std::lock_guard<std::mutex> lock(mMutex);
 
     // This simply gets the input data for each connection and puts it into a data structure
-    for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
+    for(uint inputNr = 0; inputNr < getNrOfInputConnections(); inputNr++) {
         Image::pointer input = getInputData<Image>(inputNr);
         if(input->getDataType() != TYPE_UINT8) {
             throw Exception("Data type of image given to SegmentationRenderer must be UINT8");

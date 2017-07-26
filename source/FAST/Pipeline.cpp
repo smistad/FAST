@@ -163,7 +163,7 @@ void Pipeline::parsePipelineFile() {
 
     std::cout << "finished" << std::endl;
 }
-std::vector<SharedPointer<Renderer>> Pipeline::setup(ProcessObjectPort input) {
+std::vector<SharedPointer<Renderer>> Pipeline::setup(DataPort::pointer input) {
     std::cout << "setting up pipeline.." << std::endl;
     parsePipelineFile();
 

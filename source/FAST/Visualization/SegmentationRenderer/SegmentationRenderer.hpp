@@ -13,7 +13,7 @@ namespace fast {
 class FAST_EXPORT  SegmentationRenderer : public Renderer {
     FAST_OBJECT(SegmentationRenderer)
     public:
-        void addInputConnection(ProcessObjectPort port);
+        void addInputConnection(DataPort::pointer port);
         BoundingBox getBoundingBox();
         void setColor(Segmentation::LabelType, Color);
         void setFillArea(Segmentation::LabelType, bool);

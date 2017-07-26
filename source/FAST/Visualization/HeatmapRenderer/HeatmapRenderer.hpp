@@ -13,7 +13,7 @@ class FAST_EXPORT  HeatmapRenderer : public Renderer {
     public:
         void setMinConfidence(float confidence);
         void setMaxOpacity(float opacity);
-        void addInputConnection(ProcessObjectPort port, Color color = Color::Red());
+        void addInputConnection(DataPort::pointer port, Color color = Color::Red());
         BoundingBox getBoundingBox();
     private:
         HeatmapRenderer();

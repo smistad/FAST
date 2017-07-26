@@ -5,6 +5,9 @@
 
 namespace fast {
 
+uint64_t ComputationThread::mTimestep = 0;
+StreamingMode ComputationThread::mStreamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES;
+
 ComputationThread::ComputationThread(QThread* mainThread) {
     mUpdateThreadIsStopped = false;
     mIsRunning = false;
@@ -35,18 +38,21 @@ void ComputationThread::run() {
     }
     QGLContext* mainGLContext = Window::getMainGLContext();
     mainGLContext->makeCurrent();
+    mTimestep = 0;
 
     while(true) {
+        mTimestep++;
+        std::cout << "TIMESTEP: " << mTimestep << std::endl;
         // Update renderers' input before lock mutexes. This will ensure that renderering can happen while computing
         for(View* view : mViews) {
-            view->updateRenderersInput();
+            view->updateRenderersInput(mTimestep, mStreamingMode);
         }
         // Lock mutex of all renderers before update renderers. This will ensure that rendering is synchronized.
         for(View* view : mViews) {
             view->lockRenderers();
         }
         for(View* view : mViews) {
-            view->updateRenderers();
+            view->updateRenderers(mTimestep, mStreamingMode);
         }
         for(View* view : mViews) {
             view->unlockRenderers();
