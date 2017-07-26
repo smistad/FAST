@@ -74,6 +74,10 @@ void NeuralNetwork::setPreserveAspectRatio(bool preserve) {
     mPreserveAspectRatio = preserve;
 }
 
+void NeuralNetwork::setHorizontalFlipping(bool flip) {
+	mHorizontalImageFlipping = flip;
+}
+
 NeuralNetwork::NeuralNetwork() {
 	createInputPort<Image>(0, true, INPUT_STATIC_OR_DYNAMIC, true);
 	mModelLoaded = false;
@@ -149,9 +153,17 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 			throw Exception("Input image sent to executeNetwork was of incrorrect size");
 
 		ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
-		for (int i = 0; i < mHeight; ++i) { // y
-			for (int j = 0; j < mWidth; ++j) { // x
-				input_tensor_mapped(n, i, j, 0) = access->getScalar(Vector2i(j, i))*mScaleFactor;
+        if(mHorizontalImageFlipping) {
+			for(int i = 0; i < mHeight; ++i) { // y
+				for(int j = 0; j < mWidth; ++j) { // x
+					input_tensor_mapped(n, i, mWidth - j - 1, 0) = access->getScalar(Vector2i(j, i)) * mScaleFactor;
+				}
+			}
+		} else {
+			for(int i = 0; i < mHeight; ++i) { // y
+				for(int j = 0; j < mWidth; ++j) { // x
+					input_tensor_mapped(n, i, j, 0) = access->getScalar(Vector2i(j, i)) * mScaleFactor;
+				}
 			}
 		}
 	}

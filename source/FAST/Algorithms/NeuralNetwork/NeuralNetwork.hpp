@@ -16,6 +16,12 @@ public:
     void setOutputParameters(std::vector<std::string> outputNodeNames);
     void setScaleFactor(float scale);
     void setPreserveAspectRatio(bool preserve);
+    /**
+     * Setting this parameter to true will flip the input image horizontally.
+     * For pixel classification the output image will be flipped back.
+     * @param flip
+     */
+    void setHorizontalFlipping(bool flip);
 
     // Use this if only one output node
     tensorflow::Tensor getNetworkOutput();
@@ -29,6 +35,7 @@ protected:
     UniquePointer<tensorflow::Session> mSession;
     bool mModelLoaded;
     bool mPreserveAspectRatio;
+    bool mHorizontalImageFlipping = false;
     std::vector<std::string> mLearningPhaseTensors;
     int mWidth;
     int mHeight;

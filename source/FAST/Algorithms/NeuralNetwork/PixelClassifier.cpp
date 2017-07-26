@@ -47,9 +47,17 @@ void PixelClassifier::execute() {
         Image::pointer output = Image::New();
         if(mHeatmapOutput) {
             float *data = new float[outputWidth * outputHeight];
-            for (int x = 0; x < outputWidth; ++x) {
-                for (int y = 0; y < outputHeight; ++y) {
-                    data[x + y * outputWidth] = tensor_mapped(0, y, x, j);// > threshold ? j : 0;
+            if(mHorizontalImageFlipping) {
+                for(int x = 0; x < outputWidth; ++x) {
+                    for(int y = 0; y < outputHeight; ++y) {
+                        data[x + y * outputWidth] = tensor_mapped(0, y, outputWidth - x - 1, j);// > threshold ? j : 0;
+                    }
+                }
+            } else {
+                 for(int x = 0; x < outputWidth; ++x) {
+                    for(int y = 0; y < outputHeight; ++y) {
+                        data[x + y * outputWidth] = tensor_mapped(0, y, x, j);// > threshold ? j : 0;
+                    }
                 }
             }
             output->create(outputWidth, outputHeight, TYPE_FLOAT, 1, data);
