@@ -12,28 +12,12 @@ HeatmapRenderer::HeatmapRenderer() {
 
 void HeatmapRenderer::addInputConnection(DataPort::pointer port, Color color) {
     uint nr = getNrOfInputConnections();
-    if(nr > 0)
-        createInputPort<Image>(nr);
-    setInputConnection(nr, port);
+    Renderer::addInputConnection(port);
     mColors[nr] = color;
 }
 
-void HeatmapRenderer::execute() {
-    std::lock_guard<std::mutex> lock(mMutex);
-
-    // This simply gets the input data for each connection and puts it into a data structure
-    for(uint inputNr = 0; inputNr < getNrOfInputConnections(); inputNr++) {
-        Image::pointer input = getInputData<Image>(inputNr);
-        if(input->getDataType() != TYPE_FLOAT) {
-            throw Exception("Data type of image given to HeatmapRenderer must be FLOAT");
-        }
-
-        mImagesToRender[inputNr] = input;
-    }
-}
-
 void HeatmapRenderer::draw() {
-
+    throw NotImplementedException();
 }
 
 void HeatmapRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
@@ -59,10 +43,12 @@ void HeatmapRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
     );
 
     cl::Kernel kernel(getOpenCLProgram(device), "render2D");
-    std::unordered_map<uint, Image::pointer>::iterator it;
-    for(it = mImagesToRender.begin(); it != mImagesToRender.end(); it++) {
-        Image::pointer input = it->second;
+    for(auto it : mDataToRender) {
+        Image::pointer input = it.second;
 
+        if(input->getDataType() != TYPE_FLOAT) {
+            throw Exception("Data type of image given to HeatmapRenderer must be FLOAT");
+        }
 
         if(input->getDimensions() == 2) {
             // Run kernel to fill the texture
@@ -75,9 +61,9 @@ void HeatmapRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
             kernel.setArg(3, input->getSpacing().x());
             kernel.setArg(4, input->getSpacing().y());
             kernel.setArg(5, PBOspacing);
-            kernel.setArg(6, mColors[it->first].getRedValue());
-            kernel.setArg(7, mColors[it->first].getGreenValue());
-            kernel.setArg(8, mColors[it->first].getBlueValue());
+            kernel.setArg(6, mColors[it.first].getRedValue());
+            kernel.setArg(7, mColors[it.first].getGreenValue());
+            kernel.setArg(8, mColors[it.first].getBlueValue());
             kernel.setArg(9, mMinConfidence);
             kernel.setArg(10, mMaxOpacity);
 
@@ -101,22 +87,6 @@ void HeatmapRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
     queue.finish();
 
     mRuntimeManager->stopRegularTimer("draw2D");
-}
-
-BoundingBox HeatmapRenderer::getBoundingBox() {
-    std::vector<Vector3f> coordinates;
-
-    std::unordered_map<uint, Image::pointer>::iterator it;
-    for(it = mImagesToRender.begin(); it != mImagesToRender.end(); it++) {
-        BoundingBox transformedBoundingBox;
-        transformedBoundingBox = it->second->getTransformedBoundingBox();
-
-        MatrixXf corners = transformedBoundingBox.getCorners();
-        for(uint j = 0; j < 8; j++) {
-            coordinates.push_back((Vector3f)corners.row(j));
-        }
-    }
-    return BoundingBox(coordinates);
 }
 
 void HeatmapRenderer::setMinConfidence(float confidence) {

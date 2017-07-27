@@ -12,16 +12,8 @@
 
 namespace fast {
 
-void TriangleRenderer::addInputConnection(DataPort::pointer port) {
-    uint nr = getNrOfInputConnections();
-    if(nr > 0)
-        createInputPort<Mesh>(nr);
-    setInputConnection(nr, port);
-    mIsModified = true;
-}
-
 void TriangleRenderer::addInputConnection(DataPort::pointer port, Color color, float opacity) {
-    addInputConnection(port);
+    Renderer::addInputConnection(port);
     mInputColors[port] = color;
     mInputOpacities[port] = opacity;
 }
@@ -48,14 +40,6 @@ void TriangleRenderer::setLineSize(int size) {
 
 }
 
-void TriangleRenderer::execute() {
-    std::lock_guard<std::mutex> lock(mMutex);
-    for(uint inputNr = 0; inputNr < getNrOfInputConnections(); inputNr++) {
-        Mesh::pointer input = getInputData<Mesh>(inputNr);
-        mMeshToRender[inputNr] = input;
-    }
-}
-
 void TriangleRenderer::draw() {
     std::lock_guard<std::mutex> lock(mMutex);
 
@@ -68,7 +52,7 @@ void TriangleRenderer::draw() {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     std::unordered_map<uint, Mesh::pointer>::iterator it;
-    for(auto it : mMeshToRender) {
+    for(auto it : mDataToRender) {
         Mesh::pointer surfaceToRender = it.second;
 
         // Draw the triangles in the VBO
@@ -158,8 +142,8 @@ void TriangleRenderer::draw2D(
     queue.enqueueReadBuffer(PBO, CL_TRUE, 0, width*height*4*sizeof(float), pixels.get());
 
     std::unordered_map<uint, Mesh::pointer>::iterator it;
-    for(it = mMeshToRender.begin(); it != mMeshToRender.end(); it++) {
-    	Mesh::pointer mesh = it->second;
+    for(auto it : mDataToRender) {
+    	Mesh::pointer mesh = it.second;
 
 		Color color = mDefaultColor;
         /*
@@ -232,18 +216,6 @@ void TriangleRenderer::draw2D(
     }
 }
 
-BoundingBox TriangleRenderer::getBoundingBox() {
-    std::vector<Vector3f> coordinates;
-    for(uint i = 0; i < getNrOfInputConnections(); i++) {
-        BoundingBox transformedBoundingBox = mMeshToRender[i]->getTransformedBoundingBox();
-        MatrixXf corners = transformedBoundingBox.getCorners();
-        for(uint j = 0; j < 8; j++) {
-            coordinates.push_back((Vector3f)corners.row(j));
-        }
-    }
-    return BoundingBox(coordinates);
-}
-
 void TriangleRenderer::setDefaultColor(Color color) {
     mDefaultColor = color;
 }
@@ -271,6 +243,10 @@ void TriangleRenderer::setDefaultOpacity(float opacity) {
 
 void TriangleRenderer::setDefaultSpecularReflection(float specularReflection) {
     mDefaultSpecularReflection = specularReflection;
+}
+
+void TriangleRenderer::addInputConnection(DataPort::pointer port) {
+    Renderer::addInputConnection(port);
 }
 
 } // namespace fast

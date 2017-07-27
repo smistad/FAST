@@ -10,9 +10,8 @@ namespace fast {
 class FAST_EXPORT TriangleRenderer : public Renderer {
     FAST_OBJECT(TriangleRenderer)
     public:
-        void addInputConnection(DataPort::pointer port);
+        void addInputConnection(DataPort::pointer port) override;
         void addInputConnection(DataPort::pointer port, Color color, float opacity);
-        BoundingBox getBoundingBox();
         void setDefaultOpacity(float opacity);
         /**
          * Enable/disable renderer of wireframe instead of filled polygons
@@ -26,7 +25,7 @@ class FAST_EXPORT TriangleRenderer : public Renderer {
         void setOpacity(DataPort::pointer port, float opacity);
         void setLineSize(int size);
     private:
-        void draw();
+        void draw() override;
         void draw2D(
                 cl::Buffer PBO,
                 uint width,
@@ -34,18 +33,15 @@ class FAST_EXPORT TriangleRenderer : public Renderer {
                 Affine3f pixelToViewportTransform,
                 float PBOspacing,
                 Vector2f translation
-        );
+        ) override;
         TriangleRenderer();
-        void execute();
 
         std::unordered_map<DataPort::pointer, Color> mInputColors;
         std::unordered_map<int, Color> mLabelColors;
         std::unordered_map<DataPort::pointer, float> mInputOpacities;
-        std::unordered_map<uint, Mesh::pointer> mMeshToRender;
         Color mDefaultColor;
         float mDefaultSpecularReflection;
         float mDefaultOpacity;
-        std::mutex mMutex;
         int mLineSize;
         bool mWireframe;
 };

@@ -789,6 +789,7 @@ void View::paintGL() {
             mRuntimeManager->startRegularTimer("draw2D");
             for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
                 mNonVolumeRenderers[i]->draw2D(clPBO, width(), height(), m2DViewingTransformation, mPBOspacing*mScale2D, Vector2f(mPosX2D, mPosY2D));
+                mNonVolumeRenderers[i]->postDraw();
             }
             mRuntimeManager->stopRegularTimer("draw2D");
 
@@ -856,6 +857,7 @@ void View::paintGL() {
             for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
                     glPushMatrix();
                     mNonVolumeRenderers[i]->draw();
+                    mNonVolumeRenderers[i]->postDraw();
                     glPopMatrix();
             }
             mRuntimeManager->stopRegularTimer("draw");
@@ -935,6 +937,7 @@ void View::renderVolumes()
 		mRuntimeManager->startRegularTimer("draw");
 		for(unsigned int i = 0; i < mVolumeRenderers.size(); i++) {
 			mVolumeRenderers[i]->draw();
+            mVolumeRenderers[i]->postDraw();
 		}
 		mRuntimeManager->stopRegularTimer("draw");
 		glMatrixMode(GL_PROJECTION);

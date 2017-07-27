@@ -11,14 +11,6 @@
 
 namespace fast {
 
-void BoundingBoxRenderer::addInputConnection(DataPort::pointer port) {
-    uint portID = getNrOfInputConnections();
-    if(portID > 0)
-        createInputPort<SpatialDataObject>(portID);
-    setInputConnection(portID, port);
-    mIsModified = true;
-}
-
 BoundingBoxRenderer::BoundingBoxRenderer() {
     createInputPort<SpatialDataObject>(0, false);
 }

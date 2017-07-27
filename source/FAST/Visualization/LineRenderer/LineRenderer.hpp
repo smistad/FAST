@@ -19,10 +19,8 @@ class FAST_EXPORT  LineRenderer : public Renderer {
         void setColor(DataPort::pointer input, Color color);
         void setWidth(DataPort::pointer input, float width);
         void draw();
-        BoundingBox getBoundingBox();
     private:
         LineRenderer();
-        void execute();
 
         float mDefaultLineWidth;
         Color mDefaultColor;
@@ -30,8 +28,6 @@ class FAST_EXPORT  LineRenderer : public Renderer {
         std::unordered_map<DataPort::pointer, float> mInputWidths;
         std::unordered_map<DataPort::pointer, Color> mInputColors;
         std::unordered_map<DataPort::pointer, bool> mInputDrawOnTop;
-        std::unordered_map<uint, Mesh::pointer> mMeshsToRender;
-        std::mutex mMutex;
 };
 
 }

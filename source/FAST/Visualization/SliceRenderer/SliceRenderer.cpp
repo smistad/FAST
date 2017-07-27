@@ -27,6 +27,24 @@ using namespace fast;
 #endif
 
 
+void SliceRenderer::setIntensityLevel(float level) {
+    mLevel = level;
+}
+
+float SliceRenderer::getIntensityLevel() {
+    return mLevel;
+}
+
+void SliceRenderer::setIntensityWindow(float window) {
+    if (window <= 0)
+        throw Exception("Intensity window has to be above 0.");
+    mWindow = window;
+}
+
+float SliceRenderer::getIntensityWindow() {
+    return mWindow;
+}
+
 void SliceRenderer::execute() {
     std::lock_guard<std::mutex> lock(mMutex);
     mImageToRender = getInputData<Image>(0);
@@ -188,10 +206,6 @@ void SliceRenderer::execute() {
     mTextureIsCreated = true;
 }
 
-void SliceRenderer::setInputConnection(DataPort::pointer port) {
-    ProcessObject::setInputConnection(0, port);
-}
-
 
 SliceRenderer::SliceRenderer() : Renderer() {
     createInputPort<Image>(0, false);
@@ -200,7 +214,8 @@ SliceRenderer::SliceRenderer() : Renderer() {
     mIsModified = true;
     mSlicePlane = PLANE_Z;
     mSliceNr = -1;
-    mScale = 1.0;
+    mLevel = -1;
+    mWindow = -1;
 }
 
 void SliceRenderer::draw() {
@@ -287,5 +302,9 @@ BoundingBox SliceRenderer::getBoundingBox() {
     transform->getTransform().scale(mImageToRender->getSpacing());
     BoundingBox transformedBoundingBox = shrinkedBox.getTransformedBoundingBox(transform);
     return transformedBoundingBox;
+}
+
+void SliceRenderer::addInputConnection(DataPort::pointer port) {
+    throw Exception("Use setInputConnection for SliceRenderer");
 }
 

@@ -15,28 +15,25 @@ FAST_SIMPLE_DATA_OBJECT(Text, std::string)
 class FAST_EXPORT  TextRenderer : public Renderer {
     FAST_OBJECT(TextRenderer)
     public:
-        BoundingBox getBoundingBox();
+        BoundingBox getBoundingBox() override;
         void setView(View* view);
         enum TextStyleType {
             STYLE_NORMAL,
             STYLE_BOLD,
             STYLE_ITALIC
         };
-	void setPosition(Vector2i position);
+        void setPosition(Vector2i position);
         void setFontSize(uint fontSize);
         void setColor(Color color);
         void setStyle(TextStyleType);
-
-    void
-    draw2D(cl::Buffer PBO, uint width, uint height, Affine3f pixelToViewportTransform,
-           float PBOspacing, Vector2f translation) override;
-    void loadAttributes();
-private:
+        void draw2D(cl::Buffer PBO, uint width, uint height, Affine3f pixelToViewportTransform,
+               float PBOspacing, Vector2f translation) override;
+        void draw() override;
+        void loadAttributes();
+    private:
         TextRenderer();
-        void execute();
-        void draw();
+        void execute() override;
 
-        std::mutex mMutex;
         View* mView;
 
         std::string mText;

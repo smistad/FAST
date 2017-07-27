@@ -10,8 +10,6 @@ namespace fast {
 
 class FAST_EXPORT  BoundingBoxRenderer : public Renderer {
     FAST_OBJECT(BoundingBoxRenderer)
-    public:
-        void addInputConnection(DataPort::pointer port);
     private:
         BoundingBoxRenderer();
         void execute();

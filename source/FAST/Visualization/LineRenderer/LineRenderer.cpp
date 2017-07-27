@@ -16,9 +16,8 @@ void LineRenderer::draw() {
     std::lock_guard<std::mutex> lock(mMutex);
 
     // For all input data
-    std::unordered_map<uint, Mesh::pointer>::iterator it;
-    for(it = mMeshsToRender.begin(); it != mMeshsToRender.end(); it++) {
-        Mesh::pointer points = it->second;
+    for(auto it : mDataToRender) {
+        Mesh::pointer points = it.second;
         MeshAccess::pointer access = points->getMeshAccess(ACCESS_READ);
 
         AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(points);
@@ -26,7 +25,7 @@ void LineRenderer::draw() {
         glPushMatrix();
         glMultMatrixf(transform->getTransform().data());
 
-        DataPort::pointer port = getInputPort(it->first);
+        DataPort::pointer port = getInputPort(it.first);
 
         if(mInputWidths.count(port) > 0) {
             glLineWidth(mInputWidths[port]);
@@ -63,19 +62,6 @@ void LineRenderer::draw() {
     glColor3f(1.0f, 1.0f, 1.0f); // Reset color
 }
 
-BoundingBox LineRenderer::getBoundingBox() {
-    std::vector<Vector3f> coordinates;
-    for(uint i = 0; i < getNrOfInputConnections(); i++) {
-        Mesh::pointer data = getInputData<Mesh>(i);
-        BoundingBox transformedBoundingBox = data->getTransformedBoundingBox();
-        MatrixXf corners = transformedBoundingBox.getCorners();
-        for(uint j = 0; j < 8; j++) {
-            coordinates.push_back((Vector3f)corners.row(j));
-        }
-    }
-    return BoundingBox(coordinates);
-}
-
 LineRenderer::LineRenderer() {
     createInputPort<Mesh>(0, false);
     mDefaultLineWidth = 2;
@@ -83,23 +69,8 @@ LineRenderer::LineRenderer() {
     mDefaultDrawOnTop = false;
 }
 
-void LineRenderer::execute() {
-    std::lock_guard<std::mutex> lock(mMutex);
-
-    // This simply gets the input data for each connection and puts it into a data structure
-    for(uint inputNr = 0; inputNr < getNrOfInputConnections(); inputNr++) {
-        Mesh::pointer input = getInputData<Mesh>(inputNr);
-        mMeshsToRender[inputNr] = input;
-    }
-}
-
-
 void LineRenderer::addInputConnection(DataPort::pointer port) {
-    uint nr = getNrOfInputConnections();
-    if(nr > 0)
-        createInputPort<Mesh>(nr);
-    setInputConnection(nr, port);
-    mIsModified = true;
+    Renderer::addInputConnection(port);
 }
 
 void LineRenderer::addInputConnection(DataPort::pointer port, Color color,

@@ -10,10 +10,14 @@ namespace fast {
 class FAST_EXPORT  SliceRenderer : public Renderer {
     FAST_OBJECT(SliceRenderer)
     public:
-        void setInputConnection(DataPort::pointer port);
+        void addInputConnection(DataPort::pointer port) override;
         void setSliceToRender(unsigned int sliceNr);
         void setSlicePlane(PlaneType plane);
-        BoundingBox getBoundingBox();
+        BoundingBox getBoundingBox() override;
+        void setIntensityLevel(float level);
+        float getIntensityLevel();
+        void setIntensityWindow(float window);
+        float getIntensityWindow();
     private:
         SliceRenderer();
         void execute();
@@ -27,11 +31,14 @@ class FAST_EXPORT  SliceRenderer : public Renderer {
         unsigned int mSliceNr;
         PlaneType mSlicePlane;
 
-        float mScale;
         unsigned int mWidth;
         unsigned int mHeight;
 
         std::mutex mMutex;
+
+        // Level and window intensities
+        float mWindow;
+        float mLevel;
 };
 
 }

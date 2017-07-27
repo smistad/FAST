@@ -14,9 +14,8 @@ namespace fast {
 void VertexRenderer::draw() {
     std::lock_guard<std::mutex> lock(mMutex);
 
-    std::unordered_map<uint, Mesh::pointer>::iterator it;
-    for(it = mPointSetsToRender.begin(); it != mPointSetsToRender.end(); it++) {
-        Mesh::pointer points = it->second;
+    for(auto it : mDataToRender) {
+        Mesh::pointer points = it.second;
         MeshAccess::pointer access = points->getMeshAccess(ACCESS_READ);
         std::vector<MeshVertex> vertices = access->getVertices();
 
@@ -93,9 +92,8 @@ void VertexRenderer::draw2D(
     UniquePointer<float[]> pixels(new float[width*height*sizeof(float)*4]);
     queue.enqueueReadBuffer(PBO, CL_TRUE, 0, width*height*4*sizeof(float), pixels.get());
 
-    std::unordered_map<uint, Mesh::pointer>::iterator it;
-    for(it = mPointSetsToRender.begin(); it != mPointSetsToRender.end(); it++) {
-    	Mesh::pointer points = it->second;
+    for(auto it : mDataToRender) {
+    	Mesh::pointer points = it.second;
 
 		Color color = mDefaultColor;
         /*
@@ -139,19 +137,6 @@ void VertexRenderer::draw2D(
     queue.enqueueReleaseGLObjects(&v);
 }
 
-BoundingBox VertexRenderer::getBoundingBox() {
-    std::vector<Vector3f> coordinates;
-    for(uint i = 0; i < getNrOfInputConnections(); i++) {
-        Mesh::pointer data = getInputData<Mesh>(i);
-        BoundingBox transformedBoundingBox = data->getTransformedBoundingBox();
-        MatrixXf corners = transformedBoundingBox.getCorners();
-        for(uint j = 0; j < 8; j++) {
-            coordinates.push_back((Vector3f)corners.row(j));
-        }
-    }
-    return BoundingBox(coordinates);
-}
-
 VertexRenderer::VertexRenderer() {
     mDefaultPointSize = 10;
     mDefaultColorSet = false;
@@ -159,23 +144,9 @@ VertexRenderer::VertexRenderer() {
     createInputPort<Mesh>(0, false);
 }
 
-void VertexRenderer::execute() {
-    std::lock_guard<std::mutex> lock(mMutex);
-
-    // This simply gets the input data for each connection and puts it into a data structure
-    for(uint inputNr = 0; inputNr < getNrOfInputConnections(); inputNr++) {
-        Mesh::pointer input = getInputData<Mesh>(inputNr);
-
-        mPointSetsToRender[inputNr] = input;
-    }
-}
-
 
 void VertexRenderer::addInputConnection(DataPort::pointer port) {
-    uint nr = getNrOfInputConnections();
-    if(nr > 0)
-        createInputPort<Mesh>(nr);
-    setInputConnection(nr, port);
+    Renderer::addInputConnection(port);
 }
 
 void VertexRenderer::addInputConnection(DataPort::pointer port, Color color,

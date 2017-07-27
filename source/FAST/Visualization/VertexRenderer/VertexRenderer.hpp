@@ -30,10 +30,8 @@ class FAST_EXPORT  VertexRenderer : public Renderer {
                 float PBOspacing,
                 Vector2f translation
         );
-        BoundingBox getBoundingBox();
     private:
         VertexRenderer();
-        void execute();
 
         float mDefaultPointSize;
         Color mDefaultColor;
@@ -42,7 +40,6 @@ class FAST_EXPORT  VertexRenderer : public Renderer {
         std::unordered_map<DataPort::pointer, float> mInputSizes;
         std::unordered_map<DataPort::pointer, Color> mInputColors;
         std::unordered_map<DataPort::pointer, bool> mInputDrawOnTop;
-        std::unordered_map<uint, Mesh::pointer> mPointSetsToRender;
         std::mutex mMutex;
 };
 

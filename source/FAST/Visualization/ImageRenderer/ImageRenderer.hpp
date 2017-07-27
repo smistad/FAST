@@ -9,12 +9,13 @@ namespace fast {
 class FAST_EXPORT  ImageRenderer : public Renderer {
     FAST_OBJECT(ImageRenderer)
     public:
-        void addInputConnection(DataPort::pointer port);
-        BoundingBox getBoundingBox();
-        void loadAttributes();
+        void loadAttributes() override;
+        void setIntensityLevel(float level);
+        float getIntensityLevel();
+        void setIntensityWindow(float window);
+        float getIntensityWindow();
     private:
         ImageRenderer();
-        void execute();
         void draw();
         void draw2D(
                 cl::Buffer PBO,
@@ -25,11 +26,14 @@ class FAST_EXPORT  ImageRenderer : public Renderer {
                 Vector2f translation
         );
 
-        std::unordered_map<uint, Image::pointer> mImagesToRender;
         std::unordered_map<uint, GLuint> mTexturesToRender;
         std::unordered_map<uint, Image::pointer> mImageUsed;
 
         cl::Kernel mKernel;
+
+        // Level and window intensities
+        float mWindow;
+        float mLevel;
 
 };
 
