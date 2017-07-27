@@ -37,4 +37,9 @@ void Renderer::unlock() {
     mMutex.unlock();
 }
 
+void Renderer::stop() {
+    mHasRendered = true;
+    mRenderedCV.notify_one();
+}
+
 }

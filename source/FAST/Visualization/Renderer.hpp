@@ -31,12 +31,15 @@ class FAST_EXPORT  Renderer : public ProcessObject {
                 float PBOspacing,
                 Vector2f translation
         ) {};
+        void stop();
     protected:
         Renderer();
 
         // Level and window intensities
         float mWindow;
         float mLevel;
+        bool mHasRendered = true;
+        std::condition_variable mRenderedCV;
 
         std::mutex mMutex;
         /**

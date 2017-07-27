@@ -212,6 +212,15 @@ void View::lockRenderers() {
     }
 }
 
+void View::stopRenderers() {
+    for(Renderer::pointer renderer : mNonVolumeRenderers) {
+        renderer->stop();
+    }
+    for(Renderer::pointer renderer : mVolumeRenderers) {
+        renderer->stop();
+    }
+}
+
 void View::unlockRenderers() {
     for(Renderer::pointer renderer : mNonVolumeRenderers) {
         renderer->unlock();

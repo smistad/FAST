@@ -67,12 +67,16 @@ void ComputationThread::run() {
         }
     }
 
+
     emit finished();
     reportInfo() << "Computation thread has finished in run()" << Reporter::end();
     mUpdateThreadConditionVariable.notify_one();
 }
 
 void ComputationThread::stop() {
+    for(View* view : mViews) {
+        view->stopRenderers();
+    }
     // This is run in the main thread
     std::unique_lock<std::mutex> lock(mUpdateThreadMutex); // this locks the mutex
     mUpdateThreadIsStopped = true;

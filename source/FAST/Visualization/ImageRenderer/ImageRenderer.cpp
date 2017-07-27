@@ -28,7 +28,7 @@ void ImageRenderer::execute() {
     std::unique_lock<std::mutex> lock(mMutex);
 
     // Check if current images has not been rendered, if not wait
-    while(mHasRendered == false) {
+    while(!mHasRendered) {
         mRenderedCV.wait(lock);
     }
     std::cout << "EXECUTING IMAGE RENDERER" << std::endl;
@@ -213,6 +213,8 @@ void ImageRenderer::draw() {
         glBindTexture(GL_TEXTURE_2D, 0);
         glPopMatrix();
     }
+    mHasRendered = true;
+    mRenderedCV.notify_one();
 }
 
 void ImageRenderer::draw2D(cl::Buffer PBO, uint width, uint height, Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform, float PBOspacing, Vector2f translation) {
@@ -335,3 +337,4 @@ BoundingBox ImageRenderer::getBoundingBox() {
     }
     return BoundingBox(coordinates);
 }
+

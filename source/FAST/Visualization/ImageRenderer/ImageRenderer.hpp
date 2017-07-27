@@ -30,8 +30,6 @@ class FAST_EXPORT  ImageRenderer : public Renderer {
         std::unordered_map<uint, Image::pointer> mImageUsed;
 
         cl::Kernel mKernel;
-        bool mHasRendered = true;
-        std::condition_variable mRenderedCV;
 
 };
 
