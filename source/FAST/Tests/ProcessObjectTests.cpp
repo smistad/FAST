@@ -261,6 +261,95 @@ TEST_CASE("Simple pipeline with static and stream data, PROCESS_ALL", "[process_
     }
 }
 
+TEST_CASE("Static data with multiple receiver POs, PROCESS_ALL", "[process_all_frames][ProcessObject][fast]") {
+    const int frames = 4;
+    DummyImporter::pointer importer = DummyImporter::New();
+
+    DummyProcessObject::pointer po1 = DummyProcessObject::New();
+    po1->setInputConnection(importer->getOutputPort());
+    DummyProcessObject::pointer po2 = DummyProcessObject::New();
+    po2->setInputConnection(importer->getOutputPort());
+    DummyProcessObject::pointer po3 = DummyProcessObject::New();
+    po3->setInputConnection(po2->getOutputPort());
+
+    DataPort::pointer port1 = po1->getOutputPort();
+    DataPort::pointer port2 = po3->getOutputPort();
+
+    int timestep = 0;
+    while(timestep < frames) {
+        // Update both branches
+        po1->update(timestep, STREAMING_MODE_PROCESS_ALL_FRAMES);
+        po3->update(timestep, STREAMING_MODE_PROCESS_ALL_FRAMES);
+
+        DummyDataObject::pointer image1 = port1->getNextFrame();
+        DummyDataObject::pointer image2 = port2->getNextFrame();
+
+        CHECK(image1->getID() == 0);
+        CHECK(image2->getID() == 0);
+        timestep++;
+    }
+}
+
+TEST_CASE("Static data with multiple receiver POs, NEWEST_FRAME", "[ProcessObject][fast]") {
+    const int frames = 4;
+    DummyImporter::pointer importer = DummyImporter::New();
+
+    DummyProcessObject::pointer po1 = DummyProcessObject::New();
+    po1->setInputConnection(importer->getOutputPort());
+    DummyProcessObject::pointer po2 = DummyProcessObject::New();
+    po2->setInputConnection(importer->getOutputPort());
+    DummyProcessObject::pointer po3 = DummyProcessObject::New();
+    po3->setInputConnection(po2->getOutputPort());
+
+    DataPort::pointer port1 = po1->getOutputPort();
+    DataPort::pointer port2 = po3->getOutputPort();
+
+    int timestep = 0;
+    while(timestep < frames) {
+        // Update both branches
+        po1->update(timestep, STREAMING_MODE_NEWEST_FRAME_ONLY);
+        po3->update(timestep, STREAMING_MODE_NEWEST_FRAME_ONLY);
+
+        DummyDataObject::pointer image1 = port1->getNextFrame();
+        DummyDataObject::pointer image2 = port2->getNextFrame();
+
+        CHECK(image1->getID() == 0);
+        CHECK(image2->getID() == 0);
+        timestep++;
+    }
+}
+
+
+TEST_CASE("Static data with multiple receiver POs, STORE_ALL", "[ProcessObject][fast][asdasd2]") {
+    const int frames = 4;
+    DummyImporter::pointer importer = DummyImporter::New();
+
+    DummyProcessObject::pointer po1 = DummyProcessObject::New();
+    po1->setInputConnection(importer->getOutputPort());
+    DummyProcessObject::pointer po2 = DummyProcessObject::New();
+    po2->setInputConnection(importer->getOutputPort());
+    DummyProcessObject::pointer po3 = DummyProcessObject::New();
+    po3->setInputConnection(po2->getOutputPort());
+
+    DataPort::pointer port1 = po1->getOutputPort();
+    DataPort::pointer port2 = po3->getOutputPort();
+
+    int timestep = 0;
+    while(timestep < frames) {
+        std::cout << "TIMESTEP " << timestep << std::endl;
+        // Update both branches
+        po1->update(timestep, STREAMING_MODE_STORE_ALL_FRAMES);
+        po3->update(timestep, STREAMING_MODE_STORE_ALL_FRAMES);
+
+        DummyDataObject::pointer image1 = port1->getNextFrame();
+        DummyDataObject::pointer image2 = port2->getNextFrame();
+
+        CHECK(image1->getID() == 0);
+        CHECK(image2->getID() == 0);
+        timestep++;
+    }
+}
+
 TEST_CASE("Stream with multiple receiver POs, PROCESS_ALL", "[process_all_frames][ProcessObject][fast]") {
     const int frames = 20;
     DummyStreamer::pointer streamer = DummyStreamer::New();
@@ -291,6 +380,7 @@ TEST_CASE("Stream with multiple receiver POs, PROCESS_ALL", "[process_all_frames
         timestep++;
     }
 }
+
 
 TEST_CASE("Stream with multiple receiver POs, NEWEST_FRAME", "[ProcessObject][fast]") {
     const int frames = 20;

@@ -46,7 +46,13 @@ float SliceRenderer::getIntensityWindow() {
 }
 
 void SliceRenderer::execute() {
-    std::lock_guard<std::mutex> lock(mMutex);
+    std::unique_lock<std::mutex> lock(mMutex);
+
+    // Check if current images has not been rendered, if not wait
+    while(!mHasRendered) {
+        mRenderedCV.wait(lock);
+    }
+
     mImageToRender = getInputData<Image>(0);
 
     if(mImageToRender->getDimensions() != 3)

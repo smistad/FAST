@@ -99,9 +99,13 @@ DataObject::pointer DataPort::getNextFrame() {
 
 void DataPort::moveDataToNextTimestep() {
     std::lock_guard<std::mutex> lock(mMutex);
-    std::cout << "Moving data.." << std::endl;
-    mFrames[mCurrentTimestep] = mFrames.at(mCurrentTimestep - 1);
-    mFrames.erase(mCurrentTimestep - 1);
+    std::cout << "Moving data for " << mProcessObject->getNameOfClass() << " at timestep " << mCurrentTimestep << " size: " << mFrames.size() << " first t " << mFrames.begin()->first << std::endl;
+    if(mFrames.count(mCurrentTimestep) == 0) {
+        // Only move if frame is not there
+        mFrames[mCurrentTimestep] = mFrames.at(mCurrentTimestep - 1);
+        mFrames.erase(mCurrentTimestep - 1);
+    }
+    std::cout << "Moving data finished" << std::endl;
     mIsStaticData = true;
 }
 
