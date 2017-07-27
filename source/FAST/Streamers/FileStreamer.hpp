@@ -19,7 +19,6 @@ class FAST_EXPORT  FileStreamer : public Streamer {
         void setStepSize(uint step);
         void setZeroFilling(uint digits);
         void setNumberOfReplays(uint replays);
-        void setStreamingMode(StreamingMode mode);
         void setMaximumNumberOfFrames(uint nrOfFrames);
         void setTimestampFilename(std::string filepath);
         void enableLooping();

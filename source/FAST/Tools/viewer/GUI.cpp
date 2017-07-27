@@ -216,7 +216,6 @@ void GUI::selectPipeline() {
     mStreamer = ImageFileStreamer::New();
     mStreamer->setFilenameFormats(inputData);
     mStreamer->enableLooping();
-    mStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     mStreamer->setSleepTime(50);
 
     getView(0)->removeAllRenderers();
