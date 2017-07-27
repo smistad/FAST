@@ -1,21 +1,21 @@
 #include <thread>
 #include <vector>
 #include "DataPort.hpp"
+#include "ProcessObject.hpp"
 
 namespace fast {
 
 void DataPort::addFrame(DataObject::pointer object) {
     {
         if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES && !mIsStaticData) {
-            std::cout << "Waiting to add " << mCurrentTimestep << " (" << mFrameCounter << ") " << std::endl;
+            std::cout << mProcessObject->getNameOfClass() + " waiting to add " << mCurrentTimestep << " (" << mFrameCounter << ") " << std::endl;
             mEmptyCount->wait();
-            std::cout << "OK to add" << std::endl;
         }
         std::lock_guard<std::mutex> lock(mMutex);
         if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES || mStreamingMode == STREAMING_MODE_STORE_ALL_FRAMES) {
             if(mCurrentTimestep > mFrameCounter)
                 mFrameCounter = mCurrentTimestep;
-            std::cout << "Adding frame with nr " << mFrameCounter << std::endl;
+            std::cout << mProcessObject->getNameOfClass() + " adding frame with nr " << mFrameCounter << std::endl;
             mFrames[mFrameCounter] = object;
         } else if(mStreamingMode == STREAMING_MODE_NEWEST_FRAME_ONLY) {
             if(mFrames.count(mCurrentTimestep) == 0) {
@@ -50,7 +50,6 @@ DataObject::pointer DataPort::getNextFrame() {
             // Do this using semaphore
             std::cout << "Waiting to get " << mCurrentTimestep << std::endl;
             mFillCount->wait();
-            std::cout << "OK to get" << std::endl;
             lock.lock();
         } else {
             lock.lock();

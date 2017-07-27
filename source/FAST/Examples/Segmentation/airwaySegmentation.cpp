@@ -26,7 +26,6 @@ int main() {
 	// Extract centerline from segmentation
 	CenterlineExtraction::pointer centerline = CenterlineExtraction::New();
 	centerline->setInputConnection(segmentation->getOutputPort());
-	centerline->update();
 
 	// Extract surface from segmentation
 	SurfaceExtraction::pointer extraction = SurfaceExtraction::New();

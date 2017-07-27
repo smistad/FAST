@@ -49,13 +49,13 @@ void ComputationThread::run() {
         }
         // Lock mutex of all renderers before update renderers. This will ensure that rendering is synchronized.
         for(View* view : mViews) {
-            view->lockRenderers();
+            //view->lockRenderers();
         }
         for(View* view : mViews) {
             view->updateRenderers(mTimestep, mStreamingMode);
         }
         for(View* view : mViews) {
-            view->unlockRenderers();
+            //view->unlockRenderers();
         }
         std::unique_lock<std::mutex> lock(mUpdateThreadMutex); // this locks the mutex
         if(mUpdateThreadIsStopped) {

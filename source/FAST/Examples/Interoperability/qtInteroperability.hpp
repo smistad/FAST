@@ -44,7 +44,6 @@ class FAST_EXPORT  WindowWidget : public QWidget {
 
             // Import images from files using the ImageFileStreamer
             fast::ImageFileStreamer::pointer streamer = fast::ImageFileStreamer::New();
-            streamer->setStreamingMode(fast::STREAMING_MODE_PROCESS_ALL_FRAMES);
 
             // The hashtag here will be replaced with an integer, starting with 0 as default
             streamer->setFilenameFormat(fast::Config::getTestDataPath()+"/US/CarotidArtery/Right/US-2D_#.mhd");

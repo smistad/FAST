@@ -25,10 +25,19 @@ using namespace fast;
 #endif
 
 void ImageRenderer::execute() {
+    std::unique_lock<std::mutex> lock(mMutex);
+
+    // Check if current images has not been rendered, if not wait
+    while(mHasRendered == false) {
+        mRenderedCV.wait(lock);
+    }
+    std::cout << "EXECUTING IMAGE RENDERER" << std::endl;
     // This simply gets the input data for each connection and puts it into a data structure
     for(uint inputNr = 0; inputNr < getNrOfInputConnections(); inputNr++) {
         Image::pointer input = getInputData<Image>(inputNr);
+        std::cout << "GOT NEW IMAGE IN IMAGE RENDERER" << std::endl;
 
+        mHasRendered = false;
         mImagesToRender[inputNr] = input;
     }
 }
@@ -45,7 +54,7 @@ ImageRenderer::ImageRenderer() : Renderer() {
     createInputPort<Image>(0, false);
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer.cl", "3D");
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer2D.cl", "2D");
-    mIsModified = false;
+    mIsModified = true;
     createFloatAttribute("window", "Intensity window", "Intensity window", -1);
     createFloatAttribute("level", "Intensity level", "Intensity level", -1);
 }
@@ -57,6 +66,7 @@ void ImageRenderer::loadAttributes() {
 
 void ImageRenderer::draw() {
     std::lock_guard<std::mutex> lock(mMutex);
+    std::cout << "DRAWING IN IMAGE RENDERER" << std::endl;
 
     std::unordered_map<uint, Image::pointer>::iterator it;
     for(it = mImagesToRender.begin(); it != mImagesToRender.end(); it++) {
@@ -207,6 +217,7 @@ void ImageRenderer::draw() {
 
 void ImageRenderer::draw2D(cl::Buffer PBO, uint width, uint height, Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform, float PBOspacing, Vector2f translation) {
     std::lock_guard<std::mutex> lock(mMutex);
+    std::cout << "DRAWING IN IMAGE RENDERER" << std::endl;
 
     OpenCLDevice::pointer device = getMainDevice();
     cl::CommandQueue queue = device->getCommandQueue();
@@ -305,6 +316,8 @@ void ImageRenderer::draw2D(cl::Buffer PBO, uint width, uint height, Eigen::Trans
         queue.enqueueReleaseGLObjects(&v);
     }
     queue.finish();
+    mHasRendered = true;
+    mRenderedCV.notify_one();
 }
 
 BoundingBox ImageRenderer::getBoundingBox() {
