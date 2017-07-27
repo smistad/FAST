@@ -100,7 +100,6 @@ void Pipeline::parseProcessObject(
         std::shared_ptr<Attribute> attribute = object->getAttribute(name);
         std::string attributeValues = line.substr(line.find(name) + name.size());
         trim(attributeValues);
-        std::cout << "parse input.." << std::endl;
         attribute->parseInput(attributeValues);
         std::getline(file, line);
     }

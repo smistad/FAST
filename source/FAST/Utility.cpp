@@ -554,7 +554,7 @@ std::string replace(std::string str, std::string find, std::string replacement) 
     return str;
 }
 
-std::vector<std::string> split(const std::string& input, const std::string& delimiter) {
+std::vector<std::string> split(const std::string input, const std::string& delimiter) {
     char* cstr = const_cast<char*>(input.c_str());
     char* current = strtok(cstr, delimiter.c_str());
     std::vector<std::string> parts;

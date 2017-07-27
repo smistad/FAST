@@ -42,7 +42,7 @@ void ComputationThread::run() {
 
     while(true) {
         mTimestep++;
-        std::cout << "TIMESTEP: " << mTimestep << std::endl;
+        //std::cout << "TIMESTEP: " << mTimestep << std::endl;
         // Update renderers' input before lock mutexes. This will ensure that renderering can happen while computing
         for(View* view : mViews) {
             view->updateRenderersInput(mTimestep, mStreamingMode);
