@@ -8,6 +8,7 @@ void WindowWidget::keyPressEvent(QKeyEvent* event) {
     switch(event->key()) {
     case Qt::Key_Q:
     case Qt::Key_Escape:
+        Reporter::info() << "Close key pressed" << Reporter::end();
         close();
         return;
         break;
@@ -17,6 +18,7 @@ void WindowWidget::keyPressEvent(QKeyEvent* event) {
 }
 
 void WindowWidget::closeEvent(QCloseEvent* event) {
+    Reporter::info() << "Close event triggered" << Reporter::end();
     emit widgetHasClosed();
 }
 

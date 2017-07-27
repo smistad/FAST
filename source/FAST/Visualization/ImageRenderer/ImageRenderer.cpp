@@ -34,11 +34,13 @@ void ImageRenderer::execute() {
     std::cout << "EXECUTING IMAGE RENDERER" << std::endl;
     // This simply gets the input data for each connection and puts it into a data structure
     for(uint inputNr = 0; inputNr < getNrOfInputConnections(); inputNr++) {
-        Image::pointer input = getInputData<Image>(inputNr);
-        std::cout << "GOT NEW IMAGE IN IMAGE RENDERER" << std::endl;
+        if(hasNewInputData(inputNr)) {
+            Image::pointer input = getInputData<Image>(inputNr);
+            std::cout << "GOT NEW IMAGE IN IMAGE RENDERER" << std::endl;
 
-        mHasRendered = false;
-        mImagesToRender[inputNr] = input;
+            mHasRendered = false;
+            mImagesToRender[inputNr] = input;
+        }
     }
 }
 

@@ -46,7 +46,7 @@ TEST_CASE("Write 2D image with the ImageExporter", "[fast][ImageExporter]") {
 
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename("ImageExporterTest.jpg");
-    auto port = exporter->getOutputPort();
+    auto port = importer->getOutputPort();
     importer->update(0);
     Image::pointer image2 = port->getNextFrame();
 

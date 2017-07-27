@@ -59,6 +59,11 @@ class FAST_EXPORT  ProcessObject : public virtual Object {
         std::shared_ptr<Attribute> getAttribute(std::string id);
         std::unordered_map<std::string, std::shared_ptr<Attribute>> getAttributes();
         void setAttributes(std::vector<std::shared_ptr<Attribute>> attributes);
+
+        /**
+         * Used to stop a pipeline.
+         */
+        void stop();
     protected:
         ProcessObject();
         // Flag to indicate whether the object has been modified
@@ -80,6 +85,8 @@ class FAST_EXPORT  ProcessObject : public virtual Object {
         template <class DataType>
         DataObject::pointer getOutputData(uint portID = 0);
         void addOutputData(uint portID, DataObject::pointer data);
+
+        bool hasNewInputData(uint portID);
 
         virtual void waitToFinish() {};
 

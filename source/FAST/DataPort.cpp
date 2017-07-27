@@ -11,6 +11,8 @@ void DataPort::addFrame(DataObject::pointer object) {
             std::cout << mProcessObject->getNameOfClass() + " waiting to add " << mCurrentTimestep << " (" << mFrameCounter << ") " << std::endl;
             mEmptyCount->wait();
         }
+        if(mStop)
+            return;
         std::lock_guard<std::mutex> lock(mMutex);
         if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES || mStreamingMode == STREAMING_MODE_STORE_ALL_FRAMES) {
             if(mCurrentTimestep > mFrameCounter)
@@ -57,6 +59,14 @@ DataObject::pointer DataPort::getNextFrame() {
             while(mFrames.count(mCurrentTimestep) == 0) {
                 std::cout << "Waiting for " << mCurrentTimestep << std::endl;
                 mFrameConditionVariable.wait(lock);
+            }
+        }
+
+        if(mStop) {
+            if(mFrames.count(mCurrentTimestep) > 0) {
+                return mFrames.at(mCurrentTimestep);
+            } else {
+                return mFrames.at(mCurrentTimestep - 1);
             }
         }
 
@@ -132,6 +142,20 @@ void DataPort::setMaximumNumberOfFrames(uint frames) {
     mMaximumNumberOfFrames = frames;
     mFillCount = UniquePointer<LightweightSemaphore>(new LightweightSemaphore(0));
     mEmptyCount = UniquePointer<LightweightSemaphore>(new LightweightSemaphore(mMaximumNumberOfFrames));
+}
+
+void DataPort::stop() {
+    mStop = true;
+    if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES && !mIsStaticData) {
+        mFillCount->signal();
+        mEmptyCount->signal();
+    } else {
+        mFrameConditionVariable.notify_all();
+    }
+}
+
+bool DataPort::hasCurrentData() {
+    return mFrames.count(mCurrentTimestep) > 0;
 }
 
 } // end namespace fast

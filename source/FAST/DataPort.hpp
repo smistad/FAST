@@ -39,6 +39,13 @@ class DataPort {
 
         void setMaximumNumberOfFrames(uint frames);
 
+        /**
+         * This will unblock if this DataPort is currently blocking. Used to stop a pipeline.
+         */
+        void stop();
+
+        bool hasCurrentData();
+
         typedef SharedPointer<DataPort> pointer;
     private:
         /**
@@ -60,6 +67,7 @@ class DataPort {
         UniquePointer<LightweightSemaphore> mEmptyCount;
 
         bool mIsStaticData = false;
+        bool mStop = false;
 };
 
 }

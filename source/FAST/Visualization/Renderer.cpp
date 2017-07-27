@@ -40,6 +40,7 @@ void Renderer::unlock() {
 void Renderer::stop() {
     mHasRendered = true;
     mRenderedCV.notify_one();
+    ProcessObject::stop();
 }
 
 }

@@ -428,4 +428,16 @@ int ProcessObject::getNrOfInputConnections() const {
     return mInputConnections.size();
 }
 
+void ProcessObject::stop() {
+    for(auto input : mInputConnections) {
+        input.second->stop();
+        input.second->getProcessObject()->stop(); // Stop parent POs
+    }
+
+}
+
+bool ProcessObject::hasNewInputData(uint portID) {
+    return mInputConnections.at(portID)->hasCurrentData();
+}
+
 } // namespace fast

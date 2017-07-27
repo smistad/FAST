@@ -34,10 +34,10 @@ class FAST_EXPORT IGTLinkStreamer : public Streamer, public ProcessObject {
 		 * Will select first image stream
 		 * @return
 		 */
-		ProcessObjectPort getOutputPort();
+		DataPort::pointer getOutputPort();
 
         template<class T>
-        ProcessObjectPort getOutputPort(std::string deviceName);
+        DataPort::pointer getOutputPort(std::string deviceName);
 
         /**
          * This method runs in a separate thread and adds frames to the
@@ -94,7 +94,7 @@ class FAST_EXPORT IGTLinkStreamer : public Streamer, public ProcessObject {
 
 
 template<class T>
-ProcessObjectPort IGTLinkStreamer::getOutputPort(std::string deviceName) {
+DataPort::pointer IGTLinkStreamer::getOutputPort(std::string deviceName) {
 	uint portID;
 	if(mOutputPortDeviceNames.count(deviceName) == 0) {
 		portID = getNrOfOutputPorts();
