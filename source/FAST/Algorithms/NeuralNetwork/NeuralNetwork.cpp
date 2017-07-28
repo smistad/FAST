@@ -79,7 +79,7 @@ void NeuralNetwork::setHorizontalFlipping(bool flip) {
 }
 
 NeuralNetwork::NeuralNetwork() {
-	createInputPort<Image>(0, true, INPUT_STATIC_OR_DYNAMIC, true);
+	createInputPort<Image>(0);
 	mModelLoaded = false;
 	mPreserveAspectRatio = false;
 	mInputName = "";
@@ -221,8 +221,9 @@ std::vector<SharedPointer<Image>> NeuralNetwork::resizeImages(const std::vector<
             resizer->setHeight(mHeight);
             resizer->setInputData(image);
 			resizer->setPreserveAspectRatio(mPreserveAspectRatio);
-            resizer->update();
-            Image::pointer resizedImage = resizer->getOutputData<Image>();
+			DataPort::pointer port = resizer->getOutputPort();
+            resizer->update(0);
+            Image::pointer resizedImage = port->getNextFrame();
             resizedImages.push_back(resizedImage);
 		} else {
 			resizedImages.push_back(image);

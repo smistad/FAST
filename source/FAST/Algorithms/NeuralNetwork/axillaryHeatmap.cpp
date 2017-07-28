@@ -40,7 +40,6 @@ int main() {
         streamer->setFilenameFormats(item.second);
         streamer->setStartNumber(1);
         streamer->setSleepTime(45);
-        streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
         PixelClassifier::pointer segmentation = PixelClassifier::New();
         segmentation->setNrOfClasses(6);

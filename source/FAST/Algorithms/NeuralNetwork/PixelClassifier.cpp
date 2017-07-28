@@ -78,11 +78,12 @@ void PixelClassifier::execute() {
         resizer->setWidth(mImage->getWidth());
         resizer->setHeight(mImage->getHeight());
         resizer->setPreserveAspectRatio(mPreserveAspectRatio);
-        resizer->update();
+        DataPort::pointer port = resizer->getOutputPort();
+        resizer->update(0);
 
-        Image::pointer resizedOutput = resizer->getOutputData<Image>();
+        Image::pointer resizedOutput = port->getNextFrame();
         resizedOutput->setSpacing(mImage->getSpacing());
-        setStaticOutputData<Image>(j, resizedOutput);
+        addOutputData(j, resizedOutput);
     }
 
 }
