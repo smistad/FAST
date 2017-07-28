@@ -12,6 +12,7 @@ ComputationThread::ComputationThread(QThread* mainThread) {
     mUpdateThreadIsStopped = false;
     mIsRunning = false;
     mMainThread = mainThread;
+    mTimestep = 0;
 }
 
 void ComputationThread::addView(View* view) {

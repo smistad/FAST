@@ -10,9 +10,10 @@ void DataPort::addFrame(DataObject::pointer object) {
         if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES && !mIsStaticData) {
             std::cout << mProcessObject->getNameOfClass() + " waiting to add " << mCurrentTimestep << " (" << mFrameCounter << ") " << std::endl;
             mEmptyCount->wait();
+            if(mStop) {
+                return;
+            }
         }
-        if(mStop)
-            return;
         std::lock_guard<std::mutex> lock(mMutex);
         if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES || mStreamingMode == STREAMING_MODE_STORE_ALL_FRAMES) {
             if(mCurrentTimestep > mFrameCounter)

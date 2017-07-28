@@ -21,7 +21,7 @@
 namespace fast {
 
 GUI::GUI() {
-
+    ComputationThread::setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     menuWidth = getScreenWidth()/6;
 
     mClient = OpenIGTLinkClient::New();
@@ -204,6 +204,7 @@ void GUI::editPipeline() {
 
 void GUI::selectPipeline() {
     // Stop computation thread before removing renderers
+    //mStreamer->stop();
     stopComputationThread();
     getView(0)->removeAllRenderers();
 
@@ -259,7 +260,7 @@ void GUI::selectStream() {
     mStreamer->setConnectionPort(std::stoi(mPort->text().toUtf8().constData()));
     mClient->setInputConnection(mStreamer->getOutputPort<Image>(streamName));
     try {
-        mStreamer->update();
+        mStreamer->update(0);
     } catch(Exception &e) {
         QMessageBox* message = new QMessageBox;
         message->setWindowTitle("Error");
@@ -300,7 +301,7 @@ void GUI::connect() {
         mStreamer->setConnectionPort(std::stoi(mPort->text().toUtf8().constData()));
         mClient->setInputConnection(mStreamer->getOutputPort());
         try {
-            mStreamer->update();
+            mStreamer->update(0);
         } catch(Exception &e) {
             QMessageBox* message = new QMessageBox;
             message->setWindowTitle("Error");
@@ -315,7 +316,7 @@ void GUI::connect() {
         renderer->addInputConnection(mClient->getOutputPort());
 
         getView(0)->addRenderer(renderer);
-        getView(0)->reinitialize();
+        //getView(0)->reinitialize();
 
         selectPipeline();
 
