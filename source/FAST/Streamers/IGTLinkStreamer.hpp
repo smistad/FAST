@@ -15,7 +15,7 @@ namespace fast {
 
 class Image;
 
-class FAST_EXPORT IGTLinkStreamer : public Streamer, public ProcessObject {
+class FAST_EXPORT IGTLinkStreamer : public Streamer {
     FAST_OBJECT(IGTLinkStreamer)
     public:
 		std::set<std::string> getImageStreamNames();
@@ -25,9 +25,7 @@ class FAST_EXPORT IGTLinkStreamer : public Streamer, public ProcessObject {
 		std::string getStreamDescription(std::string streamName);
         void setConnectionAddress(std::string address);
         void setConnectionPort(uint port);
-        void setStreamingMode(StreamingMode mode);
-        void setMaximumNumberOfFrames(uint nrOfFrames);
-        bool hasReachedEnd() const;
+        bool hasReachedEnd();
         uint getNrOfFrames() const;
 
 		/**
@@ -86,8 +84,6 @@ class FAST_EXPORT IGTLinkStreamer : public Streamer, public ProcessObject {
 		std::unordered_map<std::string, std::string> mStreamDescriptions;
         std::unordered_map<std::string, uint> mOutputPortDeviceNames;
 
-        template <class T>
-        DynamicData::pointer getOutputDataFromDeviceName(std::string deviceName);
         void updateFirstFrameSetFlag();
 };
 
@@ -99,7 +95,6 @@ DataPort::pointer IGTLinkStreamer::getOutputPort(std::string deviceName) {
 	if(mOutputPortDeviceNames.count(deviceName) == 0) {
 		portID = getNrOfOutputPorts();
 		createOutputPort<T>(portID);
-		getOutputData<T>(portID); // This initializes the output data
 		mOutputPortDeviceNames[deviceName] = portID;
 	} else {
 		portID = mOutputPortDeviceNames[deviceName];
@@ -107,13 +102,6 @@ DataPort::pointer IGTLinkStreamer::getOutputPort(std::string deviceName) {
     return ProcessObject::getOutputPort(portID);
 }
 
-template<class T>
-DynamicData::pointer IGTLinkStreamer::getOutputDataFromDeviceName(std::string deviceName) {
-    if(mOutputPortDeviceNames.count(deviceName) == 0)
-        throw Exception("Output port associated with device name " + deviceName + " not found in the IGTLinkStreamer.");
-
-    return getOutputData<T>(mOutputPortDeviceNames[deviceName]);
-}
 
 
 } // end namespace

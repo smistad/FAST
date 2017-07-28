@@ -28,7 +28,7 @@ class FAST_EXPORT  Renderer : public ProcessObject {
                 float PBOspacing,
                 Vector2f translation
         ) {};
-        virtual void stop();
+        virtual void stopPipeline();
     protected:
         Renderer();
         void execute() override;

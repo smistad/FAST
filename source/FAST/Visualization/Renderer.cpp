@@ -23,10 +23,10 @@ void Renderer::unlock() {
     mMutex.unlock();
 }
 
-void Renderer::stop() {
+void Renderer::stopPipeline() {
     mHasRendered = true;
     mRenderedCV.notify_one();
-    ProcessObject::stop();
+    ProcessObject::stopPipeline();
 }
 
 void Renderer::postDraw() {

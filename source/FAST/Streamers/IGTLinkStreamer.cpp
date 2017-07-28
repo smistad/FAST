@@ -21,7 +21,7 @@ void IGTLinkStreamer::setConnectionPort(uint port) {
     mIsModified = true;
 }
 
-ProcessObjectPort IGTLinkStreamer::getOutputPort() {
+DataPort::pointer IGTLinkStreamer::getOutputPort() {
 	uint portID;
 	if (mOutputPortDeviceNames.count("") == 0) {
 		portID = getNrOfOutputPorts();
@@ -35,17 +35,7 @@ ProcessObjectPort IGTLinkStreamer::getOutputPort() {
 	return ProcessObject::getOutputPort(portID);
 }
 
-void IGTLinkStreamer::setStreamingMode(StreamingMode mode) {
-    if(mode == STREAMING_MODE_STORE_ALL_FRAMES && !mMaximumNrOfFramesSet)
-        setMaximumNumberOfFrames(0);
-    Streamer::setStreamingMode(mode);
-}
-
-void IGTLinkStreamer::setMaximumNumberOfFrames(uint nrOfFrames) {
-    mMaximumNrOfFrames = nrOfFrames;
-}
-
-bool IGTLinkStreamer::hasReachedEnd() const {
+bool IGTLinkStreamer::hasReachedEnd() {
     return mHasReachedEnd;
 }
 
@@ -83,7 +73,7 @@ std::vector<std::string> IGTLinkStreamer::getActiveTransformStreamNames() {
     return activeStreams;
 }
 
-inline Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer message, ExecutionDevice::pointer device) {
+static Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer message, ExecutionDevice::pointer device) {
     Image::pointer image = Image::New();
     int width, height, depth;
     message->GetDimensions(width, height, depth);
@@ -140,11 +130,10 @@ inline Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer mes
 void IGTLinkStreamer::updateFirstFrameSetFlag() {
     // Check that all output ports have got their first frame
     bool allHaveGotData = true;
-    for(uint i = 0; i < getNrOfOutputPorts(); i++) {
-        DynamicData::pointer data = ProcessObject::getOutputPort(i).getData();
-        if(data->getSize() == 0) {
-            allHaveGotData = false;
-            break;
+    for(auto port : mOutputConnections) {
+        for(auto output : port.second) {
+            if(output.lock()->getFrameCounter() == 0)
+                allHaveGotData = false;
         }
     }
 
@@ -203,11 +192,23 @@ void IGTLinkStreamer::producerStream() {
         // Get time stamp
         headerMsg->GetTimeStamp(ts);
 
-        reportInfo() << "Device name: " << headerMsg->GetDeviceName() << Reporter::end();
+        std::string deviceName = headerMsg->GetDeviceName();
+        reportInfo() << "Device name: " << deviceName << Reporter::end();
+        bool ignore = false;
+        if(mOutputPortDeviceNames.count(deviceName) == 0) {
+            if(mOutputPortDeviceNames.count("") > 0 && strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0) {
+                // If no specific output ports have been specified, choose this first one
+                mOutputPortDeviceNames[headerMsg->GetDeviceName()] = mOutputPortDeviceNames[""];
+                mOutputPortDeviceNames.erase("");
+            } else {
+                // Ignore this device stream if it doesn't exist
+                ignore = true;
+            }
+        }
 
         unsigned long timestamp = round(ts->GetTimeStamp()*1000); // convert to milliseconds
         reportInfo() << "TIMESTAMP converted: " << timestamp << reportEnd();
-        if(strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0) {
+        if(strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0 && !ignore) {
             mTransformStreamNames.insert(headerMsg->GetDeviceName());
             mStreamDescriptions[headerMsg->GetDeviceName()] = "Transform";
             if(mInFreezeMode) {
@@ -225,7 +226,6 @@ void IGTLinkStreamer::producerStream() {
             // If you want to skip CRC check, call Unpack() without argument.
             int c = transMsg->Unpack(1);
 
-
             if(c & igtl::MessageHeader::UNPACK_BODY) { // if CRC check is OK
                 // Retrive the transform data
                 igtl::Matrix4x4 matrix;
@@ -236,19 +236,12 @@ void IGTLinkStreamer::producerStream() {
                     fastMatrix(i,j) = matrix[i][j];
                 }}
                 reportInfo() << fastMatrix << Reporter::end();
-                DynamicData::pointer ptr;
-                try {
-                     ptr = getOutputDataFromDeviceName<AffineTransformation>(headerMsg->GetDeviceName());
-                     ptr->setStreamer(mPtr.lock());
-                } catch(Exception &e) {
-                    reportInfo() << "Output port with device name " << headerMsg->GetDeviceName() << " not found" << Reporter::end();
-                    continue;
-                }
+
                 try {
                     AffineTransformation::pointer T = AffineTransformation::New();
                     T->getTransform().matrix() = fastMatrix;
                     T->setCreationTimestamp(timestamp);
-                    ptr->addFrame(T);
+                    addOutputData(mOutputPortDeviceNames[deviceName], T);
                 } catch(NoMoreFramesException &e) {
                     throw e;
                 } catch(Exception &e) {
@@ -260,7 +253,7 @@ void IGTLinkStreamer::producerStream() {
                 }
                 mNrOfFrames++;
             }
-        } else if(strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0) {
+        } else if(strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0 && !ignore) {
             mImageStreamNames.insert(headerMsg->GetDeviceName());
             if(mInFreezeMode) {
                 //unfreezeSignal();
@@ -282,11 +275,7 @@ void IGTLinkStreamer::producerStream() {
             // If you want to skip CRC check, call Unpack() without argument.
             int c = imgMsg->Unpack(1);
             if(c & igtl::MessageHeader::UNPACK_BODY) { // if CRC check is OK
-                if(mOutputPortDeviceNames.count("") > 0) {
-                    // If no specific output ports have been specified, choose this first one
-                    mOutputPortDeviceNames[headerMsg->GetDeviceName()] = mOutputPortDeviceNames[""];
-                    mOutputPortDeviceNames.erase("");
-                }
+
                 // Retrive the image data
                 int size[3]; // image dimension
                 float spacing[3]; // spacing (mm/pixel)
@@ -307,18 +296,10 @@ void IGTLinkStreamer::producerStream() {
                 description += ", " + std::to_string(imgMsg->GetNumComponents()) + " channels, " + std::to_string(imgMsg->GetScalarSize()*8) + "bit";
                 mStreamDescriptions[headerMsg->GetDeviceName()] = description;
 
-                DynamicData::pointer ptr;
-                try {
-                     ptr = getOutputDataFromDeviceName<Image>(headerMsg->GetDeviceName());
-                     ptr->setStreamer(mPtr.lock());
-                } catch(Exception &e) {
-                    reportInfo() << "Output port with device name " << headerMsg->GetDeviceName() << " not found" << Reporter::end();
-                    continue;
-                }
                 try {
                     Image::pointer image = createFASTImageFromMessage(imgMsg, getMainDevice());
                     image->setCreationTimestamp(timestamp);
-                    ptr->addFrame(image);
+                    addOutputData(mOutputPortDeviceNames[deviceName], image);
                 } catch(NoMoreFramesException &e) {
                     throw e;
                 } catch(Exception &e) {
@@ -384,7 +365,7 @@ void IGTLinkStreamer::producerStream() {
 
 IGTLinkStreamer::~IGTLinkStreamer() {
     if(mStreamIsStarted) {
-        stop();
+        stopPipeline();
         if(thread->get_id() != std::this_thread::get_id()) { // avoid deadlock
             thread->join();
         }
@@ -404,7 +385,6 @@ IGTLinkStreamer::IGTLinkStreamer() {
     mPort = 0;
     mMaximumNrOfFramesSet = false;
     mInFreezeMode = false;
-    setMaximumNumberOfFrames(50); // Set default maximum number of frames to 50
 }
 
 void IGTLinkStreamer::stop() {
@@ -418,10 +398,6 @@ void IGTLinkStreamer::execute() {
     }
 
     if(!mStreamIsStarted) {
-        for(uint i = 0; i < getNrOfOutputPorts(); i++) {
-            DynamicData::pointer data = ProcessObject::getOutputPort(i).getData();
-            data->setMaximumNumberOfFrames(mMaximumNrOfFrames);
-        }
 
         mSocket = igtl::ClientSocket::New();
         reportInfo() << "Trying to connect to Open IGT Link server " << mAddress << ":" << std::to_string(mPort) << Reporter::end();

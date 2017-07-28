@@ -11,7 +11,6 @@ TEST_CASE("Stream 2D images using IGTLinkStreamer", "[IGTLinkStreamer][fast][IGT
 
     ImageFileStreamer::pointer fileStreamer = ImageFileStreamer::New();
     fileStreamer->setFilenameFormat(Config::getTestDataPath() + "US/CarotidArtery/Right/US-2D_#.mhd");
-    fileStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     DummyIGTLServer server;
     server.setImageStreamer(fileStreamer);
     server.setPort(18944);

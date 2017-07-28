@@ -50,6 +50,7 @@ class FAST_EXPORT  ProcessObject : public virtual Object {
         void setInputData(DataObject::pointer data);
         void setInputData(uint portID, DataObject::pointer data);
         int getNrOfInputConnections() const;
+        int getNrOfOutputPorts() const;
 
         virtual std::string getNameOfClass() const = 0;
         static std::string getStaticNameOfClass() {
@@ -63,7 +64,7 @@ class FAST_EXPORT  ProcessObject : public virtual Object {
         /**
          * Used to stop a pipeline.
          */
-        void stop();
+        void stopPipeline();
     protected:
         ProcessObject();
         // Flag to indicate whether the object has been modified
@@ -112,11 +113,10 @@ class FAST_EXPORT  ProcessObject : public virtual Object {
         std::vector<int> getIntegerListAttribute(std::string id);
         std::vector<bool> getBooleanListAttribute(std::string id);
         std::vector<std::string> getStringListAttribute(std::string id);
-    private:
+
         void changeDeviceOnInputs(uint deviceNumber, ExecutionDevice::pointer device);
 
         std::unordered_map<uint, bool> mRequiredInputs;
-        std::unordered_map<uint, bool> mReleaseAfterExecute;
         std::unordered_map<uint, std::vector<uint> > mInputDevices;
         std::unordered_map<uint, ExecutionDevice::pointer> mDevices;
         std::unordered_map<uint, DeviceCriteria> mDeviceCriteria;

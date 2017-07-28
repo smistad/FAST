@@ -214,10 +214,10 @@ void View::lockRenderers() {
 
 void View::stopRenderers() {
     for(Renderer::pointer renderer : mNonVolumeRenderers) {
-        renderer->stop();
+        renderer->stopPipeline();
     }
     for(Renderer::pointer renderer : mVolumeRenderers) {
-        renderer->stop();
+        renderer->stopPipeline();
     }
 }
 
