@@ -61,7 +61,6 @@ int main() {
     });
     streamer->enableLooping();
     streamer->setSleepTime(25);
-    streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
     ImageClassifier::pointer classifier = ImageClassifier::New();
     classifier->setScaleFactor(1.0f/255.0f);
