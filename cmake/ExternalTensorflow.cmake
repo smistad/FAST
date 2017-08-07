@@ -43,11 +43,7 @@ else(WIN32)
         BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
         GIT_REPOSITORY "https://github.com/smistad/tensorflow.git"
         GIT_TAG "fast"
-        # Need to override this because tensorflow creates a file in the source dir
-        # and cmake files to stash these files
-        UPDATE_COMMAND
-            echo "Updating tensorflow" &&
-            ${GIT_EXECUTABLE} pull origin fast
+        UPDATE_COMMAND ""
         # Run TF configure in the form of a shell script. CUDA should be installed in /usr/local/cuda
         CONFIGURE_COMMAND
             cd ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/ && sh ${PROJECT_SOURCE_DIR}/cmake/TensorflowConfigure.sh
