@@ -31,6 +31,9 @@ class FAST_EXPORT  ComputationThread : public QObject, public Object {
         static void setStreamingMode(StreamingMode mode) {
             mStreamingMode = mode;
         }
+        static StreamingMode getStreamingMode() {
+            return mStreamingMode;
+        }
     public slots:
         void run();
     signals:

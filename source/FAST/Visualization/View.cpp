@@ -175,6 +175,7 @@ void View::updateRenderersInput(uint64_t timestep, StreamingMode mode) {
         while(true) {
             try {
                 renderer->getInputPort(i)->getProcessObject()->update(timestep, mode);
+                std::cout << "RENDERER " << renderer->getNameOfClass() << " " << i << std::endl;
                 i++;
             } catch(...) {
                 break;
@@ -431,7 +432,7 @@ void View::initializeGL() {
             // Update all renders
             std::cout << "UPDATING ALL RENDERERS" << std::endl;
             for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
-                mNonVolumeRenderers[i]->update(0);
+                mNonVolumeRenderers[i]->update(0, ComputationThread::getStreamingMode());
 
             // Derive a good spacing for the PBO
             // Find longest edge of the BB
@@ -561,7 +562,7 @@ void View::initializeGL() {
         } else {
             // Update all renderes, so that getBoundingBox works
             for (unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
-                mNonVolumeRenderers[i]->update(0);
+                mNonVolumeRenderers[i]->update(0, ComputationThread::getStreamingMode());
             if(!mCameraSet && getNrOfInputConnections() == 0) {
                 // If camera is not set explicitly by user, FAST has to calculate it
                 recalculateCamera();
@@ -584,7 +585,7 @@ void View::initializeGL() {
 			glMatrixMode(GL_PROJECTION);
 			glPushMatrix();
 
-			mVolumeRenderers[0]->update(0);
+			mVolumeRenderers[0]->update(0, ComputationThread::getStreamingMode());
 
 			glMatrixMode(GL_MODELVIEW);
 			glPopMatrix();
