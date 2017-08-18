@@ -34,6 +34,31 @@ void Pipeline::parseProcessObject(
     std::string line = "";
     std::getline(file, line);
 
+    std::cout << "attributes.." << std::endl;
+    // Continue to scan file for attributes
+    while(!file.eof()) {
+        trim(line);
+        if(line == "")
+            break;
+
+        std::vector<std::string> tokens = split(line);
+        if(tokens[0] != "Attribute")
+            break;
+
+        if(tokens.size() < 3)
+            throw Exception("Expecting at least 3 items on attribute line when parsing object " + objectName + " but got " + line);
+
+        std::string name = tokens[1];
+
+        std::shared_ptr<Attribute> attribute = object->getAttribute(name);
+        std::string attributeValues = line.substr(line.find(name) + name.size());
+        trim(attributeValues);
+        attribute->parseInput(attributeValues);
+        std::getline(file, line);
+    }
+
+    object->loadAttributes();
+
     // Get inputs
     bool inputFound = false;
     while(!file.eof()) {
@@ -65,8 +90,8 @@ void Pipeline::parseProcessObject(
             if(inputID == "PipelineInput") {
                 mInputProcessObjects[objectID] = 0;
             } else {
-                //renderer->addInputConnection(processObjects.at(inputID)->getOutputPort(outputPortID));
-                renderer->setInputConnection(0, mProcessObjects.at(inputID)->getOutputPort(outputPortID));
+                renderer->addInputConnection(mProcessObjects.at(inputID)->getOutputPort(outputPortID));
+                //renderer->setInputConnection(0, mProcessObjects.at(inputID)->getOutputPort(outputPortID));
             }
         } else {
             if(inputID == "PipelineInput") {
@@ -81,28 +106,7 @@ void Pipeline::parseProcessObject(
     if(!inputFound)
         throw Exception("No inputs were found for process object " + objectName);
 
-    std::cout << "attributes.." << std::endl;
-    // Continue to scan file for attributes
-    while(!file.eof()) {
-        trim(line);
-        if(line == "")
-            break;
 
-        std::vector<std::string> tokens = split(line);
-        if(tokens[0] != "Attribute")
-            throw Exception("Expecting attribute when parsing object " + objectName + " but got line " + line);
-
-        if(tokens.size() < 3)
-            throw Exception("Expecting at least 3 items on attribute line when parsing object " + objectName + " but got " + line);
-
-        std::string name = tokens[1];
-
-        std::shared_ptr<Attribute> attribute = object->getAttribute(name);
-        std::string attributeValues = line.substr(line.find(name) + name.size());
-        trim(attributeValues);
-        attribute->parseInput(attributeValues);
-        std::getline(file, line);
-    }
 
     mProcessObjects[objectID] = object;
     if(isRenderer) {
@@ -154,11 +158,6 @@ void Pipeline::parsePipelineFile() {
 
     if(mRenderers.size() == 0)
         throw Exception("No renderers were found when parsing pipeline file " + mFilename);
-
-    // For each PO, load attributes
-    for(auto processObject : mProcessObjects) {
-        processObject.second->loadAttributes();
-    }
 
     std::cout << "finished" << std::endl;
 }
