@@ -71,6 +71,9 @@ class FAST_EXPORT  ProcessObject : public virtual Object {
         // and should be executed again
         bool mIsModified;
 
+        // Used to avoid duplicate executes for same timestep
+        uint64_t mLastTimestepExecuted = std::numeric_limits<uint64_t>::max();
+
         // Pure virtual method for executing the pipeline object
         virtual void execute()=0;
         virtual void preExecute();

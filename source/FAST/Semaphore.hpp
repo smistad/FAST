@@ -235,6 +235,10 @@ public:
             m_sema.signal(toRelease);
         }
     }
+
+    int getCount() {
+        return m_count;
+    }
 };
 
 

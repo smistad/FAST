@@ -103,9 +103,9 @@ int main() {
     segmentation->setHeatmapOutput();
     segmentation->enableRuntimeMeasurements();
 
-    SegmentationRenderer::pointer segmentationRenderer = SegmentationRenderer::New();
-    segmentationRenderer->setFillArea(false);
-    segmentationRenderer->setInputConnection(segmentation->getOutputPort(1));
+    //SegmentationRenderer::pointer segmentationRenderer = SegmentationRenderer::New();
+    //segmentationRenderer->setFillArea(false);
+    //segmentationRenderer->setInputConnection(segmentation->getOutputPort(1));
 
     ImageRenderer::pointer imageRenderer = ImageRenderer::New();
     imageRenderer->setInputConnection(streamer->getOutputPort());

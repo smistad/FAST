@@ -6,21 +6,12 @@
 namespace fast {
 
 void DataPort::addFrame(DataObject::pointer object) {
-    {
-        if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES && !mIsStaticData) {
-            std::cout << mProcessObject->getNameOfClass() + " waiting to add " << mCurrentTimestep << " (" << mFrameCounter << ") " << std::endl;
-            mEmptyCount->wait();
-            if(mStop) {
-                return;
-            }
-        }
-        std::lock_guard<std::mutex> lock(mMutex);
-        if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES || mStreamingMode == STREAMING_MODE_STORE_ALL_FRAMES) {
-            if(mCurrentTimestep > mFrameCounter)
-                mFrameCounter = mCurrentTimestep;
-            std::cout << mProcessObject->getNameOfClass() + " adding frame with nr " << mFrameCounter << std::endl;
-            mFrames[mFrameCounter] = object;
-        } else if(mStreamingMode == STREAMING_MODE_NEWEST_FRAME_ONLY) {
+
+    if(mStreamingMode == STREAMING_MODE_NEWEST_FRAME_ONLY) {
+
+        {
+            std::lock_guard<std::mutex> lock(mMutex);
+            // If data for current doesn't exist: add it, otherwise add the new data for the next timestep
             if(mFrames.count(mCurrentTimestep) == 0) {
                 std::cout << "Adding frame with nr " << mCurrentTimestep << std::endl;
                 mFrames[mCurrentTimestep] = object;
@@ -29,16 +20,54 @@ void DataPort::addFrame(DataObject::pointer object) {
                 mFrames[mCurrentTimestep + 1] = object;
             }
         }
-        mFrameCounter++;
-    }
-
-    setChanged(true);
-
-    if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES && !mIsStaticData) {
-        mFillCount->signal();
-    } else {
         mFrameConditionVariable.notify_all();
+
+    } else if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES) {
+        if(!mIsStaticData) {
+            // If data is not static, use semaphore to check if available space for a new frame
+            std::cout << mProcessObject->getNameOfClass() + " waiting to add " << mCurrentTimestep << " (" << mFrameCounter << ") " << std::endl;
+            if(!mGetCalled && mFillCount->getCount() == mMaximumNumberOfFrames)
+                Reporter::error() << "EXECUTION BLOCKED by DataPort from " << mProcessObject->getNameOfClass() << ". Do you have a DataPort object that is not used?" << Reporter::end();
+            mEmptyCount->wait();
+
+            // If stop signal has been set, return
+            if(mStop) {
+                return;
+            }
+        }
+
+        {
+            // Add data
+            std::lock_guard<std::mutex> lock(mMutex);
+            if(mCurrentTimestep > mFrameCounter)
+                mFrameCounter = mCurrentTimestep;
+            std::cout << mProcessObject->getNameOfClass() + " adding frame with nr " << mFrameCounter << std::endl;
+            mFrames[mFrameCounter] = object;
+            mFrameCounter++;
+        }
+
+        if(!mIsStaticData) {
+            // If data is not static, use semaphore to signal that a new data is available
+            mFillCount->signal();
+        } else {
+            // If data is static, use condition variable to signal that a new data is available
+            mFrameConditionVariable.notify_all();
+        }
+
+    } else if(mStreamingMode == STREAMING_MODE_STORE_ALL_FRAMES) {
+        {
+            std::lock_guard<std::mutex> lock(mMutex);
+            if(mCurrentTimestep > mFrameCounter)
+                mFrameCounter = mCurrentTimestep;
+            std::cout << mProcessObject->getNameOfClass() + " adding frame with nr " << mFrameCounter << std::endl;
+            mFrames[mFrameCounter] = object;
+            mFrameCounter++;
+        }
+        mFrameConditionVariable.notify_all();
+    } else {
+        throw Exception("Error in DataPort::addFrame");
     }
+    setChanged(true);
 }
 
 DataObject::pointer DataPort::getNextFrame() {
@@ -94,6 +123,8 @@ DataObject::pointer DataPort::getNextFrame() {
 
     if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES && !mIsStaticData)
         mEmptyCount->signal();
+
+    mGetCalled = true;
 
     return data;
 }

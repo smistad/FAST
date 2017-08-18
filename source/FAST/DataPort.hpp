@@ -68,6 +68,7 @@ class DataPort {
 
         bool mIsStaticData = false;
         bool mStop = false;
+        bool mGetCalled = false;
 };
 
 }
