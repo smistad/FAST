@@ -36,13 +36,23 @@ void ProcessObject::update(uint64_t timestep, StreamingMode streamingMode) {
     }
 
     // Set timestep and streaming mode for output connections
+    // Also remove dead output ports if any
     for(auto outputPorts : mOutputConnections) {
-        for(auto output : outputPorts.second) {
-            DataPort::pointer port = output.lock();
-            port->setTimestep(timestep);
-            port->setStreamingMode(streamingMode);
+        std::vector<int> deadOutputPorts;
+        for(int i = 0; i < outputPorts.second.size(); ++i) {
+            auto output = outputPorts.second[i];
+            if(!output.getPtr().expired()) {
+                DataPort::pointer port = output.lock();
+                port->setTimestep(timestep);
+                port->setStreamingMode(streamingMode);
+            } else {
+                deadOutputPorts.push_back(i);
+            }
         }
+        for(auto deadLink : deadOutputPorts)
+            outputPorts.second.erase(outputPorts.second.begin() + deadLink);
     }
+
 
     // If this object is modified, or any parents has new data for this PO: Call execute
     std::cout << getNameOfClass() << ": new data " << newInputData << std::endl;

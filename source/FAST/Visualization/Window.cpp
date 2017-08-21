@@ -24,10 +24,13 @@ public:
             return QApplication::notify(receiver, event);
         } catch(Exception &e) {
             Reporter::error() << "FAST exception caught in Qt event handler " << e.what() << Reporter::end();
+            throw e;
         } catch(cl::Error &e) {
             Reporter::error() << "OpenCL exception caught in Qt event handler " << e.what() << "(" << getCLErrorString(e.err()) << ")" << Reporter::end();
+            throw e;
         } catch(std::exception &e) {
             Reporter::error() << "Std exception caught in Qt event handler " << e.what() << Reporter::end();
+            throw e;
         }
         return false;
     }
@@ -262,6 +265,11 @@ void Window::stopComputationThread() {
     reportInfo() << "Trying to stop computation thread" << Reporter::end();
     if(mThread != NULL) {
         mThread->stop();
+        QGLContext* mainGLContext = Window::getMainGLContext();
+        if(!mainGLContext->isValid()) {
+            throw Exception("QGL context is invalid!");
+        }
+        mainGLContext->moveToThread(QApplication::instance()->thread());
         delete mThread;
         mThread = NULL;
     }

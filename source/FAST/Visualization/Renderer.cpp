@@ -57,6 +57,9 @@ void Renderer::execute() {
 BoundingBox Renderer::getBoundingBox() {
     std::vector<Vector3f> coordinates;
 
+    if(mDataToRender.size() == 0)
+        throw Exception("Renderer has no input data. Unable to create bounding box and thereby initialize GL scene.");
+
     for(auto it : mDataToRender) {
         BoundingBox transformedBoundingBox;
         transformedBoundingBox = it.second->getTransformedBoundingBox();
@@ -66,6 +69,10 @@ BoundingBox Renderer::getBoundingBox() {
             coordinates.push_back((Vector3f)corners.row(j));
         }
     }
+
+    if(coordinates.size() == 0)
+        throw Exception("Renderer did not get any data. Unable to create bounding box and thereby initialize GL scene.");
+
     return BoundingBox(coordinates);
 }
 

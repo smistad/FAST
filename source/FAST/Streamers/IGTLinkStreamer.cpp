@@ -365,6 +365,7 @@ void IGTLinkStreamer::producerStream() {
 
 IGTLinkStreamer::~IGTLinkStreamer() {
     if(mStreamIsStarted) {
+        stop();
         stopPipeline();
         if(thread->get_id() != std::this_thread::get_id()) { // avoid deadlock
             thread->join();
