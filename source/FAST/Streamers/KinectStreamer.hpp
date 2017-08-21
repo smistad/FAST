@@ -24,7 +24,7 @@ class MeshVertex;
  * Output port 1: Registered depth image
  * Output port 2: Registered point cloud
  */
-class FAST_EXPORT KinectStreamer : public Streamer, public ProcessObject {
+class FAST_EXPORT KinectStreamer : public Streamer {
     FAST_OBJECT(KinectStreamer);
     public:
         void producerStream();
@@ -39,7 +39,7 @@ class FAST_EXPORT KinectStreamer : public Streamer, public ProcessObject {
          * @param range
          */
         void setMinRange(float range);
-        bool hasReachedEnd() const;
+        bool hasReachedEnd();
         uint getNrOfFrames() const;
         /**
          * Gets corresponding 3D point from rgb image coordinate

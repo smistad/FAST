@@ -90,6 +90,7 @@ bool KeyPressListener::eventFilter(QObject *obj, QEvent *event) {
 }
 
 KinectTrackingGUI::KinectTrackingGUI() {
+    ComputationThread::setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     View* view = createView();
 
     mRecordTimer = new QElapsedTimer;
@@ -239,7 +240,6 @@ void KinectTrackingGUI::playRecording() {
         // Set up streaming from disk
         MeshFileStreamer::pointer streamer = MeshFileStreamer::New();
         streamer->setFilenameFormat(selectedRecording + "#.vtk");
-        streamer->setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
 
         // Get the number of files
         QDirIterator it(selectedRecording.c_str());
@@ -251,7 +251,7 @@ void KinectTrackingGUI::playRecording() {
         }
         std::cout << "FILES: " << numFiles << std::endl;
         streamer->setMaximumNumberOfFrames(numFiles);
-        streamer->update(); // start loading
+        streamer->update(0); // start loading
 
         QProgressDialog progress("Loading recording ...", "Abort", 0, numFiles, mWidget);
         progress.setWindowTitle("Loading");
@@ -276,8 +276,9 @@ void KinectTrackingGUI::playRecording() {
         // Load target cloud
         VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
         importer->setFilename(selectedRecording + "target.vtk");
-        importer->update();
-        Mesh::pointer targetCloud = importer->getOutputData<Mesh>();
+        DataPort::pointer port = importer->getOutputPort();
+        importer->update(0);
+        Mesh::pointer targetCloud = port->getNextFrame();
 
         mTracking->setInputConnection(1, streamer->getOutputPort());
         mTracking->setTargetCloud(targetCloud);
@@ -323,7 +324,7 @@ void KinectTrackingGUI::extractPointCloud() {
         VTKMeshFileExporter::pointer exporter = VTKMeshFileExporter::New();
         exporter->setInputData(mTracking->getTargetCloud());
         exporter->setFilename(recordingPath + "target.vtk");
-        exporter->update();
+        exporter->update(0);
 
         // Start saving point clouds
         mTracking->startRecording(recordingPath);
