@@ -40,7 +40,10 @@ void ComputationThread::run() {
     mTimestep = 0;
 
     while(true) {
-        mTimestep++;
+        if(!mPaused)
+            mTimestep++;
+        if(mLoop && mTimestep == mTimestepLimit)
+            mTimestep = 0;
         //std::cout << "TIMESTEP: " << mTimestep << std::endl;
         // Update renderers' input before lock mutexes. This will ensure that renderering can happen while computing
         for(View* view : mViews) {
@@ -102,6 +105,18 @@ StreamingMode ComputationThread::getStreamingMode() {
 
 void ComputationThread::setStreamingMode(StreamingMode mode) {
     mStreamingMode = mode;
+}
+
+void ComputationThread::setTimestepLimit(uint64_t timestep) {
+    mTimestepLimit = timestep;
+}
+
+void ComputationThread::setTimestepLoop(bool loop) {
+    mLoop = loop;
+}
+
+void ComputationThread::pause() {
+    mPaused = true;
 }
 
 }

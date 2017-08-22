@@ -31,8 +31,6 @@ class FAST_EXPORT  Window : public QObject, public Object {
          * @param mode Streaming mode for the update loop
          */
         virtual void start(StreamingMode mode = STREAMING_MODE_PROCESS_ALL_FRAMES);
-        void startComputationThread();
-        void stopComputationThread();
         void setWidth(uint width);
         void setHeight(uint height);
         void setSize(uint width, uint height);
@@ -60,6 +58,8 @@ class FAST_EXPORT  Window : public QObject, public Object {
          */
         float getScalingFactor() const;
     protected:
+        void startComputationThread();
+        void stopComputationThread();
         Window();
         View* createView();
 
