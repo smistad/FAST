@@ -61,7 +61,6 @@ void ImageRenderer::loadAttributes() {
 
 void ImageRenderer::draw() {
     std::lock_guard<std::mutex> lock(mMutex);
-    std::cout << "DRAWING IN IMAGE RENDERER" << std::endl;
 
     std::unordered_map<uint, Image::pointer>::iterator it;
     for(auto it : mDataToRender) {
@@ -213,7 +212,6 @@ void ImageRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
                            Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform, float PBOspacing,
                            Vector2f translation) {
     std::lock_guard<std::mutex> lock(mMutex);
-    std::cout << "DRAWING IN IMAGE RENDERER" << std::endl;
 
     OpenCLDevice::pointer device = getMainDevice();
     cl::CommandQueue queue = device->getCommandQueue();

@@ -41,12 +41,10 @@ void Renderer::execute() {
     while(!mHasRendered) {
         mRenderedCV.wait(lock);
     }
-    std::cout << "EXECUTING RENDERER" << std::endl;
     // This simply gets the input data for each connection and puts it into a data structure
     for(uint inputNr = 0; inputNr < getNrOfInputConnections(); inputNr++) {
         if(hasNewInputData(inputNr)) {
             SpatialDataObject::pointer input = getInputData<SpatialDataObject>(inputNr);
-            std::cout << "GOT NEW DATA IN RENDERER" << std::endl;
 
             mHasRendered = false;
             mDataToRender[inputNr] = input;

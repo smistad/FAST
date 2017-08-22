@@ -31,6 +31,10 @@ class FAST_EXPORT  ComputationThread : public QObject, public Object {
          */
         void pause();
         /**
+         * Resume after pausing
+         */
+        void resume();
+        /**
          * Set timestep limit
          */
         void setTimestepLimit(uint64_t timestep);
@@ -44,6 +48,7 @@ class FAST_EXPORT  ComputationThread : public QObject, public Object {
         void run();
     signals:
         void finished();
+        void timestepIncreased();
     private:
 
         bool mUpdateThreadIsStopped;

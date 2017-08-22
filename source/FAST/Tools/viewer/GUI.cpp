@@ -26,7 +26,7 @@
 namespace fast {
 
 GUI::GUI() {
-
+    mStreamingMode = STREAMING_MODE_STORE_ALL_FRAMES;
     QDesktopWidget* desktop = QApplication::desktop();
     menuWidth = desktop->width()*(1.0f/6.0f);
     mPipelineWidget = nullptr;
@@ -149,11 +149,12 @@ GUI::GUI() {
     QObject::connect(mPlayPauseButton, &QPushButton::clicked, std::bind(&GUI::playPause, this));
     playbackLayout->addWidget(mPlayPauseButton);
 
-    QSlider* slider = new QSlider(Qt::Horizontal);
-    playbackLayout->addWidget(slider);
-    slider->setTickInterval(10);
-    slider->setRange(0, 1234);
-    slider->setTickPosition(QSlider::TicksAbove);
+    mTimestepSlider = new QSlider(Qt::Horizontal);
+    playbackLayout->addWidget(mTimestepSlider);
+    mTimestepSlider->setTickInterval(10);
+    mTimestepSlider->setRange(0, 1234);
+    mTimestepSlider->setTickPosition(QSlider::TicksAbove);
+    QObject::connect(mTimestepSlider, &QSlider::sliderMoved, std::bind(&GUI::setTimestep, this));
 
     viewLayout->addLayout(playbackLayout);
 
@@ -241,6 +242,9 @@ void GUI::selectPipeline() {
     }
 
     startComputationThread();
+    mThread->setTimestepLimit(10);
+    mThread->setTimestepLoop(true);
+    QObject::connect(mThread, &ComputationThread::timestepIncreased, std::bind(&GUI::increaseTimestep, this));
 
     /*
     PipelineWidget* pipelineWidget = new PipelineWidget(pipeline, mWidget);
@@ -252,6 +256,17 @@ void GUI::selectPipeline() {
     }
     mPipelineWidget = pipelineWidget;
      */
+}
+
+void GUI::increaseTimestep() {
+    mTimestepSlider->setSliderPosition(mThread->getTimestep());
+}
+
+void GUI::setTimestep() {
+    mThread->pause();
+    mPlayPauseButton->setText("Play");
+    mPlayPauseButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
+    mThread->setTimestep(mTimestepSlider->sliderPosition());
 }
 
 void GUI::selectInputData() {
@@ -274,9 +289,11 @@ void GUI::addInputData() {
 
 void GUI::playPause() {
     if(mPlayPauseButton->text() == "Play") {
+        mThread->resume();
         mPlayPauseButton->setText("Pause");
         mPlayPauseButton->setStyleSheet("QPushButton { background-color: red; color: white; }");
     } else {
+        mThread->pause();
         mPlayPauseButton->setText("Play");
         mPlayPauseButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
     }

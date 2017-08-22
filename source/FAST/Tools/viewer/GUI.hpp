@@ -11,6 +11,7 @@ class QElapsedTimer;
 class QComboBox;
 class QVBoxLayout;
 class QListWidget;
+class QSlider;
 
 namespace fast {
 
@@ -26,6 +27,8 @@ class GUI : public Window {
         void addInputData();
         void selectInputData();
         void playPause();
+        void increaseTimestep();
+        void setTimestep();
     private:
         GUI();
         void refreshStreams();
@@ -38,6 +41,7 @@ class GUI : public Window {
         QComboBox* mSelectPipeline;
         QPushButton* mPlayPauseButton;
         QVBoxLayout* menuLayout;
+        QSlider* mTimestepSlider;
         int menuWidth;
         PipelineWidget* mPipelineWidget;
 };
