@@ -5,14 +5,12 @@
 
 namespace fast {
 
-uint64_t ComputationThread::mTimestep = 0;
-StreamingMode ComputationThread::mStreamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES;
-
-ComputationThread::ComputationThread(QThread* mainThread) {
+ComputationThread::ComputationThread(QThread* mainThread, StreamingMode mode) {
     mUpdateThreadIsStopped = false;
     mIsRunning = false;
     mMainThread = mainThread;
     mTimestep = 0;
+    mStreamingMode = mode;
 }
 
 void ComputationThread::addView(View* view) {
@@ -89,5 +87,21 @@ void ComputationThread::stop() {
     }
 }
 
+
+uint64_t ComputationThread::getTimestep() {
+    return mTimestep;
+}
+
+void ComputationThread::setTimestep(uint64_t timestep) {
+    mTimestep = timestep;
+}
+
+StreamingMode ComputationThread::getStreamingMode() {
+    return mStreamingMode;
+}
+
+void ComputationThread::setStreamingMode(StreamingMode mode) {
+    mStreamingMode = mode;
+}
 
 }

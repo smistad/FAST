@@ -16,24 +16,16 @@ class View;
 class FAST_EXPORT  ComputationThread : public QObject, public Object {
     Q_OBJECT
     public:
-        ComputationThread(QThread* mainThread);
+        ComputationThread(QThread* mainThread, StreamingMode mode);
         ~ComputationThread();
         bool isRunning();
         void stop();
         void addView(View* view);
         void clearViews();
-        static uint64_t getTimestep() {
-            return mTimestep;
-        }
-        static void setTimestep(uint64_t timestep) {
-            mTimestep = timestep;
-        }
-        static void setStreamingMode(StreamingMode mode) {
-            mStreamingMode = mode;
-        }
-        static StreamingMode getStreamingMode() {
-            return mStreamingMode;
-        }
+        uint64_t getTimestep();
+        void setTimestep(uint64_t timestep);
+        StreamingMode getStreamingMode();
+        void setStreamingMode(StreamingMode mode);
     public slots:
         void run();
     signals:
@@ -49,8 +41,8 @@ class FAST_EXPORT  ComputationThread : public QObject, public Object {
 
         std::vector<View*> mViews;
 
-        static uint64_t mTimestep;
-        static StreamingMode mStreamingMode;
+        uint64_t mTimestep;
+        StreamingMode mStreamingMode;
 };
 
 }

@@ -21,7 +21,6 @@
 namespace fast {
 
 GUI::GUI() {
-    ComputationThread::setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     menuWidth = getScreenWidth()/6;
 
     mClient = OpenIGTLinkClient::New();

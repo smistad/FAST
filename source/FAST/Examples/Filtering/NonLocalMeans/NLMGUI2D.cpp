@@ -34,7 +34,6 @@ NLMGUI2D::NLMGUI2D() {
     enableMaximized();
 
     // Import image
-    ComputationThread::setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
     streamer->setFilenameFormat(Config::getTestDataPath() + "US/Heart/ApicalFourChamber/US-2D_#.mhd");
     streamer->enableLooping();

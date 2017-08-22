@@ -46,6 +46,7 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
 		};
         View();
 		float get2DPixelSpacing();
+        void setStreamingMode(StreamingMode mode);
     private:
 
 		std::vector<Renderer::pointer> mNonVolumeRenderers;
@@ -91,6 +92,8 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
         float mMinX2D, mMaxX2D, mMinY2D, mMaxY2D;
         int mPosX2D, mPosY2D;
         float mScale2D;
+
+		StreamingMode mStreamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES;
 
         friend class ComputationThread;
     protected:

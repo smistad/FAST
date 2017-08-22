@@ -21,10 +21,16 @@ class FAST_EXPORT  Window : public QObject, public Object {
         static void initializeQtApp();
         static QGLContext* getMainGLContext();
         static void setMainGLContext(QGLContext* context);
-        // Makes the window close after a specific number of ms
+        /**
+         * Makes the window close after a specific number of ms
+         */
         virtual void setTimeout(unsigned int milliseconds);
         ~Window();
-        virtual void start();
+        /**
+         * Starts an update loop on all renderers attached to each view in this window.
+         * @param mode Streaming mode for the update loop
+         */
+        virtual void start(StreamingMode mode = STREAMING_MODE_PROCESS_ALL_FRAMES);
         void startComputationThread();
         void stopComputationThread();
         void setWidth(uint width);
@@ -64,6 +70,7 @@ class FAST_EXPORT  Window : public QObject, public Object {
         float mGUIScalingFactor = 1.0f;
         QEventLoop* mEventLoop;
         ComputationThread* mThread;
+        StreamingMode mStreamingMode;
     private:
         static QGLContext* mMainGLContext;
     public slots:

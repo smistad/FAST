@@ -90,7 +90,6 @@ bool KeyPressListener::eventFilter(QObject *obj, QEvent *event) {
 }
 
 KinectTrackingGUI::KinectTrackingGUI() {
-    ComputationThread::setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     View* view = createView();
 
     mRecordTimer = new QElapsedTimer;

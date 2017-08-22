@@ -20,8 +20,6 @@ TEST_CASE("ImageRenderer with single 2D image in 2D mode", "[fast][ImageRenderer
 }
 
 TEST_CASE("ImageRenderer with dynamic 2D image in 2D mode", "[fast][ImageRenderer][visual]") {
-    //ComputationThread::setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
-    //ComputationThread::setStreamingMode(STREAMING_MODE_STORE_ALL_FRAMES);
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
     streamer->setFilenameFormat(Config::getTestDataPath()+"US/CarotidArtery/Right/US-2D_#.mhd");
     ImageRenderer::pointer renderer = ImageRenderer::New();

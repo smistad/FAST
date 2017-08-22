@@ -4,5 +4,5 @@ using namespace fast;
 
 int main() {
     KinectTrackingGUI::pointer window = KinectTrackingGUI::New();
-    window->start();
+    window->start(STREAMING_MODE_NEWEST_FRAME_ONLY);
 }

@@ -355,6 +355,10 @@ void View::reinitialize() {
     initializeGL();
 }
 
+void View::setStreamingMode(StreamingMode mode) {
+    mStreamingMode = mode;
+}
+
 void View::initializeGL() {
 	glEnable(GL_TEXTURE_2D);
     QGLFunctions *fun = Window::getMainGLContext()->functions();
@@ -432,7 +436,7 @@ void View::initializeGL() {
             // Update all renders
             std::cout << "UPDATING ALL RENDERERS" << std::endl;
             for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
-                mNonVolumeRenderers[i]->update(0, ComputationThread::getStreamingMode());
+                mNonVolumeRenderers[i]->update(0, mStreamingMode);
 
             // Derive a good spacing for the PBO
             // Find longest edge of the BB
@@ -562,7 +566,7 @@ void View::initializeGL() {
         } else {
             // Update all renderes, so that getBoundingBox works
             for (unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
-                mNonVolumeRenderers[i]->update(0, ComputationThread::getStreamingMode());
+                mNonVolumeRenderers[i]->update(0, mStreamingMode);
             if(!mCameraSet && getNrOfInputConnections() == 0) {
                 // If camera is not set explicitly by user, FAST has to calculate it
                 recalculateCamera();
@@ -585,7 +589,7 @@ void View::initializeGL() {
 			glMatrixMode(GL_PROJECTION);
 			glPushMatrix();
 
-			mVolumeRenderers[0]->update(0, ComputationThread::getStreamingMode());
+			mVolumeRenderers[0]->update(0, mStreamingMode);
 
 			glMatrixMode(GL_MODELVIEW);
 			glPopMatrix();
