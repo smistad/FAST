@@ -251,7 +251,6 @@ void GUI::selectPipeline() {
 
     // Preload the data
     DataPort::pointer data = mStreamer->getOutputPort();
-    int timestep = 0;
     mStreamer->update(0, STREAMING_MODE_STORE_ALL_FRAMES);
     while(!mStreamer->hasReachedEnd()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
