@@ -10,6 +10,7 @@ fast_add_test_sources(
     Algorithms/DoubleFilter.hpp
     Algorithms/DoubleFilterTests.cpp
     SceneGraphTests.cpp
+    UtilityTests.cpp
 )
 if(FAST_MODULE_Visualization)
 fast_add_test_sources(

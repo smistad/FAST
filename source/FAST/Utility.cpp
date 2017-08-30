@@ -564,8 +564,9 @@ std::vector<std::string> split(const std::string input, const std::string& delim
             break;
         }
 
-        parts.push_back(input.substr(startPos, pos - startPos));
-        startPos = pos+1;
+        if(pos - startPos > 0)
+            parts.push_back(input.substr(startPos, pos - startPos));
+        startPos = pos + delimiter.length();
     }
 
     return parts;
