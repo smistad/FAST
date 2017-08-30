@@ -16,13 +16,13 @@ int main() {
     Reporter::setGlobalReportMethod(Reporter::COUT);
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
     streamer->setFilenameFormats({
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KT50C/US-2D_#.mhd",
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KT7OK/US-2D_#.mhd",
                                          "/media/extra/GRUE_MHD/Clinic007/F47KT5OE/US-2D_#.mhd",
                                          "/media/extra/GRUE_MHD/Clinic007/F47KT6GG/US-2D_#.mhd",
-                                         "/media/extra/GRUE_MHD/Clinic007/F47KT7OK/US-2D_#.mhd",
-                                         "/media/extra/GRUE_MHD/Clinic007/F47KT50C/US-2D_#.mhd",
-                                         "/media/extra/GRUE_MHD/Clinic007/F47KT70I/US-2D_#.mhd",
-                                         "/media/extra/GRUE_MHD/Clinic007/F47KT80M/US-2D_#.mhd",
-                                         "/media/extra/GRUE_MHD/Clinic007/F47KT88O/US-2D_#.mhd",
+                                         //"/media/extra/GRUE_MHD/Clinic007/F47KT70I/US-2D_#.mhd",
+                                         //"/media/extra/GRUE_MHD/Clinic007/F47KT80M/US-2D_#.mhd",
+                                         //"/media/extra/GRUE_MHD/Clinic007/F47KT88O/US-2D_#.mhd",
                                          "/media/extra/GRUE_MHD/Clinic007/F47KT98S/US-2D_#.mhd",
                                          "/media/extra/GRUE_MHD/Clinic007/F47KTA0U/US-2D_#.mhd",
                                          "/media/extra/GRUE_MHD/Clinic007/F47KTD1I/US-2D_#.mhd",
@@ -120,7 +120,8 @@ int main() {
     window->addRenderer(imageRenderer);
     //window->addRenderer(segmentationRenderer);
     window->addRenderer(heatmapRenderer);
-    window->setSize(1024, 1024);
+    window->setSize(1024, 768);
+    window->enableMaximized();
     window->set2DMode();
     window->getView()->setBackgroundColor(Color::Black());
     window->start();
