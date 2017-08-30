@@ -33,6 +33,12 @@ class DataPort {
         uint64_t getFrameCounter() const;
 
         /**
+         *
+         * @return the number of frames stored in this DataPort
+         */
+        uint getSize() const;
+
+        /**
          * If a process object does not execeute one update iteration; it should call this method.
          */
         void moveDataToNextTimestep();

@@ -458,4 +458,9 @@ int ProcessObject::getNrOfOutputPorts() const {
     return mOutputPorts.size();
 }
 
+void ProcessObject::setModified(bool modified) {
+    mIsModified = modified;
+
+}
+
 } // namespace fast

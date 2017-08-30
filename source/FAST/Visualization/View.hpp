@@ -47,6 +47,7 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
         View();
 		float get2DPixelSpacing();
         void setStreamingMode(StreamingMode mode);
+		std::vector<Renderer::pointer> getRenderers();
     private:
 
 		std::vector<Renderer::pointer> mNonVolumeRenderers;

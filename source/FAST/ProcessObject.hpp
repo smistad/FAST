@@ -65,6 +65,8 @@ class FAST_EXPORT  ProcessObject : public virtual Object {
          * Used to stop a pipeline.
          */
         void stopPipeline();
+
+        void setModified(bool modified);
     protected:
         ProcessObject();
         // Flag to indicate whether the object has been modified

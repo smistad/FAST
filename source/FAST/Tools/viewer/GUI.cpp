@@ -22,6 +22,19 @@
 #include <QDesktopWidget>
 #include <QApplication>
 
+#include <QProxyStyle>
+
+// Used to fix direct jump for QSlider
+class MyStyle : public QProxyStyle {
+    public:
+        using QProxyStyle::QProxyStyle;
+
+        int styleHint(QStyle::StyleHint hint, const QStyleOption* option = 0, const QWidget* widget = 0, QStyleHintReturn* returnData = 0) const {
+            if (hint == QStyle::SH_Slider_AbsoluteSetButtons)
+                return (Qt::LeftButton | Qt::MidButton | Qt::RightButton);
+            return QProxyStyle::styleHint(hint, option, widget, returnData);
+        }
+};
 
 namespace fast {
 
@@ -150,11 +163,30 @@ GUI::GUI() {
     playbackLayout->addWidget(mPlayPauseButton);
 
     mTimestepSlider = new QSlider(Qt::Horizontal);
+    // Improve style of slider
+    mTimestepSlider->setStyleSheet("QSlider:horizontal { min-height: 50px; } QSlider::groove:horizontal {\n"
+                                           "    border: 1px solid #999999;\n"
+                                           "    height: 10px; /* the groove expands to the size of the slider by default. by giving it a height, it has a fixed size */\n"
+                                           "    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #B1B1B1, stop:1 #c4c4c4);\n"
+                                           "    margin: 2px 0;\n"
+                                           "}\n"
+                                           "\n"
+                                           "QSlider::handle:horizontal {\n"
+                                           "    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #81BEF7, stop:1 #2E9AFE);\n"
+                                           "    border: 1px solid #5c5c5c;\n"
+                                           "    width: 18px;\n"
+                                           "    height: 25px;\n"
+                                           "    margin: -10px 0; /* handle is placed by default on the contents rect of the groove. Expand outside the groove */\n"
+                                           "    border-radius: 3px;\n"
+                                           "}");
     playbackLayout->addWidget(mTimestepSlider);
-    mTimestepSlider->setTickInterval(10);
+    mTimestepSlider->setTickPosition(QSlider::NoTicks);
     mTimestepSlider->setRange(0, 1234);
-    mTimestepSlider->setTickPosition(QSlider::TicksAbove);
+    mTimestepSlider->setPageStep(1);
+    mTimestepSlider->setSingleStep(1);
+    mTimestepSlider->setStyle(new MyStyle(mTimestepSlider->style())); // Fixes issues with direct jump with slider
     QObject::connect(mTimestepSlider, &QSlider::sliderMoved, std::bind(&GUI::setTimestep, this));
+    QObject::connect(mTimestepSlider, &QSlider::sliderPressed, std::bind(&GUI::setTimestep, this));
 
     viewLayout->addLayout(playbackLayout);
 
@@ -216,15 +248,21 @@ void GUI::selectPipeline() {
     }
     mStreamer = ImageFileStreamer::New();
     mStreamer->setFilenameFormats(inputData);
-    mStreamer->enableLooping();
-    mStreamer->setSleepTime(50);
+
+    // Preload the data
+    DataPort::pointer data = mStreamer->getOutputPort();
+    int timestep = 0;
+    mStreamer->update(0, STREAMING_MODE_STORE_ALL_FRAMES);
+    while(!mStreamer->hasReachedEnd()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
 
     getView(0)->removeAllRenderers();
 
     int selectedPipeline = mSelectPipeline->currentIndex();
     Pipeline pipeline = mPipelines.at(selectedPipeline);
     try {
-        std::vector<SharedPointer<Renderer>> renderers = pipeline.setup(mStreamer->getOutputPort());
+        std::vector<SharedPointer<Renderer>> renderers = pipeline.setup(data);
         for(auto renderer : renderers) {
             // A hack for text renderer which needs a reference to the view
             if(renderer->getNameOfClass() == "TextRenderer") {
@@ -241,11 +279,15 @@ void GUI::selectPipeline() {
         message->show();
     }
 
+
+
     startComputationThread();
-    mThread->setTimestepLimit(10);
+    mPlayPauseButton->setText("Pause");
+    mPlayPauseButton->setStyleSheet("QPushButton { background-color: red; color: white; }");
+    mThread->setTimestepLimit(data->getSize());
+    mTimestepSlider->setRange(0, data->getSize() - 1);
     mThread->setTimestepLoop(true);
     QObject::connect(mThread, &ComputationThread::timestepIncreased, std::bind(&GUI::increaseTimestep, this));
-
     /*
     PipelineWidget* pipelineWidget = new PipelineWidget(pipeline, mWidget);
     pipelineWidget->setFixedWidth(menuWidth);
@@ -267,6 +309,9 @@ void GUI::setTimestep() {
     mPlayPauseButton->setText("Play");
     mPlayPauseButton->setStyleSheet("QPushButton { background-color: green; color: white; }");
     mThread->setTimestep(mTimestepSlider->sliderPosition());
+    for(auto renderer : getView(0)->getRenderers()) {
+        renderer->setModified(true);
+    }
 }
 
 void GUI::selectInputData() {

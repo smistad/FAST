@@ -1286,6 +1286,12 @@ fun->glDetachShader(programGLSL, vertexShader);
 fun->glDetachShader(programGLSL, fragmentShader);
 }
 
+std::vector<Renderer::pointer> View::getRenderers() {
+    std::vector<Renderer::pointer> newList = mNonVolumeRenderers;
+    newList.insert(newList.cend(), mVolumeRenderers.begin (), mVolumeRenderers.end());
+    return newList;
+}
+
 /********************************************************************************************************/
 /********************************************************************************************************/
 /********************************************************************************************************/

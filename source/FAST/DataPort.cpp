@@ -25,7 +25,7 @@ void DataPort::addFrame(DataObject::pointer object) {
     } else if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES) {
         if(!mIsStaticData) {
             // If data is not static, use semaphore to check if available space for a new frame
-            std::cout << mProcessObject->getNameOfClass() + " waiting to add " << mCurrentTimestep << " (" << mFrameCounter << ") " << std::endl;
+            std::cout << mProcessObject->getNameOfClass() + " waiting to add " << mCurrentTimestep << " (" << mFrameCounter << ") PROCESS_ALL_FRAMES" << std::endl;
             if(!mGetCalled && mFillCount->getCount() == mMaximumNumberOfFrames)
                 Reporter::error() << "EXECUTION BLOCKED by DataPort from " << mProcessObject->getNameOfClass() << ". Do you have a DataPort object that is not used?" << Reporter::end();
             mEmptyCount->wait();
@@ -59,7 +59,7 @@ void DataPort::addFrame(DataObject::pointer object) {
             std::lock_guard<std::mutex> lock(mMutex);
             if(mCurrentTimestep > mFrameCounter)
                 mFrameCounter = mCurrentTimestep;
-            std::cout << mProcessObject->getNameOfClass() + " adding frame with nr " << mFrameCounter << std::endl;
+            std::cout << mProcessObject->getNameOfClass() + " STORE_ALL_FRAMES adding frame with nr " << mFrameCounter << std::endl;
             mFrames[mFrameCounter] = object;
             mFrameCounter++;
         }
@@ -118,8 +118,6 @@ DataObject::pointer DataPort::getNextFrame() {
 
         lock.unlock();
     }
-
-    setChanged(true);
 
     if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES && !mIsStaticData)
         mEmptyCount->signal();
@@ -192,6 +190,10 @@ void DataPort::stop() {
 
 bool DataPort::hasCurrentData() {
     return mFrames.count(mCurrentTimestep) > 0;
+}
+
+uint DataPort::getSize() const {
+    return mFrames.size();
 }
 
 } // end namespace fast
