@@ -16,13 +16,13 @@ int main() {
     Reporter::setGlobalReportMethod(Reporter::COUT);
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
     streamer->setFilenameFormats({
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KT70I/US-2D_#.mhd", // temporal issues
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KT80M/US-2D_#.mhd", // Left atrium fail
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KT88O/US-2D_#.mhd", // Left atrium fail
                                          "/media/extra/GRUE_MHD/Clinic007/F47KT50C/US-2D_#.mhd",
                                          "/media/extra/GRUE_MHD/Clinic007/F47KT7OK/US-2D_#.mhd",
                                          "/media/extra/GRUE_MHD/Clinic007/F47KT5OE/US-2D_#.mhd",
                                          "/media/extra/GRUE_MHD/Clinic007/F47KT6GG/US-2D_#.mhd",
-                                         //"/media/extra/GRUE_MHD/Clinic007/F47KT70I/US-2D_#.mhd",
-                                         //"/media/extra/GRUE_MHD/Clinic007/F47KT80M/US-2D_#.mhd",
-                                         //"/media/extra/GRUE_MHD/Clinic007/F47KT88O/US-2D_#.mhd",
                                          "/media/extra/GRUE_MHD/Clinic007/F47KT98S/US-2D_#.mhd",
                                          "/media/extra/GRUE_MHD/Clinic007/F47KTA0U/US-2D_#.mhd",
                                          "/media/extra/GRUE_MHD/Clinic007/F47KTD1I/US-2D_#.mhd",
@@ -95,7 +95,10 @@ int main() {
 
     PixelClassifier::pointer segmentation = PixelClassifier::New();
     segmentation->setNrOfClasses(4);
-    segmentation->load("/home/smistad/workspace/acnn-heart-segmentation/models/tensorflow_segmentation_model.pb");
+    segmentation->setRememberFrames(3);
+    segmentation->load("/home/smistad/workspace/acnn-heart-segmentation/models/tensorflow_recurrent_segmentation_model_sm_0.pb");
+    segmentation->setInputName("input_1");
+    //segmentation->load("/home/smistad/workspace/acnn-heart-segmentation/models/tensorflow_segmentation_model.pb");
     segmentation->setInputSize(256, 256);
     segmentation->setScaleFactor(1.0f/255.0f);
     segmentation->setOutputParameters({"conv2d_23/truediv"});

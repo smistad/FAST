@@ -40,7 +40,8 @@ void NeuralNetwork::load(std::string networkFilename) {
 	}
 
 	// Assume first node is input node
-	mInputName = tensorflow_graph.node(0).name();
+	if(mInputName == "")
+        mInputName = tensorflow_graph.node(0).name();
     for(int i = 0; i < tensorflow_graph.node_size(); ++i) {
 		tensorflow::NodeDef node = tensorflow_graph.node(i);
         //reportInfo() << "Node " << i << " with name " << node.name() << reportEnd();
@@ -94,8 +95,17 @@ NeuralNetwork::NeuralNetwork() {
 }
 
 void NeuralNetwork::execute() {
-    mImage = getInputData<Image>();
-	std::vector<Image::pointer> images = {mImage};//getMultipleStaticInputData<Image>();
+    Image::pointer image = getInputData<Image>();
+
+	mImages.push_back(image);
+    while(mImages.size() < mFramesToRemember)
+		mImages.push_back(image);
+	while(mImages.size() > mFramesToRemember)
+		mImages.pop_front();
+
+	std::vector<Image::pointer> images;
+    for(int i = 0; i < mImages.size(); ++i)
+		images.push_back(mImages[i]);
 
 	if(mWidth < 0 || mHeight < 0)
 		throw Exception("Network input layer width and height has to be specified before running the network");
@@ -133,36 +143,69 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 	if(mOutputNames.size() == 0)
 		throw Exception("An output name must ge given to the NeuralNetwork before execution");
 
-    int batchSize = images.size();
+    int batchSize = 1;//images.size();
 	if(batchSize == 0)
 		throw Exception("Need at least one image to execute network.");
 
 	// Create input tensor
+	tensorflow::TensorShape shape = tensorflow::TensorShape({batchSize, mHeight, mWidth, 1});
+	if(mFramesToRemember > 1)
+		shape = tensorflow::TensorShape({batchSize, mFramesToRemember, mHeight, mWidth, 1});
 	tensorflow::Tensor input_tensor(
 			tensorflow::DT_FLOAT,
-			tensorflow::TensorShape({batchSize, mHeight, mWidth, 1})
+			shape
 	);
 
-	auto input_tensor_mapped = input_tensor.tensor<float, 4>();
+    if(mFramesToRemember > 1) {
+        auto input_tensor_mapped = input_tensor.tensor<float, 5>();
 
-	mRuntimeManager->startRegularTimer("input_data_copy");
-	reportInfo() << "TensorFlow: Copying Data." << reportEnd();
-	for(int n = 0; n < batchSize; ++n) {
-		Image::pointer image = images[n];
-		if (image->getWidth() != mWidth || image->getHeight() != mHeight)
-			throw Exception("Input image sent to executeNetwork was of incrorrect size");
+		mRuntimeManager->startRegularTimer("input_data_copy");
+		reportInfo() << "TensorFlow: Copying Data." << reportEnd();
+		for(int n = 0; n < batchSize; ++n) {
+            for(int t = 0; t < images.size(); ++t) {
+				Image::pointer image = images[t];
+				if(image->getWidth() != mWidth || image->getHeight() != mHeight)
+					throw Exception("Input image sent to executeNetwork was of incrorrect size");
 
-		ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
-        if(mHorizontalImageFlipping) {
-			for(int i = 0; i < mHeight; ++i) { // y
-				for(int j = 0; j < mWidth; ++j) { // x
-					input_tensor_mapped(n, i, mWidth - j - 1, 0) = access->getScalar(Vector2i(j, i)) * mScaleFactor;
+				ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
+				if(mHorizontalImageFlipping) {
+					for(int i = 0; i < mHeight; ++i) { // y
+						for(int j = 0; j < mWidth; ++j) { // x
+							input_tensor_mapped(n, t, i, mWidth - j - 1, 0) =
+                                access->getScalar(Vector2i(j, i)) * mScaleFactor;
+						}
+					}
+				} else {
+					for(int i = 0; i < mHeight; ++i) { // y
+						for(int j = 0; j < mWidth; ++j) { // x
+							input_tensor_mapped(n, t, i, j, 0) = access->getScalar(Vector2i(j, i)) * mScaleFactor;
+						}
+					}
 				}
 			}
-		} else {
-			for(int i = 0; i < mHeight; ++i) { // y
-				for(int j = 0; j < mWidth; ++j) { // x
-					input_tensor_mapped(n, i, j, 0) = access->getScalar(Vector2i(j, i)) * mScaleFactor;
+		}
+	} else {
+		auto input_tensor_mapped = input_tensor.tensor<float, 4>();
+
+		mRuntimeManager->startRegularTimer("input_data_copy");
+		reportInfo() << "TensorFlow: Copying Data." << reportEnd();
+		for(int n = 0; n < batchSize; ++n) {
+			Image::pointer image = images[n];
+			if(image->getWidth() != mWidth || image->getHeight() != mHeight)
+				throw Exception("Input image sent to executeNetwork was of incrorrect size");
+
+			ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
+			if(mHorizontalImageFlipping) {
+				for(int i = 0; i < mHeight; ++i) { // y
+					for(int j = 0; j < mWidth; ++j) { // x
+						input_tensor_mapped(n, i, mWidth - j - 1, 0) = access->getScalar(Vector2i(j, i)) * mScaleFactor;
+					}
+				}
+			} else {
+				for(int i = 0; i < mHeight; ++i) { // y
+					for(int j = 0; j < mWidth; ++j) { // x
+						input_tensor_mapped(n, i, j, 0) = access->getScalar(Vector2i(j, i)) * mScaleFactor;
+					}
 				}
 			}
 		}
@@ -240,6 +283,17 @@ void NeuralNetwork::loadAttributes() {
 	std::vector<std::string> outputNames = getStringListAttribute("output_names");
 	setOutputParameters(outputNames);
 	setScaleFactor(getFloatAttribute("scale_factor"));
+}
+
+void NeuralNetwork::setRememberFrames(uint nrOfFrames) {
+	if(nrOfFrames < 1) {
+        throw Exception("Remember frames has to be > 0.");
+	}
+	mFramesToRemember = nrOfFrames;
+}
+
+void NeuralNetwork::setInputName(std::string inputName) {
+	mInputName = inputName;
 }
 
 };
