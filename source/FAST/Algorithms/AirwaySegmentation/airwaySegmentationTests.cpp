@@ -56,7 +56,6 @@ TEST_CASE("Airway segmentation", "[fast][AirwaySegmentation][visual]") {
 
 	CenterlineExtraction::pointer centerline = CenterlineExtraction::New();
 	centerline->setInputConnection(segmentation->getOutputPort());
-	centerline->update();
 
 	SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
 	extraction->setInputConnection(segmentation->getOutputPort());

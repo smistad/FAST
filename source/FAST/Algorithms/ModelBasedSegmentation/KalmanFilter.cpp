@@ -38,7 +38,7 @@ void KalmanFilter::execute() {
 	if(!mShapeModel.isValid() || !mAppearanceModel.isValid())
 		throw Exception("Shape and appearance model must be given to the Kalman filter before execution.");
 
-	Image::pointer image = getStaticInputData<Image>();
+	Image::pointer image = getInputData<Image>();
 
 	if(!mInitialized) {
 		// Initialize state using shape model
@@ -65,11 +65,11 @@ void KalmanFilter::execute() {
     reportInfo() << "Finished one round of Kalman filter" << reportEnd();
     if(mOutputDisplacements) {
     	Mesh::pointer displacements = getDisplacementVectors(image);
-		setStaticOutputData<Mesh>(1, displacements);
+		addOutputData(1, displacements);
     }
 
 	Shape::pointer shape = mShapeModel->getShape(mCurrentState);
-	setStaticOutputData<Mesh>(0, shape->getMesh());
+	addOutputData(0, shape->getMesh());
 }
 
 Mesh::pointer KalmanFilter::getDisplacementVectors(Image::pointer image) {
@@ -105,8 +105,8 @@ Mesh::pointer KalmanFilter::getDisplacementVectors(Image::pointer image) {
 
 KalmanFilter::KalmanFilter() {
 	createInputPort<Image>(0);
-	createOutputPort<Mesh>(0, OUTPUT_DEPENDS_ON_INPUT, 0); // Segmentation
-	createOutputPort<Mesh>(1, OUTPUT_DEPENDS_ON_INPUT, 0); // Displacement
+	createOutputPort<Mesh>(0); // Segmentation
+	createOutputPort<Mesh>(1); // Displacement
 
 	mInitialized = false;
 	mFirstExecute = true;
@@ -115,11 +115,11 @@ KalmanFilter::KalmanFilter() {
 	mIterations = 5;
 }
 
-ProcessObjectPort KalmanFilter::getSegmentationOutputPort() {
+DataPort::pointer KalmanFilter::getSegmentationOutputPort() {
 	return getOutputPort(0);
 }
 
-ProcessObjectPort KalmanFilter::getDisplacementsOutputPort() {
+DataPort::pointer KalmanFilter::getDisplacementsOutputPort() {
 	mOutputDisplacements = true;
 	return getOutputPort(1);
 }

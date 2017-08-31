@@ -13,12 +13,10 @@ class FAST_EXPORT  HeatmapRenderer : public Renderer {
     public:
         void setMinConfidence(float confidence);
         void setMaxOpacity(float opacity);
-        void addInputConnection(ProcessObjectPort port, Color color = Color::Red());
-        BoundingBox getBoundingBox();
+        uint addInputConnection(DataPort::pointer port, Color color = Color::Red());
     private:
         HeatmapRenderer();
-        void execute();
-        void draw();
+        void draw() override;
         void draw2D(
                 cl::Buffer PBO,
                 uint width,
@@ -26,11 +24,9 @@ class FAST_EXPORT  HeatmapRenderer : public Renderer {
                 Affine3f pixelToViewportTransform,
                 float PBOspacing,
                 Vector2f translation
-        );
+        ) override;
 
-        std::unordered_map<uint, SharedPointer<Image> > mImagesToRender;
         std::unordered_map<uint, Color> mColors;
-        std::mutex mMutex;
         float mMaxOpacity = 0.4;
         float mMinConfidence = 0.0f;
 };

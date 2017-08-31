@@ -16,13 +16,13 @@ int main() {
     Reporter::setGlobalReportMethod(Reporter::COUT);
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
     streamer->setFilenameFormats({
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KT70I/US-2D_#.mhd", // temporal issues
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KT80M/US-2D_#.mhd", // Left atrium fail
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KT88O/US-2D_#.mhd", // Left atrium fail
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KT50C/US-2D_#.mhd",
+                                         "/media/extra/GRUE_MHD/Clinic007/F47KT7OK/US-2D_#.mhd",
                                          "/media/extra/GRUE_MHD/Clinic007/F47KT5OE/US-2D_#.mhd",
                                          "/media/extra/GRUE_MHD/Clinic007/F47KT6GG/US-2D_#.mhd",
-                                         "/media/extra/GRUE_MHD/Clinic007/F47KT7OK/US-2D_#.mhd",
-                                         "/media/extra/GRUE_MHD/Clinic007/F47KT50C/US-2D_#.mhd",
-                                         "/media/extra/GRUE_MHD/Clinic007/F47KT70I/US-2D_#.mhd",
-                                         "/media/extra/GRUE_MHD/Clinic007/F47KT80M/US-2D_#.mhd",
-                                         "/media/extra/GRUE_MHD/Clinic007/F47KT88O/US-2D_#.mhd",
                                          "/media/extra/GRUE_MHD/Clinic007/F47KT98S/US-2D_#.mhd",
                                          "/media/extra/GRUE_MHD/Clinic007/F47KTA0U/US-2D_#.mhd",
                                          "/media/extra/GRUE_MHD/Clinic007/F47KTD1I/US-2D_#.mhd",
@@ -92,11 +92,13 @@ int main() {
     });
     streamer->enableLooping();
     //streamer->setSleepTime(50);
-    streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
     PixelClassifier::pointer segmentation = PixelClassifier::New();
     segmentation->setNrOfClasses(4);
-    segmentation->load("/home/smistad/workspace/acnn-heart-segmentation/models/tensorflow_segmentation_model.pb");
+    segmentation->setRememberFrames(3);
+    segmentation->load("/home/smistad/workspace/acnn-heart-segmentation/models/tensorflow_recurrent_segmentation_model_sm_0.pb");
+    segmentation->setInputName("input_1");
+    //segmentation->load("/home/smistad/workspace/acnn-heart-segmentation/models/tensorflow_segmentation_model.pb");
     segmentation->setInputSize(256, 256);
     segmentation->setScaleFactor(1.0f/255.0f);
     segmentation->setOutputParameters({"conv2d_23/truediv"});
@@ -104,9 +106,9 @@ int main() {
     segmentation->setHeatmapOutput();
     segmentation->enableRuntimeMeasurements();
 
-    SegmentationRenderer::pointer segmentationRenderer = SegmentationRenderer::New();
-    segmentationRenderer->setFillArea(false);
-    segmentationRenderer->setInputConnection(segmentation->getOutputPort(1));
+    //SegmentationRenderer::pointer segmentationRenderer = SegmentationRenderer::New();
+    //segmentationRenderer->setFillArea(false);
+    //segmentationRenderer->setInputConnection(segmentation->getOutputPort(1));
 
     ImageRenderer::pointer imageRenderer = ImageRenderer::New();
     imageRenderer->setInputConnection(streamer->getOutputPort());
@@ -121,7 +123,8 @@ int main() {
     window->addRenderer(imageRenderer);
     //window->addRenderer(segmentationRenderer);
     window->addRenderer(heatmapRenderer);
-    window->setSize(1024, 1024);
+    window->setSize(1024, 768);
+    window->enableMaximized();
     window->set2DMode();
     window->getView()->setBackgroundColor(Color::Black());
     window->start();

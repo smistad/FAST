@@ -52,7 +52,7 @@ int VTKImageExporter::RequestData(
 
     update(); // Run FAST pipeline
 
-    Image::pointer input = getStaticInputData<Image>();
+    Image::pointer input = getInputData<Image>();
 
     if(input->getNrOfComponents() != 1)
         throw Exception("The VTKImageExporter currently doesn't support images with multiple components.");

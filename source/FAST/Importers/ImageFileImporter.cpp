@@ -13,7 +13,7 @@ void ImageFileImporter::setFilename(std::string filename) {
 
 ImageFileImporter::ImageFileImporter() {
     mFilename = "";
-    createOutputPort<Image>(0, OUTPUT_STATIC);
+    createOutputPort<Image>(0);
 }
 
 inline bool matchExtension(std::string extension, std::string extension2) {
@@ -32,20 +32,20 @@ void ImageFileImporter::execute() {
     if(matchExtension(ext, "mhd")) {
         MetaImageImporter::pointer importer = MetaImageImporter::New();
         importer->setFilename(mFilename);
-        importer->update(); // Have to to update because otherwise getInputData will not be available
-        // Set input to be output
-        Image::pointer data = importer->getOutputData<Image>();
-        setOutputData(0, data);
+        DataPort::pointer port = importer->getOutputPort();
+        importer->update(0); // Have to to update because otherwise the data will not be available
+        Image::pointer data = port->getNextFrame();
+        addOutputData(0, data);
     } else if(matchExtension(ext, "jpg") ||
             matchExtension(ext, "jpeg") ||
             matchExtension(ext, "png") ||
             matchExtension(ext, "bmp")) {
         ImageImporter::pointer importer = ImageImporter::New();
         importer->setFilename(mFilename);
-        importer->update();// Have to to update because otherwise getInputData will not be available
-        // Set input to be output
-        Image::pointer data = importer->getOutputData<Image>();
-        setOutputData(0, data);
+        DataPort::pointer port = importer->getOutputPort();
+        importer->update(0); // Have to to update because otherwise the data will not be available
+        Image::pointer data = port->getNextFrame();
+        addOutputData(0, data);
     } else {
         throw Exception("The ImageFileImporter does not recognize the file extension " + ext);
     }

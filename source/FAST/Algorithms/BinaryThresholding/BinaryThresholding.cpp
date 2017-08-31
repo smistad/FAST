@@ -19,7 +19,7 @@ BinaryThresholding::BinaryThresholding() {
     mLowerThresholdSet = false;
     mUpperThresholdSet = false;
     createInputPort<Image>(0);
-    createOutputPort<Segmentation>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOutputPort<Segmentation>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/BinaryThresholding/BinaryThresholding3D.cl", "3D");
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/BinaryThresholding/BinaryThresholding2D.cl", "2D");
 }
@@ -29,8 +29,8 @@ void BinaryThresholding::execute() {
         throw Exception("BinaryThresholding need at least one threshold to be set.");
     }
 
-    Image::pointer input = getStaticInputData<Image>(0);
-    Segmentation::pointer output = getStaticOutputData<Segmentation>(0);
+    Image::pointer input = getInputData<Image>(0);
+    Segmentation::pointer output = getOutputData<Segmentation>(0);
 
     output->createFromImage(input);
 

@@ -10,7 +10,7 @@ TEST_CASE("Run ImageGradient on 2D image and OpenCL device", "[fast][ImageGradie
 
     ImageGradient::pointer gradientFilter = ImageGradient::New();
     gradientFilter->setInputConnection(importer->getOutputPort());
-    CHECK_NOTHROW(gradientFilter->update());
+    CHECK_NOTHROW(gradientFilter->update(0));
 }
 
 TEST_CASE("Run ImageGradient on 2D image and OpenCL device 16 bit", "[fast][ImageGradient]") {
@@ -20,5 +20,5 @@ TEST_CASE("Run ImageGradient on 2D image and OpenCL device 16 bit", "[fast][Imag
     ImageGradient::pointer gradientFilter = ImageGradient::New();
     gradientFilter->set16bitStorageFormat();
     gradientFilter->setInputConnection(importer->getOutputPort());
-    CHECK_NOTHROW(gradientFilter->update());
+    CHECK_NOTHROW(gradientFilter->update(0));
 }

@@ -133,7 +133,7 @@ ImageImporter::ImageImporter() {
     mFilename = "";
     mIsModified = true;
     mGrayscale = true;
-    createOutputPort<Image>(0, OUTPUT_STATIC);
+    createOutputPort<Image>(0);
 }
 
 void ImageImporter::setGrayscale(bool grayscale) {

@@ -13,15 +13,12 @@ namespace fast {
 class FAST_EXPORT  SegmentationRenderer : public Renderer {
     FAST_OBJECT(SegmentationRenderer)
     public:
-        void addInputConnection(ProcessObjectPort port);
-        BoundingBox getBoundingBox();
         void setColor(Segmentation::LabelType, Color);
         void setFillArea(Segmentation::LabelType, bool);
         void setFillArea(bool fillArea);
     private:
         SegmentationRenderer();
-        void execute();
-        void draw();
+        void draw() override;
         void draw2D(
                 cl::Buffer PBO,
                 uint width,
@@ -29,18 +26,15 @@ class FAST_EXPORT  SegmentationRenderer : public Renderer {
                 Affine3f pixelToViewportTransform,
                 float PBOspacing,
                 Vector2f translation
-        );
+        ) override;
 
         bool mColorsModified;
         bool mFillAreaModified;
 
-        std::unordered_map<uint, Image::pointer> mImagesToRender;
         std::unordered_map<int, Color> mLabelColors;
         std::unordered_map<int, bool> mLabelFillArea;
         bool mFillArea;
         cl::Buffer mColorBuffer, mFillAreaBuffer;
-        std::mutex mMutex;
-
 };
 
 } // end namespace fast

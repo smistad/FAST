@@ -13,7 +13,7 @@ namespace fast {
 class FAST_EXPORT  VolumeRenderer : public Renderer {
     FAST_OBJECT(VolumeRenderer)
     public:
-        void addInputConnection(ProcessObjectPort port);
+        uint addInputConnection(DataPort::pointer port) override;
 		void setColorTransferFunction(int volumeIndex, ColorTransferFunction::pointer ctf);
 		void setOpacityTransferFunction(int volumeIndex, OpacityTransferFunction::pointer otf);
 		void setModelViewMatrix(GLfloat mView[16]);

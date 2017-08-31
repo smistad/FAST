@@ -39,10 +39,10 @@ class ProcessObject : public Object {
         void setInputConnection(ProcessObjectPort port);
         void setInputConnection(uint connectionID, ProcessObjectPort port);
         template <class T>
-        SharedPointer<T> getStaticOutputData();
+        SharedPointer<T> getOutputData();
         template <class T>
-        SharedPointer<T> getStaticOutputData(int port);
-        %template(getStaticImageOutputData) getStaticOutputData<Image>;
+        SharedPointer<T> getOutputData(int port);
+        %template(getStaticImageOutputData) getOutputData<Image>;
 
         template <class T>
         SharedPointer<DataObject> getOutputData();

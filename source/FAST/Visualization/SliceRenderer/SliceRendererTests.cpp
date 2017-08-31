@@ -8,7 +8,7 @@ using namespace fast;
 
 TEST_CASE("SliceRenderer with no input throws exception", "[fast][SliceRenderer]") {
     SliceRenderer::pointer renderer = SliceRenderer::New();
-    CHECK_THROWS(renderer->update());
+    CHECK_THROWS(renderer->update(0));
 }
 
 TEST_CASE("SliceRenderer on static data with no parameters set", "[fast][SliceRenderer][visual]") {

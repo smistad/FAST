@@ -28,7 +28,7 @@ void TextRenderer::setView(View* view) {
 void TextRenderer::execute() {
     std::lock_guard<std::mutex> lock(mMutex);
 
-    Text::pointer text = getStaticInputData<Text>();
+    Text::pointer text = getInputData<Text>();
     Text::access access = text->getAccess(ACCESS_READ);
     mText = access->getData();
 }

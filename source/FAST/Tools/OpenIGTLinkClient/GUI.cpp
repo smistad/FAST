@@ -21,7 +21,6 @@
 namespace fast {
 
 GUI::GUI() {
-
     menuWidth = getScreenWidth()/6;
 
     mClient = OpenIGTLinkClient::New();
@@ -168,12 +167,12 @@ GUI::GUI() {
     mSelectPipeline->setCurrentIndex(index);
 
     menuLayout->addWidget(mSelectPipeline);
-    QObject::connect(mSelectPipeline, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), std::bind(&GUI::selectPipeline, this));
+    QObject::connect(mSelectPipeline, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), std::bind(&GUI::selectStream, this));
 
     QPushButton* refreshPipeline = new QPushButton;
     refreshPipeline->setText("Refresh pipeline");
     refreshPipeline->setStyleSheet("QPushButton { background-color: blue; color: white; }");
-    QObject::connect(refreshPipeline, &QPushButton::clicked, std::bind(&GUI::selectPipeline, this));
+    QObject::connect(refreshPipeline, &QPushButton::clicked, std::bind(&GUI::selectStream, this));
     menuLayout->addWidget(refreshPipeline);
 
     QPushButton* editPipeline = new QPushButton;
@@ -198,14 +197,12 @@ void GUI::editPipeline() {
     int selectedPipeline = mSelectPipeline->currentIndex();
     Pipeline pipeline = mPipelines.at(selectedPipeline);
     PipelineEditor* editor = new PipelineEditor(pipeline.getFilename());
-    QObject::connect(editor, &PipelineEditor::saved, std::bind(&GUI::selectPipeline, this));
+    QObject::connect(editor, &PipelineEditor::saved, std::bind(&GUI::selectStream, this));
     editor->show();
 }
 
 void GUI::selectPipeline() {
     // Stop computation thread before removing renderers
-    stopComputationThread();
-    getView(0)->removeAllRenderers();
 
     int selectedPipeline = mSelectPipeline->currentIndex();
     Pipeline pipeline = mPipelines.at(selectedPipeline);
@@ -226,7 +223,6 @@ void GUI::selectPipeline() {
         message->show();
     }
 
-    startComputationThread();
 
     /*
     PipelineWidget* pipelineWidget = new PipelineWidget(pipeline, mWidget);
@@ -243,15 +239,11 @@ void GUI::selectPipeline() {
 }
 
 void GUI::selectStream() {
-    std::string streamName = mStreamNames[mSelectStream->currentIndex()];
-    reportInfo() << "Changing to " << streamName << " stream " << reportEnd();
-
-    // Stop computation thread before removing renderers
+    mStreamer->stop();
     stopComputationThread();
     getView(0)->removeAllRenderers();
-    mStreamer->stop(); // This should probably block until it has stopped
-    reportInfo() << "Disconnected" << reportEnd();
-    startComputationThread();
+    std::string streamName = mStreamNames[mSelectStream->currentIndex()];
+    reportInfo() << "Changing to " << streamName << " stream " << reportEnd();
 
     reportInfo() << "Trying to connect..." << reportEnd();
     mStreamer = IGTLinkStreamer::New();
@@ -259,7 +251,7 @@ void GUI::selectStream() {
     mStreamer->setConnectionPort(std::stoi(mPort->text().toUtf8().constData()));
     mClient->setInputConnection(mStreamer->getOutputPort<Image>(streamName));
     try {
-        mStreamer->update();
+        mStreamer->update(0);
     } catch(Exception &e) {
         QMessageBox* message = new QMessageBox;
         message->setWindowTitle("Error");
@@ -270,8 +262,8 @@ void GUI::selectStream() {
     reportInfo() << "Connected to OpenIGTLink server." << reportEnd();
 
     selectPipeline();
-    // This causes seg fault for some reason... wrong thread maybe?
-    //getView(0)->reinitialize();
+    getView(0)->reinitialize();
+    startComputationThread();
 
     recordButton->setFocus();
     //refreshStreams();
@@ -294,13 +286,15 @@ void GUI::connect() {
         connectButton->setFocus();
         mSelectStream->clear();
     } else {
+        stopComputationThread();
+        getView(0)->removeAllRenderers();
         reportInfo() << "Trying to connect..." << reportEnd();
         mStreamer = IGTLinkStreamer::New();
         mStreamer->setConnectionAddress(mAddress->text().toUtf8().constData());
         mStreamer->setConnectionPort(std::stoi(mPort->text().toUtf8().constData()));
         mClient->setInputConnection(mStreamer->getOutputPort());
         try {
-            mStreamer->update();
+            mStreamer->update(0);
         } catch(Exception &e) {
             QMessageBox* message = new QMessageBox;
             message->setWindowTitle("Error");
@@ -310,14 +304,9 @@ void GUI::connect() {
         }
         reportInfo() << "Connected to OpenIGTLink server." << reportEnd();
 
-        // TODO This part before selectPipeline should be unnecessary, but reinitialize seg faults if not
-        ImageRenderer::pointer renderer = ImageRenderer::New();
-        renderer->addInputConnection(mClient->getOutputPort());
-
-        getView(0)->addRenderer(renderer);
-        getView(0)->reinitialize();
-
         selectPipeline();
+        getView(0)->reinitialize();
+        startComputationThread();
 
         connectButton->setText("Disconnect");
         connectButton->setStyleSheet("QPushButton { background-color: red; color: white; }");

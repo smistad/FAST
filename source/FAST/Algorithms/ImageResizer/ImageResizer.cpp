@@ -35,7 +35,7 @@ void ImageResizer::setPreserveAspectRatio(bool preserve) {
 
 ImageResizer::ImageResizer() {
 	createInputPort<Image>(0);
-	createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+	createOutputPort<Image>(0);
 
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageResizer/ImageResizer.cl");
 
@@ -44,8 +44,8 @@ ImageResizer::ImageResizer() {
 }
 
 void ImageResizer::execute() {
-    Image::pointer input = getStaticInputData<Image>();
-    Image::pointer output = getStaticOutputData<Image>();
+    Image::pointer input = getInputData<Image>();
+    Image::pointer output = getOutputData<Image>();
 
     if(mSize.x() <= 0 || mSize.y() <= 0)
     	throw Exception("Desired size must be provided to ImageResizer");

@@ -29,7 +29,7 @@ int VTKMeshExporter::RequestData(
 
     update(); // Run FAST pipeline
 
-    Mesh::pointer input = getStaticInputData<Mesh>();
+    Mesh::pointer input = getInputData<Mesh>();
     MeshAccess::pointer access = input->getMeshAccess(ACCESS_READ);
 
     vtkInformation *outInfo = outputVector->GetInformationObject(0);

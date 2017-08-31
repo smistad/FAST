@@ -161,7 +161,7 @@ GUI::~GUI() {
 }
 
 
-inline igtl::ImageMessage::Pointer createIGTLImageMessage(Image::pointer image) {
+static igtl::ImageMessage::Pointer createIGTLImageMessage(Image::pointer image) {
     // size parameters
     int   size[3]     = {(int)image->getWidth(), (int)image->getHeight(), (int)image->getDepth()};       // image dimension
     float spacing[3]  = {image->getSpacing().x(), image->getSpacing().y(), image->getSpacing().z()};     // spacing (mm/pixel)
@@ -239,9 +239,7 @@ void GUI::streamData() {
                 ImageFileStreamer::pointer dataStreamer = ImageFileStreamer::New();
                 dataStreamer->enableLooping();
                 dataStreamer->setFilenameFormats(mFilenameFormats);
-                dataStreamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
-                dataStreamer->update();
-                DynamicData::pointer dataStream = dataStreamer->getOutputData<Image>();
+                DataPort::pointer dataStream = dataStreamer->getOutputPort();
                 long unsigned int framesSent = 0;
                 while(true) {
                     if(mStop) {
@@ -249,7 +247,8 @@ void GUI::streamData() {
                     }
 
                     // Stream images
-                    Image::pointer image = dataStream->getNextFrame(dummy);
+                    dataStreamer->update(framesSent, STREAMING_MODE_PROCESS_ALL_FRAMES);
+                    Image::pointer image = dataStream->getNextFrame();
 
                     // Create a new IMAGE type message
                     igtl::ImageMessage::Pointer imgMsg = createIGTLImageMessage(image);

@@ -16,9 +16,8 @@ void LineRenderer::draw() {
     std::lock_guard<std::mutex> lock(mMutex);
 
     // For all input data
-    std::unordered_map<uint, Mesh::pointer>::iterator it;
-    for(it = mMeshsToRender.begin(); it != mMeshsToRender.end(); it++) {
-        Mesh::pointer points = it->second;
+    for(auto it : mDataToRender) {
+        Mesh::pointer points = it.second;
         MeshAccess::pointer access = points->getMeshAccess(ACCESS_READ);
 
         AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(points);
@@ -26,23 +25,21 @@ void LineRenderer::draw() {
         glPushMatrix();
         glMultMatrixf(transform->getTransform().data());
 
-        ProcessObjectPort port = getInputPort(it->first);
-
-        if(mInputWidths.count(port) > 0) {
-            glLineWidth(mInputWidths[port]);
+        if(mInputWidths.count(it.first) > 0) {
+            glLineWidth(mInputWidths[it.first]);
         } else {
             glLineWidth(mDefaultLineWidth);
         }
-        if(mInputColors.count(port) > 0) {
-            Color c = mInputColors[port];
+        if(mInputColors.count(it.first) > 0) {
+            Color c = mInputColors[it.first];
             glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
         } else {
             Color c = mDefaultColor;
             glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
         }
         bool drawOnTop;
-        if(mInputDrawOnTop.count(port) > 0) {
-            drawOnTop = mInputDrawOnTop[port];
+        if(mInputDrawOnTop.count(it.first) > 0) {
+            drawOnTop = mInputDrawOnTop[it.first];
         } else {
             drawOnTop = mDefaultDrawOnTop;
         }
@@ -63,18 +60,6 @@ void LineRenderer::draw() {
     glColor3f(1.0f, 1.0f, 1.0f); // Reset color
 }
 
-BoundingBox LineRenderer::getBoundingBox() {
-    std::vector<Vector3f> coordinates;
-    for(uint i = 0; i < getNrOfInputData(); i++) {
-        BoundingBox transformedBoundingBox = getStaticInputData<Mesh>(i)->getTransformedBoundingBox();
-        MatrixXf corners = transformedBoundingBox.getCorners();
-        for(uint j = 0; j < 8; j++) {
-            coordinates.push_back((Vector3f)corners.row(j));
-        }
-    }
-    return BoundingBox(coordinates);
-}
-
 LineRenderer::LineRenderer() {
     createInputPort<Mesh>(0, false);
     mDefaultLineWidth = 2;
@@ -82,31 +67,16 @@ LineRenderer::LineRenderer() {
     mDefaultDrawOnTop = false;
 }
 
-void LineRenderer::execute() {
-    std::lock_guard<std::mutex> lock(mMutex);
-
-    // This simply gets the input data for each connection and puts it into a data structure
-    for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
-        Mesh::pointer input = getStaticInputData<Mesh>(inputNr);
-        mMeshsToRender[inputNr] = input;
-    }
+uint LineRenderer::addInputConnection(DataPort::pointer port) {
+    return Renderer::addInputConnection(port);
 }
 
-
-void LineRenderer::addInputConnection(ProcessObjectPort port) {
-    uint nr = getNrOfInputData();
-    if(nr > 0)
-        createInputPort<Mesh>(nr);
-    releaseInputAfterExecute(nr, false);
-    setInputConnection(nr, port);
-    mIsModified = true;
-}
-
-void LineRenderer::addInputConnection(ProcessObjectPort port, Color color,
+uint LineRenderer::addInputConnection(DataPort::pointer port, Color color,
         float width) {
-    addInputConnection(port);
-    setColor(port, color);
-    setWidth(port, width);
+    uint nr = addInputConnection(port);
+    setColor(nr, color);
+    setWidth(nr, width);
+    return nr;
 }
 
 void LineRenderer::setDefaultColor(Color color) {
@@ -121,16 +91,16 @@ void LineRenderer::setDefaultDrawOnTop(bool drawOnTop) {
     mDefaultDrawOnTop = drawOnTop;
 }
 
-void LineRenderer::setDrawOnTop(ProcessObjectPort port, bool drawOnTop) {
-    mInputDrawOnTop[port] = drawOnTop;
+void LineRenderer::setDrawOnTop(uint inputNr, bool drawOnTop) {
+    mInputDrawOnTop[inputNr] = drawOnTop;
 }
 
-void LineRenderer::setColor(ProcessObjectPort port, Color color) {
-    mInputColors[port] = color;
+void LineRenderer::setColor(uint nr, Color color) {
+    mInputColors[nr] = color;
 }
 
-void LineRenderer::setWidth(ProcessObjectPort port, float width) {
-    mInputWidths[port] = width;
+void LineRenderer::setWidth(uint nr, float width) {
+    mInputWidths[nr] = width;
 }
 
 } // end namespace fast

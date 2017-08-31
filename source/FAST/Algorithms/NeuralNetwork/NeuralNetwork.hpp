@@ -4,6 +4,7 @@
 #include "FAST/ProcessObject.hpp"
 #include <tensorflow/core/public/session.h>
 #include <tensorflow/core/framework/tensor.h>
+#include <queue>
 
 namespace fast {
 
@@ -13,6 +14,7 @@ class FAST_EXPORT  NeuralNetwork : public ProcessObject {
 public:
     void load(std::string networkFilename);
     void setInputSize(int width, int height);
+    void setInputName(std::string inputName);
     void setOutputParameters(std::vector<std::string> outputNodeNames);
     void setScaleFactor(float scale);
     void setPreserveAspectRatio(bool preserve);
@@ -22,6 +24,14 @@ public:
      * @param flip
      */
     void setHorizontalFlipping(bool flip);
+
+    /**
+     * Set the nr of frames to keep and give to the network.
+     * If this count is set to 4, the frames t-3, t-2, t-1 and t, where t is the current timestep,
+     * will be given as input to the network. This can be useful for recurrent networks.
+     * @param nrOfFrames
+     */
+    void setRememberFrames(uint nrOfFrames);
 
     // Use this if only one output node
     tensorflow::Tensor getNetworkOutput();
@@ -39,11 +49,12 @@ protected:
     std::vector<std::string> mLearningPhaseTensors;
     int mWidth;
     int mHeight;
+    uint mFramesToRemember = 1;
     float mScaleFactor;
     std::string mInputName;
     std::vector<std::string> mOutputNames;
     std::map<std::string, tensorflow::Tensor> mOutputData;
-    SharedPointer<Image> mImage;
+    std::deque<SharedPointer<Image>> mImages;
 
     void execute();
 

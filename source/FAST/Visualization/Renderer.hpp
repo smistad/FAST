@@ -3,10 +3,9 @@
 
 #include "FAST/SmartPointers.hpp"
 #include "FAST/ProcessObject.hpp"
-#include <QKeyEvent>
-#include <QMouseEvent>
-#include <QResizeEvent>
 #include "FAST/Data/BoundingBox.hpp"
+#include "FAST/Data/SpatialDataObject.hpp"
+#include <mutex>
 
 
 namespace fast {
@@ -18,12 +17,20 @@ class FAST_EXPORT  Renderer : public ProcessObject {
     public:
         typedef SharedPointer<Renderer> pointer;
         virtual void draw() = 0;
-        virtual void addInputConnection(ProcessObjectPort port);
-        virtual BoundingBox getBoundingBox() = 0;
-        void setIntensityLevel(float level);
-        float getIntensityLevel();
-        void setIntensityWindow(float window);
-        float getIntensityWindow();
+        virtual void postDraw();
+        /**
+         * Adds a new input connection
+         * @param port
+         * @return the input nr of the new connection
+         */
+        virtual uint addInputConnection(DataPort::pointer port);
+        /**
+         * Adds a new input connection to a specific data object
+         * @param data
+         * @return the input nr of the new connection
+         */
+        virtual uint addInputData(DataObject::pointer data);
+        virtual BoundingBox getBoundingBox();
         virtual void draw2D(
                 cl::Buffer PBO,
                 uint width,
@@ -32,12 +39,31 @@ class FAST_EXPORT  Renderer : public ProcessObject {
                 float PBOspacing,
                 Vector2f translation
         ) {};
+        virtual void stopPipeline();
     protected:
         Renderer();
+        void execute() override;
 
-        // Level and window intensities
-        float mWindow;
-        float mLevel;
+
+        // Locking mechanisms to ensure thread safe synchronized rendering
+        bool mHasRendered = true;
+        std::condition_variable_any mRenderedCV;
+        std::mutex mMutex;
+
+        /**
+         * This holds the current data to render for each input connection
+         */
+        std::unordered_map<uint, SpatialDataObject::pointer> mDataToRender;
+
+        /**
+         * This will lock the renderer mutex. Used by the compute thread.
+         */
+        void lock();
+        /**
+         * This will unlock the renderer mutex. Used by the compute thread.
+         */
+        void unlock();
+        friend class View;
 };
 
 }

@@ -13,7 +13,7 @@ namespace fast {
 class FAST_EXPORT  AddTransformation : public ProcessObject {
     FAST_OBJECT(AddTransformation)
     public:
-        void setTransformationInputConnection(ProcessObjectPort port);
+        void setTransformationInputConnection(DataPort::pointer port);
     private:
         AddTransformation();
         void execute();

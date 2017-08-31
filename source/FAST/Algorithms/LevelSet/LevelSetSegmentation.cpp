@@ -6,7 +6,7 @@ namespace fast {
 
 LevelSetSegmentation::LevelSetSegmentation() {
     createInputPort<Image>(0);
-    createOutputPort<Segmentation>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOutputPort<Segmentation>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/LevelSet/LevelSetSegmentation.cl");
 
     mCurvatureWeight = 0.9;
@@ -47,7 +47,7 @@ void LevelSetSegmentation::execute() {
     if(!mIntensityMeanSet || !mIntensityVarianceSet)
         throw Exception("Intensity mean or variance not given to LevelSetSegmentation");
 
-    Image::pointer input = getStaticInputData<Image>();
+    Image::pointer input = getInputData<Image>();
 
     if(input->getDimensions() != 3)
         throw Exception("Level set segmentation only supports 3D atm");
@@ -169,11 +169,12 @@ void LevelSetSegmentation::execute() {
     BinaryThresholding::pointer thresholding = BinaryThresholding::New();
     thresholding->setUpperThreshold(0);
     thresholding->setInputData(phi);
-    thresholding->update();
-    Segmentation::pointer output = thresholding->getOutputData<Segmentation>();
+    DataPort::pointer port = thresholding->getOutputPort();
+    thresholding->update(0);
+    Segmentation::pointer output = port->getNextFrame();
     output->setSpacing(input->getSpacing());
     SceneGraph::setParentNode(output, input);
-    setStaticOutputData<Segmentation>(0, output);
+    addOutputData(0, output);
 }
 
 }

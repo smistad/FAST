@@ -8,7 +8,7 @@ namespace fast {
 MeshToSegmentation::MeshToSegmentation() {
 	createInputPort<Mesh>(0);
 	createInputPort<Image>(1);
-	createOutputPort<Segmentation>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+	createOutputPort<Segmentation>(0);
 	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/MeshToSegmentation/MeshToSegmentation.cl");
 
 	mResolution = Vector3i::Zero();
@@ -19,10 +19,10 @@ void MeshToSegmentation::setOutputImageResolution(uint x, uint y, uint z) {
 }
 
 void MeshToSegmentation::execute() {
-	Mesh::pointer mesh = getStaticInputData<Mesh>(0);
-	Image::pointer image = getStaticInputData<Image>(1);
+	Mesh::pointer mesh = getInputData<Mesh>(0);
+	Image::pointer image = getInputData<Image>(1);
 
-    Segmentation::pointer segmentation = getStaticOutputData<Segmentation>();
+    Segmentation::pointer segmentation = getOutputData<Segmentation>();
 	// Initialize output segmentation image and size
     if(mResolution == Vector3i::Zero()) {
         // If resolution is not specified, use input image resolution

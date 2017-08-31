@@ -2,18 +2,19 @@ PipelineName "DNN LV segmentation"
 PipelineDescription "Deep neural network left ventricle segmentation"
 
 ProcessObject segmentation PixelClassifier
-Input 0 PipelineInput
-Attribute model "/home/smistad/workspace/left-ventricle-segmentation/models/tensorflow_lv_segmentation_model.pb"
+Attribute model "/home/smistad/workspace/acnn-heart-segmentation/models/tensorflow_segmentation_model.pb"
 Attribute input_size 256 256
-Attribute output_names "Reshape_24"
+Attribute output_names "conv2d_23/truediv"
 Attribute scale_factor 0.003921569
 Attribute heatmap_output true
-Attribute classes 2
+Attribute classes 4
+Input 0 PipelineInput
 
 Renderer imageRenderer ImageRenderer
-Input 0 PipelineInput
 Attribute window 255
 Attribute level 127.5 
+Input 0 PipelineInput
 
 Renderer heatmapRenderer HeatmapRenderer
 Input 0 segmentation 1
+Input 1 segmentation 2

@@ -26,7 +26,7 @@ void PixelClassifier::setSegmentationOutput() {
 void PixelClassifier::setNrOfClasses(uint classes) {
     mNrOfClasses = classes;
     for(int i = 0; i < mNrOfClasses; i++) {
-        createOutputPort<Image>(i, OUTPUT_DEPENDS_ON_INPUT, 0);
+        createOutputPort<Image>(i);
     }
 }
 
@@ -75,14 +75,15 @@ void PixelClassifier::execute() {
         }
         ImageResizer::pointer resizer = ImageResizer::New();
         resizer->setInputData(output);
-        resizer->setWidth(mImage->getWidth());
-        resizer->setHeight(mImage->getHeight());
+        resizer->setWidth(mImages.back()->getWidth());
+        resizer->setHeight(mImages.back()->getHeight());
         resizer->setPreserveAspectRatio(mPreserveAspectRatio);
-        resizer->update();
+        DataPort::pointer port = resizer->getOutputPort();
+        resizer->update(0);
 
-        Image::pointer resizedOutput = resizer->getOutputData<Image>();
-        resizedOutput->setSpacing(mImage->getSpacing());
-        setStaticOutputData<Image>(j, resizedOutput);
+        Image::pointer resizedOutput = port->getNextFrame();
+        resizedOutput->setSpacing(mImages.back()->getSpacing());
+        addOutputData(j, resizedOutput);
     }
 
 }

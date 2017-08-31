@@ -2,7 +2,6 @@
 #define SURFACE_HPP_
 
 #include "SpatialDataObject.hpp"
-#include "DynamicData.hpp"
 #include "FAST/Data/Access/Access.hpp"
 #include <vector>
 #include "FAST/Data/DataTypes.hpp"

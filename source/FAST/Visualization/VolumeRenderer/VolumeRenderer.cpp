@@ -34,7 +34,7 @@ void VolumeRenderer::setProjectionParameters(float fov, float aspect, float near
 	projectionMatrix14= (-2.0*zFar*zNear) / (zFar-zNear);
 	mIsModified = true;
 }
-void VolumeRenderer::addInputConnection(ProcessObjectPort port) {
+uint VolumeRenderer::addInputConnection(DataPort::pointer port) {
 
 	
 
@@ -42,21 +42,23 @@ void VolumeRenderer::addInputConnection(ProcessObjectPort port) {
         throw Exception("Not a correct number of volumes is given to VolumeRenderer");
 	if(numberOfVolumes<maxNumberOfVolumes)
 	{
-		uint nr = getNrOfInputData();
+		uint nr = getNrOfInputConnections();
 		if(nr > 0)
 		    createInputPort<Image>(nr);
 	//	releaseInputAfterExecute(nr, false);
 		setInputConnection(nr, port);
-		//mInputs.push_back(getStaticInputData<Image>(0));
+		//mInputs.push_back(getInputData<Image>(0));
 		
 		//addParent(mInputs[numberOfVolumes]);
 		numberOfVolumes++;
 		mIsModified = true;
 		mInputIsModified=true;
+		return nr;
 	}
 	else
 		printf("\n Warning: Volume Renderer currently supports only up to %d volumes. Extera inputs are denied. \n", maxNumberOfVolumes);
-	
+
+
 }
 void VolumeRenderer::setOpacityTransferFunction(int volumeIndex, OpacityTransferFunction::pointer otf) {
 
@@ -300,7 +302,7 @@ void VolumeRenderer::execute() {
 			inputs.push_back( mInputs[i]);
 		}
 		*/
-		inputs.push_back(getStaticInputData<Image>(i));
+		inputs.push_back(getInputData<Image>(i));
 		if(inputs[i]->getDimensions() != 3)
 		{
 			char errorMessage[255];

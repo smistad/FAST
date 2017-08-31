@@ -12,19 +12,11 @@
 
 namespace fast {
 
-void TriangleRenderer::addInputConnection(ProcessObjectPort port) {
-    uint nr = getNrOfInputData();
-    if(nr > 0)
-        createInputPort<Mesh>(nr);
-    releaseInputAfterExecute(nr, false);
-    setInputConnection(nr, port);
-    mIsModified = true;
-}
-
-void TriangleRenderer::addInputConnection(ProcessObjectPort port, Color color, float opacity) {
-    addInputConnection(port);
-    mInputColors[port] = color;
-    mInputOpacities[port] = opacity;
+uint TriangleRenderer::addInputConnection(DataPort::pointer port, Color color, float opacity) {
+    uint nr = Renderer::addInputConnection(port);
+    mInputColors[nr] = color;
+    mInputOpacities[nr] = opacity;
+    return nr;
 }
 
 
@@ -49,14 +41,6 @@ void TriangleRenderer::setLineSize(int size) {
 
 }
 
-void TriangleRenderer::execute() {
-    std::lock_guard<std::mutex> lock(mMutex);
-    for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
-        Mesh::pointer input = getStaticInputData<Mesh>(inputNr);
-        mMeshToRender[inputNr] = input;
-    }
-}
-
 void TriangleRenderer::draw() {
     std::lock_guard<std::mutex> lock(mMutex);
 
@@ -68,8 +52,7 @@ void TriangleRenderer::draw() {
     if(mWireframe)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    std::unordered_map<uint, Mesh::pointer>::iterator it;
-    for(auto it : mMeshToRender) {
+    for(auto it : mDataToRender) {
         Mesh::pointer surfaceToRender = it.second;
 
         // Draw the triangles in the VBO
@@ -80,12 +63,11 @@ void TriangleRenderer::draw() {
 
         float opacity = mDefaultOpacity;
         Color color = mDefaultColor;
-        ProcessObjectPort port = getInputPort(it.first);
-        if(mInputOpacities.count(port) > 0) {
-            opacity = mInputOpacities[port];
+        if(mInputOpacities.count(it.first) > 0) {
+            opacity = mInputOpacities[it.first];
         }
-        if(mInputColors.count(port) > 0) {
-            color = mInputColors[port];
+        if(mInputColors.count(it.first) > 0) {
+            color = mInputColors[it.first];
         }
 
         // Set material properties
@@ -156,14 +138,12 @@ void TriangleRenderer::draw2D(
     UniquePointer<float[]> pixels(new float[width*height*sizeof(float)*4]);
     queue.enqueueReadBuffer(PBO, CL_TRUE, 0, width*height*4*sizeof(float), pixels.get());
 
-    std::unordered_map<uint, Mesh::pointer>::iterator it;
-    for(it = mMeshToRender.begin(); it != mMeshToRender.end(); it++) {
-    	Mesh::pointer mesh = it->second;
+    for(auto it : mDataToRender) {
+    	Mesh::pointer mesh = it.second;
 
 		Color color = mDefaultColor;
-        ProcessObjectPort port = getInputPort(it->first);
-        if(mInputColors.count(port) > 0) {
-            color = mInputColors[port];
+        if(mInputColors.count(it.first) > 0) {
+            color = mInputColors[it.first];
         }
 
     	MeshAccess::pointer access = mesh->getMeshAccess(ACCESS_READ);
@@ -229,32 +209,20 @@ void TriangleRenderer::draw2D(
     }
 }
 
-BoundingBox TriangleRenderer::getBoundingBox() {
-    std::vector<Vector3f> coordinates;
-    for(uint i = 0; i < getNrOfInputData(); i++) {
-        BoundingBox transformedBoundingBox = mMeshToRender[i]->getTransformedBoundingBox();
-        MatrixXf corners = transformedBoundingBox.getCorners();
-        for(uint j = 0; j < 8; j++) {
-            coordinates.push_back((Vector3f)corners.row(j));
-        }
-    }
-    return BoundingBox(coordinates);
-}
-
 void TriangleRenderer::setDefaultColor(Color color) {
     mDefaultColor = color;
 }
 
-void TriangleRenderer::setColor(int label, Color color) {
+void TriangleRenderer::setLabelColor(int label, Color color) {
 	mLabelColors[label] = color;
 }
 
-void TriangleRenderer::setColor(ProcessObjectPort port, Color color) {
-    mInputColors[port] = color;
+void TriangleRenderer::setColor(uint inputNr, Color color) {
+    mInputColors[inputNr] = color;
 }
 
-void TriangleRenderer::setOpacity(ProcessObjectPort port, float opacity) {
-    mInputOpacities[port] = opacity;
+void TriangleRenderer::setOpacity(uint inputNr, float opacity) {
+    mInputOpacities[inputNr] = opacity;
 }
 
 void TriangleRenderer::setDefaultOpacity(float opacity) {
@@ -268,6 +236,10 @@ void TriangleRenderer::setDefaultOpacity(float opacity) {
 
 void TriangleRenderer::setDefaultSpecularReflection(float specularReflection) {
     mDefaultSpecularReflection = specularReflection;
+}
+
+uint TriangleRenderer::addInputConnection(DataPort::pointer port) {
+    return Renderer::addInputConnection(port);
 }
 
 } // namespace fast

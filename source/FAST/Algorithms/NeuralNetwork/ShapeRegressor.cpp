@@ -8,7 +8,7 @@ namespace fast {
 
 ShapeRegressor::ShapeRegressor() {
 	createInputPort<Image>(0);
-	createOutputPort<Mesh>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+	createOutputPort<Mesh>(0);
 
     mOutputNames = {"Sigmoid"};
 }
@@ -22,7 +22,7 @@ void ShapeRegressor::execute() {
 	std::vector<std::vector<float> > result;
     result = getNetworkOutput("Sigmoid");
 
-	Mesh::pointer output = getStaticOutputData<Mesh>(0);
+	Mesh::pointer output = getOutputData<Mesh>(0);
     std::vector<MeshVertex> vertices;
 	std::vector<VectorXui> lines;
 	for(int i = 0; i < result.size(); ++i) { // For each input image

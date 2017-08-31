@@ -6,8 +6,8 @@ fast_add_sources(
     DataObject.hpp
     SpatialDataObject.cpp
     SpatialDataObject.hpp
-    DynamicData.cpp
-    DynamicData.hpp
+    #DynamicData.cpp
+    #DynamicData.hpp
     Image.cpp
     Image.hpp
     Segmentation.cpp
@@ -26,7 +26,6 @@ fast_add_sources(
 fast_add_test_sources(
     Tests/DataObjectTests.cpp
     Tests/ImageTests.cpp
-    Tests/DynamicImageTests.cpp
 )
 fast_add_python_interfaces(
 	Image.i

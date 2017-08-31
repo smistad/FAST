@@ -2,7 +2,6 @@
 #define IMAGE2D_HPP
 
 #include "SpatialDataObject.hpp"
-#include "DynamicData.hpp"
 #include "DataTypes.hpp"
 #include "FAST/SmartPointers.hpp"
 #include "FAST/ExecutionDevice.hpp"

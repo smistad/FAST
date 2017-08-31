@@ -26,14 +26,13 @@ TEST_CASE("Image slicer", "[fast][ImageSlicer][visual]") {
 	window->start();
 }
 
-TEST_CASE("Image slicer, arbitrary slice", "[fast][ImageSlicer][visual]") {
+TEST_CASE("Image slicer arbitrary slice", "[fast][ImageSlicer][visual][asdasd]") {
 	ImageFileImporter::pointer importer = ImageFileImporter::New();
 	importer->setFilename(Config::getTestDataPath() + "CT/CT-Abdomen.mhd");
 
 	ImageSlicer::pointer slicer = ImageSlicer::New();
 	slicer->setInputConnection(importer->getOutputPort());
     slicer->setArbitrarySlicePlane(Plane(Vector3f(0, 0, 1)));
-
 
 	ImageRenderer::pointer renderer = ImageRenderer::New();
 	renderer->addInputConnection(slicer->getOutputPort());

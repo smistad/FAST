@@ -408,7 +408,6 @@ Image::Image() {
     mHostData = NULL;
     mHostHasData = false;
     mHostDataIsUpToDate = false;
-    mIsDynamicData = false;
     mSpacing = Vector3f(1,1,1);
     mMaxMinInitialized = false;
     mAverageInitialized = false;

@@ -9,6 +9,8 @@
 #include <vector>
 #include <QGLWidget>
 #include <QTimer>
+#include <QKeyEvent>
+#include <QMouseEvent>
 
 namespace fast {
 
@@ -26,12 +28,11 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
         void mouseReleaseEvent(QMouseEvent* event);
         void wheelEvent(QWheelEvent* event);
         void setMaximumFramerate(unsigned int framerate);
-        void setCameraInputConnection(ProcessObjectPort port);
+        void setCameraInputConnection(DataPort::pointer port);
         void set2DMode();
         void set3DMode();
         void setViewingPlane(Plane plane);
         void setLookAt(Vector3f cameraPosition, Vector3f targetPosition, Vector3f cameraUpVector, float zNear = 0.1, float zFar = 1000);
-        void updateAllRenderers();
         void quit();
         void reinitialize();
         bool hasQuit() const;
@@ -45,6 +46,8 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
 		};
         View();
 		float get2DPixelSpacing();
+        void setStreamingMode(StreamingMode mode);
+		std::vector<Renderer::pointer> getRenderers();
     private:
 
 		std::vector<Renderer::pointer> mNonVolumeRenderers;
@@ -91,11 +94,20 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
         int mPosX2D, mPosY2D;
         float mScale2D;
 
+		StreamingMode mStreamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES;
+
         friend class ComputationThread;
     protected:
         void initializeGL();
         void paintGL();
         void resizeGL(int width, int height);
+		void updateRenderersInput(uint64_t timestep, StreamingMode mode);
+		void updateRenderers(uint64_t timestep, StreamingMode mode);
+		void lockRenderers();
+		void unlockRenderers();
+		void stopRenderers();
+
+    friend class ComputationThread;
 
 };
 

@@ -3,8 +3,9 @@
 
 #include "FAST/ProcessObject.hpp"
 #include "FAST/Data/SpatialDataObject.hpp"
-#include "FAST/Data/DynamicData.hpp"
+#include "FAST/Streamers/Streamer.hpp"
 #include <unordered_map>
+#include <thread>
 
 namespace fast {
 
@@ -12,6 +13,12 @@ namespace fast {
 class DummyDataObject : public SpatialDataObject {
     FAST_OBJECT(DummyDataObject)
     public:
+        uint getID() const {
+            return mID;
+        };
+        void create(uint ID) {
+            mID = ID;
+        }
         bool hasBeenFreed(ExecutionDevice::pointer device) {
             if(mFreed.count(device) > 0) {
                 return mFreed[device];
@@ -25,6 +32,7 @@ class DummyDataObject : public SpatialDataObject {
         };
         void freeAll() {};
         std::unordered_map<ExecutionDevice::pointer, bool> mFreed;
+        uint mID;
 };
 
 
@@ -34,20 +42,70 @@ class DummyProcessObject : public ProcessObject {
     public:
         void setIsModified() { mIsModified = true; };
         void setIsNotModified() { mIsModified = false; };
-        void setInputRequired(uint number) { ProcessObject::setInputRequired(number, true); };
         bool hasExecuted() { return mHasExecuted; };
         void setHasExecuted(bool value) { mHasExecuted = value; };
         void updateDataTimestamp() { getOutputData<DummyDataObject>(0)->updateModifiedTimestamp(); };
     private:
         DummyProcessObject() : mHasExecuted(false) {
-            createInputPort<DummyDataObject>(0, false);
-            createOutputPort<DummyDataObject>(0, OUTPUT_STATIC, 0);
+            createInputPort<DummyDataObject>(0);
+            createOutputPort<DummyDataObject>(0);
         };
         void execute() {
             mHasExecuted = true;
-            getOutputData<DummyDataObject>(0);
+            DummyDataObject::pointer input = getInputData<DummyDataObject>(0);
+            DummyDataObject::pointer output = getOutputData<DummyDataObject>(0);
+            output->create(input->getID());
         };
         bool mHasExecuted;
+};
+
+
+class DummyProcessObject2 : public ProcessObject {
+    FAST_OBJECT(DummyProcessObject2)
+    public:
+        int getStaticDataID() const;
+    private:
+        DummyProcessObject2();
+        void execute();
+
+        int mStaticID = 0;
+
+};
+
+class DummyStreamer : public Streamer {
+    FAST_OBJECT(DummyStreamer)
+    public:
+        void setSleepTime(uint milliseconds);
+        void setTotalFrames(uint frames);
+        void produce();
+        bool hasReachedEnd();
+        uint getFramesToGenerate();
+        ~DummyStreamer();
+    private:
+        DummyStreamer();
+        void execute();
+
+        uint mSleepTime = 1;
+        uint mFramesToGenerate = 20;
+        uint mFramesGenerated = 0;
+
+        std::thread* mThread = nullptr;
+        bool mRunning = false;
+
+        std::mutex mFramesGeneratedMutex;
+        std::condition_variable mFirstFrameConditionVariable;
+};
+
+class DummyImporter : public ProcessObject {
+    FAST_OBJECT(DummyImporter)
+    public:
+        void setModified();
+    protected:
+        DummyImporter();
+        void execute();
+    private:
+        int mExecuted = 0; // count number of times executed
+
 };
 
 };

@@ -19,7 +19,7 @@ void ImageSlicer::setArbitrarySlicePlane(Plane slicePlane) {
 
 ImageSlicer::ImageSlicer() : mArbitrarySlicePlane(Plane(Vector3f(1,0,0))) {
 	createInputPort<Image>(0);
-	createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+	createOutputPort<Image>(0);
 	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageSlicer/ImageSlicer.cl");
 
 	mArbitrarySlicing = false;
@@ -27,8 +27,8 @@ ImageSlicer::ImageSlicer() : mArbitrarySlicePlane(Plane(Vector3f(1,0,0))) {
 }
 
 void ImageSlicer::execute() {
-	Image::pointer input = getStaticInputData<Image>();
-	Image::pointer output = getStaticOutputData<Image>();
+	Image::pointer input = getInputData<Image>();
+	Image::pointer output = getOutputData<Image>();
     std::cout << "w: " << input->getWidth();
     std::cout << mArbitrarySlicePlane.getNormal().transpose() << std::endl;
 

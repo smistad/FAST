@@ -24,10 +24,13 @@ public:
             return QApplication::notify(receiver, event);
         } catch(Exception &e) {
             Reporter::error() << "FAST exception caught in Qt event handler " << e.what() << Reporter::end();
+            throw e;
         } catch(cl::Error &e) {
             Reporter::error() << "OpenCL exception caught in Qt event handler " << e.what() << "(" << getCLErrorString(e.err()) << ")" << Reporter::end();
+            throw e;
         } catch(std::exception &e) {
             Reporter::error() << "Std exception caught in Qt event handler " << e.what() << Reporter::end();
+            throw e;
         }
         return false;
     }
@@ -161,7 +164,12 @@ View* Window::createView() {
     return view;
 }
 
-void Window::start() {
+void Window::start(StreamingMode mode) {
+    mStreamingMode = mode;
+
+    // Pass streaming mode onto all views
+    for(auto view : getViews())
+        view->setStreamingMode(mode);
 
     QDesktopWidget *desktop = QApplication::desktop();
     int screenWidth = desktop->width();
@@ -237,7 +245,7 @@ void Window::startComputationThread() {
     if(mThread == NULL) {
         // Start computation thread using QThreads which is a strange thing, see https://mayaposch.wordpress.com/2011/11/01/how-to-really-truly-use-qthreads-the-full-explanation/
         reportInfo() << "Trying to start computation thread" << Reporter::end();
-        mThread = new ComputationThread(QThread::currentThread());
+        mThread = new ComputationThread(QThread::currentThread(), mStreamingMode);
         QThread* thread = new QThread();
         mThread->moveToThread(thread);
         connect(thread, SIGNAL(started()), mThread, SLOT(run()));
@@ -262,6 +270,11 @@ void Window::stopComputationThread() {
     reportInfo() << "Trying to stop computation thread" << Reporter::end();
     if(mThread != NULL) {
         mThread->stop();
+        QGLContext* mainGLContext = Window::getMainGLContext();
+        if(!mainGLContext->isValid()) {
+            throw Exception("QGL context is invalid!");
+        }
+        mainGLContext->moveToThread(QApplication::instance()->thread());
         delete mThread;
         mThread = NULL;
     }

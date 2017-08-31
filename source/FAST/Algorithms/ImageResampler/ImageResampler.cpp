@@ -6,7 +6,7 @@ namespace fast {
 
 ImageResampler::ImageResampler() {
     createInputPort<Image>(0);
-    createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOutputPort<Image>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageResampler/ImageResampler2D.cl", "2D");
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageResampler/ImageResampler3D.cl", "3D");
 
@@ -29,8 +29,8 @@ void ImageResampler::execute() {
     if(mSpacing.x() < 0)
         throw Exception("You must set output spacing with setOutputSpacing before executing the ImageResampler");
 
-    Image::pointer input = getStaticInputData<Image>();
-    Image::pointer output = getStaticOutputData<Image>();
+    Image::pointer input = getInputData<Image>();
+    Image::pointer output = getOutputData<Image>();
 
     Vector3f inputSpacing = input->getSpacing();
 

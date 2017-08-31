@@ -39,11 +39,11 @@ class FAST_EXPORT  ClassificationToText : public ProcessObject {
 private:
     ClassificationToText() {
         createInputPort<ImageClassification>(0);
-        createOutputPort<Text>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+        createOutputPort<Text>(0);
     }
     void execute() {
-        ImageClassification::pointer classification = getStaticInputData<ImageClassification>();
-        Text::pointer text = getStaticOutputData<Text>();
+        ImageClassification::pointer classification = getInputData<ImageClassification>();
+        Text::pointer text = getOutputData<Text>();
 
         // Find classification with max
         ImageClassification::access access = classification->getAccess(ACCESS_READ);

@@ -22,10 +22,10 @@ IterativeClosestPoint::IterativeClosestPoint() {
 }
 
 
-void IterativeClosestPoint::setFixedMeshPort(ProcessObjectPort port) {
+void IterativeClosestPoint::setFixedMeshPort(DataPort::pointer port) {
     setInputConnection(0, port);
 }
-void IterativeClosestPoint::setMovingMeshPort(ProcessObjectPort port) {
+void IterativeClosestPoint::setMovingMeshPort(DataPort::pointer port) {
     setInputConnection(1, port);
 }
 void IterativeClosestPoint::setFixedMesh(Mesh::pointer data) {
@@ -134,8 +134,8 @@ void IterativeClosestPoint::setTransformationType(
 void IterativeClosestPoint::execute() {
     float error = std::numeric_limits<float>::max(), previousError;
     uint iterations = 0;
-    Mesh::pointer fixedMesh = getStaticInputData<Mesh>(0);
-    Mesh::pointer movingMesh = getStaticInputData<Mesh>(1);
+    Mesh::pointer fixedMesh = getInputData<Mesh>(0);
+    Mesh::pointer movingMesh = getInputData<Mesh>(1);
 
     // Get access to the two point sets
     MeshAccess::pointer accessFixedSet = fixedMesh->getMeshAccess(ACCESS_READ);

@@ -15,8 +15,8 @@ namespace fast {
 
 LungSegmentation::LungSegmentation() {
     createInputPort<Image>(0);
-    createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
-    createOutputPort<Image>(1, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOutputPort<Image>(0);
+    createOutputPort<Image>(1);
 
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/LungSegmentation/LungSegmentation.cl");
 }
@@ -112,7 +112,7 @@ Image::pointer LungSegmentation::convertToHU(Image::pointer image) {
 }
 
 void LungSegmentation::execute() {
-    Image::pointer input = getStaticInputData<Image>();
+    Image::pointer input = getInputData<Image>();
 
     // Convert to signed HU if unsigned
 	if(input->getDataType() == TYPE_UINT16) {
@@ -143,6 +143,7 @@ void LungSegmentation::execute() {
         airwaySegmentation->setSeedPoint(mSeedPoint);
     }
     airwaySegmentation->setInputData(input);
+    DataPort::pointer airwaySegPort = airwaySegmentation->getOutputPort();
 
     // Dilate airways
     Dilation::pointer dilation = Dilation::New();
@@ -167,13 +168,14 @@ void LungSegmentation::execute() {
     erosion->setInputConnection(dilation2->getOutputPort());
     erosion->setStructuringElementSize(9);
 
-    erosion->update();
+    DataPort::pointer port = erosion->getOutputPort();
+    erosion->update(0);
 
-    Image::pointer image = erosion->getStaticOutputData<Image>();
+    Image::pointer image = port->getNextFrame();
     SceneGraph::setParentNode(image, input);
-    setStaticOutputData<Image>(0, image);
-    Image::pointer airways = airwaySegmentation->getStaticOutputData<Segmentation>();
-    setStaticOutputData<Image>(1, airways);
+    addOutputData(0, image);
+    Image::pointer airways = airwaySegPort->getNextFrame();
+    addOutputData(1, airways);
 }
 
 void LungSegmentation::setAirwaySeedPoint(int x, int y, int z) {

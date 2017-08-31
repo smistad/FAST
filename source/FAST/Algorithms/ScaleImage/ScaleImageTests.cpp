@@ -11,9 +11,10 @@ TEST_CASE("Scale image 2D", "[fast][ScaleImage]") {
 
     ScaleImage::pointer normalize = ScaleImage::New();
     normalize->setInputConnection(importer->getOutputPort());
-    normalize->update();
+    auto port = normalize->getOutputPort();
+    normalize->update(0);
 
-    Image::pointer result = normalize->getOutputData<Image>();
+    Image::pointer result = port->getNextFrame();
 
     CHECK(result->calculateMinimumIntensity() == Approx(0));
     CHECK(result->calculateMaximumIntensity() == Approx(1));
@@ -25,9 +26,10 @@ TEST_CASE("Scale image 3D", "[fast][ScaleImage]") {
 
     ScaleImage::pointer normalize = ScaleImage::New();
     normalize->setInputConnection(importer->getOutputPort());
-    normalize->update();
+    auto port = normalize->getOutputPort();
+    normalize->update(0);
 
-    Image::pointer result = normalize->getOutputData<Image>();
+    Image::pointer result = port->getNextFrame();
 
     CHECK(result->calculateMinimumIntensity() == Approx(0));
     CHECK(result->calculateMaximumIntensity() == Approx(1));
@@ -41,9 +43,10 @@ TEST_CASE("Scale image 2D with high and low set", "[fast][ScaleImage]") {
     normalize->setInputConnection(importer->getOutputPort());
     normalize->setLowestValue(-2);
     normalize->setHighestValue(10);
-    normalize->update();
+    auto port = normalize->getOutputPort();
+    normalize->update(0);
 
-    Image::pointer result = normalize->getOutputData<Image>();
+    Image::pointer result = port->getNextFrame();
 
     CHECK(result->calculateMinimumIntensity() == Approx(-2));
     CHECK(result->calculateMaximumIntensity() == Approx(10));
@@ -57,9 +60,10 @@ TEST_CASE("Scale image 3D with high and low set", "[fast][ScaleImage]") {
     normalize->setInputConnection(importer->getOutputPort());
     normalize->setLowestValue(-2);
     normalize->setHighestValue(10);
-    normalize->update();
+    auto port = normalize->getOutputPort();
+    normalize->update(0);
 
-    Image::pointer result = normalize->getOutputData<Image>();
+    Image::pointer result = port->getNextFrame();
 
     CHECK(result->calculateMinimumIntensity() == Approx(-2));
     CHECK(result->calculateMaximumIntensity() == Approx(10));

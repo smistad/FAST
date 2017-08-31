@@ -554,14 +554,21 @@ std::string replace(std::string str, std::string find, std::string replacement) 
     return str;
 }
 
-std::vector<std::string> split(const std::string& input, const std::string& delimiter) {
-    char* cstr = const_cast<char*>(input.c_str());
-    char* current = strtok(cstr, delimiter.c_str());
+std::vector<std::string> split(const std::string input, const std::string& delimiter) {
     std::vector<std::string> parts;
-    while(current != NULL) {
-        parts.push_back(std::string(current));
-        current = strtok(NULL, delimiter.c_str());
+    int startPos = 0;
+    while(true) {
+        int pos = input.find(delimiter, startPos);
+        if(pos == std::string::npos) {
+            parts.push_back(input.substr(startPos));
+            break;
+        }
+
+        if(pos - startPos > 0)
+            parts.push_back(input.substr(startPos, pos - startPos));
+        startPos = pos + delimiter.length();
     }
+
     return parts;
 }
 

@@ -10,13 +10,13 @@ TEST_CASE("No filename given to the MetaImageExporter", "[fast][MetaImageExporte
     Image::pointer image = Image::New();
     MetaImageExporter::pointer exporter = MetaImageExporter::New();
     exporter->setInputData(image);
-    CHECK_THROWS(exporter->update());
+    CHECK_THROWS(exporter->update(0));
 }
 
 TEST_CASE("No input given to the MetaImageExporter", "[fast][MetaImageExporter]") {
     MetaImageExporter::pointer exporter = MetaImageExporter::New();
     exporter->setFilename("asd");
-    CHECK_THROWS(exporter->update());
+    CHECK_THROWS(exporter->update(0));
 }
 
 TEST_CASE("Write a 2D image with the MetaImageExporter", "[fast][MetaImageExporter]") {
@@ -62,14 +62,14 @@ TEST_CASE("Write a 2D image with the MetaImageExporter", "[fast][MetaImageExport
             MetaImageExporter::pointer exporter = MetaImageExporter::New();
             exporter->setFilename("MetaImageExporterTest2D.mhd");
             exporter->setInputData(image);
-            exporter->update();
+            exporter->update(0);
 
             // Import image back again
             MetaImageImporter::pointer importer = MetaImageImporter::New();
             importer->setFilename("MetaImageExporterTest2D.mhd");
-
-            importer->update();
-            Image::pointer image2 = importer->getOutputData<Image>();
+            DataPort::pointer port = importer->getOutputPort();
+            importer->update(0);
+            Image::pointer image2 = port->getNextFrame();
             AffineTransformation::pointer T2 = image2->getSceneGraphNode()->getTransformation();
 
             // Check that the image properties are correct
@@ -143,13 +143,14 @@ TEST_CASE("Write a 3D image with the MetaImageExporter", "[fast][MetaImageExport
             MetaImageExporter::pointer exporter = MetaImageExporter::New();
             exporter->setFilename("MetaImageExporterTest3D.mhd");
             exporter->setInputData(image);
-            exporter->update();
+            exporter->update(0);
 
             // Import image back again
             MetaImageImporter::pointer importer = MetaImageImporter::New();
             importer->setFilename("MetaImageExporterTest3D.mhd");
-            importer->update();
-            Image::pointer image2 = importer->getOutputData<Image>(0);
+            DataPort::pointer port = importer->getOutputPort();
+            importer->update(0);
+            Image::pointer image2 = port->getNextFrame();
             AffineTransformation::pointer T2 = image2->getSceneGraphNode()->getTransformation();
 
             // Check that the image properties are correct
@@ -223,14 +224,14 @@ TEST_CASE("Write a compressed 2D image with the MetaImageExporter", "[fast][Meta
             exporter->setFilename("MetaImageExporterTest2D.mhd");
             exporter->setInputData(image);
             exporter->enableCompression();
-            exporter->update();
+            exporter->update(0);
 
             // Import image back again
             MetaImageImporter::pointer importer = MetaImageImporter::New();
             importer->setFilename("MetaImageExporterTest2D.mhd");
-
-            importer->update();
-            Image::pointer image2 = importer->getOutputData<Image>();
+            auto port = importer->getOutputPort();
+            importer->update(0);
+            Image::pointer image2 = port->getNextFrame();
             AffineTransformation::pointer T2 = image2->getSceneGraphNode()->getTransformation();
 
             // Check that the image properties are correct
@@ -304,13 +305,14 @@ TEST_CASE("Write a compressed 3D image with the MetaImageExporter", "[fast][Meta
             exporter->setFilename("MetaImageExporterTest3D.mhd");
             exporter->setInputData(image);
             exporter->enableCompression();
-            exporter->update();
+            exporter->update(0);
 
             // Import image back again
             MetaImageImporter::pointer importer = MetaImageImporter::New();
             importer->setFilename("MetaImageExporterTest3D.mhd");
-            importer->update();
-            Image::pointer image2 = importer->getOutputData<Image>(0);
+            auto port = importer->getOutputPort();
+            importer->update(0);
+            Image::pointer image2 = port->getNextFrame();
             AffineTransformation::pointer T2 = image2->getSceneGraphNode()->getTransformation();
 
             // Check that the image properties are correct

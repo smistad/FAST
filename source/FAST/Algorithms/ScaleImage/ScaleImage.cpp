@@ -5,7 +5,7 @@ namespace fast {
 
 ScaleImage::ScaleImage() {
     createInputPort<Image>(0);
-    createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOutputPort<Image>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ScaleImage/ScaleImage.cl");
     mLow = 0.0f;
     mHigh = 1.0f;
@@ -23,8 +23,8 @@ void ScaleImage::execute() {
     if(mHigh <= mLow)
         throw Exception("The high value must be higher than the low value in ScaleImage.");
 
-    Image::pointer input = getStaticInputData<Image>();
-    Image::pointer output = getStaticOutputData<Image>();
+    Image::pointer input = getInputData<Image>();
+    Image::pointer output = getOutputData<Image>();
 
     const uint width = input->getWidth();
     const uint height = input->getHeight();

@@ -11,9 +11,9 @@ class FAST_EXPORT  IterativeClosestPoint : public ProcessObject {
     FAST_OBJECT(IterativeClosestPoint)
     public:
         typedef enum { RIGID, TRANSLATION } TransformationType;
-        void setFixedMeshPort(ProcessObjectPort port);
+        void setFixedMeshPort(DataPort::pointer port);
         void setFixedMesh(Mesh::pointer data);
-        void setMovingMeshPort(ProcessObjectPort port);
+        void setMovingMeshPort(DataPort::pointer port);
         void setMovingMesh(Mesh::pointer data);
         void setTransformationType(const IterativeClosestPoint::TransformationType type);
         AffineTransformation::pointer getOutputTransformation();

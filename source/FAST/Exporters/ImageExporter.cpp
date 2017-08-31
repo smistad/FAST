@@ -24,7 +24,7 @@ void ImageExporter::execute() {
     if(mFilename == "")
         throw Exception("No filename given to ImageExporter");
 
-    Image::pointer input = getStaticInputData<Image>();
+    Image::pointer input = getInputData<Image>();
 
     if(input->getDimensions() != 2)
         throw Exception("Input image to ImageExporter must be 2D.");

@@ -10,7 +10,7 @@
 namespace fast {
 
 DummyIGTLServer::DummyIGTLServer() {
-    mFPS = 10;
+    mFPS = 20;
     mPort = 18944;
     mFrames = std::numeric_limits<int>::max();
 }
@@ -41,7 +41,7 @@ DummyIGTLServer::~DummyIGTLServer() {
     mThread.join();
 }
 
-inline igtl::ImageMessage::Pointer createIGTLImageMessage(Image::pointer image) {
+static igtl::ImageMessage::Pointer createIGTLImageMessage(Image::pointer image) {
     // size parameters
     int   size[3]     = {(int)image->getWidth(), (int)image->getHeight(), (int)image->getDepth()};       // image dimension
     float spacing[3]  = {image->getSpacing().x(), image->getSpacing().y(), image->getSpacing().z()};     // spacing (mm/pixel)
@@ -88,7 +88,7 @@ inline igtl::ImageMessage::Pointer createIGTLImageMessage(Image::pointer image) 
     return imgMsg;
 }
 
-inline igtl::TransformMessage::Pointer createIGTLTransformMessage(Image::pointer image) {
+static igtl::TransformMessage::Pointer createIGTLTransformMessage(Image::pointer image) {
     // Create transform message from the scene graph information of image
     igtl::Matrix4x4 matrix;
     AffineTransformation::pointer T = image->getSceneGraphNode()->getTransformation();
@@ -114,18 +114,18 @@ void DummyIGTLServer::stream() {
     }
 
     igtl::Socket::Pointer socket;
-    DynamicData::pointer dataStream = mStreamer->getOutputData<Image>();
-    DummyProcessObject::pointer dummy = DummyProcessObject::New();
+    DataPort::pointer dataStream = mStreamer->getOutputPort();
     int framesSent = 0;
     int interval = (int) (1000.0 / mFPS);
     while(true) {
         // Waiting for Connection
         socket = serverSocket->WaitForConnection(1000);
         if(socket.IsNotNull()) { // if client connected
-            mStreamer->update();
-            while(!dataStream->hasReachedEnd() && framesSent < mFrames) {
+            while(!mStreamer->hasReachedEnd() && framesSent < mFrames) {
+                mStreamer->update(framesSent, STREAMING_MODE_PROCESS_ALL_FRAMES);
+
                 // Get next image from streamer
-                Image::pointer image = dataStream->getNextFrame(dummy);
+                Image::pointer image = dataStream->getNextFrame();
 
                 // Create a new IMAGE type message
                 igtl::ImageMessage::Pointer imgMsg = createIGTLImageMessage(image);

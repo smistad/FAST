@@ -28,12 +28,6 @@ void FileStreamer::setNumberOfReplays(uint replays) {
     mNrOfReplays = replays;
 }
 
-void FileStreamer::setStreamingMode(StreamingMode mode) {
-    if(mode == STREAMING_MODE_STORE_ALL_FRAMES && !mMaximumNrOfFramesSet)
-        setMaximumNumberOfFrames(0);
-    Streamer::setStreamingMode(mode);
-}
-
 uint FileStreamer::getNrOfFrames() const {
     return mNrOfFrames;
 }
@@ -44,8 +38,6 @@ void FileStreamer::setSleepTime(uint milliseconds) {
 
 void FileStreamer::setMaximumNumberOfFrames(uint nrOfFrames) {
     mMaximumNrOfFrames = nrOfFrames;
-    DynamicData::pointer data = getDynamicOutputData();
-    data->setMaximumNumberOfFrames(nrOfFrames);
 }
 
 void FileStreamer::setTimestampFilename(std::string filepath) {
@@ -53,12 +45,9 @@ void FileStreamer::setTimestampFilename(std::string filepath) {
 }
 
 void FileStreamer::execute() {
-    getDynamicOutputData()->setStreamer(mPtr.lock());
     if(mFilenameFormats.size() == 0)
         throw Exception("No filename format was given to the FileStreamer");
     if(!mStreamIsStarted) {
-        // TODO Check that first frame exists before starting streamer
-
         mStreamIsStarted = true;
         mThread = new std::thread(std::bind(&FileStreamer::producerStream, this));
     }
@@ -87,7 +76,7 @@ void FileStreamer::setFilenameFormats(std::vector<std::string> strs) {
 }
 
 void FileStreamer::producerStream() {
-    Streamer::pointer pointerToSelf = mPtr.lock(); // try to avoid this object from being destroyed until this function is finished
+    //Streamer::pointer pointerToSelf = mPtr.lock(); // try to avoid this object from being destroyed until this function is finished
 
     // Read timestamp file if available
     std::ifstream timestampFile;
@@ -138,6 +127,7 @@ void FileStreamer::producerStream() {
                 frameNumber
         );
         try {
+            reportInfo() << "Filestreamer reading " << filename << reportEnd();
             DataObject::pointer dataFrame = getDataFrame(filename);
             // Set and use timestamp if available
             if(mTimestampFilename != "") {
@@ -166,29 +156,17 @@ void FileStreamer::producerStream() {
                     previousTimestampTime = std::chrono::high_resolution_clock::now();
                 }
             }
-            DynamicData::pointer ptr = getDynamicOutputData();
-            if(ptr.isValid()) {
-                try {
-                    ptr->addFrame(dataFrame);
-                } catch(NoMoreFramesException &e) {
-                    throw e;
-                } catch(Exception &e) {
-                    reportInfo() << "streamer has been deleted, stop" << Reporter::end();
-                    break;
+            addOutputData(0, dataFrame);
+
+            if(!mFirstFrameIsInserted) {
+                {
+                    std::lock_guard<std::mutex> lock(mFirstFrameMutex);
+                    mFirstFrameIsInserted = true;
                 }
-                if(!mFirstFrameIsInserted) {
-                    {
-                        std::lock_guard<std::mutex> lock(mFirstFrameMutex);
-                        mFirstFrameIsInserted = true;
-                    }
-                    mFirstFrameCondition.notify_one();
-                }
-                if(mSleepTime > 0)
-                    std::this_thread::sleep_for(std::chrono::milliseconds(mSleepTime));
-            } else {
-                reportInfo() << "DynamicImage object destroyed, stream can stop." << Reporter::end();
-                break;
+                mFirstFrameCondition.notify_one();
             }
+            if(mSleepTime > 0)
+                std::this_thread::sleep_for(std::chrono::milliseconds(mSleepTime));
             mNrOfFrames++;
             i += mStepSize;
         } catch(FileNotFoundException &e) {
@@ -240,7 +218,7 @@ FileStreamer::~FileStreamer() {
     }
 }
 
-bool FileStreamer::hasReachedEnd() const {
+bool FileStreamer::hasReachedEnd() {
     return mHasReachedEnd;
 }
 
@@ -272,7 +250,7 @@ void FileStreamer::stop() {
         mStop = true;
     }
     mThread->join();
-    std::cout << "File streamer thread returned" << std::endl;
+    reportInfo() << "File streamer thread returned" << reportEnd();
 }
 
 } // end namespace fast

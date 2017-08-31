@@ -3,12 +3,14 @@ fast_add_test_sources(
     CatchMain.cpp
     DataComparison.cpp
     DataComparison.hpp
+    DummyObjects.cpp
     DummyObjects.hpp
     ProcessObjectTests.cpp
     Algorithms/DoubleFilter.cpp
     Algorithms/DoubleFilter.hpp
     Algorithms/DoubleFilterTests.cpp
     SceneGraphTests.cpp
+    UtilityTests.cpp
 )
 if(FAST_MODULE_Visualization)
 fast_add_test_sources(

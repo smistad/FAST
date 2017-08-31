@@ -8,8 +8,8 @@ namespace fast {
 class FAST_EXPORT  InverseGradientSegmentation : public ProcessObject {
     FAST_OBJECT(InverseGradientSegmentation)
     public:
-        void setCenterlineInputConnection(ProcessObjectPort port);
-        void setVectorFieldInputConnection(ProcessObjectPort port);
+        void setCenterlineInputConnection(DataPort::pointer port);
+        void setVectorFieldInputConnection(DataPort::pointer port);
     private:
         InverseGradientSegmentation();
         void execute();

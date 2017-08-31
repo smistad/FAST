@@ -18,39 +18,40 @@
 #endif
 
 
-using namespace fast;
+namespace fast {
 
 #ifndef GL_RGBA32F // this is missing on windows and mac for some reason
 #define GL_RGBA32F 0x8814 
 #endif
-
-void ImageRenderer::execute() {
-    std::lock_guard<std::mutex> lock(mMutex);
-
-    // This simply gets the input data for each connection and puts it into a data structure
-    for(uint inputNr = 0; inputNr < getNrOfInputData(); inputNr++) {
-        Image::pointer input = getStaticInputData<Image>(inputNr);
-
-        mImagesToRender[inputNr] = input;
-    }
-}
-
-void ImageRenderer::addInputConnection(ProcessObjectPort port) {
-    uint nr = getNrOfInputData();
-    if(nr > 0)
-        createInputPort<Image>(nr);
-    releaseInputAfterExecute(nr, false);
-    setInputConnection(nr, port);
-}
 
 
 ImageRenderer::ImageRenderer() : Renderer() {
     createInputPort<Image>(0, false);
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer.cl", "3D");
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer2D.cl", "2D");
-    mIsModified = false;
+    mIsModified = true;
+    mWindow = -1;
+    mLevel = -1;
     createFloatAttribute("window", "Intensity window", "Intensity window", -1);
     createFloatAttribute("level", "Intensity level", "Intensity level", -1);
+}
+
+void ImageRenderer::setIntensityLevel(float level) {
+    mLevel = level;
+}
+
+float ImageRenderer::getIntensityLevel() {
+    return mLevel;
+}
+
+void ImageRenderer::setIntensityWindow(float window) {
+    if (window <= 0)
+        throw Exception("Intensity window has to be above 0.");
+    mWindow = window;
+}
+
+float ImageRenderer::getIntensityWindow() {
+    return mWindow;
 }
 
 void ImageRenderer::loadAttributes() {
@@ -62,9 +63,9 @@ void ImageRenderer::draw() {
     std::lock_guard<std::mutex> lock(mMutex);
 
     std::unordered_map<uint, Image::pointer>::iterator it;
-    for(it = mImagesToRender.begin(); it != mImagesToRender.end(); it++) {
-        Image::pointer input = it->second;
-        uint inputNr = it->first;
+    for(auto it : mDataToRender) {
+        Image::pointer input = it.second;
+        uint inputNr = it.first;
 
         // Check if a texture has already been created for this image
         if(mTexturesToRender.count(inputNr) > 0 && mImageUsed[inputNr] == input)
@@ -86,7 +87,7 @@ void ImageRenderer::draw() {
         OpenCLDevice::pointer device = getMainDevice();
 
         OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
-        cl::Image2D* clImage = access->get2DImage();
+        cl::Image2D *clImage = access->get2DImage();
 
         mKernel = cl::Kernel(getOpenCLProgram(device, "3D"), "renderToTexture");
         // Run kernel to fill the texture
@@ -134,7 +135,6 @@ void ImageRenderer::draw() {
             );
             mKernel.setArg(1, image);
         }
-
 
 
         mKernel.setArg(0, *clImage);
@@ -188,19 +188,19 @@ void ImageRenderer::draw() {
         glBindTexture(GL_TEXTURE_2D, mTexturesToRender[it->first]);
 
         // Get width and height in mm
-        float width = it->second->getWidth()*it->second->getSpacing().x();
-        float height = it->second->getHeight()*it->second->getSpacing().y();
+        float width = it->second->getWidth() * it->second->getSpacing().x();
+        float height = it->second->getHeight() * it->second->getSpacing().y();
 
-        glColor3f(1,1,1); // black white texture
+        glColor3f(1, 1, 1); // black white texture
         glBegin(GL_QUADS);
-            glTexCoord2i(0, 0);
-            glVertex3f(0, height, 0.0f);
-            glTexCoord2i(1, 0);
-            glVertex3f(width, height, 0.0f);
-            glTexCoord2i(1, 1);
-            glVertex3f(width, 0, 0.0f);
-            glTexCoord2i(0, 1);
-            glVertex3f(0, 0, 0.0f);
+        glTexCoord2i(0, 0);
+        glVertex3f(0, height, 0.0f);
+        glTexCoord2i(1, 0);
+        glVertex3f(width, height, 0.0f);
+        glTexCoord2i(1, 1);
+        glVertex3f(width, 0, 0.0f);
+        glTexCoord2i(0, 1);
+        glVertex3f(0, 0, 0.0f);
         glEnd();
 
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -208,7 +208,9 @@ void ImageRenderer::draw() {
     }
 }
 
-void ImageRenderer::draw2D(cl::Buffer PBO, uint width, uint height, Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform, float PBOspacing, Vector2f translation) {
+void ImageRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
+                           Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform, float PBOspacing,
+                           Vector2f translation) {
     std::lock_guard<std::mutex> lock(mMutex);
 
     OpenCLDevice::pointer device = getMainDevice();
@@ -223,12 +225,11 @@ void ImageRenderer::draw2D(cl::Buffer PBO, uint width, uint height, Eigen::Trans
     cl::Buffer PBO2(
             device->getContext(),
             CL_MEM_READ_WRITE,
-            sizeof(float)*width*height*4
+            sizeof(float) * width * height * 4
     );
 
-    std::unordered_map<uint, Image::pointer>::iterator it;
-    for(it = mImagesToRender.begin(); it != mImagesToRender.end(); it++) {
-        Image::pointer input = it->second;
+    for(auto it : mDataToRender) {
+        Image::pointer input = it.second;
         // Determine level and window
         float window = mWindow;
         float level = mLevel;
@@ -245,7 +246,7 @@ void ImageRenderer::draw2D(cl::Buffer PBO, uint width, uint height, Eigen::Trans
             // Run kernel to fill the texture
 
             OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
-            cl::Image2D* clImage = access->get2DImage();
+            cl::Image2D *clImage = access->get2DImage();
             kernel.setArg(0, *clImage);
             kernel.setArg(1, PBO); // Read from this
             kernel.setArg(2, PBO2); // Write to this
@@ -268,23 +269,23 @@ void ImageRenderer::draw2D(cl::Buffer PBO, uint width, uint height, Eigen::Trans
 
             // Get transform of the image
             AffineTransformation::pointer dataTransform = SceneGraph::getAffineTransformationFromData(input);
-            dataTransform->getTransform().scale(it->second->getSpacing()); // Apply image spacing
+            dataTransform->getTransform().scale(input->getSpacing()); // Apply image spacing
 
             // Transfer transformations
-            Eigen::Affine3f transform = dataTransform->getTransform().inverse()*pixelToViewportTransform;
+            Eigen::Affine3f transform = dataTransform->getTransform().inverse() * pixelToViewportTransform;
 
             cl::Buffer transformBuffer(
                     device->getContext(),
                     CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                    16*sizeof(float),
+                    16 * sizeof(float),
                     transform.data()
             );
 
-             cl::Kernel kernel(getOpenCLProgram(device, "2D"), "render3Dimage");
+            cl::Kernel kernel(getOpenCLProgram(device, "2D"), "render3Dimage");
             // Run kernel to fill the texture
 
             OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
-            cl::Image3D* clImage = access->get3DImage();
+            cl::Image3D *clImage = access->get3DImage();
             kernel.setArg(0, *clImage);
             kernel.setArg(1, PBO); // Read from this
             kernel.setArg(2, PBO2); // Write to this
@@ -302,7 +303,7 @@ void ImageRenderer::draw2D(cl::Buffer PBO, uint width, uint height, Eigen::Trans
         }
 
         // Copy PBO2 to PBO
-        queue.enqueueCopyBuffer(PBO2, PBO, 0, 0, sizeof(float)*width*height*4);
+        queue.enqueueCopyBuffer(PBO2, PBO, 0, 0, sizeof(float) * width * height * 4);
     }
     if(DeviceManager::isGLInteropEnabled()) {
         queue.enqueueReleaseGLObjects(&v);
@@ -310,18 +311,4 @@ void ImageRenderer::draw2D(cl::Buffer PBO, uint width, uint height, Eigen::Trans
     queue.finish();
 }
 
-BoundingBox ImageRenderer::getBoundingBox() {
-    std::vector<Vector3f> coordinates;
-
-    std::unordered_map<uint, Image::pointer>::iterator it;
-    for(it = mImagesToRender.begin(); it != mImagesToRender.end(); it++) {
-        BoundingBox transformedBoundingBox;
-        transformedBoundingBox = it->second->getTransformedBoundingBox();
-
-        MatrixXf corners = transformedBoundingBox.getCorners();
-        for(uint j = 0; j < 8; j++) {
-            coordinates.push_back((Vector3f)corners.row(j));
-        }
-    }
-    return BoundingBox(coordinates);
-}
+} // end namespace fast

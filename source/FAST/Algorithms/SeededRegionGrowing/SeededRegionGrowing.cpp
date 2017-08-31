@@ -37,7 +37,7 @@ void SeededRegionGrowing::addSeedPoint(Vector3ui position) {
 
 SeededRegionGrowing::SeededRegionGrowing() {
     createInputPort<Image>(0);
-    createOutputPort<Segmentation>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOutputPort<Segmentation>(0);
     mDimensionCLCodeCompiledFor = 0;
 }
 
@@ -126,11 +126,11 @@ void SeededRegionGrowing::execute() {
     if(mSeedPoints.size() == 0)
         throw Exception("No seed points supplied to SeededRegionGrowing");
 
-    Image::pointer input = getStaticInputData<Image>();
+    Image::pointer input = getInputData<Image>();
     if(input->getNrOfComponents() != 1)
         throw Exception("Seeded region growing currently doesn't support images with several components.");
 
-    Segmentation::pointer output = getStaticOutputData<Segmentation>();
+    Segmentation::pointer output = getOutputData<Segmentation>();
 
     // Initialize output image
     output->createFromImage(input);

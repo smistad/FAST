@@ -44,7 +44,6 @@ class FAST_EXPORT  WindowWidget : public QWidget {
 
             // Import images from files using the ImageFileStreamer
             fast::ImageFileStreamer::pointer streamer = fast::ImageFileStreamer::New();
-            streamer->setStreamingMode(fast::STREAMING_MODE_PROCESS_ALL_FRAMES);
 
             // The hashtag here will be replaced with an integer, starting with 0 as default
             streamer->setFilenameFormat(fast::Config::getTestDataPath()+"/US/CarotidArtery/Right/US-2D_#.mhd");
@@ -84,7 +83,7 @@ class FAST_EXPORT  WindowWidget : public QWidget {
             if(mThread == NULL) {
                 // Start computation thread using QThreads which is a strange thing, see https://mayaposch.wordpress.com/2011/11/01/how-to-really-truly-use-qthreads-the-full-explanation/
                 fast::Reporter::info() << "Trying to start computation thread" << fast::Reporter::end();
-                mThread = new fast::ComputationThread(QThread::currentThread());
+                mThread = new fast::ComputationThread(QThread::currentThread(), fast::STREAMING_MODE_PROCESS_ALL_FRAMES);
                 QThread* thread = new QThread();
                 mThread->moveToThread(thread);
                 connect(thread, SIGNAL(started()), mThread, SLOT(run()));

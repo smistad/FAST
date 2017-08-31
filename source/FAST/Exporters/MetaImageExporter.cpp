@@ -65,7 +65,7 @@ void MetaImageExporter::execute() {
     if(mFilename == "")
         throw Exception("No filename was given to the MetaImageExporter");
 
-    Image::pointer input = getStaticInputData<Image>();
+    Image::pointer input = getInputData<Image>();
 
     // Check that filename ends with .mhd if not, append it
     if(mFilename.substr(mFilename.length()-4) != ".mhd") {

@@ -9,7 +9,7 @@ namespace fast {
 
 DNNAppearanceModel::DNNAppearanceModel() {
 	createInputPort<Image>(0);
-	createOutputPort<Mesh>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+	createOutputPort<Mesh>(0);
 	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/NeuralNetwork/DNNAppearanceModel.cl");
 	mMirrorImage = false;
 	mObjectsLoaded = false;
@@ -67,7 +67,7 @@ void DNNAppearanceModel::execute() {
 	if(!mObjectsLoaded)
 		throw Exception("Objects must be loaded before execution.");
 
-	Image::pointer image = getStaticInputData<Image>();
+	Image::pointer image = getInputData<Image>();
 
 	caffe::Blob<float>* input_layer = mNetwork->input_blobs()[0];
 	if(input_layer->channels() != 1) {

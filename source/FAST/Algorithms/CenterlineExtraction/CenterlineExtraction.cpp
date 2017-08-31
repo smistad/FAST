@@ -11,7 +11,7 @@ namespace fast {
 
 CenterlineExtraction::CenterlineExtraction() {
 	createInputPort<Image>(0);
-	createOutputPort<Mesh>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+	createOutputPort<Mesh>(0);
 
 	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/CenterlineExtraction/CenterlineExtraction.cl");
 }
@@ -250,7 +250,7 @@ inline void growFromPointsAdded(std::vector<Vector3i> points, const UniquePointe
 }
 
 void CenterlineExtraction::execute() {
-	Image::pointer input = getStaticInputData<Image>();
+	Image::pointer input = getInputData<Image>();
 	Vector3f spacing = input->getSpacing();
 
 	// Do distance transform
@@ -490,7 +490,7 @@ void CenterlineExtraction::execute() {
 		}
 	}
 
-	Mesh::pointer output = getStaticOutputData<Mesh>();
+	Mesh::pointer output = getOutputData<Mesh>();
     output->create(vertices, lines);
 	SceneGraph::setParentNode(output, input);
 }

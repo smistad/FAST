@@ -227,7 +227,7 @@ TEST_CASE("Model based segmentation with spline model on 2D cardiac US data", "[
 	//streamer->setFilenameFormat("/home/smistad/data/ultrasound_smistad_heart/1234/H1ADCL8Q/US-2D_#.mhd");
 
 	streamer->enableLooping();
-	streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+	//streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 	streamer->setSleepTime(50);
 
 	// Control points for spline model

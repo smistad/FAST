@@ -100,7 +100,7 @@ View::View() : mViewingPlane(Plane::Axial()) {
     }
 }
 
-void View::setCameraInputConnection(ProcessObjectPort port) {
+void View::setCameraInputConnection(DataPort::pointer port) {
     setInputConnection(0, port);
 }
 
@@ -169,16 +169,66 @@ void View::setMaximumFramerate(unsigned int framerate) {
 void View::execute() {
 }
 
-
-
-void View::updateAllRenderers() {
-    for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
-        mNonVolumeRenderers[i]->update();
+void View::updateRenderersInput(uint64_t timestep, StreamingMode mode) {
+    for(Renderer::pointer renderer : mNonVolumeRenderers) {
+        int i = 0;
+        while(true) {
+            try {
+                renderer->getInputPort(i)->getProcessObject()->update(timestep, mode);
+                std::cout << "RENDERER " << renderer->getNameOfClass() << " " << i << std::endl;
+                i++;
+            } catch(...) {
+                break;
+            }
+        }
     }
-    for(unsigned int i = 0; i < mVolumeRenderers.size(); i++) {
-        mVolumeRenderers[i]->update();
+    for(Renderer::pointer renderer : mVolumeRenderers) {
+        int i = 0;
+        while(true) {
+            try {
+                renderer->getInputPort(i)->getProcessObject()->update(timestep, mode);
+                i++;
+            } catch(...) {
+                break;
+            }
+        }
     }
+}
 
+void View::updateRenderers(uint64_t timestep, StreamingMode mode) {
+    for(Renderer::pointer renderer : mNonVolumeRenderers) {
+        renderer->execute();
+    }
+    for(Renderer::pointer renderer : mVolumeRenderers) {
+        renderer->execute();
+    }
+}
+
+void View::lockRenderers() {
+    for(Renderer::pointer renderer : mNonVolumeRenderers) {
+        renderer->lock();
+    }
+    for(Renderer::pointer renderer : mVolumeRenderers) {
+        renderer->lock();
+    }
+}
+
+void View::stopRenderers() {
+    for(Renderer::pointer renderer : mNonVolumeRenderers) {
+        renderer->stopPipeline();
+    }
+    for(Renderer::pointer renderer : mVolumeRenderers) {
+        renderer->stopPipeline();
+    }
+}
+
+void View::unlockRenderers() {
+    for(Renderer::pointer renderer : mNonVolumeRenderers) {
+        renderer->unlock();
+    }
+    for(Renderer::pointer renderer : mVolumeRenderers) {
+        renderer->unlock();
+    }
 }
 
 void View::recalculateCamera() {
@@ -305,6 +355,10 @@ void View::reinitialize() {
     initializeGL();
 }
 
+void View::setStreamingMode(StreamingMode mode) {
+    mStreamingMode = mode;
+}
+
 void View::initializeGL() {
 	glEnable(GL_TEXTURE_2D);
     QGLFunctions *fun = Window::getMainGLContext()->functions();
@@ -380,8 +434,9 @@ void View::initializeGL() {
         glEnable(GL_TEXTURE_2D);
         if(mIsIn2DMode) {
             // Update all renders
+            std::cout << "UPDATING ALL RENDERERS" << std::endl;
             for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
-                mNonVolumeRenderers[i]->update();
+                mNonVolumeRenderers[i]->update(0, mStreamingMode);
 
             // Derive a good spacing for the PBO
             // Find longest edge of the BB
@@ -511,8 +566,8 @@ void View::initializeGL() {
         } else {
             // Update all renderes, so that getBoundingBox works
             for (unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
-                mNonVolumeRenderers[i]->update();
-            if(!mCameraSet && getNrOfInputData() == 0) {
+                mNonVolumeRenderers[i]->update(0, mStreamingMode);
+            if(!mCameraSet && getNrOfInputConnections() == 0) {
                 // If camera is not set explicitly by user, FAST has to calculate it
                 recalculateCamera();
             } else {
@@ -534,7 +589,7 @@ void View::initializeGL() {
 			glMatrixMode(GL_PROJECTION);
 			glPushMatrix();
 
-			mVolumeRenderers[0]->update();
+			mVolumeRenderers[0]->update(0, mStreamingMode);
 
 			glMatrixMode(GL_MODELVIEW);
 			glPopMatrix();
@@ -739,6 +794,7 @@ void View::paintGL() {
             mRuntimeManager->startRegularTimer("draw2D");
             for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
                 mNonVolumeRenderers[i]->draw2D(clPBO, width(), height(), m2DViewingTransformation, mPBOspacing*mScale2D, Vector2f(mPosX2D, mPosY2D));
+                mNonVolumeRenderers[i]->postDraw();
             }
             mRuntimeManager->stopRegularTimer("draw2D");
 
@@ -783,9 +839,9 @@ void View::paintGL() {
 			glLightfv(GL_LIGHT0, GL_POSITION, position);
 
 			// Apply camera transformations
-			if(getNrOfInputData() > 0) {
+			if(getNrOfInputConnections() > 0) {
 			    // Has camera input connection, get camera
-			    Camera::pointer camera = getStaticInputData<Camera>(0);
+			    Camera::pointer camera = getInputData<Camera>(0);
 			    CameraAccess::pointer access = camera->getAccess(ACCESS_READ);
                 glMultMatrixf(m3DViewingTransformation.data());
 			    glMultMatrixf(access->getCameraTransformation().data());
@@ -806,6 +862,7 @@ void View::paintGL() {
             for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
                     glPushMatrix();
                     mNonVolumeRenderers[i]->draw();
+                    mNonVolumeRenderers[i]->postDraw();
                     glPopMatrix();
             }
             mRuntimeManager->stopRegularTimer("draw");
@@ -885,6 +942,7 @@ void View::renderVolumes()
 		mRuntimeManager->startRegularTimer("draw");
 		for(unsigned int i = 0; i < mVolumeRenderers.size(); i++) {
 			mVolumeRenderers[i]->draw();
+            mVolumeRenderers[i]->postDraw();
 		}
 		mRuntimeManager->stopRegularTimer("draw");
 		glMatrixMode(GL_PROJECTION);
@@ -1226,6 +1284,12 @@ if(isLinked == GL_FALSE)
 //Always detach shaders after a successful link.
 fun->glDetachShader(programGLSL, vertexShader);
 fun->glDetachShader(programGLSL, fragmentShader);
+}
+
+std::vector<Renderer::pointer> View::getRenderers() {
+    std::vector<Renderer::pointer> newList = mNonVolumeRenderers;
+    newList.insert(newList.cend(), mVolumeRenderers.begin (), mVolumeRenderers.end());
+    return newList;
 }
 
 /********************************************************************************************************/

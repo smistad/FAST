@@ -8,9 +8,9 @@
 namespace fast {
 
 KinectStreamer::KinectStreamer() {
-    createOutputPort<Image>(0, OUTPUT_DYNAMIC); // RGB
-    createOutputPort<Image>(1, OUTPUT_DYNAMIC); // Depth image
-    createOutputPort<Mesh>(2, OUTPUT_DYNAMIC); // Point cloud
+    createOutputPort<Image>(0); // RGB
+    createOutputPort<Image>(1); // Depth image
+    createOutputPort<Mesh>(2); // Point cloud
     mNrOfFrames = 0;
     mHasReachedEnd = false;
     mFirstFrameIsInserted = false;
@@ -25,9 +25,6 @@ void KinectStreamer::setPointCloudFiltering(bool enabled) {
 }
 
 void KinectStreamer::execute() {
-    getOutputData<Image>(0)->setStreamer(mPtr.lock());
-    getOutputData<Image>(1)->setStreamer(mPtr.lock());
-    getOutputData<Image>(2)->setStreamer(mPtr.lock());
     if(!mStreamIsStarted) {
         // Check that first frame exists before starting streamer
 
@@ -180,32 +177,15 @@ void KinectStreamer::producerStream() {
         Mesh::pointer cloud = Mesh::New();
         cloud->create(points);
 
-        DynamicData::pointer ddRGB = getOutputData<Image>(0);
-        DynamicData::pointer ddDepth = getOutputData<Image>(1);
-        DynamicData::pointer ddPoint = getOutputData<Mesh>(2);
-        if(ddRGB.isValid() && ddDepth.isValid()) {
-            try {
-                ddRGB->addFrame(rgbImage);
-                ddDepth->addFrame(depthImage);
-                ddPoint->addFrame(cloud);
-            } catch(NoMoreFramesException &e) {
-                throw e;
-            } catch(Exception &e) {
-                reportInfo() << "streamer has been deleted, stop" << Reporter::end();
-                listener.release(frames);
-                break;
+        addOutputData(0, rgbImage);
+        addOutputData(1, depthImage);
+        addOutputData(2, cloud);
+        if(!mFirstFrameIsInserted) {
+            {
+                std::lock_guard<std::mutex> lock(mFirstFrameMutex);
+                mFirstFrameIsInserted = true;
             }
-            if(!mFirstFrameIsInserted) {
-                {
-                    std::lock_guard<std::mutex> lock(mFirstFrameMutex);
-                    mFirstFrameIsInserted = true;
-                }
-                mFirstFrameCondition.notify_one();
-            }
-        } else {
-            reportInfo() << "DynamicImage object destroyed, stream can stop." << Reporter::end();
-            listener.release(frames);
-            break;
+            mFirstFrameCondition.notify_one();
         }
         mNrOfFrames++;
         listener.release(frames);
@@ -217,7 +197,7 @@ void KinectStreamer::producerStream() {
     delete dev;
 }
 
-bool KinectStreamer::hasReachedEnd() const {
+bool KinectStreamer::hasReachedEnd() {
     return mHasReachedEnd;
 }
 

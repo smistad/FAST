@@ -5,15 +5,15 @@ namespace fast {
 
 ImageGradient::ImageGradient() {
     createInputPort<Image>(0);
-    createOutputPort<Image>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOutputPort<Image>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageGradient/ImageGradient.cl");
 
     mUse16bitFormat = false;
 }
 
 void ImageGradient::execute() {
-    Image::pointer input = getStaticInputData<Image>(0);
-    Image::pointer output = getStaticOutputData<Image>(0);
+    Image::pointer input = getInputData<Image>(0);
+    Image::pointer output = getOutputData<Image>(0);
 
     std::string buildOptions = "";
     DataType type = TYPE_FLOAT;

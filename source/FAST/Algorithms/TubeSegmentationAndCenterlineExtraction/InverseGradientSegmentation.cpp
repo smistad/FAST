@@ -6,28 +6,28 @@
 namespace fast {
 
 void InverseGradientSegmentation::setCenterlineInputConnection(
-        ProcessObjectPort port) {
+        DataPort::pointer port) {
     setInputConnection(0, port);
 }
 
 void InverseGradientSegmentation::setVectorFieldInputConnection(
-        ProcessObjectPort port) {
+        DataPort::pointer port) {
     setInputConnection(1, port);
 }
 
 InverseGradientSegmentation::InverseGradientSegmentation() {
     createInputPort<Segmentation>(0);
     createInputPort<Image>(1);
-    createOutputPort<Segmentation>(0, OUTPUT_DEPENDS_ON_INPUT, 0);
+    createOutputPort<Segmentation>(0);
 }
 
 void InverseGradientSegmentation::execute() {
     OpenCLDevice::pointer device = getMainDevice();
     bool no3Dwrite = !device->isWritingTo3DTexturesSupported();
-    Segmentation::pointer centerline = getStaticInputData<Segmentation>(0);
+    Segmentation::pointer centerline = getInputData<Segmentation>(0);
     Vector3ui size = centerline->getSize();
-    Image::pointer vectorField = getStaticInputData<Image>(1);
-    Segmentation::pointer segmentation = getStaticOutputData<Segmentation>(0);
+    Image::pointer vectorField = getInputData<Image>(1);
+    Segmentation::pointer segmentation = getOutputData<Segmentation>(0);
     segmentation->createFromImage(centerline);
     SceneGraph::setParentNode(segmentation, centerline);
     Segmentation::pointer segmentation2 = Segmentation::New();

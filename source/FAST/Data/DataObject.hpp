@@ -5,7 +5,6 @@
 #include "FAST/Object.hpp"
 #include "FAST/ExecutionDevice.hpp"
 #include <unordered_map>
-#include "FAST/Streamers/Streamer.hpp"
 #include <condition_variable>
 
 namespace fast {
@@ -19,9 +18,6 @@ class FAST_EXPORT  DataObject : public Object {
         void retain(ExecutionDevice::pointer device);
         void release(ExecutionDevice::pointer device);
         virtual ~DataObject() { };
-        bool isDynamicData() const;
-        void setStreamer(Streamer::pointer streamer);
-        Streamer::pointer getStreamer();
         virtual std::string getNameOfClass() const = 0;
         static std::string getStaticNameOfClass() {
             return "DataObject";
@@ -31,7 +27,6 @@ class FAST_EXPORT  DataObject : public Object {
     protected:
         virtual void free(ExecutionDevice::pointer device) = 0;
         virtual void freeAll() = 0;
-        bool mIsDynamicData;
 
         void accessFinished();
         void blockIfBeingWrittenTo();
@@ -46,9 +41,6 @@ class FAST_EXPORT  DataObject : public Object {
         bool mDataIsBeingAccessed;
     private:
         std::unordered_map<WeakPointer<ExecutionDevice>, unsigned int> mReferenceCount;
-
-        // This is only used for dynamic data, it is defined here for to make the convienice function getStaticOutput/InputData to work
-        WeakPointer<Streamer> mStreamer;
 
         // Timestamp is set to 0 when data object is constructed
         unsigned long mTimestampModified;

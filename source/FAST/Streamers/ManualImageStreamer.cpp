@@ -29,8 +29,7 @@ ManualImageStreamer::ManualImageStreamer() {
     mSleepTime = 0;
     mStepSize = 1;
     mMaximumNrOfFramesSet = false;
-    createOutputPort<Image>(0, OUTPUT_DYNAMIC);
-    setMaximumNumberOfFrames(50); // Set default maximum number of frames to 50
+    createOutputPort<Image>(0);
 }
 
 void ManualImageStreamer::addImage(Image::pointer image) {
@@ -41,12 +40,6 @@ void ManualImageStreamer::setNumberOfReplays(uint replays) {
 	mNrOfReplays = replays;
 }
 
-void ManualImageStreamer::setStreamingMode(StreamingMode mode) {
-    if(mode == STREAMING_MODE_STORE_ALL_FRAMES && !mMaximumNrOfFramesSet)
-        setMaximumNumberOfFrames(0);
-    Streamer::setStreamingMode(mode);
-}
-
 uint ManualImageStreamer::getNrOfFrames() const {
     return mNrOfFrames;
 }
@@ -55,14 +48,7 @@ void ManualImageStreamer::setSleepTime(uint milliseconds) {
     mSleepTime = milliseconds;
 }
 
-void ManualImageStreamer::setMaximumNumberOfFrames(uint nrOfFrames) {
-    mMaximumNrOfFrames = nrOfFrames;
-    DynamicData::pointer data = getOutputData<Image>(0);
-    data->setMaximumNumberOfFrames(nrOfFrames);
-}
-
 void ManualImageStreamer::execute() {
-    getOutputData<Image>(0)->setStreamer(mPtr.lock());
     if(mImages.size() == 0)
     	throw Exception("No images added to the manual image streamer.");
     if(!mStreamIsStarted) {
@@ -88,28 +74,15 @@ void ManualImageStreamer::producerStream() {
     while(true) {
         try {
             Image::pointer image = mImages.at(i);
-            DynamicData::pointer ptr = getOutputData<Image>();
-            if(ptr.isValid()) {
-                try {
-                    ptr->addFrame(image);
-                    if(mSleepTime > 0)
-                        std::this_thread::sleep_for(std::chrono::milliseconds(mSleepTime));
-                } catch(NoMoreFramesException &e) {
-                    throw e;
-                } catch(Exception &e) {
-                    reportInfo() << "streamer has been deleted, stop" << Reporter::end();
-                    break;
+            addOutputData(0, image);
+            if(mSleepTime > 0)
+                std::this_thread::sleep_for(std::chrono::milliseconds(mSleepTime));
+            if(!mFirstFrameIsInserted) {
+                {
+                    std::lock_guard<std::mutex> lock(mFirstFrameMutex);
+                    mFirstFrameIsInserted = true;
                 }
-                if(!mFirstFrameIsInserted) {
-                    {
-                        std::lock_guard<std::mutex> lock(mFirstFrameMutex);
-                        mFirstFrameIsInserted = true;
-                    }
-                    mFirstFrameCondition.notify_one();
-                }
-            } else {
-                reportInfo() << "DynamicImage object destroyed, stream can stop." << Reporter::end();
-                break;
+                mFirstFrameCondition.notify_one();
             }
             mNrOfFrames++;
             i += mStepSize;
@@ -149,7 +122,7 @@ ManualImageStreamer::~ManualImageStreamer() {
     }
 }
 
-bool ManualImageStreamer::hasReachedEnd() const {
+bool ManualImageStreamer::hasReachedEnd() {
     return mHasReachedEnd;
 }
 
