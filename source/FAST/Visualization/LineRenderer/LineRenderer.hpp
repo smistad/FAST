@@ -10,14 +10,14 @@ namespace fast {
 class FAST_EXPORT  LineRenderer : public Renderer {
     FAST_OBJECT(LineRenderer)
     public:
-        void addInputConnection(DataPort::pointer port);
-        void addInputConnection(DataPort::pointer port, Color color, float width);
+        uint addInputConnection(DataPort::pointer port) override;
+        uint addInputConnection(DataPort::pointer port, Color color, float width);
         void setDefaultColor(Color color);
         void setDefaultLineWidth(float width);
         void setDefaultDrawOnTop(bool drawOnTop);
-        void setDrawOnTop(DataPort::pointer input, bool drawOnTop);
-        void setColor(DataPort::pointer input, Color color);
-        void setWidth(DataPort::pointer input, float width);
+        void setDrawOnTop(uint inputNr, bool drawOnTop);
+        void setColor(uint inputNr, Color color);
+        void setWidth(uint inputNr, float width);
         void draw();
     private:
         LineRenderer();
@@ -25,9 +25,9 @@ class FAST_EXPORT  LineRenderer : public Renderer {
         float mDefaultLineWidth;
         Color mDefaultColor;
         bool mDefaultDrawOnTop;
-        std::unordered_map<DataPort::pointer, float> mInputWidths;
-        std::unordered_map<DataPort::pointer, Color> mInputColors;
-        std::unordered_map<DataPort::pointer, bool> mInputDrawOnTop;
+        std::unordered_map<uint, float> mInputWidths;
+        std::unordered_map<uint, Color> mInputColors;
+        std::unordered_map<uint, bool> mInputDrawOnTop;
 };
 
 }

@@ -7,12 +7,18 @@ Renderer::Renderer() {
 }
 
 
+uint Renderer::addInputData(DataObject::pointer data) {
+    uint nr = getNrOfInputConnections();
+    setInputData(nr, data);
+    return nr;
+}
 
-void Renderer::addInputConnection(DataPort::pointer port) {
+uint Renderer::addInputConnection(DataPort::pointer port) {
     uint nr = getNrOfInputConnections();
     if(nr > 0)
         createInputPort<DataObject>(nr);
     setInputConnection(nr, port);
+    return nr;
 }
 
 void Renderer::lock() {

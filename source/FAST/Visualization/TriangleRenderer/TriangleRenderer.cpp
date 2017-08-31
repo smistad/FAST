@@ -12,10 +12,11 @@
 
 namespace fast {
 
-void TriangleRenderer::addInputConnection(DataPort::pointer port, Color color, float opacity) {
-    Renderer::addInputConnection(port);
-    mInputColors[port] = color;
-    mInputOpacities[port] = opacity;
+uint TriangleRenderer::addInputConnection(DataPort::pointer port, Color color, float opacity) {
+    uint nr = Renderer::addInputConnection(port);
+    mInputColors[nr] = color;
+    mInputOpacities[nr] = opacity;
+    return nr;
 }
 
 
@@ -51,7 +52,6 @@ void TriangleRenderer::draw() {
     if(mWireframe)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    std::unordered_map<uint, Mesh::pointer>::iterator it;
     for(auto it : mDataToRender) {
         Mesh::pointer surfaceToRender = it.second;
 
@@ -63,15 +63,12 @@ void TriangleRenderer::draw() {
 
         float opacity = mDefaultOpacity;
         Color color = mDefaultColor;
-        /*
-        DataPort::pointer port = getInputPort(it.first);
-        if(mInputOpacities.count(port) > 0) {
-            opacity = mInputOpacities[port];
+        if(mInputOpacities.count(it.first) > 0) {
+            opacity = mInputOpacities[it.first];
         }
-        if(mInputColors.count(port) > 0) {
-            color = mInputColors[port];
+        if(mInputColors.count(it.first) > 0) {
+            color = mInputColors[it.first];
         }
-         */
 
         // Set material properties
         if(opacity < 1) {
@@ -141,17 +138,13 @@ void TriangleRenderer::draw2D(
     UniquePointer<float[]> pixels(new float[width*height*sizeof(float)*4]);
     queue.enqueueReadBuffer(PBO, CL_TRUE, 0, width*height*4*sizeof(float), pixels.get());
 
-    std::unordered_map<uint, Mesh::pointer>::iterator it;
     for(auto it : mDataToRender) {
     	Mesh::pointer mesh = it.second;
 
 		Color color = mDefaultColor;
-        /*
-        DataPort::pointer port = getInputPort(it->first);
-        if(mInputColors.count(port) > 0) {
-            color = mInputColors[port];
+        if(mInputColors.count(it.first) > 0) {
+            color = mInputColors[it.first];
         }
-         */
 
     	MeshAccess::pointer access = mesh->getMeshAccess(ACCESS_READ);
         std::vector<MeshLine> lines = access->getLines();
@@ -220,16 +213,16 @@ void TriangleRenderer::setDefaultColor(Color color) {
     mDefaultColor = color;
 }
 
-void TriangleRenderer::setColor(int label, Color color) {
+void TriangleRenderer::setLabelColor(int label, Color color) {
 	mLabelColors[label] = color;
 }
 
-void TriangleRenderer::setColor(DataPort::pointer port, Color color) {
-    mInputColors[port] = color;
+void TriangleRenderer::setColor(uint inputNr, Color color) {
+    mInputColors[inputNr] = color;
 }
 
-void TriangleRenderer::setOpacity(DataPort::pointer port, float opacity) {
-    mInputOpacities[port] = opacity;
+void TriangleRenderer::setOpacity(uint inputNr, float opacity) {
+    mInputOpacities[inputNr] = opacity;
 }
 
 void TriangleRenderer::setDefaultOpacity(float opacity) {
@@ -245,8 +238,8 @@ void TriangleRenderer::setDefaultSpecularReflection(float specularReflection) {
     mDefaultSpecularReflection = specularReflection;
 }
 
-void TriangleRenderer::addInputConnection(DataPort::pointer port) {
-    Renderer::addInputConnection(port);
+uint TriangleRenderer::addInputConnection(DataPort::pointer port) {
+    return Renderer::addInputConnection(port);
 }
 
 } // namespace fast

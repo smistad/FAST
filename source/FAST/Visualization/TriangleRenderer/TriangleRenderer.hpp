@@ -10,8 +10,8 @@ namespace fast {
 class FAST_EXPORT TriangleRenderer : public Renderer {
     FAST_OBJECT(TriangleRenderer)
     public:
-        void addInputConnection(DataPort::pointer port) override;
-        void addInputConnection(DataPort::pointer port, Color color, float opacity);
+        uint addInputConnection(DataPort::pointer port) override;
+        uint addInputConnection(DataPort::pointer port, Color color, float opacity);
         void setDefaultOpacity(float opacity);
         /**
          * Enable/disable renderer of wireframe instead of filled polygons
@@ -20,9 +20,9 @@ class FAST_EXPORT TriangleRenderer : public Renderer {
         void setWireframe(bool wireframe);
         void setDefaultColor(Color color);
         void setDefaultSpecularReflection(float specularReflection);
-        void setColor(DataPort::pointer port, Color color);
-        void setColor(int label, Color color);
-        void setOpacity(DataPort::pointer port, float opacity);
+        void setColor(uint inputNr, Color color);
+        void setLabelColor(int label, Color color);
+        void setOpacity(uint inputNr, float opacity);
         void setLineSize(int size);
     private:
         void draw() override;
@@ -36,9 +36,9 @@ class FAST_EXPORT TriangleRenderer : public Renderer {
         ) override;
         TriangleRenderer();
 
-        std::unordered_map<DataPort::pointer, Color> mInputColors;
+        std::unordered_map<uint, Color> mInputColors;
         std::unordered_map<int, Color> mLabelColors;
-        std::unordered_map<DataPort::pointer, float> mInputOpacities;
+        std::unordered_map<uint, float> mInputOpacities;
         Color mDefaultColor;
         float mDefaultSpecularReflection;
         float mDefaultOpacity;

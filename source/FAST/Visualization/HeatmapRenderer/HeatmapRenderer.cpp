@@ -10,10 +10,10 @@ HeatmapRenderer::HeatmapRenderer() {
     mIsModified = false;
 }
 
-void HeatmapRenderer::addInputConnection(DataPort::pointer port, Color color) {
-    uint nr = getNrOfInputConnections();
-    Renderer::addInputConnection(port);
+uint HeatmapRenderer::addInputConnection(DataPort::pointer port, Color color) {
+    uint nr = Renderer::addInputConnection(port);
     mColors[nr] = color;
+    return nr;
 }
 
 void HeatmapRenderer::draw() {

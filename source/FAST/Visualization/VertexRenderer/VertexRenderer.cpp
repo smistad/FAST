@@ -24,16 +24,14 @@ void VertexRenderer::draw() {
         glPushMatrix();
         glMultMatrixf(transform->getTransform().data());
 
-        /*
-        DataPort::pointer port = getInputPort(it->first);
-        if(mInputSizes.count(port) > 0) {
-            glPointSize(mInputSizes[port]);
+        if(mInputSizes.count(it.first) > 0) {
+            glPointSize(mInputSizes[it.first]);
         } else {
             glPointSize(mDefaultPointSize);
         }
         bool hasColor = false;
-        if(mInputColors.count(port) > 0) {
-            Color c = mInputColors[port];
+        if(mInputColors.count(it.first) > 0) {
+            Color c = mInputColors[it.first];
             glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
             hasColor = true;
         } else if(mDefaultColorSet) {
@@ -42,30 +40,25 @@ void VertexRenderer::draw() {
             hasColor = true;
         }
         bool drawOnTop;
-        if(mInputDrawOnTop.count(port) > 0) {
-            drawOnTop = mInputDrawOnTop[port];
+        if(mInputDrawOnTop.count(it.first) > 0) {
+            drawOnTop = mInputDrawOnTop[it.first];
         } else {
             drawOnTop = mDefaultDrawOnTop;
         }
         if(drawOnTop)
             glDisable(GL_DEPTH_TEST);
-         */
         glBegin(GL_POINTS);
         for(MeshVertex vertex : vertices) {
             Vector3f position = vertex.getPosition();
-            /*
             if(!hasColor) {
                 Color c = vertex.getColor();
                 glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
             }
-             */
             glVertex3f(position.x(), position.y(), position.z());
         }
         glEnd();
-        /*
         if(drawOnTop)
             glEnable(GL_DEPTH_TEST);
-            */
         glPopMatrix();
     }
     glColor3f(1.0f, 1.0f, 1.0f); // Reset color
@@ -96,12 +89,9 @@ void VertexRenderer::draw2D(
     	Mesh::pointer points = it.second;
 
 		Color color = mDefaultColor;
-        /*
-        DataPort::pointer port = getInputPort(it->first);
-        if(mInputColors.count(port) > 0) {
-            color = mInputColors[port];
+        if(mInputColors.count(it.first) > 0) {
+            color = mInputColors[it.first];
         }
-         */
 
     	MeshAccess::pointer access = points->getMeshAccess(ACCESS_READ);
         std::vector<MeshVertex> vertices = access->getVertices();
@@ -145,30 +135,26 @@ VertexRenderer::VertexRenderer() {
 }
 
 
-void VertexRenderer::addInputConnection(DataPort::pointer port) {
-    Renderer::addInputConnection(port);
+uint VertexRenderer::addInputConnection(DataPort::pointer port) {
+    return Renderer::addInputConnection(port);
 }
 
-void VertexRenderer::addInputConnection(DataPort::pointer port, Color color,
+uint VertexRenderer::addInputConnection(DataPort::pointer port, Color color,
         float size) {
-    addInputConnection(port);
-    setColor(port, color);
-    setSize(port, size);
+    uint nr = addInputConnection(port);
+    setColor(nr, color);
+    setSize(nr, size);
+    return nr;
 }
 
-void VertexRenderer::addInputData(Mesh::pointer data) {
-    uint nr = getNrOfInputConnections();
-    setInputData(nr, data);
+uint VertexRenderer::addInputData(DataObject::pointer data) {
+    return Renderer::addInputData(data);
 }
 
-void VertexRenderer::addInputData(Mesh::pointer data, Color color, float size) {
-    uint nr = getNrOfInputConnections();
-    addInputData(data);
-    /*
-    DataPort::pointer port = getInputPort(nr);
-    setColor(port, color);
-    setSize(port, size);
-     */
+uint VertexRenderer::addInputData(Mesh::pointer data, Color color, float size) {
+    uint nr = addInputData(data);
+    setColor(nr, color);
+    setSize(nr, size);
 }
 
 
@@ -186,16 +172,16 @@ void VertexRenderer::setDefaultDrawOnTop(bool drawOnTop) {
 }
 
 
-void VertexRenderer::setDrawOnTop(DataPort::pointer port, bool drawOnTop) {
-    mInputDrawOnTop[port] = drawOnTop;
+void VertexRenderer::setDrawOnTop(uint inputNr, bool drawOnTop) {
+    mInputDrawOnTop[inputNr] = drawOnTop;
 }
 
-void VertexRenderer::setColor(DataPort::pointer port, Color color) {
-    mInputColors[port] = color;
+void VertexRenderer::setColor(uint inputNr, Color color) {
+    mInputColors[inputNr] = color;
 }
 
-void VertexRenderer::setSize(DataPort::pointer port, float size) {
-    mInputSizes[port] = size;
+void VertexRenderer::setSize(uint inputNr, float size) {
+    mInputSizes[inputNr] = size;
 }
 
 } // end namespace fast

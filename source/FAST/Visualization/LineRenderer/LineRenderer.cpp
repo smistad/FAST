@@ -25,23 +25,21 @@ void LineRenderer::draw() {
         glPushMatrix();
         glMultMatrixf(transform->getTransform().data());
 
-        DataPort::pointer port = getInputPort(it.first);
-
-        if(mInputWidths.count(port) > 0) {
-            glLineWidth(mInputWidths[port]);
+        if(mInputWidths.count(it.first) > 0) {
+            glLineWidth(mInputWidths[it.first]);
         } else {
             glLineWidth(mDefaultLineWidth);
         }
-        if(mInputColors.count(port) > 0) {
-            Color c = mInputColors[port];
+        if(mInputColors.count(it.first) > 0) {
+            Color c = mInputColors[it.first];
             glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
         } else {
             Color c = mDefaultColor;
             glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
         }
         bool drawOnTop;
-        if(mInputDrawOnTop.count(port) > 0) {
-            drawOnTop = mInputDrawOnTop[port];
+        if(mInputDrawOnTop.count(it.first) > 0) {
+            drawOnTop = mInputDrawOnTop[it.first];
         } else {
             drawOnTop = mDefaultDrawOnTop;
         }
@@ -69,15 +67,16 @@ LineRenderer::LineRenderer() {
     mDefaultDrawOnTop = false;
 }
 
-void LineRenderer::addInputConnection(DataPort::pointer port) {
-    Renderer::addInputConnection(port);
+uint LineRenderer::addInputConnection(DataPort::pointer port) {
+    return Renderer::addInputConnection(port);
 }
 
-void LineRenderer::addInputConnection(DataPort::pointer port, Color color,
+uint LineRenderer::addInputConnection(DataPort::pointer port, Color color,
         float width) {
-    addInputConnection(port);
-    setColor(port, color);
-    setWidth(port, width);
+    uint nr = addInputConnection(port);
+    setColor(nr, color);
+    setWidth(nr, width);
+    return nr;
 }
 
 void LineRenderer::setDefaultColor(Color color) {
@@ -92,16 +91,16 @@ void LineRenderer::setDefaultDrawOnTop(bool drawOnTop) {
     mDefaultDrawOnTop = drawOnTop;
 }
 
-void LineRenderer::setDrawOnTop(DataPort::pointer port, bool drawOnTop) {
-    mInputDrawOnTop[port] = drawOnTop;
+void LineRenderer::setDrawOnTop(uint inputNr, bool drawOnTop) {
+    mInputDrawOnTop[inputNr] = drawOnTop;
 }
 
-void LineRenderer::setColor(DataPort::pointer port, Color color) {
-    mInputColors[port] = color;
+void LineRenderer::setColor(uint nr, Color color) {
+    mInputColors[nr] = color;
 }
 
-void LineRenderer::setWidth(DataPort::pointer port, float width) {
-    mInputWidths[port] = width;
+void LineRenderer::setWidth(uint nr, float width) {
+    mInputWidths[nr] = width;
 }
 
 } // end namespace fast

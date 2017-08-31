@@ -18,7 +18,18 @@ class FAST_EXPORT  Renderer : public ProcessObject {
         typedef SharedPointer<Renderer> pointer;
         virtual void draw() = 0;
         virtual void postDraw();
-        virtual void addInputConnection(DataPort::pointer port);
+        /**
+         * Adds a new input connection
+         * @param port
+         * @return the input nr of the new connection
+         */
+        virtual uint addInputConnection(DataPort::pointer port);
+        /**
+         * Adds a new input connection to a specific data object
+         * @param data
+         * @return the input nr of the new connection
+         */
+        virtual uint addInputData(DataObject::pointer data);
         virtual BoundingBox getBoundingBox();
         virtual void draw2D(
                 cl::Buffer PBO,

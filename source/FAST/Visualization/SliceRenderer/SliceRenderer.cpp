@@ -310,7 +310,7 @@ BoundingBox SliceRenderer::getBoundingBox() {
     return transformedBoundingBox;
 }
 
-void SliceRenderer::addInputConnection(DataPort::pointer port) {
+uint SliceRenderer::addInputConnection(DataPort::pointer port) {
     throw Exception("Use setInputConnection for SliceRenderer");
 }
 

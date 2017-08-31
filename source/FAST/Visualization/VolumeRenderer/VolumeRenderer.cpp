@@ -34,7 +34,7 @@ void VolumeRenderer::setProjectionParameters(float fov, float aspect, float near
 	projectionMatrix14= (-2.0*zFar*zNear) / (zFar-zNear);
 	mIsModified = true;
 }
-void VolumeRenderer::addInputConnection(DataPort::pointer port) {
+uint VolumeRenderer::addInputConnection(DataPort::pointer port) {
 
 	
 
@@ -53,10 +53,12 @@ void VolumeRenderer::addInputConnection(DataPort::pointer port) {
 		numberOfVolumes++;
 		mIsModified = true;
 		mInputIsModified=true;
+		return nr;
 	}
 	else
 		printf("\n Warning: Volume Renderer currently supports only up to %d volumes. Extera inputs are denied. \n", maxNumberOfVolumes);
-	
+
+
 }
 void VolumeRenderer::setOpacityTransferFunction(int volumeIndex, OpacityTransferFunction::pointer otf) {
 

@@ -13,7 +13,7 @@ class FAST_EXPORT  HeatmapRenderer : public Renderer {
     public:
         void setMinConfidence(float confidence);
         void setMaxOpacity(float opacity);
-        void addInputConnection(DataPort::pointer port, Color color = Color::Red());
+        uint addInputConnection(DataPort::pointer port, Color color = Color::Red());
     private:
         HeatmapRenderer();
         void draw() override;
