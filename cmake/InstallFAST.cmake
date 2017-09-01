@@ -70,6 +70,11 @@ install(DIRECTORY ${PROJECT_BINARY_DIR}/include/
     DESTINATION fast/include/
     FILES_MATCHING PATTERN "*.hpp"
 )
+install(DIRECTORY ${PROJECT_BINARY_DIR}/include/
+    DESTINATION fast/include/
+    FILES_MATCHING REGEX "/[^.]+$" # Files with no extension
+)
+
 
 
 # Install created headers
