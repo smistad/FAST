@@ -21,10 +21,6 @@ SimpleWindow::~SimpleWindow() {
 SimpleWindow::SimpleWindow() {
     View* view = createView();
 
-    // default window size
-    mWidth = 512;
-    mHeight = 512;
-
     QHBoxLayout* mainLayout = new QHBoxLayout;
     mainLayout->addWidget(view);
     mWidget->setLayout(mainLayout);
