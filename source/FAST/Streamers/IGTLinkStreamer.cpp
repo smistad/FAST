@@ -132,7 +132,7 @@ void IGTLinkStreamer::updateFirstFrameSetFlag() {
     bool allHaveGotData = true;
     for(auto port : mOutputConnections) {
         for(auto output : port.second) {
-            if(output.lock()->getFrameCounter() == 0)
+            if(output.lock()->getSize() == 0)
                 allHaveGotData = false;
         }
     }
