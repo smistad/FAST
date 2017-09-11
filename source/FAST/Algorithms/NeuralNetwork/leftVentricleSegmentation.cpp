@@ -95,10 +95,10 @@ int main() {
 
     PixelClassifier::pointer segmentation = PixelClassifier::New();
     segmentation->setNrOfClasses(4);
-    segmentation->setRememberFrames(3);
-    segmentation->load("/home/smistad/workspace/acnn-heart-segmentation/models/tensorflow_recurrent_segmentation_model_sm_0.pb");
-    segmentation->setInputName("input_1");
-    //segmentation->load("/home/smistad/workspace/acnn-heart-segmentation/models/tensorflow_segmentation_model.pb");
+    //segmentation->setRememberFrames(3);
+    //segmentation->load("/home/smistad/workspace/acnn-heart-segmentation/models/tensorflow_recurrent_segmentation_model_sm_0.pb");
+    //segmentation->setInputName("input_1");
+    segmentation->load("/home/smistad/workspace/acnn-heart-segmentation/models/tensorflow_segmentation_model.pb");
     segmentation->setInputSize(256, 256);
     segmentation->setScaleFactor(1.0f/255.0f);
     segmentation->setOutputParameters({"conv2d_23/truediv"});
@@ -124,7 +124,7 @@ int main() {
     //window->addRenderer(segmentationRenderer);
     window->addRenderer(heatmapRenderer);
     window->setSize(1024, 768);
-    window->enableMaximized();
+    //window->enableMaximized();
     window->set2DMode();
     window->getView()->setBackgroundColor(Color::Black());
     window->start();

@@ -32,12 +32,12 @@ __kernel void renderToTexture(
         pos = (int4)(x,y,slice,0);
     }
 
-    // TODO components support
-    float value = readPixelAsFloat(image, sampler, pos).x;
+    float4 value = readPixelAsFloat(image, sampler, pos);
+    if(get_image_channel_order(image) == CLK_R) {
+        value.y = value.x;
+        value.z = value.x;
+    }
     value = (value - level + window/2) / window;
     value = clamp(value, 0.0f, 1.0f);
-    //printf("value: %f\n", value);
-    //write_imagef(texture, (int2)(x,get_global_size(1)-y-1), (float4)(value,value,value,1.0));
-    write_imagef(texture, (int2)(x,y), (float4)(value,value,value,1.0));
-    //write_imagef(texture, (int2)(x,get_global_size(1)-y-1), (float4)(1.0,0.0,0.0,1.0));
+    write_imagef(texture, (int2)(x,y), value);
 }
