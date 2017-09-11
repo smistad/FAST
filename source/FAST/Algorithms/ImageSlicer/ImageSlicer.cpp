@@ -50,7 +50,7 @@ void ImageSlicer::orthogonalSlicing(Image::pointer input, Image::pointer output)
     OpenCLDevice::pointer device = getMainDevice();
 
     // Determine slice nr and width and height
-    unsigned int sliceNr;
+    int sliceNr;
     if(mOrthogonalSliceNr < 0) {
         switch(mOrthogonalSlicePlane) {
         case PLANE_X:
@@ -83,6 +83,7 @@ void ImageSlicer::orthogonalSlicing(Image::pointer input, Image::pointer output)
     }
     unsigned int slicePlaneNr, width, height;
     Vector3f spacing(0,0,0);
+    Affine3f transform = Affine3f::Identity();
     switch(mOrthogonalSlicePlane) {
         case PLANE_X:
             slicePlaneNr = 0;
@@ -90,6 +91,9 @@ void ImageSlicer::orthogonalSlicing(Image::pointer input, Image::pointer output)
             height = input->getDepth();
             spacing.x() = input->getSpacing().y();
             spacing.y() = input->getSpacing().z();
+            transform.rotate(Eigen::AngleAxisf(M_PI_2, Vector3f::UnitX()));
+            transform.rotate(Eigen::AngleAxisf(M_PI_2, Vector3f::UnitY()));
+            transform.translation() = Vector3f(sliceNr*input->getSpacing().x(), 0, 0);
             break;
         case PLANE_Y:
             slicePlaneNr = 1;
@@ -97,6 +101,8 @@ void ImageSlicer::orthogonalSlicing(Image::pointer input, Image::pointer output)
             height = input->getDepth();
             spacing.x() = input->getSpacing().x();
             spacing.y() = input->getSpacing().z();
+            transform.rotate(Eigen::AngleAxisf(M_PI_2, Vector3f::UnitX()));
+            transform.translation() = Vector3f(0, sliceNr*input->getSpacing().y(), 0);
             break;
         case PLANE_Z:
             slicePlaneNr = 2;
@@ -104,11 +110,16 @@ void ImageSlicer::orthogonalSlicing(Image::pointer input, Image::pointer output)
             height = input->getHeight();
             spacing.x() = input->getSpacing().x();
             spacing.y() = input->getSpacing().y();
+            transform.translation() = Vector3f(0, 0, sliceNr*input->getSpacing().z());
             break;
     }
 
     output->create(width, height, input->getDataType(), input->getNrOfComponents());
     output->setSpacing(spacing);
+    AffineTransformation::pointer T = AffineTransformation::New();
+    T->setTransform(transform);
+    output->getSceneGraphNode()->setTransformation(T);
+    SceneGraph::setParentNode(output, input);
 
     OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
     OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
