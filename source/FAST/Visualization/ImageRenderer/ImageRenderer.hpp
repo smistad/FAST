@@ -14,7 +14,7 @@ class FAST_EXPORT  ImageRenderer : public Renderer {
         float getIntensityLevel();
         void setIntensityWindow(float window);
         float getIntensityWindow();
-    private:
+    protected:
         ImageRenderer();
         void draw();
         void draw2D(

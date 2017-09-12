@@ -42,7 +42,7 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and S
     filter->setStandardDeviation(2.0);
 
     SliceRenderer::pointer renderer = SliceRenderer::New();
-    renderer->setInputConnection(filter->getOutputPort());
+    renderer->addInputConnection(filter->getOutputPort());
 
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
@@ -91,7 +91,7 @@ TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and S
     filter->setMainDevice(host);
 
     SliceRenderer::pointer renderer = SliceRenderer::New();
-    renderer->setInputConnection(filter->getOutputPort());
+    renderer->addInputConnection(filter->getOutputPort());
 
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);

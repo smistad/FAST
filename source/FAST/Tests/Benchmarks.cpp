@@ -40,8 +40,7 @@ TEST_CASE("Pipeline A (static)", "[fast][benchmark][visual]") {
     renderer->addInputConnection(extractor->getOutputPort());
 
     SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
-    sliceRenderer->setInputConnection(filter->getOutputPort());
-    sliceRenderer->setSlicePlane(PLANE_X);
+    sliceRenderer->addInputConnection(filter->getOutputPort(), PLANE_X);
 
     SimpleWindow::pointer window = SimpleWindow::New();
     window->getView()->enableRuntimeMeasurements();

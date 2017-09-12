@@ -42,7 +42,6 @@ void Renderer::postDraw() {
 
 void Renderer::execute() {
     std::unique_lock<std::mutex> lock(mMutex);
-    std::cout << "renderer EXECUTE" << std::endl;
 
     // Check if current images has not been rendered, if not wait
     while(!mHasRendered) {
