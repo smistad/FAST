@@ -11,7 +11,7 @@ TEST_CASE("LineRenderer", "[fast][LineRenderer][visual]") {
 
     LineRenderer::pointer renderer = LineRenderer::New();
     renderer->addInputConnection(importer->getOutputPort());
-    renderer->setColor(importer->getOutputPort(), Color::Red());
+    renderer->setColor(0, Color::Red());
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->setTimeout(500);

@@ -6,6 +6,7 @@
 #include "FAST/Data/BoundingBox.hpp"
 #include "FAST/Data/SpatialDataObject.hpp"
 #include <mutex>
+#include <QOpenGLFunctions>
 
 
 namespace fast {
@@ -13,7 +14,7 @@ namespace fast {
 class View;
 class BoundingBox;
 
-class FAST_EXPORT  Renderer : public ProcessObject {
+class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions {
     public:
         typedef SharedPointer<Renderer> pointer;
         virtual void draw() = 0;
@@ -44,6 +45,11 @@ class FAST_EXPORT  Renderer : public ProcessObject {
         Renderer();
         void execute() override;
 
+        void createShaderProgram(std::vector<std::string> shaderFilenames, std::string programName = "default");
+        void attachShader(std::string filename, std::string programName = "default");
+        void activateShader(std::string programName = "default");
+        void deactivateShader();
+        uint getShaderProgram(std::string programName = "default");
 
         // Locking mechanisms to ensure thread safe synchronized rendering
         bool mHasRendered = true;
@@ -64,6 +70,12 @@ class FAST_EXPORT  Renderer : public ProcessObject {
          */
         void unlock();
         friend class View;
+    private:
+
+        /**
+         * OpenGL shader IDs. Program name -> OpenGL ID
+         */
+        std::unordered_map<std::string, uint> mShaderProgramIDs;
 };
 
 }

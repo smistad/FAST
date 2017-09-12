@@ -1,4 +1,5 @@
 #include <FAST/Data/SpatialDataObject.hpp>
+#include <fstream>
 #include "Renderer.hpp"
 
 namespace fast {
@@ -78,6 +79,101 @@ BoundingBox Renderer::getBoundingBox() {
         throw Exception("Renderer did not get any data. Unable to create bounding box and thereby initialize GL scene.");
 
     return BoundingBox(coordinates);
+}
+
+
+void Renderer::createShaderProgram(std::vector<std::string> shaderFilenames, std::string programName) {
+    uint programID = glCreateProgram();
+    mShaderProgramIDs[programName] = programID;
+
+    for(std::string filename : shaderFilenames) {
+        attachShader(filename, programName);
+    }
+}
+
+
+void Renderer::attachShader(std::string filename, std::string programName) {
+    // Make sure shader is created
+    if(mShaderProgramIDs.count(programName) == 0)
+        createShaderProgram({}, programName);
+
+    // Load GLSL Shader from source file
+    std::ifstream fd(filename.c_str());
+    if(fd.fail()) {
+        throw Exception("Unable to read shader program " + filename);
+    }
+    auto src = std::string(std::istreambuf_iterator<char>(fd),
+                           (std::istreambuf_iterator<char>()));
+
+    // Create shader object
+    const char * source = src.c_str();
+    uint shaderID;
+    // Extract file extension and create the correct shader type
+    auto idx = filename.rfind(".");
+    auto ext = filename.substr(idx + 1);
+    if(ext == "comp") {
+        shaderID = glCreateShader(GL_COMPUTE_SHADER);
+    } else if(ext == "frag") {
+        shaderID = glCreateShader(GL_FRAGMENT_SHADER);
+    } else if(ext == "geom") {
+      shaderID = glCreateShader(GL_GEOMETRY_SHADER);
+    } else if(ext == "tcs") {
+       shaderID =  glCreateShader(GL_TESS_CONTROL_SHADER);
+    } else if(ext == "tes") {
+       shaderID =  glCreateShader(GL_TESS_EVALUATION_SHADER);
+    } else if(ext == "vert") {
+        shaderID =  glCreateShader(GL_VERTEX_SHADER);
+    } else {
+        throw Exception("Unknown shader extension. Extension should indicate shader type (.vert, .frag, .geom, .tes, .comp)");
+    }
+    glShaderSource(shaderID, 1, &source, nullptr);
+    glCompileShader(shaderID);
+
+    // Display errors
+    int status;
+    glGetShaderiv(shaderID, GL_COMPILE_STATUS, &status);
+    if(!status) {
+        int length;
+        glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &length);
+        std::unique_ptr<char[]> buffer(new char[length]);
+        glGetShaderInfoLog(shaderID, length, nullptr, buffer.get());
+        throw Exception("Unable to compile shader " + filename + ": " + buffer.get());
+    }
+
+    // Attach shader and free allocated memory
+    glAttachShader(getShaderProgram(programName), shaderID);
+    glDeleteShader(shaderID);
+}
+
+void Renderer::activateShader(std::string programName) {
+    // TODO check if linked
+    int status;
+    uint programID = getShaderProgram(programName) ;
+    glGetProgramiv(programID, GL_LINK_STATUS, &status);
+    if(!status) {
+        glLinkProgram(programID);
+        glGetProgramiv(programID, GL_LINK_STATUS, &status);
+        if(!status) {
+            int length;
+            glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &length);
+            std::unique_ptr<char[]> buffer(new char[length]);
+            glGetProgramInfoLog(programID, length, nullptr, buffer.get());
+            throw Exception("Unable to link shader program: " + std::string(buffer.get()));
+        }
+    }
+    glUseProgram(getShaderProgram(programName));
+}
+
+void Renderer::deactivateShader() {
+    glUseProgram(0);
+}
+
+uint Renderer::getShaderProgram(std::string programName) {
+    try {
+        return mShaderProgramIDs.at(programName);
+    } catch(...) {
+        throw Exception("Shader program with name " + programName + " not found");
+    }
 }
 
 }

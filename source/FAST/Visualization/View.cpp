@@ -360,6 +360,8 @@ void View::setStreamingMode(StreamingMode mode) {
 }
 
 void View::initializeGL() {
+    for(auto renderer : getRenderers())
+        renderer->initializeOpenGLFunctions();
 	glEnable(GL_TEXTURE_2D);
     QGLFunctions *fun = Window::getMainGLContext()->functions();
 

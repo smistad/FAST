@@ -46,16 +46,18 @@ Window::Window() {
     QDesktopWidget *desktop = QApplication::desktop();
     int screenWidth = desktop->width();
     uint windowScaling = 1;
-    if(defaultFont.pointSize() < 10 && screenWidth > 2000) {
+    if(screenWidth > 2000) {
         if(screenWidth > 3000) {
             windowScaling = 2;
             // 4K screens
             Reporter::info() << "Large screen detected with width: " << screenWidth << Reporter::end();
-            mGUIScalingFactor = 1.75;
+            if(defaultFont.pointSize() < 10)
+                mGUIScalingFactor = 1.75;
         } else {
             windowScaling = 2;
             Reporter::info() << "Medium large screen detected with width: " << screenWidth << Reporter::end();
-            mGUIScalingFactor = 1.5;
+            if(defaultFont.pointSize() < 10)
+                mGUIScalingFactor = 1.5;
         }
         Reporter::info() << "Scaling default font with factor " << mGUIScalingFactor << Reporter::end();
     }

@@ -2,11 +2,7 @@
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Visualization/View.hpp"
 #include "FAST/Utility.hpp"
-#include <QCursor>
-#include <QGLFunctions>
 #include "FAST/Visualization/Window.hpp"
-
-
 #include "TriangleRenderer.hpp"
 #include "FAST/SceneGraph.hpp"
 
@@ -47,7 +43,6 @@ void TriangleRenderer::draw() {
     glEnable(GL_NORMALIZE);
     glShadeModel(GL_SMOOTH);
     glEnable(GL_LIGHTING);
-    QGLFunctions *fun = Window::getMainGLContext()->functions();
 
     if(mWireframe)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -87,7 +82,7 @@ void TriangleRenderer::draw() {
         GLuint* VBO_ID = access->get();
 
         // Normal Buffer
-        fun->glBindBuffer(GL_ARRAY_BUFFER, *VBO_ID);
+        glBindBuffer(GL_ARRAY_BUFFER, *VBO_ID);
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_NORMAL_ARRAY);
 
@@ -97,7 +92,7 @@ void TriangleRenderer::draw() {
         glDrawArrays(GL_TRIANGLES, 0, surfaceToRender->getNrOfTriangles()*3);
 
         // Release buffer
-        fun->glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
         glDisableClientState(GL_VERTEX_ARRAY);
         glDisableClientState(GL_NORMAL_ARRAY);
         if(opacity < 1) {

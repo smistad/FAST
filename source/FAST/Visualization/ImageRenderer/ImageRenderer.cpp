@@ -12,7 +12,6 @@
 #include <GL/gl.h>
 #include <CL/cl_gl.h>
 #else
-#include <GL/glx.h>
 #include <CL/cl_gl.h>
 #endif
 #endif
@@ -93,7 +92,7 @@ void ImageRenderer::draw() {
         // Run kernel to fill the texture
         cl::CommandQueue queue = device->getCommandQueue();
 
-        glEnable(GL_TEXTURE_2D);
+        //glEnable(GL_TEXTURE_2D);
         if(mTexturesToRender.count(inputNr) > 0) {
             // Delete old texture
             glDeleteTextures(1, &mTexturesToRender[inputNr]);
