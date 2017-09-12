@@ -33,6 +33,20 @@ TEST_CASE("SliceRenderer on dynamic data with no parameters set", "[fast][SliceR
     );
 }
 
+TEST_CASE("SliceRenderer on dynamic data with no parameters set, 2D view", "[fast][SliceRenderer][visual]") {
+    ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
+    mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"US/Ball/US-3Dt_#.mhd");
+    CHECK_NOTHROW(
+        SliceRenderer::pointer renderer = SliceRenderer::New();
+        renderer->addInputConnection(mhdStreamer->getOutputPort(), PLANE_Z);
+        SimpleWindow::pointer window = SimpleWindow::New();
+        window->addRenderer(renderer);
+        window->set2DMode();
+        window->setTimeout(1000);
+        window->start();
+    );
+}
+
 TEST_CASE("SliceRenderer on dynamic data with custom slicer set", "[fast][SliceRenderer][visual]") {
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
     mhdStreamer->setFilenameFormat(Config::getTestDataPath()+"US/Ball/US-3Dt_#.mhd");
