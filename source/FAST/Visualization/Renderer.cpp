@@ -146,14 +146,16 @@ void Renderer::attachShader(std::string filename, std::string programName) {
 }
 
 void Renderer::activateShader(std::string programName) {
-    // TODO check if linked
+    // Check if linked
     int status;
     uint programID = getShaderProgram(programName) ;
     glGetProgramiv(programID, GL_LINK_STATUS, &status);
     if(!status) {
+        // Shader is not linked, link it
         glLinkProgram(programID);
         glGetProgramiv(programID, GL_LINK_STATUS, &status);
         if(!status) {
+            // Link failed, throw exception
             int length;
             glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &length);
             std::unique_ptr<char[]> buffer(new char[length]);
