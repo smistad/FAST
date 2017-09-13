@@ -12,7 +12,7 @@
 
 namespace fast {
 
-void LineRenderer::draw() {
+void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
     std::lock_guard<std::mutex> lock(mMutex);
 
     // For all input data

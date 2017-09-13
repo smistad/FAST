@@ -72,6 +72,8 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
 		Vector3f mCameraPosition;
 		bool mCameraSet;
 
+		Matrix4f mPerspectiveMatrix;
+
         void execute();
         QTimer* timer;
         unsigned int mFramerate;

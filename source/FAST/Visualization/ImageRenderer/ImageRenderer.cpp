@@ -58,7 +58,7 @@ void ImageRenderer::loadAttributes() {
     setIntensityLevel(getFloatAttribute("level"));
 }
 
-void ImageRenderer::draw() {
+void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
 
     createShaderProgram({
                                 Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer.vert",
@@ -229,6 +229,10 @@ void ImageRenderer::draw() {
 
         uint transformLoc = glGetUniformLocation(getShaderProgram(), "transform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform->getTransform().data());
+        transformLoc = glGetUniformLocation(getShaderProgram(), "perspectiveTransform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, perspectiveMatrix.data());
+        transformLoc = glGetUniformLocation(getShaderProgram(), "viewTransform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, viewingMatrix.data());
 
         glBindTexture(GL_TEXTURE_2D, mTexturesToRender[it->first]);
         glBindVertexArray(mVAO[it->first]);

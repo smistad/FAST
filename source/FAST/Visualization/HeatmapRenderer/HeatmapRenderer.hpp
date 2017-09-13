@@ -16,7 +16,7 @@ class FAST_EXPORT  HeatmapRenderer : public Renderer {
         uint addInputConnection(DataPort::pointer port, Color color = Color::Red());
     private:
         HeatmapRenderer();
-        void draw() override;
+        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) override;
         void draw2D(
                 cl::Buffer PBO,
                 uint width,

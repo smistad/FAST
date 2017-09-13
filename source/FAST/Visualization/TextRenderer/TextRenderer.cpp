@@ -33,7 +33,7 @@ void TextRenderer::execute() {
     mText = access->getData();
 }
 
-void TextRenderer::draw() {
+void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
     std::lock_guard<std::mutex> lock(mMutex);
 
     if(mView != NULL) {

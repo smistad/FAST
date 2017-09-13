@@ -147,7 +147,7 @@ static inline void hash_combine(std::size_t& seed, const T& v)
     seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
 }
 
-FAST_EXPORT void loadPerspectiveMatrix(float fovy, float aspect, float zNear, float zFar);
+FAST_EXPORT Matrix4f loadPerspectiveMatrix(float fovy, float aspect, float zNear, float zFar);
 
 /*
  * Creates a directory at the given path.

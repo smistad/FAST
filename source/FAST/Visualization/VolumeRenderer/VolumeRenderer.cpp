@@ -617,7 +617,7 @@ void VolumeRenderer::execute() {
 
 }
 
-void VolumeRenderer::draw() {
+void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
 	
 	std::lock_guard<std::mutex> lock(mMutex);
 

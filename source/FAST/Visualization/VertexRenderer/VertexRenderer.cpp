@@ -4,7 +4,7 @@
 
 namespace fast {
 
-void VertexRenderer::draw() {
+void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
     std::lock_guard<std::mutex> lock(mMutex);
 
     for(auto it : mDataToRender) {

@@ -572,12 +572,21 @@ std::vector<std::string> split(const std::string input, const std::string& delim
     return parts;
 }
 
-void loadPerspectiveMatrix(float fovy, float aspect, float zNear, float zFar) {
-	float ymax = zNear * tan(fovy * M_PI / 360.0);
-	float ymin = -ymax;
-	float xmin = ymin * aspect;
-	float xmax = ymax * aspect;
-	glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
+Matrix4f loadPerspectiveMatrix(float fovy, float aspect, float zNear, float zFar) {
+
+    float theta = fovy*0.5;
+    float range = zFar - zNear;
+    float invtan = 1./tan(theta);
+
+    Matrix4f mProjectionMatrix = Matrix4f::Zero();
+    mProjectionMatrix(0,0) = invtan / aspect;
+    mProjectionMatrix(1,1) = invtan;
+    mProjectionMatrix(2,2) = -(zNear + zFar) / range;
+    mProjectionMatrix(3,2) = -1;
+    mProjectionMatrix(2,3) = -2 * zNear * zFar / range;
+    mProjectionMatrix(3,3) = 0;
+
+    return mProjectionMatrix;
 }
 
 void createDirectory(std::string path) {

@@ -16,7 +16,7 @@ class FAST_EXPORT  ImageRenderer : public Renderer {
         float getIntensityWindow();
     protected:
         ImageRenderer();
-        void draw();
+        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix);
         void draw2D(
                 cl::Buffer PBO,
                 uint width,

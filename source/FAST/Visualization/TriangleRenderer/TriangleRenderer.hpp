@@ -25,7 +25,7 @@ class FAST_EXPORT TriangleRenderer : public Renderer {
         void setOpacity(uint inputNr, float opacity);
         void setLineSize(int size);
     private:
-        void draw() override;
+        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) override;
         void draw2D(
                 cl::Buffer PBO,
                 uint width,

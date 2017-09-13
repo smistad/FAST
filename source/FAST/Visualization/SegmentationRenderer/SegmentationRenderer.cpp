@@ -45,7 +45,7 @@ SegmentationRenderer::SegmentationRenderer() {
     mLabelColors[Segmentation::LABEL_BLUE] = Color::Blue();
 }
 
-void SegmentationRenderer::draw() {
+void SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
     throw NotImplementedException();
 }
 

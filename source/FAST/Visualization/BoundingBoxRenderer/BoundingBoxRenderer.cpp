@@ -24,7 +24,7 @@ void BoundingBoxRenderer::execute() {
     }
 }
 
-void BoundingBoxRenderer::draw() {
+void BoundingBoxRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
     std::lock_guard<std::mutex> lock(mMutex);
 
     // Draw each bounding box

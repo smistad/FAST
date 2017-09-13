@@ -16,7 +16,7 @@ uint HeatmapRenderer::addInputConnection(DataPort::pointer port, Color color) {
     return nr;
 }
 
-void HeatmapRenderer::draw() {
+void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
     throw NotImplementedException();
 }
 

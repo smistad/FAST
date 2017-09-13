@@ -17,7 +17,7 @@ class BoundingBox;
 class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3_3_Core {
     public:
         typedef SharedPointer<Renderer> pointer;
-        virtual void draw() = 0;
+        virtual void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) = 0;
         virtual void postDraw();
         /**
          * Adds a new input connection

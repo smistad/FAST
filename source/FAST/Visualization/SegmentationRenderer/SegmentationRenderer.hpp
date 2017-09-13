@@ -18,7 +18,7 @@ class FAST_EXPORT  SegmentationRenderer : public Renderer {
         void setFillArea(bool fillArea);
     private:
         SegmentationRenderer();
-        void draw() override;
+        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) override;
         void draw2D(
                 cl::Buffer PBO,
                 uint width,

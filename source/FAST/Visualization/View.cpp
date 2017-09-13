@@ -576,7 +576,7 @@ void View::initializeGL() {
                 aspect = (float) (this->width()) / this->height();
                 fieldOfViewX = aspect * fieldOfViewY;
             }
-            loadPerspectiveMatrix(fieldOfViewY, aspect, zNear, zFar);
+            mPerspectiveMatrix = loadPerspectiveMatrix(fieldOfViewY, aspect, zNear, zFar);
         }
 	}
 	else
@@ -621,7 +621,7 @@ void View::initializeGL() {
 
 				aspect = (float)this->width() / this->height();
 				fieldOfViewX = aspect*fieldOfViewY;
-				loadPerspectiveMatrix(fieldOfViewY, aspect, zNear, zFar);
+				mPerspectiveMatrix = loadPerspectiveMatrix(fieldOfViewY, aspect, zNear, zFar);
 				// Initialize camera
 
 				// Get bounding boxes of all objects
@@ -845,11 +845,11 @@ void View::paintGL() {
 			    // Has camera input connection, get camera
 			    Camera::pointer camera = getInputData<Camera>(0);
 			    CameraAccess::pointer access = camera->getAccess(ACCESS_READ);
-                glMultMatrixf(m3DViewingTransformation.data());
-			    glMultMatrixf(access->getCameraTransformation().data());
+                //glMultMatrixf(m3DViewingTransformation.data());
+			    //glMultMatrixf(access->getCameraTransformation().data());
 			    mRotationPoint = access->getCameraTransformation()*access->getTargetPosition();
 			} else {
-                glMultMatrixf(m3DViewingTransformation.data());
+                //glMultMatrixf(m3DViewingTransformation.data());
 			}
 
             if (mVolumeRenderers.size()>0)
@@ -863,7 +863,7 @@ void View::paintGL() {
             mRuntimeManager->startRegularTimer("draw");
             for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
                     glPushMatrix();
-                    mNonVolumeRenderers[i]->draw();
+                    mNonVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix());
                     mNonVolumeRenderers[i]->postDraw();
                     glPopMatrix();
             }
@@ -907,7 +907,7 @@ void View::paintGL() {
 			glLightfv(GL_LIGHT0, GL_POSITION, position);
 
 			// Apply camera transformations
-			glMultMatrixf(m3DViewingTransformation.data());
+			//glMultMatrixf(m3DViewingTransformation.data());
 
 			renderVolumes();
 		}
@@ -943,7 +943,7 @@ void View::renderVolumes()
 
 		mRuntimeManager->startRegularTimer("draw");
 		for(unsigned int i = 0; i < mVolumeRenderers.size(); i++) {
-			mVolumeRenderers[i]->draw();
+			mVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix());
             mVolumeRenderers[i]->postDraw();
 		}
 		mRuntimeManager->stopRegularTimer("draw");
@@ -1025,7 +1025,7 @@ void View::resizeGL(int width, int height) {
         glViewport(0, 0, width, height);
         aspect = (float)width/height;
         fieldOfViewX = aspect*fieldOfViewY;
-        loadPerspectiveMatrix(fieldOfViewY, aspect, zNear, zFar);
+        mPerspectiveMatrix = loadPerspectiveMatrix(fieldOfViewY, aspect, zNear, zFar);
     }
 
 	if (mVolumeRenderers.size() > 0)

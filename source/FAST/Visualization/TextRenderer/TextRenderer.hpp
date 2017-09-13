@@ -28,7 +28,7 @@ class FAST_EXPORT  TextRenderer : public Renderer {
         void setStyle(TextStyleType);
         void draw2D(cl::Buffer PBO, uint width, uint height, Affine3f pixelToViewportTransform,
                float PBOspacing, Vector2f translation) override;
-        void draw() override;
+        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) override;
         void loadAttributes();
     private:
         TextRenderer();

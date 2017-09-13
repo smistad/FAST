@@ -13,7 +13,7 @@ class FAST_EXPORT  BoundingBoxRenderer : public Renderer {
     private:
         BoundingBoxRenderer();
         void execute();
-        void draw();
+        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix);
         BoundingBox getBoundingBox();
 
         std::unordered_map<uint, BoundingBox> mBoxesToRender;
