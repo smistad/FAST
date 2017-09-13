@@ -59,6 +59,11 @@ void ImageRenderer::loadAttributes() {
 }
 
 void ImageRenderer::draw() {
+
+    createShaderProgram({
+                                Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer.vert",
+                                Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer.frag",
+                        });
     std::lock_guard<std::mutex> lock(mMutex);
 
     std::unordered_map<uint, Image::pointer>::iterator it;
@@ -174,37 +179,66 @@ void ImageRenderer::draw() {
         mTexturesToRender[inputNr] = textureID;
         mImageUsed[inputNr] = input;
         queue.finish();
+
+        // Create VAO
+        uint VAO_ID;
+        glGenVertexArrays(1, &VAO_ID);
+        mVAO[inputNr] = VAO_ID;
+        glBindVertexArray(VAO_ID);
+
+        // Create VBO
+        // Get width and height in mm
+        float width = input->getWidth() * input->getSpacing().x();
+        float height = input->getHeight() * input->getSpacing().y();
+        float vertices[] = {
+                // vertex: x, y, z; tex coordinates: x, y
+                0.0f, height, 0.0f, 0.0f, 0.0f,
+                width, height, 0.0f, 1.0f, 0.0f,
+                width, 0.0f, 0.0f, 1.0f, 1.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        };
+        uint VBO;
+        glGenBuffers(1, &VBO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(1);
+
+        // Create EBO
+        uint EBO;
+        glGenBuffers(1, &EBO);
+        uint indices[] = {  // note that we start from 0!
+                0, 1, 3,   // first triangle
+                1, 2, 3    // second triangle
+        };
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+        glBindVertexArray(0);
     }
 
+    activateShader();
 
     // This is the actual rendering
     for(it = mImageUsed.begin(); it != mImageUsed.end(); it++) {
         glPushMatrix();
 
         AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(it->second);
-        glMultMatrixf(transform->getTransform().data());
+        //glMultMatrixf(transform->getTransform().data());
+
+        uint transformLoc = glGetUniformLocation(getShaderProgram(), "transform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform->getTransform().data());
 
         glBindTexture(GL_TEXTURE_2D, mTexturesToRender[it->first]);
-
-        // Get width and height in mm
-        float width = it->second->getWidth() * it->second->getSpacing().x();
-        float height = it->second->getHeight() * it->second->getSpacing().y();
-
-        glColor3f(1, 1, 1); // black white texture
-        glBegin(GL_QUADS);
-        glTexCoord2i(0, 0);
-        glVertex3f(0, height, 0.0f);
-        glTexCoord2i(1, 0);
-        glVertex3f(width, height, 0.0f);
-        glTexCoord2i(1, 1);
-        glVertex3f(width, 0, 0.0f);
-        glTexCoord2i(0, 1);
-        glVertex3f(0, 0, 0.0f);
-        glEnd();
-
+        glBindVertexArray(mVAO[it->first]);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glBindTexture(GL_TEXTURE_2D, 0);
+        glBindVertexArray(0);
         glPopMatrix();
     }
+
+    deactivateShader();
 }
 
 void ImageRenderer::draw2D(cl::Buffer PBO, uint width, uint height,

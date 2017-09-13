@@ -26,8 +26,9 @@ class FAST_EXPORT  ImageRenderer : public Renderer {
                 Vector2f translation
         );
 
-        std::unordered_map<uint, GLuint> mTexturesToRender;
+        std::unordered_map<uint, uint> mTexturesToRender;
         std::unordered_map<uint, Image::pointer> mImageUsed;
+        std::unordered_map<uint, uint> mVAO;
 
         cl::Kernel mKernel;
 
