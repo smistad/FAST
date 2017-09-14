@@ -753,8 +753,6 @@ void View::paintGL() {
          */
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
 
 		if(mIsIn2DMode) {
 		    // Create PBO BufferGL object
@@ -826,6 +824,7 @@ void View::paintGL() {
             glDrawPixels(width(), height(), GL_RGBA, GL_FLOAT, 0);
             fun->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 		} else {
+            /*
 			// Create headlight
 			glEnable(GL_LIGHT0);
 			// Create light components
@@ -839,6 +838,7 @@ void View::paintGL() {
 			glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
 			glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight);
 			glLightfv(GL_LIGHT0, GL_POSITION, position);
+             */
 
 			// Apply camera transformations
 			if(getNrOfInputConnections() > 0) {

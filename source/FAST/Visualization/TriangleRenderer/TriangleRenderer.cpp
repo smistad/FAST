@@ -38,23 +38,28 @@ void TriangleRenderer::setLineSize(int size) {
 }
 
 void TriangleRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
+    createShaderProgram({
+            Config::getKernelSourcePath() + "Visualization/TriangleRenderer/TriangleRenderer.vert",
+            Config::getKernelSourcePath() + "Visualization/TriangleRenderer/TriangleRenderer.frag",
+    });
     std::lock_guard<std::mutex> lock(mMutex);
-
-    glEnable(GL_NORMALIZE);
-    glShadeModel(GL_SMOOTH);
-    glEnable(GL_LIGHTING);
 
     if(mWireframe)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+    activateShader();
     for(auto it : mDataToRender) {
         Mesh::pointer surfaceToRender = it.second;
 
         // Draw the triangles in the VBO
         AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(surfaceToRender);
 
-        glPushMatrix();
-        glMultMatrixf(transform->getTransform().data());
+        uint transformLoc = glGetUniformLocation(getShaderProgram(), "transform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform->getTransform().data());
+        transformLoc = glGetUniformLocation(getShaderProgram(), "perspectiveTransform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, perspectiveMatrix.data());
+        transformLoc = glGetUniformLocation(getShaderProgram(), "viewTransform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, viewingMatrix.data());
 
         float opacity = mDefaultOpacity;
         Color color = mDefaultColor;
@@ -71,43 +76,34 @@ void TriangleRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) 
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
-        GLfloat GLcolor[] = { color.getRedValue(), color.getGreenValue(), color.getBlueValue(), opacity };
-        glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, GLcolor);
-        GLfloat specReflection[] = { mDefaultSpecularReflection, mDefaultSpecularReflection, mDefaultSpecularReflection, 1.0f };
-        glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specReflection);
-        GLfloat shininess[] = { 16.0f };
-        glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
 
         VertexBufferObjectAccess::pointer access = surfaceToRender->getVertexBufferObjectAccess(ACCESS_READ);
         GLuint* VBO_ID = access->get();
 
         // Normal Buffer
         glBindBuffer(GL_ARRAY_BUFFER, *VBO_ID);
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_NORMAL_ARRAY);
+        // Coordinates
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(0);
+        // Normals
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
+        glEnableVertexAttribArray(1);
 
-        glVertexPointer(3, GL_FLOAT, 24, 0);
-        glNormalPointer(GL_FLOAT, 24, (float*)(sizeof(GLfloat)*3));
+        //glNormalPointer(GL_FLOAT, 24, (float*)(sizeof(GLfloat)*3));
 
         glDrawArrays(GL_TRIANGLES, 0, surfaceToRender->getNrOfTriangles()*3);
 
         // Release buffer
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glDisableClientState(GL_VERTEX_ARRAY);
-        glDisableClientState(GL_NORMAL_ARRAY);
         if(opacity < 1) {
             // Disable transparency
             glDisable(GL_BLEND);
         }
-        glPopMatrix();
-        glFinish();
     }
 
-    glDisable(GL_LIGHTING);
-    glDisable(GL_NORMALIZE);
     if(mWireframe)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glColor3f(1.0f, 1.0f, 1.0f); // Reset color
+    deactivateShader();
 }
 
 void TriangleRenderer::draw2D(

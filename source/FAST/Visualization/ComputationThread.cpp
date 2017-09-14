@@ -78,9 +78,11 @@ void ComputationThread::run() {
 }
 
 void ComputationThread::stop() {
+    reportInfo() << "Stopping renderers.." << Reporter::end();
     for(View* view : mViews) {
         view->stopRenderers();
     }
+    reportInfo() << "Renderers stopped" << Reporter::end();
     // This is run in the main thread
     std::unique_lock<std::mutex> lock(mUpdateThreadMutex); // this locks the mutex
     mUpdateThreadIsStopped = true;
