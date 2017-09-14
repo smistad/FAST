@@ -419,7 +419,7 @@ void View::initializeGL() {
 	{
 	    // Non volume rendering, (and volume renderer)
 		if (mVolumeRenderers.size()>0)
-		{	
+		{
 			((VolumeRenderer::pointer)mVolumeRenderers[0])->setIncludeGeometry(true);
 			fun->glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 		}
@@ -743,175 +743,92 @@ void View::paintGL() {
     QGLFunctions *fun = Window::getMainGLContext()->functions();
 
 	glClearColor(mBackgroundColor.getRedValue(), mBackgroundColor.getGreenValue(), mBackgroundColor.getBlueValue(), 1.0f);
-	if (mNonVolumeRenderers.size() > 0 ) //it can be "only nonVolume renderers" or "nonVolume + Volume renderes" together
-	{
-        /*
-		if (mVolumeRenderers.size()>0)
-			glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-		else
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-         */
-
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		if(mIsIn2DMode) {
-		    // Create PBO BufferGL object
-		    OpenCLDevice::pointer device = getMainDevice();
-            cl::Buffer clPBO;
-            if(!DeviceManager::isGLInteropEnabled()) {
-                clPBO = cl::Buffer(
-                        device->getContext(),
-                        CL_MEM_READ_WRITE,
-                        sizeof(float) * 4 * width() * height()
-                );
-            } else {
-                clPBO = cl::BufferGL(device->getContext(), CL_MEM_READ_WRITE, mPBO);
-            }
-
-		    // Initialize PBO with background color
-		    cl::CommandQueue queue = device->getCommandQueue();
-            int i = device->createProgramFromSource(Config::getKernelSourcePath() + "/Visualization/View.cl");
-            cl::Kernel kernel(device->getProgram(i), "initializePBO");
-            kernel.setArg(0, clPBO);
-            kernel.setArg(1, mBackgroundColor.getRedValue());
-            kernel.setArg(2, mBackgroundColor.getGreenValue());
-            kernel.setArg(3, mBackgroundColor.getBlueValue());
-            std::vector<cl::Memory> v;
-            if(DeviceManager::isGLInteropEnabled()) {
-                v.push_back(clPBO);
-                queue.enqueueAcquireGLObjects(&v);
-            }
-            queue.enqueueNDRangeKernel(
-                    kernel,
-                    cl::NullRange,
-                    cl::NDRange(width()*height()),
-                    cl::NullRange
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if(mIsIn2DMode) {
+        // Create PBO BufferGL object
+        OpenCLDevice::pointer device = getMainDevice();
+        cl::Buffer clPBO;
+        if(!DeviceManager::isGLInteropEnabled()) {
+            clPBO = cl::Buffer(
+                    device->getContext(),
+                    CL_MEM_READ_WRITE,
+                    sizeof(float) * 4 * width() * height()
             );
-            if(DeviceManager::isGLInteropEnabled()) {
-                queue.enqueueReleaseGLObjects(&v);
-            }
+        } else {
+            clPBO = cl::BufferGL(device->getContext(), CL_MEM_READ_WRITE, mPBO);
+        }
 
-            mRuntimeManager->startRegularTimer("draw2D");
-            for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
-                mNonVolumeRenderers[i]->draw2D(clPBO, width(), height(), m2DViewingTransformation, mPBOspacing*mScale2D, Vector2f(mPosX2D, mPosY2D));
-                mNonVolumeRenderers[i]->postDraw();
-            }
-            mRuntimeManager->stopRegularTimer("draw2D");
+        // Initialize PBO with background color
+        cl::CommandQueue queue = device->getCommandQueue();
+        int i = device->createProgramFromSource(Config::getKernelSourcePath() + "/Visualization/View.cl");
+        cl::Kernel kernel(device->getProgram(i), "initializePBO");
+        kernel.setArg(0, clPBO);
+        kernel.setArg(1, mBackgroundColor.getRedValue());
+        kernel.setArg(2, mBackgroundColor.getGreenValue());
+        kernel.setArg(3, mBackgroundColor.getBlueValue());
+        std::vector<cl::Memory> v;
+        if(DeviceManager::isGLInteropEnabled()) {
+            v.push_back(clPBO);
+            queue.enqueueAcquireGLObjects(&v);
+        }
+        queue.enqueueNDRangeKernel(
+                kernel,
+                cl::NullRange,
+                cl::NDRange(width()*height()),
+                cl::NullRange
+        );
+        if(DeviceManager::isGLInteropEnabled()) {
+            queue.enqueueReleaseGLObjects(&v);
+        }
 
-            if(!DeviceManager::isGLInteropEnabled()) {
-                // Copy data from clPBO back to CPU and send it to mPBO
-                float *data = new float[width() * height() * 4];
-                queue.enqueueReadBuffer(
-                        clPBO,
-                        CL_TRUE,
-                        0,
-                        width() * height() * 4 * sizeof(float),
-                        data
-                );
-                fun->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, mPBO);
-                fun->glBufferData(GL_PIXEL_UNPACK_BUFFER_ARB, width() * height() * sizeof(GLfloat) * 4, data,
-                                GL_STREAM_DRAW_ARB);
-                fun->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
-                glFinish();
-                delete[] data;
-            }
+        mRuntimeManager->startRegularTimer("draw2D");
+        for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
+            mNonVolumeRenderers[i]->draw2D(clPBO, width(), height(), m2DViewingTransformation, mPBOspacing*mScale2D, Vector2f(mPosX2D, mPosY2D));
+            mNonVolumeRenderers[i]->postDraw();
+        }
+        mRuntimeManager->stopRegularTimer("draw2D");
 
-            // Paint the PBO
-            glDisable(GL_DEPTH_TEST);
-            glDisable(GL_TEXTURE_2D);
-            glRasterPos2i(0, 0);
+        if(!DeviceManager::isGLInteropEnabled()) {
+            // Copy data from clPBO back to CPU and send it to mPBO
+            float *data = new float[width() * height() * 4];
+            queue.enqueueReadBuffer(
+                    clPBO,
+                    CL_TRUE,
+                    0,
+                    width() * height() * 4 * sizeof(float),
+                    data
+            );
             fun->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, mPBO);
-            glDrawPixels(width(), height(), GL_RGBA, GL_FLOAT, 0);
+            fun->glBufferData(GL_PIXEL_UNPACK_BUFFER_ARB, width() * height() * sizeof(GLfloat) * 4, data,
+                            GL_STREAM_DRAW_ARB);
             fun->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
-		} else {
-            /*
-			// Create headlight
-			glEnable(GL_LIGHT0);
-			// Create light components
-			GLfloat ambientLight[] = { 0.3f, 0.3f, 0.3f, 1.0f };
-			GLfloat diffuseLight[] = { 0.7f, 0.7f, 0.7f, 1.0f };
-			GLfloat specularLight[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-			GLfloat position[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+            glFinish();
+            delete[] data;
+        }
 
-			// Assign created components to GL_LIGHT0
-			glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
-			glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
-			glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight);
-			glLightfv(GL_LIGHT0, GL_POSITION, position);
-             */
+        // Paint the PBO
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_TEXTURE_2D);
+        glRasterPos2i(0, 0);
+        fun->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, mPBO);
+        glDrawPixels(width(), height(), GL_RGBA, GL_FLOAT, 0);
+        fun->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
+    } else {
+        if(getNrOfInputConnections() > 0) {
+            // Has camera input connection, get camera
+            Camera::pointer camera = getInputData<Camera>(0);
+            CameraAccess::pointer access = camera->getAccess(ACCESS_READ);
+            mRotationPoint = access->getCameraTransformation()*access->getTargetPosition();
+        }
 
-			// Apply camera transformations
-			if(getNrOfInputConnections() > 0) {
-			    // Has camera input connection, get camera
-			    Camera::pointer camera = getInputData<Camera>(0);
-			    CameraAccess::pointer access = camera->getAccess(ACCESS_READ);
-                //glMultMatrixf(m3DViewingTransformation.data());
-			    //glMultMatrixf(access->getCameraTransformation().data());
-			    mRotationPoint = access->getCameraTransformation()*access->getTargetPosition();
-			} else {
-                //glMultMatrixf(m3DViewingTransformation.data());
-			}
+        mRuntimeManager->startRegularTimer("draw");
+        for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
+                mNonVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix());
+                mNonVolumeRenderers[i]->postDraw();
+        }
+        mRuntimeManager->stopRegularTimer("draw");
+    }
 
-            if (mVolumeRenderers.size()>0)
-            {
-                    //Rendere to Textures (offscreen)
-                    fun->glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-                    glEnable(GL_TEXTURE_2D);
-                    glEnable(GL_DEPTH_TEST);
-            }
-
-            mRuntimeManager->startRegularTimer("draw");
-            for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
-                    glPushMatrix();
-                    mNonVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix());
-                    mNonVolumeRenderers[i]->postDraw();
-                    glPopMatrix();
-            }
-            mRuntimeManager->stopRegularTimer("draw");
-
-
-            if (mVolumeRenderers.size()>0)
-            {
-                    //Rendere to Back buffer
-                    fun->glBindFramebuffer(GL_FRAMEBUFFER, 0);
-                    getDepthBufferFromGeo();
-                    renderVolumes();
-            }
-		}
-
-
-	}
-	else // only Volume renderers exict
-	{
-
-		if (mVolumeRenderers.size() > 0) // confirms that only Volume renderers exict
-		{
-			fun->glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glMatrixMode(GL_MODELVIEW);
-			glLoadIdentity();
-
-			// Create headlight
-			glEnable(GL_LIGHT0);
-			// Create light components
-			GLfloat ambientLight[] = { 0.3f, 0.3f, 0.3f, 1.0f };
-			GLfloat diffuseLight[] = { 0.7f, 0.7f, 0.7f, 1.0f };
-			GLfloat specularLight[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-			GLfloat position[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-
-			// Assign created components to GL_LIGHT0
-			glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
-			glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
-			glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight);
-			glLightfv(GL_LIGHT0, GL_POSITION, position);
-
-			// Apply camera transformations
-			//glMultMatrixf(m3DViewingTransformation.data());
-
-			renderVolumes();
-		}
-	}
 	glFinish();
 	mRuntimeManager->stopRegularTimer("paint");
 }
