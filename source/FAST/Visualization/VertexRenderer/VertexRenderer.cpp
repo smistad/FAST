@@ -6,17 +6,15 @@ namespace fast {
 
 void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
     std::lock_guard<std::mutex> lock(mMutex);
+    createShaderProgram({
+            Config::getKernelSourcePath() + "Visualization/VertexRenderer/VertexRenderer.vert",
+            Config::getKernelSourcePath() + "Visualization/VertexRenderer/VertexRenderer.frag",
+    });
+
+    activateShader();
 
     for(auto it : mDataToRender) {
         Mesh::pointer points = it.second;
-        MeshAccess::pointer access = points->getMeshAccess(ACCESS_READ);
-        std::vector<MeshVertex> vertices = access->getVertices();
-
-        AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(points);
-
-        glPushMatrix();
-        glMultMatrixf(transform->getTransform().data());
-
         if(mInputSizes.count(it.first) > 0) {
             glPointSize(mInputSizes[it.first]);
         } else {
@@ -40,21 +38,34 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
         }
         if(drawOnTop)
             glDisable(GL_DEPTH_TEST);
-        glBegin(GL_POINTS);
-        for(MeshVertex vertex : vertices) {
-            Vector3f position = vertex.getPosition();
-            if(!hasColor) {
-                Color c = vertex.getColor();
-                glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
-            }
-            glVertex3f(position.x(), position.y(), position.z());
-        }
-        glEnd();
+
+        AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(points);
+        uint transformLoc = glGetUniformLocation(getShaderProgram(), "transform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform->getTransform().data());
+        transformLoc = glGetUniformLocation(getShaderProgram(), "perspectiveTransform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, perspectiveMatrix.data());
+        transformLoc = glGetUniformLocation(getShaderProgram(), "viewTransform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, viewingMatrix.data());
+
+        VertexBufferObjectAccess::pointer access = points->getVertexBufferObjectAccess(ACCESS_READ);
+        GLuint* VBO_ID = access->get();
+
+        // Normal Buffer
+        glBindBuffer(GL_ARRAY_BUFFER, *VBO_ID);
+        // Coordinates
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(0);
+
+        glDrawArrays(GL_POINTS, 0, points->getNrOfVertices()*6);
+
+        // Release buffer
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
         if(drawOnTop)
             glEnable(GL_DEPTH_TEST);
-        glPopMatrix();
     }
-    glColor3f(1.0f, 1.0f, 1.0f); // Reset color
+
+    deactivateShader();
 }
 
 void VertexRenderer::draw2D(
