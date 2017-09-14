@@ -362,377 +362,155 @@ void View::setStreamingMode(StreamingMode mode) {
 void View::initializeGL() {
     for(auto renderer : getRenderers())
         renderer->initializeOpenGLFunctions();
-	glEnable(GL_TEXTURE_2D);
     QGLFunctions *fun = Window::getMainGLContext()->functions();
 
-	glGenTextures(1, &renderedDepthText);
-	glBindTexture(GL_TEXTURE_2D, renderedDepthText);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, this->width(), this->height(), 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-
-
-	glGenTextures(1, &renderedTexture0);
-	glBindTexture(GL_TEXTURE_2D, renderedTexture0);
-	//glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA, 512, 512, 0,GL_RGBA, GL_UNSIGNED_BYTE, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, this->width(), this->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
-	glGenTextures(1, &renderedTexture1);
-	glBindTexture(GL_TEXTURE_2D, renderedTexture1);
-	//glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA, 512, 512, 0,GL_RGBA, GL_UNSIGNED_BYTE, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, this->width(), this->height(), 0, GL_RGBA, GL_FLOAT, NULL);
-
-	glBindTexture(GL_TEXTURE_2D, 0); // unbind texture
-
-	fun->glGenFramebuffers(1,&fbo);
-	fun->glBindFramebuffer(GL_FRAMEBUFFER,fbo);
-
-	fun->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderedTexture0, 0);
-	fun->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, renderedDepthText, 0);
-
-	fun->glBindFramebuffer(GL_FRAMEBUFFER,0);
-
-
-	fun->glGenFramebuffers(1,&fbo2);
-	fun->glBindFramebuffer(GL_FRAMEBUFFER,fbo2);
-
-	fun->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderedTexture1, 0);
-
-	fun->glBindFramebuffer(GL_FRAMEBUFFER,0);
-
-
-	initShader();
-
-	if (mNonVolumeRenderers.size()>0) //it can be "only nonVolume renderers" or "nonVolume + Volume renderes" together
-	{
-	    // Non volume rendering, (and volume renderer)
-		if (mVolumeRenderers.size()>0)
-		{
-			((VolumeRenderer::pointer)mVolumeRenderers[0])->setIncludeGeometry(true);
-			fun->glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-		}
-		else
-		{
-			fun->glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		}
-
-        // Set up viewport and projection transformation
+    glViewport(0, 0, this->width(), this->height());
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_TEXTURE_2D);
+    // Update all renderes, so that getBoundingBox works
+    for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
+        mNonVolumeRenderers[i]->update(0, mStreamingMode);
+    if(mIsIn2DMode) {
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        glViewport(0, 0, this->width(), this->height());
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_TEXTURE_2D);
-        if(mIsIn2DMode) {
-            // Update all renders
-            std::cout << "UPDATING ALL RENDERERS" << std::endl;
-            for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
-                mNonVolumeRenderers[i]->update(0, mStreamingMode);
 
-            // Derive a good spacing for the PBO
-            // Find longest edge of the BB
-            float longestEdgeDistance = 0;
-            BoundingBox box = mNonVolumeRenderers[0]->getBoundingBox();
-            Vector3f firstCorner = box.getCorners().row(0);
-            Vector3f min, max;
-            min[0] = firstCorner[0];
-            max[0] = firstCorner[0];
-            min[1] = firstCorner[1];
-            max[1] = firstCorner[1];
-            min[2] = firstCorner[2];
-            max[2] = firstCorner[2];
-            for(int i = 0; i < mNonVolumeRenderers.size(); i++) {
-                BoundingBox box = mNonVolumeRenderers[i]->getBoundingBox();
-                MatrixXf corners = box.getCorners();
-                for (int j = 1; j < 8; j++) {
-                    Vector3f corner = corners.row(j);
-                    uint neighborCornerPos = j == 7 ? 0 : j - 1;
-                    Vector3f neighborCorner = corners.row(neighborCornerPos);
-                    if((corner-neighborCorner).norm() > longestEdgeDistance) {
-                        longestEdgeDistance = (corner-neighborCorner).norm();
-                    }
-                    for (uint k = 0; k < 3; k++) {
-                        if (corners(j, k) < min[k])
-                            min[k] = corners(j, k);
+        // Derive a good spacing for the PBO
+        // Find longest edge of the BB
+        float longestEdgeDistance = 0;
+        BoundingBox box = mNonVolumeRenderers[0]->getBoundingBox();
+        Vector3f firstCorner = box.getCorners().row(0);
+        Vector3f min, max;
+        min[0] = firstCorner[0];
+        max[0] = firstCorner[0];
+        min[1] = firstCorner[1];
+        max[1] = firstCorner[1];
+        min[2] = firstCorner[2];
+        max[2] = firstCorner[2];
+        for(int i = 0; i < mNonVolumeRenderers.size(); i++) {
+            BoundingBox box = mNonVolumeRenderers[i]->getBoundingBox();
+            MatrixXf corners = box.getCorners();
+            for (int j = 1; j < 8; j++) {
+                Vector3f corner = corners.row(j);
+                uint neighborCornerPos = j == 7 ? 0 : j - 1;
+                Vector3f neighborCorner = corners.row(neighborCornerPos);
+                if((corner-neighborCorner).norm() > longestEdgeDistance) {
+                    longestEdgeDistance = (corner-neighborCorner).norm();
+                }
+                for (uint k = 0; k < 3; k++) {
+                    if (corners(j, k) < min[k])
+                        min[k] = corners(j, k);
 
-                        if (corners(j, k) > max[k])
-                            max[k] = corners(j, k);
-                    }
+                    if (corners(j, k) > max[k])
+                        max[k] = corners(j, k);
                 }
             }
-
-            if(mPBOspacing < 0)
-				mPBOspacing = longestEdgeDistance / std::min(width(), height());
-            reportInfo() << "current width and height " << width() << " " << height() << Reporter::end();
-            reportInfo() << "longest edge distance " << longestEdgeDistance << Reporter::end();
-            reportInfo() << "PBO spacing set to " << mPBOspacing << Reporter::end();
-
-            // Get the centroid of the bounding boxes
-            if(!mViewingPlane.hasPosition()) {
-                Vector3f centroid;
-                centroid[0] = max[0] - (max[0] - min[0]) * 0.5;
-                centroid[1] = max[1] - (max[1] - min[1]) * 0.5;
-                centroid[2] = max[2] - (max[2] - min[2]) * 0.5;
-                mViewingPlane.setPosition(centroid);
-            }
-
-            // Calculate 4 corner points of the compounded BB using plane line intersections
-            BoundingBox compoundedBB = BoundingBox(min, max-min);
-            MatrixXf corners = compoundedBB.getCorners();
-            std::vector<Vector3f> intersectionPoints;
-            Vector3f intersectionCentroid(0,0,0);
-            for(int i = 0; i < 7; i++) {
-                Vector3f cornerA = corners.row(i);
-                for(int j = i+1; j < 8; j++) {
-                    Vector3f cornerB = corners.row(j);
-                    if((cornerA.x() == cornerB.x() && cornerA.y() == cornerB.y()) ||
-                            (cornerA.y() == cornerB.y() && cornerA.z() == cornerB.z()) ||
-                            (cornerA.x() == cornerB.x() && cornerA.z() == cornerB.z())) {
-                        try {
-                            // Calculate intersection with the plane
-                            Vector3f intersectionPoint = mViewingPlane.getIntersectionPoint(cornerA, cornerB);
-                            intersectionPoints.push_back(intersectionPoint);
-                            intersectionCentroid += intersectionPoint;
-                        } catch(Exception &e) {
-                            // No intersection found
-                        }
-                    }
-                }
-            }
-
-            if(intersectionPoints.size() == 0) {
-                reportInfo() << "Failed to find intersection points" << Reporter::end();
-            } else {
-                // Register PBO corners to these intersection points
-                // Want the transformation to get from PBO pixel position to mm position
-                intersectionCentroid /= intersectionPoints.size();
-
-                // PBO normal
-                Vector3f PBOnormal = Vector3f(0,0,1); // moving
-
-                Vector3f planeNormal = mViewingPlane.getNormal();
-
-                // Find rotation matrix between PBOnormal and planeNormal following http://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
-                Vector3f v = PBOnormal.cross(planeNormal);
-                float s = v.norm();
-                float c = PBOnormal.dot(planeNormal);
-                Matrix3f R;
-                if(c == 1) { // planes are already aligned
-                    R = Matrix3f::Identity();
-                } else {
-                    Matrix3f vx = Matrix3f::Zero();
-                    // Matrix positions are on y,x form
-                    vx(0,1) = -v.z();
-                    vx(1,0) = v.z();
-                    vx(0,2) = v.y();
-                    vx(2,0) = -v.y();
-                    vx(1,2) = -v.x();
-                    vx(2,1) = v.x();
-
-                    R = Matrix3f::Identity() + vx + vx*vx* ((1.0f-c)/(s*s));
-                }
-
-                // Rotate a position back
-                Vector3f rotatedPosition = R * Vector3f(width()*0.5,height()*0.5,0);
-
-                // Estimate translation
-                Vector3f translation = intersectionCentroid - rotatedPosition;
-
-                m2DViewingTransformation.linear() = R;
-                m2DViewingTransformation.translation() = translation;
-                m2DViewingTransformation.scale(mPBOspacing);
-                // TODO figure out how to do translation for 2D images
-                //mPosX2D = width()*0.5*mPBOspacing - intersectionCentroid;
-                //mPosY2D = height()*0.5*mPBOspacing;
-                mPosX2D = 0;
-                mPosY2D = 0;
-            }
-
-            glOrtho(0.0, width(), 0.0, height(), -1.0, 1.0);
-            // create pixel buffer object for display
-            fun->glGenBuffers(1, &mPBO);
-            fun->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, mPBO);
-            fun->glBufferData(GL_PIXEL_UNPACK_BUFFER_ARB, width() * height() * sizeof(GLfloat) * 4, NULL, GL_STREAM_DRAW_ARB);
-            fun->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
-        } else {
-            // Update all renderes, so that getBoundingBox works
-            for (unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
-                mNonVolumeRenderers[i]->update(0, mStreamingMode);
-            if(!mCameraSet && getNrOfInputConnections() == 0) {
-                // If camera is not set explicitly by user, FAST has to calculate it
-                recalculateCamera();
-            } else {
-                aspect = (float) (this->width()) / this->height();
-                fieldOfViewX = aspect * fieldOfViewY;
-            }
-            mPerspectiveMatrix = loadPerspectiveMatrix(fieldOfViewY, aspect, zNear, zFar);
         }
-	}
-	else
-	{
-	    // Only volume renderer
-		if (mVolumeRenderers.size()>0)
-		{
-			((VolumeRenderer::pointer)mVolumeRenderers[0])->setIncludeGeometry(false);
 
-			glMatrixMode(GL_MODELVIEW);
-			glPushMatrix();
-			glMatrixMode(GL_PROJECTION);
-			glPushMatrix();
+        if(mPBOspacing < 0)
+            mPBOspacing = longestEdgeDistance / std::min(width(), height());
+        reportInfo() << "current width and height " << width() << " " << height() << Reporter::end();
+        reportInfo() << "longest edge distance " << longestEdgeDistance << Reporter::end();
+        reportInfo() << "PBO spacing set to " << mPBOspacing << Reporter::end();
 
-			mVolumeRenderers[0]->update(0, mStreamingMode);
+        // Get the centroid of the bounding boxes
+        if(!mViewingPlane.hasPosition()) {
+            Vector3f centroid;
+            centroid[0] = max[0] - (max[0] - min[0]) * 0.5;
+            centroid[1] = max[1] - (max[1] - min[1]) * 0.5;
+            centroid[2] = max[2] - (max[2] - min[2]) * 0.5;
+            mViewingPlane.setPosition(centroid);
+        }
 
-			glMatrixMode(GL_MODELVIEW);
-			glPopMatrix();
-			glMatrixMode(GL_PROJECTION);
-			glPopMatrix();
+        // Calculate 4 corner points of the compounded BB using plane line intersections
+        BoundingBox compoundedBB = BoundingBox(min, max-min);
+        MatrixXf corners = compoundedBB.getCorners();
+        std::vector<Vector3f> intersectionPoints;
+        Vector3f intersectionCentroid(0,0,0);
+        for(int i = 0; i < 7; i++) {
+            Vector3f cornerA = corners.row(i);
+            for(int j = i+1; j < 8; j++) {
+                Vector3f cornerB = corners.row(j);
+                if((cornerA.x() == cornerB.x() && cornerA.y() == cornerB.y()) ||
+                        (cornerA.y() == cornerB.y() && cornerA.z() == cornerB.z()) ||
+                        (cornerA.x() == cornerB.x() && cornerA.z() == cornerB.z())) {
+                    try {
+                        // Calculate intersection with the plane
+                        Vector3f intersectionPoint = mViewingPlane.getIntersectionPoint(cornerA, cornerB);
+                        intersectionPoints.push_back(intersectionPoint);
+                        intersectionCentroid += intersectionPoint;
+                    } catch(Exception &e) {
+                        // No intersection found
+                    }
+                }
+            }
+        }
 
-			fun->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        if(intersectionPoints.size() == 0) {
+            reportInfo() << "Failed to find intersection points" << Reporter::end();
+        } else {
+            // Register PBO corners to these intersection points
+            // Want the transformation to get from PBO pixel position to mm position
+            intersectionCentroid /= intersectionPoints.size();
 
+            // PBO normal
+            Vector3f PBOnormal = Vector3f(0,0,1); // moving
 
-			// Set up viewport and projection transformation
-			glMatrixMode(GL_PROJECTION);
-			glLoadIdentity();
-			glViewport(0, 0, this->width(), this->height());
-			glEnable(GL_DEPTH_TEST);
-			glEnable(GL_TEXTURE_2D);
+            Vector3f planeNormal = mViewingPlane.getNormal();
 
+            // Find rotation matrix between PBOnormal and planeNormal following http://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
+            Vector3f v = PBOnormal.cross(planeNormal);
+            float s = v.norm();
+            float c = PBOnormal.dot(planeNormal);
+            Matrix3f R;
+            if(c == 1) { // planes are already aligned
+                R = Matrix3f::Identity();
+            } else {
+                Matrix3f vx = Matrix3f::Zero();
+                // Matrix positions are on y,x form
+                vx(0,1) = -v.z();
+                vx(1,0) = v.z();
+                vx(0,2) = v.y();
+                vx(2,0) = -v.y();
+                vx(1,2) = -v.x();
+                vx(2,1) = v.x();
 
-			if(mIsIn2DMode)
-			{
-				throw Exception("\nThe 2D mode cann not be used for volume rendering");
-			}
-			else //3D Mode
-			{
-				if(mVolumeRenderers.size() > 1)
-					throw Exception("\nThe volume renderer is currently only able to use one renderer with multible inputs (volumes)");
+                R = Matrix3f::Identity() + vx + vx*vx* ((1.0f-c)/(s*s));
+            }
 
+            // Rotate a position back
+            Vector3f rotatedPosition = R * Vector3f(width()*0.5,height()*0.5,0);
 
-				aspect = (float)this->width() / this->height();
-				fieldOfViewX = aspect*fieldOfViewY;
-				mPerspectiveMatrix = loadPerspectiveMatrix(fieldOfViewY, aspect, zNear, zFar);
-				// Initialize camera
+            // Estimate translation
+            Vector3f translation = intersectionCentroid - rotatedPosition;
 
-				// Get bounding boxes of all objects
-				Vector3f min, max;
-				Vector3f centroid;
-				BoundingBox box = mVolumeRenderers[0]->getBoundingBox();
-				MatrixXf corners = box.getCorners();
-				Vector3f corner = box.getCorners().row(0);
-				min[0] = corner[0];
-				max[0] = corner[0];
-				min[1] = corner[1];
-				max[1] = corner[1];
-				min[2] = corner[2];
-				max[2] = corner[2];
+            m2DViewingTransformation.linear() = R;
+            m2DViewingTransformation.translation() = translation;
+            m2DViewingTransformation.scale(mPBOspacing);
+            // TODO figure out how to do translation for 2D images
+            //mPosX2D = width()*0.5*mPBOspacing - intersectionCentroid;
+            //mPosY2D = height()*0.5*mPBOspacing;
+            mPosX2D = 0;
+            mPosY2D = 0;
+        }
 
-				for(int j = 0; j < 8; j++) {
-					for(uint k = 0; k < 3; k++) {
-						if(corners(j,k) < min[k])
-							min[k] = corners(j,k);
-						if(corners(j,k) > max[k])
-							max[k] = corners(j,k);
-					}
-				}
+        glOrtho(0.0, width(), 0.0, height(), -1.0, 1.0);
+        // create pixel buffer object for display
+        fun->glGenBuffers(1, &mPBO);
+        fun->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, mPBO);
+        fun->glBufferData(GL_PIXEL_UNPACK_BUFFER_ARB, width() * height() * sizeof(GLfloat) * 4, NULL, GL_STREAM_DRAW_ARB);
+        fun->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
+    } else {
+        // 3D mode
+        if(!mCameraSet && getNrOfInputConnections() == 0) {
+            // If camera is not set explicitly by user, FAST has to calculate it
+            recalculateCamera();
+        } else {
+            aspect = (float) (this->width()) / this->height();
+            fieldOfViewX = aspect * fieldOfViewY;
+        }
+        mPerspectiveMatrix = loadPerspectiveMatrix(fieldOfViewY, aspect, zNear, zFar);
+    }
 
-
-				// Calculate area of each side of the resulting bounding box
-				float area[3] = {
-						(max[0]-min[0])*(max[1]-min[1]), // XY plane
-						(max[1]-min[1])*(max[2]-min[2]), // YZ plane
-						(max[2]-min[2])*(max[0]-min[0])  // XZ plane
-				};
-				uint maxArea = 0;
-				for(uint i = 1; i < 3; i++) {
-					if(area[i] > area[maxArea])
-						maxArea = i;
-				}
-
-				// Find rotation needed
-				float angleX, angleY;
-				uint xDirection;
-				uint yDirection;
-				uint zDirection;
-				switch(maxArea) {
-					case 0:
-						xDirection = 0;
-						yDirection = 1;
-						zDirection = 2;
-						angleX = 0;
-						angleY = 0;
-						break;
-					case 1:
-						// Rotate 90 degres around Y axis
-						xDirection = 2;
-						yDirection = 1;
-						zDirection = 0;
-						angleX = 0;
-						angleY = 90;
-						break;
-					case 2:
-						// Rotate 90 degres around X axis
-						xDirection = 0;
-						yDirection = 2;
-						zDirection = 1;
-						angleX = 90;
-						angleY = 0;
-						break;
-				}
-
-				// Rotate object if needed
-                Eigen::Quaternionf Qx;
-                Qx = Eigen::AngleAxisf(angleX*M_PI/180.0f, Vector3f::UnitX());
-                Eigen::Quaternionf Qy;
-                Qy = Eigen::AngleAxisf(angleY*M_PI/180.0f, Vector3f::UnitY());
-                Eigen::Quaternionf Q = Qx*Qy;
-
-				centroid[0] = max[0] - (max[0]-min[0])*0.5;
-				centroid[1] = max[1] - (max[1]-min[1])*0.5;
-				centroid[2] = max[2] - (max[2]-min[2])*0.5;
-
-				reportInfo() << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << Reporter::end();
-
-				// Initialize rotation point to centroid of object
-				mRotationPoint = centroid;
-
-				// Calculate initiali translation of camera
-				// Move centroid to z axis
-				mCameraPosition[0] = -centroid.x();
-				mCameraPosition[1] = -centroid.y();
-
-				// Calculate z distance from origo
-				float z_width = (max[xDirection]-min[xDirection])*0.5 / tan(fieldOfViewX*0.5);
-				float z_height = (max[yDirection]-min[yDirection])*0.5 / tan(fieldOfViewY*0.5);
-				mCameraPosition[2] = -(z_width < z_height ? z_height : z_width) // minimum translation to see entire object
-						-(max[zDirection]-min[zDirection]) // depth of the bounding box
-						-50; // border
-				//cameraPosition[2] = 00.0;
-
-				//reportInfo() << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << Reporter::end();
-
-                m3DViewingTransformation = Affine3f::Identity();
-                m3DViewingTransformation.pretranslate(-mRotationPoint); // Move to rotation point
-                m3DViewingTransformation.prerotate(Q.toRotationMatrix()); // Rotate
-                m3DViewingTransformation.pretranslate(mRotationPoint); // Move back from rotation point
-                m3DViewingTransformation.pretranslate(mCameraPosition);
-
-				//Set the output image size for volume renderer based on window size.
-				((VolumeRenderer::pointer)mVolumeRenderers[0])->resize(this->width(),this->height());
-				((VolumeRenderer::pointer)mVolumeRenderers[0])->setProjectionParameters(fieldOfViewY, (float)this->width()/this->height(), zNear, zFar);
-			}
-		}
-	}
 	reportInfo() << "finished init GL" << Reporter::end();
 }
 
