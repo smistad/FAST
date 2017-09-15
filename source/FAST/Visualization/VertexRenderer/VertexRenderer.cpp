@@ -6,6 +6,8 @@ namespace fast {
 
 void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
     std::lock_guard<std::mutex> lock(mMutex);
+    glEnable(GL_POINT_SPRITE); // Circles created in fragment shader will not work without this
+    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
     createShaderProgram({
             Config::getKernelSourcePath() + "Visualization/VertexRenderer/VertexRenderer.vert",
             Config::getKernelSourcePath() + "Visualization/VertexRenderer/VertexRenderer.frag",
@@ -15,19 +17,18 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
 
     for(auto it : mDataToRender) {
         Mesh::pointer points = it.second;
+        float pointSize = mDefaultPointSize;
         if(mInputSizes.count(it.first) > 0) {
-            glPointSize(mInputSizes[it.first]);
-        } else {
-            glPointSize(mDefaultPointSize);
+            pointSize = mInputSizes[it.first];
         }
         bool hasColor = false;
         if(mInputColors.count(it.first) > 0) {
             Color c = mInputColors[it.first];
-            glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
+            //glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
             hasColor = true;
         } else if(mDefaultColorSet) {
             Color c = mDefaultColor;
-            glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
+            //glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
             hasColor = true;
         }
         bool drawOnTop;
@@ -46,13 +47,14 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, perspectiveMatrix.data());
         transformLoc = glGetUniformLocation(getShaderProgram(), "viewTransform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, viewingMatrix.data());
+        transformLoc = glGetUniformLocation(getShaderProgram(), "pointSize");
+        glUniform1f(transformLoc, pointSize);
 
         VertexBufferObjectAccess::pointer access = points->getVertexBufferObjectAccess(ACCESS_READ);
         GLuint* VBO_ID = access->get();
 
-        // Normal Buffer
         glBindBuffer(GL_ARRAY_BUFFER, *VBO_ID);
-        // Coordinates
+        // Coordinates buffer
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
 
