@@ -41,9 +41,11 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
             glDisable(GL_DEPTH_TEST);
 
         AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(points);
-        uint transformLoc = glGetUniformLocation(getShaderProgram(), "transform");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform->getTransform().data());
-        transformLoc = glGetUniformLocation(getShaderProgram(), "perspectiveTransform");
+        setShaderUniform("transform", transform->getTransform());
+        //setShaderUniform("perspectiveTransform", perspectiveMatrix);
+        //setShaderUniform("viewTransfrom", viewingMatrix);
+        //setShaderUniform("pointSize", pointSize);
+        uint transformLoc = glGetUniformLocation(getShaderProgram(), "perspectiveTransform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, perspectiveMatrix.data());
         transformLoc = glGetUniformLocation(getShaderProgram(), "viewTransform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, viewingMatrix.data());

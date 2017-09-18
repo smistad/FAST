@@ -50,6 +50,12 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
         void activateShader(std::string programName = "default");
         void deactivateShader();
         uint getShaderProgram(std::string programName = "default");
+        void setShaderUniform(std::string name, Matrix4f matrix, std::string shaderProgramName = "default");
+        void setShaderUniform(std::string name, Affine3f matrix, std::string shaderProgramName = "default");
+        void setShaderUniform(std::string name, Vector3f vector, std::string shaderProgramName = "default");
+        void setShaderUniform(std::string name, float value, std::string shaderProgramName = "default");
+        void setShaderUniform(std::string name, bool value, std::string shaderProgramName = "default");
+        void setShaderUniform(std::string name, int value, std::string shaderProgramName = "default");
 
         // Locking mechanisms to ensure thread safe synchronized rendering
         bool mHasRendered = true;

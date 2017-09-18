@@ -178,4 +178,33 @@ uint Renderer::getShaderProgram(std::string programName) {
     }
 }
 
+void Renderer::setShaderUniform(std::string name, Matrix4f matrix, std::string shaderProgram) {
+    uint transformLoc = glGetUniformLocation(getShaderProgram(shaderProgram), name.c_str());
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, matrix.data());
+}
+
+void Renderer::setShaderUniform(std::string name, Affine3f matrix, std::string shaderProgram) {
+    setShaderUniform(name, matrix.matrix(), shaderProgram);
+}
+
+void Renderer::setShaderUniform(std::string name, Vector3f vector, std::string shaderProgram) {
+    uint transformLoc = glGetUniformLocation(getShaderProgram(shaderProgram), name.c_str());
+    glUniform3f(transformLoc, vector.x(), vector.y(), vector.z());
+}
+
+void Renderer::setShaderUniform(std::string name, float value, std::string shaderProgram) {
+    uint transformLoc = glGetUniformLocation(getShaderProgram(shaderProgram), name.c_str());
+    glUniform1f(transformLoc, value);
+}
+
+void Renderer::setShaderUniform(std::string name, bool value, std::string shaderProgram) {
+    uint transformLoc = glGetUniformLocation(getShaderProgram(shaderProgram), name.c_str());
+    glUniform1i(transformLoc, value);
+}
+
+void Renderer::setShaderUniform(std::string name, int value, std::string shaderProgram) {
+    uint transformLoc = glGetUniformLocation(getShaderProgram(shaderProgram), name.c_str());
+    glUniform1i(transformLoc, value);
+}
+
 }
