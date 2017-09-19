@@ -12,9 +12,10 @@ Input 0 PipelineInput
 
 Renderer imageRenderer ImageRenderer
 Attribute window 255
-Attribute level 127.5 
+Attribute level 127.5
 Input 0 PipelineInput
 
 Renderer heatmapRenderer HeatmapRenderer
 Input 0 segmentation 1
 Input 1 segmentation 2
+#Input 2 segmentation 3

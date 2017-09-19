@@ -221,6 +221,7 @@ void GUI::selectPipeline() {
             }
             getView(0)->addRenderer(renderer);
         }
+        getView(0)->reinitialize();
     } catch(Exception &e) {
         QMessageBox* message = new QMessageBox;
         message->setWindowTitle("Error");
@@ -267,7 +268,6 @@ void GUI::selectStream() {
     }
     reportInfo() << "Connected to OpenIGTLink server." << reportEnd();
 
-    getView(0)->reinitialize();
     startComputationThread();
 
     recordButton->setFocus();
@@ -313,7 +313,6 @@ void GUI::connect() {
          */
         reportInfo() << "Connected to OpenIGTLink server." << reportEnd();
 
-        getView(0)->reinitialize();
         startComputationThread();
 
         connectButton->setText("Disconnect");
