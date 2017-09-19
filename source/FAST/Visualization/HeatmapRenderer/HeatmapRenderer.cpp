@@ -5,9 +5,6 @@ namespace fast {
 
 HeatmapRenderer::HeatmapRenderer() {
     createInputPort<Image>(0, false);
-    mColors[0] = Color::Green();
-    mColors[1] = Color::Blue();
-    mColors[2] = Color::Red();
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/HeatmapRenderer/HeatmapRenderer.cl");
     mIsModified = false;
 }
@@ -44,6 +41,15 @@ void HeatmapRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
             sizeof(float)*width*height*4
     );
 
+    std::vector<Color> colorList = {
+            Color::Green(),
+            Color::Blue(),
+            Color::Red(),
+            Color::Purple(),
+            Color::Yellow(),
+            Color::Cyan(),
+    };
+
     cl::Kernel kernel(getOpenCLProgram(device), "render2D");
     for(auto it : mDataToRender) {
         Image::pointer input = it.second;
@@ -55,6 +61,10 @@ void HeatmapRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
         if(input->getDimensions() == 2) {
             // Run kernel to fill the texture
 
+            Color color = colorList[it.first % colorList.size()];
+            if(mColors.count(it.first) > 0) // has color
+                color = mColors[it.first];
+
             OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
             cl::Image2D *clImage = access->get2DImage();
             kernel.setArg(0, *clImage);
@@ -63,9 +73,9 @@ void HeatmapRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
             kernel.setArg(3, input->getSpacing().x());
             kernel.setArg(4, input->getSpacing().y());
             kernel.setArg(5, PBOspacing);
-            kernel.setArg(6, mColors[it.first].getRedValue());
-            kernel.setArg(7, mColors[it.first].getGreenValue());
-            kernel.setArg(8, mColors[it.first].getBlueValue());
+            kernel.setArg(6, color.getRedValue());
+            kernel.setArg(7, color.getGreenValue());
+            kernel.setArg(8, color.getBlueValue());
             kernel.setArg(9, mMinConfidence);
             kernel.setArg(10, mMaxOpacity);
 
