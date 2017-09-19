@@ -114,7 +114,7 @@ void Pipeline::parseProcessObject(
     }
 }
 
-void Pipeline::parsePipelineFile() {
+int Pipeline::parsePipelineFile() {
     // Parse file again, retrieve process objects, set attributes and create the pipeline
     std::ifstream file(mFilename);
     std::string line = "";
@@ -160,14 +160,22 @@ void Pipeline::parsePipelineFile() {
         throw Exception("No renderers were found when parsing pipeline file " + mFilename);
 
     std::cout << "finished" << std::endl;
+    return mInputProcessObjects.size();
 }
-std::vector<SharedPointer<Renderer>> Pipeline::setup(DataPort::pointer input) {
+std::vector<SharedPointer<Renderer>> Pipeline::setup(std::vector<DataPort::pointer> inputPorts) {
     std::cout << "setting up pipeline.." << std::endl;
-    parsePipelineFile();
+    if(mProcessObjects.size() == 0)
+        throw Exception("You have to parse the pipeline file before calling setup on the pipeline");
+
+    if(mInputProcessObjects.size() != inputPorts.size())
+        throw Exception("The pipeline you are loading expected " + std::to_string(mInputProcessObjects.size()) +
+                                " input data ports, but received " + std::to_string(inputPorts.size()) + " in setup.");
 
     // Set input process object port to all needed
+    int counter = 0;
     for(std::pair<std::string, uint> inputPort : mInputProcessObjects) {
-        mProcessObjects[inputPort.first]->setInputConnection(inputPort.second, input);
+        mProcessObjects[inputPort.first]->setInputConnection(inputPort.second, inputPorts[counter]);
+        counter++;
     }
 
     // Get renderers

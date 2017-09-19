@@ -16,11 +16,16 @@ class Renderer;
 class FAST_EXPORT  Pipeline {
     public:
         Pipeline(std::string name, std::string description, std::string filename);
-        std::vector<SharedPointer<Renderer> > setup(DataPort::pointer input);
+        std::vector<SharedPointer<Renderer> > setup(std::vector<DataPort::pointer> input);
         std::unordered_map<std::string, SharedPointer<ProcessObject>> getProcessObjects();
         std::string getName() const;
         std::string getDescription() const;
         std::string getFilename() const;
+        /**
+         * Parse the pipeline file
+         * @return number of inputs required
+         */
+        int parsePipelineFile();
 
     private:
         std::string mName;
@@ -33,7 +38,6 @@ class FAST_EXPORT  Pipeline {
         std::unordered_map<std::string, uint> mInputProcessObjects;
         std::vector<std::string> mRenderers;
 
-        void parsePipelineFile();
         void parseProcessObject(
             std::string objectName,
             std::string objectID,

@@ -21,6 +21,7 @@
 namespace fast {
 
 GUI::GUI() {
+    mStreamingMode = STREAMING_MODE_NEWEST_FRAME_ONLY;
     menuWidth = getScreenWidth()/6;
 
     mClient = OpenIGTLinkClient::New();
@@ -207,7 +208,11 @@ void GUI::selectPipeline() {
     int selectedPipeline = mSelectPipeline->currentIndex();
     Pipeline pipeline = mPipelines.at(selectedPipeline);
     try {
-        std::vector<SharedPointer<Renderer>> renderers = pipeline.setup(mClient->getOutputPort());
+        int inputsRequired = pipeline.parsePipelineFile();
+        std::vector<DataPort::pointer> inputs;
+        while(inputsRequired--)
+            inputs.push_back(mClient->getOutputPort());
+        std::vector<SharedPointer<Renderer>> renderers = pipeline.setup(inputs);
         for(auto renderer : renderers) {
             // A hack for text renderer which needs a reference to the view
             if(renderer->getNameOfClass() == "TextRenderer") {
@@ -239,7 +244,6 @@ void GUI::selectPipeline() {
 }
 
 void GUI::selectStream() {
-    mStreamer->stop();
     stopComputationThread();
     getView(0)->removeAllRenderers();
     std::string streamName = mStreamNames[mSelectStream->currentIndex()];
@@ -249,9 +253,11 @@ void GUI::selectStream() {
     mStreamer = IGTLinkStreamer::New();
     mStreamer->setConnectionAddress(mAddress->text().toUtf8().constData());
     mStreamer->setConnectionPort(std::stoi(mPort->text().toUtf8().constData()));
+    mClient = OpenIGTLinkClient::New();
     mClient->setInputConnection(mStreamer->getOutputPort<Image>(streamName));
+    selectPipeline();
     try {
-        mStreamer->update(0);
+        mStreamer->update(0, STREAMING_MODE_NEWEST_FRAME_ONLY);
     } catch(Exception &e) {
         QMessageBox* message = new QMessageBox;
         message->setWindowTitle("Error");
@@ -261,7 +267,6 @@ void GUI::selectStream() {
     }
     reportInfo() << "Connected to OpenIGTLink server." << reportEnd();
 
-    selectPipeline();
     getView(0)->reinitialize();
     startComputationThread();
 
@@ -292,9 +297,12 @@ void GUI::connect() {
         mStreamer = IGTLinkStreamer::New();
         mStreamer->setConnectionAddress(mAddress->text().toUtf8().constData());
         mStreamer->setConnectionPort(std::stoi(mPort->text().toUtf8().constData()));
+        mClient = OpenIGTLinkClient::New();
         mClient->setInputConnection(mStreamer->getOutputPort());
+        selectPipeline();
+        /*
         try {
-            mStreamer->update(0);
+            mClient->update(0, STREAMING_MODE_NEWEST_FRAME_ONLY);
         } catch(Exception &e) {
             QMessageBox* message = new QMessageBox;
             message->setWindowTitle("Error");
@@ -302,9 +310,9 @@ void GUI::connect() {
             message->show();
             return;
         }
+         */
         reportInfo() << "Connected to OpenIGTLink server." << reportEnd();
 
-        selectPipeline();
         getView(0)->reinitialize();
         startComputationThread();
 
