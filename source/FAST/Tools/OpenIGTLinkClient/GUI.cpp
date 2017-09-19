@@ -16,6 +16,7 @@
 #include <QComboBox>
 #include <QDesktopServices>
 #include <FAST/PipelineEditor.hpp>
+#include <fstream>
 
 
 namespace fast {
@@ -182,17 +183,45 @@ GUI::GUI() {
     QObject::connect(editPipeline, &QPushButton::clicked, std::bind(&GUI::editPipeline, this));
     menuLayout->addWidget(editPipeline);
 
+    QPushButton* newPipeline = new QPushButton;
+    newPipeline->setText("New pipeline");
+    newPipeline->setStyleSheet("QPushButton { background-color: blue; color: white; }");
+    newPipeline->setFixedWidth(menuWidth);
+    QObject::connect(newPipeline, &QPushButton::clicked, std::bind(&GUI::newPipeline, this));
+    menuLayout->addWidget(newPipeline);
+
+
     connectButton->setFocus();
 }
 
-/*
 void GUI::newPipeline() {
-    QInputDialog* dialog = new QInputDialog(this) ;
-    dialog->setLabelText("Enter filename of new pipeline");
-    dialog->setOkButtonText("Create pipeline");
-    dialog->show();
+    bool ok;
+    QString text = QInputDialog::getText(mWidget, "Create new pipeline", "Enter filename of new pipeline:", QLineEdit::Normal, "", &ok);
+
+    if(ok && !text.isEmpty()) {
+        std::string filename = (const char*)text.toUtf8();
+        // Make sure file ends with .fpl
+        if(filename.substr(filename.size() - 3) != "fpl")
+            filename += ".fpl";
+
+        // Create pipeline file with template
+        std::ofstream file(Config::getPipelinePath() + filename);
+        file << "# New pipeline template\n"
+         "PipelineName \"<Pipeline name here>\"\n"
+        "PipelineDescription \"<Pipeline description here>\"\n\n"
+
+        "# Pipeline needs at least 1 renderer\n"
+        "Renderer renderer ImageRenderer\n"
+        "Attribute window 255\n"
+        "Attribute level 127.5\n"
+        "Input 0 PipelineInput\n";
+        file.close();
+
+        PipelineEditor *editor = new PipelineEditor(Config::getPipelinePath() + filename);
+        QObject::connect(editor, &PipelineEditor::saved, std::bind(&GUI::selectStream, this));
+        editor->show();
+    }
 }
- */
 
 void GUI::editPipeline() {
     int selectedPipeline = mSelectPipeline->currentIndex();
@@ -203,7 +232,22 @@ void GUI::editPipeline() {
 }
 
 void GUI::selectPipeline() {
-    // Stop computation thread before removing renderers
+    // Refresh available pipelines
+    std::string currentPipeline = mSelectPipeline->currentText().toStdString();
+    mPipelines = getAvailablePipelines();
+    int index = 0;
+    int counter = 0;
+    mSelectPipeline->clear();
+    for(auto pipeline : mPipelines) {
+        std::string label = pipeline.getName() + " (" + pipeline.getDescription() + ")";
+        mSelectPipeline->addItem((label).c_str());
+        if(label == currentPipeline) {
+            index = counter;
+        }
+        ++counter;
+    }
+    mSelectPipeline->setCurrentIndex(index);
+    mSelectPipeline->update();
 
     int selectedPipeline = mSelectPipeline->currentIndex();
     Pipeline pipeline = mPipelines.at(selectedPipeline);
@@ -300,17 +344,6 @@ void GUI::connect() {
         mClient = OpenIGTLinkClient::New();
         mClient->setInputConnection(mStreamer->getOutputPort());
         selectPipeline();
-        /*
-        try {
-            mClient->update(0, STREAMING_MODE_NEWEST_FRAME_ONLY);
-        } catch(Exception &e) {
-            QMessageBox* message = new QMessageBox;
-            message->setWindowTitle("Error");
-            message->setText(e.what());
-            message->show();
-            return;
-        }
-         */
         reportInfo() << "Connected to OpenIGTLink server." << reportEnd();
 
         startComputationThread();

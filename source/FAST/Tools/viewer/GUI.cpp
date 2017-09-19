@@ -218,12 +218,12 @@ void GUI::newPipeline() {
 
         "# Pipeline needs at least 1 renderer\n"
         "Renderer renderer ImageRenderer\n"
-        "Input 0 PipelineInput\n"
         "Attribute window 255\n"
-        "Attribute level 127.5\n";
+        "Attribute level 127.5\n"
+        "Input 0 PipelineInput\n";
         file.close();
 
-        PipelineEditor *editor = new PipelineEditor(filename);
+        PipelineEditor *editor = new PipelineEditor(Config::getPipelinePath() + filename);
         QObject::connect(editor, &PipelineEditor::saved, std::bind(&GUI::selectPipeline, this));
         editor->show();
     }
@@ -238,6 +238,23 @@ void GUI::editPipeline() {
 }
 
 void GUI::selectPipeline() {
+    // Refresh available pipelines
+    std::string currentPipeline = mSelectPipeline->currentText().toStdString();
+    mPipelines = getAvailablePipelines();
+    int index = 0;
+    int counter = 0;
+    mSelectPipeline->clear();
+    for(auto pipeline : mPipelines) {
+        std::string label = pipeline.getName() + " (" + pipeline.getDescription() + ")";
+        mSelectPipeline->addItem((label).c_str());
+        if(label == currentPipeline) {
+            index = counter;
+        }
+        ++counter;
+    }
+    mSelectPipeline->setCurrentIndex(index);
+    mSelectPipeline->update();
+
     // Stop computation thread before removing renderers
     stopComputationThread();
 
