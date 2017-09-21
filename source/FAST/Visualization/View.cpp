@@ -175,7 +175,6 @@ void View::updateRenderersInput(uint64_t timestep, StreamingMode mode) {
         while(true) {
             try {
                 renderer->getInputPort(i)->getProcessObject()->update(timestep, mode);
-                std::cout << "RENDERER " << renderer->getNameOfClass() << " " << i << std::endl;
                 i++;
             } catch(...) {
                 break;
@@ -436,7 +435,6 @@ void View::initializeGL() {
         glEnable(GL_TEXTURE_2D);
         if(mIsIn2DMode) {
             // Update all renders
-            std::cout << "UPDATING ALL RENDERERS" << std::endl;
             for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
                 mNonVolumeRenderers[i]->update(0, mStreamingMode);
 

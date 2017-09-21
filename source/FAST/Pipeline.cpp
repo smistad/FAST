@@ -34,7 +34,6 @@ void Pipeline::parseProcessObject(
     std::string line = "";
     std::getline(file, line);
 
-    std::cout << "attributes.." << std::endl;
     // Continue to scan file for attributes
     while(!file.eof()) {
         trim(line);
@@ -159,11 +158,10 @@ int Pipeline::parsePipelineFile() {
     if(mRenderers.size() == 0)
         throw Exception("No renderers were found when parsing pipeline file " + mFilename);
 
-    std::cout << "finished" << std::endl;
     return mInputProcessObjects.size();
 }
 std::vector<SharedPointer<Renderer>> Pipeline::setup(std::vector<DataPort::pointer> inputPorts) {
-    std::cout << "setting up pipeline.." << std::endl;
+    Reporter::info() << "Setting up pipeline.." << Reporter::end();
     if(mProcessObjects.size() == 0)
         throw Exception("You have to parse the pipeline file before calling setup on the pipeline");
 
@@ -183,6 +181,8 @@ std::vector<SharedPointer<Renderer>> Pipeline::setup(std::vector<DataPort::point
     for(auto renderer : mRenderers) {
         renderers.push_back(mProcessObjects[renderer]);
     }
+
+    Reporter::info() << "Finished setting up pipeline." << Reporter::end();
 
     return renderers;
 }
@@ -208,7 +208,6 @@ std::vector<Pipeline> getAvailablePipelines() {
     QDirIterator it(path.c_str(), QStringList() << "*.fpl", QDir::Files, QDirIterator::Subdirectories);
     while(it.hasNext()) {
 		std::string filename = it.next().toUtf8().constData();
-		std::cout << filename << std::endl;
         std::ifstream file(filename);
 		if (!file.is_open()) {
 			throw Exception("Unable to open file " + filename);
@@ -243,7 +242,6 @@ std::vector<Pipeline> getAvailablePipelines() {
 
         file.close();
     }
-	std::cout << "asd" << std::endl;
     return pipelines;
 }
 
