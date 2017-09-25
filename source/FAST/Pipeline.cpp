@@ -34,7 +34,6 @@ void Pipeline::parseProcessObject(
     std::string line = "";
     std::getline(file, line);
 
-    std::cout << "attributes.." << std::endl;
     // Continue to scan file for attributes
     while(!file.eof()) {
         trim(line);
@@ -114,7 +113,7 @@ void Pipeline::parseProcessObject(
     }
 }
 
-void Pipeline::parsePipelineFile() {
+int Pipeline::parsePipelineFile() {
     // Parse file again, retrieve process objects, set attributes and create the pipeline
     std::ifstream file(mFilename);
     std::string line = "";
@@ -159,15 +158,22 @@ void Pipeline::parsePipelineFile() {
     if(mRenderers.size() == 0)
         throw Exception("No renderers were found when parsing pipeline file " + mFilename);
 
-    std::cout << "finished" << std::endl;
+    return mInputProcessObjects.size();
 }
-std::vector<SharedPointer<Renderer>> Pipeline::setup(DataPort::pointer input) {
-    std::cout << "setting up pipeline.." << std::endl;
-    parsePipelineFile();
+std::vector<SharedPointer<Renderer>> Pipeline::setup(std::vector<DataPort::pointer> inputPorts) {
+    Reporter::info() << "Setting up pipeline.." << Reporter::end();
+    if(mProcessObjects.size() == 0)
+        throw Exception("You have to parse the pipeline file before calling setup on the pipeline");
+
+    if(mInputProcessObjects.size() != inputPorts.size())
+        throw Exception("The pipeline you are loading expected " + std::to_string(mInputProcessObjects.size()) +
+                                " input data ports, but received " + std::to_string(inputPorts.size()) + " in setup.");
 
     // Set input process object port to all needed
+    int counter = 0;
     for(std::pair<std::string, uint> inputPort : mInputProcessObjects) {
-        mProcessObjects[inputPort.first]->setInputConnection(inputPort.second, input);
+        mProcessObjects[inputPort.first]->setInputConnection(inputPort.second, inputPorts[counter]);
+        counter++;
     }
 
     // Get renderers
@@ -175,6 +181,8 @@ std::vector<SharedPointer<Renderer>> Pipeline::setup(DataPort::pointer input) {
     for(auto renderer : mRenderers) {
         renderers.push_back(mProcessObjects[renderer]);
     }
+
+    Reporter::info() << "Finished setting up pipeline." << Reporter::end();
 
     return renderers;
 }
@@ -200,7 +208,6 @@ std::vector<Pipeline> getAvailablePipelines() {
     QDirIterator it(path.c_str(), QStringList() << "*.fpl", QDir::Files, QDirIterator::Subdirectories);
     while(it.hasNext()) {
 		std::string filename = it.next().toUtf8().constData();
-		std::cout << filename << std::endl;
         std::ifstream file(filename);
 		if (!file.is_open()) {
 			throw Exception("Unable to open file " + filename);
@@ -235,7 +242,6 @@ std::vector<Pipeline> getAvailablePipelines() {
 
         file.close();
     }
-	std::cout << "asd" << std::endl;
     return pipelines;
 }
 

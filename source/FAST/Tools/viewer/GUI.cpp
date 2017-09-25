@@ -218,12 +218,12 @@ void GUI::newPipeline() {
 
         "# Pipeline needs at least 1 renderer\n"
         "Renderer renderer ImageRenderer\n"
-        "Input 0 PipelineInput\n"
         "Attribute window 255\n"
-        "Attribute level 127.5\n";
+        "Attribute level 127.5\n"
+        "Input 0 PipelineInput\n";
         file.close();
 
-        PipelineEditor *editor = new PipelineEditor(filename);
+        PipelineEditor *editor = new PipelineEditor(Config::getPipelinePath() + filename);
         QObject::connect(editor, &PipelineEditor::saved, std::bind(&GUI::selectPipeline, this));
         editor->show();
     }
@@ -238,6 +238,23 @@ void GUI::editPipeline() {
 }
 
 void GUI::selectPipeline() {
+    // Refresh available pipelines
+    std::string currentPipeline = mSelectPipeline->currentText().toStdString();
+    mPipelines = getAvailablePipelines();
+    int index = 0;
+    int counter = 0;
+    mSelectPipeline->clear();
+    for(auto pipeline : mPipelines) {
+        std::string label = pipeline.getName() + " (" + pipeline.getDescription() + ")";
+        mSelectPipeline->addItem((label).c_str());
+        if(label == currentPipeline) {
+            index = counter;
+        }
+        ++counter;
+    }
+    mSelectPipeline->setCurrentIndex(index);
+    mSelectPipeline->update();
+
     // Stop computation thread before removing renderers
     stopComputationThread();
 
@@ -249,19 +266,23 @@ void GUI::selectPipeline() {
     mStreamer = ImageFileStreamer::New();
     mStreamer->setFilenameFormats(inputData);
 
-    // Preload the data
-    DataPort::pointer data = mStreamer->getOutputPort();
-    mStreamer->update(0, STREAMING_MODE_STORE_ALL_FRAMES);
-    while(!mStreamer->hasReachedEnd()) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-
     getView(0)->removeAllRenderers();
 
     int selectedPipeline = mSelectPipeline->currentIndex();
     Pipeline pipeline = mPipelines.at(selectedPipeline);
+    int nrOfFrames = 0;
     try {
-        std::vector<SharedPointer<Renderer>> renderers = pipeline.setup(data);
+        int inputsRequired = pipeline.parsePipelineFile();
+        std::vector<DataPort::pointer> inputs;
+        while(inputsRequired--)
+            inputs.push_back(mStreamer->getOutputPort());
+        // Preload the data
+        mStreamer->update(0, STREAMING_MODE_STORE_ALL_FRAMES);
+        while(!mStreamer->hasReachedEnd()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+        nrOfFrames = inputs[0]->getSize();
+        std::vector<SharedPointer<Renderer>> renderers = pipeline.setup(inputs);
         for(auto renderer : renderers) {
             // A hack for text renderer which needs a reference to the view
             if(renderer->getNameOfClass() == "TextRenderer") {
@@ -283,8 +304,8 @@ void GUI::selectPipeline() {
     startComputationThread();
     mPlayPauseButton->setText("Pause");
     mPlayPauseButton->setStyleSheet("QPushButton { background-color: red; color: white; }");
-    mThread->setTimestepLimit(data->getSize());
-    mTimestepSlider->setRange(0, data->getSize() - 1);
+    mThread->setTimestepLimit(nrOfFrames);
+    mTimestepSlider->setRange(0, nrOfFrames - 1);
     mThread->setTimestepLoop(true);
     QObject::connect(mThread, &ComputationThread::timestepIncreased, std::bind(&GUI::increaseTimestep, this));
     /*

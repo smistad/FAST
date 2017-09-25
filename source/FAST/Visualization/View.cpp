@@ -175,7 +175,6 @@ void View::updateRenderersInput(uint64_t timestep, StreamingMode mode) {
         while(true) {
             try {
                 renderer->getInputPort(i)->getProcessObject()->update(timestep, mode);
-                //std::cout << "RENDERER " << renderer->getNameOfClass() << " " << i << std::endl;
                 i++;
             } catch(...) {
                 break;

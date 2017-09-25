@@ -13,7 +13,9 @@ namespace fast {
 typedef std::map<std::string, float> classifications;
 FAST_SIMPLE_DATA_OBJECT(ImageClassification, classifications)
 
-
+/**
+ * Neural network image classification
+ */
 class FAST_EXPORT  ImageClassifier : public NeuralNetwork {
 	FAST_OBJECT(ImageClassifier)
 	public:
@@ -31,38 +33,18 @@ class FAST_EXPORT  ImageClassifier : public NeuralNetwork {
 };
 
 
-/*
+/**
  * ProcessObject to convert a classification into text
  */
 class FAST_EXPORT  ClassificationToText : public ProcessObject {
     FAST_OBJECT(ClassificationToText)
-private:
-    ClassificationToText() {
-        createInputPort<ImageClassification>(0);
-        createOutputPort<Text>(0);
-    }
-    void execute() {
-        ImageClassification::pointer classification = getInputData<ImageClassification>();
-        Text::pointer text = getOutputData<Text>();
+    private:
+        std::deque<std::map<std::string, float>> mBuffer; // used for calculating temporal average
+        int mBufferSize = 100; // How large the buffer can be
 
-        // Find classification with max
-        ImageClassification::access access = classification->getAccess(ACCESS_READ);
-        std::map<std::string, float> values = access->getData();
-        float max = 0;
-        std::string label;
-        for (auto &&item : values) {
-            if(item.second > max) {
-                max = item.second;
-                label = item.first;
-            }
-        }
-
-        Text::access access2 = text->getAccess(ACCESS_READ_WRITE);
-        char buffer[8];
-        std::sprintf(buffer, "%.2f", max);
-        std::string result = label + ": " + buffer;
-        access2->setData(result);
-    }
+        ClassificationToText();
+        void loadAttributes();
+        void execute();
 };
 
 }

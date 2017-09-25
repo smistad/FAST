@@ -41,9 +41,11 @@ void PixelClassifier::execute() {
     int outputHeight = tensor_mapped.dimension(1);
     int outputWidth = tensor_mapped.dimension(2);
 
-    // TODO assuming only one input image for now
     // For each class
     for(int j = 0; j < mNrOfClasses; j++) {
+        // Check if output for this class has been requested
+        if(mOutputConnections[j].empty())
+            continue;
         Image::pointer output = Image::New();
         if(mHeatmapOutput) {
             float *data = new float[outputWidth * outputHeight];

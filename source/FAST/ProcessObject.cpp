@@ -55,11 +55,11 @@ void ProcessObject::update(uint64_t timestep, StreamingMode streamingMode) {
 
 
     // If this object is modified, or any parents has new data for this PO: Call execute
-    std::cout << getNameOfClass() << ": new data " << newInputData << std::endl;
     if(mIsModified || (newInputData && mLastTimestepExecuted != timestep)) {
         this->mRuntimeManager->startRegularTimer("execute");
         // set isModified to false before executing to avoid recursive update calls
         mIsModified = false;
+        reportInfo() << "EXECUTING " << getNameOfClass() << reportEnd();
         preExecute();
         execute();
         postExecute();
@@ -114,9 +114,6 @@ void ProcessObject::addOutputData(uint portID, DataObject::pointer data) {
     if(mOutputConnections.count(portID) > 0) {
         for(auto output : mOutputConnections.at(portID)) {
             if(!output.getPtr().expired()) {
-                if(getNameOfClass() == "PixelClassifier") {
-                    std::cout << "ADDING OUTPUT DATA IN PIXEL CLASSIFIER port id: " << portID << std::endl;
-                }
                 DataPort::pointer port = output.lock();
                 port->addFrame(data);
             }

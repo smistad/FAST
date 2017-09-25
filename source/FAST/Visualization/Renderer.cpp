@@ -180,12 +180,17 @@ uint Renderer::getShaderProgram(std::string programName) {
 
 void Renderer::setShaderUniform(std::string name, Matrix4f matrix, std::string shaderProgram) {
     uint transformLoc = glGetUniformLocation(getShaderProgram(shaderProgram), name.c_str());
+    if(glGetError() != GL_NO_ERROR)
+        throw Exception("Unable to find location of matrix4f uniform " + name + " in shader program " + shaderProgram);
     glUniformMatrix4fv(transformLoc, 1, GL_FALSE, matrix.data());
+    if(glGetError() != GL_NO_ERROR)
+        throw Exception("Unable to set matrix4f uniform " + name + " in shader program " + shaderProgram);
 }
 
 void Renderer::setShaderUniform(std::string name, Affine3f matrix, std::string shaderProgram) {
     setShaderUniform(name, matrix.matrix(), shaderProgram);
 }
+
 
 void Renderer::setShaderUniform(std::string name, Vector3f vector, std::string shaderProgram) {
     uint transformLoc = glGetUniformLocation(getShaderProgram(shaderProgram), name.c_str());
