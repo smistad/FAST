@@ -88,7 +88,7 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
         bool mIsIn2DMode;
 
         bool mLeftMouseButtonIsPressed;
-        bool mMiddleMouseButtonIsPressed;
+        bool mRightButtonIsPressed;
 
         int previousX, previousY;
 

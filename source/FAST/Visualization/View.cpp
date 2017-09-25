@@ -73,7 +73,7 @@ View::View() : mViewingPlane(Plane::Axial()) {
     mIsIn2DMode = false;
     mScale2D = 1.0f;
     mLeftMouseButtonIsPressed = false;
-    mMiddleMouseButtonIsPressed = false;
+    mRightButtonIsPressed = false;
     mQuit = false;
 	mCameraSet = false;
 	mPBOspacing = -1;
@@ -729,7 +729,7 @@ void View::keyPressEvent(QKeyEvent* event) {
 }
 
 void View::mouseMoveEvent(QMouseEvent* event) {
-	if(mMiddleMouseButtonIsPressed) {
+	if(mRightButtonIsPressed) {
 		if(mIsIn2DMode) {
 			float deltaX = event->x() - previousX;
 			float deltaY = event->y() - previousY;
@@ -787,10 +787,10 @@ void View::mousePressEvent(QMouseEvent* event) {
             int cx = width() / 2;
             int cy = height() / 2;
             QCursor::setPos(mapToGlobal(QPoint(cx, cy)));
-        } else if (event->button() == Qt::MiddleButton) {
+        } else if (event->button() == Qt::RightButton) {
             previousX = event->x();
             previousY = event->y();
-            mMiddleMouseButtonIsPressed = true;
+            mRightButtonIsPressed = true;
         }
     }
 }
@@ -818,8 +818,8 @@ void View::wheelEvent(QWheelEvent* event) {
 void View::mouseReleaseEvent(QMouseEvent* event) {
     if(event->button() == Qt::LeftButton) {
         mLeftMouseButtonIsPressed = false;
-    } else if(event->button() == Qt::MiddleButton) {
-        mMiddleMouseButtonIsPressed = false;
+    } else if(event->button() == Qt::RightButton) {
+        mRightButtonIsPressed = false;
     }
 }
 
