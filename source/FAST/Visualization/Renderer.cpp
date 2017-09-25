@@ -179,12 +179,7 @@ uint Renderer::getShaderProgram(std::string programName) {
 }
 
 void Renderer::setShaderUniform(std::string name, Matrix4f matrix, std::string shaderProgram) {
-    uint transformLoc = glGetUniformLocation(getShaderProgram(shaderProgram), name.c_str());
-    if(glGetError() != GL_NO_ERROR)
-        throw Exception("Unable to find location of matrix4f uniform " + name + " in shader program " + shaderProgram);
-    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, matrix.data());
-    if(glGetError() != GL_NO_ERROR)
-        throw Exception("Unable to set matrix4f uniform " + name + " in shader program " + shaderProgram);
+    glUniformMatrix4fv(getShaderUniformLocation(name, shaderProgram), 1, GL_FALSE, matrix.data());
 }
 
 void Renderer::setShaderUniform(std::string name, Affine3f matrix, std::string shaderProgram) {
@@ -193,23 +188,26 @@ void Renderer::setShaderUniform(std::string name, Affine3f matrix, std::string s
 
 
 void Renderer::setShaderUniform(std::string name, Vector3f vector, std::string shaderProgram) {
-    uint transformLoc = glGetUniformLocation(getShaderProgram(shaderProgram), name.c_str());
-    glUniform3f(transformLoc, vector.x(), vector.y(), vector.z());
+    glUniform3f(getShaderUniformLocation(name, shaderProgram), vector.x(), vector.y(), vector.z());
 }
 
 void Renderer::setShaderUniform(std::string name, float value, std::string shaderProgram) {
-    uint transformLoc = glGetUniformLocation(getShaderProgram(shaderProgram), name.c_str());
-    glUniform1f(transformLoc, value);
+    glUniform1f(getShaderUniformLocation(name, shaderProgram), value);
 }
 
 void Renderer::setShaderUniform(std::string name, bool value, std::string shaderProgram) {
-    uint transformLoc = glGetUniformLocation(getShaderProgram(shaderProgram), name.c_str());
-    glUniform1i(transformLoc, value);
+    glUniform1i(getShaderUniformLocation(name, shaderProgram), value);
 }
 
 void Renderer::setShaderUniform(std::string name, int value, std::string shaderProgram) {
-    uint transformLoc = glGetUniformLocation(getShaderProgram(shaderProgram), name.c_str());
-    glUniform1i(transformLoc, value);
+    glUniform1i(getShaderUniformLocation(name, shaderProgram), value);
+}
+
+int Renderer::getShaderUniformLocation(std::string name, std::string shaderProgram) {
+    int location = glGetUniformLocation(getShaderProgram(shaderProgram), name.c_str());
+    if(location == -1)
+        throw Exception("Unable to find location of matrix4f uniform " + name + " in shader program " + shaderProgram);
+    return location;
 }
 
 }

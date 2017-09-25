@@ -56,6 +56,7 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
         void setShaderUniform(std::string name, float value, std::string shaderProgramName = "default");
         void setShaderUniform(std::string name, bool value, std::string shaderProgramName = "default");
         void setShaderUniform(std::string name, int value, std::string shaderProgramName = "default");
+        int getShaderUniformLocation(std::string name, std::string shaderProgramName = "default");
 
         // Locking mechanisms to ensure thread safe synchronized rendering
         bool mHasRendered = true;

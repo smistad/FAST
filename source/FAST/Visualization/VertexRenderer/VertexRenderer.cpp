@@ -14,6 +14,8 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
     });
 
     activateShader();
+    setShaderUniform("perspectiveTransform", perspectiveMatrix);
+    setShaderUniform("viewTransform", viewingMatrix);
 
     for(auto it : mDataToRender) {
         Mesh::pointer points = it.second;
@@ -43,12 +45,6 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
         AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(points);
         setShaderUniform("transform", transform->getTransform());
         setShaderUniform("pointSize", pointSize);
-        setShaderUniform("perspectiveTransform", perspectiveMatrix);
-        //setShaderUniform("viewTransfrom", viewingMatrix);
-        //uint transformLoc = glGetUniformLocation(getShaderProgram(), "perspectiveTransform");
-        //glUniformMatrix4fv(transformLoc, 1, GL_FALSE, perspectiveMatrix.data());
-        uint transformLoc = glGetUniformLocation(getShaderProgram(), "viewTransform");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, viewingMatrix.data());
 
         VertexBufferObjectAccess::pointer access = points->getVertexBufferObjectAccess(ACCESS_READ);
         GLuint* VBO_ID = access->get();
