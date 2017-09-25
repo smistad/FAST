@@ -1,6 +1,7 @@
 #include <FAST/Data/SpatialDataObject.hpp>
 #include <fstream>
 #include "Renderer.hpp"
+#include "Window.hpp"
 
 namespace fast {
 
@@ -83,6 +84,10 @@ BoundingBox Renderer::getBoundingBox() {
 
 
 void Renderer::createShaderProgram(std::vector<std::string> shaderFilenames, std::string programName) {
+    // We need an active GL context to do this, and we also need to initialize the OpenGLFunctions
+    Window::getMainGLContext()->makeCurrent();
+    initializeOpenGLFunctions();
+
     uint programID = glCreateProgram();
     mShaderProgramIDs[programName] = programID;
 

@@ -8,10 +8,6 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
     std::lock_guard<std::mutex> lock(mMutex);
     glEnable(GL_POINT_SPRITE); // Circles created in fragment shader will not work without this
     glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-    createShaderProgram({
-            Config::getKernelSourcePath() + "Visualization/VertexRenderer/VertexRenderer.vert",
-            Config::getKernelSourcePath() + "Visualization/VertexRenderer/VertexRenderer.frag",
-    });
 
     activateShader();
     setShaderUniform("perspectiveTransform", perspectiveMatrix);
@@ -134,6 +130,11 @@ VertexRenderer::VertexRenderer() {
     mDefaultColorSet = false;
     mDefaultDrawOnTop = false;
     createInputPort<Mesh>(0, false);
+
+    createShaderProgram({
+                                Config::getKernelSourcePath() + "Visualization/VertexRenderer/VertexRenderer.vert",
+                                Config::getKernelSourcePath() + "Visualization/VertexRenderer/VertexRenderer.frag",
+                        });
 }
 
 
