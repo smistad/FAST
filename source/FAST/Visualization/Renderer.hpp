@@ -45,6 +45,11 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
         Renderer();
         void execute() override;
 
+        /**
+         * Creates an OpenGL shader program. Should be used in the renderer constructor.
+         * @param shaderFilenames
+         * @param programName
+         */
         void createShaderProgram(std::vector<std::string> shaderFilenames, std::string programName = "default");
         void attachShader(std::string filename, std::string programName = "default");
         void activateShader(std::string programName = "default");

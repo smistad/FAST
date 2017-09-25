@@ -132,9 +132,9 @@ VertexRenderer::VertexRenderer() {
     createInputPort<Mesh>(0, false);
 
     createShaderProgram({
-                                Config::getKernelSourcePath() + "Visualization/VertexRenderer/VertexRenderer.vert",
-                                Config::getKernelSourcePath() + "Visualization/VertexRenderer/VertexRenderer.frag",
-                        });
+        Config::getKernelSourcePath() + "Visualization/VertexRenderer/VertexRenderer.vert",
+        Config::getKernelSourcePath() + "Visualization/VertexRenderer/VertexRenderer.frag",
+    });
 }
 
 
