@@ -3,16 +3,44 @@
 
 namespace fast {
 
-GLuint* VertexBufferObjectAccess::get() const {
-    return mVBOID;
+GLuint* VertexBufferObjectAccess::getCoordinateVBO() const {
+    return mCoordinateVBO;
+}
+
+GLuint* VertexBufferObjectAccess::getNormalVBO() const {
+    return mNormalVBO;
+}
+
+GLuint* VertexBufferObjectAccess::getColorVBO() const {
+    return mColorVBO;
+}
+
+GLuint* VertexBufferObjectAccess::getLineEBO() const {
+    return mLineEBO;
+}
+
+GLuint* VertexBufferObjectAccess::getTriangleEBO() const {
+    return mTriangleEBO;
 }
 
 VertexBufferObjectAccess::VertexBufferObjectAccess(
-        GLuint VBOID,
-        SharedPointer<Mesh> mesh) {
-
-    mVBOID = new GLuint;
-    *mVBOID = VBOID;
+        GLuint coordinateVBO,
+        GLuint normalVBO,
+        GLuint colorVBO,
+        GLuint lineEBO,
+        GLuint triangleEBO,
+        SharedPointer<Mesh> mesh
+        ) {
+    mCoordinateVBO = new GLuint;
+    *mCoordinateVBO = coordinateVBO;
+    mNormalVBO = new GLuint;
+    *mNormalVBO = normalVBO;
+    mColorVBO = new GLuint;
+    *mColorVBO = colorVBO;
+    mLineEBO = new GLuint;
+    *mLineEBO = lineEBO;
+    mTriangleEBO = new GLuint;
+    *mTriangleEBO = triangleEBO;
 
     mIsDeleted = false;
     mMesh = mesh;
@@ -21,7 +49,11 @@ VertexBufferObjectAccess::VertexBufferObjectAccess(
 void VertexBufferObjectAccess::release() {
 	mMesh->accessFinished();
     if(!mIsDeleted) {
-        delete mVBOID;
+        delete mCoordinateVBO;
+        delete mNormalVBO;
+        delete mColorVBO;
+        delete mLineEBO;
+        delete mTriangleEBO;
         mIsDeleted = true;
     }
 }

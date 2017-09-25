@@ -3,16 +3,12 @@
 namespace fast {
 
 
-MeshVertex::MeshVertex(Vector3f position) {
+MeshVertex::MeshVertex(Vector3f position, Vector3f normal, Color color) {
 	mPosition = position;
-	mNormal = Vector3f(1, 0, 0);
-	mLabel = 0;
-	mColor = Color::Red();
-}
-MeshVertex::MeshVertex(Vector3f position, Vector3f normal) : MeshVertex(position) {
 	mNormal = normal;
+	mLabel = 0;
+	mColor = color;
 }
-
 
 void MeshVertex::setColor(Color color) {
 	mColor = color;

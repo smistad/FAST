@@ -78,18 +78,16 @@ void TriangleRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) 
         }
 
         VertexBufferObjectAccess::pointer access = surfaceToRender->getVertexBufferObjectAccess(ACCESS_READ);
-        GLuint* VBO_ID = access->get();
+        GLuint* coordinatesVBO = access->getCoordinateVBO();
 
-        // Normal Buffer
-        glBindBuffer(GL_ARRAY_BUFFER, *VBO_ID);
         // Coordinates
+        glBindBuffer(GL_ARRAY_BUFFER, *coordinatesVBO);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
-        // Normals
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
-        glEnableVertexAttribArray(1);
 
-        //glNormalPointer(GL_FLOAT, 24, (float*)(sizeof(GLfloat)*3));
+        // Normals
+        //glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
+        //glEnableVertexAttribArray(1);
 
         glDrawArrays(GL_TRIANGLES, 0, surfaceToRender->getNrOfTriangles()*3);
 

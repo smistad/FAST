@@ -1,6 +1,6 @@
 #version 330 core
 layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aNormal;
+//layout (location = 1) in vec3 aNormal;
 
 out vec3 Normal;
 out vec3 FragPos;
@@ -14,7 +14,7 @@ uniform mat4 perspectiveTransform;
 void main()
 {
     gl_Position = perspectiveTransform * viewTransform * transform * vec4(aPos, 1.0);
-    Normal = mat3(transpose(inverse(transform))) * aNormal;
+    Normal = vec3(1,0,0);//mat3(transpose(inverse(transform))) * aNormal;
     FragPos = vec3(transform * vec4(aPos, 1.0));
     LightPos = vec3(inverse(viewTransform) * vec4(0.0, 0.0, 0.0, 1.0));
     ViewPos = vec3(inverse(viewTransform) * vec4(0.0, 0.0, 0.0, 1.0));

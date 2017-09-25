@@ -20,13 +20,24 @@ class Mesh;
 
 class FAST_EXPORT  VertexBufferObjectAccess {
     public:
-        GLuint* get() const;
-        VertexBufferObjectAccess(GLuint VBOID, SharedPointer<Mesh> mesh);
+        GLuint* getCoordinateVBO() const;
+		GLuint* getNormalVBO() const;
+		GLuint* getColorVBO() const;
+		GLuint* getLineEBO() const;
+		GLuint* getTriangleEBO() const;
+        VertexBufferObjectAccess(
+				GLuint coordinateVBO,
+				GLuint normalVBO,
+				GLuint colorVBO,
+				GLuint lineEBO,
+				GLuint triangleEBO,
+				SharedPointer<Mesh> mesh
+		);
         void release();
         ~VertexBufferObjectAccess();
 		typedef UniquePointer<VertexBufferObjectAccess> pointer;
     private:
-        GLuint* mVBOID;
+        GLuint* mCoordinateVBO, *mNormalVBO, *mColorVBO, *mLineEBO, *mTriangleEBO;
         bool mIsDeleted;
         SharedPointer<Mesh> mMesh;
 };

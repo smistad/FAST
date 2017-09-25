@@ -46,15 +46,22 @@ class FAST_EXPORT Mesh : public SpatialDataObject {
         // VBO data
         bool mVBOHasData;
         bool mVBODataIsUpToDate;
-        GLuint mVBOID;
+        GLuint mCoordinateVBO;
+        GLuint mNormalVBO;
+        GLuint mColorVBO;
+        GLuint mLineEBO;
+        GLuint mTriangleEBO;
+        uint mNrOfVertices;
         uint mNrOfTriangles;
 
         // Host data
         bool mHostHasData;
         bool mHostDataIsUpToDate;
-        std::vector<MeshVertex> mVertices;
-        std::vector<MeshLine> mLines;
-        std::vector<MeshTriangle> mTriangles;
+        std::vector<float> mCoordinates;
+        std::vector<float> mNormals;
+        std::vector<float> mColors;
+        std::vector<uint> mLines;
+        std::vector<uint> mTriangles;
 
         // OpenCL buffer data
         std::unordered_map<OpenCLDevice::pointer, cl::Buffer*> mCoordinatesBuffers;

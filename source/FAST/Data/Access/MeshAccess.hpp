@@ -13,10 +13,12 @@ class Mesh;
 class FAST_EXPORT  MeshAccess {
     public:
         MeshAccess(
-				std::vector<MeshVertex>* vertices,
-				std::vector<MeshLine>* lines,
-				std::vector<MeshTriangle>* triangles,
-				SharedPointer<Mesh> mesh
+            std::vector<float>* mCoordinates,
+            std::vector<float>* mNormals,
+            std::vector<float>* mColors,
+            std::vector<uint>* mLines,
+            std::vector<uint>* mTriangles,
+            SharedPointer<Mesh> mesh
 		);
         MeshVertex getVertex(uint i);
         void setVertex(uint i, MeshVertex);
@@ -34,9 +36,11 @@ class FAST_EXPORT  MeshAccess {
         ~MeshAccess();
 		typedef UniquePointer<MeshAccess> pointer;
     private:
-        std::vector<MeshVertex>* mVertices;
-        std::vector<MeshLine>* mLines;
-		std::vector<MeshTriangle>* mTriangles;
+		std::vector<float>* mCoordinates;
+		std::vector<float>* mNormals;
+		std::vector<float>* mColors;
+		std::vector<uint>* mLines;
+		std::vector<uint>* mTriangles;
         SharedPointer<Mesh> mMesh;
 };
 

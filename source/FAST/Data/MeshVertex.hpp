@@ -9,8 +9,7 @@ namespace fast {
 
 class FAST_EXPORT  MeshVertex {
     public:
-		MeshVertex(Vector3f position);
-		MeshVertex(Vector3f position, Vector3f normal);
+		MeshVertex(Vector3f position, Vector3f normal = Vector3f(1, 0, 0), Color color = Color::Green());
 		Vector3f getPosition() const;
 		Vector3f getNormal() const;
 		void setPosition(Vector3f position);

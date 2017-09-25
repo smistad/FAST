@@ -38,20 +38,39 @@ void Mesh::create(
     }
 
     mIsInitialized = true;
-    mVertices = vertices;
     std::vector<Vector3f> positions;
-    for(unsigned int i = 0; i < vertices.size(); i++) {
-    	VectorXf pos = vertices[i].getPosition();
+    for(int i = 0; i < vertices.size(); i++) {
+    	Vector3f pos = vertices[i].getPosition();
         positions.push_back(pos);
+        mCoordinates.push_back(pos[0]);
+        mCoordinates.push_back(pos[1]);
+        mCoordinates.push_back(pos[2]);
+        Vector3f normal = vertices[i].getNormal();
+        mNormals.push_back(normal[0]);
+        mNormals.push_back(normal[1]);
+        mNormals.push_back(normal[2]);
+        Color color = vertices[i].getColor();
+        mColors.push_back(color.getRedValue());
+        mColors.push_back(color.getGreenValue());
+        mColors.push_back(color.getBlueValue());
     }
+    for(auto line : lines) {
+        mLines.push_back(line.getEndpoint1());
+        mLines.push_back(line.getEndpoint2());
+    }
+    for(auto triangle : triangles) {
+        mTriangles.push_back(triangle.getEndpoint1());
+        mTriangles.push_back(triangle.getEndpoint2());
+        mTriangles.push_back(triangle.getEndpoint3());
+    }
+
 	if(vertices.size() > 0) {
 		mBoundingBox = BoundingBox(positions);
 	} else {
 		mBoundingBox = BoundingBox(Vector3f(0,0,0)); // TODO Fix
 	}
-    mLines = lines;
-    mTriangles = triangles;
-    mNrOfTriangles = triangles.size();
+    mNrOfVertices = mCoordinates.size() / 3;
+    mNrOfTriangles = mTriangles.size();
     mHostHasData = true;
     mHostDataIsUpToDate = true;
     updateModifiedTimestamp();
@@ -64,6 +83,7 @@ void Mesh::create(unsigned int nrOfTriangles) {
     }
     mBoundingBox = BoundingBox(Vector3f(1,1,1));
     mIsInitialized = true;
+    mNrOfVertices = nrOfTriangles*3;
     mNrOfTriangles = nrOfTriangles;
 }
 
@@ -102,30 +122,28 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
 #endif
 #endif
         QGLFunctions *fun = Window::getMainGLContext()->functions();
-        fun->glGenBuffers(1, &mVBOID);
-        fun->glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
+        fun->glGenBuffers(1, &mCoordinateVBO);
+        fun->glGenBuffers(1, &mNormalVBO);
+        fun->glGenBuffers(1, &mColorVBO);
         if(mHostHasData) {
             // If host has data, transfer it.
-            // Create data arrays with vertices and normals interleaved
-            uint counter = 0;
-            float* data = new float[mNrOfTriangles*18];
-            for(uint i = 0; i < mNrOfTriangles; i++) {
-                MeshTriangle triangle = mTriangles[i];
-                for(uint j = 0; j < 3; j++) {
-                    MeshVertex vertex = mVertices[triangle.getEndpoint(j)];
-                    for(uint k = 0; k < 3; k++) {
-                        data[counter+k] = vertex.getPosition()[k];
-                        //reportInfo() << data[counter+k] << Reporter::end();
-                        data[counter+3+k] = vertex.getNormal()[k];
-                    }
-                    //reportInfo() << "...." << Reporter::end();
-                    counter += 6;
-                }
-            }
-            fun->glBufferData(GL_ARRAY_BUFFER, mNrOfTriangles*18*sizeof(float), data, GL_STATIC_DRAW);
-            delete[] data;
+            // Coordinates
+            fun->glBindBuffer(GL_ARRAY_BUFFER, mCoordinateVBO);
+            fun->glBufferData(GL_ARRAY_BUFFER, mCoordinates.size()*sizeof(float), mCoordinates.data(), GL_STATIC_DRAW);
+            // Normals
+            fun->glBindBuffer(GL_ARRAY_BUFFER, mNormalVBO);
+            fun->glBufferData(GL_ARRAY_BUFFER, mNormals.size()*sizeof(float), mNormals.data(), GL_STATIC_DRAW);
+            // Color
+            fun->glBindBuffer(GL_ARRAY_BUFFER, mColorVBO);
+            fun->glBufferData(GL_ARRAY_BUFFER, mColors.size()*sizeof(float), mColors.data(), GL_STATIC_DRAW);
         } else {
-            fun->glBufferData(GL_ARRAY_BUFFER, mNrOfTriangles*18*sizeof(float), NULL, GL_STATIC_DRAW);
+            // Only allocate space
+            fun->glBindBuffer(GL_ARRAY_BUFFER, mCoordinateVBO);
+            fun->glBufferData(GL_ARRAY_BUFFER, mNrOfVertices*3*sizeof(float), NULL, GL_STATIC_DRAW);
+            fun->glBindBuffer(GL_ARRAY_BUFFER, mNormalVBO);
+            fun->glBufferData(GL_ARRAY_BUFFER, mNrOfVertices*3*sizeof(float), NULL, GL_STATIC_DRAW);
+            fun->glBindBuffer(GL_ARRAY_BUFFER, mColorVBO);
+            fun->glBufferData(GL_ARRAY_BUFFER, mNrOfVertices*3*sizeof(float), NULL, GL_STATIC_DRAW);
         }
         fun->glBindBuffer(GL_ARRAY_BUFFER, 0);
         glFinish();
@@ -150,7 +168,7 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
         mDataIsBeingAccessed = true;
     }
 
-	VertexBufferObjectAccess::pointer accessObject(new VertexBufferObjectAccess(mVBOID, mPtr.lock()));
+	VertexBufferObjectAccess::pointer accessObject(new VertexBufferObjectAccess(mCoordinateVBO, mNormalVBO, mColorVBO, mLineEBO, mTriangleEBO, mPtr.lock()));
 	return std::move(accessObject);
 }
 
@@ -198,6 +216,7 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
     }
     if(!mHostHasData) {
 #ifdef FAST_MODULE_VISUALIZATION
+        /*
         // Host has not allocated data
         // Get all vertices with normals from VBO (including duplicates)
         float* data = new float[mNrOfTriangles*18];
@@ -247,6 +266,7 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
         mHostHasData = true;
         mHostDataIsUpToDate = true;
         delete[] data;
+         */
 #else
         throw Exception("Creating mesh with VBO is disabled as FAST module visualization is disabled.");
 #endif
@@ -261,11 +281,12 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
         mDataIsBeingAccessed = true;
     }
 
-    MeshAccess::pointer accessObject(new MeshAccess(&mVertices, &mLines, &mTriangles, mPtr.lock()));
+    MeshAccess::pointer accessObject(new MeshAccess(&mCoordinates, &mNormals, &mColors, &mLines, &mTriangles, mPtr.lock()));
 	return std::move(accessObject);
 }
 
 void Mesh::updateOpenCLBufferData(OpenCLDevice::pointer device) {
+    /*
     // If buffer is up to date, no need to update
     if(mCLBuffersIsUpToDate.count(device) > 0 && mCLBuffersIsUpToDate[device] == true)
         return;
@@ -353,6 +374,7 @@ void Mesh::updateOpenCLBufferData(OpenCLDevice::pointer device) {
     }
 
     mCLBuffersIsUpToDate[device] = true;
+     */
 }
 
 void Mesh::setAllDataToOutOfDate() {
@@ -415,9 +437,13 @@ void Mesh::freeAll() {
         //fun->glDeleteBuffers(1, &mVBOID);
 
         // OLD delete method:
-        fun->glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
         // This should delete the data, by replacing it with 1 byte buffer
         // Ideally it should be 0, but then the data is not deleted..
+        fun->glBindBuffer(GL_ARRAY_BUFFER, mCoordinateVBO);
+        fun->glBufferData(GL_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
+        fun->glBindBuffer(GL_ARRAY_BUFFER, mNormalVBO);
+        fun->glBufferData(GL_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
+        fun->glBindBuffer(GL_ARRAY_BUFFER, mColorVBO);
         fun->glBufferData(GL_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
         fun->glBindBuffer(GL_ARRAY_BUFFER, 0);
         glFinish();
@@ -439,7 +465,9 @@ void Mesh::freeAll() {
     mTrianglesBuffers.clear();
     mCLBuffersIsUpToDate.clear();
 
-    mVertices.clear();
+    mCoordinates.clear();
+    mNormals.clear();
+    mColors.clear();
     mLines.clear();
     mTriangles.clear();
     mHostHasData = false;
@@ -448,7 +476,9 @@ void Mesh::freeAll() {
 void Mesh::free(ExecutionDevice::pointer device) {
     // TODO
     if(device->isHost()) {
-        mVertices.clear();
+        mCoordinates.clear();
+        mNormals.clear();
+        mColors.clear();
         mLines.clear();
         mTriangles.clear();
         mHostHasData = false;
@@ -473,7 +503,7 @@ int Mesh::getNrOfTriangles() const {
 }
 
 int Mesh::getNrOfVertices() const {
-    return mVertices.size();
+    return mNrOfVertices;
 }
 
 void Mesh::setBoundingBox(BoundingBox box) {

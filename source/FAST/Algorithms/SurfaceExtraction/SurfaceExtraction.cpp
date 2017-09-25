@@ -317,7 +317,7 @@ void SurfaceExtraction::execute() {
     }
 
     VertexBufferObjectAccess::pointer VBOaccess = output->getVertexBufferObjectAccess(ACCESS_READ_WRITE);
-    GLuint* VBO_ID = VBOaccess->get();
+    GLuint* VBO_ID = VBOaccess->getCoordinateVBO();
     cl::Buffer VBOBuffer;
     std::vector<cl::Memory> v;
     if(DeviceManager::isGLInteropEnabled()) {
