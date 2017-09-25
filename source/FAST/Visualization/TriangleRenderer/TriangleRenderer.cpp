@@ -23,6 +23,10 @@ TriangleRenderer::TriangleRenderer() : Renderer() {
     createInputPort<Mesh>(0, false);
     mLineSize = 1;
     mWireframe = false;
+    createShaderProgram({
+        Config::getKernelSourcePath() + "Visualization/TriangleRenderer/TriangleRenderer.vert",
+        Config::getKernelSourcePath() + "Visualization/TriangleRenderer/TriangleRenderer.frag",
+    });
 }
 
 void TriangleRenderer::setWireframe(bool wireframe) {
@@ -38,10 +42,6 @@ void TriangleRenderer::setLineSize(int size) {
 }
 
 void TriangleRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
-    createShaderProgram({
-            Config::getKernelSourcePath() + "Visualization/TriangleRenderer/TriangleRenderer.vert",
-            Config::getKernelSourcePath() + "Visualization/TriangleRenderer/TriangleRenderer.frag",
-    });
     std::lock_guard<std::mutex> lock(mMutex);
 
     if(mWireframe)

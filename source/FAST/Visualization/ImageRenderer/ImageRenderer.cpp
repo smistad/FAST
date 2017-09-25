@@ -33,6 +33,10 @@ ImageRenderer::ImageRenderer() : Renderer() {
     mLevel = -1;
     createFloatAttribute("window", "Intensity window", "Intensity window", -1);
     createFloatAttribute("level", "Intensity level", "Intensity level", -1);
+    createShaderProgram({
+        Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer.vert",
+        Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer.frag",
+    });
 }
 
 void ImageRenderer::setIntensityLevel(float level) {
@@ -60,10 +64,6 @@ void ImageRenderer::loadAttributes() {
 
 void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
 
-    createShaderProgram({
-                                Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer.vert",
-                                Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer.frag",
-                        });
     std::lock_guard<std::mutex> lock(mMutex);
 
     std::unordered_map<uint, Image::pointer>::iterator it;
