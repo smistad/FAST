@@ -288,7 +288,7 @@ void SurfaceExtraction::execute() {
     Affine3f transform = T->getTransform();
     transform.scale(input->getSpacing());
     T->setTransform(transform);
-    output->create(totalSum);
+    output->create(totalSum*3, 0, totalSum, false, true, false);
     output->setBoundingBox(box.getTransformedBoundingBox(T));
 
     if(totalSum == 0) {
@@ -317,26 +317,37 @@ void SurfaceExtraction::execute() {
     }
 
     VertexBufferObjectAccess::pointer VBOaccess = output->getVertexBufferObjectAccess(ACCESS_READ_WRITE);
-    GLuint* VBO_ID = VBOaccess->getCoordinateVBO();
-    cl::Buffer VBOBuffer;
+    GLuint* coordinatesVBO = VBOaccess->getCoordinateVBO();
+    GLuint* normalVBO = VBOaccess->getNormalVBO();
+
+    cl::Buffer coordinatesBuffer;
+    cl::Buffer normalBuffer;
     std::vector<cl::Memory> v;
     if(DeviceManager::isGLInteropEnabled()) {
-        VBOBuffer = cl::BufferGL(device->getContext(), CL_MEM_WRITE_ONLY, *VBO_ID);
-        v.push_back(VBOBuffer);
+        coordinatesBuffer = cl::BufferGL(device->getContext(), CL_MEM_WRITE_ONLY, *coordinatesVBO);
+        normalBuffer = cl::BufferGL(device->getContext(), CL_MEM_WRITE_ONLY, *normalVBO);
+        v.push_back(coordinatesBuffer);
+        v.push_back(normalBuffer);
         queue.enqueueAcquireGLObjects(&v);
     } else {
-        VBOBuffer = cl::Buffer(
+        coordinatesBuffer = cl::Buffer(
                 device->getContext(),
                 CL_MEM_WRITE_ONLY,
-                sizeof(float) * totalSum * 18
+                sizeof(float) * totalSum * 9
+        );
+        normalBuffer = cl::Buffer(
+                device->getContext(),
+                CL_MEM_WRITE_ONLY,
+                sizeof(float) * totalSum * 9
         );
     }
-    traverseHPKernel.setArg(i, VBOBuffer);
-    traverseHPKernel.setArg(i+1, mThreshold);
-    traverseHPKernel.setArg(i+2, totalSum);
-    traverseHPKernel.setArg(i+3, input->getSpacing().x());
-    traverseHPKernel.setArg(i+4, input->getSpacing().y());
-    traverseHPKernel.setArg(i+5, input->getSpacing().z());
+    traverseHPKernel.setArg(i, coordinatesBuffer);
+    traverseHPKernel.setArg(i+1, normalBuffer);
+    traverseHPKernel.setArg(i+2, mThreshold);
+    traverseHPKernel.setArg(i+3, totalSum);
+    traverseHPKernel.setArg(i+4, input->getSpacing().x());
+    traverseHPKernel.setArg(i+5, input->getSpacing().y());
+    traverseHPKernel.setArg(i+6, input->getSpacing().z());
 
     // Increase the global_work_size so that it is divideable by 64
     int global_work_size = totalSum + 64 - (totalSum - 64*(totalSum / 64));
@@ -349,19 +360,32 @@ void SurfaceExtraction::execute() {
     } else {
         // Transfer OpenCL buffer data to CPU
 #ifdef FAST_MODULE_VISUALIZATION
-        float *data = new float[18 * totalSum];
+        QGLFunctions *fun = Window::getMainGLContext()->functions();
+        float *data = new float[9 * totalSum];
         queue.enqueueReadBuffer(
-                VBOBuffer,
+                coordinatesBuffer,
                 CL_TRUE,
                 0,
-                sizeof(float) * 18 * totalSum,
+                sizeof(float) * 9 * totalSum,
                 data
         );
 
         // Transfer CPU data to VBO
-        QGLFunctions *fun = Window::getMainGLContext()->functions();
-        fun->glBindBuffer(GL_ARRAY_BUFFER, *VBO_ID);
-        fun->glBufferData(GL_ARRAY_BUFFER, totalSum * 18 * sizeof(float), data, GL_STATIC_DRAW);
+        fun->glBindBuffer(GL_ARRAY_BUFFER, *coordinatesVBO);
+        fun->glBufferData(GL_ARRAY_BUFFER, totalSum * 9 * sizeof(float), data, GL_STATIC_DRAW);
+
+        queue.enqueueReadBuffer(
+                normalBuffer,
+                CL_TRUE,
+                0,
+                sizeof(float) * 9 * totalSum,
+                data
+        );
+
+        // Transfer CPU data to VBO
+        fun->glBindBuffer(GL_ARRAY_BUFFER, *normalVBO);
+        fun->glBufferData(GL_ARRAY_BUFFER, totalSum * 9 * sizeof(float), data, GL_STATIC_DRAW);
+
         fun->glBindBuffer(GL_ARRAY_BUFFER, 0);
         glFinish();
 

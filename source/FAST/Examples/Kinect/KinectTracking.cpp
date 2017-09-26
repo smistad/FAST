@@ -23,7 +23,7 @@ KinectTracking::KinectTracking() {
     mAnnotationImage->fill(0);
 
     mTargetCloud = Mesh::New();
-    mTargetCloud->create(0);
+    mTargetCloud->create(0, 0, 0, false, false, false);
     mTargetCloudExtracted = false;
     getReporter().setReportMethod(Reporter::COUT);
 }

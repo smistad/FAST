@@ -137,7 +137,7 @@ void DataPort::moveDataToNextTimestep() {
     }
     //std::cout << "Moving data finished" << std::endl;
     mIsStaticData = true;
-    mChanged = true;
+    //mChanged = true;
 }
 
 void DataPort::setStreamingMode(StreamingMode mode) {

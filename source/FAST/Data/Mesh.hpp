@@ -25,7 +25,14 @@ class FAST_EXPORT Mesh : public SpatialDataObject {
                 std::vector<MeshLine> lines = {},
                 std::vector<MeshTriangle> triangles = {}
         );
-        void create(unsigned int nrOfTriangles);
+        void create(
+                uint nrOfVertices,
+                uint nrOfLInes,
+                uint nrOfTriangles,
+                bool useColors,
+                bool useNormals,
+                bool useEBO
+        );
         VertexBufferObjectAccess::pointer getVertexBufferObjectAccess(accessType access);
         MeshAccess::pointer getMeshAccess(accessType access);
         MeshOpenCLAccess::pointer getOpenCLAccess(accessType access, OpenCLDevice::pointer device);
@@ -52,7 +59,11 @@ class FAST_EXPORT Mesh : public SpatialDataObject {
         GLuint mLineEBO;
         GLuint mTriangleEBO;
         uint mNrOfVertices;
+        uint mNrOfLines;
         uint mNrOfTriangles;
+        bool mUseEBO;
+        bool mUseColorVBO;
+        bool mUseNormalVBO;
 
         // Host data
         bool mHostHasData;

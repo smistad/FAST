@@ -620,7 +620,8 @@ __kernel void traverseHP(
         #if SIZE > 512
         __global int * hp9,
         #endif
-        __global float * VBOBuffer,
+        __global float * coordinatesVBOBuffer,
+        __global float * normalVBOBuffer,
         __private float isolevel,
         __private int sum,
         __private float spacing_x,
@@ -697,8 +698,8 @@ __kernel void traverseHP(
 #endif
 
 
-        vstore3(vertex, target*6 + vertexNr*2, VBOBuffer);
-        vstore3(normal, target*6 + vertexNr*2 + 1, VBOBuffer);
+        vstore3(vertex, target*3 + vertexNr, coordinatesVBOBuffer);
+        vstore3(normal, target*3 + vertexNr, normalVBOBuffer);
 
 
         ++vertexNr;

@@ -29,6 +29,9 @@ VertexBufferObjectAccess::VertexBufferObjectAccess(
         GLuint colorVBO,
         GLuint lineEBO,
         GLuint triangleEBO,
+        bool useNormalVBO,
+        bool useColorVBO,
+        bool useEBO,
         SharedPointer<Mesh> mesh
         ) {
     mCoordinateVBO = new GLuint;
@@ -41,6 +44,10 @@ VertexBufferObjectAccess::VertexBufferObjectAccess(
     *mLineEBO = lineEBO;
     mTriangleEBO = new GLuint;
     *mTriangleEBO = triangleEBO;
+
+    mUseNormalVBO = useNormalVBO;
+    mUseColorVBO = useColorVBO;
+    mUseEBO = useEBO;
 
     mIsDeleted = false;
     mMesh = mesh;
@@ -60,6 +67,18 @@ void VertexBufferObjectAccess::release() {
 
 VertexBufferObjectAccess::~VertexBufferObjectAccess() {
     release();
+}
+
+bool VertexBufferObjectAccess::hasNormalVBO() const {
+    return mUseNormalVBO;
+}
+
+bool VertexBufferObjectAccess::hasColorVBO() const {
+    return mUseColorVBO;
+}
+
+bool VertexBufferObjectAccess::hasEBO() const {
+    return mUseEBO;
 }
 
 } // end namespacefast

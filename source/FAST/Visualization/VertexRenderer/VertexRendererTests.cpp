@@ -13,7 +13,7 @@ TEST_CASE("VertexRenderer on LV surface model", "[fast][VertexRenderer][visual]"
             renderer->addInputConnection(importer->getOutputPort());
             SimpleWindow::pointer window = SimpleWindow::New();
             window->addRenderer(renderer);
-            //window->setTimeout(1000);
+            window->setTimeout(1000);
             window->start();
     );
 }

@@ -25,12 +25,18 @@ class FAST_EXPORT  VertexBufferObjectAccess {
 		GLuint* getColorVBO() const;
 		GLuint* getLineEBO() const;
 		GLuint* getTriangleEBO() const;
+		bool hasNormalVBO() const;
+		bool hasColorVBO() const;
+		bool hasEBO() const;
         VertexBufferObjectAccess(
 				GLuint coordinateVBO,
 				GLuint normalVBO,
 				GLuint colorVBO,
 				GLuint lineEBO,
 				GLuint triangleEBO,
+				bool useNormalVBO,
+				bool useColorVBO,
+				bool useEBO,
 				SharedPointer<Mesh> mesh
 		);
         void release();
@@ -38,6 +44,7 @@ class FAST_EXPORT  VertexBufferObjectAccess {
 		typedef UniquePointer<VertexBufferObjectAccess> pointer;
     private:
         GLuint* mCoordinateVBO, *mNormalVBO, *mColorVBO, *mLineEBO, *mTriangleEBO;
+		bool mUseNormalVBO, mUseColorVBO, mUseEBO;
         bool mIsDeleted;
         SharedPointer<Mesh> mMesh;
 };

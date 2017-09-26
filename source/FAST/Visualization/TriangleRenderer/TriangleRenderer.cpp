@@ -78,18 +78,32 @@ void TriangleRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) 
         }
 
         VertexBufferObjectAccess::pointer access = surfaceToRender->getVertexBufferObjectAccess(ACCESS_READ);
-        GLuint* coordinatesVBO = access->getCoordinateVBO();
 
         // Coordinates
+        GLuint* coordinatesVBO = access->getCoordinateVBO();
         glBindBuffer(GL_ARRAY_BUFFER, *coordinatesVBO);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
 
         // Normals
-        //glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
-        //glEnableVertexAttribArray(1);
+        if(access->hasNormalVBO()) {
+            GLuint* normalVBO = access->getNormalVBO();
+            glBindBuffer(GL_ARRAY_BUFFER, *normalVBO);
+            setShaderUniform("use_normals", true);
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+            glEnableVertexAttribArray(1);
+        } else {
+            setShaderUniform("use_normals", false);
+        }
 
-        glDrawArrays(GL_TRIANGLES, 0, surfaceToRender->getNrOfTriangles()*3);
+        if(access->hasEBO()) {
+            GLuint* EBO = access->getTriangleEBO();
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *EBO);
+            glDrawElements(GL_TRIANGLES, surfaceToRender->getNrOfTriangles(), GL_UNSIGNED_INT, NULL);
+        } else {
+            // No EBO available; assume all vertices belong to triangles
+            glDrawArrays(GL_TRIANGLES, 0, surfaceToRender->getNrOfTriangles() * 3);
+        }
 
         // Release buffer
         glBindBuffer(GL_ARRAY_BUFFER, 0);

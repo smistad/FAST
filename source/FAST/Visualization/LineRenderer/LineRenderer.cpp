@@ -15,15 +15,15 @@ namespace fast {
 void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
     std::lock_guard<std::mutex> lock(mMutex);
 
+    activateShader();
+    setShaderUniform("perspectiveTransform", perspectiveMatrix);
+    setShaderUniform("viewTransform", viewingMatrix);
     // For all input data
     for(auto it : mDataToRender) {
         Mesh::pointer points = it.second;
-        MeshAccess::pointer access = points->getMeshAccess(ACCESS_READ);
 
         AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(points);
-
-        glPushMatrix();
-        glMultMatrixf(transform->getTransform().data());
+        setShaderUniform("transform", transform->getTransform());
 
         if(mInputWidths.count(it.first) > 0) {
             glLineWidth(mInputWidths[it.first]);
@@ -45,19 +45,28 @@ void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
         }
         if(drawOnTop)
             glDisable(GL_DEPTH_TEST);
-        glBegin(GL_LINES);
-        for(MeshLine line : access->getLines()) {
-            Vector3f a = access->getVertex(line.getEndpoint1()).getPosition();
-            Vector3f b = access->getVertex(line.getEndpoint2()).getPosition();
-            glVertex3f(a.x(), a.y(), a.z());
-            glVertex3f(b.x(), b.y(), b.z());
+
+        VertexBufferObjectAccess::pointer access = points->getVertexBufferObjectAccess(ACCESS_READ);
+
+        // Coordinates
+        GLuint* coordinatesVBO = access->getCoordinateVBO();
+        glBindBuffer(GL_ARRAY_BUFFER, *coordinatesVBO);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(0);
+
+        if(access->hasEBO()) {
+            GLuint* EBO = access->getLineEBO();
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *EBO);
+            glDrawElements(GL_LINES, points->getNrOfLines(), GL_UNSIGNED_INT, NULL);
+        } else {
+            // No EBO available; assume all vertices belong to lines consecutively
+            glDrawArrays(GL_LINES, 0, points->getNrOfLines() * 2);
         }
-        glEnd();
+
         if(drawOnTop)
             glEnable(GL_DEPTH_TEST);
-        glPopMatrix();
     }
-    glColor3f(1.0f, 1.0f, 1.0f); // Reset color
+    deactivateShader();
 }
 
 LineRenderer::LineRenderer() {
@@ -65,6 +74,10 @@ LineRenderer::LineRenderer() {
     mDefaultLineWidth = 2;
     mDefaultColor = Color::Blue();
     mDefaultDrawOnTop = false;
+    createShaderProgram({
+        Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRenderer.vert",
+        Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRenderer.frag",
+    });
 }
 
 uint LineRenderer::addInputConnection(DataPort::pointer port) {

@@ -33,7 +33,7 @@ void Mesh::create(
         freeAll();
     }
     if(vertices.size() == 0) {
-    	create(0);
+    	create(0, 0, 0, false, false, false);
     	return;
     }
 
@@ -70,20 +70,35 @@ void Mesh::create(
 		mBoundingBox = BoundingBox(Vector3f(0,0,0)); // TODO Fix
 	}
     mNrOfVertices = mCoordinates.size() / 3;
+    mNrOfLines = mLines.size();
     mNrOfTriangles = mTriangles.size();
+    mUseColorVBO = true;
+    mUseNormalVBO = true;
+    mUseEBO = true;
     mHostHasData = true;
     mHostDataIsUpToDate = true;
     updateModifiedTimestamp();
 }
 
-void Mesh::create(unsigned int nrOfTriangles) {
+void Mesh::create(
+        uint nrOfVertices,
+        uint nrOfLines,
+        uint nrOfTriangles,
+        bool useColors,
+        bool useNormals,
+        bool useEBO
+        ) {
     if(mIsInitialized) {
         // Delete old data
         freeAll();
     }
     mBoundingBox = BoundingBox(Vector3f(1,1,1));
     mIsInitialized = true;
-    mNrOfVertices = nrOfTriangles*3;
+    mNrOfVertices = nrOfVertices;
+    mNrOfLines = nrOfLines;
+    mUseColorVBO = useColors;
+    mUseNormalVBO = useNormals;
+    mUseEBO = useEBO;
     mNrOfTriangles = nrOfTriangles;
 }
 
@@ -123,9 +138,11 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
 #endif
         QGLFunctions *fun = Window::getMainGLContext()->functions();
         fun->glGenBuffers(1, &mCoordinateVBO);
-        fun->glGenBuffers(1, &mNormalVBO);
-        fun->glGenBuffers(1, &mColorVBO);
         if(mHostHasData) {
+            fun->glGenBuffers(1, &mNormalVBO);
+            fun->glGenBuffers(1, &mColorVBO);
+            fun->glGenBuffers(1, &mLineEBO);
+            fun->glGenBuffers(1, &mTriangleEBO);
             // If host has data, transfer it.
             // Coordinates
             fun->glBindBuffer(GL_ARRAY_BUFFER, mCoordinateVBO);
@@ -136,16 +153,39 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
             // Color
             fun->glBindBuffer(GL_ARRAY_BUFFER, mColorVBO);
             fun->glBufferData(GL_ARRAY_BUFFER, mColors.size()*sizeof(float), mColors.data(), GL_STATIC_DRAW);
+            // Line EBO
+            fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mLineEBO);
+            fun->glBufferData(GL_ELEMENT_ARRAY_BUFFER, mLines.size()*sizeof(uint), mLines.data(), GL_STATIC_DRAW);
+            // Triangle EBO
+            fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mTriangleEBO);
+            fun->glBufferData(GL_ELEMENT_ARRAY_BUFFER, mTriangles.size()*sizeof(uint), mTriangles.data(), GL_STATIC_DRAW);
         } else {
             // Only allocate space
             fun->glBindBuffer(GL_ARRAY_BUFFER, mCoordinateVBO);
             fun->glBufferData(GL_ARRAY_BUFFER, mNrOfVertices*3*sizeof(float), NULL, GL_STATIC_DRAW);
-            fun->glBindBuffer(GL_ARRAY_BUFFER, mNormalVBO);
-            fun->glBufferData(GL_ARRAY_BUFFER, mNrOfVertices*3*sizeof(float), NULL, GL_STATIC_DRAW);
-            fun->glBindBuffer(GL_ARRAY_BUFFER, mColorVBO);
-            fun->glBufferData(GL_ARRAY_BUFFER, mNrOfVertices*3*sizeof(float), NULL, GL_STATIC_DRAW);
+            if(mUseNormalVBO) {
+                fun->glGenBuffers(1, &mNormalVBO);
+                fun->glBindBuffer(GL_ARRAY_BUFFER, mNormalVBO);
+                fun->glBufferData(GL_ARRAY_BUFFER, mNrOfVertices * 3 * sizeof(float), NULL, GL_STATIC_DRAW);
+            }
+            if(mUseColorVBO) {
+                fun->glGenBuffers(1, &mColorVBO);
+                fun->glBindBuffer(GL_ARRAY_BUFFER, mColorVBO);
+                fun->glBufferData(GL_ARRAY_BUFFER, mNrOfVertices * 3 * sizeof(float), NULL, GL_STATIC_DRAW);
+            }
+            if(mUseEBO) {
+                  // Line EBO
+                fun->glGenBuffers(1, &mLineEBO);
+                fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mLineEBO);
+                fun->glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNrOfLines*sizeof(uint), NULL, GL_STATIC_DRAW);
+                // Triangle EBO
+                fun->glGenBuffers(1, &mTriangleEBO);
+                fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mTriangleEBO);
+                fun->glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNrOfTriangles*sizeof(uint), NULL, GL_STATIC_DRAW);
+            }
         }
         fun->glBindBuffer(GL_ARRAY_BUFFER, 0);
+        fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         glFinish();
         if(glGetError() == GL_OUT_OF_MEMORY) {
         	throw Exception("OpenGL out of memory while creating mesh data for VBO");
@@ -168,7 +208,19 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
         mDataIsBeingAccessed = true;
     }
 
-	VertexBufferObjectAccess::pointer accessObject(new VertexBufferObjectAccess(mCoordinateVBO, mNormalVBO, mColorVBO, mLineEBO, mTriangleEBO, mPtr.lock()));
+	VertexBufferObjectAccess::pointer accessObject(
+            new VertexBufferObjectAccess(
+                    mCoordinateVBO,
+                    mNormalVBO,
+                    mColorVBO,
+                    mLineEBO,
+                    mTriangleEBO,
+                    mUseNormalVBO,
+                    mUseColorVBO,
+                    mUseEBO,
+                    mPtr.lock()
+            )
+    );
 	return std::move(accessObject);
 }
 
@@ -421,6 +473,9 @@ Mesh::Mesh() {
     mIsInitialized = false;
     mVBOHasData = false;
     mVBODataIsUpToDate = false;
+    mUseColorVBO = false;
+    mUseNormalVBO = false;
+    mUseEBO = false;
     mHostHasData = false;
     mHostDataIsUpToDate = false;
 }
@@ -441,11 +496,21 @@ void Mesh::freeAll() {
         // Ideally it should be 0, but then the data is not deleted..
         fun->glBindBuffer(GL_ARRAY_BUFFER, mCoordinateVBO);
         fun->glBufferData(GL_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
-        fun->glBindBuffer(GL_ARRAY_BUFFER, mNormalVBO);
-        fun->glBufferData(GL_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
-        fun->glBindBuffer(GL_ARRAY_BUFFER, mColorVBO);
-        fun->glBufferData(GL_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
+        if(mUseNormalVBO) {
+            fun->glBindBuffer(GL_ARRAY_BUFFER, mNormalVBO);
+            fun->glBufferData(GL_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
+        }
+        if(mUseColorVBO) {
+            fun->glBindBuffer(GL_ARRAY_BUFFER, mColorVBO);
+            fun->glBufferData(GL_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
+        }
         fun->glBindBuffer(GL_ARRAY_BUFFER, 0);
+        if(mUseEBO) {
+            fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mLineEBO);
+            fun->glBufferData(GL_ELEMENT_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
+            fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mTriangleEBO);
+            fun->glBufferData(GL_ELEMENT_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
+        }
         glFinish();
 #endif
     }
