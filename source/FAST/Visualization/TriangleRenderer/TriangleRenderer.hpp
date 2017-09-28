@@ -44,6 +44,7 @@ class FAST_EXPORT TriangleRenderer : public Renderer {
         float mDefaultOpacity;
         int mLineSize;
         bool mWireframe;
+        bool mDefaultColorSet;
 };
 
 } // namespace fast

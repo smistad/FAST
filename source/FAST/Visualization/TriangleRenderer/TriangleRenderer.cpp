@@ -23,6 +23,7 @@ TriangleRenderer::TriangleRenderer() : Renderer() {
     createInputPort<Mesh>(0, false);
     mLineSize = 1;
     mWireframe = false;
+    mDefaultColorSet = false;
     createShaderProgram({
         Config::getKernelSourcePath() + "Visualization/TriangleRenderer/TriangleRenderer.vert",
         Config::getKernelSourcePath() + "Visualization/TriangleRenderer/TriangleRenderer.frag",
@@ -54,20 +55,23 @@ void TriangleRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) 
         // Draw the triangles in the VBO
         AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(surfaceToRender);
 
-        uint transformLoc = glGetUniformLocation(getShaderProgram(), "transform");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform->getTransform().data());
-        transformLoc = glGetUniformLocation(getShaderProgram(), "perspectiveTransform");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, perspectiveMatrix.data());
-        transformLoc = glGetUniformLocation(getShaderProgram(), "viewTransform");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, viewingMatrix.data());
+        setShaderUniform("transform", transform->getTransform());
+        setShaderUniform("perspectiveTransform", perspectiveMatrix);
+        setShaderUniform("viewTransform", viewingMatrix);
 
         float opacity = mDefaultOpacity;
-        Color color = mDefaultColor;
         if(mInputOpacities.count(it.first) > 0) {
             opacity = mInputOpacities[it.first];
         }
+
+        Color color = mDefaultColor;
+        bool useGlobalColor = false;
         if(mInputColors.count(it.first) > 0) {
             color = mInputColors[it.first];
+            useGlobalColor = true;
+        } else if(mDefaultColorSet) {
+            color = mDefaultColor;
+            useGlobalColor = true;
         }
 
         // Set material properties
@@ -95,6 +99,19 @@ void TriangleRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) 
         } else {
             setShaderUniform("use_normals", false);
         }
+
+        // Color buffer
+        if(access->hasColorVBO()) {
+            GLuint *colorVBO = access->getColorVBO();
+            glBindBuffer(GL_ARRAY_BUFFER, *colorVBO);
+            glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+            glEnableVertexAttribArray(2);
+        } else {
+            useGlobalColor = true;
+        }
+        setShaderUniform("useGlobalColor", useGlobalColor);
+        setShaderUniform("globalColor", color.asVector());
+        setShaderUniform("opacity", opacity);
 
         if(access->hasEBO()) {
             GLuint* EBO = access->getTriangleEBO();
@@ -214,6 +231,7 @@ void TriangleRenderer::draw2D(
 
 void TriangleRenderer::setDefaultColor(Color color) {
     mDefaultColor = color;
+    mDefaultColorSet = true;
 }
 
 void TriangleRenderer::setLabelColor(int label, Color color) {
