@@ -331,9 +331,9 @@ void KinectTrackingGUI::extractPointCloud() {
 
     VertexRenderer::pointer cloudRenderer = VertexRenderer::New();
     cloudRenderer->setDefaultSize(1.5);
-    cloudRenderer->addInputConnection(mTracking->getOutputPort(2));
+    uint port = cloudRenderer->addInputConnection(mTracking->getOutputPort(2));
     cloudRenderer->addInputConnection(mStreamer->getOutputPort(2));
-    cloudRenderer->setColor(mTracking->getOutputPort(2), Color::Green());
+    cloudRenderer->setColor(port, Color::Green());
 
     getView(0)->set3DMode();
     getView(0)->addRenderer(cloudRenderer);

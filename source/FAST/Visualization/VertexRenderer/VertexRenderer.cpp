@@ -19,15 +19,14 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
         if(mInputSizes.count(it.first) > 0) {
             pointSize = mInputSizes[it.first];
         }
-        bool hasColor = false;
+        bool useGlobalColor = false;
+        Color color = Color::Green();
         if(mInputColors.count(it.first) > 0) {
-            Color c = mInputColors[it.first];
-            //glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
-            hasColor = true;
+            color = mInputColors[it.first];
+            useGlobalColor = true;
         } else if(mDefaultColorSet) {
-            Color c = mDefaultColor;
-            //glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
-            hasColor = true;
+            color = mDefaultColor;
+            useGlobalColor = true;
         }
         bool drawOnTop;
         if(mInputDrawOnTop.count(it.first) > 0) {
@@ -42,6 +41,7 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
         setShaderUniform("transform", transform->getTransform());
         setShaderUniform("pointSize", pointSize);
 
+
         VertexBufferObjectAccess::pointer access = points->getVertexBufferObjectAccess(ACCESS_READ);
         GLuint* coordinateVBO = access->getCoordinateVBO();
 
@@ -51,10 +51,16 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
         glEnableVertexAttribArray(0);
 
         // Color buffer
-        GLuint* colorVBO = access->getColorVBO();
-        glBindBuffer(GL_ARRAY_BUFFER, *colorVBO);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-        glEnableVertexAttribArray(1);
+        if(access->hasColorVBO()) {
+            GLuint *colorVBO = access->getColorVBO();
+            glBindBuffer(GL_ARRAY_BUFFER, *colorVBO);
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) 0);
+            glEnableVertexAttribArray(1);
+        } else {
+            useGlobalColor = true;
+        }
+        setShaderUniform("useGlobalColor", useGlobalColor);
+        setShaderUniform("globalColor", color.asVector());
 
         glDrawArrays(GL_POINTS, 0, points->getNrOfVertices()*3);
 
