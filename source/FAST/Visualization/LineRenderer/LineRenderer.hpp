@@ -24,6 +24,7 @@ class FAST_EXPORT  LineRenderer : public Renderer {
 
         float mDefaultLineWidth;
         Color mDefaultColor;
+        bool mDefaultColorSet;
         bool mDefaultDrawOnTop;
         std::unordered_map<uint, float> mInputWidths;
         std::unordered_map<uint, Color> mInputColors;

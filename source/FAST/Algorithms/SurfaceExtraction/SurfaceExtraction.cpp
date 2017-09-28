@@ -395,6 +395,9 @@ void SurfaceExtraction::execute() {
 #endif
     }
 
+    images.clear();
+    buffers.clear();
+    mHPSize = 0;
 }
 
 SurfaceExtraction::SurfaceExtraction() {

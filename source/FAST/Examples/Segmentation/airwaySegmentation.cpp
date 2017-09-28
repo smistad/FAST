@@ -38,6 +38,7 @@ int main() {
 	LineRenderer::pointer lineRenderer = LineRenderer::New();
 	lineRenderer->addInputConnection(centerline->getOutputPort());
 	lineRenderer->setDefaultDrawOnTop(true);
+	lineRenderer->setDefaultColor(Color::Blue());
 
 	SimpleWindow::pointer window = SimpleWindow::New();
 	window->addRenderer(renderer);

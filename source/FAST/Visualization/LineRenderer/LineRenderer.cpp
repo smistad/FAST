@@ -35,7 +35,7 @@ void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
         if(mInputColors.count(it.first) > 0) {
             color = mInputColors[it.first];
             useGlobalColor = true;
-        } else {
+        } else if(mDefaultColorSet) {
             color = mDefaultColor;
             useGlobalColor = true;
         }
@@ -57,7 +57,7 @@ void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
         glEnableVertexAttribArray(0);
 
         // Color buffer
-        if(access->hasColorVBO()) {
+        if(access->hasColorVBO() && !useGlobalColor) {
             GLuint *colorVBO = access->getColorVBO();
             glBindBuffer(GL_ARRAY_BUFFER, *colorVBO);
             glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
@@ -88,6 +88,7 @@ LineRenderer::LineRenderer() {
     mDefaultLineWidth = 2;
     mDefaultColor = Color::Blue();
     mDefaultDrawOnTop = false;
+    mDefaultColorSet = false;
     createShaderProgram({
         Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRenderer.vert",
         Config::getKernelSourcePath() + "Visualization/LineRenderer/LineRenderer.frag",
@@ -108,6 +109,7 @@ uint LineRenderer::addInputConnection(DataPort::pointer port, Color color,
 
 void LineRenderer::setDefaultColor(Color color) {
     mDefaultColor = color;
+    mDefaultColorSet = true;
 }
 
 void LineRenderer::setDefaultLineWidth(float width) {

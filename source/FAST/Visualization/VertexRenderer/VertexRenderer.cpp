@@ -51,7 +51,7 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
         glEnableVertexAttribArray(0);
 
         // Color buffer
-        if(access->hasColorVBO()) {
+        if(access->hasColorVBO() && !useGlobalColor) {
             GLuint *colorVBO = access->getColorVBO();
             glBindBuffer(GL_ARRAY_BUFFER, *colorVBO);
             glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
