@@ -30,12 +30,14 @@ void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
         } else {
             glLineWidth(mDefaultLineWidth);
         }
+        bool useGlobalColor = false;
+        Color color = Color::Green();
         if(mInputColors.count(it.first) > 0) {
-            Color c = mInputColors[it.first];
-            glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
+            color = mInputColors[it.first];
+            useGlobalColor = true;
         } else {
-            Color c = mDefaultColor;
-            glColor3f(c.getRedValue(), c.getGreenValue(), c.getBlueValue());
+            color = mDefaultColor;
+            useGlobalColor = true;
         }
         bool drawOnTop;
         if(mInputDrawOnTop.count(it.first) > 0) {
@@ -53,6 +55,18 @@ void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
         glBindBuffer(GL_ARRAY_BUFFER, *coordinatesVBO);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
+
+        // Color buffer
+        if(access->hasColorVBO()) {
+            GLuint *colorVBO = access->getColorVBO();
+            glBindBuffer(GL_ARRAY_BUFFER, *colorVBO);
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+            glEnableVertexAttribArray(1);
+        } else {
+            useGlobalColor = true;
+        }
+        setShaderUniform("useGlobalColor", useGlobalColor);
+        setShaderUniform("globalColor", color.asVector());
 
         if(access->hasEBO()) {
             GLuint* EBO = access->getLineEBO();
