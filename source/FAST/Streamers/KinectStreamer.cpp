@@ -7,6 +7,10 @@
 
 namespace fast {
 
+
+bool KinectStreamer::mInitialized = false;
+std::stack<std::string> KinectStreamer::mAvailableDevices;
+
 KinectStreamer::KinectStreamer() {
     createOutputPort<Image>(0); // RGB
     createOutputPort<Image>(1); // Depth image
@@ -67,12 +71,25 @@ void KinectStreamer::producerStream() {
     libfreenect2::PacketPipeline *pipeline = 0;
     std::string serial = "";
 
-    if(freenect2.enumerateDevices() == 0) {
+    int nrOfDevices = freenect2.enumerateDevices();
+    if(nrOfDevices == 0) {
         throw Exception("Unable to find any Kinect devices");
     }
-    if(serial == "") {
-        serial = freenect2.getDefaultDeviceSerialNumber();
+    if(!mInitialized) {
+        for(int i = 0; i < nrOfDevices; ++i) {
+            mAvailableDevices.push(freenect2.getDeviceSerialNumber(i));
+        }
+        mInitialized = true;
     }
+    if(mAvailableDevices.size() == 0) {
+        throw Exception("No more available kinect devices for KinectStreamer");
+    } else {
+        // Select first
+        serial = mAvailableDevices.top();
+        mAvailableDevices.pop();
+    }
+
+    reportInfo() << "Using kinect device with serial: " << serial << reportEnd();
     pipeline = new libfreenect2::OpenGLPacketPipeline();
     dev = freenect2.openDevice(serial, pipeline);
 

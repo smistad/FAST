@@ -4,6 +4,7 @@
 #include "FAST/ProcessObject.hpp"
 #include "Streamer.hpp"
 #include <thread>
+#include <stack>
 
 namespace libfreenect2 {
 class Frame;
@@ -70,6 +71,9 @@ class FAST_EXPORT KinectStreamer : public Streamer {
         libfreenect2::Registration* registration;
         libfreenect2::Frame* mUndistorted;
         libfreenect2::Frame* mRegistered;
+
+        static bool mInitialized;
+        static std::stack<std::string> mAvailableDevices;
 };
 
 }
