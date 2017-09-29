@@ -17,6 +17,8 @@ void ImageClassifier::setOutputName(std::string outputName)	 {
 }
 
 void ImageClassifier::execute() {
+    mRuntimeManager->enable();
+    mRuntimeManager->startRegularTimer("image_classifier");
 	NeuralNetwork::execute();
 
 	// Create output data
@@ -37,7 +39,8 @@ void ImageClassifier::execute() {
 
 		output->create(mapResult);
 	}
-
+    mRuntimeManager->stopRegularTimer("image_classifier");
+    getRuntime("image_classifier")->print();
 }
 
 void ImageClassifier::loadAttributes() {
