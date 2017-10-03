@@ -75,7 +75,10 @@ void SliceRenderer::setArbitrarySlicePlane(uint portID, Plane slicePlane) {
 }
 
 uint SliceRenderer::addInputConnection(DataPort::pointer port) {
-    return Renderer::addInputConnection(port);
+    uint portID =  Renderer::addInputConnection(port);
+    mSlicers[portID] = ImageSlicer::New();
+    mSlicers[portID]->setOrthogonalSlicePlane(PLANE_X);
+    return portID;
 }
 
 

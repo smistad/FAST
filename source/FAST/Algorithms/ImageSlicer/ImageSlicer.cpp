@@ -179,13 +179,13 @@ void inline getWidth(std::vector<Vector3f> intersectionPoints, Image::pointer in
 }
 
 void ImageSlicer::arbitrarySlicing(Image::pointer input, Image::pointer output) {
-    BoundingBox compoundedBB = input->getTransformedBoundingBox();
-    MatrixXf corners = compoundedBB.getCorners();
+    BoundingBox transformedBB = input->getTransformedBoundingBox();
+    MatrixXf transformedCorners = transformedBB.getCorners();
     if(!mArbitrarySlicePlane.hasPosition()) {
         // Set slice position to centroid of BB
         Vector3f centroid = Vector3f::Zero();
         for(int i = 0; i < 7; i++) {
-            Vector3f corner = corners.row(i);
+            Vector3f corner = transformedCorners.row(i);
             centroid += corner;
         }
         centroid /= 8;
@@ -193,18 +193,20 @@ void ImageSlicer::arbitrarySlicing(Image::pointer input, Image::pointer output) 
     }
 
     // Calculate x corner points of the compounded BB using plane line intersections
+    BoundingBox BB = input->getBoundingBox();
+    MatrixXf untransformedCorners = BB.getCorners();
     std::vector<Vector3f> intersectionPoints;
     Vector3f intersectionCentroid(0,0,0);
     for(int i = 0; i < 7; i++) {
-        Vector3f cornerA = corners.row(i);
+        Vector3f cornerA = untransformedCorners.row(i);
         for(int j = i+1; j < 8; j++) {
-            Vector3f cornerB = corners.row(j);
+            Vector3f cornerB = untransformedCorners.row(j);
             if((cornerA.x() == cornerB.x() && cornerA.y() == cornerB.y()) ||
                     (cornerA.y() == cornerB.y() && cornerA.z() == cornerB.z()) ||
                     (cornerA.x() == cornerB.x() && cornerA.z() == cornerB.z())) {
                 try {
                     // Calculate intersection with the plane
-                    Vector3f intersectionPoint = mArbitrarySlicePlane.getIntersectionPoint(cornerA, cornerB);
+                    Vector3f intersectionPoint = mArbitrarySlicePlane.getIntersectionPoint(transformedCorners.row(i), transformedCorners.row(j));
                     intersectionPoints.push_back(intersectionPoint);
                     intersectionCentroid += intersectionPoint;
                 } catch(Exception &e) {

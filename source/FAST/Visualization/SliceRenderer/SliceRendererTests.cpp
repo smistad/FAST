@@ -106,7 +106,7 @@ TEST_CASE("SliceRenderer with arbitrary slice plane", "[fast][SliceRenderer][vis
     importer->setFilename(Config::getTestDataPath()+"US/Ball/US-3Dt_0.mhd");
     CHECK_NOTHROW(
         SliceRenderer::pointer renderer = SliceRenderer::New();
-        renderer->addInputConnection(importer->getOutputPort(), Plane(Vector3f(1, 0, 0)));
+        renderer->addInputConnection(importer->getOutputPort(), Plane(Vector3f(0, 1.0, 0)));
         SimpleWindow::pointer window = SimpleWindow::New();
         window->addRenderer(renderer);
         window->setTimeout(1000);
