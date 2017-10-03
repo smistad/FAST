@@ -125,7 +125,8 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
         if(!QApplication::instance()) {
             Window::initializeQtApp();
         }
-        Window::getMainGLContext()->makeCurrent();
+        if(QGLContext::currentContext() == nullptr)
+            Window::getMainGLContext()->makeCurrent();
         QGLFunctions *fun = Window::getMainGLContext()->functions();
         fun->glGenBuffers(1, &mCoordinateVBO);
         if(mHostHasData) {
@@ -267,7 +268,8 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
         if(!QApplication::instance()) {
             Window::initializeQtApp();
         }
-        Window::getMainGLContext()->makeCurrent();
+        if(QGLContext::currentContext() == nullptr)
+            Window::getMainGLContext()->makeCurrent();
         QOpenGLFunctions_2_0* fun = new QOpenGLFunctions_2_0();
         fun->initializeOpenGLFunctions();
 
