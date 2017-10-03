@@ -1,10 +1,12 @@
 add_subdirectory(DataImport)
+add_subdirectory(DataExport)
 add_subdirectory(Filtering)
 add_subdirectory(Segmentation)
 add_subdirectory(Registration)
 add_subdirectory(Visualization)
 add_subdirectory(GUI)
 add_subdirectory(Interoperability)
+
 if(FAST_MODULE_Kinect)
     add_subdirectory(Kinect)
 endif()

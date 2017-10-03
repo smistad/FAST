@@ -16,7 +16,7 @@ MeshAccess::MeshAccess(
     mColors = colors;
     mLines = lines;
     mTriangles = triangles;
-    mMesh = mesh;;
+    mMesh = mesh;
 }
 
 void MeshAccess::release() {

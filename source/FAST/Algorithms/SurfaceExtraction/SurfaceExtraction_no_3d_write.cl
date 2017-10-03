@@ -718,7 +718,7 @@ __kernel void classifyCubes(
 
     // Find cube class nr
     const uchar first = READ_RAW_DATA(rawData, sampler, pos).x;
-    const uchar cubeindex =
+    uchar cubeindex =
     ((first > isolevel)) |
     ((READ_RAW_DATA(rawData, sampler2, pos + cubeOffsets[1]).x > isolevel) << 1) |
     ((READ_RAW_DATA(rawData, sampler2, pos + cubeOffsets[3]).x > isolevel) << 2) |
@@ -727,6 +727,10 @@ __kernel void classifyCubes(
     ((READ_RAW_DATA(rawData, sampler2, pos + cubeOffsets[5]).x > isolevel) << 5) |
     ((READ_RAW_DATA(rawData, sampler2, pos + cubeOffsets[7]).x > isolevel) << 6) |
     ((READ_RAW_DATA(rawData, sampler2, pos + cubeOffsets[6]).x > isolevel) << 7);
+
+    // The position can be outside of the original image, if it is, set cubeindex to 0; no triangles
+    if(pos.x >= get_image_width(rawData)-1 || pos.y >= get_image_height(rawData)-1 || pos.z >= get_image_depth(rawData)-1)
+        cubeindex = 0;
 
     // Store number of triangles and index
     uint writePos = EncodeMorton3(pos.x,pos.y,pos.z);

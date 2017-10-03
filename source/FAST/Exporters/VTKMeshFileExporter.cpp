@@ -8,8 +8,8 @@ namespace fast {
 
 VTKMeshFileExporter::VTKMeshFileExporter() {
     createInputPort<Mesh>(0);
-    mWriteNormals = true;
-    mWriteColors = true;
+    mWriteNormals = false;
+    mWriteColors = false;
 }
 
 void VTKMeshFileExporter::setWriteNormals(bool writeNormals) {
@@ -68,7 +68,6 @@ void VTKMeshFileExporter::execute() {
         }
     }
 
-    // Write.getNormal()s
     if(mWriteNormals) {
         file << "POINT_DATA " << vertices.size() << "\n";
         file << "NORMALS Normals float\n";

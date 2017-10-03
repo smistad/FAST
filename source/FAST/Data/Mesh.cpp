@@ -6,6 +6,7 @@
 #include "FAST/Visualization/Window.hpp"
 #include <QApplication>
 #include <QGLFunctions>
+#include <QOpenGLFunctions_2_0>
 #endif
 
 
@@ -120,22 +121,11 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
     if(!mVBOHasData) {
         // VBO has not allocated data: Create VBO
 #ifdef FAST_MODULE_VISUALIZATION
-#if defined(__APPLE__) || defined(__MACOSX)
-#else
-#if _WIN32
-#else
-        // If no Window is present, create a dummy gl context
-        if(!QApplication::instance()) { // TODO make this work on all platforms
+        // Make sure GL context is available
+        if(!QApplication::instance()) {
             Window::initializeQtApp();
-
-            // Need a drawable for this to work
-            //QGLWidget* widget = new QGLWidget;
-            //widget->show();
-            //widget->hide(); // TODO should probably delete widget as well
-            //reportInfo() << "created a drawable" << Reporter::end();
         }
-#endif
-#endif
+        Window::getMainGLContext()->makeCurrent();
         QGLFunctions *fun = Window::getMainGLContext()->functions();
         fun->glGenBuffers(1, &mCoordinateVBO);
         if(mHostHasData) {
@@ -268,57 +258,66 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
     }
     if(!mHostHasData) {
 #ifdef FAST_MODULE_VISUALIZATION
-        /*
         // Host has not allocated data
-        // Get all vertices with normals from VBO (including duplicates)
-        float* data = new float[mNrOfTriangles*18];
-        QGLFunctions *fun = Window::getMainGLContext()->functions();
-        fun->glBindBuffer(GL_ARRAY_BUFFER, mVBOID);
-        fun->glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float)*mNrOfTriangles*18, data);
-        fun->glBindBuffer(GL_ARRAY_BUFFER, 0);
-        std::vector<MeshVertex> vertices;
-        std::vector<MeshTriangle> triangles;
-        std::unordered_map<MeshVertex, uint, KeyHasher> vertexList;
-        for(int t = 0; t < mNrOfTriangles; t++) {
-            uint endpoints[3];
-            for(int v = 0; v < 3; v++) {
-            	Vector3f position;
-            	Vector3f normal;
-                position[0] = data[t*18+v*6];
-                position[1] = data[t*18+v*6+1];
-                position[2] = data[t*18+v*6+2];
-                normal[0] = data[t*18+v*6+3];
-                normal[1] = data[t*18+v*6+4];
-                normal[2] = data[t*18+v*6+5];
-                MeshVertex vertex(position, normal);
-                //vertex.addConnection(t);
+        // Get all mesh data from VBOs
+        if(!mVBOHasData)
+            throw Exception("No data available");
 
-                // Only add if not a duplicate
-                if(vertexList.count(vertex) > 0) {
-                    // Found a duplicate
-                    // Get index of duplicate
-                    const uint duplicateIndex = vertexList[vertex];
-                    // Add this triangle to the duplicate
-                    MeshVertex& duplicate = vertices[duplicateIndex];
-                    //duplicate.addConnection(t);
-                    // Add the vertex to this triangle
-                    endpoints[v] = duplicateIndex;
-                } else {
-                    // If duplicate was not found, add it to the list
-                    vertices.push_back(vertex);
-                    endpoints[v] = vertices.size()-1;
-                    vertexList[vertex] = vertices.size()-1;
-                }
-            }
-            MeshTriangle triangle(endpoints[0], endpoints[1], endpoints[2]);
-            triangles.push_back(triangle);
+        // Make sure GL context is available
+        if(!QApplication::instance()) {
+            Window::initializeQtApp();
         }
-        mTriangles = triangles;
-        mVertices = vertices;
+        Window::getMainGLContext()->makeCurrent();
+        QOpenGLFunctions_2_0* fun = new QOpenGLFunctions_2_0();
+        fun->initializeOpenGLFunctions();
+
+        mCoordinates.resize(mNrOfVertices*3);
+        fun->glBindBuffer(GL_ARRAY_BUFFER, mCoordinateVBO);
+        fun->glGetBufferSubData(GL_ARRAY_BUFFER, 0, mNrOfVertices*3*sizeof(float), mCoordinates.data());
+        mNormals.resize(mNrOfVertices*3);
+        if(mUseNormalVBO) {
+            fun->glBindBuffer(GL_ARRAY_BUFFER, mNormalVBO);
+            fun->glGetBufferSubData(GL_ARRAY_BUFFER, 0, mNrOfVertices * 3 * sizeof(float), mNormals.data());
+        }
+        mColors.resize(mNrOfVertices*3);
+        if(mUseColorVBO) {
+            fun->glBindBuffer(GL_ARRAY_BUFFER, mColorVBO);
+            fun->glGetBufferSubData(GL_ARRAY_BUFFER, 0, mNrOfVertices * 3 * sizeof(float), mColors.data());
+        }
+        fun->glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        mLines.resize(mNrOfLines*2);
+        mTriangles.resize(mNrOfTriangles*3);
+        if(mUseEBO) {
+              // Line EBO
+            fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mLineEBO);
+            fun->glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, mNrOfLines*sizeof(uint), mLines.data());
+
+            // Triangle EBO
+            fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mTriangleEBO);
+            fun->glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, mNrOfTriangles*sizeof(uint), mTriangles.data());
+
+            fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        } else {
+            // If EBO is not used, it is assumed that all vertices define consecutive lines/triangles
+            uint counter = 0;
+            for(int i = 0; i < mNrOfLines; ++i) {
+                mLines[i*2] = counter;
+                mLines[i*2] = counter+1;
+                counter += 2;
+            }
+            counter = 0;
+            for(int i = 0; i < mNrOfTriangles; ++i) {
+                mTriangles[i*3] = counter;
+                mTriangles[i*3+1] = counter+1;
+                mTriangles[i*3+2] = counter+2;
+                counter += 3;
+            }
+        }
+
+
         mHostHasData = true;
         mHostDataIsUpToDate = true;
-        delete[] data;
-         */
 #else
         throw Exception("Creating mesh with VBO is disabled as FAST module visualization is disabled.");
 #endif
