@@ -70,9 +70,9 @@ void Mesh::create(
 	} else {
 		mBoundingBox = BoundingBox(Vector3f(0,0,0)); // TODO Fix
 	}
-    mNrOfVertices = mCoordinates.size() / 3;
-    mNrOfLines = mLines.size();
-    mNrOfTriangles = mTriangles.size();
+    mNrOfVertices = vertices.size();
+    mNrOfLines = lines.size();
+    mNrOfTriangles = triangles.size();
     mUseColorVBO = true;
     mUseNormalVBO = true;
     mUseEBO = true;
@@ -339,7 +339,6 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
 }
 
 void Mesh::updateOpenCLBufferData(OpenCLDevice::pointer device) {
-    /*
     // If buffer is up to date, no need to update
     if(mCLBuffersIsUpToDate.count(device) > 0 && mCLBuffersIsUpToDate[device] == true)
         return;
@@ -351,12 +350,12 @@ void Mesh::updateOpenCLBufferData(OpenCLDevice::pointer device) {
         reportInfo() << "Creating OpenCL buffers for mesh" << reportEnd();
 
         // Allocate OpenCL buffers, need to know how many coordinates and how many connections
-        size_t bufferSize = sizeof(float) * 3 * mVertices.size();
+        size_t bufferSize = sizeof(float) * 3 * mNrOfVertices;
         cl::Buffer* coordinatesBuffer = new cl::Buffer(device->getContext(), CL_MEM_READ_WRITE, bufferSize);
         mCoordinatesBuffers[device] = coordinatesBuffer;
 
         if(mLines.size() > 0) {
-            bufferSize = sizeof(int) * 2 * mLines.size();
+            bufferSize = sizeof(int) * 2 * mNrOfLines;
             cl::Buffer *lineBuffer = new cl::Buffer(device->getContext(), CL_MEM_READ_WRITE, bufferSize);
             mLinesBuffers[device] = lineBuffer;
         } else {
@@ -364,7 +363,7 @@ void Mesh::updateOpenCLBufferData(OpenCLDevice::pointer device) {
         }
 
         if(mTriangles.size() > 0) {
-            bufferSize = sizeof(int) * 3 * mTriangles.size();
+            bufferSize = sizeof(int) * 3 * mNrOfTriangles;
             cl::Buffer *triangleBuffer = new cl::Buffer(device->getContext(), CL_MEM_READ_WRITE, bufferSize);
             mTrianglesBuffers[device] = triangleBuffer;
         } else {
@@ -378,44 +377,16 @@ void Mesh::updateOpenCLBufferData(OpenCLDevice::pointer device) {
 
         // Transfer coordinates
         cl::CommandQueue queue = device->getCommandQueue();
-        {
-            UniquePointer<float[]> coordinatesData(new float[3 * mVertices.size()]);
-            int i = 0;
-            for (MeshVertex vertex : mVertices) {
-                coordinatesData[i] = vertex.getPosition().x();
-                coordinatesData[i + 1] = vertex.getPosition().y();
-                coordinatesData[i + 2] = vertex.getPosition().z();
-                i += 3;
-            }
-            size_t bufferSize = sizeof(float) * 3 * mVertices.size();
-            queue.enqueueWriteBuffer(*mCoordinatesBuffers[device], CL_TRUE, 0, bufferSize, coordinatesData.get());
-        }
+        queue.enqueueWriteBuffer(*mCoordinatesBuffers[device], CL_TRUE, 0, mNrOfVertices*3*sizeof(float), mCoordinates.data());
 
         // Transfer lines
         if(mLines.size() > 0) {
-            UniquePointer<uint[]> data(new uint[2 * mLines.size()]);
-            int i = 0;
-            for(MeshLine line : mLines) {
-                data[i] = line.getEndpoint1();
-                data[i + 1] = line.getEndpoint2();
-                i += 2;
-            }
-            size_t bufferSize = sizeof(uint) * 2 * mLines.size();
-            queue.enqueueWriteBuffer(*mLinesBuffers[device], CL_TRUE, 0, bufferSize, data.get());
+            queue.enqueueWriteBuffer(*mLinesBuffers[device], CL_TRUE, 0, mNrOfLines*2*sizeof(uint), mLines.data());
         }
 
         // Transfer triangles
         if(mTriangles.size() > 0) {
-            UniquePointer<uint[]> data(new uint[3 * mTriangles.size()]);
-            int i = 0;
-            for(MeshTriangle triangle : mTriangles) {
-                data[i] = triangle.getEndpoint1();
-                data[i + 1] = triangle.getEndpoint2();
-                data[i + 2] = triangle.getEndpoint3();
-                i += 3;
-            }
-            size_t bufferSize = sizeof(uint) * 3 * mTriangles.size();
-            queue.enqueueWriteBuffer(*mTrianglesBuffers[device], CL_TRUE, 0, bufferSize, data.get());
+            queue.enqueueWriteBuffer(*mTrianglesBuffers[device], CL_TRUE, 0, mNrOfTriangles*3*sizeof(uint), mTriangles.data());
         }
 
 
@@ -427,7 +398,6 @@ void Mesh::updateOpenCLBufferData(OpenCLDevice::pointer device) {
     }
 
     mCLBuffersIsUpToDate[device] = true;
-     */
 }
 
 void Mesh::setAllDataToOutOfDate() {

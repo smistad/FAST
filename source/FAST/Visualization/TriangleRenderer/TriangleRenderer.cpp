@@ -116,7 +116,7 @@ void TriangleRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) 
         if(access->hasEBO()) {
             GLuint* EBO = access->getTriangleEBO();
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *EBO);
-            glDrawElements(GL_TRIANGLES, surfaceToRender->getNrOfTriangles(), GL_UNSIGNED_INT, NULL);
+            glDrawElements(GL_TRIANGLES, surfaceToRender->getNrOfTriangles() * 3, GL_UNSIGNED_INT, NULL);
         } else {
             // No EBO available; assume all vertices belong to triangles
             glDrawArrays(GL_TRIANGLES, 0, surfaceToRender->getNrOfTriangles() * 3);
