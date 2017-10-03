@@ -60,7 +60,7 @@ void MeshAccess::setLine(uint i, MeshLine line) {
 }
 
 MeshLine MeshAccess::getLine(uint i) {
-    MeshLine line((*mLines)[i*3], (*mLines)[i*3+1]);
+    MeshLine line((*mLines)[i*2], (*mLines)[i*2+1]);
     return line;
 }
 
