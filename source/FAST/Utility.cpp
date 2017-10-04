@@ -589,6 +589,21 @@ Matrix4f loadPerspectiveMatrix(float fovy, float aspect, float zNear, float zFar
     return mProjectionMatrix;
 }
 
+
+Matrix4f loadOrthographicMatrix(float left, float right, float bottom, float top, float zNear, float zFar) {
+    // https://en.wikipedia.org/wiki/Orthographic_projection
+    Matrix4f mProjectionMatrix = Matrix4f::Zero();
+    mProjectionMatrix(0,0) = 2.0f / (right - left);
+    mProjectionMatrix(1,1) = 2.0f / (top - bottom);
+    mProjectionMatrix(2,2) = -2.0f / (zFar - zNear);
+    mProjectionMatrix(3,0) = -(right + left) / (right - left);
+    mProjectionMatrix(3,1) = -(top + bottom) / (top - bottom);
+    mProjectionMatrix(3,2) = -(zFar + zNear) / (zFar - zNear);
+    mProjectionMatrix(3,3) = 1;
+
+    return mProjectionMatrix;
+}
+
 void createDirectory(std::string path) {
     int error = 0;
 #if defined(_WIN32)
