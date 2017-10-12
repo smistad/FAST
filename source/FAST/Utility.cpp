@@ -596,10 +596,12 @@ Matrix4f loadOrthographicMatrix(float left, float right, float bottom, float top
     mProjectionMatrix(0,0) = 2.0f / (right - left);
     mProjectionMatrix(1,1) = 2.0f / (top - bottom);
     mProjectionMatrix(2,2) = -2.0f / (zFar - zNear);
-    mProjectionMatrix(3,0) = -(right + left) / (right - left);
-    mProjectionMatrix(3,1) = -(top + bottom) / (top - bottom);
-    mProjectionMatrix(3,2) = -(zFar + zNear) / (zFar - zNear);
+    mProjectionMatrix(0,3) = -(right + left) / (right - left);
+    mProjectionMatrix(1,3) = -(top + bottom) / (top - bottom);
+    mProjectionMatrix(2,3) = -(zFar + zNear) / (zFar - zNear);
     mProjectionMatrix(3,3) = 1;
+
+    std::cout << mProjectionMatrix << std::endl;
 
     return mProjectionMatrix;
 }

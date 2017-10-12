@@ -93,6 +93,7 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
         int previousX, previousY;
 
         float mMinX2D, mMaxX2D, mMinY2D, mMaxY2D;
+		float mLeft, mRight, mBottom, mTop; // Used for ortho projection
         int mPosX2D, mPosY2D;
         float mScale2D;
 

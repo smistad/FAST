@@ -13,8 +13,22 @@ TEST_CASE("ImageRenderer with single 2D image in 2D mode", "[fast][ImageRenderer
     renderer->setInputConnection(importer->getOutputPort());
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
+    window->setSize(1024, 512);
     window->set2DMode();
-    window->setTimeout(500);
+    //window->setTimeout(500);
+
+    CHECK_NOTHROW(window->start());
+}
+
+TEST_CASE("ImageRenderer with single 2D image in 2D mode (MHD)", "[fast][ImageRenderer][visual]") {
+    ImageFileImporter::pointer importer = ImageFileImporter::New();
+    importer->setFilename(Config::getTestDataPath()+"US/CarotidArtery/Right/US-2D_0.mhd");
+    ImageRenderer::pointer renderer = ImageRenderer::New();
+    renderer->setInputConnection(importer->getOutputPort());
+    SimpleWindow::pointer window = SimpleWindow::New();
+    window->addRenderer(renderer);
+    window->set2DMode();
+    //window->setTimeout(500);
 
     CHECK_NOTHROW(window->start());
 }
@@ -27,7 +41,7 @@ TEST_CASE("ImageRenderer with dynamic 2D image in 2D mode", "[fast][ImageRendere
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->set2DMode();
-    window->setTimeout(1000);
+    //window->setTimeout(1000);
 
     CHECK_NOTHROW(window->start());
 }
