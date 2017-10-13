@@ -40,7 +40,6 @@ class FAST_EXPORT  VertexRenderer : public Renderer {
         std::unordered_map<uint, float> mInputSizes;
         std::unordered_map<uint, Color> mInputColors;
         std::unordered_map<uint, bool> mInputDrawOnTop;
-        std::mutex mMutex;
 };
 
 }

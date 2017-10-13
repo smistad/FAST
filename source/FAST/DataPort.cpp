@@ -112,8 +112,9 @@ DataObject::pointer DataPort::getNextFrame() {
                 }
             }
             // Delete old frames
-            for(auto frameNr : framesToDelete)
+            for(auto frameNr : framesToDelete) {
                 mFrames.erase(frameNr);
+            }
         }
 
         lock.unlock();
@@ -190,6 +191,7 @@ void DataPort::stop() {
 }
 
 bool DataPort::hasCurrentData() {
+    std::lock_guard<std::mutex> lock(mMutex);
     return mFrames.count(mCurrentTimestep) > 0;
 }
 

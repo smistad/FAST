@@ -62,7 +62,6 @@ class FAST_EXPORT  VolumeRenderer : public Renderer {
 		bool mDoTransformations;
         //unsigned int windowWidth, windowHeight;
 
-		std::mutex mMutex;
 
         cl::Program program;
 		cl::Context clContext;
