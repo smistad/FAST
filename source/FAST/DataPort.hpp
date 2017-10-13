@@ -26,10 +26,6 @@ class DataPort {
 
         SharedPointer<ProcessObject> getProcessObject() const;
 
-        void setChanged(bool changed);
-
-        bool getChanged();
-
         uint64_t getFrameCounter() const;
 
         /**
@@ -53,6 +49,8 @@ class DataPort {
         bool hasCurrentData();
 
         typedef SharedPointer<DataPort> pointer;
+
+        uint64_t getLatestTimestep();
     private:
         /**
          * The process object which produce data for this port
@@ -62,7 +60,6 @@ class DataPort {
         uint64_t mFrameCounter = 0;
         uint64_t mCurrentTimestep = 0;
         StreamingMode mStreamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES;
-        bool mChanged = false;
         std::mutex mMutex;
         std::condition_variable mFrameConditionVariable;
         /**

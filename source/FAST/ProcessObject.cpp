@@ -26,12 +26,13 @@ void ProcessObject::update(uint64_t timestep, StreamingMode streamingMode) {
     bool newInputData = false;
     for(auto parent : mInputConnections) {
         DataPort::pointer port = parent.second;
-        port->setChanged(false);
         port->setTimestep(timestep);
         port->setStreamingMode(streamingMode);
         port->getProcessObject()->update(timestep, streamingMode);
-        // If parent PO is streamer, newInputData is always true
-        if(port->getChanged() || isStreamer(port->getProcessObject().get()))
+        // If the data in the port is newer than what which this PO last executed with, we have new input data, and should
+        // execute again
+        // Also: If parent PO is streamer, newInputData is always true
+        if(mDataLastTimestep[parent.first] < port->getLatestTimestep() || isStreamer(port->getProcessObject().get()))
             newInputData = true;
     }
 
@@ -67,6 +68,9 @@ void ProcessObject::update(uint64_t timestep, StreamingMode streamingMode) {
         if(this->mRuntimeManager->isEnabled())
             this->waitToFinish();
         this->mRuntimeManager->stopRegularTimer("execute");
+        for(auto parent : mInputConnections) {
+
+        }
     } else if(!isStreamer(this)) {
         // If this object did not need to execute AND is not a streamer. Move the data to next timestep.
         for(auto outputPorts : mOutputConnections) {

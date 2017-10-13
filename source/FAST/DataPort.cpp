@@ -14,9 +14,11 @@ void DataPort::addFrame(DataObject::pointer object) {
             // If data for current doesn't exist: add it, otherwise add the new data for the next timestep
             if(mFrames.count(mCurrentTimestep) == 0) {
                 //std::cout << "Adding frame with nr " << mCurrentTimestep << std::endl;
+                object->setTimestep(mCurrentTimestep);
                 mFrames[mCurrentTimestep] = object;
             } else {
                 //std::cout << "Adding frame with nr " << mCurrentTimestep + 1 << std::endl;
+                object->setTimestep(mCurrentTimestep+1);
                 mFrames[mCurrentTimestep + 1] = object;
             }
         }
@@ -42,6 +44,7 @@ void DataPort::addFrame(DataObject::pointer object) {
             if(mCurrentTimestep > mFrameCounter)
                 mFrameCounter = mCurrentTimestep;
             //std::cout << mProcessObject->getNameOfClass() + " adding frame with nr " << mFrameCounter << std::endl;
+            object->setTimestep(mFrameCounter);
             mFrames[mFrameCounter] = object;
             mFrameCounter++;
         }
@@ -60,6 +63,7 @@ void DataPort::addFrame(DataObject::pointer object) {
             if(mCurrentTimestep > mFrameCounter)
                 mFrameCounter = mCurrentTimestep;
             //std::cout << mProcessObject->getNameOfClass() + " STORE_ALL_FRAMES adding frame with nr " << mFrameCounter << std::endl;
+            object->setTimestep(mFrameCounter);
             mFrames[mFrameCounter] = object;
             mFrameCounter++;
         }
@@ -67,7 +71,6 @@ void DataPort::addFrame(DataObject::pointer object) {
     } else {
         throw Exception("Error in DataPort::addFrame");
     }
-    setChanged(true);
 }
 
 DataObject::pointer DataPort::getNextFrame() {
@@ -138,7 +141,6 @@ void DataPort::moveDataToNextTimestep() {
     }
     //std::cout << "Moving data finished" << std::endl;
     mIsStaticData = true;
-    //mChanged = true;
 }
 
 void DataPort::setStreamingMode(StreamingMode mode) {
@@ -156,16 +158,6 @@ DataPort::DataPort(SharedPointer<ProcessObject> processObject) {
 
 SharedPointer<ProcessObject> DataPort::getProcessObject() const {
     return mProcessObject;
-}
-
-void DataPort::setChanged(bool changed) {
-    std::lock_guard<std::mutex> lock(mMutex);
-    mChanged = changed;
-}
-
-bool DataPort::getChanged() {
-    std::lock_guard<std::mutex> lock(mMutex);
-    return mChanged;
 }
 
 uint64_t DataPort::getFrameCounter() const {
@@ -197,6 +189,18 @@ bool DataPort::hasCurrentData() {
 
 uint DataPort::getSize() const {
     return mFrames.size();
+}
+
+uint64_t DataPort::getLatestTimestep() {
+    std::lock_guard<std::mutex> lock(mMutex);
+    uint64_t highest = 0;
+    for(auto frame : mFrames) {
+        if(frame.first > highest) {
+            highest = frame.first;
+        }
+    }
+
+    return highest;
 }
 
 } // end namespace fast

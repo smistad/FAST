@@ -75,4 +75,12 @@ void DataObject::release(ExecutionDevice::pointer device) {
     }
 }
 
+uint64_t DataObject::getTimestep() const {
+    return mTimestep;
+}
+
+void DataObject::setTimestep(uint64_t timestep) {
+    mTimestep = timestep;
+}
+
 } // end namespace fast

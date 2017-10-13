@@ -131,6 +131,8 @@ class FAST_EXPORT  ProcessObject : public virtual Object {
         std::unordered_map<uint, std::vector<WeakPointer<DataPort>>> mOutputConnections;
         std::unordered_map<uint, bool> mInputPorts;
         std::unordered_set<uint> mOutputPorts;
+        // <port id, timestep>, register the last timestep of data which this PO executed with
+        std::unordered_map<uint, uint64_t> mDataLastTimestep;
 
         void validateInputPortExists(uint portID);
         void validateOutputPortExists(uint portID);
@@ -159,7 +161,9 @@ template<class DataType>
 DataObject::pointer ProcessObject::getInputData(uint portID) {
         validateInputPortExists(portID);
         DataPort::pointer port = mInputConnections.at(portID);
-        return port->getNextFrame();
+        DataObject::pointer data = port->getNextFrame();
+        mDataLastTimestep[portID] = data->getTimestep();
+        return data;
 }
 
 template<class DataType>
