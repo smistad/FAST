@@ -15,6 +15,8 @@ class FAST_EXPORT  DataObject : public Object {
         typedef SharedPointer<DataObject> pointer;
         unsigned long getTimestamp() const;
         void updateModifiedTimestamp();
+        uint64_t getTimestep() const;
+        void setTimestep(uint64_t);
         void retain(ExecutionDevice::pointer device);
         void release(ExecutionDevice::pointer device);
         virtual ~DataObject() { };
@@ -47,6 +49,8 @@ class FAST_EXPORT  DataObject : public Object {
 
         // Timestamp is set to 0 when data object is constructed
         unsigned long mTimestampCreated;
+
+        uint64_t mTimestep;
 
 };
 

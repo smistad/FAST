@@ -17,7 +17,6 @@ class FAST_EXPORT  BoundingBoxRenderer : public Renderer {
         BoundingBox getBoundingBox();
 
         std::unordered_map<uint, BoundingBox> mBoxesToRender;
-        std::mutex mMutex;
 };
 
 }
