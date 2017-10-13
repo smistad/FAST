@@ -2,7 +2,7 @@ PipelineName "Cardiac view classification"
 PipelineDescription "Neural network"
 
 ProcessObject classifier ImageClassifier
-Attribute model "/home/smistad/Downloads/tf_alexnet.pb"
+Attribute model "/home/smistad/Downloads/tf_alexnet_optimized.pb"
 Attribute input_size 128 128
 Attribute output_names "softmax/Softmax"
 Attribute scale_factor 0.003921569

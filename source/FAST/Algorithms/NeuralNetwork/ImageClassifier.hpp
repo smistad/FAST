@@ -40,7 +40,7 @@ class FAST_EXPORT  ClassificationToText : public ProcessObject {
     FAST_OBJECT(ClassificationToText)
     private:
         std::deque<std::map<std::string, float>> mBuffer; // used for calculating temporal average
-        int mBufferSize = 100; // How large the buffer can be
+        int mBufferSize = 1; // How large the buffer can be
 
         ClassificationToText();
         void loadAttributes();

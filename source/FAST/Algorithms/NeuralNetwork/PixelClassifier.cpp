@@ -31,6 +31,8 @@ void PixelClassifier::setNrOfClasses(uint classes) {
 }
 
 void PixelClassifier::execute() {
+    mRuntimeManager->enable();
+    mRuntimeManager->startRegularTimer("pixel_classifier");
     if(mNrOfClasses <= 0) {
         throw Exception("You must set the nr of classes to pixel classification.");
     }
@@ -88,6 +90,8 @@ void PixelClassifier::execute() {
         addOutputData(j, resizedOutput);
     }
 
+    mRuntimeManager->stopRegularTimer("pixel_classifier");
+    getRuntime("pixel_classifier")->print();
 }
 
 void PixelClassifier::loadAttributes() {
