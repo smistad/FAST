@@ -88,6 +88,19 @@ install(DIRECTORY ${FAST_SOURCE_DIR}
 	FILES_MATCHING PATTERN "*.cl"
 )
 
+# Install GL shaders
+install(DIRECTORY ${FAST_SOURCE_DIR}
+	DESTINATION fast/kernels/
+	FILES_MATCHING PATTERN "*.vert"
+)
+
+# Install GL shaders
+install(DIRECTORY ${FAST_SOURCE_DIR}
+	DESTINATION fast/kernels/
+	FILES_MATCHING PATTERN "*.frag"
+)
+
+
 # Install CMake files
 install(FILES ${PROJECT_BINARY_DIR}/FASTConfig.cmake ${PROJECT_BINARY_DIR}/FASTUse.cmake
     DESTINATION fast/cmake
