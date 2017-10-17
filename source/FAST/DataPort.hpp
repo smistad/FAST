@@ -4,6 +4,7 @@
 #include <mutex>
 #include <condition_variable>
 #include "FAST/Data/DataObject.hpp"
+#include "FAST/Data/DataTypes.hpp"
 #include "FAST/Semaphore.hpp"
 
 namespace fast {
@@ -13,7 +14,6 @@ enum StreamingMode { STREAMING_MODE_NEWEST_FRAME_ONLY, STREAMING_MODE_STORE_ALL_
 class ProcessObject;
 
 class DataPort {
-	typedef unsigned int uint;
     public:
         explicit DataPort(SharedPointer<ProcessObject> processObject);
 
