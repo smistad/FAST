@@ -4,6 +4,7 @@
 #include <mutex>
 #include <condition_variable>
 #include "FAST/Data/DataObject.hpp"
+#include "FAST/Data/DataTypes.hpp"
 #include "FAST/Semaphore.hpp"
 
 namespace fast {

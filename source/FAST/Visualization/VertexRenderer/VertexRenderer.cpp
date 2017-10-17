@@ -169,6 +169,7 @@ uint VertexRenderer::addInputData(Mesh::pointer data, Color color, float size) {
     uint nr = addInputData(data);
     setColor(nr, color);
     setSize(nr, size);
+	return nr;
 }
 
 
