@@ -548,7 +548,7 @@ void Mesh::setBoundingBox(BoundingBox box) {
 }
 
 int Mesh::getNrOfLines() const {
-	return mLines.size();
+	return mNrOfLines;
 }
 
 } // end namespace fast
