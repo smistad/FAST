@@ -22,7 +22,7 @@ char get_line_intersection(float p0_x, float p0_y, float p1_x, float p1_y,
 }
 
 __kernel void mesh_to_segmentation_2d(
-		__global float2* coordinates,
+		__global float* coordinates,
 		__global uint2* lines,
 		__private uint nrOfLines,
 		__write_only image2d_t segmentation,
@@ -45,10 +45,12 @@ __kernel void mesh_to_segmentation_2d(
 	    // https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
 	    // http://geomalgorithms.com/a03-_inclusion.html
 	    // Find intersection point
-	    float x3 = coordinates[lines[i].x].x;
-	    float y3 = coordinates[lines[i].x].y;
-	    float x4 = coordinates[lines[i].y].x;
-	    float y4 = coordinates[lines[i].y].y;
+	    float3 coordinate3 = vload3(lines[i].x, coordinates);
+	    float3 coordinate4 = vload3(lines[i].y, coordinates);
+	    float x3 = coordinate3.x;
+	    float y3 = coordinate3.y;
+	    float x4 = coordinate4.x;
+	    float y4 = coordinate4.y;
 
 	    // Order edge points so that it point downwards
 	    if(y3 > y4) {
