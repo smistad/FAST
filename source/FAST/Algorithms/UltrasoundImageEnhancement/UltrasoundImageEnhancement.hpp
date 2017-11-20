@@ -8,11 +8,16 @@ namespace fast {
 class UltrasoundImageEnhancement : public ProcessObject {
     FAST_OBJECT(UltrasoundImageEnhancement)
     public:
+        void loadAttributes();
+        void setReject(int value);
     private:
         UltrasoundImageEnhancement();
         void execute();
 
         std::vector<uchar> mColormap;
+        cl::Buffer mColormapBuffer;
+        bool mColormapUploaded;
+
 };
 
 }

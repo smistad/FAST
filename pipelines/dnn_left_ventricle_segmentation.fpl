@@ -10,10 +10,14 @@ Attribute heatmap_output true
 Attribute classes 4
 Input 0 PipelineInput
 
+ProcessObject enhancement UltrasoundImageEnhancement
+Attribute reject 40
+Input 0 PipelineInput
+
 Renderer imageRenderer ImageRenderer
 Attribute window 255
 Attribute level 127.5
-Input 0 PipelineInput
+Input 0 enhancement 0
 
 Renderer heatmapRenderer HeatmapRenderer
 Input 0 segmentation 1

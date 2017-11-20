@@ -1,0 +1,14 @@
+PipelineName "Ultrasound noise removal"
+PipelineDescription "Remove nosie by neural network"
+
+ProcessObject network ImageToImageNetwork
+Attribute model "/home/smistad/Dropbox/Studenter/Fabian/model.pb"
+Attribute input_size 256 608
+Attribute output_names "conv2d_4_1/Sigmoid"
+Attribute scale_factor 0.003921569
+Input 0 PipelineInput
+
+Renderer imageRenderer ImageRenderer
+Attribute window 255
+Attribute level 127.5
+Input 0 network 0
