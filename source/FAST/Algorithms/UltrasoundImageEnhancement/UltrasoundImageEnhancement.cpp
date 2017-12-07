@@ -14,6 +14,8 @@ UltrasoundImageEnhancement::UltrasoundImageEnhancement() {
     createIntegerAttribute("reject", "Reject", "How many intensity values at bottom to reject.", 40);
 
     mColormapUploaded = false;
+
+    setReject(40);
 }
 
 void UltrasoundImageEnhancement::execute() {

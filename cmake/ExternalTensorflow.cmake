@@ -4,7 +4,7 @@ include(cmake/Externals.cmake)
 
 if(WIN32)
     set(GIT_EXECUTABLE "git.exe")
-    # Use CMake to build tensorflow on linux
+    # Use CMake to build tensorflow on windows
     ExternalProject_Add(tensorflow
             PREFIX ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
             BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
@@ -50,10 +50,13 @@ else(WIN32)
         # Build using bazel
         BUILD_COMMAND
             echo "Building tensorflow with bazel and CUDA GPU support" &&
-            cd ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/ && bazel build -c opt --config=cuda --copt=-march=native //tensorflow:libtensorflow_cc.so
+            cd ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/ && bazel build -c opt --config=mkl --config=cuda --copt=-march=native //tensorflow:libtensorflow_framework.so
         INSTALL_COMMAND
             echo "Installing tensorflow binary" &&
-            cp -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/bazel-bin/tensorflow/libtensorflow_cc.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
+            cp -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/bazel-bin/tensorflow/libtensorflow_framework.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
+            echo "Installing mkl binaries" &&
+            bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/bazel-out/)/../../../external/mkl/lib/libmklml_intel.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ -Rf" &&
+            bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/bazel-out/)/../../../external/mkl/lib/libiomp5.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ -Rf" &&
             echo "Installing tensorflow headers" &&
             cp -rf ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/tensorflow/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ &&
             echo "Installing tensorflow generated headers" &&
@@ -61,10 +64,12 @@ else(WIN32)
             echo "Installing tensorflow third_party headers" &&
             cp -rf ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/third_party/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ &&
             echo "Installing protobuf headers" &&
-            bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/bazel-out/)/../../../external/protobuf/src/google/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ -Rf"
+            bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/bazel-out/)/../../../external/protobuf_archive/src/google/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ -Rf" &&
+            echo "Installing nsync headers" &&
+            bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/bazel-out/)/../../../external/nsync/public/*.h ${FAST_EXTERNAL_INSTALL_DIR}/include/ -Rf"
     )
     list(APPEND LIBRARIES
-        libtensorflow_cc.so
+        libtensorflow_framework.so
     )
 endif(WIN32)
 
