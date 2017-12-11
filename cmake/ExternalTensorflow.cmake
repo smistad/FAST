@@ -50,7 +50,7 @@ else(WIN32)
         # Build using bazel
         BUILD_COMMAND
             echo "Building tensorflow with bazel and CUDA GPU support" &&
-            cd ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/ && bazel build -c opt --config=mkl --config=cuda --copt=-march=native //tensorflow:libtensorflow_framework.so
+            cd ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/ && bazel build -c opt --config=cuda --copt=-mfpmath=both --copt=-march=native //tensorflow:libtensorflow_framework.so
         INSTALL_COMMAND
             echo "Installing tensorflow binary" &&
             cp -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/bazel-bin/tensorflow/libtensorflow_framework.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
