@@ -209,6 +209,6 @@ configure_file(
     "${PROJECT_SOURCE_DIR}/source/ProcessObjectList.hpp.in"
     "${PROJECT_BINARY_DIR}/ProcessObjectList.hpp"
 )
-
+include(cmake/FASTCustomCommands.cmake)
 include(cmake/ModulePython.cmake)
 include(cmake/InstallFAST.cmake)
