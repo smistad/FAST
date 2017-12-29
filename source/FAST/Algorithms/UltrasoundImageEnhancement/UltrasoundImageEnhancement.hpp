@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class UltrasoundImageEnhancement : public ProcessObject {
+class FAST_EXPORT UltrasoundImageEnhancement : public ProcessObject {
     FAST_OBJECT(UltrasoundImageEnhancement)
     public:
         void loadAttributes();
