@@ -13,7 +13,7 @@ enum StreamingMode { STREAMING_MODE_NEWEST_FRAME_ONLY, STREAMING_MODE_STORE_ALL_
 
 class ProcessObject;
 
-class DataPort {
+class FAST_EXPORT DataPort {
     public:
         explicit DataPort(SharedPointer<ProcessObject> processObject);
 
