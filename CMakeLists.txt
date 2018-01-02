@@ -2,6 +2,12 @@
 
 project(FAST)
 
+# set policies explicitly to avoid warnings.
+# Read more on CMP0022 here: https://cmake.org/cmake/help/v3.0/policy/CMP0022.html
+# This was set as a fix for windows builds where FAST was expecting the name of
+# the zlib library to be 'zlib' when it was in fact 'zlibd'.
+cmake_policy(SET CMP0022 NEW)
+
 include(cmake/Macros.cmake)
 
 #### Options
