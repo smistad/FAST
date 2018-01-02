@@ -209,6 +209,12 @@ configure_file(
     "${PROJECT_SOURCE_DIR}/source/ProcessObjectList.hpp.in"
     "${PROJECT_BINARY_DIR}/ProcessObjectList.hpp"
 )
-include(cmake/FASTCustomCommands.cmake)
+
+if(NOT FAST_BUILD_QT5 AND WIN32)
+    # Using pre-built binaries on Windows so add custom command to copy 
+    # dlls automatically to the bin folder. 
+    include(cmake/FASTCustomCommands.cmake)
+endif(NOT FAST_BUILD_QT5 AND WIN32)
+
 include(cmake/ModulePython.cmake)
 include(cmake/InstallFAST.cmake)
