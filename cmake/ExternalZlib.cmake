@@ -16,7 +16,7 @@ ExternalProject_Add(zlib
             -DCMAKE_INSTALL_PREFIX:STRING=${FAST_EXTERNAL_INSTALL_DIR}
 )
 if(WIN32)
-	set(ZLIB_LIBRARY zlib.lib)
+	set(ZLIB_LIBRARY debug zlibd.lib optimized zlib.lib)
 else(WIN32)
 	set(ZLIB_LIBRARY ${CMAKE_SHARED_LIBRARY_PREFIX}z${CMAKE_SHARED_LIBRARY_SUFFIX})
 endif(WIN32)

@@ -2,6 +2,12 @@
 
 project(FAST)
 
+# set policies explicitly to avoid warnings.
+# Read more on CMP0022 here: https://cmake.org/cmake/help/v3.0/policy/CMP0022.html
+# This was set as a fix for windows builds where FAST was expecting the name of
+# the zlib library to be 'zlib' when it was in fact 'zlibd'.
+cmake_policy(SET CMP0022 NEW)
+
 include(cmake/Macros.cmake)
 
 #### Options
@@ -209,6 +215,12 @@ configure_file(
     "${PROJECT_SOURCE_DIR}/source/ProcessObjectList.hpp.in"
     "${PROJECT_BINARY_DIR}/ProcessObjectList.hpp"
 )
+
+if(NOT FAST_BUILD_QT5 AND WIN32)
+    # Using pre-built binaries on Windows so add custom command to copy 
+    # dlls automatically to the bin folder. 
+    include(cmake/FASTCustomCommands.cmake)
+endif(NOT FAST_BUILD_QT5 AND WIN32)
 
 include(cmake/ModulePython.cmake)
 include(cmake/InstallFAST.cmake)
