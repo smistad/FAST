@@ -83,6 +83,11 @@ void ImageResizer::execute() {
                 kernel = cl::Kernel(program, "resize2DpreserveAspect");
                 kernel.setArg(2, newHeight);
             } else {
+                output->setSpacing(Vector3f(
+                    input->getSpacing().x()*((float)input->getWidth()/output->getWidth()),
+                    input->getSpacing().y()*((float)input->getHeight()/output->getHeight()),
+                    1.0f
+                ));
                 kernel = cl::Kernel(program, "resize2D");
             }
             OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
