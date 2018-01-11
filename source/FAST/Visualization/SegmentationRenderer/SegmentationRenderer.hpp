@@ -16,6 +16,7 @@ class FAST_EXPORT  SegmentationRenderer : public Renderer {
         void setColor(Segmentation::LabelType, Color);
         void setFillArea(Segmentation::LabelType, bool);
         void setFillArea(bool fillArea);
+        void setBorderRadius(int radius);
     private:
         SegmentationRenderer();
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) override;
@@ -34,6 +35,7 @@ class FAST_EXPORT  SegmentationRenderer : public Renderer {
         std::unordered_map<int, Color> mLabelColors;
         std::unordered_map<int, bool> mLabelFillArea;
         bool mFillArea;
+        int mBorderRadius = 1;
         cl::Buffer mColorBuffer, mFillAreaBuffer;
 };
 

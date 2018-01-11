@@ -132,6 +132,7 @@ void SegmentationRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
             kernel.setArg(5, PBOspacing);
             kernel.setArg(6, mColorBuffer);
             kernel.setArg(7, mFillAreaBuffer);
+            kernel.setArg(8, mBorderRadius);
 
             // Run the draw 2D kernel
             queue.enqueueNDRangeKernel(
@@ -185,6 +186,13 @@ void SegmentationRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
     }
     queue.finish();
 
+}
+
+void SegmentationRenderer::setBorderRadius(int radius) {
+    if(radius <= 0)
+        throw Exception("Border radius must be >= 0");
+
+    mBorderRadius = radius;
 }
 
 }

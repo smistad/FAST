@@ -8,7 +8,8 @@ __kernel void render2D(
         __private float imageSpacingY,
         __private float PBOspacing,
         __global float* colors,
-        __global char* fillArea
+        __global char* fillArea,
+        __private int borderRadius
         ) {
     const int2 PBOposition = {get_global_id(0), get_global_id(1)};
     const int linearPosition = PBOposition.x + (get_global_size(1) - 1 - PBOposition.y)*get_global_size(0);
@@ -45,9 +46,12 @@ __kernel void render2D(
             } else {
                 // Check neighbors
                 // If any neighbors have a different label, we are at the border
-                for(char n = 0; n < 8; n++) {
-                    if(read_imageui(image, sampler, imagePosition + offsets[n]).x != label) {
-                        getColor = 1;
+                for(int a = -borderRadius; a <= borderRadius; ++a) {
+                    for(int b = -borderRadius; b <= borderRadius; ++b) {
+                        float2 offset = {a, b};
+                        if(length(offset) < borderRadius && read_imageui(image, sampler, imagePosition + offset).x != label) {
+                            getColor = 1;
+                        }
                     }
                 }
             }
