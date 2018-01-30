@@ -108,16 +108,15 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
         cl::ImageGL imageGL;
         std::vector<cl::Memory> v;
         GLuint textureID;
+        // TODO The GL-CL interop here is causing glClear to not work on AMD systems and therefore disabled
+        /*
         if(DeviceManager::isGLInteropEnabled()) {
             // Create OpenGL texture
             glGenTextures(1, &textureID);
             glBindTexture(GL_TEXTURE_2D, textureID);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, clImage->getImageInfo<CL_IMAGE_WIDTH>(),
-                         clImage->getImageInfo<CL_IMAGE_HEIGHT>(), 0, GL_RGBA, GL_FLOAT, 0);
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glFinish();
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, input->getWidth(), input->getHeight(), 0, GL_RGBA, GL_FLOAT, 0);
 
             // Create CL-GL image
             imageGL = cl::ImageGL(
@@ -127,10 +126,13 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
                     0,
                     textureID
             );
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glFinish();
             mKernel.setArg(1, imageGL);
             v.push_back(imageGL);
             queue.enqueueAcquireGLObjects(&v);
         } else {
+         */
             image = cl::Image2D(
                     device->getContext(),
                     CL_MEM_READ_WRITE,
@@ -138,7 +140,7 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
                     input->getWidth(), input->getHeight()
             );
             mKernel.setArg(1, image);
-        }
+        //}
 
 
         mKernel.setArg(0, *clImage);
@@ -151,9 +153,9 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
                 cl::NullRange
         );
 
-        if(DeviceManager::isGLInteropEnabled()) {
+        /*if(DeviceManager::isGLInteropEnabled()) {
             queue.enqueueReleaseGLObjects(&v);
-        } else {
+        } else {*/
             // Copy data from CL image to CPU
             float *data = new float[input->getWidth() * input->getHeight() * 4];
             queue.enqueueReadImage(
@@ -169,12 +171,11 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
             glBindTexture(GL_TEXTURE_2D, textureID);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, clImage->getImageInfo<CL_IMAGE_WIDTH>(),
-                         clImage->getImageInfo<CL_IMAGE_HEIGHT>(), 0, GL_RGBA, GL_FLOAT, data);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, input->getWidth(), input->getHeight(), 0, GL_RGBA, GL_FLOAT, data);
             glBindTexture(GL_TEXTURE_2D, 0);
             glFinish();
             delete[] data;
-        }
+        //}
 
         mTexturesToRender[inputNr] = textureID;
         mImageUsed[inputNr] = input;
@@ -222,7 +223,6 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
 
     // This is the actual rendering
     for(it = mImageUsed.begin(); it != mImageUsed.end(); it++) {
-        glPushMatrix();
 
         AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(it->second);
         //glMultMatrixf(transform->getTransform().data());
@@ -239,7 +239,6 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glBindTexture(GL_TEXTURE_2D, 0);
         glBindVertexArray(0);
-        glPopMatrix();
     }
 
     deactivateShader();

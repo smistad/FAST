@@ -514,16 +514,17 @@ void View::initializeGL() {
     }
 
 	reportInfo() << "finished init GL" << Reporter::end();
+
 }
 
 
 void View::paintGL() {
 
 	mRuntimeManager->startRegularTimer("paint");
-    QGLFunctions *fun = Window::getMainGLContext()->functions();
 
-	glClearColor(mBackgroundColor.getRedValue(), mBackgroundColor.getGreenValue(), mBackgroundColor.getBlueValue(), 1.0f);
+    glClearColor(mBackgroundColor.getRedValue(), mBackgroundColor.getGreenValue(), mBackgroundColor.getBlueValue(), 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     if(mIsIn2DMode) {
 
         mRuntimeManager->startRegularTimer("draw2D");
@@ -549,7 +550,7 @@ void View::paintGL() {
         mRuntimeManager->stopRegularTimer("draw");
     }
 
-	glFinish();
+    glFinish();
 	mRuntimeManager->stopRegularTimer("paint");
 }
 
