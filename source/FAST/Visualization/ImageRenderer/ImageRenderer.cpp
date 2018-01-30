@@ -102,6 +102,8 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
             // Delete old texture
             glDeleteTextures(1, &mTexturesToRender[inputNr]);
             mTexturesToRender.erase(inputNr);
+            glDeleteVertexArrays(1, &mVAO[inputNr]);
+            mVAO.erase(inputNr);
         }
 
         cl::Image2D image;
@@ -149,7 +151,7 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
         queue.enqueueNDRangeKernel(
                 mKernel,
                 cl::NullRange,
-                cl::NDRange(clImage->getImageInfo<CL_IMAGE_WIDTH>(), clImage->getImageInfo<CL_IMAGE_HEIGHT>()),
+                cl::NDRange(input->getWidth(), input->getHeight()),
                 cl::NullRange
         );
 
