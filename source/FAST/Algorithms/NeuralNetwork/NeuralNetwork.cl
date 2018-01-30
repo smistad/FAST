@@ -1,9 +1,10 @@
 __constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_NONE | CLK_FILTER_NEAREST;
 
-__kernel void subtractMeanImage(
+__kernel void normalizeInput(
 	__read_only image2d_t input,
-	__read_only image2d_t meanImage,
-	__write_only image2d_t output
+	__global float* output,
+	__private float scaleFactor,
+	__private int horizontalFlip
 	) {
 	
 	const int2 pos = {get_global_id(0), get_global_id(1)};
@@ -16,8 +17,13 @@ __kernel void subtractMeanImage(
 	} else {
 		value = read_imageui(input, sampler, pos).x;
 	}
-	value -= read_imagef(meanImage, sampler, pos).x;
-	
-	write_imagef(output, pos, value);
+
+	value = value*scaleFactor;
+
+	if(horizontalFlip == 1) {
+        output[pos.x + (get_global_size(0) - pos.y - 1)*get_global_size(0)] = value;
+    } else {
+        output[pos.x + pos.y*get_global_size(0)] = value;
+    }
 }
 	

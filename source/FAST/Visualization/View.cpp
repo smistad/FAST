@@ -367,6 +367,8 @@ void View::initializeGL() {
     // Update all renderes, so that getBoundingBox works
     for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
         mNonVolumeRenderers[i]->update(0, mStreamingMode);
+    if(mNonVolumeRenderers.size() == 0)
+        return;
     if(mIsIn2DMode) {
         // TODO Initialize 2D
        // Initialize camera

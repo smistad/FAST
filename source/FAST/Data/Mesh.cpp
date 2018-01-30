@@ -457,7 +457,7 @@ void Mesh::freeAll() {
 #ifdef FAST_MODULE_VISUALIZATION
         // Need mutual exclusive write lock to delete data
         //VertexBufferObjectAccess::pointer access = getVertexBufferObjectAccess(ACCESS_READ_WRITE);
-        Window::getMainGLContext()->makeCurrent(); // Need an active context to delete the mesh VBO
+        //Window::getMainGLContext()->makeCurrent(); // Need an active context to delete the mesh VBO
         QGLFunctions *fun = Window::getMainGLContext()->functions();
         // glDeleteBuffer is not used due to multi-threading issues..
         //fun->glDeleteBuffers(1, &mVBOID);
@@ -481,6 +481,7 @@ void Mesh::freeAll() {
             fun->glBufferData(GL_ELEMENT_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
             fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mTriangleEBO);
             fun->glBufferData(GL_ELEMENT_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
+            fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         }
         glFinish();
 #endif
@@ -547,7 +548,7 @@ void Mesh::setBoundingBox(BoundingBox box) {
 }
 
 int Mesh::getNrOfLines() const {
-	return mLines.size();
+	return mNrOfLines;
 }
 
 } // end namespace fast

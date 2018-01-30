@@ -10,6 +10,7 @@ PixelClassifier::PixelClassifier() {
 
     mNrOfClasses = -1;
     mHeatmapOutput = false;
+    mThreshold = 0.5;
 
     createIntegerAttribute("classes", "Classes", "Number of possible classes for each pixel", 2);
     createBooleanAttribute("heatmap_output", "Output heatmap", "Enable heatmap output instead of segmentation", false);
@@ -31,6 +32,8 @@ void PixelClassifier::setNrOfClasses(uint classes) {
 }
 
 void PixelClassifier::execute() {
+    mRuntimeManager->enable();
+    mRuntimeManager->startRegularTimer("pixel_classifier");
     if(mNrOfClasses <= 0) {
         throw Exception("You must set the nr of classes to pixel classification.");
     }
@@ -66,10 +69,9 @@ void PixelClassifier::execute() {
             delete[] data;
         } else {
             uchar *data = new uchar[outputWidth * outputHeight];
-            const float threshold = 0.75;
             for (int x = 0; x < outputWidth; ++x) {
                 for (int y = 0; y < outputHeight; ++y) {
-                    data[x + y * outputWidth] = tensor_mapped(0, y, x, j) > threshold ? j : 0;
+                    data[x + y * outputWidth] = tensor_mapped(0, y, x, j) > mThreshold ? j : 0;
                 }
             }
             output->create(outputWidth, outputHeight, TYPE_UINT8, 1, data);
@@ -88,6 +90,8 @@ void PixelClassifier::execute() {
         addOutputData(j, resizedOutput);
     }
 
+    mRuntimeManager->stopRegularTimer("pixel_classifier");
+    getAllRuntimes()->printAll();
 }
 
 void PixelClassifier::loadAttributes() {
@@ -98,6 +102,10 @@ void PixelClassifier::loadAttributes() {
     } else {
         setSegmentationOutput();
     }
+}
+
+void PixelClassifier::setThreshold(float threshold) {
+    mThreshold = threshold;
 }
 
 }

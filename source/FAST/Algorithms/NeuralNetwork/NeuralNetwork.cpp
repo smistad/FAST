@@ -13,6 +13,7 @@
 #include <tensorflow/core/public/session.h>
 #include <tensorflow/core/graph/default_device.h>
 #include <tensorflow/core/platform/init_main.h>
+#include <tensorflow/cc/framework/ops.h>
 
 namespace fast {
 
@@ -151,11 +152,50 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 	tensorflow::TensorShape shape = tensorflow::TensorShape({batchSize, mHeight, mWidth, 1});
 	if(mFramesToRemember > 1)
 		shape = tensorflow::TensorShape({batchSize, mFramesToRemember, mHeight, mWidth, 1});
+
+    mRuntimeManager->startRegularTimer("input_data_copy");
+    float* values = new float[batchSize*mWidth*mHeight];
+
+	OpenCLDevice::pointer device = getMainDevice();
+    cl::Program program = getOpenCLProgram(device);
+	cl::Kernel kernel(program, "normalizeInput");
+	Image::pointer image = images[0];
+	OpenCLImageAccess::pointer access = image->getOpenCLImageAccess(ACCESS_READ, device);
+    cl::Buffer buffer(
+			device->getContext(),
+			CL_MEM_WRITE_ONLY,
+			sizeof(float)*mWidth*mHeight
+	);
+	kernel.setArg(0, *access->get2DImage());
+	kernel.setArg(1, buffer);
+	kernel.setArg(2, mScaleFactor);
+	kernel.setArg(3, (int)(mHorizontalImageFlipping ? 1 : 0));
+
+	device->getCommandQueue().enqueueNDRangeKernel(
+			kernel,
+			cl::NullRange,
+			cl::NDRange(mWidth, mHeight),
+			cl::NullRange
+	);
+
+	device->getCommandQueue().enqueueReadBuffer(buffer, CL_TRUE, 0, sizeof(float)*mWidth*mHeight, values);
+
 	tensorflow::Tensor input_tensor(
 			tensorflow::DT_FLOAT,
 			shape
 	);
+    if(image->getWidth() != mWidth || image->getHeight() != mHeight)
+        throw Exception("Input image sent to executeNetwork was of incrorrect size");
 
+	auto input_tensor_mapped = input_tensor.tensor<float, 4>();
+    for(int i = 0; i < mHeight; ++i) { // y
+        for(int j = 0; j < mWidth; ++j) { // x
+			input_tensor_mapped(0, i, j, 0) = values[j+i*mWidth];
+        }
+    }
+    delete[] values;
+
+	/*
     if(mFramesToRemember > 1) {
         auto input_tensor_mapped = input_tensor.tensor<float, 5>();
 
@@ -185,7 +225,7 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 			}
 		}
 	} else {
-		auto input_tensor_mapped = input_tensor.tensor<float, 4>();
+		auto input_tensor_mapped = input_tensor.flat<float>();
 
 		mRuntimeManager->startRegularTimer("input_data_copy");
 		reportInfo() << "TensorFlow: Copying Data." << reportEnd();
@@ -198,7 +238,7 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 			if(mHorizontalImageFlipping) {
 				for(int i = 0; i < mHeight; ++i) { // y
 					for(int j = 0; j < mWidth; ++j) { // x
-						input_tensor_mapped(n, i, mWidth - j - 1, 0) = access->getScalar(Vector2i(j, i)) * mScaleFactor;
+						input_tensor_mapped(n + i + (mWidth - j - 1)*mHeight) = access->getScalar(Vector2i(j, i)) * mScaleFactor;
 					}
 				}
 			} else {
@@ -210,6 +250,7 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 			}
 		}
 	}
+	 */
 	mRuntimeManager->stopRegularTimer("input_data_copy");
 
     // TODO Need to know names of inputs and outputs in advance

@@ -2,22 +2,26 @@ PipelineName "Cardiac view classification"
 PipelineDescription "Neural network"
 
 ProcessObject classifier ImageClassifier
-Attribute model "/home/smistad/Downloads/tf_alexnet.pb"
+Attribute model "/home/smistad/Downloads/cvc_inception.pb"
 Attribute input_size 128 128
-Attribute output_names "softmax/Softmax"
+Attribute output_names "predictions/Softmax"
 Attribute scale_factor 0.003921569
-Attribute labels "Apical 4-chamber" "Apical long axis" "Apical 2-chamber" "Parasternal long axis" "Parasternal short axis" "Subcostal 4-chamber" "Subcostal vena cava" "Unknown"
+Attribute labels "A4C" "ALAX" "A2C" "PLAX" "PSAX" "SC4C" "SCVC" "Unknown"
 Input 0 PipelineInput
 
 ProcessObject classToText ClassificationToText
-Attribute average_size 100
+Attribute average_size 5
 Input 0 classifier 0
+
+ProcessObject enhancement UltrasoundImageEnhancement
+Attribute reject 40
+Input 0 PipelineInput
 
 Renderer imageRenderer ImageRenderer
 Attribute window 255
 Attribute level 127.5 
-Input 0 PipelineInput
+Input 0 enhancement 0
 
 Renderer textRenderer TextRenderer
-Attribute font_size 40
+Attribute font_size 50
 Input 0 classToText

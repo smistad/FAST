@@ -13,7 +13,7 @@
 using namespace fast;
 
 int main() {
-    Reporter::setGlobalReportMethod(Reporter::COUT);
+    //Reporter::setGlobalReportMethod(Reporter::COUT);
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
     streamer->setFilenameFormats({
                                          "/media/extra/GRUE_MHD/Clinic007/F47KT70I/US-2D_#.mhd", // temporal issues
@@ -98,13 +98,25 @@ int main() {
     //segmentation->setRememberFrames(3);
     //segmentation->load("/home/smistad/workspace/acnn-heart-segmentation/models/tensorflow_recurrent_segmentation_model_sm_0.pb");
     //segmentation->setInputName("input_1");
-    segmentation->load("/home/smistad/workspace/acnn-heart-segmentation/models/tensorflow_segmentation_model.pb");
+    segmentation->load("/home/smistad/workspace/acnn-heart-segmentation/models/tensorflow_segmentation_model_optimized.pb");
     segmentation->setInputSize(256, 256);
     segmentation->setScaleFactor(1.0f/255.0f);
     segmentation->setOutputParameters({"conv2d_23/truediv"});
     segmentation->setInputConnection(streamer->getOutputPort());
     segmentation->setHeatmapOutput();
     segmentation->enableRuntimeMeasurements();
+    /*
+    // NO visualization test
+    DataPort::pointer port = segmentation->getOutputPort(1);
+    int i = 0;
+    while(i < 1000) {
+        segmentation->update(i);
+        DataObject::pointer asd = port->getNextFrame();
+        i++;
+    }
+    segmentation->getRuntime("network_execution")->print();
+    return 0;
+     */
 
     //SegmentationRenderer::pointer segmentationRenderer = SegmentationRenderer::New();
     //segmentationRenderer->setFillArea(false);

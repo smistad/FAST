@@ -59,6 +59,8 @@ class FAST_EXPORT  Image : public SpatialDataObject {
         // Override
         BoundingBox getTransformedBoundingBox() const;
 
+        void free(ExecutionDevice::pointer device);
+        void freeAll();
     protected:
         Image();
 
@@ -79,8 +81,6 @@ class FAST_EXPORT  Image : public SpatialDataObject {
 
         void setAllDataToOutOfDate();
         bool isInitialized() const;
-        void free(ExecutionDevice::pointer device);
-        void freeAll();
 
         void updateOpenCLImageData(OpenCLDevice::pointer device);
         void transferCLImageFromHost(OpenCLDevice::pointer device);

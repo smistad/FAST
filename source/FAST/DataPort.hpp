@@ -4,6 +4,7 @@
 #include <mutex>
 #include <condition_variable>
 #include "FAST/Data/DataObject.hpp"
+#include "FAST/Data/DataTypes.hpp"
 #include "FAST/Semaphore.hpp"
 
 namespace fast {
@@ -12,7 +13,7 @@ enum StreamingMode { STREAMING_MODE_NEWEST_FRAME_ONLY, STREAMING_MODE_STORE_ALL_
 
 class ProcessObject;
 
-class DataPort {
+class FAST_EXPORT DataPort {
     public:
         explicit DataPort(SharedPointer<ProcessObject> processObject);
 
@@ -25,10 +26,6 @@ class DataPort {
         void setStreamingMode(StreamingMode mode);
 
         SharedPointer<ProcessObject> getProcessObject() const;
-
-        void setChanged(bool changed);
-
-        bool getChanged();
 
         uint64_t getFrameCounter() const;
 
@@ -53,6 +50,8 @@ class DataPort {
         bool hasCurrentData();
 
         typedef SharedPointer<DataPort> pointer;
+
+        uint64_t getLatestTimestep();
     private:
         /**
          * The process object which produce data for this port
@@ -62,7 +61,6 @@ class DataPort {
         uint64_t mFrameCounter = 0;
         uint64_t mCurrentTimestep = 0;
         StreamingMode mStreamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES;
-        bool mChanged = false;
         std::mutex mMutex;
         std::condition_variable mFrameConditionVariable;
         /**
