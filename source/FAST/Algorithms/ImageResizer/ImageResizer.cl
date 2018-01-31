@@ -1,7 +1,7 @@
 __constant sampler_t sampler = CLK_NORMALIZED_COORDS_TRUE | CLK_ADDRESS_NONE | CLK_FILTER_LINEAR;
 __constant sampler_t sampler2 = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_NONE | CLK_FILTER_LINEAR;
 
-void writeToImage(image2d_t input, int2 position, float4 value) {
+void writeToImage(__write_only image2d_t input, int2 position, float4 value) {
     int dataType = get_image_channel_data_type(input);
 	if(dataType == CLK_FLOAT) {
 		write_imagef(input, position, value);
@@ -12,7 +12,7 @@ void writeToImage(image2d_t input, int2 position, float4 value) {
     }
 }
 
-float4 readFromImage(image2d_t input, float2 position) {
+float4 readFromImage(__read_only image2d_t input, float2 position) {
     int dataType = get_image_channel_data_type(input);
 	if(dataType == CLK_FLOAT) {
 		return read_imagef(input, sampler, position);
