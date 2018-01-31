@@ -1206,7 +1206,7 @@ BoundingBox Image::getTransformedBoundingBox() const {
     // Add image spacing
     T->getTransform().scale(getSpacing());
 
-    return getBoundingBox().getTransformedBoundingBox(T);
+    return SpatialDataObject::getBoundingBox().getTransformedBoundingBox(T);
 }
 
 BoundingBox Image::getBoundingBox() const {

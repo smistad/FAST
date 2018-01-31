@@ -191,8 +191,8 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, boo
 
         // Create VBO
         // Get width and height in mm
-        float width = input->getWidth() * input->getSpacing().x();
-        float height = input->getHeight() * input->getSpacing().y();
+        float width = input->getWidth();// * input->getSpacing().x();
+        float height = input->getHeight();// * input->getSpacing().y();
         float vertices[] = {
                 // vertex: x, y, z; tex coordinates: x, y
                 0.0f, height, 0.0f, 0.0f, 0.0f,
@@ -232,6 +232,8 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, boo
         } else {
             transform = SceneGraph::getAffineTransformationFromData(it->second);
         }
+
+        transform->getTransform().scale(it->second->getSpacing());
 
         uint transformLoc = glGetUniformLocation(getShaderProgram(), "transform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform->getTransform().data());

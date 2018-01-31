@@ -238,7 +238,7 @@ void View::recalculateCamera() {
     // Get bounding boxes of all objects
     Vector3f min, max;
     Vector3f centroid;
-    BoundingBox box = mNonVolumeRenderers[0]->getBoundingBox();
+    BoundingBox box = mNonVolumeRenderers[0]->getBoundingBox(true);
     Vector3f corner = box.getCorners().row(0);
     min[0] = corner[0];
     max[0] = corner[0];
@@ -249,7 +249,7 @@ void View::recalculateCamera() {
     for (int i = 0; i < mNonVolumeRenderers.size(); i++) {
         // Apply transformation to all b boxes
         // Get max and min of x and y coordinates of the transformed b boxes
-        BoundingBox box = mNonVolumeRenderers[i]->getBoundingBox();
+        BoundingBox box = mNonVolumeRenderers[i]->getBoundingBox(true);
         MatrixXf corners = box.getCorners();
         //reportInfo() << box << Reporter::end();
         for (int j = 0; j < 8; j++) {

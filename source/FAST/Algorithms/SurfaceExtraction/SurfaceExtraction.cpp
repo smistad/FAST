@@ -283,13 +283,8 @@ void SurfaceExtraction::execute() {
     Mesh::pointer output = getOutputData<Mesh>(0);
     SceneGraph::setParentNode(output, input);
     BoundingBox box = input->getBoundingBox();
-    // Apply spacing scaling to BB
-    AffineTransformation::pointer T = AffineTransformation::New();
-    Affine3f transform = T->getTransform();
-    transform.scale(input->getSpacing());
-    T->setTransform(transform);
     output->create(totalSum*3, 0, totalSum, false, true, false);
-    output->setBoundingBox(box.getTransformedBoundingBox(T));
+    output->setBoundingBox(box);
 
     if(totalSum == 0) {
         reportInfo() << "No triangles were extracted. Check isovalue." << Reporter::end();
