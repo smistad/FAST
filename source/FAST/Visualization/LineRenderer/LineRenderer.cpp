@@ -12,7 +12,7 @@
 
 namespace fast {
 
-void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
+void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) {
     std::lock_guard<std::mutex> lock(mMutex);
 
     activateShader();

@@ -15,7 +15,7 @@ FAST_SIMPLE_DATA_OBJECT(Text, std::string)
 class FAST_EXPORT  TextRenderer : public Renderer {
     FAST_OBJECT(TextRenderer)
     public:
-        BoundingBox getBoundingBox() override;
+        BoundingBox getBoundingBox(bool transform) override;
         void setView(View* view);
         enum TextStyleType {
             STYLE_NORMAL,
@@ -28,7 +28,7 @@ class FAST_EXPORT  TextRenderer : public Renderer {
         void setStyle(TextStyleType);
         void draw2D(cl::Buffer PBO, uint width, uint height, Affine3f pixelToViewportTransform,
                float PBOspacing, Vector2f translation) override;
-        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) override;
+        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) override;
         void loadAttributes();
     private:
         TextRenderer();

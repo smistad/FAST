@@ -179,6 +179,7 @@ void Window::start(StreamingMode mode) {
     int screenWidth = desktop->width();
     int screenHeight = desktop->height();
 
+    std::cout << "Resizing window to " << mWidth << " " << mHeight << std::endl;
     mWidget->resize(mWidth,mHeight);
     if(mFullscreen) {
         mWidget->showFullScreen();

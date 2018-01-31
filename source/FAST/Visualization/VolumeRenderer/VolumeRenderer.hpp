@@ -37,7 +37,7 @@ class FAST_EXPORT  VolumeRenderer : public Renderer {
     private:
         VolumeRenderer();
         void execute();
-        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix);
+        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D);
 		
 
 		GLuint mHeight;

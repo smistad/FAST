@@ -6,7 +6,7 @@
 namespace fast {
 
 
-BoundingBox TextRenderer::getBoundingBox() {
+BoundingBox TextRenderer::getBoundingBox(bool transform) {
     return BoundingBox(Vector3f(6,6,6));
 }
 
@@ -33,7 +33,7 @@ void TextRenderer::execute() {
     mText = access->getData();
 }
 
-void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
+void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) {
     std::lock_guard<std::mutex> lock(mMutex);
 
     if(mView != NULL) {

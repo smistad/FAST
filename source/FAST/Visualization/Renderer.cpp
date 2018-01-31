@@ -60,7 +60,7 @@ void Renderer::execute() {
     }
 }
 
-BoundingBox Renderer::getBoundingBox() {
+BoundingBox Renderer::getBoundingBox(bool transform) {
     std::vector<Vector3f> coordinates;
 
     if(mDataToRender.size() == 0)
@@ -68,7 +68,11 @@ BoundingBox Renderer::getBoundingBox() {
 
     for(auto it : mDataToRender) {
         BoundingBox transformedBoundingBox;
-        transformedBoundingBox = it.second->getTransformedBoundingBox();
+        if(transform) {
+            transformedBoundingBox = it.second->getTransformedBoundingBox();
+        } else {
+            transformedBoundingBox = it.second->getBoundingBox();
+        }
 
         MatrixXf corners = transformedBoundingBox.getCorners();
         for(uint j = 0; j < 8; j++) {

@@ -1209,6 +1209,14 @@ BoundingBox Image::getTransformedBoundingBox() const {
     return getBoundingBox().getTransformedBoundingBox(T);
 }
 
+BoundingBox Image::getBoundingBox() const {
+    // Add image spacing
+    AffineTransformation::pointer T = AffineTransformation::New();
+    T->getTransform().scale(getSpacing());
+
+    return SpatialDataObject::getBoundingBox().getTransformedBoundingBox(T);
+}
+
 Image::~Image() {
     freeAll();
 }

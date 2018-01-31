@@ -62,7 +62,7 @@ void ImageRenderer::loadAttributes() {
     setIntensityLevel(getFloatAttribute("level"));
 }
 
-void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
+void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) {
 
     std::lock_guard<std::mutex> lock(mMutex);
 
@@ -225,9 +225,13 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
 
     // This is the actual rendering
     for(it = mImageUsed.begin(); it != mImageUsed.end(); it++) {
-
-        AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(it->second);
-        //glMultMatrixf(transform->getTransform().data());
+        AffineTransformation::pointer transform;
+        if(mode2D) {
+            // If rendering is in 2D mode we skip any transformations
+            transform = AffineTransformation::New();
+        } else {
+            transform = SceneGraph::getAffineTransformationFromData(it->second);
+        }
 
         uint transformLoc = glGetUniformLocation(getShaderProgram(), "transform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform->getTransform().data());
@@ -246,107 +250,5 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) {
     deactivateShader();
 }
 
-void ImageRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
-                           Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform, float PBOspacing,
-                           Vector2f translation) {
-    std::lock_guard<std::mutex> lock(mMutex);
-
-    OpenCLDevice::pointer device = getMainDevice();
-    cl::CommandQueue queue = device->getCommandQueue();
-    std::vector<cl::Memory> v;
-    if(DeviceManager::isGLInteropEnabled()) {
-        v.push_back(PBO);
-        queue.enqueueAcquireGLObjects(&v);
-    }
-
-    // Create an aux PBO
-    cl::Buffer PBO2(
-            device->getContext(),
-            CL_MEM_READ_WRITE,
-            sizeof(float) * width * height * 4
-    );
-
-    for(auto it : mDataToRender) {
-        Image::pointer input = it.second;
-        // Determine level and window
-        float window = mWindow;
-        float level = mLevel;
-        // If mWindow/mLevel is equal to -1 use default level/window values
-        if(window == -1) {
-            window = getDefaultIntensityWindow(input->getDataType());
-        }
-        if(level == -1) {
-            level = getDefaultIntensityLevel(input->getDataType());
-        }
-
-        if(input->getDimensions() == 2) {
-            cl::Kernel kernel(getOpenCLProgram(device, "2D"), "render2Dimage");
-            // Run kernel to fill the texture
-
-            OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
-            cl::Image2D *clImage = access->get2DImage();
-            kernel.setArg(0, *clImage);
-            kernel.setArg(1, PBO); // Read from this
-            kernel.setArg(2, PBO2); // Write to this
-            kernel.setArg(3, input->getSpacing().x());
-            kernel.setArg(4, input->getSpacing().y());
-            kernel.setArg(5, PBOspacing);
-            kernel.setArg(6, level);
-            kernel.setArg(7, window);
-            kernel.setArg(8, translation.x());
-            kernel.setArg(9, translation.y());
-
-            // Run the draw 2D kernel
-            device->getCommandQueue().enqueueNDRangeKernel(
-                    kernel,
-                    cl::NullRange,
-                    cl::NDRange(width, height),
-                    cl::NullRange
-            );
-        } else {
-
-            // Get transform of the image
-            AffineTransformation::pointer dataTransform = SceneGraph::getAffineTransformationFromData(input);
-            dataTransform->getTransform().scale(input->getSpacing()); // Apply image spacing
-
-            // Transfer transformations
-            Eigen::Affine3f transform = dataTransform->getTransform().inverse() * pixelToViewportTransform;
-
-            cl::Buffer transformBuffer(
-                    device->getContext(),
-                    CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                    16 * sizeof(float),
-                    transform.data()
-            );
-
-            cl::Kernel kernel(getOpenCLProgram(device, "2D"), "render3Dimage");
-            // Run kernel to fill the texture
-
-            OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
-            cl::Image3D *clImage = access->get3DImage();
-            kernel.setArg(0, *clImage);
-            kernel.setArg(1, PBO); // Read from this
-            kernel.setArg(2, PBO2); // Write to this
-            kernel.setArg(3, transformBuffer);
-            kernel.setArg(4, level);
-            kernel.setArg(5, window);
-
-            // Run the draw 3D image kernel
-            device->getCommandQueue().enqueueNDRangeKernel(
-                    kernel,
-                    cl::NullRange,
-                    cl::NDRange(width, height),
-                    cl::NullRange
-            );
-        }
-
-        // Copy PBO2 to PBO
-        queue.enqueueCopyBuffer(PBO2, PBO, 0, 0, sizeof(float) * width * height * 4);
-    }
-    if(DeviceManager::isGLInteropEnabled()) {
-        queue.enqueueReleaseGLObjects(&v);
-    }
-    queue.finish();
-}
 
 } // end namespace fast

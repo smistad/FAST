@@ -17,7 +17,7 @@ class BoundingBox;
 class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3_3_Core {
     public:
         typedef SharedPointer<Renderer> pointer;
-        virtual void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) = 0;
+        virtual void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) = 0;
         virtual void postDraw();
         /**
          * Adds a new input connection
@@ -31,7 +31,7 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
          * @return the input nr of the new connection
          */
         virtual uint addInputData(DataObject::pointer data);
-        virtual BoundingBox getBoundingBox();
+        virtual BoundingBox getBoundingBox(bool transform = true);
         virtual void draw2D(
                 cl::Buffer PBO,
                 uint width,

@@ -19,7 +19,7 @@ class FAST_EXPORT  SegmentationRenderer : public Renderer {
         void setBorderRadius(int radius);
     private:
         SegmentationRenderer();
-        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix) override;
+        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) override;
         void draw2D(
                 cl::Buffer PBO,
                 uint width,

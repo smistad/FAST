@@ -375,7 +375,7 @@ void View::initializeGL() {
         // Get bounding boxes of all objects
         Vector3f min, max;
         Vector3f centroid;
-        BoundingBox box = mNonVolumeRenderers[0]->getBoundingBox();
+        BoundingBox box = mNonVolumeRenderers[0]->getBoundingBox(false);
         Vector3f corner = box.getCorners().row(0);
         min[0] = corner[0];
         max[0] = corner[0];
@@ -386,7 +386,7 @@ void View::initializeGL() {
         for (int i = 0; i < mNonVolumeRenderers.size(); i++) {
             // Apply transformation to all b boxes
             // Get max and min of x and y coordinates of the transformed b boxes
-            BoundingBox box = mNonVolumeRenderers[i]->getBoundingBox();
+            BoundingBox box = mNonVolumeRenderers[i]->getBoundingBox(false);
             MatrixXf corners = box.getCorners();
             //reportInfo() << box << Reporter::end();
             for (int j = 0; j < 8; j++) {
@@ -456,8 +456,7 @@ void View::initializeGL() {
         // Calculate initiali translation of camera
         // Move centroid to z axis
         // Note: Centroid does not change after rotation
-        //mCameraPosition[0] = -centroid[0];
-        //mCameraPosition[1] = -centroid[1];
+        //mCameraPosition[1] = height()*0.5 - centroid[1];
         // Calculate z distance
         mCameraPosition[2] = -centroid[2]; // first move objects to origo
         // Move objects away from camera so that we see everything
@@ -472,21 +471,9 @@ void View::initializeGL() {
         mCameraPosition[2] += -minimumTranslationToSeeEntireObject
                 - boundingBoxDepth * 0.5; // half of the depth of the bounding box
         //reportInfo() << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << Reporter::end();
-        zFar = (minimumTranslationToSeeEntireObject + boundingBoxDepth) * 2;
-        zNear = std::min(minimumTranslationToSeeEntireObject * 0.5, 0.1);
-        //reportInfo() << "set zFar to " << zFar << Reporter::end();
-        //reportInfo() << "set zNear to " << zNear << Reporter::end();
-        m3DViewingTransformation = Affine3f::Identity();
-        m3DViewingTransformation.pretranslate(-mRotationPoint); // Move to rotation point
-        m3DViewingTransformation.prerotate(Q.toRotationMatrix()); // Rotate
-        m3DViewingTransformation.pretranslate(mRotationPoint); // Move back from rotation point
-        m3DViewingTransformation.pretranslate(mCameraPosition);
-        std::cout << "Camera pos: " << mCameraPosition << std::endl;
-
-        std::cout << zNear << " " << zFar << std::endl;
-        std::cout << min[xDirection] << " " << max[xDirection] << std::endl;
-        std::cout << min[yDirection] << " " << max[yDirection] << std::endl;
-        // TODO the aspect ratio of the viewport and the orhto projection (left, right, bottom, top) has to match.
+        zFar = 2;//(minimumTranslationToSeeEntireObject + boundingBoxDepth) * 2;
+        zNear = 1;//std::min(minimumTranslationToSeeEntireObject * 0.5, 0.1);
+        mCameraPosition[2] = -1.5;
         aspect = (float) (this->width()) / this->height();
         float orthoAspect = z_width / z_height;
         float scalingWidth = 1;
@@ -500,6 +487,25 @@ void View::initializeGL() {
         mRight = max[xDirection];
         mBottom = min[yDirection];
         mTop = max[yDirection];
+        mCameraPosition[0] = (mRight-mLeft)*0.5*scalingWidth - centroid[0];
+        mCameraPosition[1] = (mTop-mBottom)*0.5*scalingHeight - centroid[1];
+        //reportInfo() << "set zFar to " << zFar << Reporter::end();
+        //reportInfo() << "set zNear to " << zNear << Reporter::end();
+        m3DViewingTransformation = Affine3f::Identity();
+        //m3DViewingTransformation.pretranslate(-mRotationPoint); // Move to rotation point
+        //m3DViewingTransformation.prerotate(Q.toRotationMatrix()); // Rotate
+        //m3DViewingTransformation.pretranslate(mRotationPoint); // Move back from rotation point
+        m3DViewingTransformation.pretranslate(mCameraPosition);
+        std::cout << "Centroid: " << centroid.transpose() << std::endl;
+        std::cout << "Camera pos: " << mCameraPosition.transpose() << std::endl;
+        std::cout << "width and height: " << this->width() << " " << this->height() << std::endl;
+
+        std::cout << zNear << " " << zFar << std::endl;
+        std::cout << min[xDirection] << " " << max[xDirection] << std::endl;
+        std::cout << min[yDirection] << " " << max[yDirection] << std::endl;
+        // TODO the aspect ratio of the viewport and the orhto projection (left, right, bottom, top) has to match.
+
+        std::cout << "Ortho params: " << mLeft << " " << mRight << " " << mBottom << " " << mTop << " " << scalingWidth << " " << scalingHeight << std::endl;
         mPerspectiveMatrix = loadOrthographicMatrix(mLeft*scalingWidth, mRight*scalingWidth, mBottom*scalingHeight, mTop*scalingHeight, zNear, zFar);
     } else {
         // 3D mode
@@ -529,7 +535,7 @@ void View::paintGL() {
 
         mRuntimeManager->startRegularTimer("draw2D");
         for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
-            mNonVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix());
+            mNonVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), true);
             mNonVolumeRenderers[i]->postDraw();
         }
         mRuntimeManager->stopRegularTimer("draw2D");
@@ -544,8 +550,8 @@ void View::paintGL() {
 
         mRuntimeManager->startRegularTimer("draw");
         for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
-                mNonVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix());
-                mNonVolumeRenderers[i]->postDraw();
+            mNonVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), false);
+            mNonVolumeRenderers[i]->postDraw();
         }
         mRuntimeManager->stopRegularTimer("draw");
     }
@@ -581,7 +587,7 @@ void View::renderVolumes()
 
 		mRuntimeManager->startRegularTimer("draw");
 		for(unsigned int i = 0; i < mVolumeRenderers.size(); i++) {
-			mVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix());
+            mVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), false);
             mVolumeRenderers[i]->postDraw();
 		}
 		mRuntimeManager->stopRegularTimer("draw");
@@ -736,6 +742,33 @@ void View::mousePressEvent(QMouseEvent* event) {
 void View::wheelEvent(QWheelEvent* event) {
     if(mIsIn2DMode) {
         // TODO Should instead increase the size of the orhtograpic projection here
+        // TODO the aspect ratio of the viewport and the orhto projection (left, right, bottom, top) has to match.
+        aspect = (float)width()/height();
+        float orthoAspect = (mRight - mLeft) / (mTop - mBottom);
+        float scalingWidth = 1;
+        float scalingHeight = 1;
+        if(aspect > orthoAspect) {
+            scalingWidth = aspect / orthoAspect;
+        } else {
+            scalingHeight = orthoAspect / aspect;
+        }
+        // Zoom towards center
+        if(event->delta() > 0) {
+            float size = (mRight - mLeft)*0.05f;
+            mLeft = mLeft + size;
+            mRight = mRight - size;
+            size = (mTop - mBottom)*0.05f;
+            mBottom = mBottom + size;
+            mTop = mTop - size;
+        } else if(event->delta() < 0) {
+            float size = (mRight - mLeft)*0.05f;
+            mLeft = mLeft - size;
+            mRight = mRight + size;
+            size = (mTop - mBottom)*0.05f;
+            mBottom = mBottom - size;
+            mTop = mTop + size;
+        }
+        mPerspectiveMatrix = loadOrthographicMatrix(mLeft*scalingWidth, mRight*scalingWidth, mBottom*scalingHeight, mTop*scalingHeight, zNear, zFar);
     } else {
         if(event->delta() > 0) {
             mCameraPosition[2] += (zFar - zNear) * 0.05f;
