@@ -231,144 +231,6 @@ void View::unlockRenderers() {
 }
 
 void View::recalculateCamera() {
-    // 3D Mode
-    aspect = (float) (this->width()) / this->height();
-    fieldOfViewX = aspect * fieldOfViewY;
-    // Initialize camera
-    // Get bounding boxes of all objects
-    Vector3f min, max;
-    Vector3f centroid;
-    BoundingBox box = mNonVolumeRenderers[0]->getBoundingBox(true);
-    Vector3f corner = box.getCorners().row(0);
-    min[0] = corner[0];
-    max[0] = corner[0];
-    min[1] = corner[1];
-    max[1] = corner[1];
-    min[2] = corner[2];
-    max[2] = corner[2];
-    for (int i = 0; i < mNonVolumeRenderers.size(); i++) {
-        // Apply transformation to all b boxes
-        // Get max and min of x and y coordinates of the transformed b boxes
-        BoundingBox box = mNonVolumeRenderers[i]->getBoundingBox(true);
-        MatrixXf corners = box.getCorners();
-        //reportInfo() << box << Reporter::end();
-        for (int j = 0; j < 8; j++) {
-            for (uint k = 0; k < 3; k++) {
-                if (corners(j, k) < min[k])
-                    min[k] = corners(j, k);
-
-                if (corners(j, k) > max[k])
-                    max[k] = corners(j, k);
-            }
-        }
-    }
-    // Calculate area of each side of the resulting bounding box
-    float area[3] = { (max[0] - min[0]) * (max[1] - min[1]), // XY plane
-    (max[1] - min[1]) * (max[2] - min[2]), // YZ plane
-    (max[2] - min[2]) * (max[0] - min[0]) };
-    uint maxArea = 0;
-    for (uint i = 1; i < 3; i++) {
-        if (area[i] > area[maxArea])
-            maxArea = i;
-    }
-    // Find rotation needed
-    float angleX, angleY;
-    uint xDirection;
-    uint yDirection;
-    uint zDirection;
-    switch (maxArea) {
-        case 0:
-            xDirection = 0;
-            yDirection = 1;
-            zDirection = 2;
-            angleX = 0;
-            angleY = 0;
-        break;
-        case 1:
-            // Rotate 90 degres around Y axis
-            xDirection = 2;
-            yDirection = 1;
-            zDirection = 0;
-            angleX = 0;
-            angleY = 90;
-        break;
-        case 2:
-            // Rotate 90 degres around X axis
-            xDirection = 0;
-            yDirection = 2;
-            zDirection = 1;
-            angleX = 90;
-            angleY = 0;
-        break;
-    }
-    // Max pos - half of the size
-    centroid[0] = max[0] - (max[0] - min[0]) * 0.5;
-    centroid[1] = max[1] - (max[1] - min[1]) * 0.5;
-    centroid[2] = max[2] - (max[2] - min[2]) * 0.5;
-
-    // Rotate object if needed
-    Eigen::Quaternionf Qx;
-    Qx = Eigen::AngleAxisf(angleX*M_PI/180.0f, Vector3f::UnitX());
-    Eigen::Quaternionf Qy;
-    Qy = Eigen::AngleAxisf(angleY*M_PI/180.0f, Vector3f::UnitY());
-    Eigen::Quaternionf Q = Qx*Qy;
-
-    //reportInfo() << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << Reporter::end();
-    // Initialize rotation point to centroid of object
-    mRotationPoint = centroid;
-    // Calculate initiali translation of camera
-    // Move centroid to z axis
-    // Note: Centroid does not change after rotation
-    mCameraPosition[0] = -centroid[0];
-    mCameraPosition[1] = -centroid[1];
-    // Calculate z distance
-    mCameraPosition[2] = -centroid[2]; // first move objects to origo
-    // Move objects away from camera so that we see everything
-    float z_width = (max[xDirection] - min[xDirection]) * 0.5
-            / tan(fieldOfViewX * 0.5);
-    float z_height = (max[yDirection] - min[yDirection]) * 0.5
-            / tan(fieldOfViewY * 0.5);
-    //reportInfo() << "asd: " << z_width << " " << z_height << Reporter::end();
-    float minimumTranslationToSeeEntireObject = (
-            z_width < z_height ? z_height : z_width);
-    float boundingBoxDepth = (max[zDirection] - min[zDirection]);
-    //reportInfo() << "minimum translation to see entire object: " << minimumTranslationToSeeEntireObject  << Reporter::end();
-    //reportInfo() << "half depth of bounding box " << boundingBoxDepth*0.5 << Reporter::end();
-    mCameraPosition[2] += -minimumTranslationToSeeEntireObject
-            - boundingBoxDepth * 0.5; // half of the depth of the bounding box
-    //reportInfo() << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << Reporter::end();
-    zFar = (minimumTranslationToSeeEntireObject + boundingBoxDepth) * 2;
-    zNear = std::min(minimumTranslationToSeeEntireObject * 0.5, 0.1);
-    //reportInfo() << "set zFar to " << zFar << Reporter::end();
-    //reportInfo() << "set zNear to " << zNear << Reporter::end();
-    m3DViewingTransformation = Affine3f::Identity();
-    m3DViewingTransformation.pretranslate(-mRotationPoint); // Move to rotation point
-    m3DViewingTransformation.prerotate(Q.toRotationMatrix()); // Rotate
-    m3DViewingTransformation.pretranslate(mRotationPoint); // Move back from rotation point
-    m3DViewingTransformation.pretranslate(mCameraPosition);
-}
-
-void View::reinitialize() {
-    initializeGL();
-}
-
-void View::setStreamingMode(StreamingMode mode) {
-    mStreamingMode = mode;
-}
-
-void View::initializeGL() {
-    for(auto renderer : getRenderers())
-        renderer->initializeOpenGLFunctions();
-    QGLFunctions *fun = Window::getMainGLContext()->functions();
-
-    glViewport(0, 0, this->width(), this->height());
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_TEXTURE_2D);
-    // Update all renderes, so that getBoundingBox works
-    for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
-        mNonVolumeRenderers[i]->update(0, mStreamingMode);
-    if(mNonVolumeRenderers.size() == 0)
-        return;
     if(mIsIn2DMode) {
         // TODO Initialize 2D
        // Initialize camera
@@ -483,12 +345,12 @@ void View::initializeGL() {
         } else {
             scalingHeight = orthoAspect / aspect;
         }
-        mLeft = min[xDirection];
-        mRight = max[xDirection];
-        mBottom = min[yDirection];
-        mTop = max[yDirection];
-        mCameraPosition[0] = (mRight-mLeft)*0.5*scalingWidth - centroid[0];
-        mCameraPosition[1] = (mTop-mBottom)*0.5*scalingHeight - centroid[1];
+        mLeft = min[xDirection]*scalingWidth;
+        mRight = max[xDirection]*scalingWidth;
+        mBottom = min[yDirection]*scalingHeight;
+        mTop = max[yDirection]*scalingHeight;
+        mCameraPosition[0] = (mRight-mLeft)*0.5 - centroid[0];
+        mCameraPosition[1] = (mTop-mBottom)*0.5 - centroid[1];
         //reportInfo() << "set zFar to " << zFar << Reporter::end();
         //reportInfo() << "set zNear to " << zNear << Reporter::end();
         m3DViewingTransformation = Affine3f::Identity();
@@ -506,7 +368,149 @@ void View::initializeGL() {
         // TODO the aspect ratio of the viewport and the orhto projection (left, right, bottom, top) has to match.
 
         std::cout << "Ortho params: " << mLeft << " " << mRight << " " << mBottom << " " << mTop << " " << scalingWidth << " " << scalingHeight << std::endl;
-        mPerspectiveMatrix = loadOrthographicMatrix(mLeft*scalingWidth, mRight*scalingWidth, mBottom*scalingHeight, mTop*scalingHeight, zNear, zFar);
+        mPerspectiveMatrix = loadOrthographicMatrix(mLeft, mRight, mBottom, mTop, zNear, zFar);
+    } else {
+        // 3D Mode
+        aspect = (float) (this->width()) / this->height();
+        fieldOfViewX = aspect * fieldOfViewY;
+        // Initialize camera
+        // Get bounding boxes of all objects
+        Vector3f min, max;
+        Vector3f centroid;
+        BoundingBox box = mNonVolumeRenderers[0]->getBoundingBox(true);
+        Vector3f corner = box.getCorners().row(0);
+        min[0] = corner[0];
+        max[0] = corner[0];
+        min[1] = corner[1];
+        max[1] = corner[1];
+        min[2] = corner[2];
+        max[2] = corner[2];
+        for (int i = 0; i < mNonVolumeRenderers.size(); i++) {
+            // Apply transformation to all b boxes
+            // Get max and min of x and y coordinates of the transformed b boxes
+            BoundingBox box = mNonVolumeRenderers[i]->getBoundingBox(true);
+            MatrixXf corners = box.getCorners();
+            //reportInfo() << box << Reporter::end();
+            for (int j = 0; j < 8; j++) {
+                for (uint k = 0; k < 3; k++) {
+                    if (corners(j, k) < min[k])
+                        min[k] = corners(j, k);
+
+                    if (corners(j, k) > max[k])
+                        max[k] = corners(j, k);
+                }
+            }
+        }
+        // Calculate area of each side of the resulting bounding box
+        float area[3] = {(max[0] - min[0]) * (max[1] - min[1]), // XY plane
+                         (max[1] - min[1]) * (max[2] - min[2]), // YZ plane
+                         (max[2] - min[2]) * (max[0] - min[0])};
+        uint maxArea = 0;
+        for (uint i = 1; i < 3; i++) {
+            if (area[i] > area[maxArea])
+                maxArea = i;
+        }
+        // Find rotation needed
+        float angleX, angleY;
+        uint xDirection;
+        uint yDirection;
+        uint zDirection;
+        switch (maxArea) {
+            case 0:
+                xDirection = 0;
+                yDirection = 1;
+                zDirection = 2;
+                angleX = 0;
+                angleY = 0;
+                break;
+            case 1:
+                // Rotate 90 degres around Y axis
+                xDirection = 2;
+                yDirection = 1;
+                zDirection = 0;
+                angleX = 0;
+                angleY = 90;
+                break;
+            case 2:
+                // Rotate 90 degres around X axis
+                xDirection = 0;
+                yDirection = 2;
+                zDirection = 1;
+                angleX = 90;
+                angleY = 0;
+                break;
+        }
+        // Max pos - half of the size
+        centroid[0] = max[0] - (max[0] - min[0]) * 0.5;
+        centroid[1] = max[1] - (max[1] - min[1]) * 0.5;
+        centroid[2] = max[2] - (max[2] - min[2]) * 0.5;
+
+        // Rotate object if needed
+        Eigen::Quaternionf Qx;
+        Qx = Eigen::AngleAxisf(angleX * M_PI / 180.0f, Vector3f::UnitX());
+        Eigen::Quaternionf Qy;
+        Qy = Eigen::AngleAxisf(angleY * M_PI / 180.0f, Vector3f::UnitY());
+        Eigen::Quaternionf Q = Qx * Qy;
+
+        //reportInfo() << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << Reporter::end();
+        // Initialize rotation point to centroid of object
+        mRotationPoint = centroid;
+        // Calculate initiali translation of camera
+        // Move centroid to z axis
+        // Note: Centroid does not change after rotation
+        mCameraPosition[0] = -centroid[0];
+        mCameraPosition[1] = -centroid[1];
+        // Calculate z distance
+        mCameraPosition[2] = -centroid[2]; // first move objects to origo
+        // Move objects away from camera so that we see everything
+        float z_width = (max[xDirection] - min[xDirection]) * 0.5
+                        / tan(fieldOfViewX * 0.5);
+        float z_height = (max[yDirection] - min[yDirection]) * 0.5
+                         / tan(fieldOfViewY * 0.5);
+        //reportInfo() << "asd: " << z_width << " " << z_height << Reporter::end();
+        float minimumTranslationToSeeEntireObject = (
+                z_width < z_height ? z_height : z_width);
+        float boundingBoxDepth = (max[zDirection] - min[zDirection]);
+        //reportInfo() << "minimum translation to see entire object: " << minimumTranslationToSeeEntireObject  << Reporter::end();
+        //reportInfo() << "half depth of bounding box " << boundingBoxDepth*0.5 << Reporter::end();
+        mCameraPosition[2] += -minimumTranslationToSeeEntireObject
+                              - boundingBoxDepth * 0.5; // half of the depth of the bounding box
+        //reportInfo() << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << Reporter::end();
+        zFar = (minimumTranslationToSeeEntireObject + boundingBoxDepth) * 2;
+        zNear = std::min(minimumTranslationToSeeEntireObject * 0.5, 0.1);
+        //reportInfo() << "set zFar to " << zFar << Reporter::end();
+        //reportInfo() << "set zNear to " << zNear << Reporter::end();
+        m3DViewingTransformation = Affine3f::Identity();
+        m3DViewingTransformation.pretranslate(-mRotationPoint); // Move to rotation point
+        m3DViewingTransformation.prerotate(Q.toRotationMatrix()); // Rotate
+        m3DViewingTransformation.pretranslate(mRotationPoint); // Move back from rotation point
+        m3DViewingTransformation.pretranslate(mCameraPosition);
+    }
+}
+
+void View::reinitialize() {
+    initializeGL();
+}
+
+void View::setStreamingMode(StreamingMode mode) {
+    mStreamingMode = mode;
+}
+
+void View::initializeGL() {
+    for(auto renderer : getRenderers())
+        renderer->initializeOpenGLFunctions();
+    QGLFunctions *fun = Window::getMainGLContext()->functions();
+
+    glViewport(0, 0, this->width(), this->height());
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_TEXTURE_2D);
+    // Update all renderes, so that getBoundingBox works
+    for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
+        mNonVolumeRenderers[i]->update(0, mStreamingMode);
+    if(mNonVolumeRenderers.size() == 0)
+        return;
+    if(mIsIn2DMode) {
+        recalculateCamera();
     } else {
         // 3D mode
         if(!mCameraSet && getNrOfInputConnections() == 0) {
