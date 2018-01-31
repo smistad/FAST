@@ -1,3 +1,4 @@
+#include <FAST/Algorithms/ImageSlicer/ImageSlicer.hpp>
 #include "FAST/Testing.hpp"
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "FAST/Algorithms/ImageResampler/ImageResampler.hpp"
@@ -32,13 +33,16 @@ TEST_CASE("ImageResampler 3D CT", "[fast][ImageResampler][visual]") {
     resampler->setOutputSpacing(1.0f, 1.0f, 1.0f);
     resampler->setInputConnection(importer->getOutputPort());
 
+    ImageSlicer::pointer slicer = ImageSlicer::New();
+    slicer->setOrthogonalSlicePlane(PLANE_X);
+    slicer->setInputConnection(resampler->getOutputPort());
+
     ImageRenderer::pointer renderer = ImageRenderer::New();
-    renderer->addInputConnection(resampler->getOutputPort());
+    renderer->addInputConnection(slicer->getOutputPort());
 
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->set2DMode();
-    window->getView()->setViewingPlane(Plane::Coronal());
     window->setTimeout(500);
     window->start();
 }

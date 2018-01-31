@@ -31,7 +31,6 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
         void setCameraInputConnection(DataPort::pointer port);
         void set2DMode();
         void set3DMode();
-        void setViewingPlane(Plane plane);
         void setLookAt(Vector3f cameraPosition, Vector3f targetPosition, Vector3f cameraUpVector, float zNear = 0.1, float zFar = 1000);
         void quit();
         void reinitialize();
@@ -62,9 +61,6 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
 		void initShader();
 		void getDepthBufferFromGeo();
 		void renderVolumes();
-
-		Plane mViewingPlane;
-        Affine3f m2DViewingTransformation;
 
         // Camera
         Affine3f m3DViewingTransformation;

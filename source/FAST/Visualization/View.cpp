@@ -63,7 +63,7 @@ void View::set2DPixelSpacing(float spacing) {
 	mPBOspacing = spacing;
 }
 
-View::View() : mViewingPlane(Plane::Axial()) {
+View::View() {
     createInputPort<Camera>(0, false);
 
     mBackgroundColor = Color::White();
@@ -796,12 +796,6 @@ void View::set2DMode() {
 void View::set3DMode() {
     mIsIn2DMode = false;
 }
-
-void View::setViewingPlane(Plane plane) {
-    mViewingPlane = plane;
-}
-
-
 
 /********************************************************************************************************/
 /********************************************************************************************************/
