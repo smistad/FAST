@@ -46,13 +46,6 @@ SegmentationRenderer::SegmentationRenderer() {
 }
 
 void SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) {
-    throw NotImplementedException();
-}
-
-void SegmentationRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
-        Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform, float PBOspacing,
-        Vector2f translation
-        ) {
     std::lock_guard<std::mutex> lock(mMutex);
     OpenCLDevice::pointer device = getMainDevice();
 
@@ -95,97 +88,118 @@ void SegmentationRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
         );
     }
 
+    mKernel = cl::Kernel(getOpenCLProgram(device), "renderToTexture");
+    mKernel.setArg(2, mColorBuffer);
+    mKernel.setArg(3, mFillAreaBuffer);
+    mKernel.setArg(4, mBorderRadius);
 
-    cl::CommandQueue queue = device->getCommandQueue();
-    std::vector<cl::Memory> v;
-    if(DeviceManager::isGLInteropEnabled()) {
-        v.push_back(PBO);
-        queue.enqueueAcquireGLObjects(&v);
-    }
-
-    // Create an aux PBO
-    cl::Buffer PBO2(
-            device->getContext(),
-            CL_MEM_READ_WRITE,
-            sizeof(float)*width*height*4
-    );
 
     for(auto it : mDataToRender) {
         Image::pointer input = it.second;
+        uint inputNr = it.first;
 
-        if(input->getDataType() != TYPE_UINT8) {
-            throw Exception("Data type of image given to SegmentationRenderer must be UINT8");
+        if(input->getDimensions() != 2)
+            throw Exception("SegmentationRenderer only supports 2D images. Use ImageSlicer to extract a 2D slice from a 3D image.");
+
+        // Check if a texture has already been created for this image
+        if (mTexturesToRender.count(inputNr) > 0 && mImageUsed[inputNr] == input)
+            continue; // If it has already been created, skip it
+
+        // If it has not been created, create the texture
+
+        OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
+        cl::Image2D *clImage = access->get2DImage();
+
+        // Run kernel to fill the texture
+        cl::CommandQueue queue = device->getCommandQueue();
+
+        if (mTexturesToRender.count(inputNr) > 0) {
+            // Delete old texture
+            glDeleteTextures(1, &mTexturesToRender[inputNr]);
+            mTexturesToRender.erase(inputNr);
+            glDeleteVertexArrays(1, &mVAO[inputNr]);
+            mVAO.erase(inputNr);
         }
 
-        if(input->getDimensions() == 2) {
-            std::string kernelName = "render2D";
-            cl::Kernel kernel(getOpenCLProgram(device), kernelName.c_str());
-            // Run kernel to fill the texture
+        cl::Image2D image;
+        cl::ImageGL imageGL;
+        std::vector<cl::Memory> v;
+        GLuint textureID;
+        // TODO The GL-CL interop here is causing glClear to not work on AMD systems and therefore disabled
+        /*
+        if(DeviceManager::isGLInteropEnabled()) {
+            // Create OpenGL texture
+            glGenTextures(1, &textureID);
+            glBindTexture(GL_TEXTURE_2D, textureID);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, input->getWidth(), input->getHeight(), 0, GL_RGBA, GL_FLOAT, 0);
 
-            OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
-            cl::Image2D* clImage = access->get2DImage();
-            kernel.setArg(0, *clImage);
-            kernel.setArg(1, PBO); // Read from this
-            kernel.setArg(2, PBO2); // Write to this
-            kernel.setArg(3, input->getSpacing().x());
-            kernel.setArg(4, input->getSpacing().y());
-            kernel.setArg(5, PBOspacing);
-            kernel.setArg(6, mColorBuffer);
-            kernel.setArg(7, mFillAreaBuffer);
-            kernel.setArg(8, mBorderRadius);
-
-            // Run the draw 2D kernel
-            queue.enqueueNDRangeKernel(
-                    kernel,
-                    cl::NullRange,
-                    cl::NDRange(width, height),
-                    cl::NullRange
-            );
-        } else {
-            std::string kernelName = "render3D";
-            cl::Kernel kernel(getOpenCLProgram(device), kernelName.c_str());
-
-            // Get transform of the image
-            AffineTransformation::pointer dataTransform = SceneGraph::getAffineTransformationFromData(input);
-            dataTransform->getTransform().scale(input->getSpacing());
-
-            // Transfer transformations
-            Eigen::Affine3f transform = dataTransform->getTransform().inverse()*pixelToViewportTransform;
-
-            cl::Buffer transformBuffer(
+            // Create CL-GL image
+            imageGL = cl::ImageGL(
                     device->getContext(),
-                    CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                    16*sizeof(float),
-                    transform.data()
+                    CL_MEM_READ_WRITE,
+                    GL_TEXTURE_2D,
+                    0,
+                    textureID
             );
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glFinish();
+            mKernel.setArg(1, imageGL);
+            v.push_back(imageGL);
+            queue.enqueueAcquireGLObjects(&v);
+        } else {
+         */
+        image = cl::Image2D(
+                device->getContext(),
+                CL_MEM_READ_WRITE,
+                cl::ImageFormat(CL_RGBA, CL_FLOAT),
+                input->getWidth(), input->getHeight()
+        );
+        mKernel.setArg(1, image);
+        //}
 
-            // Run kernel to fill the texture
-            OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
-            cl::Image3D* clImage = access->get3DImage();
-            kernel.setArg(0, *clImage);
-            kernel.setArg(1, PBO); // Read from this
-            kernel.setArg(2, PBO2); // Write to this
-            kernel.setArg(3, transformBuffer);
-            kernel.setArg(4, mColorBuffer);
-            kernel.setArg(5, mFillAreaBuffer);
 
-            // Run the draw 3D image kernel
-            queue.enqueueNDRangeKernel(
-                    kernel,
-                    cl::NullRange,
-                    cl::NDRange(width, height),
-                    cl::NullRange
-            );
-        }
+        mKernel.setArg(0, *clImage);
+        queue.enqueueNDRangeKernel(
+                mKernel,
+                cl::NullRange,
+                cl::NDRange(input->getWidth(), input->getHeight()),
+                cl::NullRange
+        );
 
-        // Copy PBO2 to PBO
-        queue.enqueueCopyBuffer(PBO2, PBO, 0, 0, sizeof(float)*width*height*4);
+        /*if(DeviceManager::isGLInteropEnabled()) {
+            queue.enqueueReleaseGLObjects(&v);
+        } else {*/
+        // Copy data from CL image to CPU
+        float *data = new float[input->getWidth() * input->getHeight() * 4];
+        queue.enqueueReadImage(
+                image,
+                CL_TRUE,
+                createOrigoRegion(),
+                createRegion(input->getWidth(), input->getHeight(), 1),
+                0, 0,
+                data
+        );
+        // Copy data from CPU to GL texture
+        glGenTextures(1, &textureID);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, input->getWidth(), input->getHeight(), 0, GL_RGBA, GL_FLOAT, data);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glFinish();
+        delete[] data;
+        //}
+
+        mTexturesToRender[inputNr] = textureID;
+        mImageUsed[inputNr] = input;
+        queue.finish();
     }
-    if(DeviceManager::isGLInteropEnabled()) {
-        queue.enqueueReleaseGLObjects(&v);
-    }
-    queue.finish();
 
+    glDisable(GL_DEPTH_TEST);
+    drawTextures(perspectiveMatrix, viewingMatrix, mode2D);
+    glEnable(GL_DEPTH_TEST);
 }
 
 void SegmentationRenderer::setBorderRadius(int radius) {

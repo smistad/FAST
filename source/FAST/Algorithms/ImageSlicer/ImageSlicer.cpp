@@ -9,12 +9,14 @@ void ImageSlicer::setOrthogonalSlicePlane(PlaneType orthogonalSlicePlane,
 	mOrthogonalSlicePlane = orthogonalSlicePlane;
 	mArbitrarySlicing = false;
 	mOrthogonalSlicing = true;
+    mIsModified = true;
 }
 
 void ImageSlicer::setArbitrarySlicePlane(Plane slicePlane) {
 	mArbitrarySlicePlane = slicePlane;
 	mArbitrarySlicing = true;
 	mOrthogonalSlicing = false;
+    mIsModified = true;
 }
 
 ImageSlicer::ImageSlicer() : mArbitrarySlicePlane(Plane(Vector3f(1,0,0))) {
@@ -29,8 +31,6 @@ ImageSlicer::ImageSlicer() : mArbitrarySlicePlane(Plane(Vector3f(1,0,0))) {
 void ImageSlicer::execute() {
 	Image::pointer input = getInputData<Image>();
 	Image::pointer output = getOutputData<Image>();
-    std::cout << "w: " << input->getWidth();
-    std::cout << mArbitrarySlicePlane.getNormal().transpose() << std::endl;
 
 	if(input->getDimensions() != 3)
 		throw Exception("Image slicer can only be used for 3D images");

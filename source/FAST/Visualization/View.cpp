@@ -504,6 +504,9 @@ void View::initializeGL() {
     glViewport(0, 0, this->width(), this->height());
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_2D);
+    // Enable transparency
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // Update all renderes, so that getBoundingBox works
     for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
         mNonVolumeRenderers[i]->update(0, mStreamingMode);
@@ -523,7 +526,7 @@ void View::initializeGL() {
         mPerspectiveMatrix = loadPerspectiveMatrix(fieldOfViewY, aspect, zNear, zFar);
     }
 
-	reportInfo() << "finished init GL" << Reporter::end();
+	reportInfo() << "Finished initializing OpenGL" << Reporter::end();
 
 }
 

@@ -1,7 +1,7 @@
 #ifndef SEGMENTATION_RENDERER_HPP_
 #define SEGMENTATION_RENDERER_HPP_
 
-#include "FAST/Visualization/Renderer.hpp"
+#include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Data/Segmentation.hpp"
 #include "FAST/Data/Color.hpp"
 #include "FAST/Utility.hpp"
@@ -10,7 +10,7 @@
 
 namespace fast {
 
-class FAST_EXPORT  SegmentationRenderer : public Renderer {
+class FAST_EXPORT  SegmentationRenderer : public ImageRenderer {
     FAST_OBJECT(SegmentationRenderer)
     public:
         void setColor(Segmentation::LabelType, Color);
@@ -20,14 +20,6 @@ class FAST_EXPORT  SegmentationRenderer : public Renderer {
     private:
         SegmentationRenderer();
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) override;
-        void draw2D(
-                cl::Buffer PBO,
-                uint width,
-                uint height,
-                Affine3f pixelToViewportTransform,
-                float PBOspacing,
-                Vector2f translation
-        ) override;
 
         bool mColorsModified;
         bool mFillAreaModified;

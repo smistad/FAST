@@ -63,16 +63,17 @@ void ImageRenderer::loadAttributes() {
 }
 
 void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) {
-
     std::lock_guard<std::mutex> lock(mMutex);
 
-    std::unordered_map<uint, Image::pointer>::iterator it;
     for(auto it : mDataToRender) {
         Image::pointer input = it.second;
         uint inputNr = it.first;
 
+        if(input->getDimensions() != 2)
+            throw Exception("ImageRenderer only supports 2D images. Use ImageSlicer to extract a 2D slice from a 3D image.");
+
         // Check if a texture has already been created for this image
-        if(mTexturesToRender.count(inputNr) > 0 && mImageUsed[inputNr] == input)
+        if (mTexturesToRender.count(inputNr) > 0 && mImageUsed[inputNr] == input)
             continue; // If it has already been created, skip it
 
         // If it has not been created, create the texture
@@ -81,10 +82,10 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, boo
         float window = mWindow;
         float level = mLevel;
         // If mWindow/mLevel is equal to -1 use default level/window values
-        if(window == -1) {
+        if (window == -1) {
             window = getDefaultIntensityWindow(input->getDataType());
         }
-        if(level == -1) {
+        if (level == -1) {
             level = getDefaultIntensityLevel(input->getDataType());
         }
 
@@ -98,7 +99,7 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, boo
         cl::CommandQueue queue = device->getCommandQueue();
 
         //glEnable(GL_TEXTURE_2D);
-        if(mTexturesToRender.count(inputNr) > 0) {
+        if (mTexturesToRender.count(inputNr) > 0) {
             // Delete old texture
             glDeleteTextures(1, &mTexturesToRender[inputNr]);
             mTexturesToRender.erase(inputNr);
@@ -135,13 +136,13 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, boo
             queue.enqueueAcquireGLObjects(&v);
         } else {
          */
-            image = cl::Image2D(
-                    device->getContext(),
-                    CL_MEM_READ_WRITE,
-                    cl::ImageFormat(CL_RGBA, CL_FLOAT),
-                    input->getWidth(), input->getHeight()
-            );
-            mKernel.setArg(1, image);
+        image = cl::Image2D(
+                device->getContext(),
+                CL_MEM_READ_WRITE,
+                cl::ImageFormat(CL_RGBA, CL_FLOAT),
+                input->getWidth(), input->getHeight()
+        );
+        mKernel.setArg(1, image);
         //}
 
 
@@ -158,31 +159,40 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, boo
         /*if(DeviceManager::isGLInteropEnabled()) {
             queue.enqueueReleaseGLObjects(&v);
         } else {*/
-            // Copy data from CL image to CPU
-            float *data = new float[input->getWidth() * input->getHeight() * 4];
-            queue.enqueueReadImage(
-                    image,
-                    CL_TRUE,
-                    createOrigoRegion(),
-                    createRegion(input->getWidth(), input->getHeight(), 1),
-                    0, 0,
-                    data
-            );
-            // Copy data from CPU to GL texture
-            glGenTextures(1, &textureID);
-            glBindTexture(GL_TEXTURE_2D, textureID);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, input->getWidth(), input->getHeight(), 0, GL_RGBA, GL_FLOAT, data);
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glFinish();
-            delete[] data;
+        // Copy data from CL image to CPU
+        float *data = new float[input->getWidth() * input->getHeight() * 4];
+        queue.enqueueReadImage(
+                image,
+                CL_TRUE,
+                createOrigoRegion(),
+                createRegion(input->getWidth(), input->getHeight(), 1),
+                0, 0,
+                data
+        );
+        // Copy data from CPU to GL texture
+        glGenTextures(1, &textureID);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, input->getWidth(), input->getHeight(), 0, GL_RGBA, GL_FLOAT, data);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glFinish();
+        delete[] data;
         //}
 
         mTexturesToRender[inputNr] = textureID;
         mImageUsed[inputNr] = input;
         queue.finish();
+    }
 
+    drawTextures(perspectiveMatrix, viewingMatrix, mode2D);
+
+}
+
+void ImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D) {
+    for(auto it : mDataToRender) {
+        Image::pointer input = it.second;
+        uint inputNr = it.first;
         // Create VAO
         uint VAO_ID;
         glGenVertexArrays(1, &VAO_ID);
@@ -224,16 +234,16 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, boo
     activateShader();
 
     // This is the actual rendering
-    for(it = mImageUsed.begin(); it != mImageUsed.end(); it++) {
+    for(auto it : mImageUsed) {
         AffineTransformation::pointer transform;
         if(mode2D) {
             // If rendering is in 2D mode we skip any transformations
             transform = AffineTransformation::New();
         } else {
-            transform = SceneGraph::getAffineTransformationFromData(it->second);
+            transform = SceneGraph::getAffineTransformationFromData(it.second);
         }
 
-        transform->getTransform().scale(it->second->getSpacing());
+        transform->getTransform().scale(it.second->getSpacing());
 
         uint transformLoc = glGetUniformLocation(getShaderProgram(), "transform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform->getTransform().data());
@@ -242,8 +252,8 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, boo
         transformLoc = glGetUniformLocation(getShaderProgram(), "viewTransform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, viewingMatrix.data());
 
-        glBindTexture(GL_TEXTURE_2D, mTexturesToRender[it->first]);
-        glBindVertexArray(mVAO[it->first]);
+        glBindTexture(GL_TEXTURE_2D, mTexturesToRender[it.first]);
+        glBindVertexArray(mVAO[it.first]);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glBindTexture(GL_TEXTURE_2D, 0);
         glBindVertexArray(0);

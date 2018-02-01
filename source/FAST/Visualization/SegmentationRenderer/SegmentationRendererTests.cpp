@@ -1,3 +1,4 @@
+#include <FAST/Algorithms/ImageSlicer/ImageSlicer.hpp>
 #include "FAST/Testing.hpp"
 #include "SegmentationRenderer.hpp"
 #include "FAST/Algorithms/BinaryThresholding/BinaryThresholding.hpp"
@@ -34,21 +35,25 @@ TEST_CASE("SegmentationRenderer on a thresholded 3D image", "[fast][Segmentation
     ImageFileImporter::pointer importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath() + "/CT/CT-Abdomen.mhd");
 
+    ImageSlicer::pointer slicer = ImageSlicer::New();
+    slicer->setInputConnection(importer->getOutputPort());
+    slicer->setOrthogonalSlicePlane(PLANE_Z);
+
     BinaryThresholding::pointer segmentation = BinaryThresholding::New();
-    segmentation->setInputConnection(importer->getOutputPort());
+    segmentation->setInputConnection(slicer->getOutputPort());
     segmentation->setLowerThreshold(100);
 
     ImageRenderer::pointer imageRenderer = ImageRenderer::New();
-    imageRenderer->addInputConnection(importer->getOutputPort());
+    imageRenderer->addInputConnection(slicer->getOutputPort());
 
     SegmentationRenderer::pointer renderer = SegmentationRenderer::New();
     renderer->addInputConnection(segmentation->getOutputPort());
 
     SimpleWindow::pointer window = SimpleWindow::New();
-    window->set2DMode();
+    //window->set2DMode();
     window->addRenderer(imageRenderer);
     window->addRenderer(renderer);
-    window->setTimeout(1000);
+    //window->setTimeout(1000);
     CHECK_NOTHROW(window->start());
 }
 
@@ -57,12 +62,16 @@ TEST_CASE("SegmentationRenderer on a thresholded 3D image with draw contours onl
     ImageFileImporter::pointer importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath() + "/CT/CT-Abdomen.mhd");
 
+    ImageSlicer::pointer slicer = ImageSlicer::New();
+    slicer->setInputConnection(importer->getOutputPort());
+    slicer->setOrthogonalSlicePlane(PLANE_Z);
+
     BinaryThresholding::pointer segmentation = BinaryThresholding::New();
-    segmentation->setInputConnection(importer->getOutputPort());
+    segmentation->setInputConnection(slicer->getOutputPort());
     segmentation->setLowerThreshold(100);
 
     ImageRenderer::pointer imageRenderer = ImageRenderer::New();
-    imageRenderer->addInputConnection(importer->getOutputPort());
+    imageRenderer->addInputConnection(slicer->getOutputPort());
 
     SegmentationRenderer::pointer renderer = SegmentationRenderer::New();
     renderer->setFillArea(false);

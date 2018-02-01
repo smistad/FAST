@@ -38,17 +38,19 @@ TEST_CASE("Image slicer arbitrary slice", "[fast][ImageSlicer][visual][asdasd]")
 	ImageRenderer::pointer renderer = ImageRenderer::New();
 	renderer->addInputConnection(slicer->getOutputPort());
 
+	/*
 	SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
 	extraction->setInputConnection(importer->getOutputPort());
 
 	TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();
     TriangleRenderer->addInputConnection(extraction->getOutputPort());
+    */
 
 	SimpleWindow::pointer window = SimpleWindow::New();
 	window->addRenderer(renderer);
-	window->addRenderer(TriangleRenderer);
+	//window->addRenderer(TriangleRenderer);
 	window->set3DMode();
-	window->setTimeout(1000);
+	//window->setTimeout(1000);
 	window->start();
 }
 

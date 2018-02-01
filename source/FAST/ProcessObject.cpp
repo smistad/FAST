@@ -32,8 +32,12 @@ void ProcessObject::update(uint64_t timestep, StreamingMode streamingMode) {
         // If the data in the port is newer than what which this PO last executed with, we have new input data, and should
         // execute again
         // Also: If parent PO is streamer, newInputData is always true
-        if(mDataLastTimestep[parent.first] < port->getLatestTimestep() || isStreamer(port->getProcessObject().get()))
+        if(mDataLastTimestep[parent.first] < port->getLatestTimestep() || isStreamer(port->getProcessObject().get())) {
             newInputData = true;
+            std::cout << "Parent:" << std::endl;
+            std::cout << mDataLastTimestep[parent.first] << std::endl;
+            std::cout << port->getLatestTimestep() << std::endl;
+        }
     }
 
     // Set timestep and streaming mode for output connections
@@ -59,8 +63,13 @@ void ProcessObject::update(uint64_t timestep, StreamingMode streamingMode) {
     if(mIsModified || (newInputData && mLastTimestepExecuted != timestep)) {
         this->mRuntimeManager->startRegularTimer("execute");
         // set isModified to false before executing to avoid recursive update calls
+        reportInfo() << "EXECUTING " << getNameOfClass() << " because " << reportEnd();
+        if(mIsModified) {
+            reportInfo() << "PO is modified." << reportEnd();
+        } else if(newInputData) {
+            reportInfo() << "has new input data." << reportEnd();
+        }
         mIsModified = false;
-        reportInfo() << "EXECUTING " << getNameOfClass() << reportEnd();
         preExecute();
         execute();
         postExecute();
