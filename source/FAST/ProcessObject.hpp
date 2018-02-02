@@ -162,6 +162,7 @@ DataObject::pointer ProcessObject::getInputData(uint portID) {
         validateInputPortExists(portID);
         DataPort::pointer port = mInputConnections.at(portID);
         DataObject::pointer data = port->getNextFrame();
+        mLastProcessed[portID] = std::make_pair(data, data->getTimestamp());
         return data;
 }
 

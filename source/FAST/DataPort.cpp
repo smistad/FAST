@@ -195,17 +195,6 @@ DataObject::pointer DataPort::getFrame(uint64_t timestep) {
     return mFrames.at(timestep);
 }
 
-uint64_t DataPort::getLatestTimestep() {
-    std::lock_guard<std::mutex> lock(mMutex);
-    uint64_t highest = 0;
-    for(auto frame : mFrames) {
-        if(frame.first > highest) {
-            highest = frame.first;
-        }
-    }
-
-    return highest;
-}
 
 
 } // end namespace fast
