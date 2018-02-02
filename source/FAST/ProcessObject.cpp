@@ -22,7 +22,7 @@ static bool isStreamer(ProcessObject* po) {
 }
 
 void ProcessObject::update(uint64_t timestep, StreamingMode streamingMode) {
-    // Call update all parents
+    // Call update on all parents
     bool newInputData = false;
     for(auto parent : mInputConnections) {
         DataPort::pointer port = parent.second;
@@ -32,12 +32,42 @@ void ProcessObject::update(uint64_t timestep, StreamingMode streamingMode) {
         // If the data in the port is newer than what which this PO last executed with, we have new input data, and should
         // execute again
         // Also: If parent PO is streamer, newInputData is always true
-        if(mDataLastTimestep[parent.first] < port->getLatestTimestep() || isStreamer(port->getProcessObject().get())) {
+        // TODO Case: A new frame has arrived, parent is not a streamer. TimestAmp is the same. How to know it is a new frame?
+
+        // Three cases:
+        // 1. Parent is a streamer, rexecute
+        // 2. If PO has executed before with the same input data, do not rexecute else:
+        // To detect this. If data frame is present: Check if dataobject is the same as previous and timestAmp
+        // 3. Execute
+        if(mLastProcessed.count(parent.first) > 0) {
+            std::pair<DataObject::pointer, uint64_t> data = mLastProcessed[parent.first];
+            if(port->hasCurrentData()) {
+                DataObject::pointer previousData = data.first;
+                uint64_t previousTimestamp = data.second;
+                DataObject::pointer currentData = port->getFrame(timestep);
+                uint64_t currentTimestamp = currentData->getTimestamp();
+                if(currentData != previousData || previousTimestamp < currentTimestamp) { // There has arrived new data, or data has changed
+                    mLastProcessed[parent.first] = std::make_pair(currentData, currentTimestamp);
+                    newInputData = true;
+                }
+            } else {
+                // If port currently doesn't have data, check if parent is streamer. If streamer, always reexecute
+                if(isStreamer(port->getProcessObject().get())) {
+                    newInputData = true;
+                } else {
+                    // TODO should not be possible?
+                    throw Exception("Impossible event in ProcessObject::update");
+                }
+            }
+        } else {
+            // First time executing
+            // TODO possible issue here: If parent is streamer, and data has not arrived yet. port->getFrame will fail
+            DataObject::pointer currentData = port->getFrame(timestep);
+            uint64_t currentTimestamp = currentData->getTimestamp();
+            mLastProcessed[parent.first] = std::make_pair(currentData, currentTimestamp);
             newInputData = true;
-            std::cout << "Parent:" << std::endl;
-            std::cout << mDataLastTimestep[parent.first] << std::endl;
-            std::cout << port->getLatestTimestep() << std::endl;
         }
+
     }
 
     // Set timestep and streaming mode for output connections
@@ -78,10 +108,9 @@ void ProcessObject::update(uint64_t timestep, StreamingMode streamingMode) {
             this->waitToFinish();
         this->mRuntimeManager->stopRegularTimer("execute");
         for(auto parent : mInputConnections) {
-
         }
     } else if(!isStreamer(this)) {
-        // If this object did not need to execute AND is not a streamer. Move the data to next timestep.
+        // If this object did not need to execute AND is not a streamer. Move the output data to next timestep.
         for(auto outputPorts : mOutputConnections) {
             for(auto output : outputPorts.second) {
                 DataPort::pointer port = output.lock();

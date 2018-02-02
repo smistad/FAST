@@ -191,6 +191,10 @@ uint DataPort::getSize() const {
     return mFrames.size();
 }
 
+DataObject::pointer DataPort::getFrame(uint64_t timestep) {
+    return mFrames.at(timestep);
+}
+
 uint64_t DataPort::getLatestTimestep() {
     std::lock_guard<std::mutex> lock(mMutex);
     uint64_t highest = 0;
@@ -202,5 +206,6 @@ uint64_t DataPort::getLatestTimestep() {
 
     return highest;
 }
+
 
 } // end namespace fast

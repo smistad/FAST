@@ -52,6 +52,7 @@ class FAST_EXPORT DataPort {
         typedef SharedPointer<DataPort> pointer;
 
         uint64_t getLatestTimestep();
+        DataObject::pointer getFrame(uint64_t timestep);
     private:
         /**
          * The process object which produce data for this port

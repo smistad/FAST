@@ -157,18 +157,29 @@ TEST_CASE("Simple pipeline with static data", "[process_all_frames][ProcessObjec
     DataPort::pointer port = po1->getOutputPort();
 
     int timestep = 0;
+    po1->update(timestep, STREAMING_MODE_PROCESS_ALL_FRAMES);
+    CHECK(po1->hasExecuted());
+    po1->setHasExecuted(false);
+
     while(timestep < 3) {
-        po1->update(timestep, STREAMING_MODE_PROCESS_ALL_FRAMES);
         timestep++;
+        po1->update(timestep, STREAMING_MODE_PROCESS_ALL_FRAMES);
+        CHECK_FALSE(po1->hasExecuted()); // PO1 should not re execute
+        po1->setHasExecuted(false);
         DummyDataObject::pointer image = port->getNextFrame();
         CHECK(image->getID() == 0); // Should always get the same frame
     }
 
     importer->setModified();
-    //timestep = 0;
+    po1->update(timestep, STREAMING_MODE_PROCESS_ALL_FRAMES);
+    CHECK(po1->hasExecuted()); // PO should execute after importer has been modified
+    po1->setHasExecuted(false);
+
     while(timestep < 6) {
-        po1->update(timestep, STREAMING_MODE_PROCESS_ALL_FRAMES);
         timestep++;
+        po1->update(timestep, STREAMING_MODE_PROCESS_ALL_FRAMES);
+        CHECK_FALSE(po1->hasExecuted()); // PO1 should not re execute
+        po1->setHasExecuted(false);
         DummyDataObject::pointer image = port->getNextFrame();
         CHECK(image->getID() == 1); // Should always get the same frame
     }
