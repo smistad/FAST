@@ -15,7 +15,7 @@ TEST_CASE("ImageRenderer with single 2D image in 2D mode", "[fast][ImageRenderer
     window->addRenderer(renderer);
     window->setSize(1024, 512);
     window->set2DMode();
-    //window->setTimeout(500);
+    window->setTimeout(500);
 
     CHECK_NOTHROW(window->start());
 }
@@ -29,7 +29,7 @@ TEST_CASE("ImageRenderer with single 2D image in 2D mode (MHD)", "[fast][ImageRe
     window->addRenderer(renderer);
     window->setSize(1024, 512);
     window->set2DMode();
-    //window->setTimeout(500);
+    window->setTimeout(500);
 
     CHECK_NOTHROW(window->start());
 }
@@ -43,7 +43,7 @@ TEST_CASE("ImageRenderer with dynamic 2D image in 2D mode", "[fast][ImageRendere
     window->addRenderer(renderer);
     window->setSize(1024, 512);
     window->set2DMode();
-    //window->setTimeout(1000);
+    window->setTimeout(1000);
 
     CHECK_NOTHROW(window->start());
 }

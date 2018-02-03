@@ -179,7 +179,7 @@ void Window::start(StreamingMode mode) {
     int screenWidth = desktop->width();
     int screenHeight = desktop->height();
 
-    std::cout << "Resizing window to " << mWidth << " " << mHeight << std::endl;
+    reportInfo() << "Resizing window to " << mWidth << " " << mHeight << reportEnd();
     mWidget->resize(mWidth,mHeight);
     if(mFullscreen) {
         mWidget->showFullScreen();
@@ -201,6 +201,10 @@ void Window::start(StreamingMode mode) {
         timer->setSingleShot(true);
         mWidget->connect(timer,SIGNAL(timeout()),mWidget,SLOT(close()));
     }
+
+    // Fix for bug with views not filling the entire window from start
+    for(auto view : mWidget->getViews())
+        view->updateGeometry();
 
     startComputationThread();
 
@@ -272,7 +276,6 @@ void Window::startComputationThread() {
 }
 
 void Window::stopComputationThread() {
-    reportInfo() << "Trying to stop computation thread" << Reporter::end();
     if(mThread != NULL) {
         mThread->stop();
         QGLContext* mainGLContext = Window::getMainGLContext();
@@ -283,7 +286,6 @@ void Window::stopComputationThread() {
         delete mThread;
         mThread = NULL;
     }
-    reportInfo() << "Computation thread stopped" << Reporter::end();
 }
 
 std::vector<View*> Window::getViews() const {

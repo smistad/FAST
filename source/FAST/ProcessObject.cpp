@@ -47,7 +47,7 @@ void ProcessObject::update(uint64_t timestep, StreamingMode streamingMode) {
                     newInputData = true;
                 } else {
                     // TODO should not be possible?
-                    throw Exception("Impossible event in ProcessObject::update");
+                    reportError() << "Impossible event in ProcessObject::update" << reportEnd();
                 }
             }
         } else {

@@ -32,6 +32,7 @@ void Renderer::unlock() {
 }
 
 void Renderer::stopPipeline() {
+    mStop = true;
     mHasRendered = true;
     mRenderedCV.notify_one();
     ProcessObject::stopPipeline();
@@ -44,6 +45,9 @@ void Renderer::postDraw() {
 
 void Renderer::execute() {
     std::unique_lock<std::mutex> lock(mMutex);
+    if(mStop) {
+        return;
+    }
 
     // Check if current images has not been rendered, if not wait
     while(!mHasRendered) {
@@ -217,6 +221,11 @@ int Renderer::getShaderUniformLocation(std::string name, std::string shaderProgr
     if(location == -1)
         throw Exception("Unable to find location of matrix4f uniform " + name + " in shader program " + shaderProgram);
     return location;
+}
+
+void Renderer::reset() {
+    mStop = false;
+    mHasRendered = false;
 }
 
 }

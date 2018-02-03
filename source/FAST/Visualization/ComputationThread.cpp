@@ -78,19 +78,24 @@ void ComputationThread::run() {
 }
 
 void ComputationThread::stop() {
-    reportInfo() << "Stopping renderers.." << Reporter::end();
+    // This is run in the main thread
+    reportInfo() << "Stopping renderers..." << Reporter::end();
     for(View* view : mViews) {
         view->stopRenderers();
     }
     reportInfo() << "Renderers stopped" << Reporter::end();
-    // This is run in the main thread
     std::unique_lock<std::mutex> lock(mUpdateThreadMutex); // this locks the mutex
+    reportInfo() << "Stopping computation thread..." << Reporter::end();
     mUpdateThreadIsStopped = true;
     // Block until mIsRunning is set to false
     while(mIsRunning) {
         // Unlocks the mutex and wait until someone calls notify.
         // When it wakes, the mutex is locked again and mUpdateIsRunning is checked.
         mUpdateThreadConditionVariable.wait(lock);
+    }
+    reportInfo() << "Computation thread stopped" << Reporter::end();
+    for(View* view : mViews) {
+        view->resetRenderers();
     }
 }
 

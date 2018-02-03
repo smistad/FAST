@@ -105,6 +105,7 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
 		void lockRenderers();
 		void unlockRenderers();
 		void stopRenderers();
+		void resetRenderers();
 
     friend class ComputationThread;
 

@@ -50,10 +50,10 @@ TEST_CASE("SegmentationRenderer on a thresholded 3D image", "[fast][Segmentation
     renderer->addInputConnection(segmentation->getOutputPort());
 
     SimpleWindow::pointer window = SimpleWindow::New();
-    //window->set2DMode();
+    window->set2DMode();
     window->addRenderer(imageRenderer);
     window->addRenderer(renderer);
-    //window->setTimeout(1000);
+    window->setTimeout(1000);
     CHECK_NOTHROW(window->start());
 }
 

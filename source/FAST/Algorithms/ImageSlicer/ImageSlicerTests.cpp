@@ -31,31 +31,24 @@ TEST_CASE("Image slicer arbitrary slice", "[fast][ImageSlicer][visual][asdasd]")
 	ImageFileImporter::pointer importer = ImageFileImporter::New();
 	importer->setFilename(Config::getTestDataPath() + "CT/CT-Abdomen.mhd");
 
-	DataPort::pointer port = importer->getOutputPort();
-	importer->update(0);
-
-
 	ImageSlicer::pointer slicer = ImageSlicer::New();
-	//slicer->setInputConnection(importer->getOutputPort());
-    slicer->setInputData(port->getNextFrame());
+	slicer->setInputConnection(importer->getOutputPort());
     slicer->setArbitrarySlicePlane(Plane(Vector3f(0, 0, 1)));
 
 	ImageRenderer::pointer renderer = ImageRenderer::New();
 	renderer->addInputConnection(slicer->getOutputPort());
 
-	/*
 	SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
 	extraction->setInputConnection(importer->getOutputPort());
 
 	TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();
     TriangleRenderer->addInputConnection(extraction->getOutputPort());
-    */
 
 	SimpleWindow::pointer window = SimpleWindow::New();
 	window->addRenderer(renderer);
-	//window->addRenderer(TriangleRenderer);
+	window->addRenderer(TriangleRenderer);
 	window->set3DMode();
-	//window->setTimeout(1000);
+	window->setTimeout(1000);
 	window->start();
 }
 

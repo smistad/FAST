@@ -927,6 +927,15 @@ std::vector<Renderer::pointer> View::getRenderers() {
     return newList;
 }
 
+void View::resetRenderers() {
+    for(Renderer::pointer renderer : mNonVolumeRenderers) {
+        renderer->reset();
+    }
+    for(Renderer::pointer renderer : mVolumeRenderers) {
+        renderer->reset();
+    }
+}
+
 /********************************************************************************************************/
 /********************************************************************************************************/
 /********************************************************************************************************/

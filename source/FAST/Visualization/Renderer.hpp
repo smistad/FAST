@@ -41,6 +41,7 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
                 Vector2f translation
         ) {};
         virtual void stopPipeline();
+        virtual void reset();
     protected:
         Renderer();
         void execute() override;
@@ -65,6 +66,7 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
 
         // Locking mechanisms to ensure thread safe synchronized rendering
         bool mHasRendered = true;
+        bool mStop = false;
         std::condition_variable_any mRenderedCV;
         std::mutex mMutex;
 
