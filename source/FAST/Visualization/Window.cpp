@@ -202,10 +202,6 @@ void Window::start(StreamingMode mode) {
         mWidget->connect(timer,SIGNAL(timeout()),mWidget,SLOT(close()));
     }
 
-    // Fix for bug with views not filling the entire window from start
-    for(auto view : mWidget->getViews())
-        view->updateGeometry();
-
     startComputationThread();
 
     mEventLoop->exec(); // This call blocks and starts rendering

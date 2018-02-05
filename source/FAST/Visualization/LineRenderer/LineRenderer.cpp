@@ -22,7 +22,13 @@ void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool
     for(auto it : mDataToRender) {
         Mesh::pointer points = it.second;
 
-        AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(points);
+        AffineTransformation::pointer transform;
+        if(mode2D) {
+            // If rendering is in 2D mode we skip any transformations
+            transform = AffineTransformation::New();
+        } else {
+            transform = SceneGraph::getAffineTransformationFromData(it.second);
+        }
         setShaderUniform("transform", transform->getTransform());
 
         if(mInputWidths.count(it.first) > 0) {
@@ -71,7 +77,7 @@ void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool
         if(access->hasEBO()) {
             GLuint* EBO = access->getLineEBO();
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *EBO);
-            glDrawElements(GL_LINES, points->getNrOfLines(), GL_UNSIGNED_INT, NULL);
+            glDrawElements(GL_LINES, points->getNrOfLines() * 2, GL_UNSIGNED_INT, NULL);
         } else {
             // No EBO available; assume all vertices belong to lines consecutively
             glDrawArrays(GL_LINES, 0, points->getNrOfLines() * 2);

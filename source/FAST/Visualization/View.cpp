@@ -333,9 +333,9 @@ void View::recalculateCamera() {
         mCameraPosition[2] += -minimumTranslationToSeeEntireObject
                 - boundingBoxDepth * 0.5; // half of the depth of the bounding box
         //reportInfo() << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << Reporter::end();
-        zFar = 2;//(minimumTranslationToSeeEntireObject + boundingBoxDepth) * 2;
-        zNear = 1;//std::min(minimumTranslationToSeeEntireObject * 0.5, 0.1);
-        mCameraPosition[2] = -1.5;
+        zFar = 0.1;//(minimumTranslationToSeeEntireObject + boundingBoxDepth) * 2;
+        zNear = -0.1;//std::min(minimumTranslationToSeeEntireObject * 0.5, 0.1);
+        mCameraPosition[2] = 0;
         aspect = (float) (this->width()) / this->height();
         float orthoAspect = z_width / z_height;
         float scalingWidth = 1;
@@ -349,8 +349,8 @@ void View::recalculateCamera() {
         mRight = max[xDirection]*scalingWidth;
         mBottom = min[yDirection]*scalingHeight;
         mTop = max[yDirection]*scalingHeight;
-        mCameraPosition[0] = (mRight-mLeft)*0.5 - centroid[0];
-        mCameraPosition[1] = (mTop-mBottom)*0.5 - centroid[1];
+        mCameraPosition[0] = mLeft + (mRight - mLeft)*0.5f - centroid[0];
+        mCameraPosition[1] = mBottom + (mTop - mBottom)*0.5f - centroid[1];
         //reportInfo() << "set zFar to " << zFar << Reporter::end();
         //reportInfo() << "set zNear to " << zNear << Reporter::end();
         m3DViewingTransformation = Affine3f::Identity();
@@ -367,7 +367,7 @@ void View::recalculateCamera() {
         std::cout << min[yDirection] << " " << max[yDirection] << std::endl;
         // TODO the aspect ratio of the viewport and the orhto projection (left, right, bottom, top) has to match.
 
-        std::cout << "Ortho params: " << mLeft << " " << mRight << " " << mBottom << " " << mTop << " " << scalingWidth << " " << scalingHeight << std::endl;
+        std::cout << "Ortho params: " << mLeft << " " << mRight << " " << mBottom << " " << mTop << " " << scalingWidth << " " << scalingHeight << " " << zNear << " " << zFar << std::endl;
         mPerspectiveMatrix = loadOrthographicMatrix(mLeft, mRight, mBottom, mTop, zNear, zFar);
     } else {
         // 3D Mode
@@ -502,7 +502,6 @@ void View::initializeGL() {
     QGLFunctions *fun = Window::getMainGLContext()->functions();
 
     glViewport(0, 0, this->width(), this->height());
-    glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_2D);
     // Enable transparency
     glEnable(GL_BLEND);
@@ -513,8 +512,10 @@ void View::initializeGL() {
     if(mNonVolumeRenderers.size() == 0)
         return;
     if(mIsIn2DMode) {
+        glDisable(GL_DEPTH_TEST);
         recalculateCamera();
     } else {
+        glEnable(GL_DEPTH_TEST);
         // 3D mode
         if(!mCameraSet && getNrOfInputConnections() == 0) {
             // If camera is not set explicitly by user, FAST has to calculate it
