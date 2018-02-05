@@ -41,7 +41,6 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
         setShaderUniform("transform", transform->getTransform());
         setShaderUniform("pointSize", pointSize);
 
-
         VertexBufferObjectAccess::pointer access = points->getVertexBufferObjectAccess(ACCESS_READ);
         GLuint* coordinateVBO = access->getCoordinateVBO();
 
@@ -62,7 +61,7 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
         setShaderUniform("useGlobalColor", useGlobalColor);
         setShaderUniform("globalColor", color.asVector());
 
-        glDrawArrays(GL_POINTS, 0, points->getNrOfVertices()*3);
+        glDrawArrays(GL_POINTS, 0, points->getNrOfVertices());
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
