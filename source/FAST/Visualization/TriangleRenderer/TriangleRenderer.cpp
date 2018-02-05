@@ -49,15 +49,21 @@ void TriangleRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, 
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     activateShader();
+    setShaderUniform("perspectiveTransform", perspectiveMatrix);
+    setShaderUniform("viewTransform", viewingMatrix);
+    setShaderUniform("mode2D", mode2D);
     for(auto it : mDataToRender) {
         Mesh::pointer surfaceToRender = it.second;
 
-        // Draw the triangles in the VBO
-        AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(surfaceToRender);
+        AffineTransformation::pointer transform;
+        if(mode2D) {
+            // If rendering is in 2D mode we skip any transformations
+            transform = AffineTransformation::New();
+        } else {
+            transform = SceneGraph::getAffineTransformationFromData(surfaceToRender);
+        }
 
         setShaderUniform("transform", transform->getTransform());
-        setShaderUniform("perspectiveTransform", perspectiveMatrix);
-        setShaderUniform("viewTransform", viewingMatrix);
 
         float opacity = mDefaultOpacity;
         if(mInputOpacities.count(it.first) > 0) {
@@ -133,100 +139,6 @@ void TriangleRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, 
     if(mWireframe)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     deactivateShader();
-}
-
-void TriangleRenderer::draw2D(
-                cl::Buffer PBO,
-                uint width,
-                uint height,
-                Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform,
-                float PBOspacing,
-                Vector2f translation
-        ) {
-    std::lock_guard<std::mutex> lock(mMutex);
-
-    OpenCLDevice::pointer device = getMainDevice();
-    cl::CommandQueue queue = device->getCommandQueue();
-    std::vector<cl::Memory> v;
-    if(DeviceManager::isGLInteropEnabled()) {
-        v.push_back(PBO);
-        queue.enqueueAcquireGLObjects(&v);
-    }
-
-    // Map would probably be better here, but doesn't work on NVIDIA, segfault surprise!
-    //float* pixels = (float*)queue.enqueueMapBuffer(PBO, CL_TRUE, CL_MAP_WRITE, 0, width*height*sizeof(float)*4);
-    UniquePointer<float[]> pixels(new float[width*height*sizeof(float)*4]);
-    queue.enqueueReadBuffer(PBO, CL_TRUE, 0, width*height*4*sizeof(float), pixels.get());
-
-    for(auto it : mDataToRender) {
-    	Mesh::pointer mesh = it.second;
-
-		Color color = mDefaultColor;
-        if(mInputColors.count(it.first) > 0) {
-            color = mInputColors[it.first];
-        }
-
-    	MeshAccess::pointer access = mesh->getMeshAccess(ACCESS_READ);
-        std::vector<MeshLine> lines = access->getLines();
-        std::vector<MeshVertex> vertices = access->getVertices();
-
-        // Draw each line
-        for(int i = 0; i < lines.size(); ++i) {
-        	MeshLine line = lines[i];
-        	int label = vertices[line.getEndpoint1()].getLabel();
-        	Color useColor = color;
-        	if(mLabelColors.count(label) > 0)
-        		useColor = mLabelColors[label];
-
-        	Vector2f a = vertices[line.getEndpoint1()].getPosition().head(2);
-        	Vector2f b = vertices[line.getEndpoint2()].getPosition().head(2);
-        	Vector2f direction = b - a;
-        	float lengthInPixels = ceil(direction.norm() / PBOspacing);
-
-        	// Draw the line
-        	int size = mLineSize;
-        	if(size == 1) {
-				for(int j = 0; j <= lengthInPixels; ++j) {
-					Vector2f positionInMM = a + direction*((float)j/lengthInPixels);
-					Vector2f positionInPixels = positionInMM / PBOspacing;
-
-					int x = round(positionInPixels.x());
-					int y = round(positionInPixels.y());
-					y = height - 1 - y;
-					if(x < 0 || y < 0 || x >= width || y >= height)
-						continue;
-
-					pixels[4*(x + y*width)] = useColor.getRedValue();
-					pixels[4*(x + y*width) + 1] = useColor.getGreenValue();
-					pixels[4*(x + y*width) + 2] = useColor.getBlueValue();
-				}
-        	} else {
-				size = size/2;
-				for(int j = 0; j <= lengthInPixels; ++j) {
-					Vector2f positionInMM = a + direction*((float)j/lengthInPixels);
-					Vector2f positionInPixels = positionInMM / PBOspacing;
-					for(int x2 = -size; x2 <= size; ++x2) {
-					for(int y2 = -size; y2 <= size; ++y2) {
-						int x = round(positionInPixels.x()) + x2;
-						int y = round(positionInPixels.y()) + y2;
-						y = height - 1 - y;
-						if(x < 0 || y < 0 || x >= width || y >= height)
-							continue;
-
-						pixels[4*(x + y*width)] = useColor.getRedValue();
-						pixels[4*(x + y*width) + 1] = useColor.getGreenValue();
-						pixels[4*(x + y*width) + 2] = useColor.getBlueValue();
-					}}
-				}
-        	}
-        }
-    }
-
-    //queue.enqueueUnmapMemObject(PBO, pixels);
-    queue.enqueueWriteBuffer(PBO, CL_TRUE, 0, width*height*4*sizeof(float), pixels.get());
-    if(DeviceManager::isGLInteropEnabled()) {
-        queue.enqueueReleaseGLObjects(&v);
-    }
 }
 
 void TriangleRenderer::setDefaultColor(Color color) {

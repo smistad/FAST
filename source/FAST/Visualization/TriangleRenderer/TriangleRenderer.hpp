@@ -26,14 +26,6 @@ class FAST_EXPORT TriangleRenderer : public Renderer {
         void setLineSize(int size);
     private:
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) override;
-        void draw2D(
-                cl::Buffer PBO,
-                uint width,
-                uint height,
-                Affine3f pixelToViewportTransform,
-                float PBOspacing,
-                Vector2f translation
-        ) override;
         TriangleRenderer();
 
         std::unordered_map<uint, Color> mInputColors;

@@ -1,3 +1,4 @@
+#include <FAST/Algorithms/ImageSlicer/ImageSlicer.hpp>
 #include "FAST/Importers/VTKMeshFileImporter.hpp"
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "FAST/Streamers/ImageFileStreamer.hpp"
@@ -39,29 +40,28 @@ TEST_CASE("TriangleRenderer on stream of surfaces", "[fast][TriangleRenderer][vi
     );
 }
 
-TEST_CASE("TriangleRenderer with 2D mesh and image", "[fast][TriangleRenderer][visual]") {
-    CHECK_NOTHROW(
-        ImageFileImporter::pointer importer = ImageFileImporter::New();
-        importer->setFilename(Config::getTestDataPath() + "US/CarotidArtery/Right/US-2D_0.mhd");
-        ImageRenderer::pointer imageRenderer = ImageRenderer::New();
-        imageRenderer->addInputConnection(importer->getOutputPort());
+TEST_CASE("TriangleRenderer in 2D mode", "[fast][TriangleRenderer][visual]") {
+    ImageFileImporter::pointer importer = ImageFileImporter::New();
+	importer->setFilename(Config::getTestDataPath() + "CT/CT-Abdomen.mhd");
 
-        // Create a simple 2D mesh with a single line
-        Mesh::pointer mesh = Mesh::New();
-        std::vector<MeshVertex> vertices;
-        vertices.push_back(MeshVertex(Vector3f(0, 0, 0)));
-        vertices.push_back(MeshVertex(Vector3f(10, 10, 0)));
-        std::vector<MeshLine> lines;
-        lines.push_back(MeshLine(0,1));
-        mesh->create(vertices, lines);
+	ImageSlicer::pointer slicer = ImageSlicer::New();
+	slicer->setInputConnection(importer->getOutputPort());
+    slicer->setOrthogonalSlicePlane(PLANE_Z);
 
-        TriangleRenderer::pointer renderer = TriangleRenderer::New();
-        renderer->setInputData(mesh);
-        SimpleWindow::pointer window = SimpleWindow::New();
-        window->set2DMode();
-        window->addRenderer(imageRenderer);
-        window->addRenderer(renderer);
-        window->setTimeout(1000);
-        window->start();
-    );
+	ImageRenderer::pointer renderer = ImageRenderer::New();
+	renderer->addInputConnection(slicer->getOutputPort());
+
+	SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
+	extraction->setInputConnection(importer->getOutputPort());
+
+	TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();
+    TriangleRenderer->addInputConnection(extraction->getOutputPort());
+
+	SimpleWindow::pointer window = SimpleWindow::New();
+	window->addRenderer(renderer);
+	window->addRenderer(TriangleRenderer);
+	window->set2DMode();
+	//window->setTimeout(1000);
+	window->start();
+
 }

@@ -333,8 +333,8 @@ void View::recalculateCamera() {
         mCameraPosition[2] += -minimumTranslationToSeeEntireObject
                 - boundingBoxDepth * 0.5; // half of the depth of the bounding box
         //reportInfo() << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << Reporter::end();
-        zFar = 0.1;//(minimumTranslationToSeeEntireObject + boundingBoxDepth) * 2;
-        zNear = -0.1;//std::min(minimumTranslationToSeeEntireObject * 0.5, 0.1);
+        zFar = 1;//(minimumTranslationToSeeEntireObject + boundingBoxDepth) * 2;
+        zNear = -1;//std::min(minimumTranslationToSeeEntireObject * 0.5, 0.1);
         mCameraPosition[2] = 0;
         aspect = (float) (this->width()) / this->height();
         float orthoAspect = z_width / z_height;
