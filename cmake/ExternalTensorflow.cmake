@@ -54,9 +54,6 @@ else(WIN32)
         INSTALL_COMMAND
             echo "Installing tensorflow binary" &&
             cp -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/bazel-bin/tensorflow/libtensorflow_framework.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
-            echo "Installing mkl binaries" &&
-            bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/bazel-out/)/../../../external/mkl/lib/libmklml_intel.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ -Rf" &&
-            bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/bazel-out/)/../../../external/mkl/lib/libiomp5.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ -Rf" &&
             echo "Installing tensorflow headers" &&
             cp -rf ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/tensorflow/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ &&
             echo "Installing tensorflow generated headers" &&
