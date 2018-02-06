@@ -58,8 +58,8 @@ float ImageRenderer::getIntensityWindow() {
 }
 
 void ImageRenderer::loadAttributes() {
-    setIntensityWindow(getFloatAttribute("window"));
-    setIntensityLevel(getFloatAttribute("level"));
+    mWindow = getFloatAttribute("window");
+    mLevel = getFloatAttribute("level");
 }
 
 void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) {
