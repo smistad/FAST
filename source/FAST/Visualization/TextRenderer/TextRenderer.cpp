@@ -17,8 +17,13 @@ TextRenderer::TextRenderer() {
 	mPosition2D = Vector2i::Zero();
 	mColor = Color::Green();
     mText = "";
-    createIntegerAttribute("position", "Text position", "Position of text in view", 0);
+    createStringAttribute("position", "Text position", "Position of text in view (center/bottom_left/bottom_right/top_left/top_right)", "top_left");
     createIntegerAttribute("font_size", "Font size", "Font size", mFontSize);
+
+    createShaderProgram({
+        Config::getKernelSourcePath() + "/Visualization/TextRenderer/TextRenderer.vert",
+        Config::getKernelSourcePath() + "/Visualization/TextRenderer/TextRenderer.frag",
+    });
 }
 
 void TextRenderer::setView(View* view) {
@@ -36,9 +41,13 @@ void TextRenderer::execute() {
 void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) {
     std::lock_guard<std::mutex> lock(mMutex);
 
+    if(!mode2D)
+        throw Exception("TextRender is only implemented for 2D at the momemt");
+
     if(mView != NULL) {
         if(mText != "") {
-            Color color = mColor;
+            activateShader();
+            QColor color(mColor.getRedValue()*255, mColor.getGreenValue()*255, mColor.getBlueValue()*255);
             QFont font;
             font.setPointSize(mFontSize);
             if (mStyle == STYLE_BOLD) {
@@ -46,9 +55,111 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool
             } else if (mStyle == STYLE_ITALIC) {
                 font.setItalic(true);
             }
-            glColor3f(color.getRedValue(), color.getGreenValue(), color.getBlueValue());
-            mView->renderText(mPosition2D.x(), mPosition2D.y(), mText.c_str(), font);
-            glColor3f(1.0f, 1.0f, 1.0f);
+
+            QFontMetrics metrics(font);
+            const int width = metrics.boundingRect(QString(mText.c_str())).width() + 10;
+            const int height = mFontSize;
+
+            // create the QImage and draw txt into it
+            QImage textimg(width, height, QImage::Format_RGBA8888);
+            textimg.fill(QColor(0, 0, 0, 0));
+            {
+                // Draw the text to the image
+                QPainter painter(&textimg);
+                painter.setBrush(color);
+                painter.setPen(color);
+                painter.setFont(font);
+                painter.drawText(0, mFontSize, mText.c_str());
+            }
+            static bool asd = false;
+            if(!asd) {
+                textimg.save("/home/smistad/test.png", "PNG", 100);
+                std::cout << "QImage SAVED!" << std::endl;
+                asd = true;
+            }
+
+            // Make texture of QImage
+            GLuint textureID;
+            glGenTextures(1, &textureID);
+            glBindTexture(GL_TEXTURE_2D, textureID);
+            glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA,
+                          textimg.width(), textimg.height(),
+                          0, GL_RGBA, GL_UNSIGNED_BYTE, textimg.bits() );
+            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+
+
+            // Draw texture on a quad
+            GLuint VAO_ID;
+            glGenVertexArrays(1, &VAO_ID);
+            glBindVertexArray(VAO_ID);
+            float vertices[] = {
+                    // vertex: x, y, z; tex coordinates: x, y
+                    0.0f, height, 0.0f, 0.0f, 0.0f,
+                    width, height, 0.0f, 1.0f, 0.0f,
+                    width, 0.0f, 0.0f, 1.0f, 1.0f,
+                    0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+            };
+            std::cout << "Drawing at 0 " << width << " " << height << std::endl;
+            uint VBO;
+            glGenBuffers(1, &VBO);
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+            glEnableVertexAttribArray(0);
+            glEnableVertexAttribArray(1);
+
+            // Create EBO
+            uint EBO;
+            glGenBuffers(1, &EBO);
+            uint indices[] = {  // note that we start from 0!
+                    0, 1, 3,   // first triangle
+                    1, 2, 3    // second triangle
+            };
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+            glBindVertexArray(0);
+
+            Affine3f transform = Affine3f::Identity();
+            float scale = 1.0f / mView->width();
+            float scale2 = 1.0f / mView->height();
+            int padding = 15;
+            Vector3f position;
+            switch(mPosition) {
+                case POSITION_CENTER:
+                    position = Vector3f(-width*scale/2.0f, -height*scale2/2.0f, 0); // Center
+                    break;
+                case POSITION_TOP_LEFT:
+                    position = Vector3f(-1 + padding*scale, 1 - (height + padding)*scale2, 0); // Top left corner
+                    break;
+                case POSITION_TOP_RIGHT:
+                    position = Vector3f(1 - (width + padding)*scale, 1 - (height + padding)*scale2, 0); // Top right corner
+                    break;
+                case POSITION_BOTTOM_LEFT:
+                    position = Vector3f(-1 + padding*scale, -1 + padding*scale2, 0); // Bottom left corner
+                    break;
+                case POSITION_BOTTOM_RIGHT:
+                    position = Vector3f(1 - (width + padding)*scale, -1 + padding*scale2, 0); // Bottom right corner
+                    break;
+            }
+            transform.translate(position);
+            transform.scale(Vector3f(scale, scale2, 0));
+
+            uint transformLoc = glGetUniformLocation(getShaderProgram(), "transform");
+            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform.data());
+            transformLoc = glGetUniformLocation(getShaderProgram(), "perspectiveTransform");
+            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, perspectiveMatrix.data());
+            transformLoc = glGetUniformLocation(getShaderProgram(), "viewTransform");
+            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, viewingMatrix.data());
+
+            // Actual drawing
+            glBindTexture(GL_TEXTURE_2D, textureID);
+            glBindVertexArray(VAO_ID);
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glBindVertexArray(0);
+            deactivateShader();
         }
     } else {
     	reportWarning() << "View must be given to text render in order for it to work." << reportEnd();
@@ -63,6 +174,10 @@ void TextRenderer::setFontSize(uint fontSize) {
 	mFontSize = fontSize;
 }
 
+void TextRenderer::setPosition(TextRenderer::TextPosition position) {
+    mPosition = position;
+}
+
 void TextRenderer::setColor(Color color) {
 	mColor = color;
 }
@@ -71,96 +186,21 @@ void TextRenderer::setStyle(TextStyleType textStyleType) {
 	mStyle = textStyleType;
 }
 
-void TextRenderer::draw2D(cl::Buffer PBO, uint width, uint height,
-                          Eigen::Transform<float, 3, Eigen::Affine> pixelToViewportTransform, float PBOspacing,
-                          Vector2f translation) {
-    std::lock_guard<std::mutex> lock(mMutex);
-
-    if(mPosition2D == Vector2i::Zero()) {
-        // If no position has been set. Set it to upper left corner
-        mPosition2D = Vector2i(10, mFontSize + 10);
-    }
-
-    // TODO select a safe background color here, that is different from set color
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    if (mView != NULL) {
-        if (mText != "") {
-            Color color = mColor;
-            QFont font;
-            font.setPointSize(mFontSize);
-            if (mStyle == STYLE_BOLD) {
-                font.setBold(true);
-            } else if (mStyle == STYLE_ITALIC) {
-                font.setItalic(true);
-            }
-            // Render text
-            /*
-            QColor fontColor = QColor(round(color.getRedValue()*255), round(color.getGreenValue()*255), round(color.getBlueValue()*255));
-            QPainter painter(mView);
-            painter.setPen(fontColor);
-            painter.setFont(font);
-            painter.drawText(mPosition2D.x(), mPosition2D.y(), mText.c_str());
-            painter.end();
-             */
-            glColor3f(color.getRedValue(), color.getGreenValue(), color.getBlueValue());
-            mView->renderText(mPosition2D.x(), mPosition2D.y(), mText.c_str(), font);
-            glColor3f(1.0f, 1.0f, 1.0f);
-        }
-    } else {
-        reportWarning() << "View must be given to text render in order for it to work." << reportEnd();
-    }
-
-    //mView->swapBuffers();
-    QImage image = mView->grabFrameBuffer();
-    // TODO get clPBO data
-    OpenCLDevice::pointer device = getMainDevice();
-    cl::CommandQueue queue = device->getCommandQueue();
-    float* data = new float[width*height*4];
-    queue.enqueueReadBuffer(
-        PBO,
-        CL_TRUE,
-        0,
-        sizeof(float)*width*height*4,
-        data
-    );
-
-    for (int y = 0; y < height; ++y) {
-        QRgb *line = (QRgb *) image.scanLine(y);
-        for (int x = 0; x < width; ++x) {
-            QRgb* pixel = line + x;
-            QColor color(*pixel);
-            // Only write, if not color is not background color
-            if(color.green() > 0.001f || color.red() > 0.001f || color.blue() > 0.001f) {
-                data[(x + (height - 1 - y) * width) * 4] = (float) color.red() / 255.0f;
-                data[(x + (height - 1 - y) * width) * 4 + 1] = (float) color.green() / 255.0f;
-                data[(x + (height - 1 - y) * width) * 4 + 2] = (float) color.blue() / 255.0f;
-                data[(x + (height - 1 - y) * width) * 4 + 3] = 1.0f;
-            }
-        }
-    }
-
-    // TODO Transfer data back to clPBO
-    queue.enqueueWriteBuffer(
-            PBO,
-            CL_TRUE,
-            0,
-            sizeof(float)*width*height*4,
-            data
-    );
-
-    delete[] data;
-
-    // TODO clear buffer glClear
-    //glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    //glClear(GL_COLOR_BUFFER_BIT);
-}
-
 void TextRenderer::loadAttributes() {
-    std::vector<int> position = getIntegerListAttribute("position");
-    if(position.size() == 2)
-        setPosition(Vector2i(position.at(0), position.at(1)));
+    std::string position = getStringAttribute("position");
+    if(position == "center") {
+        setPosition(POSITION_CENTER);
+    } else if(position == "top_left") {
+        setPosition(POSITION_TOP_LEFT);
+    } else if(position == "top_right") {
+        setPosition(POSITION_TOP_RIGHT);
+    } else if(position == "bottom_left") {
+        setPosition(POSITION_BOTTOM_LEFT);
+    } else if(position == "bottom_right") {
+        setPosition(POSITION_BOTTOM_RIGHT);
+    } else {
+        throw Exception("Uknown position for TextRenderer: " + position);
+    }
     setFontSize(getIntegerAttribute("font_size"));
 }
 

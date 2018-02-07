@@ -39,6 +39,7 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
         void recalculateCamera();
         void setBackgroundColor(Color color);
         void set2DPixelSpacing(float spacing);
+    	Vector4f getOrthoProjectionParameters();
 
 		std::string getNameOfClass() const {
 		    return "View";
@@ -54,7 +55,6 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
 		bool NonVolumesTurn;
 		GLuint renderedDepthText;
 		GLuint fbo, fbo2, render_buf;
-		GLuint mPBO;
 		float mPBOspacing;
 		GLuint renderedTexture0, renderedTexture1;
 		GLuint programGLSL;
@@ -88,9 +88,7 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
 
         int previousX, previousY;
 
-        float mMinX2D, mMaxX2D, mMinY2D, mMaxY2D;
 		float mLeft, mRight, mBottom, mTop; // Used for ortho projection
-        int mPosX2D, mPosY2D;
         float mScale2D;
 
 		StreamingMode mStreamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES;

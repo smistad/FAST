@@ -85,10 +85,6 @@ View::View() {
     timer->setSingleShot(false);
     connect(timer,SIGNAL(timeout()),this,SLOT(update()));
 
-    mPBO = 0;
-    mPosX2D = 0;
-    mPosY2D = 0;
-
 	NonVolumesTurn=true;
 
     QGLContext* context = new QGLContext(QGLFormat::defaultFormat(), this);
@@ -935,6 +931,10 @@ void View::resetRenderers() {
     for(Renderer::pointer renderer : mVolumeRenderers) {
         renderer->reset();
     }
+}
+
+Vector4f View::getOrthoProjectionParameters() {
+    return Vector4f(mLeft, mRight, mBottom, mTop);
 }
 
 /********************************************************************************************************/

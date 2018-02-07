@@ -2,7 +2,7 @@ PipelineName "Cardiac view classification"
 PipelineDescription "Neural network"
 
 ProcessObject classifier ImageClassifier
-Attribute model "/home/smistad/Downloads/cvc_inception.pb"
+Attribute model "/home/smistad/models/cvc_inception.pb"
 Attribute input_size 128 128
 Attribute output_names "predictions/Softmax"
 Attribute scale_factor 0.003921569
@@ -19,9 +19,10 @@ Input 0 PipelineInput
 
 Renderer imageRenderer ImageRenderer
 Attribute window 255
-Attribute level 127.5 
+Attribute level 127.5
 Input 0 enhancement 0
 
 Renderer textRenderer TextRenderer
-Attribute font_size 50
+Attribute font_size 75
+Attribute position "top_left"
 Input 0 classToText

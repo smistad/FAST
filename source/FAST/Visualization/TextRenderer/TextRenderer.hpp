@@ -22,12 +22,18 @@ class FAST_EXPORT  TextRenderer : public Renderer {
             STYLE_BOLD,
             STYLE_ITALIC
         };
+        enum TextPosition {
+            POSITION_CENTER,
+            POSITION_BOTTOM_LEFT,
+            POSITION_BOTTOM_RIGHT,
+            POSITION_TOP_LEFT,
+            POSITION_TOP_RIGHT
+        };
         void setPosition(Vector2i position);
+        void setPosition(TextPosition position);
         void setFontSize(uint fontSize);
         void setColor(Color color);
         void setStyle(TextStyleType);
-        void draw2D(cl::Buffer PBO, uint width, uint height, Affine3f pixelToViewportTransform,
-               float PBOspacing, Vector2f translation) override;
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) override;
         void loadAttributes();
     private:
@@ -41,6 +47,7 @@ class FAST_EXPORT  TextRenderer : public Renderer {
         Vector2i mPosition2D;
         uint mFontSize;
         TextStyleType mStyle;
+        TextPosition mPosition;
 };
 
 } // end namespace fast
