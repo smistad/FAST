@@ -61,7 +61,7 @@ TEST_CASE("TriangleRenderer in 2D mode", "[fast][TriangleRenderer][visual]") {
 	window->addRenderer(renderer);
 	window->addRenderer(TriangleRenderer);
 	window->set2DMode();
-	//window->setTimeout(1000);
+	window->setTimeout(1000);
 	window->start();
 
 }
