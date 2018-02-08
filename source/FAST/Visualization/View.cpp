@@ -481,6 +481,7 @@ void View::recalculateCamera() {
         m3DViewingTransformation.prerotate(Q.toRotationMatrix()); // Rotate
         m3DViewingTransformation.pretranslate(mRotationPoint); // Move back from rotation point
         m3DViewingTransformation.pretranslate(mCameraPosition);
+        mCentroidZ = -centroid[2];
     }
 }
 
@@ -686,18 +687,17 @@ void View::keyPressEvent(QKeyEvent* event) {
 
 void View::mouseMoveEvent(QMouseEvent* event) {
 	if(mRightButtonIsPressed) {
-        float deltaX = event->x() - previousX;
-        float deltaY = event->y() - previousY;
-
+        const float deltaX = event->x() - previousX;
+        const float deltaY = event->y() - previousY;
         float actualMovementX, actualMovementY;
         if(mIsIn2DMode) {
             actualMovementX = deltaX*((mRight - mLeft)/width());
             actualMovementY = deltaY*((mTop - mBottom)/height());
         } else {
-            float viewportWidth = tan((fieldOfViewX * M_PI / 180) * 0.5) * fabs(-mCameraPosition.z()) * 2;
-            float viewportHeight = tan((fieldOfViewY * M_PI / 180) * 0.5) * fabs(-mCameraPosition.z()) * 2;
-            actualMovementX = (deltaX * (viewportWidth / width()));
-            actualMovementY = (deltaY * (viewportHeight / height()));
+            float viewportWidth = std::tan((fieldOfViewX * M_PI / 180.0f) * 0.5f) * fabs(-mCameraPosition.z() + mCentroidZ) * 2.0f;
+            float viewportHeight = std::tan((fieldOfViewY * M_PI / 180.0f) * 0.5f) * fabs(-mCameraPosition.z() + mCentroidZ) * 2.0f;
+            actualMovementX = deltaX * viewportWidth / width();
+            actualMovementY = deltaY * viewportHeight / height();
         }
         mCameraPosition[0] += actualMovementX;
         mCameraPosition[1] -= actualMovementY;

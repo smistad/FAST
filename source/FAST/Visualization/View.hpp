@@ -90,6 +90,7 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
 
 		float mLeft, mRight, mBottom, mTop; // Used for ortho projection
         float mScale2D;
+		float mCentroidZ;
 
 		StreamingMode mStreamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES;
 
