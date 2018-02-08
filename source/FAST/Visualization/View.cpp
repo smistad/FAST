@@ -691,8 +691,8 @@ void View::mouseMoveEvent(QMouseEvent* event) {
 
         float actualMovementX, actualMovementY;
         if(mIsIn2DMode) {
-            actualMovementX = deltaX;
-            actualMovementY = deltaY;
+            actualMovementX = deltaX*((mRight - mLeft)/width());
+            actualMovementY = deltaY*((mTop - mBottom)/height());
         } else {
             float viewportWidth = tan((fieldOfViewX * M_PI / 180) * 0.5) * fabs(-mCameraPosition.z()) * 2;
             float viewportHeight = tan((fieldOfViewY * M_PI / 180) * 0.5) * fabs(-mCameraPosition.z()) * 2;
