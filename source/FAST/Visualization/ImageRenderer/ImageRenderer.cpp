@@ -98,8 +98,7 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, boo
         // Run kernel to fill the texture
         cl::CommandQueue queue = device->getCommandQueue();
 
-        //glEnable(GL_TEXTURE_2D);
-        if (mTexturesToRender.count(inputNr) > 0) {
+        if(mTexturesToRender.count(inputNr) > 0) {
             // Delete old texture
             glDeleteTextures(1, &mTexturesToRender[inputNr]);
             mTexturesToRender.erase(inputNr);

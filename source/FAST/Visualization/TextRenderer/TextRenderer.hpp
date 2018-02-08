@@ -29,7 +29,6 @@ class FAST_EXPORT  TextRenderer : public Renderer {
             POSITION_TOP_LEFT,
             POSITION_TOP_RIGHT
         };
-        void setPosition(Vector2i position);
         void setPosition(TextPosition position);
         void setFontSize(uint fontSize);
         void setColor(Color color);
@@ -42,9 +41,12 @@ class FAST_EXPORT  TextRenderer : public Renderer {
 
         View* mView;
 
-        std::string mText;
+        std::unordered_map<uint, uint> mTexturesToRender;
+        std::unordered_map<uint, Text::pointer> mTextUsed;
+        std::unordered_map<uint, uint> mVAO;
+        std::unordered_map<uint, DataObject::pointer> mDataToRender;
+
         Color mColor;
-        Vector2i mPosition2D;
         uint mFontSize;
         TextStyleType mStyle;
         TextPosition mPosition;
