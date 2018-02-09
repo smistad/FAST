@@ -87,7 +87,6 @@ int main() {
 
     TextRenderer::pointer textRenderer = TextRenderer::New();
     textRenderer->setView(window->getView());
-    textRenderer->setPosition(Vector2i(10, 40));
     textRenderer->setFontSize(32);
     textRenderer->setInputConnection(classToText->getOutputPort());
 
