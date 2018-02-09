@@ -12,6 +12,9 @@ namespace fast {
 
 void SliceRenderer::execute() {
     std::unique_lock<std::mutex> lock(mMutex);
+    if(mStop) {
+        return;
+    }
 
     // Check if current images has not been rendered, if not wait
     while(!mHasRendered) {

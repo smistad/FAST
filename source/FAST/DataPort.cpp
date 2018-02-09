@@ -174,7 +174,9 @@ void DataPort::setMaximumNumberOfFrames(uint frames) {
 
 void DataPort::stop() {
     mStop = true;
+    Reporter::info() << "STOPPING in DataPort for PO " << mProcessObject->getNameOfClass() << Reporter::end();
     if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES && !mIsStaticData) {
+        Reporter::info() << "SIGNALING SEMAPHORES" << Reporter::end();
         mFillCount->signal();
         mEmptyCount->signal();
     } else {
