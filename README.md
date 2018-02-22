@@ -10,15 +10,20 @@ International Journal of Computer Assisted Radiology and Surgery. February 2015.
 Preprint of article can be downloaded from [here](http://www.eriksmistad.no/wp-content/uploads/FAST_framework_for_heterogeneous_medical_image_computing_and_visualization.pdf).
 If you use FAST for research, please cite this article.
 
-Getting started with FAST
--------------------------
-
 [![Join the chat at https://gitter.im/smistad/FAST](https://badges.gitter.im/smistad/FAST.svg)](https://gitter.im/smistad/FAST?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+### Download
+
+If you are only interested in using/testing FAST, and not developing FAST, please download a [stable binary release](https://github.com/smistad/FAST/releases).
+
+### Build
 
 To setup and build the framework, see the instructions for your operating system:
 * [Linux (Ubuntu)](https://github.com/smistad/FAST/wiki/Linux-instructions)
 * [Windows](https://github.com/smistad/FAST/wiki/Windows-instructions)
 * [Mac OS X](https://github.com/smistad/FAST/wiki/Mac-OS-X-instructions)
+
+### User guide and examples
 
 To start using the framework, see the [Getting started with FAST](https://github.com/smistad/FAST/wiki/Getting-started-with-FAST) guide or the [examples page](https://github.com/smistad/FAST/wiki/Examples).
 
