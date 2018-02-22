@@ -51,16 +51,8 @@ void View::removeAllRenderers() {
     mNonVolumeRenderers.clear();
 }
 
-float View::get2DPixelSpacing() {
-    return mPBOspacing*mScale2D;
-}
-
 void View::setBackgroundColor(Color color) {
 	mBackgroundColor = color;
-}
-
-void View::set2DPixelSpacing(float spacing) {
-	mPBOspacing = spacing;
 }
 
 View::View() {
@@ -76,7 +68,7 @@ View::View() {
     mRightButtonIsPressed = false;
     mQuit = false;
 	mCameraSet = false;
-	mPBOspacing = -1;
+    mAutoUpdateCamera = false;
 
     mFramerate = 60;
     // Set up a timer that will call update on this object at a regular interval
@@ -226,37 +218,42 @@ void View::unlockRenderers() {
     }
 }
 
+void View::getMinMaxFromBoundingBoxes(bool transform, Vector3f& min, Vector3f& max) {
+    // Get bounding boxes of all objects
+    BoundingBox box = mNonVolumeRenderers[0]->getBoundingBox(transform);
+    Vector3f corner = box.getCorners().row(0);
+    min[0] = corner[0];
+    max[0] = corner[0];
+    min[1] = corner[1];
+    max[1] = corner[1];
+    min[2] = corner[2];
+    max[2] = corner[2];
+    for (int i = 0; i < mNonVolumeRenderers.size(); i++) {
+        // Apply transformation to all b boxes
+        // Get max and min of x and y coordinates of the transformed b boxes
+        BoundingBox box = mNonVolumeRenderers[i]->getBoundingBox(transform);
+        MatrixXf corners = box.getCorners();
+        //reportInfo() << box << Reporter::end();
+        for (int j = 0; j < 8; j++) {
+            for (uint k = 0; k < 3; k++) {
+                if (corners(j, k) < min[k])
+                    min[k] = corners(j, k);
+
+                if (corners(j, k) > max[k])
+                    max[k] = corners(j, k);
+            }
+        }
+    }
+}
+
 void View::recalculateCamera() {
     if(mIsIn2DMode) {
         // TODO Initialize 2D
        // Initialize camera
-        // Get bounding boxes of all objects
         Vector3f min, max;
-        Vector3f centroid;
-        BoundingBox box = mNonVolumeRenderers[0]->getBoundingBox(false);
-        Vector3f corner = box.getCorners().row(0);
-        min[0] = corner[0];
-        max[0] = corner[0];
-        min[1] = corner[1];
-        max[1] = corner[1];
-        min[2] = corner[2];
-        max[2] = corner[2];
-        for (int i = 0; i < mNonVolumeRenderers.size(); i++) {
-            // Apply transformation to all b boxes
-            // Get max and min of x and y coordinates of the transformed b boxes
-            BoundingBox box = mNonVolumeRenderers[i]->getBoundingBox(false);
-            MatrixXf corners = box.getCorners();
-            //reportInfo() << box << Reporter::end();
-            for (int j = 0; j < 8; j++) {
-                for (uint k = 0; k < 3; k++) {
-                    if (corners(j, k) < min[k])
-                        min[k] = corners(j, k);
-
-                    if (corners(j, k) > max[k])
-                        max[k] = corners(j, k);
-                }
-            }
-        }
+        getMinMaxFromBoundingBoxes(false, min, max);
+        mBBMin = min;
+        mBBMax = max;
         // Calculate area of each side of the resulting bounding box
         float area[3] = { (max[0] - min[0]) * (max[1] - min[1]), // XY plane
         (max[1] - min[1]) * (max[2] - min[2]), // YZ plane
@@ -297,6 +294,7 @@ void View::recalculateCamera() {
             break;
         }
         // Max pos - half of the size
+        Vector3f centroid;
         centroid[0] = max[0] - (max[0] - min[0]) * 0.5;
         centroid[1] = max[1] - (max[1] - min[1]) * 0.5;
         centroid[2] = max[2] - (max[2] - min[2]) * 0.5;
@@ -372,31 +370,10 @@ void View::recalculateCamera() {
         // Initialize camera
         // Get bounding boxes of all objects
         Vector3f min, max;
-        Vector3f centroid;
-        BoundingBox box = mNonVolumeRenderers[0]->getBoundingBox(true);
-        Vector3f corner = box.getCorners().row(0);
-        min[0] = corner[0];
-        max[0] = corner[0];
-        min[1] = corner[1];
-        max[1] = corner[1];
-        min[2] = corner[2];
-        max[2] = corner[2];
-        for (int i = 0; i < mNonVolumeRenderers.size(); i++) {
-            // Apply transformation to all b boxes
-            // Get max and min of x and y coordinates of the transformed b boxes
-            BoundingBox box = mNonVolumeRenderers[i]->getBoundingBox(true);
-            MatrixXf corners = box.getCorners();
-            //reportInfo() << box << Reporter::end();
-            for (int j = 0; j < 8; j++) {
-                for (uint k = 0; k < 3; k++) {
-                    if (corners(j, k) < min[k])
-                        min[k] = corners(j, k);
+        getMinMaxFromBoundingBoxes(true, min, max);
+        mBBMin = min;
+        mBBMax = max;
 
-                    if (corners(j, k) > max[k])
-                        max[k] = corners(j, k);
-                }
-            }
-        }
         // Calculate area of each side of the resulting bounding box
         float area[3] = {(max[0] - min[0]) * (max[1] - min[1]), // XY plane
                          (max[1] - min[1]) * (max[2] - min[2]), // YZ plane
@@ -437,6 +414,7 @@ void View::recalculateCamera() {
                 break;
         }
         // Max pos - half of the size
+        Vector3f centroid;
         centroid[0] = max[0] - (max[0] - min[0]) * 0.5;
         centroid[1] = max[1] - (max[1] - min[1]) * 0.5;
         centroid[2] = max[2] - (max[2] - min[2]) * 0.5;
@@ -535,6 +513,14 @@ void View::paintGL() {
 
     glClearColor(mBackgroundColor.getRedValue(), mBackgroundColor.getGreenValue(), mBackgroundColor.getBlueValue(), 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    if(mAutoUpdateCamera) {
+        // If bounding box has changed, recalculate camera
+        Vector3f min, max;
+        getMinMaxFromBoundingBoxes(!mIsIn2DMode, min, max);
+        if(mBBMin != min || mBBMax != max)
+            recalculateCamera();
+    }
 
     if(mIsIn2DMode) {
 
@@ -935,6 +921,10 @@ void View::resetRenderers() {
 
 Vector4f View::getOrthoProjectionParameters() {
     return Vector4f(mLeft, mRight, mBottom, mTop);
+}
+
+void View::setAutoUpdateCamera(bool autoUpdate) {
+    mAutoUpdateCamera = autoUpdate;
 }
 
 /********************************************************************************************************/

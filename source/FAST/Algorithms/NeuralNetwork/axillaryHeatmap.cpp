@@ -73,8 +73,6 @@ int main() {
         window->getView()->enableRuntimeMeasurements();
         window->setSize(1920, 1080);
         //window->enableFullscreen();
-        if(item.second[0].find(".png") != std::string::npos)
-            window->getView()->set2DPixelSpacing(0.3);
         window->set2DMode();
         window->getView()->setBackgroundColor(Color::Black());
         window->start();

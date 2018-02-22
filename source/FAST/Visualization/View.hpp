@@ -38,14 +38,13 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
         ~View();
         void recalculateCamera();
         void setBackgroundColor(Color color);
-        void set2DPixelSpacing(float spacing);
+        void setAutoUpdateCamera(bool autoUpdate);
     	Vector4f getOrthoProjectionParameters();
 
 		std::string getNameOfClass() const {
 		    return "View";
 		};
         View();
-		float get2DPixelSpacing();
         void setStreamingMode(StreamingMode mode);
 		std::vector<Renderer::pointer> getRenderers();
     private:
@@ -55,7 +54,6 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
 		bool NonVolumesTurn;
 		GLuint renderedDepthText;
 		GLuint fbo, fbo2, render_buf;
-		float mPBOspacing;
 		GLuint renderedTexture0, renderedTexture1;
 		GLuint programGLSL;
 		void initShader();
@@ -82,6 +80,8 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
         float fieldOfViewX, fieldOfViewY;
         float aspect;
         bool mIsIn2DMode;
+        bool mAutoUpdateCamera;
+		Vector3f mBBMin, mBBMax;
 
         bool mLeftMouseButtonIsPressed;
         bool mRightButtonIsPressed;
@@ -96,6 +96,7 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
 
         friend class ComputationThread;
     protected:
+        void getMinMaxFromBoundingBoxes(bool transform, Vector3f& min, Vector3f& max);
         void initializeGL();
         void paintGL();
         void resizeGL(int width, int height);
