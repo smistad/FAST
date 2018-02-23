@@ -43,11 +43,11 @@ inline int getVTKTypeFromDataType(const DataType type) {
 template <class T>
 inline bool compareVTKDataWithFASTData(vtkSmartPointer<vtkImageData> vtkImage, void* fastData) {
     int * size = vtkImage->GetDimensions();
-    unsigned int width = size[0];
-    unsigned int height = size[1];
+    int width = size[0];
+    int height = size[1];
     if(vtkImage->GetDataDimension() == 2) {
-        for(unsigned int x = 0; x < width; x++) {
-        for(unsigned int y = 0; y < height; y++) {
+        for(int x = 0; x < width; x++) {
+        for(int y = 0; y < height; y++) {
             T fastValue = ((T*)fastData)[x+y*width];
             T vtkValue = *(static_cast<T*>(vtkImage->GetScalarPointer(x,y,0)));
             if(fastValue != vtkValue) {
@@ -55,10 +55,10 @@ inline bool compareVTKDataWithFASTData(vtkSmartPointer<vtkImageData> vtkImage, v
             }
         }}
     } else {
-        unsigned int depth = size[2];
-        for(unsigned int x = 0; x < width; x++) {
-        for(unsigned int y = 0; y < height; y++) {
-        for(unsigned int z = 0; z < depth; z++) {
+        int depth = size[2];
+        for(int x = 0; x < width; x++) {
+        for(int y = 0; y < height; y++) {
+        for(int z = 0; z < depth; z++) {
             // TODO check the addressing here
             T fastValue = ((T*)fastData)[x+y*width+z*width*height];
             T vtkValue = *(static_cast<T*>(vtkImage->GetScalarPointer(x,y,z)));
@@ -78,9 +78,9 @@ TEST_CASE("No input given to the VTKImageExporter", "[fast][VTK][VTKImageExporte
 }
 
 TEST_CASE("Export a 2D image from FAST to VTK", "[fast][VTK][VTKImageExporter]") {
-    unsigned int width = 32;
-    unsigned int height = 40;
-    for(unsigned int typeNr = 0; typeNr < 5; typeNr++) { // for all types
+    int width = 32;
+    int height = 40;
+    for(int typeNr = 0; typeNr < 5; typeNr++) { // for all types
         Image::pointer fastImage = Image::New();
         DataType type = (DataType)typeNr;
         void* data = allocateRandomData(width*height, type);
@@ -108,10 +108,10 @@ TEST_CASE("Export a 2D image from FAST to VTK", "[fast][VTK][VTKImageExporter]")
 }
 
 TEST_CASE("Export a 3D image from FAST to VTK", "[fast][VTK][VTKImageExporter]") {
-    unsigned int width = 32;
-    unsigned int height = 20;
-    unsigned int depth = 8;
-    for(unsigned int typeNr = 0; typeNr < 5; typeNr++) { // for all types
+    int width = 32;
+    int height = 20;
+    int depth = 8;
+    for(int typeNr = 0; typeNr < 5; typeNr++) { // for all types
         Image::pointer fastImage = Image::New();
         DataType type = (DataType)typeNr;
         void* data = allocateRandomData(width*height*depth, type);
@@ -139,12 +139,12 @@ TEST_CASE("Export a 3D image from FAST to VTK", "[fast][VTK][VTKImageExporter]")
     }
 }
 
+/*
 TEST_CASE("Export an image from FAST to VTK and visualize", "[fast][VTK][VTKImageExporter]") {
 
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "US/US-2D.jpg");
     DataPort::pointer port = importer->getOutputPort();
-    importer->update(0);
     Image::pointer fastImage = port->getNextFrame();
 
     // VTK Export and render example
@@ -187,6 +187,7 @@ TEST_CASE("Export an image from FAST to VTK and visualize", "[fast][VTK][VTKImag
     renderWindowInteractor->SetRenderWindow(renderWindow);
     renderer2->AddActor2D(imageActor);
     renderWindow->Render();
-    //renderWindowInteractor->Start(); // this will block
+    renderWindowInteractor->Start(); // this will block
     );
 }
+*/

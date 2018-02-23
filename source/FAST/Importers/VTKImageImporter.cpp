@@ -8,36 +8,40 @@
 #include <vtkImageData.h>
 using namespace fast;
 
-vtkStandardNewMacro(VTKImageImporter);
+vtkStandardNewMacro(VTKtoFAST);
 
-VTKImageImporter::VTKImageImporter() {
+VTKtoFAST::VTKtoFAST() {
     this->SetNumberOfOutputPorts(0);
     this->SetNumberOfInputPorts(1);
+}
+
+VTKImageImporter::VTKImageImporter() {
     createOutputPort<Image>(0);
     mIsModified = true;
+    mVTKProcessObject = VTKtoFAST::New();
 }
 
 template <class T>
 void* readVTKData(vtkImageData* image) {
     // TODO component support
     int * size = image->GetDimensions();
-    unsigned int width = size[0];
-    unsigned int height = size[1];
+    int width = size[0];
+    int height = size[1];
     if(image->GetDataDimension() == 2) {
         T* fastPixelData = new T[width*height];
-        for(unsigned int x = 0; x < width; x++) {
-        for(unsigned int y = 0; y < height; y++) {
-            T* pixel = static_cast<T*>(image->GetScalarPointer(x,height-y,0));
+        for(int x = 0; x < width; x++) {
+        for(int y = 0; y < height; y++) {
+            T* pixel = static_cast<T*>(image->GetScalarPointer(x,height - y - 1,0));
             fastPixelData[x+y*width] = pixel[0];
         }}
         return (void*)fastPixelData;
     } else if(image->GetDataDimension() == 3) {
-        unsigned int depth = size[2];
+        int depth = size[2];
         T* fastPixelData = new T[width*height*depth];
-        for(unsigned int x = 0; x < width; x++) {
-        for(unsigned int y = 0; y < height; y++) {
-        for(unsigned int z = 0; z < depth; z++) {
-            T*  pixel = static_cast<T*>(image->GetScalarPointer(x,height-y,z));
+        for(int x = 0; x < width; x++) {
+        for(int y = 0; y < height; y++) {
+        for(int z = 0; z < depth; z++) {
+            T*  pixel = static_cast<T*>(image->GetScalarPointer(x, height - y - 1,z));
             fastPixelData[x+y*width+z*width*height] = pixel[0];
         }}}
         return (void*)fastPixelData;
@@ -46,6 +50,7 @@ void* readVTKData(vtkImageData* image) {
         return NULL;
     }
 }
+
 void transferVTKDataToFAST(vtkImageData* image, Image::pointer output) {
 
     void* data;
@@ -89,7 +94,7 @@ void transferVTKDataToFAST(vtkImageData* image, Image::pointer output) {
 }
 
 
-int VTKImageImporter::RequestData(
+int VTKtoFAST::RequestData(
         vtkInformation* vtkNotUsed(request),
         vtkInformationVector** inputVector,
         vtkInformationVector* outputVector) {
@@ -97,13 +102,23 @@ int VTKImageImporter::RequestData(
     // Get the input data
     vtkImageData* input = vtkImageData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
 
-    transferVTKDataToFAST(input, getOutputData<Image>());
+    transferVTKDataToFAST(input, mFASTImage);
 
     return 1;
 }
 
+void VTKtoFAST::setFASTImage(Image::pointer image) {
+    mFASTImage = image;
+}
+
 
 void VTKImageImporter::execute() {
+    Image::pointer image = getOutputData<Image>();
+    mVTKProcessObject->setFASTImage(image);
     // Run VTK pipeline
-    Update();
+    mVTKProcessObject->Update();
+}
+
+VTKtoFAST *VTKImageImporter::getVTKProcessObject() {
+    return mVTKProcessObject;
 }

@@ -25,19 +25,19 @@ void transferDataToVTKImage(Image::pointer input, vtkSmartPointer<vtkImageData> 
     ImageAccess::pointer access = input->getImageAccess(ACCESS_READ);
     T* fastPixelData = (T*)access->get();
 
-    unsigned int width = input->getWidth();
-    unsigned int height = input->getHeight();
+    int width = input->getWidth();
+    int height = input->getHeight();
     if(input->getDimensions() == 2) {
-        for(unsigned int x = 0; x < width; x++) {
-        for(unsigned int y = 0; y < height; y++) {
+        for(int x = 0; x < width; x++) {
+        for(int y = 0; y < height; y++) {
             T * pixel = static_cast<T*>(output->GetScalarPointer(x,y,0));
             pixel[0] = fastPixelData[x+y*width];
         }}
     } else {
-        unsigned int depth = input->getDepth();
-        for(unsigned int x = 0; x < width; x++) {
-        for(unsigned int y = 0; y < height; y++) {
-        for(unsigned int z = 0; z < depth; z++) {
+        int depth = input->getDepth();
+        for(int x = 0; x < width; x++) {
+        for(int y = 0; y < height; y++) {
+        for(int z = 0; z < depth; z++) {
             // TODO check the addressing here
             T * pixel = static_cast<T*>(output->GetScalarPointer(x,y,z));
             pixel[0] = fastPixelData[x+y*width+z*width*height];
