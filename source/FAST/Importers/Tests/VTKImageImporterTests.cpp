@@ -10,7 +10,9 @@ using namespace fast;
 TEST_CASE("Import an image from VTK to FAST", "[fast][VTK][VTKImageImporter]") {
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "US/US-2D.jpg");
-    Image::pointer fastImage = importer->getOutputData<Image>();
+    DataPort::pointer port = importer->getOutputPort();
+    importer->update(0);
+    Image::pointer fastImage = port->getNextFrame();
 
     // VTK Export
     vtkSmartPointer<VTKImageExporter> vtkExporter = VTKImageExporter::New();
@@ -20,8 +22,9 @@ TEST_CASE("Import an image from VTK to FAST", "[fast][VTK][VTKImageImporter]") {
     // VTK Import example
     vtkSmartPointer<VTKImageImporter> vtkImporter = VTKImageImporter::New();
     vtkImporter->SetInputConnection(vtkExporter->GetOutputPort());
-    Image::pointer importedImage = vtkImporter->getOutputData<Image>();
-    vtkImporter->update();
+    DataPort::pointer port2 = vtkImporter->getOutputPort();
+    vtkImporter->update(0);
+    Image::pointer importedImage = port2->getNextFrame();
 
     CHECK(importedImage->getWidth() == fastImage->getWidth());
     CHECK(importedImage->getHeight() == fastImage->getHeight());

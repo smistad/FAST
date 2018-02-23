@@ -50,7 +50,7 @@ int VTKImageExporter::RequestData(
         vtkInformationVector** inputVector,
         vtkInformationVector* outputVector) {
 
-    update(); // Run FAST pipeline
+    update(0); // Run FAST pipeline
 
     Image::pointer input = getInputData<Image>();
 
