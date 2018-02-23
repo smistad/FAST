@@ -58,7 +58,7 @@ void ProcessObject::update(uint64_t timestep, StreamingMode streamingMode) {
 
     // Set timestep and streaming mode for output connections
     // Also remove dead output ports if any
-    for(auto outputPorts : mOutputConnections) {
+    for(auto&& outputPorts : mOutputConnections) {
         std::vector<int> deadOutputPorts;
         for(int i = 0; i < outputPorts.second.size(); ++i) {
             auto output = outputPorts.second[i];
