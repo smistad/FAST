@@ -102,7 +102,12 @@ void Window::setTitle(std::string title) {
 void Window::cleanup() {
     //delete QApplication::instance();
 }
-
+static QGLFormat getGLFormat() {
+    QGLFormat qglFormat;
+    qglFormat.setVersion(3,3);
+    qglFormat.setProfile(QGLFormat::CoreProfile);
+    return qglFormat;
+}
 void Window::initializeQtApp() {
     // Make sure only one QApplication is created
     if(!QApplication::instance()) {
@@ -124,7 +129,7 @@ void Window::initializeQtApp() {
 
         // Create GL context to be shared with the CL contexts
         QGLWidget* widget = new QGLWidget;
-        mMainGLContext = new QGLContext(QGLFormat::defaultFormat(), widget); // by including widget here the context becomes valid
+        mMainGLContext = new QGLContext(View::getGLFormat(), widget); // by including widget here the context becomes valid
         mMainGLContext->create();
         if(!mMainGLContext->isValid()) {
             throw Exception("Qt GL context is invalid!");
