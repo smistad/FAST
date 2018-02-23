@@ -43,8 +43,8 @@ inline int getVTKTypeFromDataType(const DataType type) {
 template <class T>
 inline bool compareVTKDataWithFASTData(vtkSmartPointer<vtkImageData> vtkImage, void* fastData) {
     int * size = vtkImage->GetDimensions();
-    unsigned int width = size[0]-1;
-    unsigned int height = size[1]-1;
+    unsigned int width = size[0];
+    unsigned int height = size[1];
     if(vtkImage->GetDataDimension() == 2) {
         for(unsigned int x = 0; x < width; x++) {
         for(unsigned int y = 0; y < height; y++) {
@@ -55,7 +55,7 @@ inline bool compareVTKDataWithFASTData(vtkSmartPointer<vtkImageData> vtkImage, v
             }
         }}
     } else {
-        unsigned int depth = size[2]-1;
+        unsigned int depth = size[2];
         for(unsigned int x = 0; x < width; x++) {
         for(unsigned int y = 0; y < height; y++) {
         for(unsigned int z = 0; z < depth; z++) {
@@ -93,8 +93,8 @@ TEST_CASE("Export a 2D image from FAST to VTK", "[fast][VTK][VTKImageExporter]")
 
         // Check that vtk image has correct metadata
         int * size = vtkImage->GetDimensions();
-        CHECK(width == size[0]-1);
-        CHECK(height == size[1]-1);
+        CHECK(width == size[0]);
+        CHECK(height == size[1]);
         CHECK(2 == vtkImage->GetDataDimension());
         CHECK(vtkImage->GetScalarType() == getVTKTypeFromDataType(type));
 
@@ -124,9 +124,9 @@ TEST_CASE("Export a 3D image from FAST to VTK", "[fast][VTK][VTKImageExporter]")
 
         // Check that vtk image has correct metadata
         int * size = vtkImage->GetDimensions();
-        CHECK(width == size[0]-1);
-        CHECK(height == size[1]-1);
-        CHECK(depth == size[2]-1);
+        CHECK(width == size[0]);
+        CHECK(height == size[1]);
+        CHECK(depth == size[2]);
         CHECK(3 == vtkImage->GetDataDimension());
         CHECK(vtkImage->GetScalarType() == getVTKTypeFromDataType(type));
 
@@ -155,8 +155,8 @@ TEST_CASE("Export an image from FAST to VTK and visualize", "[fast][VTK][VTKImag
 
     // Check if images have same size
     int * size = vtkImage->GetDimensions();
-    CHECK(fastImage->getWidth() == size[0]-1);
-    CHECK(fastImage->getHeight() == size[1]-1);
+    CHECK(fastImage->getWidth() == size[0]);
+    CHECK(fastImage->getHeight() == size[1]);
 
 
     // VTK mess for getting the image on screen

@@ -21,8 +21,8 @@ template <class T>
 void* readVTKData(vtkImageData* image) {
     // TODO component support
     int * size = image->GetDimensions();
-    unsigned int width = size[0]-1;
-    unsigned int height = size[1]-1;
+    unsigned int width = size[0];
+    unsigned int height = size[1];
     if(image->GetDataDimension() == 2) {
         T* fastPixelData = new T[width*height];
         for(unsigned int x = 0; x < width; x++) {
@@ -32,7 +32,7 @@ void* readVTKData(vtkImageData* image) {
         }}
         return (void*)fastPixelData;
     } else if(image->GetDataDimension() == 3) {
-        unsigned int depth = size[2]-1;
+        unsigned int depth = size[2];
         T* fastPixelData = new T[width*height*depth];
         for(unsigned int x = 0; x < width; x++) {
         for(unsigned int y = 0; y < height; y++) {
@@ -79,9 +79,9 @@ void transferVTKDataToFAST(vtkImageData* image, Image::pointer output) {
 
     int * size = image->GetDimensions();
     if(image->GetDataDimension() == 2) {
-        output->create(size[0]-1, size[1]-1,type,1,Host::getInstance(),data);
+        output->create(size[0], size[1],type,1,Host::getInstance(),data);
     } else if(image->GetDataDimension() == 3) {
-        output->create(size[0]-1, size[1]-1,size[2]-1,type,1,Host::getInstance(),data);
+        output->create(size[0], size[1],size[2],type,1,Host::getInstance(),data);
     } else {
         throw Exception("Wrong number of dimensions in VTK image");
     }
