@@ -124,9 +124,10 @@ void Renderer::attachShader(std::string filename, std::string programName) {
     // Extract file extension and create the correct shader type
     auto idx = filename.rfind(".");
     auto ext = filename.substr(idx + 1);
-    if(ext == "comp") {
+    /*if(ext == "comp") { // symbol not present on mac
         shaderID = glCreateShader(GL_COMPUTE_SHADER);
-    } else if(ext == "frag") {
+    } else*/
+    if(ext == "frag") {
         shaderID = glCreateShader(GL_FRAGMENT_SHADER);
     } else if(ext == "geom") {
       shaderID = glCreateShader(GL_GEOMETRY_SHADER);

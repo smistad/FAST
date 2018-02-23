@@ -120,9 +120,9 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool
         glBindVertexArray(VAO_ID);
         float vertices[] = {
                 // vertex: x, y, z; tex coordinates: x, y
-                0.0f, height, 0.0f, 0.0f, 0.0f,
-                width, height, 0.0f, 1.0f, 0.0f,
-                width, 0.0f, 0.0f, 1.0f, 1.0f,
+                0.0f, (float)height, 0.0f, 0.0f, 0.0f,
+                (float)width, (float)height, 0.0f, 1.0f, 0.0f,
+                (float)width, 0.0f, 0.0f, 1.0f, 1.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
         };
         std::cout << "Drawing at 0 " << width << " " << height << std::endl;

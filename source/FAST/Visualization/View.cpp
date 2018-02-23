@@ -55,6 +55,13 @@ void View::setBackgroundColor(Color color) {
 	mBackgroundColor = color;
 }
 
+QGLFormat View::getGLFormat() {
+    QGLFormat qglFormat;
+    qglFormat.setVersion(3,3);
+    qglFormat.setProfile(QGLFormat::CoreProfile);
+    return qglFormat;
+}
+
 View::View() {
     createInputPort<Camera>(0, false);
 
@@ -79,7 +86,7 @@ View::View() {
 
 	NonVolumesTurn=true;
 
-    QGLContext* context = new QGLContext(QGLFormat::defaultFormat(), this);
+    QGLContext* context = new QGLContext(getGLFormat(), this);
     context->create(fast::Window::getMainGLContext());
     this->setContext(context);
     if(!context->isValid() || !context->isSharing()) {
