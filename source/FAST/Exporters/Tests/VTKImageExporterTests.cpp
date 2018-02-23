@@ -17,7 +17,7 @@
 
 using namespace fast;
 
-inline int getVTKTypeFromDataType(const DataType type) {
+static int getVTKTypeFromDataType(const DataType type) {
     int result = 0;
     switch(type) {
     case TYPE_FLOAT:
@@ -41,7 +41,7 @@ inline int getVTKTypeFromDataType(const DataType type) {
 }
 
 template <class T>
-inline bool compareVTKDataWithFASTData(vtkSmartPointer<vtkImageData> vtkImage, void* fastData) {
+static bool compareVTKDataWithFASTData(vtkSmartPointer<vtkImageData> vtkImage, void* fastData) {
     int * size = vtkImage->GetDimensions();
     int width = size[0];
     int height = size[1];

@@ -31,7 +31,7 @@ void* readVTKData(vtkImageData* image) {
         T* fastPixelData = new T[width*height];
         for(int x = 0; x < width; x++) {
         for(int y = 0; y < height; y++) {
-            T* pixel = static_cast<T*>(image->GetScalarPointer(x,height - y - 1,0));
+            T* pixel = static_cast<T*>(image->GetScalarPointer(x,y,0));
             fastPixelData[x+y*width] = pixel[0];
         }}
         return (void*)fastPixelData;
@@ -41,7 +41,7 @@ void* readVTKData(vtkImageData* image) {
         for(int x = 0; x < width; x++) {
         for(int y = 0; y < height; y++) {
         for(int z = 0; z < depth; z++) {
-            T*  pixel = static_cast<T*>(image->GetScalarPointer(x, height - y - 1,z));
+            T*  pixel = static_cast<T*>(image->GetScalarPointer(x,y,z));
             fastPixelData[x+y*width+z*width*height] = pixel[0];
         }}}
         return (void*)fastPixelData;
