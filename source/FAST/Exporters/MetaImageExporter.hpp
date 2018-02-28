@@ -12,11 +12,18 @@ class FAST_EXPORT  MetaImageExporter : public ProcessObject {
         void setFilename(std::string filename);
         void enableCompression();
         void disableCompression();
+        /**
+         * Add additional meta data to the mhd file
+         * @param key
+         * @param value
+         */
+        void setMetaData(std::string key, std::string value);
     private:
         MetaImageExporter();
         void execute();
 
         std::string mFilename;
+        std::map<std::string, std::string> mMetaData;
         bool mUseCompression;
 };
 

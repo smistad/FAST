@@ -146,6 +146,10 @@ void MetaImageExporter::execute() {
         mhdFile << "CompressedDataSize = " << compressedSize << "\n";
     }
 
+    for(auto&& item : mMetaData) {
+        mhdFile << item.first << " = " << item.second << "\n";
+    }
+
     // Remove any path information from rawFilename
     std::size_t slashPos = rawFilename.find_last_of('/');
     if(slashPos != std::string::npos) {
@@ -166,6 +170,10 @@ void MetaImageExporter::enableCompression() {
 void MetaImageExporter::disableCompression() {
     mUseCompression = false;
     mIsModified = true;
+}
+
+void MetaImageExporter::setMetaData(std::string key, std::string value) {
+    mMetaData[key] = value;
 }
 
 
