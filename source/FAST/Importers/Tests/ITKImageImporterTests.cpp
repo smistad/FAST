@@ -3,7 +3,7 @@
 
 using namespace fast;
 
-TEST_CASE("Import image from ITK to FAST", "[fast][ITK]") {
+TEST_CASE("Import image from ITK to FAST", "[fast][ITK][ITKImageImporter]") {
     // First create an ITK image
     typedef itk::Image<float, 2> ImageType;
     ImageType::Pointer image = ImageType::New();
@@ -18,8 +18,9 @@ TEST_CASE("Import image from ITK to FAST", "[fast][ITK]") {
     // Try to import the image to FAST
     ITKImageImporter<ImageType>::pointer importer = ITKImageImporter<ImageType>::New();
     importer->setInput(image);
-    importer->update();
-    Image::pointer fastImage = importer->getOutputData<Image>();
+    DataPort::pointer port = importer->getOutputPort();
+    importer->update(0);
+    Image::pointer fastImage = port->getNextFrame();
 
     CHECK(fastImage->getWidth() == region.GetSize()[0]);
     CHECK(fastImage->getHeight() == region.GetSize()[1]);

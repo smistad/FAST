@@ -39,12 +39,13 @@ class FAST_EXPORT  ITKImageExporter: public itk::ImageSource<TImage>, public Pro
 } // end namespace fast
 
 template<class TImage>
-inline fast::ITKImageExporter<TImage>::ITKImageExporter() {
+fast::ITKImageExporter<TImage>::ITKImageExporter() {
+    createInputPort<Image>(0);
 }
 
 template <class TImage>
 template <class T>
-inline void fast::ITKImageExporter<TImage>::transferDataToITKImage(Image::pointer input) {
+void fast::ITKImageExporter<TImage>::transferDataToITKImage(Image::pointer input) {
 
     typename TImage::Pointer output = this->GetOutput();
     typename TImage::RegionType region;
@@ -95,9 +96,9 @@ inline void fast::ITKImageExporter<TImage>::transferDataToITKImage(Image::pointe
 }
 
 template<class TImage>
-inline void fast::ITKImageExporter<TImage>::GenerateData() {
+void fast::ITKImageExporter<TImage>::GenerateData() {
 
-    update(); // Update FAST pipeline
+    update(0); // Update FAST pipeline
 
     Image::pointer input = getInputData<Image>();
     if(input->getDimensions() != TImage::ImageDimension)

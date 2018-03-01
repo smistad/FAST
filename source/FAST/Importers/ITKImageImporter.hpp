@@ -15,6 +15,7 @@ class FAST_EXPORT  ITKImageImporter : public ProcessObject {
     public:
         void setInput(typename TImage::Pointer image);
     private:
+        ITKImageImporter();
         void execute();
         void* getITKDataPointer();
 
@@ -24,7 +25,12 @@ class FAST_EXPORT  ITKImageImporter : public ProcessObject {
 } // end namespace fast
 
 template<class TImage>
-inline void fast::ITKImageImporter<TImage>::setInput(
+fast::ITKImageImporter<TImage>::ITKImageImporter() {
+    createOutputPort<fast::Image>(0);
+}
+
+template<class TImage>
+void fast::ITKImageImporter<TImage>::setInput(
         typename TImage::Pointer image) {
 
     mInput = image;
@@ -32,7 +38,7 @@ inline void fast::ITKImageImporter<TImage>::setInput(
 }
 
 template<class TImage>
-inline void* fast::ITKImageImporter<TImage>::getITKDataPointer() {
+void* fast::ITKImageImporter<TImage>::getITKDataPointer() {
     typename TImage::PixelType* data;
     itk::ImageRegionIterator<TImage> imageIterator(mInput,
             mInput->GetLargestPossibleRegion());
@@ -69,7 +75,7 @@ inline void* fast::ITKImageImporter<TImage>::getITKDataPointer() {
 
 
 template<class TImage>
-inline void fast::ITKImageImporter<TImage>::execute() {
+void fast::ITKImageImporter<TImage>::execute() {
 
     // Make sure ITK input is updated
     mInput->Update();
