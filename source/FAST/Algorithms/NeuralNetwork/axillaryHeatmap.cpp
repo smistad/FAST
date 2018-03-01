@@ -13,10 +13,10 @@ using namespace fast;
 int main() {
     Reporter::setGlobalReportMethod(Reporter::COUT);
     std::map<int, std::vector<std::string>> subjects;
-    /*
     subjects[1] = {
             "/home/smistad/data/eyeguide/axillary_nerve_block/1/2016-10-07-135630/US-2D_#.mhd"
     };
+    /*
     subjects[5] = {
             "/home/smistad/data/eyeguide/axillary_nerve_block/5/2016Dec30_082009/#.png",
             "/home/smistad/data/eyeguide/axillary_nerve_block/5/2016Dec30_082046/#.png",
@@ -31,15 +31,18 @@ int main() {
             "/home/smistad/data/eyeguide/axillary_nerve_block/22/2017-03-29-101035/US-2D_#.mhd",
             "/home/smistad/data/eyeguide/axillary_nerve_block/22/2017-03-29-101340/US-2D_#.mhd",
     };
-     */
     subjects[30] = {
             "/home/smistad/data/eyeguide/axillary_nerve_block/30/2017Apr25_103134/#.png",
+    };
+    */
+    subjects[40] = {
+        "/home/smistad/data/eyeguide/axillary_nerve_block/40/2017Nov28_090653/#.png",
     };
     for(auto item : subjects) {
         ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
         streamer->setFilenameFormats(item.second);
         streamer->setStartNumber(1);
-        streamer->setSleepTime(45);
+        streamer->setSleepTime(50);
 
         PixelClassifier::pointer segmentation = PixelClassifier::New();
         segmentation->setNrOfClasses(6);
@@ -51,7 +54,7 @@ int main() {
         segmentation->setHeatmapOutput();
         segmentation->setPreserveAspectRatio(true);
         segmentation->enableRuntimeMeasurements();
-        segmentation->setHorizontalFlipping(true);
+        //segmentation->setHorizontalFlipping(true);
 
         HeatmapRenderer::pointer renderer = HeatmapRenderer::New();
         renderer->addInputConnection(segmentation->getOutputPort(1), Color::Red());
@@ -59,8 +62,8 @@ int main() {
         renderer->addInputConnection(segmentation->getOutputPort(3), Color::Green());
         renderer->addInputConnection(segmentation->getOutputPort(4), Color::Purple());
         renderer->addInputConnection(segmentation->getOutputPort(5), Color::Cyan());
-        renderer->setMaxOpacity(0.3);
-        renderer->setMinConfidence(0.2);
+        renderer->setMaxOpacity(0.6);
+        //renderer->setMinConfidence(0.2);
         renderer->enableRuntimeMeasurements();
 
         ImageRenderer::pointer renderer2 = ImageRenderer::New();
