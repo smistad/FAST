@@ -29,5 +29,5 @@ __kernel void renderToTexture(
     value = (value - level + window/2) / window;
     value = clamp(value, 0.0f, 1.0f);
     value.w = 1.0f;
-    write_imagef(texture, (int2)(x,y), value);
+    write_imagef(texture, (int2)(x,get_image_height(image) - y - 1), value);
 }

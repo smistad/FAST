@@ -1,3 +1,4 @@
+#include <FAST/Visualization/LineRenderer/LineRenderer.hpp>
 #include "FAST/Testing.hpp"
 #include "FAST/Streamers/ImageFileStreamer.hpp"
 #include "KalmanFilter.hpp"
@@ -271,9 +272,9 @@ TEST_CASE("Model based segmentation with spline model on 2D cardiac US data", "[
     segmentation->setIterations(10);
 	segmentation->setStartIterations(5);
 
-	TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();
-	TriangleRenderer->addInputConnection(segmentation->getOutputPort());
-	TriangleRenderer->addInputConnection(segmentation->getDisplacementsOutputPort(), Color::Red(), 1.0);
+	LineRenderer::pointer lineRenderer = LineRenderer::New();
+	lineRenderer->addInputConnection(segmentation->getOutputPort());
+	lineRenderer->addInputConnection(segmentation->getDisplacementsOutputPort(), Color::Red(), 1.0);
 
 	ImageRenderer::pointer imageRenderer = ImageRenderer::New();
 	imageRenderer->addInputConnection(streamer->getOutputPort());
@@ -281,9 +282,9 @@ TEST_CASE("Model based segmentation with spline model on 2D cardiac US data", "[
 	SimpleWindow::pointer window = SimpleWindow::New();
 	window->getView()->setBackgroundColor(Color::Black());
 	window->addRenderer(imageRenderer);
-	window->addRenderer(TriangleRenderer);
+	window->addRenderer(lineRenderer);
 	window->setSize(1024, 1024);
 	window->set2DMode();
-	window->setTimeout(1000);
+	//window->setTimeout(1000);
 	window->start();
 }

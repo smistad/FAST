@@ -41,7 +41,7 @@ __kernel void renderToTexture(
         }
     }
 
-    write_imagef(texture, imagePosition, color);
+    write_imagef(texture, (int2)(imagePosition.x, get_image_height(image) - imagePosition.y - 1), color);
 }
 
 __kernel void render2D(

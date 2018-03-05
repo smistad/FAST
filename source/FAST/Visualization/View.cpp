@@ -350,6 +350,14 @@ void View::recalculateCamera() {
         mRight = max[xDirection]*scalingWidth;
         mBottom = min[yDirection]*scalingHeight;
         mTop = max[yDirection]*scalingHeight;
+        float tmp = mBottom;
+        mBottom = mTop;
+        mTop = tmp;
+        /*
+        tmp = mLeft;
+        mLeft = mRight;
+        mRight = tmp;
+         */
         mCameraPosition[0] = mLeft + (mRight - mLeft)*0.5f - centroid[0];
         mCameraPosition[1] = mBottom + (mTop - mBottom)*0.5f - centroid[1];
         //reportInfo() << "set zFar to " << zFar << Reporter::end();
@@ -358,6 +366,7 @@ void View::recalculateCamera() {
         //m3DViewingTransformation.pretranslate(-mRotationPoint); // Move to rotation point
         //m3DViewingTransformation.prerotate(Q.toRotationMatrix()); // Rotate
         //m3DViewingTransformation.pretranslate(mRotationPoint); // Move back from rotation point
+        m3DViewingTransformation(0, 0) *= -1.0f;
         m3DViewingTransformation.pretranslate(mCameraPosition);
         std::cout << "Centroid: " << centroid.transpose() << std::endl;
         std::cout << "Camera pos: " << mCameraPosition.transpose() << std::endl;
