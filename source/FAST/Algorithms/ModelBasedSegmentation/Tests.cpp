@@ -285,6 +285,6 @@ TEST_CASE("Model based segmentation with spline model on 2D cardiac US data", "[
 	window->addRenderer(lineRenderer);
 	window->setSize(1024, 1024);
 	window->set2DMode();
-	//window->setTimeout(1000);
+	window->setTimeout(1000);
 	window->start();
 }

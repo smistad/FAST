@@ -350,34 +350,26 @@ void View::recalculateCamera() {
         mRight = max[xDirection]*scalingWidth;
         mBottom = min[yDirection]*scalingHeight;
         mTop = max[yDirection]*scalingHeight;
-        float tmp = mBottom;
-        mBottom = mTop;
-        mTop = tmp;
-        /*
-        tmp = mLeft;
-        mLeft = mRight;
-        mRight = tmp;
-         */
-        mCameraPosition[0] = mLeft + (mRight - mLeft)*0.5f - centroid[0];
-        mCameraPosition[1] = mBottom + (mTop - mBottom)*0.5f - centroid[1];
-        //reportInfo() << "set zFar to " << zFar << Reporter::end();
-        //reportInfo() << "set zNear to " << zNear << Reporter::end();
+
+        mCameraPosition[0] = mLeft + (mRight - mLeft)*0.5f - centroid[0]; // center camera
+        mCameraPosition[1] = mBottom + (mTop - mBottom)*0.5f - centroid[1]; // center camera
+        mCameraPosition[1] = mCameraPosition[1] - 2.0f*(mBottom + (mTop - mBottom)*0.5f); // Compensate for Y flipping
+
         m3DViewingTransformation = Affine3f::Identity();
         //m3DViewingTransformation.pretranslate(-mRotationPoint); // Move to rotation point
         //m3DViewingTransformation.prerotate(Q.toRotationMatrix()); // Rotate
         //m3DViewingTransformation.pretranslate(mRotationPoint); // Move back from rotation point
-        m3DViewingTransformation(0, 0) *= -1.0f;
-        m3DViewingTransformation.pretranslate(mCameraPosition);
+        m3DViewingTransformation.scale(Vector3f(1, -1, 1)); // Flip y
+        m3DViewingTransformation.translate(mCameraPosition);
+        /*
         std::cout << "Centroid: " << centroid.transpose() << std::endl;
         std::cout << "Camera pos: " << mCameraPosition.transpose() << std::endl;
         std::cout << "width and height: " << this->width() << " " << this->height() << std::endl;
-
         std::cout << zNear << " " << zFar << std::endl;
         std::cout << min[xDirection] << " " << max[xDirection] << std::endl;
         std::cout << min[yDirection] << " " << max[yDirection] << std::endl;
-        // TODO the aspect ratio of the viewport and the orhto projection (left, right, bottom, top) has to match.
-
         std::cout << "Ortho params: " << mLeft << " " << mRight << " " << mBottom << " " << mTop << " " << scalingWidth << " " << scalingHeight << " " << zNear << " " << zFar << std::endl;
+         */
         mPerspectiveMatrix = loadOrthographicMatrix(mLeft, mRight, mBottom, mTop, zNear, zFar);
     } else {
         // 3D Mode
