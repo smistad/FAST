@@ -54,8 +54,8 @@ if(WIN32)
 	#set(BUILD_COMMAND set CL=/MP; nmake)
 	set(BUILD_COMMAND nmake)
 	set(CONFIGURE_COMMAND ${FAST_EXTERNAL_BUILD_DIR}/qt5/src/qt5/configure.bat)
-	set(URL "https://download.qt.io/archive/qt/5.8/5.8.0/single/qt-everywhere-opensource-src-5.8.0.zip")
-	set(URL_HASH SHA256=c57cf81c1394230c5a188b7601bb4c072314cb350d5d3d6b5b820426c60570e5)
+	set(URL "http://download.qt.io/archive/qt/5.9/5.9.4/single/qt-everywhere-opensource-src-5.9.4.zip")
+	set(URL_HASH SHA256=37c5347e3c98a2ac02c2368cd5d9af0bb2c8f2f4632306188238db4f8c644f08)
 	set(OPTIONS
             -opensource;
             -confirm-license;
