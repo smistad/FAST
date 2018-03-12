@@ -76,8 +76,8 @@ if(WIN32)
 else()
 	set(BUILD_COMMAND make -j4)
 	set(CONFIGURE_COMMAND ${FAST_EXTERNAL_BUILD_DIR}/qt5/src/qt5/configure)
-	set(URL "https://download.qt.io/archive/qt/5.8/5.8.0/single/qt-everywhere-opensource-src-5.8.0.tar.gz")
-	set(URL_HASH SHA256=9dc5932307ae452855863f6405be1f7273d91173dcbe4257561676a599bd58d3)
+	set(URL "http://download.qt.io/archive/qt/5.9/5.9.4/single/qt-everywhere-opensource-src-5.9.4.tar.xz")
+	set(URL_HASH SHA256=e3acd9cbeafba3aed9f14592f4d70bf0b255e0203943e8d2b4235002268274d5)
     if(APPLE)
         set(OPTIONS
             -opensource;

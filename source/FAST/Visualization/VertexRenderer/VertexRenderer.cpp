@@ -14,6 +14,11 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
     setShaderUniform("viewTransform", viewingMatrix);
 
     for(auto it : mDataToRender) {
+        // Create VAO
+        uint VAO_ID;
+        glGenVertexArrays(1, &VAO_ID);
+        glBindVertexArray(VAO_ID);
+
         Mesh::pointer points = it.second;
         float pointSize = mDefaultPointSize;
         if(mInputSizes.count(it.first) > 0) {
@@ -64,6 +69,7 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
         glDrawArrays(GL_POINTS, 0, points->getNrOfVertices());
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
 
         if(drawOnTop)
             glEnable(GL_DEPTH_TEST);

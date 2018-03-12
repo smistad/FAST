@@ -58,7 +58,7 @@ void View::setBackgroundColor(Color color) {
 QGLFormat View::getGLFormat() {
     QGLFormat qglFormat = QGLFormat::defaultFormat();
     qglFormat.setVersion(3,3);
-    qglFormat.setProfile(QGLFormat::CompatibilityProfile); // Triangle renderer will not work with core profile for some reason, must be using some legacy GL stuff
+    qglFormat.setProfile(QGLFormat::CoreProfile);
     return qglFormat;
 }
 

@@ -19,9 +19,7 @@
 
 namespace fast {
 
-#ifndef GL_RGBA32F // this is missing on windows and mac for some reason
-#define GL_RGBA32F 0x8814 
-#endif
+
 
 
 ImageRenderer::ImageRenderer() : Renderer() {
@@ -181,7 +179,6 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, boo
 
         mTexturesToRender[inputNr] = textureID;
         mImageUsed[inputNr] = input;
-        queue.finish();
     }
 
     drawTextures(perspectiveMatrix, viewingMatrix, mode2D);

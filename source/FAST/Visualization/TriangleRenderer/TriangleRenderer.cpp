@@ -55,6 +55,11 @@ void TriangleRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, 
     for(auto it : mDataToRender) {
         Mesh::pointer surfaceToRender = it.second;
 
+        // Create VAO
+        uint VAO_ID;
+        glGenVertexArrays(1, &VAO_ID);
+        glBindVertexArray(VAO_ID);
+
         AffineTransformation::pointer transform;
         if(mode2D) {
             // If rendering is in 2D mode we skip any transformations
@@ -130,6 +135,7 @@ void TriangleRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, 
 
         // Release buffer
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
         if(opacity < 1) {
             // Disable transparency
             glDisable(GL_BLEND);

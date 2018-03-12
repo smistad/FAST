@@ -1,5 +1,6 @@
 #version 330 core
 
+out vec4 FragColor;
 in vec4 vertex_color;
 
 void main()
@@ -8,6 +9,6 @@ void main()
     if(dot(circCoord, circCoord) > 0.25) {
         discard;
     } else {
-        gl_FragColor = vertex_color;
+        FragColor = vertex_color;
     }
 }
