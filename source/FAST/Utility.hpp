@@ -151,18 +151,24 @@ FAST_EXPORT Matrix4f loadPerspectiveMatrix(float fovy, float aspect, float zNear
 
 FAST_EXPORT Matrix4f loadOrthographicMatrix(float left, float right, float bottom, float top, float zNear, float zFar);
 
-/*
+/**
  * Creates a directory at the given path.
  * Throws exception if it fails
  */
 FAST_EXPORT void createDirectory(std::string path);
 
-/*
+/**
  * Creates all directories in the given path.
  * Throws exception if it fails
  */
 FAST_EXPORT void createDirectories(std::string path);
 
+/**
+ * Check if file exists
+ * @param filename
+ * @return
+ */
+FAST_EXPORT bool fileExists(std::string filename);
 
 /**
  * Returns a string of the current date

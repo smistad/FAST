@@ -4,6 +4,7 @@
 #include <cmath>
 #ifdef _WIN32
 #include <direct.h> // Needed for _mkdir
+#include <Shlwapi.h> // Needed for PathFileExists
 #else
 // Needed for making directory
 #include <sys/types.h>
@@ -661,6 +662,16 @@ void createDirectories(std::string path) {
             continue;
         }
     }
+}
+
+bool fileExists(std::string filename) {
+#ifdef _WIN32
+    int retval = PathFileExists(filename.c_str());
+    return retval == 1;
+#else
+    struct stat buffer;
+    return (stat (filename.c_str(), &buffer) == 0);
+#endif
 }
 
 std::string currentDateTime(std::string format) {
