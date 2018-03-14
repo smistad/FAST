@@ -28,7 +28,7 @@ class FAST_EXPORT  FileStreamer : public Streamer {
          */
         void setSleepTime(uint milliseconds);
         bool hasReachedEnd();
-        uint getNrOfFrames() const;
+        int getNrOfFrames();
         void producerStream();
         /**
          * Stops the streaming thread, and will not return until this thread is stopped.
@@ -38,6 +38,7 @@ class FAST_EXPORT  FileStreamer : public Streamer {
         ~FileStreamer();
     protected:
         virtual DataObject::pointer getDataFrame(std::string filename) = 0;
+        std::string getFilename(uint i, int currentSequence) const;
         FileStreamer();
     private:
         void execute();
@@ -45,10 +46,9 @@ class FAST_EXPORT  FileStreamer : public Streamer {
         bool mLoop;
         int mNrOfReplays;
         uint mZeroFillDigits;
-        uint mStartNumber;
-        uint mNrOfFrames;
-        uint mMaximumNrOfFrames;
-        bool mMaximumNrOfFramesSet;
+        int mStartNumber;
+        int mNrOfFrames;
+        int mMaximumNrOfFrames;
         uint mSleepTime;
         uint mStepSize;
 
@@ -64,7 +64,6 @@ class FAST_EXPORT  FileStreamer : public Streamer {
 
         std::vector<std::string> mFilenameFormats;
         std::string mTimestampFilename;
-
 
 
 };

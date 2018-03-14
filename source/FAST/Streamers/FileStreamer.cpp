@@ -17,10 +17,10 @@ FileStreamer::FileStreamer() {
     mFirstFrameIsInserted = false;
     mHasReachedEnd = false;
     mTimestampFilename = "";
-    mNrOfFrames = 0;
+    mNrOfFrames = -1;
     mSleepTime = 0;
     mStepSize = 1;
-    mMaximumNrOfFramesSet = false;
+    mMaximumNrOfFrames = -1;
     mStop = false;
 }
 
@@ -28,7 +28,30 @@ void FileStreamer::setNumberOfReplays(uint replays) {
     mNrOfReplays = replays;
 }
 
-uint FileStreamer::getNrOfFrames() const {
+int FileStreamer::getNrOfFrames() {
+    if(mNrOfFrames == -1) {
+        if(mMaximumNrOfFrames > 0) {
+            mNrOfFrames = mMaximumNrOfFrames;
+            return mNrOfFrames;
+        }
+        int frameCounter = 0;
+        int frame = mStartNumber;
+        int currentSequence = 0;
+        while(true) {
+            std::string filename = getFilename(frame, currentSequence);
+            if(!fileExists(filename)) {
+                // If file doesn't exists, move on to next sequence or stop
+                if(currentSequence < mFilenameFormats.size()-1) {
+                    currentSequence++;
+                } else {
+                    break;
+                }
+            }
+            frame += mStepSize;
+            frameCounter++;
+        }
+        mNrOfFrames = frameCounter;
+    }
     return mNrOfFrames;
 }
 
@@ -112,20 +135,7 @@ void FileStreamer::producerStream() {
                 break;
             }
         }
-        std::string filename = mFilenameFormats[currentSequence];
-        std::string frameNumber = std::to_string(i);
-        if(mZeroFillDigits > 0 && frameNumber.size() < mZeroFillDigits) {
-            std::string zeroFilling = "";
-            for(uint z = 0; z < mZeroFillDigits-frameNumber.size(); z++) {
-                zeroFilling += "0";
-            }
-            frameNumber = zeroFilling + frameNumber;
-        }
-        filename.replace(
-                filename.find("#"),
-                1,
-                frameNumber
-        );
+        std::string filename = getFilename(i, currentSequence);
         try {
             reportInfo() << "Filestreamer reading " << filename << reportEnd();
             DataObject::pointer dataFrame = getDataFrame(filename);
@@ -167,8 +177,11 @@ void FileStreamer::producerStream() {
             }
             if(mSleepTime > 0)
                 std::this_thread::sleep_for(std::chrono::milliseconds(mSleepTime));
-            mNrOfFrames++;
             i += mStepSize;
+            if(i == mMaximumNrOfFrames) {
+                throw FileNotFoundException();
+            }
+
         } catch(FileNotFoundException &e) {
             if(i > 0) {
                 reportInfo() << "Reached end of stream" << Reporter::end();
@@ -208,7 +221,25 @@ void FileStreamer::producerStream() {
     }
 }
 
-FileStreamer::~FileStreamer() {
+    std::string FileStreamer::getFilename(uint i, int currentSequence) const {
+        std::__cxx11::string filename = mFilenameFormats[currentSequence];
+        std::__cxx11::string frameNumber = std::__cxx11::to_string(i);
+        if(mZeroFillDigits > 0 && frameNumber.size() < mZeroFillDigits) {
+                std::__cxx11::string zeroFilling = "";
+                for(uint z = 0; z < mZeroFillDigits - frameNumber.size(); z++) {
+                    zeroFilling += "0";
+                }
+                frameNumber = zeroFilling + frameNumber;
+            }
+        filename.replace(
+                    filename.find("#"),
+                    1,
+                    frameNumber
+            );
+        return filename;
+    }
+
+    FileStreamer::~FileStreamer() {
     if(mStreamIsStarted) {
         if(mThread->get_id() != std::this_thread::get_id()) { // avoid deadlock
             stop();
