@@ -221,25 +221,25 @@ void FileStreamer::producerStream() {
     }
 }
 
-    std::string FileStreamer::getFilename(uint i, int currentSequence) const {
-        std::__cxx11::string filename = mFilenameFormats[currentSequence];
-        std::__cxx11::string frameNumber = std::__cxx11::to_string(i);
-        if(mZeroFillDigits > 0 && frameNumber.size() < mZeroFillDigits) {
-                std::__cxx11::string zeroFilling = "";
-                for(uint z = 0; z < mZeroFillDigits - frameNumber.size(); z++) {
-                    zeroFilling += "0";
-                }
-                frameNumber = zeroFilling + frameNumber;
+std::string FileStreamer::getFilename(uint i, int currentSequence) const {
+    std::string filename = mFilenameFormats[currentSequence];
+    std::string frameNumber = std::to_string(i);
+    if(mZeroFillDigits > 0 && frameNumber.size() < mZeroFillDigits) {
+            std::string zeroFilling = "";
+            for(uint z = 0; z < mZeroFillDigits - frameNumber.size(); z++) {
+                zeroFilling += "0";
             }
-        filename.replace(
-                    filename.find("#"),
-                    1,
-                    frameNumber
-            );
-        return filename;
-    }
+            frameNumber = zeroFilling + frameNumber;
+        }
+    filename.replace(
+                filename.find("#"),
+                1,
+                frameNumber
+        );
+    return filename;
+}
 
-    FileStreamer::~FileStreamer() {
+FileStreamer::~FileStreamer() {
     if(mStreamIsStarted) {
         if(mThread->get_id() != std::this_thread::get_id()) { // avoid deadlock
             stop();
