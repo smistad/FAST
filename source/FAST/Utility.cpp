@@ -4,7 +4,7 @@
 #include <cmath>
 #ifdef _WIN32
 #include <direct.h> // Needed for _mkdir
-#include <Shlwapi.h> // Needed for PathFileExists
+#include <io.h> // needed for _access_s
 #else
 // Needed for making directory
 #include <sys/types.h>
@@ -666,8 +666,7 @@ void createDirectories(std::string path) {
 
 bool fileExists(std::string filename) {
 #ifdef _WIN32
-    int retval = PathFileExists(filename.c_str());
-    return retval == 1;
+    return _access_s(filename.c_str(), 0) == 0;
 #else
     struct stat buffer;
     return (stat (filename.c_str(), &buffer) == 0);
