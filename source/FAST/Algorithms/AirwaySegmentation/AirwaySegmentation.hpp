@@ -13,6 +13,12 @@ class FAST_EXPORT  AirwaySegmentation : public SegmentationAlgorithm {
 	public:
 	    void setSeedPoint(int x, int y, int z);
 		void setSeedPoint(Vector3i seed);
+		/**
+		 * Set the sigma value of the gaussian smoothing performed before segmentation.
+		 * Default is 0.5. A higher value can be used for low dose CT.
+		 * @param sigma
+		 */
+		void setSmoothing(float sigma);
 	private:
 		AirwaySegmentation();
 		void execute();
@@ -21,6 +27,7 @@ class FAST_EXPORT  AirwaySegmentation : public SegmentationAlgorithm {
 		void morphologicalClosing(SharedPointer<Segmentation> segmentation);
 
 		Vector3i mSeedPoint;
+		float mSmoothingSigma = 0.5;
         bool mUseManualSeedPoint = false;
 };
 
