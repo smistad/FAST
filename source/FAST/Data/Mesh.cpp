@@ -6,7 +6,7 @@
 #include "FAST/Visualization/Window.hpp"
 #include <QApplication>
 #include <QGLFunctions>
-#include <QOpenGLFunctions_2_0>
+#include <QOpenGLFunctions_3_3_Core>
 #endif
 
 
@@ -270,7 +270,8 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
         }
         if(QGLContext::currentContext() == nullptr)
             Window::getMainGLContext()->makeCurrent();
-        QOpenGLFunctions_2_0* fun = new QOpenGLFunctions_2_0();
+
+        QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
         fun->initializeOpenGLFunctions();
 
         mCoordinates.resize(mNrOfVertices*3);
