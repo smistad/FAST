@@ -315,7 +315,7 @@ void MetaImageImporter::execute() {
     DataType type;
     if(typeName == "MET_SHORT" || typeName == "MET_INT") {
         type = TYPE_INT16;
-        if(typeName == "MET_USHORT") {
+        if(typeName == "MET_SHORT") {
             data = readRawData<short>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
         } else {
             reportWarning() << "Converting original dataset of type MET_INT (32 bit) to short (16 bit) overflow may occur." << reportEnd();
