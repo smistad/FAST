@@ -2,6 +2,7 @@
 #include "FAST/Config.hpp"
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <dirent.h> // needed for DIR
 #ifdef _WIN32
 #include <direct.h> // Needed for _mkdir
 #include <io.h> // needed for _access_s
@@ -671,6 +672,30 @@ bool fileExists(std::string filename) {
     struct stat buffer;
     return (stat (filename.c_str(), &buffer) == 0);
 #endif
+}
+
+std::vector<std::string> getFilesInDirectory(std::string path) {
+    std::vector<std::string> list;
+    DIR *dir = opendir(path.c_str());
+    if(dir != NULL) {
+        struct dirent *ent;
+        while ((ent = readdir (dir)) != NULL) {
+            if(ent->d_type == DT_REG) // Regular file
+                list.push_back(ent->d_name);
+        }
+        closedir(dir);
+    } else {
+        throw Exception("Unable to open directory " + path);
+    }
+
+    return list;
+}
+
+std::string getDirName(std::string path) {
+    // Replace \ with / so that this will work on windows
+    path = replace(path, "\\", "/");
+    path.erase(std::find(path.rbegin(), path.rend(), '/').base(), path.end());
+    return path;
 }
 
 std::string currentDateTime(std::string format) {

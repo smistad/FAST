@@ -1,5 +1,6 @@
 #include "ImageFileImporter.hpp"
 #include "MetaImageImporter.hpp"
+#include "DICOMFileImporter.hpp"
 #include "ImageImporter.hpp"
 #include "FAST/Data/Image.hpp"
 #include <algorithm>
@@ -31,6 +32,13 @@ void ImageFileImporter::execute() {
     std::string ext = mFilename.substr(mFilename.rfind(".")+1);
     if(matchExtension(ext, "mhd")) {
         MetaImageImporter::pointer importer = MetaImageImporter::New();
+        importer->setFilename(mFilename);
+        DataPort::pointer port = importer->getOutputPort();
+        importer->update(0); // Have to to update because otherwise the data will not be available
+        Image::pointer data = port->getNextFrame();
+        addOutputData(0, data);
+    } else if(matchExtension(ext, "dcm")) {
+        DICOMFileImporter::pointer importer = DICOMFileImporter::New();
         importer->setFilename(mFilename);
         DataPort::pointer port = importer->getOutputPort();
         importer->update(0); // Have to to update because otherwise the data will not be available
