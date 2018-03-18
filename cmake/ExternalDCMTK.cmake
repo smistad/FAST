@@ -20,7 +20,7 @@ ExternalProject_Add(dcmtk
             -DCMAKE_INSTALL_PREFIX:STRING=${FAST_EXTERNAL_INSTALL_DIR}
 )
 if(WIN32)
-    set(DCMTK_LIBRARIES libofstd.lib liboflog.lib libdcmdata.lib libdcmimgle.lib)
+    set(DCMTK_LIBRARIES ofstd.lib oflog.lib dcmdata.lib dcmimgle.lib)
 else(WIN32)
     set(DCMTK_LIBRARIES
         ${CMAKE_SHARED_LIBRARY_PREFIX}ofstd${CMAKE_SHARED_LIBRARY_SUFFIX}

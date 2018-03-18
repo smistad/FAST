@@ -2,7 +2,6 @@
 #include "FAST/Config.hpp"
 #define _USE_MATH_DEFINES
 #include <cmath>
-#include <dirent.h> // needed for DIR
 #ifdef _WIN32
 #include <direct.h> // Needed for _mkdir
 #include <io.h> // needed for _access_s
@@ -10,6 +9,7 @@
 // Needed for making directory
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <dirent.h> // needed for DIR
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenGL/gl.h>
 #else
@@ -676,6 +676,17 @@ bool fileExists(std::string filename) {
 
 std::vector<std::string> getFilesInDirectory(std::string path) {
     std::vector<std::string> list;
+#ifdef _WIN32
+	HANDLE hFind;
+	WIN32_FIND_DATA data;
+	hFind = FindFirstFile((path + "*").c_str(), &data);
+	if(hFind != INVALID_HANDLE_VALUE) {
+		do {
+			list.push_back(data.cFileName);
+		} while (FindNextFile(hFind, &data));
+		FindClose(hFind);
+	}
+#else
     DIR *dir = opendir(path.c_str());
     if(dir != NULL) {
         struct dirent *ent;
@@ -687,6 +698,7 @@ std::vector<std::string> getFilesInDirectory(std::string path) {
     } else {
         throw Exception("Unable to open directory " + path);
     }
+#endif
 
     return list;
 }

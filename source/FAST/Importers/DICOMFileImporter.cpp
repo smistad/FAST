@@ -163,6 +163,7 @@ void DICOMFileImporter::execute() {
             const int depth = seriesFiles.size();
             const DataType type = getDataType(image);
 
+			std::cout << "DEPTH: " << depth << std::endl;
             // Allocate space for volume
             void* data = allocateDataArray(width*height*depth, type, 1);
 

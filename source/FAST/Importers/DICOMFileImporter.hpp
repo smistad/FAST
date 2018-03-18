@@ -6,7 +6,7 @@
 
 namespace fast {
 
-class DICOMFileImporter : public Importer {
+class FAST_EXPORT DICOMFileImporter : public Importer {
     FAST_OBJECT(DICOMFileImporter)
     public:
         void setFilename(std::string filename);
