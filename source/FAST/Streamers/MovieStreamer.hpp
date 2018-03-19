@@ -6,7 +6,7 @@
 
 namespace fast {
 
-class MovieStreamer : public Streamer {
+class FAST_EXPORT MovieStreamer : public Streamer {
     FAST_OBJECT(MovieStreamer)
     public:
         void setFilename(std::string filename);
