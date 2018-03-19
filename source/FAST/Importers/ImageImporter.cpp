@@ -79,28 +79,16 @@ void ImageImporter::execute() {
     }
     reportInfo() << "Loaded image with size " << image.width() << " "  << image.height() << Reporter::end();
 
-    // Convert image to make sure color tables are not used
-    QImage convertedImage = image.convertToFormat(QImage::Format_RGB32);
+    QImage::Format format;
+    if(mGrayscale) {
+        format = QImage::Format_Grayscale8;
+    } else {
+        format = QImage::Format_RGB888;
+    }
+    QImage convertedImage = image.convertToFormat(format);
 
     // Get pixel data
-    const unsigned char * pixelData = convertedImage.constBits();
-    // The pixel data array should contain one uchar value for the
-    // R, G, B, A components for each pixel
-
-    // TODO: do some conversion to requested output format, also color vs. no color
-    if(mGrayscale) {
-        convertedPixelData = new uchar[image.width()*image.height()];
-        for(int i = 0; i < image.width() * image.height(); i++) {
-            convertedPixelData[i] = (uchar)round((pixelData[i*4]+pixelData[i*4+1]+pixelData[i*4+2])/3.0f);
-        }
-    } else {
-        for(int i = 0; i < image.width() * image.height(); i++) {
-            convertedPixelData = new uchar[image.width()*image.height()*3];
-            convertedPixelData[i * 3] = pixelData[i * 4 + 2];
-            convertedPixelData[i * 3 + 1] = pixelData[i * 4 + 1];
-            convertedPixelData[i * 3 + 2] = pixelData[i * 4 + 0];
-        }
-    }
+    convertedPixelData = convertedImage.bits();
 
     width = image.width();
     height = image.height();
@@ -126,7 +114,9 @@ void ImageImporter::execute() {
             getMainDevice(),
             convertedPixelData
     );
+#ifndef FAST_MODULE_VISUALIZATION
     delete[] convertedPixelData;
+#endif
 }
 
 ImageImporter::ImageImporter() {
