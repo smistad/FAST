@@ -1,5 +1,7 @@
 ![](https://github.com/smistad/FAST/wiki/images/fast_logo.png)
 
+[![Join the chat at https://gitter.im/smistad/FAST](https://badges.gitter.im/smistad/FAST.svg)](https://gitter.im/smistad/FAST?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 FAST (Framework for Heterogeneous Medical Image Computing and Visualization) is an open-source cross-platform framework with the main goal of making it easier to do processing and visualization of medical images on heterogeneous systems (CPU+GPU).
 
 A detailed description of the framework design can be found [on the project wiki](https://github.com/smistad/FAST/wiki/Framework-Design) or in the research article:  
@@ -10,7 +12,14 @@ International Journal of Computer Assisted Radiology and Surgery. February 2015.
 Preprint of article can be downloaded from [here](http://www.eriksmistad.no/wp-content/uploads/FAST_framework_for_heterogeneous_medical_image_computing_and_visualization.pdf).
 If you use FAST for research, please cite this article.
 
-[![Join the chat at https://gitter.im/smistad/FAST](https://badges.gitter.im/smistad/FAST.svg)](https://gitter.im/smistad/FAST?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+### Main features
+
+* **Data streaming** – Processing pipelines in FAST can handle both static and dynamic/temporal data without any change to the code. FAST can stream data from movie files, a sequence of images and even directly from ultrasound scanners using the OpenIGTLink protocol.
+* **Deep learning** – FAST is integrated with Google’s TensorFlow library making it possible to create real-time neural network pipelines.
+* **High-level data management** – Data objects in FAST represent data, such as an image, on all processors. FAST keeps data coherent across the different storage areas thereby removing the burden of explicit memory handling from the developer.
+* **High performance algorithms** – FAST has several high performance parallel OpenCL implementations of common algorithms, such as marching cubes surface extraction, Gaussian smoothing, threshold segmentation and seeded region growing.
+* **Fast concurrent visualization** – Rendering and computation are done in separate threads to ensure smooth responsive visualizations. Several types of visualizations are supported both 3D (mesh, point, line and image slice rendering) and 2D (2D image, image slice and segmentation/label rendering).
+* **Interoperability** – FAST can be integrated with pipelines from the Insight Toolkit (ITK) and the Visualization Toolkit (VTK) to send image data between the frameworks. FAST can also be easily integrated into existing Qt applications.
 
 ### Download
 
