@@ -83,4 +83,23 @@ void DataObject::setTimestep(uint64_t timestep) {
     mTimestep = timestep;
 }
 
+void DataObject::setMetadata(std::string name, std::string value) {
+    mMetadata[name] = value;
+}
+
+std::string DataObject::getMetadata(std::string name) const {
+    if(mMetadata.count(name) == 0)
+        throw Exception("Metadata " + name + " was not found.");
+
+    return mMetadata.at(name);
+}
+
+std::unordered_map<std::string, std::string> DataObject::getMetadata() const {
+    return mMetadata;
+}
+
+void DataObject::setMetadata(std::unordered_map<std::string, std::string> metadata) {
+    mMetadata = metadata;
+}
+
 } // end namespace fast

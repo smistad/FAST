@@ -13,6 +13,10 @@ class FAST_EXPORT  DataObject : public Object {
     public:
         DataObject();
         typedef SharedPointer<DataObject> pointer;
+        void setMetadata(std::string name, std::string value);
+        void setMetadata(std::unordered_map<std::string, std::string> metadata);
+        std::string getMetadata(std::string name) const;
+        std::unordered_map<std::string, std::string> getMetadata() const;
         unsigned long getTimestamp() const;
         void updateModifiedTimestamp();
         uint64_t getTimestep() const;
@@ -51,6 +55,8 @@ class FAST_EXPORT  DataObject : public Object {
         unsigned long mTimestampCreated;
 
         uint64_t mTimestep;
+
+        std::unordered_map<std::string, std::string> mMetadata;
 
 };
 

@@ -146,6 +146,7 @@ void MetaImageImporter::execute() {
     Matrix3f transformMatrix = Matrix3f::Identity();
     bool isCompressed = false;
     std::size_t compressedDataSize = 0;
+    std::unordered_map<std::string, std::string> metadata;
 
     do{
         std::getline(mhdFile, line);
@@ -302,6 +303,9 @@ void MetaImageImporter::execute() {
                     reportWarning() << "Out of range exception occured when reading transform matrix values from metaimage file" << reportEnd();
                 }
             }
+        } else {
+            // Unknown metadata, collect and add to image object
+            metadata[key] = value;
         }
 
     } while(!mhdFile.eof());
@@ -360,6 +364,9 @@ void MetaImageImporter::execute() {
     }
 
     output->setSpacing(spacing);
+
+    // Add metadata
+    output->setMetadata(metadata);
 
     // Create transformation
     

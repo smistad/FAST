@@ -146,7 +146,11 @@ void MetaImageExporter::execute() {
         mhdFile << "CompressedDataSize = " << compressedSize << "\n";
     }
 
-    for(auto&& item : mMetaData) {
+    // Add metadata
+    for(auto&& item : mMetadata) {
+        mhdFile << item.first << " = " << item.second << "\n";
+    }
+    for(auto&& item : input->getMetadata()) {
         mhdFile << item.first << " = " << item.second << "\n";
     }
 
@@ -172,8 +176,8 @@ void MetaImageExporter::disableCompression() {
     mIsModified = true;
 }
 
-void MetaImageExporter::setMetaData(std::string key, std::string value) {
-    mMetaData[key] = value;
+void MetaImageExporter::setMetadata(std::string key, std::string value) {
+    mMetadata[key] = value;
 }
 
 
