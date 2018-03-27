@@ -674,7 +674,9 @@ bool fileExists(std::string filename) {
 #endif
 }
 
-std::vector<std::string> getFilesInDirectory(std::string path) {
+std::vector<std::string> getDirectoryList(std::string path, bool getFiles, bool getDirectories) {
+    if(!getFiles && !getDirectories)
+        throw Exception("getFiles and getDirectories set to false in getDirectoryList");
     std::vector<std::string> list;
 #ifdef _WIN32
 	HANDLE hFind;
@@ -682,7 +684,11 @@ std::vector<std::string> getFilesInDirectory(std::string path) {
 	hFind = FindFirstFile((path + "*").c_str(), &data);
 	if(hFind != INVALID_HANDLE_VALUE) {
 		do {
-			list.push_back(data.cFileName);
+            if(getDirectories && data.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY) {
+                list.push_back(data.cFileName);
+			} else if(getFiles) {
+                list.push_back(data.cFileName);
+			}
 		} while (FindNextFile(hFind, &data));
 		FindClose(hFind);
 	}
@@ -691,8 +697,13 @@ std::vector<std::string> getFilesInDirectory(std::string path) {
     if(dir != NULL) {
         struct dirent *ent;
         while ((ent = readdir (dir)) != NULL) {
-            if(ent->d_type == DT_REG) // Regular file
+            if(getFiles && ent->d_type == DT_REG) // Regular file
                 list.push_back(ent->d_name);
+            if(getDirectories && ent->d_type == DT_DIR) { // Directory
+                if(std::string(ent->d_name) == "." || std::string(ent->d_name) == "..")
+                    continue;
+                list.push_back(ent->d_name);
+            }
         }
         closedir(dir);
     } else {

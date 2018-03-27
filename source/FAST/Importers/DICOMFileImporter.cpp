@@ -144,7 +144,7 @@ void DICOMFileImporter::execute() {
 
             // Get all files in directory which has same series instance UID
             std::string dirName = getDirName(mFilename);
-            std::vector<std::string> files = getFilesInDirectory(dirName);
+            std::vector<std::string> files = getDirectoryList(dirName);
             std::vector<std::string> seriesFiles;
             for(auto&& file : files) {
                 OFString seriesID2;

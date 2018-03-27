@@ -173,9 +173,11 @@ FAST_EXPORT bool fileExists(std::string filename);
 /**
  * Returns a list of all files in a directory
  * @param path
- * @return
+ * @param getFiles Set to true to find files in directory
+ * @param getDirectories Set to true to find subdirectories
+ * @return list of files or subdirectories
  */
-FAST_EXPORT std::vector<std::string> getFilesInDirectory(std::string path);
+FAST_EXPORT std::vector<std::string> getDirectoryList(std::string path, bool getFiles = true, bool getDirectories = false);
 
 /**
  * Returns the dir name of the given path. Example: getDirName("/home/user/something/file.txt")
