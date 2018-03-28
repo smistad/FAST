@@ -10,11 +10,13 @@ class FAST_EXPORT  ImageResampler : public ProcessObject {
 public:
     void setOutputSpacing(float spacingX, float spacingY);
     void setOutputSpacing(float spacingX, float spacingY, float spacingZ);
+    void setInterpolation(bool useInterpolation);
 private:
     ImageResampler();
     void execute();
 
     Vector3f mSpacing;
+    bool mInterpolationSet, mInterpolation;
 };
 
 }

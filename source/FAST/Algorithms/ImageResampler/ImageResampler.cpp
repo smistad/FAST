@@ -11,6 +11,8 @@ ImageResampler::ImageResampler() {
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/ImageResampler/ImageResampler3D.cl", "3D");
 
     mSpacing = Vector3f(-1, -1, -1);
+    mInterpolationSet = false;
+    mInterpolation = true;
 }
 
 void ImageResampler::setOutputSpacing(float spacingX, float spacingY) {
@@ -53,6 +55,11 @@ void ImageResampler::execute() {
     OpenCLDevice::pointer device = getMainDevice();
     cl::CommandQueue queue = device->getCommandQueue();
 
+    uchar useInterpolation = 1;
+    if(mInterpolationSet) {
+        useInterpolation = mInterpolation ? 1 : 0;
+    }
+
     if(input->getDimensions() == 2) {
         cl::Program program = getOpenCLProgram(device, "2D");
         cl::Kernel kernel(program, "resample2D");
@@ -64,6 +71,7 @@ void ImageResampler::execute() {
         kernel.setArg(1, *access2->get2DImage());
         kernel.setArg(2, scale.x());
         kernel.setArg(3, scale.y());
+        kernel.setArg(4, useInterpolation);
 
         queue.enqueueNDRangeKernel(
                 kernel,
@@ -84,6 +92,7 @@ void ImageResampler::execute() {
         kernel.setArg(2, scale.x());
         kernel.setArg(3, scale.y());
         kernel.setArg(4, scale.z());
+        kernel.setArg(5, useInterpolation);
 
         queue.enqueueNDRangeKernel(
                 kernel,
@@ -92,6 +101,11 @@ void ImageResampler::execute() {
                 cl::NullRange
         );
     }
+}
+
+void ImageResampler::setInterpolation(bool useInterpolation) {
+    mInterpolationSet = true;
+    mInterpolation = useInterpolation;
 }
 
 }
