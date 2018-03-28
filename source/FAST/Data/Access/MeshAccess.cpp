@@ -105,7 +105,7 @@ void MeshAccess::addVertex(MeshVertex v) {
     mColors->push_back(0);
     mColors->push_back(0);
     mColors->push_back(0);
-    setVertex(mCoordinates->size()/3, v);
+    setVertex(mCoordinates->size()/3 - 1, v);
 }
 
 void MeshAccess::addTriangle(MeshTriangle t) {

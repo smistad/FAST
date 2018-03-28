@@ -36,9 +36,9 @@ class FAST_EXPORT Mesh : public SpatialDataObject {
         VertexBufferObjectAccess::pointer getVertexBufferObjectAccess(accessType access);
         MeshAccess::pointer getMeshAccess(accessType access);
         MeshOpenCLAccess::pointer getOpenCLAccess(accessType access, OpenCLDevice::pointer device);
-        int getNrOfTriangles() const;
-        int getNrOfLines() const;
-        int getNrOfVertices() const;
+        int getNrOfTriangles();
+        int getNrOfLines();
+        int getNrOfVertices();
         void setBoundingBox(BoundingBox box);
         ~Mesh();
     private:
