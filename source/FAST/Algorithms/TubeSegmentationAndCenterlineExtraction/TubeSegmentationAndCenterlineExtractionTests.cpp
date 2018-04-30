@@ -9,7 +9,45 @@
 #include "FAST/Algorithms/ImageCropper/ImageCropper.hpp"
 
 namespace fast {
+/*
+TEST_CASE("TSF liver", "[tsf][liver]") {
+    ImageFileImporter::pointer importer = ImageFileImporter::New();
+    importer->setFilename("/home/smistad/data/liver/CT-Lever-B-05012012/series1.mhd");
 
+    TubeSegmentationAndCenterlineExtraction::pointer tubeExtraction = TubeSegmentationAndCenterlineExtraction::New();
+    tubeExtraction->setInputConnection(importer->getOutputPort());
+    tubeExtraction->extractBrightTubes();
+    tubeExtraction->setMinimumRadius(1);
+    tubeExtraction->setMaximumRadius(25);
+    tubeExtraction->setRadiusStep(0.5);
+    tubeExtraction->setSensitivity(0.95);
+    tubeExtraction->setMinimumIntensity(100);
+    tubeExtraction->setMaximumIntensity(200);
+    tubeExtraction->setMinimumTreeSize(500);
+    tubeExtraction->setKeepLargestTree(true);
+    tubeExtraction->enableAutomaticCropping();
+
+    SliceRenderer::pointer renderer = SliceRenderer::New();
+    //renderer->addInputConnection(tubeExtraction->getTDFOutputPort());
+    renderer->addInputConnection(importer->getOutputPort(), PLANE_Z);
+
+    LineRenderer::pointer lineRenderer = LineRenderer::New();
+    lineRenderer->addInputConnection(tubeExtraction->getCenterlineOutputPort(), Color::Blue(), 1);
+    lineRenderer->setDefaultDrawOnTop(true);
+
+    SurfaceExtraction::pointer surfaceExtraction = SurfaceExtraction::New();
+    surfaceExtraction->setInputConnection(tubeExtraction->getSegmentationOutputPort());
+
+    TriangleRenderer::pointer triangleRenderer = TriangleRenderer::New();
+    triangleRenderer->addInputConnection(surfaceExtraction->getOutputPort());
+
+    SimpleWindow::pointer window = SimpleWindow::New();
+    window->addRenderer(renderer);
+    window->addRenderer(triangleRenderer);
+    window->addRenderer(lineRenderer);
+    window->start();
+}
+ */
 /*
 TEST_CASE("TSF", "[tsf]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();

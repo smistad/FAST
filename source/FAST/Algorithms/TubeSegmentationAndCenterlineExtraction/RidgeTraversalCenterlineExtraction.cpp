@@ -266,7 +266,7 @@ void extractCenterlines(
         // Create queue
     std::priority_queue<point, std::vector<point>, PointComparison> queue;
 
-    std::cout << "Getting valid start points for centerline extraction.." << std::endl;
+    Reporter::info() << "Getting valid start points for centerline extraction.." << Reporter::end();
     float* TDFarray = (float*)TDFaccess->get();
     // Collect all valid start points
     #pragma omp parallel for
@@ -300,7 +300,7 @@ void extractCenterlines(
         }
     }
 
-    std::cout << "Processing " << queue.size() << " valid start points" << std::endl;
+    Reporter::info() << "Processing " << queue.size() << " valid start points" << Reporter::end();
     if(queue.size() == 0) {
         throw Exception("no valid start points found");
     }
@@ -483,7 +483,7 @@ void extractCenterlines(
         } // End for each direction
 
         // Check to see if new traversal can be added
-        std::cout << "Finished. Distance " << distance << " meanTube: " << meanTube/distance << std::endl;
+        //std::cout << "Finished. Distance " << distance << " meanTube: " << meanTube/distance << std::endl;
         if(distance > Dmin && meanTube/distance > minMeanTube && connections < 2) {
             //std::cout << "Finished. Distance " << distance << " meanTube: " << meanTube/distance << std::endl;
             //std::cout << "------------------- New centerlines added #" << counter << " -------------------------" << std::endl;
@@ -540,7 +540,7 @@ void extractCenterlines(
             }
         } // end if new point can be added
     } // End while queue is not empty
-    std::cout << "Finished traversal" << std::endl;
+    Reporter::info() << "Finished traversal" << Reporter::end();
 }
 
 void RidgeTraversalCenterlineExtraction::execute() {
@@ -589,12 +589,11 @@ void RidgeTraversalCenterlineExtraction::execute() {
 
 
     if(centerlineDistances.size() == 0) {
-        //throw SIPL::SIPLException("no centerlines were extracted");
-        std::cout << "No centerlines were extracted" << std::endl;
+        reportWarning() << "No centerlines were extracted" << reportEnd();
         delete[] centerlines;
         return;
     }
-    std::cout << centerlineDistances.size() << " centerline extracted" << std::endl;
+    reportInfo() << centerlineDistances.size() << " centerline extracted" << reportEnd();
 
     // Find largest connected tree and all trees above a certain size
     unordered_map<int, int>::iterator it;
