@@ -29,7 +29,7 @@ void ImageFileImporter::execute() {
         throw Exception("No filename was given to the ImageFileImporter");
 
     if(!fileExists(mFilename))
-        throw Exception("The file " + mFilename + " does not exist");
+        throw FileNotFoundException(mFilename);
 
     // Get file extension
     size_t pos = mFilename.rfind(".", -5);
