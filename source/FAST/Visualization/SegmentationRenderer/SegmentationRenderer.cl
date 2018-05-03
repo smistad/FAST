@@ -5,7 +5,8 @@ __kernel void renderToTexture(
         __write_only image2d_t texture,
         __global float* colors,
         __global char* fillArea,
-        __private int borderRadius
+        __private int borderRadius,
+        __private float opacity
         ) {
     const int2 imagePosition = {get_global_id(0), get_global_id(1)};
 
@@ -37,7 +38,7 @@ __kernel void renderToTexture(
         if(getColor == 1) {
             // TODO some out of bounds check here on colors?
             color.xyz = vload3(label, colors);
-            color.w = 1.0f; // Color opacity
+            color.w = opacity;
         }
     }
 

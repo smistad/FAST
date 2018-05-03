@@ -49,6 +49,7 @@ void SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
     std::lock_guard<std::mutex> lock(mMutex);
     OpenCLDevice::pointer device = getMainDevice();
 
+
     if(mColorsModified) {
         // Transfer colors to device (this doesn't have to happen every render call..)
         UniquePointer<float[]> colorData(new float[3*mLabelColors.size()]);
@@ -92,6 +93,7 @@ void SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
     mKernel.setArg(2, mColorBuffer);
     mKernel.setArg(3, mFillAreaBuffer);
     mKernel.setArg(4, mBorderRadius);
+    mKernel.setArg(5, mOpacity);
 
 
     for(auto it : mDataToRender) {
@@ -197,7 +199,10 @@ void SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
         queue.finish();
     }
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     drawTextures(perspectiveMatrix, viewingMatrix, mode2D);
+    glDisable(GL_BLEND);
 }
 
 void SegmentationRenderer::setBorderRadius(int radius) {
@@ -205,6 +210,12 @@ void SegmentationRenderer::setBorderRadius(int radius) {
         throw Exception("Border radius must be >= 0");
 
     mBorderRadius = radius;
+}
+
+void SegmentationRenderer::setOpacity(float opacity) {
+    if(opacity < 0 || opacity > 1)
+        throw Exception("SegmentationRenderer opacity has to be >= 0 and <= 1");
+    mOpacity = opacity;
 }
 
 }

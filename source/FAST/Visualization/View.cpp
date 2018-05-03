@@ -488,7 +488,6 @@ void View::initializeGL() {
     glEnable(GL_TEXTURE_2D);
     // Enable transparency
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // Update all renderes, so that getBoundingBox works
     for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
         mNonVolumeRenderers[i]->update(0, mStreamingMode);

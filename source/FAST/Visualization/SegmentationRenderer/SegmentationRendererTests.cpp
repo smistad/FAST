@@ -22,6 +22,7 @@ TEST_CASE("SegmentationRenderer on a thresholded 2D image", "[fast][Segmentation
 
     SegmentationRenderer::pointer renderer = SegmentationRenderer::New();
     renderer->addInputConnection(segmentation->getOutputPort());
+    renderer->setOpacity(0.5);
 
     SimpleWindow::pointer window = SimpleWindow::New();
     window->set2DMode();

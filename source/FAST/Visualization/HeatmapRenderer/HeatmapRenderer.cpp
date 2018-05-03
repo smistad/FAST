@@ -138,9 +138,10 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, b
         queue.finish();
     }
 
-    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC1_COLOR);
     drawTextures(perspectiveMatrix, viewingMatrix, mode2D);
-    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
 
 }
 
