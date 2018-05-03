@@ -3,13 +3,16 @@
 
 #include "FAST/ProcessObject.hpp"
 #include "FAST/Data/Image.hpp"
+#include "FAST/Data/Mesh.hpp"
+#include "FAST/Data/Segmentation.hpp"
 
 namespace fast {
 
 class FAST_EXPORT  TubeSegmentationAndCenterlineExtraction : public ProcessObject {
     FAST_OBJECT(TubeSegmentationAndCenterlineExtraction)
     public:
-        void loadPreset();
+        void setKeepLargestTree(bool keep);
+        void setMinimumTreeSize(int nrOfVoxels);
         void setMinimumRadius(float radius);
         void setMaximumRadius(float radius);
         void setRadiusStep(float step);
@@ -36,6 +39,7 @@ class FAST_EXPORT  TubeSegmentationAndCenterlineExtraction : public ProcessObjec
         void runTubeDetectionFilter(Image::pointer gradients, float minimumRadius, float maximumRadius, Image::pointer& TDF, Image::pointer& radius);
         void runNonCircularTubeDetectionFilter(Image::pointer gradients, float minimumRadius, float maximumRadius, Image::pointer& TDF, Image::pointer& radius);
         Image::pointer runGradientVectorFlow(Image::pointer vectorField);
+        void keepLargestObjects(Segmentation::pointer segmentation, Mesh::pointer& centerlines);
 
         // Parameters
 
@@ -50,6 +54,9 @@ class FAST_EXPORT  TubeSegmentationAndCenterlineExtraction : public ProcessObjec
 
         // Centerline extraction
         float mSensitivity; // A number between 0 and 1 influencing how much is extracted (including noise).
+
+        bool mOnlyKeepLargestTree;
+        int mMinimumTreeSize;
 };
 
 } // end namespace fast

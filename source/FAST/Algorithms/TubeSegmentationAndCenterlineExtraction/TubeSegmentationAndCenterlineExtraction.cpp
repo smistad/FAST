@@ -33,9 +33,8 @@ TubeSegmentationAndCenterlineExtraction::TubeSegmentationAndCenterlineExtraction
     // Blur has to be adapted to noise level in image
     mStDevBlurSmall = 0.5;
     mStDevBlurLarge = 1.0;
-}
-
-void TubeSegmentationAndCenterlineExtraction::loadPreset() {
+    mOnlyKeepLargestTree = false;
+    mMinimumTreeSize = -1;
 }
 
 void TubeSegmentationAndCenterlineExtraction::setMinimumRadius(
@@ -114,7 +113,7 @@ DataPort::pointer TubeSegmentationAndCenterlineExtraction::getTDFOutputPort() {
     return getOutputPort(2);
 }
 
-inline void floodFill(ImageAccess::pointer& access, Vector3ui size, Vector3i startPosition, std::vector<Vector3i>& largestObject) {
+inline std::vector<Vector3i> floodFill(ImageAccess::pointer& access, Vector3ui size, Vector3i startPosition) {
     std::vector<Vector3i> thisObject;
 
     std::stack<Vector3i> stack;
@@ -141,12 +140,10 @@ inline void floodFill(ImageAccess::pointer& access, Vector3ui size, Vector3i sta
         }}}
     }
 
-    if(thisObject.size() > largestObject.size()) {
-        largestObject = thisObject;
-    }
+    return thisObject;
 }
 
-inline void keepLargestObject(Segmentation::pointer segmentation, Mesh::pointer& centerlines) {
+void TubeSegmentationAndCenterlineExtraction::keepLargestObjects(Segmentation::pointer segmentation, Mesh::pointer& centerlines) {
     ImageAccess::pointer access = segmentation->getImageAccess(ACCESS_READ_WRITE);
     const int width = segmentation->getWidth();
     const int height = segmentation->getHeight();
@@ -163,7 +160,17 @@ inline void keepLargestObject(Segmentation::pointer segmentation, Mesh::pointer&
         Vector3i position(x,y,z);
         uchar value = segmentationArray[position.x() + position.y()*size.x() + position.z()*size.x()*size.y()];
         if(value == 1) {
-            floodFill(access, size, position, largestObject);
+            std::vector<Vector3i> newObject = floodFill(access, size, position);
+            if(mOnlyKeepLargestTree) {
+                if(newObject.size() > largestObject.size())
+                    largestObject = newObject;
+            } else {
+                if(mMinimumTreeSize > 0) {
+                    largestObject.insert(largestObject.end(), newObject.begin(), newObject.end());
+                } else {
+                    largestObject.insert(largestObject.end(), newObject.begin(), newObject.end());
+                }
+            }
         }
     }}}
 
@@ -174,11 +181,11 @@ inline void keepLargestObject(Segmentation::pointer segmentation, Mesh::pointer&
         segmentationArray[position.x() + position.y()*size.x() + position.z()*size.x()*size.y()] = 1;
     }
 
-    Mesh::pointer newCenterlines = Mesh::New();
+    std::vector<MeshVertex> vertices;
+    std::vector<MeshLine> lines;
     {
         // Remove centerlines of small objects as well
         MeshAccess::pointer lineAccess = centerlines->getMeshAccess(ACCESS_READ);
-        MeshAccess::pointer newLineAccess = newCenterlines->getMeshAccess(ACCESS_READ_WRITE);
         Vector3f spacing = segmentation->getSpacing();
         uint j = 0;
         for(uint i = 0; i < centerlines->getNrOfLines(); ++i) {
@@ -187,14 +194,16 @@ inline void keepLargestObject(Segmentation::pointer segmentation, Mesh::pointer&
             MeshVertex pointB = lineAccess->getVertex(line.getEndpoint2());
             Vector3f pointAinVoxelSpace(pointA.getPosition().x() / spacing.x(), pointA.getPosition().y() / spacing.y(), pointA.getPosition().z() / spacing.z());
             if(access->getScalar(pointAinVoxelSpace.cast<int>()) == 1) {
-                newLineAccess->addVertex(pointA);
-                newLineAccess->addVertex(pointB);
-                newLineAccess->addLine(MeshLine(j, j + 1));
+                vertices.push_back(MeshVertex(pointA));
+                vertices.push_back(MeshVertex(pointB));
+                lines.push_back(MeshLine(j, j + 1));
                 j += 2;
             }
         }
-        Reporter::info() << "Size of new centerlines " << newCenterlines->getNrOfVertices() << Reporter::end();
+        Reporter::info() << "Size of new centerlines " << vertices.size() << Reporter::end();
     }
+    Mesh::pointer newCenterlines = Mesh::New();
+    newCenterlines->create(vertices, lines);
     centerlines = newCenterlines;
     SceneGraph::setParentNode(centerlines, segmentation);
 }
@@ -233,7 +242,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
     Image::pointer largeRadius;
     Image::pointer GVFfield;
     if(mMaximumRadius /*/ largestSpacing*/ >= 1.5) {
-        std::cout << "Running large TDF" << std::endl;
+        reportInfo() << "Running large TDF" << reportEnd();
         // Find large structures, if max radius is large enough
         // Blur
         Image::pointer smoothedImage;
@@ -267,7 +276,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
     Image::pointer smallTDF;
     Image::pointer smallRadius;
     if(mMinimumRadius /*/ smallestSpacing*/ < 1.5) {
-        std::cout << "Running small TDF" << std::endl;
+        reportInfo() << "Running small TDF" << reportEnd();
         // Find small structures
         // Blur
         Image::pointer smoothedImage;
@@ -307,13 +316,14 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
         centerlineExtraction->setInputData(3, smallTDF);
         centerlineExtraction->setInputData(4, gradients);
         centerlineExtraction->setInputData(5, smallRadius);
-        auto port = centerlineExtraction->getOutputPort();
+        auto port = centerlineExtraction->getOutputPort(0);
+        auto port2 = centerlineExtraction->getOutputPort(1);
         centerlineExtraction->update(0);
         centerline = port->getNextFrame();
 
         // Segmentation
         // TODO: Use only dilation for smallTDF
-        segmentation->setInputConnection(centerlineExtraction->getOutputPort(1));
+        segmentation->setInputData(0, port2->getNextFrame());
         segmentation->setInputData(1, GVFfield);
 
     } else {
@@ -345,7 +355,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
 
     // TODO get largest segmentation object
     reportInfo() << "Removing small objects..." << Reporter::end();
-    keepLargestObject(segmentationVolume, centerline);
+    keepLargestObjects(segmentationVolume, centerline);
 
     addOutputData(0, segmentationVolume);
     addOutputData(1, centerline);
@@ -392,16 +402,13 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::createGradients(Image::p
         minimumIntensity = mMinimumIntensity;
     } else {
         minimumIntensity = image->calculateMinimumIntensity();
-        std::cout << "min intensity " << minimumIntensity << std::endl;
     }
     float maximumIntensity;
     if(mMaximumIntensity < std::numeric_limits<float>::max()) {
         maximumIntensity = mMaximumIntensity;
     } else {
         maximumIntensity = image->calculateMaximumIntensity();
-        std::cout << "max intensity " << maximumIntensity << std::endl;
     }
-    std::cout << image->getSize().transpose() << std::endl;
 
     toFloatKernel.setArg(0, *(access->get3DImage()));
     if(no3Dwrite) {
@@ -538,6 +545,17 @@ void TubeSegmentationAndCenterlineExtraction::runNonCircularTubeDetectionFilter(
             cl::NDRange(TDF->getWidth(), TDF->getHeight(), TDF->getDepth()),
             cl::NullRange
     );
+}
+
+void TubeSegmentationAndCenterlineExtraction::setKeepLargestTree(bool keep) {
+    mOnlyKeepLargestTree = keep;
+    if(keep)
+        mMinimumTreeSize = -1;
+}
+
+void TubeSegmentationAndCenterlineExtraction::setMinimumTreeSize(int nrOfVoxels) {
+    mMinimumTreeSize = nrOfVoxels;
+    mOnlyKeepLargestTree = false;
 }
 
 } // end namespace fast
