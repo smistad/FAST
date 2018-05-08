@@ -4,11 +4,12 @@
 #include <cmath>
 #ifdef _WIN32
 #include <direct.h> // Needed for _mkdir
-#include <Shlwapi.h> // Needed for PathFileExists
+#include <io.h> // needed for _access_s
 #else
 // Needed for making directory
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <dirent.h> // needed for DIR
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenGL/gl.h>
 #else
@@ -666,12 +667,58 @@ void createDirectories(std::string path) {
 
 bool fileExists(std::string filename) {
 #ifdef _WIN32
-    int retval = PathFileExists(filename.c_str());
-    return retval == 1;
+    return _access_s(filename.c_str(), 0) == 0;
 #else
     struct stat buffer;
     return (stat (filename.c_str(), &buffer) == 0);
 #endif
+}
+
+std::vector<std::string> getDirectoryList(std::string path, bool getFiles, bool getDirectories) {
+    if(!getFiles && !getDirectories)
+        throw Exception("getFiles and getDirectories set to false in getDirectoryList");
+    std::vector<std::string> list;
+#ifdef _WIN32
+	HANDLE hFind;
+	WIN32_FIND_DATA data;
+	hFind = FindFirstFile((path + "*").c_str(), &data);
+	if(hFind != INVALID_HANDLE_VALUE) {
+		do {
+            if(getDirectories && data.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY) {
+                list.push_back(data.cFileName);
+			} else if(getFiles) {
+                list.push_back(data.cFileName);
+			}
+		} while (FindNextFile(hFind, &data));
+		FindClose(hFind);
+	}
+#else
+    DIR *dir = opendir(path.c_str());
+    if(dir != NULL) {
+        struct dirent *ent;
+        while ((ent = readdir (dir)) != NULL) {
+            if(getFiles && ent->d_type == DT_REG) // Regular file
+                list.push_back(ent->d_name);
+            if(getDirectories && ent->d_type == DT_DIR) { // Directory
+                if(std::string(ent->d_name) == "." || std::string(ent->d_name) == "..")
+                    continue;
+                list.push_back(ent->d_name);
+            }
+        }
+        closedir(dir);
+    } else {
+        throw Exception("Unable to open directory " + path);
+    }
+#endif
+
+    return list;
+}
+
+std::string getDirName(std::string path) {
+    // Replace \ with / so that this will work on windows
+    path = replace(path, "\\", "/");
+    path.erase(std::find(path.rbegin(), path.rend(), '/').base(), path.end());
+    return path;
 }
 
 std::string currentDateTime(std::string format) {

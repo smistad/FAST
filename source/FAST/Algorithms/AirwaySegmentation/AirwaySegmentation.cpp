@@ -275,12 +275,14 @@ void AirwaySegmentation::execute() {
 	}
 
 	// Smooth image
-	GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
-	filter->setInputData(image);
-	filter->setStandardDeviation(0.5);
-	DataPort::pointer port = filter->getOutputPort();
-	filter->update(0);
-	image = port->getNextFrame();
+	if(mSmoothingSigma > 0) {
+		GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
+        filter->setInputData(image);
+        filter->setStandardDeviation(mSmoothingSigma);
+        DataPort::pointer port = filter->getOutputPort();
+        filter->update(0);
+        image = port->getNextFrame();
+    }
 
 	// Find seed voxel
 	Vector3i seed;
@@ -317,6 +319,10 @@ void AirwaySegmentation::setSeedPoint(int x, int y, int z) {
 void AirwaySegmentation::setSeedPoint(Vector3i seed) {
 	mSeedPoint = seed;
 	mUseManualSeedPoint = true;
+}
+
+void AirwaySegmentation::setSmoothing(float sigma) {
+	mSmoothingSigma = sigma;
 }
 
 }

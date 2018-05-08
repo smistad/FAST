@@ -171,6 +171,24 @@ FAST_EXPORT void createDirectories(std::string path);
 FAST_EXPORT bool fileExists(std::string filename);
 
 /**
+ * Returns a list of all files in a directory
+ * @param path
+ * @param getFiles Set to true to find files in directory
+ * @param getDirectories Set to true to find subdirectories
+ * @return list of files or subdirectories
+ */
+FAST_EXPORT std::vector<std::string> getDirectoryList(std::string path, bool getFiles = true, bool getDirectories = false);
+
+/**
+ * Returns the dir name of the given path. Example: getDirName("/home/user/something/file.txt")
+ * returns home/user/something/.
+ *
+ * @param path
+ * @return
+ */
+FAST_EXPORT std::string getDirName(std::string path);
+
+/**
  * Returns a string of the current date
  * @param format see http://en.cppreference.com/w/cpp/chrono/c/strftime
  * @return

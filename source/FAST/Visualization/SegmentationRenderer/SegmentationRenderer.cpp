@@ -197,9 +197,7 @@ void SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
         queue.finish();
     }
 
-    glDisable(GL_DEPTH_TEST);
     drawTextures(perspectiveMatrix, viewingMatrix, mode2D);
-    glEnable(GL_DEPTH_TEST);
 }
 
 void SegmentationRenderer::setBorderRadius(int radius) {

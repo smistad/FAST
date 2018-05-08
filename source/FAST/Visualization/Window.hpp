@@ -57,6 +57,8 @@ class FAST_EXPORT  Window : public QObject, public Object {
          * @return
          */
         float getScalingFactor() const;
+        void saveScreenshotOnClose(std::string filename);
+        void saveScreenshotOfViewsOnClose(std::string filename);
     protected:
         void startComputationThread();
         void stopComputationThread();

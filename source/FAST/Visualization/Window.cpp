@@ -324,4 +324,12 @@ int Window::getScreenHeight() const {
     return desktop->height();
 }
 
+void Window::saveScreenshotOnClose(std::string filename) {
+    mWidget->saveScreenshotOnClose(filename);
+}
+
+void Window::saveScreenshotOfViewsOnClose(std::string filename) {
+    mWidget->saveScreenshotOfViewsOnClose(filename);
+}
+
 } // end namespace fast

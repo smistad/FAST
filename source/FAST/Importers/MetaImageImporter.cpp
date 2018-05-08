@@ -146,6 +146,7 @@ void MetaImageImporter::execute() {
     Matrix3f transformMatrix = Matrix3f::Identity();
     bool isCompressed = false;
     std::size_t compressedDataSize = 0;
+    std::unordered_map<std::string, std::string> metadata;
 
     do{
         std::getline(mhdFile, line);
@@ -302,6 +303,9 @@ void MetaImageImporter::execute() {
                     reportWarning() << "Out of range exception occured when reading transform matrix values from metaimage file" << reportEnd();
                 }
             }
+        } else {
+            // Unknown metadata, collect and add to image object
+            metadata[key] = value;
         }
 
     } while(!mhdFile.eof());
@@ -313,12 +317,34 @@ void MetaImageImporter::execute() {
 
     void * data;
     DataType type;
-    if(typeName == "MET_SHORT") {
+    if(typeName == "MET_SHORT" || typeName == "MET_INT") {
         type = TYPE_INT16;
-        data = readRawData<short>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
-    } else if(typeName == "MET_USHORT") {
+        if(typeName == "MET_SHORT") {
+            data = readRawData<short>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
+        } else {
+            reportWarning() << "Converting original dataset of type MET_INT (32 bit) to short (16 bit) overflow may occur." << reportEnd();
+            int* tmp = (int*)readRawData<int>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
+            short* tmp2 = new short[width*height*depth*nrOfComponents];
+            for(int i = 0; i < width*height*depth*nrOfComponents; ++i)
+                tmp2[i] = (short)tmp[i];
+
+            data = tmp2;
+            delete[] tmp;
+        }
+    } else if(typeName == "MET_USHORT" || typeName == "MET_UINT") {
         type = TYPE_UINT16;
-        data = readRawData<unsigned short>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
+        if(typeName == "MET_USHORT") {
+            data = readRawData<unsigned short>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
+        } else {
+            reportWarning() << "Converting original dataset of type MET_UINT (32 bit) to unsigned short (16 bit) overflow may occur." << reportEnd();
+            unsigned int* tmp = (unsigned int*)readRawData<unsigned int>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
+            unsigned short* tmp2 = new unsigned short[width*height*depth*nrOfComponents];
+            for(int i = 0; i < width*height*depth*nrOfComponents; ++i)
+                tmp2[i] = (unsigned short)tmp[i];
+
+            data = tmp2;
+            delete[] tmp;
+        }
     } else if(typeName == "MET_CHAR") {
         type = TYPE_INT8;
         data = readRawData<char>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
@@ -338,6 +364,9 @@ void MetaImageImporter::execute() {
     }
 
     output->setSpacing(spacing);
+
+    // Add metadata
+    output->setMetadata(metadata);
 
     // Create transformation
     

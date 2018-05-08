@@ -8,6 +8,8 @@ fast_add_sources(
     Importer.hpp
     ImageFileImporter.cpp
     ImageFileImporter.hpp
+    DICOMFileImporter.cpp
+    DICOMFileImporter.hpp
 )
 fast_add_python_interfaces(
 	ImageFileImporter.i
@@ -17,6 +19,7 @@ fast_add_test_sources(
     Tests/VTKMeshFileImporterTests.cpp
     Tests/ImageImporterTests.cpp
     Tests/ImageFileImporterTests.cpp
+    Tests/DICOMFileImporterTests.cpp
 )
 if(FAST_MODULE_VTK)
     fast_add_sources(

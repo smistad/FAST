@@ -25,6 +25,13 @@ if(FAST_MODULE_OpenIGTLink)
     )
     endif()
 endif()
+if(FAST_MODULE_Visualization)
+    fast_add_sources(
+        MovieStreamer.cpp
+        MovieStreamer.hpp
+    )
+    fast_add_test_sources(Tests/MovieStreamerTests.cpp)
+endif()
 if(FAST_MODULE_Kinect)
     fast_add_sources(
         KinectStreamer.cpp

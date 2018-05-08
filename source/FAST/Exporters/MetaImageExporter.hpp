@@ -6,24 +6,26 @@
 
 namespace fast {
 
-class FAST_EXPORT  MetaImageExporter : public ProcessObject {
+class FAST_EXPORT MetaImageExporter : public ProcessObject {
     FAST_OBJECT(MetaImageExporter)
     public:
         void setFilename(std::string filename);
         void enableCompression();
         void disableCompression();
         /**
-         * Add additional meta data to the mhd file
+         * Add additional meta data to the mhd file.
+         * This can also be added to the input image object.
+         *
          * @param key
          * @param value
          */
-        void setMetaData(std::string key, std::string value);
+        void setMetadata(std::string key, std::string value);
     private:
         MetaImageExporter();
         void execute();
 
         std::string mFilename;
-        std::map<std::string, std::string> mMetaData;
+        std::map<std::string, std::string> mMetadata;
         bool mUseCompression;
 };
 

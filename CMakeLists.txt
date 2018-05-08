@@ -76,6 +76,7 @@ set(QT_HEADERS
         source/FAST/Visualization/ComputationThread.hpp
         source/FAST/Examples/Interoperability/qtInteroperability.hpp
         source/FAST/PipelineEditor.hpp
+        source/FAST/Streamers/MovieStreamer.hpp
 )
 
 # Set debug define if debug mode is set

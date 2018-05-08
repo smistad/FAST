@@ -6,7 +6,7 @@
 #include "FAST/Visualization/Window.hpp"
 #include <QApplication>
 #include <QGLFunctions>
-#include <QOpenGLFunctions_2_0>
+#include <QOpenGLFunctions_3_3_Core>
 #endif
 
 
@@ -270,7 +270,8 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
         }
         if(QGLContext::currentContext() == nullptr)
             Window::getMainGLContext()->makeCurrent();
-        QOpenGLFunctions_2_0* fun = new QOpenGLFunctions_2_0();
+
+        QOpenGLFunctions_3_3_Core *fun = new QOpenGLFunctions_3_3_Core;
         fun->initializeOpenGLFunctions();
 
         mCoordinates.resize(mNrOfVertices*3);
@@ -535,11 +536,16 @@ void Mesh::free(ExecutionDevice::pointer device) {
     }
 }
 
-int Mesh::getNrOfTriangles() const {
+int Mesh::getNrOfTriangles() {
+    if(mHostHasData && mHostDataIsUpToDate)
+        mNrOfTriangles = mTriangles.size() / 3;
     return mNrOfTriangles;
 }
 
-int Mesh::getNrOfVertices() const {
+int Mesh::getNrOfVertices() {
+    if(mHostHasData && mHostDataIsUpToDate)
+        mNrOfVertices = mCoordinates.size() / 3;
+
     return mNrOfVertices;
 }
 
@@ -547,7 +553,9 @@ void Mesh::setBoundingBox(BoundingBox box) {
     mBoundingBox = box;
 }
 
-int Mesh::getNrOfLines() const {
+int Mesh::getNrOfLines() {
+    if(mHostHasData && mHostDataIsUpToDate)
+        mNrOfLines = mLines.size() / 2;
 	return mNrOfLines;
 }
 

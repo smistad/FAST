@@ -24,6 +24,13 @@ class FAST_EXPORT  WindowWidget : public QWidget {
         std::vector<View*> getViews() const;
         void clearViews();
         ~WindowWidget();
+        void saveScreenshotOnClose(std::string filename);
+        void saveScreenshotOfViewsOnClose(std::string filename);
+    protected:
+        bool mSaveScreenshotOnClose;
+        std::string mScreenshotFilename;
+        bool mSaveScreenshotOfViewsOnClose;
+        std::string mScreenshotViewsFilename;
     private:
         std::vector<View*> mViews;
 
