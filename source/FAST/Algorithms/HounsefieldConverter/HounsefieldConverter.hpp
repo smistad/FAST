@@ -7,7 +7,7 @@ namespace fast {
 
 class Image;
 
-class HounsefieldConverter : public ProcessObject {
+class FAST_EXPORT HounsefieldConverter : public ProcessObject {
     FAST_OBJECT(HounsefieldConverter)
     public:
     private:
