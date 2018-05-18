@@ -21,11 +21,12 @@ if(WIN32)
                 -G${CMAKE_GENERATOR}
                 -DCMAKE_BUILD_TYPE:STRING=Release
                 -Dtensorflow_BUILD_PYTHON_BINDINGS=OFF
+                -Dtensorflow_ENABLE_SNAPPY_SUPPRT=OFF
                 -Dtensorflow_BUILD_CC_EXAMPLE=OFF
                 -Dtensorflow_BUILD_SHARED_LIB=ON
                 -Dtensorflow_BUILD_CONTRIB_KERNELS=OFF
                 -Dtensorflow_ENABLE_GRPC_SUPPORT=OFF
-                -Dtensorflow_OPTIMIZE_FOR_NATIVE_ARCH=OFF
+                -Dtensorflow_WIN_CPU_SIMD_OPTIONS=/arch:AVX
                 #-Dtensorflow_ENABLE_GPU=ON
                 -DCMAKE_VERBOSE_MAKEFILE:BOOL=OFF
                 -DCMAKE_INSTALL_MESSAGE:BOOL=LAZY

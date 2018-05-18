@@ -23,6 +23,10 @@ if(WIN32)
 	install(FILES ${DLLs}
 		DESTINATION fast/bin
 	)
+	file(GLOB DLLs ${PROJECT_BINARY_DIR}/lib/*.lib)
+	install(FILES ${DLLs}
+		DESTINATION fast/lib
+	)
 elseif(APPLE)
 	file(GLOB SOs ${PROJECT_BINARY_DIR}/lib/*.dylib)
 	install(FILES ${SOs}
