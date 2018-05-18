@@ -3,6 +3,10 @@
 
 namespace fast {
 
+void ImageResizer::setInterpolation(bool useInterpolation) {
+    mInterpolationSet = true;
+    mInterpolation = useInterpolation;
+}
 
 void ImageResizer::setWidth(int width) {
 	if(width <= 0)
@@ -41,6 +45,8 @@ ImageResizer::ImageResizer() {
 
 	mSize = Vector3i::Zero();
     mPreserveAspectRatio = false;
+    mInterpolationSet = false;
+    mInterpolation = true;
 }
 
 void ImageResizer::execute() {
@@ -71,6 +77,12 @@ void ImageResizer::execute() {
     if(getMainDevice()->isHost()) {
         throw Exception("Not implemented yet.");
     } else {
+
+        uchar useInterpolation = 1;
+        if(mInterpolationSet) {
+            useInterpolation = mInterpolation ? 1 : 0;
+        }
+
         OpenCLDevice::pointer device = OpenCLDevice::pointer(getMainDevice());
         cl::Program program = getOpenCLProgram(device, "");
         cl::Kernel kernel;
@@ -82,6 +94,7 @@ void ImageResizer::execute() {
                 int newHeight = (int)round(input->getHeight()*scale);
                 kernel = cl::Kernel(program, "resize2DpreserveAspect");
                 kernel.setArg(2, newHeight);
+                kernel.setArg(3, useInterpolation);
             } else {
                 output->setSpacing(Vector3f(
                     input->getSpacing().x()*((float)input->getWidth()/output->getWidth()),
@@ -89,6 +102,7 @@ void ImageResizer::execute() {
                     1.0f
                 ));
                 kernel = cl::Kernel(program, "resize2D");
+                kernel.setArg(2, useInterpolation);
             }
             OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
             kernel.setArg(0, *inputAccess->get2DImage());
