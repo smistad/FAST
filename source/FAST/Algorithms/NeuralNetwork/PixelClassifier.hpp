@@ -10,6 +10,7 @@ class FAST_EXPORT  PixelClassifier : public NeuralNetwork {
         void setNrOfClasses(uint classes);
         void setHeatmapOutput();
         void setSegmentationOutput();
+        void setResizeBackToOriginalSize(bool resize);
         void setThreshold(float threshold);
         void loadAttributes();
     private:
@@ -19,6 +20,7 @@ class FAST_EXPORT  PixelClassifier : public NeuralNetwork {
 
         int mNrOfClasses;
         bool mHeatmapOutput;
+        bool mResizeBackToOriginalSize;
         float mThreshold;
 
 };

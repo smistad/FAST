@@ -55,6 +55,7 @@ protected:
     std::vector<std::string> mOutputNames;
     std::map<std::string, tensorflow::Tensor> mOutputData;
     std::deque<SharedPointer<Image>> mImages;
+    Vector3f mNewInputSpacing;
 
     void execute();
 

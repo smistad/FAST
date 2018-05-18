@@ -7,6 +7,7 @@ namespace fast {
 ImageToImageNetwork::ImageToImageNetwork() {
     createInputPort<Image>(0);
     createOutputPort<Image>(0);
+    enableRuntimeMeasurements();
 }
 
 void ImageToImageNetwork::execute() {
@@ -17,11 +18,13 @@ void ImageToImageNetwork::execute() {
     int outputHeight = tensor_mapped.dimension(1);
     int outputWidth = tensor_mapped.dimension(2);
 
+    getAllRuntimes()->printAll();
+
     Image::pointer output = Image::New();
     uchar *data = new uchar[outputWidth * outputHeight];
     for (int x = 0; x < outputWidth; ++x) {
         for (int y = 0; y < outputHeight; ++y) {
-            data[x + y * outputWidth] = (uchar)(tensor_mapped(0, y, x, 0)*255);
+            data[x + y * outputWidth] = (uchar)((tensor_mapped(0, y, x, 0)+1)*127);
         }
     }
     output->create(outputWidth, outputHeight, TYPE_UINT8, 1, data);

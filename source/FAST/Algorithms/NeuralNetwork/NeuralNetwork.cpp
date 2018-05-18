@@ -308,8 +308,10 @@ std::vector<SharedPointer<Image>> NeuralNetwork::resizeImages(const std::vector<
 			DataPort::pointer port = resizer->getOutputPort();
             resizer->update(0);
             Image::pointer resizedImage = port->getNextFrame();
+            mNewInputSpacing = resizedImage->getSpacing();
             resizedImages.push_back(resizedImage);
 		} else {
+			mNewInputSpacing = image->getSpacing();
 			resizedImages.push_back(image);
 		}
 	}

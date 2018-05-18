@@ -18,7 +18,8 @@ __kernel void normalizeInput(
 		value = read_imageui(input, sampler, pos).x;
 	}
 
-	value = value*scaleFactor;
+	value = value*scaleFactor;//*2 - 1;
+	//value = clamp(value, -1.0f, 1.0f);
 
 	if(horizontalFlip == 1) {
         output[pos.x + (get_global_size(0) - pos.y - 1)*get_global_size(0)] = value;

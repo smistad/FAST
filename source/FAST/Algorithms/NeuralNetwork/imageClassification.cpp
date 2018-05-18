@@ -64,15 +64,18 @@ int main() {
 
     ImageClassifier::pointer classifier = ImageClassifier::New();
     classifier->setScaleFactor(1.0f/255.0f);
-    classifier->load("/home/smistad/Downloads/cvc_net");
+    classifier->load("/home/smistad/workspace/FAST-CIUS/models/cvc_inc_dense.pb");
     classifier->setInputSize(128,128);
-    classifier->setOutputParameters({"Softmax"});
+    classifier->setOutputParameters({"predictions/Softmax"});
     classifier->setLabels({
-                              "Parasternal short axis",
-                              "Parasternal long axis",
-                              "Apical two-chamber",
                               "Apical four-chamber",
-                              "Apical long axis"
+                              "Apical long axis",
+                              "Apical two-chamber",
+                              "Parasternal long axis",
+                              "Parasternal short axis",
+                              "Sub costal four chamber",
+                              "Sub costal vena cava",
+                              "Unknown",
                       });
     classifier->setInputConnection(streamer->getOutputPort());
     classifier->enableRuntimeMeasurements();
@@ -87,7 +90,8 @@ int main() {
 
     TextRenderer::pointer textRenderer = TextRenderer::New();
     textRenderer->setView(window->getView());
-    textRenderer->setFontSize(32);
+    textRenderer->setFontSize(48);
+    textRenderer->setPosition(TextRenderer::POSITION_TOP_LEFT);
     textRenderer->setInputConnection(classToText->getOutputPort());
 
     window->addRenderer(renderer);
