@@ -1,4 +1,6 @@
 #include <FAST/Visualization/LineRenderer/LineRenderer.hpp>
+#include <FAST/Exporters/VTKMeshFileExporter.hpp>
+#include <FAST/Exporters/MetaImageExporter.hpp>
 #include "FAST/Testing.hpp"
 #include "FAST/Streamers/ImageFileStreamer.hpp"
 #include "KalmanFilter.hpp"
@@ -16,15 +18,12 @@
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
 
 using namespace fast;
-
 /*
 TEST_CASE("Model based segmentation with mean value coordinates on 3D cardiac US data", "[fast][ModelBasedSegmentation][cardiac][3d][visual]") {
+    bool visualize = false;
 	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
-	streamer->setFilenameFormat("/media/extra/CETUS/Patient1/Patient1_frame#.mhd");
-	streamer->setZeroFilling(2);
-	streamer->setStartNumber(1);
-	streamer->enableLooping();
-	streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+	streamer->setFilenameFormat("/home/smistad/data/volume_bmode_new/image_#.mhd");
+	//streamer->enableLooping();
 	//streamer->setSleepTime(2000);
 
 	MeanValueCoordinatesModel::pointer shapeModel = MeanValueCoordinatesModel::New();
@@ -42,32 +41,43 @@ TEST_CASE("Model based segmentation with mean value coordinates on 3D cardiac US
 	segmentation->setShapeModel(shapeModel);
 	segmentation->setInputConnection(streamer->getOutputPort());
 
-
 	MeshToSegmentation::pointer meshToSeg = MeshToSegmentation::New();
 	meshToSeg->setInputConnection(0, segmentation->getOutputPort());
 	meshToSeg->setInputConnection(1, streamer->getOutputPort());
 
-	SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
-	extraction->setInputConnection(meshToSeg->getOutputPort());
+	if(!visualize) {
+		MetaImageExporter::pointer exporter2 = MetaImageExporter::New();
+		exporter2->setInputConnection(meshToSeg->getOutputPort());
+		VTKMeshFileExporter::pointer exporter = VTKMeshFileExporter::New();
+		exporter->setInputConnection(segmentation->getOutputPort());
+		exporter->setWriteNormals(true);
+		for (int i = 0; i < streamer->getNrOfFrames(); ++i) {
+			exporter->setFilename(
+					"/home/smistad/data/volume_bmode_new/segmentations/frame_" + std::to_string(i) + ".vtk");
+			exporter->update(i, STREAMING_MODE_PROCESS_ALL_FRAMES);
+			exporter2->setFilename(
+					"/home/smistad/data/volume_bmode_new/segmentations/frame_" + std::to_string(i) + ".mhd");
+			exporter2->update(i, STREAMING_MODE_PROCESS_ALL_FRAMES);
+		}
+	} else {
+		TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();
+		TriangleRenderer->setInputConnection(segmentation->getOutputPort());
+		TriangleRenderer->setDefaultOpacity(0.5);
 
-	TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();
-	TriangleRenderer->setInputConnection(segmentation->getOutputPort());
-	TriangleRenderer->setDefaultOpacity(0.5);
+		SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
+		sliceRenderer->addInputConnection(streamer->getOutputPort(), PLANE_X);
+		sliceRenderer->addInputConnection(streamer->getOutputPort(), PLANE_Y);
 
-	SliceRenderer::pointer sliceRenderer = SliceRenderer::New();
-	sliceRenderer->setInputConnection(streamer->getOutputPort());
-	sliceRenderer->setSlicePlane(PLANE_Y);
-	SliceRenderer::pointer sliceRenderer2 = SliceRenderer::New();
-	sliceRenderer2->setInputConnection(streamer->getOutputPort());
-	sliceRenderer2->setSlicePlane(PLANE_X);
 
-	SimpleWindow::pointer window = SimpleWindow::New();
-	window->addRenderer(sliceRenderer);
-	window->addRenderer(sliceRenderer2);
-	window->addRenderer(TriangleRenderer);
-	window->start();
+		SimpleWindow::pointer window = SimpleWindow::New();
+		window->addRenderer(sliceRenderer);
+		window->addRenderer(TriangleRenderer);
+		window->start();
+	}
 }
+*/
 
+/*
 TEST_CASE("Model based segmentation with spline model on 2D pediatric cardiac US data", "[fast][ModelBasedSegmentation][2d][cardiac][pediatric][visual]") {
 	ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
 	streamer->setFilenameFormat("/home/smistad/Cardiac_2D/test3/labelImage#.mhd");
