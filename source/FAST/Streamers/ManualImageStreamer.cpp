@@ -8,12 +8,6 @@
 #include <chrono>
 
 namespace fast {
-/**
- * Dummy function to get into the class again
- */
-inline void stubStreamThread(ManualImageStreamer * streamer) {
-    streamer->producerStream();
-}
 
 ManualImageStreamer::ManualImageStreamer() {
     mStreamIsStarted = false;
@@ -22,7 +16,7 @@ ManualImageStreamer::ManualImageStreamer() {
     mLoop = false;
     mStartNumber = 0;
     mZeroFillDigits = 0;
-    thread = NULL;
+    mStop = false;
     mFirstFrameIsInserted = false;
     mHasReachedEnd = false;
     mNrOfFrames = 0;
@@ -55,7 +49,7 @@ void ManualImageStreamer::execute() {
         // Check that first frame exists before starting streamer
 
         mStreamIsStarted = true;
-        thread = new std::thread(&stubStreamThread, this);
+        mThread = new std::thread(std::bind(&ManualImageStreamer::producerStream, this));
     }
 
     // Wait here for first frame
@@ -67,11 +61,18 @@ void ManualImageStreamer::execute() {
 
 
 void ManualImageStreamer::producerStream() {
-    Streamer::pointer pointerToSelf = mPtr.lock(); // try to avoid this object from being destroyed until this function is finished
-
     uint i = mStartNumber;
     int replays = 0;
     while(true) {
+        {
+            std::unique_lock<std::mutex> lock(mStopMutex);
+            if(mStop) {
+                mStreamIsStarted = false;
+                mFirstFrameIsInserted = false;
+                mHasReachedEnd = false;
+                break;
+            }
+        }
         try {
             Image::pointer image = mImages.at(i);
             addOutputData(0, image);
@@ -114,13 +115,26 @@ void ManualImageStreamer::producerStream() {
 }
 
 ManualImageStreamer::~ManualImageStreamer() {
+
     if(mStreamIsStarted) {
-        if(thread->get_id() != std::this_thread::get_id()) { // avoid deadlock
-            thread->join();
+        if(mThread->get_id() != std::this_thread::get_id()) { // avoid deadlock
+            stop();
+            delete mThread;
+            mThread = NULL;
         }
-        delete thread;
     }
 }
+
+
+void ManualImageStreamer::stop() {
+    {
+        std::unique_lock<std::mutex> lock(mStopMutex);
+        mStop = true;
+    }
+    mThread->join();
+    reportInfo() << "File streamer thread returned" << reportEnd();
+}
+
 
 bool ManualImageStreamer::hasReachedEnd() {
     return mHasReachedEnd;
