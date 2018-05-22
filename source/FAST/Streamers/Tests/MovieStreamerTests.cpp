@@ -7,7 +7,7 @@ using namespace fast;
 
 TEST_CASE("MovieStreamer", "[fast][moviestreamer]") {
     MovieStreamer::pointer streamer = MovieStreamer::New();
-    streamer->setFilename("/home/smistad/Desktop/axillary_block.mp4");
+    streamer->setFilename(Config::getTestDataPath() + "US/sagittal_spine.avi");
 
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->addInputConnection(streamer->getOutputPort());

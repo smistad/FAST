@@ -106,6 +106,8 @@ void Worker::run() {
 
 void MovieStreamer::execute() {
     if(!mStreamIsStarted) {
+        if(!fileExists(mFilename))
+            throw FileNotFoundException(mFilename);
         QThread* thread = new QThread;
         Worker* worker = new Worker(this);
         worker->moveToThread(thread);
