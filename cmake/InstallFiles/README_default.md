@@ -25,5 +25,6 @@ This FAST release is bundled with the following third-party software:
 * [OpenIGTLink](http://openigtlink.org)
 * [NumPy](http://www.numpy.org)
 * [Semaphore C++11 implementation by Jeff Preshing](https://github.com/preshing/cpp11-on-multicore).
+* [DCMTK](https://github.com/DCMTK/dcmtk)
 
 The license of each software can be found in the licenses folder.

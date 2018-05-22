@@ -187,12 +187,14 @@ install(FILES ${FAST_EXTERNAL_BUILD_DIR}/zlib/src/zlib/README
 install(FILES ${FAST_EXTERNAL_BUILD_DIR}/OpenIGTLink/src/OpenIGTLink/LICENSE.txt
 		DESTINATION fast/licenses/OpenIGTLink/
 )
-
+# DCMTK
+install(FILES ${FAST_EXTERNAL_BUILD_DIR}/dcmtk/src/dcmtk/COPYRIGHT
+		DESTINATION fast/licenses/dcmtk/
+)
 # NumPy (numpy.i file)
 install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/NumPy_LICENSE.txt
 		DESTINATION fast/licenses/numpy/
 )
-
 # Semaphore implementation
 install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/Semaphore_LICENSE.txt
 		DESTINATION fast/licenses/semaphore/
