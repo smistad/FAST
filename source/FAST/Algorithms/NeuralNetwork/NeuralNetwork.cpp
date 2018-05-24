@@ -93,6 +93,7 @@ NeuralNetwork::NeuralNetwork() {
 	createIntegerAttribute("input_size", "Input size", "Image input size", 128);
 	createFloatAttribute("scale_factor", "Scale factor", "Scale factor", mScaleFactor);
 	createStringAttribute("output_names", "Output names", "Name of output nodes", "");
+	createBooleanAttribute("signed_input_normalization", "Signed input normalization", "Normalize input to -1 and 1 instead of 0 to 1.", false);
 }
 
 void NeuralNetwork::execute() {
@@ -170,6 +171,7 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 	kernel.setArg(1, buffer);
 	kernel.setArg(2, mScaleFactor);
 	kernel.setArg(3, (int)(mHorizontalImageFlipping ? 1 : 0));
+	kernel.setArg(4, (int)(mSignedInputNormalization ? 1 : 0));
 
 	device->getCommandQueue().enqueueNDRangeKernel(
 			kernel,
@@ -326,6 +328,7 @@ void NeuralNetwork::loadAttributes() {
 	std::vector<std::string> outputNames = getStringListAttribute("output_names");
 	setOutputParameters(outputNames);
 	setScaleFactor(getFloatAttribute("scale_factor"));
+	setSignedInputNormalization(getBooleanAttribute("signed_input_normalization"));
 }
 
 void NeuralNetwork::setRememberFrames(uint nrOfFrames) {
@@ -337,6 +340,10 @@ void NeuralNetwork::setRememberFrames(uint nrOfFrames) {
 
 void NeuralNetwork::setInputName(std::string inputName) {
 	mInputName = inputName;
+}
+
+void NeuralNetwork::setSignedInputNormalization(bool signedInputNormalization) {
+	mSignedInputNormalization = signedInputNormalization;
 }
 
 };

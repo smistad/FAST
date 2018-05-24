@@ -17,6 +17,7 @@ public:
     void setInputName(std::string inputName);
     void setOutputParameters(std::vector<std::string> outputNodeNames);
     void setScaleFactor(float scale);
+    void setSignedInputNormalization(bool signedInputNormalization);
     void setPreserveAspectRatio(bool preserve);
     /**
      * Setting this parameter to true will flip the input image horizontally.
@@ -46,6 +47,7 @@ protected:
     bool mModelLoaded;
     bool mPreserveAspectRatio;
     bool mHorizontalImageFlipping = false;
+    bool mSignedInputNormalization = false;
     std::vector<std::string> mLearningPhaseTensors;
     int mWidth;
     int mHeight;
