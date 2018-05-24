@@ -382,8 +382,8 @@ IGTLinkStreamer::IGTLinkStreamer() {
     mHasReachedEnd = false;
     mStop = false;
     mNrOfFrames = 0;
-    mAddress = "";
-    mPort = 0;
+    mAddress = "localhost";
+    mPort = 18944;
     mMaximumNrOfFramesSet = false;
     mInFreezeMode = false;
 }
@@ -394,9 +394,6 @@ void IGTLinkStreamer::stop() {
 }
 
 void IGTLinkStreamer::execute() {
-    if(mAddress == "" || mPort == 0) {
-        throw Exception("Must call setConnectionAddress and setConnectionPort before executing the IGTLinkStreamer.");
-    }
 
     if(!mStreamIsStarted) {
 
