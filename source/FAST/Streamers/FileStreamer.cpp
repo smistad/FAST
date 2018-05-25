@@ -103,7 +103,7 @@ void FileStreamer::producerStream() {
 
     // Read timestamp file if available
     std::ifstream timestampFile;
-    unsigned long previousTimestamp = 0;
+    uint64_t previousTimestamp = 0;
     auto previousTimestampTime = std::chrono::high_resolution_clock::time_point::min();
     if(mTimestampFilename != "") {
         timestampFile.open(mTimestampFilename.c_str());
@@ -144,17 +144,15 @@ void FileStreamer::producerStream() {
                 std::string line;
                 std::getline(timestampFile, line);
                 if(line != "") {
-                    unsigned long timestamp = std::stoul(line);
+					uint64_t timestamp = std::stoull(line);
                     dataFrame->setCreationTimestamp(timestamp);
                     // Wait as long as necessary before adding image
                     auto timePassed = std::chrono::duration_cast<std::chrono::milliseconds>(
                             std::chrono::high_resolution_clock::now() - previousTimestampTime);
-                    //reportInfo() << timestamp << reportEnd();
-                    //reportInfo() << previousTimestamp << reportEnd();
-                    //reportInfo() << "Time passed: " << timePassed.count() << reportEnd();
                     while(timestamp > previousTimestamp + timePassed.count()) {
                         // Wait
-                        std::this_thread::sleep_for(std::chrono::milliseconds(timestamp-(long)previousTimestamp-timePassed.count()));
+						int64_t left = previousTimestamp - timePassed.count();
+                        std::this_thread::sleep_for(std::chrono::milliseconds(timestamp-left));
                         timePassed = std::chrono::duration_cast<std::chrono::milliseconds>(
                                 std::chrono::high_resolution_clock::now() - previousTimestampTime);
                         //reportInfo() << "wait" << reportEnd();
@@ -166,6 +164,7 @@ void FileStreamer::producerStream() {
                     previousTimestampTime = std::chrono::high_resolution_clock::now();
                 }
             }
+
             addOutputData(0, dataFrame);
 
             if(!mFirstFrameIsInserted) {

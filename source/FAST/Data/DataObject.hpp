@@ -17,7 +17,7 @@ class FAST_EXPORT  DataObject : public Object {
         void setMetadata(std::unordered_map<std::string, std::string> metadata);
         std::string getMetadata(std::string name) const;
         std::unordered_map<std::string, std::string> getMetadata() const;
-        unsigned long getTimestamp() const;
+        uint64_t getTimestamp() const;
         void updateModifiedTimestamp();
         uint64_t getTimestep() const;
         void setTimestep(uint64_t);
@@ -28,8 +28,8 @@ class FAST_EXPORT  DataObject : public Object {
         static std::string getStaticNameOfClass() {
             return "DataObject";
         };
-        unsigned long getCreationTimestamp() const;
-        void setCreationTimestamp(unsigned long timestamp);
+        uint64_t getCreationTimestamp() const;
+        void setCreationTimestamp(uint64_t timestamp);
     protected:
         virtual void free(ExecutionDevice::pointer device) = 0;
         virtual void freeAll() = 0;
@@ -49,10 +49,10 @@ class FAST_EXPORT  DataObject : public Object {
         std::unordered_map<WeakPointer<ExecutionDevice>, unsigned int> mReferenceCount;
 
         // Timestamp is set to 0 when data object is constructed
-        unsigned long mTimestampModified;
+        uint64_t mTimestampModified;
 
         // Timestamp is set to 0 when data object is constructed
-        unsigned long mTimestampCreated;
+        uint64_t mTimestampCreated;
 
         uint64_t mTimestep;
 

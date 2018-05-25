@@ -39,15 +39,15 @@ void DataObject::accessFinished() {
 	mDataIsBeingAccessedCondition.notify_one();
 }
 
-unsigned long DataObject::getTimestamp() const {
+uint64_t DataObject::getTimestamp() const {
     return mTimestampModified;
 }
 
-unsigned long DataObject::getCreationTimestamp() const {
+uint64_t DataObject::getCreationTimestamp() const {
     return mTimestampCreated;
 }
 
-void DataObject::setCreationTimestamp(unsigned long timestamp) {
+void DataObject::setCreationTimestamp(uint64_t timestamp) {
     mTimestampCreated = timestamp;
 }
 
