@@ -19,9 +19,10 @@ if(WIN32)
                 ${CMAKE_COMMAND}
                 ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/tensorflow/contrib/cmake/
                 -G${CMAKE_GENERATOR}
+		-Thost=x64
                 -DCMAKE_BUILD_TYPE:STRING=Release
                 -Dtensorflow_BUILD_PYTHON_BINDINGS=OFF
-                -Dtensorflow_ENABLE_SNAPPY_SUPPRT=OFF
+                -Dtensorflow_ENABLE_SNAPPY_SUPPORT=ON
                 -Dtensorflow_BUILD_CC_EXAMPLE=OFF
                 -Dtensorflow_BUILD_SHARED_LIB=ON
                 -Dtensorflow_BUILD_CONTRIB_KERNELS=OFF
@@ -34,7 +35,7 @@ if(WIN32)
         )
     list(APPEND LIBRARIES
         tensorflow.lib
-        libprotobuf.lib # For windows we need this protobuf static lib for some reason..
+        #libprotobuf.lib # For windows we need this protobuf static lib for some reason..
     )
 else(WIN32)
     # Use bazel to build tensorflow on linux
