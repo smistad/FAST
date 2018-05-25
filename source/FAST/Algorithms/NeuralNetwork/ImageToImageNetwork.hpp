@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class ImageToImageNetwork : public NeuralNetwork {
+class FAST_EXPORT ImageToImageNetwork : public NeuralNetwork {
     FAST_OBJECT(ImageToImageNetwork);
     public:
     private:
