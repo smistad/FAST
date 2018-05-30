@@ -1,5 +1,5 @@
 PROJECT_NAME           = "@CMAKE_PROJECT_NAME@"
-#PROJECT_NUMBER         = @VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_PATCH@
+PROJECT_NUMBER         = "@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_PATCH@"
 PROJECT_BRIEF          = "Framework for Heterogeneous Medical Image Computing and Visualization"
 STRIP_FROM_PATH        = @FAST_SOURCE_DIR@
 INPUT                  = @PROJECT_SOURCE_DIR@/doc/main_page.md \

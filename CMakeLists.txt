@@ -2,6 +2,10 @@
 
 project(FAST)
 
+set(VERSION_MAJOR 2)
+set(VERSION_MINOR 0)
+set(VERSION_PATCH 0)
+
 # set policies explicitly to avoid warnings.
 # Read more on CMP0022 here: https://cmake.org/cmake/help/v3.0/policy/CMP0022.html
 # This was set as a fix for windows builds where FAST was expecting the name of
