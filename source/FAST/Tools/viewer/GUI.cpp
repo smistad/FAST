@@ -265,6 +265,7 @@ void GUI::selectPipeline() {
     }
     mStreamer = ImageFileStreamer::New();
     mStreamer->setFilenameFormats(inputData);
+    mStreamer->setMainDevice(Host::getInstance());
 
     getView(0)->removeAllRenderers();
 
