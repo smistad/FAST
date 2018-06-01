@@ -11,6 +11,7 @@ namespace fast {
 class Image;
 
 class FAST_EXPORT  NeuralNetwork : public ProcessObject {
+    FAST_OBJECT(NeuralNetwork)
 public:
     void load(std::string networkFilename);
     void setInputSize(int width, int height);
@@ -27,12 +28,14 @@ public:
     void setHorizontalFlipping(bool flip);
 
     /**
-     * Set the nr of frames to keep and give to the network.
-     * If this count is set to 4, the frames t-3, t-2, t-1 and t, where t is the current timestep,
-     * will be given as input to the network. This can be useful for recurrent networks.
-     * @param nrOfFrames
+     * Set the temporal window.
+     * If window > 1, assume the input tensor has 5 dimensions (batch_size, frames, height, width, channels)
+     * If the window is set to 4, the frames t-3, t-2, t-1 and t, where t is the current timestep,
+     * will be given as input to the network.
+     *
+     * @param window
      */
-    void setRememberFrames(uint nrOfFrames);
+    void setTemporalWindow(uint window);
 
     // Use this if only one output node
     tensorflow::Tensor getNetworkOutput();
@@ -51,7 +54,7 @@ protected:
     std::vector<std::string> mLearningPhaseTensors;
     int mWidth;
     int mHeight;
-    uint mFramesToRemember = 1;
+    uint mTemporalWindow = 1;
     float mScaleFactor;
     std::string mInputName;
     std::vector<std::string> mOutputNames;

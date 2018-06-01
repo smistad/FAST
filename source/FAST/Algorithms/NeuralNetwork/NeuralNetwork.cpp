@@ -45,9 +45,17 @@ void NeuralNetwork::load(std::string networkFilename) {
         mInputName = tensorflow_graph.node(0).name();
     for(int i = 0; i < tensorflow_graph.node_size(); ++i) {
 		tensorflow::NodeDef node = tensorflow_graph.node(i);
-        //reportInfo() << "Node " << i << " with name " << node.name() << reportEnd();
-        //reportInfo() << "Op name " << node.op() << reportEnd();
-        //reportInfo() << "inputs: " << node.input_size() << reportEnd();
+		/*
+        reportInfo() << "Node " << i << " with name " << node.name() << reportEnd();
+        reportInfo() << "Op name " << node.op() << reportEnd();
+        reportInfo() << "inputs: " << node.input_size() << reportEnd();
+        if(node.attr().count("shape") > 0) {
+			auto shape = node.attr().at("shape").shape();
+			for (int i = 0; i < shape.dim_size(); i++) {
+				std::cout << shape.dim(i).size() << std::endl;
+			}
+		}
+		 */
         if(node.name().find("keras_learning_phase") != std::string::npos) {
 			mLearningPhaseTensors.push_back(node.name());
 		}
@@ -100,9 +108,9 @@ void NeuralNetwork::execute() {
     Image::pointer image = getInputData<Image>();
 
 	mImages.push_back(image);
-    while(mImages.size() < mFramesToRemember)
+    while(mImages.size() < mTemporalWindow)
 		mImages.push_back(image);
-	while(mImages.size() > mFramesToRemember)
+	while(mImages.size() > mTemporalWindow)
 		mImages.pop_front();
 
 	std::vector<Image::pointer> images;
@@ -151,108 +159,63 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 
 	// Create input tensor
 	tensorflow::TensorShape shape = tensorflow::TensorShape({batchSize, mHeight, mWidth, 1});
-	if(mFramesToRemember > 1)
-		shape = tensorflow::TensorShape({batchSize, mFramesToRemember, mHeight, mWidth, 1});
+	if(mTemporalWindow > 1)
+		shape = tensorflow::TensorShape({batchSize, mTemporalWindow, mHeight, mWidth, 1});
 
     mRuntimeManager->startRegularTimer("input_data_copy");
-    float* values = new float[batchSize*mWidth*mHeight];
-
-	OpenCLDevice::pointer device = getMainDevice();
-    cl::Program program = getOpenCLProgram(device);
-	cl::Kernel kernel(program, "normalizeInput");
-	Image::pointer image = images[0];
-	OpenCLImageAccess::pointer access = image->getOpenCLImageAccess(ACCESS_READ, device);
-    cl::Buffer buffer(
-			device->getContext(),
-			CL_MEM_WRITE_ONLY,
-			sizeof(float)*mWidth*mHeight
-	);
-	kernel.setArg(0, *access->get2DImage());
-	kernel.setArg(1, buffer);
-	kernel.setArg(2, mScaleFactor);
-	kernel.setArg(3, (int)(mHorizontalImageFlipping ? 1 : 0));
-	kernel.setArg(4, (int)(mSignedInputNormalization ? 1 : 0));
-
-	device->getCommandQueue().enqueueNDRangeKernel(
-			kernel,
-			cl::NullRange,
-			cl::NDRange(mWidth, mHeight),
-			cl::NullRange
-	);
-
-	device->getCommandQueue().enqueueReadBuffer(buffer, CL_TRUE, 0, sizeof(float)*mWidth*mHeight, values);
 
 	tensorflow::Tensor input_tensor(
 			tensorflow::DT_FLOAT,
 			shape
 	);
-    if(image->getWidth() != mWidth || image->getHeight() != mHeight)
-        throw Exception("Input image sent to executeNetwork was of incrorrect size");
+	OpenCLDevice::pointer device = getMainDevice();
+	cl::Program program = getOpenCLProgram(device);
+	cl::Kernel kernel(program, "normalizeInput");
+    for(int frame = 0; frame < mTemporalWindow; ++frame) {
+		float* values = new float[batchSize*mWidth*mHeight];
+		Image::pointer image = images[frame];
+		OpenCLImageAccess::pointer access = image->getOpenCLImageAccess(ACCESS_READ, device);
+		cl::Buffer buffer(
+				device->getContext(),
+				CL_MEM_WRITE_ONLY,
+				sizeof(float) * mWidth * mHeight
+		);
+		kernel.setArg(0, *access->get2DImage());
+		kernel.setArg(1, buffer);
+		kernel.setArg(2, mScaleFactor);
+		kernel.setArg(3, (int) (mHorizontalImageFlipping ? 1 : 0));
+		kernel.setArg(4, (int) (mSignedInputNormalization ? 1 : 0));
 
-	auto input_tensor_mapped = input_tensor.tensor<float, 4>();
-    for(int i = 0; i < mHeight; ++i) { // y
-        for(int j = 0; j < mWidth; ++j) { // x
-			input_tensor_mapped(0, i, j, 0) = values[j+i*mWidth];
-        }
-    }
-    delete[] values;
+		device->getCommandQueue().enqueueNDRangeKernel(
+				kernel,
+				cl::NullRange,
+				cl::NDRange(mWidth, mHeight),
+				cl::NullRange
+		);
 
-	/*
-    if(mFramesToRemember > 1) {
-        auto input_tensor_mapped = input_tensor.tensor<float, 5>();
+		device->getCommandQueue().enqueueReadBuffer(buffer, CL_TRUE, 0, sizeof(float) * mWidth * mHeight, values);
 
-		mRuntimeManager->startRegularTimer("input_data_copy");
-		reportInfo() << "TensorFlow: Copying Data." << reportEnd();
-		for(int n = 0; n < batchSize; ++n) {
-            for(int t = 0; t < images.size(); ++t) {
-				Image::pointer image = images[t];
-				if(image->getWidth() != mWidth || image->getHeight() != mHeight)
-					throw Exception("Input image sent to executeNetwork was of incrorrect size");
+		if (image->getWidth() != mWidth || image->getHeight() != mHeight)
+			throw Exception("Input image sent to executeNetwork was of incrorrect size");
 
-				ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
-				if(mHorizontalImageFlipping) {
-					for(int i = 0; i < mHeight; ++i) { // y
-						for(int j = 0; j < mWidth; ++j) { // x
-							input_tensor_mapped(n, t, i, mWidth - j - 1, 0) =
-                                access->getScalar(Vector2i(j, i)) * mScaleFactor;
-						}
-					}
-				} else {
-					for(int i = 0; i < mHeight; ++i) { // y
-						for(int j = 0; j < mWidth; ++j) { // x
-							input_tensor_mapped(n, t, i, j, 0) = access->getScalar(Vector2i(j, i)) * mScaleFactor;
-						}
-					}
+		if(mTemporalWindow > 1) {
+            auto input_tensor_mapped = input_tensor.tensor<float, 5>();
+			for (int i = 0; i < mHeight; ++i) { // y
+				for (int j = 0; j < mWidth; ++j) { // x
+					input_tensor_mapped(0, frame, i, j, 0) = values[j + i * mWidth];
+				}
+			}
+		} else {
+			auto input_tensor_mapped = input_tensor.tensor<float, 4>();
+			for (int i = 0; i < mHeight; ++i) { // y
+				for (int j = 0; j < mWidth; ++j) { // x
+					input_tensor_mapped(0, i, j, 0) = values[j + i * mWidth];
 				}
 			}
 		}
-	} else {
-		auto input_tensor_mapped = input_tensor.flat<float>();
-
-		mRuntimeManager->startRegularTimer("input_data_copy");
-		reportInfo() << "TensorFlow: Copying Data." << reportEnd();
-		for(int n = 0; n < batchSize; ++n) {
-			Image::pointer image = images[n];
-			if(image->getWidth() != mWidth || image->getHeight() != mHeight)
-				throw Exception("Input image sent to executeNetwork was of incrorrect size");
-
-			ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
-			if(mHorizontalImageFlipping) {
-				for(int i = 0; i < mHeight; ++i) { // y
-					for(int j = 0; j < mWidth; ++j) { // x
-						input_tensor_mapped(n + i + (mWidth - j - 1)*mHeight) = access->getScalar(Vector2i(j, i)) * mScaleFactor;
-					}
-				}
-			} else {
-				for(int i = 0; i < mHeight; ++i) { // y
-					for(int j = 0; j < mWidth; ++j) { // x
-						input_tensor_mapped(n, i, j, 0) = access->getScalar(Vector2i(j, i)) * mScaleFactor;
-					}
-				}
-			}
-		}
+		delete[] values;
 	}
-	 */
+
 	mRuntimeManager->stopRegularTimer("input_data_copy");
 
     // TODO Need to know names of inputs and outputs in advance
@@ -331,11 +294,11 @@ void NeuralNetwork::loadAttributes() {
 	setSignedInputNormalization(getBooleanAttribute("signed_input_normalization"));
 }
 
-void NeuralNetwork::setRememberFrames(uint nrOfFrames) {
-	if(nrOfFrames < 1) {
+void NeuralNetwork::setTemporalWindow(uint window) {
+	if(window < 1) {
         throw Exception("Remember frames has to be > 0.");
 	}
-	mFramesToRemember = nrOfFrames;
+	mTemporalWindow = window;
 }
 
 void NeuralNetwork::setInputName(std::string inputName) {
