@@ -25,7 +25,7 @@ __kernel void normalizeInput(
 	}
 
 	if(horizontalFlip == 1) {
-        output[pos.x + (get_global_size(0) - pos.y - 1)*get_global_size(0)] = value;
+        output[(get_global_size(0) - pos.x - 1) + pos.y*get_global_size(0)] = value;
     } else {
         output[pos.x + pos.y*get_global_size(0)] = value;
     }
