@@ -43,7 +43,7 @@ class FAST_EXPORT  Color {
         static Color Yellow() {
             return Color(1, 1, 0);
         }
-        static Color Purple() {
+        static Color Magenta() {
             return Color(1, 0, 1);
         }
         static Color Cyan() {

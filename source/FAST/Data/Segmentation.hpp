@@ -24,7 +24,7 @@ class FAST_EXPORT  Segmentation : public Image {
             LABEL_NERVE,
             LABEL_YELLOW,
             LABEL_GREEN,
-            LABEL_PURPLE,
+            LABEL_MAGENTA,
             LABEL_RED,
             LABEL_WHITE,
 			LABEL_BLUE

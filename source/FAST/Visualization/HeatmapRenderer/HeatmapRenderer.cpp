@@ -24,7 +24,7 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, b
         Color::Green(),
         Color::Blue(),
         Color::Red(),
-        Color::Purple(),
+        Color::Magenta(),
         Color::Yellow(),
         Color::Cyan(),
     };

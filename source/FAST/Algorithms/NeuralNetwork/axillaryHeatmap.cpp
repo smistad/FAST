@@ -32,6 +32,7 @@ int main() {
             //"/home/smistad/data/eyeguide/axillary_nerve_block/5/2016Dec30_082110/#.png",
     };
      */
+    /*
     subjects.push_back(Subject(6, {
             "/home/smistad/data/eyeguide/axillary/6/2016Dec30_084715/#.png",
     }));
@@ -41,17 +42,29 @@ int main() {
                     "/home/smistad/data/eyeguide/axillary/17/2017Feb13_150648/#.png",
                     "/home/smistad/data/eyeguide/axillary/17/2017Feb13_150824/#.png",
     }));
+     */
 
-    subjects.push_back(Subject(22, {
-            "/home/smistad/data/eyeguide/axillary/22/2017-03-29-101035/US-2D_#.mhd",
-            "/home/smistad/data/eyeguide/axillary/22/2017-03-29-101340/US-2D_#.mhd",
+    subjects.push_back(Subject(18, {
+            "/home/smistad/data/eyeguide/axillary/18/2017-03-29-094901/US-2D_#.mhd",
     }));
 
-    /*
     subjects.push_back(Subject(30, {
             "/home/smistad/data/eyeguide/axillary/30/2017Apr25_103134/#.png",
     }, true));
-     */
+
+    subjects.push_back(Subject(8, {
+        "/home/smistad/data/eyeguide/axillary/8/2017Jan16_120434/#.png",
+    }));
+    subjects.push_back(Subject(13, {
+        "/home/smistad/data/eyeguide/axillary/13/2017Feb13_090639/#.png",
+    }));
+
+    subjects.push_back(Subject(15, {
+        "/home/smistad/data/eyeguide/axillary/15/2017Feb13_100740/#.png"
+    }));
+    subjects.push_back(Subject(41, {
+        "/home/smistad/data/eyeguide/axillary/41/2017Nov28_094722/#.png"
+    }, true));
     /*
    subjects[40] = {
        "/home/smistad/data/eyeguide/axillary_nerve_block/40/2017Nov28_090653/#.png",
@@ -61,17 +74,17 @@ int main() {
         ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
         streamer->setFilenameFormats(subject.mRecordings);
         streamer->setStartNumber(1);
-        streamer->setSleepTime(75);
+        streamer->setSleepTime(50);
 
         PixelClassifier::pointer segmentation = PixelClassifier::New();
+        segmentation->setHeatmapOutput();
         segmentation->setNrOfClasses(6);
-        segmentation->load("/home/smistad/workspace/eyeguide_keras/models/axillary_block_" + std::to_string(subject.mID) + ".pb");
+        segmentation->load("/home/smistad/workspace/eyeguide_keras/models/axillary_block_" + std::to_string(subject.mID) + "_flip_gamma_rotate_shadow_elastic.pb");
         segmentation->setInputSize(256, 256);
         segmentation->setScaleFactor(1.0f / 255.0f);
         segmentation->setOutputParameters({"conv2d_23/truediv"});
         segmentation->setInputConnection(streamer->getOutputPort());
-        segmentation->setHeatmapOutput();
-        segmentation->setPreserveAspectRatio(true);
+        //segmentation->setPreserveAspectRatio(true);
         segmentation->enableRuntimeMeasurements();
         segmentation->setHorizontalFlipping(subject.mFlip);
 
@@ -79,7 +92,7 @@ int main() {
         renderer->addInputConnection(segmentation->getOutputPort(1), Color::Red());
         renderer->addInputConnection(segmentation->getOutputPort(2), Color::Yellow());
         renderer->addInputConnection(segmentation->getOutputPort(3), Color::Green());
-        renderer->addInputConnection(segmentation->getOutputPort(4), Color::Purple());
+        renderer->addInputConnection(segmentation->getOutputPort(4), Color::Magenta());
         renderer->addInputConnection(segmentation->getOutputPort(5), Color::Cyan());
         renderer->setMaxOpacity(0.6);
         //renderer->setMinConfidence(0.2);
@@ -93,8 +106,9 @@ int main() {
         window->addRenderer(renderer2);
         window->addRenderer(renderer);
         window->getView()->enableRuntimeMeasurements();
-        window->setSize(1920, 1080);
+        window->setSize(window->getScreenWidth(), window->getScreenHeight());
         window->enableMaximized();
+        window->getView()->setAutoUpdateCamera(true);
         //window->enableFullscreen();
         window->set2DMode();
         window->getView()->setBackgroundColor(Color::Black());
