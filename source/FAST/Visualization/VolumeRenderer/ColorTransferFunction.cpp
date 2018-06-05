@@ -91,7 +91,7 @@ void VolumeRenderer::execute() {
 			sprintf(errorMessage, "The VolumeRenderer only supports 3D images; check input number %d.", i);
 			throw Exception(errorMessage);
 		}
-		if(inputs[i]->getNrOfComponents() !=1)
+		if(inputs[i]->getNrOfChannels() !=1)
 		{
 			char errorMessage[255];
 			sprintf(errorMessage, "The VolumeRenderer currentlt only supports single chanel images; check input volume number %d.", i);

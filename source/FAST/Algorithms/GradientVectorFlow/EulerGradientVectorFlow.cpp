@@ -403,8 +403,8 @@ void EulerGradientVectorFlow::execute() {
     Image::pointer input = getInputData<Image>();
     OpenCLDevice::pointer device = getMainDevice();
 
-    if((input->getDimensions() == 2 && input->getNrOfComponents() != 2) ||
-            (input->getDimensions() == 3 && input->getNrOfComponents() != 3)) {
+    if((input->getDimensions() == 2 && input->getNrOfChannels() != 2) ||
+            (input->getDimensions() == 3 && input->getNrOfChannels() != 3)) {
         throw Exception("Input to EulerGradientVectorFlow must be a vector field. Nr of components > 1.");
     }
 
@@ -415,7 +415,7 @@ void EulerGradientVectorFlow::execute() {
 
     // Create output, currently only type float is output, not normalized 16 bit
     Image::pointer output = getOutputData<Image>();
-    output->create(input->getSize(), TYPE_FLOAT, input->getNrOfComponents());
+    output->create(input->getSize(), TYPE_FLOAT, input->getNrOfChannels());
     output->setSpacing(input->getSpacing());
     SceneGraph::setParentNode(output, input);
 

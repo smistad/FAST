@@ -137,7 +137,7 @@ void LaplacianOfGaussian::recompileOpenCLCode(Image::pointer input) {
 template <class T>
 void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, float * mask, unsigned char maskSize) {
     // TODO: this method currently only processes the first component
-    unsigned int nrOfComponents = input->getNrOfComponents();
+    unsigned int nrOfComponents = input->getNrOfChannels();
     ImageAccess::pointer inputAccess = input->getImageAccess(ACCESS_READ);
     ImageAccess::pointer outputAccess = output->getImageAccess(ACCESS_READ_WRITE);
 

@@ -16,7 +16,7 @@ std::string getCTypeAsString(DataType type) {
     return defines.at(type);
 }
 
-cl::ImageFormat getOpenCLImageFormat(OpenCLDevice::pointer device, cl_mem_object_type imageType, DataType type, unsigned int components) {
+cl::ImageFormat getOpenCLImageFormat(OpenCLDevice::pointer device, cl_mem_object_type imageType, DataType type, unsigned int channels) {
     cl_channel_order channelOrder;
     cl_channel_type channelType;
 
@@ -44,7 +44,7 @@ cl::ImageFormat getOpenCLImageFormat(OpenCLDevice::pointer device, cl_mem_object
         break;
     }
 
-    switch(components) {
+    switch(channels) {
     case 1:
     	// Use 1 channel image if it is supported
     	if(device->isImageFormatSupported(CL_R, channelType, imageType)) {
@@ -69,7 +69,7 @@ cl::ImageFormat getOpenCLImageFormat(OpenCLDevice::pointer device, cl_mem_object
         channelOrder = CL_RGBA;
         break;
     default:
-        throw Exception("Number of components has to be between 1 and 4");
+        throw Exception("Number of channels has to be between 1 and 4");
         break;
     }
 

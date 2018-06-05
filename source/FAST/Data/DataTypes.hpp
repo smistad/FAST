@@ -61,9 +61,9 @@ FAST_EXPORT std::string getCTypeAsString(DataType type);
         fastCaseTypeMacro(TYPE_SNORM_INT16, short, call) \
         fastCaseTypeMacro(TYPE_UNORM_INT16, ushort, call) \
 
-FAST_EXPORT cl::ImageFormat getOpenCLImageFormat(OpenCLDevice::pointer, cl_mem_object_type imageType, DataType type, unsigned int components);
+FAST_EXPORT cl::ImageFormat getOpenCLImageFormat(OpenCLDevice::pointer, cl_mem_object_type imageType, DataType type, unsigned int channels);
 
-FAST_EXPORT size_t getSizeOfDataType(DataType type, unsigned int nrOfComponents);
+FAST_EXPORT size_t getSizeOfDataType(DataType type, unsigned int nrOfChannels);
 
 FAST_EXPORT float getDefaultIntensityLevel(DataType type);
 FAST_EXPORT float getDefaultIntensityWindow(DataType type);

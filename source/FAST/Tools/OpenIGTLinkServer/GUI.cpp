@@ -167,7 +167,7 @@ static igtl::ImageMessage::Pointer createIGTLImageMessage(Image::pointer image) 
     float spacing[3]  = {image->getSpacing().x(), image->getSpacing().y(), image->getSpacing().z()};     // spacing (mm/pixel)
     int   svoffset[3] = {0, 0, 0};           // sub-volume offset
     int   scalarType;
-    size_t totalSize = image->getWidth()*image->getHeight()*image->getDepth()*image->getNrOfComponents();
+    size_t totalSize = image->getWidth()*image->getHeight()*image->getDepth()*image->getNrOfChannels();
     switch(image->getDataType()) {
         case TYPE_UINT8:
             scalarType = igtl::ImageMessage::TYPE_UINT8;
@@ -196,7 +196,7 @@ static igtl::ImageMessage::Pointer createIGTLImageMessage(Image::pointer image) 
     igtl::ImageMessage::Pointer imgMsg = igtl::ImageMessage::New();
     imgMsg->SetDimensions(size);
     imgMsg->SetSpacing(spacing);
-    imgMsg->SetNumComponents(image->getNrOfComponents());
+    imgMsg->SetNumComponents(image->getNrOfChannels());
     imgMsg->SetScalarType(scalarType);
     imgMsg->SetDeviceName("DummyImage");
     imgMsg->SetSubVolume(size, svoffset);

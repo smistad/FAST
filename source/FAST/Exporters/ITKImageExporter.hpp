@@ -104,7 +104,7 @@ void fast::ITKImageExporter<TImage>::GenerateData() {
     if(input->getDimensions() != TImage::ImageDimension)
         throw Exception("The dimension of the input and output images of the ITKImageExporter are unequal.");
 
-    if(input->getNrOfComponents() != 1)
+    if(input->getNrOfChannels() != 1)
         throw Exception("The ITKImageExporter currently doesn't support images with multiple components");
 
 

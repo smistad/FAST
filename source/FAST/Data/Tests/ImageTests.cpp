@@ -16,14 +16,14 @@ TEST_CASE("Create a 2D image on host", "[fast][image]") {
 
     unsigned int width = 256;
     unsigned int height = 512;
-    unsigned int nrOfComponents = 1;
+    unsigned int nrOfChannels = 1;
     DataType type = TYPE_FLOAT;
-    image->create(width, height, type, nrOfComponents);
+    image->create(width, height, type, nrOfChannels);
 
     CHECK(image->getWidth() == width);
     CHECK(image->getHeight() == height);
     CHECK(image->getDepth() == 1);
-    CHECK(image->getNrOfComponents() == nrOfComponents);
+    CHECK(image->getNrOfChannels() == nrOfChannels);
     CHECK(image->getDataType() == type);
     CHECK(image->getDimensions() == 2);
     CHECK(image->getSpacing().x() == Approx(1));
@@ -37,14 +37,14 @@ TEST_CASE("Create a 3D image on host", "[fast][image]") {
     unsigned int width = 256;
     unsigned int height = 512;
     unsigned int depth = 45;
-    unsigned int nrOfComponents = 2;
+    unsigned int nrOfChannels = 2;
     DataType type = TYPE_INT8;
-    image->create(width, height, depth, type, nrOfComponents);
+    image->create(width, height, depth, type, nrOfChannels);
 
     CHECK(image->getWidth() == width);
     CHECK(image->getHeight() == height);
     CHECK(image->getDepth() == depth);
-    CHECK(image->getNrOfComponents() == nrOfComponents);
+    CHECK(image->getNrOfChannels() == nrOfChannels);
     CHECK(image->getDataType() == type);
     CHECK(image->getDimensions() == 3);
     CHECK(image->getSpacing().x() == Approx(1));
@@ -58,11 +58,11 @@ TEST_CASE("Create a 2D image on an OpenCL device", "[fast][image]") {
 
     unsigned int width = 256;
     unsigned int height = 512;
-    // Test for having components 1 to 4 and for all data types
-    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+    // Test for having channels 1 to 4 and for all data types
+    for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             Image::pointer image = Image::New();
-            CHECK_NOTHROW(image->create(width, height, (DataType)typeNr, nrOfComponents));
+            CHECK_NOTHROW(image->create(width, height, (DataType)typeNr, nrOfChannels));
         }
     }
 }
@@ -74,11 +74,11 @@ TEST_CASE("Create a 3D image on an OpenCL device", "[fast][image]") {
     unsigned int width = 256;
     unsigned int height = 512;
     unsigned int depth = 45;
-    // Test for having components 1 to 4 and for all data types
-    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+    // Test for having channels 1 to 4 and for all data types
+    for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             Image::pointer image = Image::New();
-            CHECK_NOTHROW(image->create(width, height, depth, (DataType)typeNr, nrOfComponents));
+            CHECK_NOTHROW(image->create(width, height, depth, (DataType)typeNr, nrOfChannels));
         }
     }
 }
@@ -89,15 +89,15 @@ TEST_CASE("Create a 2D image on an OpenCL device with data", "[fast][image]") {
 
     unsigned int width = 256;
     unsigned int height = 512;
-    // Test for having components 1 to 4 and for all data types
-    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+    // Test for having channels 1 to 4 and for all data types
+    for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
-            void* data = allocateRandomData(width*height*nrOfComponents, (DataType)typeNr);
+            void* data = allocateRandomData(width*height*nrOfChannels, (DataType)typeNr);
             Image::pointer image = Image::New();
-            CHECK_NOTHROW(image->create(width, height, type, nrOfComponents, device, data));
+            CHECK_NOTHROW(image->create(width, height, type, nrOfChannels, device, data));
             ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
-            CHECK(compareDataArrays(data, access->get(), width*height*nrOfComponents, type) == true);
+            CHECK(compareDataArrays(data, access->get(), width*height*nrOfChannels, type) == true);
             deleteArray(data, type);
         }
     }
@@ -110,15 +110,15 @@ TEST_CASE("Create a 3D image on an OpenCL device with data", "[fast][image]") {
     unsigned int width = 40;
     unsigned int height = 64;
     unsigned int depth = 64;
-    // Test for having components 1 to 4 and for all data types
-    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+    // Test for having channels 1 to 4 and for all data types
+    for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
-            void* data = allocateRandomData(width*height*depth*nrOfComponents, type);
+            void* data = allocateRandomData(width*height*depth*nrOfChannels, type);
             Image::pointer image = Image::New();
-            CHECK_NOTHROW(image->create(width, height, depth, type, nrOfComponents, device, data));
+            CHECK_NOTHROW(image->create(width, height, depth, type, nrOfChannels, device, data));
             ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
-            CHECK(compareDataArrays(data, access->get(), width*height*depth*nrOfComponents, type) == true);
+            CHECK(compareDataArrays(data, access->get(), width*height*depth*nrOfChannels, type) == true);
             deleteArray(data, type);
         }
     }
@@ -128,19 +128,19 @@ TEST_CASE("Create a 2D image on host with input data", "[fast][image]") {
     unsigned int width = 256;
     unsigned int height = 512;
 
-    // Test for having components 1 to 4 and for all data types
-    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+    // Test for having channels 1 to 4 and for all data types
+    for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
 
             // Create a data array with random data
-            void* data = allocateRandomData(width*height*nrOfComponents, type);
+            void* data = allocateRandomData(width*height*nrOfChannels, type);
 
             Image::pointer image = Image::New();
-            image->create(width, height, type, nrOfComponents, Host::getInstance(), data);
+            image->create(width, height, type, nrOfChannels, Host::getInstance(), data);
 
             ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
-            CHECK(compareDataArrays(data, access->get(), width*height*nrOfComponents, type) == true);
+            CHECK(compareDataArrays(data, access->get(), width*height*nrOfChannels, type) == true);
 
             deleteArray(data, type);
         }
@@ -152,19 +152,19 @@ TEST_CASE("Create a 3D image on host with input data", "[fast][image]") {
     unsigned int height = 128;
     unsigned int depth = 45;
 
-    // Test for having components 1 to 4 and for all data types
-    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+    // Test for having channels 1 to 4 and for all data types
+    for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
 
             // Create a data array with random data
-            void* data = allocateRandomData(width*height*depth*nrOfComponents, type);
+            void* data = allocateRandomData(width*height*depth*nrOfChannels, type);
 
             Image::pointer image = Image::New();
-            image->create(width, height, depth, type, nrOfComponents, Host::getInstance(), data);
+            image->create(width, height, depth, type, nrOfChannels, Host::getInstance(), data);
 
             ImageAccess::pointer access = image->getImageAccess(ACCESS_READ);
-            CHECK(compareDataArrays(data, access->get(), width*height*depth*nrOfComponents, type) == true);
+            CHECK(compareDataArrays(data, access->get(), width*height*depth*nrOfChannels, type) == true);
 
             deleteArray(data, type);
         }
@@ -178,20 +178,20 @@ TEST_CASE("Create a 2D image on host and request access to OpenCL buffer", "[fas
     unsigned int width = 256;
     unsigned int height = 512;
 
-    // Test for having components 1 to 4 and for all data types
-    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+    // Test for having channels 1 to 4 and for all data types
+    for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
 
             // Create a data array with random data
-            void* data = allocateRandomData(width*height*nrOfComponents, type);
+            void* data = allocateRandomData(width*height*nrOfChannels, type);
 
             Image::pointer image = Image::New();
-            image->create(width, height, type, nrOfComponents, Host::getInstance(), data);
+            image->create(width, height, type, nrOfChannels, Host::getInstance(), data);
 
             OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ, device);
             cl::Buffer* buffer = access->get();
-            CHECK(compareBufferWithDataArray(*buffer, device, data, width*height*nrOfComponents, type) == true);
+            CHECK(compareBufferWithDataArray(*buffer, device, data, width*height*nrOfChannels, type) == true);
 
             deleteArray(data, type);
         }
@@ -205,20 +205,20 @@ TEST_CASE("Create a 3D image on host and request access to OpenCL buffer", "[fas
     unsigned int height = 64;
     unsigned int depth = 64;
 
-    // Test for having components 1 to 4 and for all data types
-    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+    // Test for having channels 1 to 4 and for all data types
+    for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
 
             // Create a data array with random data
-            void* data = allocateRandomData(width*height*depth*nrOfComponents, type);
+            void* data = allocateRandomData(width*height*depth*nrOfChannels, type);
 
             Image::pointer image = Image::New();
-            image->create(width, height, depth, type, nrOfComponents, Host::getInstance(), data);
+            image->create(width, height, depth, type, nrOfChannels, Host::getInstance(), data);
 
             OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ, device);
             cl::Buffer* buffer = access->get();
-            CHECK(compareBufferWithDataArray(*buffer, device, data, width*height*depth*nrOfComponents, type) == true);
+            CHECK(compareBufferWithDataArray(*buffer, device, data, width*height*depth*nrOfChannels, type) == true);
 
             deleteArray(data, type);
         }
@@ -232,20 +232,20 @@ TEST_CASE("Create a 2D image on host and request access to OpenCL Image", "[fast
     unsigned int width = 256;
     unsigned int height = 512;
 
-    // Test for having components 1 to 4 and for all data types
-    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+    // Test for having channels 1 to 4 and for all data types
+    for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
 
             // Create a data array with random data
-            void* data = allocateRandomData(width*height*nrOfComponents, type);
+            void* data = allocateRandomData(width*height*nrOfChannels, type);
 
             Image::pointer image = Image::New();
-            image->create(width, height, type, nrOfComponents, Host::getInstance(), data);
+            image->create(width, height, type, nrOfChannels, Host::getInstance(), data);
 
             OpenCLImageAccess::pointer access = image->getOpenCLImageAccess(ACCESS_READ, device);
             cl::Image2D* clImage = access->get2DImage();
-            CHECK(compareImage2DWithDataArray(*clImage, device, data, width, height, nrOfComponents, type) == true);
+            CHECK(compareImage2DWithDataArray(*clImage, device, data, width, height, nrOfChannels, type) == true);
 
             deleteArray(data, type);
         }
@@ -260,20 +260,20 @@ TEST_CASE("Create a 3D image on host and request access to OpenCL Image", "[fast
     unsigned int height = 64;
     unsigned int depth = 64;
 
-    // Test for having components 1 to 4 and for all data types
-    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+    // Test for having channels 1 to 4 and for all data types
+    for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
 
             // Create a data array with random data
-            void* data = allocateRandomData(width*height*depth*nrOfComponents, type);
+            void* data = allocateRandomData(width*height*depth*nrOfChannels, type);
 
             Image::pointer image = Image::New();
-            image->create(width, height, depth, type, nrOfComponents, Host::getInstance(), data);
+            image->create(width, height, depth, type, nrOfChannels, Host::getInstance(), data);
 
             OpenCLImageAccess::pointer access = image->getOpenCLImageAccess(ACCESS_READ, device);
             cl::Image3D* clImage = access->get3DImage();
-            CHECK(compareImage3DWithDataArray(*clImage, device, data, width, height, depth, nrOfComponents, type) == true);
+            CHECK(compareImage3DWithDataArray(*clImage, device, data, width, height, depth, nrOfChannels, type) == true);
 
             deleteArray(data, type);
         }
@@ -287,20 +287,20 @@ TEST_CASE("Create a 2D image on a CL device and request access to OpenCL buffer"
     unsigned int width = 256;
     unsigned int height = 512;
 
-    // Test for having components 1 to 4 and for all data types
-    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+    // Test for having channels 1 to 4 and for all data types
+    for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
 
             // Create a data array with random data
-            void* data = allocateRandomData(width*height*nrOfComponents, type);
+            void* data = allocateRandomData(width*height*nrOfChannels, type);
 
             Image::pointer image = Image::New();
-            image->create(width, height, type, nrOfComponents, device, data);
+            image->create(width, height, type, nrOfChannels, device, data);
 
             OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ, device);
             cl::Buffer* buffer = access->get();
-            CHECK(compareBufferWithDataArray(*buffer, device, data, width*height*nrOfComponents, type) == true);
+            CHECK(compareBufferWithDataArray(*buffer, device, data, width*height*nrOfChannels, type) == true);
 
             deleteArray(data, type);
         }
@@ -315,20 +315,20 @@ TEST_CASE("Create a 3D image on CL device and request access to OpenCL buffer", 
     unsigned int height = 64;
     unsigned int depth = 64;
 
-    // Test for having components 1 to 4 and for all data types
-    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+    // Test for having channels 1 to 4 and for all data types
+    for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
 
             // Create a data array with random data
-            void* data = allocateRandomData(width*height*depth*nrOfComponents, type);
+            void* data = allocateRandomData(width*height*depth*nrOfChannels, type);
 
             Image::pointer image = Image::New();
-            image->create(width, height, depth, type, nrOfComponents, device, data);
+            image->create(width, height, depth, type, nrOfChannels, device, data);
 
             OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ, device);
             cl::Buffer* buffer = access->get();
-            CHECK(compareBufferWithDataArray(*buffer, device, data, width*height*depth*nrOfComponents, type) == true);
+            CHECK(compareBufferWithDataArray(*buffer, device, data, width*height*depth*nrOfChannels, type) == true);
 
             deleteArray(data, type);
         }
@@ -342,16 +342,16 @@ TEST_CASE("Create a 2D image and change host data", "[fast][image]") {
     unsigned int width = 256;
     unsigned int height = 512;
 
-    // Test for having components 1 to 4 and for all data types
-    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+    // Test for having channels 1 to 4 and for all data types
+    for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
 
             // Create a data array with random data
-            void* data = allocateRandomData(width*height*nrOfComponents, type);
+            void* data = allocateRandomData(width*height*nrOfChannels, type);
 
             Image::pointer image = Image::New();
-            image->create(width, height, type, nrOfComponents, device, data);
+            image->create(width, height, type, nrOfChannels, device, data);
             deleteArray(data, type);
 
             // Put the data as buffer and host data as well
@@ -362,7 +362,7 @@ TEST_CASE("Create a 2D image and change host data", "[fast][image]") {
             switch(type) {
                 fastSwitchTypeMacro(
                     FAST_TYPE* changedData2 = (FAST_TYPE*)changedData;
-                    for(unsigned int i = 0; i < width*height*nrOfComponents; i++) {
+                    for(unsigned int i = 0; i < width*height*nrOfChannels; i++) {
                         changedData2[i] = changedData2[i]*2;
                     }
                 )
@@ -371,12 +371,12 @@ TEST_CASE("Create a 2D image and change host data", "[fast][image]") {
 
             OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ, device);
             cl::Buffer* buffer = access->get();
-            CHECK(compareBufferWithDataArray(*buffer, device, changedData, width*height*nrOfComponents, type) == true);
+            CHECK(compareBufferWithDataArray(*buffer, device, changedData, width*height*nrOfChannels, type) == true);
             access->release();
 
             OpenCLImageAccess::pointer access3 = image->getOpenCLImageAccess(ACCESS_READ, device);
             cl::Image2D* clImage = access3->get2DImage();
-            CHECK(compareImage2DWithDataArray(*clImage, device, changedData, width, height, nrOfComponents, type) == true);
+            CHECK(compareImage2DWithDataArray(*clImage, device, changedData, width, height, nrOfChannels, type) == true);
 
         }
     }
@@ -390,16 +390,16 @@ TEST_CASE("Create a 3D image and change host data", "[fast][image]") {
     unsigned int height = 40;
     unsigned int depth = 40;
 
-    // Test for having components 1 to 4 and for all data types
-    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+    // Test for having channels 1 to 4 and for all data types
+    for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
 
             // Create a data array with random data
-            void* data = allocateRandomData(width*height*depth*nrOfComponents, type);
+            void* data = allocateRandomData(width*height*depth*nrOfChannels, type);
 
             Image::pointer image = Image::New();
-            image->create(width, height, depth, type, nrOfComponents, device, data);
+            image->create(width, height, depth, type, nrOfChannels, device, data);
             deleteArray(data, type);
 
             // Put the data as buffer and host data as well
@@ -410,7 +410,7 @@ TEST_CASE("Create a 3D image and change host data", "[fast][image]") {
             switch(type) {
                 fastSwitchTypeMacro(
                     FAST_TYPE* changedData2 = (FAST_TYPE*)changedData;
-                    for(unsigned int i = 0; i < width*height*depth*nrOfComponents; i++) {
+                    for(unsigned int i = 0; i < width*height*depth*nrOfChannels; i++) {
                         changedData2[i] = changedData2[i]*2;
                     }
                 )
@@ -419,12 +419,12 @@ TEST_CASE("Create a 3D image and change host data", "[fast][image]") {
 
             OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ, device);
             cl::Buffer* buffer = access->get();
-            CHECK(compareBufferWithDataArray(*buffer, device, changedData, width*height*depth*nrOfComponents, type) == true);
+            CHECK(compareBufferWithDataArray(*buffer, device, changedData, width*height*depth*nrOfChannels, type) == true);
             access->release();
 
             OpenCLImageAccess::pointer access3 = image->getOpenCLImageAccess(ACCESS_READ, device);
             cl::Image3D* clImage = access3->get3DImage();
-            CHECK(compareImage3DWithDataArray(*clImage, device, changedData, width, height, depth, nrOfComponents, type) == true);
+            CHECK(compareImage3DWithDataArray(*clImage, device, changedData, width, height, depth, nrOfChannels, type) == true);
 
         }
     }
@@ -438,16 +438,16 @@ TEST_CASE("Create a 2D image and change buffer data", "[fast][image]") {
     unsigned int height = 512;
 
 
-    // Test for having components 1 to 4 and for all data types
-    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+    // Test for having channels 1 to 4 and for all data types
+    for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
 
             // Create a data array with random data
-            void* data = allocateRandomData(width*height*nrOfComponents, type);
+            void* data = allocateRandomData(width*height*nrOfChannels, type);
 
             Image::pointer image = Image::New();
-            image->create(width, height, type, nrOfComponents, device, data);
+            image->create(width, height, type, nrOfChannels, device, data);
 
             // Change buffer data
             OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
@@ -480,7 +480,7 @@ TEST_CASE("Create a 2D image and change buffer data", "[fast][image]") {
             device->getCommandQueue().enqueueNDRangeKernel(
                     kernel,
                     cl::NullRange,
-                    cl::NDRange(width*height*nrOfComponents),
+                    cl::NDRange(width*height*nrOfChannels),
                     cl::NullRange
             );
             access->release();
@@ -488,18 +488,18 @@ TEST_CASE("Create a 2D image and change buffer data", "[fast][image]") {
             switch(type) {
                 fastSwitchTypeMacro(
                     FAST_TYPE* changedData2 = (FAST_TYPE*)data;
-                    for(unsigned int i = 0; i < width*height*nrOfComponents; i++) {
+                    for(unsigned int i = 0; i < width*height*nrOfChannels; i++) {
                         changedData2[i] = changedData2[i]*2;
                     }
                 )
             }
 
             ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ);
-            CHECK(compareDataArrays(access2->get(), data, width*height*nrOfComponents, type) == true);
+            CHECK(compareDataArrays(access2->get(), data, width*height*nrOfChannels, type) == true);
 
             OpenCLImageAccess::pointer access3 = image->getOpenCLImageAccess(ACCESS_READ, device);
             cl::Image2D* clImage = access3->get2DImage();
-            CHECK(compareImage2DWithDataArray(*clImage, device, data, width, height, nrOfComponents, type) == true);
+            CHECK(compareImage2DWithDataArray(*clImage, device, data, width, height, nrOfChannels, type) == true);
             deleteArray(data, type);
 
         }
@@ -515,17 +515,17 @@ TEST_CASE("Create a 3D image and change buffer data", "[fast][image]") {
     unsigned int depth = 32;
 
 
-    // Test for having components 1 to 4 and for all data types
-    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+    // Test for having channels 1 to 4 and for all data types
+    for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
 
             // Create a data array with random data
-            void* data = allocateRandomData(width*height*depth*nrOfComponents, type);
+            void* data = allocateRandomData(width*height*depth*nrOfChannels, type);
 
 
             Image::pointer image = Image::New();
-            image->create(width, height, depth, type, nrOfComponents, device, data);
+            image->create(width, height, depth, type, nrOfChannels, device, data);
 
             // Change buffer data
             OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
@@ -558,7 +558,7 @@ TEST_CASE("Create a 3D image and change buffer data", "[fast][image]") {
             device->getCommandQueue().enqueueNDRangeKernel(
                     kernel,
                     cl::NullRange,
-                    cl::NDRange(width*height*depth*nrOfComponents),
+                    cl::NDRange(width*height*depth*nrOfChannels),
                     cl::NullRange
             );
             access->release();
@@ -566,18 +566,18 @@ TEST_CASE("Create a 3D image and change buffer data", "[fast][image]") {
             switch(type) {
                 fastSwitchTypeMacro(
                     FAST_TYPE* changedData2 = (FAST_TYPE*)data;
-                    for(unsigned int i = 0; i < width*height*depth*nrOfComponents; i++) {
+                    for(unsigned int i = 0; i < width*height*depth*nrOfChannels; i++) {
                         changedData2[i] = changedData2[i]*2;
                     }
                 )
             }
 
             ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ);
-            CHECK(compareDataArrays(access2->get(), data, width*height*depth*nrOfComponents, type) == true);
+            CHECK(compareDataArrays(access2->get(), data, width*height*depth*nrOfChannels, type) == true);
 
             OpenCLImageAccess::pointer access3 = image->getOpenCLImageAccess(ACCESS_READ, device);
             cl::Image3D* clImage = access3->get3DImage();
-            CHECK(compareImage3DWithDataArray(*clImage, device, data, width, height, depth, nrOfComponents, type) == true);
+            CHECK(compareImage3DWithDataArray(*clImage, device, data, width, height, depth, nrOfChannels, type) == true);
             deleteArray(data, type);
 
         }
@@ -592,16 +592,16 @@ TEST_CASE("Create a 2D image and change image data", "[fast][image]") {
     unsigned int height = 512;
 
 
-    // Test for having components 1 to 4 and for all data types
-    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+    // Test for having channels 1 to 4 and for all data types
+    for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
 
             // Create a data array with random data
-            void* data = allocateRandomData(width*height*nrOfComponents, type);
+            void* data = allocateRandomData(width*height*nrOfChannels, type);
 
             Image::pointer image = Image::New();
-            image->create(width, height, type, nrOfComponents, device, data);
+            image->create(width, height, type, nrOfChannels, device, data);
 
             // Change image data
             OpenCLImageAccess::pointer access3 = image->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
@@ -638,18 +638,18 @@ TEST_CASE("Create a 2D image and change image data", "[fast][image]") {
             switch(type) {
                 fastSwitchTypeMacro(
                     FAST_TYPE* changedData2 = (FAST_TYPE*)data;
-                    for(unsigned int i = 0; i < width*height*nrOfComponents; i++) {
+                    for(unsigned int i = 0; i < width*height*nrOfChannels; i++) {
                         changedData2[i] = 1;
                     }
                 )
             }
 
             ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ);
-            CHECK(compareDataArrays(access2->get(), data, width*height*nrOfComponents, type) == true);
+            CHECK(compareDataArrays(access2->get(), data, width*height*nrOfChannels, type) == true);
 
             OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ, device);
             cl::Buffer* buffer = access->get();
-            CHECK(compareBufferWithDataArray(*buffer, device, data, width*height*nrOfComponents, type) == true);
+            CHECK(compareBufferWithDataArray(*buffer, device, data, width*height*nrOfChannels, type) == true);
             deleteArray(data, type);
         }
     }
@@ -668,18 +668,18 @@ TEST_CASE("Create a 3D image and change image data", "[fast][image]") {
     unsigned int height = 32;
     unsigned int depth = 32;
 
-    // Test for having components 1 to 4 and for all data types
-    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+    // Test for having channels 1 to 4 and for all data types
+    for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
-            INFO("Components " << nrOfComponents);
+            INFO("Channels " << nrOfChannels);
             INFO("Type " << typeNr);
             DataType type = (DataType)typeNr;
 
             // Create a data array with random data
-            void* data = allocateRandomData(width*height*depth*nrOfComponents, type);
+            void* data = allocateRandomData(width*height*depth*nrOfChannels, type);
 
             Image::pointer image = Image::New();
-            image->create(width, height, depth, type, nrOfComponents, device, data);
+            image->create(width, height, depth, type, nrOfChannels, device, data);
 
             // Change image data
             OpenCLImageAccess::pointer access3 = image->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
@@ -716,18 +716,18 @@ TEST_CASE("Create a 3D image and change image data", "[fast][image]") {
             switch(type) {
                 fastSwitchTypeMacro(
                     FAST_TYPE* changedData2 = (FAST_TYPE*)data;
-                    for(unsigned int i = 0; i < width*height*depth*nrOfComponents; i++) {
+                    for(unsigned int i = 0; i < width*height*depth*nrOfChannels; i++) {
                         changedData2[i] = 1;
                     }
                 )
             }
 
             ImageAccess::pointer access2 = image->getImageAccess(ACCESS_READ);
-            CHECK(compareDataArrays(access2->get(), data, width*height*depth*nrOfComponents, type) == true);
+            CHECK(compareDataArrays(access2->get(), data, width*height*depth*nrOfChannels, type) == true);
 
             OpenCLBufferAccess::pointer access = image->getOpenCLBufferAccess(ACCESS_READ, device);
             cl::Buffer* buffer = access->get();
-            CHECK(compareBufferWithDataArray(*buffer, device, data, width*height*depth*nrOfComponents, type) == true);
+            CHECK(compareBufferWithDataArray(*buffer, device, data, width*height*depth*nrOfChannels, type) == true);
             deleteArray(data, type);
         }
     }
@@ -894,7 +894,7 @@ TEST_CASE("Uninitialized image throws exception", "[fast][image]") {
     CHECK_THROWS(image->getHeight());
     CHECK_THROWS(image->getDepth());
     CHECK_THROWS(image->getDimensions());
-    CHECK_THROWS(image->getNrOfComponents());
+    CHECK_THROWS(image->getNrOfChannels());
     CHECK_THROWS(image->getDataType());
 }
 
@@ -1233,19 +1233,19 @@ TEST_CASE("calculateAverageIntensity returns the average intensity of a 2D image
     unsigned int width = 31;
     unsigned int height = 64;
 
-    // Test for having components 1 to 4 and for all data types
-    unsigned int nrOfComponents = 1;
-    //for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+    // Test for having channels 1 to 4 and for all data types
+    unsigned int nrOfChannels = 1;
+    //for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
 
             // Create a data array with random data
-            void* data = allocateRandomData(width*height*nrOfComponents, type);
+            void* data = allocateRandomData(width*height*nrOfChannels, type);
 
             Image::pointer image = Image::New();
-            image->create(width, height, type, nrOfComponents, device, data);
+            image->create(width, height, type, nrOfChannels, device, data);
 
-            float average = getSumFromData(data, width*height*nrOfComponents, type) / (width*height);
+            float average = getSumFromData(data, width*height*nrOfChannels, type) / (width*height);
             CHECK(image->calculateAverageIntensity() == Approx(average));
             deleteArray(data, type);
         }
@@ -1256,19 +1256,19 @@ TEST_CASE("calculateAverageIntensity returns the average intensity of a 2D image
     unsigned int width = 31;
     unsigned int height = 64;
 
-    // Test for having components 1 to 4 and for all data types
-    unsigned int nrOfComponents = 1;
-    //for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+    // Test for having channels 1 to 4 and for all data types
+    unsigned int nrOfChannels = 1;
+    //for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
 
             // Create a data array with random data
-            void* data = allocateRandomData(width*height*nrOfComponents, type);
+            void* data = allocateRandomData(width*height*nrOfChannels, type);
 
             Image::pointer image = Image::New();
-            image->create(width, height, type, nrOfComponents, Host::getInstance(), data);
+            image->create(width, height, type, nrOfChannels, Host::getInstance(), data);
 
-            float average = getSumFromData(data, width*height*nrOfComponents, type) / (width*height);
+            float average = getSumFromData(data, width*height*nrOfChannels, type) / (width*height);
             CHECK(image->calculateAverageIntensity() == Approx(average));
             deleteArray(data, type);
         }
@@ -1280,19 +1280,19 @@ TEST_CASE("calculateAverageIntensity returns the average intensity of a 3D image
     unsigned int height = 32;
     unsigned int depth = 32;
 
-    // Test for having components 1 to 4 and for all data types
-    uint nrOfComponents = 1;
-    //for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+    // Test for having channels 1 to 4 and for all data types
+    uint nrOfChannels = 1;
+    //for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
 
             // Create a data array with random data
-            void* data = allocateRandomData(width*height*depth*nrOfComponents, type);
+            void* data = allocateRandomData(width*height*depth*nrOfChannels, type);
 
             Image::pointer image = Image::New();
-            image->create(width, height, depth, type, nrOfComponents, Host::getInstance(), data);
+            image->create(width, height, depth, type, nrOfChannels, Host::getInstance(), data);
 
-            float average = getSumFromData(data, width*height*depth*nrOfComponents, type) / (width*height*depth);
+            float average = getSumFromData(data, width*height*depth*nrOfChannels, type) / (width*height*depth);
             CHECK(image->calculateAverageIntensity() == Approx(average));
             deleteArray(data, type);
         }
@@ -1305,20 +1305,20 @@ TEST_CASE("calculateMaximum/MinimumIntensity returns the maximum/minimum intensi
     unsigned int width = 31;
     unsigned int height = 64;
 
-    // Test for having components 1 to 4 and for all data types
-    unsigned int nrOfComponents = 1;
-    //for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+    // Test for having channels 1 to 4 and for all data types
+    unsigned int nrOfChannels = 1;
+    //for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
 
             // Create a data array with random data
-            void* data = allocateRandomData(width*height*nrOfComponents, type);
+            void* data = allocateRandomData(width*height*nrOfChannels, type);
 
             Image::pointer image = Image::New();
-            image->create(width, height, type, nrOfComponents, device, data);
+            image->create(width, height, type, nrOfChannels, device, data);
 
             float min,max;
-            getMaxAndMinFromData(data, width*height*nrOfComponents, &min, &max, type);
+            getMaxAndMinFromData(data, width*height*nrOfChannels, &min, &max, type);
             CHECK(image->calculateMaximumIntensity() == Approx(max));
             CHECK(image->calculateMinimumIntensity() == Approx(min));
             deleteArray(data, type);
@@ -1333,21 +1333,21 @@ TEST_CASE("calculateMaximum/MinimumIntensity returns the maximum/minimum intensi
     unsigned int height = 43;
     unsigned int depth = 11;
 
-    // Test for having components 1 to 4 and for all data types
-    unsigned int nrOfComponents = 1;
-    //for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+    // Test for having channels 1 to 4 and for all data types
+    unsigned int nrOfChannels = 1;
+    //for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
 
             // Create a data array with random data
-            void* data = allocateRandomData(width*height*depth*nrOfComponents, type);
+            void* data = allocateRandomData(width*height*depth*nrOfChannels, type);
 
             Image::pointer image = Image::New();
-            image->create(width, height, depth, type, nrOfComponents, device, data);
+            image->create(width, height, depth, type, nrOfChannels, device, data);
 
             float min,max;
-            getMaxAndMinFromData(data, width*height*depth*nrOfComponents, &min, &max, type);
-            INFO("Components " << nrOfComponents);
+            getMaxAndMinFromData(data, width*height*depth*nrOfChannels, &min, &max, type);
+            INFO("Channels " << nrOfChannels);
             INFO("Type " << typeNr);
             CHECK(image->calculateMaximumIntensity() == Approx(max));
             CHECK(image->calculateMinimumIntensity() == Approx(min));
@@ -1368,19 +1368,19 @@ TEST_CASE("calculateMaximum/MinimumIntensity returns the maximum/minimum intensi
     unsigned int width = 32;
     unsigned int height = 32;
 
-    // Test for having components 1 to 4 and for all data types
-    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+    // Test for having channels 1 to 4 and for all data types
+    for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
 
             // Create a data array with random data
-            void* data = allocateRandomData(width*height*nrOfComponents, type);
+            void* data = allocateRandomData(width*height*nrOfChannels, type);
 
             Image::pointer image = Image::New();
-            image->create(width, height, type, nrOfComponents, Host::getInstance(), data);
+            image->create(width, height, type, nrOfChannels, Host::getInstance(), data);
 
             float min,max;
-            getMaxAndMinFromData(data, width*height*nrOfComponents, &min, &max, type);
+            getMaxAndMinFromData(data, width*height*nrOfChannels, &min, &max, type);
             CHECK(image->calculateMaximumIntensity() == Approx(max));
             CHECK(image->calculateMinimumIntensity() == Approx(min));
             deleteArray(data, type);
@@ -1393,19 +1393,19 @@ TEST_CASE("calculateMaximum/MinimumIntensity returns the maximum/minimum intensi
     unsigned int height = 32;
     unsigned int depth = 32;
 
-    // Test for having components 1 to 4 and for all data types
-    for(unsigned int nrOfComponents = 1; nrOfComponents <= 4; nrOfComponents++) {
+    // Test for having channels 1 to 4 and for all data types
+    for(unsigned int nrOfChannels = 1; nrOfChannels <= 4; nrOfChannels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) {
             DataType type = (DataType)typeNr;
 
             // Create a data array with random data
-            void* data = allocateRandomData(width*height*depth*nrOfComponents, type);
+            void* data = allocateRandomData(width*height*depth*nrOfChannels, type);
 
             Image::pointer image = Image::New();
-            image->create(width, height, depth, type, nrOfComponents, Host::getInstance(), data);
+            image->create(width, height, depth, type, nrOfChannels, Host::getInstance(), data);
 
             float min,max;
-            getMaxAndMinFromData(data, width*height*depth*nrOfComponents, &min, &max, type);
+            getMaxAndMinFromData(data, width*height*depth*nrOfChannels, &min, &max, type);
             CHECK(image->calculateMaximumIntensity() == Approx(max));
             CHECK(image->calculateMinimumIntensity() == Approx(min));
             deleteArray(data, type);
@@ -1420,9 +1420,9 @@ TEST_CASE("createFromImage on 2D image", "[fast][image]") {
 
     unsigned int width = 256;
     unsigned int height = 512;
-    unsigned int nrOfComponents = 2;
+    unsigned int nrOfChannels = 2;
     DataType type = TYPE_INT8;
-    image1->create(width, height, type, nrOfComponents);
+    image1->create(width, height, type, nrOfChannels);
 
     // Create some metadata
     Vector3f spacing;
@@ -1438,7 +1438,7 @@ TEST_CASE("createFromImage on 2D image", "[fast][image]") {
     CHECK(image2->getHeight() == height);
     CHECK(image2->getDepth() == 1);
     CHECK(image2->getDimensions() == 2);
-    CHECK(image2->getNrOfComponents() == nrOfComponents);
+    CHECK(image2->getNrOfChannels() == nrOfChannels);
     CHECK(image2->getDataType() == type);
 
     // Check that the image properties are correct
@@ -1455,9 +1455,9 @@ TEST_CASE("createFromImage on 3D image", "[fast][image]") {
     unsigned int width = 256;
     unsigned int height = 512;
     unsigned int depth = 45;
-    unsigned int nrOfComponents = 2;
+    unsigned int nrOfChannels = 2;
     DataType type = TYPE_INT8;
-    image1->create(width, height, depth, type, nrOfComponents);
+    image1->create(width, height, depth, type, nrOfChannels);
 
     // Create some metadata
     Vector3f spacing;
@@ -1473,7 +1473,7 @@ TEST_CASE("createFromImage on 3D image", "[fast][image]") {
     CHECK(image2->getHeight() == height);
     CHECK(image2->getDepth() == depth);
     CHECK(image2->getDimensions() == 3);
-    CHECK(image2->getNrOfComponents() == nrOfComponents);
+    CHECK(image2->getNrOfChannels() == nrOfChannels);
     CHECK(image2->getDataType() == type);
 
     // Check that the image properties are correct

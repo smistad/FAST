@@ -20,7 +20,7 @@ UltrasoundImageEnhancement::UltrasoundImageEnhancement() {
 
 void UltrasoundImageEnhancement::execute() {
     Image::pointer input = getInputData<Image>(0);
-    if(input->getNrOfComponents() != 1 || input->getDataType() != TYPE_UINT8) {
+    if(input->getNrOfChannels() != 1 || input->getDataType() != TYPE_UINT8) {
         throw Exception("UltrasoundImageEnhancement expects input to be of type UINT8 and have 1 channel");
     }
 

@@ -40,14 +40,14 @@ void ScaleImage::execute() {
 
     OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
     if(input->getDimensions() == 2) {
-        output->create(width, height, TYPE_FLOAT, input->getNrOfComponents());
+        output->create(width, height, TYPE_FLOAT, input->getNrOfChannels());
         globalSize = cl::NDRange(width, height);
         OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
         kernel = cl::Kernel(program, "scaleImage2D");
         kernel.setArg(0, *(inputAccess->get2DImage()));
         kernel.setArg(1, *(outputAccess->get2DImage()));
     } else {
-        output->create(width, height, depth, TYPE_FLOAT, input->getNrOfComponents());
+        output->create(width, height, depth, TYPE_FLOAT, input->getNrOfChannels());
         globalSize = cl::NDRange(width, height, depth);
         kernel = cl::Kernel(program, "scaleImage3D");
         kernel.setArg(0, *(inputAccess->get3DImage()));
@@ -57,7 +57,7 @@ void ScaleImage::execute() {
         } else {
             OpenCLBufferAccess::pointer outputAccess = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
             kernel.setArg(1, *(outputAccess->get()));
-            kernel.setArg(6, output->getNrOfComponents());
+            kernel.setArg(6, output->getNrOfChannels());
         }
     }
     output->setSpacing(input->getSpacing());

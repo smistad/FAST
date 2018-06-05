@@ -87,7 +87,7 @@ void UltrasoundImageCropper::execute() {
     reportInfo() << "Min/Max X and Y " << minX << " " << maxX << " " << minY << " " << maxY << Reporter::end();
     reportInfo() << "Cropped image to size " << newWidth << " " << newHeight << Reporter::end();
     Image::pointer outputImage = getOutputData<Image>();
-    outputImage->create(newWidth, newHeight, image->getDataType(), image->getNrOfComponents());
+    outputImage->create(newWidth, newHeight, image->getDataType(), image->getNrOfChannels());
     outputImage->setSpacing(image->getSpacing());
     outputImage->setCreationTimestamp(image->getCreationTimestamp());
 

@@ -62,7 +62,7 @@ void ImageResizer::execute() {
                 mSize.x(),
 				mSize.y(),
                 input->getDataType(),
-                input->getNrOfComponents()
+                input->getNrOfChannels()
         );
     } else {
         if(mSize.z() == 0)
@@ -70,7 +70,7 @@ void ImageResizer::execute() {
         output->create(
                 mSize.cast<uint>(),
                 input->getDataType(),
-				input->getNrOfComponents()
+				input->getNrOfChannels()
         );
     }
 

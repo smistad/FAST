@@ -30,7 +30,7 @@ inline void executeAlgorithmOnHost(Image::pointer input, Image::pointer output) 
     T * inputData = (T*)inputAccess->get();
     T * outputData = (T*)outputAccess->get();
 
-    unsigned int nrOfElements = input->getWidth()*input->getHeight()*input->getDepth()*input->getNrOfComponents();
+    unsigned int nrOfElements = input->getWidth()*input->getHeight()*input->getDepth()*input->getNrOfChannels();
     for(unsigned int i = 0; i < nrOfElements; i++) {
         outputData[i] = 2.0*inputData[i];
     }
@@ -61,7 +61,7 @@ void DoubleFilter::execute() {
         cl::Kernel kernel = cl::Kernel(getOpenCLProgram(device, "", buildOptions), "doubleFilter");
 
         // Get global size for the kernel
-        cl::NDRange globalSize(input->getWidth()*input->getHeight()*input->getDepth()*input->getNrOfComponents());
+        cl::NDRange globalSize(input->getWidth()*input->getHeight()*input->getDepth()*input->getNrOfChannels());
 
         // Set the arguments for the kernel
         OpenCLBufferAccess::pointer inputAccess = input->getOpenCLBufferAccess(ACCESS_READ, device);

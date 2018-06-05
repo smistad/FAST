@@ -86,7 +86,7 @@ class Image : public SpatialDataObject {
         uint getDepth() const;
         uchar getDimensions() const;
         DataType getDataType() const;
-        uint getNrOfComponents() const;
+        uint getNrOfChannels() const;
         void setSpacing(float x, float y, float z);
 	protected:
 		Image();

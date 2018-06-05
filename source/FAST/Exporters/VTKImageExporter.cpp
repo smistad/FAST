@@ -54,7 +54,7 @@ int VTKImageExporter::RequestData(
 
     Image::pointer input = getInputData<Image>();
 
-    if(input->getNrOfComponents() != 1)
+    if(input->getNrOfChannels() != 1)
         throw Exception("The VTKImageExporter currently doesn't support images with multiple components.");
 
     vtkInformation *outInfo = outputVector->GetInformationObject(0);
