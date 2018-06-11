@@ -7,17 +7,29 @@
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 
-
 using namespace fast;
 
-int main() {
+int main(int argc, char** argv) {
+    std::string path = Config::getTestDataPath() + "US/US-2D.jpg";
+
+    // Allow user to send in a custom path
+    if(argc > 1) {
+        if(std::string(argv[1]) == "--help") {
+            std::cout << "usage: " << argv[0] << " [/path/to/image.mhd]" << "\n";
+            return 0;
+        }
+        path = argv[1];
+    }
+
     // Import image from file using the ImageFileImporter
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(Config::getTestDataPath()+"/US/US-2D.jpg");
+    importer->setFilename(path);
 
-    // Renderer image
+    // Render
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->addInputConnection(importer->getOutputPort());
+
+    // Setup window
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->set2DMode();
