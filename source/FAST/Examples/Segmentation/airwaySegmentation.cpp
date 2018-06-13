@@ -19,7 +19,7 @@ using namespace fast;
 int main(int argc, char** argv) {
     Reporter::setGlobalReportMethod(Reporter::COUT); // TODO remove
 	CommandLineParser parser("Airway segmentation");
-    parser.addPositionVariable(0, "filename", Config::getTestDataPath() + "CT/CT-Thorax.mhd");
+    parser.addPositionVariable(1, "filename", Config::getTestDataPath() + "CT/CT-Thorax.mhd");
     parser.addVariable("smoothing", "0.5", "How much smoothing to apply before segmentation");
     parser.addVariable("seed", false, "Manual seed point coordinate (--seed x,y,z)");
     parser.addVariable("export_segmentation", false, "Filename to export segmentation volume to. Example: segmentation.mhd");
@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
 
 	// Import CT data
 	ImageFileImporter::pointer importer = ImageFileImporter::New();
-	importer->setFilename(parser.get(0));
+	importer->setFilename(parser.get(1));
 
 	// Do airway segmentation
 	AirwaySegmentation::pointer segmentation = AirwaySegmentation::New();

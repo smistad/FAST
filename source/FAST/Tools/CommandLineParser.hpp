@@ -106,31 +106,23 @@ class CommandLineParser {
         class Variable {
             public:
                 explicit Variable(const std::string& name, const std::string& helpText, bool requied) : name(name), helpText(helpText), required(required) {}
+                uint position = 0; // 0, means it has no position
                 bool required;
                 std::string helpText;
                 std::string name;
                 virtual void setValue(const std::string& value) = 0;
                 virtual std::string getValue() = 0;
-                virtual void printHelp() = 0;
+                virtual void printHelp(int length) = 0;
         };
 
-        class PositionableVariable : public Variable {
+        class StringVariable : public Variable {
             public:
                 using Variable::Variable;
-                uint position = 0; // 0, means it has no position
-                virtual void setValue(const std::string& value) = 0;
-                virtual std::string getValue() = 0;
-                virtual void printHelp() = 0;
-        };
-
-        class StringVariable : public PositionableVariable{
-            public:
-                using PositionableVariable::PositionableVariable;
                 std::string defaultValue;
                 std::string value = "";
                 virtual void setValue(const std::string& value) override;
                 std::string getValue() override;
-                virtual void printHelp() override;
+                virtual void printHelp(int length) override;
         };
 
         class Choice : public StringVariable {
@@ -138,7 +130,7 @@ class CommandLineParser {
                 using StringVariable::StringVariable;
                 std::vector<std::string> choices;
                 void setValue(const std::string& value) override;
-                void printHelp() override;
+                void printHelp(int length) override;
         };
 
         class Option : public Variable {
@@ -147,7 +139,7 @@ class CommandLineParser {
                 bool value = false;
                 void setValue(const std::string& value) override;
                 std::string getValue() override;
-                void printHelp() override;
+                void printHelp(int length) override;
         };
 
         std::map<std::string, std::shared_ptr<Variable>> m_variables;

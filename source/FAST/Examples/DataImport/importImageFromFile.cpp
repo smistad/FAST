@@ -3,6 +3,7 @@
  *
  * If you edit this example, please also update the wiki and source code file in the repository.
  */
+#include <FAST/Tools/CommandLineParser.hpp>
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
@@ -10,20 +11,14 @@
 using namespace fast;
 
 int main(int argc, char** argv) {
-    std::string path = Config::getTestDataPath() + "US/US-2D.jpg";
-
-    // Allow user to send in a custom path
-    if(argc > 1) {
-        if(std::string(argv[1]) == "--help") {
-            std::cout << "usage: " << argv[0] << " [/path/to/image.mhd]" << "\n";
-            return 0;
-        }
-        path = argv[1];
-    }
+    Reporter::setGlobalReportMethod(Reporter::COUT);
+    CommandLineParser parser("Import image from file example");
+    parser.addPositionVariable(1, "filename", Config::getTestDataPath() + "US/US-2D.jpg");
+    parser.parse(argc, argv);
 
     // Import image from file using the ImageFileImporter
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(path);
+    importer->setFilename(parser.get(1));
 
     // Render
     ImageRenderer::pointer renderer = ImageRenderer::New();

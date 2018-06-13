@@ -10,10 +10,11 @@ CommandLineParser::CommandLineParser(std::string title, std::string description)
 }
 
 void CommandLineParser::parse(const int argc, char ** const argv) {
-    // TODO make sure there are now spaces
+    // TODO make sure parse has been run before, calling get, gotValue etc.
+    // TODO make sure there are no spaces. Add support for "asdasd asdasd"
     m_command = argv[0];
     std::shared_ptr<Variable> currentVariable;
-    uint currentPosition = 0;
+    uint currentPosition = 1;
     for(int i = 1; i < argc; ++i) {
         std::string token = argv[i];
         Reporter::info() << "Processing token " << token << Reporter::end();
@@ -91,6 +92,8 @@ void CommandLineParser::addVariable(const std::string &name, const char *default
 
 void CommandLineParser::addPositionVariable(uint position, const std::string &name, bool required,
                                             const std::string &helpText) {
+    if(position == 0)
+        throw Exception("CommandLineParser: Position must be > 0");
     std::shared_ptr<StringVariable> var = std::make_shared<StringVariable>(name, helpText, required);
     var->position = position;
     m_positionVariables[position] = var;
@@ -99,6 +102,8 @@ void CommandLineParser::addPositionVariable(uint position, const std::string &na
 
 void CommandLineParser::addPositionVariable(uint position, const std::string &name, const std::string &defaultValue,
                                             const std::string &helpText) {
+    if(position == 0)
+        throw Exception("CommandLineParser: Position must be > 0");
     std::shared_ptr<StringVariable> var = std::make_shared<StringVariable>(name, helpText, false);
     // TODO check for space in name
     var->defaultValue = defaultValue;
@@ -109,6 +114,8 @@ void CommandLineParser::addPositionVariable(uint position, const std::string &na
 }
 void CommandLineParser::addPositionVariable(uint position, const std::string &name, const char *defaultValue,
                                             const std::string &helpText) {
+    if(position == 0)
+        throw Exception("CommandLineParser: Position must be > 0");
     addPositionVariable(position, name, std::string(defaultValue), helpText);
 }
 
@@ -145,16 +152,32 @@ void CommandLineParser::printHelpMessage() const {
             std::cout << var.second->name;
         }
     }
-    if(!m_variables.empty())
+    if(!m_variables.empty() && m_positionVariables.size() < m_variables.size())
         std::cout << " [variables]";
     std::cout << "\n\n";
 
-    if(!m_variables.empty())
-        std::cout << "Variables:\n";
-    for(auto&& variable : m_variables) {
-        variable.second->printHelp();
+    // Get length of longest variable name
+    int maxLength = 0;
+    for(auto &&variable : m_variables) {
+        if(maxLength < variable.first.size()) {
+            maxLength = variable.first.size();
+        }
+    }
 
+    for(auto &&variable : m_positionVariables) {
+        variable.second->printHelp(maxLength + 10);
         std::cout << "\n";
+    }
+    std::cout << "\n";
+
+    if(!m_variables.empty() && m_positionVariables.size() < m_variables.size()) {
+        std::cout << "Variables:\n";
+        for(auto &&variable : m_variables) {
+            if(variable.second->position == 0) {
+                variable.second->printHelp(maxLength + 10);
+                std::cout << "\n";
+            }
+        }
     }
 
     std::cout << std::flush;
@@ -192,7 +215,8 @@ void CommandLineParser::addChoice(const std::string &name, std::vector<std::stri
 
 void CommandLineParser::addPositionChoice(uint position, const std::string &name, std::vector<std::string> choices,
                                             const std::string &defaultValue, const std::string &helpText) {
-
+    if(position == 0)
+        throw Exception("CommandLineParser: Position must be > 0");
     std::shared_ptr<Choice> var = std::make_shared<Choice>(name, helpText, false);
     var->defaultValue = defaultValue;
     var->value = "";
@@ -202,12 +226,15 @@ void CommandLineParser::addPositionChoice(uint position, const std::string &name
 
 void CommandLineParser::addPositionChoice(uint position, const std::string &name, std::vector<std::string> choices,
                                             const char *defaultValue, const std::string &helpText) {
+    if(position == 0)
+        throw Exception("CommandLineParser: Position must be > 0");
     addPositionChoice(position, name, choices, std::string(defaultValue), helpText);
 }
 
 void CommandLineParser::addPositionChoice(uint position, const std::string &name, std::vector<std::string> choices,
                                             bool required, const std::string &helpText) {
-
+    if(position == 0)
+        throw Exception("CommandLineParser: Position must be > 0");
     std::shared_ptr<Choice> var = std::make_shared<Choice>(name, helpText, required);
     var->choices = choices;
     m_positionVariables[position] = var;
@@ -258,8 +285,14 @@ std::string CommandLineParser::StringVariable::getValue() {
     return value;
 }
 
-void CommandLineParser::StringVariable::printHelp() {
-    std::cout << "--" << name << " value";
+void CommandLineParser::StringVariable::printHelp(int length) {
+    std::string start = "";
+    if(position == 0)
+        start += "--";
+    start += name;
+    if(position == 0)
+        start += " value";
+    std::cout << start.append(length - start.size(), ' ');
     if(!helpText.empty())
         std::cout << " - " << helpText;
     if(!defaultValue.empty())
@@ -277,13 +310,17 @@ void CommandLineParser::Choice::setValue(const std::string &value) {
         throw Exception("Choice " + value + " was not valid for variable " + name);
 }
 
-void CommandLineParser::Choice::printHelp() {
-    std::cout << "--" << name << " ";
+void CommandLineParser::Choice::printHelp(int length) {
+    std::string start = "";
+    if(position == 0)
+        start += "--";
+    start += name + " ";
     for(int i = 0; i < choices.size(); ++i) {
-        std::cout << "" << choices[i];
+        start += choices[i];
         if(i < choices.size() - 1)
-            std::cout << "|";
+            start += "|";
     }
+    std::cout << start.append(length - start.size(), ' ');
     if(!helpText.empty())
         std::cout << " - " << helpText << " ";
     std::cout << " - Default value: " << defaultValue;
@@ -300,8 +337,9 @@ std::string CommandLineParser::Option::getValue() {
     return value ? "true" : "false";
 }
 
-void CommandLineParser::Option::printHelp() {
-    std::cout << "--" << name;
+void CommandLineParser::Option::printHelp(int length) {
+    std::string start = "--" + name;
+    std::cout << start.append(length - start.size(), ' ');
     if(!helpText.empty())
         std::cout << " - " << helpText;
 }
