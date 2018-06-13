@@ -3,6 +3,7 @@
  *
  * If you edit this example, please also update the wiki and source code file in the repository.
  */
+#include <FAST/Tools/CommandLineParser.hpp>
 #include "FAST/Importers/VTKMeshFileImporter.hpp"
 #include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
@@ -10,20 +11,13 @@
 using namespace fast;
 
 int main(int argc, char** argv) {
-    std::string path = Config::getTestDataPath()+"/Surface_LV.vtk";
-
-    // Allow user to send in a custom path
-    if(argc > 1) {
-        if(std::string(argv[1]) == "--help") {
-            std::cout << "usage: " << argv[0] << " [/path/to/data.vtk]" << "\n";
-            return 0;
-        }
-        path = argv[1];
-    }
+    CommandLineParser parser("Import triangle mesh from file");
+    parser.addPositionVariable(1, "filename", Config::getTestDataPath()+"/Surface_LV.vtk");
+    parser.parse(argc, argv);
 
     // Import a triangle mesh from vtk file using the VTKMeshFileImporter
     VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
-    importer->setFilename(path);
+    importer->setFilename(parser.get("filename"));
 
     // Renderer mesh
     TriangleRenderer::pointer renderer = TriangleRenderer::New();

@@ -3,29 +3,23 @@
  *
  * If you edit this example, please also update the wiki and source code file in the repository.
  */
+#include <FAST/Tools/CommandLineParser.hpp>
 #include "FAST/Streamers/ImageFileStreamer.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 
 using namespace fast;
 
-int main(int argc, char** argv) {    
+int main(int argc, char** argv) {
+    CommandLineParser parser("Stream images from disk");
     // The hashtag here will be replaced with an integer, starting with 0 as default
-    std::string path = Config::getTestDataPath() + "/US/CarotidArtery/Right/US-2D_#.mhd";
-    
-    // Allow user to send in a custom path
-    if(argc > 1) {
-        if(std::string(argv[1]) == "--help") {
-            std::cout << "usage: " << argv[0] << " [/path/to/data/frame_#.mhd]\n";
-            std::cout << "The files should be stored with an integer in place of the #: frame_0.mhd, frame_1.mhd ..." << std::endl;
-            return 0;
-        }
-        path = argv[1];
-    }
+    parser.addPositionVariable(1, "filename", Config::getTestDataPath() + "/US/CarotidArtery/Right/US-2D_#.mhd");
+    parser.addVariable("sleep-time", "50");
+    parser.parse(argc, argv);
 
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
-    streamer->setFilenameFormat(path);
-    streamer->setSleepTime(50);
+    streamer->setFilenameFormat(parser.get("filename"));
+    streamer->setSleepTime(parser.get<int>("sleep-time"));
 
     ImageRenderer::pointer renderer = ImageRenderer::New();
     renderer->addInputConnection(streamer->getOutputPort());
