@@ -9,7 +9,6 @@
 #include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 
-
 using namespace fast;
 
 int main() {
