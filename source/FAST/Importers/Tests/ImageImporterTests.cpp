@@ -51,6 +51,28 @@ TEST_CASE("Import PNG image file to OpenCL device", "[fast][ImageImporter]") {
     CHECK(image->getHeight() == 512);
     CHECK(image->getDepth() == 1);
     CHECK(image->getDimensions() == 2);
+    CHECK(image->getNrOfChannels() == 1);
+    CHECK(image->getDataType() == TYPE_UINT8);
+}
+
+TEST_CASE("Import color PNG image file to OpenCL device", "[fast][ImageImporter]") {
+    DeviceManager* deviceManager = DeviceManager::getInstance();
+    OpenCLDevice::pointer device = deviceManager->getOneOpenCLDevice();
+
+    ImageImporter::pointer importer = ImageImporter::New();
+    importer->setGrayscale(false);
+    importer->setFilename(Config::getTestDataPath() + "US/US-2D.png");
+    importer->setMainDevice(device);
+    DataPort::pointer port = importer->getOutputPort();
+    importer->update(0);
+    Image::pointer image = port->getNextFrame();
+
+    // Check attributes of image
+    CHECK(image->getWidth() == 512);
+    CHECK(image->getHeight() == 512);
+    CHECK(image->getDepth() == 1);
+    CHECK(image->getNrOfChannels() == 3);
+    CHECK(image->getDimensions() == 2);
     CHECK(image->getDataType() == TYPE_UINT8);
 }
 

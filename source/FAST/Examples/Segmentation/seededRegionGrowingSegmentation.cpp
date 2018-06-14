@@ -3,26 +3,32 @@
  *
  * If you edit this example, please also update the wiki and source code file in the repository.
  */
+#include <FAST/Tools/CommandLineParser.hpp>
 #include "FAST/Importers/ImageFileImporter.hpp"
 #include "FAST/Algorithms/SeededRegionGrowing/SeededRegionGrowing.hpp"
 #include "FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp"
 #include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 
-
 using namespace fast;
 
-int main() {
+int main(int argc, char** argv) {
+    CommandLineParser parser("Seeded region growing");
+    parser.addPositionVariable(1, "filename", Config::getTestDataPath() + "CT/CT-Abdomen.mhd");
+    parser.addVariable("min-intensity", "150");
+    parser.addVariable("max-intensity", "5000");
+    parser.parse(argc, argv);
+
     // Import CT image
     ImageFileImporter::pointer importer = ImageFileImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "CT/CT-Abdomen.mhd");
+    importer->setFilename(parser.get("filename"));
 
     // Perform region growing segmentation
     SeededRegionGrowing::pointer segmentation = SeededRegionGrowing::New();
     segmentation->setInputConnection(importer->getOutputPort());
     segmentation->addSeedPoint(223,282,387);
     segmentation->addSeedPoint(251,314,148);
-    segmentation->setIntensityRange(150, 5000);
+    segmentation->setIntensityRange(parser.get<int>("min-intensity"), parser.get<int>("max-intensity"));
 
     // Extraction surface mesh from segmentation
     SurfaceExtraction::pointer extraction = SurfaceExtraction::New();

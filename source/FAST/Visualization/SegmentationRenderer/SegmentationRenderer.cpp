@@ -39,7 +39,7 @@ SegmentationRenderer::SegmentationRenderer() {
     mLabelColors[Segmentation::LABEL_NERVE] = Color::Yellow();
     mLabelColors[Segmentation::LABEL_YELLOW] = Color::Yellow();
     mLabelColors[Segmentation::LABEL_GREEN] = Color::Green();
-    mLabelColors[Segmentation::LABEL_PURPLE] = Color::Purple();
+    mLabelColors[Segmentation::LABEL_MAGENTA] = Color::Magenta();
     mLabelColors[Segmentation::LABEL_RED] = Color::Red();
     mLabelColors[Segmentation::LABEL_WHITE] = Color::White();
     mLabelColors[Segmentation::LABEL_BLUE] = Color::Blue();

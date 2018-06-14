@@ -9,7 +9,6 @@
 #include "FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 
-
 using namespace fast;
 
 int main() {

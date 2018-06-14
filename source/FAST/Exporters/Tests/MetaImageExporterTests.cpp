@@ -46,13 +46,13 @@ TEST_CASE("Write a 2D image with the MetaImageExporter", "[fast][MetaImageExport
 
     unsigned int width = 32;
     unsigned int height = 46;
-    for(unsigned int components = 1; components <= 4; components++) {
+    for(unsigned int channels = 1; channels <= 4; channels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) { // for all types
             DataType type = (DataType)typeNr;
 
             Image::pointer image = Image::New();
-            void* data = allocateRandomData(width*height*components, type);
-            image->create(width, height, type, components, Host::getInstance(), data);
+            void* data = allocateRandomData(width*height*channels, type);
+            image->create(width, height, type, channels, Host::getInstance(), data);
 
             // Set metadata
             image->setSpacing(spacing);
@@ -87,12 +87,12 @@ TEST_CASE("Write a 2D image with the MetaImageExporter", "[fast][MetaImageExport
             CHECK(image2->getHeight() == height);
             CHECK(image2->getDepth() == 1);
             CHECK(image2->getDataType() == type);
-            CHECK(image2->getNrOfComponents() == components);
+            CHECK(image2->getNrOfChannels() == channels);
             CHECK(image2->getDimensions() == 2);
 
             ImageAccess::pointer access = image2->getImageAccess(ACCESS_READ);
             void* data2 = access->get();
-            CHECK(compareDataArrays(data, data2, width*height*components, type) == true);
+            CHECK(compareDataArrays(data, data2, width*height*channels, type) == true);
             deleteArray(data, type);
         }
     }
@@ -127,13 +127,13 @@ TEST_CASE("Write a 3D image with the MetaImageExporter", "[fast][MetaImageExport
     unsigned int width = 32;
     unsigned int height = 22;
     unsigned int depth = 20;
-    for(unsigned int components = 1; components <= 4; components++) {
+    for(unsigned int channels = 1; channels <= 4; channels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) { // for all types
             DataType type = (DataType)typeNr;
 
             Image::pointer image = Image::New();
-            void* data = allocateRandomData(width*height*depth*components, type);
-            image->create(width, height, depth, type, components, Host::getInstance(), data);
+            void* data = allocateRandomData(width*height*depth*channels, type);
+            image->create(width, height, depth, type, channels, Host::getInstance(), data);
 
             // Set metadata
             image->setSpacing(spacing);
@@ -167,12 +167,12 @@ TEST_CASE("Write a 3D image with the MetaImageExporter", "[fast][MetaImageExport
             CHECK(image2->getHeight() == height);
             CHECK(image2->getDepth() == depth);
             CHECK(image2->getDataType() == type);
-            CHECK(image2->getNrOfComponents() == components);
+            CHECK(image2->getNrOfChannels() == channels);
             CHECK(image2->getDimensions() == 3);
 
             ImageAccess::pointer access = image2->getImageAccess(ACCESS_READ);
             void* data2 = access->get();
-            CHECK(compareDataArrays(data, data2, width*height*depth*components, type) == true);
+            CHECK(compareDataArrays(data, data2, width*height*depth*channels, type) == true);
             deleteArray(data, type);
         }
     }
@@ -205,15 +205,15 @@ TEST_CASE("Write a compressed 2D image with the MetaImageExporter", "[fast][Meta
 
     unsigned int width = 32;
     unsigned int height = 46;
-    for(unsigned int components = 1; components <= 4; components++) {
-        INFO("Nr of components: " << components);
+    for(unsigned int channels = 1; channels <= 4; channels++) {
+        INFO("Nr of channels: " << channels);
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) { // for all types
             INFO("Type nr: " << typeNr);
             DataType type = (DataType)typeNr;
 
             Image::pointer image = Image::New();
-            void* data = allocateRandomData(width*height*components, type);
-            image->create(width, height, type, components, Host::getInstance(), data);
+            void* data = allocateRandomData(width*height*channels, type);
+            image->create(width, height, type, channels, Host::getInstance(), data);
 
             // Set metadata
             image->setSpacing(spacing);
@@ -248,12 +248,12 @@ TEST_CASE("Write a compressed 2D image with the MetaImageExporter", "[fast][Meta
             CHECK(image2->getHeight() == height);
             CHECK(image2->getDepth() == 1);
             CHECK(image2->getDataType() == type);
-            CHECK(image2->getNrOfComponents() == components);
+            CHECK(image2->getNrOfChannels() == channels);
             CHECK(image2->getDimensions() == 2);
 
             ImageAccess::pointer access = image2->getImageAccess(ACCESS_READ);
             void* data2 = access->get();
-            CHECK(compareDataArrays(data, data2, width*height*components, type) == true);
+            CHECK(compareDataArrays(data, data2, width*height*channels, type) == true);
             deleteArray(data, type);
         }
     }
@@ -288,13 +288,13 @@ TEST_CASE("Write a compressed 3D image with the MetaImageExporter", "[fast][Meta
     unsigned int width = 32;
     unsigned int height = 22;
     unsigned int depth = 20;
-    for(unsigned int components = 1; components <= 4; components++) {
+    for(unsigned int channels = 1; channels <= 4; channels++) {
         for(unsigned int typeNr = 0; typeNr < 5; typeNr++) { // for all types
             DataType type = (DataType)typeNr;
 
             Image::pointer image = Image::New();
-            void* data = allocateRandomData(width*height*depth*components, type);
-            image->create(width, height, depth, type, components, Host::getInstance(), data);
+            void* data = allocateRandomData(width*height*depth*channels, type);
+            image->create(width, height, depth, type, channels, Host::getInstance(), data);
 
             // Set metadata
             image->setSpacing(spacing);
@@ -329,12 +329,12 @@ TEST_CASE("Write a compressed 3D image with the MetaImageExporter", "[fast][Meta
             CHECK(image2->getHeight() == height);
             CHECK(image2->getDepth() == depth);
             CHECK(image2->getDataType() == type);
-            CHECK(image2->getNrOfComponents() == components);
+            CHECK(image2->getNrOfChannels() == channels);
             CHECK(image2->getDimensions() == 3);
 
             ImageAccess::pointer access = image2->getImageAccess(ACCESS_READ);
             void* data2 = access->get();
-            CHECK(compareDataArrays(data, data2, width*height*depth*components, type) == true);
+            CHECK(compareDataArrays(data, data2, width*height*depth*channels, type) == true);
             deleteArray(data, type);
         }
     }

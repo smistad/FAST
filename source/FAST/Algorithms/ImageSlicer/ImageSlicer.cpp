@@ -114,7 +114,7 @@ void ImageSlicer::orthogonalSlicing(Image::pointer input, Image::pointer output)
             break;
     }
 
-    output->create(width, height, input->getDataType(), input->getNrOfComponents());
+    output->create(width, height, input->getDataType(), input->getNrOfChannels());
     output->setSpacing(spacing);
     AffineTransformation::pointer T = AffineTransformation::New();
     T->setTransform(transform);
@@ -241,7 +241,7 @@ void ImageSlicer::arbitrarySlicing(Image::pointer input, Image::pointer output) 
         }
     }
 
-    output->create(longestEdgePixels, longestEdgePixels, input->getDataType(), input->getNrOfComponents());
+    output->create(longestEdgePixels, longestEdgePixels, input->getDataType(), input->getNrOfChannels());
     float spacing = longestEdgeMM / longestEdgePixels;
     output->setSpacing(spacing, spacing, 1);
 

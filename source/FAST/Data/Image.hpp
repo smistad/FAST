@@ -16,15 +16,15 @@ class FAST_EXPORT  Image : public SpatialDataObject {
     FAST_OBJECT(Image)
     public:
         void createFromImage(Image::pointer image);
-        void create(VectorXui size, DataType type, uint nrOfComponents);
-        void create(uint width, uint height, DataType type, uint nrOfComponents);
-        void create(uint width, uint height, uint depth, DataType type, uint nrOfComponents);
-        void create(VectorXui size, DataType type, uint nrOfComponents, ExecutionDevice::pointer device, const void * data);
-        void create(uint width, uint height, DataType type, uint nrOfComponents, ExecutionDevice::pointer device, const void * data);
-        void create(uint width, uint height, uint depth, DataType type, uint nrOfComponents, ExecutionDevice::pointer device, const void * data);
-        void create(VectorXui size, DataType type, uint nrOfComponents, const void * data);
-        void create(uint width, uint height, DataType type, uint nrOfComponents, const void * data);
-        void create(uint width, uint height, uint depth, DataType type, uint nrOfComponents, const void * data);
+        void create(VectorXui size, DataType type, uint nrOfChannels);
+        void create(uint width, uint height, DataType type, uint nrOfChannels);
+        void create(uint width, uint height, uint depth, DataType type, uint nrOfChannels);
+        void create(VectorXui size, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, const void * data);
+        void create(uint width, uint height, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, const void * data);
+        void create(uint width, uint height, uint depth, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, const void * data);
+        void create(VectorXui size, DataType type, uint nrOfChannels, const void * data);
+        void create(uint width, uint height, DataType type, uint nrOfChannels, const void * data);
+        void create(uint width, uint height, uint depth, DataType type, uint nrOfChannels, const void * data);
 
         OpenCLImageAccess::pointer getOpenCLImageAccess(accessType type, OpenCLDevice::pointer);
         OpenCLBufferAccess::pointer getOpenCLBufferAccess(accessType type, OpenCLDevice::pointer);
@@ -38,7 +38,7 @@ class FAST_EXPORT  Image : public SpatialDataObject {
         Vector3ui getSize() const;
         uchar getDimensions() const;
         DataType getDataType() const;
-        uint getNrOfComponents() const;
+        uint getNrOfChannels() const;
         Vector3f getSpacing() const;
         void setSpacing(Vector3f spacing);
         void setSpacing(float x, float y, float z);
@@ -100,7 +100,7 @@ class FAST_EXPORT  Image : public SpatialDataObject {
         uint mWidth, mHeight, mDepth;
         uchar mDimensions;
         DataType mType;
-        uint mComponents;
+        uint mChannels;
         bool mIsInitialized;
 
         Vector3f mSpacing;

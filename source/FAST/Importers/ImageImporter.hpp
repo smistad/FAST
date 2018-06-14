@@ -14,7 +14,6 @@ class FAST_EXPORT  ImageImporter : public Importer {
         ~ImageImporter() {};
     private:
         ImageImporter();
-        uchar* readBMPFile(std::string filename, int &width, int &height);
         std::string mFilename;
         bool mGrayscale;
         void execute();

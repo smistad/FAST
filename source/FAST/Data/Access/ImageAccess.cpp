@@ -26,10 +26,10 @@ float getScalarAsFloat(T* data, VectorXi position, Image::pointer image, uchar c
 
     Vector3ui size = image->getSize();
     if(position.x() < 0 || position.y() < 0 || position.z() < 0 ||
-            position.x() > size.x()-1 || position.y() > size.y()-1 || position.z() > size.z()-1 || channel >= image->getNrOfComponents())
+            position.x() > size.x()-1 || position.y() > size.y()-1 || position.z() > size.z()-1 || channel >= image->getNrOfChannels())
         throw OutOfBoundsException();
 
-    T value = data[(position.x() + position.y()*size.x() + position.z()*size.x()*size.y())*image->getNrOfComponents() + channel];
+    T value = data[(position.x() + position.y()*size.x() + position.z()*size.x()*size.y())*image->getNrOfChannels() + channel];
     float floatValue;
     if(image->getDataType() == TYPE_SNORM_INT16) {
         floatValue = std::max(-1.0f, (float)value / 32767.0f);
@@ -49,7 +49,7 @@ float getScalarAsFloat(T* data, uint position, Image::pointer image, uchar chann
     if(position >= size.x()*size.y()*size.z())
         throw OutOfBoundsException();
 
-    T value = data[position*image->getNrOfComponents() + channel];
+    T value = data[position*image->getNrOfChannels() + channel];
     float floatValue;
     if(image->getDataType() == TYPE_SNORM_INT16) {
         floatValue = std::max(-1.0f, (float)value / 32767.0f);
@@ -67,10 +67,10 @@ void setScalarAsFloat(T* data, VectorXi position, Image::pointer image, float va
 
     Vector3ui size = image->getSize();
     if(position.x() < 0 || position.y() < 0 || position.z() < 0 ||
-            position.x() > size.x()-1 || position.y() > size.y()-1 || position.z() > size.z()-1 || channel >= image->getNrOfComponents())
+            position.x() > size.x()-1 || position.y() > size.y()-1 || position.z() > size.z()-1 || channel >= image->getNrOfChannels())
         throw OutOfBoundsException();
 
-    uint address = (position.x() + position.y()*size.x() + position.z()*size.x()*size.y())*image->getNrOfComponents() + channel;
+    uint address = (position.x() + position.y()*size.x() + position.z()*size.x()*size.y())*image->getNrOfChannels() + channel;
     if(image->getDataType() == TYPE_SNORM_INT16) {
         data[address] = value * 32767.0f;;
     } else if(image->getDataType() == TYPE_UNORM_INT16) {
@@ -87,7 +87,7 @@ void setScalarAsFloat(T* data, uint position, Image::pointer image, float value,
     if(position >= size.x()*size.y()*size.z())
         throw OutOfBoundsException();
 
-    uint address = position*image->getNrOfComponents() + channel;
+    uint address = position*image->getNrOfChannels() + channel;
     if(image->getDataType() == TYPE_SNORM_INT16) {
         data[address] = value * 32767.0f;;
     } else if(image->getDataType() == TYPE_UNORM_INT16) {
@@ -128,20 +128,20 @@ void ImageAccess::setScalar(uint position, float value, uchar channel) {
 
 Vector4f ImageAccess::getVector(VectorXi position) const {
     Vector4f result;
-    for(uchar i = 0; i < mImage->getNrOfComponents(); ++i) {
+    for(uchar i = 0; i < mImage->getNrOfChannels(); ++i) {
         result[i] = getScalar(position, i);
     }
     return result;
 }
 
 void ImageAccess::setVector(VectorXi position, Vector4f value) {
-    for(uchar i = 0; i < mImage->getNrOfComponents(); ++i) {
+    for(uchar i = 0; i < mImage->getNrOfChannels(); ++i) {
         setScalar(position, value[i], i);
     }
 }
 
 void ImageAccess::setVector(uint position, Vector4f value) {
-    for(uchar i = 0; i < mImage->getNrOfComponents(); ++i) {
+    for(uchar i = 0; i < mImage->getNrOfChannels(); ++i) {
         setScalar(position, value[i], i);
     }
 }

@@ -132,13 +132,13 @@ void PixelClassifier::execute() {
 }
 
 void PixelClassifier::loadAttributes() {
-    NeuralNetwork::loadAttributes();
-    setNrOfClasses(getIntegerAttribute("classes"));
     if(getBooleanAttribute("heatmap_output")) {
         setHeatmapOutput();
     } else {
         setSegmentationOutput();
     }
+    setNrOfClasses(getIntegerAttribute("classes"));
+    NeuralNetwork::loadAttributes();
 }
 
 void PixelClassifier::setThreshold(float threshold) {

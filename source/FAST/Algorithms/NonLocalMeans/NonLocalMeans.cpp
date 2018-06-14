@@ -266,7 +266,7 @@ void NonLocalMeans::execute() {
     // Initialize output image
     ExecutionDevice::pointer device = getMainDevice();
     if(mOutputTypeSet) {
-        output->create(input->getSize(), mOutputType, input->getNrOfComponents());
+        output->create(input->getSize(), mOutputType, input->getNrOfChannels());
         output->setSpacing(input->getSpacing());
     } else {
         output->createFromImage(input);
@@ -348,7 +348,7 @@ void NoneLocalMeans::execute() {
 	ExecutionDevice::pointer device = getMainDevice();
     
 	if (mOutputTypeSet) {
-        output->create(input->getSize(), mOutputType, input->getNrOfComponents());
+        output->create(input->getSize(), mOutputType, input->getNrOfChannels());
         output->setSpacing(input->getSpacing());
 	}else {
 		output->createFromImage(input);

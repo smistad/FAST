@@ -127,7 +127,7 @@ void SeededRegionGrowing::execute() {
         throw Exception("No seed points supplied to SeededRegionGrowing");
 
     Image::pointer input = getInputData<Image>();
-    if(input->getNrOfComponents() != 1)
+    if(input->getNrOfChannels() != 1)
         throw Exception("Seeded region growing currently doesn't support images with several components.");
 
     Segmentation::pointer output = getOutputData<Segmentation>();

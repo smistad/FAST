@@ -33,7 +33,7 @@ void ImageInverter::execute() {
     kernel.setArg(1, *access2->get());
     kernel.setArg(2, min);
     kernel.setArg(3, max);
-    kernel.setArg(4, output->getNrOfComponents());
+    kernel.setArg(4, output->getNrOfChannels());
 
     queue.enqueueNDRangeKernel(
             kernel,

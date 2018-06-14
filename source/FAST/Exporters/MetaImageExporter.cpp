@@ -90,7 +90,7 @@ void MetaImageExporter::execute() {
             input->getHeight() << " " << input->getDepth() << "\n";
     }
     mhdFile << "BinaryData = True\n";
-    mhdFile << "ElementNumberOfChannels = " << input->getNrOfComponents() << "\n";
+    mhdFile << "ElementNumberOfChannels = " << input->getNrOfChannels() << "\n";
     mhdFile << "ElementSpacing = " << input->getSpacing()[0] << " " << input->getSpacing()[1];
     if(input->getDimensions() == 3)
         mhdFile << " " << input->getSpacing()[2];
@@ -113,7 +113,7 @@ void MetaImageExporter::execute() {
     }
     std::string rawFilename = mFilename.substr(0,mFilename.length()-4) + extension;
     const unsigned int numberOfElements = input->getWidth()*input->getHeight()*
-            input->getDepth()*input->getNrOfComponents();
+            input->getDepth()*input->getNrOfChannels();
 
     ImageAccess::pointer access = input->getImageAccess(ACCESS_READ);
     void* data = access->get();

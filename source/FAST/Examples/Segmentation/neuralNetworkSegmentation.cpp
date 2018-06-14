@@ -1,3 +1,8 @@
+/**
+ * Examples/Segmentation/neuralNetworkSegmentation.cpp
+ *
+ * If you edit this example, please also update the wiki and source code file in the repository.
+ */
 #include <FAST/Visualization/DualViewWindow.hpp>
 #include <FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp>
 #include <FAST/Algorithms/ImageResampler/ImageResampler.hpp>

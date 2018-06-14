@@ -62,7 +62,7 @@ void ImageResizer::execute() {
                 mSize.x(),
 				mSize.y(),
                 input->getDataType(),
-                input->getNrOfComponents()
+                input->getNrOfChannels()
         );
     } else {
         if(mSize.z() == 0)
@@ -70,7 +70,7 @@ void ImageResizer::execute() {
         output->create(
                 mSize.cast<uint>(),
                 input->getDataType(),
-				input->getNrOfComponents()
+				input->getNrOfChannels()
         );
     }
 
@@ -89,9 +89,13 @@ void ImageResizer::execute() {
         OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
         if(input->getDimensions() == 2) {
             if(mPreserveAspectRatio) {
-                float scale = (float)output->getWidth() / input->getWidth();
-                output->setSpacing(scale*input->getSpacing());
-                int newHeight = (int)round(input->getHeight()*scale);
+                float scale = (float)input->getWidth() / output->getWidth();
+                output->setSpacing(
+                        input->getSpacing().x()*scale,
+                        input->getSpacing().y()*scale,
+                        1
+                );
+                int newHeight = (int)round(input->getHeight()/scale);
                 kernel = cl::Kernel(program, "resize2DpreserveAspect");
                 kernel.setArg(2, newHeight);
                 kernel.setArg(3, useInterpolation);

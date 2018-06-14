@@ -37,7 +37,7 @@ void ImageMultiply::execute() {
     kernel.setArg(0, *access1->get3DImage());
     kernel.setArg(1, *access2->get3DImage());
     kernel.setArg(2, *access3->get());
-    kernel.setArg(3, output->getNrOfComponents());
+    kernel.setArg(3, output->getNrOfChannels());
 
     queue.enqueueNDRangeKernel(
             kernel,

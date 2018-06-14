@@ -3,8 +3,6 @@ fast_add_sources(
     VTKMeshFileImporter.hpp
     MetaImageImporter.cpp
     MetaImageImporter.hpp
-    ImageImporter.cpp
-    ImageImporter.hpp
     Importer.hpp
     ImageFileImporter.cpp
     ImageFileImporter.hpp
@@ -17,10 +15,18 @@ fast_add_python_interfaces(
 fast_add_test_sources(
     Tests/MetaImageImporterTests.cpp
     Tests/VTKMeshFileImporterTests.cpp
-    Tests/ImageImporterTests.cpp
     Tests/ImageFileImporterTests.cpp
     Tests/DICOMFileImporterTests.cpp
 )
+if(FAST_MODULE_Visualization)
+    fast_add_sources(
+        ImageImporter.cpp
+        ImageImporter.hpp
+    )
+    fast_add_test_sources(
+        Tests/ImageImporterTests.cpp
+    )
+endif()
 if(FAST_MODULE_VTK)
     fast_add_sources(
         VTKImageImporter.cpp

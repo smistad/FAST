@@ -35,7 +35,7 @@ void ImageExporter::execute() {
     unsigned char * pixelData = image.bits();
     ImageAccess::pointer access = input->getImageAccess(ACCESS_READ);
     void * inputData = access->get();
-    uint nrOfComponents = input->getNrOfComponents();
+    uint nrOfComponents = input->getNrOfChannels();
 
     for(uint x = 0; x < input->getWidth(); x++) {
     for(uint y = 0; y < input->getHeight(); y++) {
