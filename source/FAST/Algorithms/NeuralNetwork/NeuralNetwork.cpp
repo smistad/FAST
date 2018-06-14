@@ -309,4 +309,8 @@ void NeuralNetwork::setSignedInputNormalization(bool signedInputNormalization) {
 	mSignedInputNormalization = signedInputNormalization;
 }
 
+void NeuralNetwork::addTemporalImageFrame(SharedPointer<Image> image) {
+	mImages.push_back(image);
+}
+
 };

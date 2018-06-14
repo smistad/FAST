@@ -22,7 +22,7 @@ GUI::GUI() {
     mStop = false;
     mPort = 18944;
     mThread = nullptr;
-    mFPS = 10;
+    mFPS = 30;
     setTitle("FAST - OpenIGTLink Server");
 
     QVBoxLayout* layout = new QVBoxLayout(mWidget);

@@ -37,6 +37,8 @@ public:
      */
     void setTemporalWindow(uint window);
 
+    void addTemporalImageFrame(SharedPointer<Image> image);
+
     // Use this if only one output node
     tensorflow::Tensor getNetworkOutput();
 
