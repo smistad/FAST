@@ -3,7 +3,7 @@
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 #include <FAST/Visualization/SimpleWindow.hpp>
 #include <FAST/Algorithms/UltrasoundImageCropper/UltrasoundImageCropper.hpp>
-#include <FAST/Exporters/MetaImageExporter.hpp>
+#include <FAST/Exporters/ImageFileExporter.hpp>
 #include <thread>
 
 using namespace fast;
@@ -19,6 +19,7 @@ int main(int argc, char** argv) {
     parser.addVariable("export-to", false, "If this is set, each frame of the video is stored as an image on disk in this directory.");
     parser.addOption("ultrasound-cropping", "Enable ultrasound cropping. Useful for videos exported from ultrasound scanners.");
     parser.addVariable("physical-width", false, "Set the physical with (in mm) of the image to calculate the pixel spacing.");
+    parser.addChoice("export-format", {"mhd", "png", "bmp", "jpg"}, "mhd", "Select image format to export");
     parser.parse(argc, argv);
 
     std::string path = parser.get("path");
@@ -44,12 +45,12 @@ int main(int argc, char** argv) {
             exportPath += file.substr(0, file.size() - extension.size() - 1) + "/";
             createDirectories(exportPath);
             int timestep = 0;
-            MetaImageExporter::pointer exporter = MetaImageExporter::New();
+            ImageFileExporter::pointer exporter = ImageFileExporter::New();
             exporter->setInputConnection(port);
             bool stop = false;
             while(true) {
                 std::cout << "Processing frame: " << timestep << std::endl;
-                const std::string path = exportPath + "frame_" + std::to_string(timestep) + ".mhd";
+                const std::string path = exportPath + "frame_" + std::to_string(timestep) + "." + parser.get("export-format");
                 exporter->setFilename(path);
                 exporter->update(timestep, STREAMING_MODE_PROCESS_ALL_FRAMES);
                 ++timestep;
