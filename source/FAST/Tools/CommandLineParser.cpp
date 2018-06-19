@@ -202,6 +202,7 @@ void CommandLineParser::addChoice(const std::string &name, bool required, std::v
                                     const std::string &helpText) {
     std::shared_ptr<Choice> var = std::make_shared<Choice>(name, helpText, required);
     var->choices = choices;
+    var->value = "";
     m_variables[name] = var;
 }
 
@@ -214,7 +215,7 @@ void CommandLineParser::addChoice(const std::string &name, std::vector<std::stri
                                     const std::string &defaultValue, const std::string &helpText) {
     std::shared_ptr<Choice> var = std::make_shared<Choice>(name, helpText, false);
     var->defaultValue = defaultValue;
-    var->value = "";
+    var->value = defaultValue;
     var->choices = choices;
     m_variables[name] = var;
 
@@ -327,7 +328,11 @@ void CommandLineParser::Choice::printHelp(int length) {
         if(i < choices.size() - 1)
             start += "|";
     }
-    std::cout << start.append(length - start.size(), ' ');
+    if(length > start.size()) {
+        std::cout << start.append(length - start.size(), ' ');
+    } else {
+        std::cout << start;
+    }
     if(!helpText.empty())
         std::cout << " - " << helpText << " ";
     std::cout << " - Default value: " << defaultValue;
