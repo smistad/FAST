@@ -1,1 +1,2 @@
 fast_add_example(exportMeshToVTKFile exportMeshToVTKFile.cpp)
+fast_add_example(convertVideoToImages convertVideoToImages.cpp)
