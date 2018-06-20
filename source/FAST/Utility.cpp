@@ -677,6 +677,36 @@ bool fileExists(std::string filename) {
 #endif
 }
 
+bool isFile(const std::string& path) {
+#ifdef _WIN32
+    throw Exception("Not implemented");
+#else
+    struct stat buf;
+    stat(path.c_str(), &buf);
+    return S_ISREG(buf.st_mode);
+#endif
+}
+
+bool isDir(const std::string& path) {
+#ifdef _WIN32
+    throw Exception("Not implemented");
+#else
+    struct stat buf;
+    stat(path.c_str(), &buf);
+    return S_ISDIR(buf.st_mode);
+#endif
+}
+
+std::string join(std::string path1, std::string path2) {
+    // Remove all trailing /
+    while(path1[path1.size()-2] == '/')
+        path1.substr(0, path1.size()-1);
+    while(path2[path2.size()-2] == '/')
+        path2.substr(0, path2.size()-1);
+
+    return path1 + "/" + path2;
+}
+
 std::vector<std::string> getDirectoryList(std::string path, bool getFiles, bool getDirectories) {
     if(!getFiles && !getDirectories)
         throw Exception("getFiles and getDirectories set to false in getDirectoryList");
@@ -700,12 +730,13 @@ std::vector<std::string> getDirectoryList(std::string path, bool getFiles, bool 
     if(dir != NULL) {
         struct dirent *ent;
         while ((ent = readdir (dir)) != NULL) {
-            if(getFiles && ent->d_type == DT_REG) // Regular file
-                list.push_back(ent->d_name);
-            if(getDirectories && ent->d_type == DT_DIR) { // Directory
-                if(std::string(ent->d_name) == "." || std::string(ent->d_name) == "..")
+            const std::string name = ent->d_name;
+            if(getFiles && isFile(join(path, name))) // Regular file
+                list.push_back(name);
+            if(getDirectories && isDir(join(path, name))) { // Directory
+                if(name == "." || name == "..")
                     continue;
-                list.push_back(ent->d_name);
+                list.push_back(name);
             }
         }
         closedir(dir);

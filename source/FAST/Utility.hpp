@@ -195,6 +195,29 @@ FAST_EXPORT std::string getDirName(std::string path);
  */
 FAST_EXPORT std::string currentDateTime(std::string format = "%Y-%m-%d-%H%M%S");
 
+/**
+ * Joins to filesystem paths, making sure a single / is added between the two paths
+ *
+ * @param path1
+ * @param path2
+ * @return the paths joined
+ */
+FAST_EXPORT std::string join(std::string path1, std::string path2);
+
+/**
+ * Check if path is a file.
+ * @param path
+ * @return
+ */
+FAST_EXPORT bool isFile(const std::string& path);
+
+/**
+ * Check if path is a directory.
+ * @param path
+ * @return
+ */
+FAST_EXPORT bool isDir(const std::string& path);
+
 } // end namespace fast
 
 #endif /* UTILITY_HPP_ */
