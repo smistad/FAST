@@ -140,29 +140,31 @@ void FileStreamer::producerStream() {
             reportInfo() << "Filestreamer reading " << filename << reportEnd();
             DataObject::pointer dataFrame = getDataFrame(filename);
             // Set and use timestamp if available
-            if(mTimestampFilename != "") {
+            if(!mTimestampFilename.empty()) {
                 std::string line;
                 std::getline(timestampFile, line);
-                if(line != "") {
+                if(!line.empty()) {
 					uint64_t timestamp = std::stoull(line);
                     dataFrame->setCreationTimestamp(timestamp);
-                    // Wait as long as necessary before adding image
-                    auto timePassed = std::chrono::duration_cast<std::chrono::milliseconds>(
-                            std::chrono::high_resolution_clock::now() - previousTimestampTime);
-                    while(timestamp > previousTimestamp + timePassed.count()) {
-                        // Wait
-						int64_t left = previousTimestamp - timePassed.count();
-                        std::this_thread::sleep_for(std::chrono::milliseconds(timestamp-left));
-                        timePassed = std::chrono::duration_cast<std::chrono::milliseconds>(
-                                std::chrono::high_resolution_clock::now() - previousTimestampTime);
-                        //reportInfo() << "wait" << reportEnd();
-                        //reportInfo() << timestamp << reportEnd();
-                        //reportInfo() << previousTimestamp << reportEnd();
-                        //reportInfo() << "Time passed: " << timePassed.count() << reportEnd();
-                    }
-                    previousTimestamp = timestamp;
-                    previousTimestampTime = std::chrono::high_resolution_clock::now();
                 }
+            }
+
+            if(dataFrame->getCreationTimestamp() != 0) {
+                uint64_t timestamp = dataFrame->getCreationTimestamp();
+                // Wait as long as necessary before adding image
+                // Time passed since last frame
+                auto timePassed = std::chrono::duration_cast<std::chrono::milliseconds>(
+                        std::chrono::high_resolution_clock::now() - previousTimestampTime);
+                while (timestamp > previousTimestamp + timePassed.count()) {
+                    // Wait
+                    int64_t left = (timestamp - previousTimestamp) - timePassed.count();
+                    reportInfo() << "Sleeping for " << left << " ms" << reportEnd();
+                    std::this_thread::sleep_for(std::chrono::milliseconds(left));
+                    timePassed = std::chrono::duration_cast<std::chrono::milliseconds>(
+                            std::chrono::high_resolution_clock::now() - previousTimestampTime);
+                }
+                previousTimestamp = timestamp;
+                previousTimestampTime = std::chrono::high_resolution_clock::now();
             }
 
             addOutputData(0, dataFrame);
@@ -196,9 +198,9 @@ void FileStreamer::producerStream() {
                    (mNrOfReplays > 0 && replays != mNrOfReplays) ||
                    (currentSequence < mFilenameFormats.size()-1)) {
                     // Restart stream
+                    previousTimestamp = 0;
+                    previousTimestampTime = std::chrono::high_resolution_clock::time_point::min();
                     if(timestampFile.is_open()) {
-                        previousTimestamp = 0;
-                        previousTimestampTime = std::chrono::high_resolution_clock::time_point::min();
                         timestampFile.seekg(0); // reset file to start
                     }
                     replays++;
