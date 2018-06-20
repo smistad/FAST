@@ -35,6 +35,13 @@ class FAST_EXPORT  FileStreamer : public Streamer {
          */
         void stop();
 
+        /**
+         * Enable or disable the use of timestamps when streaming files.
+         *
+         * @param use
+         */
+        void setUseTimestamp(bool use);
+
         ~FileStreamer();
     protected:
         virtual DataObject::pointer getDataFrame(std::string filename) = 0;
@@ -61,6 +68,7 @@ class FAST_EXPORT  FileStreamer : public Streamer {
         bool mFirstFrameIsInserted;
         bool mHasReachedEnd;
         bool mStop;
+        bool mUseTimestamp = true;
 
         std::vector<std::string> mFilenameFormats;
         std::string mTimestampFilename;

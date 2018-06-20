@@ -105,7 +105,7 @@ void FileStreamer::producerStream() {
     std::ifstream timestampFile;
     uint64_t previousTimestamp = 0;
     auto previousTimestampTime = std::chrono::high_resolution_clock::time_point::min();
-    if(mTimestampFilename != "") {
+    if(!mTimestampFilename.empty() && mUseTimestamp) {
         timestampFile.open(mTimestampFilename.c_str());
         if(!timestampFile.is_open()) {
             throw Exception("Timestamp file not found in FileStreamer");
@@ -140,7 +140,7 @@ void FileStreamer::producerStream() {
             reportInfo() << "Filestreamer reading " << filename << reportEnd();
             DataObject::pointer dataFrame = getDataFrame(filename);
             // Set and use timestamp if available
-            if(!mTimestampFilename.empty()) {
+            if(!mTimestampFilename.empty() && mUseTimestamp) {
                 std::string line;
                 std::getline(timestampFile, line);
                 if(!line.empty()) {
@@ -149,7 +149,7 @@ void FileStreamer::producerStream() {
                 }
             }
 
-            if(dataFrame->getCreationTimestamp() != 0) {
+            if(dataFrame->getCreationTimestamp() != 0 && mUseTimestamp) {
                 uint64_t timestamp = dataFrame->getCreationTimestamp();
                 // Wait as long as necessary before adding image
                 // Time passed since last frame
@@ -283,6 +283,10 @@ void FileStreamer::stop() {
     }
     mThread->join();
     reportInfo() << "File streamer thread returned" << reportEnd();
+}
+
+void FileStreamer::setUseTimestamp(bool use) {
+    mUseTimestamp = use;
 }
 
 } // end namespace fast
