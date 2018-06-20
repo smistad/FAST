@@ -196,13 +196,24 @@ FAST_EXPORT std::string getDirName(std::string path);
 FAST_EXPORT std::string currentDateTime(std::string format = "%Y-%m-%d-%H%M%S");
 
 /**
- * Joins to filesystem paths, making sure a single / is added between the two paths
- *
- * @param path1
- * @param path2
- * @return the paths joined
+ * Removes trailing /
+ * @param path
+ * @return
  */
-FAST_EXPORT std::string join(std::string path1, std::string path2);
+FAST_EXPORT std::string join(std::string path);
+
+/**
+ * Join multiple paths.
+ *
+ * @tparam T
+ * @param path1
+ * @param args
+ * @return
+ */
+template<typename ...T>
+FAST_EXPORT std::string join(std::string path1, T... args) {
+    return join(path1) + "/" + join(args...);
+}
 
 /**
  * Check if path is a file.

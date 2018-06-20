@@ -697,14 +697,11 @@ bool isDir(const std::string& path) {
 #endif
 }
 
-std::string join(std::string path1, std::string path2) {
+std::string join(std::string path) {
     // Remove all trailing /
-    while(path1[path1.size()-2] == '/')
-        path1.substr(0, path1.size()-1);
-    while(path2[path2.size()-2] == '/')
-        path2.substr(0, path2.size()-1);
-
-    return path1 + "/" + path2;
+    while(path[path.size()-2] == '/')
+        path.substr(0, path.size()-1);
+    return path;
 }
 
 std::vector<std::string> getDirectoryList(std::string path, bool getFiles, bool getDirectories) {
