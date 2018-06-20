@@ -89,7 +89,7 @@ DataObject::pointer DataPort::getNextFrame() {
         } else {
             lock.lock();
             // Do this using condition variable
-            while(mFrames.count(mCurrentTimestep) == 0) {
+            while(mFrames.count(mCurrentTimestep) == 0 && !mStop) {
                 //std::cout << "Waiting for " << mCurrentTimestep << std::endl;
                 mFrameConditionVariable.wait(lock);
             }
@@ -180,6 +180,7 @@ void DataPort::stop() {
         mFillCount->signal();
         mEmptyCount->signal();
     } else {
+        Reporter::info() << "Notifying condition variables" << Reporter::end();
         mFrameConditionVariable.notify_all();
     }
 }
