@@ -615,6 +615,7 @@ void createDirectory(std::string path) {
 #else
     mode_t nMode = 0733; // UNIX style permissions
     error = mkdir(path.c_str(), nMode); // can be used on non-Windows
+    error = errno;
 #endif
     if (error != 0) {
         if(error == EEXIST) {
@@ -622,7 +623,7 @@ void createDirectory(std::string path) {
         } else if(error == ENOENT) {
             throw DoesNotExistException("Unable to create directory at " + path + ": Path was not found.");
         } else {
-            throw Exception("Unable to create directory at " + path + ": Unknown error.");
+            throw Exception("Unable to create directory at " + path + ": Unknown error." + std::to_string(error));
         }
     }
 }
@@ -656,10 +657,12 @@ void createDirectories(std::string path) {
     for(int i = 1; i < directories.size(); ++i) {
         currentPath += "/" + directories[i];
         try {
+            std::cout << currentPath << std::endl;
             createDirectory(currentPath);
         } catch(ExistException &e) {
             continue;
         } catch(Exception &e) {
+            Reporter::warning() << e.what() << Reporter::end();
             continue;
         }
     }

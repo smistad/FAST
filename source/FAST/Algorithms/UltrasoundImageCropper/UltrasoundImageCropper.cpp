@@ -10,11 +10,10 @@ UltrasoundImageCropper::UltrasoundImageCropper() {
     createInputPort<Image>(0);
     createOutputPort<Image>(0);
 
-    createOpenCLProgram(Config::getKernelSourcePath() + "/UltrasoundImageCropper/UltrasoundImageCropper.cl");
+    createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/UltrasoundImageCropper/UltrasoundImageCropper.cl");
 }
 
 void UltrasoundImageCropper::execute() {
-    reportInfo() << "EXECUTING THE IMAGE CROPPER" << Reporter::end();
     Image::pointer image = getInputData<Image>();
 
     if(image->getDimensions() != 2) {
@@ -28,13 +27,13 @@ void UltrasoundImageCropper::execute() {
 
     OpenCLImageAccess::pointer imageAccess = image->getOpenCLImageAccess(ACCESS_READ, device);
 
-    const uint width = image->getWidth();
-    const uint height = image->getHeight();
+    const int width = image->getWidth();
+    const int height = image->getHeight();
 
     cl::Buffer rays(
             device->getContext(),
             CL_MEM_READ_WRITE,
-            sizeof(uchar)*(width + height)
+            sizeof(uint)*(width + height)
     );
 
 
@@ -50,32 +49,35 @@ void UltrasoundImageCropper::execute() {
             cl::NullRange
     );
 
-    UniquePointer<uchar[]> result(new uchar[width + height]);
-    queue.enqueueReadBuffer(rays, CL_TRUE, 0, sizeof(uchar)*(width + height), result.get());
+    // Results contains the amount of non-zero values per column and row
+    UniquePointer<uint[]> result(new uint[width + height]);
+    queue.enqueueReadBuffer(rays, CL_TRUE, 0, sizeof(uint)*(width + height), result.get());
     int minX = 0;
     int maxX = width;
     int minY = 0;
     int maxY = height;
-    for(int x = 0; x < width; ++x) {
-        if(result[x] > 0) {
+    int threshold = 40;
+    for(int x = width/2; x > 0; --x) {
+        if(result[x] <= threshold) {
             minX = x;
             break;
         }
     }
-    for(int x = width - 1; x > 0; --x) {
-        if(result[x] > 0) {
+    for(int x = width/2; x < width; ++x) {
+        if(result[x] <= threshold) {
             maxX = x;
             break;
         }
     }
-    for(int y = 0; y < height; ++y) {
-        if(result[width + y] > 0) {
+    int threshold2 = 10;
+    for(int y = height/4; y > 0; --y) {
+        if(result[width + y] <= threshold2) {
             minY = y;
             break;
         }
     }
-    for(int y = height - 1; y > 0; --y) {
-        if(result[width + y] > 0) {
+    for(int y = height/2 + height/4; y < height; ++y) {
+        if(result[width + y] <= threshold2) {
             maxY = y;
             break;
         }
@@ -88,7 +90,15 @@ void UltrasoundImageCropper::execute() {
     reportInfo() << "Cropped image to size " << newWidth << " " << newHeight << Reporter::end();
     Image::pointer outputImage = getOutputData<Image>();
     outputImage->create(newWidth, newHeight, image->getDataType(), image->getNrOfChannels());
-    outputImage->setSpacing(image->getSpacing());
+    if(m_physicalWidth > 0) {
+        // Calculate physical height of image
+        const float spacing1 = m_physicalWidth / newWidth;
+
+        Vector3f spacing(spacing1, spacing1, 1.0f);
+        outputImage->setSpacing(spacing);
+    } else {
+        outputImage->setSpacing(image->getSpacing());
+    }
     outputImage->setCreationTimestamp(image->getCreationTimestamp());
 
     OpenCLImageAccess::pointer outputAccess = outputImage->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
@@ -101,6 +111,12 @@ void UltrasoundImageCropper::execute() {
             createRegion(newWidth, newHeight, 1)
     );
 
+}
+
+void UltrasoundImageCropper::setPhysicalWidth(float width) {
+    if(width <= 0)
+        throw Exception("Physical width must be > 0");
+    m_physicalWidth = width;
 }
 
 

@@ -104,6 +104,7 @@ void MetaImageExporter::execute() {
         mhdFile << " " << T->getTransform().matrix()(j,i);
     }}
     mhdFile << "\n";
+    mhdFile << "Timestamp = " << std::to_string(input->getCreationTimestamp()) << "\n";
 
     // Save to raw file
     // set rawFilename, by removing the end .mhd from mFilename and add .raw

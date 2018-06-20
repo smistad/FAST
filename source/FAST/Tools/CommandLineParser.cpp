@@ -53,12 +53,19 @@ void CommandLineParser::processToken(std::shared_ptr<Variable>& currentVariable,
     if(!currentVariable) {
         if(token.size() > 2 && token.substr(0, 2) == "--") {
             currentVariable = m_variables.at(token.substr(2));
+            currentVariable->setValue(""); // This will set options to true
         } else {
             // Positional variables get token right away
             m_positionVariables.at(currentPosition)->setValue(token);
             Reporter::info() << "CommandLineParser: Assigning variable " << m_positionVariables.at(currentPosition)->name << " with value " << token << Reporter::end();
         }
     } else {
+        if(token.size() > 2 && token.substr(0, 2) == "--") {
+            // Last variable must have been an option
+            // Get new variable
+            currentVariable = m_variables.at(token.substr(2));
+            return;
+        }
         // If we have a variable atm, the token is a value
         Reporter::info() << "CommandLineParser: Assigning variable " << currentVariable->name << " with value " << token << Reporter::end();
         currentVariable->setValue(token);
@@ -139,9 +146,9 @@ bool CommandLineParser::getOption(const std::string &name) const {
 
 void CommandLineParser::printHelpMessage() const {
     std::cout << m_title << "\n";
-    if(!m_description.empty())
-        std::cout << m_description<< "\n";
     std::cout << "==================\n";
+    if(!m_description.empty())
+        std::cout << m_description<< "\n\n";
     std::cout << "usage: " << m_command;
 
     for(auto&& var : m_positionVariables) {
@@ -195,6 +202,7 @@ void CommandLineParser::addChoice(const std::string &name, bool required, std::v
                                     const std::string &helpText) {
     std::shared_ptr<Choice> var = std::make_shared<Choice>(name, helpText, required);
     var->choices = choices;
+    var->value = "";
     m_variables[name] = var;
 }
 
@@ -207,7 +215,7 @@ void CommandLineParser::addChoice(const std::string &name, std::vector<std::stri
                                     const std::string &defaultValue, const std::string &helpText) {
     std::shared_ptr<Choice> var = std::make_shared<Choice>(name, helpText, false);
     var->defaultValue = defaultValue;
-    var->value = "";
+    var->value = defaultValue;
     var->choices = choices;
     m_variables[name] = var;
 
@@ -320,7 +328,11 @@ void CommandLineParser::Choice::printHelp(int length) {
         if(i < choices.size() - 1)
             start += "|";
     }
-    std::cout << start.append(length - start.size(), ' ');
+    if(length > start.size()) {
+        std::cout << start.append(length - start.size(), ' ');
+    } else {
+        std::cout << start;
+    }
     if(!helpText.empty())
         std::cout << " - " << helpText << " ";
     std::cout << " - Default value: " << defaultValue;
@@ -328,7 +340,7 @@ void CommandLineParser::Choice::printHelp(int length) {
 
 void CommandLineParser::Option::setValue(const std::string &value) {
     if(value != "") {
-        throw Exception("Option " + name + " should receive any value. Got " + value);
+        throw Exception("Option " + name + " should not receive any value. Got " + value);
     }
     this->value = true;
 }
