@@ -140,6 +140,7 @@ void MetaImageImporter::execute() {
 
     unsigned int width, height, depth = 1;
     unsigned int nrOfComponents = 1;
+    uint64_t timestamp = 0;
     Image::pointer output = getOutputData<Image>(0);
 
     Vector3f spacing(1,1,1), offset(0,0,0), centerOfRotation(0,0,0);
@@ -289,20 +290,27 @@ void MetaImageImporter::execute() {
             std::vector<std::string> values = split(value);
             // Remove any empty values:
             values.erase(std::remove(values.begin(), values.end(), ""), values.end());
-            if(values.size() != 9) {
-                reportError() << "Encountered a transform/orientation/rotation matrix with incorrect number of elements in the MetaImageImporter" << reportEnd();
+            if (values.size() != 9) {
+                reportError()
+                        << "Encountered a transform/orientation/rotation matrix with incorrect number of elements in the MetaImageImporter"
+                        << reportEnd();
                 reportError() << "Ignoring" << reportEnd();
             } else {
 
                 try {
-				for(unsigned int i = 0; i < 3; i++) {
-				for(unsigned int j = 0; j < 3; j++) {
-                        transformMatrix(j, i) = std::stof(values[j + i * 3].c_str());
-				}}
-                } catch(std::out_of_range &e) {
-                    reportWarning() << "Out of range exception occured when reading transform matrix values from metaimage file" << reportEnd();
+                    for (unsigned int i = 0; i < 3; i++) {
+                        for (unsigned int j = 0; j < 3; j++) {
+                            transformMatrix(j, i) = std::stof(values[j + i * 3].c_str());
+                        }
+                    }
+                } catch (std::out_of_range &e) {
+                    reportWarning()
+                            << "Out of range exception occured when reading transform matrix values from metaimage file"
+                            << reportEnd();
                 }
             }
+        } else if(key == "Timestamp") {
+            timestamp = std::stoull(value);
         } else {
             // Unknown metadata, collect and add to image object
             metadata[key] = value;
@@ -367,6 +375,8 @@ void MetaImageImporter::execute() {
 
     // Add metadata
     output->setMetadata(metadata);
+
+    output->setCreationTimestamp(timestamp);
 
     // Create transformation
     
