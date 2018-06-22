@@ -40,7 +40,6 @@ void ImageClassifier::execute() {
 		output->create(mapResult);
 	}
     mRuntimeManager->stopRegularTimer("image_classifier");
-    getRuntime("image_classifier")->print();
 }
 
 void ImageClassifier::loadAttributes() {

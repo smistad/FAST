@@ -46,6 +46,8 @@ public:
     tensorflow::Tensor getNetworkOutput(std::string layerName);
 
     void loadAttributes();
+
+    virtual ~NeuralNetwork();
 protected:
     NeuralNetwork();
     UniquePointer<tensorflow::Session> mSession;

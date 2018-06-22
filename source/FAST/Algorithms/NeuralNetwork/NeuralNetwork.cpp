@@ -21,10 +21,6 @@ namespace fast {
 
 void NeuralNetwork::load(std::string networkFilename) {
 
-	char** argv = new char*[1];
-	argv[0] = new char[255];
-    int argc = 1;
-    tensorflow::port::InitMain(argv[0], &argc, &argv);
 	tensorflow::SessionOptions options;
 	tensorflow::ConfigProto &config = options.config;
 	tensorflow::GPUOptions* gpuOptions = config.mutable_gpu_options();
@@ -259,7 +255,7 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 }
 
 std::vector<SharedPointer<Image>> NeuralNetwork::resizeImages(const std::vector<SharedPointer<Image>> &images) {
-	reportInfo() << "Resizing images.." << reportEnd();
+    mRuntimeManager->startRegularTimer("image input resize");
     std::vector<Image::pointer> resizedImages;
 	for(Image::pointer image : images) {
 		// Resize image to fit input layer
@@ -280,6 +276,7 @@ std::vector<SharedPointer<Image>> NeuralNetwork::resizeImages(const std::vector<
 			resizedImages.push_back(image);
 		}
 	}
+	mRuntimeManager->stopRegularTimer("image input resize");
 
 	return resizedImages;
 }
@@ -311,6 +308,12 @@ void NeuralNetwork::setSignedInputNormalization(bool signedInputNormalization) {
 
 void NeuralNetwork::addTemporalImageFrame(SharedPointer<Image> image) {
 	mImages.push_back(image);
+}
+
+NeuralNetwork::~NeuralNetwork() {
+	if(mSession.get() != nullptr) {
+		mSession->Close();
+	}
 }
 
 };

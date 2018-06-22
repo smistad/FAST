@@ -128,7 +128,6 @@ void PixelClassifier::execute() {
     }
 
     mRuntimeManager->stopRegularTimer("pixel_classifier");
-    getAllRuntimes()->printAll();
 }
 
 void PixelClassifier::loadAttributes() {
