@@ -305,7 +305,7 @@ void MetaImageImporter::execute() {
                     }
                 } catch (std::out_of_range &e) {
                     reportWarning()
-                            << "Out of range exception occured when reading transform matrix values from metaimage file"
+                            << "Value out of range exception occured when reading transform matrix values from metaimage file"
                             << reportEnd();
                 }
             }

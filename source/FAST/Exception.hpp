@@ -102,6 +102,13 @@ class FAST_EXPORT  ExistException : public Exception {
 
 };
 
+class FAST_EXPORT ThreadStopped : public Exception {
+    public:
+        ThreadStopped() {
+            setMessage("Thread stopped!");
+        }
+};
+
 } // end namespace fast
 
 

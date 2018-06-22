@@ -34,7 +34,7 @@ void DataPort::addFrame(DataObject::pointer object) {
 
             // If stop signal has been set, return
             if(mStop) {
-                return;
+                throw ThreadStopped();
             }
         }
 
@@ -96,14 +96,9 @@ DataObject::pointer DataPort::getNextFrame() {
         }
 
         if(mStop) {
-            if(mFrames.count(mCurrentTimestep) > 0) {
-                return mFrames.at(mCurrentTimestep);
-            } else {
-                return mFrames.at(mCurrentTimestep - 1);
-            }
+            throw ThreadStopped();
         }
 
-        //std::cout << "Trying to get frame at " << mCurrentTimestep << std::endl;
         data = mFrames.at(mCurrentTimestep);
 
         if(mStreamingMode != STREAMING_MODE_STORE_ALL_FRAMES) {
@@ -173,6 +168,7 @@ void DataPort::setMaximumNumberOfFrames(uint frames) {
 }
 
 void DataPort::stop() {
+    // Pipeline has been ordered to stop, wake up any threads.
     mStop = true;
     Reporter::info() << "STOPPING in DataPort for PO " << mProcessObject->getNameOfClass() << Reporter::end();
     if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES && !mIsStaticData) {

@@ -166,25 +166,13 @@ void View::execute() {
 
 void View::updateRenderersInput(uint64_t timestep, StreamingMode mode) {
     for(Renderer::pointer renderer : mNonVolumeRenderers) {
-        int i = 0;
-        while(true) {
-            try {
-                renderer->getInputPort(i)->getProcessObject()->update(timestep, mode);
-                i++;
-            } catch(...) {
-                break;
-            }
+        for(int i = 0; i < renderer->getNrOfInputConnections(); ++i) {
+            renderer->getInputPort(i)->getProcessObject()->update(timestep, mode);
         }
     }
     for(Renderer::pointer renderer : mVolumeRenderers) {
-        int i = 0;
-        while(true) {
-            try {
-                renderer->getInputPort(i)->getProcessObject()->update(timestep, mode);
-                i++;
-            } catch(...) {
-                break;
-            }
+        for(int i = 0; i < renderer->getNrOfInputConnections(); ++i) {
+            renderer->getInputPort(i)->getProcessObject()->update(timestep, mode);
         }
     }
 }
