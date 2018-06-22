@@ -603,8 +603,6 @@ Matrix4f loadOrthographicMatrix(float left, float right, float bottom, float top
     mProjectionMatrix(2,3) = -(zFar + zNear) / (zFar - zNear);
     mProjectionMatrix(3,3) = 1;
 
-    std::cout << mProjectionMatrix << std::endl;
-
     return mProjectionMatrix;
 }
 
@@ -638,7 +636,6 @@ void createDirectories(std::string path) {
     // Fix any path with /../ in path
     for(int i = 0; i < directories.size(); ++i) {
         trim(directories[i]);
-        //std::cout << directories[i] << std::endl;
         if(directories[i] == "..") {
             // Pop previous
             filteredDirectories.pop_back();
@@ -657,7 +654,6 @@ void createDirectories(std::string path) {
     for(int i = 1; i < directories.size(); ++i) {
         currentPath += "/" + directories[i];
         try {
-            std::cout << currentPath << std::endl;
             createDirectory(currentPath);
         } catch(ExistException &e) {
             continue;
