@@ -218,6 +218,8 @@ void FileStreamer::producerStream() {
             } else {
                 throw e;
             }
+        } catch(ThreadStopped &e) {
+            break;
         }
     }
 }
