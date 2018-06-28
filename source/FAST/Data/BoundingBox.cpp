@@ -38,8 +38,8 @@ BoundingBox::BoundingBox(Vector3f size) {
 }
 
 BoundingBox::BoundingBox(MatrixXf corners) {
-    mIsInitialized = true;
     mCorners = corners; // copy
+    mIsInitialized = true;
 }
 
 BoundingBox::BoundingBox() {
@@ -55,8 +55,9 @@ MatrixXf BoundingBox::getCorners() const {
 
 void BoundingBox::initialize(std::vector<Vector3f> coordinates) {
     if(coordinates.size() == 0) {
-        mIsInitialized = true;
         createCorners(Vector3f::Zero(), Vector3f::Ones());
+        mIsInitialized = true;
+        return;
     }
     // Find min and max of all the coordinates
     Vector3f minimum(coordinates[0].x(), coordinates[0].y(), coordinates[0].z());
@@ -75,8 +76,8 @@ void BoundingBox::initialize(std::vector<Vector3f> coordinates) {
 
     // Make new bounding box
     Vector3f size(maximum.x()-minimum.x(), maximum.y()-minimum.y(), maximum.z()-minimum.z());
-    mIsInitialized = true;
     createCorners(minimum, size);
+    mIsInitialized = true;
 }
 
 BoundingBox::BoundingBox(std::vector<Vector3f> coordinates) {
