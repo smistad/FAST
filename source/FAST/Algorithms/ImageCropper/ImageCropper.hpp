@@ -10,15 +10,20 @@ class FAST_EXPORT  ImageCropper : public ProcessObject {
     public:
         void setOffset(VectorXi offset);
         void setSize(VectorXi size);
-        /*
+        /**
          * If out of bounds cropping is allowed, offset can be negative and size can be larger than image.
          * Any pixels outside of image will be replaced with 0.
          */
         void allowOutOfBoundsCropping(bool allow);
+
+        void setCropBottom(float fraction);
+        void setCropTop(float fraction);
     private:
         ImageCropper();
         void execute();
 
+        float mCropBottom;
+        float mCropTop;
         VectorXi mOffset;
         VectorXi mSize;
         bool mAllowOutOfBoundsCropping;
