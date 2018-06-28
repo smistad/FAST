@@ -25,12 +25,15 @@ void DataPort::addFrame(DataObject::pointer object) {
         mFrameConditionVariable.notify_all();
 
     } else if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES) {
+        std::unique_lock<std::mutex> lock(mMutex);
         if(!mIsStaticData) {
             // If data is not static, use semaphore to check if available space for a new frame
             //std::cout << mProcessObject->getNameOfClass() + " waiting to add " << mCurrentTimestep << " (" << mFrameCounter << ") PROCESS_ALL_FRAMES" << std::endl;
             if(!mGetCalled && mFillCount->getCount() == mMaximumNumberOfFrames)
                 Reporter::error() << "EXECUTION BLOCKED by DataPort from " << mProcessObject->getNameOfClass() << ". Do you have a DataPort object that is not used?" << Reporter::end();
+            lock.unlock();
             mEmptyCount->wait();
+            lock.lock();
 
             // If stop signal has been set, return
             if(mStop) {
@@ -40,7 +43,6 @@ void DataPort::addFrame(DataObject::pointer object) {
 
         {
             // Add data
-            std::lock_guard<std::mutex> lock(mMutex);
             if(mCurrentTimestep > mFrameCounter)
                 mFrameCounter = mCurrentTimestep;
             //std::cout << mProcessObject->getNameOfClass() + " adding frame with nr " << mFrameCounter << std::endl;
@@ -51,9 +53,11 @@ void DataPort::addFrame(DataObject::pointer object) {
 
         if(!mIsStaticData) {
             // If data is not static, use semaphore to signal that a new data is available
+            lock.unlock();
             mFillCount->signal();
         } else {
             // If data is static, use condition variable to signal that a new data is available
+            lock.unlock();
             mFrameConditionVariable.notify_all();
         }
 
@@ -168,8 +172,11 @@ void DataPort::setMaximumNumberOfFrames(uint frames) {
 }
 
 void DataPort::stop() {
+    {
+        std::lock_guard<std::mutex> lock(mMutex);
+        mStop = true;
+    }
     // Pipeline has been ordered to stop, wake up any threads.
-    mStop = true;
     Reporter::info() << "STOPPING in DataPort for PO " << mProcessObject->getNameOfClass() << Reporter::end();
     if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES && !mIsStaticData) {
         Reporter::info() << "SIGNALING SEMAPHORES" << Reporter::end();
