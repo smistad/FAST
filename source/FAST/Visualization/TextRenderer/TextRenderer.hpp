@@ -24,6 +24,8 @@ class FAST_EXPORT  TextRenderer : public Renderer {
         };
         enum TextPosition {
             POSITION_CENTER,
+            POSITION_TOP_CENTER,
+            POSITION_BOTTOM_CENTER,
             POSITION_BOTTOM_LEFT,
             POSITION_BOTTOM_RIGHT,
             POSITION_TOP_LEFT,
@@ -39,7 +41,7 @@ class FAST_EXPORT  TextRenderer : public Renderer {
         TextRenderer();
         void execute() override;
 
-        View* mView;
+        View* mView = nullptr;
 
         std::unordered_map<uint, uint> mTexturesToRender;
         std::unordered_map<uint, Text::pointer> mTextUsed;

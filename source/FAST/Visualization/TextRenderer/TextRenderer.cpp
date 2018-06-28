@@ -13,6 +13,7 @@ BoundingBox TextRenderer::getBoundingBox(bool transform) {
 TextRenderer::TextRenderer() {
     createInputPort<Text>(0);
     mStyle = STYLE_NORMAL;
+    mPosition = POSITION_CENTER;
 	mFontSize = 18;
 	mColor = Color::Green();
     createStringAttribute("position", "Text position", "Position of text in view (center/bottom_left/bottom_right/top_left/top_right)", "top_left");
@@ -79,7 +80,7 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool
 
 
         // Font setup
-        QColor color(mColor.getRedValue() * 255, mColor.getGreenValue() * 255, mColor.getBlueValue() * 255);
+        QColor color(mColor.getRedValue() * 255, mColor.getGreenValue() * 255, mColor.getBlueValue() * 255, 255);
         QFont font;
         font.setPointSize(mFontSize);
         if (mStyle == STYLE_BOLD) {
@@ -150,6 +151,8 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool
         mTextUsed[inputNr] = input;
     }
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     activateShader();
     for(auto it : mDataToRender) {
         const uint inputNr = it.first;
@@ -167,6 +170,12 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool
         switch(mPosition) {
             case POSITION_CENTER:
                 position = Vector3f(-width*scale/2.0f, -height*scale2/2.0f, 0); // Center
+                break;
+            case POSITION_TOP_CENTER:
+                position = Vector3f(-width*scale/2.0f, 1 - (height + padding)*scale2, 0); // Top center
+                break;
+            case POSITION_BOTTOM_CENTER:
+                position = Vector3f(-width*scale/2.0f, -1 + padding*scale2, 0); // Bottom center
                 break;
             case POSITION_TOP_LEFT:
                 position = Vector3f(-1 + padding*scale, 1 - (height + padding)*scale2, 0); // Top left corner
@@ -197,6 +206,7 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool
         glBindTexture(GL_TEXTURE_2D, 0);
         glBindVertexArray(0);
     }
+    glDisable(GL_BLEND);
     deactivateShader();
 }
 
