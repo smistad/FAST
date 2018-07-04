@@ -7,6 +7,7 @@ namespace fast {
 
 ComputationThread::ComputationThread(QThread* mainThread, StreamingMode mode) {
     mIsRunning = false;
+    mStop = false;
     mMainThread = mainThread;
     mTimestep = 0;
     mStreamingMode = mode;
@@ -33,6 +34,7 @@ void ComputationThread::run() {
     {
         std::unique_lock<std::mutex> lock(mUpdateThreadMutex); // this locks the mutex
         mIsRunning = true;
+        mStop = false;
     }
     QGLContext* mainGLContext = Window::getMainGLContext();
     mainGLContext->makeCurrent();
@@ -44,6 +46,11 @@ void ComputationThread::run() {
             if(mLoop && mTimestep == mTimestepLimit)
                 mTimestep = 0;
             emit timestepIncreased();
+        }
+        {
+            std::unique_lock<std::mutex> lock(mUpdateThreadMutex); // this locks the mutex
+            if(mStop)
+                break;
         }
         try {
             //std::cout << "TIMESTEP: " << mTimestep << std::endl;
@@ -62,17 +69,16 @@ void ComputationThread::run() {
                 //view->unlockRenderers();
             }
         } catch(ThreadStopped &e) {
-            // Move GL context back to main thread
-            mainGLContext->doneCurrent();
-            mainGLContext->moveToThread(mMainThread);
-            {
-                std::unique_lock<std::mutex> lock(mUpdateThreadMutex); // this locks the mutex
-                mIsRunning = false;
-            }
             break;
         }
     }
-
+    // Move GL context back to main thread
+    mainGLContext->doneCurrent();
+    mainGLContext->moveToThread(mMainThread);
+    {
+        std::unique_lock<std::mutex> lock(mUpdateThreadMutex); // this locks the mutex
+        mIsRunning = false;
+    }
 
     emit finished();
     reportInfo() << "Computation thread has finished in run()" << Reporter::end();
@@ -88,6 +94,7 @@ void ComputationThread::stop() {
     reportInfo() << "Pipelines stopped" << Reporter::end();
     reportInfo() << "Stopping computation thread..." << Reporter::end();
     std::unique_lock<std::mutex> lock(mUpdateThreadMutex); // this locks the mutex
+    mStop = true;
     // Block until mIsRunning is set to false
     while(mIsRunning) {
         // Unlocks the mutex and wait until someone calls notify.

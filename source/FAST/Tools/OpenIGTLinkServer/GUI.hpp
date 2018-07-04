@@ -19,6 +19,7 @@ class GUI : public Window {
         void setFilenameFormats(std::vector<std::string> formats);
         void addRecording();
         void removeRecordings();
+        void setFramesPerSecond(uint fps);
         ~GUI();
     private:
         GUI();
@@ -31,7 +32,7 @@ class GUI : public Window {
         bool mRunning;
         int mPort;
         bool mStop;
-        int mFPS;
+        uint mFPS = 0;
         std::thread* mThread;
         igtl::ServerSocket::Pointer mServerSocket;
 
