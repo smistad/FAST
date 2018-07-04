@@ -56,7 +56,7 @@ void UltrasoundImageCropper::execute() {
     int maxX = width;
     int minY = 0;
     int maxY = height;
-    int threshold = 10;
+    int threshold = 30;
     for(int x = width/2; x > 0; --x) {
         if(result[x] <= threshold) {
             minX = x;

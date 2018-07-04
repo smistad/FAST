@@ -4,8 +4,6 @@ if(FAST_MODULE_NeuralNetwork)
         NeuralNetwork.hpp
         ImageClassifier.cpp
         ImageClassifier.hpp
-        #DNNAppearanceModel.cpp
-        #DNNAppearanceModel.hpp
         #ObjectDetection.cpp
         #ObjectDetection.hpp
         #ShapeRegressor.cpp
@@ -22,11 +20,10 @@ if(FAST_MODULE_NeuralNetwork)
     if(FAST_MODULE_Visualization)
     fast_add_test_sources(
         ImageClassifierTests.cpp
-        #DNNAppearanceModelTests.cpp
         ObjectDetectionTests.cpp
     )
     endif()
-    #fast_add_example(imageClassification imageClassification.cpp)
-    #fast_add_example(leftVentricleSegmentation leftVentricleSegmentation.cpp)
+    fast_add_example(imageClassification imageClassification.cpp)
+    fast_add_example(leftVentricleSegmentation leftVentricleSegmentation.cpp)
     fast_add_example(axillaryHeatmap axillaryHeatmap.cpp)
 endif()

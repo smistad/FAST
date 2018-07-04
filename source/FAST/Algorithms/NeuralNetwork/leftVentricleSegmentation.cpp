@@ -1,6 +1,6 @@
 #include <FAST/Visualization/DualViewWindow.hpp>
 #include <FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp>
-#include <FAST/Algorithms/ImageResampler/ImageResampler.hpp>
+#include <FAST/Algorithms/ImageCropper/ImageCropper.hpp>
 #include <FAST/Visualization/HeatmapRenderer/HeatmapRenderer.hpp>
 #include <FAST/Algorithms/UltrasoundImageEnhancement/UltrasoundImageEnhancement.hpp>
 #include "FAST/Testing.hpp"
@@ -17,6 +17,8 @@ int main() {
     //Reporter::setGlobalReportMethod(Reporter::COUT);
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
     streamer->setFilenameFormats({
+                                         "/home/smistad/data/ICP/14.26.11 hrs __[0000358]/frame_#.mhd",
+                                         "/home/smistad/data/ICP/14.27.37 hrs __[0000360]/frame_#.mhd",
                                          //"/media/smistad/New Volume/GRUE_MHD/Clinic007/F47KT70I/US-2D_#.mhd", // temporal issues
                                          //"/media/smistad/New Volume/GRUE_MHD/Clinic007/F47KT80M/US-2D_#.mhd", // Left atrium fail
                                          //"/media/smistad/New Volume/GRUE_MHD/Clinic007/F47KT88O/US-2D_#.mhd", // Left atrium fail
@@ -94,17 +96,21 @@ int main() {
     streamer->enableLooping();
     //streamer->setSleepTime(50);
 
+    auto cropper = ImageCropper::New();
+    cropper->setCropBottom(0.5);
+    cropper->setInputConnection(streamer->getOutputPort());
+
     PixelClassifier::pointer segmentation = PixelClassifier::New();
     segmentation->setHeatmapOutput();
-    segmentation->setNrOfClasses(4);
+    segmentation->setNrOfClasses(3);
     //segmentation->setRememberFrames(3);
     //segmentation->load("/home/smistad/workspace/acnn-heart-segmentation/models/tensorflow_recurrent_segmentation_model_sm_0.pb");
     //segmentation->setInputName("input_1");
-    segmentation->load("/home/smistad/workspace/FAST-CIUS/models/segmentation_model_march_2018.pb");
-    segmentation->setInputSize(256, 256);
+    segmentation->load("/home/smistad/workspace/intra-cranial-pressure/models/segmentation_model_2.pb");
+    segmentation->setInputSize(256, 128);
     segmentation->setScaleFactor(1.0f/255.0f);
     segmentation->setOutputParameters({"conv2d_23/truediv"});
-    segmentation->setInputConnection(streamer->getOutputPort());
+    segmentation->setInputConnection(cropper->getOutputPort());
     segmentation->enableRuntimeMeasurements();
     /*
     // NO visualization test
@@ -124,15 +130,14 @@ int main() {
     //segmentationRenderer->setInputConnection(segmentation->getOutputPort(1));
 
     UltrasoundImageEnhancement::pointer enhancer = UltrasoundImageEnhancement::New();
-    enhancer->setInputConnection(streamer->getOutputPort());
+    enhancer->setInputConnection(cropper->getOutputPort());
 
     ImageRenderer::pointer imageRenderer = ImageRenderer::New();
     imageRenderer->setInputConnection(enhancer->getOutputPort());
 
     HeatmapRenderer::pointer heatmapRenderer = HeatmapRenderer::New();
-    heatmapRenderer->addInputConnection(segmentation->getOutputPort(1), Color::Green());
-    heatmapRenderer->addInputConnection(segmentation->getOutputPort(2), Color::Blue());
-    heatmapRenderer->addInputConnection(segmentation->getOutputPort(3), Color::Red());
+    heatmapRenderer->addInputConnection(segmentation->getOutputPort(1), Color::Yellow());
+    heatmapRenderer->addInputConnection(segmentation->getOutputPort(2), Color::Green());
 
     SimpleWindow::pointer window = SimpleWindow::New();
 
