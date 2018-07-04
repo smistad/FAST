@@ -215,7 +215,7 @@ void View::unlockRenderers() {
 
 void View::getMinMaxFromBoundingBoxes(bool transform, Vector3f& min, Vector3f& max) {
     // Get bounding boxes of all objects
-    BoundingBox box = mNonVolumeRenderers[0]->getBoundingBox(transform);
+    BoundingBox box = mNonVolumeRenderers.at(0)->getBoundingBox(transform);
     Vector3f corner = box.getCorners().row(0);
     min[0] = corner[0];
     max[0] = corner[0];
@@ -226,7 +226,7 @@ void View::getMinMaxFromBoundingBoxes(bool transform, Vector3f& min, Vector3f& m
     for (int i = 0; i < mNonVolumeRenderers.size(); i++) {
         // Apply transformation to all b boxes
         // Get max and min of x and y coordinates of the transformed b boxes
-        BoundingBox box = mNonVolumeRenderers[i]->getBoundingBox(transform);
+        BoundingBox box = mNonVolumeRenderers.at(i)->getBoundingBox(transform);
         MatrixXf corners = box.getCorners();
         //reportInfo() << box << Reporter::end();
         for (int j = 0; j < 8; j++) {
