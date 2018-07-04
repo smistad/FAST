@@ -63,7 +63,7 @@ class FAST_EXPORT  ComputationThread : public QObject, public Object {
         uint64_t mTimestepLimit = 0;
         bool mPaused = false;
         bool mLoop = false;
-        bool mStop;
+        bool mStop = false;
         StreamingMode mStreamingMode;
 };
 

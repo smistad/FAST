@@ -4,6 +4,7 @@
 #include "FAST/Visualization/SimpleWindow.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/TextRenderer/TextRenderer.hpp"
+#include <FAST/Algorithms/ImageCropper/ImageCropper.hpp>
 
 using namespace fast;
 
@@ -12,6 +13,8 @@ int main() {
     Reporter::setGlobalReportMethod(Reporter::COUT);
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
     streamer->setFilenameFormats({
+         "/home/smistad/data/ICP/14.26.11 hrs __[0000358]/frame_#.mhd",
+         "/home/smistad/data/ICP/14.27.37 hrs __[0000360]/frame_#.mhd",
          "/home/smistad/data/ultrasound_smistad_heart/1234/H1ADB20I/US-2D_#.mhd",
          "/home/smistad/data/ultrasound_smistad_heart/1234/H1ADBNGK/US-2D_#.mhd",
          "/home/smistad/data/ultrasound_smistad_heart/1234/H1ADC6OM/US-2D_#.mhd",
@@ -62,22 +65,21 @@ int main() {
     streamer->enableLooping();
     streamer->setSleepTime(25);
 
+    ImageCropper::pointer cropper = ImageCropper::New();
+    cropper->setCropBottom(0.5);
+    cropper->setInputConnection(streamer->getOutputPort());
+
     ImageClassifier::pointer classifier = ImageClassifier::New();
     classifier->setScaleFactor(1.0f/255.0f);
-    classifier->load("/home/smistad/workspace/FAST-CIUS/models/cvc_inc_dense.pb");
-    classifier->setInputSize(128,128);
-    classifier->setOutputParameters({"predictions/Softmax"});
+    classifier->load("/home/smistad/workspace/intra-cranial-pressure/models/classification_model_2.pb");
+    classifier->setInputSize(256,128);
+    classifier->setOutputParameters({"dense_3/Softmax"});
     classifier->setLabels({
-                              "Apical four-chamber",
-                              "Apical long axis",
-                              "Apical two-chamber",
-                              "Parasternal long axis",
-                              "Parasternal short axis",
-                              "Sub costal four chamber",
-                              "Sub costal vena cava",
-                              "Unknown",
+        "No",
+        "Almost",
+        "Good",
                       });
-    classifier->setInputConnection(streamer->getOutputPort());
+    classifier->setInputConnection(cropper->getOutputPort());
     classifier->enableRuntimeMeasurements();
 
     ClassificationToText::pointer classToText = ClassificationToText::New();
@@ -91,7 +93,7 @@ int main() {
     TextRenderer::pointer textRenderer = TextRenderer::New();
     textRenderer->setView(window->getView());
     textRenderer->setFontSize(48);
-    textRenderer->setPosition(TextRenderer::POSITION_TOP_LEFT);
+    textRenderer->setPosition(TextRenderer::POSITION_CENTER);
     textRenderer->setInputConnection(classToText->getOutputPort());
 
     window->addRenderer(renderer);

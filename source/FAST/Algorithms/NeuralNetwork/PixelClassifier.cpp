@@ -78,6 +78,7 @@ void PixelClassifier::execute() {
             delete[] data;
 
             output->setSpacing(mNewInputSpacing);
+            SceneGraph::setParentNode(output, mImages.back());
             if(mResizeBackToOriginalSize) {
                 ImageResizer::pointer resizer = ImageResizer::New();
                 resizer->setInputData(output);
@@ -111,6 +112,7 @@ void PixelClassifier::execute() {
         output->create(outputWidth, outputHeight, TYPE_UINT8, 1, data);
         delete[] data;
         output->setSpacing(mNewInputSpacing);
+        SceneGraph::setParentNode(output, mImages.back());
         if(mResizeBackToOriginalSize) {
             ImageResizer::pointer resizer = ImageResizer::New();
             resizer->setInputData(output);

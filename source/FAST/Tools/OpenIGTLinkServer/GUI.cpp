@@ -22,7 +22,6 @@ GUI::GUI() {
     mStop = false;
     mPort = 18944;
     mThread = nullptr;
-    mFPS = 30;
     setTitle("FAST - OpenIGTLink Server");
 
     QVBoxLayout* layout = new QVBoxLayout(mWidget);
@@ -222,7 +221,6 @@ void GUI::streamData() {
     setMainGLContext(mainGLContext);
 	mainGLContext->makeCurrent();
 
-    std::chrono::duration<int, std::milli> interaval(1000 / mFPS);
     reportInfo() << "Listening for new connections on port " << mPort << reportEnd();
     try {
         while(true) {
@@ -261,7 +259,10 @@ void GUI::streamData() {
                         break;
                     }
 
-                    std::this_thread::sleep_for(interaval);
+                    if(mFPS > 0) {
+                        std::chrono::duration<int, std::milli> interval(1000 / mFPS);
+                        std::this_thread::sleep_for(interval);
+                    }
                     framesSent++;
                 }
             }
@@ -280,6 +281,10 @@ void GUI::streamData() {
     reportInfo() << "Closing server socket" << reportEnd();
     mStatus->setText("Current status: Server not running");
     mServerSocket->CloseSocket();
+}
+
+void GUI::setFramesPerSecond(uint fps) {
+    mFPS = fps;
 }
 
 }

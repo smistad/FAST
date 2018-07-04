@@ -1,22 +1,26 @@
+#include <FAST/Tools/CommandLineParser.hpp>
 #include "FAST/Streamers/Tests/DummyIGTLServer.hpp"
 #include "GUI.hpp"
 
 using namespace fast;
 
 int main(int argc, char** argv) {
-    if(argc > 1 && std::string(argv[1]) == "--help") {
-        std::cout << "usage: " << argv[0] << " [/path/to/stream/image_#.mhd /path/to/second/stream/image_#.mhd ...]" << std::endl;
-        return 0;
-    }
-
-    std::vector<std::string> paths;
-    for(int i = 1; i < argc; ++i) {
-        paths.push_back(std::string(argv[i]));
-    }
-
+    CommandLineParser parser("OpenIGTLink Server");
+    parser.addPositionVariable(1, "path", false, "Path to stream. Example: /path/to/stream/image_#.mhd;/path/to/second_stream/image_#.mhd");
+    parser.addVariable("fps", false, "Set frames per second. Example: --fps 30");
+    parser.parse(argc, argv);
 
     GUI::pointer window = GUI::New();
+
+    if(parser.gotValue("path")) {
+        std::vector<std::string> paths = split(parser.get("path"), ";");
+        window->setFilenameFormats(paths);
+    }
+    if(parser.gotValue("fps")) {
+        window->setFramesPerSecond(parser.get<int>("fps"));
+    }
+
+    Reporter::setGlobalReportMethod(Reporter::COUT);
     window->getReporter().setReportMethod(Reporter::COUT);
-    window->setFilenameFormats(paths);
     window->start();
 }

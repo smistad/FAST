@@ -56,7 +56,7 @@ void UltrasoundImageCropper::execute() {
     int maxX = width;
     int minY = 0;
     int maxY = height;
-    int threshold = 40;
+    int threshold = 30;
     for(int x = width/2; x > 0; --x) {
         if(result[x] <= threshold) {
             minX = x;
@@ -88,6 +88,8 @@ void UltrasoundImageCropper::execute() {
     const int newHeight = maxY - minY;
     reportInfo() << "Min/Max X and Y " << minX << " " << maxX << " " << minY << " " << maxY << Reporter::end();
     reportInfo() << "Cropped image to size " << newWidth << " " << newHeight << Reporter::end();
+    if(newWidth <= 0 || newHeight <= 0)
+        throw Exception("Error occured in UltrasoundImageCropper. Incorrect size.");
     Image::pointer outputImage = getOutputData<Image>();
     outputImage->create(newWidth, newHeight, image->getDataType(), image->getNrOfChannels());
     if(m_physicalWidth > 0) {

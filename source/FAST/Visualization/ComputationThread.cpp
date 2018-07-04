@@ -7,6 +7,7 @@ namespace fast {
 
 ComputationThread::ComputationThread(QThread* mainThread, StreamingMode mode) {
     mIsRunning = false;
+    mStop = false;
     mMainThread = mainThread;
     mTimestep = 0;
     mStreamingMode = mode;
@@ -39,12 +40,17 @@ void ComputationThread::run() {
     mainGLContext->makeCurrent();
     mTimestep = 0;
 
-    while(!mStop) {
+    while(true) {
         if(!mPaused) {
             mTimestep++;
             if(mLoop && mTimestep == mTimestepLimit)
                 mTimestep = 0;
             emit timestepIncreased();
+        }
+        {
+            std::unique_lock<std::mutex> lock(mUpdateThreadMutex); // this locks the mutex
+            if(mStop)
+                break;
         }
         try {
             for (View *view : mViews) {
