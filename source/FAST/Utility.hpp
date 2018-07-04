@@ -211,7 +211,7 @@ FAST_EXPORT std::string join(std::string path);
  * @return
  */
 template<typename ...T>
-FAST_EXPORT std::string join(std::string path1, T... args) {
+std::string join(std::string path1, T... args) {
     return join(path1) + "/" + join(args...);
 }
 

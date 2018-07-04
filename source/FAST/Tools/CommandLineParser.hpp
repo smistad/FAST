@@ -6,7 +6,7 @@
 namespace fast {
 
 
-class CommandLineParser {
+class FAST_EXPORT CommandLineParser {
     public:
         CommandLineParser(std::string title, std::string description = "");
         void parse(const int argc, char** const argv);
@@ -150,15 +150,15 @@ class CommandLineParser {
 
 // Template specializations
 template <>
-int CommandLineParser::get(const std::string &name) const;
+FAST_EXPORT int CommandLineParser::get(const std::string &name) const;
 
 template <>
-float CommandLineParser::get(const std::string &name) const;
+FAST_EXPORT float CommandLineParser::get(const std::string &name) const;
 
 template <>
-Vector3i CommandLineParser::get(const std::string &name) const;
+FAST_EXPORT Vector3i CommandLineParser::get(const std::string &name) const;
 
 template <>
-Vector3f CommandLineParser::get(const std::string &name) const;
+FAST_EXPORT Vector3f CommandLineParser::get(const std::string &name) const;
 
 }
