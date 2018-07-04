@@ -34,6 +34,7 @@ void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool
         }
         setShaderUniform("transform", transform->getTransform());
 
+        // TODO glLineWidth does not work with GL 3.3 CORE. Have to implemented in shader instead
         if(mInputWidths.count(it.first) > 0) {
             glLineWidth(mInputWidths[it.first]);
         } else {
