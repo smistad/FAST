@@ -254,7 +254,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
             filter->setOutputType(TYPE_FLOAT);
             DataPort::pointer port = filter->getOutputPort();
             filter->update(0);
-            smoothedImage = port->getNextFrame();
+            smoothedImage = port->getNextFrame<Image>();
             smoothedImage->setSpacing(spacing);
         } else {
             smoothedImage = input;
@@ -288,7 +288,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
             filter->setOutputType(TYPE_FLOAT);
             auto port = filter->getOutputPort();
             filter->update(0);
-            smoothedImage = port->getNextFrame();
+            smoothedImage = port->getNextFrame<Image>();
             smoothedImage->setSpacing(spacing);
         } else {
             smoothedImage = input;
@@ -305,7 +305,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
     Image::pointer TDF;
     InverseGradientSegmentation::pointer segmentation = InverseGradientSegmentation::New();
     Mesh::pointer centerline;
-    if(smallTDF.isValid() && largeTDF.isValid()) {
+    if(smallTDF && largeTDF) {
         // Both small and large TDF has been executed, need to merge the two.
         TDF = largeTDF;
         // First, extract centerlines from largeTDF and GVF
@@ -319,7 +319,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
         auto port = centerlineExtraction->getOutputPort(0);
         auto port2 = centerlineExtraction->getOutputPort(1);
         centerlineExtraction->update(0);
-        centerline = port->getNextFrame();
+        centerline = port->getNextFrame<Mesh>();
 
         // Segmentation
         // TODO: Use only dilation for smallTDF
@@ -328,7 +328,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
 
     } else {
         // Only small or large TDF has been used
-        if(smallTDF.isValid()) {
+        if(smallTDF) {
             TDF = smallTDF;
             centerlineExtraction->setInputData(0, smallTDF);
             centerlineExtraction->setInputData(1, gradients);
@@ -342,7 +342,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
         }
         auto port = centerlineExtraction->getOutputPort();
         centerlineExtraction->update(0);
-        centerline = port->getNextFrame();
+        centerline = port->getNextFrame<Mesh>();
 
         // Segmentation
         segmentation->setInputConnection(centerlineExtraction->getOutputPort(1));
@@ -351,7 +351,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
 
     auto segPort = segmentation->getOutputPort();
     segmentation->update(0);
-    Segmentation::pointer segmentationVolume = segPort->getNextFrame();
+    Segmentation::pointer segmentationVolume = segPort->getNextFrame<Segmentation>();
 
     // TODO get largest segmentation object
     reportInfo() << "Removing small objects..." << Reporter::end();
@@ -364,7 +364,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
 
 
 Image::pointer TubeSegmentationAndCenterlineExtraction::runGradientVectorFlow(Image::pointer vectorField) {
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     reportInfo() << "Running GVF.." << Reporter::end();
     MultigridGradientVectorFlow::pointer gvf = MultigridGradientVectorFlow::New();
     gvf->setInputData(vectorField);
@@ -375,11 +375,11 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::runGradientVectorFlow(Im
     DataPort::pointer port = gvf->getOutputPort();
     gvf->update(0);
     reportInfo() << "GVF finished" << Reporter::end();
-    return port->getNextFrame();
+    return port->getNextFrame<Image>();
 }
 
 Image::pointer TubeSegmentationAndCenterlineExtraction::createGradients(Image::pointer image) {
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     Image::pointer floatImage = Image::New();
     floatImage->create(image->getWidth(), image->getHeight(), image->getDepth(), TYPE_FLOAT, 1);
     Image::pointer vectorField = Image::New();
@@ -466,7 +466,7 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::createGradients(Image::p
 }
 
 void TubeSegmentationAndCenterlineExtraction::runTubeDetectionFilter(Image::pointer vectorField, float minimumRadius, float maximumRadius, Image::pointer& TDF, Image::pointer& radius) {
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     TDF = Image::New();
     TDF->create(vectorField->getSize(), TYPE_FLOAT, 1);
     TDF->setSpacing(vectorField->getSpacing());
@@ -505,7 +505,7 @@ void TubeSegmentationAndCenterlineExtraction::runTubeDetectionFilter(Image::poin
 }
 
 void TubeSegmentationAndCenterlineExtraction::runNonCircularTubeDetectionFilter(Image::pointer vectorField, float minimumRadius, float maximumRadius, Image::pointer& TDF, Image::pointer& radius) {
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     TDF = Image::New();
     TDF->create(vectorField->getSize(), TYPE_FLOAT, 1);
     TDF->setSpacing(vectorField->getSpacing());

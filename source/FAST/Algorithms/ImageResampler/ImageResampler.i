@@ -5,7 +5,7 @@ namespace fast {
 
 class ImageResampler : public ProcessObject {
     public:
-    	static SharedPointer<ImageResampler> New();
+    	static std::shared_ptr<ImageResampler> New();
         void setOutputSpacing(float spacingX, float spacingY);
         void setOutputSpacing(float spacingX, float spacingY, float spacingZ);
 	private:
@@ -13,5 +13,5 @@ class ImageResampler : public ProcessObject {
 };
 
 // This must come after class declaration
-%template(ImageResamplerPtr) SharedPointer<ImageResampler>;
+%template(ImageResamplerPtr) std::shared_ptr<ImageResampler>;
 }

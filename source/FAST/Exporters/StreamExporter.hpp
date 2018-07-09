@@ -9,14 +9,14 @@ class FAST_EXPORT  StreamExporter : public ProcessObject {
     FAST_OBJECT(StreamExporter)
     public:
         void setFilenameFormat(std::string format);
-        void setExporter(SharedPointer<FileExporter> exporter);
+        void setExporter(std::shared_ptr<FileExporter> exporter);
         bool isFinished();
     private:
         StreamExporter();
         void execute();
 
         std::string mFilenameFormat;
-        SharedPointer<FileExporter> mExporter;
+        std::shared_ptr<FileExporter> mExporter;
         int mFrameCounter;
         bool mFinished;
 };

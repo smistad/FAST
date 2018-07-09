@@ -52,7 +52,7 @@ void DoubleFilter::execute() {
         }
     } else {
         // Execution device is an OpenCL device
-        OpenCLDevice::pointer device = getMainDevice();
+        OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
         // Set build options based on the data type of the data
         std::string buildOptions = "-DTYPE=" + getCTypeAsString(input->getDataType());

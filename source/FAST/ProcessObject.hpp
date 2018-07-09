@@ -1,7 +1,6 @@
 #ifndef PIPELINE_OBJECT_HPP
 #define PIPELINE_OBJECT_HPP
 
-#include "FAST/SmartPointers.hpp"
 #include "FAST/Utility.hpp"
 #include <unordered_map>
 #include <unordered_set>
@@ -22,11 +21,11 @@ namespace fast {
 class OpenCLProgram;
 class ProcessObject;
 
-class FAST_EXPORT  ProcessObject : public virtual Object {
+class FAST_EXPORT  ProcessObject : public Object {
     public:
         virtual ~ProcessObject();
         void update(uint64_t timestep, StreamingMode streamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES);
-        typedef SharedPointer<ProcessObject> pointer;
+        typedef std::shared_ptr<ProcessObject> pointer;
 
         // Runtime stuff
         RuntimeMeasurement::pointer getRuntime();
@@ -87,9 +86,9 @@ class FAST_EXPORT  ProcessObject : public virtual Object {
         void createOutputPort(uint portID);
 
         template <class DataType>
-        DataObject::pointer getInputData(uint portID = 0);
+        std::shared_ptr<DataType> getInputData(uint portID = 0);
         template <class DataType>
-        DataObject::pointer getOutputData(uint portID = 0);
+        std::shared_ptr<DataType> getOutputData(uint portID = 0);
         void addOutputData(uint portID, DataObject::pointer data);
 
         bool hasNewInputData(uint portID);
@@ -101,7 +100,7 @@ class FAST_EXPORT  ProcessObject : public virtual Object {
 
         void createOpenCLProgram(std::string sourceFilename, std::string name = "");
         cl::Program getOpenCLProgram(
-                SharedPointer<OpenCLDevice> device,
+                std::shared_ptr<OpenCLDevice> device,
                 std::string name = "",
                 std::string buildOptions = ""
         );
@@ -128,7 +127,7 @@ class FAST_EXPORT  ProcessObject : public virtual Object {
 
         // New pipeline
         std::unordered_map<uint, DataPort::pointer> mInputConnections;
-        std::unordered_map<uint, std::vector<WeakPointer<DataPort>>> mOutputConnections;
+        std::unordered_map<uint, std::vector<std::weak_ptr<DataPort>>> mOutputConnections;
         std::unordered_map<uint, bool> mInputPorts;
         std::unordered_set<uint> mOutputPorts;
         // <port id, timestep>, register the last timestep of data which this PO executed with
@@ -139,7 +138,7 @@ class FAST_EXPORT  ProcessObject : public virtual Object {
 
 
 
-        std::unordered_map<std::string, SharedPointer<OpenCLProgram> > mOpenCLPrograms;
+        std::unordered_map<std::string, std::shared_ptr<OpenCLProgram> > mOpenCLPrograms;
 
         std::unordered_map<std::string, std::shared_ptr<Attribute>> mAttributes;
 
@@ -148,34 +147,39 @@ class FAST_EXPORT  ProcessObject : public virtual Object {
 
 template<class DataType>
 void ProcessObject::createInputPort(uint portID, bool required) {
-        mInputPorts[portID] = required;
+    mInputPorts[portID] = required;
 }
 
 
 template<class DataType>
 void ProcessObject::createOutputPort(uint portID) {
-        mOutputPorts.insert(portID);
+    mOutputPorts.insert(portID);
 }
 
 template<class DataType>
-DataObject::pointer ProcessObject::getInputData(uint portID) {
-        validateInputPortExists(portID);
-        DataPort::pointer port = mInputConnections.at(portID);
-        DataObject::pointer data = port->getNextFrame();
-        mLastProcessed[portID] = std::make_pair(data, data->getTimestamp());
-        return data;
+std::shared_ptr<DataType> ProcessObject::getInputData(uint portID) {
+    validateInputPortExists(portID);
+    DataPort::pointer port = mInputConnections.at(portID);
+    DataObject::pointer data = port->getNextFrame();
+    mLastProcessed[portID] = std::make_pair(data, data->getTimestamp());
+    auto convertedData = std::dynamic_pointer_cast<DataType>(data);
+    // Check if the conversion went ok
+    if(!convertedData)
+        throw BadCastException(data->getNameOfClass(), DataType::getStaticNameOfClass());
+
+    return convertedData;
 }
 
 template<class DataType>
-DataObject::pointer ProcessObject::getOutputData(uint portID) {
-        validateOutputPortExists(portID);
-        // Generate a new output data object
-        typename DataType::pointer returnData = DataType::New();
+std::shared_ptr<DataType> ProcessObject::getOutputData(uint portID) {
+    validateOutputPortExists(portID);
+    // Generate a new output data object
+    std::shared_ptr<DataType> returnData = DataType::New();
 
-        addOutputData(portID, returnData);
+    addOutputData(portID, returnData);
 
-        // Return it
-        return returnData;
+    // Return it
+    return returnData;
 }
 
 

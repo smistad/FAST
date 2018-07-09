@@ -2,7 +2,8 @@
 #define OPENCLBUFFERACCESS_HPP_
 
 #include "CL/OpenCL.hpp"
-#include "FAST/SmartPointers.hpp"
+#include "FAST/Object.hpp"
+
 
 namespace fast {
 
@@ -12,16 +13,16 @@ class OpenCLDevice;
 class FAST_EXPORT  OpenCLBufferAccess {
     public:
         cl::Buffer* get() const;
-        OpenCLBufferAccess(cl::Buffer* buffer,  SharedPointer<Image> image);
+        OpenCLBufferAccess(cl::Buffer* buffer,  std::shared_ptr<Image> image);
         void release();
         ~OpenCLBufferAccess();
-		typedef UniquePointer<OpenCLBufferAccess> pointer;
+		typedef std::unique_ptr<OpenCLBufferAccess> pointer;
     private:
 		OpenCLBufferAccess(const OpenCLBufferAccess& other);
 		OpenCLBufferAccess& operator=(const OpenCLBufferAccess& other);
         cl::Buffer* mBuffer;
         bool mIsDeleted;
-        SharedPointer<Image> mImage;
+        std::shared_ptr<Image> mImage;
 };
 
 } // end namespace fast

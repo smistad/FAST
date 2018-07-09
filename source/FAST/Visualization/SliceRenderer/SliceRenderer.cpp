@@ -38,7 +38,7 @@ void SliceRenderer::execute() {
             slicer->update(0);
 
             mHasRendered = false;
-            mDataToRender[inputNr] = port->getNextFrame();
+            mDataToRender[inputNr] = port->getNextFrame<Image>();
         }
     }
 }
@@ -63,7 +63,7 @@ uint SliceRenderer::addInputConnection(DataPort::pointer port, Plane slicePlane)
     return portID;
 }
 
-uint SliceRenderer::addInputConnection(DataPort::pointer port, SharedPointer<ImageSlicer> slicer) {
+uint SliceRenderer::addInputConnection(DataPort::pointer port, std::shared_ptr<ImageSlicer> slicer) {
     uint portID = Renderer::addInputConnection(port);
     mSlicers[portID] = slicer;
     return portID;

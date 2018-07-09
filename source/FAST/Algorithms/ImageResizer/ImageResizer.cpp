@@ -83,7 +83,7 @@ void ImageResizer::execute() {
             useInterpolation = mInterpolation ? 1 : 0;
         }
 
-        OpenCLDevice::pointer device = OpenCLDevice::pointer(getMainDevice());
+        OpenCLDevice::pointer device = std::static_pointer_cast<OpenCLDevice>(getMainDevice());
         cl::Program program = getOpenCLProgram(device, "");
         cl::Kernel kernel;
         OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);

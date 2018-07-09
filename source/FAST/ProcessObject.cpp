@@ -62,7 +62,7 @@ void ProcessObject::update(uint64_t timestep, StreamingMode streamingMode) {
         std::vector<int> deadOutputPorts;
         for(int i = 0; i < outputPorts.second.size(); ++i) {
             auto output = outputPorts.second[i];
-            if(!output.getPtr().expired()) {
+            if(!output.expired()) {
                 DataPort::pointer port = output.lock();
                 port->setTimestep(timestep);
                 port->setStreamingMode(streamingMode);
@@ -106,12 +106,12 @@ void ProcessObject::update(uint64_t timestep, StreamingMode streamingMode) {
 DataPort::pointer ProcessObject::getOutputPort(uint portID) {
     validateOutputPortExists(portID);
     // Create DataPort, and it to list and return it
-    DataPort::pointer port = SharedPointer<DataPort>(new DataPort(mPtr.lock()));
+    DataPort::pointer port = std::make_shared<DataPort>(std::static_pointer_cast<ProcessObject>(mPtr.lock()));
 
     if(mOutputConnections.count(portID) == 0)
-        mOutputConnections[portID] = std::vector<WeakPointer<DataPort>>();
+        mOutputConnections[portID] = std::vector<std::weak_ptr<DataPort>>();
 
-    mOutputConnections[portID].push_back(WeakPointer<DataPort>(port));
+    mOutputConnections[portID].push_back(std::weak_ptr<DataPort>(port));
 
     return port;
 }
@@ -138,7 +138,7 @@ void ProcessObject::addOutputData(uint portID, DataObject::pointer data) {
     // Add it to all output connections, if any connections exist
     if(mOutputConnections.count(portID) > 0) {
         for(auto output : mOutputConnections.at(portID)) {
-            if(!output.getPtr().expired()) {
+            if(!output.expired()) {
                 DataPort::pointer port = output.lock();
                 port->addFrame(data);
             }
@@ -259,7 +259,7 @@ ExecutionDevice::pointer ProcessObject::getMainDevice() const {
 void ProcessObject::setDevice(uint deviceNumber,
         ExecutionDevice::pointer device) {
     if(mDeviceCriteria.count(deviceNumber) > 0) {
-        if(!DeviceManager::getInstance()->deviceSatisfiesCriteria(device, mDeviceCriteria[deviceNumber]))
+        if(!DeviceManager::getInstance()->deviceSatisfiesCriteria(std::dynamic_pointer_cast<OpenCLDevice>(device), mDeviceCriteria[deviceNumber]))
             throw Exception("Tried to set device which does not satisfy device criteria");
     }
     if(mDevices.count(deviceNumber) > 0) {

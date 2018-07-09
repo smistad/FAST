@@ -6,7 +6,6 @@
 #include <QToolBox>
 #include <unordered_map>
 #include <unordered_set>
-#include <FAST/SmartPointers.hpp>
 #include <FAST/ProcessObject.hpp>
 
 namespace fast {
@@ -16,8 +15,8 @@ class Renderer;
 class FAST_EXPORT  Pipeline {
     public:
         Pipeline(std::string name, std::string description, std::string filename);
-        std::vector<SharedPointer<Renderer> > setup(std::vector<DataPort::pointer> input);
-        std::unordered_map<std::string, SharedPointer<ProcessObject>> getProcessObjects();
+        std::vector<std::shared_ptr<Renderer> > setup(std::vector<DataPort::pointer> input);
+        std::unordered_map<std::string, std::shared_ptr<ProcessObject>> getProcessObjects();
         std::string getName() const;
         std::string getDescription() const;
         std::string getFilename() const;
@@ -31,7 +30,7 @@ class FAST_EXPORT  Pipeline {
         std::string mName;
         std::string mDescription;
         std::string mFilename;
-        std::unordered_map<std::string, SharedPointer<ProcessObject>> mProcessObjects;
+        std::unordered_map<std::string, std::shared_ptr<ProcessObject>> mProcessObjects;
         /**
          * Names of which POs need input and the port id
          */
@@ -60,7 +59,7 @@ class FAST_EXPORT  PipelineWidget : public QToolBox {
 
 class FAST_EXPORT  ProcessObjectWidget : public QWidget {
     public:
-        ProcessObjectWidget(SharedPointer<ProcessObject> po, QWidget* parent = nullptr);
+        ProcessObjectWidget(std::shared_ptr<ProcessObject> po, QWidget* parent = nullptr);
 };
 
 } // end namespace fast

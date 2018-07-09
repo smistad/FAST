@@ -1,4 +1,4 @@
-#include "FAST/SmartPointers.hpp"
+
 #include "FAST/Exception.hpp"
 #include "FAST/Importers/ImageImporter.hpp"
 #include "FAST/DeviceManager.hpp"

@@ -5,7 +5,7 @@
 namespace fast {
 
 cl::Image3D MultigridGradientVectorFlow::initSolutionToZero(Vector3ui size, int imageType, int bufferSize) {
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::CommandQueue queue = device->getCommandQueue();
     cl::Image3D v(
             device->getContext(),
@@ -59,7 +59,7 @@ void MultigridGradientVectorFlow::gaussSeidelSmoothing(
 
     if(iterations <= 0)
         return;
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::CommandQueue queue = device->getCommandQueue();
 
     cl::Kernel gaussSeidelKernel(mProgram, "GVFgaussSeidel");
@@ -146,7 +146,7 @@ cl::Image3D MultigridGradientVectorFlow::restrictVolume(
         int bufferSize
         ) {
 
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::CommandQueue queue = device->getCommandQueue();
     // Check to see if size is a power of 2 and equal in all dimensions
 
@@ -202,7 +202,7 @@ cl::Image3D MultigridGradientVectorFlow::prolongateVolume(
         int imageType,
         int bufferSize
         ) {
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::CommandQueue queue = device->getCommandQueue();
     cl::Image3D v_2(
             device->getContext(),
@@ -258,7 +258,7 @@ cl::Image3D MultigridGradientVectorFlow::prolongateVolume2(
         int imageType,
         int bufferSize
         ) {
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::CommandQueue queue = device->getCommandQueue();
     cl::Image3D v_2(
             device->getContext(),
@@ -317,7 +317,7 @@ cl::Image3D MultigridGradientVectorFlow::residual(
         int imageType,
         int bufferSize
         ) {
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::CommandQueue queue = device->getCommandQueue();
     cl::Image3D newResidual(
             device->getContext(),
@@ -453,7 +453,7 @@ cl::Image3D MultigridGradientVectorFlow::computeNewResidual(
         int imageType,
         int bufferSize
         ) {
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::CommandQueue queue = device->getCommandQueue();
     cl::Image3D newResidual(
             device->getContext(),
@@ -577,7 +577,7 @@ MultigridGradientVectorFlow::MultigridGradientVectorFlow() {
 
 void MultigridGradientVectorFlow::execute() {
     Image::pointer input = getInputData<Image>();
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
     if((input->getDimensions() == 2 && input->getNrOfChannels() != 2) ||
             (input->getDimensions() == 3 && input->getNrOfChannels() != 3)) {
@@ -603,9 +603,9 @@ void MultigridGradientVectorFlow::execute() {
     }
 }
 
-void MultigridGradientVectorFlow::execute3DGVF(SharedPointer<Image> input,
-        SharedPointer<Image> output, uint iterations) {
-    OpenCLDevice::pointer device = getMainDevice();
+void MultigridGradientVectorFlow::execute3DGVF(std::shared_ptr<Image> input,
+        std::shared_ptr<Image> output, uint iterations) {
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
     const Vector3f inputSpacing = input->getSpacing();
     cl::CommandQueue queue = device->getCommandQueue();

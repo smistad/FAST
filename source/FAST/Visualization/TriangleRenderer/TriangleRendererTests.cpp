@@ -19,7 +19,7 @@ TEST_CASE("TriangleRenderer on LV surface model", "[fast][TriangleRenderer][visu
         renderer->addInputConnection(importer->getOutputPort());
         SimpleWindow::pointer window = SimpleWindow::New();
         window->addRenderer(renderer);
-        window->setTimeout(1000);
+        //window->setTimeout(1000);
         window->start();
     );
 }

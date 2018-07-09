@@ -72,7 +72,7 @@ void EulerGradientVectorFlow::set32bitStorageFormat() {
 }
 
 void EulerGradientVectorFlow::execute2DGVF(Image::pointer input, Image::pointer output, uint iterations) {
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::Program program = getOpenCLProgram(device);
 
     cl::Context context = device->getContext();
@@ -186,7 +186,7 @@ void EulerGradientVectorFlow::execute2DGVF(Image::pointer input, Image::pointer 
 }
 
 void EulerGradientVectorFlow::execute3DGVF(Image::pointer input, Image::pointer output, uint iterations) {
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::Program program = getOpenCLProgram(device);
 
     cl::Context context = device->getContext();
@@ -286,7 +286,7 @@ void EulerGradientVectorFlow::execute3DGVF(Image::pointer input, Image::pointer 
 }
 
 void EulerGradientVectorFlow::execute3DGVFNo3DWrite(Image::pointer input, Image::pointer output, uint iterations) {
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
     cl::Context context = device->getContext();
     cl::CommandQueue queue = device->getCommandQueue();
@@ -401,7 +401,7 @@ void EulerGradientVectorFlow::execute3DGVFNo3DWrite(Image::pointer input, Image:
 
 void EulerGradientVectorFlow::execute() {
     Image::pointer input = getInputData<Image>();
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
     if((input->getDimensions() == 2 && input->getNrOfChannels() != 2) ||
             (input->getDimensions() == 3 && input->getNrOfChannels() != 3)) {

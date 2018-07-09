@@ -619,7 +619,7 @@ void RidgeTraversalCenterlineExtraction::execute() {
     uchar * returnCenterlines = new uchar[totalSize]();
     ImageAccess::pointer radiusAccess = radius->getImageAccess(ACCESS_READ);
     ImageAccess::pointer radius2Access;
-    if(radius2.isValid())
+    if(radius2)
         radius2Access = radius2->getImageAccess(ACCESS_READ);
     // Mark largest tree with 1, and rest with 0
     #pragma omp parallel for

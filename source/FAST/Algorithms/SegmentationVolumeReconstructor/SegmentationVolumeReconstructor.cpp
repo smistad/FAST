@@ -13,7 +13,7 @@ void SegmentationVolumeReconstructor::execute() {
     Image::pointer input = getInputData<Image>();
 
     auto T_I = SceneGraph::getEigenAffineTransformationFromData(input);
-    if(!m_volume.isValid()) {
+    if(!m_volume) {
         // Initialize volume
         m_volume = Segmentation::New();
         m_volume->create(512, 512, 512, TYPE_UINT8, 1);

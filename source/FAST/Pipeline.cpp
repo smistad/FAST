@@ -17,7 +17,7 @@ Pipeline::Pipeline(std::string name, std::string description, std::string filena
     mFilename = filename;
 }
 
-inline SharedPointer<ProcessObject> getProcessObject(std::string name) {
+inline std::shared_ptr<ProcessObject> getProcessObject(std::string name) {
     return ProcessObjectRegistry::create(name);
 }
 
@@ -29,7 +29,7 @@ void Pipeline::parseProcessObject(
     ) {
 
     // Create object
-    SharedPointer<ProcessObject> object = getProcessObject(objectName);
+    std::shared_ptr<ProcessObject> object = getProcessObject(objectName);
 
     std::string line = "";
     std::getline(file, line);
@@ -84,7 +84,7 @@ void Pipeline::parseProcessObject(
 
 
         if(isRenderer) {
-            SharedPointer<Renderer> renderer = object;
+            std::shared_ptr<Renderer> renderer = std::static_pointer_cast<Renderer>(object);
             // TODO fix text renderer no supprt addInput
             if(inputID == "PipelineInput") {
                 mInputProcessObjects[objectID] = 0;
@@ -160,7 +160,7 @@ int Pipeline::parsePipelineFile() {
 
     return mInputProcessObjects.size();
 }
-std::vector<SharedPointer<Renderer>> Pipeline::setup(std::vector<DataPort::pointer> inputPorts) {
+std::vector<std::shared_ptr<Renderer>> Pipeline::setup(std::vector<DataPort::pointer> inputPorts) {
     Reporter::info() << "Setting up pipeline.." << Reporter::end();
     if(mProcessObjects.size() == 0)
         throw Exception("You have to parse the pipeline file before calling setup on the pipeline");
@@ -177,9 +177,9 @@ std::vector<SharedPointer<Renderer>> Pipeline::setup(std::vector<DataPort::point
     }
 
     // Get renderers
-    std::vector<SharedPointer<Renderer>> renderers;
+    std::vector<std::shared_ptr<Renderer>> renderers;
     for(auto renderer : mRenderers) {
-        renderers.push_back(mProcessObjects[renderer]);
+        renderers.push_back(std::static_pointer_cast<Renderer>(mProcessObjects[renderer]));
     }
 
     Reporter::info() << "Finished setting up pipeline." << Reporter::end();
@@ -245,7 +245,7 @@ std::vector<Pipeline> getAvailablePipelines() {
     return pipelines;
 }
 
-std::unordered_map<std::string, SharedPointer<ProcessObject>> Pipeline::getProcessObjects() {
+std::unordered_map<std::string, std::shared_ptr<ProcessObject>> Pipeline::getProcessObjects() {
     if(mProcessObjects.size() == 0)
         parsePipelineFile();
 
@@ -277,7 +277,7 @@ PipelineWidget::PipelineWidget(Pipeline pipeline, QWidget* parent) : QToolBox(pa
     );
 }
 
-ProcessObjectWidget::ProcessObjectWidget(SharedPointer<ProcessObject> po, QWidget *parent) : QWidget(parent) {
+ProcessObjectWidget::ProcessObjectWidget(std::shared_ptr<ProcessObject> po, QWidget *parent) : QWidget(parent) {
     QVBoxLayout* layout = new QVBoxLayout(this);
     auto attributes = po->getAttributes();
     for(auto attr : attributes) {

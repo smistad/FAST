@@ -17,7 +17,7 @@ uint HeatmapRenderer::addInputConnection(DataPort::pointer port, Color color) {
 
 void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) {
     std::lock_guard<std::mutex> lock(mMutex);
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::CommandQueue queue = device->getCommandQueue();
 
     std::vector<Color> colorList = {
@@ -31,7 +31,7 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, b
 
     cl::Kernel kernel(getOpenCLProgram(device), "renderToTexture");
     for(auto it : mDataToRender) {
-        Image::pointer input = it.second;
+        Image::pointer input = std::static_pointer_cast<Image>(it.second);
         uint inputNr = it.first;
 
         if(input->getDataType() != TYPE_FLOAT) {

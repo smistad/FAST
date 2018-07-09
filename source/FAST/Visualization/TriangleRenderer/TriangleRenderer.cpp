@@ -53,7 +53,7 @@ void TriangleRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, 
     setShaderUniform("viewTransform", viewingMatrix);
     setShaderUniform("mode2D", mode2D);
     for(auto it : mDataToRender) {
-        Mesh::pointer surfaceToRender = it.second;
+        Mesh::pointer surfaceToRender = std::static_pointer_cast<Mesh>(it.second);
 
         // Create VAO
         uint VAO_ID;

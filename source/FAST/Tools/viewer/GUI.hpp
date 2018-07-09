@@ -33,7 +33,7 @@ class GUI : public Window {
         GUI();
         void refreshStreams();
 
-        SharedPointer<ImageFileStreamer> mStreamer;
+        std::shared_ptr<ImageFileStreamer> mStreamer;
         std::vector<std::string> mStreamNames;
         std::vector<Pipeline> mPipelines;
 

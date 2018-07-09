@@ -30,7 +30,7 @@ void Erosion::execute() {
     output->createFromImage(input);
     output->fill(0);
 
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::CommandQueue queue = device->getCommandQueue();
     cl::Program program = getOpenCLProgram(device);
     cl::Kernel kernel(program, "erode");

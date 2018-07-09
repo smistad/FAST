@@ -22,7 +22,7 @@ void Skeletonization::execute() {
     // Initialize output image
     output->createFromImage(input);
 
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
     // Create kernel
     int programNr = device->createProgramFromSource(Config::getKernelSourcePath() + "Algorithms/Skeletonization/Skeletonization2D.cl");

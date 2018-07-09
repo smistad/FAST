@@ -5,12 +5,12 @@
 %shared_ptr(fast::ProcessObject)
 
 %inline %{
-fast::SharedPointer<fast::Image> getNextFrameImage(fast::SharedPointer<fast::ProcessObject> po) {
+fast::std::shared_ptr<fast::Image> getNextFrameImage(fast::std::shared_ptr<fast::ProcessObject> po) {
     fast::DynamicData::pointer dd = po->getOutputData<fast::Image>();
     fast::Image::pointer image = dd->getNextFrame(po);
     return image;
 }
-fast::SharedPointer<fast::Mesh> getNextFrameMesh(fast::SharedPointer<fast::ProcessObject> po) {
+fast::std::shared_ptr<fast::Mesh> getNextFrameMesh(fast::std::shared_ptr<fast::ProcessObject> po) {
     fast::DynamicData::pointer dd = po->getOutputData<fast::Mesh>();
     fast::Mesh::pointer mesh = dd->getNextFrame(po);
     return mesh;
@@ -22,7 +22,7 @@ typedef unsigned char uchar;
 namespace fast {
 
 #define FAST_OBJECT(name) public:\
-static SharedPointer<name> New();\
+static std::shared_ptr<name> New();\
 private:\
 name();\
 
@@ -39,13 +39,13 @@ class ProcessObject : public Object {
         void setInputConnection(ProcessObjectPort port);
         void setInputConnection(uint connectionID, ProcessObjectPort port);
         template <class T>
-        SharedPointer<T> getOutputData();
+        std::shared_ptr<T> getOutputData();
         template <class T>
-        SharedPointer<T> getOutputData(int port);
+        std::shared_ptr<T> getOutputData(int port);
         %template(getStaticImageOutputData) getOutputData<Image>;
 
         template <class T>
-        SharedPointer<DataObject> getOutputData();
+        std::shared_ptr<DataObject> getOutputData();
         %template(getImageOutputData) getOutputData<Image>;
     protected:
     	ProcessObject();

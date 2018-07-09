@@ -77,7 +77,7 @@ void DataPort::addFrame(DataObject::pointer object) {
     }
 }
 
-DataObject::pointer DataPort::getNextFrame() {
+DataObject::pointer DataPort::getNextDataFrame() {
     // getNextFrame should **always** return the frame at the current timestep
     DataObject::pointer data;
     {
@@ -150,12 +150,12 @@ void DataPort::setTimestep(uint64_t timestep) {
     mCurrentTimestep = timestep;
 }
 
-DataPort::DataPort(SharedPointer<ProcessObject> processObject) {
+DataPort::DataPort(std::shared_ptr<ProcessObject> processObject) {
     mProcessObject = processObject;
     setMaximumNumberOfFrames(50);
 }
 
-SharedPointer<ProcessObject> DataPort::getProcessObject() const {
+std::shared_ptr<ProcessObject> DataPort::getProcessObject() const {
     return mProcessObject;
 }
 
@@ -167,8 +167,8 @@ void DataPort::setMaximumNumberOfFrames(uint frames) {
     if(mFrameCounter > 0)
         throw Exception("Have to call setMaximumNumberOfFrames before executing pipeline");
     mMaximumNumberOfFrames = frames;
-    mFillCount = UniquePointer<LightweightSemaphore>(new LightweightSemaphore(0));
-    mEmptyCount = UniquePointer<LightweightSemaphore>(new LightweightSemaphore(mMaximumNumberOfFrames));
+    mFillCount = std::make_unique<LightweightSemaphore>(0);
+    mEmptyCount = std::make_unique<LightweightSemaphore>(mMaximumNumberOfFrames);
 }
 
 void DataPort::stop() {
@@ -201,6 +201,10 @@ DataObject::pointer DataPort::getFrame(uint64_t timestep) {
     return mFrames.at(timestep);
 }
 
+template <>
+std::shared_ptr<DataObject> DataPort::getNextFrame<DataObject>() {
+    return getNextDataFrame();
+}
 
 
 } // end namespace fast

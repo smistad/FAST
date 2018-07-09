@@ -7,7 +7,7 @@
 #include "RuntimeMeasurement.hpp"
 #include <chrono>
 #include <memory>
-#include "FAST/SmartPointers.hpp"
+
 
 namespace fast {
 

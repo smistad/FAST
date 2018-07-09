@@ -12,13 +12,13 @@
 #endif
 #endif
 
-#include "FAST/SmartPointers.hpp"
+#include "FAST/Object.hpp"
 
 namespace fast {
 
 class Mesh;
 
-class FAST_EXPORT  VertexBufferObjectAccess {
+class FAST_EXPORT VertexBufferObjectAccess {
     public:
         GLuint* getCoordinateVBO() const;
 		GLuint* getNormalVBO() const;
@@ -37,16 +37,16 @@ class FAST_EXPORT  VertexBufferObjectAccess {
 				bool useNormalVBO,
 				bool useColorVBO,
 				bool useEBO,
-				SharedPointer<Mesh> mesh
+				std::shared_ptr<Mesh> mesh
 		);
         void release();
         ~VertexBufferObjectAccess();
-		typedef UniquePointer<VertexBufferObjectAccess> pointer;
+		typedef std::unique_ptr<VertexBufferObjectAccess> pointer;
     private:
         GLuint* mCoordinateVBO, *mNormalVBO, *mColorVBO, *mLineEBO, *mTriangleEBO;
 		bool mUseNormalVBO, mUseColorVBO, mUseEBO;
         bool mIsDeleted;
-        SharedPointer<Mesh> mMesh;
+        std::shared_ptr<Mesh> mMesh;
 };
 
 } // end namespace fast

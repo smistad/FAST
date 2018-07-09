@@ -209,7 +209,7 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
                     mUseNormalVBO,
                     mUseColorVBO,
                     mUseEBO,
-                    mPtr.lock()
+                    std::static_pointer_cast<Mesh>(mPtr.lock())
             )
     );
 	return std::move(accessObject);
@@ -335,7 +335,7 @@ MeshAccess::pointer Mesh::getMeshAccess(accessType type) {
         mDataIsBeingAccessed = true;
     }
 
-    MeshAccess::pointer accessObject(new MeshAccess(&mCoordinates, &mNormals, &mColors, &mLines, &mTriangles, mPtr.lock()));
+    MeshAccess::pointer accessObject(new MeshAccess(&mCoordinates, &mNormals, &mColors, &mLines, &mTriangles, std::static_pointer_cast<Mesh>(mPtr.lock())));
 	return std::move(accessObject);
 }
 
@@ -433,7 +433,7 @@ MeshOpenCLAccess::pointer Mesh::getOpenCLAccess(accessType type, OpenCLDevice::p
         mDataIsBeingAccessed = true;
     }
 
-    MeshOpenCLAccess::pointer accessObject(new MeshOpenCLAccess(mCoordinatesBuffers[device], mLinesBuffers[device], mTrianglesBuffers[device], mPtr.lock()));
+    MeshOpenCLAccess::pointer accessObject(new MeshOpenCLAccess(mCoordinatesBuffers[device], mLinesBuffers[device], mTrianglesBuffers[device], std::static_pointer_cast<Mesh>(mPtr.lock())));
 	return std::move(accessObject);
 }
 
@@ -521,7 +521,7 @@ void Mesh::free(ExecutionDevice::pointer device) {
         mTriangles.clear();
         mHostHasData = false;
     } else {
-        OpenCLDevice::pointer clDevice = device;
+        OpenCLDevice::pointer clDevice = std::static_pointer_cast<OpenCLDevice>(device);
         if(mCLBuffersIsUpToDate.count(clDevice) > 0) {
             mCLBuffersIsUpToDate.erase(clDevice);
             if(mLinesBuffers.count(clDevice) > 0)

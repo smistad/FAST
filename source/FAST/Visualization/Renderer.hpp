@@ -1,7 +1,7 @@
 #ifndef RENDERER_HPP_
 #define RENDERER_HPP_
 
-#include "FAST/SmartPointers.hpp"
+
 #include "FAST/ProcessObject.hpp"
 #include "FAST/Data/BoundingBox.hpp"
 #include "FAST/Data/SpatialDataObject.hpp"
@@ -16,7 +16,7 @@ class BoundingBox;
 
 class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3_3_Core {
     public:
-        typedef SharedPointer<Renderer> pointer;
+        typedef std::shared_ptr<Renderer> pointer;
         virtual void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) = 0;
         virtual void postDraw();
         /**

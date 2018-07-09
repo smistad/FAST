@@ -27,21 +27,21 @@ class SimpleDataObject;
 template <class DataType>
 class DataAccess {
 public:
-    DataAccess(DataType* data, SharedPointer<SimpleDataObject<DataType> > dataObject);
+    DataAccess(DataType* data, std::shared_ptr<SimpleDataObject<DataType> > dataObject);
     DataType getData();
     void setData(const DataType& data);
     void release();
     ~DataAccess();
 
-    typedef UniquePointer<DataAccess<DataType> > pointer;
+    typedef std::unique_ptr<DataAccess<DataType> > pointer;
 protected:
     DataType* mData;
-    SharedPointer<SimpleDataObject<DataType> > mDataObject;
+    std::shared_ptr<SimpleDataObject<DataType> > mDataObject;
 };
 
 
 template <class DataType>
-DataAccess<DataType>::DataAccess(DataType *data, SharedPointer<SimpleDataObject<DataType> > dataObject) {
+DataAccess<DataType>::DataAccess(DataType *data, std::shared_ptr<SimpleDataObject<DataType> > dataObject) {
     mData = data;
     mDataObject = dataObject;
 }
@@ -85,6 +85,7 @@ protected:
 private:
     // AccessObject needs to be friends with SimpleDataObject, so that it can reach the accessFinished method
     friend AccessObject;
+
 };
 
 
@@ -123,7 +124,7 @@ typename AccessObject::pointer SimpleDataObject<DataType, AccessObject>::getAcce
         mDataIsBeingAccessed = true;
     }
 
-    typename AccessObject::pointer accessObject(new AccessObject(&mData, mPtr.lock()));
+    typename AccessObject::pointer accessObject(new AccessObject(&mData, std::static_pointer_cast<SimpleDataObject<DataType>>(mPtr.lock())));
     return std::move(accessObject);
 }
 

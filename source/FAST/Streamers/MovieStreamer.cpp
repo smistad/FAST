@@ -49,8 +49,11 @@ class VideoSurface : public QAbstractVideoSurface {
             format = QImage::Format_RGB888;
         }
         QImage convertedImage = image.convertToFormat(format);
-        streamer->addNewImageFrame(convertedImage.constBits(), width, height);
-        Reporter::info() << "Finished processing movie frame" << Reporter::end();
+        try {
+            streamer->addNewImageFrame(convertedImage.constBits(), width, height);
+            Reporter::info() << "Finished processing movie frame" << Reporter::end();
+        } catch(ThreadStopped &e) {
+        }
 
         // Handle the frame and do your processing
         return true;
@@ -98,7 +101,7 @@ Worker::~Worker() {
 }
 
 void Worker::run() {
-    m_player = std::make_unique<QMediaPlayer>(new QMediaPlayer);
+    m_player = std::make_unique<QMediaPlayer>();
     //std::this_thread::sleep_for(std::chrono::milliseconds(3000));
     VideoSurface* myVideoSurface = new VideoSurface;
     myVideoSurface->streamer = mStreamer;
@@ -135,7 +138,7 @@ void MovieStreamer::execute() {
     while(!mFirstFrameIsInserted) {
         mFirstFrameCondition.wait(lock);
     }
-    std::cout << "Finished movie streamer execute" << std::endl;
+    reportInfo() << "Finished movie streamer execute" << reportEnd();
 }
 
 bool MovieStreamer::hasReachedEnd() {
@@ -159,7 +162,7 @@ void MovieStreamer::setFinished(bool finished) {
 }
 
 MovieStreamer::~MovieStreamer() {
-    std::cout << "Destroying movie streamer" << std::endl;
+    reportInfo() << "Destroying movie streamer" << reportEnd();
     if(mStreamIsStarted) {
         thread->quit();
     }

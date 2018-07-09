@@ -53,7 +53,7 @@ void LevelSetSegmentation::execute() {
         throw Exception("Level set segmentation only supports 3D atm");
 
 
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::CommandQueue queue = device->getCommandQueue();
     cl::Program program = getOpenCLProgram(device);
 
@@ -171,7 +171,7 @@ void LevelSetSegmentation::execute() {
     thresholding->setInputData(phi);
     DataPort::pointer port = thresholding->getOutputPort();
     thresholding->update(0);
-    Segmentation::pointer output = port->getNextFrame();
+    Segmentation::pointer output = port->getNextFrame<Segmentation>();
     output->setSpacing(input->getSpacing());
     SceneGraph::setParentNode(output, input);
     addOutputData(0, output);

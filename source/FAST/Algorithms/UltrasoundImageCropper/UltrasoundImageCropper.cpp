@@ -21,7 +21,7 @@ void UltrasoundImageCropper::execute() {
     }
 
 
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::Program program = getOpenCLProgram(device);
     cl::Kernel kernel(program, "lineSearch");
 
@@ -50,7 +50,7 @@ void UltrasoundImageCropper::execute() {
     );
 
     // Results contains the amount of non-zero values per column and row
-    UniquePointer<uint[]> result(new uint[width + height]);
+    std::unique_ptr<uint[]> result(new uint[width + height]);
     queue.enqueueReadBuffer(rays, CL_TRUE, 0, sizeof(uint)*(width + height), result.get());
     int minX = 0;
     int maxX = width;

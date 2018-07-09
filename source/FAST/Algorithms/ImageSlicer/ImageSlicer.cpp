@@ -47,7 +47,7 @@ void ImageSlicer::execute() {
 }
 
 void ImageSlicer::orthogonalSlicing(Image::pointer input, Image::pointer output) {
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
     // Determine slice nr and width and height
     int sliceNr;
@@ -285,7 +285,7 @@ void ImageSlicer::arbitrarySlicing(Image::pointer input, Image::pointer output) 
     sliceTransformation.translation() = translation;
     sliceTransformation.scale(spacing);
 
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
     // Get transform of the image
     AffineTransformation::pointer dataTransform = SceneGraph::getAffineTransformationFromData(input);

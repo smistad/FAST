@@ -1,7 +1,7 @@
 #ifndef CAMERA_ACCESS_HPP_
 #define CAMERA_ACCESS_HPP_
 
-#include "FAST/SmartPointers.hpp"
+
 #include "FAST/Data/DataTypes.hpp"
 
 namespace fast {
@@ -16,7 +16,7 @@ class FAST_EXPORT  CameraAccess {
         void setTargetPosition(Vector3f position);
         void setPosition(Vector3f position);
         void setUpVector(Vector3f upVector);
-        typedef UniquePointer<CameraAccess> pointer;
+        typedef std::unique_ptr<CameraAccess> pointer;
     private:
         Vector3f* mPosition;
         Vector3f* mUpVector;

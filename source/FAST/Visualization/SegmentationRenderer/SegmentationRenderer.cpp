@@ -47,12 +47,12 @@ SegmentationRenderer::SegmentationRenderer() {
 
 void SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) {
     std::lock_guard<std::mutex> lock(mMutex);
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
 
     if(mColorsModified) {
         // Transfer colors to device (this doesn't have to happen every render call..)
-        UniquePointer<float[]> colorData(new float[3*mLabelColors.size()]);
+        std::unique_ptr<float[]> colorData(new float[3*mLabelColors.size()]);
         std::unordered_map<int, Color>::iterator it;
         for(it = mLabelColors.begin(); it != mLabelColors.end(); it++) {
             colorData[it->first*3] = it->second.getRedValue();
@@ -70,7 +70,7 @@ void SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
 
     if(mFillAreaModified) {
         // Transfer colors to device (this doesn't have to happen every render call..)
-        UniquePointer<char[]> fillAreaData(new char[mLabelColors.size()]);
+        std::unique_ptr<char[]> fillAreaData(new char[mLabelColors.size()]);
         std::unordered_map<int, Color>::iterator it;
         for(it = mLabelColors.begin(); it != mLabelColors.end(); it++) {
             if(mLabelFillArea.count(it->first) == 0) {
@@ -97,7 +97,7 @@ void SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
 
 
     for(auto it : mDataToRender) {
-        Image::pointer input = it.second;
+        Image::pointer input = std::static_pointer_cast<Image>(it.second);
         uint inputNr = it.first;
 
         if(input->getDimensions() != 2)

@@ -5,7 +5,7 @@
 
 using namespace fast;
 
-TEST_CASE("MovieStreamer", "[fast][moviestreamer]") {
+TEST_CASE("MovieStreamer", "[fast][moviestreamer][visual]") {
     MovieStreamer::pointer streamer = MovieStreamer::New();
     streamer->setFilename(Config::getTestDataPath() + "US/sagittal_spine.avi");
 

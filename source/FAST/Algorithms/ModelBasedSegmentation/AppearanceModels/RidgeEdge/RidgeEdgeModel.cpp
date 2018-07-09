@@ -24,7 +24,7 @@ inline DetectedEdge findEdge(
         std::vector<float> intensityProfile, const float intensityThreshold, const int size, const RidgeEdgeModel::EdgeType edgeType) {
     // Pre calculate partial sum
     const int line_length = intensityProfile.size();
-    UniquePointer<float[]> sum_k(new float[line_length]());
+    std::unique_ptr<float[]> sum_k(new float[line_length]());
     float totalSum = 0.0f;
     for(int k = 0; k < line_length; ++k) {
         if(k == 0) {
@@ -95,7 +95,7 @@ int RidgeEdgeModel::convertRidgeSizeToSamples() {
 	return ridgeSizeInSteps;
 }
 
-std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnHost(SharedPointer<Image> image, SharedPointer<Shape> shape) {
+std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnHost(std::shared_ptr<Image> image, std::shared_ptr<Shape> shape) {
 	std::vector<Measurement> measurements;
 	Mesh::pointer predictedMesh = shape->getMesh();
 	MeshAccess::pointer predictedMeshAccess = predictedMesh->getMeshAccess(ACCESS_READ);
@@ -214,13 +214,13 @@ std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnHost(SharedPointer<Ima
 	return measurements;
 }
 
-std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnDevice(SharedPointer<Image> image, SharedPointer<Shape> shape, OpenCLDevice::pointer device) {
+std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnDevice(std::shared_ptr<Image> image, std::shared_ptr<Shape> shape, OpenCLDevice::pointer device) {
 	Mesh::pointer predictedMesh = shape->getMesh();
 	MeshAccess::pointer predictedMeshAccess = predictedMesh->getMeshAccess(ACCESS_READ);
 	std::vector<MeshVertex> points = predictedMeshAccess->getVertices();
 
 	cl::CommandQueue queue = device->getCommandQueue();
-	UniquePointer<float[]> pointsArray(new float[points.size()*2*2]);
+	std::unique_ptr<float[]> pointsArray(new float[points.size()*2*2]);
 	for(int i = 0; i < points.size(); i++) {
 		pointsArray[i*2*2] = points[i].getPosition().x();
 		pointsArray[i*2*2+1] = points[i].getPosition().y();
@@ -279,7 +279,7 @@ std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnDevice(SharedPointer<I
 
 
 	// Transfer data back
-	UniquePointer<float[]> resultArray(new float[pointSize*nrOfSamples]);
+	std::unique_ptr<float[]> resultArray(new float[pointSize*nrOfSamples]);
 	queue.enqueueReadBuffer(resultBuffer, CL_TRUE, 0, pointSize*nrOfSamples*sizeof(float), resultArray.get());
 
 	std::vector<Measurement> measurements;
@@ -320,7 +320,7 @@ std::vector<Measurement> RidgeEdgeModel::getMeasurementsOnDevice(SharedPointer<I
 	return measurements;
 }
 
-std::vector<Measurement> RidgeEdgeModel::getMeasurements(SharedPointer<Image> image, SharedPointer<Shape> shape, ExecutionDevice::pointer device) {
+std::vector<Measurement> RidgeEdgeModel::getMeasurements(std::shared_ptr<Image> image, std::shared_ptr<Shape> shape, ExecutionDevice::pointer device) {
 	if(mLineLength == 0 || mLineSampleSpacing == 0)
 		throw Exception("Line length and sample spacing must be given to the RidgeEdgeModel");
 

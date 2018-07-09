@@ -158,14 +158,14 @@ namespace fast {
     void UltrasoundVesselSegmentation::createSegmentation(Image::pointer image) {
         Segmentation::pointer segmentation = getOutputData<Segmentation>(0);
         segmentation->createFromImage(image);
-        OpenCLDevice::pointer device = getMainDevice();
+        OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
         cl::Program program = getOpenCLProgram(device);
 
         // Copy contents
         OpenCLImageAccess::pointer writeAccess = segmentation->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
         cl::Image2D* outputData = writeAccess->get2DImage();
         // Create all zero data
-        UniquePointer<uchar[]> zeroData(new uchar[segmentation->getWidth()*segmentation->getHeight()]());
+        std::unique_ptr<uchar[]> zeroData(new uchar[segmentation->getWidth()*segmentation->getHeight()]());
         device->getCommandQueue().enqueueWriteImage(
                 *outputData,
                 CL_TRUE,

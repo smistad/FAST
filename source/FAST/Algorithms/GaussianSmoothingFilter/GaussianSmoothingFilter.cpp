@@ -99,7 +99,7 @@ void GaussianSmoothingFilter::createMask(Image::pointer input, uchar maskSize, b
 
     ExecutionDevice::pointer device = getMainDevice();
     if(!device->isHost()) {
-        OpenCLDevice::pointer clDevice = device;
+        OpenCLDevice::pointer clDevice = std::dynamic_pointer_cast<OpenCLDevice>(device);
         uint bufferSize;
         if(useSeperableFilter) {
             bufferSize = maskSize;
@@ -123,7 +123,7 @@ void GaussianSmoothingFilter::recompileOpenCLCode(Image::pointer input) {
             input->getDataType() == mTypeCLCodeCompiledFor)
         return;
 
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     std::string buildOptions = "";
     if(!device->isWritingTo3DTexturesSupported()) {
         buildOptions = "-DTYPE=" + getCTypeAsString(mOutputType);
@@ -226,20 +226,20 @@ void GaussianSmoothingFilter::execute() {
             fastSwitchTypeMacro(executeAlgorithmOnHost<FAST_TYPE>(input, output, mMask, maskSize));
         }
     } else {
-        OpenCLDevice::pointer clDevice = device;
+        OpenCLDevice::pointer clDevice = std::static_pointer_cast<OpenCLDevice>(device);
 
         recompileOpenCLCode(input);
 
         cl::NDRange globalSize;
 
-        OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
+        OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, clDevice);
         if(input->getDimensions() == 2) {
             createMask(input, maskSize, false);
             mKernel.setArg(1, mCLMask);
             mKernel.setArg(3, maskSize);
             globalSize = cl::NDRange(input->getWidth(),input->getHeight());
 
-            OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+            OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
             mKernel.setArg(0, *inputAccess->get2DImage());
             mKernel.setArg(2, *outputAccess->get2DImage());
             clDevice->getCommandQueue().enqueueNDRangeKernel(
@@ -259,8 +259,8 @@ void GaussianSmoothingFilter::execute() {
                 createMask(input, maskSize, true);
                 mKernel.setArg(1, mCLMask);
                 mKernel.setArg(3, maskSize);
-                OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
-                OpenCLImageAccess::pointer outputAccess2 = output2->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+                OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
+                OpenCLImageAccess::pointer outputAccess2 = output2->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
 
                 cl::Image3D* image2;
                 cl::Image3D* image;
@@ -289,7 +289,7 @@ void GaussianSmoothingFilter::execute() {
                 createMask(input, maskSize, false);
                 mKernel.setArg(1, mCLMask);
                 mKernel.setArg(3, maskSize);
-                OpenCLBufferAccess::pointer outputAccess = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+                OpenCLBufferAccess::pointer outputAccess = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, clDevice);
                 mKernel.setArg(0, *inputAccess->get3DImage());
                 mKernel.setArg(2, *outputAccess->get());
                 clDevice->getCommandQueue().enqueueNDRangeKernel(
@@ -307,7 +307,7 @@ void GaussianSmoothingFilter::execute() {
 
 void GaussianSmoothingFilter::waitToFinish() {
     if(!getMainDevice()->isHost()) {
-        OpenCLDevice::pointer device = getMainDevice();
+        OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
         device->getCommandQueue().finish();
     }
 }

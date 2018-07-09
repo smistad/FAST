@@ -16,7 +16,7 @@ class FAST_EXPORT  RidgeEdgeModel : public AppearanceModel {
 		void setIntensityDifferenceThreshold(float threshold);
 		void setMinimumDepth(float depth);
         void setMinimumRidgeSize(float sizeInMM);
-		std::vector<Measurement> getMeasurements(SharedPointer<Image> image, SharedPointer<Shape> shape, ExecutionDevice::pointer device);
+		std::vector<Measurement> getMeasurements(std::shared_ptr<Image> image, std::shared_ptr<Shape> shape, ExecutionDevice::pointer device);
         enum EdgeType {
 			EDGE_TYPE_ANY,
 			EDGE_TYPE_BLACK_INSIDE_WHITE_OUTSIDE,
@@ -25,8 +25,8 @@ class FAST_EXPORT  RidgeEdgeModel : public AppearanceModel {
 		void setEdgeType(EdgeType type);
 	private:
 		RidgeEdgeModel();
-        std::vector<Measurement> getMeasurementsOnHost(SharedPointer<Image> image, SharedPointer<Shape> shape);
-        std::vector<Measurement> getMeasurementsOnDevice(SharedPointer<Image> image, SharedPointer<Shape> shape, OpenCLDevice::pointer device);
+        std::vector<Measurement> getMeasurementsOnHost(std::shared_ptr<Image> image, std::shared_ptr<Shape> shape);
+        std::vector<Measurement> getMeasurementsOnDevice(std::shared_ptr<Image> image, std::shared_ptr<Shape> shape, OpenCLDevice::pointer device);
         int convertRidgeSizeToSamples();
 
 		float mLineLength;

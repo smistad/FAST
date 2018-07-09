@@ -88,7 +88,7 @@ void PixelClassifier::execute() {
                 DataPort::pointer port = resizer->getOutputPort();
                 resizer->update(0);
 
-                Image::pointer resizedOutput = port->getNextFrame();
+                Image::pointer resizedOutput = port->getNextFrame<Image>();
                 addOutputData(j, resizedOutput);
             } else {
                 addOutputData(j, output);
@@ -122,7 +122,7 @@ void PixelClassifier::execute() {
             DataPort::pointer port = resizer->getOutputPort();
             resizer->update(0);
 
-            Image::pointer resizedOutput = port->getNextFrame();
+            Image::pointer resizedOutput = port->getNextFrame<Image>();
             addOutputData(0, resizedOutput);
         } else {
             addOutputData(0, output);

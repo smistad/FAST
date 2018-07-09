@@ -34,7 +34,7 @@ void ScaleImage::execute() {
     float minimum = input->calculateMinimumIntensity();
     float maximum = input->calculateMaximumIntensity();
 
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::Program program = getOpenCLProgram(device);
     cl::Kernel kernel;
 

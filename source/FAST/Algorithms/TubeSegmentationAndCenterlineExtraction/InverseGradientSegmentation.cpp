@@ -22,7 +22,7 @@ InverseGradientSegmentation::InverseGradientSegmentation() {
 }
 
 void InverseGradientSegmentation::execute() {
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     bool no3Dwrite = !device->isWritingTo3DTexturesSupported();
     Segmentation::pointer centerline = getInputData<Segmentation>(0);
     Vector3ui size = centerline->getSize();

@@ -5,7 +5,6 @@ fast_add_sources(
     Config.hpp
     Object.cpp
     Object.hpp
-    SmartPointers.hpp
     ProcessObject.cpp
     ProcessObject.hpp
     ExecutionDevice.cpp

@@ -2,7 +2,7 @@
 #define FAST_FILE_STREAMER_HPP_
 
 #include "FAST/ProcessObject.hpp"
-#include "FAST/SmartPointers.hpp"
+
 #include <FAST/Streamers/Streamer.hpp>
 #include <thread>
 

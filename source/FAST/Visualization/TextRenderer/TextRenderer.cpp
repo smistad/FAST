@@ -60,7 +60,7 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool
         throw Exception("TextRenderer need access to the view");
 
     for(auto it : mDataToRender) {
-        Text::pointer input = it.second;
+        Text::pointer input = std::static_pointer_cast<Text>(it.second);
         uint inputNr = it.first;
 
         // Check if a texture has already been created for this text

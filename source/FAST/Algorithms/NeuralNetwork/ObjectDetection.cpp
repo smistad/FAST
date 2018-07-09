@@ -45,7 +45,7 @@ void ObjectDetection::execute() {
 	// The pre processed image is of the target size, and is also normalized
 	Image::pointer preProcessedImageLeft = Image::New();
 	preProcessedImageLeft->create(mWidth, mHeight, TYPE_FLOAT, 1);
-	OpenCLDevice::pointer device = getMainDevice();
+	OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 	cl::Program program = getOpenCLProgram(device);
 	cl::Kernel normalizationKernel(program, "imageNormalization");
 	{
@@ -158,7 +158,7 @@ void ObjectDetection::execute() {
 	mRuntimeManager->stopRegularTimer("create_mesh");
 
     /*
-	OpenCLDevice::pointer device = getMainDevice();
+	OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 	cl::Program program = getOpenCLProgram(device);
 	cl::Kernel normalizationKernel(program, "imageNormalization");
 

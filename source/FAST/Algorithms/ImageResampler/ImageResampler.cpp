@@ -52,7 +52,7 @@ void ImageResampler::execute() {
     }
     output->setSpacing(mSpacing);
 
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::CommandQueue queue = device->getCommandQueue();
 
     uchar useInterpolation = 1;

@@ -78,7 +78,7 @@ void LaplacianOfGaussian::createMask(Image::pointer input) {
 
     ExecutionDevice::pointer device = getMainDevice();
     if(!device->isHost()) {
-        OpenCLDevice::pointer clDevice = device;
+        OpenCLDevice::pointer clDevice = std::static_pointer_cast<OpenCLDevice>(device);
         unsigned int bufferSize = input->getDimensions() == 2 ? mMaskSize*mMaskSize : mMaskSize*mMaskSize*mMaskSize;
         mCLMask = cl::Buffer(
                 clDevice->getContext(),
@@ -97,7 +97,7 @@ void LaplacianOfGaussian::recompileOpenCLCode(Image::pointer input) {
             input->getDataType() == mTypeCLCodeCompiledFor)
         return;
 
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     std::string buildOptions = "";
     if(input->getDataType() == TYPE_FLOAT) {
         buildOptions = "-DTYPE_FLOAT";
@@ -201,7 +201,7 @@ void LaplacianOfGaussian::execute() {
     }
 
     // Initialize output image
-    ExecutionDevice::pointer device = getMainDevice();
+    ExecutionDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     output->create(
             input->getWidth(),
             input->getHeight(),
@@ -216,15 +216,15 @@ void LaplacianOfGaussian::execute() {
             fastSwitchTypeMacro(executeAlgorithmOnHost<FAST_TYPE>(input, output, mMask, mMaskSize));
         }
     } else {
-        OpenCLDevice::pointer clDevice = device;
+        OpenCLDevice::pointer clDevice = std::static_pointer_cast<OpenCLDevice>(device);
 
         recompileOpenCLCode(input);
         cl::NDRange globalSize;
-        OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
+        OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, clDevice);
         if(input->getDimensions() == 2) {
             globalSize = cl::NDRange(input->getWidth(),input->getHeight());
 
-            OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+            OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
             mKernel.setArg(0, *inputAccess->get2DImage());
             mKernel.setArg(2, *outputAccess->get2DImage());
         } else {
@@ -232,10 +232,10 @@ void LaplacianOfGaussian::execute() {
 
             mKernel.setArg(0, *inputAccess->get3DImage());
             if(clDevice->isWritingTo3DTexturesSupported()) {
-                OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+                OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
                 mKernel.setArg(2, *outputAccess->get3DImage());
             } else {
-                OpenCLBufferAccess::pointer outputAccess = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+                OpenCLBufferAccess::pointer outputAccess = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, clDevice);
                 mKernel.setArg(2, *outputAccess->get());
             }
         }
@@ -254,7 +254,7 @@ void LaplacianOfGaussian::execute() {
 
 void LaplacianOfGaussian::waitToFinish() {
     if(!getMainDevice()->isHost()) {
-        OpenCLDevice::pointer device = getMainDevice();
+        OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
         device->getCommandQueue().finish();
     }
 }

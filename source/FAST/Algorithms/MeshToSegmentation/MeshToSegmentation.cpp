@@ -44,13 +44,13 @@ void MeshToSegmentation::execute() {
 		SceneGraph::setParentNode(segmentation, image);
 	}
 
-	ExecutionDevice::pointer mainDevice = getMainDevice();
+	ExecutionDevice::pointer mainDevice = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
 	if(mainDevice->isHost()) {
 		throw Exception("Not implemented");
 	}
 
-	OpenCLDevice::pointer device = mainDevice;
+	OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(mainDevice);
 
 	// TODO image and mesh scene graph has to be taken into account
 

@@ -69,7 +69,7 @@ TEST_CASE("Write a 2D image with the MetaImageExporter", "[fast][MetaImageExport
             importer->setFilename("MetaImageExporterTest2D.mhd");
             DataPort::pointer port = importer->getOutputPort();
             importer->update(0);
-            Image::pointer image2 = port->getNextFrame();
+            Image::pointer image2 = port->getNextFrame<Image>();
             AffineTransformation::pointer T2 = image2->getSceneGraphNode()->getTransformation();
 
             // Check that the image properties are correct
@@ -150,7 +150,7 @@ TEST_CASE("Write a 3D image with the MetaImageExporter", "[fast][MetaImageExport
             importer->setFilename("MetaImageExporterTest3D.mhd");
             DataPort::pointer port = importer->getOutputPort();
             importer->update(0);
-            Image::pointer image2 = port->getNextFrame();
+            Image::pointer image2 = port->getNextFrame<Image>();
             AffineTransformation::pointer T2 = image2->getSceneGraphNode()->getTransformation();
 
             // Check that the image properties are correct
@@ -231,7 +231,7 @@ TEST_CASE("Write a compressed 2D image with the MetaImageExporter", "[fast][Meta
             importer->setFilename("MetaImageExporterTest2D.mhd");
             auto port = importer->getOutputPort();
             importer->update(0);
-            Image::pointer image2 = port->getNextFrame();
+            Image::pointer image2 = port->getNextFrame<Image>();
             AffineTransformation::pointer T2 = image2->getSceneGraphNode()->getTransformation();
 
             // Check that the image properties are correct
@@ -312,7 +312,7 @@ TEST_CASE("Write a compressed 3D image with the MetaImageExporter", "[fast][Meta
             importer->setFilename("MetaImageExporterTest3D.mhd");
             auto port = importer->getOutputPort();
             importer->update(0);
-            Image::pointer image2 = port->getNextFrame();
+            Image::pointer image2 = port->getNextFrame<Image>();
             AffineTransformation::pointer T2 = image2->getSceneGraphNode()->getTransformation();
 
             // Check that the image properties are correct

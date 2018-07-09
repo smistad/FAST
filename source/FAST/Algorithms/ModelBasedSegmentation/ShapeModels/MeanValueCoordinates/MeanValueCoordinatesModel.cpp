@@ -87,13 +87,13 @@ void MeanValueCoordinatesModel::loadMeshes(std::string surfaceMeshFilename, std:
 	importer->setFilename(surfaceMeshFilename);
     DataPort::pointer port = importer->getOutputPort();
 	importer->update(0);
-	Mesh::pointer surfaceMesh = port->getNextFrame();
+	Mesh::pointer surfaceMesh = port->getNextFrame<Mesh>();
 
 	VTKMeshFileImporter::pointer importer2 = VTKMeshFileImporter::New();
 	importer2->setFilename(controlMeshFilename);
     DataPort::pointer port2 = importer2->getOutputPort();
 	importer2->update(0);
-	Mesh::pointer controlMesh = port2->getNextFrame();
+	Mesh::pointer controlMesh = port2->getNextFrame<Mesh>();
 
 	loadMeshes(surfaceMesh, controlMesh);
 }
@@ -172,8 +172,8 @@ void MeanValueCoordinatesModel::loadMeshes(Mesh::pointer surfaceMesh,
     }
 
     // Allocate memory for the weights
-    mNormalizedWeights = UniquePointer<float[]>(new float[vertices.size()*(mControlMesh->getNrOfTriangles()*3)]());
-    mNormalizedWeightsPerNode = UniquePointer<float[]>(new float[vertices.size()*mControlMesh->getNrOfVertices()]);
+    mNormalizedWeights = std::unique_ptr<float[]>(new float[vertices.size()*(mControlMesh->getNrOfTriangles()*3)]());
+    mNormalizedWeightsPerNode = std::unique_ptr<float[]>(new float[vertices.size()*mControlMesh->getNrOfVertices()]);
 
     mCentroid = Vector3f::Zero();
     for(int vertexNr = 0; vertexNr < vertices.size(); vertexNr++) {
@@ -274,7 +274,7 @@ void MeanValueCoordinatesModel::loadMeshes(Mesh::pointer surfaceMesh,
 }
 
 void MeanValueCoordinatesModel::assertLoadedMeshes() {
-	if(!mSurfaceMesh.isValid() || !mControlMesh.isValid())
+	if(!mSurfaceMesh || !mControlMesh)
 		throw Exception("Must load surface and control mesh before using mean value coordinates model.");
 }
 

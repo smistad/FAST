@@ -10,7 +10,7 @@ HounsefieldConverter::HounsefieldConverter() {
 }
 
 Image::pointer HounsefieldConverter::convertToHU(Image::pointer image) {
-	OpenCLDevice::pointer device = getMainDevice();
+	OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 	cl::Program program = getOpenCLProgram(device);
 
 	OpenCLImageAccess::pointer input = image->getOpenCLImageAccess(ACCESS_READ, device);

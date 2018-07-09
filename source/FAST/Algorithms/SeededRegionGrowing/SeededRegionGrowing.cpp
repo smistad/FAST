@@ -47,7 +47,7 @@ void SeededRegionGrowing::recompileOpenCLCode(Image::pointer input) {
             input->getDataType() == mTypeCLCodeCompiledFor)
         return;
 
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     std::string buildOptions = "";
     if(input->getDataType() == TYPE_FLOAT) {
         buildOptions = "-DTYPE_FLOAT";
@@ -142,7 +142,7 @@ void SeededRegionGrowing::execute() {
             fastSwitchTypeMacro(executeOnHost<FAST_TYPE>((FAST_TYPE*)inputData, output));
         }
     } else {
-        OpenCLDevice::pointer device = getMainDevice();
+        OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
         recompileOpenCLCode(input);
 
@@ -210,7 +210,7 @@ void SeededRegionGrowing::execute() {
 
 void SeededRegionGrowing::waitToFinish() {
     if(!getMainDevice()->isHost()) {
-        OpenCLDevice::pointer device = getMainDevice();
+        OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
         device->getCommandQueue().finish();
     }
 }

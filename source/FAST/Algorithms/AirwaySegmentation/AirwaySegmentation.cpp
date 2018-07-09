@@ -174,7 +174,7 @@ void regionGrowing(Image::pointer volume, Segmentation::pointer segmentation, co
 }
 
 Image::pointer AirwaySegmentation::convertToHU(Image::pointer image) {
-	OpenCLDevice::pointer device = getMainDevice();
+	OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 	cl::Program program = getOpenCLProgram(device);
 
 	OpenCLImageAccess::pointer input = image->getOpenCLImageAccess(ACCESS_READ, device);
@@ -210,7 +210,7 @@ void AirwaySegmentation::morphologicalClosing(Segmentation::pointer segmentation
 	int depth = segmentation->getDepth();
 
 	// TODO need support for no 3d write
-	OpenCLDevice::pointer device = getMainDevice();
+	OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 	cl::Program program = getOpenCLProgram(device);
 
 	Segmentation::pointer segmentation2 = Segmentation::New();
@@ -281,7 +281,7 @@ void AirwaySegmentation::execute() {
         filter->setStandardDeviation(mSmoothingSigma);
         DataPort::pointer port = filter->getOutputPort();
         filter->update(0);
-        image = port->getNextFrame();
+        image = port->getNextFrame<Image>();
     }
 
 	// Find seed voxel

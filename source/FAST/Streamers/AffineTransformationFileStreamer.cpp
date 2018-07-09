@@ -51,7 +51,7 @@ void AffineTransformationFileStreamer::setFilename(std::string str) {
 }
 
 void AffineTransformationFileStreamer::producerStream() {
-    Streamer::pointer pointerToSelf = mPtr.lock(); // try to avoid this object from being destroyed until this function is finished
+    auto pointerToSelf = mPtr.lock(); // try to avoid this object from being destroyed until this function is finished
 
     // Read timestamp file if available
     std::ifstream timestampFile;

@@ -2,14 +2,13 @@
 #define EXECUTIONDEVICE_HPP_
 
 #include "FAST/Object.hpp"
-#include "FAST/SmartPointers.hpp"
 #include "RuntimeMeasurementManager.hpp"
 
 namespace fast {
 
 class FAST_EXPORT  ExecutionDevice : public Object {
     public:
-        typedef SharedPointer<ExecutionDevice> pointer;
+        typedef std::shared_ptr<ExecutionDevice> pointer;
         bool isHost() {return mIsHost;};
         virtual ~ExecutionDevice() {};
         static std::string getStaticNameOfClass() {
@@ -17,13 +16,14 @@ class FAST_EXPORT  ExecutionDevice : public Object {
         }
     protected:
         bool mIsHost;
+        std::weak_ptr<ExecutionDevice> mPtr;
 
 };
 
 class DeviceManager; // Forward declaration
 class FAST_EXPORT  Host : public ExecutionDevice {
     public:
-        typedef SharedPointer<Host> pointer;
+        typedef std::shared_ptr<Host> pointer;
         static Host::pointer getInstance() {
             static Host::pointer instance = Host::New();
             return instance;

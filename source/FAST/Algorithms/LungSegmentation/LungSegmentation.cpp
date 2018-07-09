@@ -81,7 +81,7 @@ Vector3i LungSegmentation::findSeedVoxel(Image::pointer volume) {
 }
 
 Image::pointer LungSegmentation::convertToHU(Image::pointer image) {
-	OpenCLDevice::pointer device = getMainDevice();
+	OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 	cl::Program program = getOpenCLProgram(device);
 
 	OpenCLImageAccess::pointer input = image->getOpenCLImageAccess(ACCESS_READ, device);
@@ -171,10 +171,10 @@ void LungSegmentation::execute() {
     DataPort::pointer port = erosion->getOutputPort();
     erosion->update(0);
 
-    Image::pointer image = port->getNextFrame();
+    Image::pointer image = port->getNextFrame<Image>();
     SceneGraph::setParentNode(image, input);
     addOutputData(0, image);
-    Image::pointer airways = airwaySegPort->getNextFrame();
+    Image::pointer airways = airwaySegPort->getNextFrame<Image>();
     addOutputData(1, airways);
 }
 

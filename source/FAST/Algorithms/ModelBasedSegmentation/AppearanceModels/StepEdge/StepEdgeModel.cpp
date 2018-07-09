@@ -26,7 +26,7 @@ inline DetectedEdge findEdge(
         std::vector<float> intensityProfile, const float intensityThreshold, StepEdgeModel::EdgeType type) {
     // Pre calculate partial sum
     const int size = intensityProfile.size();
-    UniquePointer<float[]> sum_k(new float[size]());
+    std::unique_ptr<float[]> sum_k(new float[size]());
     float totalSum = 0.0f;
     for(int k = 0; k < size; ++k) {
         if(k == 0) {
@@ -89,7 +89,7 @@ inline float getValue(void* pixelPointer, Image::pointer image, const Vector4f& 
 }
 
 
-std::vector<Measurement> StepEdgeModel::getMeasurements(SharedPointer<Image> image, SharedPointer<Shape> shape, ExecutionDevice::pointer device) {
+std::vector<Measurement> StepEdgeModel::getMeasurements(std::shared_ptr<Image> image, std::shared_ptr<Shape> shape, ExecutionDevice::pointer device) {
 	if(mLineLength == 0 || mLineSampleSpacing == 0)
 		throw Exception("Line length and sample spacing must be given to the StepEdgeModel");
 

@@ -5,7 +5,7 @@ namespace fast {
 
 class TriangleRenderer : public Renderer {
     public:
-    	static SharedPointer<TriangleRenderer> New();
+    	static std::shared_ptr<TriangleRenderer> New();
         void addInputConnection(ProcessObjectPort port);
         //void addInputConnection(ProcessObjectPort port, Color color, float opacity);
         void setDefaultOpacity(float opacity);
@@ -15,6 +15,6 @@ class TriangleRenderer : public Renderer {
         //void setOpacity(ProcessObjectPort port, float opacity);
 };
 
-%template(TriangleRendererPtr) SharedPointer<TriangleRenderer>;
+%template(TriangleRendererPtr) std::shared_ptr<TriangleRenderer>;
 
 }

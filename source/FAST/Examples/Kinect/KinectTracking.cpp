@@ -145,7 +145,7 @@ bool KinectTracking::isRecording() const {
     return mRecording;
 }
 
-SharedPointer<Mesh> KinectTracking::getTargetCloud() const {
+std::shared_ptr<Mesh> KinectTracking::getTargetCloud() const {
     return mTargetCloud;
 }
 

@@ -10,7 +10,7 @@ namespace fast {
 class FAST_EXPORT  SimpleWindow : public Window {
     FAST_OBJECT(SimpleWindow)
     public:
-        void addRenderer(SharedPointer<Renderer> renderer);
+        void addRenderer(std::shared_ptr<Renderer> renderer);
         void removeAllRenderers();
         void setMaximumFramerate(unsigned int framerate);
         View* getView() const;

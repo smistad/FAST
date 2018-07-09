@@ -39,7 +39,7 @@ void ImageFileImporter::execute() {
         importer->setFilename(mFilename);
         DataPort::pointer port = importer->getOutputPort();
         importer->update(0); // Have to to update because otherwise the data will not be available
-        Image::pointer data = port->getNextFrame();
+        Image::pointer data = port->getNextFrame<Image>();
         addOutputData(0, data);
     } else {
         std::string ext = mFilename.substr(pos + 1);
@@ -48,14 +48,14 @@ void ImageFileImporter::execute() {
             importer->setFilename(mFilename);
             DataPort::pointer port = importer->getOutputPort();
             importer->update(0); // Have to to update because otherwise the data will not be available
-            Image::pointer data = port->getNextFrame();
+            Image::pointer data = port->getNextFrame<Image>();
             addOutputData(0, data);
         } else if(matchExtension(ext, "dcm")) {
             DICOMFileImporter::pointer importer = DICOMFileImporter::New();
             importer->setFilename(mFilename);
             DataPort::pointer port = importer->getOutputPort();
             importer->update(0); // Have to to update because otherwise the data will not be available
-            Image::pointer data = port->getNextFrame();
+            Image::pointer data = port->getNextFrame<Image>();
             addOutputData(0, data);
         } else if(matchExtension(ext, "jpg") ||
                   matchExtension(ext, "jpeg") ||
@@ -66,7 +66,7 @@ void ImageFileImporter::execute() {
             importer->setFilename(mFilename);
             DataPort::pointer port = importer->getOutputPort();
             importer->update(0); // Have to to update because otherwise the data will not be available
-            Image::pointer data = port->getNextFrame();
+            Image::pointer data = port->getNextFrame<Image>();
             addOutputData(0, data);
 #else
             throw Exception("The ImageFileImporter needs the visualization module (Qt) to be enabled in order to read image files.");

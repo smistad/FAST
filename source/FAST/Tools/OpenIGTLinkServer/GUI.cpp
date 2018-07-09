@@ -246,7 +246,7 @@ void GUI::streamData() {
 
                     // Stream images
                     dataStreamer->update(framesSent, STREAMING_MODE_PROCESS_ALL_FRAMES);
-                    Image::pointer image = dataStream->getNextFrame();
+                    Image::pointer image = dataStream->getNextFrame<Image>();
 
                     // Create a new IMAGE type message
                     igtl::ImageMessage::Pointer imgMsg = createIGTLImageMessage(image);

@@ -6,13 +6,13 @@ namespace fast {
 
 class ImageRenderer : public Renderer {
     public:
-    	static SharedPointer<ImageRenderer> New();
+    	static std::shared_ptr<ImageRenderer> New();
         void addInputConnection(ProcessObjectPort port);
-        void setInputData(SharedPointer<DataObject> data);
+        void setInputData(std::shared_ptr<DataObject> data);
 	private:
     	ImageRenderer();
 };
 
-%template(ImageRendererPtr) SharedPointer<ImageRenderer>;
+%template(ImageRendererPtr) std::shared_ptr<ImageRenderer>;
 
 } // end namespace fast

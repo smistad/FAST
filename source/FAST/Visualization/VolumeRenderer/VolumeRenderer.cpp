@@ -69,7 +69,7 @@ void VolumeRenderer::setOpacityTransferFunction(int volumeIndex, OpacityTransfer
 	double xMax = otf->getXMax();
 	unsigned int XDef = static_cast<unsigned int>(xMax - xMin);
 
-	if(((OpenCLDevice::pointer)getMainDevice())->isImageFormatSupported(CL_A, CL_FLOAT, CL_MEM_OBJECT_IMAGE2D)) {
+	if(std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice())->isImageFormatSupported(CL_A, CL_FLOAT, CL_MEM_OBJECT_IMAGE2D)) {
         opacityFunc=(float *)(malloc(sizeof(float)*XDef));
 
         for (unsigned int c=0; c<otf->v.size()-1; c++)
@@ -229,7 +229,7 @@ void VolumeRenderer::setUserTransform(int volumeIndex, const float userTransform
 VolumeRenderer::VolumeRenderer() : Renderer() {
     createInputPort<Image>(0, false);
 
-    mDevice = DeviceManager::getInstance()->getDefaultVisualizationDevice();
+    mDevice = std::dynamic_pointer_cast<OpenCLDevice>(DeviceManager::getInstance()->getDefaultVisualizationDevice());
 	clContext = mDevice->getContext();
 
 	mInputIsModified = true;

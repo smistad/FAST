@@ -1,7 +1,7 @@
 #ifndef AFFINE_TRANSFORMATION_FILE_STREAMER_HPP
 #define AFFINE_TRANSFORMATION_FILE_STREAMER_HPP
 
-#include "FAST/SmartPointers.hpp"
+
 #include "FAST/Streamers/Streamer.hpp"
 #include "FAST/ProcessObject.hpp"
 #include <thread>

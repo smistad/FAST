@@ -37,7 +37,7 @@ void ImageToImageNetwork::execute() {
     DataPort::pointer port = resizer->getOutputPort();
     resizer->update(0);
 
-    Image::pointer resizedOutput = port->getNextFrame();
+    Image::pointer resizedOutput = port->getNextFrame<Image>();
     resizedOutput->setSpacing(mImages.back()->getSpacing());
     addOutputData(0, resizedOutput);
 }

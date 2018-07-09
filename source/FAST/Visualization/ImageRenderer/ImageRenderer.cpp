@@ -64,7 +64,7 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, boo
     std::lock_guard<std::mutex> lock(mMutex);
 
     for(auto it : mDataToRender) {
-        Image::pointer input = it.second;
+        Image::pointer input = std::static_pointer_cast<Image>(it.second);
         uint inputNr = it.first;
 
         if(input->getDimensions() != 2)
@@ -87,7 +87,7 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, boo
             level = getDefaultIntensityLevel(input->getDataType());
         }
 
-        OpenCLDevice::pointer device = getMainDevice();
+        OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
         OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
         cl::Image2D *clImage = access->get2DImage();
@@ -187,7 +187,7 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, boo
 
 void ImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D) {
     for(auto it : mDataToRender) {
-        Image::pointer input = it.second;
+        Image::pointer input = std::static_pointer_cast<Image>(it.second);
         uint inputNr = it.first;
         // Create VAO
         uint VAO_ID;

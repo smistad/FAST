@@ -2,7 +2,8 @@
 #define MESH_OPENCL_ACCESS_HPP_
 
 #include "CL/OpenCL.hpp"
-#include "FAST/SmartPointers.hpp"
+#include "FAST/Object.hpp"
+
 
 namespace fast {
 
@@ -10,8 +11,8 @@ class Mesh;
 
 class FAST_EXPORT  MeshOpenCLAccess {
 public:
-    typedef UniquePointer<MeshOpenCLAccess> pointer;
-    MeshOpenCLAccess(cl::Buffer* coordinatesBuffer, cl::Buffer* lineBuffer, cl::Buffer* triangleBuffer, SharedPointer<Mesh> mesh);
+    typedef std::unique_ptr<MeshOpenCLAccess> pointer;
+    MeshOpenCLAccess(cl::Buffer* coordinatesBuffer, cl::Buffer* lineBuffer, cl::Buffer* triangleBuffer, std::shared_ptr<Mesh> mesh);
     cl::Buffer* getCoordinatesBuffer() const;
     cl::Buffer* getLineBuffer() const;
     cl::Buffer* getTriangleBuffer() const;
@@ -23,7 +24,7 @@ private:
     cl::Buffer* mCoordinates;
     cl::Buffer* mLineBuffer;
     cl::Buffer* mTriangleBuffer;
-    SharedPointer<Mesh> mMesh;
+    std::shared_ptr<Mesh> mMesh;
     bool mIsDeleted;
 };
 

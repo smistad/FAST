@@ -3,7 +3,7 @@
 
 #include "SpatialDataObject.hpp"
 #include "DataTypes.hpp"
-#include "FAST/SmartPointers.hpp"
+
 #include "FAST/ExecutionDevice.hpp"
 #include "FAST/Data/Access/OpenCLImageAccess.hpp"
 #include "FAST/Data/Access/OpenCLBufferAccess.hpp"

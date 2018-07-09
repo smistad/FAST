@@ -44,13 +44,13 @@ TEST_CASE("ICP on two point sets translation only", "[fast][IterativeClosestPoin
     Affine3f transform = Affine3f::Identity();
     transform.translate(translation);
     importerB->update(0);
-    Mesh::pointer B = importerBPort->getNextFrame();
+    Mesh::pointer B = importerBPort->getNextFrame<Mesh>();
     AffineTransformation::pointer T = AffineTransformation::New();
     T->setTransform(transform);
     B->getSceneGraphNode()->setTransformation(T);
 
     importerA->update(0);
-    Mesh::pointer A = importerAPort->getNextFrame();
+    Mesh::pointer A = importerAPort->getNextFrame<Mesh>();
 
     // Do ICP registration
     IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
@@ -82,12 +82,12 @@ TEST_CASE("ICP on two point sets", "[fast][IterativeClosestPoint][icp]") {
     importerA->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
     auto importerAPort = importerA->getOutputPort();
     importerA->update(0);
-    Mesh::pointer A = importerAPort->getNextFrame();
+    Mesh::pointer A = importerAPort->getNextFrame<Mesh>();
     VTKMeshFileImporter::pointer importerB = VTKMeshFileImporter::New();
     importerB->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
     auto importerBPort = importerB->getOutputPort();
     importerB->update(0);
-    Mesh::pointer B = importerBPort->getNextFrame();
+    Mesh::pointer B = importerBPort->getNextFrame<Mesh>();
 
     // Apply a transformation to B surface
     Affine3f transform = Affine3f::Identity();
@@ -134,8 +134,8 @@ TEST_CASE("ICP on two point sets which are already transformed by scene graph", 
 
     importerA->update(0);
     importerB->update(0);
-    Mesh::pointer A = importerAPort->getNextFrame();
-    Mesh::pointer B = importerBPort->getNextFrame();
+    Mesh::pointer A = importerAPort->getNextFrame<Mesh>();
+    Mesh::pointer B = importerBPort->getNextFrame<Mesh>();
 
     AffineTransformation::pointer FASTtransformInit = AffineTransformation::New();
     SceneGraph::insertParentNodeToData(A, FASTtransformInit);

@@ -33,12 +33,9 @@
 using namespace fast;
 
 void View::addRenderer(Renderer::pointer renderer) {
-	bool thisIsAVolumeRenderer = true;
-	try {
-		VolumeRenderer::pointer vRenderer = renderer;
-	} catch(Exception &e) {
-		thisIsAVolumeRenderer = false;
-	}
+    // Can renderer be casted to volume renderer test:
+    auto test = std::dynamic_pointer_cast<VolumeRenderer>(renderer);
+	bool thisIsAVolumeRenderer = (bool)test;
 
 	if(thisIsAVolumeRenderer)
 		mVolumeRenderers.push_back(renderer);
@@ -562,12 +559,12 @@ void View::renderVolumes()
 		//Update Camera Matrix for VolumeRendere
 		GLfloat modelView[16];
 		glGetFloatv(GL_MODELVIEW_MATRIX, modelView);
-		((VolumeRenderer::pointer)(mVolumeRenderers[0]))->setModelViewMatrix(modelView);
+		std::static_pointer_cast<VolumeRenderer>(mVolumeRenderers[0])->setModelViewMatrix(modelView);
 
 		if (mNonVolumeRenderers.size() > 0)
 		{
-			((VolumeRenderer::pointer)(mVolumeRenderers[0]))->addGeometryColorTexture(renderedTexture0);
-			((VolumeRenderer::pointer)(mVolumeRenderers[0]))->addGeometryDepthTexture(renderedTexture1);
+			std::static_pointer_cast<VolumeRenderer>(mVolumeRenderers[0])->addGeometryColorTexture(renderedTexture0);
+			std::static_pointer_cast<VolumeRenderer>(mVolumeRenderers[0])->addGeometryDepthTexture(renderedTexture1);
 		}
 		
 

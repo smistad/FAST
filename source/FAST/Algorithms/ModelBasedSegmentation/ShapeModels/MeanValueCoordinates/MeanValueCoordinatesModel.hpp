@@ -20,7 +20,7 @@ class FAST_EXPORT  MeanValueCoordinatesModel : public ShapeModel {
 		MatrixXf getStateTransitionMatrix2();
 		MatrixXf getStateTransitionMatrix3();
 		MatrixXf getProcessErrorMatrix();
-		VectorXf getInitialState(SharedPointer<Image> image);
+		VectorXf getInitialState(std::shared_ptr<Image> image);
 		std::vector<MatrixXf> getMeasurementVectors(VectorXf state, Shape::pointer shape);
 		void initializeShapeToImageCenter();
 		void setInitialScaling(float x, float y, float z);
@@ -52,8 +52,8 @@ class FAST_EXPORT  MeanValueCoordinatesModel : public ShapeModel {
 		std::unordered_map<uint, std::vector<uint>> mControlVertexTrianglesMap;
 		Vector3f mCentroid;
 
-		UniquePointer<float[]> mNormalizedWeights;
-		UniquePointer<float[]> mNormalizedWeightsPerNode;
+		std::unique_ptr<float[]> mNormalizedWeights;
+		std::unique_ptr<float[]> mNormalizedWeightsPerNode;
 
 		uint mStateSize;
 		MatrixXf mA1;

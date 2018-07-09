@@ -35,7 +35,7 @@ VectorXf KalmanFilter::getCurrentState() const {
 
 void KalmanFilter::execute() {
     reportInfo() << "Executing Kalman filter.." << reportEnd();
-	if(!mShapeModel.isValid() || !mAppearanceModel.isValid())
+	if(!mShapeModel || !mAppearanceModel)
 		throw Exception("Shape and appearance model must be given to the Kalman filter before execution.");
 
 	Image::pointer image = getInputData<Image>();
@@ -138,7 +138,7 @@ void KalmanFilter::setStartIterations(int iterations) {
 	mStartIterations = iterations;
 }
 
-void KalmanFilter::estimate(SharedPointer<Image> image) {
+void KalmanFilter::estimate(std::shared_ptr<Image> image) {
 
 	Shape::pointer shape = mShapeModel->getShape(mPredictedState);
 	std::vector<Measurement> measurements = mAppearanceModel->getMeasurements(image, shape, getMainDevice());

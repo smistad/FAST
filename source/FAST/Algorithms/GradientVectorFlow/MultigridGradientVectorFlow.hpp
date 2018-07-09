@@ -26,7 +26,7 @@ class FAST_EXPORT  MultigridGradientVectorFlow : public ProcessObject {
     private:
         MultigridGradientVectorFlow();
         void execute();
-        void execute3DGVF(SharedPointer<Image> input, SharedPointer<Image> output, uint iterations);
+        void execute3DGVF(std::shared_ptr<Image> input, std::shared_ptr<Image> output, uint iterations);
 
         float mMu;
         uint mIterations;

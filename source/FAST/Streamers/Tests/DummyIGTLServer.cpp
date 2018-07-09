@@ -125,7 +125,7 @@ void DummyIGTLServer::stream() {
                 mStreamer->update(framesSent, STREAMING_MODE_PROCESS_ALL_FRAMES);
 
                 // Get next image from streamer
-                Image::pointer image = dataStream->getNextFrame();
+                Image::pointer image = dataStream->getNextFrame<Image>();
 
                 // Create a new IMAGE type message
                 igtl::ImageMessage::Pointer imgMsg = createIGTLImageMessage(image);

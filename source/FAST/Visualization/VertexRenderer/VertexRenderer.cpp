@@ -19,7 +19,7 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
         glGenVertexArrays(1, &VAO_ID);
         glBindVertexArray(VAO_ID);
 
-        Mesh::pointer points = it.second;
+        Mesh::pointer points = std::static_pointer_cast<Mesh>(it.second);
         float pointSize = mDefaultPointSize;
         if(mInputSizes.count(it.first) > 0) {
             pointSize = mInputSizes[it.first];
@@ -88,7 +88,7 @@ void VertexRenderer::draw2D(
         ) {
     std::lock_guard<std::mutex> lock(mMutex);
 
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::CommandQueue queue = device->getCommandQueue();
     std::vector<cl::Memory> v;
     v.push_back(PBO);
@@ -96,11 +96,11 @@ void VertexRenderer::draw2D(
 
     // Map would probably be better here, but doesn't work on NVIDIA, segfault surprise!
     //float* pixels = (float*)queue.enqueueMapBuffer(PBO, CL_TRUE, CL_MAP_WRITE, 0, width*height*sizeof(float)*4);
-    UniquePointer<float[]> pixels(new float[width*height*sizeof(float)*4]);
+    std::unique_ptr<float[]> pixels(new float[width*height*sizeof(float)*4]);
     queue.enqueueReadBuffer(PBO, CL_TRUE, 0, width*height*4*sizeof(float), pixels.get());
 
     for(auto it : mDataToRender) {
-    	Mesh::pointer points = it.second;
+    	Mesh::pointer points = std::static_pointer_cast<Mesh>(it.second);
 
 		Color color = mDefaultColor;
         if(mInputColors.count(it.first) > 0) {

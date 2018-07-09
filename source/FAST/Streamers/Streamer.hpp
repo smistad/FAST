@@ -2,7 +2,7 @@
 #define STREAMER_HPP_
 
 #include <FAST/ProcessObject.hpp>
-#include "FAST/SmartPointers.hpp"
+
 #include "FAST/Data/DataTypes.hpp"
 #include "FAST/Exception.hpp"
 
@@ -16,7 +16,7 @@ class FAST_EXPORT  NoMoreFramesException : public Exception {
 
 class FAST_EXPORT Streamer : public ProcessObject {
     public:
-        typedef SharedPointer<Streamer> pointer;
+        typedef std::shared_ptr<Streamer> pointer;
         virtual ~Streamer() {};
         virtual bool hasReachedEnd() = 0;
         static std::string getStaticNameOfClass() {

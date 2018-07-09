@@ -22,7 +22,7 @@ TEST_CASE("Import 2D MetaImage file to host", "[fast][MetaImageImporter]") {
     importer->setMainDevice(Host::getInstance());
     DataPort::pointer port = importer->getOutputPort();
     importer->update(0);
-    Image::pointer image = port->getNextFrame();
+    Image::pointer image = port->getNextFrame<Image>();
     AffineTransformation::pointer T = image->getSceneGraphNode()->getTransformation();
 
     // Check attributes of image
@@ -54,7 +54,7 @@ TEST_CASE("Import 3D MetaImage file to host", "[fast][MetaImageImporter]") {
     importer->setMainDevice(Host::getInstance());
     DataPort::pointer port = importer->getOutputPort();
     importer->update(0);
-    Image::pointer image = port->getNextFrame();
+    Image::pointer image = port->getNextFrame<Image>();
     AffineTransformation::pointer T = image->getSceneGraphNode()->getTransformation();
 
     // Check attributes of image
@@ -89,7 +89,7 @@ TEST_CASE("Import MetaImage file to OpenCL device", "[fast][MetaImageImporter]")
     importer->setMainDevice(device);
     DataPort::pointer port = importer->getOutputPort();
     importer->update(0);
-    Image::pointer image = port->getNextFrame();
+    Image::pointer image = port->getNextFrame<Image>();
     AffineTransformation::pointer T = image->getSceneGraphNode()->getTransformation();
 
     // Check attributes of image

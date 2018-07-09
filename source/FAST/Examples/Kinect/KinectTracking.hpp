@@ -13,21 +13,21 @@ class FAST_EXPORT  KinectTracking : public ProcessObject {
     FAST_OBJECT(KinectTracking)
     public:
         void addLine(Vector2i start, Vector2i end);
-        void calculateTargetCloud(SharedPointer<KinectStreamer> streamer);
+        void calculateTargetCloud(std::shared_ptr<KinectStreamer> streamer);
         void restart();
         void startRecording(std::string path);
         void stopRecording();
-        void setTargetCloud(SharedPointer<Mesh> target);
-        SharedPointer<Mesh> getTargetCloud() const;
+        void setTargetCloud(std::shared_ptr<Mesh> target);
+        std::shared_ptr<Mesh> getTargetCloud() const;
         uint getFramesStored() const;
         bool isRecording() const;
     private:
         KinectTracking();
         void execute();
 
-        SharedPointer<Image> mAnnotationImage;
-        SharedPointer<Mesh> mCurrentCloud;
-        SharedPointer<Mesh> mTargetCloud;
+        std::shared_ptr<Image> mAnnotationImage;
+        std::shared_ptr<Mesh> mCurrentCloud;
+        std::shared_ptr<Mesh> mTargetCloud;
         bool mTargetCloudExtracted = false;
         bool mRecording = false;
         std::string mStoragePath;

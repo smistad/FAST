@@ -6,7 +6,7 @@ namespace fast {
 
 class StepEdgeModel : public AppearanceModel {
 	public:
-		static SharedPointer<StepEdgeModel> New();
+		static std::shared_ptr<StepEdgeModel> New();
 		void setLineLength(float lengthInMM);
 		void setLineSampleSpacing(float spacingInMM);
 		void setIntensityDifferenceThreshold(float threshold);
@@ -22,6 +22,6 @@ class StepEdgeModel : public AppearanceModel {
 };
 
 
-%template(StepEdgeModelPtr) SharedPointer<StepEdgeModel>;
+%template(StepEdgeModelPtr) std::shared_ptr<StepEdgeModel>;
 
 }

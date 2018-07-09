@@ -43,7 +43,7 @@ void ImageGradient::execute() {
     if(getMainDevice()->isHost()) {
         throw Exception("Not implemented yet.");
     } else {
-        OpenCLDevice::pointer device = OpenCLDevice::pointer(getMainDevice());
+        OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
         cl::Program program = getOpenCLProgram(device, "", buildOptions);
         cl::Kernel kernel;
         OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);

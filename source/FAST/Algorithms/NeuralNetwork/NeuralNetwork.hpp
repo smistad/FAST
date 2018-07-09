@@ -37,7 +37,7 @@ public:
      */
     void setTemporalWindow(uint window);
 
-    void addTemporalImageFrame(SharedPointer<Image> image);
+    void addTemporalImageFrame(std::shared_ptr<Image> image);
 
     // Use this if only one output node
     tensorflow::Tensor getNetworkOutput();
@@ -50,7 +50,7 @@ public:
     virtual ~NeuralNetwork();
 protected:
     NeuralNetwork();
-    UniquePointer<tensorflow::Session> mSession;
+    std::unique_ptr<tensorflow::Session> mSession;
     bool mModelLoaded;
     bool mPreserveAspectRatio;
     bool mHorizontalImageFlipping = false;
@@ -63,13 +63,13 @@ protected:
     std::string mInputName;
     std::vector<std::string> mOutputNames;
     std::map<std::string, tensorflow::Tensor> mOutputData;
-    std::deque<SharedPointer<Image>> mImages;
+    std::deque<std::shared_ptr<Image>> mImages;
     Vector3f mNewInputSpacing;
 
     void execute();
 
-    void executeNetwork(const std::vector<SharedPointer<Image> >& images);
-    std::vector<SharedPointer<Image> > resizeImages(const std::vector<SharedPointer<Image> >& images);
+    void executeNetwork(const std::vector<std::shared_ptr<Image> >& images);
+    std::vector<std::shared_ptr<Image> > resizeImages(const std::vector<std::shared_ptr<Image> >& images);
 };
 
 }

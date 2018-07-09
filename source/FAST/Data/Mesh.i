@@ -13,7 +13,7 @@
 
 // Returns a list of floats consisting of all vertex positions and normals
 %inline %{
-std::vector<float> fast_get_vertex_data(fast::SharedPointer<fast::Mesh> mesh) {
+std::vector<float> fast_get_vertex_data(fast::std::shared_ptr<fast::Mesh> mesh) {
     fast::MeshAccess::pointer access = mesh->getMeshAccess(ACCESS_READ);
     std::vector<fast::MeshVertex> vertices = access->getVertices();
     std::vector<float> result;
@@ -52,6 +52,6 @@ class Mesh : public SpatialDataObject {
         Mesh();
 };
 
-%template(MeshPtr) SharedPointer<Mesh>;
+%template(MeshPtr) std::shared_ptr<Mesh>;
 
 }

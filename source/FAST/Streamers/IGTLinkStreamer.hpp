@@ -4,7 +4,7 @@
 //#include <boost/signals2.hpp>
 #include <thread>
 #include <unordered_map>
-#include "FAST/SmartPointers.hpp"
+
 #include "FAST/Streamers/Streamer.hpp"
 #include "FAST/ProcessObject.hpp"
 #include <igtl/igtlClientSocket.h>

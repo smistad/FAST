@@ -14,7 +14,7 @@ TEST_CASE("Scale image 2D", "[fast][ScaleImage]") {
     auto port = normalize->getOutputPort();
     normalize->update(0);
 
-    Image::pointer result = port->getNextFrame();
+    Image::pointer result = port->getNextFrame<Image>();
 
     CHECK(result->calculateMinimumIntensity() == Approx(0));
     CHECK(result->calculateMaximumIntensity() == Approx(1));
@@ -29,7 +29,7 @@ TEST_CASE("Scale image 3D", "[fast][ScaleImage]") {
     auto port = normalize->getOutputPort();
     normalize->update(0);
 
-    Image::pointer result = port->getNextFrame();
+    Image::pointer result = port->getNextFrame<Image>();
 
     CHECK(result->calculateMinimumIntensity() == Approx(0));
     CHECK(result->calculateMaximumIntensity() == Approx(1));
@@ -46,7 +46,7 @@ TEST_CASE("Scale image 2D with high and low set", "[fast][ScaleImage]") {
     auto port = normalize->getOutputPort();
     normalize->update(0);
 
-    Image::pointer result = port->getNextFrame();
+    Image::pointer result = port->getNextFrame<Image>();
 
     CHECK(result->calculateMinimumIntensity() == Approx(-2));
     CHECK(result->calculateMaximumIntensity() == Approx(10));
@@ -63,7 +63,7 @@ TEST_CASE("Scale image 3D with high and low set", "[fast][ScaleImage]") {
     auto port = normalize->getOutputPort();
     normalize->update(0);
 
-    Image::pointer result = port->getNextFrame();
+    Image::pointer result = port->getNextFrame<Image>();
 
     CHECK(result->calculateMinimumIntensity() == Approx(-2));
     CHECK(result->calculateMaximumIntensity() == Approx(10));

@@ -1,7 +1,7 @@
 #ifndef VIEW_HPP_
 #define VIEW_HPP_
 
-#include "FAST/SmartPointers.hpp"
+
 #include "FAST/AffineTransformation.hpp"
 #include "FAST/Data/Color.hpp"
 #include "Renderer.hpp"

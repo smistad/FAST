@@ -18,7 +18,7 @@ void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool
     setShaderUniform("viewTransform", viewingMatrix);
     // For all input data
     for(auto it : mDataToRender) {
-        Mesh::pointer points = it.second;
+        Mesh::pointer points = std::static_pointer_cast<Mesh>(it.second);
 
         // Create VAO
         uint VAO_ID;

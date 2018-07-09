@@ -20,7 +20,7 @@ TEST_CASE("Importer VTK surface from file", "[fast][VTKMeshFileImporter]") {
     importer->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
     DataPort::pointer port = importer->getOutputPort();
     importer->update(0);
-    Mesh::pointer surface = port->getNextFrame();
+    Mesh::pointer surface = port->getNextFrame<Mesh>();
 
     // Check the surface
     CHECK(surface->getNrOfTriangles() == 768);

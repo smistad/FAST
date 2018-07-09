@@ -102,6 +102,11 @@ class FAST_EXPORT  ExistException : public Exception {
 
 };
 
+class FAST_EXPORT BadCastException : public Exception {
+    public:
+        BadCastException(std::string from, std::string to) : Exception("Bad cast. Tried to cast from type " + from + " to " + to) {};
+};
+
 class FAST_EXPORT ThreadStopped : public Exception {
     public:
         ThreadStopped() {

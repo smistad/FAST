@@ -32,7 +32,7 @@ void SurfaceExtraction::execute() {
     if(input->getDimensions() != 3)
         throw Exception("The SurfaceExtraction object only supports 3D images");
 
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 #if defined(__APPLE__) || defined(__MACOSX)
     const bool writingTo3DTextures = false;
 #else

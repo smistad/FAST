@@ -15,7 +15,7 @@ TEST_CASE("ImageResizer 2D", "[fast][ImageResizer]") {
 	auto port = resizer->getOutputPort();
 	resizer->update(0);
 
-	Image::pointer result = port->getNextFrame();
+	Image::pointer result = port->getNextFrame<Image>();
 	CHECK(result->getWidth() == 64);
 	CHECK(result->getHeight() == 64);
 }
@@ -31,7 +31,7 @@ TEST_CASE("ImageResizer 2D preserve aspect", "[fast][ImageResizer]") {
 	auto port = resizer->getOutputPort();
 	resizer->update(0);
 
-	Image::pointer result = port->getNextFrame();
+	Image::pointer result = port->getNextFrame<Image>();
 	CHECK(result->getWidth() == 256);
 	CHECK(result->getHeight() == 256);
 

@@ -106,8 +106,8 @@ static Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer mes
         image->create(width, height, depth, type, message->GetNumComponents(), device, data);
     }
 
-    UniquePointer<float[]> spacing(new float[3]);
-    UniquePointer<float[]> offset(new float[3]);
+    auto spacing = std::make_unique<float[]>(3);
+    auto offset = std::make_unique<float[]>(3);
     message->GetSpacing(spacing.get());
     message->GetOrigin(offset.get());
     igtl::Matrix4x4 matrix;

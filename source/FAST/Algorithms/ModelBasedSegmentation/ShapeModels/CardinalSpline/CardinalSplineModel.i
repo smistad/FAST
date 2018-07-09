@@ -35,6 +35,6 @@ class CardinalSplineModel : public ShapeModel {
 		void setResolution(int resolution);
 };
 
-%template(CardinalSplineModelPtr) SharedPointer<CardinalSplineModel>;
+%template(CardinalSplineModelPtr) std::shared_ptr<CardinalSplineModel>;
 
 }

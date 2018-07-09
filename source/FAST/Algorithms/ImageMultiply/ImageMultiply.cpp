@@ -24,7 +24,7 @@ void ImageMultiply::execute() {
     output->createFromImage(input1);
     Vector3ui size = input1->getSize();
 
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::CommandQueue queue = device->getCommandQueue();
 
     std::string buildOptions = "-DDATA_TYPE=" + getCTypeAsString(output->getDataType());

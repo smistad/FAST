@@ -16,14 +16,14 @@ cl::Image3D* OpenCLImageAccess::get3DImage() const {
 }
 
 
-OpenCLImageAccess::OpenCLImageAccess(cl::Image3D* image, SharedPointer<Image> object) {
+OpenCLImageAccess::OpenCLImageAccess(cl::Image3D* image, std::shared_ptr<Image> object) {
     // Copy the image
     mImage = new cl::Image3D(*image);
     mIsDeleted = false;
     mImageObject = object;
 }
 
-OpenCLImageAccess::OpenCLImageAccess(cl::Image2D* image, SharedPointer<Image> object) {
+OpenCLImageAccess::OpenCLImageAccess(cl::Image2D* image, std::shared_ptr<Image> object) {
     // Copy the image
     mImage = new cl::Image2D(*image);
     mIsDeleted = false;

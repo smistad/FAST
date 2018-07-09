@@ -37,7 +37,7 @@ void BinaryThresholding::execute() {
     if(getMainDevice()->isHost()) {
         throw Exception("Not implemented yet.");
     } else {
-        OpenCLDevice::pointer device = OpenCLDevice::pointer(getMainDevice());
+        OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
         cl::Program program;
         if(input->getDimensions() == 3) {
             program = getOpenCLProgram(device, "3D");
@@ -83,8 +83,10 @@ void BinaryThresholding::execute() {
 }
 
 void BinaryThresholding::waitToFinish() {
-    OpenCLDevice::pointer device = OpenCLDevice::pointer(getMainDevice());
-    device->getCommandQueue().finish();
+    if(!getMainDevice()->isHost()) {
+        OpenCLDevice::pointer device = std::static_pointer_cast<OpenCLDevice>(getMainDevice());
+        device->getCommandQueue().finish();
+    }
 }
 
 } // end namespace fast

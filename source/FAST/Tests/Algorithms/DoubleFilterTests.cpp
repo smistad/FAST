@@ -16,9 +16,8 @@ TEST_CASE("DoubleFilter on OpenCL device", "[fast][DoubleFilter]") {
     filter->update(0);
     Reporter::info() << "finished update" << Reporter::end();
 
-    Image::pointer input = importerPort->getNextFrame();
-    Image::pointer output = filterPort->getNextFrame();
-    input->retain(filter->getMainDevice());
+    Image::pointer input = importerPort->getNextFrame<Image>();
+    Image::pointer output = filterPort->getNextFrame<Image>();
     ImageAccess::pointer inputAccess = input->getImageAccess(ACCESS_READ);
     ImageAccess::pointer outputAccess = output->getImageAccess(ACCESS_READ);
 
@@ -47,9 +46,8 @@ TEST_CASE("DoubleFilter on Host", "[fast][DoubleFilter]") {
     filter->update(0);
     Reporter::info() << "finished update" << Reporter::end();
 
-    Image::pointer input = importerPort->getNextFrame();
-    Image::pointer output = filterPort->getNextFrame();
-    input->retain(filter->getMainDevice());
+    Image::pointer input = importerPort->getNextFrame<Image>();
+    Image::pointer output = filterPort->getNextFrame<Image>();
 
     ImageAccess::pointer inputAccess = input->getImageAccess(ACCESS_READ);
     ImageAccess::pointer outputAccess = output->getImageAccess(ACCESS_READ);

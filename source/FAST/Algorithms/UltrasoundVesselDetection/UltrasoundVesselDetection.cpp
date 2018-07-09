@@ -69,7 +69,7 @@ namespace fast {
 
         mRuntimeManager->startRegularTimer("ellipse fitting");
         // Create kernel
-        OpenCLDevice::pointer device = getMainDevice();
+        OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
         cl::Program program = getOpenCLProgram(device);
         cl::Kernel kernel(program, "vesselDetection");
 
@@ -91,7 +91,7 @@ namespace fast {
         OpenCLImageAccess::pointer gradientAccess = gradients->getOpenCLImageAccess(ACCESS_READ, device);
 
         // Create output image
-        UniquePointer<float[]> zeros(new float[input->getWidth()*input->getHeight()*4]());
+        std::unique_ptr<float[]> zeros(new float[input->getWidth()*input->getHeight()*4]());
         cl::Image2D result = cl::Image2D(
                 device->getContext(),
                 CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -125,7 +125,7 @@ namespace fast {
         );
 
         // Get result back
-        UniquePointer<float[]> data(new float[input->getWidth()*input->getHeight()*4]);
+        std::unique_ptr<float[]> data(new float[input->getWidth()*input->getHeight()*4]);
         device->getCommandQueue().enqueueReadImage(
                 result,
                 CL_TRUE,
@@ -257,13 +257,13 @@ namespace fast {
             Segmentation::pointer segmentation = getOutputData<Segmentation>(0);
             segmentation->createFromImage(input);
 
-            OpenCLDevice::pointer device = getMainDevice();
+            OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
             // Copy contents
             OpenCLImageAccess::pointer writeAccess = segmentation->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
             cl::Image2D* outputData = writeAccess->get2DImage();
             // Create all zero data
-            UniquePointer<uchar[]> zeroData(new uchar[input->getWidth()*input->getHeight()]());
+            std::unique_ptr<uchar[]> zeroData(new uchar[input->getWidth()*input->getHeight()]());
             device->getCommandQueue().enqueueWriteImage(
                     *outputData,
                     CL_TRUE,

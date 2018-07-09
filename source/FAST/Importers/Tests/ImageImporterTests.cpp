@@ -24,7 +24,7 @@ TEST_CASE("Import PNG image file to host", "[fast][ImageImporter]") {
     importer->setMainDevice(Host::getInstance());
     DataPort::pointer port = importer->getOutputPort();
     importer->update(0);
-    Image::pointer image = port->getNextFrame();
+    Image::pointer image = port->getNextFrame<Image>();
 
 
     // Check attributes of image
@@ -44,7 +44,7 @@ TEST_CASE("Import PNG image file to OpenCL device", "[fast][ImageImporter]") {
     importer->setMainDevice(device);
     DataPort::pointer port = importer->getOutputPort();
     importer->update(0);
-    Image::pointer image = port->getNextFrame();
+    Image::pointer image = port->getNextFrame<Image>();
 
     // Check attributes of image
     CHECK(image->getWidth() == 512);
@@ -65,7 +65,7 @@ TEST_CASE("Import color PNG image file to OpenCL device", "[fast][ImageImporter]
     importer->setMainDevice(device);
     DataPort::pointer port = importer->getOutputPort();
     importer->update(0);
-    Image::pointer image = port->getNextFrame();
+    Image::pointer image = port->getNextFrame<Image>();
 
     // Check attributes of image
     CHECK(image->getWidth() == 512);
@@ -82,7 +82,7 @@ TEST_CASE("Import JPEG image file to host", "[fast][ImageImporter]") {
     importer->setMainDevice(Host::getInstance());
     DataPort::pointer port = importer->getOutputPort();
     importer->update(0);
-    Image::pointer image = port->getNextFrame();
+    Image::pointer image = port->getNextFrame<Image>();
 
     // Check attributes of image
     CHECK(image->getWidth() == 512);
@@ -101,7 +101,7 @@ TEST_CASE("Import JPEG image file to OpenCL device", "[fast][ImageImporter]") {
     importer->setMainDevice(device);
     DataPort::pointer port = importer->getOutputPort();
     importer->update(0);
-    Image::pointer image = port->getNextFrame();
+    Image::pointer image = port->getNextFrame<Image>();
 
     // Check attributes of image
     CHECK(image->getWidth() == 512);
@@ -119,7 +119,7 @@ TEST_CASE("Import BMP image file to host", "[fast][ImageImporter]") {
     importer->setMainDevice(Host::getInstance());
     DataPort::pointer port = importer->getOutputPort();
     importer->update(0);
-    Image::pointer image = port->getNextFrame();
+    Image::pointer image = port->getNextFrame<Image>();
 
     // Check attributes of image
     CHECK(image->getWidth() == 512);
@@ -138,7 +138,7 @@ TEST_CASE("Import BMP image file to OpenCL device", "[fast][ImageImporter]") {
     importer->setMainDevice(device);
     DataPort::pointer port = importer->getOutputPort();
     importer->update(0);
-    Image::pointer image = port->getNextFrame();
+    Image::pointer image = port->getNextFrame<Image>();
 
     // Check attributes of image
     CHECK(image->getWidth() == 512);

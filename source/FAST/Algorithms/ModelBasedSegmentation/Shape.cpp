@@ -11,7 +11,7 @@ Mesh::pointer Shape::getMesh() const {
 }
 
 Vector3f Shape::getCentroid() {
-	if(!mMesh.isValid())
+	if(!mMesh)
 		throw Exception("Mesh must be set in Shape before getting centroid");
 
 	MeshAccess::pointer access = mMesh->getMeshAccess(ACCESS_READ);

@@ -283,7 +283,7 @@ void GUI::selectPipeline() {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
         nrOfFrames = inputs[0]->getSize();
-        std::vector<SharedPointer<Renderer>> renderers = pipeline.setup(inputs);
+        std::vector<std::shared_ptr<Renderer>> renderers = pipeline.setup(inputs);
         for(auto renderer : renderers) {
             // A hack for text renderer which needs a reference to the view
             if(renderer->getNameOfClass() == "TextRenderer") {

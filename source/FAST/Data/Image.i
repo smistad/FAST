@@ -38,7 +38,7 @@ numpy_to_fast_creator(unsigned short, uint16)
 %define fast_to_numpy_creator(TYPE, NAME)
 %apply (TYPE* INPLACE_ARRAY1, int DIM1) {(TYPE* data, int size)};
 %inline %{
-void fast_to_numpy_##NAME##(TYPE* data, int size, fast::SharedPointer<fast::Image> fastImage) {
+void fast_to_numpy_##NAME##(TYPE* data, int size, fast::std::shared_ptr<fast::Image> fastImage) {
     fast::ImageAccess::pointer access = fastImage->getImageAccess(ACCESS_READ);
     memcpy(data, access->get(), size*sizeof(TYPE));
 }
@@ -77,7 +77,7 @@ enum DataType {
 
 class Image : public SpatialDataObject {
 	public:
-		static SharedPointer<Image> New();
+		static std::shared_ptr<Image> New();
         void create(uint width, uint height, DataType type, uint nrOfComponents, void * data);
         void create(uint width, uint height, uint depth, DataType type, uint nrOfComponents, void * data);
         
@@ -92,6 +92,6 @@ class Image : public SpatialDataObject {
 		Image();
 };
 
-%template(ImagePtr) SharedPointer<Image>;
+%template(ImagePtr) std::shared_ptr<Image>;
 
 }

@@ -17,8 +17,8 @@ class FAST_EXPORT  ImageSlicer : public ProcessObject {
 	private:
 		ImageSlicer();
 		void execute();
-		void orthogonalSlicing(SharedPointer<Image> input, SharedPointer<Image> output);
-		void arbitrarySlicing(SharedPointer<Image> input, SharedPointer<Image> output);
+		void orthogonalSlicing(std::shared_ptr<Image> input, std::shared_ptr<Image> output);
+		void arbitrarySlicing(std::shared_ptr<Image> input, std::shared_ptr<Image> output);
 
 		bool mOrthogonalSlicing;
 		bool mArbitrarySlicing;

@@ -164,7 +164,7 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 			tensorflow::DT_FLOAT,
 			shape
 	);
-	OpenCLDevice::pointer device = getMainDevice();
+	OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 	cl::Program program = getOpenCLProgram(device);
 	cl::Kernel kernel(program, "normalizeInput");
     for(int frame = 0; frame < mTemporalWindow; ++frame) {
@@ -254,7 +254,7 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 
 }
 
-std::vector<SharedPointer<Image>> NeuralNetwork::resizeImages(const std::vector<SharedPointer<Image>> &images) {
+std::vector<std::shared_ptr<Image>> NeuralNetwork::resizeImages(const std::vector<std::shared_ptr<Image>> &images) {
     mRuntimeManager->startRegularTimer("image input resize");
     std::vector<Image::pointer> resizedImages;
 	for(Image::pointer image : images) {
@@ -268,7 +268,7 @@ std::vector<SharedPointer<Image>> NeuralNetwork::resizeImages(const std::vector<
 			resizer->setPreserveAspectRatio(mPreserveAspectRatio);
 			DataPort::pointer port = resizer->getOutputPort();
             resizer->update(0);
-            Image::pointer resizedImage = port->getNextFrame();
+            Image::pointer resizedImage = port->getNextFrame<Image>();
             mNewInputSpacing = resizedImage->getSpacing();
             resizedImages.push_back(resizedImage);
 		} else {
@@ -306,7 +306,7 @@ void NeuralNetwork::setSignedInputNormalization(bool signedInputNormalization) {
 	mSignedInputNormalization = signedInputNormalization;
 }
 
-void NeuralNetwork::addTemporalImageFrame(SharedPointer<Image> image) {
+void NeuralNetwork::addTemporalImageFrame(std::shared_ptr<Image> image) {
 	mImages.push_back(image);
 }
 

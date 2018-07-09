@@ -176,7 +176,7 @@ void NonLocalMeans::recompileOpenCLCode(Image::pointer input) {
 
     std::cout << "RECOMPILING..." << std::endl;
     recompile = false;
-    OpenCLDevice::pointer device = getMainDevice();
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     std::string buildOptions = "";
     if(!device->isWritingTo3DTexturesSupported()) {
         buildOptions = "-DTYPE=" + getCTypeAsString(mOutputType);
@@ -207,7 +207,7 @@ void NoneLocalMeans::recompileOpenCLCode(Image::pointer input) {
 		input->getDataType() == mTypeCLCodeCompiledFor && !recompile)
 		return;
 
-	OpenCLDevice::pointer device = getMainDevice();
+	OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     recompile = false;
 	std::string buildOptions = "";
 	const bool writingTo3DTextures = device->getDevice().getInfo<CL_DEVICE_EXTENSIONS>().find("cl_khr_3d_image_writes") != std::string::npos;
@@ -264,7 +264,7 @@ void NonLocalMeans::execute() {
     std::cout << "GOT DATA" << std::endl;
 
     // Initialize output image
-    ExecutionDevice::pointer device = getMainDevice();
+    ExecutionDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     if(mOutputTypeSet) {
         output->create(input->getSize(), mOutputType, input->getNrOfChannels());
         output->setSpacing(input->getSpacing());
@@ -280,16 +280,16 @@ void NonLocalMeans::execute() {
                 fastSwitchTypeMacro(executeAlgorithmOnHost<FAST_TYPE>(input, output, groupSize, windowSize, denoiseStrength, sigma));
         }
     } else {
-        OpenCLDevice::pointer clDevice = device;
+        OpenCLDevice::pointer clDevice = std::static_pointer_cast<OpenCLDevice>(device);
         
         recompileOpenCLCode(input);
         
         cl::NDRange globalSize;
         
-        OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
+        OpenCLImageAccess::pointer inputAccess = input->getOpenCLImageAccess(ACCESS_READ, clDevice);
         if(input->getDimensions() == 2) {
             std::cout << "DOING CL" << std::endl;
-            OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+            OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
             mKernel.setArg(2, (denoiseStrength*denoiseStrength));
             mKernel.setArg(3, (sigma*sigma));
             globalSize = cl::NDRange(input->getWidth(),input->getHeight());
@@ -311,7 +311,7 @@ void NonLocalMeans::execute() {
             if(clDevice->isWritingTo3DTexturesSupported()) {
                 mKernel.setArg(2, (denoiseStrength*denoiseStrength));
                 mKernel.setArg(3, (sigma*sigma));
-                OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+                OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
                 mKernel.setArg(0, *inputAccess->get3DImage());
                 mKernel.setArg(1, *outputAccess->get3DImage());
                 clDevice->getCommandQueue().enqueueNDRangeKernel(
@@ -323,7 +323,7 @@ void NonLocalMeans::execute() {
             }else{
                 mKernel.setArg(2, (denoiseStrength*denoiseStrength));
                 mKernel.setArg(3, (sigma*sigma));
-                OpenCLBufferAccess::pointer outputAccess = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+                OpenCLBufferAccess::pointer outputAccess = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, clDevice);
                 mKernel.setArg(0, *inputAccess->get3DImage());
                 mKernel.setArg(1, *outputAccess->get());
                 clDevice->getCommandQueue().enqueueNDRangeKernel(
@@ -345,7 +345,7 @@ void NoneLocalMeans::execute() {
 	Image::pointer output = getOutputData<Image>(0);
     
 	// Initialize output image
-	ExecutionDevice::pointer device = getMainDevice();
+	ExecutionDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     
 	if (mOutputTypeSet) {
         output->create(input->getSize(), mOutputType, input->getNrOfChannels());
@@ -431,7 +431,7 @@ int NonLocalMeans::getK(){
 
 void NonLocalMeans::waitToFinish() {
     if (!getMainDevice()->isHost()) {
-        OpenCLDevice::pointer device = getMainDevice();
+        OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
         device->getCommandQueue().finish();
     }
 }
