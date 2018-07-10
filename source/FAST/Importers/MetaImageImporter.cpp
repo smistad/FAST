@@ -37,8 +37,8 @@ std::vector<std::string> stringSplit(std::string str, std::string delimiter) {
 }
 
 template <class T>
-static unique_pixel_ptr readRawData(std::string rawFilename, unsigned int width, unsigned int height, unsigned int depth, unsigned int nrOfComponents, bool compressed, std::size_t compressedFileSize) {
-    auto data = make_unique_pixel(new T[width*height*depth*nrOfComponents]);
+static std::unique_ptr<T[]> readRawData(std::string rawFilename, std::size_t voxels, unsigned int nrOfComponents, bool compressed, std::size_t compressedFileSize) {
+    auto data = make_uninitialized_unique<T[]>(voxels*nrOfComponents);
     if(compressed) {
         // Read compressed data
         std::ifstream file(rawFilename, std::ifstream::binary | std::ifstream::in);
@@ -54,7 +54,7 @@ static unique_pixel_ptr readRawData(std::string rawFilename, unsigned int width,
         file.read((char*)&fileData[0], size);
         file.close();
 
-        unsigned long uncompressedSize = sizeof(T)*width*height*depth*nrOfComponents;
+        unsigned long uncompressedSize = sizeof(T)*voxels*nrOfComponents;
 		int z_result = uncompress(
             (Bytef*)data.get(),       // destination for the uncompressed
                                     // data.  This should be the size of
@@ -91,7 +91,7 @@ static unique_pixel_ptr readRawData(std::string rawFilename, unsigned int width,
         file.seekg(0, std::ios_base::end);
         std::size_t size = file.tellg();
         file.seekg(0, std::ios_base::beg);
-        std::size_t expectedSize = width*height*depth*nrOfComponents*sizeof(T);
+        std::size_t expectedSize = voxels*nrOfComponents*sizeof(T);
         if(size != expectedSize)
             throw Exception("Unexpected file system when opening" + rawFilename + " expected: " + std::to_string(expectedSize) + " got: " + std::to_string(size));
 
@@ -102,6 +102,7 @@ static unique_pixel_ptr readRawData(std::string rawFilename, unsigned int width,
 }
 
 void MetaImageImporter::execute() {
+    setMainDevice(Host::getInstance());
     if(mFilename == "")
         throw Exception("Filename was not set in MetaImageImporter");
 
@@ -138,7 +139,7 @@ void MetaImageImporter::execute() {
     // Reset and start reading file from beginning
     mhdFile.seekg(0);
 
-    unsigned int width, height, depth = 1;
+    VectorXui size;
     unsigned int nrOfComponents = 1;
     uint64_t timestamp = 0;
     Image::pointer output = getOutputData<Image>(0);
@@ -169,13 +170,17 @@ void MetaImageImporter::execute() {
             if(imageIs3D) {
                 if(values.size() != 3)
                     throw Exception("DimSize in MetaImage file did not contain 3 numbers");
-                depth = std::stoi(values[2]);
+                int width = std::stoi(values[0]);
+                int height = std::stoi(values[1]);
+                int depth = std::stoi(values[2]);
+                size = Vector3ui(width, height, depth);
             } else {
+                int width = std::stoi(values[0]);
+                int height = std::stoi(values[1]);
                 if(values.size() != 2)
                     throw Exception("DimSize in MetaImage file did not contain 2 numbers");
+                size = Vector2ui(width, height);
             }
-            width = std::stoi(values[0]);
-            height = std::stoi(values[1]);
             sizeFound = true;
         } else if(key == "CompressedData" && value == "True") {
             isCompressed = true;
@@ -323,53 +328,47 @@ void MetaImageImporter::execute() {
         throw Exception("Error reading the mhd file", __LINE__, __FILE__);
 
 
-    unique_pixel_ptr data;
-    DataType type;
+    std::size_t voxels = size.x()*size.y();
+    if(size.size() == 3)
+        voxels *= size.z();
     if(typeName == "MET_SHORT" || typeName == "MET_INT") {
-        type = TYPE_INT16;
+        std::unique_ptr<short[]> data;
         if(typeName == "MET_SHORT") {
-            data = readRawData<short>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
+            data = std::move(readRawData<short>(rawFilename, voxels, nrOfComponents, isCompressed, compressedDataSize));
         } else {
             reportWarning() << "Converting original dataset of type MET_INT (32 bit) to short (16 bit) overflow may occur." << reportEnd();
-            auto tmp = readRawData<int>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
-            unique_pixel_ptr tmp2 = make_unique_pixel(new short[width*height*depth*nrOfComponents]);
-            int* tmp_raw = (int*)tmp.get();
-            short* tmp2_raw = (short*)tmp2.get();
-            for(int i = 0; i < width*height*depth*nrOfComponents; ++i)
-                tmp2_raw[i] = (short)tmp_raw[i];
+            auto tmp = readRawData<int>(rawFilename, voxels, nrOfComponents, isCompressed, compressedDataSize);
+            auto tmp2 = make_uninitialized_unique<short[]>(voxels*nrOfComponents);
+            for(int i = 0; i < voxels*nrOfComponents; ++i)
+                tmp2[i] = (short)tmp[i];
 
             data = std::move(tmp2);
         }
+        output->create(size,TYPE_INT16,nrOfComponents,getMainDevice(),std::move(data));
+
     } else if(typeName == "MET_USHORT" || typeName == "MET_UINT") {
-        type = TYPE_UINT16;
+        std::unique_ptr<ushort[]> data;
         if(typeName == "MET_USHORT") {
-            data = readRawData<unsigned short>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
+            data = std::move(readRawData<unsigned short>(rawFilename, voxels, nrOfComponents, isCompressed, compressedDataSize));
         } else {
             reportWarning() << "Converting original dataset of type MET_UINT (32 bit) to unsigned short (16 bit) overflow may occur." << reportEnd();
-            unique_pixel_ptr tmp = readRawData<unsigned int>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
-            unique_pixel_ptr tmp2 = make_unique_pixel(new unsigned short[width*height*depth*nrOfComponents]);
-            unsigned int* tmp_raw = (unsigned int*)tmp.get();
-            unsigned short* tmp2_raw = (unsigned short*)tmp2.get();
-            for(int i = 0; i < width*height*depth*nrOfComponents; ++i)
-                tmp2_raw[i] = (unsigned short)tmp_raw[i];
+            auto tmp = readRawData<unsigned int>(rawFilename, voxels, nrOfComponents, isCompressed, compressedDataSize);
+            auto tmp2 = make_uninitialized_unique<ushort[]>(voxels*nrOfComponents);
+            for(int i = 0; i < voxels*nrOfComponents; ++i)
+                tmp2[i] = (unsigned short)tmp[i];
 
             data = std::move(tmp2);
         }
+        output->create(size,TYPE_UINT16,nrOfComponents,getMainDevice(),std::move(data));
     } else if(typeName == "MET_CHAR") {
-        type = TYPE_INT8;
-        data = readRawData<char>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
+        auto data = readRawData<char>(rawFilename, voxels, nrOfComponents, isCompressed, compressedDataSize);
+        output->create(size,TYPE_INT8,nrOfComponents,getMainDevice(),std::move(data));
     } else if(typeName == "MET_UCHAR") {
-        type = TYPE_UINT8;
-        data = readRawData<unsigned char>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
+        auto data = readRawData<unsigned char>(rawFilename, voxels, nrOfComponents, isCompressed, compressedDataSize);
+        output->create(size,TYPE_UINT8,nrOfComponents,getMainDevice(),std::move(data));
     } else if(typeName == "MET_FLOAT") {
-        type = TYPE_FLOAT;
-        data = readRawData<float>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
-    }
-
-    if(imageIs3D) {
-        output->create(width,height,depth,type,nrOfComponents,getMainDevice(),std::move(data));
-    } else {
-        output->create(width,height,type,nrOfComponents,getMainDevice(),std::move(data));
+        auto data = readRawData<float>(rawFilename, voxels, nrOfComponents, isCompressed, compressedDataSize);
+        output->create(size,TYPE_FLOAT,nrOfComponents,getMainDevice(),std::move(data));
     }
 
     output->setSpacing(spacing);

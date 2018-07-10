@@ -59,8 +59,7 @@ void PixelClassifier::execute() {
             // Check if output for this class has been requested
             if (mOutputConnections[j].empty())
                 continue;
-            Image::pointer output = Image::New();
-            float *data = new float[outputWidth * outputHeight];
+            auto data = make_uninitialized_unique<float[]>(outputWidth * outputHeight);
             if (mHorizontalImageFlipping) {
                 for (int x = 0; x < outputWidth; ++x) {
                     for (int y = 0; y < outputHeight; ++y) {
@@ -74,8 +73,8 @@ void PixelClassifier::execute() {
                     }
                 }
             }
-            output->create(outputWidth, outputHeight, TYPE_FLOAT, 1, data);
-            delete[] data;
+            Image::pointer output = Image::New();
+            output->create(outputWidth, outputHeight, TYPE_FLOAT, 1, std::move(data));
 
             output->setSpacing(mNewInputSpacing);
             SceneGraph::setParentNode(output, mImages.back());

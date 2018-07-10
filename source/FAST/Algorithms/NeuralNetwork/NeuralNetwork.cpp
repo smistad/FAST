@@ -149,7 +149,7 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 	if(mOutputNames.size() == 0)
 		throw Exception("An output name must ge given to the NeuralNetwork before execution");
 
-    int batchSize = 1;//images.size();
+    const std::size_t batchSize = 1;//images.size();
 	if(batchSize == 0)
 		throw Exception("Need at least one image to execute network.");
 
@@ -168,7 +168,6 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 	cl::Program program = getOpenCLProgram(device);
 	cl::Kernel kernel(program, "normalizeInput");
     for(int frame = 0; frame < mTemporalWindow; ++frame) {
-		float* values = new float[batchSize*mWidth*mHeight];
 		Image::pointer image = images[frame];
 		OpenCLImageAccess::pointer access = image->getOpenCLImageAccess(ACCESS_READ, device);
 		cl::Buffer buffer(
@@ -189,7 +188,8 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 				cl::NullRange
 		);
 
-		device->getCommandQueue().enqueueReadBuffer(buffer, CL_TRUE, 0, sizeof(float) * mWidth * mHeight, values);
+		auto values = make_uninitialized_unique<float[]>(batchSize*mWidth*mHeight);
+		device->getCommandQueue().enqueueReadBuffer(buffer, CL_TRUE, 0, sizeof(float) * mWidth * mHeight, values.get());
 
 		if (image->getWidth() != mWidth || image->getHeight() != mHeight)
 			throw Exception("Input image sent to executeNetwork was of incrorrect size");
@@ -209,7 +209,6 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 				}
 			}
 		}
-		delete[] values;
 	}
 
 	mRuntimeManager->stopRegularTimer("input_data_copy");
