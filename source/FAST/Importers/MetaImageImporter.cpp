@@ -50,7 +50,7 @@ static std::unique_ptr<T[]> readRawData(std::string rawFilename, std::size_t vox
         std::size_t size = file.tellg();
         file.seekg(0, std::ios_base::beg);
 
-        Bytef* fileData = new Bytef[size];
+        auto fileData = make_uninitialized_unique<Bytef[]>(size);
         file.read((char*)&fileData[0], size);
         file.close();
 
@@ -64,7 +64,7 @@ static std::unique_ptr<T[]> readRawData(std::string rawFilename, std::size_t vox
             (uLongf *)&uncompressedSize,  // length of destination (uncompressed)
                                     // buffer
 
-            (Bytef*)fileData,   // source buffer - the compressed data
+            fileData.get(),   // source buffer - the compressed data
 
             (uLong)compressedFileSize);   // length of compressed data in bytes
         switch( z_result )
@@ -81,7 +81,6 @@ static std::unique_ptr<T[]> readRawData(std::string rawFilename, std::size_t vox
             break;
         }
         file.close();
-        delete[] fileData;
     } else {
         std::ifstream file(rawFilename, std::ifstream::binary | std::ifstream::in);
         if(!file.is_open())

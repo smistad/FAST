@@ -174,24 +174,23 @@ void SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
             queue.enqueueReleaseGLObjects(&v);
         } else {*/
         // Copy data from CL image to CPU
-        float *data = new float[input->getWidth() * input->getHeight() * 4];
+        auto data = make_uninitialized_unique<float[]>(input->getWidth() * input->getHeight() * 4);
         queue.enqueueReadImage(
                 image,
                 CL_TRUE,
                 createOrigoRegion(),
                 createRegion(input->getWidth(), input->getHeight(), 1),
                 0, 0,
-                data
+                data.get()
         );
         // Copy data from CPU to GL texture
         glGenTextures(1, &textureID);
         glBindTexture(GL_TEXTURE_2D, textureID);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, input->getWidth(), input->getHeight(), 0, GL_RGBA, GL_FLOAT, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, input->getWidth(), input->getHeight(), 0, GL_RGBA, GL_FLOAT, data.get());
         glBindTexture(GL_TEXTURE_2D, 0);
         glFinish();
-        delete[] data;
         //}
 
         mTexturesToRender[inputNr] = textureID;
