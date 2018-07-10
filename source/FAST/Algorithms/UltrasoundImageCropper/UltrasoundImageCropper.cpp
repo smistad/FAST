@@ -50,7 +50,7 @@ void UltrasoundImageCropper::execute() {
     );
 
     // Results contains the amount of non-zero values per column and row
-    std::unique_ptr<uint[]> result(new uint[width + height]);
+    auto result = make_uninitialized_unique<uint[]>(width + height);
     queue.enqueueReadBuffer(rays, CL_TRUE, 0, sizeof(uint)*(width + height), result.get());
     int minX = 0;
     int maxX = width;

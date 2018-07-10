@@ -187,7 +187,7 @@ void SeededRegionGrowing::execute() {
 
         bool stopGrowing = false;
         char stopGrowingInit = 1;
-        char * stopGrowingResult = new char;
+        char stopGrowingResult;
         int iterations = 0;
         do {
             iterations++;
@@ -200,8 +200,8 @@ void SeededRegionGrowing::execute() {
                     cl::NullRange
             );
 
-            queue.enqueueReadBuffer(stopGrowingBuffer, CL_TRUE, 0, sizeof(char), stopGrowingResult);
-            if(*stopGrowingResult == 1)
+            queue.enqueueReadBuffer(stopGrowingBuffer, CL_TRUE, 0, sizeof(char), &stopGrowingResult);
+            if(stopGrowingResult == 1)
                 stopGrowing = true;
         } while(!stopGrowing);
     }

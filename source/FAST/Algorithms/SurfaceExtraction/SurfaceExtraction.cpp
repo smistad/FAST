@@ -255,29 +255,27 @@ void SurfaceExtraction::execute() {
 
     // Create VBO using the sum
     // Read top of histoPyramid an use this size to allocate VBO below
-    unsigned int totalSum = 0;
+    int totalSum = 0;
     if(writingTo3DTextures) {
-    	int* sum;
+        std::vector<int> sum;
         if(device->isImageFormatSupported(CL_R, CL_UNSIGNED_INT32, CL_MEM_OBJECT_IMAGE3D)) {
-            sum = new int[8];
+            sum.resize(8);
         } else {
         	// A 4 channel texture/image has been used
-        	sum = new int[8*4];
+            sum.resize(8*4);
         }
         cl::size_t<3> origin = createOrigoRegion();
         cl::size_t<3> region = createRegion(2,2,2);
-        queue.enqueueReadImage(images[images.size()-1], CL_TRUE, origin, region, 0, 0, sum);
+        queue.enqueueReadImage(images[images.size()-1], CL_TRUE, origin, region, 0, 0, sum.data());
         if(device->isImageFormatSupported(CL_R, CL_UNSIGNED_INT8, CL_MEM_OBJECT_IMAGE3D)) {
-            totalSum = sum[0] + sum[1] + sum[2] + sum[3] + sum[4] + sum[5] + sum[6] + sum[7] ;
+            totalSum = std::accumulate(sum.begin(), sum.end(), 0);
         } else {
             totalSum = sum[0] + sum[4] + sum[8] + sum[12] + sum[16] + sum[20] + sum[24] + sum[28] ;
         }
-        delete[] sum;
     } else {
-        int* sum = new int[8];
-        queue.enqueueReadBuffer(buffers[buffers.size()-1], CL_TRUE, 0, sizeof(int)*8, sum);
-        totalSum = sum[0] + sum[1] + sum[2] + sum[3] + sum[4] + sum[5] + sum[6] + sum[7] ;
-        delete[] sum;
+        std::vector<int> sum(8);
+        queue.enqueueReadBuffer(buffers[buffers.size()-1], CL_TRUE, 0, sizeof(int)*8, sum.data());
+        totalSum = std::accumulate(sum.begin(), sum.end(), 0);
     }
 
     Mesh::pointer output = getOutputData<Mesh>(0);
@@ -356,35 +354,33 @@ void SurfaceExtraction::execute() {
         // Transfer OpenCL buffer data to CPU
 #ifdef FAST_MODULE_VISUALIZATION
         QGLFunctions *fun = Window::getMainGLContext()->functions();
-        float *data = new float[9 * totalSum];
+        auto data = make_uninitialized_unique<float[]>(9*totalSum);
         queue.enqueueReadBuffer(
                 coordinatesBuffer,
                 CL_TRUE,
                 0,
                 sizeof(float) * 9 * totalSum,
-                data
+                data.get()
         );
 
         // Transfer CPU data to VBO
         fun->glBindBuffer(GL_ARRAY_BUFFER, *coordinatesVBO);
-        fun->glBufferData(GL_ARRAY_BUFFER, totalSum * 9 * sizeof(float), data, GL_STATIC_DRAW);
+        fun->glBufferData(GL_ARRAY_BUFFER, totalSum * 9 * sizeof(float), data.get(), GL_STATIC_DRAW);
 
         queue.enqueueReadBuffer(
                 normalBuffer,
                 CL_TRUE,
                 0,
                 sizeof(float) * 9 * totalSum,
-                data
+                data.get()
         );
 
         // Transfer CPU data to VBO
         fun->glBindBuffer(GL_ARRAY_BUFFER, *normalVBO);
-        fun->glBufferData(GL_ARRAY_BUFFER, totalSum * 9 * sizeof(float), data, GL_STATIC_DRAW);
+        fun->glBufferData(GL_ARRAY_BUFFER, totalSum * 9 * sizeof(float), data.get(), GL_STATIC_DRAW);
 
         fun->glBindBuffer(GL_ARRAY_BUFFER, 0);
         glFinish();
-
-        delete[] data;
 #else
         throw Exception("SurfaceExtraction algorithm is disabled since FAST module visualization is disabled");
 #endif

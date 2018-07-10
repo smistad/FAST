@@ -95,7 +95,7 @@ void PixelClassifier::execute() {
         }
     } else {
         Image::pointer output = Image::New();
-        uchar *data = new uchar[outputWidth * outputHeight];
+        auto data = make_uninitialized_unique<uchar[]>(outputWidth * outputHeight);
         for(int x = 0; x < outputWidth; ++x) {
             for (int y = 0; y < outputHeight; ++y) {
                 data[x + y * outputWidth] = 0;
@@ -108,8 +108,7 @@ void PixelClassifier::execute() {
                 }
             }
         }
-        output->create(outputWidth, outputHeight, TYPE_UINT8, 1, data);
-        delete[] data;
+        output->create(outputWidth, outputHeight, TYPE_UINT8, 1, std::move(data));
         output->setSpacing(mNewInputSpacing);
         SceneGraph::setParentNode(output, mImages.back());
         if(mResizeBackToOriginalSize) {
