@@ -45,9 +45,9 @@ void MeshOpenCLAccess::release() {
         delete mCoordinates;
         delete mLineBuffer;
         delete mTriangleBuffer;
-        mCoordinates = new cl::Buffer(); // assign a new blank object
-        mLineBuffer = new cl::Buffer(); // assign a new blank object
-        mTriangleBuffer = new cl::Buffer(); // assign a new blank object
+        mCoordinates = nullptr;
+        mLineBuffer = nullptr;
+        mTriangleBuffer = nullptr;
         mIsDeleted = true;
     }
     mMesh->accessFinished();

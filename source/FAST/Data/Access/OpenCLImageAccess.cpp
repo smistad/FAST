@@ -34,7 +34,7 @@ void OpenCLImageAccess::release() {
 	mImageObject->accessFinished();
     if(!mIsDeleted) {
         delete mImage;
-        mImage = new cl::Image3D(); // assign a new blank object
+        mImage = nullptr;
         mIsDeleted = true;
     }
 }

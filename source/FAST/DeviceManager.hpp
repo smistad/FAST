@@ -62,7 +62,7 @@ class FAST_EXPORT  DeviceManager : public Object {
                 std::vector<PlatformDevices> platformDevices,
                 DevicePreference preference,
                 std::vector<cl::Device> * sortedPlatformDevices,
-                int * platformScores);
+                std::vector<int>& platformScores);
         DevicePlatform getDevicePlatform(std::string platformVendor);
         std::string getDevicePlatform(DevicePlatform devicePlatform);
 

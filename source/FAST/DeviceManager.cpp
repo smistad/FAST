@@ -380,7 +380,7 @@ void DeviceManager::sortDevicesAccordingToPreference(
         std::vector<PlatformDevices> platformDevices,
         DevicePreference preference,
         std::vector<cl::Device> * sortedPlatformDevices,
-        int * platformScores) {
+        std::vector<int>& platformScores) {
     for (int i = 0; i < numberOfPlatforms; i++) {
         if (platformDevices[i].second.size() == 0)
             continue;
@@ -488,7 +488,7 @@ std::vector<cl::Device> DeviceManager::getDevicesForBestPlatform(
     }
 
     std::vector<cl::Device>* sortedPlatformDevices = new std::vector<cl::Device>[platformDevices.size()];
-    int* platformScores = new int[platformDevices.size()]();
+    std::vector<int> platformScores(platformDevices.size(), 0);
     if (deviceCriteria.getDevicePreference() == DEVICE_PREFERENCE_NONE) {
         for(int i = 0; i < platformDevices.size(); i++) {
             sortedPlatformDevices[i] = platformDevices[i].second;

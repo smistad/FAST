@@ -26,8 +26,8 @@ TEST_CASE("Import an image from VTK to FAST", "[fast][VTK][VTKImageImporter]") {
     DataPort::pointer port2 = vtkImporter->getOutputPort();
     vtkImporter->update(0);
 
-    Image::pointer importedImage = port2->getNextFrame();
-    Image::pointer fastImage = port->getNextFrame();
+    Image::pointer importedImage = port2->getNextFrame<Image>();
+    Image::pointer fastImage = port->getNextFrame<Image>();
 
     CHECK(importedImage->getWidth() == fastImage->getWidth());
     CHECK(importedImage->getHeight() == fastImage->getHeight());
@@ -126,7 +126,7 @@ TEST_CASE("Import a 2D image from VTK to FAST", "[fast][VTK][VTKImageImporter]")
         DataPort::pointer port = vtkImporter->getOutputPort();
         vtkImporter->update(0);
 
-        Image::pointer importedImage = port->getNextFrame();
+        Image::pointer importedImage = port->getNextFrame<Image>();
         ImageAccess::pointer access = importedImage->getImageAccess(ACCESS_READ);
 
         // Check that vtk image has correct data
