@@ -318,6 +318,7 @@ cl::Program OpenCLDevice::writeBinary(std::string filename, std::string buildOpt
         throw Exception("Could not write kernel binary to file: " + binaryFilename);
     fwrite(binaries[0], sizeof(char), (int)binarySizes[0], file);
     fclose(file);
+    delete[] binaries[0];
 
     // Write cache file
     FILE * cacheFile = fopen(cacheFilename.c_str(), "w");
