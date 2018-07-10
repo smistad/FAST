@@ -229,6 +229,20 @@ FAST_EXPORT bool isFile(const std::string& path);
  */
 FAST_EXPORT bool isDir(const std::string& path);
 
+/**
+ * Same as make_unique(std::size_t size), except this version will not
+ * value initialize the dynamic array. This is useful for large arrays.
+ * @tparam T
+ * @param size
+ * @return
+ */
+template <class T>
+std::unique_ptr<T> make_uninitialized_unique(std::size_t size) {
+    return std::unique_ptr<T>(new typename std::remove_extent<T>::type[size]);
+}
+
+
+
 } // end namespace fast
 
 #endif /* UTILITY_HPP_ */

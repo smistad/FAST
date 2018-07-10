@@ -37,8 +37,8 @@ std::vector<std::string> stringSplit(std::string str, std::string delimiter) {
 }
 
 template <class T>
-inline void * readRawData(std::string rawFilename, unsigned int width, unsigned int height, unsigned int depth, unsigned int nrOfComponents, bool compressed, std::size_t compressedFileSize) {
-    T * data = new T[width*height*depth*nrOfComponents];
+static unique_pixel_ptr readRawData(std::string rawFilename, unsigned int width, unsigned int height, unsigned int depth, unsigned int nrOfComponents, bool compressed, std::size_t compressedFileSize) {
+    auto data = make_unique_pixel(new T[width*height*depth*nrOfComponents]);
     if(compressed) {
         // Read compressed data
         std::ifstream file(rawFilename, std::ifstream::binary | std::ifstream::in);
@@ -56,7 +56,7 @@ inline void * readRawData(std::string rawFilename, unsigned int width, unsigned 
 
         unsigned long uncompressedSize = sizeof(T)*width*height*depth*nrOfComponents;
 		int z_result = uncompress(
-            (Bytef*)data,       // destination for the uncompressed
+            (Bytef*)data.get(),       // destination for the uncompressed
                                     // data.  This should be the size of
                                     // the original data, which you should
                                     // already know.
@@ -95,7 +95,7 @@ inline void * readRawData(std::string rawFilename, unsigned int width, unsigned 
         if(size != expectedSize)
             throw Exception("Unexpected file system when opening" + rawFilename + " expected: " + std::to_string(expectedSize) + " got: " + std::to_string(size));
 
-        file.read((char*)&data[0], size);
+        file.read((char*)data.get(), size);
         file.close();
     }
     return data;
@@ -323,7 +323,7 @@ void MetaImageImporter::execute() {
         throw Exception("Error reading the mhd file", __LINE__, __FILE__);
 
 
-    void * data;
+    unique_pixel_ptr data;
     DataType type;
     if(typeName == "MET_SHORT" || typeName == "MET_INT") {
         type = TYPE_INT16;
@@ -331,13 +331,14 @@ void MetaImageImporter::execute() {
             data = readRawData<short>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
         } else {
             reportWarning() << "Converting original dataset of type MET_INT (32 bit) to short (16 bit) overflow may occur." << reportEnd();
-            int* tmp = (int*)readRawData<int>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
-            short* tmp2 = new short[width*height*depth*nrOfComponents];
+            auto tmp = readRawData<int>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
+            unique_pixel_ptr tmp2 = make_unique_pixel(new short[width*height*depth*nrOfComponents]);
+            int* tmp_raw = (int*)tmp.get();
+            short* tmp2_raw = (short*)tmp2.get();
             for(int i = 0; i < width*height*depth*nrOfComponents; ++i)
-                tmp2[i] = (short)tmp[i];
+                tmp2_raw[i] = (short)tmp_raw[i];
 
-            data = tmp2;
-            delete[] tmp;
+            data = std::move(tmp2);
         }
     } else if(typeName == "MET_USHORT" || typeName == "MET_UINT") {
         type = TYPE_UINT16;
@@ -345,13 +346,14 @@ void MetaImageImporter::execute() {
             data = readRawData<unsigned short>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
         } else {
             reportWarning() << "Converting original dataset of type MET_UINT (32 bit) to unsigned short (16 bit) overflow may occur." << reportEnd();
-            unsigned int* tmp = (unsigned int*)readRawData<unsigned int>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
-            unsigned short* tmp2 = new unsigned short[width*height*depth*nrOfComponents];
+            unique_pixel_ptr tmp = readRawData<unsigned int>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
+            unique_pixel_ptr tmp2 = make_unique_pixel(new unsigned short[width*height*depth*nrOfComponents]);
+            unsigned int* tmp_raw = (unsigned int*)tmp.get();
+            unsigned short* tmp2_raw = (unsigned short*)tmp2.get();
             for(int i = 0; i < width*height*depth*nrOfComponents; ++i)
-                tmp2[i] = (unsigned short)tmp[i];
+                tmp2_raw[i] = (unsigned short)tmp_raw[i];
 
-            data = tmp2;
-            delete[] tmp;
+            data = std::move(tmp2);
         }
     } else if(typeName == "MET_CHAR") {
         type = TYPE_INT8;
@@ -364,11 +366,10 @@ void MetaImageImporter::execute() {
         data = readRawData<float>(rawFilename, width, height, depth, nrOfComponents, isCompressed, compressedDataSize);
     }
 
-    // TODO have a way to avoid a data copy here
     if(imageIs3D) {
-        output->create(width,height,depth,type,nrOfComponents,getMainDevice(),data);
+        output->create(width,height,depth,type,nrOfComponents,getMainDevice(),std::move(data));
     } else {
-        output->create(width,height,type,nrOfComponents,getMainDevice(),data);
+        output->create(width,height,type,nrOfComponents,getMainDevice(),std::move(data));
     }
 
     output->setSpacing(spacing);
@@ -379,14 +380,10 @@ void MetaImageImporter::execute() {
     output->setCreationTimestamp(timestamp);
 
     // Create transformation
-    
 	Affine3f matrix = Affine3f::Identity();
 	matrix.translation() = offset;
 	matrix.linear() = transformMatrix;
 	AffineTransformation::pointer T = AffineTransformation::New();
 	T->setTransform(matrix);
     output->getSceneGraphNode()->setTransformation(T);
-
-    // Clean up
-    deleteArray(data, type);
 }

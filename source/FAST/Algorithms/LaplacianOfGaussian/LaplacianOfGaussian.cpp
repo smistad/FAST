@@ -40,7 +40,6 @@ LaplacianOfGaussian::LaplacianOfGaussian() {
 }
 
 LaplacianOfGaussian::~LaplacianOfGaussian() {
-    delete[] mMask;
 }
 
 // TODO have to set mRecreateMask to true if input change dimension
@@ -53,7 +52,7 @@ void LaplacianOfGaussian::createMask(Image::pointer input) {
     float sum2 = 0.0f;
 
     if(input->getDimensions() == 2) {
-        mMask = new float[mMaskSize*mMaskSize];
+        mMask = std::make_unique<float[]>(mMaskSize*mMaskSize);
 
         for(int x = -halfSize; x <= halfSize; x++) {
         for(int y = -halfSize; y <= halfSize; y++) {
@@ -73,7 +72,7 @@ void LaplacianOfGaussian::createMask(Image::pointer input) {
             mMask[i] = mMask[i] - sum2/(mMaskSize*mMaskSize);
         }
     } else if(input->getDimensions() == 3) {
-
+        throw NotImplementedException();
     }
 
     ExecutionDevice::pointer device = getMainDevice();
@@ -84,7 +83,7 @@ void LaplacianOfGaussian::createMask(Image::pointer input) {
                 clDevice->getContext(),
                 CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                 sizeof(float)*bufferSize,
-                mMask
+                mMask.get()
         );
     }
 
@@ -213,7 +212,7 @@ void LaplacianOfGaussian::execute() {
 
     if(device->isHost()) {
         switch(input->getDataType()) {
-            fastSwitchTypeMacro(executeAlgorithmOnHost<FAST_TYPE>(input, output, mMask, mMaskSize));
+            fastSwitchTypeMacro(executeAlgorithmOnHost<FAST_TYPE>(input, output, mMask.get(), mMaskSize));
         }
     } else {
         OpenCLDevice::pointer clDevice = std::static_pointer_cast<OpenCLDevice>(device);

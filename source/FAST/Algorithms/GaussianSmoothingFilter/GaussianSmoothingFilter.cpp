@@ -45,7 +45,6 @@ GaussianSmoothingFilter::GaussianSmoothingFilter() {
 }
 
 GaussianSmoothingFilter::~GaussianSmoothingFilter() {
-    delete[] mMask;
 }
 
 // TODO have to set mRecreateMask to true if input change dimension
@@ -57,7 +56,7 @@ void GaussianSmoothingFilter::createMask(Image::pointer input, uchar maskSize, b
     float sum = 0.0f;
 
     if(input->getDimensions() == 2) {
-        mMask = new float[maskSize*maskSize];
+        mMask = std::make_unique<float[]>(maskSize*maskSize);
 
         for(int x = -halfSize; x <= halfSize; x++) {
         for(int y = -halfSize; y <= halfSize; y++) {
@@ -71,7 +70,7 @@ void GaussianSmoothingFilter::createMask(Image::pointer input, uchar maskSize, b
     } else if(input->getDimensions() == 3) {
         // Use separable filtering for 3D
         if(useSeperableFilter) {
-            mMask = new float[maskSize];
+            mMask = std::make_unique<float[]>(maskSize);
 
             for(int x = -halfSize; x <= halfSize; x++) {
                 float value = exp(-(float)(x*x)/(2.0f*mStdDev*mStdDev));
@@ -82,7 +81,7 @@ void GaussianSmoothingFilter::createMask(Image::pointer input, uchar maskSize, b
             for(int i = 0; i < maskSize; ++i)
                 mMask[i] /= sum;
         } else {
-            mMask = new float[maskSize*maskSize*maskSize];
+            mMask = std::make_unique<float[]>(maskSize*maskSize*maskSize);
 
             for(int x = -halfSize; x <= halfSize; x++) {
             for(int y = -halfSize; y <= halfSize; y++) {
@@ -110,7 +109,7 @@ void GaussianSmoothingFilter::createMask(Image::pointer input, uchar maskSize, b
                 clDevice->getContext(),
                 CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                 sizeof(float)*bufferSize,
-                mMask
+                mMask.get()
         );
     }
 
@@ -140,7 +139,7 @@ void GaussianSmoothingFilter::recompileOpenCLCode(Image::pointer input) {
 }
 
 template <class T>
-void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, float * mask, unsigned char maskSize) {
+void executeAlgorithmOnHost(Image::pointer input, Image::pointer output, const float* const mask, unsigned char maskSize) {
     // TODO: this method currently only processes the first component
     unsigned int nrOfComponents = input->getNrOfChannels();
     ImageAccess::pointer inputAccess = input->getImageAccess(ACCESS_READ);
@@ -223,7 +222,7 @@ void GaussianSmoothingFilter::execute() {
     if(device->isHost()) {
         createMask(input, maskSize, false);
         switch(input->getDataType()) {
-            fastSwitchTypeMacro(executeAlgorithmOnHost<FAST_TYPE>(input, output, mMask, maskSize));
+            fastSwitchTypeMacro(executeAlgorithmOnHost<FAST_TYPE>(input, output, mMask.get(), maskSize));
         }
     } else {
         OpenCLDevice::pointer clDevice = std::static_pointer_cast<OpenCLDevice>(device);

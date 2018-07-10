@@ -21,14 +21,14 @@ void ImageToImageNetwork::execute() {
     getAllRuntimes()->printAll();
 
     Image::pointer output = Image::New();
-    uchar *data = new uchar[outputWidth * outputHeight];
+    auto data = make_uninitialized_unique<char[]>(outputWidth * outputHeight);
     for (int x = 0; x < outputWidth; ++x) {
         for (int y = 0; y < outputHeight; ++y) {
             data[x + y * outputWidth] = (uchar)((tensor_mapped(0, y, x, 0)+1)*127);
         }
     }
-    output->create(outputWidth, outputHeight, TYPE_UINT8, 1, data);
-    delete[] data;
+    output->create(outputWidth, outputHeight, TYPE_UINT8, 1, (void*)data.get());
+
     ImageResizer::pointer resizer = ImageResizer::New();
     resizer->setInputData(output);
     resizer->setWidth(mImages.back()->getWidth());

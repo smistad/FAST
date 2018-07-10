@@ -8,6 +8,15 @@
 
 namespace fast {
 
+unique_pixel_ptr allocatePixelArray(std::size_t size, DataType type) {
+    unique_pixel_ptr ptr;
+    switch(type) {
+        fastSwitchTypeMacro(ptr = make_unique_pixel<FAST_TYPE>(new FAST_TYPE[size]))
+    }
+
+    return ptr;
+}
+
 // Pad data with 1, 2 or 3 channels to 4 channels with 0
 template <class T>
 void * padData(T * data, unsigned int size, unsigned int nrOfChannels) {
@@ -59,14 +68,14 @@ void * removePadding(T * data, unsigned int size, unsigned int nrOfChannels) {
     return (void *)newData;
 }
 
-void * adaptImageDataToHostData(void * data, cl_channel_order order, unsigned int size, DataType type, unsigned int nrOfChannels) {
+unique_pixel_ptr adaptImageDataToHostData(unique_pixel_ptr data, cl_channel_order order, unsigned int size, DataType type, unsigned int nrOfChannels) {
     // Because no OpenCL images support 3 channels,
     // the data has to be padded to 4 channels if the nr of channels is 3.
     // Also, not all CL platforms support CL_R and CL_RG images
     // This function removes that padding
     if(order == CL_RGBA && nrOfChannels != 4) {
         switch(type) {
-            fastSwitchTypeMacro(return removePadding<FAST_TYPE>((FAST_TYPE*)data, size, nrOfChannels))
+            fastSwitchTypeMacro(return unique_pixel_ptr(removePadding<FAST_TYPE>((FAST_TYPE*)data.get(), size, nrOfChannels), &pixel_deleter<FAST_TYPE>))
         }
     }
 
@@ -81,7 +90,7 @@ void Image::transferCLImageFromHost(OpenCLDevice::pointer device) {
 	// And if the device does not support 1 or 2 channels
     cl::ImageFormat format = getOpenCLImageFormat(device, mDimensions == 2 ? CL_MEM_OBJECT_IMAGE2D : CL_MEM_OBJECT_IMAGE3D, mType, mChannels);
     if(format.image_channel_order == CL_RGBA && mChannels != 4) {
-        void * tempData = adaptDataToImage(mHostData, CL_RGBA, mWidth*mHeight*mDepth, mType, mChannels);
+        void * tempData = adaptDataToImage(mHostData.get(), CL_RGBA, mWidth*mHeight*mDepth, mType, mChannels);
         device->getCommandQueue().enqueueWriteImage(*(cl::Image*)mCLImages[device],
         CL_TRUE, createOrigoRegion(), createRegion(mWidth, mHeight, mDepth), 0,
                 0, tempData);
@@ -89,7 +98,7 @@ void Image::transferCLImageFromHost(OpenCLDevice::pointer device) {
     } else {
         device->getCommandQueue().enqueueWriteImage(*(cl::Image*)mCLImages[device],
         CL_TRUE, createOrigoRegion(), createRegion(mWidth, mHeight, mDepth), 0,
-                0, mHostData);
+                0, mHostData.get());
     }
 }
 
@@ -98,21 +107,20 @@ void Image::transferCLImageToHost(OpenCLDevice::pointer device) {
 	// And if the device does not support 1 or 2 channels
     cl::ImageFormat format = getOpenCLImageFormat(device, mDimensions == 2 ? CL_MEM_OBJECT_IMAGE2D : CL_MEM_OBJECT_IMAGE3D, mType, mChannels);
     if(format.image_channel_order == CL_RGBA && mChannels != 4) {
-        void * tempData = allocateDataArray(mWidth*mHeight*mDepth,mType,4);
+        auto tempData = allocatePixelArray(mWidth*mHeight*mDepth*4, mType);
         device->getCommandQueue().enqueueReadImage(*(cl::Image*)mCLImages[device],
         CL_TRUE, createOrigoRegion(), createRegion(mWidth, mHeight, mDepth), 0,
-                0, tempData);
-        mHostData = adaptImageDataToHostData(tempData,CL_RGBA, mWidth*mHeight*mDepth,mType,mChannels);
-        deleteArray(tempData, mType);
+                0, tempData.get());
+        mHostData = adaptImageDataToHostData(std::move(tempData), CL_RGBA, mWidth*mHeight*mDepth,mType,mChannels);
     } else {
         if(!mHostHasData) {
             // Must allocate memory for host data
-            mHostData = allocateDataArray(mWidth*mHeight*mDepth,mType,mChannels);
+            mHostData = allocatePixelArray(mWidth*mHeight*mDepth*mChannels,mType);
 			mHostHasData = true;
         }
         device->getCommandQueue().enqueueReadImage(*(cl::Image*)mCLImages[device],
         CL_TRUE, createOrigoRegion(), createRegion(mWidth, mHeight, mDepth), 0,
-                0, mHostData);
+                0, mHostData.get());
     }
 }
 
@@ -295,18 +303,18 @@ void Image::updateOpenCLBufferData(OpenCLDevice::pointer device) {
 void Image::transferCLBufferFromHost(OpenCLDevice::pointer device) {
     unsigned int bufferSize = getBufferSize();
     device->getCommandQueue().enqueueWriteBuffer(*mCLBuffers[device],
-        CL_TRUE, 0, bufferSize, mHostData);
+        CL_TRUE, 0, bufferSize, mHostData.get());
 }
 
 void Image::transferCLBufferToHost(OpenCLDevice::pointer device) {
 	if (!mHostHasData) {
 		// Must allocate memory for host data
-		mHostData = allocateDataArray(mWidth*mHeight*mDepth, mType, mChannels);
+		mHostData = allocatePixelArray(mWidth*mHeight*mDepth*mChannels, mType);
 		mHostHasData = true;
 	}
     unsigned int bufferSize = getBufferSize();
     device->getCommandQueue().enqueueReadBuffer(*mCLBuffers[device],
-        CL_TRUE, 0, bufferSize, mHostData);
+        CL_TRUE, 0, bufferSize, mHostData.get());
 }
 
 void Image::updateHostData() {
@@ -320,7 +328,7 @@ void Image::updateHostData() {
         unsigned int size = mWidth*mHeight*mChannels;
         if(mDimensions == 3)
             size *= mDepth;
-        mHostData = allocateDataArray(mWidth*mHeight*mDepth,mType,mChannels);
+        mHostData = allocatePixelArray(mWidth*mHeight*mDepth*mChannels,mType);
         if(hasAnyData()) {
             mHostDataIsUpToDate = false;
         } else {
@@ -405,7 +413,6 @@ OpenCLImageAccess::pointer Image::getOpenCLImageAccess(
 }
 
 Image::Image() {
-    mHostData = NULL;
     mHostHasData = false;
     mHostDataIsUpToDate = false;
     mSpacing = Vector3f(1,1,1);
@@ -436,7 +443,7 @@ ImageAccess::pointer Image::getImageAccess(accessType type) {
         mDataIsBeingAccessed = true;
     }
 
-	ImageAccess::pointer accessObject(new ImageAccess(mHostData, std::static_pointer_cast<Image>(mPtr.lock())));
+	ImageAccess::pointer accessObject(new ImageAccess(mHostData.get(), std::static_pointer_cast<Image>(mPtr.lock())));
 	return std::move(accessObject);
 }
 
@@ -459,7 +466,7 @@ void Image::create(
         DataType type,
         unsigned int nrOfChannels,
         ExecutionDevice::pointer device,
-        const void* data) {
+        const void* const data) {
 
     if(size.rows() > 2 && size.z() > 1) {
         // 3D
@@ -474,7 +481,7 @@ void Image::create(
         VectorXui size,
         DataType type,
         unsigned int nrOfChannels,
-        const void* data) {
+        const void* const data) {
 
     if(size.rows() > 2 && size.z() > 1) {
         // 3D
@@ -507,6 +514,7 @@ void Image::create(
     mIsInitialized = true;
 }
 
+
 void Image::create(
         unsigned int width,
         unsigned int height,
@@ -514,21 +522,13 @@ void Image::create(
         DataType type,
         unsigned int nrOfChannels,
         ExecutionDevice::pointer device,
-        const void* data) {
+        const void* const data) {
 
-    getSceneGraphNode()->reset(); // reset scene graph node
-    freeAll(); // delete any old data
+    create(width, height, depth, type, nrOfChannels);
 
-    mWidth = width;
-    mHeight = height;
-    mDepth = depth;
-    mBoundingBox = BoundingBox(Vector3f(width, height, depth));
-    mDimensions = 3;
-    mType = type;
-    mChannels = nrOfChannels;
     if(device->isHost()) {
-        mHostData = allocateDataArray(width*height*depth, type, nrOfChannels);
-        memcpy(mHostData, data, getSizeOfDataType(type, nrOfChannels)*width*height*depth);
+        mHostData = allocatePixelArray(width*height*depth*nrOfChannels, type);
+        memcpy(mHostData.get(), data, getSizeOfDataType(type, nrOfChannels)*width*height*depth);
         mHostHasData = true;
         mHostDataIsUpToDate = true;
     } else {
@@ -559,7 +559,7 @@ void Image::create(
         unsigned int depth,
         DataType type,
         unsigned int nrOfChannels,
-        const void* data) {
+        const void* const data) {
 
 	create(width, height, depth, type, nrOfChannels, DeviceManager::getInstance()->getDefaultComputationDevice(), data);
 }
@@ -584,30 +584,19 @@ void Image::create(
     mIsInitialized = true;
 }
 
-
-
-
 void Image::create(
         unsigned int width,
         unsigned int height,
         DataType type,
         unsigned int nrOfChannels,
         ExecutionDevice::pointer device,
-        const void* data) {
+        const void* const data) {
 
-    getSceneGraphNode()->reset(); // reset scene graph node
-    freeAll(); // delete any old data
+    create(width, height, type, nrOfChannels);
 
-    mWidth = width;
-    mHeight = height;
-    mDepth = 1;
-    mBoundingBox = BoundingBox(Vector3f(width, height, 0));
-    mDimensions = 2;
-    mType = type;
-    mChannels = nrOfChannels;
     if(device->isHost()) {
-        mHostData = allocateDataArray(width*height, type, nrOfChannels);
-        memcpy(mHostData, data, getSizeOfDataType(type, nrOfChannels) * width * height);
+        mHostData = allocatePixelArray(width*height*nrOfChannels, type);
+        memcpy(mHostData.get(), data, getSizeOfDataType(type, nrOfChannels) * width * height);
         mHostHasData = true;
         mHostDataIsUpToDate = true;
     } else {
@@ -637,9 +626,74 @@ void Image::create(
         unsigned int height,
         DataType type,
         unsigned int nrOfChannels,
-        const void* data) {
+        const void* const data) {
 
 	create(width, height, type, nrOfChannels, DeviceManager::getInstance()->getDefaultComputationDevice(), data);
+}
+
+
+void Image::create(uint width, uint height, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, unique_pixel_ptr data) {
+    create(width, height, type, nrOfChannels);
+
+    if(device->isHost()) {
+        mHostData = std::move(data);
+        mHostHasData = true;
+        mHostDataIsUpToDate = true;
+    } else {
+        OpenCLDevice::pointer clDevice = std::static_pointer_cast<OpenCLDevice>(device);
+        cl::Image2D* clImage;
+        void * tempData = adaptDataToImage(data.release(), getOpenCLImageFormat(clDevice, CL_MEM_OBJECT_IMAGE2D, type, nrOfChannels).image_channel_order, width*height, type, nrOfChannels);
+        clImage = new cl::Image2D(
+            clDevice->getContext(),
+            CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+            getOpenCLImageFormat(clDevice, CL_MEM_OBJECT_IMAGE2D, type, nrOfChannels),
+            width, height,
+            0,
+            tempData
+        );
+        deleteArray(tempData, type);
+        mCLImages[clDevice] = clImage;
+        mCLImagesIsUpToDate[clDevice] = true;
+    }
+    updateModifiedTimestamp();
+    mIsInitialized = true;
+}
+
+
+void Image::create(uint width, uint height, uint depth, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, unique_pixel_ptr data) {
+    create(width, height, depth, type, nrOfChannels);
+
+    if(device->isHost()) {
+        mHostData = std::move(data);
+        mHostHasData = true;
+        mHostDataIsUpToDate = true;
+    } else {
+        OpenCLDevice::pointer clDevice = std::static_pointer_cast<OpenCLDevice>(device);
+        cl::Image3D* clImage;
+        void * tempData = adaptDataToImage(data.release(), getOpenCLImageFormat(clDevice, CL_MEM_OBJECT_IMAGE3D, type, nrOfChannels).image_channel_order, width*height*depth, type, nrOfChannels);
+        clImage = new cl::Image3D(
+            clDevice->getContext(),
+            CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+            getOpenCLImageFormat(clDevice, CL_MEM_OBJECT_IMAGE3D, type, nrOfChannels),
+            width, height, depth,
+            0, 0,
+            tempData
+        );
+        deleteArray(tempData, type);
+        mCLImages[clDevice] = clImage;
+        mCLImagesIsUpToDate[clDevice] = true;
+    }
+    updateModifiedTimestamp();
+    mIsInitialized = true;
+}
+
+
+void Image::create(uint width, uint height, DataType type, uint nrOfChannels, unique_pixel_ptr data) {
+    create(width, height, type, nrOfChannels, DeviceManager::getInstance()->getDefaultComputationDevice(), std::move(data));
+}
+
+void Image::create(uint width, uint height, uint depth, DataType type, uint nrOfChannels, unique_pixel_ptr data) {
+    create(width, height, depth, type, nrOfChannels, DeviceManager::getInstance()->getDefaultComputationDevice(), std::move(data));
 }
 
 bool Image::isInitialized() const {
@@ -649,7 +703,7 @@ bool Image::isInitialized() const {
 void Image::free(ExecutionDevice::pointer device) {
     // Delete data on a specific device
     if(device->isHost()) {
-        deleteArray(mHostData, mType);
+        mHostData.reset();
         mHostHasData = false;
     } else {
         OpenCLDevice::pointer clDevice = std::static_pointer_cast<OpenCLDevice>(device);

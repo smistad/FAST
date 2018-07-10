@@ -25,7 +25,7 @@ class FAST_EXPORT  GaussianSmoothingFilter : public ProcessObject {
         float mStdDev;
 
         cl::Buffer mCLMask;
-        float * mMask;
+        std::unique_ptr<float[]> mMask;
         bool mRecreateMask;
 
         cl::Kernel mKernel;

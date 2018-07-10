@@ -12,19 +12,168 @@
 
 namespace fast {
 
+using pixel_deleter_t = std::function<void(void *)>;
+using unique_pixel_ptr = std::unique_ptr<void, pixel_deleter_t>;
+template<typename T>
+auto pixel_deleter(void const * data) -> void
+{
+    T const * p = static_cast<T const*>(data);
+    //std::cout << "[" << (uint64_t)p <<  "] is being deleted." << std::endl;
+    delete[] p;
+}
+
+template<typename T>
+auto make_unique_pixel(T * ptr) -> unique_pixel_ptr {
+    return unique_pixel_ptr(ptr, &pixel_deleter<T>);
+}
+unique_pixel_ptr allocatePixelArray(std::size_t size, DataType type);
+
 class FAST_EXPORT  Image : public SpatialDataObject {
     FAST_OBJECT(Image)
     public:
+        /**
+         * Setup an image object with the same size, data type and pixel spacing as the given image.
+         * Does not allocate any memory.
+         *
+         * @param image to copy size and pixel spacing from
+         */
         void createFromImage(Image::pointer image);
+        /**
+         * Setup a 2D/3D image object, but does not allocate any memory
+         *
+         * @param size
+         * @param type
+         * @param nrOfChannels
+         */
         void create(VectorXui size, DataType type, uint nrOfChannels);
+        /**
+         * Setup a 2D image object, but does not allocate any memory
+         *
+         * @param width
+         * @param height
+         * @param type
+         * @param nrOfChannels
+         */
         void create(uint width, uint height, DataType type, uint nrOfChannels);
+        /**
+         * Setup a 3D image object, but does not allocate any memory.
+         *
+         * @param width
+         * @param height
+         * @param depth
+         * @param type
+         * @param nrOfChannels
+         */
         void create(uint width, uint height, uint depth, DataType type, uint nrOfChannels);
-        void create(VectorXui size, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, const void * data);
-        void create(uint width, uint height, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, const void * data);
-        void create(uint width, uint height, uint depth, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, const void * data);
-        void create(VectorXui size, DataType type, uint nrOfChannels, const void * data);
-        void create(uint width, uint height, DataType type, uint nrOfChannels, const void * data);
-        void create(uint width, uint height, uint depth, DataType type, uint nrOfChannels, const void * data);
+        /**
+         * Copies 2D/3D data to given device
+         *
+         * @param size
+         * @param type
+         * @param nrOfChannels
+         * @param device
+         * @param data
+         */
+        void create(VectorXui size, DataType type, uint nrOfChannels, ExecutionDevice::pointer device,
+                    const void *const data);
+        /**
+         * Copies 2D data to given device
+         *
+         * @param width
+         * @param height
+         * @param type
+         * @param nrOfChannels
+         * @param device
+         * @param data
+         */
+        void create(uint width, uint height, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, const void * const data);
+        /**
+         * Copies 3D data to given device
+         *
+         * @param width
+         * @param height
+         * @param depth
+         * @param type
+         * @param nrOfChannels
+         * @param device
+         * @param data
+         */
+        void create(uint width, uint height, uint depth, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, const void * const data);
+        /**
+         * Copies 2D/3D data to default device
+         *
+         * @param size
+         * @param type
+         * @param nrOfChannels
+         * @param data
+         */
+        void create(VectorXui size, DataType type, uint nrOfChannels, const void* const data);
+        /**
+         * Copies 2D data to default device
+         *
+         * @param width
+         * @param height
+         * @param type
+         * @param nrOfChannels
+         * @param data
+         */
+        void create(uint width, uint height, DataType type, uint nrOfChannels, const void* const data);
+        /**
+         * Copies 3D data to default device
+         *
+         * @param width
+         * @param height
+         * @param depth
+         * @param type
+         * @param nrOfChannels
+         * @param data
+         */
+        void create(uint width, uint height, uint depth, DataType type, uint nrOfChannels, const void* const data);
+
+        /**
+         * Moves the 2D data pointer to the given device
+         *
+         * @param width
+         * @param height
+         * @param type
+         * @param nrOfChannels
+         * @param device
+         * @param data
+         */
+        void create(uint width, uint height, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, unique_pixel_ptr data);
+        /**
+         * Moves the 3D pointer to the given device
+         *
+         * @param width
+         * @param height
+         * @param depth
+         * @param type
+         * @param nrOfChannels
+         * @param device
+         * @param data
+         */
+        void create(uint width, uint height, uint depth, DataType type, uint nrOfChannels, ExecutionDevice::pointer device, unique_pixel_ptr data);
+        /**
+         * Moves the 2D data pointer to the default device
+         *
+         * @param width
+         * @param height
+         * @param type
+         * @param nrOfChannels
+         * @param data
+         */
+        void create(uint width, uint height, DataType type, uint nrOfChannels, unique_pixel_ptr data);
+        /**
+         * Moves the 3D data pointer to the default device
+         *
+         * @param width
+         * @param height
+         * @param depth
+         * @param type
+         * @param nrOfChannels
+         * @param data
+         */
+        void create(uint width, uint height, uint depth, DataType type, uint nrOfChannels, unique_pixel_ptr data);
 
         OpenCLImageAccess::pointer getOpenCLImageAccess(accessType type, OpenCLDevice::pointer);
         OpenCLBufferAccess::pointer getOpenCLBufferAccess(accessType type, OpenCLDevice::pointer);
@@ -47,21 +196,28 @@ class FAST_EXPORT  Image : public SpatialDataObject {
         float calculateMinimumIntensity();
         float calculateAverageIntensity();
 
-        // Copy image and put contents to specific device
+        /**
+         * Copy image and put contents to specific device
+         */
         Image::pointer copy(ExecutionDevice::pointer device);
 
-        // Create a new image which is a cropped version of this image
+        /**
+         * Create a new image which is a cropped version of this image
+         */
         Image::pointer crop(VectorXi offset, VectorXi size, bool allowOutOfBoundsCropping = false);
 
-        // Fill entire image with a value
+        /**
+         * Fill entire image with a value
+         * @param value
+         */
         void fill(float value);
 
         // Override
         BoundingBox getTransformedBoundingBox() const override;
         BoundingBox getBoundingBox() const override;
 
-        void free(ExecutionDevice::pointer device);
-        void freeAll();
+        void free(ExecutionDevice::pointer device) override;
+        void freeAll() override;
     protected:
         Image();
 
@@ -76,7 +232,7 @@ class FAST_EXPORT  Image : public SpatialDataObject {
         std::unordered_map<OpenCLDevice::pointer, bool> mCLBuffersIsUpToDate;
 
         // Host data
-        void * mHostData;
+        unique_pixel_ptr mHostData;
         bool mHostHasData;
         bool mHostDataIsUpToDate;
 

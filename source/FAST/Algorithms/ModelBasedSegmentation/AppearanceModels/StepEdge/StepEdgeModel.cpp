@@ -26,7 +26,7 @@ inline DetectedEdge findEdge(
         std::vector<float> intensityProfile, const float intensityThreshold, StepEdgeModel::EdgeType type) {
     // Pre calculate partial sum
     const int size = intensityProfile.size();
-    std::unique_ptr<float[]> sum_k(new float[size]());
+    std::vector<float> sum_k(size);
     float totalSum = 0.0f;
     for(int k = 0; k < size; ++k) {
         if(k == 0) {

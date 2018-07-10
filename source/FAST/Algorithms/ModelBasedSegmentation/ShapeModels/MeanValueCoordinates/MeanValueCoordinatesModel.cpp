@@ -30,7 +30,7 @@ std::vector<MeshVertex> MeanValueCoordinatesModel::getDeformedVertices(
     std::vector<MeshVertex> newVertices;
 
     // Deform these vertices using the weights and displacement vector
-    Vector3f* controlNodes = new Vector3f[nodes.size()];
+    auto controlNodes = make_uninitialized_unique<Vector3f[]>(nodes.size());
     // TODO this loop could be run in parallel
     for(int i = 0; i < nodes.size(); i++) {
         controlNodes[i] = (nodes[i].getPosition() + displacements[i]);
@@ -44,7 +44,6 @@ std::vector<MeshVertex> MeanValueCoordinatesModel::getDeformedVertices(
         MeshVertex v(newVertex);
         newVertices.push_back(v);
     }
-    delete[] controlNodes;
 
     // Calculate new normals
     // TODO this loop could be run in parallel
@@ -172,16 +171,16 @@ void MeanValueCoordinatesModel::loadMeshes(Mesh::pointer surfaceMesh,
     }
 
     // Allocate memory for the weights
-    mNormalizedWeights = std::unique_ptr<float[]>(new float[vertices.size()*(mControlMesh->getNrOfTriangles()*3)]());
-    mNormalizedWeightsPerNode = std::unique_ptr<float[]>(new float[vertices.size()*mControlMesh->getNrOfVertices()]);
+    mNormalizedWeights = std::make_unique<float[]>(vertices.size()*mControlMesh->getNrOfTriangles()*3);
+    mNormalizedWeightsPerNode = make_uninitialized_unique<float[]>(vertices.size()*mControlMesh->getNrOfVertices());
 
     mCentroid = Vector3f::Zero();
+    auto distances = make_uninitialized_unique<float[]>(nodes.size());
+    auto u = make_uninitialized_unique<Vector3f[]>(nodes.size());
     for(int vertexNr = 0; vertexNr < vertices.size(); vertexNr++) {
         MeshVertex x = vertices[vertexNr];
         mCentroid += x.getPosition();
         float totalWeight = 0.0f; // Total weight for this vertex
-        float * distances = new float[nodes.size()];
-        Vector3f* u = new Vector3f[nodes.size()];
         for(int j = 0; j < nodes.size(); j++) {
             distances[j] = (x.getPosition()-nodes[j].getPosition()).norm();
             Vector3f newPos = (nodes[j].getPosition() - x.getPosition()) / distances[j];
@@ -249,8 +248,6 @@ void MeanValueCoordinatesModel::loadMeshes(Mesh::pointer surfaceMesh,
             setNormalizedWeight(vertexNr, t, 2, weight3);
             totalWeight += weight1 + weight2 + weight3;
         } // for each triangle
-        delete[] distances;
-        delete[] u;
 
         // Normalize the weight using totalWeight
         for(int t = 0; t < mControlMesh->getNrOfTriangles(); t++) {
