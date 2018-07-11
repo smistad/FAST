@@ -15,18 +15,18 @@ class ProcessObject;
 
 class FAST_EXPORT DataPort {
     public:
-        explicit DataPort(std::shared_ptr<ProcessObject> processObject);
+        explicit DataPort(SharedPointer<ProcessObject> processObject);
 
         void addFrame(DataObject::pointer data);
 
         template <class T = DataObject>
-        std::shared_ptr<T> getNextFrame();
+        SharedPointer<T> getNextFrame();
 
         void setTimestep(uint64_t timestep);
 
         void setStreamingMode(StreamingMode mode);
 
-        std::shared_ptr<ProcessObject> getProcessObject() const;
+        SharedPointer<ProcessObject> getProcessObject() const;
 
         uint64_t getFrameCounter() const;
 
@@ -50,14 +50,14 @@ class FAST_EXPORT DataPort {
 
         bool hasCurrentData();
 
-        typedef std::shared_ptr<DataPort> pointer;
+        typedef SharedPointer<DataPort> pointer;
 
         DataObject::pointer getFrame(uint64_t timestep);
     private:
         /**
          * The process object which produce data for this port
          */
-        std::shared_ptr<ProcessObject> mProcessObject;
+        SharedPointer<ProcessObject> mProcessObject;
         std::unordered_map<uint64_t, DataObject::pointer> mFrames;
         uint64_t mFrameCounter = 0;
         uint64_t mCurrentTimestep = 0;
@@ -80,10 +80,10 @@ class FAST_EXPORT DataPort {
 
 // Template specialization when T = DataObject
 template <>
-std::shared_ptr<DataObject> DataPort::getNextFrame<DataObject>();
+SharedPointer<DataObject> DataPort::getNextFrame<DataObject>();
 
 template <class T>
-std::shared_ptr<T> DataPort::getNextFrame() {
+SharedPointer<T> DataPort::getNextFrame() {
     auto data = getNextDataFrame();
     auto convertedData = std::dynamic_pointer_cast<T>(data);
     // Check if the conversion went ok

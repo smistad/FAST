@@ -26,9 +26,9 @@ class FAST_EXPORT  EulerGradientVectorFlow : public ProcessObject {
     private:
         EulerGradientVectorFlow();
         void execute();
-        void execute2DGVF(std::shared_ptr<Image> input, std::shared_ptr<Image> output, uint iterations);
-        void execute3DGVF(std::shared_ptr<Image> input, std::shared_ptr<Image> output, uint iterations);
-        void execute3DGVFNo3DWrite(std::shared_ptr<Image> input, std::shared_ptr<Image> output, uint iterations);
+        void execute2DGVF(SharedPointer<Image> input, SharedPointer<Image> output, uint iterations);
+        void execute3DGVF(SharedPointer<Image> input, SharedPointer<Image> output, uint iterations);
+        void execute3DGVFNo3DWrite(SharedPointer<Image> input, SharedPointer<Image> output, uint iterations);
 
         float mMu;
         uint mIterations;

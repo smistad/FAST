@@ -7,7 +7,7 @@ namespace fast {
 %nodefaultctor MeanValueCoordinatesModel;
 class MeanValueCoordinatesModel : public ShapeModel {
 	public:
-		static std::shared_ptr<MeanValueCoordinatesModel> New();
+		static SharedPointer<MeanValueCoordinatesModel> New();
 		void loadMeshes(std::string surfaceMeshFilename, std::string controlMeshFilename);
 		void initializeShapeToImageCenter();
 		void setInitialScaling(float x, float y, float z);
@@ -16,6 +16,6 @@ class MeanValueCoordinatesModel : public ShapeModel {
 		void setGlobalProcessError(float error);
 };
 
-%template(MeanValueCoordinatesModelPtr) std::shared_ptr<MeanValueCoordinatesModel>;
+%template(MeanValueCoordinatesModelPtr) SharedPointer<MeanValueCoordinatesModel>;
 
 }

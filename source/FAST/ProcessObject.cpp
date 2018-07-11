@@ -307,14 +307,14 @@ cl::Program ProcessObject::getOpenCLProgram(
 ProcessObject::~ProcessObject() {
 }
 
-void ProcessObject::setAttributes(std::vector<std::shared_ptr<Attribute>> attributes) {
-    for(std::shared_ptr<Attribute> attribute : attributes) {
+void ProcessObject::setAttributes(std::vector<SharedPointer<Attribute>> attributes) {
+    for(SharedPointer<Attribute> attribute : attributes) {
         std::string name = attribute->getName();
         if(mAttributes.count(name) == 0) {
             throw Exception("Attribute " + name + " not found for process object " + getNameOfClass());
         }
 
-        std::shared_ptr<Attribute> localAttribute = mAttributes.at(name);
+        SharedPointer<Attribute> localAttribute = mAttributes.at(name);
         if(localAttribute->getType() != attribute->getType())
             throw Exception("Attribute " + name + " for process object " + getNameOfClass() + " had different type then the one loaded.");
 
@@ -327,34 +327,34 @@ void ProcessObject::loadAttributes() {
 }
 
 void ProcessObject::createFloatAttribute(std::string id, std::string name, std::string description, float initialValue) {
-    std::shared_ptr<Attribute> attribute = std::make_shared<Attribute>(id, name, description, ATTRIBUTE_TYPE_FLOAT);
-    std::shared_ptr<AttributeValue> value = std::make_shared<AttributeValueFloat>(initialValue);
+    SharedPointer<Attribute> attribute = std::make_shared<Attribute>(id, name, description, ATTRIBUTE_TYPE_FLOAT);
+    SharedPointer<AttributeValue> value = std::make_shared<AttributeValueFloat>(initialValue);
     attribute->setValue(value);
     mAttributes[id] = attribute;
 }
 
 void ProcessObject::createIntegerAttribute(std::string id, std::string name, std::string description, int initialValue) {
-    std::shared_ptr<Attribute> attribute = std::make_shared<Attribute>(id, name, description, ATTRIBUTE_TYPE_INTEGER);
-    std::shared_ptr<AttributeValue> value = std::make_shared<AttributeValueInteger>(initialValue);
+    SharedPointer<Attribute> attribute = std::make_shared<Attribute>(id, name, description, ATTRIBUTE_TYPE_INTEGER);
+    SharedPointer<AttributeValue> value = std::make_shared<AttributeValueInteger>(initialValue);
     attribute->setValue(value);
     mAttributes[id] = attribute;
 }
 
 void ProcessObject::createBooleanAttribute(std::string id, std::string name, std::string description, bool initialValue) {
-    std::shared_ptr<Attribute> attribute = std::make_shared<Attribute>(id, name, description, ATTRIBUTE_TYPE_BOOLEAN);
-    std::shared_ptr<AttributeValue> value = std::make_shared<AttributeValueBoolean>(initialValue);
+    SharedPointer<Attribute> attribute = std::make_shared<Attribute>(id, name, description, ATTRIBUTE_TYPE_BOOLEAN);
+    SharedPointer<AttributeValue> value = std::make_shared<AttributeValueBoolean>(initialValue);
     attribute->setValue(value);
     mAttributes[id] = attribute;
 }
 
 void ProcessObject::createStringAttribute(std::string id, std::string name, std::string description, std::string initialValue) {
-    std::shared_ptr<Attribute> attribute = std::make_shared<Attribute>(id, name, description, ATTRIBUTE_TYPE_STRING);
-    std::shared_ptr<AttributeValue> value = std::make_shared<AttributeValueString>(initialValue);
+    SharedPointer<Attribute> attribute = std::make_shared<Attribute>(id, name, description, ATTRIBUTE_TYPE_STRING);
+    SharedPointer<AttributeValue> value = std::make_shared<AttributeValueString>(initialValue);
     attribute->setValue(value);
     mAttributes[id] = attribute;
 }
 
-std::shared_ptr<Attribute> ProcessObject::getAttribute(std::string id) {
+SharedPointer<Attribute> ProcessObject::getAttribute(std::string id) {
     if(mAttributes.count(id) == 0)
         throw Exception("Attribute " + id + " not found for process object " + getNameOfClass() +
                                 ". Did you forget to define it in the constructor?");
@@ -367,7 +367,7 @@ float ProcessObject::getFloatAttribute(std::string id) {
     if(attribute->getType() != ATTRIBUTE_TYPE_FLOAT)
         throw Exception("Attribute " + id + " is not of type float in process object " + getNameOfClass());
 
-    std::shared_ptr<AttributeValueFloat> value = std::dynamic_pointer_cast<AttributeValueFloat>(attribute->getValue());
+    SharedPointer<AttributeValueFloat> value = std::dynamic_pointer_cast<AttributeValueFloat>(attribute->getValue());
     return value->get();
 }
 
@@ -376,7 +376,7 @@ std::vector<float> ProcessObject::getFloatListAttribute(std::string id) {
     if(attribute->getType() != ATTRIBUTE_TYPE_FLOAT)
         throw Exception("Attribute " + id + " is not of type float in process object " + getNameOfClass());
 
-    std::vector<std::shared_ptr<AttributeValue>> values = attribute->getValues();
+    std::vector<SharedPointer<AttributeValue>> values = attribute->getValues();
     std::vector<float> list;
     for(auto &&value : values) {
         auto floatValue = std::dynamic_pointer_cast<AttributeValueFloat>(value);
@@ -390,7 +390,7 @@ int ProcessObject::getIntegerAttribute(std::string id) {
     if(attribute->getType() != ATTRIBUTE_TYPE_INTEGER)
         throw Exception("Attribute " + id + " is not of type integer in process object " + getNameOfClass());
 
-    std::shared_ptr<AttributeValueInteger> value = std::dynamic_pointer_cast<AttributeValueInteger>(attribute->getValue());
+    SharedPointer<AttributeValueInteger> value = std::dynamic_pointer_cast<AttributeValueInteger>(attribute->getValue());
     return value->get();
 }
 
@@ -399,7 +399,7 @@ std::vector<int> ProcessObject::getIntegerListAttribute(std::string id) {
     if(attribute->getType() != ATTRIBUTE_TYPE_INTEGER)
         throw Exception("Attribute " + id + " is not of type integer in process object " + getNameOfClass());
 
-    std::vector<std::shared_ptr<AttributeValue>> values = attribute->getValues();
+    std::vector<SharedPointer<AttributeValue>> values = attribute->getValues();
     std::vector<int> list;
     for(auto &&value : values) {
         auto floatValue = std::dynamic_pointer_cast<AttributeValueInteger>(value);
@@ -413,7 +413,7 @@ bool ProcessObject::getBooleanAttribute(std::string id) {
     if(attribute->getType() != ATTRIBUTE_TYPE_BOOLEAN)
         throw Exception("Attribute " + id + " is not of type boolean in process object " + getNameOfClass());
 
-    std::shared_ptr<AttributeValueBoolean> value = std::dynamic_pointer_cast<AttributeValueBoolean>(attribute->getValue());
+    SharedPointer<AttributeValueBoolean> value = std::dynamic_pointer_cast<AttributeValueBoolean>(attribute->getValue());
     return value->get();
 }
 
@@ -423,7 +423,7 @@ std::vector<bool> ProcessObject::getBooleanListAttribute(std::string id) {
     if(attribute->getType() != ATTRIBUTE_TYPE_BOOLEAN)
         throw Exception("Attribute " + id + " is not of type boolean in process object " + getNameOfClass());
 
-    std::vector<std::shared_ptr<AttributeValue>> values = attribute->getValues();
+    std::vector<SharedPointer<AttributeValue>> values = attribute->getValues();
     std::vector<bool> list;
     for(auto &&value : values) {
         auto floatValue = std::dynamic_pointer_cast<AttributeValueBoolean>(value);
@@ -437,7 +437,7 @@ std::string ProcessObject::getStringAttribute(std::string id) {
     if(attribute->getType() != ATTRIBUTE_TYPE_STRING)
         throw Exception("Attribute " + id + " is not of type string in process object " + getNameOfClass());
 
-    std::shared_ptr<AttributeValueString> value = std::dynamic_pointer_cast<AttributeValueString>(attribute->getValue());
+    SharedPointer<AttributeValueString> value = std::dynamic_pointer_cast<AttributeValueString>(attribute->getValue());
     return value->get();
 }
 
@@ -447,7 +447,7 @@ std::vector<std::string> ProcessObject::getStringListAttribute(std::string id) {
     if(attribute->getType() != ATTRIBUTE_TYPE_STRING)
         throw Exception("Attribute " + id + " is not of type string in process object " + getNameOfClass());
 
-    std::vector<std::shared_ptr<AttributeValue>> values = attribute->getValues();
+    std::vector<SharedPointer<AttributeValue>> values = attribute->getValues();
     std::vector<std::string> list;
     for(auto &&value : values) {
         auto floatValue = std::dynamic_pointer_cast<AttributeValueString>(value);
@@ -456,7 +456,7 @@ std::vector<std::string> ProcessObject::getStringListAttribute(std::string id) {
     return list;
 }
 
-std::unordered_map<std::string, std::shared_ptr<Attribute>> ProcessObject::getAttributes() {
+std::unordered_map<std::string, SharedPointer<Attribute>> ProcessObject::getAttributes() {
     return mAttributes;
 }
 

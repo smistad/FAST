@@ -21,7 +21,7 @@ class FAST_EXPORT  UltrasoundVesselDetection : public ProcessObject {
         bool mCreateSegmentation;
         std::vector<VesselCrossSection::pointer> mCrossSections;
         std::vector<VesselCrossSection::pointer> mAcceptedCrossSections;
-        std::shared_ptr<ImageClassifier> mClassifier;
+        SharedPointer<ImageClassifier> mClassifier;
 };
 
 }

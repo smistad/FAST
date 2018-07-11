@@ -10,7 +10,7 @@ class Image;
 
 class FAST_EXPORT  ImageAccess {
     public:
-        ImageAccess(void* data, std::shared_ptr<Image> image);
+        ImageAccess(void* data, SharedPointer<Image> image);
         void* get();
         float getScalar(uint position, uchar channel = 0) const;
         float getScalar(VectorXi position, uchar channel = 0) const;
@@ -27,7 +27,7 @@ class FAST_EXPORT  ImageAccess {
 		ImageAccess::pointer operator=(const ImageAccess::pointer other);
         void* mData;
 
-        std::shared_ptr<Image> mImage;
+        SharedPointer<Image> mImage;
 };
 
 } // end namespace fast

@@ -5,7 +5,7 @@ namespace fast {
 
 class RidgeEdgeModel : public AppearanceModel {
 	public:
-		static std::shared_ptr<RidgeEdgeModel> New();
+		static SharedPointer<RidgeEdgeModel> New();
 		void setLineLength(float lengthInMM);
 		void setLineSampleSpacing(float spacingInMM);
 		void setIntensityDifferenceThreshold(float threshold);
@@ -22,6 +22,6 @@ class RidgeEdgeModel : public AppearanceModel {
 };
 
 
-%template(RidgeEdgeModelPtr) std::shared_ptr<RidgeEdgeModel>;
+%template(RidgeEdgeModelPtr) SharedPointer<RidgeEdgeModel>;
 
 }

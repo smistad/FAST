@@ -35,14 +35,14 @@ class FAST_EXPORT  SliceRenderer : public ImageRenderer {
          * @param slicer
          * @return port id of new port
          */
-        uint addInputConnection(DataPort::pointer port, std::shared_ptr<ImageSlicer> slicer);
+        uint addInputConnection(DataPort::pointer port, SharedPointer<ImageSlicer> slicer);
         void setOrthogonalSlicePlane(uint portID, PlaneType orthogonalSlicePlane, int sliceNr = -1);
         void setArbitrarySlicePlane(uint portID, Plane slicePlane);
     private:
         SliceRenderer();
         void execute() override;
 
-        std::unordered_map<uint, std::shared_ptr<ImageSlicer>> mSlicers;
+        std::unordered_map<uint, SharedPointer<ImageSlicer>> mSlicers;
 };
 
 }

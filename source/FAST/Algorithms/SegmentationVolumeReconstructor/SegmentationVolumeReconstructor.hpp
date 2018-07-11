@@ -13,7 +13,7 @@ class SegmentationVolumeReconstructor : public ProcessObject {
         SegmentationVolumeReconstructor();
         void execute() override;
 
-        std::shared_ptr<Segmentation> m_volume;
+        SharedPointer<Segmentation> m_volume;
 };
 
 }

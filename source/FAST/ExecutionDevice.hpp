@@ -8,7 +8,7 @@ namespace fast {
 
 class FAST_EXPORT  ExecutionDevice : public Object {
     public:
-        typedef std::shared_ptr<ExecutionDevice> pointer;
+        typedef SharedPointer<ExecutionDevice> pointer;
         bool isHost() {return mIsHost;};
         virtual ~ExecutionDevice() {};
         static std::string getStaticNameOfClass() {
@@ -23,7 +23,7 @@ class FAST_EXPORT  ExecutionDevice : public Object {
 class DeviceManager; // Forward declaration
 class FAST_EXPORT  Host : public ExecutionDevice {
     public:
-        typedef std::shared_ptr<Host> pointer;
+        typedef SharedPointer<Host> pointer;
         static Host::pointer getInstance() {
             static Host::pointer instance = Host::New();
             return instance;

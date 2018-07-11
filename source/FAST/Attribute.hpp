@@ -1,6 +1,7 @@
 #ifndef FAST_ATTRIBUTE_HPP_
 #define FAST_ATTRIBUTE_HPP_
 
+#include "SmartPointers.hpp"
 #include "FASTExport.hpp"
 #include <string>
 #include <memory>
@@ -38,7 +39,7 @@ class FAST_EXPORT  Attribute {
                 mID(id), mName(name), mDescription(description), mType(type) {
         }
 
-        void setValue(std::shared_ptr<AttributeValue> value) {
+        void setValue(SharedPointer<AttributeValue> value) {
             if(mValues.size() == 0) {
                 mValues.push_back(value);
             } else {
@@ -46,15 +47,15 @@ class FAST_EXPORT  Attribute {
             }
         }
 
-        std::shared_ptr<AttributeValue> getValue() const {
+        SharedPointer<AttributeValue> getValue() const {
             return mValues.at(0);
         }
 
-        void setValues(std::vector<std::shared_ptr<AttributeValue>> values) {
+        void setValues(std::vector<SharedPointer<AttributeValue>> values) {
             mValues = values;
         }
 
-        std::vector<std::shared_ptr<AttributeValue>> getValues() const {
+        std::vector<SharedPointer<AttributeValue>> getValues() const {
             return mValues;
         }
 
@@ -81,7 +82,7 @@ class FAST_EXPORT  Attribute {
         std::string mName;
         std::string mDescription;
         AttributeType mType;
-        std::vector<std::shared_ptr<AttributeValue> > mValues;
+        std::vector<SharedPointer<AttributeValue> > mValues;
 };
 
 } // end namespace fast

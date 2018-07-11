@@ -35,10 +35,10 @@ class GUI : public Window {
         QLineEdit* mAddress;
         QLineEdit* mPort;
         bool mConnected;
-        std::shared_ptr<IGTLinkStreamer> mStreamer;
+        SharedPointer<IGTLinkStreamer> mStreamer;
         std::vector<std::string> mStreamNames;
         std::vector<Pipeline> mPipelines;
-        std::shared_ptr<OpenIGTLinkClient> mClient;
+        SharedPointer<OpenIGTLinkClient> mClient;
 
         QLabel* recordingInformation;
         QPushButton* recordButton;

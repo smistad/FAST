@@ -18,7 +18,7 @@ class FAST_EXPORT  EllipseModel : public ShapeModel {
 		 * Set initial state in mm
 		 */
 		void setInitialState(Vector2f position, float majorRadius, float minorRadius);
-		VectorXf getInitialState(std::shared_ptr<Image> image);
+		VectorXf getInitialState(SharedPointer<Image> image);
 		VectorXf restrictState(VectorXf state);
 	private:
 		EllipseModel();

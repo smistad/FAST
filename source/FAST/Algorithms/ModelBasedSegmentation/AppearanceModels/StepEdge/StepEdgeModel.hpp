@@ -15,7 +15,7 @@ class FAST_EXPORT  StepEdgeModel : public AppearanceModel {
 		void setLineSampleSpacing(float spacingInMM);
 		void setIntensityDifferenceThreshold(float threshold);
 		void setMinimumDepth(float depth);
-		std::vector<Measurement> getMeasurements(std::shared_ptr<Image> image, std::shared_ptr<Shape> shape, ExecutionDevice::pointer device);
+		std::vector<Measurement> getMeasurements(SharedPointer<Image> image, SharedPointer<Shape> shape, ExecutionDevice::pointer device);
 		enum EdgeType {
 			EDGE_TYPE_ANY,
 			EDGE_TYPE_BLACK_INSIDE_WHITE_OUTSIDE,

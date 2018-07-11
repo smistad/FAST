@@ -13,7 +13,7 @@ class FAST_EXPORT  CardinalSplineModel : public ShapeModel {
 		MatrixXf getStateTransitionMatrix2();
 		MatrixXf getStateTransitionMatrix3();
 		MatrixXf getProcessErrorMatrix();
-		VectorXf getInitialState(std::shared_ptr<Image> image);
+		VectorXf getInitialState(SharedPointer<Image> image);
 		std::vector<MatrixXf> getMeasurementVectors(VectorXf state, Shape::pointer shape);
 		void initializeShapeToImageCenter();
 		/**

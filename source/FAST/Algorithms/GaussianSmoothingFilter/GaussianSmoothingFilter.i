@@ -5,7 +5,7 @@ namespace fast {
 
 class GaussianSmoothingFilter : public ProcessObject {
     public:
-    	static std::shared_ptr<GaussianSmoothingFilter> New();
+    	static SharedPointer<GaussianSmoothingFilter> New();
         void setMaskSize(unsigned char maskSize);
         void setStandardDeviation(float stdDev);
 	private:
@@ -14,5 +14,5 @@ class GaussianSmoothingFilter : public ProcessObject {
 };
 
 // This must come after class declaration
-%template(GaussianSmoothingFilterPtr) std::shared_ptr<GaussianSmoothingFilter>;
+%template(GaussianSmoothingFilterPtr) SharedPointer<GaussianSmoothingFilter>;
 }

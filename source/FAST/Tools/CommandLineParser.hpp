@@ -142,10 +142,10 @@ class FAST_EXPORT CommandLineParser {
                 void printHelp(int length) override;
         };
 
-        std::map<std::string, std::shared_ptr<Variable>> m_variables;
-        std::map<uint, std::shared_ptr<Variable>> m_positionVariables;
+        std::map<std::string, SharedPointer<Variable>> m_variables;
+        std::map<uint, SharedPointer<Variable>> m_positionVariables;
 
-        void processToken(std::shared_ptr<Variable>&, uint position, const std::string &token);
+        void processToken(SharedPointer<Variable>&, uint position, const std::string &token);
 };
 
 // Template specializations

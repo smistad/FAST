@@ -7,7 +7,7 @@ enum PlaneType {PLANE_X, PLANE_Y, PLANE_Z};
 
 class SliceRenderer : public Renderer {
     public:
-    	static std::shared_ptr<SliceRenderer> New();
+    	static SharedPointer<SliceRenderer> New();
         void setInputConnection(ProcessObjectPort port);
         void setSliceToRender(unsigned int sliceNr);
         void setSlicePlane(PlaneType plane);
@@ -15,6 +15,6 @@ class SliceRenderer : public Renderer {
         SliceRenderer();
 };
 
-%template(SliceRendererPtr) std::shared_ptr<SliceRenderer>;
+%template(SliceRendererPtr) SharedPointer<SliceRenderer>;
 
 }

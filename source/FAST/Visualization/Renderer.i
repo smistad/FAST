@@ -5,11 +5,11 @@ namespace fast {
 
 class Renderer : public ProcessObject {
 	public:
-		typedef std::shared_ptr<Renderer> pointer;
+		typedef SharedPointer<Renderer> pointer;
 	protected:
 		virtual void execute() = 0;
 };
 
 
-%template(RendererPtr) std::shared_ptr<Renderer>;
+%template(RendererPtr) SharedPointer<Renderer>;
 }

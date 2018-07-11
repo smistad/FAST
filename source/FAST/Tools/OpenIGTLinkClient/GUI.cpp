@@ -256,7 +256,7 @@ void GUI::selectPipeline() {
         std::vector<DataPort::pointer> inputs;
         while(inputsRequired--)
             inputs.push_back(mClient->getOutputPort());
-        std::vector<std::shared_ptr<Renderer>> renderers = pipeline.setup(inputs);
+        std::vector<SharedPointer<Renderer>> renderers = pipeline.setup(inputs);
         for(auto renderer : renderers) {
             // A hack for text renderer which needs a reference to the view
             if(renderer->getNameOfClass() == "TextRenderer") {

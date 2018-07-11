@@ -26,8 +26,8 @@ class FAST_EXPORT  KinectTrackingGUI : public Window {
     private:
         KinectTrackingGUI();
 
-        std::shared_ptr<KinectStreamer> mStreamer;
-        std::shared_ptr<KinectTracking> mTracking;
+        SharedPointer<KinectStreamer> mStreamer;
+        SharedPointer<KinectTracking> mTracking;
         QPushButton* mRecordButton;
         QPushButton* mPlayButton;
         QLineEdit* mStorageDir;

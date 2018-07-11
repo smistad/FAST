@@ -13,7 +13,7 @@ class FAST_EXPORT  CenterlineExtraction : public ProcessObject {
     private:
 		CenterlineExtraction();
 		void execute();
-        std::shared_ptr<Image> calculateDistanceTransform(std::shared_ptr<Image> input);
+        SharedPointer<Image> calculateDistanceTransform(SharedPointer<Image> input);
 };
 
 }

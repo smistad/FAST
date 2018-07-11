@@ -6,7 +6,7 @@ MeshOpenCLAccess::MeshOpenCLAccess(
         cl::Buffer* coordinatesBuffer,
         cl::Buffer* lineBuffer,
         cl::Buffer* triangleBuffer,
-        std::shared_ptr<Mesh> mesh
+        SharedPointer<Mesh> mesh
     ) {
     mCoordinates = new cl::Buffer(*coordinatesBuffer);
     if(lineBuffer != nullptr) {

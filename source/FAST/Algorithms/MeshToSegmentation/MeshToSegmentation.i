@@ -8,11 +8,11 @@ namespace fast {
 class SegmentationAlgorithm : public ProcessObject {
 
 };
-%template(SegmentationAlgorithmPtr) std::shared_ptr<SegmentationAlgorithm>;
+%template(SegmentationAlgorithmPtr) SharedPointer<SegmentationAlgorithm>;
 
 class MeshToSegmentation : public SegmentationAlgorithm {
     public:
-    	static std::shared_ptr<MeshToSegmentation> New();
+    	static SharedPointer<MeshToSegmentation> New();
         /**
          * Set output image resolution in voxels
          * @param x
@@ -25,5 +25,5 @@ class MeshToSegmentation : public SegmentationAlgorithm {
 };
 
 // This must come after class declaration
-%template(MeshToSegmentationPtr) std::shared_ptr<MeshToSegmentation>;
+%template(MeshToSegmentationPtr) SharedPointer<MeshToSegmentation>;
 }

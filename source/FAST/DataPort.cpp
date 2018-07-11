@@ -150,12 +150,12 @@ void DataPort::setTimestep(uint64_t timestep) {
     mCurrentTimestep = timestep;
 }
 
-DataPort::DataPort(std::shared_ptr<ProcessObject> processObject) {
+DataPort::DataPort(SharedPointer<ProcessObject> processObject) {
     mProcessObject = processObject;
     setMaximumNumberOfFrames(50);
 }
 
-std::shared_ptr<ProcessObject> DataPort::getProcessObject() const {
+SharedPointer<ProcessObject> DataPort::getProcessObject() const {
     return mProcessObject;
 }
 
@@ -202,7 +202,7 @@ DataObject::pointer DataPort::getFrame(uint64_t timestep) {
 }
 
 template <>
-std::shared_ptr<DataObject> DataPort::getNextFrame<DataObject>() {
+SharedPointer<DataObject> DataPort::getNextFrame<DataObject>() {
     return getNextDataFrame();
 }
 

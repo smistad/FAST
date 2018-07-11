@@ -1,14 +1,14 @@
 namespace fast {
 
 template <class T>
-class std::shared_ptr {
+class SharedPointer {
     public:
-    	std::shared_ptr();
-		std::shared_ptr(T* object);
+    	SharedPointer();
+		SharedPointer(T* object);
         template <class U>
-        std::shared_ptr(std::shared_ptr<U> object);
+        SharedPointer(SharedPointer<U> object);
         template <class D>
-        std::shared_ptr(T* p, D d);
+        SharedPointer(T* p, D d);
         T* get();
         T* operator->();
 };
@@ -16,8 +16,8 @@ class std::shared_ptr {
 }
 
 // Below are cryptic SWIG macro and typemap definitions copied from boost_shared_ptr.i
-// and changed to work for fast::std::shared_ptr.
-// This is needed for casting to work from std::shared_ptr<Derived> to std::shared_ptr<Base>
+// and changed to work for fast::SharedPointer.
+// This is needed for casting to work from SharedPointer<Derived> to SharedPointer<Base>
 
 %fragment("SWIG_null_deleter", "header") {
 struct SWIG_null_deleter {
@@ -35,7 +35,7 @@ struct SWIG_null_deleter {
 #define SWIGEMPTYHACK
 // Main user macro for defining shared_ptr typemaps for both const and non-const pointer types
 %define %shared_ptr(TYPE...)
-%feature("smartptr", noblock=1) TYPE { fast::std::shared_ptr< TYPE > }
+%feature("smartptr", noblock=1) TYPE { fast::SharedPointer< TYPE > }
 SWIG_SHARED_PTR_TYPEMAPS(SWIGEMPTYHACK, TYPE)
 SWIG_SHARED_PTR_TYPEMAPS(const, TYPE)
 %enddef
@@ -55,7 +55,7 @@ SWIG_SHARED_PTR_TYPEMAPS(const, TYPE)
 
 // %naturalvar is as documented for member variables
 %naturalvar TYPE;
-%naturalvar fast::std::shared_ptr< CONST TYPE >;
+%naturalvar fast::SharedPointer< CONST TYPE >;
 
 // destructor wrapper customisation
 %feature("unref") TYPE 
@@ -67,152 +67,152 @@ SWIG_SHARED_PTR_TYPEMAPS(const, TYPE)
 // plain value
 %typemap(in) CONST TYPE (void *argp, int res = 0) {
   int newmem = 0;
-  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(fast::std::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
+  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(fast::SharedPointer< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum); 
   }
   if (!argp) {
     %argument_nullref("$type", $symname, $argnum);
   } else {
-    $1 = *(%reinterpret_cast(argp, fast::std::shared_ptr< CONST TYPE > *)->get());
-    if (newmem & SWIG_CAST_NEW_MEMORY) delete %reinterpret_cast(argp, fast::std::shared_ptr< CONST TYPE > *);
+    $1 = *(%reinterpret_cast(argp, fast::SharedPointer< CONST TYPE > *)->get());
+    if (newmem & SWIG_CAST_NEW_MEMORY) delete %reinterpret_cast(argp, fast::SharedPointer< CONST TYPE > *);
   }
 }
 %typemap(out) CONST TYPE {
-  fast::std::shared_ptr< CONST TYPE > *smartresult = new fast::std::shared_ptr< CONST TYPE >(new $1_ltype(($1_ltype &)$1));
-  %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(fast::std::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
+  fast::SharedPointer< CONST TYPE > *smartresult = new fast::SharedPointer< CONST TYPE >(new $1_ltype(($1_ltype &)$1));
+  %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(fast::SharedPointer< TYPE > *), SWIG_POINTER_OWN));
 }
 
 %typemap(varin) CONST TYPE {
   void *argp = 0;
   int newmem = 0;
-  int res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(fast::std::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
+  int res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(fast::SharedPointer< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %variable_fail(res, "$type", "$name");
   }
   if (!argp) {
     %variable_nullref("$type", "$name");
   } else {
-    $1 = *(%reinterpret_cast(argp, fast::std::shared_ptr< CONST TYPE > *)->get());
-    if (newmem & SWIG_CAST_NEW_MEMORY) delete %reinterpret_cast(argp, fast::std::shared_ptr< CONST TYPE > *);
+    $1 = *(%reinterpret_cast(argp, fast::SharedPointer< CONST TYPE > *)->get());
+    if (newmem & SWIG_CAST_NEW_MEMORY) delete %reinterpret_cast(argp, fast::SharedPointer< CONST TYPE > *);
   }
 }
 %typemap(varout) CONST TYPE {
-  fast::std::shared_ptr< CONST TYPE > *smartresult = new fast::std::shared_ptr< CONST TYPE >(new $1_ltype(($1_ltype &)$1));
-  %set_varoutput(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(fast::std::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
+  fast::SharedPointer< CONST TYPE > *smartresult = new fast::SharedPointer< CONST TYPE >(new $1_ltype(($1_ltype &)$1));
+  %set_varoutput(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(fast::SharedPointer< TYPE > *), SWIG_POINTER_OWN));
 }
 
 // plain pointer
 // Note: $disown not implemented by default as it will lead to a memory leak of the shared_ptr instance
-%typemap(in) CONST TYPE * (void  *argp = 0, int res = 0, fast::std::shared_ptr< CONST TYPE > tempshared, fast::std::shared_ptr< CONST TYPE > *smartarg = 0) {
+%typemap(in) CONST TYPE * (void  *argp = 0, int res = 0, fast::SharedPointer< CONST TYPE > tempshared, fast::SharedPointer< CONST TYPE > *smartarg = 0) {
   int newmem = 0;
-  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(fast::std::shared_ptr< TYPE > *), SHARED_PTR_DISOWN | %convertptr_flags, &newmem);
+  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(fast::SharedPointer< TYPE > *), SHARED_PTR_DISOWN | %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum); 
   }
   if (newmem & SWIG_CAST_NEW_MEMORY) {
-    tempshared = *%reinterpret_cast(argp, fast::std::shared_ptr< CONST TYPE > *);
-    delete %reinterpret_cast(argp, fast::std::shared_ptr< CONST TYPE > *);
+    tempshared = *%reinterpret_cast(argp, fast::SharedPointer< CONST TYPE > *);
+    delete %reinterpret_cast(argp, fast::SharedPointer< CONST TYPE > *);
     $1 = %const_cast(tempshared.get(), $1_ltype);
   } else {
-    smartarg = %reinterpret_cast(argp, fast::std::shared_ptr< CONST TYPE > *);
+    smartarg = %reinterpret_cast(argp, fast::SharedPointer< CONST TYPE > *);
     $1 = %const_cast((smartarg ? smartarg->get() : 0), $1_ltype);
   }
 }
 
 %typemap(out, fragment="SWIG_null_deleter_python") CONST TYPE * {
-  fast::std::shared_ptr< CONST TYPE > *smartresult = $1 ? new fast::std::shared_ptr< CONST TYPE >($1 SWIG_NO_NULL_DELETER_$owner) : 0;
-  %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(fast::std::shared_ptr< TYPE > *), $owner | SWIG_POINTER_OWN));
+  fast::SharedPointer< CONST TYPE > *smartresult = $1 ? new fast::SharedPointer< CONST TYPE >($1 SWIG_NO_NULL_DELETER_$owner) : 0;
+  %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(fast::SharedPointer< TYPE > *), $owner | SWIG_POINTER_OWN));
 }
 
 %typemap(varin) CONST TYPE * {
   void *argp = 0;
   int newmem = 0;
-  int res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(fast::std::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
+  int res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(fast::SharedPointer< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %variable_fail(res, "$type", "$name");
   }
-  fast::std::shared_ptr< CONST TYPE > tempshared;
-  fast::std::shared_ptr< CONST TYPE > *smartarg = 0;
+  fast::SharedPointer< CONST TYPE > tempshared;
+  fast::SharedPointer< CONST TYPE > *smartarg = 0;
   if (newmem & SWIG_CAST_NEW_MEMORY) {
-    tempshared = *%reinterpret_cast(argp, fast::std::shared_ptr< CONST TYPE > *);
-    delete %reinterpret_cast(argp, fast::std::shared_ptr< CONST TYPE > *);
+    tempshared = *%reinterpret_cast(argp, fast::SharedPointer< CONST TYPE > *);
+    delete %reinterpret_cast(argp, fast::SharedPointer< CONST TYPE > *);
     $1 = %const_cast(tempshared.get(), $1_ltype);
   } else {
-    smartarg = %reinterpret_cast(argp, fast::std::shared_ptr< CONST TYPE > *);
+    smartarg = %reinterpret_cast(argp, fast::SharedPointer< CONST TYPE > *);
     $1 = %const_cast((smartarg ? smartarg->get() : 0), $1_ltype);
   }
 }
 %typemap(varout, fragment="SWIG_null_deleter_python") CONST TYPE * {
-  fast::std::shared_ptr< CONST TYPE > *smartresult = $1 ? new fast::std::shared_ptr< CONST TYPE >($1 SWIG_NO_NULL_DELETER_0) : 0;
-  %set_varoutput(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(fast::std::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
+  fast::SharedPointer< CONST TYPE > *smartresult = $1 ? new fast::SharedPointer< CONST TYPE >($1 SWIG_NO_NULL_DELETER_0) : 0;
+  %set_varoutput(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(fast::SharedPointer< TYPE > *), SWIG_POINTER_OWN));
 }
 
 // plain reference
-%typemap(in) CONST TYPE & (void  *argp = 0, int res = 0, fast::std::shared_ptr< CONST TYPE > tempshared) {
+%typemap(in) CONST TYPE & (void  *argp = 0, int res = 0, fast::SharedPointer< CONST TYPE > tempshared) {
   int newmem = 0;
-  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(fast::std::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
+  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(fast::SharedPointer< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum); 
   }
   if (!argp) { %argument_nullref("$type", $symname, $argnum); }
   if (newmem & SWIG_CAST_NEW_MEMORY) {
-    tempshared = *%reinterpret_cast(argp, fast::std::shared_ptr< CONST TYPE > *);
-    delete %reinterpret_cast(argp, fast::std::shared_ptr< CONST TYPE > *);
+    tempshared = *%reinterpret_cast(argp, fast::SharedPointer< CONST TYPE > *);
+    delete %reinterpret_cast(argp, fast::SharedPointer< CONST TYPE > *);
     $1 = %const_cast(tempshared.get(), $1_ltype);
   } else {
-    $1 = %const_cast(%reinterpret_cast(argp, fast::std::shared_ptr< CONST TYPE > *)->get(), $1_ltype);
+    $1 = %const_cast(%reinterpret_cast(argp, fast::SharedPointer< CONST TYPE > *)->get(), $1_ltype);
   }
 }
 %typemap(out, fragment="SWIG_null_deleter_python") CONST TYPE & {
-  fast::std::shared_ptr< CONST TYPE > *smartresult = new fast::std::shared_ptr< CONST TYPE >($1 SWIG_NO_NULL_DELETER_$owner);
-  %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(fast::std::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
+  fast::SharedPointer< CONST TYPE > *smartresult = new fast::SharedPointer< CONST TYPE >($1 SWIG_NO_NULL_DELETER_$owner);
+  %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(fast::SharedPointer< TYPE > *), SWIG_POINTER_OWN));
 }
 
 %typemap(varin) CONST TYPE & {
   void *argp = 0;
   int newmem = 0;
-  int res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(fast::std::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
+  int res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(fast::SharedPointer< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %variable_fail(res, "$type", "$name");
   }
-  fast::std::shared_ptr< CONST TYPE > tempshared;
+  fast::SharedPointer< CONST TYPE > tempshared;
   if (!argp) {
     %variable_nullref("$type", "$name");
   }
   if (newmem & SWIG_CAST_NEW_MEMORY) {
-    tempshared = *%reinterpret_cast(argp, fast::std::shared_ptr< CONST TYPE > *);
-    delete %reinterpret_cast(argp, fast::std::shared_ptr< CONST TYPE > *);
+    tempshared = *%reinterpret_cast(argp, fast::SharedPointer< CONST TYPE > *);
+    delete %reinterpret_cast(argp, fast::SharedPointer< CONST TYPE > *);
     $1 = *%const_cast(tempshared.get(), $1_ltype);
   } else {
-    $1 = *%const_cast(%reinterpret_cast(argp, fast::std::shared_ptr< CONST TYPE > *)->get(), $1_ltype);
+    $1 = *%const_cast(%reinterpret_cast(argp, fast::SharedPointer< CONST TYPE > *)->get(), $1_ltype);
   }
 }
 %typemap(varout, fragment="SWIG_null_deleter_python") CONST TYPE & {
-  fast::std::shared_ptr< CONST TYPE > *smartresult = new fast::std::shared_ptr< CONST TYPE >(&$1 SWIG_NO_NULL_DELETER_0);
-  %set_varoutput(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(fast::std::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
+  fast::SharedPointer< CONST TYPE > *smartresult = new fast::SharedPointer< CONST TYPE >(&$1 SWIG_NO_NULL_DELETER_0);
+  %set_varoutput(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(fast::SharedPointer< TYPE > *), SWIG_POINTER_OWN));
 }
 
 // plain pointer by reference
 // Note: $disown not implemented by default as it will lead to a memory leak of the shared_ptr instance
-%typemap(in) TYPE *CONST& (void  *argp = 0, int res = 0, $*1_ltype temp = 0, fast::std::shared_ptr< CONST TYPE > tempshared) {
+%typemap(in) TYPE *CONST& (void  *argp = 0, int res = 0, $*1_ltype temp = 0, fast::SharedPointer< CONST TYPE > tempshared) {
   int newmem = 0;
-  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(fast::std::shared_ptr< TYPE > *), SHARED_PTR_DISOWN | %convertptr_flags, &newmem);
+  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(fast::SharedPointer< TYPE > *), SHARED_PTR_DISOWN | %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum); 
   }
   if (newmem & SWIG_CAST_NEW_MEMORY) {
-    tempshared = *%reinterpret_cast(argp, fast::std::shared_ptr< CONST TYPE > *);
-    delete %reinterpret_cast(argp, fast::std::shared_ptr< CONST TYPE > *);
+    tempshared = *%reinterpret_cast(argp, fast::SharedPointer< CONST TYPE > *);
+    delete %reinterpret_cast(argp, fast::SharedPointer< CONST TYPE > *);
     temp = %const_cast(tempshared.get(), $*1_ltype);
   } else {
-    temp = %const_cast(%reinterpret_cast(argp, fast::std::shared_ptr< CONST TYPE > *)->get(), $*1_ltype);
+    temp = %const_cast(%reinterpret_cast(argp, fast::SharedPointer< CONST TYPE > *)->get(), $*1_ltype);
   }
   $1 = &temp;
 }
 %typemap(out, fragment="SWIG_null_deleter_python") TYPE *CONST& {
-  fast::std::shared_ptr< CONST TYPE > *smartresult = new fast::std::shared_ptr< CONST TYPE >(*$1 SWIG_NO_NULL_DELETER_$owner);
-  %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(fast::std::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
+  fast::SharedPointer< CONST TYPE > *smartresult = new fast::SharedPointer< CONST TYPE >(*$1 SWIG_NO_NULL_DELETER_$owner);
+  %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(fast::SharedPointer< TYPE > *), SWIG_POINTER_OWN));
 }
 
 %typemap(varin) TYPE *CONST& %{
@@ -223,39 +223,39 @@ SWIG_SHARED_PTR_TYPEMAPS(const, TYPE)
 %}
 
 // shared_ptr by value
-%typemap(in) fast::std::shared_ptr< CONST TYPE > (void *argp, int res = 0) {
+%typemap(in) fast::SharedPointer< CONST TYPE > (void *argp, int res = 0) {
   int newmem = 0;
-  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(fast::std::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
+  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(fast::SharedPointer< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum); 
   }
   if (argp) $1 = *(%reinterpret_cast(argp, $&ltype));
   if (newmem & SWIG_CAST_NEW_MEMORY) delete %reinterpret_cast(argp, $&ltype);
 }
-%typemap(out) fast::std::shared_ptr< CONST TYPE > {
-  fast::std::shared_ptr< CONST TYPE > *smartresult = $1 ? new fast::std::shared_ptr< CONST TYPE >($1) : 0;
-  %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(fast::std::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
+%typemap(out) fast::SharedPointer< CONST TYPE > {
+  fast::SharedPointer< CONST TYPE > *smartresult = $1 ? new fast::SharedPointer< CONST TYPE >($1) : 0;
+  %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(fast::SharedPointer< TYPE > *), SWIG_POINTER_OWN));
 }
 
-%typemap(varin) fast::std::shared_ptr< CONST TYPE > {
+%typemap(varin) fast::SharedPointer< CONST TYPE > {
   int newmem = 0;
   void *argp = 0;
-  int res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(fast::std::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
+  int res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(fast::SharedPointer< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %variable_fail(res, "$type", "$name");
   }
-  $1 = argp ? *(%reinterpret_cast(argp, $&ltype)) : fast::std::shared_ptr< TYPE >();
+  $1 = argp ? *(%reinterpret_cast(argp, $&ltype)) : fast::SharedPointer< TYPE >();
   if (newmem & SWIG_CAST_NEW_MEMORY) delete %reinterpret_cast(argp, $&ltype);
 }
-%typemap(varout) fast::std::shared_ptr< CONST TYPE > {
-  fast::std::shared_ptr< CONST TYPE > *smartresult = $1 ? new fast::std::shared_ptr< CONST TYPE >($1) : 0;
-  %set_varoutput(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(fast::std::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
+%typemap(varout) fast::SharedPointer< CONST TYPE > {
+  fast::SharedPointer< CONST TYPE > *smartresult = $1 ? new fast::SharedPointer< CONST TYPE >($1) : 0;
+  %set_varoutput(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(fast::SharedPointer< TYPE > *), SWIG_POINTER_OWN));
 }
 
 // shared_ptr by reference
-%typemap(in) fast::std::shared_ptr< CONST TYPE > & (void *argp, int res = 0, $*1_ltype tempshared) {
+%typemap(in) fast::SharedPointer< CONST TYPE > & (void *argp, int res = 0, $*1_ltype tempshared) {
   int newmem = 0;
-  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(fast::std::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
+  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(fast::SharedPointer< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum); 
   }
@@ -267,22 +267,22 @@ SWIG_SHARED_PTR_TYPEMAPS(const, TYPE)
     $1 = (argp) ? %reinterpret_cast(argp, $ltype) : &tempshared;
   }
 }
-%typemap(out) fast::std::shared_ptr< CONST TYPE > & {
-  fast::std::shared_ptr< CONST TYPE > *smartresult = *$1 ? new fast::std::shared_ptr< CONST TYPE >(*$1) : 0;
-  %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(fast::std::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
+%typemap(out) fast::SharedPointer< CONST TYPE > & {
+  fast::SharedPointer< CONST TYPE > *smartresult = *$1 ? new fast::SharedPointer< CONST TYPE >(*$1) : 0;
+  %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(fast::SharedPointer< TYPE > *), SWIG_POINTER_OWN));
 }
 
-%typemap(varin) fast::std::shared_ptr< CONST TYPE > & %{
+%typemap(varin) fast::SharedPointer< CONST TYPE > & %{
 #error "varin typemap not implemented"
 %}
-%typemap(varout) fast::std::shared_ptr< CONST TYPE > & %{
+%typemap(varout) fast::SharedPointer< CONST TYPE > & %{
 #error "varout typemap not implemented"
 %}
 
 // shared_ptr by pointer
-%typemap(in) fast::std::shared_ptr< CONST TYPE > * (void *argp, int res = 0, $*1_ltype tempshared) {
+%typemap(in) fast::SharedPointer< CONST TYPE > * (void *argp, int res = 0, $*1_ltype tempshared) {
   int newmem = 0;
-  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(fast::std::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
+  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(fast::SharedPointer< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum); 
   }
@@ -294,23 +294,23 @@ SWIG_SHARED_PTR_TYPEMAPS(const, TYPE)
     $1 = (argp) ? %reinterpret_cast(argp, $ltype) : &tempshared;
   }
 }
-%typemap(out) fast::std::shared_ptr< CONST TYPE > * {
-  fast::std::shared_ptr< CONST TYPE > *smartresult = $1 && *$1 ? new fast::std::shared_ptr< CONST TYPE >(*$1) : 0;
-  %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(fast::std::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
+%typemap(out) fast::SharedPointer< CONST TYPE > * {
+  fast::SharedPointer< CONST TYPE > *smartresult = $1 && *$1 ? new fast::SharedPointer< CONST TYPE >(*$1) : 0;
+  %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(fast::SharedPointer< TYPE > *), SWIG_POINTER_OWN));
   if ($owner) delete $1;
 }
 
-%typemap(varin) fast::std::shared_ptr< CONST TYPE > * %{
+%typemap(varin) fast::SharedPointer< CONST TYPE > * %{
 #error "varin typemap not implemented"
 %}
-%typemap(varout) fast::std::shared_ptr< CONST TYPE > * %{
+%typemap(varout) fast::SharedPointer< CONST TYPE > * %{
 #error "varout typemap not implemented"
 %}
 
 // shared_ptr by pointer reference
-%typemap(in) fast::std::shared_ptr< CONST TYPE > *& (void *argp, int res = 0, fast::std::shared_ptr< CONST TYPE > tempshared, $*1_ltype temp = 0) {
+%typemap(in) fast::SharedPointer< CONST TYPE > *& (void *argp, int res = 0, fast::SharedPointer< CONST TYPE > tempshared, $*1_ltype temp = 0) {
   int newmem = 0;
-  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(fast::std::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
+  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(fast::SharedPointer< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum); 
   }
@@ -319,15 +319,15 @@ SWIG_SHARED_PTR_TYPEMAPS(const, TYPE)
   temp = &tempshared;
   $1 = &temp;
 }
-%typemap(out) fast::std::shared_ptr< CONST TYPE > *& {
-  fast::std::shared_ptr< CONST TYPE > *smartresult = *$1 && **$1 ? new fast::std::shared_ptr< CONST TYPE >(**$1) : 0;
-  %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(fast::std::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
+%typemap(out) fast::SharedPointer< CONST TYPE > *& {
+  fast::SharedPointer< CONST TYPE > *smartresult = *$1 && **$1 ? new fast::SharedPointer< CONST TYPE >(**$1) : 0;
+  %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(fast::SharedPointer< TYPE > *), SWIG_POINTER_OWN));
 }
 
-%typemap(varin) fast::std::shared_ptr< CONST TYPE > *& %{
+%typemap(varin) fast::SharedPointer< CONST TYPE > *& %{
 #error "varin typemap not implemented"
 %}
-%typemap(varout) fast::std::shared_ptr< CONST TYPE > *& %{
+%typemap(varout) fast::SharedPointer< CONST TYPE > *& %{
 #error "varout typemap not implemented"
 %}
 
@@ -339,11 +339,11 @@ SWIG_SHARED_PTR_TYPEMAPS(const, TYPE)
                       TYPE CONST &,
                       TYPE CONST *,
                       TYPE *CONST&,
-                      fast::std::shared_ptr< CONST TYPE >,
-                      fast::std::shared_ptr< CONST TYPE > &,
-                      fast::std::shared_ptr< CONST TYPE > *,
-                      fast::std::shared_ptr< CONST TYPE > *& {
-  int res = SWIG_ConvertPtr($input, 0, $descriptor(fast::std::shared_ptr< TYPE > *), 0);
+                      fast::SharedPointer< CONST TYPE >,
+                      fast::SharedPointer< CONST TYPE > &,
+                      fast::SharedPointer< CONST TYPE > *,
+                      fast::SharedPointer< CONST TYPE > *& {
+  int res = SWIG_ConvertPtr($input, 0, $descriptor(fast::SharedPointer< TYPE > *), 0);
   $1 = SWIG_CheckState(res);
 }
 
@@ -357,7 +357,7 @@ SWIG_SHARED_PTR_TYPEMAPS(const, TYPE)
 %}
 
 
-%template() fast::std::shared_ptr< CONST TYPE >;
+%template() fast::SharedPointer< CONST TYPE >;
 
 
 %enddef

@@ -25,7 +25,7 @@ class FAST_EXPORT  ProcessObject : public Object {
     public:
         virtual ~ProcessObject();
         void update(uint64_t timestep, StreamingMode streamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES);
-        typedef std::shared_ptr<ProcessObject> pointer;
+        typedef SharedPointer<ProcessObject> pointer;
 
         // Runtime stuff
         RuntimeMeasurement::pointer getRuntime();
@@ -56,9 +56,9 @@ class FAST_EXPORT  ProcessObject : public Object {
             return "ProcessObject";
         }
         virtual void loadAttributes();
-        std::shared_ptr<Attribute> getAttribute(std::string id);
-        std::unordered_map<std::string, std::shared_ptr<Attribute>> getAttributes();
-        void setAttributes(std::vector<std::shared_ptr<Attribute>> attributes);
+        SharedPointer<Attribute> getAttribute(std::string id);
+        std::unordered_map<std::string, SharedPointer<Attribute>> getAttributes();
+        void setAttributes(std::vector<SharedPointer<Attribute>> attributes);
 
         /**
          * Used to stop a pipeline.
@@ -86,9 +86,9 @@ class FAST_EXPORT  ProcessObject : public Object {
         void createOutputPort(uint portID);
 
         template <class DataType>
-        std::shared_ptr<DataType> getInputData(uint portID = 0);
+        SharedPointer<DataType> getInputData(uint portID = 0);
         template <class DataType>
-        std::shared_ptr<DataType> getOutputData(uint portID = 0);
+        SharedPointer<DataType> getOutputData(uint portID = 0);
         void addOutputData(uint portID, DataObject::pointer data);
 
         bool hasNewInputData(uint portID);
@@ -100,7 +100,7 @@ class FAST_EXPORT  ProcessObject : public Object {
 
         void createOpenCLProgram(std::string sourceFilename, std::string name = "");
         cl::Program getOpenCLProgram(
-                std::shared_ptr<OpenCLDevice> device,
+                SharedPointer<OpenCLDevice> device,
                 std::string name = "",
                 std::string buildOptions = ""
         );
@@ -138,9 +138,9 @@ class FAST_EXPORT  ProcessObject : public Object {
 
 
 
-        std::unordered_map<std::string, std::shared_ptr<OpenCLProgram> > mOpenCLPrograms;
+        std::unordered_map<std::string, SharedPointer<OpenCLProgram> > mOpenCLPrograms;
 
-        std::unordered_map<std::string, std::shared_ptr<Attribute>> mAttributes;
+        std::unordered_map<std::string, SharedPointer<Attribute>> mAttributes;
 
 };
 
@@ -157,7 +157,7 @@ void ProcessObject::createOutputPort(uint portID) {
 }
 
 template<class DataType>
-std::shared_ptr<DataType> ProcessObject::getInputData(uint portID) {
+SharedPointer<DataType> ProcessObject::getInputData(uint portID) {
     validateInputPortExists(portID);
     DataPort::pointer port = mInputConnections.at(portID);
     DataObject::pointer data = port->getNextFrame();
@@ -171,10 +171,10 @@ std::shared_ptr<DataType> ProcessObject::getInputData(uint portID) {
 }
 
 template<class DataType>
-std::shared_ptr<DataType> ProcessObject::getOutputData(uint portID) {
+SharedPointer<DataType> ProcessObject::getOutputData(uint portID) {
     validateOutputPortExists(portID);
     // Generate a new output data object
-    std::shared_ptr<DataType> returnData = DataType::New();
+    SharedPointer<DataType> returnData = DataType::New();
 
     addOutputData(portID, returnData);
 

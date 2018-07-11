@@ -14,7 +14,7 @@ class Image;
 class FAST_EXPORT  TrackedVessel : public Object {
 	FAST_OBJECT(TrackedVessel)
 public:
-	std::shared_ptr<KalmanFilter> filter;
+	SharedPointer<KalmanFilter> filter;
 	int framesSinceRefshed;
 };
 
@@ -30,21 +30,21 @@ class FAST_EXPORT  UltrasoundVesselSegmentation : public ProcessObject {
 		/*
 		 * This stores all the vessel cross section detected for N frames back
 		 */
-		std::deque<std::vector<std::shared_ptr<VesselCrossSection> > > mDetectedVessels;
+		std::deque<std::vector<SharedPointer<VesselCrossSection> > > mDetectedVessels;
 
 		/*
 		 * This keeps a Kalman filter for all the tracked vessels
 		 */
-		std::vector<std::shared_ptr<TrackedVessel> > mKalmanFilters;
+		std::vector<SharedPointer<TrackedVessel> > mKalmanFilters;
 
 		/*
 		 * This keeps the ultrasound vessel detection object
 		 */
-		std::shared_ptr<UltrasoundVesselDetection> mDetector;
+		SharedPointer<UltrasoundVesselDetection> mDetector;
 
 		void checkForNewVessels(float spacing);
-		void trackAllVessels(std::shared_ptr<Image> image);
-		void createSegmentation(std::shared_ptr<Image> image);
+		void trackAllVessels(SharedPointer<Image> image);
+		void createSegmentation(SharedPointer<Image> image);
 };
 
 } // namespace fast

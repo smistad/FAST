@@ -13,6 +13,6 @@ class VTKMeshExporter : public vtkPolyDataAlgorithm, public ProcessObject {
 };
 
 
-%template(VTKMeshExporterPtr) std::shared_ptr<VTKMeshExporter>;
+%template(VTKMeshExporterPtr) SharedPointer<VTKMeshExporter>;
 
 } // end namespace fast

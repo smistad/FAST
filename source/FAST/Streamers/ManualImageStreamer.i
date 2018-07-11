@@ -8,7 +8,7 @@ enum StreamingMode { STREAMING_MODE_NEWEST_FRAME_ONLY, STREAMING_MODE_STORE_ALL_
 
 class ImageFileStreamer : public Streamer, public ProcessObject {
     public:
-    	static std::shared_ptr<ImageFileStreamer> New();
+    	static SharedPointer<ImageFileStreamer> New();
         void setFilenameFormat(std::string str);
         void setStartNumber(uint startNumber);
         void setStepSize(uint step);
@@ -20,6 +20,6 @@ class ImageFileStreamer : public Streamer, public ProcessObject {
         void disableLooping();
 };
 
-%template(ImageFileStreamerPtr) std::shared_ptr<ImageFileStreamer>;
+%template(ImageFileStreamerPtr) SharedPointer<ImageFileStreamer>;
 
 }

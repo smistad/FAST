@@ -35,6 +35,7 @@ fast_add_sources(
     ProcessObjectRegistry.hpp
     DataPort.cpp
     DataPort.hpp
+        SmartPointers.hpp
 )
 if(FAST_MODULE_Visualization)
     fast_add_sources(

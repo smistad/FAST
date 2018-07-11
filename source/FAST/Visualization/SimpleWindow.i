@@ -6,7 +6,7 @@ namespace fast {
 
 class SimpleWindow : public Window {
     public:
-    	static std::shared_ptr<SimpleWindow> New();
+    	static SharedPointer<SimpleWindow> New();
     	SimpleWindow();
         void addRenderer(Renderer::pointer renderer);
         void removeAllRenderers();
@@ -17,7 +17,7 @@ class SimpleWindow : public Window {
         void start();
 };
 
-%template(SimpleWindowPtr) std::shared_ptr<SimpleWindow>;
+%template(SimpleWindowPtr) SharedPointer<SimpleWindow>;
 
 
 }

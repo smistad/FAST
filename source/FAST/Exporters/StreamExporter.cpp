@@ -7,7 +7,7 @@ void StreamExporter::setFilenameFormat(std::string format) {
     mFilenameFormat = format;
 }
 
-void StreamExporter::setExporter(std::shared_ptr<FileExporter> exporter) {
+void StreamExporter::setExporter(SharedPointer<FileExporter> exporter) {
     mExporter = exporter;
 }
 

@@ -9,12 +9,12 @@ namespace fast {
 
 class ImageFileImporter : public ProcessObject {
     public:
-    	static std::shared_ptr<ImageFileImporter> New();
+    	static SharedPointer<ImageFileImporter> New();
         void setFilename(std::string filename);
 	private:
     	ImageFileImporter();
 };
 
-%template(ImageFileImporterPtr) std::shared_ptr<ImageFileImporter>;
+%template(ImageFileImporterPtr) SharedPointer<ImageFileImporter>;
 
 } // end namespace fast

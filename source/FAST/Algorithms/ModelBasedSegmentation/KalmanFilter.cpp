@@ -138,7 +138,7 @@ void KalmanFilter::setStartIterations(int iterations) {
 	mStartIterations = iterations;
 }
 
-void KalmanFilter::estimate(std::shared_ptr<Image> image) {
+void KalmanFilter::estimate(SharedPointer<Image> image) {
 
 	Shape::pointer shape = mShapeModel->getShape(mPredictedState);
 	std::vector<Measurement> measurements = mAppearanceModel->getMeasurements(image, shape, getMainDevice());

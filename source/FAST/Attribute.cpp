@@ -23,26 +23,26 @@ void Attribute::parseInput(std::string input) {
 void Attribute::parseStringInput(std::string input) {
     std::vector<std::string> strings = split(input, "\" \"");
     if(strings.size() > 1) {
-        std::vector<std::shared_ptr<AttributeValue>> values;
+        std::vector<SharedPointer<AttributeValue>> values;
         for(auto string : strings) {
             string = replace(string, "\"", "");
-            std::shared_ptr<AttributeValueString> value = std::make_shared<AttributeValueString>(string);
+            SharedPointer<AttributeValueString> value = std::make_shared<AttributeValueString>(string);
             values.push_back(value);
         }
         setValues(values);
     } else {
         input = replace(input, "\"", "");
-        std::shared_ptr<AttributeValueString> value = std::make_shared<AttributeValueString>(input);
+        SharedPointer<AttributeValueString> value = std::make_shared<AttributeValueString>(input);
         setValue(value);
     }
 }
 
 void Attribute::parseIntegerInput(std::string input) {
     std::vector<std::string> strings = split(input, " ");
-    std::vector<std::shared_ptr<AttributeValue>> values;
+    std::vector<SharedPointer<AttributeValue>> values;
     for(auto string : strings) {
         int integer = std::stoi(string);
-        std::shared_ptr<AttributeValueInteger> value = std::make_shared<AttributeValueInteger>(integer);
+        SharedPointer<AttributeValueInteger> value = std::make_shared<AttributeValueInteger>(integer);
         values.push_back(value);
     }
     setValues(values);
@@ -50,10 +50,10 @@ void Attribute::parseIntegerInput(std::string input) {
 
 void Attribute::parseFloatInput(std::string input) {
     std::vector<std::string> strings = split(input, " ");
-    std::vector<std::shared_ptr<AttributeValue>> values;
+    std::vector<SharedPointer<AttributeValue>> values;
     for(auto string : strings) {
         float floatValue = std::stof(string);
-        std::shared_ptr<AttributeValueFloat> value = std::make_shared<AttributeValueFloat>(floatValue);
+        SharedPointer<AttributeValueFloat> value = std::make_shared<AttributeValueFloat>(floatValue);
         values.push_back(value);
     }
     setValues(values);
@@ -61,7 +61,7 @@ void Attribute::parseFloatInput(std::string input) {
 
 void Attribute::parseBooleanInput(std::string input) {
     std::vector<std::string> strings = split(input, " ");
-    std::vector<std::shared_ptr<AttributeValue>> values;
+    std::vector<SharedPointer<AttributeValue>> values;
     for(auto string : strings) {
         bool boolean;
         if(string == "true") {
@@ -71,7 +71,7 @@ void Attribute::parseBooleanInput(std::string input) {
         } else {
             throw Exception("Error while parsing boolean input attribute: " + input + ", expecting true or false");
         }
-        std::shared_ptr<AttributeValueBoolean> value = std::make_shared<AttributeValueBoolean>(boolean);
+        SharedPointer<AttributeValueBoolean> value = std::make_shared<AttributeValueBoolean>(boolean);
         values.push_back(value);
     }
     setValues(values);

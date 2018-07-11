@@ -30,10 +30,10 @@ class SpatialDataObject;
 namespace SceneGraph {
 	FAST_EXPORT AffineTransformation::pointer getAffineTransformationBetweenNodes(SceneGraphNode::pointer nodeA, SceneGraphNode::pointer nodeB);
 	FAST_EXPORT AffineTransformation::pointer getAffineTransformationFromNode(SceneGraphNode::pointer node);
-	FAST_EXPORT AffineTransformation::pointer getAffineTransformationFromData(std::shared_ptr<SpatialDataObject> node);
-	FAST_EXPORT Affine3f getEigenAffineTransformationFromData(std::shared_ptr<SpatialDataObject> node);
-	FAST_EXPORT void setParentNode(std::shared_ptr<SpatialDataObject> child, std::shared_ptr<SpatialDataObject> parent);
-	FAST_EXPORT SceneGraphNode::pointer insertParentNodeToData(std::shared_ptr<SpatialDataObject> child, AffineTransformation::pointer transform);
+	FAST_EXPORT AffineTransformation::pointer getAffineTransformationFromData(SharedPointer<SpatialDataObject> node);
+	FAST_EXPORT Affine3f getEigenAffineTransformationFromData(SharedPointer<SpatialDataObject> node);
+	FAST_EXPORT void setParentNode(SharedPointer<SpatialDataObject> child, SharedPointer<SpatialDataObject> parent);
+	FAST_EXPORT SceneGraphNode::pointer insertParentNodeToData(SharedPointer<SpatialDataObject> child, AffineTransformation::pointer transform);
 	FAST_EXPORT SceneGraphNode::pointer insertParentNodeToNode(SceneGraphNode::pointer child, AffineTransformation::pointer transform);
 };
 

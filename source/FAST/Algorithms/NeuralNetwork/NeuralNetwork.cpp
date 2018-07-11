@@ -253,7 +253,7 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 
 }
 
-std::vector<std::shared_ptr<Image>> NeuralNetwork::resizeImages(const std::vector<std::shared_ptr<Image>> &images) {
+std::vector<SharedPointer<Image>> NeuralNetwork::resizeImages(const std::vector<SharedPointer<Image>> &images) {
     mRuntimeManager->startRegularTimer("image input resize");
     std::vector<Image::pointer> resizedImages;
 	for(Image::pointer image : images) {
@@ -305,7 +305,7 @@ void NeuralNetwork::setSignedInputNormalization(bool signedInputNormalization) {
 	mSignedInputNormalization = signedInputNormalization;
 }
 
-void NeuralNetwork::addTemporalImageFrame(std::shared_ptr<Image> image) {
+void NeuralNetwork::addTemporalImageFrame(SharedPointer<Image> image) {
 	mImages.push_back(image);
 }
 
