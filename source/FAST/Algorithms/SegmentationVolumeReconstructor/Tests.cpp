@@ -42,5 +42,6 @@ TEST_CASE("Segmentation volume reconstructor", "[SegmentationVolumeReconstructor
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->addRenderer(imageRenderer);
+    window->setTimeout(1000);
     window->start();
 }

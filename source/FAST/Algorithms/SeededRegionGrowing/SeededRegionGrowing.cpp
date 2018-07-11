@@ -74,7 +74,7 @@ void SeededRegionGrowing::executeOnHost(T* input, Image::pointer output) {
     uchar* outputData = (uchar*)outputAccess->get();
     // initialize output to all zero
     memset(outputData, 0, output->getWidth()*output->getHeight()*output->getDepth());
-    std::stack<Vector3ui> queue;
+    std::stack<Vector3i> queue;
 
     // Add seeds to queue
     for(int i = 0; i < mSeedPoints.size(); i++) {
@@ -85,21 +85,38 @@ void SeededRegionGrowing::executeOnHost(T* input, Image::pointer output) {
             pos.x() >= output->getWidth() || pos.y() >= output->getHeight() || pos.z() >= output->getDepth())
             throw Exception("One of the seed points given to SeededRegionGrowing was out of bounds.");
 
-        queue.push(pos);
+        queue.push(pos.cast<int>());
+    }
+
+    std::vector<Vector3i> neighborhood;
+    if(output->getDimensions() == 2) {
+        for(int a = -1; a < 2; a++) {
+            for(int b = -1; b < 2; b++) {
+                for(int c = -1; c < 2; c++) {
+                    if(abs(a) + abs(b) + abs(c) != 1) // connectivity
+                        continue;
+                    neighborhood.push_back(Vector3i(a, b, c));
+                }
+            }
+        }
+    } else {
+        for(int a = -1; a < 2; a++) {
+            for(int b = -1; b < 2; b++) {
+                if(abs(a) + abs(b) != 1) // connectivity
+                    continue;
+                neighborhood.push_back(Vector3i(a, b, 0));
+            }
+        }
     }
 
     // Process queue
     while(!queue.empty()) {
-        Vector3ui pos = queue.top();
+        Vector3i pos = queue.top();
         queue.pop();
 
         // Add neighbors to queue
-        for(int a = -1; a < 2; a++) {
-        for(int b = -1; b < 2; b++) {
-        for(int c = -1; c < 2; c++) {
-            if(abs(a)+abs(b)+abs(c) != 1) // connectivity
-                continue;
-            Vector3ui neighbor(pos.x()+a,pos.y()+b,pos.z()+c);
+        for(auto offset : neighborhood) {
+            Vector3i neighbor = pos.cast<int>() + offset;
             // Check for out of bounds
             if(neighbor.x() < 0 || neighbor.y() < 0 || neighbor.z() < 0 ||
                 neighbor.x() >= output->getWidth() || neighbor.y() >= output->getHeight() || neighbor.z() >= output->getDepth())
@@ -118,7 +135,7 @@ void SeededRegionGrowing::executeOnHost(T* input, Image::pointer output) {
                 // Add to queue
                 queue.push(neighbor);
             }
-        }}}
+        }
     }
 }
 
