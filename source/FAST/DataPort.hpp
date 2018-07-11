@@ -80,7 +80,7 @@ class FAST_EXPORT DataPort {
 
 // Template specialization when T = DataObject
 template <>
-SharedPointer<DataObject> DataPort::getNextFrame<DataObject>();
+FAST_EXPORT SharedPointer<DataObject> DataPort::getNextFrame<DataObject>();
 
 template <class T>
 SharedPointer<T> DataPort::getNextFrame() {

@@ -6,7 +6,7 @@ namespace fast {
 
 class Segmentation;
 
-class SegmentationVolumeReconstructor : public ProcessObject {
+class FAST_EXPORT SegmentationVolumeReconstructor : public ProcessObject {
     FAST_OBJECT(SegmentationVolumeReconstructor)
     public:
     private:

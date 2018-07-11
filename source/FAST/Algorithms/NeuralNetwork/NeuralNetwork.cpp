@@ -149,7 +149,7 @@ void NeuralNetwork::executeNetwork(const std::vector<Image::pointer>& images) {
 	if(mOutputNames.size() == 0)
 		throw Exception("An output name must ge given to the NeuralNetwork before execution");
 
-    const std::size_t batchSize = 1;//images.size();
+    const int batchSize = 1;//images.size();
 	if(batchSize == 0)
 		throw Exception("Need at least one image to execute network.");
 
