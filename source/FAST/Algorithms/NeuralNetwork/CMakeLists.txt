@@ -19,6 +19,7 @@ if(FAST_MODULE_NeuralNetwork)
     fast_add_process_object(ImageToImageNetwork ImageToImageNetwork.hpp)
     if(FAST_MODULE_Visualization)
     fast_add_test_sources(
+        Tests.cpp
         ImageClassifierTests.cpp
         ObjectDetectionTests.cpp
     )

@@ -56,8 +56,7 @@ protected:
     bool mHorizontalImageFlipping = false;
     bool mSignedInputNormalization = false;
     std::vector<std::string> mLearningPhaseTensors;
-    int mWidth;
-    int mHeight;
+    std::vector<int> mInputShape;
     uint mTemporalWindow = 1;
     float mScaleFactor;
     std::string mInputName;
@@ -65,6 +64,8 @@ protected:
     std::map<std::string, tensorflow::Tensor> mOutputData;
     std::deque<SharedPointer<Image>> mImages;
     Vector3f mNewInputSpacing;
+
+
 
     void execute();
 

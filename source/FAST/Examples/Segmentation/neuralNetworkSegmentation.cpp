@@ -24,10 +24,10 @@ int main() {
     PixelClassifier::pointer segmentation = PixelClassifier::New();
     segmentation->setNrOfClasses(3);
     segmentation->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_vein_segmentation.pb");
-    segmentation->setInputSize(256, 256);
     segmentation->setScaleFactor(1.0f / 255.0f);
     segmentation->setOutputParameters({"conv2d_23/truediv"});
     segmentation->setInputConnection(streamer->getOutputPort());
+    segmentation->enableRuntimeMeasurements();
 
     SegmentationRenderer::pointer segmentationRenderer = SegmentationRenderer::New();
     segmentationRenderer->addInputConnection(segmentation->getOutputPort());
@@ -44,4 +44,5 @@ int main() {
     window->set2DMode();
     window->getView()->setBackgroundColor(Color::Black());
     window->start();
+    segmentation->getAllRuntimes()->printAll();
 }
