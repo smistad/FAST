@@ -2,9 +2,13 @@
 #define NEURAL_NETWORK_HPP_
 
 #include "FAST/ProcessObject.hpp"
-#include <tensorflow/core/public/session.h>
 #include <tensorflow/core/framework/tensor.h>
 #include <queue>
+
+// Forward declare
+namespace tensorflow {
+class Session;
+}
 
 namespace fast {
 
@@ -12,10 +16,13 @@ class Image;
 
 class FAST_EXPORT  NeuralNetwork : public ProcessObject {
     FAST_OBJECT(NeuralNetwork)
-public:
+    public:
+    enum class NodeType {
+        IMAGE,
+        TENSOR,
+    };
     void load(std::string networkFilename);
-    void setInputSize(int width, int height);
-    void setInputName(std::string inputName);
+    void addInputNode(uint portID, std::string name, NodeType type, std::vector<int> shape = {});
     void setOutputParameters(std::vector<std::string> outputNodeNames);
     void setScaleFactor(float scale);
     void setSignedInputNormalization(bool signedInputNormalization);
@@ -56,21 +63,26 @@ protected:
     bool mHorizontalImageFlipping = false;
     bool mSignedInputNormalization = false;
     std::vector<std::string> mLearningPhaseTensors;
-    std::vector<int> mInputShape;
     uint mTemporalWindow = 1;
     float mScaleFactor;
-    std::string mInputName;
     std::vector<std::string> mOutputNames;
     std::map<std::string, tensorflow::Tensor> mOutputData;
     std::deque<SharedPointer<Image>> mImages;
     Vector3f mNewInputSpacing;
 
 
+    struct InputNode {
+        uint portID;
+        NodeType type;
+        std::vector<int> shape;
+    };
+
+    std::unordered_map<std::string, InputNode> mInputNodes;
 
     void execute();
 
-    void executeNetwork(const std::vector<SharedPointer<Image> >& images);
-    std::vector<SharedPointer<Image> > resizeImages(const std::vector<SharedPointer<Image> >& images);
+    void executeNetwork(std::unordered_map<std::string, std::vector<SharedPointer<Image>>>& images);
+    std::vector<SharedPointer<Image>> resizeImages(const std::vector<SharedPointer<Image>>& images, int width, int height);
 };
 
 }

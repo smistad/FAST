@@ -22,7 +22,6 @@ TEST_CASE("Segmentation volume reconstructor", "[SegmentationVolumeReconstructor
     segmentation->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_vein_segmentation.pb");
     //segmentation->setNrOfClasses(2);
     //segmentation->load("/home/smistad/workspace/AAA-Ultrasound/phantom/models/phantom.pb");
-    segmentation->setInputSize(256, 256);
     segmentation->setScaleFactor(1.0f / 255.0f);
     segmentation->setOutputParameters({"conv2d_23/truediv"});
     segmentation->setInputConnection(streamer->getOutputPort());
