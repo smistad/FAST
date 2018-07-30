@@ -23,7 +23,7 @@ TEST_CASE("Segmentation volume reconstructor", "[SegmentationVolumeReconstructor
     //segmentation->setNrOfClasses(2);
     //segmentation->load("/home/smistad/workspace/AAA-Ultrasound/phantom/models/phantom.pb");
     segmentation->setScaleFactor(1.0f / 255.0f);
-    segmentation->setOutputParameters({"conv2d_23/truediv"});
+    segmentation->addOutputNode(0, "conv2d_23/truediv");
     segmentation->setInputConnection(streamer->getOutputPort());
 
     SegmentationVolumeReconstructor::pointer reconstructor = SegmentationVolumeReconstructor::New();

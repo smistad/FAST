@@ -134,15 +134,11 @@ void NeuralNetwork::execute() {
 	executeNetwork(images);
 }
 
-void NeuralNetwork::setOutputParameters(std::vector<std::string> outputNodeNames) {
-    mOutputNames = outputNodeNames;
-}
-
 tensorflow::Tensor NeuralNetwork::getNetworkOutput() {
-    if(mOutputNames.size() != 1)
+    if(mOutputData.size() != 1)
 		throw Exception("If network has more than 1 output can't return network output without name.");
 
-	return mOutputData[mOutputNames[0]];
+	return mOutputData[mOutputNodes.begin()->first];
 }
 
 tensorflow::Tensor NeuralNetwork::getNetworkOutput(std::string name) {
@@ -152,8 +148,8 @@ tensorflow::Tensor NeuralNetwork::getNetworkOutput(std::string name) {
 void NeuralNetwork::executeNetwork(std::unordered_map<std::string, std::vector<SharedPointer<Image>>>& images) {
     if(!mModelLoaded)
 		throw Exception("Network and weights must be loaded in NeuralNetwork before execution.");
-	if(mOutputNames.size() == 0)
-		throw Exception("An output name must ge given to the NeuralNetwork before execution");
+	if(mOutputNodes.size() == 0)
+		throw Exception("At least one output node has to be given to the NeuralNetwork before execution");
 
     const int batchSize = 1;//images.size();
 	if(batchSize == 0)
@@ -261,7 +257,10 @@ void NeuralNetwork::executeNetwork(std::unordered_map<std::string, std::vector<S
 	reportInfo() << "Running network" << reportEnd();
 	tensorflow::Status s;
 	mRuntimeManager->startRegularTimer("network_execution");
-	s = mSession->Run(input_tensors, mOutputNames, {}, &output_tensors);
+	std::vector<std::string> outputNames;
+	for(auto node : mOutputNodes)
+	    outputNames.push_back(node.first);
+	s = mSession->Run(input_tensors, outputNames, {}, &output_tensors);
 	mRuntimeManager->stopRegularTimer("network_execution");
 
 	if (!s.ok()) {
@@ -269,8 +268,8 @@ void NeuralNetwork::executeNetwork(std::unordered_map<std::string, std::vector<S
 	}
 	reportInfo() << "Finished executing network" << reportEnd();
     // Store all output data
-    for(int j = 0; j < mOutputNames.size(); ++j) {
-        std::string outputName = mOutputNames[j];
+    for(int j = 0; j < outputNames.size(); ++j) {
+        std::string outputName = outputNames[j];
 		mOutputData[outputName] = output_tensors[j];
 	}
 	reportInfo() << "Finished parsing output" << reportEnd();
@@ -310,7 +309,7 @@ void NeuralNetwork::loadAttributes() {
 	// TODO Fix
 	//setInputSize(inputSize.at(0), inputSize.at(1));
 	std::vector<std::string> outputNames = getStringListAttribute("output_names");
-	setOutputParameters(outputNames);
+	//setOutputParameters(outputNames);
 	setScaleFactor(getFloatAttribute("scale_factor"));
 	setSignedInputNormalization(getBooleanAttribute("signed_input_normalization"));
 }
@@ -337,12 +336,21 @@ NeuralNetwork::~NeuralNetwork() {
 }
 
 void NeuralNetwork::addInputNode(uint portID, std::string name, NeuralNetwork::NodeType type, std::vector<int> shape) {
-	InputNode node;
+	NetworkNode node;
 	node.portID = portID;
 	node.type = type;
 	node.shape = shape;
 	mInputNodes[name] = node;
 	createInputPort<DataObject>(portID);
+}
+
+void NeuralNetwork::addOutputNode(uint portID, std::string name, NeuralNetwork::NodeType type, std::vector<int> shape) {
+	NetworkNode node;
+	node.portID = portID;
+	node.type = type;
+	node.shape = shape;
+	mOutputNodes[name] = node;
+	createOutputPort<DataObject>(portID);
 }
 
 };

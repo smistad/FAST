@@ -25,7 +25,7 @@ int main() {
     segmentation->setNrOfClasses(3);
     segmentation->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_vein_segmentation.pb");
     segmentation->setScaleFactor(1.0f / 255.0f);
-    segmentation->setOutputParameters({"conv2d_23/truediv"});
+    segmentation->addOutputNode(0, "conv2d_23/truediv");
     segmentation->setInputConnection(streamer->getOutputPort());
     segmentation->enableRuntimeMeasurements();
 

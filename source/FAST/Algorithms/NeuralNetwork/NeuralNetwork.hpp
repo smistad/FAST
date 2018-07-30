@@ -22,8 +22,8 @@ class FAST_EXPORT  NeuralNetwork : public ProcessObject {
         TENSOR,
     };
     void load(std::string networkFilename);
-    void addInputNode(uint portID, std::string name, NodeType type, std::vector<int> shape = {});
-    void setOutputParameters(std::vector<std::string> outputNodeNames);
+    void addInputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, std::vector<int> shape = {});
+    void addOutputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, std::vector<int> shape = {});
     void setScaleFactor(float scale);
     void setSignedInputNormalization(bool signedInputNormalization);
     void setPreserveAspectRatio(bool preserve);
@@ -65,19 +65,18 @@ protected:
     std::vector<std::string> mLearningPhaseTensors;
     uint mTemporalWindow = 1;
     float mScaleFactor;
-    std::vector<std::string> mOutputNames;
     std::map<std::string, tensorflow::Tensor> mOutputData;
     std::deque<SharedPointer<Image>> mImages;
     Vector3f mNewInputSpacing;
 
-
-    struct InputNode {
+    struct NetworkNode {
         uint portID;
         NodeType type;
         std::vector<int> shape;
     };
 
-    std::unordered_map<std::string, InputNode> mInputNodes;
+    std::unordered_map<std::string, NetworkNode> mInputNodes;
+    std::unordered_map<std::string, NetworkNode> mOutputNodes;
 
     void execute();
 
