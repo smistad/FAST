@@ -19,7 +19,7 @@ void ImageClassifier::execute() {
     Tensor::pointer tensor = result[0].second;
     TensorAccess::pointer access = tensor->getAccess(ACCESS_READ);
 
-    auto data = access->getDataAsEigenTensorMap<2>();
+    auto data = access->getData<2>();
     ImageClassification::pointer output = getOutputData<ImageClassification>(0);
     for(int i = 0; i < data.dimension(0); ++i) { // for each input image
         std::map<std::string, float> mapResult;

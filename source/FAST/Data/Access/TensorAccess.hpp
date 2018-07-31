@@ -6,6 +6,10 @@
 
 namespace fast {
 
+// Rename the Eigen float tensor for simplicity
+template<int NumDimensions>
+using TensorData = Eigen::TensorMap<Eigen::Tensor<float, NumDimensions, Eigen::RowMajor>>;
+
 class Tensor;
 
 class FAST_EXPORT TensorAccess {
@@ -13,11 +17,10 @@ class FAST_EXPORT TensorAccess {
         typedef std::unique_ptr<TensorAccess> pointer;
         TensorAccess(float* data, std::vector<int> shape, SharedPointer<Tensor> tensor);
         std::vector<int> getShape() const;
-        float* getData() const;
         ~TensorAccess();
         void release();
         template <int NumDimensions>
-        Eigen::Tensor<float, NumDimensions, Eigen::RowMajor> getDataAsEigenTensorMap() const;
+        TensorData<NumDimensions> getData() const;
     private:
         SharedPointer<Tensor> m_tensor;
         std::vector<int> m_shape;
@@ -26,7 +29,7 @@ class FAST_EXPORT TensorAccess {
 
 
 template <int NumDimensions>
-Eigen::Tensor<float, NumDimensions, Eigen::RowMajor> TensorAccess::getDataAsEigenTensorMap() const {
+TensorData<NumDimensions> TensorAccess::getData() const {
     if(NumDimensions != m_shape.size())
         throw Exception("Dimension mismatch for Eigen tensor.");
 
@@ -36,7 +39,7 @@ Eigen::Tensor<float, NumDimensions, Eigen::RowMajor> TensorAccess::getDataAsEige
         sizes[i] = m_shape[i];
 
     // Create and return mapped eigen tensor
-    return Eigen::TensorMap<Eigen::Tensor<float, NumDimensions, Eigen::RowMajor>>(m_data, sizes);
+    return TensorData<NumDimensions>(m_data, sizes);
 }
 
 

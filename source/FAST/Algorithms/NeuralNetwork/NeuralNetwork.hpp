@@ -78,7 +78,7 @@ protected:
     std::pair<std::unordered_map<std::string, std::vector<SharedPointer<Image>>>, std::unordered_map<std::string, std::vector<Tensor::pointer>>> processInputData();
     std::vector<std::pair<NetworkNode, SharedPointer<Tensor>>> executeNetwork(std::unordered_map<std::string, std::vector<SharedPointer<Image>>>& images, std::unordered_map<std::string, std::vector<SharedPointer<Tensor>>>& tensors);
     std::vector<SharedPointer<Image>> resizeImages(const std::vector<SharedPointer<Image>>& images, int width, int height);
-    Eigen::Tensor<float, 4, Eigen::RowMajor> convertImageToTensor(SharedPointer<Image> image, const NetworkNode& node);
+    TensorData<4> convertImageToTensor(SharedPointer<Image> image, const NetworkNode& node);
 
     private:
         void execute();

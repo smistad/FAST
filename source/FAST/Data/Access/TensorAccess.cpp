@@ -13,10 +13,6 @@ std::vector<int> TensorAccess::getShape() const {
     return m_shape;
 }
 
-float* TensorAccess::getData() const {
-    return m_data;
-}
-
 TensorAccess::~TensorAccess() {
     release();
 }

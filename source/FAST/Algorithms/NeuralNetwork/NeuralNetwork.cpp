@@ -157,7 +157,7 @@ void NeuralNetwork::execute() {
     }
 }
 
-Eigen::Tensor<float, 4, Eigen::RowMajor> NeuralNetwork::convertImageToTensor(Image::pointer image, const NetworkNode& node) {
+TensorData<4> NeuralNetwork::convertImageToTensor(Image::pointer image, const NetworkNode& node) {
     const auto shape = node.shape;
     // Create input tensor
 
@@ -192,7 +192,7 @@ Eigen::Tensor<float, 4, Eigen::RowMajor> NeuralNetwork::convertImageToTensor(Ima
     if(image->getWidth() != width || image->getHeight() != height)
         throw Exception("Input image sent to executeNetwork was of incrorrect size");
 
-    return Eigen::TensorMap<Eigen::Tensor<float, 4, Eigen::RowMajor>>(values.get(), 1, height, width, 1);
+    return TensorData<4>(values.get(), 1, height, width, 1);
 }
 
 std::vector<std::pair<NeuralNetwork::NetworkNode, Tensor::pointer>> NeuralNetwork::executeNetwork(std::unordered_map<std::string, std::vector<SharedPointer<Image>>>& images, std::unordered_map<std::string, std::vector<SharedPointer<Tensor>>>& tensors) {
@@ -232,19 +232,19 @@ std::vector<std::pair<NeuralNetwork::NetworkNode, Tensor::pointer>> NeuralNetwor
 		    TensorAccess::pointer access = tensors[name][0]->getAccess(ACCESS_READ);
 		    switch(shape.size()) {
 		        case 1:
-		            input_tensor.tensor<float, 1>() = std::move(access->getDataAsEigenTensorMap<1>());
+		            input_tensor.tensor<float, 1>() = std::move(access->getData<1>());
 		            break;
 		        case 2:
-                    input_tensor.tensor<float, 2>() = std::move(access->getDataAsEigenTensorMap<2>());
+                    input_tensor.tensor<float, 2>() = std::move(access->getData<2>());
 		            break;
 		        case 3:
-                    input_tensor.tensor<float, 3>() = std::move(access->getDataAsEigenTensorMap<3>());
+                    input_tensor.tensor<float, 3>() = std::move(access->getData<3>());
 		            break;
 		        case 4:
-                    input_tensor.tensor<float, 4>() = std::move(access->getDataAsEigenTensorMap<4>());
+                    input_tensor.tensor<float, 4>() = std::move(access->getData<4>());
 		            break;
 		        case 5:
-                    input_tensor.tensor<float, 5>() = std::move(access->getDataAsEigenTensorMap<5>());
+                    input_tensor.tensor<float, 5>() = std::move(access->getData<5>());
 		            break;
 		        default:
 		            throw Exception("Invalid tensor dimension size");

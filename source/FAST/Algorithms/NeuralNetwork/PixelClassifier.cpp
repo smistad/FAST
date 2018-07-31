@@ -52,7 +52,7 @@ void PixelClassifier::execute() {
     Tensor::pointer tensor = result[0].second;
     TensorAccess::pointer access = tensor->getAccess(ACCESS_READ);
     reportInfo() << "Processing output of NN" << reportEnd();
-    auto tensor_mapped = access->getDataAsEigenTensorMap<4>();
+    auto tensor_mapped = access->getData<4>();
     reportInfo() << "Got eigen tensor" << reportEnd();
     int outputHeight = tensor_mapped.dimension(1);
     int outputWidth = tensor_mapped.dimension(2);
