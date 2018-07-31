@@ -14,18 +14,19 @@ class FAST_EXPORT Tensor : public DataObject {
          * @param data
          * @param shape
          */
-        void create(std::unique_ptr<float[]> data, std::vector<int> shape);
+        virtual void create(std::unique_ptr<float[]> data, std::vector<int> shape);
         /**
          * Create an unitialized tensor with the provided shape
          * @param shape
          */
-        void create(std::vector<int> shape);
-        std::vector<int> getShape() const;
-        TensorAccess::pointer getAccess(accessType type);
+        virtual void create(std::vector<int> shape);
+        virtual std::vector<int> getShape() const;
+        virtual TensorAccess::pointer getAccess(accessType type);
         // TODO add OpenCL buffer access
-        void freeAll() override;
-        void free(ExecutionDevice::pointer device) override;
-    private:
+        virtual void freeAll() override;
+        virtual void free(ExecutionDevice::pointer device) override;
+
+    protected:
         Tensor() = default;
 
         std::unique_ptr<float[]> m_data;

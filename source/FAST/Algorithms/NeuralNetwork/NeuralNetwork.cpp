@@ -17,7 +17,29 @@
 
 namespace fast {
 
-// See here for reference: https://github.com/tensorflow/tensorflow/blob/86f5ab7474825da756838b34e1b4eac93f5fc68a/tensorflow/contrib/android/jni/tensorflow_inference_jni.cc
+/**
+ * This specialized Tensor Data class, allow us to store Tensorflow type tensors as FAST tensors.
+ */
+class TensorflowTensor : public Tensor {
+    FAST_OBJECT(TensorflowTensor)
+    public:
+        void create(tensorflow::Tensor&& tensorflowTensor);
+        TensorAccess::pointer getAccess(accessType access) override;
+    private:
+        tensorflow::Tensor m_tensorflowTensor;
+};
+
+void TensorflowTensor::create(tensorflow::Tensor&& tensorflowTensor) {
+    m_tensorflowTensor = tensorflowTensor;
+    auto shape = m_tensorflowTensor.shape();
+    for(int i = 0; i < shape.dims(); ++i)
+        m_shape.push_back(shape.dim_size(i));
+}
+
+TensorAccess::pointer TensorflowTensor::getAccess(accessType type) {
+    // TODO process type
+    return std::make_unique<TensorAccess>(m_tensorflowTensor.flat<float>().data(), m_shape, std::static_pointer_cast<Tensor>(mPtr.lock()));
+}
 
 static std::vector<int> getShape(const tensorflow::NodeDef& node) {
     std::vector<int> resultShape;
@@ -229,6 +251,7 @@ std::vector<std::pair<NeuralNetwork::NetworkNode, Tensor::pointer>> NeuralNetwor
 		    input_tensor.tensor<float, 4>() = std::move(convertImageToTensor(images[name][0], inputNode.second));
 		} else {
 		    // Give tensor data to tensorflow
+		    // TODO is the data here actually moved
 		    TensorAccess::pointer access = tensors[name][0]->getAccess(ACCESS_READ);
 		    switch(shape.size()) {
 		        case 1:
@@ -289,19 +312,8 @@ std::vector<std::pair<NeuralNetwork::NetworkNode, Tensor::pointer>> NeuralNetwor
         const std::string outputName = outputNames[j];
         const NetworkNode node = mOutputNodes[outputName];
 
-        auto tensor = Tensor::New();
-        auto tensorflowTensor = output_tensors[j];
-        auto tensorflowShape = tensorflowTensor.shape();
-        std::vector<int> shape;
-        for(int i = 0; i < tensorflowShape.dims(); ++i) {
-            shape.push_back(tensorflowShape.dim_size(i));
-        }
-        // Copy data from tensorflow to FAST
-        // TODO is there anyway to avoid this copy???
-        auto tensorflowData = tensorflowTensor.flat<float>();
-        auto copiedData = std::make_unique<float[]>(tensorflowData.size());
-        std::memcpy(copiedData.get(), tensorflowData.data(), sizeof(float)*tensorflowData.size());
-        tensor->create(std::move(copiedData), shape);
+        auto tensor = TensorflowTensor::New();
+        tensor->create(std::move(output_tensors[j]));
         result.push_back(std::make_pair(node, tensor));
 	}
 	reportInfo() << "Finished parsing output" << reportEnd();
