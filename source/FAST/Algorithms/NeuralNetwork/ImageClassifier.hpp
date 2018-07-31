@@ -20,7 +20,6 @@ class FAST_EXPORT  ImageClassifier : public NeuralNetwork {
 	FAST_OBJECT(ImageClassifier)
 	public:
 		void setLabels(std::vector<std::string> labels);
-        void setOutputName(std::string outputName);
         void loadAttributes();
 	private:
 		ImageClassifier();
@@ -28,7 +27,6 @@ class FAST_EXPORT  ImageClassifier : public NeuralNetwork {
 
 		// A map of label -> score
 		std::vector<std::string> mLabels;
-        std::string mOutputName;
 
 };
 

@@ -12,7 +12,9 @@ ImageToImageNetwork::ImageToImageNetwork() {
 
 void ImageToImageNetwork::execute() {
 
+    /*
     NeuralNetwork::execute();
+
     tensorflow::Tensor tensor = getNetworkOutput();
     Eigen::Tensor<float, 4, 1> tensor_mapped = tensor.tensor<float, 4>();
     int outputHeight = tensor_mapped.dimension(1);
@@ -40,6 +42,7 @@ void ImageToImageNetwork::execute() {
     Image::pointer resizedOutput = port->getNextFrame<Image>();
     resizedOutput->setSpacing(mImages.back()->getSpacing());
     addOutputData(0, resizedOutput);
+     */
 }
 
 }

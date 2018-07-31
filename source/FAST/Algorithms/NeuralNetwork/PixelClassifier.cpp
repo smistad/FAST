@@ -46,10 +46,14 @@ void PixelClassifier::execute() {
     if(mNrOfClasses <= 0) {
         throw Exception("You must set the nr of classes to pixel classification.");
     }
-    NeuralNetwork::execute();
 
-    tensorflow::Tensor tensor = getNetworkOutput();
-    Eigen::Tensor<float, 4, 1> tensor_mapped = tensor.tensor<float, 4>();
+    auto input = processInputData();
+    auto result = executeNetwork(input.first, input.second);
+    Tensor::pointer tensor = result[0].second;
+    TensorAccess::pointer access = tensor->getAccess(ACCESS_READ);
+    reportInfo() << "Processing output of NN" << reportEnd();
+    auto tensor_mapped = access->getDataAsEigenTensorMap<4>();
+    reportInfo() << "Got eigen tensor" << reportEnd();
     int outputHeight = tensor_mapped.dimension(1);
     int outputWidth = tensor_mapped.dimension(2);
 
@@ -94,6 +98,7 @@ void PixelClassifier::execute() {
             }
         }
     } else {
+        reportInfo() << "Converting data" << reportEnd();
         Image::pointer output = Image::New();
         auto data = make_uninitialized_unique<uchar[]>(outputWidth * outputHeight);
         for(int x = 0; x < outputWidth; ++x) {

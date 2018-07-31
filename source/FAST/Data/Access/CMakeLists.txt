@@ -14,4 +14,6 @@ fast_add_sources(
     MeshOpenCLAccess.hpp
     CameraAccess.cpp
     CameraAccess.hpp
+    TensorAccess.cpp
+    TensorAccess.hpp
 )

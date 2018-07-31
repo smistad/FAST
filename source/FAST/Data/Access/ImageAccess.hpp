@@ -23,8 +23,8 @@ class FAST_EXPORT  ImageAccess {
         ~ImageAccess();
 		typedef std::unique_ptr<ImageAccess> pointer;
     private:
-		ImageAccess(const ImageAccess::pointer other);
-		ImageAccess::pointer operator=(const ImageAccess::pointer other);
+		ImageAccess(const ImageAccess::pointer other) = delete;
+		ImageAccess::pointer operator=(const ImageAccess::pointer other) = delete;
         void* mData;
 
         SharedPointer<Image> mImage;

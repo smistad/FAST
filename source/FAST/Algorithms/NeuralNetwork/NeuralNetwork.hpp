@@ -2,8 +2,9 @@
 #define NEURAL_NETWORK_HPP_
 
 #include "FAST/ProcessObject.hpp"
-#include <tensorflow/core/framework/tensor.h>
+#include <FAST/Data/Tensor.hpp>
 #include <queue>
+#include <eigen3/unsupported/Eigen/CXX11/Tensor>
 
 // Forward declare
 namespace tensorflow {
@@ -13,8 +14,9 @@ class Session;
 namespace fast {
 
 class Image;
+class Tensor;
 
-class FAST_EXPORT  NeuralNetwork : public ProcessObject {
+class FAST_EXPORT NeuralNetwork : public ProcessObject {
     FAST_OBJECT(NeuralNetwork)
     public:
     enum class NodeType {
@@ -46,12 +48,6 @@ class FAST_EXPORT  NeuralNetwork : public ProcessObject {
 
     void addTemporalImageFrame(SharedPointer<Image> image);
 
-    // Use this if only one output node
-    tensorflow::Tensor getNetworkOutput();
-
-    // Get output by layer name
-    tensorflow::Tensor getNetworkOutput(std::string layerName);
-
     void loadAttributes();
 
     virtual ~NeuralNetwork();
@@ -65,8 +61,8 @@ protected:
     std::vector<std::string> mLearningPhaseTensors;
     uint mTemporalWindow = 1;
     float mScaleFactor;
-    std::map<std::string, tensorflow::Tensor> mOutputData;
     std::deque<SharedPointer<Image>> mImages;
+    std::deque<SharedPointer<Tensor>> mTensors;
     Vector3f mNewInputSpacing;
 
     struct NetworkNode {
@@ -78,10 +74,14 @@ protected:
     std::unordered_map<std::string, NetworkNode> mInputNodes;
     std::unordered_map<std::string, NetworkNode> mOutputNodes;
 
-    void execute();
 
-    void executeNetwork(std::unordered_map<std::string, std::vector<SharedPointer<Image>>>& images);
+    std::pair<std::unordered_map<std::string, std::vector<SharedPointer<Image>>>, std::unordered_map<std::string, std::vector<Tensor::pointer>>> processInputData();
+    std::vector<std::pair<NetworkNode, SharedPointer<Tensor>>> executeNetwork(std::unordered_map<std::string, std::vector<SharedPointer<Image>>>& images, std::unordered_map<std::string, std::vector<SharedPointer<Tensor>>>& tensors);
     std::vector<SharedPointer<Image>> resizeImages(const std::vector<SharedPointer<Image>>& images, int width, int height);
+    Eigen::Tensor<float, 4, Eigen::RowMajor> convertImageToTensor(SharedPointer<Image> image, const NetworkNode& node);
+
+    private:
+        void execute();
 };
 
 }
