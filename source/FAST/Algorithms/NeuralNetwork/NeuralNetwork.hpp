@@ -3,6 +3,7 @@
 
 #include <FAST/ProcessObject.hpp>
 #include <FAST/Data/Tensor.hpp>
+#include <FAST/Data/SimpleDataObject.hpp>
 #include <queue>
 
 // Forward declare
@@ -15,6 +16,7 @@ namespace fast {
 class Image;
 class Tensor;
 
+FAST_SIMPLE_DATA_OBJECT(Batch, std::vector<SharedPointer<Image>>)
 
 class FAST_EXPORT NeuralNetwork : public ProcessObject {
     FAST_OBJECT(NeuralNetwork)
@@ -74,10 +76,10 @@ protected:
     std::unordered_map<std::string, NetworkNode> mInputNodes;
     std::unordered_map<std::string, NetworkNode> mOutputNodes;
 
-    std::unordered_map<std::string, std::vector<Tensor::pointer>> processInputData();
-    std::vector<std::pair<NetworkNode, SharedPointer<Tensor>>> executeNetwork(std::unordered_map<std::string, std::vector<Tensor::pointer>> tensors);
+    std::unordered_map<std::string, Tensor::pointer> processInputData();
+    std::vector<std::pair<NetworkNode, SharedPointer<Tensor>>> executeNetwork(std::unordered_map<std::string, Tensor::pointer> tensors);
     std::vector<SharedPointer<Image>> resizeImages(const std::vector<SharedPointer<Image>>& images, int width, int height);
-    Tensor::pointer convertImageToTensor(SharedPointer<Image> image, const TensorShape& shape);
+    Tensor::pointer convertImagesToTensor(std::vector<SharedPointer<Image>> image, const TensorShape& shape);
 
     private:
         void execute();

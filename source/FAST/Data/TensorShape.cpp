@@ -16,12 +16,12 @@ bool TensorShape::empty() const {
 }
 
 int TensorShape::getTotalSize() const {
-    int sum = 0;
+    int product = 1;
     for(auto i : m_data) {
         if(i >= 0)
-            sum += i;
+            product *= i;
     }
-    return sum;
+    return product;
 }
 
 int TensorShape::getDimensions() const {

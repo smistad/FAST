@@ -151,8 +151,9 @@ NeuralNetwork::NeuralNetwork() {
 	createBooleanAttribute("signed_input_normalization", "Signed input normalization", "Normalize input to -1 and 1 instead of 0 to 1.", false);
 }
 
-std::unordered_map<std::string, std::vector<Tensor::pointer>> NeuralNetwork::processInputData() {
-    std::unordered_map<std::string, std::vector<Tensor::pointer>> tensors;
+std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData() {
+    std::unordered_map<std::string, Tensor::pointer> tensors;
+    int batchSize = -1;
     for(auto inputNode : mInputNodes) {
         // TODO batch detection
         auto shape = inputNode.second.shape;
@@ -161,38 +162,38 @@ std::unordered_map<std::string, std::vector<Tensor::pointer>> NeuralNetwork::pro
 
         SharedPointer<DataObject> data = getInputData<DataObject>(inputNode.second.portID);
 
-        // Check if data object is an image by doing a dynamic cast
-        Image::pointer image = std::dynamic_pointer_cast<Image>(data);
-        if(image) {
-            mImages.push_back(image);
-            while(mImages.size() < mTemporalWindow)
-                mImages.push_back(image);
-            while(mImages.size() > mTemporalWindow)
-                mImages.pop_front();
-
-            std::vector<Image::pointer> inputImages(mImages.begin(), mImages.end());
-
+        // Check if data object is an tensor by doing a dynamic cast
+        Tensor::pointer tensor = std::dynamic_pointer_cast<Tensor>(data);
+        if(!tensor) {
             if(shape.getDimensions() < 4)
-            	throw Exception("Trying to attach an image to an input node with shape with fewer than 4 dimensions");
+                throw Exception("Trying to attach an image to an input node with shape with fewer than 4 dimensions");
+
+            // If not a tensor, data is either a Batch of images or a single Image
+            Batch::pointer batch = std::dynamic_pointer_cast<Batch>(data);
+            std::vector<Image::pointer> inputImages;
+            if(batch) {
+                Batch::access access = batch->getAccess(ACCESS_READ);
+                inputImages = access->getData();
+                if(batchSize == -1) {
+                    batchSize = inputImages.size();
+                } else {
+                    throw Exception("Inconsistent batch size accross input nodes");
+                }
+            } else {
+                batchSize = 1;
+                Image::pointer image = std::dynamic_pointer_cast<Image>(data);
+                inputImages.push_back(image);
+            }
 
             // Resize images to fit input
             inputImages = resizeImages(inputImages, shape[2], shape[1]);
 
 			std::vector<Tensor::pointer> inputTensors;
             // Convert images to tensors
-            for(auto image : inputImages) {
-            	inputTensors.push_back(convertImageToTensor(image, inputNode.second.shape));
-            }
-			tensors[inputNode.first] = inputTensors;
+            shape[0] = batchSize;
+			tensors[inputNode.first] = convertImagesToTensor(inputImages, shape);
         } else {
-            Tensor::pointer tensor = std::dynamic_pointer_cast<Tensor>(data);
-            mTensors.push_back(tensor);
-            while(mTensors.size() < mTemporalWindow)
-                mTensors.push_back(tensor);
-            while(mTensors.size() > mTemporalWindow)
-                mTensors.pop_front();
-            std::vector<Tensor::pointer> inputTensors(mTensors.begin(), mTensors.end());
-            tensors[inputNode.first] = inputTensors;
+            tensors[inputNode.first] = tensor;
         }
 	}
 
@@ -210,59 +211,67 @@ void NeuralNetwork::execute() {
     }
 }
 
-Tensor::pointer NeuralNetwork::convertImageToTensor(Image::pointer image, const TensorShape& shape) {
+Tensor::pointer NeuralNetwork::convertImagesToTensor(std::vector<Image::pointer> images, const TensorShape& shape) {
+    if(shape.getUnknownDimensions() > 0)
+        throw Exception("Shape must be known at this time");
+
     // Create input tensor
+    auto values = make_uninitialized_unique<float[]>(shape.getTotalSize());
 
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::Program program = getOpenCLProgram(device);
     cl::Kernel kernel(program, "normalizeInput");
-	const int height = shape[1];
-    const int width = shape[2];
-    OpenCLImageAccess::pointer access = image->getOpenCLImageAccess(ACCESS_READ, device);
-    cl::Buffer buffer(
-            device->getContext(),
-            CL_MEM_WRITE_ONLY,
-            sizeof(float) * width * height
-    );
-    kernel.setArg(0, *access->get2DImage());
-    kernel.setArg(1, buffer);
-    kernel.setArg(2, mScaleFactor);
-    kernel.setArg(3, (int) (mHorizontalImageFlipping ? 1 : 0));
-    kernel.setArg(4, (int) (mSignedInputNormalization ? 1 : 0));
+    const std::size_t size = shape[1]*shape[2]*shape[3]; // nr of elements per image
+    for(int i = 0; i < images.size(); ++i) {
+        auto image = images[i];
+        const int height = shape[1];
+        const int width = shape[2];
+        if(image->getWidth() != width || image->getHeight() != height)
+            throw Exception("Input image sent to executeNetwork was of incrorrect size");
+        OpenCLImageAccess::pointer access = image->getOpenCLImageAccess(ACCESS_READ, device);
+        cl::Buffer buffer(
+                device->getContext(),
+                CL_MEM_WRITE_ONLY,
+                sizeof(float) * width * height
+        );
+        kernel.setArg(0, *access->get2DImage());
+        kernel.setArg(1, buffer);
+        kernel.setArg(2, mScaleFactor);
+        kernel.setArg(3, (int) (mHorizontalImageFlipping ? 1 : 0));
+        kernel.setArg(4, (int) (mSignedInputNormalization ? 1 : 0));
 
-    device->getCommandQueue().enqueueNDRangeKernel(
-            kernel,
-            cl::NullRange,
-            cl::NDRange(width, height),
-            cl::NullRange
-    );
+        device->getCommandQueue().enqueueNDRangeKernel(
+                kernel,
+                cl::NullRange,
+                cl::NDRange(width, height),
+                cl::NullRange
+        );
 
-    auto values = make_uninitialized_unique<float[]>(width * height);
-    device->getCommandQueue().enqueueReadBuffer(buffer, CL_TRUE, 0, sizeof(float) * width * height,
-                                                values.get());
+        std::cout << "size: " << size << std::endl;
+        device->getCommandQueue().enqueueReadBuffer(buffer, CL_TRUE, 0, sizeof(float) * size,
+                                                    values.get() + i*size);
+        std::cout << "done" << std::endl;
 
-    if(image->getWidth() != width || image->getHeight() != height)
-        throw Exception("Input image sent to executeNetwork was of incrorrect size");
+    }
 
     auto tensor = Tensor::New();
-    tensor->create(std::move(values), {1, height, width, 1});
+    tensor->create(std::move(values), shape);
     return tensor;
 }
 
-std::vector<std::pair<NeuralNetwork::NetworkNode, Tensor::pointer>> NeuralNetwork::executeNetwork(std::unordered_map<std::string, std::vector<Tensor::pointer>> tensors) {
+std::vector<std::pair<NeuralNetwork::NetworkNode, Tensor::pointer>> NeuralNetwork::executeNetwork(std::unordered_map<std::string, Tensor::pointer> tensors) {
     if(!mModelLoaded)
 		throw Exception("Network and weights must be loaded in NeuralNetwork before execution.");
-	if(mOutputNodes.size() == 0)
+	if(mOutputNodes.empty())
 		throw Exception("At least one output node has to be given to the NeuralNetwork before execution");
-
-    const int batchSize = 1;
 
 	// For each input, create a tensorflow tensor:
 	std::vector <std::pair<std::string, tensorflow::Tensor>> input_tensors;
 	for(auto inputNode : mInputNodes) {
 		const std::string name = inputNode.first;
-		auto shape = inputNode.second.shape;
-		shape[0] = batchSize;
+		auto shape = tensors[name]->getShape();
+		if(shape.getUnknownDimensions() > 0)
+		    throw Exception("Input shape must be fully known when executing NN");
 
 		// Construct tensorflow tensor
         tensorflow::TensorShape tensorShape;
@@ -276,7 +285,7 @@ std::vector<std::pair<NeuralNetwork::NetworkNode, Tensor::pointer>> NeuralNetwor
 
         // Give tensor data to tensorflow
         // TODO is the data here actually moved?
-        TensorAccess::pointer access = tensors[name][0]->getAccess(ACCESS_READ);
+        TensorAccess::pointer access = tensors[name]->getAccess(ACCESS_READ);
         switch(shape.getDimensions()) {
             case 2:
                 input_tensor.tensor<float, 2>() = std::move(access->getData<2>());

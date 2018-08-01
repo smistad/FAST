@@ -50,6 +50,7 @@ void PixelClassifier::execute() {
     auto input = processInputData();
     auto result = executeNetwork(input);
     Tensor::pointer tensor = result[0].second;
+    const auto shape = tensor->getShape();
     TensorAccess::pointer access = tensor->getAccess(ACCESS_READ);
     reportInfo() << "Processing output of NN" << reportEnd();
     auto tensor_mapped = access->getData<4>();
@@ -115,12 +116,12 @@ void PixelClassifier::execute() {
         }
         output->create(outputWidth, outputHeight, TYPE_UINT8, 1, std::move(data));
         output->setSpacing(mNewInputSpacing);
-        SceneGraph::setParentNode(output, mImages.back());
+        //SceneGraph::setParentNode(output, mImages.back()); // TODO deal with this
         if(mResizeBackToOriginalSize) {
             ImageResizer::pointer resizer = ImageResizer::New();
             resizer->setInputData(output);
-            resizer->setWidth(mImages.back()->getWidth());
-            resizer->setHeight(mImages.back()->getHeight());
+            resizer->setWidth(shape[2]);
+            resizer->setHeight(shape[1]);
             resizer->setPreserveAspectRatio(mPreserveAspectRatio);
             DataPort::pointer port = resizer->getOutputPort();
             resizer->update(0);
