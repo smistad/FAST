@@ -46,7 +46,7 @@ static std::vector<int> getShape(const tensorflow::NodeDef& node) {
     if(node.attr().count("shape") > 0) {
         auto shape = node.attr().at("shape").shape();
         // Drop batch size
-        for(int i = 1; i < shape.dim_size(); i++) {
+        for(int i = 0; i < shape.dim_size(); i++) {
             resultShape.push_back(shape.dim(i).size());
         }
     }
@@ -70,25 +70,46 @@ void NeuralNetwork::load(std::string networkFilename) {
 		}
 	}
 
-	// Assume first node is input node
+	bool nodesSpecified = true;
+    int inputCounter = 0;
 	if(mInputNodes.size() == 0) {
-		addInputNode(0, tensorflow_graph.node(0).name(), NodeType::IMAGE);
+		nodesSpecified = false;
 	}
-
     for(int i = 0; i < tensorflow_graph.node_size(); ++i) {
 		tensorflow::NodeDef node = tensorflow_graph.node(i);
 		if(mInputNodes.count(node.name()) > 0) {
-			// Input node found, set its shape
-		    mInputNodes[node.name()].shape = getShape(node);
 		}
-		/*
-        reportInfo() << "Node " << i << " with name " << node.name() << reportEnd();
-        reportInfo() << "Op name " << node.op() << reportEnd();
-        reportInfo() << "inputs: " << node.input_size() << reportEnd();
-        */
+		if(node.op() == "Placeholder") {
+			if(node.name().find("keras_learning_phase") != std::string::npos) {
+				mLearningPhaseTensors.push_back(node.name());
+			} else {
+				// Input node found:
+				// Get its shape
+				// Input nodes use the Op Placeholder
+				reportInfo() << "Found input node: " << i << " with name " << node.name() << reportEnd();
+				auto shape = getShape(node);
+				if(mInputNodes.count(node.name()) == 0) {
+					if(nodesSpecified) {
+						throw Exception("Encountered unknown node " + node.name());
+					}
+					reportInfo() << "Node was not specified by user" << reportEnd();
+					// If node has not been specified by user, we need to add it
+					// and thus know its type (fast image or tensor)
+					// It is assumed to be an image if input shape has at least 4 dimensions
+					NodeType type = NodeType::TENSOR;
+					if(shape.size() >= 4) {
+						reportInfo() << "Assuming node is an image" << reportEnd();
+						type = NodeType::IMAGE;
+					} else {
+						reportInfo() << "Assuming node is a tensor" << reportEnd();
+					}
+					addInputNode(inputCounter, tensorflow_graph.node(0).name(), type, shape);
+					++inputCounter;
+				}
 
-        if(node.name().find("keras_learning_phase") != std::string::npos) {
-			mLearningPhaseTensors.push_back(node.name());
+				// Set its shape
+				mInputNodes[node.name()].shape = shape;
+			}
 		}
 	}
 
@@ -131,8 +152,7 @@ NeuralNetwork::NeuralNetwork() {
 	createBooleanAttribute("signed_input_normalization", "Signed input normalization", "Normalize input to -1 and 1 instead of 0 to 1.", false);
 }
 
-std::pair<std::unordered_map<std::string, std::vector<Image::pointer>>, std::unordered_map<std::string, std::vector<Tensor::pointer>>> NeuralNetwork::processInputData() {
-    std::unordered_map<std::string, std::vector<Image::pointer>> images;
+std::unordered_map<std::string, std::vector<Tensor::pointer>> NeuralNetwork::processInputData() {
     std::unordered_map<std::string, std::vector<Tensor::pointer>> tensors;
     for(auto inputNode : mInputNodes) {
         // TODO batch detection
@@ -140,10 +160,11 @@ std::pair<std::unordered_map<std::string, std::vector<Image::pointer>>, std::uno
         if(shape.size() == 0)
             throw Exception("Unable to deduce input shape from .pb file. Either export the file with shape information or supply the input shape manually using setInputShape");
 
-        if(inputNode.second.type == NodeType::IMAGE) {
-            // Input node wants images
-            Image::pointer image = getInputData<Image>(inputNode.second.portID);
+        SharedPointer<DataObject> data = getInputData<DataObject>(inputNode.second.portID);
 
+        // Check if data object is an image by doing a dynamic cast
+        Image::pointer image = std::dynamic_pointer_cast<Image>(data);
+        if(image) {
             mImages.push_back(image);
             while(mImages.size() < mTemporalWindow)
                 mImages.push_back(image);
@@ -151,10 +172,21 @@ std::pair<std::unordered_map<std::string, std::vector<Image::pointer>>, std::uno
                 mImages.pop_front();
 
             std::vector<Image::pointer> inputImages(mImages.begin(), mImages.end());
-            images[inputNode.first] = resizeImages(inputImages, shape[1], shape[0]);
+
+            if(shape.size() < 4)
+            	throw Exception("Trying to attach an image to an input node with shape with fewer than 4 dimensions");
+
+            // Resize images to fit input
+            inputImages = resizeImages(inputImages, shape[2], shape[1]);
+
+			std::vector<Tensor::pointer> inputTensors;
+            // Convert images to tensors
+            for(auto image : inputImages) {
+            	inputTensors.push_back(convertImageToTensor(image, inputNode.second.shape));
+            }
+			tensors[inputNode.first] = inputTensors;
         } else {
-            // Input node wants tensors
-            Tensor::pointer tensor = getInputData<Tensor>(inputNode.second.portID);
+            Tensor::pointer tensor = std::dynamic_pointer_cast<Tensor>(data);
             mTensors.push_back(tensor);
             while(mTensors.size() < mTemporalWindow)
                 mTensors.push_back(tensor);
@@ -165,13 +197,13 @@ std::pair<std::unordered_map<std::string, std::vector<Image::pointer>>, std::uno
         }
 	}
 
-	return std::make_pair(images, tensors);
+	return tensors;
 }
 
 void NeuralNetwork::execute() {
 	// Add output tensors to the output of this PO
-	auto data = processInputData();
-	auto output = executeNetwork(data.first, data.second);
+	auto inputTensors = processInputData();
+	auto output = executeNetwork(inputTensors);
     for(auto outputTensor : output) {
         auto node = outputTensor.first;
         auto tensor = outputTensor.second;
@@ -179,15 +211,14 @@ void NeuralNetwork::execute() {
     }
 }
 
-TensorData<4> NeuralNetwork::convertImageToTensor(Image::pointer image, const NetworkNode& node) {
-    const auto shape = node.shape;
+Tensor::pointer NeuralNetwork::convertImageToTensor(Image::pointer image, const std::vector<int>& shape) {
     // Create input tensor
 
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::Program program = getOpenCLProgram(device);
     cl::Kernel kernel(program, "normalizeInput");
-    const int width = shape[0];
-    const int height = shape[1];
+	const int height = shape[1];
+    const int width = shape[2];
     OpenCLImageAccess::pointer access = image->getOpenCLImageAccess(ACCESS_READ, device);
     cl::Buffer buffer(
             device->getContext(),
@@ -214,10 +245,12 @@ TensorData<4> NeuralNetwork::convertImageToTensor(Image::pointer image, const Ne
     if(image->getWidth() != width || image->getHeight() != height)
         throw Exception("Input image sent to executeNetwork was of incrorrect size");
 
-    return TensorData<4>(values.get(), 1, height, width, 1);
+    auto tensor = Tensor::New();
+    tensor->create(std::move(values), {1, height, width, 1});
+    return tensor;
 }
 
-std::vector<std::pair<NeuralNetwork::NetworkNode, Tensor::pointer>> NeuralNetwork::executeNetwork(std::unordered_map<std::string, std::vector<SharedPointer<Image>>>& images, std::unordered_map<std::string, std::vector<SharedPointer<Tensor>>>& tensors) {
+std::vector<std::pair<NeuralNetwork::NetworkNode, Tensor::pointer>> NeuralNetwork::executeNetwork(std::unordered_map<std::string, std::vector<Tensor::pointer>> tensors) {
     if(!mModelLoaded)
 		throw Exception("Network and weights must be loaded in NeuralNetwork before execution.");
 	if(mOutputNodes.size() == 0)
@@ -232,11 +265,11 @@ std::vector<std::pair<NeuralNetwork::NetworkNode, Tensor::pointer>> NeuralNetwor
 	std::vector <std::pair<std::string, tensorflow::Tensor>> input_tensors;
 	for(auto inputNode : mInputNodes) {
 		const std::string name = inputNode.first;
-		const auto shape = inputNode.second.shape;
+		auto shape = inputNode.second.shape;
+		shape[0] = batchSize;
 
 		// Construct tensorflow tensor
         tensorflow::TensorShape tensorShape;
-        tensorShape.AddDim(batchSize);
         for(auto i : shape) {
             tensorShape.AddDim(i);
         }
@@ -245,33 +278,27 @@ std::vector<std::pair<NeuralNetwork::NetworkNode, Tensor::pointer>> NeuralNetwor
                 tensorShape
         );
 
-        // Assign data to the tensor
-		if(inputNode.second.type == NodeType::IMAGE) {
-		    // Convert image to tensor
-		    input_tensor.tensor<float, 4>() = std::move(convertImageToTensor(images[name][0], inputNode.second));
-		} else {
-		    // Give tensor data to tensorflow
-		    // TODO is the data here actually moved
-		    TensorAccess::pointer access = tensors[name][0]->getAccess(ACCESS_READ);
-		    switch(shape.size()) {
-		        case 1:
-		            input_tensor.tensor<float, 1>() = std::move(access->getData<1>());
-		            break;
-		        case 2:
-                    input_tensor.tensor<float, 2>() = std::move(access->getData<2>());
-		            break;
-		        case 3:
-                    input_tensor.tensor<float, 3>() = std::move(access->getData<3>());
-		            break;
-		        case 4:
-                    input_tensor.tensor<float, 4>() = std::move(access->getData<4>());
-		            break;
-		        case 5:
-                    input_tensor.tensor<float, 5>() = std::move(access->getData<5>());
-		            break;
-		        default:
-		            throw Exception("Invalid tensor dimension size");
-		    }
+        // Give tensor data to tensorflow
+        // TODO is the data here actually moved?
+        TensorAccess::pointer access = tensors[name][0]->getAccess(ACCESS_READ);
+        switch(shape.size()) {
+            case 2:
+                input_tensor.tensor<float, 2>() = std::move(access->getData<2>());
+                break;
+            case 3:
+                input_tensor.tensor<float, 3>() = std::move(access->getData<3>());
+                break;
+            case 4:
+                input_tensor.tensor<float, 4>() = std::move(access->getData<4>());
+                break;
+            case 5:
+                input_tensor.tensor<float, 5>() = std::move(access->getData<5>());
+                break;
+			case 6:
+				input_tensor.tensor<float, 6>() = std::move(access->getData<6>());
+				break;
+            default:
+                throw Exception("Invalid tensor dimension size");
 		}
 
 		// Add tensorflow tensor to list of input tensors

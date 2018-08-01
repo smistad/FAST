@@ -48,7 +48,7 @@ void PixelClassifier::execute() {
     }
 
     auto input = processInputData();
-    auto result = executeNetwork(input.first, input.second);
+    auto result = executeNetwork(input);
     Tensor::pointer tensor = result[0].second;
     TensorAccess::pointer access = tensor->getAccess(ACCESS_READ);
     reportInfo() << "Processing output of NN" << reportEnd();

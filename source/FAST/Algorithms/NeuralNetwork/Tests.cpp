@@ -34,7 +34,47 @@ TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork]") {
     window->addRenderer(imageRenderer);
     window->addRenderer(segmentationRenderer);
     window->set2DMode();
+    window->setTimeout(1000);
     window->start();
+}
+
+TEST_CASE("Multi input, single output network", "[fast][neuralnetwork]") {
+    auto importer = ImageFileImporter::New();
+    importer->setFilename(Config::getTestDataPath() + "US/JugularVein/US-2D_0.mhd");
+
+    auto network = NeuralNetwork::New();
+    network->load(Config::getTestDataPath() + "NeuralNetworkModels/multi_input_single_output.pb");
+    network->addOutputNode(0, "dense/BiasAdd", NeuralNetwork::NodeType::TENSOR);
+    network->setInputConnection(0, importer->getOutputPort());
+    network->setInputConnection(1, importer->getOutputPort());
+    auto port = network->getOutputPort();
+    network->update(0);
+    auto data = port->getNextFrame<Tensor>();
+    // We are expecting a tensor output with dimensions (1, 6)
+    REQUIRE(data->getShape().size() == 2);
+    CHECK(data->getShape()[1] == 6);
+}
+
+TEST_CASE("Single input, multi output network", "[fast][neuralnetwork]") {
+    auto importer = ImageFileImporter::New();
+    importer->setFilename(Config::getTestDataPath() + "US/JugularVein/US-2D_0.mhd");
+
+    auto network = NeuralNetwork::New();
+    network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output.pb");
+    network->addOutputNode(0, "dense_1/BiasAdd", NeuralNetwork::NodeType::TENSOR);
+    network->addOutputNode(1, "dense_2/BiasAdd", NeuralNetwork::NodeType::TENSOR);
+    network->setInputConnection(0, importer->getOutputPort());
+    auto port1 = network->getOutputPort(0);
+    auto port2 = network->getOutputPort(1);
+    network->update(0);
+    auto data1 = port1->getNextFrame<Tensor>();
+    auto data2 = port2->getNextFrame<Tensor>();
+
+    // We are expecting two tensors as output each with dimensions (1, 6)
+    REQUIRE(data1->getShape().size() == 2);
+    CHECK(data1->getShape()[1] == 6);
+    REQUIRE(data2->getShape().size() == 2);
+    CHECK(data2->getShape()[1] == 6);
 }
 
 /*

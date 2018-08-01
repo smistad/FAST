@@ -74,11 +74,10 @@ protected:
     std::unordered_map<std::string, NetworkNode> mInputNodes;
     std::unordered_map<std::string, NetworkNode> mOutputNodes;
 
-
-    std::pair<std::unordered_map<std::string, std::vector<SharedPointer<Image>>>, std::unordered_map<std::string, std::vector<Tensor::pointer>>> processInputData();
-    std::vector<std::pair<NetworkNode, SharedPointer<Tensor>>> executeNetwork(std::unordered_map<std::string, std::vector<SharedPointer<Image>>>& images, std::unordered_map<std::string, std::vector<SharedPointer<Tensor>>>& tensors);
+    std::unordered_map<std::string, std::vector<Tensor::pointer>> processInputData();
+    std::vector<std::pair<NetworkNode, SharedPointer<Tensor>>> executeNetwork(std::unordered_map<std::string, std::vector<Tensor::pointer>> tensors);
     std::vector<SharedPointer<Image>> resizeImages(const std::vector<SharedPointer<Image>>& images, int width, int height);
-    TensorData<4> convertImageToTensor(SharedPointer<Image> image, const NetworkNode& node);
+    Tensor::pointer convertImageToTensor(SharedPointer<Image> image, const std::vector<int>& shape);
 
     private:
         void execute();

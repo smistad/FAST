@@ -15,7 +15,7 @@ void ImageClassifier::setLabels(std::vector<std::string> labels) {
 void ImageClassifier::execute() {
 
     auto input = processInputData();
-    auto result = executeNetwork(input.first, input.second);
+    auto result = executeNetwork(input);
     Tensor::pointer tensor = result[0].second;
     TensorAccess::pointer access = tensor->getAccess(ACCESS_READ);
 
