@@ -220,39 +220,63 @@ Tensor::pointer NeuralNetwork::convertImagesToTensor(std::vector<Image::pointer>
 
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::Program program = getOpenCLProgram(device);
-    cl::Kernel kernel(program, "normalizeInput");
-    const std::size_t size = shape[1]*shape[2]*shape[3]; // nr of elements per image
+    int width, height, depth, channels;
+    std::string kernelName;
+    const int dims = shape.getDimensions();
+    channels = shape[dims-1];
+    width = shape[dims-2];
+    height = shape[dims-3];
+    if(images[0]->getDimensions() == 2) {
+        kernelName = "normalize2DInput";
+        if(shape.getDimensions() != 4)
+            throw Exception("Incorrect shape size");
+        depth = 1;
+    } else {
+        kernelName = "normalize3DInput";
+        if(shape.getDimensions() != 5)
+            throw Exception("Incorrect shape size");
+        depth = shape[dims-4];
+    }
+    cl::Kernel kernel(program, kernelName.c_str());
+    const std::size_t size = width*height*depth*channels; // nr of elements per image
     for(int i = 0; i < images.size(); ++i) {
         auto image = images[i];
-        const int height = shape[1];
-        const int width = shape[2];
-        if(image->getWidth() != width || image->getHeight() != height)
-            throw Exception("Input image sent to executeNetwork was of incrorrect size");
+        if(image->getWidth() != width ||
+            image->getHeight() != height ||
+            image->getDepth() != depth ||
+            image->getNrOfChannels() != channels)
+            throw Exception("Input image sent to executeNetwork was of incorrect size");
         OpenCLImageAccess::pointer access = image->getOpenCLImageAccess(ACCESS_READ, device);
         cl::Buffer buffer(
                 device->getContext(),
                 CL_MEM_WRITE_ONLY,
-                sizeof(float) * width * height
+                sizeof(float) * size
         );
-        kernel.setArg(0, *access->get2DImage());
         kernel.setArg(1, buffer);
         kernel.setArg(2, mScaleFactor);
-        kernel.setArg(3, (int) (mHorizontalImageFlipping ? 1 : 0));
-        kernel.setArg(4, (int) (mSignedInputNormalization ? 1 : 0));
+        kernel.setArg(3, (int) (mSignedInputNormalization ? 1 : 0));
+        cl::NDRange globalSize;
+        if(image->getDimensions() == 2) {
+            kernel.setArg(0, *access->get2DImage());
+            kernel.setArg(4, (int) (mHorizontalImageFlipping ? 1 : 0));
+            globalSize = cl::NDRange(width, height);
+        } else {
+            kernel.setArg(0, *access->get3DImage());
+            globalSize = cl::NDRange(width, height, depth);
+        }
 
         device->getCommandQueue().enqueueNDRangeKernel(
                 kernel,
                 cl::NullRange,
-                cl::NDRange(width, height),
+                globalSize,
                 cl::NullRange
         );
 
-        std::cout << "size: " << size << std::endl;
-        device->getCommandQueue().enqueueReadBuffer(buffer, CL_TRUE, 0, sizeof(float) * size,
+        // Read data directly into slice
+        device->getCommandQueue().enqueueReadBuffer(buffer, CL_FALSE, 0, sizeof(float) * size,
                                                     values.get() + i*size);
-        std::cout << "done" << std::endl;
-
     }
+    device->getCommandQueue().finish();
 
     auto tensor = Tensor::New();
     tensor->create(std::move(values), shape);
