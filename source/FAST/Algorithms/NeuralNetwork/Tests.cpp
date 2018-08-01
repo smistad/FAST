@@ -51,7 +51,7 @@ TEST_CASE("Multi input, single output network", "[fast][neuralnetwork]") {
     network->update(0);
     auto data = port->getNextFrame<Tensor>();
     // We are expecting a tensor output with dimensions (1, 6)
-    REQUIRE(data->getShape().size() == 2);
+    REQUIRE(data->getShape().getDimensions() == 2);
     CHECK(data->getShape()[1] == 6);
 }
 
@@ -71,9 +71,9 @@ TEST_CASE("Single input, multi output network", "[fast][neuralnetwork]") {
     auto data2 = port2->getNextFrame<Tensor>();
 
     // We are expecting two tensors as output each with dimensions (1, 6)
-    REQUIRE(data1->getShape().size() == 2);
+    REQUIRE(data1->getShape().getDimensions() == 2);
     CHECK(data1->getShape()[1] == 6);
-    REQUIRE(data2->getShape().size() == 2);
+    REQUIRE(data2->getShape().getDimensions() == 2);
     CHECK(data2->getShape()[1] == 6);
 }
 

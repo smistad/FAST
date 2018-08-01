@@ -24,6 +24,8 @@ fast_add_sources(
     SimpleDataObject.hpp
     Tensor.cpp
     Tensor.hpp
+    TensorShape.cpp
+    TensorShape.hpp
 )
 fast_add_test_sources(
     Tests/DataObjectTests.cpp

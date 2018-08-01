@@ -1,10 +1,9 @@
 #ifndef NEURAL_NETWORK_HPP_
 #define NEURAL_NETWORK_HPP_
 
-#include "FAST/ProcessObject.hpp"
+#include <FAST/ProcessObject.hpp>
 #include <FAST/Data/Tensor.hpp>
 #include <queue>
-#include <eigen3/unsupported/Eigen/CXX11/Tensor>
 
 // Forward declare
 namespace tensorflow {
@@ -16,6 +15,7 @@ namespace fast {
 class Image;
 class Tensor;
 
+
 class FAST_EXPORT NeuralNetwork : public ProcessObject {
     FAST_OBJECT(NeuralNetwork)
     public:
@@ -24,8 +24,8 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
         TENSOR,
     };
     void load(std::string networkFilename);
-    void addInputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, std::vector<int> shape = {});
-    void addOutputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, std::vector<int> shape = {});
+    void addInputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = {});
+    void addOutputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = {});
     void setScaleFactor(float scale);
     void setSignedInputNormalization(bool signedInputNormalization);
     void setPreserveAspectRatio(bool preserve);
@@ -68,7 +68,7 @@ protected:
     struct NetworkNode {
         uint portID;
         NodeType type;
-        std::vector<int> shape;
+        TensorShape shape;
     };
 
     std::unordered_map<std::string, NetworkNode> mInputNodes;
@@ -77,7 +77,7 @@ protected:
     std::unordered_map<std::string, std::vector<Tensor::pointer>> processInputData();
     std::vector<std::pair<NetworkNode, SharedPointer<Tensor>>> executeNetwork(std::unordered_map<std::string, std::vector<Tensor::pointer>> tensors);
     std::vector<SharedPointer<Image>> resizeImages(const std::vector<SharedPointer<Image>>& images, int width, int height);
-    Tensor::pointer convertImageToTensor(SharedPointer<Image> image, const std::vector<int>& shape);
+    Tensor::pointer convertImageToTensor(SharedPointer<Image> image, const TensorShape& shape);
 
     private:
         void execute();

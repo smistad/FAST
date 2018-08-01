@@ -3,21 +3,22 @@
 
 namespace fast {
 
-void Tensor::create(std::unique_ptr<float[]> data, std::vector<int> shape) {
-    if(shape.size() == 0)
+void Tensor::create(std::unique_ptr<float[]> data, TensorShape shape) {
+    if(shape.empty())
         throw Exception("Shape can't be empty");
     m_data = std::move(data);
     m_shape = shape;
 }
 
-void Tensor::create(std::vector<int> shape) {
-    if(shape.size() == 0)
+void Tensor::create(TensorShape shape) {
+    if(shape.empty())
         throw Exception("Shape can't be empty");
-    int size = std::accumulate(shape.begin(), shape.end(), 0);
-    m_data = make_uninitialized_unique<float[]>(size);
+    if(shape.getUnknownDimensions() > 0)
+        throw Exception("When creating a tensor, shape must be fully defined");
+    m_data = make_uninitialized_unique<float[]>(shape.getTotalSize());
 }
 
-std::vector<int> Tensor::getShape() const {
+TensorShape Tensor::getShape() const {
     return m_shape;
 }
 

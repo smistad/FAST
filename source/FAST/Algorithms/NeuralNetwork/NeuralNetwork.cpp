@@ -33,7 +33,7 @@ void TensorflowTensor::create(tensorflow::Tensor&& tensorflowTensor) {
     m_tensorflowTensor = tensorflowTensor;
     auto shape = m_tensorflowTensor.shape();
     for(int i = 0; i < shape.dims(); ++i)
-        m_shape.push_back(shape.dim_size(i));
+        m_shape.addDimension(shape.dim_size(i));
 }
 
 TensorAccess::pointer TensorflowTensor::getAccess(accessType type) {
@@ -41,13 +41,12 @@ TensorAccess::pointer TensorflowTensor::getAccess(accessType type) {
     return std::make_unique<TensorAccess>(m_tensorflowTensor.flat<float>().data(), m_shape, std::static_pointer_cast<Tensor>(mPtr.lock()));
 }
 
-static std::vector<int> getShape(const tensorflow::NodeDef& node) {
-    std::vector<int> resultShape;
+static TensorShape getShape(const tensorflow::NodeDef& node) {
+    TensorShape resultShape;
     if(node.attr().count("shape") > 0) {
         auto shape = node.attr().at("shape").shape();
-        // Drop batch size
         for(int i = 0; i < shape.dim_size(); i++) {
-            resultShape.push_back(shape.dim(i).size());
+            resultShape.addDimension(shape.dim(i).size());
         }
     }
     return resultShape;
@@ -97,7 +96,7 @@ void NeuralNetwork::load(std::string networkFilename) {
 					// and thus know its type (fast image or tensor)
 					// It is assumed to be an image if input shape has at least 4 dimensions
 					NodeType type = NodeType::TENSOR;
-					if(shape.size() >= 4) {
+					if(shape.getKnownDimensions() >= 2) {
 						reportInfo() << "Assuming node is an image" << reportEnd();
 						type = NodeType::IMAGE;
 					} else {
@@ -157,7 +156,7 @@ std::unordered_map<std::string, std::vector<Tensor::pointer>> NeuralNetwork::pro
     for(auto inputNode : mInputNodes) {
         // TODO batch detection
         auto shape = inputNode.second.shape;
-        if(shape.size() == 0)
+        if(shape.getDimensions() == 0)
             throw Exception("Unable to deduce input shape from .pb file. Either export the file with shape information or supply the input shape manually using setInputShape");
 
         SharedPointer<DataObject> data = getInputData<DataObject>(inputNode.second.portID);
@@ -173,7 +172,7 @@ std::unordered_map<std::string, std::vector<Tensor::pointer>> NeuralNetwork::pro
 
             std::vector<Image::pointer> inputImages(mImages.begin(), mImages.end());
 
-            if(shape.size() < 4)
+            if(shape.getDimensions() < 4)
             	throw Exception("Trying to attach an image to an input node with shape with fewer than 4 dimensions");
 
             // Resize images to fit input
@@ -211,7 +210,7 @@ void NeuralNetwork::execute() {
     }
 }
 
-Tensor::pointer NeuralNetwork::convertImageToTensor(Image::pointer image, const std::vector<int>& shape) {
+Tensor::pointer NeuralNetwork::convertImageToTensor(Image::pointer image, const TensorShape& shape) {
     // Create input tensor
 
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
@@ -256,11 +255,8 @@ std::vector<std::pair<NeuralNetwork::NetworkNode, Tensor::pointer>> NeuralNetwor
 	if(mOutputNodes.size() == 0)
 		throw Exception("At least one output node has to be given to the NeuralNetwork before execution");
 
-    const int batchSize = 1;//images.size();
-	if(batchSize == 0)
-		throw Exception("Need at least one image to execute network.");
+    const int batchSize = 1;
 
-    mRuntimeManager->startRegularTimer("input_data_copy");
 	// For each input, create a tensorflow tensor:
 	std::vector <std::pair<std::string, tensorflow::Tensor>> input_tensors;
 	for(auto inputNode : mInputNodes) {
@@ -270,7 +266,7 @@ std::vector<std::pair<NeuralNetwork::NetworkNode, Tensor::pointer>> NeuralNetwor
 
 		// Construct tensorflow tensor
         tensorflow::TensorShape tensorShape;
-        for(auto i : shape) {
+        for(auto i : shape.getAll()) {
             tensorShape.AddDim(i);
         }
         tensorflow::Tensor input_tensor(
@@ -281,7 +277,7 @@ std::vector<std::pair<NeuralNetwork::NetworkNode, Tensor::pointer>> NeuralNetwor
         // Give tensor data to tensorflow
         // TODO is the data here actually moved?
         TensorAccess::pointer access = tensors[name][0]->getAccess(ACCESS_READ);
-        switch(shape.size()) {
+        switch(shape.getDimensions()) {
             case 2:
                 input_tensor.tensor<float, 2>() = std::move(access->getData<2>());
                 break;
@@ -304,8 +300,6 @@ std::vector<std::pair<NeuralNetwork::NetworkNode, Tensor::pointer>> NeuralNetwor
 		// Add tensorflow tensor to list of input tensors
 		input_tensors.push_back(std::make_pair(name, input_tensor));
 	}
-	mRuntimeManager->stopRegularTimer("input_data_copy");
-
 
     for(std::string name : mLearningPhaseTensors) {
         // Create a scalar tensor which tells the system we are NOT doing training
@@ -333,7 +327,8 @@ std::vector<std::pair<NeuralNetwork::NetworkNode, Tensor::pointer>> NeuralNetwor
 		throw Exception("Error during inference: " + s.ToString());
 	}
 	reportInfo() << "Finished executing network" << reportEnd();
-    // Store all output data
+
+    // Collect all output data as FAST tensors
     std::vector<std::pair<NetworkNode, Tensor::pointer>> result;
     for(int j = 0; j < outputNames.size(); ++j) {
         const std::string outputName = outputNames[j];
@@ -407,7 +402,7 @@ NeuralNetwork::~NeuralNetwork() {
 	}
 }
 
-void NeuralNetwork::addInputNode(uint portID, std::string name, NeuralNetwork::NodeType type, std::vector<int> shape) {
+void NeuralNetwork::addInputNode(uint portID, std::string name, NeuralNetwork::NodeType type, TensorShape shape) {
 	NetworkNode node;
 	node.portID = portID;
 	node.type = type;
@@ -416,7 +411,7 @@ void NeuralNetwork::addInputNode(uint portID, std::string name, NeuralNetwork::N
 	createInputPort<DataObject>(portID);
 }
 
-void NeuralNetwork::addOutputNode(uint portID, std::string name, NeuralNetwork::NodeType type, std::vector<int> shape) {
+void NeuralNetwork::addOutputNode(uint portID, std::string name, NeuralNetwork::NodeType type, TensorShape shape) {
 	NetworkNode node;
 	node.portID = portID;
 	node.type = type;
