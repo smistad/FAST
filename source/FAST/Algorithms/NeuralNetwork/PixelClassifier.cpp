@@ -43,9 +43,8 @@ void PixelClassifier::setNrOfClasses(uint classes) {
 void PixelClassifier::execute() {
     mRuntimeManager->enable();
     mRuntimeManager->startRegularTimer("pixel_classifier");
-    if(mNrOfClasses <= 0) {
+    if(mNrOfClasses <= 0)
         throw Exception("You must set the nr of classes to pixel classification.");
-    }
 
     auto input = processInputData();
     auto result = executeNetwork(input);
@@ -55,16 +54,22 @@ void PixelClassifier::execute() {
     reportInfo() << "Processing output of NN" << reportEnd();
     auto tensor_mapped = access->getData<4>();
     reportInfo() << "Got eigen tensor" << reportEnd();
-    int outputHeight = tensor_mapped.dimension(1);
-    int outputWidth = tensor_mapped.dimension(2);
+    const int dims = shape.getDimensions();
+    int outputHeight = shape[dims-3];
+    int outputWidth = shape[dims-2];
+    int outputDepth = 1;
+    if(dims == 5)
+        outputDepth = shape[dims-4];
 
-    // For each class
     if(mHeatmapOutput) {
         for(int j = 0; j < mNrOfClasses; j++) {
             // Check if output for this class has been requested
             if (mOutputConnections[j].empty())
                 continue;
-            auto data = make_uninitialized_unique<float[]>(outputWidth * outputHeight);
+            // TODO fix 3D support here
+            if(outputDepth != 1)
+                throw NotImplementedException();
+            auto data = make_uninitialized_unique<float[]>(outputWidth * outputHeight * outputDepth);
             if (mHorizontalImageFlipping) {
                 for (int x = 0; x < outputWidth; ++x) {
                     for (int y = 0; y < outputHeight; ++y) {
@@ -82,12 +87,11 @@ void PixelClassifier::execute() {
             output->create(outputWidth, outputHeight, TYPE_FLOAT, 1, std::move(data));
 
             output->setSpacing(mNewInputSpacing);
-            SceneGraph::setParentNode(output, mImages.back());
+            SceneGraph::setParentNode(output, mInputImages.begin()->second[0]);
             if(mResizeBackToOriginalSize) {
                 ImageResizer::pointer resizer = ImageResizer::New();
                 resizer->setInputData(output);
-                resizer->setWidth(mImages.back()->getWidth());
-                resizer->setHeight(mImages.back()->getHeight());
+                resizer->setSize(mInputImages.begin()->second[0]->getSize().cast<int>());
                 resizer->setPreserveAspectRatio(mPreserveAspectRatio);
                 DataPort::pointer port = resizer->getOutputPort();
                 resizer->update(0);
@@ -101,27 +105,28 @@ void PixelClassifier::execute() {
     } else {
         reportInfo() << "Converting data" << reportEnd();
         Image::pointer output = Image::New();
-        auto data = make_uninitialized_unique<uchar[]>(outputWidth * outputHeight);
-        for(int x = 0; x < outputWidth; ++x) {
-            for (int y = 0; y < outputHeight; ++y) {
-                data[x + y * outputWidth] = 0;
-                int maxClass = 0;
-                for(int j = 1; j < mNrOfClasses; j++) {
-                    if(tensor_mapped(0, y, x, j) > mThreshold && tensor_mapped(0, y, x, j) > tensor_mapped(0, y, x, maxClass)) {
-                        data[x + y * outputWidth] = j;
-                        maxClass = j;
-                    }
+        auto data = make_uninitialized_unique<uchar[]>(outputWidth * outputHeight * outputDepth);
+        for(int x = 0; x < outputWidth*outputHeight*outputDepth; ++x) {
+            data[x] = 0;
+            int maxClass = 0;
+            for(int j = 1; j < mNrOfClasses; j++) {
+                if(tensor_mapped(x*mNrOfClasses + j) > mThreshold && tensor_mapped(x*mNrOfClasses + j) > tensor_mapped(x*mNrOfClasses + maxClass)) {
+                    data[x] = j;
+                    maxClass = j;
                 }
             }
         }
-        output->create(outputWidth, outputHeight, TYPE_UINT8, 1, std::move(data));
+        if(outputDepth == 1) {
+            output->create(outputWidth, outputHeight, TYPE_UINT8, 1, std::move(data));
+        } else {
+            output->create(outputWidth, outputHeight, outputDepth, TYPE_UINT8, 1, std::move(data));
+        }
         output->setSpacing(mNewInputSpacing);
-        //SceneGraph::setParentNode(output, mImages.back()); // TODO deal with this
+        SceneGraph::setParentNode(output, mInputImages.begin()->second[0]);
         if(mResizeBackToOriginalSize) {
             ImageResizer::pointer resizer = ImageResizer::New();
             resizer->setInputData(output);
-            resizer->setWidth(shape[2]);
-            resizer->setHeight(shape[1]);
+            resizer->setSize(mInputImages.begin()->second[0]->getSize().cast<int>());
             resizer->setPreserveAspectRatio(mPreserveAspectRatio);
             DataPort::pointer port = resizer->getOutputPort();
             resizer->update(0);

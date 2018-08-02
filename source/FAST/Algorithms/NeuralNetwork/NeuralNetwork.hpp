@@ -63,8 +63,6 @@ protected:
     std::vector<std::string> mLearningPhaseTensors;
     uint mTemporalWindow = 1;
     float mScaleFactor;
-    std::deque<SharedPointer<Image>> mImages;
-    std::deque<SharedPointer<Tensor>> mTensors;
     Vector3f mNewInputSpacing;
 
     struct NetworkNode {
@@ -75,10 +73,11 @@ protected:
 
     std::unordered_map<std::string, NetworkNode> mInputNodes;
     std::unordered_map<std::string, NetworkNode> mOutputNodes;
+    std::unordered_map<std::string, std::vector<SharedPointer<Image>>> mInputImages;
 
     std::unordered_map<std::string, Tensor::pointer> processInputData();
     std::vector<std::pair<NetworkNode, SharedPointer<Tensor>>> executeNetwork(std::unordered_map<std::string, Tensor::pointer> tensors);
-    std::vector<SharedPointer<Image>> resizeImages(const std::vector<SharedPointer<Image>>& images, int width, int height);
+    std::vector<SharedPointer<Image>> resizeImages(const std::vector<SharedPointer<Image>>& images, int width, int height, int depth);
     Tensor::pointer convertImagesToTensor(std::vector<SharedPointer<Image>> image, const TensorShape& shape);
 
     private:

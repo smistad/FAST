@@ -155,7 +155,6 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
     std::unordered_map<std::string, Tensor::pointer> tensors;
     int batchSize = -1;
     for(auto inputNode : mInputNodes) {
-        // TODO batch detection
         auto shape = inputNode.second.shape;
         if(shape.getDimensions() == 0)
             throw Exception("Unable to deduce input shape from .pb file. Either export the file with shape information or supply the input shape manually using setInputShape");
@@ -184,9 +183,16 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
                 Image::pointer image = std::dynamic_pointer_cast<Image>(data);
                 inputImages.push_back(image);
             }
+            mInputImages[inputNode.first] = inputImages;
 
             // Resize images to fit input
-            inputImages = resizeImages(inputImages, shape[2], shape[1]);
+            const int dims = shape.getDimensions();
+            int height = shape[dims-3];
+            int width = shape[dims-2];
+            int depth = 1;
+            if(dims == 5)
+                depth = shape[dims-4];
+            inputImages = resizeImages(inputImages, width, height, depth);
 
 			std::vector<Tensor::pointer> inputTensors;
             // Convert images to tensors
@@ -376,16 +382,17 @@ std::vector<std::pair<NeuralNetwork::NetworkNode, Tensor::pointer>> NeuralNetwor
     return result;
 }
 
-std::vector<SharedPointer<Image>> NeuralNetwork::resizeImages(const std::vector<SharedPointer<Image>> &images, int width, int height) {
+std::vector<SharedPointer<Image>> NeuralNetwork::resizeImages(const std::vector<SharedPointer<Image>> &images, int width, int height, int depth) {
     mRuntimeManager->startRegularTimer("image input resize");
     std::vector<Image::pointer> resizedImages;
 	for(Image::pointer image : images) {
 		// Resize image to fit input layer
-		if(width != image->getWidth() || height != image->getHeight()) {
+		if(width != image->getWidth() || height != image->getHeight() || depth != image->getDepth()) {
 			// Only resize if needed
             ImageResizer::pointer resizer = ImageResizer::New();
             resizer->setWidth(width);
             resizer->setHeight(height);
+            resizer->setDepth(depth);
             resizer->setInputData(image);
 			resizer->setPreserveAspectRatio(mPreserveAspectRatio);
 			DataPort::pointer port = resizer->getOutputPort();
@@ -426,7 +433,7 @@ void NeuralNetwork::setSignedInputNormalization(bool signedInputNormalization) {
 }
 
 void NeuralNetwork::addTemporalImageFrame(SharedPointer<Image> image) {
-	mImages.push_back(image);
+	//mImages.push_back(image);
 }
 
 NeuralNetwork::~NeuralNetwork() {
