@@ -51,9 +51,7 @@ void PixelClassifier::execute() {
     Tensor::pointer tensor = result[0].second;
     const auto shape = tensor->getShape();
     TensorAccess::pointer access = tensor->getAccess(ACCESS_READ);
-    reportInfo() << "Processing output of NN" << reportEnd();
     auto tensor_mapped = access->getData<4>();
-    reportInfo() << "Got eigen tensor" << reportEnd();
     const int dims = shape.getDimensions();
     int outputHeight = shape[dims-3];
     int outputWidth = shape[dims-2];
@@ -103,7 +101,6 @@ void PixelClassifier::execute() {
             }
         }
     } else {
-        reportInfo() << "Converting data" << reportEnd();
         Image::pointer output = Image::New();
         auto data = make_uninitialized_unique<uchar[]>(outputWidth * outputHeight * outputDepth);
         for(int x = 0; x < outputWidth*outputHeight*outputDepth; ++x) {
@@ -125,6 +122,7 @@ void PixelClassifier::execute() {
         SceneGraph::setParentNode(output, mInputImages.begin()->second[0]);
         if(mResizeBackToOriginalSize) {
             ImageResizer::pointer resizer = ImageResizer::New();
+            resizer->setInterpolation(false);
             resizer->setInputData(output);
             resizer->setSize(mInputImages.begin()->second[0]->getSize().cast<int>());
             resizer->setPreserveAspectRatio(mPreserveAspectRatio);

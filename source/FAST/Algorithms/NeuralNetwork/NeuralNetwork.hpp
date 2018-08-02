@@ -18,6 +18,8 @@ class Tensor;
 
 FAST_SIMPLE_DATA_OBJECT(Batch, std::vector<SharedPointer<Image>>)
 
+FAST_SIMPLE_DATA_OBJECT(Sequence, std::vector<SharedPointer<Image>>)
+
 class FAST_EXPORT NeuralNetwork : public ProcessObject {
     FAST_OBJECT(NeuralNetwork)
     public:
@@ -61,7 +63,6 @@ protected:
     bool mHorizontalImageFlipping = false;
     bool mSignedInputNormalization = false;
     std::vector<std::string> mLearningPhaseTensors;
-    uint mTemporalWindow = 1;
     float mScaleFactor;
     Vector3f mNewInputSpacing;
 
@@ -78,7 +79,7 @@ protected:
     std::unordered_map<std::string, Tensor::pointer> processInputData();
     std::vector<std::pair<NetworkNode, SharedPointer<Tensor>>> executeNetwork(std::unordered_map<std::string, Tensor::pointer> tensors);
     std::vector<SharedPointer<Image>> resizeImages(const std::vector<SharedPointer<Image>>& images, int width, int height, int depth);
-    Tensor::pointer convertImagesToTensor(std::vector<SharedPointer<Image>> image, const TensorShape& shape);
+    Tensor::pointer convertImagesToTensor(std::vector<SharedPointer<Image>> image, const TensorShape& shape, bool temporal);
 
     private:
         void execute();

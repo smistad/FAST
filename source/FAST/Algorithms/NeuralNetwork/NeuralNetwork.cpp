@@ -161,6 +161,7 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
 
         SharedPointer<DataObject> data = getInputData<DataObject>(inputNode.second.portID);
 
+        bool containsSequence = false;
         // Check if data object is an tensor by doing a dynamic cast
         Tensor::pointer tensor = std::dynamic_pointer_cast<Tensor>(data);
         if(!tensor) {
@@ -180,8 +181,26 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
                 }
             } else {
                 batchSize = 1;
-                Image::pointer image = std::dynamic_pointer_cast<Image>(data);
-                inputImages.push_back(image);
+                Sequence::pointer sequence = std::dynamic_pointer_cast<Sequence>(data);
+                if(sequence) {
+                    Sequence::access access = sequence->getAccess(ACCESS_READ);
+                    inputImages = access->getData();
+                    containsSequence = true;
+                    if(shape[1] == -1) {
+                        // Nr of timesteps unknown in the shape, set it
+                        shape[1] = inputImages.size();
+                    } else {
+                        // TODO this check is probably not necessary?
+                        // Nr of timesteps is specified, check that it matches
+                        if(shape[1] != inputImages.size()) {
+                            throw Exception("The number of timesteps in the input node shape doesn't match the number of images in the sequence");
+                        }
+                    }
+                } else {
+                    // Single image
+                    Image::pointer image = std::dynamic_pointer_cast<Image>(data);
+                    inputImages.push_back(image);
+                }
             }
             mInputImages[inputNode.first] = inputImages;
 
@@ -190,14 +209,22 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
             int height = shape[dims-3];
             int width = shape[dims-2];
             int depth = 1;
-            if(dims == 5)
-                depth = shape[dims-4];
+            int timesteps = 0;
+            if(containsSequence) {
+                // Temporal input
+                timesteps = shape[1];
+                if(dims == 6) // 3D
+                    depth = shape[2];
+            } else {
+                if(dims == 5) // 3D
+                    depth = shape[1];
+            }
             inputImages = resizeImages(inputImages, width, height, depth);
 
 			std::vector<Tensor::pointer> inputTensors;
             // Convert images to tensors
             shape[0] = batchSize;
-			tensors[inputNode.first] = convertImagesToTensor(inputImages, shape);
+			tensors[inputNode.first] = convertImagesToTensor(inputImages, shape, containsSequence);
         } else {
             tensors[inputNode.first] = tensor;
         }
@@ -217,7 +244,7 @@ void NeuralNetwork::execute() {
     }
 }
 
-Tensor::pointer NeuralNetwork::convertImagesToTensor(std::vector<Image::pointer> images, const TensorShape& shape) {
+Tensor::pointer NeuralNetwork::convertImagesToTensor(std::vector<Image::pointer> images, const TensorShape& shape, bool temporal) {
     if(shape.getUnknownDimensions() > 0)
         throw Exception("Shape must be known at this time");
 
@@ -226,20 +253,26 @@ Tensor::pointer NeuralNetwork::convertImagesToTensor(std::vector<Image::pointer>
 
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::Program program = getOpenCLProgram(device);
-    int width, height, depth, channels;
+    int depth = 1;
+    int timesteps = 0;
     std::string kernelName;
     const int dims = shape.getDimensions();
-    channels = shape[dims-1];
-    width = shape[dims-2];
-    height = shape[dims-3];
+    const int channels = shape[dims-1];
+    const int width = shape[dims-2];
+    const int height = shape[dims-3];
+    if(temporal) {
+        timesteps = shape[1];
+        if(shape[0] != 1)
+            throw Exception("Batch of sequences for NN processing not supported yet!");
+    }
     if(images[0]->getDimensions() == 2) {
         kernelName = "normalize2DInput";
-        if(shape.getDimensions() != 4)
+        if((!temporal && shape.getDimensions() != 4) || (temporal && shape.getDimensions() != 5))
             throw Exception("Incorrect shape size");
         depth = 1;
     } else {
         kernelName = "normalize3DInput";
-        if(shape.getDimensions() != 5)
+        if((!temporal && shape.getDimensions() != 5) || (temporal && shape.getDimensions() != 6))
             throw Exception("Incorrect shape size");
         depth = shape[dims-4];
     }
@@ -425,7 +458,8 @@ void NeuralNetwork::setTemporalWindow(uint window) {
 	if(window < 1) {
         throw Exception("Remember frames has to be > 0.");
 	}
-	mTemporalWindow = window;
+	//mTemporalWindow = window;
+	// TODO fix
 }
 
 void NeuralNetwork::setSignedInputNormalization(bool signedInputNormalization) {
@@ -434,6 +468,7 @@ void NeuralNetwork::setSignedInputNormalization(bool signedInputNormalization) {
 
 void NeuralNetwork::addTemporalImageFrame(SharedPointer<Image> image) {
 	//mImages.push_back(image);
+    // TODO fix
 }
 
 NeuralNetwork::~NeuralNetwork() {

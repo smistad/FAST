@@ -1,3 +1,5 @@
+#include <FAST/Visualization/SliceRenderer/SliceRenderer.hpp>
+#include <FAST/Visualization/SimpleWindow.hpp>
 #include "FAST/Testing.hpp"
 #include "ImageResizer.hpp"
 #include "FAST/Importers/ImageFileImporter.hpp"
@@ -39,6 +41,31 @@ TEST_CASE("ImageResizer 2D preserve aspect", "[fast][ImageResizer]") {
 	ImageRenderer::pointer renderer = ImageRenderer::New();
 	renderer->addInputConnection(resizer->getOutputPort());
 	SimpleWindow::pointer window = SimpleWindow::New();
+	window->addRenderer(renderer);
+	window->start();
+	 */
+}
+
+TEST_CASE("ImageResizer 3D", "[fast][ImageResizer]") {
+	ImageFileImporter::pointer importer = ImageFileImporter::New();
+	importer->setFilename(Config::getTestDataPath() + "US/Ball/US-3Dt_0.mhd");
+	ImageResizer::pointer resizer = ImageResizer::New();
+	resizer->setInputConnection(importer->getOutputPort());
+	resizer->setWidth(64);
+	resizer->setHeight(64);
+	resizer->setDepth(64);
+	auto port = resizer->getOutputPort();
+	resizer->update(0);
+
+	Image::pointer result = port->getNextFrame<Image>();
+	CHECK(result->getWidth() == 64);
+	CHECK(result->getHeight() == 64);
+	CHECK(result->getDepth() == 64);
+
+	/*
+	auto renderer = SliceRenderer::New();
+	renderer->addInputConnection(resizer->getOutputPort());
+	auto window = SimpleWindow::New();
 	window->addRenderer(renderer);
 	window->start();
 	 */

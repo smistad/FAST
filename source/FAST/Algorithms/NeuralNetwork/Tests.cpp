@@ -79,6 +79,24 @@ TEST_CASE("Single input, multi output network", "[fast][neuralnetwork]") {
     CHECK(data2->getShape()[1] == 6);
 }
 
+TEST_CASE("Single 3D image input network", "[fast][neuralnetwork][3d]") {
+    auto importer = ImageFileImporter::New();
+    importer->setFilename(Config::getTestDataPath() + "US/Ball/US-3Dt_0.mhd");
+
+    auto network = NeuralNetwork::New();
+    network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_volume_input.pb");
+    network->addOutputNode(0, "dense/BiasAdd");
+    network->setInputConnection(0, importer->getOutputPort());
+    auto port = network->getOutputPort();
+    network->update(0);
+    auto data = port->getNextFrame<Tensor>();
+
+    // We are expecting one tensor as output with shape (1, 10)
+    REQUIRE(data->getShape().getDimensions() == 2);
+    CHECK(data->getShape()[0] == 1);
+    CHECK(data->getShape()[1] == 10);
+}
+
 TEST_CASE("Execute NN on batch of 2D images", "[fast][neuralnetwork]") {
     std::vector<Image::pointer> images;
 
@@ -113,4 +131,65 @@ TEST_CASE("Execute NN on batch of 2D images", "[fast][neuralnetwork]") {
     REQUIRE(data2->getShape().getDimensions() == 2);
     CHECK(data2->getShape()[0] == 2);
     CHECK(data2->getShape()[1] == 6);
+}
+
+TEST_CASE("NN: temporal input static output", "[fast][neuralnetwork][sequence]") {
+    std::vector<Image::pointer> images;
+
+    // Import data
+    {
+        auto importer = ImageFileImporter::New();
+        importer->setFilename(Config::getTestDataPath() + "US/JugularVein/US-2D_0.mhd");
+        auto port = importer->getOutputPort();
+        importer->update(0);
+        auto data = port->getNextFrame<Image>();
+        images.push_back(data);
+        images.push_back(data);
+        images.push_back(data);
+    }
+    auto sequence = Sequence::New();
+    sequence->create(images);
+
+    auto network = NeuralNetwork::New();
+    network->load(Config::getTestDataPath() + "NeuralNetworkModels/temporal_input_static_output.pb");
+    network->addOutputNode(0, "dense/BiasAdd", NeuralNetwork::NodeType::TENSOR);
+    network->setInputData(sequence);
+    auto port = network->getOutputPort(0);
+    network->update(0);
+    auto data = port->getNextFrame<Tensor>();
+
+    REQUIRE(data->getShape().getDimensions() == 2);
+    CHECK(data->getShape()[0] == 1);
+    CHECK(data->getShape()[1] == 10);
+}
+
+TEST_CASE("NN: temporal input temporal output", "[fast][neuralnetwork][sequence]") {
+    std::vector<Image::pointer> images;
+
+    // Import data
+    {
+        auto importer = ImageFileImporter::New();
+        importer->setFilename(Config::getTestDataPath() + "US/JugularVein/US-2D_0.mhd");
+        auto port = importer->getOutputPort();
+        importer->update(0);
+        auto data = port->getNextFrame<Image>();
+        images.push_back(data);
+        images.push_back(data);
+        images.push_back(data);
+    }
+    auto sequence = Sequence::New();
+    sequence->create(images);
+
+    auto network = NeuralNetwork::New();
+    network->load(Config::getTestDataPath() + "NeuralNetworkModels/temporal_input_temporal_output.pb");
+    network->addOutputNode(0, "lstm/transpose_1", NeuralNetwork::NodeType::TENSOR);
+    network->setInputData(sequence);
+    auto port = network->getOutputPort(0);
+    network->update(0);
+    auto data = port->getNextFrame<Tensor>();
+
+    REQUIRE(data->getShape().getDimensions() == 3);
+    CHECK(data->getShape()[0] == 1);
+    CHECK(data->getShape()[1] == 3); // Timesteps
+    CHECK(data->getShape()[2] == 10);
 }
