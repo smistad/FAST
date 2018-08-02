@@ -20,6 +20,7 @@ int main() {
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
     streamer->setFilenameFormat(Config::getTestDataPath() + "US/JugularVein/US-2D_#.mhd");
     streamer->setTimestampFilename(Config::getTestDataPath() + "US/JugularVein/timestamps.fts");
+    streamer->enableLooping();
 
     PixelClassifier::pointer segmentation = PixelClassifier::New();
     segmentation->setNrOfClasses(3);

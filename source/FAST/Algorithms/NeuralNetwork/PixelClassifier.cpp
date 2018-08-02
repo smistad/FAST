@@ -51,38 +51,33 @@ void PixelClassifier::execute() {
     Tensor::pointer tensor = result[0].second;
     const auto shape = tensor->getShape();
     TensorAccess::pointer access = tensor->getAccess(ACCESS_READ);
-    auto tensor_mapped = access->getData<4>();
+    float* tensorData;
     const int dims = shape.getDimensions();
     int outputHeight = shape[dims-3];
     int outputWidth = shape[dims-2];
     int outputDepth = 1;
-    if(dims == 5)
-        outputDepth = shape[dims-4];
+    if(dims == 5) {
+        outputDepth = shape[dims - 4];
+        tensorData = access->getData<5>().data();
+    } else {
+        tensorData = access->getData<4>().data();
+    }
 
     if(mHeatmapOutput) {
         for(int j = 0; j < mNrOfClasses; j++) {
             // Check if output for this class has been requested
             if (mOutputConnections[j].empty())
                 continue;
-            // TODO fix 3D support here
-            if(outputDepth != 1)
-                throw NotImplementedException();
             auto data = make_uninitialized_unique<float[]>(outputWidth * outputHeight * outputDepth);
-            if (mHorizontalImageFlipping) {
-                for (int x = 0; x < outputWidth; ++x) {
-                    for (int y = 0; y < outputHeight; ++y) {
-                        data[x + y * outputWidth] = tensor_mapped(0, y, outputWidth - x - 1, j);// > threshold ? j : 0;
-                    }
-                }
-            } else {
-                for (int x = 0; x < outputWidth; ++x) {
-                    for (int y = 0; y < outputHeight; ++y) {
-                        data[x + y * outputWidth] = tensor_mapped(0, y, x, j);// > threshold ? j : 0;
-                    }
-                }
+            for(int x = 0; x < outputWidth*outputHeight*outputDepth; ++x) {
+                data[x] = tensorData[x*mNrOfClasses + j];
             }
             Image::pointer output = Image::New();
-            output->create(outputWidth, outputHeight, TYPE_FLOAT, 1, std::move(data));
+            if(outputDepth == 1) {
+                output->create(outputWidth, outputHeight, TYPE_FLOAT, 1, std::move(data));
+            } else {
+                output->create(outputWidth, outputHeight, outputDepth, TYPE_FLOAT, 1, std::move(data));
+            }
 
             output->setSpacing(mNewInputSpacing);
             SceneGraph::setParentNode(output, mInputImages.begin()->second[0]);
@@ -107,7 +102,7 @@ void PixelClassifier::execute() {
             data[x] = 0;
             int maxClass = 0;
             for(int j = 1; j < mNrOfClasses; j++) {
-                if(tensor_mapped(x*mNrOfClasses + j) > mThreshold && tensor_mapped(x*mNrOfClasses + j) > tensor_mapped(x*mNrOfClasses + maxClass)) {
+                if(tensorData[x*mNrOfClasses + j] > mThreshold && tensorData[x*mNrOfClasses + j] > tensorData[x*mNrOfClasses + maxClass]) {
                     data[x] = j;
                     maxClass = j;
                 }

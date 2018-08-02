@@ -4,8 +4,13 @@
 #include <FAST/Importers/ImageFileImporter.hpp>
 #include <FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
+#include <FAST/Visualization/SliceRenderer/SliceRenderer.hpp>
 #include <FAST/Visualization/SimpleWindow.hpp>
 #include <FAST/Visualization/DualViewWindow.hpp>
+#include <FAST/Algorithms/ImageCropper/ImageCropper.hpp>
+#include <FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp>
+#include <FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp>
+#include <FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp>
 
 using namespace fast;
 
@@ -36,6 +41,54 @@ TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork]") {
     window->set2DMode();
     window->setTimeout(1000);
     window->start();
+}
+
+TEST_CASE("Execute NN on single 3D image", "[fast][neuralnetwork][3d]") {
+    auto importer = ImageFileImporter::New();
+    importer->setFilename("/home/smistad/3000611.mhd");
+    importer->setMainDevice(DeviceManager::getInstance()->getDefaultComputationDevice());
+
+    auto cropper = ImageCropper::New();
+    cropper->setInputConnection(importer->getOutputPort());
+    cropper->setOffset(Vector3i(0, 0, 42));
+    cropper->setSize(Vector3i(512, 512, 64));
+
+    auto segmentation = PixelClassifier::New();
+    segmentation->setHeatmapOutput();
+    segmentation->setNrOfClasses(2);
+    segmentation->load(Config::getTestDataPath() + "NeuralNetworkModels/lung_nodule_segmentation.pb");
+    segmentation->addOutputNode(0, "conv3d_19/truediv");
+    segmentation->setInputConnection(cropper->getOutputPort());
+    segmentation->enableRuntimeMeasurements();
+
+    auto sliceRenderer = SliceRenderer::New();
+    sliceRenderer->addInputConnection(cropper->getOutputPort());
+    sliceRenderer->setOrthogonalSlicePlane(0, PLANE_Z);
+    sliceRenderer->setIntensityLevel(-512);
+    sliceRenderer->setIntensityWindow(1024);
+
+    /*
+    auto smoothing = GaussianSmoothingFilter::New();
+    smoothing->setInputConnection(segmentation->getOutputPort());
+    smoothing->setOutputType(TYPE_FLOAT);
+    smoothing->setStandardDeviation(2.0);
+     */
+
+    auto surfaceExtraction = SurfaceExtraction::New();
+    surfaceExtraction->setInputConnection(segmentation->getOutputPort(1));
+    surfaceExtraction->setThreshold(0.1);
+
+    auto triangleRenderer = TriangleRenderer::New();
+    triangleRenderer->addInputConnection(surfaceExtraction->getOutputPort());
+
+    auto window = SimpleWindow::New();
+    window->addRenderer(sliceRenderer);
+    window->addRenderer(triangleRenderer);
+    window->set3DMode();
+    //window->setTimeout(1000);
+    window->start();
+
+    segmentation->getAllRuntimes()->printAll();
 }
 
 TEST_CASE("Multi input, single output network", "[fast][neuralnetwork]") {

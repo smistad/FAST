@@ -28,8 +28,7 @@ GUI::GUI() {
 
     ImageToImageNetwork::pointer network = ImageToImageNetwork::New();
     network->load("/home/smistad/Downloads/filname_test.pb");
-    network->setOutputParameters({"activation_8/Tanh:0"});
-    network->setInputSize(512, 512);
+    network->addOutputNode(0, "activation_8/Tanh:0", NeuralNetwork::NodeType::TENSOR);
     network->setSignedInputNormalization(true);
     network->setScaleFactor(1.0f/255.0f);
     network->setInputConnection(streamer->getOutputPort());
