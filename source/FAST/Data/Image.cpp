@@ -1142,7 +1142,7 @@ Image::pointer Image::crop(VectorXi offset, VectorXi size, bool allowOutOfBounds
     findDeviceWithUptodateData(device, isOpenCLImage);
     // Handle host
     if(device->isHost()) {
-        throw Exception("Not implemented yet");
+        throw Exception("Cropping on host not implemented yet");
     } else {
         OpenCLDevice::pointer clDevice = std::static_pointer_cast<OpenCLDevice>(device);
         if(getDimensions() == 2) {
@@ -1187,9 +1187,9 @@ Image::pointer Image::crop(VectorXi offset, VectorXi size, bool allowOutOfBounds
             clDevice->getCommandQueue().enqueueCopyImage(
                     *input,
                     *output,
-                    createRegion(copySourceOffset.x(), copySourceOffset.y(), 0),
-                    createRegion(copyDestinationOffset.x(), copyDestinationOffset.y(), 0),
-                    createRegion(copySize.x(), copySize.y(), 1)
+                    createRegion(copySourceOffset.x(), copySourceOffset.y(), copySourceOffset.z()),
+                    createRegion(copyDestinationOffset.x(), copyDestinationOffset.y(), copyDestinationOffset.z()),
+                    createRegion(copySize.x(), copySize.y(), copySize.z())
             );
         }
     }
