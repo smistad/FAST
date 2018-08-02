@@ -112,23 +112,29 @@ void ImageResizer::execute() {
             kernel.setArg(0, *inputAccess->get2DImage());
             kernel.setArg(1, *outputAccess->get2DImage());
         } else {
-            throw Exception("Not implemented yet.");
-        	/*
-            kernel = cl::Kernel(program, "gradient3D");
+            if(mPreserveAspectRatio)
+                throw NotImplementedException();
+
+            output->setSpacing(Vector3f(
+                input->getSpacing().x()*((float)input->getWidth()/output->getWidth()),
+                input->getSpacing().y()*((float)input->getHeight()/output->getHeight()),
+                input->getSpacing().z()*((float)input->getDepth()/output->getDepth())
+            ));
+            kernel = cl::Kernel(program, "resize3D");
             kernel.setArg(0, *inputAccess->get3DImage());
+            kernel.setArg(2, useInterpolation);
 
             if(device->isWritingTo3DTexturesSupported()) {
                 OpenCLImageAccess::pointer outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
                 kernel.setArg(1, *outputAccess->get3DImage());
             } else {
+                if(input->getNrOfChannels() != 1)
+                    throw Exception("ImageResizer does not support resizing for 3D images with more than 1 channel");
                 // If device does not support writing to 3D textures, use a buffer instead
                 OpenCLBufferAccess::pointer outputAccess = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
                 kernel.setArg(1, *outputAccess->get());
             }
-            */
         }
-
-
 
         device->getCommandQueue().enqueueNDRangeKernel(
                 kernel,

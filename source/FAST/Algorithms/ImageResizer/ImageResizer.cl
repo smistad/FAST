@@ -61,3 +61,69 @@ __kernel void resize2D(
     }
     writeToImage(output, position, value);
 }
+
+// ================ 3D
+
+void writeToImage3D(__write_only image3d_t input, int4 position, float4 value) {
+    int dataType = get_image_channel_data_type(input);
+	if(dataType == CLK_FLOAT) {
+		write_imagef(input, position, value);
+	} else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+		write_imageui(input, position, convert_uint4(value));
+	} else {
+		write_imagei(input, position, convert_int4(value));
+    }
+}
+
+float4 readFromImage3D(__read_only image3d_t input, sampler_t sampler, float4 position) {
+    int dataType = get_image_channel_data_type(input);
+	if(dataType == CLK_FLOAT) {
+		return read_imagef(input, sampler, position);
+	} else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+        return convert_float4(read_imageui(input, sampler, position));
+	} else {
+        return convert_float4(read_imagei(input, sampler, position));
+    }
+}
+
+__kernel void resize3D(
+		__read_only image3d_t input,
+#ifdef fast_3d_image_writes
+		__write_only image3d_t output,
+#else
+        __global void* output,
+#endif
+        __private char useInterpolation
+    ) {
+	const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
+	const float4 normalizedPosition = {
+	        (float)pos.x / get_global_size(0),
+            (float)pos.y / get_global_size(1),
+            (float)pos.z / get_global_size(2),
+            0
+	};
+	int dataType = get_image_channel_data_type(input);
+	float4 value;
+    if(useInterpolation == 1) {
+        value = readFromImage3D(input, samplerLinear, normalizedPosition);
+    } else {
+        value = readFromImage3D(input, samplerNearest, normalizedPosition);
+    }
+
+#ifdef fast_3d_image_writes
+    writeToImage3D(output, position, value);
+#else
+    // TODO only one channel supported atm
+    if(dataType == CLK_UNSIGNED_INT8) {
+        ((__global uchar*)output)[pos.x+pos.y*get_global_size(0)+pos.z*get_global_size(0)*get_global_size(1)] = value.x;
+    } else if(dataType == CLK_SIGNED_INT8) {
+        ((__global char*)output)[pos.x+pos.y*get_global_size(0)+pos.z*get_global_size(0)*get_global_size(1)] = value.x;
+    } else if(dataType == CLK_UNSIGNED_INT16) {
+        ((__global ushort*)output)[pos.x+pos.y*get_global_size(0)+pos.z*get_global_size(0)*get_global_size(1)] = value.x;
+    } else if(dataType == CLK_SIGNED_INT16) {
+        ((__global short*)output)[pos.x+pos.y*get_global_size(0)+pos.z*get_global_size(0)*get_global_size(1)] = value.x;
+    } else if(dataType == CLK_FLOAT) {
+        ((__global float*)output)[pos.x+pos.y*get_global_size(0)+pos.z*get_global_size(0)*get_global_size(1)] = value.x;
+    }
+#endif
+}
