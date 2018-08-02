@@ -199,7 +199,21 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
                 } else {
                     // Single image
                     Image::pointer image = std::dynamic_pointer_cast<Image>(data);
-                    inputImages.push_back(image);
+                    if(mTemporalWindow > 0) {
+                        containsSequence = true;
+                        shape[1] = mTemporalWindow;
+                        inputImages = mInputImages[inputNode.first];
+                        inputImages.push_back(image);
+                        while(inputImages.size() < mTemporalWindow)
+                            inputImages.push_back(image);
+
+                        // Remove extra
+                        inputImages.erase(inputImages.begin(), inputImages.begin() + inputImages.size() - mTemporalWindow);
+                        if(inputImages.size() != mTemporalWindow)
+                            throw Exception("err");
+                    } else {
+                        inputImages = {image};
+                    }
                 }
             }
             mInputImages[inputNode.first] = inputImages;
@@ -458,21 +472,15 @@ void NeuralNetwork::setTemporalWindow(uint window) {
 	if(window < 1) {
         throw Exception("Remember frames has to be > 0.");
 	}
-	//mTemporalWindow = window;
-	// TODO fix
+	mTemporalWindow = window;
 }
 
 void NeuralNetwork::setSignedInputNormalization(bool signedInputNormalization) {
 	mSignedInputNormalization = signedInputNormalization;
 }
 
-void NeuralNetwork::addTemporalImageFrame(SharedPointer<Image> image) {
-	//mImages.push_back(image);
-    // TODO fix
-}
-
 NeuralNetwork::~NeuralNetwork() {
-	if(mSession.get() != nullptr) {
+	if(mSession) {
 		mSession->Close();
 	}
 }

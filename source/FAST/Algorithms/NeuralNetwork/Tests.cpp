@@ -193,3 +193,37 @@ TEST_CASE("NN: temporal input temporal output", "[fast][neuralnetwork][sequence]
     CHECK(data->getShape()[1] == 3); // Timesteps
     CHECK(data->getShape()[2] == 10);
 }
+
+TEST_CASE("NN: temporal input temporal output, streaming mode", "[fast][neuralnetwork][sequence]") {
+    std::vector<Image::pointer> images;
+
+    // Import data
+    {
+        auto importer = ImageFileImporter::New();
+        importer->setFilename(Config::getTestDataPath() + "US/JugularVein/US-2D_0.mhd");
+        auto port = importer->getOutputPort();
+        importer->update(0);
+        auto data = port->getNextFrame<Image>();
+        images.push_back(data);
+        images.push_back(data);
+        images.push_back(data);
+    }
+
+    auto network = NeuralNetwork::New();
+    network->setTemporalWindow(3);
+    network->load(Config::getTestDataPath() + "NeuralNetworkModels/temporal_input_temporal_output.pb");
+    network->addOutputNode(0, "lstm/transpose_1", NeuralNetwork::NodeType::TENSOR);
+
+    auto port = network->getOutputPort(0);
+
+    for(int i = 0; i < 3; ++i) {
+        network->setInputData(images[i]);
+        network->update(0);
+        auto data = port->getNextFrame<Tensor>();
+
+        REQUIRE(data->getShape().getDimensions() == 3);
+        CHECK(data->getShape()[0] == 1);
+        CHECK(data->getShape()[1] == 3); // Timesteps
+        CHECK(data->getShape()[2] == 10);
+    }
+}

@@ -4,7 +4,6 @@
 #include <FAST/ProcessObject.hpp>
 #include <FAST/Data/Tensor.hpp>
 #include <FAST/Data/SimpleDataObject.hpp>
-#include <queue>
 
 // Forward declare
 namespace tensorflow {
@@ -41,16 +40,14 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
     void setHorizontalFlipping(bool flip);
 
     /**
-     * Set the temporal window.
-     * If window > 1, assume the input tensor has 5 dimensions (batch_size, frames, height, width, channels)
+     * Set the temporal window for dynamic mode.
+     * If window > 1, assume the second dimension of the input tensor is the number of timesteps.
      * If the window is set to 4, the frames t-3, t-2, t-1 and t, where t is the current timestep,
      * will be given as input to the network.
      *
      * @param window
      */
     void setTemporalWindow(uint window);
-
-    void addTemporalImageFrame(SharedPointer<Image> image);
 
     void loadAttributes();
 
@@ -62,6 +59,7 @@ protected:
     bool mPreserveAspectRatio;
     bool mHorizontalImageFlipping = false;
     bool mSignedInputNormalization = false;
+    int mTemporalWindow = 0;
     std::vector<std::string> mLearningPhaseTensors;
     float mScaleFactor;
     Vector3f mNewInputSpacing;
