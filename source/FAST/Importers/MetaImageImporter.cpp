@@ -16,6 +16,7 @@ MetaImageImporter::MetaImageImporter() {
     mFilename = "";
     mIsModified = true;
     createOutputPort<Image>(0);
+    setMainDevice(Host::getInstance()); // Default is to put image on host
 }
 
 std::vector<std::string> stringSplit(std::string str, std::string delimiter) {
@@ -101,7 +102,6 @@ static std::unique_ptr<T[]> readRawData(std::string rawFilename, std::size_t vox
 }
 
 void MetaImageImporter::execute() {
-    setMainDevice(Host::getInstance());
     if(mFilename == "")
         throw Exception("Filename was not set in MetaImageImporter");
 

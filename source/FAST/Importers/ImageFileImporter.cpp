@@ -15,6 +15,7 @@ void ImageFileImporter::setFilename(std::string filename) {
 ImageFileImporter::ImageFileImporter() {
     mFilename = "";
     createOutputPort<Image>(0);
+    setMainDevice(Host::getInstance()); // Default is to put image on host
 }
 
 inline bool matchExtension(std::string extension, std::string extension2) {
@@ -36,6 +37,7 @@ void ImageFileImporter::execute() {
     if(pos == std::string::npos) {
         reportWarning() << "Filename " << mFilename << " had no extension, guessing it to be DICOM.." << reportEnd();
         DICOMFileImporter::pointer importer = DICOMFileImporter::New();
+        importer->setMainDevice(getMainDevice());
         importer->setFilename(mFilename);
         DataPort::pointer port = importer->getOutputPort();
         importer->update(0); // Have to to update because otherwise the data will not be available
@@ -45,6 +47,7 @@ void ImageFileImporter::execute() {
         std::string ext = mFilename.substr(pos + 1);
         if(matchExtension(ext, "mhd")) {
             MetaImageImporter::pointer importer = MetaImageImporter::New();
+            importer->setMainDevice(getMainDevice());
             importer->setFilename(mFilename);
             DataPort::pointer port = importer->getOutputPort();
             importer->update(0); // Have to to update because otherwise the data will not be available
@@ -53,6 +56,7 @@ void ImageFileImporter::execute() {
         } else if(matchExtension(ext, "dcm")) {
             DICOMFileImporter::pointer importer = DICOMFileImporter::New();
             importer->setFilename(mFilename);
+            importer->setMainDevice(getMainDevice());
             DataPort::pointer port = importer->getOutputPort();
             importer->update(0); // Have to to update because otherwise the data will not be available
             Image::pointer data = port->getNextFrame<Image>();
@@ -64,6 +68,7 @@ void ImageFileImporter::execute() {
 #ifdef FAST_MODULE_VISUALIZATION
             ImageImporter::pointer importer = ImageImporter::New();
             importer->setFilename(mFilename);
+            importer->setMainDevice(getMainDevice());
             DataPort::pointer port = importer->getOutputPort();
             importer->update(0); // Have to to update because otherwise the data will not be available
             Image::pointer data = port->getNextFrame<Image>();
