@@ -1,9 +1,16 @@
 # This will install FAST binaries, libraries and necessary include files to the path given by CMAKE_INSTALL_PREFIX
 
 # Install FAST library
+if(WIN32)
+# DLL should be in binary folder
+install(TARGETS FAST
+	DESTINATION fast/bin
+)
+else()
 install(TARGETS FAST
 	DESTINATION fast/lib
 )
+endif()
 
 if(FAST_BUILD_TESTS)
     # Install test executable

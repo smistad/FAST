@@ -67,7 +67,7 @@ class FAST_EXPORT TensorShape {
          * @param i
          * @param value
          */
-        void setDimension(uint i, int value);
+        void setDimension(int i, int value);
         /**
          * Add a dimension to the end of the shape with value
          * @param value

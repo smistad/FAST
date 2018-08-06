@@ -35,7 +35,7 @@ TensorData<NumDimensions> TensorAccess::getData() const {
         throw Exception("Dimension mismatch for Eigen tensor.");
 
     // Construct eigen shape
-    Eigen::DSizes<long int, NumDimensions> sizes;
+    Eigen::array<int64_t, NumDimensions> sizes;
     for(int i = 0; i < m_shape.getDimensions(); ++i)
         sizes[i] = m_shape[i];
 

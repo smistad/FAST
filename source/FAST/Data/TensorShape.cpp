@@ -40,7 +40,7 @@ std::vector<int> TensorShape::getAll() const {
     return m_data;
 }
 
-void TensorShape::setDimension(uint i, int value) {
+void TensorShape::setDimension(int i, int value) {
     m_data.at(i) = value;
 }
 

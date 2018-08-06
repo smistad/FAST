@@ -1,4 +1,9 @@
 #include "NeuralNetwork.hpp"
+// Windows hack for removing need for protobuf
+#include <google/protobuf/stubs/logging.h>
+#undef GOOGLE_LOG_IF
+#define GOOGLE_LOG_IF(asd, asd2) std::cout << "asd: "
+// end hack
 #include "FAST/Data/Image.hpp"
 #include "FAST/Data/Tensor.hpp"
 #include "FAST/Algorithms/ImageResizer/ImageResizer.hpp"
@@ -7,13 +12,15 @@
 #include <tensorflow/core/framework/types.pb.h>
 #include <tensorflow/core/lib/strings/stringprintf.h>
 #include <tensorflow/core/platform/env.h>
-#include <tensorflow/core/platform/logging.h>
 #include <tensorflow/core/platform/mutex.h>
 #include <tensorflow/core/platform/types.h>
 #include <tensorflow/core/public/session.h>
 #include <tensorflow/core/graph/default_device.h>
 #include <tensorflow/core/platform/init_main.h>
 #include <tensorflow/cc/framework/ops.h>
+#include <tensorflow/core/platform/logging.h>
+
+
 
 namespace fast {
 
@@ -63,6 +70,7 @@ void NeuralNetwork::load(std::string networkFilename) {
 	tensorflow::GraphDef tensorflow_graph;
 
 	{
+		reportInfo() << "Loading network file: " << networkFilename << reportEnd();
 		tensorflow::Status s = ReadBinaryProto(tensorflow::Env::Default(), networkFilename, &tensorflow_graph);
 		if (!s.ok()) {
 			throw Exception("Could not read TensorFlow graph file " + networkFilename);
