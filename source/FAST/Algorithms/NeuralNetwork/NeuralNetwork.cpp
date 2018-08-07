@@ -1,9 +1,12 @@
 #include "NeuralNetwork.hpp"
 // Windows hack for removing need for protobuf
+#ifdef WIN32
 #include <google/protobuf/stubs/logging.h>
 #undef GOOGLE_LOG_IF
-#define GOOGLE_LOG_IF(asd, asd2) std::cout << "asd: "
+#define GOOGLE_LOG_IF(LEVEL, CONDITION) \
+  !(CONDITION) ? std::clog : std::cerr
 // end hack
+#endif
 #include "FAST/Data/Image.hpp"
 #include "FAST/Data/Tensor.hpp"
 #include "FAST/Algorithms/ImageResizer/ImageResizer.hpp"
@@ -95,6 +98,7 @@ void NeuralNetwork::load(std::string networkFilename) {
 				// Input nodes use the Op Placeholder
 				reportInfo() << "Found input node: " << i << " with name " << node.name() << reportEnd();
 				auto shape = getShape(node);
+				reportInfo() << "Node has shape " << shape.toString() << reportEnd();
 				if(mInputNodes.count(node.name()) == 0) {
 					if(nodesSpecified) {
 						throw Exception("Encountered unknown node " + node.name());
