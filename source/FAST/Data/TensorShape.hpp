@@ -73,6 +73,11 @@ class FAST_EXPORT TensorShape {
          * @param value
          */
         void addDimension(int value);
+
+        /**
+         * Convert shape into string
+         */
+        std::string toString() const;
     private:
         std::vector<int> m_data;
 };

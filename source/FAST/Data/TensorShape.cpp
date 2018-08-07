@@ -65,4 +65,11 @@ const int& TensorShape::operator[](int i) const {
     return m_data.at(i);
 }
 
+std::string TensorShape::toString() const {
+    std::string str;
+    for(int i : m_data)
+        str += std::to_string(i) + " ";
+    return str;
+}
+
 }
