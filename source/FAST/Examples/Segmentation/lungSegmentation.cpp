@@ -50,13 +50,13 @@ int main(int argc, char** argv) {
     extraction3->setInputConnection(segmentation->getBloodVesselOutputPort());
 
     // Render both surfaces with different color
-    TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();
-    TriangleRenderer->addInputConnection(extraction->getOutputPort(), Color::Green(), 0.6f);
-    TriangleRenderer->addInputConnection(extraction2->getOutputPort(), Color::Red(), 1.0f);
-    TriangleRenderer->addInputConnection(extraction3->getOutputPort(), Color::Blue(), 1.0f);
+    TriangleRenderer::pointer renderer = TriangleRenderer::New();
+    //renderer->addInputConnection(extraction->getOutputPort(), Color::Green(), 0.6f);
+    renderer->addInputConnection(extraction2->getOutputPort(), Color::Red(), 1.0f);
+    renderer->addInputConnection(extraction3->getOutputPort(), Color::Blue(), 1.0f);
 
     SimpleWindow::pointer window = SimpleWindow::New();
-    window->addRenderer(TriangleRenderer);
+    window->addRenderer(renderer);
 #ifdef FAST_CONTINUOUS_INTEGRATION
     // This will automatically close the window after 5 seconds, used for CI testing
     window->setTimeout(5*1000);

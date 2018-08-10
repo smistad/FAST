@@ -190,7 +190,8 @@ void LungSegmentation::execute() {
 
         auto thresholding = BinaryThresholding::New();
         thresholding->setInputConnection(multiply->getOutputPort());
-        thresholding->setLowerThreshold(100);
+        thresholding->setLowerThreshold(50);
+
         auto port = thresholding->getOutputPort();
         thresholding->update(0);
         addOutputData(2, port->getNextFrame<Image>());
