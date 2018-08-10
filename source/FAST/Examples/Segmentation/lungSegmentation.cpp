@@ -45,10 +45,15 @@ int main(int argc, char** argv) {
     SurfaceExtraction::pointer extraction2 = SurfaceExtraction::New();
     extraction2->setInputConnection(segmentation->getOutputPort(1));
 
+    // Extract blood vessel
+    SurfaceExtraction::pointer extraction3 = SurfaceExtraction::New();
+    extraction3->setInputConnection(segmentation->getBloodVesselOutputPort());
+
     // Render both surfaces with different color
     TriangleRenderer::pointer TriangleRenderer = TriangleRenderer::New();
     TriangleRenderer->addInputConnection(extraction->getOutputPort(), Color::Green(), 0.6f);
     TriangleRenderer->addInputConnection(extraction2->getOutputPort(), Color::Red(), 1.0f);
+    TriangleRenderer->addInputConnection(extraction3->getOutputPort(), Color::Blue(), 1.0f);
 
     SimpleWindow::pointer window = SimpleWindow::New();
     window->addRenderer(TriangleRenderer);
