@@ -7,6 +7,8 @@ ExternalProject_Add(freenect2
         BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/freenect2
         GIT_REPOSITORY "https://github.com/OpenKinect/libfreenect2.git"
         GIT_TAG "v0.2.0"
+        CMAKE_ARGS
+        -DENABLE_VAAPI:BOOL=OFF
         CMAKE_CACHE_ARGS
         -DCMAKE_BUILD_TYPE:STRING=Release
         -DCMAKE_VERBOSE_MAKEFILE:BOOL=OFF
