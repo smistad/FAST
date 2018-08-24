@@ -53,7 +53,7 @@ bool MouseListener::eventFilter(QObject *obj, QEvent *event) {
     if(event->type() == QEvent::MouseMove) {
         // Releay mouse movement to tracking
         QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
-        float spacing = mView->get2DPixelSpacing();
+        float spacing = 1.0f;//mView->get2DPixelSpacing();
         if(mPreviousMousePosition.x() == -1 && mPreviousMousePosition.y() == -1) {
             mPreviousMousePosition = Vector2i(mouseEvent->x() * spacing, mouseEvent->y() * spacing);
         } else {
@@ -237,7 +237,7 @@ void KinectTrackingGUI::playRecording() {
 
 
         // Set up streaming from disk
-        MeshFileStreamer::pointer streamer = MeshFileStreamer::New();
+        auto streamer = MeshFileStreamer::New();
         streamer->setFilenameFormat(selectedRecording + "#.vtk");
 
         // Get the number of files
@@ -273,20 +273,20 @@ void KinectTrackingGUI::playRecording() {
         getView(0)->removeAllRenderers();
 
         // Load target cloud
-        VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
+        auto importer = VTKMeshFileImporter::New();
         importer->setFilename(selectedRecording + "target.vtk");
-        DataPort::pointer port = importer->getOutputPort();
+        auto port = importer->getOutputPort();
         importer->update(0);
-        Mesh::pointer targetCloud = port->getNextFrame();
+        auto targetCloud = port->getNextFrame<Mesh>();
 
         mTracking->setInputConnection(1, streamer->getOutputPort());
         mTracking->setTargetCloud(targetCloud);
 
-        VertexRenderer::pointer cloudRenderer = VertexRenderer::New();
+        auto cloudRenderer = VertexRenderer::New();
         cloudRenderer->setDefaultSize(1.5);
         cloudRenderer->addInputConnection(mTracking->getOutputPort(2));
         cloudRenderer->addInputConnection(streamer->getOutputPort(0));
-        cloudRenderer->setColor(mTracking->getOutputPort(2), Color::Green());
+        cloudRenderer->setColor(0, Color::Green());
 
         getView(0)->set3DMode();
         getView(0)->addRenderer(cloudRenderer);
