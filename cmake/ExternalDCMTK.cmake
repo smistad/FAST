@@ -14,6 +14,7 @@ ExternalProject_Add(dcmtk
             -DBUILD_SHARED_LIBS=ON
             -DBUILD_APPS=OFF
             -DDCMTK_WITH_DOXYGEN=OFF
+            -DCMAKE_INSTALL_RPATH:STRING=$ORIGIN/../lib
         CMAKE_CACHE_ARGS
             -DDCMTK_MODULES:STRING=${MODULES}
             -DCMAKE_BUILD_TYPE:STRING=Release

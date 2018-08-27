@@ -113,12 +113,11 @@ else()
             -qt-zlib;
             -qt-libpng;
             -qt-libjpeg;
-            -system-freetype;
+            -qt-freetype;
             -qt-xcb;
             -qt-xkbcommon;
             -no-directfb;
             -no-linuxfb;
-            -fontconfig;
             ${MODULES_TO_EXCLUDE}
         )
     endif()
