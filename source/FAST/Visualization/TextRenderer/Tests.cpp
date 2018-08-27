@@ -4,7 +4,7 @@
 
 using namespace fast;
 
-TEST_CASE("Text renderer", "[fast][TextRenderer]") {
+TEST_CASE("Text renderer", "[fast][TextRenderer][visual]") {
 
     auto text = Text::New();
     text->create("This is a test!");
