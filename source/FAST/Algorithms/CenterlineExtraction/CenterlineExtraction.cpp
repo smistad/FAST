@@ -60,7 +60,6 @@ Image::pointer CenterlineExtraction::calculateDistanceTransform(Image::pointer i
 			sizeof(char)
     );
 
-	// TODO no 3D write support
 	cl::Kernel distanceKernel(program, "calculateDistance");
 	distanceKernel.setArg(2, changedBuffer);
 	int counter = 0;
