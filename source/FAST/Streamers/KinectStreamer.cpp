@@ -81,7 +81,7 @@ void KinectStreamer::producerStream() {
         }
         mInitialized = true;
     }
-    if(mAvailableDevices.size() == 0) {
+    if(mAvailableDevices.empty()) {
         throw Exception("No more available kinect devices for KinectStreamer");
     } else {
         // Select first
@@ -208,10 +208,11 @@ void KinectStreamer::producerStream() {
         listener.release(frames);
     }
 
-    reportInfo() << "Stopping kinect streamer" << Reporter::end();
     dev->stop();
     dev->close();
     delete dev;
+    reportInfo() << "Kinect streamer stopped" << Reporter::end();
+    mAvailableDevices.push(serial); // Adding streamer back to queue
 }
 
 bool KinectStreamer::hasReachedEnd() {
@@ -231,6 +232,7 @@ KinectStreamer::~KinectStreamer() {
 
 void KinectStreamer::stop() {
     std::unique_lock<std::mutex> lock(mStopMutex);
+    reportInfo() << "Stopping kinect streamer" << Reporter::end();
     mStop = true;
 }
 

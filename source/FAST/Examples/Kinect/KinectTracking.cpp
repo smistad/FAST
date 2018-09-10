@@ -45,10 +45,11 @@ void KinectTracking::stopRecording() {
 }
 
 void KinectTracking::execute() {
-    Image::pointer input = getInputData<Image>();
-    Mesh::pointer meshInput = getInputData<Mesh>(1);
+    std::cout << "Kinect tracking execute.." << std::endl;
 
     // When target cloud has been extracted, run ICP, and output this mesh
+    Mesh::pointer meshInput = getInputData<Mesh>(1);
+    mCurrentCloud = meshInput;
     if(mTargetCloudExtracted) {
         reportInfo() << "Running ICP" << reportEnd();
         IterativeClosestPoint::pointer icp = IterativeClosestPoint::New();
@@ -66,21 +67,23 @@ void KinectTracking::execute() {
         AffineTransformation::pointer currentTransform = mTargetCloud->getSceneGraphNode()->getTransformation();
         AffineTransformation::pointer newTransform = icp->getOutputTransformation();
         mTargetCloud->getSceneGraphNode()->setTransformation(newTransform->multiply(currentTransform));
+
+        if(mRecording) {
+            VTKMeshFileExporter::pointer exporter = VTKMeshFileExporter::New();
+            exporter->setInputData(meshInput);
+            exporter->setWriteNormals(false);
+            exporter->setWriteColors(true);
+            exporter->setFilename(mStoragePath + std::to_string(mFrameCounter) + ".vtk");
+            exporter->update(0);
+            ++mFrameCounter;
+        }
+    } else {
+        Image::pointer input = getInputData<Image>();
+        addOutputData(0, input);
     }
 
-    if(mRecording) {
-        VTKMeshFileExporter::pointer exporter = VTKMeshFileExporter::New();
-        exporter->setInputData(meshInput);
-        exporter->setWriteNormals(false);
-        exporter->setFilename(mStoragePath + std::to_string(mFrameCounter) + ".vtk");
-        exporter->update(0);
-        ++mFrameCounter;
-    }
-
-    addOutputData(0, input);
     addOutputData(1, mAnnotationImage);
     addOutputData(2, mTargetCloud);
-    mCurrentCloud = meshInput;
 }
 
 void KinectTracking::calculateTargetCloud(KinectStreamer::pointer streamer) {
@@ -115,6 +118,7 @@ void KinectTracking::addLine(Vector2i start, Vector2i end) {
         return;
     std::cout << "Drawing from: " << start.transpose() << " to " << end.transpose() << std::endl;
     // Draw line in some auxillary image
+    mAnnotationImage = mAnnotationImage->copy(Host::getInstance());
     ImageAccess::pointer access = mAnnotationImage->getImageAccess(ACCESS_READ_WRITE);
     Vector2f direction = end.cast<float>() - start.cast<float>();
     int length = (end-start).norm();
