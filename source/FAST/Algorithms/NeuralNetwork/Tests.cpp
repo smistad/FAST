@@ -45,16 +45,17 @@ TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork]") {
 
 TEST_CASE("Execute NN on single 3D image", "[fast][neuralnetwork][3d]") {
     auto importer = ImageFileImporter::New();
-    importer->setFilename("/home/smistad/3000611.mhd");
+    //importer->setFilename("/home/smistad/3000611.mhd");
+    importer->setFilename("/home/smistad/3000611-03264/000001.dcm");
     importer->setMainDevice(DeviceManager::getInstance()->getDefaultComputationDevice());
 
     auto cropper = ImageCropper::New();
     cropper->setInputConnection(importer->getOutputPort());
-    cropper->setOffset(Vector3i(0, 0, 42));
+    cropper->setOffset(Vector3i(0, 0, 32));
     cropper->setSize(Vector3i(512, 512, 64));
 
     auto segmentation = PixelClassifier::New();
-    segmentation->setHeatmapOutput();
+    //segmentation->setHeatmapOutput();
     segmentation->setNrOfClasses(2);
     segmentation->load(Config::getTestDataPath() + "NeuralNetworkModels/lung_nodule_segmentation.pb");
     segmentation->addOutputNode(0, "conv3d_19/truediv");
@@ -75,7 +76,7 @@ TEST_CASE("Execute NN on single 3D image", "[fast][neuralnetwork][3d]") {
      */
 
     auto surfaceExtraction = SurfaceExtraction::New();
-    surfaceExtraction->setInputConnection(segmentation->getOutputPort(1));
+    surfaceExtraction->setInputConnection(segmentation->getOutputPort(0));
     surfaceExtraction->setThreshold(0.1);
 
     auto triangleRenderer = TriangleRenderer::New();
