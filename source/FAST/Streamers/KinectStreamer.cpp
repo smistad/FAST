@@ -90,7 +90,7 @@ void KinectStreamer::producerStream() {
     }
 
     reportInfo() << "Using kinect device with serial: " << serial << reportEnd();
-    pipeline = new libfreenect2::OpenGLPacketPipeline();
+    pipeline = new libfreenect2::OpenCLPacketPipeline();
     dev = freenect2.openDevice(serial, pipeline);
 
     int types = libfreenect2::Frame::Color | libfreenect2::Frame::Ir | libfreenect2::Frame::Depth;
