@@ -4,6 +4,7 @@
 #include <QEventLoop>
 #include <QDesktopWidget>
 #include <QIcon>
+#include <QFontDatabase>
 
 namespace fast {
 
@@ -43,6 +44,7 @@ Window::Window() {
 
     // Scaling GUI
     QFont defaultFont = QApplication::font();
+    QApplication::setFont(defaultFont);
     QDesktopWidget *desktop = QApplication::desktop();
     int screenWidth = desktop->width();
     uint windowScaling = 1;
@@ -119,6 +121,13 @@ void Window::initializeQtApp() {
 
         // Set default window icon
         QApplication::setWindowIcon(QIcon((Config::getDocumentationPath() + "images/fast_icon.png").c_str()));
+
+        // Add all fonts in fonts folder
+        for(auto&& filename : getDirectoryList(join(Config::getDocumentationPath(), "fonts"))) {
+            if(filename.substr(filename.size()-4) == ".ttf") {
+                QFontDatabase::addApplicationFont(join(Config::getDocumentationPath(), "fonts", filename).c_str());
+            }
+        }
     } else {
         Reporter::info() << "QApp already exists.." << Reporter::end();
     }
