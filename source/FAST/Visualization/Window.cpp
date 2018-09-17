@@ -43,8 +43,7 @@ Window::Window() {
     initializeQtApp();
 
     // Scaling GUI
-    QFont defaultFont = QApplication::font();
-    QApplication::setFont(defaultFont);
+    QFont defaultFont("Ubuntu");
     QDesktopWidget *desktop = QApplication::desktop();
     int screenWidth = desktop->width();
     uint windowScaling = 1;
