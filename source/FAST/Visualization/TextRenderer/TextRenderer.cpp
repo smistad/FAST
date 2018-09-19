@@ -2,6 +2,7 @@
 #include "TextRenderer.hpp"
 #include "FAST/Visualization/View.hpp"
 #include <QPainter>
+#include <QApplication>
 
 namespace fast {
 
@@ -81,7 +82,7 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool
 
         // Font setup
         QColor color(mColor.getRedValue() * 255, mColor.getGreenValue() * 255, mColor.getBlueValue() * 255, 255);
-        QFont font;
+        QFont font = QApplication::font();
         font.setPointSize(mFontSize);
         if (mStyle == STYLE_BOLD) {
             font.setBold(true);
