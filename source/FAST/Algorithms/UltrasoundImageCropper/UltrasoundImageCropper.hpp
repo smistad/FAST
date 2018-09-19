@@ -15,11 +15,21 @@ class FAST_EXPORT  UltrasoundImageCropper : public ProcessObject {
          * @param width
          */
         void setPhysicalWidth(float width);
+        /**
+         * If static cropping is enabled, the cropping parameters are calculated only for the first frame.
+         * Otherwise, it is recalculated for every frame.
+         * @param staticCropping
+         */
+        void setStaticCropping(bool staticCropping);
     private:
         UltrasoundImageCropper();
         void execute();
 
         float m_physicalWidth = 0;
+        bool m_staticCropping = false;
+
+        int m_width = -1, m_height = -1, m_offsetX = -1, m_offsetY = -1;
+        Vector3f m_spacing;
 };
 
 }
