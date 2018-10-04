@@ -39,6 +39,7 @@ void ImageFileExporter::execute() {
             MetaImageExporter::pointer exporter = MetaImageExporter::New();
             exporter->setInputData(input);
             exporter->setFilename(mFilename);
+            exporter->setCompression(mCompress);
             exporter->update(0);
         } else if(matchExtension(ext, "jpg") ||
                   matchExtension(ext, "jpeg") ||
@@ -57,6 +58,10 @@ void ImageFileExporter::execute() {
         }
     }
 
+}
+
+void ImageFileExporter::setCompression(bool compress) {
+    mCompress = compress;
 }
 
 }

@@ -177,6 +177,11 @@ void MetaImageExporter::disableCompression() {
     mIsModified = true;
 }
 
+void MetaImageExporter::setCompression(bool compress) {
+    mUseCompression = compress;
+    mIsModified = true;
+}
+
 void MetaImageExporter::setMetadata(std::string key, std::string value) {
     mMetadata[key] = value;
 }

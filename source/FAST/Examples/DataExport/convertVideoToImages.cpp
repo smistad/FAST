@@ -21,6 +21,7 @@ int main(int argc, char** argv) {
     parser.addVariable("physical-width", false, "Set the physical with (in mm) of the image to calculate the pixel spacing.");
     parser.addChoice("export-format", {"mhd", "png", "bmp", "jpg"}, "mhd", "Select image format to export");
     parser.addOption("static-cropping", "Enable static ultrasound cropping. Meaning that the cropping parameters are calculated for the first frame and then used for the rest");
+    parser.addOption("disable-compression", "Disable compression when saving as mhd (.zraw)");
     parser.parse(argc, argv);
 
     std::string path = parser.get("path");
@@ -48,6 +49,7 @@ int main(int argc, char** argv) {
             createDirectories(exportPath);
             int timestep = 0;
             ImageFileExporter::pointer exporter = ImageFileExporter::New();
+            exporter->setCompression(!parser.getOption("disable-compression"));
             exporter->setInputConnection(port);
             bool stop = false;
             while(true) {

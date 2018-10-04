@@ -10,10 +10,12 @@ class FAST_EXPORT ImageFileExporter : public ProcessObject {
     public:
         void setFilename(std::string filename);
         ImageFileExporter();
+        void setCompression(bool compress);
     private:
         void execute();
 
         std::string mFilename;
+        bool mCompress = false;
 };
 
 }
