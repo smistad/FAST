@@ -155,6 +155,8 @@ NeuralNetwork::NeuralNetwork() {
 	mModelLoaded = false;
 	mPreserveAspectRatio = false;
 	mScaleFactor = 1.0f;
+	mMean = 0.0;
+	mStd = 1.0f;
 	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/NeuralNetwork/NeuralNetwork.cl");
 	createStringAttribute("model", "Model path", "Path to neural network tensorflow model", "");
 	createIntegerAttribute("input_size", "Input size", "Image input size", 128);
@@ -319,11 +321,13 @@ Tensor::pointer NeuralNetwork::convertImagesToTensor(std::vector<Image::pointer>
         );
         kernel.setArg(1, buffer);
         kernel.setArg(2, mScaleFactor);
-        kernel.setArg(3, (int) (mSignedInputNormalization ? 1 : 0));
+        kernel.setArg(3, mMean);
+        kernel.setArg(4, mStd);
+        kernel.setArg(5, (int) (mSignedInputNormalization ? 1 : 0));
         cl::NDRange globalSize;
         if(image->getDimensions() == 2) {
             kernel.setArg(0, *access->get2DImage());
-            kernel.setArg(4, (int) (mHorizontalImageFlipping ? 1 : 0));
+            kernel.setArg(6, (int) (mHorizontalImageFlipping ? 1 : 0));
             globalSize = cl::NDRange(width, height);
         } else {
             kernel.setArg(0, *access->get3DImage());
@@ -513,6 +517,11 @@ void NeuralNetwork::addOutputNode(uint portID, std::string name, NeuralNetwork::
 	node.shape = shape;
 	mOutputNodes[name] = node;
 	createOutputPort<DataObject>(portID);
+}
+
+void NeuralNetwork::setMeanAndStandardDeviation(float mean, float std) {
+    mMean = mean;
+    mStd = std;
 }
 
 };

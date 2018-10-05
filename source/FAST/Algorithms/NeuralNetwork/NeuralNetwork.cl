@@ -4,6 +4,8 @@ __kernel void normalize2DInput(
 	__read_only image2d_t input,
 	__global float* output,
 	__private float scaleFactor,
+	__private float mean,
+	__private float std,
 	__private int signedInputNormalization,
 	__private int horizontalFlip
 	) {
@@ -23,6 +25,7 @@ __kernel void normalize2DInput(
     if(signedInputNormalization) {
         value = value*2 - 1;
 	}
+	value = (value - mean)/std;
 
 	if(horizontalFlip == 1) {
         output[(get_global_size(0) - pos.x - 1) + pos.y*get_global_size(0)] = value;
