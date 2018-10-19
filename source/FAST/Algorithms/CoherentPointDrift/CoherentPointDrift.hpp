@@ -5,43 +5,70 @@
 #include "FAST/ProcessObject.hpp"
 #include "FAST/Data/Mesh.hpp"
 
+#include "FAST/SmartPointers.hpp"
+
 namespace fast {
 
     class FAST_EXPORT  CoherentPointDrift: public ProcessObject {
-    FAST_OBJECT(CoherentPointDrift)
+//    FAST_OBJECT(CoherentPointDrift)
     public:
-        typedef enum { RIGID, TRANSLATION } TransformationType;
+        typedef enum { RIGID, AFFINE, NONRIGID } TransformationType;
         void setFixedMeshPort(DataPort::pointer port);
         void setFixedMesh(Mesh::pointer data);
         void setMovingMeshPort(DataPort::pointer port);
         void setMovingMesh(Mesh::pointer data);
-        void setTransformationType(const CoherentPointDrift::TransformationType type);
+        void setMaximumIterations(unsigned char maxIterations);
+        void setUniformWeight(float uniformWeight);
+        void setTolerance(double tolerance);
+        void setExistingTransform();
         AffineTransformation::pointer getOutputTransformation();
-    private:
-        CoherentPointDrift();
-        void expectation(MatrixXf* probabilityMatrix,
-                         MatrixXf* fixedPoints, MatrixXf* movingPoints);
-        void maximization(MatrixXf* probabilityMatrix,
-                          MatrixXf* fixedPoints, MatrixXf* movingPoints);
-        void execute();
 
-        MatrixXf probabilityMatrix;
-        MatrixXf pt1;
-        MatrixXf p1;
-        float np;
-        unsigned int numFixedPoints;            // N
-        unsigned int numMovingPoints;           // M
-        unsigned int numDimensions;             // D
-        float variance;                         // sigma^2
-        float w;
-        float mMinErrorChange;
-        float mTolerance;
-        unsigned char mIteration;
-        unsigned char mMaxIterations;
-        int mRandomSamplingPoints;
-        float mDistanceThreshold;
-        float mError;
+        virtual void initializeVarianceAndMore() = 0;
+        virtual void expectation(MatrixXf& fixedPoints, MatrixXf& movingPoints) = 0;
+        virtual void maximization(MatrixXf& fixedPoints, MatrixXf& movingPoints) = 0;
+
+    protected:
+        CoherentPointDrift();
+        void execute();
+        MatrixXf mFixedPoints;
+        MatrixXf mMovingPoints;
+        MatrixXf mMovingMeanInitial;
+        MatrixXf mFixedMeanInitial;
+        unsigned int mNumFixedPoints;           // N
+        unsigned int mNumMovingPoints;          // M
+        unsigned int mNumDimensions;            // D
+        float mUniformWeight;                   // Weight of the uniform distribution
+        double mTolerance;                      // Convergence criteria for EM iterations
+        double mScale;                          // s
+        double mFixedNormalizationScale;
+        double mMovingNormalizationScale;
         AffineTransformation::pointer mTransformation;
+        unsigned char mIteration;
+        bool mRegistrationConverged;
+        bool mApplyExisting;
+        double mTimeStart;
+        double timeE;
+        double timeEDistances;
+        double timeENormal;
+        double timeEPosterior;
+        double timeEPosteriorDivision;
+        double timeM;
+        double timeMUseful;
+        double timeMCenter;
+        double timeMSVD;
+        double timeMParameters;
+        double timeMUpdate;
+
+    private:
+        void initializePointSets();
+        Affine3f applyExistingTransform();
+        void printCloudDimensions();
+        void normalizePointSets();
+        void denormalizePointSets();
+
+        std::shared_ptr<Mesh> mFixedMesh;
+        std::shared_ptr<Mesh> mMovingMesh;
+        unsigned char mMaxIterations;
         CoherentPointDrift::TransformationType mTransformationType;
     };
 

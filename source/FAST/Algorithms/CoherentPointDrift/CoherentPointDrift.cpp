@@ -2,14 +2,14 @@
 #include "FAST/SceneGraph.hpp"
 #include "CoherentPointDrift.hpp"
 
+#include "FAST/Algorithms/CoherentPointDrift/Rigid.hpp"
+
 #undef min
 #undef max
 #include <limits>
-#include <random>
-#include <unordered_set>
 
-//#include <Eigen/SVD>
 #include <iostream>
+#include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 
 namespace fast {
 
@@ -17,28 +17,186 @@ namespace fast {
         createInputPort<Mesh>(0);
         createInputPort<Mesh>(1);
         createOutputPort<Mesh>(0);
-        variance = 0.25;             // How to determine this value?
-        w = 0.0;                    // How to determine this value?
-        mIteration = 0;
         mMaxIterations = 100;
-        mTolerance = 0.001;
-        mMinErrorChange = 1e-5;
-        mError = -1;
-        mRandomSamplingPoints = 0;
-        mDistanceThreshold = -1;
-        mTransformationType = CoherentPointDrift::RIGID;
-        mIsModified = true;
+        mIteration = 0;
+        mTolerance = 1e-4;
+        mUniformWeight = 0.5;
         mTransformation = AffineTransformation::New();
+        mRegistrationConverged = false;
+        mApplyExisting = false;
+        mScale = 1.0;
+
+        timeE = 0.0;
+        timeEDistances = 0.0;
+        timeENormal = 0.0;
+        timeEPosterior = 0.0;
+        timeM = 0.0;
+        timeMUseful = 0.0;
+        timeMCenter = 0.0;
+        timeMSVD = 0.0;
+        timeMParameters = 0.0;
+        timeMUpdate = 0.0;
     }
 
+    void CoherentPointDrift::initializePointSets() {
 
-    void CoherentPointDrift::setFixedMeshPort(DataPort::pointer port) {
-        setInputConnection(0, port);
+        // Load point meshes
+        mFixedMesh = getInputData<Mesh>(0);
+        mMovingMesh = getInputData<Mesh>(1);
+
+        // Get access to the two point sets
+        MeshAccess::pointer accessFixedSet = mFixedMesh->getMeshAccess(ACCESS_READ);
+        MeshAccess::pointer accessMovingSet = mMovingMesh->getMeshAccess(ACCESS_READ);
+
+        // Get the points from the meshes
+        std::vector<MeshVertex> fixedVertices = accessFixedSet->getVertices();
+        std::vector<MeshVertex> movingVertices = accessMovingSet->getVertices();
+
+        // Set dimensions of point sets
+        unsigned int numDimensionsFixed = (unsigned int)fixedVertices[0].getPosition().size();
+        unsigned int numDimensionsMoving = (unsigned int)movingVertices[0].getPosition().size();
+        assert(numDimensionsFixed == numDimensionsMoving);
+        mNumDimensions = numDimensionsFixed;
+        mNumFixedPoints = (unsigned int)fixedVertices.size();
+        mNumMovingPoints = (unsigned int)movingVertices.size();
+
+        // Store point sets in matrices
+        mFixedPoints = MatrixXf::Zero(mNumFixedPoints, mNumDimensions);
+        mMovingPoints = MatrixXf::Zero(mNumMovingPoints, mNumDimensions);
+        for(int i = 0; i < mNumFixedPoints; ++i) {
+            mFixedPoints.row(i) = fixedVertices[i].getPosition();
+        }
+        for(int i = 0; i < mNumMovingPoints; ++i) {
+            mMovingPoints.row(i) = movingVertices[i].getPosition();
+        }
     }
 
-    void CoherentPointDrift::setMovingMeshPort(DataPort::pointer port) {
-        setInputConnection(1, port);
+    Affine3f CoherentPointDrift::applyExistingTransform() {
+        // Apply existing transformation (for testing) to moving point cloud
+        auto existingTransform = SceneGraph::getEigenAffineTransformationFromData(mMovingMesh);
+        mMovingPoints = mMovingPoints * existingTransform.linear().transpose();
+        mMovingPoints += existingTransform.translation().transpose().replicate(mNumMovingPoints, 1);
+//        movingPoints = movingPoints.rowwise().homogeneous() * existingTransform.affine();
+        return existingTransform;
     }
+
+    void CoherentPointDrift::normalizePointSets() {
+
+        // Center point clouds around origin, i.e. zero mean
+        mFixedMeanInitial = mFixedPoints.colwise().sum() / mNumFixedPoints;
+        mMovingMeanInitial = mMovingPoints.colwise().sum() / mNumMovingPoints;
+        mFixedPoints -= mFixedMeanInitial.replicate(mNumFixedPoints, 1);
+        mMovingPoints -= mMovingMeanInitial.replicate(mNumMovingPoints, 1);
+
+        // Scale point clouds to have unit variance
+        mFixedNormalizationScale = sqrt(mFixedPoints.cwiseProduct(mFixedPoints).sum() / (double)mNumFixedPoints);
+        mMovingNormalizationScale = sqrt(mMovingPoints.cwiseProduct(mMovingPoints).sum() / (double)mNumMovingPoints);
+        mFixedPoints /= mFixedNormalizationScale;
+        mMovingPoints /= mMovingNormalizationScale;
+    }
+
+    void CoherentPointDrift::denormalizePointSets() {
+
+    }
+
+    void CoherentPointDrift::printCloudDimensions() {
+        std::cout << "\n****************************************\n";
+        std::cout << "Fixed point cloud: " << mNumFixedPoints << " x " << mNumDimensions << std::endl;
+        std::cout << "Moving point cloud: " << mNumMovingPoints << " x " << mNumDimensions << std::endl;
+//        std::cout << "Existing transform: \n" << existingTransform.affine() << std::endl;
+    }
+
+    void CoherentPointDrift::execute() {
+
+        double timeStart = omp_get_wtime();
+
+        // Store the point sets in matrices and store their dimensions
+        initializePointSets();
+        printCloudDimensions();
+
+        // Apply the existing transform, if any, to moving point cloud
+        auto existingTransform = Affine3f::Identity();
+        if (mApplyExisting) {
+            existingTransform = applyExistingTransform();
+        }
+
+
+        // Normalize the point sets, i.e. zero mean and unit variance
+        normalizePointSets();
+
+        // Initialize variance and error
+        initializeVarianceAndMore();
+
+
+        /* *************************
+         * Get some points drifting!
+         * ************************/
+        double timeStartEM = omp_get_wtime();
+
+        while (mIteration < mMaxIterations && !mRegistrationConverged) {
+//            std::cout << "ITERATION " << (int) mIteration << std::endl;
+            expectation(mFixedPoints, mMovingPoints);
+            maximization(mFixedPoints, mMovingPoints);
+            mIteration++;
+        }
+
+
+        /* *****************
+         * Computation times
+         * ****************/
+        double timeEndEM = omp_get_wtime();
+        double timeTotalEM = timeEndEM - timeStartEM;
+
+        std::cout << "\nCOMPUTATION TIMES:\n";
+        std::cout << "Initialization of point sets and normalization: " << timeStartEM-timeStart << " s.\n";
+        std::cout << "EM converged in " << mIteration-1 << " iterations in " << timeTotalEM << " s.\n";
+        std::cout << "Time spent on expectation: " << timeE << " s\n";
+        std::cout << "      - Calculating distances between points: " << timeEDistances << " s.\n";
+        std::cout << "      - Normal distribution: " << timeENormal << " s.\n";
+        std::cout << "      - Create denominator, no zero-elements: " << timeEPosterior << " s.\n";
+        std::cout << "      - Posterior GMM probabilities, division: " << timeEPosteriorDivision << " s.\n";
+        std::cout << "Time spent on maximization: " << timeM << " s\n";
+        std::cout << "      - Calculating P1, Pt1, Np: " << timeMUseful << " s.\n";
+        std::cout << "      - Centering point clouds: " << timeMCenter << " s.\n";
+        std::cout << "      - SVD: " << timeMSVD << " s.\n";
+        std::cout << "      - Calculation transformation parameters: " << timeMParameters << " s.\n";
+        std::cout << "      - Updating transformation and error: " << timeMUpdate << " s.\n";
+
+
+        /* ***********************************************
+         * Denormalize and set total transformation matrix
+         * **********************************************/
+        // Set normalization
+        Affine3f normalization = Affine3f::Identity();
+        normalization.translate((Vector3f) -(mMovingMeanInitial).transpose());
+
+        // Denormalize moving point set
+
+        mScale *= mFixedNormalizationScale / mMovingNormalizationScale;
+        Affine3f registration = mTransformation->getTransform();
+        registration.scale((float) mScale);
+        registration.translation() *= mFixedNormalizationScale;
+
+        Affine3f denormalization = Affine3f::Identity();
+        denormalization.translate((Vector3f) (mFixedMeanInitial).transpose());
+
+        // Set total transformation
+        auto transform = AffineTransformation::New();
+        Affine3f registrationTransformTotal = denormalization * registration * normalization;
+        transform->setTransform(registrationTransformTotal * existingTransform);
+
+        mMovingMesh->getSceneGraphNode()->setTransformation(transform);
+        addOutputData(0, mMovingMesh);
+
+        // Print some matrices
+//        std::cout << "\n*****************************************\n";
+//        std::cout << "Existing transform: \n" << existingTransform.matrix() << std::endl;
+//        std::cout << "Registration matrix: \n" << registration.matrix() << std::endl;
+//        std::cout << "Final registration matrix: \n" << registrationTransformTotal.matrix() << std::endl;
+//        std::cout << "Registered transform * existingTransform (should be identity): \n"
+//            << registrationTransformTotal * existingTransform.matrix() << std::endl;
+    }
+
 
     void CoherentPointDrift::setFixedMesh(Mesh::pointer data) {
         setInputData(0, data);
@@ -48,139 +206,32 @@ namespace fast {
         setInputData(1, data);
     }
 
+    void CoherentPointDrift::setFixedMeshPort(DataPort::pointer port) {
+        setInputConnection(0, port);
+    }
+
+    void CoherentPointDrift::setMovingMeshPort(DataPort::pointer port) {
+        setInputConnection(1, port);
+    }
+
+    void CoherentPointDrift::setMaximumIterations(unsigned char maxIterations) {
+        mMaxIterations = maxIterations;
+    }
+
+    void CoherentPointDrift::setUniformWeight(float uniformWeight) {
+        mUniformWeight = uniformWeight;
+    }
+
+    void CoherentPointDrift::setTolerance(double tolerance) {
+        mTolerance = tolerance;
+    }
+
+    void CoherentPointDrift::setExistingTransform() {
+        mApplyExisting = true;
+    }
+
     AffineTransformation::pointer CoherentPointDrift::getOutputTransformation() {
         return mTransformation;
     }
 
-    void CoherentPointDrift::execute() {
-        auto fixedMesh = getInputData<Mesh>(0);
-        auto movingMesh = getInputData<Mesh>(1);
-
-        // Get access to the two point sets
-        MeshAccess::pointer accessFixedSet = fixedMesh->getMeshAccess(ACCESS_READ);
-        MeshAccess::pointer accessMovingSet = movingMesh->getMeshAccess(ACCESS_READ);
-
-        // Get the points from the meshes
-        std::vector<MeshVertex> fixedVertices = accessFixedSet->getVertices();
-        std::vector<MeshVertex> movingVertices = accessMovingSet->getVertices();
-
-//        unsigned int numFixedPoints = fixedVertices.size();
-//        unsigned int numMovingPoints = movingVertices.size();
-        numFixedPoints = (unsigned int)fixedVertices.size();
-        numMovingPoints = (unsigned int)movingVertices.size();
-        numDimensions = (unsigned int)fixedVertices[0].getPosition().size();
-
-        MatrixXf fixedPoints;
-        MatrixXf movingPoints;
-        fixedPoints = MatrixXf::Zero(3, fixedVertices.size());
-        movingPoints = MatrixXf::Zero(3, movingVertices.size());
-        for(int i = 0; i < numFixedPoints; ++i) {
-            fixedPoints.col(i) = fixedVertices[i].getPosition();
-        }
-        for(int i = 0; i < numMovingPoints; ++i) {
-            movingPoints.col(i) = movingVertices[i].getPosition();
-        }
-
-        fixedPoints.transposeInPlace();         // numFixedPoints x numDimensions
-        movingPoints.transposeInPlace();        // numMovingPoints x numDimensions
-
-        // Testing
-        std::cout << "****************************************\n";
-        std::cout << "Testing av output" << std::endl;
-        std::cout << "numFixedPoints = " << numFixedPoints
-                  << ", numMovingPoints = " << numMovingPoints << std::endl;
-        std::cout << "Dimension = " << numDimensions << std::endl;
-        std::cout << "fixedPoints: " << fixedPoints.rows() << ", " << fixedPoints.cols() << std::endl;
-
-        // Initialize the probability matrix of correspondences
-        probabilityMatrix = MatrixXf::Zero(numMovingPoints, numFixedPoints);
-
-
-        // Find the transform here
-        while (mIteration < 1 /*mIteration < mMaxIterations && mError > mMinErrorChange*/) {
-            expectation(&probabilityMatrix, &fixedPoints, &movingPoints);
-            maximization(&probabilityMatrix, &fixedPoints, &movingPoints);
-            mIteration++;
-        }
-
-        auto transform = AffineTransformation::New();
-        Affine3f affine = Affine3f::Identity();
-        affine.translate(Vector3f(0, 0, 0));
-        transform->setTransform(affine);
-        movingMesh->getSceneGraphNode()->setTransformation(transform);
-
-        addOutputData(0, movingMesh);
-    }
-
-    void CoherentPointDrift::expectation(
-                    MatrixXf* probabilityMatrix,
-                    MatrixXf* fixedPoints, MatrixXf* movingPoints) {
-
-        MatrixXf dist = MatrixXf::Zero(numMovingPoints, numFixedPoints);
-        for(int i = 0; i < numMovingPoints; ++i) {
-//            MatrixXf movingPointMatrix = movingPoints->col(i).replicate(1, numFixedPoints);
-            MatrixXf movingPointMatrix = movingPoints->row(i).replicate(numFixedPoints, 1);
-            dist = *fixedPoints - movingPointMatrix;
-            dist = dist.cwiseAbs2();                                // Square distance components (3xN)
-//            probabilityMatrix->row(i) = dist.colwise().sum();       // Sum x, y, z components (1xN)
-            probabilityMatrix->row(i) = dist.rowwise().sum();       // Sum x, y, z components (1xN)
-        }
-
-        // Normal distribution
-        double c = pow(2*(double)EIGEN_PI*variance, (double)numDimensions/2)
-                   * (w/(1-w)) * ((double)numMovingPoints/(double)numFixedPoints);
-
-        *probabilityMatrix *= -1/(2 * variance);
-        *probabilityMatrix = probabilityMatrix->array().exp();
-
-        MatrixXf denominatorRow = probabilityMatrix->colwise().sum();
-        denominatorRow =  denominatorRow.array() + c;
-
-        MatrixXf shouldBeLargerThanEpsilon = Eigen::NumTraits<float>::epsilon() * MatrixXf::Ones(1, numFixedPoints);
-        denominatorRow = denominatorRow.cwiseMax(shouldBeLargerThanEpsilon);
-
-        MatrixXf denominator = denominatorRow.replicate(numMovingPoints, 1);
-
-        *probabilityMatrix = probabilityMatrix->cwiseQuotient(denominator);
-    }
-
-    void CoherentPointDrift::maximization(MatrixXf* probabilityMatrix,
-            MatrixXf* fixedPoints, MatrixXf* movingPoints) {
-
-        // Update transform
-        pt1 = probabilityMatrix->transpose().rowwise().sum();
-        p1 = probabilityMatrix->rowwise().sum();
-        np = probabilityMatrix->sum();
-
-        MatrixXf muX = fixedPoints->transpose() * pt1;
-        MatrixXf muY = movingPoints->transpose() * p1;
-        MatrixXf fixedPointsPred = *fixedPoints - muX.transpose().replicate(numFixedPoints, 1);
-        MatrixXf movingPointsPred = *movingPoints - muY.transpose().replicate(numMovingPoints, 1);
-        const MatrixXf A = fixedPointsPred.transpose() * probabilityMatrix->transpose() * movingPointsPred;
-
-        // Singular Value Decomposition (SVD)
-        auto svdU =  A.bdcSvd(Eigen::ComputeFullU);
-        std::cout << "S before compute V:\n" << svdU.singularValues() << std::endl;
-        auto svdV =  A.bdcSvd(Eigen::ComputeFullV);
-        const MatrixXf U = svdU.matrixU();
-        const MatrixXf V = svdV.matrixV();
-        auto S = svdU.singularValues();
-        std::cout << "A:\n" << A << std::endl;
-        std::cout << "U:\n" << U << std::endl;
-        std::cout << "S from svdU after computing U and V:\n" << svdU.singularValues() << std::endl;
-        std::cout << "S from svdV after computing U and V:\n" << svdV.singularValues() << std::endl;
-        std::cout << "V:\n" << V << std::endl;
-
-        MatrixXf ATest = U * S.asDiagonal() * V.transpose();
-        std::cout << "ATest = USV^T:\n" << A << std::endl;
-
-//        auto C = MatrixXf::Ones(1, )
-//        MatrixXf R = U *
-
-        std::cout << "np = " << np << std::endl;
-    }
-
-    void CoherentPointDrift::setTransformationType(const CoherentPointDrift::TransformationType type) {
-        mTransformationType = type;
-    }
 }
