@@ -34,9 +34,9 @@ __kernel void initialize(
         }}}
         if(atBorder) {
 #ifdef fast_3d_image_writes
-            write_imagei(distance, pos, 0);
+            write_imagei(distance, pos, -1);
 #else
-			distance[LPOS(pos)] = 0;
+			distance[LPOS(pos)] = -1;
 #endif
         } else {
 #ifdef fast_3d_image_writes
