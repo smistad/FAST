@@ -1,7 +1,7 @@
 #include "RealSenseStreamer.hpp"
 #include "FAST/Data/Image.hpp"
 #include "FAST/Data/Mesh.hpp"
-#include "librealsense2/rs.hpp"
+#include <librealsense2/rs.hpp>
 #include "librealsense2/rsutil.h"
 
 namespace fast {
@@ -16,11 +16,6 @@ RealSenseStreamer::RealSenseStreamer() {
     mFirstFrameIsInserted = false;
     mStreamIsStarted = false;
     mIsModified = true;
-    mPointCloudFilterEnabled = false;
-}
-
-void RealSenseStreamer::setPointCloudFiltering(bool enabled) {
-    mPointCloudFilterEnabled = enabled;
 }
 
 void RealSenseStreamer::execute() {
@@ -108,6 +103,36 @@ static float get_depth_scale(rs2::device dev)
     throw std::runtime_error("Device does not have a depth sensor");
 }
 
+/**
+Class to encapsulate a filter alongside its options
+*/
+class filter_options
+{
+    public:
+        filter_options(const std::string name, rs2::filter& filter);
+        filter_options(filter_options&& other);
+        std::string filter_name;                                   //Friendly name of the filter
+        rs2::filter& filter;                                       //The filter in use
+        std::atomic_bool is_enabled;                               //A boolean controlled by the user that determines whether to apply the filter or not
+};
+
+/**
+Constructor for filter_options, takes a name and a filter.
+*/
+filter_options::filter_options(const std::string name, rs2::filter& flt) :
+        filter_name(name),
+        filter(flt),
+        is_enabled(true)
+{
+}
+
+filter_options::filter_options(filter_options&& other) :
+        filter_name(std::move(other.filter_name)),
+        filter(other.filter),
+        is_enabled(other.is_enabled.load())
+{
+}
+
 void RealSenseStreamer::producerStream() {
     reportInfo() << "Trying to set up real sense stream..." << reportEnd();
 
@@ -122,7 +147,7 @@ void RealSenseStreamer::producerStream() {
         throw Exception("Error could not start real sense streaming pipeline: " + std::string(e.what()));
     }
 
-    float depth_scale = get_depth_scale(profile.get_device());
+    const float depth_scale = get_depth_scale(profile.get_device());
 
     //Pipeline could choose a device that does not have a color stream
     //If there is no color stream, choose to align depth to another stream
@@ -134,6 +159,89 @@ void RealSenseStreamer::producerStream() {
     // rs2::align allows us to perform alignment of depth frames to others frames
     //The "align_to" is the stream type to which we plan to align depth frames.
     rs2::align align(align_to);
+
+    // Declare filters
+    rs2::decimation_filter dec_filter;  // Decimation - reduces depth frame density
+    rs2::spatial_filter spat_filter;    // Spatial    - edge-preserving spatial smoothing
+    rs2::temporal_filter temp_filter;   // Temporal   - reduces temporal noise
+
+    // Declare disparity transform from depth to disparity and vice versa
+    const std::string disparity_filter_name = "Disparity";
+    rs2::disparity_transform depth_to_disparity(true);
+    rs2::disparity_transform disparity_to_depth(false);
+
+
+    // Initialize a vector that holds filters and their options
+    std::vector<filter_options> filters;
+
+    // The following order of emplacment will dictate the orders in which filters are applied
+    //filters.emplace_back("Decimate", dec_filter);
+    filters.emplace_back(disparity_filter_name, depth_to_disparity);
+    filters.emplace_back("Spatial", spat_filter);
+    filters.emplace_back("Temporal", temp_filter);
+
+    // Declaring two concurrent queues that will be used to push and pop frames from different threads
+    rs2::frame_queue color_data_queue;
+    rs2::frame_queue depth_data_queue;
+
+    // Atomic boolean to allow thread safe way to stop the thread
+    std::atomic_bool stopped(false);
+
+    // Create a thread for getting frames from the device and process them
+    // to prevent UI thread from blocking due to long computations.
+    std::thread processing_thread([&]() {
+        while (!stopped) //While application is running
+        {
+            rs2::frameset frames = pipeline.wait_for_frames(); // Wait for next set of frames from the camera
+            //Get processed aligned frame
+            auto processed = align.process(frames);
+
+            // Trying to get both other and aligned depth frames
+            rs2::video_frame color_frame = processed.first(align_to);
+            rs2::depth_frame depth_frame = processed.get_depth_frame(); // Aligned depth frame
+
+            //If one of them is unavailable, continue iteration
+            if(!depth_frame || !color_frame)
+                continue;
+
+            rs2::frame filtered = depth_frame; // Does not copy the frame, only adds a reference
+
+            /* Apply filters.
+            The implemented flow of the filters pipeline is in the following order:
+            1. apply decimation filter
+            2. transform the scence into disparity domain
+            3. apply spatial filter
+            4. apply temporal filter
+            5. revert the results back (if step Disparity filter was applied
+            to depth domain (each post processing block is optional and can be applied independantly).
+            */
+            bool revert_disparity = false;
+            for (auto&& filter : filters)
+            {
+                if (filter.is_enabled)
+                {
+                    filtered = filter.filter.process(filtered);
+                    if (filter.filter_name == disparity_filter_name)
+                    {
+                        revert_disparity = true;
+                    }
+                }
+            }
+            if (revert_disparity)
+            {
+                filtered = disparity_to_depth.process(filtered);
+            }
+
+            // Push filtered & original data to their respective queues
+            // Note, pushing to two different queues might cause the application to display
+            //  original and filtered pointclouds from different depth frames
+            //  To make sure they are synchronized you need to push them together or add some
+            //  synchronization mechanisms
+            depth_data_queue.enqueue(filtered);
+            color_data_queue.enqueue(color_frame);
+        }
+    });
+
 
     while(true) {
         {
@@ -148,48 +256,28 @@ void RealSenseStreamer::producerStream() {
         }
 
         // Block program until frames arrive
-        rs2::frameset frames = pipeline.wait_for_frames();
-
-        // rs2::pipeline::wait_for_frames() can replace the device it uses in case of device error or disconnection.
-        // Since rs2::align is aligning depth to some other stream, we need to make sure that the stream was not changed
-        //  after the call to wait_for_frames();
-        if (profile_changed(pipeline.get_active_profile().get_streams(), profile.get_streams()))
-        {
-            //If the profile was changed, update the align object, and also get the new device's depth scale
-            profile = pipeline.get_active_profile();
-            align_to = find_stream_to_align(profile.get_streams());
-            align = rs2::align(align_to);
-            depth_scale = get_depth_scale(profile.get_device());
-        }
-
-        //Get processed aligned frame
-        auto processed = align.process(frames);
-
-        // Trying to get both other and aligned depth frames
-        rs2::video_frame color_frame = processed.first(align_to);
-        rs2::depth_frame depth_frame = processed.get_depth_frame(); // Aligned depth frame
-
-        //If one of them is unavailable, continue iteration
-        if(!depth_frame || !color_frame)
+        rs2::frame depth_frame;
+        depth_data_queue.poll_for_frame(&depth_frame);
+        rs2::frame color_frame;
+        color_data_queue.poll_for_frame(&color_frame);
+        if(!color_frame || !depth_frame)
             continue;
 
         // Get the depth frame's dimensions
-        int width = depth_frame.get_width();
-        int height = depth_frame.get_height();
-        std::cout << "depth size: " << width << " " << height << std::endl;
-
+        int width = static_cast<rs2::video_frame>(depth_frame).get_width();
+        int height = static_cast<rs2::video_frame>(depth_frame).get_height();
+        //std::cout << "depth size: " << width << " " << height << std::endl;
 
         const uint16_t* p_depth_frame = reinterpret_cast<const uint16_t*>(depth_frame.get_data());
         uint8_t* p_other_frame = reinterpret_cast<uint8_t*>(const_cast<void*>(color_frame.get_data()));
 
-        width = color_frame.get_width();
-        height = color_frame.get_height();
-        std::cout << "color size: " << width << " " << height << std::endl;
-        int other_bpp = color_frame.get_bytes_per_pixel();
+        width = static_cast<rs2::video_frame>(color_frame).get_width();
+        height = static_cast<rs2::video_frame>(color_frame).get_height();
+        //std::cout << "color size: " << width << " " << height << std::endl;
+        int other_bpp = static_cast<rs2::video_frame>(color_frame).get_bytes_per_pixel();
 
         std::unique_ptr<float[]> depthData = std::make_unique<float[]>(width*height);
 
-        std::cout << "processing.." << std::endl;
         std::vector<MeshVertex> points;
         for(int y = 0; y < height; y++) {
             auto depth_pixel_index = y * width;
@@ -218,7 +306,6 @@ void RealSenseStreamer::producerStream() {
                 }
             }
         }
-        std::cout << "done" << std::endl;
 
         // Create depth image
         Image::pointer depthImage = Image::New();
@@ -247,6 +334,9 @@ void RealSenseStreamer::producerStream() {
         }
         mNrOfFrames++;
     }
+
+    stopped = true;
+    processing_thread.join();
 
     reportInfo() << "Real sense streamer stopped" << Reporter::end();
 }

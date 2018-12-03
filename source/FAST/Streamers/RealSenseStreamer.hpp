@@ -24,7 +24,6 @@ class FAST_EXPORT RealSenseStreamer : public Streamer {
     FAST_OBJECT(RealSenseStreamer);
     public:
         void producerStream();
-        void setPointCloudFiltering(bool enabled);
         /**
          * Set maximum range in meters. All points above this range will be dropped.
          * @param range
@@ -55,8 +54,8 @@ class FAST_EXPORT RealSenseStreamer : public Streamer {
         bool mFirstFrameIsInserted;
         bool mHasReachedEnd;
         bool mStop;
-        bool mPointCloudFilterEnabled;
-        float mMaxRange = std::numeric_limits<float>::max(), mMinRange = 0;
+        float mMaxRange = std::numeric_limits<float>::max();
+        float mMinRange = 0;
         uint mNrOfFrames;
 
         std::unique_ptr<std::thread> mThread;
