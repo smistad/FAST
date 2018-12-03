@@ -13,6 +13,7 @@ using namespace fast;
 int main(int argc, char** argv) {
     // Setup streaming
     auto streamer = RealSenseStreamer::New();
+    streamer->setPointCloudFiltering(true);
 
     // Renderer RGB image
     auto renderer = ImageRenderer::New();
