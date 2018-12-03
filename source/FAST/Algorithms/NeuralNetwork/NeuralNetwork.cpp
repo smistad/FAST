@@ -308,9 +308,14 @@ Tensor::pointer NeuralNetwork::convertImagesToTensor(std::vector<Image::pointer>
         auto image = images[i];
         if(image->getWidth() != width ||
             image->getHeight() != height ||
-            image->getDepth() != depth ||
-            image->getNrOfChannels() != channels)
-            throw Exception("Input image sent to executeNetwork was of incorrect size");
+            image->getDepth() != depth)
+            throw Exception("Input image sent to executeNetwork was of incorrect size: " +
+                    std::to_string(image->getWidth()) + "," + std::to_string(image->getHeight()) + "," +
+                    std::to_string(image->getDepth()) + ". Expected: " + std::to_string(width) + ", " +
+                    std::to_string(height) + "," + std::to_string(depth) + ".");
+        if(image->getNrOfChannels() != channels)
+            throw Exception("Input image sent to executeNetwork has incorrect nr of channels: " +
+                    std::to_string(image->getNrOfChannels())+ ". Expected: " + std::to_string(channels) + ".");
         OpenCLImageAccess::pointer access = image->getOpenCLImageAccess(ACCESS_READ, device);
         cl::Buffer buffer(
                 device->getContext(),
