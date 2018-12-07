@@ -38,6 +38,13 @@ if(FAST_MODULE_Kinect)
         KinectStreamer.hpp
     )
 endif()
+if(FAST_MODULE_RealSense)
+    fast_add_sources(
+        RealSenseStreamer.cpp
+        RealSenseStreamer.hpp
+    )
+endif()
+
 fast_add_test_sources(
     Tests/ImageFileStreamerTests.cpp
 )

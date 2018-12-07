@@ -10,7 +10,18 @@ class FAST_EXPORT MetaImageExporter : public ProcessObject {
     FAST_OBJECT(MetaImageExporter)
     public:
         void setFilename(std::string filename);
+        /**
+         * Enable or disable lossless compression
+         * @param compress
+         */
+        void setCompression(bool compress);
+        /**
+         * Deprecated
+         */
         void enableCompression();
+        /**
+         * Deprecated
+         */
         void disableCompression();
         /**
          * Add additional meta data to the mhd file.

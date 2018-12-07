@@ -20,6 +20,8 @@ int main(int argc, char** argv) {
     parser.addOption("ultrasound-cropping", "Enable ultrasound cropping. Useful for videos exported from ultrasound scanners.");
     parser.addVariable("physical-width", false, "Set the physical with (in mm) of the image to calculate the pixel spacing.");
     parser.addChoice("export-format", {"mhd", "png", "bmp", "jpg"}, "mhd", "Select image format to export");
+    parser.addOption("static-cropping", "Enable static ultrasound cropping. Meaning that the cropping parameters are calculated for the first frame and then used for the rest");
+    parser.addOption("disable-compression", "Disable compression when saving as mhd (.zraw)");
     parser.parse(argc, argv);
 
     std::string path = parser.get("path");
@@ -28,13 +30,14 @@ int main(int argc, char** argv) {
         std::cout << file << std::endl;
         if(file.substr(file.size() - extension.size()) != extension)
             continue;
-        MovieStreamer::pointer streamer = MovieStreamer::New();
+        auto streamer = MovieStreamer::New();
         streamer->setFilename(path + file);
 
         auto port = streamer->getOutputPort();
         if(parser.getOption("ultrasound-cropping")) {
-            UltrasoundImageCropper::pointer cropper = UltrasoundImageCropper::New();
+            auto cropper = UltrasoundImageCropper::New();
             cropper->setInputConnection(port);
+            cropper->setStaticCropping(parser.getOption("static-cropping"));
             if(parser.gotValue("physical-width"))
                 cropper->setPhysicalWidth(parser.get<int>("physical-width"));
             port = cropper->getOutputPort();
@@ -46,6 +49,7 @@ int main(int argc, char** argv) {
             createDirectories(exportPath);
             int timestep = 0;
             ImageFileExporter::pointer exporter = ImageFileExporter::New();
+            exporter->setCompression(!parser.getOption("disable-compression"));
             exporter->setInputConnection(port);
             bool stop = false;
             while(true) {
@@ -68,10 +72,10 @@ int main(int argc, char** argv) {
                     break;
             }
         } else {
-            ImageRenderer::pointer renderer = ImageRenderer::New();
+            auto renderer = ImageRenderer::New();
             renderer->addInputConnection(port);
 
-            SimpleWindow::pointer window = SimpleWindow::New();
+            auto window = SimpleWindow::New();
             window->addRenderer(renderer);
             window->getView()->setAutoUpdateCamera(true);
             window->getView()->setBackgroundColor(Color(0.1, 0.1, 0.1));
