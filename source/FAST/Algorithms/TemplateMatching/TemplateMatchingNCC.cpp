@@ -49,12 +49,14 @@ void TemplateMatchingNCC::execute() {
     int halfSize_x = templateImage->getWidth() / 2;
     int halfSize_y = templateImage->getHeight() / 2;
     float bestMatchScore = std::numeric_limits<float>::min();
+    // For every possible ROI position
     for(int y = start_y; y <= end_y; ++y)  {
         for(int x = start_x; x <= end_x; ++x)  {
             float imageTargetMean = calculateMeanIntensity(imageAccess, Vector2i(x-halfSize_x, y-halfSize_y), Vector2i(templateImage->getWidth(), templateImage->getHeight()));
             float upperPart = 0.0f;
             float lowerPart1 = 0.0f;
             float lowerPart2 = 0.0f;
+            // Loop over current ROI
             for(int a = -halfSize_x; a < halfSize_x; ++a) {
                 for(int b = -halfSize_y; b < halfSize_y; ++b) {
                     float imagePart = (imageAccess->getScalar(Vector2i(x+a, y+b)) - imageTargetMean);
@@ -99,18 +101,39 @@ Vector2f TemplateMatchingNCC::getBestFitSubPixelPosition() const {
         for(int x = -1; x <= 1; ++x) {
             for(int y = -1; y <= 1; ++y) {
                 Vector2i position = m_bestFitPosition + Vector2i(x, y);
-                b(x+1,y+1) = access->getScalar(position);
+                b(x + 1, y + 1) = access->getScalar(position);
             }
         }
-        std::cout << "b matrix: " << b << std::endl;
-        const auto A = (b(0,0) - 2*b(1, 0) + b(2,0) + b(0,1) - 2*b(1,1) + b(2,1) + b(0,2) - 2*b(1,2) + b(2,2))/6.0;
-        const auto B = (b(0,0) - b(2,0) - b(0,2) + b(2,2)) / 4.0;
-        const auto C = (b(0,0) + b(1,0) + b(2,0) - 2*b(0,1) - 2*b(1,1) - 2*b(2,1) + b(0,2) + b(1,2) + b(2,2))/6.0;
-        const auto D = (-b(0,0) + b(2,0) - b(0,1) + b(2,1) - b(0,2) + b(2,2)) / 6.0;
-        const auto E = (-b(0,0) - b(1,0) - b(2,0) + b(0,2) + b(1,2) + b(2,2)) / 6.0;
-        const auto F = (-b(0,0) + 2*b(1,0) - b(2,0) + 2*b(0,1) + 5*b(1,1) + 2*b(2,1) - b(0,2) + 2*b(1,2) - b(2,2))/ 9.0;
 
-        const Vector2f subpixelOffset((B*E - 2.0*C*D)/(4.0*A*C - B*B), (B*D - 2.0*A*E)/(4.0*A*C - B*B));
+        // 2D parabolic
+        const auto A =
+                (b(0, 0) - 2 * b(1, 0) + b(2, 0) + b(0, 1) - 2 * b(1, 1) + b(2, 1) + b(0, 2) - 2 * b(1, 2) +
+                 b(2, 2)) / 6.0;
+        const auto B = (b(0, 0) - b(2, 0) - b(0, 2) + b(2, 2)) / 4.0;
+        const auto C =
+                (b(0, 0) + b(1, 0) + b(2, 0) - 2 * b(0, 1) - 2 * b(1, 1) - 2 * b(2, 1) + b(0, 2) + b(1, 2) +
+                 b(2, 2)) / 6.0;
+        const auto D = (-b(0, 0) + b(2, 0) - b(0, 1) + b(2, 1) - b(0, 2) + b(2, 2)) / 6.0;
+        const auto E = (-b(0, 0) - b(1, 0) - b(2, 0) + b(0, 2) + b(1, 2) + b(2, 2)) / 6.0;
+        const auto F = (-b(0, 0) + 2 * b(1, 0) - b(2, 0) + 2 * b(0, 1) + 5 * b(1, 1) + 2 * b(2, 1) - b(0, 2) +
+                        2 * b(1, 2) - b(2, 2)) / 9.0;
+
+        const Vector2f subpixelOffset((B * E - 2.0 * C * D) / (4.0 * A * C - B * B),
+                                      (B * D - 2.0 * A * E) / (4.0 * A * C - B * B));
+
+
+
+        /*
+        // 1D parabolic
+        const auto firstDerivativeX = 0.5f*(b(2, 1) - b(0, 1));
+        const auto secondDerivativeX = b(2,1) - 2.f*b(1, 1) + b(0, 1);
+        const auto firstDerivativeY = 0.5f*(b(1, 2) - b(1, 0));
+        const auto secondDerivativeY = b(1,2) - 2.f*b(1, 1) + b(1, 0);
+
+        const Vector2f subpixelOffset(-firstDerivativeX/secondDerivativeX, -firstDerivativeY/secondDerivativeY);
+        std::cout << subpixelOffset.transpose() << std::endl;
+         */
+
         return m_bestFitPosition.cast<float>() + subpixelOffset;
     } else {
         throw Exception("Must run update first");
