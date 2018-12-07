@@ -152,7 +152,7 @@ endif()
 
 
 #### Create FAST library and executables
-add_library(FAST SHARED ${FAST_SOURCE_FILES} ${HEADERS_MOC})
+add_library(FAST SHARED ${FAST_SOURCE_FILES} ${HEADERS_MOC} source/FAST/Algorithms/CoherentPointDrift/Rigid.cpp source/FAST/Algorithms/CoherentPointDrift/Rigid.hpp source/FAST/Algorithms/CoherentPointDrift/Affine.cpp source/FAST/Algorithms/CoherentPointDrift/Affine.hpp)
 add_dependencies(FAST ${FAST_EXTERNAL_DEPENDENCIES})
 include(GenerateExportHeader)
 generate_export_header(FAST EXPORT_FILE_NAME FASTExport.hpp)
@@ -167,7 +167,7 @@ endif()
 
 ## Build test executable
 if(FAST_BUILD_TESTS)
-    add_executable(testFAST ${FAST_TEST_SOURCE_FILES})
+    add_executable(testFAST ${FAST_TEST_SOURCE_FILES} source/FAST/Algorithms/CoherentPointDrift/Rigid.cpp source/FAST/Algorithms/CoherentPointDrift/Rigid.hpp source/FAST/Algorithms/CoherentPointDrift/Affine.cpp source/FAST/Algorithms/CoherentPointDrift/Affine.hpp)
     target_link_libraries(testFAST FAST)
 endif()
 
