@@ -21,58 +21,9 @@ namespace fast {
                     (double) (mNumFixedPoints * mNumMovingPoints * mNumDimensions);
 
         mObjectiveFunction = -mIterationError - double(mNumFixedPoints * mNumDimensions)/2 * log(mVariance);
-        mProbabilityMatrix = MatrixXf::Zero(mNumMovingPoints, mNumFixedPoints);
+        mResponsibilityMatrix = MatrixXf::Zero(mNumMovingPoints, mNumFixedPoints);
         mPt1 = VectorXf::Zero(mNumFixedPoints);
         mP1 = VectorXf::Zero(mNumMovingPoints);
-    }
-
-
-    void CoherentPointDriftRigid::expectation(MatrixXf& fixedPoints, MatrixXf& movingPoints) {
-
-        double timeStartE = omp_get_wtime();
-
-        /* **********************************************************************************
-         * Calculate distances between the points in the two point sets
-         * Let row i in P equal the squared distances from all fixed points to moving point i
-         * *********************************************************************************/
-
-        /* Implementation without OpenMP
-        MatrixXf movingPointMatrix = MatrixXf::Zero(mNumMovingPoints, mNumFixedPoints);
-        MatrixXf distances = MatrixXf::Zero(mNumMovingPoints, mNumFixedPoints);
-        for (int i = 0; i < mNumMovingPoints; ++i) {
-            movingPointMatrix = movingPoints.row(i).replicate(mNumFixedPoints, 1);
-            distances = fixedPoints - movingPoints.row(i).replicate(mNumFixedPoints, 1);
-            distances = fixedPoints - movingPointMatrix;            // Distance between all fixed points and moving point i
-            distances = distances.cwiseAbs2();                            // Square distance components (3xN)
-            mProbabilityMatrix.row(i) = distances.rowwise().sum();   // Sum x, y, z components (1xN)
-        }
-        */
-
-        auto c = (float) (pow(2*(double)EIGEN_PI*mVariance, (double)mNumDimensions/2.0)
-                   * (mUniformWeight/(1-mUniformWeight)) * (float)mNumMovingPoints/mNumFixedPoints);
-
-        #pragma omp parallel for //collapse(2)
-            for (int col = 0; col < mNumFixedPoints; ++col) {
-                for (int row = 0; row < mNumMovingPoints; ++row) {
-                    double norm = (fixedPoints.row(col) - movingPoints.row(row)).squaredNorm();
-                    mProbabilityMatrix(row, col) = exp(norm / (-2.0 * mVariance));
-                }
-            }
-        double timeEndFirstLoop = omp_get_wtime();
-
-        #pragma omp parallel for
-            for (int col = 0; col < mNumFixedPoints; ++col) {
-                float denom = mProbabilityMatrix.col(col).sum() + c;
-                mProbabilityMatrix.col(col) /= max(denom, Eigen::NumTraits<float>::epsilon() );
-            }
-
-        // Update computation times
-        double timeEndE = omp_get_wtime();
-        timeEDistances += 0.0;
-        timeENormal += timeEndFirstLoop - timeStartE;
-        timeEPosterior += 0.0;
-        timeEPosteriorDivision += timeEndE - timeEndFirstLoop;
-        timeE += timeEndE - timeStartE;
     }
 
     void CoherentPointDriftRigid::maximization(MatrixXf& fixedPoints, MatrixXf& movingPoints) {
@@ -82,14 +33,14 @@ namespace fast {
         mP1 = VectorXf::Zero(mNumMovingPoints);
         #pragma omp parallel for
             for (int col = 0; col < mNumFixedPoints; ++col) {
-                mPt1(col) = mProbabilityMatrix.col(col).sum();
+                mPt1(col) = mResponsibilityMatrix.col(col).sum();
             }
         #pragma omp parallel
         {
             VectorXf mP1Local = VectorXf::Zero(mNumMovingPoints);
             #pragma omp for
             for (int col = 0; col < mNumFixedPoints; ++col) {
-                mP1Local += mProbabilityMatrix.col(col);
+                mP1Local += mResponsibilityMatrix.col(col);
             }
             #pragma omp critical
             mP1 += mP1Local;
@@ -109,7 +60,7 @@ namespace fast {
 
 
         // Single value decomposition (SVD)
-        const MatrixXf A = fixedPointsCentered.transpose() * mProbabilityMatrix.transpose() * movingPointsCentered;
+        const MatrixXf A = fixedPointsCentered.transpose() * mResponsibilityMatrix.transpose() * movingPointsCentered;
         auto svdU =  A.bdcSvd(Eigen::ComputeThinU);
         auto svdV =  A.bdcSvd(Eigen::ComputeThinV);
         const MatrixXf* U = &svdU.matrixU();

@@ -20,63 +20,7 @@ namespace fast {
                     (double)(mNumFixedPoints * mNumMovingPoints * mNumDimensions);
 
         mObjectiveFunction = -mIterationError - double(mNumFixedPoints * mNumDimensions)/2 * log(mVariance);
-        mProbabilityMatrix = MatrixXf::Zero(mNumMovingPoints, mNumFixedPoints);
-    }
-
-    void CoherentPointDriftAffine::expectation(Eigen::MatrixXf &fixedPoints, Eigen::MatrixXf &movingPoints) {
-        double timeStartE = omp_get_wtime();
-
-        /* **********************************************************************************
-         * Calculate distances between the points in the two point sets
-         * Let row i in P equal the squared distances from all fixed points to moving point i
-         * *********************************************************************************/
-#pragma omp parallel for collapse(2)
-        for (int i = 0; i < mNumMovingPoints; ++i) {
-            for (int j = 0; j < mNumFixedPoints; ++j) {
-                VectorXf diff = fixedPoints.row(j) - movingPoints.row(i);
-                mProbabilityMatrix(i, j) = diff.squaredNorm();
-            }
-        }
-
-        timeEDistances += omp_get_wtime() - timeStartE;
-
-        /* *******************
-         * Normal distribution
-         * ******************/
-
-        double timeStartENormal = omp_get_wtime();
-
-        double c = pow(2*(double)EIGEN_PI*mVariance, (double)mNumDimensions/2.0)
-                   * (mUniformWeight/(1-mUniformWeight)) * (double)mNumMovingPoints/(double)mNumFixedPoints;
-
-        mProbabilityMatrix /= -2.0 * mVariance;
-        mProbabilityMatrix = mProbabilityMatrix.array().exp();
-
-        timeENormal += omp_get_wtime() -timeStartENormal;
-
-
-
-        /* ***************************************************
-         * Calculate posterior probabilities of GMM components
-         * **************************************************/
-
-        double timeStartPosterior = omp_get_wtime();
-
-        MatrixXf denominatorRow = mProbabilityMatrix.colwise().sum();
-        denominatorRow =  denominatorRow.array() + c;
-
-        // Ensure that one does not divide by zero
-        MatrixXf shouldBeLargerThanEpsilon = Eigen::NumTraits<float>::epsilon() * MatrixXf::Ones(1, mNumFixedPoints);
-        denominatorRow = denominatorRow.cwiseMax(shouldBeLargerThanEpsilon);
-
-        MatrixXf denominator = denominatorRow.replicate(mNumMovingPoints, 1);
-        mProbabilityMatrix = mProbabilityMatrix.cwiseQuotient(denominator);
-
-
-        double timeEndE = omp_get_wtime();
-        timeEPosterior += omp_get_wtime() - timeStartPosterior;
-        timeE += timeEndE - timeStartE;
-
+        mResponsibilityMatrix = MatrixXf::Zero(mNumMovingPoints, mNumFixedPoints);
     }
 
     void CoherentPointDriftAffine::maximization(Eigen::MatrixXf &fixedPoints, Eigen::MatrixXf &movingPoints) {
@@ -84,8 +28,8 @@ namespace fast {
         double startM = omp_get_wtime();
 
         // Define some useful matrix sums
-        mPt1 = mProbabilityMatrix.transpose().rowwise().sum();      // mNumFixedPoints x 1
-        mP1 = mProbabilityMatrix.rowwise().sum();                   // mNumMovingPoints x 1
+        mPt1 = mResponsibilityMatrix.transpose().rowwise().sum();      // mNumFixedPoints x 1
+        mP1 = mResponsibilityMatrix.rowwise().sum();                   // mNumMovingPoints x 1
         mNp = mPt1.sum();                                           // 1 (sum of all P elements)
         double timeEndMUseful = omp_get_wtime();
 
@@ -101,7 +45,7 @@ namespace fast {
         /* **********************************************************
          * Find transformation parameters: affine matrix, translation
          * *********************************************************/
-        MatrixXf A = fixedPointsCentered.transpose() * mProbabilityMatrix.transpose() * movingPointsCentered;
+        MatrixXf A = fixedPointsCentered.transpose() * mResponsibilityMatrix.transpose() * movingPointsCentered;
         MatrixXf YPY = movingPointsCentered.transpose() * mP1.asDiagonal() * movingPointsCentered;
         MatrixXf XPX = fixedPointsCentered.transpose() * mPt1.asDiagonal() * fixedPointsCentered;
 
