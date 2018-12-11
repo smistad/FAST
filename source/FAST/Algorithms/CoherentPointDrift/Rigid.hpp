@@ -21,7 +21,6 @@ namespace fast {
         VectorXf mP1;                           // Rowwise sum of P
         MatrixXf mRotation;                     // R
         MatrixXf mTranslation;                  // t
-        double mObjectiveFunction;              // Q
         double mIterationError;                 // Change in error from iteration to iteration
         float mNp;                              // Sum of all elements in P
         TransformationType mTransformationType;
