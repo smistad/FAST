@@ -90,7 +90,7 @@ void KinectStreamer::producerStream() {
     }
 
     reportInfo() << "Using kinect device with serial: " << serial << reportEnd();
-    pipeline = new libfreenect2::OpenCLPacketPipeline();
+    pipeline = new libfreenect2::OpenGLPacketPipeline();
     dev = freenect2.openDevice(serial, pipeline);
 
     int types = libfreenect2::Frame::Color | libfreenect2::Frame::Ir | libfreenect2::Frame::Depth;
@@ -131,8 +131,8 @@ void KinectStreamer::producerStream() {
         mUndistorted = &undistorted;
         mRegistered = &registered;
 
-        float* depth_data = (float*)undistorted.data;
-        unsigned char* rgb_data = (unsigned char*)registered.data;
+        auto * depth_data = (float*)undistorted.data;
+        auto * rgb_data = (unsigned char*)registered.data;
 
         Image::pointer depthImage = Image::New();
         depthImage->create(512, 424, TYPE_FLOAT, 1, depth_data);
@@ -146,12 +146,14 @@ void KinectStreamer::producerStream() {
                 rgb_data[i*4+2] = blue;
             }
         }
-        rgbImage->create(512, 424, TYPE_UINT8, 4, rgb_data);
 
         // Create point cloud
         std::vector<MeshVertex> points;
         for(int r=0; r<424; ++r) {
             for(int c = 0; c < 512; ++c) {
+                // Flip image horizontally
+                for(int i = 0; i < 4; ++i)
+                    std::swap(rgb_data[(c + r)*4], rgb_data[(512 - c - 1 + r)*4]);
                 float x, y, z, color;
                 registration->getPointXYZRGB(&undistorted, &registered, r, c, x, y, z, color);
                 if(z < mMinRange || z > mMaxRange) {
@@ -185,12 +187,13 @@ void KinectStreamer::producerStream() {
                     uint8_t red = p[0];
                     uint8_t green = p[1];
                     uint8_t blue = p[2];
-                    MeshVertex point(Vector3f(x*1000, y*1000, z*1000));
+                    MeshVertex point(Vector3f(-x*1000, y*1000, z*1000)); // Flip x
                     point.setColor(Color(red/255.0f, green/255.0f, blue/255.0f));
                     points.push_back(point);
                 }
             }
         }
+        rgbImage->create(512, 424, TYPE_UINT8, 4, rgb_data);
         Mesh::pointer cloud = Mesh::New();
         cloud->create(points);
 
