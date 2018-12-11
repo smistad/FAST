@@ -24,6 +24,14 @@ class FAST_EXPORT TriangleRenderer : public Renderer {
         void setLabelColor(int label, Color color);
         void setOpacity(uint inputNr, float opacity);
         void setLineSize(int size);
+        /**
+         * Ignore inverted normals. This gives a better visualization
+         * if some normals in a mesh points have opposite direction.
+         *
+         * Default: true
+         * @param ignore
+         */
+        void setIgnoreInvertedNormals(bool ignore);
     private:
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) override;
         TriangleRenderer();
@@ -37,6 +45,7 @@ class FAST_EXPORT TriangleRenderer : public Renderer {
         int mLineSize;
         bool mWireframe;
         bool mDefaultColorSet;
+        bool mIgnoreInvertedNormals = true;
 };
 
 } // namespace fast

@@ -52,6 +52,7 @@ void TriangleRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, 
     setShaderUniform("perspectiveTransform", perspectiveMatrix);
     setShaderUniform("viewTransform", viewingMatrix);
     setShaderUniform("mode2D", mode2D);
+    setShaderUniform("ignoreInvertedNormals", mIgnoreInvertedNormals);
     for(auto it : mDataToRender) {
         Mesh::pointer surfaceToRender = std::static_pointer_cast<Mesh>(it.second);
 
@@ -175,6 +176,10 @@ void TriangleRenderer::setDefaultOpacity(float opacity) {
 
 void TriangleRenderer::setDefaultSpecularReflection(float specularReflection) {
     mDefaultSpecularReflection = specularReflection;
+}
+
+void TriangleRenderer::setIgnoreInvertedNormals(bool ignore) {
+    mIgnoreInvertedNormals = ignore;
 }
 
 uint TriangleRenderer::addInputConnection(DataPort::pointer port) {

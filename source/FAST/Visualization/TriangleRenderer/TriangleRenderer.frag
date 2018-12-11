@@ -10,6 +10,7 @@ out vec4 FragColor;
 
 uniform float opacity;
 uniform bool mode2D;
+uniform bool ignoreInvertedNormals;
 
 void main()
 {
@@ -28,7 +29,12 @@ void main()
         // diffuse
         vec3 norm = normalize(Normal);
         vec3 lightDir = normalize(LightPos - FragPos);
-        float diff = max(dot(norm, lightDir), 0.0);
+        float diff;
+        if(ignoreInvertedNormals) {
+            diff = abs(dot(norm, lightDir));
+        } else {
+            diff = max(dot(norm, lightDir), 0.0);
+        }
         vec3 diffuse = lightColor * (diff * objectColor);
 
         // specular
