@@ -1,1 +1,2 @@
 #fast_add_example(iterativeClosestPoint iterativeClosestPoint.cpp)
+fast_add_example(coherentPointDrift coherentPointDriftExample.cpp)

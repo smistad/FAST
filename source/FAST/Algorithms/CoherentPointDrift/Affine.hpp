@@ -14,17 +14,14 @@ namespace fast {
     public:
         CoherentPointDriftAffine();
         void initializeVarianceAndMore() override;
-        void expectation(MatrixXf& fixedPoints, MatrixXf& movingPoints) override;
         void maximization(MatrixXf& fixedPoints, MatrixXf& movingPoints) override;
 
     private:
-        MatrixXf mProbabilityMatrix;            // P
         MatrixXf mPt1;                          // Colwise sum of P, then transpose
         MatrixXf mP1;                           // Rowwise sum of P
         MatrixXf mAffineMatrix;                 // B
         MatrixXf mTranslation;                  // t
         double mObjectiveFunction;              // Q
-        double mVariance;                       // sigma^2
         double mIterationError;                 // Change in error from iteration to iteration
         float mNp;                              // Sum of all elements in P
         TransformationType mTransformationType;

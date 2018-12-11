@@ -23,7 +23,6 @@ namespace fast {
         mUniformWeight = 0.5;
         mTransformation = AffineTransformation::New();
         mRegistrationConverged = false;
-        mApplyExisting = false;
         mScale = 1.0;
 
         timeE = 0.0;
@@ -71,15 +70,6 @@ namespace fast {
         }
     }
 
-    Affine3f CoherentPointDrift::applyExistingTransform() {
-        // Apply existing transformation (for testing) to moving point cloud
-        auto existingTransform = SceneGraph::getEigenAffineTransformationFromData(mMovingMesh);
-        mMovingPoints = mMovingPoints * existingTransform.linear().transpose();
-        mMovingPoints += existingTransform.translation().transpose().replicate(mNumMovingPoints, 1);
-//        movingPoints = movingPoints.rowwise().homogeneous() * existingTransform.affine();
-        return existingTransform;
-    }
-
     void CoherentPointDrift::normalizePointSets() {
 
         // Center point clouds around origin, i.e. zero mean
@@ -95,15 +85,58 @@ namespace fast {
         mMovingPoints /= mMovingNormalizationScale;
     }
 
-    void CoherentPointDrift::denormalizePointSets() {
-
-    }
-
     void CoherentPointDrift::printCloudDimensions() {
         std::cout << "\n****************************************\n";
         std::cout << "Fixed point cloud: " << mNumFixedPoints << " x " << mNumDimensions << std::endl;
         std::cout << "Moving point cloud: " << mNumMovingPoints << " x " << mNumDimensions << std::endl;
-//        std::cout << "Existing transform: \n" << existingTransform.affine() << std::endl;
+    }
+
+    void CoherentPointDrift::expectation(MatrixXf& fixedPoints, MatrixXf& movingPoints) {
+
+        double timeStartE = omp_get_wtime();
+
+        /* **********************************************************************************
+         * Calculate distances between the points in the two point sets
+         * Let row i in P equal the squared distances from all fixed points to moving point i
+         * *********************************************************************************/
+
+        /* Implementation without OpenMP
+        MatrixXf movingPointMatrix = MatrixXf::Zero(mNumMovingPoints, mNumFixedPoints);
+        MatrixXf distances = MatrixXf::Zero(mNumMovingPoints, mNumFixedPoints);
+        for (int i = 0; i < mNumMovingPoints; ++i) {
+            movingPointMatrix = movingPoints.row(i).replicate(mNumFixedPoints, 1);
+            distances = fixedPoints - movingPoints.row(i).replicate(mNumFixedPoints, 1);
+            distances = fixedPoints - movingPointMatrix;            // Distance between all fixed points and moving point i
+            distances = distances.cwiseAbs2();                            // Square distance components (3xN)
+            mResponsibilityMatrix.row(i) = distances.rowwise().sum();   // Sum x, y, z components (1xN)
+        }
+        */
+
+        auto c = (float) (pow(2*(double)EIGEN_PI*mVariance, (double)mNumDimensions/2.0)
+                          * (mUniformWeight/(1-mUniformWeight)) * (float)mNumMovingPoints/mNumFixedPoints);
+
+#pragma omp parallel for //collapse(2)
+        for (int col = 0; col < mNumFixedPoints; ++col) {
+            for (int row = 0; row < mNumMovingPoints; ++row) {
+                double norm = (fixedPoints.row(col) - movingPoints.row(row)).squaredNorm();
+                mResponsibilityMatrix(row, col) = exp(norm / (-2.0 * mVariance));
+            }
+        }
+        double timeEndFirstLoop = omp_get_wtime();
+
+#pragma omp parallel for
+        for (int col = 0; col < mNumFixedPoints; ++col) {
+            float denom = mResponsibilityMatrix.col(col).sum() + c;
+            mResponsibilityMatrix.col(col) /= max(denom, Eigen::NumTraits<float>::epsilon() );
+        }
+
+        // Update computation times
+        double timeEndE = omp_get_wtime();
+        timeEDistances += 0.0;
+        timeENormal += timeEndFirstLoop - timeStartE;
+        timeEPosterior += 0.0;
+        timeEPosteriorDivision += timeEndE - timeEndFirstLoop;
+        timeE += timeEndE - timeStartE;
     }
 
     void CoherentPointDrift::execute() {
@@ -116,10 +149,8 @@ namespace fast {
 
         // Apply the existing transform, if any, to moving point cloud
         auto existingTransform = Affine3f::Identity();
-        if (mApplyExisting) {
-            existingTransform = applyExistingTransform();
-        }
-
+        existingTransform = SceneGraph::getEigenAffineTransformationFromData(mMovingMesh);
+        mMovingPoints = mMovingPoints.rowwise().homogeneous() * existingTransform.affine().transpose();
 
         // Normalize the point sets, i.e. zero mean and unit variance
         normalizePointSets();
@@ -224,10 +255,6 @@ namespace fast {
 
     void CoherentPointDrift::setTolerance(double tolerance) {
         mTolerance = tolerance;
-    }
-
-    void CoherentPointDrift::setExistingTransform() {
-        mApplyExisting = true;
     }
 
     AffineTransformation::pointer CoherentPointDrift::getOutputTransformation() {

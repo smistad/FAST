@@ -13,23 +13,18 @@ namespace fast {
     FAST_OBJECT(CoherentPointDriftRigid);
     public:
         CoherentPointDriftRigid();
-        void expectation(MatrixXf& fixedPoints, MatrixXf& movingPoints) override;
         void maximization(MatrixXf& fixedPoints, MatrixXf& movingPoints) override;
         void initializeVarianceAndMore() override;
 
     private:
-        MatrixXf mProbabilityMatrix;            // P
         VectorXf mPt1;                          // Colwise sum of P, then transpose
         VectorXf mP1;                           // Rowwise sum of P
         MatrixXf mRotation;                     // R
         MatrixXf mTranslation;                  // t
         double mObjectiveFunction;              // Q
-        double mVariance;                       // sigma^2
         double mIterationError;                 // Change in error from iteration to iteration
         float mNp;                              // Sum of all elements in P
         TransformationType mTransformationType;
-        //        double mScale;                          // s
-
     };
 
 }

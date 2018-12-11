@@ -20,11 +20,10 @@ namespace fast {
         void setMaximumIterations(unsigned char maxIterations);
         void setUniformWeight(float uniformWeight);
         void setTolerance(double tolerance);
-        void setExistingTransform();
         AffineTransformation::pointer getOutputTransformation();
 
         virtual void initializeVarianceAndMore() = 0;
-        virtual void expectation(MatrixXf& fixedPoints, MatrixXf& movingPoints) = 0;
+        void expectation(MatrixXf& fixedPoints, MatrixXf& movingPoints);
         virtual void maximization(MatrixXf& fixedPoints, MatrixXf& movingPoints) = 0;
 
     protected:
@@ -34,19 +33,19 @@ namespace fast {
         MatrixXf mMovingPoints;
         MatrixXf mMovingMeanInitial;
         MatrixXf mFixedMeanInitial;
+        MatrixXf mResponsibilityMatrix;         // P
         unsigned int mNumFixedPoints;           // N
         unsigned int mNumMovingPoints;          // M
         unsigned int mNumDimensions;            // D
         float mUniformWeight;                   // Weight of the uniform distribution
         double mTolerance;                      // Convergence criteria for EM iterations
         double mScale;                          // s
+        double mVariance;                       // sigma^2
         double mFixedNormalizationScale;
         double mMovingNormalizationScale;
         AffineTransformation::pointer mTransformation;
         unsigned char mIteration;
         bool mRegistrationConverged;
-        bool mApplyExisting;
-        double mTimeStart;
         double timeE;
         double timeEDistances;
         double timeENormal;
@@ -61,10 +60,8 @@ namespace fast {
 
     private:
         void initializePointSets();
-        Affine3f applyExistingTransform();
         void printCloudDimensions();
         void normalizePointSets();
-        void denormalizePointSets();
 
         std::shared_ptr<Mesh> mFixedMesh;
         std::shared_ptr<Mesh> mMovingMesh;
