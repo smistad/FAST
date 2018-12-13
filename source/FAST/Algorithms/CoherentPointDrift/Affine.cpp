@@ -8,7 +8,6 @@ namespace fast {
 
     CoherentPointDriftAffine::CoherentPointDriftAffine() {
         mScale = 1.0;
-        mIterationError = mTolerance + 10.0;
         mTransformationType = TransformationType::AFFINE;
     }
 
@@ -19,7 +18,8 @@ namespace fast {
                         2.0 * mFixedPoints.colwise().sum() * mMovingPoints.colwise().sum().transpose()  ) /
                     (double)(mNumFixedPoints * mNumMovingPoints * mNumDimensions);
 
-        mObjectiveFunction = -mIterationError - double(mNumFixedPoints * mNumDimensions)/2 * log(mVariance);
+        mIterationError = mTolerance + 10.0;
+        mObjectiveFunction = mObjectiveFunction = std::numeric_limits<double>::max();
         mResponsibilityMatrix = MatrixXf::Zero(mNumMovingPoints, mNumFixedPoints);
     }
 
@@ -56,7 +56,7 @@ namespace fast {
         MatrixXf ABt = A * mAffineMatrix.transpose();
         mVariance = ( XPX.trace() - ABt.trace() ) / (mNp * mNumDimensions);
         if (mVariance < 0) {
-            mVariance = abs(mVariance);
+            mVariance = std::fabs(mVariance);
         } else if (mVariance == 0){
             mVariance = 10.0 * std::numeric_limits<double>::epsilon();
             mRegistrationConverged = true;
@@ -92,7 +92,7 @@ namespace fast {
         mObjectiveFunction =
                 (XPX.trace() - 2 * ABt.trace() + YPY.trace() ) / (2 * mVariance)
                 + (mNp * mNumDimensions)/2 * log(mVariance);
-        mIterationError = abs( (mObjectiveFunction - objectiveFunctionOld) / objectiveFunctionOld);
+        mIterationError = std::fabs( (mObjectiveFunction - objectiveFunctionOld) / objectiveFunctionOld);
         mRegistrationConverged =  mIterationError <= mTolerance;
 
         double endM = omp_get_wtime();
