@@ -49,7 +49,7 @@ MeshVertex KinectStreamer::getPoint(int x, int y) {
     float x2, y2, z2, rgb;
     Color color;
     if(registration != NULL) {
-        registration->getPointXYZRGB(mUndistorted, mRegistered, y, x, x2, y2, z2, rgb);
+        registration->getPointXYZRGB(mUndistorted, mRegistered, y, 512-x-1, x2, y2, z2, rgb);
         const uint8_t *p = reinterpret_cast<uint8_t*>(&rgb);
         uint8_t red = p[0];
         uint8_t green = p[1];
@@ -59,7 +59,7 @@ MeshVertex KinectStreamer::getPoint(int x, int y) {
         throw Exception();
     }
 
-    MeshVertex vertex(Vector3f(x2*1000, y2*1000, z2*1000));
+    MeshVertex vertex(Vector3f(-x2*1000, y2*1000, z2*1000));
     vertex.setColor(color);
     return vertex;
 }
