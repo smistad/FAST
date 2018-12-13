@@ -137,7 +137,6 @@ void KinectStreamer::producerStream() {
         Image::pointer depthImage = Image::New();
         depthImage->create(512, 424, TYPE_FLOAT, 1, depth_data);
 
-        Image::pointer rgbImage = Image::New();
         if(rgb->format == libfreenect2::Frame::Format::BGRX) {
             // Have to swap B and R channel
             for(int i = 0; i < 512*424; ++i) {
@@ -147,13 +146,24 @@ void KinectStreamer::producerStream() {
             }
         }
 
+        auto rgbImage = Image::New();
+        rgbImage->create(512, 424, TYPE_UINT8, 4, rgb_data);
+        auto imageAccess = rgbImage->getImageAccess(ACCESS_READ_WRITE);
+        uchar* rgb_data2 = (uchar*)imageAccess->get();
+        auto depthAccess = depthImage->getImageAccess(ACCESS_READ_WRITE);
+        float* depth_data2 = (float*)depthAccess->get();
+
         // Create point cloud
         std::vector<MeshVertex> points;
-        for(int r=0; r<424; ++r) {
-            for(int c = 0; c < 512; ++c) {
+        for(int r=0; r<424; ++r) { // y
+            for(int c = 0; c < 512; ++c) { // x
                 // Flip image horizontally
-                for(int i = 0; i < 4; ++i)
-                    std::swap(rgb_data[(c + r)*4], rgb_data[(512 - c - 1 + r)*4]);
+                if(c < 512/2) {
+                    for(uchar i = 0; i < 3; i++) {
+                        std::swap(rgb_data2[(c + r * 512) * 4 + i], rgb_data2[(512 - c - 1 + r * 512) * 4 + i]);
+                    }
+                    std::swap(depth_data2[(c + r * 512)], depth_data2[(512 - c - 1 + r * 512)]);
+                }
                 float x, y, z, color;
                 registration->getPointXYZRGB(&undistorted, &registered, r, c, x, y, z, color);
                 if(z < mMinRange || z > mMaxRange) {
@@ -193,9 +203,10 @@ void KinectStreamer::producerStream() {
                 }
             }
         }
-        rgbImage->create(512, 424, TYPE_UINT8, 4, rgb_data);
-        Mesh::pointer cloud = Mesh::New();
+        auto cloud = Mesh::New();
         cloud->create(points);
+        imageAccess->release();
+        depthAccess->release();
 
         addOutputData(0, rgbImage);
         addOutputData(1, depthImage);
