@@ -1,0 +1,6 @@
+if(FAST_MODULE_WholeSlideImaging)
+    message("-- Whole slide imaging module enabled")
+    find_package(OpenSlide REQUIRED)
+    list(APPEND FAST_INCLUDE_DIRS ${OPENSLIDE_INCLUDE_DIRS})
+    list(APPEND LIBRARIES ${OPENSLIDE_LIBRARIES})
+endif()

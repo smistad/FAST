@@ -44,3 +44,13 @@ if(FAST_MODULE_ITK)
         Tests/ITKImageImporterTests.cpp
     )
 endif()
+
+if(FAST_MODULE_WholeSlideImaging)
+    fast_add_sources(
+        WholeSlideImageImporter.cpp
+        WholeSlideImageImporter.hpp
+    )
+    fast_add_test_sources(
+        Tests/WholeSlideImageImporterTests.cpp
+    )
+endif()
