@@ -36,7 +36,20 @@ void RealSenseStreamer::execute() {
 
 
 MeshVertex RealSenseStreamer::getPoint(int x, int y) {
-
+    if(mDepthImage && mColorImage) {
+        float upoint[3];
+        float upixel[2] = {(float) x, (float) y};
+        auto depthAccess = mDepthImage->getImageAccess(ACCESS_READ);
+        float depth = depthAccess->getScalar(Vector2i(x, y)) / 1000.0f; // Get depth of current frame in meters
+        rs2_deproject_pixel_to_point(upoint, intrinsics, upixel, depth);
+        MeshVertex vertex(Vector3f(upoint[0] * 1000, upoint[1] * 1000, upoint[2] * 1000)); // Convert to mm
+        auto colorAccess = mColorImage->getImageAccess(ACCESS_READ);
+        Vector4f color = colorAccess->getVector(Vector2i(x, y));
+        vertex.setColor(Color(color.x()/255.0f, color.y()/255.0f, color.z()/255.0f));  // get color of current frame
+        return vertex;
+    } else {
+        throw Exception("Can't call getPoint before any color or depth data has arrived.");
+    }
 }
 
 static float get_depth_scale(rs2::device dev)
@@ -61,7 +74,7 @@ void RealSenseStreamer::producerStream() {
 
     rs2::config config;
     // Use a configuration object to request only depth from the pipeline
-    config.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16, 30);
+    config.enable_stream(RS2_STREAM_DEPTH, 1280, 720, RS2_FORMAT_Z16, 30);
     config.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_RGB8, 30);
 
     // Configure and start the pipeline
@@ -75,7 +88,8 @@ void RealSenseStreamer::producerStream() {
     const float depth_scale = get_depth_scale(profile.get_device());
 
     auto stream = profile.get_stream(RS2_STREAM_DEPTH).as<rs2::video_stream_profile>();
-    auto intrinsics = stream.get_intrinsics(); // Calibration data
+    auto tmp = stream.get_intrinsics();
+    intrinsics = &tmp;
 
     // Create a rs2::align object.
     // rs2::align allows us to perform alignment of depth frames to others frames
@@ -105,7 +119,7 @@ void RealSenseStreamer::producerStream() {
         {
             rs2::frameset frames = pipeline.wait_for_frames(); // Wait for next set of frames from the camera
             //Get processed aligned frame
-            auto processed = align.process(frames);
+            rs2::frameset processed = align.process(frames);
 
             // Trying to get both other and aligned depth frames
             rs2::video_frame color_frame = processed.first(RS2_STREAM_COLOR);
@@ -194,7 +208,7 @@ void RealSenseStreamer::producerStream() {
                     // Create point for point cloud
                     float upoint[3];
                     float upixel[2] = {(float)x, (float)y};
-                    rs2_deproject_pixel_to_point(upoint, &intrinsics, upixel, pixels_distance);
+                    rs2_deproject_pixel_to_point(upoint, intrinsics, upixel, pixels_distance);
                     MeshVertex vertex(Vector3f(upoint[0]*1000, upoint[1]*1000, upoint[2]*1000)); // Convert to mm
                     vertex.setColor(Color(p_other_frame[offset]/255.0f, p_other_frame[offset+1]/255.0f, p_other_frame[offset+2]/255.0f));
                     points.push_back(vertex);
@@ -205,6 +219,7 @@ void RealSenseStreamer::producerStream() {
         // Create depth image
         Image::pointer depthImage = Image::New();
         depthImage->create(width, height, TYPE_FLOAT, 1, std::move(depthData));
+        mDepthImage = depthImage;
 
         // Create mesh
         Mesh::pointer cloud = Mesh::New();
@@ -215,6 +230,7 @@ void RealSenseStreamer::producerStream() {
         std::memcpy(colorData.get(), p_other_frame, width*height*sizeof(uint8_t)*3);
         Image::pointer colorImage = Image::New();
         colorImage->create(width, height, TYPE_UINT8, 3, std::move(colorData));
+        mColorImage = colorImage;
 
         addOutputData(0, colorImage);
         addOutputData(1, depthImage);

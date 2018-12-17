@@ -6,8 +6,11 @@
 #include <thread>
 #include <stack>
 
+struct rs2_intrinsics;
+
 namespace fast {
 
+class Image;
 class MeshVertex;
 
 /**
@@ -62,6 +65,10 @@ class FAST_EXPORT RealSenseStreamer : public Streamer {
         std::mutex mFirstFrameMutex;
         std::mutex mStopMutex;
         std::condition_variable mFirstFrameCondition;
+
+        rs2_intrinsics* intrinsics;
+        SharedPointer<Image> mDepthImage;
+        SharedPointer<Image> mColorImage;
 };
 
 }
