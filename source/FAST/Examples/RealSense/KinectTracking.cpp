@@ -86,7 +86,7 @@ void KinectTracking::execute() {
     addOutputData(2, mTargetCloud);
 }
 
-void KinectTracking::calculateTargetCloud(RealSenseStreamer::pointer streamer) {
+void KinectTracking::calculateTargetCloud(SharedPointer<RealSenseStreamer> streamer) {
     std::cout << "Creating target cloud..." << std::endl;
     ImageAccess::pointer access = mAnnotationImage->getImageAccess(ACCESS_READ);
     MeshAccess::pointer meshAccess = mCurrentCloud->getMeshAccess(ACCESS_READ);
@@ -155,7 +155,7 @@ SharedPointer<Mesh> KinectTracking::getTargetCloud() const {
     return mTargetCloud;
 }
 
-void KinectTracking::setTargetCloud(Mesh::pointer target) {
+void KinectTracking::setTargetCloud(SharedPointer<Mesh> target) {
     mTargetCloud = target;
     mTargetCloudExtracted = true;
 }

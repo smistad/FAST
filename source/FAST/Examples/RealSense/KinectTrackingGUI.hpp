@@ -14,7 +14,7 @@ namespace fast {
 class RealSenseStreamer;
 class KinectTracking;
 
-class FAST_EXPORT  KinectTrackingGUI : public Window {
+class KinectTrackingGUI : public Window {
     FAST_OBJECT(KinectTrackingGUI)
     public:
         void extractPointCloud();
