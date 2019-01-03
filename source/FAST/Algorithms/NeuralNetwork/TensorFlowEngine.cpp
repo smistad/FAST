@@ -151,13 +151,6 @@ void TensorFlowEngine::run() {
 	reportInfo() << "Finished parsing output" << reportEnd();
 }
 
-void TensorFlowEngine::setInputData(std::string nodeName, SharedPointer<Tensor> tensor) {
-	mInputNodes.at(nodeName).data = tensor;
-}
-
-SharedPointer<fast::Tensor> TensorFlowEngine::getOutputData(std::string nodeName) {
-    return mOutputNodes.at(nodeName).data;
-}
 
 void TensorFlowEngine::load() {
 	const auto networkFilename = getFilename();

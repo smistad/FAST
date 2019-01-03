@@ -75,6 +75,7 @@ include(cmake/ModuleVTK.cmake)
 include(cmake/ModuleITK.cmake)
 include(cmake/ModuleOpenIGTLink.cmake)
 include(cmake/ModuleTensorFlow.cmake)
+include(cmake/ModuleTensorRT.cmake)
 include(cmake/ModuleKinect.cmake)
 include(cmake/ModuleRealSense.cmake)
 

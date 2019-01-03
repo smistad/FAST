@@ -40,8 +40,8 @@ class FAST_EXPORT InferenceEngine : public Object {
         virtual NetworkNode getOutputNode(std::string name) const;
         virtual std::unordered_map<std::string, NetworkNode> getOutputNodes() const;
         virtual std::unordered_map<std::string, NetworkNode> getInputNodes() const;
-        virtual void setInputData(std::string inputNodeName, SharedPointer<Tensor> tensor) = 0;
-        virtual SharedPointer<Tensor> getOutputData(std::string inputNodeName) = 0;
+        virtual void setInputData(std::string inputNodeName, SharedPointer<Tensor> tensor);
+        virtual SharedPointer<Tensor> getOutputData(std::string inputNodeName);
         virtual void load() = 0;
         virtual bool isLoaded();
         virtual ImageOrdering getPreferredImageOrdering() const = 0;

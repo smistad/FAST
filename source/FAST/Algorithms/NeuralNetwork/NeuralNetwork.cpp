@@ -5,6 +5,7 @@
 
 // TODO remove
 #include "TensorFlowEngine.hpp"
+#include "TensorRTEngine.hpp"
 
 
 
@@ -34,7 +35,7 @@ NeuralNetwork::NeuralNetwork() {
 	createBooleanAttribute("signed_input_normalization", "Signed input normalization", "Normalize input to -1 and 1 instead of 0 to 1.", false);
 
 	// TODO select engine in a smart way
-	m_engine = TensorFlowEngine::New();
+	m_engine = TensorRTEngine::New();
 }
 
 std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData() {

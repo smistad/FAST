@@ -34,3 +34,9 @@ if(FAST_MODULE_TensorFlow)
         TensorFlowEngine.hpp
     )
 endif()
+if(FAST_MODULE_TensorRT)
+    fast_add_sources(
+        TensorRTEngine.cpp
+        TensorRTEngine.hpp
+    )
+endif()

@@ -50,4 +50,13 @@ std::unordered_map<std::string, InferenceEngine::NetworkNode> InferenceEngine::g
     return mInputNodes;
 }
 
+
+void InferenceEngine::setInputData(std::string nodeName, SharedPointer<Tensor> tensor) {
+	mInputNodes.at(nodeName).data = tensor;
+}
+
+SharedPointer<fast::Tensor> InferenceEngine::getOutputData(std::string nodeName) {
+    return mOutputNodes.at(nodeName).data;
+}
+
 }

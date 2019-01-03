@@ -15,8 +15,6 @@ class FAST_EXPORT TensorFlowEngine : public InferenceEngine {
     public:
         void load() override;
         void run() override;
-        void setInputData(std::string inputNodeName, SharedPointer<Tensor> tensor) override;
-        SharedPointer<fast::Tensor> getOutputData(std::string inputNodeName) override;
         ~TensorFlowEngine() override;
         ImageOrdering getPreferredImageOrdering() const override;
     private:

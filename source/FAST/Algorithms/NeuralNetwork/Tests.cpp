@@ -20,9 +20,11 @@ TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork]") {
 
     auto segmentation = PixelClassifier::New();
     segmentation->setNrOfClasses(3);
-    segmentation->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_vein_segmentation.pb");
-    segmentation->setScaleFactor(1.0f / 255.0f);
+    //segmentation->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_vein_segmentation.pb");
+    segmentation->addInputNode(0, "input_image", NodeType::IMAGE, TensorShape({-1, 256, 256, 1}));
     segmentation->addOutputNode(0, "conv2d_23/truediv");
+    segmentation->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_vein_segmentation.uff");
+    segmentation->setScaleFactor(1.0f / 255.0f);
     segmentation->setInputConnection(importer->getOutputPort());
     segmentation->enableRuntimeMeasurements();
 
