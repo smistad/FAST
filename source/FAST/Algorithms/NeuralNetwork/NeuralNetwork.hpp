@@ -4,11 +4,9 @@
 #include <FAST/ProcessObject.hpp>
 #include <FAST/Data/Tensor.hpp>
 #include <FAST/Data/SimpleDataObject.hpp>
+#include "InferenceEngine.hpp"
 
-// Forward declare
-namespace tensorflow {
-class Session;
-}
+
 
 namespace fast {
 
@@ -22,11 +20,11 @@ FAST_SIMPLE_DATA_OBJECT(Sequence, std::vector<SharedPointer<Image>>)
 class FAST_EXPORT NeuralNetwork : public ProcessObject {
     FAST_OBJECT(NeuralNetwork)
     public:
-    enum class NodeType {
-        IMAGE,
-        TENSOR,
-    };
-    void load(std::string networkFilename);
+        /**
+         * Load a given netowrk file. This takes time.
+         * @param filename
+         */
+        void load(std::string filename);
     void addInputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = {});
     void addOutputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = {});
     void setScaleFactor(float scale);
@@ -54,28 +52,20 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
     virtual ~NeuralNetwork();
 protected:
     NeuralNetwork();
-    std::unique_ptr<tensorflow::Session> mSession;
-    bool mModelLoaded;
     bool mPreserveAspectRatio;
     bool mHorizontalImageFlipping = false;
     bool mSignedInputNormalization = false;
     int mTemporalWindow = 0;
-    std::vector<std::string> mLearningPhaseTensors;
     float mScaleFactor;
     Vector3f mNewInputSpacing;
 
-    struct NetworkNode {
-        uint portID;
-        NodeType type;
-        TensorShape shape;
-    };
+    virtual void run();
 
-    std::unordered_map<std::string, NetworkNode> mInputNodes;
-    std::unordered_map<std::string, NetworkNode> mOutputNodes;
+    SharedPointer<InferenceEngine> m_engine;
+
     std::unordered_map<std::string, std::vector<SharedPointer<Image>>> mInputImages;
 
     std::unordered_map<std::string, Tensor::pointer> processInputData();
-    std::vector<std::pair<NetworkNode, SharedPointer<Tensor>>> executeNetwork(std::unordered_map<std::string, Tensor::pointer> tensors);
     std::vector<SharedPointer<Image>> resizeImages(const std::vector<SharedPointer<Image>>& images, int width, int height, int depth);
     Tensor::pointer convertImagesToTensor(std::vector<SharedPointer<Image>> image, const TensorShape& shape, bool temporal);
 

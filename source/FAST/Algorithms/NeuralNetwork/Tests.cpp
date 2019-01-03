@@ -98,7 +98,7 @@ TEST_CASE("Multi input, single output network", "[fast][neuralnetwork]") {
 
     auto network = NeuralNetwork::New();
     network->load(Config::getTestDataPath() + "NeuralNetworkModels/multi_input_single_output.pb");
-    network->addOutputNode(0, "dense/BiasAdd", NeuralNetwork::NodeType::TENSOR);
+    network->addOutputNode(0, "dense/BiasAdd", NodeType::TENSOR);
     network->setInputConnection(0, importer->getOutputPort());
     network->setInputConnection(1, importer->getOutputPort());
     auto port = network->getOutputPort();
@@ -115,8 +115,8 @@ TEST_CASE("Single input, multi output network", "[fast][neuralnetwork]") {
 
     auto network = NeuralNetwork::New();
     network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output.pb");
-    network->addOutputNode(0, "dense_1/BiasAdd", NeuralNetwork::NodeType::TENSOR);
-    network->addOutputNode(1, "dense_2/BiasAdd", NeuralNetwork::NodeType::TENSOR);
+    network->addOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR);
+    network->addOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);
     network->setInputConnection(0, importer->getOutputPort());
     auto port1 = network->getOutputPort(0);
     auto port2 = network->getOutputPort(1);
@@ -169,8 +169,8 @@ TEST_CASE("Execute NN on batch of 2D images", "[fast][neuralnetwork]") {
 
     auto network = NeuralNetwork::New();
     network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output.pb");
-    network->addOutputNode(0, "dense_1/BiasAdd", NeuralNetwork::NodeType::TENSOR);
-    network->addOutputNode(1, "dense_2/BiasAdd", NeuralNetwork::NodeType::TENSOR);
+    network->addOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR);
+    network->addOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);
     network->setInputData(batch);
     auto port1 = network->getOutputPort(0);
     auto port2 = network->getOutputPort(1);
@@ -206,7 +206,7 @@ TEST_CASE("NN: temporal input static output", "[fast][neuralnetwork][sequence]")
 
     auto network = NeuralNetwork::New();
     network->load(Config::getTestDataPath() + "NeuralNetworkModels/temporal_input_static_output.pb");
-    network->addOutputNode(0, "dense/BiasAdd", NeuralNetwork::NodeType::TENSOR);
+    network->addOutputNode(0, "dense/BiasAdd", NodeType::TENSOR);
     network->setInputData(sequence);
     auto port = network->getOutputPort(0);
     network->update(0);
@@ -236,7 +236,7 @@ TEST_CASE("NN: temporal input temporal output", "[fast][neuralnetwork][sequence]
 
     auto network = NeuralNetwork::New();
     network->load(Config::getTestDataPath() + "NeuralNetworkModels/temporal_input_temporal_output.pb");
-    network->addOutputNode(0, "lstm/transpose_1", NeuralNetwork::NodeType::TENSOR);
+    network->addOutputNode(0, "lstm/transpose_1", NodeType::TENSOR);
     network->setInputData(sequence);
     auto port = network->getOutputPort(0);
     network->update(0);
@@ -266,7 +266,7 @@ TEST_CASE("NN: temporal input temporal output, streaming mode", "[fast][neuralne
     auto network = NeuralNetwork::New();
     network->setTemporalWindow(3);
     network->load(Config::getTestDataPath() + "NeuralNetworkModels/temporal_input_temporal_output.pb");
-    network->addOutputNode(0, "lstm/transpose_1", NeuralNetwork::NodeType::TENSOR);
+    network->addOutputNode(0, "lstm/transpose_1", NodeType::TENSOR);
 
     auto port = network->getOutputPort(0);
 

@@ -46,9 +46,9 @@ void PixelClassifier::execute() {
     if(mNrOfClasses <= 0)
         throw Exception("You must set the nr of classes to pixel classification.");
 
-    auto input = processInputData();
-    auto result = executeNetwork(input);
-    Tensor::pointer tensor = result[0].second;
+    run();
+
+    Tensor::pointer tensor = m_engine->getOutputNodes().begin()->second.data;
     const auto shape = tensor->getShape();
     TensorAccess::pointer access = tensor->getAccess(ACCESS_READ);
     float* tensorData;

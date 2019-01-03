@@ -12,6 +12,10 @@ if(FAST_MODULE_NeuralNetwork)
         PixelClassifier.hpp
         ImageToImageNetwork.cpp
         ImageToImageNetwork.hpp
+        TensorFlowEngine.cpp
+        TensorFlowEngine.hpp
+        InferenceEngine.cpp
+        InferenceEngine.hpp
     )
     fast_add_process_object(ImageClassifier ImageClassifier.hpp)
     fast_add_process_object(ClassificationToText ImageClassifier.hpp)

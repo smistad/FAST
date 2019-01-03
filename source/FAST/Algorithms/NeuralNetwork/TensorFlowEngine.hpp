@@ -1,0 +1,29 @@
+#pragma once
+
+#include "InferenceEngine.hpp"
+#include <FAST/SmartPointers.hpp>
+
+// Forward declare
+namespace tensorflow {
+class Session;
+}
+
+namespace fast {
+
+class TensorFlowEngine : public InferenceEngine {
+    FAST_OBJECT(TensorFlowEngine)
+    public:
+        void load() override;
+        void run() override;
+        void setInputData(std::string inputNodeName, SharedPointer<Tensor> tensor) override;
+        SharedPointer<fast::Tensor> getOutputData(std::string inputNodeName) override;
+        ~TensorFlowEngine() override;
+        ImageOrdering getPreferredImageOrdering() const override;
+    private:
+        TensorFlowEngine();
+        std::unique_ptr<tensorflow::Session> mSession;
+        std::vector<std::string> mLearningPhaseTensors;
+
+};
+
+}
