@@ -74,7 +74,7 @@ include(cmake/ExternalDCMTK.cmake)
 include(cmake/ModuleVTK.cmake)
 include(cmake/ModuleITK.cmake)
 include(cmake/ModuleOpenIGTLink.cmake)
-include(cmake/ModuleNeuralNetwork.cmake)
+include(cmake/ModuleTensorFlow.cmake)
 include(cmake/ModuleKinect.cmake)
 include(cmake/ModuleRealSense.cmake)
 

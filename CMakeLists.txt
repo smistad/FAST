@@ -25,7 +25,7 @@ option(FAST_MODULE_ITK "Enable interoperability with ITK" OFF)
 option(FAST_MODULE_Visualization "Enable visualization capabilities using Qt5.
 Without this module, all visualization in FAST will be disabled." ON)
 option(FAST_MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
-option(FAST_MODULE_NeuralNetwork "Build neural network module using tensorflow" OFF)
+option(FAST_MODULE_TensorFlow "Build TensorFlow inference engine" OFF)
 option(FAST_MODULE_Python "Build Python wrappers" OFF)
 option(FAST_MODULE_Kinect "Build kinect module" OFF)
 option(FAST_MODULE_RealSense "Build real sense module" OFF)

@@ -4,6 +4,7 @@ __kernel void normalize2DInput(
 	__read_only image2d_t input,
 	__global float* output,
 	__private float scaleFactor,
+	__private int channel_first,
 	__private int signedInputNormalization,
 	__private int horizontalFlip
 	) {
@@ -24,17 +25,25 @@ __kernel void normalize2DInput(
         value = value*2 - 1;
 	}
 
+    int x, position;
 	if(horizontalFlip == 1) {
-        output[(get_global_size(0) - pos.x - 1) + pos.y*get_global_size(0)] = value;
-    } else {
-        output[pos.x + pos.y*get_global_size(0)] = value;
-    }
+		x = (get_global_size(0) - pos.x - 1);
+	} else {
+		x = pos.x;
+	}
+	if(channel_first == 1) {
+		position = pos.y + pos.x*get_global_size(1);
+	} else {
+		position = pos.x + pos.y*get_global_size(0);
+	}
+    output[position] = value;
 }
 
 __kernel void normalize3DInput(
 	__read_only image3d_t input,
 	__global float* output,
 	__private float scaleFactor,
+	__private int channel_first,
 	__private int signedInputNormalization
 	) {
 
@@ -54,5 +63,11 @@ __kernel void normalize3DInput(
         value = value*2 - 1;
 	}
 
-    output[pos.x + pos.y*get_global_size(0) + pos.z*get_global_size(0)*get_global_size(1)] = value;
+    int position;
+    if(channel_first == 1) {
+		position = pos.z + pos.y*get_global_size(0) + pos.x*get_global_size(0)*get_global_size(1);
+	} else {
+		position = pos.x + pos.y*get_global_size(0) + pos.z*get_global_size(0)*get_global_size(1);
+	}
+    output[position] = value;
 }

@@ -23,7 +23,7 @@ enum class NodeType {
 /**
  * Abstract class for neural network inference engines (TensorFlow, TensorRT ++)
  */
-class InferenceEngine : public Object {
+class FAST_EXPORT InferenceEngine : public Object {
     public:
         struct NetworkNode {
             uint portID;

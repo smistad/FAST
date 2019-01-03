@@ -213,10 +213,11 @@ Tensor::pointer NeuralNetwork::convertImagesToTensor(std::vector<Image::pointer>
         kernel.setArg(1, buffer);
         kernel.setArg(2, mScaleFactor);
         kernel.setArg(3, (int) (mSignedInputNormalization ? 1 : 0));
+        kernel.setArg(4, (int) (m_engine->getPreferredImageOrdering() == ImageOrdering::CWH ? 1 : 0));
         cl::NDRange globalSize;
         if(image->getDimensions() == 2) {
             kernel.setArg(0, *access->get2DImage());
-            kernel.setArg(4, (int) (mHorizontalImageFlipping ? 1 : 0));
+            kernel.setArg(5, (int) (mHorizontalImageFlipping ? 1 : 0));
             globalSize = cl::NDRange(width, height);
         } else {
             kernel.setArg(0, *access->get3DImage());

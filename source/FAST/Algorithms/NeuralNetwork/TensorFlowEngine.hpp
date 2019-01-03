@@ -10,7 +10,7 @@ class Session;
 
 namespace fast {
 
-class TensorFlowEngine : public InferenceEngine {
+class FAST_EXPORT TensorFlowEngine : public InferenceEngine {
     FAST_OBJECT(TensorFlowEngine)
     public:
         void load() override;

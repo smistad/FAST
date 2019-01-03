@@ -1,4 +1,3 @@
-if(FAST_MODULE_NeuralNetwork)
     fast_add_sources(
         NeuralNetwork.cpp
         NeuralNetwork.hpp
@@ -12,8 +11,6 @@ if(FAST_MODULE_NeuralNetwork)
         PixelClassifier.hpp
         ImageToImageNetwork.cpp
         ImageToImageNetwork.hpp
-        TensorFlowEngine.cpp
-        TensorFlowEngine.hpp
         InferenceEngine.cpp
         InferenceEngine.hpp
     )
@@ -31,4 +28,9 @@ if(FAST_MODULE_NeuralNetwork)
     #fast_add_example(imageClassification imageClassification.cpp)
     #fast_add_example(leftVentricleSegmentation leftVentricleSegmentation.cpp)
     #fast_add_example(axillaryHeatmap axillaryHeatmap.cpp)
+if(FAST_MODULE_TensorFlow)
+    fast_add_sources(
+        TensorFlowEngine.cpp
+        TensorFlowEngine.hpp
+    )
 endif()
