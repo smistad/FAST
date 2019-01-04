@@ -1,0 +1,9 @@
+#pragma once
+
+#include "FAST/Algorithms/NeuralNetwork/InferenceEngineRegistry.hpp"
+
+${FAST_INFERENCE_ENGINE_INCLUDES}
+
+namespace fast {
+${FAST_INFERENCE_ENGINE_REGISTRATION}
+}

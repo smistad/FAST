@@ -17,6 +17,7 @@ class FAST_EXPORT TensorFlowEngine : public InferenceEngine {
         void run() override;
         ~TensorFlowEngine() override;
         ImageOrdering getPreferredImageOrdering() const override;
+        std::string getName() const override;
     private:
         TensorFlowEngine();
         std::unique_ptr<tensorflow::Session> mSession;

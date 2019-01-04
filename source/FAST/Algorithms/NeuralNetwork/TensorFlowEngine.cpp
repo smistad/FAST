@@ -244,4 +244,8 @@ ImageOrdering TensorFlowEngine::getPreferredImageOrdering() const {
 	return ImageOrdering::HWC;
 }
 
+std::string TensorFlowEngine::getName() const {
+    return "TensorFlow";
+}
+
 }

@@ -2,11 +2,7 @@
 #include "FAST/Data/Image.hpp"
 #include "FAST/Data/Tensor.hpp"
 #include "FAST/Algorithms/ImageResizer/ImageResizer.hpp"
-
-// TODO remove
-#include "TensorFlowEngine.hpp"
-#include "TensorRTEngine.hpp"
-
+#include "InferenceEngineList.hpp"
 
 
 namespace fast {
@@ -34,9 +30,11 @@ NeuralNetwork::NeuralNetwork() {
 	createStringAttribute("output_names", "Output names", "Name of output nodes", "");
 	createBooleanAttribute("signed_input_normalization", "Signed input normalization", "Normalize input to -1 and 1 instead of 0 to 1.", false);
 
-	// TODO select engine in a smart way
-	m_engine = TensorRTEngine::New();
-    //m_engine = TensorFlowEngine::New();
+	auto list = InferenceEngineRegistry::getList();
+	if(list.empty())
+	    throw Exception("No inference engines were compiled with FAST, unable to run neural network inference.");
+	m_engine = InferenceEngineRegistry::create(*list.begin()); // Select first
+	reportInfo() << "Inference engine " << m_engine->getName() << " selected" << reportEnd();
 }
 
 std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData() {
@@ -326,6 +324,22 @@ void NeuralNetwork::load(std::string filename) {
     for(auto node : m_engine->getOutputNodes()) {
         createOutputPort<DataObject>(node.second.portID);
     }
+}
+
+void NeuralNetwork::setInferenceEngine(InferenceEngine::pointer engine) {
+    m_engine = engine;
+}
+
+void NeuralNetwork::setInferenceEngine(std::string engineName) {
+    auto list = InferenceEngineRegistry::getList();
+    if(list.count(engineName) == 0) {
+        std::string nameList;
+        for(auto ie : list)
+            nameList += ie + " ";
+        throw Exception("The inference engine " + engineName + " was not available. Available inference engines are:" + nameList);
+    }
+    m_engine = InferenceEngineRegistry::create(engineName);
+    reportInfo() << "Inference engine " << m_engine->getName() << " selected" << reportEnd();
 }
 
 };

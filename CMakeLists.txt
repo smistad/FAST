@@ -213,6 +213,7 @@ configure_file(
     "${PROJECT_BINARY_DIR}/fast_configuration.txt"
 )
 
+# Setup process object for pipelines setup
 foreach(FILE ${FAST_PROCESS_OBJECT_HEADER_FILES})
     set(FAST_PROCESS_OBJECT_INCLUDES "${FAST_PROCESS_OBJECT_INCLUDES}#include \"${FILE}\"\n")
 endforeach()
@@ -224,6 +225,20 @@ endforeach()
 configure_file(
     "${PROJECT_SOURCE_DIR}/source/ProcessObjectList.hpp.in"
     "${PROJECT_BINARY_DIR}/ProcessObjectList.hpp"
+)
+
+# Setup inference engines
+foreach(FILE ${FAST_INFERENCE_ENGINE_HEADER_FILES})
+    set(FAST_INFERENCE_ENGINE_INCLUDES "${FAST_INFERENCE_ENGINE_INCLUDES}#include \"${FILE}\"\n")
+endforeach()
+
+foreach(NAME ${FAST_INFERENCE_ENGINE_NAMES})
+    set(FAST_INFERENCE_ENGINE_REGISTRATION "${FAST_INFERENCE_ENGINE_REGISTRATION}FAST_REGISTER_IE(${NAME})\n")
+endforeach()
+
+configure_file(
+    "${PROJECT_SOURCE_DIR}/source/InferenceEngineList.hpp.in"
+    "${PROJECT_BINARY_DIR}/InferenceEngineList.hpp"
 )
 
 if(NOT FAST_BUILD_QT5 AND WIN32)

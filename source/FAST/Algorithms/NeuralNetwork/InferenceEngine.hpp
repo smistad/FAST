@@ -25,6 +25,7 @@ enum class NodeType {
  */
 class FAST_EXPORT InferenceEngine : public Object {
     public:
+        typedef SharedPointer<InferenceEngine> pointer;
         struct NetworkNode {
             uint portID;
             NodeType type;
@@ -45,6 +46,7 @@ class FAST_EXPORT InferenceEngine : public Object {
         virtual void load() = 0;
         virtual bool isLoaded();
         virtual ImageOrdering getPreferredImageOrdering() const = 0;
+        virtual std::string getName() const = 0;
     protected:
         virtual void setIsLoaded(bool loaded);
 

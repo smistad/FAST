@@ -15,6 +15,7 @@ class TensorRTEngine : public InferenceEngine {
         void run() override;
         void load() override;
         ImageOrdering getPreferredImageOrdering() const override;
+        std::string getName() const override;
         ~TensorRTEngine() override;
     private:
         TensorRTEngine();

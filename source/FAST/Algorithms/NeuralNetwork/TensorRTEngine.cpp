@@ -215,4 +215,8 @@ TensorRTEngine::TensorRTEngine() {
 
 }
 
+std::string TensorRTEngine::getName() const {
+    return "TensorRT";
+}
+
 }

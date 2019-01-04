@@ -13,6 +13,7 @@
         ImageToImageNetwork.hpp
         InferenceEngine.cpp
         InferenceEngine.hpp
+        InferenceEngineRegistry.hpp
     )
     fast_add_process_object(ImageClassifier ImageClassifier.hpp)
     fast_add_process_object(ClassificationToText ImageClassifier.hpp)
@@ -33,10 +34,12 @@ if(FAST_MODULE_TensorFlow)
         TensorFlowEngine.cpp
         TensorFlowEngine.hpp
     )
+    fast_add_inference_engine(TensorFlow TensorFlowEngine.hpp)
 endif()
 if(FAST_MODULE_TensorRT)
     fast_add_sources(
         TensorRTEngine.cpp
         TensorRTEngine.hpp
     )
+    fast_add_inference_engine(TensorRT TensorRTEngine.hpp)
 endif()

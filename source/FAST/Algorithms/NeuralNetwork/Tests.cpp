@@ -12,18 +12,21 @@
 #include <FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp>
 #include <FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp>
 #include <FAST/Streamers/ImageFileStreamer.hpp>
+#include <FAST/Visualization/HeatmapRenderer/HeatmapRenderer.hpp>
 
 using namespace fast;
 
 TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork][asdasdasd]") {
-    auto importer = ImageFileImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "US/JugularVein/US-2D_0.mhd");
+    //auto importer = ImageFileImporter::New();
+    //importer->setFilename(Config::getTestDataPath() + "US/JugularVein/US-2D_0.mhd");
     auto streamer = ImageFileStreamer::New();
     streamer->setFilenameFormat(Config::getTestDataPath() + "US/JugularVein/US-2D_#.mhd");
     streamer->enableLooping();
 
     auto segmentation = PixelClassifier::New();
+    segmentation->setHeatmapOutput();
     segmentation->setNrOfClasses(3);
+    segmentation->setInferenceEngine("TensorRT");
     /*
     segmentation->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_vein_segmentation.pb");
     segmentation->addOutputNode(0, "conv2d_23/truediv");
@@ -36,11 +39,17 @@ TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork][asdasdasd]") {
     segmentation->setInputConnection(streamer->getOutputPort());
     segmentation->enableRuntimeMeasurements();
 
+    /*
     auto segmentationRenderer = SegmentationRenderer::New();
     segmentationRenderer->addInputConnection(segmentation->getOutputPort());
     segmentationRenderer->setOpacity(0.25);
     segmentationRenderer->setColor(Segmentation::LABEL_FOREGROUND, Color::Red());
     segmentationRenderer->setColor(Segmentation::LABEL_BLOOD, Color::Blue());
+     */
+
+    auto heatmapRenderer = HeatmapRenderer::New();
+    heatmapRenderer->addInputConnection(segmentation->getOutputPort(1));
+    heatmapRenderer->addInputConnection(segmentation->getOutputPort(2));
 
     auto imageRenderer = ImageRenderer::New();
     //imageRenderer->setInputConnection(importer->getOutputPort());
@@ -48,7 +57,8 @@ TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork][asdasdasd]") {
 
     auto window = SimpleWindow::New();
     window->addRenderer(imageRenderer);
-    window->addRenderer(segmentationRenderer);
+    //window->addRenderer(segmentationRenderer);
+    window->addRenderer(heatmapRenderer);
     window->set2DMode();
     //window->setTimeout(1000);
     window->start();
