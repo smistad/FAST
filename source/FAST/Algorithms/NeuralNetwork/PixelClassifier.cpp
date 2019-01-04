@@ -64,7 +64,6 @@ void PixelClassifier::execute() {
     Tensor::pointer tensor = m_engine->getOutputNodes().begin()->second.data;
     const auto shape = tensor->getShape();
     TensorAccess::pointer access = tensor->getAccess(ACCESS_READ);
-    float* tensorData;
     const int dims = shape.getDimensions();
     int outputHeight = shape[dims-3];
     int outputWidth = shape[dims-2];
@@ -73,21 +72,24 @@ void PixelClassifier::execute() {
         outputWidth = shape[dims-1];
     }
     int outputDepth = 1;
+    float* tensorData;
     if(dims == 5) {
         outputDepth = shape[dims - 4];
         tensorData = access->getData<5>().data();
     } else {
         tensorData = access->getData<4>().data();
     }
+    auto ordering = m_engine->getPreferredImageOrdering();
 
+    const int size = outputWidth*outputHeight*outputDepth;
     if(mHeatmapOutput) {
         for(int j = 0; j < mNrOfClasses; j++) {
             // Check if output for this class has been requested
             if (mOutputConnections[j].empty())
                 continue;
-            auto data = make_uninitialized_unique<float[]>(outputWidth * outputHeight * outputDepth);
-            for(int x = 0; x < outputWidth*outputHeight*outputDepth; ++x) {
-                data[x] = tensorData[x*mNrOfClasses + j];
+            auto data = make_uninitialized_unique<float[]>(size);
+            for(int x = 0; x < size; ++x) {
+                data[x] = tensorData[getPosition(x, mNrOfClasses, j, size, ordering)];
             }
             Image::pointer output = Image::New();
             if(outputDepth == 1) {
@@ -114,12 +116,10 @@ void PixelClassifier::execute() {
         }
     } else {
         Image::pointer output = Image::New();
-        const int size = outputWidth*outputHeight*outputDepth;
         auto data = make_uninitialized_unique<uchar[]>(size);
-        auto ordering = m_engine->getPreferredImageOrdering();
         for(int x = 0; x < size; ++x) {
-            int maxClass = 0;
-            for(int j = 1; j < mNrOfClasses; j++) {
+            uchar maxClass = 0;
+            for(uchar j = 1; j < mNrOfClasses; j++) {
                 if(tensorData[getPosition(x, mNrOfClasses, j, size, ordering)] > mThreshold &&
                         tensorData[getPosition(x, mNrOfClasses, j, size, ordering)] > tensorData[getPosition(x, mNrOfClasses, maxClass, size, ordering)]) {
                     maxClass = j;
