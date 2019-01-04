@@ -11,21 +11,29 @@
 #include <FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp>
 #include <FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp>
 #include <FAST/Algorithms/GaussianSmoothingFilter/GaussianSmoothingFilter.hpp>
+#include <FAST/Streamers/ImageFileStreamer.hpp>
 
 using namespace fast;
 
-TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork]") {
+TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork][asdasdasd]") {
     auto importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath() + "US/JugularVein/US-2D_0.mhd");
+    auto streamer = ImageFileStreamer::New();
+    streamer->setFilenameFormat(Config::getTestDataPath() + "US/JugularVein/US-2D_#.mhd");
+    streamer->enableLooping();
 
     auto segmentation = PixelClassifier::New();
     segmentation->setNrOfClasses(3);
-    //segmentation->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_vein_segmentation.pb");
-    segmentation->addInputNode(0, "input_image", NodeType::IMAGE, TensorShape({-1, 256, 256, 1}));
+    /*
+    segmentation->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_vein_segmentation.pb");
     segmentation->addOutputNode(0, "conv2d_23/truediv");
+     */
+    segmentation->addInputNode(0, "input_image", NodeType::IMAGE, TensorShape({-1, 1, 256, 256}));
+    segmentation->addOutputNode(0, "permute_2/transpose");
     segmentation->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_vein_segmentation.uff");
     segmentation->setScaleFactor(1.0f / 255.0f);
-    segmentation->setInputConnection(importer->getOutputPort());
+    //segmentation->setInputConnection(importer->getOutputPort());
+    segmentation->setInputConnection(streamer->getOutputPort());
     segmentation->enableRuntimeMeasurements();
 
     auto segmentationRenderer = SegmentationRenderer::New();
@@ -35,14 +43,16 @@ TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork]") {
     segmentationRenderer->setColor(Segmentation::LABEL_BLOOD, Color::Blue());
 
     auto imageRenderer = ImageRenderer::New();
-    imageRenderer->setInputConnection(importer->getOutputPort());
+    //imageRenderer->setInputConnection(importer->getOutputPort());
+    imageRenderer->setInputConnection(streamer->getOutputPort());
 
     auto window = SimpleWindow::New();
     window->addRenderer(imageRenderer);
     window->addRenderer(segmentationRenderer);
     window->set2DMode();
-    window->setTimeout(1000);
+    //window->setTimeout(1000);
     window->start();
+    segmentation->getRuntime()->print();
 }
 
 TEST_CASE("Execute NN on single 3D image", "[fast][neuralnetwork][3d]") {

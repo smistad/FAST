@@ -32,7 +32,7 @@ class FAST_EXPORT TensorAccess {
 template <int NumDimensions>
 TensorData<NumDimensions> TensorAccess::getData() const {
     if(NumDimensions != m_shape.getDimensions())
-        throw Exception("Dimension mismatch for Eigen tensor.");
+        throw Exception("Dimension mismatch for Eigen tensor in TensorAccess::getData<#Dimension>().");
 
     // Construct eigen shape
     Eigen::array<int64_t, NumDimensions> sizes;

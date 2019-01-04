@@ -40,6 +40,19 @@ void PixelClassifier::setNrOfClasses(uint classes) {
     }
 }
 
+/**
+ * Calculate array position based on image ordering
+ * @param x
+ * @param nrOfClasses
+ * @param j
+ * @param size
+ * @param ordering
+ * @return
+ */
+inline int getPosition(int x, int nrOfClasses, int j, int size, ImageOrdering ordering) {
+    return ordering == ImageOrdering::HWC ? x*nrOfClasses + j : x + j*size;
+}
+
 void PixelClassifier::execute() {
     mRuntimeManager->enable();
     mRuntimeManager->startRegularTimer("pixel_classifier");
@@ -55,6 +68,10 @@ void PixelClassifier::execute() {
     const int dims = shape.getDimensions();
     int outputHeight = shape[dims-3];
     int outputWidth = shape[dims-2];
+    if(m_engine->getPreferredImageOrdering() == ImageOrdering::CHW) {
+        outputHeight = shape[dims-2];
+        outputWidth = shape[dims-1];
+    }
     int outputDepth = 1;
     if(dims == 5) {
         outputDepth = shape[dims - 4];
@@ -97,16 +114,18 @@ void PixelClassifier::execute() {
         }
     } else {
         Image::pointer output = Image::New();
-        auto data = make_uninitialized_unique<uchar[]>(outputWidth * outputHeight * outputDepth);
-        for(int x = 0; x < outputWidth*outputHeight*outputDepth; ++x) {
-            data[x] = 0;
+        const int size = outputWidth*outputHeight*outputDepth;
+        auto data = make_uninitialized_unique<uchar[]>(size);
+        auto ordering = m_engine->getPreferredImageOrdering();
+        for(int x = 0; x < size; ++x) {
             int maxClass = 0;
             for(int j = 1; j < mNrOfClasses; j++) {
-                if(tensorData[x*mNrOfClasses + j] > mThreshold && tensorData[x*mNrOfClasses + j] > tensorData[x*mNrOfClasses + maxClass]) {
-                    data[x] = j;
+                if(tensorData[getPosition(x, mNrOfClasses, j, size, ordering)] > mThreshold &&
+                        tensorData[getPosition(x, mNrOfClasses, j, size, ordering)] > tensorData[getPosition(x, mNrOfClasses, maxClass, size, ordering)]) {
                     maxClass = j;
                 }
             }
+            data[x] = maxClass;
         }
         if(outputDepth == 1) {
             output->create(outputWidth, outputHeight, TYPE_UINT8, 1, std::move(data));

@@ -10,7 +10,7 @@ namespace fast {
  * C = channel, W = width, H = height
  */
 enum class ImageOrdering {
-    CWH,
+    CHW,
     HWC
 };
 

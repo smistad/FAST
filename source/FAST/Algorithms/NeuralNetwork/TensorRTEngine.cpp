@@ -22,8 +22,7 @@ namespace fast {
     class Logger : public nvinfer1::ILogger {
         void log(Severity severity, const char* msg) override {
             // suppress info-level messages
-            if (severity != Severity::kINFO)
-                std::cout << msg << std::endl;
+            //if(severity != Severity::kINFO)
             Reporter::info() << msg << Reporter::end();
         }
 } gLogger;
@@ -89,7 +88,6 @@ void* safeCudaMalloc(size_t memSize)
 
 
 void TensorRTEngine::run() {
-    nvinfer1::IExecutionContext* context = m_engine->createExecutionContext();
 
     int batchSize = 1;
 
@@ -116,29 +114,40 @@ void TensorRTEngine::run() {
     // Allocate data for input and copy data to it
     auto tensor = mInputNodes.begin()->second.data;
     auto access = tensor->getAccess(ACCESS_READ);
-    auto tensorData = access->getData<3>();
+    std::cout << tensor->getShape().toString() << std::endl;
+    auto tensorData = access->getData<4>();
     CHECK(cudaMemcpy(buffers[bindingIdxInput], tensorData.data(), buffersSizes[bindingIdxInput].first * elementSize(buffersSizes[bindingIdxInput].second), cudaMemcpyHostToDevice));
+    reportInfo() << "Finished copying input data to TensorRT" << reportEnd();
 
-    context->execute(batchSize, &buffers[0]);
+    // Execute network
+    m_context->execute(batchSize, &buffers[0]);
+    reportInfo() << "Finished execute TensorRT" << reportEnd();
 
     // Free input memory buffers
     CHECK(cudaFree(buffers[bindingIdxInput]));
+    reportInfo() << "Finished freeing input data TensorRT" << reportEnd();
+
+    // Transfer output data back
+    auto outputData = make_uninitialized_unique<float[]>(buffersSizes[bindingIdxOutput].first);
+    CHECK(cudaMemcpy(outputData.get(), buffers[bindingIdxOutput],  buffersSizes[bindingIdxOutput].first * elementSize(buffersSizes[bindingIdxOutput].second), cudaMemcpyDeviceToHost));
+    reportInfo() << "Finished transfer of output data TensorRT" << reportEnd();
 
     // Free output memory buffers
     for(int bindingIdx = 0; bindingIdx < nbBindings; ++bindingIdx)
         if(!m_engine->bindingIsInput(bindingIdx))
             CHECK(cudaFree(buffers[bindingIdx]));
-
-    // TODO transfer output data back
-    auto outputData = make_uninitialized_unique<float[]>(buffersSizes[bindingIdxOutput].first);
-    CHECK(cudaMemcpy(buffers[bindingIdxOutput], outputData.get(), buffersSizes[bindingIdxOutput].first * elementSize(buffersSizes[bindingIdxOutput].second), cudaMemcpyDeviceToHost));
+    reportInfo() << "Finished freeing output data TensorRT" << reportEnd();
 
     auto outputTensor = Tensor::New();
     mOutputNodes.begin()->second.data = outputTensor;
-    outputTensor->create(std::move(outputData), mOutputNodes.begin()->second.shape);
 
-    context->destroy();
+    // Get output shape
+    nvinfer1::Dims dims = m_engine->getBindingDimensions(bindingIdxOutput);
+    TensorShape shape({1, dims.d[0], dims.d[1], dims.d[2]});
+    reportInfo() << "Output shape inferred to be: " << shape.toString() << reportEnd();
 
+    outputTensor->create(std::move(outputData), shape);
+    reportInfo() << "Finished moving data to FAST tensor, TensorRT" << reportEnd();
 }
 
 void TensorRTEngine::load() {
@@ -160,22 +169,23 @@ void TensorRTEngine::load() {
         reportInfo() << node.first << reportEnd();
         auto shape = node.second.shape;
         std::cout << shape.toString() << std::endl;
-        if(shape.getDimensions() == 4)
-            parser->registerInput(node.first.c_str(), nvinfer1::Dims3(shape[1], shape[2], shape[3]), nvuffparser::UffInputOrder::kNHWC);
-        if(shape.getDimensions() == 5)
-            parser->registerInput(node.first.c_str(), nvinfer1::Dims4(shape[1], shape[2], shape[3], shape[4]), nvuffparser::UffInputOrder::kNHWC);
+        //if(shape.getDimensions() == 4)
+            parser->registerInput(node.first.c_str(), nvinfer1::Dims3(1, 256, 256), nvuffparser::UffInputOrder::kNCHW);
+        //if(shape.getDimensions() == 5)
+        //    parser->registerInput(node.first.c_str(), nvinfer1::Dims4(shape[1], shape[2], shape[3], shape[4]), nvuffparser::UffInputOrder::kNCHW);
     }
-    reportInfo() << "Input nodes setup" << reportEnd();
+    reportInfo() << "Input nodes finished" << reportEnd();
 
     // Setup output nodes
     for(auto node : mOutputNodes) {
         parser->registerOutput(node.first.c_str());
     }
-    reportInfo() << "Output nodes setup" << reportEnd();
+    reportInfo() << "Output nodes finished" << reportEnd();
 
     if(!parser->parse(filename.c_str(), *network, nvinfer1::DataType::kFLOAT))
         throw Exception("Error parsing UFF file " + filename);
 
+    reportInfo() << "Finished parsing UFF file" << reportEnd();
 
     builder->setMaxBatchSize(m_maxBatchSize);
     builder->setMaxWorkspaceSize(m_maxWorkspaceSize);
@@ -183,16 +193,21 @@ void TensorRTEngine::load() {
     m_engine = builder->buildCudaEngine(*network);
     if(!m_engine)
         throw Exception("Failed to build CUDA engine for TensorRT");
+    reportInfo() << "Finished building CUDA engine for TensorRT" << reportEnd();
+
+    m_context = m_engine->createExecutionContext();
+    setIsLoaded(true);
 }
 
 ImageOrdering TensorRTEngine::getPreferredImageOrdering() const {
-    //return ImageOrdering::CWH;
-    return ImageOrdering::HWC;
+    return ImageOrdering::CHW;
 }
 
 TensorRTEngine::~TensorRTEngine() {
     if(m_engine != nullptr)
         m_engine->destroy();
+    if(m_context != nullptr)
+        m_context->destroy();
     nvuffparser::shutdownProtobufLibrary();
 }
 

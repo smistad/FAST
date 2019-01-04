@@ -36,6 +36,7 @@ NeuralNetwork::NeuralNetwork() {
 
 	// TODO select engine in a smart way
 	m_engine = TensorRTEngine::New();
+    //m_engine = TensorFlowEngine::New();
 }
 
 std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData() {
@@ -109,6 +110,10 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
             const int dims = shape.getDimensions();
             int height = shape[dims-3];
             int width = shape[dims-2];
+            if(m_engine->getPreferredImageOrdering() == ImageOrdering::CHW) {
+                height = shape[dims-2];
+                width = shape[dims-1];
+            }
             int depth = 1;
             int timesteps = 0;
             if(containsSequence) {
@@ -172,9 +177,14 @@ Tensor::pointer NeuralNetwork::convertImagesToTensor(std::vector<Image::pointer>
     int timesteps = 0;
     std::string kernelName;
     const int dims = shape.getDimensions();
-    const int channels = shape[dims-1];
-    const int width = shape[dims-2];
-    const int height = shape[dims-3];
+    int channels = shape[dims-1];
+    int width = shape[dims-2];
+    int height = shape[dims-3];
+    if(m_engine->getPreferredImageOrdering() == ImageOrdering::CHW) {
+        channels = shape[dims-3];
+        width = shape[dims-1];
+        height = shape[dims-2];
+    }
     if(temporal) {
         timesteps = shape[1];
         if(shape[0] != 1)
@@ -214,11 +224,11 @@ Tensor::pointer NeuralNetwork::convertImagesToTensor(std::vector<Image::pointer>
         kernel.setArg(1, buffer);
         kernel.setArg(2, mScaleFactor);
         kernel.setArg(3, (int) (mSignedInputNormalization ? 1 : 0));
-        kernel.setArg(4, (int) (m_engine->getPreferredImageOrdering() == ImageOrdering::CWH ? 1 : 0));
+        //kernel.setArg(4, (int) (m_engine->getPreferredImageOrdering() == ImageOrdering::CHW ? 1 : 0));
         cl::NDRange globalSize;
         if(image->getDimensions() == 2) {
             kernel.setArg(0, *access->get2DImage());
-            kernel.setArg(5, (int) (mHorizontalImageFlipping ? 1 : 0));
+            kernel.setArg(4, (int) (mHorizontalImageFlipping ? 1 : 0));
             globalSize = cl::NDRange(width, height);
         } else {
             kernel.setArg(0, *access->get3DImage());
