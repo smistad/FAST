@@ -196,6 +196,13 @@ void MetaImageImporter::execute() {
 
             // Get path name
             pos = mFilename.rfind('/');
+#ifdef WIN32
+			// Windows often use \ instead of / in pathnames
+			int pos2 = mFilename.rfind('\\');
+			if(pos2 > pos) {
+				pos = pos2;
+			}
+#endif
             if(pos > 0)
                 rawFilename = mFilename.substr(0,pos+1) + rawFilename;
         } else if(key == "ElementType") {
