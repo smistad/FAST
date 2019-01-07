@@ -616,7 +616,7 @@ void createDirectory(std::string path) {
     error = errno;
 #endif
     if (error != 0) {
-        if(error == EEXIST) {
+        if(fileExists(path)) {
             throw ExistException("Unable to create directory at " + path + ": Directory already exists.");
         } else if(error == ENOENT) {
             throw DoesNotExistException("Unable to create directory at " + path + ": Path was not found.");
