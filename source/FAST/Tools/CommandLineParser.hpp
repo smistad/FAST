@@ -105,7 +105,7 @@ class FAST_EXPORT CommandLineParser {
 
         class Variable {
             public:
-                explicit Variable(const std::string& name, const std::string& helpText, bool requied) : name(name), helpText(helpText), required(required) {}
+				explicit Variable(const std::string& name, const std::string& helpText, bool required) : name(name), helpText(helpText), required(required) {};
                 uint position = 0; // 0, means it has no position
                 bool required;
                 std::string helpText;
