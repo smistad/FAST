@@ -78,6 +78,19 @@ class FAST_EXPORT TensorShape {
          * Convert shape into string
          */
         std::string toString() const;
+
+        /**
+         * Delete a dimension
+         * @param index
+         */
+        void deleteDimension(int index);
+
+        /**
+         * Delete a range of dimensions
+         * @param startIndex
+         * @param endIndex
+         */
+        void deleteDimensions(int startIndex, int endIndex);
     private:
         std::vector<int> m_data;
 };

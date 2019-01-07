@@ -17,10 +17,12 @@ class TensorRTEngine : public InferenceEngine {
         ImageOrdering getPreferredImageOrdering() const override;
         std::string getName() const override;
         ~TensorRTEngine() override;
+        void setMaxBatchSize(int maxBathSize);
+        int getMaxBatchSize() const;
     private:
         TensorRTEngine();
-        nvinfer1::ICudaEngine* m_engine;
-        nvinfer1::IExecutionContext* m_context;
+        nvinfer1::ICudaEngine* m_engine = nullptr;
+        nvinfer1::IExecutionContext* m_context = nullptr;
         int m_maxBatchSize = 1;
         std::size_t m_maxWorkspaceSize = 4*1024*1024; // in bytes
 };

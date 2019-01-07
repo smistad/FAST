@@ -43,7 +43,8 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
     for(auto inputNode : m_engine->getInputNodes()) {
         auto shape = inputNode.second.shape;
         if(shape.getDimensions() == 0)
-            throw Exception("Unable to deduce input shape from network file. Either export the file with shape information or supply the input shape manually using setInputShape");
+            throw Exception("Unable to deduce input shape from network file. "
+                            "Either export the file with shape information or supply the input shape manually using addInputNode.");
 
         SharedPointer<DataObject> data = getInputData<DataObject>(inputNode.second.portID);
 
@@ -118,10 +119,10 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
                 // Temporal input
                 timesteps = shape[1];
                 if(dims == 6) // 3D
-                    depth = shape[2];
+                    depth = m_engine->getPreferredImageOrdering() == ImageOrdering::HWC ? shape[dims-4] : shape[dims-3];
             } else {
                 if(dims == 5) // 3D
-                    depth = shape[1];
+                    depth = m_engine->getPreferredImageOrdering() == ImageOrdering::HWC ? shape[dims-4] : shape[dims-3];
             }
             inputImages = resizeImages(inputImages, width, height, depth);
 
@@ -197,7 +198,14 @@ Tensor::pointer NeuralNetwork::convertImagesToTensor(std::vector<Image::pointer>
         kernelName = "normalize3DInput";
         if((!temporal && shape.getDimensions() != 5) || (temporal && shape.getDimensions() != 6))
             throw Exception("Incorrect shape size");
-        depth = shape[dims-4];
+        if(m_engine->getPreferredImageOrdering() == ImageOrdering::CHW) {
+            channels = shape[dims-4];
+            depth = shape[dims-3];
+            height = shape[dims-2];
+            width = shape[dims-1];
+        } else {
+            depth = shape[dims - 4];
+        }
     }
     cl::Kernel kernel(program, kernelName.c_str());
     const std::size_t size = width*height*depth*channels; // nr of elements per image
@@ -311,7 +319,7 @@ void NeuralNetwork::addInputNode(uint portID, std::string name, NodeType type, T
 
 void NeuralNetwork::addOutputNode(uint portID, std::string name, NodeType type, TensorShape shape) {
     m_engine->addOutputNode(portID, name, type, shape);
-	createOutputPort<DataObject>(portID);
+    createOutputPort<DataObject>(portID);
 }
 
 void NeuralNetwork::load(std::string filename) {
@@ -340,6 +348,10 @@ void NeuralNetwork::setInferenceEngine(std::string engineName) {
     }
     m_engine = InferenceEngineRegistry::create(engineName);
     reportInfo() << "Inference engine " << m_engine->getName() << " selected" << reportEnd();
+}
+
+InferenceEngine::pointer NeuralNetwork::getInferenceEngine() const {
+    return m_engine;
 }
 
 };

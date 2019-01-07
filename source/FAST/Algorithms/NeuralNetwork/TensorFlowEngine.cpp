@@ -72,7 +72,6 @@ void TensorFlowEngine::run() {
 		if(!inputNode.second.data)
 			throw Exception("Input node " + name + " has not received any data");
 		auto shape = inputNode.second.data->getShape();
-		std::cout << shape.toString() << std::endl;
 		if(shape.getUnknownDimensions() > 0)
 		    throw Exception("Input shape must be fully known when executing NN");
 

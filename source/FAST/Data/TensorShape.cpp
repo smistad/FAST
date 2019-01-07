@@ -72,4 +72,12 @@ std::string TensorShape::toString() const {
     return str;
 }
 
+void TensorShape::deleteDimension(int index) {
+    m_data.erase(m_data.begin() + index);
+}
+
+void TensorShape::deleteDimensions(int startIndex, int endIndex) {
+    m_data.erase(m_data.begin() + startIndex, m_data.begin() + endIndex);
+}
+
 }

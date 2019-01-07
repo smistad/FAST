@@ -35,6 +35,11 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
          * @param engine
          */
         void setInferenceEngine(std::string engine);
+        /**
+         * Retrieve current inference engine
+         * @return
+         */
+        InferenceEngine::pointer getInferenceEngine() const;
     void addInputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = {});
     void addOutputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = {});
     void setScaleFactor(float scale);
