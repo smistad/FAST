@@ -41,19 +41,6 @@ int main(int argc, char** argv) {
 	CenterlineExtraction::pointer centerline = CenterlineExtraction::New();
 	centerline->setInputConnection(segmentation->getOutputPort());
 
-	// Extract surface from segmentation
-	SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
-	extraction->setInputConnection(segmentation->getOutputPort());
-
-	// Set up renderers and window
-	TriangleRenderer::pointer renderer = TriangleRenderer::New();
-	renderer->addInputConnection(extraction->getOutputPort());
-
-	LineRenderer::pointer lineRenderer = LineRenderer::New();
-	lineRenderer->addInputConnection(centerline->getOutputPort());
-	lineRenderer->setDefaultDrawOnTop(true);
-	lineRenderer->setDefaultColor(Color::Blue());
-
     // Export data if user has specified to do so
     if(parser.gotValue("export_segmentation")) {
         MetaImageExporter::pointer exporter = MetaImageExporter::New();
@@ -66,7 +53,23 @@ int main(int argc, char** argv) {
         exporter->setFilename(parser.get("export_centerline"));
         exporter->setInputConnection(centerline->getOutputPort());
         exporter->update(0);
+		
     }
+	if(parser.gotValue("export_segmentation") || parser.gotValue("export_centerline"))
+		return 0; // Dont render if exporting..
+
+	// Extract surface from segmentation
+	SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
+	extraction->setInputConnection(segmentation->getOutputPort());
+
+	// Set up renderers and window
+	TriangleRenderer::pointer renderer = TriangleRenderer::New();
+	renderer->addInputConnection(extraction->getOutputPort());
+
+	LineRenderer::pointer lineRenderer = LineRenderer::New();
+	lineRenderer->addInputConnection(centerline->getOutputPort());
+	lineRenderer->setDefaultDrawOnTop(true);
+	lineRenderer->setDefaultColor(Color::Blue());
 
 	SimpleWindow::pointer window = SimpleWindow::New();
 	window->addRenderer(renderer);
