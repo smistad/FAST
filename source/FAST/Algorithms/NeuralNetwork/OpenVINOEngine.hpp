@@ -21,6 +21,7 @@ class OpenVINOEngine : public InferenceEngine {
 
     private:
         std::shared_ptr<::InferenceEngine::InferRequest> m_inferRequest;
+        void loadPlugin(std::string deviceType);
 };
 
 }
