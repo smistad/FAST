@@ -19,7 +19,7 @@
 using namespace fast;
 
 TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork][visual]") {
-    for(const auto& engine : {"OpenVINO", "TensorRT", "TensorFlow"}) {
+    for(const std::string& engine : {"OpenVINO", "TensorRT", "TensorFlow"}) {
         if(!InferenceEngineRegistry::isIERegistered(engine)) {
             std::cout << "Inference engine " << engine << " not available, skipping." << std::endl;
             continue;
