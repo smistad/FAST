@@ -7,25 +7,49 @@ namespace fast {
 using namespace InferenceEngine;
 
 void OpenVINOEngine::run() {
-    // --------------------------- 6. Prepare input --------------------------------------------------------
-    auto inputTensor = mInputNodes.begin()->second.data;
-    auto access = inputTensor->getAccess(ACCESS_READ);
-    auto data = access->getData<4>();
-    Blob::Ptr input = m_inferRequest->GetBlob(mInputNodes.begin()->first);
-    auto input_data = input->buffer().as<PrecisionTrait<Precision::FP32>::value_type *>();
-    std::memcpy(input_data, data.data(), input->byteSize());
+    // Copy input data
+    for(const auto& node : mInputNodes) {
+        auto tensor = node.second.data;
+        auto access = tensor->getAccess(ACCESS_READ);
+        float* tensorData;
+        switch(tensor->getShape().getDimensions()) {
+            case 2:
+                tensorData = access->getData<2>().data();
+                break;
+            case 3:
+                tensorData = access->getData<3>().data();
+                break;
+            case 4:
+                tensorData = access->getData<4>().data();
+                break;
+            case 5:
+                tensorData = access->getData<5>().data();
+                break;
+			case 6:
+                tensorData = access->getData<6>().data();
+				break;
+            default:
+                throw Exception("Invalid tensor dimension size");
+		}
+        Blob::Ptr input = m_inferRequest->GetBlob(node.first);
+        auto input_data = input->buffer().as<PrecisionTrait<Precision::FP32>::value_type * >();
+        std::memcpy(input_data, tensorData, input->byteSize());
+    }
 
-    reportInfo() << "OpenVINO: Ready to execute." << reportEnd();
+    // Execute network
     m_inferRequest->Infer();
     reportInfo() << "OpenVINO: Network executed." << reportEnd();
-    // --------------------------- 8. Process output ------------------------------------------------------
-    Blob::Ptr output = m_inferRequest->GetBlob(mOutputNodes.begin()->first);
-    auto outputData = (output->buffer().as<::InferenceEngine::PrecisionTrait<Precision::FP32>::value_type*>());
-    auto copied_data = make_uninitialized_unique<float[]>(output->byteSize());
-    std::memcpy(copied_data.get(), outputData, output->byteSize());
-    auto tensor = Tensor::New();
-    tensor->create(std::move(copied_data), mOutputNodes.begin()->second.shape);
-    mOutputNodes.begin()->second.data = tensor;
+
+    // Copy output data
+    for(auto& node : mOutputNodes) {
+        Blob::Ptr output = m_inferRequest->GetBlob(node.first);
+        auto outputData = (output->buffer().as<::InferenceEngine::PrecisionTrait<Precision::FP32>::value_type *>());
+        auto copied_data = make_uninitialized_unique<float[]>(output->byteSize());
+        std::memcpy(copied_data.get(), outputData, output->byteSize());
+        auto tensor = Tensor::New();
+        tensor->create(std::move(copied_data), node.second.shape);
+        node.second.data = tensor;
+    }
 }
 
 void OpenVINOEngine::load() {
@@ -44,38 +68,42 @@ void OpenVINOEngine::load() {
     CNNNetwork network = network_reader.getNetwork();
     //network.setBatchSize(1);
     reportInfo() << "OpenVINO: Network loaded." << reportEnd();
-    // -----------------------------------------------------------------------------------------------------
 
-    // --------------------------- 3. Configure input & output ---------------------------------------------
     // --------------------------- Prepare input blobs -----------------------------------------------------
-    InputInfo::Ptr input_info = network.getInputsInfo().begin()->second;
-    std::string input_name = network.getInputsInfo().begin()->first;
-    input_info->setPrecision(Precision::FP32);
-    // TODO shape is reverse direction here for some reason..
-    TensorShape shape;
-    auto dims = input_info->getDims();
-    for(int i = dims.size()-1; i >= 0; --i) // TODO why reverse??
-        shape.addDimension(dims[i]);
+    int counter = 0;
+    for(auto& input : network.getInputsInfo()) {
+        auto input_info = input.second;
+        auto input_name = input.first;
+        input_info->setPrecision(Precision::FP32);
+        // TODO shape is reverse direction here for some reason..
+        TensorShape shape;
+        auto dims = input_info->getDims();
+        for(int i = dims.size() - 1; i >= 0; --i) // TODO why reverse??
+            shape.addDimension(dims[i]);
 
-    if(shape.getDimensions() > 3) {
-        input_info->setLayout(Layout::NCHW);
-        addInputNode(0, input_name, NodeType::IMAGE, shape);
-    } else {
-        addInputNode(0, input_name, NodeType::TENSOR, shape);
+        if(shape.getDimensions() > 3) {
+            input_info->setLayout(Layout::NCHW);
+            addInputNode(counter, input_name, NodeType::IMAGE, shape);
+        } else {
+            addInputNode(counter, input_name, NodeType::TENSOR, shape);
+        }
+        reportInfo() << "Found input node: " << input_name << " with shape " << shape.toString() << reportEnd();
+        counter++;
     }
-    reportInfo() << "Input node is: " << input_name << " with shape " << shape.toString() << reportEnd();
-
 
     // --------------------------- Prepare output blobs ----------------------------------------------------
-    DataPtr output_info = network.getOutputsInfo().begin()->second;
-    std::string output_name = network.getOutputsInfo().begin()->first;
-    TensorShape outputShape;
-    for(auto dim : output_info->getDims())
-        outputShape.addDimension(dim);
-    addOutputNode(0, output_name, NodeType::TENSOR, outputShape);
-    reportInfo() << "Output node is: " << output_name << " with shape " << outputShape.toString() << reportEnd();
-
-    output_info->setPrecision(Precision::FP32);
+    counter = 0;
+    for(auto& output : network.getOutputsInfo()) {
+        auto info = output.second;
+        auto name = output.first;
+        info->setPrecision(Precision::FP32);
+        TensorShape shape;
+        for(auto dim : info->getDims())
+            shape.addDimension(dim);
+        addOutputNode(counter, name, NodeType::TENSOR, shape);
+        reportInfo() << "Found output node: " << name << " with shape " << shape.toString() << reportEnd();
+        counter++;
+    }
     reportInfo() << "OpenVINO: Node setup complete." << reportEnd();
 
     ExecutableNetwork executable_network = plugin.LoadNetwork(network, {});
