@@ -247,8 +247,8 @@ TEST_CASE("Execute NN on batch of 2D images", "[fast][neuralnetwork]") {
             network->addOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output.pb");
         } else {
-            auto trtEngine = std::dynamic_pointer_cast<TensorRTEngine>(network->getInferenceEngine());
-            trtEngine->setMaxBatchSize(2);
+            //auto trtEngine = std::dynamic_pointer_cast<TensorRTEngine>(network->getInferenceEngine());
+            //trtEngine->setMaxBatchSize(2);
             network->addInputNode(0, "input_1", NodeType::IMAGE, TensorShape({-1, 1, 64, 64}));
             network->addOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR);
             network->addOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);

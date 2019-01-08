@@ -1,5 +1,6 @@
 #pragma once
 
+#include "FAST/Data/DataTypes.hpp"
 #include <FAST/Data/Tensor.hpp>
 #include <FAST/Data/TensorShape.hpp>
 
