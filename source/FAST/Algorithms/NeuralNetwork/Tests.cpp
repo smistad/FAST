@@ -19,7 +19,7 @@
 using namespace fast;
 
 TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork][visual]") {
-    for(const auto& engine : {"TensorRT", "TensorFlow"}) {
+    for(const auto& engine : {"OpenVINO", "TensorRT", "TensorFlow"}) {
         if(!InferenceEngineRegistry::isIERegistered(engine)) {
             std::cout << "Inference engine " << engine << " not available, skipping." << std::endl;
             continue;
@@ -36,10 +36,12 @@ TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork][visual]") {
         if(engine == "TensorFlow") {
             segmentation->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_vein_segmentation.pb");
             segmentation->addOutputNode(0, "conv2d_23/truediv");
-        } else {
+        } else if(engine == "TensorRT") {
             segmentation->addInputNode(0, "input_image", NodeType::IMAGE, TensorShape({-1, 1, 256, 256}));
             segmentation->addOutputNode(0, "permute_2/transpose");
             segmentation->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_vein_segmentation.uff");
+        } else {
+            segmentation->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_vein_segmentation.xml");
         }
         segmentation->setScaleFactor(1.0f / 255.0f);
         //segmentation->setInputConnection(importer->getOutputPort());

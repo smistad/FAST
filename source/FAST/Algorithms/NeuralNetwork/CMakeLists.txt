@@ -43,3 +43,10 @@ if(FAST_MODULE_TensorRT)
     )
     fast_add_inference_engine(TensorRT TensorRTEngine.hpp)
 endif()
+if(FAST_MODULE_OpenVINO)
+    fast_add_sources(
+        OpenVINOEngine.cpp
+        OpenVINOEngine.hpp
+    )
+    fast_add_inference_engine(OpenVINO OpenVINOEngine.hpp)
+endif()
