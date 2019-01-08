@@ -29,7 +29,7 @@ void OpenVINOEngine::run() {
 }
 
 void OpenVINOEngine::load() {
-    PluginDispatcher dispatcher({"/opt/intel/computer_vision_sdk/inference_engine/lib/ubuntu_16.04/intel64/", ""});
+    PluginDispatcher dispatcher({""});
     InferencePlugin plugin(dispatcher.getSuitablePlugin(TargetDevice::eCPU));
     reportInfo() << "OpenVINO: Inference plugin setup complete." << reportEnd();
 
@@ -49,10 +49,11 @@ void OpenVINOEngine::load() {
     std::string input_name = network.getInputsInfo().begin()->first;
     input_info->setLayout(Layout::NCHW);
     input_info->setPrecision(Precision::FP32);
+    // TODO shape is reverse direction here for some reason..
     TensorShape shape;
     for(auto dim : input_info->getDims())
         shape.addDimension(dim);
-    addInputNode(0, input_name, NodeType::IMAGE, TensorShape({1, 1, 256, 256}));
+    addInputNode(0, input_name, NodeType::IMAGE, TensorShape({1, 1, 256, 256})); // TODO fix
     reportInfo() << "Input node is: " << input_name << " with shape " << shape.toString() << reportEnd();
 
 
