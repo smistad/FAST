@@ -111,7 +111,7 @@ __kernel void resize3D(
     }
 
 #ifdef fast_3d_image_writes
-    writeToImage3D(output, position, value);
+    writeToImage3D(output, pos, value);
 #else
     // TODO only one channel supported atm
     if(dataType == CLK_UNSIGNED_INT8) {
