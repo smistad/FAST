@@ -266,7 +266,7 @@ std::vector<SharedPointer<Image>> NeuralNetwork::resizeImages(const std::vector<
 		// Resize image to fit input layer
 		if(width != image->getWidth() || height != image->getHeight() || depth != image->getDepth()) {
 			// Only resize if needed
-            ImageResizer::pointer resizer = ImageResizer::New();
+            auto resizer = ImageResizer::New();
             resizer->setWidth(width);
             resizer->setHeight(height);
             resizer->setDepth(depth);

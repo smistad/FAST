@@ -4,6 +4,7 @@
 
 namespace InferenceEngine {
 class InferRequest;
+class InferencePlugin;
 }
 
 namespace fast {
@@ -21,6 +22,7 @@ class OpenVINOEngine : public InferenceEngine {
 
     private:
         std::shared_ptr<::InferenceEngine::InferRequest> m_inferRequest;
+		std::shared_ptr<::InferenceEngine::InferencePlugin> m_inferencePlugin;
         void loadPlugin(std::string deviceType);
 };
 

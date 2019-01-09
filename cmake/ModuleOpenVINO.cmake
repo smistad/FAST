@@ -1,6 +1,8 @@
 if(FAST_MODULE_OpenVINO)
     message("-- Enabling Intel OpenVINO inference engine module")
     if(WIN32)
+		set(InferenceEngine_BASE C:/Intel/computer_vision_sdk/inference_engine)
+		set(InferenceEngine_DIR ${InferenceEngine_BASE}/share)
     else()
         set(InferenceEngine_BASE /opt/intel/computer_vision_sdk/inference_engine)
         set(InferenceEngine_DIR ${InferenceEngine_BASE}/share)
