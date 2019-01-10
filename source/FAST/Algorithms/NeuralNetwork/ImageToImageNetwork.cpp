@@ -11,7 +11,8 @@ ImageToImageNetwork::ImageToImageNetwork() {
 }
 
 void ImageToImageNetwork::execute() {
-
+    // TODO fix
+    /*
     auto input = processInputData();
     auto result = executeNetwork(input);
     Tensor::pointer tensor = result[0].second;
@@ -42,6 +43,7 @@ void ImageToImageNetwork::execute() {
     Image::pointer resizedOutput = port->getNextFrame<Image>();
     resizedOutput->setSpacing(mInputImages.begin()->second[0]->getSpacing());
     addOutputData(0, resizedOutput);
+     */
 }
 
 }
