@@ -42,12 +42,12 @@ class FAST_EXPORT  ProcessObject : public Object {
         void setDeviceCriteria(uint deviceNumber, const DeviceCriteria& criteria);
         ExecutionDevice::pointer getDevice(uint deviceNumber) const;
 
-        DataPort::pointer getOutputPort(uint portID = 0);
-        DataPort::pointer getInputPort(uint portID = 0);
-        void setInputConnection(DataPort::pointer port);
-        void setInputConnection(uint portID, DataPort::pointer port);
-        void setInputData(DataObject::pointer data);
-        void setInputData(uint portID, DataObject::pointer data);
+        virtual DataPort::pointer getOutputPort(uint portID = 0);
+        virtual DataPort::pointer getInputPort(uint portID = 0);
+        virtual void setInputConnection(DataPort::pointer port);
+        virtual void setInputConnection(uint portID, DataPort::pointer port);
+        virtual void setInputData(DataObject::pointer data);
+        virtual void setInputData(uint portID, DataObject::pointer data);
         int getNrOfInputConnections() const;
         int getNrOfOutputPorts() const;
 

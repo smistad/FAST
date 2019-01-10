@@ -22,8 +22,7 @@ void IGTLinkStreamer::setConnectionPort(uint port) {
     mIsModified = true;
 }
 
-DataPort::pointer IGTLinkStreamer::getOutputPort() {
-	uint portID;
+DataPort::pointer IGTLinkStreamer::getOutputPort(uint portID) {
 	if (mOutputPortDeviceNames.count("") == 0) {
 		portID = getNrOfOutputPorts();
 		createOutputPort<Image>(portID);

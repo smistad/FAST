@@ -32,7 +32,7 @@ class FAST_EXPORT IGTLinkStreamer : public Streamer {
 		 * Will select first image stream
 		 * @return
 		 */
-		DataPort::pointer getOutputPort();
+		DataPort::pointer getOutputPort(uint portID = 0) override;
 
         template<class T>
         DataPort::pointer getOutputPort(std::string deviceName);
