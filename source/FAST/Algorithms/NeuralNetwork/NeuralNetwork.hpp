@@ -42,7 +42,17 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
         InferenceEngine::pointer getInferenceEngine() const;
     void addInputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = {});
     void addOutputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = {});
+    /**
+     * For each input value i: new_i = i*scale
+     * @param scale
+     */
     void setScaleFactor(float scale);
+    /**
+     * For each input value i: new_i = (i - mean)/std, this is applied after the scale factor
+     * @param mean
+     * @param std
+     */
+    void setMeanAndStandardDeviation(float mean, float std);
     void setSignedInputNormalization(bool signedInputNormalization);
     void setPreserveAspectRatio(bool preserve);
     /**
@@ -71,7 +81,8 @@ protected:
     bool mHorizontalImageFlipping = false;
     bool mSignedInputNormalization = false;
     int mTemporalWindow = 0;
-    float mScaleFactor;
+    std::vector<std::string> mLearningPhaseTensors;
+    float mScaleFactor, mMean, mStd;
     Vector3f mNewInputSpacing;
 
     virtual void run();

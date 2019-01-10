@@ -8,6 +8,7 @@
 #include <igtl/igtlImageMessage.h>
 #include <igtl/igtlStatusMessage.h>
 #include <igtl/igtlStringMessage.h>
+#include <chrono>
 
 namespace fast {
 
@@ -21,8 +22,7 @@ void IGTLinkStreamer::setConnectionPort(uint port) {
     mIsModified = true;
 }
 
-DataPort::pointer IGTLinkStreamer::getOutputPort() {
-	uint portID;
+DataPort::pointer IGTLinkStreamer::getOutputPort(uint portID) {
 	if (mOutputPortDeviceNames.count("") == 0) {
 		portID = getNrOfOutputPorts();
 		createOutputPort<Image>(portID);
@@ -161,6 +161,8 @@ void IGTLinkStreamer::producerStream() {
     ts = igtl::TimeStamp::New();
     uint statusMessageCounter = 0;
 
+    auto start = std::chrono::high_resolution_clock::now();
+
     while(true) {
         {
             std::unique_lock<std::mutex> lock(mStopMutex);
@@ -206,7 +208,10 @@ void IGTLinkStreamer::producerStream() {
             }
         }
 
-        unsigned long timestamp = round(ts->GetTimeStamp()*1000); // convert to milliseconds
+        //unsigned long timestamp = round(ts->GetTimeStamp()*1000); // convert to milliseconds
+        auto now = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> duration = now - start;
+        uint64_t timestamp = duration.count();
         reportInfo() << "TIMESTAMP converted: " << timestamp << reportEnd();
         if(strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0 && !ignore) {
             mTransformStreamNames.insert(headerMsg->GetDeviceName());
