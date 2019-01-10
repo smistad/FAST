@@ -49,7 +49,7 @@ MeshVertex KinectStreamer::getPoint(int x, int y) {
     float x2, y2, z2, rgb;
     Color color;
     if(registration != NULL) {
-        registration->getPointXYZRGB(mUndistorted, mRegistered, y, x, x2, y2, z2, rgb);
+        registration->getPointXYZRGB(mUndistorted, mRegistered, y, 512-x-1, x2, y2, z2, rgb);
         const uint8_t *p = reinterpret_cast<uint8_t*>(&rgb);
         uint8_t red = p[0];
         uint8_t green = p[1];
@@ -59,7 +59,7 @@ MeshVertex KinectStreamer::getPoint(int x, int y) {
         throw Exception();
     }
 
-    MeshVertex vertex(Vector3f(x2*1000, y2*1000, z2*1000));
+    MeshVertex vertex(Vector3f(-x2*1000, y2*1000, z2*1000));
     vertex.setColor(color);
     return vertex;
 }
@@ -81,7 +81,7 @@ void KinectStreamer::producerStream() {
         }
         mInitialized = true;
     }
-    if(mAvailableDevices.size() == 0) {
+    if(mAvailableDevices.empty()) {
         throw Exception("No more available kinect devices for KinectStreamer");
     } else {
         // Select first
@@ -131,13 +131,12 @@ void KinectStreamer::producerStream() {
         mUndistorted = &undistorted;
         mRegistered = &registered;
 
-        float* depth_data = (float*)undistorted.data;
-        unsigned char* rgb_data = (unsigned char*)registered.data;
+        auto * depth_data = (float*)undistorted.data;
+        auto * rgb_data = (unsigned char*)registered.data;
 
         Image::pointer depthImage = Image::New();
         depthImage->create(512, 424, TYPE_FLOAT, 1, depth_data);
 
-        Image::pointer rgbImage = Image::New();
         if(rgb->format == libfreenect2::Frame::Format::BGRX) {
             // Have to swap B and R channel
             for(int i = 0; i < 512*424; ++i) {
@@ -146,12 +145,25 @@ void KinectStreamer::producerStream() {
                 rgb_data[i*4+2] = blue;
             }
         }
+
+        auto rgbImage = Image::New();
         rgbImage->create(512, 424, TYPE_UINT8, 4, rgb_data);
+        auto imageAccess = rgbImage->getImageAccess(ACCESS_READ_WRITE);
+        uchar* rgb_data2 = (uchar*)imageAccess->get();
+        auto depthAccess = depthImage->getImageAccess(ACCESS_READ_WRITE);
+        float* depth_data2 = (float*)depthAccess->get();
 
         // Create point cloud
         std::vector<MeshVertex> points;
-        for(int r=0; r<424; ++r) {
-            for(int c = 0; c < 512; ++c) {
+        for(int r=0; r<424; ++r) { // y
+            for(int c = 0; c < 512; ++c) { // x
+                // Flip image horizontally
+                if(c < 512/2) {
+                    for(uchar i = 0; i < 3; i++) {
+                        std::swap(rgb_data2[(c + r * 512) * 4 + i], rgb_data2[(512 - c - 1 + r * 512) * 4 + i]);
+                    }
+                    std::swap(depth_data2[(c + r * 512)], depth_data2[(512 - c - 1 + r * 512)]);
+                }
                 float x, y, z, color;
                 registration->getPointXYZRGB(&undistorted, &registered, r, c, x, y, z, color);
                 if(z < mMinRange || z > mMaxRange) {
@@ -185,14 +197,16 @@ void KinectStreamer::producerStream() {
                     uint8_t red = p[0];
                     uint8_t green = p[1];
                     uint8_t blue = p[2];
-                    MeshVertex point(Vector3f(x*1000, y*1000, z*1000));
+                    MeshVertex point(Vector3f(-x*1000, y*1000, z*1000)); // Flip x
                     point.setColor(Color(red/255.0f, green/255.0f, blue/255.0f));
                     points.push_back(point);
                 }
             }
         }
-        Mesh::pointer cloud = Mesh::New();
+        auto cloud = Mesh::New();
         cloud->create(points);
+        imageAccess->release();
+        depthAccess->release();
 
         addOutputData(0, rgbImage);
         addOutputData(1, depthImage);
@@ -208,10 +222,11 @@ void KinectStreamer::producerStream() {
         listener.release(frames);
     }
 
-    reportInfo() << "Stopping kinect streamer" << Reporter::end();
     dev->stop();
     dev->close();
     delete dev;
+    reportInfo() << "Kinect streamer stopped" << Reporter::end();
+    mAvailableDevices.push(serial); // Adding streamer back to queue
 }
 
 bool KinectStreamer::hasReachedEnd() {
@@ -231,6 +246,7 @@ KinectStreamer::~KinectStreamer() {
 
 void KinectStreamer::stop() {
     std::unique_lock<std::mutex> lock(mStopMutex);
+    reportInfo() << "Stopping kinect streamer" << Reporter::end();
     mStop = true;
 }
 

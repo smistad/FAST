@@ -104,7 +104,7 @@ void SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
             throw Exception("SegmentationRenderer only supports 2D images. Use ImageSlicer to extract a 2D slice from a 3D image.");
 
         // Check if a texture has already been created for this image
-        if (mTexturesToRender.count(inputNr) > 0 && mImageUsed[inputNr] == input)
+        if(mTexturesToRender.count(inputNr) > 0 && mImageUsed[inputNr] == input)
             continue; // If it has already been created, skip it
 
         // If it has not been created, create the texture

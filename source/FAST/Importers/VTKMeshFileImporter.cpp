@@ -118,13 +118,18 @@ void VTKMeshFileImporter::processVectors(std::ifstream& file, std::string& line)
         if(line.size() == 0)
             break;
 
-        if(!(isdigit(line[0]) || line[0] == '-')) {
+        if(!(std::isdigit(line[0]) || line[0] == '-')) {
             // Has reached end
             break;
         }
 
         if(name == "vertex_colors") {
             std::vector<std::string> tokens = split(line);
+            if(tokens.size() != 3) {
+                reportWarning() << "Encountered incorrect color format (Skipping): " << line << reportEnd();
+                ++counter;
+                continue;
+            }
             for(int i = 0; i < tokens.size(); i += 3) {
                 float red = std::stof(tokens[i]);
                 float green = std::stof(tokens[i + 1]);

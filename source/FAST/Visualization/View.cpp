@@ -708,7 +708,7 @@ void View::mouseMoveEvent(QMouseEvent* event) {
 }
 
 void View::mousePressEvent(QMouseEvent* event) {
-    if (event->button() == Qt::LeftButton) {
+    if (event->button() == Qt::LeftButton && !mIsIn2DMode) {
         mLeftMouseButtonIsPressed = true;
         // Move cursor to center of window
         int cx = width() / 2;
@@ -917,6 +917,14 @@ Vector4f View::getOrthoProjectionParameters() {
 
 void View::setAutoUpdateCamera(bool autoUpdate) {
     mAutoUpdateCamera = autoUpdate;
+}
+
+
+Matrix4f View::getViewMatrix() const {
+    return m3DViewingTransformation.matrix();
+}
+Matrix4f View::getPerspectiveMatrix() const {
+    return mPerspectiveMatrix;
 }
 
 /********************************************************************************************************/

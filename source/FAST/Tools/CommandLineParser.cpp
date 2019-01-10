@@ -52,6 +52,8 @@ void CommandLineParser::processToken(SharedPointer<Variable>& currentVariable, u
     // If no current variable, then the first token has to start with --, or it is a position variable
     if(!currentVariable) {
         if(token.size() > 2 && token.substr(0, 2) == "--") {
+            if(m_variables.count(token.substr(2)) == 0)
+                throw Exception("Unknown program parameter " + token.substr(2));
             currentVariable = m_variables.at(token.substr(2));
             currentVariable->setValue(""); // This will set options to true
         } else {
@@ -63,7 +65,10 @@ void CommandLineParser::processToken(SharedPointer<Variable>& currentVariable, u
         if(token.size() > 2 && token.substr(0, 2) == "--") {
             // Last variable must have been an option
             // Get new variable
+            if(m_variables.count(token.substr(2)) == 0)
+                throw Exception("Unknown program parameter " + token.substr(2));
             currentVariable = m_variables.at(token.substr(2));
+            currentVariable->setValue(""); // This will set options to true
             return;
         }
         // If we have a variable atm, the token is a value

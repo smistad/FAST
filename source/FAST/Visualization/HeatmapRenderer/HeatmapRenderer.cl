@@ -31,8 +31,8 @@ __kernel void renderToTexture(
         }
     } else {
     */
-        intensity *= maxOpacity;
-        color = color + intensity * (float4)(red, green, blue, 1.0f);
+        intensity *= 0.3;
+        color = color + 1.0f * (float4)(red, green, blue, 1.0f);
         color.w = intensity;
         color = clamp(color, 0.0f, 1.0f);
     //}

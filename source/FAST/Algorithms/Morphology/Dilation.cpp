@@ -28,6 +28,7 @@ void Dilation::execute() {
 
     Image::pointer output = getOutputData<Image>();
     output->createFromImage(input);
+    SceneGraph::setParentNode(output, input);
     output->fill(0);
 
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());

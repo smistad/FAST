@@ -21,6 +21,12 @@ LungSegmentation::LungSegmentation() {
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/LungSegmentation/LungSegmentation.cl");
 }
 
+DataPort::pointer LungSegmentation::getBloodVesselOutputPort() {
+    if(mOutputPorts.count(2) == 0)
+        createOutputPort<Image>(2);
+    return getOutputPort(2);
+}
+
 Vector3i LungSegmentation::findSeedVoxel(Image::pointer volume) {
 
 	ImageAccess::pointer access = volume->getImageAccess(ACCESS_READ);
@@ -170,8 +176,27 @@ void LungSegmentation::execute() {
 
     DataPort::pointer port = erosion->getOutputPort();
     erosion->update(0);
-
     Image::pointer image = port->getNextFrame<Image>();
+
+    if(mOutputPorts.count(2) > 0) {
+        // Extract blood vessels as well
+        auto erosion = Erosion::New();
+        erosion->setInputData(image);
+        erosion->setStructuringElementSize(9);
+
+        auto multiply = ImageMultiply::New();
+        multiply->setInputConnection(0, erosion->getOutputPort());
+        multiply->setInputData(1, input);
+
+        auto thresholding = BinaryThresholding::New();
+        thresholding->setInputConnection(multiply->getOutputPort());
+        thresholding->setLowerThreshold(50);
+
+        auto port = thresholding->getOutputPort();
+        thresholding->update(0);
+        addOutputData(2, port->getNextFrame<Image>());
+    }
+
     SceneGraph::setParentNode(image, input);
     addOutputData(0, image);
     Image::pointer airways = airwaySegPort->getNextFrame<Image>();

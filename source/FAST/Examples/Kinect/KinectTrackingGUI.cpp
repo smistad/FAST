@@ -53,13 +53,16 @@ bool MouseListener::eventFilter(QObject *obj, QEvent *event) {
     if(event->type() == QEvent::MouseMove) {
         // Releay mouse movement to tracking
         QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
-        float spacing = mView->get2DPixelSpacing();
+        // TODO need to go from view coordinates to physical to image coordinates
+        const Matrix4f perspectiveMatrix = mView->getPerspectiveMatrix();
+        const Matrix4f viewMatrix = mView->getViewMatrix();
+        Vector3f current(2.0f*(float)mouseEvent->x()/mView->width() - 1.0f, -(2.0f*(float)mouseEvent->y()/mView->height() -1.0f), 0);
+        current = (viewMatrix.inverse()*perspectiveMatrix.inverse()*current.homogeneous()).head(3);
         if(mPreviousMousePosition.x() == -1 && mPreviousMousePosition.y() == -1) {
-            mPreviousMousePosition = Vector2i(mouseEvent->x() * spacing, mouseEvent->y() * spacing);
+            mPreviousMousePosition = current.cast<int>().head(2);
         } else {
-            Vector2i current(mouseEvent->x() * spacing, mouseEvent->y() * spacing);
-            mTracking->addLine(mPreviousMousePosition, current);
-            mPreviousMousePosition = current;
+            mTracking->addLine(mPreviousMousePosition, current.cast<int>().head(2));
+            mPreviousMousePosition = current.cast<int>().head(2);
         }
     }
 
@@ -74,10 +77,8 @@ KeyPressListener::KeyPressListener(KinectTrackingGUI* gui, QWidget* parent) : QO
 
 bool KeyPressListener::eventFilter(QObject *obj, QEvent *event) {
     if(event->type() == QEvent::KeyPress) {
-        std::cout << "Key event" << std::endl;
         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
         if(keyEvent->key() == Qt::Key_Enter || keyEvent->key() == Qt::Key_Return) {
-            std::cout << "Extracting target cloud!" << std::endl;
             mGUI->extractPointCloud();
             return true;
         } else {
@@ -143,7 +144,7 @@ KinectTrackingGUI::KinectTrackingGUI() {
     title->setText("<div style=\"text-align: center; font-weight: bold; font-size: 24px;\">Kinect<br>Object Tracking</div>");
     menuLayout->addWidget(title);
 
-    // Quit button
+    // Quit butto1.0f;//n
     QPushButton* quitButton = new QPushButton;
     quitButton->setText("Quit (q)");
     quitButton->setStyleSheet("QPushButton { background-color: red; color: white; }");
@@ -237,7 +238,7 @@ void KinectTrackingGUI::playRecording() {
 
 
         // Set up streaming from disk
-        MeshFileStreamer::pointer streamer = MeshFileStreamer::New();
+        auto streamer = MeshFileStreamer::New();
         streamer->setFilenameFormat(selectedRecording + "#.vtk");
 
         // Get the number of files
@@ -248,7 +249,6 @@ void KinectTrackingGUI::playRecording() {
             if(it.fileName().size() > 4 && it.fileName() != "target.vtk")
                 numFiles++;
         }
-        std::cout << "FILES: " << numFiles << std::endl;
         streamer->setMaximumNumberOfFrames(numFiles);
         streamer->update(0); // start loading
 
@@ -266,27 +266,26 @@ void KinectTrackingGUI::playRecording() {
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
-        std::cout << "Finished loading" << std::endl;
         progress.setValue(numFiles);
 
         stopComputationThread();
         getView(0)->removeAllRenderers();
 
         // Load target cloud
-        VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
+        auto importer = VTKMeshFileImporter::New();
         importer->setFilename(selectedRecording + "target.vtk");
-        DataPort::pointer port = importer->getOutputPort();
+        auto port = importer->getOutputPort();
         importer->update(0);
-        Mesh::pointer targetCloud = port->getNextFrame();
+        auto targetCloud = port->getNextFrame<Mesh>();
 
         mTracking->setInputConnection(1, streamer->getOutputPort());
         mTracking->setTargetCloud(targetCloud);
 
-        VertexRenderer::pointer cloudRenderer = VertexRenderer::New();
+        auto cloudRenderer = VertexRenderer::New();
         cloudRenderer->setDefaultSize(1.5);
         cloudRenderer->addInputConnection(mTracking->getOutputPort(2));
         cloudRenderer->addInputConnection(streamer->getOutputPort(0));
-        cloudRenderer->setColor(mTracking->getOutputPort(2), Color::Green());
+        cloudRenderer->setColor(0, Color::Green());
 
         getView(0)->set3DMode();
         getView(0)->addRenderer(cloudRenderer);
@@ -329,17 +328,19 @@ void KinectTrackingGUI::extractPointCloud() {
         mTracking->startRecording(recordingPath);
     }
 
-    VertexRenderer::pointer cloudRenderer = VertexRenderer::New();
+    // Reset ports
+    mTracking->setInputConnection(0, mStreamer->getOutputPort(0));
+    mTracking->setInputConnection(1, mStreamer->getOutputPort(2));
+    auto cloudRenderer = VertexRenderer::New();
     cloudRenderer->setDefaultSize(1.5);
     uint port = cloudRenderer->addInputConnection(mTracking->getOutputPort(2));
-    cloudRenderer->addInputConnection(mStreamer->getOutputPort(2));
     cloudRenderer->setColor(port, Color::Green());
+    cloudRenderer->addInputConnection(mStreamer->getOutputPort(2));
 
     getView(0)->set3DMode();
     getView(0)->addRenderer(cloudRenderer);
     getView(0)->setLookAt(Vector3f(0,-500,-500), Vector3f(0,0,1000), Vector3f(0,-1,0), 500, 5000);
-    getView(0)->reinitialize();
-
+    getView(0)->reinitialize(); // Reinitialize runs update call, cannot be called after startComputationThread
     startComputationThread();
 }
 

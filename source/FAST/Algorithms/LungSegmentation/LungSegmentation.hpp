@@ -12,6 +12,7 @@ class FAST_EXPORT LungSegmentation : public ProcessObject {
 public:
     void setAirwaySeedPoint(int x, int y, int z);
     void setAirwaySeedPoint(Vector3i seed);
+    DataPort::pointer getBloodVesselOutputPort();
 private:
     LungSegmentation();
     void execute();

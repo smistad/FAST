@@ -21,6 +21,10 @@
             mPtr = ptr;                                         \
         }                                                       \
 
+
+
+#ifdef WIN32
+
 namespace fast {
 
 template<class T>
@@ -41,5 +45,17 @@ class hash<fast::SharedPointer<U> >{
         }
 };
 
+} // end namespace std
+
+#else
+
+namespace fast {
+
+    template<class T>
+    using SharedPointer = std::shared_ptr<T>;
 
 }
+
+#endif
+
+

@@ -11,6 +11,8 @@ Renderer::Renderer() {
 
 uint Renderer::addInputData(DataObject::pointer data) {
     uint nr = getNrOfInputConnections();
+    if(nr > 0)
+        createInputPort<DataObject>(nr);
     setInputData(nr, data);
     return nr;
 }

@@ -60,7 +60,6 @@ Image::pointer CenterlineExtraction::calculateDistanceTransform(Image::pointer i
 			sizeof(char)
     );
 
-	// TODO no 3D write support
 	cl::Kernel distanceKernel(program, "calculateDistance");
 	distanceKernel.setArg(2, changedBuffer);
 	int counter = 0;
@@ -312,177 +311,191 @@ void CenterlineExtraction::execute() {
 	short* distanceArray = (short*)distanceAccess->get();
 	uchar* inputArray = (uchar*)inputAccess->get();
 	uchar* candidateArray = (uchar*)candidateAccess->get();
-	int maxDistance = 0;
-	int maxIndex = 0;
-	std::vector<bool> isInL(totalSize, true);
-	std::unordered_set<int> Sc;
-	for(int i = 0; i < totalSize; ++i) {
-		if(inputArray[i] == 1) {
-			// Inside object
-			isInL[i] = false;
-
-			// Get max distance
-            if(candidateArray[i] == 1) {
-                short distance = distanceArray[i];
-                if(distance > maxDistance) {
-                    maxDistance = distance;
-                    maxIndex = i;
-                }
-                Sc.insert(i);
-            }
-		}
-	}
-	Vector3i maxPosition = position3D(maxIndex, size);
-	reportInfo() << "Max position found at " << maxPosition.transpose() << " with value " << maxDistance << reportEnd();
-
-	// Calculate speed term
-	double beta = 1.0 / (0.02*maxDistance);
-	auto speed = std::make_unique<double[]>(totalSize);
-	std::vector<double> G(totalSize, std::numeric_limits<double>::infinity());
-	for(int i = 0; i < totalSize; ++i) {
-		speed[i] = exp(beta*distanceArray[i]);
-	}
-
-	G[linearPosition(maxPosition, size)] = 0;
-	Vector3i neigbhors[6] = {
-            {1, 0, 0},
-            {-1, 0, 0},
-            {0, 1, 0},
-            {0, -1, 0},
-            {0, 0, 1},
-            {0, 0, -1}
-	};
-	std::vector<Vector3i> L;
-	for(int i = 0; i < 6; ++i) {
-		Vector3i nPos = maxPosition + neigbhors[i];
-		L.push_back(nPos);
-		isInL[linearPosition(nPos, size)] = true;
-	}
-
-	// Do fast marching
-	const double threshold = 0;
-	while(L.size() > 0) {
-		std::vector<Vector3i> L2;
-		for(Vector3i x : L) {
-			double p = G[linearPosition(x, size)];
-			double q = solveQuadratic(G, speed, x, size);
-            G[linearPosition(x, size)] = q;
-            if(fabs(p-q) <= threshold) {
-                for(int i = 0; i < 6; ++i) {
-                    Vector3i xn = x + neigbhors[i];
-                    if(!isInL[linearPosition(xn, size)]) {
-                        double p = G[linearPosition(xn, size)];
-                        double q = solveQuadratic(G, speed, xn, size);
-                        if(p > q) {
-                            G[linearPosition(x, size)] = q;
-                            L2.push_back(xn);
-                            isInL[linearPosition(xn, size)] = true;
-                        }
-                    }
-                }// For all neighbors
-            } else {
-                L2.push_back(x);
-            } // fabs(p-q)
-		} // for all x in L
-		L = L2;
-	} // while L.size() > 0
-	reportInfo() << "Finished fast marching" << reportEnd();
-
-	std::vector<Vector3i> neighbors2;
-    for(int a = -1; a <= 1;  ++a) {
-    for(int b = -1; b <= 1;  ++b) {
-    for(int c = -1; c <= 1;  ++c) {
-    	if(a == 0 && b == 0 && c == 0)
-    		continue;
-    	neighbors2.push_back(Vector3i(a,b,c));
-    }}}
-
+	int iteration = 0;
 	std::vector<MeshVertex> vertices;
 	std::vector<MeshLine> lines;
-    std::unordered_set<int> refinedCenterline;
-    std::unordered_set<int> processed;
-	// Do backtrace
-	while(Sc.size() > 0) {
-		// Find candidate centerline point with highest G
-		double maxG = 0.0;
-		int maxLinearPosition = -1;
-		for(int linearPosition : Sc) {
-			if(G[linearPosition] > maxG && !std::isinf(G[linearPosition])) {
-				maxG = G[linearPosition];
-				maxLinearPosition = linearPosition;
+	std::vector<bool> processedVoxels(totalSize, false);
+	while(true) {
+		reportInfo() << "Iteration:" << iteration++ << reportEnd();
+		int maxDistance = 0;
+		int maxIndex = -1;
+		std::vector<bool> isInL(totalSize, true);
+		std::unordered_set<int> Sc;
+		for(int i = 0; i < totalSize; ++i) {
+			if(inputArray[i] == 1 && !processedVoxels[i]) {
+				// Inside object
+				isInL[i] = false;
+
+				// Get max distance
+				if(candidateArray[i] == 1) {
+					short distance = distanceArray[i];
+					if(distance > maxDistance) {
+						maxDistance = distance;
+						maxIndex = i;
+					}
+					Sc.insert(i);
+				}
 			}
 		}
-
-		// Convert maxPosition to 3D
-		Vector3i maxPosition = position3D(maxLinearPosition, size);
-		reportInfo() << "Max position found at " << maxPosition.transpose() << " with G: " << maxG << reportEnd();
-
-		if(maxLinearPosition == -1)
+		if(maxIndex < 0) // Check if finished processing all segmentation parts
 			break;
+		if(maxDistance < 2)
+			break;
+		Vector3i maxPosition = position3D(maxIndex, size);
+		reportInfo() << "Max position found at " << maxPosition.transpose() << " with value " << maxDistance
+					 << reportEnd();
 
-		std::vector<Vector3i> pointsToAdd;
-		Vector3i current = maxPosition;
-		Vector3i previous = Vector3i::Zero();
-		Vector3i previous2 = Vector3i::Zero();
-		while(true) {
-			std::unordered_set<int>::iterator it = Sc.find(linearPosition(current, size));
-			if(it != Sc.end()) {
-                Sc.erase(it);
-			}
+		// Calculate speed term
+		double beta = 1.0 / (0.02 * maxDistance);
+		auto speed = std::make_unique<double[]>(totalSize);
+		std::vector<double> G(totalSize, std::numeric_limits<double>::infinity());
+		for(int i = 0; i < totalSize; ++i) {
+			speed[i] = exp(beta * distanceArray[i]);
+		}
 
-			// Find neighbor point with min G
-			double minG = std::numeric_limits<double>::infinity();
-			Vector3i bestPos;
-			Vector3i bestDPos;
-			double maxD = -1;
-			for(Vector3i n : neighbors2) {
-				Vector3i xn = current + n;
-				if(refinedCenterline.count(linearPosition(xn, size)) > 0) {
-                    if(distanceArray[linearPosition(xn, size)] > maxD) {
-                    	maxD = distanceArray[linearPosition(xn, size)];
-                    	bestDPos = xn;
-                    }
+		G[linearPosition(maxPosition, size)] = 0;
+		Vector3i neigbhors[6] = {
+				{1,  0,  0},
+				{-1, 0,  0},
+				{0,  1,  0},
+				{0,  -1, 0},
+				{0,  0,  1},
+				{0,  0,  -1}
+		};
+		processedVoxels[maxIndex] = true; // Mark this voxel as processed
+		std::vector<Vector3i> L;
+		for(int i = 0; i < 6; ++i) {
+			Vector3i nPos = maxPosition + neigbhors[i];
+			L.push_back(nPos);
+			isInL[linearPosition(nPos, size)] = true;
+		}
+
+		// Do fast marching
+		const double threshold = 0;
+		while(L.size() > 0) {
+			std::vector<Vector3i> L2;
+			for(Vector3i x : L) {
+				processedVoxels[linearPosition(x, size)] = true; // Mark this voxel as processed
+				double p = G[linearPosition(x, size)];
+				double q = solveQuadratic(G, speed, x, size);
+				G[linearPosition(x, size)] = q;
+				if(fabs(p - q) <= threshold) {
+					for(int i = 0; i < 6; ++i) {
+						Vector3i xn = x + neigbhors[i];
+						if(!isInL[linearPosition(xn, size)]) {
+							double p = G[linearPosition(xn, size)];
+							double q = solveQuadratic(G, speed, xn, size);
+							if(p > q) {
+								G[linearPosition(x, size)] = q;
+								L2.push_back(xn);
+								isInL[linearPosition(xn, size)] = true;
+							}
+						}
+					}// For all neighbors
+				} else {
+					L2.push_back(x);
+				} // fabs(p-q)
+			} // for all x in L
+			L = L2;
+		} // while L.size() > 0
+		reportInfo() << "Finished fast marching" << reportEnd();
+
+		std::vector<Vector3i> neighbors2;
+		for(int a = -1; a <= 1; ++a) {
+			for(int b = -1; b <= 1; ++b) {
+				for(int c = -1; c <= 1; ++c) {
+					if(a == 0 && b == 0 && c == 0)
+						continue;
+					neighbors2.push_back(Vector3i(a, b, c));
 				}
-				if(G[linearPosition(xn, size)] < minG) {
-					minG = G[linearPosition(xn, size)];
-					bestPos = xn;
-				}
-			}
-
-			if(maxD > -1) {
-                current = bestDPos;
-			} else {
-                current = bestPos;
-			}
-			pointsToAdd.push_back(current);
-
-			// A failsafe (why is this needed?)
-			if(previous2 == current) {
-				break;
-			}
-			previous2 = previous;
-			previous = current;
-
-			// Stop conditions
-			if(minG == 0) {
-				break;
-			}
-			if(refinedCenterline.count(linearPosition(current,size)) > 0) {
-				// Bifurcation
-				break;
 			}
 		}
 
-		if(pointsToAdd.size() > 10) { // minimum length
-			growFromPointsAdded(pointsToAdd, G, Sc, processed, size);
-			int counter = vertices.size();
-            vertices.push_back(MeshVertex(pointsToAdd[0].cast<float>().cwiseProduct(spacing)));
-            refinedCenterline.insert(linearPosition(pointsToAdd[0], size));
-			for(int i = 1; i < pointsToAdd.size(); ++i) {
-                refinedCenterline.insert(linearPosition(pointsToAdd[i], size));
-				vertices.push_back(MeshVertex(pointsToAdd[i].cast<float>().cwiseProduct(spacing)));
-				lines.push_back(MeshLine(counter, counter+1));
-				counter += 1;
+		std::unordered_set<int> refinedCenterline;
+		std::unordered_set<int> processed;
+		// Do backtrace
+		while(Sc.size() > 0) {
+			// Find candidate centerline point with highest G
+			double maxG = 0.0;
+			int maxLinearPosition = -1;
+			for(int linearPosition : Sc) {
+				if(G[linearPosition] > maxG && !std::isinf(G[linearPosition])) {
+					maxG = G[linearPosition];
+					maxLinearPosition = linearPosition;
+				}
+			}
+
+			// Convert maxPosition to 3D
+			Vector3i maxPosition = position3D(maxLinearPosition, size);
+			reportInfo() << "Max position found at " << maxPosition.transpose() << " with G: " << maxG << reportEnd();
+
+			if(maxLinearPosition == -1)
+				break;
+
+			std::vector<Vector3i> pointsToAdd;
+			Vector3i current = maxPosition;
+			Vector3i previous = Vector3i::Zero();
+			Vector3i previous2 = Vector3i::Zero();
+			while(true) {
+				std::unordered_set<int>::iterator it = Sc.find(linearPosition(current, size));
+				if(it != Sc.end()) {
+					Sc.erase(it);
+				}
+
+				// Find neighbor point with min G
+				double minG = std::numeric_limits<double>::infinity();
+				Vector3i bestPos;
+				Vector3i bestDPos;
+				double maxD = -1;
+				for(Vector3i n : neighbors2) {
+					Vector3i xn = current + n;
+					if(refinedCenterline.count(linearPosition(xn, size)) > 0) {
+						if(distanceArray[linearPosition(xn, size)] > maxD) {
+							maxD = distanceArray[linearPosition(xn, size)];
+							bestDPos = xn;
+						}
+					}
+					if(G[linearPosition(xn, size)] < minG) {
+						minG = G[linearPosition(xn, size)];
+						bestPos = xn;
+					}
+				}
+
+				if(maxD > -1) {
+					current = bestDPos;
+				} else {
+					current = bestPos;
+				}
+				pointsToAdd.push_back(current);
+
+				// A failsafe (why is this needed?)
+				if(previous2 == current) {
+					break;
+				}
+				previous2 = previous;
+				previous = current;
+
+				// Stop conditions
+				if(minG == 0) {
+					break;
+				}
+				if(refinedCenterline.count(linearPosition(current, size)) > 0) {
+					// Bifurcation
+					break;
+				}
+			}
+
+			if(pointsToAdd.size() > 10) { // minimum length
+				growFromPointsAdded(pointsToAdd, G, Sc, processed, size);
+				int counter = vertices.size();
+				vertices.push_back(MeshVertex(pointsToAdd[0].cast<float>().cwiseProduct(spacing)));
+				refinedCenterline.insert(linearPosition(pointsToAdd[0], size));
+				for(int i = 1; i < pointsToAdd.size(); ++i) {
+					refinedCenterline.insert(linearPosition(pointsToAdd[i], size));
+					vertices.push_back(MeshVertex(pointsToAdd[i].cast<float>().cwiseProduct(spacing)));
+					lines.push_back(MeshLine(counter, counter + 1));
+					counter += 1;
+				}
 			}
 		}
 	}
