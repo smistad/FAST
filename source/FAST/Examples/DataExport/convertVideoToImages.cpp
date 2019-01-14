@@ -22,16 +22,18 @@ int main(int argc, char** argv) {
     parser.addChoice("export-format", {"mhd", "png", "bmp", "jpg"}, "mhd", "Select image format to export");
     parser.addOption("static-cropping", "Enable static ultrasound cropping. Meaning that the cropping parameters are calculated for the first frame and then used for the rest");
     parser.addOption("disable-compression", "Disable compression when saving as mhd (.zraw)");
+    parser.addOption("color", "Use color");
     parser.parse(argc, argv);
 
     std::string path = parser.get("path");
     std::string extension = parser.get("extension");
     for(auto file : getDirectoryList(parser.get("path"))) {
-        std::cout << file << std::endl;
         if(file.substr(file.size() - extension.size()) != extension)
             continue;
+        Reporter::info() << "Processing file " << file << Reporter::end();
         auto streamer = MovieStreamer::New();
-        streamer->setFilename(path + file);
+        streamer->setGrayscale(parser.getOption("color"));
+        streamer->setFilename(join(path, file));
 
         auto port = streamer->getOutputPort();
         if(parser.getOption("ultrasound-cropping")) {
