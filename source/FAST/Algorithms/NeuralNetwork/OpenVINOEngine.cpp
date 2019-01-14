@@ -138,4 +138,8 @@ ImageOrdering OpenVINOEngine::getPreferredImageOrdering() const {
 std::string OpenVINOEngine::getName() const {
     return "OpenVINO";
 }
+
+std::string OpenVINOEngine::getDefaultFileExtension() const {
+    return "xml";
+}
 }

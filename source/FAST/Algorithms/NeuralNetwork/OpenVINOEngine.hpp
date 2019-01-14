@@ -20,6 +20,8 @@ class OpenVINOEngine : public InferenceEngine {
 
         std::string getName() const override;
 
+		std::string getDefaultFileExtension() const override;
+
     private:
         std::shared_ptr<::InferenceEngine::InferRequest> m_inferRequest;
 		std::shared_ptr<::InferenceEngine::InferencePlugin> m_inferencePlugin;

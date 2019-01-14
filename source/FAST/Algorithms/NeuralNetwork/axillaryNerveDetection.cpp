@@ -16,7 +16,7 @@ using namespace fast;
 int main(int argc, char** argv) {
     Reporter::setGlobalReportMethod(Reporter::COUT);
     CommandLineParser parser("Axillary heatmap demo");
-    parser.addVariable("model-filename", Config::getTestDataPath() + "NeuralNetworkModels/axillary_all_augmentations.pb");
+    parser.addVariable("model-filename", "unspecified");
     parser.addVariable("recording", Config::getTestDataPath() + "US/Axillary/US-2D_#.mhd");
     parser.addVariable("openigtlink-ip", false);
     parser.addOption("flip");
@@ -26,7 +26,6 @@ int main(int argc, char** argv) {
     if(parser.gotValue("openigtlink-ip")) {
         auto streamer = IGTLinkStreamer::New();
         streamer->setConnectionAddress(parser.get("openigtlink-ip"));
-        streamer->setConnectionPort(18944);
         auto cropper = UltrasoundImageCropper::New();
         cropper->setInputConnection(streamer->getOutputPort());
         inputStream = cropper;
@@ -38,12 +37,23 @@ int main(int argc, char** argv) {
         inputStream = streamer;
     }
 
+    std::string path = join(Config::getTestDataPath(), "NeuralNetworkModels/axillary_all_augmentations");
     PixelClassifier::pointer segmentation = PixelClassifier::New();
+    const auto engine = segmentation->getInferenceEngine()->getName();
+    if(engine == "TensorFlow") {
+        segmentation->addOutputNode(0, "conv2d_23/truediv");
+    } else if(engine == "TensorRT") {
+        // TODO specify nodes
+    }
+    if(parser.get("model-filename") == "unspecified") {
+        path += "." + segmentation->getInferenceEngine()->getDefaultFileExtension();
+    } else {
+        path = parser.get("model-filename");
+    }
     segmentation->setHeatmapOutput();
     segmentation->setNrOfClasses(6);
-    segmentation->load(parser.get("model-filename"));
+    segmentation->load(path);
     segmentation->setScaleFactor(1.0f / 255.0f);
-    segmentation->addOutputNode(0, "conv2d_23/truediv");
     segmentation->setInputConnection(inputStream->getOutputPort());
     //segmentation->setPreserveAspectRatio(true);
     segmentation->enableRuntimeMeasurements();

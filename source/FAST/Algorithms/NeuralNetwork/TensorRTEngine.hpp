@@ -16,6 +16,7 @@ class TensorRTEngine : public InferenceEngine {
         void load() override;
         ImageOrdering getPreferredImageOrdering() const override;
         std::string getName() const override;
+        std::string getDefaultFileExtension() const override;
         ~TensorRTEngine() override;
         void setMaxBatchSize(int maxBathSize);
         int getMaxBatchSize() const;

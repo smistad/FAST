@@ -48,6 +48,7 @@ class FAST_EXPORT InferenceEngine : public Object {
         virtual bool isLoaded();
         virtual ImageOrdering getPreferredImageOrdering() const = 0;
         virtual std::string getName() const = 0;
+        virtual std::string getDefaultFileExtension() const = 0;
     protected:
         virtual void setIsLoaded(bool loaded);
 

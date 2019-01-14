@@ -247,4 +247,8 @@ std::string TensorFlowEngine::getName() const {
     return "TensorFlow";
 }
 
+std::string TensorFlowEngine::getDefaultFileExtension() const {
+    return "pb";
+}
+
 }
