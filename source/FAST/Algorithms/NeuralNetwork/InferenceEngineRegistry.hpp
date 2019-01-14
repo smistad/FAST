@@ -27,6 +27,24 @@ class FAST_EXPORT InferenceEngineRegistry {
             throw Exception("Inference engine object " + class_name + " not registered in InferenceEngineRegistry.");
         }
 
+        /**
+         * Create and return the engine that is preferred and available on this build.
+         * @return
+         */
+        static SharedPointer<InferenceEngine> createPreferredEngine() {
+            if(getList().empty()) {
+                throw Exception("No inference engines were compiled with FAST, unable to run neural network inference.");
+            }
+            std::vector<std::string> preferred = {"TensorFlow", "TensorRT"}; // Fastest
+            for(const auto& class_name : preferred) {
+                if(ctors().count(class_name) == 1) {
+                    return ctors()[class_name]();
+                }
+            }
+            // If none of the preferred are available, just use the first one
+            return ctors()[*getList().begin()]();
+        }
+
         static bool registerIE(const std::string& class_name, const ctor_t& ctor) {
             ctors()[class_name] = ctor;
             return true;

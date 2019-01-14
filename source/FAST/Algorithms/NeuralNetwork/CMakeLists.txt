@@ -29,7 +29,6 @@
     #fast_add_example(timingNetwork timingNetwork.cpp)
     #fast_add_example(imageClassification imageClassification.cpp)
     #fast_add_example(leftVentricleSegmentation leftVentricleSegmentation.cpp)
-    fast_add_example(axillaryNerveDetection axillaryNerveDetection.cpp)
 if(FAST_MODULE_TensorFlow)
     fast_add_sources(
         TensorFlowEngine.cpp

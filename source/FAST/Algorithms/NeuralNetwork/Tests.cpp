@@ -34,15 +34,13 @@ TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork][visual]") {
         segmentation->setNrOfClasses(3);
         segmentation->setInferenceEngine(engine);
         if(engine == "TensorFlow") {
-            segmentation->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_vein_segmentation.pb");
             segmentation->addOutputNode(0, "conv2d_23/truediv");
         } else if(engine == "TensorRT") {
             segmentation->addInputNode(0, "input_image", NodeType::IMAGE, TensorShape({-1, 1, 256, 256}));
             segmentation->addOutputNode(0, "permute_2/transpose");
-            segmentation->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_vein_segmentation.uff");
-        } else {
-            segmentation->load(Config::getTestDataPath() + "NeuralNetworkModels/jugular_vein_segmentation.xml");
         }
+        segmentation->load(join(Config::getTestDataPath(),
+                                "NeuralNetworkModels/jugular_vein_segmentation." + segmentation->getInferenceEngine()->getDefaultFileExtension());
         segmentation->setScaleFactor(1.0f / 255.0f);
         //segmentation->setInputConnection(importer->getOutputPort());
         segmentation->setInputConnection(streamer->getOutputPort());

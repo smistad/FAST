@@ -50,9 +50,9 @@ int main(int argc, char** argv) {
     } else {
         path = parser.get("model-filename");
     }
+    segmentation->load(path);
     segmentation->setHeatmapOutput();
     segmentation->setNrOfClasses(6);
-    segmentation->load(path);
     segmentation->setScaleFactor(1.0f / 255.0f);
     segmentation->setInputConnection(inputStream->getOutputPort());
     //segmentation->setPreserveAspectRatio(true);

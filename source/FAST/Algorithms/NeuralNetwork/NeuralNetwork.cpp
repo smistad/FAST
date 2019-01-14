@@ -32,10 +32,7 @@ NeuralNetwork::NeuralNetwork() {
 	createStringAttribute("output_names", "Output names", "Name of output nodes", "");
 	createBooleanAttribute("signed_input_normalization", "Signed input normalization", "Normalize input to -1 and 1 instead of 0 to 1.", false);
 
-	auto list = InferenceEngineRegistry::getList();
-	if(list.empty())
-	    throw Exception("No inference engines were compiled with FAST, unable to run neural network inference.");
-	m_engine = InferenceEngineRegistry::create(*list.begin()); // Select first
+	m_engine = InferenceEngineRegistry::createPreferredEngine();
 	reportInfo() << "Inference engine " << m_engine->getName() << " selected" << reportEnd();
 }
 
