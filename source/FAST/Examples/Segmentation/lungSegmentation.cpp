@@ -5,6 +5,7 @@
  */
 #include <FAST/Tools/CommandLineParser.hpp>
 #include <FAST/Exporters/MetaImageExporter.hpp>
+#include <FAST/Exporters/VTKMeshFileExporter.hpp>
 #include <FAST/Algorithms/CenterlineExtraction/CenterlineExtraction.hpp>
 #include <FAST/Visualization/LineRenderer/LineRenderer.hpp>
 #include "FAST/Importers/ImageFileImporter.hpp"
@@ -20,7 +21,8 @@ using namespace fast;
 int main(int argc, char** argv) {
     CommandLineParser parser("Lung segmentation", "Segments the lungs, airways and blood vessels");
     parser.addPositionVariable(1, "input-filename", Config::getTestDataPath() + "CT/CT-Thorax.mhd");
-    parser.addVariable("output-filename", false, "Filename of where to export filename (mhd format). Example: /path/to/filename.mhd");
+    parser.addVariable("output-path", false, "Save data to this path in mhd and vtk format");
+    parser.addOption("blood-vessel-centerline", "Extract centerline from blood vessels");
     parser.parse(argc, argv);
 
     // Import image from file using the ImageFileImporter
@@ -31,44 +33,68 @@ int main(int argc, char** argv) {
     auto segmentation = LungSegmentation::New();
     segmentation->setInputConnection(importer->getOutputPort());
 
-    if(parser.gotValue("output-filename")) {
-        auto exporter = MetaImageExporter::New();
-        exporter->setFilename(parser.get("output-filename"));
-        exporter->setInputConnection(segmentation->getOutputPort());
-        exporter->update(0);
+    auto centerline = CenterlineExtraction::New();
+    if(parser.getOption("blood-vessel-centerline")) {
+        centerline->setInputConnection(segmentation->getBloodVesselOutputPort());
+        centerline->getReporter().setGlobalReportMethod(Reporter::COUT);
     }
 
-    auto centerline = CenterlineExtraction::New();
-    centerline->setInputConnection(segmentation->getBloodVesselOutputPort());
+    if(parser.gotValue("output-path")) {
+        auto exporter = MetaImageExporter::New();
+        exporter->setFilename(join(parser.get("output-path"), "vessel_segmentation.mhd"));
+        exporter->setInputConnection(segmentation->getBloodVesselOutputPort());
 
-    // Extract lung surface
-    auto extraction = SurfaceExtraction::New();
-    extraction->setInputConnection(segmentation->getOutputPort());
+        auto exporter2 = MetaImageExporter::New();
+        exporter2->setFilename(join(parser.get("output-path"), "lung_segmentation.mhd"));
+        exporter2->setInputConnection(segmentation->getOutputPort(0));
 
-    // Extract airway surface
-    auto extraction2 = SurfaceExtraction::New();
-    extraction2->setInputConnection(segmentation->getOutputPort(1));
+        auto exporter3 = MetaImageExporter::New();
+        exporter3->setFilename(join(parser.get("output-path"), "airway_segmentation.mhd"));
+        exporter3->setInputConnection(segmentation->getOutputPort(1));
 
-    // Extract blood vessel
-    auto extraction3 = SurfaceExtraction::New();
-    extraction3->setInputConnection(segmentation->getBloodVesselOutputPort());
+        if(parser.getOption("blood-vessel-centerline")) {
+            auto exporter2 = VTKMeshFileExporter::New();
+            exporter2->setFilename(join(parser.get("output-path"), "centerline.vtk"));
+            exporter2->setInputConnection(centerline->getOutputPort());
+            exporter2->update(0);
+        }
+        exporter->update(0);
+        exporter2->update(0);
+        exporter3->update(0);
+    } else {
 
-    // Render both surfaces with different color
-    auto renderer = TriangleRenderer::New();
-    renderer->addInputConnection(extraction->getOutputPort(), Color::Green(), 0.6f);
-    renderer->addInputConnection(extraction2->getOutputPort(), Color::Red(), 1.0f);
-    renderer->addInputConnection(extraction3->getOutputPort(), Color::Blue(), 1.0f);
+        // Extract lung surface
+        auto extraction = SurfaceExtraction::New();
+        extraction->setInputConnection(segmentation->getOutputPort());
 
-    auto lineRenderer = LineRenderer::New();
-    lineRenderer->addInputConnection(centerline->getOutputPort());
-    lineRenderer->setDefaultDrawOnTop(true);
+        // Extract airway surface
+        auto extraction2 = SurfaceExtraction::New();
+        extraction2->setInputConnection(segmentation->getOutputPort(1));
 
-    auto window = SimpleWindow::New();
-    window->addRenderer(renderer);
-    window->addRenderer(lineRenderer);
+        // Extract blood vessel
+        auto extraction3 = SurfaceExtraction::New();
+        extraction3->setInputConnection(segmentation->getBloodVesselOutputPort());
+
+        // Render both surfaces with different color
+        auto renderer = TriangleRenderer::New();
+        renderer->addInputConnection(extraction->getOutputPort(), Color::Green(), 0.6f);
+        renderer->addInputConnection(extraction2->getOutputPort(), Color::Red(), 1.0f);
+        renderer->addInputConnection(extraction3->getOutputPort(), Color::Blue(), 1.0f);
+
+        auto window = SimpleWindow::New();
+        window->addRenderer(renderer);
+
+        if(parser.getOption("blood-vessel-centerline")) {
+            auto lineRenderer = LineRenderer::New();
+            lineRenderer->addInputConnection(centerline->getOutputPort());
+            lineRenderer->setDefaultDrawOnTop(true);
+            window->addRenderer(lineRenderer);
+        }
+
 #ifdef FAST_CONTINUOUS_INTEGRATION
-    // This will automatically close the window after 5 seconds, used for CI testing
-    window->setTimeout(5*1000);
+        // This will automatically close the window after 5 seconds, used for CI testing
+        window->setTimeout(5*1000);
 #endif
-    window->start();
+        window->start();
+    }
 }
