@@ -710,10 +710,13 @@ std::vector<std::string> getDirectoryList(std::string path, bool getFiles, bool 
 	hFind = FindFirstFile((path + "*").c_str(), &data);
 	if(hFind != INVALID_HANDLE_VALUE) {
 		do {
+			const std::string name = data.cFileName;
             if(getDirectories && data.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY) {
-                list.push_back(data.cFileName);
+				if(name == "." || name == "..")
+					continue;
+                list.push_back(name);
 			} else if(getFiles) {
-                list.push_back(data.cFileName);
+                list.push_back(name);
 			}
 		} while (FindNextFile(hFind, &data));
 		FindClose(hFind);
