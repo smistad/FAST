@@ -40,7 +40,7 @@ TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork][visual]") {
             segmentation->addOutputNode(0, "permute_2/transpose");
         }
         segmentation->load(join(Config::getTestDataPath(),
-                                "NeuralNetworkModels/jugular_vein_segmentation." + segmentation->getInferenceEngine()->getDefaultFileExtension());
+                                "NeuralNetworkModels/jugular_vein_segmentation." + segmentation->getInferenceEngine()->getDefaultFileExtension()));
         segmentation->setScaleFactor(1.0f / 255.0f);
         //segmentation->setInputConnection(importer->getOutputPort());
         segmentation->setInputConnection(streamer->getOutputPort());
