@@ -33,7 +33,7 @@ void OpenVINOEngine::run() {
 			default:
 				throw Exception("Invalid tensor dimension size");
 			}
-			Blob::Ptr input = m_inferRequest->GetBlob("input_image");
+			Blob::Ptr input = m_inferRequest->GetBlob(node.first);
 			auto input_data = input->buffer().as<PrecisionTrait<Precision::FP32>::value_type * >();
 			std::memcpy(input_data, tensorData, input->byteSize());
 		}
