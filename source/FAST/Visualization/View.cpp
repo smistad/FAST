@@ -6,7 +6,6 @@
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Visualization/SliceRenderer/SliceRenderer.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
-#include "FAST/Visualization/VolumeRenderer/VolumeRenderer.hpp"
 #include "FAST/Utility.hpp"
 #include "SimpleWindow.hpp"
 #include "FAST/Utility.hpp"
@@ -33,14 +32,7 @@
 using namespace fast;
 
 void View::addRenderer(Renderer::pointer renderer) {
-    // Can renderer be casted to volume renderer test:
-    auto test = std::dynamic_pointer_cast<VolumeRenderer>(renderer);
-	bool thisIsAVolumeRenderer = (bool)test;
-
-	if(thisIsAVolumeRenderer)
-		mVolumeRenderers.push_back(renderer);
-	else
-		mNonVolumeRenderers.push_back(renderer);
+	mNonVolumeRenderers.push_back(renderer);
 }
 
 void View::removeAllRenderers() {
@@ -541,97 +533,6 @@ void View::paintGL() {
 
     glFinish();
 	mRuntimeManager->stopRegularTimer("paint");
-}
-
-void View::renderVolumes()
-{
-    QGLFunctions *fun = Window::getMainGLContext()->functions();
-
-		//Rendere to Back buffer
-		fun->glBindFramebuffer(GL_FRAMEBUFFER,0);
-
-		
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-
-		//Update Camera Matrix for VolumeRendere
-		GLfloat modelView[16];
-		glGetFloatv(GL_MODELVIEW_MATRIX, modelView);
-		std::static_pointer_cast<VolumeRenderer>(mVolumeRenderers[0])->setModelViewMatrix(modelView);
-
-		if (mNonVolumeRenderers.size() > 0)
-		{
-			std::static_pointer_cast<VolumeRenderer>(mVolumeRenderers[0])->addGeometryColorTexture(renderedTexture0);
-			std::static_pointer_cast<VolumeRenderer>(mVolumeRenderers[0])->addGeometryDepthTexture(renderedTexture1);
-		}
-		
-
-		mRuntimeManager->startRegularTimer("draw");
-		for(unsigned int i = 0; i < mVolumeRenderers.size(); i++) {
-            mVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), false);
-            mVolumeRenderers[i]->postDraw();
-		}
-		mRuntimeManager->stopRegularTimer("draw");
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
-		
-}
-
-void View::getDepthBufferFromGeo()
-{
-
-    QGLFunctions *fun = Window::getMainGLContext()->functions();
-	/*Converting the depth buffer texture from GL format to CL format >>>*/
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glViewport(0,0,this->width(),this->height());
-	glOrtho(0, this->width(), 0, this->height(), 0, 512);
-
-	// Render to Second Texture
-	fun->glBindFramebuffer(GL_FRAMEBUFFER, fbo2);
-
-	fun->glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, renderedDepthText);
-	int loc = fun->glGetUniformLocation(programGLSL, "renderedDepthText");
-	fun->glUniform1i(loc, renderedDepthText);
-
-	fun->glUseProgram(programGLSL);
-
-	glBegin(GL_QUADS);
-	glTexCoord2f(0, 0);
-	glVertex2f(0,0);
-	glTexCoord2f(1.0, 0);
-	glVertex2f(this->width(),0);
-	glTexCoord2f(1.0, 1.0);
-	glVertex2f(this->width(), this->height());
-	glTexCoord2f(0, 1.0);
-	glVertex2f(0,  this->height());
-	glEnd();
-
-	fun->glUseProgram(0);
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-
-	//Rendere to Back buffer
-	fun->glBindFramebuffer(GL_FRAMEBUFFER,0);
-
-	glMatrixMode(GL_MODELVIEW);
-	glPopMatrix();
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
-
 }
 
 void View::resizeGL(int width, int height) {
