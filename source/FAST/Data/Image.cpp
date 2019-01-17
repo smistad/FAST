@@ -694,19 +694,19 @@ void Image::freeAll() {
     }
 }
 
-unsigned int Image::getWidth() const {
+int Image::getWidth() const {
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
     return mWidth;
 }
 
-unsigned int Image::getHeight() const {
+int Image::getHeight() const {
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
     return mHeight;
 }
 
-unsigned int Image::getDepth() const {
+int Image::getDepth() const {
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
     return mDepth;
@@ -730,7 +730,7 @@ DataType Image::getDataType() const {
     return mType;
 }
 
-unsigned int Image::getNrOfChannels() const {
+int Image::getNrOfChannels() const {
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
     return mChannels;
