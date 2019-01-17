@@ -6,12 +6,39 @@ namespace fast {
 
 void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) {
     reportInfo() << "Draw in volume renderer" << reportEnd();
+
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
+    auto queue = device->getCommandQueue();
+
     // Create a FBO
     if(m_FBO == -1)
         glGenFramebuffers(1, &m_FBO);
 
     // Bind the framebuffer to render to it
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FBO);
+    // TODO CL-GL interop
+
+    auto image = cl::Image2D(
+            device->getContext(),
+            CL_MEM_READ_WRITE,
+            cl::ImageFormat(CL_RGBA, CL_FLOAT),
+            512, 512
+    );
+    auto mKernel = cl::Kernel(getOpenCLProgram(device), "volumeRender");
+    mKernel.setArg(1, image);
+
+    auto input = getInputData<Image>(0);
+    auto access = input->getOpenCLImageAccess(ACCESS_READ, device);
+    cl::Image3D *clImage = access->get3DImage();
+
+    mKernel.setArg(0, *clImage);
+    queue.enqueueNDRangeKernel(
+            mKernel,
+            cl::NullRange,
+            cl::NDRange(512, 512),
+            cl::NullRange
+    );
+
 
     // Attach texture to framebuffer
     if(m_texture == -1) {
@@ -19,12 +46,14 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
         glBindTexture(GL_TEXTURE_2D, m_texture);
 
         auto data = make_uninitialized_unique<float[]>(512*512*4);
-        for(int i = 0; i < 512*512; ++i) {
-            data[i*4 + 0] = 1.0f;
-            data[i*4 + 1] = 0.0f;
-            data[i*4 + 2] = 0.0f;
-            data[i*4 + 3] = 1.0f;
-        }
+        queue.enqueueReadImage(
+                image,
+                CL_TRUE,
+                createOrigoRegion(),
+                createRegion(512, 512, 1),
+                0, 0,
+                data.get()
+        );
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 512, 512, 0, GL_RGBA, GL_FLOAT, data.get());
         glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture, 0);
@@ -51,6 +80,7 @@ VolumeRenderer::~VolumeRenderer() {
 VolumeRenderer::VolumeRenderer() {
     createInputPort<Image>(0);
 
+    createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/VolumeRenderer/VolumeRenderer.cl");
 }
 
 }
