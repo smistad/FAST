@@ -52,8 +52,8 @@ __kernel void volumeRender(
     const int height = get_image_height(framebuffer);
 
     // Grid position
-    const uint x = get_global_id(0);
-    const uint y = get_global_id(1);
+    const int x = get_global_id(0);
+    const int y = get_global_id(1);
 
     // Normalized grid position
     const float u = ((x / (float) width)*2.0f-1.0f)*((float)width/height); // compensate for aspect ratio != 1
@@ -96,7 +96,7 @@ __kernel void volumeRender(
     // Traverse along ray from back to front, and keep the maximum intensity
     temp = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
     float distance = tfar; // Start at tfar
-    for(uint i = 0; i < maxSteps; ++i) {
+    for(int i = 0; i < maxSteps; ++i) {
         float4 pos = rayOrigin + rayDirection*distance;
         /*
         pos.w = 1;

@@ -5,8 +5,6 @@
 namespace fast {
 
 void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) {
-    reportInfo() << "Draw in volume renderer" << reportEnd();
-
     // Get window/viewport size
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
@@ -73,6 +71,7 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
             16*sizeof(float),
             invViewMatrix.data()
     );
+    // TODO probably don't need this:
     auto modelMatrixBuffer = cl::Buffer(
             device->getContext(),
             CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -110,16 +109,20 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
             data.get()
     );
 
+    // Transfer texture data
     glBindTexture(GL_TEXTURE_2D, m_texture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, gridSize.x(), gridSize.y(), 0, GL_RGBA, GL_FLOAT, data.get());
+
+    // Set texture to FBO
     glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture, 0);
 
     // Blit/copy the framebuffer to the default framebuffer (window)
     glBindFramebuffer(GL_READ_FRAMEBUFFER, m_FBO);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-
-
     glBlitFramebuffer(0, 0, gridSize.x(), gridSize.y(), viewport[0], viewport[1], viewport[2], viewport[3], GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+    // Reset framebuffer to default framebuffer
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 }
 
 VolumeRenderer::~VolumeRenderer() {
