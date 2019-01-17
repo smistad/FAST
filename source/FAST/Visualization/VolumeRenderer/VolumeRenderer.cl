@@ -1,6 +1,6 @@
 
 const sampler_t transferFuncSampler = CLK_NORMALIZED_COORDS_TRUE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;
-const sampler_t volumeSampler = CLK_NORMALIZED_COORDS_TRUE | CLK_ADDRESS_REPEAT | CLK_FILTER_LINEAR;
+const sampler_t volumeSampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;
 /*
 __kernel void volumeRender(
         __read_only image3d_t volume,
@@ -13,8 +13,7 @@ __kernel void volumeRender(
  */
 
 
-#define maxSteps 500
-#define tstep 0.01f
+#define tstep 0.5f
 
 // intersect ray with a box
 // http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm
@@ -63,30 +62,31 @@ __kernel void volumeRender(
 
     const int imageW = get_image_width(framebuffer);
     const int imageH = get_image_height(framebuffer);
-    uint x = get_global_id(0);
-    uint y = get_global_id(1);
+    const uint x = get_global_id(0);
+    const uint y = get_global_id(1);
 
-    float u = (x / (float) imageW)*2.0f-1.0f;
-    float v = (y / (float) imageH)*2.0f-1.0f;
+    float u = ((x / (float) imageW)*2.0f-1.0f);
+    float v = ((y / (float) imageH)*2.0f-1.0f);
 
     //float tstep = 0.01f;
-    float4 boxMin = (float4)(-1.0f, -1.0f, -1.0f,1.0f);
-    float4 boxMax = (float4)(1.0f, 1.0f, 1.0f,1.0f);
+    const float4 boxMin = (float4)(0.0f, 0.0f, 0.0f,1.0f);
+    const float4 boxMax = (float4)(get_image_width(volume), get_image_height(volume), get_image_depth(volume), 1.0f);
+    const int maxSteps = max(max(boxMax.x, boxMax.y), boxMax.z);
 
     // calculate eye ray in world space
     float4 eyeRay_o;
     float4 eyeRay_d;
 
     // Ray origin is at the camera center
-    eyeRay_o = (float4)(invViewMatrix[3], invViewMatrix[7], invViewMatrix[11], 1.0f);
+    eyeRay_o = (float4)(invViewMatrix[12], invViewMatrix[13], invViewMatrix[14], 1.0f);
 
     // Ray destination is the window coordinate u,v and -2 in z direction
     float4 temp = normalize(((float4)(u, v, -2.0f,0.0f)));
     // Go from normalized coords to
-    eyeRay_d.x = dot(temp, ((float4)(invViewMatrix[0],invViewMatrix[1],invViewMatrix[2],invViewMatrix[3])));
-    eyeRay_d.y = dot(temp, ((float4)(invViewMatrix[4],invViewMatrix[5],invViewMatrix[6],invViewMatrix[7])));
-    eyeRay_d.z = dot(temp, ((float4)(invViewMatrix[8],invViewMatrix[9],invViewMatrix[10],invViewMatrix[11])));
-    eyeRay_d.w = 0.0f;
+    eyeRay_d.x = dot(temp, ((float4)(invViewMatrix[0],invViewMatrix[4],invViewMatrix[8], 0)));
+    eyeRay_d.y = dot(temp, ((float4)(invViewMatrix[1],invViewMatrix[5],invViewMatrix[9], 0)));
+    eyeRay_d.z = dot(temp, ((float4)(invViewMatrix[2],invViewMatrix[6],invViewMatrix[10], 0)));
+    eyeRay_d.w = 1.0f;
 
     // find intersection with box
     float tnear, tfar;
@@ -100,15 +100,16 @@ __kernel void volumeRender(
         return;
     }
 
-    if (tnear < 0.0f) tnear = 0.0f;     // clamp to near plane
+    if (tnear < 0.0f)
+        tnear = 0.0f;     // clamp to near plane
 
     // march along ray from back to front, accumulating color
     temp = (float4)(0.0f,0.0f,0.0f,0.0f);
     float t = tfar;
 
-    for(uint i=0; i<maxSteps; i++) {
+    for(uint i = 0; i < maxSteps; i++) {
         float4 pos = eyeRay_o + eyeRay_d*t;
-        pos = pos*0.5f+0.5f;    // map position to [0, 1] coordinates
+        //pos = pos*0.5f+0.5f;    // map position to [0, 1] coordinates
 
         // read from 3D texture
         float sample = clamp(0.0f, 1.0f, ((float)read_imagei(volume, volumeSampler, pos).x+1024.0f)/4000.0f);

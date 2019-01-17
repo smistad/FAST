@@ -7,6 +7,12 @@ namespace fast {
 void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) {
     reportInfo() << "Draw in volume renderer" << reportEnd();
 
+    // Get window/viewport size
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    const float aspectRatio = (float)viewport[2] / viewport[3];
+    const Vector2i gridSize(aspectRatio*512, 512);
+
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     auto queue = device->getCommandQueue();
 
@@ -22,7 +28,7 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
             device->getContext(),
             CL_MEM_READ_WRITE,
             cl::ImageFormat(CL_RGBA, CL_FLOAT),
-            512, 512
+            gridSize.x(), gridSize.y()
     );
     auto mKernel = cl::Kernel(getOpenCLProgram(device), "volumeRender");
     mKernel.setArg(1, image);
@@ -60,25 +66,8 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
     Affine3f modelMatrix = SceneGraph::getEigenAffineTransformationFromData(input);
     modelMatrix.scale(input->getSpacing());
     std::cout << "Model matrix:" << modelMatrix.matrix() << std::endl;
-    Matrix4f invViewMatrix = (viewingMatrix).inverse();
-    //modelView(3) = modelView(12);
-    //modelView(7) = modelView(13);
-    //modelView(11) = modelView(14);
-    /*
-    MatrixXf invViewMatrix = MatrixXf::Zero(3, 4);
-    invViewMatrix(0) = modelView(0);
-    invViewMatrix(1) = modelView(4);
-    invViewMatrix(2) = modelView(8);
-    invViewMatrix(3) = modelView(12);
-    invViewMatrix(4) = modelView(1);
-    invViewMatrix(5) = modelView(5);
-    invViewMatrix(6) = modelView(9);
-    invViewMatrix(7) = modelView(13);
-    invViewMatrix(8) = modelView(2);
-    invViewMatrix(9) = modelView(6);
-    invViewMatrix(10) = modelView(10);
-    invViewMatrix(11) = modelView(14);
-     */
+    Matrix4f invViewMatrix = viewingMatrix.inverse();
+
     auto inverseViewMatrixBuffer = cl::Buffer(
             device->getContext(),
             CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -103,7 +92,7 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
     queue.enqueueNDRangeKernel(
             mKernel,
             cl::NullRange,
-            cl::NDRange(512, 512),
+            cl::NDRange(gridSize.x(), gridSize.y()),
             cl::NullRange
     );
 
@@ -112,12 +101,12 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
     if(m_texture == -1)
         glGenTextures(1, &m_texture);
 
-    auto data = make_uninitialized_unique<float[]>(512*512*4);
+    auto data = make_uninitialized_unique<float[]>(gridSize.x()*gridSize.y()*4);
     queue.enqueueReadImage(
             image,
             CL_TRUE,
             createOrigoRegion(),
-            createRegion(512, 512, 1),
+            createRegion(gridSize.x(), gridSize.y(), 1),
             0, 0,
             data.get()
     );
@@ -130,18 +119,15 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
      */
 
     glBindTexture(GL_TEXTURE_2D, m_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 512, 512, 0, GL_RGBA, GL_FLOAT, data.get());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, gridSize.x(), gridSize.y(), 0, GL_RGBA, GL_FLOAT, data.get());
     glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture, 0);
 
     // Blit/copy the framebuffer to the default framebuffer (window)
     glBindFramebuffer(GL_READ_FRAMEBUFFER, m_FBO);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
-    // Get window/viewport size
-    GLint viewport[4];
-    glGetIntegerv(GL_VIEWPORT, viewport);
 
-    glBlitFramebuffer(0, 0, 512, 512, viewport[0], viewport[1], viewport[2], viewport[3], GL_COLOR_BUFFER_BIT, GL_LINEAR);
+    glBlitFramebuffer(0, 0, gridSize.x(), gridSize.y(), viewport[0], viewport[1], viewport[2], viewport[3], GL_COLOR_BUFFER_BIT, GL_LINEAR);
 }
 
 VolumeRenderer::~VolumeRenderer() {
