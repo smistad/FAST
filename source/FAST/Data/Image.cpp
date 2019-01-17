@@ -1224,6 +1224,10 @@ BoundingBox Image::getBoundingBox() const {
     return SpatialDataObject::getBoundingBox().getTransformedBoundingBox(T);
 }
 
+int Image::getNrOfVoxels() const {
+    return mWidth*mHeight*mDepth;
+}
+
 Image::~Image() {
     freeAll();
 }
