@@ -33,7 +33,12 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
     // Blit/copy the framebuffer to the default framebuffer (window)
     glBindFramebuffer(GL_READ_FRAMEBUFFER, m_FBO);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-    glBlitFramebuffer(0, 0, 512, 512, 0, 0, 512, 512, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+    // Get window/viewport size
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+
+    glBlitFramebuffer(0, 0, 512, 512, viewport[0], viewport[1], viewport[2], viewport[3], GL_COLOR_BUFFER_BIT, GL_LINEAR);
 }
 
 VolumeRenderer::~VolumeRenderer() {
