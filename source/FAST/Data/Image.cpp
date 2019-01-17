@@ -1201,8 +1201,6 @@ Image::pointer Image::crop(VectorXi offset, VectorXi size, bool allowOutOfBounds
     T->getTransform().translation() = getSpacing().cwiseProduct(getDimensions() == 2 ? Vector3f(offset.x(), offset.y(), 0) : Vector3f(offset.x(), offset.y(), offset.z()));
     newImage->getSceneGraphNode()->setTransformation(T);
     SceneGraph::setParentNode(newImage, std::static_pointer_cast<SpatialDataObject>(mPtr.lock()));
-    reportInfo() << SceneGraph::getAffineTransformationFromData(newImage)->getTransform().matrix() << Reporter::end();
-    reportInfo() << SceneGraph::getAffineTransformationFromData(std::static_pointer_cast<SpatialDataObject>(mPtr.lock()))->getTransform().matrix() << Reporter::end();
 
     return newImage;
 }

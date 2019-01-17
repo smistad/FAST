@@ -8,9 +8,16 @@
 #include <igtl/igtlImageMessage.h>
 #include <igtl/igtlStatusMessage.h>
 #include <igtl/igtlStringMessage.h>
+#include <igtl/igtlClientSocket.h>
 #include <chrono>
 
 namespace fast {
+
+	class IGTLSocketWrapper {
+	public:
+		IGTLSocketWrapper(igtl::ClientSocket::Pointer socket) : socket(socket) {};
+		igtl::ClientSocket::Pointer socket;
+	};
 
 void IGTLinkStreamer::setConnectionAddress(std::string address) {
     mAddress = address;
@@ -178,10 +185,10 @@ void IGTLinkStreamer::producerStream() {
         headerMsg->InitPack();
 
         // Receive generic header from the socket
-        int r = mSocket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
+        int r = mSocketWrapper->socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
         if(r == 0) {
             //connectionLostSignal();
-            mSocket->CloseSocket();
+            mSocketWrapper->socket->CloseSocket();
             break;
         }
         if(r != headerMsg->GetPackSize()) {
@@ -226,7 +233,7 @@ void IGTLinkStreamer::producerStream() {
             transMsg->SetMessageHeader(headerMsg);
             transMsg->AllocatePack();
             // Receive transform data from the socket
-            mSocket->Receive(transMsg->GetPackBodyPointer(), transMsg->GetPackBodySize());
+            mSocketWrapper->socket->Receive(transMsg->GetPackBodyPointer(), transMsg->GetPackBodySize());
             // Deserialize the transform data
             // If you want to skip CRC check, call Unpack() without argument.
             int c = transMsg->Unpack(1);
@@ -274,7 +281,7 @@ void IGTLinkStreamer::producerStream() {
             imgMsg->AllocatePack();
 
             // Receive transform data from the socket
-            mSocket->Receive(imgMsg->GetPackBodyPointer(), imgMsg->GetPackBodySize());
+            mSocketWrapper->socket->Receive(imgMsg->GetPackBodyPointer(), imgMsg->GetPackBodySize());
 
             // Deserialize the transform data
             // If you want to skip CRC check, call Unpack() without argument.
@@ -326,7 +333,7 @@ void IGTLinkStreamer::producerStream() {
             message->AllocatePack();
 
             // Receive transform data from the socket
-            mSocket->Receive(message->GetPackBodyPointer(), message->GetPackBodySize());
+            mSocketWrapper->socket->Receive(message->GetPackBodyPointer(), message->GetPackBodySize());
             if(statusMessageCounter > 3 && !mInFreezeMode) {
                 reportInfo() << "3 STATUS MESSAGE received, freeze detected" << Reporter::end();
                 mInFreezeMode = true;
@@ -350,7 +357,7 @@ void IGTLinkStreamer::producerStream() {
           message->AllocatePack();
 
           // Receive transform data from the socket
-          mSocket->Receive(message->GetPackBodyPointer(), message->GetPackBodySize());
+          mSocketWrapper->socket->Receive(message->GetPackBodyPointer(), message->GetPackBodySize());
 
           // Deserialize the transform data
           // If you want to skip CRC check, call Unpack() without argument.
@@ -364,7 +371,7 @@ void IGTLinkStreamer::producerStream() {
             mFirstFrameIsInserted = true;
     }
     mFirstFrameCondition.notify_one();
-    mSocket->CloseSocket();
+    mSocketWrapper->socket->CloseSocket();
     reportInfo() << "OpenIGTLink socket closed" << reportEnd();
 }
 
@@ -376,6 +383,7 @@ IGTLinkStreamer::~IGTLinkStreamer() {
             thread->join();
         }
         delete thread;
+		delete mSocketWrapper;
     }
 }
 
@@ -402,9 +410,9 @@ void IGTLinkStreamer::execute() {
 
     if(!mStreamIsStarted) {
 
-        mSocket = igtl::ClientSocket::New();
+		mSocketWrapper = new IGTLSocketWrapper(igtl::ClientSocket::New());
         reportInfo() << "Trying to connect to Open IGT Link server " << mAddress << ":" << std::to_string(mPort) << Reporter::end();
-        int r = mSocket->ConnectToServer(mAddress.c_str(), mPort);
+        int r = mSocketWrapper->socket->ConnectToServer(mAddress.c_str(), mPort);
         if(r != 0) {
             throw Exception("Failed to connect to Open IGT Link server " + mAddress + ":" + std::to_string(mPort));
         }
