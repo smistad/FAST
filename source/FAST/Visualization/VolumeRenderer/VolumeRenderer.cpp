@@ -11,7 +11,7 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
     const float aspectRatio = (float)viewport[2] / viewport[3];
-    const Vector2i gridSize(aspectRatio*512, 512);
+    const Vector2i gridSize(aspectRatio*768, 768);
 
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     auto queue = device->getCommandQueue();
@@ -65,8 +65,7 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
 
     Affine3f modelMatrix = SceneGraph::getEigenAffineTransformationFromData(input);
     modelMatrix.scale(input->getSpacing());
-    std::cout << "Model matrix:" << modelMatrix.matrix() << std::endl;
-    Matrix4f invViewMatrix = viewingMatrix.inverse();
+    Matrix4f invViewMatrix = (viewingMatrix*modelMatrix.matrix()).inverse();
 
     auto inverseViewMatrixBuffer = cl::Buffer(
             device->getContext(),
@@ -110,13 +109,6 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
             0, 0,
             data.get()
     );
-    /*
-    for(int i = 0; i < 512*512*4; i++) {
-        if(data[i] > 0) {
-            std::cout << data[i] << std::endl;
-        }
-    }
-     */
 
     glBindTexture(GL_TEXTURE_2D, m_texture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, gridSize.x(), gridSize.y(), 0, GL_RGBA, GL_FLOAT, data.get());
