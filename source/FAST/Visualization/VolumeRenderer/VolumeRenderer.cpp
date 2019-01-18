@@ -4,19 +4,23 @@
 
 namespace fast {
 
-static void clImageToTexture(cl::Image2D image, uint textureID) {
-
-}
-
-cl::Image2D VolumeRenderer::textureToCLimage(uint textureID, int width, int height, OpenCLDevice::pointer device) {
+cl::Image2D VolumeRenderer::textureToCLimage(uint textureID, int width, int height, OpenCLDevice::pointer device, bool depth) {
     // TODO CL-GL interop
-    auto data = make_uninitialized_unique<float[]>(width*height*4);
+    int totalSize = width * height;
+    if(!depth)
+        totalSize *= 4;
+
+    auto data = make_uninitialized_unique<float[]>(totalSize);
     glBindTexture(GL_TEXTURE_2D, textureID);
-    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, data.get());
+    if(depth) {
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, data.get());
+    } else {
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, data.get());
+    }
     auto image = cl::Image2D(
         device->getContext(),
         CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-        cl::ImageFormat(CL_RGBA, CL_FLOAT),
+        depth ? cl::ImageFormat(CL_R, CL_FLOAT) : cl::ImageFormat(CL_RGBA, CL_FLOAT),
         width, height, 0,
         data.get()
     );
@@ -29,7 +33,7 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
     const float aspectRatio = (float)viewport[2] / viewport[3];
-    const Vector2i gridSize(aspectRatio*768, 768);
+    const Vector2i gridSize(aspectRatio*512, 512);
 
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     auto queue = device->getCommandQueue();
@@ -39,8 +43,9 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
     glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &mainFBO);
     int textureID;
     glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, &textureID);
-    std::cout << "Getting texture from FBO " << mainFBO << " texture id: " << textureID << std::endl;
-    cl::Image2D inputColor = textureToCLimage(textureID, viewport[2], viewport[3], device);
+    cl::Image2D inputColor = textureToCLimage(textureID, viewport[2], viewport[3], device, false);
+    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, &textureID);
+    cl::Image2D inputDepth = textureToCLimage(textureID, viewport[2], viewport[3], device, true);
 
     // Create a FBO
     if(m_FBO == 0)
@@ -116,6 +121,7 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
     mKernel.setArg(7, inverseViewMatrixBuffer);
     mKernel.setArg(8, modelMatrixBuffer);
     mKernel.setArg(9, inputColor);
+    mKernel.setArg(10, inputDepth);
     queue.enqueueNDRangeKernel(
             mKernel,
             cl::NullRange,
@@ -144,14 +150,6 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
 
     // Set texture to FBO
     glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture, 0);
-
-    int drawFboId = 0;
-    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
-    std::cout << "Current bindinded draw framebuffer is: " << drawFboId << " " << m_FBO << std::endl;
-
-    int value;
-    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, &value);
-    std::cout << "Texture value: " << m_texture << " value from get " << value << std::endl;
 
     // Blit/copy the framebuffer to the default framebuffer (window)
     glBindFramebuffer(GL_READ_FRAMEBUFFER, m_FBO);

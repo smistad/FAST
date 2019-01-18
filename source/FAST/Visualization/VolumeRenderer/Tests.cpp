@@ -6,7 +6,7 @@
 
 using namespace fast;
 
-TEST_CASE("Volume renderer", "[fast][volumerenderer][visual][asdasdasd]") {
+TEST_CASE("Volume renderer", "[fast][volumerenderer][visual]") {
 
     auto importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath() + "CT/CT-Thorax.mhd");
@@ -19,7 +19,7 @@ TEST_CASE("Volume renderer", "[fast][volumerenderer][visual][asdasdasd]") {
     window->start();
 }
 
-TEST_CASE("Volume renderer with geom", "[fast][volumerenderer][visual]") {
+TEST_CASE("Volume renderer with geom", "[fast][volumerenderer][visual][asdasdasd]") {
 
     auto importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath() + "CT/CT-Thorax.mhd");
@@ -29,6 +29,7 @@ TEST_CASE("Volume renderer with geom", "[fast][volumerenderer][visual]") {
 
     auto renderer2 = SliceRenderer::New();
     renderer2->addInputConnection(importer->getOutputPort());
+    renderer2->setArbitrarySlicePlane(0, Plane(Vector3f(0.5, 0.5, 0.5)));
 
     auto window = SimpleWindow::New();
     window->addRenderer(renderer);

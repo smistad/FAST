@@ -448,8 +448,8 @@ void View::recalculateCamera() {
         //reportInfo() << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << Reporter::end();
         zFar = (minimumTranslationToSeeEntireObject + boundingBoxDepth) * 2;
         zNear = std::min(minimumTranslationToSeeEntireObject * 0.5, 0.1);
-        //reportInfo() << "set zFar to " << zFar << Reporter::end();
-        //reportInfo() << "set zNear to " << zNear << Reporter::end();
+        reportInfo() << "set zFar to " << zFar << Reporter::end();
+        reportInfo() << "set zNear to " << zNear << Reporter::end();
         m3DViewingTransformation = Affine3f::Identity();
         m3DViewingTransformation.pretranslate(-mRotationPoint); // Move to rotation point
         m3DViewingTransformation.prerotate(Q.toRotationMatrix()); // Rotate
@@ -490,7 +490,6 @@ void View::initializeGL() {
         glEnable(GL_DEPTH_TEST);
 
         if(m_FBO == 0) {
-            std::cout << "Creating FBO in View" << std::endl;
             // Create framebuffer to render to
             glGenFramebuffers(1, &m_FBO);
 
@@ -509,7 +508,6 @@ void View::initializeGL() {
 
             glBindTexture(GL_TEXTURE_2D, 0);
         }
-
 
         // 3D mode
         if(!mCameraSet && getNrOfInputConnections() == 0) {

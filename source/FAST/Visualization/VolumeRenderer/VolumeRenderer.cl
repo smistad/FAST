@@ -44,7 +44,8 @@ __kernel void volumeRender(
     float transferScale,
     __constant float* invViewMatrix,
     __constant float* modelMatrix,
-    __read_only image2d_t inputFramebuffer
+    __read_only image2d_t inputFramebuffer,
+    __read_only image2d_t inputDepthFramebuffer
     ) {
 
     const int width = get_image_width(framebuffer);
@@ -57,6 +58,7 @@ __kernel void volumeRender(
     // Normalized grid position
     const float u = ((x / (float) width)*2.0f-1.0f)*((float)width/height); // compensate for aspect ratio != 1
     const float v = ((y / (float) height)*2.0f-1.0f);
+
     const float4 inputColor = read_imagef(inputFramebuffer, volumeSampler, (int2)(x,y));
 
     // Bounding box of volume
@@ -82,9 +84,9 @@ __kernel void volumeRender(
     // Find the distance to where the ray hits the box
     float tnear, tfar;
     int hit = intersectBox(rayOrigin, rayDirection, boxMin, boxMax, &tnear, &tfar);
+    // write output color
     if(!hit) {
         // Ray doesn't hit the box at all
-        // write output color
         write_imagef(framebuffer, (int2)(x, y), inputColor);
         return;
     }
@@ -94,19 +96,28 @@ __kernel void volumeRender(
 
     // Traverse along ray from back to front, and keep the maximum intensity
     temp = (float4)(0.0f, 0.0f, 0.0f, 1.0f);
-    int distance = tfar; // Start at tfar
-    while(distance > tnear) { // stop at tnear
-        float4 pos = rayOrigin + rayDirection*distance;
+    float depthBuffer = (read_imagef(inputDepthFramebuffer, volumeSampler, (int2)(x,y)).x*-2.0f + 1.0f);
+    float zFar = 2466.0f;
+    float zNear = 0.1;
+    float projectionMatrix10 = (zFar+zNear)/(zFar-zNear);
+    float projectionMatrix14= (-2.0*zFar*zNear) / (zFar-zNear);
+    depthBuffer = -(projectionMatrix14 / (projectionMatrix10+depthBuffer));
+    int distance = min(tfar, depthBuffer); // Start at tfar or the value of the depth buffer
+    if(distance > tnear) {
+        while(distance > tnear) { // stop at tnear
+            float4 pos = rayOrigin + rayDirection * distance;
 
-        // read from 3D texture
-        float sample = clamp(0.0f, 1.0f, ((float)read_imagei(volume, volumeSampler, pos).x+1024.0f)/4000.0f);
+            // read from 3D texture
+            float sample = clamp(0.0f, 1.0f, ((float) read_imagei(volume, volumeSampler, pos).x + 1024.0f) / 4000.0f);
 
-        //sample = 1.0f - sample;
-        temp = max(temp, (float4)(sample, sample, sample, 1));
+            //sample = 1.0f - sample;
+            temp = max(temp, (float4)(sample, sample, sample, 1));
 
-        distance -= 1;
+            distance -= 1;
+        }
+    } else {
+        temp = inputColor;
     }
-    //temp = inputColor;
 
     // write output color
     write_imagef(framebuffer, (int2)(x, y), temp);
