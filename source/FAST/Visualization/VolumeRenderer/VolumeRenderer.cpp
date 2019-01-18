@@ -116,10 +116,19 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
     // Set texture to FBO
     glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture, 0);
 
+    int drawFboId = 0;
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
+    std::cout << "Current bindinded draw framebuffer is: " << drawFboId << " " << m_FBO << std::endl;
+
+    int value;
+    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, &value);
+    std::cout << "Texture value: " << m_texture << " value from get " << value << std::endl;
+
     // Blit/copy the framebuffer to the default framebuffer (window)
     glBindFramebuffer(GL_READ_FRAMEBUFFER, m_FBO);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glBlitFramebuffer(0, 0, gridSize.x(), gridSize.y(), viewport[0], viewport[1], viewport[2], viewport[3], GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
 
     // Reset framebuffer to default framebuffer
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);

@@ -2,8 +2,6 @@
 const sampler_t transferFuncSampler = CLK_NORMALIZED_COORDS_TRUE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;
 const sampler_t volumeSampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;
 
-#define tstep 0.5f
-
 // intersect ray with a box
 // http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm
 
@@ -63,7 +61,6 @@ __kernel void volumeRender(
     const float4 boxMin = (float4)(0.0f, 0.0f, 0.0f,1.0f);
     const float4 boxMax = (float4)(get_image_width(volume), get_image_height(volume), get_image_depth(volume), 1.0f);
     // Maximum depth to cast ray inside the volume
-    const int maxSteps = max(max(boxMax.x, boxMax.y), boxMax.z);
 
     // Calculate ray origin and direction
     float4 rayOrigin;
@@ -83,37 +80,29 @@ __kernel void volumeRender(
     // Find the distance to where the ray hits the box
     float tnear, tfar;
     int hit = intersectBox(rayOrigin, rayDirection, boxMin, boxMax, &tnear, &tfar);
-    if (!hit) {
+    if(!hit) {
         // Ray doesn't hit the box at all
         // write output color
-        write_imagef(framebuffer, (int2)(x, y), (float4)(0,0,0,0));
+        write_imagef(framebuffer, (int2)(x, y), (float4)(1,1,1,1));
         return;
     }
 
-    if (tnear < 0.0f)
+    if(tnear < 0.0f)
         tnear = 0.0f;     // clamp to near plane
 
     // Traverse along ray from back to front, and keep the maximum intensity
-    temp = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
-    float distance = tfar; // Start at tfar
-    for(int i = 0; i < maxSteps; ++i) {
+    temp = (float4)(0.0f, 0.0f, 0.0f, 1.0f);
+    int distance = tfar; // Start at tfar
+    while(distance > tnear) { // stop at tnear
         float4 pos = rayOrigin + rayDirection*distance;
-        /*
-        pos.w = 1;
-        temp = pos;
-        pos.x = dot(temp, ((float4)(modelMatrix[0],modelMatrix[4],modelMatrix[8], modelMatrix[12])));
-        pos.y = dot(temp, ((float4)(modelMatrix[1],modelMatrix[5],modelMatrix[9], modelMatrix[13])));
-        pos.z = dot(temp, ((float4)(modelMatrix[2],modelMatrix[6],modelMatrix[10], modelMatrix[14])));
-         */
 
         // read from 3D texture
         float sample = clamp(0.0f, 1.0f, ((float)read_imagei(volume, volumeSampler, pos).x+1024.0f)/4000.0f);
 
-        temp = max(temp, (float4)(sample, sample, sample, sample));
+        //sample = 1.0f - sample;
+        temp = max(temp, (float4)(sample, sample, sample, 1));
 
-        distance -= tstep;
-        if(distance < tnear) // passed the box, stop
-            break;
+        distance -= 1;
     }
 
     // write output color
