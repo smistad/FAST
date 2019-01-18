@@ -15,7 +15,7 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
     auto queue = device->getCommandQueue();
 
     // Create a FBO
-    if(m_FBO == -1)
+    if(m_FBO == 0)
         glGenFramebuffers(1, &m_FBO);
 
     // Bind the framebuffer to render to it
@@ -96,7 +96,7 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
 
 
     // Attach texture to framebuffer
-    if(m_texture == -1)
+    if(m_texture == 0)
         glGenTextures(1, &m_texture);
 
     auto data = make_uninitialized_unique<float[]>(gridSize.x()*gridSize.y()*4);
@@ -128,7 +128,6 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
     glBindFramebuffer(GL_READ_FRAMEBUFFER, m_FBO);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glBlitFramebuffer(0, 0, gridSize.x(), gridSize.y(), viewport[0], viewport[1], viewport[2], viewport[3], GL_COLOR_BUFFER_BIT, GL_LINEAR);
-
 
     // Reset framebuffer to default framebuffer
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);

@@ -4,9 +4,6 @@
 #include "FAST/Data/Camera.hpp"
 #include "FAST/Exception.hpp"
 #include "FAST/DeviceManager.hpp"
-#include "FAST/Visualization/SliceRenderer/SliceRenderer.hpp"
-#include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
-#include "FAST/Utility.hpp"
 #include "SimpleWindow.hpp"
 #include "FAST/Utility.hpp"
 #include <QGLFunctions>
@@ -21,18 +18,26 @@
 #include <CL/cl_gl.h>
 #else
 #include <GL/glx.h>
-
 #include <CL/cl_gl.h>
 #endif
 #endif
 
 #include <QCursor>
 #include <QThread>
+#include <FAST/Visualization/VolumeRenderer/VolumeRenderer.hpp>
 
-using namespace fast;
+namespace fast {
 
 void View::addRenderer(Renderer::pointer renderer) {
-	mNonVolumeRenderers.push_back(renderer);
+    // Can renderer be casted to volume renderer test:
+    auto test = std::dynamic_pointer_cast<VolumeRenderer>(renderer);
+    bool thisIsAVolumeRenderer = (bool)test;
+
+    if(thisIsAVolumeRenderer) {
+        mVolumeRenderers.push_back(renderer);
+    } else {
+        mNonVolumeRenderers.push_back(renderer);
+    }
 }
 
 void View::removeAllRenderers() {
@@ -41,12 +46,12 @@ void View::removeAllRenderers() {
 }
 
 void View::setBackgroundColor(Color color) {
-	mBackgroundColor = color;
+    mBackgroundColor = color;
 }
 
 QGLFormat View::getGLFormat() {
     QGLFormat qglFormat = QGLFormat::defaultFormat();
-    qglFormat.setVersion(3,3);
+    qglFormat.setVersion(3, 3);
     qglFormat.setProfile(QGLFormat::CoreProfile);
     return qglFormat;
 }
@@ -59,23 +64,20 @@ View::View() {
     zFar = 1000;
     fieldOfViewY = 45;
     mIsIn2DMode = false;
-    mScale2D = 1.0f;
     mLeftMouseButtonIsPressed = false;
     mRightButtonIsPressed = false;
     mQuit = false;
-	mCameraSet = false;
+    mCameraSet = false;
     mAutoUpdateCamera = false;
 
     mFramerate = 60;
     // Set up a timer that will call update on this object at a regular interval
     timer = new QTimer(this);
-    timer->start(1000/mFramerate); // in milliseconds
+    timer->start(1000 / mFramerate); // in milliseconds
     timer->setSingleShot(false);
-    connect(timer,SIGNAL(timeout()),this,SLOT(update()));
+    connect(timer, SIGNAL(timeout()), this, SLOT(update()));
 
-	NonVolumesTurn=true;
-
-    QGLContext* context = new QGLContext(getGLFormat(), this);
+    QGLContext *context = new QGLContext(getGLFormat(), this);
     context->create(fast::Window::getMainGLContext());
     this->setContext(context);
     if(!context->isValid() || !context->isSharing()) {
@@ -88,7 +90,8 @@ void View::setCameraInputConnection(DataPort::pointer port) {
     setInputConnection(0, port);
 }
 
-void View::setLookAt(Vector3f cameraPosition, Vector3f targetPosition, Vector3f cameraUpVector, float z_near, float z_far) {
+void
+View::setLookAt(Vector3f cameraPosition, Vector3f targetPosition, Vector3f cameraUpVector, float z_near, float z_far) {
     mCameraPosition = cameraPosition;
     mRotationPoint = targetPosition;
     // Equations based on gluLookAt https://www.opengl.org/sdk/docs/man2/xhtml/gluLookAt.xml
@@ -103,17 +106,17 @@ void View::setLookAt(Vector3f cameraPosition, Vector3f targetPosition, Vector3f 
 
     Matrix3f M;
     // First row
-    M(0,0) = s[0];
-    M(0,1) = s[1];
-    M(0,2) = s[2];
+    M(0, 0) = s[0];
+    M(0, 1) = s[1];
+    M(0, 2) = s[2];
     // Second row
-    M(1,0) = u[0];
-    M(1,1) = u[1];
-    M(1,2) = u[2];
+    M(1, 0) = u[0];
+    M(1, 1) = u[1];
+    M(1, 2) = u[2];
     // Third row
-    M(2,0) = -F[0];
-    M(2,1) = -F[1];
-    M(2,2) = -F[2];
+    M(2, 0) = -F[0];
+    M(2, 1) = -F[1];
+    M(2, 2) = -F[2];
 
     // Must calculate this somehow
     zNear = z_near;
@@ -136,6 +139,11 @@ bool View::hasQuit() const {
 
 View::~View() {
     reportInfo() << "DESTROYING view object" << Reporter::end();
+    if(m_FBO != 0) {
+        glDeleteFramebuffers(1, &m_FBO);
+        glDeleteTextures(1, &m_textureColor);
+        glDeleteTextures(1, &m_textureDepth);
+    }
     quit();
 }
 
@@ -146,7 +154,7 @@ void View::setMaximumFramerate(unsigned int framerate) {
 
     mFramerate = framerate;
     timer->stop();
-    timer->start(1000/mFramerate); // in milliseconds
+    timer->start(1000 / mFramerate); // in milliseconds
     timer->setSingleShot(false);
 }
 
@@ -202,7 +210,7 @@ void View::unlockRenderers() {
     }
 }
 
-void View::getMinMaxFromBoundingBoxes(bool transform, Vector3f& min, Vector3f& max) {
+void View::getMinMaxFromBoundingBoxes(bool transform, Vector3f &min, Vector3f &max) {
     // Get bounding boxes of all objects
     BoundingBox box = mNonVolumeRenderers.at(0)->getBoundingBox(transform);
     Vector3f corner = box.getCorners().row(0);
@@ -212,18 +220,18 @@ void View::getMinMaxFromBoundingBoxes(bool transform, Vector3f& min, Vector3f& m
     max[1] = corner[1];
     min[2] = corner[2];
     max[2] = corner[2];
-    for (int i = 0; i < mNonVolumeRenderers.size(); i++) {
+    for(int i = 0; i < mNonVolumeRenderers.size(); i++) {
         // Apply transformation to all b boxes
         // Get max and min of x and y coordinates of the transformed b boxes
         BoundingBox box = mNonVolumeRenderers.at(i)->getBoundingBox(transform);
         MatrixXf corners = box.getCorners();
         //reportInfo() << box << Reporter::end();
-        for (int j = 0; j < 8; j++) {
-            for (uint k = 0; k < 3; k++) {
-                if (corners(j, k) < min[k])
+        for(int j = 0; j < 8; j++) {
+            for(uint k = 0; k < 3; k++) {
+                if(corners(j, k) < min[k])
                     min[k] = corners(j, k);
 
-                if (corners(j, k) > max[k])
+                if(corners(j, k) > max[k])
                     max[k] = corners(j, k);
             }
         }
@@ -233,18 +241,18 @@ void View::getMinMaxFromBoundingBoxes(bool transform, Vector3f& min, Vector3f& m
 void View::recalculateCamera() {
     if(mIsIn2DMode) {
         // TODO Initialize 2D
-       // Initialize camera
+        // Initialize camera
         Vector3f min, max;
         getMinMaxFromBoundingBoxes(false, min, max);
         mBBMin = min;
         mBBMax = max;
         // Calculate area of each side of the resulting bounding box
-        float area[3] = { (max[0] - min[0]) * (max[1] - min[1]), // XY plane
-        (max[1] - min[1]) * (max[2] - min[2]), // YZ plane
-        (max[2] - min[2]) * (max[0] - min[0]) };
+        float area[3] = {(max[0] - min[0]) * (max[1] - min[1]), // XY plane
+                         (max[1] - min[1]) * (max[2] - min[2]), // YZ plane
+                         (max[2] - min[2]) * (max[0] - min[0])};
         uint maxArea = 0;
-        for (uint i = 1; i < 3; i++) {
-            if (area[i] > area[maxArea])
+        for(uint i = 1; i < 3; i++) {
+            if(area[i] > area[maxArea])
                 maxArea = i;
         }
         // Find rotation needed
@@ -252,14 +260,14 @@ void View::recalculateCamera() {
         uint xDirection;
         uint yDirection;
         uint zDirection;
-        switch (maxArea) {
+        switch(maxArea) {
             case 0:
                 xDirection = 0;
                 yDirection = 1;
                 zDirection = 2;
                 angleX = 0;
                 angleY = 0;
-            break;
+                break;
             case 1:
                 // Rotate 90 degres around Y axis
                 xDirection = 2;
@@ -267,7 +275,7 @@ void View::recalculateCamera() {
                 zDirection = 0;
                 angleX = 0;
                 angleY = 90;
-            break;
+                break;
             case 2:
                 // Rotate 90 degres around X axis
                 xDirection = 0;
@@ -275,7 +283,7 @@ void View::recalculateCamera() {
                 zDirection = 1;
                 angleX = 90;
                 angleY = 0;
-            break;
+                break;
         }
         // Max pos - half of the size
         Vector3f centroid;
@@ -285,10 +293,10 @@ void View::recalculateCamera() {
 
         // Rotate object if needed
         Eigen::Quaternionf Qx;
-        Qx = Eigen::AngleAxisf(angleX*M_PI/180.0f, Vector3f::UnitX());
+        Qx = Eigen::AngleAxisf(angleX * M_PI / 180.0f, Vector3f::UnitX());
         Eigen::Quaternionf Qy;
-        Qy = Eigen::AngleAxisf(angleY*M_PI/180.0f, Vector3f::UnitY());
-        Eigen::Quaternionf Q = Qx*Qy;
+        Qy = Eigen::AngleAxisf(angleY * M_PI / 180.0f, Vector3f::UnitY());
+        Eigen::Quaternionf Q = Qx * Qy;
 
         //reportInfo() << "Centroid set to: " << centroid.x() << " " << centroid.y() << " " << centroid.z() << Reporter::end();
         // Initialize rotation point to centroid of object
@@ -309,7 +317,7 @@ void View::recalculateCamera() {
         //reportInfo() << "minimum translation to see entire object: " << minimumTranslationToSeeEntireObject  << Reporter::end();
         //reportInfo() << "half depth of bounding box " << boundingBoxDepth*0.5 << Reporter::end();
         mCameraPosition[2] += -minimumTranslationToSeeEntireObject
-                - boundingBoxDepth * 0.5; // half of the depth of the bounding box
+                              - boundingBoxDepth * 0.5; // half of the depth of the bounding box
         //reportInfo() << "Camera pos set to: " << cameraPosition.x() << " " << cameraPosition.y() << " " << cameraPosition.z() << Reporter::end();
         zFar = 1;//(minimumTranslationToSeeEntireObject + boundingBoxDepth) * 2;
         zNear = -1;//std::min(minimumTranslationToSeeEntireObject * 0.5, 0.1);
@@ -323,14 +331,15 @@ void View::recalculateCamera() {
         } else {
             scalingHeight = orthoAspect / aspect;
         }
-        mLeft = min[xDirection]*scalingWidth;
-        mRight = max[xDirection]*scalingWidth;
-        mBottom = min[yDirection]*scalingHeight;
-        mTop = max[yDirection]*scalingHeight;
+        mLeft = min[xDirection] * scalingWidth;
+        mRight = max[xDirection] * scalingWidth;
+        mBottom = min[yDirection] * scalingHeight;
+        mTop = max[yDirection] * scalingHeight;
 
-        mCameraPosition[0] = mLeft + (mRight - mLeft)*0.5f - centroid[0]; // center camera
-        mCameraPosition[1] = mBottom + (mTop - mBottom)*0.5f - centroid[1]; // center camera
-        mCameraPosition[1] = mCameraPosition[1] - 2.0f*(mBottom + (mTop - mBottom)*0.5f); // Compensate for Y flipping
+        mCameraPosition[0] = mLeft + (mRight - mLeft) * 0.5f - centroid[0]; // center camera
+        mCameraPosition[1] = mBottom + (mTop - mBottom) * 0.5f - centroid[1]; // center camera
+        mCameraPosition[1] =
+                mCameraPosition[1] - 2.0f * (mBottom + (mTop - mBottom) * 0.5f); // Compensate for Y flipping
 
         m3DViewingTransformation = Affine3f::Identity();
         //m3DViewingTransformation.pretranslate(-mRotationPoint); // Move to rotation point
@@ -364,8 +373,8 @@ void View::recalculateCamera() {
                          (max[1] - min[1]) * (max[2] - min[2]), // YZ plane
                          (max[2] - min[2]) * (max[0] - min[0])};
         uint maxArea = 0;
-        for (uint i = 1; i < 3; i++) {
-            if (area[i] > area[maxArea])
+        for(uint i = 1; i < 3; i++) {
+            if(area[i] > area[maxArea])
                 maxArea = i;
         }
         // Find rotation needed
@@ -373,7 +382,7 @@ void View::recalculateCamera() {
         uint xDirection;
         uint yDirection;
         uint zDirection;
-        switch (maxArea) {
+        switch(maxArea) {
             case 0:
                 xDirection = 0;
                 yDirection = 1;
@@ -459,8 +468,8 @@ void View::setStreamingMode(StreamingMode mode) {
 void View::initializeGL() {
     for(auto renderer : getRenderers())
         renderer->initializeOpenGLFunctions();
-    QGLFunctions *fun = Window::getMainGLContext()->functions();
-
+    //QGLFunctions *fun = Window::getMainGLContext()->functions();
+    initializeOpenGLFunctions();
     glViewport(0, 0, this->width(), this->height());
     glEnable(GL_TEXTURE_2D);
     // Enable transparency
@@ -475,6 +484,28 @@ void View::initializeGL() {
         recalculateCamera();
     } else {
         glEnable(GL_DEPTH_TEST);
+
+        if(m_FBO == 0) {
+            // Create framebuffer to render to
+            glGenFramebuffers(1, &m_FBO);
+
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FBO);
+            // Create textures which are to be assigned to framebuffer
+            glGenTextures(1, &m_textureColor);
+            glGenTextures(1, &m_textureDepth);
+            glBindTexture(GL_TEXTURE_2D, m_textureColor);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width(), height(), 0, GL_RGBA, GL_FLOAT, NULL);
+            glBindTexture(GL_TEXTURE_2D, m_textureDepth);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width(), height(), 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
+            // Assign textures to FBO
+            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_textureColor, 0);
+            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_textureDepth, 0);
+
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
+
+
         // 3D mode
         if(!mCameraSet && getNrOfInputConnections() == 0) {
             // If camera is not set explicitly by user, FAST has to calculate it
@@ -486,16 +517,19 @@ void View::initializeGL() {
         mPerspectiveMatrix = loadPerspectiveMatrix(fieldOfViewY, aspect, zNear, zFar);
     }
 
-	reportInfo() << "Finished initializing OpenGL" << Reporter::end();
+    reportInfo() << "Finished initializing OpenGL" << Reporter::end();
 
 }
 
 
 void View::paintGL() {
 
-	mRuntimeManager->startRegularTimer("paint");
+    mRuntimeManager->startRegularTimer("paint");
 
-    glClearColor(mBackgroundColor.getRedValue(), mBackgroundColor.getGreenValue(), mBackgroundColor.getBlueValue(), 1.0f);
+    if(!mIsIn2DMode)
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FBO); // draw in our custom FBO
+    glClearColor(mBackgroundColor.getRedValue(), mBackgroundColor.getGreenValue(), mBackgroundColor.getBlueValue(),
+                 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     if(mAutoUpdateCamera) {
@@ -520,7 +554,7 @@ void View::paintGL() {
             // Has camera input connection, get camera
             Camera::pointer camera = getInputData<Camera>(0);
             CameraAccess::pointer access = camera->getAccess(ACCESS_READ);
-            mRotationPoint = access->getCameraTransformation()*access->getTargetPosition();
+            mRotationPoint = access->getCameraTransformation() * access->getTargetPosition();
         }
 
         mRuntimeManager->startRegularTimer("draw");
@@ -529,17 +563,26 @@ void View::paintGL() {
             mNonVolumeRenderers[i]->postDraw();
         }
         mRuntimeManager->stopRegularTimer("draw");
+
+        // Blit/copy the framebuffer to the default framebuffer (window)
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, m_FBO);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBlitFramebuffer(0, 0, width(), height(), 0, 0, width(), height(), GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+            throw Exception("ERROR::FRAMEBUFFER:: Framebuffer is not complete!");
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FBO);
     }
 
     glFinish();
-	mRuntimeManager->stopRegularTimer("paint");
+    mRuntimeManager->stopRegularTimer("paint");
 }
 
 void View::resizeGL(int width, int height) {
     glViewport(0, 0, width, height);
+
     if(mIsIn2DMode) {
         // TODO the aspect ratio of the viewport and the orhto projection (left, right, bottom, top) has to match.
-        aspect = (float)width/height;
+        aspect = (float) width / height;
         float orthoAspect = (mRight - mLeft) / (mTop - mBottom);
         float scalingWidth = 1;
         float scalingHeight = 1;
@@ -548,15 +591,22 @@ void View::resizeGL(int width, int height) {
         } else {
             scalingHeight = orthoAspect / aspect;
         }
-        mPerspectiveMatrix = loadOrthographicMatrix(mLeft*scalingWidth, mRight*scalingWidth, mBottom*scalingHeight, mTop*scalingHeight, zNear, zFar);
+        mPerspectiveMatrix = loadOrthographicMatrix(mLeft * scalingWidth, mRight * scalingWidth,
+                                                    mBottom * scalingHeight, mTop * scalingHeight, zNear, zFar);
     } else {
-        aspect = (float)width/height;
-        fieldOfViewX = aspect*fieldOfViewY;
+
+        glBindTexture(GL_TEXTURE_2D, m_textureColor);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+        glBindTexture(GL_TEXTURE_2D, m_textureDepth);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
+        aspect = (float) width / height;
+        fieldOfViewX = aspect * fieldOfViewY;
         mPerspectiveMatrix = loadPerspectiveMatrix(fieldOfViewY, aspect, zNear, zFar);
     }
 }
 
-void View::keyPressEvent(QKeyEvent* event) {
+void View::keyPressEvent(QKeyEvent *event) {
     switch(event->key()) {
         case Qt::Key_R:
             recalculateCamera();
@@ -564,69 +614,71 @@ void View::keyPressEvent(QKeyEvent* event) {
     }
 }
 
-void View::mouseMoveEvent(QMouseEvent* event) {
-	if(mRightButtonIsPressed) {
+void View::mouseMoveEvent(QMouseEvent *event) {
+    if(mRightButtonIsPressed) {
         const float deltaX = event->x() - previousX;
         const float deltaY = event->y() - previousY;
         float actualMovementX, actualMovementY;
         if(mIsIn2DMode) {
-            actualMovementX = deltaX*((mRight - mLeft)/width());
-            actualMovementY = deltaY*((mTop - mBottom)/height());
+            actualMovementX = deltaX * ((mRight - mLeft) / width());
+            actualMovementY = deltaY * ((mTop - mBottom) / height());
         } else {
-            float viewportWidth = std::tan((fieldOfViewX * M_PI / 180.0f) * 0.5f) * fabs(-mCameraPosition.z() + mCentroidZ) * 2.0f;
-            float viewportHeight = std::tan((fieldOfViewY * M_PI / 180.0f) * 0.5f) * fabs(-mCameraPosition.z() + mCentroidZ) * 2.0f;
+            float viewportWidth =
+                    std::tan((fieldOfViewX * M_PI / 180.0f) * 0.5f) * fabs(-mCameraPosition.z() + mCentroidZ) * 2.0f;
+            float viewportHeight =
+                    std::tan((fieldOfViewY * M_PI / 180.0f) * 0.5f) * fabs(-mCameraPosition.z() + mCentroidZ) * 2.0f;
             actualMovementX = deltaX * viewportWidth / width();
             actualMovementY = deltaY * viewportHeight / height();
         }
         mCameraPosition[0] += actualMovementX;
         mCameraPosition[1] -= actualMovementY;
-        m3DViewingTransformation.pretranslate(Vector3f(actualMovementX, -actualMovementY,0));
-		previousX = event->x();
-		previousY = event->y();
-	} else if(mLeftMouseButtonIsPressed && !mIsIn2DMode) {
-	    // 3D rotation
-		int cx = width()/2;
-		int cy = height()/2;
+        m3DViewingTransformation.pretranslate(Vector3f(actualMovementX, -actualMovementY, 0));
+        previousX = event->x();
+        previousY = event->y();
+    } else if(mLeftMouseButtonIsPressed && !mIsIn2DMode) {
+        // 3D rotation
+        int cx = width() / 2;
+        int cy = height() / 2;
 
-		if(event->x() == cx && event->y() == cy){ //The if cursor is in the middle
-			return;
-		}
+        if(event->x() == cx && event->y() == cy) { //The if cursor is in the middle
+            return;
+        }
 
-		int diffx=event->x()-cx; //check the difference between the current x and the last x position
-		int diffy=event->y()-cy; //check the difference between the current y and the last y position
-		QCursor::setPos(mapToGlobal(QPoint(cx,cy)));
+        int diffx = event->x() - cx; //check the difference between the current x and the last x position
+        int diffy = event->y() - cy; //check the difference between the current y and the last y position
+        QCursor::setPos(mapToGlobal(QPoint(cx, cy)));
         Eigen::Quaternionf Qx;
         float sensitivity = 0.01;
-        Qx = Eigen::AngleAxisf(sensitivity*diffx, Vector3f::UnitY());
+        Qx = Eigen::AngleAxisf(sensitivity * diffx, Vector3f::UnitY());
         Eigen::Quaternionf Qy;
-        Qy = Eigen::AngleAxisf(sensitivity*diffy, Vector3f::UnitX());
-        Eigen::Quaternionf Q = Qx*Qy;
-        Vector3f newRotationPoint = m3DViewingTransformation*mRotationPoint; // Move rotation point to new position
+        Qy = Eigen::AngleAxisf(sensitivity * diffy, Vector3f::UnitX());
+        Eigen::Quaternionf Q = Qx * Qy;
+        Vector3f newRotationPoint = m3DViewingTransformation * mRotationPoint; // Move rotation point to new position
         m3DViewingTransformation.pretranslate(-newRotationPoint); // Move to rotation point
         m3DViewingTransformation.prerotate(Q.toRotationMatrix()); // Rotate
         m3DViewingTransformation.pretranslate(newRotationPoint); // Move back
-	}
+    }
 }
 
-void View::mousePressEvent(QMouseEvent* event) {
-    if (event->button() == Qt::LeftButton && !mIsIn2DMode) {
+void View::mousePressEvent(QMouseEvent *event) {
+    if(event->button() == Qt::LeftButton && !mIsIn2DMode) {
         mLeftMouseButtonIsPressed = true;
         // Move cursor to center of window
         int cx = width() / 2;
         int cy = height() / 2;
         QCursor::setPos(mapToGlobal(QPoint(cx, cy)));
-    } else if (event->button() == Qt::RightButton) {
+    } else if(event->button() == Qt::RightButton) {
         previousX = event->x();
         previousY = event->y();
         mRightButtonIsPressed = true;
     }
 }
 
-void View::wheelEvent(QWheelEvent* event) {
+void View::wheelEvent(QWheelEvent *event) {
     if(mIsIn2DMode) {
         // TODO Should instead increase the size of the orhtograpic projection here
         // TODO the aspect ratio of the viewport and the orhto projection (left, right, bottom, top) has to match.
-        aspect = (float)width()/height();
+        aspect = (float) width() / height();
         float orthoAspect = (mRight - mLeft) / (mTop - mBottom);
         float scalingWidth = 1;
         float scalingHeight = 1;
@@ -637,21 +689,22 @@ void View::wheelEvent(QWheelEvent* event) {
         }
         // Zoom towards center
         if(event->delta() > 0) {
-            float size = (mRight - mLeft)*0.05f;
+            float size = (mRight - mLeft) * 0.05f;
             mLeft = mLeft + size;
             mRight = mRight - size;
-            size = (mTop - mBottom)*0.05f;
+            size = (mTop - mBottom) * 0.05f;
             mBottom = mBottom + size;
             mTop = mTop - size;
         } else if(event->delta() < 0) {
-            float size = (mRight - mLeft)*0.05f;
+            float size = (mRight - mLeft) * 0.05f;
             mLeft = mLeft - size;
             mRight = mRight + size;
-            size = (mTop - mBottom)*0.05f;
+            size = (mTop - mBottom) * 0.05f;
             mBottom = mBottom - size;
             mTop = mTop + size;
         }
-        mPerspectiveMatrix = loadOrthographicMatrix(mLeft*scalingWidth, mRight*scalingWidth, mBottom*scalingHeight, mTop*scalingHeight, zNear, zFar);
+        mPerspectiveMatrix = loadOrthographicMatrix(mLeft * scalingWidth, mRight * scalingWidth,
+                                                    mBottom * scalingHeight, mTop * scalingHeight, zNear, zFar);
     } else {
         if(event->delta() > 0) {
             mCameraPosition[2] += (zFar - zNear) * 0.05f;
@@ -663,14 +716,13 @@ void View::wheelEvent(QWheelEvent* event) {
     }
 }
 
-void View::mouseReleaseEvent(QMouseEvent* event) {
+void View::mouseReleaseEvent(QMouseEvent *event) {
     if(event->button() == Qt::LeftButton) {
         mLeftMouseButtonIsPressed = false;
     } else if(event->button() == Qt::RightButton) {
         mRightButtonIsPressed = false;
     }
 }
-
 
 void View::set2DMode() {
     mIsIn2DMode = true;
@@ -680,126 +732,9 @@ void View::set3DMode() {
     mIsIn2DMode = false;
 }
 
-/********************************************************************************************************/
-/********************************************************************************************************/
-/********************************************************************************************************/
-/********************************************************************************************************/
-
-void View::initShader()
-{
-
-    QGLFunctions *fun = Window::getMainGLContext()->functions();
-	//Read our shaders into the appropriate buffers
-	std::string vertexSource =		"#version 120\nuniform sampler2D renderedDepthText;\n void main(){ gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * gl_Vertex; \ngl_TexCoord[0] = gl_MultiTexCoord0;}\n";//Get source code for vertex shader.
-	std::string fragmentSource =	"#version 120\nuniform sampler2D renderedDepthText;\nvoid main(){ \ngl_FragColor = texture2D(renderedDepthText, gl_TexCoord[0].st); }\n";//Get source code for fragment shader.
-
-	//Create an empty vertex shader handle
-	GLuint vertexShader = fun->glCreateShader(GL_VERTEX_SHADER);
-
-	//Send the vertex shader source code to GL
-	//Note that std::string's .c_str is NULL character terminated.
-	const GLchar *source = (const GLchar *)vertexSource.c_str();
-	fun->glShaderSource(vertexShader, 1, &source, 0);
-
-	//Compile the vertex shader
-	fun->glCompileShader(vertexShader);
-
-	GLint isCompiled = 0;
-	fun->glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &isCompiled);
-	if(isCompiled == GL_FALSE)
-	{
-		GLint maxLength = 0;
-		fun->glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &maxLength);
-
-		//The maxLength includes the NULL character
-		std::vector<GLchar> infoLog(maxLength);
-		fun->glGetShaderInfoLog(vertexShader, maxLength, &maxLength, &infoLog[0]);
-
-		//We don't need the shader anymore.
-		fun->glDeleteShader(vertexShader);
-
-		//Use the infoLog as you see fit.
-
-		//In this simple program, we'll just leave
-		return;
-	}
-
-	//Create an empty fragment shader handle
-	GLuint fragmentShader = fun->glCreateShader(GL_FRAGMENT_SHADER);
-
-	//Send the fragment shader source code to GL
-	//Note that std::string's .c_str is NULL character terminated.
-	source = (const GLchar *)fragmentSource.c_str();
-	fun->glShaderSource(fragmentShader, 1, &source, 0);
-
-	//Compile the fragment shader
-	fun->glCompileShader(fragmentShader);
-
-	fun->glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &isCompiled);
-	if(isCompiled == GL_FALSE)
-	{
-		GLint maxLength = 0;
-		fun->glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &maxLength);
-
-		//The maxLength includes the NULL character
-		std::vector<GLchar> infoLog(maxLength);
-		fun->glGetShaderInfoLog(fragmentShader, maxLength, &maxLength, &infoLog[0]);
-
-		//We don't need the shader anymore.
-		fun->glDeleteShader(fragmentShader);
-		//Either of them. Don't leak shaders.
-		fun->glDeleteShader(vertexShader);
-
-		//Use the infoLog as you see fit.
-
-		//In this simple program, we'll just leave
-		return;
-}
-
-//Vertex and fragment shaders are successfully compiled.
-//Now time to link them together into a program.
-//Get a program object.
-programGLSL = fun->glCreateProgram();
-
-//Attach our shaders to our program
-fun->glAttachShader(programGLSL, vertexShader);
-fun->glAttachShader(programGLSL, fragmentShader);
-
-//Link our program
-fun->glLinkProgram(programGLSL);
-
-//Note the different functions here: glGetProgram* instead of glGetShader*.
-GLint isLinked = 0;
-fun->glGetProgramiv(programGLSL, GL_LINK_STATUS, (int *)&isLinked);
-if(isLinked == GL_FALSE)
-{
-	GLint maxLength = 0;
-	fun->glGetProgramiv(programGLSL, GL_INFO_LOG_LENGTH, &maxLength);
-
-	//The maxLength includes the NULL character
-	std::vector<GLchar> infoLog(maxLength);
-	fun->glGetProgramInfoLog(programGLSL, maxLength, &maxLength, &infoLog[0]);
-
-	//We don't need the program anymore.
-	fun->glDeleteProgram(programGLSL);
-	//Don't leak shaders either.
-	fun->glDeleteShader(vertexShader);
-	fun->glDeleteShader(fragmentShader);
-
-	//Use the infoLog as you see fit.
-
-	//In this simple program, we'll just leave
-	return;
-}
-
-//Always detach shaders after a successful link.
-fun->glDetachShader(programGLSL, vertexShader);
-fun->glDetachShader(programGLSL, fragmentShader);
-}
-
 std::vector<Renderer::pointer> View::getRenderers() {
     std::vector<Renderer::pointer> newList = mNonVolumeRenderers;
-    newList.insert(newList.cend(), mVolumeRenderers.begin (), mVolumeRenderers.end());
+    newList.insert(newList.cend(), mVolumeRenderers.begin(), mVolumeRenderers.end());
     return newList;
 }
 
@@ -820,15 +755,12 @@ void View::setAutoUpdateCamera(bool autoUpdate) {
     mAutoUpdateCamera = autoUpdate;
 }
 
-
 Matrix4f View::getViewMatrix() const {
     return m3DViewingTransformation.matrix();
 }
+
 Matrix4f View::getPerspectiveMatrix() const {
     return mPerspectiveMatrix;
 }
 
-/********************************************************************************************************/
-/********************************************************************************************************/
-/********************************************************************************************************/
-/********************************************************************************************************/
+} // end namespace fast

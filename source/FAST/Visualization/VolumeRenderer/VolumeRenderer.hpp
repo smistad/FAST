@@ -11,8 +11,8 @@ class VolumeRenderer : public Renderer {
     protected:
         VolumeRenderer();
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D);
-        uint m_FBO = -1;
-        uint m_texture = -1;
+        uint m_FBO = 0;
+        uint m_texture = 0;
 };
 
 }
