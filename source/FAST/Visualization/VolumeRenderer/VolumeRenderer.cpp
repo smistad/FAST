@@ -4,6 +4,26 @@
 
 namespace fast {
 
+static void clImageToTexture(cl::Image2D image, uint textureID) {
+
+}
+
+cl::Image2D VolumeRenderer::textureToCLimage(uint textureID, int width, int height, OpenCLDevice::pointer device) {
+    // TODO CL-GL interop
+    auto data = make_uninitialized_unique<float[]>(width*height*4);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, data.get());
+    auto image = cl::Image2D(
+        device->getContext(),
+        CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+        cl::ImageFormat(CL_RGBA, CL_FLOAT),
+        width, height, 0,
+        data.get()
+    );
+
+    return image;
+}
+
 void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) {
     // Get window/viewport size
     GLint viewport[4];
@@ -13,6 +33,14 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
 
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     auto queue = device->getCommandQueue();
+
+    // Get color data from the main FBO to use as input
+    int mainFBO;
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &mainFBO);
+    int textureID;
+    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, &textureID);
+    std::cout << "Getting texture from FBO " << mainFBO << " texture id: " << textureID << std::endl;
+    cl::Image2D inputColor = textureToCLimage(textureID, viewport[2], viewport[3], device);
 
     // Create a FBO
     if(m_FBO == 0)
@@ -87,6 +115,7 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
     mKernel.setArg(6, transferScale);
     mKernel.setArg(7, inverseViewMatrixBuffer);
     mKernel.setArg(8, modelMatrixBuffer);
+    mKernel.setArg(9, inputColor);
     queue.enqueueNDRangeKernel(
             mKernel,
             cl::NullRange,
@@ -126,11 +155,11 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
 
     // Blit/copy the framebuffer to the default framebuffer (window)
     glBindFramebuffer(GL_READ_FRAMEBUFFER, m_FBO);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mainFBO);
     glBlitFramebuffer(0, 0, gridSize.x(), gridSize.y(), viewport[0], viewport[1], viewport[2], viewport[3], GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
     // Reset framebuffer to default framebuffer
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mainFBO);
 }
 
 VolumeRenderer::~VolumeRenderer() {

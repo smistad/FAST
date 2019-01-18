@@ -211,8 +211,10 @@ void View::unlockRenderers() {
 }
 
 void View::getMinMaxFromBoundingBoxes(bool transform, Vector3f &min, Vector3f &max) {
+    std::vector<Renderer::pointer> renderers = mNonVolumeRenderers;
+    renderers.insert(renderers.end(), mVolumeRenderers.begin(), mVolumeRenderers.end());
     // Get bounding boxes of all objects
-    BoundingBox box = mNonVolumeRenderers.at(0)->getBoundingBox(transform);
+    BoundingBox box = renderers.at(0)->getBoundingBox(transform);
     Vector3f corner = box.getCorners().row(0);
     min[0] = corner[0];
     max[0] = corner[0];
@@ -220,10 +222,10 @@ void View::getMinMaxFromBoundingBoxes(bool transform, Vector3f &min, Vector3f &m
     max[1] = corner[1];
     min[2] = corner[2];
     max[2] = corner[2];
-    for(int i = 0; i < mNonVolumeRenderers.size(); i++) {
+    for(int i = 0; i < renderers.size(); i++) {
         // Apply transformation to all b boxes
         // Get max and min of x and y coordinates of the transformed b boxes
-        BoundingBox box = mNonVolumeRenderers.at(i)->getBoundingBox(transform);
+        BoundingBox box = renderers.at(i)->getBoundingBox(transform);
         MatrixXf corners = box.getCorners();
         //reportInfo() << box << Reporter::end();
         for(int j = 0; j < 8; j++) {
@@ -475,9 +477,11 @@ void View::initializeGL() {
     // Enable transparency
     glEnable(GL_BLEND);
     // Update all renderes, so that getBoundingBox works
-    for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++)
+    for(int i = 0; i < mNonVolumeRenderers.size(); i++)
         mNonVolumeRenderers[i]->update(0, mStreamingMode);
-    if(mNonVolumeRenderers.size() == 0)
+    for(int i = 0; i < mVolumeRenderers.size(); i++)
+        mVolumeRenderers[i]->update(0, mStreamingMode);
+    if(mNonVolumeRenderers.empty() && mVolumeRenderers.empty())
         return;
     if(mIsIn2DMode) {
         glDisable(GL_DEPTH_TEST);
@@ -486,6 +490,7 @@ void View::initializeGL() {
         glEnable(GL_DEPTH_TEST);
 
         if(m_FBO == 0) {
+            std::cout << "Creating FBO in View" << std::endl;
             // Create framebuffer to render to
             glGenFramebuffers(1, &m_FBO);
 
@@ -543,7 +548,7 @@ void View::paintGL() {
     if(mIsIn2DMode) {
 
         mRuntimeManager->startRegularTimer("draw2D");
-        for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
+        for(int i = 0; i < mNonVolumeRenderers.size(); i++) {
             mNonVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), true);
             mNonVolumeRenderers[i]->postDraw();
         }
@@ -558,19 +563,24 @@ void View::paintGL() {
         }
 
         mRuntimeManager->startRegularTimer("draw");
-        for(unsigned int i = 0; i < mNonVolumeRenderers.size(); i++) {
+        for(int i = 0; i < mNonVolumeRenderers.size(); i++) {
             mNonVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), false);
             mNonVolumeRenderers[i]->postDraw();
         }
-        mRuntimeManager->stopRegularTimer("draw");
+
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FBO);
+        for(int i = 0; i < mVolumeRenderers.size(); i++) {
+            mVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), false);
+            mVolumeRenderers[i]->postDraw();
+        }
 
         // Blit/copy the framebuffer to the default framebuffer (window)
         glBindFramebuffer(GL_READ_FRAMEBUFFER, m_FBO);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
         glBlitFramebuffer(0, 0, width(), height(), 0, 0, width(), height(), GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-            throw Exception("ERROR::FRAMEBUFFER:: Framebuffer is not complete!");
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FBO);
+
+        mRuntimeManager->stopRegularTimer("draw");
     }
 
     glFinish();

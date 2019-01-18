@@ -43,7 +43,8 @@ __kernel void volumeRender(
     float transferOffset,
     float transferScale,
     __constant float* invViewMatrix,
-    __constant float* modelMatrix
+    __constant float* modelMatrix,
+    __read_only image2d_t inputFramebuffer
     ) {
 
     const int width = get_image_width(framebuffer);
@@ -56,6 +57,7 @@ __kernel void volumeRender(
     // Normalized grid position
     const float u = ((x / (float) width)*2.0f-1.0f)*((float)width/height); // compensate for aspect ratio != 1
     const float v = ((y / (float) height)*2.0f-1.0f);
+    const float4 inputColor = read_imagef(inputFramebuffer, volumeSampler, (int2)(x,y));
 
     // Bounding box of volume
     const float4 boxMin = (float4)(0.0f, 0.0f, 0.0f,1.0f);
@@ -83,7 +85,7 @@ __kernel void volumeRender(
     if(!hit) {
         // Ray doesn't hit the box at all
         // write output color
-        write_imagef(framebuffer, (int2)(x, y), (float4)(1,1,1,1));
+        write_imagef(framebuffer, (int2)(x, y), inputColor);
         return;
     }
 
@@ -104,6 +106,7 @@ __kernel void volumeRender(
 
         distance -= 1;
     }
+    //temp = inputColor;
 
     // write output color
     write_imagef(framebuffer, (int2)(x, y), temp);
