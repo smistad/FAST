@@ -20,5 +20,6 @@ TEST_CASE("Text renderer", "[fast][TextRenderer][visual]") {
     window->addRenderer(renderer);
     window->getView()->setBackgroundColor(Color::Black());
     window->set2DMode();
+    window->setTimeout(1000);
     window->start();
 }
