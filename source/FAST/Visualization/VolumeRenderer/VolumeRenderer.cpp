@@ -28,24 +28,96 @@ cl::Image2D VolumeRenderer::textureToCLimage(uint textureID, int width, int heig
     return image;
 }
 
+
+cl::ImageGL VolumeRenderer::textureToCLimageInterop(uint textureID, int width, int height, OpenCLDevice::pointer device, bool depth) {
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glFinish();
+    // Create CL-GL image
+    auto imageGL = cl::ImageGL(
+            device->getContext(),
+            CL_MEM_READ_ONLY,
+            GL_TEXTURE_2D,
+            0,
+            textureID
+    );
+
+    return imageGL;
+}
+
+std::tuple<uint, uint> VolumeRenderer::resizeOpenGLTexture(int sourceFBO, int sourceTextureColor, int sourceTextureDepth, Vector2i gridSize, int width, int height) {
+    uint targetFBO;
+    glGenFramebuffers(1, &targetFBO);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFBO);
+
+    uint colorTexture, depthTexture;
+    glGenTextures(1, &colorTexture);
+    glGenTextures(1, &depthTexture);
+    // Transfer texture data
+    glBindTexture(GL_TEXTURE_2D, colorTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, gridSize.x(), gridSize.y(), 0, GL_RGBA, GL_FLOAT, nullptr);
+    glBindTexture(GL_TEXTURE_2D, depthTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, gridSize.x(), gridSize.y(), 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+
+    // Set texture to FBO
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTexture, 0);
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, sourceFBO);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFBO);
+    glBlitFramebuffer(0, 0, width, height, 0, 0, gridSize.x(), gridSize.y(), GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    glFinish();
+    glDeleteFramebuffers(1, &targetFBO);
+
+    return std::make_tuple(colorTexture, depthTexture);
+
+}
+
 void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) {
     // Get window/viewport size
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
     const float aspectRatio = (float)viewport[2] / viewport[3];
-    const Vector2i gridSize(aspectRatio*512, 512);
+    const Vector2i gridSize(aspectRatio*1024, 1024);
 
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     auto queue = device->getCommandQueue();
+    auto mKernel = cl::Kernel(getOpenCLProgram(device), "volumeRender");
 
     // Get color data from the main FBO to use as input
     int mainFBO;
     glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &mainFBO);
-    int textureID;
-    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, &textureID);
-    cl::Image2D inputColor = textureToCLimage(textureID, viewport[2], viewport[3], device, false);
-    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, &textureID);
-    cl::Image2D inputDepth = textureToCLimage(textureID, viewport[2], viewport[3], device, true);
+    int colorTextureID, depthTextureID;
+    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, &colorTextureID);
+    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, &depthTextureID);
+
+    // Resize OpenGL textures to avoid issues when viewport is very large (4k screens for instance)
+    // This also deals with issues related to gridSize being different than the viewport size giving problems when rendering geometry
+    auto newTextures = resizeOpenGLTexture(mainFBO, colorTextureID, depthTextureID, gridSize, viewport[2], viewport[3]);
+    colorTextureID = std::get<0>(newTextures);
+    depthTextureID = std::get<1>(newTextures);
+
+    std::vector<cl::Memory> v;
+    // Image objects must exist until kernel has executed
+    cl::Image2D inputColor;
+    cl::Image2D inputDepth;
+    cl::ImageGL inputColorGL;
+
+    if(DeviceManager::isGLInteropEnabled() && false) { // TODO not working on AMD for some reason
+        inputColorGL = textureToCLimageInterop(colorTextureID, gridSize.x(), gridSize.y(), device, false);
+        //cl::ImageGL inputDepth = textureToCLimageInterop(depthTextureID, viewport[2], viewport[3], device, true); // Can't to interop on depth texture..
+        inputDepth = textureToCLimage(depthTextureID, gridSize.x(), gridSize.y(), device, true);
+        mKernel.setArg(9, inputColor);
+        mKernel.setArg(10, inputDepth);
+        v.push_back(inputColorGL);
+        queue.enqueueAcquireGLObjects(&v);
+    } else {
+        inputColor = textureToCLimage(colorTextureID, gridSize.x(), gridSize.y(), device, false);
+        inputDepth = textureToCLimage(depthTextureID, gridSize.x(), gridSize.y(), device, true);
+        mKernel.setArg(9, inputColor);
+        mKernel.setArg(10, inputDepth);
+    }
+    glDeleteTextures(1, (uint*)&colorTextureID);
+    glDeleteTextures(1, (uint*)&depthTextureID);
 
     // Create a FBO
     if(m_FBO == 0)
@@ -61,7 +133,6 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
             cl::ImageFormat(CL_RGBA, CL_FLOAT),
             gridSize.x(), gridSize.y()
     );
-    auto mKernel = cl::Kernel(getOpenCLProgram(device), "volumeRender");
     mKernel.setArg(1, image);
 
     auto input = getInputData<Image>(0);
@@ -120,8 +191,6 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
     mKernel.setArg(6, transferScale);
     mKernel.setArg(7, inverseViewMatrixBuffer);
     mKernel.setArg(8, modelMatrixBuffer);
-    mKernel.setArg(9, inputColor);
-    mKernel.setArg(10, inputDepth);
     queue.enqueueNDRangeKernel(
             mKernel,
             cl::NullRange,
@@ -129,6 +198,9 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
             cl::NullRange
     );
 
+    if(DeviceManager::isGLInteropEnabled() && false) {
+        queue.enqueueReleaseGLObjects(&v);
+    }
 
     // Attach texture to framebuffer
     if(m_texture == 0)

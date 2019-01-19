@@ -14,6 +14,8 @@ class VolumeRenderer : public Renderer {
         uint m_FBO = 0;
         uint m_texture = 0;
         cl::Image2D textureToCLimage(uint textureID, int width, int height, OpenCLDevice::pointer device, bool depth);
+        cl::ImageGL textureToCLimageInterop(uint textureID, int width, int height, OpenCLDevice::pointer device, bool depth);
+        std::tuple<uint, uint> resizeOpenGLTexture(int sourceFBO, int sourceTextureColor, int sourceTextureDepth, Vector2i gridSize, int width, int height);
 };
 
 }
