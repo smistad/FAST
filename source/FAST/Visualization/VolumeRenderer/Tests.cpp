@@ -1,21 +1,39 @@
 #include <FAST/Testing.hpp>
-#include "VolumeRenderer.hpp"
+#include "MaximumIntensityProjection.hpp"
+#include "ThresholdVolumeRenderer.hpp"
 #include <FAST/Visualization/SimpleWindow.hpp>
 #include <FAST/Importers/ImageFileImporter.hpp>
 #include <FAST/Visualization/SliceRenderer/SliceRenderer.hpp>
 
 using namespace fast;
 
-TEST_CASE("Volume renderer", "[fast][volumerenderer][visual]") {
+TEST_CASE("Maximum intensity projection", "[fast][volumerenderer][visual]") {
 
     auto importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath() + "CT/CT-Thorax.mhd");
 
-    auto renderer = VolumeRenderer::New();
+    auto renderer = MaximumIntensityProjection::New();
     renderer->addInputConnection(importer->getOutputPort());
 
     auto window = SimpleWindow::New();
     window->addRenderer(renderer);
+    window->setTimeout(1000);
+    window->start();
+}
+
+
+TEST_CASE("Threshold volume renderer", "[fast][volumerenderer][visual][thresholdvolumerenderer]") {
+
+    auto importer = ImageFileImporter::New();
+    importer->setFilename(Config::getTestDataPath() + "CT/CT-Thorax.mhd");
+
+    auto renderer = ThresholdVolumeRenderer::New();
+    renderer->addInputConnection(importer->getOutputPort());
+    renderer->setThreshold(500);
+
+    auto window = SimpleWindow::New();
+    window->addRenderer(renderer);
+    //window->setTimeout(1000);
     window->start();
 }
 
@@ -24,7 +42,7 @@ TEST_CASE("Volume renderer with geom", "[fast][volumerenderer][visual][asdasdasd
     auto importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath() + "CT/CT-Thorax.mhd");
 
-    auto renderer = VolumeRenderer::New();
+    auto renderer = MaximumIntensityProjection::New();
     renderer->addInputConnection(importer->getOutputPort());
 
     auto renderer2 = SliceRenderer::New();
@@ -34,5 +52,6 @@ TEST_CASE("Volume renderer with geom", "[fast][volumerenderer][visual][asdasdasd
     auto window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->addRenderer(renderer2);
+    window->setTimeout(1000);
     window->start();
 }

@@ -5,12 +5,12 @@
 namespace fast {
 
 class VolumeRenderer : public Renderer {
-    FAST_OBJECT(VolumeRenderer)
     public:
+        typedef SharedPointer<VolumeRenderer> pointer;
         ~VolumeRenderer();
     protected:
+        virtual void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) = 0;
         VolumeRenderer();
-        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D);
         uint m_FBO = 0;
         uint m_texture = 0;
         cl::Image2D textureToCLimage(uint textureID, int width, int height, OpenCLDevice::pointer device, bool depth);

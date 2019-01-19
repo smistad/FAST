@@ -41,15 +41,11 @@ float3 reflect(float3 I, float3 N) {
 __kernel void volumeRender(
     __read_only image3d_t volume,
     __write_only image2d_t framebuffer,
-    __read_only image2d_t transferFunc,
-    float density,
-    float brightness,
-    float transferOffset,
-    float transferScale,
     __constant float* invViewMatrix,
-    __constant float* modelMatrix,
+    __constant float* invViewMatrix2,
     __read_only image2d_t inputFramebuffer,
-    __read_only image2d_t inputDepthFramebuffer
+    __read_only image2d_t inputDepthFramebuffer,
+    __private float threshold
     ) {
 
     const int width = get_image_width(framebuffer);
@@ -101,60 +97,64 @@ __kernel void volumeRender(
     // Traverse along ray from back to front, and keep the maximum intensity
     temp = (float4)(0.0f, 0.0f, 0.0f, 1.0f);
     // Recover original depth from depth buffer: https://stackoverflow.com/questions/6652253/getting-the-true-z-value-from-the-depth-buffer
-    float depthBuffer = (read_imagef(inputDepthFramebuffer, volumeSampler, (int2)(x,y)).x*2.0f - 1.0f); // turn depth into normalized coordinate ([-1, 1]
+    float depth = (read_imagef(inputDepthFramebuffer, volumeSampler, (int2)(x,y)).x*2.0f - 1.0f); // turn depth into normalized coordinate ([-1, 1]
     float zFar = 2466.85f;   // TODO get as input
     float zNear = 0.1f;      // TODO get as input
-    depthBuffer = 2.0f * zNear * zFar / (zFar + zNear - depthBuffer * (zFar - zNear));
-    int distance = min(tfar, depthBuffer); // Start at tfar or the value of the depth buffer, whatever is smallest
-    if(distance > tnear) {
-        while(distance > tnear) { // stop at tnear
-            float4 pos = rayOrigin + rayDirection * distance;
+    depth = 2.0f * zNear * zFar / (zFar + zNear - depth * (zFar - zNear));
+    float distance = tnear; // Start at tfar or the value of the depth buffer, whatever is smallest
+    while(distance < tfar) { // front to back
+        float4 pos = rayOrigin + rayDirection * distance;
 
-            // read from 3D texture
-            float sample = clamp(0.0f, 1.0f, ((float) read_imagei(volume, volumeSampler, pos).x + 1024.0f) / 4000.0f);
+        // read from 3D texture
+        float sample = read_imagei(volume, volumeSampler, pos).x;
+        if(sample > threshold || distance > depth)
+            break;
 
-            //sample = 1.0f - sample;
-            temp = max(temp, (float4)(sample, sample, sample, 1));
-
-            distance -= 1;
-        }
-
-        /*
-        // Calculate normal at targetDistance
-        float4 pos = rayOrigin + rayDirection * targetDistance;
+        distance += 0.5f;
+    }
+    if(distance >= tfar || distance > depth) {
+        temp = inputColor;
+    } else {
+        // Calculate normal at distance
+        float4 pos = rayOrigin + rayDirection * distance;
         float3 normal;
-        normal.x = 0.5f*(read_imagei(volume, volumeSampler, pos + (float4)(2,0,0,0)).x - read_imagei(volume, volumeSampler, pos - (float4)(2,0,0,0)).x);
-        normal.y = 0.5f*(read_imagei(volume, volumeSampler, pos + (float4)(0,2,0,0)).x - read_imagei(volume, volumeSampler, pos - (float4)(0,2,0,0)).x);
-        normal.z = 0.5f*(read_imagei(volume, volumeSampler, pos + (float4)(0,0,2,0)).x - read_imagei(volume, volumeSampler, pos - (float4)(0,0,2,0)).x);
+        normal.x = 0.5f * (read_imagei(volume, volumeSampler, pos + (float4)(1, 0, 0, 0)).x -
+                           read_imagei(volume, volumeSampler, pos - (float4)(1, 0, 0, 0)).x);
+        normal.y = 0.5f * (read_imagei(volume, volumeSampler, pos + (float4)(0, 1, 0, 0)).x -
+                           read_imagei(volume, volumeSampler, pos - (float4)(0, 1, 0, 0)).x);
+        normal.z = 0.5f * (read_imagei(volume, volumeSampler, pos + (float4)(0, 0, 1, 0)).x -
+                           read_imagei(volume, volumeSampler, pos - (float4)(0, 0, 1, 0)).x);
         normal = normalize(normal);
 
         // Calculate color with light
+        float3 objectColor = {0.0, 1.0, 0.0};
         float3 lightColor = {0.7, 0.7, 0.7};
         float3 ambientColor = {0.2, 0.2, 0.2};
         float3 specularColor = {1, 1, 1};
-        float3 LightPos = {0,0,0};
-        float3 ViewPos = {0,0,0};
+        float3 LightPos = {0, 0, 0};
+        float3 ViewPos = {0, 0, 0};
         float shininess = 16.0f;
 
+        // TODO fix, look at TriangleRenderer.vert
+        LightPos.x = dot(LightPos, ((float3)(invViewMatrix2[0],invViewMatrix2[4],invViewMatrix2[8])));
+        LightPos.y = dot(LightPos, ((float3)(invViewMatrix2[1],invViewMatrix2[5],invViewMatrix2[9])));
+        LightPos.z = dot(LightPos, ((float3)(invViewMatrix2[2],invViewMatrix2[6],invViewMatrix2[10])));
+        ViewPos.x = dot(ViewPos, ((float3)(invViewMatrix2[0],invViewMatrix2[4],invViewMatrix2[8])));
+        ViewPos.y = dot(ViewPos, ((float3)(invViewMatrix2[1],invViewMatrix2[5],invViewMatrix2[9])));
+        ViewPos.z = dot(ViewPos, ((float3)(invViewMatrix2[2],invViewMatrix2[6],invViewMatrix2[10])));
+
         float3 lightDir = normalize(LightPos - pos.xyz);
-        float3 diff = fabs(dot(normal, lightDir));
-        float3 diffuse = lightColor * (diff * temp.xyz);
+        float3 diff = max(dot(normal, lightDir), 0.0f);
+        float3 diffuse = lightColor * (diff * objectColor);
         float3 viewDir = normalize(ViewPos - pos.xyz);
         float3 reflectDir = reflect(-lightDir, normal);
         float spec = pow(max(dot(viewDir, reflectDir), 0.0f), shininess);
         float3 specular = lightColor * (spec * specularColor);
         float3 ambient = lightColor * ambientColor;
-        float3 result = ambient + diffuse;// + specular;
+        float3 result = ambient + diffuse; + specular;
         temp = (float4)(result.x, result.y, result.z, 1);
-         */
-
-        // Threshold, to show background
-        //if(temp.x < 0.1)
-        //    temp = inputColor;
-    } else {
-        temp = inputColor;
     }
+
     // write output color
     write_imagef(framebuffer, (int2)(x, y), temp);
-
 }
