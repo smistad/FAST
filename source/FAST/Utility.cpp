@@ -576,9 +576,9 @@ std::vector<std::string> split(const std::string input, const std::string& delim
 
 Matrix4f loadPerspectiveMatrix(float fovy, float aspect, float zNear, float zFar) {
 
-    float theta = fovy*0.5;
+    float theta = fovy*0.5f;
     float range = zFar - zNear;
-    float invtan = 1./tan(theta);
+    float invtan = 1.0f/(float)tan(theta);
 
     Matrix4f mProjectionMatrix = Matrix4f::Zero();
     mProjectionMatrix(0,0) = invtan / aspect;
