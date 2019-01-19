@@ -31,7 +31,6 @@ cl::Image2D VolumeRenderer::textureToCLimage(uint textureID, int width, int heig
 
 cl::ImageGL VolumeRenderer::textureToCLimageInterop(uint textureID, int width, int height, OpenCLDevice::pointer device, bool depth) {
     glBindTexture(GL_TEXTURE_2D, textureID);
-    glFinish();
     // Create CL-GL image
     auto imageGL = cl::ImageGL(
             device->getContext(),
@@ -40,6 +39,8 @@ cl::ImageGL VolumeRenderer::textureToCLimageInterop(uint textureID, int width, i
             0,
             textureID
     );
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glFinish();
 
     return imageGL;
 }
@@ -77,7 +78,8 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
     const float aspectRatio = (float)viewport[2] / viewport[3];
-    const Vector2i gridSize(aspectRatio*1024, 1024);
+    const int height = std::min(1024, viewport[3]);
+    const Vector2i gridSize(aspectRatio*height, height);
 
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     auto queue = device->getCommandQueue();
@@ -102,14 +104,14 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
     cl::Image2D inputDepth;
     cl::ImageGL inputColorGL;
 
-    if(DeviceManager::isGLInteropEnabled() && false) { // TODO not working on AMD for some reason
+    if(DeviceManager::isGLInteropEnabled()) { // TODO not working on AMD for some reason
         inputColorGL = textureToCLimageInterop(colorTextureID, gridSize.x(), gridSize.y(), device, false);
-        //cl::ImageGL inputDepth = textureToCLimageInterop(depthTextureID, viewport[2], viewport[3], device, true); // Can't to interop on depth texture..
-        inputDepth = textureToCLimage(depthTextureID, gridSize.x(), gridSize.y(), device, true);
-        mKernel.setArg(9, inputColor);
-        mKernel.setArg(10, inputDepth);
         v.push_back(inputColorGL);
         queue.enqueueAcquireGLObjects(&v);
+        //cl::ImageGL inputDepth = textureToCLimageInterop(depthTextureID, viewport[2], viewport[3], device, true); // Can't to interop on depth texture..
+        inputDepth = textureToCLimage(depthTextureID, gridSize.x(), gridSize.y(), device, true);
+        mKernel.setArg(9, inputColorGL);
+        mKernel.setArg(10, inputDepth);
     } else {
         inputColor = textureToCLimage(colorTextureID, gridSize.x(), gridSize.y(), device, false);
         inputDepth = textureToCLimage(depthTextureID, gridSize.x(), gridSize.y(), device, true);
@@ -198,7 +200,7 @@ void VolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bo
             cl::NullRange
     );
 
-    if(DeviceManager::isGLInteropEnabled() && false) {
+    if(DeviceManager::isGLInteropEnabled()) {
         queue.enqueueReleaseGLObjects(&v);
     }
 

@@ -108,8 +108,7 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, boo
         cl::ImageGL imageGL;
         std::vector<cl::Memory> v;
         GLuint textureID;
-        // TODO The GL-CL interop here is causing glClear to not work on AMD systems and therefore disabled
-        if(DeviceManager::isGLInteropEnabled() && false) {
+        if(DeviceManager::isGLInteropEnabled()) {
             // Create OpenGL texture
             glGenTextures(1, &textureID);
             glBindTexture(GL_TEXTURE_2D, textureID);
@@ -126,7 +125,7 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, boo
                     textureID
             );
             glBindTexture(GL_TEXTURE_2D, 0);
-            glFinish();
+            glFinish();     // Make sure everything is ready for CL to take over the texture
             v.push_back(imageGL);
             queue.enqueueAcquireGLObjects(&v);
             mKernel.setArg(1, imageGL);
@@ -140,7 +139,6 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, boo
             mKernel.setArg(1, image);
         }
 
-
         mKernel.setArg(0, *clImage);
         mKernel.setArg(2, level);
         mKernel.setArg(3, window);
@@ -151,8 +149,9 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, boo
                 cl::NullRange
         );
 
-        if(DeviceManager::isGLInteropEnabled() && false) {
+        if(DeviceManager::isGLInteropEnabled()) {
             queue.enqueueReleaseGLObjects(&v);
+            queue.finish(); // This is needed, otherwise seg fault can occur when doing GL stuff with this texture
         } else {
             // Copy data from CL image to CPU
             auto data = make_uninitialized_unique<float[]>(input->getWidth() * input->getHeight() * 4);
