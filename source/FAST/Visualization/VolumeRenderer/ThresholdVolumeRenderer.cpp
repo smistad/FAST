@@ -78,26 +78,33 @@ void ThresholdVolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingM
 
     Affine3f modelMatrix = SceneGraph::getEigenAffineTransformationFromData(input);
     modelMatrix.scale(input->getSpacing());
-    Matrix4f invViewMatrix = (viewingMatrix*modelMatrix.matrix()).inverse();
+    Matrix4f invModelViewMatrix = (viewingMatrix*modelMatrix.matrix()).inverse();
+    Matrix4f invViewMatrix = viewingMatrix.inverse();
 
+    auto inverseModelViewMatrixBuffer = cl::Buffer(
+            device->getContext(),
+            CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+            16*sizeof(float),
+            invModelViewMatrix.data()
+    );
     auto inverseViewMatrixBuffer = cl::Buffer(
             device->getContext(),
             CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
             16*sizeof(float),
             invViewMatrix.data()
     );
-    // TODO probably don't need this:
     auto modelMatrixBuffer = cl::Buffer(
             device->getContext(),
             CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
             16*sizeof(float),
-            viewingMatrix.data()
+            modelMatrix.matrix().data()
     );
 
     mKernel.setArg(0, *clImage);
-    mKernel.setArg(2, inverseViewMatrixBuffer);
-    mKernel.setArg(3, modelMatrixBuffer);
+    mKernel.setArg(2, inverseModelViewMatrixBuffer);
+    mKernel.setArg(3, inverseViewMatrixBuffer);
     mKernel.setArg(6, m_threshold);
+    mKernel.setArg(7, modelMatrixBuffer);
     queue.enqueueNDRangeKernel(
             mKernel,
             cl::NullRange,

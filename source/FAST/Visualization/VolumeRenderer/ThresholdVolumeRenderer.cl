@@ -38,6 +38,26 @@ float3 reflect(float3 I, float3 N) {
     return I - 2.0f * dot(N, I) * N;
 }
 
+
+float3 transformPosition(__constant float* transform, float3 pos) {
+    float4 position = {pos.x, pos.y, pos.z, 1};
+    float transformedPosition[4];
+
+    // Multiply with transform
+    // transform is column major
+    for(int i = 0; i < 4; i++) {
+        float sum = 0;
+        sum += transform[i + 0*4]*position.x;
+        sum += transform[i + 1*4]*position.y;
+        sum += transform[i + 2*4]*position.z;
+        sum += transform[i + 3*4]*position.w;
+        transformedPosition[i] = sum;
+    }
+
+    float3 result = {transformedPosition[0], transformedPosition[1], transformedPosition[2]};
+    return result;
+}
+
 __kernel void volumeRender(
     __read_only image3d_t volume,
     __write_only image2d_t framebuffer,
@@ -45,7 +65,8 @@ __kernel void volumeRender(
     __constant float* invViewMatrix2,
     __read_only image2d_t inputFramebuffer,
     __read_only image2d_t inputDepthFramebuffer,
-    __private float threshold
+    __private float threshold,
+    __constant float* modelMatrix
     ) {
 
     const int width = get_image_width(framebuffer);
@@ -136,22 +157,18 @@ __kernel void volumeRender(
         float shininess = 16.0f;
 
         // TODO fix, look at TriangleRenderer.vert
-        LightPos.x = dot(LightPos, ((float3)(invViewMatrix2[0],invViewMatrix2[4],invViewMatrix2[8])));
-        LightPos.y = dot(LightPos, ((float3)(invViewMatrix2[1],invViewMatrix2[5],invViewMatrix2[9])));
-        LightPos.z = dot(LightPos, ((float3)(invViewMatrix2[2],invViewMatrix2[6],invViewMatrix2[10])));
-        ViewPos.x = dot(ViewPos, ((float3)(invViewMatrix2[0],invViewMatrix2[4],invViewMatrix2[8])));
-        ViewPos.y = dot(ViewPos, ((float3)(invViewMatrix2[1],invViewMatrix2[5],invViewMatrix2[9])));
-        ViewPos.z = dot(ViewPos, ((float3)(invViewMatrix2[2],invViewMatrix2[6],invViewMatrix2[10])));
+        LightPos = transformPosition(invViewMatrix2, LightPos);
+        ViewPos = transformPosition(invViewMatrix2, ViewPos);
 
         float3 lightDir = normalize(LightPos - pos.xyz);
-        float3 diff = max(dot(normal, lightDir), 0.0f);
+        float diff = max(dot(normal, lightDir), 0.0f);
         float3 diffuse = lightColor * (diff * objectColor);
         float3 viewDir = normalize(ViewPos - pos.xyz);
         float3 reflectDir = reflect(-lightDir, normal);
         float spec = pow(max(dot(viewDir, reflectDir), 0.0f), shininess);
         float3 specular = lightColor * (spec * specularColor);
         float3 ambient = lightColor * ambientColor;
-        float3 result = ambient + diffuse; + specular;
+        float3 result = ambient + diffuse + specular;
         temp = (float4)(result.x, result.y, result.z, 1);
     }
 
