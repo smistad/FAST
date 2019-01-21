@@ -50,7 +50,7 @@ void ThresholdVolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingM
     } else {
         inputColor = textureToCLimage(colorTextureID, gridSize.x(), gridSize.y(), device, false);
         inputDepth = textureToCLimage(depthTextureID, gridSize.x(), gridSize.y(), device, true);
-        mKernel.setArg(9, inputColor);
+        mKernel.setArg(4, inputColor);
         mKernel.setArg(5, inputDepth);
     }
     glDeleteTextures(1, (uint*)&colorTextureID);

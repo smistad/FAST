@@ -34,7 +34,7 @@ void MaximumIntensityProjection::draw(Matrix4f perspectiveMatrix, Matrix4f viewi
     cl::Image2D inputDepth;
     cl::ImageGL inputColorGL;
 
-    if(DeviceManager::isGLInteropEnabled()) { // TODO not working on AMD for some reason
+    if(DeviceManager::isGLInteropEnabled()) {
         inputColorGL = textureToCLimageInterop(colorTextureID, gridSize.x(), gridSize.y(), device, false);
         v.push_back(inputColorGL);
         queue.enqueueAcquireGLObjects(&v);
@@ -45,7 +45,7 @@ void MaximumIntensityProjection::draw(Matrix4f perspectiveMatrix, Matrix4f viewi
     } else {
         inputColor = textureToCLimage(colorTextureID, gridSize.x(), gridSize.y(), device, false);
         inputDepth = textureToCLimage(depthTextureID, gridSize.x(), gridSize.y(), device, true);
-        mKernel.setArg(9, inputColor);
+        mKernel.setArg(4, inputColor);
         mKernel.setArg(5, inputDepth);
     }
     glDeleteTextures(1, (uint*)&colorTextureID);

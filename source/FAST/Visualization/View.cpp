@@ -489,7 +489,7 @@ void View::initializeGL() {
     } else {
         glEnable(GL_DEPTH_TEST);
 
-        if(m_FBO == 0) {
+        if(m_FBO == 0 && !mVolumeRenderers.empty()) {
             // Create framebuffer to render to
             glGenFramebuffers(1, &m_FBO);
 
@@ -529,7 +529,7 @@ void View::paintGL() {
 
     mRuntimeManager->startRegularTimer("paint");
 
-    if(!mIsIn2DMode)
+    if(!mIsIn2DMode && !mVolumeRenderers.empty())
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FBO); // draw in our custom FBO
     glClearColor(mBackgroundColor.getRedValue(), mBackgroundColor.getGreenValue(), mBackgroundColor.getBlueValue(),
                  1.0f);
@@ -566,17 +566,20 @@ void View::paintGL() {
             mNonVolumeRenderers[i]->postDraw();
         }
 
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FBO);
-        for(int i = 0; i < mVolumeRenderers.size(); i++) {
-            mVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), false);
-            mVolumeRenderers[i]->postDraw();
-        }
+        if(!mVolumeRenderers.empty()) {
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FBO);
+            for(int i = 0; i < mVolumeRenderers.size(); i++) {
+                mVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), false);
+                mVolumeRenderers[i]->postDraw();
+            }
 
-        // Blit/copy the framebuffer to the default framebuffer (window)
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, m_FBO);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-        glBlitFramebuffer(0, 0, width(), height(), 0, 0, width(), height(), GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FBO);
+            // Blit/copy the framebuffer to the default framebuffer (window)
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, m_FBO);
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+            glBlitFramebuffer(0, 0, width(), height(), 0, 0, width(), height(),
+                              GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FBO);
+        }
 
         mRuntimeManager->stopRegularTimer("draw");
     }

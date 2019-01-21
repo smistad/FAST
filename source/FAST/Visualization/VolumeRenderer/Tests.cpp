@@ -33,7 +33,7 @@ TEST_CASE("Threshold volume renderer", "[fast][volumerenderer][visual][threshold
 
     auto window = SimpleWindow::New();
     window->addRenderer(renderer);
-    //window->setTimeout(1000);
+    window->setTimeout(1000);
     window->start();
 }
 
