@@ -4,7 +4,7 @@
 
 namespace fast {
 
-class ThresholdVolumeRenderer : public VolumeRenderer {
+class FAST_EXPORT ThresholdVolumeRenderer : public VolumeRenderer {
     FAST_OBJECT(ThresholdVolumeRenderer)
     public:
         void setThreshold(float threshold);

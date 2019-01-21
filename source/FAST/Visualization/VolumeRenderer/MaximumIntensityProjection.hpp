@@ -4,7 +4,7 @@
 
 namespace fast {
 
-class MaximumIntensityProjection : public VolumeRenderer {
+class FAST_EXPORT MaximumIntensityProjection : public VolumeRenderer {
     FAST_OBJECT(MaximumIntensityProjection)
     public:
     protected:
