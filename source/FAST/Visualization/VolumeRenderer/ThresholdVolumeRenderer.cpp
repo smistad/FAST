@@ -39,22 +39,31 @@ void ThresholdVolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingM
     cl::Image2D inputDepth;
     cl::ImageGL inputColorGL;
 
-    if(DeviceManager::isGLInteropEnabled()) { // TODO not working on AMD for some reason
-        inputColorGL = textureToCLimageInterop(colorTextureID, gridSize.x(), gridSize.y(), device, false);
-        v.push_back(inputColorGL);
-        queue.enqueueAcquireGLObjects(&v);
-        //cl::ImageGL inputDepth = textureToCLimageInterop(depthTextureID, viewport[2], viewport[3], device, true); // Can't to interop on depth texture..
-        inputDepth = textureToCLimage(depthTextureID, gridSize.x(), gridSize.y(), device, true);
-        mKernel.setArg(4, inputColorGL);
-        mKernel.setArg(5, inputDepth);
-    } else {
-        inputColor = textureToCLimage(colorTextureID, gridSize.x(), gridSize.y(), device, false);
-        inputDepth = textureToCLimage(depthTextureID, gridSize.x(), gridSize.y(), device, true);
-        mKernel.setArg(4, inputColor);
-        mKernel.setArg(5, inputDepth);
-    }
-    glDeleteTextures(1, (uint*)&colorTextureID);
-    glDeleteTextures(1, (uint*)&depthTextureID);
+	bool useGLInterop = false;
+	if (DeviceManager::isGLInteropEnabled()) {
+		try {
+			inputColorGL = textureToCLimageInterop(colorTextureID, gridSize.x(), gridSize.y(), device, false);
+			v.push_back(inputColorGL);
+			queue.enqueueAcquireGLObjects(&v);
+			//cl::ImageGL inputDepth = textureToCLimageInterop(depthTextureID, viewport[2], viewport[3], device, true); // Can't to interop on depth texture..
+			inputDepth = textureToCLimage(depthTextureID, gridSize.x(), gridSize.y(), device, true);
+			mKernel.setArg(4, inputColorGL);
+			mKernel.setArg(5, inputDepth);
+			useGLInterop = true;
+		}
+		catch (cl::Error &e) {
+			reportError() << "Failed to perform GL interop in volume renderer even though it is enabled on device." << reportEnd();
+		}
+	}
+
+	if (!useGLInterop) {
+		inputColor = textureToCLimage(colorTextureID, gridSize.x(), gridSize.y(), device, false);
+		inputDepth = textureToCLimage(depthTextureID, gridSize.x(), gridSize.y(), device, true);
+		mKernel.setArg(4, inputColor);
+		mKernel.setArg(5, inputDepth);
+	}
+	glDeleteTextures(1, (uint*)&colorTextureID);
+	glDeleteTextures(1, (uint*)&depthTextureID);
 
     // Create a FBO
     if(m_FBO == 0)
@@ -79,32 +88,30 @@ void ThresholdVolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingM
     Affine3f modelMatrix = SceneGraph::getEigenAffineTransformationFromData(input);
     modelMatrix.scale(input->getSpacing());
     Matrix4f invModelViewMatrix = (viewingMatrix*modelMatrix.matrix()).inverse();
-    Matrix4f invViewMatrix = viewingMatrix.inverse();
-
+    
     auto inverseModelViewMatrixBuffer = cl::Buffer(
             device->getContext(),
             CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
             16*sizeof(float),
             invModelViewMatrix.data()
     );
+
+	Matrix4f invViewMatrix = viewingMatrix.inverse();
+	// Remove translation
+	invViewMatrix(0, 3) = 0;
+	invViewMatrix(1, 3) = 0;
+	invViewMatrix(2, 3) = 0;
     auto inverseViewMatrixBuffer = cl::Buffer(
             device->getContext(),
             CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
             16*sizeof(float),
             invViewMatrix.data()
     );
-    auto modelMatrixBuffer = cl::Buffer(
-            device->getContext(),
-            CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-            16*sizeof(float),
-            modelMatrix.matrix().data()
-    );
 
     mKernel.setArg(0, *clImage);
     mKernel.setArg(2, inverseModelViewMatrixBuffer);
     mKernel.setArg(3, inverseViewMatrixBuffer);
     mKernel.setArg(6, m_threshold);
-    mKernel.setArg(7, modelMatrixBuffer);
     queue.enqueueNDRangeKernel(
             mKernel,
             cl::NullRange,
@@ -112,7 +119,7 @@ void ThresholdVolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingM
             cl::NullRange
     );
 
-    if(DeviceManager::isGLInteropEnabled()) {
+    if(useGLInterop) {
         queue.enqueueReleaseGLObjects(&v);
     }
 

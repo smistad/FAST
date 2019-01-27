@@ -34,15 +34,23 @@ void MaximumIntensityProjection::draw(Matrix4f perspectiveMatrix, Matrix4f viewi
     cl::Image2D inputDepth;
     cl::ImageGL inputColorGL;
 
-    if(DeviceManager::isGLInteropEnabled()) {
-        inputColorGL = textureToCLimageInterop(colorTextureID, gridSize.x(), gridSize.y(), device, false);
-        v.push_back(inputColorGL);
-        queue.enqueueAcquireGLObjects(&v);
-        //cl::ImageGL inputDepth = textureToCLimageInterop(depthTextureID, viewport[2], viewport[3], device, true); // Can't to interop on depth texture..
-        inputDepth = textureToCLimage(depthTextureID, gridSize.x(), gridSize.y(), device, true);
-        mKernel.setArg(4, inputColorGL);
-        mKernel.setArg(5, inputDepth);
-    } else {
+	bool useGLInterop = false;
+    if(DeviceManager::isGLInteropEnabled()) {		
+		try {
+			inputColorGL = textureToCLimageInterop(colorTextureID, gridSize.x(), gridSize.y(), device, false);
+			v.push_back(inputColorGL);
+			queue.enqueueAcquireGLObjects(&v);
+			//cl::ImageGL inputDepth = textureToCLimageInterop(depthTextureID, viewport[2], viewport[3], device, true); // Can't to interop on depth texture..
+			inputDepth = textureToCLimage(depthTextureID, gridSize.x(), gridSize.y(), device, true);
+			mKernel.setArg(4, inputColorGL);
+			mKernel.setArg(5, inputDepth);
+			useGLInterop = true;
+		} catch (cl::Error &e) {
+			reportError() << "Failed to perform GL interop in volume renderer even though it is enabled on device." << reportEnd();
+		}
+    } 
+
+	if(!useGLInterop) {
         inputColor = textureToCLimage(colorTextureID, gridSize.x(), gridSize.y(), device, false);
         inputDepth = textureToCLimage(depthTextureID, gridSize.x(), gridSize.y(), device, true);
         mKernel.setArg(4, inputColor);
@@ -99,7 +107,7 @@ void MaximumIntensityProjection::draw(Matrix4f perspectiveMatrix, Matrix4f viewi
             cl::NullRange
     );
 
-    if(DeviceManager::isGLInteropEnabled()) {
+    if(useGLInterop) {
         queue.enqueueReleaseGLObjects(&v);
     }
 

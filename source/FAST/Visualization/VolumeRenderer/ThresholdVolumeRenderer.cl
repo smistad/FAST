@@ -47,10 +47,10 @@ float3 transformPosition(__constant float* transform, float3 pos) {
     // transform is column major
     for(int i = 0; i < 4; i++) {
         float sum = 0;
-        sum += transform[i + 0*4]*position.x;
-        sum += transform[i + 1*4]*position.y;
-        sum += transform[i + 2*4]*position.z;
-        sum += transform[i + 3*4]*position.w;
+        sum += transform[0 + i*4]*position.x;
+        sum += transform[1 + i*4]*position.y;
+        sum += transform[2 + i*4]*position.z;
+        sum += transform[3 + i*4]*position.w;
         transformedPosition[i] = sum;
     }
 
@@ -65,8 +65,7 @@ __kernel void volumeRender(
     __constant float* invViewMatrix2,
     __read_only image2d_t inputFramebuffer,
     __read_only image2d_t inputDepthFramebuffer,
-    __private float threshold,
-    __constant float* modelMatrix
+    __private float threshold
     ) {
 
     const int width = get_image_width(framebuffer);
@@ -146,6 +145,8 @@ __kernel void volumeRender(
         normal.z = 0.5f * (read_imagei(volume, volumeSampler, pos + (float4)(0, 0, 1, 0)).x -
                            read_imagei(volume, volumeSampler, pos - (float4)(0, 0, 1, 0)).x);
         normal = normalize(normal);
+		normal = transformPosition(invViewMatrix2, normal);
+		normal = normalize(normal);
 
         // Calculate color with light
         float3 objectColor = {0.0, 1.0, 0.0};

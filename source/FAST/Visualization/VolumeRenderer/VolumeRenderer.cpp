@@ -30,7 +30,6 @@ cl::Image2D VolumeRenderer::textureToCLimage(uint textureID, int width, int heig
 
 
 cl::ImageGL VolumeRenderer::textureToCLimageInterop(uint textureID, int width, int height, OpenCLDevice::pointer device, bool depth) {
-    glBindTexture(GL_TEXTURE_2D, textureID);
     // Create CL-GL image
     auto imageGL = cl::ImageGL(
             device->getContext(),
@@ -39,8 +38,6 @@ cl::ImageGL VolumeRenderer::textureToCLimageInterop(uint textureID, int width, i
             0,
             textureID
     );
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glFinish();
 
     return imageGL;
 }
