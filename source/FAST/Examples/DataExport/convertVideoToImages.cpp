@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
             continue;
         Reporter::info() << "Processing file " << file << Reporter::end();
         auto streamer = MovieStreamer::New();
-        streamer->setGrayscale(parser.getOption("color"));
+        streamer->setGrayscale(!parser.getOption("color"));
         streamer->setFilename(join(path, file));
 
         auto port = streamer->getOutputPort();
