@@ -48,6 +48,10 @@ void TensorShape::addDimension(int value) {
     m_data.push_back(value);
 }
 
+void TensorShape::insertDimension(int position, int value) {
+	m_data.insert(m_data.begin() + position, value);
+}
+
 TensorShape::TensorShape(const TensorShape &other) {
     m_data = other.getAll();
 }

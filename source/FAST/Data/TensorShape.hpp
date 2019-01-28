@@ -73,7 +73,12 @@ class FAST_EXPORT TensorShape {
          * @param value
          */
         void addDimension(int value);
-
+		/**
+		 * Insert a new dimension at a given position with the given value
+		 * @param position
+		 * @param value
+		 */
+		void insertDimension(int position, int value);
         /**
          * Convert shape into string
          */

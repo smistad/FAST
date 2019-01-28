@@ -21,6 +21,16 @@ class FAST_EXPORT Tensor : public DataObject {
          * @param shape
          */
         virtual void create(TensorShape shape);
+		/**
+		 * Create a 1D tensor with the provided data. Its shape will be equal to its length
+		 * @param data
+		 */
+		virtual void create(std::initializer_list<float> data);
+		/**
+		 * Add a dimension of size 1 at provided position. -1 is last position.
+		 * @param position
+		 */
+		virtual void expandDims(int position = 0);
         virtual TensorShape getShape() const;
         virtual TensorAccess::pointer getAccess(accessType type);
         // TODO add OpenCL buffer access
