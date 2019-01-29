@@ -31,17 +31,6 @@ void ClariusStreamer::execute() {
     }
 }
 
-void ClariusStreamer::newImageFn(const void* newImage, const ClariusImageInfo* nfo, int npos, const ClariusPosInfo* pos) {
-
-}
-
-void testNewImageFn(ClariusStreamer::pointer streamer, const void* newImage, const ClariusImageInfo* nfo, int npos, const ClariusPosInfo* pos) {
-    std::cout << "new image (" << newImage << "): " << nfo->width << " x " << nfo->height << " @ " << nfo->bitsPerPixel
-          << "bits. @ " << nfo->micronsPerPixel << " microns per pixel. imu points: " << npos << std::endl;
-
-    streamer->newImageFn(newImage, nfo, npos, pos);
-}
-
 
 void ClariusStreamer::producerStream() {
     reportInfo() << "Trying to set up Clarius streaming..." << reportEnd();
@@ -49,6 +38,7 @@ void ClariusStreamer::producerStream() {
     int argc = 1;
     char** argv;
     std::string keydir = "/tmp/";
+    // TODO A hack here to get this to work. Fix later
     static ClariusStreamer::pointer self = std::dynamic_pointer_cast<ClariusStreamer>(mPtr.lock());
     int success = clariusInitListener(argc, argv, keydir.c_str(),
             // new image callback
@@ -59,6 +49,8 @@ void ClariusStreamer::producerStream() {
 
             auto image = Image::New();
             image->create(nfo->width, nfo->height, TYPE_UINT8, 1, img);
+            float spacing = (float)nfo->micronsPerPixel/1000.0f;
+            image->setSpacing(Vector3f(spacing, spacing, 1));
 
             self->addOutputData(0, image);
           },
@@ -84,7 +76,7 @@ void ClariusStreamer::producerStream() {
             }
         }
 
-        // Get image from newImageFn and add to output
+        // TODO improve this
         std::this_thread::sleep_for(std::chrono::duration<double>(1));
         std::cout << "waiting.." << std::endl;
     }
