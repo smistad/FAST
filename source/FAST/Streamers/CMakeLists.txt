@@ -44,6 +44,12 @@ if(FAST_MODULE_RealSense)
         RealSenseStreamer.hpp
     )
 endif()
+if(FAST_MODULE_Clarius)
+    fast_add_sources(
+        ClariusStreamer.cpp
+        ClariusStreamer.hpp
+    )
+endif()
 
 fast_add_test_sources(
     Tests/ImageFileStreamerTests.cpp

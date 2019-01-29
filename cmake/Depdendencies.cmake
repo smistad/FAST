@@ -79,6 +79,7 @@ include(cmake/ModuleTensorRT.cmake)
 include(cmake/ModuleOpenVINO.cmake)
 include(cmake/ModuleKinect.cmake)
 include(cmake/ModuleRealSense.cmake)
+include(cmake/ModuleClarius.cmake)
 
 # Make sure FAST can find external includes and libaries
 link_directories(${FAST_EXTERNAL_INSTALL_DIR}/lib/)
