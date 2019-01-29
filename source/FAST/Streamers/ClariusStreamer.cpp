@@ -31,6 +31,27 @@ void ClariusStreamer::execute() {
     }
 }
 
+void ClariusStreamer::newImageFn(const void *img, const _ClariusImageInfo *nfo, int npos,
+                                 const _ClariusPosInfo *pos) {
+    std::cout << "new image (" << img << "): " << nfo->width << " x " << nfo->height << " @ " << nfo->bitsPerPixel
+    << "bits. @ " << nfo->micronsPerPixel << " microns per pixel. imu points: " << npos << std::endl;
+
+    auto image = Image::New();
+    image->create(nfo->width, nfo->height, TYPE_UINT8, 1, img);
+    float spacing = (float)nfo->micronsPerPixel/1000.0f;
+    image->setSpacing(Vector3f(spacing, spacing, 1));
+
+    addOutputData(0, image);
+    if(!mFirstFrameIsInserted) {
+    {
+        std::lock_guard<std::mutex> lock(mFirstFrameMutex);
+        mFirstFrameIsInserted = true;
+    }
+    mFirstFrameCondition.notify_one();
+    }
+    mNrOfFrames++;
+}
+
 
 void ClariusStreamer::producerStream() {
     reportInfo() << "Trying to set up Clarius streaming..." << reportEnd();
@@ -42,17 +63,9 @@ void ClariusStreamer::producerStream() {
     static ClariusStreamer::pointer self = std::dynamic_pointer_cast<ClariusStreamer>(mPtr.lock());
     int success = clariusInitListener(argc, argv, keydir.c_str(),
             // new image callback
-            [](const void* img, const ClariusImageInfo* nfo, int npos, const ClariusPosInfo*)
+            [](const void* img, const ClariusImageInfo* nfo, int npos, const ClariusPosInfo* pos)
           {
-            std::cout << "new image (" << img << "): " << nfo->width << " x " << nfo->height << " @ " << nfo->bitsPerPixel
-            << "bits. @ " << nfo->micronsPerPixel << " microns per pixel. imu points: " << npos << std::endl;
-
-            auto image = Image::New();
-            image->create(nfo->width, nfo->height, TYPE_UINT8, 1, img);
-            float spacing = (float)nfo->micronsPerPixel/1000.0f;
-            image->setSpacing(Vector3f(spacing, spacing, 1));
-
-            self->addOutputData(0, image);
+            self->newImageFn(img, nfo, npos, pos);
           },
           nullptr, nullptr, nullptr, nullptr);
     if(success < 0)
