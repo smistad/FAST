@@ -9,7 +9,7 @@ struct _ClariusPosInfo;
 
 namespace fast {
 
-class ClariusStreamer : public Streamer {
+class FAST_EXPORT ClariusStreamer : public Streamer {
     FAST_OBJECT(ClariusStreamer)
     public:
         bool hasReachedEnd();

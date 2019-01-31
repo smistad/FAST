@@ -32,13 +32,14 @@ void ClariusStreamer::execute() {
               nullptr, nullptr, nullptr, nullptr);
         if(success < 0)
             throw Exception("Unable to initialize clarius listener");
+        reportInfo() << "Clarius streamer initialized" << reportEnd();
 
         std::string ipAddr = "192.168.1.1";
         uint port = 5828;
         success = clariusConnect(ipAddr.c_str(), port, nullptr);
         if(success < 0)
             throw Exception("Unable to connect to clarius scanner");
-
+        reportInfo() << "Clarius streamer connected." << reportEnd();
         mStreamIsStarted = true;
     }
 
