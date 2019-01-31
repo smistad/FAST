@@ -12,7 +12,6 @@ namespace fast {
 class ClariusStreamer : public Streamer {
     FAST_OBJECT(ClariusStreamer)
     public:
-        void producerStream();
         bool hasReachedEnd();
         void stop();
         ~ClariusStreamer();
@@ -26,11 +25,10 @@ class ClariusStreamer : public Streamer {
         bool mFirstFrameIsInserted;
         bool mHasReachedEnd;
         bool mStop;
+        bool mGrayscale;
         uint mNrOfFrames;
 
-        std::unique_ptr<std::thread> mThread;
         std::mutex mFirstFrameMutex;
-        std::mutex mStopMutex;
         std::condition_variable mFirstFrameCondition;
 };
 
