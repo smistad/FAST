@@ -3,6 +3,7 @@
 #include "FAST/Visualization/View.hpp"
 #include <QPainter>
 #include <QApplication>
+#include <FAST/Data/Text.hpp>
 
 namespace fast {
 

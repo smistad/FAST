@@ -1,7 +1,9 @@
 #include "ImageFileImporter.hpp"
 #include "MetaImageImporter.hpp"
 #include "DICOMFileImporter.hpp"
+#ifdef FAST_MODULE_VISUALIZATION
 #include "ImageImporter.hpp"
+#endif
 #include "FAST/Data/Image.hpp"
 #include <algorithm>
 

@@ -9,7 +9,6 @@
 #include <limits>
 
 #include <iostream>
-#include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 
 namespace fast {
 

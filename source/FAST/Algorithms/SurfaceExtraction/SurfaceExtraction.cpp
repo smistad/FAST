@@ -5,6 +5,7 @@
 #include "FAST/Utility.hpp"
 #include "FAST/Utility.hpp"
 #include "FAST/SceneGraph.hpp"
+#include <numeric>
 #ifdef FAST_MODULE_VISUALIZATION
 #include <QGLFunctions>
 #include "FAST/Visualization/Window.hpp"

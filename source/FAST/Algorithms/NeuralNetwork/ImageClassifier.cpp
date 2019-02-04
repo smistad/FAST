@@ -1,5 +1,6 @@
 #include "ImageClassifier.hpp"
 #include "FAST/Data/Image.hpp"
+#include <FAST/Data/Text.hpp>
 
 namespace fast {
 
