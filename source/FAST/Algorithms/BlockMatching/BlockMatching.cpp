@@ -13,7 +13,11 @@ BlockMatching::BlockMatching() {
 void BlockMatching::execute() {
     auto currentFrame = getInputData<Image>(0);
 
-    std::map<Type, std::string> kernelNames = {{Type::NORMALIZED_CROSS_CORRELATION, "normalizedCrossCorrelation"}, {Type::SUM_OF_SQUARED_DIFFERENCES, "sumOfSquaredDifferences"}};
+    std::map<Type, std::string> kernelNames = {
+            {Type::NORMALIZED_CROSS_CORRELATION, "normalizedCrossCorrelation"},
+            {Type::SUM_OF_SQUARED_DIFFERENCES, "sumOfSquaredDifferences"},
+            {Type::SUM_OF_ABSOLUTE_DIFFERENCES, "sumOfAbsoluteDifferences"},
+    };
 
     if(currentFrame->getDimensions() != 2)
         throw Exception("Block matching only implemented for 2D");
@@ -35,11 +39,11 @@ void BlockMatching::execute() {
     cl::Kernel kernel(getOpenCLProgram(device, "", buildOptions), kernelNames.at(m_type).c_str());
     auto queue = device->getCommandQueue();
 
-    if(m_type == Type::SUM_OF_SQUARED_DIFFERENCES) {
+    if(m_type == Type::SUM_OF_SQUARED_DIFFERENCES || m_type == Type::SUM_OF_ABSOLUTE_DIFFERENCES) {
         float max = currentFrame->calculateMaximumIntensity();
         float min = currentFrame->calculateMinimumIntensity();
-        kernel.setArg(5, min);
-        kernel.setArg(6, max);
+        kernel.setArg(6, min);
+        kernel.setArg(7, max);
     }
 
     auto previousFrameAccess = m_previousFrame->getOpenCLImageAccess(ACCESS_READ, device);
