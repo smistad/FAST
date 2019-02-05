@@ -32,76 +32,7 @@ float3 Hue(float H)
     return clamp((float3)(R, G, B), 0.0f, 1.0f);
 }
 
-#define searchSizeConst 7 // Should be searchSize*2 + 1 + 2
-
-__kernel void blockMatching(
-        __read_only image2d_t previousFrame,
-        __read_only image2d_t currentFrame,
-        __write_only image2d_t output,
-        __private const int blockSize, // block size in half
-        __private const int searchSize
-    ) {
-    const int2 pos = {get_global_id(0), get_global_id(1)};
-    const int width = get_image_width(currentFrame);
-    const int height = get_image_height(currentFrame);
-
-    // Template is what we are looking for (target), currentFrame at pos
-    const float targetMean = calculateMeanIntensity(currentFrame, pos, blockSize);
-    if(targetMean < 75.0f) { // if target is all zero/black, just stop here
-        write_imagef(output, pos, (float4)(0, 0, 0, 0));
-        return;
-    }
-
-    // Create 3x3 grid for subpixel fitting
-    float b[searchSizeConst][searchSizeConst];
-    for(int x = 0; x < searchSizeConst; x++) {
-        for(int y = 0; y < searchSizeConst; y++) {
-            b[x][y] = 0;
-        }
-    }
-
-    // For every possible block position
-    float bestScore = -1;
-    int2 movement = {0, 0};
-    for(int y = pos.y - searchSize; y <= pos.y + searchSize; ++y)  {
-        for(int x = pos.x - searchSize; x <= pos.x + searchSize; ++x)  {
-            // previousframe at pos x,y is the current candidate
-            const float candidateMean = calculateMeanIntensity(previousFrame, (int2)(x, y), blockSize);
-            float upperPart = 0.0f;
-            float lowerPart1 = 0.0f;
-            float lowerPart2 = 0.0f;
-            float ssd = 0.0f;
-            // Loop over target and candidate block
-            for(int a = -blockSize; a <= blockSize; ++a) {
-                for(int b = -blockSize; b <= blockSize; ++b) {
-                    const float imagePart = getPixelAsFloat(previousFrame, (int2)(x+a, y+b)) - candidateMean;
-                    const float targetPart = getPixelAsFloat(currentFrame, (int2)(pos.x+a, pos.y+b)) - targetMean;
-                    upperPart += imagePart*targetPart;
-                    lowerPart1 += imagePart*imagePart;
-                    lowerPart2 += targetPart*targetPart;
-                    // TODO assuming uint8 images, with max value 255. should have this has input
-                    float val = getPixelAsFloat(previousFrame, (int2)(x+a,y+b))/255.0f - getPixelAsFloat(currentFrame, (int2)(pos.x+a,pos.y+b))/255.0f; // SSD
-                    //float val = fabs(getPixelAsFloat(previousFrame, (int2)(x+a,y+b))/255.0f - getPixelAsFloat(currentFrame, (int2)(pos.x+a,pos.y+b))/255.0f); // SAD
-                    ssd += val*val;
-                }
-            }
-
-            const float result = upperPart / sqrt(lowerPart1*lowerPart2);
-            //const float result = 1.0f - (ssd/((blockSize*2+1)*(blockSize*2+1)));
-
-            b[x-pos.x+searchSize + 1][y-pos.y+searchSize + 1] = result;
-            if(result > bestScore) {
-                bestScore = result;
-                movement = (int2)(x - pos.x, y - pos.y); // Movement is the offset from pos.x, pos.y
-            }
-        }
-    }
-    /*
-    for(int x = 0; x < 7; x++) {
-        for(int y = 0; y < 7; y++) {
-            printf("%f\n", b[x][y]);
-        }
-    }*/
+inline float2 findSubpixelMovement(const int2 movement, const int searchSize, const float b[SEARCH_SIZE][SEARCH_SIZE]) {
 
     const int index_x = movement.x + searchSize+1;
     const int index_y = movement.y + searchSize+1;
@@ -118,17 +49,127 @@ __kernel void blockMatching(
     const float F = (-b[index_x-1][index_y-1] + 2 * b[index_x][index_y-1] - b[index_x+1][index_y-1] + 2 * b[index_x-1][index_y] + 5 * b[index_x][index_y] + 2 * b[index_x+1][index_y] - b[index_x-1][index_y+1] +
                     2 * b[index_x][index_y+1] - b[index_x+1][index_y+1]) / 9.0;
 
-    float2 subpixel_movement = {(float)movement.x + (B * E - 2.0 * C * D) / (4.0 * A * C - B * B),
-                                  (float)movement.y + (B * D - 2.0 * A * E) / (4.0 * A * C - B * B)};
+    return (float2)((float)movement.x + (B * E - 2.0 * C * D) / (4.0 * A * C - B * B),
+                                  (float)movement.y + (B * D - 2.0 * A * E) / (4.0 * A * C - B * B));
+}
 
-    //subpixel_movement = (float2)(movement.x, movement.y);
-    //printf("%d %d - %f %f\n", movement.x, movement.y, subpixel_movement.x, subpixel_movement.y);
+__kernel void normalizedCrossCorrelation(
+        __read_only image2d_t previousFrame,
+        __read_only image2d_t currentFrame,
+        __write_only image2d_t output,
+        __private const int blockSize, // block size in half
+        __private const int searchSize,
+        __private const float intensityThreshold
+    ) {
+    const int2 pos = {get_global_id(0), get_global_id(1)};
 
-    //printf("best score %f\n", bestScore);
-    //printf("%f %f\n", (float)movement.x/searchSize, (float)movement.y/searchSize);
-    float velDir = (1.0f + atan2((float)subpixel_movement.x, (float)subpixel_movement.y) / 3.141592f) / 2.0f;
-    float magnitude = length(subpixel_movement) / sqrt((float)searchSize*searchSize + searchSize*searchSize);
-    //printf("%f %f %f\n", magnitude, (float)movement.x/searchSize, (float)movement.y/searchSize);
-    float3 color = Hue(velDir)*magnitude;
-    write_imagef(output, pos, color.xyzz);
+    // Template is what we are looking for (target), currentFrame at pos
+    const float targetMean = calculateMeanIntensity(currentFrame, pos, blockSize);
+    if(targetMean < intensityThreshold) { // if target is all zero/black, just stop here
+        write_imagef(output, pos, (float4)(0, 0, 0, 0));
+        return;
+    }
+
+    // Create grid for subpixel movement calculations
+    float b[SEARCH_SIZE][SEARCH_SIZE];
+
+    // For every possible block position
+    float bestScore = -1.0f;
+    int2 movement = {0, 0};
+    for(int y = pos.y - searchSize - 1; y <= pos.y + searchSize + 1; ++y)  {
+        for(int x = pos.x - searchSize - 1; x <= pos.x + searchSize + 1; ++x)  {
+            // previousframe at pos x,y is the current candidate
+            const float candidateMean = calculateMeanIntensity(previousFrame, (int2)(x, y), blockSize);
+            float upperPart = 0.0f;
+            float lowerPart1 = 0.0f;
+            float lowerPart2 = 0.0f;
+            // Loop over target and candidate block
+            for(int a = -blockSize; a <= blockSize; ++a) {
+                for(int b = -blockSize; b <= blockSize; ++b) {
+                    const float imagePart = getPixelAsFloat(previousFrame, (int2)(x+a, y+b)) - candidateMean;
+                    const float targetPart = getPixelAsFloat(currentFrame, (int2)(pos.x+a, pos.y+b)) - targetMean;
+                    upperPart += imagePart*targetPart;
+                    lowerPart1 += imagePart*imagePart;
+                    lowerPart2 += targetPart*targetPart;
+                }
+            }
+
+            const float result = upperPart / sqrt(lowerPart1*lowerPart2);
+            b[x- pos.x + searchSize + 1][y - pos.y + searchSize + 1] = result;
+            if(result > bestScore && abs(x - pos.x) <= searchSize && abs(y - pos.y) <= searchSize) {
+                bestScore = result;
+                movement = (int2)(x - pos.x, y - pos.y); // Movement is the offset from pos.x, pos.y
+            }
+        }
+    }
+
+    float2 subpixel_movement = findSubpixelMovement(movement, searchSize, b);
+
+    // If movement is larger than searchSize, zero it out
+    if(length(subpixel_movement) > searchSize + 1) {
+        write_imagef(output, pos, (float4)(0, 0, 0, 0));
+        return;
+    }
+
+    write_imagef(output, pos, subpixel_movement.xyyy);
+}
+
+__kernel void sumOfSquaredDifferences(
+        __read_only image2d_t previousFrame,
+        __read_only image2d_t currentFrame,
+        __write_only image2d_t output,
+        __private const int blockSize, // block size in half
+        __private const int searchSize,
+        __private const float intensityThreshold,
+        __private const float minIntensity,
+        __private const float maxIntensity
+) {
+    const int2 pos = {get_global_id(0), get_global_id(1)};
+
+    // Template is what we are looking for (target), currentFrame at pos
+    const float targetMean = calculateMeanIntensity(currentFrame, pos, blockSize);
+    if(targetMean < 75.0f) { // if target is all zero/black, just stop here
+        write_imagef(output, pos, (float4)(0, 0, 0, 0));
+        return;
+    }
+
+    // Create grid for subpixel movement calculations
+    float b[SEARCH_SIZE][SEARCH_SIZE];
+
+    // For every possible block position
+    float bestScore = 0.0f;
+    int2 movement = {0, 0};
+    for(int y = pos.y - searchSize - 1; y <= pos.y + searchSize + 1; ++y)  {
+        for(int x = pos.x - searchSize - 1; x <= pos.x + searchSize + 1; ++x)  {
+            // previousframe at pos x,y is the current candidate
+            float ssd = 0.0f;
+            // Loop over target and candidate block
+            for(int a = -blockSize; a <= blockSize; ++a) {
+                for(int b = -blockSize; b <= blockSize; ++b) {
+                    float val = (getPixelAsFloat(previousFrame, (int2)(x+a,y+b)) - minIntensity)/(maxIntensity - minIntensity) -
+                            (getPixelAsFloat(currentFrame, (int2)(pos.x+a,pos.y+b)) - minIntensity)/(maxIntensity - minIntensity);
+                    //float val = fabs(getPixelAsFloat(previousFrame, (int2)(x+a,y+b))/255.0f - getPixelAsFloat(currentFrame, (int2)(pos.x+a,pos.y+b))/255.0f); // SAD
+                    ssd += val*val;
+                }
+            }
+
+            const float result = 1.0f - (ssd/((blockSize*2+1)*(blockSize*2+1))); // calculate average and invert
+
+            b[x- pos.x + searchSize + 1][y - pos.y + searchSize + 1] = result;
+            if(result > bestScore && abs(x - pos.x) <= searchSize && abs(y - pos.y) <= searchSize) {
+                bestScore = result;
+                movement = (int2)(x - pos.x, y - pos.y); // Movement is the offset from pos.x, pos.y
+            }
+        }
+    }
+
+    float2 subpixel_movement = findSubpixelMovement(movement, searchSize, b);
+
+    // If movement is larger than searchSize, zero it out
+    if(length(subpixel_movement) > searchSize + 1) {
+        write_imagef(output, pos, (float4)(0, 0, 0, 0));
+        return;
+    }
+
+    write_imagef(output, pos, subpixel_movement.xyyy);
 }

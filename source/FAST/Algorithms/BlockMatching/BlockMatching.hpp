@@ -10,14 +10,42 @@ class Image;
  * 2D block matching on the GPU. Input is a stream of input images, output is a stream of images
  * with 2 channels giving the x,y motion of each pixel.
  */
-class BlockMatching : public ProcessObject {
+class FAST_EXPORT BlockMatching : public ProcessObject {
     FAST_OBJECT(BlockMatching)
     public:
+        enum class Type {
+            NORMALIZED_CROSS_CORRELATION,
+            SUM_OF_SQUARED_DIFFERENCES,
+        };
+        /**
+         * Select which matching metric to use
+         * @param type
+         */
+        void setType(Type type);
+        /**
+         * Set size of the blocks to match. Has to be odd
+         * @param size
+         */
+        void setBlockSize(int size);
+        /**
+         * Set size of search grid around x,y. Has to be odd
+         * @param size
+         */
+        void setSearchSize(int size);
+        /**
+         * Set an intensity threshold, do not do block matching on pixels where the mean of the block is below this threhsold.
+         * @param value
+         */
+        void setIntensityThreshold(float value);
     private:
         BlockMatching();
         void execute() override;
 
         SharedPointer<Image> m_previousFrame;
+        Type m_type = Type::NORMALIZED_CROSS_CORRELATION;
+        int m_blockSizeHalf = 5;
+        int m_searchSizeHalf = 5;
+        float m_intensityThreshold = std::numeric_limits<float>::min();
 
 };
 
