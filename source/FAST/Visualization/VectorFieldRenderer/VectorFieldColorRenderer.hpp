@@ -4,7 +4,7 @@
 
 namespace fast {
 
-class VectorFieldColorRenderer : public ImageRenderer {
+class FAST_EXPORT VectorFieldColorRenderer : public ImageRenderer {
     FAST_OBJECT(VectorFieldColorRenderer)
     public:
         /**

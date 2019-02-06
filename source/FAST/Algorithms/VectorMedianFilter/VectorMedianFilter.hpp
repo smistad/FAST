@@ -4,7 +4,7 @@
 
 namespace fast {
 
-class VectorMedianFilter : public ProcessObject {
+class FAST_EXPORT VectorMedianFilter : public ProcessObject {
     FAST_OBJECT(VectorMedianFilter)
     public:
         /**
