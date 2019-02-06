@@ -313,13 +313,17 @@ void CommandLineParser::StringVariable::printHelp(int length) {
 }
 
 void CommandLineParser::Choice::setValue(const std::string &value) {
+    if(value.empty())
+        return;
+    bool found = false;
     for(int i = 0; i < choices.size(); ++i) {
         if(choices[i] == value) {
             this->value = value;
+            found = true;
             break;
         }
     }
-    if(this->value.empty())
+    if(!found)
         throw Exception("Choice " + value + " was not valid for variable " + name);
 }
 
