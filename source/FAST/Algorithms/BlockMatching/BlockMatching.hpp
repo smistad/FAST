@@ -16,6 +16,7 @@ class FAST_EXPORT BlockMatching : public ProcessObject {
         enum class Type {
             NORMALIZED_CROSS_CORRELATION,
             SUM_OF_SQUARED_DIFFERENCES,
+            SUM_OF_ABSOLUTE_DIFFERENCES,
         };
         /**
          * Select which matching metric to use
@@ -42,7 +43,7 @@ class FAST_EXPORT BlockMatching : public ProcessObject {
         void execute() override;
 
         SharedPointer<Image> m_previousFrame;
-        Type m_type = Type::NORMALIZED_CROSS_CORRELATION;
+        Type m_type = Type::SUM_OF_ABSOLUTE_DIFFERENCES;
         int m_blockSizeHalf = 5;
         int m_searchSizeHalf = 5;
         float m_intensityThreshold = std::numeric_limits<float>::min();

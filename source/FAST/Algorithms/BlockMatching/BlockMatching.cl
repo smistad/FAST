@@ -148,12 +148,70 @@ __kernel void sumOfSquaredDifferences(
                 for(int b = -blockSize; b <= blockSize; ++b) {
                     float val = (getPixelAsFloat(previousFrame, (int2)(x+a,y+b)) - minIntensity)/(maxIntensity - minIntensity) -
                             (getPixelAsFloat(currentFrame, (int2)(pos.x+a,pos.y+b)) - minIntensity)/(maxIntensity - minIntensity);
-                    //float val = fabs(getPixelAsFloat(previousFrame, (int2)(x+a,y+b))/255.0f - getPixelAsFloat(currentFrame, (int2)(pos.x+a,pos.y+b))/255.0f); // SAD
                     ssd += val*val;
                 }
             }
 
             const float result = 1.0f - (ssd/((blockSize*2+1)*(blockSize*2+1))); // calculate average and invert
+
+            b[x- pos.x + searchSize + 1][y - pos.y + searchSize + 1] = result;
+            if(result > bestScore && abs(x - pos.x) <= searchSize && abs(y - pos.y) <= searchSize) {
+                bestScore = result;
+                movement = (int2)(x - pos.x, y - pos.y); // Movement is the offset from pos.x, pos.y
+            }
+        }
+    }
+
+    float2 subpixel_movement = findSubpixelMovement(movement, searchSize, b);
+
+    // If movement is larger than searchSize, zero it out
+    if(length(subpixel_movement) > searchSize + 1) {
+        write_imagef(output, pos, (float4)(0, 0, 0, 0));
+        return;
+    }
+
+    write_imagef(output, pos, subpixel_movement.xyyy);
+}
+
+
+__kernel void sumOfAbsoluteDifferences(
+        __read_only image2d_t previousFrame,
+        __read_only image2d_t currentFrame,
+        __write_only image2d_t output,
+        __private const int blockSize, // block size in half
+        __private const int searchSize,
+        __private const float intensityThreshold,
+        __private const float minIntensity,
+        __private const float maxIntensity
+) {
+    const int2 pos = {get_global_id(0), get_global_id(1)};
+
+    // Template is what we are looking for (target), currentFrame at pos
+    const float targetMean = calculateMeanIntensity(currentFrame, pos, blockSize);
+    if(targetMean < 75.0f) { // if target is all zero/black, just stop here
+        write_imagef(output, pos, (float4)(0, 0, 0, 0));
+        return;
+    }
+
+    // Create grid for subpixel movement calculations
+    float b[SEARCH_SIZE][SEARCH_SIZE];
+
+    // For every possible block position
+    float bestScore = 0.0f;
+    int2 movement = {0, 0};
+    for(int y = pos.y - searchSize - 1; y <= pos.y + searchSize + 1; ++y)  {
+        for(int x = pos.x - searchSize - 1; x <= pos.x + searchSize + 1; ++x)  {
+            // previousframe at pos x,y is the current candidate
+            float sad = 0.0f;
+            // Loop over target and candidate block
+            for(int a = -blockSize; a <= blockSize; ++a) {
+                for(int b = -blockSize; b <= blockSize; ++b) {
+                    sad += fabs((getPixelAsFloat(previousFrame, (int2)(x+a,y+b)) - minIntensity)/(maxIntensity - minIntensity) -
+                            (getPixelAsFloat(currentFrame, (int2)(pos.x+a,pos.y+b)) - minIntensity)/(maxIntensity - minIntensity));
+                }
+            }
+
+            const float result = 1.0f - (sad/((blockSize*2+1)*(blockSize*2+1))); // calculate average and invert
 
             b[x- pos.x + searchSize + 1][y - pos.y + searchSize + 1] = result;
             if(result > bestScore && abs(x - pos.x) <= searchSize && abs(y - pos.y) <= searchSize) {
