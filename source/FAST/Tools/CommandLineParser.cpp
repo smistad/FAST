@@ -146,6 +146,8 @@ std::string CommandLineParser::get(uint position) const {
 }
 
 bool CommandLineParser::getOption(const std::string &name) const {
+    if(m_variables.count(name) == 0)
+        throw Exception("CommandLineParser: Option " + name + " not found.");
     return m_variables.at(name)->getValue() == "true";
 }
 
