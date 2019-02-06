@@ -25,7 +25,7 @@ void BlockMatching::execute() {
     auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
     auto output = getOutputData<Image>(0);
-    output->create(currentFrame->getSize(), TYPE_FLOAT, 3);
+    output->create(currentFrame->getSize(), TYPE_FLOAT, 2);
     output->setSpacing(currentFrame->getSpacing());
     if(!m_previousFrame) {
         // If previous frame is not available, just fill it with zeros and stop
