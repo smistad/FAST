@@ -15,6 +15,8 @@ int main(int argc, char** argv) {
     parser.addVariable("block-size", "5", "The size in pixels of the blocks to match. Has to be odd.");
     parser.addVariable("search-size", "9", "The size in pixels of the grid to search for a match. Has to be odd");
     parser.addVariable("intensity-threshold", "75.0f", "Lower intensity of a threshold to search for a block. If a block has lower intensity that this, it will not look for a match.");
+    parser.addChoice("matching-metric", {"SAD", "SSD", "NCC"}, "SAD", "Matching metric used for calculating how similar two blocks are.");
+    parser.addOption("display-lines", "Display vector field as lines instead of color overlay");
     parser.parse(argc, argv);
 
     auto streamer = ImageFileStreamer::New();
@@ -25,14 +27,21 @@ int main(int argc, char** argv) {
     blockMatching->setInputConnection(streamer->getOutputPort());
     blockMatching->setIntensityThreshold(parser.get<float>("intensity-threshold"));
     blockMatching->setBlockSize(parser.get<int>("block-size"));
-    blockMatching->setBlockSize(parser.get<int>("search-size"));
+    blockMatching->setSearchSize(parser.get<int>("search-size"));
+    blockMatching->setMatchingMetric(BlockMatching::stringToMetric(parser.get("matching-metric")));
     blockMatching->enableRuntimeMeasurements();
 
     auto renderer = ImageRenderer::New();
     renderer->addInputConnection(streamer->getOutputPort());
 
-    auto vectorRenderer = VectorFieldColorRenderer::New();
-    vectorRenderer->addInputConnection(blockMatching->getOutputPort());
+    Renderer::pointer vectorRenderer;
+    if(parser.getOption("display-lines")) {
+        vectorRenderer = VectorFieldRenderer::New();
+        vectorRenderer->addInputConnection(blockMatching->getOutputPort());
+    } else {
+        vectorRenderer = VectorFieldColorRenderer::New();
+        vectorRenderer->addInputConnection(blockMatching->getOutputPort());
+    }
 
     auto window = SimpleWindow::New();
     window->addRenderer(renderer);

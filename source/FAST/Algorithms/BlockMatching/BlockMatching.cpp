@@ -13,10 +13,10 @@ BlockMatching::BlockMatching() {
 void BlockMatching::execute() {
     auto currentFrame = getInputData<Image>(0);
 
-    std::map<Type, std::string> kernelNames = {
-            {Type::NORMALIZED_CROSS_CORRELATION, "normalizedCrossCorrelation"},
-            {Type::SUM_OF_SQUARED_DIFFERENCES, "sumOfSquaredDifferences"},
-            {Type::SUM_OF_ABSOLUTE_DIFFERENCES, "sumOfAbsoluteDifferences"},
+    std::map<MatchingMetric, std::string> kernelNames = {
+            {MatchingMetric::NORMALIZED_CROSS_CORRELATION, "normalizedCrossCorrelation"},
+            {MatchingMetric::SUM_OF_SQUARED_DIFFERENCES, "sumOfSquaredDifferences"},
+            {MatchingMetric::SUM_OF_ABSOLUTE_DIFFERENCES, "sumOfAbsoluteDifferences"},
     };
 
     if(currentFrame->getDimensions() != 2)
@@ -39,7 +39,7 @@ void BlockMatching::execute() {
     cl::Kernel kernel(getOpenCLProgram(device, "", buildOptions), kernelNames.at(m_type).c_str());
     auto queue = device->getCommandQueue();
 
-    if(m_type == Type::SUM_OF_SQUARED_DIFFERENCES || m_type == Type::SUM_OF_ABSOLUTE_DIFFERENCES) {
+    if(m_type == MatchingMetric::SUM_OF_SQUARED_DIFFERENCES || m_type == MatchingMetric::SUM_OF_ABSOLUTE_DIFFERENCES) {
         float max = currentFrame->calculateMaximumIntensity();
         float min = currentFrame->calculateMinimumIntensity();
         kernel.setArg(6, min);
@@ -68,7 +68,7 @@ void BlockMatching::execute() {
     m_previousFrame = currentFrame;
 }
 
-void BlockMatching::setType(BlockMatching::Type type) {
+void BlockMatching::setMatchingMetric(BlockMatching::MatchingMetric type) {
     m_type = type;
 }
 

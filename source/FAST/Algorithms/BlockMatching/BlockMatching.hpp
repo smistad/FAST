@@ -13,16 +13,31 @@ class Image;
 class FAST_EXPORT BlockMatching : public ProcessObject {
     FAST_OBJECT(BlockMatching)
     public:
-        enum class Type {
+        enum class MatchingMetric {
             NORMALIZED_CROSS_CORRELATION,
             SUM_OF_SQUARED_DIFFERENCES,
             SUM_OF_ABSOLUTE_DIFFERENCES,
         };
+
+        /**
+         * Convert string of metric to type
+         * @param name
+         * @return MatchingMetric
+         */
+        static MatchingMetric stringToMetric(std::string name) {
+            std::map<std::string, MatchingMetric> map = {
+                {"NCC", MatchingMetric::NORMALIZED_CROSS_CORRELATION},
+                {"SAD", MatchingMetric::SUM_OF_ABSOLUTE_DIFFERENCES},
+                {"SSD", MatchingMetric::SUM_OF_SQUARED_DIFFERENCES},
+            };
+            return map.at(name);
+        }
+
         /**
          * Select which matching metric to use
          * @param type
          */
-        void setType(Type type);
+        void setMatchingMetric(MatchingMetric type);
         /**
          * Set size of the blocks to match. Has to be odd
          * @param size
@@ -43,7 +58,7 @@ class FAST_EXPORT BlockMatching : public ProcessObject {
         void execute() override;
 
         SharedPointer<Image> m_previousFrame;
-        Type m_type = Type::SUM_OF_ABSOLUTE_DIFFERENCES;
+        MatchingMetric m_type = MatchingMetric::SUM_OF_ABSOLUTE_DIFFERENCES;
         int m_blockSizeHalf = 5;
         int m_searchSizeHalf = 5;
         float m_intensityThreshold = std::numeric_limits<float>::min();
