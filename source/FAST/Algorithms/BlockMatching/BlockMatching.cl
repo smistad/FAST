@@ -24,13 +24,6 @@ float calculateMeanIntensity(__read_only image2d_t frame, int2 pos, int blockSiz
     return mean/((blockSize*2+1)*(blockSize*2+1));
 }
 
-float3 Hue(float H)
-{
-    float R = fabs(H * 6.0f - 3.0f) - 1;
-    float G = 2 - fabs(H * 6 - 2);
-    float B = 2 - fabs(H * 6 - 4);
-    return clamp((float3)(R, G, B), 0.0f, 1.0f);
-}
 
 inline float2 findSubpixelMovement(const int2 movement, const int searchSize, const float b[SEARCH_SIZE][SEARCH_SIZE]) {
 

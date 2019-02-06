@@ -30,7 +30,7 @@ TEST_CASE("Block matching 2D", "[fast][BlockMatching][visual]") {
     window->addRenderer(vectorRenderer);
     window->getView()->setBackgroundColor(Color::Black());
     window->set2DMode();
-    window->setTimeout(3000);
+    //window->setTimeout(3000);
     window->start();
     blockMatching->getRuntime()->print();
 }

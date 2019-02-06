@@ -3,6 +3,7 @@
 #include <FAST/Visualization/SimpleWindow.hpp>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 #include <FAST/Visualization/VectorFieldRenderer/VectorFieldRenderer.hpp>
+#include <FAST/Visualization/VectorFieldRenderer/VectorFieldColorRenderer.hpp>
 #include <FAST/Tools/CommandLineParser.hpp>
 
 using namespace fast;
@@ -30,7 +31,7 @@ int main(int argc, char** argv) {
     auto renderer = ImageRenderer::New();
     renderer->addInputConnection(streamer->getOutputPort());
 
-    auto vectorRenderer = VectorFieldRenderer::New();
+    auto vectorRenderer = VectorFieldColorRenderer::New();
     vectorRenderer->addInputConnection(blockMatching->getOutputPort());
 
     auto window = SimpleWindow::New();
