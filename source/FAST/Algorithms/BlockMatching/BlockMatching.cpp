@@ -73,15 +73,15 @@ void BlockMatching::setMatchingMetric(BlockMatching::MatchingMetric type) {
 }
 
 void BlockMatching::setBlockSize(int size) {
-    if(size <= 0 || size % 2 == 0)
-        throw Exception("Block size has to be > 0 and odd");
+    if(size < 3 || size % 2 == 0)
+        throw Exception("Block size has to be >= 3 and odd");
 
     m_blockSizeHalf = (size-1)/2;
 }
 
 void BlockMatching::setSearchSize(int size) {
-    if(size <= 0 || size % 2 == 0)
-        throw Exception("Search size has to be > 0 and odd");
+    if(size < 3 || size % 2 == 0)
+        throw Exception("Search size has to be >= 3 and odd");
 
     m_searchSizeHalf = (size-1)/2;
 }

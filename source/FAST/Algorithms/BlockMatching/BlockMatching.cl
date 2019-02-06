@@ -121,7 +121,7 @@ __kernel void sumOfSquaredDifferences(
 
     // Template is what we are looking for (target), currentFrame at pos
     const float targetMean = calculateMeanIntensity(currentFrame, pos, blockSize);
-    if(targetMean < 75.0f) { // if target is all zero/black, just stop here
+    if(targetMean < intensityThreshold) { // if target is all zero/black, just stop here
         write_imagef(output, pos, (float4)(0, 0, 0, 0));
         return;
     }
@@ -181,7 +181,7 @@ __kernel void sumOfAbsoluteDifferences(
 
     // Template is what we are looking for (target), currentFrame at pos
     const float targetMean = calculateMeanIntensity(currentFrame, pos, blockSize);
-    if(targetMean < 75.0f) { // if target is all zero/black, just stop here
+    if(targetMean < intensityThreshold) { // if target is all zero/black, just stop here
         write_imagef(output, pos, (float4)(0, 0, 0, 0));
         return;
     }

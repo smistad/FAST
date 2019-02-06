@@ -8,7 +8,7 @@ class VectorFieldColorRenderer : public ImageRenderer {
     FAST_OBJECT(VectorFieldColorRenderer)
     public:
         /**
-         * Set the maximum opacity for the color overlay. Default 0.8f
+         * Set the maximum opacity for the color overlay.
          *
          * @param maxOpacity
          */
@@ -17,7 +17,7 @@ class VectorFieldColorRenderer : public ImageRenderer {
         VectorFieldColorRenderer();
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) override;
 
-        float m_maxOpacity = 0.8f;
+        float m_maxOpacity = 0.5f;
 };
 
 }

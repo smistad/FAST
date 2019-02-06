@@ -1,0 +1,1 @@
+fast_add_sources(VectorMedianFilter.cpp VectorMedianFilter.hpp)

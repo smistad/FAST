@@ -5,6 +5,7 @@
 #include <FAST/Visualization/VectorFieldRenderer/VectorFieldRenderer.hpp>
 #include <FAST/Visualization/VectorFieldRenderer/VectorFieldColorRenderer.hpp>
 #include <FAST/Tools/CommandLineParser.hpp>
+#include <FAST/Algorithms/VectorMedianFilter/VectorMedianFilter.hpp>
 
 using namespace fast;
 
@@ -15,6 +16,7 @@ int main(int argc, char** argv) {
     parser.addVariable("block-size", "5", "The size in pixels of the blocks to match. Has to be odd.");
     parser.addVariable("search-size", "9", "The size in pixels of the grid to search for a match. Has to be odd");
     parser.addVariable("intensity-threshold", "75.0f", "Lower intensity of a threshold to search for a block. If a block has lower intensity that this, it will not look for a match.");
+    parser.addVariable("median-filter-size", "7", "Size of vector median filter window to run after block matching. Must be odd and larger than 3.");
     parser.addChoice("matching-metric", {"SAD", "SSD", "NCC"}, "SAD", "Matching metric used for calculating how similar two blocks are.");
     parser.addOption("display-lines", "Display vector field as lines instead of color overlay");
     parser.parse(argc, argv);
@@ -31,17 +33,24 @@ int main(int argc, char** argv) {
     blockMatching->setMatchingMetric(BlockMatching::stringToMetric(parser.get("matching-metric")));
     blockMatching->enableRuntimeMeasurements();
 
+    ProcessObject::pointer source = blockMatching;
+    if(parser.get<int>("median-filter-size") > 0) {
+        auto filter = VectorMedianFilter::New();
+        filter->setWindowSize(parser.get<int>("median-filter-size"));
+        filter->setInputConnection(blockMatching->getOutputPort());
+        source = filter;
+    }
+
     auto renderer = ImageRenderer::New();
     renderer->addInputConnection(streamer->getOutputPort());
 
     Renderer::pointer vectorRenderer;
     if(parser.getOption("display-lines")) {
         vectorRenderer = VectorFieldRenderer::New();
-        vectorRenderer->addInputConnection(blockMatching->getOutputPort());
     } else {
         vectorRenderer = VectorFieldColorRenderer::New();
-        vectorRenderer->addInputConnection(blockMatching->getOutputPort());
     }
+    vectorRenderer->addInputConnection(source->getOutputPort());
 
     auto window = SimpleWindow::New();
     window->addRenderer(renderer);
