@@ -97,9 +97,14 @@ void MaximumIntensityProjection::draw(Matrix4f perspectiveMatrix, Matrix4f viewi
             modelMatrix.data()
     );
 
+    float minimum = input->calculateMinimumIntensity();
+    float maximum = input->calculateMaximumIntensity();
+
     mKernel.setArg(0, *clImage);
     mKernel.setArg(2, inverseViewMatrixBuffer);
     mKernel.setArg(3, modelMatrixBuffer);
+    mKernel.setArg(6, minimum);
+    mKernel.setArg(7, maximum);
     queue.enqueueNDRangeKernel(
             mKernel,
             cl::NullRange,
