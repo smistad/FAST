@@ -15,10 +15,10 @@ If you use FAST for research, please cite this article.
 ### Main features
 
 * **Data streaming** – Processing pipelines in FAST can handle both static and dynamic/temporal data without any change to the code. FAST can stream data from movie files, a sequence of images and even directly from ultrasound scanners using the OpenIGTLink protocol.
-* **Deep learning** – FAST is integrated with Google’s TensorFlow library making it possible to create real-time neural network pipelines.
+* **Deep learning** – FAST supports several inference engines, such as Google’s TensorFlow, NVIDIA's TensorRT and Intel's OpenVINO, making it possible to create real-time neural network pipelines.
 * **High-level data management** – Data objects in FAST represent data, such as an image, on all processors. FAST keeps data coherent across the different storage areas thereby removing the burden of explicit memory handling from the developer.
 * **High performance algorithms** – FAST has several high performance parallel OpenCL implementations of common algorithms, such as marching cubes surface extraction, Gaussian smoothing, threshold segmentation and seeded region growing.
-* **Fast concurrent visualization** – Rendering and computation are done in separate threads to ensure smooth responsive visualizations. Several types of visualizations are supported both 3D (mesh, point, line and image slice rendering) and 2D (2D image, image slice and segmentation/label rendering).
+* **Fast concurrent visualization** – Rendering and computation are done in separate threads to ensure smooth responsive visualizations. Several types of visualizations are supported both 3D (volume, mesh, point, line and image slice rendering) and 2D (2D image, image slice and segmentation/label rendering).
 * **Interoperability** – FAST can be integrated with pipelines from the Insight Toolkit (ITK) and the Visualization Toolkit (VTK) to send image data between the frameworks. FAST can also be easily integrated into existing Qt applications.
 
 ### Download
@@ -30,18 +30,10 @@ If you are only interested in using/testing FAST, and not developing FAST, pleas
 To setup and build the framework, see the instructions for your operating system:
 * [Linux (Ubuntu)](https://github.com/smistad/FAST/wiki/Linux-instructions)
 * [Windows](https://github.com/smistad/FAST/wiki/Windows-instructions)
-* [Mac OS X](https://github.com/smistad/FAST/wiki/Mac-OS-X-instructions)
+* [Mac OS X](https://github.com/smistad/FAST/wiki/Mac-OS-X-instructions) Note: Mac OS X version is unstable and not actively maintained anymore due to Apple's decision to stop supporting OpenCL and OpenGL.
 
 ### User guide and examples
 
 To start using the framework, see the [Getting started with FAST](https://github.com/smistad/FAST/wiki/Getting-started-with-FAST) guide or the [examples page](https://github.com/smistad/FAST/wiki/Examples).
-
-Build status of development branch
----------------------
-* Ubuntu Linux 16.04, Intel CPU, NVIDIA GPU - ![Build Status](https://jenkins.eriksmistad.no/job/Ubuntu_16.04_NVIDIA_Development/badge/icon)
-* Ubuntu Linux 16.04, Intel CPU, AMD GPU - ![Build Status](https://jenkins.eriksmistad.no/job/Ubuntu_16.04_AMD_Development/badge/icon)
-* Mac OS X 10.12, Intel CPU, NVIDIA GPU - ![Build Status](https://jenkins.eriksmistad.no/job/Mac_10.12_NVIDIA_Development/badge/icon)
-* Windows 10, AMD CPU, AMD GPU - ![Build Status](https://jenkins.eriksmistad.no/job/Windows_10_AMD_Development/badge/icon)
-* Windows 10, Intel CPU, NVIDIA GPU - ![Build Status](https://jenkins.eriksmistad.no/job/Windows_10_NVIDIA_Development/badge/icon)
 
 ![Surface mesh extracted from a large abdominal CT scan in about 100 ms using FAST and a modern GPU.](https://github.com/smistad/FAST/wiki/images/surface_extraction.png) ![Ultrasound image segmented using binary thresholding.](https://github.com/smistad/FAST/wiki/images/binary_thresholding.png)
