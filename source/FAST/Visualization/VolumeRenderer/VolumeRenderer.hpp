@@ -9,7 +9,7 @@ class VolumeRenderer : public Renderer {
         typedef SharedPointer<VolumeRenderer> pointer;
         ~VolumeRenderer();
     protected:
-        virtual void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) = 0;
+        virtual void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) = 0;
         VolumeRenderer();
         uint m_FBO = 0;
         uint m_texture = 0;

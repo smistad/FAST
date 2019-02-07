@@ -20,7 +20,7 @@ class FAST_EXPORT  SegmentationRenderer : public ImageRenderer {
         void setOpacity(float opacity);
     private:
         SegmentationRenderer();
-        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) override;
+        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) override;
 
         bool mColorsModified;
         bool mFillAreaModified;

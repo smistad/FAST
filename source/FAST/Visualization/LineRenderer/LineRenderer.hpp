@@ -18,7 +18,7 @@ class FAST_EXPORT  LineRenderer : public Renderer {
         void setDrawOnTop(uint inputNr, bool drawOnTop);
         void setColor(uint inputNr, Color color);
         void setWidth(uint inputNr, float width);
-        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D);
+        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D);
     protected:
         LineRenderer();
 

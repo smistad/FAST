@@ -34,7 +34,7 @@ class FAST_EXPORT  TextRenderer : public Renderer {
         void setFontSize(uint fontSize);
         void setColor(Color color);
         void setStyle(TextStyleType);
-        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) override;
+        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) override;
         void loadAttributes();
     private:
         TextRenderer();

@@ -3,7 +3,7 @@
 
 namespace fast {
 
-void MaximumIntensityProjection::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) {
+void MaximumIntensityProjection::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
     // Get window/viewport size
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
@@ -105,6 +105,8 @@ void MaximumIntensityProjection::draw(Matrix4f perspectiveMatrix, Matrix4f viewi
     mKernel.setArg(3, modelMatrixBuffer);
     mKernel.setArg(6, minimum);
     mKernel.setArg(7, maximum);
+    mKernel.setArg(8, zNear);
+    mKernel.setArg(9, zFar);
     queue.enqueueNDRangeKernel(
             mKernel,
             cl::NullRange,

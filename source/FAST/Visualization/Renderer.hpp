@@ -1,13 +1,10 @@
-#ifndef RENDERER_HPP_
-#define RENDERER_HPP_
-
+#pragma once
 
 #include "FAST/ProcessObject.hpp"
 #include "FAST/Data/BoundingBox.hpp"
 #include "FAST/Data/SpatialDataObject.hpp"
 #include <mutex>
 #include <QOpenGLFunctions_3_3_Core>
-
 
 namespace fast {
 
@@ -17,7 +14,7 @@ class BoundingBox;
 class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3_3_Core {
     public:
         typedef SharedPointer<Renderer> pointer;
-        virtual void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) = 0;
+        virtual void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) = 0;
         virtual void postDraw();
         /**
          * Adds a new input connection
@@ -32,14 +29,6 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
          */
         virtual uint addInputData(DataObject::pointer data);
         virtual BoundingBox getBoundingBox(bool transform = true);
-        virtual void draw2D(
-                cl::Buffer PBO,
-                uint width,
-                uint height,
-                Affine3f pixelToViewportTransform,
-                float PBOspacing,
-                Vector2f translation
-        ) {};
         virtual void stopPipeline();
         virtual void reset();
     protected:
@@ -93,7 +82,3 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
 };
 
 }
-
-
-
-#endif /* RENDERER_HPP_ */

@@ -65,7 +65,9 @@ __kernel void volumeRender(
     __constant float* invViewMatrix2,
     __read_only image2d_t inputFramebuffer,
     __read_only image2d_t inputDepthFramebuffer,
-    __private float threshold
+    __private float threshold,
+    __private float zNear,
+    __private float zFar
     ) {
 
     const int width = get_image_width(framebuffer);
@@ -118,8 +120,6 @@ __kernel void volumeRender(
     temp = (float4)(0.0f, 0.0f, 0.0f, 1.0f);
     // Recover original depth from depth buffer: https://stackoverflow.com/questions/6652253/getting-the-true-z-value-from-the-depth-buffer
     float depth = (read_imagef(inputDepthFramebuffer, volumeSampler, (int2)(x,y)).x*2.0f - 1.0f); // turn depth into normalized coordinate ([-1, 1]
-    float zFar = 2466.85f;   // TODO get as input
-    float zNear = 0.1f;      // TODO get as input
     depth = 2.0f * zNear * zFar / (zFar + zNear - depth * (zFar - zNear));
     float distance = tnear; // Start at tfar or the value of the depth buffer, whatever is smallest
     while(distance < tfar) { // front to back

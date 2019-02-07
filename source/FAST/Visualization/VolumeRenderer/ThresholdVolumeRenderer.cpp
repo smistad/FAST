@@ -8,7 +8,7 @@ void ThresholdVolumeRenderer::setThreshold(float threshold) {
     m_threshold = threshold;
 }
 
-void ThresholdVolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) {
+void ThresholdVolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
     // Get window/viewport size
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
@@ -112,6 +112,8 @@ void ThresholdVolumeRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingM
     mKernel.setArg(2, inverseModelViewMatrixBuffer);
     mKernel.setArg(3, inverseViewMatrixBuffer);
     mKernel.setArg(6, m_threshold);
+    mKernel.setArg(7, zNear);
+    mKernel.setArg(8, zFar);
     queue.enqueueNDRangeKernel(
             mKernel,
             cl::NullRange,

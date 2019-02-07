@@ -547,7 +547,7 @@ void View::paintGL() {
 
         mRuntimeManager->startRegularTimer("draw2D");
         for(int i = 0; i < mNonVolumeRenderers.size(); i++) {
-            mNonVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), true);
+            mNonVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, true);
             mNonVolumeRenderers[i]->postDraw();
         }
         mRuntimeManager->stopRegularTimer("draw2D");
@@ -562,14 +562,14 @@ void View::paintGL() {
 
         mRuntimeManager->startRegularTimer("draw");
         for(int i = 0; i < mNonVolumeRenderers.size(); i++) {
-            mNonVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), false);
+            mNonVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, false);
             mNonVolumeRenderers[i]->postDraw();
         }
 
         if(!mVolumeRenderers.empty()) {
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FBO);
             for(int i = 0; i < mVolumeRenderers.size(); i++) {
-                mVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), false);
+                mVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, false);
                 mVolumeRenderers[i]->postDraw();
             }
 

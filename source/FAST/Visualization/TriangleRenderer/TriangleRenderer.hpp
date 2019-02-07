@@ -33,7 +33,7 @@ class FAST_EXPORT TriangleRenderer : public Renderer {
          */
         void setIgnoreInvertedNormals(bool ignore);
     private:
-        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) override;
+        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) override;
         TriangleRenderer();
 
         std::unordered_map<uint, Color> mInputColors;

@@ -21,7 +21,7 @@ class FAST_EXPORT  VertexRenderer : public Renderer {
         void setDrawOnTop(uint inputNr, bool drawOnTop);
         void setColor(uint inputNr, Color color);
         void setSize(uint inputNr, float size);
-        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D);
+        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D);
 		void draw2D(
                 cl::BufferGL PBO,
                 uint width,

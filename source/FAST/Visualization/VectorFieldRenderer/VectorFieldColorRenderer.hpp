@@ -15,7 +15,7 @@ class FAST_EXPORT VectorFieldColorRenderer : public ImageRenderer {
         void setMaxOpacity(float maxOpacity);
     private:
         VectorFieldColorRenderer();
-        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) override;
+        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) override;
 
         float m_maxOpacity = 0.5f;
 };

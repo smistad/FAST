@@ -60,7 +60,7 @@ void ImageRenderer::loadAttributes() {
     mLevel = (getFloatAttribute("level"));
 }
 
-void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) {
+void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
     std::lock_guard<std::mutex> lock(mMutex);
 
     for(auto it : mDataToRender) {
