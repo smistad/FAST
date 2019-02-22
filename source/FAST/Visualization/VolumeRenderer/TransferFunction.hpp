@@ -5,7 +5,7 @@
 
 namespace fast {
 
-class TransferFunction {
+class FAST_EXPORT TransferFunction {
     public:
         TransferFunction() {};
         TransferFunction(std::initializer_list<float> values);
