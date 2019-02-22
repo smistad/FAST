@@ -19,23 +19,23 @@ class FAST_EXPORT TransferFunction {
         static TransferFunction CT_Blood_And_Bone() {
             return TransferFunction({
                 100, 0, 0, 0, 0,
-                300, 1, 0, 0, 0.25,
-                500, 1.0, 1.0, 0.8, 1,
+                300, 1, 0, 0, 0.25f,
+                500, 1, 1, 0.8f, 1,
             });
         }
 
         static TransferFunction CT_Bone() {
             return TransferFunction({
                 150, 0, 0, 0, 0,
-                600, 1, 1, 0.5, 0.1,
-                1000, 1.0, 1.0, 0.8, 1,
+                600, 1, 1, 0.5f, 0.1f,
+                1000, 1, 1, 0.8f, 1,
             });
         }
 
         static TransferFunction CT_Blood() {
             return TransferFunction({
                 100, 1, 0, 0, 0,
-                300, 1, 0.1, 0.1, 0.5,
+                300, 1, 0.1f, 0.1f, 0.5f,
                 300, 0, 0, 0, 0,
             });
         }
@@ -43,9 +43,9 @@ class FAST_EXPORT TransferFunction {
         static TransferFunction Ultrasound() {
             return TransferFunction({
                 100, 0, 0, 0, 0,
-                200, 0.8, 0.8, 1.0, 0.1,
-                220, 1.0, 0.7, 0.2, 0.25,
-                255, 1.0, 1.0, 1.0, 1.0,
+                200, 0.8f, 0.8f, 1.0f, 0.1f,
+                220, 1.0f, 0.7f, 0.2f, 0.25f,
+                255, 1.0f, 1.0f, 1.0f, 1.0f,
             });
         }
     protected:
