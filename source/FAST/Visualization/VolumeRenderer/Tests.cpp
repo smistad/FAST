@@ -1,14 +1,15 @@
 #include <FAST/Testing.hpp>
 #include "MaximumIntensityProjection.hpp"
 #include "ThresholdVolumeRenderer.hpp"
+#include "AlphaBlendingVolumeRenderer.hpp"
 #include <FAST/Visualization/SimpleWindow.hpp>
 #include <FAST/Importers/ImageFileImporter.hpp>
+#include <FAST/Streamers/ImageFileStreamer.hpp>
 #include <FAST/Visualization/SliceRenderer/SliceRenderer.hpp>
 
 using namespace fast;
 
 TEST_CASE("Maximum intensity projection", "[fast][volumerenderer][visual]") {
-
     auto importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath() + "CT/CT-Thorax.mhd");
 
@@ -23,7 +24,6 @@ TEST_CASE("Maximum intensity projection", "[fast][volumerenderer][visual]") {
 
 
 TEST_CASE("Threshold volume renderer", "[fast][volumerenderer][visual][thresholdvolumerenderer]") {
-
     auto importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath() + "CT/CT-Thorax.mhd");
 
@@ -38,20 +38,46 @@ TEST_CASE("Threshold volume renderer", "[fast][volumerenderer][visual][threshold
 }
 
 TEST_CASE("Volume renderer with geom", "[fast][volumerenderer][visual][asdasdasd]") {
-
     auto importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath() + "CT/CT-Thorax.mhd");
 
-    auto renderer = MaximumIntensityProjection::New();
+    auto renderer = AlphaBlendingVolumeRenderer::New();
     renderer->addInputConnection(importer->getOutputPort());
 
     auto renderer2 = SliceRenderer::New();
     renderer2->addInputConnection(importer->getOutputPort());
-    renderer2->setArbitrarySlicePlane(0, Plane(Vector3f(0.5, 0.5, 0.5)));
+    renderer2->setArbitrarySlicePlane(0, Plane(Vector3f(0.5, 0.0, 0.0)));
 
     auto window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->addRenderer(renderer2);
+    window->setTimeout(1000);
+    window->start();
+}
+
+
+TEST_CASE("Alpha blending volume renderer", "[fast][volumerenderer][visual][alphablendingvolumerenderer]") {
+    auto importer = ImageFileImporter::New();
+    importer->setFilename(Config::getTestDataPath() + "CT/CT-Thorax.mhd");
+
+    auto renderer = AlphaBlendingVolumeRenderer::New();
+    renderer->addInputConnection(importer->getOutputPort());
+
+    auto window = SimpleWindow::New();
+    window->addRenderer(renderer);
+    window->setTimeout(1000);
+    window->start();
+}
+
+TEST_CASE("Alpha blending volume renderer ultrasound stream", "[fast][volumerenderer][visual][alphablendingvolumerenderer]") {
+    auto importer = ImageFileImporter::New();
+    importer->setFilename(Config::getTestDataPath() + "US/Ball/US-3Dt_0.mhd");
+
+    auto renderer = AlphaBlendingVolumeRenderer::New();
+    renderer->addInputConnection(importer->getOutputPort());
+
+    auto window = SimpleWindow::New();
+    window->addRenderer(renderer);
     window->setTimeout(1000);
     window->start();
 }
