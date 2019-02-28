@@ -170,4 +170,8 @@ AlphaBlendingVolumeRenderer::AlphaBlendingVolumeRenderer() {
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/VolumeRenderer/AlphaBlendingVolumeRenderer.cl");
 }
 
+void AlphaBlendingVolumeRenderer::setTransferFunction(TransferFunction transferFunction) {
+    m_transferFunction = transferFunction;
+}
+
 }

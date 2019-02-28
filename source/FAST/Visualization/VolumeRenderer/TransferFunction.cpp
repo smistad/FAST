@@ -2,7 +2,7 @@
 
 namespace fast {
 
-bool TransferFunction::checkData() const {
+void TransferFunction::checkData() const {
     if(m_data.size() % 5 != 0)
         throw Exception("Number of float data points given to TransferFunction must be dividable by 5."
                         "Each point in transfer function must be 5 tuple: (intensity, red, green, blue, alpha)");
