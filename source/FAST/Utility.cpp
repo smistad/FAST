@@ -711,9 +711,9 @@ std::vector<std::string> getDirectoryList(std::string path, bool getFiles, bool 
 	if(hFind != INVALID_HANDLE_VALUE) {
 		do {
 			const std::string name = data.cFileName;
+            if (name == "." || name == "..")
+                continue;
             if(getDirectories && data.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY) {
-				if(name == "." || name == "..")
-					continue;
                 list.push_back(name);
 			} else if(getFiles) {
                 list.push_back(name);

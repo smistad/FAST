@@ -28,6 +28,8 @@ int main(int argc, char** argv) {
     std::string path = parser.get("path");
     std::string extension = parser.get("extension");
     for(auto file : getDirectoryList(parser.get("path"))) {
+        if(file.size() < extension.size())
+            continue;
         if(file.substr(file.size() - extension.size()) != extension)
             continue;
         Reporter::info() << "Processing file " << file << Reporter::end();
