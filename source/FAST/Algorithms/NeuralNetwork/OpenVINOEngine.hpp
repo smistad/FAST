@@ -24,8 +24,10 @@ class OpenVINOEngine : public InferenceEngine {
 
         ~OpenVINOEngine();
     private:
+        std::shared_ptr<::InferenceEngine::InferencePlugin> m_inferencePlugin;
+        // This has to be last, because then inferRequest will be deleted before the plugin, which is necessary to avoid a crash on delete
         std::shared_ptr<::InferenceEngine::InferRequest> m_inferRequest;
-		::InferenceEngine::InferencePlugin* m_inferencePlugin;
+		
         void loadPlugin(std::string deviceType);
 };
 
