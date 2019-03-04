@@ -22,9 +22,10 @@ class OpenVINOEngine : public InferenceEngine {
 
 		std::string getDefaultFileExtension() const override;
 
+        ~OpenVINOEngine();
     private:
         std::shared_ptr<::InferenceEngine::InferRequest> m_inferRequest;
-		std::shared_ptr<::InferenceEngine::InferencePlugin> m_inferencePlugin;
+		::InferenceEngine::InferencePlugin* m_inferencePlugin;
         void loadPlugin(std::string deviceType);
 };
 
