@@ -28,13 +28,12 @@ set(MODULES_TO_EXCLUDE
         -skip qtquick1
         -skip qtquickcontrols
         -skip qtquickcontrols2
-	-skip qtremoteobjects
+        -skip qtremoteobjects
         -skip qtrepotools
         -skip qtscript
         -skip qtscxml
         -skip qtsensors
         -skip qtserialbus
-        -skip qtserialport
         -skip qtspeech
         -skip qtsvg
         -skip qtsystems
