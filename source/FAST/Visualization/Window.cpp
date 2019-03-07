@@ -2,7 +2,7 @@
 #include <QApplication>
 #include <QOffscreenSurface>
 #include <QEventLoop>
-#include <QDesktopWidget>
+#include <QScreen>
 #include <QIcon>
 #include <QFontDatabase>
 
@@ -44,8 +44,7 @@ Window::Window() {
 
     // Scaling GUI
     QFont defaultFont("Ubuntu");
-    QDesktopWidget *desktop = QApplication::desktop();
-    int screenWidth = desktop->width();
+	int screenWidth = getScreenWidth();
     uint windowScaling = 1;
     if(screenWidth > 2000) {
         if(screenWidth > 3000) {
@@ -188,9 +187,8 @@ void Window::start(StreamingMode mode) {
     for(auto view : getViews())
         view->setStreamingMode(mode);
 
-    QDesktopWidget *desktop = QApplication::desktop();
-    int screenWidth = desktop->width();
-    int screenHeight = desktop->height();
+	int screenHeight = getScreenHeight();
+	int screenWidth = getScreenWidth();
 
     reportInfo() << "Resizing window to " << mWidth << " " << mHeight << reportEnd();
     mWidget->resize(mWidth,mHeight);
@@ -323,13 +321,11 @@ float Window::getScalingFactor() const {
 }
 
 int Window::getScreenWidth() const {
-    QDesktopWidget *desktop = QApplication::desktop();
-    return desktop->width();
+	return QGuiApplication::primaryScreen()->geometry().width();
 }
 
 int Window::getScreenHeight() const {
-    QDesktopWidget *desktop = QApplication::desktop();
-    return desktop->height();
+	return QGuiApplication::primaryScreen()->geometry().height();
 }
 
 void Window::saveScreenshotOnClose(std::string filename) {
