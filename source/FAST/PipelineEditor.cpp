@@ -6,7 +6,7 @@
 #include <QPushButton>
 #include <fstream>
 #include <functional>
-#include <QDesktopWidget>
+#include <QScreen>
 #include <QApplication>
 #include <QShortcut>
 
@@ -50,9 +50,10 @@ PipelineEditor::PipelineEditor(std::string filename) {
 
     // Resize window and put in center
     int width = 700, height = 700;
-    QDesktopWidget *desktop = QApplication::desktop();
-    int screenWidth = desktop->width();
-    int screenHeight = desktop->height();
+    QScreen *screen = QGuiApplication::primaryScreen();
+	QRect  screenGeometry = screen->geometry();
+    int screenWidth = screenGeometry.width();
+    int screenHeight = screenGeometry.height();
     int x = (screenWidth - width) / 2;
     int y = (screenHeight - height) / 2;
     move(x, y);

@@ -19,7 +19,7 @@
 #include <QInputDialog>
 #include <FAST/PipelineEditor.hpp>
 #include <fstream>
-#include <QDesktopWidget>
+#include <QScreen>
 #include <QApplication>
 
 #include <QProxyStyle>
@@ -40,8 +40,8 @@ namespace fast {
 
 GUI::GUI() {
     mStreamingMode = STREAMING_MODE_STORE_ALL_FRAMES;
-    QDesktopWidget* desktop = QApplication::desktop();
-    menuWidth = desktop->width()*(1.0f/6.0f);
+    QScreen* screen = QGuiApplication::primaryScreen();
+    menuWidth = screen->geometry().width()*(1.0f/6.0f);
     mPipelineWidget = nullptr;
     mStreamer = ImageFileStreamer::New();
 
@@ -51,8 +51,8 @@ GUI::GUI() {
     View* view = createView();
     view->set2DMode();
     view->setBackgroundColor(Color::Black());
-    setWidth(desktop->width());
-    setHeight(desktop->height());
+    setWidth(screen->geometry().width());
+    setHeight(screen->geometry().height());
     enableMaximized();
     setTitle("FAST - Viewer");
     viewLayout->addWidget(view);
