@@ -67,6 +67,7 @@ void Renderer::execute() {
 }
 
 BoundingBox Renderer::getBoundingBox(bool transform) {
+    std::unique_lock<std::mutex> lock(mMutex);
     std::vector<Vector3f> coordinates;
 
     if(mDataToRender.size() == 0)
