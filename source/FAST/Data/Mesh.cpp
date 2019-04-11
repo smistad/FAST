@@ -101,6 +101,7 @@ void Mesh::create(
     mUseNormalVBO = useNormals;
     mUseEBO = useEBO;
     mNrOfTriangles = nrOfTriangles;
+    updateModifiedTimestamp();
 }
 
 VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
