@@ -13,7 +13,7 @@ ClariusStreamer::ClariusStreamer() {
     mFirstFrameIsInserted = false;
     mStreamIsStarted = false;
     mIsModified = true;
-    mGrayscale = false;
+    mGrayscale = true;
 }
 
 void ClariusStreamer::execute() {
