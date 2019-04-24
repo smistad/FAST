@@ -199,6 +199,9 @@ int OpenCLDevice::createProgramFromSource(std::string filename, std::string buil
         program = buildProgramFromBinary(filename, buildOptions);
     } else {
         std::string sourceCode = readFile(filename);
+        // If 3d image writes is supported, append the enable line to all source files (fix error on Intel devices)
+        if(isWritingTo3DTexturesSupported())
+            sourceCode = "#pragma OPENCL EXTENSION cl_khr_3d_image_writes : enable\n\n" + sourceCode;
         cl::Program::Sources source(1, std::make_pair(sourceCode.c_str(), sourceCode.length()));
         program = buildSources(source, buildOptions);
     }
@@ -212,9 +215,14 @@ int OpenCLDevice::createProgramFromSource(std::string filename, std::string buil
 int OpenCLDevice::createProgramFromSource(std::vector<std::string> filenames, std::string buildOptions) {
     // Do this in a weird way, because the the logical way does not work.
     std::string sourceCode = readFile(filenames[0]);
+    if(isWritingTo3DTexturesSupported())
+        sourceCode = "#pragma OPENCL EXTENSION cl_khr_3d_image_writes : enable\n\n" + sourceCode;
     cl::Program::Sources sources(filenames.size(), std::make_pair(sourceCode.c_str(), sourceCode.length()));
     for(int i = 1; i < filenames.size(); i++) {
         std::string sourceCode2 = readFile(filenames[i]);
+        // If 3d image writes is supported, append the enable line to all source files (fix error on Intel devices)
+        if(isWritingTo3DTexturesSupported())
+            sourceCode2 = "#pragma OPENCL EXTENSION cl_khr_3d_image_writes : enable\n\n" + sourceCode2;
         sources[i] = std::make_pair(sourceCode2.c_str(), sourceCode2.length());
     }
 
@@ -286,6 +294,9 @@ RuntimeMeasurementsManager::pointer OpenCLDevice::getRunTimeMeasurementManager()
 cl::Program OpenCLDevice::writeBinary(std::string filename, std::string buildOptions) {
     // Build program from source file and store the binary file
     std::string sourceCode = readFile(filename);
+    // If 3d image writes is supported, append the enable line to all source files (fix error on Intel devices)
+    if(isWritingTo3DTexturesSupported())
+        sourceCode = "#pragma OPENCL EXTENSION cl_khr_3d_image_writes : enable\n\n" + sourceCode;
 
     cl::Program::Sources source(1, std::make_pair(sourceCode.c_str(), sourceCode.length()));
     cl::Program program = buildSources(source, buildOptions);

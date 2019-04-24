@@ -63,7 +63,7 @@ __kernel void resize2D(
 }
 
 // ================ 3D
-
+#ifdef fast_3d_image_writes
 void writeToImage3D(__write_only image3d_t input, int4 position, float4 value) {
     int dataType = get_image_channel_data_type(input);
 	if(dataType == CLK_FLOAT) {
@@ -74,6 +74,7 @@ void writeToImage3D(__write_only image3d_t input, int4 position, float4 value) {
 		write_imagei(input, position, convert_int4(value));
     }
 }
+#endif
 
 float4 readFromImage3D(__read_only image3d_t input, sampler_t sampler, float4 position) {
     int dataType = get_image_channel_data_type(input);
