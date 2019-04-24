@@ -45,6 +45,8 @@ class FAST_EXPORT  TextRenderer : public Renderer {
         std::unordered_map<uint, uint> mTexturesToRender;
         std::unordered_map<uint, Text::pointer> mTextUsed;
         std::unordered_map<uint, uint> mVAO;
+        std::unordered_map<uint, uint> mVBO;
+        std::unordered_map<uint, uint> mEBO;
         std::unordered_map<uint, DataObject::pointer> mDataToRender;
 
         Color mColor;

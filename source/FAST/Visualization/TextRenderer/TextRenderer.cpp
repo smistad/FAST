@@ -117,6 +117,9 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         // Draw texture on a quad
+        // Delete old VAO
+        if(mVAO.count(inputNr) > 0)
+            glDeleteVertexArrays(1, &mVAO[inputNr]);
         GLuint VAO_ID;
         glGenVertexArrays(1, &VAO_ID);
         mVAO[inputNr] = VAO_ID;
@@ -128,9 +131,14 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
                 (float)width, 0.0f, 0.0f, 1.0f, 1.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
         };
-        std::cout << "Drawing at 0 " << width << " " << height << std::endl;
+
+        // Delete old VBO
+        if(mVBO.count(inputNr) > 0)
+            glDeleteBuffers(1, &mVBO[inputNr]);
+        // Create VBO
         uint VBO;
         glGenBuffers(1, &VBO);
+        mVBO[inputNr] = VBO;
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
@@ -138,9 +146,13 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
 
+        // Delete old EBO
+        if(mEBO.count(inputNr) > 0)
+            glDeleteBuffers(1, &mEBO[inputNr]);
         // Create EBO
         uint EBO;
         glGenBuffers(1, &EBO);
+        mEBO[inputNr] = EBO;
         uint indices[] = {  // note that we start from 0!
                 0, 1, 3,   // first triangle
                 1, 2, 3    // second triangle
