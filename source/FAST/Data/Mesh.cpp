@@ -129,8 +129,13 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
         if(QGLContext::currentContext() == nullptr)
             Window::getMainGLContext()->makeCurrent();
         QGLFunctions *fun = Window::getMainGLContext()->functions();
+        fun->glDeleteBuffers(1, &mCoordinateVBO);
         fun->glGenBuffers(1, &mCoordinateVBO);
         if(mHostHasData) {
+            fun->glDeleteBuffers(1, &mNormalVBO);
+            fun->glDeleteBuffers(1, &mColorVBO);
+            fun->glDeleteBuffers(1, &mLineEBO);
+            fun->glDeleteBuffers(1, &mTriangleEBO);
             fun->glGenBuffers(1, &mNormalVBO);
             fun->glGenBuffers(1, &mColorVBO);
             fun->glGenBuffers(1, &mLineEBO);
@@ -156,21 +161,25 @@ VertexBufferObjectAccess::pointer Mesh::getVertexBufferObjectAccess(
             fun->glBindBuffer(GL_ARRAY_BUFFER, mCoordinateVBO);
             fun->glBufferData(GL_ARRAY_BUFFER, mNrOfVertices*3*sizeof(float), NULL, GL_STATIC_DRAW);
             if(mUseNormalVBO) {
+                fun->glDeleteBuffers(1, &mNormalVBO);
                 fun->glGenBuffers(1, &mNormalVBO);
                 fun->glBindBuffer(GL_ARRAY_BUFFER, mNormalVBO);
                 fun->glBufferData(GL_ARRAY_BUFFER, mNrOfVertices * 3 * sizeof(float), NULL, GL_STATIC_DRAW);
             }
             if(mUseColorVBO) {
+                fun->glDeleteBuffers(1, &mColorVBO);
                 fun->glGenBuffers(1, &mColorVBO);
                 fun->glBindBuffer(GL_ARRAY_BUFFER, mColorVBO);
                 fun->glBufferData(GL_ARRAY_BUFFER, mNrOfVertices * 3 * sizeof(float), NULL, GL_STATIC_DRAW);
             }
             if(mUseEBO) {
-                  // Line EBO
+                // Line EBO
+                fun->glDeleteBuffers(1, &mLineEBO);
                 fun->glGenBuffers(1, &mLineEBO);
                 fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mLineEBO);
                 fun->glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNrOfLines*sizeof(uint), NULL, GL_STATIC_DRAW);
                 // Triangle EBO
+                fun->glDeleteBuffers(1, &mTriangleEBO);
                 fun->glGenBuffers(1, &mTriangleEBO);
                 fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mTriangleEBO);
                 fun->glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNrOfTriangles*sizeof(uint), NULL, GL_STATIC_DRAW);
@@ -457,6 +466,7 @@ void Mesh::freeAll() {
     // TODO finish
     if(mVBOHasData) {
 #ifdef FAST_MODULE_VISUALIZATION
+        glFinish(); // Make sure any draw calls are done before deleting this mesh
         // Need mutual exclusive write lock to delete data
         //VertexBufferObjectAccess::pointer access = getVertexBufferObjectAccess(ACCESS_READ_WRITE);
         //Window::getMainGLContext()->makeCurrent(); // Need an active context to delete the mesh VBO
@@ -467,23 +477,30 @@ void Mesh::freeAll() {
         // OLD delete method:
         // This should delete the data, by replacing it with 1 byte buffer
         // Ideally it should be 0, but then the data is not deleted..
-        fun->glBindBuffer(GL_ARRAY_BUFFER, mCoordinateVBO);
-        fun->glBufferData(GL_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
+        //fun->glBindBuffer(GL_ARRAY_BUFFER, mCoordinateVBO);
+        //fun->glBufferData(GL_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
+        fun->glDeleteBuffers(1, &mCoordinateVBO);
         if(mUseNormalVBO) {
-            fun->glBindBuffer(GL_ARRAY_BUFFER, mNormalVBO);
-            fun->glBufferData(GL_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
+            //fun->glBindBuffer(GL_ARRAY_BUFFER, mNormalVBO);
+            //fun->glBufferData(GL_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
+            fun->glDeleteBuffers(1, &mNormalVBO);
         }
         if(mUseColorVBO) {
-            fun->glBindBuffer(GL_ARRAY_BUFFER, mColorVBO);
-            fun->glBufferData(GL_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
+            //fun->glBindBuffer(GL_ARRAY_BUFFER, mColorVBO);
+            //fun->glBufferData(GL_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
+            fun->glDeleteBuffers(1, &mColorVBO);
         }
         fun->glBindBuffer(GL_ARRAY_BUFFER, 0);
         if(mUseEBO) {
+            /*
             fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mLineEBO);
             fun->glBufferData(GL_ELEMENT_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
             fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mTriangleEBO);
             fun->glBufferData(GL_ELEMENT_ARRAY_BUFFER, 1, NULL, GL_STATIC_DRAW);
+            */
             fun->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+            fun->glDeleteBuffers(1, &mLineEBO);
+            fun->glDeleteBuffers(1, &mTriangleEBO);
         }
         glFinish();
 #endif

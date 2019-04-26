@@ -14,8 +14,12 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, fl
     setShaderUniform("viewTransform", viewingMatrix);
 
     for(auto it : mDataToRender) {
+        // Delete old VAO
+        if(mVAO.count(it.first) > 0)
+            glDeleteVertexArrays(1, &mVAO[it.first]);
         // Create VAO
         uint VAO_ID;
+        mVAO[it.first] = VAO_ID;
         glGenVertexArrays(1, &VAO_ID);
         glBindVertexArray(VAO_ID);
 

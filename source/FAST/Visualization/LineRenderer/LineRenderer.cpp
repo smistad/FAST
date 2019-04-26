@@ -20,9 +20,14 @@ void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
     for(auto it : mDataToRender) {
         Mesh::pointer points = std::static_pointer_cast<Mesh>(it.second);
 
+        // Delete old VAO
+        if(mVAO.count(it.first) > 0) {
+            glDeleteVertexArrays(1, &mVAO[it.first]);
+        }
         // Create VAO
         uint VAO_ID;
         glGenVertexArrays(1, &VAO_ID);
+        mVAO[it.first] = VAO_ID;
         glBindVertexArray(VAO_ID);
 
         AffineTransformation::pointer transform;
@@ -58,8 +63,9 @@ void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
         if(drawOnTop)
             glDisable(GL_DEPTH_TEST);
 
+        
         VertexBufferObjectAccess::pointer access = points->getVertexBufferObjectAccess(ACCESS_READ);
-
+        
         // Coordinates
         GLuint* coordinatesVBO = access->getCoordinateVBO();
         glBindBuffer(GL_ARRAY_BUFFER, *coordinatesVBO);

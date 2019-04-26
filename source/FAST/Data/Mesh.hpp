@@ -53,11 +53,11 @@ class FAST_EXPORT Mesh : public SpatialDataObject {
         // VBO data
         bool mVBOHasData;
         bool mVBODataIsUpToDate;
-        GLuint mCoordinateVBO;
-        GLuint mNormalVBO;
-        GLuint mColorVBO;
-        GLuint mLineEBO;
-        GLuint mTriangleEBO;
+        GLuint mCoordinateVBO = 0;
+        GLuint mNormalVBO = 0;
+        GLuint mColorVBO = 0;
+        GLuint mLineEBO = 0;
+        GLuint mTriangleEBO = 0;
         uint mNrOfVertices;
         uint mNrOfLines;
         uint mNrOfTriangles;

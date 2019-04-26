@@ -21,6 +21,8 @@ class FAST_EXPORT  ImageRenderer : public Renderer {
         std::unordered_map<uint, uint> mTexturesToRender;
         std::unordered_map<uint, Image::pointer> mImageUsed;
         std::unordered_map<uint, uint> mVAO;
+        std::unordered_map<uint, uint> mVBO;
+        std::unordered_map<uint, uint> mEBO;
 
         cl::Kernel mKernel;
 

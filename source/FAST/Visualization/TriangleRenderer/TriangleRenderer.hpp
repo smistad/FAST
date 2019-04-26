@@ -39,6 +39,7 @@ class FAST_EXPORT TriangleRenderer : public Renderer {
         std::unordered_map<uint, Color> mInputColors;
         std::unordered_map<int, Color> mLabelColors;
         std::unordered_map<uint, float> mInputOpacities;
+        std::unordered_map<uint, uint> mVAO;
         Color mDefaultColor;
         float mDefaultSpecularReflection;
         float mDefaultOpacity;

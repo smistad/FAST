@@ -182,9 +182,13 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, flo
 }
 
 void ImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D) {
+
     for(auto it : mDataToRender) {
         Image::pointer input = std::static_pointer_cast<Image>(it.second);
         uint inputNr = it.first;
+        // Delete old VAO
+        if(mVAO.count(inputNr) > 0)
+            glDeleteVertexArrays(1, &mVAO[inputNr]);
         // Create VAO
         uint VAO_ID;
         glGenVertexArrays(1, &VAO_ID);
@@ -202,8 +206,12 @@ void ImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingM
                 width, 0.0f, 0.0f, 1.0f, 1.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
         };
+        // Delete old VBO
+        if(mVBO.count(inputNr) > 0)
+            glDeleteBuffers(1, &mVBO[inputNr]);
         uint VBO;
         glGenBuffers(1, &VBO);
+        mVBO[inputNr] = VBO;
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
@@ -211,9 +219,13 @@ void ImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingM
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
 
+        // Delete old EBO
+        if(mEBO.count(inputNr) > 0)
+            glDeleteBuffers(1, &mEBO[inputNr]);
         // Create EBO
         uint EBO;
         glGenBuffers(1, &EBO);
+        mEBO[inputNr] = EBO;
         uint indices[] = {  // note that we start from 0!
                 0, 1, 3,   // first triangle
                 1, 2, 3    // second triangle
@@ -221,8 +233,9 @@ void ImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingM
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
         glBindVertexArray(0);
-    }
 
+    }
+    
     activateShader();
 
     // This is the actual rendering
