@@ -26,7 +26,6 @@ class VideoSurface : public QAbstractVideoSurface {
     }
 
     bool present(const QVideoFrame &frame) {
-        Q_UNUSED(frame);
         Reporter::info() << "Movie frame received!" << Reporter::end();
         Reporter::info() << "Format: " << frame.pixelFormat() << Reporter::end();
         if(frame.pixelFormat() == QVideoFrame::PixelFormat::Format_Invalid) {
@@ -59,8 +58,10 @@ class VideoSurface : public QAbstractVideoSurface {
     }
 
     void stateChanged(QMediaPlayer::State state) {
-        Reporter::info() << "QMediaPlayer state changed - stopping stream" << Reporter::end();
-        streamer->setFinished(true);
+        if(state == QMediaPlayer::StoppedState) {
+            Reporter::info() << "QMediaPlayer state changed to stopped - stopping stream" << Reporter::end();
+            streamer->setFinished(true);
+        }
     }
 };
 
