@@ -67,7 +67,7 @@ void OpenVINOEngine::loadPlugin(std::string deviceType) {
     // Load CPU extension if device type is CPU
     if(deviceType == "CPU") {
 #ifdef WIN32
-        auto extension_ptr = make_so_pointer<::InferenceEngine::IExtension>("libcpu_extension.dll");
+        auto extension_ptr = make_so_pointer<::InferenceEngine::IExtension>("cpu_extension.dll");
 #else
         auto extension_ptr = make_so_pointer<::InferenceEngine::IExtension>("libcpu_extension.so");
 #endif
