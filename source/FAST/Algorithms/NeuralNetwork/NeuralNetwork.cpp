@@ -323,6 +323,8 @@ void NeuralNetwork::addOutputNode(uint portID, std::string name, NodeType type, 
 }
 
 void NeuralNetwork::load(std::string filename) {
+    if(!fileExists(filename))
+        throw FileNotFoundException(filename);
     m_engine->setFilename(filename);
     m_engine->load();
     // Make sure all ports exist
