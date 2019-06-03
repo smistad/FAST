@@ -141,14 +141,20 @@ void NeuralNetwork::run() {
     // Check if network is loaded, if not do it
     if(!m_engine->isLoaded())
         m_engine->load();
+
     // Prepare input data
+    mRuntimeManager->startRegularTimer("input_processing");
 	auto inputTensors = processInputData();
 	// Give input tensors to inference engine
     for(const auto &node : m_engine->getInputNodes()) {
         m_engine->setInputData(node.first, inputTensors[node.first]);
     }
+    mRuntimeManager->stopRegularTimer("input_processing");
+
 	// Run network
+    mRuntimeManager->startRegularTimer("inference");
 	m_engine->run();
+    mRuntimeManager->stopRegularTimer("inference");
 }
 
 void NeuralNetwork::execute() {
@@ -156,10 +162,12 @@ void NeuralNetwork::execute() {
     // Load, prepare input and run network
     run();
 
+    mRuntimeManager->startRegularTimer("output_processing");
 	// Collect output data of network and add to output ports
     for(const auto &node : m_engine->getOutputNodes()) {
         addOutputData(node.second.portID, m_engine->getOutputData(node.first));
     }
+    mRuntimeManager->stopRegularTimer("output_processing");
 }
 
 Tensor::pointer NeuralNetwork::convertImagesToTensor(std::vector<Image::pointer> images, const TensorShape& shape, bool temporal) {

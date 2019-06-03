@@ -333,22 +333,7 @@ cl::Program OpenCLDevice::writeBinary(std::string filename, std::string buildOpt
 
     // Write cache file
     FILE * cacheFile = fopen(cacheFilename.c_str(), "w");
-    std::string timeStr;
-    #ifdef WIN32
-	HANDLE hFile = CreateFile(filename.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
-	FILETIME ftCreate, ftAccess, ftWrite;
-	SYSTEMTIME sysTime;
-	GetFileTime(hFile, &ftCreate, &ftAccess, &ftWrite);
-	FileTimeToSystemTime(&ftWrite, &sysTime);
-	char* buffer = new char[255];
-	sprintf(buffer, "%d%d%d%d%d", sysTime.wYear, sysTime.wMonth, sysTime.wDay, sysTime.wHour, sysTime.wMinute, sysTime.wSecond);
-	timeStr = buffer;
-	delete[] buffer;
-    #else
-    struct stat attrib; // create a file attribute structure
-    stat(filename.c_str(), &attrib);
-    timeStr = ctime(&(attrib.st_mtime));
-    #endif
+    std::string timeStr = getModifiedDate(filename);
     VECTOR_CLASS<cl::Device> devices = context.getInfo<CL_CONTEXT_DEVICES>();
     timeStr += "-" + devices[0].getInfo<CL_DEVICE_NAME>() + "\n";
     timeStr += "-" + buildOptions;

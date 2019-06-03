@@ -54,13 +54,12 @@ inline int getPosition(int x, int nrOfClasses, int j, int size, ImageOrdering or
 }
 
 void PixelClassifier::execute() {
-    mRuntimeManager->enable();
-    mRuntimeManager->startRegularTimer("pixel_classifier");
     if(mNrOfClasses <= 0)
         throw Exception("You must set the nr of classes to pixel classification.");
 
     run();
 
+    mRuntimeManager->startRegularTimer("output_processing");
     Tensor::pointer tensor = m_engine->getOutputNodes().begin()->second.data;
     const auto shape = tensor->getShape();
     TensorAccess::pointer access = tensor->getAccess(ACCESS_READ);
@@ -149,8 +148,7 @@ void PixelClassifier::execute() {
             addOutputData(0, output);
         }
     }
-
-    mRuntimeManager->stopRegularTimer("pixel_classifier");
+    mRuntimeManager->stopRegularTimer("output_processing");
 }
 
 void PixelClassifier::loadAttributes() {

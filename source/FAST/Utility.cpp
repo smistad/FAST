@@ -763,4 +763,24 @@ std::string currentDateTime(std::string format) {
     return buf;
 }
 
+std::string getModifiedDate(std::string filename) {
+    std::string timeStr;
+    #ifdef WIN32
+        HANDLE hFile = CreateFile(filename.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+        FILETIME ftCreate, ftAccess, ftWrite;
+        SYSTEMTIME sysTime;
+        GetFileTime(hFile, &ftCreate, &ftAccess, &ftWrite);
+        FileTimeToSystemTime(&ftWrite, &sysTime);
+        char* buffer = new char[255];
+        sprintf(buffer, "%d%d%d%d%d", sysTime.wYear, sysTime.wMonth, sysTime.wDay, sysTime.wHour, sysTime.wMinute, sysTime.wSecond);
+        timeStr = buffer;
+        delete[] buffer;
+    #else
+        struct stat attrib; // create a file attribute structure
+        stat(filename.c_str(), &attrib);
+        timeStr = ctime(&(attrib.st_mtime));
+    #endif
+    return timeStr;
+}
+
 } // end namespace fast

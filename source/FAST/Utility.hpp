@@ -203,6 +203,13 @@ FAST_EXPORT std::string currentDateTime(std::string format = "%Y-%m-%d-%H%M%S");
 FAST_EXPORT std::string join(std::string path);
 
 /**
+ * Get modified date of a file as a string
+ * @param filename
+ * @return
+ */
+FAST_EXPORT std::string getModifiedDate(std::string filename);
+
+/**
  * Join multiple paths.
  *
  * @tparam T

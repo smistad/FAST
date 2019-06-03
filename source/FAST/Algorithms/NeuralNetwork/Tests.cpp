@@ -19,11 +19,14 @@
 using namespace fast;
 
 TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork][visual]") {
+    //Reporter::setGlobalReportMethod(Reporter::NONE);
     for(const std::string& engine : {"OpenVINO", "TensorRT", "TensorFlow"}) {
         if(!InferenceEngineRegistry::isIERegistered(engine)) {
             std::cout << "Inference engine " << engine << " not available, skipping." << std::endl;
             continue;
         }
+        std::cout << engine << std::endl;
+        std::cout << "====================================" << std::endl;
         //auto importer = ImageFileImporter::New();
         //importer->setFilename(Config::getTestDataPath() + "US/JugularVein/US-2D_0.mhd");
         auto streamer = ImageFileStreamer::New();
@@ -62,7 +65,7 @@ TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork][visual]") {
         window->set2DMode();
         window->setTimeout(10000);
         window->start();
-        segmentation->getRuntime()->print();
+        segmentation->getAllRuntimes()->printAll();
     }
 }
 

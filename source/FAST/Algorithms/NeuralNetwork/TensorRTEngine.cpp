@@ -4,6 +4,8 @@
 #include "NvUtils.h"
 #include <cuda_runtime_api.h>
 #include <FAST/Utility.hpp>
+#include <fstream>
+#include <FAST/Config.hpp>
 
 #define CUDA_CHECK(status)                             \
     do                                            \
@@ -208,47 +210,94 @@ void TensorRTEngine::load() {
         throw Exception("Input and output nodes must be defined before loading Uff files using the TensorRT engine");
 
     const auto filename = getFilename();
-    if(!fileExists(filename))
-        throw FileNotFoundException(filename);
-    reportInfo() << "Loading file " << filename << " using TensorRT" << reportEnd();
-    std::unique_ptr<nvinfer1::IBuilder, decltype(Destroy())> builder(nvinfer1::createInferBuilder(gLogger), Destroy());
-    std::unique_ptr<nvinfer1::INetworkDefinition, decltype(Destroy())> network(builder->createNetwork(), Destroy());
-    std::unique_ptr<nvuffparser::IUffParser, decltype(Destroy())> parser(nvuffparser::createUffParser(), Destroy());
-    reportInfo() << "Created builders and parsers" << reportEnd();
-
-    // Setup input nodes
-    reportInfo() << "Going through nodes.." << reportEnd();
-    for(auto node : mInputNodes) {
-        reportInfo() << node.first << reportEnd();
-        auto shape = node.second.shape;
-        if(shape.getDimensions() == 0)
-            throw Exception("Unknown shape for input node " + node.first + ". For TensorRT you need to specify the input tensor shape explictly with addInptNode");
-        if(shape.getDimensions() == 4)
-            parser->registerInput(node.first.c_str(), nvinfer1::Dims3(shape[1], shape[2], shape[3]), nvuffparser::UffInputOrder::kNCHW);
-        if(shape.getDimensions() == 5)
-            parser->registerInput(node.first.c_str(), nvinfer1::Dims4(shape[1], shape[2], shape[3], shape[4]), nvuffparser::UffInputOrder::kNCHW);
+    std::size_t hash = std::hash<std::string>{}(filename); // Hash the full filename
+    std::string serializedBinaryFilename = join(Config::getKernelBinaryPath(), filename.substr(filename.rfind('/')) + "_" + std::to_string(hash) + ".bin");
+    std::string serializedCacheFilename = join(Config::getKernelBinaryPath(), filename.substr(filename.rfind('/')) + "_" + std::to_string(hash) + ".cache");
+    bool loadSerializedFile = false;
+    if(fileExists(serializedCacheFilename) && fileExists(serializedBinaryFilename)) {
+        // Check if date is modified or not
+        std::ifstream file(serializedCacheFilename.c_str());
+        if(file.fail())
+            throw Exception("Failed to read " + serializedCacheFilename);
+        std::string line = "";
+        std::getline(file, line);
+        trim(line);
+        std::string modifiedDate = getModifiedDate(filename);
+        trim(modifiedDate);
+        if(line == modifiedDate) {
+            reportInfo() << "Serialized file " << serializedBinaryFilename << " is up to date." << reportEnd();
+            loadSerializedFile = true;
+        } else {
+            reportInfo() << "Serialized file " << serializedBinaryFilename << " was not up to date." << reportEnd();
+        }
     }
-    reportInfo() << "Input nodes finished" << reportEnd();
+    if(!loadSerializedFile) {
+        // File is not serialized: Create it
+        if(!fileExists(filename))
+            throw FileNotFoundException(filename);
+        reportInfo() << "Loading file " << filename << " using TensorRT" << reportEnd();
+        std::unique_ptr<nvinfer1::IBuilder, decltype(Destroy())> builder(nvinfer1::createInferBuilder(gLogger),
+                                                                         Destroy());
+        std::unique_ptr<nvinfer1::INetworkDefinition, decltype(Destroy())> network(builder->createNetwork(), Destroy());
+        std::unique_ptr<nvuffparser::IUffParser, decltype(Destroy())> parser(nvuffparser::createUffParser(), Destroy());
+        reportInfo() << "Created builders and parsers" << reportEnd();
 
-    // Setup output nodes
-    for(auto node : mOutputNodes) {
-        parser->registerOutput(node.first.c_str());
+        // Setup input nodes
+        reportInfo() << "Going through nodes.." << reportEnd();
+        for(auto node : mInputNodes) {
+            reportInfo() << node.first << reportEnd();
+            auto shape = node.second.shape;
+            if(shape.getDimensions() == 0)
+                throw Exception("Unknown shape for input node " + node.first +
+                                ". For TensorRT you need to specify the input tensor shape explictly with addInptNode");
+            if(shape.getDimensions() == 4)
+                parser->registerInput(node.first.c_str(), nvinfer1::Dims3(shape[1], shape[2], shape[3]),
+                                      nvuffparser::UffInputOrder::kNCHW);
+            if(shape.getDimensions() == 5)
+                parser->registerInput(node.first.c_str(), nvinfer1::Dims4(shape[1], shape[2], shape[3], shape[4]),
+                                      nvuffparser::UffInputOrder::kNCHW);
+        }
+        reportInfo() << "Input nodes finished" << reportEnd();
+
+        // Setup output nodes
+        for(auto node : mOutputNodes) {
+            parser->registerOutput(node.first.c_str());
+        }
+        reportInfo() << "Output nodes finished" << reportEnd();
+
+        if(!parser->parse(filename.c_str(), *network, nvinfer1::DataType::kFLOAT))
+            throw Exception("Error parsing UFF file " + filename);
+
+        reportInfo() << "Finished parsing UFF file" << reportEnd();
+
+        builder->setMaxBatchSize(m_maxBatchSize);
+        builder->setMaxWorkspaceSize(m_maxWorkspaceSize);
+        //builder->setFp16Mode(builder->platformHasFastFp16());
+
+        m_engine = builder->buildCudaEngine(*network);
+        if(!m_engine)
+            throw Exception("Failed to build CUDA engine for TensorRT");
+        reportInfo() << "Finished building CUDA engine for TensorRT" << reportEnd();
+
+        // Serialize the model
+        std::unique_ptr<nvinfer1::IHostMemory, decltype(Destroy())> serializedModel(m_engine->serialize(), Destroy());
+        // Store model to disk
+        std::ofstream ofile(serializedBinaryFilename.c_str(), std::ios::binary);
+        ofile.write((char *) serializedModel->data(), serializedModel->size());
+        ofile.close();
+        std::ofstream ofileCache(serializedCacheFilename.c_str());
+        std::string modifiedDate = getModifiedDate(filename);
+        ofileCache.write(modifiedDate.c_str(), modifiedDate.size());
+        ofileCache.close();
+    } else {
+        std::unique_ptr<nvinfer1::IRuntime, decltype(Destroy())> runtime(nvinfer1::createInferRuntime(gLogger), Destroy());
+        // Read serialized model from disk
+        std::ifstream ifile(serializedBinaryFilename.c_str(), std::ios::binary);
+        std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(ifile), {});
+        ifile.close();
+        // Deserialize the model data
+        m_engine = runtime->deserializeCudaEngine(buffer.data(), buffer.size(), nullptr);
     }
-    reportInfo() << "Output nodes finished" << reportEnd();
-
-    if(!parser->parse(filename.c_str(), *network, nvinfer1::DataType::kFLOAT))
-        throw Exception("Error parsing UFF file " + filename);
-
-    reportInfo() << "Finished parsing UFF file" << reportEnd();
-
-    builder->setMaxBatchSize(m_maxBatchSize);
-    builder->setMaxWorkspaceSize(m_maxWorkspaceSize);
-    //builder->setFp16Mode(builder->platformHasFastFp16());
-
-    m_engine = builder->buildCudaEngine(*network);
-    if(!m_engine)
-        throw Exception("Failed to build CUDA engine for TensorRT");
-    reportInfo() << "Finished building CUDA engine for TensorRT" << reportEnd();
 
     m_context = m_engine->createExecutionContext();
     setIsLoaded(true);
