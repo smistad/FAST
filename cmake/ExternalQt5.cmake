@@ -113,6 +113,8 @@ else()
             -qt-libpng;
             -qt-libjpeg;
             -qt-freetype;
+            -qt-harfbuzz;
+            -qt-pcre;
             -qt-xcb;
             -qt-xkbcommon;
             -no-directfb;
