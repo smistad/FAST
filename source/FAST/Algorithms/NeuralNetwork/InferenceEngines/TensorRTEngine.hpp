@@ -20,12 +20,15 @@ class TensorRTEngine : public InferenceEngine {
         ~TensorRTEngine() override;
         void setMaxBatchSize(int maxBathSize);
         int getMaxBatchSize() const;
-    private:
         TensorRTEngine();
+    private:
         nvinfer1::ICudaEngine* m_engine = nullptr;
         nvinfer1::IExecutionContext* m_context = nullptr;
         int m_maxBatchSize = 1;
         std::size_t m_maxWorkspaceSize = 4*1024*1024; // in bytes
 };
+
+#define ASD
+DEFINE_INFERENCE_ENGINE(TensorRTEngine, ASD)
 
 }

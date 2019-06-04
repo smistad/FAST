@@ -1,7 +1,7 @@
 #include <FAST/Testing.hpp>
 #include "NeuralNetwork.hpp"
 #include "PixelClassifier.hpp"
-#include "InferenceEngineRegistry.hpp"
+#include "InferenceEngineManager.hpp"
 #include <FAST/Importers/ImageFileImporter.hpp>
 #include <FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
@@ -18,9 +18,10 @@
 using namespace fast;
 
 TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork][visual]") {
-    Reporter::setGlobalReportMethod(Reporter::NONE);
+    //Reporter::setGlobalReportMethod(Reporter::NONE);
+    Reporter::setGlobalReportMethod(Reporter::INFO, Reporter::NONE);
     for(const std::string& engine : {"OpenVINO", "TensorRT", "TensorFlow"}) {
-        if(!InferenceEngineRegistry::isIERegistered(engine)) {
+        if(!InferenceEngineManager::isEngineAvailable(engine)) {
             std::cout << "Inference engine " << engine << " not available, skipping." << std::endl;
             continue;
         }
@@ -119,7 +120,7 @@ TEST_CASE("Execute NN on single 3D image", "[fast][neuralnetwork][3d][visual]") 
 
 TEST_CASE("Multi input, single output network", "[fast][neuralnetwork]") {
     for(const std::string& engine : {"OpenVINO", "TensorRT", "TensorFlow"}) {
-        if(!InferenceEngineRegistry::isIERegistered(engine)) {
+        if(!InferenceEngineManager::isEngineAvailable(engine)) {
             std::cout << "Inference engine " << engine << " not available, skipping." << std::endl;
             continue;
         }
@@ -152,7 +153,7 @@ TEST_CASE("Multi input, single output network", "[fast][neuralnetwork]") {
 
 TEST_CASE("Single input, multi output network", "[fast][neuralnetwork]") {
     for(const std::string& engine : {"OpenVINO", "TensorRT", "TensorFlow"}) {
-        if(!InferenceEngineRegistry::isIERegistered(engine)) {
+        if(!InferenceEngineManager::isEngineAvailable(engine)) {
             std::cout << "Inference engine " << engine << " not available, skipping." << std::endl;
             continue;
         }
@@ -194,7 +195,7 @@ TEST_CASE("Single input, multi output network", "[fast][neuralnetwork]") {
 TEST_CASE("Single 3D image input network", "[fast][neuralnetwork][3d]") {
 
     for(const std::string& engine : {"TensorFlow"}) {
-        if(!InferenceEngineRegistry::isIERegistered(engine)) {
+        if(!InferenceEngineManager::isEngineAvailable(engine)) {
             std::cout << "Inference engine " << engine << " not available, skipping." << std::endl;
             continue;
         }
@@ -225,7 +226,7 @@ TEST_CASE("Single 3D image input network", "[fast][neuralnetwork][3d]") {
 
 TEST_CASE("Execute NN on batch of 2D images", "[fast][neuralnetwork]") {
     for(const std::string& engine : {"OpenVINO", "TensorRT", "TensorFlow"}) {
-        if(!InferenceEngineRegistry::isIERegistered(engine)) {
+        if(!InferenceEngineManager::isEngineAvailable(engine)) {
             std::cout << "Inference engine " << engine << " not available, skipping." << std::endl;
             continue;
         }
@@ -279,7 +280,7 @@ TEST_CASE("Execute NN on batch of 2D images", "[fast][neuralnetwork]") {
 
 TEST_CASE("NN: temporal input static output", "[fast][neuralnetwork][sequence]") {
     for(const std::string& engine : {"TensorFlow"}) {
-        if(!InferenceEngineRegistry::isIERegistered(engine)) {
+        if(!InferenceEngineManager::isEngineAvailable(engine)) {
             std::cout << "Inference engine " << engine << " not available, skipping." << std::endl;
             continue;
         }
@@ -322,7 +323,7 @@ TEST_CASE("NN: temporal input static output", "[fast][neuralnetwork][sequence]")
 
 TEST_CASE("NN: temporal input temporal output", "[fast][neuralnetwork][sequence]") {
     for(const std::string& engine : {"TensorFlow"}) {
-        if(!InferenceEngineRegistry::isIERegistered(engine)) {
+        if(!InferenceEngineManager::isEngineAvailable(engine)) {
             std::cout << "Inference engine " << engine << " not available, skipping." << std::endl;
             continue;
         }
@@ -366,7 +367,7 @@ TEST_CASE("NN: temporal input temporal output", "[fast][neuralnetwork][sequence]
 
 TEST_CASE("NN: temporal input temporal output, streaming mode", "[fast][neuralnetwork][sequence]") {
     for(const std::string& engine : {"TensorFlow"}) {
-        if(!InferenceEngineRegistry::isIERegistered(engine)) {
+        if(!InferenceEngineManager::isEngineAvailable(engine)) {
             std::cout << "Inference engine " << engine << " not available, skipping." << std::endl;
             continue;
         }

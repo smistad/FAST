@@ -12,6 +12,7 @@ namespace Config {
     FAST_EXPORT std::string getKernelBinaryPath();
     FAST_EXPORT std::string getDocumentationPath();
     FAST_EXPORT std::string getPipelinePath();
+    FAST_EXPORT std::string getLibraryPath();
 	FAST_EXPORT void setTestDataPath(std::string path);
 	FAST_EXPORT void setKernelSourcePath(std::string path);
 	FAST_EXPORT void setKernelBinaryPath(std::string path);

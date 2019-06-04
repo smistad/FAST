@@ -12,6 +12,8 @@ set(VERSION_PATCH 0)
 # the zlib library to be 'zlib' when it was in fact 'zlibd'.
 cmake_policy(SET CMP0022 NEW)
 
+cmake_policy(SET CMP0079 NEW)
+
 include(cmake/Macros.cmake)
 
 #### Options
@@ -230,18 +232,12 @@ configure_file(
 )
 
 # Setup inference engines
-foreach(FILE ${FAST_INFERENCE_ENGINE_HEADER_FILES})
-    set(FAST_INFERENCE_ENGINE_INCLUDES "${FAST_INFERENCE_ENGINE_INCLUDES}#include \"${FILE}\"\n")
+message("------ IEs: ${FAST_INFERENCE_ENGINES}")
+foreach(ENGINE ${FAST_INFERENCE_ENGINES})
+    message("---- Adding inference engnine ${ENGINE}")
+    target_link_libraries(${ENGINE} FAST)
+    add_dependencies(testFAST ${ENGINE}) # Build engine with the FAST library
 endforeach()
-
-foreach(NAME ${FAST_INFERENCE_ENGINE_NAMES})
-    set(FAST_INFERENCE_ENGINE_REGISTRATION "${FAST_INFERENCE_ENGINE_REGISTRATION}FAST_REGISTER_IE(${NAME})\n")
-endforeach()
-
-configure_file(
-    "${PROJECT_SOURCE_DIR}/source/InferenceEngineList.hpp.in"
-    "${PROJECT_BINARY_DIR}/InferenceEngineList.hpp"
-)
 
 if(NOT FAST_BUILD_QT5 AND WIN32)
     # Using pre-built binaries on Windows so add custom command to copy 

@@ -2,7 +2,7 @@
 #include "FAST/Data/Image.hpp"
 #include "FAST/Data/Tensor.hpp"
 #include "FAST/Algorithms/ImageResizer/ImageResizer.hpp"
-#include "InferenceEngineList.hpp"
+#include "InferenceEngineManager.hpp"
 
 
 namespace fast {
@@ -32,7 +32,7 @@ NeuralNetwork::NeuralNetwork() {
 	createStringAttribute("output_names", "Output names", "Name of output nodes", "");
 	createBooleanAttribute("signed_input_normalization", "Signed input normalization", "Normalize input to -1 and 1 instead of 0 to 1.", false);
 
-	m_engine = InferenceEngineRegistry::createPreferredEngine();
+	m_engine = InferenceEngineManager::getBestAvailableEngine();
 	reportInfo() << "Inference engine " << m_engine->getName() << " selected" << reportEnd();
 }
 
@@ -349,14 +349,7 @@ void NeuralNetwork::setInferenceEngine(InferenceEngine::pointer engine) {
 }
 
 void NeuralNetwork::setInferenceEngine(std::string engineName) {
-    auto list = InferenceEngineRegistry::getList();
-    if(list.count(engineName) == 0) {
-        std::string nameList;
-        for(auto ie : list)
-            nameList += ie + " ";
-        throw Exception("The inference engine " + engineName + " was not available. Available inference engines are:" + nameList);
-    }
-    m_engine = InferenceEngineRegistry::create(engineName);
+    m_engine = InferenceEngineManager::getEngine(engineName);
     reportInfo() << "Inference engine " << m_engine->getName() << " selected" << reportEnd();
 }
 

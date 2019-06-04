@@ -1,6 +1,6 @@
 # Download and set up Tensorflow
 
-include(cmake/Externals.cmake)
+include(${PROJECT_SOURCE_DIR}/cmake/Externals.cmake)
 
 if(WIN32)
     set(GIT_EXECUTABLE "git.exe")
@@ -33,10 +33,6 @@ if(WIN32)
                 -DCMAKE_INSTALL_MESSAGE:BOOL=LAZY
                 -DCMAKE_INSTALL_PREFIX:STRING=${FAST_EXTERNAL_INSTALL_DIR}
         )
-    list(APPEND LIBRARIES
-        tensorflow.lib
-        #libprotobuf.lib # For windows we need this protobuf static lib for some reason..
-    )
 else(WIN32)
     # Use bazel to build tensorflow on linux
     set(GIT_EXECUTABLE "git")
@@ -70,10 +66,5 @@ else(WIN32)
             echo "Installing nsync headers" &&
             bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/bazel-out/)/../../../external/nsync/public/*.h ${FAST_EXTERNAL_INSTALL_DIR}/include/ -Rf"
     )
-    list(APPEND LIBRARIES
-        libtensorflow_framework.so
-    )
 endif(WIN32)
-
-list(APPEND FAST_EXTERNAL_DEPENDENCIES tensorflow)
 

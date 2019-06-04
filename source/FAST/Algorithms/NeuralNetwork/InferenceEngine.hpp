@@ -4,6 +4,15 @@
 #include <FAST/Data/Tensor.hpp>
 #include <FAST/Data/TensorShape.hpp>
 
+// This is a macro for creating a load function for a given inference engine
+// Need C linkage here (extern "C" to avoid mangled names of the load function on windows, see https://stackoverflow.com/questions/19422550/why-getprocaddress-is-not-working
+// Export statement is needed for Windows
+#define DEFINE_INFERENCE_ENGINE(classType, exportStatement)                                   \
+extern "C" exportStatement                                                          \
+InferenceEngine* load() {                                                                  \
+      return new classType();                                                       \
+}                                                                                      \
+
 namespace fast {
 
 /**

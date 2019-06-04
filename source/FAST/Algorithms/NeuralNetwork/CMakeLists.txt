@@ -9,7 +9,8 @@
         ImageToImageNetwork.hpp
         InferenceEngine.cpp
         InferenceEngine.hpp
-        InferenceEngineRegistry.hpp
+        InferenceEngineManager.cpp
+        InferenceEngineManager.hpp
     )
     fast_add_process_object(ImageClassifier ImageClassifier.hpp)
     fast_add_process_object(ClassificationToText ImageClassifier.hpp)

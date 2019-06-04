@@ -14,7 +14,4 @@ if(FAST_MODULE_OpenVINO)
     endif()
     find_package(InferenceEngine REQUIRED)
 
-    list(APPEND FAST_INCLUDE_DIRS ${InferenceEngine_INCLUDE_DIRS})
-    list(APPEND LIBRARIES ${InferenceEngine_LIBRARIES} ${IntelTBB})
-    list(APPEND FAST_EXTERNAL_DEPENDENCIES IE::ie_cpu_extension)
 endif()

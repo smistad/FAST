@@ -31,4 +31,7 @@ class OpenVINOEngine : public InferenceEngine {
         void loadPlugin(std::string deviceType);
 };
 
+#define ASD
+DEFINE_INFERENCE_ENGINE(OpenVINOEngine, ASD)
+
 }

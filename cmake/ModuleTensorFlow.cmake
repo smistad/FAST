@@ -1,7 +1,7 @@
 ## TensorFlow module
 
 if(FAST_MODULE_TensorFlow)
-    include(cmake/ExternalTensorflow.cmake)
+    include(${PROJECT_SOURCE_DIR}/cmake/ExternalTensorflow.cmake)
 
     ## Tensorflow
     #list(APPEND FAST_INCLUDE_DIRS ${Tensorflow_INCLUDE_DIRS})
@@ -20,5 +20,14 @@ if(FAST_MODULE_TensorFlow)
         add_definitions(/wd4715 /wd4722 /wd4723 /wd4838 /wd4309 /wd4334)
         # To get rid of this error: Not found: No session factory registered for the given session options: {target: "" config: } Registered factories are {}.
         #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /WHOLEARCHIVE:\"${Tensorflow_LIBRARY}\"")
+
+        set(TensorFlow_LIBRARIES
+            tensorflow.lib
+            #libprotobuf.lib # For windows we need this protobuf static lib for some reason..
+        )
+    else()
+        set(TensorFlow_LIBRARIES
+            libtensorflow_framework.so
+        )
     endif()
 endif()

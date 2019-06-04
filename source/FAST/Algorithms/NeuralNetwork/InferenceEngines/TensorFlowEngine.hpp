@@ -19,11 +19,14 @@ class FAST_EXPORT TensorFlowEngine : public InferenceEngine {
         ImageOrdering getPreferredImageOrdering() const override;
         std::string getName() const override;
         std::string getDefaultFileExtension() const override;
-    private:
         TensorFlowEngine();
+    private:
         std::unique_ptr<tensorflow::Session> mSession;
         std::vector<std::string> mLearningPhaseTensors;
 
 };
+
+#define ASD
+DEFINE_INFERENCE_ENGINE(TensorFlowEngine, ASD)
 
 }

@@ -24,6 +24,7 @@ namespace fast {
 			std::string mKernelBinaryPath;
 			std::string mDocumentationPath;
 			std::string mPipelinePath;
+			std::string mLibraryPath;
 		}
 
 		std::string getPath() {
@@ -78,10 +79,16 @@ namespace fast {
 			mKernelBinaryPath = getPath() + "kernel_binaries/";
 			mDocumentationPath = getPath() + "../doc/";
 			mPipelinePath = getPath() + "../pipelines/";
+#ifdef WIN32
+            mLibraryPath = getPath() + "/bin/";
+#else
+            mLibraryPath = getPath() + "/lib/";
+#endif
+
 			// Read and parse configuration file
 			// It should reside in the build folder when compiling, and in the root folder when using release
 			std::string filename;
-			if (mConfigFilename == "") {
+			if(mConfigFilename == "") {
 				filename = getPath() + "fast_configuration.txt";
 			}
 			else {
@@ -144,6 +151,7 @@ namespace fast {
 			Reporter::info() << "Kernel binary path: " << mKernelBinaryPath << Reporter::end();
 			Reporter::info() << "Documentation path: " << mDocumentationPath << Reporter::end();
 			Reporter::info() << "Pipeline path: " << mPipelinePath << Reporter::end();
+            Reporter::info() << "Library path: " << mLibraryPath << Reporter::end();
 
 			mConfigurationLoaded = true;
 		}
@@ -171,6 +179,11 @@ namespace fast {
 		std::string getPipelinePath() {
 			loadConfiguration();
 			return mPipelinePath;
+		}
+
+		std::string getLibraryPath() {
+		    loadConfiguration();
+		    return mLibraryPath;
 		}
 
 		void setConfigFilename(std::string filename) {
