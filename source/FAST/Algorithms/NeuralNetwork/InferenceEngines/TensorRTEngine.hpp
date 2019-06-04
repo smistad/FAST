@@ -1,6 +1,6 @@
 #pragma once
 
-#include "InferenceEngine.hpp"
+#include <FAST/Algorithms/NeuralNetwork/InferenceEngine.hpp>
 
 namespace nvinfer1 {
 class ICudaEngine;

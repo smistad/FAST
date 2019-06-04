@@ -4,7 +4,6 @@
 #include <FAST/Visualization/HeatmapRenderer/HeatmapRenderer.hpp>
 #include <FAST/Algorithms/UltrasoundImageEnhancement/UltrasoundImageEnhancement.hpp>
 #include "FAST/Testing.hpp"
-#include "ShapeRegressor.hpp"
 #include "FAST/Streamers/ImageFileStreamer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"

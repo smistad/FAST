@@ -2,7 +2,6 @@
 #include "NeuralNetwork.hpp"
 #include "PixelClassifier.hpp"
 #include "InferenceEngineRegistry.hpp"
-#include "TensorRTEngine.hpp"
 #include <FAST/Importers/ImageFileImporter.hpp>
 #include <FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
@@ -19,7 +18,7 @@
 using namespace fast;
 
 TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork][visual]") {
-    //Reporter::setGlobalReportMethod(Reporter::NONE);
+    Reporter::setGlobalReportMethod(Reporter::NONE);
     for(const std::string& engine : {"OpenVINO", "TensorRT", "TensorFlow"}) {
         if(!InferenceEngineRegistry::isIERegistered(engine)) {
             std::cout << "Inference engine " << engine << " not available, skipping." << std::endl;

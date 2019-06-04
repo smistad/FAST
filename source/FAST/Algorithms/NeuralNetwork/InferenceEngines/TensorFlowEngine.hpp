@@ -1,6 +1,6 @@
 #pragma once
 
-#include "InferenceEngine.hpp"
+#include <FAST/Algorithms/NeuralNetwork/InferenceEngine.hpp>
 #include <FAST/SmartPointers.hpp>
 
 // Forward declare
