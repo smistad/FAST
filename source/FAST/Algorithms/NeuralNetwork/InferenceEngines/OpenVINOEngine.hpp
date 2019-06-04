@@ -32,7 +32,6 @@ class INFERENCEENGINEOPENVINO_EXPORT OpenVINOEngine : public InferenceEngine {
         void loadPlugin(std::string deviceType);
 };
 
-#define ASD
-DEFINE_INFERENCE_ENGINE(OpenVINOEngine, ASD)
+DEFINE_INFERENCE_ENGINE(OpenVINOEngine, INFERENCEENGINEOPENVINO_EXPORT)
 
 }
