@@ -2,6 +2,7 @@
 
 #include <FAST/Algorithms/NeuralNetwork/InferenceEngine.hpp>
 #include <FAST/SmartPointers.hpp>
+#include <TensorFlowExport.hpp>
 
 // Forward declare
 namespace tensorflow {
@@ -10,7 +11,7 @@ class Session;
 
 namespace fast {
 
-class FAST_EXPORT TensorFlowEngine : public InferenceEngine {
+class INFERENCEENGINETENSORFLOW_EXPORT TensorFlowEngine : public InferenceEngine {
     FAST_OBJECT(TensorFlowEngine)
     public:
         void load() override;

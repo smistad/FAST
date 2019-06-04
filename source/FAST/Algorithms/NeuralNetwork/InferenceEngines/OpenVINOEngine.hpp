@@ -1,6 +1,7 @@
 #pragma once
 
 #include <FAST/Algorithms/NeuralNetwork/InferenceEngine.hpp>
+#include <OpenVINOExport.hpp>
 
 namespace InferenceEngine {
 class InferRequest;
@@ -9,7 +10,7 @@ class InferencePlugin;
 
 namespace fast {
 
-class OpenVINOEngine : public InferenceEngine {
+class INFERENCEENGINEOPENVINO_EXPORT OpenVINOEngine : public InferenceEngine {
     FAST_OBJECT(OpenVINOEngine)
     public:
         void run() override;

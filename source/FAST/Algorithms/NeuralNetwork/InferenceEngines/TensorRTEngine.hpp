@@ -1,6 +1,7 @@
 #pragma once
 
 #include <FAST/Algorithms/NeuralNetwork/InferenceEngine.hpp>
+#include <TensorRTExport.hpp>
 
 namespace nvinfer1 {
 class ICudaEngine;
@@ -9,7 +10,7 @@ class IExecutionContext;
 
 namespace fast {
 
-class TensorRTEngine : public InferenceEngine {
+class INFERENCEENGINETENSORRT_EXPORT TensorRTEngine : public InferenceEngine {
     FAST_OBJECT(TensorRTEngine)
     public:
         void run() override;
