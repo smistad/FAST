@@ -29,7 +29,6 @@ class INFERENCEENGINETENSORRT_EXPORT TensorRTEngine : public InferenceEngine {
         std::size_t m_maxWorkspaceSize = 4*1024*1024; // in bytes
 };
 
-#define ASD
-DEFINE_INFERENCE_ENGINE(TensorRTEngine, ASD)
+DEFINE_INFERENCE_ENGINE(TensorRTEngine, INFERENCEENGINETENSORRT_EXPORT)
 
 }
