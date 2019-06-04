@@ -7,7 +7,7 @@ namespace fast {
 /**
  * A purely static class to dynamically load inference engines at runtime
  */
-class InferenceEngineManager {
+class FAST_EXPORT InferenceEngineManager {
     public:
         static void loadAll();
         static std::shared_ptr<InferenceEngine> getEngine(std::string name);

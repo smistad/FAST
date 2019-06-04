@@ -1,6 +1,8 @@
 #include <FAST/Config.hpp>
 #include <FAST/Utility.hpp>
+#ifndef WIN32
 #include <dlfcn.h>
+#endif
 #include "InferenceEngineManager.hpp"
 
 namespace fast {
@@ -43,7 +45,7 @@ void InferenceEngineManager::loadAll() {
     std::cout << "Loading inference engines in folder " << Config::getLibraryPath() << std::endl;
     for(auto&& item : getDirectoryList(Config::getLibraryPath(), true, false)) {
         if(item.substr(0, prefix.size()) == prefix) {
-            std::string name = item.substr(prefix.size(), item.rfind('.'));
+            std::string name = item.substr(prefix.size(), item.rfind('.') - prefix.size());
             Reporter::info() << "Loading inference engine " << name << " from shared library " << item << Reporter::end();
 #ifdef WIN32
             auto handle = LoadLibrary(item.c_str());
@@ -51,7 +53,7 @@ void InferenceEngineManager::loadAll() {
                 Reporter::warning() << "Failed to load plugin because " << GetLastErrorAsString() << Reporter::end();
                 continue;
             }
-            auto load = (Plugin* (*)())GetProcAddress(handle, "load");
+            auto load = (InferenceEngine* (*)())GetProcAddress(handle, "load");
             if(!load) {
                 FreeLibrary(handle);
                 Reporter::warning() << "Failed to get adress to load function because " << GetLastErrorAsString() << Reporter::end();

@@ -19,7 +19,7 @@ using namespace fast;
 
 TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork][visual]") {
     //Reporter::setGlobalReportMethod(Reporter::NONE);
-    Reporter::setGlobalReportMethod(Reporter::INFO, Reporter::NONE);
+    //Reporter::setGlobalReportMethod(Reporter::INFO, Reporter::NONE);
     for(const std::string& engine : {"OpenVINO", "TensorRT", "TensorFlow"}) {
         if(!InferenceEngineManager::isEngineAvailable(engine)) {
             std::cout << "Inference engine " << engine << " not available, skipping." << std::endl;

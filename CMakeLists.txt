@@ -101,7 +101,6 @@ set(CMAKE_CXX_STANDARD 14)
 if(CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations") # Remove deprecated warnings GCC
 endif()
-include(cmake/OpenMP.cmake)
 
 # This will setup all of FAST's depedencies
 include(cmake/Depdendencies.cmake)
@@ -159,6 +158,8 @@ add_library(FAST SHARED ${FAST_SOURCE_FILES} ${HEADERS_MOC})
 add_dependencies(FAST ${FAST_EXTERNAL_DEPENDENCIES})
 include(GenerateExportHeader)
 generate_export_header(FAST EXPORT_FILE_NAME FASTExport.hpp)
+
+include(cmake/OpenMP.cmake)
 
 ## Link everything
 message("-- LIBS: ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES}")
