@@ -12,8 +12,6 @@ set(VERSION_PATCH 0)
 # the zlib library to be 'zlib' when it was in fact 'zlibd'.
 cmake_policy(SET CMP0022 NEW)
 
-cmake_policy(SET CMP0079 NEW)
-
 include(cmake/Macros.cmake)
 
 #### Options
@@ -157,11 +155,10 @@ endif()
 
 
 #### Create FAST library and executables
-add_library(FAST SHARED ${FAST_SOURCE_FILES} ${HEADERS_MOC} source/FAST/Algorithms/CoherentPointDrift/Rigid.cpp source/FAST/Algorithms/CoherentPointDrift/Rigid.hpp source/FAST/Algorithms/CoherentPointDrift/Affine.cpp source/FAST/Algorithms/CoherentPointDrift/Affine.hpp)
+add_library(FAST SHARED ${FAST_SOURCE_FILES} ${HEADERS_MOC})
 add_dependencies(FAST ${FAST_EXTERNAL_DEPENDENCIES})
 include(GenerateExportHeader)
 generate_export_header(FAST EXPORT_FILE_NAME FASTExport.hpp)
-
 
 ## Link everything
 message("-- LIBS: ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES}")
@@ -232,10 +229,10 @@ configure_file(
 )
 
 # Setup inference engines
-message("------ IEs: ${FAST_INFERENCE_ENGINES}")
+message("-- Inference engines: ${FAST_INFERENCE_ENGINES}")
 foreach(ENGINE ${FAST_INFERENCE_ENGINES})
     message("---- Adding inference engnine ${ENGINE}")
-    target_link_libraries(${ENGINE} FAST)
+    #target_link_libraries(${ENGINE} FAST)
     add_dependencies(testFAST ${ENGINE}) # Build engine with the FAST library
 endforeach()
 
