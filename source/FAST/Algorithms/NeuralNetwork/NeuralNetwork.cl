@@ -41,6 +41,8 @@ __kernel void normalize3DInput(
 	__read_only image3d_t input,
 	__global float* output,
 	__private float scaleFactor,
+    __private float mean,
+	__private float std,
 	__private int signedInputNormalization
 	) {
 
@@ -59,6 +61,7 @@ __kernel void normalize3DInput(
     if(signedInputNormalization) {
         value = value*2 - 1;
 	}
+	value = (value - mean)/std;
 
     int position = pos.x + pos.y*get_global_size(0) + pos.z*get_global_size(0)*get_global_size(1);
     output[position] = value;
