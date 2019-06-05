@@ -57,11 +57,18 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
             // If not a tensor, data is either a Batch of images or a single Image
             Batch::pointer batch = std::dynamic_pointer_cast<Batch>(data);
             std::vector<Image::pointer> inputImages;
+            std::vector<Tensor::pointer> inputTensors;
             if(batch) {
                 Batch::access access = batch->getAccess(ACCESS_READ);
-                inputImages = access->getData();
+                auto dataList = access->getData();
+                if(dataList.isImages()) {
+                    inputImages = dataList.getImages();
+                } else {
+                    inputTensors = dataList.getTensors();
+                }
+                
                 if(batchSize == -1) {
-                    batchSize = inputImages.size();
+                    batchSize = dataList.getSize();
                 } else {
                     throw Exception("Inconsistent batch size accross input nodes");
                 }
@@ -70,11 +77,17 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
                 Sequence::pointer sequence = std::dynamic_pointer_cast<Sequence>(data);
                 if(sequence) {
                     Sequence::access access = sequence->getAccess(ACCESS_READ);
-                    inputImages = access->getData();
+                    auto dataList = access->getData();
+                    if(dataList.isImages()) {
+                        inputImages = dataList.getImages();
+                    } else {
+                        inputTensors = dataList.getTensors();
+                    }
+                
                     containsSequence = true;
                     if(shape[1] == -1) {
                         // Nr of timesteps unknown in the shape, set it
-                        shape[1] = inputImages.size();
+                        shape[1] = dataList.getSize();
                     } else {
                         // TODO this check is probably not necessary?
                         // Nr of timesteps is specified, check that it matches
@@ -96,40 +109,59 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
                         // Remove extra
                         inputImages.erase(inputImages.begin(), inputImages.begin() + inputImages.size() - mTemporalWindow);
                         if(inputImages.size() != mTemporalWindow)
-                            throw Exception("err");
+                            throw Exception("Error");
                     } else {
                         inputImages = {image};
                     }
                 }
             }
-            mInputImages[inputNode.first] = inputImages;
 
-            // Resize images to fit input
-            const int dims = shape.getDimensions();
-            int height = shape[dims-3];
-            int width = shape[dims-2];
-            if(m_engine->getPreferredImageOrdering() == ImageOrdering::CHW) {
-                height = shape[dims-2];
-                width = shape[dims-1];
-            }
-            int depth = 1;
-            int timesteps = 0;
-            if(containsSequence) {
-                // Temporal input
-                timesteps = shape[1];
-                if(dims == 6) // 3D
-                    depth = m_engine->getPreferredImageOrdering() == ImageOrdering::HWC ? shape[dims-4] : shape[dims-3];
+            if(!inputImages.empty()) { // We have a list of images to preprocess
+                mInputImages[inputNode.first] = inputImages;
+
+                // Resize images to fit input
+                const int dims = shape.getDimensions();
+                int height = shape[dims - 3];
+                int width = shape[dims - 2];
+                if(m_engine->getPreferredImageOrdering() == ImageOrdering::CHW) {
+                    height = shape[dims - 2];
+                    width = shape[dims - 1];
+                }
+                int depth = 1;
+                int timesteps = 0;
+                if(containsSequence) {
+                    // Temporal input
+                    timesteps = shape[1];
+                    if(dims == 6) // 3D
+                        depth = m_engine->getPreferredImageOrdering() == ImageOrdering::HWC ? shape[dims - 4] : shape[
+                                dims - 3];
+                } else {
+                    if(dims == 5) // 3D
+                        depth = m_engine->getPreferredImageOrdering() == ImageOrdering::HWC ? shape[dims - 4] : shape[
+                                dims - 3];
+                }
+                inputImages = resizeImages(inputImages, width, height, depth);
+
+                std::vector<Tensor::pointer> inputTensors;
+                // Convert images to tensors
+                shape[0] = batchSize;
+                tensors[inputNode.first] = convertImagesToTensor(inputImages, shape, containsSequence);
             } else {
-                if(dims == 5) // 3D
-                    depth = m_engine->getPreferredImageOrdering() == ImageOrdering::HWC ? shape[dims-4] : shape[dims-3];
+                // We have a list of tensors, convert the list of tensors into a single tensor
+                auto shape = inputTensors.front()->getShape();
+                shape.insertDimension(0, inputTensors.size());
+                auto tensor = Tensor::New();
+                tensor->create(shape);
+                auto access = tensor->getAccess(ACCESS_READ_WRITE);
+                float* data = access->getRawData();
+                for(int i = 0; i < inputTensors.size(); ++i) {
+                    auto accessRead = inputTensors[i]->getAccess(ACCESS_READ);
+                    const int totalSize = accessRead->getShape().getTotalSize();
+                    std::memcpy(&data[i*totalSize], accessRead->getRawData(), totalSize*sizeof(float));
+                }
             }
-            inputImages = resizeImages(inputImages, width, height, depth);
-
-			std::vector<Tensor::pointer> inputTensors;
-            // Convert images to tensors
-            shape[0] = batchSize;
-			tensors[inputNode.first] = convertImagesToTensor(inputImages, shape, containsSequence);
         } else {
+            // Input is a tensor, no conversion needed
             tensors[inputNode.first] = tensor;
         }
 	}

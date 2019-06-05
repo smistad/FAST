@@ -6,16 +6,74 @@
 #include <FAST/Data/SimpleDataObject.hpp>
 #include "InferenceEngine.hpp"
 
-
-
 namespace fast {
 
 class Image;
 class Tensor;
 
-FAST_SIMPLE_DATA_OBJECT(Batch, std::vector<SharedPointer<Image>>)
+/**
+ * A class containing a list of data objects for inference, either FAST images or tensors
+ */
+class FAST_EXPORT InferenceDataList {
+    public:
+        explicit InferenceDataList(std::vector<SharedPointer<Image>> images) {
+            m_images = images;
+        }
+        explicit InferenceDataList(std::vector<SharedPointer<Tensor>> tensors) {
+            m_tensors = tensors;
+        }
+        InferenceDataList() {
 
-FAST_SIMPLE_DATA_OBJECT(Sequence, std::vector<SharedPointer<Image>>)
+        }
+        std::vector<SharedPointer<Image>> getImages() const {
+            if(!isImages())
+                throw Exception("The inference that list contains tensors, not images");
+
+            return m_images;
+        }
+        std::vector<SharedPointer<Tensor>> getTensors() const {
+            if(!isTensors())
+                throw Exception("The inference that list contains images, not tensors");
+
+            return m_tensors;
+        }
+        bool isTensors() const { return !m_tensors.empty(); };
+        bool isImages() const { return !m_images.empty(); };
+        int getSize() const {
+            return isImages() ? m_images.size() : m_tensors.size();
+        }
+    private:
+        std::vector<SharedPointer<Image>> m_images;
+        std::vector<SharedPointer<Tensor>> m_tensors;
+};
+
+class Sequence : public SimpleDataObject<InferenceDataList> {
+	FAST_OBJECT(Sequence)
+    public:
+        void create(std::vector<SharedPointer<Image>> images) {
+            mData = InferenceDataList(images);
+        };
+        void create(std::vector<SharedPointer<Tensor>> tensors) {
+            mData = InferenceDataList(tensors);
+        };
+        typedef DataAccess<InferenceDataList>::pointer access;
+    private:
+        Sequence() {};
+};
+
+class Batch : public SimpleDataObject<InferenceDataList> {
+	FAST_OBJECT(Batch)
+    public:
+        void create(std::vector<SharedPointer<Image>> images) {
+            mData = InferenceDataList(images);
+        };
+        void create(std::vector<SharedPointer<Tensor>> tensors) {
+            mData = InferenceDataList(tensors);
+        };
+        typedef DataAccess<InferenceDataList>::pointer access;
+    private:
+        Batch() {};
+};
 
 class FAST_EXPORT NeuralNetwork : public ProcessObject {
     FAST_OBJECT(NeuralNetwork)

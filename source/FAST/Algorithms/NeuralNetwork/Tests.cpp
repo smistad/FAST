@@ -149,7 +149,7 @@ TEST_CASE("Multi input, single output network", "[fast][neuralnetwork]") {
             network->addOutputNode(0, "dense/BiasAdd", NodeType::TENSOR);
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/multi_input_single_output_channels_first.uff");
         } else {
-            network->load(Config::getTestDataPath() + "NeuralNetworkModels/multi_input_single_output_channels_first.xml");
+            network->load(Config::getTestDataPath() + "NeuralNetworkModels/multi_input_single_output.xml");
         }
         network->setInputConnection(0, importer->getOutputPort());
         network->setInputConnection(1, importer->getOutputPort());
