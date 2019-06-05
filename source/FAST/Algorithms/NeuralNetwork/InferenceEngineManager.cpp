@@ -8,11 +8,9 @@
 namespace fast {
 
 bool InferenceEngineManager::m_loaded = false;
-std::unordered_map<std::string, std::shared_ptr<InferenceEngine>> InferenceEngineManager::m_engines;
+std::unordered_map<std::string, std::function<InferenceEngine*()>> InferenceEngineManager::m_engines;
 
 #ifdef WIN32
-
-
 //Returns the last Win32 error, in string format. Returns an empty string if there is no error.
 std::string GetLastErrorAsString()
 {
@@ -33,6 +31,14 @@ std::string GetLastErrorAsString()
     return message;
 }
 #endif
+
+std::vector<std::string> InferenceEngineManager::getEngineList() {
+    loadAll();
+    std::vector<std::string> list;
+    for(auto&& engine : m_engines)
+        list.push_back(engine.first);
+    return list;
+}
 
 void InferenceEngineManager::loadAll() {
     if(m_loaded) {
@@ -72,37 +78,36 @@ void InferenceEngineManager::loadAll() {
                 continue;
             }
 #endif
-            auto object = load();
-            m_engines[object->getName()] = std::shared_ptr<InferenceEngine>(object);
+            m_engines[name] = load;
         }
     }
     m_loaded = true;
 }
 
-std::shared_ptr<InferenceEngine> InferenceEngineManager::getEngine(std::string name) {
-    loadAll();
-    if(!isEngineAvailable(name))
-        throw Exception("Inference engine " + name + " is not available.");
-    return m_engines[name];
-}
 
-std::shared_ptr<InferenceEngine> InferenceEngineManager::getBestAvailableEngine() {
+std::shared_ptr<InferenceEngine> InferenceEngineManager::loadBestAvailableEngine() {
     loadAll();
-    if(m_engines.size() == 0)
+    if(m_engines.empty())
         throw Exception("No inference engines available on the system");
 
     if(isEngineAvailable("TensorFlow"))
-        return m_engines["TensorFlow"];
+        return loadEngine("TensorFlow");
 
     if(isEngineAvailable("TensorRT"))
-        return m_engines["TensorRT"];
+        return loadEngine("TensorRT");
 
-    return m_engines.begin()->second;
+    return loadEngine(getEngineList().front());
 }
 
 bool InferenceEngineManager::isEngineAvailable(std::string name) {
     loadAll();
     return m_engines.count(name) > 0;
+}
+
+std::shared_ptr<InferenceEngine> InferenceEngineManager::loadEngine(std::string name) {
+    loadAll();
+    // Call the load function which the map stores a handle to
+    return std::shared_ptr<InferenceEngine>(m_engines[name]());
 }
 
 }

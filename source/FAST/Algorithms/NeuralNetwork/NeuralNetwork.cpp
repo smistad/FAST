@@ -32,7 +32,7 @@ NeuralNetwork::NeuralNetwork() {
 	createStringAttribute("output_names", "Output names", "Name of output nodes", "");
 	createBooleanAttribute("signed_input_normalization", "Signed input normalization", "Normalize input to -1 and 1 instead of 0 to 1.", false);
 
-	m_engine = InferenceEngineManager::getBestAvailableEngine();
+	m_engine = InferenceEngineManager::loadBestAvailableEngine();
 	reportInfo() << "Inference engine " << m_engine->getName() << " selected" << reportEnd();
 }
 
@@ -349,7 +349,7 @@ void NeuralNetwork::setInferenceEngine(InferenceEngine::pointer engine) {
 }
 
 void NeuralNetwork::setInferenceEngine(std::string engineName) {
-    m_engine = InferenceEngineManager::getEngine(engineName);
+    m_engine = InferenceEngineManager::loadEngine(engineName);
     reportInfo() << "Inference engine " << m_engine->getName() << " selected" << reportEnd();
 }
 

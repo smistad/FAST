@@ -9,13 +9,14 @@ namespace fast {
  */
 class FAST_EXPORT InferenceEngineManager {
     public:
+        static std::vector<std::string> getEngineList();
         static void loadAll();
-        static std::shared_ptr<InferenceEngine> getEngine(std::string name);
-        static std::shared_ptr<InferenceEngine> getBestAvailableEngine();
+        static std::shared_ptr<InferenceEngine> loadEngine(std::string name);
+        static std::shared_ptr<InferenceEngine> loadBestAvailableEngine();
         static bool isEngineAvailable(std::string name);
     private:
-        static std::unordered_map<std::string, std::shared_ptr<InferenceEngine>> m_engines;
         static bool m_loaded;
+        static std::unordered_map<std::string, std::function<InferenceEngine*()>> m_engines;
 };
 
 }

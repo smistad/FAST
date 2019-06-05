@@ -59,4 +59,17 @@ SharedPointer<fast::Tensor> InferenceEngine::getOutputData(std::string nodeName)
     return mOutputNodes.at(nodeName).data;
 }
 
+void InferenceEngine::setDeviceType(InferenceDeviceType type) {
+    m_deviceType = type;
+}
+
+void InferenceEngine::setDevice(int index, InferenceDeviceType type) {
+    m_deviceIndex = index;
+    m_deviceType = type;
+}
+
+std::vector<InferenceDeviceInfo> InferenceEngine::getDeviceList() {
+    throw Exception("getDeviceList is not supported for the inference engine " + getName());
+}
+
 }

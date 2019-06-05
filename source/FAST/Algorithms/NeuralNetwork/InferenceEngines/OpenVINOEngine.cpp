@@ -133,14 +133,38 @@ void OpenVINOEngine::loadPlugin(std::string deviceType) {
 }
 
 void OpenVINOEngine::load() {
-    try {
-        loadPlugin(getDeviceName(TargetDevice::eGPU));
-    } catch(::InferenceEngine::details::InferenceEngineException &e) {
-        reportInfo() << "Failed to get GPU plugin for OpenVINO inference engine: " << e.what() << reportEnd();
-        reportInfo() << "Selecting CPU plugin instead.." << reportEnd();
-        loadPlugin(getDeviceName(TargetDevice::eCPU));
-    }
+    if(m_deviceType == InferenceDeviceType::ANY) {
+        try {
+            loadPlugin(getDeviceName(TargetDevice::eGPU));
+        } catch(::InferenceEngine::details::InferenceEngineException &e) {
+            try {
+                reportInfo() << "Failed to get GPU plugin for OpenVINO inference engine: " << e.what() << reportEnd();
+                reportInfo() << "Trying VPU/Myriad/Neural compute stick plugin instead.." << reportEnd();
+                loadPlugin(getDeviceName(TargetDevice::eMYRIAD));
+            } catch(::InferenceEngine::details::InferenceEngineException &e) {
+                try {
+                    reportInfo() << "Failed to get GPU/VPU plugin for OpenVINO inference engine: " << e.what()
+                                 << reportEnd();
+                    reportInfo() << "Trying CPU plugin instead.." << reportEnd();
+                    loadPlugin(getDeviceName(TargetDevice::eCPU));
+                } catch(::InferenceEngine::details::InferenceEngineException &e) {
+                    throw Exception("Failed to load any device in OpenVINO IE");
+                }
+            }
+        }
+    } else {
+        std::map<InferenceDeviceType, TargetDevice> deviceMapping = {
+                {InferenceDeviceType::GPU, TargetDevice::eGPU},
+                {InferenceDeviceType::CPU, TargetDevice::eCPU},
+                {InferenceDeviceType::VPU, TargetDevice::eMYRIAD},
+        };
 
+        try {
+            loadPlugin(getDeviceName(deviceMapping[m_deviceType]));
+        } catch(::InferenceEngine::details::InferenceEngineException &e) {
+            throw Exception(std::string("Failed to load device ") + getDeviceName(deviceMapping[m_deviceType]) + " in OpenVINO inference engine");
+        }
+    }
 }
 
 ImageOrdering OpenVINOEngine::getPreferredImageOrdering() const {

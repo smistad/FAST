@@ -156,6 +156,8 @@ void TensorFlowEngine::load() {
 	tensorflow::SessionOptions options;
 	tensorflow::ConfigProto &config = options.config;
 	tensorflow::GPUOptions* gpuOptions = config.mutable_gpu_options();
+	if(m_deviceIndex >= 0)
+	    gpuOptions->set_visible_device_list(std::to_string(m_deviceIndex));
 	gpuOptions->set_allow_growth(true); // Set this so that tensorflow will not use up all GPU memory
 	//gpuOptions->set_per_process_gpu_memory_fraction(0.5);
 	mSession.reset(tensorflow::NewSession(options));

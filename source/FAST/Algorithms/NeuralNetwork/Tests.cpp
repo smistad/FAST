@@ -20,11 +20,7 @@ using namespace fast;
 TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork][visual]") {
     //Reporter::setGlobalReportMethod(Reporter::NONE);
     //Reporter::setGlobalReportMethod(Reporter::INFO, Reporter::NONE);
-    for(const std::string& engine : {"OpenVINO", "TensorRT", "TensorFlow"}) {
-        if(!InferenceEngineManager::isEngineAvailable(engine)) {
-            std::cout << "Inference engine " << engine << " not available, skipping." << std::endl;
-            continue;
-        }
+    for(auto& engine : InferenceEngineManager::getEngineList()) {
         std::cout << engine << std::endl;
         std::cout << "====================================" << std::endl;
         //auto importer = ImageFileImporter::New();
@@ -119,11 +115,7 @@ TEST_CASE("Execute NN on single 3D image", "[fast][neuralnetwork][3d][visual]") 
 }
 
 TEST_CASE("Multi input, single output network", "[fast][neuralnetwork]") {
-    for(const std::string& engine : {"OpenVINO", "TensorRT", "TensorFlow"}) {
-        if(!InferenceEngineManager::isEngineAvailable(engine)) {
-            std::cout << "Inference engine " << engine << " not available, skipping." << std::endl;
-            continue;
-        }
+    for(auto& engine : InferenceEngineManager::getEngineList()) {
         auto importer = ImageFileImporter::New();
         importer->setFilename(Config::getTestDataPath() + "US/JugularVein/US-2D_0.mhd");
 
@@ -152,11 +144,7 @@ TEST_CASE("Multi input, single output network", "[fast][neuralnetwork]") {
 }
 
 TEST_CASE("Single input, multi output network", "[fast][neuralnetwork]") {
-    for(const std::string& engine : {"OpenVINO", "TensorRT", "TensorFlow"}) {
-        if(!InferenceEngineManager::isEngineAvailable(engine)) {
-            std::cout << "Inference engine " << engine << " not available, skipping." << std::endl;
-            continue;
-        }
+    for(auto& engine : InferenceEngineManager::getEngineList()) {
         auto importer = ImageFileImporter::New();
         importer->setFilename(Config::getTestDataPath() + "US/JugularVein/US-2D_0.mhd");
 
@@ -193,7 +181,6 @@ TEST_CASE("Single input, multi output network", "[fast][neuralnetwork]") {
 }
 
 TEST_CASE("Single 3D image input network", "[fast][neuralnetwork][3d]") {
-
     for(const std::string& engine : {"TensorFlow"}) {
         if(!InferenceEngineManager::isEngineAvailable(engine)) {
             std::cout << "Inference engine " << engine << " not available, skipping." << std::endl;

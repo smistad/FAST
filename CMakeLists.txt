@@ -230,11 +230,9 @@ configure_file(
 )
 
 # Setup inference engines
-message("-- Inference engines: ${FAST_INFERENCE_ENGINES}")
 foreach(ENGINE ${FAST_INFERENCE_ENGINES})
     message("---- Adding inference engnine ${ENGINE}")
-    # Build inference engines after FAST has been built. This will only build the inference engines if FAST targget has been changed
-    add_custom_command(TARGET FAST POST_BUILD COMMAND ${CMAKE_COMMAND} --build ${PROJECT_BINARY_DIR} --target ${ENGINE})
+    add_dependencies(testFAST ${ENGINE})
 endforeach()
 
 if(NOT FAST_BUILD_QT5 AND WIN32)

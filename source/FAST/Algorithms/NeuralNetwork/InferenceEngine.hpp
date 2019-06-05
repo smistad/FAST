@@ -29,6 +29,20 @@ enum class NodeType {
     TENSOR,
 };
 
+enum class InferenceDeviceType {
+    ANY,
+    CPU,
+    GPU,
+    VPU,
+    OTHER,
+};
+
+struct InferenceDeviceInfo {
+    std::string name;
+    InferenceDeviceType type;
+    int index;
+};
+
 
 /**
  * Abstract class for neural network inference engines (TensorFlow, TensorRT ++)
@@ -58,11 +72,32 @@ class FAST_EXPORT InferenceEngine : public Object {
         virtual ImageOrdering getPreferredImageOrdering() const = 0;
         virtual std::string getName() const = 0;
         virtual std::string getDefaultFileExtension() const = 0;
+        /**
+         * Set which device type the inference engine should use
+         * (assuming the IE supports multiple devices like OpenVINO)
+         * @param type
+         */
+        virtual void setDeviceType(InferenceDeviceType type);
+        /**
+         * Specify which device index and/or device type to use
+         * @param index Index of the device to use. -1 means any device can be used
+         * @param type
+         */
+        virtual void setDevice(int index = -1, InferenceDeviceType type = InferenceDeviceType::ANY);
+        /**
+         * Get a list of devices available for this inference engine.
+         *
+         * @return vector with info on each device
+         */
+        virtual std::vector<InferenceDeviceInfo> getDeviceList();
     protected:
         virtual void setIsLoaded(bool loaded);
 
         std::unordered_map<std::string, NetworkNode> mInputNodes;
         std::unordered_map<std::string, NetworkNode> mOutputNodes;
+
+        int m_deviceIndex = -1;
+        InferenceDeviceType m_deviceType = InferenceDeviceType::ANY;
     private:
         std::string m_filename = "";
         bool m_isLoaded = false;
