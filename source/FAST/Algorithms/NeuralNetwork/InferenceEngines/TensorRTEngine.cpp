@@ -132,26 +132,7 @@ void TensorRTEngine::run() {
     for(const auto& inputNode : mInputNodes) {
         auto tensor = inputNode.second.data;
         auto access = tensor->getAccess(ACCESS_READ);
-        float* tensorData;
-        switch(tensor->getShape().getDimensions()) {
-            case 2:
-                tensorData = access->getData<2>().data();
-                break;
-            case 3:
-                tensorData = access->getData<3>().data();
-                break;
-            case 4:
-                tensorData = access->getData<4>().data();
-                break;
-            case 5:
-                tensorData = access->getData<5>().data();
-                break;
-			case 6:
-                tensorData = access->getData<6>().data();
-				break;
-            default:
-                throw Exception("Invalid tensor dimension size");
-		}
+        float* tensorData = access->getRawData();
         const int index = inputIndexes.at(inputNode.first);
         CUDA_CHECK(cudaMemcpy(buffers[index], tensorData,
                               buffersSizes[index].first * elementSize(buffersSizes[index].second),

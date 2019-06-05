@@ -17,6 +17,7 @@ class FAST_EXPORT TensorAccess {
     public:
         typedef std::unique_ptr<TensorAccess> pointer;
         TensorAccess(float* data, TensorShape shape, SharedPointer<Tensor> tensor);
+        float * getRawData();
         TensorShape getShape() const;
         ~TensorAccess();
         void release();
@@ -42,6 +43,7 @@ TensorData<NumDimensions> TensorAccess::getData() const {
     // Create and return mapped eigen tensor
     return TensorData<NumDimensions>(m_data, sizes);
 }
+
 
 
 }

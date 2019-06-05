@@ -71,12 +71,9 @@ void PixelClassifier::execute() {
         outputWidth = shape[dims-1];
     }
     int outputDepth = 1;
-    float* tensorData;
+    float* tensorData = access->getRawData();
     if(dims == 5) {
         outputDepth = shape[dims - 4];
-        tensorData = access->getData<5>().data();
-    } else {
-        tensorData = access->getData<4>().data();
     }
     auto ordering = m_engine->getPreferredImageOrdering();
 

@@ -21,4 +21,8 @@ void TensorAccess::release() {
     m_tensor->accessFinished();
 }
 
+float* TensorAccess::getRawData() {
+    return m_data;
+}
+
 }
