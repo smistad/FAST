@@ -19,49 +19,68 @@ using namespace fast;
 
 TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork][visual]") {
     //Reporter::setGlobalReportMethod(Reporter::NONE);
-    //Reporter::setGlobalReportMethod(Reporter::INFO, Reporter::NONE);
+    Reporter::setGlobalReportMethod(Reporter::INFO, Reporter::NONE);
     for(auto& engine : InferenceEngineManager::getEngineList()) {
-        std::cout << engine << std::endl;
-        std::cout << "====================================" << std::endl;
-        //auto importer = ImageFileImporter::New();
-        //importer->setFilename(Config::getTestDataPath() + "US/JugularVein/US-2D_0.mhd");
-        auto streamer = ImageFileStreamer::New();
-        streamer->setFilenameFormat(Config::getTestDataPath() + "US/JugularVein/US-2D_#.mhd");
-        streamer->enableLooping();
-
-        auto segmentation = PixelClassifier::New();
-        segmentation->setNrOfClasses(3);
-        segmentation->setInferenceEngine(engine);
-        if(engine == "TensorFlow") {
-            segmentation->addOutputNode(0, "conv2d_23/truediv");
-        } else if(engine == "TensorRT") {
-            segmentation->addInputNode(0, "input_image", NodeType::IMAGE, TensorShape({-1, 1, 256, 256}));
-            segmentation->addOutputNode(0, "permute_2/transpose");
+        std::map<std::string, InferenceDeviceType> deviceTypes = {{"ANY", InferenceDeviceType::ANY}};
+        if(engine == "OpenVINO") {
+            // On OpenVINO, try all device types
+            deviceTypes = std::map<std::string, InferenceDeviceType>{
+                    {"CPU", InferenceDeviceType::CPU},
+                    {"GPU", InferenceDeviceType::GPU},
+                    {"VPU", InferenceDeviceType::VPU},
+            };
         }
-        segmentation->load(join(Config::getTestDataPath(),
-                                "NeuralNetworkModels/jugular_vein_segmentation." + segmentation->getInferenceEngine()->getDefaultFileExtension()));
-        segmentation->setScaleFactor(1.0f / 255.0f);
-        //segmentation->setInputConnection(importer->getOutputPort());
-        segmentation->setInputConnection(streamer->getOutputPort());
-        segmentation->enableRuntimeMeasurements();
+        for(auto&& deviceType : deviceTypes) {
+            std::cout << engine << " for device type " << deviceType.first << std::endl;
+            std::cout << "====================================" << std::endl;
+            //auto importer = ImageFileImporter::New();
+            //importer->setFilename(Config::getTestDataPath() + "US/JugularVein/US-2D_0.mhd");
+            auto streamer = ImageFileStreamer::New();
+            streamer->setFilenameFormat(Config::getTestDataPath() + "US/JugularVein/US-2D_#.mhd");
+            streamer->enableLooping();
 
-        auto segmentationRenderer = SegmentationRenderer::New();
-        segmentationRenderer->addInputConnection(segmentation->getOutputPort());
-        segmentationRenderer->setOpacity(0.25);
-        segmentationRenderer->setColor(Segmentation::LABEL_FOREGROUND, Color::Red());
-        segmentationRenderer->setColor(Segmentation::LABEL_BLOOD, Color::Blue());
+            auto segmentation = PixelClassifier::New();
+            segmentation->setNrOfClasses(3);
+            segmentation->setInferenceEngine(engine);
+            segmentation->getInferenceEngine()->setDeviceType(deviceType.second);
+            if(engine == "TensorFlow") {
+                segmentation->addOutputNode(0, "conv2d_23/truediv");
+            } else if(engine == "TensorRT") {
+                segmentation->addInputNode(0, "input_image", NodeType::IMAGE, TensorShape({-1, 1, 256, 256}));
+                segmentation->addOutputNode(0, "permute_2/transpose");
+            }
+            try {
+                segmentation->load(join(Config::getTestDataPath(),
+                                        "NeuralNetworkModels/jugular_vein_segmentation." +
+                                        segmentation->getInferenceEngine()->getDefaultFileExtension()));
+            } catch(Exception &e) {
+                // If a device type is not present, it will fail in load
+                Reporter::warning() << e.what() << Reporter::end();
+                continue;
+            }
+            segmentation->setScaleFactor(1.0f / 255.0f);
+            //segmentation->setInputConnection(importer->getOutputPort());
+            segmentation->setInputConnection(streamer->getOutputPort());
+            segmentation->enableRuntimeMeasurements();
 
-        auto imageRenderer = ImageRenderer::New();
-        //imageRenderer->setInputConnection(importer->getOutputPort());
-        imageRenderer->setInputConnection(streamer->getOutputPort());
+            auto segmentationRenderer = SegmentationRenderer::New();
+            segmentationRenderer->addInputConnection(segmentation->getOutputPort());
+            segmentationRenderer->setOpacity(0.25);
+            segmentationRenderer->setColor(Segmentation::LABEL_FOREGROUND, Color::Red());
+            segmentationRenderer->setColor(Segmentation::LABEL_BLOOD, Color::Blue());
 
-        auto window = SimpleWindow::New();
-        window->addRenderer(imageRenderer);
-        window->addRenderer(segmentationRenderer);
-        window->set2DMode();
-        window->setTimeout(10000);
-        window->start();
-        segmentation->getAllRuntimes()->printAll();
+            auto imageRenderer = ImageRenderer::New();
+            //imageRenderer->setInputConnection(importer->getOutputPort());
+            imageRenderer->setInputConnection(streamer->getOutputPort());
+
+            auto window = SimpleWindow::New();
+            window->addRenderer(imageRenderer);
+            window->addRenderer(segmentationRenderer);
+            window->set2DMode();
+            window->setTimeout(10000);
+            window->start();
+            segmentation->getAllRuntimes()->printAll();
+        }
     }
 }
 
