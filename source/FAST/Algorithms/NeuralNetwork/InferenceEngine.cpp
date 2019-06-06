@@ -72,4 +72,12 @@ std::vector<InferenceDeviceInfo> InferenceEngine::getDeviceList() {
     throw Exception("getDeviceList is not supported for the inference engine " + getName());
 }
 
+void InferenceEngine::setMaxBatchSize(int size) {
+    m_maxBatchSize = size;
+}
+
+int InferenceEngine::getMaxBatchSize() {
+    return m_maxBatchSize;
+}
+
 }

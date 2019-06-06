@@ -10,11 +10,18 @@ void OpenVINOEngine::run() {
 	try {
 		// Copy input data
 		reportInfo() << "OpenVINO: Processing input nodes.." << reportEnd();
-		for (const auto& node : mInputNodes) {
+		int batchSize = -1;
+		for(const auto& node : mInputNodes) {
 			auto tensor = node.second.data;
+			batchSize = tensor->getShape()[0];
 			auto access = tensor->getAccess(ACCESS_READ);
 			float* tensorData = access->getRawData();
 			Blob::Ptr input = m_inferRequest->GetBlob(node.first);
+
+			// Dynamic batch size
+			if(m_maxBatchSize > 1)
+                m_inferRequest->SetBatch(batchSize);
+
 			auto input_data = input->buffer().as<PrecisionTrait<Precision::FP32>::value_type * >();
 			std::memcpy(input_data, tensorData, input->byteSize());
 		}
@@ -106,7 +113,13 @@ void OpenVINOEngine::loadPlugin(std::string deviceType) {
     }
     reportInfo() << "OpenVINO: Node setup complete." << reportEnd();
 
-    ExecutableNetwork executable_network = m_inferencePlugin->LoadNetwork(network, {});
+    std::map<std::string, std::string> config;
+    if(m_maxBatchSize > 1) {
+        config[PluginConfigParams::KEY_DYN_BATCH_ENABLED] = PluginConfigParams::YES;
+        network.setBatchSize(m_maxBatchSize);
+    }
+
+    ExecutableNetwork executable_network = m_inferencePlugin->LoadNetwork(network, config);
 
     m_inferRequest = executable_network.CreateInferRequestPtr();
     setIsLoaded(true);
@@ -129,6 +142,7 @@ void OpenVINOEngine::load() {
                     reportInfo() << "Trying CPU plugin instead.." << reportEnd();
                     loadPlugin(getDeviceName(TargetDevice::eCPU));
                 } catch(::InferenceEngine::details::InferenceEngineException &e) {
+                    reportError() << e.what() << reportEnd();
                     throw Exception("Failed to load any device in OpenVINO IE");
                 }
             }

@@ -139,7 +139,6 @@ protected:
     bool mHorizontalImageFlipping = false;
     bool mSignedInputNormalization = false;
     int mTemporalWindow = 0;
-    std::vector<std::string> mLearningPhaseTensors;
     float mScaleFactor, mMean, mStd;
     Vector3f mNewInputSpacing;
 

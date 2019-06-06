@@ -90,6 +90,9 @@ class FAST_EXPORT InferenceEngine : public Object {
          * @return vector with info on each device
          */
         virtual std::vector<InferenceDeviceInfo> getDeviceList();
+
+        virtual int getMaxBatchSize();
+        virtual void setMaxBatchSize(int size);
     protected:
         virtual void setIsLoaded(bool loaded);
 
@@ -98,6 +101,7 @@ class FAST_EXPORT InferenceEngine : public Object {
 
         int m_deviceIndex = -1;
         InferenceDeviceType m_deviceType = InferenceDeviceType::ANY;
+        int m_maxBatchSize = 1;
     private:
         std::string m_filename = "";
         bool m_isLoaded = false;

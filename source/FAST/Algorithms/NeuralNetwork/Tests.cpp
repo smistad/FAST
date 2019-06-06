@@ -230,12 +230,11 @@ TEST_CASE("Single 3D image input network", "[fast][neuralnetwork][3d]") {
     }
 }
 
-TEST_CASE("Execute NN on batch of 2D images", "[fast][neuralnetwork]") {
-    for(const std::string& engine : {"OpenVINO", "TensorRT", "TensorFlow"}) {
-        if(!InferenceEngineManager::isEngineAvailable(engine)) {
-            std::cout << "Inference engine " << engine << " not available, skipping." << std::endl;
-            continue;
-        }
+TEST_CASE("Execute NN on batch of 2D images", "[fast][neuralnetwork][batch]") {
+    for(auto&& engine : InferenceEngineManager::getEngineList()) {
+        std::cout << engine << " for device type " << std::endl;
+        std::cout << "====================================" << std::endl;
+
         std::vector<Image::pointer> images;
 
         // Import data
@@ -253,13 +252,12 @@ TEST_CASE("Execute NN on batch of 2D images", "[fast][neuralnetwork]") {
 
         auto network = NeuralNetwork::New();
         network->setInferenceEngine(engine);
+        network->getInferenceEngine()->setMaxBatchSize(2);
         if(engine == "TensorFlow") {
             network->addOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR);
             network->addOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output.pb");
         } else if(engine == "TensorRT") {
-            //auto trtEngine = std::dynamic_pointer_cast<TensorRTEngine>(network->getInferenceEngine());
-            //trtEngine->setMaxBatchSize(2);
             network->addInputNode(0, "input_1", NodeType::IMAGE, TensorShape({-1, 1, 64, 64}));
             network->addOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR);
             network->addOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);
