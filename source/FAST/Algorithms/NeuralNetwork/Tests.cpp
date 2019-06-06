@@ -44,10 +44,10 @@ TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork][visual]") {
             segmentation->setInferenceEngine(engine);
             segmentation->getInferenceEngine()->setDeviceType(deviceType.second);
             if(engine == "TensorFlow") {
-                segmentation->addOutputNode(0, "conv2d_23/truediv");
+                segmentation->setOutputNode(0, "conv2d_23/truediv");
             } else if(engine == "TensorRT") {
-                segmentation->addInputNode(0, "input_image", NodeType::IMAGE, TensorShape({-1, 1, 256, 256}));
-                segmentation->addOutputNode(0, "permute_2/transpose");
+                segmentation->setInputNode(0, "input_image", NodeType::IMAGE, TensorShape({-1, 1, 256, 256}));
+                segmentation->setOutputNode(0, "permute_2/transpose");
             }
             try {
                 segmentation->load(join(Config::getTestDataPath(),
@@ -100,7 +100,7 @@ TEST_CASE("Execute NN on single 3D image", "[fast][neuralnetwork][3d][visual]") 
     //segmentation->setHeatmapOutput();
     segmentation->setNrOfClasses(2);
     segmentation->load(Config::getTestDataPath() + "NeuralNetworkModels/lung_nodule_segmentation.pb");
-    segmentation->addOutputNode(0, "conv3d_19/truediv");
+    segmentation->setOutputNode(0, "conv3d_19/truediv");
     segmentation->setInputConnection(cropper->getOutputPort());
     segmentation->enableRuntimeMeasurements();
 
@@ -142,11 +142,11 @@ TEST_CASE("Multi input, single output network", "[fast][neuralnetwork]") {
         network->setInferenceEngine(engine);
         if(engine == "TensorFlow") {
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/multi_input_single_output.pb");
-            network->addOutputNode(0, "dense/BiasAdd", NodeType::TENSOR);
+            network->setOutputNode(0, "dense/BiasAdd", NodeType::TENSOR);
         } else if(engine == "TensorRT") {
-            network->addInputNode(0, "input_1", NodeType::IMAGE, TensorShape({-1, 1, 64, 64}));
-            network->addInputNode(1, "input_2", NodeType::IMAGE, TensorShape({-1, 1, 64, 64}));
-            network->addOutputNode(0, "dense/BiasAdd", NodeType::TENSOR);
+            network->setInputNode(0, "input_1", NodeType::IMAGE, TensorShape({-1, 1, 64, 64}));
+            network->setInputNode(1, "input_2", NodeType::IMAGE, TensorShape({-1, 1, 64, 64}));
+            network->setOutputNode(0, "dense/BiasAdd", NodeType::TENSOR);
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/multi_input_single_output_channels_first.uff");
         } else {
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/multi_input_single_output.xml");
@@ -170,13 +170,13 @@ TEST_CASE("Single input, multi output network", "[fast][neuralnetwork]") {
         auto network = NeuralNetwork::New();
         network->setInferenceEngine(engine);
         if(engine == "TensorFlow") {
-            network->addOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR);
-            network->addOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);
+            network->setOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR);
+            network->setOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output.pb");
         } else if(engine == "TensorRT") {
-            network->addInputNode(0, "input_1", NodeType::IMAGE, TensorShape({-1, 1, 64, 64}));
-            network->addOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR);
-            network->addOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);
+            network->setInputNode(0, "input_1", NodeType::IMAGE, TensorShape({-1, 1, 64, 64}));
+            network->setOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR);
+            network->setOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);
             network->load(
                     Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output_channels_first.uff");
         } else {
@@ -212,10 +212,10 @@ TEST_CASE("Single 3D image input network", "[fast][neuralnetwork][3d]") {
         network->setInferenceEngine(engine);
         if(engine == "TensorFlow") {
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_volume_input.pb");
-            network->addOutputNode(0, "dense/BiasAdd");
+            network->setOutputNode(0, "dense/BiasAdd");
         } else {
-            network->addInputNode(0, "input_1", NodeType::IMAGE, TensorShape({-1, 1, 64, 64, 64}));
-            network->addOutputNode(0, "dense/BiasAdd");
+            network->setInputNode(0, "input_1", NodeType::IMAGE, TensorShape({-1, 1, 64, 64, 64}));
+            network->setOutputNode(0, "dense/BiasAdd");
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_volume_input_channels_first.uff");
         }
         network->setInputConnection(0, importer->getOutputPort());
@@ -254,13 +254,13 @@ TEST_CASE("Execute NN on batch of 2D images", "[fast][neuralnetwork][batch]") {
         network->setInferenceEngine(engine);
         network->getInferenceEngine()->setMaxBatchSize(2);
         if(engine == "TensorFlow") {
-            network->addOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR);
-            network->addOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);
+            network->setOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR);
+            network->setOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output.pb");
         } else if(engine == "TensorRT") {
-            network->addInputNode(0, "input_1", NodeType::IMAGE, TensorShape({-1, 1, 64, 64}));
-            network->addOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR);
-            network->addOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);
+            network->setInputNode(0, "input_1", NodeType::IMAGE, TensorShape({-1, 1, 64, 64}));
+            network->setOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR);
+            network->setOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output_channels_first.uff");
         } else {
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output.xml");
@@ -308,10 +308,10 @@ TEST_CASE("NN: temporal input static output", "[fast][neuralnetwork][sequence]")
         network->setInferenceEngine(engine);
         if(engine == "TensorFlow") {
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/temporal_input_static_output.pb");
-            network->addOutputNode(0, "dense/BiasAdd", NodeType::TENSOR);
+            network->setOutputNode(0, "dense/BiasAdd", NodeType::TENSOR);
         } else {
-            network->addInputNode(0, "input_1", NodeType::IMAGE, TensorShape({-1, 3, 1, 64, 64}));
-            network->addOutputNode(0, "dense/BiasAdd", NodeType::TENSOR);
+            network->setInputNode(0, "input_1", NodeType::IMAGE, TensorShape({-1, 3, 1, 64, 64}));
+            network->setOutputNode(0, "dense/BiasAdd", NodeType::TENSOR);
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/temporal_input_static_output_channels_first.uff");
         }
         network->setInputData(sequence);
@@ -350,11 +350,11 @@ TEST_CASE("NN: temporal input temporal output", "[fast][neuralnetwork][sequence]
         auto network = NeuralNetwork::New();
         network->setInferenceEngine(engine);
         if(engine == "TensorFlow") {
-            network->addOutputNode(0, "lstm/transpose_1", NodeType::TENSOR);
+            network->setOutputNode(0, "lstm/transpose_1", NodeType::TENSOR);
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/temporal_input_temporal_output.pb");
         } else {
-            network->addInputNode(0, "input_1", NodeType::IMAGE, TensorShape({-1, 3, 1, 64, 64}));
-            network->addOutputNode(0, "lstm/transpose_1", NodeType::TENSOR);
+            network->setInputNode(0, "input_1", NodeType::IMAGE, TensorShape({-1, 3, 1, 64, 64}));
+            network->setOutputNode(0, "lstm/transpose_1", NodeType::TENSOR);
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/temporal_input_temporal_output_channels_first.uff");
         }
         network->setInputData(sequence);
@@ -393,11 +393,11 @@ TEST_CASE("NN: temporal input temporal output, streaming mode", "[fast][neuralne
         network->setInferenceEngine(engine);
         network->setTemporalWindow(3);
         if(engine == "TensorFlow") {
-            network->addOutputNode(0, "lstm/transpose_1", NodeType::TENSOR);
+            network->setOutputNode(0, "lstm/transpose_1", NodeType::TENSOR);
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/temporal_input_temporal_output.pb");
         } else {
-            network->addInputNode(0, "input_1", NodeType::IMAGE, TensorShape({-1, 3, 1, 64, 64}));
-            network->addOutputNode(0, "lstm/transpose_1", NodeType::TENSOR);
+            network->setInputNode(0, "input_1", NodeType::IMAGE, TensorShape({-1, 3, 1, 64, 64}));
+            network->setOutputNode(0, "lstm/transpose_1", NodeType::TENSOR);
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/temporal_input_temporal_output_channels_first.uff");
         }
 

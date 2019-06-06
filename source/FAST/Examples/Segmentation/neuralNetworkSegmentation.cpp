@@ -28,11 +28,11 @@ int main() {
     const auto engine = segmentation->getInferenceEngine()->getName();
     if(engine == "TensorFlow") {
         // TensorFlow needs to know what the output node is called
-        segmentation->addOutputNode(0, "conv2d_23/truediv");
+        segmentation->setOutputNode(0, "conv2d_23/truediv");
     } else if(engine == "TensorRT") {
         // TensorRT needs to know everything about the input and output nodes
-        segmentation->addInputNode(0, "input_image", NodeType::IMAGE, TensorShape({-1, 1, 256, 256}));
-        segmentation->addOutputNode(0, "permute_2/transpose");
+        segmentation->setInputNode(0, "input_image", NodeType::IMAGE, TensorShape({-1, 1, 256, 256}));
+        segmentation->setOutputNode(0, "permute_2/transpose");
     }
     segmentation->load(join(Config::getTestDataPath(),
                             "NeuralNetworkModels/jugular_vein_segmentation." + segmentation->getInferenceEngine()->getDefaultFileExtension()));

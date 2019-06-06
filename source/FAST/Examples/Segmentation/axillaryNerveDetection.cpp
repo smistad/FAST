@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
     PixelClassifier::pointer segmentation = PixelClassifier::New();
     const auto engine = segmentation->getInferenceEngine()->getName();
     if(engine == "TensorFlow") {
-        segmentation->addOutputNode(0, "conv2d_23/truediv");
+        segmentation->setOutputNode(0, "conv2d_23/truediv");
     } else if(engine == "TensorRT") {
         // TODO specify nodes
     }

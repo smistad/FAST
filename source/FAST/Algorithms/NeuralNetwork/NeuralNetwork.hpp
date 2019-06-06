@@ -98,59 +98,59 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
          * @return
          */
         InferenceEngine::pointer getInferenceEngine() const;
-    void addInputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = {});
-    void addOutputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = {});
-    /**
-     * For each input value i: new_i = i*scale
-     * @param scale
-     */
-    void setScaleFactor(float scale);
-    /**
-     * For each input value i: new_i = (i - mean)/std, this is applied after the scale factor
-     * @param mean
-     * @param std
-     */
-    void setMeanAndStandardDeviation(float mean, float std);
-    void setSignedInputNormalization(bool signedInputNormalization);
-    void setPreserveAspectRatio(bool preserve);
-    /**
-     * Setting this parameter to true will flip the input image horizontally.
-     * For pixel classification the output image will be flipped back.
-     * @param flip
-     */
-    void setHorizontalFlipping(bool flip);
+        void setInputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = {});
+        void setOutputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = {});
+        /**
+         * For each input value i: new_i = i*scale
+         * @param scale
+         */
+        void setScaleFactor(float scale);
+        /**
+         * For each input value i: new_i = (i - mean)/std, this is applied after the scale factor
+         * @param mean
+         * @param std
+         */
+        void setMeanAndStandardDeviation(float mean, float std);
+        void setSignedInputNormalization(bool signedInputNormalization);
+        void setPreserveAspectRatio(bool preserve);
+        /**
+         * Setting this parameter to true will flip the input image horizontally.
+         * For pixel classification the output image will be flipped back.
+         * @param flip
+         */
+        void setHorizontalFlipping(bool flip);
 
-    /**
-     * Set the temporal window for dynamic mode.
-     * If window > 1, assume the second dimension of the input tensor is the number of timesteps.
-     * If the window is set to 4, the frames t-3, t-2, t-1 and t, where t is the current timestep,
-     * will be given as input to the network.
-     *
-     * @param window
-     */
-    void setTemporalWindow(uint window);
+        /**
+         * Set the temporal window for dynamic mode.
+         * If window > 1, assume the second dimension of the input tensor is the number of timesteps.
+         * If the window is set to 4, the frames t-3, t-2, t-1 and t, where t is the current timestep,
+         * will be given as input to the network.
+         *
+         * @param window
+         */
+        void setTemporalWindow(uint window);
 
-    void loadAttributes();
+        void loadAttributes();
 
-    virtual ~NeuralNetwork();
-protected:
-    NeuralNetwork();
-    bool mPreserveAspectRatio;
-    bool mHorizontalImageFlipping = false;
-    bool mSignedInputNormalization = false;
-    int mTemporalWindow = 0;
-    float mScaleFactor, mMean, mStd;
-    Vector3f mNewInputSpacing;
+        virtual ~NeuralNetwork();
+    protected:
+        NeuralNetwork();
+        bool mPreserveAspectRatio;
+        bool mHorizontalImageFlipping = false;
+        bool mSignedInputNormalization = false;
+        int mTemporalWindow = 0;
+        float mScaleFactor, mMean, mStd;
+        Vector3f mNewInputSpacing;
 
-    virtual void run();
+        virtual void run();
 
-    SharedPointer<InferenceEngine> m_engine;
+        SharedPointer<InferenceEngine> m_engine;
 
-    std::unordered_map<std::string, std::vector<SharedPointer<Image>>> mInputImages;
+        std::unordered_map<std::string, std::vector<SharedPointer<Image>>> mInputImages;
 
-    std::unordered_map<std::string, Tensor::pointer> processInputData();
-    std::vector<SharedPointer<Image>> resizeImages(const std::vector<SharedPointer<Image>>& images, int width, int height, int depth);
-    Tensor::pointer convertImagesToTensor(std::vector<SharedPointer<Image>> image, const TensorShape& shape, bool temporal);
+        std::unordered_map<std::string, Tensor::pointer> processInputData();
+        std::vector<SharedPointer<Image>> resizeImages(const std::vector<SharedPointer<Image>>& images, int width, int height, int depth);
+        Tensor::pointer convertImagesToTensor(std::vector<SharedPointer<Image>> image, const TensorShape& shape, bool temporal);
 
     private:
         void execute();

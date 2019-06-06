@@ -43,7 +43,7 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
         auto shape = inputNode.second.shape;
         if(shape.getDimensions() == 0)
             throw Exception("Unable to deduce input shape from network file. "
-                            "Either export the file with shape information or supply the input shape manually using addInputNode.");
+                            "Either export the file with shape information or supply the input shape manually using setInputNode.");
 
         SharedPointer<DataObject> data = getInputData<DataObject>(inputNode.second.portID);
 
@@ -352,12 +352,12 @@ void NeuralNetwork::setSignedInputNormalization(bool signedInputNormalization) {
 NeuralNetwork::~NeuralNetwork() {
 }
 
-void NeuralNetwork::addInputNode(uint portID, std::string name, NodeType type, TensorShape shape) {
+void NeuralNetwork::setInputNode(uint portID, std::string name, NodeType type, TensorShape shape) {
 	m_engine->addInputNode(portID, name, type, shape);
 	createInputPort<DataObject>(portID);
 }
 
-void NeuralNetwork::addOutputNode(uint portID, std::string name, NodeType type, TensorShape shape) {
+void NeuralNetwork::setOutputNode(uint portID, std::string name, NodeType type, TensorShape shape) {
     m_engine->addOutputNode(portID, name, type, shape);
     createOutputPort<DataObject>(portID);
 }
