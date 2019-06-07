@@ -301,10 +301,10 @@ cl::Program OpenCLDevice::writeBinary(std::string filename, std::string buildOpt
     cl::Program::Sources source(1, std::make_pair(sourceCode.c_str(), sourceCode.length()));
     cl::Program program = buildSources(source, buildOptions);
 
-    VECTOR_CLASS<std::size_t> binarySizes;
+    std::vector<std::size_t> binarySizes;
     binarySizes = program.getInfo<CL_PROGRAM_BINARY_SIZES>();
 
-    VECTOR_CLASS<char *> binaries;
+    std::vector<std::vector<uchar>> binaries;
     binaries = program.getInfo<CL_PROGRAM_BINARIES>();
 
     std::string deviceName = getDevice(0).getInfo<CL_DEVICE_NAME>();
@@ -327,14 +327,13 @@ cl::Program OpenCLDevice::writeBinary(std::string filename, std::string buildOpt
     FILE * file = fopen(binaryFilename.c_str(), "wb");
     if(!file)
         throw Exception("Could not write kernel binary to file: " + binaryFilename);
-    fwrite(binaries[0], sizeof(char), (int)binarySizes[0], file);
+    fwrite(binaries[0].data(), sizeof(char), (int)binarySizes[0], file);
     fclose(file);
-    delete[] binaries[0];
 
     // Write cache file
     FILE * cacheFile = fopen(cacheFilename.c_str(), "w");
     std::string timeStr = getModifiedDate(filename);
-    VECTOR_CLASS<cl::Device> devices = context.getInfo<CL_CONTEXT_DEVICES>();
+    std::vector<cl::Device> devices = context.getInfo<CL_CONTEXT_DEVICES>();
     timeStr += "-" + devices[0].getInfo<CL_DEVICE_NAME>() + "\n";
     timeStr += "-" + buildOptions;
     fwrite(timeStr.c_str(), sizeof(char), timeStr.size(), cacheFile);
@@ -350,7 +349,7 @@ cl::Program OpenCLDevice::readBinary(std::string filename) {
         (std::istreambuf_iterator<char>()));
     cl::Program::Binaries binary(1, std::make_pair(sourceCode.c_str(), sourceCode.length()));
 
-    VECTOR_CLASS<cl::Device> devices = context.getInfo<CL_CONTEXT_DEVICES>();
+    std::vector<cl::Device> devices = context.getInfo<CL_CONTEXT_DEVICES>();
     if(devices.size() > 1) {
         // Currently only support compiling for one device
         cl::Device device = devices[0];
@@ -411,7 +410,7 @@ cl::Program OpenCLDevice::buildProgramFromBinary(std::string filename, std::stri
             stat(filename.c_str(), &attrib);
             outOfDate = strcmp(ctime(&(attrib.st_mtime)), cache.substr(0, pos).c_str()) != 0;
             #endif
-            VECTOR_CLASS<cl::Device> devices = context.getInfo<CL_CONTEXT_DEVICES>();
+            std::vector<cl::Device> devices = context.getInfo<CL_CONTEXT_DEVICES>();
             wrongDeviceID = cache.substr(pos+1, pos2-pos-2) != devices[0].getInfo<CL_DEVICE_NAME>();
             buildOptionsChanged = cache.substr(pos2+1) != buildOptions;
         }

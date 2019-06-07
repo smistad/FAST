@@ -24,7 +24,7 @@ bool DeviceManager::mDisableGLInterop = false;
 DeviceManager* DeviceManager::mInstance = NULL;
 
 inline cl_context_properties* createInteropContextProperties(
-        const cl::Platform &platform,
+        const cl_platform_id &platform,
         cl_context_properties OpenGLContext,
         cl_context_properties display) {
 #if defined(__APPLE__) || defined(__MACOSX)
@@ -57,7 +57,7 @@ throw Exception("Not able to get sharegroup");
     cps[2] = CL_GLX_DISPLAY_KHR;
     cps[3] = display;
     cps[4] = CL_CONTEXT_PLATFORM;
-    cps[5] = (cl_context_properties) (platform)();
+    cps[5] = (cl_context_properties)platform;
 	cps[6] = 0;
 #endif
 #endif
@@ -272,7 +272,7 @@ bool DeviceManager::deviceHasOpenGLInteropCapability(const cl::Device &device) {
     // Get the cl_device_id of the device
     cl_device_id deviceID = device();
     // Get the platform of device
-    cl::Platform platform = device.getInfo<CL_DEVICE_PLATFORM>();
+    cl_platform_id platform = device.getInfo<CL_DEVICE_PLATFORM>();
     // Get all devices that are capable of OpenGL interop with this platform
     // Create properties for CL-GL context
 #ifdef FAST_MODULE_VISUALIZATION
@@ -333,7 +333,7 @@ throw Exception("Not able to get sharegroup");
     // Query which devices are associated with GL context
     cl_device_id cl_gl_device_ids[32];
     size_t returnSize = 0;
-    clGetGLContextInfoKHR_fn glGetGLContextInfo_func = (clGetGLContextInfoKHR_fn) clGetExtensionFunctionAddress("clGetGLContextInfoKHR");
+    clGetGLContextInfoKHR_fn glGetGLContextInfo_func = (clGetGLContextInfoKHR_fn) clGetExtensionFunctionAddressForPlatform(platform, "clGetGLContextInfoKHR");
     glGetGLContextInfo_func(cps, CL_DEVICES_FOR_GL_CONTEXT_KHR, 32 * sizeof(cl_device_id), &cl_gl_device_ids, &returnSize);
     delete[] cps;
 
@@ -425,9 +425,6 @@ void DeviceManager::sortDevicesAccordingToPreference(
             platformScore += deviceScores[j].score;
         }
         platformScores[i] = platformScore;
-
-		cl::Platform platform = sortedPlatformDevices[i][0].getInfo<CL_DEVICE_PLATFORM>();
-		//reporter.report("The platform " + platform.getInfo<CL_PLATFORM_NAME>() + " got a score of " + number(platformScore), INFO);
     }
 }
 
