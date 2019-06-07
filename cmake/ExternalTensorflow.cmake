@@ -40,7 +40,7 @@ else(WIN32)
         PREFIX ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
         BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
         GIT_REPOSITORY "https://github.com/smistad/tensorflow.git"
-        GIT_TAG "fast"
+        GIT_TAG "fast-updated"
         UPDATE_COMMAND ""
         # Run TF configure in the form of a shell script. CUDA should be installed in /usr/local/cuda
         CONFIGURE_COMMAND
@@ -48,10 +48,10 @@ else(WIN32)
         # Build using bazel
         BUILD_COMMAND
             echo "Building tensorflow with bazel and CUDA GPU support" &&
-            cd ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/ && bazel build -c opt --config=cuda --copt=-mfpmath=both --copt=-march=native //tensorflow:libtensorflow_framework.so
+            cd ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/ && bazel build -c opt --config=cuda --copt=-mfpmath=both --copt=-march=native //tensorflow:libtensorflow_cc.so
         INSTALL_COMMAND
             echo "Installing tensorflow binary" &&
-            cp -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/bazel-bin/tensorflow/libtensorflow_framework.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
+            cp -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/bazel-bin/tensorflow/libtensorflow_cc.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ &&
             #echo "Installing mkl binaries" &&
             #bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/bazel-out/)/../../../external/mkl/lib/libmklml_intel.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ -Rf" &&
             #bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/bazel-out/)/../../../external/mkl/lib/libiomp5.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ -Rf" &&
@@ -64,7 +64,9 @@ else(WIN32)
             echo "Installing protobuf headers" &&
             bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/bazel-out/)/../../../external/protobuf_archive/src/google/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ -Rf" &&
             echo "Installing nsync headers" &&
-            bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/bazel-out/)/../../../external/nsync/public/*.h ${FAST_EXTERNAL_INSTALL_DIR}/include/ -Rf"
+            bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/bazel-out/)/../../../external/nsync/public/*.h ${FAST_EXTERNAL_INSTALL_DIR}/include/ -Rf" &&
+            echo "Installing absl headers" &&
+            bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/bazel-out/)/../../../external/com_google_absl/absl/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ -Rf"
     )
 endif(WIN32)
 

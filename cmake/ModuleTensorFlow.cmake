@@ -27,7 +27,7 @@ if(FAST_MODULE_TensorFlow)
         )
     else()
         set(TensorFlow_LIBRARIES
-            libtensorflow_framework.so
+            libtensorflow_cc.so
         )
     endif()
 endif()
