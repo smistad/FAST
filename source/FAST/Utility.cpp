@@ -3,6 +3,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #ifdef _WIN32
+#include <windows.h>
 #include <direct.h> // Needed for _mkdir
 #include <io.h> // needed for _access_s
 #else
