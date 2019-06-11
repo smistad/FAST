@@ -1,6 +1,7 @@
 #pragma once
 
 #include <FAST/Algorithms/NeuralNetwork/InferenceEngines/TensorFlowEngine.hpp>
+#include <TensorFlowCPUExport.hpp>
 
 namespace fast {
 
