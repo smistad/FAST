@@ -10,6 +10,7 @@
 
 #else
 #if _WIN32
+#include <windows.h>
 #include <GL/gl.h>
 #include <CL/cl_gl.h>
 #else
@@ -48,7 +49,7 @@ throw Exception("Not able to get sharegroup");
     cps[2] = CL_WGL_HDC_KHR;
     cps[3] = display;
     cps[4] = CL_CONTEXT_PLATFORM;
-    cps[5] = (cl_context_properties) (platform)();
+    cps[5] = (cl_context_properties)platform;
 	cps[6] = 0;
 #else
     cl_context_properties * cps = new cl_context_properties[7];
