@@ -1,6 +1,8 @@
 ## TensorFlow module
 
 if(FAST_MODULE_TensorFlow)
+    option(FAST_BUILD_TensorFlow_CUDA "Build TensorFlow CUDA/cuDNN version" OFF)
+    option(FAST_BUILD_TensorFlow_CPU "Build TensorFlow CPU version" ON)
     include(${PROJECT_SOURCE_DIR}/cmake/ExternalTensorflow.cmake)
 
     ## Tensorflow
@@ -26,8 +28,11 @@ if(FAST_MODULE_TensorFlow)
             #libprotobuf.lib # For windows we need this protobuf static lib for some reason..
         )
     else()
-        set(TensorFlow_LIBRARIES
-            libtensorflow_cc.so
+        set(TensorFlow_CUDA_LIBRARIES
+            ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc_CUDA.so
+        )
+        set(TensorFlow_CPU_LIBRARIES
+            ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc_CPU.so
         )
     endif()
 endif()

@@ -12,21 +12,19 @@ class Session;
 namespace fast {
 
 class INFERENCEENGINETENSORFLOW_EXPORT TensorFlowEngine : public InferenceEngine {
-    FAST_OBJECT(TensorFlowEngine)
     public:
-        void load() override;
-        void run() override;
+        virtual void load() override;
+        virtual void run() override;
+        virtual std::string getName() const = 0;
         ~TensorFlowEngine() override;
-        ImageOrdering getPreferredImageOrdering() const override;
-        std::string getName() const override;
-        std::string getDefaultFileExtension() const override;
+        virtual ImageOrdering getPreferredImageOrdering() const override;
+        virtual std::string getDefaultFileExtension() const override;
         TensorFlowEngine();
-    private:
+    protected:
         std::unique_ptr<tensorflow::Session> mSession;
         std::vector<std::string> mLearningPhaseTensors;
 
 };
 
-DEFINE_INFERENCE_ENGINE(TensorFlowEngine, INFERENCEENGINETENSORFLOW_EXPORT)
 
 }
