@@ -74,7 +74,7 @@ void InferenceEngineManager::loadAll() {
             auto load = (InferenceEngine* (*)())dlsym(handle, "load");
             if(!load) {
                 dlclose(handle);
-                Reporter::warning() << "Failed to get address of load function because " << dlerror() << Reporter::end();
+                Reporter::warning() << "Failed to get address of load function because " << Reporter::end();// dlerror() << Reporter::end();
                 continue;
             }
 #endif

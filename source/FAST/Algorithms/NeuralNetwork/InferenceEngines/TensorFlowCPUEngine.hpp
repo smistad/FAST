@@ -5,8 +5,8 @@
 
 namespace fast {
 
-class INFERENCEENGINETENSORFLOWCPU_EXPORT TensorFlowCPUEngine : public InferenceEngine {
-    FAST_OBJECT(TensorFlowEngineCPU)
+class INFERENCEENGINETENSORFLOWCPU_EXPORT TensorFlowCPUEngine : public TensorFlowEngine {
+    FAST_OBJECT(TensorFlowCPUEngine)
     public:
         std::string getName() const override { return "TensorFlowCPU"; };
 

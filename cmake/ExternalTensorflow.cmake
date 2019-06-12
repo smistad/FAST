@@ -63,8 +63,12 @@ else(WIN32)
             INSTALL_COMMAND
                 echo "Installing tensorflow binary" &&
                 cp -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_cc.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc_CUDA.so &&
+                cp -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/libtensorflow_framework.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_framework_CUDA.so &&
                 chmod a+w ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc_CUDA.so &&
+                chmod a+w ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_framework_CUDA.so &&
                 patchelf --set-soname libtensorflow_cc_CUDA.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc_CUDA.so &&
+                patchelf --set-soname libtensorflow_framework_CUDA.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_framework_CUDA.so &&
+                patchelf --replace-needed libtensorflow_framework.so libtensorflow_framework_CUDA.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc_CUDA.so &&
                 #echo "Installing mkl binaries" &&
                 #bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-out/)/../../../external/mkl/lib/libmklml_intel.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ -Rf" &&
                 #bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-out/)/../../../external/mkl/lib/libiomp5.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/ -Rf" &&
