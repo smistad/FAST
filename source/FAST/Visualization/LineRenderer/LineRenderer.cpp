@@ -98,6 +98,7 @@ void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
             glEnable(GL_DEPTH_TEST);
     }
     deactivateShader();
+    glFinish(); // Fixes random crashes in OpenGL on NVIDIA windows due to some interaction with the text renderer. Suboptimal solution as glFinish is a blocking sync operation.
 }
 
 LineRenderer::LineRenderer() {
