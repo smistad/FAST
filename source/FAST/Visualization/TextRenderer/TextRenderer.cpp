@@ -226,6 +226,7 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
     }
     glDisable(GL_BLEND);
     deactivateShader();
+    glFinish(); // Fixes random crashes in OpenGL on NVIDIA windows due to some interaction with the line renderer. Suboptimal solution as glFinish is a blocking sync operation.
 }
 
 void TextRenderer::setFontSize(uint fontSize) {
