@@ -25,7 +25,9 @@ void WholeSlideImageImporter::execute() {
 
     // Get total size of image
     int64_t fullWidth = -1, fullHeight = -1;
-    openslide_get_level_dimensions(file, 2, &fullWidth, &fullHeight); // Level 0 is the largest level
+    openslide_get_level_dimensions(file, 6, &fullWidth, &fullHeight); // Level 0 is the largest level
+    int levels = openslide_get_level_count(file);
+    reportInfo() << "WSI has " << levels << " levels" << reportEnd();
     reportInfo() << "WSI image size: " << fullWidth << ", " << fullHeight << reportEnd();
 
     const char * pixelSpacingX = openslide_get_property_value(file, OPENSLIDE_PROPERTY_NAME_MPP_X);
@@ -38,7 +40,9 @@ void WholeSlideImageImporter::execute() {
 
     int size = 16000;
     auto data = make_uninitialized_unique<uint8_t[]>(fullWidth*fullHeight*4);
-    openslide_read_region(file, (uint32_t*)data.get(), 0, 0, 2, fullWidth, fullHeight);
+    std::cout << "Reading " << (fullWidth*fullHeight*4)/(1024*1024) << " MBs" << std::endl;
+    openslide_read_region(file, (uint32_t*)data.get(), 0, 0, 6, fullWidth, fullHeight);
+    reportInfo() << "Done reading data" << reportEnd();
 
     // Create image
     auto image = getOutputData<Image>();

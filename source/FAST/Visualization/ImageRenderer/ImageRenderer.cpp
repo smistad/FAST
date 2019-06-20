@@ -63,6 +63,10 @@ void ImageRenderer::loadAttributes() {
 void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
     std::lock_guard<std::mutex> lock(mMutex);
 
+    Vector4f bottom_left(-1,-1,0,1);
+    Vector4f top_right(1,1,0,1);
+    std::cout << "Viewing coordinates:" << ((perspectiveMatrix*viewingMatrix).inverse()*bottom_left).transpose() << " " <<  ((perspectiveMatrix*viewingMatrix).inverse()*top_right).transpose() << std::endl;
+
     for(auto it : mDataToRender) {
         Image::pointer input = std::static_pointer_cast<Image>(it.second);
         uint inputNr = it.first;
