@@ -26,7 +26,6 @@ class VideoSurface : public QAbstractVideoSurface {
     }
 
     bool present(const QVideoFrame &frame) {
-        Q_UNUSED(frame);
         Reporter::info() << "Movie frame received!" << Reporter::end();
         Reporter::info() << "Format: " << frame.pixelFormat() << Reporter::end();
         if(frame.pixelFormat() == QVideoFrame::PixelFormat::Format_Invalid) {
@@ -55,8 +54,14 @@ class VideoSurface : public QAbstractVideoSurface {
         } catch(ThreadStopped &e) {
         }
 
-        // Handle the frame and do your processing
         return true;
+    }
+
+    void stateChanged(QMediaPlayer::State state) {
+        if(state == QMediaPlayer::StoppedState) {
+            Reporter::info() << "QMediaPlayer state changed to stopped - stopping stream" << Reporter::end();
+            streamer->setFinished(true);
+        }
     }
 };
 
@@ -74,7 +79,7 @@ void MovieStreamer::addNewImageFrame(const uchar* data, int width, int height) {
     output->setCreationTimestamp((uint64_t)elapsed.count());
     addOutputData(0, output);
     ++m_framesAdded;
-    std::cout << m_framesAdded << std::endl;
+    Reporter::info() << "Added frames: " << m_framesAdded << Reporter::end();
     // Make sure we end the waiting thread if first frame has not been inserted
     {
         std::lock_guard<std::mutex> lock(mFirstFrameMutex);
@@ -106,7 +111,11 @@ void Worker::run() {
     VideoSurface* myVideoSurface = new VideoSurface;
     myVideoSurface->streamer = mStreamer;
     m_player->setVideoOutput(myVideoSurface);
-    m_player->setMedia(QUrl(("file://" + mStreamer->getFilename()).c_str()));
+    QObject::connect(m_player.get(), &QMediaPlayer::stateChanged, std::bind(&VideoSurface::stateChanged, myVideoSurface, std::placeholders::_1));
+    std::string prefix = "";
+    if(mStreamer->getFilename()[0] != '/' && mStreamer->getFilename()[1] == ':') // On windows w want file:///C:/asd/asd..
+        prefix = "/";
+    m_player->setMedia(QUrl(("file://" + prefix + mStreamer->getFilename()).c_str()));
     m_player->play();
     Reporter::info() << "Play returned" << Reporter::end();
     //emit finished();
@@ -124,7 +133,6 @@ void MovieStreamer::execute() {
         QObject::connect(thread, SIGNAL(started()), worker, SLOT(run()));
         QObject::connect(worker, SIGNAL(finished()), thread, SLOT(quit()));
         QObject::connect(worker, SIGNAL(finished()), worker, SLOT(deleteLater()));
-        QObject::connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
         QObject::connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
         QObject::connect(thread, SIGNAL(finished()), worker, SLOT(deleteLater()));
         m_startTime = std::chrono::high_resolution_clock::now();

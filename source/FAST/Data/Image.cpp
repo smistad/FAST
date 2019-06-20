@@ -694,19 +694,19 @@ void Image::freeAll() {
     }
 }
 
-unsigned int Image::getWidth() const {
+int Image::getWidth() const {
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
     return mWidth;
 }
 
-unsigned int Image::getHeight() const {
+int Image::getHeight() const {
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
     return mHeight;
 }
 
-unsigned int Image::getDepth() const {
+int Image::getDepth() const {
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
     return mDepth;
@@ -730,7 +730,7 @@ DataType Image::getDataType() const {
     return mType;
 }
 
-unsigned int Image::getNrOfChannels() const {
+int Image::getNrOfChannels() const {
     if(!isInitialized())
         throw Exception("Image has not been initialized.");
     return mChannels;
@@ -1201,8 +1201,6 @@ Image::pointer Image::crop(VectorXi offset, VectorXi size, bool allowOutOfBounds
     T->getTransform().translation() = getSpacing().cwiseProduct(getDimensions() == 2 ? Vector3f(offset.x(), offset.y(), 0) : Vector3f(offset.x(), offset.y(), offset.z()));
     newImage->getSceneGraphNode()->setTransformation(T);
     SceneGraph::setParentNode(newImage, std::static_pointer_cast<SpatialDataObject>(mPtr.lock()));
-    reportInfo() << SceneGraph::getAffineTransformationFromData(newImage)->getTransform().matrix() << Reporter::end();
-    reportInfo() << SceneGraph::getAffineTransformationFromData(std::static_pointer_cast<SpatialDataObject>(mPtr.lock()))->getTransform().matrix() << Reporter::end();
 
     return newImage;
 }
@@ -1222,6 +1220,10 @@ BoundingBox Image::getBoundingBox() const {
     T->getTransform().scale(getSpacing());
 
     return SpatialDataObject::getBoundingBox().getTransformedBoundingBox(T);
+}
+
+int Image::getNrOfVoxels() const {
+    return mWidth*mHeight*mDepth;
 }
 
 Image::~Image() {

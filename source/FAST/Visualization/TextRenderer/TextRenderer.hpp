@@ -5,12 +5,11 @@
 #include "FAST/Data/Color.hpp"
 #include <mutex>
 #include <FAST/Data/SimpleDataObject.hpp>
+#include <FAST/Data/Text.hpp>
 
 namespace fast {
 
 class View;
-
-FAST_SIMPLE_DATA_OBJECT(Text, std::string)
 
 class FAST_EXPORT  TextRenderer : public Renderer {
     FAST_OBJECT(TextRenderer)
@@ -35,7 +34,7 @@ class FAST_EXPORT  TextRenderer : public Renderer {
         void setFontSize(uint fontSize);
         void setColor(Color color);
         void setStyle(TextStyleType);
-        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) override;
+        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) override;
         void loadAttributes();
     private:
         TextRenderer();
@@ -46,6 +45,8 @@ class FAST_EXPORT  TextRenderer : public Renderer {
         std::unordered_map<uint, uint> mTexturesToRender;
         std::unordered_map<uint, Text::pointer> mTextUsed;
         std::unordered_map<uint, uint> mVAO;
+        std::unordered_map<uint, uint> mVBO;
+        std::unordered_map<uint, uint> mEBO;
         std::unordered_map<uint, DataObject::pointer> mDataToRender;
 
         Color mColor;

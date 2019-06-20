@@ -4,7 +4,6 @@
 #include "FAST/ProcessObject.hpp"
 #include "NeuralNetwork.hpp"
 #include "FAST/Data/SimpleDataObject.hpp"
-#include "FAST/Visualization/TextRenderer/TextRenderer.hpp"
 #include <queue>
 
 namespace fast {

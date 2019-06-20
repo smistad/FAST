@@ -48,6 +48,10 @@ void TensorShape::addDimension(int value) {
     m_data.push_back(value);
 }
 
+void TensorShape::insertDimension(int position, int value) {
+	m_data.insert(m_data.begin() + position, value);
+}
+
 TensorShape::TensorShape(const TensorShape &other) {
     m_data = other.getAll();
 }
@@ -70,6 +74,14 @@ std::string TensorShape::toString() const {
     for(int i : m_data)
         str += std::to_string(i) + " ";
     return str;
+}
+
+void TensorShape::deleteDimension(int index) {
+    m_data.erase(m_data.begin() + index);
+}
+
+void TensorShape::deleteDimensions(int startIndex, int endIndex) {
+    m_data.erase(m_data.begin() + startIndex, m_data.begin() + endIndex);
 }
 
 }

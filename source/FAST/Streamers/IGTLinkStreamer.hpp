@@ -4,16 +4,17 @@
 //#include <boost/signals2.hpp>
 #include <thread>
 #include <unordered_map>
-
 #include "FAST/Streamers/Streamer.hpp"
 #include "FAST/ProcessObject.hpp"
-#include <igtl/igtlClientSocket.h>
 #include <set>
 #include "FASTExport.hpp"
+
+// Forward declare
 
 namespace fast {
 
 class Image;
+class IGTLSocketWrapper;
 
 class FAST_EXPORT IGTLinkStreamer : public Streamer {
     FAST_OBJECT(IGTLinkStreamer)
@@ -32,7 +33,7 @@ class FAST_EXPORT IGTLinkStreamer : public Streamer {
 		 * Will select first image stream
 		 * @return
 		 */
-		DataPort::pointer getOutputPort();
+		DataPort::pointer getOutputPort(uint portID = 0) override;
 
         template<class T>
         DataPort::pointer getOutputPort(std::string deviceName);
@@ -77,7 +78,8 @@ class FAST_EXPORT IGTLinkStreamer : public Streamer {
         std::string mAddress;
         uint mPort;
 
-        igtl::ClientSocket::Pointer mSocket;
+		IGTLSocketWrapper* mSocketWrapper;
+        //igtl::ClientSocket::Pointer mSocket;
 
 		std::set<std::string> mImageStreamNames;
 		std::set<std::string> mTransformStreamNames;

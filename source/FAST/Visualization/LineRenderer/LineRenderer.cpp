@@ -10,7 +10,7 @@
 
 namespace fast {
 
-void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) {
+void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
     std::lock_guard<std::mutex> lock(mMutex);
 
     activateShader();
@@ -20,9 +20,14 @@ void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool
     for(auto it : mDataToRender) {
         Mesh::pointer points = std::static_pointer_cast<Mesh>(it.second);
 
+        // Delete old VAO
+        if(mVAO.count(it.first) > 0) {
+            glDeleteVertexArrays(1, &mVAO[it.first]);
+        }
         // Create VAO
         uint VAO_ID;
         glGenVertexArrays(1, &VAO_ID);
+        mVAO[it.first] = VAO_ID;
         glBindVertexArray(VAO_ID);
 
         AffineTransformation::pointer transform;
@@ -58,8 +63,9 @@ void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool
         if(drawOnTop)
             glDisable(GL_DEPTH_TEST);
 
+        
         VertexBufferObjectAccess::pointer access = points->getVertexBufferObjectAccess(ACCESS_READ);
-
+        
         // Coordinates
         GLuint* coordinatesVBO = access->getCoordinateVBO();
         glBindBuffer(GL_ARRAY_BUFFER, *coordinatesVBO);
@@ -92,6 +98,7 @@ void LineRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool
             glEnable(GL_DEPTH_TEST);
     }
     deactivateShader();
+    glFinish(); // Fixes random crashes in OpenGL on NVIDIA windows due to some interaction with the text renderer. Suboptimal solution as glFinish is a blocking sync operation.
 }
 
 LineRenderer::LineRenderer() {

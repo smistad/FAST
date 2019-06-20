@@ -25,11 +25,14 @@ option(FAST_MODULE_ITK "Enable interoperability with ITK" OFF)
 option(FAST_MODULE_Visualization "Enable visualization capabilities using Qt5.
 Without this module, all visualization in FAST will be disabled." ON)
 option(FAST_MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
-option(FAST_MODULE_NeuralNetwork "Build neural network module using tensorflow" OFF)
+option(FAST_MODULE_TensorFlow "Build TensorFlow inference engine" OFF)
+option(FAST_MODULE_TensorRT "Build NVIDIA TensorRT inference engine" OFF)
+option(FAST_MODULE_OpenVINO "Build Intel OpenVINO inference engine" OFF)
 option(FAST_MODULE_Python "Build Python wrappers" OFF)
 option(FAST_MODULE_Kinect "Build kinect module" OFF)
 option(FAST_MODULE_RealSense "Build real sense module" OFF)
 option(FAST_MODULE_WholeSlideImaging "Build whole slide imaging module" OFF)
+option(FAST_MODULE_Clarius "Build clarius ultrasound module" OFF)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
 option(FAST_BUILD_QT5 "Download and build Qt 5.8. Turn this OFF if you want to use pre-built binaries you already have on your machine." ON)
 
@@ -213,6 +216,7 @@ configure_file(
     "${PROJECT_BINARY_DIR}/fast_configuration.txt"
 )
 
+# Setup process object for pipelines setup
 foreach(FILE ${FAST_PROCESS_OBJECT_HEADER_FILES})
     set(FAST_PROCESS_OBJECT_INCLUDES "${FAST_PROCESS_OBJECT_INCLUDES}#include \"${FILE}\"\n")
 endforeach()
@@ -224,6 +228,20 @@ endforeach()
 configure_file(
     "${PROJECT_SOURCE_DIR}/source/ProcessObjectList.hpp.in"
     "${PROJECT_BINARY_DIR}/ProcessObjectList.hpp"
+)
+
+# Setup inference engines
+foreach(FILE ${FAST_INFERENCE_ENGINE_HEADER_FILES})
+    set(FAST_INFERENCE_ENGINE_INCLUDES "${FAST_INFERENCE_ENGINE_INCLUDES}#include \"${FILE}\"\n")
+endforeach()
+
+foreach(NAME ${FAST_INFERENCE_ENGINE_NAMES})
+    set(FAST_INFERENCE_ENGINE_REGISTRATION "${FAST_INFERENCE_ENGINE_REGISTRATION}FAST_REGISTER_IE(${NAME})\n")
+endforeach()
+
+configure_file(
+    "${PROJECT_SOURCE_DIR}/source/InferenceEngineList.hpp.in"
+    "${PROJECT_BINARY_DIR}/InferenceEngineList.hpp"
 )
 
 if(NOT FAST_BUILD_QT5 AND WIN32)

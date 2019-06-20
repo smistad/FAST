@@ -45,7 +45,8 @@ SegmentationRenderer::SegmentationRenderer() {
     mLabelColors[Segmentation::LABEL_BLUE] = Color::Blue();
 }
 
-void SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) {
+void
+SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
     std::lock_guard<std::mutex> lock(mMutex);
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
@@ -102,6 +103,9 @@ void SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
 
         if(input->getDimensions() != 2)
             throw Exception("SegmentationRenderer only supports 2D images. Use ImageSlicer to extract a 2D slice from a 3D image.");
+
+        if(input->getDataType() != TYPE_UINT8)
+            throw Exception("SegmentationRenderer only support images with dat type uint8.");
 
         // Check if a texture has already been created for this image
         if(mTexturesToRender.count(inputNr) > 0 && mImageUsed[inputNr] == input)

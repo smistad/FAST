@@ -9,7 +9,7 @@ class Image;
 /**
  * This algorithms matches a template image to an image using normalized cross correlation (NCC)
  */
-class TemplateMatchingNCC : public ProcessObject {
+class FAST_EXPORT TemplateMatchingNCC : public ProcessObject {
     FAST_OBJECT(TemplateMatchingNCC)
     public:
         /**

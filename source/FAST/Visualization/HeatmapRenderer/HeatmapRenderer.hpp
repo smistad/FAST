@@ -16,7 +16,7 @@ class FAST_EXPORT  HeatmapRenderer : public ImageRenderer {
         uint addInputConnection(DataPort::pointer port, Color color = Color::Red());
     private:
         HeatmapRenderer();
-        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) override;
+        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) override;
 
         std::unordered_map<uint, Color> mColors;
         float mMaxOpacity = 0.6;

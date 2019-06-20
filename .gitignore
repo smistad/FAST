@@ -6,5 +6,5 @@ TestData/
 .cproject
 .project
 *.xml
-data
+/data/
 *.zip

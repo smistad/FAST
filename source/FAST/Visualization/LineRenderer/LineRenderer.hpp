@@ -18,8 +18,8 @@ class FAST_EXPORT  LineRenderer : public Renderer {
         void setDrawOnTop(uint inputNr, bool drawOnTop);
         void setColor(uint inputNr, Color color);
         void setWidth(uint inputNr, float width);
-        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D);
-    private:
+        void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D);
+    protected:
         LineRenderer();
 
         float mDefaultLineWidth;
@@ -29,6 +29,7 @@ class FAST_EXPORT  LineRenderer : public Renderer {
         std::unordered_map<uint, float> mInputWidths;
         std::unordered_map<uint, Color> mInputColors;
         std::unordered_map<uint, bool> mInputDrawOnTop;
+        std::unordered_map<uint, uint> mVAO;
 };
 
 }

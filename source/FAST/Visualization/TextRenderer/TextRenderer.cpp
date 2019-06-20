@@ -3,6 +3,8 @@
 #include "FAST/Visualization/View.hpp"
 #include <QPainter>
 #include <QApplication>
+#include <FAST/Data/Text.hpp>
+#include <QScreen>
 
 namespace fast {
 
@@ -15,7 +17,7 @@ TextRenderer::TextRenderer() {
     createInputPort<Text>(0);
     mStyle = STYLE_NORMAL;
     mPosition = POSITION_CENTER;
-	mFontSize = 18;
+	mFontSize = 28;
 	mColor = Color::Green();
     createStringAttribute("position", "Text position", "Position of text in view (center/bottom_left/bottom_right/top_left/top_right)", "top_left");
     createIntegerAttribute("font_size", "Font size", "Font size", mFontSize);
@@ -51,7 +53,7 @@ void TextRenderer::execute() {
     }
 }
 
-void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) {
+void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
     std::lock_guard<std::mutex> lock(mMutex);
 
     if(!mode2D)
@@ -79,20 +81,23 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool
         Text::access access = input->getAccess(ACCESS_READ);
         std::string text = access->getData();
 
-
+        if(text.empty()) {
+            continue;
+        }
+            
         // Font setup
         QColor color(mColor.getRedValue() * 255, mColor.getGreenValue() * 255, mColor.getBlueValue() * 255, 255);
         QFont font = QApplication::font();
-        font.setPointSize(mFontSize);
+        font.setPixelSize(mFontSize);
         if (mStyle == STYLE_BOLD) {
             font.setBold(true);
         } else if (mStyle == STYLE_ITALIC) {
             font.setItalic(true);
         }
         QFontMetrics metrics(font);
-        const int width = metrics.boundingRect(QString(text.c_str())).width() + 10;
-        const int height = mFontSize + 5;
-
+        const int width = metrics.boundingRect(QString(text.c_str())).width();
+        const int height = metrics.boundingRect(QString(text.c_str())).height();
+        
         // create the QImage and draw txt into it
         QImage textimg(width, height, QImage::Format_RGBA8888);
         textimg.fill(QColor(0, 0, 0, 0));
@@ -116,6 +121,9 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         // Draw texture on a quad
+        // Delete old VAO
+        if(mVAO.count(inputNr) > 0)
+            glDeleteVertexArrays(1, &mVAO[inputNr]);
         GLuint VAO_ID;
         glGenVertexArrays(1, &VAO_ID);
         mVAO[inputNr] = VAO_ID;
@@ -127,9 +135,14 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool
                 (float)width, 0.0f, 0.0f, 1.0f, 1.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
         };
-        std::cout << "Drawing at 0 " << width << " " << height << std::endl;
+
+        // Delete old VBO
+        if(mVBO.count(inputNr) > 0)
+            glDeleteBuffers(1, &mVBO[inputNr]);
+        // Create VBO
         uint VBO;
         glGenBuffers(1, &VBO);
+        mVBO[inputNr] = VBO;
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
@@ -137,9 +150,13 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
 
+        // Delete old EBO
+        if(mEBO.count(inputNr) > 0)
+            glDeleteBuffers(1, &mEBO[inputNr]);
         // Create EBO
         uint EBO;
         glGenBuffers(1, &EBO);
+        mEBO[inputNr] = EBO;
         uint indices[] = {  // note that we start from 0!
                 0, 1, 3,   // first triangle
                 1, 2, 3    // second triangle
@@ -155,7 +172,7 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     activateShader();
-    for(auto it : mDataToRender) {
+    for(auto it : mTexturesToRender) {
         const uint inputNr = it.first;
         Affine3f transform = Affine3f::Identity();
 
@@ -209,6 +226,7 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool
     }
     glDisable(GL_BLEND);
     deactivateShader();
+    glFinish(); // Fixes random crashes in OpenGL on NVIDIA windows due to some interaction with the line renderer. Suboptimal solution as glFinish is a blocking sync operation.
 }
 
 void TextRenderer::setFontSize(uint fontSize) {

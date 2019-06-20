@@ -162,7 +162,7 @@ install(FILES ${PROJECT_SOURCE_DIR}/LICENSE
     DESTINATION fast/licenses/fast/
 )
 # Install README
-if(FAST_MODULE_NeuralNetwork)
+if(FAST_MODULE_TensorFlow)
 	install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/README_neural_network.md
         DESTINATION fast/
         RENAME README.md
@@ -207,7 +207,7 @@ install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/Semaphore_LICENSE.txt
 		DESTINATION fast/licenses/semaphore/
 )
 
-if(FAST_MODULE_NeuralNetwork)
+if(FAST_MODULE_TensorFlow)
     # Tensorflow license
 	install(FILES ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/LICENSE
         DESTINATION fast/licenses/tensorflow/

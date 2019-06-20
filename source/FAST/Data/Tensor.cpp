@@ -18,6 +18,27 @@ void Tensor::create(TensorShape shape) {
     m_data = make_uninitialized_unique<float[]>(shape.getTotalSize());
 }
 
+void Tensor::create(std::initializer_list<float> data) {
+	if (data.size() == 0)
+		throw Exception("Shape can't be empty");
+
+	m_data = std::make_unique<float[]>(data.size());
+	int i = 0;
+	for (auto item : data) {
+		m_data[i] = item;
+		++i;
+	}
+	m_shape = TensorShape({ (int)data.size() });
+}
+
+void Tensor::expandDims(int position) {
+	if(position < 0) { // append to end
+		m_shape.addDimension(1);
+	} else {
+		m_shape.insertDimension(position, 1);
+	}	
+}
+
 TensorShape Tensor::getShape() const {
     return m_shape;
 }

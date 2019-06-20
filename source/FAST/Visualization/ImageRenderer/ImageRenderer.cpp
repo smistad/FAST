@@ -60,7 +60,7 @@ void ImageRenderer::loadAttributes() {
     mLevel = (getFloatAttribute("level"));
 }
 
-void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) {
+void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
     std::lock_guard<std::mutex> lock(mMutex);
 
     for(auto it : mDataToRender) {
@@ -108,15 +108,13 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, boo
         cl::ImageGL imageGL;
         std::vector<cl::Memory> v;
         GLuint textureID;
-        // TODO The GL-CL interop here is causing glClear to not work on AMD systems and therefore disabled
-        /*
-        if(DeviceManager::isGLInteropEnabled()) {
+        if(DeviceManager::isGLInteropEnabled() && false) {
             // Create OpenGL texture
             glGenTextures(1, &textureID);
             glBindTexture(GL_TEXTURE_2D, textureID);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, input->getWidth(), input->getHeight(), 0, GL_RGBA, GL_FLOAT, 0);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, input->getWidth(), input->getHeight(), 0, GL_RGBA, GL_FLOAT, nullptr);
 
             // Create CL-GL image
             imageGL = cl::ImageGL(
@@ -127,21 +125,19 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, boo
                     textureID
             );
             glBindTexture(GL_TEXTURE_2D, 0);
-            glFinish();
-            mKernel.setArg(1, imageGL);
+            glFinish();     // Make sure everything is ready for CL to take over the texture
             v.push_back(imageGL);
             queue.enqueueAcquireGLObjects(&v);
+            mKernel.setArg(1, imageGL);
         } else {
-         */
-        image = cl::Image2D(
-                device->getContext(),
-                CL_MEM_READ_WRITE,
-                cl::ImageFormat(CL_RGBA, CL_FLOAT),
-                input->getWidth(), input->getHeight()
-        );
-        mKernel.setArg(1, image);
-        //}
-
+            image = cl::Image2D(
+                    device->getContext(),
+                    CL_MEM_READ_WRITE,
+                    cl::ImageFormat(CL_RGBA, CL_FLOAT),
+                    input->getWidth(), input->getHeight()
+            );
+            mKernel.setArg(1, image);
+        }
 
         mKernel.setArg(0, *clImage);
         mKernel.setArg(2, level);
@@ -153,28 +149,30 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, boo
                 cl::NullRange
         );
 
-        /*if(DeviceManager::isGLInteropEnabled()) {
+        if(DeviceManager::isGLInteropEnabled() && false) {
             queue.enqueueReleaseGLObjects(&v);
-        } else {*/
-        // Copy data from CL image to CPU
-        auto data = make_uninitialized_unique<float[]>(input->getWidth() * input->getHeight() * 4);
-        queue.enqueueReadImage(
-                image,
-                CL_TRUE,
-                createOrigoRegion(),
-                createRegion(input->getWidth(), input->getHeight(), 1),
-                0, 0,
-                data.get()
-        );
-        // Copy data from CPU to GL texture
-        glGenTextures(1, &textureID);
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, input->getWidth(), input->getHeight(), 0, GL_RGBA, GL_FLOAT, data.get());
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glFinish();
-        //}
+            queue.finish(); // This is needed, otherwise seg fault can occur when doing GL stuff with this texture
+        } else {
+            // Copy data from CL image to CPU
+            auto data = make_uninitialized_unique<float[]>(input->getWidth() * input->getHeight() * 4);
+            queue.finish();
+            queue.enqueueReadImage(
+                    image,
+                    CL_TRUE,
+                    createOrigoRegion(),
+                    createRegion(input->getWidth(), input->getHeight(), 1),
+                    0, 0,
+                    data.get()
+            );
+            // Copy data from CPU to GL texture
+            glGenTextures(1, &textureID);
+            glBindTexture(GL_TEXTURE_2D, textureID);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, input->getWidth(), input->getHeight(), 0, GL_RGBA, GL_FLOAT, data.get());
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glFinish();
+        }
 
         mTexturesToRender[inputNr] = textureID;
         mImageUsed[inputNr] = input;
@@ -185,9 +183,13 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, boo
 }
 
 void ImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D) {
+
     for(auto it : mDataToRender) {
         Image::pointer input = std::static_pointer_cast<Image>(it.second);
         uint inputNr = it.first;
+        // Delete old VAO
+        if(mVAO.count(inputNr) > 0)
+            glDeleteVertexArrays(1, &mVAO[inputNr]);
         // Create VAO
         uint VAO_ID;
         glGenVertexArrays(1, &VAO_ID);
@@ -205,8 +207,12 @@ void ImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingM
                 width, 0.0f, 0.0f, 1.0f, 1.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
         };
+        // Delete old VBO
+        if(mVBO.count(inputNr) > 0)
+            glDeleteBuffers(1, &mVBO[inputNr]);
         uint VBO;
         glGenBuffers(1, &VBO);
+        mVBO[inputNr] = VBO;
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
@@ -214,9 +220,13 @@ void ImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingM
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
 
+        // Delete old EBO
+        if(mEBO.count(inputNr) > 0)
+            glDeleteBuffers(1, &mEBO[inputNr]);
         // Create EBO
         uint EBO;
         glGenBuffers(1, &EBO);
+        mEBO[inputNr] = EBO;
         uint indices[] = {  // note that we start from 0!
                 0, 1, 3,   // first triangle
                 1, 2, 3    // second triangle
@@ -224,8 +234,9 @@ void ImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingM
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
         glBindVertexArray(0);
-    }
 
+    }
+    
     activateShader();
 
     // This is the actual rendering

@@ -11,12 +11,14 @@ ImageToImageNetwork::ImageToImageNetwork() {
 }
 
 void ImageToImageNetwork::execute() {
-
+    // TODO fix
     /*
-    NeuralNetwork::execute();
+    auto input = processInputData();
+    auto result = executeNetwork(input);
+    Tensor::pointer tensor = result[0].second;
+    TensorAccess::pointer access = tensor->getAccess(ACCESS_READ);
 
-    tensorflow::Tensor tensor = getNetworkOutput();
-    Eigen::Tensor<float, 4, 1> tensor_mapped = tensor.tensor<float, 4>();
+    auto tensor_mapped = access->getData<4>();
     int outputHeight = tensor_mapped.dimension(1);
     int outputWidth = tensor_mapped.dimension(2);
 
@@ -33,14 +35,13 @@ void ImageToImageNetwork::execute() {
 
     ImageResizer::pointer resizer = ImageResizer::New();
     resizer->setInputData(output);
-    resizer->setWidth(mImages.back()->getWidth());
-    resizer->setHeight(mImages.back()->getHeight());
+    resizer->setSize(mInputImages.begin()->second[0]->getSize().cast<int>());
     resizer->setPreserveAspectRatio(mPreserveAspectRatio);
     DataPort::pointer port = resizer->getOutputPort();
     resizer->update(0);
 
     Image::pointer resizedOutput = port->getNextFrame<Image>();
-    resizedOutput->setSpacing(mImages.back()->getSpacing());
+    resizedOutput->setSpacing(mInputImages.begin()->second[0]->getSpacing());
     addOutputData(0, resizedOutput);
      */
 }

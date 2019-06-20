@@ -3,6 +3,7 @@
 #include <FAST/Streamers/IGTLinkStreamer.hpp>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 #include <FAST/Algorithms/UltrasoundImageEnhancement/UltrasoundImageEnhancement.hpp>
+#include <FAST/Algorithms/ImageResizer/ImageResizer.hpp>
 #include <QHBoxLayout>
 
 namespace fast {
@@ -16,8 +17,13 @@ GUI::GUI() {
     enableMaximized();
     setTitle("FAST Neural Network Despeckling");
 
+    auto resizer = ImageResizer::New();
+    resizer->setInputConnection(streamer->getOutputPort());
+    resizer->setWidth(512);
+    resizer->setHeight(512);
+
     UltrasoundImageEnhancement::pointer enhancer1 = UltrasoundImageEnhancement::New();
-    enhancer1->setInputConnection(streamer->getOutputPort());
+    enhancer1->setInputConnection(resizer->getOutputPort());
     ImageRenderer::pointer renderer1 = ImageRenderer::New();
     renderer1->addInputConnection(enhancer1->getOutputPort());
     View* viewOrig = createView();
@@ -28,7 +34,7 @@ GUI::GUI() {
 
     ImageToImageNetwork::pointer network = ImageToImageNetwork::New();
     network->load("/home/smistad/Downloads/filname_test.pb");
-    network->addOutputNode(0, "activation_8/Tanh:0", NeuralNetwork::NodeType::TENSOR);
+    network->addOutputNode(0, "activation_8/Tanh:0", NodeType::TENSOR);
     network->setSignedInputNormalization(true);
     network->setScaleFactor(1.0f/255.0f);
     network->setInputConnection(streamer->getOutputPort());

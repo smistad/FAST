@@ -28,13 +28,12 @@ set(MODULES_TO_EXCLUDE
         -skip qtquick1
         -skip qtquickcontrols
         -skip qtquickcontrols2
-	-skip qtremoteobjects
+        -skip qtremoteobjects
         -skip qtrepotools
         -skip qtscript
         -skip qtscxml
         -skip qtsensors
         -skip qtserialbus
-        -skip qtserialport
         -skip qtspeech
         -skip qtsvg
         -skip qtsystems
@@ -61,7 +60,7 @@ if(WIN32)
             -opensource;
             -confirm-license;
             -release;
-            -no-compile-examples;           
+            -no-compile-examples;
             -no-openssl;
             -no-libproxy;
             -no-qml-debug;
@@ -103,7 +102,7 @@ else()
             -opensource;
             -confirm-license;
             -release;
-            -no-compile-examples;         
+            -no-compile-examples;
             -no-openssl;
             -no-libproxy;
             -no-qml-debug;
@@ -114,6 +113,8 @@ else()
             -qt-libpng;
             -qt-libjpeg;
             -qt-freetype;
+            -qt-harfbuzz;
+            -qt-pcre;
             -qt-xcb;
             -qt-xkbcommon;
             -no-directfb;
@@ -145,6 +146,7 @@ if(WIN32)
     set(Qt5OpenGL_LIBRARY Qt5OpenGL.lib)
     set(Qt5Multimedia_LIBRARY Qt5Multimedia.lib)
     set(Qt5MultimediaWidgets_LIBRARY Qt5MultimediaWidgets.lib)
+    set(Qt5SerialPort_LIBRARY Qt5SerialPort.lib)
 else()
     set(Qt5Gui_LIBRARY ${CMAKE_SHARED_LIBRARY_PREFIX}Qt5Gui${CMAKE_SHARED_LIBRARY_SUFFIX})
     set(Qt5Core_LIBRARY ${CMAKE_SHARED_LIBRARY_PREFIX}Qt5Core${CMAKE_SHARED_LIBRARY_SUFFIX})
@@ -152,5 +154,6 @@ else()
     set(Qt5OpenGL_LIBRARY ${CMAKE_SHARED_LIBRARY_PREFIX}Qt5OpenGL${CMAKE_SHARED_LIBRARY_SUFFIX})
     set(Qt5Multimedia_LIBRARY ${CMAKE_SHARED_LIBRARY_PREFIX}Qt5Multimedia${CMAKE_SHARED_LIBRARY_SUFFIX})
     set(Qt5MultimediaWidgets_LIBRARY ${CMAKE_SHARED_LIBRARY_PREFIX}Qt5MultimediaWidgets${CMAKE_SHARED_LIBRARY_SUFFIX})
+    set(Qt5SerialPort_LIBRARY ${CMAKE_SHARED_LIBRARY_PREFIX}Qt5SerialPort${CMAKE_SHARED_LIBRARY_SUFFIX})
 endif()
 list(APPEND FAST_EXTERNAL_DEPENDENCIES qt5)

@@ -209,13 +209,17 @@ class FAST_EXPORT  Image : public SpatialDataObject {
 
         ~Image();
 
-        uint getWidth() const;
-        uint getHeight() const;
-        uint getDepth() const;
+        int getWidth() const;
+        int getHeight() const;
+        int getDepth() const;
+        /**
+         * @return the number of pixels/voxels width*height*depth
+         */
+        int getNrOfVoxels() const;
         Vector3ui getSize() const;
         uchar getDimensions() const;
         DataType getDataType() const;
-        uint getNrOfChannels() const;
+        int getNrOfChannels() const;
         Vector3f getSpacing() const;
         void setSpacing(Vector3f spacing);
         void setSpacing(float x, float y, float z);

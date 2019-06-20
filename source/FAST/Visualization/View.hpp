@@ -16,7 +16,7 @@ namespace fast {
 
 class ComputationThread;
 
-class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
+class FAST_EXPORT  View : public QGLWidget, public ProcessObject, protected QOpenGLFunctions_3_3_Core {
     //FAST_OBJECT(View)
     Q_OBJECT
     public:
@@ -51,17 +51,12 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
 		Matrix4f getViewMatrix() const;
 		Matrix4f getPerspectiveMatrix() const;
     private:
-
+        uint m_FBO = 0;
+        uint m_textureColor = 0;
+        uint m_textureDepth = 0;
 		std::vector<Renderer::pointer> mNonVolumeRenderers;
 		std::vector<Renderer::pointer> mVolumeRenderers;
-		bool NonVolumesTurn;
-		GLuint renderedDepthText;
-		GLuint fbo, fbo2, render_buf;
-		GLuint renderedTexture0, renderedTexture1;
 		GLuint programGLSL;
-		void initShader();
-		void getDepthBufferFromGeo();
-		void renderVolumes();
 
         // Camera
         Affine3f m3DViewingTransformation;
@@ -92,7 +87,6 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject {
         int previousX, previousY;
 
 		float mLeft, mRight, mBottom, mTop; // Used for ortho projection
-        float mScale2D;
 		float mCentroidZ;
 
 		StreamingMode mStreamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES;

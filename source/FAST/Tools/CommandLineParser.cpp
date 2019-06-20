@@ -146,6 +146,8 @@ std::string CommandLineParser::get(uint position) const {
 }
 
 bool CommandLineParser::getOption(const std::string &name) const {
+    if(m_variables.count(name) == 0)
+        throw Exception("CommandLineParser: Option " + name + " not found.");
     return m_variables.at(name)->getValue() == "true";
 }
 
@@ -313,13 +315,17 @@ void CommandLineParser::StringVariable::printHelp(int length) {
 }
 
 void CommandLineParser::Choice::setValue(const std::string &value) {
+    if(value.empty())
+        return;
+    bool found = false;
     for(int i = 0; i < choices.size(); ++i) {
         if(choices[i] == value) {
             this->value = value;
+            found = true;
             break;
         }
     }
-    if(this->value.empty())
+    if(!found)
         throw Exception("Choice " + value + " was not valid for variable " + name);
 }
 

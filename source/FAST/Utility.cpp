@@ -576,9 +576,9 @@ std::vector<std::string> split(const std::string input, const std::string& delim
 
 Matrix4f loadPerspectiveMatrix(float fovy, float aspect, float zNear, float zFar) {
 
-    float theta = fovy*0.5;
+    float theta = fovy*0.5f;
     float range = zFar - zNear;
-    float invtan = 1./tan(theta);
+    float invtan = 1.0f/(float)tan(theta);
 
     Matrix4f mProjectionMatrix = Matrix4f::Zero();
     mProjectionMatrix(0,0) = invtan / aspect;
@@ -616,7 +616,7 @@ void createDirectory(std::string path) {
     error = errno;
 #endif
     if (error != 0) {
-        if(error == EEXIST) {
+        if(fileExists(path)) {
             throw ExistException("Unable to create directory at " + path + ": Directory already exists.");
         } else if(error == ENOENT) {
             throw DoesNotExistException("Unable to create directory at " + path + ": Path was not found.");
@@ -710,10 +710,13 @@ std::vector<std::string> getDirectoryList(std::string path, bool getFiles, bool 
 	hFind = FindFirstFile((path + "*").c_str(), &data);
 	if(hFind != INVALID_HANDLE_VALUE) {
 		do {
+			const std::string name = data.cFileName;
+            if (name == "." || name == "..")
+                continue;
             if(getDirectories && data.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY) {
-                list.push_back(data.cFileName);
+                list.push_back(name);
 			} else if(getFiles) {
-                list.push_back(data.cFileName);
+                list.push_back(name);
 			}
 		} while (FindNextFile(hFind, &data));
 		FindClose(hFind);

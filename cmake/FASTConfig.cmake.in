@@ -31,8 +31,20 @@ set(FAST_INCLUDE_DIRS
     ${OPENGL_INCLUDE_DIR}
     ${X11_INCLUDE_DIR}
 )
+set(FAST_BINARY_DIR "${CMAKE_CURRENT_LIST_DIR}/../bin/")
 set(FAST_LIBRARY_DIRS "${CMAKE_CURRENT_LIST_DIR}/../lib/")
-set(FAST_LIBRARIES "@CONF_FAST_LIBRARIES@" ${OpenCL_LIBRARIES} ${OPENGL_LIBRARIES} ${X11_LIBRARIES})
+set(FAST_LIBRARIES 
+	FAST
+	Qt5Core
+	Qt5Widgets
+	Qt5Gui
+	Qt5OpenGL
+	Qt5Multimedia
+	Qt5MultimediaWidgets
+	${OpenCL_LIBRARIES} 
+	${OPENGL_LIBRARIES} 
+	${X11_LIBRARIES}
+)
 set(FAST_USE_FILE "${CMAKE_CURRENT_LIST_DIR}/FASTUse.cmake")
 
 message(STATUS "-- FAST package and dependencies found: ")

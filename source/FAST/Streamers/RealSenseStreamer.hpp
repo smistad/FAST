@@ -6,8 +6,11 @@
 #include <thread>
 #include <stack>
 
+struct rs2_intrinsics;
+
 namespace fast {
 
+class Image;
 class MeshVertex;
 
 /**
@@ -25,15 +28,21 @@ class FAST_EXPORT RealSenseStreamer : public Streamer {
     public:
         void producerStream();
         /**
-         * Set maximum range in meters. All points above this range will be dropped.
+         * Set maximum range in millimeters. All points above this range will be dropped.
          * @param range
          */
         void setMaxRange(float range);
         /**
-         * Set minimum range in meters. All points below this range will be dropped.
+         * Set minimum range in millimeters. All points below this range will be dropped.
          * @param range
          */
         void setMinRange(float range);
+
+        void setMaxWidth(float range);
+        void setMinWidth(float range);
+        void setMaxHeight(float range);
+        void setMinHeight(float range);
+
         bool hasReachedEnd();
         uint getNrOfFrames() const;
         /**
@@ -56,12 +65,21 @@ class FAST_EXPORT RealSenseStreamer : public Streamer {
         bool mStop;
         float mMaxRange = std::numeric_limits<float>::max();
         float mMinRange = 0;
+        float mMaxWidth = std::numeric_limits<float>::max();
+        float mMinWidth = -std::numeric_limits<float>::max();
+        float mMaxHeight = std::numeric_limits<float>::max();
+        float mMinHeight = -std::numeric_limits<float>::max();
+
         uint mNrOfFrames;
 
         std::unique_ptr<std::thread> mThread;
         std::mutex mFirstFrameMutex;
         std::mutex mStopMutex;
         std::condition_variable mFirstFrameCondition;
+
+        rs2_intrinsics* intrinsics;
+        SharedPointer<Image> mDepthImage;
+        SharedPointer<Image> mColorImage;
 };
 
 }

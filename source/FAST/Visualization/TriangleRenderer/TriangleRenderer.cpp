@@ -42,7 +42,7 @@ void TriangleRenderer::setLineSize(int size) {
 
 }
 
-void TriangleRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, bool mode2D) {
+void TriangleRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
     std::lock_guard<std::mutex> lock(mMutex);
 
     if(mWireframe)
@@ -56,9 +56,13 @@ void TriangleRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, 
     for(auto it : mDataToRender) {
         Mesh::pointer surfaceToRender = std::static_pointer_cast<Mesh>(it.second);
 
+        // Delete old VAO
+        if(mVAO.count(it.first) > 0)
+            glDeleteVertexArrays(1, &mVAO[it.first]);
         // Create VAO
         uint VAO_ID;
         glGenVertexArrays(1, &VAO_ID);
+        mVAO[it.first] = VAO_ID;
         glBindVertexArray(VAO_ID);
 
         AffineTransformation::pointer transform;

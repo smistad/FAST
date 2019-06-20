@@ -1,11 +1,11 @@
-## Neural network module
+## TensorFlow module
 
-if(FAST_MODULE_NeuralNetwork)
+if(FAST_MODULE_TensorFlow)
     include(cmake/ExternalTensorflow.cmake)
 
     ## Tensorflow
     #list(APPEND FAST_INCLUDE_DIRS ${Tensorflow_INCLUDE_DIRS})
-    message("-- Neural network module with tensorflow enabled.")
+    message("-- Tensorflow module enabled.")
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
     add_definitions(-DEIGEN_AVOID_STL_ARRAY)
     if(WIN32)
