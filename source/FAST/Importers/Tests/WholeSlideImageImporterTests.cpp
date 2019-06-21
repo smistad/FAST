@@ -7,8 +7,7 @@ using namespace fast;
 
 TEST_CASE("Import whole slide image", "[fast][WholeSlideImageImporter][wsi]") {
     auto importer = WholeSlideImageImporter::New();
-    importer->setFilename("/home/smistad/Downloads/CMU-1.tiff");
-    //importer->update(0);
+    importer->setFilename(Config::getTestDataPath() + "/CMU-1.tiff");
 
     auto renderer = VeryLargeImageRenderer::New();
     renderer->addInputConnection(importer->getOutputPort());

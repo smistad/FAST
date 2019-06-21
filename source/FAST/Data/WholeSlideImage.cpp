@@ -1,5 +1,6 @@
 #include "WholeSlideImage.hpp"
 #ifdef WIN32
+#include <winbase.h>
 #else
 #include <sys/mman.h>
 #endif
@@ -20,7 +21,11 @@ void WholeSlideImage::free(ExecutionDevice::pointer device) {
 void WholeSlideImage::freeAll() {
     for(auto&& item : m_levels) {
         if(item.memoryMapped) {
+#ifdef WIN32
+            UnmapViewOfFile(item.data);
+#else
             munmap(item.data, item.width*item.height*4);
+#endif
         } else {
             delete[] item.data;
         }

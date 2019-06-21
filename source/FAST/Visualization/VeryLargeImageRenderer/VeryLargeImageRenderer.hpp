@@ -6,7 +6,7 @@ namespace fast {
 
 class WholeSlideImage;
 
-class VeryLargeImageRenderer : public Renderer {
+class FAST_EXPORT VeryLargeImageRenderer : public Renderer {
     FAST_OBJECT(VeryLargeImageRenderer)
     public:
         void loadAttributes() override;

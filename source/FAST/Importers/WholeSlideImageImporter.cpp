@@ -6,9 +6,10 @@
 #include "FAST/Data/Image.hpp"
 #include <cctype>
 #include <algorithm>
-#include <openslide.h>
+#include <openslide/openslide.h>
 #include <FAST/Data/WholeSlideImage.hpp>
 #ifdef WIN32
+#include <winbase.h>
 #else
 #include <sys/mman.h>
 #include <fcntl.h>
@@ -25,7 +26,7 @@ void WholeSlideImageImporter::execute() {
     if (mFilename == "")
         throw Exception("No filename was supplied to the WholeSlideImageImporter");
 
-    if(not fileExists(mFilename))
+    if(!fileExists(mFilename))
         throw FileNotFoundException();
 
     enableRuntimeMeasurements();
@@ -48,7 +49,7 @@ void WholeSlideImageImporter::execute() {
 
         const char *pixelSpacingX = openslide_get_property_value(file, OPENSLIDE_PROPERTY_NAME_MPP_X);
         const char *pixelSpacingY = openslide_get_property_value(file, OPENSLIDE_PROPERTY_NAME_MPP_Y);
-        if(pixelSpacingX != nullptr and pixelSpacingY != nullptr)
+        if(pixelSpacingX != nullptr && pixelSpacingY != nullptr)
             reportInfo() << "WSI pixel spacing: " << pixelSpacingX << ", " << pixelSpacingY << " microns per pixel"
                          << reportEnd();
 
@@ -60,14 +61,43 @@ void WholeSlideImageImporter::execute() {
         WholeSlideImageLevel levelData;
         levelData.width = fullWidth;
         levelData.height = fullHeight;
-        float sizeInMB = (fullWidth * fullHeight * 4) / (1024 * 1024);
+        std::size_t bytes = fullWidth * fullHeight * 4;
+        float sizeInMB = bytes / (1024 * 1024);
         std::cout << "Reading " << sizeInMB << " MBs" << std::endl;
         if(sizeInMB < 1000) {
-            levelData.data = new uint8_t[fullWidth * fullHeight * 4];
+            levelData.data = new uint8_t[bytes];
             levelData.memoryMapped = false;
         } else {
             std::cout << "Using memory mapping.." << std::endl;
             uint8_t* data;
+#ifdef WIN32
+            HANDLE hFile = CreateFile(("C:/windows/temp/fast_mmap_" + std::to_string(level) + ".bin").c_str(), 
+                GENERIC_WRITE | GENERIC_READ,FILE_SHARE_READ | FILE_SHARE_WRITE, 
+                NULL, OPEN_ALWAYS, NULL, NULL);
+
+
+            HANDLE hMapFile = CreateFileMappingA(
+                //INVALID_HANDLE_VALUE,    // use paging file, Creating Named Shared Memory
+                hFile,
+                NULL,                    // default security
+                PAGE_READWRITE,          // read/write access
+                bytes >> 32,                       // buffer size (high part of 64 bit nr)
+                bytes,                // buffer size (low part of 64 bit nr)
+                ("fast_mmap_" + std::to_string(level)).c_str());                 // name of mapping object
+
+                if(hMapFile == NULL || hMapFile == INVALID_HANDLE_VALUE) {
+                    throw Exception("Error opening memory mapped file");
+                }
+
+                data = (uint8_t*) MapViewOfFile(hMapFile,   // handle to map object
+                    FILE_MAP_ALL_ACCESS, // read/write permission
+                    0,
+                    0,
+                    bytes);
+            if(data == nullptr) {
+              throw Exception("Failed to create map view of file" + std::to_string(GetLastError()));
+            }
+#else
             int fd = open(("/tmp/fast_mmap_" + std::to_string(level) + ".bin").c_str(), O_RDWR | O_CREAT | O_TRUNC, (mode_t)0600);
             if (fd == -1) {
                 perror("Error opening file for writing");
@@ -97,10 +127,7 @@ void WholeSlideImageImporter::execute() {
                 perror("Error mmapping the file");
                 exit(EXIT_FAILURE);
             }
-            /*
-            if((data = (uint8_t*)mmap64(0, fullWidth*fullHeight*4, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0)) == MAP_FAILED)
-                throw Exception("Error in memory allocation");
-                */
+#endif
             levelData.data = data;
             levelData.memoryMapped = true;
         }
