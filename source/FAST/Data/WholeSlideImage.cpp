@@ -1,4 +1,8 @@
 #include "WholeSlideImage.hpp"
+#ifdef WIN32
+#else
+#include <sys/mman.h>
+#endif
 
 namespace fast {
 
@@ -14,6 +18,13 @@ void WholeSlideImage::free(ExecutionDevice::pointer device) {
 }
 
 void WholeSlideImage::freeAll() {
+    for(auto&& item : m_levels) {
+        if(item.memoryMapped) {
+            munmap(item.data, item.width*item.height*4);
+        } else {
+            delete[] item.data;
+        }
+    }
     m_levels.clear();
 }
 

@@ -7,7 +7,8 @@ namespace fast {
 struct WholeSlideImageLevel {
     int width;
     int height;
-    std::shared_ptr<uchar[]> data;
+    uint8_t* data;
+    bool memoryMapped;
 };
 
 class FAST_EXPORT WholeSlideImage : public SpatialDataObject {

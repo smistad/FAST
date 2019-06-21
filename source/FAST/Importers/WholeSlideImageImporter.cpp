@@ -8,6 +8,16 @@
 #include <algorithm>
 #include <openslide.h>
 #include <FAST/Data/WholeSlideImage.hpp>
+#ifdef WIN32
+#else
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
 
 namespace fast {
 
@@ -29,7 +39,7 @@ void WholeSlideImageImporter::execute() {
 
     std::vector<WholeSlideImageLevel> levelList;
     int levels = openslide_get_level_count(file);
-    for(int level = 5; level >= 2; --level) {
+    for(int level = 5; level >= 0; --level) {
         // Get total size of image
         int64_t fullWidth = -1, fullHeight = -1;
         openslide_get_level_dimensions(file, level, &fullWidth, &fullHeight); // Level 0 is the largest level
@@ -48,12 +58,54 @@ void WholeSlideImageImporter::execute() {
         //fullWidth = 8000;
         //fullHeight = 8000;
         WholeSlideImageLevel levelData;
-        levelData.data = make_uninitialized_unique<uint8_t[]>(fullWidth * fullHeight * 4);
         levelData.width = fullWidth;
         levelData.height = fullHeight;
-        std::cout << "Reading " << (fullWidth * fullHeight * 4) / (1024 * 1024) << " MBs" << std::endl;
+        float sizeInMB = (fullWidth * fullHeight * 4) / (1024 * 1024);
+        std::cout << "Reading " << sizeInMB << " MBs" << std::endl;
+        if(sizeInMB < 1000) {
+            levelData.data = new uint8_t[fullWidth * fullHeight * 4];
+            levelData.memoryMapped = false;
+        } else {
+            std::cout << "Using memory mapping.." << std::endl;
+            uint8_t* data;
+            int fd = open(("/tmp/fast_mmap_" + std::to_string(level) + ".bin").c_str(), O_RDWR | O_CREAT | O_TRUNC, (mode_t)0600);
+            if (fd == -1) {
+                perror("Error opening file for writing");
+                exit(EXIT_FAILURE);
+            }
+
+            /* Stretch the file size to the size of the (mmapped) array of ints
+             */
+            int result = lseek(fd, fullWidth*fullHeight*4-1, SEEK_SET);
+            if (result == -1) {
+                close(fd);
+                perror("Error calling lseek() to 'stretch' the file");
+                exit(EXIT_FAILURE);
+            }
+            result = write(fd, "", 1);
+            if (result != 1) {
+                close(fd);
+                perror("Error writing last byte of the file");
+                exit(EXIT_FAILURE);
+            }
+
+            /* Now the file is ready to be mmapped.
+             */
+            data = (uint8_t*)mmap64(0, fullWidth*fullHeight*4-1, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+            if (data == MAP_FAILED) {
+                close(fd);
+                perror("Error mmapping the file");
+                exit(EXIT_FAILURE);
+            }
+            /*
+            if((data = (uint8_t*)mmap64(0, fullWidth*fullHeight*4, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0)) == MAP_FAILED)
+                throw Exception("Error in memory allocation");
+                */
+            levelData.data = data;
+            levelData.memoryMapped = true;
+        }
         mRuntimeManager->startRegularTimer("test");
-        openslide_read_region(file, (uint32_t *) levelData.data.get(), 0, 0, level, fullWidth, fullHeight);
+        openslide_read_region(file, (uint32_t *) levelData.data, 0, 0, level, fullWidth, fullHeight);
         mRuntimeManager->stopRegularTimer("test");
         reportInfo() << "Done reading data" << reportEnd();
         levelList.push_back(levelData);
