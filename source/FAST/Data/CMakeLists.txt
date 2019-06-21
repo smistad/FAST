@@ -35,3 +35,7 @@ fast_add_python_interfaces(
 	Image.i
     Mesh.i
 )
+
+if(FAST_MODULE_WholeSlideImaging)
+	fast_add_sources(WholeSlideImage.cpp WholeSlideImage.hpp)
+endif()
