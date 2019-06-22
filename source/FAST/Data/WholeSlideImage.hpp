@@ -19,6 +19,7 @@ class FAST_EXPORT WholeSlideImage : public SpatialDataObject {
         std::vector<WholeSlideImageLevel> m_levels;
         void free(ExecutionDevice::pointer device) override;
         void freeAll() override;
+        ~WholeSlideImage();
 };
 
 }

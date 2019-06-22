@@ -35,4 +35,8 @@ void WholeSlideImage::freeAll() {
     m_levels.clear();
 }
 
+WholeSlideImage::~WholeSlideImage() {
+    freeAll();
+}
+
 }
