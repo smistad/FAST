@@ -9,6 +9,7 @@ struct WholeSlideImageLevel {
     int height;
     uint8_t* data;
     bool memoryMapped;
+    void* fileHandle;
 };
 
 class FAST_EXPORT WholeSlideImage : public SpatialDataObject {

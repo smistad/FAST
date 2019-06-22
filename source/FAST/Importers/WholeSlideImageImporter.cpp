@@ -27,25 +27,43 @@ void WholeSlideImageImporter::execute() {
         throw Exception("No filename was supplied to the WholeSlideImageImporter");
 
     if(!fileExists(mFilename))
-        throw FileNotFoundException();
+        throw FileNotFoundException(mFilename);
 
-    enableRuntimeMeasurements();
-    mRuntimeManager->startRegularTimer("open");
     openslide_t* file = openslide_open(mFilename.c_str());
-    mRuntimeManager->stopRegularTimer("open");
     if(file == nullptr) {
         const char * message = openslide_get_error(file);
         throw Exception("Unable to open file " + mFilename + ". OpenSlide error message: " + message);
     }
 
+    auto image = getOutputData<WholeSlideImage>();
+
+    // Read metainformation
+    auto names = openslide_get_property_names(file);
+    int i = 0;
+    while(names[i] != nullptr) {
+        std::string name = names[i];
+        std::string value = openslide_get_property_value(file, names[i]);
+        i++;
+        reportInfo() << "Metadata: " << name << " = " << value << reportEnd();
+        image->setMetadata(name, value);
+    }
+
     std::vector<WholeSlideImageLevel> levelList;
     int levels = openslide_get_level_count(file);
-    for(int level = 5; level >= 0; --level) {
+    reportInfo() << "WSI has " << levels << " levels" << reportEnd();
+    for(int level = levels-1; level >= 0; --level) {
+        reportInfo() << "Processing level " << level << reportEnd();
         // Get total size of image
         int64_t fullWidth = -1, fullHeight = -1;
-        openslide_get_level_dimensions(file, level, &fullWidth, &fullHeight); // Level 0 is the largest level
-        reportInfo() << "WSI has " << levels << " levels" << reportEnd();
-        reportInfo() << "WSI image size: " << fullWidth << ", " << fullHeight << reportEnd();
+        openslide_get_level_dimensions(file, level, &fullWidth, &fullHeight); // Level 0 is the largest level    
+        std::size_t bytes = fullWidth * fullHeight * 4;
+        float sizeInMB = bytes / (1024 * 1024);
+        reportInfo() << "WSI level size: " << fullWidth << ", " << fullHeight << reportEnd();
+        reportInfo() << "WSI level size: " << sizeInMB << " MBs" << reportEnd();
+        if(sizeInMB <= 4) {
+            reportInfo() << "WSI level was less than 4 MB, skipping.." << reportEnd();
+            continue;
+        }
 
         const char *pixelSpacingX = openslide_get_property_value(file, OPENSLIDE_PROPERTY_NAME_MPP_X);
         const char *pixelSpacingY = openslide_get_property_value(file, OPENSLIDE_PROPERTY_NAME_MPP_Y);
@@ -53,28 +71,21 @@ void WholeSlideImageImporter::execute() {
             reportInfo() << "WSI pixel spacing: " << pixelSpacingX << ", " << pixelSpacingY << " microns per pixel"
                          << reportEnd();
 
-        //const char * boundsWidth = openslide_get_property_value(file, OPENSLIDE_PROPERTY_NAME_BOUNDS_WIDTH);
-        //const char * boundsHeight = openslide_get_property_value(file, OPENSLIDE_PROPERTY_NAME_BOUNDS_HEIGHT);
-
-        //fullWidth = 8000;
-        //fullHeight = 8000;
         WholeSlideImageLevel levelData;
         levelData.width = fullWidth;
         levelData.height = fullHeight;
-        std::size_t bytes = fullWidth * fullHeight * 4;
-        float sizeInMB = bytes / (1024 * 1024);
-        std::cout << "Reading " << sizeInMB << " MBs" << std::endl;
+
         if(sizeInMB < 1000) {
             levelData.data = new uint8_t[bytes];
             levelData.memoryMapped = false;
         } else {
-            std::cout << "Using memory mapping.." << std::endl;
+            reportInfo() << "Using memory mapping.." << reportEnd();
             uint8_t* data;
 #ifdef WIN32
             HANDLE hFile = CreateFile(("C:/windows/temp/fast_mmap_" + std::to_string(level) + ".bin").c_str(), 
                 GENERIC_WRITE | GENERIC_READ,FILE_SHARE_READ | FILE_SHARE_WRITE, 
                 NULL, OPEN_ALWAYS, NULL, NULL);
-
+            levelData.fileHandle = hFile;
 
             HANDLE hMapFile = CreateFileMappingA(
                 //INVALID_HANDLE_VALUE,    // use paging file, Creating Named Shared Memory
@@ -127,22 +138,18 @@ void WholeSlideImageImporter::execute() {
                 perror("Error mmapping the file");
                 exit(EXIT_FAILURE);
             }
+            levelData.fileHandle = (void*)fd;
 #endif
             levelData.data = data;
             levelData.memoryMapped = true;
         }
-        mRuntimeManager->startRegularTimer("test");
         openslide_read_region(file, (uint32_t *) levelData.data, 0, 0, level, fullWidth, fullHeight);
-        mRuntimeManager->stopRegularTimer("test");
-        reportInfo() << "Done reading data" << reportEnd();
+        reportInfo() << "Done reading data for level " << level << reportEnd();
         levelList.push_back(levelData);
     }
 
-    mRuntimeManager->printAll();
-    // Create image
-    auto image = getOutputData<WholeSlideImage>();
     image->create(levelList);
-
+    
     openslide_close(file);
 }
 

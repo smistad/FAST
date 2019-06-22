@@ -23,8 +23,10 @@ void WholeSlideImage::freeAll() {
         if(item.memoryMapped) {
 #ifdef WIN32
             UnmapViewOfFile(item.data);
+            CloseHandle(item.fileHandle);
 #else
             munmap(item.data, item.width*item.height*4);
+            close(item.fileHandle);
 #endif
         } else {
             delete[] item.data;
