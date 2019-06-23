@@ -138,7 +138,7 @@ void WholeSlideImageImporter::execute() {
                 perror("Error mmapping the file");
                 exit(EXIT_FAILURE);
             }
-            levelData.fileHandle = (void*)fd;
+            levelData.fileHandle = fd;
 #endif
             levelData.data = data;
             levelData.memoryMapped = true;
