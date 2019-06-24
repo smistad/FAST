@@ -25,8 +25,10 @@ class FAST_EXPORT WholeSlideImage : public SpatialDataObject {
     FAST_OBJECT(WholeSlideImage)
     public:
         void create(openslide_t* fileHandle, std::vector<WholeSlideImageLevel> levels);
-        WholeSlideImageTile getTile(std::string tile);
-        WholeSlideImageTile getTile(int level, int tileX, int tileY);
+        WholeSlideImageTile getTile(std::string tile, bool okWithLowRes);
+        WholeSlideImageTile getTile(int level, int tileX, int tileY, bool okWithLowRes);
+        WholeSlideImageTile getTileNormalized(int level, float normalizedPositionX, float normalizedPositionY);
+        void cacheTiles(int level, float normalizedPositionX, float normalizedPositionY);
         int getNrOfLevels();
         int getLevelWidth(uint level);
         int getLevelHeight(uint level);
@@ -40,6 +42,7 @@ class FAST_EXPORT WholeSlideImage : public SpatialDataObject {
         std::vector<WholeSlideImageLevel> m_levels;
 
         std::unordered_map<std::string, WholeSlideImageTile> m_tileCache;
+        std::mutex m_cacheMutex;
 
         uint64_t m_tileCacheMemoryUsage = 0;
 

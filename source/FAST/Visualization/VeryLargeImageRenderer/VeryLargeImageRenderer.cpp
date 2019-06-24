@@ -145,7 +145,7 @@ void VeryLargeImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMa
 
             //std::cout << "Tile " << tile_x << " " << tile_y << " visible " << std::endl;
 
-            auto tile = input->getTile(levelToUse, tile_x, tile_y);
+            auto tile = input->getTile(levelToUse, tile_x, tile_y, true);
             if(mTexturesToRender.count(tileString) == 0) {
                 std::cout << "Creating texture for tile " << tile_x << " " << tile_y << " " << std::endl;
 
