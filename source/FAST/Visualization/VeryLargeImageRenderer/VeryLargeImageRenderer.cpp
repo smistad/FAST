@@ -69,23 +69,23 @@ void VeryLargeImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMa
     Vector4f top_right = (perspectiveMatrix*viewingMatrix).inverse()*Vector4f(1,1,0,1);
     float width = top_right.x() - bottom_left.x();
     float height = std::fabs(top_right.y() - bottom_left.y());
-    std::cout << "Viewing coordinates:" << bottom_left.transpose() << " " <<  top_right.transpose() << std::endl;
-    std::cout << "Current Size:" << width << " " <<  height << std::endl;
+    //std::cout << "Viewing coordinates:" << bottom_left.transpose() << " " <<  top_right.transpose() << std::endl;
+    //std::cout << "Current Size:" << width << " " <<  height << std::endl;
     int offset_x = bottom_left.x();
     int offset_y = top_right.y();
-    std::cout << "Offset x:" << offset_x << std::endl;
-    std::cout << "Offset y:" << offset_y << std::endl;
+    //std::cout << "Offset x:" << offset_x << std::endl;
+    //std::cout << "Offset y:" << offset_y << std::endl;
 
     auto input = std::static_pointer_cast<WholeSlideImage>(mDataToRender[0]);
     int fullWidth = input->getFullWidth();
     int fullHeight = input->getFullHeight();
-    std::cout << "scaling: " << fullWidth/width << std::endl;
+    //std::cout << "scaling: " << fullWidth/width << std::endl;
     int levelToUse = (int)round(std::log(fullWidth/width))+1;
     if(width > fullWidth)
         levelToUse = 0;
     if(levelToUse >= input->getNrOfLevels())
         levelToUse = input->getNrOfLevels()-1;
-    std::cout << "Level to use: " << levelToUse << std::endl;
+    //std::cout << "Level to use: " << levelToUse << std::endl;
     int levelWidth = input->getLevelWidth(levelToUse);
     int levelHeight = input->getLevelHeight(levelToUse);
 
@@ -104,7 +104,7 @@ void VeryLargeImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMa
     mCurrentLevel = levelToUse;
     mCurrentTileScale = (float)fullWidth/levelWidth;
     int mTiles = levelToUse*levelToUse*levelToUse + 10;
-    std::cout << "Tiles to use: " << mTiles << std::endl;
+    //std::cout << "Tiles to use: " << mTiles << std::endl;
 
     activateShader();
 
@@ -171,7 +171,7 @@ void VeryLargeImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMa
                 }
             }
             if(mTexturesToRender.count(tileString) == 0) {
-                std::cout << "Creating texture for tile " << tile_x << " " << tile_y << " " << std::endl;
+                //std::cout << "Creating texture for tile " << tile_x << " " << tile_y << " " << std::endl;
 
                 uchar* tileData;
                 if(mTileNotFinished.count(tileString)) {
