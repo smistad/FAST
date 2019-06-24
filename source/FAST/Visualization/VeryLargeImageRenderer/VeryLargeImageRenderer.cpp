@@ -80,31 +80,19 @@ void VeryLargeImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMa
     int fullWidth = input->getFullWidth();
     int fullHeight = input->getFullHeight();
     //std::cout << "scaling: " << fullWidth/width << std::endl;
-    int levelToUse = (int)round(std::log(fullWidth/width))+1;
+    int levelToUse = input->getNrOfLevels() - (int)round(std::log(fullWidth/width)) - 2;
     if(width > fullWidth)
-        levelToUse = 0;
-    if(levelToUse >= input->getNrOfLevels())
         levelToUse = input->getNrOfLevels()-1;
-    //std::cout << "Level to use: " << levelToUse << std::endl;
-    int levelWidth = input->getLevelWidth(levelToUse);
-    int levelHeight = input->getLevelHeight(levelToUse);
+    if(levelToUse < 0)
+        levelToUse = 0;
+    std::cout << "Level to use: " << levelToUse << std::endl;
+    const int levelWidth = input->getLevelWidth(levelToUse);
+    const int levelHeight = input->getLevelHeight(levelToUse);
 
-    if(mCurrentLevel != levelToUse) {
-        // Delete all textures in previous level
-        /*
-        for(int tile_x = 0; tile_x < mTiles; ++tile_x) {
-            for(int tile_y = 0; tile_y < mTiles; ++tile_y) {
-                std::string tileString = std::to_string(mCurrentLevel) + "_" + std::to_string(tile_x) + "_" + std::to_string(tile_y);
-                glDeleteTextures(1, &mTexturesToRender[tileString]);
-                mTexturesToRender.erase(tileString);
-            }
-        }
-         */
-    }
     mCurrentLevel = levelToUse;
     mCurrentTileScale = (float)fullWidth/levelWidth;
-    int mTiles = levelToUse*levelToUse*levelToUse + 10;
-    //std::cout << "Tiles to use: " << mTiles << std::endl;
+    const int mTiles = input->getLevelTiles(mCurrentLevel);
+    std::cout << "Tiles to use: " << mTiles << std::endl;
 
     activateShader();
 
@@ -157,43 +145,9 @@ void VeryLargeImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMa
 
             //std::cout << "Tile " << tile_x << " " << tile_y << " visible " << std::endl;
 
-            auto level = input->tryToGetLevel(levelToUse);
-            if(!level) {
-                mTileNotFinished.insert(tileString);
-            } else {
-                if(mTileNotFinished.count(tileString)) {
-                    mTileNotFinished.erase(tileString);
-                    if(mTexturesToRender.count(tileString) > 0) {
-                        // Delete the old texture
-                        glDeleteTextures(1, &mTexturesToRender[tileString]);
-                        mTexturesToRender.erase(tileString);
-                    }
-                }
-            }
+            auto tile = input->getTile(levelToUse, tile_x, tile_y);
             if(mTexturesToRender.count(tileString) == 0) {
-                //std::cout << "Creating texture for tile " << tile_x << " " << tile_y << " " << std::endl;
-
-                uchar* tileData;
-                if(mTileNotFinished.count(tileString)) {
-                    tileData = new uchar[tile_width * tile_height * 4](); // Black
-                } else {
-                    tileData = new uchar[tile_width * tile_height * 4];
-                    for(int x = 0; x < tile_width; ++x) {
-                        for(int y = 0; y < tile_height; ++y) {
-                            const int index = (tile_offset_x + x + (tile_offset_y + y) * levelWidth) * 4;
-                            /*
-                            if(index < 0 || index > levelWidth*levelHeight*4-1) {
-                                // TODO This should not happen
-                                throw Exception("oh no..");
-                            }
-                             */
-                            tileData[(x + y * tile_width) * 4 + 0] = level->data[index + 0];
-                            tileData[(x + y * tile_width) * 4 + 1] = level->data[index + 1];
-                            tileData[(x + y * tile_width) * 4 + 2] = level->data[index + 2];
-                            tileData[(x + y * tile_width) * 4 + 3] = level->data[index + 3];
-                        }
-                    }
-                }
+                std::cout << "Creating texture for tile " << tile_x << " " << tile_y << " " << std::endl;
 
                 // Copy data from CPU to GL texture
                 GLuint textureID;
@@ -208,15 +162,12 @@ void VeryLargeImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMa
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
 
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tile_width, tile_height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                             tileData);
+                             tile.data.get());
                 glBindTexture(GL_TEXTURE_2D, 0);
                 glFinish();
-                delete[] tileData;
 
                 mTexturesToRender[tileString] = textureID;
             }
-            if(level)
-                level->mutex.unlock();
 
             // Delete old VAO
             if(mVAO.count(tileString) > 0)
