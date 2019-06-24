@@ -19,6 +19,7 @@ class FAST_EXPORT VeryLargeImageRenderer : public Renderer {
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D);
 
         std::unordered_map<std::string, uint> mTexturesToRender;
+        std::unordered_set<std::string> mTileNotFinished;
         std::unordered_map<uint, SharedPointer<WholeSlideImage>> mImageUsed;
         std::unordered_map<std::string, uint> mVAO;
         std::unordered_map<std::string, uint> mVBO;

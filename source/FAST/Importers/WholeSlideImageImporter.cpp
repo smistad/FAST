@@ -19,6 +19,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #endif
+#include <thread>
 
 namespace fast {
 
@@ -48,10 +49,31 @@ void WholeSlideImageImporter::execute() {
         image->setMetadata(name, value);
     }
 
-    std::vector<WholeSlideImageLevel> levelList;
+    std::vector<WholeSlideImageLevel::pointer> levelList;
     int levels = openslide_get_level_count(file);
     reportInfo() << "WSI has " << levels << " levels" << reportEnd();
+
+    // Find out how many levels to skip
+    int startLevel = levels-1;
     for(int level = levels-1; level >= 0; --level) {
+        reportInfo() << "Checking level " << level << reportEnd();
+        // Get total size of image
+        int64_t fullWidth = -1, fullHeight = -1;
+        openslide_get_level_dimensions(file, level, &fullWidth, &fullHeight); // Level 0 is the largest level
+        std::size_t bytes = fullWidth * fullHeight * 4;
+        float sizeInMB = bytes / (1024 * 1024);
+        if(sizeInMB > 4) {
+            startLevel = level;
+            break;
+        } else {
+            reportInfo() << "WSI level was less than 4 MB, skipping.." << reportEnd();
+        }
+    }
+
+    std::vector<std::thread> workerThreads;
+    std::atomic_int counter;
+    counter = startLevel;
+    for(int level = startLevel; level >= 0; --level) {
         reportInfo() << "Processing level " << level << reportEnd();
         // Get total size of image
         int64_t fullWidth = -1, fullHeight = -1;
@@ -71,30 +93,35 @@ void WholeSlideImageImporter::execute() {
             reportInfo() << "WSI pixel spacing: " << pixelSpacingX << ", " << pixelSpacingY << " microns per pixel"
                          << reportEnd();
 
-        WholeSlideImageLevel levelData;
-        levelData.width = fullWidth;
-        levelData.height = fullHeight;
+        auto levelData = WholeSlideImageLevel::New();
+        levelData->width = fullWidth;
+        levelData->height = fullHeight;
+        levelData->mutex.lock();
+        levelList.push_back(levelData);
 
-        if(sizeInMB < 1000) {
-            levelData.data = new uint8_t[bytes];
-            levelData.memoryMapped = false;
-        } else {
-            reportInfo() << "Using memory mapping.." << reportEnd();
-            uint8_t* data;
-#ifdef WIN32
-            HANDLE hFile = CreateFile(("C:/windows/temp/fast_mmap_" + std::to_string(level) + ".bin").c_str(), 
-                GENERIC_WRITE | GENERIC_READ,FILE_SHARE_READ | FILE_SHARE_WRITE, 
-                NULL, OPEN_ALWAYS, NULL, NULL);
-            levelData.fileHandle = hFile;
+        workerThreads.push_back(
+        std::thread([&counter, file, level, sizeInMB, bytes, levelData, this]() {
+            std::cout << "thread function " << level << std::endl;
+            if(sizeInMB < 1000) {
+                levelData->data = new uint8_t[bytes];
+                levelData->memoryMapped = false;
+            } else {
+                reportInfo() << "Using memory mapping.." << reportEnd();
+                uint8_t* data;
+    #ifdef WIN32
+                HANDLE hFile = CreateFile(("C:/windows/temp/fast_mmap_" + std::to_string(level) + ".bin").c_str(),
+                    GENERIC_WRITE | GENERIC_READ,FILE_SHARE_READ | FILE_SHARE_WRITE,
+                    NULL, OPEN_ALWAYS, NULL, NULL);
+                levelData->fileHandle = hFile;
 
-            HANDLE hMapFile = CreateFileMappingA(
-                //INVALID_HANDLE_VALUE,    // use paging file, Creating Named Shared Memory
-                hFile,
-                NULL,                    // default security
-                PAGE_READWRITE,          // read/write access
-                bytes >> 32,                       // buffer size (high part of 64 bit nr)
-                bytes,                // buffer size (low part of 64 bit nr)
-                ("fast_mmap_" + std::to_string(level)).c_str());                 // name of mapping object
+                HANDLE hMapFile = CreateFileMappingA(
+                    //INVALID_HANDLE_VALUE,    // use paging file, Creating Named Shared Memory
+                    hFile,
+                    NULL,                    // default security
+                    PAGE_READWRITE,          // read/write access
+                    bytes >> 32,                       // buffer size (high part of 64 bit nr)
+                    bytes,                // buffer size (low part of 64 bit nr)
+                    ("fast_mmap_" + std::to_string(level)).c_str());                 // name of mapping object
 
                 if(hMapFile == NULL || hMapFile == INVALID_HANDLE_VALUE) {
                     throw Exception("Error opening memory mapped file");
@@ -105,52 +132,61 @@ void WholeSlideImageImporter::execute() {
                     0,
                     0,
                     bytes);
-            if(data == nullptr) {
-              throw Exception("Failed to create map view of file" + std::to_string(GetLastError()));
+                if(data == nullptr) {
+                  throw Exception("Failed to create map view of file" + std::to_string(GetLastError()));
+                }
+    #else
+                int fd = open(("/tmp/fast_mmap_" + std::to_string(level) + ".bin").c_str(), O_RDWR | O_CREAT | O_TRUNC, (mode_t)0600);
+                if (fd == -1) {
+                    perror("Error opening file for writing");
+                    exit(EXIT_FAILURE);
+                }
+
+                // Stretch the file size to the size of the (mmapped) array of ints
+                int result = lseek(fd, bytes-1, SEEK_SET);
+                if (result == -1) {
+                    close(fd);
+                    perror("Error calling lseek() to 'stretch' the file");
+                    exit(EXIT_FAILURE);
+                }
+                result = write(fd, "", 1);
+                if (result != 1) {
+                    close(fd);
+                    perror("Error writing last byte of the file");
+                    exit(EXIT_FAILURE);
+                }
+
+                // Now the file is ready to be mmapped.
+                data = (uint8_t*)mmap64(0, bytes-1, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+                if (data == MAP_FAILED) {
+                    close(fd);
+                    perror("Error mmapping the file");
+                    exit(EXIT_FAILURE);
+                }
+                levelData->fileHandle = fd;
+    #endif
+                levelData->data = data;
+                levelData->memoryMapped = true;
             }
-#else
-            int fd = open(("/tmp/fast_mmap_" + std::to_string(level) + ".bin").c_str(), O_RDWR | O_CREAT | O_TRUNC, (mode_t)0600);
-            if (fd == -1) {
-                perror("Error opening file for writing");
-                exit(EXIT_FAILURE);
+            openslide_read_region(file, (uint32_t *) levelData->data, 0, 0, level, levelData->width, levelData->height);
+            reportInfo() << "Done reading data for level " << level << reportEnd();
+
+            levelData->mutex.unlock();
+            counter--;
+            std::cout << "Counter: " << counter << std::endl;
+            if(counter == 0) {
+                reportInfo() << "All threads finished processing. Closing openslide file.." << reportEnd();
+                openslide_close(file);
             }
 
-            /* Stretch the file size to the size of the (mmapped) array of ints
-             */
-            int result = lseek(fd, fullWidth*fullHeight*4-1, SEEK_SET);
-            if (result == -1) {
-                close(fd);
-                perror("Error calling lseek() to 'stretch' the file");
-                exit(EXIT_FAILURE);
-            }
-            result = write(fd, "", 1);
-            if (result != 1) {
-                close(fd);
-                perror("Error writing last byte of the file");
-                exit(EXIT_FAILURE);
-            }
-
-            /* Now the file is ready to be mmapped.
-             */
-            data = (uint8_t*)mmap64(0, fullWidth*fullHeight*4-1, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-            if (data == MAP_FAILED) {
-                close(fd);
-                perror("Error mmapping the file");
-                exit(EXIT_FAILURE);
-            }
-            levelData.fileHandle = fd;
-#endif
-            levelData.data = data;
-            levelData.memoryMapped = true;
-        }
-        openslide_read_region(file, (uint32_t *) levelData.data, 0, 0, level, fullWidth, fullHeight);
-        reportInfo() << "Done reading data for level " << level << reportEnd();
-        levelList.push_back(levelData);
+        }));
+        //thread.detach();
     }
 
     image->create(levelList);
-    
-    openslide_close(file);
+    for(auto& thread : workerThreads) {
+        thread.detach();
+    }
 }
 
 WholeSlideImageImporter::WholeSlideImageImporter() {
