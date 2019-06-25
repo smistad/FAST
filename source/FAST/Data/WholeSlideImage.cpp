@@ -1,6 +1,7 @@
 #include "WholeSlideImage.hpp"
 #include <openslide/openslide.h>
 #include <FAST/Utility.hpp>
+#include <FAST/Data/Image.hpp>
 
 namespace fast {
 
@@ -10,7 +11,6 @@ void WholeSlideImage::create(openslide_t *fileHandle, std::vector<WholeSlideImag
     for(int i = 0; i < m_levels.size(); ++i) {
         int x = m_levels.size() - i - 1;
         m_levels[i].tiles = x*x*x + 10;
-        std::cout << "Level tiles " << i << " " << m_levels[i].tiles << std::endl;
     }
     mBoundingBox = BoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
 }
@@ -19,16 +19,16 @@ int WholeSlideImage::getNrOfLevels() {
     return m_levels.size();
 }
 
-int WholeSlideImage::getLevelWidth(uint level) {
-    return m_levels[level].width;
+int WholeSlideImage::getLevelWidth(int level) {
+    return m_levels.at(level).width;
 }
 
-int WholeSlideImage::getLevelHeight(uint level) {
-    return m_levels[level].height;
+int WholeSlideImage::getLevelHeight(int level) {
+    return m_levels.at(level).height;
 }
 
-int WholeSlideImage::getLevelTiles(uint level) {
-    return m_levels[level].tiles;
+int WholeSlideImage::getLevelTiles(int level) {
+    return m_levels.at(level).tiles;
 }
 
 int WholeSlideImage::getFullWidth() {
@@ -99,6 +99,29 @@ WholeSlideImageTile WholeSlideImage::getTile(int level, int tile_x, int tile_y) 
     m_tileCache[tileStr] = tile;
 
     return tile;
+}
+
+SharedPointer<Image> WholeSlideImage::getLevelAsImage(int level) {
+    if(level < 0 || level >= getNrOfLevels())
+        throw Exception("Incorrect level given to getLevelAsImage" + std::to_string(level));
+
+    int width = getLevelWidth(level);
+    int height = getLevelWidth(level);
+    if(width > 16384 || height > 16384)
+        throw Exception("Image level is too large to convert into a FAST image");
+
+    auto image = Image::New();
+    auto data = make_uninitialized_unique<uchar>(width*height*4);
+    openslide_read_region(m_fileHandle, (uint32_t *)data.get(), 0, 0, level, width, height);
+    image->create(width, height, TYPE_UINT8, 4, std::move(data));
+    image->setSpacing(Vector3f(
+            (float)getFullWidth() / width,
+            (float)getFullHeight() / height,
+            1.0f
+    ));
+    SceneGraph::setParentNode(image, std::dynamic_pointer_cast<SpatialDataObject>(mPtr.lock()));
+
+    return image;
 }
 
 }

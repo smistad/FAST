@@ -7,6 +7,8 @@ typedef struct _openslide openslide_t;
 
 namespace fast {
 
+class Image;
+
 struct WholeSlideImageTile {
     std::shared_ptr<uchar[]> data;
     int width;
@@ -28,11 +30,12 @@ class FAST_EXPORT WholeSlideImage : public SpatialDataObject {
         WholeSlideImageTile getTile(std::string tile);
         WholeSlideImageTile getTile(int level, int tileX, int tileY);
         int getNrOfLevels();
-        int getLevelWidth(uint level);
-        int getLevelHeight(uint level);
-        int getLevelTiles(uint level);
+        int getLevelWidth(int level);
+        int getLevelHeight(int level);
+        int getLevelTiles(int level);
         int getFullWidth();
         int getFullHeight();
+        SharedPointer<Image> getLevelAsImage(int level);
         void free(ExecutionDevice::pointer device) override;
         void freeAll() override;
         ~WholeSlideImage();
