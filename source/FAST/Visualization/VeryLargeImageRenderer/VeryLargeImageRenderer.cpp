@@ -161,10 +161,9 @@ void VeryLargeImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMa
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
 
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tile_width, tile_height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                             tile.data.get());
+                // WSI data from openslide is stored as ARGB, need to handle this here: BGRA and reverse
+                glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA8, tile_width, tile_height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, tile.data.get());
                 glBindTexture(GL_TEXTURE_2D, 0);
-                glFinish();
 
                 mTexturesToRender[tileString] = textureID;
             }
