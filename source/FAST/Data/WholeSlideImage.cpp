@@ -2,6 +2,7 @@
 #include <openslide/openslide.h>
 #include <FAST/Utility.hpp>
 #include <FAST/Data/Image.hpp>
+#include <FAST/Algorithms/ImageChannelConverter/ImageChannelConverter.hpp>
 
 namespace fast {
 
@@ -106,12 +107,12 @@ SharedPointer<Image> WholeSlideImage::getLevelAsImage(int level) {
         throw Exception("Incorrect level given to getLevelAsImage" + std::to_string(level));
 
     int width = getLevelWidth(level);
-    int height = getLevelWidth(level);
+    int height = getLevelHeight(level);
     if(width > 16384 || height > 16384)
         throw Exception("Image level is too large to convert into a FAST image");
 
     auto image = Image::New();
-    auto data = make_uninitialized_unique<uchar>(width*height*4);
+    auto data = make_uninitialized_unique<uchar[]>(width*height*4);
     openslide_read_region(m_fileHandle, (uint32_t *)data.get(), 0, 0, level, width, height);
     image->create(width, height, TYPE_UINT8, 4, std::move(data));
     image->setSpacing(Vector3f(
@@ -121,7 +122,48 @@ SharedPointer<Image> WholeSlideImage::getLevelAsImage(int level) {
     ));
     SceneGraph::setParentNode(image, std::dynamic_pointer_cast<SpatialDataObject>(mPtr.lock()));
 
-    return image;
+    // Data is stored as BGRA, need to delete alpha channel and reverse it
+    auto channelConverter = ImageChannelConverter::New();
+    channelConverter->setChannelsToRemove(false, false, false, true);
+    channelConverter->setReverseChannels(true);
+    channelConverter->setInputData(image);
+    auto port = channelConverter->getOutputPort();
+    channelConverter->update(0);
+
+    return port->getNextFrame<Image>();
+}
+
+SharedPointer<Image> WholeSlideImage::getTileAsImage(int level, int offsetX, int offsetY, int width, int height) {
+    if(width > 16384 || height > 16384)
+        throw Exception("Image level is too large to convert into a FAST image");
+
+    if(offsetX < 0 || offsetY < 0 || width <= 0 || height <= 0)
+        throw Exception("Offset and size must be positive");
+
+    if(offsetX + width >= getLevelWidth(level) || offsetY + height >= getLevelHeight(level))
+        throw Exception("offset + size exceeds level size");
+
+    auto image = Image::New();
+    auto data = make_uninitialized_unique<uchar[]>(width*height*4);
+    openslide_read_region(m_fileHandle, (uint32_t *)data.get(), offsetX, offsetY, level, width, height);
+    image->create(width, height, TYPE_UINT8, 4, std::move(data));
+    image->setSpacing(Vector3f(
+            (float)getFullWidth() / width,
+            (float)getFullHeight() / height,
+            1.0f
+    ));
+    // TODO Set transformation
+    SceneGraph::setParentNode(image, std::dynamic_pointer_cast<SpatialDataObject>(mPtr.lock()));
+
+    // Data is stored as BGRA, need to delete alpha channel and reverse it
+    auto channelConverter = ImageChannelConverter::New();
+    channelConverter->setChannelsToRemove(false, false, false, true);
+    channelConverter->setReverseChannels(true);
+    channelConverter->setInputData(image);
+    auto port = channelConverter->getOutputPort();
+    channelConverter->update(0);
+
+    return port->getNextFrame<Image>();
 }
 
 }

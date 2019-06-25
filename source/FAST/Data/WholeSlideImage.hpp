@@ -36,6 +36,7 @@ class FAST_EXPORT WholeSlideImage : public SpatialDataObject {
         int getFullWidth();
         int getFullHeight();
         SharedPointer<Image> getLevelAsImage(int level);
+        SharedPointer<Image> getTileAsImage(int level, int offsetX, int offsetY, int width, int height);
         void free(ExecutionDevice::pointer device) override;
         void freeAll() override;
         ~WholeSlideImage();
