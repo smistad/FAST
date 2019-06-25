@@ -1,0 +1,11 @@
+if(FAST_MODULE_WholeSlideImaging)
+fast_add_sources(
+        PatchGenerator.cpp
+        PatchGenerator.hpp
+        #ImageToBatchGenerator.cpp
+        #ImageToBatchGenerator.hpp
+)
+fast_add_test_sources(
+        Tests.cpp
+)
+endif()
