@@ -289,10 +289,9 @@ Tensor::pointer NeuralNetwork::convertImagesToTensor(std::vector<Image::pointer>
         );
 
         // Read data directly into slice
-        device->getCommandQueue().enqueueReadBuffer(buffer, CL_FALSE, 0, sizeof(float) * size,
+        device->getCommandQueue().enqueueReadBuffer(buffer, CL_TRUE, 0, sizeof(float) * size,
                                                     values.get() + i*size);
     }
-    device->getCommandQueue().finish();
 
     auto tensor = Tensor::New();
     tensor->create(std::move(values), shape);

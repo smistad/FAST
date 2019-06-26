@@ -71,7 +71,7 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, flo
             throw Exception("ImageRenderer only supports 2D images. Use ImageSlicer to extract a 2D slice from a 3D image.");
 
         // Check if a texture has already been created for this image
-        if (mTexturesToRender.count(inputNr) > 0 && mImageUsed[inputNr] == input)
+        if (mTexturesToRender.count(inputNr) > 0 && mImageUsed[inputNr] == input && mDataTimestamp[inputNr] == input->getTimestamp())
             continue; // If it has already been created, skip it
 
         // If it has not been created, create the texture
@@ -97,11 +97,17 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, flo
         cl::CommandQueue queue = device->getCommandQueue();
 
         if(mTexturesToRender.count(inputNr) > 0) {
-            // Delete old texture
-            glDeleteTextures(1, &mTexturesToRender[inputNr]);
-            mTexturesToRender.erase(inputNr);
-            glDeleteVertexArrays(1, &mVAO[inputNr]);
-            mVAO.erase(inputNr);
+            // If texture has correct size, we don't need to make a new one
+            int w, h;
+            glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
+            glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
+            //if(w != input->getWidth() && h != input->getHeight()) {
+                // Delete old texture
+                glDeleteTextures(1, &mTexturesToRender[inputNr]);
+                mTexturesToRender.erase(inputNr);
+                glDeleteVertexArrays(1, &mVAO[inputNr]);
+                mVAO.erase(inputNr);
+            //}
         }
 
         cl::Image2D image;
@@ -155,6 +161,7 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, flo
         } else {
             // Copy data from CL image to CPU
             auto data = make_uninitialized_unique<float[]>(input->getWidth() * input->getHeight() * 4);
+            queue.finish();
             queue.enqueueReadImage(
                     image,
                     CL_TRUE,
@@ -175,6 +182,7 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, flo
 
         mTexturesToRender[inputNr] = textureID;
         mImageUsed[inputNr] = input;
+        mDataTimestamp[inputNr] = input->getTimestamp();
     }
 
     drawTextures(perspectiveMatrix, viewingMatrix, mode2D);

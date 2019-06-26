@@ -4,6 +4,7 @@
 #include <QPainter>
 #include <QApplication>
 #include <FAST/Data/Text.hpp>
+#include <QScreen>
 
 namespace fast {
 
@@ -16,7 +17,7 @@ TextRenderer::TextRenderer() {
     createInputPort<Text>(0);
     mStyle = STYLE_NORMAL;
     mPosition = POSITION_CENTER;
-	mFontSize = 18;
+	mFontSize = 28;
 	mColor = Color::Green();
     createStringAttribute("position", "Text position", "Position of text in view (center/bottom_left/bottom_right/top_left/top_right)", "top_left");
     createIntegerAttribute("font_size", "Font size", "Font size", mFontSize);
@@ -80,20 +81,23 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
         Text::access access = input->getAccess(ACCESS_READ);
         std::string text = access->getData();
 
-
+        if(text.empty()) {
+            continue;
+        }
+            
         // Font setup
         QColor color(mColor.getRedValue() * 255, mColor.getGreenValue() * 255, mColor.getBlueValue() * 255, 255);
         QFont font = QApplication::font();
-        font.setPointSize(mFontSize);
+        font.setPixelSize(mFontSize);
         if (mStyle == STYLE_BOLD) {
             font.setBold(true);
         } else if (mStyle == STYLE_ITALIC) {
             font.setItalic(true);
         }
         QFontMetrics metrics(font);
-        const int width = metrics.boundingRect(QString(text.c_str())).width() + 10;
-        const int height = mFontSize + 5;
-
+        const int width = metrics.boundingRect(QString(text.c_str())).width();
+        const int height = metrics.boundingRect(QString(text.c_str())).height();
+        
         // create the QImage and draw txt into it
         QImage textimg(width, height, QImage::Format_RGBA8888);
         textimg.fill(QColor(0, 0, 0, 0));
@@ -168,7 +172,7 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     activateShader();
-    for(auto it : mDataToRender) {
+    for(auto it : mTexturesToRender) {
         const uint inputNr = it.first;
         Affine3f transform = Affine3f::Identity();
 
@@ -222,6 +226,7 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
     }
     glDisable(GL_BLEND);
     deactivateShader();
+    glFinish(); // Fixes random crashes in OpenGL on NVIDIA windows due to some interaction with the line renderer. Suboptimal solution as glFinish is a blocking sync operation.
 }
 
 void TextRenderer::setFontSize(uint fontSize) {
