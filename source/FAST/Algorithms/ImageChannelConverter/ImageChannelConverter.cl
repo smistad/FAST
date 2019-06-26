@@ -62,7 +62,7 @@ __kernel void channelConvert2D(
 __kernel void channelConvert3D(
             __read_only image3d_t input,
             __write_only image3d_t output,
-            __private uchar4 removeChannel,
+            __private uchar4 removeChannelV,
             __private char reverse
     ) {
 
@@ -73,11 +73,13 @@ __kernel void channelConvert3D(
         sign = -1;
     }
 
+    uchar* removeChannel = (uchar*)&removeChannelV;
     const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
     int type = get_image_channel_data_type(input);
     int writePos = 0;
     if(type == CLK_FLOAT) {
-        float4 pixel = read_imagef(input, sampler, pos);
+        float4 tmp = read_imagef(input, sampler, pos);
+        float* pixel = (float*)&tmp;
         float4 result;
         for(int i = 0; i < 4; ++i) {
             if(removeChannel[i] == 0) {
@@ -86,10 +88,11 @@ __kernel void channelConvert3D(
             }
         }
 
-        write_imagef(output, pos, result);
+        write_imagef(output, pos, (float4)(result[0], result[1], result[2], result[3]));
     } else if(type == CLK_UNSIGNED_INT8 || type == CLK_UNSIGNED_INT16) {
-        uint4 pixel = read_imageui(input, sampler, pos);
-        uint4 result;
+        uint4 tmp = read_imageui(input, sampler, pos);
+        uint* pixel = (uint*)&tmp;
+        uint result[4];
         for(int i = 0; i < 4; ++i) {
             if(removeChannel[i] == 0) {
                 result[writePos*sign + offset] = pixel[i];
@@ -97,10 +100,11 @@ __kernel void channelConvert3D(
             }
         }
 
-        write_imageui(output, pos, result);
+        write_imageui(output, pos, (uint4)(result[0], result[1], result[2], result[3]));
     } else {
-        int4 pixel = read_imagei(input, sampler, pos);
-        int4 result;
+        int4 tmp = read_imagei(input, sampler, pos);
+        int* pixel = (int*)&tmp;
+        int result[4];
         for(int i = 0; i < 4; ++i) {
             if(removeChannel[i] == 0) {
                 result[writePos*sign + offset] = pixel[i];
@@ -108,7 +112,7 @@ __kernel void channelConvert3D(
             }
         }
 
-        write_imagei(output, pos, result);
+        write_imagei(output, pos, (int4)(result[0], result[1], result[2], result[3]));
     }
 }
 #else
