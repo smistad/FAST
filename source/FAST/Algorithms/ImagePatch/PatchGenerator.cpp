@@ -33,24 +33,33 @@ void PatchGenerator::stop() {
 }
 
 void PatchGenerator::generateStream() {
-    int patchesX = std::ceil((float)m_inputImage->getLevelWidth(m_level)/m_width);
-    int patchesY = std::ceil((float)m_inputImage->getLevelHeight(m_level)/m_height);
+    const int levelWidth = m_inputImage->getLevelWidth(m_level);
+    const int levelHeight = m_inputImage->getLevelHeight(m_level);
+    const int patchesX = std::ceil((float)levelWidth/m_width);
+    const int patchesY = std::ceil((float)levelHeight/m_height);
 
-    for(int patchX = 0; patchX < patchesX; ++patchX) {
-        for(int patchY = 0; patchY < patchesY; ++patchY) {
-            // TODO out of bounds
+    for(int patchY = 0; patchY < patchesY; ++patchY) {
+        for(int patchX = 0; patchX < patchesX; ++patchX) {
             int patchWidth = m_width;
             if(patchX == patchesX-1)
-                patchWidth = m_inputImage->getLevelWidth(m_level) - patchX*m_width - 1;
+                patchWidth = levelWidth - patchX*m_width - 1;
             int patchHeight = m_height;
             if(patchY == patchesY-1)
-                patchHeight = m_inputImage->getLevelHeight(m_level) - patchY*m_height - 1;
+                patchHeight = levelHeight - patchY*m_height - 1;
             // TODO check if this is final patch
             reportInfo() << "Generating patch " << patchX << " " << patchY << reportEnd();
             auto patch = m_inputImage->getTileAsImage(m_level, patchX*m_width, patchY*m_height, patchWidth, patchHeight);
-            reportInfo() << "Done" << reportEnd();
+
+            // Store some metadata useful for patch stitching
+            patch->setMetadata("original-width", std::to_string(levelWidth));
+            patch->setMetadata("original-height", std::to_string(levelHeight));
+            patch->setMetadata("patchid-x", std::to_string(patchX));
+            patch->setMetadata("patchid-y", std::to_string(patchY));
+            // Target width/height of patches
+            patch->setMetadata("patch-width", std::to_string(m_width));
+            patch->setMetadata("patch-height", std::to_string(m_height));
+
             addOutputData(0, patch);
-            reportInfo() << "Done" << reportEnd();
             if(!m_firstFrameIsInserted) {
                 {
                     std::lock_guard<std::mutex> lock(m_firstFrameMutex);
@@ -100,6 +109,10 @@ void PatchGenerator::setPatchSize(int width, int height) {
 
 bool PatchGenerator::hasReachedEnd() {
     return m_hasReachedEnd;
+}
+
+void PatchGenerator::setPatchLevel(int level) {
+    m_level = level;
 }
 
 }

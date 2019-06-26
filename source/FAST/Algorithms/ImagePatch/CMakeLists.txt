@@ -4,6 +4,8 @@ fast_add_sources(
         PatchGenerator.hpp
         #ImageToBatchGenerator.cpp
         #ImageToBatchGenerator.hpp
+        PatchStitcher.cpp
+        PatchStitcher.hpp
 )
 fast_add_test_sources(
         Tests.cpp

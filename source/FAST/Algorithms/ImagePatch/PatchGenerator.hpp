@@ -9,7 +9,6 @@ namespace fast {
 class FAST_EXPORT PatchGenerator : public Streamer {
     FAST_OBJECT(PatchGenerator)
     public:
-        void execute();
         bool hasReachedEnd() override;
         void setPatchSize(int width, int height);
         void setPatchLevel(int level);
@@ -29,6 +28,7 @@ class FAST_EXPORT PatchGenerator : public Streamer {
         SharedPointer<WholeSlideImage> m_inputImage;
         int m_level;
 
+        void execute();
         void generateStream();
     private:
         PatchGenerator();

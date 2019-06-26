@@ -145,7 +145,8 @@ SharedPointer<Image> WholeSlideImage::getTileAsImage(int level, int offsetX, int
 
     auto image = Image::New();
     auto data = make_uninitialized_unique<uchar[]>(width*height*4);
-    openslide_read_region(m_fileHandle, (uint32_t *)data.get(), offsetX, offsetY, level, width, height);
+    float scale = (float)getFullWidth()/getLevelWidth(level);
+    openslide_read_region(m_fileHandle, (uint32_t *)data.get(), offsetX*scale, offsetY*scale, level, width, height);
     image->create(width, height, TYPE_UINT8, 4, std::move(data));
     // TODO this spacing is not entirely correct
     /*
