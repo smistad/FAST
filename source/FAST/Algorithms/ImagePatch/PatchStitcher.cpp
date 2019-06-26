@@ -26,6 +26,7 @@ void PatchStitcher::execute() {
     const int startY = std::stoi(patch->getMetadata("patchid-y"))*std::stoi(patch->getMetadata("patch-height"));
     const int endX = startX + patch->getWidth();
     const int endY = startY + patch->getHeight();
+    reportInfo() << "Stitching " << patch->getMetadata("patchid-x") << " " << patch->getMetadata("patchid-y") << reportEnd();
 
     auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::Program program = getOpenCLProgram(device);

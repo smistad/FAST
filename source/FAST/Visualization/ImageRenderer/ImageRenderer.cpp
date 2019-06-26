@@ -97,11 +97,17 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, flo
         cl::CommandQueue queue = device->getCommandQueue();
 
         if(mTexturesToRender.count(inputNr) > 0) {
-            // Delete old texture
-            glDeleteTextures(1, &mTexturesToRender[inputNr]);
-            mTexturesToRender.erase(inputNr);
-            glDeleteVertexArrays(1, &mVAO[inputNr]);
-            mVAO.erase(inputNr);
+            // If texture has correct size, we don't need to make a new one
+            int w, h;
+            glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
+            glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
+            //if(w != input->getWidth() && h != input->getHeight()) {
+                // Delete old texture
+                glDeleteTextures(1, &mTexturesToRender[inputNr]);
+                mTexturesToRender.erase(inputNr);
+                glDeleteVertexArrays(1, &mVAO[inputNr]);
+                mVAO.erase(inputNr);
+            //}
         }
 
         cl::Image2D image;
