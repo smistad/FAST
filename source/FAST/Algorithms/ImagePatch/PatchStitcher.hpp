@@ -6,7 +6,7 @@ namespace fast {
 
 class Image;
 
-class PatchStitcher : public ProcessObject {
+class FAST_EXPORT PatchStitcher : public ProcessObject {
     FAST_OBJECT(PatchStitcher)
     public:
     protected:
