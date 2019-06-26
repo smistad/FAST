@@ -59,7 +59,13 @@ void PatchGenerator::generateStream() {
             patch->setMetadata("patch-width", std::to_string(m_width));
             patch->setMetadata("patch-height", std::to_string(m_height));
 
-            addOutputData(0, patch);
+            try {
+                addOutputData(0, patch);
+            } catch(ThreadStopped &e) {
+                std::unique_lock<std::mutex> lock(m_stopMutex);
+                m_stop = true;
+                break;
+            }
             if(!m_firstFrameIsInserted) {
                 {
                     std::lock_guard<std::mutex> lock(m_firstFrameMutex);
@@ -73,7 +79,7 @@ void PatchGenerator::generateStream() {
         }
         std::unique_lock<std::mutex> lock(m_stopMutex);
         if(m_stop) {
-            m_streamIsStarted = false;
+            //m_streamIsStarted = false;
             m_firstFrameIsInserted = false;
             m_hasReachedEnd = false;
             break;
