@@ -66,6 +66,7 @@ TEST_CASE("WSI -> Patch generator -> Image to batch generator -> Neural network 
     generator->setPatchLevel(4);
     generator->setInputConnection(importer->getOutputPort());
 
+    // TODO it works for 1 batch without the converter...
     auto converter = ImageChannelConverter::New();
     converter->setChannelsToRemove(false, true, true, false);
     converter->setInputConnection(generator->getOutputPort());

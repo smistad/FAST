@@ -11,20 +11,12 @@ void DataPort::addFrame(DataObject::pointer object) {
 
         {
             std::lock_guard<std::mutex> lock(mMutex);
-            // If data for current doesn't exist: add it, otherwise add the new data for the next timestep
-            if(mFrames.count(mCurrentTimestep) == 0) {
-                //std::cout << "Adding frame with nr " << mCurrentTimestep << std::endl;
-                object->setTimestep(mCurrentTimestep);
-                mFrames[mCurrentTimestep] = object;
-            } else {
-                //std::cout << "Adding frame with nr " << mCurrentTimestep + 1 << std::endl;
-                object->setTimestep(mCurrentTimestep+1);
-                mFrames[mCurrentTimestep + 1] = object;
-            }
+            mFrames.push(object);
         }
         mFrameConditionVariable.notify_all();
 
     } else if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES) {
+        std::cout << "ADDING DATA at " << mProcessObject->getNameOfClass() << std::endl;
         std::unique_lock<std::mutex> lock(mMutex);
         if(!mIsStaticData) {
             // If data is not static, use semaphore to check if available space for a new frame
@@ -43,17 +35,15 @@ void DataPort::addFrame(DataObject::pointer object) {
 
         {
             // Add data
-            if(mCurrentTimestep > mFrameCounter)
-                mFrameCounter = mCurrentTimestep;
-            //std::cout << mProcessObject->getNameOfClass() + " adding frame with nr " << mFrameCounter << std::endl;
-            object->setTimestep(mFrameCounter);
-            mFrames[mFrameCounter] = object;
+            mFrames.push(object);
+            std::cout << "Data added at " << mProcessObject->getNameOfClass() << ", queue size: " << mFrames.size() << std::endl;
             mFrameCounter++;
         }
 
         if(!mIsStaticData) {
             // If data is not static, use semaphore to signal that a new data is available
             lock.unlock();
+            std::cout << "signaling fill count..." << std::endl;
             mFillCount->signal();
         } else {
             // If data is static, use condition variable to signal that a new data is available
@@ -64,11 +54,8 @@ void DataPort::addFrame(DataObject::pointer object) {
     } else if(mStreamingMode == STREAMING_MODE_STORE_ALL_FRAMES) {
         {
             std::lock_guard<std::mutex> lock(mMutex);
-            if(mCurrentTimestep > mFrameCounter)
-                mFrameCounter = mCurrentTimestep;
             //std::cout << mProcessObject->getNameOfClass() + " STORE_ALL_FRAMES adding frame with nr " << mFrameCounter << std::endl;
-            object->setTimestep(mFrameCounter);
-            mFrames[mFrameCounter] = object;
+            mFrames.push(object);
             mFrameCounter++;
         }
         mFrameConditionVariable.notify_all();
@@ -88,12 +75,13 @@ DataObject::pointer DataPort::getNextDataFrame() {
         if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES && !mIsStaticData) {
             // Do this using semaphore
             //std::cout << "Waiting to get " << mCurrentTimestep << std::endl;
+            std::cout << "Waiting to get data from " << mProcessObject->getNameOfClass() << std::endl;
             mFillCount->wait();
             lock.lock();
         } else {
             lock.lock();
             // Do this using condition variable
-            while(mFrames.count(mCurrentTimestep) == 0 && !mStop) {
+            while(mFrames.empty() && !mStop) {
                 //std::cout << "Waiting for " << mCurrentTimestep << std::endl;
                 mFrameConditionVariable.wait(lock);
             }
@@ -103,27 +91,21 @@ DataObject::pointer DataPort::getNextDataFrame() {
             throw ThreadStopped();
         }
 
-        data = mFrames.at(mCurrentTimestep);
+        data = mFrames.front();
+        std::cout << "Got data from " << mProcessObject->getNameOfClass() << std::endl;
 
-        if(mStreamingMode != STREAMING_MODE_STORE_ALL_FRAMES) {
-            // Find old frames to delete
-            std::vector<uint64_t> framesToDelete;
-            for(auto frame : mFrames) {
-                if(frame.first < mCurrentTimestep) {
-                    framesToDelete.push_back(frame.first);
-                }
-            }
-            // Delete old frames
-            for(auto frameNr : framesToDelete) {
-                mFrames.erase(frameNr);
-            }
+        if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES && !mIsStaticData) {
+            mFrames.pop();
+        } else {
         }
 
         lock.unlock();
     }
 
-    if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES && !mIsStaticData)
+    if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES && !mIsStaticData) {
+        std::cout << "Signaling empty count " << mProcessObject->getNameOfClass() << std::endl;
         mEmptyCount->signal();
+    }
 
     mGetCalled = true;
 
@@ -133,12 +115,8 @@ DataObject::pointer DataPort::getNextDataFrame() {
 void DataPort::moveDataToNextTimestep() {
     std::lock_guard<std::mutex> lock(mMutex);
     //std::cout << "Moving data for " << mProcessObject->getNameOfClass() << " at timestep " << mCurrentTimestep << " size: " << mFrames.size() << " first t " << mFrames.begin()->first << std::endl;
-    if(mFrames.count(mCurrentTimestep) == 0) {
-        // Only move if frame is not there
-        mFrames[mCurrentTimestep] = mFrames.at(mCurrentTimestep - 1);
-        mFrames.erase(mCurrentTimestep - 1);
-    }
     //std::cout << "Moving data finished" << std::endl;
+    std::cout << "Marking data port as static in " << mProcessObject->getNameOfClass() << " " << std::endl;
     mIsStaticData = true;
 }
 
@@ -147,7 +125,6 @@ void DataPort::setStreamingMode(StreamingMode mode) {
 }
 
 void DataPort::setTimestep(uint64_t timestep) {
-    mCurrentTimestep = timestep;
 }
 
 DataPort::DataPort(SharedPointer<ProcessObject> processObject) {
@@ -190,7 +167,7 @@ void DataPort::stop() {
 
 bool DataPort::hasCurrentData() {
     std::lock_guard<std::mutex> lock(mMutex);
-    return mFrames.count(mCurrentTimestep) > 0;
+    return !mFrames.empty();
 }
 
 uint DataPort::getSize() const {
@@ -198,7 +175,7 @@ uint DataPort::getSize() const {
 }
 
 DataObject::pointer DataPort::getFrame(uint64_t timestep) {
-    return mFrames.at(timestep);
+    return mFrames.front();
 }
 
 template <>

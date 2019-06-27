@@ -6,6 +6,7 @@
 #include "FAST/Data/DataObject.hpp"
 #include "FAST/Data/DataTypes.hpp"
 #include "FAST/Semaphore.hpp"
+#include <queue>
 
 namespace fast {
 
@@ -58,9 +59,8 @@ class FAST_EXPORT DataPort {
          * The process object which produce data for this port
          */
         SharedPointer<ProcessObject> mProcessObject;
-        std::unordered_map<uint64_t, DataObject::pointer> mFrames;
+        std::queue<DataObject::pointer> mFrames;
         uint64_t mFrameCounter = 0;
-        uint64_t mCurrentTimestep = 0;
         StreamingMode mStreamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES;
         std::mutex mMutex;
         std::condition_variable mFrameConditionVariable;
