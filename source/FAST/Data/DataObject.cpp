@@ -82,4 +82,34 @@ void DataObject::setMetadata(std::unordered_map<std::string, std::string> metada
     mMetadata = metadata;
 }
 
+void DataObject::setLastFrame(std::string streamer) {
+    m_lastFrame.insert(streamer);
+}
+
+bool DataObject::isLastFrame() {
+    return !m_lastFrame.empty();
+}
+bool DataObject::isLastFrame(std::string streamer) {
+    return m_lastFrame.count(streamer) > 0;
+}
+
+std::unordered_set<std::string> DataObject::getLastFrame() {
+    return m_lastFrame;
+}
+
+void DataObject::setFrameData(std::string name, std::string value) {
+    m_frameData[name] = value;
+}
+
+std::string DataObject::getFrameData(std::string name) {
+    if(m_frameData.count(name) == 0)
+        throw Exception("Frame data " + name + " does not exist.");
+
+    return m_frameData[name];
+}
+
+std::unordered_map<std::string, std::string> DataObject::getFrameData() {
+    return m_frameData;
+}
+
 } // end namespace fast

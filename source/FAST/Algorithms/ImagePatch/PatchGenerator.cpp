@@ -41,25 +41,29 @@ void PatchGenerator::generateStream() {
     for(int patchY = 0; patchY < patchesY; ++patchY) {
         for(int patchX = 0; patchX < patchesX; ++patchX) {
             int patchWidth = m_width;
-            if(patchX == patchesX-1)
-                patchWidth = levelWidth - patchX*m_width - 1;
+            if(patchX == patchesX - 1)
+                patchWidth = levelWidth - patchX * m_width - 1;
             int patchHeight = m_height;
-            if(patchY == patchesY-1)
-                patchHeight = levelHeight - patchY*m_height - 1;
-            // TODO check if this is final patch
+            if(patchY == patchesY - 1)
+                patchHeight = levelHeight - patchY * m_height - 1;
             reportInfo() << "Generating patch " << patchX << " " << patchY << reportEnd();
-            auto patch = m_inputImage->getTileAsImage(m_level, patchX*m_width, patchY*m_height, patchWidth, patchHeight);
+            auto patch = m_inputImage->getTileAsImage(m_level, patchX * m_width, patchY * m_height, patchWidth,
+                                                      patchHeight);
 
-            // Store some metadata useful for patch stitching
-            patch->setMetadata("original-width", std::to_string(levelWidth));
-            patch->setMetadata("original-height", std::to_string(levelHeight));
-            patch->setMetadata("patchid-x", std::to_string(patchX));
-            patch->setMetadata("patchid-y", std::to_string(patchY));
+            // Store some frame data useful for patch stitching
+            patch->setFrameData("original-width", std::to_string(levelWidth));
+            patch->setFrameData("original-height", std::to_string(levelHeight));
+            patch->setFrameData("patchid-x", std::to_string(patchX));
+            patch->setFrameData("patchid-y", std::to_string(patchY));
             // Target width/height of patches
-            patch->setMetadata("patch-width", std::to_string(m_width));
-            patch->setMetadata("patch-height", std::to_string(m_height));
-            patch->setMetadata("patch-spacing-x", std::to_string(patch->getSpacing().x()));
-            patch->setMetadata("patch-spacing-y", std::to_string(patch->getSpacing().y()));
+            patch->setFrameData("patch-width", std::to_string(m_width));
+            patch->setFrameData("patch-height", std::to_string(m_height));
+            patch->setFrameData("patch-spacing-x", std::to_string(patch->getSpacing().x()));
+            patch->setFrameData("patch-spacing-y", std::to_string(patch->getSpacing().y()));
+
+            if(patchY == patchesY - 1 && patchX == patchesX - 1) { // Last frame?
+                patch->setLastFrame(getNameOfClass());
+            }
 
             try {
                 addOutputData(0, patch);

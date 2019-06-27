@@ -66,6 +66,8 @@ class FAST_EXPORT  ProcessObject : public Object {
         void stopPipeline();
 
         void setModified(bool modified);
+
+
     protected:
         ProcessObject();
         // Flag to indicate whether the object has been modified
@@ -142,6 +144,13 @@ class FAST_EXPORT  ProcessObject : public Object {
 
         std::unordered_map<std::string, SharedPointer<Attribute>> mAttributes;
 
+        // Frame data
+        // Similar to metadata, only this is transferred from input to output
+        std::unordered_map<std::string, std::string> m_frameData;
+        // Indicates whether this data object is the last frame in a stream, and if so, the name of the stream
+        std::unordered_set<std::string> m_lastFrame;
+
+
 };
 
 
@@ -166,6 +175,12 @@ SharedPointer<DataType> ProcessObject::getInputData(uint portID) {
     // Check if the conversion went ok
     if(!convertedData)
         throw BadCastException(data->getNameOfClass(), DataType::getStaticNameOfClass());
+
+    // Store frame data for this input data so it can be added to output data later
+    for(auto&& lastFrame : data->getLastFrame())
+        m_lastFrame.insert(lastFrame);
+    for(auto&& frameData : data->getFrameData())
+        m_frameData[frameData.first] = frameData.second;
 
     return convertedData;
 }

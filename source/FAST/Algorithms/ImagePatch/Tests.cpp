@@ -67,7 +67,7 @@ TEST_CASE("Patch generator, sticher and image to batch generator", "[fast][wsi][
 
     for(int i = 0; i < 12; ++i) {
         batchGenerator->update(i); // This will only call execute once
+        auto batch = port->getNextFrame<Batch>(); // This will block if batch does not exist at current timestep (11)
+        std::cout << "Got a batch" << std::endl;
     }
-    CHECK(port->getSize() == 3); // Should have 3 batches
-    auto batch = port->getNextFrame<Batch>(); // This will block if batch does not exist at current timestep (11)
 }

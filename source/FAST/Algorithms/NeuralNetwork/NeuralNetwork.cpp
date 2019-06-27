@@ -201,18 +201,42 @@ void NeuralNetwork::execute() {
         // TODO if input was a batch, the output should be converted to a batch as well
         // TODO and any frame data (such as patch info should be transferred)
         auto tensor = m_engine->getOutputData(node.first);
-        // TODO remove
-        for(auto inputNode : m_engine->getInputNodes()) {
-            for(auto image : mInputImages[inputNode.first]) { // TODO remove this for new frame data system
-                for(auto metadata : image->getMetadata()) {
-                    tensor->setMetadata(metadata.first, metadata.second);
-                }
-            }
-        }
-        // TODO end
+
         std::cout << "Batch size was " << m_batchSize << std::endl;
         if(m_batchSize > 1) {
             // TODO create a batch of tensors
+            std::vector<Tensor::pointer> tensorList;
+            auto tensorAccess = tensor->getAccess(ACCESS_READ);
+            const float* rawTensorData = tensorAccess->getRawData();
+            // Calculate sample size
+            auto shape = tensor->getShape();
+            int size = 1;
+            auto newShape = TensorShape();
+            for(int i = 1; i < shape.getDimensions(); ++i) {
+                size *= shape[i];
+                newShape.addDimension(shape[i]);
+            }
+
+            for(int i = 0; i < m_batchSize; ++i) {
+                auto newTensor = Tensor::New();
+                auto newData = make_uninitialized_unique<float[]>(size);
+                std::memcpy(newData.get(), &(rawTensorData[i*size]), size*sizeof(float));
+                newTensor->create(std::move(newData), newShape);
+                tensorList.push_back(newTensor);
+                for(auto& inputNode : m_engine->getInputNodes()) {
+                    std::cout << "WEEEEEEEEEEE" << std::endl;
+                    // TODO assuming input are images here:
+                    for(auto &&frameData : mInputImages[inputNode.first][i]->getFrameData()) {
+                        std::cout << "Copying frame data " << frameData.first << std::endl;
+                        newTensor->setFrameData(frameData.first, frameData.second);
+                    }
+                    for(auto &&lastFrame : mInputImages[inputNode.first][i]->getLastFrame())
+                        newTensor->setLastFrame(lastFrame);
+                }
+            }
+            auto outputBatch = Batch::New();
+            outputBatch->create(tensorList);
+            addOutputData(node.second.portID, outputBatch);
         } else {
             addOutputData(node.second.portID, tensor);
         }

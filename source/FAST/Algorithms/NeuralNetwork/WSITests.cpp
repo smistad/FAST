@@ -57,3 +57,41 @@ TEST_CASE("WSI -> Patch generator -> Neural network -> Patch stitcher -> visuali
     window->set2DMode();
     window->start();
 }
+TEST_CASE("WSI -> Patch generator -> Image to batch generator -> Neural network -> Patch stitcher -> visualize", "[fast][neuralnetwork][wsi][visual][batch]") {
+    auto importer = WholeSlideImageImporter::New();
+    importer->setFilename(Config::getTestDataPath() + "/CMU-1.tiff");
+
+    auto generator = PatchGenerator::New();
+    generator->setPatchSize(512, 512);
+    generator->setPatchLevel(4);
+    generator->setInputConnection(importer->getOutputPort());
+
+    auto converter = ImageChannelConverter::New();
+    converter->setChannelsToRemove(false, true, true, false);
+    converter->setInputConnection(generator->getOutputPort());
+
+    auto batchGenerator = ImageToBatchGenerator::New();
+    batchGenerator->setMaxBatchSize(10);
+    batchGenerator->setInputConnection(converter->getOutputPort());
+
+    auto classifier = NeuralNetwork::New();
+    classifier->setInferenceEngine("OpenVINO");
+    classifier->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output.xml");
+    classifier->setInputConnection(batchGenerator->getOutputPort());
+
+    auto stitcher = PatchStitcher::New();
+    stitcher->setInputConnection(classifier->getOutputPort());
+
+    auto renderer = VeryLargeImageRenderer::New();
+    renderer->addInputConnection(importer->getOutputPort());
+
+    auto heatmapRenderer = HeatmapRenderer::New();
+    heatmapRenderer->addInputConnection(stitcher->getOutputPort());
+
+    auto window = SimpleWindow::New();
+    window->addRenderer(renderer);
+    window->addRenderer(heatmapRenderer);
+    //window->setTimeout(1000);
+    window->set2DMode();
+    window->start();
+}

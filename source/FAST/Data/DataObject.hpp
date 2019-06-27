@@ -5,6 +5,7 @@
 #include "FAST/Object.hpp"
 #include "FAST/ExecutionDevice.hpp"
 #include <unordered_map>
+#include <unordered_set>
 #include <condition_variable>
 
 namespace fast {
@@ -28,6 +29,14 @@ class FAST_EXPORT  DataObject : public Object {
         };
         uint64_t getCreationTimestamp() const;
         void setCreationTimestamp(uint64_t timestamp);
+
+        void setLastFrame(std::string streamer);
+        bool isLastFrame();
+        bool isLastFrame(std::string streamer);
+        std::unordered_set<std::string> getLastFrame();
+        void setFrameData(std::string name, std::string value);
+        std::string getFrameData(std::string name);
+        std::unordered_map<std::string, std::string> getFrameData();
     protected:
         virtual void free(ExecutionDevice::pointer device) = 0;
         virtual void freeAll() = 0;
@@ -54,6 +63,13 @@ class FAST_EXPORT  DataObject : public Object {
         uint64_t mTimestep;
 
         std::unordered_map<std::string, std::string> mMetadata;
+
+        // Frame data
+        // Similar to metadata, only this is transferred from input to output
+        std::unordered_map<std::string, std::string> m_frameData;
+        // Indicates whether this data object is the last frame in a stream, and if so, the name of the stream
+        std::unordered_set<std::string> m_lastFrame;
+
 
 };
 

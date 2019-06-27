@@ -18,14 +18,14 @@ void PatchStitcher::execute() {
     auto imagePatch = std::dynamic_pointer_cast<Image>(patch);
     auto batchOfPatches = std::dynamic_pointer_cast<Batch>(patch);
     if(tensorPatch) {
-        const int fullWidth = std::stoi(patch->getMetadata("original-width"));
-        const int fullHeight = std::stoi(patch->getMetadata("original-height"));
+        const int fullWidth = std::stoi(patch->getFrameData("original-width"));
+        const int fullHeight = std::stoi(patch->getFrameData("original-height"));
 
-        const int patchWidth = std::stoi(patch->getMetadata("patch-width"));
-        const int patchHeight = std::stoi(patch->getMetadata("patch-height"));
+        const int patchWidth = std::stoi(patch->getFrameData("patch-width"));
+        const int patchHeight = std::stoi(patch->getFrameData("patch-height"));
 
-        const float patchSpacingX = std::stof(patch->getMetadata("patch-spacing-x"));
-        const float patchSpacingY = std::stof(patch->getMetadata("patch-spacing-y"));
+        const float patchSpacingX = std::stof(patch->getFrameData("patch-spacing-x"));
+        const float patchSpacingY = std::stof(patch->getFrameData("patch-spacing-y"));
 
         auto shape = tensorPatch->getShape();
         if(shape.getDimensions() != 2) {
@@ -40,8 +40,8 @@ void PatchStitcher::execute() {
             m_outputImage->setSpacing(Vector3f(patchWidth*patchSpacingX, patchHeight*patchSpacingY, 1.0f));
         }
 
-        const int startX = std::stoi(patch->getMetadata("patchid-x"));
-        const int startY = std::stoi(patch->getMetadata("patchid-y"));
+        const int startX = std::stoi(patch->getFrameData("patchid-x"));
+        const int startY = std::stoi(patch->getFrameData("patchid-y"));
 
         auto inputAccess = tensorPatch->getAccess(ACCESS_READ);
         auto tensorData = inputAccess->getData<2>();
@@ -51,8 +51,8 @@ void PatchStitcher::execute() {
         outputAccess->setScalar(Vector2i(startX, startY), tensorData(0, channelSelected));
 
     } else if(imagePatch) {
-        const int fullWidth = std::stoi(patch->getMetadata("original-width"));
-        const int fullHeight = std::stoi(patch->getMetadata("original-height"));
+        const int fullWidth = std::stoi(patch->getFrameData("original-width"));
+        const int fullHeight = std::stoi(patch->getFrameData("original-height"));
 
         if(!m_outputImage) {
             // Create output image
@@ -61,11 +61,11 @@ void PatchStitcher::execute() {
             m_outputImage->fill(0);
         }
 
-        const int startX = std::stoi(patch->getMetadata("patchid-x")) * std::stoi(patch->getMetadata("patch-width"));
-        const int startY = std::stoi(patch->getMetadata("patchid-y")) * std::stoi(patch->getMetadata("patch-height"));
+        const int startX = std::stoi(patch->getFrameData("patchid-x")) * std::stoi(patch->getFrameData("patch-width"));
+        const int startY = std::stoi(patch->getFrameData("patchid-y")) * std::stoi(patch->getFrameData("patch-height"));
         const int endX = startX + imagePatch->getWidth();
         const int endY = startY + imagePatch->getHeight();
-        reportInfo() << "Stitching " << patch->getMetadata("patchid-x") << " " << patch->getMetadata("patchid-y")
+        reportInfo() << "Stitching " << patch->getFrameData("patchid-x") << " " << patch->getFrameData("patchid-y")
                      << reportEnd();
 
         auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());

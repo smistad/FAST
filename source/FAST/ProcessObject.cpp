@@ -135,6 +135,12 @@ void ProcessObject::setInputConnection(DataPort::pointer port) {
 void ProcessObject::addOutputData(uint portID, DataObject::pointer data) {
     validateOutputPortExists(portID);
 
+    // Copy frame data from input data
+    for(auto&& lastFrame : m_lastFrame)
+        data->setLastFrame(lastFrame);
+    for(auto&& frameData : m_frameData)
+        data->setFrameData(frameData.first, frameData.second);
+
     // Add it to all output connections, if any connections exist
     if(mOutputConnections.count(portID) > 0) {
         for(auto output : mOutputConnections.at(portID)) {
@@ -484,5 +490,6 @@ void ProcessObject::setModified(bool modified) {
     mIsModified = modified;
 
 }
+
 
 } // namespace fast
