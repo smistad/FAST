@@ -94,9 +94,6 @@ void ComputationThread::stop() {
         mUpdateThreadConditionVariable.wait(lock);
     }
     reportInfo() << "Computation thread stopped" << Reporter::end();
-    for(View* view : mViews) {
-        view->resetRenderers();
-    }
 }
 
 

@@ -15,7 +15,6 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
     public:
         typedef SharedPointer<Renderer> pointer;
         virtual void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) = 0;
-        virtual void postDraw();
         /**
          * Adds a new input connection
          * @param port
@@ -29,8 +28,6 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
          */
         virtual uint addInputData(DataObject::pointer data);
         virtual BoundingBox getBoundingBox(bool transform = true);
-        virtual void stopPipeline();
-        virtual void reset();
     protected:
         Renderer();
         void execute() override;
@@ -53,10 +50,7 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
         void setShaderUniform(std::string name, int value, std::string shaderProgramName = "default");
         int getShaderUniformLocation(std::string name, std::string shaderProgramName = "default");
 
-        // Locking mechanisms to ensure thread safe synchronized rendering
-        bool mHasRendered = true;
-        bool mStop = false;
-        std::condition_variable_any mRenderedCV;
+        // Locking mechanisms to ensure thread safe rendering
         std::mutex mMutex;
 
         /**
@@ -64,14 +58,6 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
          */
         std::unordered_map<uint, SpatialDataObject::pointer> mDataToRender;
 
-        /**
-         * This will lock the renderer mutex. Used by the compute thread.
-         */
-        void lock();
-        /**
-         * This will unlock the renderer mutex. Used by the compute thread.
-         */
-        void unlock();
         friend class View;
     private:
 

@@ -12,14 +12,7 @@ namespace fast {
 
 void SliceRenderer::execute() {
     std::unique_lock<std::mutex> lock(mMutex);
-    if(mStop) {
-        return;
-    }
 
-    // Check if current images has not been rendered, if not wait
-    while(!mHasRendered) {
-        mRenderedCV.wait(lock);
-    }
     // This simply gets the input data for each connection and puts it into a data structure
     for(uint inputNr = 0; inputNr < getNrOfInputConnections(); inputNr++) {
         if(hasNewInputData(inputNr)) {
@@ -37,7 +30,6 @@ void SliceRenderer::execute() {
             DataPort::pointer port = slicer->getOutputPort();
             slicer->update(0);
 
-            mHasRendered = false;
             mDataToRender[inputNr] = port->getNextFrame<Image>();
         }
     }

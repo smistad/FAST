@@ -25,42 +25,13 @@ uint Renderer::addInputConnection(DataPort::pointer port) {
     return nr;
 }
 
-void Renderer::lock() {
-    mMutex.lock();
-}
-
-void Renderer::unlock() {
-    mMutex.unlock();
-}
-
-void Renderer::stopPipeline() {
-    mStop = true;
-    mHasRendered = true;
-    mRenderedCV.notify_one();
-    ProcessObject::stopPipeline();
-}
-
-void Renderer::postDraw() {
-    mHasRendered = true;
-    mRenderedCV.notify_one();
-}
-
 void Renderer::execute() {
     std::unique_lock<std::mutex> lock(mMutex);
-    if(mStop) {
-        return;
-    }
 
-    // Check if current images has not been rendered, if not wait
-    while(!mHasRendered) {
-        mRenderedCV.wait(lock);
-    }
     // This simply gets the input data for each connection and puts it into a data structure
     for(uint inputNr = 0; inputNr < getNrOfInputConnections(); inputNr++) {
         if(hasNewInputData(inputNr)) {
             SpatialDataObject::pointer input = getInputData<SpatialDataObject>(inputNr);
-
-            mHasRendered = false;
             mDataToRender[inputNr] = input;
         }
     }
@@ -225,11 +196,6 @@ int Renderer::getShaderUniformLocation(std::string name, std::string shaderProgr
     if(location == -1)
         throw Exception("Unable to find location of matrix4f uniform " + name + " in shader program " + shaderProgram);
     return location;
-}
-
-void Renderer::reset() {
-    mStop = false;
-    mHasRendered = false;
 }
 
 }

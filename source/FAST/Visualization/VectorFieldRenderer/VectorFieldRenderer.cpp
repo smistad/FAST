@@ -10,21 +10,12 @@ VectorFieldRenderer::VectorFieldRenderer() {
 
 void VectorFieldRenderer::execute() {
     std::unique_lock<std::mutex> lock(mMutex);
-    if(mStop) {
-        return;
-    }
 
-    // Check if current images has not been rendered, if not wait
-    while(!mHasRendered) {
-        mRenderedCV.wait(lock);
-    }
     std::unordered_map<uint, SpatialDataObject::pointer> vectorImages;
     // This simply gets the input data for each connection and puts it into a data structure
     for(uint inputNr = 0; inputNr < getNrOfInputConnections(); inputNr++) {
         if(hasNewInputData(inputNr)) {
             SpatialDataObject::pointer input = getInputData<SpatialDataObject>(inputNr);
-
-            mHasRendered = false;
             vectorImages[inputNr] = input;
         }
     }

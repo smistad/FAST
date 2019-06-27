@@ -99,10 +99,7 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject, protected QOpe
         void resizeGL(int width, int height);
 		void updateRenderersInput(uint64_t timestep, StreamingMode mode);
 		void updateRenderers(uint64_t timestep, StreamingMode mode);
-		void lockRenderers();
-		void unlockRenderers();
 		void stopRenderers();
-		void resetRenderers();
 
     friend class ComputationThread;
 
