@@ -45,6 +45,7 @@ void DataPort::addFrame(DataObject::pointer object) {
             lock.unlock();
             std::cout << "signaling fill count..." << std::endl;
             mFillCount->signal();
+            std::cout << "signaling fill count done " << mFillCount->getCount() << std::endl;
         } else {
             // If data is static, use condition variable to signal that a new data is available
             lock.unlock();
@@ -75,7 +76,7 @@ DataObject::pointer DataPort::getNextDataFrame() {
         if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES && !mIsStaticData) {
             // Do this using semaphore
             //std::cout << "Waiting to get " << mCurrentTimestep << std::endl;
-            std::cout << "Waiting to get data from " << mProcessObject->getNameOfClass() << std::endl;
+            std::cout << "Waiting to get data from " << mProcessObject->getNameOfClass() << " " << mFillCount->getCount() << std::endl;
             mFillCount->wait();
             lock.lock();
         } else {
@@ -96,7 +97,6 @@ DataObject::pointer DataPort::getNextDataFrame() {
 
         if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES && !mIsStaticData) {
             mFrames.pop();
-        } else {
         }
 
         lock.unlock();
@@ -105,6 +105,7 @@ DataObject::pointer DataPort::getNextDataFrame() {
     if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES && !mIsStaticData) {
         std::cout << "Signaling empty count " << mProcessObject->getNameOfClass() << std::endl;
         mEmptyCount->signal();
+        std::cout << "Done empty signal " << mProcessObject->getNameOfClass() << std::endl;
     }
 
     mGetCalled = true;
@@ -170,11 +171,13 @@ bool DataPort::hasCurrentData() {
     return !mFrames.empty();
 }
 
-uint DataPort::getSize() const {
+uint DataPort::getSize() {
+    std::lock_guard<std::mutex> lock(mMutex);
     return mFrames.size();
 }
 
 DataObject::pointer DataPort::getFrame(uint64_t timestep) {
+    std::lock_guard<std::mutex> lock(mMutex);
     return mFrames.front();
 }
 

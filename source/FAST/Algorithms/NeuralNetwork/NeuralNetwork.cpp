@@ -204,7 +204,7 @@ void NeuralNetwork::execute() {
 
         std::cout << "Batch size was " << m_batchSize << std::endl;
         if(m_batchSize > 1) {
-            // TODO create a batch of tensors
+            // Create a batch of tensors
             std::vector<Tensor::pointer> tensorList;
             auto tensorAccess = tensor->getAccess(ACCESS_READ);
             const float* rawTensorData = tensorAccess->getRawData();
@@ -212,6 +212,7 @@ void NeuralNetwork::execute() {
             auto shape = tensor->getShape();
             int size = 1;
             auto newShape = TensorShape();
+            newShape.addDimension(1); // TODO remove
             for(int i = 1; i < shape.getDimensions(); ++i) {
                 size *= shape[i];
                 newShape.addDimension(shape[i]);
@@ -238,6 +239,9 @@ void NeuralNetwork::execute() {
             outputBatch->create(tensorList);
             addOutputData(node.second.portID, outputBatch);
         } else {
+            // TODO Remove first dimension as it is 1, due to batch size 1
+            //auto shape = tensor->getShape();
+            //shape.deleteDimension(0);
             addOutputData(node.second.portID, tensor);
         }
     }

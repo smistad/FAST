@@ -14,7 +14,6 @@ using namespace fast;
 TEST_CASE("Simple pipeline with ImageFileStreamer, GaussianSmoothingFilter and ImageRenderer", "[fast][SystemTests][visual]") {
     ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
     streamer->setFilenameFormat(Config::getTestDataPath() + "US/CarotidArtery/Right/US-2D_#.mhd");
-    //streamer->setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
     GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
     filter->setInputConnection(streamer->getOutputPort());

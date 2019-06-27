@@ -101,6 +101,7 @@ void ProcessObject::update(uint64_t timestep, StreamingMode streamingMode) {
             }
         }
     }
+    // TODO need to clear m_frameData m_lastFrame
 }
 
 DataPort::pointer ProcessObject::getOutputPort(uint portID) {

@@ -36,13 +36,26 @@ TEST_CASE("WSI -> Patch generator -> Neural network -> Patch stitcher -> visuali
     converter->setChannelsToRemove(false, true, true, false);
     converter->setInputConnection(generator->getOutputPort());
 
-    auto classifier = NeuralNetwork::New();
-    classifier->setInferenceEngine("OpenVINO");
-    classifier->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output.xml");
-    classifier->setInputConnection(converter->getOutputPort());
+    auto network = NeuralNetwork::New();
+    //network->setInferenceEngine("OpenVINO");
+    auto engine = network->getInferenceEngine()->getName();
+        if(engine.substr(0, 10) == "TensorFlow") {
+            network->setOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR);
+            network->setOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);
+            network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output.pb");
+        } else if(engine == "TensorRT") {
+            network->setInputNode(0, "input_1", NodeType::IMAGE, TensorShape({-1, 1, 64, 64}));
+            network->setOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR);
+            network->setOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);
+            network->load(
+                    Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output_channels_first.uff");
+        } else {
+            network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output.xml");
+        }
+    network->setInputConnection(converter->getOutputPort());
 
     auto stitcher = PatchStitcher::New();
-    stitcher->setInputConnection(classifier->getOutputPort());
+    stitcher->setInputConnection(network->getOutputPort());
 
     auto renderer = VeryLargeImageRenderer::New();
     renderer->addInputConnection(importer->getOutputPort());
@@ -63,7 +76,7 @@ TEST_CASE("WSI -> Patch generator -> Image to batch generator -> Neural network 
 
     auto generator = PatchGenerator::New();
     generator->setPatchSize(512, 512);
-    generator->setPatchLevel(4);
+    generator->setPatchLevel(2);
     generator->setInputConnection(importer->getOutputPort());
 
     // TODO it works for 1 batch without the converter...
@@ -75,13 +88,26 @@ TEST_CASE("WSI -> Patch generator -> Image to batch generator -> Neural network 
     batchGenerator->setMaxBatchSize(10);
     batchGenerator->setInputConnection(converter->getOutputPort());
 
-    auto classifier = NeuralNetwork::New();
-    classifier->setInferenceEngine("OpenVINO");
-    classifier->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output.xml");
-    classifier->setInputConnection(batchGenerator->getOutputPort());
+    auto network = NeuralNetwork::New();
+    //network->setInferenceEngine("OpenVINO");
+        auto engine = network->getInferenceEngine()->getName();
+        if(engine.substr(0, 10) == "TensorFlow") {
+            network->setOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR);
+            network->setOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);
+            network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output.pb");
+        } else if(engine == "TensorRT") {
+            network->setInputNode(0, "input_1", NodeType::IMAGE, TensorShape({-1, 1, 64, 64}));
+            network->setOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR);
+            network->setOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);
+            network->load(
+                    Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output_channels_first.uff");
+        } else {
+            network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output.xml");
+        }
+    network->setInputConnection(batchGenerator->getOutputPort());
 
     auto stitcher = PatchStitcher::New();
-    stitcher->setInputConnection(classifier->getOutputPort());
+    stitcher->setInputConnection(network->getOutputPort());
 
     auto renderer = VeryLargeImageRenderer::New();
     renderer->addInputConnection(importer->getOutputPort());

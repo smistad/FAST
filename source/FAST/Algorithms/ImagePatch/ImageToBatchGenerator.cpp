@@ -9,6 +9,8 @@ ImageToBatchGenerator::ImageToBatchGenerator() {
     createOutputPort<Batch>(0);
 
     m_maxBatchSize = -1;
+    m_firstFrameIsInserted = false;
+    m_streamIsStarted = false;
 }
 
 void ImageToBatchGenerator::generateStream() {
@@ -19,6 +21,7 @@ void ImageToBatchGenerator::generateStream() {
     bool lastFrame = false;
     while(!lastFrame) {
         std::cout << "WAITING FOR IMAGE.." << mInputConnections[0]->getSize() << std::endl;
+        mInputConnections[0]->getProcessObject()->update(0); // Make sure execute is called on previous
         auto image = getInputData<Image>(0);
         std::cout << "GOT IMAGE.." << std::endl;
         lastFrame = image->isLastFrame();
@@ -33,6 +36,11 @@ void ImageToBatchGenerator::generateStream() {
             addOutputData(0, batch);
             imageList.clear();
             i++;
+            {
+                std::unique_lock<std::mutex> lock(m_firstFrameMutex);
+                m_firstFrameIsInserted = true;
+            }
+            m_firstFrameCondition.notify_all();
         }
     }
 }

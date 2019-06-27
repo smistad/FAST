@@ -35,7 +35,7 @@ class FAST_EXPORT DataPort {
          *
          * @return the number of frames stored in this DataPort
          */
-        uint getSize() const;
+        uint getSize();
 
         /**
          * If a process object does not execeute one update iteration; it should call this method.
