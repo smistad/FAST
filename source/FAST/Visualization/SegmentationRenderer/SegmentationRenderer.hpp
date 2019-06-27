@@ -1,5 +1,4 @@
-#ifndef SEGMENTATION_RENDERER_HPP_
-#define SEGMENTATION_RENDERER_HPP_
+#pragma once
 
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Data/Segmentation.hpp"
@@ -35,4 +34,3 @@ class FAST_EXPORT  SegmentationRenderer : public ImageRenderer {
 
 } // end namespace fast
 
-#endif

@@ -21,6 +21,9 @@
         Tests.cpp
         ImageClassifierTests.cpp
     )
+        if(FAST_MODULE_WholeSlideImaging)
+            fast_add_test_sources(WSITests.cpp)
+        endif()
     endif()
     #fast_add_example(timingNetwork timingNetwork.cpp)
     #fast_add_example(imageClassification imageClassification.cpp)

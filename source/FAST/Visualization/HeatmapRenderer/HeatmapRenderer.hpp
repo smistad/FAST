@@ -1,5 +1,4 @@
-#ifndef FAST_HEATMAP_RENDERER_HPP_
-#define FAST_HEATMAP_RENDERER_HPP_
+#pragma once
 
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Data/Color.hpp"
@@ -24,5 +23,3 @@ class FAST_EXPORT  HeatmapRenderer : public ImageRenderer {
 };
 
 }
-
-#endif

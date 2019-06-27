@@ -38,7 +38,7 @@ NeuralNetwork::NeuralNetwork() {
 
 std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData() {
     std::unordered_map<std::string, Tensor::pointer> tensors;
-    int batchSize = -1;
+    m_batchSize = -1;
     for(auto inputNode : m_engine->getInputNodes()) {
         auto shape = inputNode.second.shape;
         if(shape.getDimensions() == 0)
@@ -67,13 +67,13 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
                     inputTensors = dataList.getTensors();
                 }
                 
-                if(batchSize == -1) {
-                    batchSize = dataList.getSize();
+                if(m_batchSize == -1) {
+                    m_batchSize = dataList.getSize();
                 } else {
                     throw Exception("Inconsistent batch size accross input nodes");
                 }
             } else {
-                batchSize = 1;
+                m_batchSize = 1;
                 Sequence::pointer sequence = std::dynamic_pointer_cast<Sequence>(data);
                 if(sequence) {
                     Sequence::access access = sequence->getAccess(ACCESS_READ);
@@ -140,15 +140,15 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
                         depth = m_engine->getPreferredImageOrdering() == ImageOrdering::HWC ? shape[dims - 4] : shape[
                                 dims - 3];
                 }
-                inputImages = resizeImages(inputImages, width, height, depth);
+                auto inputImages2 = resizeImages(inputImages, width, height, depth);
 
-                std::vector<Tensor::pointer> inputTensors;
                 // Convert images to tensors
-                shape[0] = batchSize;
-                tensors[inputNode.first] = convertImagesToTensor(inputImages, shape, containsSequence);
+                shape[0] = m_batchSize;
+                tensors[inputNode.first] = convertImagesToTensor(inputImages2, shape, containsSequence);
             } else {
                 // We have a list of tensors, convert the list of tensors into a single tensor
                 auto shape = inputTensors.front()->getShape();
+                m_batchSize = shape[0];
                 shape.insertDimension(0, inputTensors.size());
                 auto tensor = Tensor::New();
                 tensor->create(shape);
@@ -170,6 +170,7 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
 }
 
 void NeuralNetwork::run() {
+    // TODO move load and input processing to execute? or a separate function?
     // Check if network is loaded, if not do it
     if(!m_engine->isLoaded())
         m_engine->load();
@@ -197,7 +198,24 @@ void NeuralNetwork::execute() {
     mRuntimeManager->startRegularTimer("output_processing");
 	// Collect output data of network and add to output ports
     for(const auto &node : m_engine->getOutputNodes()) {
-        addOutputData(node.second.portID, m_engine->getOutputData(node.first));
+        // TODO if input was a batch, the output should be converted to a batch as well
+        // TODO and any frame data (such as patch info should be transferred)
+        auto tensor = m_engine->getOutputData(node.first);
+        // TODO remove
+        for(auto inputNode : m_engine->getInputNodes()) {
+            for(auto image : mInputImages[inputNode.first]) { // TODO remove this for new frame data system
+                for(auto metadata : image->getMetadata()) {
+                    tensor->setMetadata(metadata.first, metadata.second);
+                }
+            }
+        }
+        // TODO end
+        std::cout << "Batch size was " << m_batchSize << std::endl;
+        if(m_batchSize > 1) {
+            // TODO create a batch of tensors
+        } else {
+            addOutputData(node.second.portID, tensor);
+        }
     }
     mRuntimeManager->stopRegularTimer("output_processing");
 }

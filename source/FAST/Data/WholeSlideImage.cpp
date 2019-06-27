@@ -148,14 +148,11 @@ SharedPointer<Image> WholeSlideImage::getTileAsImage(int level, int offsetX, int
     float scale = (float)getFullWidth()/getLevelWidth(level);
     openslide_read_region(m_fileHandle, (uint32_t *)data.get(), offsetX*scale, offsetY*scale, level, width, height);
     image->create(width, height, TYPE_UINT8, 4, std::move(data));
-    // TODO this spacing is not entirely correct
-    /*
     image->setSpacing(Vector3f(
-            (float)getFullWidth() / width,
-            (float)getFullHeight() / height,
+            scale,
+            scale,
             1.0f
     ));
-     */
     // TODO Set transformation
     SceneGraph::setParentNode(image, std::dynamic_pointer_cast<SpatialDataObject>(mPtr.lock()));
 

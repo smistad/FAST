@@ -58,6 +58,8 @@ void PatchGenerator::generateStream() {
             // Target width/height of patches
             patch->setMetadata("patch-width", std::to_string(m_width));
             patch->setMetadata("patch-height", std::to_string(m_height));
+            patch->setMetadata("patch-spacing-x", std::to_string(patch->getSpacing().x()));
+            patch->setMetadata("patch-spacing-y", std::to_string(patch->getSpacing().y()));
 
             try {
                 addOutputData(0, patch);

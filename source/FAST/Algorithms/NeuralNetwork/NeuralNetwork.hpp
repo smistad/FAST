@@ -139,6 +139,7 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
         bool mHorizontalImageFlipping = false;
         bool mSignedInputNormalization = false;
         int mTemporalWindow = 0;
+        int m_batchSize;
         float mScaleFactor, mMean, mStd;
         Vector3f mNewInputSpacing;
 

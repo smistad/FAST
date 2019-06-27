@@ -1,5 +1,4 @@
-#ifndef IMAGERENDERER_HPP_
-#define IMAGERENDERER_HPP_
+#pragma once
 
 #include "FAST/Visualization/Renderer.hpp"
 #include "FAST/Data/Image.hpp"
@@ -38,8 +37,3 @@ class FAST_EXPORT  ImageRenderer : public Renderer {
 };
 
 }
-
-
-
-
-#endif /* IMAGERENDERER_HPP_ */

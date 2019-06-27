@@ -28,6 +28,11 @@ void ImageChannelConverter::execute() {
     output->create(input->getSize(), input->getDataType(), existingChannels - nrOfChannelsToRemove);
     output->setSpacing(input->getSpacing());
     SceneGraph::setParentNode(output, input);
+    // TODO remove
+    for(auto metadata : input->getMetadata()) {
+        output->setMetadata(metadata.first, metadata.second);
+    }
+    // TODO end
 
     auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::Program program(getOpenCLProgram(device));
