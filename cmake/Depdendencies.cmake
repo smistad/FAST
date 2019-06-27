@@ -81,6 +81,7 @@ include(cmake/ModuleITK.cmake)
 include(cmake/ModuleOpenIGTLink.cmake)
 include(cmake/ModuleKinect.cmake)
 include(cmake/ModuleRealSense.cmake)
+include(cmake/ModuleWholeSlideImaging.cmake)
 include(cmake/ModuleClarius.cmake)
 
 # Make sure FAST can find external includes and libaries

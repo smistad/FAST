@@ -6,7 +6,7 @@ ExternalProject_Add(zlib
         PREFIX ${FAST_EXTERNAL_BUILD_DIR}/zlib
         BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/zlib
         GIT_REPOSITORY "https://github.com/madler/zlib.git"
-        GIT_TAG "v1.2.8"
+        GIT_TAG "v1.2.9"
         CMAKE_ARGS
             -DCMAKE_MACOSX_RPATH=ON
         CMAKE_CACHE_ARGS

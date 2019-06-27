@@ -20,6 +20,10 @@ class FAST_EXPORT  ImageRenderer : public Renderer {
 
         std::unordered_map<uint, uint> mTexturesToRender;
         std::unordered_map<uint, Image::pointer> mImageUsed;
+        /**
+         * Timestamp used to generate texture
+         */
+        std::unordered_map<uint, uint64_t> mDataTimestamp;
         std::unordered_map<uint, uint> mVAO;
         std::unordered_map<uint, uint> mVBO;
         std::unordered_map<uint, uint> mEBO;
