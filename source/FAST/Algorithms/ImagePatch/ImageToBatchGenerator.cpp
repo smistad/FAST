@@ -19,11 +19,17 @@ void ImageToBatchGenerator::generateStream() {
     imageList.reserve(m_maxBatchSize);
     int i = 0;
     bool lastFrame = false;
+    // Update will eventually block, therefore we need to call this in a separate thread
+    auto po = mParent->getProcessObject();
+    bool firstTime = true;
     while(!lastFrame) {
-        std::cout << "WAITING FOR IMAGE.." << mInputConnections[0]->getSize() << std::endl;
-        mInputConnections[0]->getProcessObject()->update(0); // Make sure execute is called on previous
-        auto image = getInputData<Image>(0);
+        std::cout << "WAITING FOR IMAGE.." << std::endl;
+        if(!firstTime) // parent is execute the first time, thus drop it here
+            po->update(0); // Make sure execute is called on previous
+        firstTime = false;
+        auto image = mParent->getNextFrame<Image>();
         std::cout << "GOT IMAGE.." << std::endl;
+        std::cout << "PATCH: " << image->getFrameData("patchid-x") << " " << image->getFrameData("patchid-y") << std::endl;
         lastFrame = image->isLastFrame();
         if(lastFrame)
             std::cout << "LAST FRAME OF STREAM!!!!" << std::endl;
@@ -43,6 +49,7 @@ void ImageToBatchGenerator::generateStream() {
             m_firstFrameCondition.notify_all();
         }
     }
+    //updateThread.join();
 }
 
 void ImageToBatchGenerator::execute() {
@@ -52,6 +59,8 @@ void ImageToBatchGenerator::execute() {
 
     if(!m_streamIsStarted) {
         m_streamIsStarted = true;
+        mParent = mInputConnections[0];
+        mInputConnections.clear(); // Severe the connection
         m_thread = std::make_unique<std::thread>(std::bind(&ImageToBatchGenerator::generateStream, this));
     }
 

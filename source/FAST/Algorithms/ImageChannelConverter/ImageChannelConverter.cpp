@@ -12,6 +12,7 @@ void ImageChannelConverter::setChannelsToRemove(bool channel1, bool channel2, bo
 
 void ImageChannelConverter::execute() {
     auto input = getInputData<Image>();
+    //std::cout << "IN converter, PATCH: " << input->getFrameData("patchid-x") << " " << input->getFrameData("patchid-y") << std::endl;
     auto output = getOutputData<Image>();
 
     int existingChannels = input->getNrOfChannels();
@@ -63,6 +64,7 @@ void ImageChannelConverter::execute() {
                 cl::NullRange
         );
     }
+    //addOutputData(0, output);
 }
 
 ImageChannelConverter::ImageChannelConverter() {

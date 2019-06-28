@@ -64,6 +64,7 @@ void PatchStitcher::processTensor(SharedPointer<Tensor> patch) {
             m_outputImage->setSpacing(Vector3f(patchWidth*patchSpacingX, patchHeight*patchSpacingY, 1.0f));
         }
         reportInfo() << "Stitching " << patch->getFrameData("patchid-x") << " " << patch->getFrameData("patchid-y") << reportEnd();
+        reportInfo() << "Stitching data" << patch->getFrameData("patch-spacing-x") << " " << patch->getFrameData("patch-spacing-y") << reportEnd();
 
         const int startX = std::stoi(patch->getFrameData("patchid-x"));
         const int startY = std::stoi(patch->getFrameData("patchid-y"));
@@ -72,8 +73,10 @@ void PatchStitcher::processTensor(SharedPointer<Tensor> patch) {
         auto tensorData = inputAccess->getData<2>();
         auto outputAccess = m_outputImage->getImageAccess(ACCESS_READ_WRITE);
 
+        // TODO just for testing
         int channelSelected = 1;
-        outputAccess->setScalar(Vector2i(startX, startY), tensorData(0, channelSelected));
+        outputAccess->setScalar(Vector2i(startX, startY), 1.0f);
+        //outputAccess->setScalar(Vector2i(startX, startY), tensorData(0, channelSelected));
 }
 
 void PatchStitcher::processImage(SharedPointer<Image> patch) {

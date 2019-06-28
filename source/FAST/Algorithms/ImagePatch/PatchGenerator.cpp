@@ -49,6 +49,7 @@ void PatchGenerator::generateStream() {
             reportInfo() << "Generating patch " << patchX << " " << patchY << reportEnd();
             auto patch = m_inputImage->getTileAsImage(m_level, patchX * m_width, patchY * m_height, patchWidth,
                                                       patchHeight);
+            std::cout << "Done generating patch" << std::endl;
 
             // Store some frame data useful for patch stitching
             patch->setFrameData("original-width", std::to_string(levelWidth));
@@ -63,10 +64,14 @@ void PatchGenerator::generateStream() {
 
             if(patchY == patchesY - 1 && patchX == patchesX - 1) { // Last frame?
                 patch->setLastFrame(getNameOfClass());
+                std::cout << "IN GENERATOR: LAST PATCH" << std::endl;
             }
+
+            std::cout << "In generator: " << patch->getFrameData("patchid-x") << " " << patch->getFrameData("patchid-y") << std::endl;
 
             try {
                 addOutputData(0, patch);
+                std::cout << "Done" << std::endl;
             } catch(ThreadStopped &e) {
                 std::unique_lock<std::mutex> lock(m_stopMutex);
                 m_stop = true;

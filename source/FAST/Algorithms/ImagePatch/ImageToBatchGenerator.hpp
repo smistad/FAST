@@ -26,6 +26,7 @@ class FAST_EXPORT ImageToBatchGenerator : public Streamer {
         std::mutex m_stopMutex;
         std::unique_ptr<std::thread> m_thread;
         std::condition_variable m_firstFrameCondition;
+        DataPort::pointer mParent;
     private:
         ImageToBatchGenerator();
 };

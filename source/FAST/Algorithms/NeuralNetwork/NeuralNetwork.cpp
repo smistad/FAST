@@ -225,10 +225,8 @@ void NeuralNetwork::execute() {
                 newTensor->create(std::move(newData), newShape);
                 tensorList.push_back(newTensor);
                 for(auto& inputNode : m_engine->getInputNodes()) {
-                    std::cout << "WEEEEEEEEEEE" << std::endl;
                     // TODO assuming input are images here:
                     for(auto &&frameData : mInputImages[inputNode.first][i]->getFrameData()) {
-                        std::cout << "Copying frame data " << frameData.first << std::endl;
                         newTensor->setFrameData(frameData.first, frameData.second);
                     }
                     for(auto &&lastFrame : mInputImages[inputNode.first][i]->getLastFrame())
@@ -242,6 +240,14 @@ void NeuralNetwork::execute() {
             // TODO Remove first dimension as it is 1, due to batch size 1
             //auto shape = tensor->getShape();
             //shape.deleteDimension(0);
+            for(auto& inputNode : m_engine->getInputNodes()) {
+                // TODO assuming input are images here:
+                for(auto &&frameData : mInputImages[inputNode.first][0]->getFrameData()) {
+                    tensor->setFrameData(frameData.first, frameData.second);
+                }
+                for(auto &&lastFrame : mInputImages[inputNode.first][0]->getLastFrame())
+                    tensor->setLastFrame(lastFrame);
+            }
             addOutputData(node.second.portID, tensor);
         }
     }

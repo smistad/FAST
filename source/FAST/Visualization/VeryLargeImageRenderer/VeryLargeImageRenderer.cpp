@@ -85,14 +85,14 @@ void VeryLargeImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMa
         levelToUse = input->getNrOfLevels()-1;
     if(levelToUse < 0)
         levelToUse = 0;
-    std::cout << "Level to use: " << levelToUse << std::endl;
+    //std::cout << "Level to use: " << levelToUse << std::endl;
     const int levelWidth = input->getLevelWidth(levelToUse);
     const int levelHeight = input->getLevelHeight(levelToUse);
 
     mCurrentLevel = levelToUse;
     mCurrentTileScale = (float)fullWidth/levelWidth;
     const int mTiles = input->getLevelTiles(mCurrentLevel);
-    std::cout << "Tiles to use: " << mTiles << std::endl;
+    //std::cout << "Tiles to use: " << mTiles << std::endl;
 
     activateShader();
 

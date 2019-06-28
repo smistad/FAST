@@ -34,9 +34,11 @@ void DummyStreamer::execute() {
 void DummyStreamer::produce() {
     std::cout << "DummyStreamer thread started" << std::endl;
     for(int i = 0; i < mFramesToGenerate; ++i) {
-        DummyDataObject::pointer image = DummyDataObject::New();
+        auto image = DummyDataObject::New();
         std::cout << "DummyDataObject " << i << " created in streamer" << std::endl;
         image->create(i);
+        if(i == mFramesToGenerate-1)
+            image->setLastFrame(getNameOfClass());
         addOutputData(0, image);
         {
             std::unique_lock<std::mutex> lock(mFramesGeneratedMutex);
