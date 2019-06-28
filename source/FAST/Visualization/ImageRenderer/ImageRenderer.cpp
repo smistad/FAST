@@ -155,6 +155,7 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, flo
         } else {
             // Copy data from CL image to CPU
             auto data = make_uninitialized_unique<float[]>(input->getWidth() * input->getHeight() * 4);
+            queue.finish();
             queue.enqueueReadImage(
                     image,
                     CL_TRUE,
