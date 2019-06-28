@@ -7,11 +7,17 @@ namespace fast {
 class Image;
 
 /**
- * This algorithms matches a template image to an image using normalized cross correlation (NCC)
+ * This algorithms matches a template image to an image using normalized cross correlation (NCC),
+ * sum of absolute differences (SAD) or sum of squared differences (SSD).
  */
-class FAST_EXPORT TemplateMatchingNCC : public ProcessObject {
-    FAST_OBJECT(TemplateMatchingNCC)
+class FAST_EXPORT TemplateMatching : public ProcessObject {
+    FAST_OBJECT(TemplateMatching)
     public:
+        enum class MatchingMetric {
+            NORMALIZED_CROSS_CORRELATION,
+            SUM_OF_SQUARED_DIFFERENCES,
+            SUM_OF_ABSOLUTE_DIFFERENCES,
+        };
         /**
          * Set region of interest of where to do the template matching.
          * @param center 2D position
@@ -28,10 +34,16 @@ class FAST_EXPORT TemplateMatchingNCC : public ProcessObject {
          * @return Vector2f
          */
         Vector2f getBestFitSubPixelPosition() const;
+        /**
+         * Select which matching metric to use
+         * @param type
+         */
+        void setMatchingMetric(MatchingMetric type);
     private:
-        TemplateMatchingNCC();
+        TemplateMatching();
         void execute() override;
 
+        MatchingMetric m_type = MatchingMetric::SUM_OF_ABSOLUTE_DIFFERENCES;
         Vector2i m_center = Vector2i(-1, -1);
         Vector2i m_offset;
         Vector2i m_bestFitPosition;
