@@ -183,12 +183,30 @@ void View::updateRenderers(uint64_t timestep, StreamingMode mode) {
     }
 }
 
+void View::lockRenderers() {
+    for(Renderer::pointer renderer : mNonVolumeRenderers) {
+        renderer->lock();
+    }
+    for(Renderer::pointer renderer : mVolumeRenderers) {
+        renderer->lock();
+    }
+}
+
 void View::stopRenderers() {
     for(Renderer::pointer renderer : mNonVolumeRenderers) {
         renderer->stopPipeline();
     }
     for(Renderer::pointer renderer : mVolumeRenderers) {
         renderer->stopPipeline();
+    }
+}
+
+void View::unlockRenderers() {
+    for(Renderer::pointer renderer : mNonVolumeRenderers) {
+        renderer->unlock();
+    }
+    for(Renderer::pointer renderer : mVolumeRenderers) {
+        renderer->unlock();
     }
 }
 
@@ -530,6 +548,7 @@ void View::paintGL() {
         mRuntimeManager->startRegularTimer("draw2D");
         for(int i = 0; i < mNonVolumeRenderers.size(); i++) {
             mNonVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, true);
+            mNonVolumeRenderers[i]->postDraw();
         }
         mRuntimeManager->stopRegularTimer("draw2D");
 
@@ -544,12 +563,14 @@ void View::paintGL() {
         mRuntimeManager->startRegularTimer("draw");
         for(int i = 0; i < mNonVolumeRenderers.size(); i++) {
             mNonVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, false);
+            mNonVolumeRenderers[i]->postDraw();
         }
 
         if(!mVolumeRenderers.empty()) {
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FBO);
             for(int i = 0; i < mVolumeRenderers.size(); i++) {
                 mVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, false);
+                mVolumeRenderers[i]->postDraw();
             }
 
             // Blit/copy the framebuffer to the default framebuffer (window)
@@ -726,6 +747,15 @@ std::vector<Renderer::pointer> View::getRenderers() {
     std::vector<Renderer::pointer> newList = mNonVolumeRenderers;
     newList.insert(newList.cend(), mVolumeRenderers.begin(), mVolumeRenderers.end());
     return newList;
+}
+
+void View::resetRenderers() {
+    for(Renderer::pointer renderer : mNonVolumeRenderers) {
+        renderer->reset();
+    }
+    for(Renderer::pointer renderer : mVolumeRenderers) {
+        renderer->reset();
+    }
 }
 
 Vector4f View::getOrthoProjectionParameters() {
