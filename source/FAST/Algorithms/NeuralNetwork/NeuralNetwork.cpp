@@ -237,11 +237,10 @@ void NeuralNetwork::execute() {
             outputBatch->create(tensorList);
             addOutputData(node.second.portID, outputBatch);
         } else {
-            // TODO Remove first dimension as it is 1, due to batch size 1
-            //auto shape = tensor->getShape();
-            //shape.deleteDimension(0);
+            // Remove first dimension as it is 1, due to batch size 1
+            tensor->deleteDimension(0);
             for(auto& inputNode : m_engine->getInputNodes()) {
-                // TODO assuming input are images here:
+                // TODO assuming input are images here: Should also be able to handle tensors
                 for(auto &&frameData : mInputImages[inputNode.first][0]->getFrameData()) {
                     tensor->setFrameData(frameData.first, frameData.second);
                 }

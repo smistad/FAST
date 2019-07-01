@@ -40,7 +40,6 @@ TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork][visual]") {
             streamer->enableLooping();
 
             auto segmentation = PixelClassifier::New();
-            segmentation->setNrOfClasses(3);
             segmentation->setInferenceEngine(engine);
             segmentation->getInferenceEngine()->setDeviceType(deviceType.second);
             if(engine.substr(0, 10) == "TensorFlow") {

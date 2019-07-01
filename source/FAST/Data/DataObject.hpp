@@ -35,11 +35,11 @@ class FAST_EXPORT  DataObject : public Object {
         void setFrameData(std::string name, std::string value);
         std::string getFrameData(std::string name);
         std::unordered_map<std::string, std::string> getFrameData();
+        void accessFinished();
     protected:
         virtual void free(ExecutionDevice::pointer device) = 0;
         virtual void freeAll() = 0;
 
-        void accessFinished();
         void blockIfBeingWrittenTo();
         void blockIfBeingAccessed();
 

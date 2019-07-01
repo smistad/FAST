@@ -38,9 +38,9 @@ int main(int argc, char** argv) {
     }
 
     std::string path = join(Config::getTestDataPath(), "NeuralNetworkModels/axillary_all_augmentations");
-    PixelClassifier::pointer segmentation = PixelClassifier::New();
+    auto segmentation = PixelClassifier::New();
     const auto engine = segmentation->getInferenceEngine()->getName();
-    if(engine == "TensorFlow") {
+    if(engine.substr(0, 10) == "TensorFlow") {
         segmentation->setOutputNode(0, "conv2d_23/truediv");
     } else if(engine == "TensorRT") {
         // TODO specify nodes
@@ -52,27 +52,27 @@ int main(int argc, char** argv) {
     }
     segmentation->load(path);
     segmentation->setHeatmapOutput();
-    segmentation->setNrOfClasses(6);
     segmentation->setScaleFactor(1.0f / 255.0f);
     segmentation->setInputConnection(inputStream->getOutputPort());
     //segmentation->setPreserveAspectRatio(true);
     segmentation->enableRuntimeMeasurements();
     segmentation->setHorizontalFlipping(parser.getOption("flip"));
 
-    HeatmapRenderer::pointer renderer = HeatmapRenderer::New();
-    renderer->addInputConnection(segmentation->getOutputPort(1), Color::Red());
-    renderer->addInputConnection(segmentation->getOutputPort(2), Color::Yellow());
-    renderer->addInputConnection(segmentation->getOutputPort(3), Color::Green());
-    renderer->addInputConnection(segmentation->getOutputPort(4), Color::Magenta());
-    renderer->addInputConnection(segmentation->getOutputPort(5), Color::Cyan());
+    auto renderer = HeatmapRenderer::New();
+    renderer->addInputConnection(segmentation->getOutputPort());
+    renderer->setChannelColor(1, Color::Red());
+    renderer->setChannelColor(2, Color::Yellow());
+    renderer->setChannelColor(3, Color::Green());
+    renderer->setChannelColor(4, Color::Magenta());
+    renderer->setChannelColor(5, Color::Cyan());
     renderer->setMaxOpacity(0.6);
     //renderer->setMinConfidence(0.2);
     renderer->enableRuntimeMeasurements();
 
-    ImageRenderer::pointer renderer2 = ImageRenderer::New();
+    auto renderer2 = ImageRenderer::New();
     renderer2->setInputConnection(inputStream->getOutputPort());
 
-    SimpleWindow::pointer window = SimpleWindow::New();
+    auto window = SimpleWindow::New();
 
     window->addRenderer(renderer2);
     window->addRenderer(renderer);

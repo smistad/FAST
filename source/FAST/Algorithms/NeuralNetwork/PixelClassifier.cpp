@@ -8,12 +8,11 @@ namespace fast {
 PixelClassifier::PixelClassifier() {
     createInputPort<Image>(0);
 
-    mNrOfClasses = -1;
     mHeatmapOutput = false;
+    createOutputPort<Segmentation>(0);
     mResizeBackToOriginalSize = false;
     mThreshold = 0.5;
 
-    createIntegerAttribute("classes", "Classes", "Number of possible classes for each pixel", 2);
     createBooleanAttribute("heatmap_output", "Output heatmap", "Enable heatmap output instead of segmentation", false);
 }
 
@@ -23,21 +22,12 @@ void PixelClassifier::setResizeBackToOriginalSize(bool resize) {
 
 void PixelClassifier::setHeatmapOutput() {
     mHeatmapOutput = true;
+    createOutputPort<Tensor>(0);
 }
 
 void PixelClassifier::setSegmentationOutput() {
     mHeatmapOutput = false;
-}
-
-void PixelClassifier::setNrOfClasses(uint classes) {
-    mNrOfClasses = classes;
-    if(mHeatmapOutput) {
-        for (int i = 0; i < mNrOfClasses; i++) {
-            createOutputPort<Image>(i);
-        }
-    } else {
-        createOutputPort<Image>(0);
-    }
+    createOutputPort<Segmentation>(0);
 }
 
 /**
@@ -54,8 +44,6 @@ inline int getPosition(int x, int nrOfClasses, int j, int size, ImageOrdering or
 }
 
 void PixelClassifier::execute() {
-    if(mNrOfClasses <= 0)
-        throw Exception("You must set the nr of classes to pixel classification.");
 
     run();
 
@@ -78,46 +66,23 @@ void PixelClassifier::execute() {
     auto ordering = m_engine->getPreferredImageOrdering();
 
     const int size = outputWidth*outputHeight*outputDepth;
+    // TODO reuse some of the output processing in NN
     if(mHeatmapOutput) {
-        for(int j = 0; j < mNrOfClasses; j++) {
-            // Check if output for this class has been requested
-            if (mOutputConnections[j].empty())
-                continue;
-            auto data = make_uninitialized_unique<float[]>(size);
-            for(int x = 0; x < size; ++x) {
-                data[x] = tensorData[getPosition(x, mNrOfClasses, j, size, ordering)];
-            }
-            Image::pointer output = Image::New();
-            if(outputDepth == 1) {
-                output->create(outputWidth, outputHeight, TYPE_FLOAT, 1, std::move(data));
-            } else {
-                output->create(outputWidth, outputHeight, outputDepth, TYPE_FLOAT, 1, std::move(data));
-            }
-
-            output->setSpacing(mNewInputSpacing);
-            SceneGraph::setParentNode(output, mInputImages.begin()->second[0]);
-            if(mResizeBackToOriginalSize) {
-                ImageResizer::pointer resizer = ImageResizer::New();
-                resizer->setInputData(output);
-                resizer->setSize(mInputImages.begin()->second[0]->getSize().cast<int>());
-                resizer->setPreserveAspectRatio(mPreserveAspectRatio);
-                DataPort::pointer port = resizer->getOutputPort();
-                resizer->update();
-
-                Image::pointer resizedOutput = port->getNextFrame<Image>();
-                addOutputData(j, resizedOutput);
-            } else {
-                addOutputData(j, output);
-            }
-        }
+        std::cout << tensor->getShape().toString() << std::endl;
+        tensor->deleteDimension(0); // TODO why not working
+        std::cout << tensor->getShape().toString() << std::endl;
+        tensor->setSpacing(mNewInputSpacing);
+        SceneGraph::setParentNode(tensor, mInputImages.begin()->second[0]);
+        addOutputData(0, tensor);
     } else {
-        Image::pointer output = Image::New();
+        auto output = Image::New();
         auto data = make_uninitialized_unique<uchar[]>(size);
+        int nrOfClasses = tensor->getShape()[2];
         for(int x = 0; x < size; ++x) {
             uchar maxClass = 0;
-            for(uchar j = 1; j < mNrOfClasses; j++) {
-                if(tensorData[getPosition(x, mNrOfClasses, j, size, ordering)] > mThreshold &&
-                        tensorData[getPosition(x, mNrOfClasses, j, size, ordering)] > tensorData[getPosition(x, mNrOfClasses, maxClass, size, ordering)]) {
+            for(uchar j = 1; j < nrOfClasses; j++) {
+                if(tensorData[getPosition(x, nrOfClasses, j, size, ordering)] > mThreshold &&
+                        tensorData[getPosition(x, nrOfClasses, j, size, ordering)] > tensorData[getPosition(x, nrOfClasses, maxClass, size, ordering)]) {
                     maxClass = j;
                 }
             }
@@ -154,7 +119,6 @@ void PixelClassifier::loadAttributes() {
     } else {
         setSegmentationOutput();
     }
-    setNrOfClasses(getIntegerAttribute("classes"));
     NeuralNetwork::loadAttributes();
 }
 

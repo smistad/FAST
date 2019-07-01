@@ -192,7 +192,7 @@ void ImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, flo
 void ImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D) {
 
     for(auto it : mDataToRender) {
-        Image::pointer input = std::static_pointer_cast<Image>(it.second);
+        auto input = std::static_pointer_cast<Image>(it.second);
         uint inputNr = it.first;
         // Delete old VAO
         if(mVAO.count(inputNr) > 0)

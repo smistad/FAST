@@ -77,7 +77,9 @@ std::string TensorShape::toString() const {
 }
 
 void TensorShape::deleteDimension(int index) {
+    std::cout << "deleting" << m_data[index] << std::endl;
     m_data.erase(m_data.begin() + index);
+    std::cout << "deleting" << m_data[index] << std::endl;
 }
 
 void TensorShape::deleteDimensions(int startIndex, int endIndex) {

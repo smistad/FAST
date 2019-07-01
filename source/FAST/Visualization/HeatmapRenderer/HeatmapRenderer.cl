@@ -1,42 +1,45 @@
 __constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
 
 __kernel void renderToTexture(
-        __read_only image2d_t input,
+        __global float* inputTensor,
         __write_only image2d_t output,
-        __private float red,
-        __private float green,
-        __private float blue,
+        __constant float* colors,
         __private float minConfidence,
-        __private float maxOpacity
+        __private float maxOpacity,
+        __private int channels
 ) {
     const int2 position = {get_global_id(0), get_global_id(1)};
 
-    float intensity = read_imagef(input, sampler, position).x;
-
     float4 color = {0.0f, 0.0f, 0.0f, 0.0f};
-    if(intensity < minConfidence)
-        intensity = 0;
-    // Avoid multiple colors on top of eachother
-    /*
-    if(color.x != color.y || color.y != color.z || color.x != color.z) {
-        if(color.w < intensity) {
-            intensity *= maxOpacity;
-            float lowest = min(color.x, min(color.y, color.z));
-            color.x = lowest;
-            color.y = lowest;
-            color.z = lowest;
-            color = color + intensity * (float4)(red, green, blue, 1.0f);
+    // TODO blend colors
+    for(int channel = 0; channel < channels; ++channel) {
+        float intensity = inputTensor[(position.x + position.y*get_global_size(0))*channels + channel];
+
+        if(intensity < minConfidence)
+            intensity = 0;
+        // Avoid multiple colors on top of eachother
+        /*
+        if(color.x != color.y || color.y != color.z || color.x != color.z) {
+            if(color.w < intensity) {
+                intensity *= maxOpacity;
+                float lowest = min(color.x, min(color.y, color.z));
+                color.x = lowest;
+                color.y = lowest;
+                color.z = lowest;
+                color = color + intensity * (float4)(red, green, blue, 1.0f);
+                color.w = intensity;
+                color = clamp(color, 0.0f, 1.0f);
+            }
+        } else {
+        */
+            intensity *= 0.3;
+            float3 colorToUse = vload3(colors, channel);
+            color = color + 1.0f * colorToUse.xyzz;
             color.w = intensity;
             color = clamp(color, 0.0f, 1.0f);
-        }
-    } else {
-    */
-        intensity *= 0.3;
-        color = color + 1.0f * (float4)(red, green, blue, 1.0f);
-        color.w = intensity;
-        color = clamp(color, 0.0f, 1.0f);
-    //}
+        //}
 
+    }
     write_imagef(output, (int2)(position.x, get_image_height(output) - position.y - 1), color);
 }
 

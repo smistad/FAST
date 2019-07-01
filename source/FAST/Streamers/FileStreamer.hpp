@@ -43,7 +43,6 @@ class FAST_EXPORT FileStreamer : public Streamer {
         std::string getFilename(uint i, int currentSequence) const;
         void generateStream() override;
         FileStreamer();
-    private:
         void execute();
 
         bool mLoop;
@@ -55,8 +54,6 @@ class FAST_EXPORT FileStreamer : public Streamer {
         uint mSleepTime;
         uint mStepSize;
 
-        bool mHasReachedEnd;
-        bool mStop;
         bool mUseTimestamp = true;
 
         std::vector<std::string> mFilenameFormats;

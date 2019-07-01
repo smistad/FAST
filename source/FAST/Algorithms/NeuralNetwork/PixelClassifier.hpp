@@ -7,7 +7,6 @@ namespace fast {
 class FAST_EXPORT  PixelClassifier : public NeuralNetwork {
     FAST_OBJECT(PixelClassifier)
     public:
-        void setNrOfClasses(uint classes);
         void setHeatmapOutput();
         void setSegmentationOutput();
         void setResizeBackToOriginalSize(bool resize);
@@ -18,7 +17,6 @@ class FAST_EXPORT  PixelClassifier : public NeuralNetwork {
         void execute();
 
 
-        int mNrOfClasses;
         bool mHeatmapOutput;
         bool mResizeBackToOriginalSize;
         float mThreshold;

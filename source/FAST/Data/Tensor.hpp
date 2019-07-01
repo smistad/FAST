@@ -1,13 +1,15 @@
 #pragma once
 
-#include <FAST/Data/DataObject.hpp>
+#include <FAST/Data/SpatialDataObject.hpp>
 #include <FAST/Data/Access/TensorAccess.hpp>
 #include <FAST/Data/Access/Access.hpp>
 #include <FAST/Data/TensorShape.hpp>
 
 namespace fast {
 
-class FAST_EXPORT Tensor : public DataObject {
+class OpenCLBufferAccess;
+
+class FAST_EXPORT Tensor : public SpatialDataObject {
     FAST_OBJECT(Tensor)
     public:
         /**
@@ -33,17 +35,33 @@ class FAST_EXPORT Tensor : public DataObject {
 		virtual void expandDims(int position = 0);
         virtual TensorShape getShape() const;
         virtual TensorAccess::pointer getAccess(accessType type);
-        // TODO add OpenCL buffer access
+        virtual std::unique_ptr<OpenCLBufferAccess> getOpenCLBufferAccess(accessType type, OpenCLDevice::pointer);
         virtual void freeAll() override;
         virtual void free(ExecutionDevice::pointer device) override;
+        virtual void setSpacing(VectorXf spacing);
+        virtual VectorXf getSpacing() const;
+        virtual void deleteDimension(int dimension);
 
     protected:
         Tensor() = default;
+        virtual bool isInitialized();
+        void transferCLBufferFromHost(OpenCLDevice::pointer device);
+        void transferCLBufferToHost(OpenCLDevice::pointer device);
+        void updateOpenCLBufferData(OpenCLDevice::pointer device);
+        void setAllDataToOutOfDate();
+        bool hasAnyData();
+        void updateHostData();
 
         std::unique_ptr<float[]> m_data;
+        std::unordered_map<SharedPointer<OpenCLDevice>, cl::Buffer*> mCLBuffers;
+        std::unordered_map<SharedPointer<OpenCLDevice>, bool> mCLBuffersIsUpToDate;
         TensorShape m_shape;
+        bool mHostDataIsUpToDate;
+
+        VectorXf m_spacing;
 
         friend TensorAccess;
+        friend OpenCLBufferAccess;
 };
 
 }

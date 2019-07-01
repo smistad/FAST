@@ -4,10 +4,10 @@
 
 namespace fast {
 
-class FAST_EXPORT  ImageFileStreamer : public FileStreamer {
+class FAST_EXPORT ImageFileStreamer : public FileStreamer {
     FAST_OBJECT(ImageFileStreamer)
     protected:
-        DataObject::pointer getDataFrame(std::string filename);
+        DataObject::pointer getDataFrame(std::string filename) override;
     private:
         ImageFileStreamer();
 

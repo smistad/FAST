@@ -1,18 +1,19 @@
 #include "HeatmapRenderer.hpp"
-#include "FAST/Data/Image.hpp"
+#include <FAST/Data/Tensor.hpp>
+#include <FAST/Data/Access/OpenCLBufferAccess.hpp>
 
 namespace fast {
 
 HeatmapRenderer::HeatmapRenderer() {
-    createInputPort<Image>(0, false);
+    createInputPort<Tensor>(0, false);
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/HeatmapRenderer/HeatmapRenderer.cl");
     mIsModified = false;
+    mColorsModified = true;
 }
 
-uint HeatmapRenderer::addInputConnection(DataPort::pointer port, Color color) {
-    uint nr = Renderer::addInputConnection(port);
-    mColors[nr] = color;
-    return nr;
+void HeatmapRenderer::setChannelColor(uint channel, Color color) {
+    mColors[channel] = color;
+    mColorsModified = true;
 }
 
 void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
@@ -28,26 +29,54 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
         Color::Yellow(),
         Color::Cyan(),
     };
+    int maxChannels = 0;
+    for(auto it : mDataToRender) {
+        auto input = std::static_pointer_cast<Tensor>(it.second);
+        int nrOfChannels = input->getShape()[2];
+        maxChannels = std::max(nrOfChannels, maxChannels);
+    }
+
+    if(mColorsModified) {
+        // Transfer colors to device (this doesn't have to happen every render call..)
+        auto colorData = make_uninitialized_unique<float[]>(3*mColors.size());
+        Color defaultColor = Color::Green();
+        for(int i = 0; i < maxChannels; ++i) {
+            if(mColors.count(i) > 0) {
+                colorData[i*3] = mColors[i].getRedValue();
+                colorData[i*3 + 1] = mColors[i].getGreenValue();
+                colorData[i*3 + 2] = mColors[i].getBlueValue();
+            } else {
+                colorData[i*3] = defaultColor.getRedValue();
+                colorData[i*3 + 1] = defaultColor.getGreenValue();
+                colorData[i*3 + 2] = defaultColor.getBlueValue();
+            }
+        }
+
+        mColorBuffer = cl::Buffer(
+                device->getContext(),
+                CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                sizeof(float)*3*maxChannels,
+                colorData.get()
+        );
+    }
 
     cl::Kernel kernel(getOpenCLProgram(device), "renderToTexture");
     for(auto it : mDataToRender) {
-        Image::pointer input = std::static_pointer_cast<Image>(it.second);
+        auto input = std::static_pointer_cast<Tensor>(it.second);
         uint inputNr = it.first;
 
-        if(input->getDataType() != TYPE_FLOAT) {
-            throw Exception("Data type of image given to HeatmapRenderer must be FLOAT");
-        }
+        if(input->getShape().getDimensions() == 3)
+            throw Exception("Tensor given to HeatmapRenderer must be 3D (width x height x channels)");
 
-        if(input->getDimensions() != 2)
-            throw Exception("Image given to HeatmapRenderer must be 2D");
+        const int width = input->getShape()[0];
+        const int height = input->getShape()[1];
 
         // Run kernel to fill the texture
         Color color = colorList[it.first % colorList.size()];
         if(mColors.count(it.first) > 0) // has color
             color = mColors[it.first];
 
-        OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
-        cl::Image2D *clImage = access->get2DImage();
+        auto access = input->getOpenCLBufferAccess(ACCESS_READ, device);
 
         if(mTexturesToRender.count(inputNr) > 0) {
             // Delete old texture
@@ -67,7 +96,7 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
             glBindTexture(GL_TEXTURE_2D, textureID);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, input->getWidth(), input->getHeight(), 0, GL_RGBA, GL_FLOAT, 0);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
 
             // Create CL-GL image
             imageGL = cl::ImageGL(
@@ -87,22 +116,21 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
                     device->getContext(),
                     CL_MEM_READ_WRITE,
                     cl::ImageFormat(CL_RGBA, CL_FLOAT),
-                    input->getWidth(), input->getHeight()
+                    width, height
             );
             kernel.setArg(1, image);
         }
 
-        kernel.setArg(0, *clImage);
-        kernel.setArg(2, color.getRedValue());
-        kernel.setArg(3, color.getGreenValue());
-        kernel.setArg(4, color.getBlueValue());
-        kernel.setArg(5, mMinConfidence);
-        kernel.setArg(6, mMaxOpacity);
+        kernel.setArg(0, *access->get());
+        kernel.setArg(1, mColorBuffer);
+        kernel.setArg(2, mMinConfidence);
+        kernel.setArg(3, mMaxOpacity);
+        kernel.setArg(4, input->getShape()[2]);
 
         queue.enqueueNDRangeKernel(
             kernel,
             cl::NullRange,
-            cl::NDRange(input->getWidth(), input->getHeight()),
+            cl::NDRange(width, height),
             cl::NullRange
         );
 
@@ -111,12 +139,12 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
             queue.finish();
         } else {
             // Copy data from CL image to CPU
-            auto data = make_uninitialized_unique<float[]>(input->getWidth() * input->getHeight() * 4);
+            auto data = make_uninitialized_unique<float[]>(width * height * 4);
             queue.enqueueReadImage(
                     image,
                     CL_TRUE,
                     createOrigoRegion(),
-                    createRegion(input->getWidth(), input->getHeight(), 1),
+                    createRegion(width, height, 1),
                     0, 0,
                     data.get()
             );
@@ -125,13 +153,13 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
             glBindTexture(GL_TEXTURE_2D, textureID);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, input->getWidth(), input->getHeight(), 0, GL_RGBA, GL_FLOAT, data.get());
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, data.get());
             glBindTexture(GL_TEXTURE_2D, 0);
             glFinish();
         }
 
         mTexturesToRender[inputNr] = textureID;
-        mImageUsed[inputNr] = input;
+        mTensorUsed[inputNr] = input;
         queue.finish();
     }
 
@@ -141,6 +169,93 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
     drawTextures(perspectiveMatrix, viewingMatrix, mode2D);
     glDisable(GL_BLEND);
 
+}
+
+void HeatmapRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D) {
+
+    for(auto it : mDataToRender) {
+        auto input = std::static_pointer_cast<Tensor>(it.second);
+        uint inputNr = it.first;
+        // Delete old VAO
+        if(mVAO.count(inputNr) > 0)
+            glDeleteVertexArrays(1, &mVAO[inputNr]);
+        // Create VAO
+        uint VAO_ID;
+        glGenVertexArrays(1, &VAO_ID);
+        mVAO[inputNr] = VAO_ID;
+        glBindVertexArray(VAO_ID);
+
+        // Create VBO
+        // Get width and height in mm
+        float width = input->getShape()[0];// * input->getSpacing().x();
+        float height = input->getShape()[1];// * input->getSpacing().y();
+        float vertices[] = {
+                // vertex: x, y, z; tex coordinates: x, y
+                0.0f, height, 0.0f, 0.0f, 0.0f,
+                width, height, 0.0f, 1.0f, 0.0f,
+                width, 0.0f, 0.0f, 1.0f, 1.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        };
+        // Delete old VBO
+        if(mVBO.count(inputNr) > 0)
+            glDeleteBuffers(1, &mVBO[inputNr]);
+        uint VBO;
+        glGenBuffers(1, &VBO);
+        mVBO[inputNr] = VBO;
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(1);
+
+        // Delete old EBO
+        if(mEBO.count(inputNr) > 0)
+            glDeleteBuffers(1, &mEBO[inputNr]);
+        // Create EBO
+        uint EBO;
+        glGenBuffers(1, &EBO);
+        mEBO[inputNr] = EBO;
+        uint indices[] = {  // note that we start from 0!
+                0, 1, 3,   // first triangle
+                1, 2, 3    // second triangle
+        };
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+        glBindVertexArray(0);
+
+    }
+
+    activateShader();
+
+    // This is the actual rendering
+    for(auto& it : mTensorUsed) {
+        AffineTransformation::pointer transform;
+        if(mode2D) {
+            // If rendering is in 2D mode we skip any transformations
+            transform = AffineTransformation::New();
+        } else {
+            transform = SceneGraph::getAffineTransformationFromData(it.second);
+        }
+
+        Vector3f spacing = it.second->getSpacing();
+        transform->getTransform().scale(spacing);
+
+        uint transformLoc = glGetUniformLocation(getShaderProgram(), "transform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform->getTransform().data());
+        transformLoc = glGetUniformLocation(getShaderProgram(), "perspectiveTransform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, perspectiveMatrix.data());
+        transformLoc = glGetUniformLocation(getShaderProgram(), "viewTransform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, viewingMatrix.data());
+
+        glBindTexture(GL_TEXTURE_2D, mTexturesToRender[it.first]);
+        glBindVertexArray(mVAO[it.first]);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindVertexArray(0);
+    }
+
+    deactivateShader();
 }
 
 void HeatmapRenderer::setMinConfidence(float confidence) {

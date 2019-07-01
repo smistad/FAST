@@ -18,7 +18,6 @@ FileStreamer::FileStreamer() {
     mSleepTime = 0;
     mStepSize = 1;
     mMaximumNrOfFrames = -1;
-    mStop = false;
 }
 
 void FileStreamer::setNumberOfReplays(uint replays) {
@@ -116,10 +115,9 @@ void FileStreamer::generateStream() {
     while(true) {
         {
             std::unique_lock<std::mutex> lock(m_stopMutex);
-            if(mStop) {
+            if(m_stop) {
                 m_streamIsStarted = false;
                 m_firstFrameIsInserted = false;
-                mHasReachedEnd = false;
                 break;
             }
         }
@@ -187,7 +185,6 @@ void FileStreamer::generateStream() {
                     }
                     continue;
                 }
-                mHasReachedEnd = true;
                 // Reached end of stream
                 break;
             } else {

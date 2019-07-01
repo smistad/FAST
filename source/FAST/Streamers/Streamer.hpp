@@ -51,9 +51,9 @@ class FAST_EXPORT Streamer : public ProcessObject {
          */
         virtual void generateStream() = 0;
 
-        bool m_firstFrameIsInserted;
-        bool m_streamIsStarted;
-        bool m_stop;
+        bool m_firstFrameIsInserted = false;
+        bool m_streamIsStarted = false;
+        bool m_stop = false;
 
         std::mutex m_firstFrameMutex;
         std::mutex m_stopMutex;
