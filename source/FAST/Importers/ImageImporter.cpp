@@ -41,7 +41,7 @@ void ImageImporter::execute() {
     std::cout << convertedImage.bytesPerLine() << std::endl;
     if(convertedImage.width()*convertedImage.depth()/8 != convertedImage.bytesPerLine()) {
         const int bytesPerPixel = (convertedImage.depth()/8);
-        std::unique_ptr<uchar[]> fixedPixelData = std::make_unique<uchar[]>(image.width()*image.height());
+        std::unique_ptr<uchar[]> fixedPixelData = std::make_unique<uchar[]>(image.width()*image.height()*bytesPerPixel);
         // Misalignment
         for(int scanline = 0; scanline < image.height(); ++scanline) {
             std::memcpy(
