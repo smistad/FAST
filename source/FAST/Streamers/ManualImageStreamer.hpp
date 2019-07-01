@@ -32,7 +32,7 @@ class FAST_EXPORT  ManualImageStreamer : public Streamer {
          * This method runs in a separate thread and adds frames to the
          * output object
          */
-        void producerStream();
+        void generateStream() override;
 
         void stop();
 

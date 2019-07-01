@@ -77,8 +77,8 @@ class DummyStreamer : public Streamer {
     public:
         void setSleepTime(uint milliseconds);
         void setTotalFrames(uint frames);
-        void produce();
         bool hasReachedEnd();
+        void generateStream() override;
         uint getFramesToGenerate();
         ~DummyStreamer();
     private:
@@ -89,11 +89,8 @@ class DummyStreamer : public Streamer {
         uint mFramesToGenerate = 20;
         uint mFramesGenerated = 0;
 
-        std::thread* mThread = nullptr;
-        bool mRunning = false;
-
         std::mutex mFramesGeneratedMutex;
-        std::condition_variable mFirstFrameConditionVariable;
+
 };
 
 class DummyImporter : public ProcessObject {

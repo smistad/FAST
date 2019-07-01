@@ -1,5 +1,4 @@
-#ifndef META_IMAGE_STREAMER_HPP
-#define META_IMAGE_STREAMER_HPP
+#pragma once
 
 #include "FAST/Streamers/FileStreamer.hpp"
 
@@ -15,5 +14,3 @@ class FAST_EXPORT  ImageFileStreamer : public FileStreamer {
 };
 
 } // end namespace fast
-
-#endif

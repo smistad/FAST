@@ -12,7 +12,6 @@ class FAST_EXPORT  AffineTransformationFileStreamer : public Streamer {
     FAST_OBJECT(AffineTransformationFileStreamer)
     public:
         void setFilename(std::string str);
-        void setStreamingMode(StreamingMode mode);
         void setTimestampFilename(std::string filepath);
         void enableLooping();
         void disableLooping();
@@ -20,13 +19,12 @@ class FAST_EXPORT  AffineTransformationFileStreamer : public Streamer {
          * Set a sleep time after each frame is read
          */
         void setSleepTime(uint milliseconds);
-        bool hasReachedEnd();
         uint getNrOfFrames() const;
         /**
          * This method runs in a separate thread and adds frames to the
          * output object
          */
-        void producerStream();
+        void generateStream() override;
 
         ~AffineTransformationFileStreamer();
     private:
@@ -38,17 +36,9 @@ class FAST_EXPORT  AffineTransformationFileStreamer : public Streamer {
         bool mLoop;
         uint mSleepTime;
 
-        std::thread *thread;
-        std::mutex mFirstFrameMutex;
-        std::condition_variable mFirstFrameCondition;
-
         uint mNrOfFrames;
         uint mMaximumNrOfFrames;
         bool mMaximumNrOfFramesSet;
-
-        bool mStreamIsStarted;
-        bool mFirstFrameIsInserted;
-        bool mHasReachedEnd;
 
         std::string mFilename;
         std::string mTimestampFilename;

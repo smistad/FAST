@@ -1,5 +1,4 @@
-#ifndef FAST_FILE_STREAMER_HPP_
-#define FAST_FILE_STREAMER_HPP_
+#pragma once
 
 #include "FAST/ProcessObject.hpp"
 
@@ -11,7 +10,7 @@ namespace fast {
 /**
  * Abstract FileStreamer class
  */
-class FAST_EXPORT  FileStreamer : public Streamer {
+class FAST_EXPORT FileStreamer : public Streamer {
     public:
         void setFilenameFormat(std::string str);
         void setFilenameFormats(std::vector<std::string> strings);
@@ -27,13 +26,7 @@ class FAST_EXPORT  FileStreamer : public Streamer {
          * Set a sleep time after each frame is read
          */
         void setSleepTime(uint milliseconds);
-        bool hasReachedEnd();
         int getNrOfFrames();
-        void producerStream();
-        /**
-         * Stops the streaming thread, and will not return until this thread is stopped.
-         */
-        void stop();
 
         /**
          * Enable or disable the use of timestamps when streaming files.
@@ -43,9 +36,12 @@ class FAST_EXPORT  FileStreamer : public Streamer {
         void setUseTimestamp(bool use);
 
         ~FileStreamer();
+
+        virtual std::string getNameOfClass() const { return "FileStreamer"; }
     protected:
         virtual DataObject::pointer getDataFrame(std::string filename) = 0;
         std::string getFilename(uint i, int currentSequence) const;
+        void generateStream() override;
         FileStreamer();
     private:
         void execute();
@@ -59,13 +55,6 @@ class FAST_EXPORT  FileStreamer : public Streamer {
         uint mSleepTime;
         uint mStepSize;
 
-        std::thread *mThread;
-        std::mutex mFirstFrameMutex;
-        std::condition_variable mFirstFrameCondition;
-        std::mutex mStopMutex;
-
-        bool mStreamIsStarted;
-        bool mFirstFrameIsInserted;
         bool mHasReachedEnd;
         bool mStop;
         bool mUseTimestamp = true;
@@ -77,5 +66,3 @@ class FAST_EXPORT  FileStreamer : public Streamer {
 };
 
 }
-
-#endif

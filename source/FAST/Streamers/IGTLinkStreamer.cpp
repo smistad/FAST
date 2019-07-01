@@ -42,10 +42,6 @@ DataPort::pointer IGTLinkStreamer::getOutputPort(uint portID) {
 	return ProcessObject::getOutputPort(portID);
 }
 
-bool IGTLinkStreamer::hasReachedEnd() {
-    return mHasReachedEnd;
-}
-
 uint IGTLinkStreamer::getNrOfFrames() const {
     return mNrOfFrames;
 }
@@ -145,17 +141,13 @@ void IGTLinkStreamer::updateFirstFrameSetFlag() {
     }
 
     if(allHaveGotData) {
-        {
-            std::lock_guard<std::mutex> lock(mFirstFrameMutex);
-            mFirstFrameIsInserted = true;
-        }
-        mFirstFrameCondition.notify_one();
+        frameAdded();
     } else {
         reportInfo() << "ALL HAVE NOT GOT DATA" << Reporter::end();
     }
 }
 
-void IGTLinkStreamer::producerStream() {
+void IGTLinkStreamer::generateStream() {
 
     reportInfo() << "Connected to Open IGT Link server" << Reporter::end();;
 
@@ -172,11 +164,10 @@ void IGTLinkStreamer::producerStream() {
 
     while(true) {
         {
-            std::unique_lock<std::mutex> lock(mStopMutex);
-            if(mStop) {
-                mStreamIsStarted = false;
-                mFirstFrameIsInserted = false;
-                mHasReachedEnd = false;
+            std::unique_lock<std::mutex> lock(m_stopMutex);
+            if(m_stop) {
+                m_streamIsStarted = false;
+                m_firstFrameIsInserted = false;
                 break;
             }
         }
@@ -260,7 +251,7 @@ void IGTLinkStreamer::producerStream() {
                     reportInfo() << "streamer has been deleted, stop" << Reporter::end();
                     break;
                 }
-                if(!mFirstFrameIsInserted) {
+                if(!m_firstFrameIsInserted) {
                     updateFirstFrameSetFlag();
                 }
                 mNrOfFrames++;
@@ -318,7 +309,7 @@ void IGTLinkStreamer::producerStream() {
                     reportInfo() << "streamer has been deleted, stop" << Reporter::end();
                     break;
                 }
-                if(!mFirstFrameIsInserted) {
+                if(!m_firstFrameIsInserted) {
                     updateFirstFrameSetFlag();
                 }
                 mNrOfFrames++;
@@ -340,14 +331,7 @@ void IGTLinkStreamer::producerStream() {
                 //freezeSignal();
 
                 // If no frames has been inserted, stop
-                if(!mFirstFrameIsInserted) {
-					{
-						std::lock_guard<std::mutex> lock(mFirstFrameMutex);
-						mFirstFrameIsInserted = true;
-					}
-					mStop = true;
-					mFirstFrameCondition.notify_one();
-                }
+                frameAdded();
             }
        } else {
            // Receive generic message
@@ -365,35 +349,20 @@ void IGTLinkStreamer::producerStream() {
        }
     }
     // Make sure we end the waiting thread if first frame has not been inserted
-    {
-        std::lock_guard<std::mutex> lock(mFirstFrameMutex);
-        if(!mFirstFrameIsInserted)
-            mFirstFrameIsInserted = true;
-    }
-    mFirstFrameCondition.notify_one();
+    frameAdded();
     mSocketWrapper->socket->CloseSocket();
     reportInfo() << "OpenIGTLink socket closed" << reportEnd();
 }
 
 IGTLinkStreamer::~IGTLinkStreamer() {
-    if(mStreamIsStarted) {
-        stop();
-        stopPipeline();
-        if(thread->get_id() != std::this_thread::get_id()) { // avoid deadlock
-            thread->join();
-        }
-        delete thread;
+    stop();
+    if(m_streamIsStarted) {
 		delete mSocketWrapper;
     }
 }
 
 IGTLinkStreamer::IGTLinkStreamer() {
-    mStreamIsStarted = false;
     mIsModified = true;
-    thread = NULL;
-    mFirstFrameIsInserted = false;
-    mHasReachedEnd = false;
-    mStop = false;
     mNrOfFrames = 0;
     mAddress = "localhost";
     mPort = 18944;
@@ -401,14 +370,9 @@ IGTLinkStreamer::IGTLinkStreamer() {
     mInFreezeMode = false;
 }
 
-void IGTLinkStreamer::stop() {
-    std::unique_lock<std::mutex> lock(mStopMutex);
-    mStop = true;
-}
-
 void IGTLinkStreamer::execute() {
 
-    if(!mStreamIsStarted) {
+    if(!m_streamIsStarted) {
 
 		mSocketWrapper = new IGTLSocketWrapper(igtl::ClientSocket::New());
         reportInfo() << "Trying to connect to Open IGT Link server " << mAddress << ":" << std::to_string(mPort) << Reporter::end();
@@ -417,20 +381,12 @@ void IGTLinkStreamer::execute() {
             throw Exception("Failed to connect to Open IGT Link server " + mAddress + ":" + std::to_string(mPort));
         }
 
-        mStreamIsStarted = true;
-        thread = new std::thread(std::bind(&IGTLinkStreamer::producerStream, this));
+        m_streamIsStarted = true;
+        m_thread = std::make_unique<std::thread>(std::bind(&IGTLinkStreamer::generateStream, this));
     }
 
     // Wait here for first frame
-    std::unique_lock<std::mutex> lock(mFirstFrameMutex);
-    while(!mFirstFrameIsInserted) {
-        mFirstFrameCondition.wait(lock);
-    }
-    {
-        std::unique_lock<std::mutex> lock(mStopMutex);
-        //if(!mStop)
-        //    connectionEstablishedSignal(); // send signal
-    }
+    waitForFirstFrame();
 }
 
 } // end namespace fast

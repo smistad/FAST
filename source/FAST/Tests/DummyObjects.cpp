@@ -21,17 +21,12 @@ DummyStreamer::DummyStreamer() {
 void DummyStreamer::execute() {
     std::cout << "DummyStreamer execuete" << std::endl;
     // If thread does not exist, create it, start it
-    if(!mRunning) {
-        mThread = new std::thread(std::bind(&DummyStreamer::produce, this));
-        mRunning = true;
-    }
+    startStream();
 
-    // Block until first frame as been added
-    std::unique_lock<std::mutex> lock(mFramesGeneratedMutex);
-    mFirstFrameConditionVariable.wait(lock, [this]{ return mFramesGenerated > 0;});
+    waitForFirstFrame();
 }
 
-void DummyStreamer::produce() {
+void DummyStreamer::generateStream() {
     std::cout << "DummyStreamer thread started" << std::endl;
     for(int i = 0; i < mFramesToGenerate; ++i) {
         auto image = DummyDataObject::New();
@@ -44,11 +39,9 @@ void DummyStreamer::produce() {
             std::unique_lock<std::mutex> lock(mFramesGeneratedMutex);
             mFramesGenerated++;
         }
-        if(i == 0)
-            mFirstFrameConditionVariable.notify_one();
+        frameAdded();
         std::this_thread::sleep_for(std::chrono::milliseconds(mSleepTime));
     }
-    mRunning = false;
 }
 
 bool DummyStreamer::hasReachedEnd() {
@@ -62,14 +55,7 @@ uint DummyStreamer::getFramesToGenerate() {
 }
 
 DummyStreamer::~DummyStreamer() {
-
-    if(mThread != nullptr) {
-        if(mThread->get_id() != std::this_thread::get_id()) { // avoid deadlock
-            mThread->join();
-            delete mThread;
-            mThread = nullptr;
-        }
-    }
+    stop();
 }
 
 DummyProcessObject2::DummyProcessObject2() {

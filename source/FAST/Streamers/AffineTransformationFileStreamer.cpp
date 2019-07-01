@@ -9,12 +9,8 @@
 namespace fast {
 
 AffineTransformationFileStreamer::AffineTransformationFileStreamer() {
-    mStreamIsStarted = false;
     mIsModified = true;
     mLoop = false;
-    thread = NULL;
-    mFirstFrameIsInserted = false;
-    mHasReachedEnd = false;
     mTimestampFilename = "";
     mSleepTime = 0;
     mNrOfFrames = 0;
@@ -32,27 +28,17 @@ void AffineTransformationFileStreamer::setTimestampFilename(std::string filepath
 void AffineTransformationFileStreamer::execute() {
     if(mFilename == "")
         throw Exception("No filename was given to the AffineTransformationFileStreamer");
-    if(!mStreamIsStarted) {
-        // Check that first frame exists before starting streamer
 
-        mStreamIsStarted = true;
-        thread = new std::thread(std::bind(&AffineTransformationFileStreamer::producerStream, this));
-    }
+    startStream();
 
-    // Wait here for first frame
-    std::unique_lock<std::mutex> lock(mFirstFrameMutex);
-    while(!mFirstFrameIsInserted) {
-        mFirstFrameCondition.wait(lock);
-    }
+    waitForFirstFrame();
 }
 
 void AffineTransformationFileStreamer::setFilename(std::string str) {
     mFilename = str;
 }
 
-void AffineTransformationFileStreamer::producerStream() {
-    auto pointerToSelf = mPtr.lock(); // try to avoid this object from being destroyed until this function is finished
-
+void AffineTransformationFileStreamer::generateStream() {
     // Read timestamp file if available
     std::ifstream timestampFile;
     unsigned long previousTimestamp = 0;
@@ -88,13 +74,7 @@ void AffineTransformationFileStreamer::producerStream() {
 			} else if(elements.size() == 1 && elements[0] == "") {
 				reportInfo() << "Reached end of stream" << Reporter::end();
 				// If there where no files found at all, we need to release the execute method
-				if(!mFirstFrameIsInserted) {
-					{
-						std::lock_guard<std::mutex> lock(mFirstFrameMutex);
-						mFirstFrameIsInserted = true;
-					}
-					mFirstFrameCondition.notify_one();
-				}
+				frameAdded();
 				if(mLoop) {
 					// Restart stream
 					if(timestampFile.is_open()) {
@@ -107,7 +87,6 @@ void AffineTransformationFileStreamer::producerStream() {
 					transformationFile.seekg(0); // Reset file to start
 					restart = true;
 				}
-				mHasReachedEnd = true;
 				// Reached end of stream
 				break;
 			}
@@ -153,15 +132,9 @@ void AffineTransformationFileStreamer::producerStream() {
 			}
 		}
         addOutputData(0, transformation);
+        frameAdded();
         if(mSleepTime > 0)
             std::this_thread::sleep_for(std::chrono::milliseconds(mSleepTime));
-        if(!mFirstFrameIsInserted) {
-            {
-                std::lock_guard<std::mutex> lock(mFirstFrameMutex);
-                mFirstFrameIsInserted = true;
-            }
-            mFirstFrameCondition.notify_one();
-        }
 		mNrOfFrames++;
     }
 }
@@ -172,16 +145,7 @@ uint AffineTransformationFileStreamer::getNrOfFrames() const {
 }
 
 AffineTransformationFileStreamer::~AffineTransformationFileStreamer() {
-    if(mStreamIsStarted) {
-        if(thread->get_id() != std::this_thread::get_id()) { // avoid deadlock
-            thread->join();
-        }
-        delete thread;
-    }
-}
-
-bool AffineTransformationFileStreamer::hasReachedEnd() {
-    return mHasReachedEnd;
+    stop();
 }
 
 void AffineTransformationFileStreamer::enableLooping() {

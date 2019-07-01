@@ -121,11 +121,11 @@ void DummyIGTLServer::stream() {
         // Waiting for Connection
         socket = serverSocket->WaitForConnection(1000);
         if(socket.IsNotNull()) { // if client connected
-            while(!mStreamer->hasReachedEnd() && framesSent < mFrames) {
+            while(framesSent < mFrames) {
                 mStreamer->update(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
                 // Get next image from streamer
-                Image::pointer image = dataStream->getNextFrame<Image>();
+                auto image = dataStream->getNextFrame<Image>();
 
                 // Create a new IMAGE type message
                 igtl::ImageMessage::Pointer imgMsg = createIGTLImageMessage(image);
@@ -141,6 +141,8 @@ void DummyIGTLServer::stream() {
 
                 igtl::Sleep(interval); // wait
                 framesSent++;
+                if(image->isLastFrame())
+                    break;
             }
             break;
         }

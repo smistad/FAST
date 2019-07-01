@@ -9,10 +9,6 @@ ImageToBatchGenerator::ImageToBatchGenerator() {
     createOutputPort<Batch>(0);
 
     m_maxBatchSize = -1;
-    m_firstFrameIsInserted = false;
-    m_streamIsStarted = false;
-    m_stop = false;
-    m_hasReachedEnd = false;
 }
 
 void ImageToBatchGenerator::generateStream() {
@@ -30,7 +26,6 @@ void ImageToBatchGenerator::generateStream() {
             if(m_stop) {
                 m_streamIsStarted = false;
                 m_firstFrameIsInserted = false;
-                m_hasReachedEnd = false;
                 break;
             }
         }
@@ -62,13 +57,9 @@ void ImageToBatchGenerator::generateStream() {
             } catch(ThreadStopped &e) {
                 break;
             }
+            frameAdded();
             imageList.clear();
             i++;
-            {
-                std::unique_lock<std::mutex> lock(m_firstFrameMutex);
-                m_firstFrameIsInserted = true;
-            }
-            m_firstFrameCondition.notify_all();
         }
     }
     //updateThread.join();
@@ -85,11 +76,7 @@ void ImageToBatchGenerator::execute() {
         m_thread = std::make_unique<std::thread>(std::bind(&ImageToBatchGenerator::generateStream, this));
     }
 
-    // Wait here for first frame
-    std::unique_lock<std::mutex> lock(m_firstFrameMutex);
-    while(!m_firstFrameIsInserted) {
-        m_firstFrameCondition.wait(lock);
-    }
+    waitForFirstFrame();
 }
 
 void ImageToBatchGenerator::setMaxBatchSize(int size) {
@@ -99,21 +86,12 @@ void ImageToBatchGenerator::setMaxBatchSize(int size) {
     mIsModified = true;
 }
 
-bool ImageToBatchGenerator::hasReachedEnd() {
-    return false;
-}
-
 ImageToBatchGenerator::~ImageToBatchGenerator() {
     stop();
 }
 
 void ImageToBatchGenerator::stop() {
-    {
-        std::unique_lock<std::mutex> lock(m_stopMutex);
-        m_stop = true;
-    }
-    m_thread->join();
-    reportInfo() << "File streamer thread returned" << reportEnd();
+
 }
 
 }

@@ -1,5 +1,4 @@
-#ifndef IGTLINK_STREAMER_HPP
-#define IGTLINK_STREAMER_HPP
+#pragma once
 
 //#include <boost/signals2.hpp>
 #include <thread>
@@ -42,9 +41,7 @@ class FAST_EXPORT IGTLinkStreamer : public Streamer {
          * This method runs in a separate thread and adds frames to the
          * output object
          */
-        void producerStream();
-
-        void stop();
+        void generateStream() override;
 
         ~IGTLinkStreamer();
 
@@ -64,15 +61,6 @@ class FAST_EXPORT IGTLinkStreamer : public Streamer {
         uint mMaximumNrOfFrames;
         bool mMaximumNrOfFramesSet;
 
-        std::thread *thread;
-        std::mutex mFirstFrameMutex;
-        std::mutex mStopMutex;
-        std::condition_variable mFirstFrameCondition;
-
-        bool mStreamIsStarted;
-        bool mFirstFrameIsInserted;
-        bool mHasReachedEnd;
-        bool mStop;
         bool mInFreezeMode;
 
         std::string mAddress;
@@ -108,4 +96,3 @@ DataPort::pointer IGTLinkStreamer::getOutputPort(std::string deviceName) {
 
 } // end namespace
 
-#endif

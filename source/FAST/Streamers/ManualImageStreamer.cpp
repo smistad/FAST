@@ -55,7 +55,7 @@ void ManualImageStreamer::execute() {
         // Check that first frame exists before starting streamer
 
         mStreamIsStarted = true;
-        mThread = new std::thread(std::bind(&ManualImageStreamer::producerStream, this));
+        mThread = new std::thread(std::bind(&ManualImageStreamer::generateStream, this));
     }
 
     // Wait here for first frame
@@ -66,7 +66,7 @@ void ManualImageStreamer::execute() {
 }
 
 
-void ManualImageStreamer::producerStream() {
+void ManualImageStreamer::generateStream() {
     uint i = mStartNumber;
     int replays = 0;
     uint64_t previousTimestamp = 0;

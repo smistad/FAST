@@ -15,21 +15,10 @@ PatchGenerator::PatchGenerator() {
     m_firstFrameIsInserted = false;
     m_level = 0;
     mIsModified = true;
-    m_hasReachedEnd = false;
 }
 
 PatchGenerator::~PatchGenerator() {
     stop();
-}
-
-void PatchGenerator::stop() {
-    if(m_streamIsStarted) {
-       {
-           std::unique_lock<std::mutex> lock(m_stopMutex);
-           m_stop = true;
-       }
-       m_thread->join();
-   }
 }
 
 void PatchGenerator::generateStream() {
@@ -77,13 +66,7 @@ void PatchGenerator::generateStream() {
                 m_stop = true;
                 break;
             }
-            if(!m_firstFrameIsInserted) {
-                {
-                    std::lock_guard<std::mutex> lock(m_firstFrameMutex);
-                    m_firstFrameIsInserted = true;
-                }
-                m_firstFrameCondition.notify_one();
-            }
+            frameAdded();
             std::unique_lock<std::mutex> lock(m_stopMutex);
             if(m_stop)
                 break;
@@ -92,11 +75,9 @@ void PatchGenerator::generateStream() {
         if(m_stop) {
             //m_streamIsStarted = false;
             m_firstFrameIsInserted = false;
-            m_hasReachedEnd = false;
             break;
         }
     }
-    m_hasReachedEnd = true;
     reportInfo() << "Done generating patches" << reportEnd();
 }
 
@@ -106,26 +87,14 @@ void PatchGenerator::execute() {
 
     m_inputImage = getInputData<WholeSlideImage>();
 
-    if(!m_streamIsStarted) {
-        m_streamIsStarted = true;
-        m_thread = std::make_unique<std::thread>(std::bind(&PatchGenerator::generateStream, this));
-    }
-
-    // Wait here for first frame
-    std::unique_lock<std::mutex> lock(m_firstFrameMutex);
-    while(!m_firstFrameIsInserted) {
-        m_firstFrameCondition.wait(lock);
-    }
+    startStream();
+    waitForFirstFrame();
 }
 
 void PatchGenerator::setPatchSize(int width, int height) {
     m_width = width;
     m_height = height;
     mIsModified = true;
-}
-
-bool PatchGenerator::hasReachedEnd() {
-    return m_hasReachedEnd;
 }
 
 void PatchGenerator::setPatchLevel(int level) {

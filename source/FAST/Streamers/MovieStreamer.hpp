@@ -26,6 +26,7 @@ class FAST_EXPORT MovieStreamer : public Streamer {
     private:
         MovieStreamer();
         void execute();
+        void generateStream() override {};
 
         std::string mFilename;
         bool mGrayscale = true;

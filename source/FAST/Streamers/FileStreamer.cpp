@@ -8,14 +8,11 @@
 namespace fast {
 
 FileStreamer::FileStreamer() {
-    mStreamIsStarted = false;
     mNrOfReplays = 0;
     mIsModified = true;
     mLoop = false;
     mStartNumber = 0;
     mZeroFillDigits = 0;
-    mFirstFrameIsInserted = false;
-    mHasReachedEnd = false;
     mTimestampFilename = "";
     mNrOfFrames = -1;
     mSleepTime = 0;
@@ -70,16 +67,9 @@ void FileStreamer::setTimestampFilename(std::string filepath) {
 void FileStreamer::execute() {
     if(mFilenameFormats.size() == 0)
         throw Exception("No filename format was given to the FileStreamer");
-    if(!mStreamIsStarted) {
-        mStreamIsStarted = true;
-        mThread = new std::thread(std::bind(&FileStreamer::producerStream, this));
-    }
 
-    // Wait here for first frame
-    std::unique_lock<std::mutex> lock(mFirstFrameMutex);
-    while(!mFirstFrameIsInserted) {
-        mFirstFrameCondition.wait(lock);
-    }
+    startStream();
+    waitForFirstFrame();
 }
 
 void FileStreamer::setFilenameFormat(std::string str) {
@@ -98,9 +88,7 @@ void FileStreamer::setFilenameFormats(std::vector<std::string> strs) {
     mFilenameFormats = strs;
 }
 
-void FileStreamer::producerStream() {
-    //Streamer::pointer pointerToSelf = mPtr.lock(); // try to avoid this object from being destroyed until this function is finished
-
+void FileStreamer::generateStream() {
     // Read timestamp file if available
     std::ifstream timestampFile;
     uint64_t previousTimestamp = 0;
@@ -127,10 +115,10 @@ void FileStreamer::producerStream() {
     int currentSequence = 0;
     while(true) {
         {
-            std::unique_lock<std::mutex> lock(mStopMutex);
+            std::unique_lock<std::mutex> lock(m_stopMutex);
             if(mStop) {
-                mStreamIsStarted = false;
-                mFirstFrameIsInserted = false;
+                m_streamIsStarted = false;
+                m_firstFrameIsInserted = false;
                 mHasReachedEnd = false;
                 break;
             }
@@ -168,14 +156,7 @@ void FileStreamer::producerStream() {
             }
 
             addOutputData(0, dataFrame);
-
-            if(!mFirstFrameIsInserted) {
-                {
-                    std::lock_guard<std::mutex> lock(mFirstFrameMutex);
-                    mFirstFrameIsInserted = true;
-                }
-                mFirstFrameCondition.notify_one();
-            }
+            frameAdded();
             if(mSleepTime > 0)
                 std::this_thread::sleep_for(std::chrono::milliseconds(mSleepTime));
             i += mStepSize;
@@ -187,13 +168,7 @@ void FileStreamer::producerStream() {
             if(i > 0) {
                 reportInfo() << "Reached end of stream" << Reporter::end();
                 // If there where no files found at all, we need to release the execute method
-                if(!mFirstFrameIsInserted) {
-                    {
-                        std::lock_guard<std::mutex> lock(mFirstFrameMutex);
-                        mFirstFrameIsInserted = true;
-                    }
-                    mFirstFrameCondition.notify_one();
-                }
+                frameAdded();
                 if(mLoop ||
                    (mNrOfReplays > 0 && replays != mNrOfReplays) ||
                    (currentSequence < mFilenameFormats.size()-1)) {
@@ -243,17 +218,7 @@ std::string FileStreamer::getFilename(uint i, int currentSequence) const {
 }
 
 FileStreamer::~FileStreamer() {
-    if(mStreamIsStarted) {
-        if(mThread->get_id() != std::this_thread::get_id()) { // avoid deadlock
-            stop();
-            delete mThread;
-            mThread = NULL;
-        }
-    }
-}
-
-bool FileStreamer::hasReachedEnd() {
-    return mHasReachedEnd;
+    stop();
 }
 
 void FileStreamer::setStartNumber(uint startNumber) {
@@ -276,15 +241,6 @@ void FileStreamer::setStepSize(uint stepSize) {
     if(stepSize == 0)
         throw Exception("Step size given to FileStreamer can't be 0");
     mStepSize = stepSize;
-}
-
-void FileStreamer::stop() {
-    {
-        std::unique_lock<std::mutex> lock(mStopMutex);
-        mStop = true;
-    }
-    mThread->join();
-    reportInfo() << "File streamer thread returned" << reportEnd();
 }
 
 void FileStreamer::setUseTimestamp(bool use) {
