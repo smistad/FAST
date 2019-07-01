@@ -11,6 +11,8 @@ ImageToBatchGenerator::ImageToBatchGenerator() {
     m_maxBatchSize = -1;
     m_firstFrameIsInserted = false;
     m_streamIsStarted = false;
+    m_stop = false;
+    m_hasReachedEnd = false;
 }
 
 void ImageToBatchGenerator::generateStream() {
@@ -23,11 +25,25 @@ void ImageToBatchGenerator::generateStream() {
     auto po = mParent->getProcessObject();
     bool firstTime = true;
     while(!lastFrame) {
+        {
+            std::unique_lock<std::mutex> lock(m_stopMutex);
+            if(m_stop) {
+                m_streamIsStarted = false;
+                m_firstFrameIsInserted = false;
+                m_hasReachedEnd = false;
+                break;
+            }
+        }
         std::cout << "WAITING FOR IMAGE.." << std::endl;
         if(!firstTime) // parent is execute the first time, thus drop it here
             po->update(); // Make sure execute is called on previous
         firstTime = false;
-        auto image = mParent->getNextFrame<Image>();
+        Image::pointer image;
+        try {
+            image = mParent->getNextFrame<Image>();
+        } catch(ThreadStopped &e) {
+            break;
+        }
         std::cout << "GOT IMAGE.." << std::endl;
         std::cout << "PATCH: " << image->getFrameData("patchid-x") << " " << image->getFrameData("patchid-y") << std::endl;
         lastFrame = image->isLastFrame();
@@ -41,7 +57,11 @@ void ImageToBatchGenerator::generateStream() {
             batch->create(imageList);
             if(lastFrame)
                 batch->setLastFrame(getNameOfClass());
-            addOutputData(0, batch);
+            try {
+                addOutputData(0, batch);
+            } catch(ThreadStopped &e) {
+                break;
+            }
             imageList.clear();
             i++;
             {
@@ -55,7 +75,6 @@ void ImageToBatchGenerator::generateStream() {
 }
 
 void ImageToBatchGenerator::execute() {
-    // TODO create a thread which calls getInputData several times until end of stream (update timestep)
     if(m_maxBatchSize == 1)
         throw Exception("Max batch size must be given to the ImageToBatchGenerator");
 
@@ -85,9 +104,16 @@ bool ImageToBatchGenerator::hasReachedEnd() {
 }
 
 ImageToBatchGenerator::~ImageToBatchGenerator() {
-    if(m_streamIsStarted) {
-        m_thread->join();
+    stop();
+}
+
+void ImageToBatchGenerator::stop() {
+    {
+        std::unique_lock<std::mutex> lock(m_stopMutex);
+        m_stop = true;
     }
+    m_thread->join();
+    reportInfo() << "File streamer thread returned" << reportEnd();
 }
 
 }

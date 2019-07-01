@@ -13,6 +13,7 @@ class FAST_EXPORT ImageToBatchGenerator : public Streamer {
         void setMaxBatchSize(int size);
         bool hasReachedEnd() override;
         ~ImageToBatchGenerator() override;
+        void stop();
     protected:
         void execute() override;
         void generateStream();
