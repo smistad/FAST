@@ -99,8 +99,8 @@ DummyImporter::DummyImporter() {
 }
 
 void DummyImporter::execute() {
-    std::cout << "Executing importer" << std::endl;
-    DummyDataObject::pointer output = getOutputData<DummyDataObject>(0);
+    auto output = getOutputData<DummyDataObject>(0);
+    std::cout << "Executing importer to create new object: " << output << std::endl;
     output->create(mExecuted);
     mExecuted++;
 }

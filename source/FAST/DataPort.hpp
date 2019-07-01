@@ -60,6 +60,7 @@ class FAST_EXPORT DataPort {
          */
         SharedPointer<ProcessObject> mProcessObject;
         std::queue<DataObject::pointer> mFrames;
+        DataObject::pointer m_previousFrame;
         uint64_t mFrameCounter = 0;
         StreamingMode mStreamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES;
         std::mutex mMutex;

@@ -36,18 +36,19 @@ void ProcessObject::update(uint64_t timestep, StreamingMode streamingMode) {
             std::pair<DataObject::pointer, uint64_t> data = mLastProcessed[parent.first];
             if(port->hasCurrentData()) {
                 std::cout << "" << getNameOfClass() << " has current data.. " << std::endl;
-                DataObject::pointer previousData = data.first;
-                uint64_t previousTimestamp = data.second;
+                auto previousData = data.first;
+                auto previousTimestamp = data.second;
                 try {
-                    DataObject::pointer currentData = port->getFrame(timestep);
-                    uint64_t currentTimestamp = currentData->getTimestamp();
+                    auto currentData = port->getFrame(timestep);
+                    auto currentTimestamp = currentData->getTimestamp();
+                    std::cout << currentData << " " << previousData << " size: " << port->getSize() << std::endl;
                     if(currentData != previousData ||
                        previousTimestamp < currentTimestamp) { // There has arrived new data, or data has changed
                         std::cout << "" << getNameOfClass() << " data is new.. " << std::endl;
                         newInputData = true;
                     }
                 } catch(Exception &e) {
-
+                    reportWarning() << "Expcetion in ProcessObject" << reportEnd();
                 }
             } else {
                 // If port currently doesn't have data, check if parent is streamer. If streamer, always execute. PO will block until data arrives

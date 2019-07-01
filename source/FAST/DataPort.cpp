@@ -1,5 +1,6 @@
 #include <thread>
 #include <vector>
+#include <FAST/Streamers/Streamer.hpp>
 #include "DataPort.hpp"
 #include "ProcessObject.hpp"
 
@@ -96,11 +97,12 @@ DataObject::pointer DataPort::getNextDataFrame() {
         }
 
         data = mFrames.front();
+        m_previousFrame = data;
         //std::cout << "Got data from " << mProcessObject->getNameOfClass() << std::endl;
 
-        if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES && !mIsStaticData) {
+        if(!mIsStaticData) {
             std::cout << "Removing data from port with data from " << mProcessObject->getNameOfClass() << std::endl;
-            mFrames.pop(); // TODO Can't remove data here before we know if it is static
+            mFrames.pop();
         }
 
         lock.unlock();
@@ -118,8 +120,11 @@ DataObject::pointer DataPort::getNextDataFrame() {
 
 void DataPort::moveDataToNextTimestep() {
     std::lock_guard<std::mutex> lock(mMutex);
-    std::cout << "Marking data port as static in " << mProcessObject->getNameOfClass() << " " << std::endl;
-    mIsStaticData = true;
+    /*
+    if(!mFrames.empty() && mFrames.front() != m_previousFrame && m_previousFrame != nullptr) {
+        std::cout << "adding previous frame: " << m_previousFrame << std::endl;
+        mFrames.push(m_previousFrame);
+    }*/
 }
 
 void DataPort::setStreamingMode(StreamingMode mode) {
@@ -132,6 +137,12 @@ void DataPort::setTimestep(uint64_t timestep) {
 DataPort::DataPort(SharedPointer<ProcessObject> processObject) {
     mProcessObject = processObject;
     setMaximumNumberOfFrames(50);
+    auto isStreamer = std::dynamic_pointer_cast<Streamer>(processObject);
+    if(isStreamer) {
+        mIsStaticData = false;
+    } else {
+        mIsStaticData = true;
+    }
 }
 
 SharedPointer<ProcessObject> DataPort::getProcessObject() const {
