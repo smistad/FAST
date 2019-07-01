@@ -39,6 +39,8 @@ void ImageToBatchGenerator::generateStream() {
             std::cout << "CREATING BATCH " << i << std::endl;
             auto batch = Batch::New();
             batch->create(imageList);
+            if(lastFrame)
+                batch->setLastFrame(getNameOfClass());
             addOutputData(0, batch);
             imageList.clear();
             i++;

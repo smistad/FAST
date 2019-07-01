@@ -76,7 +76,7 @@ TEST_CASE("WSI -> Patch generator -> Image to batch generator -> Neural network 
 
     auto generator = PatchGenerator::New();
     generator->setPatchSize(512, 512);
-    generator->setPatchLevel(0);
+    generator->setPatchLevel(2);
     generator->setInputConnection(importer->getOutputPort());
 
     auto converter = ImageChannelConverter::New();

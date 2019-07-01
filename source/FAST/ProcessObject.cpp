@@ -25,7 +25,7 @@ void ProcessObject::update(uint64_t timestep, StreamingMode streamingMode) {
     // Call update on all parents
     bool newInputData = false;
     for(auto parent : mInputConnections) {
-        DataPort::pointer port = parent.second;
+        auto port = parent.second;
         port->setTimestep(timestep);
         port->setStreamingMode(streamingMode);
         port->getProcessObject()->update(timestep, streamingMode);
@@ -57,7 +57,7 @@ void ProcessObject::update(uint64_t timestep, StreamingMode streamingMode) {
                     newInputData = true;
                 } else {
                     // TODO should not be possible?
-                    reportError() << "Impossible event in ProcessObject::update" << reportEnd();
+                    reportError() << "Impossible event in ProcessObject::update of " << getNameOfClass() << reportEnd();
                 }
             }
         } else {

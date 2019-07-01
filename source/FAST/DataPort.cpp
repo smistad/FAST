@@ -100,7 +100,7 @@ DataObject::pointer DataPort::getNextDataFrame() {
 
         if(mStreamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES && !mIsStaticData) {
             std::cout << "Removing data from port with data from " << mProcessObject->getNameOfClass() << std::endl;
-            mFrames.pop();
+            mFrames.pop(); // TODO Can't remove data here before we know if it is static
         }
 
         lock.unlock();
