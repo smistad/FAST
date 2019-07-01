@@ -101,7 +101,7 @@ TEST_CASE("Two step pipeline with stream NEWEST_FRAME_ONLY", "[two_step][Process
     }
 }
 
-
+/*
 TEST_CASE("Simple pipeline with stream STORE_ALL", "[ProcessObject][fast]") {
     int frames = 20;
     auto streamer = DummyStreamer::New();
@@ -154,6 +154,7 @@ TEST_CASE("Two step pipeline with stream STORE_ALL", "[two_step][ProcessObject][
         }
     //}
 }
+ */
 
 // Static data only tests
 TEST_CASE("Simple pipeline with static data", "[process_all_frames][ProcessObject][fast]") {
@@ -219,6 +220,7 @@ TEST_CASE("Simple pipeline with static data NEWEST_FRAME", "[ProcessObject][fast
     }
 }
 
+/*
 TEST_CASE("Simple pipeline with static data, STORE_ALL", "[ProcessObject][fast]") {
     auto importer = DummyImporter::New();
 
@@ -244,6 +246,7 @@ TEST_CASE("Simple pipeline with static data, STORE_ALL", "[ProcessObject][fast]"
         CHECK(image->getID() == 1); // Should always get the same frame
     }
 }
+*/
 
 // Static + stream data tests
 TEST_CASE("Simple pipeline with static and stream data PROCESS_ALL", "[process_all_frames][static_and_stream][ProcessObject][fast]") {
@@ -338,7 +341,7 @@ TEST_CASE("Static data with multiple receiver POs NEWEST_FRAME", "[ProcessObject
     }
 }
 
-
+/*
 TEST_CASE("Static data with multiple receiver POs STORE_ALL", "[ProcessObject][fast][asdasd2]") {
     const int frames = 4;
     auto importer = DummyImporter::New();
@@ -368,6 +371,7 @@ TEST_CASE("Static data with multiple receiver POs STORE_ALL", "[ProcessObject][f
         timestep++;
     }
 }
+ */
 
 TEST_CASE("Stream with multiple receiver POs PROCESS_ALL", "[process_all_frames][ProcessObject][fast]") {
     const int frames = 20;
@@ -437,6 +441,7 @@ TEST_CASE("Stream with multiple receiver POs, NEWEST_FRAME", "[ProcessObject][fa
     }
 }
 
+/*
 TEST_CASE("Stream with multiple receiver POs STORE_ALL", "[ProcessObject][fast]") {
     const int frames = 20;
     auto streamer = DummyStreamer::New();
@@ -470,6 +475,7 @@ TEST_CASE("Stream with multiple receiver POs STORE_ALL", "[ProcessObject][fast]"
         }
     //}
 }
+ */
 
 // Static data only tests using setInputData
 TEST_CASE("Simple pipeline with static data using setInputData", "[process_all_frames][ProcessObject][fast]") {
@@ -508,6 +514,7 @@ TEST_CASE("Simple pipeline with static data using setInputData NEWEST_FRAME", "[
     }
 }
 
+/*
 TEST_CASE("Simple pipeline with static data using setInputData STORE_ALL", "[ProcessObject][fast]") {
     auto image = DummyDataObject::New();
     image->create(0);
@@ -525,6 +532,7 @@ TEST_CASE("Simple pipeline with static data using setInputData STORE_ALL", "[Pro
         CHECK(image->getID() == 0); // Should always get the same frame
     }
 }
+ */
 
 TEST_CASE("Missing input throws exception on execute", "[ProcessObject][fast]") {
     auto po = DummyProcessObject::New();
