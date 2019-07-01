@@ -21,7 +21,7 @@ TEST_CASE("2D Seeded region growing on OpenCL device", "[fast][SeededRegionGrowi
         algorithm->setIntensityRange(26,255);
         algorithm->setMainDevice(devices[i]);
         auto port = algorithm->getOutputPort();
-        algorithm->update(0);
+        algorithm->update();
         Segmentation::pointer result = port->getNextFrame<Segmentation>();
 
         // Temporary check of how many pixels where segmented
@@ -53,7 +53,7 @@ TEST_CASE("3D Seeded region growing on OpenCL device", "[fast][SeededRegionGrowi
         algorithm->setIntensityRange(50, 255);
         algorithm->setMainDevice(devices[i]);
         auto port = algorithm->getOutputPort();
-        algorithm->update(0);
+        algorithm->update();
         Segmentation::pointer result = port->getNextFrame<Segmentation>();
 
         // Temporary check of how many pixels where segmented
@@ -79,7 +79,7 @@ TEST_CASE("3D Seeded region growing on Host", "[fast][SeededRegionGrowing]") {
     algorithm->setIntensityRange(50, 255);
     algorithm->setMainDevice(Host::getInstance());
     auto port = algorithm->getOutputPort();
-    algorithm->update(0);
+    algorithm->update();
     Segmentation::pointer result = port->getNextFrame<Segmentation>();
 
     // Temporary check of how many pixels where segmented

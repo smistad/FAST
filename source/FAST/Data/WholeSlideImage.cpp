@@ -128,7 +128,7 @@ SharedPointer<Image> WholeSlideImage::getLevelAsImage(int level) {
     channelConverter->setReverseChannels(true);
     channelConverter->setInputData(image);
     auto port = channelConverter->getOutputPort();
-    channelConverter->update(0);
+    channelConverter->update();
 
     return port->getNextFrame<Image>();
 }
@@ -162,7 +162,7 @@ SharedPointer<Image> WholeSlideImage::getTileAsImage(int level, int offsetX, int
     channelConverter->setReverseChannels(true);
     channelConverter->setInputData(image);
     auto port = channelConverter->getOutputPort();
-    channelConverter->update(0);
+    channelConverter->update();
 
     return port->getNextFrame<Image>();
 }

@@ -85,13 +85,13 @@ void MeanValueCoordinatesModel::loadMeshes(std::string surfaceMeshFilename, std:
 	VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
 	importer->setFilename(surfaceMeshFilename);
     DataPort::pointer port = importer->getOutputPort();
-	importer->update(0);
+	importer->update();
 	Mesh::pointer surfaceMesh = port->getNextFrame<Mesh>();
 
 	VTKMeshFileImporter::pointer importer2 = VTKMeshFileImporter::New();
 	importer2->setFilename(controlMeshFilename);
     DataPort::pointer port2 = importer2->getOutputPort();
-	importer2->update(0);
+	importer2->update();
 	Mesh::pointer controlMesh = port2->getNextFrame<Mesh>();
 
 	loadMeshes(surfaceMesh, controlMesh);

@@ -98,7 +98,7 @@ void fast::ITKImageExporter<TImage>::transferDataToITKImage(Image::pointer input
 template<class TImage>
 void fast::ITKImageExporter<TImage>::GenerateData() {
 
-    update(0); // Update FAST pipeline
+    update(); // Update FAST pipeline
 
     Image::pointer input = getInputData<Image>();
     if(input->getDimensions() != TImage::ImageDimension)

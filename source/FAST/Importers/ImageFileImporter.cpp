@@ -42,7 +42,7 @@ void ImageFileImporter::execute() {
         importer->setMainDevice(getMainDevice());
         importer->setFilename(mFilename);
         DataPort::pointer port = importer->getOutputPort();
-        importer->update(0); // Have to to update because otherwise the data will not be available
+        importer->update(); // Have to to update because otherwise the data will not be available
         Image::pointer data = port->getNextFrame<Image>();
         addOutputData(0, data);
     } else {
@@ -52,7 +52,7 @@ void ImageFileImporter::execute() {
             importer->setMainDevice(getMainDevice());
             importer->setFilename(mFilename);
             DataPort::pointer port = importer->getOutputPort();
-            importer->update(0); // Have to to update because otherwise the data will not be available
+            importer->update(); // Have to to update because otherwise the data will not be available
             Image::pointer data = port->getNextFrame<Image>();
             addOutputData(0, data);
         } else if(matchExtension(ext, "dcm")) {
@@ -60,7 +60,7 @@ void ImageFileImporter::execute() {
             importer->setFilename(mFilename);
             importer->setMainDevice(getMainDevice());
             DataPort::pointer port = importer->getOutputPort();
-            importer->update(0); // Have to to update because otherwise the data will not be available
+            importer->update(); // Have to to update because otherwise the data will not be available
             Image::pointer data = port->getNextFrame<Image>();
             addOutputData(0, data);
         } else if(matchExtension(ext, "jpg") ||
@@ -72,7 +72,7 @@ void ImageFileImporter::execute() {
             importer->setFilename(mFilename);
             importer->setMainDevice(getMainDevice());
             DataPort::pointer port = importer->getOutputPort();
-            importer->update(0); // Have to to update because otherwise the data will not be available
+            importer->update(); // Have to to update because otherwise the data will not be available
             Image::pointer data = port->getNextFrame<Image>();
             addOutputData(0, data);
 #else

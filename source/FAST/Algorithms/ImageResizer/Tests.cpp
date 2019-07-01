@@ -15,7 +15,7 @@ TEST_CASE("ImageResizer 2D", "[fast][ImageResizer]") {
 	resizer->setWidth(64);
 	resizer->setHeight(64);
 	auto port = resizer->getOutputPort();
-	resizer->update(0);
+	resizer->update();
 
 	Image::pointer result = port->getNextFrame<Image>();
 	CHECK(result->getWidth() == 64);
@@ -31,7 +31,7 @@ TEST_CASE("ImageResizer 2D preserve aspect", "[fast][ImageResizer]") {
 	resizer->setHeight(256);
 	resizer->setPreserveAspectRatio(true);
 	auto port = resizer->getOutputPort();
-	resizer->update(0);
+	resizer->update();
 
 	Image::pointer result = port->getNextFrame<Image>();
 	CHECK(result->getWidth() == 256);
@@ -55,7 +55,7 @@ TEST_CASE("ImageResizer 3D", "[fast][ImageResizer]") {
 	resizer->setHeight(64);
 	resizer->setDepth(64);
 	auto port = resizer->getOutputPort();
-	resizer->update(0);
+	resizer->update();
 
 	Image::pointer result = port->getNextFrame<Image>();
 	CHECK(result->getWidth() == 64);

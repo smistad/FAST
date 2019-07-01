@@ -13,7 +13,7 @@ TEST_CASE("Template matching NCC", "[fast][NCC][TemplateMatching][visual]") {
     importer->setFilename(join(Config::getTestDataPath(), "US/CarotidArtery/Left/US-2D_300.mhd"));
     importer->setMainDevice(DeviceManager::getInstance()->getOneGPUDevice());
     auto port = importer->getOutputPort();
-    importer->update(0);
+    importer->update();
     auto image = port->getNextFrame<Image>();
     Vector2i size(32, 32);
     Vector2i position = Vector2i(120, 100) + size/2;
@@ -43,7 +43,7 @@ TEST_CASE("Template matching NCC", "[fast][NCC][TemplateMatching][visual]") {
     window->setTimeout(1000);
     window->start();
 
-    //matching->update(0);
+    //matching->update();
     matching->getRuntime()->print();
 
     // Validate position
@@ -63,7 +63,7 @@ TEST_CASE("Template matching NCC synthetic sequence", "[fast][NCC][TemplateMatch
         importer->setFilename(join(Config::getTestDataPath(), "Synthetic/ImageTracking/frame_0.png"));
         importer->setMainDevice(DeviceManager::getInstance()->getOneGPUDevice());
         auto port = importer->getOutputPort();
-        importer->update(0);
+        importer->update();
         auto image = port->getNextFrame<Image>();
         templateImage = image->crop(position - size / 2, size);
     }
@@ -80,7 +80,7 @@ TEST_CASE("Template matching NCC synthetic sequence", "[fast][NCC][TemplateMatch
     // Actual speed is 0.5 pixels x, 0.25 pixels y
     for(int i = 0; i < streamer->getNrOfFrames(); ++i) {
         matching->setRegionOfInterest(position, Vector2i(2, 2));
-        matching->update(i);
+        matching->update();
         //std::cout << "frame: " << i << std::endl;
         Vector2f newPosition = matching->getBestFitSubPixelPosition();
         //std::cout << "new pos: " << newPosition.transpose() << std::endl;

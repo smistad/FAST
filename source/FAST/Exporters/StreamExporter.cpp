@@ -35,7 +35,7 @@ void StreamExporter::execute() {
     DataObject::pointer data = getInputData<DataObject>();
     mExporter->setInputData(data);
     mExporter->setFilename(filename);
-    mExporter->update(0);
+    mExporter->update();
     mFrameCounter++;
     //if(dynamicData->hasReachedEnd())
     //    mFinished = true;

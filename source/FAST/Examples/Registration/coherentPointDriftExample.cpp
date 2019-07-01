@@ -77,7 +77,7 @@ Mesh::pointer getPointCloud(std::string filename) {
     auto importer = VTKMeshFileImporter::New();
     importer->setFilename(Config::getTestDataPath() + filename);
     auto port = importer->getOutputPort();
-    importer->update(0);
+    importer->update();
     return port->getNextFrame<Mesh>();
 }
 

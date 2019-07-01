@@ -25,7 +25,7 @@ void ImageToBatchGenerator::generateStream() {
     while(!lastFrame) {
         std::cout << "WAITING FOR IMAGE.." << std::endl;
         if(!firstTime) // parent is execute the first time, thus drop it here
-            po->update(0); // Make sure execute is called on previous
+            po->update(); // Make sure execute is called on previous
         firstTime = false;
         auto image = mParent->getNextFrame<Image>();
         std::cout << "GOT IMAGE.." << std::endl;

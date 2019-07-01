@@ -13,7 +13,7 @@ DataObject::pointer MeshFileStreamer::getDataFrame(std::string filename) {
     importer->setFilename(filename);
     importer->setMainDevice(getMainDevice());
     DataPort::pointer port = importer->getOutputPort();
-    importer->update(0);
+    importer->update();
     return port->getNextFrame();
 }
 

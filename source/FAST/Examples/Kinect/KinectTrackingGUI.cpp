@@ -250,7 +250,7 @@ void KinectTrackingGUI::playRecording() {
                 numFiles++;
         }
         streamer->setMaximumNumberOfFrames(numFiles);
-        streamer->update(0); // start loading
+        streamer->update(); // start loading
 
         QProgressDialog progress("Loading recording ...", "Abort", 0, numFiles, mWidget);
         progress.setWindowTitle("Loading");
@@ -275,7 +275,7 @@ void KinectTrackingGUI::playRecording() {
         auto importer = VTKMeshFileImporter::New();
         importer->setFilename(selectedRecording + "target.vtk");
         auto port = importer->getOutputPort();
-        importer->update(0);
+        importer->update();
         auto targetCloud = port->getNextFrame<Mesh>();
 
         mTracking->setInputConnection(1, streamer->getOutputPort());
@@ -322,7 +322,7 @@ void KinectTrackingGUI::extractPointCloud() {
         VTKMeshFileExporter::pointer exporter = VTKMeshFileExporter::New();
         exporter->setInputData(mTracking->getTargetCloud());
         exporter->setFilename(recordingPath + "target.vtk");
-        exporter->update(0);
+        exporter->update();
 
         // Start saving point clouds
         mTracking->startRecording(recordingPath);

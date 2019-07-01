@@ -116,7 +116,7 @@ int main() {
     DataPort::pointer port = segmentation->getOutputPort(1);
     int i = 0;
     while(i < 1000) {
-        segmentation->update(i);
+        segmentation->update();
         DataObject::pointer asd = port->getNextFrame();
         i++;
     }

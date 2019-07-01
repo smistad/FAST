@@ -20,7 +20,7 @@ Mesh::pointer getPointCloud(std::string filename=std::string("Surface_LV.vtk")) 
 //    importer->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
     importer->setFilename(Config::getTestDataPath() + filename);
     auto port = importer->getOutputPort();
-    importer->update(0);
+    importer->update();
     return port->getNextFrame<Mesh>();
 }
 
@@ -95,7 +95,7 @@ void saveAbdominalSurfaceExtraction(int threshold=-500) {
     auto exporter = VTKMeshFileExporter::New();
     exporter->setFilename(Config::getTestDataPath() + "AbdominalModel.vtk");
     exporter->setInputConnection(extraction->getOutputPort());
-    exporter->update(0);
+    exporter->update();
 }
 
 void visualizeSurfaceExtraction(int threshold=-500) {

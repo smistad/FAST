@@ -38,7 +38,7 @@ void ImageToImageNetwork::execute() {
     resizer->setSize(mInputImages.begin()->second[0]->getSize().cast<int>());
     resizer->setPreserveAspectRatio(mPreserveAspectRatio);
     DataPort::pointer port = resizer->getOutputPort();
-    resizer->update(0);
+    resizer->update();
 
     Image::pointer resizedOutput = port->getNextFrame<Image>();
     resizedOutput->setSpacing(mInputImages.begin()->second[0]->getSpacing());

@@ -23,25 +23,19 @@ class FAST_EXPORT DataPort {
         template <class T = DataObject>
         SharedPointer<T> getNextFrame();
 
-        void setTimestep(uint64_t timestep);
-
         void setStreamingMode(StreamingMode mode);
 
         SharedPointer<ProcessObject> getProcessObject() const;
 
-        uint64_t getFrameCounter() const;
-
         /**
-         *
          * @return the number of frames stored in this DataPort
          */
         uint getSize();
 
         /**
-         * If a process object does not execeute one update iteration; it should call this method.
+         * Set the limit of how many frames this objects can store
+         * @param frames
          */
-        void moveDataToNextTimestep();
-
         void setMaximumNumberOfFrames(uint frames);
 
         /**
@@ -49,19 +43,21 @@ class FAST_EXPORT DataPort {
          */
         void stop();
 
+        /**
+         * Check whether any data is available
+         * @return
+         */
         bool hasCurrentData();
 
         typedef SharedPointer<DataPort> pointer;
 
-        DataObject::pointer getFrame(uint64_t timestep);
+        DataObject::pointer getFrame();
     private:
         /**
          * The process object which produce data for this port
          */
         SharedPointer<ProcessObject> mProcessObject;
         std::queue<DataObject::pointer> mFrames;
-        DataObject::pointer m_previousFrame;
-        uint64_t mFrameCounter = 0;
         StreamingMode mStreamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES;
         std::mutex mMutex;
         std::condition_variable mFrameConditionVariable;

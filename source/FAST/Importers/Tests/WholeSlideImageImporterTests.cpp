@@ -25,7 +25,7 @@ TEST_CASE("Import whole slide image and display highest level", "[fast][WholeSli
     auto importer = WholeSlideImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "/CMU-1.tiff");
     auto port = importer->getOutputPort();
-    importer->update(0);
+    importer->update();
     auto WSI = port->getNextFrame<WholeSlideImage>();
     auto image = WSI->getLevelAsImage(WSI->getNrOfLevels()-1);
 
@@ -43,7 +43,7 @@ TEST_CASE("Import whole slide image and display a tile at level 0", "[fast][Whol
     auto importer = WholeSlideImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "/CMU-1.tiff");
     auto port = importer->getOutputPort();
-    importer->update(0);
+    importer->update();
     auto WSI = port->getNextFrame<WholeSlideImage>();
     auto image = WSI->getTileAsImage(0, 40000, 10000, 1024, 1024);
 

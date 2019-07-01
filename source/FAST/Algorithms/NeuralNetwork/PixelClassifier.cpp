@@ -102,7 +102,7 @@ void PixelClassifier::execute() {
                 resizer->setSize(mInputImages.begin()->second[0]->getSize().cast<int>());
                 resizer->setPreserveAspectRatio(mPreserveAspectRatio);
                 DataPort::pointer port = resizer->getOutputPort();
-                resizer->update(0);
+                resizer->update();
 
                 Image::pointer resizedOutput = port->getNextFrame<Image>();
                 addOutputData(j, resizedOutput);
@@ -137,7 +137,7 @@ void PixelClassifier::execute() {
             resizer->setSize(mInputImages.begin()->second[0]->getSize().cast<int>());
             resizer->setPreserveAspectRatio(mPreserveAspectRatio);
             DataPort::pointer port = resizer->getOutputPort();
-            resizer->update(0);
+            resizer->update();
 
             Image::pointer resizedOutput = port->getNextFrame<Image>();
             addOutputData(0, resizedOutput);

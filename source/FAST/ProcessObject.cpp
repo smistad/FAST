@@ -21,14 +21,13 @@ static bool isStreamer(ProcessObject* po) {
     return isStreamer;
 }
 
-void ProcessObject::update(uint64_t timestep, StreamingMode streamingMode) {
+void ProcessObject::update(StreamingMode streamingMode) {
     // Call update on all parents
     bool newInputData = false;
     for(auto parent : mInputConnections) {
         auto port = parent.second;
-        port->setTimestep(timestep);
         port->setStreamingMode(streamingMode);
-        port->getProcessObject()->update(timestep, streamingMode);
+        port->getProcessObject()->update(streamingMode);
 
         if(mLastProcessed.count(parent.first) > 0) {
             std::cout << "" << getNameOfClass() << " has last processed data.. " << std::endl;
@@ -39,7 +38,7 @@ void ProcessObject::update(uint64_t timestep, StreamingMode streamingMode) {
                 auto previousData = data.first;
                 auto previousTimestamp = data.second;
                 try {
-                    auto currentData = port->getFrame(timestep);
+                    auto currentData = port->getFrame();
                     auto currentTimestamp = currentData->getTimestamp();
                     std::cout << currentData << " " << previousData << " size: " << port->getSize() << std::endl;
                     if(currentData != previousData ||
@@ -68,7 +67,7 @@ void ProcessObject::update(uint64_t timestep, StreamingMode streamingMode) {
         }
     }
 
-    // Set timestep and streaming mode for output connections
+    // Set streaming mode for output connections
     // Also remove dead output ports if any
     for(auto&& outputPorts : mOutputConnections) {
         std::vector<int> deadOutputPorts;
@@ -76,7 +75,6 @@ void ProcessObject::update(uint64_t timestep, StreamingMode streamingMode) {
             auto output = outputPorts.second[i];
             if(!output.expired()) {
                 DataPort::pointer port = output.lock();
-                port->setTimestep(timestep);
                 port->setStreamingMode(streamingMode);
             } else {
                 deadOutputPorts.push_back(i);
@@ -100,18 +98,9 @@ void ProcessObject::update(uint64_t timestep, StreamingMode streamingMode) {
         preExecute();
         execute();
         postExecute();
-        mLastTimestepExecuted = timestep;
         if(this->mRuntimeManager->isEnabled())
             this->waitToFinish();
         this->mRuntimeManager->stopRegularTimer("execute");
-    } else if(!isStreamer(this)) {
-        // If this object did not need to execute AND is not a streamer. Move the output data to next timestep.
-        for(auto outputPorts : mOutputConnections) {
-            for(auto output : outputPorts.second) {
-                DataPort::pointer port = output.lock();
-                port->moveDataToNextTimestep();
-            }
-        }
     }
     // TODO need to clear m_frameData m_lastFrame
     //m_frameData.clear();
@@ -136,7 +125,7 @@ DataPort::pointer ProcessObject::getInputPort(uint portID) {
 }
 
 void ProcessObject::setInputConnection(uint portID, DataPort::pointer port) {
-    validateInputPortExists(portID);;
+    validateInputPortExists(portID);
     if(port->getProcessObject().get() == this)
         throw Exception("Can't set setInputConnection on self");
     mInputConnections[portID] = port;

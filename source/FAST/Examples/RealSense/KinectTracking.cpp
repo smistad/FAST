@@ -61,7 +61,7 @@ void KinectTracking::execute() {
         icp->setRandomPointSampling(300);
         icp->getReporter().setReportMethod(Reporter::COUT);
         icp->setMaximumNrOfIterations(10);
-        icp->update(0);
+        icp->update();
         reportInfo() << "Finished ICP in: " << reportEnd();
         icp->getAllRuntimes()->printAll();
         AffineTransformation::pointer currentTransform = mTargetCloud->getSceneGraphNode()->getTransformation();
@@ -74,7 +74,7 @@ void KinectTracking::execute() {
             exporter->setWriteNormals(false);
             exporter->setWriteColors(true);
             exporter->setFilename(mStoragePath + std::to_string(mFrameCounter) + ".vtk");
-            exporter->update(0);
+            exporter->update();
             ++mFrameCounter;
         }
     } else {

@@ -6,7 +6,7 @@ namespace fast{
 
     TEST_CASE("No input given to NonLocalMeans throws exception", "[fast][NonLocalMeans]") {
         NonLocalMeans::pointer filter = NonLocalMeans::New();
-        CHECK_THROWS(filter->update(0));
+        CHECK_THROWS(filter->update());
     }
 
     TEST_CASE("Negative or zero sigma input throws exception in NonLocalMeans", "[fast][NonLocalMeans]") {

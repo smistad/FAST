@@ -55,14 +55,6 @@ void DataObject::updateModifiedTimestamp() {
     mTimestampModified++;
 }
 
-uint64_t DataObject::getTimestep() const {
-    return mTimestep;
-}
-
-void DataObject::setTimestep(uint64_t timestep) {
-    mTimestep = timestep;
-}
-
 void DataObject::setMetadata(std::string name, std::string value) {
     mMetadata[name] = value;
 }

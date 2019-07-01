@@ -40,7 +40,7 @@ void ImageFileExporter::execute() {
             exporter->setInputData(input);
             exporter->setFilename(mFilename);
             exporter->setCompression(mCompress);
-            exporter->update(0);
+            exporter->update();
         } else if(matchExtension(ext, "jpg") ||
                   matchExtension(ext, "jpeg") ||
                   matchExtension(ext, "png") ||
@@ -49,7 +49,7 @@ void ImageFileExporter::execute() {
             ImageExporter::pointer exporter = ImageExporter::New();
             exporter->setFilename(mFilename);
             exporter->setInputData(input);
-            exporter->update(0);
+            exporter->update();
 #else
             throw Exception("The ImageFileExporter needs the visualization module (Qt) to be enabled in order to write image files.");
 #endif

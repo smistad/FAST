@@ -122,7 +122,7 @@ void DummyIGTLServer::stream() {
         socket = serverSocket->WaitForConnection(1000);
         if(socket.IsNotNull()) { // if client connected
             while(!mStreamer->hasReachedEnd() && framesSent < mFrames) {
-                mStreamer->update(framesSent, STREAMING_MODE_PROCESS_ALL_FRAMES);
+                mStreamer->update(STREAMING_MODE_PROCESS_ALL_FRAMES);
 
                 // Get next image from streamer
                 Image::pointer image = dataStream->getNextFrame<Image>();

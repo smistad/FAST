@@ -25,5 +25,5 @@ int main() {
     exporter->setInputConnection(extraction->getOutputPort());
     exporter->setFilename("region_growing_result.vtk");
     exporter->setWriteNormals(true);
-    exporter->update(0);
+    exporter->update();
 }

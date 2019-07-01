@@ -20,8 +20,6 @@ class FAST_EXPORT  DataObject : public Object {
         std::unordered_map<std::string, std::string> getMetadata() const;
         uint64_t getTimestamp() const;
         void updateModifiedTimestamp();
-        uint64_t getTimestep() const;
-        void setTimestep(uint64_t);
         virtual ~DataObject() { };
         virtual std::string getNameOfClass() const = 0;
         static std::string getStaticNameOfClass() {
@@ -59,8 +57,6 @@ class FAST_EXPORT  DataObject : public Object {
 
         // Timestamp is set to 0 when data object is constructed
         uint64_t mTimestampCreated;
-
-        uint64_t mTimestep;
 
         std::unordered_map<std::string, std::string> mMetadata;
 

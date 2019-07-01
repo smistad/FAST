@@ -35,7 +35,7 @@ void SliceRenderer::execute() {
             }
             slicer->setInputData(input);
             DataPort::pointer port = slicer->getOutputPort();
-            slicer->update(0);
+            slicer->update();
 
             mHasRendered = false;
             mDataToRender[inputNr] = port->getNextFrame<Image>();

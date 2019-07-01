@@ -22,7 +22,7 @@ void OpenIGTLinkClient::execute() {
         exporter->setFilename(mRecordStoragePath + "US-2D_" + std::to_string(mRecordFrameNr) + ".mhd");
         exporter->setInputData(image);
         //exporter->enableCompression();
-        exporter->update(0);
+        exporter->update();
         ++mRecordFrameNr;
 
         // Failsafe: if someone forgets to turn of record, turn it off automatically after about 15 minutes

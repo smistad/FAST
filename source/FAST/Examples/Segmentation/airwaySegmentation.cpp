@@ -46,13 +46,13 @@ int main(int argc, char** argv) {
         MetaImageExporter::pointer exporter = MetaImageExporter::New();
         exporter->setFilename(parser.get("export_segmentation"));
         exporter->setInputConnection(segmentation->getOutputPort());
-        exporter->update(0);
+        exporter->update();
     }
     if(parser.gotValue("export_centerline")) {
         VTKMeshFileExporter::pointer exporter = VTKMeshFileExporter::New();
         exporter->setFilename(parser.get("export_centerline"));
         exporter->setInputConnection(centerline->getOutputPort());
-        exporter->update(0);
+        exporter->update();
 		
     }
 	if(parser.gotValue("export_segmentation") || parser.gotValue("export_centerline"))

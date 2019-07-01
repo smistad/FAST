@@ -6,20 +6,20 @@ namespace fast {
 
 TEST_CASE("No filename given to VTKMeshFileImporter throws exception", "[fast][VTKMeshFileImporter]") {
     VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
-    CHECK_THROWS(importer->update(0));
+    CHECK_THROWS(importer->update());
 }
 
 TEST_CASE("Wrong filename VTKMeshFileImporter throws exception", "[fast][VTKMeshFileImporter]") {
     VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
     importer->setFilename("asdasd");
-    CHECK_THROWS(importer->update(0));
+    CHECK_THROWS(importer->update());
 }
 
 TEST_CASE("Importer VTK surface from file", "[fast][VTKMeshFileImporter]") {
     VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
     importer->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
     DataPort::pointer port = importer->getOutputPort();
-    importer->update(0);
+    importer->update();
     Mesh::pointer surface = port->getNextFrame<Mesh>();
 
     // Check the surface

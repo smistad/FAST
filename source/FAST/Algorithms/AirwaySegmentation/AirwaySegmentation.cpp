@@ -280,7 +280,7 @@ void AirwaySegmentation::execute() {
         filter->setInputData(image);
         filter->setStandardDeviation(mSmoothingSigma);
         DataPort::pointer port = filter->getOutputPort();
-        filter->update(0);
+        filter->update();
         image = port->getNextFrame<Image>();
     }
 

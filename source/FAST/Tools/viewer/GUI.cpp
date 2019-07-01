@@ -278,7 +278,7 @@ void GUI::selectPipeline() {
         while(inputsRequired--)
             inputs.push_back(mStreamer->getOutputPort());
         // Preload the data
-        mStreamer->update(0, STREAMING_MODE_STORE_ALL_FRAMES);
+        mStreamer->update(STREAMING_MODE_STORE_ALL_FRAMES);
         while(!mStreamer->hasReachedEnd()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }

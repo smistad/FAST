@@ -19,7 +19,7 @@ TEST_CASE("Import image from ITK to FAST", "[fast][ITK][ITKImageImporter]") {
     ITKImageImporter<ImageType>::pointer importer = ITKImageImporter<ImageType>::New();
     importer->setInput(image);
     DataPort::pointer port = importer->getOutputPort();
-    importer->update(0);
+    importer->update();
     Image::pointer fastImage = port->getNextFrame<Image>();
 
     CHECK(fastImage->getWidth() == region.GetSize()[0]);

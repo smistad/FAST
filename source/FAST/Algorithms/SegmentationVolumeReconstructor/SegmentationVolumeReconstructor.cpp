@@ -70,7 +70,7 @@ void SegmentationVolumeReconstructor::execute() {
     //smoother->setMaskSize(3);
     //smoother->setOutputType(TYPE_FLOAT);
     auto port = smoother->getOutputPort();
-    smoother->update(0, STREAMING_MODE_NEWEST_FRAME_ONLY);
+    smoother->update( STREAMING_MODE_NEWEST_FRAME_ONLY);
 
     addOutputData(0, port->getNextFrame());
      */

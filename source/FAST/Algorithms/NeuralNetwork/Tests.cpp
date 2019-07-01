@@ -154,7 +154,7 @@ TEST_CASE("Multi input, single output network", "[fast][neuralnetwork]") {
         network->setInputConnection(0, importer->getOutputPort());
         network->setInputConnection(1, importer->getOutputPort());
         auto port = network->getOutputPort();
-        network->update(0);
+        network->update();
         auto data = port->getNextFrame<Tensor>();
         // We are expecting a tensor output with dimensions (1, 6)
         REQUIRE(data->getShape().getDimensions() == 2);
@@ -185,7 +185,7 @@ TEST_CASE("Single input, multi output network", "[fast][neuralnetwork]") {
         network->setInputConnection(0, importer->getOutputPort());
         auto port1 = network->getOutputPort(0);
         auto port2 = network->getOutputPort(1);
-        network->update(0);
+        network->update();
         auto data1 = port1->getNextFrame<Tensor>();
         auto data2 = port2->getNextFrame<Tensor>();
 
@@ -220,7 +220,7 @@ TEST_CASE("Single 3D image input network", "[fast][neuralnetwork][3d]") {
         }
         network->setInputConnection(0, importer->getOutputPort());
         auto port = network->getOutputPort();
-        network->update(0);
+        network->update();
         auto data = port->getNextFrame<Tensor>();
 
         // We are expecting one tensor as output with shape (1, 10)
@@ -242,7 +242,7 @@ TEST_CASE("Execute NN on batch of 2D images", "[fast][neuralnetwork][batch]") {
             auto importer = ImageFileImporter::New();
             importer->setFilename(Config::getTestDataPath() + "US/JugularVein/US-2D_0.mhd");
             auto port = importer->getOutputPort();
-            importer->update(0);
+            importer->update();
             auto data = port->getNextFrame<Image>();
             images.push_back(data);
             images.push_back(data);
@@ -268,7 +268,7 @@ TEST_CASE("Execute NN on batch of 2D images", "[fast][neuralnetwork][batch]") {
         network->setInputData(batch);
         auto port1 = network->getOutputPort(0);
         auto port2 = network->getOutputPort(1);
-        network->update(0);
+        network->update();
         auto data1 = port1->getNextFrame<Tensor>();
         auto data2 = port2->getNextFrame<Tensor>();
 
@@ -295,7 +295,7 @@ TEST_CASE("NN: temporal input static output", "[fast][neuralnetwork][sequence]")
             auto importer = ImageFileImporter::New();
             importer->setFilename(Config::getTestDataPath() + "US/JugularVein/US-2D_0.mhd");
             auto port = importer->getOutputPort();
-            importer->update(0);
+            importer->update();
             auto data = port->getNextFrame<Image>();
             images.push_back(data);
             images.push_back(data);
@@ -316,7 +316,7 @@ TEST_CASE("NN: temporal input static output", "[fast][neuralnetwork][sequence]")
         }
         network->setInputData(sequence);
         auto port = network->getOutputPort(0);
-        network->update(0);
+        network->update();
         auto data = port->getNextFrame<Tensor>();
 
         REQUIRE(data->getShape().getDimensions() == 2);
@@ -338,7 +338,7 @@ TEST_CASE("NN: temporal input temporal output", "[fast][neuralnetwork][sequence]
             auto importer = ImageFileImporter::New();
             importer->setFilename(Config::getTestDataPath() + "US/JugularVein/US-2D_0.mhd");
             auto port = importer->getOutputPort();
-            importer->update(0);
+            importer->update();
             auto data = port->getNextFrame<Image>();
             images.push_back(data);
             images.push_back(data);
@@ -359,7 +359,7 @@ TEST_CASE("NN: temporal input temporal output", "[fast][neuralnetwork][sequence]
         }
         network->setInputData(sequence);
         auto port = network->getOutputPort(0);
-        network->update(0);
+        network->update();
         auto data = port->getNextFrame<Tensor>();
 
         REQUIRE(data->getShape().getDimensions() == 3);
@@ -382,7 +382,7 @@ TEST_CASE("NN: temporal input temporal output, streaming mode", "[fast][neuralne
             auto importer = ImageFileImporter::New();
             importer->setFilename(Config::getTestDataPath() + "US/JugularVein/US-2D_0.mhd");
             auto port = importer->getOutputPort();
-            importer->update(0);
+            importer->update();
             auto data = port->getNextFrame<Image>();
             images.push_back(data);
             images.push_back(data);
@@ -405,7 +405,7 @@ TEST_CASE("NN: temporal input temporal output, streaming mode", "[fast][neuralne
 
         for(int i = 0; i < 3; ++i) {
             network->setInputData(images[i]);
-            network->update(0);
+            network->update();
             auto data = port->getNextFrame<Tensor>();
 
             REQUIRE(data->getShape().getDimensions() == 3);

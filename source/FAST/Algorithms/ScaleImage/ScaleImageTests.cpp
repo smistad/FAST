@@ -12,7 +12,7 @@ TEST_CASE("Scale image 2D", "[fast][ScaleImage]") {
     ScaleImage::pointer normalize = ScaleImage::New();
     normalize->setInputConnection(importer->getOutputPort());
     auto port = normalize->getOutputPort();
-    normalize->update(0);
+    normalize->update();
 
     Image::pointer result = port->getNextFrame<Image>();
 
@@ -27,7 +27,7 @@ TEST_CASE("Scale image 3D", "[fast][ScaleImage]") {
     ScaleImage::pointer normalize = ScaleImage::New();
     normalize->setInputConnection(importer->getOutputPort());
     auto port = normalize->getOutputPort();
-    normalize->update(0);
+    normalize->update();
 
     Image::pointer result = port->getNextFrame<Image>();
 
@@ -44,7 +44,7 @@ TEST_CASE("Scale image 2D with high and low set", "[fast][ScaleImage]") {
     normalize->setLowestValue(-2);
     normalize->setHighestValue(10);
     auto port = normalize->getOutputPort();
-    normalize->update(0);
+    normalize->update();
 
     Image::pointer result = port->getNextFrame<Image>();
 
@@ -61,7 +61,7 @@ TEST_CASE("Scale image 3D with high and low set", "[fast][ScaleImage]") {
     normalize->setLowestValue(-2);
     normalize->setHighestValue(10);
     auto port = normalize->getOutputPort();
-    normalize->update(0);
+    normalize->update();
 
     Image::pointer result = port->getNextFrame<Image>();
 

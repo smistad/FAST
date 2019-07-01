@@ -175,7 +175,7 @@ void LungSegmentation::execute() {
     erosion->setStructuringElementSize(9);
 
     DataPort::pointer port = erosion->getOutputPort();
-    erosion->update(0);
+    erosion->update();
     Image::pointer image = port->getNextFrame<Image>();
 
     if(mOutputPorts.count(2) > 0) {
@@ -193,7 +193,7 @@ void LungSegmentation::execute() {
         thresholding->setLowerThreshold(50);
 
         auto port = thresholding->getOutputPort();
-        thresholding->update(0);
+        thresholding->update();
         addOutputData(2, port->getNextFrame<Image>());
     }
 

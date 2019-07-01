@@ -9,7 +9,7 @@ using namespace fast;
 
 TEST_CASE("No filename format given to ImageFileStreamer", "[fast][ImageFileStreamer]") {
     ImageFileStreamer::pointer mhdStreamer = ImageFileStreamer::New();
-    CHECK_THROWS(mhdStreamer->update(0));
+    CHECK_THROWS(mhdStreamer->update());
 }
 
 TEST_CASE("No hash tag in filename format given to ImageFileStreamer", "[fast][ImageFileStreamer]") {

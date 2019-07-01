@@ -302,7 +302,7 @@ void GUI::selectStream() {
     mClient->setInputConnection(mStreamer->getOutputPort<Image>(streamName));
     selectPipeline();
     try {
-        mStreamer->update(0, STREAMING_MODE_NEWEST_FRAME_ONLY);
+        mStreamer->update( STREAMING_MODE_NEWEST_FRAME_ONLY);
     } catch(Exception &e) {
         QMessageBox* message = new QMessageBox;
         message->setWindowTitle("Error");

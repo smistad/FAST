@@ -253,7 +253,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
             //filter->setMaskSize(7);
             filter->setOutputType(TYPE_FLOAT);
             DataPort::pointer port = filter->getOutputPort();
-            filter->update(0);
+            filter->update();
             smoothedImage = port->getNextFrame<Image>();
             smoothedImage->setSpacing(spacing);
         } else {
@@ -287,7 +287,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
             //filter->setMaskSize(7);
             filter->setOutputType(TYPE_FLOAT);
             auto port = filter->getOutputPort();
-            filter->update(0);
+            filter->update();
             smoothedImage = port->getNextFrame<Image>();
             smoothedImage->setSpacing(spacing);
         } else {
@@ -318,7 +318,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
         centerlineExtraction->setInputData(5, smallRadius);
         auto port = centerlineExtraction->getOutputPort(0);
         auto port2 = centerlineExtraction->getOutputPort(1);
-        centerlineExtraction->update(0);
+        centerlineExtraction->update();
         centerline = port->getNextFrame<Mesh>();
 
         // Segmentation
@@ -341,7 +341,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
             gradients = GVFfield;
         }
         auto port = centerlineExtraction->getOutputPort();
-        centerlineExtraction->update(0);
+        centerlineExtraction->update();
         centerline = port->getNextFrame<Mesh>();
 
         // Segmentation
@@ -350,7 +350,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
     }
 
     auto segPort = segmentation->getOutputPort();
-    segmentation->update(0);
+    segmentation->update();
     Segmentation::pointer segmentationVolume = segPort->getNextFrame<Segmentation>();
 
     // TODO get largest segmentation object
@@ -373,7 +373,7 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::runGradientVectorFlow(Im
     gvf->setIterations(10);
     gvf->setMuConstant(0.199);
     DataPort::pointer port = gvf->getOutputPort();
-    gvf->update(0);
+    gvf->update();
     reportInfo() << "GVF finished" << Reporter::end();
     return port->getNextFrame<Image>();
 }

@@ -7,13 +7,13 @@ using namespace fast;
 
 TEST_CASE("No filename set to MetaImageImporter", "[fast][MetaImageImporter]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
-    CHECK_THROWS(importer->update(0));
+    CHECK_THROWS(importer->update());
 }
 
 TEST_CASE("Import non-existing file to MetaImageImporter", "[fast][MetaImageImporter]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename("asdasdasdsad");
-    CHECK_THROWS_AS(importer->update(0), FileNotFoundException);
+    CHECK_THROWS_AS(importer->update(), FileNotFoundException);
 }
 
 TEST_CASE("Import 2D MetaImage file to host", "[fast][MetaImageImporter]") {
@@ -21,7 +21,7 @@ TEST_CASE("Import 2D MetaImage file to host", "[fast][MetaImageImporter]") {
     importer->setFilename(Config::getTestDataPath()+"US/CarotidArtery/Right/US-2D_0.mhd");
     importer->setMainDevice(Host::getInstance());
     DataPort::pointer port = importer->getOutputPort();
-    importer->update(0);
+    importer->update();
     Image::pointer image = port->getNextFrame<Image>();
     AffineTransformation::pointer T = image->getSceneGraphNode()->getTransformation();
 
@@ -53,7 +53,7 @@ TEST_CASE("Import 3D MetaImage file to host", "[fast][MetaImageImporter]") {
     importer->setFilename(Config::getTestDataPath()+"US/Ball/US-3Dt_0.mhd");
     importer->setMainDevice(Host::getInstance());
     DataPort::pointer port = importer->getOutputPort();
-    importer->update(0);
+    importer->update();
     Image::pointer image = port->getNextFrame<Image>();
     AffineTransformation::pointer T = image->getSceneGraphNode()->getTransformation();
 
@@ -88,7 +88,7 @@ TEST_CASE("Import MetaImage file to OpenCL device", "[fast][MetaImageImporter]")
     importer->setFilename(Config::getTestDataPath()+"US/Ball/US-3Dt_0.mhd");
     importer->setMainDevice(device);
     DataPort::pointer port = importer->getOutputPort();
-    importer->update(0);
+    importer->update();
     Image::pointer image = port->getNextFrame<Image>();
     AffineTransformation::pointer T = image->getSceneGraphNode()->getTransformation();
 

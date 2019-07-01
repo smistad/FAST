@@ -56,11 +56,11 @@ int main(int argc, char** argv) {
             auto exporter2 = VTKMeshFileExporter::New();
             exporter2->setFilename(join(parser.get("output-path"), "centerline.vtk"));
             exporter2->setInputConnection(centerline->getOutputPort());
-            exporter2->update(0);
+            exporter2->update();
         }
-        exporter->update(0);
-        exporter2->update(0);
-        exporter3->update(0);
+        exporter->update();
+        exporter2->update();
+        exporter3->update();
     } else {
 
         // Extract lung surface

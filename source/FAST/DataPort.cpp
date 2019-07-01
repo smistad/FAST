@@ -43,7 +43,6 @@ void DataPort::addFrame(DataObject::pointer object) {
             // Add data
             mFrames.push(object);
             //std::cout << "Data added at " << mProcessObject->getNameOfClass() << ", queue size: " << mFrames.size() << std::endl;
-            mFrameCounter++;
         }
 
         if(!mIsStaticData) {
@@ -63,7 +62,6 @@ void DataPort::addFrame(DataObject::pointer object) {
             std::lock_guard<std::mutex> lock(mMutex);
             //std::cout << mProcessObject->getNameOfClass() + " STORE_ALL_FRAMES adding frame with nr " << mFrameCounter << std::endl;
             mFrames.push(object);
-            mFrameCounter++;
         }
         mFrameConditionVariable.notify_all();
     } else {
@@ -72,7 +70,6 @@ void DataPort::addFrame(DataObject::pointer object) {
 }
 
 DataObject::pointer DataPort::getNextDataFrame() {
-    // getNextFrame should **always** return the frame at the current timestep
     DataObject::pointer data;
     {
         std::unique_lock<std::mutex> lock(mMutex);
@@ -97,11 +94,10 @@ DataObject::pointer DataPort::getNextDataFrame() {
         }
 
         data = mFrames.front();
-        m_previousFrame = data;
         //std::cout << "Got data from " << mProcessObject->getNameOfClass() << std::endl;
 
         if(!mIsStaticData) {
-            std::cout << "Removing data from port with data from " << mProcessObject->getNameOfClass() << std::endl;
+            //std::cout << "Removing data from port with data from " << mProcessObject->getNameOfClass() << std::endl;
             mFrames.pop();
         }
 
@@ -118,20 +114,8 @@ DataObject::pointer DataPort::getNextDataFrame() {
     return data;
 }
 
-void DataPort::moveDataToNextTimestep() {
-    std::lock_guard<std::mutex> lock(mMutex);
-    /*
-    if(!mFrames.empty() && mFrames.front() != m_previousFrame && m_previousFrame != nullptr) {
-        std::cout << "adding previous frame: " << m_previousFrame << std::endl;
-        mFrames.push(m_previousFrame);
-    }*/
-}
-
 void DataPort::setStreamingMode(StreamingMode mode) {
     mStreamingMode = mode;
-}
-
-void DataPort::setTimestep(uint64_t timestep) {
 }
 
 DataPort::DataPort(SharedPointer<ProcessObject> processObject) {
@@ -149,12 +133,8 @@ SharedPointer<ProcessObject> DataPort::getProcessObject() const {
     return mProcessObject;
 }
 
-uint64_t DataPort::getFrameCounter() const {
-    return mFrameCounter;
-}
-
 void DataPort::setMaximumNumberOfFrames(uint frames) {
-    if(mFrameCounter > 0)
+    if(!mFrames.empty())
         throw Exception("Have to call setMaximumNumberOfFrames before executing pipeline");
     mMaximumNumberOfFrames = frames;
     mFillCount = std::make_unique<LightweightSemaphore>(0);
@@ -188,7 +168,7 @@ uint DataPort::getSize() {
     return mFrames.size();
 }
 
-DataObject::pointer DataPort::getFrame(uint64_t timestep) {
+DataObject::pointer DataPort::getFrame() {
     std::lock_guard<std::mutex> lock(mMutex);
     if(mFrames.empty())
         throw Exception("No frames available in getFrame");

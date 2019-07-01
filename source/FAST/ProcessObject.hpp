@@ -24,7 +24,7 @@ class ProcessObject;
 class FAST_EXPORT  ProcessObject : public Object {
     public:
         virtual ~ProcessObject();
-        void update(uint64_t timestep, StreamingMode streamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES);
+        void update(StreamingMode streamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES);
         typedef SharedPointer<ProcessObject> pointer;
 
         // Runtime stuff
@@ -67,15 +67,14 @@ class FAST_EXPORT  ProcessObject : public Object {
 
         void setModified(bool modified);
 
+        template <class DataType>
+        void updateAndGetOutputData(uint portID = 0, StreamingMode streamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES);
 
     protected:
         ProcessObject();
         // Flag to indicate whether the object has been modified
         // and should be executed again
         bool mIsModified;
-
-        // Used to avoid duplicate executes for same timestep
-        uint64_t mLastTimestepExecuted = std::numeric_limits<uint64_t>::max();
 
         // Pure virtual method for executing the pipeline object
         virtual void execute()=0;
@@ -198,6 +197,12 @@ SharedPointer<DataType> ProcessObject::getOutputData(uint portID) {
 }
 
 
+template<class DataType>
+void ProcessObject::updateAndGetOutputData(uint portID, StreamingMode mode) {
+    auto port = getOutputPort(portID);
+    update(mode);
+    return port->getNextFrame<DataType>();
+}
 
 
 }; // end namespace fast

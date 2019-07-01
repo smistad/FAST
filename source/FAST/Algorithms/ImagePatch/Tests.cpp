@@ -68,7 +68,7 @@ TEST_CASE("Patch generator, sticher and image to batch generator", "[fast][wsi][
     Batch::pointer batch;
     int i = 0;
     do {
-        batchGenerator->update(i); // This will only call execute once
+        batchGenerator->update(); // This will only call execute once
         batch = port->getNextFrame<Batch>(); // This will block if batch does not exist atm
         std::cout << "Got a batch" << std::endl;
     } while(!batch->isLastFrame());

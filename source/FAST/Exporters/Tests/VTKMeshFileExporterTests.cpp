@@ -8,7 +8,7 @@ TEST_CASE("No filename given to VTKMeshFileExporter", "[fast][VTKMeshFileExporte
 	Mesh::pointer mesh = Mesh::New();
 	VTKMeshFileExporter::pointer exporter = VTKMeshFileExporter::New();
 	exporter->setInputData(mesh);
-	CHECK_THROWS(exporter->update(0));
+	CHECK_THROWS(exporter->update());
 }
 
 TEST_CASE("Export mesh with lines", "[fast][VTKMeshFileExporter]") {
@@ -31,7 +31,7 @@ TEST_CASE("Export mesh with lines", "[fast][VTKMeshFileExporter]") {
 	VTKMeshFileExporter::pointer exporter = VTKMeshFileExporter::New();
 	exporter->setInputData(mesh);
 	exporter->setFilename("VTKMeshFileExporter2DTest.vtk");
-	CHECK_NOTHROW(exporter->update(0));
+	CHECK_NOTHROW(exporter->update());
 }
 
 TEST_CASE("Export mesh with triangles", "[fast][VTKMeshFileExporter]") {
@@ -66,5 +66,5 @@ TEST_CASE("Export mesh with triangles", "[fast][VTKMeshFileExporter]") {
 	VTKMeshFileExporter::pointer exporter = VTKMeshFileExporter::New();
 	exporter->setInputData(mesh);
 	exporter->setFilename("VTKMeshFileExporter3DTest.vtk");
-	CHECK_NOTHROW(exporter->update(0));
+	CHECK_NOTHROW(exporter->update());
 }
