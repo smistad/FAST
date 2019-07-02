@@ -94,7 +94,7 @@ WholeSlideImageTile WholeSlideImage::getTile(int level, int tile_x, int tile_y) 
     std::size_t bytes = tile.width*tile.height*4;
     tile.data = std::shared_ptr<uchar[]>(new uchar[bytes]); // TODO use make_shared instead (C++20)
     float scale = (float)getFullWidth()/levelWidth;
-    openslide_read_region(m_fileHandle, (uint32_t *) tile.data.get(), std::floor(tile.offsetX*scale), std::floor(tile.offsetY*scale), level, tile.width, tile.height);
+    openslide_read_region(m_fileHandle, (uint32_t *) tile.data.get(), tile.offsetX*scale, tile.offsetY*scale, level, tile.width, tile.height);
     m_tileCacheMemoryUsage += bytes;
     std::cout << m_tileCacheMemoryUsage/(1024*1024) << " MB usage" << std::endl;
     m_tileCache[tileStr] = tile;
