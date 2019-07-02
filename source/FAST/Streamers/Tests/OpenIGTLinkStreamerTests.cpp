@@ -1,15 +1,15 @@
 #include "DummyIGTLServer.hpp"
 #include "FAST/Testing.hpp"
-#include "FAST/Streamers/IGTLinkStreamer.hpp"
+#include "FAST/Streamers/OpenIGTLinkStreamer.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 #include "FAST/Algorithms/AddTransformation/AddTransformation.hpp"
 
 using namespace fast;
 
-TEST_CASE("Stream 2D images using IGTLinkStreamer", "[IGTLinkStreamer][fast][IGTLink][visual]") {
+TEST_CASE("Stream 2D images using OpenIGTLinkStreamer", "[OpenIGTLinkStreamer][fast][IGTLink][visual]") {
 
-    ImageFileStreamer::pointer fileStreamer = ImageFileStreamer::New();
+    auto fileStreamer = ImageFileStreamer::New();
     fileStreamer->setFilenameFormat(Config::getTestDataPath() + "US/CarotidArtery/Right/US-2D_#.mhd");
     DummyIGTLServer server;
     server.setImageStreamer(fileStreamer);
@@ -17,17 +17,17 @@ TEST_CASE("Stream 2D images using IGTLinkStreamer", "[IGTLinkStreamer][fast][IGT
     server.setMaximumFramesToSend(50);
     server.start();
 
-    IGTLinkStreamer::pointer streamer = IGTLinkStreamer::New();
+    auto streamer = OpenIGTLinkStreamer::New();
     streamer->setConnectionAddress("localhost");
     streamer->setConnectionPort(18944);
 
-    AddTransformation::pointer addTransformation = AddTransformation::New();
+    auto addTransformation = AddTransformation::New();
     addTransformation->setInputConnection(streamer->getOutputPort<Image>("DummyImage"));
     addTransformation->setTransformationInputConnection(streamer->getOutputPort<AffineTransformation>("DummyTransform"));
 
-    ImageRenderer::pointer renderer = ImageRenderer::New();
+    auto renderer = ImageRenderer::New();
     renderer->addInputConnection(addTransformation->getOutputPort());
-    SimpleWindow::pointer window = SimpleWindow::New();
+    auto window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->setTimeout(5000);
     CHECK_NOTHROW(window->start());

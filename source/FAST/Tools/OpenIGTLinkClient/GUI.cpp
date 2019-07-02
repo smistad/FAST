@@ -9,7 +9,7 @@
 #include <QInputDialog>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 #include <FAST/Visualization/TextRenderer/TextRenderer.hpp>
-#include <FAST/Streamers/IGTLinkStreamer.hpp>
+#include <FAST/Streamers/OpenIGTLinkStreamer.hpp>
 #include "OpenIGTLinkClient.hpp"
 #include <QMessageBox>
 #include <QElapsedTimer>
@@ -295,7 +295,7 @@ void GUI::selectStream() {
     reportInfo() << "Changing to " << streamName << " stream " << reportEnd();
 
     reportInfo() << "Trying to connect..." << reportEnd();
-    mStreamer = IGTLinkStreamer::New();
+    mStreamer = OpenIGTLinkStreamer::New();
     mStreamer->setConnectionAddress(mAddress->text().toUtf8().constData());
     mStreamer->setConnectionPort(std::stoi(mPort->text().toUtf8().constData()));
     mClient = OpenIGTLinkClient::New();
@@ -338,7 +338,7 @@ void GUI::connect() {
         stopComputationThread();
         getView(0)->removeAllRenderers();
         reportInfo() << "Trying to connect..." << reportEnd();
-        mStreamer = IGTLinkStreamer::New();
+        mStreamer = OpenIGTLinkStreamer::New();
         mStreamer->setConnectionAddress(mAddress->text().toUtf8().constData());
         mStreamer->setConnectionPort(std::stoi(mPort->text().toUtf8().constData()));
         mClient = OpenIGTLinkClient::New();

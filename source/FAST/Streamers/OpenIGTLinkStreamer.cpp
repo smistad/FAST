@@ -1,4 +1,4 @@
-#include "IGTLinkStreamer.hpp"
+#include "OpenIGTLinkStreamer.hpp"
 #include "FAST/Data/Image.hpp"
 #include "FAST/AffineTransformation.hpp"
 #include <igtl/igtlOSUtil.h>
@@ -19,17 +19,17 @@ namespace fast {
 		igtl::ClientSocket::Pointer socket;
 	};
 
-void IGTLinkStreamer::setConnectionAddress(std::string address) {
+void OpenIGTLinkStreamer::setConnectionAddress(std::string address) {
     mAddress = address;
     mIsModified = true;
 }
 
-void IGTLinkStreamer::setConnectionPort(uint port) {
+void OpenIGTLinkStreamer::setConnectionPort(uint port) {
     mPort = port;
     mIsModified = true;
 }
 
-DataPort::pointer IGTLinkStreamer::getOutputPort(uint portID) {
+DataPort::pointer OpenIGTLinkStreamer::getOutputPort(uint portID) {
 	if (mOutputPortDeviceNames.count("") == 0) {
 		portID = getNrOfOutputPorts();
 		createOutputPort<Image>(portID);
@@ -42,23 +42,23 @@ DataPort::pointer IGTLinkStreamer::getOutputPort(uint portID) {
 	return ProcessObject::getOutputPort(portID);
 }
 
-uint IGTLinkStreamer::getNrOfFrames() const {
+uint OpenIGTLinkStreamer::getNrOfFrames() const {
     return mNrOfFrames;
 }
 
-std::set<std::string> IGTLinkStreamer::getImageStreamNames() {
+std::set<std::string> OpenIGTLinkStreamer::getImageStreamNames() {
     return mImageStreamNames;
 }
 
-std::set<std::string> IGTLinkStreamer::getTransformStreamNames() {
+std::set<std::string> OpenIGTLinkStreamer::getTransformStreamNames() {
     return mTransformStreamNames;
 }
 
-std::string IGTLinkStreamer::getStreamDescription(std::string streamName) {
+std::string OpenIGTLinkStreamer::getStreamDescription(std::string streamName) {
     return mStreamDescriptions.at(streamName);
 }
 
-std::vector<std::string> IGTLinkStreamer::getActiveImageStreamNames() {
+std::vector<std::string> OpenIGTLinkStreamer::getActiveImageStreamNames() {
     std::vector<std::string> activeStreams;
     for(auto stream : mOutputPortDeviceNames) {
         if(mImageStreamNames.count(stream.first) > 0)
@@ -67,7 +67,7 @@ std::vector<std::string> IGTLinkStreamer::getActiveImageStreamNames() {
     return activeStreams;
 }
 
-std::vector<std::string> IGTLinkStreamer::getActiveTransformStreamNames() {
+std::vector<std::string> OpenIGTLinkStreamer::getActiveTransformStreamNames() {
     std::vector<std::string> activeStreams;
     for(auto stream : mOutputPortDeviceNames) {
         if(mTransformStreamNames.count(stream.first) > 0)
@@ -130,7 +130,7 @@ static Image::pointer createFASTImageFromMessage(igtl::ImageMessage::Pointer mes
     return image;
 }
 
-void IGTLinkStreamer::updateFirstFrameSetFlag() {
+void OpenIGTLinkStreamer::updateFirstFrameSetFlag() {
     // Check that all output ports have got their first frame
     bool allHaveGotData = true;
     for(auto port : mOutputConnections) {
@@ -147,7 +147,7 @@ void IGTLinkStreamer::updateFirstFrameSetFlag() {
     }
 }
 
-void IGTLinkStreamer::generateStream() {
+void OpenIGTLinkStreamer::generateStream() {
 
     reportInfo() << "Connected to Open IGT Link server" << Reporter::end();;
 
@@ -354,14 +354,14 @@ void IGTLinkStreamer::generateStream() {
     reportInfo() << "OpenIGTLink socket closed" << reportEnd();
 }
 
-IGTLinkStreamer::~IGTLinkStreamer() {
+OpenIGTLinkStreamer::~OpenIGTLinkStreamer() {
     stop();
     if(m_streamIsStarted) {
 		delete mSocketWrapper;
     }
 }
 
-IGTLinkStreamer::IGTLinkStreamer() {
+OpenIGTLinkStreamer::OpenIGTLinkStreamer() {
     mIsModified = true;
     mNrOfFrames = 0;
     mAddress = "localhost";
@@ -370,7 +370,7 @@ IGTLinkStreamer::IGTLinkStreamer() {
     mInFreezeMode = false;
 }
 
-void IGTLinkStreamer::execute() {
+void OpenIGTLinkStreamer::execute() {
 
     if(!m_streamIsStarted) {
 
@@ -382,7 +382,7 @@ void IGTLinkStreamer::execute() {
         }
 
         m_streamIsStarted = true;
-        m_thread = std::make_unique<std::thread>(std::bind(&IGTLinkStreamer::generateStream, this));
+        m_thread = std::make_unique<std::thread>(std::bind(&OpenIGTLinkStreamer::generateStream, this));
     }
 
     // Wait here for first frame

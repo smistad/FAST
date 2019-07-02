@@ -2,7 +2,7 @@
 #include <FAST/Visualization/HeatmapRenderer/HeatmapRenderer.hpp>
 #include <FAST/Algorithms/ImageResampler/ImageResampler.hpp>
 #include <FAST/Tools/CommandLineParser.hpp>
-#include <FAST/Streamers/IGTLinkStreamer.hpp>
+#include <FAST/Streamers/OpenIGTLinkStreamer.hpp>
 #include "FAST/Testing.hpp"
 #include "FAST/Streamers/ImageFileStreamer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
 
     ProcessObject::pointer inputStream;
     if(parser.gotValue("openigtlink-ip")) {
-        auto streamer = IGTLinkStreamer::New();
+        auto streamer = OpenIGTLinkStreamer::New();
         streamer->setConnectionAddress(parser.get("openigtlink-ip"));
         auto cropper = UltrasoundImageCropper::New();
         cropper->setInputConnection(streamer->getOutputPort());

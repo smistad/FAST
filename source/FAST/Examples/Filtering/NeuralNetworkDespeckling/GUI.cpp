@@ -1,6 +1,6 @@
 #include "GUI.hpp"
 #include <FAST/Algorithms/NeuralNetwork/ImageToImageNetwork.hpp>
-#include <FAST/Streamers/IGTLinkStreamer.hpp>
+#include <FAST/Streamers/OpenIGTLinkStreamer.hpp>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 #include <FAST/Algorithms/UltrasoundImageEnhancement/UltrasoundImageEnhancement.hpp>
 #include <FAST/Algorithms/ImageResizer/ImageResizer.hpp>
@@ -10,7 +10,7 @@ namespace fast {
 
 GUI::GUI() {
 
-    IGTLinkStreamer::pointer streamer = IGTLinkStreamer::New();
+    OpenIGTLinkStreamer::pointer streamer = OpenIGTLinkStreamer::New();
 
     setWidth(getScreenWidth());
     setHeight(getScreenHeight());

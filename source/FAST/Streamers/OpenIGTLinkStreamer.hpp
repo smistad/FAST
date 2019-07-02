@@ -15,8 +15,8 @@ namespace fast {
 class Image;
 class IGTLSocketWrapper;
 
-class FAST_EXPORT IGTLinkStreamer : public Streamer {
-    FAST_OBJECT(IGTLinkStreamer)
+class FAST_EXPORT OpenIGTLinkStreamer : public Streamer {
+    FAST_OBJECT(OpenIGTLinkStreamer)
     public:
 		std::set<std::string> getImageStreamNames();
 		std::set<std::string> getTransformStreamNames();
@@ -43,7 +43,7 @@ class FAST_EXPORT IGTLinkStreamer : public Streamer {
          */
         void generateStream() override;
 
-        ~IGTLinkStreamer();
+        ~OpenIGTLinkStreamer();
 
         // Signals
         //boost::signals2::signal<void ()> connectionEstablishedSignal;
@@ -52,7 +52,7 @@ class FAST_EXPORT IGTLinkStreamer : public Streamer {
         //boost::signals2::signal<void ()> freezeSignal;
         //boost::signals2::signal<void ()> unfreezeSignal;
     private:
-        IGTLinkStreamer();
+        OpenIGTLinkStreamer();
 
         // Update the streamer if any parameters have changed
         void execute();
@@ -80,7 +80,7 @@ class FAST_EXPORT IGTLinkStreamer : public Streamer {
 
 
 template<class T>
-DataPort::pointer IGTLinkStreamer::getOutputPort(std::string deviceName) {
+DataPort::pointer OpenIGTLinkStreamer::getOutputPort(std::string deviceName) {
 	uint portID;
 	if(mOutputPortDeviceNames.count(deviceName) == 0) {
 		portID = getNrOfOutputPorts();

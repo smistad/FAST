@@ -13,7 +13,7 @@ class QVBoxLayout;
 
 namespace fast {
 
-class IGTLinkStreamer;
+class OpenIGTLinkStreamer;
 class OpenIGTLinkClient;
 class PipelineWidget;
 
@@ -35,7 +35,7 @@ class GUI : public Window {
         QLineEdit* mAddress;
         QLineEdit* mPort;
         bool mConnected;
-        SharedPointer<IGTLinkStreamer> mStreamer;
+        SharedPointer<OpenIGTLinkStreamer> mStreamer;
         std::vector<std::string> mStreamNames;
         std::vector<Pipeline> mPipelines;
         SharedPointer<OpenIGTLinkClient> mClient;
