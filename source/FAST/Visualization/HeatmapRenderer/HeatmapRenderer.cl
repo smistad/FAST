@@ -21,8 +21,7 @@ __kernel void renderToTexture(
             intensity *= 0.3;
             float3 colorToUse = vload3(channel, colors);
             color = color + 1.0f * colorToUse.xyzz;
-            color.w = 1.0f;//intensity;
-            color = (float4)(1.0f, 0,0,1);
+            color.w = intensity;
             color = clamp(color, 0.0f, 1.0f);
             //printf("%f %f %f\n", color.x, color.y, color.z);
         }

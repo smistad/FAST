@@ -12,10 +12,9 @@ class FAST_EXPORT ImageToBatchGenerator : public Streamer {
     public:
         void setMaxBatchSize(int size);
         ~ImageToBatchGenerator() override;
-        void stop();
     protected:
         void execute() override;
-        void generateStream();
+        void generateStream() override;
         int m_maxBatchSize;
 
         DataChannel::pointer mParent;

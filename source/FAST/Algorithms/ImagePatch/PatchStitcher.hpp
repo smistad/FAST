@@ -14,6 +14,7 @@ class FAST_EXPORT PatchStitcher : public ProcessObject {
         void execute() override;
 
         SharedPointer<Image> m_outputImage;
+        SharedPointer<Tensor> m_outputTensor;
 
         void processTensor(SharedPointer<Tensor> tensor);
         void processImage(SharedPointer<Image> tensor);

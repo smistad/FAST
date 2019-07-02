@@ -42,7 +42,7 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
 
     if(mColorsModified) {
         // Transfer colors to device (this doesn't have to happen every render call..)
-        auto colorData = make_uninitialized_unique<float[]>(3*mColors.size());
+        auto colorData = make_uninitialized_unique<float[]>(3*maxChannels);
         Color defaultColor = Color::Green();
         for(int i = 0; i < maxChannels; ++i) {
             if(mColors.count(i) > 0) {
@@ -188,8 +188,8 @@ void HeatmapRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewin
 
         // Create VBO
         // Get width and height in mm
-        float width = input->getShape()[0];// * input->getSpacing().x();
-        float height = input->getShape()[1];// * input->getSpacing().y();
+        float width = input->getShape()[1];// * input->getSpacing().x();
+        float height = input->getShape()[0];// * input->getSpacing().y();
         float vertices[] = {
                 // vertex: x, y, z; tex coordinates: x, y
                 0.0f, height, 0.0f, 0.0f, 0.0f,

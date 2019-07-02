@@ -32,6 +32,7 @@ TEST_CASE("WSI -> Patch generator -> Neural network -> Patch stitcher -> visuali
     generator->setPatchLevel(2);
     generator->setInputConnection(importer->getOutputPort());
 
+    // TODO remove converter
     auto converter = ImageChannelConverter::New();
     converter->setChannelsToRemove(false, true, true, false);
     converter->setInputConnection(generator->getOutputPort());
@@ -79,6 +80,7 @@ TEST_CASE("WSI -> Patch generator -> Image to batch generator -> Neural network 
     generator->setPatchLevel(2);
     generator->setInputConnection(importer->getOutputPort());
 
+    // TODO remove converter
     auto converter = ImageChannelConverter::New();
     converter->setChannelsToRemove(false, true, true, false);
     converter->setInputConnection(generator->getOutputPort());

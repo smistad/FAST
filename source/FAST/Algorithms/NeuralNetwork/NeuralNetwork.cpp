@@ -212,7 +212,6 @@ void NeuralNetwork::execute() {
             auto shape = tensor->getShape();
             int size = 1;
             auto newShape = TensorShape();
-            newShape.addDimension(1); // TODO remove
             for(int i = 1; i < shape.getDimensions(); ++i) {
                 size *= shape[i];
                 newShape.addDimension(shape[i]);

@@ -11,9 +11,11 @@ void Tensor::create(std::unique_ptr<float[]> data, TensorShape shape) {
     m_shape = shape;
     m_spacing = VectorXf::Ones(shape.getDimensions());
     mHostDataIsUpToDate = true;
-    const int width = m_shape[m_shape.getDimensions()-1];
-    const int height = m_shape[m_shape.getDimensions()-2];
-    mBoundingBox = BoundingBox(Vector3f(width, height, 1));
+    if(m_shape.getDimensions() >= 3) {
+        const int width = m_shape[m_shape.getDimensions() - 2];
+        const int height = m_shape[m_shape.getDimensions() - 3];
+        mBoundingBox = BoundingBox(Vector3f(width, height, 1));
+    }
 }
 
 void Tensor::create(TensorShape shape) {
@@ -24,9 +26,11 @@ void Tensor::create(TensorShape shape) {
     m_data = make_uninitialized_unique<float[]>(shape.getTotalSize());
     m_spacing = VectorXf::Ones(shape.getDimensions());
     mHostDataIsUpToDate = true;
-    const int width = m_shape[m_shape.getDimensions()-1];
-    const int height = m_shape[m_shape.getDimensions()-2];
-    mBoundingBox = BoundingBox(Vector3f(width, height, 1));
+    if(m_shape.getDimensions() >= 3) {
+        const int width = m_shape[m_shape.getDimensions() - 2];
+        const int height = m_shape[m_shape.getDimensions() - 3];
+        mBoundingBox = BoundingBox(Vector3f(width, height, 1));
+    }
 }
 
 void Tensor::create(std::initializer_list<float> data) {
@@ -42,9 +46,11 @@ void Tensor::create(std::initializer_list<float> data) {
 	m_shape = TensorShape({ (int)data.size() });
     m_spacing = VectorXf::Ones(m_shape.getDimensions());
     mHostDataIsUpToDate = true;
-    const int width = m_shape[m_shape.getDimensions()-1];
-    const int height = m_shape[m_shape.getDimensions()-2];
-    mBoundingBox = BoundingBox(Vector3f(width, height, 1));
+    if(m_shape.getDimensions() >= 3) {
+        const int width = m_shape[m_shape.getDimensions() - 2];
+        const int height = m_shape[m_shape.getDimensions() - 3];
+        mBoundingBox = BoundingBox(Vector3f(width, height, 1));
+    }
 }
 
 void Tensor::expandDims(int position) {
@@ -155,12 +161,12 @@ void Tensor::updateOpenCLBufferData(OpenCLDevice::pointer device) {
                 bufferSize
         );
 
-        //if(hasAnyData()) {
+        if(hasAnyData()) {
             mCLBuffersIsUpToDate[device] = false;
-        /*} else {
+        } else {
            mCLBuffersIsUpToDate[device] = true;
             updated = true;
-        }*/
+        }
         mCLBuffers[device] = newBuffer;
     }
 

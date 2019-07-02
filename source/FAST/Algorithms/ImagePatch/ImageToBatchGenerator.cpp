@@ -90,8 +90,4 @@ ImageToBatchGenerator::~ImageToBatchGenerator() {
     stop();
 }
 
-void ImageToBatchGenerator::stop() {
-
-}
-
 }
