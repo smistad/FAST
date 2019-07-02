@@ -1,5 +1,4 @@
-#ifndef PIPELINE_OBJECT_HPP
-#define PIPELINE_OBJECT_HPP
+#pragma once
 
 #include "FAST/Utility.hpp"
 #include <unordered_map>
@@ -13,7 +12,7 @@
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Config.hpp"
 #include "FAST/Attribute.hpp"
-#include "FAST/DataPort.hpp"
+#include "FAST/DataChannels/DataChannel.hpp"
 
 namespace fast {
 
@@ -42,10 +41,10 @@ class FAST_EXPORT  ProcessObject : public Object {
         void setDeviceCriteria(uint deviceNumber, const DeviceCriteria& criteria);
         ExecutionDevice::pointer getDevice(uint deviceNumber) const;
 
-        virtual DataPort::pointer getOutputPort(uint portID = 0);
-        virtual DataPort::pointer getInputPort(uint portID = 0);
-        virtual void setInputConnection(DataPort::pointer port);
-        virtual void setInputConnection(uint portID, DataPort::pointer port);
+        virtual DataChannel::pointer getOutputPort(uint portID = 0);
+        virtual DataChannel::pointer getInputPort(uint portID = 0);
+        virtual void setInputConnection(DataChannel::pointer port);
+        virtual void setInputConnection(uint portID, DataChannel::pointer port);
         virtual void setInputData(DataObject::pointer data);
         virtual void setInputData(uint portID, DataObject::pointer data);
         int getNrOfInputConnections() const;
@@ -127,8 +126,8 @@ class FAST_EXPORT  ProcessObject : public Object {
         std::unordered_map<uint, DeviceCriteria> mDeviceCriteria;
 
         // New pipeline
-        std::unordered_map<uint, DataPort::pointer> mInputConnections;
-        std::unordered_map<uint, std::vector<std::weak_ptr<DataPort>>> mOutputConnections;
+        std::unordered_map<uint, DataChannel::pointer> mInputConnections;
+        std::unordered_map<uint, std::vector<std::weak_ptr<DataChannel>>> mOutputConnections;
         std::unordered_map<uint, bool> mInputPorts;
         std::unordered_set<uint> mOutputPorts;
         // <port id, timestep>, register the last timestep of data which this PO executed with
@@ -167,7 +166,7 @@ void ProcessObject::createOutputPort(uint portID) {
 template<class DataType>
 SharedPointer<DataType> ProcessObject::getInputData(uint portID) {
     validateInputPortExists(portID);
-    DataPort::pointer port = mInputConnections.at(portID);
+    DataChannel::pointer port = mInputConnections.at(portID);
     DataObject::pointer data = port->getNextFrame();
     mLastProcessed[portID] = std::make_pair(data, data->getTimestamp());
     auto convertedData = std::dynamic_pointer_cast<DataType>(data);
@@ -206,6 +205,3 @@ void ProcessObject::updateAndGetOutputData(uint portID, StreamingMode mode) {
 
 
 }; // end namespace fast
-
-
-#endif

@@ -10,8 +10,8 @@ namespace fast {
 class FAST_EXPORT TriangleRenderer : public Renderer {
     FAST_OBJECT(TriangleRenderer)
     public:
-        uint addInputConnection(DataPort::pointer port) override;
-        uint addInputConnection(DataPort::pointer port, Color color, float opacity);
+        uint addInputConnection(DataChannel::pointer port) override;
+        uint addInputConnection(DataChannel::pointer port, Color color, float opacity);
         void setDefaultOpacity(float opacity);
         /**
          * Enable/disable renderer of wireframe instead of filled polygons

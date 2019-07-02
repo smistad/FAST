@@ -21,7 +21,7 @@ LungSegmentation::LungSegmentation() {
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/LungSegmentation/LungSegmentation.cl");
 }
 
-DataPort::pointer LungSegmentation::getBloodVesselOutputPort() {
+DataChannel::pointer LungSegmentation::getBloodVesselOutputPort() {
     if(mOutputPorts.count(2) == 0)
         createOutputPort<Image>(2);
     return getOutputPort(2);
@@ -149,7 +149,7 @@ void LungSegmentation::execute() {
         airwaySegmentation->setSeedPoint(mSeedPoint);
     }
     airwaySegmentation->setInputData(input);
-    DataPort::pointer airwaySegPort = airwaySegmentation->getOutputPort();
+    DataChannel::pointer airwaySegPort = airwaySegmentation->getOutputPort();
 
     // Dilate airways
     Dilation::pointer dilation = Dilation::New();
@@ -174,7 +174,7 @@ void LungSegmentation::execute() {
     erosion->setInputConnection(dilation2->getOutputPort());
     erosion->setStructuringElementSize(9);
 
-    DataPort::pointer port = erosion->getOutputPort();
+    DataChannel::pointer port = erosion->getOutputPort();
     erosion->update();
     Image::pointer image = port->getNextFrame<Image>();
 

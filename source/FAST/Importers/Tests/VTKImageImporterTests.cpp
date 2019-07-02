@@ -12,7 +12,7 @@ using namespace fast;
 TEST_CASE("Import an image from VTK to FAST", "[fast][VTK][VTKImageImporter]") {
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "US/US-2D.jpg");
-    DataPort::pointer port = importer->getOutputPort();
+    DataChannel::pointer port = importer->getOutputPort();
 
     // VTK Export
     vtkSmartPointer<VTKImageExporter> vtkExporter = VTKImageExporter::New();
@@ -23,7 +23,7 @@ TEST_CASE("Import an image from VTK to FAST", "[fast][VTK][VTKImageImporter]") {
     VTKImageImporter::pointer vtkImporter = VTKImageImporter::New();
     VTKtoFAST* vtkPO = vtkImporter->getVTKProcessObject();
     vtkPO->SetInputConnection(vtkExporter->GetOutputPort());
-    DataPort::pointer port2 = vtkImporter->getOutputPort();
+    DataChannel::pointer port2 = vtkImporter->getOutputPort();
     vtkImporter->update();
 
     Image::pointer importedImage = port2->getNextFrame<Image>();
@@ -123,7 +123,7 @@ TEST_CASE("Import a 2D image from VTK to FAST", "[fast][VTK][VTKImageImporter]")
         VTKImageImporter::pointer vtkImporter = VTKImageImporter::New();
         VTKtoFAST* vtkPO = vtkImporter->getVTKProcessObject();
         vtkPO->SetInputData(vtkImage);
-        DataPort::pointer port = vtkImporter->getOutputPort();
+        DataChannel::pointer port = vtkImporter->getOutputPort();
         vtkImporter->update();
 
         Image::pointer importedImage = port->getNextFrame<Image>();

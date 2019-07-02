@@ -237,7 +237,7 @@ void GUI::streamData() {
                 ImageFileStreamer::pointer dataStreamer = ImageFileStreamer::New();
                 dataStreamer->enableLooping();
                 dataStreamer->setFilenameFormats(mFilenameFormats);
-                DataPort::pointer dataStream = dataStreamer->getOutputPort();
+                DataChannel::pointer dataStream = dataStreamer->getOutputPort();
                 long unsigned int framesSent = 0;
                 while(true) {
                     if(mStop) {

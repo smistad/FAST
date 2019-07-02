@@ -279,7 +279,7 @@ void AirwaySegmentation::execute() {
 		GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
         filter->setInputData(image);
         filter->setStandardDeviation(mSmoothingSigma);
-        DataPort::pointer port = filter->getOutputPort();
+        DataChannel::pointer port = filter->getOutputPort();
         filter->update();
         image = port->getNextFrame<Image>();
     }

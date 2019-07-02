@@ -18,8 +18,8 @@ class FAST_EXPORT  KalmanFilter : public ProcessObject {
 		void setIterations(int iterations);
 		void setStartIterations(int iterations);
 		VectorXf getCurrentState() const;
-		DataPort::pointer getSegmentationOutputPort();
-		DataPort::pointer getDisplacementsOutputPort();
+		DataChannel::pointer getSegmentationOutputPort();
+		DataChannel::pointer getDisplacementsOutputPort();
 	private:
 		KalmanFilter();
 		void execute(); // runs a loop with predict, measure and update

@@ -1,5 +1,5 @@
 #### Add all subdirs
-fast_add_subdirectories(Algorithms Data Streamers Importers Exporters Visualization Tests Tools)
+fast_add_subdirectories(Algorithms Data Streamers Importers Exporters Visualization Tests Tools DataChannels)
 fast_add_sources(
     Config.cpp
     Config.hpp
@@ -33,9 +33,9 @@ fast_add_sources(
     Attribute.cpp
     Attribute.hpp
     ProcessObjectRegistry.hpp
-    DataPort.cpp
-    DataPort.hpp
-        SmartPointers.hpp
+    #DataChannel.cpp
+    #DataChannel.hpp
+    SmartPointers.hpp
 )
 if(FAST_MODULE_Visualization)
     fast_add_sources(

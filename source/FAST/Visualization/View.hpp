@@ -28,7 +28,7 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject, protected QOpe
         void mouseReleaseEvent(QMouseEvent* event);
         void wheelEvent(QWheelEvent* event);
         void setMaximumFramerate(unsigned int framerate);
-        void setCameraInputConnection(DataPort::pointer port);
+        void setCameraInputConnection(DataChannel::pointer port);
         void set2DMode();
         void set3DMode();
         void setLookAt(Vector3f cameraPosition, Vector3f targetPosition, Vector3f cameraUpVector, float zNear = 0.1, float zFar = 1000);

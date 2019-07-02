@@ -25,6 +25,7 @@ namespace fast {
 			std::string mDocumentationPath;
 			std::string mPipelinePath;
 			std::string mLibraryPath;
+			StreamingMode m_streamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES;
 		}
 
 		std::string getPath() {
@@ -221,6 +222,14 @@ namespace fast {
 
 		void setPipelinePath(std::string path) {
 			mPipelinePath = path;
+		}
+
+		void setStreamingMode(StreamingMode mode) {
+		    m_streamingMode = mode;
+		}
+
+		StreamingMode getStreamingMode() {
+		    return m_streamingMode;
 		}
 
 	} // end namespace Config

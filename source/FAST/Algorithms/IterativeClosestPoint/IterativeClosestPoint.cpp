@@ -22,10 +22,10 @@ IterativeClosestPoint::IterativeClosestPoint() {
 }
 
 
-void IterativeClosestPoint::setFixedMeshPort(DataPort::pointer port) {
+void IterativeClosestPoint::setFixedMeshPort(DataChannel::pointer port) {
     setInputConnection(0, port);
 }
-void IterativeClosestPoint::setMovingMeshPort(DataPort::pointer port) {
+void IterativeClosestPoint::setMovingMeshPort(DataChannel::pointer port) {
     setInputConnection(1, port);
 }
 void IterativeClosestPoint::setFixedMesh(Mesh::pointer data) {

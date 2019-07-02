@@ -22,7 +22,7 @@ TEST_CASE("Import PNG image file to host", "[fast][ImageImporter]") {
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "US/US-2D.png");
     importer->setMainDevice(Host::getInstance());
-    DataPort::pointer port = importer->getOutputPort();
+    DataChannel::pointer port = importer->getOutputPort();
     importer->update();
     Image::pointer image = port->getNextFrame<Image>();
 
@@ -42,7 +42,7 @@ TEST_CASE("Import PNG image file to OpenCL device", "[fast][ImageImporter]") {
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "US/US-2D.png");
     importer->setMainDevice(device);
-    DataPort::pointer port = importer->getOutputPort();
+    DataChannel::pointer port = importer->getOutputPort();
     importer->update();
     Image::pointer image = port->getNextFrame<Image>();
 
@@ -63,7 +63,7 @@ TEST_CASE("Import color PNG image file to OpenCL device", "[fast][ImageImporter]
     importer->setGrayscale(false);
     importer->setFilename(Config::getTestDataPath() + "US/US-2D.png");
     importer->setMainDevice(device);
-    DataPort::pointer port = importer->getOutputPort();
+    DataChannel::pointer port = importer->getOutputPort();
     importer->update();
     Image::pointer image = port->getNextFrame<Image>();
 
@@ -80,7 +80,7 @@ TEST_CASE("Import JPEG image file to host", "[fast][ImageImporter]") {
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "US/US-2D.jpg");
     importer->setMainDevice(Host::getInstance());
-    DataPort::pointer port = importer->getOutputPort();
+    DataChannel::pointer port = importer->getOutputPort();
     importer->update();
     Image::pointer image = port->getNextFrame<Image>();
 
@@ -99,7 +99,7 @@ TEST_CASE("Import JPEG image file to OpenCL device", "[fast][ImageImporter]") {
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "US/US-2D.jpg");
     importer->setMainDevice(device);
-    DataPort::pointer port = importer->getOutputPort();
+    DataChannel::pointer port = importer->getOutputPort();
     importer->update();
     Image::pointer image = port->getNextFrame<Image>();
 
@@ -117,7 +117,7 @@ TEST_CASE("Import BMP image file to host", "[fast][ImageImporter]") {
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "US/US-2D.bmp");
     importer->setMainDevice(Host::getInstance());
-    DataPort::pointer port = importer->getOutputPort();
+    DataChannel::pointer port = importer->getOutputPort();
     importer->update();
     Image::pointer image = port->getNextFrame<Image>();
 
@@ -136,7 +136,7 @@ TEST_CASE("Import BMP image file to OpenCL device", "[fast][ImageImporter]") {
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "US/US-2D.bmp");
     importer->setMainDevice(device);
-    DataPort::pointer port = importer->getOutputPort();
+    DataChannel::pointer port = importer->getOutputPort();
     importer->update();
     Image::pointer image = port->getNextFrame<Image>();
 

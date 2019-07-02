@@ -41,7 +41,7 @@ void ImageFileImporter::execute() {
         DICOMFileImporter::pointer importer = DICOMFileImporter::New();
         importer->setMainDevice(getMainDevice());
         importer->setFilename(mFilename);
-        DataPort::pointer port = importer->getOutputPort();
+        DataChannel::pointer port = importer->getOutputPort();
         importer->update(); // Have to to update because otherwise the data will not be available
         Image::pointer data = port->getNextFrame<Image>();
         addOutputData(0, data);
@@ -51,7 +51,7 @@ void ImageFileImporter::execute() {
             MetaImageImporter::pointer importer = MetaImageImporter::New();
             importer->setMainDevice(getMainDevice());
             importer->setFilename(mFilename);
-            DataPort::pointer port = importer->getOutputPort();
+            DataChannel::pointer port = importer->getOutputPort();
             importer->update(); // Have to to update because otherwise the data will not be available
             Image::pointer data = port->getNextFrame<Image>();
             addOutputData(0, data);
@@ -59,7 +59,7 @@ void ImageFileImporter::execute() {
             DICOMFileImporter::pointer importer = DICOMFileImporter::New();
             importer->setFilename(mFilename);
             importer->setMainDevice(getMainDevice());
-            DataPort::pointer port = importer->getOutputPort();
+            DataChannel::pointer port = importer->getOutputPort();
             importer->update(); // Have to to update because otherwise the data will not be available
             Image::pointer data = port->getNextFrame<Image>();
             addOutputData(0, data);
@@ -71,7 +71,7 @@ void ImageFileImporter::execute() {
             ImageImporter::pointer importer = ImageImporter::New();
             importer->setFilename(mFilename);
             importer->setMainDevice(getMainDevice());
-            DataPort::pointer port = importer->getOutputPort();
+            DataChannel::pointer port = importer->getOutputPort();
             importer->update(); // Have to to update because otherwise the data will not be available
             Image::pointer data = port->getNextFrame<Image>();
             addOutputData(0, data);

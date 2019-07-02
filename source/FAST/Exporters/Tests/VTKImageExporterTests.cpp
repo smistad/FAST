@@ -144,7 +144,7 @@ TEST_CASE("Export an image from FAST to VTK and visualize", "[fast][VTK][VTKImag
 
     ImageImporter::pointer importer = ImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "US/US-2D.jpg");
-    DataPort::pointer port = importer->getOutputPort();
+    DataChannel::pointer port = importer->getOutputPort();
     Image::pointer fastImage = port->getNextFrame();
 
     // VTK Export and render example

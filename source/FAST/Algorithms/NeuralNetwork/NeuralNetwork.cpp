@@ -362,7 +362,7 @@ std::vector<SharedPointer<Image>> NeuralNetwork::resizeImages(const std::vector<
             resizer->setDepth(depth);
             resizer->setInputData(image);
 			resizer->setPreserveAspectRatio(mPreserveAspectRatio);
-			DataPort::pointer port = resizer->getOutputPort();
+			DataChannel::pointer port = resizer->getOutputPort();
             resizer->update();
             Image::pointer resizedImage = port->getNextFrame<Image>();
             mNewInputSpacing = resizedImage->getSpacing();

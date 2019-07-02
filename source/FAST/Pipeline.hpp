@@ -15,7 +15,7 @@ class Renderer;
 class FAST_EXPORT  Pipeline {
     public:
         Pipeline(std::string name, std::string description, std::string filename);
-        std::vector<SharedPointer<Renderer> > setup(std::vector<DataPort::pointer> input);
+        std::vector<SharedPointer<Renderer> > setup(std::vector<DataChannel::pointer> input);
         std::unordered_map<std::string, SharedPointer<ProcessObject>> getProcessObjects();
         std::string getName() const;
         std::string getDescription() const;

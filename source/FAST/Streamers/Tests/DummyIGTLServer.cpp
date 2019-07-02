@@ -114,7 +114,7 @@ void DummyIGTLServer::stream() {
     }
 
     igtl::Socket::Pointer socket;
-    DataPort::pointer dataStream = mStreamer->getOutputPort();
+    DataChannel::pointer dataStream = mStreamer->getOutputPort();
     int framesSent = 0;
     int interval = (int) (1000.0 / mFPS);
     while(true) {

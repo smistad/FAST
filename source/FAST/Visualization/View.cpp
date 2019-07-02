@@ -86,7 +86,7 @@ View::View() {
     }
 }
 
-void View::setCameraInputConnection(DataPort::pointer port) {
+void View::setCameraInputConnection(DataChannel::pointer port) {
     setInputConnection(0, port);
 }
 

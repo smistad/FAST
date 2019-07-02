@@ -18,7 +18,7 @@ class FAST_EXPORT ImageToBatchGenerator : public Streamer {
         void generateStream();
         int m_maxBatchSize;
 
-        DataPort::pointer mParent;
+        DataChannel::pointer mParent;
     private:
         ImageToBatchGenerator();
 };

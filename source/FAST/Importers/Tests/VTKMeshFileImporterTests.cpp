@@ -18,7 +18,7 @@ TEST_CASE("Wrong filename VTKMeshFileImporter throws exception", "[fast][VTKMesh
 TEST_CASE("Importer VTK surface from file", "[fast][VTKMeshFileImporter]") {
     VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
     importer->setFilename(Config::getTestDataPath() + "Surface_LV.vtk");
-    DataPort::pointer port = importer->getOutputPort();
+    DataChannel::pointer port = importer->getOutputPort();
     importer->update();
     Mesh::pointer surface = port->getNextFrame<Mesh>();
 

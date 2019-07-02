@@ -113,7 +113,7 @@ int main() {
     segmentation->enableRuntimeMeasurements();
     /*
     // NO visualization test
-    DataPort::pointer port = segmentation->getOutputPort(1);
+    DataChannel::pointer port = segmentation->getOutputPort(1);
     int i = 0;
     while(i < 1000) {
         segmentation->update();

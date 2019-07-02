@@ -115,11 +115,11 @@ KalmanFilter::KalmanFilter() {
 	mIterations = 5;
 }
 
-DataPort::pointer KalmanFilter::getSegmentationOutputPort() {
+DataChannel::pointer KalmanFilter::getSegmentationOutputPort() {
 	return getOutputPort(0);
 }
 
-DataPort::pointer KalmanFilter::getDisplacementsOutputPort() {
+DataChannel::pointer KalmanFilter::getDisplacementsOutputPort() {
 	mOutputDisplacements = true;
 	return getOutputPort(1);
 }

@@ -20,7 +20,7 @@ TEST_CASE("Import 2D MetaImage file to host", "[fast][MetaImageImporter]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename(Config::getTestDataPath()+"US/CarotidArtery/Right/US-2D_0.mhd");
     importer->setMainDevice(Host::getInstance());
-    DataPort::pointer port = importer->getOutputPort();
+    DataChannel::pointer port = importer->getOutputPort();
     importer->update();
     Image::pointer image = port->getNextFrame<Image>();
     AffineTransformation::pointer T = image->getSceneGraphNode()->getTransformation();
@@ -52,7 +52,7 @@ TEST_CASE("Import 3D MetaImage file to host", "[fast][MetaImageImporter]") {
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename(Config::getTestDataPath()+"US/Ball/US-3Dt_0.mhd");
     importer->setMainDevice(Host::getInstance());
-    DataPort::pointer port = importer->getOutputPort();
+    DataChannel::pointer port = importer->getOutputPort();
     importer->update();
     Image::pointer image = port->getNextFrame<Image>();
     AffineTransformation::pointer T = image->getSceneGraphNode()->getTransformation();
@@ -87,7 +87,7 @@ TEST_CASE("Import MetaImage file to OpenCL device", "[fast][MetaImageImporter]")
     MetaImageImporter::pointer importer = MetaImageImporter::New();
     importer->setFilename(Config::getTestDataPath()+"US/Ball/US-3Dt_0.mhd");
     importer->setMainDevice(device);
-    DataPort::pointer port = importer->getOutputPort();
+    DataChannel::pointer port = importer->getOutputPort();
     importer->update();
     Image::pointer image = port->getNextFrame<Image>();
     AffineTransformation::pointer T = image->getSceneGraphNode()->getTransformation();

@@ -84,13 +84,13 @@ std::vector<MeshVertex> MeanValueCoordinatesModel::getDeformedVertices(
 void MeanValueCoordinatesModel::loadMeshes(std::string surfaceMeshFilename, std::string controlMeshFilename) {
 	VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
 	importer->setFilename(surfaceMeshFilename);
-    DataPort::pointer port = importer->getOutputPort();
+    DataChannel::pointer port = importer->getOutputPort();
 	importer->update();
 	Mesh::pointer surfaceMesh = port->getNextFrame<Mesh>();
 
 	VTKMeshFileImporter::pointer importer2 = VTKMeshFileImporter::New();
 	importer2->setFilename(controlMeshFilename);
-    DataPort::pointer port2 = importer2->getOutputPort();
+    DataChannel::pointer port2 = importer2->getOutputPort();
 	importer2->update();
 	Mesh::pointer controlMesh = port2->getNextFrame<Mesh>();
 

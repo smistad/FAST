@@ -253,7 +253,7 @@ void GUI::selectPipeline() {
     Pipeline pipeline = mPipelines.at(selectedPipeline);
     try {
         int inputsRequired = pipeline.parsePipelineFile();
-        std::vector<DataPort::pointer> inputs;
+        std::vector<DataChannel::pointer> inputs;
         while(inputsRequired--)
             inputs.push_back(mClient->getOutputPort());
         std::vector<SharedPointer<Renderer>> renderers = pipeline.setup(inputs);

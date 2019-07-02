@@ -3,6 +3,9 @@
 #include "FAST/OpenCLProgram.hpp"
 #include "FAST/Streamers/Streamer.hpp"
 #include <unordered_set>
+#include <FAST/DataChannels/QueuedDataChannel.hpp>
+#include <FAST/DataChannels/NewestFrameDataChannel.hpp>
+#include <FAST/DataChannels/StaticDataChannel.hpp>
 
 
 namespace fast {
@@ -26,7 +29,6 @@ void ProcessObject::update(StreamingMode streamingMode) {
     bool newInputData = false;
     for(auto parent : mInputConnections) {
         auto port = parent.second;
-        port->setStreamingMode(streamingMode);
         port->getProcessObject()->update(streamingMode);
 
         if(mLastProcessed.count(parent.first) > 0) {
@@ -47,7 +49,7 @@ void ProcessObject::update(StreamingMode streamingMode) {
                         newInputData = true;
                     }
                 } catch(Exception &e) {
-                    reportWarning() << "Expcetion in ProcessObject" << reportEnd();
+                    reportWarning() << "Expcetion in ProcessObject: " << e.what() << reportEnd();
                 }
             } else {
                 // If port currently doesn't have data, check if parent is streamer. If streamer, always execute. PO will block until data arrives
@@ -74,8 +76,7 @@ void ProcessObject::update(StreamingMode streamingMode) {
         for(int i = 0; i < outputPorts.second.size(); ++i) {
             auto output = outputPorts.second[i];
             if(!output.expired()) {
-                DataPort::pointer port = output.lock();
-                port->setStreamingMode(streamingMode);
+                DataChannel::pointer port = output.lock();
             } else {
                 deadOutputPorts.push_back(i);
             }
@@ -107,24 +108,37 @@ void ProcessObject::update(StreamingMode streamingMode) {
     //m_lastFrame.clear();
 }
 
-DataPort::pointer ProcessObject::getOutputPort(uint portID) {
+DataChannel::pointer ProcessObject::getOutputPort(uint portID) {
     validateOutputPortExists(portID);
-    // Create DataPort, and it to list and return it
-    DataPort::pointer port = std::make_shared<DataPort>(std::static_pointer_cast<ProcessObject>(mPtr.lock()));
+    // Create DataChannel, and it to list and return it
+    DataChannel::pointer dataChannel;
+    if(isStreamer(this)) {
+        auto streamingMode = Config::getStreamingMode();
+        if(streamingMode == STREAMING_MODE_PROCESS_ALL_FRAMES) {
+            dataChannel = QueuedDataChannel::New();
+        } else if(streamingMode == STREAMING_MODE_NEWEST_FRAME_ONLY) {
+            dataChannel = NewestFrameDataChannel::New();
+        } else {
+            throw Exception("Unsupported streaming mode");
+        }
+    } else {
+        dataChannel = StaticDataChannel::New();
+    }
+    dataChannel->setProcessObject(std::static_pointer_cast<ProcessObject>(mPtr.lock()));
 
     if(mOutputConnections.count(portID) == 0)
-        mOutputConnections[portID] = std::vector<std::weak_ptr<DataPort>>();
+        mOutputConnections[portID] = std::vector<std::weak_ptr<DataChannel>>();
 
-    mOutputConnections[portID].push_back(std::weak_ptr<DataPort>(port));
+    mOutputConnections[portID].push_back(std::weak_ptr<DataChannel>(dataChannel));
 
-    return port;
+    return dataChannel;
 }
 
-DataPort::pointer ProcessObject::getInputPort(uint portID) {
+DataChannel::pointer ProcessObject::getInputPort(uint portID) {
     return mInputConnections.at(portID);
 }
 
-void ProcessObject::setInputConnection(uint portID, DataPort::pointer port) {
+void ProcessObject::setInputConnection(uint portID, DataChannel::pointer port) {
     validateInputPortExists(portID);
     if(port->getProcessObject().get() == this)
         throw Exception("Can't set setInputConnection on self");
@@ -132,7 +146,7 @@ void ProcessObject::setInputConnection(uint portID, DataPort::pointer port) {
     mIsModified = true;
 }
 
-void ProcessObject::setInputConnection(DataPort::pointer port) {
+void ProcessObject::setInputConnection(DataChannel::pointer port) {
     setInputConnection(0, port);
 }
 
@@ -149,7 +163,7 @@ void ProcessObject::addOutputData(uint portID, DataObject::pointer data) {
     if(mOutputConnections.count(portID) > 0) {
         for(auto output : mOutputConnections.at(portID)) {
             if(!output.expired()) {
-                DataPort::pointer port = output.lock();
+                DataChannel::pointer port = output.lock();
                 port->addFrame(data);
             }
         }

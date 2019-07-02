@@ -17,7 +17,7 @@ uint Renderer::addInputData(DataObject::pointer data) {
     return nr;
 }
 
-uint Renderer::addInputConnection(DataPort::pointer port) {
+uint Renderer::addInputConnection(DataChannel::pointer port) {
     uint nr = getNrOfInputConnections();
     if(nr > 0)
         createInputPort<DataObject>(nr);

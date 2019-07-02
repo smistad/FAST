@@ -67,7 +67,7 @@ TEST_CASE("Write a 2D image with the MetaImageExporter", "[fast][MetaImageExport
             // Import image back again
             MetaImageImporter::pointer importer = MetaImageImporter::New();
             importer->setFilename("MetaImageExporterTest2D.mhd");
-            DataPort::pointer port = importer->getOutputPort();
+            DataChannel::pointer port = importer->getOutputPort();
             importer->update();
             Image::pointer image2 = port->getNextFrame<Image>();
             AffineTransformation::pointer T2 = image2->getSceneGraphNode()->getTransformation();
@@ -148,7 +148,7 @@ TEST_CASE("Write a 3D image with the MetaImageExporter", "[fast][MetaImageExport
             // Import image back again
             MetaImageImporter::pointer importer = MetaImageImporter::New();
             importer->setFilename("MetaImageExporterTest3D.mhd");
-            DataPort::pointer port = importer->getOutputPort();
+            DataChannel::pointer port = importer->getOutputPort();
             importer->update();
             Image::pointer image2 = port->getNextFrame<Image>();
             AffineTransformation::pointer T2 = image2->getSceneGraphNode()->getTransformation();

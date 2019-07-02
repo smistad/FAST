@@ -236,11 +236,11 @@ namespace fast {
         setInputData(1, data);
     }
 
-    void CoherentPointDrift::setFixedMeshPort(DataPort::pointer port) {
+    void CoherentPointDrift::setFixedMeshPort(DataChannel::pointer port) {
         setInputConnection(0, port);
     }
 
-    void CoherentPointDrift::setMovingMeshPort(DataPort::pointer port) {
+    void CoherentPointDrift::setMovingMeshPort(DataChannel::pointer port) {
         setInputConnection(1, port);
     }
 

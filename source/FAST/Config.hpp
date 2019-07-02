@@ -1,8 +1,8 @@
-#ifndef CONFIG_HPP_
-#define CONFIG_HPP_
+#pragma once
 
 #include <string>
-#include "FASTExport.hpp"
+#include <FASTExport.hpp>
+#include <FAST/DataChannels/DataChannel.hpp>
 
 namespace fast {
 
@@ -13,6 +13,8 @@ namespace Config {
     FAST_EXPORT std::string getDocumentationPath();
     FAST_EXPORT std::string getPipelinePath();
     FAST_EXPORT std::string getLibraryPath();
+    FAST_EXPORT StreamingMode getStreamingMode();
+    FAST_EXPORT void setStreamingMode(StreamingMode mode);
 	FAST_EXPORT void setTestDataPath(std::string path);
 	FAST_EXPORT void setKernelSourcePath(std::string path);
 	FAST_EXPORT void setKernelBinaryPath(std::string path);
@@ -24,5 +26,3 @@ namespace Config {
 }
 
 }
-
-#endif

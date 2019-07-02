@@ -101,15 +101,15 @@ void TubeSegmentationAndCenterlineExtraction::enableAutomaticCropping(
     }
 }
 
-DataPort::pointer TubeSegmentationAndCenterlineExtraction::getSegmentationOutputPort() {
+DataChannel::pointer TubeSegmentationAndCenterlineExtraction::getSegmentationOutputPort() {
     return getOutputPort(0);
 }
 
-DataPort::pointer TubeSegmentationAndCenterlineExtraction::getCenterlineOutputPort() {
+DataChannel::pointer TubeSegmentationAndCenterlineExtraction::getCenterlineOutputPort() {
     return getOutputPort(1);
 }
 
-DataPort::pointer TubeSegmentationAndCenterlineExtraction::getTDFOutputPort() {
+DataChannel::pointer TubeSegmentationAndCenterlineExtraction::getTDFOutputPort() {
     return getOutputPort(2);
 }
 
@@ -252,7 +252,7 @@ void TubeSegmentationAndCenterlineExtraction::execute() {
             filter->setStandardDeviation(mStDevBlurLarge);
             //filter->setMaskSize(7);
             filter->setOutputType(TYPE_FLOAT);
-            DataPort::pointer port = filter->getOutputPort();
+            DataChannel::pointer port = filter->getOutputPort();
             filter->update();
             smoothedImage = port->getNextFrame<Image>();
             smoothedImage->setSpacing(spacing);
@@ -372,7 +372,7 @@ Image::pointer TubeSegmentationAndCenterlineExtraction::runGradientVectorFlow(Im
     gvf->set16bitStorageFormat();
     gvf->setIterations(10);
     gvf->setMuConstant(0.199);
-    DataPort::pointer port = gvf->getOutputPort();
+    DataChannel::pointer port = gvf->getOutputPort();
     gvf->update();
     reportInfo() << "GVF finished" << Reporter::end();
     return port->getNextFrame<Image>();

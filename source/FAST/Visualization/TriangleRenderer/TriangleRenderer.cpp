@@ -8,7 +8,7 @@
 
 namespace fast {
 
-uint TriangleRenderer::addInputConnection(DataPort::pointer port, Color color, float opacity) {
+uint TriangleRenderer::addInputConnection(DataChannel::pointer port, Color color, float opacity) {
     uint nr = Renderer::addInputConnection(port);
     mInputColors[nr] = color;
     mInputOpacities[nr] = opacity;
@@ -186,7 +186,7 @@ void TriangleRenderer::setIgnoreInvertedNormals(bool ignore) {
     mIgnoreInvertedNormals = ignore;
 }
 
-uint TriangleRenderer::addInputConnection(DataPort::pointer port) {
+uint TriangleRenderer::addInputConnection(DataChannel::pointer port) {
     return Renderer::addInputConnection(port);
 }
 

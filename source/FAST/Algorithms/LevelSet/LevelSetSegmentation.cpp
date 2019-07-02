@@ -169,7 +169,7 @@ void LevelSetSegmentation::execute() {
     BinaryThresholding::pointer thresholding = BinaryThresholding::New();
     thresholding->setUpperThreshold(0);
     thresholding->setInputData(phi);
-    DataPort::pointer port = thresholding->getOutputPort();
+    DataChannel::pointer port = thresholding->getOutputPort();
     thresholding->update();
     Segmentation::pointer output = port->getNextFrame<Segmentation>();
     output->setSpacing(input->getSpacing());

@@ -21,7 +21,7 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
          * @param port
          * @return the input nr of the new connection
          */
-        virtual uint addInputConnection(DataPort::pointer port);
+        virtual uint addInputConnection(DataChannel::pointer port);
         /**
          * Adds a new input connection to a specific data object
          * @param data

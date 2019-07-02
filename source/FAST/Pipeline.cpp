@@ -160,7 +160,7 @@ int Pipeline::parsePipelineFile() {
 
     return mInputProcessObjects.size();
 }
-std::vector<SharedPointer<Renderer>> Pipeline::setup(std::vector<DataPort::pointer> inputPorts) {
+std::vector<SharedPointer<Renderer>> Pipeline::setup(std::vector<DataChannel::pointer> inputPorts) {
     Reporter::info() << "Setting up pipeline.." << Reporter::end();
     if(mProcessObjects.size() == 0)
         throw Exception("You have to parse the pipeline file before calling setup on the pipeline");

@@ -10,8 +10,8 @@ namespace fast {
 class FAST_EXPORT  LineRenderer : public Renderer {
     FAST_OBJECT(LineRenderer)
     public:
-        uint addInputConnection(DataPort::pointer port) override;
-        uint addInputConnection(DataPort::pointer port, Color color, float width);
+        uint addInputConnection(DataChannel::pointer port) override;
+        uint addInputConnection(DataChannel::pointer port, Color color, float width);
         void setDefaultColor(Color color);
         void setDefaultLineWidth(float width);
         void setDefaultDrawOnTop(bool drawOnTop);

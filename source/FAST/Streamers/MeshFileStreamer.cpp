@@ -12,7 +12,7 @@ DataObject::pointer MeshFileStreamer::getDataFrame(std::string filename) {
     VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
     importer->setFilename(filename);
     importer->setMainDevice(getMainDevice());
-    DataPort::pointer port = importer->getOutputPort();
+    DataChannel::pointer port = importer->getOutputPort();
     importer->update();
     return port->getNextFrame();
 }

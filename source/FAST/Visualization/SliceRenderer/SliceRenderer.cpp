@@ -34,7 +34,7 @@ void SliceRenderer::execute() {
                 slicer = mSlicers.at(inputNr);
             }
             slicer->setInputData(input);
-            DataPort::pointer port = slicer->getOutputPort();
+            DataChannel::pointer port = slicer->getOutputPort();
             slicer->update();
 
             mHasRendered = false;
@@ -49,21 +49,21 @@ SliceRenderer::SliceRenderer() {
     mIsModified = true;
 }
 
-uint SliceRenderer::addInputConnection(DataPort::pointer port, PlaneType orthogonalSlicePlane, int sliceNr) {
+uint SliceRenderer::addInputConnection(DataChannel::pointer port, PlaneType orthogonalSlicePlane, int sliceNr) {
     uint portID = Renderer::addInputConnection(port);
     mSlicers[portID] = ImageSlicer::New();
     mSlicers[portID]->setOrthogonalSlicePlane(orthogonalSlicePlane, sliceNr);
     return portID;
 }
 
-uint SliceRenderer::addInputConnection(DataPort::pointer port, Plane slicePlane) {
+uint SliceRenderer::addInputConnection(DataChannel::pointer port, Plane slicePlane) {
     uint portID = Renderer::addInputConnection(port);
     mSlicers[portID] = ImageSlicer::New();
     mSlicers[portID]->setArbitrarySlicePlane(slicePlane);
     return portID;
 }
 
-uint SliceRenderer::addInputConnection(DataPort::pointer port, SharedPointer<ImageSlicer> slicer) {
+uint SliceRenderer::addInputConnection(DataChannel::pointer port, SharedPointer<ImageSlicer> slicer) {
     uint portID = Renderer::addInputConnection(port);
     mSlicers[portID] = slicer;
     return portID;
@@ -77,7 +77,7 @@ void SliceRenderer::setArbitrarySlicePlane(uint portID, Plane slicePlane) {
     mSlicers.at(portID)->setArbitrarySlicePlane(slicePlane);
 }
 
-uint SliceRenderer::addInputConnection(DataPort::pointer port) {
+uint SliceRenderer::addInputConnection(DataChannel::pointer port) {
     uint portID =  Renderer::addInputConnection(port);
     mSlicers[portID] = ImageSlicer::New();
     mSlicers[portID]->setOrthogonalSlicePlane(PLANE_X);

@@ -11,8 +11,8 @@ namespace fast {
 class FAST_EXPORT  VertexRenderer : public Renderer {
     FAST_OBJECT(VertexRenderer)
     public:
-        uint addInputConnection(DataPort::pointer port) override;
-        uint addInputConnection(DataPort::pointer port, Color color, float size);
+        uint addInputConnection(DataChannel::pointer port) override;
+        uint addInputConnection(DataChannel::pointer port, Color color, float size);
         uint addInputData(DataObject::pointer data) override;
         uint addInputData(Mesh::pointer data, Color color, float size);
         void setDefaultColor(Color color);

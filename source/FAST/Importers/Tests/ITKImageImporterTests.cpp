@@ -18,7 +18,7 @@ TEST_CASE("Import image from ITK to FAST", "[fast][ITK][ITKImageImporter]") {
     // Try to import the image to FAST
     ITKImageImporter<ImageType>::pointer importer = ITKImageImporter<ImageType>::New();
     importer->setInput(image);
-    DataPort::pointer port = importer->getOutputPort();
+    DataChannel::pointer port = importer->getOutputPort();
     importer->update();
     Image::pointer fastImage = port->getNextFrame<Image>();
 

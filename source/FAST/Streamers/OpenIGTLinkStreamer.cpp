@@ -29,7 +29,7 @@ void OpenIGTLinkStreamer::setConnectionPort(uint port) {
     mIsModified = true;
 }
 
-DataPort::pointer OpenIGTLinkStreamer::getOutputPort(uint portID) {
+DataChannel::pointer OpenIGTLinkStreamer::getOutputPort(uint portID) {
 	if (mOutputPortDeviceNames.count("") == 0) {
 		portID = getNrOfOutputPorts();
 		createOutputPort<Image>(portID);

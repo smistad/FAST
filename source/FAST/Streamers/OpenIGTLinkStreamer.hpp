@@ -32,10 +32,10 @@ class FAST_EXPORT OpenIGTLinkStreamer : public Streamer {
 		 * Will select first image stream
 		 * @return
 		 */
-		DataPort::pointer getOutputPort(uint portID = 0) override;
+		DataChannel::pointer getOutputPort(uint portID = 0) override;
 
         template<class T>
-        DataPort::pointer getOutputPort(std::string deviceName);
+        DataChannel::pointer getOutputPort(std::string deviceName);
 
         /**
          * This method runs in a separate thread and adds frames to the
@@ -80,7 +80,7 @@ class FAST_EXPORT OpenIGTLinkStreamer : public Streamer {
 
 
 template<class T>
-DataPort::pointer OpenIGTLinkStreamer::getOutputPort(std::string deviceName) {
+DataChannel::pointer OpenIGTLinkStreamer::getOutputPort(std::string deviceName) {
 	uint portID;
 	if(mOutputPortDeviceNames.count(deviceName) == 0) {
 		portID = getNrOfOutputPorts();

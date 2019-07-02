@@ -28,9 +28,9 @@ class FAST_EXPORT  TubeSegmentationAndCenterlineExtraction : public ProcessObjec
         // TODO move cropping out of this algorithm
         void disableAutomaticCropping();
         void enableAutomaticCropping(bool lungCropping = false);
-        DataPort::pointer getSegmentationOutputPort();
-        DataPort::pointer getCenterlineOutputPort();
-        DataPort::pointer getTDFOutputPort();
+        DataChannel::pointer getSegmentationOutputPort();
+        DataChannel::pointer getCenterlineOutputPort();
+        DataChannel::pointer getTDFOutputPort();
     private:
         TubeSegmentationAndCenterlineExtraction();
         void execute();

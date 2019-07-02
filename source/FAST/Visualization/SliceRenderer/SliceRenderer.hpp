@@ -13,7 +13,7 @@ class ImageSlicer;
 class FAST_EXPORT  SliceRenderer : public ImageRenderer {
     FAST_OBJECT(SliceRenderer)
     public:
-        uint addInputConnection(DataPort::pointer port) override;
+        uint addInputConnection(DataChannel::pointer port) override;
         /**
          * Orthogonal slicing using the specified orthogonal plane.
          * @param port
@@ -21,21 +21,21 @@ class FAST_EXPORT  SliceRenderer : public ImageRenderer {
          * @param sliceNr
          * @return port id of new port
          */
-        uint addInputConnection(DataPort::pointer port, PlaneType orthogonalSlicePlane, int sliceNr = -1);
+        uint addInputConnection(DataChannel::pointer port, PlaneType orthogonalSlicePlane, int sliceNr = -1);
         /**
          * Arbitrary slicing using the supplied plane.
          * @param port
          * @param slicePlane
          * @return port id of new port
          */
-        uint addInputConnection(DataPort::pointer port, Plane slicePlane);
+        uint addInputConnection(DataChannel::pointer port, Plane slicePlane);
         /**
          * Add new input connection using supplied slicer
          * @param port
          * @param slicer
          * @return port id of new port
          */
-        uint addInputConnection(DataPort::pointer port, SharedPointer<ImageSlicer> slicer);
+        uint addInputConnection(DataChannel::pointer port, SharedPointer<ImageSlicer> slicer);
         void setOrthogonalSlicePlane(uint portID, PlaneType orthogonalSlicePlane, int sliceNr = -1);
         void setArbitrarySlicePlane(uint portID, Plane slicePlane);
     private:

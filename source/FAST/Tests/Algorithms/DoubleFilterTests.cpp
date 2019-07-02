@@ -8,11 +8,11 @@ using namespace fast;
 TEST_CASE("DoubleFilter on OpenCL device", "[fast][DoubleFilter]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath()+"US/Heart/ApicalFourChamber/US-2D_0.mhd");
-    DataPort::pointer importerPort = importer->getOutputPort();
+    DataChannel::pointer importerPort = importer->getOutputPort();
 
     DoubleFilter::pointer filter = DoubleFilter::New();
     filter->setInputConnection(importer->getOutputPort());
-    DataPort::pointer filterPort = filter->getOutputPort();
+    DataChannel::pointer filterPort = filter->getOutputPort();
     filter->update();
     Reporter::info() << "finished update" << Reporter::end();
 
@@ -37,12 +37,12 @@ TEST_CASE("DoubleFilter on OpenCL device", "[fast][DoubleFilter]") {
 TEST_CASE("DoubleFilter on Host", "[fast][DoubleFilter]") {
     ImageFileImporter::pointer importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath()+"US/Heart/ApicalFourChamber/US-2D_0.mhd");
-    DataPort::pointer importerPort = importer->getOutputPort();
+    DataChannel::pointer importerPort = importer->getOutputPort();
 
     DoubleFilter::pointer filter = DoubleFilter::New();
     filter->setInputConnection(importer->getOutputPort());
     filter->setMainDevice(Host::getInstance());
-    DataPort::pointer filterPort = filter->getOutputPort();
+    DataChannel::pointer filterPort = filter->getOutputPort();
     filter->update();
     Reporter::info() << "finished update" << Reporter::end();
 

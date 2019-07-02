@@ -5,7 +5,7 @@
 namespace fast {
 
 
-void AddTransformation::setTransformationInputConnection(DataPort::pointer port) {
+void AddTransformation::setTransformationInputConnection(DataChannel::pointer port) {
     setInputConnection(1, port);
 }
 

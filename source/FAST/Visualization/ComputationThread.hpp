@@ -1,8 +1,7 @@
-#ifndef COMPUTATION_THREAD_HPP
-#define COMPUTATION_THREAD_HPP
+#pragma once
 
 #include "FAST/Object.hpp"
-#include "FAST/DataPort.hpp"
+#include "FAST/DataChannels/DataChannel.hpp"
 #include <QThread>
 #include <mutex>
 #include <condition_variable>
@@ -43,5 +42,3 @@ class FAST_EXPORT  ComputationThread : public QObject, public Object {
 };
 
 }
-
-#endif

@@ -158,11 +158,11 @@ VertexRenderer::VertexRenderer() {
 }
 
 
-uint VertexRenderer::addInputConnection(DataPort::pointer port) {
+uint VertexRenderer::addInputConnection(DataChannel::pointer port) {
     return Renderer::addInputConnection(port);
 }
 
-uint VertexRenderer::addInputConnection(DataPort::pointer port, Color color,
+uint VertexRenderer::addInputConnection(DataChannel::pointer port, Color color,
         float size) {
     uint nr = addInputConnection(port);
     setColor(nr, color);

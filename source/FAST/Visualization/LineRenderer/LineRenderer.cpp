@@ -113,11 +113,11 @@ LineRenderer::LineRenderer() {
     });
 }
 
-uint LineRenderer::addInputConnection(DataPort::pointer port) {
+uint LineRenderer::addInputConnection(DataChannel::pointer port) {
     return Renderer::addInputConnection(port);
 }
 
-uint LineRenderer::addInputConnection(DataPort::pointer port, Color color,
+uint LineRenderer::addInputConnection(DataChannel::pointer port, Color color,
         float width) {
     uint nr = addInputConnection(port);
     setColor(nr, color);

@@ -13,9 +13,9 @@ namespace fast {
 //    FAST_OBJECT(CoherentPointDrift)
     public:
         typedef enum { RIGID, AFFINE, NONRIGID } TransformationType;
-        void setFixedMeshPort(DataPort::pointer port);
+        void setFixedMeshPort(DataChannel::pointer port);
         void setFixedMesh(Mesh::pointer data);
-        void setMovingMeshPort(DataPort::pointer port);
+        void setMovingMeshPort(DataChannel::pointer port);
         void setMovingMesh(Mesh::pointer data);
         void setMaximumIterations(unsigned char maxIterations);
         void setUniformWeight(float uniformWeight);

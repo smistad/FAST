@@ -274,7 +274,7 @@ void GUI::selectPipeline() {
     int nrOfFrames = 0;
     try {
         int inputsRequired = pipeline.parsePipelineFile();
-        std::vector<DataPort::pointer> inputs;
+        std::vector<DataChannel::pointer> inputs;
         while(inputsRequired--)
             inputs.push_back(mStreamer->getOutputPort());
         // Preload the data
