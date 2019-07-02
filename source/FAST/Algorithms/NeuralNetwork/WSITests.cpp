@@ -29,7 +29,7 @@ TEST_CASE("WSI -> Patch generator -> Neural network -> Patch stitcher -> visuali
 
     auto generator = PatchGenerator::New();
     generator->setPatchSize(512, 512);
-    generator->setPatchLevel(2);
+    generator->setPatchLevel(0);
     generator->setInputConnection(importer->getOutputPort());
 
     // TODO remove converter

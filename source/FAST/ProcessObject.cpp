@@ -32,20 +32,20 @@ void ProcessObject::update(StreamingMode streamingMode) {
         port->getProcessObject()->update(streamingMode);
 
         if(mLastProcessed.count(parent.first) > 0) {
-            std::cout << "" << getNameOfClass() << " has last processed data.. " << std::endl;
+            //std::cout << "" << getNameOfClass() << " has last processed data.. " << std::endl;
             // Compare the last processed data with the new data for this data port
             std::pair<DataObject::pointer, uint64_t> data = mLastProcessed[parent.first];
             if(port->hasCurrentData()) {
-                std::cout << "" << getNameOfClass() << " has current data.. " << std::endl;
+                //std::cout << "" << getNameOfClass() << " has current data.. " << std::endl;
                 auto previousData = data.first;
                 auto previousTimestamp = data.second;
                 try {
                     auto currentData = port->getFrame();
                     auto currentTimestamp = currentData->getTimestamp();
-                    std::cout << currentData << " " << previousData << " size: " << port->getSize() << std::endl;
+                    //std::cout << currentData << " " << previousData << " size: " << port->getSize() << std::endl;
                     if(currentData != previousData ||
                        previousTimestamp < currentTimestamp) { // There has arrived new data, or data has changed
-                        std::cout << "" << getNameOfClass() << " data is new.. " << std::endl;
+                        //std::cout << "" << getNameOfClass() << " data is new.. " << std::endl;
                         newInputData = true;
                     }
                 } catch(Exception &e) {
@@ -53,9 +53,9 @@ void ProcessObject::update(StreamingMode streamingMode) {
                 }
             } else {
                 // If port currently doesn't have data, check if parent is streamer. If streamer, always execute. PO will block until data arrives
-                std::cout << "check if parent of " << getNameOfClass() << " is a streamer.. " << std::endl;
+                //std::cout << "check if parent of " << getNameOfClass() << " is a streamer.. " << std::endl;
                 if(isStreamer(port->getProcessObject().get())) {
-                    std::cout << "Parent of " << getNameOfClass() << " is a streamer, therefore going to execute" << std::endl;
+                    //std::cout << "Parent of " << getNameOfClass() << " is a streamer, therefore going to execute" << std::endl;
                     newInputData = true;
                 } else {
                     // TODO should not be possible?
@@ -63,7 +63,7 @@ void ProcessObject::update(StreamingMode streamingMode) {
                 }
             }
         } else {
-            std::cout << "" << getNameOfClass() << " first time execute.. " << std::endl;
+            //std::cout << "" << getNameOfClass() << " first time execute.. " << std::endl;
             // First time executing, always execute in this case
             newInputData = true;
         }

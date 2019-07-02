@@ -12,7 +12,6 @@ ImageToBatchGenerator::ImageToBatchGenerator() {
 }
 
 void ImageToBatchGenerator::generateStream() {
-    std::cout << "in thread.." << std::endl;
     std::vector<Image::pointer> imageList;
     imageList.reserve(m_maxBatchSize);
     int i = 0;
@@ -29,7 +28,6 @@ void ImageToBatchGenerator::generateStream() {
                 break;
             }
         }
-        std::cout << "WAITING FOR IMAGE.." << std::endl;
         if(!firstTime) // parent is execute the first time, thus drop it here
             po->update(); // Make sure execute is called on previous
         firstTime = false;
@@ -39,15 +37,9 @@ void ImageToBatchGenerator::generateStream() {
         } catch(ThreadStopped &e) {
             break;
         }
-        std::cout << "GOT IMAGE.." << std::endl;
-        std::cout << "PATCH: " << image->getFrameData("patchid-x") << " " << image->getFrameData("patchid-y") << std::endl;
         lastFrame = image->isLastFrame();
-        if(lastFrame)
-            std::cout << "LAST FRAME OF STREAM!!!!" << std::endl;
         imageList.push_back(image);
-        std::cout << "ADDED IMAGE TO LIST IN BATCH GENERATOR " << imageList.size() << std::endl;
         if(imageList.size() == m_maxBatchSize || lastFrame) {
-            std::cout << "CREATING BATCH " << i << std::endl;
             auto batch = Batch::New();
             batch->create(imageList);
             if(lastFrame)

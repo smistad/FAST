@@ -202,7 +202,6 @@ void NeuralNetwork::execute() {
         // TODO and any frame data (such as patch info should be transferred)
         auto tensor = m_engine->getOutputData(node.first);
 
-        std::cout << "Batch size was " << m_batchSize << std::endl;
         if(m_batchSize > 1) {
             // Create a batch of tensors
             std::vector<Tensor::pointer> tensorList;

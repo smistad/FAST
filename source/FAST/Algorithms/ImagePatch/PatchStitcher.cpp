@@ -57,7 +57,6 @@ void PatchStitcher::processTensor(SharedPointer<Tensor> patch) {
     const float patchSpacingY = std::stof(patch->getFrameData("patch-spacing-y"));
 
     auto shape = patch->getShape();
-    std::cout << "shape: " << shape.toString() << std::endl;
     if(shape.getDimensions() != 1) {
         throw Exception("Can only handle 1D tensors atm");
     }
@@ -83,9 +82,9 @@ void PatchStitcher::processTensor(SharedPointer<Tensor> patch) {
     auto outputTensorData = outputAccess->getData<3>();
 
     for(int i = 0; i < channels; ++i) {
-        outputTensorData(startY, startX, i) = 0;//tensorData(i); // TODO fix
+        outputTensorData(startY, startX, i) = tensorData(i); // TODO fix
     }
-    outputTensorData(startY, startX, 1) = 1.0f; // TODO remove
+    //outputTensorData(startY, startX, 1) = 1.0f; // TODO remove
 }
 
 void PatchStitcher::processImage(SharedPointer<Image> patch) {
