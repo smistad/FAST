@@ -26,7 +26,6 @@ class MeshVertex;
 class FAST_EXPORT RealSenseStreamer : public Streamer {
     FAST_OBJECT(RealSenseStreamer);
     public:
-        void producerStream();
         /**
          * Set maximum range in millimeters. All points above this range will be dropped.
          * @param range
@@ -43,7 +42,6 @@ class FAST_EXPORT RealSenseStreamer : public Streamer {
         void setMaxHeight(float range);
         void setMinHeight(float range);
 
-        bool hasReachedEnd();
         uint getNrOfFrames() const;
         /**
          * Gets corresponding 3D point from rgb image coordinate
@@ -53,16 +51,12 @@ class FAST_EXPORT RealSenseStreamer : public Streamer {
          */
         MeshVertex getPoint(int x, int y);
         ~RealSenseStreamer();
-        void stop();
     private:
         RealSenseStreamer();
 
         void execute();
+        void generateStream() override;
 
-        bool mStreamIsStarted;
-        bool mFirstFrameIsInserted;
-        bool mHasReachedEnd;
-        bool mStop;
         float mMaxRange = std::numeric_limits<float>::max();
         float mMinRange = 0;
         float mMaxWidth = std::numeric_limits<float>::max();
@@ -71,11 +65,6 @@ class FAST_EXPORT RealSenseStreamer : public Streamer {
         float mMinHeight = -std::numeric_limits<float>::max();
 
         uint mNrOfFrames;
-
-        std::unique_ptr<std::thread> mThread;
-        std::mutex mFirstFrameMutex;
-        std::mutex mStopMutex;
-        std::condition_variable mFirstFrameCondition;
 
         rs2_intrinsics* intrinsics;
         SharedPointer<Image> mDepthImage;

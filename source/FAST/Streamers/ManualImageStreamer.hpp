@@ -34,8 +34,6 @@ class FAST_EXPORT  ManualImageStreamer : public Streamer {
          */
         void generateStream() override;
 
-        void stop();
-
         ~ManualImageStreamer();
     private:
         ManualImageStreamer();
@@ -52,16 +50,6 @@ class FAST_EXPORT  ManualImageStreamer : public Streamer {
         bool mMaximumNrOfFramesSet;
         uint mSleepTime;
         uint mStepSize;
-        bool mStop;
-
-        std::thread *mThread;
-        std::mutex mFirstFrameMutex;
-        std::mutex mStopMutex;
-        std::condition_variable mFirstFrameCondition;
-
-        bool mStreamIsStarted;
-        bool mFirstFrameIsInserted;
-        bool mHasReachedEnd;
 
         std::vector<std::vector<SharedPointer<Image>>> mImages;
 };

@@ -30,13 +30,8 @@ class FAST_EXPORT MovieStreamer : public Streamer {
 
         std::string mFilename;
         bool mGrayscale = true;
-        bool mStreamIsStarted = false;
-        bool mFirstFrameIsInserted = false;
         bool m_finished = false;
         int64_t m_framesAdded = 0;
-        std::mutex mFirstFrameMutex;
-        std::mutex mStopMutex;
-        std::condition_variable mFirstFrameCondition;
         std::chrono::high_resolution_clock::time_point m_startTime;
         QThread* thread;
         Worker* worker;

@@ -81,12 +81,7 @@ void MovieStreamer::addNewImageFrame(const uchar* data, int width, int height) {
     ++m_framesAdded;
     Reporter::info() << "Added frames: " << m_framesAdded << Reporter::end();
     // Make sure we end the waiting thread if first frame has not been inserted
-    {
-        std::lock_guard<std::mutex> lock(mFirstFrameMutex);
-        if(!mFirstFrameIsInserted)
-            mFirstFrameIsInserted = true;
-    }
-    mFirstFrameCondition.notify_one();
+    frameAdded();
 }
 
 void MovieStreamer::setFilename(std::string filename) {
@@ -123,7 +118,7 @@ void Worker::run() {
 
 
 void MovieStreamer::execute() {
-    if(!mStreamIsStarted) {
+    if(!m_streamIsStarted) {
         if(!fileExists(mFilename))
             throw FileNotFoundException(mFilename);
         thread = new QThread;
@@ -138,14 +133,10 @@ void MovieStreamer::execute() {
         m_startTime = std::chrono::high_resolution_clock::now();
         thread->start();
         reportInfo() << "FINISHED QThread setup in MovieStreamer" << reportEnd();
-        mStreamIsStarted = true;
+        m_streamIsStarted = true;
     }
 
-    // Wait here for first frame
-    std::unique_lock<std::mutex> lock(mFirstFrameMutex);
-    while(!mFirstFrameIsInserted) {
-        mFirstFrameCondition.wait(lock);
-    }
+    waitForFirstFrame();
     reportInfo() << "Finished movie streamer execute" << reportEnd();
 }
 
@@ -171,9 +162,7 @@ void MovieStreamer::setFinished(bool finished) {
 
 MovieStreamer::~MovieStreamer() {
     reportInfo() << "Destroying movie streamer" << reportEnd();
-    if(mStreamIsStarted) {
-        thread->quit();
-    }
+    stop();
 }
 
 int MovieStreamer::getFramesAdded() const {

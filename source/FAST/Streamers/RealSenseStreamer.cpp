@@ -3,6 +3,7 @@
 #include "FAST/Data/Mesh.hpp"
 #include <librealsense2/rs.hpp>
 #include "librealsense2/rsutil.h"
+#include <atomic>
 
 namespace fast {
 
@@ -12,26 +13,12 @@ RealSenseStreamer::RealSenseStreamer() {
     createOutputPort<Image>(1); // Depth image
     createOutputPort<Mesh>(2); // Point cloud
     mNrOfFrames = 0;
-    mHasReachedEnd = false;
-    mFirstFrameIsInserted = false;
-    mStreamIsStarted = false;
     mIsModified = true;
 }
 
 void RealSenseStreamer::execute() {
-    if(!mStreamIsStarted) {
-        // Check that first frame exists before starting streamer
-
-        mStreamIsStarted = true;
-        mStop = false;
-        mThread = std::make_unique<std::thread>(std::bind(&RealSenseStreamer::producerStream, this));
-    }
-
-    // Wait here for first frame
-    std::unique_lock<std::mutex> lock(mFirstFrameMutex);
-    while(!mFirstFrameIsInserted) {
-        mFirstFrameCondition.wait(lock);
-    }
+    startStream();
+    waitForFirstFrame();
 }
 
 
@@ -66,7 +53,7 @@ static float get_depth_scale(rs2::device dev)
     throw Exception("Device does not have a depth sensor");
 }
 
-void RealSenseStreamer::producerStream() {
+void RealSenseStreamer::generateStream() {
     reportInfo() << "Trying to set up real sense stream..." << reportEnd();
 
     // Create a Pipeline - this serves as a top-level API for streaming and processing frames
@@ -159,11 +146,10 @@ void RealSenseStreamer::producerStream() {
     while(true) {
         {
             // Check if stop signal is sent
-            std::unique_lock<std::mutex> lock(mStopMutex);
-            if(mStop) {
-                mStreamIsStarted = false;
-                mFirstFrameIsInserted = false;
-                mHasReachedEnd = false;
+            std::unique_lock<std::mutex> lock(m_stopMutex);
+            if(m_stop) {
+                m_streamIsStarted = false;
+                m_firstFrameIsInserted = false;
                 break;
             }
         }
@@ -243,13 +229,7 @@ void RealSenseStreamer::producerStream() {
         addOutputData(1, depthImage);
         addOutputData(2, cloud);
 
-        if(!mFirstFrameIsInserted) {
-            {
-                std::lock_guard<std::mutex> lock(mFirstFrameMutex);
-                mFirstFrameIsInserted = true;
-            }
-            mFirstFrameCondition.notify_one();
-        }
+        frameAdded();
         mNrOfFrames++;
     }
 
@@ -259,25 +239,12 @@ void RealSenseStreamer::producerStream() {
     reportInfo() << "Real sense streamer stopped" << Reporter::end();
 }
 
-bool RealSenseStreamer::hasReachedEnd() {
-    return mHasReachedEnd;
-}
-
 uint RealSenseStreamer::getNrOfFrames() const {
     return mNrOfFrames;
 }
 
 RealSenseStreamer::~RealSenseStreamer() {
-    if(mStreamIsStarted) {
-        stop();
-        mThread->join();
-    }
-}
-
-void RealSenseStreamer::stop() {
-    std::unique_lock<std::mutex> lock(mStopMutex);
-    reportInfo() << "Stopping real sense streamer" << Reporter::end();
-    mStop = true;
+    stop();
 }
 
 void RealSenseStreamer::setMaxRange(float range) {
