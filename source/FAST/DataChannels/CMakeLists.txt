@@ -1,0 +1,10 @@
+fast_add_sources(
+        DataChannel.cpp
+        DataChannel.hpp
+        StaticDataChannel.cpp
+        StaticDataChannel.hpp
+        NewestFrameDataChannel.cpp
+        NewestFrameDataChannel.hpp
+        QueuedDataChannel.cpp
+        QueuedDataChannel.hpp
+)
