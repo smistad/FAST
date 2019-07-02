@@ -10,6 +10,7 @@
 #include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
 #include "FAST/Algorithms/NeuralNetwork/PixelClassifier.hpp"
 #include <FAST/Algorithms/UltrasoundImageCropper/UltrasoundImageCropper.hpp>
+#include <FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp>
 
 using namespace fast;
 
@@ -39,6 +40,7 @@ int main(int argc, char** argv) {
 
     std::string path = join(Config::getTestDataPath(), "NeuralNetworkModels/axillary_all_augmentations");
     auto segmentation = PixelClassifier::New();
+    segmentation->setInferenceEngine("TensorFlowCPU");
     const auto engine = segmentation->getInferenceEngine()->getName();
     if(engine.substr(0, 10) == "TensorFlow") {
         segmentation->setOutputNode(0, "conv2d_23/truediv");
@@ -51,12 +53,12 @@ int main(int argc, char** argv) {
         path = parser.get("model-filename");
     }
     segmentation->load(path);
-    segmentation->setHeatmapOutput();
     segmentation->setScaleFactor(1.0f / 255.0f);
     segmentation->setInputConnection(inputStream->getOutputPort());
     //segmentation->setPreserveAspectRatio(true);
     segmentation->enableRuntimeMeasurements();
     segmentation->setHorizontalFlipping(parser.getOption("flip"));
+    segmentation->setHeatmapOutput();
 
     auto renderer = HeatmapRenderer::New();
     renderer->addInputConnection(segmentation->getOutputPort());
@@ -69,6 +71,12 @@ int main(int argc, char** argv) {
     //renderer->setMinConfidence(0.2);
     renderer->enableRuntimeMeasurements();
 
+    /*
+    auto segRenderer = SegmentationRenderer::New();
+    segRenderer->addInputConnection(segmentation->getOutputPort());
+    segRenderer->setOpacity(0.5);
+     */
+
     auto renderer2 = ImageRenderer::New();
     renderer2->setInputConnection(inputStream->getOutputPort());
 
@@ -76,6 +84,7 @@ int main(int argc, char** argv) {
 
     window->addRenderer(renderer2);
     window->addRenderer(renderer);
+    //window->addRenderer(segRenderer);
     window->getView()->enableRuntimeMeasurements();
     window->setSize(window->getScreenWidth(), window->getScreenHeight());
     window->enableMaximized();

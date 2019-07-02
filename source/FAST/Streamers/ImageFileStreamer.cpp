@@ -9,10 +9,10 @@ ImageFileStreamer::ImageFileStreamer() {
 }
 
 DataObject::pointer ImageFileStreamer::getDataFrame(std::string filename) {
-    ImageFileImporter::pointer importer = ImageFileImporter::New();
+    auto importer = ImageFileImporter::New();
     importer->setFilename(filename);
     importer->setMainDevice(getMainDevice());
-    DataPort::pointer port = importer->getOutputPort();
+    auto port = importer->getOutputPort();
     importer->update();
     return port->getNextFrame();
 }

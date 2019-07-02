@@ -11,6 +11,9 @@ void Tensor::create(std::unique_ptr<float[]> data, TensorShape shape) {
     m_shape = shape;
     m_spacing = VectorXf::Ones(shape.getDimensions());
     mHostDataIsUpToDate = true;
+    const int width = m_shape[m_shape.getDimensions()-1];
+    const int height = m_shape[m_shape.getDimensions()-2];
+    mBoundingBox = BoundingBox(Vector3f(width, height, 1));
 }
 
 void Tensor::create(TensorShape shape) {
@@ -21,21 +24,27 @@ void Tensor::create(TensorShape shape) {
     m_data = make_uninitialized_unique<float[]>(shape.getTotalSize());
     m_spacing = VectorXf::Ones(shape.getDimensions());
     mHostDataIsUpToDate = true;
+    const int width = m_shape[m_shape.getDimensions()-1];
+    const int height = m_shape[m_shape.getDimensions()-2];
+    mBoundingBox = BoundingBox(Vector3f(width, height, 1));
 }
 
 void Tensor::create(std::initializer_list<float> data) {
-	if (data.size() == 0)
+	if(data.size() == 0)
 		throw Exception("Shape can't be empty");
 
 	m_data = std::make_unique<float[]>(data.size());
 	int i = 0;
-	for (auto item : data) {
+	for(auto item : data) {
 		m_data[i] = item;
 		++i;
 	}
 	m_shape = TensorShape({ (int)data.size() });
     m_spacing = VectorXf::Ones(m_shape.getDimensions());
     mHostDataIsUpToDate = true;
+    const int width = m_shape[m_shape.getDimensions()-1];
+    const int height = m_shape[m_shape.getDimensions()-2];
+    mBoundingBox = BoundingBox(Vector3f(width, height, 1));
 }
 
 void Tensor::expandDims(int position) {
@@ -127,7 +136,7 @@ bool Tensor::isInitialized() {
 }
 
 bool Tensor::hasAnyData() {
-    return m_data || mCLBuffers.size() > 0;
+    return m_data.get() != nullptr || mCLBuffers.size() > 0;
 }
 
 void Tensor::updateOpenCLBufferData(OpenCLDevice::pointer device) {
@@ -146,12 +155,12 @@ void Tensor::updateOpenCLBufferData(OpenCLDevice::pointer device) {
                 bufferSize
         );
 
-        if(hasAnyData()) {
+        //if(hasAnyData()) {
             mCLBuffersIsUpToDate[device] = false;
-        } else {
-            mCLBuffersIsUpToDate[device] = true;
+        /*} else {
+           mCLBuffersIsUpToDate[device] = true;
             updated = true;
-        }
+        }*/
         mCLBuffers[device] = newBuffer;
     }
 
@@ -239,12 +248,27 @@ VectorXf Tensor::getSpacing() const {
 
 void Tensor::deleteDimension(int i) {
     if(m_shape.getDimensions() > i && m_shape[i] == 1) {
-        std::cout << "asd2" << std::endl;
         m_shape.deleteDimension(i);
     } else {
-        std::cout << "asd" << std::endl;
         throw Exception("Invalid dimension to delete in tensor");
     }
+}
+
+BoundingBox Tensor::getTransformedBoundingBox() const {
+    AffineTransformation::pointer T = SceneGraph::getAffineTransformationFromNode(getSceneGraphNode());
+
+    // Add image spacing
+    T->getTransform().scale(Vector3f(getSpacing().x(), getSpacing().y(), getSpacing().z()));
+
+    return SpatialDataObject::getBoundingBox().getTransformedBoundingBox(T);
+}
+
+BoundingBox Tensor::getBoundingBox() const {
+    // Add image spacing
+    AffineTransformation::pointer T = AffineTransformation::New();
+    T->getTransform().scale(Vector3f(getSpacing().x(), getSpacing().y(), getSpacing().z()));
+
+    return SpatialDataObject::getBoundingBox().getTransformedBoundingBox(T);
 }
 
 }

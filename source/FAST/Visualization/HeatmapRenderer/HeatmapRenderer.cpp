@@ -7,6 +7,10 @@ namespace fast {
 HeatmapRenderer::HeatmapRenderer() {
     createInputPort<Tensor>(0, false);
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/HeatmapRenderer/HeatmapRenderer.cl");
+    createShaderProgram({
+                                Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer.vert",
+                                Config::getKernelSourcePath() + "/Visualization/ImageRenderer/ImageRenderer.frag",
+                        });
     mIsModified = false;
     mColorsModified = true;
 }
@@ -65,16 +69,13 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
         auto input = std::static_pointer_cast<Tensor>(it.second);
         uint inputNr = it.first;
 
-        if(input->getShape().getDimensions() == 3)
-            throw Exception("Tensor given to HeatmapRenderer must be 3D (width x height x channels)");
+        if(input->getShape().getDimensions() != 3)
+            throw Exception("Tensor given to HeatmapRenderer must be 3D (width x height x channels), actual shape: " + input->getShape().toString());
 
-        const int width = input->getShape()[0];
-        const int height = input->getShape()[1];
+        const int width = input->getShape()[1];
+        const int height = input->getShape()[0];
 
         // Run kernel to fill the texture
-        Color color = colorList[it.first % colorList.size()];
-        if(mColors.count(it.first) > 0) // has color
-            color = mColors[it.first];
 
         auto access = input->getOpenCLBufferAccess(ACCESS_READ, device);
 
@@ -122,10 +123,10 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
         }
 
         kernel.setArg(0, *access->get());
-        kernel.setArg(1, mColorBuffer);
-        kernel.setArg(2, mMinConfidence);
-        kernel.setArg(3, mMaxOpacity);
-        kernel.setArg(4, input->getShape()[2]);
+        kernel.setArg(2, mColorBuffer);
+        kernel.setArg(3, mMinConfidence);
+        kernel.setArg(4, mMaxOpacity);
+        kernel.setArg(5, input->getShape()[2]);
 
         queue.enqueueNDRangeKernel(
             kernel,

@@ -42,14 +42,17 @@ class FAST_EXPORT Tensor : public SpatialDataObject {
         virtual VectorXf getSpacing() const;
         virtual void deleteDimension(int dimension);
 
+        virtual BoundingBox getTransformedBoundingBox() const override;
+        virtual BoundingBox getBoundingBox() const override;
+
     protected:
         Tensor() = default;
         virtual bool isInitialized();
-        void transferCLBufferFromHost(OpenCLDevice::pointer device);
+        virtual void transferCLBufferFromHost(OpenCLDevice::pointer device);
         void transferCLBufferToHost(OpenCLDevice::pointer device);
         void updateOpenCLBufferData(OpenCLDevice::pointer device);
         void setAllDataToOutOfDate();
-        bool hasAnyData();
+        virtual bool hasAnyData();
         void updateHostData();
 
         std::unique_ptr<float[]> m_data;

@@ -41,6 +41,11 @@ void TensorflowTensor::create(tensorflow::Tensor&& tensorflowTensor) {
     auto shape = m_tensorflowTensor.shape();
     for(int i = 0; i < shape.dims(); ++i)
         m_shape.addDimension(shape.dim_size(i));
+    m_spacing = VectorXf::Ones(m_shape.getDimensions());
+    mHostDataIsUpToDate = true;
+    const int width = m_shape[m_shape.getDimensions()-1];
+    const int height = m_shape[m_shape.getDimensions()-2];
+    mBoundingBox = BoundingBox(Vector3f(width, height, 1));
 }
 
 TensorAccess::pointer TensorflowTensor::getAccess(accessType type) {

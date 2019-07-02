@@ -67,17 +67,17 @@ void PixelClassifier::execute() {
 
     const int size = outputWidth*outputHeight*outputDepth;
     // TODO reuse some of the output processing in NN
+    std::cout << tensor->getShape().toString() << std::endl;
+    tensor->deleteDimension(0); // TODO assuming batch size is 1, remove this dimension
+    std::cout << tensor->getShape().toString() << std::endl;
     if(mHeatmapOutput) {
-        std::cout << tensor->getShape().toString() << std::endl;
-        tensor->deleteDimension(0); // TODO why not working
-        std::cout << tensor->getShape().toString() << std::endl;
         tensor->setSpacing(mNewInputSpacing);
         SceneGraph::setParentNode(tensor, mInputImages.begin()->second[0]);
         addOutputData(0, tensor);
     } else {
         auto output = Image::New();
         auto data = make_uninitialized_unique<uchar[]>(size);
-        int nrOfClasses = tensor->getShape()[2];
+        const int nrOfClasses = ordering == ImageOrdering::CHW ? tensor->getShape()[0] : tensor->getShape()[2];
         for(int x = 0; x < size; ++x) {
             uchar maxClass = 0;
             for(uchar j = 1; j < nrOfClasses; j++) {

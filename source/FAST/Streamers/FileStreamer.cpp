@@ -163,7 +163,7 @@ void FileStreamer::generateStream() {
             }
 
         } catch(FileNotFoundException &e) {
-            if(i > 0) {
+            if(m_firstFrameIsInserted) {
                 reportInfo() << "Reached end of stream" << Reporter::end();
                 // If there where no files found at all, we need to release the execute method
                 frameAdded();

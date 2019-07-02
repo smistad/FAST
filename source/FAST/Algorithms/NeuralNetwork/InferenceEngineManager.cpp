@@ -90,8 +90,8 @@ std::shared_ptr<InferenceEngine> InferenceEngineManager::loadBestAvailableEngine
     if(m_engines.empty())
         throw Exception("No inference engines available on the system");
 
-    if(isEngineAvailable("TensorFlow"))
-        return loadEngine("TensorFlow");
+    if(isEngineAvailable("TensorFlowCUDA"))
+        return loadEngine("TensorFlowCUDA");
 
     if(isEngineAvailable("TensorRT"))
         return loadEngine("TensorRT");
@@ -107,7 +107,7 @@ bool InferenceEngineManager::isEngineAvailable(std::string name) {
 std::shared_ptr<InferenceEngine> InferenceEngineManager::loadEngine(std::string name) {
     loadAll();
     // Call the load function which the map stores a handle to
-    return std::shared_ptr<InferenceEngine>(m_engines[name]());
+    return std::shared_ptr<InferenceEngine>(m_engines.at(name)());
 }
 
 }
