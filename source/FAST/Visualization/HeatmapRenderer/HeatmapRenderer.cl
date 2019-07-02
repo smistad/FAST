@@ -14,6 +14,7 @@ __kernel void renderToTexture(
     // TODO blend colorsd
     for(int channel = 0; channel < channels; ++channel) {
         float intensity = inputTensor[(position.y + position.x*get_global_size(1))*channels + channel];
+        intensity = clamp(intensity, 0.0f, 1.0f);
 
         if(intensity < 0.1) {
             intensity = 0;

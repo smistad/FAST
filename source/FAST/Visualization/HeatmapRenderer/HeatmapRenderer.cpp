@@ -46,9 +46,13 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
         Color defaultColor = Color::Green();
         for(int i = 0; i < maxChannels; ++i) {
             if(mColors.count(i) > 0) {
-                colorData[i*3] = mColors[i].getRedValue();
-                colorData[i*3 + 1] = mColors[i].getGreenValue();
-                colorData[i*3 + 2] = mColors[i].getBlueValue();
+                colorData[i * 3] = mColors[i].getRedValue();
+                colorData[i * 3 + 1] = mColors[i].getGreenValue();
+                colorData[i * 3 + 2] = mColors[i].getBlueValue();
+            } else if(colorList.size() > i) {
+                colorData[i * 3] = colorList[i].getRedValue();
+                colorData[i * 3 + 1] = colorList[i].getGreenValue();
+                colorData[i * 3 + 2] = colorList[i].getBlueValue();
             } else {
                 colorData[i*3] = defaultColor.getRedValue();
                 colorData[i*3 + 1] = defaultColor.getGreenValue();
