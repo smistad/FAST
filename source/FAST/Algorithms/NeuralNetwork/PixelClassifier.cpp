@@ -50,6 +50,8 @@ void PixelClassifier::execute() {
     mRuntimeManager->startRegularTimer("output_processing");
     Tensor::pointer tensor = m_engine->getOutputNodes().begin()->second.data;
     const auto shape = tensor->getShape();
+    if(shape[0] != 1)
+        throw Exception("Pixel classifier only support batch size 1 atm");
     TensorAccess::pointer access = tensor->getAccess(ACCESS_READ);
     const int dims = shape.getDimensions();
     int outputHeight = shape[dims-3];
@@ -71,6 +73,20 @@ void PixelClassifier::execute() {
     tensor->deleteDimension(0); // TODO assuming batch size is 1, remove this dimension
     std::cout << tensor->getShape().toString() << std::endl;
     if(mHeatmapOutput) {
+        if(ordering == ImageOrdering::CHW) {
+            // Convert to channel last
+            const int nrOfClasses = tensor->getShape()[0];
+            auto newTensorData = make_uninitialized_unique<float[]>(size*nrOfClasses);
+            for(int x = 0; x < size; ++x) {
+                for(uchar j = 0; j < nrOfClasses; ++j) {
+                    newTensorData[getPosition(x, nrOfClasses, j, size, ImageOrdering::HWC)] = tensorData[getPosition(x, nrOfClasses, j, size, ImageOrdering::CHW)];
+                }
+            }
+            auto newTensor = Tensor::New();
+            auto oldShape = tensor->getShape();
+            newTensor->create(std::move(newTensorData), TensorShape({oldShape[1], oldShape[2], oldShape[0]}));
+            tensor = newTensor;
+        }
         tensor->setSpacing(mNewInputSpacing);
         SceneGraph::setParentNode(tensor, mInputImages.begin()->second[0]);
         addOutputData(0, tensor);
