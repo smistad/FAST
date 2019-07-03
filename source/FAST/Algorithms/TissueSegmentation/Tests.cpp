@@ -1,6 +1,6 @@
 #include <FAST/Testing.hpp>
 #include <FAST/Importers/WholeSlideImageImporter.hpp>
-#include <FAST/Visualization/VeryLargeImageRenderer/VeryLargeImageRenderer.hpp>
+#include <FAST/Visualization/VeryLargeImageRenderer/ImagePyramidRenderer.hpp>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 #include <FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp>
 #include <FAST/Visualization/SimpleWindow.hpp>
@@ -17,7 +17,7 @@ TEST_CASE("Tissue segmentation", "[fast][wsi][TissueSegmentation]") {
     auto segmentation = TissueSegmentation::New();
     segmentation->setInputConnection(importer->getOutputPort());
 
-    auto renderer = VeryLargeImageRenderer::New();
+    auto renderer = ImagePyramidRenderer::New();
     renderer->addInputConnection(importer->getOutputPort());
 
     auto segRenderer = SegmentationRenderer::New();

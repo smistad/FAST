@@ -1,6 +1,6 @@
 #include <FAST/Importers/WholeSlideImageImporter.hpp>
 #include <FAST/Testing.hpp>
-#include <FAST/Visualization/VeryLargeImageRenderer/VeryLargeImageRenderer.hpp>
+#include <FAST/Visualization/VeryLargeImageRenderer/ImagePyramidRenderer.hpp>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 #include <FAST/Visualization/SimpleWindow.hpp>
 #include <FAST/Data/ImagePyramid.hpp>
@@ -12,7 +12,7 @@ TEST_CASE("Import whole slide image", "[fast][WholeSlideImageImporter][wsi]") {
     auto importer = WholeSlideImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "/CMU-1.tiff");
 
-    auto renderer = VeryLargeImageRenderer::New();
+    auto renderer = ImagePyramidRenderer::New();
     renderer->addInputConnection(importer->getOutputPort());
     auto window = SimpleWindow::New();
     window->addRenderer(renderer);

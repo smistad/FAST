@@ -1,4 +1,4 @@
-#include "VeryLargeImageRenderer.hpp"
+#include "ImagePyramidRenderer.hpp"
 #include "FAST/Exception.hpp"
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Utility.hpp"
@@ -24,45 +24,45 @@ namespace fast {
 
 
 
-VeryLargeImageRenderer::VeryLargeImageRenderer() : Renderer() {
+ImagePyramidRenderer::ImagePyramidRenderer() : Renderer() {
     createInputPort<ImagePyramid>(0, false);
-    createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/VeryLargeImageRenderer/VeryLargeImageRenderer.cl", "3D");
-    createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/VeryLargeImageRenderer/VeryLargeImageRenderer2D.cl", "2D");
+    createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/ImagePyramidRenderer/ImagePyramidRenderer.cl", "3D");
+    createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/ImagePyramidRenderer/VeryLargeImageRenderer2D.cl", "2D");
     mIsModified = true;
     mWindow = -1;
     mLevel = -1;
     createFloatAttribute("window", "Intensity window", "Intensity window", -1);
     createFloatAttribute("level", "Intensity level", "Intensity level", -1);
     createShaderProgram({
-                                Config::getKernelSourcePath() + "/Visualization/VeryLargeImageRenderer/VeryLargeImageRenderer.vert",
-                                Config::getKernelSourcePath() + "/Visualization/VeryLargeImageRenderer/VeryLargeImageRenderer.frag",
+                                Config::getKernelSourcePath() + "/Visualization/ImagePyramidRenderer/ImagePyramidRenderer.vert",
+                                Config::getKernelSourcePath() + "/Visualization/ImagePyramidRenderer/ImagePyramidRenderer.frag",
                         });
 }
 
-void VeryLargeImageRenderer::setIntensityLevel(float level) {
+void ImagePyramidRenderer::setIntensityLevel(float level) {
     mLevel = level;
 }
 
-float VeryLargeImageRenderer::getIntensityLevel() {
+float ImagePyramidRenderer::getIntensityLevel() {
     return mLevel;
 }
 
-void VeryLargeImageRenderer::setIntensityWindow(float window) {
+void ImagePyramidRenderer::setIntensityWindow(float window) {
     if (window <= 0)
         throw Exception("Intensity window has to be above 0.");
     mWindow = window;
 }
 
-float VeryLargeImageRenderer::getIntensityWindow() {
+float ImagePyramidRenderer::getIntensityWindow() {
     return mWindow;
 }
 
-void VeryLargeImageRenderer::loadAttributes() {
+void ImagePyramidRenderer::loadAttributes() {
     mWindow = getFloatAttribute("window");
     mLevel = (getFloatAttribute("level"));
 }
 
-void VeryLargeImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
+void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
     std::lock_guard<std::mutex> lock(mMutex);
 
     Vector4f bottom_left = (perspectiveMatrix*viewingMatrix).inverse()*Vector4f(-1,-1,0,1);
@@ -231,7 +231,7 @@ void VeryLargeImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMa
     deactivateShader();
 }
 
-void VeryLargeImageRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D) {
+void ImagePyramidRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D) {
 
 }
 

@@ -1,6 +1,6 @@
 #include <FAST/Testing.hpp>
 #include <FAST/Importers/WholeSlideImageImporter.hpp>
-#include <FAST/Visualization/VeryLargeImageRenderer/VeryLargeImageRenderer.hpp>
+#include <FAST/Visualization/VeryLargeImageRenderer/ImagePyramidRenderer.hpp>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 #include <FAST/Visualization/SimpleWindow.hpp>
 #include <FAST/Data/ImagePyramid.hpp>

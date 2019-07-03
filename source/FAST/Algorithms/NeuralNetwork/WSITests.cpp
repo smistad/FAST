@@ -8,7 +8,7 @@
 #include <FAST/Streamers/ImageFileStreamer.hpp>
 #include <FAST/Visualization/HeatmapRenderer/HeatmapRenderer.hpp>
 #include <FAST/Importers/WholeSlideImageImporter.hpp>
-#include <FAST/Visualization/VeryLargeImageRenderer/VeryLargeImageRenderer.hpp>
+#include <FAST/Visualization/VeryLargeImageRenderer/ImagePyramidRenderer.hpp>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 #include <FAST/Visualization/SimpleWindow.hpp>
 #include <FAST/Data/ImagePyramid.hpp>
@@ -50,7 +50,7 @@ TEST_CASE("WSI -> Patch generator -> Neural network -> Patch stitcher -> visuali
     auto stitcher = PatchStitcher::New();
     stitcher->setInputConnection(network->getOutputPort());
 
-    auto renderer = VeryLargeImageRenderer::New();
+    auto renderer = ImagePyramidRenderer::New();
     renderer->addInputConnection(importer->getOutputPort());
 
     auto heatmapRenderer = HeatmapRenderer::New();
@@ -96,7 +96,7 @@ TEST_CASE("WSI -> Patch generator -> Image to batch generator -> Neural network 
     auto stitcher = PatchStitcher::New();
     stitcher->setInputConnection(network->getOutputPort());
 
-    auto renderer = VeryLargeImageRenderer::New();
+    auto renderer = ImagePyramidRenderer::New();
     renderer->addInputConnection(importer->getOutputPort());
 
     auto heatmapRenderer = HeatmapRenderer::New();

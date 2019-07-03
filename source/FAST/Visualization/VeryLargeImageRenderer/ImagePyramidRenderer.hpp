@@ -6,8 +6,8 @@ namespace fast {
 
 class ImagePyramid;
 
-class FAST_EXPORT VeryLargeImageRenderer : public Renderer {
-    FAST_OBJECT(VeryLargeImageRenderer)
+class FAST_EXPORT ImagePyramidRenderer : public Renderer {
+    FAST_OBJECT(ImagePyramidRenderer)
     public:
         void loadAttributes() override;
         void setIntensityLevel(float level);
@@ -15,7 +15,7 @@ class FAST_EXPORT VeryLargeImageRenderer : public Renderer {
         void setIntensityWindow(float window);
         float getIntensityWindow();
     private:
-        VeryLargeImageRenderer();
+        ImagePyramidRenderer();
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D);
 
         std::unordered_map<std::string, uint> mTexturesToRender;
