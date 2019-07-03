@@ -7,18 +7,19 @@ __kernel void normalize2DInput(
 	__private float mean,
 	__private float std,
 	__private int signedInputNormalization,
-	__private int horizontalFlip
+	__private int horizontalFlip,
+	__private int channels
 	) {
 	
 	const int2 pos = {get_global_id(0), get_global_id(1)};
 	const int dataType = get_image_channel_data_type(input);
-	float value;
+	float4 value;
 	if(dataType == CLK_FLOAT) {
-		value = read_imagef(input, sampler, pos).x;
+		value = read_imagef(input, sampler, pos);
 	} else if(dataType == CLK_SIGNED_INT8 || dataType == CLK_SIGNED_INT16) {
-		value = read_imagei(input, sampler, pos).x;
+		value = convert_float4(read_imagei(input, sampler, pos));
 	} else {
-		value = read_imageui(input, sampler, pos).x;
+		value = convert_float4(read_imageui(input, sampler, pos));
 	}
 
     value = value*scaleFactor;
@@ -33,8 +34,14 @@ __kernel void normalize2DInput(
 	} else {
 		x = pos.x;
 	}
-    int position = pos.x + pos.y*get_global_size(0);
-    output[position] = value;
+    int position = (pos.x + pos.y*get_global_size(0))*channels;
+    output[position] = value.x;
+    if(channels > 1)
+        output[position+1] = value.y;
+    if(channels > 2)
+        output[position+2] = value.z;
+    if(channels > 3)
+        output[position+3] = value.w;
 }
 
 __kernel void normalize3DInput(

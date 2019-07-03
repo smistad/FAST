@@ -324,6 +324,7 @@ Tensor::pointer NeuralNetwork::convertImagesToTensor(std::vector<Image::pointer>
         if(image->getDimensions() == 2) {
             kernel.setArg(0, *access->get2DImage());
             kernel.setArg(6, (int) (mHorizontalImageFlipping ? 1 : 0));
+            kernel.setArg(7, image->getNrOfChannels());
             globalSize = cl::NDRange(width, height);
         } else {
             kernel.setArg(0, *access->get3DImage());
