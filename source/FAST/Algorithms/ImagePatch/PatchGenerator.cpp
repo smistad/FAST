@@ -6,6 +6,8 @@ namespace fast {
 
 PatchGenerator::PatchGenerator() {
     createInputPort<WholeSlideImage>(0);
+    createInputPort<Image>(1, false); // Optional mask
+
     createOutputPort<Image>(0);
 
     m_width = -1;
@@ -27,6 +29,7 @@ void PatchGenerator::generateStream() {
     const int patchesX = std::ceil((float)levelWidth/m_width);
     const int patchesY = std::ceil((float)levelHeight/m_height);
 
+    Image::pointer previousPatch;
     for(int patchY = 0; patchY < patchesY; ++patchY) {
         for(int patchX = 0; patchX < patchesX; ++patchX) {
             int patchWidth = m_width;
@@ -35,7 +38,21 @@ void PatchGenerator::generateStream() {
             int patchHeight = m_height;
             if(patchY == patchesY - 1)
                 patchHeight = levelHeight - patchY * m_height - 1;
+
+            if(m_inputMask) {
+                // If a mask exist, check if this patch should be included or not
+                auto access = m_inputMask->getImageAccess(ACCESS_READ);
+                // Take center of patch
+                Vector2i position(
+                        round(m_inputMask->getWidth()*((float)patchX/patchesX + 0.5f/patchesX)),
+                        round(m_inputMask->getHeight()*((float)patchY/patchesY + 0.5f/patchesY))
+                );
+                float value = access->getScalar(position);
+                if(value != 1)
+                    continue;
+            }
             reportInfo() << "Generating patch " << patchX << " " << patchY << reportEnd();
+
             auto patch = m_inputImage->getTileAsImage(m_level, patchX * m_width, patchY * m_height, patchWidth,
                                                       patchHeight);
 
@@ -50,17 +67,15 @@ void PatchGenerator::generateStream() {
             patch->setFrameData("patch-spacing-x", std::to_string(patch->getSpacing().x()));
             patch->setFrameData("patch-spacing-y", std::to_string(patch->getSpacing().y()));
 
-            if(patchY == patchesY - 1 && patchX == patchesX - 1) { // Last frame?
-                patch->setLastFrame(getNameOfClass());
-            }
-
             try {
-                addOutputData(0, patch);
+                if(previousPatch)
+                    addOutputData(0, previousPatch);
             } catch(ThreadStopped &e) {
                 std::unique_lock<std::mutex> lock(m_stopMutex);
                 m_stop = true;
                 break;
             }
+            previousPatch = patch;
             frameAdded();
             std::unique_lock<std::mutex> lock(m_stopMutex);
             if(m_stop)
@@ -73,6 +88,9 @@ void PatchGenerator::generateStream() {
             break;
         }
     }
+    // Add final patch, and mark it has last frame
+    previousPatch->setLastFrame(getNameOfClass());
+    addOutputData(0, previousPatch);
     reportInfo() << "Done generating patches" << reportEnd();
 }
 
@@ -81,6 +99,10 @@ void PatchGenerator::execute() {
         throw Exception("Width and height must be set to a positive number");
 
     m_inputImage = getInputData<WholeSlideImage>();
+    if(mInputConnections.count(1) > 0) {
+        // If a mask was given store it
+        m_inputMask = getInputData<Image>(1);
+    }
 
     startStream();
     waitForFirstFrame();

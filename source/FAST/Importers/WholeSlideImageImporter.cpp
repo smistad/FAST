@@ -50,7 +50,7 @@ void WholeSlideImageImporter::execute() {
         std::size_t bytes = fullWidth * fullHeight * 4;
         int sizeInMB = bytes / (1024 * 1024);
         if(sizeInMB > 4) {
-            reportInfo() << "WSI level " << level << " has " << sizeInMB << " MB adding.." << reportEnd();
+            reportInfo() << "WSI level " << level << " has size " << fullWidth << "x" << fullHeight << " and " << sizeInMB << " MB adding.." << reportEnd();
             WholeSlideImageLevel levelData;
             levelData.width = fullWidth;
             levelData.height = fullHeight;

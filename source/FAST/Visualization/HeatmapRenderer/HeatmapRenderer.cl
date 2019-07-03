@@ -12,14 +12,15 @@ __kernel void renderToTexture(
 
     float4 color = {0.0f, 0.0f, 0.0f, 0.0f};
     // TODO blend colorsd
-    for(int channel = 0; channel < channels; ++channel) {
-        float intensity = inputTensor[(position.y + position.x*get_global_size(1))*channels + channel];
+    for(int channel = 0; channel < channels; ++channel) { // TODO skip first?
+        float intensity = inputTensor[(position.x + position.y*get_global_size(0))*channels + channel];
+        //printf("confidence of channel %d: %f\n", channel, intensity);
         intensity = clamp(intensity, 0.0f, 1.0f);
 
-        if(intensity < 0.1) {
+        if(intensity < minConfidence) {
             intensity = 0;
         } else {
-            intensity *= 0.3;
+            intensity *= maxOpacity;
             float3 colorToUse = vload3(channel, colors);
             color = color + 1.0f * colorToUse.xyzz;
             color.w = intensity;

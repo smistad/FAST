@@ -20,40 +20,32 @@
 #include <FAST/Algorithms/NeuralNetwork/ImageClassifier.hpp>
 #include <FAST/Algorithms/NeuralNetwork/PixelClassifier.hpp>
 #include <FAST/Algorithms/ImageChannelConverter/ImageChannelConverter.hpp>
+#include <FAST/Algorithms/TissueSegmentation/TissueSegmentation.hpp>
 
 using namespace fast;
 
 TEST_CASE("WSI -> Patch generator -> Neural network -> Patch stitcher -> visualize", "[fast][neuralnetwork][wsi][visual]") {
     auto importer = WholeSlideImageImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "/CMU-1.tiff");
+    importer->setFilename(Config::getTestDataPath() + "/new.tif");
+
+    auto tissueSegmentation = TissueSegmentation::New();
+    tissueSegmentation->setInputConnection(importer->getOutputPort());
 
     auto generator = PatchGenerator::New();
     generator->setPatchSize(512, 512);
-    generator->setPatchLevel(0);
+    generator->setPatchLevel(1);
     generator->setInputConnection(importer->getOutputPort());
-
-    // TODO remove converter
-    auto converter = ImageChannelConverter::New();
-    converter->setChannelsToRemove(false, true, true, false);
-    converter->setInputConnection(generator->getOutputPort());
+    generator->setInputConnection(1, tissueSegmentation->getOutputPort());
 
     auto network = NeuralNetwork::New();
-    network->setInferenceEngine("OpenVINO");
+    network->setInferenceEngine("TensorFlowCUDA");
     auto engine = network->getInferenceEngine()->getName();
     if(engine.substr(0, 10) == "TensorFlow") {
-        network->setOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR);
-        network->setOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);
-        network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output.pb");
-    } else if(engine == "TensorRT") {
-        network->setInputNode(0, "input_1", NodeType::IMAGE, TensorShape({-1, 1, 64, 64}));
-        network->setOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR);
-        network->setOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);
-        network->load(
-                Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output_channels_first.uff");
-    } else {
-        network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output.xml");
+        network->setOutputNode(0, "dense_1/Softmax", NodeType::TENSOR);
+        network->load(Config::getTestDataPath() + "NeuralNetworkModels/bc_grade_model_3_grades_10x_512_heavy_HSV.pb");
     }
-    network->setInputConnection(converter->getOutputPort());
+    network->setInputConnection(generator->getOutputPort());
+    network->setScaleFactor(1.0f/255.0f);
 
     auto stitcher = PatchStitcher::New();
     stitcher->setInputConnection(network->getOutputPort());
@@ -63,6 +55,7 @@ TEST_CASE("WSI -> Patch generator -> Neural network -> Patch stitcher -> visuali
 
     auto heatmapRenderer = HeatmapRenderer::New();
     heatmapRenderer->addInputConnection(stitcher->getOutputPort());
+    heatmapRenderer->setMinConfidence(0.5);
 
     auto window = SimpleWindow::New();
     window->addRenderer(renderer);
@@ -73,40 +66,30 @@ TEST_CASE("WSI -> Patch generator -> Neural network -> Patch stitcher -> visuali
 }
 TEST_CASE("WSI -> Patch generator -> Image to batch generator -> Neural network -> Patch stitcher -> visualize", "[fast][neuralnetwork][wsi][visual][batch]") {
     auto importer = WholeSlideImageImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "/CMU-1.tiff");
+    importer->setFilename(Config::getTestDataPath() + "/new.tif");
+
+    auto tissueSegmentation = TissueSegmentation::New();
+    tissueSegmentation->setInputConnection(importer->getOutputPort());
 
     auto generator = PatchGenerator::New();
     generator->setPatchSize(512, 512);
-    generator->setPatchLevel(2);
+    generator->setPatchLevel(1);
     generator->setInputConnection(importer->getOutputPort());
-
-    // TODO remove converter
-    auto converter = ImageChannelConverter::New();
-    converter->setChannelsToRemove(false, true, true, false);
-    converter->setInputConnection(generator->getOutputPort());
+    generator->setInputConnection(1, tissueSegmentation->getOutputPort());
 
     auto batchGenerator = ImageToBatchGenerator::New();
-    batchGenerator->setMaxBatchSize(10);
-    batchGenerator->setInputConnection(converter->getOutputPort());
+    batchGenerator->setMaxBatchSize(32);
+    batchGenerator->setInputConnection(generator->getOutputPort());
 
     auto network = NeuralNetwork::New();
-    network->setInferenceEngine("OpenVINO");
+    network->setInferenceEngine("TensorFlowCUDA");
     auto engine = network->getInferenceEngine()->getName();
-    //network->getInferenceEngine()->setMaxBatchSize(10);
     if(engine.substr(0, 10) == "TensorFlow") {
-        network->setOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR);
-        network->setOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);
-        network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output.pb");
-    } else if(engine == "TensorRT") {
-        network->setInputNode(0, "input_1", NodeType::IMAGE, TensorShape({-1, 1, 64, 64}));
-        network->setOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR);
-        network->setOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);
-        network->load(
-                Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output_channels_first.uff");
-    } else {
-        network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output.xml");
+        network->setOutputNode(0, "dense_1/Softmax", NodeType::TENSOR);
+        network->load(Config::getTestDataPath() + "NeuralNetworkModels/bc_grade_model_3_grades_10x_512_heavy_HSV.pb");
     }
     network->setInputConnection(batchGenerator->getOutputPort());
+    network->setScaleFactor(1.0f/255.0f);
 
     auto stitcher = PatchStitcher::New();
     stitcher->setInputConnection(network->getOutputPort());
@@ -116,6 +99,7 @@ TEST_CASE("WSI -> Patch generator -> Image to batch generator -> Neural network 
 
     auto heatmapRenderer = HeatmapRenderer::New();
     heatmapRenderer->addInputConnection(stitcher->getOutputPort());
+    heatmapRenderer->setMinConfidence(0.5);
 
     auto window = SimpleWindow::New();
     window->addRenderer(renderer);
