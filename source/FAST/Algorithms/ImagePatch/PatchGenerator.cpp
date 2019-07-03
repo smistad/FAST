@@ -90,7 +90,11 @@ void PatchGenerator::generateStream() {
     }
     // Add final patch, and mark it has last frame
     previousPatch->setLastFrame(getNameOfClass());
-    addOutputData(0, previousPatch);
+    try {
+        addOutputData(0, previousPatch);
+    } catch(ThreadStopped &e) {
+
+    }
     reportInfo() << "Done generating patches" << reportEnd();
 }
 
