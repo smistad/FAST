@@ -224,7 +224,7 @@ void TensorFlowEngine::load() {
 	reportInfo() << "Creating session." << reportEnd();
 	tensorflow::Status s = mSession->Create(tensorflow_graph);
 	if (!s.ok()) {
-		throw Exception("Could not create TensorFlow Graph");
+		throw Exception("Could not create TensorFlow Graph: " + s.error_message());
 	}
 
 	//tensorflow::graph::SetDefaultDevice("/gpu:0", &tensorflow_graph);

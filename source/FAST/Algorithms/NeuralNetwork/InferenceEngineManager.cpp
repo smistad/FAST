@@ -106,6 +106,8 @@ bool InferenceEngineManager::isEngineAvailable(std::string name) {
 
 std::shared_ptr<InferenceEngine> InferenceEngineManager::loadEngine(std::string name) {
     loadAll();
+    if(m_engines.count(name) == 0)
+        throw Exception("Inference engine with name " + name + " is not available");
     // Call the load function which the map stores a handle to
     return std::shared_ptr<InferenceEngine>(m_engines.at(name)());
 }
