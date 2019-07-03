@@ -8,7 +8,7 @@
 #include <FAST/Streamers/ImageFileStreamer.hpp>
 #include <FAST/Visualization/HeatmapRenderer/HeatmapRenderer.hpp>
 #include <FAST/Importers/WholeSlideImageImporter.hpp>
-#include <FAST/Visualization/VeryLargeImageRenderer/ImagePyramidRenderer.hpp>
+#include <FAST/Visualization/ImagePyramidRenderer/ImagePyramidRenderer.hpp>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 #include <FAST/Visualization/SimpleWindow.hpp>
 #include <FAST/Data/ImagePyramid.hpp>
