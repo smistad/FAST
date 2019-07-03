@@ -10,7 +10,7 @@ __kernel void renderToTexture(
 ) {
     const int2 position = {get_global_id(0), get_global_id(1)};
 
-    float4 color = {0.0f, 0.0f, 0.0f, 0.0f};
+    float4 color = {1.0f, 1.0f, 1.0f, 0.0f};
     // TODO blend colorsd
     for(int channel = 0; channel < channels; ++channel) { // TODO skip first?
         float intensity = inputTensor[(position.x + position.y*get_global_size(0))*channels + channel];
@@ -22,7 +22,7 @@ __kernel void renderToTexture(
         } else {
             intensity *= maxOpacity;
             float3 colorToUse = vload3(channel, colors);
-            color = color + 1.0f * colorToUse.xyzz;
+            color = colorToUse.xyzz;
             color.w = intensity;
             color = clamp(color, 0.0f, 1.0f);
             //printf("%f %f %f\n", color.x, color.y, color.z);
