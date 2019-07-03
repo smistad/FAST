@@ -67,7 +67,7 @@ class FAST_EXPORT  ProcessObject : public Object {
         void setModified(bool modified);
 
         template <class DataType>
-        void updateAndGetOutputData(uint portID = 0, StreamingMode streamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES);
+        SharedPointer<DataType> updateAndGetOutputData(uint portID = 0, StreamingMode streamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES);
 
     protected:
         ProcessObject();
@@ -197,7 +197,7 @@ SharedPointer<DataType> ProcessObject::getOutputData(uint portID) {
 
 
 template<class DataType>
-void ProcessObject::updateAndGetOutputData(uint portID, StreamingMode mode) {
+SharedPointer<DataType> ProcessObject::updateAndGetOutputData(uint portID, StreamingMode mode) {
     auto port = getOutputPort(portID);
     update(mode);
     return port->getNextFrame<DataType>();
