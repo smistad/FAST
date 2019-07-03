@@ -34,33 +34,52 @@ void Dilation::execute() {
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::CommandQueue queue = device->getCommandQueue();
     cl::Program program = getOpenCLProgram(device);
-    cl::Kernel dilateKernel(program, "dilate");
-
     Vector3ui size = input->getSize();
 
-    OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
-    dilateKernel.setArg(0, *access->get3DImage());
-    dilateKernel.setArg(2, mSize/2);
+    if(input->getDimensions() == 3) {
+        cl::Kernel dilateKernel(program, "dilate3D");
 
-    if(!device->isWritingTo3DTexturesSupported()) {
-        OpenCLBufferAccess::pointer access2 = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
-        dilateKernel.setArg(1, *access2->get());
+        OpenCLImageAccess::pointer access = input->getOpenCLImageAccess(ACCESS_READ, device);
+        dilateKernel.setArg(0, *access->get3DImage());
+        dilateKernel.setArg(2, mSize / 2);
 
-        queue.enqueueNDRangeKernel(
-            dilateKernel,
-            cl::NullRange,
-            cl::NDRange(size.x(), size.y(), size.z()),
-            cl::NullRange
-        );
+        if(!device->isWritingTo3DTexturesSupported()) {
+            OpenCLBufferAccess::pointer access2 = output->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+            dilateKernel.setArg(1, *access2->get());
+
+            queue.enqueueNDRangeKernel(
+                    dilateKernel,
+                    cl::NullRange,
+                    cl::NDRange(size.x(), size.y(), size.z()),
+                    cl::NullRange
+            );
+        } else {
+            OpenCLImageAccess::pointer access2 = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+            dilateKernel.setArg(1, *access2->get3DImage());
+
+            queue.enqueueNDRangeKernel(
+                    dilateKernel,
+                    cl::NullRange,
+                    cl::NDRange(size.x(), size.y(), size.z()),
+                    cl::NullRange
+            );
+        }
     } else {
-        OpenCLImageAccess::pointer access2 = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
-        dilateKernel.setArg(1, *access2->get3DImage());
+        // 2D
+        cl::Kernel dilateKernel(program, "dilate2D");
+
+
+        auto access = input->getOpenCLImageAccess(ACCESS_READ, device);
+        auto access2 = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+        dilateKernel.setArg(0, *access->get2DImage());
+        dilateKernel.setArg(1, *access2->get2DImage());
+        dilateKernel.setArg(2, mSize / 2);
 
         queue.enqueueNDRangeKernel(
-            dilateKernel,
-            cl::NullRange,
-            cl::NDRange(size.x(), size.y(), size.z()),
-            cl::NullRange
+                dilateKernel,
+                cl::NullRange,
+                cl::NDRange(size.x(), size.y()),
+                cl::NullRange
         );
     }
 
