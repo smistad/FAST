@@ -28,9 +28,8 @@ class FAST_EXPORT  Window : public QObject, public Object {
         ~Window();
         /**
          * Starts an update loop on all renderers attached to each view in this window.
-         * @param mode Streaming mode for the update loop
          */
-        virtual void start(StreamingMode mode = STREAMING_MODE_PROCESS_ALL_FRAMES);
+        virtual void start();
         void setWidth(uint width);
         void setHeight(uint height);
         void setSize(uint width, uint height);
@@ -72,7 +71,6 @@ class FAST_EXPORT  Window : public QObject, public Object {
         float mGUIScalingFactor = 1.0f;
         QEventLoop* mEventLoop;
         ComputationThread* mThread;
-        StreamingMode mStreamingMode;
     private:
         static QGLContext* mMainGLContext;
     public slots:

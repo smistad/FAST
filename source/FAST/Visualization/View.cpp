@@ -161,20 +161,20 @@ void View::setMaximumFramerate(unsigned int framerate) {
 void View::execute() {
 }
 
-void View::updateRenderersInput(StreamingMode mode) {
-    for(Renderer::pointer renderer : mNonVolumeRenderers) {
+void View::updateRenderersInput() {
+    for(auto renderer : mNonVolumeRenderers) {
         for(int i = 0; i < renderer->getNrOfInputConnections(); ++i) {
-            renderer->getInputPort(i)->getProcessObject()->update(mode);
+            renderer->getInputPort(i)->getProcessObject()->update();
         }
     }
-    for(Renderer::pointer renderer : mVolumeRenderers) {
+    for(auto renderer : mVolumeRenderers) {
         for(int i = 0; i < renderer->getNrOfInputConnections(); ++i) {
-            renderer->getInputPort(i)->getProcessObject()->update(mode);
+            renderer->getInputPort(i)->getProcessObject()->update();
         }
     }
 }
 
-void View::updateRenderers(StreamingMode mode) {
+void View::updateRenderers() {
     for(Renderer::pointer renderer : mNonVolumeRenderers) {
         renderer->execute();
     }
@@ -463,10 +463,6 @@ void View::reinitialize() {
     initializeGL();
 }
 
-void View::setStreamingMode(StreamingMode mode) {
-    mStreamingMode = mode;
-}
-
 void View::initializeGL() {
     for(auto renderer : getRenderers())
         renderer->initializeOpenGLFunctions();
@@ -478,9 +474,9 @@ void View::initializeGL() {
     glEnable(GL_BLEND);
     // Update all renderes, so that getBoundingBox works
     for(int i = 0; i < mNonVolumeRenderers.size(); i++)
-        mNonVolumeRenderers[i]->update(mStreamingMode);
+        mNonVolumeRenderers[i]->update();
     for(int i = 0; i < mVolumeRenderers.size(); i++)
-        mVolumeRenderers[i]->update(mStreamingMode);
+        mVolumeRenderers[i]->update();
     if(mNonVolumeRenderers.empty() && mVolumeRenderers.empty())
         return;
     if(mIsIn2DMode) {

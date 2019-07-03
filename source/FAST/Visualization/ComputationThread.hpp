@@ -15,14 +15,12 @@ class View;
 class FAST_EXPORT  ComputationThread : public QObject, public Object {
     Q_OBJECT
     public:
-        ComputationThread(QThread* mainThread, StreamingMode mode);
+        ComputationThread(QThread* mainThread);
         ~ComputationThread();
         bool isRunning();
         void stop();
         void addView(View* view);
         void clearViews();
-        StreamingMode getStreamingMode();
-        void setStreamingMode(StreamingMode mode);
     public slots:
         void run();
     signals:
@@ -38,7 +36,6 @@ class FAST_EXPORT  ComputationThread : public QObject, public Object {
         std::vector<View*> mViews;
 
         bool mStop = false;
-        StreamingMode mStreamingMode;
 };
 
 }

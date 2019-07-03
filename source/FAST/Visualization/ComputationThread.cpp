@@ -5,11 +5,10 @@
 
 namespace fast {
 
-ComputationThread::ComputationThread(QThread* mainThread, StreamingMode mode) {
+ComputationThread::ComputationThread(QThread* mainThread) {
     mIsRunning = false;
     mStop = false;
     mMainThread = mainThread;
-    mStreamingMode = mode;
 }
 
 void ComputationThread::addView(View* view) {
@@ -46,10 +45,10 @@ void ComputationThread::run() {
         }
         try {
             for (View *view : mViews) {
-                view->updateRenderersInput(mStreamingMode);
+                view->updateRenderersInput();
             }
             for (View *view : mViews) {
-                view->updateRenderers(mStreamingMode);
+                view->updateRenderers();
             }
         } catch(ThreadStopped &e) {
             break;
@@ -89,15 +88,6 @@ void ComputationThread::stop() {
     for(View* view : mViews) {
         view->resetRenderers();
     }
-}
-
-
-StreamingMode ComputationThread::getStreamingMode() {
-    return mStreamingMode;
-}
-
-void ComputationThread::setStreamingMode(StreamingMode mode) {
-    mStreamingMode = mode;
 }
 
 }

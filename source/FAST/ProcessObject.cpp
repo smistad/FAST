@@ -24,12 +24,12 @@ static bool isStreamer(ProcessObject* po) {
     return isStreamer;
 }
 
-void ProcessObject::update(StreamingMode streamingMode) {
+void ProcessObject::update() {
     // Call update on all parents
     bool newInputData = false;
     for(auto parent : mInputConnections) {
         auto port = parent.second;
-        port->getProcessObject()->update(streamingMode);
+        port->getProcessObject()->update();
 
         if(mLastProcessed.count(parent.first) > 0) {
             //std::cout << "" << getNameOfClass() << " has last processed data.. " << std::endl;

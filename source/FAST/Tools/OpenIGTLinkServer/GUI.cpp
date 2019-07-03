@@ -245,7 +245,7 @@ void GUI::streamData() {
                     }
 
                     // Stream images
-                    dataStreamer->update(STREAMING_MODE_PROCESS_ALL_FRAMES);
+                    dataStreamer->update();
                     Image::pointer image = dataStream->getNextFrame<Image>();
 
                     // Create a new IMAGE type message

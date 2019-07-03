@@ -16,14 +16,13 @@
 
 namespace fast {
 
-
 class OpenCLProgram;
 class ProcessObject;
 
 class FAST_EXPORT  ProcessObject : public Object {
     public:
         virtual ~ProcessObject();
-        void update(StreamingMode streamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES);
+        void update();
         typedef SharedPointer<ProcessObject> pointer;
 
         // Runtime stuff
@@ -67,7 +66,7 @@ class FAST_EXPORT  ProcessObject : public Object {
         void setModified(bool modified);
 
         template <class DataType>
-        SharedPointer<DataType> updateAndGetOutputData(uint portID = 0, StreamingMode streamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES);
+        SharedPointer<DataType> updateAndGetOutputData(uint portID = 0);
 
     protected:
         ProcessObject();
@@ -197,9 +196,9 @@ SharedPointer<DataType> ProcessObject::getOutputData(uint portID) {
 
 
 template<class DataType>
-SharedPointer<DataType> ProcessObject::updateAndGetOutputData(uint portID, StreamingMode mode) {
+SharedPointer<DataType> ProcessObject::updateAndGetOutputData(uint portID) {
     auto port = getOutputPort(portID);
-    update(mode);
+    update();
     return port->getNextFrame<DataType>();
 }
 

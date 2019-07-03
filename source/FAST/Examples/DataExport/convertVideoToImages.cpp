@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
                 std::cout << "Processing frame: " << timestep << std::endl;
                 const std::string path = exportPath + "frame_" + std::to_string(timestep) + "." + parser.get("export-format");
                 exporter->setFilename(path);
-                exporter->update(STREAMING_MODE_PROCESS_ALL_FRAMES);
+                exporter->update();
                 ++timestep;
 
                 // TODO fix overcomplicated stop process

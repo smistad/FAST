@@ -5,6 +5,7 @@
 using namespace fast;
 
 int main() {
+    Config::setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     Reporter::setGlobalReportMethod(Reporter::COUT);
     auto streamer = ClariusStreamer::New();
 
@@ -15,5 +16,5 @@ int main() {
     window->addRenderer(renderer);
     window->getView()->setAutoUpdateCamera(true);
     window->set2DMode();
-    window->start(STREAMING_MODE_NEWEST_FRAME_ONLY);
+    window->start();
 }

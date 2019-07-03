@@ -11,6 +11,7 @@
 using namespace fast;
 
 int main(int argc, char** argv) {
+    Config::setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     // Setup streaming
     auto streamer = RealSenseStreamer::New();
 
@@ -50,5 +51,5 @@ int main(int argc, char** argv) {
     // This will automatically close the window after 5 seconds, used for CI testing
     window->setTimeout(5*1000);
 #endif
-    window->start(STREAMING_MODE_NEWEST_FRAME_ONLY);
+    window->start();
 }

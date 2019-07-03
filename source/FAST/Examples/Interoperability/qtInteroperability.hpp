@@ -83,7 +83,7 @@ class FAST_EXPORT  WindowWidget : public QWidget {
             if(mThread == NULL) {
                 // Start computation thread using QThreads which is a strange thing, see https://mayaposch.wordpress.com/2011/11/01/how-to-really-truly-use-qthreads-the-full-explanation/
                 fast::Reporter::info() << "Trying to start computation thread" << fast::Reporter::end();
-                mThread = new fast::ComputationThread(QThread::currentThread(), fast::STREAMING_MODE_PROCESS_ALL_FRAMES);
+                mThread = new fast::ComputationThread(QThread::currentThread());
                 QThread* thread = new QThread();
                 mThread->moveToThread(thread);
                 connect(thread, SIGNAL(started()), mThread, SLOT(run()));

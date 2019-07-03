@@ -69,7 +69,7 @@ TEST_CASE("Simple pipeline with stream NEWEST_FRAME_ONLY", "[ProcessObject][fast
     int previousID = -1;
     bool lastFrame = false;
     while(!lastFrame) {
-        po->update(STREAMING_MODE_NEWEST_FRAME_ONLY);
+        po->update();
         timestep++;
         auto image = port->getNextFrame<DummyDataObject>();
         lastFrame = image->isLastFrame();
@@ -97,7 +97,7 @@ TEST_CASE("Two step pipeline with stream NEWEST_FRAME_ONLY", "[two_step][Process
     int previousID = -1;
     bool lastFrame = false;
     while(!lastFrame) {
-        po2->update(STREAMING_MODE_NEWEST_FRAME_ONLY);
+        po2->update();
         timestep++;
         auto image = port->getNextFrame<DummyDataObject>();
         lastFrame = image->isLastFrame();
@@ -124,7 +124,7 @@ TEST_CASE("Simple pipeline with stream STORE_ALL", "[ProcessObject][fast]") {
         int timestep = 0;
         int previousID = -1;
         while(timestep < frames) {
-            po->update(STREAMING_MODE_STORE_ALL_FRAMES);
+            po->update();
             timestep++;
             auto image = port->getNextFrame<DummyDataObject>();
             CHECK(image->getID() != previousID); // Should never get the same frame
@@ -152,7 +152,7 @@ TEST_CASE("Two step pipeline with stream STORE_ALL", "[two_step][ProcessObject][
         int timestep = 0;
         int previousID = -1;
         while(timestep < frames) {
-            po2->update(STREAMING_MODE_STORE_ALL_FRAMES);
+            po2->update();
             timestep++;
             auto image = port->getNextFrame<DummyDataObject>();
             CHECK(image->getID() != previousID); // Should never get the same frame
@@ -173,13 +173,13 @@ TEST_CASE("Simple pipeline with static data", "[process_all_frames][ProcessObjec
     auto port = po1->getOutputPort();
 
     int timestep = 0;
-    po1->update(STREAMING_MODE_PROCESS_ALL_FRAMES);
+    po1->update();
     CHECK(po1->hasExecuted());
     po1->setHasExecuted(false);
 
     while(timestep < 3) {
         timestep++;
-        po1->update(STREAMING_MODE_PROCESS_ALL_FRAMES);
+        po1->update();
         CHECK_FALSE(po1->hasExecuted()); // PO1 should not re execute
         po1->setHasExecuted(false);
         auto image = port->getNextFrame<DummyDataObject>();
@@ -187,13 +187,13 @@ TEST_CASE("Simple pipeline with static data", "[process_all_frames][ProcessObjec
     }
     std::cout << "SETTING importer to modified" << std::endl;
     importer->setModified();
-    po1->update(STREAMING_MODE_PROCESS_ALL_FRAMES);
+    po1->update();
     CHECK(po1->hasExecuted()); // PO should execute after importer has been modified
     po1->setHasExecuted(false);
 
     while(timestep < 6) {
         timestep++;
-        po1->update(STREAMING_MODE_PROCESS_ALL_FRAMES);
+        po1->update();
         CHECK_FALSE(po1->hasExecuted()); // PO1 should not re execute
         po1->setHasExecuted(false);
         auto image = port->getNextFrame<DummyDataObject>();
@@ -213,7 +213,7 @@ TEST_CASE("Simple pipeline with static data NEWEST_FRAME", "[ProcessObject][fast
 
     int timestep = 0;
     while(timestep < 3) {
-        po1->update(STREAMING_MODE_NEWEST_FRAME_ONLY);
+        po1->update();
         timestep++;
         auto image = port->getNextFrame<DummyDataObject>();
         CHECK(image->getID() == 0); // Should always get the same frame
@@ -222,7 +222,7 @@ TEST_CASE("Simple pipeline with static data NEWEST_FRAME", "[ProcessObject][fast
     importer->setModified();
     //timestep = 0;
     while(timestep < 6) {
-        po1->update(STREAMING_MODE_NEWEST_FRAME_ONLY);
+        po1->update();
         timestep++;
         auto image = port->getNextFrame<DummyDataObject>();
         CHECK(image->getID() == 1); // Should always get the same frame
@@ -241,7 +241,7 @@ TEST_CASE("Simple pipeline with static data, STORE_ALL", "[ProcessObject][fast]"
 
     int timestep = 0;
     while(timestep < 3) {
-        po1->update(STREAMING_MODE_STORE_ALL_FRAMES);
+        po1->update();
         timestep++;
         auto image = port->getNextFrame<DummyDataObject>();
         CHECK(image->getID() == 0); // Should always get the same frame
@@ -250,7 +250,7 @@ TEST_CASE("Simple pipeline with static data, STORE_ALL", "[ProcessObject][fast]"
     importer->setModified();
     //timestep = 0;
     while(timestep < 6) {
-        po1->update(STREAMING_MODE_STORE_ALL_FRAMES);
+        po1->update();
         timestep++;
         auto image = port->getNextFrame<DummyDataObject>();
         CHECK(image->getID() == 1); // Should always get the same frame
@@ -276,7 +276,7 @@ TEST_CASE("Simple pipeline with static and stream data PROCESS_ALL", "[process_a
 
     int timestep = 0;
     while(timestep < frames / 2) {
-        po1->update(STREAMING_MODE_PROCESS_ALL_FRAMES);
+        po1->update();
         auto image = port->getNextFrame<DummyDataObject>();
         CHECK(image->getID() == timestep);
         CHECK(po1->getStaticDataID() == 0);
@@ -285,7 +285,7 @@ TEST_CASE("Simple pipeline with static and stream data PROCESS_ALL", "[process_a
 
     importer->setModified();
     while(timestep < frames) {
-        po1->update(STREAMING_MODE_PROCESS_ALL_FRAMES);
+        po1->update();
         auto image = port->getNextFrame<DummyDataObject>();
         CHECK(image->getID() == timestep);
         CHECK(po1->getStaticDataID() == 1);
@@ -312,8 +312,8 @@ TEST_CASE("Static data with multiple receiver POs PROCESS_ALL", "[process_all_fr
     int timestep = 0;
     while(timestep < frames) {
         // Update both branches
-        po1->update(STREAMING_MODE_PROCESS_ALL_FRAMES);
-        po3->update(STREAMING_MODE_PROCESS_ALL_FRAMES);
+        po1->update();
+        po3->update();
 
         auto image1 = port1->getNextFrame<DummyDataObject>();
         auto image2 = port2->getNextFrame<DummyDataObject>();
@@ -343,8 +343,8 @@ TEST_CASE("Static data with multiple receiver POs NEWEST_FRAME", "[ProcessObject
     int timestep = 0;
     while(timestep < frames) {
         // Update both branches
-        po1->update(STREAMING_MODE_NEWEST_FRAME_ONLY);
-        po3->update(STREAMING_MODE_NEWEST_FRAME_ONLY);
+        po1->update();
+        po3->update();
 
         auto image1 = port1->getNextFrame<DummyDataObject>();
         auto image2 = port2->getNextFrame<DummyDataObject>();
@@ -375,8 +375,8 @@ TEST_CASE("Static data with multiple receiver POs STORE_ALL", "[ProcessObject][f
     while(timestep < frames) {
         std::cout << "TIMESTEP " << timestep << std::endl;
         // Update both branches
-        po1->update(STREAMING_MODE_STORE_ALL_FRAMES);
-        po3->update(STREAMING_MODE_STORE_ALL_FRAMES);
+        po1->update();
+        po3->update();
 
         auto image1 = port1->getNextFrame<DummyDataObject>();
         auto image2 = port2->getNextFrame<DummyDataObject>();
@@ -408,8 +408,8 @@ TEST_CASE("Stream with multiple receiver POs PROCESS_ALL", "[process_all_frames]
     int timestep = 0;
     while(timestep < frames) {
         // Update both branches
-        po1->update(STREAMING_MODE_PROCESS_ALL_FRAMES);
-        po3->update(STREAMING_MODE_PROCESS_ALL_FRAMES);
+        po1->update();
+        po3->update();
 
         auto image1 = port1->getNextFrame<DummyDataObject>();
         auto image2 = port2->getNextFrame<DummyDataObject>();
@@ -444,8 +444,8 @@ TEST_CASE("Stream with multiple receiver POs, NEWEST_FRAME", "[ProcessObject][fa
     int previousID2 = -1;
     while(timestep < frames) {
         // Update both branches
-        po1->update(STREAMING_MODE_NEWEST_FRAME_ONLY);
-        po3->update(STREAMING_MODE_NEWEST_FRAME_ONLY);
+        po1->update();
+        po3->update();
 
         auto image1 = port1->getNextFrame<DummyDataObject>();
         auto image2 = port2->getNextFrame<DummyDataObject>();
@@ -481,8 +481,8 @@ TEST_CASE("Stream with multiple receiver POs STORE_ALL", "[ProcessObject][fast]"
         int timestep = 0;
         while(timestep < frames) {
             // Update both branches
-            po1->update(STREAMING_MODE_STORE_ALL_FRAMES);
-            po3->update(STREAMING_MODE_STORE_ALL_FRAMES);
+            po1->update();
+            po3->update();
 
             auto image1 = port1->getNextFrame<DummyDataObject>();
             auto image2 = port2->getNextFrame<DummyDataObject>();
@@ -509,7 +509,7 @@ TEST_CASE("Simple pipeline with static data using setInputData", "[process_all_f
 
     int timestep = 0;
     while(timestep < 3) {
-        po1->update(STREAMING_MODE_PROCESS_ALL_FRAMES);
+        po1->update();
         timestep++;
         auto image = port->getNextFrame<DummyDataObject>();
         CHECK(image->getID() == 0); // Should always get the same frame
@@ -529,7 +529,7 @@ TEST_CASE("Simple pipeline with static data using setInputData NEWEST_FRAME", "[
 
     int timestep = 0;
     while(timestep < 3) {
-        po1->update(STREAMING_MODE_NEWEST_FRAME_ONLY);
+        po1->update();
         timestep++;
         auto image = port->getNextFrame<DummyDataObject>();
         CHECK(image->getID() == 0); // Should always get the same frame
@@ -549,7 +549,7 @@ TEST_CASE("Simple pipeline with static data using setInputData STORE_ALL", "[Pro
 
     int timestep = 0;
     while(timestep < 3) {
-        po1->update(STREAMING_MODE_STORE_ALL_FRAMES);
+        po1->update();
         timestep++;
         auto image = port->getNextFrame<DummyDataObject>();
         CHECK(image->getID() == 0); // Should always get the same frame

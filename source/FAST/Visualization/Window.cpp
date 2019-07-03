@@ -180,18 +180,13 @@ View* Window::createView() {
     return view;
 }
 
-void Window::start(StreamingMode mode) {
-    mStreamingMode = mode;
-
-    // Pass streaming mode onto all views
-    for(auto view : getViews())
-        view->setStreamingMode(mode);
+void Window::start() {
 
 	int screenHeight = getScreenHeight();
 	int screenWidth = getScreenWidth();
 
     reportInfo() << "Resizing window to " << mWidth << " " << mHeight << reportEnd();
-    mWidget->resize(mWidth,mHeight);
+    mWidget->resize(mWidth, mHeight);
     if(mFullscreen) {
         mWidget->showFullScreen();
     } else if(mMaximized) {
@@ -261,7 +256,7 @@ void Window::startComputationThread() {
     if(mThread == NULL) {
         // Start computation thread using QThreads which is a strange thing, see https://mayaposch.wordpress.com/2011/11/01/how-to-really-truly-use-qthreads-the-full-explanation/
         reportInfo() << "Trying to start computation thread" << Reporter::end();
-        mThread = new ComputationThread(QThread::currentThread(), mStreamingMode);
+        mThread = new ComputationThread(QThread::currentThread());
         QThread* thread = new QThread();
         mThread->moveToThread(thread);
         connect(thread, SIGNAL(started()), mThread, SLOT(run()));

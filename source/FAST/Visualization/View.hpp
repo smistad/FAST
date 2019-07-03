@@ -45,7 +45,6 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject, protected QOpe
 		    return "View";
 		};
         View();
-        void setStreamingMode(StreamingMode mode);
 		std::vector<Renderer::pointer> getRenderers();
 		static QGLFormat getGLFormat();
 		Matrix4f getViewMatrix() const;
@@ -89,16 +88,14 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject, protected QOpe
 		float mLeft, mRight, mBottom, mTop; // Used for ortho projection
 		float mCentroidZ;
 
-		StreamingMode mStreamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES;
-
         friend class ComputationThread;
     protected:
         void getMinMaxFromBoundingBoxes(bool transform, Vector3f& min, Vector3f& max);
         void initializeGL();
         void paintGL();
         void resizeGL(int width, int height);
-		void updateRenderersInput(StreamingMode mode);
-		void updateRenderers(StreamingMode mode);
+		void updateRenderersInput();
+		void updateRenderers();
 		void lockRenderers();
 		void unlockRenderers();
 		void stopRenderers();
