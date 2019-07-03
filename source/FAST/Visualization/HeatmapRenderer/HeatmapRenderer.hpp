@@ -13,12 +13,14 @@ class FAST_EXPORT HeatmapRenderer : public Renderer {
         void setMinConfidence(float confidence);
         void setMaxOpacity(float opacity);
         void setChannelColor(uint channel, Color color);
+        void setChannelHidden(uint channel, bool hide);
     protected:
         HeatmapRenderer();
         void drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D);
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) override;
 
         std::unordered_map<uint, Color> mColors;
+        std::unordered_map<uint, bool> mHide;
         std::unordered_map<uint, uint> mTexturesToRender;
         std::unordered_map<uint, SharedPointer<Tensor>> mTensorUsed;
         /**

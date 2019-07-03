@@ -20,6 +20,11 @@ void HeatmapRenderer::setChannelColor(uint channel, Color color) {
     mColorsModified = true;
 }
 
+void HeatmapRenderer::setChannelHidden(uint channel, bool hide) {
+    mHide[channel] = hide;
+    mColorsModified = true;
+}
+
 void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
     std::lock_guard<std::mutex> lock(mMutex);
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
@@ -42,28 +47,37 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
 
     if(mColorsModified) {
         // Transfer colors to device (this doesn't have to happen every render call..)
-        auto colorData = make_uninitialized_unique<float[]>(3*maxChannels);
+        auto colorData = make_uninitialized_unique<float[]>(4*maxChannels);
         Color defaultColor = Color::Green();
         for(int i = 0; i < maxChannels; ++i) {
             if(mColors.count(i) > 0) {
-                colorData[i * 3] = mColors[i].getRedValue();
-                colorData[i * 3 + 1] = mColors[i].getGreenValue();
-                colorData[i * 3 + 2] = mColors[i].getBlueValue();
+                colorData[i * 4] = mColors[i].getRedValue();
+                colorData[i * 4 + 1] = mColors[i].getGreenValue();
+                colorData[i * 4 + 2] = mColors[i].getBlueValue();
             } else if(colorList.size() > i) {
-                colorData[i * 3] = colorList[i].getRedValue();
-                colorData[i * 3 + 1] = colorList[i].getGreenValue();
-                colorData[i * 3 + 2] = colorList[i].getBlueValue();
+                colorData[i * 4] = colorList[i].getRedValue();
+                colorData[i * 4 + 1] = colorList[i].getGreenValue();
+                colorData[i * 4 + 2] = colorList[i].getBlueValue();
             } else {
-                colorData[i*3] = defaultColor.getRedValue();
-                colorData[i*3 + 1] = defaultColor.getGreenValue();
-                colorData[i*3 + 2] = defaultColor.getBlueValue();
+                colorData[i*4] = defaultColor.getRedValue();
+                colorData[i*4 + 1] = defaultColor.getGreenValue();
+                colorData[i*4 + 2] = defaultColor.getBlueValue();
+            }
+            if(mHide.count(i) > 0 && mHide[i]) {
+                // If channel should be hidden; set it to white, and alpha = 0
+                colorData[i * 4 + 0] = 1.0f;
+                colorData[i * 4 + 1] = 1.0f;
+                colorData[i * 4 + 2] = 1.0f;
+                colorData[i * 4 + 3] = 0.0f;
+            } else {
+                colorData[i * 4 + 3] = 1.0f;
             }
         }
 
         mColorBuffer = cl::Buffer(
                 device->getContext(),
                 CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                sizeof(float)*3*maxChannels,
+                sizeof(float)*4*maxChannels,
                 colorData.get()
         );
     }
