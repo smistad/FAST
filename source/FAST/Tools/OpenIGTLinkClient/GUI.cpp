@@ -22,7 +22,6 @@
 namespace fast {
 
 GUI::GUI() {
-    mStreamingMode = STREAMING_MODE_NEWEST_FRAME_ONLY;
     menuWidth = getScreenWidth()/6;
 
     mClient = OpenIGTLinkClient::New();
@@ -302,7 +301,7 @@ void GUI::selectStream() {
     mClient->setInputConnection(mStreamer->getOutputPort<Image>(streamName));
     selectPipeline();
     try {
-        mStreamer->update( STREAMING_MODE_NEWEST_FRAME_ONLY);
+        mStreamer->update();
     } catch(Exception &e) {
         QMessageBox* message = new QMessageBox;
         message->setWindowTitle("Error");

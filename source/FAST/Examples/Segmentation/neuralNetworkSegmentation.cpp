@@ -23,10 +23,9 @@ int main() {
     streamer->enableLooping();
 
     PixelClassifier::pointer segmentation = PixelClassifier::New();
-    segmentation->setNrOfClasses(3);
     segmentation->setScaleFactor(1.0f / 255.0f);
     const auto engine = segmentation->getInferenceEngine()->getName();
-    if(engine == "TensorFlow") {
+    if(engine.substr(0,10) == "TensorFlow") {
         // TensorFlow needs to know what the output node is called
         segmentation->setOutputNode(0, "conv2d_23/truediv");
     } else if(engine == "TensorRT") {

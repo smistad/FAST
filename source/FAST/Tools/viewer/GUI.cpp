@@ -39,7 +39,6 @@ class MyStyle : public QProxyStyle {
 namespace fast {
 
 GUI::GUI() {
-    mStreamingMode = STREAMING_MODE_STORE_ALL_FRAMES;
     QScreen* screen = QGuiApplication::primaryScreen();
     menuWidth = screen->geometry().width()*(1.0f/6.0f);
     mPipelineWidget = nullptr;
