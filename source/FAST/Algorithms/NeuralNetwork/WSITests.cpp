@@ -26,14 +26,14 @@ using namespace fast;
 
 TEST_CASE("WSI -> Patch generator -> Neural network -> Patch stitcher -> visualize", "[fast][neuralnetwork][wsi][visual]") {
     auto importer = WholeSlideImageImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "/new.tif");
+    importer->setFilename(Config::getTestDataPath() + "/CMU-1.tiff");
 
     auto tissueSegmentation = TissueSegmentation::New();
     tissueSegmentation->setInputConnection(importer->getOutputPort());
 
     auto generator = PatchGenerator::New();
     generator->setPatchSize(512, 512);
-    generator->setPatchLevel(1);
+    generator->setPatchLevel(0);
     generator->setInputConnection(importer->getOutputPort());
     generator->setInputConnection(1, tissueSegmentation->getOutputPort());
 
@@ -56,6 +56,7 @@ TEST_CASE("WSI -> Patch generator -> Neural network -> Patch stitcher -> visuali
     auto heatmapRenderer = HeatmapRenderer::New();
     heatmapRenderer->addInputConnection(stitcher->getOutputPort());
     heatmapRenderer->setMinConfidence(0.5);
+    //heatmapRenderer->setMaxOpacity(0.6f);
 
     auto window = SimpleWindow::New();
     window->addRenderer(renderer);
@@ -66,14 +67,14 @@ TEST_CASE("WSI -> Patch generator -> Neural network -> Patch stitcher -> visuali
 }
 TEST_CASE("WSI -> Patch generator -> Image to batch generator -> Neural network -> Patch stitcher -> visualize", "[fast][neuralnetwork][wsi][visual][batch]") {
     auto importer = WholeSlideImageImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "/new.tif");
+    importer->setFilename(Config::getTestDataPath() + "/CMU-1.tiff");
 
     auto tissueSegmentation = TissueSegmentation::New();
     tissueSegmentation->setInputConnection(importer->getOutputPort());
 
     auto generator = PatchGenerator::New();
     generator->setPatchSize(512, 512);
-    generator->setPatchLevel(1);
+    generator->setPatchLevel(0);
     generator->setInputConnection(importer->getOutputPort());
     generator->setInputConnection(1, tissueSegmentation->getOutputPort());
 
@@ -99,7 +100,7 @@ TEST_CASE("WSI -> Patch generator -> Image to batch generator -> Neural network 
 
     auto heatmapRenderer = HeatmapRenderer::New();
     heatmapRenderer->addInputConnection(stitcher->getOutputPort());
-    heatmapRenderer->setMinConfidence(0.5);
+    //heatmapRenderer->setMinConfidence(0.5);
 
     auto window = SimpleWindow::New();
     window->addRenderer(renderer);

@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
 
     std::string path = join(Config::getTestDataPath(), "NeuralNetworkModels/axillary_all_augmentations");
     auto segmentation = PixelClassifier::New();
-    segmentation->setInferenceEngine("TensorFlowCPU");
+    segmentation->setInferenceEngine("OpenVINO");
     const auto engine = segmentation->getInferenceEngine()->getName();
     if(engine.substr(0, 10) == "TensorFlow") {
         segmentation->setOutputNode(0, "conv2d_23/truediv");
@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
     renderer->setChannelColor(3, Color::Green());
     renderer->setChannelColor(4, Color::Magenta());
     renderer->setChannelColor(5, Color::Cyan());
-    renderer->setMaxOpacity(0.6);
+    renderer->setMaxOpacity(0.3f);
     //renderer->setMinConfidence(0.2);
     renderer->enableRuntimeMeasurements();
 

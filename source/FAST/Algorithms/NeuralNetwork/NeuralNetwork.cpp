@@ -146,6 +146,7 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
                 shape[0] = m_batchSize;
                 tensors[inputNode.first] = convertImagesToTensor(inputImages2, shape, containsSequence);
             } else {
+                // TODO fix ordering if necessary
                 // We have a list of tensors, convert the list of tensors into a single tensor
                 auto shape = inputTensors.front()->getShape();
                 m_batchSize = shape[0];
@@ -161,6 +162,7 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
                 }
             }
         } else {
+            // TODO fix ordering if necessary
             // Input is a tensor, no conversion needed
             tensors[inputNode.first] = tensor;
         }

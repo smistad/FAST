@@ -200,7 +200,6 @@ void HeatmapRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewin
         // Get width and height in mm
         float width = input->getShape()[1];// * input->getSpacing().x();
         float height = input->getShape()[0];// * input->getSpacing().y();
-        //std::cout << "Tensor size: " << width*input->getSpacing().y() << " x " << height*input->getSpacing().x() << std::endl;
         float vertices[] = {
                 // vertex: x, y, z; tex coordinates: x, y
                 0.0f, height, 0.0f, 0.0f, 0.0f,
