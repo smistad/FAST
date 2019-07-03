@@ -3,7 +3,7 @@
 #include <FAST/Visualization/VeryLargeImageRenderer/VeryLargeImageRenderer.hpp>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 #include <FAST/Visualization/SimpleWindow.hpp>
-#include <FAST/Data/WholeSlideImage.hpp>
+#include <FAST/Data/ImagePyramid.hpp>
 #include <FAST/Data/Image.hpp>
 
 using namespace fast;
@@ -26,7 +26,7 @@ TEST_CASE("Import whole slide image and display highest level", "[fast][WholeSli
     importer->setFilename(Config::getTestDataPath() + "/CMU-1.tiff");
     auto port = importer->getOutputPort();
     importer->update();
-    auto WSI = port->getNextFrame<WholeSlideImage>();
+    auto WSI = port->getNextFrame<ImagePyramid>();
     auto image = WSI->getLevelAsImage(WSI->getNrOfLevels()-1);
 
     auto renderer = ImageRenderer::New();
@@ -44,8 +44,8 @@ TEST_CASE("Import whole slide image and display a tile at level 0", "[fast][Whol
     importer->setFilename(Config::getTestDataPath() + "/CMU-1.tiff");
     auto port = importer->getOutputPort();
     importer->update();
-    auto WSI = port->getNextFrame<WholeSlideImage>();
-    auto image = WSI->getTileAsImage(0, 40000, 10000, 1024, 1024);
+    auto WSI = port->getNextFrame<ImagePyramid>();
+    auto image = WSI->getPatchAsImage(0, 40000, 10000, 1024, 1024);
 
     auto renderer = ImageRenderer::New();
     renderer->addInputData(image);

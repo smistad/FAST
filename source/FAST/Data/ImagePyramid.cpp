@@ -1,4 +1,4 @@
-#include "WholeSlideImage.hpp"
+#include "ImagePyramid.hpp"
 #include <openslide/openslide.h>
 #include <FAST/Utility.hpp>
 #include <FAST/Data/Image.hpp>
@@ -6,57 +6,57 @@
 
 namespace fast {
 
-void WholeSlideImage::create(openslide_t *fileHandle, std::vector<WholeSlideImageLevel> levels) {
+void ImagePyramid::create(openslide_t *fileHandle, std::vector<ImagePyramid::Level> levels) {
     m_fileHandle = fileHandle;
     m_levels = levels;
     for(int i = 0; i < m_levels.size(); ++i) {
         int x = m_levels.size() - i - 1;
-        m_levels[i].tiles = x*x*x + 10;
+        m_levels[i].patches = x*x*x + 10;
     }
     mBoundingBox = BoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
 }
 
-int WholeSlideImage::getNrOfLevels() {
+int ImagePyramid::getNrOfLevels() {
     return m_levels.size();
 }
 
-int WholeSlideImage::getLevelWidth(int level) {
+int ImagePyramid::getLevelWidth(int level) {
     return m_levels.at(level).width;
 }
 
-int WholeSlideImage::getLevelHeight(int level) {
+int ImagePyramid::getLevelHeight(int level) {
     return m_levels.at(level).height;
 }
 
-int WholeSlideImage::getLevelTiles(int level) {
-    return m_levels.at(level).tiles;
+int ImagePyramid::getLevelPatches(int level) {
+    return m_levels.at(level).patches;
 }
 
-int WholeSlideImage::getFullWidth() {
+int ImagePyramid::getFullWidth() {
     return m_levels[0].width;
 }
 
-int WholeSlideImage::getFullHeight() {
+int ImagePyramid::getFullHeight() {
     return m_levels[0].height;
 }
 
-void WholeSlideImage::free(ExecutionDevice::pointer device) {
+void ImagePyramid::free(ExecutionDevice::pointer device) {
     freeAll();
 }
 
-void WholeSlideImage::freeAll() {
+void ImagePyramid::freeAll() {
     m_levels.clear();
-    m_tileCache.clear();
+    m_patchCache.clear();
     openslide_close(m_fileHandle);
 }
 
-WholeSlideImage::~WholeSlideImage() {
+ImagePyramid::~ImagePyramid() {
     freeAll();
 }
 
-WholeSlideImageTile WholeSlideImage::getTile(std::string tile) {
-    if(m_tileCache.count(tile) > 0)
-        return m_tileCache[tile];
+ImagePyramid::Patch ImagePyramid::getPatch(std::string tile) {
+    if(m_patchCache.count(tile) > 0)
+        return m_patchCache[tile];
 
     auto parts = split(tile, "_");
     if(parts.size() != 3)
@@ -66,19 +66,19 @@ WholeSlideImageTile WholeSlideImage::getTile(std::string tile) {
     int tile_x = std::stoi(parts[1]);
     int tile_y = std::stoi(parts[2]);
 
-    return getTile(level, tile_x, tile_y);
+    return getPatch(level, tile_x, tile_y);
 }
 
-WholeSlideImageTile WholeSlideImage::getTile(int level, int tile_x, int tile_y) {
+ImagePyramid::Patch ImagePyramid::getPatch(int level, int tile_x, int tile_y) {
     std::string tileStr = std::to_string(level) + "_" + std::to_string(tile_x) + "_" + std::to_string(tile_y);
-    if(m_tileCache.count(tileStr) > 0)
-        return m_tileCache[tileStr];
+    if(m_patchCache.count(tileStr) > 0)
+        return m_patchCache[tileStr];
 
-    // Create tile
+    // Create patch
     int levelWidth = getLevelWidth(level);
     int levelHeight = getLevelHeight(level);
-    int tiles = getLevelTiles(level);
-    WholeSlideImageTile tile;
+    int tiles = getLevelPatches(level);
+    ImagePyramid::Patch tile;
     tile.offsetX = tile_x * (int) std::floor((float) levelWidth / tiles);
     tile.offsetY = tile_y * (int) std::floor((float) levelHeight / tiles);
 
@@ -95,14 +95,14 @@ WholeSlideImageTile WholeSlideImage::getTile(int level, int tile_x, int tile_y) 
     tile.data = std::shared_ptr<uchar[]>(new uchar[bytes]); // TODO use make_shared instead (C++20)
     float scale = (float)getFullWidth()/levelWidth;
     openslide_read_region(m_fileHandle, (uint32_t *) tile.data.get(), tile.offsetX*scale, tile.offsetY*scale, level, tile.width, tile.height);
-    m_tileCacheMemoryUsage += bytes;
-    std::cout << m_tileCacheMemoryUsage/(1024*1024) << " MB usage" << std::endl;
-    m_tileCache[tileStr] = tile;
+    m_patchCacheMemoryUsage += bytes;
+    std::cout << m_patchCacheMemoryUsage/(1024*1024) << " MB usage" << std::endl;
+    m_patchCache[tileStr] = tile;
 
     return tile;
 }
 
-SharedPointer<Image> WholeSlideImage::getLevelAsImage(int level) {
+SharedPointer<Image> ImagePyramid::getLevelAsImage(int level) {
     if(level < 0 || level >= getNrOfLevels())
         throw Exception("Incorrect level given to getLevelAsImage" + std::to_string(level));
 
@@ -133,7 +133,7 @@ SharedPointer<Image> WholeSlideImage::getLevelAsImage(int level) {
     return port->getNextFrame<Image>();
 }
 
-SharedPointer<Image> WholeSlideImage::getTileAsImage(int level, int offsetX, int offsetY, int width, int height) {
+SharedPointer<Image> ImagePyramid::getPatchAsImage(int level, int offsetX, int offsetY, int width, int height) {
     if(width > 16384 || height > 16384)
         throw Exception("Image level is too large to convert into a FAST image");
 

@@ -11,7 +11,7 @@
 #include <FAST/Visualization/VeryLargeImageRenderer/VeryLargeImageRenderer.hpp>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 #include <FAST/Visualization/SimpleWindow.hpp>
-#include <FAST/Data/WholeSlideImage.hpp>
+#include <FAST/Data/ImagePyramid.hpp>
 #include <FAST/Data/Image.hpp>
 #include <FAST/Algorithms/ImagePatch/PatchGenerator.hpp>
 #include <FAST/Algorithms/ImagePatch/PatchStitcher.hpp>
@@ -65,6 +65,7 @@ TEST_CASE("WSI -> Patch generator -> Neural network -> Patch stitcher -> visuali
     window->set2DMode();
     window->start();
 }
+
 TEST_CASE("WSI -> Patch generator -> Image to batch generator -> Neural network -> Patch stitcher -> visualize", "[fast][neuralnetwork][wsi][visual][batch]") {
     auto importer = WholeSlideImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "/CMU-1.tiff");
@@ -105,6 +106,49 @@ TEST_CASE("WSI -> Patch generator -> Image to batch generator -> Neural network 
     auto window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->addRenderer(heatmapRenderer);
+    //window->setTimeout(1000);
+    window->set2DMode();
+    window->start();
+}
+
+TEST_CASE("WSI -> Patch generator -> Pixel classifier -> visualize", "[fast][neuralnetwork][wsi][visual]") {
+    Config::setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
+    auto importer = WholeSlideImageImporter::New();
+    importer->setFilename(Config::getTestDataPath() + "/CMU-1.tiff");
+
+    auto tissueSegmentation = TissueSegmentation::New();
+    tissueSegmentation->setInputConnection(importer->getOutputPort());
+
+    auto generator = PatchGenerator::New();
+    generator->setPatchSize(256, 256);
+    generator->setPatchLevel(0);
+    generator->setInputConnection(importer->getOutputPort());
+    generator->setInputConnection(1, tissueSegmentation->getOutputPort());
+
+    auto network = PixelClassifier::New();
+    network->setInferenceEngine("TensorFlowCUDA");
+    auto engine = network->getInferenceEngine()->getName();
+    if(engine.substr(0, 10) == "TensorFlow") {
+        network->load(Config::getTestDataPath() + "NeuralNetworkModels/nuclei_256_rgb_test.pb");
+        network->setOutputNode(0, "conv2d_30/truediv");
+    }
+    network->setInputConnection(generator->getOutputPort());
+    network->setScaleFactor(1.0f/255.0f);
+
+    auto renderer = ImageRenderer::New();
+    renderer->addInputConnection(generator->getOutputPort());
+
+    auto segRenderer = SegmentationRenderer::New();
+    segRenderer->addInputConnection(network->getOutputPort());
+    segRenderer->setOpacity(0.5);
+
+    auto heatmapRenderer = HeatmapRenderer::New();
+    heatmapRenderer->addInputConnection(network->getOutputPort());
+
+    auto window = SimpleWindow::New();
+    window->addRenderer(renderer);
+    //window->addRenderer(heatmapRenderer);
+    window->addRenderer(segRenderer);
     //window->setTimeout(1000);
     window->set2DMode();
     window->start();

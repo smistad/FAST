@@ -37,5 +37,5 @@ fast_add_python_interfaces(
 )
 
 if(FAST_MODULE_WholeSlideImaging)
-	fast_add_sources(WholeSlideImage.cpp WholeSlideImage.hpp)
+	fast_add_sources(ImagePyramid.cpp ImagePyramid.hpp)
 endif()

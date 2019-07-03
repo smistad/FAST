@@ -3,7 +3,7 @@
 #include <FAST/Visualization/VeryLargeImageRenderer/VeryLargeImageRenderer.hpp>
 #include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
 #include <FAST/Visualization/SimpleWindow.hpp>
-#include <FAST/Data/WholeSlideImage.hpp>
+#include <FAST/Data/ImagePyramid.hpp>
 #include <FAST/Data/Image.hpp>
 #include <FAST/Algorithms/ImagePatch/PatchGenerator.hpp>
 #include <FAST/Algorithms/ImagePatch/PatchStitcher.hpp>

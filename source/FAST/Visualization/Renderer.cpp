@@ -70,7 +70,7 @@ BoundingBox Renderer::getBoundingBox(bool transform) {
     std::unique_lock<std::mutex> lock(mMutex);
     std::vector<Vector3f> coordinates;
 
-    if(mDataToRender.size() == 0)
+    if(mDataToRender.empty())
         throw Exception("Renderer has no input data. Unable to create bounding box and thereby initialize GL scene.");
 
     for(auto it : mDataToRender) {

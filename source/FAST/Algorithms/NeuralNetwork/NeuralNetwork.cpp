@@ -190,10 +190,13 @@ void NeuralNetwork::run() {
     mRuntimeManager->startRegularTimer("inference");
 	m_engine->run();
     mRuntimeManager->stopRegularTimer("inference");
+
+    static int counter = 0;
+    counter++;
+    std::cout << "----------------- NN runs: " << counter << std::endl;
 }
 
 void NeuralNetwork::execute() {
-
     // Load, prepare input and run network
     run();
 

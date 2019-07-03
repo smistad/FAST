@@ -1,11 +1,11 @@
-#include <FAST/Data/WholeSlideImage.hpp>
+#include <FAST/Data/ImagePyramid.hpp>
 #include <FAST/Data/Image.hpp>
 #include "PatchGenerator.hpp"
 
 namespace fast {
 
 PatchGenerator::PatchGenerator() {
-    createInputPort<WholeSlideImage>(0);
+    createInputPort<ImagePyramid>(0);
     createInputPort<Image>(1, false); // Optional mask
 
     createOutputPort<Image>(0);
@@ -53,8 +53,8 @@ void PatchGenerator::generateStream() {
             }
             reportInfo() << "Generating patch " << patchX << " " << patchY << reportEnd();
 
-            auto patch = m_inputImage->getTileAsImage(m_level, patchX * m_width, patchY * m_height, patchWidth,
-                                                      patchHeight);
+            auto patch = m_inputImage->getPatchAsImage(m_level, patchX * m_width, patchY * m_height, patchWidth,
+                                                       patchHeight);
 
             // Store some frame data useful for patch stitching
             patch->setFrameData("original-width", std::to_string(levelWidth));
@@ -68,15 +68,16 @@ void PatchGenerator::generateStream() {
             patch->setFrameData("patch-spacing-y", std::to_string(patch->getSpacing().y()));
 
             try {
-                if(previousPatch)
+                if(previousPatch) {
                     addOutputData(0, previousPatch);
+                    frameAdded();
+                }
             } catch(ThreadStopped &e) {
                 std::unique_lock<std::mutex> lock(m_stopMutex);
                 m_stop = true;
                 break;
             }
             previousPatch = patch;
-            frameAdded();
             std::unique_lock<std::mutex> lock(m_stopMutex);
             if(m_stop)
                 break;
@@ -102,7 +103,7 @@ void PatchGenerator::execute() {
     if(m_width <= 0 || m_height <= 0)
         throw Exception("Width and height must be set to a positive number");
 
-    m_inputImage = getInputData<WholeSlideImage>();
+    m_inputImage = getInputData<ImagePyramid>();
     if(mInputConnections.count(1) > 0) {
         // If a mask was given store it
         m_inputMask = getInputData<Image>(1);

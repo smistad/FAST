@@ -7,7 +7,7 @@
 #include <cctype>
 #include <algorithm>
 #include <openslide/openslide.h>
-#include <FAST/Data/WholeSlideImage.hpp>
+#include <FAST/Data/ImagePyramid.hpp>
 
 namespace fast {
 
@@ -24,7 +24,7 @@ void WholeSlideImageImporter::execute() {
         throw Exception("Unable to open file " + mFilename + ". OpenSlide error message: " + message);
     }
 
-    auto image = getOutputData<WholeSlideImage>();
+    auto image = getOutputData<ImagePyramid>();
 
     // Read metainformation
     auto names = openslide_get_property_names(file);
@@ -37,7 +37,7 @@ void WholeSlideImageImporter::execute() {
         image->setMetadata(name, value);
     }
 
-    std::vector<WholeSlideImageLevel> levelList;
+    std::vector<ImagePyramid::Level> levelList;
     int levels = openslide_get_level_count(file);
     reportInfo() << "WSI has " << levels << " levels" << reportEnd();
 
@@ -51,7 +51,7 @@ void WholeSlideImageImporter::execute() {
         int sizeInMB = bytes / (1024 * 1024);
         if(sizeInMB > 4) {
             reportInfo() << "WSI level " << level << " has size " << fullWidth << "x" << fullHeight << " and " << sizeInMB << " MB adding.." << reportEnd();
-            WholeSlideImageLevel levelData;
+            ImagePyramid::Level levelData;
             levelData.width = fullWidth;
             levelData.height = fullHeight;
             levelList.push_back(levelData);
@@ -67,7 +67,7 @@ WholeSlideImageImporter::WholeSlideImageImporter() {
     mFilename = "";
     mIsModified = true;
     mGrayscale = false;
-    createOutputPort<WholeSlideImage>(0);
+    createOutputPort<ImagePyramid>(0);
 }
 
 void WholeSlideImageImporter::setGrayscale(bool grayscale) {

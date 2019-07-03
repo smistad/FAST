@@ -1,4 +1,4 @@
-#include <FAST/Data/WholeSlideImage.hpp>
+#include <FAST/Data/ImagePyramid.hpp>
 #include "TissueSegmentation.hpp"
 #include <FAST/Algorithms/Morphology/Dilation.hpp>
 #include <FAST/Algorithms/Morphology/Erosion.hpp>
@@ -7,14 +7,14 @@
 namespace fast {
 
 TissueSegmentation::TissueSegmentation() {
-    createInputPort<WholeSlideImage>(0);
+    createInputPort<ImagePyramid>(0);
     createOutputPort<Segmentation>(0);
 
     createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/TissueSegmentation/TissueSegmentation.cl");
 }
 
 void TissueSegmentation::execute() {
-    auto wsi = getInputData<WholeSlideImage>();
+    auto wsi = getInputData<ImagePyramid>();
     auto input = wsi->getLevelAsImage(wsi->getNrOfLevels()-1);
 
     auto output = Segmentation::New();

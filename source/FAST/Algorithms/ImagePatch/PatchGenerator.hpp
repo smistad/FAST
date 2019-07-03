@@ -15,7 +15,7 @@ class FAST_EXPORT PatchGenerator : public Streamer {
     protected:
         int m_width, m_height;
 
-        SharedPointer<WholeSlideImage> m_inputImage;
+        SharedPointer<ImagePyramid> m_inputImage;
         SharedPointer<Image> m_inputMask;
         int m_level;
 

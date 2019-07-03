@@ -3,7 +3,7 @@
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Utility.hpp"
 #include "FAST/SceneGraph.hpp"
-#include <FAST/Data/WholeSlideImage.hpp>
+#include <FAST/Data/ImagePyramid.hpp>
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
 #include <OpenGL/gl.h>
@@ -25,7 +25,7 @@ namespace fast {
 
 
 VeryLargeImageRenderer::VeryLargeImageRenderer() : Renderer() {
-    createInputPort<WholeSlideImage>(0, false);
+    createInputPort<ImagePyramid>(0, false);
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/VeryLargeImageRenderer/VeryLargeImageRenderer.cl", "3D");
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/VeryLargeImageRenderer/VeryLargeImageRenderer2D.cl", "2D");
     mIsModified = true;
@@ -76,7 +76,7 @@ void VeryLargeImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMa
     //std::cout << "Offset x:" << offset_x << std::endl;
     //std::cout << "Offset y:" << offset_y << std::endl;
 
-    auto input = std::static_pointer_cast<WholeSlideImage>(mDataToRender[0]);
+    auto input = std::static_pointer_cast<ImagePyramid>(mDataToRender[0]);
     int fullWidth = input->getFullWidth();
     int fullHeight = input->getFullHeight();
     //std::cout << "scaling: " << fullWidth/width << std::endl;
@@ -91,7 +91,7 @@ void VeryLargeImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMa
 
     mCurrentLevel = levelToUse;
     mCurrentTileScale = (float)fullWidth/levelWidth;
-    const int mTiles = input->getLevelTiles(mCurrentLevel);
+    const int mTiles = input->getLevelPatches(mCurrentLevel);
     //std::cout << "Tiles to use: " << mTiles << std::endl;
 
     activateShader();
@@ -124,7 +124,7 @@ void VeryLargeImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMa
             if(tile_y == mTiles-1)
                 tile_height = levelHeight - tile_offset_y;
 
-            // Only process visible tiles
+            // Only process visible patches
             // Fully contained and partly
             if(!(
                     (offset_x <= tile_offset_x*mCurrentTileScale && offset_x + width > tile_offset_x*mCurrentTileScale + tile_width*mCurrentTileScale)
@@ -145,7 +145,7 @@ void VeryLargeImageRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMa
 
             //std::cout << "Tile " << tile_x << " " << tile_y << " visible " << std::endl;
 
-            auto tile = input->getTile(levelToUse, tile_x, tile_y);
+            auto tile = input->getPatch(levelToUse, tile_x, tile_y);
             if(mTexturesToRender.count(tileString) == 0) {
                 std::cout << "Creating texture for tile " << tile_x << " " << tile_y << " " << std::endl;
 

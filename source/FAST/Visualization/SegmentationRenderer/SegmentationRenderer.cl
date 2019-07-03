@@ -11,7 +11,7 @@ __kernel void renderToTexture(
     const int2 imagePosition = {get_global_id(0), get_global_id(1)};
 
     // Default color
-    float4 color = {0, 0, 0, 0};
+    float4 color = {1, 1, 1, 0};
 
     // Read segmentation label
     uint label = read_imageui(image, sampler, imagePosition).x;
