@@ -20,37 +20,50 @@
 #include <tensorflow/core/platform/init_main.h>
 #include <tensorflow/cc/framework/ops.h>
 #include <tensorflow/core/platform/logging.h>
+#include <FAST/Utility.hpp>
 
 namespace fast {
 
 
-/**
- * This specialized Tensor Data class, allow us to store Tensorflow type tensors as FAST tensors.
- */
-class TensorflowTensor : public Tensor {
-    FAST_OBJECT(TensorflowTensor)
+class TensorFlowTensorWrapper {
     public:
-        void create(tensorflow::Tensor&& tensorflowTensor);
-        TensorAccess::pointer getAccess(accessType access) override;
-    private:
-        tensorflow::Tensor m_tensorflowTensor;
+        explicit TensorFlowTensorWrapper(tensorflow::Tensor&& inTensor) : tensor(inTensor) {};
+        tensorflow::Tensor tensor;
 };
 
-void TensorflowTensor::create(tensorflow::Tensor&& tensorflowTensor) {
-    m_tensorflowTensor = tensorflowTensor;
-    auto shape = m_tensorflowTensor.shape();
+void TensorFlowTensor::create(TensorFlowTensorWrapper* wrapper) {
+    m_tensorflowTensor = wrapper;
+    auto shape = m_tensorflowTensor->tensor.shape();
+    TensorShape fastShape;
     for(int i = 0; i < shape.dims(); ++i)
-        m_shape.addDimension(shape.dim_size(i));
+        fastShape.addDimension(shape.dim_size(i));
+
+    m_shape = fastShape;
     m_spacing = VectorXf::Ones(m_shape.getDimensions());
     mHostDataIsUpToDate = true;
-    const int width = m_shape[m_shape.getDimensions()-1];
-    const int height = m_shape[m_shape.getDimensions()-2];
-    mBoundingBox = BoundingBox(Vector3f(width, height, 1));
+    if(m_shape.getDimensions() >= 3) {
+        const int width = m_shape[m_shape.getDimensions() - 2];
+        const int height = m_shape[m_shape.getDimensions() - 3];
+        mBoundingBox = BoundingBox(Vector3f(width, height, 1));
+    }
+    /*
+    // Unnecessary copy..
+    auto data = make_uninitialized_unique<float[]>(fastShape.getTotalSize());
+    std::memcpy(data.get(), tensorflowTensor.flat<float>().data(), fastShape.getTotalSize()*sizeof(float));
+    Tensor::create(std::move(data), fastShape);
+     */
 }
 
-TensorAccess::pointer TensorflowTensor::getAccess(accessType type) {
-    // TODO process type
-    return std::make_unique<TensorAccess>(m_tensorflowTensor.flat<float>().data(), m_shape, std::static_pointer_cast<Tensor>(mPtr.lock()));
+bool TensorFlowTensor::hasAnyData() {
+    return true;
+}
+
+TensorFlowTensor::~TensorFlowTensor() {
+    delete m_tensorflowTensor;
+}
+
+float* TensorFlowTensor::getHostDataPointer() {
+    return m_tensorflowTensor->tensor.flat<float>().data();
 }
 
 static TensorShape getShape(const tensorflow::NodeDef& node) {
@@ -148,8 +161,8 @@ void TensorFlowEngine::run() {
     for(int j = 0; j < outputNames.size(); ++j) {
         const std::string outputName = outputNames[j];
         const NetworkNode node = mOutputNodes[outputName];
-        auto tensor = TensorflowTensor::New();
-        tensor->create(std::move(output_tensors[j]));
+        auto tensor = TensorFlowTensor::New();
+        tensor->create(new TensorFlowTensorWrapper(std::move(output_tensors[j])));
         mOutputNodes[outputName].data = tensor;
 	}
 	reportInfo() << "Finished parsing output" << reportEnd();

@@ -87,7 +87,7 @@ TensorAccess::pointer Tensor::getAccess(accessType type) {
         std::unique_lock<std::mutex> lock(mDataIsBeingAccessedMutex);
         mDataIsBeingAccessed = true;
     }
-    return std::make_unique<TensorAccess>(m_data.get(), m_shape, std::static_pointer_cast<Tensor>(mPtr.lock()));
+    return std::make_unique<TensorAccess>(getHostDataPointer(), m_shape, std::static_pointer_cast<Tensor>(mPtr.lock()));
 }
 
 void Tensor::free(ExecutionDevice::pointer device) {
@@ -186,7 +186,7 @@ void Tensor::updateOpenCLBufferData(OpenCLDevice::pointer device) {
 void Tensor::transferCLBufferFromHost(OpenCLDevice::pointer device) {
     std::size_t bufferSize = m_shape.getTotalSize()*4;
     device->getCommandQueue().enqueueWriteBuffer(*mCLBuffers[device],
-        CL_TRUE, 0, bufferSize, m_data.get());
+        CL_TRUE, 0, bufferSize, getHostDataPointer());
 }
 
 void Tensor::transferCLBufferToHost(OpenCLDevice::pointer device) {
@@ -196,7 +196,7 @@ void Tensor::transferCLBufferToHost(OpenCLDevice::pointer device) {
 	}
     std::size_t bufferSize = m_shape.getTotalSize()*4;
     device->getCommandQueue().enqueueReadBuffer(*mCLBuffers[device],
-        CL_TRUE, 0, bufferSize, m_data.get());
+        CL_TRUE, 0, bufferSize, getHostDataPointer());
 }
 
 void Tensor::setAllDataToOutOfDate() {
@@ -275,6 +275,10 @@ BoundingBox Tensor::getBoundingBox() const {
     T->getTransform().scale(Vector3f(getSpacing().x(), getSpacing().y(), getSpacing().z()));
 
     return SpatialDataObject::getBoundingBox().getTransformedBoundingBox(T);
+}
+
+float* Tensor::getHostDataPointer() {
+    return m_data.get();
 }
 
 }

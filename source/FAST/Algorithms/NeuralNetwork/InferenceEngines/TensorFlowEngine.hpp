@@ -26,4 +26,21 @@ class TensorFlowEngine : public InferenceEngine {
 };
 
 
+// Forward declare
+class TensorFlowTensorWrapper;
+
+/**
+ * This specialized Tensor Data class, allow us to store Tensorflow type tensors as FAST tensors.
+ */
+class TensorFlowTensor : public Tensor {
+    FAST_OBJECT(TensorFlowTensor)
+    public:
+        void create(TensorFlowTensorWrapper* tensorflowTensor);
+        ~TensorFlowTensor();
+    private:
+        TensorFlowTensorWrapper* m_tensorflowTensor;
+        float* getHostDataPointer() override;
+        bool hasAnyData() override;
+};
+
 }

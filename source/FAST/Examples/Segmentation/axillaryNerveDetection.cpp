@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
 
     std::string path = join(Config::getTestDataPath(), "NeuralNetworkModels/axillary_all_augmentations");
     auto segmentation = PixelClassifier::New();
-    segmentation->setInferenceEngine("OpenVINO");
+    segmentation->setInferenceEngine("TensorFlowCUDA");
     const auto engine = segmentation->getInferenceEngine()->getName();
     if(engine.substr(0, 10) == "TensorFlow") {
         segmentation->setOutputNode(0, "conv2d_23/truediv");

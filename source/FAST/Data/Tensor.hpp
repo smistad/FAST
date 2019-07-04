@@ -54,6 +54,7 @@ class FAST_EXPORT Tensor : public SpatialDataObject {
         void setAllDataToOutOfDate();
         virtual bool hasAnyData();
         void updateHostData();
+        virtual float* getHostDataPointer();
 
         std::unique_ptr<float[]> m_data;
         std::unordered_map<SharedPointer<OpenCLDevice>, cl::Buffer*> mCLBuffers;
