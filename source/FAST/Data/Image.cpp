@@ -4,6 +4,7 @@
 #include "FAST/Utility.hpp"
 #include "FAST/SceneGraph.hpp"
 #include "FAST/Config.hpp"
+#include <eigen3/unsupported/Eigen/CXX11/Tensor>
 
 namespace fast {
 
@@ -1141,57 +1142,62 @@ Image::pointer Image::crop(VectorXi offset, VectorXi size, bool allowOutOfBounds
     bool isOpenCLImage;
     findDeviceWithUptodateData(device, isOpenCLImage);
     // Handle host
-    if(device->isHost()) {
-        throw Exception("Cropping on host not implemented yet");
+
+    OpenCLDevice::pointer clDevice;
+    if(device->isHost()) { // If data is only on host, copy data to GPU first
+        // TODO implement cropping on host instead
+        clDevice = std::dynamic_pointer_cast<OpenCLDevice>(DeviceManager::getInstance()->getDefaultComputationDevice());
+        copyData(clDevice, mHostData.get());
     } else {
-        OpenCLDevice::pointer clDevice = std::static_pointer_cast<OpenCLDevice>(device);
-        if(getDimensions() == 2) {
-            if(offset.size() < 2 || size.size() < 2)
-                throw Exception("offset and size vectors given to Image::crop must have at least 2 channels");
-            newImage->create(newImageSize.cast<uint>(), getDataType(), getNrOfChannels());
-            if(needInitialization)
-				newImage->fill(0);
-            OpenCLImageAccess::pointer readAccess = this->getOpenCLImageAccess(ACCESS_READ, clDevice);
-            OpenCLImageAccess::pointer writeAccess = newImage->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
-            cl::Image2D* input = readAccess->get2DImage();
-            cl::Image2D* output = writeAccess->get2DImage();
+        clDevice = std::static_pointer_cast<OpenCLDevice>(device);
+    }
 
-            /*
-            std::cout << "New cropping:" << std::endl;
-            std::cout << offset.transpose() << std::endl;
-            std::cout << size.transpose() << std::endl;
-            std::cout << getSize().transpose() << std::endl;
-            std::cout << newImage->getSize().transpose() << std::endl;
-            std::cout << copySourceOffset.transpose() << std::endl;
-            std::cout << copyDestinationOffset.transpose() << std::endl;
-            std::cout << copySize.transpose() << std::endl;
-            */
-            clDevice->getCommandQueue().enqueueCopyImage(
-                    *input,
-                    *output,
-                    createRegion(copySourceOffset.x(), copySourceOffset.y(), 0),
-                    createRegion(copyDestinationOffset.x(), copyDestinationOffset.y(), 0),
-                    createRegion(copySize.x(), copySize.y(), 1)
-            );
-        } else {
-            if(offset.size() < 3 || size.size() < 3)
-                throw Exception("offset and size vectors given to Image::crop must have at least 3 channels");
-            newImage->create(newImageSize.cast<uint>(), getDataType(), getNrOfChannels());
-            if(needInitialization)
-				newImage->fill(0);
-            OpenCLImageAccess::pointer readAccess = this->getOpenCLImageAccess(ACCESS_READ, clDevice);
-            OpenCLImageAccess::pointer writeAccess = newImage->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
-            cl::Image3D* input = readAccess->get3DImage();
-            cl::Image3D* output = writeAccess->get3DImage();
+    if(getDimensions() == 2) {
+        if(offset.size() < 2 || size.size() < 2)
+            throw Exception("offset and size vectors given to Image::crop must have at least 2 channels");
+        newImage->create(newImageSize.cast<uint>(), getDataType(), getNrOfChannels());
+        if(needInitialization)
+            newImage->fill(0);
+        OpenCLImageAccess::pointer readAccess = this->getOpenCLImageAccess(ACCESS_READ, clDevice);
+        OpenCLImageAccess::pointer writeAccess = newImage->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
+        cl::Image2D* input = readAccess->get2DImage();
+        cl::Image2D* output = writeAccess->get2DImage();
 
-            clDevice->getCommandQueue().enqueueCopyImage(
-                    *input,
-                    *output,
-                    createRegion(copySourceOffset.x(), copySourceOffset.y(), copySourceOffset.z()),
-                    createRegion(copyDestinationOffset.x(), copyDestinationOffset.y(), copyDestinationOffset.z()),
-                    createRegion(copySize.x(), copySize.y(), copySize.z())
-            );
-        }
+        /*
+        std::cout << "New cropping:" << std::endl;
+        std::cout << offset.transpose() << std::endl;
+        std::cout << size.transpose() << std::endl;
+        std::cout << getSize().transpose() << std::endl;
+        std::cout << newImage->getSize().transpose() << std::endl;
+        std::cout << copySourceOffset.transpose() << std::endl;
+        std::cout << copyDestinationOffset.transpose() << std::endl;
+        std::cout << copySize.transpose() << std::endl;
+        */
+        clDevice->getCommandQueue().enqueueCopyImage(
+                *input,
+                *output,
+                createRegion(copySourceOffset.x(), copySourceOffset.y(), 0),
+                createRegion(copyDestinationOffset.x(), copyDestinationOffset.y(), 0),
+                createRegion(copySize.x(), copySize.y(), 1)
+        );
+    } else {
+        if(offset.size() < 3 || size.size() < 3)
+            throw Exception("offset and size vectors given to Image::crop must have at least 3 channels");
+        newImage->create(newImageSize.cast<uint>(), getDataType(), getNrOfChannels());
+        if(needInitialization)
+            newImage->fill(0);
+        OpenCLImageAccess::pointer readAccess = this->getOpenCLImageAccess(ACCESS_READ, clDevice);
+        OpenCLImageAccess::pointer writeAccess = newImage->getOpenCLImageAccess(ACCESS_READ_WRITE, clDevice);
+        cl::Image3D* input = readAccess->get3DImage();
+        cl::Image3D* output = writeAccess->get3DImage();
+
+        clDevice->getCommandQueue().enqueueCopyImage(
+                *input,
+                *output,
+                createRegion(copySourceOffset.x(), copySourceOffset.y(), copySourceOffset.z()),
+                createRegion(copyDestinationOffset.x(), copyDestinationOffset.y(), copyDestinationOffset.z()),
+                createRegion(copySize.x(), copySize.y(), copySize.z())
+        );
     }
 
     // Fix placement and spacing of the new cropped image

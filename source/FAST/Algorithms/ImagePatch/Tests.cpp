@@ -9,10 +9,12 @@
 #include <FAST/Algorithms/ImagePatch/PatchStitcher.hpp>
 #include <FAST/Algorithms/ImagePatch/ImageToBatchGenerator.hpp>
 #include <FAST/Algorithms/NeuralNetwork/NeuralNetwork.hpp>
+#include <FAST/Importers/ImageFileImporter.hpp>
+#include <FAST/Visualization/VolumeRenderer/AlphaBlendingVolumeRenderer.hpp>
 
 using namespace fast;
 
-TEST_CASE("Patch generator", "[fast][wsi][PatchGenerator]") {
+TEST_CASE("Patch generator for WSI", "[fast][wsi][PatchGenerator][visual]") {
     auto importer = WholeSlideImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "/CMU-1.tiff");
 
@@ -25,12 +27,29 @@ TEST_CASE("Patch generator", "[fast][wsi][PatchGenerator]") {
     renderer->addInputConnection(generator->getOutputPort());
     auto window = SimpleWindow::New();
     window->addRenderer(renderer);
-    //window->setTimeout(1000);
+    window->setTimeout(2000);
     window->set2DMode();
     window->start();
 }
 
-TEST_CASE("Patch generator and sticher", "[fast][wsi][PatchStitcher]") {
+TEST_CASE("Patch generator for volumes", "[fast][volume][PatchGenerator][visual]") {
+    auto importer = ImageFileImporter::New();
+    importer->setFilename(Config::getTestDataPath() + "/CT/CT-Thorax.mhd");
+
+    auto generator = PatchGenerator::New();
+    generator->setPatchSize(512, 512, 32);
+    generator->setInputConnection(importer->getOutputPort());
+
+    auto renderer = AlphaBlendingVolumeRenderer::New();
+    renderer->setTransferFunction(TransferFunction::CT_Blood_And_Bone());
+    renderer->addInputConnection(generator->getOutputPort());
+    auto window = SimpleWindow::New();
+    window->addRenderer(renderer);
+    //window->setTimeout(1000);
+    window->start();
+}
+
+TEST_CASE("Patch generator and stitcher for WSI", "[fast][wsi][PatchStitcher][visual]") {
     auto importer = WholeSlideImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "/CMU-1.tiff");
 
@@ -51,7 +70,7 @@ TEST_CASE("Patch generator and sticher", "[fast][wsi][PatchStitcher]") {
     window->start();
 }
 
-TEST_CASE("Patch generator, sticher and image to batch generator", "[fast][wsi][ImageToBatchGenerator]") {
+TEST_CASE("Patch generator, sticher and image to batch generator for WSI", "[fast][wsi][ImageToBatchGenerator]") {
     auto importer = WholeSlideImageImporter::New();
     importer->setFilename(Config::getTestDataPath() + "/CMU-1.tiff");
 
