@@ -80,7 +80,7 @@ __kernel void channelConvert3D(
     if(type == CLK_FLOAT) {
         float4 tmp = read_imagef(input, sampler, pos);
         float* pixel = (float*)&tmp;
-        float4 result;
+        float result[4];
         for(int i = 0; i < 4; ++i) {
             if(removeChannel[i] == 0) {
                 result[writePos*sign + offset] = pixel[i];
