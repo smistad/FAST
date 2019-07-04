@@ -69,9 +69,7 @@ void PixelClassifier::execute() {
 
     const int size = outputWidth*outputHeight*outputDepth;
     // TODO reuse some of the output processing in NN
-    std::cout << tensor->getShape().toString() << std::endl;
     tensor->deleteDimension(0); // TODO assuming batch size is 1, remove this dimension
-    std::cout << tensor->getShape().toString() << std::endl;
     if(mHeatmapOutput) {
         if(ordering == ImageOrdering::CHW) {
             // Convert to channel last

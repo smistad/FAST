@@ -132,7 +132,7 @@ TEST_CASE("Execute NN on single 3D image", "[fast][neuralnetwork][3d][visual]") 
     */
 }
 
-TEST_CASE("Multi input, single output network", "[fast][neuralnetwork]") {
+TEST_CASE("Multi input single output network", "[fast][neuralnetwork]") {
     for(auto& engine : InferenceEngineManager::getEngineList()) {
         auto importer = ImageFileImporter::New();
         importer->setFilename(Config::getTestDataPath() + "US/JugularVein/US-2D_0.mhd");
@@ -155,13 +155,13 @@ TEST_CASE("Multi input, single output network", "[fast][neuralnetwork]") {
         auto port = network->getOutputPort();
         network->update();
         auto data = port->getNextFrame<Tensor>();
-        // We are expecting a tensor output with dimensions (1, 6)
-        REQUIRE(data->getShape().getDimensions() == 2);
-        CHECK(data->getShape()[1] == 6);
+        // We are expecting a tensor output with dimensions (6)
+        REQUIRE(data->getShape().getDimensions() == 1);
+        CHECK(data->getShape()[0] == 6);
     }
 }
 
-TEST_CASE("Single input, multi output network", "[fast][neuralnetwork]") {
+TEST_CASE("Single input multi output network", "[fast][neuralnetwork]") {
     for(auto& engine : InferenceEngineManager::getEngineList()) {
         auto importer = ImageFileImporter::New();
         importer->setFilename(Config::getTestDataPath() + "US/JugularVein/US-2D_0.mhd");
@@ -188,13 +188,11 @@ TEST_CASE("Single input, multi output network", "[fast][neuralnetwork]") {
         auto data1 = port1->getNextFrame<Tensor>();
         auto data2 = port2->getNextFrame<Tensor>();
 
-        // We are expecting two tensors as output each with dimensions (1, 6)
-        REQUIRE(data1->getShape().getDimensions() == 2);
-        CHECK(data1->getShape()[0] == 1);
-        CHECK(data1->getShape()[1] == 6);
-        REQUIRE(data2->getShape().getDimensions() == 2);
-        CHECK(data2->getShape()[0] == 1);
-        CHECK(data2->getShape()[1] == 6);
+        // We are expecting two tensors as output each with dimensions (6)
+        REQUIRE(data1->getShape().getDimensions() == 1);
+        CHECK(data1->getShape()[0] == 6);
+        REQUIRE(data2->getShape().getDimensions() == 1);
+        CHECK(data2->getShape()[0] == 6);
     }
 }
 
@@ -222,10 +220,9 @@ TEST_CASE("Single 3D image input network", "[fast][neuralnetwork][3d]") {
         network->update();
         auto data = port->getNextFrame<Tensor>();
 
-        // We are expecting one tensor as output with shape (1, 10)
-        REQUIRE(data->getShape().getDimensions() == 2);
-        CHECK(data->getShape()[0] == 1);
-        CHECK(data->getShape()[1] == 10);
+        // We are expecting one tensor as output with shape (10)
+        REQUIRE(data->getShape().getDimensions() == 1);
+        CHECK(data->getShape()[0] == 10);
     }
 }
 
@@ -268,16 +265,29 @@ TEST_CASE("Execute NN on batch of 2D images", "[fast][neuralnetwork][batch]") {
         auto port1 = network->getOutputPort(0);
         auto port2 = network->getOutputPort(1);
         network->update();
-        auto data1 = port1->getNextFrame<Tensor>();
-        auto data2 = port2->getNextFrame<Tensor>();
+        auto data1 = port1->getNextFrame<Batch>();
+        auto data2 = port2->getNextFrame<Batch>();
 
-        // We are expecting two tensors as output each with dimensions (2, 6)
-        REQUIRE(data1->getShape().getDimensions() == 2);
-        CHECK(data1->getShape()[0] == 2);
-        CHECK(data1->getShape()[1] == 6);
-        REQUIRE(data2->getShape().getDimensions() == 2);
-        CHECK(data2->getShape()[0] == 2);
-        CHECK(data2->getShape()[1] == 6);
+        // We are expecting two batches as output each with dimensions (6)
+        auto access1 = data1->getAccess(ACCESS_READ);
+        auto list1 = access1->getData();
+
+        REQUIRE(list1.getSize() == 2);
+        CHECK(list1.isTensors());
+        CHECK_FALSE(list1.isImages());
+
+        CHECK(list1.getTensors()[0]->getShape()[0] == 6);
+        CHECK(list1.getTensors()[1]->getShape()[0] == 6);
+
+        auto access2 = data2->getAccess(ACCESS_READ);
+        auto list2 = access2->getData();
+
+        REQUIRE(list2.getSize() == 2);
+        CHECK(list2.isTensors());
+        CHECK_FALSE(list2.isImages());
+
+        CHECK(list2.getTensors()[0]->getShape()[0] == 6);
+        CHECK(list2.getTensors()[1]->getShape()[0] == 6);
     }
 }
 
@@ -318,9 +328,8 @@ TEST_CASE("NN: temporal input static output", "[fast][neuralnetwork][sequence]")
         network->update();
         auto data = port->getNextFrame<Tensor>();
 
-        REQUIRE(data->getShape().getDimensions() == 2);
-        CHECK(data->getShape()[0] == 1);
-        CHECK(data->getShape()[1] == 10);
+        REQUIRE(data->getShape().getDimensions() == 1);
+        CHECK(data->getShape()[0] == 10);
     }
 }
 
@@ -361,10 +370,9 @@ TEST_CASE("NN: temporal input temporal output", "[fast][neuralnetwork][sequence]
         network->update();
         auto data = port->getNextFrame<Tensor>();
 
-        REQUIRE(data->getShape().getDimensions() == 3);
-        CHECK(data->getShape()[0] == 1);
-        CHECK(data->getShape()[1] == 3); // Timesteps
-        CHECK(data->getShape()[2] == 10);
+        REQUIRE(data->getShape().getDimensions() == 2);
+        CHECK(data->getShape()[0] == 3); // Timesteps
+        CHECK(data->getShape()[1] == 10);
     }
 }
 
@@ -407,10 +415,9 @@ TEST_CASE("NN: temporal input temporal output, streaming mode", "[fast][neuralne
             network->update();
             auto data = port->getNextFrame<Tensor>();
 
-            REQUIRE(data->getShape().getDimensions() == 3);
-            CHECK(data->getShape()[0] == 1);
-            CHECK(data->getShape()[1] == 3); // Timesteps
-            CHECK(data->getShape()[2] == 10);
+            REQUIRE(data->getShape().getDimensions() == 2);
+            CHECK(data->getShape()[0] == 3); // Timesteps
+            CHECK(data->getShape()[1] == 10);
         }
     }
 }
