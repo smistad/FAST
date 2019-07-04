@@ -91,7 +91,7 @@ void PixelClassifier::execute() {
     } else {
         auto output = Image::New();
         auto data = make_uninitialized_unique<uchar[]>(size);
-        const int nrOfClasses = ordering == ImageOrdering::CHW ? tensor->getShape()[0] : tensor->getShape()[2];
+        const int nrOfClasses = ordering == ImageOrdering::CHW ? tensor->getShape()[0] : tensor->getShape()[tensor->getShape().getDimensions()-1];
         for(int x = 0; x < size; ++x) {
             uchar maxClass = 0;
             for(uchar j = 1; j < nrOfClasses; j++) {

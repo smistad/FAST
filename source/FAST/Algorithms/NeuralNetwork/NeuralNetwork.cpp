@@ -321,11 +321,14 @@ Tensor::pointer NeuralNetwork::convertImagesToTensor(std::vector<Image::pointer>
         kernel.setArg(3, mMean);
         kernel.setArg(4, mStd);
         kernel.setArg(5, (int) (mSignedInputNormalization ? 1 : 0));
+        kernel.setArg(6, (int) (mHorizontalImageFlipping ? 1 : 0));
+        kernel.setArg(7, image->getNrOfChannels());
+        kernel.setArg(8, mMinIntensity);
+        kernel.setArg(9, mMaxIntensity);
+        kernel.setArg(10, (int)(mMinAndMaxIntensitySet ? 1 : 0));
         cl::NDRange globalSize;
         if(image->getDimensions() == 2) {
             kernel.setArg(0, *access->get2DImage());
-            kernel.setArg(6, (int) (mHorizontalImageFlipping ? 1 : 0));
-            kernel.setArg(7, image->getNrOfChannels());
             globalSize = cl::NDRange(width, height);
         } else {
             kernel.setArg(0, *access->get3DImage());
@@ -442,6 +445,14 @@ InferenceEngine::pointer NeuralNetwork::getInferenceEngine() const {
 void NeuralNetwork::setMeanAndStandardDeviation(float mean, float std) {
     mMean = mean;
     mStd = std;
+    mIsModified = true;
+}
+
+void NeuralNetwork::setMinAndMaxIntensity(float min, float max) {
+    mMinIntensity = min;
+    mMaxIntensity = max;
+    mMinAndMaxIntensitySet = true;
+    mIsModified = true;
 }
 
 };

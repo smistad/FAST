@@ -8,7 +8,10 @@ __kernel void normalize2DInput(
 	__private float std,
 	__private int signedInputNormalization,
 	__private int horizontalFlip,
-	__private int channels
+	__private int channels,
+	__private float minIntensity,
+	__private float maxIntensity,
+	__private int clipIntensity
 	) {
 	
 	const int2 pos = {get_global_id(0), get_global_id(1)};
@@ -22,11 +25,13 @@ __kernel void normalize2DInput(
 		value = convert_float4(read_imageui(input, sampler, pos));
 	}
 
+	if(clipIntensity)
+	    value = clamp(value, minIntensity, maxIntensity);
+	value = (value - mean)/std;
     value = value*scaleFactor;
     if(signedInputNormalization) {
         value = value*2 - 1;
 	}
-	value = (value - mean)/std;
 
     int x;
 	if(horizontalFlip == 1) {
@@ -50,7 +55,12 @@ __kernel void normalize3DInput(
 	__private float scaleFactor,
     __private float mean,
 	__private float std,
-	__private int signedInputNormalization
+	__private int signedInputNormalization,
+	__private int horizontalFlip,
+	__private int channels,
+	__private float minIntensity,
+	__private float maxIntensity,
+	__private int clipIntensity
 	) {
 
 	const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
@@ -64,11 +74,13 @@ __kernel void normalize3DInput(
 		value = read_imageui(input, sampler, pos).x;
 	}
 
+	if(clipIntensity)
+	    value = clamp(value, minIntensity, maxIntensity);
+	value = (value - mean)/std;
     value = value*scaleFactor;
     if(signedInputNormalization) {
         value = value*2 - 1;
 	}
-	value = (value - mean)/std;
 
     int position = pos.x + pos.y*get_global_size(0) + pos.z*get_global_size(0)*get_global_size(1);
     output[position] = value;

@@ -111,6 +111,12 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
          * @param std
          */
         void setMeanAndStandardDeviation(float mean, float std);
+        /**
+         * Intensities of input image will be clipped at these values
+         * @param min
+         * @param max
+         */
+        void setMinAndMaxIntensity(float min, float max);
         void setSignedInputNormalization(bool signedInputNormalization);
         void setPreserveAspectRatio(bool preserve);
         /**
@@ -140,7 +146,8 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
         bool mSignedInputNormalization = false;
         int mTemporalWindow = 0;
         int m_batchSize;
-        float mScaleFactor, mMean, mStd;
+        float mScaleFactor, mMean, mStd, mMinIntensity, mMaxIntensity;
+        bool mMinAndMaxIntensitySet = false;
         Vector3f mNewInputSpacing;
 
         virtual void run();

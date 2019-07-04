@@ -20,6 +20,7 @@
     fast_add_test_sources(
         Tests.cpp
         ImageClassifierTests.cpp
+        VolumeTests.cpp
     )
         if(FAST_MODULE_WholeSlideImaging)
             fast_add_test_sources(WSITests.cpp)
