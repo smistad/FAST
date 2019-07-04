@@ -9,7 +9,7 @@ using namespace fast;
 
 int main() {
 
-	SimpleGUI::pointer window = SimpleGUI::New();
+	auto window = SimpleGUI::New();
 #ifdef FAST_CONTINUOUS_INTEGRATION
 	// This will automatically close the window after 5 seconds, used for CI testing
     window->setTimeout(5*1000);

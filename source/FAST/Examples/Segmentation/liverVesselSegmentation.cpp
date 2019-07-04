@@ -16,13 +16,14 @@ int main(int argc, char** argv) {
         return 0;
     }
     std::string filename = argv[1];
-    ImageFileImporter::pointer importer = ImageFileImporter::New();
+
+    auto importer = ImageFileImporter::New();
     importer->setFilename(filename);
 
-    HounsefieldConverter::pointer converter = HounsefieldConverter::New();
+    auto converter = HounsefieldConverter::New();
     converter->setInputConnection(importer->getOutputPort());
 
-    TubeSegmentationAndCenterlineExtraction::pointer tubeExtraction = TubeSegmentationAndCenterlineExtraction::New();
+    auto tubeExtraction = TubeSegmentationAndCenterlineExtraction::New();
     tubeExtraction->setInputConnection(converter->getOutputPort());
 
     // Parameters
@@ -37,20 +38,20 @@ int main(int argc, char** argv) {
     tubeExtraction->setKeepLargestTree(true);
     tubeExtraction->enableAutomaticCropping();
 
-    SliceRenderer::pointer renderer = SliceRenderer::New();
+    auto renderer = SliceRenderer::New();
     renderer->addInputConnection(importer->getOutputPort(), PLANE_Z);
 
-    LineRenderer::pointer lineRenderer = LineRenderer::New();
+    auto lineRenderer = LineRenderer::New();
     lineRenderer->addInputConnection(tubeExtraction->getCenterlineOutputPort(), Color::Blue(), 1);
     lineRenderer->setDefaultDrawOnTop(true);
 
-    SurfaceExtraction::pointer surfaceExtraction = SurfaceExtraction::New();
+    auto surfaceExtraction = SurfaceExtraction::New();
     surfaceExtraction->setInputConnection(tubeExtraction->getSegmentationOutputPort());
 
-    TriangleRenderer::pointer triangleRenderer = TriangleRenderer::New();
+    auto triangleRenderer = TriangleRenderer::New();
     triangleRenderer->addInputConnection(surfaceExtraction->getOutputPort());
 
-    SimpleWindow::pointer window = SimpleWindow::New();
+    auto window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->addRenderer(triangleRenderer);
     window->addRenderer(lineRenderer);

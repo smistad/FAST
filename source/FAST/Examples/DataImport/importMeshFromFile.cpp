@@ -16,15 +16,15 @@ int main(int argc, char** argv) {
     parser.parse(argc, argv);
 
     // Import a triangle mesh from vtk file using the VTKMeshFileImporter
-    VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
+    auto importer = VTKMeshFileImporter::New();
     importer->setFilename(parser.get("filename"));
 
     // Renderer mesh
-    TriangleRenderer::pointer renderer = TriangleRenderer::New();
+    auto renderer = TriangleRenderer::New();
     renderer->addInputConnection(importer->getOutputPort());
 
     // Setup window
-    SimpleWindow::pointer window = SimpleWindow::New();
+    auto window = SimpleWindow::New();
     window->addRenderer(renderer);
 #ifdef FAST_CONTINUOUS_INTEGRATION
     window->setTimeout(5*1000); // automatically close window after 5 seconds

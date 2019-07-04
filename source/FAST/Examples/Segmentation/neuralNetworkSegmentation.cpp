@@ -17,12 +17,12 @@ using namespace fast;
 int main() {
     Reporter::setGlobalReportMethod(Reporter::COUT);
 
-    ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
+    auto streamer = ImageFileStreamer::New();
     streamer->setFilenameFormat(Config::getTestDataPath() + "US/JugularVein/US-2D_#.mhd");
     streamer->setTimestampFilename(Config::getTestDataPath() + "US/JugularVein/timestamps.fts");
     streamer->enableLooping();
 
-    PixelClassifier::pointer segmentation = PixelClassifier::New();
+    auto segmentation = PixelClassifier::New();
     segmentation->setScaleFactor(1.0f / 255.0f);
     const auto engine = segmentation->getInferenceEngine()->getName();
     if(engine.substr(0,10) == "TensorFlow") {
@@ -38,16 +38,16 @@ int main() {
     segmentation->setInputConnection(streamer->getOutputPort());
     segmentation->enableRuntimeMeasurements();
 
-    SegmentationRenderer::pointer segmentationRenderer = SegmentationRenderer::New();
+    auto segmentationRenderer = SegmentationRenderer::New();
     segmentationRenderer->addInputConnection(segmentation->getOutputPort());
     segmentationRenderer->setOpacity(0.25);
     segmentationRenderer->setColor(Segmentation::LABEL_FOREGROUND, Color::Red());
     segmentationRenderer->setColor(Segmentation::LABEL_BLOOD, Color::Blue());
 
-    ImageRenderer::pointer imageRenderer = ImageRenderer::New();
+    auto imageRenderer = ImageRenderer::New();
     imageRenderer->setInputConnection(streamer->getOutputPort());
 
-    SimpleWindow::pointer window = SimpleWindow::New();
+    auto window = SimpleWindow::New();
     window->addRenderer(imageRenderer);
     window->addRenderer(segmentationRenderer);
     window->set2DMode();

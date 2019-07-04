@@ -14,23 +14,23 @@ int main(int argc, char** argv) {
     Config::setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
     Reporter::setGlobalReportMethod(Reporter::COUT);
     // Setup streaming
-    KinectStreamer::pointer streamer1 = KinectStreamer::New();
+    auto streamer1 = KinectStreamer::New();
     streamer1->setPointCloudFiltering(true);
 
-    KinectStreamer::pointer streamer2 = KinectStreamer::New();
+    auto streamer2 = KinectStreamer::New();
     streamer2->setPointCloudFiltering(true);
 
     // Render point cloud
-    VertexRenderer::pointer renderer1 = VertexRenderer::New();
+    auto renderer1 = VertexRenderer::New();
     renderer1->addInputConnection(streamer1->getOutputPort(2));
     renderer1->setDefaultSize(1.5);
 
-    VertexRenderer::pointer renderer2 = VertexRenderer::New();
+    auto renderer2 = VertexRenderer::New();
     renderer2->addInputConnection(streamer2->getOutputPort(2));
     renderer2->setDefaultSize(1.5);
 
     // Setup window
-    MultiViewWindow::pointer window = MultiViewWindow::New();
+    auto window = MultiViewWindow::New();
     window->setTitle("FAST Kinect Streaming");
     window->setHeight(512);
     window->setWidth(1920);

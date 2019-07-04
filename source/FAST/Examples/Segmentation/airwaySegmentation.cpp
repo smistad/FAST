@@ -27,29 +27,29 @@ int main(int argc, char** argv) {
 	parser.parse(argc, argv);
 
 	// Import CT data
-	ImageFileImporter::pointer importer = ImageFileImporter::New();
+	auto importer = ImageFileImporter::New();
 	importer->setFilename(parser.get(1));
 
 	// Do airway segmentation
-	AirwaySegmentation::pointer segmentation = AirwaySegmentation::New();
+	auto segmentation = AirwaySegmentation::New();
 	segmentation->setInputConnection(importer->getOutputPort());
 	segmentation->setSmoothing(parser.get<float>("smoothing"));
 	if(parser.gotValue("seed"))
         segmentation->setSeedPoint(parser.get<Vector3i>("seed"));
 
 	// Extract centerline from segmentation
-	CenterlineExtraction::pointer centerline = CenterlineExtraction::New();
+	auto centerline = CenterlineExtraction::New();
 	centerline->setInputConnection(segmentation->getOutputPort());
 
     // Export data if user has specified to do so
     if(parser.gotValue("export_segmentation")) {
-        MetaImageExporter::pointer exporter = MetaImageExporter::New();
+        auto exporter = MetaImageExporter::New();
         exporter->setFilename(parser.get("export_segmentation"));
         exporter->setInputConnection(segmentation->getOutputPort());
         exporter->update();
     }
     if(parser.gotValue("export_centerline")) {
-        VTKMeshFileExporter::pointer exporter = VTKMeshFileExporter::New();
+        auto exporter = VTKMeshFileExporter::New();
         exporter->setFilename(parser.get("export_centerline"));
         exporter->setInputConnection(centerline->getOutputPort());
         exporter->update();
@@ -59,19 +59,19 @@ int main(int argc, char** argv) {
 		return 0; // Dont render if exporting..
 
 	// Extract surface from segmentation
-	SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
+	auto extraction = SurfaceExtraction::New();
 	extraction->setInputConnection(segmentation->getOutputPort());
 
 	// Set up renderers and window
-	TriangleRenderer::pointer renderer = TriangleRenderer::New();
+	auto renderer = TriangleRenderer::New();
 	renderer->addInputConnection(extraction->getOutputPort());
 
-	LineRenderer::pointer lineRenderer = LineRenderer::New();
+	auto lineRenderer = LineRenderer::New();
 	lineRenderer->addInputConnection(centerline->getOutputPort());
 	lineRenderer->setDefaultDrawOnTop(true);
 	lineRenderer->setDefaultColor(Color::Blue());
 
-	SimpleWindow::pointer window = SimpleWindow::New();
+	auto window = SimpleWindow::New();
 	window->addRenderer(renderer);
 	window->addRenderer(lineRenderer);
 #ifdef FAST_CONTINUOUS_INTEGRATION

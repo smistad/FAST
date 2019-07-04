@@ -17,14 +17,14 @@ int main(int argc, char** argv) {
     parser.addVariable("sleep-time", "50");
     parser.parse(argc, argv);
 
-    ImageFileStreamer::pointer streamer = ImageFileStreamer::New();
+    auto streamer = ImageFileStreamer::New();
     streamer->setFilenameFormat(parser.get("filename"));
     streamer->setSleepTime(parser.get<int>("sleep-time"));
 
-    ImageRenderer::pointer renderer = ImageRenderer::New();
+    auto renderer = ImageRenderer::New();
     renderer->addInputConnection(streamer->getOutputPort());
 
-    SimpleWindow::pointer window = SimpleWindow::New();
+    auto window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->set2DMode();
 #ifdef FAST_CONTINUOUS_INTEGRATION

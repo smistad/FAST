@@ -16,15 +16,15 @@ int main(int argc, char** argv) {
     parser.parse(argc, argv);
 
     // Import line set from vtk file
-    VTKMeshFileImporter::pointer importer = VTKMeshFileImporter::New();
+    auto importer = VTKMeshFileImporter::New();
     importer->setFilename(parser.get("filename"));
 
     // Render vertices
-    VertexRenderer::pointer renderer = VertexRenderer::New();
+    auto renderer = VertexRenderer::New();
     renderer->addInputConnection(importer->getOutputPort());
 
     // Setup window
-    SimpleWindow::pointer window = SimpleWindow::New();
+    auto window = SimpleWindow::New();
     window->addRenderer(renderer);
 #ifdef FAST_CONTINUOUS_INTEGRATION
 	// This will automatically close the window after 5 seconds, used for CI testing

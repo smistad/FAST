@@ -17,15 +17,15 @@ int main(int argc, char** argv) {
     parser.parse(argc, argv);
 
     // Import image from file using the ImageFileImporter
-    ImageFileImporter::pointer importer = ImageFileImporter::New();
+    auto importer = ImageFileImporter::New();
     importer->setFilename(parser.get(1));
 
     // Render
-    ImageRenderer::pointer renderer = ImageRenderer::New();
+    auto renderer = ImageRenderer::New();
     renderer->addInputConnection(importer->getOutputPort());
 
     // Setup window
-    SimpleWindow::pointer window = SimpleWindow::New();
+    auto window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->set2DMode();
 #ifdef FAST_CONTINUOUS_INTEGRATION

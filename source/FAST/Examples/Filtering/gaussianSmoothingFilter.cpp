@@ -13,19 +13,20 @@ using namespace fast;
 
 int main() {
     // Import image from file using the ImageFileImporter
-    ImageFileImporter::pointer importer = ImageFileImporter::New();
+    auto importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath()+"/US/US-2D.jpg");
 
     // Smooth image
-    GaussianSmoothingFilter::pointer filter = GaussianSmoothingFilter::New();
+    auto filter = GaussianSmoothingFilter::New();
     filter->setInputConnection(importer->getOutputPort());
     filter->setStandardDeviation(2.0);
     filter->setMaskSize(7);
 
     // Renderer image
-    ImageRenderer::pointer renderer = ImageRenderer::New();
+    auto renderer = ImageRenderer::New();
     renderer->addInputConnection(filter->getOutputPort());
-    SimpleWindow::pointer window = SimpleWindow::New();
+
+    auto window = SimpleWindow::New();
     window->addRenderer(renderer);
 #ifdef FAST_CONTINUOUS_INTEGRATION
 	// This will automatically close the window after 5 seconds, used for CI testing

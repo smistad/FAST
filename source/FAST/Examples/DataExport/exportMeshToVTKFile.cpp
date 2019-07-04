@@ -12,16 +12,16 @@ using namespace fast;
 
 int main() {
     // Import CT image
-    ImageFileImporter::pointer importer = ImageFileImporter::New();
+    auto importer = ImageFileImporter::New();
     importer->setFilename(Config::getTestDataPath() + "CT/CT-Abdomen.mhd");
 
     // Extract surface mesh from the CT image
-    SurfaceExtraction::pointer extraction = SurfaceExtraction::New();
+    auto extraction = SurfaceExtraction::New();
     extraction->setInputConnection(importer->getOutputPort());
     extraction->setThreshold(400);
 
     // Export mesh to disk
-    VTKMeshFileExporter::pointer exporter = VTKMeshFileExporter::New();
+    auto exporter = VTKMeshFileExporter::New();
     exporter->setInputConnection(extraction->getOutputPort());
     exporter->setFilename("region_growing_result.vtk");
     exporter->setWriteNormals(true);
