@@ -108,6 +108,17 @@ void PatchStitcher::processImage(SharedPointer<Image> patch) {
         m_outputImage->create(fullWidth, fullHeight, fullDepth, patch->getDataType(), patch->getNrOfChannels());
         m_outputImage->fill(0);
         m_outputImage->setSpacing(Vector3f(patchSpacingX, patchSpacingY, patchSpacingZ));
+        try {
+            auto transformData = split(patch->getFrameData("original-transform"));
+            auto T = AffineTransformation::New();
+            Affine3f transform;
+            for(int i = 0; i < 16; ++i)
+                transform.matrix()(i) = std::stof(transformData[i]);
+            T->setTransform(transform);
+            m_outputImage->getSceneGraphNode()->setTransformation(T);
+        } catch(Exception &e) {
+
+        }
     }
 
     auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());

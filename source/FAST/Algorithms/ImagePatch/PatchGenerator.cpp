@@ -98,11 +98,17 @@ void PatchGenerator::generateStream() {
         const int width = m_inputVolume->getWidth();
         const int height = m_inputVolume->getHeight();
         const int depth = m_inputVolume->getDepth();
+        auto transformData = SceneGraph::getEigenAffineTransformationFromData(m_inputVolume).data();
+        std::string transformString;
+        for(int i = 0; i < 16; ++i)
+            transformString += std::to_string(transformData[i]) + " ";
+
         for(int z = 0; z < depth; z += m_depth) {
             auto patch = m_inputVolume->crop(Vector3i(0, 0, z), Vector3i(width, height, m_depth), true);
             patch->setFrameData("original-width", std::to_string(width));
             patch->setFrameData("original-height", std::to_string(height));
             patch->setFrameData("original-depth", std::to_string(depth));
+            patch->setFrameData("original-transform", transformString);
             patch->setFrameData("patch-offset-x", std::to_string(0));
             patch->setFrameData("patch-offset-y", std::to_string(0));
             patch->setFrameData("patch-offset-z", std::to_string(z));
