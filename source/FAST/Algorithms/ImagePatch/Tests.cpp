@@ -45,7 +45,27 @@ TEST_CASE("Patch generator for volumes", "[fast][volume][PatchGenerator][visual]
     renderer->addInputConnection(generator->getOutputPort());
     auto window = SimpleWindow::New();
     window->addRenderer(renderer);
-    //window->setTimeout(1000);
+    window->setTimeout(3000);
+    window->start();
+}
+
+TEST_CASE("Patch generator and stitcher for volumes", "[fast][volume][patchgenerator][PatchStitcher][visual]") {
+    auto importer = ImageFileImporter::New();
+    importer->setFilename(Config::getTestDataPath() + "/CT/CT-Thorax.mhd");
+
+    auto generator = PatchGenerator::New();
+    generator->setPatchSize(512, 512, 32);
+    generator->setInputConnection(importer->getOutputPort());
+
+    auto stitcher = PatchStitcher::New();
+    stitcher->setInputConnection(generator->getOutputPort());
+
+    auto renderer = AlphaBlendingVolumeRenderer::New();
+    renderer->setTransferFunction(TransferFunction::CT_Blood_And_Bone());
+    renderer->addInputConnection(stitcher->getOutputPort());
+    auto window = SimpleWindow::New();
+    window->addRenderer(renderer);
+    window->setTimeout(1000);
     window->start();
 }
 

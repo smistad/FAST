@@ -242,7 +242,9 @@ DeviceManager::DeviceManager() {
     OpenCLDevice::pointer device = std::static_pointer_cast<OpenCLDevice>(getDefaultComputationDevice());
     reportInfo() << "The following device was selected as main device: " << device->getName() << reportEnd();
     if(!device->isWritingTo3DTexturesSupported()) {
-        reportWarning() << "Writing directly to 3D textures/images is not supported on main device" << reportEnd();
+        reportWarning() << "Writing directly to 3D textures/images is NOT supported on main device" << reportEnd();
+    } else {
+        reportInfo() << "Writing directly to 3D textures/images is supported on main device" << reportEnd();
     }
 }
 

@@ -457,6 +457,9 @@ cl::Program OpenCLDevice::getProgram(std::string name) {
         throw Exception(msg.c_str(), __LINE__, __FILE__);
     }
 
+    if(programs.size() <= programNames[name])
+        throw Exception("OpenCL program does not exist");
+
     return programs[programNames[name]];
 }
 

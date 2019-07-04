@@ -103,10 +103,18 @@ void PatchGenerator::generateStream() {
             patch->setFrameData("original-width", std::to_string(width));
             patch->setFrameData("original-height", std::to_string(height));
             patch->setFrameData("original-depth", std::to_string(depth));
+            patch->setFrameData("patch-offset-x", std::to_string(0));
+            patch->setFrameData("patch-offset-y", std::to_string(0));
+            patch->setFrameData("patch-offset-z", std::to_string(z));
+            Vector3f spacing = m_inputVolume->getSpacing();
+            patch->setFrameData("patch-spacing-x", std::to_string(spacing.x()));
+            patch->setFrameData("patch-spacing-y", std::to_string(spacing.y()));
+            patch->setFrameData("patch-spacing-z", std::to_string(spacing.z()));
             try {
                 if(previousPatch) {
                     addOutputData(0, previousPatch);
                     frameAdded();
+                    //std::this_thread::sleep_for(std::chrono::seconds(2));
                 }
             } catch(ThreadStopped &e) {
                 std::unique_lock<std::mutex> lock(m_stopMutex);

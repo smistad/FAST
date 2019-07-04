@@ -90,37 +90,100 @@ void PatchStitcher::processTensor(SharedPointer<Tensor> patch) {
 void PatchStitcher::processImage(SharedPointer<Image> patch) {
     const int fullWidth = std::stoi(patch->getFrameData("original-width"));
     const int fullHeight = std::stoi(patch->getFrameData("original-height"));
+    const float patchSpacingX = std::stof(patch->getFrameData("patch-spacing-x"));
+    const float patchSpacingY = std::stof(patch->getFrameData("patch-spacing-y"));
+
+    int fullDepth = 1;
+    float patchSpacingZ = 1.0f;
+    try {
+        fullDepth = std::stoi(patch->getFrameData("original-depth"));
+        patchSpacingZ = std::stof(patch->getFrameData("patch-spacing-z"));
+    } catch(Exception &e) {
+        // If exception: is a 2D image
+    }
 
     if(!m_outputImage) {
         // Create output image
         m_outputImage = Image::New();
-        m_outputImage->create(fullWidth, fullHeight, patch->getDataType(), patch->getNrOfChannels());
+        m_outputImage->create(fullWidth, fullHeight, fullDepth, patch->getDataType(), patch->getNrOfChannels());
         m_outputImage->fill(0);
+        m_outputImage->setSpacing(Vector3f(patchSpacingX, patchSpacingY, patchSpacingZ));
     }
 
-    const int startX = std::stoi(patch->getFrameData("patchid-x")) * std::stoi(patch->getFrameData("patch-width"));
-    const int startY = std::stoi(patch->getFrameData("patchid-y")) * std::stoi(patch->getFrameData("patch-height"));
-    const int endX = startX + patch->getWidth();
-    const int endY = startY + patch->getHeight();
-    reportInfo() << "Stitching " << patch->getFrameData("patchid-x") << " " << patch->getFrameData("patchid-y") << reportEnd();
-
     auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
-    cl::Program program = getOpenCLProgram(device);
-
     auto patchAccess = patch->getOpenCLImageAccess(ACCESS_READ, device);
-    auto outputAccess = m_outputImage->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
 
-    cl::Kernel kernel(program, "applyPatch");
-    kernel.setArg(0, *patchAccess->get2DImage());
-    kernel.setArg(1, *outputAccess->get2DImage());
-    kernel.setArg(2, startX);
-    kernel.setArg(3, startY);
-    device->getCommandQueue().enqueueNDRangeKernel(
-            kernel,
-            cl::NullRange,
-            cl::NDRange(patch->getWidth(), patch->getHeight()),
-            cl::NullRange
-    );
+    if(fullDepth == 1) {
+        cl::Program program = getOpenCLProgram(device);
+        const int startX = std::stoi(patch->getFrameData("patchid-x")) * std::stoi(patch->getFrameData("patch-width"));
+        const int startY = std::stoi(patch->getFrameData("patchid-y")) * std::stoi(patch->getFrameData("patch-height"));
+        const int endX = startX + patch->getWidth();
+        const int endY = startY + patch->getHeight();
+        reportInfo() << "Stitching " << patch->getFrameData("patchid-x") << " " << patch->getFrameData("patchid-y")
+                     << reportEnd();
+
+        auto outputAccess = m_outputImage->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+
+        cl::Kernel kernel(program, "applyPatch2D");
+        kernel.setArg(0, *patchAccess->get2DImage());
+        kernel.setArg(1, *outputAccess->get2DImage());
+        kernel.setArg(2, startX);
+        kernel.setArg(3, startY);
+        device->getCommandQueue().enqueueNDRangeKernel(
+                kernel,
+                cl::NullRange,
+                cl::NDRange(patch->getWidth(), patch->getHeight()),
+                cl::NullRange
+        );
+    } else {
+        // 3D
+        const int startX = 0;
+        const int startY = 0;
+        const int startZ = std::stoi(patch->getFrameData("patch-offset-z"));
+        const int endX = startX + patch->getWidth();
+        const int endY = startY + patch->getHeight();
+        reportInfo() << "Stitching " << startZ << reportEnd();
+
+        if(device->isWritingTo3DTexturesSupported()) {
+            auto outputAccess = m_outputImage->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+            cl::Program program = getOpenCLProgram(device);
+            cl::Kernel kernel(program, "applyPatch3D");
+            kernel.setArg(0, *patchAccess->get3DImage());
+            kernel.setArg(2, startX);
+            kernel.setArg(3, startY);
+            kernel.setArg(4, startZ);
+            kernel.setArg(1, *outputAccess->get3DImage());
+
+            device->getCommandQueue().enqueueNDRangeKernel(
+                kernel,
+                cl::NullRange,
+                cl::NDRange(patch->getWidth(), patch->getHeight(), patch->getDepth()),
+                cl::NullRange
+            );
+        } else {
+            auto outputAccess = m_outputImage->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
+            cl::Program program = getOpenCLProgram(device, "", "-DTYPE=" + getCTypeAsString(m_outputImage->getDataType()));
+            cl::Kernel kernel(program, "applyPatch3D");
+            kernel.setArg(0, *patchAccess->get3DImage());
+            kernel.setArg(1, *outputAccess->get());
+            kernel.setArg(2, startX);
+            kernel.setArg(3, startY);
+            kernel.setArg(4, startZ);
+            kernel.setArg(5, fullWidth);
+            kernel.setArg(6, fullHeight);
+            kernel.setArg(7, m_outputImage->getNrOfChannels());
+
+            device->getCommandQueue().enqueueNDRangeKernel(
+                kernel,
+                cl::NullRange,
+                cl::NDRange(patch->getWidth(), patch->getHeight(), patch->getDepth()),
+                cl::NullRange
+            );
+        }
+
+
+
+    }
 }
 
 
