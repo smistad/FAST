@@ -9,7 +9,7 @@ namespace fast {
  * It keeps the last frame of every connection, and every time a connection
  * has a new data frame, it send out the latest frame to all output connections.
  */
-class PipelineSynchronizer : public ProcessObject {
+class FAST_EXPORT PipelineSynchronizer : public ProcessObject {
     FAST_OBJECT(PipelineSynchronizer)
     public:
         /**

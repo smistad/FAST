@@ -1,6 +1,7 @@
 #pragma once
 
 #include <FAST/Data/DataObject.hpp>
+#include <FAST/Data/DataTypes.hpp>
 
 namespace fast {
 

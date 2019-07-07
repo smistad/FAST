@@ -20,6 +20,7 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
     private:
         ClariusStreamer();
         void execute();
+        void generateStream() override {};
 
         bool mStreamIsStarted;
         bool mFirstFrameIsInserted;
