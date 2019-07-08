@@ -4,7 +4,7 @@
 
 namespace fast {
 
-class TissueSegmentation : public SegmentationAlgorithm {
+class FAST_EXPORT TissueSegmentation : public SegmentationAlgorithm {
     FAST_OBJECT(TissueSegmentation)
     public:
     protected:
