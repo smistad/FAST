@@ -31,6 +31,16 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
         virtual BoundingBox getBoundingBox(bool transform = true);
         virtual void stopPipeline();
         virtual void reset();
+        /**
+         * Set renderer to disabled or enabled. A disabled renderer will not draw.
+         * @param disabled
+         */
+        virtual void setDisabled(bool disabled);
+        /**
+         * Get whether this renderer is disabled or not
+         * @return
+         */
+        virtual bool isDisabled() const;
     protected:
         Renderer();
         void execute() override;
@@ -58,6 +68,11 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
         bool mStop = false;
         std::condition_variable_any mRenderedCV;
         std::mutex mMutex;
+
+        /**
+         * A disabled renderer will not draw
+         */
+        bool m_disabled = false;
 
         /**
          * This holds the current data to render for each input connection

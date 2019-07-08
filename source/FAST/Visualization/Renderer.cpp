@@ -232,4 +232,12 @@ void Renderer::reset() {
     mHasRendered = false;
 }
 
+void Renderer::setDisabled(bool disabled) {
+    m_disabled = disabled;
+}
+
+bool Renderer::isDisabled() const {
+    return m_disabled;
+}
+
 }

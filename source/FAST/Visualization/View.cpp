@@ -542,9 +542,11 @@ void View::paintGL() {
     if(mIsIn2DMode) {
 
         mRuntimeManager->startRegularTimer("draw2D");
-        for(int i = 0; i < mNonVolumeRenderers.size(); i++) {
-            mNonVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, true);
-            mNonVolumeRenderers[i]->postDraw();
+        for(auto& renderer : mNonVolumeRenderers) {
+            if(!renderer->isDisabled()) {
+                renderer->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, true);
+                renderer->postDraw();
+            }
         }
         mRuntimeManager->stopRegularTimer("draw2D");
 
@@ -557,16 +559,20 @@ void View::paintGL() {
         }
 
         mRuntimeManager->startRegularTimer("draw");
-        for(int i = 0; i < mNonVolumeRenderers.size(); i++) {
-            mNonVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, false);
-            mNonVolumeRenderers[i]->postDraw();
+        for(auto& renderer : mNonVolumeRenderers) {
+            if(!renderer->isDisabled()) {
+                renderer->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, false);
+                renderer->postDraw();
+            }
         }
 
         if(!mVolumeRenderers.empty()) {
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FBO);
-            for(int i = 0; i < mVolumeRenderers.size(); i++) {
-                mVolumeRenderers[i]->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, false);
-                mVolumeRenderers[i]->postDraw();
+            for(auto& renderer : mVolumeRenderers) {
+                if(!renderer->isDisabled()) {
+                    renderer->draw(mPerspectiveMatrix, m3DViewingTransformation.matrix(), zNear, zFar, false);
+                    renderer->postDraw();
+                }
             }
 
             // Blit/copy the framebuffer to the default framebuffer (window)
