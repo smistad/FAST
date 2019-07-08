@@ -285,7 +285,7 @@ void TensorRTEngine::load() {
 }
 
 ImageOrdering TensorRTEngine::getPreferredImageOrdering() const {
-    return ImageOrdering::CHW;
+    return ImageOrdering::ChannelFirst;
 }
 
 TensorRTEngine::~TensorRTEngine() {

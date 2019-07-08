@@ -40,7 +40,7 @@ void PixelClassifier::setSegmentationOutput() {
  * @return
  */
 inline int getPosition(int x, int nrOfClasses, int j, int size, ImageOrdering ordering) {
-    return ordering == ImageOrdering::HWC ? x*nrOfClasses + j : x + j*size;
+    return ordering == ImageOrdering::ChannelLast ? x*nrOfClasses + j : x + j*size;
 }
 
 void PixelClassifier::execute() {
@@ -56,7 +56,7 @@ void PixelClassifier::execute() {
     const int dims = shape.getDimensions();
     int outputHeight = shape[dims-3];
     int outputWidth = shape[dims-2];
-    if(m_engine->getPreferredImageOrdering() == ImageOrdering::CHW) {
+    if(m_engine->getPreferredImageOrdering() == ImageOrdering::ChannelFirst) {
         outputHeight = shape[dims-2];
         outputWidth = shape[dims-1];
     }
@@ -71,13 +71,13 @@ void PixelClassifier::execute() {
     // TODO reuse some of the output processing in NN
     tensor->deleteDimension(0); // TODO assuming batch size is 1, remove this dimension
     if(mHeatmapOutput) {
-        if(ordering == ImageOrdering::CHW) {
+        if(ordering == ImageOrdering::ChannelFirst) {
             // Convert to channel last
             const int nrOfClasses = tensor->getShape()[0];
             auto newTensorData = make_uninitialized_unique<float[]>(size*nrOfClasses);
             for(int x = 0; x < size; ++x) {
                 for(uchar j = 0; j < nrOfClasses; ++j) {
-                    newTensorData[getPosition(x, nrOfClasses, j, size, ImageOrdering::HWC)] = tensorData[getPosition(x, nrOfClasses, j, size, ImageOrdering::CHW)];
+                    newTensorData[getPosition(x, nrOfClasses, j, size, ImageOrdering::ChannelLast)] = tensorData[getPosition(x, nrOfClasses, j, size, ImageOrdering::ChannelFirst)];
                 }
             }
             auto newTensor = Tensor::New();
@@ -91,7 +91,7 @@ void PixelClassifier::execute() {
     } else {
         auto output = Image::New();
         auto data = make_uninitialized_unique<uchar[]>(size);
-        const int nrOfClasses = ordering == ImageOrdering::CHW ? tensor->getShape()[0] : tensor->getShape()[tensor->getShape().getDimensions()-1];
+        const int nrOfClasses = ordering == ImageOrdering::ChannelFirst ? tensor->getShape()[0] : tensor->getShape()[tensor->getShape().getDimensions()-1];
         for(int x = 0; x < size; ++x) {
             uchar maxClass = 0;
             for(uchar j = 1; j < nrOfClasses; j++) {

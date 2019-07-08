@@ -39,11 +39,12 @@ TEST_CASE("WSI -> Patch generator -> Neural network -> Patch stitcher -> visuali
 
     auto network = NeuralNetwork::New();
     network->setInferenceEngine("TensorFlowCUDA");
+    network->setInferenceEngine("OpenVINO");
     auto engine = network->getInferenceEngine()->getName();
     if(engine.substr(0, 10) == "TensorFlow") {
         network->setOutputNode(0, "dense_1/Softmax", NodeType::TENSOR);
-        network->load(Config::getTestDataPath() + "NeuralNetworkModels/bc_grade_model_3_grades_10x_512_heavy_HSV.pb");
     }
+    network->load(Config::getTestDataPath() + "NeuralNetworkModels/bc_grade_model_3_grades_10x_512_heavy_HSV." + network->getInferenceEngine()->getDefaultFileExtension());
     network->setInputConnection(generator->getOutputPort());
     network->setScaleFactor(1.0f/255.0f);
 
@@ -88,8 +89,8 @@ TEST_CASE("WSI -> Patch generator -> Image to batch generator -> Neural network 
     auto engine = network->getInferenceEngine()->getName();
     if(engine.substr(0, 10) == "TensorFlow") {
         network->setOutputNode(0, "dense_1/Softmax", NodeType::TENSOR);
-        network->load(Config::getTestDataPath() + "NeuralNetworkModels/bc_grade_model_3_grades_10x_512_heavy_HSV.pb");
     }
+    network->load(Config::getTestDataPath() + "NeuralNetworkModels/bc_grade_model_3_grades_10x_512_heavy_HSV." + network->getInferenceEngine()->getDefaultFileExtension());
     network->setInputConnection(batchGenerator->getOutputPort());
     network->setScaleFactor(1.0f/255.0f);
 
@@ -102,6 +103,7 @@ TEST_CASE("WSI -> Patch generator -> Image to batch generator -> Neural network 
     auto heatmapRenderer = HeatmapRenderer::New();
     heatmapRenderer->addInputConnection(stitcher->getOutputPort());
     //heatmapRenderer->setMinConfidence(0.5);
+    heatmapRenderer->setMaxOpacity(0.4);
 
     auto window = SimpleWindow::New();
     window->addRenderer(renderer);

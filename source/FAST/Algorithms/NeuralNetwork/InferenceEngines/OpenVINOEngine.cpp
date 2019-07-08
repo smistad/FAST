@@ -163,7 +163,7 @@ void OpenVINOEngine::load() {
 }
 
 ImageOrdering OpenVINOEngine::getPreferredImageOrdering() const {
-    return ImageOrdering::CHW;
+    return ImageOrdering::ChannelFirst;
 }
 
 std::string OpenVINOEngine::getName() const {

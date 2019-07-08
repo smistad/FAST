@@ -260,7 +260,7 @@ TensorFlowEngine::~TensorFlowEngine() {
 }
 
 ImageOrdering TensorFlowEngine::getPreferredImageOrdering() const {
-	return ImageOrdering::HWC;
+	return ImageOrdering::ChannelLast;
 }
 
 std::string TensorFlowEngine::getName() const {

@@ -1,5 +1,4 @@
-#ifndef NEURAL_NETWORK_HPP_
-#define NEURAL_NETWORK_HPP_
+#pragma once
 
 #include <FAST/ProcessObject.hpp>
 #include <FAST/Data/Tensor.hpp>
@@ -165,5 +164,3 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
 };
 
 }
-
-#endif

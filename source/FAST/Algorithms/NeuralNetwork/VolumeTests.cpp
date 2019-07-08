@@ -24,24 +24,32 @@
 #include <FAST/Visualization/VolumeRenderer/AlphaBlendingVolumeRenderer.hpp>
 #include <FAST/Visualization/VolumeRenderer/ThresholdVolumeRenderer.hpp>
 #include <FAST/Algorithms/ImageResampler/ImageResampler.hpp>
+#include <FAST/Algorithms/HounsefieldConverter/HounsefieldConverter.hpp>
+
 
 using namespace fast;
 
 TEST_CASE("Volume -> Patch generator -> Neural network -> Patch stitcher -> visualize", "[fast][neuralnetwork][volume][visual]") {
-
     auto importer = ImageFileImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "/CT/CT-Thorax.mhd");
-    //importer->setFilename(Config::getTestDataPath() + "/CT/pasient09.mhd");
+    //importer->setFilename(Config::getTestDataPath() + "/CT/CT-Thorax.mhd");
+    //importer->setFilename("/home/smistad/Downloads/LIDC-IDRI-0077/01-01-2000-74706/3000706-80131/000001.dcm");
+    //importer->setFilename("/home/smistad/Downloads/LIDC-IDRI-0001/01-01-2000-30178/3000566-03192/000001.dcm");
+    //importer->setFilename("/home/smistad/Downloads/LIDC-IDRI-0044/01-01-2000-00114/3000571-93273/000001.dcm");
+    //importer->setFilename("/home/smistad/Downloads/LIDC-IDRI-0072/01-01-2000-CT CHEST W CONT-45499/4-Recon 3-88650/000001.dcm");
+    importer->setFilename("/home/smistad/Downloads/lunge_datasett/pasient02.mhd");
+
+    auto hounsefieldConverter = HounsefieldConverter::New();
+    hounsefieldConverter->setInputConnection(importer->getOutputPort());
 
     /*
     auto resampler = ImageResampler::New();
-    resampler->setOutputSpacing(0.5f, 0.5f, 0.5f);
-    resampler->setInputConnection(importer->getOutputPort());
+    resampler->setOutputSpacing(1.0f, 1.0f, 1.0f);
+    resampler->setInputConnection(hounsefieldConverter->getOutputPort());
      */
 
     auto generator = PatchGenerator::New();
     generator->setPatchSize(512, 512, 64);
-    generator->setInputConnection(importer->getOutputPort());
+    generator->setInputConnection(hounsefieldConverter->getOutputPort());
 
     auto network = PixelClassifier::New();
     network->setInferenceEngine("TensorFlowCUDA");
@@ -52,20 +60,21 @@ TEST_CASE("Volume -> Patch generator -> Neural network -> Patch stitcher -> visu
     network->setOutputNode(0, "conv3d_18/truediv");
     network->setInputConnection(generator->getOutputPort());
     network->setResizeBackToOriginalSize(true);
+    network->setThreshold(0.3);
 
     auto stitcher = PatchStitcher::New();
     stitcher->setInputConnection(network->getOutputPort());
 
     auto renderer = AlphaBlendingVolumeRenderer::New();
     renderer->setTransferFunction(TransferFunction::CT_Blood_And_Bone());
-    renderer->addInputConnection(importer->getOutputPort());
+    renderer->addInputConnection(hounsefieldConverter->getOutputPort());
 
     auto renderer2 = ThresholdVolumeRenderer::New();
     renderer2->addInputConnection(stitcher->getOutputPort());
 
     auto window = SimpleWindow::New();
-    window->addRenderer(renderer2);
     window->addRenderer(renderer);
+    window->addRenderer(renderer2);
     //window->setTimeout(1000);
     window->start();
 }

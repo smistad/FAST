@@ -123,7 +123,7 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
                 const int dims = shape.getDimensions();
                 int height = shape[dims - 3];
                 int width = shape[dims - 2];
-                if(m_engine->getPreferredImageOrdering() == ImageOrdering::CHW) {
+                if(m_engine->getPreferredImageOrdering() == ImageOrdering::ChannelFirst) {
                     height = shape[dims - 2];
                     width = shape[dims - 1];
                 }
@@ -133,11 +133,11 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
                     // Temporal input
                     timesteps = shape[1];
                     if(dims == 6) // 3D
-                        depth = m_engine->getPreferredImageOrdering() == ImageOrdering::HWC ? shape[dims - 4] : shape[
+                        depth = m_engine->getPreferredImageOrdering() == ImageOrdering::ChannelLast ? shape[dims - 4] : shape[
                                 dims - 3];
                 } else {
                     if(dims == 5) // 3D
-                        depth = m_engine->getPreferredImageOrdering() == ImageOrdering::HWC ? shape[dims - 4] : shape[
+                        depth = m_engine->getPreferredImageOrdering() == ImageOrdering::ChannelLast ? shape[dims - 4] : shape[
                                 dims - 3];
                 }
                 auto inputImages2 = resizeImages(inputImages, width, height, depth);
@@ -268,7 +268,7 @@ Tensor::pointer NeuralNetwork::convertImagesToTensor(std::vector<Image::pointer>
     int channels = shape[dims-1];
     int width = shape[dims-2];
     int height = shape[dims-3];
-    if(m_engine->getPreferredImageOrdering() == ImageOrdering::CHW) {
+    if(m_engine->getPreferredImageOrdering() == ImageOrdering::ChannelFirst) {
         channels = shape[dims-3];
         width = shape[dims-1];
         height = shape[dims-2];
@@ -287,7 +287,7 @@ Tensor::pointer NeuralNetwork::convertImagesToTensor(std::vector<Image::pointer>
         kernelName = "normalize3DInput";
         if((!temporal && shape.getDimensions() != 5) || (temporal && shape.getDimensions() != 6))
             throw Exception("Incorrect shape size");
-        if(m_engine->getPreferredImageOrdering() == ImageOrdering::CHW) {
+        if(m_engine->getPreferredImageOrdering() == ImageOrdering::ChannelFirst) {
             channels = shape[dims-4];
             depth = shape[dims-3];
             height = shape[dims-2];

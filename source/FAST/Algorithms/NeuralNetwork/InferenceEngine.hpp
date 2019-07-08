@@ -17,11 +17,10 @@ namespace fast {
 
 /**
  * Different engines prefer different image dimension orderings.
- * C = channel, W = width, H = height
  */
 enum class ImageOrdering {
-    CHW,
-    HWC
+    ChannelFirst,
+    ChannelLast
 };
 
 enum class NodeType {
