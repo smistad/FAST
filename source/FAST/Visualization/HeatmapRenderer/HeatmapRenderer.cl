@@ -22,9 +22,9 @@ __kernel void renderToTexture(
     }
     color = clamp(color, 0.0f, 1.0f);
     if(color.w == 0) { // none with intensity >= minConfidence or 0 found
-        //color = (float4)(1.0f,1.0f,1.0f,0.0f);
+        color = (float4)(0.0f,0.0f,0.0f,0.0f);
         // Look for neighbors instead
-        float highestConfidence = 0.0f;
+        float highestConfidence = minConfidence;
         for(int a = -1; a <= 1; ++a) {
             for(int b = -1; b <= 1; ++b) {
                 int2 nPos = {position.x + a, position.y + b};
@@ -34,7 +34,7 @@ __kernel void renderToTexture(
                 for(int channel = 0; channel < channels; ++channel) {
                     float intensity = inputTensor[(nPos.x + nPos.y*get_global_size(0))*channels + channel];
 
-                    if(intensity >= minConfidence && intensity > highestConfidence) {
+                    if(intensity >= highestConfidence) {
                         float4 colorToUse = vload4(channel, colors);
                         color = colorToUse;
                         color.w = 0.0f; // Set opacity to zero

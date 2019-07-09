@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
     renderer->setChannelColor(5, Color::Cyan());
     renderer->setChannelHidden(0, true);
     renderer->setMaxOpacity(0.3f);
-    //renderer->setMinConfidence(0.2);
+    renderer->setMinConfidence(0.5f);
     renderer->enableRuntimeMeasurements();
 
     /*
