@@ -162,19 +162,13 @@ void TensorRTEngine::run() {
 
         // Get output shape
         nvinfer1::Dims dims = m_engine->getBindingDimensions(index);
-        TensorShape shape({batchSize});
-        for(int i = 0; i < dims.nbDims; ++i)
-            shape.addDimension(dims.d[i]);
-        // Remove last dimensions which have value 1
-        int lastIndex = shape.getDimensions()-1;
-        for(int i = shape.getDimensions()-1; i >= 0; --i) {
-            if(shape[i] != 1) {
-                lastIndex = i+1;
-                break;
-            }
-        }
-        shape.deleteDimensions(lastIndex, shape.getDimensions());
-        reportInfo() << "Output shape inferred to be: " << shape.toString() << reportEnd();
+        TensorShape shape = mOutputNodes.at(output.first).shape;
+        if(shape.getDimensions() == 0)
+            throw Exception("Missing shape for output node");
+        shape[0] = batchSize;
+        // TODO check if output dims are correct:
+        //for(int i = 0; i < dims.nbDims; ++i) {
+        //}
 
         outputTensor->create(std::move(outputData), shape);
         reportInfo() << "Finished moving data to FAST tensor, TensorRT" << reportEnd();
@@ -191,7 +185,7 @@ void TensorRTEngine::load() {
         throw Exception("Input and output nodes must be defined before loading Uff files using the TensorRT engine");
 
     const auto filename = getFilename();
-    std::size_t hash = std::hash<std::string>{}(filename); // Hash the full filename
+    std::size_t hash = std::hash<std::string>{}(filename + std::to_string(m_maxBatchSize)); // Hash the full filename any other parameters
     std::string serializedBinaryFilename = join(Config::getKernelBinaryPath(), filename.substr(filename.rfind('/')) + "_" + std::to_string(hash) + ".bin");
     std::string serializedCacheFilename = join(Config::getKernelBinaryPath(), filename.substr(filename.rfind('/')) + "_" + std::to_string(hash) + ".cache");
     bool loadSerializedFile = false;
