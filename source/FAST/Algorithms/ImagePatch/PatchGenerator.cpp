@@ -35,6 +35,7 @@ void PatchGenerator::generateStream() {
 
         for(int patchY = 0; patchY < patchesY; ++patchY) {
             for(int patchX = 0; patchX < patchesX; ++patchX) {
+                mRuntimeManager->startRegularTimer("create patch");
                 int patchWidth = m_width;
                 if(patchX == patchesX - 1)
                     patchWidth = levelWidth - patchX * m_width - 1;
@@ -81,6 +82,7 @@ void PatchGenerator::generateStream() {
                     m_stop = true;
                     break;
                 }
+                mRuntimeManager->stopRegularTimer("create patch");
                 previousPatch = patch;
                 std::unique_lock<std::mutex> lock(m_stopMutex);
                 if(m_stop)
@@ -104,6 +106,7 @@ void PatchGenerator::generateStream() {
             transformString += std::to_string(transformData[i]) + " ";
 
         for(int z = 0; z < depth; z += m_depth) {
+            mRuntimeManager->startRegularTimer("create patch");
             auto patch = m_inputVolume->crop(Vector3i(0, 0, z), Vector3i(width, height, m_depth), true);
             patch->setFrameData("original-width", std::to_string(width));
             patch->setFrameData("original-height", std::to_string(height));
@@ -127,6 +130,7 @@ void PatchGenerator::generateStream() {
                 m_stop = true;
                 break;
             }
+            mRuntimeManager->stopRegularTimer("create patch");
             previousPatch = patch;
             std::unique_lock<std::mutex> lock(m_stopMutex);
             if(m_stop)
