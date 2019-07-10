@@ -116,6 +116,9 @@ install(DIRECTORY ${FAST_SOURCE_DIR}
 install(FILES ${PROJECT_BINARY_DIR}/FASTConfig.cmake ${PROJECT_BINARY_DIR}/FASTUse.cmake
     DESTINATION fast/cmake
 )
+install(FILES ${PROJECT_SOURCE_DIR}/cmake/FindOpenCL.cmake
+    DESTINATION fast/cmake
+)
 
 # Install docs
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/doc/
