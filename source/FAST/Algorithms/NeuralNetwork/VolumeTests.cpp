@@ -35,11 +35,13 @@ TEST_CASE("Volume -> Patch generator -> Neural network -> Patch stitcher -> visu
     //importer->setFilename("/home/smistad/Downloads/LIDC-IDRI-0077/01-01-2000-74706/3000706-80131/000001.dcm");
     //importer->setFilename("/home/smistad/Downloads/LIDC-IDRI-0001/01-01-2000-30178/3000566-03192/000001.dcm");
     //importer->setFilename("/home/smistad/Downloads/LIDC-IDRI-0044/01-01-2000-00114/3000571-93273/000001.dcm");
-    //importer->setFilename("/home/smistad/Downloads/LIDC-IDRI-0072/01-01-2000-CT CHEST W CONT-45499/4-Recon 3-88650/000001.dcm");
-    importer->setFilename("/home/smistad/Downloads/lunge_datasett/pasient02.mhd");
+    importer->setFilename("/home/smistad/Downloads/LIDC-IDRI-0072/01-01-2000-CT CHEST W CONT-45499/4-Recon 3-88650/000001.dcm");
+    //importer->setFilename("/home/smistad/Downloads/lunge_datasett/pasient02.mhd");
 
+    /*
     auto hounsefieldConverter = HounsefieldConverter::New();
     hounsefieldConverter->setInputConnection(importer->getOutputPort());
+     */
 
     /*
     auto resampler = ImageResampler::New();
@@ -49,7 +51,8 @@ TEST_CASE("Volume -> Patch generator -> Neural network -> Patch stitcher -> visu
 
     auto generator = PatchGenerator::New();
     generator->setPatchSize(512, 512, 64);
-    generator->setInputConnection(hounsefieldConverter->getOutputPort());
+    generator->setInputConnection(importer->getOutputPort());
+    generator->enableRuntimeMeasurements();
 
     auto network = PixelClassifier::New();
     network->setInferenceEngine("TensorFlowCUDA");
@@ -61,16 +64,32 @@ TEST_CASE("Volume -> Patch generator -> Neural network -> Patch stitcher -> visu
     network->setInputConnection(generator->getOutputPort());
     network->setResizeBackToOriginalSize(true);
     network->setThreshold(0.3);
+    network->enableRuntimeMeasurements();
 
     auto stitcher = PatchStitcher::New();
     stitcher->setInputConnection(network->getOutputPort());
+    stitcher->enableRuntimeMeasurements();
 
     auto renderer = AlphaBlendingVolumeRenderer::New();
     renderer->setTransferFunction(TransferFunction::CT_Blood_And_Bone());
-    renderer->addInputConnection(hounsefieldConverter->getOutputPort());
+    renderer->addInputConnection(importer->getOutputPort());
 
     auto renderer2 = ThresholdVolumeRenderer::New();
     renderer2->addInputConnection(stitcher->getOutputPort());
+
+    auto start = std::chrono::high_resolution_clock::now();
+    Image::pointer data;
+    do {
+        data = stitcher->updateAndGetOutputData<Image>();
+    } while(!data->isLastFrame());
+    std::chrono::duration<float, std::milli> timeUsed = std::chrono::high_resolution_clock::now() - start;
+    std::cout << "Total runtime: " << timeUsed.count() << std::endl;
+    std::cout << "Patch generator runtime: " << std::endl;
+    generator->getRuntime("create patch")->print();
+    std::cout << "NN runtime: " << std::endl;
+    network->getRuntime()->print();
+    std::cout << "Patch stitcher runtime: " << std::endl;
+    stitcher->getRuntime()->print();
 
     auto window = SimpleWindow::New();
     window->addRenderer(renderer);

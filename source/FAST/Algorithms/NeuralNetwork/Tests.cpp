@@ -17,9 +17,9 @@
 
 using namespace fast;
 
-TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork][visual]") {
+TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork][visual][ultrasound]") {
     //Reporter::setGlobalReportMethod(Reporter::NONE);
-    Reporter::setGlobalReportMethod(Reporter::INFO, Reporter::NONE);
+    //Reporter::setGlobalReportMethod(Reporter::INFO, Reporter::NONE);
     for(auto& engine : InferenceEngineManager::getEngineList()) {
         std::map<std::string, InferenceDeviceType> deviceTypes = {{"ANY", InferenceDeviceType::ANY}};
         if(engine == "OpenVINO") {
@@ -46,7 +46,7 @@ TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork][visual]") {
                 segmentation->setOutputNode(0, "conv2d_23/truediv");
             } else if(engine == "TensorRT") {
                 segmentation->setInputNode(0, "input_image", NodeType::IMAGE, TensorShape({-1, 1, 256, 256}));
-                segmentation->setOutputNode(0, "permute_2/transpose");
+                segmentation->setOutputNode(0, "permute_2/transpose", NodeType::TENSOR, TensorShape({-1, 3, 256, 256}));
             }
             try {
                 segmentation->load(join(Config::getTestDataPath(),

@@ -32,6 +32,9 @@ if(FAST_MODULE_TensorFlow)
         set(TensorFlow_CUDA_LIBRARIES
             ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc_CUDA.so
         )
+        set(TensorFlow_ROCm_LIBRARIES
+                ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc_ROCm.so
+                )
         set(TensorFlow_CPU_LIBRARIES
             ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc_CPU.so
         )
