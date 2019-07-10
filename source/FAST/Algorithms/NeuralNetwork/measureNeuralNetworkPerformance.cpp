@@ -9,15 +9,22 @@
 #include <FAST/Algorithms/ImagePatch/PatchStitcher.hpp>
 #include <FAST/Importers/WholeSlideImageImporter.hpp>
 #include <FAST/Algorithms/TissueSegmentation/TissueSegmentation.hpp>
+#include <FAST/Tools/CommandLineParser.hpp>
 
 using namespace fast;
 
-int main() {
+int main(int argc, char** argv) {
     Reporter::setGlobalReportMethod(Reporter::INFO, Reporter::NONE);
+
+    CommandLineParser parser("Measure neural network performance script");
+    parser.addOption("disable-case-1");
+    parser.addOption("disable-case-2");
+    parser.addOption("disable-case-3");
+    parser.parse(argc, argv);
     const int iterations = 10;
-    const bool case1 = false;
-    const bool case2 = false;
-    const bool case3 = true;
+    const bool case1 = !parser.getOption("disable-case-1");
+    const bool case2 = !parser.getOption("disable-case-2");
+    const bool case3 = !parser.getOption("disable-case-3");
 
     if(case1) {
         // CASE 1 - ULTRASOUND
