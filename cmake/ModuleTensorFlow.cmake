@@ -1,13 +1,14 @@
 ## TensorFlow module
 
 if(FAST_MODULE_TensorFlow)
+    message("-- Tensorflow module enabled.")
     option(FAST_BUILD_TensorFlow_CUDA "Build TensorFlow CUDA/cuDNN version" OFF)
+    option(FAST_BUILD_TensorFlow_ROCm "Build TensorFlow ROCm version" OFF)
     option(FAST_BUILD_TensorFlow_CPU "Build TensorFlow CPU version" ON)
     include(${PROJECT_SOURCE_DIR}/cmake/ExternalTensorflow.cmake)
 
     ## Tensorflow
     #list(APPEND FAST_INCLUDE_DIRS ${Tensorflow_INCLUDE_DIRS})
-    message("-- Tensorflow module enabled.")
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
     add_definitions(-DEIGEN_AVOID_STL_ARRAY)
     if(WIN32)

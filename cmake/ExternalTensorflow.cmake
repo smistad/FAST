@@ -46,6 +46,54 @@ else(WIN32)
         BUILD_COMMAND ""
         INSTALL_COMMAND ""
     )
+    # Need a seperate repo for rocm atm
+    ExternalProject_Add(tensorflow_download_rocm
+        PREFIX ${FAST_EXTERNAL_BUILD_DIR}/tensorflow_rocm
+        BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/tensorflow_rocm
+        GIT_REPOSITORY "https://github.com/ROCmSoftwarePlatform/tensorflow-upstream"
+        GIT_TAG "r1.13-rocm"
+        UPDATE_COMMAND ""
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ""
+    )
+    if(FAST_BUILD_TensorFlow_ROCm)
+        ExternalProject_Add(tensorflow_ROCm
+            DEPENDS tensorflow_download_rocm
+            PREFIX ${FAST_EXTERNAL_BUILD_DIR}/tensorflow_rocm
+            BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/tensorflow_rocm
+            DOWNLOAD_COMMAND ""
+            UPDATE_COMMAND ""
+            # Run TF configure in the form of a shell script.
+            CONFIGURE_COMMAND
+                cd ${FAST_EXTERNAL_BUILD_DIR}/tensorflow_rocm/src/tensorflow_download_rocm/ && sh ${PROJECT_SOURCE_DIR}/cmake/TensorflowConfigureROCm.sh
+            # Build using bazel
+            BUILD_COMMAND
+                echo "Building tensorflow with bazel and ROCm (AMD) GPU support" &&
+                cd ${FAST_EXTERNAL_BUILD_DIR}/tensorflow_rocm/src/tensorflow_download_rocm/ && bazel build -c opt --config=rocm //tensorflow:libtensorflow_cc.so
+            INSTALL_COMMAND
+                echo "Installing tensorflow binary" &&
+                cp -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow_rocm/src/tensorflow_download_rocm/bazel-bin/tensorflow/libtensorflow_cc.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc_ROCm.so &&
+                cp -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow_rocm/src/tensorflow_download_rocm/bazel-bin/tensorflow/libtensorflow_framework.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_framework_ROCm.so &&
+                chmod a+w ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc_ROCm.so &&
+                chmod a+w ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_framework_ROCm.so &&
+                patchelf --set-soname libtensorflow_cc_ROCm.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc_ROCm.so &&
+                patchelf --set-soname libtensorflow_framework_ROCm.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_framework_ROCm.so &&
+                patchelf --replace-needed libtensorflow_framework.so libtensorflow_framework_ROCm.so ${FAST_EXTERNAL_INSTALL_DIR}/lib/libtensorflow_cc_ROCm.so &&
+                echo "Installing tensorflow headers" &&
+                cp -rf ${FAST_EXTERNAL_BUILD_DIR}/tensorflow_rocm/src/tensorflow_download_rocm/tensorflow/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ &&
+                echo "Installing tensorflow generated headers" &&
+                cp -rf ${FAST_EXTERNAL_BUILD_DIR}/tensorflow_rocm/src/tensorflow_download_rocm/bazel-genfiles/tensorflow/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ &&
+                echo "Installing tensorflow third_party headers" &&
+                cp -rf ${FAST_EXTERNAL_BUILD_DIR}/tensorflow_rocm/src/tensorflow_download_rocm/third_party/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ &&
+                echo "Installing protobuf headers" &&
+                bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow_rocm/src/tensorflow_download_rocm/bazel-out/)/../../../external/protobuf_archive/src/google/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ -Rf" &&
+                echo "Installing nsync headers" &&
+                bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow_rocm/src/tensorflow_download_rocm/bazel-out/)/../../../external/nsync/public/*.h ${FAST_EXTERNAL_INSTALL_DIR}/include/ -Rf" &&
+                echo "Installing absl headers" &&
+                bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow_rocm/src/tensorflow_download_rocm/bazel-out/)/../../../external/com_google_absl/absl/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ -Rf"
+    )
+    endif()
     if(FAST_BUILD_TensorFlow_CUDA)
     ExternalProject_Add(tensorflow_CUDA
             DEPENDS tensorflow_download
