@@ -6,6 +6,9 @@
 
 namespace fast {
 
+class ImagePyramid;
+class Image;
+
 class FAST_EXPORT PatchGenerator : public Streamer {
     FAST_OBJECT(PatchGenerator)
     public:

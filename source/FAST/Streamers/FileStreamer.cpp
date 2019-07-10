@@ -153,6 +153,9 @@ void FileStreamer::generateStream() {
                 previousTimestampTime = std::chrono::high_resolution_clock::now();
             }
 
+            if(!fileExists(getFilename(i+1, currentSequence)) && !mLoop)
+                dataFrame->setLastFrame(getNameOfClass());
+
             addOutputData(0, dataFrame);
             frameAdded();
             if(mSleepTime > 0)
