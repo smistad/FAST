@@ -29,5 +29,6 @@
     #fast_add_example(timingNetwork timingNetwork.cpp)
     #fast_add_example(imageClassification imageClassification.cpp)
     #fast_add_example(leftVentricleSegmentation leftVentricleSegmentation.cpp)
+    fast_add_example(measureNeuralNetworkPerformance measureNeuralNetworkPerformance.cpp)
 
 fast_add_subdirectories(InferenceEngines)
