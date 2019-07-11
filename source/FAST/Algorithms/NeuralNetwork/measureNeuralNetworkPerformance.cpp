@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
         std::ofstream file(resultFilename.c_str());
 
         // Write header
-        file << "Engine;Device Type;Iteration;NN input;NN inference;NN output;Total\n";
+        file << "Engine;Device Type;Iteration;NN input AVG;NN input STD;NN inference AVG;NN inference STD;NN output AVG;NN output STD;Total\n";
 
         for(auto &engine : InferenceEngineManager::getEngineList()) {
             std::map<std::string, InferenceDeviceType> deviceTypes = {{"ANY", InferenceDeviceType::ANY}};
@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
         std::ofstream file(resultFilename.c_str());
 
         // Write header
-        file << "Engine;Device Type;Iteration;Patch generator;NN input;NN inference;NN output;Patch stitcher;Total\n";
+        file << "Engine;Device Type;Iteration;Patch generator AVG;Patch generator STD;NN input AVG;NN input STD;NN inference AVG;NN inference STD;NN output AVG;NN output STD;Patch stitcher AVG;Patch stitcher STD;Total\n";
 
         //Reporter::setGlobalReportMethod(Reporter::NONE);
         for(std::string engine : {"TensorFlowCUDA", "TensorFlowCPU"}) {
@@ -209,7 +209,7 @@ int main(int argc, char** argv) {
         std::ofstream file(resultFilename.c_str());
 
         // Write header
-        file << "Engine;Device Type;Iteration;Patch generator;NN input;NN inference;NN output;Patch stitcher;Total\n";
+        file << "Engine;Device Type;Iteration;Patch generator AVG;Patch generator STD;NN input AVG;NN input STD;NN inference AVG;NN inference STD;NN output AVG;NN output STD;Patch stitcher AVG;Patch stitcher STD;Total\n";
 
         for(auto &engine : InferenceEngineManager::getEngineList()) {
             std::map<std::string, InferenceDeviceType> deviceTypes = {{"ANY", InferenceDeviceType::ANY}};
