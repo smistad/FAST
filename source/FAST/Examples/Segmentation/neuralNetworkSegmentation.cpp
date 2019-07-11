@@ -24,6 +24,7 @@ int main() {
 
     auto segmentation = SegmentationNetwork::New();
     segmentation->setScaleFactor(1.0f / 255.0f);
+    segmentation->setInferenceEngine("OpenVINO");
     const auto engine = segmentation->getInferenceEngine()->getName();
     if(engine.substr(0,10) == "TensorFlow") {
         // TensorFlow needs to know what the output node is called

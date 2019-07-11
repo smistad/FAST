@@ -326,6 +326,7 @@ Tensor::pointer NeuralNetwork::convertImagesToTensor(std::vector<Image::pointer>
         kernel.setArg(8, mMinIntensity);
         kernel.setArg(9, mMaxIntensity);
         kernel.setArg(10, (int)(mMinAndMaxIntensitySet ? 1 : 0));
+        kernel.setArg(11, (int)(m_engine->getPreferredImageOrdering() == ImageOrdering::ChannelFirst ? 1 : 0));
         cl::NDRange globalSize;
         if(image->getDimensions() == 2) {
             kernel.setArg(0, *access->get2DImage());
