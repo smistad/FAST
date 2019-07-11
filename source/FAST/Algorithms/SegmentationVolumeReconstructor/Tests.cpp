@@ -1,5 +1,5 @@
 #include <FAST/Streamers/ImageFileStreamer.hpp>
-#include <FAST/Algorithms/NeuralNetwork/PixelClassifier.hpp>
+#include <FAST/Algorithms/NeuralNetwork/SegmentationNetwork.hpp>
 #include <FAST/Algorithms/SurfaceExtraction/SurfaceExtraction.hpp>
 #include <FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp>
 #include <FAST/Visualization/SimpleWindow.hpp>

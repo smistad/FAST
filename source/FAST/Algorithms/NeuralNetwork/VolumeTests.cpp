@@ -17,8 +17,8 @@
 #include <FAST/Algorithms/ImagePatch/PatchStitcher.hpp>
 #include <FAST/Algorithms/ImagePatch/ImageToBatchGenerator.hpp>
 #include <FAST/Algorithms/NeuralNetwork/NeuralNetwork.hpp>
-#include <FAST/Algorithms/NeuralNetwork/ImageClassifier.hpp>
-#include <FAST/Algorithms/NeuralNetwork/PixelClassifier.hpp>
+#include <FAST/Algorithms/NeuralNetwork/ImageClassificationNetwork.hpp>
+#include <FAST/Algorithms/NeuralNetwork/SegmentationNetwork.hpp>
 #include <FAST/Algorithms/ImageChannelConverter/ImageChannelConverter.hpp>
 #include <FAST/Algorithms/TissueSegmentation/TissueSegmentation.hpp>
 #include <FAST/Visualization/VolumeRenderer/AlphaBlendingVolumeRenderer.hpp>
@@ -54,7 +54,7 @@ TEST_CASE("Volume -> Patch generator -> Neural network -> Patch stitcher -> visu
     generator->setInputConnection(importer->getOutputPort());
     generator->enableRuntimeMeasurements();
 
-    auto network = PixelClassifier::New();
+    auto network = SegmentationNetwork::New();
     network->setInferenceEngine("TensorFlowCUDA");
     network->load(Config::getTestDataPath() + "/NeuralNetworkModels/lung_nodule_model.pb");
     network->setMinAndMaxIntensity(-1200.0f, 400.0f);

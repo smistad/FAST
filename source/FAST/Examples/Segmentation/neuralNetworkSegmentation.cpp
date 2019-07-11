@@ -10,7 +10,7 @@
 #include "FAST/Streamers/ImageFileStreamer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
-#include "FAST/Algorithms/NeuralNetwork/PixelClassifier.hpp"
+#include "FAST/Algorithms/NeuralNetwork/SegmentationNetwork.hpp"
 
 using namespace fast;
 
@@ -22,7 +22,7 @@ int main() {
     streamer->setTimestampFilename(Config::getTestDataPath() + "US/JugularVein/timestamps.fts");
     streamer->enableLooping();
 
-    auto segmentation = PixelClassifier::New();
+    auto segmentation = SegmentationNetwork::New();
     segmentation->setScaleFactor(1.0f / 255.0f);
     const auto engine = segmentation->getInferenceEngine()->getName();
     if(engine.substr(0,10) == "TensorFlow") {

@@ -1,5 +1,5 @@
 #include "FAST/Testing.hpp"
-#include "ImageClassifier.hpp"
+#include "ImageClassificationNetwork.hpp"
 #include "FAST/Streamers/ImageFileStreamer.hpp"
 #include "FAST/Visualization/SimpleWindow.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
@@ -7,13 +7,13 @@
 using namespace fast;
 
 /*
-TEST_CASE("Image classifier", "[fast][ImageClassifier]") {
+TEST_CASE("Image classifier", "[fast][ImageClassificationNetwork]") {
 
 	Reporter::setGlobalReportMethod(Reporter::COUT);
 	ImageFileStreamer::pointer importer = ImageFileStreamer::New();
     importer->setFilenameFormat("/media/extra/GRUE_images/Clinic001/F4AFP6A2/US-2D_#.png");
 
-	ImageClassifier::pointer classifier = ImageClassifier::New();
+	ImageClassificationNetwork::pointer classifier = ImageClassificationNetwork::New();
 	classifier->load("/home/smistad/Downloads/cvc_inc_merged");
     classifier->setInputSize(128,128);
 	classifier->setOutputParameters({"Softmax"});

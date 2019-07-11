@@ -1,11 +1,11 @@
 #include <FAST/Data/Segmentation.hpp>
 #include <FAST/Algorithms/ImageResizer/ImageResizer.hpp>
-#include "PixelClassifier.hpp"
+#include "SegmentationNetwork.hpp"
 #include "FAST/Data/Image.hpp"
 
 namespace fast {
 
-PixelClassifier::PixelClassifier() {
+SegmentationNetwork::SegmentationNetwork() {
     createInputPort<Image>(0);
 
     mHeatmapOutput = false;
@@ -16,16 +16,16 @@ PixelClassifier::PixelClassifier() {
     createBooleanAttribute("heatmap_output", "Output heatmap", "Enable heatmap output instead of segmentation", false);
 }
 
-void PixelClassifier::setResizeBackToOriginalSize(bool resize) {
+void SegmentationNetwork::setResizeBackToOriginalSize(bool resize) {
     mResizeBackToOriginalSize = resize;
 }
 
-void PixelClassifier::setHeatmapOutput() {
+void SegmentationNetwork::setHeatmapOutput() {
     mHeatmapOutput = true;
     createOutputPort<Tensor>(0);
 }
 
-void PixelClassifier::setSegmentationOutput() {
+void SegmentationNetwork::setSegmentationOutput() {
     mHeatmapOutput = false;
     createOutputPort<Segmentation>(0);
 }
@@ -43,7 +43,7 @@ inline int getPosition(int x, int nrOfClasses, int j, int size, ImageOrdering or
     return ordering == ImageOrdering::ChannelLast ? x*nrOfClasses + j : x + j*size;
 }
 
-void PixelClassifier::execute() {
+void SegmentationNetwork::execute() {
 
     run();
 
@@ -127,7 +127,7 @@ void PixelClassifier::execute() {
     mRuntimeManager->stopRegularTimer("output_processing");
 }
 
-void PixelClassifier::loadAttributes() {
+void SegmentationNetwork::loadAttributes() {
     if(getBooleanAttribute("heatmap_output")) {
         setHeatmapOutput();
     } else {
@@ -136,7 +136,7 @@ void PixelClassifier::loadAttributes() {
     NeuralNetwork::loadAttributes();
 }
 
-void PixelClassifier::setThreshold(float threshold) {
+void SegmentationNetwork::setThreshold(float threshold) {
     mThreshold = threshold;
 }
 

@@ -17,8 +17,8 @@
 #include <FAST/Algorithms/ImagePatch/PatchStitcher.hpp>
 #include <FAST/Algorithms/ImagePatch/ImageToBatchGenerator.hpp>
 #include <FAST/Algorithms/NeuralNetwork/NeuralNetwork.hpp>
-#include <FAST/Algorithms/NeuralNetwork/ImageClassifier.hpp>
-#include <FAST/Algorithms/NeuralNetwork/PixelClassifier.hpp>
+#include <FAST/Algorithms/NeuralNetwork/ImageClassificationNetwork.hpp>
+#include <FAST/Algorithms/NeuralNetwork/SegmentationNetwork.hpp>
 #include <FAST/Algorithms/ImageChannelConverter/ImageChannelConverter.hpp>
 #include <FAST/Algorithms/TissueSegmentation/TissueSegmentation.hpp>
 
@@ -134,7 +134,7 @@ TEST_CASE("WSI -> Patch generator -> Pixel classifier -> visualize", "[fast][neu
     generator->setInputConnection(importer->getOutputPort());
     generator->setInputConnection(1, tissueSegmentation->getOutputPort());
 
-    auto network = PixelClassifier::New();
+    auto network = SegmentationNetwork::New();
     network->setInferenceEngine("TensorFlowCUDA");
     auto engine = network->getInferenceEngine()->getName();
     if(engine.substr(0, 10) == "TensorFlow") {

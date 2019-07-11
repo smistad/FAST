@@ -1,6 +1,6 @@
 #include <FAST/Testing.hpp>
 #include "NeuralNetwork.hpp"
-#include "PixelClassifier.hpp"
+#include "SegmentationNetwork.hpp"
 #include "InferenceEngineManager.hpp"
 #include <FAST/Importers/ImageFileImporter.hpp>
 #include <FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp>
@@ -39,7 +39,7 @@ TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork][visual][ultras
             streamer->setFilenameFormat(Config::getTestDataPath() + "US/JugularVein/US-2D_#.mhd");
             streamer->enableLooping();
 
-            auto segmentation = PixelClassifier::New();
+            auto segmentation = SegmentationNetwork::New();
             segmentation->setInferenceEngine(engine);
             segmentation->getInferenceEngine()->setDeviceType(deviceType.second);
             if(engine.substr(0, 10) == "TensorFlow") {
@@ -95,7 +95,7 @@ TEST_CASE("Execute NN on single 3D image", "[fast][neuralnetwork][3d][visual]") 
     cropper->setOffset(Vector3i(0, 0, 32));
     cropper->setSize(Vector3i(512, 512, 64));
 
-    auto segmentation = PixelClassifier::New();
+    auto segmentation = SegmentationNetwork::New();
     //segmentation->setHeatmapOutput();
     segmentation->setNrOfClasses(2);
     segmentation->load(Config::getTestDataPath() + "NeuralNetworkModels/lung_nodule_segmentation.pb");

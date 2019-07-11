@@ -1,5 +1,5 @@
 #include <FAST/Testing.hpp>
-#include <FAST/Algorithms/NeuralNetwork/PixelClassifier.hpp>
+#include <FAST/Algorithms/NeuralNetwork/SegmentationNetwork.hpp>
 #include <FAST/Importers/ImageFileImporter.hpp>
 #include <FAST/Visualization/SimpleWindow.hpp>
 #include <FAST/Streamers/ImageFileStreamer.hpp>
@@ -20,8 +20,10 @@ int main(int argc, char** argv) {
     parser.addOption("disable-case-1");
     parser.addOption("disable-case-2");
     parser.addOption("disable-case-3");
+    parser.addOption("disable-warmup");
     parser.parse(argc, argv);
     const int iterations = 10;
+    const bool warmupIteration = !parser.getOption("disable-warmup");
     const bool case1 = !parser.getOption("disable-case-1");
     const bool case2 = !parser.getOption("disable-case-2");
     const bool case3 = !parser.getOption("disable-case-3");
@@ -48,11 +50,11 @@ int main(int argc, char** argv) {
                 std::cout << engine << " for device type " << deviceType.first << std::endl;
                 std::cout << "====================================" << std::endl;
 
-                for(int iteration = 0; iteration < iterations; ++iteration) {
+                for(int iteration = 0; iteration <= iterations; ++iteration) {
                     auto streamer = ImageFileStreamer::New();
                     streamer->setFilenameFormat(Config::getTestDataPath() + "US/JugularVein/US-2D_#.mhd");
 
-                    auto segmentation = PixelClassifier::New();
+                    auto segmentation = SegmentationNetwork::New();
                     segmentation->setInferenceEngine(engine);
                     segmentation->getInferenceEngine()->setDeviceType(deviceType.second);
                     if(engine.substr(0, 10) == "TensorFlow") {
@@ -90,6 +92,9 @@ int main(int argc, char** argv) {
                     segmentation->getRuntime("input_processing")->print();
                     segmentation->getRuntime("inference")->print();
                     segmentation->getRuntime("output_processing")->print();
+
+                    if(iteration == 0 && warmupIteration)
+                        continue;
 
                     file <<
                          engine + ";" +
@@ -132,7 +137,7 @@ int main(int argc, char** argv) {
                 std::cout << engine << " for device type " << deviceType.first << std::endl;
                 std::cout << "====================================" << std::endl;
 
-                for(int iteration = 0; iteration < iterations; ++iteration) {
+                for(int iteration = 0; iteration <= iterations; ++iteration) {
                    auto importer = ImageFileImporter::New();
                     importer->setFilename(Config::getTestDataPath() + "/CT/LIDC-IDRI-0072/01-01-2000-CT CHEST W CONT-45499/4-Recon 3-88650/000001.dcm");
 
@@ -141,7 +146,7 @@ int main(int argc, char** argv) {
                     generator->setInputConnection(importer->getOutputPort());
                     generator->enableRuntimeMeasurements();
 
-                    auto network = PixelClassifier::New();
+                    auto network = SegmentationNetwork::New();
                     network->setInferenceEngine(engine);
                     network->getInferenceEngine()->setDeviceType(deviceType.second);
                     network->setInferenceEngine(engine);
@@ -172,6 +177,9 @@ int main(int argc, char** argv) {
                     network->getRuntime()->print();
                     std::cout << "Patch stitcher runtime: " << std::endl;
                     stitcher->getRuntime()->print();
+
+                    if(iteration == 0 && warmupIteration)
+                        continue;
 
                     file <<
                          engine + ";" +
@@ -217,7 +225,7 @@ int main(int argc, char** argv) {
                 std::cout << engine << " for device type " << deviceType.first << std::endl;
                 std::cout << "====================================" << std::endl;
 
-                for(int iteration = 0; iteration < iterations; ++iteration) {
+                for(int iteration = 0; iteration <= iterations; ++iteration) {
                     auto importer = WholeSlideImageImporter::New();
                     importer->setFilename(Config::getTestDataPath() + "/CMU-1.tiff");
 
@@ -268,6 +276,9 @@ int main(int argc, char** argv) {
                     network->getRuntime()->print();
                     std::cout << "Patch stitcher runtime: " << std::endl;
                     stitcher->getRuntime()->print();
+
+                    if(iteration == 0 && warmupIteration)
+                        continue;
 
                     file <<
                          engine + ";" +

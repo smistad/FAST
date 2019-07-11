@@ -1,7 +1,7 @@
 PipelineName "Cardiac view classification"
 PipelineDescription "Neural network"
 
-ProcessObject classifier ImageClassifier
+ProcessObject classifier ImageClassificationNetwork
 Attribute model "/home/smistad/models/cvc_inception.pb"
 Attribute input_size 128 128
 Attribute output_names "predictions/Softmax"

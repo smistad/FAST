@@ -1,19 +1,19 @@
-#include "ImageClassifier.hpp"
+#include "ImageClassificationNetwork.hpp"
 #include "FAST/Data/Image.hpp"
 #include <FAST/Data/Text.hpp>
 
 namespace fast {
 
-ImageClassifier::ImageClassifier() {
+ImageClassificationNetwork::ImageClassificationNetwork() {
 	createOutputPort<ImageClassification>(0);
 	createStringAttribute("labels", "Labels", "Name of each class", "");
 }
 
-void ImageClassifier::setLabels(std::vector<std::string> labels) {
+void ImageClassificationNetwork::setLabels(std::vector<std::string> labels) {
 	mLabels = labels;
 }
 
-void ImageClassifier::execute() {
+void ImageClassificationNetwork::execute() {
 
     run();
 
@@ -33,7 +33,7 @@ void ImageClassifier::execute() {
     }
 }
 
-void ImageClassifier::loadAttributes() {
+void ImageClassificationNetwork::loadAttributes() {
 	NeuralNetwork::loadAttributes();
 	setLabels(getStringListAttribute("labels"));
 }

@@ -8,7 +8,7 @@
 #include "FAST/Visualization/SimpleWindow.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
-#include "PixelClassifier.hpp"
+#include "SegmentationNetwork.hpp"
 
 using namespace fast;
 

@@ -1,5 +1,4 @@
-#ifndef IMAGE_CLASSIFIER_HPP
-#define IMAGE_CLASSIFIER_HPP
+#pragma once
 
 #include "FAST/ProcessObject.hpp"
 #include "NeuralNetwork.hpp"
@@ -8,7 +7,7 @@
 
 namespace fast {
 
-// Create the data object used as output from the ImageClassifier
+// Create the data object used as output from the ImageClassificationNetwork
 
 typedef std::map<std::string, float> classifications;
 FAST_SIMPLE_DATA_OBJECT(ImageClassification, classifications)
@@ -16,13 +15,13 @@ FAST_SIMPLE_DATA_OBJECT(ImageClassification, classifications)
 /**
  * Neural network image classification
  */
-class FAST_EXPORT  ImageClassifier : public NeuralNetwork {
-	FAST_OBJECT(ImageClassifier)
+class FAST_EXPORT ImageClassificationNetwork : public NeuralNetwork {
+	FAST_OBJECT(ImageClassificationNetwork)
 	public:
 		void setLabels(std::vector<std::string> labels);
         void loadAttributes();
 	private:
-		ImageClassifier();
+		ImageClassificationNetwork();
 		void execute();
 
 		// A map of label -> score
@@ -46,5 +45,3 @@ class FAST_EXPORT  ClassificationToText : public ProcessObject {
 };
 
 }
-
-#endif

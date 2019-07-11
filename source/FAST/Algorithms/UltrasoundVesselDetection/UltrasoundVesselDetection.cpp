@@ -9,7 +9,7 @@
 #include <queue>
 #include "FAST/Algorithms/UltrasoundVesselDetection/UltrasoundVesselDetection.hpp"
 #include "FAST/Algorithms/ImageCropper/ImageCropper.hpp"
-#include "FAST/Algorithms/NeuralNetwork/ImageClassifier.hpp"
+#include "FAST/Algorithms/NeuralNetwork/ImageClassificationNetwork.hpp"
 
 namespace fast {
 

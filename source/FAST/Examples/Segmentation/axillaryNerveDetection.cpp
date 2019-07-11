@@ -8,7 +8,7 @@
 #include "FAST/Visualization/SimpleWindow.hpp"
 #include "FAST/Visualization/ImageRenderer/ImageRenderer.hpp"
 #include "FAST/Visualization/TriangleRenderer/TriangleRenderer.hpp"
-#include "FAST/Algorithms/NeuralNetwork/PixelClassifier.hpp"
+#include "FAST/Algorithms/NeuralNetwork/SegmentationNetwork.hpp"
 #include <FAST/Algorithms/UltrasoundImageCropper/UltrasoundImageCropper.hpp>
 #include <FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp>
 
@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
     }
 
     std::string path = join(Config::getTestDataPath(), "NeuralNetworkModels/axillary_all_augmentations");
-    auto segmentation = PixelClassifier::New();
+    auto segmentation = SegmentationNetwork::New();
     segmentation->setInferenceEngine("TensorFlowCUDA");
     const auto engine = segmentation->getInferenceEngine()->getName();
     if(engine.substr(0, 10) == "TensorFlow") {

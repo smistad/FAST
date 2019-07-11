@@ -1,11 +1,10 @@
-#ifndef FAST_PIXEL_CLASSIFIER_HPP_
-#define FAST_PIXEL_CLASSIFIER_HPP_
+#pragma once
 
 #include "NeuralNetwork.hpp"
 
 namespace fast {
-class FAST_EXPORT  PixelClassifier : public NeuralNetwork {
-    FAST_OBJECT(PixelClassifier)
+class FAST_EXPORT SegmentationNetwork : public NeuralNetwork {
+    FAST_OBJECT(SegmentationNetwork)
     public:
         void setHeatmapOutput();
         void setSegmentationOutput();
@@ -13,7 +12,7 @@ class FAST_EXPORT  PixelClassifier : public NeuralNetwork {
         void setThreshold(float threshold);
         void loadAttributes();
     private:
-        PixelClassifier();
+        SegmentationNetwork();
         void execute();
 
 
@@ -24,5 +23,3 @@ class FAST_EXPORT  PixelClassifier : public NeuralNetwork {
 };
 
 }
-
-#endif
