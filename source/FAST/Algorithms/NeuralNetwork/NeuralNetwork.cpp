@@ -46,6 +46,7 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
                             "Either export the file with shape information or supply the input shape manually using setInputNode.");
 
         SharedPointer<DataObject> data = getInputData<DataObject>(inputNode.second.portID);
+        mRuntimeManager->startRegularTimer("input_processing");
 
         bool containsSequence = false;
         // Check if data object is an tensor by doing a dynamic cast
@@ -166,6 +167,7 @@ std::unordered_map<std::string, Tensor::pointer> NeuralNetwork::processInputData
             // Input is a tensor, no conversion needed
             tensors[inputNode.first] = tensor;
         }
+        mRuntimeManager->stopRegularTimer("input_processing");
 	}
 
 	return tensors;
@@ -178,13 +180,11 @@ void NeuralNetwork::run() {
         m_engine->load();
 
     // Prepare input data
-    mRuntimeManager->startRegularTimer("input_processing");
 	auto inputTensors = processInputData();
 	// Give input tensors to inference engine
     for(const auto &node : m_engine->getInputNodes()) {
         m_engine->setInputData(node.first, inputTensors[node.first]);
     }
-    mRuntimeManager->stopRegularTimer("input_processing");
 
 	// Run network
     mRuntimeManager->startRegularTimer("inference");

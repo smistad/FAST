@@ -193,8 +193,8 @@ int main(int argc, char** argv) {
                          std::to_string(network->getRuntime("inference")->getStdDeviation()) + ";" +
                          std::to_string(network->getRuntime("output_processing")->getAverage()) + ";" +
                          std::to_string(network->getRuntime("output_processing")->getStdDeviation()) + ";" +
-                         std::to_string(stitcher->getRuntime()->getAverage()) + ";" +
-                         std::to_string(stitcher->getRuntime()->getStdDeviation()) + ";" +
+                         std::to_string(stitcher->getRuntime("stitch patch")->getAverage()) + ";" +
+                         std::to_string(stitcher->getRuntime("stitch patch")->getStdDeviation()) + ";" +
                          std::to_string(timeUsed.count())
                          << std::endl;
                 }
@@ -292,8 +292,8 @@ int main(int argc, char** argv) {
                          std::to_string(network->getRuntime("inference")->getStdDeviation()) + ";" +
                          std::to_string(network->getRuntime("output_processing")->getAverage()) + ";" +
                          std::to_string(network->getRuntime("output_processing")->getStdDeviation()) + ";" +
-                         std::to_string(stitcher->getRuntime()->getAverage()) + ";" +
-                         std::to_string(stitcher->getRuntime()->getStdDeviation()) + ";" +
+                         std::to_string(stitcher->getRuntime("stitch patch")->getAverage()) + ";" +
+                         std::to_string(stitcher->getRuntime("stitch patch")->getStdDeviation()) + ";" +
                          std::to_string(timeUsed.count())
                          << std::endl;
                 }
