@@ -1,5 +1,5 @@
 #include <FAST/Testing.hpp>
-#include "TemplateMatchingNCC.hpp"
+#include "TemplateMatching.hpp"
 #include <FAST/Importers/ImageFileImporter.hpp>
 #include <FAST/Streamers/ImageFileStreamer.hpp>
 #include <FAST/Data/Image.hpp>
@@ -19,7 +19,7 @@ TEST_CASE("Template matching NCC", "[fast][NCC][TemplateMatching][visual]") {
     Vector2i position = Vector2i(120, 100) + size/2;
     auto templateImage = image->crop(position - size/2, size);
 
-    auto matching = TemplateMatchingNCC::New();
+    auto matching = TemplateMatching::New();
     matching->enableRuntimeMeasurements();
     matching->setRegionOfInterest(position, Vector2i(16, 16));
     matching->setInputData(0, image);
@@ -72,7 +72,7 @@ TEST_CASE("Template matching NCC synthetic sequence", "[fast][NCC][TemplateMatch
     streamer->setFilenameFormat(join(Config::getTestDataPath(), "Synthetic/ImageTracking/frame_#.png"));
     //streamer->setMainDevice(DeviceManager::getInstance()->getOneGPUDevice());
 
-    auto matching = TemplateMatchingNCC::New();
+    auto matching = TemplateMatching::New();
     matching->getReporter().setReportMethod(Reporter::NONE);
     matching->setInputData(1, templateImage);
     matching->setInputConnection(0, streamer->getOutputPort());
