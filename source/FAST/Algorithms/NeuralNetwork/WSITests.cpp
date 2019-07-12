@@ -38,9 +38,9 @@ TEST_CASE("WSI -> Patch generator -> Neural network -> Patch stitcher -> visuali
     generator->setInputConnection(1, tissueSegmentation->getOutputPort());
 
     auto network = NeuralNetwork::New();
-    network->setInferenceEngine("TensorFlowCUDA");
+    //network->setInferenceEngine("TensorFlowCUDA");
     //network->setInferenceEngine("OpenVINO");
-    //network->setInferenceEngine("TensorRT");
+    network->setInferenceEngine("TensorRT");
     auto engine = network->getInferenceEngine()->getName();
     if(engine.substr(0, 10) == "TensorFlow") {
         network->setOutputNode(0, "dense_1/Softmax", NodeType::TENSOR);

@@ -14,6 +14,7 @@ PatchStitcher::PatchStitcher() {
 
 void PatchStitcher::execute() {
     auto patch = getInputData<DataObject>();
+    mRuntimeManager->startRegularTimer("stitch patch");
     auto tensorPatch = std::dynamic_pointer_cast<Tensor>(patch);
     auto imagePatch = std::dynamic_pointer_cast<Image>(patch);
     auto batchOfPatches = std::dynamic_pointer_cast<Batch>(patch);
@@ -36,6 +37,7 @@ void PatchStitcher::execute() {
             processImage(imagePatch);
         }
     }
+    mRuntimeManager->stopRegularTimer("stitch patch");
 
     if(m_outputImage) {
         addOutputData(0, m_outputImage);

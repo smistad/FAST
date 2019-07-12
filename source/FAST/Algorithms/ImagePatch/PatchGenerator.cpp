@@ -72,6 +72,7 @@ void PatchGenerator::generateStream() {
                 patch->setFrameData("patch-spacing-x", std::to_string(patch->getSpacing().x()));
                 patch->setFrameData("patch-spacing-y", std::to_string(patch->getSpacing().y()));
 
+                mRuntimeManager->stopRegularTimer("create patch");
                 try {
                     if(previousPatch) {
                         addOutputData(0, previousPatch);
@@ -82,7 +83,6 @@ void PatchGenerator::generateStream() {
                     m_stop = true;
                     break;
                 }
-                mRuntimeManager->stopRegularTimer("create patch");
                 previousPatch = patch;
                 std::unique_lock<std::mutex> lock(m_stopMutex);
                 if(m_stop)

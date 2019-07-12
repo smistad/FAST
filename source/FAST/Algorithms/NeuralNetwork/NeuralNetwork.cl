@@ -11,7 +11,8 @@ __kernel void normalize2DInput(
 	__private int channels,
 	__private float minIntensity,
 	__private float maxIntensity,
-	__private int clipIntensity
+	__private int clipIntensity,
+	__private int channelFirst
 	) {
 	
 	const int2 pos = {get_global_id(0), get_global_id(1)};
@@ -39,14 +40,27 @@ __kernel void normalize2DInput(
 	} else {
 		x = pos.x;
 	}
-    int position = (pos.x + pos.y*get_global_size(0))*channels;
-    output[position] = value.x;
-    if(channels > 1)
-        output[position+1] = value.y;
-    if(channels > 2)
-        output[position+2] = value.z;
-    if(channels > 3)
-        output[position+3] = value.w;
+	const int width = get_global_size(0);
+	const int height = get_global_size(1);
+    if(channelFirst == 0) {
+        int position = (pos.x + pos.y*width)*channels;
+        output[position] = value.x;
+        if(channels > 1)
+            output[position+1] = value.y;
+        if(channels > 2)
+            output[position+2] = value.z;
+        if(channels > 3)
+            output[position+3] = value.w;
+    } else {
+        int position = pos.x + pos.y*width;
+        output[position] = value.x;
+        if(channels > 1)
+            output[position + 1*width*height] = value.y;
+        if(channels > 2)
+            output[position + 2*width*height] = value.z;
+        if(channels > 3)
+            output[position + 3*width*height] = value.w;
+    }
 }
 
 __kernel void normalize3DInput(
@@ -60,18 +74,19 @@ __kernel void normalize3DInput(
 	__private int channels,
 	__private float minIntensity,
 	__private float maxIntensity,
-	__private int clipIntensity
+	__private int clipIntensity,
+	__private int channelFirst
 	) {
 
 	const int4 pos = {get_global_id(0), get_global_id(1), get_global_id(2), 0};
 	const int dataType = get_image_channel_data_type(input);
-	float value;
+	float4 value;
 	if(dataType == CLK_FLOAT) {
-		value = read_imagef(input, sampler, pos).x;
+		value = read_imagef(input, sampler, pos);
 	} else if(dataType == CLK_SIGNED_INT8 || dataType == CLK_SIGNED_INT16) {
-		value = read_imagei(input, sampler, pos).x;
+		value = convert_float4(read_imagei(input, sampler, pos));
 	} else {
-		value = read_imageui(input, sampler, pos).x;
+		value = convert_float4(read_imageui(input, sampler, pos));
 	}
 
 	if(clipIntensity)
@@ -82,6 +97,26 @@ __kernel void normalize3DInput(
         value = value*2 - 1;
 	}
 
-    int position = pos.x + pos.y*get_global_size(0) + pos.z*get_global_size(0)*get_global_size(1);
-    output[position] = value;
+    const int width = get_global_size(0);
+	const int height = get_global_size(1);
+	const int depth = get_global_size(2);
+    if(channelFirst == 0) {
+        int position = (pos.x + pos.y*width + pos.z*width*height)*channels;
+        output[position] = value.x;
+        if(channels > 1)
+            output[position+1] = value.y;
+        if(channels > 2)
+            output[position+2] = value.z;
+        if(channels > 3)
+            output[position+3] = value.w;
+    } else {
+        int position = pos.x + pos.y*width + pos.z*width*height;
+        output[position] = value.x;
+        if(channels > 1)
+            output[position + 1*width*height*depth] = value.y;
+        if(channels > 2)
+            output[position + 2*width*height*depth] = value.z;
+        if(channels > 3)
+            output[position + 3*width*height*depth] = value.w;
+    }
 }
