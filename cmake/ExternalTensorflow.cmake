@@ -36,28 +36,30 @@ if(WIN32)
 else(WIN32)
     # Use bazel to build tensorflow on linux
     set(GIT_EXECUTABLE "git")
-    ExternalProject_Add(tensorflow_download
-        PREFIX ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
-        BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
-        GIT_REPOSITORY "https://github.com/smistad/tensorflow.git"
-        GIT_TAG "fast-updated"
-        UPDATE_COMMAND ""
-        CONFIGURE_COMMAND ""
-        BUILD_COMMAND ""
-        INSTALL_COMMAND ""
-    )
-    # Need a seperate repo for rocm atm
-    ExternalProject_Add(tensorflow_download_rocm
-        PREFIX ${FAST_EXTERNAL_BUILD_DIR}/tensorflow_rocm
-        BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/tensorflow_rocm
-        GIT_REPOSITORY "https://github.com/ROCmSoftwarePlatform/tensorflow-upstream"
-        GIT_TAG "r1.14-rocm"
-        UPDATE_COMMAND ""
-        CONFIGURE_COMMAND ""
-        BUILD_COMMAND ""
-        INSTALL_COMMAND ""
-    )
+    if(FAST_BUILD_TensorFlow_CPU OR FAST_BUILD_TensorFlow_CUDA)
+        ExternalProject_Add(tensorflow_download
+            PREFIX ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
+            BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/tensorflow
+            GIT_REPOSITORY "https://github.com/smistad/tensorflow.git"
+            GIT_TAG "fast-updated"
+            UPDATE_COMMAND ""
+            CONFIGURE_COMMAND ""
+            BUILD_COMMAND ""
+            INSTALL_COMMAND ""
+        )
+    endif()
     if(FAST_BUILD_TensorFlow_ROCm)
+        # Need a seperate repo for rocm atm
+        ExternalProject_Add(tensorflow_download_rocm
+            PREFIX ${FAST_EXTERNAL_BUILD_DIR}/tensorflow_rocm
+            BINARY_DIR ${FAST_EXTERNAL_BUILD_DIR}/tensorflow_rocm
+            GIT_REPOSITORY "https://github.com/ROCmSoftwarePlatform/tensorflow-upstream"
+            GIT_TAG "r1.14-rocm"
+            UPDATE_COMMAND ""
+            CONFIGURE_COMMAND ""
+            BUILD_COMMAND ""
+            INSTALL_COMMAND ""
+        )
         ExternalProject_Add(tensorflow_ROCm
             DEPENDS tensorflow_download_rocm
             PREFIX ${FAST_EXTERNAL_BUILD_DIR}/tensorflow_rocm
