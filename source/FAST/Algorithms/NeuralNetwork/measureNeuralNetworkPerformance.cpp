@@ -57,16 +57,22 @@ int main(int argc, char** argv) {
                     auto segmentation = SegmentationNetwork::New();
                     segmentation->setInferenceEngine(engine);
                     segmentation->getInferenceEngine()->setDeviceType(deviceType.second);
+                    std::string postfix = "";
                     if(engine.substr(0, 10) == "TensorFlow") {
                         segmentation->setOutputNode(0, "conv2d_23/truediv");
                     } else if(engine == "TensorRT") {
                         segmentation->setInputNode(0, "input_image", NodeType::IMAGE, TensorShape({-1, 1, 256, 256}));
                         segmentation->setOutputNode(0, "permute_2/transpose", NodeType::TENSOR,
                                                     TensorShape({-1, 3, 256, 256}));
+                    } else if(engine == "OpenVINO") {
+                        if (deviceType.first == "VPU") {
+                            postfix = "_fp16";
+                        }
                     }
+
                     try {
                         segmentation->load(join(Config::getTestDataPath(),
-                                                "NeuralNetworkModels/jugular_vein_segmentation." +
+                                                "NeuralNetworkModels/jugular_vein_segmentation"+postfix+"." +
                                                 segmentation->getInferenceEngine()->getDefaultFileExtension()));
                     } catch(Exception &e) {
                         // If a device type is not present, it will fail in load
