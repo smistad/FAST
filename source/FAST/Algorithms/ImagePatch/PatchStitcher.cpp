@@ -9,7 +9,8 @@ PatchStitcher::PatchStitcher() {
     createInputPort<DataObject>(0); // Can be Image, Batch or Tensor
     createOutputPort<DataObject>(0); // Can be Image or Tensor
 
-    createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/ImagePatch/PatchStitcher.cl");
+    createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/ImagePatch/PatchStitcher2D.cl", "2D");
+    createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/ImagePatch/PatchStitcher3D.cl", "3D");
 }
 
 void PatchStitcher::execute() {
@@ -97,17 +98,23 @@ void PatchStitcher::processImage(SharedPointer<Image> patch) {
 
     int fullDepth = 1;
     float patchSpacingZ = 1.0f;
+    bool is3D = true;
     try {
         fullDepth = std::stoi(patch->getFrameData("original-depth"));
         patchSpacingZ = std::stof(patch->getFrameData("patch-spacing-z"));
     } catch(Exception &e) {
         // If exception: is a 2D image
+        is3D = false;
     }
 
     if(!m_outputImage) {
         // Create output image
         m_outputImage = Image::New();
-        m_outputImage->create(fullWidth, fullHeight, fullDepth, patch->getDataType(), patch->getNrOfChannels());
+        if(is3D) {
+            m_outputImage->create(fullWidth, fullHeight, fullDepth, patch->getDataType(), patch->getNrOfChannels());
+        } else {
+            m_outputImage->create(fullWidth, fullHeight, patch->getDataType(), patch->getNrOfChannels());
+        }
         m_outputImage->fill(0);
         m_outputImage->setSpacing(Vector3f(patchSpacingX, patchSpacingY, patchSpacingZ));
         try {
@@ -127,7 +134,7 @@ void PatchStitcher::processImage(SharedPointer<Image> patch) {
     auto patchAccess = patch->getOpenCLImageAccess(ACCESS_READ, device);
 
     if(fullDepth == 1) {
-        cl::Program program = getOpenCLProgram(device);
+        cl::Program program = getOpenCLProgram(device, "2D");
         const int startX = std::stoi(patch->getFrameData("patchid-x")) * std::stoi(patch->getFrameData("patch-width"));
         const int startY = std::stoi(patch->getFrameData("patchid-y")) * std::stoi(patch->getFrameData("patch-height"));
         const int endX = startX + patch->getWidth();
@@ -159,7 +166,7 @@ void PatchStitcher::processImage(SharedPointer<Image> patch) {
 
         if(device->isWritingTo3DTexturesSupported()) {
             auto outputAccess = m_outputImage->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
-            cl::Program program = getOpenCLProgram(device);
+            cl::Program program = getOpenCLProgram(device, "3D");
             cl::Kernel kernel(program, "applyPatch3D");
             kernel.setArg(0, *patchAccess->get3DImage());
             kernel.setArg(2, startX);
@@ -175,7 +182,7 @@ void PatchStitcher::processImage(SharedPointer<Image> patch) {
             );
         } else {
             auto outputAccess = m_outputImage->getOpenCLBufferAccess(ACCESS_READ_WRITE, device);
-            cl::Program program = getOpenCLProgram(device, "", "-DTYPE=" + getCTypeAsString(m_outputImage->getDataType()));
+            cl::Program program = getOpenCLProgram(device, "3D", "-DTYPE=" + getCTypeAsString(m_outputImage->getDataType()));
             cl::Kernel kernel(program, "applyPatch3D");
             kernel.setArg(0, *patchAccess->get3DImage());
             kernel.setArg(1, *outputAccess->get());
