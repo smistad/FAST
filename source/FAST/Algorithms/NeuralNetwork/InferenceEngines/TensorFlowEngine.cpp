@@ -1,5 +1,7 @@
 #include "TensorFlowEngine.hpp"
 
+//#define TF_CPP_MIN_LOG_LEVEL 5
+//#define TF_CPP_MIN_VLOG_LEVEL 5
 // Windows hack for removing need for protobuf
 #ifdef WIN32
 #include <google/protobuf/stubs/logging.h>
@@ -8,19 +10,21 @@
   !(CONDITION) ? std::clog : std::cerr
 // end hack
 #endif
-#include <tensorflow/core/framework/step_stats.pb.h>
-#include <tensorflow/core/framework/tensor.h>
-#include <tensorflow/core/framework/types.pb.h>
-#include <tensorflow/core/lib/strings/stringprintf.h>
-#include <tensorflow/core/platform/env.h>
-#include <tensorflow/core/platform/mutex.h>
-#include <tensorflow/core/platform/types.h>
+
+//#include <tensorflow/core/framework/step_stats.pb.h>
+//#include <tensorflow/core/framework/tensor.h>
+//#include <tensorflow/core/framework/types.pb.h>
+//#include <tensorflow/core/lib/strings/stringprintf.h>
+//#include <tensorflow/core/platform/env.h>
+//#include <tensorflow/core/platform/mutex.h>
+//#include <tensorflow/core/platform/types.h>
 #include <tensorflow/core/public/session.h>
-#include <tensorflow/core/graph/default_device.h>
-#include <tensorflow/core/platform/init_main.h>
-#include <tensorflow/cc/framework/ops.h>
-#include <tensorflow/core/platform/logging.h>
+//#include <tensorflow/core/graph/default_device.h>
+//#include <tensorflow/core/platform/init_main.h>
+//#include <tensorflow/cc/framework/ops.h>
+//#include <tensorflow/core/platform/logging.h>
 #include <FAST/Utility.hpp>
+
 
 namespace fast {
 
@@ -173,15 +177,23 @@ void TensorFlowEngine::load() {
 	const auto networkFilename = getFilename();
 	tensorflow::SessionOptions options;
 	tensorflow::ConfigProto &config = options.config;
+#ifndef WIN32
+    // These lines cause linking issues on windows
+    config.mutable_gpu_options()->set_allow_growth(true); // Set this so that tensorflow will not use up all GPU memory
+    if(m_deviceIndex >= 0)
+        config.mutable_gpu_options()->set_visible_device_list(std::to_string(m_deviceIndex));
+#endif
+    /*
 	tensorflow::GPUOptions* gpuOptions = config.mutable_gpu_options();
-	if(m_deviceIndex >= 0)
-	    gpuOptions->set_visible_device_list(std::to_string(m_deviceIndex));
-	gpuOptions->set_allow_growth(true); // Set this so that tensorflow will not use up all GPU memory
+	gpuOptions->set_allow_growth(true); 
 	//gpuOptions->set_per_process_gpu_memory_fraction(0.5);
+    */
 	mSession.reset(tensorflow::NewSession(options));
 	tensorflow::GraphDef tensorflow_graph;
 
 	{
+        if(!fileExists(networkFilename))
+            throw Exception(networkFilename + " does not exist");
 		reportInfo() << "Loading network file: " << networkFilename << reportEnd();
 		tensorflow::Status s = ReadBinaryProto(tensorflow::Env::Default(), networkFilename, &tensorflow_graph);
 		if (!s.ok()) {
@@ -194,6 +206,7 @@ void TensorFlowEngine::load() {
 	if(mInputNodes.size() == 0) {
 		nodesSpecified = false;
 	}
+
     for(int i = 0; i < tensorflow_graph.node_size(); ++i) {
 		tensorflow::NodeDef node = tensorflow_graph.node(i);
 		if(mInputNodes.count(node.name()) > 0) {

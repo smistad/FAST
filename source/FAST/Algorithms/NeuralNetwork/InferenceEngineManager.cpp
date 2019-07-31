@@ -54,6 +54,7 @@ void InferenceEngineManager::loadAll() {
             std::string name = item.substr(prefix.size(), item.rfind('.') - prefix.size());
             Reporter::info() << "Loading inference engine " << name << " from shared library " << item << Reporter::end();
 #ifdef WIN32
+            SetErrorMode(SEM_FAILCRITICALERRORS); // TODO To avoid diaglog box, when not able to load a DLL
             auto handle = LoadLibrary(item.c_str());
             if(!handle) {
                 Reporter::warning() << "Failed to load plugin because " << GetLastErrorAsString() << Reporter::end();
