@@ -212,7 +212,7 @@ install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/Semaphore_LICENSE.txt
 
 if(FAST_MODULE_TensorFlow)
     # Tensorflow license
-	install(FILES ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow/LICENSE
+	install(FILES ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/LICENSE
         DESTINATION fast/licenses/tensorflow/
     )
 endif()
