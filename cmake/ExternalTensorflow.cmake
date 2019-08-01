@@ -108,8 +108,8 @@ else(WIN32)
                 cp -rf ${FAST_EXTERNAL_BUILD_DIR}/tensorflow_rocm/src/tensorflow_download_rocm/bazel-genfiles/tensorflow/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ &&
                 echo "Installing tensorflow third_party headers" &&
                 cp -rf ${FAST_EXTERNAL_BUILD_DIR}/tensorflow_rocm/src/tensorflow_download_rocm/third_party/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ &&
-                #echo "Installing protobuf headers" &&
-                #bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow_rocm/src/tensorflow_download_rocm/bazel-out/)/../../../external/protobuf_archive/src/google/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ -Rf" &&
+                echo "Installing protobuf headers" &&
+                bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow_rocm/src/tensorflow_download_rocm/bazel-out/)/../../../external/protobuf_archive/src/google/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ -Rf" &&
                 #echo "Installing nsync headers" &&
                 #bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow_rocm/src/tensorflow_download_rocm/bazel-out/)/../../../external/nsync/public/*.h ${FAST_EXTERNAL_INSTALL_DIR}/include/ -Rf" &&
                 echo "Installing absl headers" &&
@@ -148,8 +148,8 @@ else(WIN32)
                 cp -rf ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-genfiles/tensorflow/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ &&
                 echo "Installing tensorflow third_party headers" &&
                 cp -rf ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/third_party/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ &&
-                #echo "Installing protobuf headers" &&
-                #bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-out/)/../../../external/protobuf_archive/src/google/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ -Rf" &&
+                echo "Installing protobuf headers" &&
+                bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-out/)/../../../external/protobuf_archive/src/google/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ -Rf" &&
                 #echo "Installing nsync headers" &&
                 #bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-out/)/../../../external/nsync/public/*.h ${FAST_EXTERNAL_INSTALL_DIR}/include/ -Rf" &&
                 echo "Installing absl headers" &&
@@ -185,8 +185,8 @@ else(WIN32)
                 cp -rf ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-genfiles/tensorflow/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ &&
                 echo "Installing tensorflow third_party headers" &&
                 cp -rf ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/third_party/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ &&
-                #echo "Installing protobuf headers" &&
-                #bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-out/)/../../../external/protobuf_archive/src/google/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ -Rf" &&
+                echo "Installing protobuf headers" &&
+                bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-out/)/../../../external/protobuf_archive/src/google/ ${FAST_EXTERNAL_INSTALL_DIR}/include/ -Rf" &&
                 #echo "Installing nsync headers" &&
                 #bash -c "cp $(readlink -f ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-out/)/../../../external/nsync/public/*.h ${FAST_EXTERNAL_INSTALL_DIR}/include/ -Rf" &&
                 echo "Installing absl headers" &&

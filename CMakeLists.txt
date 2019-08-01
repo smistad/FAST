@@ -234,7 +234,7 @@ configure_file(
 # Setup inference engines
 foreach(ENGINE ${FAST_INFERENCE_ENGINES})
     message("---- Adding inference engnine ${ENGINE}")
-    add_dependencies(testFAST ${ENGINE})
+    #add_dependencies(testFAST ${ENGINE})
 endforeach()
 
 if(NOT FAST_BUILD_QT5 AND WIN32)
