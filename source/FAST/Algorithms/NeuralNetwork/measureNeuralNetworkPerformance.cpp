@@ -145,10 +145,10 @@ int main(int argc, char** argv) {
 
                 for(int iteration = 0; iteration <= iterations; ++iteration) {
                    auto importer = ImageFileImporter::New();
-                    importer->setFilename(Config::getTestDataPath() + "/CT/LIDC-IDRI-0072/01-01-2000-CT CHEST W CONT-45499/4-Recon 3-88650/000001.dcm");
+                    importer->setFilename(Config::getTestDataPath() + "/CT/LIDC-IDRI-0072/000001.dcm");
 
                     auto generator = PatchGenerator::New();
-                    generator->setPatchSize(512, 512, 64);
+                    generator->setPatchSize(512, 512, 32);
                     generator->setInputConnection(importer->getOutputPort());
                     generator->enableRuntimeMeasurements();
 
@@ -156,11 +156,11 @@ int main(int argc, char** argv) {
                     network->setInferenceEngine(engine);
                     network->getInferenceEngine()->setDeviceType(deviceType.second);
                     network->setInferenceEngine(engine);
-                    network->load(Config::getTestDataPath() + "/NeuralNetworkModels/lung_nodule_model.pb");
+                    network->load(Config::getTestDataPath() + "/NeuralNetworkModels/lung_nodule_segmentation.pb");
                     network->setMinAndMaxIntensity(-1200.0f, 400.0f);
                     network->setScaleFactor(1.0f/(400+1200));
                     network->setMeanAndStandardDeviation(-1200.0f, 1.0f);
-                    network->setOutputNode(0, "conv3d_18/truediv");
+                    network->setOutputNode(0, "conv3d_14/truediv");
                     network->setInputConnection(generator->getOutputPort());
                     network->setResizeBackToOriginalSize(true);
                     network->setThreshold(0.3);
@@ -233,7 +233,7 @@ int main(int argc, char** argv) {
 
                 for(int iteration = 0; iteration <= iterations; ++iteration) {
                     auto importer = WholeSlideImageImporter::New();
-                    importer->setFilename(Config::getTestDataPath() + "/CMU-1.tiff");
+                    importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
 
                     auto tissueSegmentation = TissueSegmentation::New();
                     tissueSegmentation->setInputConnection(importer->getOutputPort());
@@ -249,17 +249,17 @@ int main(int argc, char** argv) {
                     network->setInferenceEngine(engine);
                     std::string postfix;
                     if(engine.substr(0, 10) == "TensorFlow") {
-                        network->setOutputNode(0, "dense_1/Softmax", NodeType::TENSOR);
+                        network->setOutputNode(0, "sequential/dense_1/Softmax", NodeType::TENSOR);
                     } else if(engine == "TensorRT") {
                         network->setInputNode(0, "input_1", NodeType::IMAGE, TensorShape{-1, 3, 512, 512});
-                        network->setOutputNode(0, "dense_1/Softmax", NodeType::TENSOR, TensorShape{-1, 3});
+                        network->setOutputNode(0, "sequential/dense_1/Softmax", NodeType::TENSOR, TensorShape{-1, 3});
                     } else if(engine == "OpenVINO") {
                         network->getInferenceEngine()->setDeviceType(deviceType.second);
                         if(deviceType.first == "VPU") {
                             postfix = "_fp16";
                         }
                     }
-                    network->load(Config::getTestDataPath() + "NeuralNetworkModels/bc_grade_model_3_grades_10x_512_heavy_HSV" + postfix + "." +
+                    network->load(Config::getTestDataPath() + "NeuralNetworkModels/wsi_classification" + postfix + "." +
                                   network->getInferenceEngine()->getDefaultFileExtension());
                     network->setInputConnection(generator->getOutputPort());
                     network->setScaleFactor(1.0f / 255.0f);

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <FAST/Visualization/Renderer.hpp>
+#include <deque>
+#include <thread>
 
 namespace fast {
 
@@ -14,6 +16,7 @@ class FAST_EXPORT ImagePyramidRenderer : public Renderer {
         float getIntensityLevel();
         void setIntensityWindow(float window);
         float getIntensityWindow();
+        ~ImagePyramidRenderer() override;
     private:
         ImagePyramidRenderer();
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D);
@@ -24,14 +27,25 @@ class FAST_EXPORT ImagePyramidRenderer : public Renderer {
         std::unordered_map<std::string, uint> mVBO;
         std::unordered_map<std::string, uint> mEBO;
 
+        // Queue of tiles to be loaded
+        std::deque<std::string> m_tileQueue; // LIFO queue
+        // Buffer to process queue
+        std::unique_ptr<std::thread> m_bufferThread;
+        // Condition variable to wait if queue is empty
+        std::condition_variable m_queueEmptyCondition;
+        std::mutex m_tileQueueMutex;
+        bool m_stop = false;
+        std::unordered_set<std::string> m_loaded;
+
+        int m_currentLevel;
+
         cl::Kernel mKernel;
+
+        SharedPointer<ImagePyramid> m_input;
 
         // Level and window intensities
         float mWindow;
         float mLevel;
-
-        int mCurrentLevel = 0;
-        float mCurrentTileScale = 0;
 
         void drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D);
 };

@@ -26,7 +26,7 @@ using namespace fast;
 
 TEST_CASE("WSI -> Patch generator -> Neural network -> Patch stitcher -> visualize", "[fast][neuralnetwork][wsi][visual]") {
     auto importer = WholeSlideImageImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "/CMU-1.tiff");
+    importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
 
     auto tissueSegmentation = TissueSegmentation::New();
     tissueSegmentation->setInputConnection(importer->getOutputPort());
@@ -38,17 +38,17 @@ TEST_CASE("WSI -> Patch generator -> Neural network -> Patch stitcher -> visuali
     generator->setInputConnection(1, tissueSegmentation->getOutputPort());
 
     auto network = NeuralNetwork::New();
-    //network->setInferenceEngine("TensorFlowCUDA");
+    network->setInferenceEngine("TensorFlowCUDA");
     //network->setInferenceEngine("OpenVINO");
-    network->setInferenceEngine("TensorRT");
+    //network->setInferenceEngine("TensorRT");
     auto engine = network->getInferenceEngine()->getName();
     if(engine.substr(0, 10) == "TensorFlow") {
-        network->setOutputNode(0, "dense_1/Softmax", NodeType::TENSOR);
+        network->setOutputNode(0, "sequential/dense_1/Softmax", NodeType::TENSOR);
     } else if(engine == "TensorRT") {
         network->setInputNode(0, "input_1", NodeType::IMAGE, TensorShape{-1, 3, 512, 512});
-        network->setOutputNode(0, "dense_1/Softmax", NodeType::TENSOR, TensorShape{-1, 3});
+        network->setOutputNode(0, "sequential/dense_1/Softmax", NodeType::TENSOR, TensorShape{-1, 3});
     }
-    network->load(Config::getTestDataPath() + "NeuralNetworkModels/bc_grade_model_3_grades_10x_512_heavy_HSV." + network->getInferenceEngine()->getDefaultFileExtension());
+    network->load(Config::getTestDataPath() + "NeuralNetworkModels/wsi_classification." + network->getInferenceEngine()->getDefaultFileExtension());
     network->setInputConnection(generator->getOutputPort());
     network->setScaleFactor(1.0f/255.0f);
 
@@ -61,19 +61,20 @@ TEST_CASE("WSI -> Patch generator -> Neural network -> Patch stitcher -> visuali
     auto heatmapRenderer = HeatmapRenderer::New();
     heatmapRenderer->addInputConnection(stitcher->getOutputPort());
     //heatmapRenderer->setMinConfidence(0.5);
-    heatmapRenderer->setMaxOpacity(0.4);
+    heatmapRenderer->setMaxOpacity(0.3);
 
     auto window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->addRenderer(heatmapRenderer);
     //window->setTimeout(1000);
+    window->enableMaximized();
     window->set2DMode();
     window->start();
 }
 
 TEST_CASE("WSI -> Patch generator -> Image to batch generator -> Neural network -> Patch stitcher -> visualize", "[fast][neuralnetwork][wsi][visual][batch]") {
     auto importer = WholeSlideImageImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "/CMU-1.tiff");
+    importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
 
     auto tissueSegmentation = TissueSegmentation::New();
     tissueSegmentation->setInputConnection(importer->getOutputPort());
@@ -92,12 +93,12 @@ TEST_CASE("WSI -> Patch generator -> Image to batch generator -> Neural network 
     network->setInferenceEngine("TensorFlowCUDA");
     auto engine = network->getInferenceEngine()->getName();
     if(engine.substr(0, 10) == "TensorFlow") {
-        network->setOutputNode(0, "dense_1/Softmax", NodeType::TENSOR);
+        network->setOutputNode(0, "sequential/dense_1/Softmax", NodeType::TENSOR);
     } else if(engine == "TensorRT") {
         network->setInputNode(0, "input_1", NodeType::IMAGE, TensorShape{-1, 3, 512, 512});
-        network->setOutputNode(0, "dense_1/Softmax", NodeType::TENSOR, TensorShape{-1, 3});
+        network->setOutputNode(0, "sequential/dense_1/Softmax", NodeType::TENSOR, TensorShape{-1, 3});
     }
-    network->load(Config::getTestDataPath() + "NeuralNetworkModels/bc_grade_model_3_grades_10x_512_heavy_HSV." + network->getInferenceEngine()->getDefaultFileExtension());
+    network->load(Config::getTestDataPath() + "NeuralNetworkModels/wsi_classification." + network->getInferenceEngine()->getDefaultFileExtension());
     network->setInputConnection(batchGenerator->getOutputPort());
     network->setScaleFactor(1.0f/255.0f);
 
@@ -123,7 +124,7 @@ TEST_CASE("WSI -> Patch generator -> Image to batch generator -> Neural network 
 TEST_CASE("WSI -> Patch generator -> Pixel classifier -> visualize", "[fast][neuralnetwork][wsi][visual]") {
     Config::setStreamingMode(STREAMING_MODE_PROCESS_ALL_FRAMES);
     auto importer = WholeSlideImageImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "/CMU-1.tiff");
+    importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
 
     auto tissueSegmentation = TissueSegmentation::New();
     tissueSegmentation->setInputConnection(importer->getOutputPort());

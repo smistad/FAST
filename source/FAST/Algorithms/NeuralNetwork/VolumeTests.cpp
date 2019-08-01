@@ -32,7 +32,7 @@ using namespace fast;
 TEST_CASE("Volume -> Patch generator -> Neural network -> Patch stitcher -> visualize", "[fast][neuralnetwork][volume][visual]") {
     auto importer = ImageFileImporter::New();
     //importer->setFilename(Config::getTestDataPath() + "/CT/CT-Thorax.mhd");
-    importer->setFilename(Config::getTestDataPath() + "/CT/LIDC-IDRI-0072/01-01-2000-CT CHEST W CONT-45499/4-Recon 3-88650/000001.dcm");
+    importer->setFilename(Config::getTestDataPath() + "/CT/LIDC-IDRI-0072/000001.dcm");
 
     /*
     auto hounsefieldConverter = HounsefieldConverter::New();
@@ -46,17 +46,17 @@ TEST_CASE("Volume -> Patch generator -> Neural network -> Patch stitcher -> visu
      */
 
     auto generator = PatchGenerator::New();
-    generator->setPatchSize(512, 512, 64);
+    generator->setPatchSize(512, 512, 32);
     generator->setInputConnection(importer->getOutputPort());
     generator->enableRuntimeMeasurements();
 
     auto network = SegmentationNetwork::New();
     network->setInferenceEngine("TensorFlowCUDA");
-    network->load(Config::getTestDataPath() + "/NeuralNetworkModels/lung_nodule_model.pb");
+    network->load(Config::getTestDataPath() + "/NeuralNetworkModels/lung_nodule_segmentation.pb");
     network->setMinAndMaxIntensity(-1200.0f, 400.0f);
     network->setScaleFactor(1.0f/(400+1200));
     network->setMeanAndStandardDeviation(-1200.0f, 1.0f);
-    network->setOutputNode(0, "conv3d_18/truediv");
+    network->setOutputNode(0, "conv3d_14/truediv");
     network->setInputConnection(generator->getOutputPort());
     network->setResizeBackToOriginalSize(true);
     network->setThreshold(0.3);
