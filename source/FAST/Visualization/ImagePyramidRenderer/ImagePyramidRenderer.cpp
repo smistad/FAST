@@ -93,12 +93,19 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
         m_view->context()->makeCurrent();
         auto dc = wglGetCurrentDC();
         
-
-
         m_bufferThread = std::make_unique<std::thread>([this, dc, nativeContextHandle]() {
             wglMakeCurrent(dc, nativeContextHandle);
 #else
         m_bufferThread = std::make_unique<std::thread>([this]() {
+            // Create a GL context for the thread which is sharing with the context of the view
+            auto context = new QGLContext(View::getGLFormat(), m_view);
+            context->create(m_view->context());
+            if(!context->isValid())
+                throw Exception("The custom Qt GL context is invalid!");
+
+            if(!context->isSharing())
+                throw Exception("The custom Qt GL context is not sharing!");
+            context->makeCurrent();
 #endif
             uint64_t memoryUsage = 0;
             while(true) {
@@ -132,7 +139,7 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
                 std::cout << "Creating texture for tile " << tile_x << " " << tile_y << " at level " << level << std::endl;
                 auto tile = m_input->getPatch(level, tile_x, tile_y);
                 std::cout << "Done get patch" << std::endl;
-                                std::cout << "Creating GL texture.." << std::endl;
+                std::cout << "Creating GL texture.." << std::endl;
                 // Copy data from CPU to GL texture
                 GLuint textureID;
                 glGenTextures(1, &textureID);
