@@ -46,7 +46,6 @@ void ImagePyramid::free(ExecutionDevice::pointer device) {
 
 void ImagePyramid::freeAll() {
     m_levels.clear();
-    m_patchCache.clear();
     openslide_close(m_fileHandle);
 }
 
@@ -55,9 +54,6 @@ ImagePyramid::~ImagePyramid() {
 }
 
 ImagePyramid::Patch ImagePyramid::getPatch(std::string tile) {
-    if(m_patchCache.count(tile) > 0)
-        return m_patchCache[tile];
-
     auto parts = split(tile, "_");
     if(parts.size() != 3)
         throw Exception("incorrect tile format");
@@ -70,10 +66,6 @@ ImagePyramid::Patch ImagePyramid::getPatch(std::string tile) {
 }
 
 ImagePyramid::Patch ImagePyramid::getPatch(int level, int tile_x, int tile_y) {
-    std::string tileStr = std::to_string(level) + "_" + std::to_string(tile_x) + "_" + std::to_string(tile_y);
-    if(m_patchCache.count(tileStr) > 0)
-        return m_patchCache[tileStr];
-
     // Create patch
     int levelWidth = getLevelWidth(level);
     int levelHeight = getLevelHeight(level);
@@ -95,9 +87,6 @@ ImagePyramid::Patch ImagePyramid::getPatch(int level, int tile_x, int tile_y) {
     tile.data = std::shared_ptr<uchar[]>(new uchar[bytes]); // TODO use make_shared instead (C++20)
     float scale = (float)getFullWidth()/levelWidth;
     openslide_read_region(m_fileHandle, (uint32_t *) tile.data.get(), tile.offsetX*scale, tile.offsetY*scale, level, tile.width, tile.height);
-    m_patchCacheMemoryUsage += bytes;
-    std::cout << m_patchCacheMemoryUsage/(1024*1024) << " MB usage" << std::endl;
-    m_patchCache[tileStr] = tile;
 
     return tile;
 }

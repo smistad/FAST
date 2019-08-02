@@ -41,6 +41,7 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
          * @return
          */
         virtual bool isDisabled() const;
+        void setView(View* view);
     protected:
         Renderer();
         void execute() override;
@@ -88,6 +89,8 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
          */
         void unlock();
         friend class View;
+
+        View* m_view;
     private:
 
         /**

@@ -75,22 +75,32 @@ void ImagePyramidRenderer::loadAttributes() {
 
 void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
     if(!m_bufferThread) {
-        // Create thread to load tiles
+        // Create thread to load patches
+#ifdef WIN32
+        // Create a GL context for the thread which is sharing with the context of the view
+        auto context = new QGLContext(View::getGLFormat(), m_view);
+        context->create(m_view->context());
 
+        if(!context->isValid())
+            throw Exception("The custom Qt GL context is invalid!");
+
+        if(!context->isSharing())
+            throw Exception("The custom Qt GL context is not sharing!");
+
+        context->makeCurrent();
+        auto nativeContextHandle = wglGetCurrentContext();
+        context->doneCurrent();
+        m_view->context()->makeCurrent();
+        auto dc = wglGetCurrentDC();
+        
+
+
+        m_bufferThread = std::make_unique<std::thread>([this, dc, nativeContextHandle]() {
+            wglMakeCurrent(dc, nativeContextHandle);
+#else
         m_bufferThread = std::make_unique<std::thread>([this]() {
-            // Need to create a sharing GL context for this thread..
-            auto widget = new QGLWidget;
-            auto context = new QGLContext(View::getGLFormat(), widget);
-            context->create(Window::getMainGLContext());
-            if(!context->isValid()) {
-                reportInfo() << "The custom Qt GL context is invalid!" << Reporter::end();
-                exit(-1);
-            }
-            if(!context->isSharing()) {
-                reportInfo() << "The custom Qt GL context is not sharing!" << Reporter::end();
-                exit(-1);
-            }
-            context->makeCurrent();
+#endif
+            uint64_t memoryUsage = 0;
             while(true) {
                 std::string tileID;
                 {
@@ -142,6 +152,8 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
                 glFinish();
 
                 mTexturesToRender[tileID] = textureID;
+                memoryUsage += 4 * tile.width*tile.height;
+                std::cout << "Texture cache in ImagePyramidRenderer using " << (float)memoryUsage / (1024 * 1024) << " MB" << std::endl;
             }
         });
     }
@@ -167,13 +179,15 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
         levelToUse = m_input->getNrOfLevels()-1;
     if(levelToUse < 0)
         levelToUse = 0;
-    if(m_currentLevel >= 0 && m_currentLevel != levelToUse) {
+    if(m_currentLevel != levelToUse) {
         // Level change, clear cache
+        std::cout << "=========== CLEARING QUEUE with size" << m_tileQueue.size() << std::endl;
         std::lock_guard<std::mutex> lock(m_tileQueueMutex);
         m_tileQueue.clear();
     }
-    std::cout << "Level to use: " << levelToUse << std::endl;
-    std::cout << "Levels total:" << m_input->getNrOfLevels() << std::endl;
+    m_currentLevel = levelToUse;
+    //std::cout << "Level to use: " << levelToUse << std::endl;
+    //std::cout << "Levels total:" << m_input->getNrOfLevels() << std::endl;
 
     activateShader();
 
@@ -237,8 +251,9 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
                 ))
                     continue;
 
-                // Is tile in cache?
+                // Is patch in cache?
                 if(mTexturesToRender.count(tileString) == 0) {
+                    // Add to queue if not in cache
                     {
                         std::lock_guard<std::mutex> lock(m_tileQueueMutex);
                         m_tileQueue.push_back(tileString);

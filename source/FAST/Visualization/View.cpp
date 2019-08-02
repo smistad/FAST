@@ -29,6 +29,7 @@
 namespace fast {
 
 void View::addRenderer(Renderer::pointer renderer) {
+    renderer->setView(this);
     // Can renderer be casted to volume renderer test:
     auto test = std::dynamic_pointer_cast<VolumeRenderer>(renderer);
     bool thisIsAVolumeRenderer = (bool)test;

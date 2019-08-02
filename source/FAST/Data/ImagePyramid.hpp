@@ -49,10 +49,6 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
     private:
         std::vector<Level> m_levels;
 
-        std::unordered_map<std::string, Patch> m_patchCache;
-
-        uint64_t m_patchCacheMemoryUsage = 0;
-
         openslide_t* m_fileHandle;
 };
 

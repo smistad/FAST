@@ -29,6 +29,10 @@ void Renderer::lock() {
     mMutex.lock();
 }
 
+void Renderer::setView(View* view) {
+    m_view = view;
+}
+
 void Renderer::unlock() {
     mMutex.unlock();
 }
