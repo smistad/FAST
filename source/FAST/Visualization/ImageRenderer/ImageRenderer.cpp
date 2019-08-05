@@ -37,6 +37,30 @@ ImageRenderer::ImageRenderer() : Renderer() {
     });
 }
 
+ImageRenderer::~ImageRenderer() {
+    deleteAllTextures();
+}
+
+void ImageRenderer::deleteAllTextures() {
+    // GL cleanup
+    for(auto vao : mVAO) {
+        glDeleteVertexArrays(1, &vao.second);
+    }
+    mVAO.clear();
+    for(auto vbo : mVBO) {
+        glDeleteBuffers(1, &vbo.second);
+    }
+    mVBO.clear();
+    for(auto ebo : mEBO) {
+        glDeleteBuffers(1, &ebo.second);
+    }
+    mEBO.clear();
+    for(auto texture : mTexturesToRender) {
+        glDeleteTextures(1, &texture.second);
+    }
+    mTexturesToRender.clear();
+}
+
 void ImageRenderer::setIntensityLevel(float level) {
     mLevel = level;
 }

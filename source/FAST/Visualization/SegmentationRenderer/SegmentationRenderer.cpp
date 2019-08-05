@@ -8,19 +8,19 @@ void SegmentationRenderer::setColor(Segmentation::LabelType labelType,
         Color color) {
     mLabelColors[labelType] = color;
     mColorsModified = true;
-    mIsModified = true;
+    deleteAllTextures();
 }
 
 void SegmentationRenderer::setFillArea(Segmentation::LabelType labelType,
         bool fillArea) {
     mLabelFillArea[labelType] = fillArea;
     mFillAreaModified = true;
-    mIsModified = true;
+    deleteAllTextures();
 }
 
 void SegmentationRenderer::setFillArea(bool fillArea) {
     mFillArea = fillArea;
-    mIsModified = true;
+    deleteAllTextures();
 }
 
 SegmentationRenderer::SegmentationRenderer() {
@@ -111,7 +111,7 @@ SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
             throw Exception("SegmentationRenderer only support images with dat type uint8.");
 
         // Check if a texture has already been created for this image
-        if(mTexturesToRender.count(inputNr) > 0 && mImageUsed[inputNr] == input)
+        if(mTexturesToRender.count(inputNr) > 0 && mImageUsed[inputNr] == input && mDataTimestamp[inputNr] == input->getTimestamp())
             continue; // If it has already been created, skip it
 
         // If it has not been created, create the texture
@@ -202,6 +202,7 @@ SegmentationRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
 
         mTexturesToRender[inputNr] = textureID;
         mImageUsed[inputNr] = input;
+        mDataTimestamp[inputNr] = input->getTimestamp();
         queue.finish();
     }
 
@@ -216,14 +217,14 @@ void SegmentationRenderer::setBorderRadius(int radius) {
         throw Exception("Border radius must be >= 0");
 
     mBorderRadius = radius;
-    mIsModified = true;
+    deleteAllTextures();
 }
 
 void SegmentationRenderer::setOpacity(float opacity) {
     if(opacity < 0 || opacity > 1)
         throw Exception("SegmentationRenderer opacity has to be >= 0 and <= 1");
     mOpacity = opacity;
-    mIsModified = true;
+    deleteAllTextures();
 }
 
 }

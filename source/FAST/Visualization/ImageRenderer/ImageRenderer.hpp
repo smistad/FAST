@@ -13,9 +13,12 @@ class FAST_EXPORT  ImageRenderer : public Renderer {
         float getIntensityLevel();
         void setIntensityWindow(float window);
         float getIntensityWindow();
+        ~ImageRenderer();
     protected:
         ImageRenderer();
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D);
+        void deleteAllTextures();
+
 
         std::unordered_map<uint, uint> mTexturesToRender;
         std::unordered_map<uint, Image::pointer> mImageUsed;
