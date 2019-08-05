@@ -41,9 +41,12 @@ elseif(APPLE)
     )
 else()
 	file(GLOB SOs ${PROJECT_BINARY_DIR}/lib/*.so*)
-	install(FILES ${SOs}
-		DESTINATION fast/lib
-	)
+	foreach(SO ${SOs})
+		execute_process(COMMAND echo "Setting runtime path of ${SO}" COMMAND patchelf --set-rpath "$ORIGIN/../lib" ${SO})
+    endforeach()
+    install(FILES ${SOs}
+        DESTINATION fast/lib
+    )
 endif()
 
 # Install Qt plugins
