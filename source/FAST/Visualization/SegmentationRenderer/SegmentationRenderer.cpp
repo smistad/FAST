@@ -8,16 +8,19 @@ void SegmentationRenderer::setColor(Segmentation::LabelType labelType,
         Color color) {
     mLabelColors[labelType] = color;
     mColorsModified = true;
+    mIsModified = true;
 }
 
 void SegmentationRenderer::setFillArea(Segmentation::LabelType labelType,
         bool fillArea) {
     mLabelFillArea[labelType] = fillArea;
     mFillAreaModified = true;
+    mIsModified = true;
 }
 
 void SegmentationRenderer::setFillArea(bool fillArea) {
     mFillArea = fillArea;
+    mIsModified = true;
 }
 
 SegmentationRenderer::SegmentationRenderer() {
@@ -213,12 +216,14 @@ void SegmentationRenderer::setBorderRadius(int radius) {
         throw Exception("Border radius must be >= 0");
 
     mBorderRadius = radius;
+    mIsModified = true;
 }
 
 void SegmentationRenderer::setOpacity(float opacity) {
     if(opacity < 0 || opacity > 1)
         throw Exception("SegmentationRenderer opacity has to be >= 0 and <= 1");
     mOpacity = opacity;
+    mIsModified = true;
 }
 
 }
