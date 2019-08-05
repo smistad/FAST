@@ -4,9 +4,9 @@
  * If you edit this example, please also update the wiki and source code file in the repository.
  */
 #include <FAST/Tools/CommandLineParser.hpp>
-#include "FAST/Importers/WholeSlideImageImporter.hpp"
-#include "FAST/Visualization/ImagePyramidRenderer/ImagePyramidRenderer.hpp"
-#include "FAST/Visualization/SimpleWindow.hpp"
+#include <FAST/Importers/WholeSlideImageImporter.hpp>
+#include <FAST/Visualization/ImagePyramidRenderer/ImagePyramidRenderer.hpp>
+#include <FAST/Visualization/SimpleWindow.hpp>
 
 using namespace fast;
 
