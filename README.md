@@ -23,7 +23,7 @@ If you use FAST for research, please cite this article.
 
 ### Download
 
-If you are only interested in using/testing FAST, and not developing FAST, please download a [stable binary release](https://github.com/smistad/FAST/releases).
+If you are only interested in using/testing FAST, and not developing FAST, please download a [stable binary release](https://github.com/smistad/FAST/releases). Make sure you have the [requirements](https://github.com/smistad/FAST/wiki/Requirements) installed before using the releases.
 
 ### Build
 
@@ -36,4 +36,6 @@ To setup and build the framework, see the instructions for your operating system
 
 To start using the framework, see the [Getting started with FAST](https://github.com/smistad/FAST/wiki/Getting-started-with-FAST) guide or the [examples page](https://github.com/smistad/FAST/wiki/Examples).
 
-![Surface mesh extracted from a large abdominal CT scan in about 100 ms using FAST and a modern GPU.](https://github.com/smistad/FAST/wiki/images/surface_extraction.png) ![Ultrasound image segmented using binary thresholding.](https://github.com/smistad/FAST/wiki/images/binary_thresholding.png)
+![Surface mesh extracted from a large abdominal CT scan.](https://github.com/smistad/FAST/wiki/images/surface_extraction.png) ![Alpha blending ray casting rendering of a thorax CT image.](https://github.com/smistad/FAST/wiki/images/volume_renderer.jpg) 
+
+![Ultrasound image segmentation using neural netwoks.](https://github.com/smistad/FAST/wiki/images/ultrasound_segmentation.jpg)  ![Whole slide microscopy image.](https://github.com/smistad/FAST/wiki/images/wsi.jpg)
