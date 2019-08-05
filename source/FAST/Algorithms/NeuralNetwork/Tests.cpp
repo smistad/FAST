@@ -76,7 +76,7 @@ TEST_CASE("Execute NN on single 2D image", "[fast][neuralnetwork][visual][ultras
             window->addRenderer(imageRenderer);
             window->addRenderer(segmentationRenderer);
             window->set2DMode();
-            window->setTimeout(10000);
+            window->setTimeout(5000);
             window->start();
             segmentation->getAllRuntimes()->printAll();
         }
@@ -145,7 +145,7 @@ TEST_CASE("Multi input single output network", "[fast][neuralnetwork]") {
         } else if(engine == "TensorRT") {
             network->setInputNode(0, "input_1", NodeType::IMAGE, TensorShape({-1, 1, 64, 64}));
             network->setInputNode(1, "input_2", NodeType::IMAGE, TensorShape({-1, 1, 64, 64}));
-            network->setOutputNode(0, "dense/BiasAdd", NodeType::TENSOR);
+            network->setOutputNode(0, "dense/BiasAdd", NodeType::TENSOR, TensorShape({-1,6}));
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/multi_input_single_output_channels_first.uff");
         } else {
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/multi_input_single_output.xml");
@@ -174,8 +174,8 @@ TEST_CASE("Single input multi output network", "[fast][neuralnetwork]") {
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output.pb");
         } else if(engine == "TensorRT") {
             network->setInputNode(0, "input_1", NodeType::IMAGE, TensorShape({-1, 1, 64, 64}));
-            network->setOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR);
-            network->setOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);
+            network->setOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR, TensorShape({-1, 6}));
+            network->setOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR, TensorShape({-1, 6}));
             network->load(
                     Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output_channels_first.uff");
         } else {
@@ -255,8 +255,8 @@ TEST_CASE("Execute NN on batch of 2D images", "[fast][neuralnetwork][batch]") {
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output.pb");
         } else if(engine == "TensorRT") {
             network->setInputNode(0, "input_1", NodeType::IMAGE, TensorShape({-1, 1, 64, 64}));
-            network->setOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR);
-            network->setOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR);
+            network->setOutputNode(0, "dense_1/BiasAdd", NodeType::TENSOR, TensorShape({-1, 6}));
+            network->setOutputNode(1, "dense_2/BiasAdd", NodeType::TENSOR, TensorShape({-1, 6}));
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output_channels_first.uff");
         } else {
             network->load(Config::getTestDataPath() + "NeuralNetworkModels/single_input_multi_output.xml");

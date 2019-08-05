@@ -30,53 +30,57 @@
 using namespace fast;
 
 TEST_CASE("Volume -> Patch generator -> Neural network -> Patch stitcher -> visualize", "[fast][neuralnetwork][volume][visual]") {
-    auto importer = ImageFileImporter::New();
-    //importer->setFilename(Config::getTestDataPath() + "/CT/CT-Thorax.mhd");
-    importer->setFilename(Config::getTestDataPath() + "/CT/LIDC-IDRI-0072/000001.dcm");
+    for(auto& engine : InferenceEngineManager::getEngineList()) {
+        if(engine.substr(0, 10) != "TensorFlow") // Only TensorFlow can run this example atm
+            continue;
+        auto importer = ImageFileImporter::New();
+        //importer->setFilename(Config::getTestDataPath() + "/CT/CT-Thorax.mhd");
+        importer->setFilename(Config::getTestDataPath() + "/CT/LIDC-IDRI-0072/000001.dcm");
 
-    /*
-    auto hounsefieldConverter = HounsefieldConverter::New();
-    hounsefieldConverter->setInputConnection(importer->getOutputPort());
-     */
+        /*
+        auto hounsefieldConverter = HounsefieldConverter::New();
+        hounsefieldConverter->setInputConnection(importer->getOutputPort());
+         */
 
-    /*
-    auto resampler = ImageResampler::New();
-    resampler->setOutputSpacing(1.0f, 1.0f, 1.0f);
-    resampler->setInputConnection(hounsefieldConverter->getOutputPort());
-     */
+        /*
+        auto resampler = ImageResampler::New();
+        resampler->setOutputSpacing(1.0f, 1.0f, 1.0f);
+        resampler->setInputConnection(hounsefieldConverter->getOutputPort());
+         */
 
-    auto generator = PatchGenerator::New();
-    generator->setPatchSize(512, 512, 32);
-    generator->setInputConnection(importer->getOutputPort());
-    generator->enableRuntimeMeasurements();
+        auto generator = PatchGenerator::New();
+        generator->setPatchSize(512, 512, 32);
+        generator->setInputConnection(importer->getOutputPort());
+        generator->enableRuntimeMeasurements();
 
-    auto network = SegmentationNetwork::New();
-    network->setInferenceEngine("TensorFlowCUDA");
-    network->load(Config::getTestDataPath() + "/NeuralNetworkModels/lung_nodule_segmentation.pb");
-    network->setMinAndMaxIntensity(-1200.0f, 400.0f);
-    network->setScaleFactor(1.0f/(400+1200));
-    network->setMeanAndStandardDeviation(-1200.0f, 1.0f);
-    network->setOutputNode(0, "conv3d_14/truediv");
-    network->setInputConnection(generator->getOutputPort());
-    network->setResizeBackToOriginalSize(true);
-    network->setThreshold(0.3);
-    network->enableRuntimeMeasurements();
+        auto network = SegmentationNetwork::New();
+        network->setInferenceEngine("engine");
+        network->load(Config::getTestDataPath() + "/NeuralNetworkModels/lung_nodule_segmentation.pb");
+        network->setMinAndMaxIntensity(-1200.0f, 400.0f);
+        network->setScaleFactor(1.0f / (400 + 1200));
+        network->setMeanAndStandardDeviation(-1200.0f, 1.0f);
+        network->setOutputNode(0, "conv3d_14/truediv");
+        network->setInputConnection(generator->getOutputPort());
+        network->setResizeBackToOriginalSize(true);
+        network->setThreshold(0.3);
+        network->enableRuntimeMeasurements();
 
-    auto stitcher = PatchStitcher::New();
-    stitcher->setInputConnection(network->getOutputPort());
-    stitcher->enableRuntimeMeasurements();
+        auto stitcher = PatchStitcher::New();
+        stitcher->setInputConnection(network->getOutputPort());
+        stitcher->enableRuntimeMeasurements();
 
-    auto renderer = AlphaBlendingVolumeRenderer::New();
-    renderer->setTransferFunction(TransferFunction::CT_Blood_And_Bone());
-    renderer->addInputConnection(importer->getOutputPort());
+        auto renderer = AlphaBlendingVolumeRenderer::New();
+        renderer->setTransferFunction(TransferFunction::CT_Blood_And_Bone());
+        renderer->addInputConnection(importer->getOutputPort());
 
-    auto renderer2 = ThresholdVolumeRenderer::New();
-    renderer2->addInputConnection(stitcher->getOutputPort());
+        auto renderer2 = ThresholdVolumeRenderer::New();
+        renderer2->addInputConnection(stitcher->getOutputPort());
 
-    auto window = SimpleWindow::New();
-    window->addRenderer(renderer);
-    window->addRenderer(renderer2);
-    //window->setTimeout(1000);
-    window->start();
+        auto window = SimpleWindow::New();
+        window->addRenderer(renderer);
+        window->addRenderer(renderer2);
+        window->setTimeout(5000);
+        window->start();
+    }
 }
 
