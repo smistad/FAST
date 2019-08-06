@@ -13,6 +13,7 @@ ExternalProject_Add(dcmtk
             -DCMAKE_MACOSX_RPATH=ON
             -DBUILD_SHARED_LIBS=ON
             -DBUILD_APPS=OFF
+            -DDCMTK_ENABLE_BUILTIN_DICTIONARY=ON
             -DDCMTK_WITH_DOXYGEN=OFF
             -DCMAKE_INSTALL_RPATH:STRING=$ORIGIN/../lib
         CMAKE_CACHE_ARGS
