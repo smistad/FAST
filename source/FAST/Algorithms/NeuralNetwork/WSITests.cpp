@@ -112,12 +112,13 @@ TEST_CASE("WSI -> Patch generator -> Image to batch generator -> Neural network 
         auto heatmapRenderer = HeatmapRenderer::New();
         heatmapRenderer->addInputConnection(stitcher->getOutputPort());
         //heatmapRenderer->setMinConfidence(0.5);
+        heatmapRenderer->setChannelHidden(0, true);
         heatmapRenderer->setMaxOpacity(0.4);
 
         auto window = SimpleWindow::New();
         window->addRenderer(renderer);
         window->addRenderer(heatmapRenderer);
-        window->setTimeout(4000);
+        //window->setTimeout(4000);
         window->set2DMode();
         window->start();
     }
