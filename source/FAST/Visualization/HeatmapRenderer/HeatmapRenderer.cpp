@@ -18,14 +18,17 @@ HeatmapRenderer::HeatmapRenderer() {
 void HeatmapRenderer::setChannelColor(uint channel, Color color) {
     mColors[channel] = color;
     mColorsModified = true;
+    deleteAllTextures();
 }
 
 void HeatmapRenderer::setChannelHidden(uint channel, bool hide) {
     mHide[channel] = hide;
     mColorsModified = true;
+    deleteAllTextures();
 }
 
 void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
+    GLuint filterMethod = mUseInterpolation ? GL_LINEAR : GL_NEAREST;
     std::lock_guard<std::mutex> lock(mMutex);
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     cl::CommandQueue queue = device->getCommandQueue();
@@ -113,8 +116,8 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
             // Create OpenGL texture
             glGenTextures(1, &textureID);
             glBindTexture(GL_TEXTURE_2D, textureID);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filterMethod);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filterMethod);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
@@ -173,8 +176,8 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
             // Copy data from CPU to GL texture
             glGenTextures(1, &textureID);
             glBindTexture(GL_TEXTURE_2D, textureID);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filterMethod);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filterMethod);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
@@ -287,12 +290,19 @@ void HeatmapRenderer::setMinConfidence(float confidence) {
     if(confidence < 0 || confidence > 1)
         throw Exception("Confidence given to setMinimumConfidence has to be within [0, 1]", __LINE__, __FILE__);
     mMinConfidence = confidence;
+    deleteAllTextures();
 }
 
 void HeatmapRenderer::setMaxOpacity(float opacity) {
     if(opacity < 0 || opacity > 1)
         throw Exception("Opacity given to setMaxOpacity has to be within [0, 1]", __LINE__, __FILE__);
     mMaxOpacity = opacity;
+    deleteAllTextures();
+}
+
+void HeatmapRenderer::setInterpolation(bool useInterpolation) {
+    mUseInterpolation = useInterpolation;
+    deleteAllTextures();
 }
 
 }
