@@ -1,4 +1,4 @@
-# Download and set up zlib
+# Download and set up OpenIGTLink
 
 include(cmake/Externals.cmake)
 
