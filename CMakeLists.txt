@@ -32,7 +32,7 @@ option(FAST_MODULE_Python "Build Python wrappers" OFF)
 option(FAST_MODULE_Kinect "Build kinect module" OFF)
 option(FAST_MODULE_RealSense "Build real sense module" OFF)
 option(FAST_MODULE_WholeSlideImaging "Build whole slide imaging module" ON)
-option(FAST_MODULE_Clarius "Build clarius ultrasound module" OFF)
+option(FAST_MODULE_Clarius "Build clarius ultrasound module" ON)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
 option(FAST_BUILD_QT5 "Download and build Qt 5.8. Turn this OFF if you want to use pre-built binaries you already have on your machine." ON)
 

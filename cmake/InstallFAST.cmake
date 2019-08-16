@@ -167,17 +167,10 @@ install(FILES ${PROJECT_SOURCE_DIR}/LICENSE
     DESTINATION fast/licenses/fast/
 )
 # Install README
-if(FAST_MODULE_TensorFlow)
-	install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/README_neural_network.md
-        DESTINATION fast/
-        RENAME README.md
-    )
-else()
-    install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/README_default.md
-        DESTINATION fast/
-        RENAME README.md
-    )
-endif()
+install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/README_default.md
+    DESTINATION fast/
+    RENAME README.md
+)
 
 # Install license files for depedencies
 # Qt5
