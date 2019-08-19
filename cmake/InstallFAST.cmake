@@ -75,18 +75,52 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/source/CL/
 	DESTINATION fast/include/CL/
 	FILES_MATCHING PATTERN "*.hpp"
 )
-install(DIRECTORY ${PROJECT_BINARY_DIR}/include/
-    DESTINATION fast/include/
-    FILES_MATCHING PATTERN "*.h"
-)
-install(DIRECTORY ${PROJECT_BINARY_DIR}/include/
-    DESTINATION fast/include/
-    FILES_MATCHING PATTERN "*.hpp"
-)
-install(DIRECTORY ${PROJECT_BINARY_DIR}/include/
-    DESTINATION fast/include/
-    FILES_MATCHING REGEX "/[^.]+$" # Files with no extension
-)
+
+# External include files needed
+set(INCLUDE_FOLDERS
+    eigen3
+    QtAccessibilitySupport
+    QtConcurrent
+    QtCore
+    QtDBus
+    QtDeviceDiscoverySupport
+    QtEventDispatcherSupport
+    QtFbSupport
+    QtFontDatabaseSupport
+    QtGlxSupport
+    QtGui
+    QtInputSupport
+    QtKmsSupport
+    QtMultimedia
+    QtMultimediaWidgets
+    QtNetwork
+    QtOpenGL
+    QtOpenGLExtensions
+    QtPlatformCompositorSupport
+    QtPlatformHeaders
+    QtPrintSupport
+    QtSerialPort
+    QtServiceSupport
+    QtSql
+    QtTest
+    QtThemeSupport
+    QtWidgets
+    QtXml
+    QtZlib)
+foreach(INCLUDE_FOLDER ${INCLUDE_FOLDERS})
+    install(DIRECTORY ${PROJECT_BINARY_DIR}/include/${INCLUDE_FOLDER}/
+        DESTINATION fast/include/${INCLUDE_FOLDER}/
+        FILES_MATCHING PATTERN "*.h"
+    )
+    install(DIRECTORY ${PROJECT_BINARY_DIR}/include/${INCLUDE_FOLDER}/
+        DESTINATION fast/include/${INCLUDE_FOLDER}/
+        FILES_MATCHING PATTERN "*.hpp"
+    )
+    install(DIRECTORY ${PROJECT_BINARY_DIR}/include/${INCLUDE_FOLDER}/
+        DESTINATION fast/include/${INCLUDE_FOLDER}/
+        FILES_MATCHING REGEX "/[^.]+$" # Files with no extension
+    )
+endforeach()
 
 
 
@@ -205,10 +239,18 @@ install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/Semaphore_LICENSE.txt
 		DESTINATION fast/licenses/semaphore/
 )
 
+# Tensorflow license
 if(FAST_MODULE_TensorFlow)
-    # Tensorflow license
 	install(FILES ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/LICENSE
         DESTINATION fast/licenses/tensorflow/
+    )
+endif()
+
+if(FAST_MODULE_RealSense)
+	install(FILES 
+        ${FAST_EXTERNAL_BUILD_DIR}/realsense/src/realsense/LICENSE
+        ${FAST_EXTERNAL_BUILD_DIR}/realsense/src/realsense/NOTICE
+        DESTINATION fast/licenses/realsense/
     )
 endif()
 

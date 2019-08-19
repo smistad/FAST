@@ -29,5 +29,6 @@ This FAST release is bundled with the following third-party software:
 * [TensorFlow](http://tensorflow.org)
 * [Clarius Ultrasound Listen API](https://clarius.com/research-toolkits/)
 * [OpenSlide](https://openslide.org)
+* [RealSense](https://github.com/IntelRealSense/librealsense)
 
 The license of each software can be found in the licenses folder.
