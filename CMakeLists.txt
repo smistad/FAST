@@ -5,6 +5,7 @@ project(FAST)
 set(VERSION_MAJOR 3)
 set(VERSION_MINOR 0)
 set(VERSION_PATCH 0)
+set(VERSION_SO 0)   # SO version, should be incremented by 1 every time the existing API changes
 
 # set policies explicitly to avoid warnings.
 # Read more on CMP0022 here: https://cmake.org/cmake/help/v3.0/policy/CMP0022.html
@@ -166,6 +167,7 @@ include(cmake/OpenMP.cmake)
 ## Link everything
 message("-- LIBS: ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES}")
 target_link_libraries(FAST PUBLIC ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES})
+set_target_properties(FAST PROPERTIES VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" SOVERSION ${VERSION_SO})
 if(FAST_MODULE_Visualization AND FAST_BUILD_QT5)
     qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
 endif()
