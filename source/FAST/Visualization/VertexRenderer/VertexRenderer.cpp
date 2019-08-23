@@ -19,8 +19,8 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, fl
             glDeleteVertexArrays(1, &mVAO[it.first]);
         // Create VAO
         uint VAO_ID;
-        mVAO[it.first] = VAO_ID;
         glGenVertexArrays(1, &VAO_ID);
+        mVAO[it.first] = VAO_ID;
         glBindVertexArray(VAO_ID);
 
         Mesh::pointer points = std::static_pointer_cast<Mesh>(it.second);
@@ -46,11 +46,11 @@ void VertexRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, fl
         if(drawOnTop)
             glDisable(GL_DEPTH_TEST);
 
-        AffineTransformation::pointer transform = SceneGraph::getAffineTransformationFromData(points);
+        auto transform = SceneGraph::getAffineTransformationFromData(points);
         setShaderUniform("transform", transform->getTransform());
         setShaderUniform("pointSize", pointSize);
 
-        VertexBufferObjectAccess::pointer access = points->getVertexBufferObjectAccess(ACCESS_READ);
+        auto access = points->getVertexBufferObjectAccess(ACCESS_READ);
         GLuint* coordinateVBO = access->getCoordinateVBO();
 
         // Coordinates buffer
