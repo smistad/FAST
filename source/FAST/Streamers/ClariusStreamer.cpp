@@ -9,7 +9,6 @@ namespace fast {
 ClariusStreamer::ClariusStreamer() {
     createOutputPort<Image>(0);
     mNrOfFrames = 0;
-    mHasReachedEnd = false;
     mFirstFrameIsInserted = false;
     mStreamIsStarted = false;
     mIsModified = true;
@@ -34,9 +33,7 @@ void ClariusStreamer::execute() {
             throw Exception("Unable to initialize clarius listener");
         reportInfo() << "Clarius streamer initialized" << reportEnd();
 
-        std::string ipAddr = "192.168.1.1";
-        uint port = 5828;
-        success = clariusConnect(ipAddr.c_str(), port, nullptr);
+        success = clariusConnect(mIPAddress.c_str(), mPort, nullptr);
         if(success < 0)
             throw Exception("Unable to connect to clarius scanner");
         reportInfo() << "Clarius streamer connected." << reportEnd();
@@ -84,10 +81,6 @@ void ClariusStreamer::newImageFn(const void *img, const _ClariusImageInfo *nfo, 
     mNrOfFrames++;
 }
 
-bool ClariusStreamer::hasReachedEnd() {
-    return mHasReachedEnd;
-}
-
 uint ClariusStreamer::getNrOfFrames() {
     return mNrOfFrames;
 }
@@ -106,6 +99,16 @@ void ClariusStreamer::stop() {
         throw Exception("Unable to destroy clarius listener");
 
     reportInfo() << "Clarius streamer stopped" << Reporter::end();
+}
+
+void ClariusStreamer::setConnectionAddress(std::string ipAddress) {
+    mIPAddress = ipAddress;
+}
+
+void ClariusStreamer::setConnectionPort(int port) {
+    if(port <= 0)
+        throw Exception("Illegal port nr " + std::to_string(port));
+    mPort = port;
 }
 
 }
