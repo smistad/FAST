@@ -26,9 +26,10 @@ This FAST release is bundled with the following third-party software:
 * [NumPy](http://www.numpy.org)
 * [Semaphore C++11 implementation by Jeff Preshing](https://github.com/preshing/cpp11-on-multicore).
 * [DCMTK](https://github.com/DCMTK/dcmtk)
-* [TensorFlow](http://tensorflow.org)
+* [TensorFlow (Apache 2.0)](http://tensorflow.org)
 * [Clarius Ultrasound Listen API](https://clarius.com/research-toolkits/)
 * [OpenSlide](https://openslide.org)
 * [RealSense](https://github.com/IntelRealSense/librealsense)
+* [OpenVINO (Apache 2.0)](http://github.com/opencv/dldt) which uses [TBB (Apache 2.0)](https://github.com/intel/tbb), [clDNN (Apache 2.0)](https://github.com/intel/cldnn), [MKL-DNN (Apache 2.0)](https://github.com/intel/mkl-dnn), [ADE (Apache 2.0)](https://github.com/opencv/ade), [pugixml (MIT)](https://pugixml.org/) and the [G-API (fluid) code from OpenCV (BSD 3-clause)](https://github.com/opencv/opencv/wiki/Graph-API)
 
 The license of each software can be found in the licenses folder.
