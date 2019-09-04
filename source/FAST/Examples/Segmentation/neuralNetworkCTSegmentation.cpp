@@ -6,17 +6,13 @@
 #include <FAST/Tools/CommandLineParser.hpp>
 #include <FAST/Importers/ImageFileImporter.hpp>
 #include <FAST/Visualization/SimpleWindow.hpp>
-#include <FAST/Visualization/ImageRenderer/ImageRenderer.hpp>
-#include <FAST/Visualization/SimpleWindow.hpp>
 #include <FAST/Algorithms/ImagePatch/PatchGenerator.hpp>
 #include <FAST/Algorithms/ImagePatch/PatchStitcher.hpp>
 #include <FAST/Algorithms/NeuralNetwork/SegmentationNetwork.hpp>
 #include <FAST/Algorithms/TissueSegmentation/TissueSegmentation.hpp>
 #include <FAST/Visualization/VolumeRenderer/AlphaBlendingVolumeRenderer.hpp>
 #include <FAST/Visualization/VolumeRenderer/ThresholdVolumeRenderer.hpp>
-#include <FAST/Algorithms/HounsefieldConverter/HounsefieldConverter.hpp>
 #include <FAST/Algorithms/NeuralNetwork/InferenceEngineManager.hpp>
-
 
 using namespace fast;
 
@@ -35,11 +31,6 @@ int main(int argc, char** argv) {
 
     auto importer = ImageFileImporter::New();
     importer->setFilename(parser.get("filename"));
-
-    /*
-    auto hounsefieldConverter = HounsefieldConverter::New();
-    hounsefieldConverter->setInputConnection(importer->getOutputPort());
-     */
 
     auto generator = PatchGenerator::New();
     generator->setPatchSize(512, 512, 32);

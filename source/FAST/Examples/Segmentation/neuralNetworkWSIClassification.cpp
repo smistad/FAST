@@ -68,6 +68,7 @@ int main(int argc, char** argv) {
     heatmapRenderer->addInputConnection(stitcher->getOutputPort());
     //heatmapRenderer->setMinConfidence(0.5);
     heatmapRenderer->setMaxOpacity(0.3);
+    //heatmapRenderer->setInterpolation(false);
 
     auto window = SimpleWindow::New();
     window->addRenderer(renderer);
