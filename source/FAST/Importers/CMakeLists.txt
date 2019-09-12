@@ -6,8 +6,6 @@ fast_add_sources(
     Importer.hpp
     ImageFileImporter.cpp
     ImageFileImporter.hpp
-    DICOMFileImporter.cpp
-    DICOMFileImporter.hpp
 )
 fast_add_python_interfaces(
 	ImageFileImporter.i
@@ -16,8 +14,16 @@ fast_add_test_sources(
     Tests/MetaImageImporterTests.cpp
     Tests/VTKMeshFileImporterTests.cpp
     Tests/ImageFileImporterTests.cpp
+)
+if(FAST_MODULE_Dicom)
+fast_add_sources(
+    DICOMFileImporter.cpp
+    DICOMFileImporter.hpp
+)
+fast_add_test_sources(
     Tests/DICOMFileImporterTests.cpp
 )
+endif()
 if(FAST_MODULE_Visualization)
     fast_add_sources(
         ImageImporter.cpp
