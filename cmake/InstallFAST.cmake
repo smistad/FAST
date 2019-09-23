@@ -87,10 +87,7 @@ set(INCLUDE_FOLDERS
     QtEventDispatcherSupport
     QtFbSupport
     QtFontDatabaseSupport
-    QtGlxSupport
     QtGui
-    QtInputSupport
-    QtKmsSupport
     QtMultimedia
     QtMultimediaWidgets
     QtNetwork
@@ -100,13 +97,20 @@ set(INCLUDE_FOLDERS
     QtPlatformHeaders
     QtPrintSupport
     QtSerialPort
-    QtServiceSupport
     QtSql
     QtTest
     QtThemeSupport
     QtWidgets
     QtXml
     QtZlib)
+if(NOT WIN32)
+list(APPEND INCLUDE_FOLDERS
+    QtGlxSupport
+		QtServiceSupport
+		QtInputSupport
+		QtKmsSupport
+)
+endif()
 foreach(INCLUDE_FOLDER ${INCLUDE_FOLDERS})
     install(DIRECTORY ${PROJECT_BINARY_DIR}/include/${INCLUDE_FOLDER}/
         DESTINATION fast/include/${INCLUDE_FOLDER}/
@@ -245,14 +249,14 @@ if(FAST_MODULE_TensorFlow)
         DESTINATION fast/licenses/tensorflow/
     )
 endif()
-if(FAST_MODULE_OpenVINO)
+if(FAST_MODULE_OpenVINO AND NOT WIN32)
 	install(FILES ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/LICENSE
 		DESTINATION fast/licenses/openvino/
 	)
 endif()
 
 if(FAST_MODULE_RealSense)
-	install(FILES 
+	install(FILES
         ${FAST_EXTERNAL_BUILD_DIR}/realsense/src/realsense/LICENSE
         ${FAST_EXTERNAL_BUILD_DIR}/realsense/src/realsense/NOTICE
         DESTINATION fast/licenses/realsense/
