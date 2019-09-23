@@ -38,13 +38,17 @@ void ImageFileImporter::execute() {
     size_t pos = mFilename.rfind(".", -5);
     if(pos == std::string::npos) {
         reportWarning() << "Filename " << mFilename << " had no extension, guessing it to be DICOM.." << reportEnd();
-        DICOMFileImporter::pointer importer = DICOMFileImporter::New();
+#ifdef FAST_MODULE_DICOM
+        auto importer = DICOMFileImporter::New();
         importer->setMainDevice(getMainDevice());
         importer->setFilename(mFilename);
         DataChannel::pointer port = importer->getOutputPort();
         importer->update(); // Have to to update because otherwise the data will not be available
         Image::pointer data = port->getNextFrame<Image>();
         addOutputData(0, data);
+#else
+        throw Exception("The ImageFileImporter needs the dicom module (DCMTK) to be enabled in order to read dicom files.");
+#endif
     } else {
         std::string ext = mFilename.substr(pos + 1);
         if(matchExtension(ext, "mhd")) {
@@ -56,19 +60,23 @@ void ImageFileImporter::execute() {
             Image::pointer data = port->getNextFrame<Image>();
             addOutputData(0, data);
         } else if(matchExtension(ext, "dcm")) {
-            DICOMFileImporter::pointer importer = DICOMFileImporter::New();
+#ifdef FAST_MODULE_DICOM
+            auto importer = DICOMFileImporter::New();
             importer->setFilename(mFilename);
             importer->setMainDevice(getMainDevice());
             DataChannel::pointer port = importer->getOutputPort();
             importer->update(); // Have to to update because otherwise the data will not be available
             Image::pointer data = port->getNextFrame<Image>();
             addOutputData(0, data);
+#else
+            throw Exception("The ImageFileImporter needs the dicom module (DCMTK) to be enabled in order to read dicom files.");
+#endif
         } else if(matchExtension(ext, "jpg") ||
                   matchExtension(ext, "jpeg") ||
                   matchExtension(ext, "png") ||
                   matchExtension(ext, "bmp")) {
 #ifdef FAST_MODULE_VISUALIZATION
-            ImageImporter::pointer importer = ImageImporter::New();
+            auto importer = ImageImporter::New();
             importer->setFilename(mFilename);
             importer->setMainDevice(getMainDevice());
             DataChannel::pointer port = importer->getOutputPort();

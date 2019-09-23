@@ -73,7 +73,6 @@ endif()
 ## External depedencies
 include(cmake/ExternalEigen.cmake)
 include(cmake/ExternalZlib.cmake)
-include(cmake/ExternalDCMTK.cmake)
 
 # Optional modules
 include(cmake/ModuleVTK.cmake)
@@ -83,6 +82,7 @@ include(cmake/ModuleKinect.cmake)
 include(cmake/ModuleRealSense.cmake)
 include(cmake/ModuleWholeSlideImaging.cmake)
 include(cmake/ModuleClarius.cmake)
+include(cmake/ModuleDicom.cmake)
 
 # Make sure FAST can find external includes and libaries
 link_directories(${FAST_EXTERNAL_INSTALL_DIR}/lib/)

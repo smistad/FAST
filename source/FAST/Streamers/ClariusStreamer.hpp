@@ -12,7 +12,8 @@ namespace fast {
 class FAST_EXPORT ClariusStreamer : public Streamer {
     FAST_OBJECT(ClariusStreamer)
     public:
-        bool hasReachedEnd();
+        void setConnectionAddress(std::string ipAddress);
+        void setConnectionPort(int port);
         void stop();
         ~ClariusStreamer();
         uint getNrOfFrames();
@@ -24,9 +25,10 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
 
         bool mStreamIsStarted;
         bool mFirstFrameIsInserted;
-        bool mHasReachedEnd;
         bool mStop;
         bool mGrayscale;
+        std::string mIPAddress = "192.168.1.1";
+        int mPort = 5828;
         uint mNrOfFrames;
 
         std::mutex mFirstFrameMutex;

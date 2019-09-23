@@ -245,6 +245,11 @@ if(FAST_MODULE_TensorFlow)
         DESTINATION fast/licenses/tensorflow/
     )
 endif()
+if(FAST_MODULE_OpenVINO)
+	install(FILES ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/LICENSE
+		DESTINATION fast/licenses/openvino/
+	)
+endif()
 
 if(FAST_MODULE_RealSense)
 	install(FILES 

@@ -15,6 +15,7 @@ ExternalProject_Add(dcmtk
             -DBUILD_APPS=OFF
             -DDCMTK_ENABLE_BUILTIN_DICTIONARY=ON
             -DDCMTK_WITH_DOXYGEN=OFF
+            -DDCMTK_WITH_ICU=OFF
             -DCMAKE_INSTALL_RPATH:STRING=$ORIGIN/../lib
         CMAKE_CACHE_ARGS
             -DDCMTK_MODULES:STRING=${MODULES}
