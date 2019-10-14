@@ -33,12 +33,12 @@ if(WIN32)
             BUILD_COMMAND
                 echo "Building tensorflow with bazel for CPU.." COMMAND
                 cd ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/ COMMAND
-                bazel build --config=opt //tensorflow:tensorflow.dll
+                bazel build --config=opt //tensorflow:tensorflow_cc.dll
             INSTALL_COMMAND
                 echo "Installing tensorflow binary"  COMMAND
-                ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/tensorflow.dll.if.lib ${FAST_EXTERNAL_INSTALL_DIR}/lib/tensorflow_CPU.lib COMMAND
+                ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/tensorflow_cc.dll.if.lib ${FAST_EXTERNAL_INSTALL_DIR}/lib/tensorflow_CPU.lib COMMAND
                 ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/external/protobuf_archive/protobuf.lib ${FAST_EXTERNAL_INSTALL_DIR}/lib/protobuf.lib COMMAND
-                ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/tensorflow.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/tensorflow_CPU.dll COMMAND
+                ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/tensorflow_cc.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/tensorflow_CPU.dll COMMAND
                 echo "Installing tensorflow headers"  COMMAND
                 ${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/tensorflow ${FAST_EXTERNAL_INSTALL_DIR}/include/tensorflow/ COMMAND
                 echo "Installing tensorflow generated headers" COMMAND
