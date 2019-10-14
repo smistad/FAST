@@ -1,8 +1,6 @@
 fast_add_sources(
     NonLocalMeans.cpp
     NonLocalMeans.hpp
-    NonLocalMeansNew.cpp
-    NonLocalMeansNew.hpp
 )
 fast_add_test_sources(
     NonLocalMeansTests.cpp

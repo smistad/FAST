@@ -1,5 +1,5 @@
 fast_add_example(gaussianSmoothingFilter gaussianSmoothingFilter.cpp)
-fast_add_subdirectories(NonLocalMeans)
+fast_add_example(nonLocalMeans nonLocalMeans.cpp)
 if(FAST_MODULE_NeuralNetwork AND FAST_MODULE_OpenIGTLink)
     fast_add_subdirectories(NeuralNetworkDespeckling)
 endif()

@@ -1,89 +1,80 @@
 __constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
 
-__kernel void noneLocalMeans(
-		__read_only image2d_t input,
-		__write_only image2d_t output,
-		//__private int group,
-		//__private int window,
-		__private float strength2,
-		__private float sigma2
-		
-		){
-    
-    const int dataType = get_image_channel_data_type(input);
-    //const float pi = 3.14159265359;
-    const int2 iD = get_image_dim(input);
-    const int2 pos = {get_global_id(0), get_global_id(1)};
-    
-    //variables
-    //const int g2 = ((GROUP+1)*2)*((GROUP+1)*2)-1;
-    float normSum = 0.0f;
-    float totSum = 0.0f;
-    float value = 0.0f;
-    float indi = 0.0f;
-    float groupTot = 0.0f;
-    
-    
-    for(int i = pos.x - WINDOW; i < pos.x + WINDOW; i++){
-        for(int j = pos.y - WINDOW; j < pos.y + WINDOW; j++){
-            int mX = pos.x - GROUP;
-            int mY = pos.y - GROUP;
-            
-            if(i != pos.x && j != pos.y){
-                for(int k = i - GROUP; k < i + GROUP; k++,mX++){
-                    for(int l = j - GROUP; l < j + GROUP; l++,mY++){
-                        int2 mPos = {mX,mY};
-                        int2 sPos = {k,l};
-                        
-                        if(dataType == CLK_FLOAT){
-                            indi = read_imagef(input, sampler,mPos).x - read_imagef(input, sampler, sPos).x;
-                        }else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16){
-                            indi = read_imageui(input, sampler,mPos).x - read_imageui(input, sampler, sPos).x;
-                        }else{
-                            indi = read_imagei(input, sampler,mPos).x - read_imagei(input, sampler, sPos).x;
-                        }
-                        indi = fabs(indi*indi);
-                        indi = native_exp( - (native_divide(indi,strength2)));
-                        groupTot += indi;
-                    }
-                    
-                }
-                int2 coord = {i,j};
-                if(dataType == CLK_FLOAT){
-                    value = read_imagef(input,sampler,coord).x;
-                }else if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16){
-                    value = read_imageui(input,sampler,coord).x;
-                }else{
-                    value = read_imagei(input,sampler,coord).x;
-                }
+float calculateDiff(__read_only image2d_t imageInput, int2 pos1, int2 pos2, int filterSize, int iteration) {
+    float res = 0.0f;
+    for(int offset_x = -filterSize; offset_x <= filterSize; ++offset_x) {
+        for(int offset_y = -filterSize; offset_y <= filterSize; ++offset_y) {
+            int2 offset = {offset_x, offset_y};
+            float diff = (float)read_imageui(imageInput, sampler, pos1 + offset).x/255.0f - (float)read_imageui(imageInput, sampler, pos2 + offset).x/255.0f;
+            diff = diff*diff;
+            res += diff;
+        }
+    }
+    return res;
+}
 
-                float2 dist = convert_float(coord - pos);
-                float gaussWeight = native_exp( - native_divide( dot(dist, dist), (2.0f * sigma2) ) );
-                //gaussWeight = native_divide(gaussWeight, 2.0f * pi * sigma2);
-                gaussWeight = native_divide(gaussWeight, 2.0f * sigma2);
-                groupTot *= gaussWeight;
-                
-                normSum += groupTot;
-                totSum += groupTot * value;
-                groupTot = 0.0f;
+uchar findMedian(uchar array[], int size) {
+    for(int i = 0; i < size; ++i) {
+        for(int j = 0; j < i; ++j) {
+            if(array[i] > array[j]) {
+                uchar tmp = array[i];
+                array[i] = array[j];
+                array[j] = tmp;
             }
         }
     }
-    value = native_divide(totSum,normSum);
-    if(value < 0){
-        value = 0;
-    }
-    if(value > 1.0){
-        value = 1.0f;
-    }
-    
-    int outputDataType = get_image_channel_data_type(output);
-    if(outputDataType == CLK_FLOAT) {
-        write_imagef(output, pos, value);
-    } else if(outputDataType == CLK_UNSIGNED_INT8 || outputDataType == CLK_UNSIGNED_INT16) {
-        write_imageui(output, pos, round(value));
+
+    if(size % 2 == 0) {
+        return (uchar)round((array[size / 2] + array[size / 2 + 1])*0.5f);
     } else {
-        write_imagei(output, pos, round(value));
+        return array[size / 2];
     }
-   
+}
+
+__kernel void preprocess(
+        __read_only image2d_t input,
+        __write_only image2d_t output
+        ) { 
+    const int2 pos = {get_global_id(0), get_global_id(1)};
+    // Read neighborhood to thread
+    uchar elements[25];
+    int counter = 0;
+    for(int a = -2; a <= 2; ++a) { 
+        for(int b = -2; b <= 2; ++b) {
+            elements[counter] = read_imageui(input, sampler, pos + (int2)(a,b)).x;
+            ++counter;
+        }
+    }
+    uchar median = findMedian(elements, 25);
+
+    const float threshold = 150.0f; // TODO Set this threshold in a smarter way
+    const float current = read_imageui(input, sampler, pos).x;
+    uchar newPixel = current - max((float)median - current - threshold, 0.0f);
+    write_imageui(output, pos, newPixel);
+}
+
+__kernel void nonLocalMeansFilter(
+        __read_only image2d_t imageInput,
+        __write_only image2d_t imageOutput,
+        __private int searchSize,
+        __private int filterSize,
+        __private float parameterH,
+        __private int iteration
+        ) { 
+    const int2 pos = {get_global_id(0), get_global_id(1)};
+    float sumBottom = 0.0f;
+    float sumTop = 0.0f;
+
+    // Loop over search region
+    for(int searchOffsetX = -searchSize; searchOffsetX <= searchSize; ++searchOffsetX) {
+        for(int searchOffsetY = -searchSize; searchOffsetY <= searchSize; ++searchOffsetY) {
+            int2 searchOffsetAtScale = {searchOffsetX*(iteration+1), searchOffsetY*(iteration+1)};
+            float diff = calculateDiff(imageInput, pos, pos + searchOffsetAtScale, filterSize, iteration);
+            diff = exp(-diff/(2.0f*parameterH*parameterH));// / (2.0f*parameterH*parameterH);
+            sumBottom += diff;
+            sumTop += diff*read_imageui(imageInput, sampler, pos + searchOffsetAtScale).x/255.0f;
+        }
+    }
+
+    write_imageui(imageOutput, pos, (uchar)clamp((sumTop/sumBottom)*255.0f, 0.0f, 255.0f ));
 }
