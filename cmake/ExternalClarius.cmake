@@ -2,9 +2,9 @@
 include(cmake/Externals.cmake)
 
 if(WIN32)
-    set(URL "http://www.idi.ntnu.no/~smistad/clarius_listen_sdk_2018-11-09_15-30-19_isonosw.v5.0.0.windows.desktop_80_f43778b091ea23a92c0f884a77e42fb65831e048.zip")
+    set(URL "http://www.idi.ntnu.no/~smistad/clarius_listen_sdk_2019-10-16_21-18-03_isonosw.v6.0.0.windows.desktop_376_a62de5dadfb9338e2b541795b96eeb336a968026.zip")
 else()
-    set(URL "http://www.idi.ntnu.no/~smistad/clarius_listen_sdk_2018-11-16_20-44-46_isonosw.v5.0.0.linux.desktop_80_1cf035e5a38bb0ba4ddde2b35c54024b1d4230d1.zip")
+    set(URL "http://www.idi.ntnu.no/~smistad/clarius_listen_sdk_2019-10-16_15-23-46_isonosw.v6.0.0.linux.desktop_428_a62de5dadfb9338e2b541795b96eeb336a968026.zip")
 endif()
 
 if(WIN32)

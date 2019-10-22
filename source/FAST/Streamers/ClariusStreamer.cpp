@@ -28,7 +28,7 @@ void ClariusStreamer::execute() {
               {
                 self->newImageFn(img, nfo, npos, pos);
               },
-              nullptr, nullptr, nullptr, nullptr);
+              nullptr, nullptr, nullptr, nullptr, 512, 512);
         if(success < 0)
             throw Exception("Unable to initialize clarius listener");
         reportInfo() << "Clarius streamer initialized" << reportEnd();
