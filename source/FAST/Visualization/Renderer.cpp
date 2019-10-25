@@ -51,12 +51,14 @@ void Renderer::postDraw() {
 
 void Renderer::execute() {
     std::unique_lock<std::mutex> lock(mMutex);
+    if(m_disabled)
+        return;
     if(mStop) {
         return;
     }
 
     // Check if current images has not been rendered, if not wait
-    while(!mHasRendered) {
+    while(!mHasRendered && m_synchedRendering) {
         mRenderedCV.wait(lock);
     }
     // This simply gets the input data for each connection and puts it into a data structure
@@ -242,6 +244,10 @@ void Renderer::setDisabled(bool disabled) {
 
 bool Renderer::isDisabled() const {
     return m_disabled;
+}
+
+void Renderer::setSynchronizedRendering(bool synched) {
+    m_synchedRendering = synched;
 }
 
 }

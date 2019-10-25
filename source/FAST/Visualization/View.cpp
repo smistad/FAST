@@ -215,28 +215,36 @@ void View::getMinMaxFromBoundingBoxes(bool transform, Vector3f &min, Vector3f &m
     std::vector<Renderer::pointer> renderers = mNonVolumeRenderers;
     renderers.insert(renderers.end(), mVolumeRenderers.begin(), mVolumeRenderers.end());
     // Get bounding boxes of all objects
-    BoundingBox box = renderers.at(0)->getBoundingBox(transform);
-    Vector3f corner = box.getCorners().row(0);
-    min[0] = corner[0];
-    max[0] = corner[0];
-    min[1] = corner[1];
-    max[1] = corner[1];
-    min[2] = corner[2];
-    max[2] = corner[2];
+    bool initialized = false;
     for(int i = 0; i < renderers.size(); i++) {
         // Apply transformation to all b boxes
         // Get max and min of x and y coordinates of the transformed b boxes
-        BoundingBox box = renderers.at(i)->getBoundingBox(transform);
-        MatrixXf corners = box.getCorners();
-        //reportInfo() << box << Reporter::end();
-        for(int j = 0; j < 8; j++) {
-            for(uint k = 0; k < 3; k++) {
-                if(corners(j, k) < min[k])
-                    min[k] = corners(j, k);
-
-                if(corners(j, k) > max[k])
-                    max[k] = corners(j, k);
+        try {
+            BoundingBox box = renderers.at(i)->getBoundingBox(transform);
+            MatrixXf corners = box.getCorners();
+            if(!initialized) {
+                Vector3f corner = box.getCorners().row(0);
+                min[0] = corner[0];
+                max[0] = corner[0];
+                min[1] = corner[1];
+                max[1] = corner[1];
+                min[2] = corner[2];
+                max[2] = corner[2];
+                initialized = true;
             }
+
+            //reportInfo() << box << Reporter::end();
+            for(int j = 0; j < 8; j++) {
+                for(uint k = 0; k < 3; k++) {
+                    if(corners(j, k) < min[k])
+                        min[k] = corners(j, k);
+
+                    if(corners(j, k) > max[k])
+                        max[k] = corners(j, k);
+                }
+            }
+        } catch(Exception& e) {
+            // Ignore
         }
     }
 }
@@ -474,11 +482,15 @@ void View::initializeGL() {
     // Enable transparency
     glEnable(GL_BLEND);
     // Update all renderes, so that getBoundingBox works
-    for(int i = 0; i < mNonVolumeRenderers.size(); i++)
-        mNonVolumeRenderers[i]->update();
-    for(int i = 0; i < mVolumeRenderers.size(); i++)
-        mVolumeRenderers[i]->update();
-    if(mNonVolumeRenderers.empty() && mVolumeRenderers.empty())
+    std::vector<Renderer::pointer> renderers = mNonVolumeRenderers;
+    renderers.insert(renderers.end(), mVolumeRenderers.begin(), mVolumeRenderers.end());
+    // Disable synchronized rendering here to avoid blocking in renderer
+    for(int i = 0; i < renderers.size(); i++) {
+        renderers[i]->setSynchronizedRendering(false);
+        renderers[i]->update();
+        renderers[i]->setSynchronizedRendering(true);
+    }
+    if(renderers.empty())
         return;
     if(mIsIn2DMode) {
         glDisable(GL_DEPTH_TEST);

@@ -42,6 +42,7 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
          */
         virtual bool isDisabled() const;
         void setView(View* view);
+        void setSynchronizedRendering(bool synched);
     protected:
         Renderer();
         void execute() override;
@@ -67,6 +68,7 @@ class FAST_EXPORT  Renderer : public ProcessObject, protected QOpenGLFunctions_3
         // Locking mechanisms to ensure thread safe synchronized rendering
         bool mHasRendered = true;
         bool mStop = false;
+        bool m_synchedRendering = true;
         std::condition_variable_any mRenderedCV;
         std::mutex mMutex;
 
