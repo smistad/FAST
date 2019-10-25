@@ -11,7 +11,7 @@ ExternalProject_Add(OpenVINO
         GIT_TAG "2019_R1.1"
         SOURCE_SUBDIR inference-engine
         UPDATE_COMMAND
-            git submodule init COMMAND git submodule update --recursive
+            git submodule init COMMAND git submodule update --recursive COMMAND mkdir -p inference-engine/build/
         CMAKE_ARGS
             -DENABLE_OPENCV:BOOL=OFF
             -DENABLE_OBJECT_DETECTION_TESTS:BOOL=OFF
