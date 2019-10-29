@@ -11,6 +11,8 @@ fast_add_sources(
     StreamExporter.hpp
     ImageFileExporter.cpp
     ImageFileExporter.hpp
+    StreamToFileExporter.cpp
+    StreamToFileExporter.hpp
 )
 fast_add_python_interfaces(
 	VTKMeshFileExporter.i
