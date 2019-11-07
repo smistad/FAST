@@ -16,7 +16,7 @@ using namespace fast;
 
 TEST_CASE("Patch generator for WSI", "[fast][wsi][PatchGenerator][visual]") {
     auto importer = WholeSlideImageImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "/CMU-1.tiff");
+    importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
 
     auto generator = PatchGenerator::New();
     generator->setPatchSize(512, 512);
@@ -71,11 +71,11 @@ TEST_CASE("Patch generator and stitcher for volumes", "[fast][volume][patchgener
 
 TEST_CASE("Patch generator and stitcher for WSI", "[fast][wsi][PatchStitcher][visual]") {
     auto importer = WholeSlideImageImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "/CMU-1.tiff");
+    importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
 
     auto generator = PatchGenerator::New();
     generator->setPatchSize(512, 512);
-    generator->setPatchLevel(4);
+    generator->setPatchLevel(2);
     generator->setInputConnection(importer->getOutputPort());
 
     auto stitcher = PatchStitcher::New();
@@ -85,18 +85,18 @@ TEST_CASE("Patch generator and stitcher for WSI", "[fast][wsi][PatchStitcher][vi
     renderer->addInputConnection(stitcher->getOutputPort());
     auto window = SimpleWindow::New();
     window->addRenderer(renderer);
-    //window->setTimeout(1000);
+    window->setTimeout(3000);
     window->set2DMode();
     window->start();
 }
 
 TEST_CASE("Patch generator, sticher and image to batch generator for WSI", "[fast][wsi][ImageToBatchGenerator]") {
     auto importer = WholeSlideImageImporter::New();
-    importer->setFilename(Config::getTestDataPath() + "/CMU-1.tiff");
+    importer->setFilename(Config::getTestDataPath() + "/WSI/A05.svs");
 
     auto generator = PatchGenerator::New();
     generator->setPatchSize(512, 512);
-    generator->setPatchLevel(4);
+    generator->setPatchLevel(2);
     generator->setInputConnection(importer->getOutputPort());
 
     auto batchGenerator = ImageToBatchGenerator::New();
