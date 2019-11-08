@@ -163,24 +163,18 @@ void View::setMaximumFramerate(unsigned int framerate) {
 void View::execute() {
 }
 
-void View::updateRenderersInput() {
-    // Gather all input of renderers, avoid duplicates
-    std::set<ProcessObject::pointer> processObjects;
+void View::updateRenderersInput(int executeToken) {
     for(auto&& renderer : mNonVolumeRenderers) {
         for(int i = 0; i < renderer->getNrOfInputConnections(); ++i) {
-            processObjects.insert(renderer->getInputPort(i)->getProcessObject());
+            renderer->getInputPort(i)->getProcessObject()->update(executeToken);
         }
     }
     for(auto&& renderer : mVolumeRenderers) {
         for(int i = 0; i < renderer->getNrOfInputConnections(); ++i) {
-            processObjects.insert(renderer->getInputPort(i)->getProcessObject());
+            renderer->getInputPort(i)->getProcessObject()->update(executeToken);
         }
     }
 
-    // Then do update on all of them in order
-    for(auto&& processObject : processObjects) {
-        processObject->update();
-    }
 }
 
 void View::updateRenderers() {

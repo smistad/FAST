@@ -37,6 +37,7 @@ void ComputationThread::run() {
     QGLContext* mainGLContext = Window::getMainGLContext();
     mainGLContext->makeCurrent();
 
+    uint executeToken = 0;
     while(true) {
         {
             std::unique_lock<std::mutex> lock(mUpdateThreadMutex); // this locks the mutex
@@ -44,15 +45,16 @@ void ComputationThread::run() {
                 break;
         }
         try {
-            for (View *view : mViews) {
-                view->updateRenderersInput();
+            for(View *view : mViews) {
+                view->updateRenderersInput(executeToken);
             }
-            for (View *view : mViews) {
+            for(View *view : mViews) {
                 view->updateRenderers();
             }
         } catch(ThreadStopped &e) {
             break;
         }
+        ++executeToken;
     }
 
     // Move GL context back to main thread

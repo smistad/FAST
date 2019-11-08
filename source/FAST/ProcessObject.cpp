@@ -24,7 +24,7 @@ static bool isStreamer(ProcessObject* po) {
     return isStreamer;
 }
 
-void ProcessObject::update() {
+void ProcessObject::update(int executeToken) {
     // Call update on all parents
     bool newInputData = false;
     for(auto parent : mInputConnections) {
@@ -85,6 +85,9 @@ void ProcessObject::update() {
             outputPorts.second.erase(outputPorts.second.begin() + deadLink);
     }
 
+    // If execute token is enabled (its positive), check if current token is equal to last; if so don't reexecute.
+    if(executeToken >= 0 && m_lastExecuteToken == executeToken)
+        return;
     // If this object is modified, or any parents has new data for this PO: Call execute
     if(mIsModified || newInputData) {
         this->mRuntimeManager->startRegularTimer("execute");
@@ -99,6 +102,7 @@ void ProcessObject::update() {
         preExecute();
         execute();
         postExecute();
+        m_lastExecuteToken = executeToken;
         if(this->mRuntimeManager->isEnabled())
             this->waitToFinish();
         this->mRuntimeManager->stopRegularTimer("execute");
