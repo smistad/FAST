@@ -25,6 +25,7 @@
 #include <QCursor>
 #include <QThread>
 #include <FAST/Visualization/VolumeRenderer/VolumeRenderer.hpp>
+#include <set>
 
 namespace fast {
 
@@ -163,15 +164,22 @@ void View::execute() {
 }
 
 void View::updateRenderersInput() {
-    for(auto renderer : mNonVolumeRenderers) {
+    // Gather all input of renderers, avoid duplicates
+    std::set<ProcessObject::pointer> processObjects;
+    for(auto&& renderer : mNonVolumeRenderers) {
         for(int i = 0; i < renderer->getNrOfInputConnections(); ++i) {
-            renderer->getInputPort(i)->getProcessObject()->update();
+            processObjects.insert(renderer->getInputPort(i)->getProcessObject());
         }
     }
-    for(auto renderer : mVolumeRenderers) {
+    for(auto&& renderer : mVolumeRenderers) {
         for(int i = 0; i < renderer->getNrOfInputConnections(); ++i) {
-            renderer->getInputPort(i)->getProcessObject()->update();
+            processObjects.insert(renderer->getInputPort(i)->getProcessObject());
         }
+    }
+
+    // Then do update on all of them in order
+    for(auto&& processObject : processObjects) {
+        processObject->update();
     }
 }
 
@@ -250,6 +258,7 @@ void View::getMinMaxFromBoundingBoxes(bool transform, Vector3f &min, Vector3f &m
 }
 
 void View::recalculateCamera() {
+    reportInfo() << "Recalculating the camera of the view" << reportEnd();
     if(mIsIn2DMode) {
         // TODO Initialize 2D
         // Initialize camera
