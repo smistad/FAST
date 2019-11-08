@@ -15,6 +15,7 @@ int main(int argc, char** argv) {
     // The hashtag here will be replaced with an integer, starting with 0 as default
     parser.addPositionVariable(1, "filename", Config::getTestDataPath() + "/US/CarotidArtery/Right/US-2D_#.mhd");
     parser.addVariable("sleep-time", "50");
+    parser.addOption("render-in-3d");
     parser.parse(argc, argv);
 
     auto streamer = ImageFileStreamer::New();
@@ -26,7 +27,8 @@ int main(int argc, char** argv) {
 
     auto window = SimpleWindow::New();
     window->addRenderer(renderer);
-    window->set2DMode();
+    if(!parser.getOption("render-in-3d"))
+        window->set2DMode();
 #ifdef FAST_CONTINUOUS_INTEGRATION
     // This will automatically close the window after 6 seconds, used for CI testing
     window->setTimeout(5*1000);

@@ -84,7 +84,7 @@ ImagePyramid::Patch ImagePyramid::getPatch(int level, int tile_x, int tile_y) {
     //std::cout << "Loading data from disk for tile " << tile_x << " " << tile_y << " " << level << " " <<  tile_offset_x << " " << tile_offset_y << std::endl;
     // Read the actual data
     std::size_t bytes = tile.width*tile.height*4;
-    tile.data = std::shared_ptr<uchar[]>(new uchar[bytes]); // TODO use make_shared instead (C++20)
+    tile.data = std::shared_ptr<uchar>(new uchar[bytes], [](uchar *p) { delete [] p; }); // TODO use make_shared instead (C++20)
     float scale = (float)getFullWidth()/levelWidth;
     openslide_read_region(m_fileHandle, (uint32_t *) tile.data.get(), tile.offsetX*scale, tile.offsetY*scale, level, tile.width, tile.height);
 

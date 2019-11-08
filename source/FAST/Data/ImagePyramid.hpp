@@ -19,7 +19,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
     public:
 
         typedef struct Patch {
-            std::shared_ptr<uchar[]> data;
+            std::shared_ptr<uchar> data;
             int width;
             int height;
             int offsetX;
