@@ -392,21 +392,32 @@ void DeviceManager::sortDevicesAccordingToPreference(
         for (int j = 0; j < platformDevices[i].second.size(); j++) {
             cl::Device device = platformDevices[i].second[j];
             deviceAndScore das;
+            std::string deviceVendorStr = device.getInfo<CL_DEVICE_VENDOR>();
+            DevicePlatform deviceVendor = getDevicePlatform(deviceVendorStr);
+            // Prefer AMD and NVIDIA platform over Intel
+            if(deviceVendor == DevicePlatform::DEVICE_PLATFORM_NVIDIA) {
+                das.score = 1000000;
+            } else if(deviceVendor == DevicePlatform::DEVICE_PLATFORM_AMD) {
+                das.score = 1000000;
+            } else {
+                das.score = 0;
+            }
+
             das.device = device;
             switch (preference) {
             case DEVICE_PREFERENCE_NOT_CONNECTED_TO_SCREEN:
                 if (!deviceHasOpenGLInteropCapability(device)) {
-                    das.score = 1;
+                    das.score += 1;
                 } else {
-                    das.score = 0;
+                    das.score += 0;
                 }
                 break;
             case DEVICE_PREFERENCE_COMPUTE_UNITS:
-                das.score = device.getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>();
+                das.score += device.getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>();
                 reportInfo() << device.getInfo<CL_DEVICE_NAME>() << " has " << device.getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>() << " compute units" << reportEnd();
                 break;
             case DEVICE_PREFERENCE_GLOBAL_MEMORY:
-                das.score = device.getInfo<CL_DEVICE_GLOBAL_MEM_SIZE>()
+                das.score += device.getInfo<CL_DEVICE_GLOBAL_MEM_SIZE>()
                         / (1024 * 1024); // In MBs
                 break;
             default:
