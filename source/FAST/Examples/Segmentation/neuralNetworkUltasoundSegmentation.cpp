@@ -11,6 +11,7 @@
 #include <FAST/Visualization/SegmentationRenderer/SegmentationRenderer.hpp>
 #include <FAST/Streamers/ClariusStreamer.hpp>
 #include <FAST/Streamers/OpenIGTLinkStreamer.hpp>
+#include <FAST/Algorithms/UltrasoundImageCropper/UltrasoundImageCropper.hpp>
 
 using namespace fast;
 
@@ -32,11 +33,15 @@ int main(int argc, char** argv) {
     ProcessObject::pointer inputStream;
 
     if(parser.gotValue("clarius-ip")) {
+        Config::setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
         auto streamer = ClariusStreamer::New();
         streamer->setConnectionAddress(parser.get("clarius-ip"));
         streamer->setConnectionPort(std::stoi(parser.get("clarius-port")));
-        inputStream = streamer;
+        auto cropper = UltrasoundImageCropper::New();
+        cropper->setInputConnection(streamer->getOutputPort());
+        inputStream = cropper;
     } else if(parser.gotValue("openigtlink-ip")) {
+        Config::setStreamingMode(STREAMING_MODE_NEWEST_FRAME_ONLY);
         auto streamer = OpenIGTLinkStreamer::New();
         streamer->setConnectionAddress(parser.get("openigtlink-ip"));
         streamer->setConnectionPort(std::stoi(parser.get("openigtlink-port")));

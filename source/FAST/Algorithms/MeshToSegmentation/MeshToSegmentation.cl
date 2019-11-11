@@ -125,7 +125,7 @@ int rayIntersectsTriangle(float3 p, float3 d, float3 v0, float3 v1, float3 v2) {
 __kernel void mesh_to_segmentation_3d(
 		__global float* coordinates,
 		__global uint* triangles,
-		__private uint nrOfTriangles,
+		__private int nrOfTriangles,
 		__global uchar* segmentation,
 		__private float spacingX,
 		__private float spacingY,
@@ -152,14 +152,14 @@ __kernel void mesh_to_segmentation_3d(
     float3 P1 = P0;
     P1.x += 0.1;
 
-    for(int i = 0; i < nrOfTriangles; i++) {
+    for(int i = 0; i < nrOfTriangles; ++i) {
         const uint3 triangle = vload3(i, triangles);
         const float3 u = vload3(triangle.x, coordinates);
         const float3 v = vload3(triangle.y, coordinates);
         const float3 w = vload3(triangle.z, coordinates);
 
         if(rayIntersectsTriangle(P0, P1, u, v, w) >= 1) {
-            intersections++;
+            intersections += 1;
         }
     }
 
