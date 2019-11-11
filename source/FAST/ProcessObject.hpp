@@ -22,7 +22,15 @@ class ProcessObject;
 class FAST_EXPORT  ProcessObject : public Object {
     public:
         virtual ~ProcessObject();
-        void update();
+        /**
+         * Do update on this PO, which will trigger update on all connected POs.
+         * An optional executeToken can be used to synchronize updating to avoid
+         * duplicate execution for the same frames when using streaming.
+         * Increment the token for every timestep with a positive value.
+         *
+         * @param executeToken Negative value means that the execute token is disabled.
+         */
+        void update(int executeToken = -1);
         typedef SharedPointer<ProcessObject> pointer;
 
         // Runtime stuff
@@ -73,6 +81,9 @@ class FAST_EXPORT  ProcessObject : public Object {
         // Flag to indicate whether the object has been modified
         // and should be executed again
         bool mIsModified;
+
+        // An integer id which act as a token of when this PO last executed
+        int m_lastExecuteToken = -1;
 
         // Pure virtual method for executing the pipeline object
         virtual void execute()=0;

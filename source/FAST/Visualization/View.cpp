@@ -25,6 +25,7 @@
 #include <QCursor>
 #include <QThread>
 #include <FAST/Visualization/VolumeRenderer/VolumeRenderer.hpp>
+#include <set>
 
 namespace fast {
 
@@ -162,17 +163,18 @@ void View::setMaximumFramerate(unsigned int framerate) {
 void View::execute() {
 }
 
-void View::updateRenderersInput() {
-    for(auto renderer : mNonVolumeRenderers) {
+void View::updateRenderersInput(int executeToken) {
+    for(auto&& renderer : mNonVolumeRenderers) {
         for(int i = 0; i < renderer->getNrOfInputConnections(); ++i) {
-            renderer->getInputPort(i)->getProcessObject()->update();
+            renderer->getInputPort(i)->getProcessObject()->update(executeToken);
         }
     }
-    for(auto renderer : mVolumeRenderers) {
+    for(auto&& renderer : mVolumeRenderers) {
         for(int i = 0; i < renderer->getNrOfInputConnections(); ++i) {
-            renderer->getInputPort(i)->getProcessObject()->update();
+            renderer->getInputPort(i)->getProcessObject()->update(executeToken);
         }
     }
+
 }
 
 void View::updateRenderers() {
@@ -250,6 +252,7 @@ void View::getMinMaxFromBoundingBoxes(bool transform, Vector3f &min, Vector3f &m
 }
 
 void View::recalculateCamera() {
+    reportInfo() << "Recalculating the camera of the view" << reportEnd();
     if(mIsIn2DMode) {
         // TODO Initialize 2D
         // Initialize camera
