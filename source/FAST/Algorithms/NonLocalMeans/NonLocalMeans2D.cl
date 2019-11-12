@@ -2,8 +2,8 @@ __constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_T
 
 float calculateDiff(__read_only image2d_t imageInput, int2 pos1, int2 pos2, int filterSize, int iteration) {
     float res = 0.0f;
-    for(int offset_x = -filterSize; offset_x <= filterSize; ++offset_x) {
-        for(int offset_y = -filterSize; offset_y <= filterSize; ++offset_y) {
+    for(int offset_x = -FILTER_SIZE; offset_x <= FILTER_SIZE; ++offset_x) {
+        for(int offset_y = -FILTER_SIZE; offset_y <= FILTER_SIZE; ++offset_y) {
             int2 offset = {offset_x, offset_y};
             float diff = (float)read_imageui(imageInput, sampler, pos1 + offset).x/255.0f - (float)read_imageui(imageInput, sampler, pos2 + offset).x/255.0f;
             diff = diff*diff;
@@ -13,9 +13,9 @@ float calculateDiff(__read_only image2d_t imageInput, int2 pos1, int2 pos2, int 
     return res;
 }
 
-uchar findMedian(uchar array[], int size) {
-    for(int i = 0; i < size; ++i) {
-        for(int j = 0; j < i; ++j) {
+uchar findMedian(uchar array[], const int size) {
+    for(uint i = 0; i < size; ++i) {
+        for(uint j = 0; j < i; ++j) {
             if(array[i] > array[j]) {
                 uchar tmp = array[i];
                 array[i] = array[j];
@@ -66,11 +66,11 @@ __kernel void nonLocalMeansFilter(
     float sumTop = 0.0f;
 
     // Loop over search region
-    for(int searchOffsetX = -searchSize; searchOffsetX <= searchSize; ++searchOffsetX) {
-        for(int searchOffsetY = -searchSize; searchOffsetY <= searchSize; ++searchOffsetY) {
+    for(int searchOffsetX = -SEARCH_SIZE; searchOffsetX <= SEARCH_SIZE; ++searchOffsetX) {
+        for(int searchOffsetY = -SEARCH_SIZE; searchOffsetY <= SEARCH_SIZE; ++searchOffsetY) {
             int2 searchOffsetAtScale = {searchOffsetX*(iteration+1), searchOffsetY*(iteration+1)};
             float diff = calculateDiff(imageInput, pos, pos + searchOffsetAtScale, filterSize, iteration);
-            diff = exp(-diff/(2.0f*parameterH*parameterH));// / (2.0f*parameterH*parameterH);
+            diff = native_exp(-diff/(2.0f*parameterH*parameterH));// / (2.0f*parameterH*parameterH);
             sumBottom += diff;
             sumTop += diff*read_imageui(imageInput, sampler, pos + searchOffsetAtScale).x/255.0f;
         }

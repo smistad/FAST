@@ -21,7 +21,10 @@ void NonLocalMeans::execute() {
     const int height = input->getHeight();
 
     auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
-    auto program = getOpenCLProgram(device);
+    auto program = getOpenCLProgram(device, "", 
+            "-DFILTER_SIZE=" + std::to_string((m_filterSize - 1)/2) + " "
+            "-DSEARCH_SIZE=" + std::to_string(m_searchSize)
+            );
     auto queue = device->getCommandQueue();
 
     cl::Kernel kernelPreProcess(program, "preprocess");
