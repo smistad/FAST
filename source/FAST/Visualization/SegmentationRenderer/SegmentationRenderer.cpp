@@ -227,4 +227,10 @@ void SegmentationRenderer::setOpacity(float opacity) {
     deleteAllTextures();
 }
 
+void SegmentationRenderer::setColor(int label, Color color) {
+    mLabelColors[label] = color;
+    mColorsModified = true;
+    deleteAllTextures();
+}
+
 }

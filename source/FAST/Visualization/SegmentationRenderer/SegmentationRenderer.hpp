@@ -13,6 +13,7 @@ class FAST_EXPORT  SegmentationRenderer : public ImageRenderer {
     FAST_OBJECT(SegmentationRenderer)
     public:
         void setColor(Segmentation::LabelType, Color);
+        void setColor(int label, Color);
         void setFillArea(Segmentation::LabelType, bool);
         void setFillArea(bool fillArea);
         void setBorderRadius(int radius);
