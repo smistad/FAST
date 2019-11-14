@@ -57,6 +57,7 @@ void UltrasoundImageEnhancement::loadAttributes() {
 }
 
 void UltrasoundImageEnhancement::setReject(int reject) {
+    mColormap.clear();
     // Create colormap based on reject
     float range = (255.0f - (float)reject);
     for(int x = 0; x < 256; ++x) {
