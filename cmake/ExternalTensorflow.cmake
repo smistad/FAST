@@ -38,15 +38,15 @@ if(WIN32)
                 echo "Installing tensorflow binary"  COMMAND
                 ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/tensorflow_cc.dll.if.lib ${FAST_EXTERNAL_INSTALL_DIR}/lib/tensorflow_CPU.lib COMMAND
                 ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/external/protobuf_archive/protobuf.lib ${FAST_EXTERNAL_INSTALL_DIR}/lib/protobuf.lib COMMAND
-                ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/tensorflow_cc.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/tensorflow_CPU.dll COMMAND
+                ${CMAKE_COMMAND} -E copy ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-bin/tensorflow/tensorflow_cc.dll ${FAST_EXTERNAL_INSTALL_DIR}/bin/tensorflow_cc.dll COMMAND
                 echo "Installing tensorflow headers"  COMMAND
                 ${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/tensorflow ${FAST_EXTERNAL_INSTALL_DIR}/include/tensorflow/ COMMAND
                 echo "Installing tensorflow generated headers" COMMAND
                 ${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-genfiles/tensorflow ${FAST_EXTERNAL_INSTALL_DIR}/include/tensorflow/  COMMAND
                 echo "Installing tensorflow third party headers"  COMMAND
                 ${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/third_party/ ${FAST_EXTERNAL_INSTALL_DIR}/include/third_party/  COMMAND
-                #echo "Installing protobuf headers"  COMMAND
-                #${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-tensorflow_download/external/protobuf_archive/src/google/ ${FAST_EXTERNAL_INSTALL_DIR}/include/google/ COMMAND
+                echo "Installing protobuf headers"  COMMAND
+                ${CMAKE_COMMAND} -E copy_directory ${FAST_EXTERNAL_BUILD_DIR}/tensorflow/src/tensorflow_download/bazel-tensorflow_download/external/protobuf_archive/src/google/ ${FAST_EXTERNAL_INSTALL_DIR}/include/google/ COMMAND
                 #echo "Installing nsync headers"  COMMAND
                 #xcopy ${src} ${dest} /y COMMAND
                 echo "Installing absl headers"  COMMAND
