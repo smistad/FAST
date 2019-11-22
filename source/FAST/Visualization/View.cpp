@@ -77,7 +77,7 @@ View::View() {
     timer = new QTimer(this);
     timer->start(1000 / mFramerate); // in milliseconds
     timer->setSingleShot(false);
-    connect(timer, SIGNAL(timeout()), this, SLOT(update()));
+    connect(timer, SIGNAL(timeout()), this, SLOT(updateGL()));
 
     QGLContext *context = new QGLContext(getGLFormat(), this);
     context->create(fast::Window::getMainGLContext());
