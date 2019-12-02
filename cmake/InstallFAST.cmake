@@ -58,6 +58,11 @@ install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/qt.conf
     DESTINATION fast/bin
 )
 
+# Install qt moc
+install(FILES ${PROJECT_BINARY_DIR}/bin/moc${CMAKE_EXECUTABLE_SUFFIX}
+    DESTINATION fast/bin
+)
+
 # Install headers
 install(DIRECTORY ${FAST_SOURCE_DIR}
 	DESTINATION fast/include/FAST/
