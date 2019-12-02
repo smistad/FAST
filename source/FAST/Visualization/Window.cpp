@@ -51,12 +51,13 @@ Window::Window() {
             windowScaling = 2;
             // 4K screens
             Reporter::info() << "Large screen detected with width: " << screenWidth << Reporter::end();
-            if(defaultFont.pointSize() < 10)
+			std::cout << "default font point size:" << defaultFont.pointSize();
+            if(defaultFont.pointSize() <= 12)
                 mGUIScalingFactor = 1.75;
         } else {
             windowScaling = 2;
             Reporter::info() << "Medium large screen detected with width: " << screenWidth << Reporter::end();
-            if(defaultFont.pointSize() < 10)
+            if(defaultFont.pointSize() <= 12)
                 mGUIScalingFactor = 1.5;
         }
         Reporter::info() << "Scaling default font with factor " << mGUIScalingFactor << Reporter::end();
