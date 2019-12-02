@@ -83,6 +83,7 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
                 sizeof(float)*4*maxChannels,
                 colorData.get()
         );
+		mColorsModified = false;
     }
 
     cl::Kernel kernel(getOpenCLProgram(device), "renderToTexture");
