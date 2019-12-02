@@ -44,6 +44,7 @@ class FAST_EXPORT Tensor : public SpatialDataObject {
 
         virtual BoundingBox getTransformedBoundingBox() const override;
         virtual BoundingBox getBoundingBox() const override;
+		virtual ~Tensor();
 
     protected:
         Tensor() = default;

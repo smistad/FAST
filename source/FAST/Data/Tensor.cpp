@@ -281,4 +281,8 @@ float* Tensor::getHostDataPointer() {
     return m_data.get();
 }
 
+Tensor::~Tensor() {
+	freeAll();
+}
+
 }
