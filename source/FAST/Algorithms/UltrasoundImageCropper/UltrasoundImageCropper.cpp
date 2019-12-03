@@ -24,7 +24,6 @@ void UltrasoundImageCropper::execute() {
     cl::CommandQueue queue = device->getCommandQueue();
     OpenCLImageAccess::pointer imageAccess = image->getOpenCLImageAccess(ACCESS_READ, device);
 
-    std::cout << "static cropping:" << m_staticCropping << std::endl;
     if(m_width == -1 || !m_staticCropping) {
         cl::Program program = getOpenCLProgram(device);
         cl::Kernel kernel(program, "lineSearch");
