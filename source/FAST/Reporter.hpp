@@ -3,6 +3,7 @@
 
 #include <map>
 #include <iostream>
+#include <thread>
 #include "FASTExport.hpp"
 
 #undef ERROR // undefine some windows garbage
@@ -51,11 +52,11 @@ void Reporter::process(const T& content) {
         // Write prefix first
         if(reportMethod == COUT) {
             if(mType == INFO) {
-                std::cout << "INFO: ";
+                std::cout << "INFO [" << std::this_thread::get_id() << "] ";
             } else if(mType == WARNING) {
-                std::cout << "WARNING: ";
+                std::cout << "WARNING [" << std::this_thread::get_id() << "] ";
             } else if(mType == ERROR) {
-                std::cout << "ERROR: ";
+                std::cout << "ERROR [" << std::this_thread::get_id() << "] ";
             }
         }
         mFirst = false;
