@@ -92,11 +92,10 @@ void ProcessObject::update(int executeToken) {
     if(mIsModified || newInputData) {
         this->mRuntimeManager->startRegularTimer("execute");
         // set isModified to false before executing to avoid recursive update calls
-        reportInfo() << "EXECUTING " << getNameOfClass() << " because " << reportEnd();
         if(mIsModified) {
-            reportInfo() << "PO is modified." << reportEnd();
+            reportInfo() << "EXECUTING " << getNameOfClass() << " because PO is modified." << reportEnd();
         } else if(newInputData) {
-            reportInfo() << "has new input data." << reportEnd();
+            reportInfo() << "EXECUTING " << getNameOfClass() << " because PO has new input data." << reportEnd();
         }
         mIsModified = false;
         preExecute();

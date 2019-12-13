@@ -36,9 +36,11 @@ void Streamer::stop() {
         std::unique_lock<std::mutex> lock(m_stopMutex);
         m_stop = true;
     }
-    if(m_thread)
+    if(m_thread) {
         m_thread->join();
-    reportInfo() << "Streamer thread for " << getNameOfClass() << " returned" << reportEnd();
+        m_thread = NULL;
+        reportInfo() << "Streamer thread for " << getNameOfClass() << " returned" << reportEnd();
+    }
 }
 
 }
