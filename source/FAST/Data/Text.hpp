@@ -7,7 +7,7 @@
 namespace fast {
 
 // A macro for creating new simple data objects
-class Text : public SpatialDataObject {
+class FAST_EXPORT Text : public SpatialDataObject {
 	FAST_OBJECT(Text)
 public:
     void create(std::string text, Color color = Color::Green());
