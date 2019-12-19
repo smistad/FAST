@@ -35,15 +35,17 @@ void BlockMatching::execute() {
     }
 
 
-    std::string buildOptions = "-DSEARCH_SIZE=" + std::to_string(m_searchSizeHalf*2 + 3);
+    std::string buildOptions = "-DGRID_SIZE=" + std::to_string(m_searchSizeHalf*2 + 3) + " "
+                               "-DBLOCK_SIZE=" + std::to_string(m_blockSizeHalf) + " "
+                               "-DSEARCH_SIZE=" + std::to_string(m_searchSizeHalf);
     cl::Kernel kernel(getOpenCLProgram(device, "", buildOptions), kernelNames.at(m_type).c_str());
     auto queue = device->getCommandQueue();
 
     if(m_type == MatchingMetric::SUM_OF_SQUARED_DIFFERENCES || m_type == MatchingMetric::SUM_OF_ABSOLUTE_DIFFERENCES) {
         float max = currentFrame->calculateMaximumIntensity();
         float min = currentFrame->calculateMinimumIntensity();
-        kernel.setArg(6, min);
-        kernel.setArg(7, max);
+        kernel.setArg(4, min);
+        kernel.setArg(5, max);
     }
 
     auto previousFrameAccess = m_previousFrame->getOpenCLImageAccess(ACCESS_READ, device);
@@ -53,9 +55,7 @@ void BlockMatching::execute() {
     kernel.setArg(0, *previousFrameAccess->get2DImage());
     kernel.setArg(1, *currentFrameAccess->get2DImage());
     kernel.setArg(2, *outputAccess->get2DImage());
-    kernel.setArg(3, m_blockSizeHalf);
-    kernel.setArg(4, m_searchSizeHalf);
-    kernel.setArg(5, m_intensityThreshold);
+    kernel.setArg(3, m_intensityThreshold);
 
     queue.enqueueNDRangeKernel(
         kernel,
