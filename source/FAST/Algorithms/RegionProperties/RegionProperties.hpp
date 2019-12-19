@@ -6,7 +6,7 @@ namespace fast {
 
 class Mesh;
 
-struct Region {
+struct FAST_EXPORT Region {
     int area;
     uchar label;
     Vector2f centroid;
@@ -16,7 +16,7 @@ struct Region {
 
 FAST_SIMPLE_DATA_OBJECT(RegionList, std::vector<Region>)
 
-class RegionProperties : public ProcessObject {
+class FAST_EXPORT RegionProperties : public ProcessObject {
     FAST_OBJECT(RegionProperties)
     public:
     protected:

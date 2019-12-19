@@ -4,7 +4,7 @@
 
 namespace fast {
 
-class TensorToSegmentation : public ProcessObject {
+class FAST_EXPORT TensorToSegmentation : public ProcessObject {
     FAST_OBJECT(TensorToSegmentation)
     public:
     protected:
