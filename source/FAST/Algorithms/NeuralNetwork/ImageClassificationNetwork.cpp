@@ -87,11 +87,10 @@ void ClassificationToText::execute() {
         }
     }
 
-    Text::access access2 = text->getAccess(ACCESS_READ_WRITE);
     char buffer[8];
     std::sprintf(buffer, "%.2f", max);
     std::string result = label + ": " + buffer;
-    access2->setData(result);
+    text->setText(result);
 }
 
 }

@@ -16,7 +16,8 @@ BoundingBox TextRenderer::getBoundingBox(bool transform) {
 TextRenderer::TextRenderer() {
     createInputPort<Text>(0);
     mStyle = STYLE_NORMAL;
-    mPosition = POSITION_CENTER;
+    m_position = POSITION_CENTER;
+    m_positionType = PositionType::STANDARD;
 	mFontSize = 28;
 	mColor = Color::Green();
     createStringAttribute("position", "Text position", "Position of text in view (center/bottom_left/bottom_right/top_left/top_right)", "top_left");
@@ -63,14 +64,14 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
         throw Exception("TextRenderer need access to the view");
 
     for(auto it : mDataToRender) {
-        Text::pointer input = std::static_pointer_cast<Text>(it.second);
+        auto input = std::static_pointer_cast<Text>(it.second);
         uint inputNr = it.first;
 
         // Check if a texture has already been created for this text
-        if (mTexturesToRender.count(inputNr) > 0 && mTextUsed[inputNr] == input)
+        if(mTexturesToRender.count(inputNr) > 0 && mTextUsed[inputNr] == input)
             continue; // If it has already been created, skip it
 
-        if (mTexturesToRender.count(inputNr) > 0) {
+        if(mTexturesToRender.count(inputNr) > 0) {
             // Delete old texture
             glDeleteTextures(1, &mTexturesToRender[inputNr]);
             mTexturesToRender.erase(inputNr);
@@ -78,15 +79,15 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
             mVAO.erase(inputNr);
         }
 
-        Text::access access = input->getAccess(ACCESS_READ);
-        std::string text = access->getData();
+        std::string text = input->getText();
 
         if(text.empty()) {
             continue;
         }
             
         // Font setup
-        QColor color(mColor.getRedValue() * 255, mColor.getGreenValue() * 255, mColor.getBlueValue() * 255, 255);
+        auto selectedColor = input->getColor();
+        QColor color(selectedColor.getRedValue() * 255, selectedColor.getGreenValue() * 255, selectedColor.getBlueValue() * 255, 255);
         QFont font = QApplication::font();
         font.setPixelSize(mFontSize);
         if (mStyle == STYLE_BOLD) {
@@ -95,7 +96,7 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
             font.setItalic(true);
         }
         QFontMetrics metrics(font);
-        const int width = metrics.boundingRect(QString(text.c_str())).width();
+        const int width = metrics.boundingRect(QString(text.c_str())).width()+3;
         const int height = metrics.boundingRect(QString(text.c_str())).height();
         
         // create the QImage and draw txt into it
@@ -185,31 +186,52 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
         const float scale2 = 1.0f / mView->height();
         const int padding = 15;
         Vector3f position;
-        switch(mPosition) {
-            case POSITION_CENTER:
-                position = Vector3f(-width*scale/2.0f, -height*scale2/2.0f, 0); // Center
-                break;
-            case POSITION_TOP_CENTER:
-                position = Vector3f(-width*scale/2.0f, 1 - (height + padding)*scale2, 0); // Top center
-                break;
-            case POSITION_BOTTOM_CENTER:
-                position = Vector3f(-width*scale/2.0f, -1 + padding*scale2, 0); // Bottom center
-                break;
-            case POSITION_TOP_LEFT:
-                position = Vector3f(-1 + padding*scale, 1 - (height + padding)*scale2, 0); // Top left corner
-                break;
-            case POSITION_TOP_RIGHT:
-                position = Vector3f(1 - (width + padding)*scale, 1 - (height + padding)*scale2, 0); // Top right corner
-                break;
-            case POSITION_BOTTOM_LEFT:
-                position = Vector3f(-1 + padding*scale, -1 + padding*scale2, 0); // Bottom left corner
-                break;
-            case POSITION_BOTTOM_RIGHT:
-                position = Vector3f(1 - (width + padding)*scale, -1 + padding*scale2, 0); // Bottom right corner
-                break;
+        if(m_positionType == PositionType::STANDARD) {
+            switch(m_position) {
+                case POSITION_CENTER:
+                    position = Vector3f(-width * scale / 2.0f, -height * scale2 / 2.0f, 0); // Center
+                    break;
+                case POSITION_TOP_CENTER:
+                    position = Vector3f(-width * scale / 2.0f, 1 - (height + padding) * scale2, 0); // Top center
+                    break;
+                case POSITION_BOTTOM_CENTER:
+                    position = Vector3f(-width * scale / 2.0f, -1 + padding * scale2, 0); // Bottom center
+                    break;
+                case POSITION_TOP_LEFT:
+                    position = Vector3f(-1 + padding * scale, 1 - (height + padding) * scale2, 0); // Top left corner
+                    break;
+                case POSITION_TOP_RIGHT:
+                    position = Vector3f(1 - (width + padding) * scale, 1 - (height + padding) * scale2,
+                                        0); // Top right corner
+                    break;
+                case POSITION_BOTTOM_LEFT:
+                    position = Vector3f(-1 + padding * scale, -1 + padding * scale2, 0); // Bottom left corner
+                    break;
+                case POSITION_BOTTOM_RIGHT:
+                    position = Vector3f(1 - (width + padding) * scale, -1 + padding * scale2, 0); // Bottom right corner
+                    break;
+            }
+            transform.translate(position);
+            transform.scale(Vector3f(scale, scale2, 0));
+        } else if(m_positionType == PositionType::WORLD) {
+            float textHeight = mTextUsed[inputNr]->getTextHeight();
+            float textSpacing = textHeight/height;
+            float textWidthInMM = textSpacing*width;
+            auto T = SceneGraph::getEigenAffineTransformationFromData(mTextUsed[inputNr]);
+            m_worldPosition.x() = T.translation().x();
+            m_worldPosition.y() = T.translation().y();
+            if(m_centerPosition) {
+                position.x() = m_worldPosition.x() - textWidthInMM * 0.5f;
+                position.y() = m_worldPosition.y() + textHeight * 0.5f;
+            } else {
+                position.x() = m_worldPosition.x();
+                position.y() = m_worldPosition.y() + textHeight;
+            }
+            position.z() = 0;
+            transform.translate(position);
+            transform.scale(Vector3f(textSpacing, -1.0f*textSpacing, 1.0f));
+        } else if(m_positionType == PositionType::VIEW) {
         }
-        transform.translate(position);
-        transform.scale(Vector3f(scale, scale2, 0));
 
         uint transformLoc = glGetUniformLocation(getShaderProgram(), "transform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform.data());
@@ -217,6 +239,8 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, perspectiveMatrix.data());
         transformLoc = glGetUniformLocation(getShaderProgram(), "viewTransform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, viewingMatrix.data());
+        transformLoc = glGetUniformLocation(getShaderProgram(), "positionType");
+        glUniform1i(transformLoc, (int)m_positionType);
 
         // Actual drawing
         glBindVertexArray(mVAO[inputNr]);
@@ -234,7 +258,8 @@ void TextRenderer::setFontSize(uint fontSize) {
 }
 
 void TextRenderer::setPosition(TextRenderer::TextPosition position) {
-    mPosition = position;
+    m_position = position;
+    m_positionType = PositionType::STANDARD;
 }
 
 void TextRenderer::setColor(Color color) {
@@ -261,6 +286,26 @@ void TextRenderer::loadAttributes() {
         throw Exception("Uknown position for TextRenderer: " + position);
     }
     setFontSize(getIntegerAttribute("font_size"));
+}
+
+void TextRenderer::setViewPosition(Vector2f position, float centerPosition) {
+    m_viewPosition = position;
+    m_centerPosition = centerPosition;
+    m_positionType = PositionType::VIEW;
+}
+
+void TextRenderer::setWorldPosition(Vector2f position, float centerPosition) {
+    m_worldPosition = position;
+    m_centerPosition = centerPosition;
+    m_positionType = PositionType::WORLD;
+}
+
+void TextRenderer::setFontHeightInMM(float heightInMillimeters) {
+    m_textHeightInMM = heightInMillimeters;
+}
+
+void TextRenderer::setPositionType(PositionType position) {
+    m_positionType = position;
 }
 
 } // end namespace fast
