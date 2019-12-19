@@ -11,6 +11,8 @@ fast_add_sources(
     InferenceEngine.hpp
     InferenceEngineManager.cpp
     InferenceEngineManager.hpp
+    TensorToSegmentation.cpp
+    TensorToSegmentation.hpp
 )
 fast_add_process_object(ImageClassificationNetwork ImageClassificationNetwork.hpp)
 fast_add_process_object(ClassificationToText ImageClassificationNetwork.hpp)
