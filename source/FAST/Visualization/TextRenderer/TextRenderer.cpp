@@ -33,30 +33,9 @@ void TextRenderer::setView(View* view) {
 	mView = view;
 }
 
-void TextRenderer::execute() {
-    std::unique_lock<std::mutex> lock(mMutex);
-    if(mStop) {
-        return;
-    }
-
-    // Check if current images has not been rendered, if not wait
-    while(!mHasRendered) {
-        mRenderedCV.wait(lock);
-    }
-    // This simply gets the input data for each connection and puts it into a data structure
-    for(uint inputNr = 0; inputNr < getNrOfInputConnections(); inputNr++) {
-        if(hasNewInputData(inputNr)) {
-            DataObject::pointer input = getInputData<DataObject>(inputNr);
-
-            mHasRendered = false;
-            mDataToRender[inputNr] = input;
-        }
-    }
-}
 
 void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
     std::lock_guard<std::mutex> lock(mMutex);
-
     if(!mode2D)
         throw Exception("TextRender is only implemented for 2D at the moment");
 

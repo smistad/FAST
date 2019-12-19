@@ -59,7 +59,6 @@ class FAST_EXPORT  TextRenderer : public Renderer {
         void loadAttributes();
     private:
         TextRenderer();
-        void execute() override;
 
         View* mView = nullptr;
 
@@ -68,7 +67,6 @@ class FAST_EXPORT  TextRenderer : public Renderer {
         std::unordered_map<uint, uint> mVAO;
         std::unordered_map<uint, uint> mVBO;
         std::unordered_map<uint, uint> mEBO;
-        std::unordered_map<uint, DataObject::pointer> mDataToRender;
 
         Color mColor;
         uint mFontSize;
