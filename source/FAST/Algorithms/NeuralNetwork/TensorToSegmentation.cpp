@@ -61,6 +61,7 @@ void TensorToSegmentation::execute() {
     } else {
         output->create(outputWidth, outputHeight, outputDepth, TYPE_UINT8, 1, std::move(data));
     }
+    output->setSpacing(tensor->getSpacing());
 }
 
 }
