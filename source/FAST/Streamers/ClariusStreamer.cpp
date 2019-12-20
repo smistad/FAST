@@ -111,4 +111,8 @@ void ClariusStreamer::setConnectionPort(int port) {
     mPort = port;
 }
 
+void ClariusStreamer::toggleFreeze() {
+	clariusUserFunction(USER_FN_TOGGLE_FREEZE, nullptr);
+}
+
 }
