@@ -1,0 +1,2 @@
+fast_add_sources(SegmentationLabelRenderer.cpp SegmentationLabelRenderer.hpp)
+fast_add_test_sources(Tests.cpp)
