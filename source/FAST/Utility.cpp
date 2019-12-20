@@ -701,6 +701,17 @@ std::string join(std::string path) {
     return path;
 }
 
+static bool compare_nocase (const std::string& first, const std::string& second)
+{
+    unsigned int i=0;
+    while((i<first.length()) && (i<second.length()) ) {
+        if (tolower(first[i])<tolower(second[i])) return true;
+        else if (tolower(first[i])>tolower(second[i])) return false;
+        ++i;
+    }
+    return ( first.length() < second.length() );
+}
+
 std::vector<std::string> getDirectoryList(std::string path, bool getFiles, bool getDirectories) {
     if(!getFiles && !getDirectories)
         throw Exception("getFiles and getDirectories set to false in getDirectoryList");
@@ -741,6 +752,9 @@ std::vector<std::string> getDirectoryList(std::string path, bool getFiles, bool 
         throw Exception("Unable to open directory " + path);
     }
 #endif
+
+    // Sort list
+    std::sort(list.begin(), list.end(), compare_nocase);
 
     return list;
 }
