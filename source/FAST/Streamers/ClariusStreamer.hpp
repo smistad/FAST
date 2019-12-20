@@ -19,6 +19,8 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
         uint getNrOfFrames();
         void newImageFn(const void* newImage, const _ClariusImageInfo* nfo, int npos, const _ClariusPosInfo* pos);
 		void toggleFreeze();
+		void increaseDepth();
+		void decreaseDepth();
 	private:
         ClariusStreamer();
         void execute();
