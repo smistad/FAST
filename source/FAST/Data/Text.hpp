@@ -23,7 +23,7 @@ public:
 protected:
 	Text() {};
 	std::string m_text = "";
-	Color m_color;
+	Color m_color = Color::Green();
 	float m_textHeight = 3.0f;
 };
 
