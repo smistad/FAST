@@ -1,4 +1,3 @@
-
 #include "TextRenderer.hpp"
 #include "FAST/Visualization/View.hpp"
 #include <QPainter>
@@ -29,18 +28,10 @@ TextRenderer::TextRenderer() {
     });
 }
 
-void TextRenderer::setView(View* view) {
-	mView = view;
-}
-
-
 void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
     std::lock_guard<std::mutex> lock(mMutex);
     if(!mode2D)
         throw Exception("TextRender is only implemented for 2D at the moment");
-
-    if(mView == nullptr)
-        throw Exception("TextRenderer need access to the view");
 
     for(auto it : mDataToRender) {
         auto input = std::static_pointer_cast<Text>(it.second);
@@ -161,8 +152,8 @@ void TextRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, floa
         int width, height;
         glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
         glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
-        const float scale = 1.0f / mView->width();
-        const float scale2 = 1.0f / mView->height();
+        const float scale = 1.0f / m_view->width();
+        const float scale2 = 1.0f / m_view->height();
         const int padding = 15;
         Vector3f position;
         if(m_positionType == PositionType::STANDARD) {

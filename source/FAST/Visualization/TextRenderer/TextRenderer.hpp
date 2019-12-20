@@ -13,7 +13,6 @@ class FAST_EXPORT  TextRenderer : public Renderer {
     FAST_OBJECT(TextRenderer)
     public:
         BoundingBox getBoundingBox(bool transform) override;
-        void setView(View* view);
         enum TextStyleType {
             STYLE_NORMAL,
             STYLE_BOLD,
@@ -59,8 +58,6 @@ class FAST_EXPORT  TextRenderer : public Renderer {
         void loadAttributes();
     private:
         TextRenderer();
-
-        View* mView = nullptr;
 
         std::unordered_map<uint, uint> mTexturesToRender;
         std::unordered_map<uint, SharedPointer<Text>> mTextUsed;
