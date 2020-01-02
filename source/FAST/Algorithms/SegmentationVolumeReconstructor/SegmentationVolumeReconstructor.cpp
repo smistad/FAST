@@ -56,7 +56,8 @@ void SegmentationVolumeReconstructor::execute() {
                         position.z() /= m_volume->getSpacing().z(); // Go back to pixel coordinates
                         //std::cout << position.transpose() << std::endl;
                         try {
-                            accessVolume->setScalar(position.cast<int>() + Vector3i(0,0,z_offset), access->getScalar(Vector2i(x, y)));
+                            //accessVolume->setScalar(position.cast<int>() + Vector3i(0,0,z_offset), access->getScalar(Vector2i(x, y)));
+                            accessVolume->setScalar(position.cast<int>(), access->getScalar(Vector2i(x, y)));
                         } catch(OutOfBoundsException &e) {
 
                         }
