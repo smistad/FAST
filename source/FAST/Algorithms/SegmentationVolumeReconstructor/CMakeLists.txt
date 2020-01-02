@@ -2,8 +2,6 @@ fast_add_sources(
         SegmentationVolumeReconstructor.cpp
         SegmentationVolumeReconstructor.hpp
 )
-if(FAST_MODULE_NeuralNetwork)
-    fast_add_test_sources(
-            Tests.cpp
-    )
-endif()
+fast_add_test_sources(
+        Tests.cpp
+)
