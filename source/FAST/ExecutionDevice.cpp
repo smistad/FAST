@@ -194,6 +194,7 @@ OpenCLDevice::OpenCLDevice(std::vector<cl::Device> devices, unsigned long* OpenG
 }
 
 int OpenCLDevice::createProgramFromSource(std::string filename, std::string buildOptions, bool useCaching) {
+    std::lock_guard<std::mutex> lock(buildBinaryMutex);
     cl::Program program;
     if(useCaching) {
         program = buildProgramFromBinary(filename, buildOptions);
@@ -213,6 +214,7 @@ int OpenCLDevice::createProgramFromSource(std::string filename, std::string buil
  * Compile several source files together
  */
 int OpenCLDevice::createProgramFromSource(std::vector<std::string> filenames, std::string buildOptions) {
+    std::lock_guard<std::mutex> lock(buildBinaryMutex);
     // Do this in a weird way, because the the logical way does not work.
     std::string sourceCode = readFile(filenames[0]);
     if(isWritingTo3DTexturesSupported())
@@ -232,6 +234,7 @@ int OpenCLDevice::createProgramFromSource(std::vector<std::string> filenames, st
 }
 
 int OpenCLDevice::createProgramFromString(std::string code, std::string buildOptions) {
+    std::lock_guard<std::mutex> lock(buildBinaryMutex);
     cl::Program::Sources source(1, std::make_pair(code.c_str(), code.length()));
 
     cl::Program program = buildSources(source, buildOptions);
@@ -240,7 +243,8 @@ int OpenCLDevice::createProgramFromString(std::string code, std::string buildOpt
 }
 
 cl::Program OpenCLDevice::getProgram(unsigned int i) {
-    return programs[i];
+    std::lock_guard<std::mutex> lock(buildBinaryMutex);
+    return programs.at(i);
 }
 
 cl::CommandQueue OpenCLDevice::getQueue(unsigned int i) {
@@ -272,7 +276,6 @@ cl::Program OpenCLDevice::buildSources(cl::Program::Sources source, std::string 
     // Build program for the context devices
     try{
         program.build(devices, buildOptions.c_str());
-        programs.push_back(program);
     } catch(cl::Error &error) {
         if(error.err() == CL_BUILD_PROGRAM_FAILURE) {
             for(unsigned int i=0; i<devices.size(); i++){
@@ -365,7 +368,6 @@ cl::Program OpenCLDevice::readBinary(std::string filename) {
 }
 
 cl::Program OpenCLDevice::buildProgramFromBinary(std::string filename, std::string buildOptions) {
-    std::lock_guard<std::mutex> lock(buildBinaryMutex);
     cl::Program program;
 
     std::string deviceName = getDevice(0).getInfo<CL_DEVICE_NAME>();
@@ -452,6 +454,7 @@ int OpenCLDevice::createProgramFromStringWithName(
 }
 
 cl::Program OpenCLDevice::getProgram(std::string name) {
+    std::lock_guard<std::mutex> lock(buildBinaryMutex);
     if(programNames.count(name) == 0) {
         std::string msg ="Could not find OpenCL program with the name" + name;
         throw Exception(msg.c_str(), __LINE__, __FILE__);
