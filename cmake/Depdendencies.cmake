@@ -62,11 +62,10 @@ if(FAST_MODULE_Visualization)
     list(APPEND FAST_INCLUDE_DIRS ${Qt5MultimediaWidgets_INCLUDE_DIRS})
     list(APPEND FAST_INCLUDE_DIRS ${Qt5SerialPort_INCLUDE_DIRS})
 
-    #set(CMAKE_AUTOMOC ON)
+    set(CMAKE_AUTOMOC ON)
     if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
         add_definitions("-fPIC") # Get rid of Qt error with position independent code
     endif()
-    qt5_wrap_cpp(HEADERS_MOC ${QT_HEADERS})
     add_definitions("-DFAST_MODULE_VISUALIZATION")
 endif()
 

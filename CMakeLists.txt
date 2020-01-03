@@ -78,18 +78,6 @@ set(FAST_SOURCE_DIR "${PROJECT_SOURCE_DIR}/source/FAST/")
 #### Module path
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/ ${CMAKE_MODULE_PATH}) # For finding the custom Find modules
 
-# Headers for Qt objects
-# TODO make a macro for adding these
-set(QT_HEADERS
-        source/FAST/Visualization/View.hpp
-        source/FAST/Visualization/WindowWidget.hpp
-        source/FAST/Visualization/Window.hpp
-        source/FAST/Visualization/ComputationThread.hpp
-        source/FAST/Examples/Interoperability/qtInteroperability.hpp
-        source/FAST/PipelineEditor.hpp
-        source/FAST/Streamers/MovieStreamer.hpp
-)
-
 # Set debug define if debug mode is set
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
     message("-- FAST Debug mode set")
@@ -106,7 +94,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-ignored-attributes") # Remove ignored attritubes on template argument warnings from cl.hpp
 endif()
 
-# This will setup all of FAST's depedencies
+# This will setup all of FAST's dependencies
 include(cmake/Depdendencies.cmake)
 
 # This will download the test data
@@ -158,7 +146,7 @@ endif()
 
 
 #### Create FAST library and executables
-add_library(FAST SHARED ${FAST_SOURCE_FILES} ${HEADERS_MOC})
+add_library(FAST SHARED ${FAST_SOURCE_FILES})
 add_dependencies(FAST ${FAST_EXTERNAL_DEPENDENCIES})
 include(GenerateExportHeader)
 generate_export_header(FAST EXPORT_FILE_NAME FASTExport.hpp)
@@ -166,7 +154,7 @@ generate_export_header(FAST EXPORT_FILE_NAME FASTExport.hpp)
 include(cmake/OpenMP.cmake)
 
 ## Link everything
-message("-- LIBS: ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES}")
+message("-- FAST LIBS: ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES}")
 target_link_libraries(FAST PUBLIC ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES})
 set_target_properties(FAST PROPERTIES VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" SOVERSION ${VERSION_SO})
 if(FAST_MODULE_Visualization AND FAST_BUILD_QT5)
