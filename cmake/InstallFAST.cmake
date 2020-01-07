@@ -269,6 +269,14 @@ if(FAST_MODULE_RealSense)
     )
 endif()
 
+if(FAST_MODULE_WholeSlideImaging AND WIN32)
+    # Install openslide and related licences
+    install(DIRECTORY 
+        ${FAST_EXTERNAL_BUILD_DIR}/openslide/src/openslide/licenses/
+        DESTINATION fast/licenses/
+    )
+endif()
+
 if(FAST_BUILD_DOCS)
 	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html
         DESTINATION fast/doc
