@@ -14,26 +14,28 @@ set(MODULES_TO_EXCLUDE
         -skip qtdeclarative
         -skip qtdoc
         -skip qtdocgallery
-        -skip qtenginio
         -skip qtfeedback
         -skip qtgamepad
         -skip qtgraphicaleffects
         -skip qtimageformats
         -skip qtlocation
+        -skip qtlottie
         -skip qtmacextras
         -skip qtnetworkauth
         -skip qtpim
         -skip qtpurchasing
         -skip qtqa
-        -skip qtquick1
+        -skip qtquick3d
         -skip qtquickcontrols
         -skip qtquickcontrols2
+        -skip qtquicktimeline
         -skip qtremoteobjects
         -skip qtrepotools
         -skip qtscript
         -skip qtscxml
         -skip qtsensors
         -skip qtserialbus
+        -skip qtserialport
         -skip qtspeech
         -skip qtsvg
         -skip qtsystems
@@ -43,6 +45,7 @@ set(MODULES_TO_EXCLUDE
         -skip qtwayland
         -skip qtwebchannel
         -skip qtwebengine
+        -skip qtwebglplugin
         -skip qtwebsockets
         -skip qtwebview
         -skip qtwinextras
@@ -63,10 +66,9 @@ if(WIN32)
             -no-compile-examples;
             -no-openssl;
             -no-libproxy;
-            -no-qml-debug;
             -nomake tools;
             -nomake tests;
-              -opengl desktop;
+            -opengl desktop;
             -qt-zlib;
             -qt-libpng;
             -qt-libjpeg;
@@ -76,8 +78,8 @@ if(WIN32)
 else()
 	set(BUILD_COMMAND make -j4)
 	set(CONFIGURE_COMMAND ${FAST_EXTERNAL_BUILD_DIR}/qt5/src/qt5/configure)
-	set(URL "http://download.qt.io/archive/qt/5.9/5.9.4/single/qt-everywhere-opensource-src-5.9.4.tar.xz")
-	set(URL_HASH SHA256=e3acd9cbeafba3aed9f14592f4d70bf0b255e0203943e8d2b4235002268274d5)
+	set(URL "http://download.qt.io/archive/qt/5.14/5.14.0/single/qt-everywhere-src-5.14.0.tar.xz")
+	set(URL_HASH SHA256=be9a77cd4e1f9d70b58621d0753be19ea498e6b0da0398753e5038426f76a8ba)
     if(APPLE)
         set(OPTIONS
             -opensource;
@@ -86,7 +88,6 @@ else()
             -no-compile-examples;
             -no-openssl;
             -no-libproxy;
-            -no-qml-debug;
             -nomake tools;
             -nomake tests;
             -opengl desktop;
@@ -105,7 +106,6 @@ else()
             -no-compile-examples;
             -no-openssl;
             -no-libproxy;
-            -no-qml-debug;
             -nomake tools;
             -nomake tests;
             -opengl desktop;
@@ -116,7 +116,6 @@ else()
             -qt-harfbuzz;
             -qt-pcre;
             -qt-xcb;
-            -qt-xkbcommon;
             -no-directfb;
             -no-linuxfb;
             ${MODULES_TO_EXCLUDE}
@@ -146,7 +145,6 @@ if(WIN32)
     set(Qt5OpenGL_LIBRARY Qt5OpenGL.lib)
     set(Qt5Multimedia_LIBRARY Qt5Multimedia.lib)
     set(Qt5MultimediaWidgets_LIBRARY Qt5MultimediaWidgets.lib)
-    set(Qt5SerialPort_LIBRARY Qt5SerialPort.lib)
 else()
     set(Qt5Gui_LIBRARY ${CMAKE_SHARED_LIBRARY_PREFIX}Qt5Gui${CMAKE_SHARED_LIBRARY_SUFFIX})
     set(Qt5Core_LIBRARY ${CMAKE_SHARED_LIBRARY_PREFIX}Qt5Core${CMAKE_SHARED_LIBRARY_SUFFIX})
@@ -154,6 +152,11 @@ else()
     set(Qt5OpenGL_LIBRARY ${CMAKE_SHARED_LIBRARY_PREFIX}Qt5OpenGL${CMAKE_SHARED_LIBRARY_SUFFIX})
     set(Qt5Multimedia_LIBRARY ${CMAKE_SHARED_LIBRARY_PREFIX}Qt5Multimedia${CMAKE_SHARED_LIBRARY_SUFFIX})
     set(Qt5MultimediaWidgets_LIBRARY ${CMAKE_SHARED_LIBRARY_PREFIX}Qt5MultimediaWidgets${CMAKE_SHARED_LIBRARY_SUFFIX})
-    set(Qt5SerialPort_LIBRARY ${CMAKE_SHARED_LIBRARY_PREFIX}Qt5SerialPort${CMAKE_SHARED_LIBRARY_SUFFIX})
 endif()
+set(Qt5Core_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtCore)
+set(Qt5Gui_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtGui)
+set(Qt5Widgets_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtWidgets)
+set(Qt5OpenGL_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtOpenGL)
+set(Qt5Multimedia_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtMultimedia)
+set(Qt5MultimediaWidgets_INCLUDE_DIRS ${FAST_EXTERNAL_INSTALL_DIR}/include/QtMultimediaWidgets)
 list(APPEND FAST_EXTERNAL_DEPENDENCIES qt5)

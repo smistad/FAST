@@ -157,13 +157,10 @@ include(cmake/OpenMP.cmake)
 message("-- FAST LIBS: ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES}")
 target_link_libraries(FAST PUBLIC ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES})
 set_target_properties(FAST PROPERTIES VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" SOVERSION ${VERSION_SO})
-if(FAST_MODULE_Visualization AND FAST_BUILD_QT5)
-    qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
-endif()
 
 ## Build test executable
 if(FAST_BUILD_TESTS)
-    add_executable(testFAST ${FAST_TEST_SOURCE_FILES} source/FAST/Algorithms/CoherentPointDrift/Rigid.cpp source/FAST/Algorithms/CoherentPointDrift/Rigid.hpp source/FAST/Algorithms/CoherentPointDrift/Affine.cpp source/FAST/Algorithms/CoherentPointDrift/Affine.hpp)
+    add_executable(testFAST ${FAST_TEST_SOURCE_FILES})
     target_link_libraries(testFAST FAST)
 endif()
 
