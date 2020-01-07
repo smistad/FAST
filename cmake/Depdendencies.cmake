@@ -34,14 +34,15 @@ if(FAST_MODULE_Visualization)
         add_dependencies(Qt5::moc qt5)
         set(MOC_FILENAME "${PROJECT_BINARY_DIR}/bin/moc${CMAKE_EXECUTABLE_SUFFIX}" )
         set_target_properties(Qt5::moc PROPERTIES IMPORTED_LOCATION ${MOC_FILENAME})
-        # Create fake moc file to avoid errors on newer cmake
+        # HACK: Create fake moc executable to avoid errors on newer cmake
         if(NOT EXISTS ${MOC_FILENAME})
-            file(WRITE "${PROJECT_BINARY_DIR}/moc${CMAKE_EXECUTABLE_SUFFIX}" "")
-            file(COPY "${PROJECT_BINARY_DIR}/moc${CMAKE_EXECUTABLE_SUFFIX}" 
+            # Copy an executable we know exist: cmake(.exe)
+            file(COPY ${CMAKE_COMMAND}
                 DESTINATION "${PROJECT_BINARY_DIR}/bin/"
                 FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_WRITE WORLD_EXECUTE)
+            # Rename it to moc(.exe)
+            file(RENAME ${PROJECT_BINARY_DIR}/bin/cmake${CMAKE_EXECUTABLE_SUFFIX} ${PROJECT_BINARY_DIR}/bin/moc${CMAKE_EXECUTABLE_SUFFIX})
         endif()
-        #set(Qt5Core_DIR ${PROJECT_BINARY_DIR}/lib/cmake/Qt5Core/)
         find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL Multimedia MultimediaWidgets PATHS ${PROJECT_SOURCE_DIR}/cmake/)
         list(APPEND LIBRARIES ${Qt5Core_LIBRARY})
         list(APPEND LIBRARIES ${Qt5Gui_LIBRARY})
