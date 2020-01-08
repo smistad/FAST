@@ -1,4 +1,4 @@
-﻿cmake_minimum_required(VERSION 3.1)
+﻿cmake_minimum_required(VERSION 3.5)
 
 project(FAST)
 
@@ -36,7 +36,7 @@ option(FAST_MODULE_WholeSlideImaging "Build whole slide imaging module" ON)
 option(FAST_MODULE_Clarius "Build clarius ultrasound module" ON)
 option(FAST_MODULE_Dicom "Build DICOM module (DCMTK)" ON)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
-option(FAST_BUILD_QT5 "Download and build Qt 5.8. Turn this OFF if you want to use pre-built binaries you already have on your machine." ON)
+option(FAST_BUILD_QT5 "Download and build Qt 5. Turn this OFF if you want to use pre-built binaries you already have on your machine." ON)
 
 # Python version
 set(FAST_Python_Version "" CACHE STRING "Specify which Python version to build python wrappers with. E.g. 2 or 3")
