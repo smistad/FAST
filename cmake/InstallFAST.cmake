@@ -233,13 +233,17 @@ install(FILES ${FAST_EXTERNAL_BUILD_DIR}/zlib/src/zlib/README
 		DESTINATION fast/licenses/zlib/
 )
 # OpenIGTLink
+if(FAST_MODULE_OpenIGTLink)
 install(FILES ${FAST_EXTERNAL_BUILD_DIR}/OpenIGTLink/src/OpenIGTLink/LICENSE.txt
 		DESTINATION fast/licenses/OpenIGTLink/
 )
+endif()
 # DCMTK
+if(FAST_MODULE_Dicom)
 install(FILES ${FAST_EXTERNAL_BUILD_DIR}/dcmtk/src/dcmtk/COPYRIGHT
 		DESTINATION fast/licenses/dcmtk/
 )
+endif()
 # NumPy (numpy.i file)
 install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/NumPy_LICENSE.txt
 		DESTINATION fast/licenses/numpy/
