@@ -7,15 +7,15 @@
 using namespace fast;
 
 TEST_CASE("Dicom image read", "[DICOM][visual]") {
-    DICOMFileImporter::pointer importer = DICOMFileImporter::New();
+    auto importer = DICOMFileImporter::New();
     importer->setLoadSeries(false);
-    importer->setFilename("/home/smistad/data/lungdb/W0031/1.2.826.0.1.3680043.2.656.1.76/S02A01/1.2.826.0.1.3680043.2.656.1.78.1.dcm");
+    importer->setFilename(Config::getTestDataPath() + "/CT/LIDC-IDRI-0072/000001.dcm");
 
-    ImageRenderer::pointer renderer = ImageRenderer::New();
+    auto renderer = ImageRenderer::New();
     renderer->setInputConnection(importer->getOutputPort());
     renderer->setIntensityLevel(0);
     renderer->setIntensityWindow(2048);
-    SimpleWindow::pointer window = SimpleWindow::New();
+    auto window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->setSize(1024, 512);
     window->set2DMode();
@@ -26,15 +26,15 @@ TEST_CASE("Dicom image read", "[DICOM][visual]") {
 }
 
 TEST_CASE("Dicom image read 3D", "[DICOM][visual]") {
-    DICOMFileImporter::pointer importer = DICOMFileImporter::New();
+    auto importer = DICOMFileImporter::New();
     importer->setLoadSeries(true);
-    importer->setFilename("/home/smistad/data/lungdb/W0031/1.2.826.0.1.3680043.2.656.1.76/S02A01/1.2.826.0.1.3680043.2.656.1.78.1.dcm");
+    importer->setFilename(Config::getTestDataPath() + "/CT/LIDC-IDRI-0072/000001.dcm");
 
-    SliceRenderer::pointer renderer = SliceRenderer::New();
+    auto renderer = SliceRenderer::New();
     renderer->setInputConnection(importer->getOutputPort());
     renderer->setIntensityLevel(0);
     renderer->setIntensityWindow(2048);
-    SimpleWindow::pointer window = SimpleWindow::New();
+    auto window = SimpleWindow::New();
     window->addRenderer(renderer);
     window->setSize(1024, 512);
     window->set2DMode();
