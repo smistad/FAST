@@ -42,6 +42,11 @@ void View::addRenderer(Renderer::pointer renderer) {
     }
 }
 
+void View::removeRenderer(Renderer::pointer rendererToRemove) {
+    mVolumeRenderers.erase(std::find(mVolumeRenderers.begin(), mVolumeRenderers.end(), rendererToRemove));
+    mNonVolumeRenderers.erase(std::find(mNonVolumeRenderers.begin(), mNonVolumeRenderers.end(), rendererToRemove));
+}
+
 void View::removeAllRenderers() {
     mVolumeRenderers.clear();
     mNonVolumeRenderers.clear();
