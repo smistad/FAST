@@ -17,6 +17,7 @@ class FAST_EXPORT ImagePyramidRenderer : public Renderer {
         void setIntensityWindow(float window);
         float getIntensityWindow();
         ~ImagePyramidRenderer() override;
+        void clearPyramid();
     private:
         ImagePyramidRenderer();
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D);

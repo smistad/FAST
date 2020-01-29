@@ -28,6 +28,8 @@ void HeatmapRenderer::setChannelHidden(uint channel, bool hide) {
 }
 
 void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
+    if(mDataToRender.empty())
+        return;
     GLuint filterMethod = mUseInterpolation ? GL_LINEAR : GL_NEAREST;
     std::lock_guard<std::mutex> lock(mMutex);
     OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
@@ -48,7 +50,7 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
         maxChannels = std::max(nrOfChannels, maxChannels);
     }
 
-    if(mColorsModified) {
+    if(mColorsModified && maxChannels > 0) {
         // Transfer colors to device (this doesn't have to happen every render call..)
         auto colorData = make_uninitialized_unique<float[]>(4*maxChannels);
         Color defaultColor = Color::Green();
@@ -93,6 +95,10 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
 
         if(input->getShape().getDimensions() != 3)
             throw Exception("Tensor given to HeatmapRenderer must be 3D (width x height x channels), actual shape: " + input->getShape().toString());
+
+        // Check if a texture has already been created for this image
+        if(mTexturesToRender.count(inputNr) > 0 && mTensorUsed[inputNr] == input && mDataTimestamp[inputNr] == input->getTimestamp())
+            continue; // If it has already been created, skip it
 
         const int width = input->getShape()[1];
         const int height = input->getShape()[0];
@@ -189,6 +195,7 @@ void HeatmapRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, f
 
         mTexturesToRender[inputNr] = textureID;
         mTensorUsed[inputNr] = input;
+        mDataTimestamp[inputNr] = input->getTimestamp();
         queue.finish();
     }
 

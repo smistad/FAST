@@ -549,7 +549,8 @@ void View::paintGL() {
 
     if(mAutoUpdateCamera) {
         // If bounding box has changed, recalculate camera
-        Vector3f min, max;
+        Vector3f min = mBBMin;
+        Vector3f max = mBBMax;
         getMinMaxFromBoundingBoxes(!mIsIn2DMode, min, max);
         if(mBBMin != min || mBBMax != max)
             recalculateCamera();
