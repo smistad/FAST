@@ -24,6 +24,11 @@
 
 namespace fast {
 
+void ImagePyramidRenderer::clearPyramid() {
+    // Clear buffer. Useful when processing a new image
+    mTexturesToRender.clear();
+    mDataToRender.clear();
+}
 
 ImagePyramidRenderer::~ImagePyramidRenderer() {
     m_stop = true;
@@ -74,6 +79,9 @@ void ImagePyramidRenderer::loadAttributes() {
 }
 
 void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
+    if(mDataToRender.empty())
+        return;
+
     if(!m_bufferThread) {
         // Create thread to load patches
 #ifdef WIN32

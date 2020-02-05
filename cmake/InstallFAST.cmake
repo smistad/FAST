@@ -233,13 +233,17 @@ install(FILES ${FAST_EXTERNAL_BUILD_DIR}/zlib/src/zlib/README
 		DESTINATION fast/licenses/zlib/
 )
 # OpenIGTLink
+if(FAST_MODULE_OpenIGTLink)
 install(FILES ${FAST_EXTERNAL_BUILD_DIR}/OpenIGTLink/src/OpenIGTLink/LICENSE.txt
 		DESTINATION fast/licenses/OpenIGTLink/
 )
+endif()
 # DCMTK
+if(FAST_MODULE_Dicom)
 install(FILES ${FAST_EXTERNAL_BUILD_DIR}/dcmtk/src/dcmtk/COPYRIGHT
 		DESTINATION fast/licenses/dcmtk/
 )
+endif()
 # NumPy (numpy.i file)
 install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/NumPy_LICENSE.txt
 		DESTINATION fast/licenses/numpy/
@@ -266,6 +270,14 @@ if(FAST_MODULE_RealSense)
         ${FAST_EXTERNAL_BUILD_DIR}/realsense/src/realsense/LICENSE
         ${FAST_EXTERNAL_BUILD_DIR}/realsense/src/realsense/NOTICE
         DESTINATION fast/licenses/realsense/
+    )
+endif()
+
+if(FAST_MODULE_WholeSlideImaging AND WIN32)
+    # Install openslide and related licences
+    install(DIRECTORY 
+        ${FAST_EXTERNAL_BUILD_DIR}/openslide/src/openslide/licenses/
+        DESTINATION fast/licenses/
     )
 endif()
 

@@ -2,7 +2,7 @@
 name: Bug report
 about: 'Please do not use issues for questions. Use the gitter chat instead: https://gitter.im/smistad/FAST'
 title: ''
-labels: ''
+labels: bug
 assignees: ''
 
 ---

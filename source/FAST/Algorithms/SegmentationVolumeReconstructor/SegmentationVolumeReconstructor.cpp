@@ -47,17 +47,22 @@ void SegmentationVolumeReconstructor::execute() {
         ImageAccess::pointer accessVolume = m_volume->getImageAccess(ACCESS_READ_WRITE);
         for(int y = 0; y < input->getHeight(); ++y) {
             for(int x = 0; x < input->getWidth(); ++x) {
-                if(access->getScalar(Vector2i(x, y)) > 0) {
-                    Vector3f position = (imageToVolumeTransform *
-                                         Vector3f(x * input->getSpacing().x(), y * input->getSpacing().y(), 0));
-                    position /= m_volume->getSpacing().x(); // Go back to pixel coordinates
-                    //std::cout << position.transpose() << std::endl;
-                    try {
-                        accessVolume->setScalar(position.cast<int>(), 255);
-                    } catch(OutOfBoundsException &e) {
+                //for(int z_offset = -6; z_offset <= 6; ++z_offset) {
+                    if(access->getScalar(Vector2i(x, y)) > 0) {
+                        Vector3f position = (imageToVolumeTransform *
+                                             Vector3f(x * input->getSpacing().x(), y * input->getSpacing().y(), 0));
+                        position.x() /= m_volume->getSpacing().x(); // Go back to pixel coordinates
+                        position.y() /= m_volume->getSpacing().y(); // Go back to pixel coordinates
+                        position.z() /= m_volume->getSpacing().z(); // Go back to pixel coordinates
+                        //std::cout << position.transpose() << std::endl;
+                        try {
+                            //accessVolume->setScalar(position.cast<int>() + Vector3i(0,0,z_offset), access->getScalar(Vector2i(x, y)));
+                            accessVolume->setScalar(position.cast<int>(), access->getScalar(Vector2i(x, y)));
+                        } catch(OutOfBoundsException &e) {
 
+                        }
                     }
-                }
+                //}
             }
         }
     }

@@ -1,7 +1,7 @@
 ## FAST Use cmake file
 
-# Enable C++ 14
-set(CMAKE_CXX_STANDARD 14)
+# Enable C++ 17
+set(CMAKE_CXX_STANDARD 17)
 
 # Position independent code
 if(${CMAKE_COMPILER_IS_GNUCXX})
@@ -15,7 +15,7 @@ link_directories(${FAST_LIBRARY_DIRS})
 set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
         PROPERTY Qt5Core_VERSION_MAJOR "5")
 set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-        PROPERTY Qt5Core_VERSION_MINOR "9")
+        PROPERTY Qt5Core_VERSION_MINOR "14")
 
 add_executable(Qt5::moc IMPORTED)
 set_target_properties(Qt5::moc PROPERTIES IMPORTED_LOCATION "${FAST_BINARY_DIR}moc${CMAKE_EXECUTABLE_SUFFIX}")

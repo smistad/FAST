@@ -47,7 +47,7 @@ endmacro()
 
 if (NOT TARGET Qt5::SerialPort)
 
-    set(_Qt5SerialPort_OWN_INCLUDE_DIRS "${_qt5SerialPort_install_prefix}/include/" "${_qt5SerialPort_install_prefix}/include/QtSerialPort")
+    #set(_Qt5SerialPort_OWN_INCLUDE_DIRS "${_qt5SerialPort_install_prefix}/include/" "${_qt5SerialPort_install_prefix}/include/QtSerialPort")
     set(Qt5SerialPort_PRIVATE_INCLUDE_DIRS "")
     include("${CMAKE_CURRENT_LIST_DIR}/ExtraSourceIncludes.cmake" OPTIONAL)
 

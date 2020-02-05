@@ -1,4 +1,4 @@
-﻿cmake_minimum_required(VERSION 3.1)
+﻿cmake_minimum_required(VERSION 3.5)
 
 project(FAST)
 
@@ -36,7 +36,7 @@ option(FAST_MODULE_WholeSlideImaging "Build whole slide imaging module" ON)
 option(FAST_MODULE_Clarius "Build clarius ultrasound module" ON)
 option(FAST_MODULE_Dicom "Build DICOM module (DCMTK)" ON)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
-option(FAST_BUILD_QT5 "Download and build Qt 5.8. Turn this OFF if you want to use pre-built binaries you already have on your machine." ON)
+option(FAST_BUILD_QT5 "Download and build Qt 5. Turn this OFF if you want to use pre-built binaries you already have on your machine." ON)
 
 # Python version
 set(FAST_Python_Version "" CACHE STRING "Specify which Python version to build python wrappers with. E.g. 2 or 3")
@@ -78,18 +78,6 @@ set(FAST_SOURCE_DIR "${PROJECT_SOURCE_DIR}/source/FAST/")
 #### Module path
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/ ${CMAKE_MODULE_PATH}) # For finding the custom Find modules
 
-# Headers for Qt objects
-# TODO make a macro for adding these
-set(QT_HEADERS
-        source/FAST/Visualization/View.hpp
-        source/FAST/Visualization/WindowWidget.hpp
-        source/FAST/Visualization/Window.hpp
-        source/FAST/Visualization/ComputationThread.hpp
-        source/FAST/Examples/Interoperability/qtInteroperability.hpp
-        source/FAST/PipelineEditor.hpp
-        source/FAST/Streamers/MovieStreamer.hpp
-)
-
 # Set debug define if debug mode is set
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
     message("-- FAST Debug mode set")
@@ -100,13 +88,13 @@ endif()
 set(FAST_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/source/ ${CMAKE_CURRENT_BINARY_DIR})
 
 # Some extra build settings (C++14 and OpenMP)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 if(CMAKE_COMPILER_IS_GNUCXX)
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations") # Remove deprecated warnings GCC
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-ignored-attributes") # Remove ignored attritubes on template argument warnings from cl.hpp
 endif()
 
-# This will setup all of FAST's depedencies
+# This will setup all of FAST's dependencies
 include(cmake/Depdendencies.cmake)
 
 # This will download the test data
@@ -158,7 +146,7 @@ endif()
 
 
 #### Create FAST library and executables
-add_library(FAST SHARED ${FAST_SOURCE_FILES} ${HEADERS_MOC})
+add_library(FAST SHARED ${FAST_SOURCE_FILES})
 add_dependencies(FAST ${FAST_EXTERNAL_DEPENDENCIES})
 include(GenerateExportHeader)
 generate_export_header(FAST EXPORT_FILE_NAME FASTExport.hpp)
@@ -166,16 +154,13 @@ generate_export_header(FAST EXPORT_FILE_NAME FASTExport.hpp)
 include(cmake/OpenMP.cmake)
 
 ## Link everything
-message("-- LIBS: ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES}")
+message("-- FAST LIBS: ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES}")
 target_link_libraries(FAST PUBLIC ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES})
 set_target_properties(FAST PROPERTIES VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" SOVERSION ${VERSION_SO})
-if(FAST_MODULE_Visualization AND FAST_BUILD_QT5)
-    qt5_use_modules(FAST Widgets OpenGL) # Add Qt 5 modules
-endif()
 
 ## Build test executable
 if(FAST_BUILD_TESTS)
-    add_executable(testFAST ${FAST_TEST_SOURCE_FILES} source/FAST/Algorithms/CoherentPointDrift/Rigid.cpp source/FAST/Algorithms/CoherentPointDrift/Rigid.hpp source/FAST/Algorithms/CoherentPointDrift/Affine.cpp source/FAST/Algorithms/CoherentPointDrift/Affine.hpp)
+    add_executable(testFAST ${FAST_TEST_SOURCE_FILES})
     target_link_libraries(testFAST FAST)
 endif()
 

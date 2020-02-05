@@ -55,8 +55,14 @@ void ProcessObject::update(int executeToken) {
                 // If port currently doesn't have data, check if parent is streamer. If streamer, always execute. PO will block until data arrives
                 //std::cout << "check if parent of " << getNameOfClass() << " is a streamer.. " << std::endl;
                 if(isStreamer(port->getProcessObject().get())) {
-                    //std::cout << "Parent of " << getNameOfClass() << " is a streamer, therefore going to execute" << std::endl;
-                    newInputData = true;
+                    // Check if last data element was last frame or not
+                    // If it is last frame, don't update
+                    if(m_lastFrame.count(port->getProcessObject()->getNameOfClass()) == 0) {
+                        newInputData = true;
+                        //reportInfo() << "Parent is streamer, execute.." << reportEnd();
+                    } else {
+                        //reportInfo() << "Parent is streamer but last frame has been sent: don't execute" << reportEnd();
+                    }
                 } else {
                     // TODO should not be possible?
                     reportError() << "Impossible event in ProcessObject::update of " << getNameOfClass() << reportEnd();
