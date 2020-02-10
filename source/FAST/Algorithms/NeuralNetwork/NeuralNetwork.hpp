@@ -83,6 +83,12 @@ class FAST_EXPORT NeuralNetwork : public ProcessObject {
          */
         void load(std::string filename);
         /**
+         * Load a network from memory provided as byte two byte vectors: model and weights
+         * @param model
+         * @param weights
+         */
+        void load(std::vector<uint8_t> model, std::vector<uint8_t> weights);
+        /**
          * Specify which inference engine to use
          * @param engine
          */

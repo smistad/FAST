@@ -2,6 +2,11 @@
 
 namespace fast {
 
+void InferenceEngine::setModelAndWeights(std::vector<uint8_t> model, std::vector<uint8_t> weights) {
+    m_model = model;
+    m_weights = weights;
+}
+
 void InferenceEngine::setFilename(std::string filename) {
     m_filename = filename;
 }
