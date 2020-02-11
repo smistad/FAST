@@ -56,6 +56,7 @@ class FAST_EXPORT InferenceEngine : public Object {
             SharedPointer<Tensor> data;
         };
         virtual void setFilename(std::string filename);
+        virtual void setModelAndWeights(std::vector<uint8_t> model, std::vector<uint8_t> weights);
         virtual std::string getFilename() const;
         virtual void run() = 0;
         virtual void addInputNode(uint portID, std::string name, NodeType type = NodeType::IMAGE, TensorShape shape = {});
@@ -101,6 +102,9 @@ class FAST_EXPORT InferenceEngine : public Object {
         int m_deviceIndex = -1;
         InferenceDeviceType m_deviceType = InferenceDeviceType::ANY;
         int m_maxBatchSize = 1;
+
+        std::vector<uint8_t> m_model;
+        std::vector<uint8_t> m_weights;
     private:
         std::string m_filename = "";
         bool m_isLoaded = false;
