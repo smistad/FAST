@@ -430,6 +430,18 @@ void NeuralNetwork::load(std::string filename) {
     }
 }
 
+void NeuralNetwork::load(std::vector<uint8_t> model, std::vector<uint8_t> weights) {
+    m_engine->setModelAndWeights(model, weights);
+    m_engine->load();
+    // Make sure all ports exist
+    for (auto node : m_engine->getInputNodes()) {
+        createInputPort<DataObject>(node.second.portID);
+    }
+    for (auto node : m_engine->getOutputNodes()) {
+        createOutputPort<DataObject>(node.second.portID);
+    }
+}
+
 void NeuralNetwork::setInferenceEngine(InferenceEngine::pointer engine) {
     m_engine = engine;
 }
