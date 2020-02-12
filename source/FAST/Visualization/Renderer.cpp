@@ -102,7 +102,9 @@ BoundingBox Renderer::getBoundingBox(bool transform) {
 
 void Renderer::createShaderProgram(std::vector<std::string> shaderFilenames, std::string programName) {
     // We need an active GL context to do this, and we also need to initialize the OpenGLFunctions
-    Window::getMainGLContext()->makeCurrent();
+    // First check if an there is an active GL context
+    if(QGLContext::currentContext() == nullptr)
+        Window::getMainGLContext()->makeCurrent();
     initializeOpenGLFunctions();
 
     uint programID = glCreateProgram();

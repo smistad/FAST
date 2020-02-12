@@ -30,6 +30,7 @@
 namespace fast {
 
 void View::addRenderer(Renderer::pointer renderer) {
+    std::lock_guard<std::mutex> lock(m_mutex);
     renderer->setView(this);
     // Can renderer be casted to volume renderer test:
     auto test = std::dynamic_pointer_cast<VolumeRenderer>(renderer);
@@ -42,7 +43,14 @@ void View::addRenderer(Renderer::pointer renderer) {
     }
 }
 
+void View::removeRenderer(Renderer::pointer rendererToRemove) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    mVolumeRenderers.erase(std::find(mVolumeRenderers.begin(), mVolumeRenderers.end(), rendererToRemove));
+    mNonVolumeRenderers.erase(std::find(mNonVolumeRenderers.begin(), mNonVolumeRenderers.end(), rendererToRemove));
+}
+
 void View::removeAllRenderers() {
+    std::lock_guard<std::mutex> lock(m_mutex);
     mVolumeRenderers.clear();
     mNonVolumeRenderers.clear();
 }
@@ -178,10 +186,17 @@ void View::updateRenderersInput(int executeToken) {
 }
 
 void View::updateRenderers() {
-    for(Renderer::pointer renderer : mNonVolumeRenderers) {
+    // Copy list of renderers while locked
+    std::unique_lock<std::mutex> lock(m_mutex);
+    auto nonVolumeRenderers = mNonVolumeRenderers;
+    auto volumeRenderers = mVolumeRenderers;
+    lock.unlock();
+
+    // Then execute
+    for(auto renderer : nonVolumeRenderers) {
         renderer->execute();
     }
-    for(Renderer::pointer renderer : mVolumeRenderers) {
+    for(auto renderer : volumeRenderers) {
         renderer->execute();
     }
 }

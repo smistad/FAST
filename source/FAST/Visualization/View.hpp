@@ -21,6 +21,7 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject, protected QOpe
     Q_OBJECT
     public:
         void addRenderer(Renderer::pointer renderer);
+    	void removeRenderer(Renderer::pointer renderer);
         void removeAllRenderers();
         void keyPressEvent(QKeyEvent* event);
         void mouseMoveEvent(QMouseEvent* event);
@@ -100,6 +101,8 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject, protected QOpe
 		void unlockRenderers();
 		void stopRenderers();
 		void resetRenderers();
+
+		std::mutex m_mutex;
 
     friend class ComputationThread;
 
