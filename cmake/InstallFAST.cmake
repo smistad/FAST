@@ -259,10 +259,13 @@ if(FAST_MODULE_TensorFlow)
         DESTINATION fast/licenses/tensorflow/
     )
 endif()
-if(FAST_MODULE_OpenVINO AND NOT WIN32)
+if(FAST_MODULE_OpenVINO)
 	install(FILES ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/LICENSE
 		DESTINATION fast/licenses/openvino/
 	)
+	install(FILES ${PROJECT_BINARY_DIR}/plugins.xml
+	  DESTINATION fast/bin/
+  )
 endif()
 
 if(FAST_MODULE_RealSense)
@@ -275,7 +278,7 @@ endif()
 
 if(FAST_MODULE_WholeSlideImaging AND WIN32)
     # Install openslide and related licences
-    install(DIRECTORY 
+    install(DIRECTORY
         ${FAST_EXTERNAL_BUILD_DIR}/openslide/src/openslide/licenses/
         DESTINATION fast/licenses/
     )
