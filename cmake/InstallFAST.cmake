@@ -263,9 +263,15 @@ if(FAST_MODULE_OpenVINO)
 	install(FILES ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/LICENSE
 		DESTINATION fast/licenses/openvino/
 	)
-	install(FILES ${PROJECT_BINARY_DIR}/plugins.xml
-	  DESTINATION fast/bin/
-  )
+	if(WIN32)
+		install(FILES ${PROJECT_BINARY_DIR}/bin/plugins.xml
+		  DESTINATION fast/bin/
+	  )
+	else()
+		install(FILES ${PROJECT_BINARY_DIR}/lib/plugins.xml
+			DESTINATION fast/lib/
+		)
+	endif()
 endif()
 
 if(FAST_MODULE_RealSense)
