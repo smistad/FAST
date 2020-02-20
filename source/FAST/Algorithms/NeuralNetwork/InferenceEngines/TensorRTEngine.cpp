@@ -169,11 +169,6 @@ void TensorRTEngine::run() {
         // TODO check if output dims are correct:
         //for(int i = 0; i < dims.nbDims; ++i) {
         //}
-        std::cout << "shape " << shape.toString() << std::endl;
-        for(int i = 0; i < shape.getTotalSize(); ++i) {
-            if(outputData[i] > 0.5)
-                std::cout << outputData[i] << std::endl;
-        }
 
         outputTensor->create(std::move(outputData), shape);
         reportInfo() << "Finished moving data to FAST tensor, TensorRT" << reportEnd();
@@ -218,6 +213,7 @@ void TensorRTEngine::load() {
         reportInfo() << "Loading file " << filename << " using TensorRT" << reportEnd();
         std::unique_ptr<nvinfer1::IBuilder, decltype(Destroy())> builder(nvinfer1::createInferBuilder(gLogger),
                                                                          Destroy());
+        const auto flags = 1U << static_cast<uint32_t>(nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
         std::unique_ptr<nvinfer1::INetworkDefinition, decltype(Destroy())> network(builder->createNetwork(), Destroy());
         std::unique_ptr<nvuffparser::IUffParser, decltype(Destroy())> parser(nvuffparser::createUffParser(), Destroy());
         reportInfo() << "Created builders and parsers" << reportEnd();
