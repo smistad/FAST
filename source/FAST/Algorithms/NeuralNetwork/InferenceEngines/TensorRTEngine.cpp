@@ -169,6 +169,11 @@ void TensorRTEngine::run() {
         // TODO check if output dims are correct:
         //for(int i = 0; i < dims.nbDims; ++i) {
         //}
+        std::cout << "shape " << shape.toString() << std::endl;
+        for(int i = 0; i < shape.getTotalSize(); ++i) {
+            if(outputData[i] > 0.5)
+                std::cout << outputData[i] << std::endl;
+        }
 
         outputTensor->create(std::move(outputData), shape);
         reportInfo() << "Finished moving data to FAST tensor, TensorRT" << reportEnd();
@@ -246,10 +251,12 @@ void TensorRTEngine::load() {
         reportInfo() << "Finished parsing UFF file" << reportEnd();
 
         builder->setMaxBatchSize(m_maxBatchSize);
-        builder->setMaxWorkspaceSize(m_maxWorkspaceSize);
         //builder->setFp16Mode(builder->platformHasFastFp16());
 
-        m_engine = builder->buildCudaEngine(*network);
+        std::unique_ptr<nvinfer1::IBuilderConfig, decltype(Destroy())> config(builder->createBuilderConfig(), Destroy());
+        config->setMaxWorkspaceSize(m_maxWorkspaceSize);
+
+        m_engine = builder->buildEngineWithConfig(*network, *config);
         if(!m_engine)
             throw Exception("Failed to build CUDA engine for TensorRT");
         reportInfo() << "Finished building CUDA engine for TensorRT" << reportEnd();
