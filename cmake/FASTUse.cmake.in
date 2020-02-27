@@ -25,10 +25,19 @@ if(WIN32)
     # Copy all DLLs from FAST to current binary folder
     file(GLOB DLLs ${FAST_BINARY_DIR}*.dll)
 
-    add_custom_target(fast_copy
-        COMMAND ${CMAKE_COMMAND} -E copy ${DLLs} ${PROJECT_BINARY_DIR}/Release/ COMMAND ${CMAKE_COMMAND} -E echo "FAST DLLs copied (Release)."
-        COMMAND ${CMAKE_COMMAND} -E copy ${DLLs} ${PROJECT_BINARY_DIR}/Debug/ COMMAND ${CMAKE_COMMAND} -E echo "FAST DLLs copied (Debug)."
-    )
+    if(EXISTS ${FAST_BINARY_DIR}/plugins.xml) # plugins.xml file is needed by OpenVINO
+        add_custom_target(fast_copy
+            COMMAND ${CMAKE_COMMAND} -E copy ${DLLs} ${PROJECT_BINARY_DIR}/Release/ COMMAND ${CMAKE_COMMAND} -E echo "FAST DLLs copied (Release)."
+            COMMAND ${CMAKE_COMMAND} -E copy ${DLLs} ${PROJECT_BINARY_DIR}/Debug/ COMMAND ${CMAKE_COMMAND} -E echo "FAST DLLs copied (Debug)."
+            COMMAND ${CMAKE_COMMAND} -E copy ${FAST_BINARY_DIR}/plugins.xml ${PROJECT_BINARY_DIR}/Release/ COMMAND ${CMAKE_COMMAND} -E echo "OpenVINO plugins.xml copied (Release)."
+            COMMAND ${CMAKE_COMMAND} -E copy ${FAST_BINARY_DIR}/plugins.xml ${PROJECT_BINARY_DIR}/Debug/ COMMAND ${CMAKE_COMMAND} -E echo "OpenVINO plugins.xml copied (Debug)."
+        )
+    else()
+        add_custom_target(fast_copy
+            COMMAND ${CMAKE_COMMAND} -E copy ${DLLs} ${PROJECT_BINARY_DIR}/Release/ COMMAND ${CMAKE_COMMAND} -E echo "FAST DLLs copied (Release)."
+            COMMAND ${CMAKE_COMMAND} -E copy ${DLLs} ${PROJECT_BINARY_DIR}/Debug/ COMMAND ${CMAKE_COMMAND} -E echo "FAST DLLs copied (Debug)."
+        )
+    endif()
 
     # Create fast config file
     set(FILE_CONTENT "TestDataPath = ${FAST_BINARY_DIR}/data/
