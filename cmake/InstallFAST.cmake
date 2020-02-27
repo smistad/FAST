@@ -50,12 +50,7 @@ endif()
 
 # Install Qt plugins
 install(DIRECTORY ${PROJECT_BINARY_DIR}/plugins/
-    DESTINATION fast/QtPlugins/
-)
-
-# Install qt.conf
-install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/qt.conf
-    DESTINATION fast/bin
+    DESTINATION fast/plugins/
 )
 
 # Install qt moc
@@ -197,13 +192,20 @@ set(CONFIG_KERNEL_BINARY_PATH "KernelBinaryPath = @ROOT@/kernel_binaries/")
 set(CONFIG_DOCUMENTATION_PATH "DocumentationPath = @ROOT@/doc/")
 set(CONFIG_PIPELINE_PATH "PipelinePath = @ROOT@/pipelines/")
 set(CONFIG_TEST_DATA_PATH "TestDataPath = @ROOT@/data/")
+if(WIN32)
+		set(CONFIG_LIBRARY_PATH "LibraryPath = @ROOT@/bin/")
+else()
+		set(CONFIG_LIBRARY_PATH "LibraryPath = @ROOT@/lib/")
+endif()
+
+set(CONFIG_QT_PLUGINS_PATH "QtPluginsPath = @ROOT@/plugins/")
 configure_file(
     "${PROJECT_SOURCE_DIR}/source/fast_configuration.txt.in"
     "${PROJECT_BINARY_DIR}/fast_configuration_install.txt"
 )
 install(FILES ${PROJECT_BINARY_DIR}/fast_configuration_install.txt
     RENAME fast_configuration.txt
-    DESTINATION fast/
+    DESTINATION fast/bin/
 )
 
 # Install FAST license file
