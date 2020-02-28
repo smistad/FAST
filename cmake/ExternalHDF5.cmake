@@ -1,4 +1,4 @@
-# Download and set up lib HDF5
+# Download and set up HDF5 library
 
 include(cmake/Externals.cmake)
 
@@ -14,6 +14,7 @@ ExternalProject_Add(hdf5
         -DHDF5_BUILD_TOOLS:BOOL=OFF
         -DHDF5_BUILD_EXAMPLES:BOOL=OFF
         -DHDF5_BUILD_CPP_LIB:BOOL=ON
+        -DHDF5_BUILD_HL_LIB:BOOL=OFF
         CMAKE_CACHE_ARGS
         -DCMAKE_BUILD_TYPE:STRING=Release
         -DCMAKE_VERBOSE_MAKEFILE:BOOL=OFF
@@ -21,5 +22,9 @@ ExternalProject_Add(hdf5
         -DCMAKE_INSTALL_PREFIX:STRING=${FAST_EXTERNAL_INSTALL_DIR}
         )
 
-list(APPEND LIBRARIES ${CMAKE_SHARED_LIBRARY_PREFIX}hdf5${CMAKE_SHARED_LIBRARY_SUFFIX})
+if(WIN32)
+  list(APPEND LIBRARIES hdf5.lib hdf5_cpp.lib)
+else()
+  list(APPEND LIBRARIES ${CMAKE_SHARED_LIBRARY_PREFIX}hdf5_cpp${CMAKE_SHARED_LIBRARY_SUFFIX})
+endif()
 list(APPEND FAST_EXTERNAL_DEPENDENCIES hdf5)
