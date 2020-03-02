@@ -50,6 +50,12 @@ if(FAST_MODULE_Clarius)
         ClariusStreamer.hpp
     )
 endif()
+if(FAST_MODULE_HDF5)
+    fast_add_sources(
+        UFFStreamer.cpp
+        UFFStreamer.hpp
+    )
+endif()
 
 fast_add_test_sources(
     Tests/ImageFileStreamerTests.cpp
