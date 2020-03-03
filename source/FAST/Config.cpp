@@ -25,6 +25,7 @@ namespace fast {
 			std::string mDocumentationPath;
 			std::string mPipelinePath;
 			std::string mLibraryPath;
+			std::string mQtPluginsPath;
 			StreamingMode m_streamingMode = STREAMING_MODE_PROCESS_ALL_FRAMES;
 		}
 
@@ -50,8 +51,7 @@ namespace fast {
 			GetModuleFileNameA(hm, dlpath, sizeof(dlpath));
 			path = std::string(dlpath);
 			path = replace(path, "\\", "/"); // Replace windows \ with /
-			// Remove lib name and bin folder
-			int libPos = path.rfind(slash + "bin" + slash);
+			path = replace(path, "/FAST.dll", "");
 #else
 			// http://stackoverflow.com/questions/1681060/library-path-when-dynamically-loaded
 			Dl_info dl_info;
@@ -62,11 +62,11 @@ namespace fast {
 			path = std::string(dlpath);
 			// Remove lib name and lib folder
 			int libPos = path.rfind(slash + "lib" + slash);
+			path = path.substr(0, libPos) + "bin";
 #endif
 
-			path = path.substr(0, libPos);
-			path = path + slash; // Make sure there is a slash at the end
 
+			path = path + slash; // Make sure there is a slash at the end
 			return path;
 		}
 		
@@ -75,15 +75,16 @@ namespace fast {
 				return;
 
 			// Set default paths
-			mTestDataPath = getPath() + "../data/";
-			mKernelSourcePath = getPath() + "../source/FAST/";
-			mKernelBinaryPath = getPath() + "kernel_binaries/";
-			mDocumentationPath = getPath() + "../doc/";
-			mPipelinePath = getPath() + "../pipelines/";
+			mTestDataPath = getPath() + "../../data/";
+			mKernelSourcePath = getPath() + "../../source/FAST/";
+			mKernelBinaryPath = getPath() + "../kernel_binaries/";
+			mDocumentationPath = getPath() + "../../doc/";
+			mPipelinePath = getPath() + "../../pipelines/";
+			mQtPluginsPath = getPath() + "../plugins/";
 #ifdef WIN32
-            mLibraryPath = getPath() + "/bin/";
+			mLibraryPath = getPath();
 #else
-            mLibraryPath = getPath() + "/lib/";
+			mLibraryPath = getPath() + "/../lib/";
 #endif
 
 			// Read and parse configuration file
@@ -95,7 +96,6 @@ namespace fast {
 			else {
 				filename = mConfigFilename;
 			}
-			//std::string filename = "/home/smistad/workspace/FAST/build_Debug/lib/fast_configuration.txt";
 			std::ifstream file(filename);
 			if (!file.is_open()) {
 				Reporter::warning() << "Unable to open the configuration file " << filename << ". Using defaults instead." << Reporter::end();
@@ -104,13 +104,13 @@ namespace fast {
 			}
 			Reporter::info() << "Loaded configuration file: " << filename << Reporter::end();
 
-			std::string line;
-			std::getline(file, line);
-			while (!file.eof()) {
+
+			do {
+				std::string line;
+				std::getline(file, line);
 				trim(line);
 				if (line[0] == '#' || line.size() == 0) {
 					// Comment or empty line, skip
-					std::getline(file, line);
 					continue;
 				}
 				std::vector<std::string> list = split(line, "=");
@@ -122,7 +122,7 @@ namespace fast {
 				std::string value = list[1];
 				trim(key);
 				trim(value);
-				value = replace(value, "@ROOT@", getPath());
+				value = replace(value, "@ROOT@", getPath() + "/../");
 
 				if (key == "TestDataPath") {
 					mTestDataPath = value;
@@ -139,12 +139,16 @@ namespace fast {
 				else if (key == "PipelinePath") {
 					mPipelinePath = value;
 				}
+				else if (key == "QtPluginsPath") {
+					mQtPluginsPath = value;
+				}
+				else if (key == "LibraryPath") {
+					mLibraryPath = value;
+				}
 				else {
 					throw Exception("Error parsing configuration file. Unrecognized key: " + key);
 				}
-
-				std::getline(file, line);
-			}
+			} while (!file.eof());
 			file.close();
 
 			Reporter::info() << "Test data path: " << mTestDataPath << Reporter::end();
@@ -152,6 +156,7 @@ namespace fast {
 			Reporter::info() << "Kernel binary path: " << mKernelBinaryPath << Reporter::end();
 			Reporter::info() << "Documentation path: " << mDocumentationPath << Reporter::end();
 			Reporter::info() << "Pipeline path: " << mPipelinePath << Reporter::end();
+			Reporter::info() << "Qt plugins path: " << mQtPluginsPath << Reporter::end();
             Reporter::info() << "Library path: " << mLibraryPath << Reporter::end();
 
 			mConfigurationLoaded = true;
@@ -185,6 +190,11 @@ namespace fast {
 		std::string getLibraryPath() {
 		    loadConfiguration();
 		    return mLibraryPath;
+		}
+
+		std::string getQtPluginsPath() {
+			loadConfiguration();
+			return mQtPluginsPath;
 		}
 
 		void setConfigFilename(std::string filename) {

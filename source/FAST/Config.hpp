@@ -13,6 +13,7 @@ namespace Config {
     FAST_EXPORT std::string getDocumentationPath();
     FAST_EXPORT std::string getPipelinePath();
     FAST_EXPORT std::string getLibraryPath();
+    FAST_EXPORT std::string getQtPluginsPath();
     FAST_EXPORT StreamingMode getStreamingMode();
     FAST_EXPORT void setStreamingMode(StreamingMode mode);
 	FAST_EXPORT void setTestDataPath(std::string path);
