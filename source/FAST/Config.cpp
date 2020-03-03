@@ -62,7 +62,7 @@ namespace fast {
 			path = std::string(dlpath);
 			// Remove lib name and lib folder
 			int libPos = path.rfind(slash + "lib" + slash);
-			path = path.substr(0, libPos) + "bin";
+			path = path.substr(0, libPos) + slash + "bin";
 #endif
 
 
