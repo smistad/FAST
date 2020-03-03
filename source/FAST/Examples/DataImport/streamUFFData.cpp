@@ -18,8 +18,8 @@ int main(int argc, char** argv) {
 
 	auto renderer = ImageRenderer::New();
 	renderer->addInputConnection(streamer->getOutputPort());
-	renderer->setIntensityLevel(500000);
-	renderer->setIntensityWindow(1000000);
+	renderer->setIntensityLevel(127);
+	renderer->setIntensityWindow(255);
 
 	auto window = SimpleWindow::New();
 	window->addRenderer(renderer);
