@@ -9,10 +9,12 @@ using namespace fast;
 int main(int argc, char** argv) {
 	CommandLineParser parser("Stream UFF data");
 	parser.addPositionVariable(1, "filename", Config::getTestDataPath() + "US/b_data_IQ022_A4C.uff");
+	parser.addOption("loop", "Loop playback");
 	parser.parse(argc, argv);
 
 	auto streamer = UFFStreamer::New();
 	streamer->setFilename(parser.get("filename"));
+	streamer->setLooping(parser.getOption("loop"));
 
 	auto renderer = ImageRenderer::New();
 	renderer->addInputConnection(streamer->getOutputPort());
