@@ -179,7 +179,7 @@ void Window::stop() {
 }
 
 View* Window::createView() {
-    View* view = mWidget->addView();
+    View* view = mWidget->createView();
 
     return view;
 }

@@ -8,6 +8,7 @@
 #include <QLineEdit>
 #include <QCheckBox>
 #include "ProcessObjectList.hpp"
+#include <FAST/Visualization/View.hpp>
 
 namespace fast {
 
@@ -19,6 +20,42 @@ Pipeline::Pipeline(std::string name, std::string description, std::string filena
 
 inline SharedPointer<ProcessObject> getProcessObject(std::string name) {
     return ProcessObjectRegistry::create(name);
+}
+
+void Pipeline::parseView(
+        std::string objectID,
+        std::ifstream& file
+        ) {
+
+
+    ProcessObject* view = m_views[objectID];
+
+    std::string line = "";
+    std::getline(file, line);
+    // Continue to scan file for attributes
+    while(!file.eof()) {
+        trim(line);
+        if(line == "")
+            break;
+
+        std::vector<std::string> tokens = split(line);
+        if(tokens[0] != "Attribute")
+            break;
+
+        if(tokens.size() < 3)
+            throw Exception("Expecting at least 3 items on attribute line when a view " + line);
+
+        std::string name = tokens[1];
+
+        SharedPointer<Attribute> attribute = view->getAttribute(name);
+        std::string attributeValues = line.substr(line.find(name) + name.size());
+        trim(attributeValues);
+        attribute->parseInput(attributeValues);
+        reportInfo() << "Set attribute " << name << " to " << attributeValues  << " for object " << objectID << reportEnd();
+        std::getline(file, line);
+    }
+
+    view->loadAttributes();
 }
 
 void Pipeline::parseProcessObject(
@@ -53,13 +90,17 @@ void Pipeline::parseProcessObject(
         std::string attributeValues = line.substr(line.find(name) + name.size());
         trim(attributeValues);
         attribute->parseInput(attributeValues);
+        reportInfo() << "Set attribute " << name << " to " << attributeValues  << " for object " << objectID << reportEnd();
         std::getline(file, line);
     }
 
     object->loadAttributes();
+    object->setModified(true);
 
-    // Get inputs
-    bool inputFound = false;
+    mProcessObjects[objectID] = object;
+    reportInfo() << "Added process object " << objectName  << " with id " << objectID << reportEnd();
+
+    // Get inputs and connect the POs and renderers
     while(!file.eof()) {
         trim(line);
         if(line == "")
@@ -77,51 +118,34 @@ void Pipeline::parseProcessObject(
         if(tokens.size() == 4)
             outputPortID = std::stoi(tokens[3]);
 
-        if(inputID != "PipelineInput" && mProcessObjects.count(inputID) == 0)
+        if(mProcessObjects.count(inputID) == 0)
             throw Exception("Input with id " + inputID + " was not found before " + objectID);
 
-        inputFound = true;
-
-
         if(isRenderer) {
+            reportInfo() << "Connected process object " << inputID << " to renderer " << objectID << reportEnd();
             SharedPointer<Renderer> renderer = std::static_pointer_cast<Renderer>(object);
-            // TODO fix text renderer no supprt addInput
-            if(inputID == "PipelineInput") {
-                mInputProcessObjects[objectID] = 0;
-            } else {
-                renderer->addInputConnection(mProcessObjects.at(inputID)->getOutputPort(outputPortID));
-                //renderer->setInputConnection(0, mProcessObjects.at(inputID)->getOutputPort(outputPortID));
-            }
+            renderer->addInputConnection(mProcessObjects.at(inputID)->getOutputPort(outputPortID));
         } else {
-            if(inputID == "PipelineInput") {
-                mInputProcessObjects[objectID] = inputPortID;
-            } else {
-                object->setInputConnection(inputPortID, mProcessObjects.at(inputID)->getOutputPort(outputPortID));
-            }
+            reportInfo() << "Connected process object " << inputID << " to " << objectID << reportEnd();
+            object->setInputConnection(inputPortID, mProcessObjects.at(inputID)->getOutputPort(outputPortID));
         }
         std::getline(file, line);
     }
 
-    if(!inputFound)
-        throw Exception("No inputs were found for process object " + objectName);
-
-
-
-    mProcessObjects[objectID] = object;
     if(isRenderer) {
         mRenderers.push_back(objectID);
     }
 }
 
-int Pipeline::parsePipelineFile() {
+void Pipeline::parsePipelineFile() {
     // Parse file again, retrieve process objects, set attributes and create the pipeline
     std::ifstream file(mFilename);
     std::string line = "";
     std::getline(file, line);
 
     mProcessObjects.clear();
-    mInputProcessObjects.clear();
     mRenderers.clear();
+    m_views.clear();
 
     // Retrieve all POs and renderers
     while(!file.eof()) {
@@ -150,41 +174,42 @@ int Pipeline::parsePipelineFile() {
             std::string id = tokens[1];
             std::string object = tokens[2];
             parseProcessObject(object, id, file, true);
+            reportInfo() << "Added renderer " << object  << " with id " << id << reportEnd();
+        } else if(key == "View") {
+            // Create a view
+            View *view = new View();
+            std::string id = tokens[1];
+            reportInfo() << "Added view with id " << id << reportEnd();
+            m_views[id] = view;
+            if(tokens.size() > 2) {
+                for(int i = 2; i < tokens.size(); ++i) {
+                    view->addRenderer(std::dynamic_pointer_cast<Renderer>(mProcessObjects[tokens[i]]));
+                    reportInfo() << "Added renderer " << tokens[i] << " to the view" << reportEnd();
+                }
+            } else {
+                // View has no renderers.. throw error message?
+            }
+            parseView(id, file);
         }
 
         std::getline(file, line);
     }
-
-    if(mRenderers.size() == 0)
-        throw Exception("No renderers were found when parsing pipeline file " + mFilename);
-
-    return mInputProcessObjects.size();
 }
-std::vector<SharedPointer<Renderer>> Pipeline::setup(std::vector<DataChannel::pointer> inputPorts) {
+
+std::vector<View*> Pipeline::setup() {
     Reporter::info() << "Setting up pipeline.." << Reporter::end();
     if(mProcessObjects.size() == 0)
         throw Exception("You have to parse the pipeline file before calling setup on the pipeline");
 
-    if(mInputProcessObjects.size() != inputPorts.size())
-        throw Exception("The pipeline you are loading expected " + std::to_string(mInputProcessObjects.size()) +
-                                " input data ports, but received " + std::to_string(inputPorts.size()) + " in setup.");
-
-    // Set input process object port to all needed
-    int counter = 0;
-    for(std::pair<std::string, uint> inputPort : mInputProcessObjects) {
-        mProcessObjects[inputPort.first]->setInputConnection(inputPort.second, inputPorts[counter]);
-        counter++;
-    }
-
     // Get renderers
-    std::vector<SharedPointer<Renderer>> renderers;
-    for(auto renderer : mRenderers) {
-        renderers.push_back(std::static_pointer_cast<Renderer>(mProcessObjects[renderer]));
+    std::vector<View*> views;
+    for(auto&& view : m_views) {
+        views.push_back(view.second);
     }
 
     Reporter::info() << "Finished setting up pipeline." << Reporter::end();
 
-    return renderers;
+    return views;
 }
 
 std::string Pipeline::getName() const {

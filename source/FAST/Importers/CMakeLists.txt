@@ -7,6 +7,7 @@ fast_add_sources(
     ImageFileImporter.cpp
     ImageFileImporter.hpp
 )
+fast_add_process_object(ImageFileImporter ImageFileImporter.hpp)
 fast_add_python_interfaces(
 	ImageFileImporter.i
 )

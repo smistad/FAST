@@ -1,6 +1,4 @@
-#ifndef VIEW_HPP_
-#define VIEW_HPP_
-
+#pragma once
 
 #include "FAST/AffineTransformation.hpp"
 #include "FAST/Data/Color.hpp"
@@ -50,6 +48,7 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject, protected QOpe
 		static QGLFormat getGLFormat();
 		Matrix4f getViewMatrix() const;
 		Matrix4f getPerspectiveMatrix() const;
+		void loadAttributes() override;
     private:
         uint m_FBO = 0;
         uint m_textureColor = 0;
@@ -108,11 +107,4 @@ class FAST_EXPORT  View : public QGLWidget, public ProcessObject, protected QOpe
 
 };
 
-
-
 } // end namespace fast
-
-
-
-
-#endif /* VIEW_HPP_ */

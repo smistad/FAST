@@ -1,5 +1,4 @@
-#ifndef MULTI_VIEW_WINDOW_HPP_
-#define MULTI_VIEW_WINDOW_HPP_
+#pragma once
 
 #include "Window.hpp"
 #include "View.hpp"
@@ -11,11 +10,13 @@ namespace fast {
 class FAST_EXPORT  MultiViewWindow : public Window {
     FAST_OBJECT(MultiViewWindow)
     public:
+        void addView(View* view);
         void setNrOfViews(int viewCount);
         void addRenderer(int viewIndex, Renderer::pointer renderer);
         void removeAllRenderers();
         void setHorizontalMode();
         void setVerticalMode();
+        void start() override;
         ~MultiViewWindow();
     protected:
         MultiViewWindow();
@@ -26,5 +27,3 @@ class FAST_EXPORT  MultiViewWindow : public Window {
 
 } // end namespace fast
 
-
-#endif
