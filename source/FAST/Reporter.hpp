@@ -56,7 +56,7 @@ void Reporter::process(const T& content) {
             } else if(mType == WARNING) {
                 std::cout << "WARNING [" << std::this_thread::get_id() << "] ";
             } else if(mType == ERROR) {
-                std::cout << "ERROR [" << std::this_thread::get_id() << "] ";
+                std::cerr << "ERROR [" << std::this_thread::get_id() << "] ";
             }
         }
         mFirst = false;
