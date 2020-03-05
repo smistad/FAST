@@ -24,6 +24,7 @@ Pipeline::Pipeline(std::string filename, std::map<std::string, std::string> argu
     do {
         std::string line;
         std::getline(file, line);
+        line = replace(line, "$TEST_DATA_PATH$", Config::getTestDataPath());
         // TODO check for @@ variables
         std::size_t foundStart = line.find("@@");
         while(foundStart != std::string::npos) {
@@ -31,13 +32,24 @@ Pipeline::Pipeline(std::string filename, std::map<std::string, std::string> argu
             if (foundEnd == std::string::npos)
                 throw Exception("Variable name was not closed with @@ in pipeline file");
             std::string variableName = line.substr(foundStart+2, foundEnd - foundStart - 2);
+            const std::string toReplace = variableName;
+            auto parts = split(variableName, "=");
+            bool hasDefaultValue = false;
+            if (parts.size() == 2) {
+                variableName = parts[0];
+                hasDefaultValue = true;
+            }
+
             reportInfo() << "Found variable " << variableName << " in pipeline file" << reportEnd();
             // Replace variable
-            if (arguments.count(variableName) == 0)
-                throw Exception("The pipeline file requires you to give a value for the variable named " + variableName + "\n"
-                + "This is done by adding --" + variableName + " <value> to the command line arguments");
-            line = replace(line, "@@" + variableName + "@@", arguments[variableName]);
-            foundStart = line.find("@@", foundEnd + 2);  
+            if (arguments.count(variableName) == 0) {
+                if (!hasDefaultValue)
+                    throw Exception("The pipeline file requires you to give a value for the variable named " + variableName + "\n"
+                        + "This is done by adding --" + variableName + " <value> to the command line arguments");
+                arguments[variableName] = parts[1];
+            }
+            line = replace(line, "@@" + toReplace + "@@", arguments[variableName]);
+            foundStart = line.find("@@", foundEnd + 2);
         }
         m_lines.push_back(line);
 
