@@ -24,8 +24,13 @@ void CommandLineParser::parse(const int argc, char ** const argv) {
             printHelpMessage();
             std::exit(0);
         }
+        if(token == "--verbose") {
+            // Print out all messages to the console
+            Reporter::setGlobalReportMethod(Reporter::COUT);
+        } else {
+            processToken(currentVariable, currentPosition, token);
+        }
 
-        processToken(currentVariable, currentPosition, token);
         currentPosition++;
     }
 
@@ -208,6 +213,8 @@ void CommandLineParser::printHelpMessage() const {
             }
         }
     }
+
+    std::cout << "\nAdd --verbose to print out all information messages.\n";
 
     std::cout << std::flush;
 }

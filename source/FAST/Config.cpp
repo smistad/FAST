@@ -74,6 +74,20 @@ namespace fast {
 			if (mConfigurationLoaded)
 				return;
 
+			// Print the splash
+			// TODO Add config option to disable splash
+#ifndef WIN32
+			std::cout << "\033[92;1m" << std::endl; // Green bold
+#endif
+			std::cout << "\n     - Powered by -     \n"
+				"   _______   __________   \n"
+				"  / __/ _ | / __/_  __/   \n"
+				" / _// __ |_\\ \\  / /    https://fast.eriksmistad.no\n"
+				"/_/ /_/ |_/___/ /_/       \n\n";
+#ifndef WIN32
+				std::cout << "\033[39m" << std::endl; // Reset
+#endif
+
 			// Set default paths
 			mTestDataPath = getPath() + "../../data/";
 			mKernelSourcePath = getPath() + "../../source/FAST/";
