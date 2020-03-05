@@ -76,7 +76,14 @@ namespace fast {
 
 			// Print the splash
 			// TODO Add config option to disable splash
-#ifndef WIN32
+#ifdef WIN32
+			CONSOLE_SCREEN_BUFFER_INFO Info;
+			HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+			GetConsoleScreenBufferInfo(hStdout, &Info);
+			auto defaultAttributes = Info.wAttributes;
+			SetConsoleTextAttribute(hStdout, (defaultAttributes & 0x00F0) | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+#else
+
 			std::cout << "\033[92;1m" << std::endl; // Green bold
 #endif
 			std::cout << "\n     - Powered by -     \n"
@@ -84,8 +91,10 @@ namespace fast {
 				"  / __/ _ | / __/_  __/   \n"
 				" / _// __ |_\\ \\  / /    https://fast.eriksmistad.no\n"
 				"/_/ /_/ |_/___/ /_/       \n\n";
-#ifndef WIN32
-				std::cout << "\033[39m" << std::endl; // Reset
+#if WIN32
+			SetConsoleTextAttribute(hStdout, defaultAttributes);
+#else
+			std::cout << "\033[39m" << std::endl; // Reset
 #endif
 
 			// Set default paths
