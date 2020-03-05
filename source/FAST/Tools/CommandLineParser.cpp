@@ -4,9 +4,10 @@
 
 namespace fast {
 
-CommandLineParser::CommandLineParser(std::string title, std::string description) {
+CommandLineParser::CommandLineParser(std::string title, std::string description, bool allowUnknownVariables) {
     m_title = title;
     m_description = description;
+    m_allowUnknownVariables = allowUnknownVariables;
 }
 
 void CommandLineParser::parse(const int argc, char ** const argv) {
@@ -52,8 +53,14 @@ void CommandLineParser::processToken(SharedPointer<Variable>& currentVariable, u
     // If no current variable, then the first token has to start with --, or it is a position variable
     if(!currentVariable) {
         if(token.size() > 2 && token.substr(0, 2) == "--") {
-            if(m_variables.count(token.substr(2)) == 0)
-                throw Exception("Unknown program parameter " + token.substr(2));
+            if (m_variables.count(token.substr(2)) == 0) {
+                if (m_allowUnknownVariables) {
+                    // Create new string variable
+                    m_variables[token.substr(2)] = std::make_shared<StringVariable>(token.substr(2), "", false);
+                } else {
+                    throw Exception("Unknown program parameter " + token.substr(2));
+                }
+            }
             currentVariable = m_variables.at(token.substr(2));
             currentVariable->setValue(""); // This will set options to true
         } else {
@@ -77,6 +84,14 @@ void CommandLineParser::processToken(SharedPointer<Variable>& currentVariable, u
         // Finish this variable
         currentVariable.reset();
     }
+}
+
+std::map<std::string, std::string> CommandLineParser::getVariables() {
+    std::map<std::string, std::string> result;
+    for (auto&& var : m_variables) {
+        result[var.first] = var.second->getValue();
+    }
+    return result;
 }
 
 void CommandLineParser::addOption(std::string name, std::string helpText) {

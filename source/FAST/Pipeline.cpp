@@ -12,10 +12,37 @@
 
 namespace fast {
 
-Pipeline::Pipeline(std::string name, std::string description, std::string filename) {
-    mName = name;
-    mDescription = description;
+Pipeline::Pipeline(std::string filename, std::map<std::string, std::string> arguments) {
     mFilename = filename;
+
+    // TODO Read entire contents of file, replace arguments or throw error if not supplied
+    // Store contents in buffer
+    std::ifstream file(mFilename);
+    if(!file.is_open())
+        throw Exception("Unable to open file " + filename);
+
+    do {
+        std::string line;
+        std::getline(file, line);
+        // TODO check for @@ variables
+        std::size_t foundStart = line.find("@@");
+        while(foundStart != std::string::npos) {
+            auto foundEnd = line.find("@@", foundStart + 2);
+            if (foundEnd == std::string::npos)
+                throw Exception("Variable name was not closed with @@ in pipeline file");
+            std::cout << foundStart << " " << foundEnd << std::endl;
+            std::string variableName = line.substr(foundStart+2, foundEnd - foundStart - 2);
+            reportInfo() << "Found variable " << variableName << " in pipeline file" << reportEnd();
+            // Replace variable
+            if (arguments.count(variableName) == 0)
+                throw Exception("The pipeline file requires you to give a value for the variable named " + variableName + "\n"
+                + "This is done by adding --" + variableName + " <value> to the command line arguments");
+            line = replace(line, "@@" + variableName + "@@", arguments[variableName]);
+            foundStart = line.find("@@", foundEnd + 2);  
+        }
+        m_lines.push_back(line);
+
+    } while (!file.eof());
 }
 
 inline SharedPointer<ProcessObject> getProcessObject(std::string name) {
@@ -24,16 +51,16 @@ inline SharedPointer<ProcessObject> getProcessObject(std::string name) {
 
 void Pipeline::parseView(
         std::string objectID,
-        std::ifstream& file
+        int& lineNr
         ) {
 
 
     ProcessObject* view = m_views[objectID];
 
-    std::string line = "";
-    std::getline(file, line);
     // Continue to scan file for attributes
-    while(!file.eof()) {
+    ++lineNr;
+    while(lineNr < m_lines.size()) {
+        std::string line = m_lines[lineNr];
         trim(line);
         if(line == "")
             break;
@@ -52,7 +79,7 @@ void Pipeline::parseView(
         trim(attributeValues);
         attribute->parseInput(attributeValues);
         reportInfo() << "Set attribute " << name << " to " << attributeValues  << " for object " << objectID << reportEnd();
-        std::getline(file, line);
+        ++lineNr;
     }
 
     view->loadAttributes();
@@ -61,7 +88,7 @@ void Pipeline::parseView(
 void Pipeline::parseProcessObject(
         std::string objectName,
         std::string objectID,
-        std::ifstream& file,
+        int& lineNr,
         bool isRenderer
     ) {
 
@@ -69,10 +96,11 @@ void Pipeline::parseProcessObject(
     SharedPointer<ProcessObject> object = getProcessObject(objectName);
 
     std::string line = "";
-    std::getline(file, line);
 
     // Continue to scan file for attributes
-    while(!file.eof()) {
+    ++lineNr;
+    while(lineNr < m_lines.size()) {
+        std::string line = m_lines[lineNr];
         trim(line);
         if(line == "")
             break;
@@ -91,8 +119,9 @@ void Pipeline::parseProcessObject(
         trim(attributeValues);
         attribute->parseInput(attributeValues);
         reportInfo() << "Set attribute " << name << " to " << attributeValues  << " for object " << objectID << reportEnd();
-        std::getline(file, line);
+        ++lineNr;
     }
+    --lineNr;
 
     object->loadAttributes();
     object->setModified(true);
@@ -101,7 +130,9 @@ void Pipeline::parseProcessObject(
     reportInfo() << "Added process object " << objectName  << " with id " << objectID << reportEnd();
 
     // Get inputs and connect the POs and renderers
-    while(!file.eof()) {
+    ++lineNr;
+    while (lineNr < m_lines.size()) {
+        std::string line = m_lines[lineNr];
         trim(line);
         if(line == "")
             break;
@@ -129,7 +160,7 @@ void Pipeline::parseProcessObject(
             reportInfo() << "Connected process object " << inputID << " to " << objectID << reportEnd();
             object->setInputConnection(inputPortID, mProcessObjects.at(inputID)->getOutputPort(outputPortID));
         }
-        std::getline(file, line);
+        ++lineNr;
     }
 
     if(isRenderer) {
@@ -139,20 +170,17 @@ void Pipeline::parseProcessObject(
 
 void Pipeline::parsePipelineFile() {
     // Parse file again, retrieve process objects, set attributes and create the pipeline
-    std::ifstream file(mFilename);
-    std::string line = "";
-    std::getline(file, line);
 
     mProcessObjects.clear();
     mRenderers.clear();
     m_views.clear();
 
     // Retrieve all POs and renderers
-    while(!file.eof()) {
+    for(int lineNr = 0; lineNr < m_lines.size(); ++lineNr) {
+        std::string line = m_lines[lineNr];
         trim(line);
 
-        if(line.size() == 0) {
-            std::getline(file, line);
+        if(line.empty()) {
             continue;
         }
 
@@ -166,14 +194,16 @@ void Pipeline::parsePipelineFile() {
             }
             std::string id = tokens[1];
             std::string object = tokens[2];
-            parseProcessObject(object, id, file);
+            parseProcessObject(object, id, lineNr);
+            lineNr--;
         } else if(key == "Renderer") {
             if(tokens.size() != 3) {
                 throw Exception("Unable to parse pipeline file " + mFilename + ", expected 3 tokens but got line " + line);
             }
             std::string id = tokens[1];
             std::string object = tokens[2];
-            parseProcessObject(object, id, file, true);
+            parseProcessObject(object, id, lineNr, true);
+            lineNr--;
             reportInfo() << "Added renderer " << object  << " with id " << id << reportEnd();
         } else if(key == "View") {
             // Create a view
@@ -189,17 +219,16 @@ void Pipeline::parsePipelineFile() {
             } else {
                 // View has no renderers.. throw error message?
             }
-            parseView(id, file);
+            parseView(id, lineNr);
+            lineNr--;
         }
-
-        std::getline(file, line);
     }
 }
 
-std::vector<View*> Pipeline::setup() {
+std::vector<View*> Pipeline::getViews() {
     Reporter::info() << "Setting up pipeline.." << Reporter::end();
     if(mProcessObjects.size() == 0)
-        throw Exception("You have to parse the pipeline file before calling setup on the pipeline");
+        throw Exception("You have to parse the pipeline file before calling getViews on the pipeline");
 
     // Get renderers
     std::vector<View*> views;
@@ -256,7 +285,7 @@ std::vector<Pipeline> getAvailablePipelines() {
                 trim(description);
             }
             if(name.size() > 0 && description.size() > 0) {
-                pipelines.push_back(Pipeline(name, description, filename));
+                pipelines.push_back(Pipeline(filename));
                 break;
             }
             std::getline(file, line);

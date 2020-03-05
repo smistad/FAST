@@ -1,0 +1,11 @@
+PipelineName "2D Image renderer"
+PipelineDescription "Only 2D image rendering"
+
+ProcessObject importer ImageFileImporter
+Attribute filename @@filename@@
+
+Renderer renderer ImageRenderer
+Input 0 importer 0
+
+View view renderer
+Attribute 2Dmode true

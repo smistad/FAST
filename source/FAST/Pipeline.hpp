@@ -14,8 +14,8 @@ class View;
 
 class FAST_EXPORT  Pipeline : public Object {
     public:
-        Pipeline(std::string name, std::string description, std::string filename);
-        std::vector<View*> setup();
+        Pipeline(std::string filename, std::map<std::string, std::string> variables = {{}});
+        std::vector<View*> getViews();
         std::unordered_map<std::string, SharedPointer<ProcessObject>> getProcessObjects();
         std::string getName() const;
         std::string getDescription() const;
@@ -32,16 +32,17 @@ class FAST_EXPORT  Pipeline : public Object {
         std::unordered_map<std::string, SharedPointer<ProcessObject>> mProcessObjects;
         std::unordered_map<std::string, View*> m_views;
         std::vector<std::string> mRenderers;
+        std::vector<std::string> m_lines;
 
         void parseProcessObject(
             std::string objectName,
             std::string objectID,
-            std::ifstream& file,
+            int& lineNr,
             bool isRenderer = false
         );
         void parseView(
                 std::string objectID,
-                std::ifstream& file
+                int& lineNr
         );
 };
 
