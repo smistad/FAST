@@ -9,3 +9,4 @@ Input 0 importer 0
 
 View view renderer
 Attribute 2Dmode true
+Attribute background-color black

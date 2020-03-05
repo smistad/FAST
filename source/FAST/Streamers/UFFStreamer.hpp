@@ -13,6 +13,7 @@ public:
 	void setLooping(bool loop);
 	// Set name of which HDF5 group to stream
 	void setName(std::string name);
+	void loadAttributes() override;
 protected:
 	void generateStream() override;
 	std::string m_filename;

@@ -30,7 +30,6 @@ Pipeline::Pipeline(std::string filename, std::map<std::string, std::string> argu
             auto foundEnd = line.find("@@", foundStart + 2);
             if (foundEnd == std::string::npos)
                 throw Exception("Variable name was not closed with @@ in pipeline file");
-            std::cout << foundStart << " " << foundEnd << std::endl;
             std::string variableName = line.substr(foundStart+2, foundEnd - foundStart - 2);
             reportInfo() << "Found variable " << variableName << " in pipeline file" << reportEnd();
             // Replace variable

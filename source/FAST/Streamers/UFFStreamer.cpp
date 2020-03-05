@@ -8,6 +8,16 @@ namespace fast {
     UFFStreamer::UFFStreamer() {
         createOutputPort<Image>(0);
         m_loop = false;
+
+        createStringAttribute("filename", "Filename", "File to stream UFF data from", "");
+        createStringAttribute("name", "Group name", "Name of which beamformed_data group to stream from", "");
+        createBooleanAttribute("loop", "Loop", "Loop recordin", false);
+    }
+
+    void UFFStreamer::loadAttributes() {
+        setFilename(getStringAttribute("filename"));
+        setLooping(getBooleanAttribute("loop"));
+        setName(getStringAttribute("name"));
     }
 
     void UFFStreamer::setLooping(bool loop) {

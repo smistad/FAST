@@ -55,6 +55,7 @@ if(FAST_MODULE_HDF5)
         UFFStreamer.cpp
         UFFStreamer.hpp
     )
+    fast_add_process_object(UFFStreamer UFFStreamer.hpp)
 endif()
 
 fast_add_test_sources(

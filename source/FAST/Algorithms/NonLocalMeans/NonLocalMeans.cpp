@@ -8,6 +8,20 @@ NonLocalMeans::NonLocalMeans() {
     createOutputPort<Image>(0);
 
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/NonLocalMeans/NonLocalMeans2D.cl");
+
+    createFloatAttribute("smoothing", "Smoothing amount", "Controls how much smoothing to apply", 0.15);
+    createIntegerAttribute("search-size", "Search size", "How big pixel area to search", 11);
+    createIntegerAttribute("filter-size", "Filter size", "Filter size", 3);
+    createIntegerAttribute("iterations", "Iterations", "Number of multiscale iterations", 3);
+    createBooleanAttribute("preprocess", "Preprocess", "Apply preprocessing (5x5 median filter) or not", true);
+}
+
+void NonLocalMeans::loadAttributes() {
+    setSmoothingAmount(getFloatAttribute("smoothing"));
+    setSearchSize(getIntegerAttribute("search-size"));
+    setFilterSize(getIntegerAttribute("filter-size"));
+    setMultiscaleIterations(getIntegerAttribute("iterations"));
+    setPreProcess(getBooleanAttribute("preprocess"));
 }
 
 void NonLocalMeans::execute() {
