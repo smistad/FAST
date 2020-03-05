@@ -7,7 +7,18 @@
 
 namespace fast {
 
+void FileStreamer::loadAttributes() {
+    setFilenameFormats(getStringListAttribute("fileformat"));
+    if (getBooleanAttribute("loop")) {
+        enableLooping();
+    } else {
+        disableLooping();
+    }
+}
+
 FileStreamer::FileStreamer() {
+    createStringAttribute("fileformat", "Fileformat", "Fileformat for streaming e.g. /path/to/data/frame_#.xx", "");
+    createBooleanAttribute("loop", "Loop", "Loop streaming", false);
     mNrOfReplays = 0;
     mIsModified = true;
     mLoop = false;

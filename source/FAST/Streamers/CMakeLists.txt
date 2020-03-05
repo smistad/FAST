@@ -12,6 +12,7 @@ fast_add_sources(
     AffineTransformationFileStreamer.cpp
     AffineTransformationFileStreamer.hpp
 )
+fast_add_process_object(ImageFileStreamer ImageFileStreamer.hpp)
 if(FAST_MODULE_OpenIGTLink)
     fast_add_sources(
             OpenIGTLinkStreamer.hpp

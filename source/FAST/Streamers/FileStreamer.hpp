@@ -38,6 +38,8 @@ class FAST_EXPORT FileStreamer : public Streamer {
         ~FileStreamer();
 
         virtual std::string getNameOfClass() const { return "FileStreamer"; }
+
+        void loadAttributes() override;
     protected:
         virtual DataObject::pointer getDataFrame(std::string filename) = 0;
         std::string getFilename(uint i, int currentSequence) const;
