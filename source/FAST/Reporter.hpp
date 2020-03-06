@@ -1,5 +1,4 @@
-#ifndef REPORT_HPP_
-#define REPORT_HPP_
+#pragma once
 
 #include <map>
 #include <iostream>
@@ -42,6 +41,9 @@ class FAST_EXPORT  Reporter {
 
         // Variable to keep track of first <<
         bool mFirst;
+#ifdef WIN32
+        WORD m_defaultAttributes;
+#endif
 };
 
 template <class T>
@@ -54,8 +56,18 @@ void Reporter::process(const T& content) {
             if(mType == INFO) {
                 std::cout << "INFO [" << std::this_thread::get_id() << "] ";
             } else if(mType == WARNING) {
+#ifdef WIN32
+                SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (m_defaultAttributes & 0x00F0) | FOREGROUND_INTENSITY);
+#else
+                std::cout << "\033[1m";
+#endif
                 std::cout << "WARNING [" << std::this_thread::get_id() << "] ";
             } else if(mType == ERROR) {
+#ifdef WIN32
+                SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (m_defaultAttributes & 0x00F0) | FOREGROUND_RED | FOREGROUND_INTENSITY);
+#else
+                std::cout << "\033[31;1m";
+#endif
                 std::cerr << "ERROR [" << std::this_thread::get_id() << "] ";
             }
         }
@@ -79,5 +91,3 @@ template <>
 FAST_EXPORT Reporter operator<<(Reporter report, const ReporterEnd& end);
 
 } // end namespace fast
-
-#endif
