@@ -234,3 +234,4 @@ endif(NOT FAST_BUILD_QT5 AND WIN32)
 
 include(cmake/ModulePython.cmake)
 include(cmake/InstallFAST.cmake)
+include(cmake/Package.cmake)

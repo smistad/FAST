@@ -1,0 +1,25 @@
+# CMake setup for building a package of FAST (debian on Unix, NSIS installer for windows)
+
+set(CPACK_PACKAGE_NAME "FAST")
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Framework for Heterogeneous Medical Image Computing and Visualization")
+SET(CPACK_PACKAGE_VENDOR "Erik Smistad")
+set(CPACK_PACKAGE_CONTACT "Erik Smistad ersmistad@gmail.com")
+SET(CPACK_PACKAGE_DESCRIPTION_FILE "${PROJECT_SOURCE_DIR}/README.md")
+SET(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")
+SET(CPACK_PACKAGE_VERSION_MAJOR ${VERSION_MAJOR})
+SET(CPACK_PACKAGE_VERSION_MINOR ${VERSION_MINOR})
+SET(CPACK_PACKAGE_VERSION_PATCH ${VERSION_PATH})
+set(CPACK_PACKAGE_FILE_NAME "fast")
+
+if(WIN32 AND NOT UNIX)
+    ## Windows
+else()
+    ## UNIX
+    set(CPACK_GENERATOR "DEB")
+    set(CPACK_DEB_COMPONENT_INSTALL ON)
+    set(CPACK_DEBIAN_PACKAGE_HOMEPAGE https://eriksmistad.no/fast/)
+    set(CPACK_PACKAGING_INSTALL_PREFIX "/opt")
+    #set(CPACK_DEBIAN_CORE_FILE_NAME "fast.deb")
+    #set(CPACK_DEBIAN_PACKAGE_NAME "fast")
+endif()
+include(CPack)
