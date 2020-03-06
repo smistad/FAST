@@ -1,5 +1,6 @@
 #include "FAST/Object.hpp"
 #include <iostream>
+#include <mutex>
 
 #if defined(__APPLE__) || defined(__MACOSX)
 
@@ -59,7 +60,13 @@ static void terminateHandler() {
 }
 
 Object::Object() {
-    if(std::get_terminate() != terminateHandler) {
+    if (std::get_terminate() != terminateHandler) {
+        // Terminate handler not set, create it:
+        std::set_terminate(terminateHandler);
+    }
+
+    static std::once_flag flag;
+    std::call_once(flag, []() {
         // Print the splash
         // TODO Add config option to disable splash
 #ifdef WIN32
@@ -69,22 +76,19 @@ Object::Object() {
         auto defaultAttributes = Info.wAttributes;
         SetConsoleTextAttribute(hStdout, (defaultAttributes & 0x00F0) | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
 #else
-
         std::cout << "\033[32;1m"; // Green bold
 #endif
         std::cout << "\n     - Powered by -     \n"
-                     "   _______   __________   \n"
-                     "  / __/ _ | / __/_  __/   \n"
-                     " / _// __ |_\\ \\  / /    https://fast.eriksmistad.no\n"
-                     "/_/ /_/ |_/___/ /_/       \n\n";
+            "   _______   __________   \n"
+            "  / __/ _ | / __/_  __/   \n"
+            " / _// __ |_\\ \\  / /    https://fast.eriksmistad.no\n"
+            "/_/ /_/ |_/___/ /_/       \n\n";
 #if WIN32
         SetConsoleTextAttribute(hStdout, defaultAttributes);
 #else
         std::cout << "\033[0m"; // Reset
 #endif
-        // Terminate handler not set, create it:
-        std::set_terminate(terminateHandler);
-    }
+    });
 }
 
 Reporter& Object::reportError() {

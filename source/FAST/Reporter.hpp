@@ -4,6 +4,9 @@
 #include <iostream>
 #include <thread>
 #include "FASTExport.hpp"
+#ifdef WIN32
+#include <windows.h>
+#endif
 
 #undef ERROR // undefine some windows garbage
 
@@ -42,7 +45,7 @@ class FAST_EXPORT  Reporter {
         // Variable to keep track of first <<
         bool mFirst;
 #ifdef WIN32
-        WORD m_defaultAttributes;
+        static WORD m_defaultAttributes;
 #endif
 };
 

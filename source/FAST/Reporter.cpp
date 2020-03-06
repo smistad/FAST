@@ -17,20 +17,24 @@ std::map<Reporter::Type, Reporter::Method> Reporter::mGlobalReporterMethods =
         {ERROR, COUT}
 };
 #endif
+#ifdef WIN32
+WORD Reporter::m_defaultAttributes = 0;
+#endif
 
 Reporter::Reporter(Type type) {
     mType = type;
     mFirst = true;
+#ifdef WIN32
+    if(m_defaultAttributes == 0) {
+        CONSOLE_SCREEN_BUFFER_INFO Info;
+        GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &Info);
+        m_defaultAttributes = Info.wAttributes;
+    }
+#endif
 }
 
 Reporter::Reporter() {
-    mType = INFO;
-    mFirst = true;
-#ifdef WIN32
-    CONSOLE_SCREEN_BUFFER_INFO Info;
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &Info);
-    m_defaultAttributes = Info.wAttributes;
-#endif
+    Reporter::Reporter(INFO);
 }
 
 void Reporter::setType(Type type) {
