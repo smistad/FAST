@@ -34,7 +34,15 @@ Reporter::Reporter(Type type) {
 }
 
 Reporter::Reporter() {
-    Reporter::Reporter(INFO);
+    mType = INFO;
+    mFirst = true;
+#ifdef WIN32
+    if(m_defaultAttributes == 0) {
+        CONSOLE_SCREEN_BUFFER_INFO Info;
+        GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &Info);
+        m_defaultAttributes = Info.wAttributes;
+    }
+#endif
 }
 
 void Reporter::setType(Type type) {
