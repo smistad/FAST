@@ -88,7 +88,7 @@ macro (fast_add_example NAME)
         target_link_libraries(${NAME} FAST)
         install(TARGETS ${NAME}
             DESTINATION fast/bin
-            COMPONENT examples
+            COMPONENT fast
         )
         if(WIN32)
             file(APPEND ${PROJECT_BINARY_DIR}/runAllExamples.bat "bin\\${NAME}.exe\r\n")
@@ -111,7 +111,7 @@ macro (fast_add_tool NAME)
         target_link_libraries(${NAME} FAST)
         install(TARGETS ${NAME}
                 DESTINATION fast/bin
-                COMPONENT core
+                COMPONENT fast
         )
         file (RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
         if(_relPath)
