@@ -20,7 +20,8 @@ class FAST_EXPORT  WindowWidget : public QWidget {
         WindowWidget();
         void keyPressEvent(QKeyEvent* event);
         void closeEvent(QCloseEvent* event);
-        View* addView();
+        View* createView();
+        void addView(View* view);
         std::vector<View*> getViews() const;
         void clearViews();
         ~WindowWidget();

@@ -110,6 +110,9 @@ static QGLFormat getGLFormat() {
     return qglFormat;
 }
 void Window::initializeQtApp() {
+    // First: Tell Qt where to finds its plugins
+    QCoreApplication::setLibraryPaths({ Config::getQtPluginsPath().c_str() }); // Removes need for qt.conf
+
     // Make sure only one QApplication is created
     if(!QApplication::instance()) {
         Reporter::info() << "Creating new QApp" << Reporter::end();
@@ -176,7 +179,7 @@ void Window::stop() {
 }
 
 View* Window::createView() {
-    View* view = mWidget->addView();
+    View* view = mWidget->createView();
 
     return view;
 }

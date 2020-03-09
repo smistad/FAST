@@ -23,8 +23,22 @@ void SegmentationRenderer::setFillArea(bool fillArea) {
     deleteAllTextures();
 }
 
+void SegmentationRenderer::loadAttributes() {
+    setOpacity(getFloatAttribute("opacity"));
+    auto colors = getStringListAttribute("label-colors");
+    for(int i = 0; i < colors.size(); i += 2) {
+        int label = std::stoi(colors[i]);
+        Color color = Color::fromString(colors.at(i + 1));
+        setColor(label, color);
+    }
+}
+
 SegmentationRenderer::SegmentationRenderer() {
     createInputPort<Image>(0, false);
+
+    createFloatAttribute("opacity", "Segmentation Opacity", "", mOpacity);
+    createStringAttribute("label-colors", "Label color", "Label color set as <label1> <color1> <label2> <color2>", "");
+
     createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/SegmentationRenderer/SegmentationRenderer.cl");
     mIsModified = false;
     mColorsModified = true;

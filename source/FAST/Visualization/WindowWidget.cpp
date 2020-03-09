@@ -59,7 +59,7 @@ WindowWidget::WindowWidget() {
     mSaveScreenshotOfViewsOnClose = false;
 }
 
-View *WindowWidget::addView() {
+View *WindowWidget::createView() {
     View *view = new View();
     mViews.push_back(view);
     return view;
@@ -81,6 +81,10 @@ void WindowWidget::saveScreenshotOnClose(std::string filename) {
 void WindowWidget::saveScreenshotOfViewsOnClose(std::string filename) {
     mSaveScreenshotOfViewsOnClose = true;
     mScreenshotViewsFilename = filename;
+}
+
+void WindowWidget::addView(View *view) {
+    mViews.push_back(view);
 }
 
 }

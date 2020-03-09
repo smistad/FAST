@@ -5,7 +5,7 @@
 
 namespace InferenceEngine {
 class InferRequest;
-class InferencePlugin;
+class Core;
 }
 
 namespace fast {
@@ -25,7 +25,7 @@ class INFERENCEENGINEOPENVINO_EXPORT OpenVINOEngine : public InferenceEngine {
 
         ~OpenVINOEngine();
     private:
-        std::shared_ptr<::InferenceEngine::InferencePlugin> m_inferencePlugin;
+        std::shared_ptr<::InferenceEngine::Core> m_inferenceCore;
         // This has to be last, because then inferRequest will be deleted before the plugin, which is necessary to avoid a crash on delete
         std::shared_ptr<::InferenceEngine::InferRequest> m_inferRequest;
 		

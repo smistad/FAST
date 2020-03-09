@@ -16,6 +16,7 @@ enum StreamingMode { STREAMING_MODE_NEWEST_FRAME_ONLY, STREAMING_MODE_STORE_ALL_
 class FAST_EXPORT  Object {
     public:
         typedef SharedPointer<Object> pointer;
+        Object();
         virtual ~Object() {};
         static std::string getStaticNameOfClass() {
             return "Object";

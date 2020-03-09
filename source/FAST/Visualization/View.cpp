@@ -69,6 +69,9 @@ QGLFormat View::getGLFormat() {
 View::View() {
     createInputPort<Camera>(0, false);
 
+    createBooleanAttribute("2Dmode", "2D mode", "Switch the view mode between 3D and 2D", false);
+    createStringAttribute("background-color", "Background color", "Set the background color of the view", "white");
+
     mBackgroundColor = Color::White();
     zNear = 0.1;
     zFar = 1000;
@@ -94,6 +97,15 @@ View::View() {
         reportInfo() << "The custom Qt GL context is invalid!" << Reporter::end();
         exit(-1);
     }
+}
+
+void View::loadAttributes() {
+    if(getBooleanAttribute("2Dmode")) {
+        set2DMode();
+    } else {
+        set3DMode();
+    }
+    setBackgroundColor(Color::fromString(getStringAttribute("background-color")));
 }
 
 void View::setCameraInputConnection(DataChannel::pointer port) {

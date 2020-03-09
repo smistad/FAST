@@ -5,6 +5,17 @@
 
 namespace fast {
 
+
+    void SegmentationNetwork::loadAttributes() {
+        if (getBooleanAttribute("heatmap_output")) {
+            setHeatmapOutput();
+        } else {
+            setSegmentationOutput();
+        }
+        setThreshold(getFloatAttribute("threshold"));
+        NeuralNetwork::loadAttributes();
+    }
+
 SegmentationNetwork::SegmentationNetwork() {
     createInputPort<Image>(0);
 
@@ -14,6 +25,7 @@ SegmentationNetwork::SegmentationNetwork() {
     mThreshold = 0.5;
 
     createBooleanAttribute("heatmap_output", "Output heatmap", "Enable heatmap output instead of segmentation", false);
+    createFloatAttribute("threshold", "Segmentation threshold", "Lower threshold of accepting a label", mThreshold);
 }
 
 void SegmentationNetwork::setResizeBackToOriginalSize(bool resize) {
@@ -127,14 +139,6 @@ void SegmentationNetwork::execute() {
     mRuntimeManager->stopRegularTimer("output_processing");
 }
 
-void SegmentationNetwork::loadAttributes() {
-    if(getBooleanAttribute("heatmap_output")) {
-        setHeatmapOutput();
-    } else {
-        setSegmentationOutput();
-    }
-    NeuralNetwork::loadAttributes();
-}
 
 void SegmentationNetwork::setThreshold(float threshold) {
     mThreshold = threshold;

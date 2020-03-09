@@ -89,6 +89,7 @@ include(cmake/ModuleRealSense.cmake)
 include(cmake/ModuleWholeSlideImaging.cmake)
 include(cmake/ModuleClarius.cmake)
 include(cmake/ModuleDicom.cmake)
+include(cmake/ModuleHDF5.cmake)
 
 # Make sure FAST can find external includes and libaries
 link_directories(${FAST_EXTERNAL_INSTALL_DIR}/lib/)

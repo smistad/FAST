@@ -35,10 +35,6 @@ void ImageImporter::execute() {
     convertedPixelData = convertedImage.bits();
 
     Image::pointer output = getOutputData<Image>();
-    std::cout << "image info" << std::endl;
-    std::cout << convertedImage.width() << std::endl;
-    std::cout << convertedImage.depth() << std::endl;
-    std::cout << convertedImage.bytesPerLine() << std::endl;
     if(convertedImage.width()*convertedImage.depth()/8 != convertedImage.bytesPerLine()) {
         const int bytesPerPixel = (convertedImage.depth()/8);
         std::unique_ptr<uchar[]> fixedPixelData = std::make_unique<uchar[]>(image.width()*image.height()*bytesPerPixel);

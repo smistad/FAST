@@ -1,11 +1,12 @@
-PipelineName "Image renderer"
-PipelineDescription "Only image renderer"
+PipelineName "2D Image renderer"
+PipelineDescription "Simple 2D image rendering"
 
-ProcessObject enhancement UltrasoundImageEnhancement
-Attribute reject 40
-Input 0 PipelineInput
+ProcessObject importer ImageFileImporter
+Attribute filename @@filename=$TEST_DATA_PATH$/US/US-2D.png@@
 
 Renderer renderer ImageRenderer
-Attribute window 255
-Attribute level 127.5
-Input 0 enhancement 0
+Input 0 importer 0
+
+View view renderer
+Attribute 2Dmode true
+Attribute background-color black

@@ -48,7 +48,7 @@ void InferenceEngineManager::loadAll() {
 #ifndef WIN32
     prefix = "lib" + prefix;
 #endif
-    std::cout << "Loading inference engines in folder " << Config::getLibraryPath() << std::endl;
+    Reporter::info() << "Loading inference engines in folder " << Config::getLibraryPath() << Reporter::end();
     for(auto&& item : getDirectoryList(Config::getLibraryPath(), true, false)) {
         if(item.substr(0, prefix.size()) == prefix) {
             std::string name = item.substr(prefix.size(), item.rfind('.') - prefix.size());

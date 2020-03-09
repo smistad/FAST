@@ -484,7 +484,8 @@ std::vector<std::string> ProcessObject::getStringListAttribute(std::string id) {
     std::vector<std::string> list;
     for(auto &&value : values) {
         auto floatValue = std::dynamic_pointer_cast<AttributeValueString>(value);
-        list.push_back(floatValue->get());
+        if(!floatValue->get().empty())
+                list.push_back(floatValue->get());
     }
     return list;
 }

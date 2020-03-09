@@ -20,17 +20,36 @@ void NeuralNetwork::setHorizontalFlipping(bool flip) {
 	mHorizontalImageFlipping = flip;
 }
 
+void NeuralNetwork::loadAttributes() {
+    m_engine->setFilename(getStringAttribute("model"));
+    auto preferredEngine = getStringAttribute("inference-engine");
+    if(!preferredEngine.empty())
+        setInferenceEngine(preferredEngine);
+    
+    // TODO input nodes, shapes, and tensor/images type
+    auto outputNames = getStringListAttribute("output-names");
+    int i = 0;
+    for (auto&& name : outputNames) {
+        setOutputNode(i, name);
+    }
+    setScaleFactor(getFloatAttribute("scale-factor"));
+    setSignedInputNormalization(getBooleanAttribute("signed-input-normalization"));
+    setPreserveAspectRatio(getBooleanAttribute("preserve-aspect"));
+}
+
 NeuralNetwork::NeuralNetwork() {
 	mPreserveAspectRatio = false;
 	mScaleFactor = 1.0f;
 	mMean = 0.0;
 	mStd = 1.0f;
 	createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/NeuralNetwork/NeuralNetwork.cl");
-	createStringAttribute("model", "Model path", "Path to neural network tensorflow model", "");
-	createIntegerAttribute("input_size", "Input size", "Image input size", 128);
-	createFloatAttribute("scale_factor", "Scale factor", "Scale factor", mScaleFactor);
-	createStringAttribute("output_names", "Output names", "Name of output nodes", "");
-	createBooleanAttribute("signed_input_normalization", "Signed input normalization", "Normalize input to -1 and 1 instead of 0 to 1.", false);
+    
+	createStringAttribute("model", "Model path", "Path to the neural network model", "");
+    createStringAttribute("inference-engine", "Inference Engine", "Manually set the inference engine to be used to execute this neural network.", "");
+	createFloatAttribute("scale-factor", "Scale factor", "Scale factor", mScaleFactor);
+	createStringAttribute("output-names", "Output names", "Name of output nodes", "");
+	createBooleanAttribute("signed-input-normalization", "Signed input normalization", "Normalize input to -1 and 1 instead of 0 to 1.", false);
+    createBooleanAttribute("preserve-aspect", "Preserve aspect ratio of input images", "", mPreserveAspectRatio);
 
 	m_engine = InferenceEngineManager::loadBestAvailableEngine();
 	reportInfo() << "Inference engine " << m_engine->getName() << " selected" << reportEnd();
@@ -381,16 +400,6 @@ std::vector<SharedPointer<Image>> NeuralNetwork::resizeImages(const std::vector<
 	return resizedImages;
 }
 
-void NeuralNetwork::loadAttributes() {
-	m_engine->setFilename(getStringAttribute("model"));
-	std::vector<int> inputSize = getIntegerListAttribute("input_size");
-	// TODO Fix
-	//setInputSize(inputSize.at(0), inputSize.at(1));
-	std::vector<std::string> outputNames = getStringListAttribute("output_names");
-	//setOutputParameters(outputNames);
-	setScaleFactor(getFloatAttribute("scale_factor"));
-	setSignedInputNormalization(getBooleanAttribute("signed_input_normalization"));
-}
 
 void NeuralNetwork::setTemporalWindow(uint window) {
 	if(window < 1) {

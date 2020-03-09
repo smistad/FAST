@@ -14,6 +14,7 @@ fast_add_sources(
     TensorToSegmentation.cpp
     TensorToSegmentation.hpp
 )
+fast_add_process_object(NeuralNetwork NeuralNetwork.hpp)
 fast_add_process_object(ImageClassificationNetwork ImageClassificationNetwork.hpp)
 fast_add_process_object(ClassificationToText ImageClassificationNetwork.hpp)
 fast_add_process_object(SegmentationNetwork SegmentationNetwork.hpp)
@@ -31,8 +32,5 @@ if(FAST_MODULE_Visualization)
         fast_add_example(measureNeuralNetworkPerformance measureNeuralNetworkPerformance.cpp)
     endif()
 endif()
-#fast_add_example(timingNetwork timingNetwork.cpp)
-#fast_add_example(imageClassification imageClassification.cpp)
-#fast_add_example(leftVentricleSegmentation leftVentricleSegmentation.cpp)
 
 fast_add_subdirectories(InferenceEngines)

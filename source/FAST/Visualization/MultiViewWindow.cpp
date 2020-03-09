@@ -24,7 +24,6 @@ void MultiViewWindow::setNrOfViews(int viewCount) {
     for(int i = 0; i < viewCount; i++) {
         createView();
     }
-    createLayout();
 }
 
 void MultiViewWindow::setHorizontalMode() {
@@ -66,6 +65,15 @@ void MultiViewWindow::createLayout() {
         mainLayout->setContentsMargins(0, 0, 0, 0);
         mWidget->setLayout(mainLayout);
     }
+}
+
+void MultiViewWindow::addView(View* view) {
+    mWidget->addView(view);
+}
+
+void MultiViewWindow::start() {
+    createLayout();
+    Window::start();
 }
 
 } // end namespace fast

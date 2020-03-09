@@ -11,6 +11,7 @@ namespace fast {
         void setMultiscaleIterations(int iterations);
         void setSearchSize(int searchSize);
         void setFilterSize(int filterSize);
+        void loadAttributes() override;
     private:
         NonLocalMeans();
         void execute() override;

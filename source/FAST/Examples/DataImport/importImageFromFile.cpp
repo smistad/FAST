@@ -11,7 +11,6 @@
 using namespace fast;
 
 int main(int argc, char** argv) {
-    Reporter::setGlobalReportMethod(Reporter::COUT);
     CommandLineParser parser("Import image from file example");
     parser.addPositionVariable(1, "filename", Config::getTestDataPath() + "US/US-2D.jpg");
     parser.parse(argc, argv);

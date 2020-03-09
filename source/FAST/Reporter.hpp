@@ -1,10 +1,12 @@
-#ifndef REPORT_HPP_
-#define REPORT_HPP_
+#pragma once
 
 #include <map>
 #include <iostream>
 #include <thread>
 #include "FASTExport.hpp"
+#ifdef WIN32
+#include <windows.h>
+#endif
 
 #undef ERROR // undefine some windows garbage
 
@@ -42,6 +44,9 @@ class FAST_EXPORT  Reporter {
 
         // Variable to keep track of first <<
         bool mFirst;
+#ifdef WIN32
+        static WORD m_defaultAttributes;
+#endif
 };
 
 template <class T>
@@ -54,9 +59,19 @@ void Reporter::process(const T& content) {
             if(mType == INFO) {
                 std::cout << "INFO [" << std::this_thread::get_id() << "] ";
             } else if(mType == WARNING) {
+#ifdef WIN32
+                SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (m_defaultAttributes & 0x00F0) | FOREGROUND_INTENSITY);
+#else
+                std::cout << "\033[1m";
+#endif
                 std::cout << "WARNING [" << std::this_thread::get_id() << "] ";
             } else if(mType == ERROR) {
-                std::cout << "ERROR [" << std::this_thread::get_id() << "] ";
+#ifdef WIN32
+                SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (m_defaultAttributes & 0x00F0) | FOREGROUND_RED | FOREGROUND_INTENSITY);
+#else
+                std::cout << "\033[31;1m";
+#endif
+                std::cerr << "ERROR [" << std::this_thread::get_id() << "] ";
             }
         }
         mFirst = false;
@@ -79,5 +94,3 @@ template <>
 FAST_EXPORT Reporter operator<<(Reporter report, const ReporterEnd& end);
 
 } // end namespace fast
-
-#endif

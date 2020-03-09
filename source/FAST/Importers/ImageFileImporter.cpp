@@ -20,6 +20,8 @@ ImageFileImporter::ImageFileImporter() {
     mFilename = "";
     createOutputPort<Image>(0);
     setMainDevice(Host::getInstance()); // Default is to put image on host
+
+    createStringAttribute("filename", "Filename", "Filename", "");
 }
 
 inline bool matchExtension(std::string extension, std::string extension2) {
@@ -93,6 +95,10 @@ void ImageFileImporter::execute() {
         }
     }
 
+}
+
+void ImageFileImporter::loadAttributes() {
+    setFilename(getStringAttribute("filename"));
 }
 
 }

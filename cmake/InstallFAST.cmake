@@ -50,12 +50,7 @@ endif()
 
 # Install Qt plugins
 install(DIRECTORY ${PROJECT_BINARY_DIR}/plugins/
-    DESTINATION fast/QtPlugins/
-)
-
-# Install qt.conf
-install(FILES ${PROJECT_SOURCE_DIR}/cmake/InstallFiles/qt.conf
-    DESTINATION fast/bin
+    DESTINATION fast/plugins/
 )
 
 # Install qt moc
@@ -197,13 +192,20 @@ set(CONFIG_KERNEL_BINARY_PATH "KernelBinaryPath = @ROOT@/kernel_binaries/")
 set(CONFIG_DOCUMENTATION_PATH "DocumentationPath = @ROOT@/doc/")
 set(CONFIG_PIPELINE_PATH "PipelinePath = @ROOT@/pipelines/")
 set(CONFIG_TEST_DATA_PATH "TestDataPath = @ROOT@/data/")
+if(WIN32)
+		set(CONFIG_LIBRARY_PATH "LibraryPath = @ROOT@/bin/")
+else()
+		set(CONFIG_LIBRARY_PATH "LibraryPath = @ROOT@/lib/")
+endif()
+
+set(CONFIG_QT_PLUGINS_PATH "QtPluginsPath = @ROOT@/plugins/")
 configure_file(
     "${PROJECT_SOURCE_DIR}/source/fast_configuration.txt.in"
     "${PROJECT_BINARY_DIR}/fast_configuration_install.txt"
 )
 install(FILES ${PROJECT_BINARY_DIR}/fast_configuration_install.txt
     RENAME fast_configuration.txt
-    DESTINATION fast/
+    DESTINATION fast/bin/
 )
 
 # Install FAST license file
@@ -259,10 +261,19 @@ if(FAST_MODULE_TensorFlow)
         DESTINATION fast/licenses/tensorflow/
     )
 endif()
-if(FAST_MODULE_OpenVINO AND NOT WIN32)
+if(FAST_MODULE_OpenVINO)
 	install(FILES ${FAST_EXTERNAL_BUILD_DIR}/OpenVINO/src/OpenVINO/LICENSE
 		DESTINATION fast/licenses/openvino/
 	)
+	if(WIN32)
+		install(FILES ${PROJECT_BINARY_DIR}/bin/plugins.xml
+		  DESTINATION fast/bin/
+	  )
+	else()
+		install(FILES ${PROJECT_BINARY_DIR}/lib/plugins.xml
+			DESTINATION fast/lib/
+		)
+	endif()
 endif()
 
 if(FAST_MODULE_RealSense)
@@ -275,7 +286,7 @@ endif()
 
 if(FAST_MODULE_WholeSlideImaging AND WIN32)
     # Install openslide and related licences
-    install(DIRECTORY 
+    install(DIRECTORY
         ${FAST_EXTERNAL_BUILD_DIR}/openslide/src/openslide/licenses/
         DESTINATION fast/licenses/
     )

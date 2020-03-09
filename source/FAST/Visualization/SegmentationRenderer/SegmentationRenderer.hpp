@@ -18,6 +18,7 @@ class FAST_EXPORT  SegmentationRenderer : public ImageRenderer {
         void setFillArea(bool fillArea);
         void setBorderRadius(int radius);
         void setOpacity(float opacity);
+        void loadAttributes() override;
     private:
         SegmentationRenderer();
         void draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) override;

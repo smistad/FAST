@@ -20,7 +20,7 @@
 #include <QGLContext>
 
 
-class FAST_EXPORT  WindowWidget : public QWidget {
+class WindowWidget : public QWidget {
     Q_OBJECT
     public:
         WindowWidget() {

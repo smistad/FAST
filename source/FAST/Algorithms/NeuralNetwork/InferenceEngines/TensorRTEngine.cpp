@@ -213,6 +213,7 @@ void TensorRTEngine::load() {
         reportInfo() << "Loading file " << filename << " using TensorRT" << reportEnd();
         std::unique_ptr<nvinfer1::IBuilder, decltype(Destroy())> builder(nvinfer1::createInferBuilder(gLogger),
                                                                          Destroy());
+        const auto flags = 1U << static_cast<uint32_t>(nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
         std::unique_ptr<nvinfer1::INetworkDefinition, decltype(Destroy())> network(builder->createNetwork(), Destroy());
         std::unique_ptr<nvuffparser::IUffParser, decltype(Destroy())> parser(nvuffparser::createUffParser(), Destroy());
         reportInfo() << "Created builders and parsers" << reportEnd();
@@ -246,10 +247,12 @@ void TensorRTEngine::load() {
         reportInfo() << "Finished parsing UFF file" << reportEnd();
 
         builder->setMaxBatchSize(m_maxBatchSize);
-        builder->setMaxWorkspaceSize(m_maxWorkspaceSize);
         //builder->setFp16Mode(builder->platformHasFastFp16());
 
-        m_engine = builder->buildCudaEngine(*network);
+        std::unique_ptr<nvinfer1::IBuilderConfig, decltype(Destroy())> config(builder->createBuilderConfig(), Destroy());
+        config->setMaxWorkspaceSize(m_maxWorkspaceSize);
+
+        m_engine = builder->buildEngineWithConfig(*network, *config);
         if(!m_engine)
             throw Exception("Failed to build CUDA engine for TensorRT");
         reportInfo() << "Finished building CUDA engine for TensorRT" << reportEnd();

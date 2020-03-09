@@ -17,15 +17,32 @@ std::map<Reporter::Type, Reporter::Method> Reporter::mGlobalReporterMethods =
         {ERROR, COUT}
 };
 #endif
+#ifdef WIN32
+WORD Reporter::m_defaultAttributes = 0;
+#endif
 
 Reporter::Reporter(Type type) {
     mType = type;
     mFirst = true;
+#ifdef WIN32
+    if(m_defaultAttributes == 0) {
+        CONSOLE_SCREEN_BUFFER_INFO Info;
+        GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &Info);
+        m_defaultAttributes = Info.wAttributes;
+    }
+#endif
 }
 
 Reporter::Reporter() {
     mType = INFO;
     mFirst = true;
+#ifdef WIN32
+    if(m_defaultAttributes == 0) {
+        CONSOLE_SCREEN_BUFFER_INFO Info;
+        GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &Info);
+        m_defaultAttributes = Info.wAttributes;
+    }
+#endif
 }
 
 void Reporter::setType(Type type) {
@@ -47,7 +64,12 @@ Reporter Reporter::error() {
 void Reporter::processEnd() {
     mFirst = true;
     if(getMethod(mType) == COUT) {
+#if WIN32
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), m_defaultAttributes);
         std::cout << std::endl;
+#else
+        std::cout << "\033[0m" << std::endl; // Reset
+#endif
     } else if(getMethod(mType) == LOG) {
         // Not implemented yet
     }
