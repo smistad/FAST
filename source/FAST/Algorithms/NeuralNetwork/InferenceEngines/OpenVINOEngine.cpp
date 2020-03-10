@@ -58,7 +58,7 @@ void OpenVINOEngine::loadPlugin(std::string deviceName) {
     if(input_model.empty()) { // If filename is not set, load from memory instead
         // Read from memory
         std::string strModel(m_model.begin(), m_model.end());
-        m_inferenceCore->ReadNetwork(strModel, make_shared_blob<uint8_t>({Precision::U8, {m_weights.size()}, C}, m_weights.data()));
+        network = m_inferenceCore->ReadNetwork(strModel, make_shared_blob<uint8_t>({Precision::U8, {m_weights.size()}, C}, m_weights.data()));
     } else {
         // Read from file
         if (!fileExists(input_model))
