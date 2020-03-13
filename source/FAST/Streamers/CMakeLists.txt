@@ -20,6 +20,7 @@ if(FAST_MODULE_OpenIGTLink)
         Tests/DummyIGTLServer.cpp
         Tests/DummyIGTLServer.hpp
     )
+    fast_add_process_object(OpenIGTLinkStreamer OpenIGTLinkStreamer.hpp)
     if(FAST_MODULE_Visualization)
     fast_add_test_sources(
             Tests/OpenIGTLinkStreamerTests.cpp

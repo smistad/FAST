@@ -44,13 +44,7 @@ class FAST_EXPORT OpenIGTLinkStreamer : public Streamer {
         void generateStream() override;
 
         ~OpenIGTLinkStreamer();
-
-        // Signals
-        //boost::signals2::signal<void ()> connectionEstablishedSignal;
-        //boost::signals2::signal<void ()> connectionLostSignal;
-        // Ultrasound systems can freeze and thereby stop sending data, these signals are used for that
-        //boost::signals2::signal<void ()> freezeSignal;
-        //boost::signals2::signal<void ()> unfreezeSignal;
+        void loadAttributes() override;
     private:
         OpenIGTLinkStreamer();
 
