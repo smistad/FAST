@@ -10,6 +10,7 @@ class FAST_EXPORT  BinaryThresholding : public SegmentationAlgorithm {
     public:
         void setLowerThreshold(float threshold);
         void setUpperThreshold(float threshold);
+        void loadAttributes() override;
     private:
         BinaryThresholding();
         void execute();
