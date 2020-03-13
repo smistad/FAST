@@ -34,5 +34,16 @@ __kernel void WMAiteration(
     float newNumerator = oldMemory.y + frameCount*newValue - oldMemory.x;
 
     write_imagef(memoryOut, pos, (float4)(newTotal, newNumerator, 0, 0));
-    write_imagef(output, pos, newNumerator / (currentFrameCount*(currentFrameCount + 1.0f)/2.0f));
+
+    int dataType = get_image_channel_data_type(output);
+    if(dataType == CLK_FLOAT) {
+        write_imagef(output, pos, newNumerator / (currentFrameCount*(currentFrameCount + 1.0f)/2.0f));
+    } else {
+        // output image is of integer type, have to apply rounding
+        if(dataType == CLK_UNSIGNED_INT8 || dataType == CLK_UNSIGNED_INT16) {
+            write_imageui(output, pos, (uint)round(newNumerator / (currentFrameCount*(currentFrameCount + 1.0f)/2.0f)));
+        } else {
+            write_imagei(output, pos, (int)round(newNumerator / (currentFrameCount*(currentFrameCount + 1.0f)/2.0f)));
+        }
+    }
 }
