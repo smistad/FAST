@@ -10,7 +10,9 @@ ImageWeightedMovingAverage::ImageWeightedMovingAverage() {
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/TemporalSmoothing/ImageWeightedMovingAverage.cl");
 
     m_frameCount = 10;
+    m_keepDataType = false;
     createIntegerAttribute("frame-count", "Frame count", "Nr of frames to use in moving average", m_frameCount);
+    createBooleanAttribute("keep-datatype", "Keep data type", "Whether to keep data type of input image for output image, or use float instead", m_keepDataType);
 }
 
 void ImageWeightedMovingAverage::setFrameCount(int frameCount) {
@@ -19,8 +21,13 @@ void ImageWeightedMovingAverage::setFrameCount(int frameCount) {
     m_frameCount = frameCount;
 }
 
+void ImageWeightedMovingAverage::setKeepDataType(bool keep) {
+    m_keepDataType = keep;
+}
+
 void ImageWeightedMovingAverage::loadAttributes() {
     setFrameCount(getIntegerAttribute("frame-count"));
+    setKeepDataType(getBooleanAttribute("keep-datatype"));
 }
 
 void ImageWeightedMovingAverage::execute() {
@@ -30,6 +37,8 @@ void ImageWeightedMovingAverage::execute() {
 
     if(input->getDimensions() != 2)
         throw Exception("ImageWeightedMovingAverage only supports 2D atm");
+    if (input->getNrOfChannels() > 1)
+        reportWarning() << "ImageWeightedMovingAverage only supports single channel images" << reportEnd();
 
     if(!m_memory) {
         m_memory = Image::New();
@@ -42,7 +51,11 @@ void ImageWeightedMovingAverage::execute() {
     auto memoryOut = Image::New();
     memoryOut->createFromImage(m_memory);
 
-    output->create(input->getSize(), TYPE_FLOAT, 1);
+    if(m_keepDataType) {
+        output->create(input->getSize(), input->getDataType(), 1);
+    } else {
+        output->create(input->getSize(), TYPE_FLOAT, 1);
+    }
 
     auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     auto program = getOpenCLProgram(device);
