@@ -1,0 +1,12 @@
+PipelineName "OpenIGTLink streaming of images"
+PipelineDescription "Simple 2D image rendering of an OpenIGTLinkStream"
+
+ProcessObject streamer OpenIGTLinkStreamer
+Attribute address localhost
+
+Renderer renderer ImageRenderer
+Input 0 streamer 0
+
+View view renderer
+Attribute 2Dmode true
+Attribute background-color black

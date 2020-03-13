@@ -1,0 +1,23 @@
+PipelineName "2D Image renderer"
+PipelineDescription "Simple 2D image rendering"
+
+ProcessObject streamer ImageFileStreamer
+Attribute fileformat @@fileformat=$TEST_DATA_PATH$/US/Axillary/US-2D_#.mhd@@
+
+ProcessObject thresholding BinaryThresholding
+Attribute lower-threshold 100
+Input 0 streamer 0
+
+ProcessObject temporalSmoothing ImageWeightedMovingAverage
+Attribute frame-count 20
+Attribute keep-datatype true
+Input 0 thresholding 0
+
+Renderer renderer ImageRenderer
+Attribute level 0.5
+Attribute window 1
+Input 0 temporalSmoothing 0
+
+View view renderer
+Attribute 2Dmode true
+Attribute background-color black
