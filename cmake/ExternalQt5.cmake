@@ -5,7 +5,7 @@ include(cmake/Externals.cmake)
 # List of modules can be found in git repo here: github.com/qt/qt5
 set(MODULES_TO_EXCLUDE
         -skip qt3d
-        -skip qtactiveqt
+        #-skip qtactiveqt
         -skip qtandroidextras
         -skip qtcanvas3d
         -skip qtcharts
