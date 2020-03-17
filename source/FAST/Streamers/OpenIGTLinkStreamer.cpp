@@ -361,6 +361,11 @@ OpenIGTLinkStreamer::~OpenIGTLinkStreamer() {
     }
 }
 
+void OpenIGTLinkStreamer::loadAttributes() {
+    setConnectionAddress(getStringAttribute("address"));
+    setConnectionPort(getIntegerAttribute("port"));
+}
+
 OpenIGTLinkStreamer::OpenIGTLinkStreamer() {
     mIsModified = true;
     mNrOfFrames = 0;
@@ -368,6 +373,9 @@ OpenIGTLinkStreamer::OpenIGTLinkStreamer() {
     mPort = 18944;
     mMaximumNrOfFramesSet = false;
     mInFreezeMode = false;
+
+    createStringAttribute("address", "Connection address", "Connection address", mAddress);
+    createIntegerAttribute("port", "Connection port", "Connection port", mPort);
 }
 
 void OpenIGTLinkStreamer::execute() {

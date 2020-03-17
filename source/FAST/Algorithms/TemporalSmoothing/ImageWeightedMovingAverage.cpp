@@ -56,6 +56,8 @@ void ImageWeightedMovingAverage::execute() {
     } else {
         output->create(input->getSize(), TYPE_FLOAT, 1);
     }
+    SceneGraph::setParentNode(output, input);
+    output->setSpacing(input->getSpacing());
 
     auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     auto program = getOpenCLProgram(device);

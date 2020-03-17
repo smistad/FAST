@@ -1,5 +1,5 @@
 fast_add_subdirectories(
-    OpenIGTLinkClient
+    #OpenIGTLinkClient
     OpenIGTLinkServer
     Pipeline
     #viewer

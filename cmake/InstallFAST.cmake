@@ -58,6 +58,13 @@ install(FILES ${PROJECT_BINARY_DIR}/bin/moc${CMAKE_EXECUTABLE_SUFFIX}
     PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
     DESTINATION fast/bin
 )
+if(WIN32)
+		# Install qt idc https://doc.qt.io/qt-5/activeqt-idc.html
+		install(FILES ${PROJECT_BINARY_DIR}/bin/idc.exe
+		    PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
+		    DESTINATION fast/bin
+		)
+endif()
 
 # Install headers
 install(DIRECTORY ${FAST_SOURCE_DIR}
@@ -104,7 +111,11 @@ set(INCLUDE_FOLDERS
     QtWidgets
     QtXml
     QtZlib)
-if(NOT WIN32)
+if(WIN32)
+list(APPEND INCLUDE_FOLDERS
+    ActiveQt
+)
+else()
 list(APPEND INCLUDE_FOLDERS
     QtGlxSupport
 		QtServiceSupport

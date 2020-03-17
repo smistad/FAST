@@ -15,6 +15,15 @@ void BinaryThresholding::setUpperThreshold(float threshold) {
     mIsModified = true;
 }
 
+void BinaryThresholding::loadAttributes() {
+    auto lowerThreshold = getFloatAttribute("lower-threshold");
+    auto upperThreshold = getFloatAttribute("upper-threshold");
+    if(!std::isnan(lowerThreshold))
+        setLowerThreshold(lowerThreshold);
+    if(!std::isnan(upperThreshold))
+        setUpperThreshold(upperThreshold);
+}
+
 BinaryThresholding::BinaryThresholding() {
     mLowerThresholdSet = false;
     mUpperThresholdSet = false;
@@ -22,6 +31,9 @@ BinaryThresholding::BinaryThresholding() {
     createOutputPort<Segmentation>(0);
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/BinaryThresholding/BinaryThresholding3D.cl", "3D");
     createOpenCLProgram(Config::getKernelSourcePath() + "Algorithms/BinaryThresholding/BinaryThresholding2D.cl", "2D");
+
+    createFloatAttribute("lower-threshold", "Lower threshold", "Lower intensity threshold", std::nanf(""));
+    createFloatAttribute("upper-threshold", "Upper threshold", "Upper intensity threshold", std::nanf(""));
 }
 
 void BinaryThresholding::execute() {

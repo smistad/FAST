@@ -27,12 +27,11 @@ __kernel void WMAiteration(
     float newValue = getPixelAsFloat(input, pos);
     float2 oldMemory = read_imagef(memoryIn, sampler, pos).xy;
     float newTotal = oldMemory.x + newValue - getPixelAsFloat(last, pos);
+    float newNumerator = oldMemory.y + frameCount*newValue - oldMemory.x;
     if(frameCount >= currentFrameCount) {
         newTotal = oldMemory.x + newValue;
+        newNumerator = oldMemory.y + currentFrameCount*newValue;
     }
-
-    float newNumerator = oldMemory.y + frameCount*newValue - oldMemory.x;
-
     write_imagef(memoryOut, pos, (float4)(newTotal, newNumerator, 0, 0));
 
     int dataType = get_image_channel_data_type(output);
