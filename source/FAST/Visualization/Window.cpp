@@ -51,7 +51,6 @@ Window::Window() {
             windowScaling = 2;
             // 4K screens
             Reporter::info() << "Large screen detected with width: " << screenWidth << Reporter::end();
-			std::cout << "default font point size:" << defaultFont.pointSize();
             if(defaultFont.pointSize() <= 12)
                 mGUIScalingFactor = 1.75;
         } else {
@@ -333,6 +332,10 @@ void Window::saveScreenshotOnClose(std::string filename) {
 
 void Window::saveScreenshotOfViewsOnClose(std::string filename) {
     mWidget->saveScreenshotOfViewsOnClose(filename);
+}
+
+QWidget* Window::getWidget() {
+    return mWidget;
 }
 
 } // end namespace fast
