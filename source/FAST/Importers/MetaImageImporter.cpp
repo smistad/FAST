@@ -3,6 +3,7 @@
 #include "FAST/Data/Image.hpp"
 #include "FAST/Utility.hpp"
 #include <fstream>
+#include <set>
 
 #include <zlib.h>
 using namespace fast;
@@ -148,6 +149,13 @@ void MetaImageImporter::execute() {
     bool isCompressed = false;
     std::size_t compressedDataSize = 0;
     std::unordered_map<std::string, std::string> metadata;
+
+    // Blacklist of keys to avoid importing as metadata
+    std::set<std::string> blacklist = {
+        "NDims",
+        "ObjectType",
+        "BinaryData"
+    };
 
     do{
         std::getline(mhdFile, line);
@@ -324,7 +332,8 @@ void MetaImageImporter::execute() {
             timestamp = std::stoull(value);
         } else {
             // Unknown metadata, collect and add to image object
-            metadata[key] = value;
+            if(blacklist.count(key) == 0)
+                metadata[key] = value;
         }
 
     } while(!mhdFile.eof());
