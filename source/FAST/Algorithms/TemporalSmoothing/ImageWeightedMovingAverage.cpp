@@ -17,13 +17,14 @@ ImageWeightedMovingAverage::ImageWeightedMovingAverage() {
 
 void ImageWeightedMovingAverage::reset() {
     m_buffer.clear();
+    m_memory.reset();
 }
 
 void ImageWeightedMovingAverage::setFrameCount(int frameCount) {
     if(frameCount <= 0)
         throw Exception("Frame count must be > 0");
     m_frameCount = frameCount;
-    m_buffer.clear();
+    reset();
 }
 
 void ImageWeightedMovingAverage::setKeepDataType(bool keep) {
@@ -67,6 +68,32 @@ void ImageWeightedMovingAverage::execute() {
     auto device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
     auto program = getOpenCLProgram(device);
 
+    if(m_buffer.size() <= m_frameCount) {
+        while(m_buffer.size() <= m_frameCount) // Initialization, fill up buffer
+            m_buffer.push_back(input);
+
+        // Run initialization kernel
+        cl::Kernel kernel(program, "WMAinitialize");
+        auto inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
+        auto outputAccess = output->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+        auto memoryAccess = m_memory->getOpenCLImageAccess(ACCESS_READ_WRITE, device);
+
+        kernel.setArg(0, *inputAccess->get2DImage());
+        kernel.setArg(1, *outputAccess->get2DImage());
+        kernel.setArg(2, *memoryAccess->get2DImage());
+        kernel.setArg(3, m_frameCount);
+
+        device->getCommandQueue().enqueueNDRangeKernel(
+            kernel,
+            cl::NullRange,
+            cl::NDRange(input->getWidth(), input->getHeight()),
+            cl::NullRange
+        );
+
+        m_buffer.pop_front();
+
+        return;
+    }
     auto last = m_buffer.front();
 
     auto inputAccess = input->getOpenCLImageAccess(ACCESS_READ, device);
@@ -81,8 +108,7 @@ void ImageWeightedMovingAverage::execute() {
     kernel.setArg(2, *lastAccess->get2DImage());
     kernel.setArg(3, *outputAccess->get2DImage());
     kernel.setArg(4, *memoryOutAccess->get2DImage());
-    kernel.setArg(5, (int)m_buffer.size());
-    kernel.setArg(6, (int)m_frameCount);
+    kernel.setArg(5, m_frameCount);
 
     device->getCommandQueue().enqueueNDRangeKernel(
             kernel,
@@ -91,9 +117,7 @@ void ImageWeightedMovingAverage::execute() {
             cl::NullRange
     );
 
-    if(m_buffer.size() > m_frameCount)
-        m_buffer.pop_front();
-
+    m_buffer.pop_front();
     m_memory = memoryOut;
 }
 

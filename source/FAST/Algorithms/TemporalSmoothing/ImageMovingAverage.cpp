@@ -17,13 +17,14 @@ ImageMovingAverage::ImageMovingAverage() {
 
 void ImageMovingAverage::reset() {
     m_buffer.clear();
+    m_memory.reset();
 }
 
 void ImageMovingAverage::setFrameCount(int frameCount) {
     if(frameCount <= 0)
         throw Exception("Frame count must be > 0");
     m_frameCount = frameCount;
-    m_buffer.clear();
+    reset();
 }
 
 void ImageMovingAverage::setKeepDataType(bool keep) {
