@@ -60,7 +60,7 @@ void Reporter::process(const T& content) {
                 std::cout << "INFO [" << std::this_thread::get_id() << "] ";
             } else if(mType == WARNING) {
 #ifdef WIN32
-                SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (m_defaultAttributes & 0x00F0) | FOREGROUND_INTENSITY);
+                SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (m_defaultAttributes & 0x00F0) | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
 #else
                 std::cout << "\033[1m";
 #endif
