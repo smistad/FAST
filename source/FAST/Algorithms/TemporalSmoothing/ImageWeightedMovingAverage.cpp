@@ -15,10 +15,15 @@ ImageWeightedMovingAverage::ImageWeightedMovingAverage() {
     createBooleanAttribute("keep-datatype", "Keep data type", "Whether to keep data type of input image for output image, or use float instead", m_keepDataType);
 }
 
+void ImageWeightedMovingAverage::reset() {
+    m_buffer.clear();
+}
+
 void ImageWeightedMovingAverage::setFrameCount(int frameCount) {
     if(frameCount <= 0)
         throw Exception("Frame count must be > 0");
     m_frameCount = frameCount;
+    m_buffer.clear();
 }
 
 void ImageWeightedMovingAverage::setKeepDataType(bool keep) {
@@ -33,7 +38,7 @@ void ImageWeightedMovingAverage::loadAttributes() {
 void ImageWeightedMovingAverage::execute() {
     auto input = getInputData<Image>(0);
     auto output = getOutputData<Image>(0);
-    m_buffer.push(input);
+    m_buffer.push_back(input);
 
     if(input->getDimensions() != 2)
         throw Exception("ImageWeightedMovingAverage only supports 2D atm");
@@ -87,7 +92,7 @@ void ImageWeightedMovingAverage::execute() {
     );
 
     if(m_buffer.size() > m_frameCount)
-        m_buffer.pop();
+        m_buffer.pop_front();
 
     m_memory = memoryOut;
 }

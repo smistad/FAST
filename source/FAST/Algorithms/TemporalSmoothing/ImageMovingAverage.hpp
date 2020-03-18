@@ -7,14 +7,14 @@ namespace fast {
 
 class Image;
 
-class FAST_EXPORT ImageWeightedMovingAverage : public ProcessObject {
-    FAST_OBJECT(ImageWeightedMovingAverage)
+class FAST_EXPORT ImageMovingAverage : public ProcessObject {
+    FAST_OBJECT(ImageMovingAverage)
     public:
         void setFrameCount(int frameCount);
         void setKeepDataType(bool keep);
         void reset();
     protected:
-        ImageWeightedMovingAverage();
+        ImageMovingAverage();
         void execute() override;
         void loadAttributes() override;
 
