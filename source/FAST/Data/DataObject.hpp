@@ -18,6 +18,7 @@ class FAST_EXPORT  DataObject : public Object {
         void setMetadata(std::unordered_map<std::string, std::string> metadata);
         std::string getMetadata(std::string name) const;
         std::unordered_map<std::string, std::string> getMetadata() const;
+        void deleteMetadata(std::string name);
         uint64_t getTimestamp() const;
         void updateModifiedTimestamp();
         virtual ~DataObject() { };

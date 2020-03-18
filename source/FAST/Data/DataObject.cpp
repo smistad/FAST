@@ -74,6 +74,10 @@ void DataObject::setMetadata(std::unordered_map<std::string, std::string> metada
     mMetadata = metadata;
 }
 
+void DataObject::deleteMetadata(std::string name) {
+    mMetadata.erase(name);
+}
+
 void DataObject::setLastFrame(std::string streamer) {
     m_lastFrame.insert(streamer);
 }
