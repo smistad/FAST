@@ -10,7 +10,6 @@
 #include <QApplication>
 #include <QShortcut>
 #include <FAST/Utility.hpp>
-#include <QTimer>
 
 namespace fast {
 
@@ -30,13 +29,10 @@ PipelineEditor::PipelineEditor(std::string filename) {
 
     const QFont fixedFont("UbuntuMono");
     mEditor = new QTextEdit();
-    mEditor->setStyleSheet("QTextEdit { background-color: #1f1f1f; color: #dddddd; }");
-    mEditor->insertHtml(replace(text, "\n", "<br>").c_str());
+    highlighter = new PipelineHighlighter(mEditor->document());
+    mEditor->setStyleSheet("QTextEdit { background-color: #1e1e1e; color: #dadada; }");
+    mEditor->insertPlainText(text.c_str());
     mEditor->setFont(fixedFont);
-    auto timer = new QTimer(this);
-    timer->setInterval(1000);
-    timer->setSingleShot(false);
-    //connect(timer, &QTimer::timeout, this, &PipelineEditor::syntaxHighlightUpdate);
     layout->addWidget(mEditor);
 
     QHBoxLayout* buttonLayout = new QHBoxLayout();
@@ -73,49 +69,59 @@ PipelineEditor::PipelineEditor(std::string filename) {
     QObject::connect(saveShortcut, &QShortcut::activated, std::bind(&PipelineEditor::save, this));
     QShortcut* closeShortcut = new QShortcut(QKeySequence("Ctrl+Q"), this);
     QObject::connect(closeShortcut, &QShortcut::activated, this, &QWidget::close);
-    //timer->start();
-}
-
-void PipelineEditor::syntaxHighlightUpdate() {
-    if(m_memory == mEditor->toHtml().toStdString()) // Nothing has changed
-        return;
-    QString s = mEditor->toPlainText().toUtf8();
-    s = s.replace("<br>", "\n");
-    s = s.remove(QRegExp("<[^>]*>"));
-    const std::string text = s.toStdString();
-    std::string newText = "";
-    auto lines = split(text, "\n", false);
-    std::cout << "Found " << lines.size() << " lines" << std::endl;
-    for(auto line : lines) {
-        std::cout << line << std::endl;
-        auto pos = line.find(' ');
-        if(pos != std::string::npos) {
-            auto firstWord = line.substr(0, pos);
-            std::cout << firstWord << std::endl;
-            if(firstWord == "ProcessObject" || firstWord == "Renderer") {
-                newText += "<b>" + firstWord + "</b> " + line.substr(pos + 1) + "<br>";
-            } else {
-                newText += line + "<br>";
-            }
-        } else {
-            newText += line + "<br>";
-        }
-    }
-    std::cout << newText << std::endl;
-    mEditor->setHtml(newText.c_str());
-    m_memory = mEditor->toHtml().toStdString();
 }
 
 void PipelineEditor::save() {
     std::ofstream file(mFilename);
     QString s = mEditor->toPlainText().toUtf8();
-    s = s.replace("<br>", "\n");
-    s = s.remove(QRegExp("<[^>]*>"));
     std::string text = s.toStdString();
     file << text;
     file.close();
     emit saved();
 }
 
+PipelineHighlighter::PipelineHighlighter(QTextDocument* parent)
+    : QSyntaxHighlighter(parent) {
+    HighlightingRule rule;
+
+    keywordFormat.setForeground(QColor("#d8a0df"));
+    keywordFormat.setFontWeight(QFont::Bold);
+    const QString keywordPatterns[] = {
+        QStringLiteral("\\bProcessObject\\b"),
+        QStringLiteral("\\bRenderer\\b"),
+        QStringLiteral("\\bInput\\b"),
+        QStringLiteral("\\bAttribute\\b"),
+        QStringLiteral("\\bView\\b"),
+        QStringLiteral("\\bPipelineName\\b"),
+        QStringLiteral("\\bPipelineDescription\\b"),
+    };
+    for(const QString& pattern : keywordPatterns) {
+        rule.pattern = QRegularExpression(pattern);
+        rule.format = keywordFormat;
+        highlightingRules.append(rule);
+    }
+
+    quotationFormat.setForeground(QColor("#d69d85"));
+    rule.pattern = QRegularExpression(QStringLiteral("\".*\""));
+    rule.format = quotationFormat;
+    highlightingRules.append(rule);
+
+    // Testasd
+    singleLineCommentFormat.setForeground(QColor("#57a64a"));
+    singleLineCommentFormat.setFontItalic(true);
+    rule.pattern = QRegularExpression(QStringLiteral("#[^\n]*"));
+    rule.format = singleLineCommentFormat;
+    highlightingRules.append(rule);
+}
+
+void PipelineHighlighter::highlightBlock(const QString& text) {
+    for(const HighlightingRule& rule : qAsConst(highlightingRules)) {
+        QRegularExpressionMatchIterator matchIterator = rule.pattern.globalMatch(text);
+        while(matchIterator.hasNext()) {
+            QRegularExpressionMatch match = matchIterator.next();
+            setFormat(match.capturedStart(), match.capturedLength(), rule.format);
+        }
+    }
+}
 
 }
