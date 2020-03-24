@@ -517,7 +517,8 @@ void View::initializeGL() {
     // Disable synchronized rendering here to avoid blocking in renderer
     for(int i = 0; i < renderers.size(); i++) {
         renderers[i]->setSynchronizedRendering(false);
-        renderers[i]->update();
+        if(!renderers[i]->isDisabled())
+            renderers[i]->update();
         renderers[i]->setSynchronizedRendering(true);
     }
     if(renderers.empty())
