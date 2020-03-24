@@ -115,7 +115,7 @@ FAST_EXPORT std::string getCLErrorString(cl_int err);
  * @param delimiter string
  * @return vector of strings
  */
-FAST_EXPORT std::vector<std::string> split(const std::string input, const std::string& delimiter = " ");
+FAST_EXPORT std::vector<std::string> split(const std::string input, const std::string& delimiter = " ", float removeEmpty = true);
 
 // trim from start (in place)
 static inline void ltrim(std::string &s) {

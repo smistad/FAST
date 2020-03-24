@@ -557,7 +557,7 @@ std::string replace(std::string str, std::string find, std::string replacement) 
     return str;
 }
 
-std::vector<std::string> split(const std::string input, const std::string& delimiter) {
+std::vector<std::string> split(const std::string input, const std::string& delimiter, float removeEmpty) {
     std::vector<std::string> parts;
     int startPos = 0;
     while(true) {
@@ -567,8 +567,11 @@ std::vector<std::string> split(const std::string input, const std::string& delim
             break;
         }
 
-        if(pos - startPos > 0)
+        if(pos - startPos > 0) {
             parts.push_back(input.substr(startPos, pos - startPos));
+        } else if(!removeEmpty) {
+            parts.push_back("");
+        }
         startPos = pos + delimiter.length();
     }
 
@@ -713,6 +716,8 @@ static bool compare_nocase (const std::string& first, const std::string& second)
 }
 
 std::vector<std::string> getDirectoryList(std::string path, bool getFiles, bool getDirectories) {
+    if(path[path.size() - 1] != '/')
+        path += '/';
     if(!getFiles && !getDirectories)
         throw Exception("getFiles and getDirectories set to false in getDirectoryList");
     std::vector<std::string> list;
