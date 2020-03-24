@@ -17,6 +17,9 @@ class FAST_EXPORT PipelineEditor : public QWidget {
     private:
         std::string mFilename;
         QTextEdit* mEditor;
+        std::string m_memory;
+    public slots:
+        void syntaxHighlightUpdate();
     signals:
         /**
          * A signal which is emitted when pipeline file was saved.

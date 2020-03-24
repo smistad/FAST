@@ -16,6 +16,7 @@ class FAST_EXPORT  Pipeline : public Object {
     public:
         Pipeline(std::string filename, std::map<std::string, std::string> variables = {{}});
         std::vector<View*> getViews();
+        std::vector<SharedPointer<Renderer>> getRenderers();
         std::unordered_map<std::string, SharedPointer<ProcessObject>> getProcessObjects();
         std::string getName() const;
         std::string getDescription() const;
@@ -23,7 +24,7 @@ class FAST_EXPORT  Pipeline : public Object {
         /**
          * Parse the pipeline file
          */
-        void parsePipelineFile();
+        void parsePipelineFile(std::unordered_map<std::string, SharedPointer<ProcessObject>> processObjects = {});
 
     private:
         std::string mName;
@@ -50,7 +51,7 @@ class FAST_EXPORT  Pipeline : public Object {
  * Retrieve a list of all pipelines stored in .fpl files in the specified pipeline directory
  * @return
  */
-FAST_EXPORT std::vector<Pipeline> getAvailablePipelines();
+FAST_EXPORT std::vector<Pipeline> getAvailablePipelines(std::string path = "");
 
 class FAST_EXPORT  PipelineWidget : public QToolBox {
     public:

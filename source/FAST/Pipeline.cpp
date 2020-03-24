@@ -25,6 +25,23 @@ Pipeline::Pipeline(std::string filename, std::map<std::string, std::string> argu
         std::string line;
         std::getline(file, line);
         line = replace(line, "$TEST_DATA_PATH$", Config::getTestDataPath());
+
+        trim(line);
+        if(line.empty() || line[0] == '#')
+            continue;
+
+        // Get name and description
+        auto key = line.substr(0, line.find(' '));
+        auto value = line.substr(line.find(' ') + 1);
+        trim(value);
+        if(key == "PipelineName") {
+            value = replace(value, "\"", "");
+            mName = value;
+        } else if(key == "PipelineDescription") {
+            value = replace(value, "\"", "");
+            mDescription = value;
+        }
+
         // TODO check for @@ variables
         std::size_t foundStart = line.find("@@");
         while(foundStart != std::string::npos) {
@@ -179,10 +196,10 @@ void Pipeline::parseProcessObject(
     }
 }
 
-void Pipeline::parsePipelineFile() {
+void Pipeline::parsePipelineFile(std::unordered_map<std::string, SharedPointer<ProcessObject>> processObjects) {
     // Parse file again, retrieve process objects, set attributes and create the pipeline
 
-    mProcessObjects.clear();
+    mProcessObjects = processObjects;
     mRenderers.clear();
     m_views.clear();
 
@@ -252,6 +269,14 @@ std::vector<View*> Pipeline::getViews() {
     return views;
 }
 
+std::vector<SharedPointer<Renderer>> Pipeline::getRenderers() {
+    std::vector<SharedPointer<Renderer>> result;
+    for(auto&& rendererName : mRenderers)
+        result.push_back(std::dynamic_pointer_cast<Renderer>(mProcessObjects[rendererName]));
+
+    return result;
+}
+
 std::string Pipeline::getName() const {
     return mName;
 }
@@ -264,48 +289,23 @@ std::string Pipeline::getFilename() const {
     return mFilename;
 }
 
-std::vector<Pipeline> getAvailablePipelines() {
+std::vector<Pipeline> getAvailablePipelines(std::string path) {
     std::vector<Pipeline> pipelines;
-    std::string path = Config::getPipelinePath();
+    if(path.empty())
+        path = Config::getPipelinePath();
     if(!QDir(path.c_str()).exists())
         throw Exception("Pipeline path " + path + " does not exist");
     // List all files in this directory ending with .fpl
     QDirIterator it(path.c_str(), QStringList() << "*.fpl", QDir::Files, QDirIterator::Subdirectories);
     while(it.hasNext()) {
-		std::string filename = it.next().toUtf8().constData();
-        std::ifstream file(filename);
-		if (!file.is_open()) {
-			throw Exception("Unable to open file " + filename);
-		}
+		std::string filepath = it.next().toUtf8().constData();
 
-        std::string name = "";
-        std::string description = "";
-        std::string line = "";
-        std::getline(file, line);
-        while(!file.eof()) {
-            trim(line);
-            int spacePos = line.find(" ");
-            std::string key = line.substr(0, spacePos);
-            if(key == "PipelineName") {
-                name = line.substr(spacePos + 1);
-                name = replace(name, "\"", " ");
-                trim(name);
-            } else if(key == "PipelineDescription") {
-                description = line.substr(spacePos + 1);
-                description = replace(description, "\"", " ");
-                trim(description);
-            }
-            if(name.size() > 0 && description.size() > 0) {
-                pipelines.push_back(Pipeline(filename));
-                break;
-            }
-            std::getline(file, line);
+        try {
+            Pipeline pipeline(filepath);
+            pipelines.push_back(pipeline);
+        } catch(Exception & e) {
+            continue;
         }
-        if(name.size() == 0 || description.size() == 0) {
-            throw Exception("Pipeline name and description not found in file " + filename);
-        }
-
-        file.close();
     }
     return pipelines;
 }

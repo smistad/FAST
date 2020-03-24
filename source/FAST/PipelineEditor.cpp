@@ -9,6 +9,8 @@
 #include <QScreen>
 #include <QApplication>
 #include <QShortcut>
+#include <FAST/Utility.hpp>
+#include <QTimer>
 
 namespace fast {
 
@@ -26,10 +28,15 @@ PipelineEditor::PipelineEditor(std::string filename) {
 
     QVBoxLayout* layout = new QVBoxLayout(this);
 
-    const QFont fixedFont = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+    const QFont fixedFont("UbuntuMono");
     mEditor = new QTextEdit();
-    mEditor->insertPlainText(text.c_str());
+    mEditor->setStyleSheet("QTextEdit { background-color: #1f1f1f; color: #dddddd; }");
+    mEditor->insertHtml(replace(text, "\n", "<br>").c_str());
     mEditor->setFont(fixedFont);
+    auto timer = new QTimer(this);
+    timer->setInterval(1000);
+    timer->setSingleShot(false);
+    //connect(timer, &QTimer::timeout, this, &PipelineEditor::syntaxHighlightUpdate);
     layout->addWidget(mEditor);
 
     QHBoxLayout* buttonLayout = new QHBoxLayout();
@@ -66,11 +73,45 @@ PipelineEditor::PipelineEditor(std::string filename) {
     QObject::connect(saveShortcut, &QShortcut::activated, std::bind(&PipelineEditor::save, this));
     QShortcut* closeShortcut = new QShortcut(QKeySequence("Ctrl+Q"), this);
     QObject::connect(closeShortcut, &QShortcut::activated, this, &QWidget::close);
+    //timer->start();
+}
+
+void PipelineEditor::syntaxHighlightUpdate() {
+    if(m_memory == mEditor->toHtml().toStdString()) // Nothing has changed
+        return;
+    QString s = mEditor->toPlainText().toUtf8();
+    s = s.replace("<br>", "\n");
+    s = s.remove(QRegExp("<[^>]*>"));
+    const std::string text = s.toStdString();
+    std::string newText = "";
+    auto lines = split(text, "\n", false);
+    std::cout << "Found " << lines.size() << " lines" << std::endl;
+    for(auto line : lines) {
+        std::cout << line << std::endl;
+        auto pos = line.find(' ');
+        if(pos != std::string::npos) {
+            auto firstWord = line.substr(0, pos);
+            std::cout << firstWord << std::endl;
+            if(firstWord == "ProcessObject" || firstWord == "Renderer") {
+                newText += "<b>" + firstWord + "</b> " + line.substr(pos + 1) + "<br>";
+            } else {
+                newText += line + "<br>";
+            }
+        } else {
+            newText += line + "<br>";
+        }
+    }
+    std::cout << newText << std::endl;
+    mEditor->setHtml(newText.c_str());
+    m_memory = mEditor->toHtml().toStdString();
 }
 
 void PipelineEditor::save() {
     std::ofstream file(mFilename);
-    std::string text = std::string(mEditor->toPlainText().toUtf8());
+    QString s = mEditor->toPlainText().toUtf8();
+    s = s.replace("<br>", "\n");
+    s = s.remove(QRegExp("<[^>]*>"));
+    std::string text = s.toStdString();
     file << text;
     file.close();
     emit saved();
