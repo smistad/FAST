@@ -21,6 +21,7 @@ class FAST_EXPORT ClariusStreamer : public Streamer {
 		void toggleFreeze();
 		void increaseDepth();
 		void decreaseDepth();
+        void loadAttributes() override;
 	private:
         ClariusStreamer();
         void execute();

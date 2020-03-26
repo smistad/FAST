@@ -13,6 +13,16 @@ ClariusStreamer::ClariusStreamer() {
     mStreamIsStarted = false;
     mIsModified = true;
     mGrayscale = true;
+
+    createStringAttribute("ip", "IP address", "IP address of Clarius device to connect to", mIPAddress);
+    createIntegerAttribute("port", "Port number", "Port number of Clarius device to connect to", mPort);
+    createBooleanAttribute("grayscale", "Grayscale", "Convert input image to grayscale", mGrayscale);
+}
+
+void ClariusStreamer::loadAttributes() {
+    mIPAddress = getStringAttribute("ip");
+    mPort = getIntegerAttribute("port");
+    mGrayscale = getBooleanAttribute("grayscale");
 }
 
 void ClariusStreamer::execute() {

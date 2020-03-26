@@ -51,6 +51,7 @@ if(FAST_MODULE_Clarius)
         ClariusStreamer.cpp
         ClariusStreamer.hpp
     )
+    fast_add_process_object(ClariusStreamer ClariusStreamer.hpp)
 endif()
 if(FAST_MODULE_HDF5)
     fast_add_sources(
