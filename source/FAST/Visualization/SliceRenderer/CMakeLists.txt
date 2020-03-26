@@ -8,3 +8,4 @@ fast_add_test_sources(
 fast_add_python_interfaces(
 	SliceRenderer.i
 )
+fast_add_process_object(SliceRenderer SliceRenderer.hpp)
