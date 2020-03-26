@@ -69,8 +69,11 @@ QGLFormat View::getGLFormat() {
 View::View() {
     createInputPort<Camera>(0, false);
 
+    m_zoom = 1.0f;
+
     createBooleanAttribute("2Dmode", "2D mode", "Switch the view mode between 3D and 2D", false);
     createStringAttribute("background-color", "Background color", "Set the background color of the view", "white");
+    createFloatAttribute("zoom", "Zoom level", "Zoom level", m_zoom);
 
     mBackgroundColor = Color::White();
     zNear = 0.1;
@@ -106,6 +109,7 @@ void View::loadAttributes() {
         set3DMode();
     }
     setBackgroundColor(Color::fromString(getStringAttribute("background-color")));
+    setZoom(getFloatAttribute("zoom"));
 }
 
 void View::setCameraInputConnection(DataChannel::pointer port) {
@@ -372,10 +376,10 @@ void View::recalculateCamera() {
         } else {
             scalingHeight = orthoAspect / aspect;
         }
-        mLeft = min[xDirection] * scalingWidth;
-        mRight = max[xDirection] * scalingWidth;
-        mBottom = min[yDirection] * scalingHeight;
-        mTop = max[yDirection] * scalingHeight;
+        mLeft = (min[xDirection] / m_zoom) * scalingWidth;
+        mRight = (max[xDirection] / m_zoom) * scalingWidth;
+        mBottom = (min[yDirection] / m_zoom) * scalingHeight;
+        mTop = (max[yDirection] / m_zoom) * scalingHeight;
 
         mCameraPosition[0] = mLeft + (mRight - mLeft) * 0.5f - centroid[0]; // center camera
         mCameraPosition[1] = mBottom + (mTop - mBottom) * 0.5f - centroid[1]; // center camera
@@ -477,8 +481,7 @@ void View::recalculateCamera() {
         float z_height = (max[yDirection] - min[yDirection]) * 0.5
                          / tan(fieldOfViewY * 0.5);
         //reportInfo() << "asd: " << z_width << " " << z_height << Reporter::end();
-        float minimumTranslationToSeeEntireObject = (
-                z_width < z_height ? z_height : z_width);
+        float minimumTranslationToSeeEntireObject = (z_width < z_height ? z_height : z_width) / m_zoom;
         float boundingBoxDepth = (max[zDirection] - min[zDirection]);
         //reportInfo() << "minimum translation to see entire object: " << minimumTranslationToSeeEntireObject  << Reporter::end();
         //reportInfo() << "half depth of bounding box " << boundingBoxDepth*0.5 << Reporter::end();
@@ -819,6 +822,24 @@ Matrix4f View::getViewMatrix() const {
 
 Matrix4f View::getPerspectiveMatrix() const {
     return mPerspectiveMatrix;
+}
+
+void View::setZoom(float zoom) {
+    if(zoom < 0.0f)
+        throw Exception("Zoom level must be larger than 0");
+    m_zoom = zoom; // This value will be used on startup/initialization of camera
+    // If view is running we should also change current values:
+    if(mIsIn2DMode) {
+        mLeft = mLeft / zoom;
+        mRight = mRight / zoom;
+        mTop = mTop / zoom;
+        mBottom = mBottom / zoom;
+        mPerspectiveMatrix = loadOrthographicMatrix(mLeft, mRight, mBottom, mTop, zNear, zFar);
+    } else {
+        float diff = mCameraPosition[2] - mCameraPosition[2] / zoom;
+        mCameraPosition[2] = mCameraPosition[2] / zoom;
+        m3DViewingTransformation.pretranslate(Vector3f(0, 0, diff));
+    }
 }
 
 } // end namespace fast
