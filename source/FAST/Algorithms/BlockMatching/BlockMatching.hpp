@@ -59,6 +59,11 @@ class FAST_EXPORT BlockMatching : public ProcessObject {
          * @param timeLag
          */
         void setTimeLag(int timeLag);
+        /**
+         * Set whether to use forward-backward tracking or not. Disabled by default.
+         * @param forwardBackward
+         */
+        void setForwardBackwardTracking(bool forwardBackward);
         void loadAttributes() override;
     private:
         BlockMatching();
@@ -69,6 +74,7 @@ class FAST_EXPORT BlockMatching : public ProcessObject {
         int m_searchSizeHalf = 5;
         float m_intensityThreshold = std::numeric_limits<float>::min();
         int m_timeLag = 1;
+        bool m_forwardBackward = false;
         std::deque<SharedPointer<Image>> m_frameBuffer;
 
 };

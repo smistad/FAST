@@ -9,6 +9,7 @@ void BlockMatching::loadAttributes() {
     setIntensityThreshold(getFloatAttribute("intensity-threshold"));
     setMatchingMetric(BlockMatching::stringToMetric(getStringAttribute("metric")));
     setTimeLag(getIntegerAttribute("time-lag"));
+    setForwardBackwardTracking(getBooleanAttribute("forward-backward"));
 }
 
 BlockMatching::BlockMatching() {
@@ -22,6 +23,7 @@ BlockMatching::BlockMatching() {
     createIntegerAttribute("time-lag", "Time lag", "Time lag", m_timeLag);
     createFloatAttribute("intensity-threshold", "Intensity threshold", "Pixels with an intensity below this threshold will not be processed", m_intensityThreshold);
     createStringAttribute("metric", "Matching metric", "Possible values are SSD, SAD, and NCC", "SAD");
+    createBooleanAttribute("forward-backward", "Forward-backward tracking", "Do tracking forward and backwards and take the average.", m_forwardBackward);
 }
 
 void BlockMatching::execute() {
@@ -59,8 +61,8 @@ void BlockMatching::execute() {
     if(m_type == MatchingMetric::SUM_OF_SQUARED_DIFFERENCES || m_type == MatchingMetric::SUM_OF_ABSOLUTE_DIFFERENCES) {
         float max = currentFrame->calculateMaximumIntensity();
         float min = currentFrame->calculateMinimumIntensity();
-        kernel.setArg(5, min);
-        kernel.setArg(6, max);
+        kernel.setArg(6, min);
+        kernel.setArg(7, max);
     }
 
     auto previousFrame = m_frameBuffer.front();
@@ -73,6 +75,7 @@ void BlockMatching::execute() {
     kernel.setArg(2, *outputAccess->get2DImage());
     kernel.setArg(3, m_intensityThreshold);
     kernel.setArg(4, (float)m_timeLag);
+    kernel.setArg(5, (char)(m_forwardBackward ? 1 : 0));
 
     queue.enqueueNDRangeKernel(
         kernel,
@@ -112,6 +115,10 @@ void BlockMatching::setTimeLag(int timeLag) {
         throw Exception("Time lag must be >= 1");
 
     m_timeLag = timeLag;
+}
+
+void BlockMatching::setForwardBackwardTracking(bool forwardBackward) {
+    m_forwardBackward = forwardBackward;
 }
 
 }
