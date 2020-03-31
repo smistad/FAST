@@ -50,7 +50,8 @@ __kernel void normalizedCrossCorrelation(
         __read_only image2d_t previousFrame,
         __read_only image2d_t currentFrame,
         __write_only image2d_t output,
-        __private const float intensityThreshold
+        __private const float intensityThreshold,
+        __private const float timeLag
     ) {
     const int2 pos = {get_global_id(0), get_global_id(1)};
 
@@ -102,7 +103,7 @@ __kernel void normalizedCrossCorrelation(
         return;
     }
 
-    write_imagef(output, pos, subpixel_movement.xyyy);
+    write_imagef(output, pos, subpixel_movement.xyyy / timeLag);
 }
 
 __kernel void sumOfSquaredDifferences(
@@ -110,6 +111,7 @@ __kernel void sumOfSquaredDifferences(
         __read_only image2d_t currentFrame,
         __write_only image2d_t output,
         __private const float intensityThreshold,
+        __private const float timeLag,
         __private const float minIntensity,
         __private const float maxIntensity
 ) {
@@ -159,7 +161,7 @@ __kernel void sumOfSquaredDifferences(
         return;
     }
 
-    write_imagef(output, pos, subpixel_movement.xyyy);
+    write_imagef(output, pos, subpixel_movement.xyyy / timeLag);
 }
 
 
@@ -168,6 +170,7 @@ __kernel void sumOfAbsoluteDifferences(
         __read_only image2d_t currentFrame,
         __write_only image2d_t output,
         __private const float intensityThreshold,
+        __private const float timeLag,
         __private const float minIntensity,
         __private const float maxIntensity
 ) {
@@ -216,5 +219,5 @@ __kernel void sumOfAbsoluteDifferences(
         return;
     }
 
-    write_imagef(output, pos, subpixel_movement.xyyy);
+    write_imagef(output, pos, subpixel_movement.xyyy / timeLag);
 }

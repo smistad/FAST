@@ -1,6 +1,7 @@
 #pragma once
 
 #include <FAST/ProcessObject.hpp>
+#include <deque>
 
 namespace fast {
 
@@ -53,15 +54,22 @@ class FAST_EXPORT BlockMatching : public ProcessObject {
          * @param value
          */
         void setIntensityThreshold(float value);
+        /**
+         * Set time lag of block matching. A time lag of 2 will use frame t, and t-2 for block matching. Default is 1
+         * @param timeLag
+         */
+        void setTimeLag(int timeLag);
+        void loadAttributes() override;
     private:
         BlockMatching();
         void execute() override;
 
-        SharedPointer<Image> m_previousFrame;
         MatchingMetric m_type = MatchingMetric::SUM_OF_ABSOLUTE_DIFFERENCES;
         int m_blockSizeHalf = 5;
         int m_searchSizeHalf = 5;
         float m_intensityThreshold = std::numeric_limits<float>::min();
+        int m_timeLag = 1;
+        std::deque<SharedPointer<Image>> m_frameBuffer;
 
 };
 
