@@ -106,15 +106,14 @@ __kernel void normalizedCrossCorrelation(
     }
 
     float2 movement = findMovementNCC(previousFrame, currentFrame, pos, targetMean);
-    if(forwardBackward == 1)
-      movement = (movement - findMovementNCC(currentFrame, previousFrame, pos, targetMean))*0.5f;
+    if(forwardBackward == 1) {
+      const float targetMean2 = calculateMeanIntensity(previousFrame, pos);
+      movement = (movement - findMovementNCC(currentFrame, previousFrame, pos, targetMean2))*0.5f;
+    }
 
-    /*
     // If movement is larger than SEARCH_SIZE, zero it out
-    if(length(subpixel_movement) > SEARCH_SIZE + 1) {
-        write_imagef(output, pos, (float4)(0, 0, 0, 0));
-        return;
-    }*/
+    if(length(movement) > SEARCH_SIZE + 1)
+        movement = (float2)(0,0);
 
     write_imagef(output, pos, movement.xyyy / timeLag);
 }
@@ -181,12 +180,9 @@ __kernel void sumOfSquaredDifferences(
     if(forwardBackward == 1)
       movement = (movement - findMovementSSD(currentFrame, previousFrame, pos, minIntensity, maxIntensity))*0.5f;
 
-    /*
     // If movement is larger than SEARCH_SIZE, zero it out
-    if(length(subpixel_movement) > SEARCH_SIZE + 1) {
-        write_imagef(output, pos, (float4)(0, 0, 0, 0));
-        return;
-    }*/
+    if(length(movement) > SEARCH_SIZE + 1)
+        movement = (float2)(0,0);
 
     write_imagef(output, pos, movement.xyyy / timeLag);
 }
@@ -253,12 +249,9 @@ __kernel void sumOfAbsoluteDifferences(
     if(forwardBackward == 1)
       movement = (movement - findMovementSAD(currentFrame, previousFrame, pos, minIntensity, maxIntensity))*0.5f;
 
-    /*
     // If movement is larger than SEARCH_SIZE, zero it out
-    if(length(subpixel_movement) > SEARCH_SIZE + 1) {
-        write_imagef(output, pos, (float4)(0, 0, 0, 0));
-        return;
-    }*/
+    if(length(movement) > SEARCH_SIZE + 1)
+        movement = (float2)(0,0);
 
     write_imagef(output, pos, movement.xyyy / timeLag);
 }
