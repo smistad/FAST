@@ -64,6 +64,12 @@ class FAST_EXPORT BlockMatching : public ProcessObject {
          * @param forwardBackward
          */
         void setForwardBackwardTracking(bool forwardBackward);
+        /**
+         * Set a region of interest (ROI) to run the block matching in.
+         * @param offset from origin to start the ROI in pixels
+         * @param size of the ROI in pixels
+         */
+        void setRegionOfInterest(Vector2i offset, Vector2i size);
         void loadAttributes() override;
     private:
         BlockMatching();
@@ -75,6 +81,8 @@ class FAST_EXPORT BlockMatching : public ProcessObject {
         float m_intensityThreshold = std::numeric_limits<float>::min();
         int m_timeLag = 1;
         bool m_forwardBackward = false;
+        Vector2i m_offsetROI = Vector2i::Zero();
+        Vector2i m_sizeROI = Vector2i::Zero();
         std::deque<SharedPointer<Image>> m_frameBuffer;
 
 };

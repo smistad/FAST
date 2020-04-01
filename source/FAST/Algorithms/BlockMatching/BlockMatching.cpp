@@ -10,6 +10,12 @@ void BlockMatching::loadAttributes() {
     setMatchingMetric(BlockMatching::stringToMetric(getStringAttribute("metric")));
     setTimeLag(getIntegerAttribute("time-lag"));
     setForwardBackwardTracking(getBooleanAttribute("forward-backward"));
+    auto roiOffset = getIntegerListAttribute("roi-offset");
+    auto roiSize = getIntegerListAttribute("roi-size");
+    if(roiOffset.size() == 2 && roiSize.size() == 2) {
+        setRegionOfInterest(Vector2i(roiOffset[0], roiOffset[1]),
+            Vector2i(roiSize[0], roiSize[1]));
+    }
 }
 
 BlockMatching::BlockMatching() {
@@ -24,6 +30,8 @@ BlockMatching::BlockMatching() {
     createFloatAttribute("intensity-threshold", "Intensity threshold", "Pixels with an intensity below this threshold will not be processed", m_intensityThreshold);
     createStringAttribute("metric", "Matching metric", "Possible values are SSD, SAD, and NCC", "SAD");
     createBooleanAttribute("forward-backward", "Forward-backward tracking", "Do tracking forward and backwards and take the average.", m_forwardBackward);
+    createIntegerAttribute("roi-offset", "ROI offset", "Offset of region of interest (ROI)", 0);
+    createIntegerAttribute("roi-size", "ROI size", "Size of region of interest (ROI), 0 0 means no ROI is used.", 0);
 }
 
 void BlockMatching::execute() {
@@ -77,12 +85,21 @@ void BlockMatching::execute() {
     kernel.setArg(4, (float)m_timeLag);
     kernel.setArg(5, (char)(m_forwardBackward ? 1 : 0));
 
-    queue.enqueueNDRangeKernel(
-        kernel,
-        cl::NullRange,
-        cl::NDRange(output->getWidth(), output->getHeight()),
-        cl::NullRange
-    );
+    if(m_sizeROI == Vector2i::Zero()) {
+        queue.enqueueNDRangeKernel(
+            kernel,
+            cl::NullRange,
+            cl::NDRange(output->getWidth(), output->getHeight()),
+            cl::NullRange
+        );
+    } else {
+        queue.enqueueNDRangeKernel(
+            kernel,
+            cl::NDRange(m_offsetROI.x(), m_offsetROI.y()),
+            cl::NDRange(m_sizeROI.x(), m_sizeROI.y()),
+            cl::NullRange
+        );
+    }
     queue.finish();
 
     m_frameBuffer.pop_front();
@@ -119,6 +136,15 @@ void BlockMatching::setTimeLag(int timeLag) {
 
 void BlockMatching::setForwardBackwardTracking(bool forwardBackward) {
     m_forwardBackward = forwardBackward;
+}
+
+void BlockMatching::setRegionOfInterest(Vector2i offset, Vector2i size) {
+    if(offset.x() < 0 || offset.y() < 0)
+        throw Exception("Offset ROI must >= 0");
+    if(size.x() < 0 || size.y() < 0)
+        throw Exception("Size ROI must be > 0");
+    m_offsetROI = offset;
+    m_sizeROI = size;
 }
 
 }
