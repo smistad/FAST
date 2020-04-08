@@ -45,6 +45,8 @@ void ComputationThread::run() {
                 break;
         }
         try {
+            for(auto po : m_processObjects)
+                po->update(executeToken);
             for(View *view : mViews) {
                 view->updateRenderersInput(executeToken);
             }
@@ -90,6 +92,10 @@ void ComputationThread::stop() {
     for(View* view : mViews) {
         view->resetRenderers();
     }
+}
+
+void ComputationThread::setProcessObjects(std::vector<SharedPointer<ProcessObject>> pos) {
+    m_processObjects = pos;
 }
 
 }

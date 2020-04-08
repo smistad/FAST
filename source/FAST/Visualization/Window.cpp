@@ -268,6 +268,7 @@ void Window::startComputationThread() {
 
         for(int i = 0; i < getViews().size(); i++)
             mThread->addView(getViews()[i]);
+        mThread->setProcessObjects(m_processObjects);
         QGLContext* mainGLContext = Window::getMainGLContext();
         if(!mainGLContext->isValid()) {
             throw Exception("QGL context is invalid!");
@@ -336,6 +337,10 @@ void Window::saveScreenshotOfViewsOnClose(std::string filename) {
 
 QWidget* Window::getWidget() {
     return mWidget;
+}
+
+void Window::addProcessObject(SharedPointer<ProcessObject> po) {
+    m_processObjects.push_back(po);
 }
 
 } // end namespace fast
