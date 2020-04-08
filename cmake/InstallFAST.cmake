@@ -120,6 +120,7 @@ set(INCLUDE_FOLDERS
     QtPrintSupport
     QtSerialPort
     QtSql
+		QtSvg
     QtTest
     QtThemeSupport
     QtWidgets

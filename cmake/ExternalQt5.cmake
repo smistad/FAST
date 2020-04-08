@@ -37,7 +37,7 @@ set(MODULES_TO_EXCLUDE
         -skip qtserialbus
         #-skip qtserialport
         -skip qtspeech
-        -skip qtsvg
+        #-skip qtsvg
         -skip qtsystems
         -skip qttools
         -skip qttranslations
