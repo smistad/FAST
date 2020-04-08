@@ -29,7 +29,7 @@ void ProcessObject::update(int executeToken) {
     bool newInputData = false;
     for(auto parent : mInputConnections) {
         auto port = parent.second;
-        port->getProcessObject()->update();
+        port->getProcessObject()->update(executeToken);
 
         if(mLastProcessed.count(parent.first) > 0) {
             //std::cout << "" << getNameOfClass() << " has last processed data.. " << std::endl;
