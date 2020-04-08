@@ -17,7 +17,12 @@ void VectorFieldColorRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewing
     for(auto it : mDataToRender) {
         Image::pointer input = std::static_pointer_cast<Image>(it.second);
         uint inputNr = it.first;
-        const float maxComponent = input->calculateMaximumIntensity();
+        float maxComponent;
+        if(m_maxLength > 0) {
+            maxComponent = m_maxLength;
+        } else {
+            maxComponent = input->calculateMaximumIntensity();
+        }
 
         if(input->getDataType() != TYPE_FLOAT) {
             throw Exception("Data type of image given to VectorFieldColorRenderer must be FLOAT");
@@ -124,6 +129,10 @@ void VectorFieldColorRenderer::setMaxOpacity(float maxOpacity) {
         throw Exception("Max opacity must be within (0.0, 1.0]");
 
     m_maxOpacity = maxOpacity;
+}
+
+void VectorFieldColorRenderer::setMaxLength(float max) {
+    m_maxLength = max;
 }
 
 }
