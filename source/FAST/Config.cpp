@@ -81,8 +81,25 @@ namespace fast {
 			mDocumentationPath = getPath() + "../../doc/";
 			mPipelinePath = getPath() + "../../pipelines/";
 			mQtPluginsPath = getPath() + "../plugins/";
+
+			std::string writeablePath = getPath();
 #ifdef WIN32
 			mLibraryPath = getPath();
+			if(getPath().find("Program Files") != std::string::npos) {
+				// Special case for windows: default install dir: program files is not writeable.
+				// Use ProgramData folder instead.
+				writeablePath = "C:/ProgramData/FAST/";
+				// Copy pipelines (first time only)
+				for(auto&& pipeline : getDirectoryList(mPipelinePath)) {
+					if(!fileExists(writeablePath + "pipelines/" + pipeline)) {
+						// Copy file from source folder
+						std::ifstream  src(mPipelinePath + pipeline, std::ios::binary);
+						std::ofstream  dst(writeablePath + "pipelines/" + pipeline, std::ios::binary);
+
+						dst << src.rdbuf();
+					}
+				}
+			}
 #else
 			mLibraryPath = getPath() + "/../lib/";
 #endif
@@ -121,28 +138,34 @@ namespace fast {
 				std::string key = list[0];
 				std::string value = list[1];
 				trim(key);
-				trim(value);
-				value = replace(value, "@ROOT@", getPath() + "/../");
+				trim(value);				
 
 				if (key == "TestDataPath") {
+					value = replace(value, "@ROOT@", getPath() + "/../");
 					mTestDataPath = value;
 				}
 				else if (key == "KernelSourcePath") {
+					value = replace(value, "@ROOT@", getPath() + "/../");
 					mKernelSourcePath = value;
 				}
 				else if (key == "KernelBinaryPath") {
+					value = replace(value, "@ROOT@", writeablePath);
 					mKernelBinaryPath = value;
 				}
 				else if (key == "DocumentationPath") {
+					value = replace(value, "@ROOT@", getPath() + "/../");
 					mDocumentationPath = value;
 				}
 				else if (key == "PipelinePath") {
+					value = replace(value, "@ROOT@", writeablePath);
 					mPipelinePath = value;
 				}
 				else if (key == "QtPluginsPath") {
+					value = replace(value, "@ROOT@", getPath() + "/../");
 					mQtPluginsPath = value;
 				}
 				else if (key == "LibraryPath") {
+					value = replace(value, "@ROOT@", getPath() + "/../");
 					mLibraryPath = value;
 				}
 				else {
