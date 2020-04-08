@@ -9,6 +9,12 @@ VectorMedianFilter::VectorMedianFilter() {
     createOutputPort<Image>(0);
 
     createOpenCLProgram(Config::getKernelSourcePath() + "/Algorithms/VectorMedianFilter/VectorMedianFilter.cl");
+
+    createIntegerAttribute("window-size", "Window size", "Size of area to perform median filter on", m_windowSize);
+}
+
+void VectorMedianFilter::loadAttributes() {
+    setWindowSize(getIntegerAttribute("window-size"));
 }
 
 void VectorMedianFilter::execute() {

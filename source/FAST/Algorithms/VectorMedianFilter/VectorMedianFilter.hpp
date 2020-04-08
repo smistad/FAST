@@ -12,6 +12,7 @@ class FAST_EXPORT VectorMedianFilter : public ProcessObject {
          * @param size
          */
         void setWindowSize(int size);
+        void loadAttributes() override;
     private:
         VectorMedianFilter();
         void execute() override;
