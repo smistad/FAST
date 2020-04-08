@@ -1,0 +1,30 @@
+PipelineName "Block matching"
+PipelineDescription "Block matching on image stream"
+
+ProcessObject streamer ImageFileStreamer
+Attribute fileformat @@fileformat=$TEST_DATA_PATH$/US/Heart/ApicalFourChamber/US-2D_#.mhd@@
+
+ProcessObject blockMatch BlockMatching
+Attribute search-size @@search-size=9@@
+Attribute intensity-threshold @@intensity-threshold=75@@
+Attribute time-lag @@time-lag=1@@
+Attribute block-size @@block-size=5@@
+Attribute forward-backward @@forward-backward=true@@
+Attribute metric @@metric=SAD@@
+Attribute roi-offset @@roi-offset=0,0@@
+Attribute roi-size @@roi-size=0,0@@
+Input 0 streamer 0
+
+ProcessObject medianFilter VectorMedianFilter
+Attribute window-size @@median-filter-size=7@@
+Input 0 blockMatch 0
+
+Renderer renderer ImageRenderer
+Input 0 streamer 0
+
+Renderer vectorRenderer VectorFieldColorRenderer
+Input 0 medianFilter 0
+
+View view renderer vectorRenderer
+Attribute 2Dmode true
+Attribute background-color black
