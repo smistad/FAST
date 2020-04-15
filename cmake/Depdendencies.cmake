@@ -44,22 +44,24 @@ if(FAST_MODULE_Visualization)
             file(RENAME ${PROJECT_BINARY_DIR}/bin/cmake${CMAKE_EXECUTABLE_SUFFIX} ${PROJECT_BINARY_DIR}/bin/moc${CMAKE_EXECUTABLE_SUFFIX})
         endif()
         set(Qt5_DIR ${PROJECT_SOURCE_DIR}/cmake/Qt5/)
-        find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL Multimedia MultimediaWidgets PATHS ${PROJECT_SOURCE_DIR}/cmake/)
+        find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL Multimedia MultimediaWidgets PrintSupport PATHS ${PROJECT_SOURCE_DIR}/cmake/)
         list(APPEND LIBRARIES ${Qt5Core_LIBRARY})
         list(APPEND LIBRARIES ${Qt5Gui_LIBRARY})
         list(APPEND LIBRARIES ${Qt5Widgets_LIBRARY})
         list(APPEND LIBRARIES ${Qt5OpenGL_LIBRARY})
         list(APPEND LIBRARIES ${Qt5Multimedia_LIBRARY})
         list(APPEND LIBRARIES ${Qt5MultimediaWidgets_LIBRARY})
+        list(APPEND LIBRARIES ${Qt5PrintSupport_LIBRARY})
     else(FAST_BUILD_QT5)
         # Use system Qt
-        find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL Multimedia MultimediaWidgets )
+        find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL Multimedia MultimediaWidgets PrintSupport)
         list(APPEND LIBRARIES Qt5::Core)
         list(APPEND LIBRARIES Qt5::Gui)
         list(APPEND LIBRARIES Qt5::Widgets)
         list(APPEND LIBRARIES Qt5::OpenGL)
         list(APPEND LIBRARIES Qt5::Multimedia)
         list(APPEND LIBRARIES Qt5::MultimediaWidgets)
+        list(APPEND LIBRARIES Qt5::PrintSupport)
     endif(FAST_BUILD_QT5)
 
     list(APPEND FAST_INCLUDE_DIRS ${Qt5Widgets_INCLUDE_DIRS})
@@ -68,6 +70,7 @@ if(FAST_MODULE_Visualization)
     list(APPEND FAST_INCLUDE_DIRS ${Qt5OpenGL_INCLUDE_DIRS})
     list(APPEND FAST_INCLUDE_DIRS ${Qt5Multimedia_INCLUDE_DIRS})
     list(APPEND FAST_INCLUDE_DIRS ${Qt5MultimediaWidgets_INCLUDE_DIRS})
+    list(APPEND FAST_INCLUDE_DIRS ${Qt5PrintSupport_INCLUDE_DIRS})
     set(CMAKE_AUTOMOC ON)
 
     if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
@@ -78,6 +81,7 @@ endif()
 
 ## External depedencies
 include(cmake/ExternalEigen.cmake)
+add_definitions("-DEIGEN_MPL2_ONLY") # Avoid using LGPL code in eigen http://eigen.tuxfamily.org/index.php?title=Main_Page#License
 include(cmake/ExternalZlib.cmake)
 
 # Optional modules
@@ -90,6 +94,7 @@ include(cmake/ModuleWholeSlideImaging.cmake)
 include(cmake/ModuleClarius.cmake)
 include(cmake/ModuleDicom.cmake)
 include(cmake/ModuleHDF5.cmake)
+include(cmake/ModulePlotting.cmake)
 
 # Make sure FAST can find external includes and libaries
 link_directories(${FAST_EXTERNAL_INSTALL_DIR}/lib/)

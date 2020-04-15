@@ -126,6 +126,9 @@ set(INCLUDE_FOLDERS
     QtWidgets
     QtXml
     QtZlib)
+if(FAST_MODULE_Plotting)
+	list(APPEND INCLUDE_FOLDERS jkqtplotter jkqtcommon jkqtfastplotter jkqtmathtext)
+endif()
 if(WIN32)
 list(APPEND INCLUDE_FOLDERS
     ActiveQt
@@ -350,6 +353,14 @@ if(FAST_MODULE_HDF5)
 		DESTINATION fast/licenses/hdf5/
 		COMPONENT fast
 	)
+endif()
+
+if(FAST_MODULE_Plotting)
+		install(FILES
+				${FAST_EXTERNAL_BUILD_DIR}/jkqtplotter/src/jkqtplotter/LICENSE
+				DESTINATION fast/licenses/jkqtplotter/
+				COMPONENT fast
+		)
 endif()
 
 if(FAST_BUILD_DOCS)

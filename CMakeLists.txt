@@ -23,8 +23,7 @@ option(FAST_BUILD_DOCS "Build API documentation" OFF)
 option(FAST_DOWNLOAD_TEST_DATA "Download test data automatically (> 1 GB)" OFF)
 option(FAST_MODULE_VTK "Enable interoperability with VTK" OFF)
 option(FAST_MODULE_ITK "Enable interoperability with ITK" OFF)
-option(FAST_MODULE_Visualization "Enable visualization capabilities using Qt5.
-Without this module, all visualization in FAST will be disabled." ON)
+option(FAST_MODULE_Visualization "Enable visualization capabilities using Qt5. Without this module, all visualization in FAST will be disabled." ON)
 option(FAST_MODULE_OpenIGTLink "Build module OpenIGTLink" ON)
 option(FAST_MODULE_TensorFlow "Build TensorFlow inference engine" OFF)
 option(FAST_MODULE_TensorRT "Build NVIDIA TensorRT inference engine" OFF)
@@ -36,6 +35,7 @@ option(FAST_MODULE_WholeSlideImaging "Build whole slide imaging module" ON)
 option(FAST_MODULE_Clarius "Build clarius ultrasound module" ON)
 option(FAST_MODULE_Dicom "Build DICOM module (DCMTK)" ON)
 option(FAST_MODULE_HDF5 "Build HDF5 module" OFF)
+option(FAST_MODULE_Plotting "Build plotting module (JKQTPlotter)" OFF)
 option(FAST_CONTINUOUS_INTEGRATION "Used for continuous integration tests" OFF)
 option(FAST_BUILD_QT5 "Download and build Qt 5. Turn this OFF if you want to use pre-built binaries you already have on your machine." ON)
 
@@ -155,7 +155,8 @@ generate_export_header(FAST EXPORT_FILE_NAME FASTExport.hpp)
 include(cmake/OpenMP.cmake)
 
 ## Link everything
-message("-- FAST LIBS: ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES}")
+message("-- FAST LIBS: ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES}")
+message("-- FAST INCLUDE DIRS: ${FAST_INCLUDE_DIRS}")
 target_link_libraries(FAST PUBLIC ${LIBRARIES} ${FAST_SYSTEM_LIBRARIES})
 set_target_properties(FAST PROPERTIES VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" SOVERSION ${VERSION_SO})
 
