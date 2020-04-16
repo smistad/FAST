@@ -239,10 +239,7 @@ void TensorFlowEngine::load() {
 					}
 					addInputNode(inputCounter, tensorflow_graph.node(0).name(), type, shape);
 					++inputCounter;
-				}
-
-				// Set its shape
-				mInputNodes[node.name()].shape = shape;
+				} 
 			}
 		}
 	}
