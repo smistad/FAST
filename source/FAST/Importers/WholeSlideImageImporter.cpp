@@ -68,6 +68,13 @@ WholeSlideImageImporter::WholeSlideImageImporter() {
     mIsModified = true;
     mGrayscale = false;
     createOutputPort<ImagePyramid>(0);
+
+    createStringAttribute("filename", "Filename", "Filename to read", "");
+    //createBooleanAttribute("grayscale", "Grayscale", "Turn image into grayscale on import", mGrayscale);
+}
+
+void WholeSlideImageImporter::loadAttributes() {
+    setFilename(getStringAttribute("filename"));
 }
 
 void WholeSlideImageImporter::setGrayscale(bool grayscale) {

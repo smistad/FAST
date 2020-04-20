@@ -60,4 +60,5 @@ if(FAST_MODULE_WholeSlideImaging)
     fast_add_test_sources(
         Tests/WholeSlideImageImporterTests.cpp
     )
+    fast_add_process_object(WholeSlideImageImporter WholeSlideImageImporter.hpp)
 endif()

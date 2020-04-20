@@ -10,6 +10,7 @@ class FAST_EXPORT WholeSlideImageImporter : public ProcessObject {
         void setFilename(std::string filename);
         WholeSlideImageImporter();
         void setGrayscale(bool grayscale);
+        void loadAttributes() override;
     private:
         void execute();
 
