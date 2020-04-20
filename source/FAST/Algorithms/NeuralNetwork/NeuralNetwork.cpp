@@ -21,10 +21,10 @@ void NeuralNetwork::setHorizontalFlipping(bool flip) {
 }
 
 void NeuralNetwork::loadAttributes() {
-    m_engine->setFilename(getStringAttribute("model"));
     auto preferredEngine = getStringAttribute("inference-engine");
     if(!preferredEngine.empty())
         setInferenceEngine(preferredEngine);
+    m_engine->setFilename(getStringAttribute("model"));
     
     // TODO input nodes, shapes, and tensor/images type
     auto outputNames = getStringListAttribute("output-names");
