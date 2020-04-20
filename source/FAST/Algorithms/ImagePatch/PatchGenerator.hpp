@@ -15,6 +15,7 @@ class FAST_EXPORT PatchGenerator : public Streamer {
         void setPatchSize(int width, int height, int depth = 1);
         void setPatchLevel(int level);
         ~PatchGenerator();
+        void loadAttributes() override;
     protected:
         int m_width, m_height, m_depth;
 

@@ -18,6 +18,22 @@ PatchGenerator::PatchGenerator() {
     m_firstFrameIsInserted = false;
     m_level = 0;
     mIsModified = true;
+
+    createIntegerAttribute("patch-size", "Patch size", "", 0);
+    createIntegerAttribute("patch-level", "Patch level", "Patch level used for image pyramid inputs", m_level);
+}
+
+void PatchGenerator::loadAttributes() {
+    auto patchSize = getIntegerListAttribute("patch-size");
+    if(patchSize.size() == 2) {
+        setPatchSize(patchSize[0], patchSize[1]);
+    } else if(patchSize.size() == 3) {
+        setPatchSize(patchSize[0], patchSize[1], patchSize[2]);
+    } else {
+        throw Exception("Incorrect number of size parameters in patch-size. Expected 2 or 3");
+    }
+
+    setPatchLevel(getIntegerAttribute("patch-level"));
 }
 
 PatchGenerator::~PatchGenerator() {
