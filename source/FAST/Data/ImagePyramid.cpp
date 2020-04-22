@@ -2,18 +2,146 @@
 #include <openslide/openslide.h>
 #include <FAST/Utility.hpp>
 #include <FAST/Data/Image.hpp>
-#include <FAST/Algorithms/ImageChannelConverter/ImageChannelConverter.hpp>
+#include <FAST/Data/Access/ImagePyramidAccess.hpp>
+#ifdef WIN32
+#include <winbase.h>
+#else
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
 
 namespace fast {
 
-void ImagePyramid::create(openslide_t *fileHandle, std::vector<ImagePyramid::Level> levels) {
-    m_fileHandle = fileHandle;
-    m_levels = levels;
+void ImagePyramid::create(int width, int height, int channels, int levels) {
+    // TODO Create memory mapped files on disk to use as virtual memory
+
+    if(channels <= 0 || channels > 4)
+        throw Exception("Nr of channels must be between 1 and 4");
+
+    // Determine how many levels
+    int currentLevel = 0;
+    int currentWidth = width;
+    int currentHeight = height;
+    m_channels = channels;
+    while(true) {
+        reportInfo() << "Processing level " << currentLevel << reportEnd();
+        currentWidth = width / std::pow(2, currentLevel);
+        currentWidth = height / std::pow(2, currentLevel);
+
+        if(currentWidth < 1024 || currentHeight < 1024)
+            break;
+
+        std::size_t bytes = currentWidth * currentHeight * m_channels * sizeof(char);
+
+        // Get total size of image
+        float sizeInMB = bytes / (1024 * 1024);
+        reportInfo() << "WSI level size: " << currentHeight << ", " << currentWidth << reportEnd();
+        reportInfo() << "WSI level size: " << sizeInMB << " MBs" << reportEnd();
+
+		ImagePyramidLevel levelData;
+		levelData.width = currentWidth;
+		levelData.height = currentHeight;
+		m_levels.push_back(levelData);
+
+		if(sizeInMB < 1000) {
+			// If level is less than 1000 MBs, use system memory
+			levelData.data = new uint8_t[bytes];
+			levelData.memoryMapped = false;
+		} else {
+			reportInfo() << "Using memory mapping.." << reportEnd();
+			uint8_t* data;
+#ifdef WIN32
+			HANDLE hFile = CreateFile(("C:/windows/temp/fast_mmap_" + std::to_string(currentLevel) + ".bin").c_str(),
+				GENERIC_WRITE | GENERIC_READ,FILE_SHARE_READ | FILE_SHARE_WRITE,
+				NULL, OPEN_ALWAYS, NULL, NULL);
+			levelData.fileHandle = hFile;
+
+			HANDLE hMapFile = CreateFileMappingA(
+				//INVALID_HANDLE_VALUE,    // use paging file, Creating Named Shared Memory
+				hFile,
+				NULL,                    // default security
+				PAGE_READWRITE,          // read/write access
+				bytes >> 32,                       // buffer size (high part of 64 bit nr)
+				bytes,                // buffer size (low part of 64 bit nr)
+				("fast_mmap_" + std::to_string(currentLevel)).c_str());                 // name of mapping object
+
+			if(hMapFile == NULL || hMapFile == INVALID_HANDLE_VALUE) {
+				throw Exception("Error opening memory mapped file");
+			}
+
+			data = (uint8_t*) MapViewOfFile(hMapFile,   // handle to map object
+				FILE_MAP_ALL_ACCESS, // read/write permission
+				0,
+				0,
+				bytes);
+			if(data == nullptr) {
+			  throw Exception("Failed to create map view of file" + std::to_string(GetLastError()));
+			}
+#else
+			int fd = open(("/tmp/fast_mmap_" + std::to_string(currentLevel) + ".bin").c_str(), O_RDWR | O_CREAT | O_TRUNC, (mode_t)0600);
+			if (fd == -1) {
+				perror("Error opening file for writing");
+				exit(EXIT_FAILURE);
+			}
+
+			// Stretch the file size to the size of the (mmapped) array of ints
+			int result = lseek(fd, bytes-1, SEEK_SET);
+			if (result == -1) {
+				close(fd);
+				perror("Error calling lseek() to 'stretch' the file");
+				exit(EXIT_FAILURE);
+			}
+			result = write(fd, "", 1);
+			if (result != 1) {
+				close(fd);
+				perror("Error writing last byte of the file");
+				exit(EXIT_FAILURE);
+			}
+
+			// Now the file is ready to be mmapped.
+			data = (uint8_t*)mmap64(0, bytes-1, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+			if (data == MAP_FAILED) {
+				close(fd);
+				perror("Error mmapping the file");
+				exit(EXIT_FAILURE);
+			}
+			levelData.fileHandle = fd;
+#endif
+			levelData.data = data;
+			levelData.memoryMapped = true;
+		}
+
+		// TODO Initialize data to zeros?
+		reportInfo() << "Done creating level " << currentLevel << reportEnd();
+    }
+
     for(int i = 0; i < m_levels.size(); ++i) {
         int x = m_levels.size() - i - 1;
         m_levels[i].patches = x*x*x + 10;
     }
     mBoundingBox = BoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
+    m_initialized = true;
+}
+
+void ImagePyramid::create(openslide_t *fileHandle, std::vector<ImagePyramidLevel> levels) {
+    m_fileHandle = fileHandle;
+    m_levels = levels;
+    m_channels = 4;
+    for(int i = 0; i < m_levels.size(); ++i) {
+        int x = m_levels.size() - i - 1;
+        m_levels[i].patches = x*x*x + 10;
+    }
+    mBoundingBox = BoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
+    m_initialized = true;
+}
+
+ImagePyramid::ImagePyramid() {
+    m_initialized = false;
 }
 
 int ImagePyramid::getNrOfLevels() {
@@ -45,115 +173,57 @@ void ImagePyramid::free(ExecutionDevice::pointer device) {
 }
 
 void ImagePyramid::freeAll() {
-    m_levels.clear();
-    openslide_close(m_fileHandle);
+    if(m_fileHandle != nullptr) {
+        m_levels.clear();
+        openslide_close(m_fileHandle);
+    } else {
+		for(auto& item : m_levels) {
+			if(item.memoryMapped) {
+#ifdef WIN32
+				UnmapViewOfFile(item.data);
+				CloseHandle(item.fileHandle);
+#else
+				munmap(item.data, item.width*item.height*m_channels);
+				close(item.fileHandle);
+#endif
+			} else {
+				delete[] item.data;
+			}
+		}
+        m_levels.clear();
+    }
+	m_initialized = false;
 }
 
 ImagePyramid::~ImagePyramid() {
     freeAll();
 }
-
-ImagePyramid::Patch ImagePyramid::getPatch(std::string tile) {
-    auto parts = split(tile, "_");
-    if(parts.size() != 3)
-        throw Exception("incorrect tile format");
-
-    int level = std::stoi(parts[0]);
-    int tile_x = std::stoi(parts[1]);
-    int tile_y = std::stoi(parts[2]);
-
-    return getPatch(level, tile_x, tile_y);
+int ImagePyramid::getNrOfChannels() const {
+    return m_channels;
 }
 
-ImagePyramid::Patch ImagePyramid::getPatch(int level, int tile_x, int tile_y) {
-    // Create patch
-    int levelWidth = getLevelWidth(level);
-    int levelHeight = getLevelHeight(level);
-    int tiles = getLevelPatches(level);
-    ImagePyramid::Patch tile;
-    tile.offsetX = tile_x * (int) std::floor((float) levelWidth / tiles);
-    tile.offsetY = tile_y * (int) std::floor((float) levelHeight / tiles);
+ImagePyramidAccess::pointer ImagePyramid::getAccess(accessType type) {
+    if(!m_initialized)
+        throw Exception("ImagePyramid has not been initialized.");
 
-    tile.width = std::floor(((float) levelWidth / tiles));
-    if(tile_x == tiles - 1)
-        tile.width = levelWidth - tile.offsetX;
-    tile.height = std::floor((float) levelHeight / tiles);
-    if(tile_y == tiles - 1)
-        tile.height = levelHeight - tile.offsetY;
+    blockIfBeingWrittenTo();
 
-    //std::cout << "Loading data from disk for tile " << tile_x << " " << tile_y << " " << level << " " <<  tile_offset_x << " " << tile_offset_y << std::endl;
-    // Read the actual data
-    std::size_t bytes = tile.width*tile.height*4;
-    tile.data = std::shared_ptr<uchar>(new uchar[bytes], [](uchar *p) { delete [] p; }); // TODO use make_shared instead (C++20)
-    float scale = (float)getFullWidth()/levelWidth;
-    openslide_read_region(m_fileHandle, (uint32_t *) tile.data.get(), tile.offsetX*scale, tile.offsetY*scale, level, tile.width, tile.height);
-
-    return tile;
-}
-
-SharedPointer<Image> ImagePyramid::getLevelAsImage(int level) {
-    if(level < 0 || level >= getNrOfLevels())
-        throw Exception("Incorrect level given to getLevelAsImage" + std::to_string(level));
-
-    int width = getLevelWidth(level);
-    int height = getLevelHeight(level);
-    if(width > 16384 || height > 16384)
-        throw Exception("Image level is too large to convert into a FAST image");
-
-    auto image = Image::New();
-    auto data = make_uninitialized_unique<uchar[]>(width*height*4);
-    openslide_read_region(m_fileHandle, (uint32_t *)data.get(), 0, 0, level, width, height);
-    image->create(width, height, TYPE_UINT8, 4, std::move(data));
-    image->setSpacing(Vector3f(
-            (float)getFullWidth() / width,
-            (float)getFullHeight() / height,
-            1.0f
-    ));
-    SceneGraph::setParentNode(image, std::dynamic_pointer_cast<SpatialDataObject>(mPtr.lock()));
-
-    // Data is stored as BGRA, need to delete alpha channel and reverse it
-    auto channelConverter = ImageChannelConverter::New();
-    channelConverter->setChannelsToRemove(false, false, false, true);
-    channelConverter->setReverseChannels(true);
-    channelConverter->setInputData(image);
-    auto port = channelConverter->getOutputPort();
-    channelConverter->update();
-
-    return port->getNextFrame<Image>();
-}
-
-SharedPointer<Image> ImagePyramid::getPatchAsImage(int level, int offsetX, int offsetY, int width, int height) {
-    if(width > 16384 || height > 16384)
-        throw Exception("Image level is too large to convert into a FAST image");
-
-    if(offsetX < 0 || offsetY < 0 || width <= 0 || height <= 0)
-        throw Exception("Offset and size must be positive");
-
-    if(offsetX + width >= getLevelWidth(level) || offsetY + height >= getLevelHeight(level))
-        throw Exception("offset + size exceeds level size");
-
-    auto image = Image::New();
-    auto data = make_uninitialized_unique<uchar[]>(width*height*4);
-    float scale = (float)getFullWidth()/getLevelWidth(level);
-    openslide_read_region(m_fileHandle, (uint32_t *)data.get(), offsetX*scale, offsetY*scale, level, width, height);
-    image->create(width, height, TYPE_UINT8, 4, std::move(data));
-    image->setSpacing(Vector3f(
-            scale,
-            scale,
-            1.0f
-    ));
-    // TODO Set transformation
-    SceneGraph::setParentNode(image, std::dynamic_pointer_cast<SpatialDataObject>(mPtr.lock()));
-
-    // Data is stored as BGRA, need to delete alpha channel and reverse it
-    auto channelConverter = ImageChannelConverter::New();
-    channelConverter->setChannelsToRemove(false, false, false, true);
-    channelConverter->setReverseChannels(true);
-    channelConverter->setInputData(image);
-    auto port = channelConverter->getOutputPort();
-    channelConverter->update();
-
-    return port->getNextFrame<Image>();
+    if(type == ACCESS_READ_WRITE) {
+    	blockIfBeingAccessed();
+        std::unique_lock<std::mutex> lock(mDataIsBeingWrittenToMutex);
+        mDataIsBeingWrittenTo = true;
+    }
+    //updateHostData();
+    if(type == ACCESS_READ_WRITE) {
+        //setAllDataToOutOfDate();
+        updateModifiedTimestamp();
+    }
+    //mHostDataIsUpToDate = true;
+    {
+        std::unique_lock<std::mutex> lock(mDataIsBeingAccessedMutex);
+        mDataIsBeingAccessed = true;
+    }
+    return std::make_unique<ImagePyramidAccess>(m_levels, m_fileHandle, std::static_pointer_cast<ImagePyramid>(mPtr.lock()), type == ACCESS_READ_WRITE);
 }
 
 }

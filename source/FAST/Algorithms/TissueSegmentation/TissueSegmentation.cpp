@@ -15,7 +15,8 @@ TissueSegmentation::TissueSegmentation() {
 
 void TissueSegmentation::execute() {
     auto wsi = getInputData<ImagePyramid>();
-    auto input = wsi->getLevelAsImage(wsi->getNrOfLevels()-1);
+    auto access = wsi->getAccess(ACCESS_READ);
+    auto input = access->getLevelAsImage(wsi->getNrOfLevels()-1);
 
     auto output = Segmentation::New();
     output->createFromImage(input);

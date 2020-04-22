@@ -145,7 +145,8 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
                 int tile_x = std::stoi(parts[1]);
                 int tile_y = std::stoi(parts[2]);
                 std::cout << "Creating texture for tile " << tile_x << " " << tile_y << " at level " << level << std::endl;
-                auto tile = m_input->getPatch(level, tile_x, tile_y);
+                auto access = m_input->getAccess(ACCESS_READ);
+                auto tile = access->getPatch(level, tile_x, tile_y);
                 std::cout << "Done get patch" << std::endl;
                 std::cout << "Creating GL texture.." << std::endl;
                 // Copy data from CPU to GL texture

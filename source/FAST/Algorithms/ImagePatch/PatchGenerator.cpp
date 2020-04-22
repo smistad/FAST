@@ -72,8 +72,8 @@ void PatchGenerator::generateStream() {
                         continue;
                 }
                 reportInfo() << "Generating patch " << patchX << " " << patchY << reportEnd();
-
-                auto patch = m_inputImagePyramid->getPatchAsImage(m_level, patchX * m_width, patchY * m_height,
+                auto access = m_inputImagePyramid->getAccess(ACCESS_READ);
+                auto patch = access->getPatchAsImage(m_level, patchX * m_width, patchY * m_height,
                                                                   patchWidth,
                                                                   patchHeight);
 

@@ -5,6 +5,7 @@
 namespace fast {
 
 class Image;
+class ImagePyramid;
 class Tensor;
 
 class FAST_EXPORT PatchStitcher : public ProcessObject {
@@ -15,6 +16,7 @@ class FAST_EXPORT PatchStitcher : public ProcessObject {
 
         SharedPointer<Image> m_outputImage;
         SharedPointer<Tensor> m_outputTensor;
+        SharedPointer<ImagePyramid> m_outputImagePyramid;
 
         void processTensor(SharedPointer<Tensor> tensor);
         void processImage(SharedPointer<Image> tensor);

@@ -37,7 +37,7 @@ void WholeSlideImageImporter::execute() {
         image->setMetadata(name, value);
     }
 
-    std::vector<ImagePyramid::Level> levelList;
+    std::vector<ImagePyramidLevel> levelList;
     int levels = openslide_get_level_count(file);
     reportInfo() << "WSI has " << levels << " levels" << reportEnd();
 
@@ -51,7 +51,7 @@ void WholeSlideImageImporter::execute() {
         int sizeInMB = bytes / (1024 * 1024);
         if(sizeInMB > 4) {
             reportInfo() << "WSI level " << level << " has size " << fullWidth << "x" << fullHeight << " and " << sizeInMB << " MB adding.." << reportEnd();
-            ImagePyramid::Level levelData;
+            ImagePyramidLevel levelData;
             levelData.width = fullWidth;
             levelData.height = fullHeight;
             levelList.push_back(levelData);

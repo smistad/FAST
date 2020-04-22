@@ -5,7 +5,6 @@
 
 namespace fast {
 
-
 void SegmentationNetwork::loadAttributes() {
 	if (getBooleanAttribute("heatmap_output")) {
 		setHeatmapOutput();

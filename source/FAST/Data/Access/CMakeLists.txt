@@ -17,3 +17,9 @@ fast_add_sources(
     TensorAccess.cpp
     TensorAccess.hpp
 )
+if(FAST_MODULE_WholeSlideImaging)
+fast_add_sources(
+    ImagePyramidAccess.cpp 
+    ImagePyramidAccess.hpp
+)
+endif()
