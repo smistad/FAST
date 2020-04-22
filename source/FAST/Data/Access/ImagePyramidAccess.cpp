@@ -33,6 +33,15 @@ void ImagePyramidAccess::setScalar(uint x, uint y, uint level, uint8_t value, ui
 		throw OutOfBoundsException();
 
 	levelData.data[(x + y * levelData.width) * m_image->getNrOfChannels() + channel] = value;
+
+    // add patch to list of dirty patches
+    int levelWidth = m_image->getLevelWidth(level);
+    int levelHeight = m_image->getLevelHeight(level);
+    int patches = m_image->getLevelPatches(level);
+
+    int patchIdX = std::floor(((float)x / levelWidth))* patches;
+    int patchIdY = std::floor(((float)y / levelHeight))* patches;
+    m_image->setDirtyPatch(level, patchIdX, patchIdY);
 }
 
 uint8_t ImagePyramidAccess::getScalar(uint x, uint y, uint level, uint channel) {

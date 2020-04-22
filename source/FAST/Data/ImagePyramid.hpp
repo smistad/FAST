@@ -3,6 +3,7 @@
 #include <FAST/Data/SpatialDataObject.hpp>
 #include <FAST/Data/Access/Access.hpp>
 #include <FAST/Data/Access/ImagePyramidAccess.hpp>
+#include <set>
 
 // Forward declare
 
@@ -27,7 +28,10 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         int getFullWidth();
         int getFullHeight();
         int getNrOfChannels() const;
-       ImagePyramidAccess::pointer getAccess(accessType type);
+        ImagePyramidAccess::pointer getAccess(accessType type);
+        std::set<std::string> getDirtyPatches();
+        void setDirtyPatch(int level, int patchIdX, int patchIdY);
+        void clearDirtyPatches();
         void free(ExecutionDevice::pointer device) override;
         void freeAll() override;
         ~ImagePyramid();
@@ -39,6 +43,8 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
 
         int m_channels;
         bool m_initialized;
+
+        std::set<std::string> m_dirtyPatches;
 };
 
 }

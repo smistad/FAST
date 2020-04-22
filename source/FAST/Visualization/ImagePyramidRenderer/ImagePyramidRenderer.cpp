@@ -205,6 +205,12 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
     //std::cout << "Level to use: " << levelToUse << std::endl;
     //std::cout << "Levels total:" << m_input->getNrOfLevels() << std::endl;
 
+    // Clear dirty patches
+    for(auto&& patch : m_input->getDirtyPatches()) {
+        mTexturesToRender.erase(patch);
+    }
+    m_input->clearDirtyPatches();
+
     activateShader();
 
     // This is the actual rendering

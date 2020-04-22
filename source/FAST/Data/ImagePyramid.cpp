@@ -226,4 +226,18 @@ ImagePyramidAccess::pointer ImagePyramid::getAccess(accessType type) {
     return std::make_unique<ImagePyramidAccess>(m_levels, m_fileHandle, std::static_pointer_cast<ImagePyramid>(mPtr.lock()), type == ACCESS_READ_WRITE);
 }
 
+void ImagePyramid::setDirtyPatch(int level, int patchIdX, int patchIdY) {
+	const std::string tileString =
+		std::to_string(level) + "_" + std::to_string(patchIdX) + "_" + std::to_string(patchIdY);
+	m_dirtyPatches.insert(tileString);
+}
+
+std::set<std::string> ImagePyramid::getDirtyPatches() {
+	return m_dirtyPatches;
+}
+
+void ImagePyramid::clearDirtyPatches() {
+	m_dirtyPatches.clear();
+}
+
 }
