@@ -344,7 +344,8 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
     transformLoc = glGetUniformLocation(getShaderProgram(), "viewTransform");
     glUniformMatrix4fv(transformLoc, 1, GL_FALSE, viewingMatrix.data());
 
-    for(int level = m_input->getNrOfLevels()-1; level >= levelToUse; level--) {
+    int level = levelToUse;
+    //for(int level = m_input->getNrOfLevels()-1; level >= levelToUse; level--) {
         const int levelWidth = m_input->getLevelWidth(level);
         const int levelHeight = m_input->getLevelHeight(level);
         const int mTiles = m_input->getLevelPatches(level);
@@ -469,7 +470,7 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
                 glFinish();
             }
         }
-    }
+    //}
     deactivateShader();
 }
 
