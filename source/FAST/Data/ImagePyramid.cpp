@@ -240,17 +240,21 @@ ImagePyramidAccess::pointer ImagePyramid::getAccess(accessType type) {
 }
 
 void ImagePyramid::setDirtyPatch(int level, int patchIdX, int patchIdY) {
+	std::lock_guard<std::mutex> lock(m_dirtyPatchMutex);
 	const std::string tileString =
 		std::to_string(level) + "_" + std::to_string(patchIdX) + "_" + std::to_string(patchIdY);
 	m_dirtyPatches.insert(tileString);
 }
 
 std::set<std::string> ImagePyramid::getDirtyPatches() {
+	std::lock_guard<std::mutex> lock(m_dirtyPatchMutex);
 	return m_dirtyPatches;
 }
 
-void ImagePyramid::clearDirtyPatches() {
-	m_dirtyPatches.clear();
+void ImagePyramid::clearDirtyPatches(std::set<std::string> patches) {
+	std::lock_guard<std::mutex> lock(m_dirtyPatchMutex);
+	for(auto&& patch : patches)
+		m_dirtyPatches.erase(patch);
 }
 
 }

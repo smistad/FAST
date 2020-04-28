@@ -31,7 +31,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         ImagePyramidAccess::pointer getAccess(accessType type);
         std::set<std::string> getDirtyPatches();
         void setDirtyPatch(int level, int patchIdX, int patchIdY);
-        void clearDirtyPatches();
+        void clearDirtyPatches(std::set<std::string> patches);
         void free(ExecutionDevice::pointer device) override;
         void freeAll() override;
         ~ImagePyramid();
@@ -46,6 +46,7 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
 
         std::set<std::string> m_dirtyPatches;
         static int m_counter;
+        std::mutex m_dirtyPatchMutex;
 };
 
 }

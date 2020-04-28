@@ -159,7 +159,6 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
 			mKernel.setArg(3, mFillAreaBuffer);
 			mKernel.setArg(4, mBorderRadius);
 			mKernel.setArg(5, mOpacity);
-            std::cout << "OKOKOKOKOKOK" << std::endl;
 
             uint64_t memoryUsage = 0;
             while(true) {
@@ -199,10 +198,8 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
                     patch = access->getPatchAsImage(level, tile_x, tile_y);
                     std::cout << "Got patch" << std::endl;
                 }
-                std::cout << "WIDTH: " << patch->getWidth() << std::endl;
                 std::cout << "Maximum sp: " << patch->calculateMaximumIntensity() << std::endl;
 			    auto patchAccess = patch->getOpenCLImageAccess(ACCESS_READ, device);
-                std::cout << "Got CL access" << patchAccess.get() << std::endl;
 				cl::Image2D *clImage = patchAccess->get2DImage();
 
 				// Run kernel to fill the texture
@@ -244,12 +241,10 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
 						patch->getWidth(), patch->getHeight()
 				);
 				mKernel.setArg(1, image);
-            std::cout << "OKOKOKOKOKOK2" << std::endl;
 				//}
 
 
 				mKernel.setArg(0, *clImage);
-            std::cout << "OKOKOKOKOKOK1" << std::endl;
 				queue.enqueueNDRangeKernel(
 						mKernel,
 						cl::NullRange,
@@ -319,12 +314,16 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
     //std::cout << "Levels total:" << m_input->getNrOfLevels() << std::endl;
 
     // Clear dirty patches
-    /*
-    for(auto&& patch : m_input->getDirtyPatches()) {
-        mTexturesToRender.erase(patch);
+    auto patches = m_input->getDirtyPatches();
+    for(auto&& patch : patches) {
+        std::cout << "erasing dirty patch: " << patch << std::endl;
+        if(mTexturesToRender.count(patch) > 0) {
+            GLuint textureID = mTexturesToRender[patch];
+			mTexturesToRender.erase(patch);
+            glDeleteTextures(1, &textureID);
+        }
     }
-    m_input->clearDirtyPatches();
-    */
+    m_input->clearDirtyPatches(patches);
 
     activateShader();
 

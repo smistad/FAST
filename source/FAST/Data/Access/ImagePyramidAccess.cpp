@@ -40,8 +40,8 @@ void ImagePyramidAccess::setScalar(uint x, uint y, uint level, uint8_t value, ui
     int levelHeight = m_image->getLevelHeight(level);
     int patches = m_image->getLevelPatches(level);
 
-    int patchIdX = std::floor(((float)x / levelWidth))* patches;
-    int patchIdY = std::floor(((float)y / levelHeight))* patches;
+    int patchIdX = std::floor(((float)x / levelWidth)* patches);
+    int patchIdY = std::floor(((float)y / levelHeight)* patches);
     m_image->setDirtyPatch(level, patchIdX, patchIdY);
 }
 
