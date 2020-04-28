@@ -177,7 +177,6 @@ void PatchStitcher::processImage(SharedPointer<Image> patch) {
             );
         } else {
             // Image pyramid, do it on CPU TODO: optimize somehow?
-            std::cout << "Stitching image pyramid.." << std::endl;
             auto outputAccess = m_outputImagePyramid->getAccess(ACCESS_READ_WRITE);
             auto patchAccess = patch->getImageAccess(ACCESS_READ);
             for(int y = startY; y < std::min(endY, fullHeight); ++y) {
@@ -185,8 +184,6 @@ void PatchStitcher::processImage(SharedPointer<Image> patch) {
                     outputAccess->setScalar(x, y, 0, (uint8_t)patchAccess->getScalar(Vector2i(x - startX, y - startY)));
                 }
             }
-            std::cout << "Done" << std::endl;
-            // TODO propagate changes upwards (maybe do this in setScalar?)
         }
     } else {
         // 3D

@@ -87,9 +87,6 @@ void ImagePyramid::create(int width, int height, int channels, int levels) {
 			if(data == nullptr) {
 			  throw Exception("Failed to create map view of file: " + std::to_string(GetLastError()));
 			}
-			// TODO initialize to zero test
-			std::memset(data, 0, bytes);
-			// TODO end
 #else
 			int fd = open(("/tmp/fast_mmap_" + std::to_string(currentLevel) + "_" + std::to_string(m_counter) + ".bin").c_str(), O_RDWR | O_CREAT | O_TRUNC, (mode_t)0600);
 			if (fd == -1) {
@@ -120,6 +117,9 @@ void ImagePyramid::create(int width, int height, int channels, int levels) {
 			}
 			levelData.fileHandle = fd;
 #endif
+			// Initialize data to all zeros
+			std::memset(data, 0, bytes);
+
 			levelData.data = data;
 			levelData.memoryMapped = true;
 		}
@@ -132,7 +132,8 @@ void ImagePyramid::create(int width, int height, int channels, int levels) {
 
     for(int i = 0; i < m_levels.size(); ++i) {
         int x = m_levels.size() - i - 1;
-        m_levels[i].patches = x*x*x + 10;
+        //m_levels[i].patches = x*x*x + 10;
+		m_levels[i].patches = std::ceil(m_levels[i].width / 256);
     }
     mBoundingBox = BoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
     m_initialized = true;
@@ -145,7 +146,8 @@ void ImagePyramid::create(openslide_t *fileHandle, std::vector<ImagePyramidLevel
     m_channels = 4;
     for(int i = 0; i < m_levels.size(); ++i) {
         int x = m_levels.size() - i - 1;
-        m_levels[i].patches = x*x*x + 10;
+        //m_levels[i].patches = x*x*x + 10;
+		m_levels[i].patches = std::ceil(m_levels[i].width / 256);// x* x* x + 10;
     }
     mBoundingBox = BoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
     m_initialized = true;

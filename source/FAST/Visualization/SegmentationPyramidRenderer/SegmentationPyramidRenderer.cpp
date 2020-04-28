@@ -178,9 +178,14 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
                 }
 
                 // Check if tile has been processed before
-                if(mTexturesToRender.count(tileID) > 0)
-                    continue;
-
+                bool dirtyPatch = false;
+                if(mTexturesToRender.count(tileID) > 0) {
+                    if(m_input->getDirtyPatches().count(tileID) == 0) {
+                        continue;
+                    } else {
+                        dirtyPatch = true;
+                    }
+                }
                 // Create texture
                 auto parts = split(tileID, "_");
                 if(parts.size() != 3)
@@ -274,7 +279,25 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
 				glFinish();
 				//}
 
-                mTexturesToRender[tileID] = textureID;
+                if(dirtyPatch) {
+                    // Delete dirty texture patch first
+					GLuint oldTextureID = mTexturesToRender[tileID];
+					glBindTexture(GL_TEXTURE_2D, oldTextureID);
+					GLint compressedImageSizeOld = 0;
+					glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedImageSizeOld);
+					m_memoryUsage -= compressedImageSizeOld;
+					glBindTexture(GL_TEXTURE_2D, 0);
+                    {
+                        std::lock_guard<std::mutex> lock(m_texturesToRenderMutex);
+                        mTexturesToRender[tileID] = textureID;
+                        glDeleteTextures(1, &oldTextureID);
+                    }
+                    m_input->clearDirtyPatches({tileID});
+                } else {
+					std::lock_guard<std::mutex> lock(m_texturesToRenderMutex);
+					mTexturesToRender[tileID] = textureID;
+                }
+
                 m_memoryUsage += compressedImageSize;
                 std::cout << "Texture cache in SegmentationPyramidRenderer using " << (float)m_memoryUsage / (1024 * 1024) << " MB" << std::endl;
             }
@@ -312,21 +335,13 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
     //std::cout << "Level to use: " << levelToUse << std::endl;
     //std::cout << "Levels total:" << m_input->getNrOfLevels() << std::endl;
 
-    // Clear dirty patches
-    auto patches = m_input->getDirtyPatches();
-    for(auto&& patch : patches) {
-        if(mTexturesToRender.count(patch) > 0) {
-            GLuint textureID = mTexturesToRender[patch];
-			glBindTexture(GL_TEXTURE_2D, textureID);
-			GLint compressedImageSize = 0;
-			glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedImageSize);
-            m_memoryUsage -= compressedImageSize;
-			glBindTexture(GL_TEXTURE_2D, 0);
-			mTexturesToRender.erase(patch);
-            glDeleteTextures(1, &textureID);
+    {
+        std::lock_guard<std::mutex> lock(m_tileQueueMutex);
+        for(auto&& patch : m_input->getDirtyPatches()) {
+            // Add dirty patches to queue
+            m_tileQueue.push_back(patch); // Avoid duplicates somehow?
         }
     }
-    m_input->clearDirtyPatches(patches);
 
     activateShader();
 
@@ -345,6 +360,7 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
     glUniformMatrix4fv(transformLoc, 1, GL_FALSE, viewingMatrix.data());
 
     int level = levelToUse;
+    // TODO: since segmentations are transparent; this trick doesn't work:
     //for(int level = m_input->getNrOfLevels()-1; level >= levelToUse; level--) {
         const int levelWidth = m_input->getLevelWidth(level);
         const int levelHeight = m_input->getLevelHeight(level);
@@ -392,6 +408,7 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
                     continue;
 
                 // Is patch in cache?
+				std::unique_lock<std::mutex> lock(m_texturesToRenderMutex);
                 if(mTexturesToRender.count(tileString) == 0) {
                     // Add to queue if not in cache
                     {

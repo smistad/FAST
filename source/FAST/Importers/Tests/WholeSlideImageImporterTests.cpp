@@ -26,7 +26,8 @@ TEST_CASE("Import whole slide image and display highest level", "[fast][WholeSli
     auto port = importer->getOutputPort();
     importer->update();
     auto WSI = port->getNextFrame<ImagePyramid>();
-    auto image = WSI->getLevelAsImage(WSI->getNrOfLevels()-1);
+    auto access = WSI->getAccess(ACCESS_READ);
+    auto image = access->getLevelAsImage(WSI->getNrOfLevels()-1);
 
     auto renderer = ImageRenderer::New();
     renderer->addInputData(image);
@@ -44,7 +45,8 @@ TEST_CASE("Import whole slide image and display a tile at level 0", "[fast][Whol
     auto port = importer->getOutputPort();
     importer->update();
     auto WSI = port->getNextFrame<ImagePyramid>();
-    auto image = WSI->getPatchAsImage(0, 40000, 10000, 1024, 1024);
+    auto access = WSI->getAccess(ACCESS_READ);
+    auto image = access->getPatchAsImage(0, 40000, 10000, 1024, 1024);
 
     auto renderer = ImageRenderer::New();
     renderer->addInputData(image);
