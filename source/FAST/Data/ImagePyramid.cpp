@@ -31,13 +31,13 @@ void ImagePyramid::create(int width, int height, int channels, int levels) {
     int currentHeight = height;
     m_channels = channels;
     while(true) {
-        reportInfo() << "Processing level " << currentLevel << reportEnd();
-        currentWidth = currentWidth / std::pow(2, currentLevel);
-        currentHeight = currentHeight / std::pow(2, currentLevel);
+		currentWidth = width / std::pow(2, currentLevel);
+		currentHeight = height / std::pow(2, currentLevel);
 
-        if(currentWidth < 1024 || currentHeight < 1024)
+        if(currentWidth < 4096 || currentHeight < 4096)
             break;
 
+        reportInfo() << "Processing level " << currentLevel << reportEnd();
         std::size_t bytes = (std::size_t)currentWidth * currentHeight * m_channels * sizeof(char);
 
         // Get total size of image

@@ -35,6 +35,7 @@ void ImagePyramidAccess::setScalar(uint x, uint y, uint level, uint8_t value, ui
     std::size_t pos = (x + (std::size_t)y * levelData.width) * m_image->getNrOfChannels() + channel;
 	levelData.data[pos] = value;
 
+
     // add patch to list of dirty patches
     int levelWidth = m_image->getLevelWidth(level);
     int levelHeight = m_image->getLevelHeight(level);
@@ -43,6 +44,28 @@ void ImagePyramidAccess::setScalar(uint x, uint y, uint level, uint8_t value, ui
     int patchIdX = std::floor(((float)x / levelWidth)* patches);
     int patchIdY = std::floor(((float)y / levelHeight)* patches);
     m_image->setDirtyPatch(level, patchIdX, patchIdY);
+
+    // Propagate change upwards recursively
+    if(level != m_levels.size() - 1) {
+        int nx = x / 2;
+        int ny = y / 2;
+        // Calculate new average:
+        float sum = getScalar(nx*2, ny*2, level, channel);
+        int counter = 1;
+        if(nx * 2 + 1 < levelWidth) {
+            sum += getScalar(nx * 2 + 1, ny * 2, level, channel);
+            ++counter;
+        }
+        if(ny * 2 + 1 < levelHeight) {
+            sum += getScalar(nx * 2, ny * 2 + 1, level, channel);
+            ++counter;
+        }
+        if(nx * 2 + 1 < levelWidth && ny * 2 + 1 < levelHeight) {
+            sum += getScalar(nx * 2 + 1, ny * 2 + 1, level, channel);
+            ++counter;
+        }
+        setScalar(nx, ny, level + 1, std::round(sum / counter), channel);
+    }
 }
 
 uint8_t ImagePyramidAccess::getScalar(uint x, uint y, uint level, uint channel) {
@@ -74,7 +97,6 @@ std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int 
 		float scale = (float)m_image->getFullWidth()/levelWidth;
         openslide_read_region(m_fileHandle, (uint32_t*)data.get(), x * scale, y * scale, level, width, height);
     } else {
-        std::cout << x << " " << y << " " << width << " " << height << std::endl;
         auto levelData = m_levels[level];
         for(int cy = y; cy < std::min(y + height, levelHeight); ++cy) {
             for(int cx = x; cx < std::min(x + width, levelWidth); ++cx) {
