@@ -51,6 +51,7 @@ class FAST_EXPORT SegmentationPyramidRenderer : public Renderer {
         int mBorderRadius = 1;
         float mOpacity = 0.5;
         cl::Buffer mColorBuffer, mFillAreaBuffer;
+        std::atomic<uint64_t> m_memoryUsage;
 
         void drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D);
 };

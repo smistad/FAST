@@ -42,5 +42,5 @@ __kernel void renderToTexture(
         }
     }
 
-    write_imagef(texture, imagePosition, color);
+    write_imageui(texture, imagePosition, convert_uint4(round(color*255)));
 }

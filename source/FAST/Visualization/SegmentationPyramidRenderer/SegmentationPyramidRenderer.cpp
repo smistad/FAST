@@ -80,7 +80,6 @@ void SegmentationPyramidRenderer::loadAttributes() {
 void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
     if(mDataToRender.empty())
         return;
-    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
     if(!m_bufferThread) {
         // Create thread to load patches
@@ -101,7 +100,7 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
         m_view->context()->makeCurrent();
         auto dc = wglGetCurrentDC();
         
-        m_bufferThread = std::make_unique<std::thread>([this, dc, nativeContextHandle, device]() {
+        m_bufferThread = std::make_unique<std::thread>([this, dc, nativeContextHandle]() {
             wglMakeCurrent(dc, nativeContextHandle);
 #else
         m_bufferThread = std::make_unique<std::thread>([this]() {
@@ -115,44 +114,45 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
                 throw Exception("The custom Qt GL context is not sharing!");
             context->makeCurrent();
 #endif
+			OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 			if(mColorsModified) {
-        // Transfer colors to device (this doesn't have to happen every render call..)
-        std::unique_ptr<float[]> colorData(new float[3*mLabelColors.size()]);
-        std::unordered_map<int, Color>::iterator it;
-        for(it = mLabelColors.begin(); it != mLabelColors.end(); it++) {
-            colorData[it->first*3] = it->second.getRedValue();
-            colorData[it->first*3+1] = it->second.getGreenValue();
-            colorData[it->first*3+2] = it->second.getBlueValue();
-        }
+				// Transfer colors to device (this doesn't have to happen every render call..)
+				std::unique_ptr<float[]> colorData(new float[3*mLabelColors.size()]);
+				std::unordered_map<int, Color>::iterator it;
+				for(it = mLabelColors.begin(); it != mLabelColors.end(); it++) {
+					colorData[it->first*3] = it->second.getRedValue();
+					colorData[it->first*3+1] = it->second.getGreenValue();
+					colorData[it->first*3+2] = it->second.getBlueValue();
+				}
 
-        mColorBuffer = cl::Buffer(
-                device->getContext(),
-                CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                sizeof(float)*3*mLabelColors.size(),
-                colorData.get()
-        );
-    }
+				mColorBuffer = cl::Buffer(
+						device->getContext(),
+						CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+						sizeof(float)*3*mLabelColors.size(),
+						colorData.get()
+				);
+			}
 
-    if(mFillAreaModified) {
-        // Transfer colors to device (this doesn't have to happen every render call..)
-        std::unique_ptr<char[]> fillAreaData(new char[mLabelColors.size()]);
-        std::unordered_map<int, Color>::iterator it;
-        for(it = mLabelColors.begin(); it != mLabelColors.end(); it++) {
-            if(mLabelFillArea.count(it->first) == 0) {
-                // Use default value
-                fillAreaData[it->first] = mFillArea;
-            } else {
-                fillAreaData[it->first] = mLabelFillArea[it->first];
-            }
-        }
+			if(mFillAreaModified) {
+				// Transfer colors to device (this doesn't have to happen every render call..)
+				std::unique_ptr<char[]> fillAreaData(new char[mLabelColors.size()]);
+				std::unordered_map<int, Color>::iterator it;
+				for(it = mLabelColors.begin(); it != mLabelColors.end(); it++) {
+					if(mLabelFillArea.count(it->first) == 0) {
+						// Use default value
+						fillAreaData[it->first] = mFillArea;
+					} else {
+						fillAreaData[it->first] = mLabelFillArea[it->first];
+					}
+				}
 
-        mFillAreaBuffer = cl::Buffer(
-                device->getContext(),
-                CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                sizeof(char)*mLabelColors.size(),
-                fillAreaData.get()
-        );
-    }
+				mFillAreaBuffer = cl::Buffer(
+						device->getContext(),
+						CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+						sizeof(char)*mLabelColors.size(),
+						fillAreaData.get()
+				);
+			}
 
 			auto mKernel = cl::Kernel(getOpenCLProgram(device), "renderToTexture");
 			mKernel.setArg(2, mColorBuffer);
@@ -160,7 +160,7 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
 			mKernel.setArg(4, mBorderRadius);
 			mKernel.setArg(5, mOpacity);
 
-            uint64_t memoryUsage = 0;
+            m_memoryUsage = 0;
             while(true) {
                 std::string tileID;
                 {
@@ -194,11 +194,8 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
                 Image::pointer patch;
                 {
                     auto access = m_input->getAccess(ACCESS_READ);
-                    std::cout << "Got input access" << std::endl;
                     patch = access->getPatchAsImage(level, tile_x, tile_y);
-                    std::cout << "Got patch" << std::endl;
                 }
-                std::cout << "Maximum sp: " << patch->calculateMaximumIntensity() << std::endl;
 			    auto patchAccess = patch->getOpenCLImageAccess(ACCESS_READ, device);
 				cl::Image2D *clImage = patchAccess->get2DImage();
 
@@ -237,7 +234,7 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
 				image = cl::Image2D(
 						device->getContext(),
 						CL_MEM_READ_WRITE,
-						cl::ImageFormat(CL_RGBA, CL_FLOAT),
+						cl::ImageFormat(CL_RGBA, CL_UNSIGNED_INT8),
 						patch->getWidth(), patch->getHeight()
 				);
 				mKernel.setArg(1, image);
@@ -256,7 +253,7 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
 					queue.enqueueReleaseGLObjects(&v);
 				} else {*/
 				// Copy data from CL image to CPU
-				auto data = make_uninitialized_unique<float[]>(patch->getWidth() * patch->getHeight() * 4);
+				auto data = make_uninitialized_unique<uchar[]>(patch->getWidth() * patch->getHeight() * 4);
 				queue.enqueueReadImage(
 						image,
 						CL_TRUE,
@@ -270,14 +267,16 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
 				glBindTexture(GL_TEXTURE_2D, textureID);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, patch->getWidth(), patch->getHeight(), 0, GL_RGBA, GL_FLOAT, data.get());
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA, patch->getWidth(), patch->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, data.get());
+                GLint compressedImageSize = 0;
+                glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedImageSize);
 				glBindTexture(GL_TEXTURE_2D, 0);
 				glFinish();
 				//}
 
                 mTexturesToRender[tileID] = textureID;
-                memoryUsage += 4 * patch->getWidth() * patch->getHeight();
-                std::cout << "Texture cache in SegmentationPyramidRenderer using " << (float)memoryUsage / (1024 * 1024) << " MB" << std::endl;
+                m_memoryUsage += compressedImageSize;
+                std::cout << "Texture cache in SegmentationPyramidRenderer using " << (float)m_memoryUsage / (1024 * 1024) << " MB" << std::endl;
             }
         });
     }
@@ -316,9 +315,13 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
     // Clear dirty patches
     auto patches = m_input->getDirtyPatches();
     for(auto&& patch : patches) {
-        std::cout << "erasing dirty patch: " << patch << std::endl;
         if(mTexturesToRender.count(patch) > 0) {
             GLuint textureID = mTexturesToRender[patch];
+			glBindTexture(GL_TEXTURE_2D, textureID);
+			GLint compressedImageSize = 0;
+			glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedImageSize);
+            m_memoryUsage -= compressedImageSize;
+			glBindTexture(GL_TEXTURE_2D, 0);
 			mTexturesToRender.erase(patch);
             glDeleteTextures(1, &textureID);
         }
