@@ -32,7 +32,8 @@ void ImagePyramidAccess::setScalar(uint x, uint y, uint level, uint8_t value, ui
 	if(x >= levelData.width || y >= levelData.height)
 		throw OutOfBoundsException();
 
-	levelData.data[(x + y * levelData.width) * m_image->getNrOfChannels() + channel] = value;
+    std::size_t pos = (x + (std::size_t)y * levelData.width) * m_image->getNrOfChannels() + channel;
+	levelData.data[pos] = value;
 
     // add patch to list of dirty patches
     int levelWidth = m_image->getLevelWidth(level);
@@ -63,6 +64,30 @@ ImagePyramidPatch ImagePyramidAccess::getPatch(std::string tile) {
     return getPatch(level, tile_x, tile_y);
 }
 
+
+std::unique_ptr<uchar[]> ImagePyramidAccess::getPatchData(int level, int x, int y, int width, int height) {
+    const int levelWidth = m_image->getLevelWidth(level);
+    const int levelHeight = m_image->getLevelHeight(level);
+    const int channels = m_image->getNrOfChannels();
+    auto data = make_uninitialized_unique<uchar[]>(width*height*channels);
+    if(m_fileHandle != nullptr) {
+		float scale = (float)m_image->getFullWidth()/levelWidth;
+        openslide_read_region(m_fileHandle, (uint32_t*)data.get(), x * scale, y * scale, level, width, height);
+    } else {
+        std::cout << x << " " << y << " " << width << " " << height << std::endl;
+        auto levelData = m_levels[level];
+        for(int cy = y; cy < std::min(y + height, levelHeight); ++cy) {
+            for(int cx = x; cx < std::min(x + width, levelWidth); ++cx) {
+                for(int channel = 0; channel < channels; ++channel) {
+                    data[(cx - x + (cy - y) * width)*channels + channel] = levelData.data[(cx + cy * levelWidth)*channels + channel];
+                }
+            }
+        }
+    }
+
+    return data;
+}
+
 ImagePyramidPatch ImagePyramidAccess::getPatch(int level, int tile_x, int tile_y) {
     // Create patch
     int levelWidth = m_image->getLevelWidth(level);
@@ -79,12 +104,8 @@ ImagePyramidPatch ImagePyramidAccess::getPatch(int level, int tile_x, int tile_y
     if(tile_y == tiles - 1)
         tile.height = levelHeight - tile.offsetY;
 
-    //std::cout << "Loading data from disk for tile " << tile_x << " " << tile_y << " " << level << " " <<  tile_offset_x << " " << tile_offset_y << std::endl;
     // Read the actual data
-    std::size_t bytes = tile.width*tile.height*4;
-    tile.data = std::shared_ptr<uchar>(new uchar[bytes], [](uchar *p) { delete [] p; }); // TODO use make_shared instead (C++20)
-    float scale = (float)m_image->getFullWidth()/levelWidth;
-    openslide_read_region(m_fileHandle, (uint32_t *) tile.data.get(), tile.offsetX*scale, tile.offsetY*scale, level, tile.width, tile.height);
+    tile.data = getPatchData(level, tile.offsetX, tile.offsetY, tile.width, tile.height);
 
     return tile;
 }
@@ -99,9 +120,13 @@ SharedPointer<Image> ImagePyramidAccess::getLevelAsImage(int level) {
         throw Exception("Image level is too large to convert into a FAST image");
 
     auto image = Image::New();
-    auto data = make_uninitialized_unique<uchar[]>(width*height*4);
-    openslide_read_region(m_fileHandle, (uint32_t *)data.get(), 0, 0, level, width, height);
-    image->create(width, height, TYPE_UINT8, 4, std::move(data));
+    if(m_fileHandle == nullptr) {
+		image->create(width, height, TYPE_UINT8, 4, m_levels[level].data);
+    } else {
+		auto data = make_uninitialized_unique<uchar[]>(width*height*4);
+        openslide_read_region(m_fileHandle, (uint32_t*)data.get(), 0, 0, level, width, height);
+		image->create(width, height, TYPE_UINT8, 4, std::move(data));
+    }
     image->setSpacing(Vector3f(
             (float)m_image->getFullWidth() / width,
             (float)m_image->getFullHeight() / height,
@@ -129,9 +154,8 @@ SharedPointer<Image> ImagePyramidAccess::getPatchAsImage(int level, int offsetX,
         throw Exception("offset + size exceeds level size");
 
     auto image = Image::New();
-    auto data = make_uninitialized_unique<uchar[]>(width*height*4);
+    auto data = getPatchData(level, offsetX, offsetY, width, height);
     float scale = (float)m_image->getFullWidth()/m_image->getLevelWidth(level);
-    openslide_read_region(m_fileHandle, (uint32_t *)data.get(), offsetX*scale, offsetY*scale, level, width, height);
     image->create(width, height, TYPE_UINT8, 4, std::move(data));
     image->setSpacing(Vector3f(
             scale,
@@ -148,6 +172,54 @@ SharedPointer<Image> ImagePyramidAccess::getPatchAsImage(int level, int offsetX,
     channelConverter->setInputData(image);
 
     return channelConverter->updateAndGetOutputData<Image>();
+}
+
+SharedPointer<Image> ImagePyramidAccess::getPatchAsImage(int level, int patchIdX, int patchIdY) {
+    int levelWidth = m_image->getLevelWidth(level);
+    int levelHeight = m_image->getLevelHeight(level);
+    int tiles = m_image->getLevelPatches(level);
+    ImagePyramidPatch tile;
+    tile.offsetX = patchIdX * (int) std::floor((float) levelWidth / tiles);
+    tile.offsetY = patchIdY * (int) std::floor((float) levelHeight / tiles);
+
+    tile.width = std::floor(((float) levelWidth / tiles));
+    if(patchIdX == tiles - 1)
+        tile.width = levelWidth - tile.offsetX;
+    tile.height = std::floor((float) levelHeight / tiles);
+    if(patchIdY == tiles - 1)
+        tile.height = levelHeight - tile.offsetY;
+
+    // Read the actual data
+    auto data = getPatchData(level, tile.offsetX, tile.offsetY, tile.width, tile.height);
+
+    auto image = Image::New();
+    float scale = (float)m_image->getFullWidth()/m_image->getLevelWidth(level);
+    image->create(tile.width, tile.height, TYPE_UINT8, m_image->getNrOfChannels(), std::move(data));
+    image->setSpacing(Vector3f(
+            scale,
+            scale,
+            1.0f
+    ));
+    // TODO Set transformation
+    SceneGraph::setParentNode(image, std::dynamic_pointer_cast<SpatialDataObject>(m_image));
+
+    if(m_fileHandle != nullptr) {
+        // Data is stored as BGRA, need to delete alpha channel and reverse it
+        auto channelConverter = ImageChannelConverter::New();
+        channelConverter->setChannelsToRemove(false, false, false, true);
+        channelConverter->setReverseChannels(true);
+        channelConverter->setInputData(image);
+
+        return channelConverter->updateAndGetOutputData<Image>();
+    } else {
+        return image;
+    }
+    /*
+    auto t = Image::New();
+    t->create(512, 512, TYPE_UINT8, 1);
+    t->fill(0);
+    return t;
+    */
 }
 
 

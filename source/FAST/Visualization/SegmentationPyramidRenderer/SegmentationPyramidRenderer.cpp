@@ -1,4 +1,4 @@
-#include "ImagePyramidRenderer.hpp"
+#include "SegmentationPyramidRenderer.hpp"
 #include "FAST/Exception.hpp"
 #include "FAST/DeviceManager.hpp"
 #include "FAST/Utility.hpp"
@@ -6,6 +6,8 @@
 #include <FAST/Data/ImagePyramid.hpp>
 #include <QGLContext>
 #include <FAST/Visualization/Window.hpp>
+#include <FAST/Data/Segmentation.hpp>
+#include <FAST/Data/Image.hpp>
 #include <FAST/Visualization/View.hpp>
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl_gl.h>
@@ -24,63 +26,61 @@
 
 namespace fast {
 
-void ImagePyramidRenderer::clearPyramid() {
+void SegmentationPyramidRenderer::clearPyramid() {
     // Clear buffer. Useful when processing a new image
     mTexturesToRender.clear();
     mDataToRender.clear();
 }
 
-ImagePyramidRenderer::~ImagePyramidRenderer() {
+SegmentationPyramidRenderer::~SegmentationPyramidRenderer() {
     m_stop = true;
     m_queueEmptyCondition.notify_one();
     m_bufferThread->join();
-    reportInfo() << "Buffer thread in ImagePyramidRenderer stopped" << reportEnd();
+    reportInfo() << "Buffer thread in SegmentationPyramidRenderer stopped" << reportEnd();
 }
 
-ImagePyramidRenderer::ImagePyramidRenderer() : Renderer() {
+SegmentationPyramidRenderer::SegmentationPyramidRenderer() : Renderer() {
     createInputPort<ImagePyramid>(0, false);
-    createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/ImagePyramidRenderer/ImagePyramidRenderer.cl", "3D");
-    createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/ImagePyramidRenderer/VeryLargeImageRenderer2D.cl", "2D");
-    mIsModified = true;
+    createOpenCLProgram(Config::getKernelSourcePath() + "/Visualization/SegmentationPyramidRenderer/SegmentationRenderer.cl");
     m_stop = false;
-    mWindow = -1;
-    mLevel = -1;
     m_currentLevel = -1;
-    createFloatAttribute("window", "Intensity window", "Intensity window", -1);
-    createFloatAttribute("level", "Intensity level", "Intensity level", -1);
     createShaderProgram({
-                                Config::getKernelSourcePath() + "/Visualization/ImagePyramidRenderer/ImagePyramidRenderer.vert",
-                                Config::getKernelSourcePath() + "/Visualization/ImagePyramidRenderer/ImagePyramidRenderer.frag",
+                                Config::getKernelSourcePath() + "/Visualization/SegmentationPyramidRenderer/SegmentationPyramidRenderer.vert",
+                                Config::getKernelSourcePath() + "/Visualization/SegmentationPyramidRenderer/SegmentationPyramidRenderer.frag",
                         });
+	mIsModified = false;
+    mColorsModified = true;
+    mFillAreaModified = true;
+    mFillArea = true;
+    createFloatAttribute("opacity", "Segmentation Opacity", "", mOpacity);
+
+    // Set up default label colors
+    mLabelColors[Segmentation::LABEL_BACKGROUND] = Color::Black();
+    mLabelColors[Segmentation::LABEL_FOREGROUND] = Color::Green();
+    mLabelColors[Segmentation::LABEL_BLOOD] = Color::Red();
+    mLabelColors[Segmentation::LABEL_ARTERY] = Color::Red();
+    mLabelColors[Segmentation::LABEL_VEIN] = Color::Blue();
+    mLabelColors[Segmentation::LABEL_BONE] = Color::White();
+    mLabelColors[Segmentation::LABEL_MUSCLE] = Color::Red();
+    mLabelColors[Segmentation::LABEL_NERVE] = Color::Yellow();
+    mLabelColors[Segmentation::LABEL_YELLOW] = Color::Yellow();
+    mLabelColors[Segmentation::LABEL_GREEN] = Color::Green();
+    mLabelColors[Segmentation::LABEL_MAGENTA] = Color::Magenta();
+    mLabelColors[Segmentation::LABEL_RED] = Color::Red();
+    mLabelColors[Segmentation::LABEL_WHITE] = Color::White();
+    mLabelColors[Segmentation::LABEL_BLUE] = Color::Blue();
+
 
 }
 
-void ImagePyramidRenderer::setIntensityLevel(float level) {
-    mLevel = level;
+void SegmentationPyramidRenderer::loadAttributes() {
+    setOpacity(getFloatAttribute("opacity"));
 }
 
-float ImagePyramidRenderer::getIntensityLevel() {
-    return mLevel;
-}
-
-void ImagePyramidRenderer::setIntensityWindow(float window) {
-    if (window <= 0)
-        throw Exception("Intensity window has to be above 0.");
-    mWindow = window;
-}
-
-float ImagePyramidRenderer::getIntensityWindow() {
-    return mWindow;
-}
-
-void ImagePyramidRenderer::loadAttributes() {
-    mWindow = getFloatAttribute("window");
-    mLevel = (getFloatAttribute("level"));
-}
-
-void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
+void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatrix, float zNear, float zFar, bool mode2D) {
     if(mDataToRender.empty())
         return;
+    OpenCLDevice::pointer device = std::dynamic_pointer_cast<OpenCLDevice>(getMainDevice());
 
     if(!m_bufferThread) {
         // Create thread to load patches
@@ -101,7 +101,7 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
         m_view->context()->makeCurrent();
         auto dc = wglGetCurrentDC();
         
-        m_bufferThread = std::make_unique<std::thread>([this, dc, nativeContextHandle]() {
+        m_bufferThread = std::make_unique<std::thread>([this, dc, nativeContextHandle, device]() {
             wglMakeCurrent(dc, nativeContextHandle);
 #else
         m_bufferThread = std::make_unique<std::thread>([this]() {
@@ -115,6 +115,52 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
                 throw Exception("The custom Qt GL context is not sharing!");
             context->makeCurrent();
 #endif
+			if(mColorsModified) {
+        // Transfer colors to device (this doesn't have to happen every render call..)
+        std::unique_ptr<float[]> colorData(new float[3*mLabelColors.size()]);
+        std::unordered_map<int, Color>::iterator it;
+        for(it = mLabelColors.begin(); it != mLabelColors.end(); it++) {
+            colorData[it->first*3] = it->second.getRedValue();
+            colorData[it->first*3+1] = it->second.getGreenValue();
+            colorData[it->first*3+2] = it->second.getBlueValue();
+        }
+
+        mColorBuffer = cl::Buffer(
+                device->getContext(),
+                CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                sizeof(float)*3*mLabelColors.size(),
+                colorData.get()
+        );
+    }
+
+    if(mFillAreaModified) {
+        // Transfer colors to device (this doesn't have to happen every render call..)
+        std::unique_ptr<char[]> fillAreaData(new char[mLabelColors.size()]);
+        std::unordered_map<int, Color>::iterator it;
+        for(it = mLabelColors.begin(); it != mLabelColors.end(); it++) {
+            if(mLabelFillArea.count(it->first) == 0) {
+                // Use default value
+                fillAreaData[it->first] = mFillArea;
+            } else {
+                fillAreaData[it->first] = mLabelFillArea[it->first];
+            }
+        }
+
+        mFillAreaBuffer = cl::Buffer(
+                device->getContext(),
+                CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                sizeof(char)*mLabelColors.size(),
+                fillAreaData.get()
+        );
+    }
+
+			auto mKernel = cl::Kernel(getOpenCLProgram(device), "renderToTexture");
+			mKernel.setArg(2, mColorBuffer);
+			mKernel.setArg(3, mFillAreaBuffer);
+			mKernel.setArg(4, mBorderRadius);
+			mKernel.setArg(5, mOpacity);
+            std::cout << "OKOKOKOKOKOK" << std::endl;
+
             uint64_t memoryUsage = 0;
             while(true) {
                 std::string tileID;
@@ -144,35 +190,99 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
                 int level = std::stoi(parts[0]);
                 int tile_x = std::stoi(parts[1]);
                 int tile_y = std::stoi(parts[2]);
-                std::cout << "Creating texture for tile " << tile_x << " " << tile_y << " at level " << level << std::endl;
-                ImagePyramidPatch tile;
+                std::cout << "Segmentation creating texture for tile " << tile_x << " " << tile_y << " at level " << level << std::endl;
+                
+                Image::pointer patch;
                 {
                     auto access = m_input->getAccess(ACCESS_READ);
-                    tile = access->getPatch(level, tile_x, tile_y);
+                    std::cout << "Got input access" << std::endl;
+                    patch = access->getPatchAsImage(level, tile_x, tile_y);
+                    std::cout << "Got patch" << std::endl;
                 }
-                std::cout << "Done get patch" << std::endl;
-                std::cout << "Creating GL texture.." << std::endl;
-                // Copy data from CPU to GL texture
-                GLuint textureID;
-                glGenTextures(1, &textureID);
-                glBindTexture(GL_TEXTURE_2D, textureID);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                std::cout << "WIDTH: " << patch->getWidth() << std::endl;
+                std::cout << "Maximum sp: " << patch->calculateMaximumIntensity() << std::endl;
+			    auto patchAccess = patch->getOpenCLImageAccess(ACCESS_READ, device);
+                std::cout << "Got CL access" << patchAccess.get() << std::endl;
+				cl::Image2D *clImage = patchAccess->get2DImage();
 
-                // TODO Why is this needed:
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+				// Run kernel to fill the texture
+				cl::CommandQueue queue = device->getCommandQueue();
 
-                // WSI data from openslide is stored as ARGB, need to handle this here: BGRA and reverse
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tile.width, tile.height, 0, GL_BGRA, GL_UNSIGNED_BYTE,
-                             tile.data.get());
-                glBindTexture(GL_TEXTURE_2D, 0);
-                glFinish();
+				cl::Image2D image;
+				//cl::ImageGL imageGL;
+				//std::vector<cl::Memory> v;
+				GLuint textureID;
+				// TODO The GL-CL interop here is causing glClear to not work on AMD systems and therefore disabled
+				/*
+				if(DeviceManager::isGLInteropEnabled()) {
+					// Create OpenGL texture
+					glGenTextures(1, &textureID);
+					glBindTexture(GL_TEXTURE_2D, textureID);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, input->getWidth(), input->getHeight(), 0, GL_RGBA, GL_FLOAT, 0);
+
+					// Create CL-GL image
+					imageGL = cl::ImageGL(
+							device->getContext(),
+							CL_MEM_READ_WRITE,
+							GL_TEXTURE_2D,
+							0,
+							textureID
+					);
+					glBindTexture(GL_TEXTURE_2D, 0);
+					glFinish();
+					mKernel.setArg(1, imageGL);
+					v.push_back(imageGL);
+					queue.enqueueAcquireGLObjects(&v);
+				} else {
+				 */
+				image = cl::Image2D(
+						device->getContext(),
+						CL_MEM_READ_WRITE,
+						cl::ImageFormat(CL_RGBA, CL_FLOAT),
+						patch->getWidth(), patch->getHeight()
+				);
+				mKernel.setArg(1, image);
+            std::cout << "OKOKOKOKOKOK2" << std::endl;
+				//}
+
+
+				mKernel.setArg(0, *clImage);
+            std::cout << "OKOKOKOKOKOK1" << std::endl;
+				queue.enqueueNDRangeKernel(
+						mKernel,
+						cl::NullRange,
+						cl::NDRange(patch->getWidth(), patch->getHeight()),
+						cl::NullRange
+				);
+
+				/*if(DeviceManager::isGLInteropEnabled()) {
+					queue.enqueueReleaseGLObjects(&v);
+				} else {*/
+				// Copy data from CL image to CPU
+				auto data = make_uninitialized_unique<float[]>(patch->getWidth() * patch->getHeight() * 4);
+				queue.enqueueReadImage(
+						image,
+						CL_TRUE,
+						createOrigoRegion(),
+						createRegion(patch->getWidth(), patch->getHeight(), 1),
+						0, 0,
+						data.get()
+				);
+				// Copy data from CPU to GL texture
+				glGenTextures(1, &textureID);
+				glBindTexture(GL_TEXTURE_2D, textureID);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, patch->getWidth(), patch->getHeight(), 0, GL_RGBA, GL_FLOAT, data.get());
+				glBindTexture(GL_TEXTURE_2D, 0);
+				glFinish();
+				//}
 
                 mTexturesToRender[tileID] = textureID;
-                memoryUsage += 4 * tile.width*tile.height;
-                std::cout << "Texture cache in ImagePyramidRenderer using " << (float)memoryUsage / (1024 * 1024) << " MB" << std::endl;
+                memoryUsage += 4 * patch->getWidth() * patch->getHeight();
+                std::cout << "Texture cache in SegmentationPyramidRenderer using " << (float)memoryUsage / (1024 * 1024) << " MB" << std::endl;
             }
         });
     }
@@ -200,7 +310,7 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
         levelToUse = 0;
     if(m_currentLevel != levelToUse) {
         // Level change, clear cache
-        std::cout << "=========== CLEARING QUEUE with size" << m_tileQueue.size() << std::endl;
+        std::cout << "=========== CLEARING QUEUE with size " << m_tileQueue.size() << std::endl;
         std::lock_guard<std::mutex> lock(m_tileQueueMutex);
         m_tileQueue.clear();
     }
@@ -289,6 +399,10 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
                     continue;
                 }
 
+                // Enable transparency
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
                 // Delete old VAO
                 if(mVAO.count(tileString) > 0)
                     glDeleteVertexArrays(1, &mVAO[tileString]);
@@ -349,6 +463,7 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
                 glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
                 glBindTexture(GL_TEXTURE_2D, 0);
                 glBindVertexArray(0);
+                glDisable(GL_BLEND);
                 glFinish();
             }
         }
@@ -356,9 +471,16 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
     deactivateShader();
 }
 
-void ImagePyramidRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D) {
+void SegmentationPyramidRenderer::drawTextures(Matrix4f &perspectiveMatrix, Matrix4f &viewingMatrix, bool mode2D) {
 
 }
 
+
+void SegmentationPyramidRenderer::setOpacity(float opacity) {
+    if(opacity < 0 || opacity > 1)
+        throw Exception("SegmentationPyramidRenderer opacity has to be >= 0 and <= 1");
+    mOpacity = opacity;
+    //deleteAllTextures();
+}
 
 } // end namespace fast

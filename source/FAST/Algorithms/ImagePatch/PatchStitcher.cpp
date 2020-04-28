@@ -43,8 +43,10 @@ void PatchStitcher::execute() {
 
     if(m_outputImage) {
         addOutputData(0, m_outputImage);
-    } else if (m_outputTensor) {
+    } else if(m_outputTensor) {
         addOutputData(0, m_outputTensor);
+    } else if(m_outputImagePyramid) {
+        addOutputData(0, m_outputImagePyramid);
     } else {
         throw Exception("Unexpected event in PatchStitcher");
     }
@@ -108,7 +110,7 @@ void PatchStitcher::processImage(SharedPointer<Image> patch) {
         is3D = false;
     }
 
-    if(!m_outputImage) {
+    if(!m_outputImage && !m_outputImagePyramid) {
         // Create output image
         if(is3D) {
 			m_outputImage = Image::New();
@@ -175,13 +177,15 @@ void PatchStitcher::processImage(SharedPointer<Image> patch) {
             );
         } else {
             // Image pyramid, do it on CPU TODO: optimize somehow?
+            std::cout << "Stitching image pyramid.." << std::endl;
             auto outputAccess = m_outputImagePyramid->getAccess(ACCESS_READ_WRITE);
-            auto patchAccess = m_outputImage->getImageAccess(ACCESS_READ);
-            for(int y = startY; y < endY; ++y) {
-                for(int x = startX; x < endX; ++x) {
-                    outputAccess->setScalar(x, y, 0, (uint8_t)patchAccess->getScalar(Vector2i(x, y)));
+            auto patchAccess = patch->getImageAccess(ACCESS_READ);
+            for(int y = startY; y < std::min(endY, fullHeight); ++y) {
+                for(int x = startX; x < std::min(endX, fullWidth); ++x) {
+                    outputAccess->setScalar(x, y, 0, (uint8_t)patchAccess->getScalar(Vector2i(x - startX, y - startY)));
                 }
             }
+            std::cout << "Done" << std::endl;
             // TODO propagate changes upwards (maybe do this in setScalar?)
         }
     } else {

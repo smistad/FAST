@@ -39,12 +39,13 @@ class FAST_EXPORT ImagePyramid : public SpatialDataObject {
         ImagePyramid();
         std::vector<Level> m_levels;
 
-        openslide_t* m_fileHandle;
+        openslide_t* m_fileHandle = nullptr;
 
         int m_channels;
         bool m_initialized;
 
         std::set<std::string> m_dirtyPatches;
+        static int m_counter;
 };
 
 }

@@ -17,6 +17,8 @@
 
 namespace fast {
 
+int ImagePyramid::m_counter = 0;
+
 void ImagePyramid::create(int width, int height, int channels, int levels) {
     // TODO Create memory mapped files on disk to use as virtual memory
 
@@ -30,35 +32,38 @@ void ImagePyramid::create(int width, int height, int channels, int levels) {
     m_channels = channels;
     while(true) {
         reportInfo() << "Processing level " << currentLevel << reportEnd();
-        currentWidth = width / std::pow(2, currentLevel);
-        currentWidth = height / std::pow(2, currentLevel);
+        currentWidth = currentWidth / std::pow(2, currentLevel);
+        currentHeight = currentHeight / std::pow(2, currentLevel);
 
         if(currentWidth < 1024 || currentHeight < 1024)
             break;
 
-        std::size_t bytes = currentWidth * currentHeight * m_channels * sizeof(char);
+        std::size_t bytes = (std::size_t)currentWidth * currentHeight * m_channels * sizeof(char);
 
         // Get total size of image
-        float sizeInMB = bytes / (1024 * 1024);
-        reportInfo() << "WSI level size: " << currentHeight << ", " << currentWidth << reportEnd();
+        float sizeInMB = (float)bytes / (1024 * 1024);
+        reportInfo() << "WSI level size: " << currentWidth << ", " << currentHeight << ", " << m_channels << reportEnd();
         reportInfo() << "WSI level size: " << sizeInMB << " MBs" << reportEnd();
 
 		ImagePyramidLevel levelData;
 		levelData.width = currentWidth;
 		levelData.height = currentHeight;
-		m_levels.push_back(levelData);
 
-		if(sizeInMB < 1000) {
-			// If level is less than 1000 MBs, use system memory
+		if(sizeInMB < 512) {
+			// If level is less than X MBs, use system memory
 			levelData.data = new uint8_t[bytes];
 			levelData.memoryMapped = false;
 		} else {
 			reportInfo() << "Using memory mapping.." << reportEnd();
 			uint8_t* data;
 #ifdef WIN32
-			HANDLE hFile = CreateFile(("C:/windows/temp/fast_mmap_" + std::to_string(currentLevel) + ".bin").c_str(),
+			HANDLE hFile = CreateFile(("C:/windows/temp/fast_mmap_" + std::to_string(currentLevel) + "_" + std::to_string(m_counter) + ".bin").c_str(),
 				GENERIC_WRITE | GENERIC_READ,FILE_SHARE_READ | FILE_SHARE_WRITE,
 				NULL, OPEN_ALWAYS, NULL, NULL);
+			if(hFile == nullptr) {
+				throw Exception("Error creating memory mapped file: " + std::to_string(GetLastError()));
+			}
+
 			levelData.fileHandle = hFile;
 
 			HANDLE hMapFile = CreateFileMappingA(
@@ -80,10 +85,13 @@ void ImagePyramid::create(int width, int height, int channels, int levels) {
 				0,
 				bytes);
 			if(data == nullptr) {
-			  throw Exception("Failed to create map view of file" + std::to_string(GetLastError()));
+			  throw Exception("Failed to create map view of file: " + std::to_string(GetLastError()));
 			}
+			// TODO initialize to zero test
+			std::memset(data, 0, bytes);
+			// TODO end
 #else
-			int fd = open(("/tmp/fast_mmap_" + std::to_string(currentLevel) + ".bin").c_str(), O_RDWR | O_CREAT | O_TRUNC, (mode_t)0600);
+			int fd = open(("/tmp/fast_mmap_" + std::to_string(currentLevel) + "_" + std::to_string(m_counter) + ".bin").c_str(), O_RDWR | O_CREAT | O_TRUNC, (mode_t)0600);
 			if (fd == -1) {
 				perror("Error opening file for writing");
 				exit(EXIT_FAILURE);
@@ -115,9 +123,11 @@ void ImagePyramid::create(int width, int height, int channels, int levels) {
 			levelData.data = data;
 			levelData.memoryMapped = true;
 		}
+		m_levels.push_back(levelData);
 
 		// TODO Initialize data to zeros?
 		reportInfo() << "Done creating level " << currentLevel << reportEnd();
+		++currentLevel;
     }
 
     for(int i = 0; i < m_levels.size(); ++i) {
@@ -126,6 +136,7 @@ void ImagePyramid::create(int width, int height, int channels, int levels) {
     }
     mBoundingBox = BoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
     m_initialized = true;
+	m_counter += 1;
 }
 
 void ImagePyramid::create(openslide_t *fileHandle, std::vector<ImagePyramidLevel> levels) {
@@ -138,6 +149,7 @@ void ImagePyramid::create(openslide_t *fileHandle, std::vector<ImagePyramidLevel
     }
     mBoundingBox = BoundingBox(Vector3f(getFullWidth(), getFullHeight(), 0));
     m_initialized = true;
+	m_counter += 1;
 }
 
 ImagePyramid::ImagePyramid() {
@@ -193,6 +205,7 @@ void ImagePyramid::freeAll() {
         m_levels.clear();
     }
 	m_initialized = false;
+	m_fileHandle = nullptr;
 }
 
 ImagePyramid::~ImagePyramid() {

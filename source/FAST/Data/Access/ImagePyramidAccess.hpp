@@ -11,7 +11,7 @@ class Image;
 class ImagePyramid;
 
 typedef struct ImagePyramidPatch {
-	std::shared_ptr<uchar> data;
+	std::unique_ptr<uchar[]> data;
 	int width;
 	int height;
 	int offsetX;
@@ -37,10 +37,12 @@ public:
 	ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, SharedPointer<ImagePyramid> imagePyramid, bool writeAccess);
 	void setScalar(uint x, uint y, uint level, uint8_t value, uint channel = 0);
 	uint8_t getScalar(uint x, uint y, uint level, uint channel = 0);
+	std::unique_ptr<uchar[]> getPatchData(int level, int x, int y, int width, int height);
 	ImagePyramidPatch getPatch(std::string tile);
 	ImagePyramidPatch getPatch(int level, int patchX, int patchY);
 	SharedPointer<Image> getLevelAsImage(int level);
 	SharedPointer<Image> getPatchAsImage(int level, int offsetX, int offsetY, int width, int height);
+	SharedPointer<Image> getPatchAsImage(int level, int patchIdX, int patchIdY);
 	void release();
 	~ImagePyramidAccess();
 private:
