@@ -144,7 +144,7 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
                 int level = std::stoi(parts[0]);
                 int tile_x = std::stoi(parts[1]);
                 int tile_y = std::stoi(parts[2]);
-                std::cout << "Creating texture for tile " << tile_x << " " << tile_y << " at level " << level << std::endl;
+                //std::cout << "Creating texture for tile " << tile_x << " " << tile_y << " at level " << level << std::endl;
                 ImagePyramidPatch tile;
                 {
                     auto access = m_input->getAccess(ACCESS_READ);
@@ -172,7 +172,7 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
 
                 mTexturesToRender[tileID] = textureID;
                 memoryUsage += compressedImageSize;
-                std::cout << "Texture cache in ImagePyramidRenderer using " << (float)memoryUsage / (1024 * 1024) << " MB" << std::endl;
+                //std::cout << "Texture cache in ImagePyramidRenderer using " << (float)memoryUsage / (1024 * 1024) << " MB" << std::endl;
             }
         });
     }
@@ -198,9 +198,9 @@ void ImagePyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f viewingMatr
         levelToUse = m_input->getNrOfLevels()-1;
     if(levelToUse < 0)
         levelToUse = 0;
+    //std::cout << "Current view size: " << width << " " << height << ", level size: " << m_input->getLevelWidth(levelToUse) << " " << m_input->getLevelHeight(levelToUse) << " viewport: " << m_view->width() << " " << m_view->height() << std::endl;
     if(m_currentLevel != levelToUse) {
         // Level change, clear cache
-        std::cout << "=========== CLEARING QUEUE with size" << m_tileQueue.size() << std::endl;
         std::lock_guard<std::mutex> lock(m_tileQueueMutex);
         m_tileQueue.clear();
     }

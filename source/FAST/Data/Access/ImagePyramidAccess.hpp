@@ -36,7 +36,9 @@ public:
 	typedef std::unique_ptr<ImagePyramidAccess> pointer;
 	ImagePyramidAccess(std::vector<ImagePyramidLevel> levels, openslide_t* fileHandle, SharedPointer<ImagePyramid> imagePyramid, bool writeAccess);
 	void setScalar(uint x, uint y, uint level, uint8_t value, uint channel = 0);
+	void setScalarFast(uint x, uint y, uint level, uint8_t value, uint channel = 0) noexcept;
 	uint8_t getScalar(uint x, uint y, uint level, uint channel = 0);
+	uint8_t getScalarFast(uint x, uint y, uint level, uint channel = 0) noexcept;
 	std::unique_ptr<uchar[]> getPatchData(int level, int x, int y, int width, int height);
 	ImagePyramidPatch getPatch(std::string tile);
 	ImagePyramidPatch getPatch(int level, int patchX, int patchY);

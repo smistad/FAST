@@ -194,7 +194,7 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
                 int level = std::stoi(parts[0]);
                 int tile_x = std::stoi(parts[1]);
                 int tile_y = std::stoi(parts[2]);
-                std::cout << "Segmentation creating texture for tile " << tile_x << " " << tile_y << " at level " << level << std::endl;
+                //std::cout << "Segmentation creating texture for tile " << tile_x << " " << tile_y << " at level " << level << std::endl;
                 
                 Image::pointer patch;
                 {
@@ -299,7 +299,7 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
                 }
 
                 m_memoryUsage += compressedImageSize;
-                std::cout << "Texture cache in SegmentationPyramidRenderer using " << (float)m_memoryUsage / (1024 * 1024) << " MB" << std::endl;
+                //std::cout << "Texture cache in SegmentationPyramidRenderer using " << (float)m_memoryUsage / (1024 * 1024) << " MB" << std::endl;
             }
         });
     }
@@ -327,7 +327,7 @@ void SegmentationPyramidRenderer::draw(Matrix4f perspectiveMatrix, Matrix4f view
         levelToUse = 0;
     if(m_currentLevel != levelToUse) {
         // Level change, clear cache
-        std::cout << "=========== CLEARING QUEUE with size " << m_tileQueue.size() << std::endl;
+        //std::cout << "=========== CLEARING QUEUE with size " << m_tileQueue.size() << std::endl;
         std::lock_guard<std::mutex> lock(m_tileQueueMutex);
         m_tileQueue.clear();
     }

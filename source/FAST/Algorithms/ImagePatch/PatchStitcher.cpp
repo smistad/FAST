@@ -176,14 +176,20 @@ void PatchStitcher::processImage(SharedPointer<Image> patch) {
                 cl::NullRange
             );
         } else {
+            enableRuntimeMeasurements();
             // Image pyramid, do it on CPU TODO: optimize somehow?
             auto outputAccess = m_outputImagePyramid->getAccess(ACCESS_READ_WRITE);
             auto patchAccess = patch->getImageAccess(ACCESS_READ);
-            for(int y = startY; y < std::min(endY, fullHeight); ++y) {
-                for(int x = startX; x < std::min(endX, fullWidth); ++x) {
-                    outputAccess->setScalar(x, y, 0, (uint8_t)patchAccess->getScalar(Vector2i(x - startX, y - startY)));
+            mRuntimeManager->startRegularTimer("copy patch");
+            const int maxY = std::min(endY, fullHeight);
+            const int maxX = std::min(endX, fullWidth);
+            for(int y = startY; y < maxY; ++y) {
+                for(int x = startX; x < maxX; ++x) {
+                    outputAccess->setScalarFast(x, y, 0, patchAccess->getScalarFast<uchar>(Vector2i(x - startX, y - startY)));
                 }
             }
+            mRuntimeManager->stopRegularTimer("copy patch");
+            mRuntimeManager->getTiming("copy patch")->print();
         }
     } else {
         // 3D

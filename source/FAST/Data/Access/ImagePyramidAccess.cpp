@@ -24,17 +24,12 @@ ImagePyramidAccess::~ImagePyramidAccess() {
 	release();
 }
 
-void ImagePyramidAccess::setScalar(uint x, uint y, uint level, uint8_t value, uint channel) {
-	// Make sure it has write rights
-	if(!m_write)
-		throw Exception("ImagePyramidAccess has not write rights, but tried to write a value");
+void ImagePyramidAccess::setScalarFast(uint x, uint y, uint level, uint8_t value, uint channel) noexcept {
+    if(!m_write)
+        return;
 	auto levelData = m_levels[level];
-	if(x >= levelData.width || y >= levelData.height)
-		throw OutOfBoundsException();
-
     std::size_t pos = (x + (std::size_t)y * levelData.width) * m_image->getNrOfChannels() + channel;
 	levelData.data[pos] = value;
-
 
     // add patch to list of dirty patches
     int levelWidth = m_image->getLevelWidth(level);
@@ -50,22 +45,33 @@ void ImagePyramidAccess::setScalar(uint x, uint y, uint level, uint8_t value, ui
         int nx = x / 2;
         int ny = y / 2;
         // Calculate new average:
-        float sum = getScalar(nx*2, ny*2, level, channel);
+        float sum = getScalarFast(nx*2, ny*2, level, channel);
         int counter = 1;
         if(nx * 2 + 1 < levelWidth) {
-            sum += getScalar(nx * 2 + 1, ny * 2, level, channel);
+            sum += getScalarFast(nx * 2 + 1, ny * 2, level, channel);
             ++counter;
         }
         if(ny * 2 + 1 < levelHeight) {
-            sum += getScalar(nx * 2, ny * 2 + 1, level, channel);
+            sum += getScalarFast(nx * 2, ny * 2 + 1, level, channel);
             ++counter;
         }
         if(nx * 2 + 1 < levelWidth && ny * 2 + 1 < levelHeight) {
-            sum += getScalar(nx * 2 + 1, ny * 2 + 1, level, channel);
+            sum += getScalarFast(nx * 2 + 1, ny * 2 + 1, level, channel);
             ++counter;
         }
-        setScalar(nx, ny, level + 1, std::round(sum / counter), channel);
+        setScalarFast(nx, ny, level + 1, std::round(sum / counter), channel);
     }
+}
+
+void ImagePyramidAccess::setScalar(uint x, uint y, uint level, uint8_t value, uint channel) {
+	// Make sure it has write rights
+	if(!m_write)
+		throw Exception("ImagePyramidAccess has not write rights, but tried to write a value");
+	auto levelData = m_levels[level];
+	if(x >= levelData.width || y >= levelData.height)
+		throw OutOfBoundsException();
+
+    setScalarFast(x, y, level, value, channel);
 }
 
 uint8_t ImagePyramidAccess::getScalar(uint x, uint y, uint level, uint channel) {
@@ -74,6 +80,12 @@ uint8_t ImagePyramidAccess::getScalar(uint x, uint y, uint level, uint channel) 
 		throw OutOfBoundsException();
 	return levelData.data[(x + y * levelData.width) * m_image->getNrOfChannels() + channel];
 }
+
+uint8_t ImagePyramidAccess::getScalarFast(uint x, uint y, uint level, uint channel) noexcept {
+	auto levelData = m_levels[level];
+	return levelData.data[(x + y * levelData.width) * m_image->getNrOfChannels() + channel];
+}
+
 
 ImagePyramidPatch ImagePyramidAccess::getPatch(std::string tile) {
     auto parts = split(tile, "_");
