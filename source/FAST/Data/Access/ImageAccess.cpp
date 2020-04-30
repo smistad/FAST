@@ -3,9 +3,15 @@
 
 namespace fast {
 
-ImageAccess::ImageAccess(void* data, Image::pointer image) {
+ImageAccess::ImageAccess(void* data, Image::pointer image) : 
+        m_width(image->getWidth()), 
+        m_height(image->getHeight()), 
+        m_depth(image->getDepth()), 
+        m_channels(image->getNrOfChannels()),
+		m_dimensions(image->getDimensions()) {
     mData = data;
     mImage = image;
+
 }
 
 void ImageAccess::release() {

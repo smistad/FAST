@@ -39,56 +39,57 @@ class FAST_EXPORT  ImageAccess {
 		ImageAccess(const ImageAccess::pointer other) = delete;
 		ImageAccess::pointer operator=(const ImageAccess::pointer other) = delete;
         void* mData;
+        const int m_width, m_height, m_depth, m_channels, m_dimensions;
 
         SharedPointer<Image> mImage;
 };
 
 template <class T>
 T ImageAccess::getScalarFast(uint position, uchar channel) const noexcept {
-    return ((T*)mData)[position * mImage->getNrOfChannels() + channel];
+    return ((T*)mData)[position * m_channels + channel];
 }
 
 template <class T>
 T ImageAccess::getScalarFast(VectorXi position, uchar channel) const noexcept {
-    if(mImage->getDimensions() == 2) {
-        return ((T*)mData)[(position.x() + position.y() * mImage->getWidth()) * mImage->getNrOfChannels() + channel];
+    if(m_dimensions == 2) {
+        return ((T*)mData)[(position.x() + position.y() * m_width) * m_channels + channel];
     } else {
-        return ((T*)mData)[(position.x() + position.y() * mImage->getWidth() + position.z()*mImage->getWidth()*mImage->getHeight()) * mImage->getNrOfChannels() + channel];
+        return ((T*)mData)[(position.x() + position.y() * m_width + position.z()*m_width*m_height) * m_channels + channel];
     }
 }
 
 template <class T>
 T ImageAccess::getScalarFast2D(Vector2i position, uchar channel) const noexcept {
-	return ((T*)mData)[(position.x() + position.y() * mImage->getWidth()) * mImage->getNrOfChannels() + channel];
+	return ((T*)mData)[(position.x() + position.y() * m_width) * m_channels + channel];
 }
 
 template <class T>
 T ImageAccess::getScalarFast3D(Vector3i position, uchar channel) const noexcept {
-	return ((T*)mData)[(position.x() + position.y() * mImage->getWidth() + position.z()*mImage->getWidth()*mImage->getHeight()) * mImage->getNrOfChannels() + channel];
+	return ((T*)mData)[(position.x() + position.y() * m_width + position.z()*m_width*m_height) * m_channels + channel];
 }
 
 template <class T>
 void ImageAccess::setScalarFast(uint position, T value, uchar channel) noexcept {
-    ((T*)mData)[position * mImage->getNrOfChannels() + channel] = value;
+    ((T*)mData)[position * m_channels + channel] = value;
 }
 
 template <class T>
 void setScalarFast(VectorXi position, T value, uchar channel) noexcept {
-	if(mImage->getDimensions() == 2) {
-        ((T*)mData)[(position.x() + position.y() * mImage->getWidth()) * mImage->getNrOfChannels() + channel] = value;
+	if(m_dimensions == 2) {
+        ((T*)mData)[(position.x() + position.y() * m_width) * m_channels + channel] = value;
     } else {
-        ((T*)mData)[(position.x() + position.y() * mImage->getWidth() + position.z()*mImage->getWidth()*mImage->getHeight()) * mImage->getNrOfChannels() + channel] = value
+        ((T*)mData)[(position.x() + position.y() * m_width + position.z()*m_width*m_height) * m_channels + channel] = value
     }
 }
 
 template <class T>
 void setScalarFast2D(Vector2i position, T value, uchar channel) noexcept {
-	((T*)mData)[(position.x() + position.y() * mImage->getWidth()) * mImage->getNrOfChannels() + channel] = value;
+	((T*)mData)[(position.x() + position.y() * m_width) * m_channels + channel] = value;
 }
 
 template <class T>
 void setScalarFast3D(Vector3i position, T value, uchar channel) noexcept {
-	((T*)mData)[(position.x() + position.y() * mImage->getWidth() + position.z()*mImage->getWidth()*mImage->getHeight()) * mImage->getNrOfChannels() + channel] = value
+	((T*)mData)[(position.x() + position.y() * m_width + position.z()*m_width*m_height) * m_channels + channel] = value
 }
 
 

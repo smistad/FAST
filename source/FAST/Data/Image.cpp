@@ -1,4 +1,5 @@
 #include "Image.hpp"
+#include "FAST/Data/Access/ImageAccess.hpp"
 #include "FAST/Utility.hpp"
 #include "FAST/Exception.hpp"
 #include "FAST/Utility.hpp"

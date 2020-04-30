@@ -1,13 +1,12 @@
-#ifndef IMAGE2D_HPP
-#define IMAGE2D_HPP
+#pragma once
 
-#include "SpatialDataObject.hpp"
-#include "DataTypes.hpp"
-#include "FAST/ExecutionDevice.hpp"
-#include "FAST/Data/Access/OpenCLImageAccess.hpp"
-#include "FAST/Data/Access/OpenCLBufferAccess.hpp"
-#include "FAST/Data/Access/ImageAccess.hpp"
-#include "FAST/DeviceManager.hpp"
+#include <FAST/Data/SpatialDataObject.hpp>
+#include <FAST/Data/DataTypes.hpp>
+#include <FAST/ExecutionDevice.hpp>
+#include <FAST/Data/Access/ImageAccess.hpp>
+#include <FAST/Data/Access/OpenCLImageAccess.hpp>
+#include <FAST/Data/Access/OpenCLBufferAccess.hpp>
+#include <FAST/DeviceManager.hpp>
 #include <unordered_map>
 
 namespace fast {
@@ -371,4 +370,3 @@ void Image::create(VectorXui size, DataType type, uint nrOfChannels, ExecutionDe
 
 } // end namespace fast
 
-#endif
