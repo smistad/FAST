@@ -1,7 +1,7 @@
-#ifndef COLOR_HPP_
-#define COLOR_HPP_
+#pragma once
 
 #include "FAST/Data/DataTypes.hpp"
+#include <cctype> // std::tolower
 
 namespace fast {
 
@@ -75,4 +75,3 @@ class FAST_EXPORT  Color {
 
 }
 
-#endif
