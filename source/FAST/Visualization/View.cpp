@@ -749,20 +749,18 @@ void View::wheelEvent(QWheelEvent *event) {
             scalingHeight = orthoAspect / aspect;
         }
         // Zoom towards center
+		float targetSizeX = (mRight - mLeft) * 0.33f; // should end up with a fraction of the size
+		float targetSizeY = (mTop - mBottom) * 0.33f; // should end up with fraction of the size
         if(event->delta() > 0) {
-            float size = (mRight - mLeft) * 0.05f;
-            mLeft = mLeft + size;
-            mRight = mRight - size;
-            size = (mTop - mBottom) * 0.05f;
-            mBottom = mBottom + size;
-            mTop = mTop - size;
+            mLeft = mLeft + targetSizeX*0.5f;
+            mRight = mRight - targetSizeX*0.5f;
+            mBottom = mBottom + targetSizeY * 0.5f;
+            mTop = mTop - targetSizeY*0.5f;
         } else if(event->delta() < 0) {
-            float size = (mRight - mLeft) * 0.05f;
-            mLeft = mLeft - size;
-            mRight = mRight + size;
-            size = (mTop - mBottom) * 0.05f;
-            mBottom = mBottom - size;
-            mTop = mTop + size;
+            mLeft = mLeft - targetSizeX * 0.5f;;
+            mRight = mRight + targetSizeX*0.5f;
+            mBottom = mBottom - targetSizeY*0.5f;
+            mTop = mTop + targetSizeY*0.5f;
         }
         mPerspectiveMatrix = loadOrthographicMatrix(mLeft * scalingWidth, mRight * scalingWidth,
                                                     mBottom * scalingHeight, mTop * scalingHeight, zNear, zFar);
