@@ -45,13 +45,17 @@ set(FAST_LIBRARIES
 	Qt5Multimedia
 	Qt5MultimediaWidgets
   Qt5PrintSupport
-  JKQTCommonSharedLib_Release
-  JKQTPlotterSharedLib_Release
-  JKQTFastPlotterSharedLib_Release
 	${OpenCL_LIBRARIES}
 	${OPENGL_LIBRARIES}
 	${X11_LIBRARIES}
 )
+if(@FAST_MODULE_Plotting@)
+    list(APPEND FAST_LIBRARIES
+      JKQTCommonSharedLib_Release
+      JKQTPlotterSharedLib_Release
+      JKQTFastPlotterSharedLib_Release
+    )
+endif()
 set(FAST_USE_FILE "${CMAKE_CURRENT_LIST_DIR}/FASTUse.cmake")
 
 message(STATUS "-- FAST package and dependencies found: ")
